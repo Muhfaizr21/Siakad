@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#00236f",
+                        "surface-bright": "#fcf9f8",
+                        "on-primary-fixed": "#00164e",
+                        "outline-variant": "#c5c5d3",
+                        "on-tertiary-fixed": "#141b2c",
+                        "secondary-fixed": "#d4e4fa",
+                        "inverse-primary": "#b6c4ff",
+                        "tertiary-container": "#394053",
+                        "on-background": "#1b1c1c",
+                        "surface-container-high": "#eae7e7",
+                        "primary-container": "#1e3a8a",
+                        "secondary-fixed-dim": "#b9c8de",
+                        "secondary-container": "#d2e1f7",
+                        "surface-container-highest": "#e5e2e1",
+                        "background": "#fcf9f8",
+                        "primary-fixed-dim": "#b6c4ff",
+                        "surface-container": "#f0eded",
+                        "tertiary": "#232a3c",
+                        "inverse-surface": "#303030",
+                        "on-error": "#ffffff",
+                        "surface-container-low": "#f6f3f2",
+                        "on-error-container": "#93000a",
+                        "on-primary-fixed-variant": "#264191",
+                        "on-primary-container": "#90a8ff",
+                        "on-primary": "#ffffff",
+                        "surface-tint": "#4059aa",
+                        "surface-dim": "#dcd9d9",
+                        "on-tertiary-container": "#a5acc2",
+                        "primary-fixed": "#dce1ff",
+                        "on-secondary": "#ffffff",
+                        "error": "#ba1a1a",
+                        "on-surface": "#1b1c1c",
+                        "surface": "#fcf9f8",
+                        "tertiary-fixed": "#dbe2fa",
+                        "tertiary-fixed-dim": "#bfc6dd"
+                    },
+                    fontFamily: {
+                        "headline": ["Plus Jakarta Sans"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    },
+                    borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" },
+                },
+            },
+        }
+    </script>
+    <style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+
+        .academic-blur {
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+
+        .tonal-layering {
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05);
+        }
+    </style>
+</head>
+
+<body class="bg-surface font-body text-on-surface selection:bg-primary-fixed selection:text-on-primary-fixed">
+    <!-- TopNavBar: Fixed Navigation -->
+    <nav
+        class="fixed top-0 w-full z-50 bg-[#fcf9f8]/80 dark:bg-slate-950/80 backdrop-blur-xl shadow-sm dark:shadow-none">
+        <div class="flex justify-between items-center px-8 h-16 w-full max-w-full">
+            <div class="flex items-center gap-8">
+                <span class="text-xl font-bold text-[#00236f] dark:text-blue-400 font-headline">BKU Student Hub</span>
+                <div class="hidden md:flex gap-6">
+                    <a class="text-slate-600 dark:text-slate-400 hover:text-[#00236f] font-headline font-medium tracking-tight transition-all duration-300 hover:opacity-80"
+                        href="#">Dashboard</a>
+                    <a class="text-slate-600 dark:text-slate-400 hover:text-[#00236f] font-headline font-medium tracking-tight transition-all duration-300 hover:opacity-80"
+                        href="#">Courses</a>
+                    <a class="text-slate-600 dark:text-slate-400 hover:text-[#00236f] font-headline font-medium tracking-tight transition-all duration-300 hover:opacity-80"
+                        href="#">Library</a>
+                    <a class="text-slate-600 dark:text-slate-400 hover:text-[#00236f] font-headline font-medium tracking-tight transition-all duration-300 hover:opacity-80"
+                        href="#">Services</a>
+                </div>
+            </div>
+            <div class="flex items-center gap-4">
+                <div class="hidden sm:flex items-center gap-2">
+                    <span class="material-symbols-outlined text-slate-500" data-icon="help_outline">help_outline</span>
+                    <span class="material-symbols-outlined text-slate-500"
+                        data-icon="notifications">notifications</span>
+                </div>
+                <button
+                    class="bg-primary text-on-primary px-6 py-2 rounded-xl font-headline font-semibold transition-all duration-300 hover:scale-[1.02] active:scale-95 shadow-lg shadow-primary/20">
+                    Login
+                </button>
+            </div>
+        </div>
+    </nav>
+    <!-- Hero/Login Canvas -->
+    <main class="relative min-h-screen flex items-center justify-center pt-16 overflow-hidden">
+        <!-- Background Layer: Editorial Tonal Transition -->
+        <div class="absolute inset-0 z-0">
+            <div class="absolute inset-0 bg-gradient-to-br from-surface to-surface-container-low opacity-90"></div>
+            <img alt="BKU Campus" class="w-full h-full object-cover mix-blend-overlay opacity-30"
+                data-alt="Modern university campus architecture with sleek glass buildings and green lawns under a soft morning sky, professional academic atmosphere."
+                src="https://lh3.googleusercontent.com/aida-public/AB6AXuCs8mZVr9W5GMzV39aWL82YLk4swsv-F22zXYi_0BqR2o8GP1OUWIVa69NHAYdwZGDTeufIQ-w39OCXrmZlSXMGDkJf5wymg3Ylwt-f1XQ08-_Nhc1yepaHLt0Pu7xnE4fLxYh4uL8cCVHvmUUOPjjhP9ei21h80-kvX2HjOlFxwbBp8ji9JqPBEDs8AibnpBrKgijJuuqQyll7kZx6XVAJczmBYtN_aA0EoTBv_gl1Zlq8nR4kWE1ApDTN31Iw295cIbDJs76Q3nEr" />
+        </div>
+        <!-- Floating Decorative Elements -->
+        <div class="absolute top-1/4 left-10 w-64 h-64 bg-primary/5 rounded-full blur-3xl"></div>
+        <div class="absolute bottom-1/4 right-10 w-96 h-96 bg-primary-container/5 rounded-full blur-3xl"></div>
+        <!-- Centered Login Card -->
+        <section class="relative z-10 w-full max-w-md px-6 py-12">
+            <div
+                class="bg-surface-container-lowest rounded-[2rem] p-8 md:p-10 tonal-layering border border-outline-variant/10">
+                <div class="flex flex-col items-center mb-10">
+                    <div
+                        class="w-16 h-16 bg-primary-fixed rounded-2xl flex items-center justify-center mb-4 text-primary">
+                        <span class="material-symbols-outlined text-3xl font-bold" data-icon="school">school</span>
+                    </div>
+                    <h1 class="text-3xl font-extrabold text-on-background font-headline tracking-tight text-center">
+                        Welcome Back</h1>
+                    <p class="text-on-surface-variant font-body text-sm mt-2 text-center">Secure access to your academic
+                        journey</p>
+                </div>
+                <form class="space-y-6">
+                    <div class="space-y-2">
+                        <label class="text-sm font-semibold text-on-surface-variant font-label ml-1" for="id">Email or
+                            NIM</label>
+                        <div class="relative group">
+                            <span
+                                class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline group-focus-within:text-primary transition-colors"
+                                data-icon="person">person</span>
+                            <input
+                                class="w-full pl-12 pr-4 py-4 bg-surface-container-low border-0 rounded-xl font-body text-on-surface focus:ring-2 focus:ring-primary/20 focus:bg-surface-container-lowest transition-all placeholder:text-outline/60"
+                                id="id" placeholder="yourname@student.bku.ac.id" type="text" />
+                        </div>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="flex justify-between items-center px-1">
+                            <label class="text-sm font-semibold text-on-surface-variant font-label"
+                                for="password">Password</label>
+                            <a class="text-xs font-bold text-primary hover:underline transition-all" href="#">Forgot
+                                Password?</a>
+                        </div>
+                        <div class="relative group">
+                            <span
+                                class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline group-focus-within:text-primary transition-colors"
+                                data-icon="lock">lock</span>
+                            <input
+                                class="w-full pl-12 pr-12 py-4 bg-surface-container-low border-0 rounded-xl font-body text-on-surface focus:ring-2 focus:ring-primary/20 focus:bg-surface-container-lowest transition-all placeholder:text-outline/60"
+                                id="password" placeholder="••••••••" type="password" />
+                            <span
+                                class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-outline cursor-pointer hover:text-on-surface-variant"
+                                data-icon="visibility">visibility</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2 px-1">
+                        <input class="w-4 h-4 rounded-sm border-outline-variant text-primary focus:ring-primary/20"
+                            id="remember" type="checkbox" />
+                        <label class="text-xs text-on-surface-variant font-medium" for="remember">Keep me logged in on
+                            this device</label>
+                    </div>
+                    <button
+                        class="w-full bg-primary text-on-primary py-4 rounded-xl font-headline font-bold text-lg transition-all duration-300 hover:bg-primary-container hover:shadow-xl hover:shadow-primary/20 active:scale-[0.98] mt-2"
+                        type="submit">
+                        Sign In to Hub
+                    </button>
+                </form>
+                <div class="mt-8 pt-8 border-t border-outline-variant/10 text-center">
+                    <p class="text-xs text-on-surface-variant font-body">
+                        New student? <a class="text-primary font-bold hover:underline" href="#">Request portal
+                            access</a>
+                    </p>
+                </div>
+            </div>
+            <!-- Contextual Support Prompt -->
+            <div class="mt-6 flex justify-center gap-4 text-on-surface-variant/60 font-medium text-xs">
+                <span class="flex items-center gap-1"><span class="material-symbols-outlined text-sm"
+                        data-icon="verified_user">verified_user</span> Encrypted Session</span>
+                <span class="flex items-center gap-1"><span class="material-symbols-outlined text-sm"
+                        data-icon="contact_support">contact_support</span> 24/7 Support</span>
+            </div>
+        </section>
+    </main>
+    <!-- Footer: Tonal Separation -->
+    <footer class="w-full py-12 bg-[#fcf9f8] dark:bg-slate-950 border-t border-slate-200/15">
+        <div class="max-w-7xl mx-auto px-8 flex flex-col items-center gap-6">
+            <div class="flex flex-wrap justify-center gap-8 text-sm font-headline">
+                <a class="text-slate-500 hover:text-[#00236f] transition-colors" href="#">Privacy Policy</a>
+                <a class="text-slate-500 hover:text-[#00236f] transition-colors" href="#">Terms of Service</a>
+                <a class="text-slate-500 hover:text-[#00236f] transition-colors" href="#">Accessibility</a>
+                <a class="text-slate-500 hover:text-[#00236f] transition-colors" href="#">Contact Support</a>
+            </div>
+            <div class="flex items-center gap-4 py-4">
+                <div class="w-8 h-px bg-outline-variant/30"></div>
+                <span class="text-md font-bold text-slate-900 dark:text-white font-headline">BKU</span>
+                <div class="w-8 h-px bg-outline-variant/30"></div>
+            </div>
+            <p class="font-body text-sm text-slate-400">© 2024 BKU Student Hub. All Rights Reserved.</p>
+            <div class="flex gap-4 opacity-40 grayscale hover:grayscale-0 hover:opacity-100 transition-all">
+                <span class="material-symbols-outlined cursor-pointer" data-icon="language">language</span>
+                <span class="material-symbols-outlined cursor-pointer" data-icon="hub">hub</span>
+                <span class="material-symbols-outlined cursor-pointer" data-icon="public">public</span>
+            </div>
+        </div>
+    </footer>
+</body>
+
+</html>
