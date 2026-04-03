@@ -1,6 +1,23 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 
 export default function LoginPage() {
+    const [dbStatus, setDbStatus] = useState("Checking database connection...");
+
+    useEffect(() => {
+        fetch("http://localhost:8000/api/health")
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === "success") {
+                    setDbStatus("🟢 Database 'siakad' Connected successfully via Golang Backend");
+                } else {
+                    setDbStatus("🔴 Database Connection error");
+                }
+            })
+            .catch(err => {
+                setDbStatus("🔴 Backend is offline");
+            });
+    }, []);
+
     return (
         <div className="bg-surface font-body text-on-surface selection:bg-primary-fixed selection:text-on-primary-fixed min-h-screen flex flex-col">
             {/* TopNavBar: Fixed Navigation */}
@@ -53,6 +70,7 @@ export default function LoginPage() {
                             </div>
                             <h1 className="text-3xl font-extrabold text-on-background font-headline tracking-tight text-center">Welcome Back</h1>
                             <p className="text-on-surface-variant font-body text-sm mt-2 text-center">Secure access to your academic journey</p>
+                            <p className="font-body text-xs font-bold mt-4 px-4 py-2 bg-slate-100 rounded-full border border-slate-200">{dbStatus}</p>
                         </div>
 
                         <form className="space-y-6" onSubmit={(e) => e.preventDefault()}>
