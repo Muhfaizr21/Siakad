@@ -1,102 +1,18 @@
 import React from 'react';
+import Sidebar from './components/Sidebar';
+import TopNavBar from './components/TopNavBar';
 
 const AdminDashboard = () => {
   return (
     <div className="bg-surface text-on-surface min-h-screen flex">
       {/* SideNavBar (The Anchor) */}
-      <aside className="h-screen w-72 fixed left-0 top-0 flex flex-col bg-slate-50 border-r border-slate-200/50 z-50 font-['Plus_Jakarta_Sans'] text-sm tracking-wide">
-        <div className="flex flex-col h-full py-8 px-4">
-          {/* Header Brand */}
-          <div className="px-4 mb-10 flex items-center gap-3">
-            <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center text-white">
-              <span className="material-symbols-outlined">account_balance</span>
-            </div>
-            <div>
-              <h1 className="text-lg font-extrabold text-blue-900 leading-tight">Super Admin</h1>
-              <p className="text-[10px] uppercase tracking-widest text-secondary font-bold">Institutional Control</p>
-            </div>
-          </div>
-          
-          {/* Primary Navigation */}
-          <nav className="flex-1 space-y-1">
-            {/* Analytics is Active by Intent */}
-            <div className="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-600 hover:bg-slate-100 transition-all cursor-pointer">
-              <span className="material-symbols-outlined">group</span>
-              <span>User Management</span>
-            </div>
-            <div className="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-600 hover:bg-slate-100 transition-all cursor-pointer">
-              <span className="material-symbols-outlined">gavel</span>
-              <span>Content Moderation</span>
-            </div>
-            <div className="flex items-center gap-3 px-4 py-3 rounded-lg text-blue-900 font-bold border-r-4 border-blue-900 bg-blue-50/50 transition-all cursor-pointer">
-              <span className="material-symbols-outlined">analytics</span>
-              <span>Analytics</span>
-            </div>
-            <div className="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-600 hover:bg-slate-100 transition-all cursor-pointer">
-              <span className="material-symbols-outlined">settings_suggest</span>
-              <span>System Settings</span>
-            </div>
-          </nav>
-
-          {/* CTA */}
-          <div className="mt-auto px-4 py-6">
-            <button className="w-full py-3 bg-primary text-white rounded-xl font-bold flex items-center justify-center gap-2 shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-transform duration-200">
-              <span className="material-symbols-outlined text-sm">description</span>
-              Generate Report
-            </button>
-          </div>
-
-          {/* Footer Navigation */}
-          <div className="border-t border-slate-200/50 pt-4 space-y-1">
-            <div className="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-600 hover:bg-slate-100 transition-all cursor-pointer">
-              <span className="material-symbols-outlined">help</span>
-              <span>Support</span>
-            </div>
-            <div className="flex items-center gap-3 px-4 py-3 rounded-lg text-error hover:bg-error-container/20 transition-all cursor-pointer">
-              <span className="material-symbols-outlined">logout</span>
-              <span>Logout</span>
-            </div>
-          </div>
-        </div>
-      </aside>
+      <Sidebar />
 
       {/* Main Canvas Area */}
       <main className="pl-72 flex flex-col min-h-screen w-full">
         {/* TopNavBar */}
-        <header className="bg-white/80 backdrop-blur-md sticky top-0 z-40 h-16 w-full flex justify-between items-center px-8 shadow-sm border-b border-slate-100">
-          <div className="flex items-center gap-8">
-            <span className="text-xl font-bold text-blue-900 font-headline">ScholarAdmin</span>
-            <div className="relative hidden lg:block">
-              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">search</span>
-              <input 
-                className="pl-10 pr-4 py-1.5 bg-slate-100 border-none rounded-full text-sm w-64 focus:ring-2 focus:ring-primary/20 transition-all outline-none" 
-                placeholder="Search system logs..." 
-                type="text"
-              />
-            </div>
-          </div>
-          
-          <div className="flex items-center gap-4">
-            <button className="w-10 h-10 rounded-full flex items-center justify-center text-slate-500 hover:bg-slate-50 active:scale-95 duration-150">
-              <span className="material-symbols-outlined">notifications</span>
-            </button>
-            <button className="w-10 h-10 rounded-full flex items-center justify-center text-slate-500 hover:bg-slate-50 active:scale-95 duration-150">
-              <span className="material-symbols-outlined">settings</span>
-            </button>
-            <div className="h-8 w-[1px] bg-slate-200 mx-2"></div>
-            <div className="flex items-center gap-3">
-              <div className="text-right hidden sm:block">
-                <p className="text-xs font-bold text-blue-900 leading-none">Dr. Alistair Vance</p>
-                <p className="text-[10px] text-slate-500 uppercase tracking-tighter">Chief Administrator</p>
-              </div>
-              <img 
-                alt="Admin profile avatar" 
-                className="w-9 h-9 rounded-full object-cover ring-2 ring-primary/10" 
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuA-QFz6DxL_6veniCvvqcgL0i3uU-goBPtcUdMnePhN0t9PuSycPNRucLWuv-y450n-dqR1cSA4JpPjvIGRAOtQ93RoFdjeeSzhcPj3lyWFjQRyhBm9Y5hDADLABdgpl7sYKxMjEf4OAyVSxS9629HgFL_v0y2E4aaqG_KAKeExdD3BYTPvF91n6RzNZCype0w4LY5NauYExImWLDF_UjoQU6LJqU2RqOXKH1yPjXsMSaCnn-92wzXSHzUxJ4P4oDloY370Lfi07bcF" 
-              />
-            </div>
-          </div>
-        </header>
+        <TopNavBar />
+
 
         {/* Page Content */}
         <div className="p-8 max-w-7xl mx-auto w-full space-y-8">

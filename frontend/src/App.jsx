@@ -1,5 +1,9 @@
 import React from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
+import Landing from './pages/Landing/Landing'
+import About from './pages/About/About'
+import Academic from './pages/Academic/Academic'
+import Services from './pages/Services/Services'
 import Login from './pages/Login/Login'
 import AdminDashboard from './pages/SuperAdmin/AdminDashboard'
 import FacultyDashboard from './pages/FacultyAdmin/FacultyDashboard'
@@ -11,8 +15,17 @@ function App() {
   return (
     <Router>
       <Routes>
-        {/* Default route ke Login */}
-        <Route path="/" element={<Navigate to="/login" />} />
+        {/* Default route ke Landing */}
+        <Route path="/" element={<Landing />} />
+
+        {/* Halaman About */}
+        <Route path="/about" element={<About />} />
+
+        {/* Halaman Academic */}
+        <Route path="/academic" element={<Academic />} />
+
+        {/* Halaman Services */}
+        <Route path="/services" element={<Services />} />
         
         {/* Halaman Login */}
         <Route path="/login" element={<Login />} />
