@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"siakad-backend/config"
+	"siakad-backend/routes"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
@@ -32,6 +33,9 @@ func main() {
 		AllowHeaders: "Origin, Content-Type, Accept, Authorization",
 	}))
 
+	// Serve Static Files
+	app.Static("/uploads", "./uploads")
+
 	// Basic route to check if DB is connected
 	app.Get("/api/health", func(c *fiber.Ctx) error {
 		// Ping DB
@@ -45,6 +49,9 @@ func main() {
 		}
 		return c.JSON(fiber.Map{"status": "success", "message": "Backend API is running and Database is fully connected!"})
 	})
+
+	// Setup Ormawa Routes
+	routes.SetupOrmawaRoutes(app)
 
 	// Start server
 	port := os.Getenv("PORT")

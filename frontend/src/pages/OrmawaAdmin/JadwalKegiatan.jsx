@@ -1,0 +1,462 @@
+import React, { useState, useEffect } from 'react';
+import Sidebar from './components/Sidebar';
+import TopNavBar from './components/TopNavBar';
+import { useAuth } from '../../context/AuthContext';
+
+const JadwalKegiatan = () => {
+  const { user } = useAuth();
+  const ormawaId = user?.ormawaId || 1;
+  const [events, setEvents] = useState([]);
+  const [viewMode, setViewMode] = useState('calendar'); 
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isDatePickerOpen, setIsDatePickerOpen] = useState(false); // New state for custom picker
+  const [editingId, setEditingId] = useState(null);
+  const [conflictWarning, setConflictWarning] = useState(null);
+  const [currDate, setCurrDate] = useState(new Date()); // New state for navigation
+  const [formData, setFormData] = useState({
+    title: '', date: '', startTime: '', endTime: '', location: '', type: 'internal', reminder: false
+  });
+
+  const openAddModal = (initialDate = null) => {
+    setFormData({
+      title: '', 
+      date: initialDate || '', 
+      startTime: '', 
+      endTime: '', 
+      location: '', 
+      type: 'internal', 
+      reminder: false
+    });
+    setIsModalOpen(true);
+  };
+
+  useEffect(() => {
+    fetchEvents();
+  }, [ormawaId]);
+
+  const fetchEvents = async () => {
+    try {
+      const res = await fetch(`http://localhost:8000/api/ormawa/events?ormawaId=${ormawaId}`);
+      const data = await res.json();
+      if (data.status === 'success') setEvents(data.data);
+    } catch (e) { console.error(e); }
+  };
+
+  const deleteEvent = async (id) => {
+    if (!window.confirm("Hapus permanen kegiatan ini?")) return;
+    try {
+       const res = await fetch(`http://localhost:8000/api/ormawa/events/${id}`, { method: 'DELETE' });
+       if (res.ok) fetchEvents();
+    } catch (e) { console.error(e); }
+  };
+
+  const loadEventForEdit = (ev) => {
+    setEditingId(ev.id);
+    setFormData({
+      title: ev.title,
+      date: ev.startDate ? ev.startDate.split('T')[0] : '',
+      startTime: ev.startDate ? new Date(ev.startDate).toTimeString().slice(0,5) : '',
+      endTime: ev.endDate ? new Date(ev.endDate).toTimeString().slice(0,5) : '',
+      location: ev.location,
+      type: ev.description || 'internal',
+      reminder: ev.reminder || false
+    });
+    setIsModalOpen(true);
+  };
+
+  const getDayGrid = () => {
+    const year = currDate.getFullYear();
+    const month = currDate.getMonth();
+    const firstDay = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    
+    let grid = [];
+    // Padding from prev month
+    for(let i = 0; i < firstDay; i++) {
+       grid.push({ type: 'empty', id: `empty-${i}` });
+    }
+    // Days in current month
+    for(let i = 1; i <= daysInMonth; i++) {
+      const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+      grid.push({ type: 'day', dateStr, dayNum: i });
+    }
+    return grid;
+  };
+
+  const days = getDayGrid();
+
+  const changeMonth = (offset) => {
+    setCurrDate(new Date(currDate.getFullYear(), currDate.getMonth() + offset, 1));
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setFormData(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
+    setConflictWarning(null); 
+  };
+
+  const checkConflict = () => {
+    const conflict = (events || []).find(ev => ev.startDate && ev.startDate.startsWith(formData.date) && ev.status === 'terjadwal');
+    if(conflict) {
+      setConflictWarning(`Peringatan Konflik! Sudah ada kegiatan: "${conflict.title}" pada lokasi ${conflict.location} di hari yang sama.`);
+      return true;
+    }
+    return false;
+  };
+
+  const saveEvent = async (e) => {
+    e.preventDefault();
+    if(checkConflict() && !conflictWarning) return; 
+    
+    try {
+      const start = new Date(`${formData.date}T${formData.startTime}`);
+      const end = new Date(`${formData.date}T${formData.endTime}`);
+      
+      const method = editingId ? 'PUT' : 'POST';
+      const url = editingId ? `http://localhost:8000/api/ormawa/events/${editingId}` : 'http://localhost:8000/api/ormawa/events';
+
+      const res = await fetch(url, {
+        method: method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: formData.title,
+          description: formData.type,
+          startDate: start.toISOString(),
+          endDate: end.toISOString(),
+          location: formData.location,
+          ormawaId: ormawaId
+        })
+      });
+
+      if (res.ok) {
+        setIsModalOpen(false);
+        setEditingId(null);
+        setFormData({ title: '', date: '', startTime: '', endTime: '', location: '', type: 'internal', reminder: false });
+        fetchEvents();
+      }
+    } catch (e) { console.error(e); }
+  };
+
+  const cancelEvent = async (id) => {
+    if (!window.confirm("Hapus kegiatan ini?")) return;
+    try {
+      const res = await fetch(`http://localhost:8000/api/ormawa/events/${id}`, {
+        method: 'PUT',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ status: 'dibatalkan' })
+      });
+      if (res.ok) fetchEvents();
+    } catch (e) { console.error(e); }
+  };
+
+  return (
+    <div className="bg-surface text-on-surface min-h-screen">
+      <Sidebar />
+      <main className="ml-64 min-h-screen pb-12">
+        <TopNavBar />
+        
+        <div className="pt-24 px-8">
+          
+          {/* Header */}
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+            <div>
+              <h1 className="text-3xl font-extrabold font-headline mb-2 text-on-surface">Jadwal & Kalender Kegiatan</h1>
+              <p className="text-on-surface-variant text-sm font-medium">Manajemen jadwal operasional, pendeteksian konflik area, dan pengingat keanggotaan.</p>
+            </div>
+            <div className="flex items-center gap-4 bg-surface-container-low p-2 rounded-2xl border border-outline-variant/20 shadow-sm">
+                <button 
+                  onClick={() => setViewMode('calendar')}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all ${viewMode === 'calendar' ? 'bg-primary text-white shadow-md' : 'text-on-surface-variant hover:bg-surface-container-high'}`}
+                >
+                  <span className="material-symbols-outlined text-[18px]">calendar_month</span>
+                  Kalender
+                </button>
+                <button 
+                  onClick={() => setViewMode('list')}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all ${viewMode === 'list' ? 'bg-primary text-white shadow-md' : 'text-on-surface-variant hover:bg-surface-container-high'}`}
+                >
+                  <span className="material-symbols-outlined text-[18px]">view_list</span>
+                  Daftar Master
+                </button>
+            </div>
+          </div>
+
+          <div className="mb-6 flex justify-between items-center bg-surface-container-lowest p-6 rounded-3xl border border-outline-variant/20 shadow-sm relative">
+             <div className="flex items-center gap-1">
+                <button onClick={() => changeMonth(-1)} className="w-12 h-12 rounded-2xl hover:bg-surface-container flex items-center justify-center text-on-surface-variant transition-all hover:scale-105 active:scale-95 border border-outline-variant/10">
+                  <span className="material-symbols-outlined text-[24px]">chevron_left</span>
+                </button>
+                
+                <button 
+                  onClick={() => setIsDatePickerOpen(!isDatePickerOpen)}
+                  className="px-6 h-12 rounded-2xl hover:bg-surface-container flex items-center gap-3 text-primary transition-all hover:scale-[1.02] active:scale-95 border border-outline-variant/10 group"
+                >
+                    <span className="material-symbols-outlined text-primary group-hover:rotate-12 transition-transform">event_note</span>
+                    <span className="text-xl font-bold font-headline">
+                      {currDate.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' })}
+                    </span>
+                    <span className="material-symbols-outlined text-outline transition-transform duration-300" style={{ transform: isDatePickerOpen ? 'rotate(180deg)' : 'rotate(0)' }}>expand_more</span>
+                </button>
+
+                <button onClick={() => changeMonth(1)} className="w-12 h-12 rounded-2xl hover:bg-surface-container flex items-center justify-center text-on-surface-variant transition-all hover:scale-105 active:scale-95 border border-outline-variant/10">
+                  <span className="material-symbols-outlined text-[24px]">chevron_right</span>
+                </button>
+
+                {/* Custom Date Picker Popup */}
+                {isDatePickerOpen && (
+                  <div className="absolute top-[3.5rem] left-0 z-[100] bg-white border border-outline-variant/30 shadow-[0_20px_50px_rgba(0,0,0,0.15)] rounded-[2rem] p-6 animate-in fade-in slide-in-from-top-2 duration-300 min-w-[340px] backdrop-blur-md">
+                    <div className="flex justify-between items-center mb-4 pb-2 border-b border-outline-variant/10">
+                      <h3 className="text-sm font-bold text-primary font-headline uppercase tracking-widest">Pilih Waktu</h3>
+                      <button onClick={() => setIsDatePickerOpen(false)} className="material-symbols-outlined text-on-surface-variant hover:text-primary">close</button>
+                    </div>
+                    
+                    <div className="grid grid-cols-3 gap-2 mb-6">
+                      {['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'].map((m, i) => (
+                        <button 
+                          key={m}
+                          onClick={() => {
+                            setCurrDate(new Date(currDate.getFullYear(), i, 1));
+                            setIsDatePickerOpen(false);
+                          }}
+                          className={`py-3 rounded-xl text-xs font-bold transition-all ${currDate.getMonth() === i ? 'bg-primary text-white shadow-xl shadow-primary/20 scale-105' : 'hover:bg-surface-container text-on-surface-variant'}`}
+                        >
+                          {m}
+                        </button>
+                      ))}
+                    </div>
+                    
+                    <div className="grid grid-cols-4 gap-2 border-t border-outline-variant/10 pt-4 max-h-56 overflow-y-auto pr-2 custom-scrollbar">
+                      {Array.from({ length: 100 }, (_, i) => 2000 + i).map(y => (
+                        <button 
+                          key={y}
+                          id={y === currDate.getFullYear() ? 'selected-year' : ''}
+                          onClick={() => {
+                            setCurrDate(new Date(y, currDate.getMonth(), 1));
+                            setIsDatePickerOpen(false);
+                          }}
+                          className={`py-3 rounded-xl text-xs font-bold transition-all ${currDate.getFullYear() === y ? 'bg-primary text-white shadow-xl shadow-primary/20 scale-105' : 'hover:bg-surface-container text-on-surface-variant'}`}
+                        >
+                          {y}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+             </div>
+
+             <div className="flex gap-4">
+                <button 
+                  onClick={() => setCurrDate(new Date())}
+                  className="px-6 py-3.5 bg-surface-container-high text-on-surface-variant font-bold rounded-2xl border border-outline-variant/20 transition-all hover:bg-surface-container-highest active:scale-95 flex items-center gap-2"
+                >
+                  Hari Ini
+                </button>
+                <button 
+                   onClick={() => openAddModal()}
+                   className="px-6 py-3.5 bg-primary text-white font-bold rounded-2xl shadow-xl shadow-primary/20 flex items-center gap-2 transition-all hover:scale-[1.02] active:scale-95"
+                >
+                  <span className="material-symbols-outlined">add_circle</span> Tambah Kegiatan Baru
+                </button>
+             </div>
+          </div>
+
+          {/* Render Calendar View */}
+          {viewMode === 'calendar' && (
+            <div className="grid grid-cols-7 gap-px bg-outline-variant/20 border border-outline-variant/20 rounded-3xl overflow-hidden shadow-sm">
+              {['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'].map(day => (
+                <div key={day} className="bg-surface-container-lowest text-center py-4 font-bold text-sm text-secondary uppercase tracking-widest">{day}</div>
+              ))}
+              
+              {days.map(item => {
+                 if (item.type === 'empty') return <div key={item.id} className="bg-surface-container-low/20 h-32 border-t border-outline-variant/10"></div>;
+                 
+                 const dateStr = item.dateStr;
+                 const dayEvents = (events || []).filter(e => e.startDate && e.startDate.startsWith(dateStr));
+                 return (
+                   <div 
+                     key={dateStr} 
+                     onClick={() => openAddModal(dateStr)}
+                     className="bg-surface p-2 h-32 hover:bg-surface-container-lowest transition-all relative border-t border-outline-variant/10 overflow-y-auto cursor-pointer group/day"
+                   >
+                     <div className="flex justify-between items-start mb-1">
+                       <span className="text-xs font-bold w-6 h-6 flex items-center justify-center rounded-full text-on-surface-variant group-hover/day:bg-primary group-hover/day:text-white transition-colors">
+                         {item.dayNum}
+                       </span>
+                       <span className="material-symbols-outlined text-[14px] opacity-0 group-hover/day:opacity-100 text-primary transition-opacity">add</span>
+                     </div>
+                     <div className="flex flex-col gap-1">
+                       {dayEvents.map(ev => (
+                         <div 
+                           key={ev.id} 
+                           onClick={(e) => e.stopPropagation()} // Prevent opening modal when clicking on event
+                           className="px-2 py-1 flex flex-col rounded-md text-[10px] font-semibold border-l-2 leading-tight bg-blue-50 border-blue-500 text-blue-700"
+                         >
+                           <span className="truncate">{ev.startDate ? new Date(ev.startDate).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : ''} {ev.title}</span>
+                         </div>
+                       ))}
+                     </div>
+                   </div>
+                 )
+              })}
+            </div>
+          )}
+
+          {/* Render List View */}
+          {viewMode === 'list' && (
+            <div className="bg-surface-container-lowest border border-outline-variant/20 rounded-3xl shadow-sm overflow-hidden">
+               <table className="w-full text-left text-sm">
+                 <thead className="bg-surface-container-low/50 text-xs uppercase text-on-surface-variant font-label border-b border-outline-variant/20">
+                   <tr>
+                     <th className="px-6 py-5 font-bold">Informasi Kegiatan</th>
+                     <th className="px-6 py-5 font-bold">Waktu & Tempat</th>
+                     <th className="px-6 py-5 font-bold text-center">Notifikasi</th>
+                     <th className="px-6 py-5 font-bold text-center">Status</th>
+                     <th className="px-6 py-5 font-bold text-right">Aksi</th>
+                   </tr>
+                 </thead>
+                 <tbody className="divide-y divide-outline-variant/10">
+                    {(events || []).map((ev) => (
+                      <tr key={ev.id} className="hover:bg-surface-container-low/30 group">
+                        <td className="px-6 py-4">
+                          <div className="font-bold font-headline text-base text-primary mb-1">{ev.title}</div>
+                          <div className="text-xs font-semibold text-on-surface-variant flex items-center gap-2">
+                            <span className={`px-2 py-0.5 rounded-md ${ev.description === 'internal' ? 'bg-blue-100 text-blue-700' : ev.description === 'eksternal' ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'}`}>
+                              {ev.description ? ev.description.toUpperCase() : 'EVENT'}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="font-semibold">{new Date(ev.startDate).toLocaleDateString()}</div>
+                          <div className="text-xs text-on-surface-variant mt-1 flex items-center gap-1"><span className="material-symbols-outlined text-[14px]">schedule</span> {new Date(ev.startDate).toLocaleTimeString()} - {new Date(ev.endDate).toLocaleTimeString()}</div>
+                          <div className="text-xs text-on-surface-variant mt-1 flex items-center gap-1"><span className="material-symbols-outlined text-[14px]">location_on</span> {ev.location}</div>
+                        </td>
+                        <td className="px-6 py-4 text-center">
+                          {ev.reminder ? (
+                            <div className="flex flex-col items-center justify-center text-emerald-600 gap-1">
+                              <span className="material-symbols-outlined text-[20px]">notifications_active</span>
+                              <span className="text-[10px] font-bold uppercase">H-1 Auto</span>
+                            </div>
+                          ) : (
+                            <span className="material-symbols-outlined text-slate-300">notifications_off</span>
+                          )}
+                        </td>
+                        <td className="px-6 py-4 text-center">
+                          {ev.status === 'terjadwal' ? (
+                            <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide">Terjadwal</span>
+                          ) : (
+                            <span className="bg-surface-container-high text-on-surface-variant px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide line-through">Dibatalkan</span>
+                          )}
+                        </td>
+                        <td className="px-6 py-4 text-right">
+                          <button onClick={() => loadEventForEdit(ev)} className="p-2 text-on-surface-variant hover:text-primary transition-colors"><span className="material-symbols-outlined text-[20px]">edit</span></button>
+                          <button onClick={() => deleteEvent(ev.id)} className="p-2 text-on-surface-variant hover:text-rose-500 transition-colors ml-2"><span className="material-symbols-outlined text-[20px]">delete</span></button>
+                          {ev.status === 'terjadwal' && (
+                            <button onClick={() => cancelEvent(ev.id)} className="p-2 text-on-surface-variant hover:text-amber-600 transition-colors ml-2" title="Batalkan Kegiatan"><span className="material-symbols-outlined text-[20px]">block</span></button>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                 </tbody>
+               </table>
+            </div>
+          )}
+
+          {/* Add / Edit Modal Overlay */}
+          {isModalOpen && (
+            <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/30 backdrop-blur-sm p-4">
+               <div className="bg-surface w-full max-w-2xl rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 border border-outline-variant/10">
+                  <div className="px-8 py-6 border-b border-outline-variant/10 flex justify-between items-center bg-surface-container-low/50">
+                    <div>
+                      <h2 className="text-2xl font-bold font-headline text-primary flex items-center gap-2">
+                        <span className="material-symbols-outlined">{editingId ? 'edit' : 'edit_calendar'}</span> {editingId ? 'Update Jadwal' : 'Setup Jadwal Baru'}
+                      </h2>
+                      <p className="text-xs text-on-surface-variant mt-1 font-medium">Sistem akan mengecek konflik ketersediaan waktu secara real-time.</p>
+                    </div>
+                    <button onClick={() => { setIsModalOpen(false); setConflictWarning(null); }} className="w-10 h-10 bg-surface hover:bg-surface-container-highest rounded-full flex justify-center items-center text-on-surface"><span className="material-symbols-outlined border hover:border-red-400">close</span></button>
+                  </div>
+
+                  <form onSubmit={saveEvent} className="p-8">
+                    
+                    {conflictWarning && (
+                      <div className="mb-6 p-4 bg-rose-50 border border-rose-200 text-rose-700 rounded-xl flex gap-3 shadow-inner">
+                        <span className="material-symbols-outlined flex-shrink-0 animate-pulse">warning</span>
+                        <div>
+                          <p className="font-bold text-sm">Bentrok Jadwal Ditemukan!</p>
+                          <p className="text-xs mt-1 leading-relaxed">{conflictWarning}</p>
+                          <button type="button" onClick={() => setConflictWarning(null)} className="mt-2 text-xs font-bold underline hover:text-rose-900">Tetap Paksakan Simpan</button>
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="grid grid-cols-2 gap-6 mb-6">
+                      <div className="col-span-2">
+                        <label className="block text-xs font-bold text-on-surface uppercase tracking-widest mb-2">Nama Kegiatan</label>
+                        <input required name="title" value={formData.title} onChange={handleInputChange} type="text" className="w-full p-4 bg-surface-container flex border border-outline-variant/20 rounded-xl focus:border-primary text-sm font-medium" placeholder="Ex: Pelatihan Desain Grafis" />
+                      </div>
+                      
+                      <div className="col-span-2 md:col-span-1">
+                        <label className="block text-xs font-bold text-on-surface uppercase tracking-widest mb-2">Tanggal Pelaksanaan</label>
+                        <input required name="date" value={formData.date} onChange={handleInputChange} type="date" className="w-full p-4 bg-surface-container flex border border-outline-variant/20 rounded-xl focus:border-primary text-sm font-medium cursor-pointer" />
+                      </div>
+                      
+                      <div className="col-span-2 md:col-span-1">
+                        <label className="block text-xs font-bold text-on-surface uppercase tracking-widest mb-2">Kategori Skala</label>
+                        <select name="type" value={formData.type} onChange={handleInputChange} className="w-full p-4 bg-surface-container flex border border-outline-variant/20 rounded-xl focus:border-primary text-sm font-bold appearance-none">
+                           <option value="internal">Rapat Internal</option>
+                           <option value="eksternal">Event Kampus (Eksternal)</option>
+                           <option value="sosial">Sosial / Pengabdian</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-bold text-on-surface uppercase tracking-widest mb-2">Jam Mulai</label>
+                        <input required name="startTime" value={formData.startTime} onChange={handleInputChange} type="time" className="w-full p-4 bg-surface-container flex border border-outline-variant/20 rounded-xl focus:border-primary text-sm font-medium" />
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-bold text-on-surface uppercase tracking-widest mb-2">Jam Selesai</label>
+                        <input required name="endTime" value={formData.endTime} onChange={handleInputChange} type="time" className="w-full p-4 bg-surface-container flex border border-outline-variant/20 rounded-xl focus:border-primary text-sm font-medium" />
+                      </div>
+
+                      <div className="col-span-2">
+                        <label className="block text-xs font-bold text-on-surface uppercase tracking-widest mb-2">Lokasi / Ruangan</label>
+                        <input required name="location" value={formData.location} onChange={handleInputChange} type="text" className="w-full p-4 bg-surface-container flex border border-outline-variant/20 rounded-xl focus:border-primary text-sm font-medium" placeholder="Ex: Auditorium Gedung B" />
+                      </div>
+
+                      <div className="col-span-2 mt-2 bg-primary/5 p-4 rounded-xl border border-primary/20 flex flex-row items-center justify-between">
+                         <div>
+                            <h4 className="font-bold text-primary font-headline text-sm">Aktifkan Pengingat Otomatis (H-1)</h4>
+                            <p className="text-xs text-on-surface-variant font-medium mt-1">Kirim broadcast notifikasi via platform dan email ke semua anggota pengurus.</p>
+                         </div>
+                         <label className="relative inline-flex items-center cursor-pointer">
+                           <input type="checkbox" name="reminder" checked={formData.reminder} onChange={handleInputChange} className="sr-only peer" />
+                           <div className="w-14 h-7 bg-surface-container-highest peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-1 after:left-[4px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500 shadow-inner"></div>
+                         </label>
+                      </div>
+
+                    </div>
+
+                    <div className="flex gap-4 pt-4 border-t border-outline-variant/10">
+                      <button type="button" onClick={() => checkConflict()} className="flex-1 py-4 bg-surface-container hover:bg-surface-container-high text-on-surface rounded-xl font-bold transition-all text-sm border border-outline-variant/30 flex items-center justify-center gap-2">
+                        <span className="material-symbols-outlined text-[18px]">rule</span>
+                        Cek Konflik Area
+                      </button>
+                      <button type="submit" className="flex-1 py-4 bg-primary hover:bg-primary-fixed hover:-translate-y-1 text-white rounded-xl font-bold transition-all text-sm shadow-xl shadow-primary/20 flex items-center justify-center gap-2">
+                        <span className="material-symbols-outlined text-[18px]">check_circle</span>
+                        Simpan Jadwal Utama
+                      </button>
+                    </div>
+
+                  </form>
+
+               </div>
+            </div>
+          )}
+
+        </div>
+      </main>
+    </div>
+  );
+};
+
+export default JadwalKegiatan;

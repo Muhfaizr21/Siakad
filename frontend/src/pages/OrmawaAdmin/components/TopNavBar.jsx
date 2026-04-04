@@ -1,34 +1,49 @@
 import React from 'react';
+import { useAuth } from '../../../context/AuthContext';
 
 const TopNavBar = () => {
+  const { user, switchMockRole, mockRoles } = useAuth();
+
   return (
-    <header className="fixed top-0 right-0 w-[calc(100%-16rem)] z-40 bg-white/80 backdrop-blur-md flex justify-between items-center px-8 h-16 border-b border-slate-100">
-      <div className="flex items-center gap-4 bg-surface-container-low px-4 py-2 rounded-full w-96">
-        <span className="material-symbols-outlined text-outline">search</span>
+    <header className="fixed top-0 right-0 w-[calc(100%-16rem)] z-40 bg-white/80 backdrop-blur-md flex justify-between items-center px-8 h-16 border-b border-slate-100 shadow-sm">
+      <div className="flex items-center gap-3 bg-surface-container-low/50 hover:bg-surface-container-low border border-outline-variant/30 px-5 py-2.5 rounded-2xl w-full max-w-md transition-all duration-300 focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary/50 group shadow-sm">
+        <span className="material-symbols-outlined text-on-surface-variant group-focus-within:text-primary transition-colors text-xl">search</span>
         <input 
-          className="bg-transparent border-none focus:ring-0 text-sm w-full font-body outline-none" 
-          placeholder="Search proposals or members..." 
+          className="bg-transparent border-none focus:ring-0 text-[13px] w-full font-bold text-on-surface placeholder:text-on-surface-variant/50 outline-none" 
+          placeholder="Cari proposal, anggota, atau laporan..." 
           type="text" 
         />
+        <div className="hidden lg:flex items-center gap-1 px-1.5 py-0.5 rounded-md border border-outline-variant/50 bg-white/50 text-[10px] font-black text-on-surface-variant/60 shadow-inner">
+          <span className="text-[12px]">⌘</span>K
+        </div>
       </div>
       <div className="flex items-center gap-6">
-        <div className="flex items-center gap-4">
-          <button className="text-slate-500 hover:text-blue-900 transition-colors focus:ring-2 ring-blue-500/20 p-2 rounded-full">
-            <span className="material-symbols-outlined">notifications</span>
-          </button>
-          <button className="text-slate-500 hover:text-blue-900 transition-colors focus:ring-2 ring-blue-500/20 p-2 rounded-full">
-            <span className="material-symbols-outlined">help_outline</span>
-          </button>
+        {/* Role Switcher */}
+        <div className="flex items-center gap-2">
+           <span className="text-xs font-bold text-on-surface-variant">Simulasi Role:</span>
+           <select 
+              value={user?.role?.id || ''}
+              onChange={(e) => switchMockRole(parseInt(e.target.value))}
+              className="bg-primary/10 border border-primary/20 text-primary text-xs font-bold rounded-xl focus:ring-primary focus:border-primary px-3 py-1.5 cursor-pointer outline-none"
+           >
+              {mockRoles.map(r => (
+                <option key={r.id} value={r.id}>{r.name}</option>
+              ))}
+           </select>
         </div>
-        <button className="bg-primary text-white px-5 py-2 rounded-lg text-sm font-semibold hover:opacity-90 transition-opacity">
-          Quick Action
+
+        <button className="text-slate-500 hover:text-primary transition-colors focus:ring-2 ring-primary/20 p-2 rounded-full hidden md:block">
+          <span className="material-symbols-outlined text-[20px]">notifications</span>
         </button>
+        
         <div className="flex items-center gap-3 pl-6 border-l border-slate-100">
-          <img 
-            alt="User Profile Avatar" 
-            className="w-8 h-8 rounded-full object-cover" 
-            src="https://lh3.googleusercontent.com/aida-public/AB6AXuAiPCwEWWnlnNUDfDC51erZYmEG8P2hzTo6mKzKcLAc8tX2qUbwkeb6-ttAIwipNlhMFFEW2_XP3zKjdkFjAFORIC35eW3YJTLw9kWtiW6E4YjqK_L5azb2DhXThVeoj7N2wvrzND0VF7DTl6X5Au9tSxWf4MIqAc2rSsDXkwUBV6UN7X4xcPW5n-Mw77HiB2nttkHODb39CxYvHp5BbQYH3M5b4A8NOZM44RCczSo3i1hpmyiCf0rHKmcDDgIAm0Sh8t9VkjuyVQbC" 
-          />
+          <div className="text-right hidden sm:block">
+             <div className="text-sm font-bold text-on-surface leading-tight">{user?.name}</div>
+             <div className="text-[10px] text-on-surface-variant font-medium">{user?.role?.name}</div>
+          </div>
+          <div className="w-9 h-9 bg-primary/20 text-primary border border-primary/30 rounded-full flex justify-center items-center font-bold">
+            {user?.name?.charAt(0) || 'U'}
+          </div>
         </div>
       </div>
     </header>

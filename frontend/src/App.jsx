@@ -8,13 +8,26 @@ import Login from './pages/Login/Login'
 import AdminDashboard from './pages/SuperAdmin/AdminDashboard'
 import FacultyDashboard from './pages/FacultyAdmin/FacultyDashboard'
 import OrmawaDashboard from './pages/OrmawaAdmin/OrmawaDashboard'
+import AnggotaManagement from './pages/OrmawaAdmin/AnggotaManagement'
+import ProposalManagement from './pages/OrmawaAdmin/ProposalManagement'
+import JadwalKegiatan from './pages/OrmawaAdmin/JadwalKegiatan'
+import AbsensiKegiatan from './pages/OrmawaAdmin/AbsensiKegiatan'
+import KeuanganKas from './pages/OrmawaAdmin/KeuanganKas'
+import LpjManagement from './pages/OrmawaAdmin/LpjManagement'
+import Pengumuman from './pages/OrmawaAdmin/Pengumuman'
+import StrukturOrganisasi from './pages/OrmawaAdmin/StrukturOrganisasi'
+import RoleBasedAccess from './pages/OrmawaAdmin/RoleBasedAccess'
+import Notifikasi from './pages/OrmawaAdmin/Notifikasi'
+import Settings from './pages/OrmawaAdmin/Settings'
 import StudentDashboard from './pages/Student/StudentDashboard'
+import { AuthProvider } from './context/AuthContext'
 import './index.css'
 
 function App() {
   return (
-    <Router>
-      <Routes>
+    <AuthProvider>
+      <Router>
+        <Routes>
         {/* Default route ke Landing */}
         <Route path="/" element={<Landing />} />
 
@@ -38,14 +51,26 @@ function App() {
 
         {/* Halaman Ormawa Dashboard */}
         <Route path="/ormawa" element={<OrmawaDashboard />} />
+        <Route path="/ormawa/anggota" element={<AnggotaManagement />} />
+        <Route path="/ormawa/proposal" element={<ProposalManagement />} />
+        <Route path="/ormawa/jadwal" element={<JadwalKegiatan />} />
+        <Route path="/ormawa/absensi" element={<AbsensiKegiatan />} />
+        <Route path="/ormawa/keuangan" element={<KeuanganKas />} />
+        <Route path="/ormawa/lpj" element={<LpjManagement />} />
+        <Route path="/ormawa/pengumuman" element={<Pengumuman />} />
+        <Route path="/ormawa/struktur" element={<StrukturOrganisasi />} />
+        <Route path="/ormawa/rbac" element={<RoleBasedAccess />} />
+        <Route path="/ormawa/notifikasi" element={<Notifikasi />} />
+        <Route path="/ormawa/pengaturan" element={<Settings />} />
 
         {/* Halaman Student Dashboard */}
         <Route path="/student" element={<StudentDashboard />} />
 
         {/* Redirect jika route tidak ditemukan */}
         <Route path="*" element={<Navigate to="/login" />} />
-      </Routes>
-    </Router>
+        </Routes>
+      </Router>
+    </AuthProvider>
   )
 }
 

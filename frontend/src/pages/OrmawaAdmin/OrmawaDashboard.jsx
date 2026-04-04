@@ -1,234 +1,267 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Sidebar from './components/Sidebar';
 import TopNavBar from './components/TopNavBar';
+import { useAuth } from '../../context/AuthContext';
 
 const OrmawaDashboard = () => {
+  const { user } = useAuth();
+  const ormawaId = user?.ormawaId || 1;
+  const [stats, setStats] = useState({ totalProposals: 0, totalMembers: 0, totalKas: 0 });
+  const [proposals, setProposals] = useState([]);
+  const [announcements, setAnnouncements] = useState([]);
+  const [events, setEvents] = useState([]);
+  const [members, setMembers] = useState([]);
+  const [identity, setIdentity] = useState({ name: 'Ormawa' });
+
+  useEffect(() => {
+    if (ormawaId) {
+      fetchIdentity();
+      fetchStats();
+      fetchProposals();
+      fetchAnnouncements();
+      fetchEvents();
+      fetchMembers();
+    }
+
+    const handleSettingsUpdate = () => fetchIdentity();
+    window.addEventListener('ormawa_settings_updated', handleSettingsUpdate);
+    return () => window.removeEventListener('ormawa_settings_updated', handleSettingsUpdate);
+  }, [ormawaId]);
+
+  const fetchIdentity = async () => {
+    try {
+      const res = await fetch(`http://localhost:8000/api/ormawa/settings/${ormawaId}`);
+      const data = await res.json();
+      if (data.status === 'success') setIdentity(data.data);
+    } catch (e) { console.error(e); }
+  };
+
+  const fetchMembers = async () => {
+    try {
+      const res = await fetch(`http://localhost:8000/api/ormawa/members?ormawaId=${ormawaId}`);
+      const data = await res.json();
+      if (data.status === 'success') setMembers(data.data || []);
+    } catch (e) { console.error(e); }
+  };
+
+  const fetchStats = async () => {
+    try {
+      const res = await fetch(`http://localhost:8000/api/ormawa/stats?ormawaId=${ormawaId}`);
+      const data = await res.json();
+      if (data.status === 'success') setStats(data.data || { totalProposals: 0, totalMembers: 0, totalKas: 0 });
+    } catch (e) { console.error(e); }
+  };
+
+  const fetchProposals = async () => {
+    try {
+      const res = await fetch(`http://localhost:8000/api/ormawa/proposals?ormawaId=${ormawaId}`);
+      const data = await res.json();
+      if (data.status === 'success') setProposals(data.data || []);
+    } catch (e) { console.error(e); }
+  };
+
+  const fetchAnnouncements = async () => {
+    try {
+      const res = await fetch(`http://localhost:8000/api/ormawa/announcements?ormawaId=${ormawaId}`);
+      const data = await res.json();
+      if (data.status === 'success') setAnnouncements(data.data || []);
+    } catch (e) { console.error(e); }
+  };
+
+  const fetchEvents = async () => {
+    try {
+      const res = await fetch(`http://localhost:8000/api/ormawa/events?ormawaId=${ormawaId}`);
+      const data = await res.json();
+      if (data.status === 'success') setEvents(data.data || []);
+    } catch (e) { console.error(e); }
+  };
+
+  const formatRp = (angka) => {
+    return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(angka);
+  };
+
+  const pendingProposals = (proposals || []).filter(p => p.status === 'diajukan' || p.status === 'pending');
+
   return (
     <div className="bg-surface text-on-surface min-h-screen">
-      {/* SideNavBar Anchor */}
       <Sidebar />
-
-      {/* Main Content Canvas */}
       <main className="ml-64 min-h-screen">
-        {/* TopNavBar Anchor */}
         <TopNavBar />
-
-
-        {/* Dashboard Content */}
         <div className="pt-24 pb-12 px-8">
-          {/* Welcome Header Section */}
-          <section className="relative h-64 rounded-xl overflow-hidden mb-8 group">
+          <section className="relative h-60 rounded-[2rem] overflow-hidden mb-10 group shadow-2xl shadow-primary/10">
             <img 
               alt="BKU Campus" 
-              className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" 
-              src="https://lh3.googleusercontent.com/aida-public/AB6AXuA5VmDy-9bnXSXSb18M4_ZIhoz_0jYWRe-0AYvDYhPt6iSfnNmlGqvPOq3FTG-TZ2CQVyP0zwU9PguDpTt8Qu9Ub6jlnlbkJuDEwQcBh8M1qhwpuN_tiAQomoh3uRO90y74ZctzxwV7_A8kDrKMhOSXYtlWNEssHP5quxgMZ11SrW1f7OMLiwRkyaccP7orrcYDCkVhKoCjZD4Jjcof_9ZmnB-vitZ6ec13rA_SUmFbqoscKI-ArR0D3yQbVF55pgrha4J9zISBJozQ" 
+              className="absolute inset-0 w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105" 
+              src="https://images.unsplash.com/photo-1523050854058-8df90110c9f1?q=80&w=2070&auto=format&fit=crop" 
             />
-            <div className="absolute inset-0 bg-gradient-to-r from-primary/90 to-transparent flex items-center px-12">
-              <div className="text-white max-w-lg">
-                <h2 className="text-3xl font-extrabold font-headline leading-tight mb-2">Welcome back, BEM Faculty Administrator</h2>
-                <p className="text-primary-fixed opacity-90 font-body">Manage your organization's academic and social initiatives with precision and flair.</p>
+            <div className="absolute inset-0 bg-gradient-to-r from-[#00236f]/95 via-[#00236f]/80 to-transparent flex items-center px-12 backdrop-blur-[2px]">
+              <div className="text-white max-w-3xl">
+                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/60 mb-2">Master Dashboard Control</p>
+                <h2 className="text-4xl font-extrabold font-headline leading-tight mb-3 uppercase drop-shadow-lg">
+                  {identity?.alias || identity?.name || 'Dashboard Ormawa'}
+                </h2>
+                <p className="text-white/80 font-body text-lg leading-relaxed max-w-2xl">
+                  Selamat datang di pusat kendali administrasi digital {identity?.name}. Pantau keuangan, keanggotaan, dan progres kegiatan dalam satu layar.
+                </p>
               </div>
             </div>
           </section>
 
-          {/* Grid Layout */}
-          <div className="grid grid-cols-12 gap-8">
-            {/* Left: Organization Snapshot & Trackers */}
-            <div className="col-span-12 lg:col-span-8 space-y-8">
-              {/* Organization Snapshot (Bento Grid Style) */}
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div className="md:col-span-1 p-6 rounded-xl bg-surface-container-lowest border border-outline-variant/15 flex flex-col justify-between">
-                  <span className="material-symbols-outlined text-primary mb-4">group</span>
-                  <div>
-                    <p className="text-xs text-on-surface-variant font-label uppercase tracking-widest mb-1">Active Members</p>
-                    <h3 className="text-2xl font-bold text-primary font-headline">1,240</h3>
-                    <p className="text-xs text-emerald-600 mt-2 flex items-center font-medium">
-                      <span className="material-symbols-outlined text-[16px] mr-1">trending_up</span> +12% this month
-                    </p>
-                  </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-10">
+            <div className="bg-surface-container-lowest p-6 rounded-3xl border border-outline-variant/20 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group">
+              <div className="flex justify-between items-start mb-4">
+                <div className="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center group-hover:bg-blue-500 transition-colors duration-300">
+                  <span className="material-symbols-outlined text-blue-500 group-hover:text-white">group</span>
                 </div>
-                <div className="md:col-span-1 p-6 rounded-xl bg-surface-container-lowest border border-outline-variant/15 flex flex-col justify-between">
-                  <span className="material-symbols-outlined text-primary mb-4">calendar_today</span>
-                  <div>
-                    <p className="text-xs text-on-surface-variant font-label uppercase tracking-widest mb-1">Approved Events</p>
-                    <h3 className="text-2xl font-bold text-primary font-headline">14</h3>
-                    <p className="text-xs text-on-surface-variant mt-2 font-medium">Target: 20 per Sem</p>
-                  </div>
+              </div>
+              <h3 className="text-3xl font-extrabold font-headline text-on-surface mb-1">{stats.totalMembers}</h3>
+              <p className="text-sm font-label text-on-surface-variant uppercase tracking-wider">Anggota Aktif</p>
+            </div>
+
+            <div className="bg-surface-container-lowest p-6 rounded-3xl border border-outline-variant/20 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group">
+              <div className="flex justify-between items-start mb-4">
+                <div className="w-12 h-12 rounded-2xl bg-emerald-50 flex items-center justify-center group-hover:bg-emerald-500 transition-colors duration-300">
+                  <span className="material-symbols-outlined text-emerald-500 group-hover:text-white">event_available</span>
                 </div>
-                <div className="md:col-span-2 p-6 rounded-xl bg-primary-container text-white flex flex-col justify-between relative overflow-hidden">
-                  <div className="relative z-10">
-                    <p className="text-xs text-primary-fixed opacity-80 font-label uppercase tracking-widest mb-1">Remaining Budget</p>
-                    <h3 className="text-3xl font-bold font-headline">Rp 42.500.000</h3>
-                    <div className="mt-4 w-full bg-white/20 rounded-full h-2">
-                      <div className="bg-white h-2 rounded-full" style={{ width: '65%' }}></div>
-                    </div>
+              </div>
+              <h3 className="text-3xl font-extrabold font-headline text-on-surface mb-1">{events.length}</h3>
+              <p className="text-sm font-label text-on-surface-variant uppercase tracking-wider">Kegiatan Terdaftar</p>
+            </div>
+
+            <div className="bg-primary p-6 rounded-3xl shadow-xl shadow-primary/20 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 group relative overflow-hidden">
+              <div className="absolute -right-6 -top-6 w-32 h-32 bg-white/10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700"></div>
+              <div className="flex justify-between items-start mb-4 relative z-10">
+                <div className="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center">
+                  <span className="material-symbols-outlined text-white">account_balance_wallet</span>
+                </div>
+                <span className="text-xs font-bold text-white bg-white/20 px-2 py-1 rounded-lg">Realtime</span>
+              </div>
+              <h3 className="text-3xl font-extrabold font-headline text-white mb-1 relative z-10">{formatRp(stats.totalKas)}</h3>
+              <p className="text-sm font-label text-white/80 uppercase tracking-wider relative z-10">Saldo Kas Organisasi</p>
+            </div>
+
+            <div className="bg-surface-container-lowest p-6 rounded-3xl border border-outline-variant/20 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group">
+              <div className="flex justify-between items-start mb-4">
+                <div className="w-12 h-12 rounded-2xl bg-orange-50 flex items-center justify-center group-hover:bg-orange-500 transition-colors duration-300">
+                  <span className="material-symbols-outlined text-orange-500 group-hover:text-white">campaign</span>
+                </div>
+              </div>
+              <h3 className="text-3xl font-extrabold font-headline text-on-surface mb-1">{announcements.length}</h3>
+              <p className="text-sm font-label text-on-surface-variant uppercase tracking-wider">Pengumuman Aktif</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            {/* Left Column */}
+            <div className="col-span-1 lg:col-span-2 space-y-8">
+              
+              {/* Widget: Kegiatan Mendatang (7 Hari) */}
+              <div className="bg-surface-container-lowest rounded-3xl border border-outline-variant/20 overflow-hidden shadow-sm">
+                <div className="p-6 border-b border-outline-variant/10 flex justify-between items-center bg-surface-container-lowest">
+                  <h3 className="text-lg font-bold font-headline flex items-center gap-2">
+                    <span className="material-symbols-outlined text-primary">event_upcoming</span>
+                    Kegiatan Mendatang (7 Hari Selanjutnya)
+                  </h3>
+                  <button className="text-sm font-semibold text-primary hover:bg-primary/5 px-4 py-2 rounded-xl transition-colors">Lihat Kalender</button>
+                </div>
+                <div className="p-2">
+                  <div className="flex flex-col gap-2 p-4">
+                    {(events || []).slice(0, 5).map(ev => (
+                      <div key={ev.id} className="group p-5 bg-surface rounded-2xl border border-outline-variant/10 flex items-center justify-between hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 transition-all duration-300">
+                        <div className="flex items-center gap-5">
+                          <div className="flex flex-col items-center justify-center w-14 h-14 bg-primary/10 text-primary rounded-xl font-bold font-headline text-center">
+                            <span className="text-[10px] uppercase">{ev.startDate ? new Date(ev.startDate).toLocaleDateString('id-ID', {month: 'short'}) : '-'}</span>
+                            <span className="text-xl leading-none">{ev.startDate ? new Date(ev.startDate).getDate() : '-'}</span>
+                          </div>
+                          <div>
+                            <h4 className="font-bold text-on-surface font-headline text-lg group-hover:text-primary transition-colors">{ev.title}</h4>
+                            <p className="text-sm text-on-surface-variant flex items-center gap-1 mt-1">
+                              <span className="material-symbols-outlined text-[14px]">location_on</span>
+                              {ev.location}
+                            </p>
+                          </div>
+                        </div>
+                        <button className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-surface-container-high transition-colors text-on-surface-variant">
+                          <span className="material-symbols-outlined">chevron_right</span>
+                        </button>
+                      </div>
+                    ))}
+                    {events.length === 0 && <p className="text-center text-sm py-8 text-on-surface-variant italic">Belum ada kegiatan mendatang</p>}
                   </div>
-                  <span className="material-symbols-outlined absolute -right-4 -bottom-4 text-white opacity-10 text-9xl">payments</span>
                 </div>
               </div>
 
-              {/* Event & Proposal Tracker */}
-              <div className="bg-surface-container-lowest rounded-xl border border-outline-variant/15 overflow-hidden">
-                <div className="p-6 flex justify-between items-center bg-surface-container-low/30">
-                  <h3 className="text-lg font-bold font-headline text-primary">Event &amp; Proposal Tracker</h3>
-                  <button className="text-sm font-semibold text-primary hover:underline transition-all">View Full Log</button>
+              {/* Notifikasi Proposal yang Perlu Ditindaklanjuti */}
+              <div className="bg-surface-container-lowest rounded-3xl border border-outline-variant/20 overflow-hidden shadow-sm">
+                <div className="p-6 border-b border-outline-variant/10 flex justify-between items-center">
+                  <h3 className="text-lg font-bold font-headline flex items-center gap-2">
+                    <span className="material-symbols-outlined text-orange-500">assignment_late</span>
+                    Tindak Lanjut Proposal
+                  </h3>
+                   <span className="bg-orange-100 text-orange-700 text-xs font-bold px-3 py-1 rounded-full">{pendingProposals.length} Menunggu</span>
                 </div>
-                <div className="p-6">
-                  <div className="space-y-6">
-                    {/* Item 1 */}
-                    <div className="group flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 rounded-lg hover:bg-surface-container-low transition-colors">
-                      <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center">
-                          <span className="material-symbols-outlined">check_circle</span>
+                <div className="divide-y divide-outline-variant/10">
+                  {pendingProposals.slice(0, 5).map(p => (
+                    <div key={p.id} className="p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-surface-container-low/50 transition-colors">
+                      <div>
+                        <div className="flex items-center gap-3 mb-2">
+                          <span className="text-xs font-bold text-orange-600 border border-orange-200 bg-orange-50 px-2 py-1 rounded-md">Review Kepanitiaan</span>
+                          <span className="text-xs text-on-surface-variant font-label">PROP-{p.id}</span>
                         </div>
-                        <div>
-                          <h4 className="font-bold text-on-surface font-headline">National Seminar</h4>
-                          <p className="text-xs text-on-surface-variant font-body">Due: Oct 24, 2023</p>
-                        </div>
+                        <h4 className="font-bold text-on-surface font-headline">{p.title}</h4>
+                        <p className="text-sm text-on-surface-variant mt-1">Diajukan oleh: {p.ormawa?.name || 'Ormawa'}</p>
                       </div>
-                      <div className="flex-1 max-w-xs">
-                        <div className="flex justify-between text-xs mb-1 font-label">
-                          <span className="text-emerald-700 font-bold uppercase tracking-tight">Approved</span>
-                          <span className="text-on-surface-variant">100%</span>
-                        </div>
-                        <div className="h-1.5 w-full bg-surface-container-high rounded-full">
-                          <div className="bg-emerald-500 h-full rounded-full" style={{ width: '100%' }}></div>
-                        </div>
-                      </div>
-                      <button className="text-on-surface-variant hover:text-primary">
-                        <span className="material-symbols-outlined">more_vert</span>
-                      </button>
+                      <button className="text-sm text-primary font-semibold border border-primary/30 px-4 py-2 rounded-xl hover:bg-primary/5 transition-colors">Lihat Detail</button>
                     </div>
-
-                    {/* Item 2 */}
-                    <div className="group flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 rounded-lg hover:bg-surface-container-low transition-colors">
-                      <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-lg bg-orange-50 text-orange-700 flex items-center justify-center">
-                          <span className="material-symbols-outlined">pending</span>
-                        </div>
-                        <div>
-                          <h4 className="font-bold text-on-surface font-headline">Faculty Sports Week</h4>
-                          <p className="text-xs text-on-surface-variant font-body">Due: Nov 15, 2023</p>
-                        </div>
-                      </div>
-                      <div className="flex-1 max-w-xs">
-                        <div className="flex justify-between text-xs mb-1 font-label">
-                          <span className="text-orange-700 font-bold uppercase tracking-tight">Reviewing</span>
-                          <span className="text-on-surface-variant">65%</span>
-                        </div>
-                        <div className="h-1.5 w-full bg-surface-container-high rounded-full">
-                          <div className="bg-orange-400 h-full rounded-full" style={{ width: '65%' }}></div>
-                        </div>
-                      </div>
-                      <button className="text-on-surface-variant hover:text-primary">
-                        <span className="material-symbols-outlined">more_vert</span>
-                      </button>
-                    </div>
-
-                    {/* Item 3 */}
-                    <div className="group flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 rounded-lg hover:bg-surface-container-low transition-colors">
-                      <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-lg bg-blue-50 text-blue-700 flex items-center justify-center">
-                          <span className="material-symbols-outlined">draw</span>
-                        </div>
-                        <div>
-                          <h4 className="font-bold text-on-surface font-headline">Community Service</h4>
-                          <p className="text-xs text-on-surface-variant font-body">Due: Dec 01, 2023</p>
-                        </div>
-                      </div>
-                      <div className="flex-1 max-w-xs">
-                        <div className="flex justify-between text-xs mb-1 font-label">
-                          <span className="text-blue-700 font-bold uppercase tracking-tight">Planning</span>
-                          <span className="text-on-surface-variant">25%</span>
-                        </div>
-                        <div className="h-1.5 w-full bg-surface-container-high rounded-full">
-                          <div className="bg-blue-600 h-full rounded-full" style={{ width: '25%' }}></div>
-                        </div>
-                      </div>
-                      <button className="text-on-surface-variant hover:text-primary">
-                        <span className="material-symbols-outlined">more_vert</span>
-                      </button>
-                    </div>
-                  </div>
+                  ))}
+                  {pendingProposals.length === 0 && <p className="text-center text-sm py-8 text-on-surface-variant italic">Semua proposal sudah diproses</p>}
                 </div>
               </div>
+
             </div>
 
             {/* Right Column */}
-            <div className="col-span-12 lg:col-span-4 space-y-8">
-              {/* Quick Actions */}
-              <div className="bg-surface-container-highest/30 p-6 rounded-xl space-y-4">
-                <h3 className="text-sm font-bold font-label text-secondary uppercase tracking-widest">Quick Actions</h3>
-                <div className="grid grid-cols-1 gap-3">
-                  <button className="flex items-center gap-3 w-full bg-primary text-white px-4 py-4 rounded-xl font-semibold shadow-xl shadow-primary/20 hover:scale-[1.02] transition-transform text-left">
-                    <span className="material-symbols-outlined">add_circle</span>
-                    <div>
-                      <p className="text-sm">New Event Proposal</p>
-                      <p className="text-[10px] opacity-70 font-normal">Start a new draft for approval</p>
-                    </div>
-                  </button>
-                  <button className="flex items-center gap-3 w-full bg-surface-container-lowest text-primary border border-outline-variant/20 px-4 py-4 rounded-xl font-semibold hover:bg-surface transition-colors text-left">
-                    <span className="material-symbols-outlined">download</span>
-                    <div>
-                      <p className="text-sm">Download Financial Report</p>
-                      <p className="text-[10px] text-on-surface-variant font-normal">Export Q3 balance sheet</p>
-                    </div>
-                  </button>
-                </div>
-              </div>
+            <div className="col-span-1 space-y-8">
               
-              {/* Member Activity Feed */}
-              <div className="bg-surface-container-lowest border border-outline-variant/15 rounded-xl flex flex-col max-h-[600px]">
-                <div className="p-6 border-b border-surface-container">
-                  <h3 className="text-lg font-bold font-headline text-primary">Activity Feed</h3>
+              {/* Approval Anggota Baru */}
+              <div className="bg-surface-container-lowest rounded-3xl border border-outline-variant/20 shadow-sm overflow-hidden flex flex-col h-full max-h-[800px]">
+                <div className="p-6 bg-gradient-to-br from-surface-container-lowest to-surface-container-low border-b border-outline-variant/10">
+                   <h3 className="text-lg font-bold font-headline text-on-surface flex items-center gap-2">
+                     <span className="material-symbols-outlined text-primary">how_to_reg</span>
+                     Approval Anggota Baru
+                   </h3>
+                   <p className="text-sm text-on-surface-variant mt-1">{members.filter(m => m.status === 'pending').length} pendaftar menunggu verifikasi</p>
                 </div>
-                <div className="p-6 space-y-6 overflow-y-auto">
-                  {/* Feed Item */}
-                  <div className="relative pl-8 before:absolute before:left-3.5 before:top-2 before:bottom-[-24px] before:w-px before:bg-outline-variant/30 last:before:hidden">
-                    <div className="absolute left-0 top-1 w-7 h-7 rounded-full bg-primary-fixed flex items-center justify-center">
-                      <span className="material-symbols-outlined text-[14px] text-primary">person_add</span>
+                
+                 <div className="overflow-y-auto p-4 space-y-3 flex-grow">
+                  {members.filter(m => m.status === 'pending').map(m => (
+                    <div key={m.id} className="p-4 bg-surface rounded-2xl border border-outline-variant/10 hover:shadow-md transition-shadow">
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
+                          {m.student?.name?.[0] || '?'}
+                        </div>
+                        <div>
+                          <h4 className="font-bold text-sm font-headline">{m.student?.name}</h4>
+                          <p className="text-xs text-on-surface-variant">NIM: {m.student?.nim}</p>
+                        </div>
+                      </div>
+                      <p className="text-xs text-on-surface-variant mb-4 bg-surface-container-low p-2 rounded-lg">Role: {m.role}</p>
+                      <div className="flex justify-between gap-2">
+                        <button className="flex-1 bg-surface-container-highest hover:bg-surface-container-high text-on-surface text-xs font-bold py-2 rounded-xl transition-colors">Tolak</button>
+                        <button className="flex-1 bg-primary hover:bg-primary-container text-white text-xs font-bold py-2 rounded-xl transition-all">Terima</button>
+                      </div>
                     </div>
-                    <p className="text-sm font-body leading-relaxed">
-                      <span className="font-bold text-on-surface">Andi</span> joined the <span className="text-primary font-medium">Humanities committee</span>
-                    </p>
-                    <span className="text-[11px] text-on-surface-variant uppercase font-label">2 hours ago</span>
-                  </div>
-                  
-                  {/* Feed Item */}
-                  <div className="relative pl-8 before:absolute before:left-3.5 before:top-2 before:bottom-[-24px] before:w-px before:bg-outline-variant/30 last:before:hidden">
-                    <div className="absolute left-0 top-1 w-7 h-7 rounded-full bg-orange-100 flex items-center justify-center">
-                      <span className="material-symbols-outlined text-[14px] text-orange-700">request_quote</span>
-                    </div>
-                    <p className="text-sm font-body leading-relaxed">
-                      <span className="font-bold text-on-surface">Siti</span> submitted a <span className="text-primary font-medium">funding request</span> for Sports Week
-                    </p>
-                    <span className="text-[11px] text-on-surface-variant uppercase font-label">5 hours ago</span>
-                  </div>
-                  
-                  {/* Feed Item */}
-                  <div className="relative pl-8 before:absolute before:left-3.5 before:top-2 before:bottom-[-24px] before:w-px before:bg-outline-variant/30 last:before:hidden">
-                    <div className="absolute left-0 top-1 w-7 h-7 rounded-full bg-emerald-100 flex items-center justify-center">
-                      <span className="material-symbols-outlined text-[14px] text-emerald-700">verified</span>
-                    </div>
-                    <p className="text-sm font-body leading-relaxed">
-                      <span className="font-bold text-on-surface">Rian</span> approved the <span className="text-primary font-medium">National Seminar</span> logistics
-                    </p>
-                    <span className="text-[11px] text-on-surface-variant uppercase font-label">Yesterday</span>
-                  </div>
-                  
-                  {/* Feed Item */}
-                  <div className="relative pl-8 before:absolute before:left-3.5 before:top-2 before:bottom-[-24px] before:w-px before:bg-outline-variant/30 last:before:hidden">
-                    <div className="absolute left-0 top-1 w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center">
-                      <span className="material-symbols-outlined text-[14px] text-slate-600">forum</span>
-                    </div>
-                    <p className="text-sm font-body leading-relaxed">
-                      New discussion thread started in <span className="text-primary font-medium">Core Committee</span>
-                    </p>
-                    <span className="text-[11px] text-on-surface-variant uppercase font-label">Oct 12, 2023</span>
-                  </div>
+                  ))}
+                  {members.filter(m => m.status === 'pending').length === 0 && <p className="text-center py-8 text-on-surface-variant italic">Tidak ada pendaftar baru</p>}
+                </div>
+                <div className="p-4 border-t border-outline-variant/10">
+                  <button className="w-full py-2 text-sm text-primary font-bold hover:underline">Lihat Semua Antrean</button>
                 </div>
               </div>
+
             </div>
+
           </div>
         </div>
       </main>

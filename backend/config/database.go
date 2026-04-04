@@ -5,11 +5,10 @@ import (
 	"log"
 	"os"
 
-	"siakad-backend/models"
-
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
+	"siakad-backend/models"
 )
 
 var DB *gorm.DB
@@ -34,7 +33,8 @@ func ConnectDB() {
 
 	log.Println("Connected Successfully to Database")
 
-	// Migrate the schema
+	/* 
+	// Commenting out GORM AutoMigrate as we are using raw SQL migrations now
 	log.Println("Running Migrations...")
 	err = db.AutoMigrate(
 		&models.Role{},
@@ -49,6 +49,24 @@ func ConnectDB() {
 	} else {
 		log.Println("Migrations Completed")
 	}
-
+	*/
+	
+	err = db.AutoMigrate(
+		&models.Ormawa{},
+		&models.OrmawaMember{},
+		&models.Proposal{},
+		&models.ProposalHistory{},
+		&models.CashMutation{},
+		&models.OrmawaRole{},
+		&models.LPJ{},
+		&models.EventSchedule{},
+		&models.EventAttendance{},
+		&models.OrmawaAnnouncement{},
+		&models.OrmawaNotification{},
+	)
+	if err != nil {
+		log.Println("Error migrating Ormawa models:", err)
+	}
+	
 	DB = db
 }
