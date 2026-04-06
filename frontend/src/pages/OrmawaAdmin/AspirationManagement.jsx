@@ -12,6 +12,7 @@ const CATEGORIES = [
 ];
 
 const AspirationManagement = () => {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const { user } = useAuth();
   const ormawaId = user?.ormawaId || 1;
   const [aspirations, setAspirations] = useState([]);

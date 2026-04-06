@@ -6,6 +6,7 @@ import { useAuth } from '../../context/AuthContext';
 const Settings = () => {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const { user } = useAuth();
   const ormawaId = user?.ormawaId || 1;
 
@@ -86,12 +87,12 @@ const Settings = () => {
 
   return (
     <div className="bg-surface text-on-surface min-h-screen">
-      <Sidebar />
-      <main className="ml-64 min-h-screen pb-12">
-        <TopNavBar />
+      <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
+      <main className="lg:ml-64 min-h-screen pb-12 transition-all duration-300">
+        <TopNavBar setIsOpen={setSidebarOpen} />
         
-        <div className="pt-24 px-8 max-w-5xl mx-auto font-body">
-          <div className="mb-10 flex justify-between items-end">
+        <div className="pt-24 px-4 lg:px-8 max-w-5xl mx-auto font-body">
+          <div className="mb-10 flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
             <div>
               <h1 className="text-3xl font-black font-headline mb-2 text-on-surface">Profil & Pengaturan</h1>
               <p className="text-on-surface-variant text-sm font-medium">Kelola identitas publik dan visi misi organisasi Anda.</p>

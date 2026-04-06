@@ -6,6 +6,7 @@ import { useAuth } from '../../context/AuthContext';
 const LPJ_CATEGORIES = ["Dokumentasi", "Laporan Keuangan", "Presensi"];
 
 const LpjManagement = () => {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const { user } = useAuth();
   const ormawaId = user?.ormawaId || 1;
   const [laporan, setLaporan] = useState([]);

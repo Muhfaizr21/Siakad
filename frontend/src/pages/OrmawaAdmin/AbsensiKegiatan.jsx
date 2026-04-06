@@ -4,6 +4,7 @@ import TopNavBar from './components/TopNavBar';
 import { useAuth } from '../../context/AuthContext';
 
 const AbsensiKegiatan = () => {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const { user } = useAuth();
   const ormawaId = user?.ormawaId || 1;
   const [sessions, setSessions] = useState([]);
@@ -89,11 +90,16 @@ const AbsensiKegiatan = () => {
 
   if (!activeSession && sessions.length === 0) return (
     <div className="bg-surface text-on-surface min-h-screen">
-      <Sidebar />
-      <main className="ml-64 min-h-screen pb-12 flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-on-surface-variant mb-4 italic">Belum ada sesi kegiatan aktif.</p>
-          <button onClick={() => window.location.href='/ormawa/jadwal'} className="bg-primary text-white px-6 py-3 rounded-xl font-bold">Buat Jadwal Di Sini</button>
+      <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
+      <main className="lg:ml-64 min-h-screen pb-12 transition-all duration-300 flex items-center justify-center p-4">
+        <TopNavBar setIsOpen={setSidebarOpen} />
+        <div className="text-center bg-surface-container-lowest p-8 lg:p-12 rounded-[3rem] border border-outline-variant/10 shadow-xl max-w-lg w-full">
+          <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center text-primary mx-auto mb-6">
+             <span className="material-symbols-outlined text-4xl">calendar_today</span>
+          </div>
+          <h2 className="text-2xl font-black font-headline text-on-surface mb-2">Sesi Tidak Ditemukan</h2>
+          <p className="text-on-surface-variant mb-8 text-sm font-medium leading-relaxed italic">Belum ada sesi kegiatan aktif untuk organisasi Anda saat ini.</p>
+          <button onClick={() => window.location.href='/ormawa/jadwal'} className="bg-primary hover:bg-primary-fixed text-white px-8 py-4 rounded-2xl font-black shadow-xl shadow-primary/20 transition-all active:scale-95 w-full lg:w-auto">Buat Jadwal Di Sini</button>
         </div>
       </main>
     </div>
@@ -101,11 +107,11 @@ const AbsensiKegiatan = () => {
 
   return (
     <div className="bg-surface text-on-surface min-h-screen">
-      <Sidebar />
-      <main className="ml-64 min-h-screen pb-12">
-        <TopNavBar />
+      <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
+      <main className="lg:ml-64 min-h-screen pb-12 transition-all duration-300">
+        <TopNavBar setIsOpen={setSidebarOpen} />
         
-        <div className="pt-24 px-8">
+        <div className="pt-24 px-4 lg:px-8">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
             <div>
               <h1 className="text-3xl font-extrabold font-headline mb-2 text-on-surface">Generator Presensi QR</h1>

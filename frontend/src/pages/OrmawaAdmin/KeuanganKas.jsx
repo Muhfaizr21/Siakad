@@ -4,6 +4,7 @@ import TopNavBar from './components/TopNavBar';
 import { useAuth } from '../../context/AuthContext';
 
 const KeuanganKas = () => {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const { user } = useAuth();
   const ormawaId = user?.ormawaId || 1;
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -66,12 +67,12 @@ const KeuanganKas = () => {
   };
 
   return (
-    <div className="bg-surface text-on-surface min-h-screen">
-      <Sidebar />
-      <main className="ml-64 min-h-screen pb-12">
-        <TopNavBar />
+    <div className="bg-surface text-on-surface min-h-screen font-body">
+      <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
+      <main className="lg:ml-64 min-h-screen pb-12 transition-all duration-300">
+        <TopNavBar setIsOpen={setSidebarOpen} />
         
-        <div className="pt-24 px-8">
+        <div className="pt-24 px-4 lg:px-8">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
             <div>
               <h1 className="text-3xl font-extrabold font-headline mb-2 text-on-surface">Buku Kas & Keuangan</h1>

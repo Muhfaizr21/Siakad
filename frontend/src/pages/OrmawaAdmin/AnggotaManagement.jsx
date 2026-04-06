@@ -4,6 +4,7 @@ import TopNavBar from './components/TopNavBar';
 import { useAuth } from '../../context/AuthContext';
 
 const AnggotaManagement = () => {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const { user } = useAuth();
   const ormawaId = user?.ormawaId || 1;
   const [anggotaList, setAnggotaList] = useState([]);
@@ -106,11 +107,11 @@ const AnggotaManagement = () => {
 
   return (
     <div className="bg-surface text-on-surface min-h-screen">
-      <Sidebar />
-      <main className="ml-64 min-h-screen pb-12">
-        <TopNavBar />
+      <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
+      <main className="lg:ml-64 min-h-screen pb-12 transition-all duration-300">
+        <TopNavBar setIsOpen={setSidebarOpen} />
         
-        <div className="pt-24 px-8">
+        <div className="pt-24 px-4 lg:px-8">
           
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
             <div>

@@ -85,6 +85,7 @@ const modulePermissions = [
 ];
 
 const RoleBasedAccess = () => {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const { user } = useAuth();
   const ormawaId = user?.ormawaId || 1;
   const [roles, setRoles] = useState([]);
@@ -232,12 +233,12 @@ const RoleBasedAccess = () => {
   };
 
   return (
-    <div className="flex h-screen bg-surface-container-lowest">
-      <Sidebar />
-      <div className="flex-1 flex flex-col ml-64 overflow-hidden">
-        <TopNavBar />
+    <div className="bg-surface text-on-surface min-h-screen">
+      <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
+      <main className="lg:ml-64 min-h-screen pb-12 transition-all duration-300">
+        <TopNavBar setIsOpen={setSidebarOpen} />
         
-        <main className="flex-1 overflow-auto p-8 pt-28 relative">
+        <div className="pt-24 px-4 lg:px-8">
           <div className="max-w-7xl mx-auto space-y-8">
             
             {/* Header */}
@@ -382,8 +383,8 @@ const RoleBasedAccess = () => {
               )}
             </div>
           </div>
-        </main>
-      </div>
+        </div>
+      </main>
 
       {/* Editor Modal */}
       {isModalOpen && selectedRole && (

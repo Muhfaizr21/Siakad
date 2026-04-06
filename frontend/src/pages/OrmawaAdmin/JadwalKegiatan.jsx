@@ -4,6 +4,7 @@ import TopNavBar from './components/TopNavBar';
 import { useAuth } from '../../context/AuthContext';
 
 const JadwalKegiatan = () => {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const { user } = useAuth();
   const ormawaId = user?.ormawaId || 1;
   const [events, setEvents] = useState([]);
@@ -151,55 +152,55 @@ const JadwalKegiatan = () => {
 
   return (
     <div className="bg-surface text-on-surface min-h-screen">
-      <Sidebar />
-      <main className="ml-64 min-h-screen pb-12">
-        <TopNavBar />
+      <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
+      <main className="lg:ml-64 min-h-screen pb-12 transition-all duration-300">
+        <TopNavBar setIsOpen={setSidebarOpen} />
         
-        <div className="pt-24 px-8">
+        <div className="pt-24 px-4 lg:px-8">
           
           {/* Header */}
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
-            <div>
-              <h1 className="text-3xl font-extrabold font-headline mb-2 text-on-surface">Jadwal & Kalender Kegiatan</h1>
-              <p className="text-on-surface-variant text-sm font-medium">Manajemen jadwal operasional, pendeteksian konflik area, dan pengingat keanggotaan.</p>
+            <div className="max-w-2xl">
+              <h1 className="text-2xl lg:text-3xl font-extrabold font-headline mb-2 text-on-surface">Jadwal & Kalender</h1>
+              <p className="text-on-surface-variant text-sm font-medium">Manajemen operasional dan blokir jadwal demi kelancaran kegiatan.</p>
             </div>
-            <div className="flex items-center gap-4 bg-surface-container-low p-2 rounded-2xl border border-outline-variant/20 shadow-sm">
+            <div className="flex items-center gap-4 bg-surface-container-low p-2 rounded-2xl border border-outline-variant/20 shadow-sm w-full md:w-auto overflow-x-auto no-scrollbar">
                 <button 
                   onClick={() => setViewMode('calendar')}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all ${viewMode === 'calendar' ? 'bg-primary text-white shadow-md' : 'text-on-surface-variant hover:bg-surface-container-high'}`}
+                  className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all whitespace-nowrap ${viewMode === 'calendar' ? 'bg-primary text-white shadow-md' : 'text-on-surface-variant hover:bg-surface-container-high'}`}
                 >
                   <span className="material-symbols-outlined text-[18px]">calendar_month</span>
                   Kalender
                 </button>
                 <button 
                   onClick={() => setViewMode('list')}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all ${viewMode === 'list' ? 'bg-primary text-white shadow-md' : 'text-on-surface-variant hover:bg-surface-container-high'}`}
+                  className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all whitespace-nowrap ${viewMode === 'list' ? 'bg-primary text-white shadow-md' : 'text-on-surface-variant hover:bg-surface-container-high'}`}
                 >
                   <span className="material-symbols-outlined text-[18px]">view_list</span>
-                  Daftar Master
+                  Daftar
                 </button>
             </div>
           </div>
 
-          <div className="mb-6 flex justify-between items-center bg-surface-container-lowest p-6 rounded-3xl border border-outline-variant/20 shadow-sm relative">
-             <div className="flex items-center gap-1">
-                <button onClick={() => changeMonth(-1)} className="w-12 h-12 rounded-2xl hover:bg-surface-container flex items-center justify-center text-on-surface-variant transition-all hover:scale-105 active:scale-95 border border-outline-variant/10">
-                  <span className="material-symbols-outlined text-[24px]">chevron_left</span>
+          <div className="mb-6 flex flex-col xl:flex-row justify-between items-stretch xl:items-center bg-surface-container-lowest p-4 lg:p-6 rounded-3xl border border-outline-variant/20 shadow-sm gap-4">
+             <div className="flex items-center justify-between xl:justify-start gap-1">
+                <button onClick={() => changeMonth(-1)} className="w-10 h-10 lg:w-12 lg:h-12 rounded-2xl hover:bg-surface-container flex items-center justify-center text-on-surface-variant border border-outline-variant/10">
+                  <span className="material-symbols-outlined text-[20px] lg:text-[24px]">chevron_left</span>
                 </button>
                 
                 <button 
                   onClick={() => setIsDatePickerOpen(!isDatePickerOpen)}
-                  className="px-6 h-12 rounded-2xl hover:bg-surface-container flex items-center gap-3 text-primary transition-all hover:scale-[1.02] active:scale-95 border border-outline-variant/10 group"
+                  className="px-4 lg:px-6 h-10 lg:h-12 rounded-2xl hover:bg-surface-container flex items-center justify-center gap-2 text-primary border border-outline-variant/10 flex-1 xl:flex-none"
                 >
-                    <span className="material-symbols-outlined text-primary group-hover:rotate-12 transition-transform">event_note</span>
-                    <span className="text-xl font-bold font-headline">
+                    <span className="material-symbols-outlined text-primary text-[20px]">event_note</span>
+                    <span className="text-sm lg:text-xl font-bold font-headline whitespace-nowrap truncate max-w-[150px]">
                       {currDate.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' })}
                     </span>
-                    <span className="material-symbols-outlined text-outline transition-transform duration-300" style={{ transform: isDatePickerOpen ? 'rotate(180deg)' : 'rotate(0)' }}>expand_more</span>
+                    <span className="material-symbols-outlined text-outline">expand_more</span>
                 </button>
 
-                <button onClick={() => changeMonth(1)} className="w-12 h-12 rounded-2xl hover:bg-surface-container flex items-center justify-center text-on-surface-variant transition-all hover:scale-105 active:scale-95 border border-outline-variant/10">
-                  <span className="material-symbols-outlined text-[24px]">chevron_right</span>
+                <button onClick={() => changeMonth(1)} className="w-10 h-10 lg:w-12 lg:h-12 rounded-2xl hover:bg-surface-container flex items-center justify-center text-on-surface-variant border border-outline-variant/10">
+                  <span className="material-symbols-outlined text-[20px] lg:text-[24px]">chevron_right</span>
                 </button>
 
                 {/* Custom Date Picker Popup */}
@@ -262,7 +263,8 @@ const JadwalKegiatan = () => {
 
           {/* Render Calendar View */}
           {viewMode === 'calendar' && (
-            <div className="grid grid-cols-7 gap-px bg-outline-variant/20 border border-outline-variant/20 rounded-3xl overflow-hidden shadow-sm">
+            <div className="overflow-x-auto no-scrollbar pb-6">
+              <div className="min-w-[800px] grid grid-cols-7 gap-px bg-outline-variant/20 border border-outline-variant/20 rounded-3xl overflow-hidden shadow-sm">
               {['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'].map(day => (
                 <div key={day} className="bg-surface-container-lowest text-center py-4 font-bold text-sm text-secondary uppercase tracking-widest">{day}</div>
               ))}
@@ -299,12 +301,14 @@ const JadwalKegiatan = () => {
                  )
               })}
             </div>
+          </div>
           )}
 
           {/* Render List View */}
           {viewMode === 'list' && (
             <div className="bg-surface-container-lowest border border-outline-variant/20 rounded-3xl shadow-sm overflow-hidden">
-               <table className="w-full text-left text-sm">
+               <div className="overflow-x-auto">
+                 <table className="w-full text-left text-sm">
                  <thead className="bg-surface-container-low/50 text-xs uppercase text-on-surface-variant font-label border-b border-outline-variant/20">
                    <tr>
                      <th className="px-6 py-5 font-bold">Informasi Kegiatan</th>
@@ -358,6 +362,7 @@ const JadwalKegiatan = () => {
                     ))}
                  </tbody>
                </table>
+              </div>
             </div>
           )}
 

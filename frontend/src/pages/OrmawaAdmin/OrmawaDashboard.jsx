@@ -8,6 +8,7 @@ const OrmawaDashboard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const ormawaId = user?.ormawaId || 1;
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [stats, setStats] = useState({ totalProposals: 0, totalMembers: 0, totalKas: 0 });
   const [proposals, setProposals] = useState([]);
   const [announcements, setAnnouncements] = useState([]);
@@ -86,23 +87,23 @@ const OrmawaDashboard = () => {
 
   return (
     <div className="bg-surface text-on-surface min-h-screen">
-      <Sidebar />
-      <main className="ml-64 min-h-screen">
-        <TopNavBar />
-        <div className="pt-24 pb-12 px-8">
-          <section className="relative h-60 rounded-[2rem] overflow-hidden mb-10 group shadow-2xl shadow-primary/10">
+      <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
+      <main className="lg:ml-64 ml-0 min-h-screen transition-all duration-300">
+        <TopNavBar setIsOpen={setSidebarOpen} />
+        <div className="pt-24 pb-12 px-4 lg:px-8">
+          <section className="relative h-auto min-h-[15rem] lg:h-60 rounded-[2rem] overflow-hidden mb-10 group shadow-2xl shadow-primary/10">
             <img 
               alt="BKU Campus" 
               className="absolute inset-0 w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105" 
               src="https://images.unsplash.com/photo-1523050854058-8df90110c9f1?q=80&w=2070&auto=format&fit=crop" 
             />
-            <div className="absolute inset-0 bg-gradient-to-r from-[#00236f]/95 via-[#00236f]/80 to-transparent flex items-center px-12 backdrop-blur-[2px]">
+            <div className="absolute inset-0 bg-gradient-to-r from-[#00236f]/95 via-[#00236f]/80 to-transparent flex items-center px-6 lg:px-12 backdrop-blur-[2px] py-8 lg:py-0">
               <div className="text-white max-w-3xl">
                 <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/60 mb-2">Master Dashboard Control</p>
-                <h2 className="text-4xl font-extrabold font-headline leading-tight mb-3 uppercase drop-shadow-lg">
+                <h2 className="text-2xl lg:text-4xl font-extrabold font-headline leading-tight mb-3 uppercase drop-shadow-lg">
                   {identity?.alias || identity?.name || 'Dashboard Ormawa'}
                 </h2>
-                <p className="text-white/80 font-body text-lg leading-relaxed max-w-2xl">
+                <p className="text-white/80 font-body text-sm lg:text-lg leading-relaxed max-w-2xl">
                   Selamat datang di pusat kendali administrasi digital {identity?.name}. Pantau keuangan, keanggotaan, dan progres kegiatan dalam satu layar.
                 </p>
               </div>

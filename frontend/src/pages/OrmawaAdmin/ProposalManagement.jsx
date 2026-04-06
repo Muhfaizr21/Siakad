@@ -48,6 +48,7 @@ const mockProposals = [
 ];
 
 const ProposalManagement = () => {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [proposals, setProposals] = useState([]);
   const [isLocked, setIsLocked] = useState(false);
   const [lockMessage, setLockMessage] = useState("");
