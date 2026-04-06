@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Sidebar from './components/Sidebar';
-import TopNavBar from '../OrmawaAdmin/components/TopNavBar';
+import TopNavBar from './components/TopNavBar';
 import { useAuth } from '../../context/AuthContext';
 
 const CATEGORIES = [
