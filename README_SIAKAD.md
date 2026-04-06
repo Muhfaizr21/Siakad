@@ -23,6 +23,72 @@ Konsep RBAC di sistem ini tidak sekadar tipe akun, melainkan mapping dari spesif
 | **Keuangan (UKT)** | ✅ Master Setup | ➖ Read Only | ❌ Deny | ❌ Deny | ➖ View & Pay |
 | **E-Proposal Ormawa** | ✅ Final Approve | ✅ Dept. Approve | ❌ Deny | ✅ Create & Upload | ❌ Deny |
 | **Fasilitas/Ruangan** | ✅ CRUD Master | ✅ Approve Booking | ➖ Request Booking | ➖ Request Booking| ➖ Request Booking |
+| **Student Voice** | ✅ Monitoring All | ✅ Faculty Review | ❌ Deny | ❌ Deny | ✅ Create & Track |
+| **Health Screening** | ✅ Health Analytics| ✅ View Reports | ❌ Deny | ❌ Deny | ✅ Self-Input |
+| **KENCANA Hub** | ✅ Manage Stages | ✅ Monitoring | ❌ Deny | ❌ Deny | ✅ Learn & Quiz |
+
+---
+
+## 🛠️ TECH STACK & INFRASTRUCTURE
+
+Sistem dirancang dengan arsitektur **Decoupled Full-Stack** untuk skalabilitas tinggi.
+
+### Backend (Engine)
+- **Language**: Go (Golang) 1.26+
+- **Framework**: [Fiber v2](https://gofiber.io/) (High performance, Express-like)
+- **ORM**: [GORM](https://gorm.io/) (Developer friendly modeling)
+- **Authentication**: JWT (JSON Web Token) with RS256/HS256
+- **PDF Engine**: FPDF (Generating dynamic certificates/transcripts)
+- **Database**: PostgreSQL 15+ (Relational with advanced JSONB support)
+
+### Frontend (Interface)
+- **Library**: React 19 (Latest stable)
+- **Build Tool**: Vite (Ultra fast HMR)
+- **Styling**: Tailwind CSS 4.0 (Utility-first with JIT)
+- **State Management**: Zustand (Lightweight & Reactive)
+- **Data Fetching**: TanStack React Query v5 (Auto-caching & Sync)
+- **Animations**: Framer Motion (Smooth UI interactions)
+- **Icons**: Lucide React
+- **Validation**: Zod + React Hook Form
+
+### Key Dependencies (Manifest)
+| Component | Dependency | Purpose |
+| :--- | :--- | :--- |
+| **Backend** | `gofiber/fiber/v2` | Core Web Framework |
+| | `gorm.io/gorm` | Database ORM |
+| | `golang-jwt/jwt/v5` | Security & Tokenization |
+| | `go-pdf/fpdf` | PDF Generation (Certificates) |
+| | `disintegration/imaging` | Profile Photo Processing |
+| **Frontend** | `@tanstack/react-query` | Server State Management |
+| | `zustand` | Client State Management |
+| | `framer-motion` | Smooth UI Animations |
+| | `recharts` | Health & Academic Analytics |
+| | `lucide-react` | Standard Icon Library |
+
+---
+
+## 🗄️ DATABASE SCHEMA (Extended Production Blueprint)
+
+Model relasional ini mencakup seluruh modul akademik dan non-akademik:
+
+### Core & Academic
+- `users`, `roles`, `permissions`, `role_permissions` (RBAC System)
+- `faculties`, `majors`, `lecturers`, `students` (Master Data)
+- `courses` (Mata Kuliah), `mata_kuliah_prasyarat` (Prerequisites)
+- `classes` (Jadwal), `student_krs` (Header/Detail), `student_grades` (KHS)
+
+### Student Life & Engagement
+- **Student Voice**: `tiket_aspirasis`, `tiket_timeline_events` (Tracking flow)
+- **Health**: `hasil_kesehatans` (TB, BB, Tekanan Darah, BMI)
+- **KENCANA**: `kencana_tahaps`, `kencana_materis`, `kencana_kuis`, `kuis_soal`, `kencana_hasil_kuis`, `kencana_progress`, `kencana_banding`, `kencana_sertifikats`
+- **Scholarship**: `beasiswas`, `pengajuan_beasiswas`, `pengajuan_berkas`, `pengajuan_pipeline_logs`
+- **Others**: `achievements`, `riwayat_organisasi`, `booking_konselings`, `kegiatan_kampus`, `aktivitas_logs`
+
+### System Utilities
+- `notifications` (Real-time student alerts)
+- `pengumumans` (Global portal announcements)
+- `login_histories` (Security & Audit trails)
+- `notification_preferences` (Student self-settings)
 
 ---
 
@@ -88,8 +154,21 @@ Konsep RBAC di sistem ini tidak sekadar tipe akun, melainkan mapping dari spesif
   - Antarmuka "Shopping Cart" untuk KRS yang interaktif. Validasasi SKS Max vs IPK sebelumnya secara otomatis.
 - **Realtime KHS & Progress**:
   - Laporan hasil studi yang live dan riwayat perkuliahan. Diagram _Skill/Major progression_.
-- **Ticketing / Helpdesk Center**:
-  - Live chat / Helpdesk untuk komplain masalah nilai yang telat diinput dosen, masalah biaya kuliah, bimbingan konseling perundungan/intelektual.
+- **Student Voice (Aspirasi & Pengaduan)**:
+  - **Sequential Ticket ID**: Format `SV-YYYYMMDD-XXXX`.
+  - **Hierarchical Routing**: Tiket diteruskan dari Mahasiswa ➔ Admin Fakultas ➔ Super Admin (jika perlu).
+  - **Anonymity Mode**: Pilihan untuk melapor secara anonim demi keamanan mahasiswa.
+  - **Journey Timeline**: Visualisasi pelacakan tiket secara real-time dengan status (Menunggu, Diproses, Selesai).
+  - **Evidence Upload**: Mendukung unggahan file pendukung (PDF/Images) hingga 5MB.
+- **Health Screening (Skrining Kesehatan)**:
+  - **Self-Assessment**: Input mandiri data kesehatan (TB, BB, Tekanan Darah).
+  - **BMI Analytics**: Kalkulasi otomatis BMI dengan indikator status kesehatan (Sehat, Perhatian, Tindak Lanjut).
+  - **Medical History**: Rekam jejak kesehatan periodik dari input mandiri maupun pemeriksaan klinik kampus.
+- **KENCANA Hub (Orientation & Engagement)**:
+  - **3-Stage Program**: Program pengenalan kampus yang terstruktur.
+  - **Gamified Quizzes**: Pengerjaan modul materi diikuti dengan kuis berbobot nilai.
+  - **Appeal System (Banding)**: Fitur pengajuan keberatan nilai kuis dengan tinjauan admin.
+  - **Auto-Certificate**: Pembuatan sertifikat kelulusan program secara digital (PDF).
 - **Digital Engagement Profile**:
   - Resume Ekstrakurikuler yang menyatu dengan transkrip nilai saat kelulusan (SKPI - Surat Keterangan Pendamping Ijazah).
 
@@ -120,11 +199,27 @@ Model relasional ini menangkai interkoneksi kompleks:
 [student_krs] (id, student_id, class_id, status: "pending", "approved", "rejected")
 [student_grades] (id, student_id, class_id, assignment_score, mid_score, final_score, total_score, grade_letter)
 
--- Non-Academic
+-- Non-Academic & Engagement
 [ormawa] (id, user_id_admin, name, type, description)
 [proposals] (id, ormawa_id, title, requested_budget, status)
 [facilities] (id, name, type, capacity)
 [bookings] (id, user_id, facility_id, start_time, end_time, status)
+
+-- Student Voice (Aspirasi)
+[tiket_aspirasi] (id: uuid, nomor_tiket: unique, student_id, fakultas_id, kategori, judul, isi, is_anonim, level_saat_ini, status)
+[tiket_timeline_events] (id: uuid, tiket_id, tipe_event, level, isi_respons, dilakukan_oleh)
+
+-- Health & Kencana
+[hasil_kesehatans] (id, student_id, tanggal_periksa, tinggi_badan, berat_badan, bmi, sistolik, diastolik, status_kesehatan, sumber)
+[kencana_tahaps] (id, nama, label, urutan, status, is_aktif)
+[kencana_materis] (id, tahap_id, judul, file_url, tipe)
+[kencana_kuis] (id, materi_id, judul, passing_grade, bobot_persen)
+[kencana_hasil_kuis] (id, student_id, kuis_id, nilai, lulus, attempt_ke)
+
+-- Scholarship & Achievements
+[beasiswas] (id, nama, kategori, nilai_bantuan, kuota, deadline)
+[pengajuan_beasiswas] (id, student_id, beasiswa_id, nomor_referensi, status)
+[achievements] (id, student_id, nama_lomba, kategori, peringkat, status)
 ```
 
 ---
@@ -133,22 +228,21 @@ Model relasional ini menangkai interkoneksi kompleks:
 
 Karena sistem ini masif, agar pekerjaan tidak membengkak dan sangat sistematis, alur pengerjaan pada Frontend React kita selanjutnya adalah:
 
-1. **RBAC & Auth Foundation (Current Milestone)**
-   - Menyempurnakan form `/login`.
-   - Membuat `AuthContext` dan `ProtectedRoute` wrapper di `App.jsx`.
-   - *Logic*: Simpan JWT Token di LocalStorage, decode JWT untuk tahu `Role_ID`, buat sistem otomatis redirect (Kalau `student` gagal masuk route `/super-admin`).
+1. **RBAC & Auth Foundation (Completed)**
+   - Login system, JWT Auth, and Role-Based Routing.
 
-2. **Super Admin Dashboard Shell (Foundation II)**
-   - Buat kerangka sidebar dinamis berdasarkan `Role` yang sedang _Logged In_.
-   - Overview page layout.
+2. **Student Experience Module (Current - 90% Done)**
+   - **Student Voice**: Backend & Frontend integrasi 100%.
+   - **Health Screening**: Core logic & UI Dashboard 100%.
+   - **KENCANA Program**: Sertifikasi & Kuis 100%.
+   - **Profile & Achievement**: Riwayat prestasi mahasiswa.
 
-3. **User Management Module (CRUD)**
-   - Halaman tabel data Dosen dan Mahasiswa, fitur Search & Pagination.
-   - Form _Add/Edit User_ (Modal UI/UX berkelas).
-   - Fitur "Ban User" dan "Reset Password".
+3. **Academic Core Module (Next Milestone)**
+   - **Smart KRS**: Logika bentrok jadwal dan prasyarat SKS.
+   - **KHS & Transcript**: Penilaian oleh dosen dan validasi fakultas.
 
-4. **Master Data Module**
-   - CRUD Fakultas dan Jurusan.
+4. **Finance & Infrastructure**
+   - Generating Virtual Accounts and UKT clearance.
 
 ---
 *Analis System Architect AI: Antigravity* 🌌

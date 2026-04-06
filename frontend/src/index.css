@@ -39,9 +39,22 @@
   --color-tertiary-fixed-dim: #bfc6dd;
   --color-on-surface-variant: #44474e;
 
+  /* BKU Student Hub Colors */
+  --color-bku-primary: #f97316;
+  --color-bku-hover: #ea580c;
+  --color-bku-light: #fed7aa;
+  --color-bku-xlight: #fff7ed;
+  --color-bku-success: #16a34a;
+  --color-bku-warning: #d97706;
+  --color-bku-danger: #dc2626;
+  --color-bku-info: #2563eb;
+
   --font-headline: "Plus Jakarta Sans", sans-serif;
   --font-body: Inter, sans-serif;
   --font-label: Inter, sans-serif;
+  
+  --font-jakarta: "Plus Jakarta Sans", sans-serif;
+  --font-inter: "Inter", sans-serif;
 
   --radius-xl: 0.75rem;
   --radius-2xl: 1rem;
@@ -60,14 +73,17 @@
   box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05);
 }
 
+html,
+body,
+#root {
+  height: 100%;
+  overflow: hidden;
+}
+
 body {
   margin: 0;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-}
-
-#root {
-  min-height: 100vh;
 }
 
 @utility glass-card {
