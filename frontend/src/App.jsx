@@ -22,6 +22,16 @@ import Notifikasi from './pages/OrmawaAdmin/Notifikasi'
 import Settings from './pages/OrmawaAdmin/Settings'
 import AspirationManagement from './pages/OrmawaAdmin/AspirationManagement'
 import FacultyAspirationManagement from './pages/FacultyAdmin/FacultyAspirationManagement'
+import FacultyPmb from './pages/FacultyAdmin/pmb/page'
+import FacultyProdi from './pages/FacultyAdmin/prodi/page'
+import FacultyDosen from './pages/FacultyAdmin/dosen/page'
+import FacultyMahasiswa from './pages/FacultyAdmin/mahasiswa/page'
+import FacultyJadwal from './pages/FacultyAdmin/jadwal/page'
+import FacultyKrs from './pages/FacultyAdmin/krs/page'
+import FacultyNilai from './pages/FacultyAdmin/nilai/page'
+import FacultyLaporan from './pages/FacultyAdmin/laporan/mahasiswa/page'
+import FacultyKonten from './pages/FacultyAdmin/konten/page'
+import FacultyPengaturan from './pages/FacultyAdmin/pengaturan/tahun-akademik/page'
 import StudentDashboard from './pages/Student/StudentDashboard'
 import { AuthProvider } from './context/AuthContext'
 import './index.css'
@@ -52,6 +62,16 @@ function App() {
         {/* Halaman Faculty Dashboard */}
         <Route path="/faculty" element={<FacultyDashboard />} />
         <Route path="/faculty/aspirasi" element={<FacultyAspirationManagement />} />
+        <Route path="/faculty/pmb" element={<FacultyPmb />} />
+        <Route path="/faculty/prodi" element={<FacultyProdi />} />
+        <Route path="/faculty/dosen" element={<FacultyDosen />} />
+        <Route path="/faculty/mahasiswa" element={<FacultyMahasiswa />} />
+        <Route path="/faculty/jadwal" element={<FacultyJadwal />} />
+        <Route path="/faculty/krs" element={<FacultyKrs />} />
+        <Route path="/faculty/nilai" element={<FacultyNilai />} />
+        <Route path="/faculty/laporan" element={<FacultyLaporan />} />
+        <Route path="/faculty/konten" element={<FacultyKonten />} />
+        <Route path="/faculty/pengaturan" element={<FacultyPengaturan />} />
 
         {/* Halaman Ormawa Dashboard */}
         <Route path="/ormawa" element={<OrmawaDashboard />} />

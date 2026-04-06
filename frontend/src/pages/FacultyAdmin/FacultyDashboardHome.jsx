@@ -1,12 +1,10 @@
 "use client"
 
-import React, { useState } from 'react';
-import Sidebar from './components/Sidebar';
-import TopNavBar from '../OrmawaAdmin/components/TopNavBar';
-
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./components/card"
-import { Button } from "./components/button"
-import { Avatar, AvatarFallback } from "./components/avatar"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "components/card"
+import { Button } from "components/button"
+import Sidebar from "components/Sidebar"
+import TopNavBar from "components/TopNavBar"
+import { Avatar, AvatarFallback } from "components/avatar"
 import {
   Users,
   GraduationCap,
@@ -163,16 +161,13 @@ const jadwalHariIni = [
 ]
 
 export default function DashboardPage() {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-
   return (
-    <div className="bg-[#F8FAFC] text-slate-900 min-h-screen font-body">
-      <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
-      <main className="lg:ml-64 min-h-screen pb-12 transition-all duration-300">
-        <TopNavBar setIsOpen={setSidebarOpen} />
-        
-        <div className="pt-24 px-4 lg:px-8">
-          <div className="flex flex-col gap-6">
+    <div className="text-on-surface bg-surface min-h-screen">
+      <Sidebar />
+      <TopNavBar />
+      <main className="ml-64 min-h-screen">
+        <div className="pt-24 pb-12 px-8">
+      <div className="flex flex-col gap-6">
       {/* Page Header */}
       <div className="flex flex-col gap-1">
         <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
@@ -184,7 +179,7 @@ export default function DashboardPage() {
       {/* Stats Cards */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {statsData.map((stat) => (
-          <Card key={stat.title}>
+          <Card key={stat.title} className="glass-card hover:-translate-y-1 hover:shadow-md transition-all duration-300 border-none bg-background/60 backdrop-blur-md">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 {stat.title}
@@ -212,7 +207,7 @@ export default function DashboardPage() {
       {/* Charts Row */}
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Mahasiswa per Prodi Chart */}
-        <Card>
+        <Card className="glass-card hover:shadow-md transition-all duration-300 border-none bg-background/60 backdrop-blur-md">
           <CardHeader>
             <CardTitle>Mahasiswa per Program Studi</CardTitle>
             <CardDescription>
@@ -246,7 +241,7 @@ export default function DashboardPage() {
         </Card>
 
         {/* Status Mahasiswa Pie Chart */}
-        <Card>
+        <Card className="glass-card hover:shadow-md transition-all duration-300 border-none bg-background/60 backdrop-blur-md">
           <CardHeader>
             <CardTitle>Status Mahasiswa</CardTitle>
             <CardDescription>
@@ -304,7 +299,7 @@ export default function DashboardPage() {
       {/* Trend & Activity Row */}
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Trend Pendaftaran */}
-        <Card className="lg:col-span-2">
+        <Card className="lg:col-span-2 glass-card border-none bg-background/60 backdrop-blur-md hover:shadow-md transition-all duration-300">
           <CardHeader>
             <CardTitle>Trend Pendaftaran Mahasiswa Baru</CardTitle>
             <CardDescription>
@@ -349,7 +344,7 @@ export default function DashboardPage() {
         </Card>
 
         {/* Aktivitas Terbaru */}
-        <Card>
+        <Card className="glass-card border-none bg-background/60 backdrop-blur-md hover:shadow-md transition-all duration-300">
           <CardHeader>
             <CardTitle>Aktivitas Terbaru</CardTitle>
             <CardDescription>Aktivitas pengguna sistem</CardDescription>
@@ -382,7 +377,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Jadwal Hari Ini */}
-      <Card>
+      <Card className="glass-card border-none bg-background/60 backdrop-blur-md hover:shadow-md transition-all duration-300">
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
             <CardTitle>Jadwal Kuliah Hari Ini</CardTitle>
@@ -400,7 +395,7 @@ export default function DashboardPage() {
             {jadwalHariIni.map((jadwal, index) => (
               <div
                 key={index}
-                className="rounded-lg border bg-card p-4 transition-colors hover:bg-muted/50"
+                className="rounded-lg border border-white/20 bg-white/40 dark:bg-black/20 p-4 transition-all hover:bg-white/60 hover:-translate-y-1 shadow-sm"
               >
                 <div className="mb-3 flex items-center gap-2">
                   <Clock className="size-4 text-primary" />
@@ -433,7 +428,7 @@ export default function DashboardPage() {
       </Card>
 
       {/* Quick Actions */}
-      <Card>
+      <Card className="glass-card border-none bg-background/60 backdrop-blur-md hover:shadow-md transition-all duration-300">
         <CardHeader>
           <CardTitle>Aksi Cepat</CardTitle>
           <CardDescription>Pintasan untuk tugas yang sering dilakukan</CardDescription>
@@ -460,7 +455,7 @@ export default function DashboardPage() {
         </CardContent>
       </Card>
     </div>
-        </div>
+            </div>
       </main>
     </div>
   )

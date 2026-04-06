@@ -18,6 +18,7 @@ const FacultyAspirationManagement = () => {
   const [selectedItem, setSelectedItem] = useState(null);
   const [showResponseModal, setShowResponseModal] = useState(false);
   const [responseMsg, setResponseMsg] = useState('');
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     fetchData();
