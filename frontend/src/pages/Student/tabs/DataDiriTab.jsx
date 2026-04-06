@@ -63,40 +63,40 @@ export default function DataDiriTab({ profile }) {
         <div className="space-y-2">
           <Label htmlFor="email">Email Aktif</Label>
           <Input id="email" {...register('email')} placeholder="email@contoh.com" />
-          {errors.email && <p className="text-xs font-bold text-red-500">{errors.email.message}</p>}
+          {errors.email && <p className="text-xs font-bold text-[#0B4FAE]">{errors.email.message}</p>}
         </div>
 
         <div className="space-y-2">
           <Label htmlFor="phone">Nomor HP / WhatsApp</Label>
           <Input id="phone" {...register('phone')} placeholder="08xxxxxxxxxx" />
-          {errors.phone && <p className="text-xs font-bold text-red-500">{errors.phone.message}</p>}
+          {errors.phone && <p className="text-xs font-bold text-[#0B4FAE]">{errors.phone.message}</p>}
         </div>
 
         <div className="space-y-2">
           <Label htmlFor="birth_place">Tempat Lahir</Label>
           <Input id="birth_place" {...register('birth_place')} />
-          {errors.birth_place && <p className="text-xs font-bold text-red-500">{errors.birth_place.message}</p>}
+          {errors.birth_place && <p className="text-xs font-bold text-[#0B4FAE]">{errors.birth_place.message}</p>}
         </div>
 
         <div className="space-y-2">
           <Label htmlFor="birth_date">Tanggal Lahir</Label>
           <Input id="birth_date" type="date" {...register('birth_date')} />
-          {errors.birth_date && <p className="text-xs font-bold text-red-500">{errors.birth_date.message}</p>}
+          {errors.birth_date && <p className="text-xs font-bold text-[#0B4FAE]">{errors.birth_date.message}</p>}
         </div>
 
         <div className="space-y-3">
           <Label>Jenis Kelamin</Label>
           <div className="flex gap-6 pt-2">
              <label className="flex items-center gap-2 cursor-pointer group">
-                <input type="radio" value="Laki-laki" {...register('gender')} className="w-4 h-4 text-[#f97316] focus:ring-[#f97316]" />
+                <input type="radio" value="Laki-laki" {...register('gender')} className="w-4 h-4 text-[#00236F] focus:ring-[#00236F]" />
                 <span className="text-sm font-bold text-[#525252] group-hover:text-[#171717]">Laki-laki</span>
              </label>
              <label className="flex items-center gap-2 cursor-pointer group">
-                <input type="radio" value="Perempuan" {...register('gender')} className="w-4 h-4 text-[#f97316] focus:ring-[#f97316]" />
+                <input type="radio" value="Perempuan" {...register('gender')} className="w-4 h-4 text-[#00236F] focus:ring-[#00236F]" />
                 <span className="text-sm font-bold text-[#525252] group-hover:text-[#171717]">Perempuan</span>
              </label>
           </div>
-          {errors.gender && <p className="text-xs font-bold text-red-500">{errors.gender.message}</p>}
+          {errors.gender && <p className="text-xs font-bold text-[#0B4FAE]">{errors.gender.message}</p>}
         </div>
 
         <div className="space-y-2">
@@ -114,25 +114,25 @@ export default function DataDiriTab({ profile }) {
               ))}
             </SelectContent>
           </Select>
-          {errors.religion && <p className="text-xs font-bold text-red-500">{errors.religion.message}</p>}
+          {errors.religion && <p className="text-xs font-bold text-[#0B4FAE]">{errors.religion.message}</p>}
         </div>
 
         <div className="md:col-span-2 space-y-2">
           <Label htmlFor="address">Alamat Domisili Saat Ini</Label>
           <Textarea id="address" {...register('address')} placeholder="Jl. Contoh No. 123..." />
-          {errors.address && <p className="text-xs font-bold text-red-500">{errors.address.message}</p>}
+          {errors.address && <p className="text-xs font-bold text-[#0B4FAE]">{errors.address.message}</p>}
         </div>
 
         <div className="space-y-2">
           <Label htmlFor="city">Kota Domisili</Label>
           <Input id="city" {...register('city')} />
-          {errors.city && <p className="text-xs font-bold text-red-500">{errors.city.message}</p>}
+          {errors.city && <p className="text-xs font-bold text-[#0B4FAE]">{errors.city.message}</p>}
         </div>
 
         <div className="space-y-2">
           <Label htmlFor="zip_code">Kode Pos</Label>
           <Input id="zip_code" {...register('zip_code')} maxLength={5} />
-          {errors.zip_code && <p className="text-xs font-bold text-red-500">{errors.zip_code.message}</p>}
+          {errors.zip_code && <p className="text-xs font-bold text-[#0B4FAE]">{errors.zip_code.message}</p>}
         </div>
 
       </div>
@@ -141,7 +141,7 @@ export default function DataDiriTab({ profile }) {
         <button 
           type="submit" 
           disabled={mutation.isPending}
-          className="flex-1 bg-[#f97316] text-white py-3 px-8 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-[#ea580c] transition-all shadow-lg shadow-orange-100 disabled:opacity-50"
+          className="flex-1 bg-[#00236F] text-white py-3 px-8 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-[#0B4FAE] transition-all shadow-md shadow-[#00236F]/20 disabled:opacity-50"
         >
           {mutation.isPending ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />}
           Simpan Perubahan

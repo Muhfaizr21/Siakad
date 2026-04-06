@@ -8,7 +8,7 @@ const MONTHS = [
 ];
 
 const CATEGORY_COLORS = {
-  kencana: 'bg-[#f97316]',
+  kencana: 'bg-[#00236F]',
   beasiswa: 'bg-[#16a34a]',
   konseling: 'bg-[#3b82f6]',
   kampus: 'bg-[#8b5cf6]',
@@ -49,13 +49,13 @@ export default function CalendarMini({ events }) {
       cells.push(
         <div key={d} className="relative group/day flex flex-col items-center justify-center h-10 cursor-pointer">
           <div className={`w-8 h-8 flex items-center justify-center rounded-full text-xs font-bold transition-all ${
-            isToday ? 'bg-[#f97316] text-white shadow-md' : 
+            isToday ? 'bg-[#00236F] text-white shadow-md' : 
             isPast ? 'text-[#d4d4d4]' : 'text-[#525252] hover:bg-[#fafafa]'
           }`}>
             {d}
           </div>
           {hasEvent && (
-            <div className={`absolute bottom-0 w-1 h-1 rounded-full ${isToday ? 'bg-white' : 'bg-[#f97316]'}`}></div>
+            <div className={`absolute bottom-0 w-1 h-1 rounded-full ${isToday ? 'bg-white' : 'bg-[#00236F]'}`}></div>
           )}
         </div>
       );
@@ -67,7 +67,7 @@ export default function CalendarMini({ events }) {
     <div className="bg-white p-6 rounded-3xl border border-[#e5e5e5] shadow-sm flex flex-col h-full overflow-hidden">
       <div className="flex items-center justify-between mb-6">
         <h3 className="text-xl font-extrabold font-headline flex items-center gap-2.5">
-          <CalendarDays size={20} className="text-[#f97316]" />
+          <CalendarDays size={20} className="text-[#00236F]" />
           Kalender Kegiatan
         </h3>
         <div className="flex items-center gap-2">

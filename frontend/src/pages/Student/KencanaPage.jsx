@@ -28,7 +28,7 @@ const formatTanggal = (dateStr, opts = {}) => {
 // ======================== STATUS CONFIG ========================
 const TAHAP_STATUS_CONFIG = {
   akan_datang: { label: 'Akan Datang', color: 'text-[#a3a3a3]', bg: 'bg-[#f5f5f5]', border: 'border-[#e5e5e5]' },
-  berlangsung: { label: 'Berlangsung', color: 'text-[#f97316]', bg: 'bg-[#fff7ed]', border: 'border-[#fed7aa]' },
+  berlangsung: { label: 'Berlangsung', color: 'text-[#00236F]', bg: 'bg-[#eef4ff]', border: 'border-[#c9d8ff]' },
   selesai: { label: 'Selesai ✓', color: 'text-[#16a34a]', bg: 'bg-[#f0fdf4]', border: 'border-[#bbf7d0]' },
 };
 const KUIS_STATUS_CONFIG = {
@@ -38,7 +38,7 @@ const KUIS_STATUS_CONFIG = {
 };
 const KESELURUHAN_STATUS = {
   belum_mulai: { label: 'Belum Mulai', color: 'text-[#a3a3a3]', bg: 'bg-[#f5f5f5]', border: 'border-[#e5e5e5]' },
-  berlangsung: { label: 'Sedang Berlangsung', color: 'text-[#f97316]', bg: 'bg-[#fff7ed]', border: 'border-[#fed7aa]' },
+  berlangsung: { label: 'Sedang Berlangsung', color: 'text-[#00236F]', bg: 'bg-[#eef4ff]', border: 'border-[#c9d8ff]' },
   lulus: { label: 'Lulus ✓', color: 'text-[#16a34a]', bg: 'bg-[#f0fdf4]', border: 'border-[#bbf7d0]' },
   tidak_lulus: { label: 'Tidak Lulus', color: 'text-[#dc2626]', bg: 'bg-[#fef2f2]', border: 'border-[#fecaca]' },
 };
@@ -109,7 +109,7 @@ function BandingModal({ onClose, progressData }) {
             <select
               value={selectedKuisId}
               onChange={e => setSelectedKuisId(e.target.value)}
-              className="w-full px-4 py-2.5 rounded-xl border border-[#e5e5e5] text-sm font-medium focus:outline-none focus:border-[#f97316] focus:ring-2 focus:ring-[#f97316]/10"
+              className="w-full px-4 py-2.5 rounded-xl border border-[#e5e5e5] text-sm font-medium focus:outline-none focus:border-[#00236F] focus:ring-2 focus:ring-[#00236F]/10"
               required
             >
               <option value="">-- Pilih Kuis --</option>
@@ -123,7 +123,7 @@ function BandingModal({ onClose, progressData }) {
           {selectedKuis && (
             <div className="bg-[#fafafa] rounded-xl p-4 border border-[#e5e5e5]">
               <p className="text-xs font-bold text-[#a3a3a3] uppercase tracking-widest mb-1">Nilai yang Tertera</p>
-              <p className="text-2xl font-black text-[#f97316]">{selectedKuis.nilai}</p>
+              <p className="text-2xl font-black text-[#00236F]">{selectedKuis.nilai}</p>
             </div>
           )}
 
@@ -137,7 +137,7 @@ function BandingModal({ onClose, progressData }) {
               onChange={e => setAlasan(e.target.value)}
               placeholder="Jelaskan kenapa kamu merasa nilaimu tidak sesuai..."
               rows={4}
-              className="w-full px-4 py-3 rounded-xl border border-[#e5e5e5] text-sm font-medium focus:outline-none focus:border-[#f97316] focus:ring-2 focus:ring-[#f97316]/10 resize-none"
+              className="w-full px-4 py-3 rounded-xl border border-[#e5e5e5] text-sm font-medium focus:outline-none focus:border-[#00236F] focus:ring-2 focus:ring-[#00236F]/10 resize-none"
               required
             />
             <p className={`text-xs mt-1 ${alasan.length < 50 ? 'text-[#dc2626]' : 'text-[#16a34a]'}`}>
@@ -151,8 +151,8 @@ function BandingModal({ onClose, progressData }) {
               Bukti Pendukung <span className="text-[#a3a3a3] font-normal">(opsional, max 5MB)</span>
             </label>
             {file ? (
-              <div className="flex items-center gap-3 p-3 bg-[#fff7ed] rounded-xl border border-[#fed7aa]">
-                <FileText size={20} className="text-[#f97316] shrink-0" />
+              <div className="flex items-center gap-3 p-3 bg-[#eef4ff] rounded-xl border border-[#c9d8ff]">
+                <FileText size={20} className="text-[#00236F] shrink-0" />
                 <span className="text-sm font-medium truncate flex-1">{file.name}</span>
                 <button type="button" onClick={() => setFile(null)} className="text-[#a3a3a3] hover:text-[#dc2626]">
                   <X size={16} />
@@ -162,7 +162,7 @@ function BandingModal({ onClose, progressData }) {
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="w-full flex items-center justify-center gap-2 p-4 border-2 border-dashed border-[#e5e5e5] rounded-xl text-sm font-bold text-[#a3a3a3] hover:border-[#f97316] hover:text-[#f97316] transition-colors"
+                className="w-full flex items-center justify-center gap-2 p-4 border-2 border-dashed border-[#e5e5e5] rounded-xl text-sm font-bold text-[#a3a3a3] hover:border-[#00236F] hover:text-[#00236F] transition-colors"
               >
                 <Upload size={18} /> Pilih File (JPG, PNG, PDF)
               </button>
@@ -174,7 +174,7 @@ function BandingModal({ onClose, progressData }) {
           {/* Checkbox */}
           <label className="flex items-start gap-3 cursor-pointer">
             <input type="checkbox" checked={agreed} onChange={e => setAgreed(e.target.checked)}
-              className="mt-0.5 w-4 h-4 text-[#f97316] border-[#d4d4d4] rounded focus:ring-[#f97316]" />
+              className="mt-0.5 w-4 h-4 text-[#00236F] border-[#d4d4d4] rounded focus:ring-[#00236F]" />
             <span className="text-sm font-medium text-[#525252] leading-relaxed">
               Saya menyatakan bahwa pengajuan banding ini benar dan dapat dipertanggungjawabkan.
             </span>
@@ -186,7 +186,7 @@ function BandingModal({ onClose, progressData }) {
               Batal
             </button>
             <button type="submit" disabled={ajukanBanding.isPending || !agreed || alasan.length < 50 || !selectedKuisId}
-              className="flex-1 py-3 rounded-2xl bg-[#f97316] text-white font-bold hover:bg-[#ea580c] transition-colors disabled:opacity-50 flex items-center justify-center gap-2">
+              className="flex-1 py-3 rounded-2xl bg-[#00236F] text-white font-bold hover:bg-[#0B4FAE] transition-colors disabled:opacity-50 flex items-center justify-center gap-2">
               {ajukanBanding.isPending ? <><Loader2 size={16} className="animate-spin" /> Mengirim...</> : 'Kirim Banding'}
             </button>
           </div>
@@ -257,11 +257,11 @@ export default function KencanaPage() {
   }
 
   return (
-    <div className="p-6 md:p-10 font-body text-[#171717] min-h-screen bg-[#fafafa] pb-20">
+    <div className="px-4 py-5 md:px-6 md:py-6 lg:px-8 lg:py-8 font-body text-[#171717] min-h-screen bg-[#fafafa] pb-16">
 
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 text-sm font-medium text-[#a3a3a3] mb-8">
-        <NavLink to="/student/dashboard" className="hover:text-[#f97316] transition-colors">Dashboard</NavLink>
+        <NavLink to="/student/dashboard" className="hover:text-[#00236F] transition-colors">Dashboard</NavLink>
         <ChevronRight size={16} />
         <span className="text-[#171717]">KENCANA</span>
       </div>
@@ -270,36 +270,36 @@ export default function KencanaPage() {
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white rounded-3xl border border-[#e5e5e5] shadow-sm overflow-hidden mb-8"
+        className="bg-white rounded-2xl border border-[#e5e5e5] shadow-sm overflow-hidden mb-6"
       >
-        <div className="bg-gradient-to-r from-[#f97316] to-[#ea580c] p-6 md:p-8 text-white">
-          <div className="flex items-center gap-3 mb-1">
-            <GraduationCap size={24} />
-            <h1 className="text-xl md:text-2xl font-black font-headline tracking-wide uppercase">KENCANA — Program Pengenalan Kampus</h1>
+        <div className="bg-gradient-to-r from-[#00236F] to-[#0B4FAE] p-4 md:p-5 text-white">
+          <div className="flex items-center gap-2.5 mb-1">
+            <GraduationCap size={20} />
+            <h1 className="text-lg md:text-xl font-black font-headline tracking-wide uppercase">KENCANA — Program Pengenalan Kampus</h1>
           </div>
-          <p className="text-orange-100 text-sm">Portal Mahasiswa Baru Universitas Bhakti Kencana</p>
+          <p className="text-[#dbe7ff] text-xs md:text-sm">Portal orientasi mahasiswa baru untuk memahami kampus, layanan, dan budaya akademik BKU.</p>
         </div>
 
-        <div className="p-6 md:p-8 flex flex-col md:flex-row md:items-center gap-8">
+        <div className="p-4 md:p-5 flex flex-col md:flex-row md:items-center gap-5">
           {/* Left — Progress + Nilai */}
           <div className="flex-1">
             <div className="flex items-center justify-between mb-3">
               <span className="text-sm font-bold text-[#525252]">{kuisSelesai} dari {totalKuis} Kuis Selesai</span>
-              <span className="text-sm font-black text-[#f97316]">{progressPct}%</span>
+              <span className="text-sm font-black text-[#00236F]">{progressPct}%</span>
             </div>
             <div className="h-3 bg-[#f5f5f5] rounded-full overflow-hidden mb-6">
               <motion.div
                 initial={{ width: 0 }}
                 animate={{ width: `${progressPct}%` }}
                 transition={{ duration: 1, ease: 'easeOut' }}
-                className="h-full bg-gradient-to-r from-[#f97316] to-[#ea580c] rounded-full"
+                className="h-full bg-gradient-to-r from-[#00236F] to-[#0B4FAE] rounded-full"
               />
             </div>
 
             <div className="flex items-center gap-4">
               <div>
                 <p className="text-xs font-bold text-[#a3a3a3] uppercase tracking-widest mb-1">Nilai Kumulatif</p>
-                <p className={`text-5xl font-black ${nilaiKumulatif >= 75 ? 'text-[#16a34a]' : nilaiKumulatif > 0 ? 'text-[#f97316]' : 'text-[#d4d4d4]'}`}>
+                <p className={`text-4xl md:text-5xl font-black ${nilaiKumulatif >= 75 ? 'text-[#16a34a]' : nilaiKumulatif > 0 ? 'text-[#00236F]' : 'text-[#d4d4d4]'}`}>
                   {nilaiKumulatif.toFixed(1)}
                 </p>
                 <p className="text-xs text-[#a3a3a3] font-medium">/ 100 poin</p>
@@ -317,12 +317,12 @@ export default function KencanaPage() {
           </div>
 
           {/* Right — Actions */}
-          <div className="flex flex-col gap-3 min-w-[200px]">
+          <div className="flex flex-col gap-2.5 min-w-[190px]">
             {eligibleSertifikat ? (
               <button
                 onClick={handleGenerateSertifikat}
                 disabled={generateCertMutation.isPending}
-                className="flex items-center justify-center gap-2 bg-[#f97316] hover:bg-[#ea580c] text-white px-6 py-3.5 rounded-2xl font-bold transition-all hover:scale-105 active:scale-95 shadow-lg shadow-orange-200 disabled:opacity-70"
+                className="flex items-center justify-center gap-2 bg-[#00236F] hover:bg-[#0B4FAE] text-white px-5 py-2.5 rounded-xl text-sm font-bold transition-colors disabled:opacity-70"
               >
                 {generateCertMutation.isPending ? <Loader2 size={18} className="animate-spin" /> : <Download size={18} />}
                 {hasSertifikat ? 'Unduh Sertifikat' : 'Generate Sertifikat'}
@@ -335,7 +335,7 @@ export default function KencanaPage() {
             {canAjukanBanding && (
               <button
                 onClick={() => setShowBandingModal(true)}
-                className="flex items-center justify-center gap-2 bg-white border-2 border-[#e5e5e5] text-[#525252] hover:border-[#f97316] hover:text-[#f97316] px-6 py-3.5 rounded-2xl font-bold transition-all"
+                className="flex items-center justify-center gap-2 bg-white border-2 border-[#e5e5e5] text-[#525252] hover:border-[#00236F] hover:text-[#00236F] px-5 py-2.5 rounded-xl text-sm font-bold transition-colors"
               >
                 <AlertCircle size={18} /> Ajukan Banding
               </button>
@@ -345,7 +345,7 @@ export default function KencanaPage() {
       </motion.div>
 
       {/* ===== TIMELINE STEPPER ===== */}
-      <div className="bg-white rounded-3xl border border-[#e5e5e5] shadow-sm p-6 md:p-8 mb-8">
+      <div className="bg-white rounded-2xl border border-[#e5e5e5] shadow-sm p-4 md:p-5 mb-6">
         <h2 className="text-sm font-black text-[#a3a3a3] uppercase tracking-widest mb-6">Timeline 3 Tahap KENCANA</h2>
         <div className="flex flex-col md:flex-row gap-4 md:gap-0">
           {progressData?.tahaps?.map((tahap, idx) => {
@@ -356,8 +356,8 @@ export default function KencanaPage() {
               <React.Fragment key={tahap.tahap_id}>
                 <button
                   onClick={() => scrollToTahap(tahap.tahap_id)}
-                  className={`flex-1 p-4 rounded-2xl border-2 text-left transition-all hover:shadow-md ${
-                    activeTahap === tahap.tahap_id ? 'border-[#f97316] bg-[#fff7ed]' : `${cfg.border} ${cfg.bg} hover:border-[#f97316]`
+                  className={`flex-1 p-3.5 rounded-xl border-2 text-left transition-all hover:shadow-sm ${
+                    activeTahap === tahap.tahap_id ? 'border-[#00236F] bg-[#eef4ff]' : `${cfg.border} ${cfg.bg} hover:border-[#00236F]`
                   }`}
                 >
                   <div className="flex items-center justify-between mb-2">
@@ -373,10 +373,10 @@ export default function KencanaPage() {
                   )}
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-xs text-[#525252]">{tahap.kuis_selesai}/{tahap.total_kuis} kuis</span>
-                    <span className="text-xs font-bold text-[#f97316]">{pct}%</span>
+                    <span className="text-xs font-bold text-[#00236F]">{pct}%</span>
                   </div>
                   <div className="h-1.5 bg-[#e5e5e5] rounded-full overflow-hidden">
-                    <div className="h-full bg-[#f97316] rounded-full transition-all duration-700" style={{ width: `${pct}%` }} />
+                    <div className="h-full bg-[#00236F] rounded-full transition-all duration-700" style={{ width: `${pct}%` }} />
                   </div>
                 </button>
                 {!isLast && (
@@ -417,7 +417,7 @@ export default function KencanaPage() {
                 {tahap.materis?.length === 0 ? (
                   <EmptyState icon="BookOpen" title="Belum Ada Materi" description="Materi untuk tahap ini belum tersedia." />
                 ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                     {tahap.materis?.map((materi, idx) => {
                       const kuis = materi.kuis;
                       const kuisCfg = kuis ? (KUIS_STATUS_CONFIG[kuis.status] ?? KUIS_STATUS_CONFIG.belum_dikerjakan) : null;
@@ -427,12 +427,12 @@ export default function KencanaPage() {
                           initial={{ opacity: 0, y: 20 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: idx * 0.05 }}
-                          className="bg-white rounded-2xl border border-[#e5e5e5] hover:border-[#fed7aa] hover:shadow-lg transition-all duration-300 flex flex-col"
+                          className="bg-white rounded-2xl border border-[#e5e5e5] hover:border-[#c9d8ff] hover:shadow-md transition-all duration-300 flex flex-col"
                         >
                           {/* Card Header */}
-                          <div className="p-5 flex-1">
+                          <div className="p-4 flex-1">
                             <div className="flex items-start justify-between gap-2 mb-3">
-                              <span className="text-xs font-black text-[#f97316] bg-[#fff7ed] px-2.5 py-1 rounded-lg border border-[#fed7aa]">
+                              <span className="text-xs font-black text-[#00236F] bg-[#eef4ff] px-2.5 py-1 rounded-lg border border-[#c9d8ff]">
                                 Modul {idx + 1}
                               </span>
                               <span className={`flex items-center gap-1 text-xs font-bold px-2 py-1 rounded-lg ${
@@ -442,12 +442,15 @@ export default function KencanaPage() {
                                 {materi.tipe}
                               </span>
                             </div>
-                            <h3 className="font-black text-[#171717] text-base leading-snug mb-2">{materi.judul}</h3>
+                            <h3 className="font-black text-[#171717] text-sm md:text-base leading-snug mb-2">{materi.judul}</h3>
+                            <p className="text-[11px] text-[#737373] mb-2.5 leading-relaxed">
+                              Pelajari materi ini terlebih dahulu, lalu kerjakan kuis untuk menambah progres tahap.
+                            </p>
                             <a
                               href={materi.file_url}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="inline-flex items-center gap-1.5 text-xs font-bold text-[#f97316] hover:underline"
+                              className="inline-flex items-center gap-1.5 text-xs font-bold text-[#00236F] hover:underline"
                             >
                               {materi.tipe === 'PDF' ? <FileText size={12} /> : <PlayCircle size={12} />}
                               Buka Materi
@@ -456,7 +459,7 @@ export default function KencanaPage() {
 
                           {/* Kuis Section */}
                           {kuis && (
-                            <div className="border-t border-[#f5f5f5] p-5">
+                            <div className="border-t border-[#f5f5f5] p-4">
                               <div className="flex items-center justify-between mb-2">
                                 <span className="text-xs font-bold text-[#a3a3a3] uppercase tracking-wider">Status Kuis</span>
                                 <span className={`text-xs font-black px-2.5 py-1 rounded-full ${kuisCfg.bg} ${kuisCfg.color}`}>
@@ -465,12 +468,17 @@ export default function KencanaPage() {
                               </div>
 
                               {kuis.status === 'belum_dikerjakan' ? (
-                                <button
-                                  onClick={() => navigate(`/student/kencana/kuis/${kuis.kuis_id}`)}
-                                  className="w-full bg-[#f97316] hover:bg-[#ea580c] text-white py-2.5 rounded-xl text-sm font-bold transition-colors"
-                                >
-                                  Kerjakan Kuis
-                                </button>
+                                <div className="space-y-2">
+                                  <button
+                                    onClick={() => navigate(`/student/kencana/kuis/${kuis.kuis_id}`)}
+                                    className="w-full bg-[#00236F] hover:bg-[#0B4FAE] text-white py-2.5 rounded-xl text-sm font-bold transition-colors"
+                                  >
+                                    Kerjakan Kuis
+                                  </button>
+                                  <p className="text-[11px] text-[#737373]">
+                                    Rekomendasi: selesaikan kuis sekarang untuk membuka progres tahap berikutnya.
+                                  </p>
+                                </div>
                               ) : kuis.status === 'lulus' ? (
                                 <div className="space-y-2">
                                   <div className="flex items-center gap-2 text-sm font-bold text-[#16a34a]">
@@ -482,6 +490,7 @@ export default function KencanaPage() {
                                   >
                                     Ulangi Kuis
                                   </button>
+                                  <p className="text-[11px] text-[#737373]">Kamu sudah aman. Ulangi hanya jika ingin nilai lebih baik.</p>
                                 </div>
                               ) : (
                                 <div className="space-y-2">
@@ -490,10 +499,11 @@ export default function KencanaPage() {
                                   </div>
                                   <button
                                     onClick={() => navigate(`/student/kencana/kuis/${kuis.kuis_id}`)}
-                                    className="w-full bg-[#f97316] hover:bg-[#ea580c] text-white py-2.5 rounded-xl text-sm font-bold transition-colors"
+                                    className="w-full bg-[#00236F] hover:bg-[#0B4FAE] text-white py-2.5 rounded-xl text-sm font-bold transition-colors"
                                   >
                                     Coba Lagi
                                   </button>
+                                  <p className="text-[11px] text-[#737373]">Tips: baca ulang materi, fokus ke soal dengan bobot tinggi.</p>
                                 </div>
                               )}
 
@@ -521,20 +531,20 @@ export default function KencanaPage() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mt-10 bg-white rounded-3xl border-2 border-dashed border-[#fed7aa] p-6 md:p-8"
+          className="mt-8 bg-white rounded-2xl border-2 border-dashed border-[#c9d8ff] p-5 md:p-6"
         >
           <div className="flex items-start gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-[#fff7ed] flex items-center justify-center shrink-0">
-              <AlertCircle size={22} className="text-[#f97316]" />
+            <div className="w-10 h-10 rounded-xl bg-[#eef4ff] flex items-center justify-center shrink-0">
+              <AlertCircle size={18} className="text-[#00236F]" />
             </div>
             <div className="flex-1">
-              <h3 className="font-black text-[#171717] text-lg mb-1">Pengajuan Banding</h3>
-              <p className="text-sm font-medium text-[#737373] mb-4 leading-relaxed">
+              <h3 className="font-black text-[#171717] text-base md:text-lg mb-1">Pengajuan Banding</h3>
+              <p className="text-xs md:text-sm font-medium text-[#737373] mb-3 leading-relaxed">
                 Jika kamu merasa ada kesalahan dalam penilaian kuis, kamu dapat mengajukan banding dalam waktu <strong>3×24 jam</strong> setelah kuis dikerjakan.
               </p>
               <button
                 onClick={() => setShowBandingModal(true)}
-                className="inline-flex items-center gap-2 bg-[#f97316] hover:bg-[#ea580c] text-white px-5 py-2.5 rounded-xl font-bold text-sm transition-colors"
+                className="inline-flex items-center gap-2 bg-[#00236F] hover:bg-[#0B4FAE] text-white px-4 py-2 rounded-xl font-bold text-sm transition-colors"
               >
                 <AlertCircle size={16} /> Ajukan Banding
               </button>
@@ -547,7 +557,7 @@ export default function KencanaPage() {
       {bandingList && bandingList.length > 0 && (
         <div className="mt-10 space-y-4">
           <h2 className="font-black text-[#171717] flex items-center gap-2">
-            <Info size={18} className="text-[#f97316]" /> Status Banding
+            <Info size={18} className="text-[#00236F]" /> Status Banding
           </h2>
           {bandingList.map(banding => {
             const cfg = BANDING_STATUS_CFG[banding.status] ?? BANDING_STATUS_CFG.menunggu;

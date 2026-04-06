@@ -87,14 +87,14 @@ export default function AvatarUploadModal({ isOpen, onClose, currentPhoto }) {
 
         <div className="p-6">
           {!image ? (
-            <div className="border-2 border-dashed border-[#e5e5e5] rounded-[2rem] p-12 flex flex-col items-center justify-center gap-4 bg-[#fafafa] hover:bg-[#fff7ed] hover:border-[#fed7aa] transition-all group cursor-pointer relative">
+            <div className="border-2 border-dashed border-[#e5e5e5] rounded-[2rem] p-10 flex flex-col items-center justify-center gap-4 bg-[#fafafa] hover:bg-[#EAF1FF] hover:border-[#C9D8FF] transition-all group cursor-pointer relative">
                <input 
                 type="file" 
                 accept="image/*" 
                 onChange={onSelectFile} 
                 className="absolute inset-0 opacity-0 cursor-pointer"
                />
-               <div className="w-16 h-16 bg-white rounded-2xl shadow-sm flex items-center justify-center text-[#f97316] group-hover:scale-110 transition-transform">
+               <div className="w-14 h-14 bg-white rounded-2xl shadow-sm flex items-center justify-center text-[#00236F] group-hover:scale-110 transition-transform">
                   <Upload size={32} />
                </div>
                <div className="text-center">
@@ -104,7 +104,7 @@ export default function AvatarUploadModal({ isOpen, onClose, currentPhoto }) {
             </div>
           ) : (
             <div className="space-y-6">
-               <div className="relative h-64 w-full bg-[#171717] rounded-[1.5rem] overflow-hidden shadow-inner">
+               <div className="relative h-64 w-full bg-[#00236F] rounded-[1.5rem] overflow-hidden shadow-inner">
                   <Cropper
                     image={image}
                     crop={crop}
@@ -127,8 +127,8 @@ export default function AvatarUploadModal({ isOpen, onClose, currentPhoto }) {
                     max={3} 
                     step={0.1} 
                     onChange={(e) => setZoom(e.target.value)}
-                    className="flex-1 accent-[#f97316] h-1.5 bg-[#f5f5f5] rounded-full appearance-none cursor-pointer"
-                  />
+                     className="flex-1 accent-[#00236F] h-1.5 bg-[#f5f5f5] rounded-full appearance-none cursor-pointer"
+                   />
                   <Plus size={16} className="text-[#a3a3a3]" />
                </div>
 
@@ -139,11 +139,11 @@ export default function AvatarUploadModal({ isOpen, onClose, currentPhoto }) {
                   >
                     Ganti File
                   </button>
-                  <button 
-                    onClick={handleUpload}
-                    disabled={mutation.isPending}
-                    className="flex-[2] py-3 px-4 rounded-2xl bg-[#f97316] text-white font-bold text-sm hover:bg-[#ea580c] transition-all shadow-lg shadow-orange-100 flex items-center justify-center gap-2 disabled:opacity-50"
-                  >
+                   <button 
+                     onClick={handleUpload}
+                     disabled={mutation.isPending}
+                     className="flex-[2] py-3 px-4 rounded-2xl bg-[#00236F] text-white font-bold text-sm hover:bg-[#0B4FAE] transition-all shadow-md shadow-[#00236F]/20 flex items-center justify-center gap-2 disabled:opacity-50"
+                   >
                     {mutation.isPending ? <Loader2 className="animate-spin" size={18} /> : <Check size={18} />}
                     Simpan Foto
                   </button>
@@ -152,9 +152,9 @@ export default function AvatarUploadModal({ isOpen, onClose, currentPhoto }) {
           )}
         </div>
         
-        <div className="p-4 bg-[#fafafa] border-t border-[#f5f5f5] text-center">
-             <button onClick={handleClose} className="text-xs font-bold text-[#a3a3a3] hover:text-[#171717] transition-colors uppercase tracking-widest">Batalkan</button>
-        </div>
+         <div className="p-4 bg-[#fafafa] border-t border-[#f5f5f5] text-center">
+             <button onClick={handleClose} className="text-xs font-bold text-[#a3a3a3] hover:text-[#00236F] transition-colors uppercase tracking-widest">Batalkan</button>
+         </div>
       </DialogContent>
     </Dialog>
   );

@@ -14,10 +14,13 @@ import * as Icons from 'lucide-react';
 export default function EmptyState({ 
   icon, 
   iconColor = "text-[#f97316]", 
+  iconBgClass = "bg-[#fff7ed]",
+  iconBorderClass = "border-[#ffedd5]",
   title, 
   description, 
   actionLabel, 
   onAction, 
+  actionClassName = "bg-[#f97316] hover:bg-[#ea580c]",
   size = "md" 
 }) {
   const IconComponent = Icons[icon] || Icons.HelpCircle;
@@ -33,7 +36,7 @@ export default function EmptyState({
   return (
     <div className={`flex flex-col items-center justify-center text-center px-6 ${currentSize.container}`}>
       {/* Icon Circle */}
-      <div className={`${currentSize.icon} bg-[#fff7ed] rounded-3xl flex items-center justify-center ${iconColor} mb-6 shadow-sm border border-[#ffedd5]`}>
+      <div className={`${currentSize.icon} ${iconBgClass} rounded-3xl flex items-center justify-center ${iconColor} mb-6 shadow-sm border ${iconBorderClass}`}>
         <IconComponent size={currentSize.iconSize} strokeWidth={1.5} />
       </div>
 
@@ -49,7 +52,7 @@ export default function EmptyState({
       {actionLabel && onAction && (
         <button
           onClick={onAction}
-          className="px-6 py-3 bg-[#f97316] text-white rounded-2xl font-bold text-sm shadow-lg hover:bg-[#ea580c] transition-all hover:scale-105 active:scale-95 flex items-center gap-2"
+          className={`px-6 py-3 text-white rounded-2xl font-bold text-sm shadow-lg transition-all hover:scale-105 active:scale-95 flex items-center gap-2 ${actionClassName}`}
         >
           {actionLabel}
           <Icons.ChevronRight size={18} />

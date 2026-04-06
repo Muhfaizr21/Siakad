@@ -144,7 +144,7 @@ export default function AchievementPage() {
       {
         accessorKey: 'Peringkat',
         header: 'Peringkat',
-        cell: (info) => <span className="font-semibold text-[#f97316]">{info.getValue()}</span>,
+        cell: (info) => <span className="font-semibold text-[#00236F]">{info.getValue()}</span>,
       },
       {
         accessorKey: 'Tanggal',
@@ -158,7 +158,7 @@ export default function AchievementPage() {
           const val = info.getValue();
           let style = 'bg-[#f5f5f5] text-[#525252] border-[#e5e5e5]';
           if (val === 'Diverifikasi') style = 'bg-[#f0fdf4] text-[#16a34a] border-[#bbf7d0]';
-          if (val === 'Menunggu') style = 'bg-[#fffbeb] text-[#d97706] border-[#fde68a]';
+          if (val === 'Menunggu') style = 'bg-[#eef4ff] text-[#00236F] border-[#c9d8ff]';
           if (val === 'Ditolak') style = 'bg-[#fef2f2] text-[#dc2626] border-[#fecaca]';
 
           return (
@@ -175,7 +175,7 @@ export default function AchievementPage() {
           <div className="flex gap-2">
             <button
               onClick={() => setSelectedDetail(info.row.original)}
-              className="p-1.5 text-[#3b82f6] bg-[#eff6ff] rounded hover:bg-[#dbeafe] transition-colors"
+              className="p-1.5 text-[#00236F] bg-[#eef4ff] rounded hover:bg-[#dbe7ff] transition-colors"
               title="Detail"
             >
               <Eye size={16} />
@@ -209,61 +209,64 @@ export default function AchievementPage() {
   });
 
   return (
-    <div className="p-6 md:p-10 font-body text-[#171717] min-h-screen bg-[#fafafa]">
+    <div className="px-4 py-5 md:px-6 md:py-6 lg:px-8 lg:py-8 font-body text-[#171717] min-h-screen bg-[#fafafa]">
       
       {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 mb-8">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-3 mb-6">
         <div>
-          <h1 className="text-3xl font-extrabold font-headline flex items-center gap-3">
-            <Trophy className="text-[#f97316]" size={36} />
+          <h1 className="text-2xl md:text-3xl font-extrabold font-headline flex items-center gap-2.5">
+            <Trophy className="text-[#00236F]" size={30} />
             Achievement
           </h1>
-          <p className="text-[#525252] mt-1 font-medium">Lapor dan kelola prestasi yang kamu raih (Simkatmawa)</p>
+          <p className="text-[#525252] mt-1 font-medium text-sm md:text-base">Lapor, pantau status verifikasi, dan kelola seluruh prestasi akademik/non-akademikmu.</p>
         </div>
         <button
           onClick={() => setIsModalOpen(true)}
-          className="bg-[#f97316] text-white px-5 py-2.5 rounded-xl font-bold flex items-center gap-2 hover:bg-[#ea580c] transition-colors shadow-sm shadow-orange-500/20"
+          className="bg-[#00236F] text-white px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 hover:bg-[#0B4FAE] transition-colors shadow-sm shadow-[#00236F]/20"
         >
-          <Plus size={20} />
+          <Plus size={16} />
           Lapor Prestasi Baru
         </button>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className="bg-white p-6 rounded-2xl border border-[#e5e5e5] shadow-sm flex items-center gap-4">
-          <div className="w-12 h-12 bg-[#fafafa] rounded-xl flex justify-center items-center text-[#525252]">
-            <Trophy size={24} />
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div className="bg-white p-4 rounded-2xl border border-[#e5e5e5] shadow-sm flex items-center gap-3">
+          <div className="w-10 h-10 bg-[#eef4ff] rounded-xl flex justify-center items-center text-[#00236F]">
+            <Trophy size={18} />
           </div>
           <div>
-            <p className="text-sm text-[#a3a3a3] font-semibold tracking-wide">TOTAL PRESTASI</p>
-            <p className="text-2xl font-extrabold text-[#171717]">{stats.total}</p>
+            <p className="text-xs text-[#a3a3a3] font-semibold tracking-wide">TOTAL PRESTASI</p>
+            <p className="text-xl font-extrabold text-[#171717]">{stats.total}</p>
           </div>
         </div>
-        <div className="bg-white p-6 rounded-2xl border border-[#e5e5e5] shadow-sm flex items-center gap-4">
-          <div className="w-12 h-12 bg-[#f0fdf4] rounded-xl flex justify-center items-center text-[#16a34a]">
-            <CheckCircle2 size={24} />
+        <div className="bg-white p-4 rounded-2xl border border-[#e5e5e5] shadow-sm flex items-center gap-3">
+          <div className="w-10 h-10 bg-[#f0fdf4] rounded-xl flex justify-center items-center text-[#16a34a]">
+            <CheckCircle2 size={18} />
           </div>
           <div>
-            <p className="text-sm text-[#a3a3a3] font-semibold tracking-wide">DIVERIFIKASI</p>
-            <p className="text-2xl font-extrabold text-[#171717]">{stats.verified}</p>
+            <p className="text-xs text-[#a3a3a3] font-semibold tracking-wide">DIVERIFIKASI</p>
+            <p className="text-xl font-extrabold text-[#171717]">{stats.verified}</p>
           </div>
         </div>
-        <div className="bg-white p-6 rounded-2xl border border-[#e5e5e5] shadow-sm flex items-center gap-4">
-          <div className="w-12 h-12 bg-[#fffbeb] rounded-xl flex justify-center items-center text-[#d97706]">
-            <Clock size={24} />
+        <div className="bg-white p-4 rounded-2xl border border-[#e5e5e5] shadow-sm flex items-center gap-3">
+          <div className="w-10 h-10 bg-[#eef4ff] rounded-xl flex justify-center items-center text-[#00236F]">
+            <Clock size={18} />
           </div>
           <div>
-            <p className="text-sm text-[#a3a3a3] font-semibold tracking-wide">MENUNGGU VALIDASI</p>
-            <p className="text-2xl font-extrabold text-[#171717]">{stats.pending}</p>
+            <p className="text-xs text-[#a3a3a3] font-semibold tracking-wide">MENUNGGU VALIDASI</p>
+            <p className="text-xl font-extrabold text-[#171717]">{stats.pending}</p>
           </div>
         </div>
       </div>
 
       {/* Table Section */}
       <div className="bg-white rounded-2xl border border-[#e5e5e5] shadow-sm overflow-hidden">
-        <div className="p-6 border-b border-[#e5e5e5] flex flex-col sm:flex-row justify-between items-center gap-4 bg-[#fafafa]">
-          <h2 className="font-bold text-lg">Riwayat Prestasi</h2>
+        <div className="p-4 md:p-5 border-b border-[#e5e5e5] flex flex-col sm:flex-row justify-between items-center gap-3 bg-[#f4f8ff]">
+          <div>
+            <h2 className="font-bold text-base md:text-lg">Riwayat Prestasi</h2>
+            <p className="text-xs text-[#737373] mt-0.5">Gunakan pencarian untuk menemukan kompetisi tertentu dengan cepat.</p>
+          </div>
           <div className="relative w-full sm:w-64">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[#a3a3a3]" size={18} />
             <input
@@ -271,7 +274,7 @@ export default function AchievementPage() {
               placeholder="Cari nama lomba..."
               value={globalFilter ?? ''}
               onChange={(e) => setGlobalFilter(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 rounded-xl border border-[#e5e5e5] focus:outline-none focus:border-[#f97316] text-sm"
+              className="w-full pl-10 pr-4 py-2 rounded-xl border border-[#e5e5e5] focus:outline-none focus:border-[#00236F] text-sm"
             />
           </div>
         </div>
@@ -280,9 +283,9 @@ export default function AchievementPage() {
           <table className="w-full text-left border-collapse">
             <thead>
               {table.getHeaderGroups().map((headerGroup) => (
-                <tr key={headerGroup.id} className="bg-white border-b border-[#e5e5e5]">
+                <tr key={headerGroup.id} className="bg-[#f4f8ff] border-b border-[#dbe7ff]">
                   {headerGroup.headers.map((header) => (
-                    <th key={header.id} className="px-6 py-4 text-xs font-bold text-[#a3a3a3] uppercase tracking-wider">
+                    <th key={header.id} className="px-4 md:px-6 py-3.5 text-xs font-bold text-[#1E3A8A] uppercase tracking-wider">
                       {flexRender(header.column.columnDef.header, header.getContext())}
                     </th>
                   ))}
@@ -301,18 +304,22 @@ export default function AchievementPage() {
                   <td colSpan="7" className="p-12">
                     <EmptyState 
                       icon="Trophy" 
+                      iconColor="text-[#00236F]"
+                      iconBgClass="bg-[#eef4ff]"
+                      iconBorderClass="border-[#c9d8ff]"
                       title="Belum Ada Prestasi" 
                       description="Lapor prestasi pertamamu sekarang dan dapatkan poin serta pengakuan resmi dari kampus!" 
                       actionLabel="Lapor Prestasi"
+                      actionClassName="bg-[#00236F] hover:bg-[#0B4FAE]"
                       onAction={() => setIsModalOpen(true)}
                     />
                   </td>
                 </tr>
               ) : (
                 table.getRowModel().rows.map((row) => (
-                  <tr key={row.id} className="border-b border-[#f5f5f5] hover:bg-[#fafafa] transition-colors">
+                  <tr key={row.id} className="border-b border-[#eef1f6] hover:bg-[#f7faff] transition-colors">
                     {row.getVisibleCells().map((cell) => (
-                      <td key={cell.id} className="px-6 py-4">
+                      <td key={cell.id} className="px-4 md:px-6 py-3.5">
                         {flexRender(cell.column.columnDef.cell, cell.getContext())}
                       </td>
                     ))}
@@ -332,14 +339,14 @@ export default function AchievementPage() {
             <button
               onClick={() => table.previousPage()}
               disabled={!table.getCanPreviousPage()}
-              className="px-3 py-1 border border-[#e5e5e5] rounded bg-white hover:bg-[#f5f5f5] disabled:opacity-50"
+              className="px-3 py-1 border border-[#e5e5e5] rounded bg-white hover:bg-[#eef4ff] disabled:opacity-50"
             >
               Sebelumnya
             </button>
             <button
               onClick={() => table.nextPage()}
               disabled={!table.getCanNextPage()}
-              className="px-3 py-1 border border-[#e5e5e5] rounded bg-white hover:bg-[#f5f5f5] disabled:opacity-50"
+              className="px-3 py-1 border border-[#e5e5e5] rounded bg-white hover:bg-[#eef4ff] disabled:opacity-50"
             >
               Selanjutnya
             </button>
@@ -362,12 +369,12 @@ export default function AchievementPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div>
                   <label className="block text-sm font-semibold mb-1 text-[#525252]">Nama Lomba/Kompetisi <span className="text-red-500">*</span></label>
-                  <input {...register('nama_lomba')} className="w-full border border-[#e5e5e5] rounded-xl px-4 py-2 focus:border-[#f97316] outline-none" placeholder="Cth: Gemastik 2026" />
+                  <input {...register('nama_lomba')} className="w-full border border-[#e5e5e5] rounded-xl px-4 py-2 focus:border-[#00236F] outline-none" placeholder="Cth: Gemastik 2026" />
                   {errors.nama_lomba && <p className="text-xs text-red-500 mt-1">{errors.nama_lomba.message}</p>}
                 </div>
                 <div>
                   <label className="block text-sm font-semibold mb-1 text-[#525252]">Kategori <span className="text-red-500">*</span></label>
-                  <select {...register('kategori')} className="w-full border border-[#e5e5e5] rounded-xl px-4 py-2 focus:border-[#f97316] outline-none text-[#171717]">
+                  <select {...register('kategori')} className="w-full border border-[#e5e5e5] rounded-xl px-4 py-2 focus:border-[#00236F] outline-none text-[#171717]">
                     <option value="">Pilih Kategori</option>
                     <option value="Akademik">Akademik</option>
                     <option value="Non-Akademik">Non-Akademik</option>
@@ -382,7 +389,7 @@ export default function AchievementPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div>
                   <label className="block text-sm font-semibold mb-1 text-[#525252]">Tingkat <span className="text-red-500">*</span></label>
-                  <select {...register('tingkat')} className="w-full border border-[#e5e5e5] rounded-xl px-4 py-2 focus:border-[#f97316] outline-none text-[#171717]">
+                  <select {...register('tingkat')} className="w-full border border-[#e5e5e5] rounded-xl px-4 py-2 focus:border-[#00236F] outline-none text-[#171717]">
                     <option value="">Pilih Tingkat</option>
                     <option value="Lokal">Lokal (Antar Prodi/Univ)</option>
                     <option value="Regional">Regional (Antar Kampus Jabar)</option>
@@ -393,7 +400,7 @@ export default function AchievementPage() {
                 </div>
                 <div>
                   <label className="block text-sm font-semibold mb-1 text-[#525252]">Penyelenggara <span className="text-red-500">*</span></label>
-                  <input {...register('penyelenggara')} className="w-full border border-[#e5e5e5] rounded-xl px-4 py-2 focus:border-[#f97316] outline-none" placeholder="Cth: Kemendikbud" />
+                  <input {...register('penyelenggara')} className="w-full border border-[#e5e5e5] rounded-xl px-4 py-2 focus:border-[#00236F] outline-none" placeholder="Cth: Kemendikbud" />
                   {errors.penyelenggara && <p className="text-xs text-red-500 mt-1">{errors.penyelenggara.message}</p>}
                 </div>
               </div>
@@ -401,12 +408,12 @@ export default function AchievementPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div>
                   <label className="block text-sm font-semibold mb-1 text-[#525252]">Tanggal Pelaksanaan <span className="text-red-500">*</span></label>
-                  <input type="date" {...register('tanggal')} className="w-full border border-[#e5e5e5] rounded-xl px-4 py-2 focus:border-[#f97316] outline-none text-[#171717]" />
+                  <input type="date" {...register('tanggal')} className="w-full border border-[#e5e5e5] rounded-xl px-4 py-2 focus:border-[#00236F] outline-none text-[#171717]" />
                   {errors.tanggal && <p className="text-xs text-red-500 mt-1">{errors.tanggal.message}</p>}
                 </div>
                 <div>
                   <label className="block text-sm font-semibold mb-1 text-[#525252]">Peringkat Diraih <span className="text-red-500">*</span></label>
-                  <select {...register('peringkat')} className="w-full border border-[#e5e5e5] rounded-xl px-4 py-2 focus:border-[#f97316] outline-none text-[#171717]">
+                  <select {...register('peringkat')} className="w-full border border-[#e5e5e5] rounded-xl px-4 py-2 focus:border-[#00236F] outline-none text-[#171717]">
                     <option value="">Pilih Peringkat</option>
                     <option value="Juara 1">Juara 1 (Emas)</option>
                     <option value="Juara 2">Juara 2 (Perak)</option>
@@ -426,10 +433,10 @@ export default function AchievementPage() {
                   <input type="file" accept=".pdf,.png,.jpg,.jpeg" {...register('sertifikat')} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
                   <div className="pointer-events-none flex flex-col items-center">
                     <UploadCloud size={32} className="text-[#a3a3a3] mb-2" />
-                    <p className="text-sm font-semibold text-[#f97316]">Klik untuk Upload File</p>
+                    <p className="text-sm font-semibold text-[#00236F]">Klik untuk Upload File</p>
                     <p className="text-xs text-[#a3a3a3] mt-1">Format: PDF, JPG, PNG (Max. 5MB)</p>
                     {fileValue && fileValue.length > 0 && (
-                      <div className="mt-3 px-3 py-1 bg-[#fff7ed] border border-[#fed7aa] text-[#ea580c] text-xs font-bold rounded-lg truncate w-full max-w-xs">
+                      <div className="mt-3 px-3 py-1 bg-[#eef4ff] border border-[#c9d8ff] text-[#00236F] text-xs font-bold rounded-lg truncate w-full max-w-xs">
                         Terpilih: {fileValue[0].name}
                       </div>
                     )}
@@ -440,7 +447,7 @@ export default function AchievementPage() {
 
               <div className="pt-4 border-t border-[#e5e5e5] flex justify-end gap-3">
                 <button type="button" onClick={() => setIsModalOpen(false)} className="px-5 py-2.5 rounded-xl font-bold border border-[#e5e5e5] text-[#171717] hover:bg-[#f5f5f5]">Batal</button>
-                <button type="submit" disabled={createMutation.isLoading} className="px-5 py-2.5 rounded-xl font-bold bg-[#f97316] text-white hover:bg-[#ea580c] disabled:opacity-50">
+                <button type="submit" disabled={createMutation.isLoading} className="px-5 py-2.5 rounded-xl font-bold bg-[#00236F] text-white hover:bg-[#0B4FAE] disabled:opacity-50">
                   {createMutation.isLoading ? 'Menyimpan...' : 'Simpan Prestasi'}
                 </button>
               </div>
@@ -473,7 +480,7 @@ export default function AchievementPage() {
                   <tr className="border-b border-[#f5f5f5]"><td className="py-2.5 font-semibold text-[#a3a3a3] w-1/3">Nama Lomba</td><td className="py-2 font-bold text-[#171717]">{selectedDetail.NamaLomba}</td></tr>
                   <tr className="border-b border-[#f5f5f5]"><td className="py-2.5 font-semibold text-[#a3a3a3]">Kategori / Tingkat</td><td className="py-2 font-bold text-[#171717]">{selectedDetail.Kategori} - {selectedDetail.Tingkat}</td></tr>
                   <tr className="border-b border-[#f5f5f5]"><td className="py-2.5 font-semibold text-[#a3a3a3]">Penyelenggara</td><td className="py-2 font-bold text-[#171717]">{selectedDetail.Penyelenggara}</td></tr>
-                  <tr className="border-b border-[#f5f5f5]"><td className="py-2.5 font-semibold text-[#a3a3a3]">Peringkat</td><td className="py-2 font-bold text-[#ea580c]">{selectedDetail.Peringkat}</td></tr>
+                  <tr className="border-b border-[#f5f5f5]"><td className="py-2.5 font-semibold text-[#a3a3a3]">Peringkat</td><td className="py-2 font-bold text-[#00236F]">{selectedDetail.Peringkat}</td></tr>
                   <tr className="border-b border-[#f5f5f5]"><td className="py-2.5 font-semibold text-[#a3a3a3]">Status</td><td className="py-2 font-bold text-[#171717]">{selectedDetail.Status}</td></tr>
                 </tbody>
               </table>
@@ -481,7 +488,7 @@ export default function AchievementPage() {
               <div className="mt-6">
                 <p className="font-semibold text-sm mb-2 text-[#a3a3a3]">Bukti Sertifikat</p>
                 {selectedDetail.SertifikatURL ? (
-                  <a href={`http://localhost:8000${selectedDetail.SertifikatURL}`} target="_blank" rel="noreferrer" className="flex items-center justify-center p-3 border border-[#e5e5e5] rounded-xl hover:bg-[#fafafa] hover:border-[#f97316] transition-colors text-sm font-bold text-[#f97316]">
+                  <a href={`http://localhost:8000${selectedDetail.SertifikatURL}`} target="_blank" rel="noreferrer" className="flex items-center justify-center p-3 border border-[#e5e5e5] rounded-xl hover:bg-[#eef4ff] hover:border-[#00236F] transition-colors text-sm font-bold text-[#00236F]">
                     Lihat Dokumen Sertifikat
                   </a>
                 ) : (

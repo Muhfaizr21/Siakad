@@ -19,51 +19,88 @@ export default function BkuDashboard() {
 
   if (isError || !data) {
     return (
-      <div className="p-20 text-center flex flex-col items-center justify-center">
-        <div className="bg-red-50 text-red-500 p-6 rounded-3xl border border-red-100 max-w-sm">
-          <h2 className="font-bold text-xl mb-2">Oops! Ada Masalah 🚧</h2>
-          <p className="text-sm font-medium">Gagal memuat data dashboard. Pastikan koneksi internet stabil dan coba lagi.</p>
+      <div className="min-h-screen bg-[#f8f8f6] flex items-center justify-center px-4">
+        <div className="bg-white border border-red-100 rounded-2xl px-8 py-10 max-w-sm w-full text-center shadow-sm">
+          <div className="w-12 h-12 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4">
+            <span className="text-2xl">🚧</span>
+          </div>
+          <h2 className="font-semibold text-[#171717] text-lg mb-2">Gagal Memuat Dashboard</h2>
+          <p className="text-sm text-[#6b7280] leading-relaxed">
+            Pastikan koneksi internet stabil, lalu coba muat ulang halaman.
+          </p>
+          <button
+            onClick={() => window.location.reload()}
+            className="mt-5 w-full py-2.5 rounded-xl bg-[#171717] text-white text-sm font-medium hover:bg-[#333] transition-colors"
+          >
+            Muat Ulang
+          </button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="p-6 md:p-10 font-body text-[#171717] min-h-screen bg-[#fafafa]">
-      <div className="max-w-7xl mx-auto">
-        
-        {/* [0] Banner Pengumuman Penting */}
-        <BannerPinned banner={data.banner_pinned} />
+    <div className="min-h-screen bg-[#f8f8f6] font-body text-[#171717]">
+      <div className="max-w-5xl mx-auto px-4 py-6 md:px-6 md:py-8 lg:px-8 lg:py-10">
+        <div className="flex flex-col gap-5">
 
-        {/* [1] Hero Card — Greeting & Contextual Msg */}
-        <HeroCard data={data} />
+          {/* ── ZONA URGENT (hal mendesak di atas) ── */}
 
-        {/* [2] Deadline Alert — Pengingat Jatuh Tempo */}
-        <DeadlineAlert deadlines={data.deadlines} />
+          {/* [1] Banner Pengumuman Penting — paling atas karena sifatnya darurat/pinned */}
+          {data.banner_pinned && (
+            <section aria-label="Pengumuman Penting">
+              <BannerPinned banner={data.banner_pinned} />
+            </section>
+          )}
 
-        {/* [3] Quick Access Card */}
-        <QuickAccessGrid />
+          {/* [2] Deadline Alert — pengingat jatuh tempo, butuh tindakan segera */}
+          {data.deadlines?.length > 0 && (
+            <section aria-label="Deadline Mendekat">
+              <DeadlineAlert deadlines={data.deadlines} />
+            </section>
+          )}
 
-        {/* [4] Status & Progress Ringkasan */}
-        <StatusSummary 
-            kencana={data.kencana} 
-            beasiswa={data.beasiswa} 
-            voice={data.student_voice} 
-        />
+          {/* ── ZONA KONTEKSTUAL ── */}
 
-        {/* [5] Layout Dua Kolom */}
-        <div className="grid grid-cols-1 lg:grid-cols-10 gap-10 mb-12">
-            <div className="lg:col-span-6">
+          {/* [3] Hero Card — sambutan & pesan kontekstual */}
+          <section aria-label="Ringkasan Harian">
+            <HeroCard data={data} />
+          </section>
+
+          {/* [4] Status & Progress — gambaran umum kondisi mahasiswa */}
+          <section aria-label="Status Permohonan">
+            <StatusSummary
+              kencana={data.kencana}
+              beasiswa={data.beasiswa}
+              voice={data.student_voice}
+            />
+          </section>
+
+          {/* ── ZONA NAVIGASI & AKTIVITAS ── */}
+
+          {/* [5] Quick Access — akses cepat ke fitur utama */}
+          <section aria-label="Akses Cepat">
+            <QuickAccessGrid />
+          </section>
+
+          {/* [6] Aktivitas & Kalender — layout dua kolom */}
+          <section aria-label="Aktivitas dan Jadwal">
+            <div className="grid grid-cols-1 lg:grid-cols-10 gap-5">
+              <div className="lg:col-span-6">
                 <ActivityFeed activities={data.aktivitas_terbaru} />
-            </div>
-            <div className="lg:col-span-4">
+              </div>
+              <div className="lg:col-span-4">
                 <CalendarMini events={data.kegiatan_bulan_ini} />
+              </div>
             </div>
+          </section>
+
+          {/* [7] Pengumuman Terbaru — informasi pendukung di paling bawah */}
+          <section aria-label="Pengumuman">
+            <AnnouncementSection announcements={data.pengumuman} />
+          </section>
+
         </div>
-
-        {/* [6] Pengumuman Terbaru */}
-        <AnnouncementSection announcements={data.pengumuman} />
-
       </div>
     </div>
   );

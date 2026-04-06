@@ -22,7 +22,7 @@ export default function BannerPinned({ banner }) {
   if (!isVisible) return null;
 
   return (
-    <div className="bg-[#f97316] text-white py-3 px-6 rounded-2xl mb-6 flex items-center justify-between shadow-lg shadow-orange-200/50 animate-in fade-in slide-in-from-top-4 duration-300">
+    <div className="bg-[#00236F] text-white py-3 px-6 rounded-2xl mb-6 flex items-center justify-between shadow-lg shadow-[#00236F]/30 animate-in fade-in slide-in-from-top-4 duration-300">
       <div className="flex items-center gap-3">
         <div className="bg-white/20 p-1.5 rounded-lg">
           <Megaphone size={18} className="text-white" />

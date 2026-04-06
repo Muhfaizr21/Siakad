@@ -25,7 +25,7 @@ function ConfettiParticle({ delay, color }) {
 }
 
 function ConfettiEffect() {
-  const colors = ['#f97316', '#ea580c', '#fbbf24', '#16a34a', '#2563eb', '#9333ea'];
+  const colors = ['#00236F', '#0B4FAE', '#60A5FA', '#16a34a', '#2563eb', '#9333ea'];
   return (
     <div className="fixed inset-0 pointer-events-none z-[9999] overflow-hidden">
       {Array.from({ length: 60 }).map((_, i) => (
@@ -109,7 +109,7 @@ export default function KencanaKuisPage() {
         <h2 className="text-xl font-bold font-headline text-[#171717] mb-2">Kuis Tidak Tersedia</h2>
         <p className="text-[#737373] mb-6">Gagal memuat soal atau kuis belum tersedia. Coba lagi nanti.</p>
         <button onClick={() => navigate('/student/kencana')}
-          className="px-6 py-2.5 bg-[#f97316] text-white rounded-xl font-bold hover:bg-[#ea580c] transition-colors">
+          className="px-6 py-2.5 bg-[#00236F] text-white rounded-xl font-bold hover:bg-[#0B4FAE] transition-colors">
           Kembali ke KENCANA
         </button>
       </div>
@@ -147,13 +147,13 @@ export default function KencanaKuisPage() {
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="mb-4 p-4 bg-gradient-to-r from-[#f97316] to-[#ea580c] rounded-2xl text-white"
+              className="mb-4 p-4 bg-gradient-to-r from-[#00236F] to-[#0B4FAE] rounded-2xl text-white"
             >
               <div className="flex items-center justify-center gap-2 mb-1">
                 <Trophy size={20} />
                 <span className="font-black text-lg">Selamat! Kamu Lulus KENCANA!</span>
               </div>
-              <p className="text-orange-100 text-sm">Sertifikat PKKMB sudah bisa diunduh.</p>
+              <p className="text-[#dbe7ff] text-sm">Sertifikat PKKMB sudah bisa diunduh.</p>
             </motion.div>
           )}
 
@@ -172,9 +172,9 @@ export default function KencanaKuisPage() {
                 {hasil.nilai}
               </p>
             </div>
-            <div className="bg-[#fff7ed] rounded-2xl p-4 border border-[#fed7aa]">
+            <div className="bg-[#eef4ff] rounded-2xl p-4 border border-[#c9d8ff]">
               <p className="text-xs font-bold text-[#a3a3a3] uppercase tracking-widest mb-1">Nilai Kumulatif</p>
-              <p className={`text-4xl font-black ${hasil.nilai_kumulatif_terbaru >= 75 ? 'text-[#16a34a]' : 'text-[#f97316]'}`}>
+              <p className={`text-4xl font-black ${hasil.nilai_kumulatif_terbaru >= 75 ? 'text-[#16a34a]' : 'text-[#00236F]'}`}>
                 {hasil.nilai_kumulatif_terbaru?.toFixed(1)}
               </p>
             </div>
@@ -187,7 +187,7 @@ export default function KencanaKuisPage() {
           <div className="space-y-3">
             <button
               onClick={() => navigate('/student/kencana')}
-              className="w-full bg-[#f97316] text-white py-3.5 rounded-2xl font-bold hover:bg-[#ea580c] transition-colors"
+              className="w-full bg-[#00236F] text-white py-3.5 rounded-2xl font-bold hover:bg-[#0B4FAE] transition-colors"
             >
               Kembali ke Beranda KENCANA
             </button>
@@ -227,13 +227,13 @@ export default function KencanaKuisPage() {
   const OPSI_VALUES = [soalNow.opsi_a, soalNow.opsi_b, soalNow.opsi_c, soalNow.opsi_d];
 
   return (
-    <div className="p-6 md:p-10 font-body text-[#171717] min-h-screen bg-[#fafafa]">
+    <div className="px-4 py-5 md:px-6 md:py-6 lg:px-8 lg:py-8 font-body text-[#171717] min-h-screen bg-[#fafafa]">
       <div className="max-w-3xl mx-auto">
 
         {/* Top Bar */}
         <div className="flex items-center justify-between mb-6">
           <button onClick={() => navigate('/student/kencana')}
-            className="flex items-center gap-2 text-[#525252] hover:text-[#f97316] transition-colors font-bold text-sm">
+            className="flex items-center gap-2 text-[#525252] hover:text-[#00236F] transition-colors font-bold text-sm">
             <ArrowLeft size={18} /> Kembali
           </button>
           <div className="flex items-center gap-3">
@@ -244,7 +244,7 @@ export default function KencanaKuisPage() {
                 <Clock size={14} /> {formatTime(timeLeft)}
               </div>
             )}
-            <div className="bg-white px-4 py-1.5 rounded-full border border-[#e5e5e5] text-sm font-bold text-[#f97316] flex items-center gap-2 shadow-sm">
+            <div className="bg-white px-4 py-1.5 rounded-full border border-[#e5e5e5] text-sm font-bold text-[#00236F] flex items-center gap-2 shadow-sm">
               <GraduationCap size={16} />
               Soal {currentIndex + 1} dari {soalList.length}
             </div>
@@ -260,7 +260,7 @@ export default function KencanaKuisPage() {
         {/* Linear Progress Bar */}
         <div className="h-2 bg-[#f5f5f5] rounded-full overflow-hidden mb-6">
           <motion.div
-            className="h-full bg-gradient-to-r from-[#f97316] to-[#ea580c] rounded-full"
+            className="h-full bg-gradient-to-r from-[#00236F] to-[#0B4FAE] rounded-full"
             initial={{ width: 0 }}
             animate={{ width: `${progressPct}%` }}
             transition={{ duration: 0.4 }}
@@ -287,12 +287,12 @@ export default function KencanaKuisPage() {
                   key={opsiLabel}
                   className={`flex items-start gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all min-h-[52px] ${
                     jawabNow === opsiLabel
-                      ? 'border-[#f97316] bg-[#fff7ed]'
-                      : 'border-[#e5e5e5] hover:border-[#fed7aa] hover:bg-[#fafafa]'
+                      ? 'border-[#00236F] bg-[#eef4ff]'
+                      : 'border-[#e5e5e5] hover:border-[#c9d8ff] hover:bg-[#fafafa]'
                   }`}
                 >
                   <div className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 text-sm font-black border-2 transition-colors mt-0.5 ${
-                    jawabNow === opsiLabel ? 'bg-[#f97316] border-[#f97316] text-white' : 'bg-white border-[#d4d4d4] text-[#525252]'
+                    jawabNow === opsiLabel ? 'bg-[#00236F] border-[#00236F] text-white' : 'bg-white border-[#d4d4d4] text-[#525252]'
                   }`}>
                     {opsiLabel}
                   </div>
@@ -330,7 +330,7 @@ export default function KencanaKuisPage() {
                 key={s.id}
                 onClick={() => setCurrentIndex(i)}
                 className={`w-2.5 h-2.5 rounded-full transition-all ${
-                  i === currentIndex ? 'bg-[#f97316] scale-125' : jawaban[s.id] ? 'bg-[#16a34a]' : 'bg-[#d4d4d4]'
+                  i === currentIndex ? 'bg-[#00236F] scale-125' : jawaban[s.id] ? 'bg-[#16a34a]' : 'bg-[#d4d4d4]'
                 }`}
               />
             ))}
@@ -339,7 +339,7 @@ export default function KencanaKuisPage() {
           <button
             onClick={handleNext}
             disabled={!jawabNow}
-            className="flex items-center gap-2 px-5 py-3 rounded-xl font-bold bg-[#f97316] text-white hover:bg-[#ea580c] disabled:opacity-30 transition-colors"
+            className="flex items-center gap-2 px-5 py-3 rounded-xl font-bold bg-[#00236F] text-white hover:bg-[#0B4FAE] disabled:opacity-30 transition-colors"
           >
             {currentIndex === soalList.length - 1 ? 'Selesai & Kumpulkan' : 'Selanjutnya'}
             {currentIndex !== soalList.length - 1 && <ArrowRight size={18} />}

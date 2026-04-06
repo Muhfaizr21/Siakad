@@ -24,10 +24,10 @@ import { NavLink } from 'react-router-dom';
 
 // Badge color for organisation type
 const TIPE_COLORS = {
-  UKM:        { bg: 'bg-[#eff6ff]', text: 'text-[#3b82f6]' },
-  Himpunan:   { bg: 'bg-[#fff7ed]', text: 'text-[#f97316]' },
-  BEM:        { bg: 'bg-[#fef2f2]', text: 'text-[#ef4444]' },
-  DPM:        { bg: 'bg-[#f5f3ff]', text: 'text-[#8b5cf6]' },
+  UKM:            { bg: 'bg-[#EAF1FF]', text: 'text-[#0B4FAE]' },
+  'Himpunan Prodi': { bg: 'bg-[#EEF4FF]', text: 'text-[#1D4E9E]' },
+  BEM:            { bg: 'bg-[#EDF3FF]', text: 'text-[#113A80]' },
+  DPM:            { bg: 'bg-[#F3F7FF]', text: 'text-[#294D8D]' },
   Komunitas:  { bg: 'bg-[#f5f5f5]', text: 'text-[#737373]' },
   Lainnya:    { bg: 'bg-[#f5f5f5]', text: 'text-[#737373]' },
 };
@@ -111,32 +111,32 @@ export default function OrganisasiPage() {
   const tipeColor = (tipe) => TIPE_COLORS[tipe] ?? TIPE_COLORS['Lainnya'];
 
   return (
-    <div className="min-h-screen bg-[#fafafa] text-[#171717] font-body p-6 md:p-10">
+    <div className="min-h-screen bg-[#fafafa] text-[#171717] font-body px-4 py-5 md:px-6 md:py-6 lg:px-8 lg:py-8">
 
       <div className="max-w-6xl mx-auto">
          {/* Breadcrumb */}
-         <div className="flex items-center gap-2 text-sm font-medium text-[#a3a3a3] mb-8">
-           <NavLink to="/student/dashboard" className="hover:text-[#f97316] cursor-pointer transition-colors">Dashboard</NavLink>
+         <div className="flex items-center gap-2 text-sm font-medium text-[#a3a3a3] mb-6">
+           <NavLink to="/student/dashboard" className="hover:text-[#00236F] cursor-pointer transition-colors">Dashboard</NavLink>
            <ChevronRight size={16} />
            <span className="text-[#171717]">Organisasi</span>
          </div>
 
         {/* Page Title */}
-        <div className="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div className="mb-7 flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-extrabold font-headline mb-2 flex items-center gap-3">
-              <div className="bg-[#171717] p-2 rounded-xl text-white">
-                <Users size={28} />
+            <h1 className="text-2xl md:text-3xl font-extrabold font-headline mb-1.5 flex items-center gap-3">
+              <div className="bg-[#00236F] p-2 rounded-xl text-white shadow-md shadow-[#00236F]/20">
+                <Users size={20} />
               </div>
               Riwayat Organisasi
             </h1>
-            <p className="text-[#525252] font-medium">Portofolio keaktifan organisasi kemahasiswaan kamu.</p>
+            <p className="text-[#525252] font-medium text-sm md:text-base">Portofolio keaktifan organisasi kemahasiswaan kamu.</p>
           </div>
           <button
             onClick={openAdd}
-            className="flex items-center gap-2 bg-[#f97316] text-white px-6 py-3 rounded-xl font-bold hover:bg-[#ea580c] transition-colors shadow-lg shadow-orange-200 whitespace-nowrap"
+            className="flex items-center gap-2 bg-[#00236F] text-white px-5 py-3 rounded-xl font-bold hover:bg-[#0B4FAE] transition-colors shadow-md shadow-[#00236F]/20 whitespace-nowrap text-sm"
           >
-            <Plus size={20} /> Tambah Riwayat
+            <Plus size={18} /> Tambah Riwayat
           </button>
         </div>
 
@@ -144,23 +144,23 @@ export default function OrganisasiPage() {
         {isLoading ? (
           <CardGridSkeleton count={4} />
         ) : list?.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {list.map((item) => {
               const tc = tipeColor(item.Tipe);
               const isPending = item.StatusVerifikasi === 'Menunggu';
               return (
                 <div
                   key={item.ID}
-                  className="group bg-white rounded-2xl border border-[#e5e5e5] overflow-hidden hover:border-[#fed7aa] hover:shadow-xl transition-all flex flex-col"
+                  className="group bg-white rounded-2xl border border-[#e5e5e5] overflow-hidden hover:border-[#C9D8FF] hover:shadow-md hover:shadow-[#00236F]/10 transition-all flex flex-col"
                 >
-                  <div className="p-6 flex-1 flex flex-col gap-3">
+                  <div className="p-5 flex-1 flex flex-col gap-3">
                     {/* Top: tipe badge + status */}
                     <div className="flex items-center justify-between">
                       <span className={`px-3 py-1 rounded-full text-xs font-bold border ${tc.bg} ${tc.text} border-current/20`}>
                         {item.Tipe}
                       </span>
                       {isPending ? (
-                        <span className="flex items-center gap-1.5 px-2.5 py-1 bg-[#fffbeb] text-[#d97706] rounded-full text-xs font-bold">
+                        <span className="flex items-center gap-1.5 px-2.5 py-1 bg-[#EAF1FF] text-[#0B4FAE] rounded-full text-xs font-bold">
                           <Clock size={11} /> Menunggu Verifikasi
                         </span>
                       ) : (
@@ -172,7 +172,7 @@ export default function OrganisasiPage() {
 
                     {/* Name & Position */}
                     <div>
-                      <h3 className="text-lg font-bold text-[#171717] group-hover:text-[#f97316] transition-colors leading-snug">
+                      <h3 className="text-base md:text-lg font-bold text-[#171717] group-hover:text-[#00236F] transition-colors leading-snug">
                         {item.NamaOrganisasi}
                       </h3>
                       <p className="text-sm font-semibold text-[#525252] mt-0.5">{item.Jabatan}</p>
@@ -195,11 +195,11 @@ export default function OrganisasiPage() {
                   </div>
 
                   {/* Footer actions — only if Menunggu */}
-                  {isPending && (
+                    {isPending && (
                     <div className="flex border-t border-[#e5e5e5]">
                       <button
                         onClick={() => openEdit(item)}
-                        className="flex-1 flex items-center justify-center gap-1.5 py-3 text-xs font-semibold text-[#525252] hover:bg-[#fff7ed] hover:text-[#f97316] transition-all border-r border-[#e5e5e5]"
+                        className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-xs font-semibold text-[#525252] hover:bg-[#EAF1FF] hover:text-[#00236F] transition-all border-r border-[#e5e5e5]"
                       >
                         <Pencil size={13} /> Edit
                       </button>
@@ -221,6 +221,9 @@ export default function OrganisasiPage() {
             title="Belum Ada Riwayat Organisasi" 
             description="Tambahkan pengalaman organisasi kamu agar portofolio keaktifanmu semakin lengkap dan menarik bagi beasiswa." 
             actionLabel="Tambah Organisasi"
+            iconBgClass="bg-[#EAF1FF]"
+            iconBorderClass="border-[#C9D8FF]"
+            actionClassName="bg-[#00236F] hover:bg-[#0B4FAE] text-white"
             onAction={openAdd}
           />
         )}
@@ -228,18 +231,18 @@ export default function OrganisasiPage() {
 
       {/* FORM MODAL */}
       {showModal && (
-        <div className="fixed inset-0 z-50 bg-[#171717]/70 backdrop-blur-sm flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 bg-[#00236F]/50 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden">
             {/* Header */}
-            <div className="flex items-center justify-between px-8 py-5 border-b border-[#f5f5f5]">
+            <div className="flex items-center justify-between px-5 md:px-6 py-4 border-b border-[#f5f5f5]">
               <div>
-                <h2 className="text-xl font-bold font-headline">
+                <h2 className="text-lg md:text-xl font-bold font-headline">
                   {editData ? 'Edit Riwayat Organisasi' : 'Tambah Riwayat Organisasi'}
                 </h2>
                 <p className="text-sm text-[#a3a3a3] mt-0.5">Lengkapi informasi organisasi kamu</p>
               </div>
-              <button onClick={() => setShowModal(false)} className="text-[#a3a3a3] hover:text-[#171717] transition-colors">
-                <X size={22} />
+              <button onClick={() => setShowModal(false)} className="w-9 h-9 rounded-xl bg-[#fafafa] border border-[#e5e5e5] text-[#a3a3a3] hover:text-[#00236F] hover:border-[#00236F] transition-colors flex items-center justify-center">
+                <X size={18} />
               </button>
             </div>
 
@@ -248,17 +251,17 @@ export default function OrganisasiPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 md:divide-x divide-[#f5f5f5]">
 
                 {/* LEFT */}
-                <div className="px-8 py-6 space-y-4">
+                <div className="px-5 md:px-6 py-5 space-y-4">
                   {/* Nama */}
                   <div>
                     <label className="block text-sm font-semibold text-[#171717] mb-1">
-                      Nama Organisasi <span className="text-[#f97316]">*</span>
+                      Nama Organisasi <span className="text-[#00236F]">*</span>
                     </label>
                     <input
                       type="text"
                       value={form.nama_organisasi}
                       onChange={(e) => setForm({ ...form, nama_organisasi: e.target.value })}
-                      className="w-full border border-[#e5e5e5] rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#f97316] focus:ring-1 focus:ring-[#f97316]/20 transition-all bg-[#fafafa]"
+                      className="w-full border border-[#e5e5e5] rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#00236F] focus:ring-4 focus:ring-[#00236F]/10 transition-all bg-[#fafafa]"
                       placeholder="Misal: UKM Paduan Suara BKU"
                       required
                     />
@@ -267,12 +270,12 @@ export default function OrganisasiPage() {
                   {/* Tipe */}
                   <div>
                     <label className="block text-sm font-semibold text-[#171717] mb-1">
-                      Tipe Organisasi <span className="text-[#f97316]">*</span>
+                      Tipe Organisasi <span className="text-[#00236F]">*</span>
                     </label>
                     <select
                       value={form.tipe}
                       onChange={(e) => setForm({ ...form, tipe: e.target.value })}
-                      className="w-full border border-[#e5e5e5] rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#f97316] focus:ring-1 focus:ring-[#f97316]/20 transition-all bg-[#fafafa]"
+                      className="w-full border border-[#e5e5e5] rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#00236F] focus:ring-4 focus:ring-[#00236F]/10 transition-all bg-[#fafafa]"
                     >
                       {TIPE_OPTIONS.map((t) => <option key={t} value={t}>{t}</option>)}
                     </select>
@@ -281,13 +284,13 @@ export default function OrganisasiPage() {
                   {/* Jabatan */}
                   <div>
                     <label className="block text-sm font-semibold text-[#171717] mb-1">
-                      Jabatan / Posisi <span className="text-[#f97316]">*</span>
+                      Jabatan / Posisi <span className="text-[#00236F]">*</span>
                     </label>
                     <input
                       type="text"
                       value={form.jabatan}
                       onChange={(e) => setForm({ ...form, jabatan: e.target.value })}
-                      className="w-full border border-[#e5e5e5] rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#f97316] focus:ring-1 focus:ring-[#f97316]/20 transition-all bg-[#fafafa]"
+                      className="w-full border border-[#e5e5e5] rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#00236F] focus:ring-4 focus:ring-[#00236F]/10 transition-all bg-[#fafafa]"
                       placeholder="Misal: Ketua Umum"
                       required
                     />
@@ -295,17 +298,17 @@ export default function OrganisasiPage() {
                 </div>
 
                 {/* RIGHT */}
-                <div className="px-8 py-6 space-y-4">
+                <div className="px-5 md:px-6 py-5 space-y-4">
                   {/* Periode */}
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <label className="block text-sm font-semibold text-[#171717] mb-1">
-                        Periode Mulai <span className="text-[#f97316]">*</span>
+                        Periode Mulai <span className="text-[#00236F]">*</span>
                       </label>
                       <select
                         value={form.periode_mulai}
                         onChange={(e) => setForm({ ...form, periode_mulai: e.target.value })}
-                        className="w-full border border-[#e5e5e5] rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#f97316] bg-[#fafafa]"
+                        className="w-full border border-[#e5e5e5] rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#00236F] focus:ring-4 focus:ring-[#00236F]/10 bg-[#fafafa]"
                       >
                         {YEARS.map((y) => <option key={y} value={y}>{y}</option>)}
                       </select>
@@ -315,7 +318,7 @@ export default function OrganisasiPage() {
                       <select
                         value={form.periode_selesai}
                         onChange={(e) => setForm({ ...form, periode_selesai: e.target.value })}
-                        className="w-full border border-[#e5e5e5] rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#f97316] bg-[#fafafa]"
+                        className="w-full border border-[#e5e5e5] rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#00236F] focus:ring-4 focus:ring-[#00236F]/10 bg-[#fafafa]"
                       >
                         <option value="">Sekarang (Aktif)</option>
                         {YEARS.map((y) => <option key={y} value={y}>{y}</option>)}
@@ -330,7 +333,7 @@ export default function OrganisasiPage() {
                       value={form.deskripsi_kegiatan}
                       onChange={(e) => setForm({ ...form, deskripsi_kegiatan: e.target.value })}
                       rows={5}
-                      className="w-full border border-[#e5e5e5] rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#f97316] focus:ring-1 focus:ring-[#f97316]/20 transition-all bg-[#fafafa] resize-none"
+                      className="w-full border border-[#e5e5e5] rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#00236F] focus:ring-4 focus:ring-[#00236F]/10 transition-all bg-[#fafafa] resize-none"
                       placeholder="Ringkasan kontribusi dan kegiatan utama..."
                     />
                   </div>
@@ -340,14 +343,14 @@ export default function OrganisasiPage() {
                     <button
                       type="button"
                       onClick={() => setShowModal(false)}
-                      className="flex-1 py-3 rounded-xl border border-[#e5e5e5] text-sm font-semibold text-[#525252] hover:bg-[#fafafa] transition-all"
+                      className="flex-1 py-2.5 rounded-xl border border-[#e5e5e5] text-sm font-semibold text-[#525252] hover:bg-[#fafafa] transition-all"
                     >
                       Batal
                     </button>
                     <button
                       type="submit"
                       disabled={createMut.isPending || updateMut.isPending}
-                      className="flex-1 py-3 rounded-xl bg-[#f97316] text-white text-sm font-bold hover:bg-[#ea580c] transition-colors flex items-center justify-center gap-2 shadow-md shadow-orange-200 disabled:opacity-50"
+                      className="flex-1 py-2.5 rounded-xl bg-[#00236F] text-white text-sm font-bold hover:bg-[#0B4FAE] transition-colors flex items-center justify-center gap-2 shadow-md shadow-[#00236F]/20 disabled:opacity-50"
                     >
                       {(createMut.isPending || updateMut.isPending) ? 'Menyimpan...' : 'Simpan Riwayat'}
                     </button>

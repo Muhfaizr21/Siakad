@@ -35,7 +35,7 @@ const getDaysLeft = (deadline) => {
 const STATUS_BADGE = {
   dikirim: { label: 'Dikirim', color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-200' },
   seleksi_berkas: { label: 'Seleksi Berkas', color: 'text-purple-600', bg: 'bg-purple-50', border: 'border-purple-200' },
-  evaluasi: { label: 'Evaluasi', color: 'text-orange-600', bg: 'bg-orange-50', border: 'border-orange-200' },
+  evaluasi: { label: 'Evaluasi', color: 'text-[#00236F]', bg: 'bg-[#eef4ff]', border: 'border-[#c9d8ff]' },
   review: { label: 'Review', color: 'text-indigo-600', bg: 'bg-indigo-50', border: 'border-indigo-200' },
   penetapan: { label: 'Penetapan', color: 'text-amber-600', bg: 'bg-amber-50', border: 'border-amber-200' },
   diterima: { label: 'Diterima', color: 'text-green-600', bg: 'bg-green-50', border: 'border-green-200' },
@@ -98,7 +98,7 @@ function ApplyWizard({ scholarship, onClose, onSuccess }) {
         <div className="p-8 border-b border-[#f5f5f5] flex justify-between items-center bg-[#fafafa]">
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <span className="bg-[#f97316] text-white text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest">Langkah {step} dari 3</span>
+              <span className="bg-[#00236F] text-white text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest">Langkah {step} dari 3</span>
               <h2 className="text-2xl font-black font-headline">Pendaftaran Beasiswa</h2>
             </div>
             <p className="text-sm font-bold text-[#a3a3a3] uppercase tracking-wider">{scholarship.nama}</p>
@@ -111,7 +111,7 @@ function ApplyWizard({ scholarship, onClose, onSuccess }) {
         {/* Progress Bar */}
         <div className="h-1.5 bg-[#f5f5f5] w-full flex">
           {[1, 2, 3].map(i => (
-            <div key={i} className={`flex-1 transition-all duration-500 ${step >= i ? 'bg-[#f97316]' : 'bg-transparent'}`} />
+            <div key={i} className={`flex-1 transition-all duration-500 ${step >= i ? 'bg-[#00236F]' : 'bg-transparent'}`} />
           ))}
         </div>
 
@@ -125,7 +125,7 @@ function ApplyWizard({ scholarship, onClose, onSuccess }) {
                   value={motivasi}
                   onChange={(e) => setMotivasi(e.target.value)}
                   placeholder="Jelaskan kenapa kamu layak menerima beasiswa ini... (min. 150 karakter)"
-                  className="w-full h-48 p-5 rounded-2xl border border-[#e5e5e5] focus:border-[#f97316] outline-none text-sm leading-relaxed resize-none shadow-inner bg-[#fafafa] transition-all"
+                  className="w-full h-48 p-5 rounded-2xl border border-[#e5e5e5] focus:border-[#00236F] outline-none text-sm leading-relaxed resize-none shadow-inner bg-[#fafafa] transition-all"
                 />
                 <div className="flex justify-between mt-2">
                   <p className={`text-[10px] font-bold ${motivasi.length < 150 ? 'text-red-500' : 'text-green-600'}`}>
@@ -140,7 +140,7 @@ function ApplyWizard({ scholarship, onClose, onSuccess }) {
                   value={prestasi}
                   onChange={(e) => setPrestasi(e.target.value)}
                   placeholder="Sebutkan prestasi akademik/non-akademik atau pengalaman organisasi yang relevan..."
-                  className="w-full h-32 p-5 rounded-2xl border border-[#e5e5e5] focus:border-[#f97316] outline-none text-sm leading-relaxed resize-none shadow-inner bg-[#fafafa] transition-all"
+                  className="w-full h-32 p-5 rounded-2xl border border-[#e5e5e5] focus:border-[#00236F] outline-none text-sm leading-relaxed resize-none shadow-inner bg-[#fafafa] transition-all"
                 />
               </div>
             </motion.div>
@@ -157,7 +157,7 @@ function ApplyWizard({ scholarship, onClose, onSuccess }) {
                   <div 
                     onClick={() => fileInputRefs.current[key].click()}
                     className={`p-4 rounded-2xl border-2 border-dashed cursor-pointer transition-all flex items-center gap-4 ${
-                      files[key] ? 'border-[#16a34a] bg-green-50' : 'border-[#e5e5e5] hover:border-[#f97316] bg-[#fafafa]'
+                      files[key] ? 'border-[#16a34a] bg-green-50' : 'border-[#e5e5e5] hover:border-[#00236F] bg-[#fafafa]'
                     }`}
                   >
                     <div className={`p-2 rounded-xl ${files[key] ? 'bg-green-600 text-white' : 'bg-white text-[#a3a3a3]'}`}>
@@ -183,8 +183,8 @@ function ApplyWizard({ scholarship, onClose, onSuccess }) {
           {/* STEP 3: KONFIRMASI */}
           {step === 3 && (
             <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-6">
-              <div className="bg-[#fff7ed] p-6 rounded-[24px] border border-[#fed7aa]">
-                <h4 className="font-black text-[#ea580c] mb-4 flex items-center gap-2 tracking-wide"><Sparkles size={18} /> Ringkasan Pengajuan</h4>
+              <div className="bg-[#eef4ff] p-6 rounded-[24px] border border-[#c9d8ff]">
+                <h4 className="font-black text-[#00236F] mb-4 flex items-center gap-2 tracking-wide"><Sparkles size={18} /> Ringkasan Pengajuan</h4>
                 <div className="space-y-3">
                   <div className="flex justify-between text-sm">
                     <span className="text-[#a3a3a3] font-bold">Beasiswa</span>
@@ -194,8 +194,8 @@ function ApplyWizard({ scholarship, onClose, onSuccess }) {
                     <span className="text-[#a3a3a3] font-bold">Berkas Terunggah</span>
                     <span className="font-black text-[#16a34a]">{Object.keys(files).length} Berkas</span>
                   </div>
-                  <div className="pt-3 border-t border-[#fed7aa]">
-                    <p className="text-[10px] font-black text-[#ea580c] uppercase tracking-widest mb-1">Motivasi Preview</p>
+                  <div className="pt-3 border-t border-[#c9d8ff]">
+                    <p className="text-[10px] font-black text-[#00236F] uppercase tracking-widest mb-1">Motivasi Preview</p>
                     <p className="text-sm text-[#171717] font-medium line-clamp-3 italic opacity-70">"{motivasi}"</p>
                   </div>
                 </div>
@@ -206,7 +206,7 @@ function ApplyWizard({ scholarship, onClose, onSuccess }) {
                   type="checkbox" 
                   checked={agreed} 
                   onChange={(e) => setAgreed(e.target.checked)}
-                  className="mt-1 w-5 h-5 rounded border-[#d4d4d4] text-[#f97316] focus:ring-[#f97316] transition-all" 
+                  className="mt-1 w-5 h-5 rounded border-[#d4d4d4] text-[#00236F] focus:ring-[#00236F] transition-all" 
                 />
                 <span className="text-xs font-bold text-[#525252] leading-relaxed uppercase tracking-tight group-hover:text-[#171717]">
                   Saya menyatakan bahwa seluruh data dan dokumen yang saya kirimkan adalah benar, asli, dan dapat dipertanggungjawabkan di hadapan verifikator beasiswa BKU.
@@ -233,7 +233,7 @@ function ApplyWizard({ scholarship, onClose, onSuccess }) {
             <button 
               disabled={(step === 1 && !isStep1Valid) || (step === 2 && !isStep2Valid)}
               onClick={() => setStep(s => s + 1)}
-              className="flex items-center gap-2 px-8 py-3.5 rounded-2xl font-black bg-[#171717] text-white hover:bg-black transition-all shadow-xl shadow-neutral-200 disabled:opacity-30"
+              className="flex items-center gap-2 px-8 py-3.5 rounded-2xl font-black bg-[#00236F] text-white hover:bg-[#0B4FAE] transition-all shadow-xl shadow-[#00236F]/20 disabled:opacity-30"
             >
               Lanjutkan <ArrowRight size={18} />
             </button>
@@ -241,7 +241,7 @@ function ApplyWizard({ scholarship, onClose, onSuccess }) {
             <button 
               disabled={!agreed || daftarMutation.isPending}
               onClick={handleSubmit}
-              className="flex items-center gap-2 px-10 py-3.5 rounded-2xl font-black bg-[#f97316] text-white hover:bg-[#ea580c] transition-all shadow-xl shadow-orange-200 disabled:opacity-50"
+              className="flex items-center gap-2 px-10 py-3.5 rounded-2xl font-black bg-[#00236F] text-white hover:bg-[#0B4FAE] transition-all shadow-xl shadow-[#00236F]/20 disabled:opacity-50"
             >
               {daftarMutation.isPending ? <><Loader2 size={18} className="animate-spin" /> Mengirim...</> : <><Check size={18} /> Kirim Pengajuan</>}
             </button>
@@ -267,26 +267,26 @@ export default function ScholarshipPage() {
   const riwayatList = riwayatResp?.data || [];
 
   return (
-    <div className="p-6 md:p-10 font-body text-[#171717] min-h-screen bg-[#fafafa]">
+    <div className="px-4 py-5 md:px-6 md:py-6 lg:px-8 lg:py-8 font-body text-[#171717] min-h-screen bg-[#fafafa]">
       
       {/* Header Section */}
       <motion.div 
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10"
+        className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6"
       >
         <div>
-          <h1 className="text-4xl font-black font-headline tracking-tight flex items-center gap-3">
-            <div className="w-12 h-12 bg-[#f97316] rounded-2xl flex items-center justify-center shadow-lg shadow-orange-200">
-              <GraduationCap className="text-white" size={28} />
+          <h1 className="text-2xl md:text-3xl font-black font-headline tracking-tight flex items-center gap-2.5">
+            <div className="w-10 h-10 bg-[#00236F] rounded-xl flex items-center justify-center shadow-md shadow-[#00236F]/20">
+              <GraduationCap className="text-white" size={20} />
             </div>
             Scholarship hub
           </h1>
-          <p className="text-[#a3a3a3] mt-2 font-bold uppercase tracking-[0.2em] text-[10px]">Akses Beasiswa Internal & Eksternal BKU</p>
+          <p className="text-[#a3a3a3] mt-1.5 font-bold uppercase tracking-[0.16em] text-[10px]">Akses Beasiswa Internal & Eksternal BKU</p>
         </div>
 
         {/* Tab Switcher */}
-        <div className="flex p-1.5 bg-white rounded-[24px] shadow-sm border border-[#e5e5e5] w-fit">
+        <div className="flex p-1 bg-white rounded-2xl shadow-sm border border-[#e5e5e5] w-fit">
           {[
             { id: 'katalog', label: 'Katalog Aktif', icon: LayoutGrid },
             { id: 'riwayat', label: 'Riwayat Saya', icon: History }
@@ -294,13 +294,13 @@ export default function ScholarshipPage() {
             <button 
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 px-6 py-3 rounded-2xl font-black text-sm transition-all ${
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl font-black text-xs md:text-sm transition-all ${
                 activeTab === tab.id 
-                  ? 'bg-[#f97316] text-white shadow-xl shadow-orange-100' 
+                  ? 'bg-[#00236F] text-white shadow-md shadow-[#00236F]/20' 
                   : 'text-[#a3a3a3] hover:text-[#525252]'
               }`}
             >
-              <tab.icon size={18} />
+              <tab.icon size={16} />
               {tab.label}
             </button>
           ))}
@@ -313,10 +313,10 @@ export default function ScholarshipPage() {
           <motion.div 
             initial={{ opacity: 0 }} 
             animate={{ opacity: 1 }}
-            className="flex flex-wrap items-center gap-4 mb-8 bg-white p-4 rounded-[24px] border border-[#e5e5e5] shadow-sm"
+            className="flex flex-wrap items-center gap-3 mb-6 bg-white p-3.5 rounded-2xl border border-[#e5e5e5] shadow-sm"
           >
             <div className="flex items-center gap-2 px-4 border-r border-[#f5f5f5] mr-2">
-              <Filter size={18} className="text-[#f97316]" />
+              <Filter size={16} className="text-[#00236F]" />
               <span className="text-xs font-black text-[#171717] uppercase tracking-widest">Filters</span>
             </div>
             
@@ -324,9 +324,9 @@ export default function ScholarshipPage() {
               <button 
                 key={cat}
                 onClick={() => setFilters(f => ({ ...f, kategori: cat }))}
-                className={`px-5 py-2.5 rounded-xl text-sm font-bold transition-all ${
+                className={`px-4 py-2 rounded-xl text-xs md:text-sm font-bold transition-all ${
                   filters.kategori === cat 
-                    ? 'bg-[#fff7ed] text-[#f97316] border border-[#fed7aa]' 
+                    ? 'bg-[#eef4ff] text-[#00236F] border border-[#c9d8ff]' 
                     : 'bg-transparent text-[#a3a3a3] hover:text-[#525252]'
                 }`}
               >
@@ -336,19 +336,19 @@ export default function ScholarshipPage() {
 
             <div className="ml-auto flex items-center gap-2">
                <span className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-widest">Urutkan:</span>
-               <select 
+                <select 
                  value={filters.sort}
                  onChange={(e) => setFilters(f => ({ ...f, sort: e.target.value }))}
-                 className="bg-[#fafafa] border border-[#e5e5e5] rounded-xl px-3 py-2 text-xs font-bold outline-none focus:border-[#f97316]"
-               >
-                 <option value="deadline_asc">📅 Deadline Terdekat</option>
-                 <option value="nilai_desc">💰 Bantuan Terbesar</option>
-               </select>
-            </div>
-          </motion.div>
+                 className="bg-[#fafafa] border border-[#e5e5e5] rounded-xl px-3 py-2 text-xs font-bold outline-none focus:border-[#00236F]"
+                >
+                  <option value="deadline_asc">Deadline Terdekat</option>
+                  <option value="nilai_desc">Bantuan Terbesar</option>
+                </select>
+             </div>
+           </motion.div>
 
           {/* Catalog Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {isCatalogLoading ? (
               <CardGridSkeleton count={6} />
             ) : katalog?.length > 0 ? (
@@ -362,12 +362,12 @@ export default function ScholarshipPage() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: idx * 0.05 }}
-                    className="group bg-white rounded-[32px] border border-[#e5e5e5] overflow-hidden hover:border-[#fed7aa] hover:shadow-[0_20px_50px_rgba(249,115,22,0.08)] transition-all flex flex-col relative"
+                    className="group bg-white rounded-2xl border border-[#e5e5e5] overflow-hidden hover:border-[#c9d8ff] hover:shadow-md transition-all flex flex-col relative"
                   >
-                    <div className="p-8 pb-4 flex-1">
-                      <div className="flex justify-between items-start mb-6">
+                    <div className="p-4 md:p-5 pb-3 flex-1">
+                      <div className="flex justify-between items-start mb-4">
                         <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border ${
-                          beasiswa.kategori === 'Internal' ? 'bg-[#fff7ed] text-[#f97316] border-[#fed7aa]' :
+                          beasiswa.kategori === 'Internal' ? 'bg-[#eef4ff] text-[#00236F] border-[#c9d8ff]' :
                           beasiswa.kategori === 'Alumni' ? 'bg-[#eff6ff] text-[#3b82f6] border-[#dbeafe]' :
                           'bg-[#f0fdf4] text-[#16a34a] border-[#bbf7d0]'
                         }`}>
@@ -380,10 +380,11 @@ export default function ScholarshipPage() {
                         )}
                       </div>
                       
-                      <h3 className="text-xl font-black mb-1 leading-tight group-hover:text-[#f97316] transition-colors">{beasiswa.nama}</h3>
+                      <h3 className="text-base md:text-lg font-black mb-1 leading-tight group-hover:text-[#00236F] transition-colors">{beasiswa.nama}</h3>
                       <p className="text-[11px] text-[#a3a3a3] font-bold uppercase tracking-wider mb-6">{beasiswa.penyelenggara}</p>
+                      <p className="text-xs text-[#737373] leading-relaxed mb-4 line-clamp-2">{beasiswa.deskripsi}</p>
 
-                      <div className="space-y-4 pt-4 border-t border-[#f5f5f5]">
+                      <div className="space-y-3 pt-3 border-t border-[#f5f5f5]">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-3">
                             <div className="w-9 h-9 bg-[#f0fdf4] text-[#16a34a] rounded-xl flex items-center justify-center">
@@ -397,7 +398,7 @@ export default function ScholarshipPage() {
                         </div>
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-3">
-                            <div className="w-9 h-9 bg-[#fff7ed] text-[#f97316] rounded-xl flex items-center justify-center">
+                            <div className="w-9 h-9 bg-[#eef4ff] text-[#00236F] rounded-xl flex items-center justify-center">
                               <Users size={18} />
                             </div>
                             <div>
@@ -409,10 +410,10 @@ export default function ScholarshipPage() {
                       </div>
                     </div>
                     
-                    <div className="p-8 pt-0">
+                    <div className="p-4 md:p-5 pt-0">
                       <button 
                         onClick={() => setSelectedSch(beasiswa)}
-                        className="w-full bg-[#171717] text-white py-4 rounded-2xl font-black text-sm flex items-center justify-center gap-2 transition-all hover:scale-[1.02] active:scale-[0.98] shadow-xl shadow-neutral-200"
+                        className="w-full bg-[#00236F] text-white py-2.5 rounded-xl font-black text-sm flex items-center justify-center gap-2 transition-colors hover:bg-[#0B4FAE]"
                       >
                         Detail & Daftar <ArrowRight size={18} />
                       </button>
@@ -421,49 +422,52 @@ export default function ScholarshipPage() {
                 );
               })
             ) : (
-              <div className="col-span-full">
-                <EmptyState 
-                  icon="Search" 
-                  title="Beasiswa Tidak Ditemukan" 
-                  description="Coba bersihkan filter atau pilih kategori lain."
-                />
+               <div className="col-span-full">
+                 <EmptyState 
+                   icon="Search" 
+                   iconColor="text-[#00236F]"
+                   iconBgClass="bg-[#eef4ff]"
+                   iconBorderClass="border-[#c9d8ff]"
+                   title="Beasiswa Tidak Ditemukan" 
+                   description="Coba bersihkan filter atau pilih kategori lain."
+                 />
               </div>
             )}
           </div>
         </>
       ) : (
-        <div className="space-y-8">
+        <div className="space-y-6">
           {/* Stats Bar */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {[
               { label: 'Total Diajukan', val: stats.total, color: 'text-[#171717]', bg: 'bg-white', icon: FileText },
-              { label: 'Sedang Proses', val: stats.proses, color: 'text-[#f97316]', bg: 'bg-[#fff7ed]', icon: Clock },
+               { label: 'Sedang Proses', val: stats.proses, color: 'text-[#00236F]', bg: 'bg-[#eef4ff]', icon: Clock },
               { label: 'Lulus Seleksi', val: stats.diterima, color: 'text-[#16a34a]', bg: 'bg-[#f0fdf4]', icon: Trophy },
               { label: 'Ditolak', val: stats.ditolak, color: 'text-[#dc2626]', bg: 'bg-[#fef2f2]', icon: X }
             ].map(s => (
-              <div key={s.label} className={`${s.bg} p-6 rounded-[28px] border border-[#e5e5e5] shadow-sm`}>
+              <div key={s.label} className={`${s.bg} p-4 rounded-2xl border border-[#e5e5e5] shadow-sm`}>
                 <div className="flex items-center gap-3 mb-2">
                   <div className={`p-2 rounded-lg ${s.bg === 'bg-white' ? 'bg-[#fafafa]' : 'bg-white'} ${s.color}`}>
                     <s.icon size={18} />
                   </div>
                   <span className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-widest">{s.label}</span>
                 </div>
-                <p className={`text-3xl font-black ${s.color}`}>{s.val}</p>
+                <p className={`text-2xl font-black ${s.color}`}>{s.val}</p>
               </div>
             ))}
           </div>
 
           {/* History Table */}
-          <div className="bg-white rounded-[32px] border border-[#e5e5e5] shadow-sm overflow-hidden">
+          <div className="bg-white rounded-2xl border border-[#e5e5e5] shadow-sm overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-left">
                 <thead>
-                  <tr className="bg-[#fafafa] border-b border-[#e5e5e5]">
-                    <th className="px-8 py-5 text-[10px] font-black text-[#a3a3a3] uppercase tracking-[0.2em]">Nama Beasiswa</th>
-                    <th className="px-8 py-5 text-[10px] font-black text-[#a3a3a3] uppercase tracking-[0.2em]">Ref. Number</th>
-                    <th className="px-8 py-5 text-[10px] font-black text-[#a3a3a3] uppercase tracking-[0.2em] text-center">Tgl Daftar</th>
-                    <th className="px-8 py-5 text-[10px] font-black text-[#a3a3a3] uppercase tracking-[0.2em] text-center">Tahap Sekarang</th>
-                    <th className="px-8 py-5 text-[10px] font-black text-[#a3a3a3] uppercase tracking-[0.2em] text-center">Aksi</th>
+                  <tr className="bg-[#f4f8ff] border-b border-[#dbe7ff]">
+                    <th className="px-4 md:px-6 py-3.5 text-[10px] font-black text-[#1E3A8A] uppercase tracking-[0.18em]">Nama Beasiswa</th>
+                    <th className="px-4 md:px-6 py-3.5 text-[10px] font-black text-[#1E3A8A] uppercase tracking-[0.18em]">Ref. Number</th>
+                    <th className="px-4 md:px-6 py-3.5 text-[10px] font-black text-[#1E3A8A] uppercase tracking-[0.18em] text-center">Tgl Daftar</th>
+                    <th className="px-4 md:px-6 py-3.5 text-[10px] font-black text-[#1E3A8A] uppercase tracking-[0.18em] text-center">Tahap Sekarang</th>
+                    <th className="px-4 md:px-6 py-3.5 text-[10px] font-black text-[#1E3A8A] uppercase tracking-[0.18em] text-center">Aksi</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#f5f5f5]">
@@ -473,27 +477,27 @@ export default function ScholarshipPage() {
                     riwayatList.map(item => {
                       const badge = STATUS_BADGE[item.status] || STATUS_BADGE.dikirim;
                       return (
-                        <tr key={item.id} className="hover:bg-[#fafafa] transition-colors group">
-                          <td className="px-8 py-5">
+                        <tr key={item.id} className="hover:bg-[#f7faff] transition-colors group">
+                          <td className="px-4 md:px-6 py-3.5">
                             <div className="flex flex-col">
                                <p className="font-black text-[#171717]">{item.beasiswa?.nama}</p>
                                <p className="text-[10px] text-[#a3a3a3] font-bold uppercase tracking-wide">{item.beasiswa?.kategori} Beasiswa</p>
                             </div>
                           </td>
-                          <td className="px-8 py-5">
+                          <td className="px-4 md:px-6 py-3.5">
                              <code className="text-[10px] font-bold bg-[#f5f5f5] px-2 py-1 rounded-lg text-[#525252]">{item.nomor_referensi}</code>
                           </td>
-                          <td className="px-8 py-5 text-center">
+                          <td className="px-4 md:px-6 py-3.5 text-center">
                             <span className="text-sm font-bold text-[#525252]">
                               {new Date(item.submitted_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
                             </span>
                           </td>
-                          <td className="px-8 py-5 text-center">
+                          <td className="px-4 md:px-6 py-3.5 text-center">
                              <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border ${badge.bg} ${badge.color} ${badge.border}`}>
                                {badge.label}
                              </span>
                           </td>
-                          <td className="px-8 py-5 text-center">
+                          <td className="px-4 md:px-6 py-3.5 text-center">
                              <button 
                               onClick={() => {
                                 if (item.id) {
@@ -502,7 +506,7 @@ export default function ScholarshipPage() {
                                   toast.error('ID Pengajuan tidak ditemukan');
                                 }
                               }}
-                              className="px-5 py-2 rounded-xl bg-white border border-[#e5e5e5] text-xs font-black hover:border-black transition-all flex items-center justify-center gap-2 mx-auto"
+                              className="px-4 py-2 rounded-xl bg-white border border-[#e5e5e5] text-xs font-black hover:border-[#00236F] hover:text-[#00236F] transition-all flex items-center justify-center gap-2 mx-auto"
                              >
                                Lihat Progress <ChevronRight size={14} />
                              </button>
@@ -515,9 +519,13 @@ export default function ScholarshipPage() {
                       <td colSpan="5" className="p-12">
                         <EmptyState 
                           icon="History" 
+                          iconColor="text-[#00236F]"
+                          iconBgClass="bg-[#eef4ff]"
+                          iconBorderClass="border-[#c9d8ff]"
                           title="Belum Ada Pendaftaran" 
                           description="Riwayat pengajuan beasiswa kamu akan muncul di sini." 
                           actionLabel="Buka Katalog"
+                          actionClassName="bg-[#00236F] hover:bg-[#0B4FAE]"
                           onAction={() => setActiveTab('katalog')}
                         />
                       </td>
@@ -538,9 +546,9 @@ export default function ScholarshipPage() {
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-white w-full max-w-2xl rounded-[32px] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
+              className="bg-white w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
             >
-              <div className="relative h-28 bg-gradient-to-r from-[#171717] to-[#333] p-8 flex items-center">
+              <div className="relative h-24 bg-gradient-to-r from-[#00236F] to-[#0B4FAE] p-5 flex items-center">
                  <button onClick={() => setSelectedSch(null)} className="absolute top-6 right-6 text-white/50 hover:text-white transition-colors">
                    <X size={24} />
                  </button>
@@ -552,19 +560,19 @@ export default function ScholarshipPage() {
               
               <div className="p-8 overflow-y-auto flex-1 custom-scrollbar">
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-                  <div className="p-4 bg-[#fafafa] rounded-2xl border border-[#e5e5e5]">
+                  <div className="p-3.5 bg-[#fafafa] rounded-xl border border-[#e5e5e5]">
                     <p className="text-[9px] font-black text-[#a3a3a3] uppercase tracking-widest mb-1">Nilai Bantuan</p>
-                    <p className="text-sm font-black text-[#f97316]">{formatRupiah(selectedSch.nilai_bantuan)}</p>
+                    <p className="text-sm font-black text-[#00236F]">{formatRupiah(selectedSch.nilai_bantuan)}</p>
                   </div>
-                  <div className="p-4 bg-[#fafafa] rounded-2xl border border-[#e5e5e5]">
+                  <div className="p-3.5 bg-[#fafafa] rounded-xl border border-[#e5e5e5]">
                     <p className="text-[9px] font-black text-[#a3a3a3] uppercase tracking-widest mb-1">Kuota Sisa</p>
                     <p className="text-sm font-black text-[#171717]">{selectedSch.sisa_kuota} <span className="text-[10px] text-[#a3a3a3]">Org</span></p>
                   </div>
-                  <div className="p-4 bg-[#fafafa] rounded-2xl border border-[#e5e5e5]">
+                  <div className="p-3.5 bg-[#fafafa] rounded-xl border border-[#e5e5e5]">
                     <p className="text-[9px] font-black text-[#a3a3a3] uppercase tracking-widest mb-1">Min. IPK</p>
                     <p className="text-sm font-black text-[#171717]">{selectedSch?.syarat_ipk_min?.toFixed(2) || '0.00'}</p>
                   </div>
-                  <div className={`p-4 rounded-2xl border ${getDaysLeft(selectedSch.deadline) < 7 ? 'bg-red-50 border-red-200' : 'bg-[#fafafa] border-[#e5e5e5]'}`}>
+                  <div className={`p-3.5 rounded-xl border ${getDaysLeft(selectedSch.deadline) < 7 ? 'bg-red-50 border-red-200' : 'bg-[#fafafa] border-[#e5e5e5]'}`}>
                     <p className={`text-[9px] font-black uppercase tracking-widest mb-1 ${getDaysLeft(selectedSch.deadline) < 7 ? 'text-red-500' : 'text-[#a3a3a3]'}`}>Deadline</p>
                     <p className={`text-sm font-black ${getDaysLeft(selectedSch.deadline) < 7 ? 'text-red-600' : 'text-[#171717]'}`}>{new Date(selectedSch.deadline).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}</p>
                   </div>
@@ -572,12 +580,12 @@ export default function ScholarshipPage() {
 
                 <div className="space-y-6">
                   <div>
-                    <h4 className="flex items-center gap-2 text-sm font-black uppercase tracking-widest mb-3"><Info size={16} className="text-[#f97316]" /> Deskripsi Program</h4>
+                    <h4 className="flex items-center gap-2 text-sm font-black uppercase tracking-widest mb-3"><Info size={16} className="text-[#00236F]" /> Deskripsi Program</h4>
                     <p className="text-sm text-[#525252] font-medium leading-relaxed">{selectedSch.deskripsi}</p>
                   </div>
 
                   <div>
-                    <h4 className="flex items-center gap-2 text-sm font-black uppercase tracking-widest mb-3"><FileText size={16} className="text-[#f97316]" /> Persyaratan</h4>
+                    <h4 className="flex items-center gap-2 text-sm font-black uppercase tracking-widest mb-3"><FileText size={16} className="text-[#00236F]" /> Persyaratan</h4>
                     <div className="bg-[#fafafa] p-6 rounded-[24px] border border-[#e5e5e5]">
                        <pre className="text-sm text-[#525252] font-medium whitespace-pre-line font-body leading-relaxed">
                          {selectedSch.persyaratan}
@@ -586,11 +594,11 @@ export default function ScholarshipPage() {
                   </div>
 
                   <div>
-                     <h4 className="flex items-center gap-2 text-sm font-black uppercase tracking-widest mb-3"><Sparkles size={16} className="text-[#f97316]" /> Tahapan Seleksi</h4>
+                     <h4 className="flex items-center gap-2 text-sm font-black uppercase tracking-widest mb-3"><Sparkles size={16} className="text-[#00236F]" /> Tahapan Seleksi</h4>
                      <div className="flex items-center justify-between px-2 py-4">
                         {['Daftar', 'Berkas', 'Evaluasi', 'Review', 'Penetapan', 'Hasil'].map((s, i) => (
                            <div key={s} className="flex flex-col items-center gap-2">
-                              <div className={`w-3 h-3 rounded-full ${i === 0 ? 'bg-[#f97316]' : 'bg-[#e5e5e5]'}`} />
+                              <div className={`w-3 h-3 rounded-full ${i === 0 ? 'bg-[#00236F]' : 'bg-[#e5e5e5]'}`} />
                               <span className={`text-[8px] font-black uppercase tracking-tighter ${i === 0 ? 'text-[#171717]' : 'text-[#a3a3a3]'}`}>{s}</span>
                            </div>
                         ))}
@@ -608,7 +616,7 @@ export default function ScholarshipPage() {
                 </button>
                 <button 
                   onClick={() => setShowApplyModal(true)}
-                  className="flex-1 py-4 rounded-2xl font-black text-sm bg-[#f97316] text-white hover:bg-[#ea580c] shadow-xl shadow-orange-200 transition-all hover:scale-[1.02]"
+                  className="flex-1 py-4 rounded-2xl font-black text-sm bg-[#00236F] text-white hover:bg-[#0B4FAE] shadow-xl shadow-[#00236F]/20 transition-all hover:scale-[1.02]"
                 >
                   Daftar Sekarang
                 </button>

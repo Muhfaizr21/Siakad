@@ -50,16 +50,15 @@ export default function Login() {
   return (
     <div className="min-h-screen flex font-inter text-neutral-900 bg-neutral-50">
       {/* Kolom Kiri - Branding BKU */}
-      <div className="hidden lg:flex w-1/2 bg-gradient-to-br from-orange-500 to-orange-600 flex-col justify-center items-center p-12 text-white relative">
+      <div className="hidden lg:flex w-1/2 bg-gradient-to-br from-[#00236F] to-[#0B4FAE] flex-col justify-center items-center p-12 text-white relative">
         <div className="z-10 text-center max-w-md">
           <div className="bg-white/20 p-4 rounded-3xl backdrop-blur-md inline-block mb-8 shadow-xl">
-            {/* Menggunakan placeholder yang clean karena tidak ada gambar spesifik */}
-            <div className="w-24 h-24 bg-white rounded-2xl flex items-center justify-center text-orange-600 font-bold text-4xl font-jakarta">
-              BKU
+            <div className="w-24 h-24 bg-white rounded-2xl flex items-center justify-center overflow-hidden p-2">
+              <img src="/images/bku logo.png" alt="Logo Universitas" className="w-full h-full object-contain" />
             </div>
           </div>
           <h1 className="text-4xl font-bold font-jakarta mb-4">Portal Mahasiswa</h1>
-          <p className="text-orange-50 text-lg">
+          <p className="text-blue-50 text-lg">
             Sistem Informasi Akademik Terpadu Universitas Bhakti Kencana
           </p>
         </div>
@@ -67,7 +66,7 @@ export default function Login() {
         {/* Dekoratif */}
         <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
            <div className="absolute -top-24 -left-24 w-96 h-96 bg-white/10 rounded-full blur-3xl"></div>
-           <div className="absolute bottom-0 right-0 w-80 h-80 bg-orange-700/30 rounded-full blur-3xl"></div>
+           <div className="absolute bottom-0 right-0 w-80 h-80 bg-[#001B57]/35 rounded-full blur-3xl"></div>
         </div>
       </div>
 
@@ -76,15 +75,17 @@ export default function Login() {
         <div className="w-full max-w-sm mx-auto">
           
           <div className="md:hidden flex items-center gap-3 mb-10">
-             <div className="w-10 h-10 bg-orange-500 rounded-lg flex items-center justify-center text-white font-bold font-jakarta">BKU</div>
-             <h2 className="text-xl font-bold font-jakarta text-orange-600">Portal Mahasiswa</h2>
-          </div>
+             <div className="w-10 h-10 bg-white border border-[#e5e5e5] rounded-lg flex items-center justify-center overflow-hidden p-1">
+               <img src="/images/bku logo.png" alt="Logo Universitas" className="w-full h-full object-contain" />
+             </div>
+             <h2 className="text-xl font-bold font-jakarta text-[#00236F]">Portal Mahasiswa</h2>
+           </div>
 
           <h2 className="text-3xl font-bold font-jakarta mb-2">Selamat Datang 👋</h2>
           <p className="text-neutral-600 mb-8">Silakan masuk menggunakan NIM dan Password SIAKAD Anda.</p>
 
           {errorMsg && (
-            <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg mb-6 text-sm">
+            <div className="bg-[#EAF1FF] border border-[#C9D8FF] text-[#0B4FAE] px-4 py-3 rounded-lg mb-6 text-sm">
               {errorMsg}
             </div>
           )}
@@ -97,13 +98,13 @@ export default function Login() {
               <input
                 id="nim"
                 type="text"
-                className={`w-full px-4 py-2.5 rounded-lg border ${errors.nim ? 'border-red-500 focus:ring-red-500' : 'border-neutral-200 focus:border-orange-500 focus:ring-orange-500'} focus:outline-none focus:ring-2 focus:ring-opacity-20 transition-all duration-200`}
+                className={`w-full px-4 py-2.5 rounded-lg border ${errors.nim ? 'border-[#0B4FAE] focus:ring-[#0B4FAE]' : 'border-neutral-200 focus:border-[#00236F] focus:ring-[#00236F]'} focus:outline-none focus:ring-2 focus:ring-opacity-20 transition-all duration-200`}
                 placeholder="Misal: 10123456"
                 {...register('nim')}
                 disabled={isSubmitting}
               />
               {errors.nim && (
-                <p className="mt-1.5 text-sm text-red-600">{errors.nim.message}</p>
+                <p className="mt-1.5 text-sm text-[#0B4FAE]">{errors.nim.message}</p>
               )}
             </div>
 
@@ -115,7 +116,7 @@ export default function Login() {
                 <input
                   id="password"
                   type={showPassword ? 'text' : 'password'}
-                  className={`w-full px-4 py-2.5 rounded-lg border ${errors.password ? 'border-red-500 focus:ring-red-500' : 'border-neutral-200 focus:border-orange-500 focus:ring-orange-500'} focus:outline-none focus:ring-2 focus:ring-opacity-20 transition-all duration-200 pr-10`}
+                  className={`w-full px-4 py-2.5 rounded-lg border ${errors.password ? 'border-[#0B4FAE] focus:ring-[#0B4FAE]' : 'border-neutral-200 focus:border-[#00236F] focus:ring-[#00236F]'} focus:outline-none focus:ring-2 focus:ring-opacity-20 transition-all duration-200 pr-10`}
                   placeholder="Masukkan password Anda"
                   {...register('password')}
                   disabled={isSubmitting}
@@ -130,16 +131,16 @@ export default function Login() {
                 </button>
               </div>
               {errors.password && (
-                <p className="mt-1.5 text-sm text-red-600">{errors.password.message}</p>
+                <p className="mt-1.5 text-sm text-[#0B4FAE]">{errors.password.message}</p>
               )}
             </div>
 
             <div className="flex items-center justify-between pt-1">
               <label className="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" className="w-4 h-4 rounded border-neutral-300 text-orange-600 focus:ring-orange-500" />
+                <input type="checkbox" className="w-4 h-4 rounded border-neutral-300 text-[#00236F] focus:ring-[#00236F]" />
                 <span className="text-sm text-neutral-600">Ingat saya</span>
               </label>
-              <a href="/forgot-password" className="text-sm font-medium text-orange-600 hover:text-orange-700 transition-colors">
+              <a href="/forgot-password" className="text-sm font-medium text-[#00236F] hover:text-[#0B4FAE] transition-colors">
                 Lupa password?
               </a>
             </div>
@@ -147,7 +148,7 @@ export default function Login() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full bg-orange-500 hover:bg-orange-600 text-white font-medium py-3 px-4 rounded-lg transition-all duration-200 ease-in-out flex items-center justify-center disabled:opacity-70 disabled:cursor-not-allowed mt-4 shadow-sm hover:shadow"
+              className="w-full bg-[#00236F] hover:bg-[#0B4FAE] text-white font-medium py-3 px-4 rounded-lg transition-all duration-200 ease-in-out flex items-center justify-center disabled:opacity-70 disabled:cursor-not-allowed mt-4 shadow-sm hover:shadow"
             >
               {isSubmitting ? (
                 <>
