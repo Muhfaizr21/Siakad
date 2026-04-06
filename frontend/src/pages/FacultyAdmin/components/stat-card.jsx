@@ -1,5 +1,5 @@
 import React from "react"
-import { Card, CardContent } from "@/pages/FacultyAdmin/components/card"
+import { Card, CardContent } from "./card"
 import { TrendingUp, TrendingDown } from "lucide-react"
 
 export function StatCard({

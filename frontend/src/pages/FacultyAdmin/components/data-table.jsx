@@ -6,11 +6,11 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/pages/FacultyAdmin/components/table"
-import { Input } from "@/pages/FacultyAdmin/components/input"
-import { Button } from "@/pages/FacultyAdmin/components/button"
+} from "./table"
+import { Input } from "./input"
+import { Button } from "./button"
 import { Search, Plus, Filter, Download, MoreVertical } from "lucide-react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/pages/FacultyAdmin/components/card"
+import { Card, CardContent, CardHeader, CardTitle } from "./card"
 
 export function DataTable({
   title,

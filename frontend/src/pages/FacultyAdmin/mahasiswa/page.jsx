@@ -3,7 +3,7 @@
 import { useState } from "react"
 import Sidebar from "../components/Sidebar"
 import TopNavBar from "../components/TopNavBar"
-import { DataTable } from "@/components/siakad/data-table"
+import { DataTable } from "../components/data-table"
 import { Badge } from "../components/badge"
 import { Button } from "../components/button"
 import { Avatar, AvatarFallback } from "../components/avatar"
@@ -297,144 +297,144 @@ export default function MahasiswaPage() {
       <TopNavBar />
       <main className="ml-64 min-h-screen">
         <div className="pt-24 pb-12 px-8">
-      <div className="space-y-6">
-        {/* Page Header */}
-        <div>
-          <h1 className="text-2xl font-bold">Manajemen Mahasiswa</h1>
-          <p className="text-muted-foreground">Kelola data mahasiswa fakultas</p>
-        </div>
-
-        {/* Data Table */}
-        <DataTable
-          title="Data Mahasiswa"
-          description="Daftar seluruh mahasiswa yang terdaftar"
-          columns={columns}
-          data={dataMahasiswa}
-          searchPlaceholder="Cari NIM, nama, atau email..."
-          filters={filters}
-          onAdd={() => {}}
-          addLabel="Tambah Mahasiswa"
-          actions={(row) => (
-            <>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8"
-                onClick={() => handleView(row)}
-              >
-                <Eye className="h-4 w-4" />
-              </Button>
-              <Button variant="ghost" size="icon" className="h-8 w-8">
-                <Pencil className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 text-destructive hover:text-destructive"
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            </>
-          )}
-        />
-
-        {/* Detail Dialog */}
-        <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>Detail Mahasiswa</DialogTitle>
-              <DialogDescription>Informasi lengkap mahasiswa</DialogDescription>
-            </DialogHeader>
-            {selectedMahasiswa && (
-              <div className="space-y-6">
-                {/* Profile Header */}
-                <div className="flex items-center gap-4">
-                  <Avatar className="h-20 w-20">
-                    <AvatarFallback className="bg-primary text-primary-foreground text-xl">
-                      {selectedMahasiswa.nama.split(" ").map((n) => n[0]).join("").slice(0, 2)}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <h3 className="text-xl font-semibold">{selectedMahasiswa.nama}</h3>
-                    <p className="text-muted-foreground">{selectedMahasiswa.nim}</p>
-                    <Badge variant="outline" className={statusColors[selectedMahasiswa.status]}>
-                      {selectedMahasiswa.status}
-                    </Badge>
-                  </div>
-                </div>
-
-                {/* Info Grid */}
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <Card>
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-sm font-medium text-muted-foreground">
-                        Informasi Akademik
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-3">
-                      <div className="flex items-center gap-2">
-                        <BookOpen className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm">{selectedMahasiswa.prodi}</span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-muted-foreground">Angkatan</span>
-                        <span className="font-medium">{selectedMahasiswa.angkatan}</span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-muted-foreground">Semester</span>
-                        <span className="font-medium">{selectedMahasiswa.semester}</span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-muted-foreground">IPK</span>
-                        <span className="font-semibold text-success">{selectedMahasiswa.ipk.toFixed(2)}</span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-muted-foreground">Dosen Wali</span>
-                        <span className="font-medium text-sm">{selectedMahasiswa.dosenWali}</span>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-sm font-medium text-muted-foreground">
-                        Informasi Kontak
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-3">
-                      <div className="flex items-center gap-2">
-                        <Mail className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm">{selectedMahasiswa.email}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Phone className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm">{selectedMahasiswa.phone}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Calendar className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm">{selectedMahasiswa.tanggalLahir}</span>
-                      </div>
-                      <div className="flex items-start gap-2">
-                        <MapPin className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
-                        <span className="text-sm">{selectedMahasiswa.alamat}</span>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-
-                {/* Actions */}
-                <div className="flex justify-end gap-2">
-                  <Button variant="outline" onClick={() => setIsDetailOpen(false)}>
-                    Tutup
-                  </Button>
-                  <Button>Edit Data</Button>
-                </div>
-              </div>
-            )}
-          </DialogContent>
-        </Dialog>
-      </div>
+          <div className="space-y-6">
+            {/* Page Header */}
+            <div>
+              <h1 className="text-2xl font-bold">Manajemen Mahasiswa</h1>
+              <p className="text-muted-foreground">Kelola data mahasiswa fakultas</p>
             </div>
+
+            {/* Data Table */}
+            <DataTable
+              title="Data Mahasiswa"
+              description="Daftar seluruh mahasiswa yang terdaftar"
+              columns={columns}
+              data={dataMahasiswa}
+              searchPlaceholder="Cari NIM, nama, atau email..."
+              filters={filters}
+              onAdd={() => { }}
+              addLabel="Tambah Mahasiswa"
+              actions={(row) => (
+                <>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={() => handleView(row)}
+                  >
+                    <Eye className="h-4 w-4" />
+                  </Button>
+                  <Button variant="ghost" size="icon" className="h-8 w-8">
+                    <Pencil className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-destructive hover:text-destructive"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </>
+              )}
+            />
+
+            {/* Detail Dialog */}
+            <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
+              <DialogContent className="max-w-2xl">
+                <DialogHeader>
+                  <DialogTitle>Detail Mahasiswa</DialogTitle>
+                  <DialogDescription>Informasi lengkap mahasiswa</DialogDescription>
+                </DialogHeader>
+                {selectedMahasiswa && (
+                  <div className="space-y-6">
+                    {/* Profile Header */}
+                    <div className="flex items-center gap-4">
+                      <Avatar className="h-20 w-20">
+                        <AvatarFallback className="bg-primary text-primary-foreground text-xl">
+                          {selectedMahasiswa.nama.split(" ").map((n) => n[0]).join("").slice(0, 2)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <h3 className="text-xl font-semibold">{selectedMahasiswa.nama}</h3>
+                        <p className="text-muted-foreground">{selectedMahasiswa.nim}</p>
+                        <Badge variant="outline" className={statusColors[selectedMahasiswa.status]}>
+                          {selectedMahasiswa.status}
+                        </Badge>
+                      </div>
+                    </div>
+
+                    {/* Info Grid */}
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <Card>
+                        <CardHeader className="pb-2">
+                          <CardTitle className="text-sm font-medium text-muted-foreground">
+                            Informasi Akademik
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-3">
+                          <div className="flex items-center gap-2">
+                            <BookOpen className="h-4 w-4 text-muted-foreground" />
+                            <span className="text-sm">{selectedMahasiswa.prodi}</span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm text-muted-foreground">Angkatan</span>
+                            <span className="font-medium">{selectedMahasiswa.angkatan}</span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm text-muted-foreground">Semester</span>
+                            <span className="font-medium">{selectedMahasiswa.semester}</span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm text-muted-foreground">IPK</span>
+                            <span className="font-semibold text-success">{selectedMahasiswa.ipk.toFixed(2)}</span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm text-muted-foreground">Dosen Wali</span>
+                            <span className="font-medium text-sm">{selectedMahasiswa.dosenWali}</span>
+                          </div>
+                        </CardContent>
+                      </Card>
+
+                      <Card>
+                        <CardHeader className="pb-2">
+                          <CardTitle className="text-sm font-medium text-muted-foreground">
+                            Informasi Kontak
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-3">
+                          <div className="flex items-center gap-2">
+                            <Mail className="h-4 w-4 text-muted-foreground" />
+                            <span className="text-sm">{selectedMahasiswa.email}</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Phone className="h-4 w-4 text-muted-foreground" />
+                            <span className="text-sm">{selectedMahasiswa.phone}</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Calendar className="h-4 w-4 text-muted-foreground" />
+                            <span className="text-sm">{selectedMahasiswa.tanggalLahir}</span>
+                          </div>
+                          <div className="flex items-start gap-2">
+                            <MapPin className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
+                            <span className="text-sm">{selectedMahasiswa.alamat}</span>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex justify-end gap-2">
+                      <Button variant="outline" onClick={() => setIsDetailOpen(false)}>
+                        Tutup
+                      </Button>
+                      <Button>Edit Data</Button>
+                    </div>
+                  </div>
+                )}
+              </DialogContent>
+            </Dialog>
+          </div>
+        </div>
       </main>
     </div>
   )

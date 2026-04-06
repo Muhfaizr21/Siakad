@@ -152,192 +152,192 @@ export default function JadwalPage() {
       <TopNavBar />
       <main className="ml-64 min-h-screen">
         <div className="pt-24 pb-12 px-8">
-      <div className="space-y-6">
-        {/* Page Header */}
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h1 className="text-2xl font-bold">Jadwal Kuliah</h1>
-            <p className="text-muted-foreground">Kelola jadwal perkuliahan semester ini</p>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button variant="outline">
-              <Filter className="mr-2 h-4 w-4" />
-              Filter
-            </Button>
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
-              Tambah Jadwal
-            </Button>
-          </div>
-        </div>
-
-        {/* Filters */}
-        <Card>
-          <CardContent className="flex flex-wrap items-center gap-4 p-4">
-            <Select value={selectedProdi} onValueChange={setSelectedProdi}>
-              <SelectTrigger className="w-48">
-                <SelectValue placeholder="Program Studi" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Semua Prodi</SelectItem>
-                <SelectItem value="ti">Teknik Informatika</SelectItem>
-                <SelectItem value="si">Sistem Informasi</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select defaultValue="2024-1">
-              <SelectTrigger className="w-48">
-                <SelectValue placeholder="Semester" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="2024-1">2024/2025 Ganjil</SelectItem>
-                <SelectItem value="2023-2">2023/2024 Genap</SelectItem>
-              </SelectContent>
-            </Select>
-            <div className="ml-auto flex items-center gap-2">
-              <Button variant="outline" size="icon">
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-              <span className="text-sm font-medium">Minggu ke-12</span>
-              <Button variant="outline" size="icon">
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Schedule Grid */}
-        <Card>
-          <CardHeader className="pb-4">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-base">Jadwal Mingguan</CardTitle>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Calendar className="h-4 w-4" />
-                <span>6 - 11 Januari 2025</span>
+          <div className="space-y-6">
+            {/* Page Header */}
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h1 className="text-2xl font-bold">Jadwal Kuliah</h1>
+                <p className="text-muted-foreground">Kelola jadwal perkuliahan semester ini</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button variant="outline">
+                  <Filter className="mr-2 h-4 w-4" />
+                  Filter
+                </Button>
+                <Button>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Tambah Jadwal
+                </Button>
               </div>
             </div>
-          </CardHeader>
-          <CardContent className="p-0">
-            <div className="overflow-x-auto">
-              <div className="min-w-[1000px]">
-                {/* Header Row */}
-                <div className="grid grid-cols-[80px_repeat(6,1fr)] border-b border-border">
-                  <div className="p-3 text-center text-sm font-medium text-muted-foreground">
-                    Waktu
+
+            {/* Filters */}
+            <Card>
+              <CardContent className="flex flex-wrap items-center gap-4 p-4">
+                <Select value={selectedProdi} onValueChange={setSelectedProdi}>
+                  <SelectTrigger className="w-48">
+                    <SelectValue placeholder="Program Studi" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Semua Prodi</SelectItem>
+                    <SelectItem value="ti">Teknik Informatika</SelectItem>
+                    <SelectItem value="si">Sistem Informasi</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select defaultValue="2024-1">
+                  <SelectTrigger className="w-48">
+                    <SelectValue placeholder="Semester" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="2024-1">2024/2025 Ganjil</SelectItem>
+                    <SelectItem value="2023-2">2023/2024 Genap</SelectItem>
+                  </SelectContent>
+                </Select>
+                <div className="ml-auto flex items-center gap-2">
+                  <Button variant="outline" size="icon">
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  <span className="text-sm font-medium">Minggu ke-12</span>
+                  <Button variant="outline" size="icon">
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Schedule Grid */}
+            <Card>
+              <CardHeader className="pb-4">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-base">Jadwal Mingguan</CardTitle>
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Calendar className="h-4 w-4" />
+                    <span>6 - 11 Januari 2025</span>
                   </div>
-                  {days.map((day) => (
+                </div>
+              </CardHeader>
+              <CardContent className="p-0">
+                <div className="overflow-x-auto">
+                  <div className="min-w-[1000px]">
+                    {/* Header Row */}
+                    <div className="grid grid-cols-[80px_repeat(6,1fr)] border-b border-border">
+                      <div className="p-3 text-center text-sm font-medium text-muted-foreground">
+                        Waktu
+                      </div>
+                      {days.map((day) => (
+                        <div
+                          key={day}
+                          className="border-l border-border p-3 text-center text-sm font-medium"
+                        >
+                          {day}
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Time Slots */}
+                    <div className="relative">
+                      {/* Time Labels */}
+                      <div className="absolute left-0 top-0 w-20">
+                        {timeSlots.map((time, index) => (
+                          <div
+                            key={time}
+                            className="flex h-16 items-start justify-center border-b border-border px-2 pt-1 text-xs text-muted-foreground"
+                          >
+                            {time}
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Schedule Grid */}
+                      <div className="ml-20 grid grid-cols-6">
+                        {days.map((day) => (
+                          <div key={day} className="relative border-l border-border">
+                            {/* Grid Lines */}
+                            {timeSlots.map((_, index) => (
+                              <div
+                                key={index}
+                                className="h-16 border-b border-border/50"
+                              />
+                            ))}
+
+                            {/* Schedule Items */}
+                            {jadwalData
+                              .filter((item) => item.hari === day)
+                              .map((item) => {
+                                const top = getSchedulePosition(item.jamMulai) * 64
+                                const height = getScheduleSpan(item.jamMulai, item.jamSelesai) * 64
+
+                                return (
+                                  <div
+                                    key={item.id}
+                                    className={cn(
+                                      "absolute left-1 right-1 rounded-lg border p-2 cursor-pointer transition-all hover:shadow-md",
+                                      item.color
+                                    )}
+                                    style={{ top: `${top}px`, height: `${height - 4}px` }}
+                                  >
+                                    <p className="text-xs font-semibold truncate">{item.mataKuliah}</p>
+                                    <p className="text-xs opacity-80 truncate">{item.kode} - {item.kelas}</p>
+                                    <div className="mt-1 flex items-center gap-1 text-xs opacity-70">
+                                      <MapPin className="h-3 w-3" />
+                                      <span>{item.ruang}</span>
+                                    </div>
+                                  </div>
+                                )
+                              })}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Schedule List */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Daftar Jadwal Hari Ini</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {jadwalData.slice(0, 4).map((item) => (
                     <div
-                      key={day}
-                      className="border-l border-border p-3 text-center text-sm font-medium"
+                      key={item.id}
+                      className="flex items-center justify-between rounded-lg border border-border p-4"
                     >
-                      {day}
+                      <div className="flex items-center gap-4">
+                        <div className={cn("rounded-lg p-3", item.color.split(" ")[0])}>
+                          <Clock className="h-5 w-5" />
+                        </div>
+                        <div>
+                          <p className="font-medium">{item.mataKuliah}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {item.kode} - {item.kelas} | {item.dosen}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-6">
+                        <div className="text-right">
+                          <p className="text-sm font-medium">{item.jamMulai} - {item.jamSelesai}</p>
+                          <p className="text-xs text-muted-foreground">{item.hari}</p>
+                        </div>
+                        <Badge variant="outline">
+                          <MapPin className="mr-1 h-3 w-3" />
+                          {item.ruang}
+                        </Badge>
+                        <Badge variant="secondary">
+                          <Users className="mr-1 h-3 w-3" />
+                          {item.peserta}
+                        </Badge>
+                      </div>
                     </div>
                   ))}
                 </div>
-
-                {/* Time Slots */}
-                <div className="relative">
-                  {/* Time Labels */}
-                  <div className="absolute left-0 top-0 w-20">
-                    {timeSlots.map((time, index) => (
-                      <div
-                        key={time}
-                        className="flex h-16 items-start justify-center border-b border-border px-2 pt-1 text-xs text-muted-foreground"
-                      >
-                        {time}
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Schedule Grid */}
-                  <div className="ml-20 grid grid-cols-6">
-                    {days.map((day) => (
-                      <div key={day} className="relative border-l border-border">
-                        {/* Grid Lines */}
-                        {timeSlots.map((_, index) => (
-                          <div
-                            key={index}
-                            className="h-16 border-b border-border/50"
-                          />
-                        ))}
-
-                        {/* Schedule Items */}
-                        {jadwalData
-                          .filter((item) => item.hari === day)
-                          .map((item) => {
-                            const top = getSchedulePosition(item.jamMulai) * 64
-                            const height = getScheduleSpan(item.jamMulai, item.jamSelesai) * 64
-
-                            return (
-                              <div
-                                key={item.id}
-                                className={cn(
-                                  "absolute left-1 right-1 rounded-lg border p-2 cursor-pointer transition-all hover:shadow-md",
-                                  item.color
-                                )}
-                                style={{ top: `${top}px`, height: `${height - 4}px` }}
-                              >
-                                <p className="text-xs font-semibold truncate">{item.mataKuliah}</p>
-                                <p className="text-xs opacity-80 truncate">{item.kode} - {item.kelas}</p>
-                                <div className="mt-1 flex items-center gap-1 text-xs opacity-70">
-                                  <MapPin className="h-3 w-3" />
-                                  <span>{item.ruang}</span>
-                                </div>
-                              </div>
-                            )
-                          })}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Schedule List */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Daftar Jadwal Hari Ini</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {jadwalData.slice(0, 4).map((item) => (
-                <div
-                  key={item.id}
-                  className="flex items-center justify-between rounded-lg border border-border p-4"
-                >
-                  <div className="flex items-center gap-4">
-                    <div className={cn("rounded-lg p-3", item.color.split(" ")[0])}>
-                      <Clock className="h-5 w-5" />
-                    </div>
-                    <div>
-                      <p className="font-medium">{item.mataKuliah}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {item.kode} - {item.kelas} | {item.dosen}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-6">
-                    <div className="text-right">
-                      <p className="text-sm font-medium">{item.jamMulai} - {item.jamSelesai}</p>
-                      <p className="text-xs text-muted-foreground">{item.hari}</p>
-                    </div>
-                    <Badge variant="outline">
-                      <MapPin className="mr-1 h-3 w-3" />
-                      {item.ruang}
-                    </Badge>
-                    <Badge variant="secondary">
-                      <Users className="mr-1 h-3 w-3" />
-                      {item.peserta}
-                    </Badge>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-            </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
       </main>
     </div>
   )

@@ -3,7 +3,7 @@
 import { useState } from "react"
 import Sidebar from "../components/Sidebar"
 import TopNavBar from "../components/TopNavBar"
-import { StatCard } from "@/components/siakad/stat-card"
+import { StatCard } from "../components/stat-card"
 import { Card, CardContent, CardHeader, CardTitle } from "../components/card"
 import { Badge } from "../components/badge"
 import { Button } from "../components/button"

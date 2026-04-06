@@ -48,8 +48,8 @@ const FacultyAspirationManagement = () => {
     } catch (e) { console.error(e); }
   };
 
-  const filteredAspirations = activeTab === 'all' 
-    ? aspirations 
+  const filteredAspirations = activeTab === 'all'
+    ? aspirations
     : aspirations.filter(a => a.status === activeTab);
 
   return (
@@ -57,17 +57,17 @@ const FacultyAspirationManagement = () => {
       <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
       <main className="lg:ml-64 min-h-screen pb-12 transition-all duration-300">
         <TopNavBar setIsOpen={setSidebarOpen} />
-        
+
         <div className="pt-24 px-4 lg:px-8">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 gap-6">
             <div className="max-w-2xl">
               <h1 className="text-4xl font-black font-headline text-slate-900 tracking-tight mb-3">Pusat Aspirasi Himpunan</h1>
               <p className="text-slate-500 font-medium text-lg">Dengarkan usulan dari setiap Himpunan Mahasiswa dan berikan dukungan strategis untuk kemajuan Fakultas.</p>
             </div>
-            
+
             <div className="flex bg-white/50 backdrop-blur p-1.5 rounded-[1.5rem] border border-slate-200/50 shadow-sm">
               {['all', 'pending', 'responded'].map(t => (
-                <button 
+                <button
                   key={t}
                   onClick={() => setActiveTab(t)}
                   className={`px-8 py-3 rounded-[1.2rem] text-sm font-black uppercase tracking-widest transition-all ${activeTab === t ? 'bg-indigo-600 text-white shadow-xl shadow-indigo-200' : 'text-slate-400 hover:text-slate-600 hover:bg-white'}`}
@@ -109,7 +109,7 @@ const FacultyAspirationManagement = () => {
                       </span>
                       <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest self-center opacity-60">Dikirim Pada: {new Date(item.createdAt).toLocaleString('id-ID', { dateStyle: 'long' })}</span>
                     </div>
-                    
+
                     <div>
                       <h3 className="text-2xl font-black text-slate-900 mb-2">{item.title}</h3>
                       <p className="text-slate-500 text-base leading-relaxed">{item.description}</p>
@@ -129,18 +129,18 @@ const FacultyAspirationManagement = () => {
                   {/* Right: Actions */}
                   <div className="flex lg:flex-col gap-3 w-full lg:w-auto">
                     {item.status === 'pending' ? (
-                      <button 
+                      <button
                         onClick={() => {
                           setSelectedItem(item);
                           setShowResponseModal(true);
                         }}
                         className="flex-1 lg:w-48 py-5 bg-indigo-600 text-white rounded-[1.5rem] font-black tracking-widest text-[11px] shadow-xl shadow-indigo-100 hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-2 uppercase"
                       >
-                         <span className="material-symbols-outlined text-[18px]">outgoing_mail</span>
-                         Tanggapi
+                        <span className="material-symbols-outlined text-[18px]">outgoing_mail</span>
+                        Tanggapi
                       </button>
                     ) : (
-                      <button 
+                      <button
                         onClick={() => {
                           setSelectedItem(item);
                           setResponseMsg(item.response);
@@ -148,8 +148,8 @@ const FacultyAspirationManagement = () => {
                         }}
                         className="flex-1 lg:w-48 py-5 bg-slate-100 text-slate-600 rounded-[1.5rem] font-bold tracking-widest text-[11px] hover:bg-slate-200 transition-all flex items-center justify-center gap-2 uppercase"
                       >
-                         <span className="material-symbols-outlined text-[18px]">edit</span>
-                         Ubah Jawaban
+                        <span className="material-symbols-outlined text-[18px]">edit</span>
+                        Ubah Jawaban
                       </button>
                     )}
                   </div>
@@ -164,16 +164,16 @@ const FacultyAspirationManagement = () => {
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-slate-900/60 backdrop-blur-lg animate-in fade-in duration-300">
             <div className="bg-white rounded-[3rem] w-full max-w-2xl p-12 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.2)] animate-in zoom-in-95 duration-300 overflow-hidden relative">
               <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-50 -mr-16 -mt-16 rounded-full blur-3xl opacity-60"></div>
-              
+
               <h2 className="text-3xl font-black text-slate-900 mb-2">Jawab Aspirasi Himpunan</h2>
               <p className="text-slate-500 mb-10 leading-relaxed font-medium">Jawaban Anda akan muncul langsung di dashboard Himpunan {selectedItem?.ormawa?.name}.</p>
-              
+
               <div className="mb-10 bg-slate-50 p-6 rounded-[2rem] border border-slate-100">
                 <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-3">Pesan Masuk:</p>
                 <p className="text-slate-800 font-bold leading-relaxed border-l-4 border-indigo-200 pl-4">{selectedItem?.description}</p>
               </div>
 
-              <textarea 
+              <textarea
                 className="w-full bg-slate-50 p-6 rounded-[2rem] border-2 border-slate-200 focus:border-indigo-400 focus:bg-white outline-none text-base min-h-[200px] transition-all mb-10 shadow-inner"
                 placeholder="Berikan jawaban, solusi, atau kebijakan fakultas terkait permohonan ini..."
                 value={responseMsg}
@@ -181,13 +181,13 @@ const FacultyAspirationManagement = () => {
               ></textarea>
 
               <div className="flex gap-4">
-                <button 
+                <button
                   onClick={() => setShowResponseModal(false)}
                   className="flex-1 py-5 rounded-[1.5rem] font-black text-[11px] uppercase tracking-widest bg-slate-100 text-slate-500 hover:bg-slate-200 transition-all"
                 >
-                   TUTUP
+                  TUTUP
                 </button>
-                <button 
+                <button
                   onClick={() => handleUpdateStatus(selectedItem.id, 'responded', responseMsg)}
                   className="flex-[2] py-5 bg-indigo-600 text-white rounded-[1.5rem] font-black text-[11px] hover:scale-[1.02] active:scale-95 transition-all shadow-2xl shadow-indigo-200 uppercase tracking-[0.2em]"
                 >

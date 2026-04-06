@@ -3,7 +3,7 @@
 import { useState } from "react"
 import Sidebar from "../components/Sidebar"
 import TopNavBar from "../components/TopNavBar"
-import { DataTable } from "@/components/siakad/data-table"
+import { DataTable } from "../components/data-table"
 import { Badge } from "../components/badge"
 import { Button } from "../components/button"
 import { Avatar, AvatarFallback } from "../components/avatar"
@@ -232,185 +232,185 @@ export default function DosenPage() {
       <TopNavBar />
       <main className="ml-64 min-h-screen">
         <div className="pt-24 pb-12 px-8">
-      <div className="space-y-6">
-        {/* Page Header */}
-        <div>
-          <h1 className="text-2xl font-bold">Manajemen Dosen</h1>
-          <p className="text-muted-foreground">Kelola data dosen fakultas</p>
-        </div>
+          <div className="space-y-6">
+            {/* Page Header */}
+            <div>
+              <h1 className="text-2xl font-bold">Manajemen Dosen</h1>
+              <p className="text-muted-foreground">Kelola data dosen fakultas</p>
+            </div>
 
-        {/* Stats */}
-        <div className="grid gap-4 sm:grid-cols-4">
-          <Card className="glass-card hover:-translate-y-1 hover:shadow-md transition-all duration-300 border-none bg-background/60 backdrop-blur-md">
-            <CardContent className="flex items-center gap-4 p-4">
-              <div className="rounded-lg bg-primary/10 p-2">
-                <GraduationCap className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold">87</p>
-                <p className="text-sm text-muted-foreground">Total Dosen</p>
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="glass-card hover:-translate-y-1 hover:shadow-md transition-all duration-300 border-none bg-background/60 backdrop-blur-md">
-            <CardContent className="flex items-center gap-4 p-4">
-              <div className="rounded-lg bg-success/10 p-2">
-                <Award className="h-5 w-5 text-success" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold">72</p>
-                <p className="text-sm text-muted-foreground">Dosen Tetap</p>
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="glass-card hover:-translate-y-1 hover:shadow-md transition-all duration-300 border-none bg-background/60 backdrop-blur-md">
-            <CardContent className="flex items-center gap-4 p-4">
-              <div className="rounded-lg bg-warning/10 p-2">
-                <Users className="h-5 w-5 text-warning" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold">15</p>
-                <p className="text-sm text-muted-foreground">Dosen Tidak Tetap</p>
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="glass-card hover:-translate-y-1 hover:shadow-md transition-all duration-300 border-none bg-background/60 backdrop-blur-md">
-            <CardContent className="flex items-center gap-4 p-4">
-              <div className="rounded-lg bg-info/10 p-2">
-                <BookOpen className="h-5 w-5 text-info" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold">156</p>
-                <p className="text-sm text-muted-foreground">Mata Kuliah</p>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Data Table */}
-        <DataTable
-          title="Data Dosen"
-          description="Daftar seluruh dosen yang terdaftar"
-          columns={columns}
-          data={dataDosen}
-          searchPlaceholder="Cari NIDN, nama, atau email..."
-          filters={filters}
-          onAdd={() => {}}
-          addLabel="Tambah Dosen"
-          actions={(row) => (
-            <>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8"
-                onClick={() => handleView(row)}
-              >
-                <Eye className="h-4 w-4" />
-              </Button>
-              <Button variant="ghost" size="icon" className="h-8 w-8">
-                <Pencil className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 text-destructive hover:text-destructive"
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            </>
-          )}
-        />
-
-        {/* Detail Dialog */}
-        <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>Detail Dosen</DialogTitle>
-              <DialogDescription>Informasi lengkap dosen</DialogDescription>
-            </DialogHeader>
-            {selectedDosen && (
-              <div className="space-y-6">
-                {/* Profile Header */}
-                <div className="flex items-center gap-4">
-                  <Avatar className="h-20 w-20">
-                    <AvatarFallback className="bg-primary text-primary-foreground text-xl">
-                      {selectedDosen.nama.split(" ").filter(n => !["Dr.", "Prof.", "Ir.", "M.T.", "M.Kom.", "M.Sc.", "M.Si."].includes(n)).map((n) => n[0]).join("").slice(0, 2)}
-                    </AvatarFallback>
-                  </Avatar>
+            {/* Stats */}
+            <div className="grid gap-4 sm:grid-cols-4">
+              <Card className="glass-card hover:-translate-y-1 hover:shadow-md transition-all duration-300 border-none bg-background/60 backdrop-blur-md">
+                <CardContent className="flex items-center gap-4 p-4">
+                  <div className="rounded-lg bg-primary/10 p-2">
+                    <GraduationCap className="h-5 w-5 text-primary" />
+                  </div>
                   <div>
-                    <h3 className="text-xl font-semibold">{selectedDosen.nama}</h3>
-                    <p className="text-muted-foreground">{selectedDosen.nidn || "Dosen Tidak Tetap"}</p>
-                    <div className="mt-1 flex items-center gap-2">
-                      <Badge variant="outline" className={statusColors[selectedDosen.status]}>
-                        {selectedDosen.status}
-                      </Badge>
-                      <Badge variant="outline" className={jabatanColors[selectedDosen.jabatan]}>
-                        {selectedDosen.jabatan}
-                      </Badge>
+                    <p className="text-2xl font-bold">87</p>
+                    <p className="text-sm text-muted-foreground">Total Dosen</p>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card className="glass-card hover:-translate-y-1 hover:shadow-md transition-all duration-300 border-none bg-background/60 backdrop-blur-md">
+                <CardContent className="flex items-center gap-4 p-4">
+                  <div className="rounded-lg bg-success/10 p-2">
+                    <Award className="h-5 w-5 text-success" />
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold">72</p>
+                    <p className="text-sm text-muted-foreground">Dosen Tetap</p>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card className="glass-card hover:-translate-y-1 hover:shadow-md transition-all duration-300 border-none bg-background/60 backdrop-blur-md">
+                <CardContent className="flex items-center gap-4 p-4">
+                  <div className="rounded-lg bg-warning/10 p-2">
+                    <Users className="h-5 w-5 text-warning" />
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold">15</p>
+                    <p className="text-sm text-muted-foreground">Dosen Tidak Tetap</p>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card className="glass-card hover:-translate-y-1 hover:shadow-md transition-all duration-300 border-none bg-background/60 backdrop-blur-md">
+                <CardContent className="flex items-center gap-4 p-4">
+                  <div className="rounded-lg bg-info/10 p-2">
+                    <BookOpen className="h-5 w-5 text-info" />
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold">156</p>
+                    <p className="text-sm text-muted-foreground">Mata Kuliah</p>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Data Table */}
+            <DataTable
+              title="Data Dosen"
+              description="Daftar seluruh dosen yang terdaftar"
+              columns={columns}
+              data={dataDosen}
+              searchPlaceholder="Cari NIDN, nama, atau email..."
+              filters={filters}
+              onAdd={() => { }}
+              addLabel="Tambah Dosen"
+              actions={(row) => (
+                <>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={() => handleView(row)}
+                  >
+                    <Eye className="h-4 w-4" />
+                  </Button>
+                  <Button variant="ghost" size="icon" className="h-8 w-8">
+                    <Pencil className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-destructive hover:text-destructive"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </>
+              )}
+            />
+
+            {/* Detail Dialog */}
+            <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
+              <DialogContent className="max-w-2xl">
+                <DialogHeader>
+                  <DialogTitle>Detail Dosen</DialogTitle>
+                  <DialogDescription>Informasi lengkap dosen</DialogDescription>
+                </DialogHeader>
+                {selectedDosen && (
+                  <div className="space-y-6">
+                    {/* Profile Header */}
+                    <div className="flex items-center gap-4">
+                      <Avatar className="h-20 w-20">
+                        <AvatarFallback className="bg-primary text-primary-foreground text-xl">
+                          {selectedDosen.nama.split(" ").filter(n => !["Dr.", "Prof.", "Ir.", "M.T.", "M.Kom.", "M.Sc.", "M.Si."].includes(n)).map((n) => n[0]).join("").slice(0, 2)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <h3 className="text-xl font-semibold">{selectedDosen.nama}</h3>
+                        <p className="text-muted-foreground">{selectedDosen.nidn || "Dosen Tidak Tetap"}</p>
+                        <div className="mt-1 flex items-center gap-2">
+                          <Badge variant="outline" className={statusColors[selectedDosen.status]}>
+                            {selectedDosen.status}
+                          </Badge>
+                          <Badge variant="outline" className={jabatanColors[selectedDosen.jabatan]}>
+                            {selectedDosen.jabatan}
+                          </Badge>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Info Grid */}
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <Card className="glass-card border-none bg-white/40 dark:bg-black/20 shadow-sm backdrop-blur-md">
+                        <CardHeader className="pb-2">
+                          <CardTitle className="text-sm font-medium text-muted-foreground">
+                            Informasi Akademik
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-3">
+                          <div className="flex items-center gap-2">
+                            <GraduationCap className="h-4 w-4 text-muted-foreground" />
+                            <span className="text-sm">{selectedDosen.prodi}</span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm text-muted-foreground">Bidang Keahlian</span>
+                            <span className="font-medium text-sm">{selectedDosen.bidangKeahlian}</span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm text-muted-foreground">Mata Kuliah Diampu</span>
+                            <span className="font-medium">{selectedDosen.mataKuliahDiampu}</span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm text-muted-foreground">Mahasiswa Wali</span>
+                            <span className="font-medium">{selectedDosen.mahasiswaWali}</span>
+                          </div>
+                        </CardContent>
+                      </Card>
+
+                      <Card className="glass-card border-none bg-white/40 dark:bg-black/20 shadow-sm backdrop-blur-md">
+                        <CardHeader className="pb-2">
+                          <CardTitle className="text-sm font-medium text-muted-foreground">
+                            Informasi Kontak
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-3">
+                          <div className="flex items-center gap-2">
+                            <Mail className="h-4 w-4 text-muted-foreground" />
+                            <span className="text-sm">{selectedDosen.email}</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Phone className="h-4 w-4 text-muted-foreground" />
+                            <span className="text-sm">{selectedDosen.phone}</span>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex justify-end gap-2">
+                      <Button variant="outline" onClick={() => setIsDetailOpen(false)}>
+                        Tutup
+                      </Button>
+                      <Button>Edit Data</Button>
                     </div>
                   </div>
-                </div>
-
-                {/* Info Grid */}
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <Card className="glass-card border-none bg-white/40 dark:bg-black/20 shadow-sm backdrop-blur-md">
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-sm font-medium text-muted-foreground">
-                        Informasi Akademik
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-3">
-                      <div className="flex items-center gap-2">
-                        <GraduationCap className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm">{selectedDosen.prodi}</span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-muted-foreground">Bidang Keahlian</span>
-                        <span className="font-medium text-sm">{selectedDosen.bidangKeahlian}</span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-muted-foreground">Mata Kuliah Diampu</span>
-                        <span className="font-medium">{selectedDosen.mataKuliahDiampu}</span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-muted-foreground">Mahasiswa Wali</span>
-                        <span className="font-medium">{selectedDosen.mahasiswaWali}</span>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  <Card className="glass-card border-none bg-white/40 dark:bg-black/20 shadow-sm backdrop-blur-md">
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-sm font-medium text-muted-foreground">
-                        Informasi Kontak
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-3">
-                      <div className="flex items-center gap-2">
-                        <Mail className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm">{selectedDosen.email}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Phone className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm">{selectedDosen.phone}</span>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-
-                {/* Actions */}
-                <div className="flex justify-end gap-2">
-                  <Button variant="outline" onClick={() => setIsDetailOpen(false)}>
-                    Tutup
-                  </Button>
-                  <Button>Edit Data</Button>
-                </div>
-              </div>
-            )}
-          </DialogContent>
-        </Dialog>
-      </div>
-            </div>
+                )}
+              </DialogContent>
+            </Dialog>
+          </div>
+        </div>
       </main>
     </div>
   )

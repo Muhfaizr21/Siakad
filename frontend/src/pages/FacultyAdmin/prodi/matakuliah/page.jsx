@@ -2,7 +2,7 @@
 
 import Sidebar from "../../components/Sidebar"
 import TopNavBar from "../../components/TopNavBar"
-import { DataTable } from "@/components/siakad/data-table"
+import { DataTable } from "../../components/data-table"
 import { Badge } from "../../components/badge"
 import { Button } from "../../components/button"
 import { Card, CardContent } from "../../components/card"

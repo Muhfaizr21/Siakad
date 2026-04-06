@@ -26,6 +26,11 @@ import FacultyPmb from './pages/FacultyAdmin/pmb/page'
 import FacultyProdi from './pages/FacultyAdmin/prodi/page'
 import FacultyDosen from './pages/FacultyAdmin/dosen/page'
 import FacultyMahasiswa from './pages/FacultyAdmin/mahasiswa/page'
+import FacultyMahasiswaImport from './pages/FacultyAdmin/mahasiswa/import'
+import FacultyMahasiswaStatus from './pages/FacultyAdmin/mahasiswa/status/page'
+import FacultyMahasiswaTambah from './pages/FacultyAdmin/mahasiswa/tambah/page'
+import FacultyProdiKurikulum from './pages/FacultyAdmin/prodi/kurikulum/page'
+import FacultyProdiMatakuliah from './pages/FacultyAdmin/prodi/matakuliah/page'
 import FacultyJadwal from './pages/FacultyAdmin/jadwal/page'
 import FacultyKrs from './pages/FacultyAdmin/krs/page'
 import FacultyNilai from './pages/FacultyAdmin/nilai/page'
@@ -33,6 +38,7 @@ import FacultyLaporan from './pages/FacultyAdmin/laporan/mahasiswa/page'
 import FacultyKonten from './pages/FacultyAdmin/konten/page'
 import FacultyPengaturan from './pages/FacultyAdmin/pengaturan/tahun-akademik/page'
 import StudentDashboard from './pages/Student/StudentDashboard'
+import NotFound from './pages/NotFound/NotFound'
 import { AuthProvider } from './context/AuthContext'
 import './index.css'
 
@@ -41,59 +47,65 @@ function App() {
     <AuthProvider>
       <Router>
         <Routes>
-        {/* Default route ke Landing */}
-        <Route path="/" element={<Landing />} />
+          {/* Default route ke Landing */}
+          <Route path="/" element={<Landing />} />
 
-        {/* Halaman About */}
-        <Route path="/about" element={<About />} />
+          {/* Halaman About */}
+          <Route path="/about" element={<About />} />
 
-        {/* Halaman Academic */}
-        <Route path="/academic" element={<Academic />} />
+          {/* Halaman Academic */}
+          <Route path="/academic" element={<Academic />} />
 
-        {/* Halaman Services */}
-        <Route path="/services" element={<Services />} />
-        
-        {/* Halaman Login */}
-        <Route path="/login" element={<Login />} />
-        
-        {/* Halaman Super Admin Dashboard */}
-        <Route path="/admin" element={<AdminDashboard />} />
+          {/* Halaman Services */}
+          <Route path="/services" element={<Services />} />
 
-        {/* Halaman Faculty Dashboard */}
-        <Route path="/faculty" element={<FacultyDashboard />} />
-        <Route path="/faculty/aspirasi" element={<FacultyAspirationManagement />} />
-        <Route path="/faculty/pmb" element={<FacultyPmb />} />
-        <Route path="/faculty/prodi" element={<FacultyProdi />} />
-        <Route path="/faculty/dosen" element={<FacultyDosen />} />
-        <Route path="/faculty/mahasiswa" element={<FacultyMahasiswa />} />
-        <Route path="/faculty/jadwal" element={<FacultyJadwal />} />
-        <Route path="/faculty/krs" element={<FacultyKrs />} />
-        <Route path="/faculty/nilai" element={<FacultyNilai />} />
-        <Route path="/faculty/laporan" element={<FacultyLaporan />} />
-        <Route path="/faculty/konten" element={<FacultyKonten />} />
-        <Route path="/faculty/pengaturan" element={<FacultyPengaturan />} />
+          {/* Halaman Login */}
+          <Route path="/login" element={<Login />} />
 
-        {/* Halaman Ormawa Dashboard */}
-        <Route path="/ormawa" element={<OrmawaDashboard />} />
-        <Route path="/ormawa/anggota" element={<AnggotaManagement />} />
-        <Route path="/ormawa/proposal" element={<ProposalManagement />} />
-        <Route path="/ormawa/jadwal" element={<JadwalKegiatan />} />
-        <Route path="/ormawa/absensi" element={<AbsensiKegiatan />} />
-        <Route path="/ormawa/keuangan" element={<KeuanganKas />} />
-        <Route path="/ormawa/lpj" element={<LpjManagement />} />
-        <Route path="/ormawa/pengumuman" element={<Pengumuman />} />
-        <Route path="/ormawa/struktur" element={<StrukturOrganisasi />} />
-        <Route path="/ormawa/staff" element={<StaffManagement />} />
-        <Route path="/ormawa/rbac" element={<RoleBasedAccess />} />
-        <Route path="/ormawa/notifikasi" element={<Notifikasi />} />
-        <Route path="/ormawa/pengaturan" element={<Settings />} />
-        <Route path="/ormawa/aspirasi" element={<AspirationManagement />} />
+          {/* Halaman Super Admin Dashboard */}
+          <Route path="/admin" element={<AdminDashboard />} />
 
-        {/* Halaman Student Dashboard */}
-        <Route path="/student" element={<StudentDashboard />} />
+          {/* Halaman Faculty Dashboard */}
+          <Route path="/faculty" element={<FacultyDashboard />} />
+          <Route path="/faculty/aspirasi" element={<FacultyAspirationManagement />} />
+          <Route path="/faculty/pmb" element={<FacultyPmb />} />
+          <Route path="/faculty/prodi" element={<FacultyProdi />} />
+          <Route path="/faculty/prodi/kurikulum" element={<FacultyProdiKurikulum />} />
+          <Route path="/faculty/prodi/matakuliah" element={<FacultyProdiMatakuliah />} />
+          <Route path="/faculty/dosen" element={<FacultyDosen />} />
+          <Route path="/faculty/mahasiswa" element={<FacultyMahasiswa />} />
+          <Route path="/faculty/mahasiswa/import" element={<FacultyMahasiswaImport />} />
+          <Route path="/faculty/mahasiswa/status" element={<FacultyMahasiswaStatus />} />
+          <Route path="/faculty/mahasiswa/tambah" element={<FacultyMahasiswaTambah />} />
+          <Route path="/faculty/jadwal" element={<FacultyJadwal />} />
+          <Route path="/faculty/krs" element={<FacultyKrs />} />
+          <Route path="/faculty/nilai" element={<FacultyNilai />} />
+          <Route path="/faculty/laporan" element={<FacultyLaporan />} />
+          <Route path="/faculty/laporan/mahasiswa" element={<FacultyLaporan />} />
+          <Route path="/faculty/konten" element={<FacultyKonten />} />
+          <Route path="/faculty/pengaturan" element={<FacultyPengaturan />} />
 
-        {/* Redirect jika route tidak ditemukan */}
-        <Route path="*" element={<Navigate to="/login" />} />
+          {/* Halaman Ormawa Dashboard */}
+          <Route path="/ormawa" element={<OrmawaDashboard />} />
+          <Route path="/ormawa/anggota" element={<AnggotaManagement />} />
+          <Route path="/ormawa/proposal" element={<ProposalManagement />} />
+          <Route path="/ormawa/jadwal" element={<JadwalKegiatan />} />
+          <Route path="/ormawa/absensi" element={<AbsensiKegiatan />} />
+          <Route path="/ormawa/keuangan" element={<KeuanganKas />} />
+          <Route path="/ormawa/lpj" element={<LpjManagement />} />
+          <Route path="/ormawa/pengumuman" element={<Pengumuman />} />
+          <Route path="/ormawa/struktur" element={<StrukturOrganisasi />} />
+          <Route path="/ormawa/staff" element={<StaffManagement />} />
+          <Route path="/ormawa/rbac" element={<RoleBasedAccess />} />
+          <Route path="/ormawa/notifikasi" element={<Notifikasi />} />
+          <Route path="/ormawa/pengaturan" element={<Settings />} />
+          <Route path="/ormawa/aspirasi" element={<AspirationManagement />} />
+
+          {/* Halaman Student Dashboard */}
+          <Route path="/student" element={<StudentDashboard />} />
+
+          {/* Halaman Not Found */}
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </Router>
     </AuthProvider>
