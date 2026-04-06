@@ -11,7 +11,9 @@ import (
 )
 
 func main() {
-	godotenv.Load()
+	for _, p := range []string{"../../.env", "../.env", ".env"} {
+		if err := godotenv.Load(p); err == nil { break }
+	}
 	config.ConnectDB()
 	db := config.DB
 

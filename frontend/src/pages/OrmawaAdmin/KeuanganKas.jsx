@@ -2,10 +2,11 @@ import React, { useState, useEffect } from 'react';
 import Sidebar from './components/Sidebar';
 import TopNavBar from './components/TopNavBar';
 import { useAuth } from '../../context/AuthContext';
+import { ormawaService } from '../../services/api';
 
 const KeuanganKas = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { user } = useAuth();
+  const { user, hasPermission } = useAuth();
   const ormawaId = user?.ormawaId || 1;
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [transaksi, setTransaksi] = useState([]);
@@ -18,43 +19,46 @@ const KeuanganKas = () => {
     date: new Date().toISOString().split('T')[0]
   });
 
-  const hasPermission = (module, action) => {
-    // Basic implementation, can be connected to dynamic RBAC later
-    return true; 
-  };
-
   useEffect(() => {
-    fetchData();
+    if (ormawaId) {
+      fetchData();
+    }
   }, [ormawaId]);
 
   const fetchData = async () => {
     setLoading(true);
     try {
-      const resKas = await fetch(`http://localhost:8000/api/ormawa/kas?ormawaId=${ormawaId}`);
-      const dataKas = await resKas.json();
-      if (dataKas.status === 'success') setTransaksi(dataKas.data);
-    } catch (e) { console.error(e); }
-    setLoading(false);
+      const data = await ormawaService.getFinancials(ormawaId);
+      if (data.status === 'success') setTransaksi(data.data || []);
+    } catch (e) {
+      console.error("Gagal memuat kas:", e);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const saveMutation = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch('http://localhost:8000/api/ormawa/kas', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...formData,
-          nominal: Number(formData.nominal),
-          ormawaId: Number(ormawaId)
-        })
+      const data = await ormawaService.addTransaction({
+        ...formData,
+        nominal: Number(formData.nominal),
+        ormawaId: Number(ormawaId)
       });
-      if (res.ok) {
+      if (data.status === 'success') {
         setIsModalOpen(false);
-        setFormData({ description: '', nominal: '', category: 'Operasional', type: 'keluar', date: new Date().toISOString().split('T')[0] });
+        setFormData({ 
+          description: '', 
+          nominal: '', 
+          category: 'Operasional', 
+          type: 'keluar', 
+          date: new Date().toISOString().split('T')[0] 
+        });
         fetchData();
       }
-    } catch (e) { console.error(e); }
+    } catch (e) { 
+      alert(`⚠️ Gagal menyimpan mutasi: ${e.message}`);
+    }
   };
 
   const saldoAktif = (transaksi || []).reduce((acc, curr) => {

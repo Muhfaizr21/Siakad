@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"gorm.io/gorm"
 )
 
 func SetupOrmawaRoutes(app *fiber.App) {
@@ -18,22 +19,30 @@ func SetupOrmawaRoutes(app *fiber.App) {
 		ormawaId := c.Query("ormawaId")
 		var totalProposal int64
 		var totalMember int64
+		var totalEvents int64
+		var totalAnnouncements int64
 		var totalKas float64
 		
 		queryProp := config.DB.Model(&models.Proposal{})
 		queryMem := config.DB.Model(&models.OrmawaMember{})
+		queryEvents := config.DB.Model(&models.EventSchedule{})
+		queryAnnounce := config.DB.Model(&models.OrmawaAnnouncement{})
 		queryKasMasuk := config.DB.Model(&models.CashMutation{}).Where("type = ?", "masuk")
 		queryKasKeluar := config.DB.Model(&models.CashMutation{}).Where("type = ?", "keluar")
 
 		if ormawaId != "" {
 			queryProp = queryProp.Where("ormawa_id = ?", ormawaId)
 			queryMem = queryMem.Where("ormawa_id = ?", ormawaId)
+			queryEvents = queryEvents.Where("ormawa_id = ?", ormawaId)
+			queryAnnounce = queryAnnounce.Where("ormawa_id = ?", ormawaId)
 			queryKasMasuk = queryKasMasuk.Where("ormawa_id = ?", ormawaId)
 			queryKasKeluar = queryKasKeluar.Where("ormawa_id = ?", ormawaId)
 		}
 
 		queryProp.Count(&totalProposal)
 		queryMem.Count(&totalMember)
+		queryEvents.Count(&totalEvents)
+		queryAnnounce.Count(&totalAnnouncements)
 		
 		var masuk float64
 		var keluar float64
@@ -44,9 +53,11 @@ func SetupOrmawaRoutes(app *fiber.App) {
 		return c.JSON(fiber.Map{
 			"status": "success",
 			"data": fiber.Map{
-				"totalProposals": totalProposal,
-				"totalMembers":   totalMember,
-				"totalKas":       totalKas,
+				"totalProposals":     totalProposal,
+				"totalMembers":       totalMember,
+				"totalEvents":        totalEvents,
+				"totalAnnouncements": totalAnnouncements,
+				"totalKas":           totalKas,
 			},
 		})
 	})
@@ -112,7 +123,7 @@ func SetupOrmawaRoutes(app *fiber.App) {
 		id := c.Params("id")
 		var proposal models.Proposal
 		if err := config.DB.First(&proposal, id).Error; err != nil {
-			return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Not Found"})
+			return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Proposal tidak ditemukan"})
 		}
 		
 		var payload struct {
@@ -123,49 +134,76 @@ func SetupOrmawaRoutes(app *fiber.App) {
 			Title  string  `json:"title"`
 		}
 		if err := c.BodyParser(&payload); err != nil {
-			return c.Status(400).JSON(fiber.Map{"status": "error", "message": err.Error()})
+			return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Payload tidak valid"})
 		}
-		
-		oldStatus := proposal.Status
 
-		// Handle logical transitions
-		if payload.Status != "" { 
-			proposal.Status = payload.Status 
+		// Jalankan Integrasi dalam Transaksi Atomik
+		err := config.DB.Transaction(func(tx *gorm.DB) error {
+			// 1. Simpan Riwayat jika ada perubahan status atau notes
+			if payload.Status != "" || payload.Notes != "" {
+				history := models.ProposalHistory{
+					ProposalID: proposal.ID,
+					Status:     payload.Status,
+					Notes:      payload.Notes,
+					CreatedBy:  payload.UserId,
+				}
+				if err := tx.Create(&history).Error; err != nil {
+					return err
+				}
+			}
+
+			// 2. Update Field Proposal yang dikirim
+			updates := make(map[string]interface{})
+			if payload.Status != "" { updates["status"] = payload.Status }
+			if payload.Title != "" { updates["title"] = payload.Title }
+			if payload.Budget > 0 { updates["budget"] = payload.Budget }
 			
-			// Auto History point
-			config.DB.Create(&models.ProposalHistory{
-				ProposalID: proposal.ID,
-				Status:     payload.Status,
-				Notes:      payload.Notes,
-				CreatedBy:  payload.UserId,
-			})
+			if len(updates) > 0 {
+				if err := tx.Model(&proposal).Updates(updates).Error; err != nil {
+					return err
+				}
+			}
 
-			// POINT 4: AUTO CASH MUTATION ON FINAL APPROVAL
-			if payload.Status == "disetujui_univ" && oldStatus != "disetujui_univ" {
-				config.DB.Create(&models.CashMutation{
+			// 3. INTEGRASI OTOMATIS: Jika disetujui Univ -> Masuk ke Buku Kas
+			if payload.Status == "disetujui_univ" {
+				mutation := models.CashMutation{
 					OrmawaID:    proposal.OrmawaID,
-					Type:        "masuk", // Assuming from university to Ormawa
-					Nominal:     proposal.Budget,
-					Category:    "Pencairan Dana",
-					Description: "Dana Cair: " + proposal.Title,
+					Type:        "masuk",
+					Nominal:     proposal.Budget, // Gunakan budget dari proposal
+					Category:    "Pencairan Proposal",
+					Description: fmt.Sprintf("Pencairan dana kegiatan: %s", proposal.Title),
 					ProposalID:  &proposal.ID,
 					Date:        time.Now(),
-				})
+				}
+				if err := tx.Create(&mutation).Error; err != nil {
+					return err
+				}
 				
-				// Create notification
-				config.DB.Create(&models.OrmawaNotification{
+				// Notifikasi Dana Cair
+				tx.Create(&models.OrmawaNotification{
 					OrmawaID: proposal.OrmawaID,
 					Type:     "fund",
-					Title:    "Dana Dicairkan",
-					Desc:     "Dana untuk proposal " + proposal.Title + " telah masuk ke kas.",
+					Title:    "Dana Kegiatan Dicairkan",
+					Desc:     fmt.Sprintf("Dana untuk proposal '%s' telah masuk ke kas organisasi.", proposal.Title),
+				})
+			} else if payload.Status != "" {
+				// Notifikasi Update Status Umum
+				tx.Create(&models.OrmawaNotification{
+					OrmawaID: proposal.OrmawaID,
+					Type:     "proposal",
+					Title:    "Update Proposal",
+					Desc:     fmt.Sprintf("Proposal '%s' sekarang berstatus: %s", proposal.Title, payload.Status),
 				})
 			}
+
+			return nil
+		})
+
+		if err != nil {
+			return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal sinkronisasi data"})
 		}
-		if payload.Title != "" { proposal.Title = payload.Title }
-		if payload.Budget > 0 { proposal.Budget = payload.Budget }
-		
-		config.DB.Save(&proposal)
-		return c.JSON(fiber.Map{"status": "success", "data": proposal})
+
+		return c.JSON(fiber.Map{"status": "success", "message": "Proposal updated & integrated"})
 	})
 
 	api.Delete("/proposals/:id", func(c *fiber.Ctx) error {
@@ -202,7 +240,10 @@ func SetupOrmawaRoutes(app *fiber.App) {
 		id := c.Params("id")
 		var ormawa models.Ormawa
 		if err := config.DB.First(&ormawa, id).Error; err != nil {
-			return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Ormawa not found"})
+			return c.Status(404).JSON(fiber.Map{
+				"status": "error", 
+				"message": "Organisasi tidak ditemukan",
+			})
 		}
 		return c.JSON(fiber.Map{"status": "success", "data": ormawa})
 	})
@@ -210,11 +251,22 @@ func SetupOrmawaRoutes(app *fiber.App) {
 	api.Put("/settings/:id", func(c *fiber.Ctx) error {
 		id := c.Params("id")
 		var ormawa models.Ormawa
+		
+		// 1. Check Existence
 		if err := config.DB.First(&ormawa, id).Error; err != nil {
-			return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Ormawa not found"})
+			return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Organisasi tidak ditemukan"})
 		}
-		c.BodyParser(&ormawa)
-		config.DB.Save(&ormawa)
+
+		// 2. Parse & Validate Input
+		if err := c.BodyParser(&ormawa); err != nil {
+			return c.Status(422).JSON(fiber.Map{"status": "error", "message": "Format data tidak valid"})
+		}
+
+		// 3. Save with Error Handling
+		if err := config.DB.Save(&ormawa).Error; err != nil {
+			return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal menyimpan perubahan ke database"})
+		}
+
 		return c.JSON(fiber.Map{"status": "success", "data": ormawa})
 	})
 
@@ -328,31 +380,69 @@ func SetupOrmawaRoutes(app *fiber.App) {
 
 	// ROLES
 	api.Get("/roles", func(c *fiber.Ctx) error {
-		// Roles might be global or ormawa specific, let's filter if ormawaId present
 		ormawaId := c.Query("ormawaId")
 		var roles []models.OrmawaRole
 		query := config.DB.Model(&models.OrmawaRole{})
 		if ormawaId != "" {
-			// Logic for custom roles per ormawa if applicable
+			// Roles might be global or ormawa specific, let's filter if ormawaId present
 		}
 		query.Find(&roles)
 		return c.JSON(fiber.Map{"status": "success", "data": roles})
 	})
 
-	api.Post("/roles", func(c *fiber.Ctx) error {
-		var payload models.OrmawaRole
-		c.BodyParser(&payload)
-		config.DB.Create(&payload)
-		return c.JSON(fiber.Map{"status": "success", "data": payload})
+	// FINANCIAL (ATOMIC TRANSACTION)
+	api.Post("/kas", func(c *fiber.Ctx) error {
+		var mutation models.CashMutation
+		if err := c.BodyParser(&mutation); err != nil {
+			return c.Status(422).JSON(fiber.Map{"status": "error", "message": "Input tidak valid"})
+		}
+
+		// Jalankan dalam Transaksi agar Database tetap Konsisten
+		err := config.DB.Transaction(func(tx *gorm.DB) error {
+			if err := tx.Create(&mutation).Error; err != nil {
+				return err
+			}
+			
+			// Logika tambahan (misal update saldo cache ormawa jika ada)
+			return nil
+		})
+
+		if err != nil {
+			return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal mencatat mutasi kas"})
+		}
+		return c.Status(201).JSON(fiber.Map{"status": "success", "data": mutation})
 	})
 
-	api.Put("/roles/:id", func(c *fiber.Ctx) error {
-		id := c.Params("id")
-		var role models.OrmawaRole
-		config.DB.First(&role, id)
-		c.BodyParser(&role)
-		config.DB.Save(&role)
-		return c.JSON(fiber.Map{"status": "success", "data": role})
+	// ATTENDANCE (SECURITY AUDIT)
+	api.Post("/absensi", func(c *fiber.Ctx) error {
+		type AttendanceInput struct {
+			EventID   uint   `json:"eventId"`
+			StudentID uint   `json:"studentId"`
+		}
+		var input AttendanceInput
+		if err := c.BodyParser(&input); err != nil {
+			return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Data tidak lengkap"})
+		}
+
+		// 1. Cek apakah Mahasiswa sudah absen sebelumnya? (Cegah Duplikasi)
+		var existing models.EventAttendance
+		if err := config.DB.Where("event_schedule_id = ? AND student_id = ?", input.EventID, input.StudentID).First(&existing).Error; err == nil {
+			return c.Status(409).JSON(fiber.Map{"status": "error", "message": "Anda sudah terabsen di kegiatan ini"})
+		}
+
+		// 2. Simpan Absensi
+		newAttendance := models.EventAttendance{
+			EventScheduleID: input.EventID,
+			StudentID:       input.StudentID,
+			TimeIn:          time.Now(),
+			Status:          "hadir",
+		}
+
+		if err := config.DB.Create(&newAttendance).Error; err != nil {
+			return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal mencatat absensi"})
+		}
+
+		return c.Status(201).JSON(fiber.Map{"status": "success", "message": "Absensi berhasil dicatat"})
 	})
 
 	api.Delete("/roles/:id", func(c *fiber.Ctx) error {
@@ -631,9 +721,28 @@ func SetupOrmawaRoutes(app *fiber.App) {
 		
 		config.DB.Save(&lpj)
 		
-		// If approved, mark proposal as finished
+		// If approved, mark proposal as finished and DEDUCT CASA AUTOMATICALLY
 		if lpj.Status == "disetujui" {
 			config.DB.Model(&models.Proposal{}).Where("id = ?", lpj.ProposalID).Update("status", "selesai")
+			
+			//POINT 4: REKONSILIASI KAS OTOMATIS
+			// Buat mutasi keluar berdasarkan RealizedBudget
+			config.DB.Create(&models.CashMutation{
+				OrmawaID:    lpj.Proposal.OrmawaID,
+				Type:        "keluar",
+				Nominal:     lpj.RealizedBudget,
+				Category:    "Kegiatan Selesai",
+				Description: "Realisasi Dana LPJ: " + lpj.Proposal.Title,
+				Date:        time.Now(),
+			})
+
+			// Buat Notifikasi
+			config.DB.Create(&models.OrmawaNotification{
+				OrmawaID: lpj.Proposal.OrmawaID,
+				Type:     "finance",
+				Title:    "Saldo Terupdate",
+				Desc:     "Realisasi dana " + lpj.Proposal.Title + " telah diposting ke Buku Kas.",
+			})
 		}
 
 		return c.JSON(fiber.Map{"status": "success", "data": lpj})
@@ -707,15 +816,21 @@ func SetupOrmawaRoutes(app *fiber.App) {
 		return c.JSON(fiber.Map{"status": "success", "url": "/uploads/" + filename})
 	})
 
-	// ASPIRATIONS
+	// ASPIRATIONS (PROTECTED)
 	api.Get("/aspirations", func(c *fiber.Ctx) error {
 		ormawaId := c.Query("ormawaId")
-		var list []models.OrmawaAspiration
-		query := config.DB.Preload("Student")
-		if ormawaId != "" {
-			query = query.Where("ormawa_id = ?", ormawaId)
+		if ormawaId == "" {
+			return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Parameter ormawaId wajib diisi"})
 		}
-		query.Order("created_at desc").Find(&list)
+
+		var list []models.OrmawaAspiration
+		if err := config.DB.Preload("Student").
+			Where("ormawa_id = ?", ormawaId).
+			Order("created_at desc").
+			Find(&list).Error; err != nil {
+			return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal mengambil data aspirasi"})
+		}
+		
 		return c.JSON(fiber.Map{"status": "success", "data": list})
 	})
 

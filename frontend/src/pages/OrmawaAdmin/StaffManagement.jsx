@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Sidebar from './components/Sidebar';
 import TopNavBar from './components/TopNavBar';
 import { useAuth } from '../../context/AuthContext';
+import { ormawaService } from '../../services/api';
 
 const StaffManagement = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -16,74 +17,63 @@ const StaffManagement = () => {
   const [formData, setFormData] = useState({ studentId: '', role: 'Staf', division: '' });
 
   useEffect(() => {
-    fetchStaff();
-    fetchRoles();
-    fetchDivisions();
-    fetchStudents();
+    if (ormawaId) {
+      loadInitialData();
+    }
   }, [ormawaId]);
 
-  const fetchStaff = async () => {
+  const loadInitialData = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`http://localhost:8000/api/ormawa/members?ormawaId=${ormawaId}`);
-      const json = await res.json();
-      if (json.status === 'success') setStaff(json.data || []);
-    } catch (e) { console.error(e); }
-    setLoading(false);
+      const [staffData, rolesData, divsData, studentsData] = await Promise.all([
+        ormawaService.getMembers(ormawaId),
+        ormawaService.getRoles(ormawaId),
+        ormawaService.getDivisions(ormawaId),
+        ormawaService.getAllStudents()
+      ]);
+
+      if (staffData.status === 'success') setStaff(staffData.data || []);
+      if (rolesData.status === 'success') setRoles(rolesData.data || []);
+      if (divsData.status === 'success') setDivisions(divsData.data || []);
+      if (studentsData.status === 'success') setStudents(studentsData.data || []);
+    } catch (e) {
+      console.error("Gagal memuat data staf:", e);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const fetchRoles = async () => {
+  const fetchStaff = async () => {
     try {
-      const res = await fetch(`http://localhost:8000/api/ormawa/roles?ormawaId=${ormawaId}`);
-      const json = await res.json();
-      if (json.status === 'success') setRoles(json.data || []);
-    } catch (e) { console.error(e); }
-  };
-
-  const fetchDivisions = async () => {
-    try {
-      const res = await fetch(`http://localhost:8000/api/ormawa/divisions?ormawaId=${ormawaId}`);
-      const json = await res.json();
-      if (json.status === 'success') setDivisions(json.data || []);
-    } catch (e) { console.error(e); }
-  };
-
-  const fetchStudents = async () => {
-    try {
-      const res = await fetch(`http://localhost:8000/api/ormawa/students`);
-      const json = await res.json();
-      if (json.status === 'success') setStudents(json.data || []);
+      const data = await ormawaService.getMembers(ormawaId);
+      if (data.status === 'success') setStaff(data.data || []);
     } catch (e) { console.error(e); }
   };
 
   const handleAddStaff = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch('http://localhost:8000/api/ormawa/members', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ormawaId: Number(ormawaId),
-          studentId: Number(formData.studentId),
-          role: formData.role,
-          division: formData.division,
-          status: 'aktif'
-        })
+      const data = await ormawaService.addMember({
+        ormawaId: Number(ormawaId),
+        studentId: Number(formData.studentId),
+        role: formData.role,
+        division: formData.division,
+        status: 'aktif'
       });
-      if (res.ok) {
+      if (data.status === 'success') {
         setIsModalOpen(false);
         setFormData({ studentId: '', role: 'Staf', division: '' });
         fetchStaff();
       }
-    } catch (e) { console.error(e); }
+    } catch (e) { alert("⚠️ Gagal mendaftarkan fungsionaris."); }
   };
 
   const handleRemoveStaff = async (id) => {
     if (!window.confirm('Yakni ingin menghapus staf ini?')) return;
     try {
-      await fetch(`http://localhost:8000/api/ormawa/members/${id}`, { method: 'DELETE' });
+      await ormawaService.deleteMember(id);
       fetchStaff();
-    } catch (e) { console.error(e); }
+    } catch (e) { alert("⚠️ Gagal menghapus fungsionaris."); }
   };
 
   return (

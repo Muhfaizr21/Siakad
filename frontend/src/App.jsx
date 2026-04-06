@@ -38,6 +38,19 @@ import FacultyLaporan from './pages/FacultyAdmin/laporan/mahasiswa/page'
 import FacultyKonten from './pages/FacultyAdmin/konten/page'
 import FacultyPengaturan from './pages/FacultyAdmin/pengaturan/tahun-akademik/page'
 import StudentDashboard from './pages/Student/StudentDashboard'
+import UserManagement from './pages/SuperAdmin/UserManagement'
+import AcademicPortal from './pages/SuperAdmin/AcademicPortal'
+import AspirationControl from './pages/SuperAdmin/AspirationControl'
+import ProposalPipeline from './pages/SuperAdmin/ProposalPipeline'
+import AuditLog from './pages/SuperAdmin/AuditLog'
+import CounselingAchievement from './pages/SuperAdmin/CounselingAchievement'
+import ContentManagement from './pages/SuperAdmin/ContentManagement'
+import ReportsGenerator from './pages/SuperAdmin/ReportsGenerator'
+import SystemHealth from './pages/SuperAdmin/SystemHealth'
+import StudentDirectory from './pages/SuperAdmin/StudentDirectory'
+import AdminPerformance from './pages/SuperAdmin/AdminPerformance'
+import SecuritySettings from './pages/SuperAdmin/SecuritySettings'
+import LecturerDirectory from './pages/SuperAdmin/LecturerDirectory'
 import NotFound from './pages/NotFound/NotFound'
 import { AuthProvider } from './context/AuthContext'
 import './index.css'
@@ -58,12 +71,30 @@ function App() {
 
           {/* Halaman Services */}
           <Route path="/services" element={<Services />} />
-
+          
           {/* Halaman Login */}
           <Route path="/login" element={<Login />} />
-
-          {/* Halaman Super Admin Dashboard */}
+          
+          {/* Halaman Super Admin Dashboard & Features */}
           <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/admin/rbac" element={<UserManagement />} />
+          <Route path="/admin/academic" element={<AcademicPortal />} />
+          <Route path="/admin/aspirations" element={<AspirationControl />} />
+          <Route path="/admin/proposals" element={<ProposalPipeline />} />
+          <Route path="/admin/audit" element={<AuditLog />} />
+          <Route path="/admin/counseling" element={<CounselingAchievement />} />
+          <Route path="/admin/announcements" element={<ContentManagement />} />
+          <Route path="/admin/broadcast" element={<ContentManagement />} />
+          <Route path="/admin/reports" element={<ReportsGenerator />} />
+          <Route path="/admin/health" element={<SystemHealth />} />
+          <Route path="/admin/students" element={<StudentDirectory />} />
+          <Route path="/admin/performance" element={<AdminPerformance />} />
+          <Route path="/admin/security" element={<SecuritySettings />} />
+          <Route path="/admin/lecturers" element={<LecturerDirectory />} />
+          <Route path="/admin/config" element={<AcademicPortal />} />
+          <Route path="/admin/ormawa" element={<ProposalPipeline />} />
+          <Route path="/admin/treasury" element={<ReportsGenerator />} />
+          <Route path="/admin/infrastructure" element={<AcademicPortal />} />
 
           {/* Halaman Faculty Dashboard */}
           <Route path="/faculty" element={<FacultyDashboard />} />
@@ -113,5 +144,3 @@ function App() {
 }
 
 export default App
-
-

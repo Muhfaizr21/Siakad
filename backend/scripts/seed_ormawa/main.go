@@ -11,7 +11,7 @@ import (
 )
 
 func main() {
-	godotenv.Load(".env")
+	godotenv.Load("../../.env", "../.env", ".env")
 	config.ConnectDB()
 
 	db := config.DB

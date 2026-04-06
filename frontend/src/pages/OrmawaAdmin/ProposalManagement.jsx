@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Sidebar from './components/Sidebar';
 import TopNavBar from './components/TopNavBar';
 import { useAuth } from '../../context/AuthContext';
+import { ormawaService } from '../../services/api';
 
 const mockProposals = [
   { 
@@ -67,22 +68,21 @@ const ProposalManagement = () => {
   });
   const { user, hasPermission } = useAuth();
   
-  // Simulation: Get ormawaId from user context
   const ormawaId = user?.ormawaId || 1;
 
   useEffect(() => {
-    fetchProposals();
-    checkLpjLock();
+    if (ormawaId) {
+      fetchProposals();
+      checkLpjLock();
+    }
   }, [ormawaId]);
 
   const checkLpjLock = async () => {
     try {
-      // We can check this by fetching proposals and seeing if any disetujui_univ are past their date without LPJ
-      const res = await fetch(`http://localhost:8000/api/ormawa/proposals?ormawaId=${ormawaId}`);
-      const data = await res.json();
+      const data = await ormawaService.getProposals(ormawaId);
       if (data.status === 'success') {
         const now = new Date();
-        const pending = data.data.filter(p => 
+        const pending = (data.data || []).filter(p => 
           p.status === 'disetujui_univ' && 
           new Date(p.dateEvent) < now &&
           (!p.lpj || p.lpj.status !== 'disetujui')
@@ -90,44 +90,44 @@ const ProposalManagement = () => {
         
         if (pending.length > 0) {
           setIsLocked(true);
-          setLockMessage(`Anda memiliki ${pending.length} kegiatan yang belum menyelesaikan LPJ (Approved).`);
+          setLockMessage(`Attention: Anda memiliki ${pending.length} kegiatan yang belum menyelesaikan LPJ.`);
         } else {
           setIsLocked(false);
         }
       }
+    } catch (e) { console.error("Lock check error:", e); }
+  };
+
+  const fetchProposals = async () => {
+    try {
+      const data = await ormawaService.getProposals(ormawaId);
+      if (data.status === 'success') {
+        const formatted = (data.data || []).map(p => ({
+          id: `PROP-${p.id}`,
+          realId: p.id,
+          nama_kegiatan: p.title,
+          tujuan: p.notes || 'Tujuan operasional atau deskripsi tidak tersedia',
+          tanggal_iso: p.dateEvent ? p.dateEvent.split('T')[0] : '',
+          tanggal_pelaksanaan: p.dateEvent ? new Date(p.dateEvent).toLocaleDateString('id-ID', { year: 'numeric', month: 'short', day: 'numeric' }) : '-',
+          status: p.status || 'diajukan',
+          anggaran: p.budget || 0,
+          penanggung_jawab: p.ormawa ? p.ormawa.name : 'Ormawa',
+          file: p.fileUrl || 'tidak ada lampiran',
+          ormawaId: p.ormawaId
+        }));
+        setProposals(formatted);
+      }
+    } catch (err) { 
+      console.error("Gagal memuat proposal:", err);
+      alert("⚠️ Eror: Gagal memuat data proposal.");
+    }
+  };
+
+  const fetchHistory = async (proposalId) => {
+    try {
+      const data = await ormawaService.getProposalHistory(proposalId);
+      if (data.status === 'success') setHistory(data.data || []);
     } catch (e) { console.error(e); }
-  };
-
-  const fetchProposals = () => {
-    fetch(`http://localhost:8000/api/ormawa/proposals?ormawaId=${ormawaId}`)
-      .then(res => res.json())
-      .then(data => {
-        if (data.status === 'success') {
-          const formatted = (data.data || []).map(p => ({
-            id: `PROP-${p.id}`,
-            realId: p.id,
-            nama_kegiatan: p.title,
-            tujuan: p.notes || 'Tujuan operasional atau deskripsi tidak tersedia',
-            tanggal_iso: p.dateEvent ? p.dateEvent.split('T')[0] : '',
-            tanggal_pelaksanaan: p.dateEvent ? new Date(p.dateEvent).toLocaleDateString('id-ID', { year: 'numeric', month: 'short', day: 'numeric' }) : '-',
-            status: p.status || 'diajukan',
-            anggaran: p.budget || 0,
-            penanggung_jawab: p.ormawa ? p.ormawa.name : 'Ormawa',
-            file: p.fileUrl || 'tidak ada lampiran',
-            ormawaId: p.ormawaId
-          }));
-          setProposals(formatted);
-        }
-      })
-      .catch(err => console.error("Failed to fetch proposals:", err));
-  };
-
-  const fetchHistory = (proposalId) => {
-    fetch(`http://localhost:8000/api/ormawa/proposals/${proposalId}/history`)
-      .then(res => res.json())
-      .then(data => {
-        if (data.status === 'success') setHistory(data.data || []);
-      });
   };
   
   const getStatusBadge = (status) => {
@@ -152,16 +152,15 @@ const ProposalManagement = () => {
     fd.append('file', file);
 
     try {
-      const res = await fetch('http://localhost:8000/api/ormawa/upload', {
-        method: 'POST',
-        body: fd
-      });
-      const data = await res.json();
+      const data = await ormawaService.uploadFile(fd);
       if (data.status === 'success') {
         setFormData({ ...formData, file_url: data.url });
       }
-    } catch (e) { console.error(e); }
-    setUploading(false);
+    } catch (e) {
+      alert("⚠️ Gagal mengunggah file.");
+    } finally {
+      setUploading(false);
+    }
   };
 
   const handleAction = async (newStatus) => {
@@ -171,36 +170,28 @@ const ProposalManagement = () => {
     }
 
     try {
-      const res = await fetch(`http://localhost:8000/api/ormawa/proposals/${selectedProposal.realId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          status: newStatus, 
-          notes: komentar,
-          userId: user?.id || 0
-        })
+      const data = await ormawaService.updateProposal(selectedProposal.realId, { 
+        status: newStatus, 
+        notes: komentar,
+        userId: user?.id || 0
       });
-      const data = await res.json();
       if (data.status === 'success') {
         fetchProposals();
         setSelectedProposal(null);
         setKomentar('');
       }
     } catch (error) {
-       console.error("Error updating status:", error);
+       alert(`⚠️ Gagal memperbarui status: ${error.message}`);
     }
   };
 
   const handleDelete = async (realId) => {
-    if (window.confirm("Yakin ingin menghapus proposal ini?")) {
-      try {
-        const res = await fetch(`http://localhost:8000/api/ormawa/proposals/${realId}`, {
-          method: 'DELETE'
-        });
-        if (res.ok) fetchProposals();
-      } catch (err) {
-        console.error("Failed to delete proposal:", err);
-      }
+    if (!window.confirm("Yakin ingin menghapus proposal ini secara permanen?")) return;
+    try {
+      await ormawaService.deleteProposal(realId);
+      fetchProposals();
+    } catch (err) {
+      alert("⚠️ Gagal menghapus proposal.");
     }
   };
 
@@ -217,22 +208,16 @@ const ProposalManagement = () => {
     };
 
     try {
-      const url = editingId 
-        ? `http://localhost:8000/api/ormawa/proposals/${editingId}`
-        : 'http://localhost:8000/api/ormawa/proposals';
+      const data = editingId 
+        ? await ormawaService.updateProposal(editingId, payload)
+        : await ormawaService.createProposal(payload);
       
-      const res = await fetch(url, {
-        method: editingId ? 'PUT' : 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-
-      if (res.ok) {
+      if (data.status === 'success') {
         setIsFormOpen(false);
         fetchProposals();
       }
     } catch (err) {
-      console.error("Error saving proposal:", err);
+      alert(`⚠️ Eror saat menyimpan: ${err.message}`);
     }
   };
 

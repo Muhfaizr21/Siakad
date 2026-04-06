@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Sidebar from './components/Sidebar';
 import TopNavBar from './components/TopNavBar';
 import { useAuth } from '../../context/AuthContext';
+import { ormawaService } from '../../services/api';
 
 const Notifikasi = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -10,15 +11,18 @@ const Notifikasi = () => {
   const [notifs, setNotifs] = useState([]);
 
   useEffect(() => {
-    fetchNotifs();
+    if (ormawaId) {
+      fetchNotifs();
+    }
   }, [ormawaId]);
 
   const fetchNotifs = async () => {
     try {
-      const res = await fetch(`http://localhost:8000/api/ormawa/notifications?ormawaId=${ormawaId}`);
-      const data = await res.json();
-      if (data.status === 'success') setNotifs(data.data);
-    } catch (e) { console.error(e); }
+      const data = await ormawaService.getNotifications(ormawaId);
+      if (data.status === 'success') setNotifs(data.data || []);
+    } catch (e) {
+      console.error("Gagal memuat notifikasi:", e);
+    }
   };
 
   const getIcon = (type) => {
@@ -33,28 +37,29 @@ const Notifikasi = () => {
 
   const markAllRead = async () => {
     try {
-      await fetch(`http://localhost:8000/api/ormawa/notifications/read-all?ormawaId=${ormawaId}`, { method: 'PUT' });
+      await ormawaService.markAllNotifsRead(ormawaId);
       fetchNotifs();
     } catch (e) { console.error(e); }
   };
 
   const markAsRead = async (id) => {
     try {
-      await fetch(`http://localhost:8000/api/ormawa/notifications/${id}/read`, { method: 'PUT' });
+      await ormawaService.markNotifRead(id);
       fetchNotifs();
     } catch (e) { console.error(e); }
   };
 
   const deleteNotif = async (id) => {
+    if (!window.confirm("Hapus notifikasi ini?")) return;
     try {
-      await fetch(`http://localhost:8000/api/ormawa/notifications/${id}`, { method: 'DELETE' });
+      await ormawaService.deleteNotif(id);
       fetchNotifs();
     } catch (e) { console.error(e); }
   };
 
   const formatTime = (dateStr) => {
     const date = new Date(dateStr);
-    return date.toLocaleDateString('id-ID', { hour: '2-digit', minute: '2-digit' });
+    return date.toLocaleDateString('id-ID', { hour: '2-digit', minute: '2-digit', day: 'numeric', month: 'short' });
   };
 
   return (

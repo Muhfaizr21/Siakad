@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Sidebar from './components/Sidebar';
 import TopNavBar from './components/TopNavBar';
 import { useAuth } from '../../context/AuthContext';
+import { ormawaService } from '../../services/api';
 
 const CATEGORIES = [
   { id: 'Fasilitas', icon: 'domain', color: 'rose' },
@@ -20,35 +21,37 @@ const AspirationManagement = () => {
   const [newAspiration, setNewAspiration] = useState({ title: '', category: 'Kegiatan', description: '' });
 
   useEffect(() => {
-    fetchData();
+    loadInitialData();
   }, [ormawaId]);
 
-  const fetchData = async () => {
+  const loadInitialData = async () => {
     try {
-      const res = await fetch(`http://localhost:8000/api/ormawa/aspirations?ormawaId=${ormawaId}`);
-      const data = await res.json();
+      const data = await ormawaService.getAspirations(ormawaId);
       if (data.status === 'success') setAspirations(data.data || []);
-    } catch (e) { console.error(e); }
+    } catch (e) { 
+      console.error("Gagal memuat aspirasi:", e);
+      alert("⚠️ Eror: Gagal memuat data dari server.");
+    }
   };
 
   const handleSubmit = async () => {
     if (!newAspiration.title || !newAspiration.description) return alert("Mohon lengkapi data!");
     try {
-      const res = await fetch(`http://localhost:8000/api/ormawa/aspirations`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...newAspiration,
-          ormawaId: Number(ormawaId),
-          status: 'pending'
-        })
+      const data = await ormawaService.createAspiration({
+        ...newAspiration,
+        ormawaId: Number(ormawaId),
+        status: 'pending'
       });
-      if (res.ok) {
+      
+      if (data.status === 'success') {
         setShowAddModal(false);
         setNewAspiration({ title: '', category: 'Kegiatan', description: '' });
         fetchData();
       }
-    } catch (e) { console.error(e); }
+    } catch (e) { 
+      console.error("Gagal mengirim aspirasi:", e);
+      alert(`⚠️ Eror: ${e.message}`);
+    }
   };
 
   return (

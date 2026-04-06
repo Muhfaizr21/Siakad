@@ -61,3 +61,28 @@ type Student struct {
 	CurrentSemester int       `gorm:"default:1" json:"currentSemester"`
 	Status          string    `gorm:"default:'active'" json:"status"`
 }
+
+// AuditLog represents every sensitive action performed by admins
+type AuditLog struct {
+	ID        uint           `gorm:"primaryKey" json:"id"`
+	UserID    uint           `json:"userId"`
+	User      User           `gorm:"foreignKey:UserID" json:"user"`
+	Action    string         `json:"action"` // e.g. "UPDATE_ROLE", "DELETE_PROPOSAL"
+	Entity    string         `json:"entity"` // e.g. "users", "proposals"
+	EntityID  uint           `json:"entityId"`
+	OldValue  string         `gorm:"type:text" json:"oldValue"`
+	NewValue  string         `gorm:"type:text" json:"newValue"`
+	IPAddress string         `json:"ipAddress"`
+	UserAgent string         `json:"userAgent"`
+	CreatedAt gorm.DeletedAt `json:"createdAt"` // Gorm automatically handles timestamps
+}
+
+// AcademicSettings represents the global university state controlled by Super Admin
+type AcademicSettings struct {
+	gorm.Model
+	ActiveYear      string `json:"activeYear"`      // e.g. "2023/2024"
+	ActiveSemester  string `json:"activeSemester"`  // e.g. "Ganjil" / "Genap"
+	IsKrsOpen       bool   `gorm:"default:false" json:"isKrsOpen"`
+	IsGradeInputOpen bool   `gorm:"default:false" json:"isGradeInputOpen"`
+	LastModifiedBy  uint   `json:"lastModifiedBy"`
+}

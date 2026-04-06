@@ -110,43 +110,33 @@ const JadwalKegiatan = () => {
     if(checkConflict() && !conflictWarning) return; 
     
     try {
-      const start = new Date(`${formData.date}T${formData.startTime}`);
-      const end = new Date(`${formData.date}T${formData.endTime}`);
-      
-      const method = editingId ? 'PUT' : 'POST';
-      const url = editingId ? `http://localhost:8000/api/ormawa/events/${editingId}` : 'http://localhost:8000/api/ormawa/events';
+      const payload = {
+        title: formData.title,
+        description: formData.type,
+        startDate: new Date(`${formData.date}T${formData.startTime}`).toISOString(),
+        endDate: new Date(`${formData.date}T${formData.endTime}`).toISOString(),
+        location: formData.location,
+        ormawaId: Number(ormawaId)
+      };
 
-      const res = await fetch(url, {
-        method: method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title: formData.title,
-          description: formData.type,
-          startDate: start.toISOString(),
-          endDate: end.toISOString(),
-          location: formData.location,
-          ormawaId: ormawaId
-        })
-      });
-
-      if (res.ok) {
-        setIsModalOpen(false);
-        setEditingId(null);
-        setFormData({ title: '', date: '', startTime: '', endTime: '', location: '', type: 'internal', reminder: false });
-        fetchEvents();
+      if (editingId) {
+        await ormawaService.updateEvent(editingId, payload);
+      } else {
+        await ormawaService.createEvent(payload);
       }
+
+      setIsModalOpen(false);
+      setEditingId(null);
+      setFormData({ title: '', date: '', startTime: '', endTime: '', location: '', type: 'internal', reminder: false });
+      fetchEvents();
     } catch (e) { console.error(e); }
   };
 
   const cancelEvent = async (id) => {
     if (!window.confirm("Hapus kegiatan ini?")) return;
     try {
-      const res = await fetch(`http://localhost:8000/api/ormawa/events/${id}`, {
-        method: 'PUT',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ status: 'dibatalkan' })
-      });
-      if (res.ok) fetchEvents();
+      await ormawaService.updateEvent(id, { status: 'dibatalkan' });
+      fetchEvents();
     } catch (e) { console.error(e); }
   };
 

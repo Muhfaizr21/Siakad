@@ -4,26 +4,24 @@ import TopNavBar from './components/TopNavBar';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
+import { ormawaService } from '../../services/api';
+
 const OrmawaDashboard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const ormawaId = user?.ormawaId || 1;
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [stats, setStats] = useState({ totalProposals: 0, totalMembers: 0, totalKas: 0 });
+  const [stats, setStats] = useState({ totalProposals: 0, totalMembers: 0, totalKas: 0, totalEvents: 0, totalAnnouncements: 0 });
   const [proposals, setProposals] = useState([]);
   const [announcements, setAnnouncements] = useState([]);
   const [events, setEvents] = useState([]);
   const [members, setMembers] = useState([]);
   const [identity, setIdentity] = useState({ name: 'Ormawa' });
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     if (ormawaId) {
-      fetchIdentity();
-      fetchStats();
-      fetchProposals();
-      fetchAnnouncements();
-      fetchEvents();
-      fetchMembers();
+      fetchAllData();
     }
 
     const handleSettingsUpdate = () => fetchIdentity();
@@ -31,50 +29,62 @@ const OrmawaDashboard = () => {
     return () => window.removeEventListener('ormawa_settings_updated', handleSettingsUpdate);
   }, [ormawaId]);
 
+  const fetchAllData = async () => {
+    setIsLoading(true);
+    try {
+      await Promise.all([
+        fetchIdentity(),
+        fetchDashboardStats(),
+        fetchProposals(),
+        fetchAnnouncements(),
+        fetchEvents(),
+        fetchMembers()
+      ]);
+    } catch (e) {
+      console.error("Gagal sinkronisasi dashboard:", e);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const fetchIdentity = async () => {
     try {
-      const res = await fetch(`http://localhost:8000/api/ormawa/settings/${ormawaId}`);
-      const data = await res.json();
+      const data = await ormawaService.getSettings(ormawaId);
       if (data.status === 'success') setIdentity(data.data);
     } catch (e) { console.error(e); }
   };
 
   const fetchMembers = async () => {
     try {
-      const res = await fetch(`http://localhost:8000/api/ormawa/members?ormawaId=${ormawaId}`);
-      const data = await res.json();
+      const data = await ormawaService.getMembers(ormawaId);
       if (data.status === 'success') setMembers(data.data || []);
     } catch (e) { console.error(e); }
   };
 
-  const fetchStats = async () => {
+  const fetchDashboardStats = async () => {
     try {
-      const res = await fetch(`http://localhost:8000/api/ormawa/stats?ormawaId=${ormawaId}`);
-      const data = await res.json();
-      if (data.status === 'success') setStats(data.data || { totalProposals: 0, totalMembers: 0, totalKas: 0 });
+      const data = await ormawaService.getStats(ormawaId);
+      if (data.status === 'success') setStats(data.data);
     } catch (e) { console.error(e); }
   };
 
   const fetchProposals = async () => {
     try {
-      const res = await fetch(`http://localhost:8000/api/ormawa/proposals?ormawaId=${ormawaId}`);
-      const data = await res.json();
+      const data = await ormawaService.getProposals(ormawaId);
       if (data.status === 'success') setProposals(data.data || []);
     } catch (e) { console.error(e); }
   };
 
   const fetchAnnouncements = async () => {
     try {
-      const res = await fetch(`http://localhost:8000/api/ormawa/announcements?ormawaId=${ormawaId}`);
-      const data = await res.json();
+      const data = await ormawaService.getAnnouncements(ormawaId);
       if (data.status === 'success') setAnnouncements(data.data || []);
     } catch (e) { console.error(e); }
   };
 
   const fetchEvents = async () => {
     try {
-      const res = await fetch(`http://localhost:8000/api/ormawa/events?ormawaId=${ormawaId}`);
-      const data = await res.json();
+      const data = await ormawaService.getEvents(ormawaId);
       if (data.status === 'success') setEvents(data.data || []);
     } catch (e) { console.error(e); }
   };
@@ -127,7 +137,7 @@ const OrmawaDashboard = () => {
                   <span className="material-symbols-outlined text-emerald-500 group-hover:text-white">event_available</span>
                 </div>
               </div>
-              <h3 className="text-3xl font-extrabold font-headline text-on-surface mb-1">{events.length}</h3>
+              <h3 className="text-3xl font-extrabold font-headline text-on-surface mb-1">{stats.totalEvents}</h3>
               <p className="text-sm font-label text-on-surface-variant uppercase tracking-wider">Kegiatan Terdaftar</p>
             </div>
 
@@ -149,7 +159,7 @@ const OrmawaDashboard = () => {
                   <span className="material-symbols-outlined text-orange-500 group-hover:text-white">campaign</span>
                 </div>
               </div>
-              <h3 className="text-3xl font-extrabold font-headline text-on-surface mb-1">{announcements.length}</h3>
+              <h3 className="text-3xl font-extrabold font-headline text-on-surface mb-1">{stats.totalAnnouncements}</h3>
               <p className="text-sm font-label text-on-surface-variant uppercase tracking-wider">Pengumuman Aktif</p>
             </div>
           </div>

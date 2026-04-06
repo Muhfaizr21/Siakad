@@ -2,8 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Sidebar from './components/Sidebar';
 import TopNavBar from './components/TopNavBar';
 import { useAuth } from '../../context/AuthContext';
-
-
+import { ormawaService } from '../../services/api';
 
 const modulePermissions = [
   { 
@@ -85,27 +84,32 @@ const modulePermissions = [
 ];
 
 const RoleBasedAccess = () => {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const { user } = useAuth();
   const ormawaId = user?.ormawaId || 1;
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [roles, setRoles] = useState([]);
-  const [selectedRole, setSelectedRole] = useState(null);
+  const [members, setMembers] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [selectedRole, setSelectedRole] = useState(null);
+  const [formData, setFormData] = useState({ name: '', description: '', permissions: {} });
 
   useEffect(() => {
-    fetchRoles();
+    if (ormawaId) {
+      loadInitialData();
+    }
   }, [ormawaId]);
 
-  const fetchRoles = async () => {
+  const loadInitialData = async () => {
     try {
-      setLoading(true);
-      const res = await fetch(`http://localhost:8000/api/ormawa/roles?ormawaId=${ormawaId}`);
-      const json = await res.json();
-      if (json.status === 'success') {
-        const fetchedRoles = (json.data || []).map(r => ({
+      const [roleData, memberData] = await Promise.all([
+        ormawaService.getRoles(ormawaId),
+        ormawaService.getMembers(ormawaId)
+      ]);
+      if (roleData.status === 'success') {
+        const fetchedRoles = (roleData.data || []).map(r => ({
           ...r,
           userCount: r.userCount || 0,
           permissions: typeof r.permissions === 'string' ? (JSON.parse(r.permissions || '{}') || {}) : (r.permissions || {})

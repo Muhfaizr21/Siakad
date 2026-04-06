@@ -11,10 +11,17 @@ import (
 )
 
 func main() {
-	err := godotenv.Load("../.env")
-	if err != nil {
-		log.Println("No .env found outside. Trying current folder...")
-		godotenv.Load(".env")
+	// Robust env loading
+	var loaded bool
+	for _, p := range []string{"../../.env", "../.env", ".env"} {
+		if err := godotenv.Load(p); err == nil {
+			log.Println("Loaded .env from:", p)
+			loaded = true
+			break
+		}
+	}
+	if !loaded {
+		log.Println("WARNING: No .env file loaded. DB connection might fail.")
 	}
 
 	config.ConnectDB()

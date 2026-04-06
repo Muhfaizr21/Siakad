@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Sidebar from './components/Sidebar';
 import TopNavBar from './components/TopNavBar';
 import { useAuth } from '../../context/AuthContext';
+import { ormawaService } from '../../services/api';
 
 const LPJ_CATEGORIES = ["Dokumentasi", "Laporan Keuangan", "Presensi"];
 
@@ -15,24 +16,22 @@ const LpjManagement = () => {
   const [activeItem, setActiveItem] = useState(null);
 
   useEffect(() => {
-    fetchData();
+    if (ormawaId) {
+      fetchData();
+    }
   }, [ormawaId]);
 
   const fetchData = async () => {
     try {
-      const [lpjRes, propRes] = await Promise.all([
-        fetch(`http://localhost:8000/api/ormawa/lpjs?ormawaId=${ormawaId}`),
-        fetch(`http://localhost:8000/api/ormawa/proposals?ormawaId=${ormawaId}`)
+      const [lpjData, propData] = await Promise.all([
+        ormawaService.getLpjs(ormawaId),
+        ormawaService.getProposals(ormawaId)
       ]);
       
-      const lpjData = await lpjRes.json();
-      const propData = await propRes.json();
-
       if (lpjData.status === 'success') setLaporan(lpjData.data || []);
       
       if (propData.status === 'success') {
         const now = new Date();
-        // Filter: Approved, Past Date, and NO LPJ yet
         const pending = (propData.data || []).filter(p => 
           p.status === 'disetujui_univ' && 
           new Date(p.dateEvent) < now &&
@@ -40,23 +39,22 @@ const LpjManagement = () => {
         );
         setPendingActivities(pending);
       }
-    } catch (e) { console.error(e); }
+    } catch (e) { 
+      console.error("Gagal sinkron data LPJ:", e);
+    }
   };
 
   const handleCreateLPJSection = async (proposalId) => {
-    // Create draft LPJ first if it doesn't exist to get an ID for document uploads
     try {
-      const res = await fetch('http://localhost:8000/api/ormawa/lpjs', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          proposalId: proposalId,
-          submittedBy: user?.id || 1,
-          status: 'draft'
-        })
+      const data = await ormawaService.createLpj({
+        proposalId: proposalId,
+        submittedBy: user?.id || 1,
+        status: 'draft'
       });
-      if (res.ok) fetchData();
-    } catch (e) { console.error(e); }
+      if (data.status === 'success') fetchData();
+    } catch (e) { 
+      alert("⚠️ Eror: Gagal membuka draft laporan.");
+    }
   };
 
   const handleFolderUpload = async (lpjId, category, e) => {
@@ -68,54 +66,37 @@ const LpjManagement = () => {
     fd.append('file', file);
     fd.append('category', category);
 
-    console.log(`Uploading file for LPJ ${lpjId} in category ${category}...`);
-
     try {
-      const res = await fetch(`http://localhost:8000/api/ormawa/lpjs/${lpjId}/documents`, {
-        method: 'POST',
-        body: fd
-      });
-      
-      const data = await res.json();
-      console.log("Upload Response:", data);
-
-      if (res.ok) {
+      const data = await ormawaService.uploadLpjDocument(lpjId, fd);
+      if (data.status === 'success') {
         await fetchData();
-        console.log("Data refreshed successfully");
-      } else {
-        alert(`❌ GAGAL UPLOAD: ${data.message || "Server error"}`);
       }
     } catch (e) { 
-      console.error("Upload error connection:", e);
-      alert("❌ GAGAL KONEKSI: Pastikan server backend (Go) menyala di port 8000");
+      alert(`⚠️ Gagal Upload: ${e.message}`);
+    } finally {
+      setUploadingCategory(null);
     }
-    setUploadingCategory(null);
   };
 
   const handleDeleteDocument = async (docId) => {
-    if (!window.confirm("Hapus dokumen ini?")) return;
+    if (!window.confirm("Hapus dokumen ini secara permanen?")) return;
     try {
-      const res = await fetch(`http://localhost:8000/api/ormawa/lpjs/documents/${docId}`, {
-        method: 'DELETE'
-      });
-      if (res.ok) await fetchData();
+      await ormawaService.deleteLpjDocument(docId);
+      fetchData();
     } catch (e) { console.error(e); }
   };
 
   const handleFinalSubmit = async (lpjId) => {
-    if (!window.confirm("Yakin ingin mengirim LPJ ini? Pastikan semua folder sudah terisi.")) return;
+    if (!window.confirm("Kirim LPJ ini sekarang? Perubahan tidak dapat dilakukan setelah dikirim.")) return;
     try {
-      const res = await fetch(`http://localhost:8000/api/ormawa/lpjs/${lpjId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: 'diajukan' })
-      });
-      if (res.ok) fetchData();
-      else {
-        const err = await res.json();
-        alert(err.message || "Gagal mengirim LPJ");
+      const data = await ormawaService.updateLpj(lpjId, { status: 'diajukan' });
+      if (data.status === 'success') {
+        fetchData();
+        alert("✅ LPJ Berhasil dikirim ke Fakultas!");
       }
-    } catch (e) { console.error(e); }
+    } catch (e) { 
+      alert(`❌ Gagal: ${e.message}`);
+    }
   };
 
   const formatRp = (angka) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(angka);

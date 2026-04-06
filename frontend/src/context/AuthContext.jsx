@@ -13,6 +13,8 @@ export const mockRoles = [
       lpj: ['view', 'create', 'edit', 'delete', 'submit'],
       pengumuman: ['view', 'create', 'edit', 'delete', 'publish'],
       struktur: ['view', 'edit'],
+      rbac: ['view', 'create', 'edit', 'delete'],
+      aspirasi: ['view', 'create', 'edit', 'delete'],
     }
   },
   {
@@ -27,6 +29,7 @@ export const mockRoles = [
       lpj: ['view', 'create', 'edit', 'submit'],
       pengumuman: ['view', 'create', 'edit', 'delete', 'publish'],
       struktur: ['view', 'edit'],
+      aspirasi: ['view', 'create', 'edit'],
     }
   },
   {
@@ -41,6 +44,7 @@ export const mockRoles = [
       lpj: ['view', 'create', 'edit', 'delete', 'submit'],
       pengumuman: ['view'],
       struktur: ['view'],
+      aspirasi: ['view'],
     }
   },
   {
@@ -55,6 +59,7 @@ export const mockRoles = [
       lpj: ['view', 'create', 'edit'],
       pengumuman: ['view'],
       struktur: ['view'],
+      aspirasi: ['view'],
     }
   }
 ];

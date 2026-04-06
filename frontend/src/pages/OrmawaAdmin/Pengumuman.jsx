@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Sidebar from './components/Sidebar';
 import TopNavBar from './components/TopNavBar';
 import { useAuth } from '../../context/AuthContext';
+import { ormawaService } from '../../services/api';
 
 const Pengumuman = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -13,54 +14,51 @@ const Pengumuman = () => {
   const [formData, setFormData] = useState({ title: '', target: 'Semua Anggota', content: '', startDate: '', endDate: '' });
 
   useEffect(() => {
-    fetchAnnouncements();
+    if (ormawaId) {
+      fetchAnnouncements();
+    }
   }, [ormawaId]);
 
   const fetchAnnouncements = async () => {
     try {
-      const res = await fetch(`http://localhost:8000/api/ormawa/announcements?ormawaId=${ormawaId}`);
-      const data = await res.json();
+      const data = await ormawaService.getAnnouncements(ormawaId);
       if (data.status === 'success') setAnnouncements(data.data || []);
-    } catch (e) { console.error(e); }
+    } catch (e) {
+      console.error("Gagal memuat pengumuman:", e);
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const url = selectedId 
-      ? `http://localhost:8000/api/ormawa/announcements/${selectedId}`
-      : 'http://localhost:8000/api/ormawa/announcements';
-    
     try {
-      const res = await fetch(url, {
-        method: selectedId ? 'PUT' : 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title: formData.title,
-          content: formData.content,
-          target: formData.target,
+      if (selectedId) {
+        await ormawaService.updateAnnouncement(selectedId, {
+          ...formData,
+          ormawaId: Number(ormawaId),
           startDate: new Date(formData.startDate).toISOString(),
-          endDate: new Date(formData.endDate).toISOString(),
-          ormawaId: Number(ormawaId)
-        })
-      });
-      
-      if (res.ok) {
-        setIsModalOpen(false);
-        setSelectedId(null);
-        setFormData({ title: '', target: 'Semua Anggota', content: '', startDate: '', endDate: '' });
-        fetchAnnouncements();
+          endDate: new Date(formData.endDate).toISOString()
+        });
+      } else {
+        await ormawaService.createAnnouncement({
+          ...formData,
+          ormawaId: Number(ormawaId),
+          startDate: new Date(formData.startDate).toISOString(),
+          endDate: new Date(formData.endDate).toISOString()
+        });
       }
-    } catch (e) { console.error(e); }
+      setIsModalOpen(false);
+      setSelectedId(null);
+      setFormData({ title: '', target: 'Semua Anggota', content: '', startDate: '', endDate: '' });
+      fetchAnnouncements();
+    } catch (e) { alert("⚠️ Gagal memproses pengumuman."); }
   };
 
   const deleteItem = async (id) => {
-    if (!window.confirm('Hapus pengumuman ini?')) return;
+    if (!window.confirm("Yakin ingin menghapus pengumuman ini?")) return;
     try {
-      const res = await fetch(`http://localhost:8000/api/ormawa/announcements/${id}`, {
-        method: 'DELETE'
-      });
-      if (res.ok) fetchAnnouncements();
-    } catch (e) { console.error(e); }
+      await ormawaService.deleteAnnouncement(id);
+      fetchAnnouncements();
+    } catch (e) { alert("⚠️ Gagal menghapus pengumuman."); }
   };
 
   const openEdit = (item) => {

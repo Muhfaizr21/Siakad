@@ -9,7 +9,7 @@ const AdminDashboard = () => {
       <Sidebar />
 
       {/* Main Canvas Area */}
-      <main className="pl-72 flex flex-col min-h-screen w-full">
+      <main className="pl-80 flex flex-col min-h-screen w-full">
         {/* TopNavBar */}
         <TopNavBar />
 

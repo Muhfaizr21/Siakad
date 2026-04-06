@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Sidebar from './components/Sidebar';
 import TopNavBar from './components/TopNavBar';
 import { useAuth } from '../../context/AuthContext';
+import { ormawaService } from '../../services/api';
 
 const AnggotaManagement = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -15,95 +16,71 @@ const AnggotaManagement = () => {
   const [divisions, setDivisions] = useState([]);
 
   useEffect(() => {
-    fetchMembers();
-    fetchDivisions();
-    fetchAllStudents();
+    if (ormawaId) {
+      loadInitialData();
+    }
   }, [ormawaId]);
+
+  const loadInitialData = async () => {
+    try {
+      const [members, divs, allStudents] = await Promise.all([
+        ormawaService.getMembers(ormawaId),
+        ormawaService.getDivisions(ormawaId),
+        ormawaService.getAllStudents()
+      ]);
+
+      if (members.status === 'success') setAnggotaList(members.data || []);
+      if (divs.status === 'success') setDivisions(divs.data || []);
+      if (allStudents.status === 'success') setStudents(allStudents.data || []);
+    } catch (e) {
+      console.error("Gagal memuat data keanggotaan:", e);
+    }
+  };
 
   const fetchMembers = async () => {
     try {
-      const res = await fetch(`http://localhost:8000/api/ormawa/members?ormawaId=${ormawaId}`);
-      const data = await res.json();
+      const data = await ormawaService.getMembers(ormawaId);
       if (data.status === 'success') setAnggotaList(data.data || []);
     } catch (e) { console.error(e); }
-  };
-  const fetchDivisions = async () => {
-    try {
-      const res = await fetch(`http://localhost:8000/api/ormawa/divisions?ormawaId=${ormawaId}`);
-      const json = await res.json();
-      if (json.status === 'success') setDivisions(json.data || []);
-    } catch (e) { console.error(e); }
-  };
-
-  const fetchAllStudents = async () => {
-    try {
-      const res = await fetch('http://localhost:8000/api/ormawa/students'); 
-      const data = await res.json();
-      if (data.status === 'success') setStudents(data.data || []);
-    } catch (e) { console.error(e); }
-  };
-
-  const filteredData = (anggotaList || []).filter((item) => {
-    const nama = item.student?.name || '';
-    const nim = item.student?.nim || '';
-    const matchSearch = nama.toLowerCase().includes(searchTerm.toLowerCase()) || nim.includes(searchTerm);
-    return matchSearch;
-  });
-
-  const getStatusBadge = (status) => {
-    const badges = {
-      'aktif': 'bg-emerald-100 text-emerald-700 border-emerald-200',
-      'pending': 'bg-orange-100 text-orange-700 border-orange-200',
-      'tidak_aktif': 'bg-rose-100 text-rose-700 border-rose-200',
-      'alumni': 'bg-slate-200 text-slate-700 border-slate-300',
-      'ditolak': 'bg-red-100 text-red-700 border-red-200'
-    };
-    const cls = badges[status] || 'bg-slate-100 text-slate-600';
-    return <span className={`${cls} border px-3 py-1 rounded-full text-xs font-bold uppercase`}>{status}</span>;
   };
 
   const handleUpdateStatus = async (id, newStatus) => {
     try {
-      const res = await fetch(`http://localhost:8000/api/ormawa/members/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: newStatus })
-      });
-      if (res.ok) fetchMembers();
-    } catch (e) { console.error(e); }
+      const data = await ormawaService.updateMember(id, { status: newStatus });
+      if (data.status === 'success') fetchMembers();
+    } catch (e) { alert("⚠️ Gagal memperbarui status."); }
   };
 
   const handleDelete = async (id) => {
     if (!window.confirm('Hapus anggota ini dari organisasi?')) return;
     try {
-      const res = await fetch(`http://localhost:8000/api/ormawa/members/${id}`, {
-        method: 'DELETE'
-      });
-      if (res.ok) fetchMembers();
-    } catch (e) { console.error(e); }
+      const data = await ormawaService.deleteMember(id);
+      if (data.status === 'success') fetchMembers();
+    } catch (e) { alert("⚠️ Gagal menghapus anggota."); }
   };
 
   const handleAddMember = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch('http://localhost:8000/api/ormawa/members', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ormawaId: ormawaId,
-          studentId: parseInt(formData.studentId),
-          role: formData.role,
-          division: formData.division,
-          status: 'aktif'
-        })
+      const data = await ormawaService.addMember({
+        ormawaId: ormawaId,
+        studentId: parseInt(formData.studentId),
+        role: formData.role,
+        division: formData.division,
+        status: 'aktif'
       });
-      if (res.ok) {
+      if (data.status === 'success') {
         setIsModalOpen(false);
         setFormData({ studentId: '', role: 'Staf', division: '', status: 'pending' });
         fetchMembers();
       }
-    } catch (e) { console.error(e); }
+    } catch (e) { alert(`⚠️ Gagal mendaftarkan: ${e.message}`); }
   };
+
+  const filteredData = anggotaList.filter(item => 
+    item.student?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    item.student?.nim?.toString().includes(searchTerm)
+  );
 
   return (
     <div className="bg-surface text-on-surface min-h-screen">

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Sidebar from './components/Sidebar';
 import TopNavBar from './components/TopNavBar';
 import { useAuth } from '../../context/AuthContext';
+import { ormawaService } from '../../services/api';
 
 const AbsensiKegiatan = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -13,8 +14,9 @@ const AbsensiKegiatan = () => {
   const [members, setMembers] = useState([]);
 
   useEffect(() => {
-    fetchSessions();
-    fetchMembers();
+    if (ormawaId) {
+      loadInitialData();
+    }
   }, [ormawaId]);
 
   useEffect(() => {
@@ -23,12 +25,15 @@ const AbsensiKegiatan = () => {
     }
   }, [activeSession]);
 
-  const fetchSessions = async () => {
+  const loadInitialData = async () => {
     try {
-      const res = await fetch(`http://localhost:8000/api/ormawa/events?ormawaId=${ormawaId}`);
-      const data = await res.json();
-      if (data.status === 'success') {
-        const list = (data.data || []).map(ev => ({
+      const [eventsData, membersData] = await Promise.all([
+        ormawaService.getEvents(ormawaId),
+        ormawaService.getMembers(ormawaId)
+      ]);
+
+      if (eventsData.status === 'success') {
+        const list = (eventsData.data || []).map(ev => ({
           id: ev.id,
           eventName: ev.title,
           date: new Date(ev.startDate).toLocaleDateString(),
@@ -38,39 +43,32 @@ const AbsensiKegiatan = () => {
         setSessions(list);
         if (list.length > 0 && !activeSession) setActiveSession(list[0]);
       }
-    } catch (e) { console.error(e); }
-  };
 
-  const fetchMembers = async () => {
-    try {
-      const res = await fetch(`http://localhost:8000/api/ormawa/members?ormawaId=${ormawaId}`);
-      const data = await res.json();
-      if (data.status === 'success') setMembers(data.data || []);
-    } catch (e) { console.error(e); }
+      if (membersData.status === 'success') setMembers(membersData.data || []);
+    } catch (e) {
+      console.error("Gagal memuat data absensi:", e);
+    }
   };
 
   const fetchAttendance = async (eventId) => {
     try {
-      const res = await fetch(`http://localhost:8000/api/ormawa/attendance/${eventId}`);
-      const data = await res.json();
+      const data = await ormawaService.getAttendance(eventId);
       if (data.status === 'success') setAttendees(data.data || []);
     } catch (e) { console.error(e); }
   };
 
   const handleStatusChange = async (studentObj, newStatus) => {
     try {
-      const res = await fetch('http://localhost:8000/api/ormawa/attendance', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          eventScheduleId: activeSession.id,
-          studentId: studentObj.id,
-          status: newStatus,
-          timeIn: new Date().toISOString()
-        })
+      const data = await ormawaService.recordAttendance({
+        eventScheduleId: activeSession.id,
+        studentId: studentObj.id,
+        status: newStatus,
+        timeIn: new Date().toISOString()
       });
-      if (res.ok) fetchAttendance(activeSession.id);
-    } catch (e) { console.error(e); }
+      if (data.status === 'success') fetchAttendance(activeSession.id);
+    } catch (e) { 
+      alert(`⚠️ Gagal mencatat absensi: ${e.message}`);
+    }
   };
 
   const getStatusBadge = (status) => {
