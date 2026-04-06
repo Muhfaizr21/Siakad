@@ -3,252 +3,360 @@ import Sidebar from './components/Sidebar';
 import TopNavBar from './components/TopNavBar';
 import { useAuth } from '../../context/AuthContext';
 
+const LPJ_CATEGORIES = ["Dokumentasi", "Laporan Keuangan", "Presensi"];
+
 const LpjManagement = () => {
   const { user } = useAuth();
   const ormawaId = user?.ormawaId || 1;
   const [laporan, setLaporan] = useState([]);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [proposals, setProposals] = useState([]);
-  const [uploading, setUploading] = useState(false);
-  const [formData, setFormData] = useState({
-    proposalId: '',
-    realizedBudget: '',
-    notes: '',
-    fileUrl: ''
-  });
+  const [pendingActivities, setPendingActivities] = useState([]);
+  const [uploadingCategory, setUploadingCategory] = useState(null);
+  const [activeItem, setActiveItem] = useState(null);
 
   useEffect(() => {
-    fetchLpjs();
-    fetchProposals();
+    fetchData();
   }, [ormawaId]);
 
-  const fetchLpjs = async () => {
+  const fetchData = async () => {
     try {
-      const res = await fetch(`http://localhost:8000/api/ormawa/lpjs?ormawaId=${ormawaId}`);
-      const data = await res.json();
-      if (data.status === 'success') setLaporan(data.data || []);
-    } catch (e) { console.error(e); }
-  };
+      const [lpjRes, propRes] = await Promise.all([
+        fetch(`http://localhost:8000/api/ormawa/lpjs?ormawaId=${ormawaId}`),
+        fetch(`http://localhost:8000/api/ormawa/proposals?ormawaId=${ormawaId}`)
+      ]);
+      
+      const lpjData = await lpjRes.json();
+      const propData = await propRes.json();
 
-  const fetchProposals = async () => {
-    try {
-      const res = await fetch(`http://localhost:8000/api/ormawa/proposals?ormawaId=${ormawaId}`);
-      const data = await res.json();
-      if (data.status === 'success') {
-        // Only show approved ones for LPJ
-        setProposals((data.data || []).filter(p => p.status === 'disetujui_univ'));
+      if (lpjData.status === 'success') setLaporan(lpjData.data || []);
+      
+      if (propData.status === 'success') {
+        const now = new Date();
+        // Filter: Approved, Past Date, and NO LPJ yet
+        const pending = (propData.data || []).filter(p => 
+          p.status === 'disetujui_univ' && 
+          new Date(p.dateEvent) < now &&
+          !(lpjData.data || []).some(l => l.proposalId === p.id)
+        );
+        setPendingActivities(pending);
       }
     } catch (e) { console.error(e); }
   };
 
-  const handleFileUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    setUploading(true);
-    const fd = new FormData();
-    fd.append('file', file);
-    try {
-      const res = await fetch('http://localhost:8000/api/ormawa/upload', { method: 'POST', body: fd });
-      const data = await res.json();
-      if (data.status === 'success') setFormData({ ...formData, fileUrl: data.url });
-    } catch (e) { console.error(e); }
-    setUploading(false);
-  };
-
-  const submitLpj = async (e) => {
-    e.preventDefault();
+  const handleCreateLPJSection = async (proposalId) => {
+    // Create draft LPJ first if it doesn't exist to get an ID for document uploads
     try {
       const res = await fetch('http://localhost:8000/api/ormawa/lpjs', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          ...formData,
-          proposalId: Number(formData.proposalId),
-          realizedBudget: Number(formData.realizedBudget),
+          proposalId: proposalId,
           submittedBy: user?.id || 1,
-          status: 'pending'
+          status: 'draft'
         })
       });
+      if (res.ok) fetchData();
+    } catch (e) { console.error(e); }
+  };
+
+  const handleFolderUpload = async (lpjId, category, e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setUploadingCategory(`${lpjId}-${category}`);
+    const fd = new FormData();
+    fd.append('file', file);
+    fd.append('category', category);
+
+    console.log(`Uploading file for LPJ ${lpjId} in category ${category}...`);
+
+    try {
+      const res = await fetch(`http://localhost:8000/api/ormawa/lpjs/${lpjId}/documents`, {
+        method: 'POST',
+        body: fd
+      });
+      
+      const data = await res.json();
+      console.log("Upload Response:", data);
+
       if (res.ok) {
-        setIsModalOpen(false);
-        setFormData({ proposalId: '', realizedBudget: '', notes: '', fileUrl: '' });
-        fetchLpjs();
+        await fetchData();
+        console.log("Data refreshed successfully");
+      } else {
+        alert(`❌ GAGAL UPLOAD: ${data.message || "Server error"}`);
+      }
+    } catch (e) { 
+      console.error("Upload error connection:", e);
+      alert("❌ GAGAL KONEKSI: Pastikan server backend (Go) menyala di port 8000");
+    }
+    setUploadingCategory(null);
+  };
+
+  const handleDeleteDocument = async (docId) => {
+    if (!window.confirm("Hapus dokumen ini?")) return;
+    try {
+      const res = await fetch(`http://localhost:8000/api/ormawa/lpjs/documents/${docId}`, {
+        method: 'DELETE'
+      });
+      if (res.ok) await fetchData();
+    } catch (e) { console.error(e); }
+  };
+
+  const handleFinalSubmit = async (lpjId) => {
+    if (!window.confirm("Yakin ingin mengirim LPJ ini? Pastikan semua folder sudah terisi.")) return;
+    try {
+      const res = await fetch(`http://localhost:8000/api/ormawa/lpjs/${lpjId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'diajukan' })
+      });
+      if (res.ok) fetchData();
+      else {
+        const err = await res.json();
+        alert(err.message || "Gagal mengirim LPJ");
       }
     } catch (e) { console.error(e); }
   };
 
-  const formatRp = (angka) => {
-    return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(angka);
-  };
-
-  const getStatusBadge = (status) => {
-    const badges = {
-      'pending': { label: 'Menunggu Review', class: 'bg-orange-100 text-orange-700' },
-      'disetujui': { label: 'Selesai / Arsip', class: 'bg-emerald-100 text-emerald-700' },
-      'revisi': { label: 'Butuh Revisi', class: 'bg-amber-100 text-amber-700' }
-    };
-    const b = badges[status?.toLowerCase()] || { label: status, class: 'bg-slate-100' };
-    return <span className={`${b.class} px-3 py-1 rounded-full text-[10px] font-bold uppercase border border-outline-variant/20`}>{b.label}</span>;
-  };
+  const formatRp = (angka) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(angka);
 
   return (
-    <div className="bg-surface text-on-surface min-h-screen">
-      <Sidebar />
-      <main className="ml-64 min-h-screen pb-12">
-        <TopNavBar />
+    <div className="bg-surface text-on-surface min-h-screen font-body">
+      <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
+      <main className="lg:ml-64 min-h-screen pb-12 transition-all duration-500">
+        <TopNavBar setIsOpen={setSidebarOpen} />
         
-        <div className="pt-24 px-8">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
-            <div>
-              <h1 className="text-3xl font-extrabold font-headline mb-2 text-on-surface">Laporan Pertanggungjawaban (LPJ)</h1>
-              <p className="text-on-surface-variant text-sm font-medium">Buku besar rekapitulasi ringkasan kegiatan, penyerapan anggaran, dan dokumentasi eksekutorial event.</p>
-            </div>
-            <div className="flex items-center gap-3">
-              <button 
-                onClick={() => setIsModalOpen(true)}
-                className="flex items-center gap-2 px-6 py-3 bg-primary hover:bg-primary-fixed text-white font-bold rounded-xl shadow-lg shadow-primary/30 transition-all active:scale-95"
-              >
-                <span className="material-symbols-outlined text-[18px]">publish</span>
-                Submit LPJ Baru
-              </button>
-            </div>
+        <div className="pt-24 px-4 lg:px-8">
+          {/* Header */}
+          <div className="mb-10">
+            <h1 className="text-4xl font-black font-headline text-on-surface tracking-tight mb-2 text-primary">Manajemen LPJ</h1>
+            <p className="text-on-surface-variant font-medium">Sistem otomatisasi folder pertanggungjawaban kegiatan.</p>
           </div>
 
-          <div className="grid grid-cols-1 gap-6">
-            {(laporan || []).map((lpj) => {
-              const isOpen = formData.activeId === lpj.id;
+          {/* SECTION 1: ACTION REQUIRED (Pending LPJs) */}
+          {pendingActivities.length > 0 && (
+            <div className="mb-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <div className="flex items-center gap-3 mb-6">
+                <span className="flex h-3 w-3 rounded-full bg-rose-500 animate-pulse"></span>
+                <h2 className="text-xl font-bold font-headline uppercase tracking-widest text-rose-600">Perlu Tindakan Segera ({pendingActivities.length})</h2>
+              </div>
+              
+              <div className="grid grid-cols-1 gap-4">
+                {pendingActivities.map(activity => (
+                  <div key={activity.id} className="bg-rose-50 border-2 border-rose-100 rounded-[2rem] p-8 flex flex-col md:flex-row justify-between items-center gap-6 shadow-sm border-dashed">
+                    <div className="flex-1">
+                      <p className="text-[10px] font-black text-rose-500 uppercase tracking-[0.2em] mb-2">Kegiatan Belum Dilaporkan</p>
+                      <h3 className="text-2xl font-bold font-headline text-on-surface">{activity.title}</h3>
+                      <p className="text-sm text-on-surface-variant mt-1">Selesai pada: {new Date(activity.dateEvent).toLocaleDateString('id-ID', { dateStyle: 'long' })}</p>
+                    </div>
+                    <button 
+                      onClick={() => handleCreateLPJSection(activity.id)}
+                      className="px-10 py-4 bg-rose-600 text-white rounded-2xl font-bold shadow-xl shadow-rose-200 hover:bg-rose-700 transition-all active:scale-95"
+                    >
+                      Buka Draft LPJ & Upload Folder
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* SECTION 2: FOLDER-STYLE INTERFACE (Draft & Active LPJs) */}
+          <div className="grid grid-cols-1 gap-8">
+            <h2 className="text-xl font-bold font-headline uppercase tracking-widest text-on-surface-variant mb-2">Folder Laporan Aktif</h2>
+            
+            {laporan.filter(l => l.status === 'draft' || l.status === 'revisi' || l.status === 'diajukan').map(lpj => {
+              const isExpanded = activeItem === lpj.id;
               return (
-              <div key={lpj.id} className="bg-surface-container-lowest border border-outline-variant/20 rounded-3xl overflow-hidden shadow-sm group hover:border-primary/30 transition-colors">
-                <div className="p-6 bg-surface-container-low/30 border-b border-outline-variant/10 flex justify-between items-center">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-colors">
-                      <span className="material-symbols-outlined font-bold">description</span>
+              <div key={lpj.id} className={`bg-white rounded-[2.5rem] border-2 ${lpj.status === 'revisi' ? 'border-amber-200 bg-amber-50/20' : 'border-outline-variant/10'} overflow-hidden shadow-xl transition-all duration-500`}>
+                {/* Header Card */}
+                <div className="p-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                  <div className="flex items-center gap-6">
+                    <div className={`w-16 h-16 rounded-3xl flex items-center justify-center text-2xl shadow-inner ${lpj.status === 'revisi' ? 'bg-amber-100 text-amber-600' : 'bg-primary/5 text-primary'}`}>
+                      <span className="material-symbols-outlined font-black">{lpj.status === 'revisi' ? 'priority_high' : 'folder_open'}</span>
                     </div>
                     <div>
-                      <h3 className="text-xl font-bold font-headline text-on-surface">{lpj.proposal?.title || 'Kegiatan'}</h3>
-                      <div className="text-xs text-on-surface-variant font-mono mt-1 flex items-center gap-3">
-                        <span className="bg-surface-container-high px-2 py-0.5 rounded font-bold text-on-surface">LPJ-{lpj.id}</span>
-                        <span className="font-semibold font-body tracking-wide">{lpj.createdAt ? new Date(lpj.createdAt).toLocaleDateString() : '-'}</span>
+                      <h3 className="text-2xl font-bold font-headline text-on-surface">{lpj.proposal?.title}</h3>
+                      <div className="flex items-center gap-3 mt-2">
+                        <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border ${lpj.status === 'revisi' ? 'bg-amber-100 text-amber-700 border-amber-300' : 'bg-primary/10 text-primary border-primary/20'}`}>
+                          Status: {lpj.status}
+                        </span>
+                        <span className="text-xs font-bold text-on-surface-variant opacity-60">Dibuat: {new Date(lpj.createdAt).toLocaleDateString()}</span>
                       </div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-4">
-                    {getStatusBadge(lpj.status)}
+                  
+                  <div className="flex items-center gap-3 w-full md:w-auto">
+                    {lpj.status !== 'diajukan' && (
+                      <div className="flex flex-col items-end gap-2">
+                        {/* VALIDATION: Check if all categories are fulfilled */}
+                        {(() => {
+                          const uploadedCount = (lpj.documents || []).length;
+                          const isComplete = uploadedCount >= 3;
+                          
+                          return (
+                            <>
+                              <button 
+                                onClick={() => isComplete && handleFinalSubmit(lpj.id)}
+                                disabled={!isComplete}
+                                className={`flex-1 md:flex-none px-8 py-4 text-white rounded-2xl font-bold shadow-lg transition-all flex items-center justify-center gap-2 ${
+                                  isComplete 
+                                    ? 'bg-emerald-600 shadow-emerald-100 hover:bg-emerald-700 active:scale-95' 
+                                    : 'bg-slate-300 border-2 border-slate-400/20 shadow-none cursor-not-allowed'
+                                }`}
+                              >
+                                <span className="material-symbols-outlined text-[20px]">
+                                  {isComplete ? 'send' : 'lock'}
+                                </span>
+                                {isComplete ? 'Kirim LPJ' : 'Lengkapi Berkas'}
+                              </button>
+                              
+                              {!isComplete && (
+                                <p className="text-[10px] font-black text-rose-500 uppercase tracking-tight animate-pulse">
+                                  ⚠️ Wajib Upload {3 - uploadedCount} Dokumen Lagi
+                                </p>
+                              )}
+                            </>
+                          );
+                        })()}
+                      </div>
+                    )}
                     <button 
-                      onClick={() => setFormData({ ...formData, activeId: isOpen ? null : lpj.id })}
-                      className="w-10 h-10 rounded-full border border-outline-variant/30 flex items-center justify-center hover:bg-surface-container transition-colors text-on-surface-variant"
+                      onClick={() => setActiveItem(isExpanded ? null : lpj.id)}
+                      className="w-14 h-14 rounded-2xl bg-surface-container flex items-center justify-center text-on-surface-variant hover:bg-surface-container-high transition-colors"
                     >
-                      <span className="material-symbols-outlined">{isOpen ? 'expand_less' : 'expand_more'}</span>
+                      <span className="material-symbols-outlined transition-transform duration-300" style={{ transform: isExpanded ? 'rotate(180deg)' : 'rotate(0)' }}>expand_more</span>
                     </button>
                   </div>
                 </div>
 
-                {isOpen && (
-                  <div className="p-8 bg-surface grid grid-cols-1 lg:grid-cols-4 gap-8 border-t border-outline-variant/10 animate-in slide-in-from-top-4 fade-in duration-300">
-                    <div className="lg:col-span-2 space-y-6">
-                       <div>
-                         <h4 className="text-xs font-bold text-secondary uppercase tracking-widest mb-2 flex items-center gap-2"><span className="material-symbols-outlined text-[16px]">summarize</span> Ringkasan Eksekutif</h4>
-                         <p className="text-sm text-on-surface-variant leading-relaxed p-4 bg-surface-container-lowest border border-outline-variant/20 rounded-2xl">
-                           {lpj.notes || 'Tidak ada catatan tambahan.'}
-                         </p>
-                       </div>
-                    </div>
+                {/* FOLDERS SECTION */}
+                {isExpanded && (
+                  <div className="px-8 pb-8 animate-in slide-in-from-top-4 duration-300">
+                    <div className="bg-surface-container-lowest/50 rounded-[2rem] p-8 border border-outline-variant/10">
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        {LPJ_CATEGORIES.map(cat => {
+                          const doc = (lpj.documents || []).find(d => d.category === cat);
+                          const isUp = uploadingCategory === `${lpj.id}-${cat}`;
+                          
+                          return (
+                            <div key={cat} className={`relative group p-6 rounded-3xl border-2 transition-all ${doc ? 'border-emerald-100 bg-emerald-50/30' : 'border-dashed border-outline-variant/30 hover:border-primary/40 bg-surface-container-low'}`}>
+                              <div className="flex flex-col items-center text-center gap-3">
+                                <div className={`w-14 h-14 rounded-2xl flex items-center justify-center ${doc ? 'bg-emerald-100 text-emerald-600' : 'bg-surface-container-high text-on-surface-variant/40'}`}>
+                                  <span className="material-symbols-outlined text-3xl">{doc ? 'check_circle' : 'upload_file'}</span>
+                                </div>
+                                <div className="max-w-full overflow-hidden">
+                                  <h4 className="font-bold text-on-surface tracking-tight truncate">{cat}</h4>
+                                  {doc ? (
+                                    <p className="text-[10px] font-bold text-emerald-600 truncate mt-1">
+                                      {doc.fileName || "File Terunggah"}
+                                    </p>
+                                  ) : (
+                                    <p className="text-[10px] font-black uppercase text-on-surface-variant opacity-60 tracking-widest mt-1">
+                                      Wajib Diisi
+                                    </p>
+                                  )}
+                                </div>
+                                
+                                {isUp ? (
+                                  <div className="w-full h-10 flex items-center justify-center gap-2">
+                                    <div className="w-4 h-4 border-2 border-primary/20 border-t-primary rounded-full animate-spin"></div>
+                                    <span className="text-[10px] font-bold text-primary">UPLOADING...</span>
+                                  </div>
+                                ) : doc ? (
+                                  <div className="flex flex-col gap-2 w-full mt-2">
+                                    <div className="flex gap-2">
+                                      <a href={`http://localhost:8000${doc.fileUrl}`} target="_blank" rel="noreferrer" className="flex-1 py-2 bg-emerald-600 text-white rounded-xl text-[10px] font-bold flex items-center justify-center gap-1 shadow-sm">
+                                        <span className="material-symbols-outlined text-[14px]">visibility</span> LIHAT
+                                      </a>
+                                      <button 
+                                        onClick={() => handleDeleteDocument(doc.id)}
+                                        className="w-10 h-10 bg-rose-50 text-rose-600 border border-rose-100 rounded-xl hover:bg-rose-600 hover:text-white transition-all flex items-center justify-center"
+                                        title="Hapus Dokumen"
+                                      >
+                                        <span className="material-symbols-outlined text-[18px]">delete</span>
+                                      </button>
+                                    </div>
+                                    <label className="w-full py-2 bg-white text-emerald-700 border border-emerald-200 rounded-xl text-[10px] font-bold flex items-center justify-center gap-1 cursor-pointer">
+                                      <span className="material-symbols-outlined text-[14px]">sync</span> GANTI
+                                      <input type="file" className="hidden" onChange={(e) => handleFolderUpload(lpj.id, cat, e)} />
+                                    </label>
+                                  </div>
+                                ) : (
+                                  <label className="w-full py-3 bg-primary text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-primary/20 hover:-translate-y-1 transition-all mt-2">
+                                    <span className="material-symbols-outlined text-[18px]">add</span> UPLOAD FILE
+                                    <input type="file" className="hidden" onChange={(e) => handleFolderUpload(lpj.id, cat, e)} />
+                                  </label>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
 
-                    <div className="lg:col-span-1 space-y-4">
-                       <h4 className="text-xs font-bold text-secondary uppercase tracking-widest mb-2 flex items-center gap-2"><span className="material-symbols-outlined text-[16px]">pie_chart</span> Realisasi Anggaran</h4>
-                       <div className="p-4 bg-surface-container-lowest border border-outline-variant/20 rounded-2xl">
-                         <div className="space-y-2 text-sm">
-                           <div className="flex justify-between">
-                             <span className="text-on-surface-variant">Pagu Awal</span>
-                             <span className="font-bold">{formatRp(lpj.proposal?.budget || 0)}</span>
-                           </div>
-                           <div className="flex justify-between">
-                             <span className="text-on-surface-variant">Realisasi</span>
-                             <span className="font-bold text-emerald-700">{formatRp(lpj.realizedBudget)}</span>
-                           </div>
-                         </div>
-                       </div>
-                    </div>
-
-                    <div className="lg:col-span-1 space-y-4">
-                       <h4 className="text-xs font-bold text-secondary uppercase tracking-widest mb-2 flex items-center gap-2"><span className="material-symbols-outlined text-[16px]">folder_open</span> Dokumen</h4>
-                       <a href={lpj.fileUrl} target="_blank" rel="noreferrer" className="block w-full py-3 text-sm font-bold border border-primary/30 text-primary rounded-xl text-center hover:bg-primary/5 transition-colors">
-                          Lihat Berkas LPJ
-                       </a>
+                      {/* Summary Textarea */}
+                      <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div>
+                          <label className="block text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-3">Realisasi Anggaran Terpakai</label>
+                          <div className="relative">
+                            <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-on-surface-variant opacity-40">Rp</span>
+                            <input 
+                              type="number" 
+                              className="w-full bg-surface p-4 pl-12 rounded-2xl border border-outline-variant/30 font-bold focus:ring-2 focus:ring-primary/20 outline-none" 
+                              placeholder="0"
+                              defaultValue={lpj.realizedBudget}
+                              onBlur={async (e) => {
+                                await fetch(`http://localhost:8000/api/ormawa/lpjs/${lpj.id}`, {
+                                  method: 'PUT',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({ realizedBudget: Number(e.target.value) })
+                                });
+                              }}
+                            />
+                          </div>
+                        </div>
+                        <div>
+                          <label className="block text-xs font-bold uppercase tracking-widest text-on-surface-variant mb-3">Ringkasan Narasi Kegiatan</label>
+                          <textarea 
+                            className="w-full bg-surface p-4 rounded-2xl border border-outline-variant/30 text-sm focus:ring-2 focus:ring-primary/20 outline-none min-h-[100px]" 
+                            placeholder="Tuliskan ringkasan singkat hasil kegiatan..."
+                            defaultValue={lpj.notes}
+                            onBlur={async (e) => {
+                              await fetch(`http://localhost:8000/api/ormawa/lpjs/${lpj.id}`, {
+                                method: 'PUT',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ notes: e.target.value })
+                              });
+                            }}
+                          ></textarea>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 )}
               </div>
             )})}
-            {(laporan || []).length === 0 && <p className="text-center py-20 text-on-surface-variant italic">Belum ada LPJ yang masuk untuk periode ini</p>}
-          </div>
 
-          {/* SUBMIT LPJ MODAL */}
-          {isModalOpen && (
-            <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/30 backdrop-blur-sm p-4">
-              <div className="bg-surface w-full max-w-2xl rounded-[2.5rem] shadow-2xl p-8 animate-in fade-in zoom-in-95 border border-outline-variant/10">
-                <h2 className="text-2xl font-bold font-headline text-primary mb-6">Submit Laporan Pertanggungjawaban</h2>
-                <form onSubmit={submitLpj} className="space-y-4">
-                  <div>
-                    <label className="block text-xs font-bold text-on-surface uppercase mb-1 tracking-widest">Pilih Kegiatan (Sudah Disetujui Univ)</label>
-                    <select required className="w-full bg-surface-container-low p-3.5 rounded-xl border border-outline-variant/30 font-bold" value={formData.proposalId} onChange={e => setFormData({...formData, proposalId: e.target.value})}>
-                      <option value="">-- Pilih Proposal --</option>
-                      {proposals.map(p => <option key={p.id} value={p.id}>{p.title}</option>)}
-                    </select>
+            {/* SECTION 3: ARCHIVE (Approved LPJs) */}
+            <h2 className="text-xl font-bold font-headline uppercase tracking-widest text-on-surface-variant mt-10 mb-2">Arsip Laporan Selesai</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {laporan.filter(l => l.status === 'disetujui').map(lpj => (
+                <div key={lpj.id} className="bg-surface-container-low p-6 rounded-[2rem] border border-outline-variant/10 flex items-center justify-between group hover:bg-emerald-50/30 transition-all">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-600 flex items-center justify-center">
+                      <span className="material-symbols-outlined">inventory_2</span>
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-on-surface line-clamp-1">{lpj.proposal?.title}</h4>
+                      <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">Diterima: {formatRp(lpj.realizedBudget)}</p>
+                    </div>
                   </div>
-                  <div>
-                    <label className="block text-xs font-bold text-on-surface uppercase mb-1 tracking-widest">Realisasi Anggaran Terpakai (Rp)</label>
-                    <input required type="number" placeholder="Ex: 8500000" className="w-full bg-surface-container-low p-3.5 rounded-xl border border-outline-variant/30" value={formData.realizedBudget} onChange={e => setFormData({...formData, realizedBudget: e.target.value})} />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold text-on-surface uppercase mb-1 tracking-widest">Catatan / Ringkasan Pelaksanaan</label>
-                    <textarea rows="4" className="w-full bg-surface-container-low p-3.5 rounded-xl border border-outline-variant/30 text-sm focus:ring-1 focus:ring-primary outline-none" value={formData.notes} onChange={e => setFormData({...formData, notes: e.target.value})} placeholder="Ceritakan secara singkat jalannya kegiatan..."></textarea>
-                  </div>
-                  <div className="bg-surface-container-low/50 p-6 rounded-2xl border-2 border-dashed border-outline-variant/50 relative group hover:border-primary/50 transition-colors">
-                    <p className="text-[10px] font-black text-on-surface-variant uppercase tracking-[0.2em] mb-4">Lampiran Berkas LPJ (PDF/ZIP)</p>
-                    
-                    {!formData.fileUrl && !uploading ? (
-                      <div className="relative">
-                        <input type="file" onChange={handleFileUpload} className="absolute inset-0 opacity-0 cursor-pointer z-10" />
-                        <div className="flex flex-col items-center justify-center py-4 gap-2">
-                           <span className="material-symbols-outlined text-4xl text-on-surface-variant/40">upload_file</span>
-                           <p className="text-sm font-bold text-on-surface-variant">Klik atau Taruh Berkas di Sini</p>
-                           <p className="text-[10px] text-on-surface-variant/60 font-medium">Maksimal 10MB (PDF/ZIP)</p>
-                        </div>
-                      </div>
-                    ) : uploading ? (
-                      <div className="flex flex-col items-center justify-center py-4 gap-3">
-                         <div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
-                         <p className="text-xs font-bold text-primary tracking-widest uppercase">Sedang Mengunggah...</p>
-                      </div>
-                    ) : (
-                      <div className="flex items-center justify-between bg-emerald-50 border border-emerald-100 p-4 rounded-xl animate-in zoom-in-95">
-                         <div className="flex items-center gap-3">
-                            <span className="material-symbols-outlined text-emerald-600">check_circle</span>
-                            <div className="max-w-[200px] overflow-hidden text-ellipsis whitespace-nowrap">
-                               <p className="text-xs font-black text-emerald-800 uppercase tracking-tight">Berkas Berhasil Terunggah</p>
-                               <p className="text-[10px] text-emerald-600 font-bold truncate">{formData.fileUrl.split('/').pop()}</p>
-                            </div>
-                         </div>
-                         <button 
-                           type="button"
-                           onClick={() => setFormData({...formData, fileUrl: ''})}
-                           className="flex items-center gap-1.5 px-3 py-1.5 bg-rose-500 text-white rounded-lg text-[10px] font-black hover:bg-rose-600 transition-colors shadow-sm"
-                         >
-                           <span className="material-symbols-outlined text-[14px]">delete</span>
-                           HAPUS & GANTI
-                         </button>
-                      </div>
-                    )}
-                  </div>
-                  <div className="pt-6 flex gap-3">
-                    <button type="button" onClick={() => setIsModalOpen(false)} className="w-full py-4 text-on-surface-variant font-bold">Batal</button>
-                    <button type="submit" className="w-full py-4 bg-primary text-white font-bold rounded-2xl shadow-lg">Kirim Laporan</button>
-                  </div>
-                </form>
-              </div>
+                  <button className="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-on-surface-variant group-hover:bg-emerald-600 group-hover:text-white transition-all shadow-sm">
+                    <span className="material-symbols-outlined">download</span>
+                  </button>
+                </div>
+              ))}
             </div>
-          )}
+          </div>
         </div>
       </main>
     </div>

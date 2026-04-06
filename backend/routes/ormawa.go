@@ -75,6 +75,27 @@ func SetupOrmawaRoutes(app *fiber.App) {
 		if err := c.BodyParser(&payload); err != nil {
 			return c.Status(400).JSON(fiber.Map{"status": "error", "message": err.Error()})
 		}
+
+		// BUSINESS LOGIC: BLOCK IF UNFINISHED LPJ EXISTS
+		// Check for accepted proposals whose event date is in the past but have no approved LPJ
+		var unfinishedLpjCount int64
+		// We consider event dates in the past as needing an LPJ
+		// Status 'disetujui_univ' is the final stage before an event is considered "happening"
+		config.DB.Model(&models.Proposal{}).
+			Joins("LEFT JOIN lpjs ON lpjs.proposal_id = proposals.id").
+			Where("proposals.ormawa_id = ?", payload.OrmawaID).
+			Where("proposals.status = ?", "disetujui_univ").
+			Where("proposals.date_event < ?", time.Now()).
+			Where("(lpjs.id IS NULL OR lpjs.status != ?)", "disetujui").
+			Count(&unfinishedLpjCount)
+
+		if unfinishedLpjCount > 0 {
+			return c.Status(403).JSON(fiber.Map{
+				"status":  "blocked",
+				"message": "Pengajuan diblokir! Anda memiliki LPJ kegiatan sebelumnya yang belum diselesaikan (Approved). Mohon selesaikan LPJ tersebut terlebih dahulu.",
+			})
+		}
+
 		config.DB.Create(&payload)
 
 		// Initial history
@@ -218,38 +239,10 @@ func SetupOrmawaRoutes(app *fiber.App) {
 		return c.JSON(fiber.Map{"status": "success", "data": payload})
 	})
 
-	// LPJs
-	api.Get("/lpjs", func(c *fiber.Ctx) error {
-		ormawaId := c.Query("ormawaId")
-		var lpjs []models.LPJ
-		query := config.DB.Preload("Proposal")
-		if ormawaId != "" {
-			query = query.Joins("JOIN proposals ON proposals.id = lpjs.proposal_id").Where("proposals.ormawa_id = ?", ormawaId)
-		}
-		query.Find(&lpjs)
-		return c.JSON(fiber.Map{"status": "success", "data": lpjs})
-	})
+	// LPJ routes were duplicated, removing the old one here to use the enhanced version below
 
 
-	api.Post("/lpjs", func(c *fiber.Ctx) error {
-		var payload models.LPJ
-		if err := c.BodyParser(&payload); err != nil {
-			return c.Status(400).JSON(fiber.Map{"status": "error", "message": err.Error()})
-		}
-		config.DB.Create(&payload)
-		return c.JSON(fiber.Map{"status": "success", "data": payload})
-	})
-
-	api.Put("/lpjs/:id", func(c *fiber.Ctx) error {
-		id := c.Params("id")
-		var lpj models.LPJ
-		if err := config.DB.First(&lpj, id).Error; err != nil {
-			return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Not Found"})
-		}
-		c.BodyParser(&lpj)
-		config.DB.Save(&lpj)
-		return c.JSON(fiber.Map{"status": "success", "data": lpj})
-	})
+	// Older LPJ Post/Put removed to use more advanced logic below
 
 	// EVENTS
 	api.Get("/events", func(c *fiber.Ctx) error {
@@ -444,5 +437,303 @@ func SetupOrmawaRoutes(app *fiber.App) {
 		id := c.Params("id")
 		config.DB.Delete(&models.OrmawaNotification{}, id)
 		return c.JSON(fiber.Map{"status": "success"})
+	})
+
+	// ANNOUNCEMENTS
+	api.Get("/announcements", func(c *fiber.Ctx) error {
+		ormawaId := c.Query("ormawaId")
+		var list []models.OrmawaAnnouncement
+		query := config.DB.Model(&models.OrmawaAnnouncement{})
+		if ormawaId != "" {
+			query = query.Where("ormawa_id = ?", ormawaId)
+		}
+		query.Order("created_at desc").Find(&list)
+		return c.JSON(fiber.Map{"status": "success", "data": list})
+	})
+
+	api.Post("/announcements", func(c *fiber.Ctx) error {
+		var payload models.OrmawaAnnouncement
+		if err := c.BodyParser(&payload); err != nil {
+			return c.Status(400).JSON(fiber.Map{"status": "error", "message": err.Error()})
+		}
+		config.DB.Create(&payload)
+		return c.JSON(fiber.Map{"status": "success", "data": payload})
+	})
+
+	api.Put("/announcements/:id", func(c *fiber.Ctx) error {
+		id := c.Params("id")
+		var item models.OrmawaAnnouncement
+		if err := config.DB.First(&item, id).Error; err != nil {
+			return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Not found"})
+		}
+		c.BodyParser(&item)
+		config.DB.Save(&item)
+		return c.JSON(fiber.Map{"status": "success", "data": item})
+	})
+
+	api.Delete("/announcements/:id", func(c *fiber.Ctx) error {
+		id := c.Params("id")
+		config.DB.Delete(&models.OrmawaAnnouncement{}, id)
+		return c.JSON(fiber.Map{"status": "success", "message": "Deleted"})
+	})
+
+	// DIVISIONS
+	api.Get("/divisions", func(c *fiber.Ctx) error {
+		ormawaId := c.Query("ormawaId")
+		var list []models.OrmawaDivision
+		query := config.DB.Model(&models.OrmawaDivision{})
+		if ormawaId != "" {
+			query = query.Where("ormawa_id = ?", ormawaId)
+		}
+		query.Find(&list)
+		return c.JSON(fiber.Map{"status": "success", "data": list})
+	})
+
+	api.Post("/divisions", func(c *fiber.Ctx) error {
+		var payload models.OrmawaDivision
+		if err := c.BodyParser(&payload); err != nil {
+			return c.Status(400).JSON(fiber.Map{"status": "error", "message": err.Error()})
+		}
+		config.DB.Create(&payload)
+		return c.JSON(fiber.Map{"status": "success", "data": payload})
+	})
+
+	api.Delete("/divisions/:id", func(c *fiber.Ctx) error {
+		id := c.Params("id")
+		config.DB.Delete(&models.OrmawaDivision{}, id)
+		return c.JSON(fiber.Map{"status": "success", "message": "Deleted"})
+	})
+
+	// KAS / FINANCE
+	api.Get("/kas", func(c *fiber.Ctx) error {
+		ormawaId := c.Query("ormawaId")
+		var list []models.CashMutation
+		query := config.DB.Model(&models.CashMutation{})
+		if ormawaId != "" {
+			query = query.Where("ormawa_id = ?", ormawaId)
+		}
+		query.Order("date desc").Find(&list)
+		return c.JSON(fiber.Map{"status": "success", "data": list})
+	})
+
+	api.Post("/kas", func(c *fiber.Ctx) error {
+		var payload models.CashMutation
+		if err := c.BodyParser(&payload); err != nil {
+			return c.Status(400).JSON(fiber.Map{"status": "error", "message": err.Error()})
+		}
+		if payload.Date.IsZero() {
+			payload.Date = time.Now()
+		}
+		config.DB.Create(&payload)
+		return c.JSON(fiber.Map{"status": "success", "data": payload})
+	})
+
+	// ATTENDANCE
+	api.Get("/attendance/:eventId", func(c *fiber.Ctx) error {
+		eventId := c.Params("eventId")
+		var list []models.EventAttendance
+		config.DB.Where("event_schedule_id = ?", eventId).Preload("Student").Find(&list)
+		return c.JSON(fiber.Map{"status": "success", "data": list})
+	})
+
+	api.Post("/attendance", func(c *fiber.Ctx) error {
+		var payload models.EventAttendance
+		if err := c.BodyParser(&payload); err != nil {
+			return c.Status(400).JSON(fiber.Map{"status": "error", "message": err.Error()})
+		}
+		
+		// UPSERT logic: If already exists for this student and event, update status
+		var existing models.EventAttendance
+		err := config.DB.Where("event_schedule_id = ? AND student_id = ?", payload.EventScheduleID, payload.StudentID).First(&existing).Error
+		if err == nil {
+			existing.Status = payload.Status
+			existing.TimeIn = time.Now()
+			config.DB.Save(&existing)
+			return c.JSON(fiber.Map{"status": "success", "data": existing})
+		}
+
+		if payload.TimeIn.IsZero() {
+			payload.TimeIn = time.Now()
+		}
+		config.DB.Create(&payload)
+		return c.JSON(fiber.Map{"status": "success", "data": payload})
+	})
+
+	// LPJ
+	api.Get("/lpjs", func(c *fiber.Ctx) error {
+		ormawaId := c.Query("ormawaId")
+		var list []models.LPJ
+		query := config.DB.Preload("Proposal").Preload("Documents")
+		if ormawaId != "" {
+			query = query.Joins("JOIN proposals ON proposals.id = lpjs.proposal_id").
+				Where("proposals.ormawa_id = ?", ormawaId)
+		}
+		query.Find(&list)
+		return c.JSON(fiber.Map{"status": "success", "data": list})
+	})
+
+	api.Post("/lpjs", func(c *fiber.Ctx) error {
+		var payload models.LPJ
+		if err := c.BodyParser(&payload); err != nil {
+			return c.Status(400).JSON(fiber.Map{"status": "error", "message": err.Error()})
+		}
+		
+		// If creating for the first time, check if already exists
+		var existing models.LPJ
+		if err := config.DB.Where("proposal_id = ?", payload.ProposalID).First(&existing).Error; err == nil {
+			return c.Status(400).JSON(fiber.Map{"status": "error", "message": "LPJ already exists for this proposal"})
+		}
+
+		config.DB.Create(&payload)
+		return c.JSON(fiber.Map{"status": "success", "data": payload})
+	})
+
+	api.Put("/lpjs/:id", func(c *fiber.Ctx) error {
+		id := c.Params("id")
+		var lpj models.LPJ
+		if err := config.DB.Preload("Documents").First(&lpj, id).Error; err != nil {
+			return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Not Found"})
+		}
+		
+		var payload struct {
+			Status         string  `json:"status"`
+			Notes          string  `json:"notes"`
+			RealizedBudget float64 `json:"realizedBudget"`
+		}
+		c.BodyParser(&payload)
+
+		// MANDATORY FOLDER CHECK BEFORE SUBMITTING (diajukan)
+		if payload.Status == "diajukan" {
+			mandatory := []string{"Dokumentasi", "Laporan Keuangan", "Presensi"}
+			uploadedCategories := make(map[string]bool)
+			for _, doc := range lpj.Documents {
+				uploadedCategories[doc.Category] = true
+			}
+
+			var missing []string
+			for _, m := range mandatory {
+				if !uploadedCategories[m] {
+					missing = append(missing, m)
+				}
+			}
+
+			if len(missing) > 0 {
+				return c.Status(400).JSON(fiber.Map{
+					"status":  "error",
+					"message": fmt.Sprintf("Lengkapi dokumen wajib: %v", missing),
+				})
+			}
+		}
+
+		if payload.Status != "" { lpj.Status = payload.Status }
+		if payload.Notes != "" { lpj.Notes = payload.Notes }
+		if payload.RealizedBudget > 0 { lpj.RealizedBudget = payload.RealizedBudget }
+		
+		config.DB.Save(&lpj)
+		
+		// If approved, mark proposal as finished
+		if lpj.Status == "disetujui" {
+			config.DB.Model(&models.Proposal{}).Where("id = ?", lpj.ProposalID).Update("status", "selesai")
+		}
+
+		return c.JSON(fiber.Map{"status": "success", "data": lpj})
+	})
+
+	// NEW: LPJ Document Upload (Folder based)
+	api.Post("/lpjs/:id/documents", func(c *fiber.Ctx) error {
+		lpjId := c.Params("id")
+		category := c.FormValue("category") // Dokumentasi, Laporan Keuangan, Presensi
+		
+		file, err := c.FormFile("file")
+		if err != nil {
+			fmt.Println("Upload Error: No file in context", err)
+			return c.Status(400).JSON(fiber.Map{"status": "error", "message": "No file uploaded"})
+		}
+
+		// Ensure uploads dir exists with full permissions
+		if err := os.MkdirAll("./uploads", 0755); err != nil {
+			fmt.Println("Upload Error: Failed to create directory", err)
+		}
+
+		filename := fmt.Sprintf("LPJ_%s_%d_%s", category, time.Now().Unix(), file.Filename)
+		filePath := "./uploads/" + filename
+		if err := c.SaveFile(file, filePath); err != nil {
+			fmt.Println("Upload Error: SaveFile failed", err)
+			return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Failed to save file"})
+		}
+
+		var lpj models.LPJ
+		if err := config.DB.First(&lpj, lpjId).Error; err != nil {
+			fmt.Println("Upload Error: LPJ ID not found", lpjId)
+			return c.Status(404).JSON(fiber.Map{"status": "error", "message": "LPJ not found"})
+		}
+
+		doc := models.LPJDocument{
+			LPJID:    lpj.ID,
+			Category: category,
+			FileName: file.Filename,
+			FileUrl:  "/uploads/" + filename,
+		}
+		
+		if err := config.DB.Create(&doc).Error; err != nil {
+			fmt.Println("Upload Error: DB Save failed", err)
+			return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Failed to save to database"})
+		}
+
+		return c.JSON(fiber.Map{"status": "success", "data": doc})
+	})
+
+	api.Delete("/lpjs/documents/:docId", func(c *fiber.Ctx) error {
+		docId := c.Params("docId")
+		if err := config.DB.Delete(&models.LPJDocument{}, docId).Error; err != nil {
+			return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal menghapus dokumen"})
+		}
+		return c.JSON(fiber.Map{"status": "success", "message": "Dokumen dihapus"})
+	})
+
+	// UPLOAD (Generic)
+	api.Post("/upload", func(c *fiber.Ctx) error {
+		file, err := c.FormFile("file")
+		if err != nil {
+			return c.Status(400).JSON(fiber.Map{"status": "error", "message": "No file uploaded"})
+		}
+		filename := time.Now().Format("20060102150405") + "_" + file.Filename
+		if _, err := os.Stat("./uploads"); os.IsNotExist(err) {
+			os.Mkdir("./uploads", 0755)
+		}
+		if err := c.SaveFile(file, "./uploads/"+filename); err != nil {
+			return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Failed to save file"})
+		}
+		return c.JSON(fiber.Map{"status": "success", "url": "/uploads/" + filename})
+	})
+
+	// ASPIRATIONS
+	api.Get("/aspirations", func(c *fiber.Ctx) error {
+		ormawaId := c.Query("ormawaId")
+		var list []models.OrmawaAspiration
+		query := config.DB.Preload("Student")
+		if ormawaId != "" {
+			query = query.Where("ormawa_id = ?", ormawaId)
+		}
+		query.Order("created_at desc").Find(&list)
+		return c.JSON(fiber.Map{"status": "success", "data": list})
+	})
+
+	api.Post("/aspirations", func(c *fiber.Ctx) error {
+		var payload models.OrmawaAspiration
+		if err := c.BodyParser(&payload); err != nil {
+			return c.Status(400).JSON(fiber.Map{"status": "error", "message": err.Error()})
+		}
+		config.DB.Create(&payload)
+		return c.JSON(fiber.Map{"status": "success", "data": payload})
+	})
+
+	api.Put("/aspirations/:id", func(c *fiber.Ctx) error {
+		id := c.Params("id")
+		var item models.OrmawaAspiration
+		config.DB.First(&item, id)
+		c.BodyParser(&item)
+		config.DB.Save(&item)
+		return c.JSON(fiber.Map{"status": "success", "data": item})
 	})
 }

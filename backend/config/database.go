@@ -59,10 +59,13 @@ func ConnectDB() {
 		&models.CashMutation{},
 		&models.OrmawaRole{},
 		&models.LPJ{},
+		&models.LPJDocument{},
+		&models.OrmawaAspiration{},
 		&models.EventSchedule{},
 		&models.EventAttendance{},
 		&models.OrmawaAnnouncement{},
 		&models.OrmawaNotification{},
+		&models.OrmawaDivision{},
 	)
 	if err != nil {
 		log.Println("Error migrating Ormawa models:", err)

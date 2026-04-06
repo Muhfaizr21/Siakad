@@ -11,9 +11,11 @@ const AnggotaManagement = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [formData, setFormData] = useState({ studentId: '', role: 'Staf', division: '', status: 'pending' });
   const [students, setStudents] = useState([]);
+  const [divisions, setDivisions] = useState([]);
 
   useEffect(() => {
     fetchMembers();
+    fetchDivisions();
     fetchAllStudents();
   }, [ormawaId]);
 
@@ -22,6 +24,13 @@ const AnggotaManagement = () => {
       const res = await fetch(`http://localhost:8000/api/ormawa/members?ormawaId=${ormawaId}`);
       const data = await res.json();
       if (data.status === 'success') setAnggotaList(data.data || []);
+    } catch (e) { console.error(e); }
+  };
+  const fetchDivisions = async () => {
+    try {
+      const res = await fetch(`http://localhost:8000/api/ormawa/divisions?ormawaId=${ormawaId}`);
+      const json = await res.json();
+      if (json.status === 'success') setDivisions(json.data || []);
     } catch (e) { console.error(e); }
   };
 
@@ -242,12 +251,19 @@ const AnggotaManagement = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-on-surface uppercase tracking-widest mb-2">Divisi</label>
-                  <input 
-                    type="text" placeholder="Medkom, PSDA..."
-                    value={formData.division} onChange={e => setFormData({...formData, division: e.target.value})}
-                    className="w-full p-3 bg-surface-container border border-outline-variant/20 rounded-xl text-sm focus:ring-1 focus:ring-primary outline-none"
-                  />
+                  <label className="block text-xs font-bold text-on-surface uppercase tracking-widest mb-2 px-1">Divisi</label>
+                  <select 
+                    required
+                    value={formData.division} 
+                    onChange={e => setFormData({...formData, division: e.target.value})}
+                    className="w-full p-3 bg-surface-container border border-outline-variant/20 rounded-xl text-sm focus:ring-1 focus:ring-primary outline-none transition-all"
+                  >
+                    <option value="">-- Pilih Divisi --</option>
+                    {divisions.map(d => (
+                      <option key={d.id} value={d.name}>{d.name}</option>
+                    ))}
+                    <option value="INTI">UMUM / INTI</option>
+                  </select>
                 </div>
               </div>
               <button 

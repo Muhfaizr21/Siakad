@@ -8,6 +8,7 @@ const Pengumuman = () => {
   const ormawaId = user?.ormawaId || 1;
   const [announcements, setAnnouncements] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedId, setSelectedId] = useState(null);
   const [formData, setFormData] = useState({ title: '', target: 'Semua Anggota', content: '', startDate: '', endDate: '' });
 
   useEffect(() => {
@@ -24,9 +25,13 @@ const Pengumuman = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const url = selectedId 
+      ? `http://localhost:8000/api/ormawa/announcements/${selectedId}`
+      : 'http://localhost:8000/api/ormawa/announcements';
+    
     try {
-      const res = await fetch('http://localhost:8000/api/ormawa/announcements', {
-        method: 'POST',
+      const res = await fetch(url, {
+        method: selectedId ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           title: formData.title,
@@ -34,12 +39,13 @@ const Pengumuman = () => {
           target: formData.target,
           startDate: new Date(formData.startDate).toISOString(),
           endDate: new Date(formData.endDate).toISOString(),
-          ormawaId: ormawaId
+          ormawaId: Number(ormawaId)
         })
       });
       
       if (res.ok) {
         setIsModalOpen(false);
+        setSelectedId(null);
         setFormData({ title: '', target: 'Semua Anggota', content: '', startDate: '', endDate: '' });
         fetchAnnouncements();
       }
@@ -54,6 +60,18 @@ const Pengumuman = () => {
       });
       if (res.ok) fetchAnnouncements();
     } catch (e) { console.error(e); }
+  };
+
+  const openEdit = (item) => {
+    setSelectedId(item.id);
+    setFormData({
+      title: item.title,
+      target: item.target,
+      content: item.content,
+      startDate: item.startDate.split('T')[0],
+      endDate: item.endDate.split('T')[0]
+    });
+    setIsModalOpen(true);
   };
 
   return (
@@ -105,7 +123,7 @@ const Pengumuman = () => {
                   </div>
                 </div>
                 <div className="flex bg-surface-container-low/30 border-t border-outline-variant/10">
-                  <button className="flex-1 py-3.5 text-on-surface-variant hover:text-primary text-xs font-bold font-headline flex justify-center items-center gap-2 transition-all hover:bg-primary/5">
+                  <button onClick={() => openEdit(item)} className="flex-1 py-3.5 text-on-surface-variant hover:text-primary text-xs font-bold font-headline flex justify-center items-center gap-2 transition-all hover:bg-primary/5">
                      <span className="material-symbols-outlined text-[16px]">edit_note</span> Edit Draft
                   </button>
                   <div className="w-px bg-outline-variant/10 min-h-full"></div>
@@ -124,10 +142,10 @@ const Pengumuman = () => {
                   <div className="px-8 py-6 border-b border-outline-variant/10 flex justify-between items-center bg-surface-container-low/50">
                     <div>
                       <h2 className="text-xl font-bold font-headline text-primary flex items-center gap-2">
-                        <span className="material-symbols-outlined">campaign</span> Buat Siaran
+                        <span className="material-symbols-outlined">campaign</span> {selectedId ? 'Update Siaran' : 'Buat Siaran'}
                       </h2>
                     </div>
-                    <button onClick={() => setIsModalOpen(false)} className="w-8 h-8 hover:bg-surface-container-highest rounded-full flex justify-center items-center"><span className="material-symbols-outlined text-[20px]">close</span></button>
+                    <button onClick={() => { setIsModalOpen(false); setSelectedId(null); }} className="w-8 h-8 hover:bg-surface-container-highest rounded-full flex justify-center items-center"><span className="material-symbols-outlined text-[20px]">close</span></button>
                   </div>
 
                   <form onSubmit={handleSubmit} className="p-8 space-y-5">

@@ -31,6 +31,7 @@ func main() {
 	app.Use(cors.New(cors.Config{
 		AllowOrigins: "*",
 		AllowHeaders: "Origin, Content-Type, Accept, Authorization",
+		AllowMethods: "GET, POST, PUT, DELETE, PATCH, OPTIONS",
 	}))
 
 	// Serve Static Files

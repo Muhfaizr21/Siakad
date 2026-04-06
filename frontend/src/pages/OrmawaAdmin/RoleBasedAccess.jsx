@@ -93,12 +93,9 @@ const RoleBasedAccess = () => {
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [allMembers, setAllMembers] = useState([]);
-  const [assignData, setAssignData] = useState({ memberId: '' });
 
   useEffect(() => {
     fetchRoles();
-    fetchMembers();
   }, [ormawaId]);
 
   const fetchRoles = async () => {
@@ -110,7 +107,7 @@ const RoleBasedAccess = () => {
         const fetchedRoles = (json.data || []).map(r => ({
           ...r,
           userCount: r.userCount || 0,
-          permissions: typeof r.permissions === 'string' ? JSON.parse(r.permissions || '{}') : (r.permissions || {})
+          permissions: typeof r.permissions === 'string' ? (JSON.parse(r.permissions || '{}') || {}) : (r.permissions || {})
         }));
         setRoles(fetchedRoles);
         if (fetchedRoles.length > 0 && !activeTab) {
@@ -122,14 +119,6 @@ const RoleBasedAccess = () => {
     } finally {
         setLoading(false);
     }
-  };
-
-  const fetchMembers = async () => {
-    try {
-      const res = await fetch(`http://localhost:8000/api/ormawa/members?ormawaId=${ormawaId}`);
-      const json = await res.json();
-      if (json.status === 'success') setAllMembers(json.data || []);
-    } catch (e) { console.error(e); }
   };
 
   const currentRoleDetails = roles.find(r => r.id === activeTab);
@@ -224,23 +213,6 @@ const RoleBasedAccess = () => {
     }
   };
 
-  const handleAssignMember = async () => {
-    if (!assignData.memberId || !currentRoleDetails) return;
-    try {
-      const res = await fetch(`http://localhost:8000/api/ormawa/members/${assignData.memberId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ role: currentRoleDetails.name })
-      });
-      if (res.ok) {
-        setIsAssignModalOpen(false);
-        setAssignData({ memberId: '' });
-        fetchMembers();
-        fetchRoles();
-      }
-    } catch (e) { console.error(e); }
-  };
-
   const handleDeleteRole = async () => {
     if (!currentRoleDetails) return;
     if (window.confirm(`Yakin ingin menghapus role ${currentRoleDetails.name}?`)) {
@@ -258,8 +230,6 @@ const RoleBasedAccess = () => {
       }
     }
   };
-
-  const membersWithThisRole = (allMembers || []).filter(m => m.role === currentRoleDetails?.name);
 
   return (
     <div className="flex h-screen bg-surface-container-lowest">
@@ -366,83 +336,46 @@ const RoleBasedAccess = () => {
                       </div>
                     )}
                   </div>
-                  {/* Panel Body - Split View */}
-                  <div className="flex-1 overflow-auto bg-white p-8 grid grid-cols-1 xl:grid-cols-3 gap-8">
-                    {/* Access Grid */}
-                    <div className="xl:col-span-2">
-                       <h3 className="text-sm font-bold text-on-surface-variant uppercase tracking-widest font-headline mb-6 flex items-center gap-2">
-                         <span className="material-symbols-outlined text-[18px]">verified_user</span>
-                         Peta Kewenangan Modul
-                       </h3>
-                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {modulePermissions.map(mod => {
-                          const hasAnyAccess = (currentRoleDetails.permissions[mod.id] || []).length > 0;
-                          if (!hasAnyAccess) return null;
+                  {/* Panel Body - Full Width Access Grid */}
+                  <div className="flex-1 overflow-auto bg-white p-8">
+                     <h3 className="text-sm font-bold text-on-surface-variant uppercase tracking-widest font-headline mb-6 flex items-center gap-2">
+                       <span className="material-symbols-outlined text-[18px]">verified_user</span>
+                       Peta Kewenangan Modul
+                     </h3>
+                     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                      {modulePermissions.map(mod => {
+                        const hasAnyAccess = (currentRoleDetails.permissions[mod.id] || []).length > 0;
+                        if (!hasAnyAccess) return null;
 
-                          return (
-                            <div key={mod.id} className="border border-outline-variant/20 rounded-2xl p-5 bg-surface-container-low/10 group">
-                              <div className="flex items-center justify-between mb-4 pb-3 border-b border-outline-variant/10">
-                                <h4 className="font-bold text-on-surface font-headline group-hover:text-primary transition-colors">{mod.name}</h4>
-                              </div>
-                              <div className="space-y-3">
-                                {mod.actions.map(action => {
-                                  const hasAccess = (currentRoleDetails.permissions[mod.id] || []).includes(action.id);
-                                  return (
-                                    <div key={action.id} className="flex items-center gap-3">
-                                      {hasAccess ? (
-                                        <div className="w-5 h-5 bg-primary/10 border border-primary/20 rounded-md flex items-center justify-center text-primary">
-                                          <span className="material-symbols-outlined text-[14px] font-bold">check</span>
-                                        </div>
-                                      ) : (
-                                        <div className="w-5 h-5 bg-surface-container/50 border border-outline-variant/30 rounded-md flex items-center justify-center text-outline-variant/50">
-                                          <span className="material-symbols-outlined text-[12px]">close</span>
-                                        </div>
-                                      )}
-                                      <span className={`text-sm ${hasAccess ? 'text-on-surface font-medium' : 'text-on-surface-variant/50'}`}>
-                                        {action.label}
-                                      </span>
-                                    </div>
-                                  );
-                                })}
-                              </div>
+                        return (
+                          <div key={mod.id} className="border border-outline-variant/20 rounded-2xl p-5 bg-surface-container-low/10 group">
+                            <div className="flex items-center justify-between mb-4 pb-3 border-b border-outline-variant/10">
+                              <h4 className="font-bold text-on-surface font-headline group-hover:text-primary transition-colors">{mod.name}</h4>
                             </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-
-                    {/* Member List for this Role */}
-                    <div className="xl:col-span-1 space-y-6">
-                       <div className="flex justify-between items-center mb-2">
-                          <h3 className="text-sm font-bold text-on-surface-variant uppercase tracking-widest font-headline flex items-center gap-2">
-                            <span className="material-symbols-outlined text-[18px]">groups</span>
-                            Pengguna Role
-                          </h3>
-                          <button 
-                            onClick={() => setIsAssignModalOpen(true)}
-                            className="bg-primary/10 text-primary hover:bg-primary text-[10px] font-bold px-3 py-1 rounded-lg transition-all hover:text-white"
-                          >
-                            TAMBAH STAF
-                          </button>
-                       </div>
-                       <div className="space-y-3">
-                          {membersWithThisRole.map(m => (
-                            <div key={m.id} className="flex items-center gap-3 p-3 bg-surface-container-lowest border border-outline-variant/20 rounded-xl shadow-sm">
-                               <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-xs">
-                                 {m.student?.name?.charAt(0)}
-                               </div>
-                               <div>
-                                 <p className="text-xs font-bold text-on-surface leading-tight">{m.student?.name}</p>
-                                 <p className="text-[10px] text-on-surface-variant">NIM: {m.student?.nim}</p>
-                               </div>
+                            <div className="space-y-3">
+                              {mod.actions.map(action => {
+                                const hasAccess = (currentRoleDetails.permissions[mod.id] || []).includes(action.id);
+                                return (
+                                  <div key={action.id} className="flex items-center gap-3">
+                                    {hasAccess ? (
+                                      <div className="w-5 h-5 bg-primary/10 border border-primary/20 rounded-md flex items-center justify-center text-primary">
+                                        <span className="material-symbols-outlined text-[14px] font-bold">check</span>
+                                      </div>
+                                    ) : (
+                                      <div className="w-5 h-5 bg-surface-container/50 border border-outline-variant/30 rounded-md flex items-center justify-center text-outline-variant/50">
+                                        <span className="material-symbols-outlined text-[12px]">close</span>
+                                      </div>
+                                    )}
+                                    <span className={`text-sm ${hasAccess ? 'text-on-surface font-medium' : 'text-on-surface-variant/50'}`}>
+                                      {action.label}
+                                    </span>
+                                  </div>
+                                );
+                              })}
                             </div>
-                          ))}
-                          {membersWithThisRole.length === 0 && (
-                            <div className="text-center py-8 border-2 border-dashed border-outline-variant/20 rounded-2xl">
-                               <p className="text-[11px] text-on-surface-variant font-medium italic px-4">Belum ada staf yang didelegasikan ke role ini.</p>
-                            </div>
-                          )}
-                       </div>
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 </div>
@@ -583,46 +516,6 @@ const RoleBasedAccess = () => {
               </button>
             </div>
           </div>
-        </div>
-      )}
-
-      {/* Assign Member Modal */}
-      {isAssignModalOpen && (
-        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
-           <div className="bg-white rounded-[2rem] w-full max-w-md shadow-2xl p-8 border border-outline-variant/20 animate-in zoom-in-95">
-              <h2 className="text-xl font-bold font-headline mb-2 text-primary">Assign Staf Ke Role</h2>
-              <p className="text-xs text-on-surface-variant mb-6 uppercase tracking-widest font-bold">Role: {currentRoleDetails?.name}</p>
-              
-              <div className="space-y-4">
-                 <div>
-                    <label className="block text-[10px] font-black text-on-surface-variant uppercase tracking-widest mb-2">Pilih Anggota Organisasi</label>
-                    <select 
-                      className="w-full bg-surface-container-low border border-outline-variant/30 p-4 rounded-2xl text-sm font-bold outline-none"
-                      value={assignData.memberId}
-                      onChange={e => setAssignData({memberId: e.target.value})}
-                    >
-                      <option value="">-- Pilih Nama Mahasiswa --</option>
-                      {(allMembers || []).map(m => {
-                        const isAlreadyIn = m.role === currentRoleDetails?.name;
-                        return (
-                          <option key={m.id} value={m.id} disabled={isAlreadyIn}>
-                            {m.student?.name} ({m.student?.nim}) — [{m.role}] {isAlreadyIn ? '(Sudah Ada)' : ''}
-                          </option>
-                        );
-                      })}
-                    </select>
-                 </div>
-                 <div className="pt-4 flex gap-3">
-                    <button onClick={() => setIsAssignModalOpen(false)} className="flex-1 py-4 text-sm font-bold text-on-surface-variant">Batal</button>
-                    <button 
-                       onClick={handleAssignMember}
-                       className="flex-1 py-4 bg-primary text-white rounded-2xl text-sm font-bold shadow-lg shadow-primary/20 active:scale-95 transition-all"
-                    >
-                       Tetapkan Role
-                    </button>
-                 </div>
-              </div>
-           </div>
         </div>
       )}
     </div>

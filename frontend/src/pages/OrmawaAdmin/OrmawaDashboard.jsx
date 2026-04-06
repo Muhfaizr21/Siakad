@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import Sidebar from './components/Sidebar';
 import TopNavBar from './components/TopNavBar';
 import { useAuth } from '../../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 const OrmawaDashboard = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const ormawaId = user?.ormawaId || 1;
   const [stats, setStats] = useState({ totalProposals: 0, totalMembers: 0, totalKas: 0 });
   const [proposals, setProposals] = useState([]);
@@ -163,7 +165,12 @@ const OrmawaDashboard = () => {
                     <span className="material-symbols-outlined text-primary">event_upcoming</span>
                     Kegiatan Mendatang (7 Hari Selanjutnya)
                   </h3>
-                  <button className="text-sm font-semibold text-primary hover:bg-primary/5 px-4 py-2 rounded-xl transition-colors">Lihat Kalender</button>
+                  <button 
+                    onClick={() => navigate('/ormawa/jadwal')}
+                    className="text-sm font-semibold text-primary hover:bg-primary/5 px-4 py-2 rounded-xl transition-colors"
+                  >
+                    Lihat Kalender
+                  </button>
                 </div>
                 <div className="p-2">
                   <div className="flex flex-col gap-2 p-4">
@@ -212,7 +219,12 @@ const OrmawaDashboard = () => {
                         <h4 className="font-bold text-on-surface font-headline">{p.title}</h4>
                         <p className="text-sm text-on-surface-variant mt-1">Diajukan oleh: {p.ormawa?.name || 'Ormawa'}</p>
                       </div>
-                      <button className="text-sm text-primary font-semibold border border-primary/30 px-4 py-2 rounded-xl hover:bg-primary/5 transition-colors">Lihat Detail</button>
+                      <button 
+                        onClick={() => navigate('/ormawa/proposals')}
+                        className="text-sm text-primary font-semibold border border-primary/30 px-4 py-2 rounded-xl hover:bg-primary/5 transition-colors"
+                      >
+                        Lihat Detail
+                      </button>
                     </div>
                   ))}
                   {pendingProposals.length === 0 && <p className="text-center text-sm py-8 text-on-surface-variant italic">Semua proposal sudah diproses</p>}
@@ -256,7 +268,12 @@ const OrmawaDashboard = () => {
                   {members.filter(m => m.status === 'pending').length === 0 && <p className="text-center py-8 text-on-surface-variant italic">Tidak ada pendaftar baru</p>}
                 </div>
                 <div className="p-4 border-t border-outline-variant/10">
-                  <button className="w-full py-2 text-sm text-primary font-bold hover:underline">Lihat Semua Antrean</button>
+                  <button 
+                    onClick={() => navigate('/ormawa/staff')}
+                    className="w-full py-2 text-sm text-primary font-bold hover:underline"
+                  >
+                    Lihat Semua Antrean
+                  </button>
                 </div>
               </div>
 

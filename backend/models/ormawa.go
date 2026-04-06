@@ -91,16 +91,40 @@ type OrmawaRole struct {
 
 // LPJ represents accountability report for an event
 type LPJ struct {
-	ID             uint      `gorm:"primaryKey" json:"id"`
-	ProposalID     uint      `json:"proposalId"`
-	Proposal       Proposal  `gorm:"foreignKey:ProposalID" json:"proposal"`
-	FileUrl        string    `json:"fileUrl"`
-	RealizedBudget float64   `json:"realizedBudget"`
-	Status         string    `gorm:"default:'pending'" json:"status"` // pending, dinilai, disetujui, revisi
-	Notes          string    `gorm:"type:text" json:"notes"`
-	SubmittedBy    uint      `json:"submittedBy"` // ID Student
-	CreatedAt      time.Time `json:"createdAt"`
-	UpdatedAt      time.Time `json:"updatedAt"`
+	ID             uint          `gorm:"primaryKey" json:"id"`
+	ProposalID     uint          `json:"proposalId"`
+	Proposal       Proposal      `gorm:"foreignKey:ProposalID" json:"proposal"`
+	Documents      []LPJDocument `gorm:"foreignKey:LPJID" json:"documents"`
+	RealizedBudget float64       `json:"realizedBudget"`
+	Status         string        `gorm:"default:'draft'" json:"status"` // draft, diajukan, disetujui, revisi
+	Notes          string        `gorm:"type:text" json:"notes"`
+	SubmittedBy    uint          `json:"submittedBy"` // ID Student/User
+	CreatedAt      time.Time     `json:"createdAt"`
+	UpdatedAt      time.Time     `json:"updatedAt"`
+}
+
+// LPJDocument represents mandatory or optional file uploads for LPJ
+type LPJDocument struct {
+	ID        uint      `gorm:"primaryKey" json:"id"`
+	LPJID     uint      `json:"lpjId"`
+	Category  string    `json:"category"` // e.g. "Dokumentasi", "Keuangan", "Daftar Hadir"
+	FileName  string    `json:"fileName"`
+	FileUrl   string    `json:"fileUrl"`
+	CreatedAt time.Time `json:"createdAt"`
+}
+
+type OrmawaAspiration struct {
+	ID          uint      `gorm:"primaryKey" json:"id"`
+	OrmawaID    uint      `json:"ormawaId"`
+	StudentID   uint      `json:"studentId"`
+	Student     Student   `gorm:"foreignKey:StudentID" json:"student"`
+	Category    string    `json:"category"` // Keluhan, Ide, Aspirasi Umum
+	Title       string    `json:"title"`
+	Description string    `gorm:"type:text" json:"description"`
+	Status      string    `gorm:"default:'pending'" json:"status"` // pending, responded, ignored
+	Response    string    `gorm:"type:text" json:"response"`
+	CreatedAt   time.Time `json:"createdAt"`
+	UpdatedAt   time.Time `json:"updatedAt"`
 }
 
 // EventSchedule represents an event schedule in calendar
@@ -147,5 +171,14 @@ type OrmawaNotification struct {
 	IsRead    bool      `gorm:"default:false" json:"isRead"`
 	OrmawaID  uint      `json:"ormawaId"`
 	CreatedAt time.Time `json:"createdAt"`
+}
+
+// OrmawaDivision represents a functional department
+type OrmawaDivision struct {
+	ID          uint      `gorm:"primaryKey" json:"id"`
+	OrmawaID    uint      `json:"ormawaId"`
+	Name        string    `gorm:"not null" json:"name"`
+	Description string    `json:"description"`
+	CreatedAt   time.Time `json:"createdAt"`
 }
 

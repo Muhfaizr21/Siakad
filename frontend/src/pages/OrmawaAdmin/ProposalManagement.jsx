@@ -49,6 +49,8 @@ const mockProposals = [
 
 const ProposalManagement = () => {
   const [proposals, setProposals] = useState([]);
+  const [isLocked, setIsLocked] = useState(false);
+  const [lockMessage, setLockMessage] = useState("");
   const [selectedProposal, setSelectedProposal] = useState(null);
   const [history, setHistory] = useState([]);
   const [komentar, setKomentar] = useState('');
@@ -69,7 +71,31 @@ const ProposalManagement = () => {
 
   useEffect(() => {
     fetchProposals();
+    checkLpjLock();
   }, [ormawaId]);
+
+  const checkLpjLock = async () => {
+    try {
+      // We can check this by fetching proposals and seeing if any disetujui_univ are past their date without LPJ
+      const res = await fetch(`http://localhost:8000/api/ormawa/proposals?ormawaId=${ormawaId}`);
+      const data = await res.json();
+      if (data.status === 'success') {
+        const now = new Date();
+        const pending = data.data.filter(p => 
+          p.status === 'disetujui_univ' && 
+          new Date(p.dateEvent) < now &&
+          (!p.lpj || p.lpj.status !== 'disetujui')
+        );
+        
+        if (pending.length > 0) {
+          setIsLocked(true);
+          setLockMessage(`Anda memiliki ${pending.length} kegiatan yang belum menyelesaikan LPJ (Approved).`);
+        } else {
+          setIsLocked(false);
+        }
+      }
+    } catch (e) { console.error(e); }
+  };
 
   const fetchProposals = () => {
     fetch(`http://localhost:8000/api/ormawa/proposals?ormawaId=${ormawaId}`)
@@ -222,11 +248,11 @@ const ProposalManagement = () => {
 
   return (
     <div className="bg-surface text-on-surface min-h-screen">
-      <Sidebar />
-      <main className="ml-64 min-h-screen pb-12">
-        <TopNavBar />
+      <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
+      <main className="lg:ml-64 min-h-screen pb-12 transition-all duration-300">
+        <TopNavBar setIsOpen={setSidebarOpen} />
         
-        <div className="pt-24 px-8">
+        <div className="pt-24 px-4 lg:px-8">
           {/* Header */}
           <div className="mb-8 flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
             <div>

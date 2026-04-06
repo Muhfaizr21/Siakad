@@ -17,8 +17,11 @@ import LpjManagement from './pages/OrmawaAdmin/LpjManagement'
 import Pengumuman from './pages/OrmawaAdmin/Pengumuman'
 import StrukturOrganisasi from './pages/OrmawaAdmin/StrukturOrganisasi'
 import RoleBasedAccess from './pages/OrmawaAdmin/RoleBasedAccess'
+import StaffManagement from './pages/OrmawaAdmin/StaffManagement'
 import Notifikasi from './pages/OrmawaAdmin/Notifikasi'
 import Settings from './pages/OrmawaAdmin/Settings'
+import AspirationManagement from './pages/OrmawaAdmin/AspirationManagement'
+import FacultyAspirationManagement from './pages/FacultyAdmin/FacultyAspirationManagement'
 import StudentDashboard from './pages/Student/StudentDashboard'
 import { AuthProvider } from './context/AuthContext'
 import './index.css'
@@ -48,6 +51,7 @@ function App() {
 
         {/* Halaman Faculty Dashboard */}
         <Route path="/faculty" element={<FacultyDashboard />} />
+        <Route path="/faculty/aspirasi" element={<FacultyAspirationManagement />} />
 
         {/* Halaman Ormawa Dashboard */}
         <Route path="/ormawa" element={<OrmawaDashboard />} />
@@ -59,9 +63,11 @@ function App() {
         <Route path="/ormawa/lpj" element={<LpjManagement />} />
         <Route path="/ormawa/pengumuman" element={<Pengumuman />} />
         <Route path="/ormawa/struktur" element={<StrukturOrganisasi />} />
+        <Route path="/ormawa/staff" element={<StaffManagement />} />
         <Route path="/ormawa/rbac" element={<RoleBasedAccess />} />
         <Route path="/ormawa/notifikasi" element={<Notifikasi />} />
         <Route path="/ormawa/pengaturan" element={<Settings />} />
+        <Route path="/ormawa/aspirasi" element={<AspirationManagement />} />
 
         {/* Halaman Student Dashboard */}
         <Route path="/student" element={<StudentDashboard />} />

@@ -7,6 +7,9 @@ const StrukturOrganisasi = () => {
   const { user, hasPermission } = useAuth();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [members, setMembers] = useState([]);
+  const [divisions, setDivisions] = useState([]);
+  const [isDivModalOpen, setIsDivModalOpen] = useState(false);
+  const [newDivName, setNewDivName] = useState('');
   const [org, setOrg] = useState({
     presiden: { nama: 'Memuat...', nim: '-', role: 'Ketua Umum' },
     wakil: { nama: 'Memuat...', nim: '-', role: 'Wakil Ketua' },
@@ -24,53 +27,87 @@ const StrukturOrganisasi = () => {
 
   useEffect(() => {
     fetchMembers();
+    fetchDivisions();
   }, [ormawaId]);
+
+  const fetchDivisions = async () => {
+    try {
+      const res = await fetch(`http://localhost:8000/api/ormawa/divisions?ormawaId=${ormawaId}`);
+      const json = await res.json();
+      if (json.status === 'success') setDivisions(json.data || []);
+    } catch (e) { console.error(e); }
+  };
+
+  useEffect(() => {
+    if (members.length >= 0) {
+      // Root: Ketua/Presiden yang tidak punya atasan
+      const ketua = members.find(m => (m.role.toLowerCase().includes('ketua') || m.role.toLowerCase().includes('presiden')) && !m.parentId) 
+                  || members[0] 
+                  || { student: { name: 'Belum Ada', nim: '-' }, role: 'Ketua Umum' };
+
+      // Wakil: Bawahan langsung ketua dengan role wakil
+      const wakil = members.find(m => m.parentId === ketua.id && m.role.toLowerCase().includes('wakil'))
+                  || members.find(m => m.role.toLowerCase().includes('wakil'))
+                  || { student: { name: 'Belum Ada', nim: '-' }, role: 'Wakil Ketua' };
+      
+      const pengurusInti = members.filter(m => 
+        m.id !== ketua.id && m.id !== wakil.id && 
+        (m.parentId === ketua.id || m.parentId === wakil.id || (!m.division || m.division === 'INTI'))
+      ).map(m => ({
+        id: m.id,
+        nama: m.student?.name || 'Unknown',
+        role: m.role
+      }));
+
+      // Group by Divisions (Showing ALL created divisions)
+      const officialDivNames = new Set(divisions.map(d => d.name));
+      const divArray = divisions.map(d => {
+        const staffInDiv = members.filter(m => m.division === d.name);
+        const kepala = staffInDiv.find(m => 
+          m.role.toLowerCase().includes('kepala') || 
+          m.role.toLowerCase().includes('kadiv') || 
+          m.role.toLowerCase().includes('koordinator')
+        )?.student?.name || 'Belum Ada';
+
+        return {
+          nama: d.name,
+          kepala: kepala,
+          kuota: staffInDiv.length,
+          staff: staffInDiv
+        };
+      });
+
+      // Add "Other" divisions that members might have but aren't in official list
+      const adhocDivs = [];
+      members.forEach(m => {
+        if (m.division && m.division !== 'INTI' && !officialDivNames.has(m.division)) {
+           // Find if already added to adhoc
+           let existing = adhocDivs.find(a => a.nama === m.division);
+           if (!existing) {
+             existing = { nama: m.division, kepala: 'Belum Ada', kuota: 0, staff: [] };
+             adhocDivs.push(existing);
+           }
+           if (m.role.toLowerCase().includes('kepala')) existing.kepala = m.student?.name;
+           else existing.staff.push(m);
+           existing.kuota++;
+        }
+      });
+
+      setOrg({
+        presiden: { id: ketua.id, nama: ketua.student?.name || 'Unknown', nim: ketua.student?.nim, role: ketua.role },
+        wakil: { id: wakil.id, nama: wakil.student?.name || 'Unknown', nim: wakil.student?.nim, role: wakil.role },
+        inti: pengurusInti,
+        divisi: [...divArray, ...adhocDivs]
+      });
+    }
+  }, [members, divisions]);
 
   const fetchMembers = async () => {
     try {
       const res = await fetch(`http://localhost:8000/api/ormawa/members?ormawaId=${ormawaId}`);
       const json = await res.json();
       if (json.status === 'success') {
-        const data = json.data || [];
-        setMembers(data);
-        
-        // Hierarchy logic:
-        const ketua = data.find(m => m.role.toLowerCase().includes('ketua') && !m.parentId) || { student: { name: 'Belum Ada', nim: '-' }, role: 'Ketua Umum' };
-        const wakil = data.find(m => m.role.toLowerCase().includes('wakil')) || { student: { name: 'Belum Ada', nim: '-' }, role: 'Wakil Ketua' };
-        
-        const pengurusInti = data.filter(m => 
-          (m.role.toLowerCase().includes('sekretaris') || m.role.toLowerCase().includes('bendahara'))
-        ).map(m => ({
-          id: m.id,
-          nama: m.student?.name || 'Unknown',
-          role: m.role
-        }));
-
-        const divGroups = {};
-        data.forEach(m => {
-          if (m.division) {
-            if (!divGroups[m.division]) divGroups[m.division] = { kepala: 'Belum Ada', staff: [] };
-            if (m.role.toLowerCase().includes('kepala') || m.role.toLowerCase().includes('kadiv')) {
-              divGroups[m.division].kepala = m.student?.name || 'Unknown';
-            } else {
-              divGroups[m.division].staff.push(m);
-            }
-          }
-        });
-
-        const divArray = Object.keys(divGroups).map(d => ({
-          nama: d,
-          kepala: divGroups[d].kepala,
-          kuota: divGroups[d].staff.length,
-          staff: divGroups[d].staff
-        }));
-
-        setOrg({
-          presiden: { id: ketua.id, nama: ketua.student?.name || 'Unknown', nim: ketua.student?.nim, role: ketua.role },
-          wakil: { id: wakil.id, nama: wakil.student?.name || 'Unknown', nim: wakil.student?.nim, role: wakil.role },
-          inti: pengurusInti,
-          divisi: divArray
-        });
+        setMembers(json.data || []);
       }
     } catch (err) {
        console.error("Gagal mengambil anggota", err);
@@ -122,6 +159,23 @@ const StrukturOrganisasi = () => {
     }
   };
 
+  const handleAddDivision = async (e) => {
+    e.preventDefault();
+    if (!newDivName) return;
+    try {
+      const res = await fetch('http://localhost:8000/api/ormawa/divisions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ormawaId: Number(ormawaId), name: newDivName })
+      });
+      if (res.ok) {
+        setNewDivName('');
+        setIsDivModalOpen(false);
+        fetchDivisions();
+      }
+    } catch (e) { console.error(e); }
+  };
+
   return (
     <div className="bg-surface text-on-surface min-h-screen">
       <Sidebar />
@@ -135,6 +189,13 @@ const StrukturOrganisasi = () => {
               <p className="text-on-surface-variant text-sm font-medium">Manajemen hierarki (Atasan-Bawahan) dan ploting formasi divisi.</p>
             </div>
             <div className="flex items-center gap-3">
+              <button 
+                onClick={() => setIsDivModalOpen(true)}
+                className="flex items-center gap-2 px-5 py-2.5 bg-surface-container-high text-primary font-bold rounded-xl border border-primary/20 shadow-sm hover:bg-white transition-all"
+              >
+                <span className="material-symbols-outlined text-[18px]">account_tree</span>
+                Tambah Divisi
+              </button>
               {hasPermission('struktur', 'edit') && (
                 <button 
                   onClick={openReshuffleModal}
@@ -174,8 +235,22 @@ const StrukturOrganisasi = () => {
               <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-6">
                 {org.divisi.length > 0 ? org.divisi.map((div, i) => (
                   <div key={i} className="bg-surface border border-outline-variant/20 shadow-sm rounded-2xl overflow-hidden min-w-[180px]">
-                     <div className="bg-surface-container py-3 px-2 text-center border-b border-outline-variant/10">
+                     <div className="bg-surface-container py-3 px-4 flex justify-between items-center border-b border-outline-variant/10">
                         <h4 className="font-bold text-sm font-headline text-on-surface">{div.nama}</h4>
+                        <button 
+                          onClick={async (e) => {
+                             e.stopPropagation();
+                             const d = divisions.find(dv => dv.name === div.nama);
+                             if (d && window.confirm(`Hapus divisi ${div.nama}?`)) {
+                               await fetch(`http://localhost:8000/api/ormawa/divisions/${d.id}`, { method: 'DELETE' });
+                               fetchDivisions();
+                               fetchMembers();
+                             }
+                          }}
+                          className="w-6 h-6 rounded-md hover:bg-rose-50 text-rose-500 flex items-center justify-center transition-colors"
+                        >
+                          <span className="material-symbols-outlined text-[14px]">delete</span>
+                        </button>
                      </div>
                      <div className="p-4 text-center">
                         <p className="text-[10px] text-secondary font-label uppercase mb-1">Kepala Divisi</p>
@@ -221,7 +296,12 @@ const StrukturOrganisasi = () => {
                   </div>
                   <div>
                     <label className="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-2">Divisi</label>
-                    <input value={editDivision} onChange={e => setEditDivision(e.target.value)} className="w-full bg-surface-container p-4 rounded-xl border-none outline-none text-sm" placeholder="Contoh: Media" />
+                    <select value={editDivision} onChange={e => setEditDivision(e.target.value)} className="w-full bg-surface-container p-4 rounded-xl border-none outline-none text-sm">
+                      <option value="">-- Tanpa Divisi (Inti) --</option>
+                      {divisions.map(d => (
+                        <option key={d.id} value={d.name}>{d.name}</option>
+                      ))}
+                    </select>
                   </div>
                 </div>
 
@@ -240,6 +320,27 @@ const StrukturOrganisasi = () => {
                    <button type="button" onClick={() => setIsModalOpen(false)} className="w-full py-4 font-bold text-on-surface-variant">Batal</button>
                    <button type="submit" disabled={isSubmitting} className="w-full py-4 bg-primary text-white font-bold rounded-2xl shadow-lg">Simpan Perubahan</button>
                 </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Add Division Modal */}
+      {isDivModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
+          <div className="bg-white rounded-[2.5rem] w-full max-w-sm shadow-2xl animate-in zoom-in-95 duration-200 border border-outline-variant/20">
+            <div className="px-8 py-6 border-b border-outline-variant/10">
+               <h2 className="text-xl font-bold font-headline text-on-surface">Tambah Divisi Baru</h2>
+            </div>
+            <form onSubmit={handleAddDivision} className="p-8 space-y-4">
+               <div>
+                  <label className="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-2">Nama Divisi</label>
+                  <input required autoFocus value={newDivName} onChange={e => setNewDivName(e.target.value)} className="w-full bg-surface-container p-4 rounded-xl border-none outline-none text-sm" placeholder="Contoh: Divisi Kaderisasi" />
+               </div>
+               <div className="flex gap-3 pt-4">
+                  <button type="button" onClick={() => setIsDivModalOpen(false)} className="w-full py-3 font-bold text-on-surface-variant">Batal</button>
+                  <button type="submit" className="w-full py-3 bg-primary text-white font-bold rounded-xl shadow-lg">Buat Divisi</button>
+               </div>
             </form>
           </div>
         </div>
