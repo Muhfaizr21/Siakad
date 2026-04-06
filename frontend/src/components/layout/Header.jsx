@@ -5,6 +5,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import NotificationDropdown from './NotificationDropdown';
 import useAuthStore from '../../store/useAuthStore';
 import { menuItems } from '../../constants/menuItems';
+import api from '../../lib/axios';
+import { toast } from 'react-hot-toast';
 
 export default function Header() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -18,6 +20,19 @@ export default function Header() {
   
   const logout = useAuthStore(state => state.logout);
   const mahasiswa = useAuthStore(state => state.mahasiswa) || { nama: 'Tegar', nim: '10123456' };
+
+  const handleLogout = async () => {
+    try {
+      await api.post('/auth/logout');
+    } catch {
+      // Tetap lanjut logout di client
+    } finally {
+      logout();
+      setIsProfileOpen(false);
+      toast.success('Berhasil logout');
+      navigate('/login', { replace: true });
+    }
+  };
 
   // Filter menu items for search
   const searchResults = searchQuery.trim() === '' 
@@ -190,10 +205,7 @@ export default function Header() {
                   
                   <div className="mt-3 pt-3 border-t border-[#e5e5e5]">
                     <button 
-                      onClick={() => {
-                        logout();
-                        setIsProfileOpen(false);
-                      }}
+                      onClick={handleLogout}
                       className="flex items-center gap-3 w-full px-4 py-3 rounded-2xl hover:bg-red-50 text-sm font-bold text-[#dc2626] transition-all group"
                     >
                       <LogOut size={18} className="group-hover:translate-x-1 transition-transform" />

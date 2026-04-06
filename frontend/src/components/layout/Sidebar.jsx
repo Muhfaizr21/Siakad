@@ -1,19 +1,34 @@
 import React from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { LogOut } from 'lucide-react';
 import useAuthStore from '../../store/useAuthStore';
 import { menuItems } from '../../constants/menuItems';
+import api from '../../lib/axios';
+import { toast } from 'react-hot-toast';
 
 export default function Sidebar() {
   const logout = useAuthStore(state => state.logout);
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    try {
+      await api.post('/auth/logout');
+    } catch {
+      // Tetap lanjutkan logout sisi client meskipun API gagal
+    } finally {
+      logout();
+      toast.success('Berhasil logout');
+      navigate('/login', { replace: true });
+    }
+  };
   
   return (
     <aside className="w-[260px] bg-white border-r border-[#e5e5e5] h-screen sticky top-0 flex flex-col z-20 shrink-0">
       
       {/* Logo & Brand */}
       <div className="h-16 flex items-center px-6 border-b border-[#eef1f6]">
-        <div className="w-8 h-8 rounded-lg bg-[#eef4ff] text-[#00236F] flex items-center justify-center font-bold text-xl mr-3">
-          B
+        <div className="w-8 h-8 rounded-lg bg-white border border-[#dbe6ff] flex items-center justify-center overflow-hidden mr-3 p-1">
+          <img src="/images/bku logo.png" alt="Logo Universitas" className="w-full h-full object-contain" />
         </div>
         <span className="font-bold font-headline text-[#171717] tracking-tight">BKU Student Hub</span>
       </div>
@@ -41,7 +56,7 @@ export default function Sidebar() {
       {/* Logout */}
       <div className="p-4 border-t border-[#eef1f6]">
         <button 
-          onClick={logout}
+          onClick={handleLogout}
           className="flex items-center gap-3 w-full px-3 py-2.5 text-sm font-semibold text-[#dc2626] hover:bg-[#fef2f2] rounded-xl transition"
         >
           <LogOut size={18} />
