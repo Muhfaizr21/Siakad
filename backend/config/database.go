@@ -33,9 +33,8 @@ func ConnectDB() {
 
 	log.Println("Connected Successfully to Database")
 
-	/* 
-	// Commenting out GORM AutoMigrate as we are using raw SQL migrations now
-	log.Println("Running Migrations...")
+	// Run GORM AutoMigrate to ensure tables exist
+	log.Println("Running AutoMigrations for core models...")
 	err = db.AutoMigrate(
 		&models.Role{},
 		&models.User{},
@@ -43,14 +42,17 @@ func ConnectDB() {
 		&models.Major{},
 		&models.Lecturer{},
 		&models.Student{},
+		&models.Matakuliah{},
+		&models.Ruangan{},
+		&models.FacultySchedule{},
 	)
 	if err != nil {
-		log.Println("Migration Error:", err)
+		log.Println("AutoMigration Error:", err)
 	} else {
-		log.Println("Migrations Completed")
+		log.Println("AutoMigrations Completed")
 	}
-	*/
 	
+	/* 
 	err = db.AutoMigrate(
 		&models.Ormawa{},
 		&models.OrmawaMember{},
@@ -70,6 +72,7 @@ func ConnectDB() {
 	if err != nil {
 		log.Println("Error migrating Ormawa models:", err)
 	}
+	*/
 	
 	DB = db
 }

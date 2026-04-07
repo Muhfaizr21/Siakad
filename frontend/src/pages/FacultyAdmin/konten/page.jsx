@@ -157,6 +157,7 @@ import Sidebar from "../components/Sidebar"
 import TopNavBar from "../components/TopNavBar"
 
 export default function KontenPage() {
+  const [sidebarOpen, setSidebarOpen] = useState(false)
   const [searchTerm, setSearchTerm] = useState("")
   const [kategoriFilter, setKategoriFilter] = useState("all")
 
@@ -205,16 +206,16 @@ export default function KontenPage() {
 
   return (
     <div className="text-on-surface bg-surface min-h-screen">
-      <Sidebar />
-      <TopNavBar />
-      <main className="ml-64 min-h-screen">
-        <div className="pt-24 pb-12 px-8">
+      <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
+      <TopNavBar setIsOpen={setSidebarOpen} />
+      <main className="lg:ml-64 ml-0 min-h-screen transition-all duration-300">
+        <div className="pt-24 pb-12 px-4 lg:px-8">
           <div className="flex flex-col gap-6">
       {/* Page Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Manajemen Konten</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-2xl font-medium tracking-tight">Manajemen Konten</h1>
+          <p className="text-on-surface-variant">
             Kelola pengumuman, kalender akademik, dan template dokumen
           </p>
         </div>
@@ -228,8 +229,8 @@ export default function KontenPage() {
               <Megaphone className="size-6 text-primary" />
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Total Pengumuman</p>
-              <p className="text-2xl font-bold">{pengumumanData.length}</p>
+              <p className="text-sm text-on-surface-variant">Total Pengumuman</p>
+              <p className="text-2xl font-medium">{pengumumanData.length}</p>
             </div>
           </CardContent>
         </Card>
@@ -239,8 +240,8 @@ export default function KontenPage() {
               <CheckCircle className="size-6 text-success" />
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Published</p>
-              <p className="text-2xl font-bold">
+              <p className="text-sm text-on-surface-variant">Published</p>
+              <p className="text-2xl font-medium">
                 {pengumumanData.filter((p) => p.status === "Published").length}
               </p>
             </div>
@@ -252,8 +253,8 @@ export default function KontenPage() {
               <Clock className="size-6 text-warning-foreground" />
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Draft</p>
-              <p className="text-2xl font-bold">
+              <p className="text-sm text-on-surface-variant">Draft</p>
+              <p className="text-2xl font-medium">
                 {pengumumanData.filter((p) => p.status === "Draft").length}
               </p>
             </div>
@@ -265,8 +266,8 @@ export default function KontenPage() {
               <Calendar className="size-6 text-accent" />
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Kegiatan Mendatang</p>
-              <p className="text-2xl font-bold">
+              <p className="text-sm text-on-surface-variant">Kegiatan Mendatang</p>
+              <p className="text-2xl font-medium">
                 {kalenderData.filter((k) => k.status === "Akan Datang").length}
               </p>
             </div>
@@ -287,7 +288,7 @@ export default function KontenPage() {
             <CardHeader className="pb-4">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div className="relative flex-1 sm:max-w-xs">
-                  <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                  <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-on-surface-variant" />
                   <Input
                     placeholder="Cari pengumuman..."
                     value={searchTerm}
@@ -524,7 +525,7 @@ export default function KontenPage() {
                       <h3 className="mb-1 font-medium">{template.nama}</h3>
                       <div className="flex items-center justify-between">
                         <Badge variant="outline">{template.kategori}</Badge>
-                        <span className="text-sm text-muted-foreground">
+                        <span className="text-sm text-on-surface-variant">
                           {template.penggunaan}x digunakan
                         </span>
                       </div>

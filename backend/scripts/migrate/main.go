@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"path/filepath"
+	"sort"
 	
 	"siakad-backend/config"
 
@@ -36,17 +38,33 @@ func main() {
 		log.Fatal("Failed dropping schema: ", err)
 	}
 
-	fmt.Println("Reading migration file: 01_ormawa_schema.sql")
-	sqlBytes, err := ioutil.ReadFile("database/migrations/01_ormawa_schema.sql")
+	// Read all SQL files from migrations directory
+	files, err := ioutil.ReadDir("database/migrations")
 	if err != nil {
-		log.Fatal("Failed reading file: ", err)
+		log.Fatal("Failed reading migrations directory: ", err)
 	}
 
-	fmt.Println("Executing migration script...")
-	_, err = db.Exec(string(sqlBytes))
-	if err != nil {
-		log.Fatal("Migration failed executing: ", err)
+	var sqlFiles []string
+	for _, file := range files {
+		if !file.IsDir() && filepath.Ext(file.Name()) == ".sql" {
+			sqlFiles = append(sqlFiles, file.Name())
+		}
+	}
+	
+	sort.Strings(sqlFiles)
+
+	for _, fileName := range sqlFiles {
+		fmt.Printf("Executing migration file: %s...\n", fileName)
+		sqlBytes, err := ioutil.ReadFile(filepath.Join("database/migrations", fileName))
+		if err != nil {
+			log.Fatal("Failed reading file: ", err)
+		}
+
+		_, err = db.Exec(string(sqlBytes))
+		if err != nil {
+			log.Fatal("Migration failed executing: ", err, " in file ", fileName)
+		}
 	}
 
-	fmt.Println("MIGRATION COMPLETED SUCCESSFULLY! All Ormawa Models applied.")
+	fmt.Println("ALL MIGRATIONS COMPLETED SUCCESSFULLY!")
 }

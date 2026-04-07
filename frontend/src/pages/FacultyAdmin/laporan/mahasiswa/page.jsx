@@ -1,5 +1,6 @@
 "use client"
 
+import React, { useState } from "react"
 import Sidebar from "../../components/Sidebar"
 import TopNavBar from "../../components/TopNavBar"
 import { Card, CardContent, CardHeader, CardTitle } from "../../components/card"
@@ -71,18 +72,19 @@ const ipkDistribusi = [
 ]
 
 export default function LaporanMahasiswaPage() {
+  const [sidebarOpen, setSidebarOpen] = useState(false)
   return (
     <div className="text-on-surface bg-surface min-h-screen">
-      <Sidebar />
-      <TopNavBar />
-      <main className="ml-64 min-h-screen">
-        <div className="pt-24 pb-12 px-8">
+      <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
+      <TopNavBar setIsOpen={setSidebarOpen} />
+      <main className="lg:ml-64 ml-0 min-h-screen transition-all duration-300">
+        <div className="pt-24 pb-12 px-4 lg:px-8">
           <div className="space-y-6">
             {/* Page Header */}
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-2xl font-bold">Statistik Mahasiswa</h1>
-            <p className="text-muted-foreground">Laporan dan analisis data mahasiswa</p>
+            <h1 className="text-2xl font-medium">Statistik Mahasiswa</h1>
+            <p className="text-on-surface-variant">Laporan dan analisis data mahasiswa</p>
           </div>
           <div className="flex items-center gap-2">
             <Select defaultValue="2024-1">
@@ -108,8 +110,8 @@ export default function LaporanMahasiswaPage() {
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Total Mahasiswa</p>
-                  <p className="text-3xl font-bold">1,277</p>
+                  <p className="text-sm text-on-surface-variant">Total Mahasiswa</p>
+                  <p className="text-3xl font-medium">1,277</p>
                 </div>
                 <div className="rounded-lg bg-primary/10 p-3">
                   <Users className="h-6 w-6 text-primary" />
@@ -118,7 +120,7 @@ export default function LaporanMahasiswaPage() {
               <div className="mt-2 flex items-center gap-1 text-success">
                 <TrendingUp className="h-4 w-4" />
                 <span className="text-sm font-medium">+8.2%</span>
-                <span className="text-xs text-muted-foreground">dari tahun lalu</span>
+                <span className="text-xs text-on-surface-variant">dari tahun lalu</span>
               </div>
             </CardContent>
           </Card>
@@ -126,8 +128,8 @@ export default function LaporanMahasiswaPage() {
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Mahasiswa Aktif</p>
-                  <p className="text-3xl font-bold">856</p>
+                  <p className="text-sm text-on-surface-variant">Mahasiswa Aktif</p>
+                  <p className="text-3xl font-medium">856</p>
                 </div>
                 <div className="rounded-lg bg-success/10 p-3">
                   <Users className="h-6 w-6 text-success" />
@@ -136,7 +138,7 @@ export default function LaporanMahasiswaPage() {
               <div className="mt-2 flex items-center gap-1 text-success">
                 <TrendingUp className="h-4 w-4" />
                 <span className="text-sm font-medium">+5.4%</span>
-                <span className="text-xs text-muted-foreground">dari semester lalu</span>
+                <span className="text-xs text-on-surface-variant">dari semester lalu</span>
               </div>
             </CardContent>
           </Card>
@@ -144,8 +146,8 @@ export default function LaporanMahasiswaPage() {
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Lulusan Tahun Ini</p>
-                  <p className="text-3xl font-bold">185</p>
+                  <p className="text-sm text-on-surface-variant">Lulusan Tahun Ini</p>
+                  <p className="text-3xl font-medium">185</p>
                 </div>
                 <div className="rounded-lg bg-info/10 p-3">
                   <GraduationCap className="h-6 w-6 text-info" />
@@ -154,7 +156,7 @@ export default function LaporanMahasiswaPage() {
               <div className="mt-2 flex items-center gap-1 text-success">
                 <TrendingUp className="h-4 w-4" />
                 <span className="text-sm font-medium">+2.8%</span>
-                <span className="text-xs text-muted-foreground">dari tahun lalu</span>
+                <span className="text-xs text-on-surface-variant">dari tahun lalu</span>
               </div>
             </CardContent>
           </Card>
@@ -162,8 +164,8 @@ export default function LaporanMahasiswaPage() {
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">IPK Rata-rata</p>
-                  <p className="text-3xl font-bold">3.28</p>
+                  <p className="text-sm text-on-surface-variant">IPK Rata-rata</p>
+                  <p className="text-3xl font-medium">3.28</p>
                 </div>
                 <div className="rounded-lg bg-warning/10 p-3">
                   <TrendingUp className="h-6 w-6 text-warning" />
@@ -172,7 +174,7 @@ export default function LaporanMahasiswaPage() {
               <div className="mt-2 flex items-center gap-1 text-success">
                 <TrendingUp className="h-4 w-4" />
                 <span className="text-sm font-medium">+0.05</span>
-                <span className="text-xs text-muted-foreground">dari semester lalu</span>
+                <span className="text-xs text-on-surface-variant">dari semester lalu</span>
               </div>
             </CardContent>
           </Card>
@@ -252,7 +254,7 @@ export default function LaporanMahasiswaPage() {
                       />
                       <div>
                         <p className="text-sm font-medium">{prodi.value}</p>
-                        <p className="text-xs text-muted-foreground">{prodi.name}</p>
+                        <p className="text-xs text-on-surface-variant">{prodi.name}</p>
                       </div>
                     </div>
                   ))}
@@ -340,86 +342,79 @@ export default function LaporanMahasiswaPage() {
         </div>
 
         {/* Quick Stats Table */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Ringkasan per Program Studi</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-border">
-                    <th className="px-4 py-3 text-left text-sm font-medium text-muted-foreground">Program Studi</th>
-                    <th className="px-4 py-3 text-center text-sm font-medium text-muted-foreground">Total</th>
-                    <th className="px-4 py-3 text-center text-sm font-medium text-muted-foreground">Aktif</th>
-                    <th className="px-4 py-3 text-center text-sm font-medium text-muted-foreground">Cuti</th>
-                    <th className="px-4 py-3 text-center text-sm font-medium text-muted-foreground">Lulus</th>
-                    <th className="px-4 py-3 text-center text-sm font-medium text-muted-foreground">IPK Rata-rata</th>
-                    <th className="px-4 py-3 text-center text-sm font-medium text-muted-foreground">Trend</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr className="border-b border-border/50">
-                    <td className="px-4 py-3 font-medium">Teknik Informatika</td>
-                    <td className="px-4 py-3 text-center">456</td>
-                    <td className="px-4 py-3 text-center text-success">412</td>
-                    <td className="px-4 py-3 text-center text-warning">18</td>
-                    <td className="px-4 py-3 text-center text-info">26</td>
-                    <td className="px-4 py-3 text-center font-medium">3.35</td>
-                    <td className="px-4 py-3 text-center">
-                      <Badge variant="outline" className="bg-success/20 text-success">
-                        <TrendingUp className="mr-1 h-3 w-3" />
-                        +5.2%
-                      </Badge>
-                    </td>
-                  </tr>
-                  <tr className="border-b border-border/50">
-                    <td className="px-4 py-3 font-medium">Sistem Informasi</td>
-                    <td className="px-4 py-3 text-center">398</td>
-                    <td className="px-4 py-3 text-center text-success">365</td>
-                    <td className="px-4 py-3 text-center text-warning">15</td>
-                    <td className="px-4 py-3 text-center text-info">18</td>
-                    <td className="px-4 py-3 text-center font-medium">3.28</td>
-                    <td className="px-4 py-3 text-center">
-                      <Badge variant="outline" className="bg-success/20 text-success">
-                        <TrendingUp className="mr-1 h-3 w-3" />
-                        +3.8%
-                      </Badge>
-                    </td>
-                  </tr>
-                  <tr className="border-b border-border/50">
-                    <td className="px-4 py-3 font-medium">Teknik Elektro</td>
-                    <td className="px-4 py-3 text-center">234</td>
-                    <td className="px-4 py-3 text-center text-success">210</td>
-                    <td className="px-4 py-3 text-center text-warning">8</td>
-                    <td className="px-4 py-3 text-center text-info">16</td>
-                    <td className="px-4 py-3 text-center font-medium">3.18</td>
-                    <td className="px-4 py-3 text-center">
-                      <Badge variant="outline" className="bg-destructive/20 text-destructive">
-                        <TrendingDown className="mr-1 h-3 w-3" />
-                        -1.2%
-                      </Badge>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td className="px-4 py-3 font-medium">Teknik Mesin</td>
-                    <td className="px-4 py-3 text-center">189</td>
-                    <td className="px-4 py-3 text-center text-success">169</td>
-                    <td className="px-4 py-3 text-center text-warning">7</td>
-                    <td className="px-4 py-3 text-center text-info">13</td>
-                    <td className="px-4 py-3 text-center font-medium">3.12</td>
-                    <td className="px-4 py-3 text-center">
-                      <Badge variant="outline" className="bg-success/20 text-success">
-                        <TrendingUp className="mr-1 h-3 w-3" />
-                        +2.1%
-                      </Badge>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </CardContent>
-        </Card>
+        <div className="bg-white rounded-[2rem] border border-outline-variant/10 overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-[#fcfcfd] hover:bg-[#fcfcfd] border-b border-outline-variant/5">
+                <TableHead className="px-8 py-5 font-semibold text-[11px] uppercase tracking-[0.15em] text-on-surface-variant">Program Studi</TableHead>
+                <TableHead className="px-8 py-5 font-semibold text-[11px] uppercase tracking-[0.15em] text-on-surface-variant text-center">Total</TableHead>
+                <TableHead className="px-8 py-5 font-semibold text-[11px] uppercase tracking-[0.15em] text-on-surface-variant text-center">Aktif</TableHead>
+                <TableHead className="px-8 py-5 font-semibold text-[11px] uppercase tracking-[0.15em] text-on-surface-variant text-center">Cuti</TableHead>
+                <TableHead className="px-8 py-5 font-semibold text-[11px] uppercase tracking-[0.15em] text-on-surface-variant text-center">Lulus</TableHead>
+                <TableHead className="px-8 py-5 font-semibold text-[11px] uppercase tracking-[0.15em] text-on-surface-variant text-center">IPK Rata-rata</TableHead>
+                <TableHead className="px-8 py-5 font-semibold text-[11px] uppercase tracking-[0.15em] text-on-surface-variant text-center">Trend</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              <TableRow className="hover:bg-slate-50/50 transition-colors border-b border-outline-variant/5">
+                <TableCell className="px-8 py-6 font-medium text-[14px] text-on-surface">Teknik Informatika</TableCell>
+                <TableCell className="px-8 py-6 text-center font-medium">456</TableCell>
+                <TableCell className="px-8 py-6 text-center text-success font-medium">412</TableCell>
+                <TableCell className="px-8 py-6 text-center text-warning font-medium">18</TableCell>
+                <TableCell className="px-8 py-6 text-center text-info font-medium">26</TableCell>
+                <TableCell className="px-8 py-6 text-center font-medium">3.35</TableCell>
+                <TableCell className="px-8 py-6 text-center">
+                  <Badge variant="outline" className="bg-success/20 text-success">
+                    <TrendingUp className="mr-1 h-3 w-3" />
+                    +5.2%
+                  </Badge>
+                </TableCell>
+              </TableRow>
+              <TableRow className="hover:bg-slate-50/50 transition-colors border-b border-outline-variant/5">
+                <TableCell className="px-8 py-6 font-medium text-[14px] text-on-surface">Sistem Informasi</TableCell>
+                <TableCell className="px-8 py-6 text-center font-medium">398</TableCell>
+                <TableCell className="px-8 py-6 text-center text-success font-medium">365</TableCell>
+                <TableCell className="px-8 py-6 text-center text-warning font-medium">15</TableCell>
+                <TableCell className="px-8 py-6 text-center text-info font-medium">18</TableCell>
+                <TableCell className="px-8 py-6 text-center font-medium">3.28</TableCell>
+                <TableCell className="px-8 py-6 text-center">
+                  <Badge variant="outline" className="bg-success/20 text-success">
+                    <TrendingUp className="mr-1 h-3 w-3" />
+                    +3.8%
+                  </Badge>
+                </TableCell>
+              </TableRow>
+              <TableRow className="hover:bg-slate-50/50 transition-colors border-b border-outline-variant/5">
+                <TableCell className="px-8 py-6 font-medium text-[14px] text-on-surface">Teknik Elektro</TableCell>
+                <TableCell className="px-8 py-6 text-center font-medium">234</TableCell>
+                <TableCell className="px-8 py-6 text-center text-success font-medium">210</TableCell>
+                <TableCell className="px-8 py-6 text-center text-warning font-medium">8</TableCell>
+                <TableCell className="px-8 py-6 text-center text-info font-medium">16</TableCell>
+                <TableCell className="px-8 py-6 text-center font-medium">3.18</TableCell>
+                <TableCell className="px-8 py-6 text-center">
+                  <Badge variant="outline" className="bg-destructive/20 text-destructive">
+                    <TrendingDown className="mr-1 h-3 w-3" />
+                    -1.2%
+                  </Badge>
+                </TableCell>
+              </TableRow>
+              <TableRow className="hover:bg-slate-50/50 transition-colors border-b border-outline-variant/5">
+                <TableCell className="px-8 py-6 font-medium text-[14px] text-on-surface">Teknik Mesin</TableCell>
+                <TableCell className="px-8 py-6 text-center font-medium">189</TableCell>
+                <TableCell className="px-8 py-6 text-center text-success font-medium">169</TableCell>
+                <TableCell className="px-8 py-6 text-center text-warning font-medium">7</TableCell>
+                <TableCell className="px-8 py-6 text-center text-info font-medium">13</TableCell>
+                <TableCell className="px-8 py-6 text-center font-medium">3.12</TableCell>
+                <TableCell className="px-8 py-6 text-center">
+                  <Badge variant="outline" className="bg-success/20 text-success">
+                    <TrendingUp className="mr-1 h-3 w-3" />
+                    +2.1%
+                  </Badge>
+                </TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
+        </div>
       </div>
         </div>
       </main>

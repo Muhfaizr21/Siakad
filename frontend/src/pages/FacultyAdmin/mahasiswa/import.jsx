@@ -107,7 +107,7 @@ export default function ImportMahasiswaPage() {
       {/* Page Header */}
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Import Data Mahasiswa</h1>
-        <p className="text-muted-foreground">
+        <p className="text-on-surface-variant">
           Import data mahasiswa dari file Excel atau CSV
         </p>
       </div>
@@ -127,11 +127,11 @@ export default function ImportMahasiswaPage() {
                 htmlFor="file-upload"
                 className="flex min-h-[200px] cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-muted-foreground/25 bg-muted/50 transition-colors hover:border-primary/50 hover:bg-muted"
               >
-                <Upload className="mb-4 size-12 text-muted-foreground" />
+                <Upload className="mb-4 size-12 text-on-surface-variant" />
                 <p className="mb-2 text-sm font-medium">
                   Drag & drop file disini atau klik untuk memilih
                 </p>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs text-on-surface-variant">
                   Format yang didukung: .xlsx, .xls, .csv (Maks. 10MB)
                 </p>
                 <input
@@ -150,7 +150,7 @@ export default function ImportMahasiswaPage() {
                   </div>
                   <div className="flex-1">
                     <p className="font-medium">{uploadedFile.name}</p>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-sm text-on-surface-variant">
                       {(uploadedFile.size / 1024).toFixed(2)} KB
                     </p>
                   </div>
@@ -159,7 +159,7 @@ export default function ImportMahasiswaPage() {
                       variant="ghost"
                       size="icon"
                       onClick={resetUpload}
-                      className="text-muted-foreground hover:text-destructive"
+                      className="text-on-surface-variant hover:text-destructive"
                     >
                       <Trash2 className="size-4" />
                     </Button>
@@ -199,7 +199,7 @@ export default function ImportMahasiswaPage() {
             </Button>
             <div className="mt-4 rounded-lg bg-muted p-4">
               <h4 className="mb-2 text-sm font-medium">Kolom yang diperlukan:</h4>
-              <ul className="space-y-1 text-xs text-muted-foreground">
+              <ul className="space-y-1 text-xs text-on-surface-variant">
                 <li>- NIM (wajib)</li>
                 <li>- Nama Lengkap (wajib)</li>
                 <li>- Program Studi (wajib)</li>

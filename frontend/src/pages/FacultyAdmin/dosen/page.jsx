@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import React, { useState, useEffect } from "react"
 import Sidebar from "../components/Sidebar"
 import TopNavBar from "../components/TopNavBar"
 import { DataTable } from "../components/data-table"
@@ -16,113 +16,7 @@ import {
 } from "../components/dialog"
 import { Card, CardContent, CardHeader, CardTitle } from "../components/card"
 import { Eye, Pencil, Trash2, Mail, Phone, GraduationCap, Users, BookOpen, Award } from "lucide-react"
-
-const dataDosen = [
-  {
-    id: 1,
-    nidn: "0301038501",
-    nama: "Dr. Ir. Andi Wijaya, M.T.",
-    email: "andi.wijaya@univ.ac.id",
-    phone: "081234567801",
-    prodi: "Teknik Informatika",
-    jabatan: "Lektor Kepala",
-    status: "Tetap",
-    bidangKeahlian: "Artificial Intelligence",
-    mahasiswaWali: 25,
-    mataKuliahDiampu: 3,
-  },
-  {
-    id: 2,
-    nidn: "0415067802",
-    nama: "Prof. Dr. Budi Hartono, M.Sc.",
-    email: "budi.hartono@univ.ac.id",
-    phone: "081234567802",
-    prodi: "Sistem Informasi",
-    jabatan: "Guru Besar",
-    status: "Tetap",
-    bidangKeahlian: "Database Systems",
-    mahasiswaWali: 30,
-    mataKuliahDiampu: 2,
-  },
-  {
-    id: 3,
-    nidn: "0520098903",
-    nama: "Dr. Citra Dewi, M.Kom.",
-    email: "citra.dewi@univ.ac.id",
-    phone: "081234567803",
-    prodi: "Teknik Informatika",
-    jabatan: "Lektor",
-    status: "Tetap",
-    bidangKeahlian: "Computer Networks",
-    mahasiswaWali: 22,
-    mataKuliahDiampu: 4,
-  },
-  {
-    id: 4,
-    nidn: "0612079004",
-    nama: "Dr. Eko Prasetyo, M.T.",
-    email: "eko.prasetyo@univ.ac.id",
-    phone: "081234567804",
-    prodi: "Sistem Informasi",
-    jabatan: "Lektor",
-    status: "Tetap",
-    bidangKeahlian: "Software Engineering",
-    mahasiswaWali: 28,
-    mataKuliahDiampu: 3,
-  },
-  {
-    id: 5,
-    nidn: "0708089105",
-    nama: "Farah Amalia, M.Kom.",
-    email: "farah.amalia@univ.ac.id",
-    phone: "081234567805",
-    prodi: "Teknik Informatika",
-    jabatan: "Asisten Ahli",
-    status: "Tetap",
-    bidangKeahlian: "Web Development",
-    mahasiswaWali: 18,
-    mataKuliahDiampu: 3,
-  },
-  {
-    id: 6,
-    nidn: "",
-    nama: "Gunawan Setiawan, M.Kom.",
-    email: "gunawan.s@univ.ac.id",
-    phone: "081234567806",
-    prodi: "Sistem Informasi",
-    jabatan: "-",
-    status: "Tidak Tetap",
-    bidangKeahlian: "Mobile Development",
-    mahasiswaWali: 0,
-    mataKuliahDiampu: 2,
-  },
-  {
-    id: 7,
-    nidn: "0809078606",
-    nama: "Hendra Kusuma, M.T.",
-    email: "hendra.kusuma@univ.ac.id",
-    phone: "081234567807",
-    prodi: "Teknik Informatika",
-    jabatan: "Lektor",
-    status: "Tetap",
-    bidangKeahlian: "Cyber Security",
-    mahasiswaWali: 20,
-    mataKuliahDiampu: 2,
-  },
-  {
-    id: 8,
-    nidn: "",
-    nama: "Irma Wati, M.Si.",
-    email: "irma.wati@univ.ac.id",
-    phone: "081234567808",
-    prodi: "Sistem Informasi",
-    jabatan: "-",
-    status: "Tidak Tetap",
-    bidangKeahlian: "Data Analytics",
-    mahasiswaWali: 0,
-    mataKuliahDiampu: 1,
-  },
-]
+import { useNavigate } from "react-router-dom"
 
 const statusColors = {
   Tetap: "bg-success/20 text-success border-success/30",
@@ -152,7 +46,7 @@ const columns = [
       <div className="flex items-center gap-3">
         <Avatar className="h-8 w-8">
           <AvatarFallback className="bg-primary/10 text-primary text-xs">
-            {value.split(" ").filter(n => !["Dr.", "Prof.", "Ir.", "M.T.", "M.Kom.", "M.Sc.", "M.Si."].includes(n)).map((n) => n[0]).join("").slice(0, 2)}
+            {value ? value.split(" ").filter(n => !["Dr.", "Prof.", "Ir.", "M.T.", "M.Kom.", "M.Sc.", "M.Si."].includes(n)).map((n) => n[0]).join("").slice(0, 2) : "DS"}
           </AvatarFallback>
         </Avatar>
         <div>
@@ -171,7 +65,7 @@ const columns = [
     key: "jabatan",
     label: "Jabatan",
     render: (value) => (
-      <Badge variant="outline" className={jabatanColors[value]}>
+      <Badge variant="outline" className={jabatanColors[value] || jabatanColors["-"]}>
         {value}
       </Badge>
     ),
@@ -187,7 +81,7 @@ const columns = [
     className: "text-center",
     cellClassName: "text-center",
     render: (value) => (
-      <Badge variant="outline" className={statusColors[value]}>
+      <Badge variant="outline" className={statusColors[value] || statusColors["Tetap"]}>
         {value}
       </Badge>
     ),
@@ -218,20 +112,75 @@ const filters = [
 ]
 
 export default function DosenPage() {
+  const navigate = useNavigate()
+  const [sidebarOpen, setSidebarOpen] = useState(false)
   const [selectedDosen, setSelectedDosen] = useState(null)
   const [isDetailOpen, setIsDetailOpen] = useState(false)
+  const [dosenList, setDosenList] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  const fetchDosen = async () => {
+    setLoading(true)
+    try {
+      const res = await fetch('http://localhost:8000/api/faculty/lecturers')
+      const json = await res.json()
+      if (json.status === 'success') {
+        const mapped = json.data.map(d => ({
+          ...d,
+          nama: d.name,
+          nidn: d.nidn || "-",
+          email: d.user?.email || "-",
+          phone: d.phone || "-", 
+          prodi: d.faculty?.name || "TBA",
+          jabatan: d.position || "-",
+          status: d.status || "Tetap",
+          bidangKeahlian: d.expertize || "-",
+          mahasiswaWali: d.menteeCount || 0,
+          mataKuliahDiampu: d.subjectCount || 0
+        }))
+        setDosenList(mapped)
+      }
+    } catch (err) {
+      console.error(err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchDosen()
+  }, [])
 
   const handleView = (dosen) => {
     setSelectedDosen(dosen)
     setIsDetailOpen(true)
   }
 
+  const handleDelete = async (id) => {
+    if (window.confirm("Apakah Anda yakin ingin menghapus dosen ini? Akun user terkait juga akan dihapus.")) {
+      try {
+        const res = await fetch(`http://localhost:8000/api/faculty/lecturers/${id}`, {
+          method: 'DELETE'
+        })
+        const json = await res.json()
+        if (json.status === 'success') {
+          alert("Dosen berhasil dihapus")
+          fetchDosen()
+        } else {
+          alert("Gagal menghapus: " + json.message)
+        }
+      } catch (err) {
+        alert("Terjadi kesalahan sistem")
+      }
+    }
+  }
+
   return (
     <div className="text-on-surface bg-surface min-h-screen">
-      <Sidebar />
-      <TopNavBar />
-      <main className="ml-64 min-h-screen">
-        <div className="pt-24 pb-12 px-8">
+      <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
+      <TopNavBar setIsOpen={setSidebarOpen} />
+      <main className="lg:ml-64 ml-0 min-h-screen transition-all duration-300">
+        <div className="pt-24 pb-12 px-4 lg:px-8">
           <div className="space-y-6">
             {/* Page Header */}
             <div>
@@ -241,40 +190,40 @@ export default function DosenPage() {
 
             {/* Stats */}
             <div className="grid gap-4 sm:grid-cols-4">
-              <Card className="glass-card hover:-translate-y-1 hover:shadow-md transition-all duration-300 border-none bg-background/60 backdrop-blur-md">
+              <Card className="hover:-translate-y-1 hover:shadow-md transition-all duration-300 border-none bg-white shadow-sm">
                 <CardContent className="flex items-center gap-4 p-4">
                   <div className="rounded-lg bg-primary/10 p-2">
                     <GraduationCap className="h-5 w-5 text-primary" />
                   </div>
                   <div>
-                    <p className="text-2xl font-bold">87</p>
+                    <p className="text-2xl font-bold">{dosenList.length}</p>
                     <p className="text-sm text-muted-foreground">Total Dosen</p>
                   </div>
                 </CardContent>
               </Card>
-              <Card className="glass-card hover:-translate-y-1 hover:shadow-md transition-all duration-300 border-none bg-background/60 backdrop-blur-md">
+              <Card className="hover:-translate-y-1 hover:shadow-md transition-all duration-300 border-none bg-white shadow-sm">
                 <CardContent className="flex items-center gap-4 p-4">
                   <div className="rounded-lg bg-success/10 p-2">
                     <Award className="h-5 w-5 text-success" />
                   </div>
                   <div>
-                    <p className="text-2xl font-bold">72</p>
+                    <p className="text-2xl font-bold">{dosenList.filter(d => d.status === "Tetap").length}</p>
                     <p className="text-sm text-muted-foreground">Dosen Tetap</p>
                   </div>
                 </CardContent>
               </Card>
-              <Card className="glass-card hover:-translate-y-1 hover:shadow-md transition-all duration-300 border-none bg-background/60 backdrop-blur-md">
+              <Card className="hover:-translate-y-1 hover:shadow-md transition-all duration-300 border-none bg-white shadow-sm">
                 <CardContent className="flex items-center gap-4 p-4">
                   <div className="rounded-lg bg-warning/10 p-2">
                     <Users className="h-5 w-5 text-warning" />
                   </div>
                   <div>
-                    <p className="text-2xl font-bold">15</p>
-                    <p className="text-sm text-muted-foreground">Dosen Tidak Tetap</p>
+                    <p className="text-2xl font-bold">{dosenList.filter(d => d.isDpa).length}</p>
+                    <p className="text-sm text-muted-foreground">Dosen Wali (DPA)</p>
                   </div>
                 </CardContent>
               </Card>
-              <Card className="glass-card hover:-translate-y-1 hover:shadow-md transition-all duration-300 border-none bg-background/60 backdrop-blur-md">
+              <Card className="hover:-translate-y-1 hover:shadow-md transition-all duration-300 border-none bg-white shadow-sm">
                 <CardContent className="flex items-center gap-4 p-4">
                   <div className="rounded-lg bg-info/10 p-2">
                     <BookOpen className="h-5 w-5 text-info" />
@@ -292,10 +241,10 @@ export default function DosenPage() {
               title="Data Dosen"
               description="Daftar seluruh dosen yang terdaftar"
               columns={columns}
-              data={dataDosen}
+              data={loading ? [] : dosenList}
               searchPlaceholder="Cari NIDN, nama, atau email..."
               filters={filters}
-              onAdd={() => { }}
+              onAdd={() => navigate('/faculty/dosen/tambah')}
               addLabel="Tambah Dosen"
               actions={(row) => (
                 <>
@@ -307,13 +256,19 @@ export default function DosenPage() {
                   >
                     <Eye className="h-4 w-4" />
                   </Button>
-                  <Button variant="ghost" size="icon" className="h-8 w-8">
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="h-8 w-8"
+                    onClick={() => navigate(`/faculty/dosen/edit/${row.id}`)}
+                  >
                     <Pencil className="h-4 w-4" />
                   </Button>
                   <Button
                     variant="ghost"
                     size="icon"
                     className="h-8 w-8 text-destructive hover:text-destructive"
+                    onClick={() => handleDelete(row.id)}
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>
@@ -323,7 +278,7 @@ export default function DosenPage() {
 
             {/* Detail Dialog */}
             <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
-              <DialogContent className="max-w-2xl">
+              <DialogContent className="max-w-2xl bg-white">
                 <DialogHeader>
                   <DialogTitle>Detail Dosen</DialogTitle>
                   <DialogDescription>Informasi lengkap dosen</DialogDescription>
@@ -334,17 +289,17 @@ export default function DosenPage() {
                     <div className="flex items-center gap-4">
                       <Avatar className="h-20 w-20">
                         <AvatarFallback className="bg-primary text-primary-foreground text-xl">
-                          {selectedDosen.nama.split(" ").filter(n => !["Dr.", "Prof.", "Ir.", "M.T.", "M.Kom.", "M.Sc.", "M.Si."].includes(n)).map((n) => n[0]).join("").slice(0, 2)}
+                          {selectedDosen.nama ? selectedDosen.nama.split(" ").filter(n => !["Dr.", "Prof.", "Ir.", "M.T.", "M.Kom.", "M.Sc.", "M.Si."].includes(n)).map((n) => n[0]).join("").slice(0, 2) : "DS"}
                         </AvatarFallback>
                       </Avatar>
                       <div>
                         <h3 className="text-xl font-semibold">{selectedDosen.nama}</h3>
                         <p className="text-muted-foreground">{selectedDosen.nidn || "Dosen Tidak Tetap"}</p>
                         <div className="mt-1 flex items-center gap-2">
-                          <Badge variant="outline" className={statusColors[selectedDosen.status]}>
+                          <Badge variant="outline" className={statusColors[selectedDosen.status] || statusColors["Tetap"]}>
                             {selectedDosen.status}
                           </Badge>
-                          <Badge variant="outline" className={jabatanColors[selectedDosen.jabatan]}>
+                          <Badge variant="outline" className={jabatanColors[selectedDosen.jabatan] || jabatanColors["-"]}>
                             {selectedDosen.jabatan}
                           </Badge>
                         </div>
@@ -353,7 +308,7 @@ export default function DosenPage() {
 
                     {/* Info Grid */}
                     <div className="grid gap-4 sm:grid-cols-2">
-                      <Card className="glass-card border-none bg-white/40 dark:bg-black/20 shadow-sm backdrop-blur-md">
+                      <Card className="border-none bg-slate-50 shadow-sm">
                         <CardHeader className="pb-2">
                           <CardTitle className="text-sm font-medium text-muted-foreground">
                             Informasi Akademik
@@ -373,13 +328,13 @@ export default function DosenPage() {
                             <span className="font-medium">{selectedDosen.mataKuliahDiampu}</span>
                           </div>
                           <div className="flex items-center justify-between">
-                            <span className="text-sm text-muted-foreground">Mahasiswa Wali</span>
-                            <span className="font-medium">{selectedDosen.mahasiswaWali}</span>
+                            <span className="text-sm text-muted-foreground">Status DPA</span>
+                            <span className="font-medium">{selectedDosen.isDpa ? "Ya" : "Tidak"}</span>
                           </div>
                         </CardContent>
                       </Card>
 
-                      <Card className="glass-card border-none bg-white/40 dark:bg-black/20 shadow-sm backdrop-blur-md">
+                      <Card className="border-none bg-slate-50 shadow-sm">
                         <CardHeader className="pb-2">
                           <CardTitle className="text-sm font-medium text-muted-foreground">
                             Informasi Kontak
@@ -403,7 +358,12 @@ export default function DosenPage() {
                       <Button variant="outline" onClick={() => setIsDetailOpen(false)}>
                         Tutup
                       </Button>
-                      <Button>Edit Data</Button>
+                      <Button onClick={() => {
+                        setIsDetailOpen(false)
+                        navigate(`/faculty/dosen/edit/${selectedDosen.id}`)
+                      }}>
+                        Edit Data
+                      </Button>
                     </div>
                   </div>
                 )}

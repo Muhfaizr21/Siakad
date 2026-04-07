@@ -1,93 +1,58 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../../context/AuthContext';
 
-const menuItems = [
-  { name: 'Dashboard', path: '/faculty', icon: 'grid_view' },
-  { name: 'Penerimaan (PMB)', path: '/faculty/pmb', icon: 'person_add' },
+const menuSections = [
   {
-    name: 'Mahasiswa',
-    icon: 'group',
-    subItems: [
-      { name: 'Data Mahasiswa', path: '/faculty/mahasiswa' },
-      { name: 'Tambah Mahasiswa', path: '/faculty/mahasiswa/tambah' },
-      { name: 'Import Data', path: '/faculty/mahasiswa/import' },
-      { name: 'Status Mahasiswa', path: '/faculty/mahasiswa/status' },
-    ]
-  },
-  { name: 'Dosen', path: '/faculty/dosen', icon: 'supervisor_account' },
-  {
-    name: 'Program Studi',
-    icon: 'school',
-    subItems: [
-      { name: 'Data Prodi', path: '/faculty/prodi' },
-      { name: 'Kurikulum', path: '/faculty/prodi/kurikulum' },
-      { name: 'Mata Kuliah', path: '/faculty/prodi/matakuliah' },
+    label: 'Utama',
+    items: [
+      { name: 'Dashboard', path: '/faculty', icon: 'grid_view' },
     ]
   },
   {
-    name: 'Dosen',
-    icon: 'supervisor_account',
-    subItems: [
-      { name: 'Data Dosen', path: '/faculty/dosen' },
-      { name: 'Penugasan Mengajar', path: '/faculty/dosen/penugasan' },
-      { name: 'Beban SKS', path: '/faculty/dosen/beban-sks' },
+    label: 'Akademik',
+    items: [
+      { name: 'Penerimaan (PMB)', path: '/faculty/pmb', icon: 'person_add' },
+      { name: 'Manajemen Mahasiswa', path: '/faculty/mahasiswa', icon: 'group' },
+      { name: 'Data Dosen', path: '/faculty/dosen', icon: 'supervisor_account' },
+      { name: 'Program Studi', path: '/faculty/prodi', icon: 'account_balance' },
+      { name: 'Jadwal Kuliah', path: '/faculty/jadwal', icon: 'event_note' },
+      { name: 'Validasi KRS', path: '/faculty/krs', icon: 'fact_check' },
+      { name: 'Input Nilai', path: '/faculty/nilai', icon: 'grade' },
     ]
   },
   {
-    name: 'Jadwal',
-    icon: 'event_note',
-    subItems: [
-      { name: 'Jadwal Kuliah', path: '/faculty/jadwal' },
-      { name: 'Jadwal Ujian', path: '/faculty/jadwal/ujian' },
-      { name: 'Kelola Ruangan', path: '/faculty/jadwal/ruangan' },
+    label: 'Layanan Mahasiswa',
+    items: [
+      { name: 'Aspirasi Mahasiswa', path: '/faculty/aspirasi', icon: 'forum' },
+      { name: 'Jadwal Konseling', path: '/faculty/konseling', icon: 'event_available' },
+      { name: 'Verifikasi Prestasi', path: '/faculty/prestasi', icon: 'verified' },
+      { name: 'E-Persuratan', path: '/faculty/persuratan', icon: 'forward_to_inbox' },
     ]
   },
   {
-    name: 'KRS',
-    icon: 'menu_book',
-    subItems: [
-      { name: 'Validasi KRS', path: '/faculty/krs' },
-      { name: 'Periode KRS', path: '/faculty/krs/periode' },
-      { name: 'Monitoring SKS', path: '/faculty/krs/monitoring' },
+    label: 'Kelulusan & Karir',
+    items: [
+      { name: 'Pendaftaran Yudisium', path: '/faculty/yudisium', icon: 'school' },
+      { name: 'Manajemen MBKM', path: '/faculty/mbkm', icon: 'explore' },
+      { name: 'Pengajuan Beasiswa', path: '/faculty/beasiswa', icon: 'workspace_premium' },
     ]
   },
   {
-    name: 'Nilai & Transkrip',
-    icon: 'assignment',
-    subItems: [
-      { name: 'Input Nilai', path: '/faculty/nilai' },
-      { name: 'Rekap Nilai', path: '/faculty/nilai/rekap' },
-      { name: 'Transkrip', path: '/faculty/nilai/transkrip' },
+    label: 'Organisasi & Konten',
+    items: [
+      { name: 'Proposal ORMAWA', path: '/faculty/ormawa/proposals', icon: 'description' },
+      { name: 'Organisasi Fakultas', path: '/faculty/organisasi', icon: 'groups' },
+      { name: 'Konten Website', path: '/faculty/konten', icon: 'newspaper' },
     ]
   },
   {
-    name: 'PMB',
-    icon: 'person_add',
-    subItems: [
-      { name: 'Pendaftar', path: '/faculty/pmb' },
-      { name: 'Seleksi', path: '/faculty/pmb/seleksi' },
-      { name: 'Kelulusan', path: '/faculty/pmb/kelulusan' },
-    ]
-  },
-  {
-    name: 'Konten Website',
-    icon: 'newspaper',
-    subItems: [
-      { name: 'Berita', path: '/faculty/konten/berita' },
-      { name: 'Event', path: '/faculty/konten/event' },
-      { name: 'Aspirasi Mahasiswa', path: '/faculty/aspirasi' },
-      { name: 'Profil Fakultas', path: '/faculty/konten/profil' },
-    ]
-  },
-  { name: 'Laporan', path: '/faculty/laporan', icon: 'analytics' },
-  { name: 'Hak Akses', path: '/faculty/hak-akses', icon: 'shield' },
-  {
-    name: 'Pengaturan',
-    icon: 'settings',
-    subItems: [
-      { name: 'Tahun Akademik', path: '/faculty/pengaturan' },
-      { name: 'Profil Portal', path: '/faculty/pengaturan/profil' },
+    label: 'Administrasi',
+    items: [
+      { name: 'Mahasiswa Baru', path: '/faculty/mahasiswa/baru', icon: 'person_add' },
+      { name: 'Master Fakultas', path: '/faculty/fakultas', icon: 'corporate_fare' },
+      { name: 'Laporan & Rekap', path: '/faculty/laporan', icon: 'analytics' },
+      { name: 'Pengaturan Akun', path: '/faculty/pengaturan', icon: 'settings' },
     ]
   },
 ];
@@ -95,30 +60,6 @@ const menuItems = [
 const Sidebar = ({ isOpen, setIsOpen }) => {
   const location = useLocation();
   const { logout } = useAuth();
-
-  const [openDropdowns, setOpenDropdowns] = useState(() => {
-    const initialState = {};
-    menuItems.forEach(item => {
-      if (item.subItems) {
-        initialState[item.name] = item.subItems.some(sub => location.pathname.startsWith(sub.path));
-      }
-    });
-    return initialState;
-  });
-
-  const toggleDropdown = (name) => {
-    setOpenDropdowns(prev => {
-      const isCurrentlyOpen = prev[name];
-      const newState = {};
-      // Close all others
-      Object.keys(prev).forEach(key => {
-        newState[key] = false;
-      });
-      // Toggle the clicked one
-      newState[name] = !isCurrentlyOpen;
-      return newState;
-    });
-  };
 
   return (
     <>
@@ -138,121 +79,74 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
         ${isOpen ? 'translate-x-0 w-72 shadow-2xl shadow-primary/20' : '-translate-x-full lg:translate-x-0 w-64'}
       `}>
         {/* Logo Section */}
-        <div className="p-8 flex items-center justify-between">
+        <div className="p-6 pb-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center text-white shadow-lg shadow-primary/20">
-              <span className="material-symbols-outlined font-black text-2xl">school</span>
+            <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center text-primary shadow-lg shadow-primary/5 border border-primary/20">
+              <span className="material-symbols-outlined font-black">school</span>
             </div>
-            <div className="leading-none">
-              <span className="text-lg font-black text-on-surface tracking-tight">SIAKAD</span>
-              <p className="text-[11px] font-medium text-on-surface-variant">Fakultas Admin</p>
+            <div className="leading-none overflow-hidden max-w-[120px]">
+              <span className="text-xs font-black text-on-surface uppercase tracking-widest block truncate">
+                SIAKAD
+              </span>
+              <p className="text-[9px] font-bold text-primary opacity-60 uppercase truncate">Portal Fakultas</p>
             </div>
           </div>
           {/* Close for mobile */}
           <button
             onClick={() => setIsOpen(false)}
-            className="lg:hidden w-8 h-8 rounded-full bg-surface-container flex items-center justify-center text-on-surface hover:bg-surface-container-high transition-colors"
+            className="lg:hidden w-8 h-8 rounded-full bg-surface-container flex items-center justify-center"
           >
             <span className="material-symbols-outlined text-sm">close</span>
           </button>
         </div>
 
         {/* Navigation Items */}
-        <nav className="px-4 py-2 space-y-1 h-[calc(100vh-180px)] overflow-y-auto no-scrollbar">
-          {menuItems.map((item) => {
-            if (item.subItems) {
-              const isOpenDrop = openDropdowns[item.name];
-              const isGroupActive = item.subItems.some(sub => location.pathname.startsWith(sub.path));
-              return (
-                <div key={item.name} className="flex flex-col space-y-1">
-                  <button
-                    onClick={() => toggleDropdown(item.name)}
-                    className={`
-                      flex items-center justify-between px-5 py-4 rounded-2xl font-bold transition-all duration-300 group w-full
-                      ${isGroupActive && !isOpenDrop
-                        ? 'bg-primary/10 text-primary'
-                        : 'text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface'}
-                      text-sm
-                    `}
-                  >
-                    <div className="flex items-center gap-4">
-                      <span className={`material-symbols-outlined transition-transform duration-300 group-hover:scale-110 text-[20px] ${isGroupActive && !isOpenDrop ? 'text-primary' : ''}`}>
+        <nav className="px-3 py-1 h-[calc(100vh-170px)] overflow-y-auto no-scrollbar">
+          {menuSections.map((section, sIdx) => (
+            <div key={sIdx} className="mt-5">
+              {/* Section Label */}
+              <div className="px-4 mb-2">
+                <span className="text-[10px] font-black text-on-surface-variant/40 uppercase tracking-[0.2em]">
+                  {section.label}
+                </span>
+              </div>
+
+              {/* Section Items */}
+              <div className="space-y-1">
+                {section.items.map((item) => {
+                  const isActive = location.pathname === item.path;
+                  return (
+                    <Link
+                      key={item.path}
+                      to={item.path}
+                      onClick={() => setIsOpen(false)}
+                      className={`
+                        flex items-center gap-3 px-4 py-2.5 rounded-2xl font-bold transition-all duration-200 group
+                        ${isActive
+                          ? 'bg-primary text-white shadow-lg shadow-primary/20 scale-[1.02]'
+                          : 'text-on-surface-variant hover:bg-surface-container-high/60 hover:text-on-surface'}
+                      `}
+                    >
+                      <span className={`material-symbols-outlined text-[20px] transition-transform duration-200 ${isActive ? '' : 'text-on-surface-variant/70 group-hover:scale-110'}`}>
                         {item.icon}
                       </span>
                       <span className="text-[13px] tracking-tight">{item.name}</span>
-                    </div>
-                    <span className={`material-symbols-outlined text-[18px] transition-transform duration-300 ${isOpenDrop ? 'rotate-180' : ''}`}>
-                      expand_more
-                    </span>
-                  </button>
-
-                   {/* Dropdown Content */}
-                  <div className={`
-                    overflow-hidden transition-all duration-300 ease-in-out pl-9 pr-2
-                    ${isOpenDrop ? 'max-h-96 opacity-100 mt-1' : 'max-h-0 opacity-0'}
-                  `}>
-                    <div className="flex flex-col space-y-1 border-l-2 border-outline-variant/30 ml-2 pl-3 py-2">
-                      {item.subItems.map((subItem) => {
-                        const isSubActive = location.pathname.startsWith(subItem.path);
-                        return (
-                          <Link
-                            key={subItem.path}
-                            to={subItem.path}
-                            onClick={() => setIsOpen(false)}
-                            className={`
-                              block py-2.5 px-4 rounded-xl text-[13px] font-semibold transition-all duration-300 relative
-                              ${isSubActive
-                                ? 'text-primary bg-primary/5 shadow-sm'
-                                : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/50 hover:translate-x-1'}
-                            `}
-                          >
-                            <div className="flex items-center gap-3">
-                               {isSubActive ? (
-                                 <div className="w-1.5 h-1.5 rounded-full bg-primary ring-4 ring-primary/10" />
-                               ) : (
-                                 <div className="w-1.5 h-1.5 rounded-full bg-outline-variant/30" />
-                               )}
-                               <span className="truncate">{subItem.name}</span>
-                            </div>
-                          </Link>
-                        );
-                      })}
-                    </div>
-                  </div>
-                </div>
-              );
-            }
-
-            const isActive = location.pathname === item.path || (item.path !== '/faculty' && location.pathname.startsWith(item.path));
-            return (
-              <Link
-                key={item.path}
-                to={item.path}
-                onClick={() => setIsOpen(false)}
-                className={`
-                  flex items-center gap-4 px-5 py-4 rounded-2xl font-bold transition-all duration-300 group
-                  ${isActive
-                    ? 'bg-primary text-white shadow-lg shadow-primary/20 translate-x-1'
-                    : 'text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface text-sm'}
-                `}
-              >
-                <span className={`material-symbols-outlined transition-transform duration-300 ${isActive ? 'scale-110' : 'group-hover:scale-110 text-[20px]'}`}>
-                  {item.icon}
-                </span>
-                <span className="text-[13px] tracking-tight">{item.name}</span>
-              </Link>
-            );
-          })}
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
         </nav>
 
-        {/* User / Logout Section (Always bottom) */}
-        <div className="absolute bottom-0 left-0 right-0 p-6 bg-surface-container-low/80 backdrop-blur-md border-t border-outline-variant/5">
+        {/* User / Logout Section */}
+        <div className="absolute bottom-0 left-0 right-0 p-4 bg-surface-container-low/80 backdrop-blur-md border-t border-outline-variant/10">
           <button
             onClick={logout}
-            className="w-full py-4 flex items-center justify-center gap-3 rounded-[1.5rem] bg-rose-50 text-rose-600 font-black text-[11px] uppercase tracking-[0.2em] shadow-sm hover:bg-rose-600 hover:text-white transition-all active:scale-95 shadow-rose-100/50"
+            className="w-full py-3.5 flex items-center justify-center gap-3 rounded-[1.5rem] bg-rose-50 text-rose-600 font-bold text-[11px] uppercase tracking-[0.2em] shadow-sm hover:bg-rose-600 hover:text-white transition-all active:scale-95 shadow-rose-100/50"
           >
             <span className="material-symbols-outlined text-[18px]">logout</span>
-            LOGOUT FAKULTAS
+            KELUAR
           </button>
         </div>
       </aside>

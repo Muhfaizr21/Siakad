@@ -50,17 +50,18 @@ const statusColors = {
 }
 
 export default function StatusMahasiswaPage() {
+  const [sidebarOpen, setSidebarOpen] = useState(false)
   return (
     <div className="text-on-surface bg-surface min-h-screen">
-      <Sidebar />
-      <TopNavBar />
-      <main className="ml-64 min-h-screen">
-        <div className="pt-24 pb-12 px-8">
+      <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
+      <TopNavBar setIsOpen={setSidebarOpen} />
+      <main className="lg:ml-64 ml-0 min-h-screen transition-all duration-300">
+        <div className="pt-24 pb-12 px-4 lg:px-8">
       <div className="space-y-6">
         {/* Page Header */}
         <div>
           <h1 className="text-2xl font-bold">Status Mahasiswa</h1>
-          <p className="text-muted-foreground">Kelola dan pantau perubahan status mahasiswa</p>
+          <p className="text-on-surface-variant">Kelola dan pantau perubahan status mahasiswa</p>
         </div>
 
         {/* Stats */}
@@ -104,7 +105,7 @@ export default function StatusMahasiswaPage() {
               </div>
               <div className="flex-1">
                 <h3 className="font-semibold">Aktivasi Mahasiswa</h3>
-                <p className="text-sm text-muted-foreground">Aktifkan kembali mahasiswa cuti</p>
+                <p className="text-sm text-on-surface-variant">Aktifkan kembali mahasiswa cuti</p>
               </div>
               <Button size="sm">Proses</Button>
             </CardContent>
@@ -117,7 +118,7 @@ export default function StatusMahasiswaPage() {
               </div>
               <div className="flex-1">
                 <h3 className="font-semibold">Pengajuan Cuti</h3>
-                <p className="text-sm text-muted-foreground">3 pengajuan menunggu</p>
+                <p className="text-sm text-on-surface-variant">3 pengajuan menunggu</p>
               </div>
               <Button size="sm" variant="outline">Lihat</Button>
             </CardContent>
@@ -130,7 +131,7 @@ export default function StatusMahasiswaPage() {
               </div>
               <div className="flex-1">
                 <h3 className="font-semibold">Kelulusan</h3>
-                <p className="text-sm text-muted-foreground">Update status kelulusan</p>
+                <p className="text-sm text-on-surface-variant">Update status kelulusan</p>
               </div>
               <Button size="sm" variant="outline">Kelola</Button>
             </CardContent>
@@ -152,7 +153,7 @@ export default function StatusMahasiswaPage() {
             {/* Filters */}
             <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center">
               <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-on-surface-variant" />
                 <Input placeholder="Cari NIM atau nama..." className="pl-10" />
               </div>
               <div className="flex items-center gap-2">
@@ -196,7 +197,7 @@ export default function StatusMahasiswaPage() {
                           </Avatar>
                           <div>
                             <p className="font-medium">{item.nama}</p>
-                            <p className="text-xs text-muted-foreground">{item.nim}</p>
+                            <p className="text-xs text-on-surface-variant">{item.nim}</p>
                           </div>
                         </div>
                       </TableCell>
@@ -211,7 +212,7 @@ export default function StatusMahasiswaPage() {
                           {item.statusBaru}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-sm text-muted-foreground">{item.tanggal}</TableCell>
+                      <TableCell className="text-sm text-on-surface-variant">{item.tanggal}</TableCell>
                       <TableCell className="text-sm">{item.keterangan}</TableCell>
                     </TableRow>
                   ))}

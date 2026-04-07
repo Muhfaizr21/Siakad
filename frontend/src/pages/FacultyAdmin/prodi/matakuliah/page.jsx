@@ -148,7 +148,7 @@ const columns = [
     render: (value, row) => (
       <div>
         <p className="font-medium">{value}</p>
-        <p className="text-xs text-muted-foreground">{row.dosenPengampu}</p>
+        <p className="text-xs text-on-surface-variant">{row.dosenPengampu}</p>
       </div>
     ),
   },
@@ -235,17 +235,18 @@ const filters = [
 ]
 
 export default function MataKuliahPage() {
+  const [sidebarOpen, setSidebarOpen] = useState(false)
   return (
     <div className="text-on-surface bg-surface min-h-screen">
-      <Sidebar />
-      <TopNavBar />
-      <main className="ml-64 min-h-screen">
-        <div className="pt-24 pb-12 px-8">
+      <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
+      <TopNavBar setIsOpen={setSidebarOpen} />
+      <main className="lg:ml-64 ml-0 min-h-screen transition-all duration-300">
+        <div className="pt-24 pb-12 px-4 lg:px-8">
       <div className="space-y-6">
         {/* Page Header */}
         <div>
           <h1 className="text-2xl font-bold">Mata Kuliah</h1>
-          <p className="text-muted-foreground">Kelola data mata kuliah program studi</p>
+          <p className="text-on-surface-variant">Kelola data mata kuliah program studi</p>
         </div>
 
         {/* Stats */}
@@ -257,7 +258,7 @@ export default function MataKuliahPage() {
               </div>
               <div>
                 <p className="text-2xl font-bold">156</p>
-                <p className="text-sm text-muted-foreground">Total MK</p>
+                <p className="text-sm text-on-surface-variant">Total MK</p>
               </div>
             </CardContent>
           </Card>
@@ -268,7 +269,7 @@ export default function MataKuliahPage() {
               </div>
               <div>
                 <p className="text-2xl font-bold">144</p>
-                <p className="text-sm text-muted-foreground">Total SKS</p>
+                <p className="text-sm text-on-surface-variant">Total SKS</p>
               </div>
             </CardContent>
           </Card>
@@ -279,7 +280,7 @@ export default function MataKuliahPage() {
               </div>
               <div>
                 <p className="text-2xl font-bold">98</p>
-                <p className="text-sm text-muted-foreground">MK Wajib</p>
+                <p className="text-sm text-on-surface-variant">MK Wajib</p>
               </div>
             </CardContent>
           </Card>
@@ -290,7 +291,7 @@ export default function MataKuliahPage() {
               </div>
               <div>
                 <p className="text-2xl font-bold">58</p>
-                <p className="text-sm text-muted-foreground">MK Pilihan</p>
+                <p className="text-sm text-on-surface-variant">MK Pilihan</p>
               </div>
             </CardContent>
           </Card>

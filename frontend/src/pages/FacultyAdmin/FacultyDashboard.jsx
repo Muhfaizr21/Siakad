@@ -1,6 +1,7 @@
 "use client"
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from "react-router-dom";
 import Sidebar from './components/Sidebar';
 import TopNavBar from './components/TopNavBar';
 
@@ -34,6 +35,34 @@ import {
   Line,
   Legend,
 } from "recharts"
+
+// We will use state for these now, but keeping structures for mapping
+const statsConfig = [
+  {
+    key: "totalStudents",
+    title: "Total Mahasiswa",
+    icon: Users,
+    description: "mahasiswa terdaftar",
+  },
+  {
+    key: "totalLecturers",
+    title: "Total Dosen",
+    icon: BookOpen,
+    description: "dosen aktif",
+  },
+  {
+    key: "totalCourses",
+    title: "Matakuliah",
+    icon: GraduationCap,
+    description: "total sks aktif",
+  },
+  {
+    key: "activeSchedules",
+    title: "Jadwal Aktif",
+    icon: Calendar,
+    description: "perkuliahan hari ini",
+  },
+]
 
 const statsData = [
   {
@@ -163,7 +192,51 @@ const jadwalHariIni = [
 ]
 
 export default function DashboardPage() {
+  const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [summaryData, setSummaryData] = useState({
+    totalStudents: 0,
+    totalLecturers: 0,
+    totalCourses: 0,
+    activeSchedules: 0,
+    recentSchedules: []
+  });
+
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        const response = await fetch('http://localhost:8000/api/faculty/summary');
+        const result = await response.json();
+        if (result.status === 'success') {
+          setSummaryData(result.data);
+        }
+      } catch (error) {
+        console.error("Error fetching dashboard statistics:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboardData();
+  }, []);
+
+  // Compute Chart Data from students (if we fetched them)
+  // For now, using mock but mapping logic can be added here
+  // Let's at least make the Status Chart dynamic based on our seeded data
+  const dynamicStatusData = [
+    { name: "Aktif", value: summaryData.totalStudents, color: "#22c55e" },
+    { name: "Cuti", value: 0, color: "#eab308" },
+    { name: "Lulus", value: 0, color: "#3b82f6" },
+  ];
+
+  // Map backend counts to the stats UI structure
+  const dynamicStats = statsConfig.map(config => ({
+    ...config,
+    value: summaryData[config.key]?.toLocaleString() || "0",
+    trend: "up",
+    change: "Live"
+  }));
 
   return (
     <div className="bg-[#F8FAFC] text-slate-900 min-h-screen font-body">
@@ -183,7 +256,7 @@ export default function DashboardPage() {
 
             {/* Stats Cards */}
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              {statsData.map((stat) => (
+              {dynamicStats.map((stat) => (
                 <Card key={stat.title}>
                   <CardHeader className="flex flex-row items-center justify-between pb-2">
                     <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -192,14 +265,12 @@ export default function DashboardPage() {
                     <stat.icon className="size-5 text-muted-foreground" />
                   </CardHeader>
                   <CardContent>
-                    <div className="text-2xl font-bold">{stat.value}</div>
+                    <div className="text-2xl font-bold">
+                      {loading ? "..." : stat.value}
+                    </div>
                     <div className="flex items-center gap-1 text-xs">
-                      {stat.trend === "up" ? (
-                        <TrendingUp className="size-3 text-green-500" />
-                      ) : (
-                        <TrendingDown className="size-3 text-destructive" />
-                      )}
-                      <span className={stat.trend === "up" ? "text-green-500" : "text-destructive"}>
+                      <TrendingUp className="size-3 text-green-500" />
+                      <span className="text-green-500">
                         {stat.change}
                       </span>
                       <span className="text-muted-foreground">{stat.description}</span>
@@ -258,7 +329,7 @@ export default function DashboardPage() {
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
                         <Pie
-                          data={statusMahasiswa}
+                          data={dynamicStatusData}
                           cx="50%"
                           cy="50%"
                           innerRadius={60}
@@ -270,7 +341,7 @@ export default function DashboardPage() {
                           }
                           labelLine={false}
                         >
-                          {statusMahasiswa.map((entry, index) => (
+                          {dynamicStatusData.map((entry, index) => (
                             <Cell key={`cell-${index}`} fill={entry.color} />
                           ))}
                         </Pie>
@@ -285,7 +356,7 @@ export default function DashboardPage() {
                     </ResponsiveContainer>
                   </div>
                   <div className="mt-4 flex flex-wrap justify-center gap-4">
-                    {statusMahasiswa.map((item) => (
+                    {dynamicStatusData.map((item) => (
                       <div key={item.name} className="flex items-center gap-2">
                         <div
                           className="size-3 rounded-full"
@@ -397,37 +468,43 @@ export default function DashboardPage() {
               </CardHeader>
               <CardContent>
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                  {jadwalHariIni.map((jadwal, index) => (
-                    <div
-                      key={index}
-                      className="rounded-lg border bg-card p-4 transition-colors hover:bg-muted/50"
-                    >
-                      <div className="mb-3 flex items-center gap-2">
-                        <Clock className="size-4 text-primary" />
-                        <span className="text-sm font-medium text-primary">
-                          {jadwal.jam}
-                        </span>
-                      </div>
-                      <h4 className="font-medium text-balance">{jadwal.matakuliah}</h4>
-                      <p className="mt-1 text-sm text-muted-foreground">
-                        {jadwal.ruangan}
-                      </p>
-                      <div className="mt-3 flex items-center gap-2">
-                        <Avatar className="size-6">
-                          <AvatarFallback className="bg-primary/10 text-primary text-[10px]">
-                            {jadwal.dosen
-                              .split(" ")
-                              .map((n) => n[0])
-                              .join("")
-                              .slice(0, 2)}
-                          </AvatarFallback>
-                        </Avatar>
-                        <span className="text-xs text-muted-foreground">
-                          {jadwal.dosen}
-                        </span>
-                      </div>
+                  {loading ? (
+                    <div className="col-span-full py-10 text-center text-muted-foreground">
+                      Memuat jadwal...
                     </div>
-                  ))}
+                  ) : summaryData.recentSchedules.length > 0 ? (
+                    summaryData.recentSchedules.map((jadwal, index) => (
+                      <div
+                        key={index}
+                        className="rounded-lg border bg-card p-4 transition-colors hover:bg-muted/50"
+                      >
+                        <div className="mb-3 flex items-center gap-2">
+                          <Clock className="size-4 text-primary" />
+                          <span className="text-sm font-medium text-primary">
+                            {jadwal.hari}, {jadwal.jam_mulai} - {jadwal.jam_selesai}
+                          </span>
+                        </div>
+                        <h4 className="font-medium text-balance">{jadwal.matakuliah?.nama_mk || "Matakuliah"}</h4>
+                        <p className="mt-1 text-sm text-muted-foreground">
+                          {jadwal.ruangan?.nama_ruangan || "Ruangan TBA"}
+                        </p>
+                        <div className="mt-3 flex items-center gap-2">
+                          <Avatar className="size-6">
+                            <AvatarFallback className="bg-primary/10 text-primary text-[10px]">
+                              {jadwal.dosen?.name ? jadwal.dosen.name.split(" ").map(n => n[0]).join("").slice(0, 2) : "DS"}
+                            </AvatarFallback>
+                          </Avatar>
+                          <span className="text-xs text-muted-foreground">
+                            {jadwal.dosen?.name || "Dosen Pengampu"}
+                          </span>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="col-span-full py-10 text-center text-muted-foreground">
+                      Tidak ada jadwal kuliah hari ini.
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -440,19 +517,19 @@ export default function DashboardPage() {
               </CardHeader>
               <CardContent>
                 <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-4">
-                  <Button variant="outline" className="h-auto flex-col gap-2 p-4">
+                  <Button onClick={() => navigate('/faculty/mahasiswa/baru')} variant="outline" className="h-auto flex-col gap-2 p-4">
                     <Users className="size-6 text-primary" />
                     <span className="text-sm">Tambah Mahasiswa</span>
                   </Button>
-                  <Button variant="outline" className="h-auto flex-col gap-2 p-4">
+                  <Button onClick={() => navigate('/faculty/krs')} variant="outline" className="h-auto flex-col gap-2 p-4">
                     <FileText className="size-6 text-primary" />
                     <span className="text-sm">Validasi KRS</span>
                   </Button>
-                  <Button variant="outline" className="h-auto flex-col gap-2 p-4">
+                  <Button onClick={() => navigate('/faculty/jadwal')} variant="outline" className="h-auto flex-col gap-2 p-4">
                     <Calendar className="size-6 text-primary" />
                     <span className="text-sm">Atur Jadwal</span>
                   </Button>
-                  <Button variant="outline" className="h-auto flex-col gap-2 p-4">
+                  <Button onClick={() => navigate('/faculty/laporan')} variant="outline" className="h-auto flex-col gap-2 p-4">
                     <ArrowUpRight className="size-6 text-primary" />
                     <span className="text-sm">Export Laporan</span>
                   </Button>

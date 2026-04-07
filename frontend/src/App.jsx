@@ -29,6 +29,11 @@ import FacultyMahasiswa from './pages/FacultyAdmin/mahasiswa/page'
 import FacultyMahasiswaImport from './pages/FacultyAdmin/mahasiswa/import'
 import FacultyMahasiswaStatus from './pages/FacultyAdmin/mahasiswa/status/page'
 import FacultyMahasiswaTambah from './pages/FacultyAdmin/mahasiswa/tambah/page'
+import FacultyMahasiswaEdit from './pages/FacultyAdmin/mahasiswa/edit/page'
+import FacultyDosenTambah from './pages/FacultyAdmin/dosen/tambah/page'
+import FacultyDosenEdit from './pages/FacultyAdmin/dosen/edit/page'
+import FacultyProdiTambah from './pages/FacultyAdmin/prodi/tambah/page'
+import FacultyProdiEdit from './pages/FacultyAdmin/prodi/edit/page'
 import FacultyProdiKurikulum from './pages/FacultyAdmin/prodi/kurikulum/page'
 import FacultyProdiMatakuliah from './pages/FacultyAdmin/prodi/matakuliah/page'
 import FacultyJadwal from './pages/FacultyAdmin/jadwal/page'
@@ -37,6 +42,18 @@ import FacultyNilai from './pages/FacultyAdmin/nilai/page'
 import FacultyLaporan from './pages/FacultyAdmin/laporan/mahasiswa/page'
 import FacultyKonten from './pages/FacultyAdmin/konten/page'
 import FacultyPengaturan from './pages/FacultyAdmin/pengaturan/tahun-akademik/page'
+import FacultyKonseling from './pages/FacultyAdmin/konseling/page'
+import FacultyPrestasi from './pages/FacultyAdmin/mahasiswa/prestasi'
+import FacultyFakultas from './pages/FacultyAdmin/fakultas/page'
+import FacultyFakultasTambah from './pages/FacultyAdmin/fakultas/tambah/page'
+import FacultyFakultasEdit from './pages/FacultyAdmin/fakultas/edit/page'
+import FacultyPersuratan from './pages/FacultyAdmin/persuratan/page'
+import FacultyYudisium from './pages/FacultyAdmin/yudisium/page'
+import FacultyMbkm from './pages/FacultyAdmin/mbkm/page'
+import FacultyBeasiswa from './pages/FacultyAdmin/beasiswa/page'
+import FacultyMahasiswaBaru from './pages/FacultyAdmin/mahasiswa/Baru'
+import FacultyProposalApproval from './pages/FacultyAdmin/ormawa/proposals'
+import FacultyOrganisasi from './pages/FacultyAdmin/ormawa/OrganisasiFakultas'
 import StudentDashboard from './pages/Student/StudentDashboard'
 import UserManagement from './pages/SuperAdmin/UserManagement'
 import AcademicPortal from './pages/SuperAdmin/AcademicPortal'
@@ -100,7 +117,12 @@ function App() {
           <Route path="/faculty" element={<FacultyDashboard />} />
           <Route path="/faculty/aspirasi" element={<FacultyAspirationManagement />} />
           <Route path="/faculty/pmb" element={<FacultyPmb />} />
+          <Route path="/faculty/fakultas" element={<FacultyFakultas />} />
+          <Route path="/faculty/fakultas/tambah" element={<FacultyFakultasTambah />} />
+          <Route path="/faculty/fakultas/edit/:id" element={<FacultyFakultasEdit />} />
           <Route path="/faculty/prodi" element={<FacultyProdi />} />
+          <Route path="/faculty/prodi/tambah" element={<FacultyProdiTambah />} />
+          <Route path="/faculty/prodi/edit/:id" element={<FacultyProdiEdit />} />
           <Route path="/faculty/prodi/kurikulum" element={<FacultyProdiKurikulum />} />
           <Route path="/faculty/prodi/matakuliah" element={<FacultyProdiMatakuliah />} />
           <Route path="/faculty/dosen" element={<FacultyDosen />} />
@@ -108,6 +130,9 @@ function App() {
           <Route path="/faculty/mahasiswa/import" element={<FacultyMahasiswaImport />} />
           <Route path="/faculty/mahasiswa/status" element={<FacultyMahasiswaStatus />} />
           <Route path="/faculty/mahasiswa/tambah" element={<FacultyMahasiswaTambah />} />
+          <Route path="/faculty/mahasiswa/edit/:id" element={<FacultyMahasiswaEdit />} />
+          <Route path="/faculty/dosen/tambah" element={<FacultyDosenTambah />} />
+          <Route path="/faculty/dosen/edit/:id" element={<FacultyDosenEdit />} />
           <Route path="/faculty/jadwal" element={<FacultyJadwal />} />
           <Route path="/faculty/krs" element={<FacultyKrs />} />
           <Route path="/faculty/nilai" element={<FacultyNilai />} />
@@ -115,6 +140,17 @@ function App() {
           <Route path="/faculty/laporan/mahasiswa" element={<FacultyLaporan />} />
           <Route path="/faculty/konten" element={<FacultyKonten />} />
           <Route path="/faculty/pengaturan" element={<FacultyPengaturan />} />
+          
+          {/* New Faculty Sub-routes mapping sidebar */}
+          <Route path="/faculty/konseling" element={<FacultyKonseling />} />
+          <Route path="/faculty/prestasi" element={<FacultyPrestasi />} />
+          <Route path="/faculty/persuratan" element={<FacultyPersuratan />} />
+          <Route path="/faculty/yudisium" element={<FacultyYudisium />} />
+          <Route path="/faculty/mbkm" element={<FacultyMbkm />} />
+          <Route path="/faculty/beasiswa" element={<FacultyBeasiswa />} />
+          <Route path="/faculty/mahasiswa/baru" element={<FacultyMahasiswaBaru />} />
+          <Route path="/faculty/ormawa/proposals" element={<FacultyProposalApproval />} />
+          <Route path="/faculty/organisasi" element={<FacultyOrganisasi />} />
 
           {/* Halaman Ormawa Dashboard */}
           <Route path="/ormawa" element={<OrmawaDashboard />} />

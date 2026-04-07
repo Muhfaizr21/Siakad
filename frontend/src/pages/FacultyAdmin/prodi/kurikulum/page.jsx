@@ -55,21 +55,22 @@ import Sidebar from "../../components/Sidebar"
 import TopNavBar from "../../components/TopNavBar"
 
 export default function KurikulumPage() {
+  const [sidebarOpen, setSidebarOpen] = useState(false)
   const [selectedProdi, setSelectedProdi] = useState("Teknik Informatika")
   const [searchTerm, setSearchTerm] = useState("")
   const currentKurikulum = kurikulumData["Teknik Informatika"]
 
   return (
     <div className="text-on-surface bg-surface min-h-screen">
-      <Sidebar />
-      <TopNavBar />
-      <main className="ml-64 min-h-screen">
-        <div className="pt-24 pb-12 px-8">
+      <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
+      <TopNavBar setIsOpen={setSidebarOpen} />
+      <main className="lg:ml-64 ml-0 min-h-screen transition-all duration-300">
+        <div className="pt-24 pb-12 px-4 lg:px-8">
           <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Kurikulum</h1>
-          <p className="text-muted-foreground">Kelola kurikulum dan struktur mata kuliah per program studi</p>
+          <p className="text-on-surface-variant">Kelola kurikulum dan struktur mata kuliah per program studi</p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline"><Download className="mr-2 size-4" />Export PDF</Button>
@@ -94,14 +95,14 @@ export default function KurikulumPage() {
               <SelectTrigger className="w-full sm:w-64"><SelectValue placeholder="Pilih Program Studi" /></SelectTrigger>
               <SelectContent><SelectItem value="Teknik Informatika">Teknik Informatika</SelectItem><SelectItem value="Sistem Informasi">Sistem Informasi</SelectItem><SelectItem value="Teknik Elektro">Teknik Elektro</SelectItem><SelectItem value="Teknik Mesin">Teknik Mesin</SelectItem></SelectContent>
             </Select>
-            <div className="relative flex-1"><Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" /><Input placeholder="Cari mata kuliah..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-9" /></div>
+            <div className="relative flex-1"><Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-on-surface-variant" /><Input placeholder="Cari mata kuliah..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-9" /></div>
           </div>
         </CardContent>
       </Card>
       <div className="grid gap-4 sm:grid-cols-3">
-        <Card><CardContent className="flex items-center gap-4 p-4"><div className="flex size-12 items-center justify-center rounded-lg bg-primary/10"><GraduationCap className="size-6 text-primary" /></div><div><p className="text-sm text-muted-foreground">Program Studi</p><p className="font-semibold">{selectedProdi}</p></div></CardContent></Card>
-        <Card><CardContent className="flex items-center gap-4 p-4"><div className="flex size-12 items-center justify-center rounded-lg bg-accent/10"><FileText className="size-6 text-accent" /></div><div><p className="text-sm text-muted-foreground">Tahun Kurikulum</p><p className="font-semibold">{currentKurikulum.tahun}</p></div></CardContent></Card>
-        <Card><CardContent className="flex items-center gap-4 p-4"><div className="flex size-12 items-center justify-center rounded-lg bg-success/10"><BookOpen className="size-6 text-success" /></div><div><p className="text-sm text-muted-foreground">Total SKS</p><p className="font-semibold">{currentKurikulum.totalSKS} SKS</p></div></CardContent></Card>
+        <Card><CardContent className="flex items-center gap-4 p-4"><div className="flex size-12 items-center justify-center rounded-lg bg-primary/10"><GraduationCap className="size-6 text-primary" /></div><div><p className="text-sm text-on-surface-variant">Program Studi</p><p className="font-semibold">{selectedProdi}</p></div></CardContent></Card>
+        <Card><CardContent className="flex items-center gap-4 p-4"><div className="flex size-12 items-center justify-center rounded-lg bg-accent/10"><FileText className="size-6 text-accent" /></div><div><p className="text-sm text-on-surface-variant">Tahun Kurikulum</p><p className="font-semibold">{currentKurikulum.tahun}</p></div></CardContent></Card>
+        <Card><CardContent className="flex items-center gap-4 p-4"><div className="flex size-12 items-center justify-center rounded-lg bg-success/10"><BookOpen className="size-6 text-success" /></div><div><p className="text-sm text-on-surface-variant">Total SKS</p><p className="font-semibold">{currentKurikulum.totalSKS} SKS</p></div></CardContent></Card>
       </div>
       <Card>
         <CardHeader><CardTitle>Struktur Kurikulum</CardTitle><CardDescription>Daftar mata kuliah per semester untuk {selectedProdi}</CardDescription></CardHeader>
@@ -112,7 +113,7 @@ export default function KurikulumPage() {
                 <AccordionTrigger className="hover:no-underline">
                   <div className="flex items-center gap-4">
                     <Badge variant="secondary" className="font-mono">Semester {sem.semester}</Badge>
-                    <span className="text-sm text-muted-foreground">{sem.matakuliah.length} mata kuliah - {sem.matakuliah.reduce((acc, mk) => acc + mk.sks, 0)} SKS</span>
+                    <span className="text-sm text-on-surface-variant">{sem.matakuliah.length} mata kuliah - {sem.matakuliah.reduce((acc, mk) => acc + mk.sks, 0)} SKS</span>
                   </div>
                 </AccordionTrigger>
                 <AccordionContent>

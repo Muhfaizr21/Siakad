@@ -72,23 +72,24 @@ const tahunAkademikData = [
 
 const statusColors = {
   Aktif: "bg-success/20 text-success border-success/30",
-  Selesai: "bg-secondary text-muted-foreground",
+  Selesai: "bg-secondary text-on-surface-variant",
   Mendatang: "bg-info/20 text-info border-info/30",
 }
 
 export default function TahunAkademikPage() {
+  const [sidebarOpen, setSidebarOpen] = useState(false)
   return (
     <div className="text-on-surface bg-surface min-h-screen">
-      <Sidebar />
-      <TopNavBar />
-      <main className="ml-64 min-h-screen">
-        <div className="pt-24 pb-12 px-8">
+      <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
+      <TopNavBar setIsOpen={setSidebarOpen} />
+      <main className="lg:ml-64 ml-0 min-h-screen transition-all duration-300">
+        <div className="pt-24 pb-12 px-4 lg:px-8">
           <div className="space-y-6">
             {/* Page Header */}
             <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold">Tahun Akademik</h1>
-            <p className="text-muted-foreground">Kelola periode akademik dan kalender</p>
+            <h1 className="text-2xl font-medium">Tahun Akademik</h1>
+            <p className="text-on-surface-variant">Kelola periode akademik dan kalender</p>
           </div>
           <Button>
             <Plus className="mr-2 h-4 w-4" />
@@ -118,27 +119,27 @@ export default function TahunAkademikPage() {
           <CardContent>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
               <div className="rounded-lg bg-background p-3">
-                <p className="text-xs text-muted-foreground">Pengisian KRS</p>
+                <p className="text-xs text-on-surface-variant">Pengisian KRS</p>
                 <p className="text-sm font-medium">1 - 15 Sep 2024</p>
                 <Badge variant="secondary" className="mt-1 text-xs">Selesai</Badge>
               </div>
               <div className="rounded-lg bg-background p-3">
-                <p className="text-xs text-muted-foreground">Perkuliahan</p>
+                <p className="text-xs text-on-surface-variant">Perkuliahan</p>
                 <p className="text-sm font-medium">16 Sep - 20 Des 2024</p>
                 <Badge variant="outline" className="mt-1 text-xs bg-success/20 text-success">Berlangsung</Badge>
               </div>
               <div className="rounded-lg bg-background p-3">
-                <p className="text-xs text-muted-foreground">UTS</p>
+                <p className="text-xs text-on-surface-variant">UTS</p>
                 <p className="text-sm font-medium">28 Okt - 8 Nov 2024</p>
                 <Badge variant="secondary" className="mt-1 text-xs">Selesai</Badge>
               </div>
               <div className="rounded-lg bg-background p-3">
-                <p className="text-xs text-muted-foreground">UAS</p>
+                <p className="text-xs text-on-surface-variant">UAS</p>
                 <p className="text-sm font-medium">6 - 20 Jan 2025</p>
                 <Badge variant="outline" className="mt-1 text-xs bg-warning/20 text-warning">Mendatang</Badge>
               </div>
               <div className="rounded-lg bg-background p-3">
-                <p className="text-xs text-muted-foreground">Input Nilai</p>
+                <p className="text-xs text-on-surface-variant">Input Nilai</p>
                 <p className="text-sm font-medium">21 - 31 Jan 2025</p>
                 <Badge variant="outline" className="mt-1 text-xs bg-warning/20 text-warning">Mendatang</Badge>
               </div>
@@ -168,7 +169,7 @@ export default function TahunAkademikPage() {
                     <TableRow key={item.id}>
                       <TableCell className="font-medium">{item.tahun}</TableCell>
                       <TableCell>{item.semester}</TableCell>
-                      <TableCell className="text-sm text-muted-foreground">
+                      <TableCell className="text-sm text-on-surface-variant">
                         {item.mulai} - {item.selesai}
                       </TableCell>
                       <TableCell className="text-center">
@@ -226,14 +227,14 @@ export default function TahunAkademikPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="font-medium">Persetujuan Dosen Wali</p>
-                    <p className="text-sm text-muted-foreground">KRS memerlukan persetujuan dosen wali</p>
+                    <p className="text-sm text-on-surface-variant">KRS memerlukan persetujuan dosen wali</p>
                   </div>
                   <Switch defaultChecked />
                 </div>
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="font-medium">Validasi Prasyarat</p>
-                    <p className="text-sm text-muted-foreground">Cek mata kuliah prasyarat saat KRS</p>
+                    <p className="text-sm text-on-surface-variant">Cek mata kuliah prasyarat saat KRS</p>
                   </div>
                   <Switch defaultChecked />
                 </div>
@@ -274,14 +275,14 @@ export default function TahunAkademikPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="font-medium">Nilai Otomatis</p>
-                    <p className="text-sm text-muted-foreground">Hitung nilai akhir otomatis</p>
+                    <p className="text-sm text-on-surface-variant">Hitung nilai akhir otomatis</p>
                   </div>
                   <Switch defaultChecked />
                 </div>
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="font-medium">Lock Nilai</p>
-                    <p className="text-sm text-muted-foreground">Kunci nilai setelah deadline</p>
+                    <p className="text-sm text-on-surface-variant">Kunci nilai setelah deadline</p>
                   </div>
                   <Switch defaultChecked />
                 </div>
