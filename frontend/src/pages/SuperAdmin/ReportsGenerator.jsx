@@ -53,7 +53,7 @@ const ReportsGenerator = () => {
                                         </div>
                                         <div>
                                             <p className="font-extrabold text-primary tracking-tight leading-tight mb-0.5">{report.name}</p>
-                                            <p className="text-[10px] text-secondary font-black uppercase tracking-widest opacity-60">Last sync: {report.lastRun} • {report.size}</p>
+                                            <p className="text-[10px] text-secondary font-black uppercase tracking-widest opacity-80">Last sync: {report.lastRun} • {report.size}</p>
                                         </div>
                                     </div>
                                     <div className="flex gap-2">
@@ -68,7 +68,7 @@ const ReportsGenerator = () => {
 
                 <aside className="bg-tertiary-container p-10 rounded-[3.5rem] text-white space-y-10 shadow-xl shadow-tertiary-container/20">
                     <div className="space-y-4">
-                        <h3 className="text-xl font-black text-white uppercase tracking-widest font-headline italic">Custom Aggregate</h3>
+                        <h3 className="text-xl font-black text-white uppercase tracking-widest font-headline ">Custom Aggregate</h3>
                         <p className="text-xs text-white/70 font-medium font-body leading-relaxed">
                             Generate a non-standard report by combining global institutional datasets.
                         </p>
@@ -92,7 +92,7 @@ const ReportsGenerator = () => {
                         Initiate Global Process
                     </button>
 
-                    <p className="text-[10px] text-white/50 italic text-center font-body">This operation triggers global JOIN queries in the infrastructure layer. Expect 5-10s delay.</p>
+                    <p className="text-[10px] text-white/50  text-center font-body">This operation triggers global JOIN queries in the infrastructure layer. Expect 5-10s delay.</p>
                 </aside>
               </div>
             </div>

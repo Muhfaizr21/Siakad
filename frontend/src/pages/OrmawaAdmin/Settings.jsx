@@ -174,7 +174,7 @@ const Settings = () => {
                   <button 
                     type="submit"
                     disabled={loading}
-                    className="bg-primary text-on-primary px-10 py-4 rounded-2xl font-black shadow-xl hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-3 disabled:opacity-50"
+                    className="bg-primary text-on-primary px-10 py-4 rounded-2xl font-black shadow-xl hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-3 disabled:opacity-70"
                   >
                     {loading ? 'Menyimpan...' : 'Simpan Profil'}
                   </button>

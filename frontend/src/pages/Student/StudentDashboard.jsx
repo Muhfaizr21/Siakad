@@ -258,19 +258,19 @@ const StudentDashboard = () => {
           <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>dashboard</span>
           <span className="text-[10px] font-bold">Home</span>
         </button>
-        <button className="flex flex-col items-center gap-1 text-slate-400">
+        <button className="flex flex-col items-center gap-1 text-slate-600">
           <span className="material-symbols-outlined">auto_stories</span>
           <span className="text-[10px] font-bold">Courses</span>
         </button>
-        <button className="flex flex-col items-center gap-1 text-slate-400">
+        <button className="flex flex-col items-center gap-1 text-slate-600">
           <span className="material-symbols-outlined">calendar_today</span>
           <span className="text-[10px] font-bold">Schedule</span>
         </button>
-        <button className="flex flex-col items-center gap-1 text-slate-400">
+        <button className="flex flex-col items-center gap-1 text-slate-600">
           <span className="material-symbols-outlined">grade</span>
           <span className="text-[10px] font-bold">Grades</span>
         </button>
-        <button className="flex flex-col items-center gap-1 text-slate-400">
+        <button className="flex flex-col items-center gap-1 text-slate-600">
           <span className="material-symbols-outlined">person</span>
           <span className="text-[10px] font-bold">Profile</span>
         </button>

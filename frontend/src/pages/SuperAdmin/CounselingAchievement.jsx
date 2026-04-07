@@ -40,7 +40,7 @@ const CounselingAchievement = () => {
                             <div>
                                 <p className="font-black text-primary leading-tight">{item.prize}</p>
                                 <p className="text-xs text-secondary font-bold font-body">{item.student} • {item.fac}</p>
-                                <p className="text-[10px] text-secondary/50 font-medium italic mt-1">{item.date}</p>
+                                <p className="text-[10px] text-secondary/50 font-medium  mt-1">{item.date}</p>
                             </div>
                         </div>
                         <button className="text-primary font-black text-[10px] tracking-widest uppercase hover:underline">Verify Identity</button>

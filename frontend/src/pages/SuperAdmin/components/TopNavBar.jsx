@@ -6,7 +6,7 @@ const TopNavBar = () => {
       <div className="flex items-center gap-8">
         <span className="text-xl font-bold text-blue-900 font-headline">ScholarAdmin</span>
         <div className="relative hidden lg:block">
-          <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">search</span>
+          <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-600">search</span>
           <input 
             className="pl-10 pr-4 py-1.5 bg-slate-100 border-none rounded-full text-sm w-64 focus:ring-2 focus:ring-primary/20 transition-all outline-none" 
             placeholder="Search system logs..." 

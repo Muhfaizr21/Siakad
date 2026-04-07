@@ -73,75 +73,75 @@ const KeuanganKas = () => {
   return (
     <div className="bg-surface text-on-surface min-h-screen font-body">
       <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
-      <main className="lg:ml-64 min-h-screen pb-12 transition-all duration-300">
+      <main className="lg:ml-60 min-h-screen pb-12 transition-all duration-300">
         <TopNavBar setIsOpen={setSidebarOpen} />
         
-        <div className="pt-24 px-4 lg:px-8">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+        <div className="pt-20 px-4 lg:px-6">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
             <div>
-              <h1 className="text-3xl font-extrabold font-headline mb-2 text-on-surface">Buku Kas & Keuangan</h1>
-              <p className="text-on-surface-variant text-sm font-medium">Laporan keuangan real-time otomatis dari sistem administrasi.</p>
+              <h1 className="text-2xl font-extrabold font-headline mb-1 text-on-surface">Buku Kas & Keuangan</h1>
+              <p className="text-on-surface-variant text-xs font-medium leading-relaxed">Laporan keuangan real-time otomatis dari sistem administrasi.</p>
             </div>
             {hasPermission('keuangan', 'create') && (
               <button 
                  onClick={() => setIsModalOpen(true)}
-                 className="bg-primary hover:bg-primary-fixed text-white px-6 py-3 rounded-xl font-bold font-headline shadow-lg hover:-translate-y-1 transition-all flex items-center gap-2"
+                 className="bg-primary hover:bg-primary-fixed text-white px-5 py-2.5 rounded-xl font-black font-headline shadow-lg hover:-translate-y-1 transition-all flex items-center gap-2 text-xs uppercase tracking-wider"
               >
-                <span className="material-symbols-outlined">add_circle</span>
-                Tambah Catatan Kas
+                <span className="material-symbols-outlined text-[20px]">add_circle</span>
+                Tambah Catatan
               </button>
             )}
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2 space-y-6">
-              <div className="bg-gradient-to-br from-primary to-[#00174f] p-8 rounded-[2rem] shadow-2xl shadow-primary/20 relative overflow-hidden">
-                <div className="absolute right-[-10%] top-[-20%] w-64 h-64 bg-white/5 rounded-full blur-3xl"></div>
+              <div className="bg-gradient-to-br from-primary to-[#00174f] p-6 lg:p-7 rounded-2xl shadow-xl shadow-primary/20 relative overflow-hidden">
+                <div className="absolute right-[-10%] top-[-20%] w-48 h-48 bg-white/5 rounded-full blur-3xl"></div>
                 <div>
-                   <h2 className="text-primary-fixed/80 font-bold font-label tracking-widest uppercase mb-1">Saldo Kas Organisasi</h2>
-                   <p className="text-5xl font-extrabold text-white font-headline tracking-tight">{formatRp(saldoAktif)}</p>
+                   <h2 className="text-white/60 font-black font-label text-[10px] tracking-widest uppercase mb-1">Saldo Kas Aktif</h2>
+                   <p className="text-3xl lg:text-4xl font-black text-white font-headline tracking-tighter leading-none">{formatRp(saldoAktif)}</p>
                 </div>
               </div>
 
-              <div className="bg-surface-container-lowest border border-outline-variant/20 rounded-3xl overflow-hidden shadow-sm">
-                <div className="p-6 border-b border-outline-variant/10 flex justify-between items-center bg-surface-container-low/30">
-                  <h3 className="font-bold text-lg font-headline text-on-surface flex items-center gap-2">
-                    <span className="material-symbols-outlined text-primary">receipt_long</span>
+              <div className="bg-surface-container-lowest border border-outline-variant/20 rounded-2xl overflow-hidden shadow-sm">
+                <div className="p-4 px-6 border-b border-outline-variant/10 flex justify-between items-center bg-surface-container-low/30">
+                  <h3 className="font-bold text-base font-headline text-on-surface flex items-center gap-2">
+                    <span className="material-symbols-outlined text-primary text-[20px]">receipt_long</span>
                     Buku Besar Historis
                   </h3>
                 </div>
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-sm text-on-surface">
-                    <thead className="bg-surface-container/50 text-xs uppercase text-on-surface-variant font-bold tracking-wider">
+                    <thead className="bg-surface-container/50 text-[10px] uppercase text-on-surface-variant font-black tracking-[0.15em]">
                       <tr>
-                        <th className="px-6 py-4">Tgl</th>
-                        <th className="px-6 py-4">Keterangan</th>
-                        <th className="px-6 py-4 text-right">Masuk</th>
-                        <th className="px-6 py-4 text-right">Keluar</th>
+                        <th className="px-6 py-3.5">Tgl</th>
+                        <th className="px-6 py-3.5">Keterangan</th>
+                        <th className="px-6 py-3.5 text-right">Masuk</th>
+                        <th className="px-6 py-3.5 text-right">Keluar</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-outline-variant/10 font-medium">
                        {(transaksi || []).map((trx) => (
                         <tr key={trx.id} className="hover:bg-surface-container-low/50 transition-colors">
-                          <td className="px-6 py-4 text-xs font-bold text-on-surface-variant">
+                          <td className="px-6 py-3.5 text-[11px] font-bold text-on-surface-variant opacity-70">
                             {trx.date ? new Date(trx.date).toLocaleDateString('id-ID') : '-'}
                           </td>
-                          <td className="px-6 py-4">
-                            <span className="block font-bold mb-1 text-on-surface">{trx.description}</span>
+                          <td className="px-6 py-3.5">
+                            <span className="block font-bold mb-0.5 text-on-surface text-[13.5px] leading-tight">{trx.description}</span>
                             <div className="flex items-center gap-2">
-                               <span className="text-[10px] uppercase font-black bg-outline-variant/10 px-2 py-0.5 rounded text-on-surface-variant tracking-widest">{trx.category}</span>
-                               {trx.proposalId && <span className="text-[10px] text-primary font-bold flex items-center gap-0.5"><span className="material-symbols-outlined text-[12px]">link</span> PROPOSAL #{trx.proposalId}</span>}
+                               <span className="text-[9px] uppercase font-black bg-outline-variant/10 px-1.5 py-0.5 rounded text-on-surface-variant tracking-wider">{trx.category}</span>
+                               {trx.proposalId && <span className="text-[9px] text-primary font-black flex items-center gap-0.5 uppercase"><span className="material-symbols-outlined text-[11px]">link</span> PROP #{trx.proposalId}</span>}
                             </div>
                           </td>
-                          <td className="px-6 py-4 text-right font-bold text-emerald-600">
+                          <td className="px-6 py-3.5 text-right font-black text-emerald-600 text-[13px]">
                             {trx.type === 'masuk' ? formatRp(trx.nominal) : '-'}
                           </td>
-                          <td className="px-6 py-4 text-right font-bold text-rose-600">
+                          <td className="px-6 py-3.5 text-right font-black text-rose-600 text-[13px]">
                             {trx.type === 'keluar' ? formatRp(trx.nominal) : '-'}
                           </td>
                         </tr>
                       ))}
-                      {transaksi.length === 0 && <tr><td colSpan="4" className="px-6 py-8 text-center italic text-on-surface-variant">Belum ada transaksi tercatat</td></tr>}
+                      {transaksi.length === 0 && <tr><td colSpan="4" className="px-6 py-8 text-center  text-on-surface-variant">Belum ada transaksi tercatat</td></tr>}
                     </tbody>
                   </table>
                 </div>

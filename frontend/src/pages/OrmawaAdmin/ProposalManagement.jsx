@@ -235,57 +235,57 @@ const ProposalManagement = () => {
   return (
     <div className="bg-surface text-on-surface min-h-screen">
       <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
-      <main className="lg:ml-64 min-h-screen pb-12 transition-all duration-300">
+      <main className="lg:ml-60 min-h-screen pb-12 transition-all duration-300">
         <TopNavBar setIsOpen={setSidebarOpen} />
         
-        <div className="pt-24 px-4 lg:px-8">
+        <div className="pt-20 px-4 lg:px-6">
           {/* Header */}
-          <div className="mb-8 flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
+          <div className="mb-6 flex flex-col md:flex-row justify-between items-start md:items-end gap-3">
             <div>
-              <h1 className="text-3xl font-extrabold font-headline mb-2 text-on-surface">Manajemen Proposal</h1>
-              <p className="text-on-surface-variant text-sm font-medium leading-relaxed max-w-2xl">
-                Ajukan dan pantau status persetujuan berjenjang: Dosen ➔ Fakultas ➔ Universitas.
+              <h1 className="text-2xl font-extrabold font-headline mb-1 text-on-surface">Manajemen Proposal</h1>
+              <p className="text-on-surface-variant text-xs font-medium leading-relaxed max-w-2xl">
+                Ajukan dan pantau status persetujuan: Dosen ➔ Fakultas ➔ Universitas.
               </p>
             </div>
             {hasPermission('proposal', 'create') && (
               <button 
                 onClick={() => { setEditingId(null); setFormData({ nama_kegiatan: '', tujuan: '', tanggal_pelaksanaan: '', anggaran: '', file_url: '' }); setIsFormOpen(true); }}
-                className="bg-primary hover:bg-primary-fixed text-white px-6 py-3 rounded-xl font-bold font-headline shadow-lg hover:-translate-y-1 transition-all flex items-center gap-2 whitespace-nowrap"
+                className="bg-primary hover:bg-primary-fixed text-white px-5 py-2.5 rounded-xl font-black font-headline shadow-md hover:-translate-y-1 transition-all flex items-center gap-2 whitespace-nowrap text-sm uppercase tracking-wider"
               >
-                <span className="material-symbols-outlined">add</span>
-                Buat Proposal Baru
+                <span className="material-symbols-outlined text-[20px]">add</span>
+                Buat Proposal
               </button>
             )}
           </div>
 
           {/* Proposal List Section */}
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
             {proposals.map(proposal => (
-              <div key={proposal.id} className="bg-surface-container-lowest rounded-3xl border border-outline-variant/20 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col h-full group">
-                <div className="p-6 border-b border-outline-variant/10">
-                  <div className="flex justify-between items-start mb-4 gap-4">
-                    <span className="text-xs font-bold text-on-surface-variant bg-surface-container-high px-2.5 py-1 rounded-md tracking-wider font-label">{proposal.id}</span>
+              <div key={proposal.id} className="bg-surface-container-lowest rounded-2xl border border-outline-variant/20 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col h-full group">
+                <div className="p-5 border-b border-outline-variant/10">
+                  <div className="flex justify-between items-start mb-3 gap-2">
+                    <span className="text-[10px] font-black text-on-surface-variant bg-surface-container-high px-2 py-0.5 rounded-md tracking-wider font-label uppercase">{proposal.id}</span>
                     {getStatusBadge(proposal.status)}
                   </div>
-                  <h3 className="text-xl font-bold font-headline leading-tight text-primary mb-2">{proposal.nama_kegiatan}</h3>
-                  <p className="text-sm font-body text-on-surface-variant line-clamp-2">{proposal.tujuan}</p>
+                  <h3 className="text-lg font-bold font-headline leading-tight text-primary mb-1.5 line-clamp-1 group-hover:text-primary-container transition-colors">{proposal.nama_kegiatan}</h3>
+                  <p className="text-[12px] font-medium text-on-surface-variant line-clamp-2 leading-relaxed">{proposal.tujuan}</p>
                 </div>
-                <div className="p-6 flex-grow grid grid-cols-2 gap-4 text-sm">
+                <div className="p-5 flex-grow grid grid-cols-2 gap-3 text-[12px]">
                   <div>
-                    <p className="text-xs text-secondary font-label uppercase tracking-widest mb-1">Tanggal</p>
-                    <p className="font-semibold">{proposal.tanggal_pelaksanaan}</p>
+                    <p className="text-[10px] text-secondary font-black uppercase tracking-widest mb-1 opacity-70">Tanggal</p>
+                    <p className="font-bold text-on-surface">{proposal.tanggal_pelaksanaan}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-secondary font-label uppercase tracking-widest mb-1">Anggaran</p>
-                    <p className="font-bold text-emerald-600">{formatRupiah(proposal.anggaran)}</p>
+                    <p className="text-[10px] text-secondary font-black uppercase tracking-widest mb-1 opacity-70">Anggaran</p>
+                    <p className="font-black text-emerald-600">{formatRupiah(proposal.anggaran)}</p>
                   </div>
                 </div>
-                <div className="p-4 border-t border-outline-variant/10 flex gap-3">
+                <div className="p-3.5 border-t border-outline-variant/10 flex gap-3">
                   <button 
                     onClick={() => openReviewModal(proposal)}
-                    className="flex-1 py-3.5 bg-primary/10 text-primary rounded-2xl font-bold font-headline hover:bg-primary hover:text-white transition-all flex justify-center items-center gap-2"
+                    className="flex-1 py-2.5 bg-primary/10 text-primary rounded-xl font-black font-headline hover:bg-primary hover:text-white transition-all flex justify-center items-center gap-2 text-[11px] uppercase tracking-wider"
                   >
-                    <span className="material-symbols-outlined text-[18px]">rate_review</span>
+                    <span className="material-symbols-outlined text-[16px]">rate_review</span>
                     Detail & History
                   </button>
                 </div>
@@ -296,12 +296,12 @@ const ProposalManagement = () => {
           {/* Modal Review & Detail */}
           {selectedProposal && (
             <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/30 backdrop-blur-sm p-4">
-              <div className="bg-surface w-full max-w-4xl max-h-[90vh] rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col md:flex-row animate-in fade-in zoom-in-95 duration-200 border border-outline-variant/10">
+              <div className="bg-surface w-full max-w-4xl max-h-[90vh] rounded-3xl shadow-2xl overflow-hidden flex flex-col md:flex-row animate-in fade-in zoom-in-95 duration-200 border border-outline-variant/10">
                 <div className="w-full md:w-3/5 border-r border-outline-variant/20 flex flex-col h-full bg-surface">
-                  <div className="p-6 border-b flex justify-between items-center bg-surface-container-low/50">
+                  <div className="p-5 border-b flex justify-between items-center bg-surface-container-low/50">
                     <div>
-                      <h2 className="text-2xl font-bold font-headline text-primary">{selectedProposal.nama_kegiatan}</h2>
-                      <span className="text-xs font-bold text-on-surface-variant">{selectedProposal.id}</span>
+                      <h2 className="text-lg font-black font-headline text-primary uppercase tracking-tight">{selectedProposal.nama_kegiatan}</h2>
+                      <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">{selectedProposal.id}</span>
                     </div>
                     {getStatusBadge(selectedProposal.status)}
                   </div>
@@ -313,7 +313,7 @@ const ProposalManagement = () => {
                           <span className={`w-3 h-3 rounded-full ${['disetujui_dosen','disetujui_fakultas','disetujui_univ'].includes(selectedProposal.status) ? 'bg-emerald-500' : 'bg-slate-300'}`}></span>
                           <span className={`w-3 h-3 rounded-full ${['disetujui_fakultas','disetujui_univ'].includes(selectedProposal.status) ? 'bg-emerald-500' : 'bg-slate-300'}`}></span>
                           <span className={`w-3 h-3 rounded-full ${['disetujui_univ'].includes(selectedProposal.status) ? 'bg-emerald-500' : 'bg-slate-300'}`}></span>
-                          <span className="text-[10px] text-on-surface-variant italic">(Dosen ➔ Fakultas ➔ Universitas)</span>
+                          <span className="text-[10px] text-on-surface-variant ">(Dosen ➔ Fakultas ➔ Universitas)</span>
                        </div>
                        <p className="text-sm font-body text-on-surface-variant leading-relaxed">{selectedProposal.tujuan}</p>
                     </div>

@@ -92,8 +92,8 @@ const AspirationControl = () => {
                    <td className="px-10 py-6 text-sm font-semibold tracking-tight">FEB - Akuntansi</td>
                    <td className="px-10 py-6"><span className="px-3.5 py-1.5 bg-amber-500/10 text-amber-600 rounded-full text-[10px] font-black tracking-widest border border-amber-500/10 uppercase">MEDIUM</span></td>
                    <td className="px-10 py-6">
-                      <div className="flex flex-col text-secondary opacity-60">
-                        <span className="text-xs font-bold italic">Delegated to Dept. Head</span>
+                      <div className="flex flex-col text-secondary opacity-80">
+                        <span className="text-xs font-bold ">Delegated to Dept. Head</span>
                       </div>
                    </td>
                    <td className="px-10 py-6 text-right">

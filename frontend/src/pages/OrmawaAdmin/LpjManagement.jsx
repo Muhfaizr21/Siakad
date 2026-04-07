@@ -104,37 +104,37 @@ const LpjManagement = () => {
   return (
     <div className="bg-surface text-on-surface min-h-screen font-body">
       <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
-      <main className="lg:ml-64 min-h-screen pb-12 transition-all duration-500">
+      <main className="lg:ml-60 min-h-screen pb-12 transition-all duration-500">
         <TopNavBar setIsOpen={setSidebarOpen} />
         
-        <div className="pt-24 px-4 lg:px-8">
+        <div className="pt-20 px-4 lg:px-6">
           {/* Header */}
-          <div className="mb-10">
-            <h1 className="text-4xl font-black font-headline text-on-surface tracking-tight mb-2 text-primary">Manajemen LPJ</h1>
-            <p className="text-on-surface-variant font-medium">Sistem otomatisasi folder pertanggungjawaban kegiatan.</p>
+          <div className="mb-8">
+            <h1 className="text-2xl font-black font-headline text-on-surface tracking-tight mb-1 text-primary">Manajemen LPJ</h1>
+            <p className="text-on-surface-variant text-xs font-medium">Sistem otomatisasi folder pertanggungjawaban kegiatan.</p>
           </div>
 
           {/* SECTION 1: ACTION REQUIRED (Pending LPJs) */}
           {pendingActivities.length > 0 && (
-            <div className="mb-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <div className="flex items-center gap-3 mb-6">
-                <span className="flex h-3 w-3 rounded-full bg-rose-500 animate-pulse"></span>
-                <h2 className="text-xl font-bold font-headline uppercase tracking-widest text-rose-600">Perlu Tindakan Segera ({pendingActivities.length})</h2>
+            <div className="mb-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <div className="flex items-center gap-2 mb-4">
+                <span className="flex h-2.5 w-2.5 rounded-full bg-rose-500 animate-pulse"></span>
+                <h2 className="text-[13px] font-black font-headline uppercase tracking-[0.2em] text-rose-600">Perlu Tindakan Segera ({pendingActivities.length})</h2>
               </div>
               
-              <div className="grid grid-cols-1 gap-4">
+              <div className="grid grid-cols-1 gap-3">
                 {pendingActivities.map(activity => (
-                  <div key={activity.id} className="bg-rose-50 border-2 border-rose-100 rounded-[2rem] p-8 flex flex-col md:flex-row justify-between items-center gap-6 shadow-sm border-dashed">
+                  <div key={activity.id} className="bg-rose-50/50 border border-rose-100 rounded-2xl p-5 flex flex-col md:flex-row justify-between items-center gap-4 shadow-sm">
                     <div className="flex-1">
-                      <p className="text-[10px] font-black text-rose-500 uppercase tracking-[0.2em] mb-2">Kegiatan Belum Dilaporkan</p>
-                      <h3 className="text-2xl font-bold font-headline text-on-surface">{activity.title}</h3>
-                      <p className="text-sm text-on-surface-variant mt-1">Selesai pada: {new Date(activity.dateEvent).toLocaleDateString('id-ID', { dateStyle: 'long' })}</p>
+                      <p className="text-[9px] font-black text-rose-500 uppercase tracking-widest mb-1">Belum Dilaporkan</p>
+                      <h3 className="text-lg font-bold font-headline text-on-surface leading-tight">{activity.title}</h3>
+                      <p className="text-[11px] text-on-surface-variant mt-0.5">Selesai: {new Date(activity.dateEvent).toLocaleDateString('id-ID', { dateStyle: 'long' })}</p>
                     </div>
                     <button 
                       onClick={() => handleCreateLPJSection(activity.id)}
-                      className="px-10 py-4 bg-rose-600 text-white rounded-2xl font-bold shadow-xl shadow-rose-200 hover:bg-rose-700 transition-all active:scale-95"
+                      className="px-6 py-2.5 bg-rose-600 text-white rounded-xl text-[11px] font-black uppercase tracking-widest shadow-md shadow-rose-100 hover:bg-rose-700 transition-all active:scale-95"
                     >
-                      Buka Draft LPJ & Upload Folder
+                      Buka Draft LPJ
                     </button>
                   </div>
                 ))}
@@ -143,33 +143,33 @@ const LpjManagement = () => {
           )}
 
           {/* SECTION 2: FOLDER-STYLE INTERFACE (Draft & Active LPJs) */}
-          <div className="grid grid-cols-1 gap-8">
-            <h2 className="text-xl font-bold font-headline uppercase tracking-widest text-on-surface-variant mb-2">Folder Laporan Aktif</h2>
+          <div className="grid grid-cols-1 gap-6">
+            <h2 className="text-[13px] font-black font-headline uppercase tracking-[0.2em] text-on-surface-variant mb-1">Folder Laporan Aktif</h2>
             
             {laporan.filter(l => l.status === 'draft' || l.status === 'revisi' || l.status === 'diajukan').map(lpj => {
               const isExpanded = activeItem === lpj.id;
               return (
-              <div key={lpj.id} className={`bg-white rounded-[2.5rem] border-2 ${lpj.status === 'revisi' ? 'border-amber-200 bg-amber-50/20' : 'border-outline-variant/10'} overflow-hidden shadow-xl transition-all duration-500`}>
+              <div key={lpj.id} className={`bg-white rounded-2xl border-2 ${lpj.status === 'revisi' ? 'border-amber-200 bg-amber-50/20' : 'border-outline-variant/10'} overflow-hidden shadow-sm hover:shadow-md transition-all duration-300`}>
                 {/* Header Card */}
-                <div className="p-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-                  <div className="flex items-center gap-6">
-                    <div className={`w-16 h-16 rounded-3xl flex items-center justify-center text-2xl shadow-inner ${lpj.status === 'revisi' ? 'bg-amber-100 text-amber-600' : 'bg-primary/5 text-primary'}`}>
-                      <span className="material-symbols-outlined font-black">{lpj.status === 'revisi' ? 'priority_high' : 'folder_open'}</span>
+                <div className="p-5 lg:p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                  <div className="flex items-center gap-4">
+                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-xl shadow-inner ${lpj.status === 'revisi' ? 'bg-amber-100 text-amber-600' : 'bg-primary/5 text-primary'}`}>
+                      <span className="material-symbols-outlined font-black text-[22px]">{lpj.status === 'revisi' ? 'priority_high' : 'folder_open'}</span>
                     </div>
                     <div>
-                      <h3 className="text-2xl font-bold font-headline text-on-surface">{lpj.proposal?.title}</h3>
-                      <div className="flex items-center gap-3 mt-2">
-                        <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border ${lpj.status === 'revisi' ? 'bg-amber-100 text-amber-700 border-amber-300' : 'bg-primary/10 text-primary border-primary/20'}`}>
-                          Status: {lpj.status}
+                      <h3 className="text-lg font-bold font-headline text-on-surface leading-tight">{lpj.proposal?.title}</h3>
+                      <div className="flex items-center gap-2 mt-1.5">
+                        <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider border ${lpj.status === 'revisi' ? 'bg-amber-100 text-amber-700 border-amber-300' : 'bg-primary/10 text-primary border-primary/20'}`}>
+                          {lpj.status}
                         </span>
-                        <span className="text-xs font-bold text-on-surface-variant opacity-60">Dibuat: {new Date(lpj.createdAt).toLocaleDateString()}</span>
+                        <span className="text-[10px] font-bold text-on-surface-variant opacity-60">Dibuat: {new Date(lpj.createdAt).toLocaleDateString()}</span>
                       </div>
                     </div>
                   </div>
                   
-                  <div className="flex items-center gap-3 w-full md:w-auto">
+                  <div className="flex items-center gap-2 w-full md:w-auto">
                     {lpj.status !== 'diajukan' && (
-                      <div className="flex flex-col items-end gap-2">
+                      <div className="flex flex-col items-end gap-1.5">
                         {/* VALIDATION: Check if all categories are fulfilled */}
                         {(() => {
                           const uploadedCount = (lpj.documents || []).length;
@@ -180,23 +180,14 @@ const LpjManagement = () => {
                               <button 
                                 onClick={() => isComplete && handleFinalSubmit(lpj.id)}
                                 disabled={!isComplete}
-                                className={`flex-1 md:flex-none px-8 py-4 text-white rounded-2xl font-bold shadow-lg transition-all flex items-center justify-center gap-2 ${
+                                className={`flex-1 md:flex-none px-5 py-2.5 text-white rounded-xl text-[11px] font-black uppercase tracking-widest shadow-md transition-all flex items-center justify-center gap-2 ${
                                   isComplete 
                                     ? 'bg-emerald-600 shadow-emerald-100 hover:bg-emerald-700 active:scale-95' 
-                                    : 'bg-slate-300 border-2 border-slate-400/20 shadow-none cursor-not-allowed'
+                                    : 'bg-slate-200 text-slate-400 border border-slate-300/30 cursor-not-allowed'
                                 }`}
                               >
-                                <span className="material-symbols-outlined text-[20px]">
-                                  {isComplete ? 'send' : 'lock'}
-                                </span>
-                                {isComplete ? 'Kirim LPJ' : 'Lengkapi Berkas'}
+                                {isComplete ? 'Kirim LPJ' : 'Belum Lengkap'}
                               </button>
-                              
-                              {!isComplete && (
-                                <p className="text-[10px] font-black text-rose-500 uppercase tracking-tight animate-pulse">
-                                  ⚠️ Wajib Upload {3 - uploadedCount} Dokumen Lagi
-                                </p>
-                              )}
                             </>
                           );
                         })()}
@@ -204,17 +195,17 @@ const LpjManagement = () => {
                     )}
                     <button 
                       onClick={() => setActiveItem(isExpanded ? null : lpj.id)}
-                      className="w-14 h-14 rounded-2xl bg-surface-container flex items-center justify-center text-on-surface-variant hover:bg-surface-container-high transition-colors"
+                      className="w-10 h-10 rounded-xl bg-surface-container flex items-center justify-center text-on-surface-variant hover:bg-surface-container-high transition-colors"
                     >
-                      <span className="material-symbols-outlined transition-transform duration-300" style={{ transform: isExpanded ? 'rotate(180deg)' : 'rotate(0)' }}>expand_more</span>
+                      <span className="material-symbols-outlined text-[20px] transition-transform duration-300" style={{ transform: isExpanded ? 'rotate(180deg)' : 'rotate(0)' }}>expand_more</span>
                     </button>
                   </div>
                 </div>
 
                 {/* FOLDERS SECTION */}
                 {isExpanded && (
-                  <div className="px-8 pb-8 animate-in slide-in-from-top-4 duration-300">
-                    <div className="bg-surface-container-lowest/50 rounded-[2rem] p-8 border border-outline-variant/10">
+                  <div className="px-5 pb-5 lg:px-6 lg:pb-6 animate-in slide-in-from-top-4 duration-300">
+                    <div className="bg-surface-container-lowest/50 rounded-2xl p-5 lg:p-6 border border-outline-variant/10">
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         {LPJ_CATEGORIES.map(cat => {
                           const doc = (lpj.documents || []).find(d => d.category === cat);
@@ -233,7 +224,7 @@ const LpjManagement = () => {
                                       {doc.fileName || "File Terunggah"}
                                     </p>
                                   ) : (
-                                    <p className="text-[10px] font-black uppercase text-on-surface-variant opacity-60 tracking-widest mt-1">
+                                    <p className="text-[10px] font-black uppercase text-on-surface-variant opacity-80 tracking-widest mt-1">
                                       Wajib Diisi
                                     </p>
                                   )}
