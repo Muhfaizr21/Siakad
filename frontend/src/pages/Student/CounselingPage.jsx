@@ -82,7 +82,7 @@ export default function CounselingPage() {
 
   return (
     <div className="min-h-screen bg-[#f5f5f3] text-[#171717] font-body">
-      <div className="max-w-7xl mx-auto px-4 py-6 md:px-6 lg:px-8 lg:py-8">
+      <div className="max-w-6xl mx-auto px-4 py-6 md:px-6 lg:px-8 lg:py-8">
 
         {/* Breadcrumb */}
         <nav className="flex items-center gap-1.5 text-sm text-neutral-400 mb-7">
@@ -132,6 +132,7 @@ export default function CounselingPage() {
             { title: 'Konseling Karir',    icon: Briefcase, color: TIPE_CONFIG.Karir,    desc: 'Minat bakat, persiapan kerja, dan pengembangan potensi.' },
             { title: 'Konseling Personal', icon: Heart,     color: TIPE_CONFIG.Personal, desc: 'Kesehatan mental, masalah pribadi, dan pengembangan diri.' },
           ].map(({ title, icon: Icon, color, desc }) => (
+            // eslint-disable-next-line
             <div key={title} className="bg-white rounded-2xl border border-neutral-100 p-5 hover:shadow-md transition-all group cursor-default">
               <div className={`w-10 h-10 ${color.bg} ${color.border} border rounded-xl flex items-center justify-center mb-4`}>
                 <Icon size={18} className={color.text} />

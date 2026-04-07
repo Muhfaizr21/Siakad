@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   Stethoscope,
   ChevronRight,
@@ -612,7 +612,7 @@ function InputModal({ onClose, onSubmit, isLoading }) {
   const bpStat  = getBPStatus(formData.sistolik, formData.diastolik);
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-100 flex items-center justify-center p-4">
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
         onClick={onClose} className="absolute inset-0 bg-[#00236F]/50 backdrop-blur-sm" />
 
@@ -744,7 +744,7 @@ function InputModal({ onClose, onSubmit, isLoading }) {
                 diastolik:    parseInt(formData.diastolik) || 0,
                 tanggal:      new Date(formData.tanggal).toISOString(),
               })}
-              className="flex-[2] py-2.5 bg-[#00236F] text-white text-sm font-bold rounded-xl hover:bg-[#0B4FAE] transition-all flex items-center justify-center gap-2 disabled:opacity-50 shadow-md shadow-[#00236F]/20"
+              className="flex-2 py-2.5 bg-[#00236F] text-white text-sm font-bold rounded-xl hover:bg-[#0B4FAE] transition-all flex items-center justify-center gap-2 disabled:opacity-50 shadow-md shadow-[#00236F]/20"
             >
               {isLoading
                 ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -778,7 +778,7 @@ function InputField({ label, unit, value, onChange, icon, placeholder }) {
 function DetailModal({ record, isLoading, onClose }) {
   if (isLoading || !record) {
     return (
-      <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
+      <div className="fixed inset-0 z-110 flex items-center justify-center p-4">
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
           onClick={onClose} className="absolute inset-0 bg-[#00236F]/50 backdrop-blur-sm" />
 
