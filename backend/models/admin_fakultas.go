@@ -81,30 +81,6 @@ func (Aspiration) TableName() string {
 	return "aspirations"
 }
 
-// Achievement represents a student award or competition result
-type Achievement struct {
-	ID            uint      `gorm:"primaryKey" json:"id"`
-	StudentID     uint      `gorm:"column:student_id" json:"studentId"`
-	Student       Student   `gorm:"foreignKey:StudentID;constraint:OnDelete:CASCADE" json:"student"`
-	NamaPrestasi  string    `gorm:"column:nama_prestasi" json:"title"`
-	Bidang        string    `gorm:"column:bidang" json:"category"` // Akademik, Non-Akademik
-	Tingkat       string    `gorm:"column:tingkat" json:"level"`   // Internasional, Nasional, Regional
-	Peringkat     string    `gorm:"column:peringkat" json:"rank"`  // Juara 1, Peserta, dsb
-	Tahun         int       `gorm:"column:tahun" json:"year"`
-	Penyelenggara string    `gorm:"column:penyelenggara" json:"institution"`
-	SertifikatURL string    `gorm:"column:sertifikat_url" json:"evidenceUrl"`
-	Status        string    `gorm:"column:status;default:'Menunggu'" json:"status"` // Menunggu, Terverifikasi, Ditolak
-	PoinSKPI      int       `gorm:"column:poin_skpi" json:"points"`
-	Catatan       string    `gorm:"column:catatan" json:"notes"`
-	VerifiedAt    *time.Time `gorm:"column:verified_at" json:"verifiedAt"`
-	VerifiedBy    *uint      `gorm:"column:verified_by" json:"verifiedBy"`
-	CreatedAt     time.Time  `gorm:"column:created_at" json:"createdAt"`
-	UpdatedAt     time.Time  `gorm:"column:updated_at" json:"updatedAt"`
-}
-
-func (Achievement) TableName() string {
-	return "achievements"
-}
 
 // LetterRequest represents a student's administrative letter application
 type LetterRequest struct {

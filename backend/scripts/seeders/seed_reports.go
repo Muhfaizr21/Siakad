@@ -50,7 +50,7 @@ func SeedReports() {
 			NIM:             nim,
 			Name:            name,
 			MajorID:         major.ID,
-			JoinYear:        year,
+			EntryYear:       int16(year),
 			GPA:             2.0 + rand.Float64()*(4.0-2.0), // 2.0 to 4.0
 			Status:          statuses[rand.Intn(len(statuses))],
 			Gender:          genders[rand.Intn(len(genders))],

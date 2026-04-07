@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"time"
 	"siakad-backend/models"
 	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
@@ -45,26 +46,26 @@ func SeedPrestasi() {
 
 	achievements := []models.Achievement{
 		{
-			StudentID:    student.ID,
-			NamaPrestasi: "Juara 1 Lomba National Programming Contest",
-			Bidang:       "Akademik",
-			Tingkat:      "Nasional",
-			Peringkat:    "Juara 1",
-			Tahun:        2024,
+			StudentID:     student.ID,
+			NamaLomba:     "Juara 1 Lomba National Programming Contest",
+			Kategori:      "Akademik",
+			Tingkat:       "Nasional",
+			Peringkat:     "Juara 1",
+			Tanggal:       time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC),
 			Penyelenggara: "RISTEKDIKTI",
 			SertifikatURL: "https://example.com/sertifikat1.pdf",
-			Status:       "Menunggu",
+			Status:        "Menunggu",
 		},
 		{
-			StudentID:    student.ID,
-			NamaPrestasi: "Medali Perak Karatedo Internasional Open",
-			Bidang:       "Non-Akademik",
-			Tingkat:      "Internasional",
-			Peringkat:    "Medali Perak",
-			Tahun:        2024,
+			StudentID:     student.ID,
+			NamaLomba:     "Medali Perak Karatedo Internasional Open",
+			Kategori:      "Non-Akademik",
+			Tingkat:       "Internasional",
+			Peringkat:     "Medali Perak",
+			Tanggal:       time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC),
 			Penyelenggara: "WKF (World Karate Federation)",
 			SertifikatURL: "https://example.com/sertifikat2.pdf",
-			Status:       "Menunggu",
+			Status:        "Menunggu",
 		},
 	}
 
@@ -72,7 +73,7 @@ func SeedPrestasi() {
 		if err := db.Create(&a).Error; err != nil {
 			fmt.Println("Failed to seed achievement:", err)
 		} else {
-			fmt.Printf("Seeded: %s for Student ID: %d\n", a.NamaPrestasi, a.StudentID)
+			fmt.Printf("Seeded: %s for Student ID: %d\n", a.NamaLomba, a.StudentID)
 		}
 	}
 

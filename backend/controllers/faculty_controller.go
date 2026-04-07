@@ -912,7 +912,7 @@ func VerifyAchievement(c *fiber.Ctx) error {
 
 	achievement.Status = req.Status
 	achievement.PoinSKPI = req.Points
-	achievement.Catatan = req.Notes
+	achievement.CatatanVerifikator = req.Notes
 	
 	now := time.Now()
 	achievement.VerifiedAt = &now

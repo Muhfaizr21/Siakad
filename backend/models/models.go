@@ -255,21 +255,22 @@ type KencanaSertifikat struct {
 
 // --- MODUL ACHIEVEMENT ---
 type Achievement struct {
-	ID                 uint    `gorm:"primaryKey"`
-	StudentID          uint
-	Student            Student `gorm:"foreignKey:StudentID"`
-	NamaLomba          string  `gorm:"not null"`
-	Kategori           string  // Akademik/Non-Akademik/Olahraga/Seni
-	Penyelenggara      string
-	Tingkat            string // Lokal/Nasional/Internasional
-	Tanggal            time.Time
-	Peringkat          string // Juara 1/2/3/Finalis/Peserta
-	SertifikatURL      string
-	Status             string // Menunggu/Diverifikasi/Ditolak
-	CatatanVerifikator string `gorm:"type:text"`
-	VerifiedBy         *uint
-	VerifiedAt         *time.Time
-	CreatedAt          time.Time
+	ID                 uint       `gorm:"primaryKey" json:"id"`
+	StudentID          uint       `json:"studentId"`
+	Student            Student    `gorm:"foreignKey:StudentID" json:"student"`
+	NamaLomba          string     `gorm:"not null" json:"title"`
+	Kategori           string     `json:"category"` // Akademik/Non-Akademik/Olahraga/Seni
+	Penyelenggara      string     `json:"institution"`
+	Tingkat            string     `json:"level"` // Lokal/Nasional/Internasional
+	Tanggal            time.Time  `json:"tanggal"` // Also acts as year
+	Peringkat          string     `json:"rank"`    // Juara 1/2/3/Finalis/Peserta
+	SertifikatURL      string     `json:"evidenceUrl"`
+	Status             string     `json:"status"` // Menunggu/Diverifikasi/Ditolak
+	PoinSKPI           int        `json:"points"`
+	CatatanVerifikator string     `gorm:"type:text" json:"notes"`
+	VerifiedBy         *uint      `json:"verifiedBy"`
+	VerifiedAt         *time.Time `json:"verifiedAt"`
+	CreatedAt          time.Time  `json:"createdAt"`
 }
 
 // --- MODUL SCHOLARSHIP ---
