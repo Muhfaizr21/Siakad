@@ -70,7 +70,7 @@ const FacultyAspirationManagement = () => {
                 <button
                   key={t}
                   onClick={() => setActiveTab(t)}
-                  className={`px-8 py-3 rounded-[1.2rem] text-sm font-black uppercase tracking-widest transition-all ${activeTab === t ? 'bg-indigo-600 text-white shadow-xl shadow-indigo-200' : 'text-slate-400 hover:text-slate-600 hover:bg-white'}`}
+                  className={`px-8 py-3 rounded-[1.2rem] text-sm font-black uppercase tracking-widest transition-all ${activeTab === t ? 'bg-indigo-600 text-white shadow-xl shadow-indigo-200' : 'text-slate-600 hover:text-slate-600 hover:bg-white'}`}
                 >
                   {t === 'all' ? 'Semua' : t === 'pending' ? 'Belum Dibalas' : 'Selesai'}
                 </button>
@@ -84,7 +84,7 @@ const FacultyAspirationManagement = () => {
                 <div className="w-24 h-24 bg-slate-50 rounded-full flex items-center justify-center mb-6 opacity-40">
                   <span className="material-symbols-outlined text-4xl">inbox_customize</span>
                 </div>
-                <p className="font-bold text-slate-400 uppercase tracking-widest">Tidak ada aspirasi masuk saat ini.</p>
+                <p className="font-bold text-slate-600 uppercase tracking-widest">Tidak ada aspirasi masuk saat ini.</p>
               </div>
             ) : (
               filteredAspirations.map(item => (
@@ -96,7 +96,7 @@ const FacultyAspirationManagement = () => {
                     </div>
                     <div>
                       <h4 className="font-black text-slate-900 text-xs uppercase tracking-widest mb-1 line-clamp-1">{item.ormawa?.name || 'ORMAWA'}</h4>
-                      <p className="text-[10px] font-bold text-slate-400">ID: #{item.ormawaId}</p>
+                      <p className="text-[10px] font-bold text-slate-600">ID: #{item.ormawaId}</p>
                     </div>
                   </div>
 
@@ -107,7 +107,7 @@ const FacultyAspirationManagement = () => {
                         <span className="material-symbols-outlined text-[14px]">{CATEGORIES.find(c => c.id === item.category)?.icon}</span>
                         {item.category}
                       </span>
-                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest self-center opacity-60">Dikirim Pada: {new Date(item.createdAt).toLocaleString('id-ID', { dateStyle: 'long' })}</span>
+                      <span className="text-[10px] font-bold text-slate-600 uppercase tracking-widest self-center opacity-80">Dikirim Pada: {new Date(item.createdAt).toLocaleString('id-ID', { dateStyle: 'long' })}</span>
                     </div>
 
                     <div>
@@ -120,7 +120,7 @@ const FacultyAspirationManagement = () => {
                         <span className="material-symbols-outlined text-emerald-600 mt-0.5">verified_user</span>
                         <div>
                           <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-2">Tanggapan Fakultas Telah Terkirim:</p>
-                          <p className="text-emerald-900 font-medium italic text-sm">"{item.response}"</p>
+                          <p className="text-emerald-900 font-medium  text-sm">"{item.response}"</p>
                         </div>
                       </div>
                     )}
@@ -163,13 +163,13 @@ const FacultyAspirationManagement = () => {
         {showResponseModal && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-slate-900/60 backdrop-blur-lg animate-in fade-in duration-300">
             <div className="bg-white rounded-[3rem] w-full max-w-2xl p-12 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.2)] animate-in zoom-in-95 duration-300 overflow-hidden relative">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-50 -mr-16 -mt-16 rounded-full blur-3xl opacity-60"></div>
+              <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-50 -mr-16 -mt-16 rounded-full blur-3xl opacity-80"></div>
 
               <h2 className="text-3xl font-black text-slate-900 mb-2">Jawab Aspirasi Himpunan</h2>
               <p className="text-slate-500 mb-10 leading-relaxed font-medium">Jawaban Anda akan muncul langsung di dashboard Himpunan {selectedItem?.ormawa?.name}.</p>
 
               <div className="mb-10 bg-slate-50 p-6 rounded-[2rem] border border-slate-100">
-                <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-3">Pesan Masuk:</p>
+                <p className="text-[10px] font-black uppercase text-slate-600 tracking-widest mb-3">Pesan Masuk:</p>
                 <p className="text-slate-800 font-bold leading-relaxed border-l-4 border-indigo-200 pl-4">{selectedItem?.description}</p>
               </div>
 

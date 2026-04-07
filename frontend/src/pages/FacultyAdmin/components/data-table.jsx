@@ -102,7 +102,7 @@ export function DataTable({
                          {actions(row)}
                       </div>
                       <div className="flex justify-end group-hover:hidden">
-                        <MoreVertical className="h-4 w-4 text-slate-300" />
+                        <MoreVertical className="h-4 w-4 text-slate-500" />
                       </div>
                     </TableCell>
                   )}

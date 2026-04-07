@@ -3,152 +3,149 @@ import Sidebar from './components/Sidebar';
 import TopNavBar from './components/TopNavBar';
 
 const AcademicPortal = () => {
-  const [isKrsOpen, setIsKrsOpen] = useState(true);
+    const [activeTab, setActiveTab] = useState('akademik');
 
-  return (
-    <div className="bg-surface text-on-surface min-h-screen flex font-headline">
-      <Sidebar />
-      <main className="pl-80 flex flex-col min-h-screen w-full">
-        <TopNavBar />
-        <div className="p-8 space-y-8">
-          <header className="flex justify-between items-center">
-            <div>
-              <h1 className="text-3xl font-extrabold text-primary tracking-tight">Academic Time-Gate</h1>
-              <p className="text-secondary mt-1">Global university phase synchronization and system-wide state control.</p>
-            </div>
-            <button className="bg-primary text-white px-8 py-4 rounded-2xl font-bold flex items-center gap-3 shadow-lg shadow-primary/20 hover:scale-[1.02] transition-all">
-              <span className="material-symbols-outlined">restart_alt</span>
-              Initialize Next Semester
-            </button>
-          </header>
+    const tabs = [
+        { id: 'akademik', label: 'Jadwal Akademik', icon: 'calendar_month' },
+        { id: 'profil', label: 'Profil Kampus', icon: 'domain' },
+        { id: 'keamanan', label: 'Keamanan & Sistem', icon: 'shield_lock' },
+        { id: 'integrasi', label: 'Koneksi API', icon: 'hub' },
+    ];
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-            {/* Active Phase Control */}
-            <div className="lg:col-span-1 space-y-6">
-              <div className="bg-white p-10 rounded-[3rem] border border-outline-variant/30 space-y-8 shadow-sm">
-                <div className="space-y-2">
-                  <h3 className="text-lg font-bold text-primary">Academic Master</h3>
-                  <p className="text-xs text-secondary/70">Current global configuration for all institutional nodes.</p>
+    return (
+        <div className="bg-surface text-on-surface min-h-screen flex font-headline font-body select-none">
+          <Sidebar />
+          <main className="pl-80 flex flex-col min-h-screen w-full">
+            <TopNavBar />
+            <div className="p-8 space-y-8 ">
+              <header className="flex justify-between items-end ">
+                <div>
+                  <h1 className="text-3xl font-extrabold text-primary tracking-tight font-headline uppercase  tracking-widest leading-none">Konfigurasi Global</h1>
+                  <p className="text-secondary mt-2 font-medium ">Otoritas pusat untuk sinkronisasi fase universitas dan kontrol keadaan sistem.</p>
                 </div>
-                
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center p-6 bg-surface-container-low rounded-3xl border border-outline-variant/10">
-                    <div className="flex flex-col">
-                      <span className="text-[10px] font-black uppercase text-secondary/50 tracking-widest">Target Year</span>
-                      <span className="font-extrabold text-primary">2023 / 2024</span>
-                    </div>
-                    <span className="material-symbols-outlined text-secondary/30">calendar_today</span>
-                  </div>
-                  
-                  <div className="flex justify-between items-center p-6 bg-surface-container-low rounded-3xl border border-outline-variant/10">
-                    <div className="flex flex-col">
-                      <span className="text-[10px] font-black uppercase text-secondary/50 tracking-widest">Global Term</span>
-                      <span className="font-extrabold text-primary text-lg">Ganjil (Odd)</span>
-                    </div>
-                    <span className="material-symbols-outlined text-secondary/30">import_export</span>
-                  </div>
-                </div>
+                <button className="bg-primary text-white px-8 py-3 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-primary/20 hover:scale-105 transition-all  leading-tight">
+                    Simpan Semua Perubahan
+                </button>
+              </header>
 
-                <div className="p-6 bg-secondary-container/30 rounded-3xl space-y-3 font-body border border-secondary/10">
-                    <div className="flex items-center gap-3 text-primary font-bold text-xs uppercase tracking-wider">
-                        <span className="material-symbols-outlined text-sm">info</span>
-                        Status: Execution Ready
-                    </div>
-                    <p className="text-xs text-secondary leading-relaxed">
-                        The current phase dictates access for 12,000+ students and 450+ courses. 
-                        Changing this will trigger global data recalculations.
-                    </p>
-                </div>
+              {/* Sub-Navigation Tabs */}
+              <div className="flex gap-4 border-b border-outline-variant/30 pb-4 ">
+                  {tabs.map((tab) => (
+                      <button 
+                        key={tab.id}
+                        onClick={() => setActiveTab(tab.id)}
+                        className={`px-8 py-3 rounded-2xl flex items-center gap-3 font-black text-xs uppercase tracking-widest transition-all ${
+                            activeTab === tab.id ? 'bg-primary text-white shadow-lg' : 'bg-white border border-outline-variant/30 text-secondary hover:bg-surface-container'
+                        }`}
+                      >
+                          <span className="material-symbols-outlined text-[18px] ">{tab.icon}</span>
+                          {tab.label}
+                      </button>
+                  ))}
               </div>
 
-              {/* Infrastructure Stats Snippet */}
-              <div className="bg-tertiary-container p-10 rounded-[3rem] text-white space-y-6 shadow-xl shadow-tertiary-container/20">
-                <div className="flex justify-between items-start">
-                    <h3 className="text-lg font-bold">Physical Library</h3>
-                    <span className="material-symbols-outlined text-on-tertiary-container opacity-50">analytics</span>
-                </div>
-                <div className="space-y-4">
-                    <div className="flex justify-between items-center border-b border-white/10 pb-4">
-                        <span className="text-sm opacity-80">Room Capacity</span>
-                        <span className="font-bold">4,500 Mats</span>
-                    </div>
-                    <div className="flex justify-between items-center border-b border-white/10 pb-4">
-                        <span className="text-sm opacity-80">Faculty Slots</span>
-                        <span className="font-bold">12 Defined</span>
-                    </div>
-                    <p className="text-[10px] uppercase font-black tracking-widest text-on-tertiary-container opacity-60">Manage in Infrastructure Hub</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Toggle Switches and Mass Controls */}
-            <div className="lg:col-span-2 space-y-8">
-               <div className="bg-white p-10 rounded-[3rem] border border-outline-variant/30 space-y-10 shadow-sm">
-                  <div>
-                    <h3 className="text-xl font-bold text-primary mb-2 tracking-tight">System State Authorization</h3>
-                    <p className="text-secondary text-sm">Control the flow of the university's digital existence.</p>
-                  </div>
-
-                  <div className="space-y-6">
-                    {/* Toggle Component */}
-                    <div className="flex items-center justify-between p-8 bg-surface-container-low/50 rounded-[2.5rem] hover:bg-surface-container-low transition-all border border-outline-variant/10 group">
-                        <div className="max-w-md space-y-2">
-                            <h4 className="font-extrabold text-primary flex items-center gap-3">
-                                <span className={`w-3 h-3 rounded-full ${isKrsOpen ? 'bg-emerald-500' : 'bg-slate-300'} animate-pulse`}></span>
-                                Masa KRS War (Student Registration)
-                            </h4>
-                            <p className="text-xs text-secondary leading-relaxed font-body">
-                                When enabled, the "Enroll Course" button becomes active for all students. 
-                                <span className="font-bold text-error block mt-1 uppercase text-[10px] tracking-widest italic font-headline opacity-0 group-hover:opacity-100 transition-opacity">Danger: High Concurrent Load Expected</span>
-                            </p>
+              {/* Tab Content: Akademik (Time-Gate) */}
+              {activeTab === 'akademik' && (
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 ">
+                    <div className="bg-white p-10 rounded-[3.5rem] border border-outline-variant/30 space-y-8 shadow-sm ">
+                        <h3 className="text-sm font-black text-primary uppercase tracking-widest  leading-tight">Kontrol Fase Akademik</h3>
+                        <div className="space-y-6">
+                            <div className="p-6 bg-surface-container-low/50 rounded-3xl border border-outline-variant/10 flex justify-between items-center ">
+                                <div>
+                                    <p className="text-[10px] font-black text-secondary/40 uppercase tracking-widest ">Tahun Ajaran Target</p>
+                                    <p className="text-xl font-black text-primary  leading-none">2024 / 2025</p>
+                                </div>
+                                <span className="material-symbols-outlined text-secondary opacity-20 ">calendar_today</span>
+                            </div>
+                            <div className="p-6 bg-surface-container-low/50 rounded-3xl border border-outline-variant/10 flex justify-between items-center ">
+                                <div>
+                                    <p className="text-[10px] font-black text-secondary/40 uppercase tracking-widest ">Semester Aktif</p>
+                                    <p className="text-xl font-black text-primary  leading-none uppercase">Ganjil (Odd)</p>
+                                </div>
+                                <span className="material-symbols-outlined text-secondary opacity-20 ">swap_vert</span>
+                            </div>
                         </div>
-                        <div 
-                          onClick={() => setIsKrsOpen(!isKrsOpen)}
-                          className={`w-[72px] h-10 rounded-full cursor-pointer transition-all duration-500 relative p-1 ${isKrsOpen ? 'bg-emerald-500 shadow-lg shadow-emerald-500/20' : 'bg-slate-300'}`}
-                        >
-                            <div className={`w-8 h-8 bg-white rounded-full transition-all duration-500 transform shadow-md flex items-center justify-center ${isKrsOpen ? 'translate-x-8' : 'translate-x-0'}`}>
-                                <span className={`material-symbols-outlined text-sm ${isKrsOpen ? 'text-emerald-500' : 'text-slate-400'}`}>
-                                    {isKrsOpen ? 'lock_open' : 'lock'}
-                                </span>
+                        <div className="p-8 bg-blue-50 border border-blue-100 rounded-[2.5rem] space-y-4 ">
+                            <div className="flex gap-4  leading-tight uppercase font-black text-xs text-blue-700">
+                                <span className="material-symbols-outlined ">info</span>
+                                Status: Siap Eksekusi
+                            </div>
+                            <p className="text-xs text-blue-600 font-medium  opacity-80 leading-relaxed font-body">Pengubahan fase akan memicu kalkulasi ulang data untuk 12,000+ mahasiswa.</p>
+                        </div>
+                    </div>
+
+                    <div className="bg-white p-10 rounded-[3.5rem] border border-outline-variant/30 space-y-8 shadow-sm  text-bold">
+                        <h3 className="text-sm font-black text-primary uppercase tracking-widest  leading-tight ">Otorisasi Keadaan Sistem</h3>
+                        <div className="space-y-8 ">
+                            <div className="flex items-center justify-between group cursor-pointer ">
+                                <div className="space-y-1 ">
+                                    <p className="text-sm font-black text-primary uppercase  leading-tight ">Masa KRS War (Pendaftaran)</p>
+                                    <p className="text-[10px] text-secondary font-medium  opacity-80">Tombol pendaftaran KRS menjadi aktif untuk seluruh mahasiswa.</p>
+                                </div>
+                                <div className="w-16 h-8 bg-emerald-500 rounded-full relative flex items-center px-1">
+                                    <div className="w-6 h-6 bg-white rounded-full translate-x-8 transition-all"></div>
+                                </div>
+                            </div>
+                            <div className="flex items-center justify-between group cursor-not-allowed opacity-40 ">
+                                <div className="space-y-1 ">
+                                    <p className="text-sm font-black text-primary uppercase  leading-tight ">Periode Input Nilai (Dosen)</p>
+                                    <p className="text-[10px] text-secondary font-medium  opacity-80">Fungsi saat ini terkunci berdasarkan kalender akademik.</p>
+                                </div>
+                                <div className="w-16 h-8 bg-slate-200 rounded-full relative flex items-center px-1">
+                                    <div className="w-6 h-6 bg-white rounded-full"></div>
+                                </div>
+                            </div>
+                            <div className="p-8 bg-rose-50 border border-rose-100 rounded-[2.5rem] flex items-center justify-between ">
+                                <div className="space-y-1 ">
+                                    <p className="text-xs font-black text-rose-700 uppercase tracking-widest  font-headline leading-tight ">Global Emergency Lockdown</p>
+                                    <p className="text-[9px] text-rose-600 font-medium  opacity-90  font-body">Matikan seluruh sesi fakultas dan mahasiswa secara instan.</p>
+                                </div>
+                                <button className="px-6 py-2 bg-rose-600 text-white rounded-full text-[10px] font-black uppercase tracking-widest shadow-xl shadow-rose-600/20  leading-tight">Eksekusi</button>
                             </div>
                         </div>
                     </div>
+                </div>
+              )}
 
-                    <div className="flex items-center justify-between p-8 bg-surface-container-low/50 rounded-[2.5rem] transition-all border border-outline-variant/10">
-                        <div className="max-w-md space-y-2 opacity-50">
-                            <h4 className="font-extrabold text-primary flex items-center gap-3">
-                                <span className={`w-3 h-3 rounded-full bg-slate-300 tracking-widest`}></span>
-                                Grading Period (Lecturer Input)
-                            </h4>
-                            <p className="text-xs text-secondary leading-relaxed font-body italic">
-                                Feature currently locked based on the academic calendar timeline.
-                            </p>
-                        </div>
-                        <div className="w-[72px] h-10 rounded-full bg-slate-100 cursor-not-allowed p-1">
-                            <div className="w-8 h-8 bg-white/50 rounded-full"></div>
-                        </div>
-                    </div>
+              {/* Tab: Profil (Teaser for expansion) */}
+              {activeTab === 'profil' && (
+                  <div className="bg-white p-12 rounded-[3.5rem] border border-outline-variant/30 space-y-8  shadow-sm">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-10  leading-tight">
+                          <div className="space-y-6  leading-tight">
+                              <h3 className="text-sm font-black text-primary uppercase tracking-widest  leading-tight  leading-tight">Identitas Institusi</h3>
+                              <div className="space-y-4  leading-tight">
+                                  <label className="text-[10px] font-black text-secondary/40 uppercase tracking-[0.2em]  leading-tight">Nama Universitas</label>
+                                  <input className="w-full bg-slate-50 p-4 rounded-2xl border border-outline-variant/10 text-primary font-bold  outline-none focus:border-primary" defaultValue="Universitas BKU Student Hub" />
+                              </div>
+                              <div className="space-y-4  leading-tight">
+                                  <label className="text-[10px] font-black text-secondary/40 uppercase tracking-[0.2em]  leading-tight">Warna Tema Primer</label>
+                                  <div className="flex gap-4  leading-tight">
+                                      <div className="w-12 h-12 bg-[#0056B3] rounded-xl border border-outline-variant/30"></div>
+                                      <input className="flex-1 bg-slate-50 p-4 rounded-2xl border border-outline-variant/10 text-primary font-bold  outline-none" defaultValue="#0056B3" />
+                                  </div>
+                              </div>
+                          </div>
+                          <div className="space-y-6  leading-tight border-l border-outline-variant/30 pl-10  leading-tight">
+                              <h3 className="text-sm font-black text-primary uppercase tracking-widest  leading-tight  leading-tight">Aset Branding</h3>
+                              <div className="w-full h-48 bg-slate-50 border-2 border-dashed border-outline-variant/30 rounded-[2.5rem] flex flex-col items-center justify-center text-secondary/40  leading-tight">
+                                  <span className="material-symbols-outlined text-4xl  leading-tight">upload_file</span>
+                                  <p className="text-[10px] font-black uppercase tracking-widest mt-4  leading-tight">Unggah Logo Resmi (.PNG)</p>
+                              </div>
+                          </div>
+                      </div>
                   </div>
-                  
-                  <div className="p-8 bg-primary/[0.03] border border-primary/10 rounded-[2.5rem] flex items-center gap-6">
-                    <div className="w-16 h-16 rounded-3xl bg-primary/10 flex items-center justify-center text-primary">
-                        <span className="material-symbols-outlined text-3xl">emergency_home</span>
-                    </div>
-                    <div className="flex-1">
-                        <h4 className="font-bold text-primary">Global Emergency Lockdown</h4>
-                        <p className="text-xs text-secondary font-body">Instantly terminate all student and faculty sessions. Use only in case of data breach.</p>
-                    </div>
-                    <button className="px-6 py-3 bg-error text-white rounded-xl font-bold text-xs uppercase tracking-widest shadow-lg shadow-error/20 hover:scale-105 active:scale-95 transition-all">
-                        Execute
-                    </button>
-                  </div>
-               </div>
+              )}
+
+              {activeTab === 'keamanan' && (
+                   <div className="bg-white p-12 rounded-[3.5rem] border border-outline-variant/30  shadow-sm flex flex-col items-center justify-center min-h-[300px]">
+                        <span className="material-symbols-outlined text-6xl text-secondary/10 ">security_update_good</span>
+                        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-secondary/40 mt-6 ">Modul Konfigurasi Keamanan Lanjutan Sedang Disiapkan</p>
+                   </div>
+              )}
             </div>
-          </div>
+          </main>
         </div>
-      </main>
-    </div>
-  );
-};
+    )
+}
 
 export default AcademicPortal;

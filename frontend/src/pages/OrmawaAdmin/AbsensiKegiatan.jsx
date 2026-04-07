@@ -96,7 +96,7 @@ const AbsensiKegiatan = () => {
              <span className="material-symbols-outlined text-4xl">calendar_today</span>
           </div>
           <h2 className="text-2xl font-black font-headline text-on-surface mb-2">Sesi Tidak Ditemukan</h2>
-          <p className="text-on-surface-variant mb-8 text-sm font-medium leading-relaxed italic">Belum ada sesi kegiatan aktif untuk organisasi Anda saat ini.</p>
+          <p className="text-on-surface-variant mb-8 text-sm font-medium leading-relaxed ">Belum ada sesi kegiatan aktif untuk organisasi Anda saat ini.</p>
           <button onClick={() => window.location.href='/ormawa/jadwal'} className="bg-primary hover:bg-primary-fixed text-white px-8 py-4 rounded-2xl font-black shadow-xl shadow-primary/20 transition-all active:scale-95 w-full lg:w-auto">Buat Jadwal Di Sini</button>
         </div>
       </main>
@@ -231,7 +231,7 @@ const AbsensiKegiatan = () => {
                           </tr>
                         );
                       })}
-                      {(members || []).length === 0 && <tr><td colSpan="3" className="text-center py-12 italic text-on-surface-variant">Belum ada data anggota</td></tr>}
+                      {(members || []).length === 0 && <tr><td colSpan="3" className="text-center py-12  text-on-surface-variant">Belum ada data anggota</td></tr>}
                     </tbody>
                   </table>
                </div>

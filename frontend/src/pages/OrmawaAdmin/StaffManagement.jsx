@@ -154,7 +154,7 @@ const StaffManagement = () => {
                        ))}
                        {staff.length === 0 && !loading && (
                          <tr>
-                            <td colSpan="4" className="px-8 py-20 text-center text-on-surface-variant italic font-medium">Buku daftar staf masih kosong.</td>
+                            <td colSpan="4" className="px-8 py-20 text-center text-on-surface-variant  font-medium">Buku daftar staf masih kosong.</td>
                          </tr>
                        )}
                     </tbody>

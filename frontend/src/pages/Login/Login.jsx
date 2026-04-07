@@ -143,7 +143,7 @@ export default function LoginPage() {
                         <span className="text-md font-bold text-slate-900 font-headline">BKU</span>
                         <div className="w-8 h-px bg-outline-variant/30"></div>
                     </div>
-                    <p className="font-body text-sm text-slate-400">© 2024 BKU Student Hub. All Rights Reserved.</p>
+                    <p className="font-body text-sm text-slate-600">© 2024 BKU Student Hub. All Rights Reserved.</p>
                     <div className="flex gap-4 opacity-40 grayscale hover:grayscale-0 hover:opacity-100 transition-all justify-center w-full">
                         <span className="material-symbols-outlined cursor-pointer" data-icon="language">language</span>
                         <span className="material-symbols-outlined cursor-pointer" data-icon="hub">hub</span>

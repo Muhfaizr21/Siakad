@@ -278,7 +278,7 @@ export default function JadwalPage() {
                                   >
                                     <p className="text-xs font-semibold truncate">{item.mataKuliah}</p>
                                     <p className="text-xs opacity-80 truncate">{item.kode} - {item.kelas}</p>
-                                    <div className="mt-1 flex items-center gap-1 text-xs opacity-70">
+                                    <div className="mt-1 flex items-center gap-1 text-xs opacity-90">
                                       <MapPin className="h-3 w-3" />
                                       <span>{item.ruang}</span>
                                     </div>

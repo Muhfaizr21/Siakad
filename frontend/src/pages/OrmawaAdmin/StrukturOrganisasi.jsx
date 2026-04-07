@@ -180,62 +180,62 @@ const StrukturOrganisasi = () => {
   return (
     <div className="bg-surface text-on-surface min-h-screen">
       <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
-      <main className="lg:ml-64 min-h-screen pb-12 transition-all duration-300">
+      <main className="lg:ml-60 min-h-screen pb-12 transition-all duration-300">
         <TopNavBar setIsOpen={setSidebarOpen} />
         
-        <div className="pt-24 px-4 lg:px-8">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+        <div className="pt-20 px-4 lg:px-6">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
             <div>
-              <h1 className="text-3xl font-extrabold font-headline mb-2 text-on-surface">Struktur Kepengurusan</h1>
-              <p className="text-on-surface-variant text-sm font-medium">Manajemen hierarki (Atasan-Bawahan) dan ploting formasi divisi.</p>
+              <h1 className="text-2xl font-extrabold font-headline mb-1 text-on-surface text-primary">Struktur Kepengurusan</h1>
+              <p className="text-on-surface-variant text-xs font-medium leading-relaxed">Manajemen hierarki & ploting formasi divisi.</p>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
               <button 
                 onClick={() => setIsDivModalOpen(true)}
-                className="flex items-center gap-2 px-5 py-2.5 bg-surface-container-high text-primary font-bold rounded-xl border border-primary/20 shadow-sm hover:bg-white transition-all"
+                className="flex items-center gap-2 px-4 py-2 bg-surface-container-high text-primary font-black rounded-xl border border-primary/20 shadow-sm hover:bg-white transition-all text-xs uppercase tracking-wider"
               >
-                <span className="material-symbols-outlined text-[18px]">account_tree</span>
-                Tambah Divisi
+                <span className="material-symbols-outlined text-[16px]">account_tree</span>
+                Divisi
               </button>
               {hasPermission('struktur', 'edit') && (
                 <button 
                   onClick={openReshuffleModal}
-                  className="flex items-center gap-2 px-5 py-2.5 bg-primary text-white font-bold rounded-xl shadow-lg hover:-translate-y-0.5 transition-all outline-none"
+                  className="flex items-center gap-2 px-4 py-2 bg-primary text-white font-black rounded-xl shadow-lg hover:-translate-y-0.5 transition-all outline-none text-xs uppercase tracking-wider"
                 >
-                  <span className="material-symbols-outlined text-[18px]">group_add</span>
-                  Edit Struktur / Reshuffle
+                  <span className="material-symbols-outlined text-[16px]">group_add</span>
+                  Edit Struktur
                 </button>
               )}
             </div>
           </div>
 
-          <div className="bg-surface-container-lowest border border-outline-variant/20 rounded-[2.5rem] p-12 overflow-x-auto shadow-sm min-h-[600px] flex flex-col items-center relative">
-            <div className="flex flex-col items-center mt-4">
+          <div className="bg-surface-container-lowest border border-outline-variant/20 rounded-2xl p-6 lg:p-10 overflow-x-auto shadow-sm min-h-[500px] flex flex-col items-center relative">
+            <div className="flex flex-col items-center mt-2">
               {/* Leader */}
-              <div className="w-64 bg-primary-container text-primary-fixed border-4 border-white shadow-xl rounded-2xl p-6 flex flex-col items-center text-center">
-                 <div className="w-16 h-16 bg-primary rounded-full mb-3 flex items-center justify-center text-white text-2xl overflow-hidden border-2 border-white shadow-sm">
+              <div className="w-56 bg-primary-container text-primary-fixed border-[3px] border-white shadow-xl rounded-2xl p-4 flex flex-col items-center text-center">
+                 <div className="w-14 h-14 bg-primary rounded-full mb-2 flex items-center justify-center text-white text-xl overflow-hidden border-2 border-white shadow-sm">
                     <img src={`https://i.pravatar.cc/150?u=${org.presiden.id}`} alt="avatar" />
                  </div>
-                 <h3 className="font-extrabold font-headline leading-tight">{org.presiden.role}</h3>
-                 <p className="text-sm font-semibold mt-1">{org.presiden.nama}</p>
+                 <h3 className="font-black font-headline leading-tight text-[15px] uppercase tracking-tight">{org.presiden.role}</h3>
+                 <p className="text-xs font-bold mt-1 opacity-80">{org.presiden.nama}</p>
               </div>
 
-              <div className="w-1 h-8 bg-outline-variant/30"></div>
+              <div className="w-0.5 h-6 bg-outline-variant/30"></div>
 
               {/* Vice */}
-              <div className="w-56 bg-surface border-2 border-outline-variant/20 shadow-lg rounded-2xl p-4 flex flex-col items-center text-center">
-                 <h3 className="font-bold text-sm text-secondary font-headline outline-none">{org.wakil.role}</h3>
-                 <p className="text-sm font-semibold text-on-surface mt-1">{org.wakil.nama}</p>
+              <div className="w-48 bg-surface border border-outline-variant/20 shadow-md rounded-2xl p-3 flex flex-col items-center text-center">
+                 <h3 className="font-black text-[11px] text-secondary font-headline uppercase tracking-wider">{org.wakil.role}</h3>
+                 <p className="text-xs font-bold text-on-surface mt-0.5">{org.wakil.nama}</p>
               </div>
 
-              <div className="w-1 h-12 bg-outline-variant/30 relative">
-                 <div className="absolute top-full left-1/2 -translate-x-1/2 w-[40rem] h-1 bg-outline-variant/30"></div>
+              <div className="w-0.5 h-10 bg-outline-variant/20 relative">
+                 <div className="absolute top-full left-1/2 -translate-x-1/2 w-[30rem] h-0.5 bg-outline-variant/20"></div>
               </div>
 
               {/* Core / Divisions */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-6">
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
                 {org.divisi.length > 0 ? org.divisi.map((div, i) => (
-                  <div key={i} className="bg-surface border border-outline-variant/20 shadow-sm rounded-2xl overflow-hidden min-w-[180px]">
+                  <div key={i} className="bg-surface border border-outline-variant/20 shadow-sm rounded-xl overflow-hidden min-w-[170px]">
                      <div className="bg-surface-container py-3 px-4 flex justify-between items-center border-b border-outline-variant/10">
                         <h4 className="font-bold text-sm font-headline text-on-surface">{div.nama}</h4>
                         <button 
@@ -254,17 +254,17 @@ const StrukturOrganisasi = () => {
                         </button>
                      </div>
                      <div className="p-4 text-center">
-                        <p className="text-[10px] text-secondary font-label uppercase mb-1">Kepala Divisi</p>
-                        <p className="font-bold text-sm text-primary line-clamp-1">{div.kepala}</p>
-                        <div className="mt-3 flex justify-center -space-x-2">
+                        <p className="text-[9px] text-secondary font-black uppercase tracking-[0.15em] mb-1 opacity-60">Kadiv</p>
+                        <p className="font-bold text-[12.5px] text-primary line-clamp-1 leading-tight">{div.kepala}</p>
+                        <div className="mt-2.5 flex justify-center -space-x-1.5">
                            {div.staff.slice(0,3).map((s, idx) => (
-                             <img key={idx} src={`https://i.pravatar.cc/150?u=${s.id}`} className="w-6 h-6 rounded-full border border-white" />
+                             <img key={idx} src={`https://i.pravatar.cc/150?u=${s.id}`} className="w-5 h-5 rounded-full border border-white shadow-sm" />
                            ))}
                         </div>
-                        <p className="text-[10px] text-on-surface-variant mt-2">{div.kuota} Anggota</p>
+                        <p className="text-[9px] font-black text-on-surface-variant mt-2 tracking-widest uppercase opacity-50">{div.kuota} Anggota</p>
                      </div>
                   </div>
-                )) : <p className="col-span-4 italic text-on-surface-variant py-12">Belum ada divisi yang diplot</p>}
+                )) : <p className="col-span-4 text-[13px] text-on-surface-variant py-8 font-medium">Belum ada divisi yang diplot</p>}
               </div>
             </div>
           </div>
@@ -314,7 +314,7 @@ const StrukturOrganisasi = () => {
                       <option key={m.id} value={m.id}>{m.student?.name} ({m.role})</option>
                     ))}
                   </select>
-                  <p className="text-[10px] text-on-surface-variant mt-2 italic">*Digunakan untuk membangun bagan organisasi hirarkis.</p>
+                  <p className="text-[10px] text-on-surface-variant mt-2 ">*Digunakan untuk membangun bagan organisasi hirarkis.</p>
                 </div>
 
                 <div className="flex gap-3 pt-4">

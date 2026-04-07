@@ -54,7 +54,7 @@ const Timeline = () => {
                         </div>
                     </div>
                     <div
-                        className="bg-white/5 backdrop-blur-xl rounded-3xl p-8 border border-white/10 flex gap-6 items-start translate-x-12 opacity-50">
+                        className="bg-white/5 backdrop-blur-xl rounded-3xl p-8 border border-white/10 flex gap-6 items-start translate-x-12 opacity-70">
                         <div className="w-3 h-3 rounded-full bg-slate-400 mt-2.5"></div>
                         <div>
                             <div className="text-white font-bold text-lg mb-1">Course Registration Phase 2</div>

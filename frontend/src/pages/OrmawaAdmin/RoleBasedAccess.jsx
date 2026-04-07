@@ -239,28 +239,27 @@ const RoleBasedAccess = () => {
   return (
     <div className="bg-surface text-on-surface min-h-screen">
       <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
-      <main className="lg:ml-64 min-h-screen pb-12 transition-all duration-300">
+      <main className="lg:ml-60 min-h-screen pb-12 transition-all duration-300">
         <TopNavBar setIsOpen={setSidebarOpen} />
         
-        <div className="pt-24 px-4 lg:px-8">
-          <div className="max-w-7xl mx-auto space-y-8">
+        <div className="pt-20 px-4 lg:px-6">
+          <div className="max-w-7xl mx-auto space-y-6">
             
             {/* Header */}
-            <div className="flex flex-col md:flex-row md:justify-between md:items-end gap-4 bg-gradient-to-r from-primary to-primary/80 p-8 rounded-[2rem] text-white shadow-xl shadow-primary/20">
+            <div className="flex flex-col md:flex-row md:justify-between md:items-end gap-3 bg-gradient-to-r from-primary to-primary/80 p-6 rounded-2xl text-white shadow-xl shadow-primary/10">
               <div>
-                <span className="bg-white/20 text-white text-xs font-bold px-3 py-1 rounded-full mb-4 inline-block font-headline tracking-wider uppercase">Master Controller</span>
-                <h1 className="text-4xl font-black font-headline leading-tight mt-2 mb-2">Delegasi Akses & Role Pengurus</h1>
-                <p className="text-primary-50 max-w-2xl text-sm font-medium">
-                  Sebagai Admin Ormawa (Pemilik Kendali Penuh), Anda dapat mendelegasikan sebagian hak akses secara terperinci (View, Edit, Buat, Hapus) 
-                  kepada anggota pengurus (Sekretaris, Bendahara, Kadiv) sesuai fungsi dan tanggung jawabnya.
+                <span className="bg-white/20 text-white text-[10px] font-black px-2.5 py-0.5 rounded-full mb-3 inline-block font-headline tracking-[0.1em] uppercase">Master Controller</span>
+                <h1 className="text-2xl font-black font-headline leading-tight mt-1 mb-1">Role & Hak Akses</h1>
+                <p className="text-primary-50 max-w-xl text-xs font-medium opacity-90">
+                  Delegasikan hak akses (View, Edit, Create, Delete) ke pengurus Inti dan Unit Divisi secara aman.
                 </p>
               </div>
               <button 
                 onClick={handleCreateRole}
-                className="bg-white text-primary hover:bg-surface-container px-6 py-3 rounded-2xl shadow-lg flex items-center gap-2 transition-all font-bold group whitespace-nowrap"
+                className="bg-white text-primary hover:bg-surface-container px-5 py-2.5 rounded-xl shadow-lg flex items-center gap-2 transition-all font-black text-xs group uppercase tracking-wider"
               >
-                <span className="material-symbols-outlined transition-transform group-hover:rotate-90">add</span>
-                Buat Role Pengurus Baru
+                <span className="material-symbols-outlined text-[18px] transition-transform group-hover:rotate-90">add</span>
+                Buat Role
               </button>
             </div>
 
@@ -268,26 +267,26 @@ const RoleBasedAccess = () => {
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
               
               {/* Role Navigation Sidebar */}
-              <div className="lg:col-span-1 bg-white border border-outline-variant/30 rounded-3xl p-4 shadow-xl shadow-slate-200/40">
-                <h2 className="px-4 py-2 text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-2 font-headline">Daftar Role</h2>
-                <div className="space-y-2">
+              <div className="lg:col-span-1 bg-white border border-outline-variant/30 rounded-2xl p-3 shadow-sm">
+                <h2 className="px-3 py-2 text-[10px] font-black text-on-surface-variant uppercase tracking-widest mb-1.5 font-headline opacity-60">Daftar Role</h2>
+                <div className="space-y-1.5">
                   {roles.map(role => (
                     <button
                       key={role.id}
                       onClick={() => setActiveTab(role.id)}
-                      className={`w-full text-left px-5 py-5 rounded-2xl flex items-center justify-between transition-all outline-none ${
+                      className={`w-full text-left px-4 py-3.5 rounded-xl flex items-center justify-between transition-all outline-none border ${
                         activeTab === role.id 
-                          ? 'bg-primary/10 text-primary border border-primary/20 scale-[1.02]' 
-                          : 'hover:bg-surface-container text-on-surface border border-transparent hover:border-outline-variant/40'
+                          ? 'bg-primary/5 text-primary border-primary/20' 
+                          : 'hover:bg-surface-container text-on-surface border-transparent font-medium'
                       }`}
                     >
                       <div>
-                        <div className="font-bold font-headline text-sm">{role.name}</div>
-                        <div className={`text-xs mt-1 transition-colors ${activeTab === role.id ? 'text-primary/60' : 'text-on-surface-variant'}`}>
-                          {role.userCount} Anggota Pengurus
+                        <div className="font-bold font-headline text-[13px]">{role.name}</div>
+                        <div className={`text-[10px] mt-0.5 transition-colors font-bold ${activeTab === role.id ? 'text-primary/60' : 'text-on-surface-variant opacity-60'}`}>
+                          {role.userCount} Anggota
                         </div>
                       </div>
-                      <span className="material-symbols-outlined text-xl opacity-80">chevron_right</span>
+                      <span className="material-symbols-outlined text-[18px] opacity-40">chevron_right</span>
                     </button>
                   ))}
                 </div>
@@ -295,26 +294,26 @@ const RoleBasedAccess = () => {
 
               {/* Detailed View Panel */}
               {currentRoleDetails && (
-                <div className="lg:col-span-3 bg-white border border-outline-variant/30 rounded-3xl overflow-hidden shadow-xl shadow-slate-200/40 flex flex-col">
+                <div className="lg:col-span-3 bg-white border border-outline-variant/30 rounded-2xl overflow-hidden shadow-sm flex flex-col">
                   {/* Panel Header */}
-                  <div className="p-8 border-b border-outline-variant/20 flex justify-between items-start bg-surface-container-low/30">
+                  <div className="p-6 lg:p-8 border-b border-outline-variant/20 flex justify-between items-start bg-surface-container-low/20">
                     <div>
-                      <div className="flex items-center gap-3 mb-2">
-                        <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center text-primary border border-primary/20">
-                          <span className="material-symbols-outlined text-2xl">shield_person</span>
+                      <div className="flex items-center gap-4 mb-3">
+                        <div className="w-11 h-11 bg-primary/10 rounded-xl flex items-center justify-center text-primary border border-primary/20 shadow-inner">
+                          <span className="material-symbols-outlined text-[22px]">shield_person</span>
                         </div>
                         <div>
-                          <h2 className="text-2xl font-bold text-on-surface font-headline">{currentRoleDetails.name}</h2>
+                          <h2 className="text-xl font-black text-on-surface font-headline leading-tight">{currentRoleDetails.name}</h2>
                           <div className="flex gap-2 items-center mt-1">
                             {currentRoleDetails.isCustom ? (
-                              <span className="bg-amber-50 text-amber-700 text-[10px] font-bold px-2 py-0.5 rounded-md uppercase tracking-wider border border-amber-200">Custom Role</span>
+                              <span className="bg-amber-100 text-amber-700 text-[9px] font-black px-2 py-0.5 rounded uppercase tracking-wider border border-amber-200">Custom</span>
                             ) : (
-                              <span className="bg-blue-50 text-blue-700 text-[10px] font-bold px-2 py-0.5 rounded-md uppercase tracking-wider border border-blue-200">Default Role</span>
+                              <span className="bg-blue-100 text-blue-700 text-[9px] font-black px-2 py-0.5 rounded uppercase tracking-wider border border-blue-200">System</span>
                             )}
                           </div>
                         </div>
                       </div>
-                      <p className="text-on-surface-variant text-sm mt-4 max-w-2xl leading-relaxed">{currentRoleDetails.description}</p>
+                      <p className="text-on-surface-variant text-xs mt-3 max-w-2xl leading-relaxed opacity-80">{currentRoleDetails.description}</p>
                     </div>
                     {user?.role?.id === 1 ? (
                       <div className="flex items-center gap-3">
@@ -347,31 +346,31 @@ const RoleBasedAccess = () => {
                        <span className="material-symbols-outlined text-[18px]">verified_user</span>
                        Peta Kewenangan Modul
                      </h3>
-                     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
                       {modulePermissions.map(mod => {
                         const hasAnyAccess = (currentRoleDetails.permissions[mod.id] || []).length > 0;
                         if (!hasAnyAccess) return null;
 
                         return (
-                          <div key={mod.id} className="border border-outline-variant/20 rounded-2xl p-5 bg-surface-container-low/10 group">
-                            <div className="flex items-center justify-between mb-4 pb-3 border-b border-outline-variant/10">
-                              <h4 className="font-bold text-on-surface font-headline group-hover:text-primary transition-colors">{mod.name}</h4>
+                          <div key={mod.id} className="border border-outline-variant/10 rounded-xl p-4 bg-surface-container-low/5 group transition-all hover:border-primary/20">
+                            <div className="flex items-center justify-between mb-3 pb-2 border-b border-outline-variant/5">
+                              <h4 className="font-black text-[13px] text-on-surface font-headline group-hover:text-primary transition-colors uppercase tracking-tight">{mod.name}</h4>
                             </div>
-                            <div className="space-y-3">
+                            <div className="space-y-2">
                               {mod.actions.map(action => {
                                 const hasAccess = (currentRoleDetails.permissions[mod.id] || []).includes(action.id);
                                 return (
-                                  <div key={action.id} className="flex items-center gap-3">
+                                  <div key={action.id} className="flex items-center gap-2.5">
                                     {hasAccess ? (
-                                      <div className="w-5 h-5 bg-primary/10 border border-primary/20 rounded-md flex items-center justify-center text-primary">
-                                        <span className="material-symbols-outlined text-[14px] font-bold">check</span>
+                                      <div className="w-4 h-4 bg-primary/10 border border-primary/20 rounded flex items-center justify-center text-primary">
+                                        <span className="material-symbols-outlined text-[12px] font-black">check</span>
                                       </div>
                                     ) : (
-                                      <div className="w-5 h-5 bg-surface-container/50 border border-outline-variant/30 rounded-md flex items-center justify-center text-outline-variant/50">
-                                        <span className="material-symbols-outlined text-[12px]">close</span>
+                                      <div className="w-4 h-4 bg-surface-container/30 border border-outline-variant/20 rounded flex items-center justify-center text-outline-variant/40">
+                                        <span className="material-symbols-outlined text-[10px]">close</span>
                                       </div>
                                     )}
-                                    <span className={`text-sm ${hasAccess ? 'text-on-surface font-medium' : 'text-on-surface-variant/50'}`}>
+                                    <span className={`text-[12px] ${hasAccess ? 'text-on-surface font-bold' : 'text-on-surface-variant/40'}`}>
                                       {action.label}
                                     </span>
                                   </div>
@@ -393,12 +392,12 @@ const RoleBasedAccess = () => {
       {/* Editor Modal */}
       {isModalOpen && selectedRole && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-slate-900/30 backdrop-blur-md">
-          <div className="bg-white rounded-[2rem] w-full max-w-5xl max-h-full flex flex-col shadow-2xl animate-in zoom-in-95 duration-200 border border-outline-variant/20">
+          <div className="bg-white rounded-3xl w-full max-w-5xl max-h-full flex flex-col shadow-2xl animate-in zoom-in-95 duration-200 border border-outline-variant/20">
             
-            <div className="px-8 py-5 border-b border-outline-variant/20 flex justify-between items-center bg-surface-container-lowest rounded-t-[2rem]">
-              <div className="flex items-start gap-4 flex-1 mr-8">
-                <div className="w-10 h-10 bg-primary/10 text-primary rounded-xl flex items-center justify-center border border-primary/20 mt-1">
-                  <span className="material-symbols-outlined">tune</span>
+            <div className="px-6 py-4 border-b border-outline-variant/20 flex justify-between items-center bg-surface-container-lowest rounded-t-3xl">
+              <div className="flex items-start gap-3 flex-1 mr-6">
+                <div className="w-9 h-9 bg-primary/10 text-primary rounded-lg flex items-center justify-center border border-primary/20 mt-0.5">
+                  <span className="material-symbols-outlined text-[20px]">tune</span>
                 </div>
                 <div className="flex-1 space-y-2">
                   {selectedRole.isCustom ? (
@@ -491,7 +490,7 @@ const RoleBasedAccess = () => {
                                 <div className={`text-sm font-semibold transition-colors ${modulePerms.includes(action.id) ? 'text-primary' : 'text-on-surface'}`}>
                                   {action.label}
                                 </div>
-                                <div className="text-[10px] text-on-surface-variant uppercase mt-0.5 font-mono tracking-wider opacity-60">
+                                <div className="text-[10px] text-on-surface-variant uppercase mt-0.5 font-mono tracking-wider opacity-80">
                                   [{action.id}]
                                 </div>
                               </div>
@@ -505,19 +504,19 @@ const RoleBasedAccess = () => {
               </div>
             </div>
             
-            <div className="px-8 py-5 border-t border-outline-variant/30 flex justify-end gap-4 bg-white rounded-b-[2rem]">
+            <div className="px-6 py-4 border-t border-outline-variant/30 flex justify-end gap-3 bg-white rounded-b-3xl">
               <button 
                 onClick={handleCloseModal}
-                className="px-6 py-2.5 rounded-xl font-bold text-on-surface-variant hover:bg-surface-container active:scale-95 transition-all outline-none"
+                className="px-5 py-2 rounded-xl font-bold text-on-surface-variant hover:bg-surface-container active:scale-95 transition-all outline-none text-sm"
               >
                 Batal
               </button>
               <button 
                 onClick={handleSaveRole}
-                className="bg-primary hover:bg-primary/90 text-white px-8 py-2.5 rounded-xl font-bold shadow-lg shadow-primary/30 transition-all hover:scale-105 active:scale-95 flex items-center gap-2 outline-none"
+                className="bg-primary hover:bg-primary/90 text-white px-6 py-2 rounded-xl font-bold shadow-lg shadow-primary/30 transition-all hover:scale-105 active:scale-95 flex items-center gap-2 outline-none text-sm"
               >
-                <span className="material-symbols-outlined text-[18px]">save</span>
-                Simpan Konfigurasi Akses
+                <span className="material-symbols-outlined text-[16px]">save</span>
+                Simpan Konfigurasi
               </button>
             </div>
           </div>

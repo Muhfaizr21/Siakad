@@ -13,7 +13,7 @@ const TopNavBar = ({ setIsOpen }) => {
         </button>
 
         <div className="relative w-full max-w-md hidden sm:block">
-          <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm">search</span>
+          <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-600 text-sm">search</span>
           <input
             className="w-full pl-11 pr-4 py-2.5 bg-slate-50/50 border border-slate-100 rounded-2xl text-sm focus:ring-4 focus:ring-primary/5 focus:bg-white focus:border-primary/20 transition-all outline-none"
             placeholder="Cari data, dosen, atau mahasiswa..."
@@ -25,11 +25,11 @@ const TopNavBar = ({ setIsOpen }) => {
       <div className="flex items-center gap-4">
         {/* Quick Actions */}
         <div className="flex items-center gap-1 bg-slate-50 p-1 rounded-2xl border border-slate-100">
-          <button className="w-10 h-10 flex items-center justify-center text-slate-400 hover:text-primary hover:bg-white rounded-xl transition-all relative">
+          <button className="w-10 h-10 flex items-center justify-center text-slate-600 hover:text-primary hover:bg-white rounded-xl transition-all relative">
             <span className="material-symbols-outlined text-[20px]">notifications</span>
             <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-rose-500 rounded-full border-2 border-white"></span>
           </button>
-          <button className="w-10 h-10 flex items-center justify-center text-slate-400 hover:text-primary hover:bg-white rounded-xl transition-all">
+          <button className="w-10 h-10 flex items-center justify-center text-slate-600 hover:text-primary hover:bg-white rounded-xl transition-all">
             <span className="material-symbols-outlined text-[20px]">calendar_month</span>
           </button>
         </div>
@@ -38,7 +38,7 @@ const TopNavBar = ({ setIsOpen }) => {
         <div className="flex items-center gap-3 pl-2 group cursor-pointer">
           <div className="text-right hidden md:block">
             <p className="text-[13px] font-black text-slate-900 leading-none mb-1">Prof. Dr. Sarah Chen</p>
-            <p className="text-[10px] text-primary font-bold uppercase tracking-widest opacity-60">Admin Fakultas</p>
+            <p className="text-[10px] text-primary font-bold uppercase tracking-widest opacity-80">Admin Fakultas</p>
           </div>
           <div className="relative">
             <img

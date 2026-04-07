@@ -57,21 +57,21 @@ const AspirationManagement = () => {
   return (
     <div className="bg-surface text-on-surface min-h-screen font-body">
       <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
-      <main className="lg:ml-64 min-h-screen pb-12 transition-all duration-300">
+      <main className="lg:ml-60 min-h-screen pb-12 transition-all duration-300 text-[13px]">
         <TopNavBar setIsOpen={setSidebarOpen} />
         
-        <div className="pt-24 px-4 lg:px-8">
-          <div className="flex justify-between items-end mb-10">
+        <div className="pt-20 px-4 lg:px-6">
+          <div className="flex justify-between items-end mb-8">
             <div>
-              <h1 className="text-4xl font-black font-headline text-primary tracking-tight mb-2">Saluran Aspirasi</h1>
-              <p className="text-on-surface-variant font-medium text-lg">Sampaikan masukan & usulan Himpunan Anda langsung ke Fakultas.</p>
+              <h1 className="text-2xl font-black font-headline text-primary tracking-tight mb-1 text-on-surface">Saluran Aspirasi</h1>
+              <p className="text-on-surface-variant font-medium text-xs leading-relaxed max-w-xl">Sampaikan masukan & usulan Himpunan Anda langsung ke Fakultas.</p>
             </div>
             <button 
               onClick={() => setShowAddModal(true)}
-              className="px-8 py-5 bg-primary text-white rounded-[2rem] font-bold shadow-2xl shadow-primary/30 hover:scale-105 active:scale-95 transition-all flex items-center gap-3"
+              className="px-5 py-2.5 bg-primary text-white rounded-xl font-black font-headline shadow-lg hover:scale-105 active:scale-95 transition-all flex items-center gap-2 text-xs uppercase tracking-wider"
             >
-              <span className="material-symbols-outlined font-black">add_circle</span>
-              AJUKAN ASPIRASI BARU
+              <span className="material-symbols-outlined text-[20px]">add_circle</span>
+              Buat Aspirasi
             </button>
           </div>
 
@@ -81,31 +81,31 @@ const AspirationManagement = () => {
                 <div className="w-20 h-20 bg-surface-container rounded-full flex items-center justify-center mb-4 opacity-30">
                   <span className="material-symbols-outlined text-4xl">inventory_2</span>
                 </div>
-                <p className="font-bold text-on-surface-variant opacity-50">Himpunan Anda belum pernah mengirim aspirasi.</p>
+                <p className="font-bold text-on-surface-variant opacity-70">Himpunan Anda belum pernah mengirim aspirasi.</p>
               </div>
             ) : (
               aspirations.map(item => (
-                <div key={item.id} className="bg-white rounded-[2.5rem] border-2 border-outline-variant/10 p-8 hover:shadow-2xl transition-all group flex flex-col justify-between">
+                <div key={item.id} className="bg-white rounded-2xl border border-outline-variant/10 p-6 hover:shadow-xl transition-all group flex flex-col justify-between">
                   <div>
-                    <div className="flex justify-between items-start mb-6">
-                      <div className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-2 ${CATEGORIES.find(c => c.id === item.category)?.color === 'rose' ? 'bg-rose-100 text-rose-700' : 'bg-primary/10 text-primary'}`}>
-                        <span className="material-symbols-outlined text-[14px]">{CATEGORIES.find(c => c.id === item.category)?.icon}</span>
+                    <div className="flex justify-between items-start mb-4">
+                      <div className={`px-2.5 py-1 rounded-md text-[9px] font-black uppercase tracking-wider flex items-center gap-1.5 ${CATEGORIES.find(c => c.id === item.category)?.color === 'rose' ? 'bg-rose-100 text-rose-700' : 'bg-primary/10 text-primary'}`}>
+                        <span className="material-symbols-outlined text-[13px]">{CATEGORIES.find(c => c.id === item.category)?.icon}</span>
                         {item.category}
                       </div>
-                      <div className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border ${item.status === 'responded' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-amber-50 text-amber-600 border-amber-100'}`}>
-                        {item.status === 'responded' ? 'DIBALAS FAKULTAS' : 'PENDING'}
+                      <div className={`px-2.5 py-1 rounded-md text-[9px] font-black uppercase tracking-wider border ${item.status === 'responded' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-amber-50 text-amber-600 border-amber-100'}`}>
+                        {item.status === 'responded' ? 'DIBALAS' : 'PENDING'}
                       </div>
                     </div>
                     
-                    <h3 className="text-xl font-bold text-on-surface mb-3">{item.title}</h3>
-                    <p className="text-sm text-on-surface-variant leading-relaxed line-clamp-3 mb-6 opacity-70">{item.description}</p>
+                    <h3 className="text-lg font-bold text-on-surface mb-2 font-headline leading-tight">{item.title}</h3>
+                    <p className="text-[12.5px] text-on-surface-variant leading-relaxed line-clamp-3 mb-4 opacity-80">{item.description}</p>
 
                     {item.response && (
                       <div className="mt-6 pt-6 border-t border-dashed border-emerald-100">
                         <p className="text-[10px] font-black text-emerald-600 uppercase tracking-[0.2em] mb-3 flex items-center gap-2">
                           <span className="material-symbols-outlined text-[16px]">how_to_reg</span> TANGGAPAN FAKULTAS
                         </p>
-                        <div className="bg-emerald-50/50 p-5 rounded-2xl border border-emerald-100 italic text-sm text-emerald-800">
+                        <div className="bg-emerald-50/50 p-5 rounded-2xl border border-emerald-100  text-sm text-emerald-800">
                            "{item.response}"
                         </div>
                       </div>
@@ -124,10 +124,10 @@ const AspirationManagement = () => {
 
         {/* Modal Submit Baru */}
         {showAddModal && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-on-surface/50 backdrop-blur-md animate-in fade-in duration-300">
-            <div className="bg-white rounded-[3rem] w-full max-w-2xl p-12 shadow-2xl animate-in zoom-in-95 duration-300">
-              <h2 className="text-3xl font-black text-on-surface mb-2">Suarakan Kebutuhan Himpunan</h2>
-              <p className="text-on-surface-variant mb-10 leading-relaxed font-medium">Sampaikan saran, keluhan, atau ide kegiatan strategis untuk diajukan ke Pimpinan Fakultas.</p>
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-on-surface/40 backdrop-blur-sm animate-in fade-in duration-300">
+            <div className="bg-white rounded-3xl w-full max-w-xl p-6 lg:p-8 shadow-2xl animate-in zoom-in-95 duration-300 border border-outline-variant/20">
+              <h2 className="text-xl font-black text-on-surface mb-1 font-headline uppercase tracking-tight">Kirim Aspirasi</h2>
+              <p className="text-on-surface-variant text-xs mb-8 leading-relaxed font-medium">Sampaikan saran, keluhan, atau ide strategis ke Pimpinan Fakultas.</p>
               
               <div className="space-y-6">
                 <div>

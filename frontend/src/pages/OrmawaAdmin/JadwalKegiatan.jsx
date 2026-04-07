@@ -143,54 +143,54 @@ const JadwalKegiatan = () => {
   return (
     <div className="bg-surface text-on-surface min-h-screen">
       <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
-      <main className="lg:ml-64 min-h-screen pb-12 transition-all duration-300">
+      <main className="lg:ml-60 min-h-screen pb-12 transition-all duration-300">
         <TopNavBar setIsOpen={setSidebarOpen} />
         
-        <div className="pt-24 px-4 lg:px-8">
+        <div className="pt-20 px-4 lg:px-6">
           
           {/* Header */}
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
-            <div className="max-w-2xl">
-              <h1 className="text-2xl lg:text-3xl font-extrabold font-headline mb-2 text-on-surface">Jadwal & Kalender</h1>
-              <p className="text-on-surface-variant text-sm font-medium">Manajemen operasional dan blokir jadwal demi kelancaran kegiatan.</p>
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+            <div className="max-w-xl">
+              <h1 className="text-xl lg:text-2xl font-extrabold font-headline mb-1 text-on-surface">Jadwal & Kalender</h1>
+              <p className="text-on-surface-variant text-[12px] font-medium leading-relaxed">Manajemen operasional dan blokir jadwal demi kelancaran kegiatan.</p>
             </div>
-            <div className="flex items-center gap-4 bg-surface-container-low p-2 rounded-2xl border border-outline-variant/20 shadow-sm w-full md:w-auto overflow-x-auto no-scrollbar">
+            <div className="flex items-center gap-3 bg-surface-container-low p-1.5 rounded-xl border border-outline-variant/20 shadow-sm w-full md:w-auto overflow-x-auto no-scrollbar">
                 <button 
                   onClick={() => setViewMode('calendar')}
-                  className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all whitespace-nowrap ${viewMode === 'calendar' ? 'bg-primary text-white shadow-md' : 'text-on-surface-variant hover:bg-surface-container-high'}`}
+                  className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-black transition-all whitespace-nowrap uppercase tracking-wider ${viewMode === 'calendar' ? 'bg-primary text-white shadow-md' : 'text-on-surface-variant hover:bg-surface-container-high'}`}
                 >
-                  <span className="material-symbols-outlined text-[18px]">calendar_month</span>
+                  <span className="material-symbols-outlined text-[16px]">calendar_month</span>
                   Kalender
                 </button>
                 <button 
                   onClick={() => setViewMode('list')}
-                  className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all whitespace-nowrap ${viewMode === 'list' ? 'bg-primary text-white shadow-md' : 'text-on-surface-variant hover:bg-surface-container-high'}`}
+                  className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-black transition-all whitespace-nowrap uppercase tracking-wider ${viewMode === 'list' ? 'bg-primary text-white shadow-md' : 'text-on-surface-variant hover:bg-surface-container-high'}`}
                 >
-                  <span className="material-symbols-outlined text-[18px]">view_list</span>
+                  <span className="material-symbols-outlined text-[16px]">view_list</span>
                   Daftar
                 </button>
             </div>
           </div>
 
-          <div className="mb-6 flex flex-col xl:flex-row justify-between items-stretch xl:items-center bg-surface-container-lowest p-4 lg:p-6 rounded-3xl border border-outline-variant/20 shadow-sm gap-4">
+          <div className="mb-6 flex flex-col xl:flex-row justify-between items-stretch xl:items-center bg-surface-container-lowest p-3.5 rounded-2xl border border-outline-variant/20 shadow-sm gap-4">
              <div className="flex items-center justify-between xl:justify-start gap-1">
-                <button onClick={() => changeMonth(-1)} className="w-10 h-10 lg:w-12 lg:h-12 rounded-2xl hover:bg-surface-container flex items-center justify-center text-on-surface-variant border border-outline-variant/10">
-                  <span className="material-symbols-outlined text-[20px] lg:text-[24px]">chevron_left</span>
+                <button onClick={() => changeMonth(-1)} className="w-9 h-9 rounded-xl hover:bg-surface-container flex items-center justify-center text-on-surface-variant border border-outline-variant/10">
+                  <span className="material-symbols-outlined text-[20px]">chevron_left</span>
                 </button>
                 
                 <button 
                   onClick={() => setIsDatePickerOpen(!isDatePickerOpen)}
-                  className="px-4 lg:px-6 h-10 lg:h-12 rounded-2xl hover:bg-surface-container flex items-center justify-center gap-2 text-primary border border-outline-variant/10 flex-1 xl:flex-none"
+                  className="px-4 h-9 rounded-xl hover:bg-surface-container flex items-center justify-center gap-2 text-primary border border-outline-variant/10 flex-1 xl:flex-none transition-colors"
                 >
-                    <span className="material-symbols-outlined text-primary text-[20px]">event_note</span>
-                    <span className="text-sm lg:text-xl font-bold font-headline whitespace-nowrap truncate max-w-[150px]">
+                    <span className="material-symbols-outlined text-primary text-[18px]">event_note</span>
+                    <span className="text-sm font-black font-headline tracking-tight whitespace-nowrap">
                       {currDate.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' })}
                     </span>
-                    <span className="material-symbols-outlined text-outline">expand_more</span>
+                    <span className="material-symbols-outlined text-outline text-[16px]">expand_more</span>
                 </button>
 
-                <button onClick={() => changeMonth(1)} className="w-10 h-10 lg:w-12 lg:h-12 rounded-2xl hover:bg-surface-container flex items-center justify-center text-on-surface-variant border border-outline-variant/10">
-                  <span className="material-symbols-outlined text-[20px] lg:text-[24px]">chevron_right</span>
+                <button onClick={() => changeMonth(1)} className="w-9 h-9 rounded-xl hover:bg-surface-container flex items-center justify-center text-on-surface-variant border border-outline-variant/10">
+                  <span className="material-symbols-outlined text-[20px]">chevron_right</span>
                 </button>
 
                 {/* Custom Date Picker Popup */}
@@ -235,18 +235,18 @@ const JadwalKegiatan = () => {
                 )}
              </div>
 
-             <div className="flex gap-4">
+             <div className="flex gap-3">
                 <button 
                   onClick={() => setCurrDate(new Date())}
-                  className="px-6 py-3.5 bg-surface-container-high text-on-surface-variant font-bold rounded-2xl border border-outline-variant/20 transition-all hover:bg-surface-container-highest active:scale-95 flex items-center gap-2"
+                  className="px-4 py-2 bg-surface-container-high text-on-surface-variant font-bold rounded-xl border border-outline-variant/20 transition-all hover:bg-surface-container-highest active:scale-95 flex items-center gap-2 text-[11px] uppercase tracking-wider"
                 >
                   Hari Ini
                 </button>
                 <button 
                    onClick={() => openAddModal()}
-                   className="px-6 py-3.5 bg-primary text-white font-bold rounded-2xl shadow-xl shadow-primary/20 flex items-center gap-2 transition-all hover:scale-[1.02] active:scale-95"
+                   className="px-4 py-2 bg-primary text-white font-black rounded-xl shadow-lg shadow-primary/10 flex items-center gap-2 transition-all hover:scale-[1.02] active:scale-95 text-[11px] uppercase tracking-wider"
                 >
-                  <span className="material-symbols-outlined">add_circle</span> Tambah Kegiatan Baru
+                  <span className="material-symbols-outlined text-[20px]">add_circle</span> Tambah Kegiatan
                 </button>
              </div>
           </div>
@@ -254,13 +254,13 @@ const JadwalKegiatan = () => {
           {/* Render Calendar View */}
           {viewMode === 'calendar' && (
             <div className="overflow-x-auto no-scrollbar pb-6">
-              <div className="min-w-[800px] grid grid-cols-7 gap-px bg-outline-variant/20 border border-outline-variant/20 rounded-3xl overflow-hidden shadow-sm">
+              <div className="min-w-[800px] grid grid-cols-7 gap-px bg-outline-variant/20 border border-outline-variant/20 rounded-2xl overflow-hidden shadow-sm">
               {['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'].map(day => (
-                <div key={day} className="bg-surface-container-lowest text-center py-4 font-bold text-sm text-secondary uppercase tracking-widest">{day}</div>
+                <div key={day} className="bg-surface-container-low text-center py-3 font-bold text-[11px] text-secondary uppercase tracking-[0.2em]">{day}</div>
               ))}
               
               {days.map(item => {
-                 if (item.type === 'empty') return <div key={item.id} className="bg-surface-container-low/20 h-32 border-t border-outline-variant/10"></div>;
+                 if (item.type === 'empty') return <div key={item.id} className="bg-surface-container-low/20 h-24 border-t border-outline-variant/10"></div>;
                  
                  const dateStr = item.dateStr;
                  const dayEvents = (events || []).filter(e => e.startDate && e.startDate.startsWith(dateStr));
@@ -268,7 +268,7 @@ const JadwalKegiatan = () => {
                    <div 
                      key={dateStr} 
                      onClick={() => openAddModal(dateStr)}
-                     className="bg-surface p-2 h-32 hover:bg-surface-container-lowest transition-all relative border-t border-outline-variant/10 overflow-y-auto cursor-pointer group/day"
+                     className="bg-surface p-2 h-24 hover:bg-surface-container-lowest transition-all relative border-t border-outline-variant/10 overflow-y-auto cursor-pointer group/day"
                    >
                      <div className="flex justify-between items-start mb-1">
                        <span className="text-xs font-bold w-6 h-6 flex items-center justify-center rounded-full text-on-surface-variant group-hover/day:bg-primary group-hover/day:text-white transition-colors">
@@ -296,16 +296,16 @@ const JadwalKegiatan = () => {
 
           {/* Render List View */}
           {viewMode === 'list' && (
-            <div className="bg-surface-container-lowest border border-outline-variant/20 rounded-3xl shadow-sm overflow-hidden">
+            <div className="bg-surface-container-lowest border border-outline-variant/20 rounded-2xl shadow-sm overflow-hidden">
                <div className="overflow-x-auto">
                  <table className="w-full text-left text-sm">
-                 <thead className="bg-surface-container-low/50 text-xs uppercase text-on-surface-variant font-label border-b border-outline-variant/20">
+                 <thead className="bg-surface-container-low/50 text-[10px] uppercase text-on-surface-variant font-black tracking-widest border-b border-outline-variant/20">
                    <tr>
-                     <th className="px-6 py-5 font-bold">Informasi Kegiatan</th>
-                     <th className="px-6 py-5 font-bold">Waktu & Tempat</th>
-                     <th className="px-6 py-5 font-bold text-center">Notifikasi</th>
-                     <th className="px-6 py-5 font-bold text-center">Status</th>
-                     <th className="px-6 py-5 font-bold text-right">Aksi</th>
+                     <th className="px-5 py-3.5">Informasi Kegiatan</th>
+                     <th className="px-5 py-3.5">Waktu & Tempat</th>
+                     <th className="px-5 py-3.5 text-center">Notifikasi</th>
+                     <th className="px-5 py-3.5 text-center">Status</th>
+                     <th className="px-5 py-3.5 text-right">Aksi</th>
                    </tr>
                  </thead>
                  <tbody className="divide-y divide-outline-variant/10">
@@ -331,22 +331,24 @@ const JadwalKegiatan = () => {
                               <span className="text-[10px] font-bold uppercase">H-1 Auto</span>
                             </div>
                           ) : (
-                            <span className="material-symbols-outlined text-slate-300">notifications_off</span>
+                            <span className="material-symbols-outlined text-slate-500">notifications_off</span>
                           )}
                         </td>
-                        <td className="px-6 py-4 text-center">
+                        <td className="px-5 py-3 text-center">
                           {ev.status === 'terjadwal' ? (
-                            <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide">Terjadwal</span>
+                            <span className="bg-blue-100 text-blue-700 px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider">Terjadwal</span>
                           ) : (
-                            <span className="bg-surface-container-high text-on-surface-variant px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide line-through">Dibatalkan</span>
+                            <span className="bg-surface-container-high text-on-surface-variant px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider line-through">Batal</span>
                           )}
                         </td>
-                        <td className="px-6 py-4 text-right">
-                          <button onClick={() => loadEventForEdit(ev)} className="p-2 text-on-surface-variant hover:text-primary transition-colors"><span className="material-symbols-outlined text-[20px]">edit</span></button>
-                          <button onClick={() => deleteEvent(ev.id)} className="p-2 text-on-surface-variant hover:text-rose-500 transition-colors ml-2"><span className="material-symbols-outlined text-[20px]">delete</span></button>
-                          {ev.status === 'terjadwal' && (
-                            <button onClick={() => cancelEvent(ev.id)} className="p-2 text-on-surface-variant hover:text-amber-600 transition-colors ml-2" title="Batalkan Kegiatan"><span className="material-symbols-outlined text-[20px]">block</span></button>
-                          )}
+                        <td className="px-5 py-3 text-right">
+                          <div className="flex justify-end gap-1">
+                            <button onClick={() => loadEventForEdit(ev)} className="p-1.5 text-on-surface-variant hover:text-primary transition-colors"><span className="material-symbols-outlined text-[18px]">edit</span></button>
+                            <button onClick={() => deleteEvent(ev.id)} className="p-1.5 text-on-surface-variant hover:text-rose-500 transition-colors"><span className="material-symbols-outlined text-[18px]">delete</span></button>
+                            {ev.status === 'terjadwal' && (
+                              <button onClick={() => cancelEvent(ev.id)} className="p-1.5 text-on-surface-variant hover:text-amber-600 transition-colors" title="Batalkan Kegiatan"><span className="material-symbols-outlined text-[18px]">block</span></button>
+                            )}
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -356,18 +358,16 @@ const JadwalKegiatan = () => {
             </div>
           )}
 
-          {/* Add / Edit Modal Overlay */}
           {isModalOpen && (
-            <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/30 backdrop-blur-sm p-4">
-               <div className="bg-surface w-full max-w-2xl rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 border border-outline-variant/10">
-                  <div className="px-8 py-6 border-b border-outline-variant/10 flex justify-between items-center bg-surface-container-low/50">
+            <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/30 backdrop-blur-sm p-4 text-[13px]">
+               <div className="bg-surface w-full max-w-xl rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 border border-outline-variant/10">
+                  <div className="px-6 py-4 border-b border-outline-variant/10 flex justify-between items-center bg-surface-container-low/50">
                     <div>
-                      <h2 className="text-2xl font-bold font-headline text-primary flex items-center gap-2">
-                        <span className="material-symbols-outlined">{editingId ? 'edit' : 'edit_calendar'}</span> {editingId ? 'Update Jadwal' : 'Setup Jadwal Baru'}
+                      <h2 className="text-xl font-black font-headline text-primary flex items-center gap-2 uppercase tracking-tight">
+                        <span className="material-symbols-outlined text-[20px]">{editingId ? 'edit' : 'edit_calendar'}</span> {editingId ? 'Update' : 'Setup Kegiatan'}
                       </h2>
-                      <p className="text-xs text-on-surface-variant mt-1 font-medium">Sistem akan mengecek konflik ketersediaan waktu secara real-time.</p>
                     </div>
-                    <button onClick={() => { setIsModalOpen(false); setConflictWarning(null); }} className="w-10 h-10 bg-surface hover:bg-surface-container-highest rounded-full flex justify-center items-center text-on-surface"><span className="material-symbols-outlined border hover:border-red-400">close</span></button>
+                    <button onClick={() => { setIsModalOpen(false); setConflictWarning(null); }} className="w-8 h-8 hover:bg-rose-50 hover:text-rose-600 rounded-full flex justify-center items-center text-on-surface-variant transition-colors"><span className="material-symbols-outlined text-[18px]">close</span></button>
                   </div>
 
                   <form onSubmit={saveEvent} className="p-8">

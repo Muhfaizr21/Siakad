@@ -20,7 +20,7 @@ const AboutHero = () => {
                     className="inline-block px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-md text-white text-xs font-bold tracking-widest mb-6 border border-white/20">ESTABLISHED
                     1924</span>
                 <h1 className="text-6xl md:text-7xl font-bold text-white leading-[1.1] mb-8 tracking-tight">A Century of
-                    Academic <span className="text-blue-200 italic font-medium">Excellence.</span></h1>
+                    Academic <span className="text-blue-200  font-medium">Excellence.</span></h1>
                 <p className="text-xl text-blue-50/90 leading-relaxed max-w-xl">BKU has been the cornerstone of
                     intellectual growth and innovation, fostering a community where tradition meets the future.</p>
             </div>

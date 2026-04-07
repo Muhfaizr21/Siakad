@@ -11,7 +11,7 @@ const AdminPerformance = () => {
             <div className="p-8 space-y-8">
               <header className="flex justify-between items-end">
                 <div>
-                  <h1 className="text-3xl font-extrabold text-primary tracking-tight font-headline uppercase tracking-widest italic">Institutional Staff Analytics</h1>
+                  <h1 className="text-3xl font-extrabold text-primary tracking-tight font-headline uppercase tracking-widest ">Institutional Staff Analytics</h1>
                   <p className="text-secondary mt-1">Cross-faculty performance evaluation and response metrics for all administrative nodes.</p>
                 </div>
               </header>
@@ -40,7 +40,7 @@ const AdminPerformance = () => {
                                     <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden flex shadow-inner">
                                         <div className={`h-full transition-all duration-1000 bg-primary group-hover:shadow-[0_0_12px_rgba(0,35,111,0.3)]`} style={{width: `${item.rate}%`}}></div>
                                     </div>
-                                    <div className="flex gap-6 text-[10px] font-black uppercase text-secondary/40 tracking-widest italic">
+                                    <div className="flex gap-6 text-[10px] font-black uppercase text-secondary/40 tracking-widest ">
                                         <span>Avg Response: {item.avgTime}</span>
                                         <span>Total Tickets: {item.tickets}</span>
                                     </div>
@@ -56,7 +56,7 @@ const AdminPerformance = () => {
                         <span className="material-symbols-outlined text-[180px] text-white">person_search</span>
                     </div>
                     <div>
-                        <h3 className="text-2xl font-black uppercase tracking-widest italic leading-tight">Admin Performance <br/> Spotlight</h3>
+                        <h3 className="text-2xl font-black uppercase tracking-widest  leading-tight">Admin Performance <br/> Spotlight</h3>
                         <p className="text-xs text-white/60 font-medium font-body leading-relaxed max-w-sm mt-4">Identify top-performing nodes and potential bottlenecks in the institutional workflow.</p>
                     </div>
 
@@ -70,7 +70,7 @@ const AdminPerformance = () => {
                                     <div>
                                         <p className="font-bold text-white tracking-tight">John Doe (FT Admin)</p>
                                         <div className="flex items-center gap-2">
-                                            <span className="text-[10px] font-black uppercase text-white/40 tracking-widest italic">Resolved: 45 | Average: 1.2h</span>
+                                            <span className="text-[10px] font-black uppercase text-white/40 tracking-widest ">Resolved: 45 | Average: 1.2h</span>
                                         </div>
                                     </div>
                                 </div>
@@ -83,7 +83,7 @@ const AdminPerformance = () => {
                     </div>
 
                     <div className="text-center">
-                        <p className="text-xs text-secondary italic font-body opacity-60">This analysis is for institutional intelligence and workflow optimization purposes.</p>
+                        <p className="text-xs text-secondary  font-body opacity-80">This analysis is for institutional intelligence and workflow optimization purposes.</p>
                     </div>
                  </section>
               </div>

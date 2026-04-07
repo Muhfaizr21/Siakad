@@ -46,11 +46,13 @@ import AuditLog from './pages/SuperAdmin/AuditLog'
 import CounselingAchievement from './pages/SuperAdmin/CounselingAchievement'
 import ContentManagement from './pages/SuperAdmin/ContentManagement'
 import ReportsGenerator from './pages/SuperAdmin/ReportsGenerator'
-import SystemHealth from './pages/SuperAdmin/SystemHealth'
 import StudentDirectory from './pages/SuperAdmin/StudentDirectory'
 import AdminPerformance from './pages/SuperAdmin/AdminPerformance'
 import SecuritySettings from './pages/SuperAdmin/SecuritySettings'
 import LecturerDirectory from './pages/SuperAdmin/LecturerDirectory'
+import KelolaFakultas from './pages/SuperAdmin/KelolaFakultas'
+import KelolaBeasiswa from './pages/SuperAdmin/KelolaBeasiswa'
+import KelolaOrganisasi from './pages/SuperAdmin/KelolaOrganisasi'
 import NotFound from './pages/NotFound/NotFound'
 import { AuthProvider } from './context/AuthContext'
 import './index.css'
@@ -86,12 +88,14 @@ function App() {
           <Route path="/admin/announcements" element={<ContentManagement />} />
           <Route path="/admin/broadcast" element={<ContentManagement />} />
           <Route path="/admin/reports" element={<ReportsGenerator />} />
-          <Route path="/admin/health" element={<SystemHealth />} />
           <Route path="/admin/students" element={<StudentDirectory />} />
           <Route path="/admin/performance" element={<AdminPerformance />} />
           <Route path="/admin/security" element={<SecuritySettings />} />
           <Route path="/admin/lecturers" element={<LecturerDirectory />} />
           <Route path="/admin/config" element={<AcademicPortal />} />
+          <Route path="/admin/faculties" element={<KelolaFakultas />} />
+          <Route path="/admin/scholarships" element={<KelolaBeasiswa />} />
+          <Route path="/admin/organizations" element={<KelolaOrganisasi />} />
           <Route path="/admin/ormawa" element={<ProposalPipeline />} />
           <Route path="/admin/treasury" element={<ReportsGenerator />} />
           <Route path="/admin/infrastructure" element={<AcademicPortal />} />

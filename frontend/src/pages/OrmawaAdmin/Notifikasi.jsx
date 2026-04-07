@@ -85,13 +85,13 @@ const Notifikasi = () => {
           <div className="bg-surface-container-lowest border border-outline-variant/20 rounded-3xl shadow-sm overflow-hidden flex flex-col">
              {notifs.length === 0 ? (
                 <div className="p-12 text-center text-on-surface-variant flex flex-col items-center">
-                   <span className="material-symbols-outlined text-6xl mb-4 opacity-50">notifications_off</span>
+                   <span className="material-symbols-outlined text-6xl mb-4 opacity-70">notifications_off</span>
                    <p className="font-bold">Belum ada pemberitahuan baru.</p>
                 </div>
              ) : (
                 <div className="divide-y divide-outline-variant/10">
                    {notifs.map(item => (
-                      <div key={item.id} className={`p-6 flex items-start gap-4 transition-colors ${item.isRead ? 'bg-surface/50 opacity-70' : 'bg-primary/5 hover:bg-primary/10 cursor-pointer'}`} onClick={() => !item.isRead && markAsRead(item.id)}>
+                      <div key={item.id} className={`p-6 flex items-start gap-4 transition-colors ${item.isRead ? 'bg-surface/50 opacity-90' : 'bg-primary/5 hover:bg-primary/10 cursor-pointer'}`} onClick={() => !item.isRead && markAsRead(item.id)}>
                          <div className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 shadow-sm border ${item.isRead ? 'bg-surface-container border-outline-variant/20' : 'bg-white border-primary/20'}`}>
                             {getIcon(item.type)}
                          </div>
