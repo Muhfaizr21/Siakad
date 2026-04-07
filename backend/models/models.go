@@ -62,6 +62,8 @@ type Student struct {
 	DPALecturerID   *uint   `json:"dpaLecturerId"`
 	DPALecturer     *Lecturer `gorm:"foreignKey:DPALecturerID" json:"dpaLecturer"`
 	CurrentSemester int     `gorm:"default:1" json:"currentSemester"`
+	JoinYear        int     `gorm:"column:join_year" json:"joinYear"`
+	Gender          string  `gorm:"column:gender;type:char(1)" json:"gender"`
 	GPA             float64 `gorm:"column:gpa;default:0" json:"gpa"`
 	CreditLimit     int     `gorm:"column:credit_limit;default:24" json:"creditLimit"`
 	Status          string  `gorm:"default:'active'" json:"status"`

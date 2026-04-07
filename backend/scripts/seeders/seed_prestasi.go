@@ -1,4 +1,4 @@
-package main
+package seeders
 
 import (
 	"fmt"
@@ -10,7 +10,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func main() {
+func SeedPrestasi() {
 	godotenv.Load("../.env")
 	godotenv.Load(".env")
 

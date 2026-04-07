@@ -1,4 +1,4 @@
-package main
+package seeders
 
 import (
 	"fmt"
@@ -9,7 +9,7 @@ import (
 	"github.com/joho/godotenv"
 )
 
-func main() {
+func SeedReports() {
 	godotenv.Load()
 	config.ConnectDB()
 
