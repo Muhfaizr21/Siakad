@@ -66,14 +66,14 @@ const Hero = () => {
                                         className="block text-xs font-bold text-primary uppercase tracking-wider ml-1">Student
                                         ID or Email</label>
                                     <input
-                                        className="w-full px-5 py-4 rounded-2xl bg-white border border-outline-variant/30 focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none transition-all placeholder:text-slate-400"
+                                        className="w-full px-5 py-4 rounded-2xl bg-white border border-outline-variant/30 focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none transition-all placeholder:text-slate-600"
                                         placeholder="e.g. bku-12345" type="text" />
                                 </div>
                                 <div className="space-y-1.5">
                                     <label
                                         className="block text-xs font-bold text-primary uppercase tracking-wider ml-1">Password</label>
                                     <input
-                                        className="w-full px-5 py-4 rounded-2xl bg-white border border-outline-variant/30 focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none transition-all placeholder:text-slate-400"
+                                        className="w-full px-5 py-4 rounded-2xl bg-white border border-outline-variant/30 focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none transition-all placeholder:text-slate-600"
                                         placeholder="••••••••" type="password" />
                                 </div>
                                 <div className="flex items-center justify-between px-1">

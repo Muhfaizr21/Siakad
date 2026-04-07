@@ -18,6 +18,7 @@ import (
 	"siakad-backend/modules/krs"
 	"siakad-backend/modules/profil"
 	"siakad-backend/modules/notifikasi"
+	"siakad-backend/routes"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
@@ -41,10 +42,14 @@ func main() {
 	// Middleware
 	app.Use(logger.New())
 	app.Use(cors.New(cors.Config{
-		AllowOrigins:     "http://localhost:5173", // URL frontend Vite Anda
+		AllowOrigins:     "http://localhost:5173",
 		AllowHeaders:     "Origin, Content-Type, Accept, Authorization",
+		AllowMethods:     "GET, POST, PUT, DELETE, PATCH, OPTIONS",
 		AllowCredentials: true,
 	}))
+
+	// Serve Static Files for Uploads
+	app.Static("/uploads", "./uploads")
 
 	// Basic route to check if DB is connected
 	app.Get("/api/health", func(c *fiber.Ctx) error {
@@ -64,9 +69,6 @@ func main() {
 	api := app.Group("/api/v1")
 	authGroup := api.Group("/auth")
 	authGroup.Post("/login", func(c *fiber.Ctx) error {
-		// Because of cycle imports or to keep it simple, we wrap the call.
-		// Wait, we need to import siakad-backend/modules/auth and siakad-backend/middleware.
-		// I will just add the import at the top later if not there.
 		return auth.Login(c)
 	})
 	authGroup.Post("/refresh", auth.RefreshToken)
@@ -104,7 +106,7 @@ func main() {
 	achievementGroup.Get("/:id", achievement.GetAchievementDetail)
 	achievementGroup.Post("/", achievement.CreateAchievement)
 	achievementGroup.Delete("/:id", achievement.DeleteAchievement)
-	
+
 	// Profil Routes
 	profilGroup := api.Group("/profil", middleware.AuthProtected)
 	profilGroup.Get("/", profil.GetProfile)
@@ -128,8 +130,6 @@ func main() {
 	counselingGroup := api.Group("/counseling", middleware.AuthProtected)
 	counselingGroup.Get("/jadwal", counseling.GetJadwalKonseling)
 	counselingGroup.Get("/riwayat", counseling.GetRiwayatBooking)
-	// counselingGroup.Get("/riwayat/:id", counseling.GetRiwayatDetail) // Not strictly needed yet if list has info
-	// counselingGroup.Get("/catatan/:id", counseling.GetCatatan) // Only for Counselor Role (Future)
 	counselingGroup.Post("/booking", counseling.CreateBooking)
 	counselingGroup.Delete("/riwayat/:id", counseling.CancelBooking)
 
@@ -155,7 +155,7 @@ func main() {
 	orgGroup.Post("/", organisasi.Create)
 	orgGroup.Put("/:id", organisasi.Update)
 	orgGroup.Delete("/:id", organisasi.Delete)
-	
+
 	// Notification Routes
 	notifGroup := api.Group("/notifikasi", middleware.AuthProtected)
 	notifGroup.Get("/", notifikasi.GetNotifications)
@@ -165,19 +165,20 @@ func main() {
 	notifGroup.Delete("/hapus-bulk", notifikasi.DeleteBulk)
 	notifGroup.Delete("/hapus-sudah-dibaca", notifikasi.DeleteRead)
 	notifGroup.Delete("/:id", notifikasi.DeleteNotification)
-	
+
+	// Admin Routes
 	adminGroup := api.Group("/admin")
 	adminGroup.Get("/achievement/export", achievement.ExportSimkatmawa)
 
-	// Serve Static Files for Uploads
-	app.Static("/uploads", "./uploads")
+	// Setup Ormawa Routes (from danzz)
+	routes.SetupOrmawaRoutes(app)
 
 	// Start server
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8000"
 	}
-	
+
 	log.Printf("Starting Server on port %s...", port)
 	err = app.Listen(":" + port)
 	if err != nil {

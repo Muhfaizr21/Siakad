@@ -38,6 +38,8 @@
   --color-tertiary-fixed: #dbe2fa;
   --color-tertiary-fixed-dim: #bfc6dd;
   --color-on-surface-variant: #44474e;
+  --color-secondary: #475569;
+  --color-secondary-container: #F1F5F9;
 
   /* BKU Student Hub Colors */
   --color-bku-primary: #f97316;
@@ -50,9 +52,9 @@
   --color-bku-info: #2563eb;
 
   --font-headline: "Plus Jakarta Sans", sans-serif;
-  --font-body: Inter, sans-serif;
+  --font-body: "Inter", sans-serif;
   --font-label: Inter, sans-serif;
-  
+
   --font-jakarta: "Plus Jakarta Sans", sans-serif;
   --font-inter: "Inter", sans-serif;
 
@@ -60,8 +62,12 @@
   --radius-2xl: 1rem;
 }
 
-@utility material-symbols-outlined {
-  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+
+
+@layer base {
+  body {
+    @apply bg-surface text-on-surface antialiased;
+  }
 }
 
 @utility academic-blur {

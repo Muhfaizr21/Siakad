@@ -1,38 +1,53 @@
 import React from 'react';
 
-const TopNavBar = () => {
+const TopNavBar = ({ setIsOpen }) => {
   return (
-    <header className="sticky top-0 z-40 flex justify-between items-center px-8 py-3 w-[calc(100%-16rem)] ml-64 bg-white/80 backdrop-blur-md">
+    <header className="fixed top-2 right-4 left-4 lg:left-72 z-50 flex justify-between items-center px-6 py-3 bg-white/70 backdrop-blur-xl border border-white/20 rounded-[2rem] shadow-xl shadow-primary/5">
       <div className="flex items-center gap-4 flex-1">
-        <div className="relative w-full max-w-md">
-          <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">search</span>
-          <input 
-            className="w-full pl-10 pr-4 py-2 bg-slate-50 border-0 rounded-full text-sm focus:ring-2 focus:ring-blue-500/20 transition-all font-['Plus_Jakarta_Sans'] outline-none" 
-            placeholder="Search records, courses, or students..." 
-            type="text" 
+        {/* Hamburger for mobile */}
+        <button
+          onClick={() => setIsOpen(true)}
+          className="lg:hidden w-10 h-10 flex items-center justify-center rounded-xl bg-primary/5 text-primary hover:bg-primary/10 transition-colors"
+        >
+          <span className="material-symbols-outlined">menu</span>
+        </button>
+
+        <div className="relative w-full max-w-md hidden sm:block">
+          <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-600 text-sm">search</span>
+          <input
+            className="w-full pl-11 pr-4 py-2.5 bg-slate-50/50 border border-slate-100 rounded-2xl text-sm focus:ring-4 focus:ring-primary/5 focus:bg-white focus:border-primary/20 transition-all outline-none"
+            placeholder="Cari data, dosen, atau mahasiswa..."
+            type="text"
           />
         </div>
       </div>
-      <div className="flex items-center gap-6">
-        <div className="flex items-center gap-2">
-          <button className="p-2 text-slate-600 hover:bg-slate-100 rounded-full transition-all relative">
-            <span className="material-symbols-outlined">notifications</span>
-            <span className="absolute top-2 right-2 w-2 h-2 bg-error rounded-full"></span>
+
+      <div className="flex items-center gap-4">
+        {/* Quick Actions */}
+        <div className="flex items-center gap-1 bg-slate-50 p-1 rounded-2xl border border-slate-100">
+          <button className="w-10 h-10 flex items-center justify-center text-slate-600 hover:text-primary hover:bg-white rounded-xl transition-all relative">
+            <span className="material-symbols-outlined text-[20px]">notifications</span>
+            <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-rose-500 rounded-full border-2 border-white"></span>
           </button>
-          <button className="p-2 text-slate-600 hover:bg-slate-100 rounded-full transition-all">
-            <span className="material-symbols-outlined">calendar_today</span>
+          <button className="w-10 h-10 flex items-center justify-center text-slate-600 hover:text-primary hover:bg-white rounded-xl transition-all">
+            <span className="material-symbols-outlined text-[20px]">calendar_month</span>
           </button>
         </div>
-        <div className="flex items-center gap-3 pl-4 border-l border-slate-100">
-          <div className="text-right">
-            <p className="text-sm font-bold text-blue-900">Prof. Sarah Chen</p>
-            <p className="text-[10px] text-slate-500 font-medium">Faculty Admin</p>
+
+        {/* User Profile */}
+        <div className="flex items-center gap-3 pl-2 group cursor-pointer">
+          <div className="text-right hidden md:block">
+            <p className="text-[13px] font-black text-slate-900 leading-none mb-1">Prof. Dr. Sarah Chen</p>
+            <p className="text-[10px] text-primary font-bold uppercase tracking-widest opacity-80">Admin Fakultas</p>
           </div>
-          <img 
-            alt="Professor Profile Photo" 
-            className="w-10 h-10 rounded-full object-cover border-2 border-primary/10" 
-            src="https://lh3.googleusercontent.com/aida-public/AB6AXuBwu74GdWHYE1A_3DfCV8vsgmVITXHqJewt84r36aoABnRcJdIg9M1IKtLFJqpXNrJh4cECt-cU0R9hyXKuq1C8JKNGpjK4QCLqYx-Z7uHDve7YveU2inSQdQ81XtGCq5j742VhEpvF80w2uPLD0HEZO233TMUZ1b6ZxtuMGaNAjJ7c0oUTuonAYwsoR8qZR12Qo85lBxasx1vUdlPn2yU0awjn7waqfxldZ4Oa_fW6cojsMyoTLVGQ9ncb0gmXjUWNBGNPQbZHvWo_" 
-          />
+          <div className="relative">
+            <img
+              alt="Profile"
+              className="w-11 h-11 rounded-2xl object-cover ring-2 ring-primary/10 group-hover:ring-primary/30 transition-all"
+              src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=150"
+            />
+            <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 border-2 border-white rounded-full"></div>
+          </div>
         </div>
       </div>
     </header>

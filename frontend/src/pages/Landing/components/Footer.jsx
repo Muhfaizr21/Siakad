@@ -6,19 +6,19 @@ const Footer = () => {
         <div className="w-full px-8 py-20 flex flex-col md:flex-row justify-between items-start gap-12 max-w-7xl mx-auto">
             <div className="flex flex-col gap-6">
                 <div className="text-2xl font-extrabold tracking-tighter">
-                    BKU <span className="opacity-50 font-normal text-white">Student Hub</span>
+                    BKU <span className="opacity-70 font-normal text-white">Student Hub</span>
                 </div>
-                <p className="max-w-xs text-slate-400 text-sm leading-relaxed">
+                <p className="max-w-xs text-slate-600 text-sm leading-relaxed">
                     The official student portal for BKU, providing excellence in digital education management since
                     2024.
                 </p>
                 <div className="flex gap-4">
                     <div
-                        className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-slate-400 hover:bg-primary hover:text-white transition-all cursor-pointer">
+                        className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-slate-600 hover:bg-primary hover:text-white transition-all cursor-pointer">
                         <span className="material-symbols-outlined text-lg">language</span>
                     </div>
                     <div
-                        className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-slate-400 hover:bg-primary hover:text-white transition-all cursor-pointer">
+                        className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-slate-600 hover:bg-primary hover:text-white transition-all cursor-pointer">
                         <span className="material-symbols-outlined text-lg">help_outline</span>
                     </div>
                 </div>
@@ -26,21 +26,21 @@ const Footer = () => {
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-16 gap-y-10">
                 <div className="flex flex-col gap-4">
                     <span className="text-xs font-bold uppercase tracking-widest text-slate-500">Resources</span>
-                    <a className="text-sm text-slate-300 hover:text-white transition-colors" href="#">Library Access</a>
-                    <a className="text-sm text-slate-300 hover:text-white transition-colors" href="#">E-Learning Portal</a>
-                    <a className="text-sm text-slate-300 hover:text-white transition-colors" href="#">IT Support</a>
+                    <a className="text-sm text-slate-500 hover:text-white transition-colors" href="#">Library Access</a>
+                    <a className="text-sm text-slate-500 hover:text-white transition-colors" href="#">E-Learning Portal</a>
+                    <a className="text-sm text-slate-500 hover:text-white transition-colors" href="#">IT Support</a>
                 </div>
                 <div className="flex flex-col gap-4">
                     <span className="text-xs font-bold uppercase tracking-widest text-slate-500">Institution</span>
-                    <a className="text-sm text-slate-300 hover:text-white transition-colors" href="#">Privacy Policy</a>
-                    <a className="text-sm text-slate-300 hover:text-white transition-colors" href="#">Terms of Service</a>
-                    <a className="text-sm text-slate-300 hover:text-white transition-colors" href="#">Contact Us</a>
+                    <a className="text-sm text-slate-500 hover:text-white transition-colors" href="#">Privacy Policy</a>
+                    <a className="text-sm text-slate-500 hover:text-white transition-colors" href="#">Terms of Service</a>
+                    <a className="text-sm text-slate-500 hover:text-white transition-colors" href="#">Contact Us</a>
                 </div>
                 <div className="flex flex-col gap-4">
                     <span className="text-xs font-bold uppercase tracking-widest text-slate-500">Portal</span>
-                    <a className="text-sm text-slate-300 hover:text-white transition-colors" href="#">Faculty Login</a>
-                    <a className="text-sm text-slate-300 hover:text-white transition-colors" href="#">Admin Login</a>
-                    <a className="text-sm text-slate-300 hover:text-white transition-colors" href="#">Mobile App</a>
+                    <a className="text-sm text-slate-500 hover:text-white transition-colors" href="#">Faculty Login</a>
+                    <a className="text-sm text-slate-500 hover:text-white transition-colors" href="#">Admin Login</a>
+                    <a className="text-sm text-slate-500 hover:text-white transition-colors" href="#">Mobile App</a>
                 </div>
             </div>
         </div>

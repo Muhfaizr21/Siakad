@@ -1,0 +1,44 @@
+/* Faculty Admin Theme - Aligned with Ormawa Admin / Global Theme */
+
+.faculty-admin-theme {
+  /* Map to global theme tokens for consistency */
+  --background: #fcf9f8;
+  --foreground: #1b1c1c;
+  --card: #ffffff;
+  --card-foreground: #1b1c1c;
+  --popover: #ffffff;
+  --popover-foreground: #1b1c1c;
+  --primary: #00236f;
+  --primary-foreground: #ffffff;
+  --secondary: #f0eded;
+  --secondary-foreground: #1b1c1c;
+  --muted: #eae7e7;
+  --muted-foreground: #44474e;
+  --accent: #1e3a8a;
+  --accent-foreground: #ffffff;
+  --destructive: #ba1a1a;
+  --destructive-foreground: #ffffff;
+  --border: #c5c5d3;
+  --input: #c5c5d3;
+  --ring: #00236f;
+  --chart-1: #00236f;
+  --chart-2: #22c55e;
+  --chart-3: #eab308;
+  --chart-4: #3b82f6;
+  --chart-5: #ef4444;
+  --radius: 1rem;
+  --sidebar: #f6f3f2;
+  --sidebar-foreground: #1b1c1c;
+  --sidebar-primary: #00236f;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #eae7e7;
+  --sidebar-accent-foreground: #1b1c1c;
+  --sidebar-border: #c5c5d3;
+  --sidebar-ring: #00236f;
+  --warning: #eab308;
+  --warning-foreground: #1b1c1c;
+  --success: #22c55e;
+  --success-foreground: #ffffff;
+  --info: #3b82f6;
+  --info-foreground: #ffffff;
+}

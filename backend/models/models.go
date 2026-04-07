@@ -9,70 +9,75 @@ import (
 // --- BASE ENTITIES ---
 
 type Role struct {
-	ID   uint   `gorm:"primaryKey"`
-	Name string `gorm:"unique;not null"`
+	ID   uint   `gorm:"primaryKey" json:"id"`
+	Name string `gorm:"unique;not null" json:"name"`
 }
 
 type User struct {
 	gorm.Model
-	Email        string `gorm:"unique;not null"`
-	PasswordHash string `gorm:"not null"`
-	RoleID       uint
-	Role         Role `gorm:"foreignKey:RoleID"`
-	IsActive     bool `gorm:"default:true"`
+	Email        string `gorm:"unique;not null" json:"email"`
+	PasswordHash string `gorm:"not null" json:"-"` // Hide password from JSON
+	RoleID       uint   `json:"roleId"`
+	Role         Role   `gorm:"foreignKey:RoleID" json:"role"`
+	IsActive     bool   `gorm:"default:true" json:"isActive"`
 }
 
 type Faculty struct {
-	ID       uint   `gorm:"primaryKey"`
-	Name     string `gorm:"not null"`
-	Code     string `gorm:"unique;not null"`
-	DeanName string
+	ID       uint   `gorm:"primaryKey" json:"id"`
+	Name     string `gorm:"not null" json:"name"`
+	Code     string `gorm:"unique;not null" json:"code"`
+	DeanName string `json:"deanName"`
 }
 
 type Major struct {
-	ID          uint   `gorm:"primaryKey"`
-	Name        string `gorm:"not null"`
-	FacultyID   uint
-	Faculty     Faculty `gorm:"foreignKey:FacultyID"`
-	DegreeLevel string
+	ID          uint    `gorm:"primaryKey" json:"id"`
+	Name        string  `gorm:"not null" json:"name"`
+	Code        string  `gorm:"unique;not null" json:"code"`
+	FacultyID   uint    `json:"facultyId"`
+	Faculty     Faculty `gorm:"foreignKey:FacultyID" json:"faculty"`
+	DegreeLevel string  `json:"degreeLevel"`
+	Akreditasi  string  `json:"akreditasi"`
+	Kapasitas   int     `json:"kapasitas"`
 }
 
 type Lecturer struct {
-	ID        uint   `gorm:"primaryKey"`
-	UserID    uint
-	User      User   `gorm:"foreignKey:UserID"`
-	NIDN      string `gorm:"unique"`
-	Name      string `gorm:"not null"`
-	FacultyID uint
-	Faculty   Faculty `gorm:"foreignKey:FacultyID"`
-	IsDPA     bool   `gorm:"default:false"`
+	ID        uint    `gorm:"primaryKey" json:"id"`
+	UserID    uint    `json:"userId"`
+	User      User    `gorm:"foreignKey:UserID" json:"user"`
+	NIDN      string  `gorm:"unique" json:"nidn"`
+	Name      string  `gorm:"not null" json:"name"`
+	FacultyID uint    `json:"facultyId"`
+	Faculty   Faculty `gorm:"foreignKey:FacultyID" json:"faculty"`
+	IsDPA     bool    `gorm:"default:false" json:"isDpa"`
 }
 
 type Student struct {
-	ID              uint      `gorm:"primaryKey"`
-	UserID          uint      `gorm:"not null"`
-	User            User      `gorm:"foreignKey:UserID"`
-	NIM             string    `gorm:"unique;not null;column:nim"`
-	Name            string    `gorm:"not null;column:nama"`
-	MajorID         uint      `gorm:"column:prodi_id"`
-	Major           Major     `gorm:"foreignKey:MajorID"`
-	DPALecturerID   *uint     // optional
-	DPALecturer     *Lecturer `gorm:"foreignKey:DPALecturerID"`
-	CurrentSemester int       `gorm:"default:1"`
-	Status          string    `gorm:"default:'aktif'"`
-	EntryYear       int16     `gorm:"column:angkatan"`
-	PhotoURL        string    `gorm:"column:foto_url"`
+	ID              uint      `gorm:"primaryKey" json:"id"`
+	UserID          uint      `gorm:"not null" json:"userId"`
+	User            User      `gorm:"foreignKey:UserID" json:"user"`
+	NIM             string    `gorm:"unique;not null;column:nim" json:"nim"`
+	Name            string    `gorm:"not null;column:nama" json:"name"`
+	MajorID         uint      `gorm:"column:prodi_id" json:"majorId"`
+	Major           Major     `gorm:"foreignKey:MajorID" json:"major"`
+	DPALecturerID   *uint     `json:"dpaLecturerId"`
+	DPALecturer     *Lecturer `gorm:"foreignKey:DPALecturerID" json:"dpaLecturer"`
+	CurrentSemester int       `gorm:"default:1" json:"currentSemester"`
+	Status          string    `gorm:"default:'aktif'" json:"status"`
+	EntryYear       int16     `gorm:"column:angkatan" json:"entryYear"`
+	PhotoURL        string    `gorm:"column:foto_url" json:"photoUrl"`
 	// Additional Personal Data
-	Email      string
-	Phone      string
-	BirthPlace string
-	BirthDate  *time.Time
-	Gender     string // Laki-laki / Perempuan
-	Religion   string
-	Address    string `gorm:"type:text"`
-	City       string
-	ZipCode    string
-	GolonganDarah string `json:"golongan_darah"` // A, B, AB, O
+	Email         string     `json:"email"`
+	Phone         string     `json:"phone"`
+	BirthPlace    string     `json:"birthPlace"`
+	BirthDate     *time.Time `json:"birthDate"`
+	Gender        string     `json:"gender"` // Laki-laki / Perempuan
+	Religion      string     `json:"religion"`
+	Address       string     `gorm:"type:text" json:"address"`
+	City          string     `json:"city"`
+	ZipCode       string     `json:"zipCode"`
+	GolonganDarah string     `json:"golongan_darah"` // A, B, AB, O
+	GPA           float64    `gorm:"column:gpa;default:0" json:"gpa"`
+	CreditLimit   int        `gorm:"column:credit_limit;default:24" json:"creditLimit"`
 }
 
 // --- ACADEMIC & KRS ENTITIES ---
@@ -104,19 +109,19 @@ type MataKuliahPrasyarat struct {
 }
 
 type JadwalKuliah struct {
-	ID               uint            `gorm:"primaryKey"`
-	MataKuliahID     uint
-	MataKuliah       MataKuliah      `gorm:"foreignKey:MataKuliahID"`
-	LecturerID       uint            // Dosen
-	Lecturer         Lecturer        `gorm:"foreignKey:LecturerID"`
-	PeriodeID        uint
-	PeriodeAkademik  PeriodeAkademik `gorm:"foreignKey:PeriodeID"`
-	Hari             int             // 1=Senin, 2=Selasa, etc.
-	JamMulai         string          `gorm:"not null"` // e.g., "08:00"
-	JamSelesai       string          `gorm:"not null"` // e.g., "10:30"
-	Ruang            string          `gorm:"not null"`
-	Kuota            int             `gorm:"not null;default:40"`
-	TahunAkademik    string
+	ID              uint            `gorm:"primaryKey"`
+	MataKuliahID    uint
+	MataKuliah      MataKuliah      `gorm:"foreignKey:MataKuliahID"`
+	LecturerID      uint            // Dosen
+	Lecturer        Lecturer        `gorm:"foreignKey:LecturerID"`
+	PeriodeID       uint
+	PeriodeAkademik PeriodeAkademik `gorm:"foreignKey:PeriodeID"`
+	Hari            int             // 1=Senin, 2=Selasa, etc.
+	JamMulai        string          `gorm:"not null"` // e.g., "08:00"
+	JamSelesai      string          `gorm:"not null"` // e.g., "10:30"
+	Ruang           string          `gorm:"not null"`
+	Kuota           int             `gorm:"not null;default:40"`
+	TahunAkademik   string
 }
 
 type KHS struct {
@@ -216,12 +221,12 @@ type KencanaHasilKuis struct {
 }
 
 type KencanaProgress struct {
-	ID                 uint      `gorm:"primaryKey" json:"id"`
-	StudentID          uint      `gorm:"uniqueIndex" json:"student_id"`
-	Student            Student   `gorm:"foreignKey:StudentID" json:"-"`
-	NilaiKumulatif     float64   `gorm:"default:0" json:"nilai_kumulatif"`
-	StatusKeseluruhan  string    `gorm:"default:'belum_mulai'" json:"status_keseluruhan"` // belum_mulai, berlangsung, lulus, tidak_lulus
-	LastUpdated        time.Time `json:"last_updated"`
+	ID                uint      `gorm:"primaryKey" json:"id"`
+	StudentID         uint      `gorm:"uniqueIndex" json:"student_id"`
+	Student           Student   `gorm:"foreignKey:StudentID" json:"-"`
+	NilaiKumulatif    float64   `gorm:"default:0" json:"nilai_kumulatif"`
+	StatusKeseluruhan string    `gorm:"default:'belum_mulai'" json:"status_keseluruhan"` // belum_mulai, berlangsung, lulus, tidak_lulus
+	LastUpdated       time.Time `json:"last_updated"`
 }
 
 type KencanaBanding struct {
@@ -240,21 +245,21 @@ type KencanaBanding struct {
 }
 
 type KencanaSertifikat struct {
-	ID              uint   `gorm:"primaryKey"`
+	ID              uint    `gorm:"primaryKey"`
 	StudentID       uint
 	Student         Student `gorm:"foreignKey:StudentID"`
-	NomorSertifikat string `gorm:"uniqueIndex"`
+	NomorSertifikat string  `gorm:"uniqueIndex"`
 	FileURL         string
 	DiterbitkanAt   time.Time
 }
 
 // --- MODUL ACHIEVEMENT ---
 type Achievement struct {
-	ID                 uint   `gorm:"primaryKey"`
+	ID                 uint    `gorm:"primaryKey"`
 	StudentID          uint
 	Student            Student `gorm:"foreignKey:StudentID"`
-	NamaLomba          string `gorm:"not null"`
-	Kategori           string // Akademik/Non-Akademik/Olahraga/Seni
+	NamaLomba          string  `gorm:"not null"`
+	Kategori           string  // Akademik/Non-Akademik/Olahraga/Seni
 	Penyelenggara      string
 	Tingkat            string // Lokal/Nasional/Internasional
 	Tanggal            time.Time
@@ -332,14 +337,14 @@ type JadwalKonseling struct {
 }
 
 type BookingKonseling struct {
-	ID              uint   `gorm:"primaryKey"`
+	ID              uint            `gorm:"primaryKey"`
 	StudentID       uint
-	Student         Student `gorm:"foreignKey:StudentID"`
+	Student         Student         `gorm:"foreignKey:StudentID"`
 	JadwalID        uint
 	JadwalKonseling JadwalKonseling `gorm:"foreignKey:JadwalID"`
-	KeluhanAwal     string `gorm:"type:text"`
-	Status          string // Menunggu/Dikonfirmasi/Selesai/Dibatalkan
-	CatatanKonselor string `gorm:"type:text"`
+	KeluhanAwal     string          `gorm:"type:text"`
+	Status          string          // Menunggu/Dikonfirmasi/Selesai/Dibatalkan
+	CatatanKonselor string          `gorm:"type:text"`
 	CreatedAt       time.Time
 }
 
@@ -378,59 +383,59 @@ type TiketAspirasi struct {
 	LampiranURL   string               `gorm:"size:500" json:"lampiran_url"`
 	IsAnonim      bool                 `gorm:"default:false" json:"is_anonim"`
 	LevelSaatIni  string               `gorm:"default:'fakultas'" json:"level_saat_ini"` // fakultas | universitas | selesai
-	Status        string               `gorm:"default:'menunggu'" json:"status"`        // menunggu | diproses | ditindaklanjuti | selesai
+	Status        string               `gorm:"default:'menunggu'" json:"status"`         // menunggu | diproses | ditindaklanjuti | selesai
 	Timeline      []TiketTimelineEvent `gorm:"foreignKey:TiketID" json:"timeline,omitempty"`
 	CreatedAt     time.Time            `json:"created_at"`
 	UpdatedAt     time.Time            `json:"updated_at"`
 }
 
 type TiketTimelineEvent struct {
-	ID           string    `gorm:"primaryKey;default:gen_random_uuid()" json:"id"`
-	TiketID      string    `gorm:"not null;index" json:"tiket_id"`
-	TipeEvent    string    `json:"tipe_event"` // dikirim | diterima_fakultas | respons_fakultas | diteruskan_universitas | respons_universitas | selesai | dibatalkan
-	Level        string    `json:"level"`      // sistem | fakultas | universitas
-	IsiRespons   string    `gorm:"type:text" json:"isi_respons"`
+	ID            string    `gorm:"primaryKey;default:gen_random_uuid()" json:"id"`
+	TiketID       string    `gorm:"not null;index" json:"tiket_id"`
+	TipeEvent     string    `json:"tipe_event"` // dikirim | diterima_fakultas | respons_fakultas | diteruskan_universitas | respons_universitas | selesai | dibatalkan
+	Level         string    `json:"level"`      // sistem | fakultas | universitas
+	IsiRespons    string    `gorm:"type:text" json:"isi_respons"`
 	DilakukanOleh *uint     `json:"dilakukan_oleh"` // Admin ID (optional)
-	CreatedAt    time.Time `json:"created_at"`
+	CreatedAt     time.Time `json:"created_at"`
 }
 
 // --- MODUL ORGANISASI ---
 type RiwayatOrganisasi struct {
-	ID                 uint   `gorm:"primaryKey"`
-	StudentID          uint
-	Student            Student `gorm:"foreignKey:StudentID"`
-	NamaOrganisasi     string
-	Tipe               string // UKM/Himpunan/BEM/DPM/Komunitas
-	Jabatan            string
-	PeriodeMulai       int // Year
-	PeriodeSelesai     *int // Year
-	DeskripsiKegiatan  string `gorm:"type:text"`
-	StatusVerifikasi   string // Menunggu/Diverifikasi
-	CreatedAt          time.Time
+	ID                uint    `gorm:"primaryKey"`
+	StudentID         uint
+	Student           Student `gorm:"foreignKey:StudentID"`
+	NamaOrganisasi    string
+	Tipe              string // UKM/Himpunan/BEM/DPM/Komunitas
+	Jabatan           string
+	PeriodeMulai      int  // Year
+	PeriodeSelesai    *int // Year
+	DeskripsiKegiatan string `gorm:"type:text"`
+	StatusVerifikasi  string // Menunggu/Diverifikasi
+	CreatedAt         time.Time
 }
 
 // --- DASHBOARD & GENERAL ---
 
 type KegiatanKampus struct {
-	ID             uint      `gorm:"primaryKey" json:"id"`
-	Judul          string    `gorm:"not null" json:"judul"`
-	Deskripsi      string    `gorm:"type:text" json:"deskripsi"`
-	TanggalMulai   time.Time `gorm:"not null" json:"tanggal_mulai"`
+	ID             uint       `gorm:"primaryKey" json:"id"`
+	Judul          string     `gorm:"not null" json:"judul"`
+	Deskripsi      string     `gorm:"type:text" json:"deskripsi"`
+	TanggalMulai   time.Time  `gorm:"not null" json:"tanggal_mulai"`
 	TanggalSelesai *time.Time `json:"tanggal_selesai"`
-	Kategori       string    `json:"kategori"` // kencana, beasiswa, konseling, kampus, organisasi
-	IsAktif        bool      `gorm:"default:true" json:"is_aktif"`
-	CreatedAt      time.Time `json:"created_at"`
-	CreatedBy      uint      `json:"created_by"`
+	Kategori       string     `json:"kategori"` // kencana, beasiswa, konseling, kampus, organisasi
+	IsAktif        bool       `gorm:"default:true" json:"is_aktif"`
+	CreatedAt      time.Time  `json:"created_at"`
+	CreatedBy      uint       `json:"created_by"`
 }
 
 type AktivitasLog struct {
-	ID          uint      `gorm:"primaryKey" json:"id"`
-	StudentID   uint      `gorm:"not null" json:"student_id"`
-	Student     Student   `gorm:"foreignKey:StudentID" json:"-"`
-	Tipe        string    `gorm:"not null" json:"tipe"` // achievement, beasiswa, konseling, kencana, student_voice, organisasi
-	Deskripsi   string    `gorm:"not null" json:"deskripsi"`
-	Link        string    `json:"link"`
-	CreatedAt   time.Time `json:"created_at"`
+	ID        uint      `gorm:"primaryKey" json:"id"`
+	StudentID uint      `gorm:"not null" json:"student_id"`
+	Student   Student   `gorm:"foreignKey:StudentID" json:"-"`
+	Tipe      string    `gorm:"not null" json:"tipe"` // achievement, beasiswa, konseling, kencana, student_voice, organisasi
+	Deskripsi string    `gorm:"not null" json:"deskripsi"`
+	Link      string    `json:"link"`
+	CreatedAt time.Time `json:"created_at"`
 }
 
 // --- PENGUMUMAN ---
@@ -451,39 +456,66 @@ type Pengumuman struct {
 // --- PROFILE SETTINGS ---
 
 type LoginHistory struct {
-	ID          uint      `gorm:"primaryKey" json:"id"`
-	StudentID   uint      `gorm:"not null" json:"student_id"`
-	Student     Student   `gorm:"foreignKey:StudentID" json:"-"`
-	IPAddress   string    `json:"ip_address"`
-	UserAgent   string    `json:"user_agent"`
-	Location    string    `json:"location"`
-	Status      string    `json:"status"` // Berhasil / Gagal
-	CreatedAt   time.Time `json:"created_at"`
+	ID        uint      `gorm:"primaryKey" json:"id"`
+	StudentID uint      `gorm:"not null" json:"student_id"`
+	Student   Student   `gorm:"foreignKey:StudentID" json:"-"`
+	IPAddress string    `json:"ip_address"`
+	UserAgent string    `json:"user_agent"`
+	Location  string    `json:"location"`
+	Status    string    `json:"status"` // Berhasil / Gagal
+	CreatedAt time.Time `json:"created_at"`
 }
 
 type NotificationPreference struct {
-	ID             uint    `gorm:"primaryKey" json:"id"`
-	StudentID      uint    `gorm:"not null" json:"student_id"`
-	Student        Student `gorm:"foreignKey:StudentID" json:"-"`
-	EmailAchievement bool  `gorm:"default:true" json:"email_achievement"`
-	EmailBeasiswa    bool  `gorm:"default:true" json:"email_beasiswa"`
-	EmailCounseling bool  `gorm:"default:true" json:"email_konseling"`
-	EmailVoice       bool  `gorm:"default:true" json:"email_student_voice"`
-	EmailKencana     bool  `gorm:"default:true" json:"email_kencana"`
-	EmailNews        bool  `gorm:"default:true" json:"email_pengumuman"`
+	ID               uint    `gorm:"primaryKey" json:"id"`
+	StudentID        uint    `gorm:"not null" json:"student_id"`
+	Student          Student `gorm:"foreignKey:StudentID" json:"-"`
+	EmailAchievement bool    `gorm:"default:true" json:"email_achievement"`
+	EmailBeasiswa    bool    `gorm:"default:true" json:"email_beasiswa"`
+	EmailCounseling  bool    `gorm:"default:true" json:"email_konseling"`
+	EmailVoice       bool    `gorm:"default:true" json:"email_student_voice"`
+	EmailKencana     bool    `gorm:"default:true" json:"email_kencana"`
+	EmailNews        bool    `gorm:"default:true" json:"email_pengumuman"`
 }
 
 // --- NOTIFIKASI ---
 
 type Notification struct {
-	ID          string     `gorm:"primaryKey;type:uuid;default:gen_random_uuid()" json:"id"`
-	StudentID   uint       `gorm:"not null;index:idx_notif_unread" json:"student_id"`
-	Student     Student    `gorm:"foreignKey:StudentID" json:"-"`
-	Type        string     `gorm:"size:50;not null" json:"type"` // achievement, beasiswa, konseling, student_voice, kencana, sistem
-	Title       string     `gorm:"size:200;not null" json:"title"`
-	Content     string     `gorm:"type:text;not null" json:"content"`
-	Link        string     `gorm:"size:300" json:"link"`
-	IsRead      bool       `gorm:"default:false;index:idx_notif_unread" json:"is_read"`
-	ReadAt      *time.Time `json:"read_at"`
-	CreatedAt   time.Time  `gorm:"default:now();index:idx_notif_created" json:"created_at"`
+	ID        string     `gorm:"primaryKey;type:uuid;default:gen_random_uuid()" json:"id"`
+	StudentID uint       `gorm:"not null;index:idx_notif_unread" json:"student_id"`
+	Student   Student    `gorm:"foreignKey:StudentID" json:"-"`
+	Type      string     `gorm:"size:50;not null" json:"type"` // achievement, beasiswa, konseling, student_voice, kencana, sistem
+	Title     string     `gorm:"size:200;not null" json:"title"`
+	Content   string     `gorm:"type:text;not null" json:"content"`
+	Link      string     `gorm:"size:300" json:"link"`
+	IsRead    bool       `gorm:"default:false;index:idx_notif_unread" json:"is_read"`
+	ReadAt    *time.Time `json:"read_at"`
+	CreatedAt time.Time  `gorm:"default:now();index:idx_notif_created" json:"created_at"`
+}
+
+// --- AUDIT LOG (from danzz) ---
+
+// AuditLog represents every sensitive action performed by admins
+type AuditLog struct {
+	ID        uint           `gorm:"primaryKey" json:"id"`
+	UserID    uint           `json:"userId"`
+	User      User           `gorm:"foreignKey:UserID" json:"user"`
+	Action    string         `json:"action"` // e.g. "UPDATE_ROLE", "DELETE_PROPOSAL"
+	Entity    string         `json:"entity"` // e.g. "users", "proposals"
+	EntityID  uint           `json:"entityId"`
+	OldValue  string         `gorm:"type:text" json:"oldValue"`
+	NewValue  string         `gorm:"type:text" json:"newValue"`
+	IPAddress string         `json:"ipAddress"`
+	UserAgent string         `json:"userAgent"`
+	CreatedAt gorm.DeletedAt `json:"createdAt"`
+}
+
+// AcademicSettings represents the global university state controlled by Super Admin
+type AcademicSettings struct {
+	gorm.Model
+	ActiveYear        string `json:"activeYear"`       // e.g. "2023/2024"
+	ActiveSemester    string `json:"activeSemester"`   // e.g. "Ganjil" / "Genap"
+	IsKrsOpen         bool   `gorm:"default:false" json:"isKrsOpen"`
+	IsGradeInputOpen  bool   `gorm:"default:false" json:"isGradeInputOpen"`
+	LastModifiedBy    uint   `json:"lastModifiedBy"`
 }

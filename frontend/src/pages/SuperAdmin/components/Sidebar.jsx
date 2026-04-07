@@ -1,59 +1,111 @@
 import React from 'react';
+import { NavLink } from 'react-router-dom';
 
 const Sidebar = () => {
+  const menuGroups = [
+    {
+      title: "Menu Utama",
+      items: [
+        { name: "Dashboard", icon: "dashboard", path: "/admin" },
+        { name: "Log Aktivitas", icon: "policy", path: "/admin/audit" },
+      ]
+    },
+    {
+      title: "Manajemen Data",
+      items: [
+        { name: "Data Fakultas", icon: "domain", path: "/admin/faculties" },
+        { name: "Data Mahasiswa", icon: "database", path: "/admin/students" },
+        { name: "Data Dosen", icon: "badge", path: "/admin/lecturers" },
+      ]
+    },
+    {
+      title: "Kegiatan & Ormawa",
+      items: [
+        { name: "Monitoring Proposal", icon: "task", path: "/admin/proposals" },
+        { name: "Kelola Ormawa", icon: "groups", path: "/admin/organizations" },
+      ]
+    },
+    {
+      title: "Layanan & Bantuan",
+      items: [
+        { name: "Beasiswa", icon: "payments", path: "/admin/scholarships" },
+        { name: "Aspirasi", icon: "forum", path: "/admin/aspirations" },
+        { name: "Konseling", icon: "psychology", path: "/admin/counseling" },
+      ]
+    },
+    {
+      title: "Keamanan & Akses",
+      items: [
+        { name: "Kelola Akses", icon: "admin_panel_settings", path: "/admin/rbac" },
+        { name: "Performa Admin", icon: "monitoring", path: "/admin/performance" },
+      ]
+    },
+    {
+      title: "Sistem & Informasi",
+      items: [
+        { name: "Kelola Berita", icon: "campaign", path: "/admin/announcements" },
+        { name: "Pengaturan", icon: "settings", path: "/admin/config" },
+      ]
+    }
+  ];
+
+  const activeStyle = "flex items-center gap-3 px-4 py-2.5 rounded-xl text-primary font-bold bg-primary/10 transition-all shadow-sm border border-primary/5";
+  const inactiveStyle = "flex items-center gap-3 px-4 py-2.5 rounded-xl text-slate-600 hover:text-primary hover:bg-slate-50 transition-all group";
+
   return (
-    <aside className="h-screen w-72 fixed left-0 top-0 flex flex-col bg-slate-50 border-r border-slate-200/50 z-50 font-['Plus_Jakarta_Sans'] text-sm tracking-wide">
-      <div className="flex flex-col h-full py-8 px-4">
+    <aside className="h-screen w-80 fixed left-0 top-0 flex flex-col bg-white border-r border-slate-200 z-50 select-none">
+      <div className="flex flex-col h-full overflow-hidden">
         {/* Header Brand */}
-        <div className="px-4 mb-10 flex items-center gap-3">
-          <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center text-white">
-            <span className="material-symbols-outlined">account_balance</span>
+        <div className="p-8 pb-4 flex items-center gap-4">
+          <div className="w-12 h-12 bg-primary rounded-2xl flex items-center justify-center text-white shadow-lg shadow-primary/30">
+            <span className="material-symbols-outlined text-2xl">account_balance</span>
           </div>
           <div>
-            <h1 className="text-lg font-extrabold text-blue-900 leading-tight">Super Admin</h1>
-            <p className="text-[10px] uppercase tracking-widest text-secondary font-bold">Institutional Control</p>
+            <h1 className="text-xl font-black text-primary leading-tight uppercase ">Master Hub</h1>
+            <p className="text-[10px] uppercase tracking-widest text-slate-600 font-bold opacity-90">Super Admin Panel</p>
           </div>
         </div>
-        
-        {/* Primary Navigation */}
-        <nav className="flex-1 space-y-1">
-          {/* Analytics is Active by Intent */}
-          <div className="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-600 hover:bg-slate-100 transition-all cursor-pointer">
-            <span className="material-symbols-outlined">group</span>
-            <span>User Management</span>
-          </div>
-          <div className="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-600 hover:bg-slate-100 transition-all cursor-pointer">
-            <span className="material-symbols-outlined">gavel</span>
-            <span>Content Moderation</span>
-          </div>
-          <div className="flex items-center gap-3 px-4 py-3 rounded-lg text-blue-900 font-bold border-r-4 border-blue-900 bg-blue-50/50 transition-all cursor-pointer">
-            <span className="material-symbols-outlined">analytics</span>
-            <span>Analytics</span>
-          </div>
-          <div className="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-600 hover:bg-slate-100 transition-all cursor-pointer">
-            <span className="material-symbols-outlined">settings_suggest</span>
-            <span>System Settings</span>
-          </div>
+
+        {/* Scrollable Navigation */}
+        <nav className="flex-1 overflow-y-auto px-4 py-4 space-y-8 scrollbar-hide ">
+          {menuGroups.map((group, idx) => (
+            <div key={idx} className="space-y-1">
+              <h3 className="px-4 text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-2">
+                {group.title}
+              </h3>
+              <div className="space-y-0.5">
+                {group.items.map((item, itemIdx) => (
+                  <NavLink
+                    key={itemIdx}
+                    to={item.path}
+                    end={item.path === "/admin"}
+                    className={({ isActive }) => isActive ? activeStyle : inactiveStyle}
+                  >
+                    <span className="material-symbols-outlined text-[20px]">
+                      {item.icon}
+                    </span>
+                    <span className="text-sm font-bold tracking-tight ">{item.name}</span>
+                  </NavLink>
+                ))}
+              </div>
+            </div>
+          ))}
         </nav>
 
-        {/* CTA */}
-        <div className="mt-auto px-4 py-6">
-          <button className="w-full py-3 bg-primary text-white rounded-xl font-bold flex items-center justify-center gap-2 shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-transform duration-200">
-            <span className="material-symbols-outlined text-sm">description</span>
-            Generate Report
+        {/* Footer Actions */}
+        <div className="p-6 border-t border-slate-200 space-y-2 bg-slate-50/50 ">
+          <button className="w-full py-3 bg-primary text-white rounded-xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-3 shadow-lg shadow-primary/20 hover:scale-[1.01] active:scale-95 transition-all ">
+            <span className="material-symbols-outlined text-[18px]">download</span>
+            <span>Unduh Laporan</span>
           </button>
-        </div>
 
-        {/* Footer Navigation */}
-        <div className="border-t border-slate-200/50 pt-4 space-y-1">
-          <div className="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-600 hover:bg-slate-100 transition-all cursor-pointer">
-            <span className="material-symbols-outlined">help</span>
-            <span>Support</span>
-          </div>
-          <div className="flex items-center gap-3 px-4 py-3 rounded-lg text-error hover:bg-error-container/20 transition-all cursor-pointer">
-            <span className="material-symbols-outlined">logout</span>
-            <span>Logout</span>
-          </div>
+          <NavLink
+            to="/login"
+            className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-red-500 hover:bg-red-50 transition-all font-bold group "
+          >
+            <span className="material-symbols-outlined text-[20px]">logout</span>
+            <span className="text-sm">Keluar</span>
+          </NavLink>
         </div>
       </div>
     </aside>
