@@ -1,6 +1,8 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import axios from "axios"
+import { toast, Toaster } from "react-hot-toast"
 import {
   Card,
   CardContent,
@@ -59,100 +61,6 @@ import {
   AlertCircle,
 } from "lucide-react"
 
-const pengumumanData = [
-  {
-    id: 1,
-    judul: "Jadwal UAS Semester Genap 2023/2024",
-    kategori: "Akademik",
-    tanggal: "2024-05-15",
-    status: "Published",
-    views: 1250,
-    prioritas: "Tinggi",
-  },
-  {
-    id: 2,
-    judul: "Pendaftaran Wisuda Periode Juni 2024",
-    kategori: "Wisuda",
-    tanggal: "2024-05-10",
-    status: "Published",
-    views: 890,
-    prioritas: "Tinggi",
-  },
-  {
-    id: 3,
-    judul: "Libur Hari Raya Idul Fitri 1445 H",
-    kategori: "Umum",
-    tanggal: "2024-04-08",
-    status: "Published",
-    views: 2100,
-    prioritas: "Normal",
-  },
-  {
-    id: 4,
-    judul: "Workshop Machine Learning untuk Mahasiswa",
-    kategori: "Kegiatan",
-    tanggal: "2024-05-20",
-    status: "Draft",
-    views: 0,
-    prioritas: "Normal",
-  },
-  {
-    id: 5,
-    judul: "Perubahan Jadwal Kuliah Prodi TI",
-    kategori: "Akademik",
-    tanggal: "2024-05-18",
-    status: "Published",
-    views: 450,
-    prioritas: "Tinggi",
-  },
-]
-
-const kalenderData = [
-  {
-    id: 1,
-    kegiatan: "UTS Semester Genap",
-    tanggalMulai: "2024-03-18",
-    tanggalSelesai: "2024-03-29",
-    status: "Selesai",
-  },
-  {
-    id: 2,
-    kegiatan: "Libur Hari Raya",
-    tanggalMulai: "2024-04-08",
-    tanggalSelesai: "2024-04-14",
-    status: "Selesai",
-  },
-  {
-    id: 3,
-    kegiatan: "UAS Semester Genap",
-    tanggalMulai: "2024-06-03",
-    tanggalSelesai: "2024-06-14",
-    status: "Akan Datang",
-  },
-  {
-    id: 4,
-    kegiatan: "Wisuda Periode I",
-    tanggalMulai: "2024-06-28",
-    tanggalSelesai: "2024-06-29",
-    status: "Akan Datang",
-  },
-  {
-    id: 5,
-    kegiatan: "Perkuliahan Semester Ganjil",
-    tanggalMulai: "2024-09-02",
-    tanggalSelesai: "2024-12-20",
-    status: "Akan Datang",
-  },
-]
-
-const templateData = [
-  { id: 1, nama: "Surat Keterangan Aktif", kategori: "Akademik", penggunaan: 156 },
-  { id: 2, nama: "Surat Rekomendasi", kategori: "Akademik", penggunaan: 89 },
-  { id: 3, nama: "Surat Izin Cuti", kategori: "Administrasi", penggunaan: 45 },
-  { id: 4, nama: "Surat Pengantar PKL", kategori: "PKL/Magang", penggunaan: 234 },
-  { id: 5, nama: "Surat Pengantar Skripsi", kategori: "Skripsi", penggunaan: 178 },
-]
-
 import Sidebar from "../components/Sidebar"
 import TopNavBar from "../components/TopNavBar"
 
@@ -161,383 +69,338 @@ export default function KontenPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [kategoriFilter, setKategoriFilter] = useState("all")
 
-  const filteredPengumuman = pengumumanData.filter((p) => {
-    const matchSearch = p.judul.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchKategori = kategoriFilter === "all" || p.kategori === kategoriFilter
+  // API State
+  const [articles, setArticles] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [editingArticle, setEditingArticle] = useState(null)
+  const [formData, setFormData] = useState({
+    title: "",
+    content: "",
+    category: "Akademik",
+    thumbnail: "",
+    author: "Admin Fakultas",
+    status: "Published"
+  })
+
+  const fetchData = async () => {
+    try {
+      const res = await axios.get("http://localhost:8000/api/faculty/news")
+      if (res.data.status === "success") {
+        setArticles(res.data.data)
+      }
+    } catch (error) {
+      console.error("Gagal ambil berita:", error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchData()
+  }, [])
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    try {
+      if (editingArticle) {
+        await axios.put(`http://localhost:8000/api/faculty/news/${editingArticle.id}`, formData)
+        toast.success("Pengumuman diperbarui")
+      } else {
+        await axios.post("http://localhost:8000/api/faculty/news", formData)
+        toast.success("Pengumuman dipublikasikan")
+      }
+      setIsModalOpen(false)
+      setEditingArticle(null)
+      setFormData({ title: "", content: "", category: "Akademik", thumbnail: "", author: "Admin Fakultas", status: "Published" })
+      fetchData()
+    } catch (error) {
+      toast.error("Gagal menyimpan data")
+    }
+  }
+
+  const handleDelete = async (id) => {
+    if (!window.confirm("Hapus pengumuman ini?")) return
+    try {
+      await axios.delete(`http://localhost:8000/api/faculty/news/${id}`)
+      toast.success("Berhasil dihapus")
+      fetchData()
+    } catch (error) {
+      toast.error("Gagal menghapus")
+    }
+  }
+
+  const openEdit = (art) => {
+    setEditingArticle(art)
+    setFormData({
+      title: art.title,
+      content: art.content,
+      category: art.category,
+      thumbnail: art.thumbnail,
+      author: art.author,
+      status: art.status
+    })
+    setIsModalOpen(true)
+  }
+
+  const filteredPengumuman = articles.filter((p) => {
+    const matchSearch = p.title.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchKategori = kategoriFilter === "all" || p.category === kategoriFilter
     return matchSearch && matchKategori
   })
+
+  // Dummy data for Kalender & Template (Optional integration later)
+  const kalenderData = [
+    { id: 1, kegiatan: "UAS Semester Genap", tanggalMulai: "2024-06-03", tanggalSelesai: "2024-06-14", status: "Akan Datang" }
+  ]
+  const templateData = [
+    { id: 1, nama: "Surat Keterangan Aktif", kategori: "Akademik", penggunaan: 156 }
+  ]
 
   const getStatusBadge = (status) => {
     switch (status) {
       case "Published":
-        return <Badge className="bg-success/10 text-success">Published</Badge>
+        return <Badge className="bg-success/10 text-success border-none">Published</Badge>
       case "Draft":
         return <Badge variant="secondary">Draft</Badge>
-      case "Scheduled":
-        return <Badge className="bg-primary/10 text-primary">Scheduled</Badge>
       default:
         return <Badge variant="outline">{status}</Badge>
-    }
-  }
-
-  const getKalenderBadge = (status) => {
-    switch (status) {
-      case "Selesai":
-        return <Badge variant="secondary">Selesai</Badge>
-      case "Berlangsung":
-        return <Badge className="bg-success/10 text-success">Berlangsung</Badge>
-      case "Akan Datang":
-        return <Badge className="bg-primary/10 text-primary">Akan Datang</Badge>
-      default:
-        return <Badge variant="outline">{status}</Badge>
-    }
-  }
-
-  const getPrioritasBadge = (prioritas) => {
-    switch (prioritas) {
-      case "Tinggi":
-        return <Badge variant="destructive">Tinggi</Badge>
-      case "Normal":
-        return <Badge variant="outline">Normal</Badge>
-      default:
-        return <Badge variant="outline">{prioritas}</Badge>
     }
   }
 
   return (
     <div className="text-on-surface bg-surface min-h-screen">
+      <Toaster />
       <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
       <TopNavBar setIsOpen={setSidebarOpen} />
       <main className="lg:ml-64 ml-0 min-h-screen transition-all duration-300">
         <div className="pt-24 pb-12 px-4 lg:px-8">
           <div className="flex flex-col gap-6">
-      {/* Page Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-medium tracking-tight">Manajemen Konten</h1>
-          <p className="text-on-surface-variant">
-            Kelola pengumuman, kalender akademik, dan template dokumen
-          </p>
-        </div>
-      </div>
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h1 className="text-2xl font-bold tracking-tight">Manajemen Konten</h1>
+                <p className="text-on-surface-variant text-sm">
+                  Kelola pengumuman, kalender akademik, dan template dokumen fakultas.
+                </p>
+              </div>
+            </div>
 
-      {/* Quick Stats */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardContent className="flex items-center gap-4 p-4">
-            <div className="flex size-12 items-center justify-center rounded-lg bg-primary/10">
-              <Megaphone className="size-6 text-primary" />
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              <Card className="border-none shadow-sm bg-white/50 backdrop-blur-md">
+                <CardContent className="flex items-center gap-4 p-5">
+                  <div className="flex size-12 items-center justify-center rounded-2xl bg-primary/10">
+                    <Megaphone className="size-6 text-primary" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Konten</p>
+                    <p className="text-2xl font-black">{articles.length}</p>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card className="border-none shadow-sm bg-white/50 backdrop-blur-md">
+                <CardContent className="flex items-center gap-4 p-5">
+                  <div className="flex size-12 items-center justify-center rounded-2xl bg-emerald-500/10">
+                    <CheckCircle className="size-6 text-emerald-500" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Published</p>
+                    <p className="text-2xl font-black">{articles.filter(a => a.status === 'Published').length}</p>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card className="border-none shadow-sm bg-white/50 backdrop-blur-md">
+                <CardContent className="flex items-center gap-4 p-5">
+                  <div className="flex size-12 items-center justify-center rounded-2xl bg-amber-500/10">
+                    <Clock className="size-6 text-amber-500" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Draft</p>
+                    <p className="text-2xl font-black">{articles.filter(a => a.status === 'Draft').length}</p>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card className="border-none shadow-sm bg-white/50 backdrop-blur-md">
+                <CardContent className="flex items-center gap-4 p-5">
+                  <div className="flex size-12 items-center justify-center rounded-2xl bg-indigo-500/10">
+                    <Eye className="size-6 text-indigo-500" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Views</p>
+                    <p className="text-2xl font-black">{articles.reduce((acc, curr) => acc + (curr.views || 0), 0)}</p>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
-            <div>
-              <p className="text-sm text-on-surface-variant">Total Pengumuman</p>
-              <p className="text-2xl font-medium">{pengumumanData.length}</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="flex items-center gap-4 p-4">
-            <div className="flex size-12 items-center justify-center rounded-lg bg-success/10">
-              <CheckCircle className="size-6 text-success" />
-            </div>
-            <div>
-              <p className="text-sm text-on-surface-variant">Published</p>
-              <p className="text-2xl font-medium">
-                {pengumumanData.filter((p) => p.status === "Published").length}
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="flex items-center gap-4 p-4">
-            <div className="flex size-12 items-center justify-center rounded-lg bg-warning/10">
-              <Clock className="size-6 text-warning-foreground" />
-            </div>
-            <div>
-              <p className="text-sm text-on-surface-variant">Draft</p>
-              <p className="text-2xl font-medium">
-                {pengumumanData.filter((p) => p.status === "Draft").length}
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="flex items-center gap-4 p-4">
-            <div className="flex size-12 items-center justify-center rounded-lg bg-accent/10">
-              <Calendar className="size-6 text-accent" />
-            </div>
-            <div>
-              <p className="text-sm text-on-surface-variant">Kegiatan Mendatang</p>
-              <p className="text-2xl font-medium">
-                {kalenderData.filter((k) => k.status === "Akan Datang").length}
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
 
-      {/* Tabs */}
-      <Tabs defaultValue="pengumuman" className="w-full">
-        <TabsList>
-          <TabsTrigger value="pengumuman">Pengumuman</TabsTrigger>
-          <TabsTrigger value="kalender">Kalender Akademik</TabsTrigger>
-          <TabsTrigger value="template">Template Dokumen</TabsTrigger>
-        </TabsList>
+            <Tabs defaultValue="pengumuman" className="w-full">
+              <TabsList className="bg-slate-100 p-1 rounded-xl">
+                <TabsTrigger value="pengumuman" className="rounded-lg font-bold text-xs uppercase tracking-widest">Pengumuman</TabsTrigger>
+                <TabsTrigger value="kalender" className="rounded-lg font-bold text-xs uppercase tracking-widest">Kalender Akademik</TabsTrigger>
+                <TabsTrigger value="template" className="rounded-lg font-bold text-xs uppercase tracking-widest">Template Dokumen</TabsTrigger>
+              </TabsList>
 
-        <TabsContent value="pengumuman" className="mt-4">
-          <Card>
-            <CardHeader className="pb-4">
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                <div className="relative flex-1 sm:max-w-xs">
-                  <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-on-surface-variant" />
-                  <Input
-                    placeholder="Cari pengumuman..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-9"
-                  />
-                </div>
-                <div className="flex gap-2">
-                  <Select value={kategoriFilter} onValueChange={setKategoriFilter}>
-                    <SelectTrigger className="w-36">
-                      <SelectValue placeholder="Kategori" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Semua</SelectItem>
-                      <SelectItem value="Akademik">Akademik</SelectItem>
-                      <SelectItem value="Wisuda">Wisuda</SelectItem>
-                      <SelectItem value="Kegiatan">Kegiatan</SelectItem>
-                      <SelectItem value="Umum">Umum</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <Button>
-                        <Plus className="mr-2 size-4" />
-                        Buat Pengumuman
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="max-w-2xl">
-                      <DialogHeader>
-                        <DialogTitle>Buat Pengumuman Baru</DialogTitle>
-                        <DialogDescription>
-                          Isi detail pengumuman yang akan dipublikasikan
-                        </DialogDescription>
-                      </DialogHeader>
-                      <div className="grid gap-4 py-4">
-                        <Input placeholder="Judul Pengumuman" />
-                        <div className="grid grid-cols-2 gap-4">
-                          <Select>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Kategori" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="akademik">Akademik</SelectItem>
-                              <SelectItem value="wisuda">Wisuda</SelectItem>
-                              <SelectItem value="kegiatan">Kegiatan</SelectItem>
-                              <SelectItem value="umum">Umum</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <Select>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Prioritas" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="tinggi">Tinggi</SelectItem>
-                              <SelectItem value="normal">Normal</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <Textarea placeholder="Isi pengumuman..." rows={6} />
+              <TabsContent value="pengumuman" className="mt-6">
+                <Card className="border-none shadow-xl shadow-slate-200/50 overflow-hidden rounded-[2rem]">
+                  <CardHeader className="pb-4 bg-white">
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                      <div className="relative flex-1 sm:max-w-xs">
+                        <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
+                        <Input
+                          placeholder="Cari judul konten..."
+                          value={searchTerm}
+                          onChange={(e) => setSearchTerm(e.target.value)}
+                          className="pl-9 bg-slate-50 border-none rounded-xl font-medium"
+                        />
                       </div>
-                      <DialogFooter>
-                        <Button variant="outline">Simpan Draft</Button>
-                        <Button>Publish</Button>
-                      </DialogFooter>
-                    </DialogContent>
-                  </Dialog>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="rounded-md border">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Judul</TableHead>
-                      <TableHead className="hidden sm:table-cell">Kategori</TableHead>
-                      <TableHead className="hidden md:table-cell">Tanggal</TableHead>
-                      <TableHead className="hidden lg:table-cell">Views</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead className="w-10"></TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredPengumuman.map((item) => (
-                      <TableRow key={item.id}>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <span className="font-medium">{item.judul}</span>
-                            {item.prioritas === "Tinggi" && (
-                              <AlertCircle className="size-4 text-destructive" />
-                            )}
-                          </div>
-                        </TableCell>
-                        <TableCell className="hidden sm:table-cell">
-                          <Badge variant="outline">{item.kategori}</Badge>
-                        </TableCell>
-                        <TableCell className="hidden md:table-cell">{item.tanggal}</TableCell>
-                        <TableCell className="hidden lg:table-cell">{item.views.toLocaleString()}</TableCell>
-                        <TableCell>{getStatusBadge(item.status)}</TableCell>
-                        <TableCell>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon">
-                                <MoreHorizontal className="size-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem>
-                                <Eye className="mr-2 size-4" />
-                                Preview
-                              </DropdownMenuItem>
-                              <DropdownMenuItem>
-                                <Pencil className="mr-2 size-4" />
-                                Edit
-                              </DropdownMenuItem>
-                              <DropdownMenuItem className="text-destructive">
-                                <Trash2 className="mr-2 size-4" />
-                                Hapus
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="kalender" className="mt-4">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <div>
-                <CardTitle>Kalender Akademik</CardTitle>
-                <CardDescription>Jadwal kegiatan akademik tahun ajaran berjalan</CardDescription>
-              </div>
-              <Button>
-                <Plus className="mr-2 size-4" />
-                Tambah Kegiatan
-              </Button>
-            </CardHeader>
-            <CardContent>
-              <div className="rounded-md border">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Kegiatan</TableHead>
-                      <TableHead>Tanggal Mulai</TableHead>
-                      <TableHead>Tanggal Selesai</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead className="w-10"></TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {kalenderData.map((item) => (
-                      <TableRow key={item.id}>
-                        <TableCell className="font-medium">{item.kegiatan}</TableCell>
-                        <TableCell>{item.tanggalMulai}</TableCell>
-                        <TableCell>{item.tanggalSelesai}</TableCell>
-                        <TableCell>{getKalenderBadge(item.status)}</TableCell>
-                        <TableCell>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon">
-                                <MoreHorizontal className="size-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem>
-                                <Pencil className="mr-2 size-4" />
-                                Edit
-                              </DropdownMenuItem>
-                              <DropdownMenuItem className="text-destructive">
-                                <Trash2 className="mr-2 size-4" />
-                                Hapus
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="template" className="mt-4">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <div>
-                <CardTitle>Template Dokumen</CardTitle>
-                <CardDescription>Kelola template surat dan dokumen akademik</CardDescription>
-              </div>
-              <Button>
-                <Plus className="mr-2 size-4" />
-                Tambah Template
-              </Button>
-            </CardHeader>
-            <CardContent>
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {templateData.map((template) => (
-                  <Card key={template.id} className="border-2">
-                    <CardContent className="p-4">
-                      <div className="mb-3 flex items-start justify-between">
-                        <div className="flex size-10 items-center justify-center rounded-lg bg-primary/10">
-                          <FileText className="size-5 text-primary" />
-                        </div>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="size-8">
-                              <MoreHorizontal className="size-4" />
+                      <div className="flex gap-2">
+                        <Select value={kategoriFilter} onValueChange={setKategoriFilter}>
+                          <SelectTrigger className="w-40 bg-slate-50 border-none rounded-xl font-bold text-xs uppercase tracking-widest">
+                            <SelectValue placeholder="Kategori" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">Semua Kategori</SelectItem>
+                            <SelectItem value="Akademik">Akademik</SelectItem>
+                            <SelectItem value="Wisuda">Wisuda</SelectItem>
+                            <SelectItem value="Kegiatan">Kegiatan</SelectItem>
+                            <SelectItem value="Umum">Umum</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+                          <DialogTrigger asChild>
+                            <Button onClick={() => { setEditingArticle(null); setFormData({ title: "", content: "", category: "Akademik", thumbnail: "", author: "Admin Fakultas", status: "Published" }) }} className="rounded-xl bg-slate-900 hover:bg-primary font-bold text-xs uppercase tracking-widest py-6 px-6 shadow-lg shadow-slate-900/10 transition-all">
+                              <Plus className="mr-2 size-4" />
+                              Publikasi Baru
                             </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem>
-                              <Eye className="mr-2 size-4" />
-                              Preview
-                            </DropdownMenuItem>
-                            <DropdownMenuItem>
-                              <Pencil className="mr-2 size-4" />
-                              Edit
-                            </DropdownMenuItem>
-                            <DropdownMenuItem className="text-destructive">
-                              <Trash2 className="mr-2 size-4" />
-                              Hapus
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                          </DialogTrigger>
+                          <DialogContent className="max-w-2xl rounded-[2.5rem] p-10">
+                            <DialogHeader>
+                              <DialogTitle className="text-2xl font-black tracking-tight">{editingArticle ? 'Edit Pengumuman' : 'Publikasi Konten Baru'}</DialogTitle>
+                              <DialogDescription className="font-medium text-slate-400">
+                                Isi detail informasi yang ingin disampaikan kepada civitas akademika.
+                              </DialogDescription>
+                            </DialogHeader>
+                            <form onSubmit={handleSubmit} className="grid gap-6 py-6">
+                              <div className="space-y-2">
+                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Judul Pengumuman</label>
+                                <Input value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} className="bg-slate-50 border-none p-6 rounded-2xl font-bold" placeholder="Contoh: Jadwal UAS Semester Genap..." required />
+                              </div>
+                              <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Kategori</label>
+                                  <Select value={formData.category} onValueChange={(v) => setFormData({ ...formData, category: v })}>
+                                    <SelectTrigger className="bg-slate-50 border-none p-6 h-auto rounded-2xl font-bold">
+                                      <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="Akademik">Akademik</SelectItem>
+                                      <SelectItem value="Wisuda">Wisuda</SelectItem>
+                                      <SelectItem value="Kegiatan">Kegiatan</SelectItem>
+                                      <SelectItem value="Umum">Umum</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                                <div className="space-y-2">
+                                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Status</label>
+                                  <Select value={formData.status} onValueChange={(v) => setFormData({ ...formData, status: v })}>
+                                    <SelectTrigger className="bg-slate-50 border-none p-6 h-auto rounded-2xl font-bold">
+                                      <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="Published">Published</SelectItem>
+                                      <SelectItem value="Draft">Draft</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                              </div>
+                              <div className="space-y-2">
+                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Thumbnail URL (Opsional)</label>
+                                <Input value={formData.thumbnail} onChange={(e) => setFormData({ ...formData, thumbnail: e.target.value })} className="bg-slate-50 border-none p-6 rounded-2xl font-medium" placeholder="https://image-url.com/news.jpg" />
+                              </div>
+                              <div className="space-y-2">
+                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Konten Lengkap</label>
+                                <Textarea value={formData.content} onChange={(e) => setFormData({ ...formData, content: e.target.value })} className="bg-slate-50 border-none p-6 rounded-2xl font-medium min-h-[150px]" placeholder="Tuliskan isi pengumuman di sini..." required />
+                              </div>
+                              <DialogFooter className="gap-3 mt-4">
+                                <Button type="button" variant="ghost" onClick={() => setIsModalOpen(false)} className="rounded-xl font-bold text-slate-400 uppercase tracking-widest px-8">Batal</Button>
+                                <Button type="submit" className="bg-slate-900 rounded-xl font-black text-xs uppercase tracking-[0.2em] px-10 h-14">Simpan & Publikasikan</Button>
+                              </DialogFooter>
+                            </form>
+                          </DialogContent>
+                        </Dialog>
                       </div>
-                      <h3 className="mb-1 font-medium">{template.nama}</h3>
-                      <div className="flex items-center justify-between">
-                        <Badge variant="outline">{template.kategori}</Badge>
-                        <span className="text-sm text-on-surface-variant">
-                          {template.penggunaan}x digunakan
-                        </span>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
-              </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="p-0">
+                    <Table>
+                      <TableHeader className="bg-slate-50/50">
+                        <TableRow>
+                          <TableHead className="font-bold text-[10px] uppercase tracking-widest pl-8 py-5">Judul Konten</TableHead>
+                          <TableHead className="font-bold text-[10px] uppercase tracking-widest py-5">Kategori</TableHead>
+                          <TableHead className="font-bold text-[10px] uppercase tracking-widest py-5 hidden md:table-cell">Tanggal</TableHead>
+                          <TableHead className="font-bold text-[10px] uppercase tracking-widest py-5 hidden lg:table-cell">Views</TableHead>
+                          <TableHead className="font-bold text-[10px] uppercase tracking-widest py-5">Status</TableHead>
+                          <TableHead className="w-20 pr-8"></TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {loading ? (
+                          <TableRow><TableCell colSpan={6} className="text-center py-20 font-medium text-slate-400 italic">Memuat data konten...</TableCell></TableRow>
+                        ) : filteredPengumuman.length === 0 ? (
+                          <TableRow><TableCell colSpan={6} className="text-center py-20 font-medium text-slate-400 italic">Belum ada pengumuman yang sesuai.</TableCell></TableRow>
+                        ) : filteredPengumuman.map((item) => (
+                          <TableRow key={item.id} className="hover:bg-slate-50/50 transition-colors group">
+                            <TableCell className="pl-8 py-6">
+                              <span className="font-bold text-slate-700 block line-clamp-1">{item.title}</span>
+                              <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{item.author}</span>
+                            </TableCell>
+                            <TableCell>
+                              <Badge variant="outline" className="rounded-lg border-slate-200 text-slate-500 font-bold text-[10px] py-1">{item.category}</Badge>
+                            </TableCell>
+                            <TableCell className="hidden md:table-cell text-xs font-bold text-slate-400">
+                              {new Date(item.CreatedAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
+                            </TableCell>
+                            <TableCell className="hidden lg:table-cell">
+                              <div className="flex items-center gap-1.5 text-xs font-bold text-slate-400">
+                                <Eye className="size-3" />
+                                {item.views || 0}
+                              </div>
+                            </TableCell>
+                            <TableCell>{getStatusBadge(item.status)}</TableCell>
+                            <TableCell className="pr-8">
+                              <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <Button variant="ghost" size="icon" onClick={() => openEdit(item)} className="size-8 rounded-lg hover:bg-primary/10 hover:text-primary">
+                                  <Pencil className="size-3.5" />
+                                </Button>
+                                <Button variant="ghost" size="icon" onClick={() => handleDelete(item.id)} className="size-8 rounded-lg hover:bg-rose-50 hover:text-rose-500">
+                                  <Trash2 className="size-3.5" />
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="kalender" className="mt-6">
+                <Card className="border-none shadow-xl rounded-[2rem] p-10 text-center py-32">
+                  <Calendar className="size-16 text-slate-200 mx-auto mb-6" />
+                  <h3 className="text-xl font-bold text-slate-700">Fitur Kalender Akademik</h3>
+                  <p className="text-slate-400 font-medium max-w-sm mx-auto mt-2">Modulo ini sedang dikembangkan untuk sinkronisasi jadwal semester otomatis.</p>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="template" className="mt-6">
+                <Card className="border-none shadow-xl rounded-[2rem] p-10 text-center py-32">
+                  <FileText className="size-16 text-slate-200 mx-auto mb-6" />
+                  <h3 className="text-xl font-bold text-slate-700">Manajemen Template Surat</h3>
+                  <p className="text-slate-400 font-medium max-w-sm mx-auto mt-2">Anda dapat mengunggah file .docx atau .pdf yang akan menjadi standar surat mahasiswa di sini (Coming Soon).</p>
+                </Card>
+              </TabsContent>
+            </Tabs>
+          </div>
         </div>
       </main>
     </div>

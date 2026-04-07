@@ -76,7 +76,7 @@ export const AuthProvider = ({ children }) => {
 
   const switchMockRole = (roleId) => {
     const r = mockRoles.find(r => r.id === roleId);
-    if(r) {
+    if (r) {
       setUser({ ...user, role: r });
     }
   };

@@ -1,6 +1,8 @@
 "use client"
 
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
+import axios from "axios"
+import { toast, Toaster } from "react-hot-toast"
 import Sidebar from "../components/Sidebar"
 import TopNavBar from "../components/TopNavBar"
 import {
@@ -58,6 +60,7 @@ import {
   Users,
   ClipboardList,
   TrendingUp,
+  Trash2,
 } from "lucide-react"
 import {
   BarChart,
@@ -72,120 +75,114 @@ import {
   Cell,
 } from "recharts"
 
-const pendaftarData = [
-  {
-    id: "PMB001",
-    nama: "Ahmad Fauzi",
-    email: "ahmad.fauzi@email.com",
-    noHp: "081234567890",
-    prodi: "Teknik Informatika",
-    jalur: "SNBP",
-    status: "Diterima",
-    tanggalDaftar: "2024-02-15",
-    nilaiRapor: 85.5,
-  },
-  {
-    id: "PMB002",
-    nama: "Siti Nurhaliza",
-    email: "siti.nurhaliza@email.com",
-    noHp: "081234567891",
-    prodi: "Sistem Informasi",
-    jalur: "SNBT",
-    status: "Verifikasi",
-    tanggalDaftar: "2024-02-16",
-    nilaiRapor: 82.3,
-  },
-  {
-    id: "PMB003",
-    nama: "Budi Santoso",
-    email: "budi.santoso@email.com",
-    noHp: "081234567892",
-    prodi: "Teknik Elektro",
-    jalur: "Mandiri",
-    status: "Pending",
-    tanggalDaftar: "2024-02-17",
-    nilaiRapor: 78.8,
-  },
-  {
-    id: "PMB004",
-    nama: "Dewi Kartika",
-    email: "dewi.kartika@email.com",
-    noHp: "081234567893",
-    prodi: "Teknik Informatika",
-    jalur: "SNBP",
-    status: "Diterima",
-    tanggalDaftar: "2024-02-18",
-    nilaiRapor: 88.2,
-  },
-  {
-    id: "PMB005",
-    nama: "Eko Prasetyo",
-    email: "eko.prasetyo@email.com",
-    noHp: "081234567894",
-    prodi: "Teknik Mesin",
-    jalur: "SNBT",
-    status: "Ditolak",
-    tanggalDaftar: "2024-02-19",
-    nilaiRapor: 65.5,
-  },
-  {
-    id: "PMB006",
-    nama: "Fitri Handayani",
-    email: "fitri.handayani@email.com",
-    noHp: "081234567895",
-    prodi: "Arsitektur",
-    jalur: "Mandiri",
-    status: "Verifikasi",
-    tanggalDaftar: "2024-02-20",
-    nilaiRapor: 80.0,
-  },
-]
-
-const pendaftarPerProdi = [
-  { prodi: "Teknik Informatika", jumlah: 450, kuota: 200 },
-  { prodi: "Sistem Informasi", jumlah: 320, kuota: 150 },
-  { prodi: "Teknik Elektro", jumlah: 180, kuota: 100 },
-  { prodi: "Teknik Mesin", jumlah: 150, kuota: 100 },
-  { prodi: "Arsitektur", jumlah: 120, kuota: 80 },
-]
-
-const statusDistribusi = [
-  { name: "Diterima", value: 420, color: "#22c55e" },
-  { name: "Verifikasi", value: 280, color: "#f59e0b" },
-  { name: "Pending", value: 350, color: "#3b82f6" },
-  { name: "Ditolak", value: 150, color: "#ef4444" },
-]
-
-const gelombangPMB = [
-  { id: 1, nama: "Gelombang 1 - SNBP", mulai: "2024-01-15", selesai: "2024-02-28", status: "Selesai" },
-  { id: 2, nama: "Gelombang 2 - SNBT", mulai: "2024-03-01", selesai: "2024-04-15", status: "Aktif" },
-  { id: 3, nama: "Gelombang 3 - Mandiri", mulai: "2024-04-20", selesai: "2024-06-30", status: "Belum Mulai" },
-]
-
-const statusColors = {
-  Diterima: "bg-emerald-50 text-emerald-600 border border-emerald-100",
-  Verifikasi: "bg-amber-50 text-amber-600 border border-amber-100",
-  Pending: "bg-blue-50 text-blue-600 border border-blue-100",
-  Ditolak: "bg-rose-50 text-rose-600 border border-rose-100",
-}
-
 export default function PMBPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
   const [jalurFilter, setJalurFilter] = useState("all")
+  
+  // API State
+  const [admissions, setAdmissions] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [formData, setFormData] = useState({
+    nama: "",
+    email: "",
+    noHp: "",
+    prodi: "",
+    jalur: "SNBP",
+    nilaiRapor: 0,
+  })
 
-  const filteredPendaftar = pendaftarData.filter((p) => {
-    const matchSearch = p.nama.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      p.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      p.id.toLowerCase().includes(searchTerm.toLowerCase())
+  const fetchData = async () => {
+    try {
+      const res = await axios.get("http://localhost:8000/api/faculty/pmb/admissions")
+      if (res.data.status === "success") {
+        setAdmissions(res.data.data)
+      }
+    } catch (error) {
+      console.error("Gagal ambil data PMB:", error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchData()
+  }, [])
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    try {
+      // Ensure numeric conversion for NilaiRapor
+      const submissionData = {
+        ...formData,
+        nilaiRapor: parseFloat(formData.nilaiRapor)
+      }
+      await axios.post("http://localhost:8000/api/faculty/pmb/admissions", submissionData)
+      toast.success("Pendaftar berhasil ditambahkan")
+      setIsModalOpen(false)
+      setFormData({ nama: "", email: "", noHp: "", prodi: "", jalur: "SNBP", nilaiRapor: 0 })
+      fetchData()
+    } catch (error) {
+      toast.error("Gagal menyimpan data")
+    }
+  }
+
+  const handleUpdateStatus = async (id, newStatus) => {
+    try {
+      await axios.put(`http://localhost:8000/api/faculty/pmb/admissions/${id}`, { status: newStatus })
+      toast.success(`Status diperbarui ke ${newStatus}`)
+      fetchData()
+    } catch (error) {
+      toast.error("Gagal memperbarui status")
+    }
+  }
+
+  const handleDelete = async (id) => {
+    if (!window.confirm("Hapus data pendaftar ini?")) return
+    try {
+      await axios.delete(`http://localhost:8000/api/faculty/pmb/admissions/${id}`)
+      toast.success("Pendaftar dihapus")
+      fetchData()
+    } catch (error) {
+      toast.error("Gagal menghapus")
+    }
+  }
+
+  const filteredPendaftar = admissions.filter((p) => {
+    const matchSearch = (p.nama || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (p.email || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (p.pendaftarId || "").toLowerCase().includes(searchTerm.toLowerCase())
     const matchStatus = statusFilter === "all" || p.status === statusFilter
     const matchJalur = jalurFilter === "all" || p.jalur === jalurFilter
     return matchSearch && matchStatus && matchJalur
   })
 
+  // Chart Logic
+  const pendaftarPerProdi = Object.values(admissions.reduce((acc, curr) => {
+    acc[curr.prodi] = acc[curr.prodi] || { prodi: curr.prodi, jumlah: 0 }
+    acc[curr.prodi].jumlah++
+    return acc
+  }, {}))
+
+  const statusDistribusi = [
+    { name: "Diterima", value: admissions.filter(p => p.status === 'Diterima').length, color: "#22c55e" },
+    { name: "Verifikasi", value: admissions.filter(p => p.status === 'Verifikasi').length, color: "#f59e0b" },
+    { name: "Pending", value: admissions.filter(p => p.status === 'Pending').length, color: "#3b82f6" },
+    { name: "Ditolak", value: admissions.filter(p => p.status === 'Ditolak').length, color: "#ef4444" },
+  ]
+
+  const statusColors = {
+    Diterima: "bg-emerald-50 text-emerald-600 border border-emerald-100",
+    Verifikasi: "bg-amber-50 text-amber-600 border border-amber-100",
+    Pending: "bg-blue-50 text-blue-600 border border-blue-100",
+    Ditolak: "bg-rose-50 text-rose-600 border border-rose-100",
+  }
+
   return (
     <div className="bg-surface text-on-surface min-h-screen font-sans">
+      <Toaster />
       <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
       <main className="lg:ml-64 ml-0 min-h-screen transition-all duration-300">
         <TopNavBar setIsOpen={setSidebarOpen} />
@@ -202,7 +199,7 @@ export default function PMBPage() {
                 <Download className="mr-2 size-4" />
                 Export Data
               </Button>
-              <Dialog>
+              <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
                  <DialogTrigger asChild>
                     <Button className="rounded-full px-6 h-11 bg-primary text-white shadow-lg shadow-primary/20 font-medium text-[11px] uppercase tracking-widest hover:bg-primary-fixed">
                        <UserPlus className="mr-2 size-4" />
@@ -214,25 +211,60 @@ export default function PMBPage() {
                        <DialogTitle className="text-xl font-medium uppercase tracking-tight">Tambah Pendaftar Manual</DialogTitle>
                        <DialogDescription className="text-sm font-medium text-on-surface-variant">Input data calon mahasiswa baru secara manual ke sistem PMB.</DialogDescription>
                     </DialogHeader>
-                    <div className="grid gap-5">
-                       <Input placeholder="Nama Lengkap" className="rounded-xl h-11" />
-                       <Input placeholder="Email Institusi/Pribadi" type="email" className="rounded-xl h-11" />
-                       <Input placeholder="Nomor WhatsApp (Aktif)" className="rounded-xl h-11" />
-                       <Select>
-                          <SelectTrigger className="rounded-xl h-11 font-medium text-[11px] uppercase tracking-widest">
-                             <SelectValue placeholder="Pilih Program Studi" />
-                          </SelectTrigger>
-                          <SelectContent className="rounded-2xl">
-                             <SelectItem value="ti">TEKNIK INFORMATIKA</SelectItem>
-                             <SelectItem value="si">SISTEM INFORMASI</SelectItem>
-                             <SelectItem value="te">TEKNIK ELEKTRO</SelectItem>
-                          </SelectContent>
-                       </Select>
-                    </div>
-                    <DialogFooter className="mt-8 gap-3">
-                       <Button variant="outline" className="rounded-xl px-6 h-11 font-medium text-[11px] uppercase tracking-widest border-outline-variant/20">Batal</Button>
-                       <Button className="rounded-xl px-8 h-11 bg-primary text-white font-medium text-[11px] uppercase tracking-widest">Simpan Data</Button>
-                    </DialogFooter>
+                    <form onSubmit={handleSubmit} className="grid gap-5">
+                       <div className="space-y-1">
+                          <label className="text-[10px] font-bold uppercase tracking-widest ml-1 text-slate-400">Nama Lengkap</label>
+                          <Input value={formData.nama} onChange={(e) => setFormData({...formData, nama: e.target.value})} placeholder="Nama Calon Mahasiswa" className="rounded-xl h-11 bg-slate-50/50" required />
+                       </div>
+                       <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-1">
+                             <label className="text-[10px] font-bold uppercase tracking-widest ml-1 text-slate-400">Email</label>
+                             <Input value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} placeholder="email@domain.com" type="email" className="rounded-xl h-11 bg-slate-50/50" required />
+                          </div>
+                          <div className="space-y-1">
+                             <label className="text-[10px] font-bold uppercase tracking-widest ml-1 text-slate-400">No. WhatsApp</label>
+                             <Input value={formData.noHp} onChange={(e) => setFormData({...formData, noHp: e.target.value})} placeholder="0812..." className="rounded-xl h-11 bg-slate-50/50" required />
+                          </div>
+                       </div>
+                       <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-1">
+                             <label className="text-[10px] font-bold uppercase tracking-widest ml-1 text-slate-400">Jalur Masuk</label>
+                             <Select value={formData.jalur} onValueChange={(v) => setFormData({...formData, jalur: v})}>
+                                <SelectTrigger className="rounded-xl h-11 font-medium text-[11px] uppercase tracking-widest bg-slate-50/50">
+                                   <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent className="rounded-2xl">
+                                   <SelectItem value="SNBP">SNBP</SelectItem>
+                                   <SelectItem value="SNBT">SNBT</SelectItem>
+                                   <SelectItem value="Mandiri">MANDIRI</SelectItem>
+                                </SelectContent>
+                             </Select>
+                          </div>
+                          <div className="space-y-1">
+                             <label className="text-[10px] font-bold uppercase tracking-widest ml-1 text-slate-400">Nilai Rapor / Skor</label>
+                             <Input value={formData.nilaiRapor} onChange={(e) => setFormData({...formData, nilaiRapor: e.target.value})} type="number" step="0.01" className="rounded-xl h-11 bg-slate-50/50" required />
+                          </div>
+                       </div>
+                       <div className="space-y-1">
+                          <label className="text-[10px] font-bold uppercase tracking-widest ml-1 text-slate-400">Program Studi Pilihan</label>
+                          <Select value={formData.prodi} onValueChange={(v) => setFormData({...formData, prodi: v})}>
+                             <SelectTrigger className="rounded-xl h-11 font-medium text-[11px] uppercase tracking-widest bg-slate-50/50">
+                                <SelectValue placeholder="Pilih Program Studi" />
+                             </SelectTrigger>
+                             <SelectContent className="rounded-2xl">
+                                <SelectItem value="Teknik Informatika">TEKNIK INFORMATIKA</SelectItem>
+                                <SelectItem value="Sistem Informasi">SISTEM INFORMASI</SelectItem>
+                                <SelectItem value="Teknik Elektro">TEKNIK ELEKTRO</SelectItem>
+                                <SelectItem value="Teknik Mesin">TEKNIK MESIN</SelectItem>
+                                <SelectItem value="Arsitektur">ARSITEKTUR</SelectItem>
+                             </SelectContent>
+                          </Select>
+                       </div>
+                       <DialogFooter className="mt-8 gap-3">
+                          <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)} className="rounded-xl px-6 h-11 font-medium text-[11px] uppercase tracking-widest border-outline-variant/20">Batal</Button>
+                          <Button type="submit" className="rounded-xl px-8 h-11 bg-primary text-white font-medium text-[11px] uppercase tracking-widest">Simpan Data</Button>
+                       </DialogFooter>
+                    </form>
                  </DialogContent>
               </Dialog>
             </div>
@@ -245,7 +277,7 @@ export default function PMBPage() {
                    <Users className="h-6 w-6" />
                 </div>
                 <div>
-                   <p className="text-2xl font-medium text-on-surface">1,200</p>
+                   <p className="text-2xl font-medium text-on-surface">{admissions.length}</p>
                    <p className="text-[10px] font-medium uppercase tracking-widest text-on-surface-variant/60">Total Pendaftar</p>
                 </div>
              </Card>
@@ -254,7 +286,7 @@ export default function PMBPage() {
                    <CheckCircle className="h-6 w-6" />
                 </div>
                 <div>
-                   <p className="text-2xl font-medium text-on-surface">420</p>
+                   <p className="text-2xl font-medium text-on-surface">{admissions.filter(p => p.status === 'Diterima').length}</p>
                    <p className="text-[10px] font-medium uppercase tracking-widest text-on-surface-variant/60">Diterima</p>
                 </div>
              </Card>
@@ -263,7 +295,7 @@ export default function PMBPage() {
                    <ClipboardList className="h-6 w-6" />
                 </div>
                 <div>
-                   <p className="text-2xl font-medium text-on-surface">280</p>
+                   <p className="text-2xl font-medium text-on-surface">{admissions.filter(p => p.status === 'Verifikasi').length}</p>
                    <p className="text-[10px] font-medium uppercase tracking-widest text-on-surface-variant/60">Verifikasi</p>
                 </div>
              </Card>
@@ -272,34 +304,12 @@ export default function PMBPage() {
                    <TrendingUp className="h-6 w-6" />
                 </div>
                 <div>
-                   <p className="text-2xl font-medium text-on-surface">35%</p>
+                   <p className="text-2xl font-medium text-on-surface">
+                     {admissions.length > 0 ? ((admissions.filter(p => p.status === 'Diterima').length / admissions.length) * 100).toFixed(0) : 0}%
+                   </p>
                    <p className="text-[10px] font-medium uppercase tracking-widest text-on-surface-variant/60">Passing Rate</p>
                 </div>
              </Card>
-          </div>
-
-          {/* Gelombang PMB - Premium Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-             {gelombangPMB.map((g) => (
-                <div key={g.id} className="bg-white border border-outline-variant/10 rounded-3xl p-6 relative overflow-hidden group hover:border-primary/30 transition-all hover:shadow-lg">
-                   <div className="relative z-10">
-                      <div className="flex items-center justify-between mb-4">
-                         <span className="text-[9px] font-medium tracking-widest text-primary bg-primary/5 px-2.5 py-1 rounded-sm uppercase">GELOMBANG {g.id}</span>
-                         <span className={`px-3 py-1 rounded-full text-[9px] font-medium uppercase tracking-widest ${
-                            g.status === 'Aktif' ? 'bg-emerald-100 text-emerald-600' : 
-                            g.status === 'Selesai' ? 'bg-slate-100 text-on-surface-variant/60' : 
-                            'bg-amber-100 text-amber-600'
-                         }`}>{g.status}</span>
-                      </div>
-                      <h4 className="font-medium text-on-surface leading-tight mb-2">{g.nama}</h4>
-                      <div className="flex items-center gap-2 text-[11px] font-medium text-on-surface-variant opacity-60">
-                         <Calendar className="size-3.5" />
-                         <span>{g.mulai} — {g.selesai}</span>
-                      </div>
-                   </div>
-                   <div className="absolute -bottom-6 -right-6 w-20 h-20 bg-primary/5 rounded-full group-hover:scale-150 transition-transform duration-500"></div>
-                </div>
-             ))}
           </div>
 
           {/* Main Content Area with Tabs */}
@@ -315,7 +325,7 @@ export default function PMBPage() {
                   <div className="relative flex-1 sm:max-w-md">
                      <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-on-surface-variant/50" />
                      <Input
-                        placeholder="Cari Nama, Email atau ID Pendaftar..."
+                        placeholder="Cari Nama, Email atau ID PMB..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className="pl-10 h-11 rounded-xl border-outline-variant/20 focus:ring-primary/20"
@@ -348,81 +358,87 @@ export default function PMBPage() {
                   </div>
                 </div>
 
-                <Table>
-                  <TableHeader>
-                    <TableRow className="bg-[#fcfcfd] hover:bg-[#fcfcfd] border-b border-outline-variant/5">
-                      <TableHead className="px-8 py-5 font-semibold text-[11px] uppercase tracking-[0.15em] text-on-surface-variant">ID & Pendaftar</TableHead>
-                      <TableHead className="px-8 py-5 font-semibold text-[11px] uppercase tracking-[0.15em] text-on-surface-variant">Pilihan Prodi</TableHead>
-                      <TableHead className="px-8 py-5 font-semibold text-[11px] uppercase tracking-[0.15em] text-on-surface-variant text-center">Jalur</TableHead>
-                      <TableHead className="px-8 py-5 font-semibold text-[11px] uppercase tracking-[0.15em] text-on-surface-variant text-center">Nilai</TableHead>
-                      <TableHead className="px-8 py-5 font-semibold text-[11px] uppercase tracking-[0.15em] text-on-surface-variant text-center">Status</TableHead>
-                      <TableHead className="px-8 py-5 font-semibold text-[11px] uppercase tracking-[0.15em] text-on-surface-variant text-right">Aksi</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredPendaftar.map((pendaftar) => (
-                      <TableRow key={pendaftar.id} className="hover:bg-slate-50/50 transition-colors border-b border-outline-variant/5">
-                        <TableCell className="px-8 py-6">
-                           <div className="flex items-center gap-4">
-                              <div className="w-10 h-10 rounded-full bg-primary/5 border border-primary/10 text-primary flex items-center justify-center font-medium text-[10px] uppercase">
-                                 {pendaftar.nama.charAt(0)}
-                              </div>
-                              <div>
-                                 <span className="block font-medium text-[14px] text-on-surface leading-tight mb-0.5">{pendaftar.nama}</span>
-                                 <span className="text-[11px] font-medium text-on-surface-variant opacity-70 font-mono uppercase tracking-widest">{pendaftar.id} • {pendaftar.email}</span>
-                              </div>
-                           </div>
-                        </TableCell>
-                        <TableCell className="px-8 py-6">
-                           <span className="font-medium text-[13px] text-on-surface-variant">{pendaftar.prodi}</span>
-                        </TableCell>
-                        <TableCell className="px-8 py-6 text-center">
-                          <span className="text-[10px] font-medium text-primary bg-primary/5 border border-primary/10 px-2.5 py-1 rounded uppercase tracking-widest">{pendaftar.jalur}</span>
-                        </TableCell>
-                        <TableCell className="px-8 py-6 text-center">
-                           <span className="font-medium text-on-surface text-[14px]">{pendaftar.nilaiRapor}</span>
-                        </TableCell>
-                        <TableCell className="px-8 py-6 text-center">
-                           <span className={`px-3.5 py-1.5 rounded-md text-[10px] font-medium uppercase tracking-[0.1em] whitespace-nowrap ${statusColors[pendaftar.status]}`}>
-                              {pendaftar.status}
-                           </span>
-                        </TableCell>
-                        <TableCell className="px-8 py-6 text-right">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon" className="rounded-xl h-10 w-10 hover:bg-primary/5 text-on-surface-variant">
-                                <MoreHorizontal className="size-5" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="rounded-2xl p-2 border-outline-variant/10">
-                              <DropdownMenuItem className="rounded-xl font-medium text-[10px] uppercase tracking-widest p-3">
-                                <Eye className="mr-3 size-4 text-primary" />
-                                Lihat Detail
-                              </DropdownMenuItem>
-                              <DropdownMenuItem className="rounded-xl font-medium text-[10px] uppercase tracking-widest p-3">
-                                <FileText className="mr-3 size-4 text-primary" />
-                                Review Berkas
-                              </DropdownMenuItem>
-                              <DropdownMenuItem className="rounded-xl font-medium text-[10px] uppercase tracking-widest p-3 text-emerald-600">
-                                <CheckCircle className="mr-3 size-4" />
-                                Terima
-                              </DropdownMenuItem>
-                              <DropdownMenuItem className="rounded-xl font-medium text-[10px] uppercase tracking-widest p-3 text-rose-600">
-                                <XCircle className="mr-3 size-4" />
-                                Tolak
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                <div className="overflow-x-auto">
+                   <Table>
+                      <TableHeader>
+                        <TableRow className="bg-[#fcfcfd] hover:bg-[#fcfcfd] border-b border-outline-variant/5">
+                          <TableHead className="px-8 py-5 font-semibold text-[11px] uppercase tracking-[0.15em] text-on-surface-variant">ID & Pendaftar</TableHead>
+                          <TableHead className="px-8 py-5 font-semibold text-[11px] uppercase tracking-[0.15em] text-on-surface-variant">Pilihan Prodi</TableHead>
+                          <TableHead className="px-8 py-5 font-semibold text-[11px] uppercase tracking-[0.15em] text-on-surface-variant text-center">Jalur</TableHead>
+                          <TableHead className="px-8 py-5 font-semibold text-[11px] uppercase tracking-[0.15em] text-on-surface-variant text-center">Nilai</TableHead>
+                          <TableHead className="px-8 py-5 font-semibold text-[11px] uppercase tracking-[0.15em] text-on-surface-variant text-center">Status</TableHead>
+                          <TableHead className="px-8 py-5 font-semibold text-[11px] uppercase tracking-[0.15em] text-on-surface-variant text-right">Aksi</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {loading ? (
+                          <TableRow><TableCell colSpan={6} className="text-center py-20 font-medium text-slate-400">Memuat data pendaftar...</TableCell></TableRow>
+                        ) : filteredPendaftar.length === 0 ? (
+                          <TableRow><TableCell colSpan={6} className="text-center py-20 font-medium text-slate-400">Data tidak ditemukan</TableCell></TableRow>
+                        ) : filteredPendaftar.map((pendaftar) => (
+                          <TableRow key={pendaftar.id} className="hover:bg-slate-50/50 transition-colors border-b border-outline-variant/5">
+                            <TableCell className="px-8 py-6">
+                               <div className="flex items-center gap-4">
+                                  <div className="w-10 h-10 rounded-full bg-primary/5 border border-primary/10 text-primary flex items-center justify-center font-medium text-[10px] uppercase">
+                                     {(pendaftar.nama || "P").charAt(0)}
+                                  </div>
+                                  <div>
+                                     <span className="block font-medium text-[14px] text-on-surface leading-tight mb-0.5">{pendaftar.nama}</span>
+                                     <span className="text-[11px] font-medium text-on-surface-variant opacity-70 font-mono uppercase tracking-widest">{pendaftar.pendaftarId} • {pendaftar.email}</span>
+                                  </div>
+                               </div>
+                            </TableCell>
+                            <TableCell className="px-8 py-6">
+                               <span className="font-medium text-[13px] text-on-surface-variant">{pendaftar.prodi}</span>
+                            </TableCell>
+                            <TableCell className="px-8 py-6 text-center">
+                              <span className="text-[10px] font-medium text-primary bg-primary/5 border border-primary/10 px-2.5 py-1 rounded uppercase tracking-widest">{pendaftar.jalur}</span>
+                            </TableCell>
+                            <TableCell className="px-8 py-6 text-center">
+                               <span className="font-medium text-on-surface text-[14px]">{pendaftar.nilaiRapor}</span>
+                            </TableCell>
+                            <TableCell className="px-8 py-6 text-center">
+                               <span className={`px-3.5 py-1.5 rounded-md text-[10px] font-medium uppercase tracking-[0.1em] whitespace-nowrap ${statusColors[pendaftar.status] || statusColors.Pending}`}>
+                                  {pendaftar.status}
+                               </span>
+                            </TableCell>
+                            <TableCell className="px-8 py-6 text-right">
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="ghost" size="icon" className="rounded-xl h-10 w-10 hover:bg-primary/5 text-on-surface-variant">
+                                    <MoreHorizontal className="size-5" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end" className="rounded-2xl p-2 border-outline-variant/10 shadow-xl">
+                                  <DropdownMenuItem onClick={() => handleUpdateStatus(pendaftar.id, "Diterima")} className="rounded-xl font-medium text-[10px] uppercase tracking-widest p-3 text-emerald-600">
+                                    <CheckCircle className="mr-3 size-4" />
+                                    Terima
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem onClick={() => handleUpdateStatus(pendaftar.id, "Ditolak")} className="rounded-xl font-medium text-[10px] uppercase tracking-widest p-3 text-rose-600">
+                                    <XCircle className="mr-3 size-4" />
+                                    Tolak
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem onClick={() => handleUpdateStatus(pendaftar.id, "Verifikasi")} className="rounded-xl font-medium text-[10px] uppercase tracking-widest p-3 text-amber-600">
+                                    <ClipboardList className="mr-3 size-4" />
+                                    Verifikasi
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem onClick={() => handleDelete(pendaftar.id)} className="rounded-xl font-medium text-[10px] uppercase tracking-widest p-3 text-slate-400">
+                                    <Trash2 className="mr-3 size-4" />
+                                    Hapus Data
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                   </Table>
+                </div>
               </div>
             </TabsContent>
 
             <TabsContent value="statistik" className="mt-0">
-              <div className="grid gap-8 lg:grid-cols-2">
+               <div className="grid gap-8 lg:grid-cols-2">
                 <Card className="rounded-[2rem] border border-outline-variant/10 shadow-sm p-8 bg-white overflow-hidden">
                   <div className="mb-8">
                      <h4 className="font-medium text-on-surface uppercase tracking-tight">Pendaftar per Program Studi</h4>
@@ -446,7 +462,7 @@ export default function PMBPage() {
                      <h4 className="font-medium text-on-surface uppercase tracking-tight">Distribusi Status Pendaftar</h4>
                      <p className="text-sm font-medium text-on-surface-variant opacity-60">Persentase kelulusan seleksi administrasi.</p>
                   </div>
-                  <div className="h-[350px] relative">
+                  <div className="h-[350px] relative text-center">
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
                         <Pie
@@ -465,9 +481,8 @@ export default function PMBPage() {
                         <Tooltip />
                       </PieChart>
                     </ResponsiveContainer>
-                    {/* Middle Text for Pie Chart */}
                     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none">
-                       <p className="text-3xl font-medium text-on-surface leading-none">1.2K</p>
+                       <p className="text-3xl font-medium text-on-surface leading-none">{admissions.length}</p>
                        <p className="text-[10px] font-medium text-on-surface-variant opacity-40 uppercase tracking-widest mt-1">Total</p>
                     </div>
                   </div>

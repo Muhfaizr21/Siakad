@@ -18,6 +18,8 @@ type User struct {
 	PasswordHash string    `gorm:"not null" json:"-"` // Hide password from JSON
 	RoleID       uint      `json:"roleId"`
 	Role         Role      `gorm:"foreignKey:RoleID" json:"role"`
+	FacultyRoleID *uint     `json:"facultyRoleId"`
+	FacultyRole   *FacultyRole `gorm:"foreignKey:FacultyRoleID" json:"facultyRole"`
 	IsActive     bool      `gorm:"default:true" json:"isActive"`
 	CreatedAt    time.Time `json:"createdAt"`
 	UpdatedAt    time.Time `json:"updatedAt"`
@@ -34,8 +36,8 @@ type Faculty struct {
 // Major represents a degree program
 type Major struct {
 	ID          uint    `gorm:"primaryKey" json:"id"`
-	Name        string  `gorm:"column:nama_prodi;not null" json:"name"`
-	Code        string  `gorm:"column:kode_prodi" json:"code"`
+	Name        string  `gorm:"column:nama_prodi;not null;unique" json:"name"`
+	Code        string  `gorm:"column:kode_prodi;unique" json:"code"`
 	FacultyID   uint    `gorm:"column:faculty_id" json:"facultyId"`
 	Faculty     Faculty `gorm:"foreignKey:FacultyID" json:"faculty"`
 	DegreeLevel string  `gorm:"column:jenjang" json:"degreeLevel"`
@@ -66,8 +68,12 @@ type Student struct {
 	Major           Major     `gorm:"foreignKey:MajorID" json:"major"`
 	DPALecturerID   *uint     `gorm:"column:dpa_lecturer_id" json:"dpaLecturerId"`
 	DPALecturer     *Lecturer `gorm:"foreignKey:DPALecturerID" json:"dpaLecturer"`
-	CurrentSemester int       `gorm:"column:current_semester;default:1" json:"currentSemester"`
-	Status          string    `gorm:"default:'active'" json:"status"`
+	CurrentSemester int     `gorm:"column:current_semester;default:1" json:"currentSemester"`
+	GPA             float64 `gorm:"column:gpa;default:0.0" json:"gpa"`
+	CreditLimit     int     `gorm:"column:credit_limit;default:24" json:"creditLimit"`
+	JoinYear        int     `gorm:"column:join_year;default:2024" json:"joinYear"`
+	Gender          string  `gorm:"column:gender;default:'L'" json:"gender"`
+	Status          string  `gorm:"default:'active'" json:"status"`
 }
 
 // AuditLog represents every sensitive action performed by admins

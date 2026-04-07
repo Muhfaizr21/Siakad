@@ -53,6 +53,7 @@ const menuSections = [
       { name: 'Master Fakultas', path: '/faculty/fakultas', icon: 'corporate_fare' },
       { name: 'Laporan & Rekap', path: '/faculty/laporan', icon: 'analytics' },
       { name: 'Pengaturan Akun', path: '/faculty/pengaturan', icon: 'settings' },
+      { name: 'Manajemen Role (RBAC)', path: '/faculty/pengaturan/rbac', icon: 'manage_accounts' },
     ]
   },
 ];

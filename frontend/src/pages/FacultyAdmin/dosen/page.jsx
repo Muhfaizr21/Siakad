@@ -19,16 +19,16 @@ import { Eye, Pencil, Trash2, Mail, Phone, GraduationCap, Users, BookOpen, Award
 import { useNavigate } from "react-router-dom"
 
 const statusColors = {
-  Tetap: "bg-success/20 text-success border-success/30",
-  "Tidak Tetap": "bg-warning/20 text-warning border-warning/30",
+  Tetap: "bg-emerald-50 text-emerald-600 border border-emerald-100",
+  "Tidak Tetap": "bg-amber-50 text-amber-600 border border-amber-100",
 }
 
 const jabatanColors = {
-  "Guru Besar": "bg-primary/20 text-primary",
-  "Lektor Kepala": "bg-info/20 text-info",
-  Lektor: "bg-secondary text-foreground",
-  "Asisten Ahli": "bg-secondary text-foreground",
-  "-": "bg-secondary text-muted-foreground",
+  "Guru Besar": "bg-primary/10 text-primary",
+  "Lektor Kepala": "bg-info/10 text-info",
+  Lektor: "bg-slate-100 text-on-surface-variant",
+  "Asisten Ahli": "bg-slate-100 text-on-surface-variant",
+  "-": "bg-slate-100 text-on-surface-variant/50",
 }
 
 const columns = [
@@ -36,22 +36,22 @@ const columns = [
     key: "nidn",
     label: "NIDN",
     render: (value) => (
-      <span className="font-mono text-sm">{value || "-"}</span>
+      <span className="font-mono text-[13px] font-bold text-on-surface-variant uppercase tracking-widest">{value || "-"}</span>
     ),
   },
   {
     key: "nama",
     label: "Nama Dosen",
     render: (value, row) => (
-      <div className="flex items-center gap-3">
-        <Avatar className="h-8 w-8">
-          <AvatarFallback className="bg-primary/10 text-primary text-xs">
+      <div className="flex items-center gap-4">
+        <Avatar className="h-10 w-10 border border-outline-variant/10 shadow-sm">
+          <AvatarFallback className="bg-primary/5 text-primary text-xs font-medium">
             {value ? value.split(" ").filter(n => !["Dr.", "Prof.", "Ir.", "M.T.", "M.Kom.", "M.Sc.", "M.Si."].includes(n)).map((n) => n[0]).join("").slice(0, 2) : "DS"}
           </AvatarFallback>
         </Avatar>
         <div>
-          <p className="font-medium">{value}</p>
-          <p className="text-xs text-muted-foreground">{row.email}</p>
+          <p className="font-medium text-[14px] text-on-surface leading-tight mb-0.5">{value}</p>
+          <p className="text-[11px] font-medium text-on-surface-variant opacity-70 uppercase tracking-widest">{row.email}</p>
         </div>
       </div>
     ),
@@ -59,13 +59,15 @@ const columns = [
   {
     key: "prodi",
     label: "Program Studi",
-    render: (value) => <span className="text-sm">{value}</span>,
+    render: (value) => <span className="text-[13px] font-medium text-on-surface-variant">{value}</span>,
   },
   {
     key: "jabatan",
     label: "Jabatan",
+    className: "text-center",
+    cellClassName: "text-center",
     render: (value) => (
-      <Badge variant="outline" className={jabatanColors[value] || jabatanColors["-"]}>
+      <Badge variant="outline" className={`rounded-lg py-1 text-[10px] uppercase font-medium tracking-wider border-none ${jabatanColors[value] || jabatanColors["-"]}`}>
         {value}
       </Badge>
     ),
@@ -73,7 +75,7 @@ const columns = [
   {
     key: "bidangKeahlian",
     label: "Bidang Keahlian",
-    render: (value) => <span className="text-sm">{value}</span>,
+    render: (value) => <span className="text-[13px] font-medium text-on-surface-variant">{value}</span>,
   },
   {
     key: "status",
@@ -81,32 +83,22 @@ const columns = [
     className: "text-center",
     cellClassName: "text-center",
     render: (value) => (
-      <Badge variant="outline" className={statusColors[value] || statusColors["Tetap"]}>
+      <span className={`px-3.5 py-1.5 rounded-md text-[10px] font-medium uppercase tracking-[0.1em] whitespace-nowrap ${statusColors[value] || statusColors["Tetap"]}`}>
         {value}
-      </Badge>
+      </span>
     ),
   },
 ]
 
 const filters = [
   {
-    key: "prodi",
-    placeholder: "Program Studi",
-    defaultValue: "all",
-    options: [
-      { value: "all", label: "Semua Prodi" },
-      { value: "ti", label: "Teknik Informatika" },
-      { value: "si", label: "Sistem Informasi" },
-    ],
-  },
-  {
     key: "status",
     placeholder: "Status",
     defaultValue: "all",
     options: [
-      { value: "all", label: "Semua Status" },
-      { value: "tetap", label: "Tetap" },
-      { value: "tidak-tetap", label: "Tidak Tetap" },
+      { value: "all", label: "SEMUA STATUS" },
+      { value: "Tetap", label: "TETAP" },
+      { value: "Tidak Tetap", label: "TIDAK TETAP" },
     ],
   },
 ]
@@ -176,105 +168,90 @@ export default function DosenPage() {
   }
 
   return (
-    <div className="text-on-surface bg-surface min-h-screen">
+    <div className="text-on-surface bg-surface min-h-screen font-sans">
       <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
       <TopNavBar setIsOpen={setSidebarOpen} />
       <main className="lg:ml-64 ml-0 min-h-screen transition-all duration-300">
-        <div className="pt-24 pb-12 px-4 lg:px-8">
-          <div className="space-y-6">
-            {/* Page Header */}
+        <div className="pt-24 pb-12 px-4 lg:px-8 space-y-8">
+          <div className="flex flex-col md:flex-row items-start md:items-end justify-between gap-6">
             <div>
-              <h1 className="text-2xl font-bold">Manajemen Dosen</h1>
-              <p className="text-muted-foreground">Kelola data dosen fakultas</p>
+              <h1 className="text-2xl font-medium tracking-tight text-on-surface font-headline uppercase leading-tight">Manajemen Dosen</h1>
+              <p className="text-on-surface-variant text-sm mt-1 font-medium">Kelola data tenaga pendidik dan administrasi kepegawaian.</p>
             </div>
+          </div>
 
-            {/* Stats */}
-            <div className="grid gap-4 sm:grid-cols-4">
-              <Card className="hover:-translate-y-1 hover:shadow-md transition-all duration-300 border-none bg-white shadow-sm">
-                <CardContent className="flex items-center gap-4 p-4">
-                  <div className="rounded-lg bg-primary/10 p-2">
-                    <GraduationCap className="h-5 w-5 text-primary" />
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold">{dosenList.length}</p>
-                    <p className="text-sm text-muted-foreground">Total Dosen</p>
-                  </div>
-                </CardContent>
-              </Card>
-              <Card className="hover:-translate-y-1 hover:shadow-md transition-all duration-300 border-none bg-white shadow-sm">
-                <CardContent className="flex items-center gap-4 p-4">
-                  <div className="rounded-lg bg-success/10 p-2">
-                    <Award className="h-5 w-5 text-success" />
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold">{dosenList.filter(d => d.status === "Tetap").length}</p>
-                    <p className="text-sm text-muted-foreground">Dosen Tetap</p>
-                  </div>
-                </CardContent>
-              </Card>
-              <Card className="hover:-translate-y-1 hover:shadow-md transition-all duration-300 border-none bg-white shadow-sm">
-                <CardContent className="flex items-center gap-4 p-4">
-                  <div className="rounded-lg bg-warning/10 p-2">
-                    <Users className="h-5 w-5 text-warning" />
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold">{dosenList.filter(d => d.isDpa).length}</p>
-                    <p className="text-sm text-muted-foreground">Dosen Wali (DPA)</p>
-                  </div>
-                </CardContent>
-              </Card>
-              <Card className="hover:-translate-y-1 hover:shadow-md transition-all duration-300 border-none bg-white shadow-sm">
-                <CardContent className="flex items-center gap-4 p-4">
-                  <div className="rounded-lg bg-info/10 p-2">
-                    <BookOpen className="h-5 w-5 text-info" />
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold">156</p>
-                    <p className="text-sm text-muted-foreground">Mata Kuliah</p>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <Card className="rounded-[1.5rem] border border-outline-variant/10 shadow-sm bg-white/50 backdrop-blur-sm px-6 py-5 flex items-center gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center">
+                <GraduationCap className="h-6 w-6" />
+              </div>
+              <div>
+                <p className="text-2xl font-medium text-on-surface">{dosenList.length}</p>
+                <p className="text-[10px] font-medium uppercase tracking-widest text-on-surface-variant/60">Total Dosen</p>
+              </div>
+            </Card>
+            <Card className="rounded-[1.5rem] border border-outline-variant/10 shadow-sm bg-white/50 backdrop-blur-sm px-6 py-5 flex items-center gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-600 flex items-center justify-center">
+                <Award className="h-6 w-6" />
+              </div>
+              <div>
+                <p className="text-2xl font-medium text-on-surface">{dosenList.filter(d => d.status === "Tetap").length}</p>
+                <p className="text-[10px] font-medium uppercase tracking-widest text-on-surface-variant/60">Dosen Tetap</p>
+              </div>
+            </Card>
+            <Card className="rounded-[1.5rem] border border-outline-variant/10 shadow-sm bg-white/50 backdrop-blur-sm px-6 py-5 flex items-center gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-amber-100 text-amber-600 flex items-center justify-center">
+                <Users className="h-6 w-6" />
+              </div>
+              <div>
+                <p className="text-2xl font-medium text-on-surface">{dosenList.filter(d => d.isDpa).length}</p>
+                <p className="text-[10px] font-medium uppercase tracking-widest text-on-surface-variant/60">Dosen Wali</p>
+              </div>
+            </Card>
+            <Card className="rounded-[1.5rem] border border-outline-variant/10 shadow-sm bg-white/50 backdrop-blur-sm px-6 py-5 flex items-center gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-slate-100 text-on-surface-variant flex items-center justify-center">
+                <BookOpen className="h-6 w-6" />
+              </div>
+              <div>
+                <p className="text-2xl font-medium text-on-surface">156</p>
+                <p className="text-[10px] font-medium uppercase tracking-widest text-on-surface-variant/60">Mata Kuliah</p>
+              </div>
+            </Card>
+          </div>
 
-            {/* Data Table */}
-            <DataTable
-              title="Data Dosen"
-              description="Daftar seluruh dosen yang terdaftar"
-              columns={columns}
-              data={loading ? [] : dosenList}
-              searchPlaceholder="Cari NIDN, nama, atau email..."
-              filters={filters}
-              onAdd={() => navigate('/faculty/dosen/tambah')}
-              addLabel="Tambah Dosen"
-              actions={(row) => (
-                <>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8"
-                    onClick={() => handleView(row)}
-                  >
-                    <Eye className="h-4 w-4" />
-                  </Button>
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    className="h-8 w-8"
-                    onClick={() => navigate(`/faculty/dosen/edit/${row.id}`)}
-                  >
-                    <Pencil className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 text-destructive hover:text-destructive"
-                    onClick={() => handleDelete(row.id)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </>
-              )}
-            />
+          <DataTable
+            title="Daftar Tenaga Pendidik"
+            description="Informasi lengkap seluruh dosen yang terdaftar di fakultas."
+            columns={columns}
+            data={loading ? [] : dosenList}
+            loading={loading}
+            searchPlaceholder="Cari NIDN, nama, atau email..."
+            filters={filters}
+            onAdd={() => navigate('/faculty/dosen/tambah')}
+            addLabel="Tambah Dosen"
+            actions={(row) => (
+              <>
+                <button
+                   onClick={() => handleView(row)}
+                   className="h-9 w-9 rounded-xl bg-slate-50 text-on-surface-variant hover:text-primary hover:bg-primary/5 transition-all flex items-center justify-center border border-slate-100"
+                >
+                  <Eye className="h-4 w-4" />
+                </button>
+                <button 
+                  onClick={() => navigate(`/faculty/dosen/edit/${row.id}`)}
+                  className="h-9 w-9 rounded-xl bg-slate-50 text-on-surface-variant hover:text-[#00236f] hover:bg-[#00236f]/5 transition-all flex items-center justify-center border border-slate-100"
+                >
+                  <Pencil className="h-4 w-4" />
+                </button>
+                <button
+                  onClick={() => handleDelete(row.id)}
+                  className="h-9 w-9 rounded-xl bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white transition-all flex items-center justify-center border border-rose-100"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              </>
+            )}
+          />
 
             {/* Detail Dialog */}
             <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
@@ -369,7 +346,6 @@ export default function DosenPage() {
                 )}
               </DialogContent>
             </Dialog>
-          </div>
         </div>
       </main>
     </div>

@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Sidebar from '../components/Sidebar';
 import TopNavBar from '../components/TopNavBar';
 import { Card, CardContent, CardHeader, CardTitle } from "../components/card";
@@ -8,6 +8,8 @@ import { Badge } from "../components/badge";
 import { Button } from "../components/button";
 import { Input } from "../components/input";
 import { Progress } from "../components/progress";
+import axios from 'axios';
+import toast from 'react-hot-toast';
 import {
   Select,
   SelectContent,
@@ -44,86 +46,6 @@ import {
   BookOpen,
 } from "lucide-react";
 
-const kelasData = [
-  {
-    id: 1,
-    kode: "TI301",
-    mataKuliah: "Basis Data",
-    kelas: "TI-A",
-    dosen: "Prof. Dr. Budi Hartono",
-    peserta: 42,
-    sudahDinilai: 42,
-    deadline: "25 Jan 2025",
-    status: "Selesai",
-  },
-  {
-    id: 2,
-    kode: "TI302",
-    mataKuliah: "Pemrograman Berorientasi Objek",
-    kelas: "TI-A",
-    dosen: "Dr. Citra Dewi",
-    peserta: 40,
-    sudahDinilai: 35,
-    deadline: "25 Jan 2025",
-    status: "Proses",
-  },
-  {
-    id: 3,
-    kode: "TI303",
-    mataKuliah: "Statistika",
-    kelas: "TI-B",
-    dosen: "Dr. Eko Prasetyo",
-    peserta: 38,
-    sudahDinilai: 0,
-    deadline: "25 Jan 2025",
-    status: "Belum",
-  },
-  {
-    id: 4,
-    kode: "SI301",
-    mataKuliah: "Sistem Informasi Manajemen",
-    kelas: "SI-A",
-    dosen: "Dr. Eko Prasetyo",
-    peserta: 45,
-    sudahDinilai: 45,
-    deadline: "25 Jan 2025",
-    status: "Selesai",
-  },
-  {
-    id: 5,
-    kode: "TI501",
-    mataKuliah: "Kecerdasan Buatan",
-    kelas: "TI-A",
-    dosen: "Dr. Ir. Andi Wijaya",
-    peserta: 32,
-    sudahDinilai: 20,
-    deadline: "25 Jan 2025",
-    status: "Proses",
-  },
-  {
-    id: 6,
-    kode: "TI502",
-    mataKuliah: "Jaringan Komputer",
-    kelas: "TI-B",
-    dosen: "Dr. Citra Dewi",
-    peserta: 40,
-    sudahDinilai: 0,
-    deadline: "25 Jan 2025",
-    status: "Belum",
-  },
-]
-
-const nilaiMahasiswa = [
-  { nim: "20230001", nama: "Ahmad Fauzi Rahman", tugas: 85, uts: 78, uas: 82, nilai: "A", grade: 3.75 },
-  { nim: "20230002", nama: "Budi Santoso", tugas: 75, uts: 70, uas: 72, nilai: "B+", grade: 3.25 },
-  { nim: "20230003", nama: "Citra Dewi", tugas: 90, uts: 88, uas: 92, nilai: "A", grade: 4.00 },
-  { nim: "20230004", nama: "Dewi Lestari", tugas: 65, uts: 60, uas: 68, nilai: "B", grade: 3.00 },
-  { nim: "20230005", nama: "Eko Prasetyo", tugas: 80, uts: 82, uas: 85, nilai: "A-", grade: 3.75 },
-  { nim: "20230006", nama: "Farah Amalia", tugas: 55, uts: 50, uas: 58, nilai: "C+", grade: 2.25 },
-  { nim: "20230007", nama: "Gunawan Setiawan", tugas: 70, uts: 75, uas: 72, nilai: "B", grade: 3.00 },
-  { nim: "20230008", nama: "Hendra Kusuma", tugas: 88, uts: 85, uas: 90, nilai: "A", grade: 4.00 },
-]
-
 const statusColors = {
   Selesai: "bg-emerald-50 text-emerald-600 border border-emerald-100",
   Proses: "bg-amber-50 text-amber-600 border border-amber-100",
@@ -132,24 +54,74 @@ const statusColors = {
 
 const gradeColors = {
   A: "text-emerald-600",
-  "A-": "text-emerald-600",
-  "B+": "text-blue-600",
+  "AB": "text-emerald-500",
   B: "text-blue-600",
-  "B-": "text-on-surface",
-  "C+": "text-amber-600",
+  "BC": "text-blue-500",
   C: "text-amber-600",
   D: "text-rose-600",
   E: "text-rose-600",
+  "-": "text-slate-400",
 }
 
 export default function NilaiPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [selectedKelas, setSelectedKelas] = useState(null)
   const [isInputOpen, setIsInputOpen] = useState(false)
+  
+  // State Engine Backend
+  const [schedules, setSchedules] = useState([])
+  const [students, setStudents] = useState([])
+  const [loading, setLoading] = useState(true)
 
-  const handleInputNilai = (kelas) => {
+  useEffect(() => {
+    fetchSchedules();
+  }, []);
+
+  const fetchSchedules = async () => {
+    try {
+      const res = await axios.get('http://localhost:8000/api/faculty/schedules');
+      setSchedules(res.data.data || []);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleInputNilai = async (kelas) => {
     setSelectedKelas(kelas)
     setIsInputOpen(true)
+    try {
+      const res = await axios.get(`http://localhost:8000/api/faculty/grades?course_id=${kelas.matakuliah_id}&tahun=2024/2025&semester=Ganjil`);
+      setStudents(res.data.data || []);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleUpdateValue = (studentId, field, val) => {
+    setStudents(prev => prev.map(s => s.student_id === studentId ? { ...s, [field]: parseFloat(val) || 0 } : s));
+  };
+
+  const saveGrades = async () => {
+    try {
+      for (const s of students) {
+        await axios.post('http://localhost:8000/api/faculty/grades', {
+          student_id: s.student_id,
+          course_id: selectedKelas.matakuliah_id,
+          tahun_akademik: "2024/2025",
+          semester: 1,
+          absensi: s.absensi,
+          tugas: s.tugas,
+          uts: s.uts,
+          uas: s.uas
+        });
+      }
+      toast.success("Nilai Berhasil Disimpan!");
+      setIsInputOpen(false);
+    } catch (err) {
+      toast.error("Gagal Simpan Nilai");
+    }
   }
 
   return (
@@ -184,7 +156,7 @@ export default function NilaiPage() {
                    <BookOpen className="h-6 w-6" />
                 </div>
                 <div>
-                   <p className="text-2xl font-medium text-on-surface">156</p>
+                   <p className="text-2xl font-medium text-on-surface">{schedules.length}</p>
                    <p className="text-[10px] font-medium uppercase tracking-widest text-on-surface-variant/60">Total Kelas</p>
                 </div>
              </Card>
@@ -217,7 +189,7 @@ export default function NilaiPage() {
              </Card>
           </div>
 
-          {/* Deadline Warning - Premium Look */}
+          {/* Deadline Warning */}
           <div className="bg-amber-50/50 border border-amber-100 rounded-[2rem] p-6 flex items-center gap-6">
              <div className="w-14 h-14 rounded-2xl bg-amber-100 text-amber-600 flex items-center justify-center shrink-0 shadow-inner">
                 <AlertCircle className="h-8 w-8" />
@@ -268,36 +240,31 @@ export default function NilaiPage() {
                    </TableRow>
                 </TableHeader>
                 <TableBody>
-                   {kelasData.map((kelas) => (
+                   {(schedules || []).map((kelas) => (
                       <TableRow key={kelas.id} className="hover:bg-slate-50/50 transition-colors border-b border-outline-variant/5">
                          <TableCell className="px-8 py-6">
                             <div>
-                               <p className="font-medium text-[14px] text-on-surface mb-1">{kelas.mataKuliah}</p>
+                               <p className="font-medium text-[14px] text-on-surface mb-1">{kelas.matakuliah?.nama_mk}</p>
                                <span className="text-[10px] font-medium text-on-surface-variant opacity-60 uppercase tracking-widest bg-slate-100 px-2.5 py-1 rounded w-fit">
-                                  {kelas.kode} • {kelas.kelas}
+                                  {kelas.matakuliah?.kode_mk} • {kelas.kelas}
                                </span>
                             </div>
                          </TableCell>
                          <TableCell className="px-8 py-6">
-                            <span className="font-medium text-[13px] text-on-surface-variant">{kelas.dosen}</span>
+                            <span className="font-medium text-[13px] text-on-surface-variant">{kelas.dosen?.name}</span>
                          </TableCell>
                          <TableCell className="px-8 py-6">
                             <div className="w-48 mx-auto">
                                <div className="flex items-center justify-between text-[10px] font-medium uppercase tracking-widest text-on-surface-variant mb-2">
-                                  <span>{kelas.sudahDinilai}/{kelas.peserta} Mahasiswa</span>
-                                  <span className="text-primary">
-                                     {Math.round((kelas.sudahDinilai / kelas.peserta) * 100)}%
-                                  </span>
+                                  <span>20/40 Mahasiswa</span>
+                                  <span className="text-primary">50%</span>
                                </div>
-                               <Progress
-                                  value={(kelas.sudahDinilai / kelas.peserta) * 100}
-                                  className="h-1.5 bg-slate-100 [&>div]:bg-primary"
-                               />
+                               <Progress value={50} className="h-1.5 bg-slate-100 [&>div]:bg-primary" />
                             </div>
                          </TableCell>
                          <TableCell className="px-8 py-6 text-center">
-                            <span className={`px-3.5 py-1.5 rounded-md text-[10px] font-medium uppercase tracking-[0.1em] whitespace-nowrap ${statusColors[kelas.status]}`}>
-                               {kelas.status}
+                            <span className={`px-3.5 py-1.5 rounded-md text-[10px] font-medium uppercase tracking-[0.1em] whitespace-nowrap ${statusColors.Proses}`}>
+                               Proses
                             </span>
                          </TableCell>
                          <TableCell className="px-8 py-6 text-right">
@@ -318,7 +285,7 @@ export default function NilaiPage() {
           </div>
         </div>
 
-        {/* Input Nilai Dialog - Premium Styling */}
+        {/* Input Nilai Dialog */}
         <Dialog open={isInputOpen} onOpenChange={setIsInputOpen}>
           <DialogContent className="max-w-5xl bg-white rounded-[2.5rem] border-none shadow-2xl p-0 overflow-hidden">
             <div className="bg-primary p-8 text-white relative">
@@ -326,11 +293,10 @@ export default function NilaiPage() {
                   <DialogHeader className="mb-0">
                     <DialogTitle className="text-2xl font-medium uppercase tracking-tight">Validasi & Input Nilai</DialogTitle>
                     <DialogDescription className="text-white/70 font-medium uppercase tracking-widest text-[11px] mt-1 border-white/20">
-                      {selectedKelas && `${selectedKelas.mataKuliah} • ${selectedKelas.kelas} • ${selectedKelas.dosen}`}
+                      {selectedKelas && `${selectedKelas.matakuliah?.nama_mk} • ${selectedKelas.kelas} • ${selectedKelas.dosen?.name}`}
                     </DialogDescription>
                   </DialogHeader>
                </div>
-               {/* Aesthetic Background Shapes */}
                <div className="absolute top-0 right-0 w-64 h-full bg-white/5 skew-x-12 -translate-x-16 pointer-events-none"></div>
             </div>
 
@@ -340,19 +306,19 @@ export default function NilaiPage() {
                  <div className="grid grid-cols-4 gap-6">
                    <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100">
                      <p className="text-[10px] font-medium text-on-surface-variant/50 uppercase tracking-widest mb-1">Mata Kuliah</p>
-                     <p className="font-medium text-on-surface text-sm">{selectedKelas.kode}</p>
+                     <p className="font-medium text-on-surface text-sm">{selectedKelas.matakuliah?.kode_mk}</p>
                    </div>
                    <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100">
                      <p className="text-[10px] font-medium text-on-surface-variant/50 uppercase tracking-widest mb-1">Total Peserta</p>
-                     <p className="font-medium text-on-surface text-sm">{selectedKelas.peserta} Orang</p>
+                     <p className="font-medium text-on-surface text-sm">40 Orang</p>
                    </div>
                    <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-100">
                      <p className="text-[10px] font-medium text-emerald-600/60 uppercase tracking-widest mb-1">Sudah Dinilai</p>
-                     <p className="font-medium text-emerald-700 text-sm">{selectedKelas.sudahDinilai} Mahasiswa</p>
+                     <p className="font-medium text-emerald-700 text-sm">20 Mahasiswa</p>
                    </div>
                    <div className="p-4 rounded-2xl bg-amber-50 border border-amber-100">
                      <p className="text-[10px] font-medium text-amber-600/60 uppercase tracking-widest mb-1">Batas Input</p>
-                     <p className="font-medium text-amber-700 text-sm">{selectedKelas.deadline}</p>
+                     <p className="font-medium text-amber-700 text-sm">25 Jan 2025</p>
                    </div>
                  </div>
                )}
@@ -371,49 +337,49 @@ export default function NilaiPage() {
                      </TableRow>
                    </TableHeader>
                    <TableBody>
-                     {nilaiMahasiswa.map((mhs) => (
-                       <TableRow key={mhs.nim} className="hover:bg-white transition-colors border-b border-outline-variant/5">
+                     {(students || []).map((mhs) => (
+                       <TableRow key={mhs.student_id} className="hover:bg-white transition-colors border-b border-outline-variant/5">
                          <TableCell className="px-6 py-4">
                             <div>
-                               <p className="text-sm font-medium text-on-surface leading-tight">{mhs.nama}</p>
+                               <p className="text-sm font-medium text-on-surface leading-tight">{mhs.student_name}</p>
                                <p className="text-[10px] font-medium text-on-surface-variant opacity-60 font-mono mt-0.5">{mhs.nim}</p>
                             </div>
                          </TableCell>
                          <TableCell className="px-4 py-4 text-center">
                            <Input
                              type="number"
-                             defaultValue={mhs.tugas}
+                             value={mhs.tugas}
+                             onChange={(e) => handleUpdateValue(mhs.student_id, 'tugas', e.target.value)}
                              className="h-10 w-16 text-center rounded-xl border-slate-200 font-medium mx-auto focus:ring-primary/20"
-                             min={0}
-                             max={100}
+                             min={0} max={100}
                            />
                          </TableCell>
                          <TableCell className="px-4 py-4 text-center">
                            <Input
                              type="number"
-                             defaultValue={mhs.uts}
+                             value={mhs.uts}
+                             onChange={(e) => handleUpdateValue(mhs.student_id, 'uts', e.target.value)}
                              className="h-10 w-16 text-center rounded-xl border-slate-200 font-medium mx-auto focus:ring-primary/20"
-                             min={0}
-                             max={100}
+                             min={0} max={100}
                            />
                          </TableCell>
                          <TableCell className="px-4 py-4 text-center">
                            <Input
                              type="number"
-                             defaultValue={mhs.uas}
+                             value={mhs.uas}
+                             onChange={(e) => handleUpdateValue(mhs.student_id, 'uas', e.target.value)}
                              className="h-10 w-16 text-center rounded-xl border-slate-200 font-medium mx-auto focus:ring-primary/20"
-                             min={0}
-                             max={100}
+                             min={0} max={100}
                            />
                          </TableCell>
                          <TableCell className="px-4 py-4 text-center">
                             <span className="font-medium text-on-surface">
-                               {(mhs.tugas * 0.2 + mhs.uts * 0.3 + mhs.uas * 0.5).toFixed(1)}
+                               {mhs.nilai_akhir?.toFixed(1)}
                             </span>
                          </TableCell>
                          <TableCell className="px-6 py-4 text-center">
-                            <span className={`font-medium text-sm ${gradeColors[mhs.nilai]}`}>
-                               {mhs.nilai}
+                            <span className={`font-medium text-sm ${gradeColors[mhs.grade_label]}`}>
+                               {mhs.grade_label}
                             </span>
                          </TableCell>
                        </TableRow>
@@ -426,7 +392,7 @@ export default function NilaiPage() {
                   <Button variant="outline" className="rounded-2xl px-8 h-12 font-medium text-[11px] uppercase tracking-widest border-outline-variant/20 hover:bg-slate-50" onClick={() => setIsInputOpen(false)}>
                     Batal
                   </Button>
-                  <Button className="rounded-2xl px-10 h-12 bg-primary text-white shadow-xl shadow-primary/30 font-medium text-[11px] uppercase tracking-widest flex items-center gap-2">
+                  <Button onClick={saveGrades} className="rounded-2xl px-10 h-12 bg-primary text-white shadow-xl shadow-primary/30 font-medium text-[11px] uppercase tracking-widest flex items-center gap-2">
                     <Save className="h-4 w-4" />
                     Simpan Nilai
                   </Button>

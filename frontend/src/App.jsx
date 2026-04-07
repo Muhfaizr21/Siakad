@@ -54,6 +54,7 @@ import FacultyBeasiswa from './pages/FacultyAdmin/beasiswa/page'
 import FacultyMahasiswaBaru from './pages/FacultyAdmin/mahasiswa/Baru'
 import FacultyProposalApproval from './pages/FacultyAdmin/ormawa/proposals'
 import FacultyOrganisasi from './pages/FacultyAdmin/ormawa/OrganisasiFakultas'
+import FacultyRoleManagement from './pages/FacultyAdmin/pengaturan/RoleManagement'
 import StudentDashboard from './pages/Student/StudentDashboard'
 import UserManagement from './pages/SuperAdmin/UserManagement'
 import AcademicPortal from './pages/SuperAdmin/AcademicPortal'
@@ -140,6 +141,7 @@ function App() {
           <Route path="/faculty/laporan/mahasiswa" element={<FacultyLaporan />} />
           <Route path="/faculty/konten" element={<FacultyKonten />} />
           <Route path="/faculty/pengaturan" element={<FacultyPengaturan />} />
+          <Route path="/faculty/pengaturan/rbac" element={<FacultyRoleManagement />} />
           
           {/* New Faculty Sub-routes mapping sidebar */}
           <Route path="/faculty/konseling" element={<FacultyKonseling />} />

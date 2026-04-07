@@ -149,11 +149,20 @@ CREATE TABLE IF NOT EXISTS public.krs_validation (
     student_id      INTEGER NOT NULL REFERENCES public.students(id) ON DELETE CASCADE,
     tahun_akademik  VARCHAR(20) NOT NULL,
     semester_tipe   VARCHAR(10) NOT NULL,
-    status          public.status_krs DEFAULT 'draft',
+    status          VARCHAR(20) DEFAULT 'Menunggu', -- Changed from enum for flexibility
     total_sks       INTEGER DEFAULT 0,
+    validated_by    INTEGER REFERENCES public.lecturers(id),
+    validated_at    TIMESTAMP,
     catatan_dpa     TEXT,
     created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS public.krs_items (
+    id                SERIAL PRIMARY KEY,
+    krs_submission_id INTEGER NOT NULL REFERENCES public.krs_validation(id) ON DELETE CASCADE,
+    course_id         INTEGER NOT NULL REFERENCES public.matakuliah(id),
+    created_at        TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE IF NOT EXISTS public.student_grades (
@@ -224,3 +233,23 @@ CREATE INDEX IF NOT EXISTS idx_grades_student_id  ON public.student_grades(stude
 CREATE INDEX IF NOT EXISTS idx_krs_student_period ON public.krs_validation(student_id, tahun_akademik);
 CREATE INDEX IF NOT EXISTS idx_students_nim       ON public.students(nim);
 CREATE INDEX IF NOT EXISTS idx_lecturers_nidn     ON public.lecturers(nidn);
+
+-- 16. TABEL PRESTASI MAHASISWA
+CREATE TABLE IF NOT EXISTS public.achievements (
+    id              SERIAL PRIMARY KEY,
+    student_id      INTEGER NOT NULL REFERENCES public.students(id) ON DELETE CASCADE,
+    nama_prestasi   VARCHAR(255) NOT NULL,
+    bidang          VARCHAR(50) NOT NULL, -- Akademik, Non-Akademik
+    tingkat         VARCHAR(50) NOT NULL, -- Internasional, Nasional, Regional
+    peringkat       VARCHAR(50), -- Juara 1, Peserta, dsb
+    tahun           INTEGER NOT NULL,
+    penyelenggara   VARCHAR(255),
+    sertifikat_url  TEXT,
+    status          VARCHAR(20) DEFAULT 'Menunggu', -- Menunggu, Terverifikasi, Ditolak
+    poin_skpi       INTEGER DEFAULT 0,
+    catatan         TEXT,
+    verified_at     TIMESTAMP,
+    verified_by     INTEGER REFERENCES public.users(id),
+    created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);

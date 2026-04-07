@@ -1,11 +1,21 @@
 "use client"
 
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import Sidebar from "../../components/Sidebar"
 import TopNavBar from "../../components/TopNavBar"
+import axios from "axios"
+import { toast, Toaster } from "react-hot-toast"
 import { Card, CardContent, CardHeader, CardTitle } from "../../components/card"
 import { Badge } from "../../components/badge"
 import { Button } from "../../components/button"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "../../components/table"
 import {
   Select,
   SelectContent,
@@ -40,39 +50,48 @@ import {
   Area,
 } from "recharts"
 
-const mahasiswaPerAngkatan = [
-  { angkatan: "2020", aktif: 45, cuti: 5, lulus: 120, nonAktif: 10 },
-  { angkatan: "2021", aktif: 156, cuti: 12, lulus: 45, nonAktif: 8 },
-  { angkatan: "2022", aktif: 198, cuti: 8, lulus: 0, nonAktif: 5 },
-  { angkatan: "2023", aktif: 215, cuti: 3, lulus: 0, nonAktif: 2 },
-  { angkatan: "2024", aktif: 242, cuti: 0, lulus: 0, nonAktif: 0 },
-]
-
-const mahasiswaPerProdi = [
-  { name: "Teknik Informatika", value: 456, color: "hsl(var(--chart-1))" },
-  { name: "Sistem Informasi", value: 398, color: "hsl(var(--chart-2))" },
-  { name: "Teknik Elektro", value: 234, color: "hsl(var(--chart-3))" },
-  { name: "Teknik Mesin", value: 189, color: "hsl(var(--chart-4))" },
-]
-
-const trendMahasiswa = [
-  { tahun: "2020", masuk: 180, lulus: 150 },
-  { tahun: "2021", masuk: 195, lulus: 165 },
-  { tahun: "2022", masuk: 210, lulus: 175 },
-  { tahun: "2023", masuk: 225, lulus: 180 },
-  { tahun: "2024", masuk: 250, lulus: 185 },
-]
-
-const ipkDistribusi = [
-  { range: "< 2.0", jumlah: 15 },
-  { range: "2.0-2.5", jumlah: 45 },
-  { range: "2.5-3.0", jumlah: 180 },
-  { range: "3.0-3.5", jumlah: 420 },
-  { range: "3.5-4.0", jumlah: 196 },
-]
+const CHART_COLORS = [
+  "hsl(var(--chart-1))",
+  "hsl(var(--chart-2))",
+  "hsl(var(--chart-3))",
+  "hsl(var(--chart-4))",
+  "hsl(var(--chart-5))",
+  "#8b5cf6",
+  "#ec4899"
+];
 
 export default function LaporanMahasiswaPage() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [data, setData] = useState({
+    summary: { total: 0, active: 0, graduated: 0, avgGpa: 0 },
+    perAngkatan: [],
+    perProdi: [],
+    ipkDist: []
+  })
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetchData()
+  }, [])
+
+  const fetchData = async () => {
+    try {
+      const res = await axios.get("http://localhost:8000/api/faculty/reports/summary")
+      if (res.data.status === "success") {
+        setData(res.data.data)
+      }
+    } catch (error) {
+      toast.error("Gagal memuat data laporan")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Map colors to perProdi data
+  const prodiWithColors = data.perProdi.map((item, index) => ({
+    ...item,
+    color: CHART_COLORS[index % CHART_COLORS.length]
+  }))
   return (
     <div className="text-on-surface bg-surface min-h-screen">
       <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
@@ -111,7 +130,7 @@ export default function LaporanMahasiswaPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-on-surface-variant">Total Mahasiswa</p>
-                  <p className="text-3xl font-medium">1,277</p>
+                  <p className="text-3xl font-medium">{data.summary.total.toLocaleString()}</p>
                 </div>
                 <div className="rounded-lg bg-primary/10 p-3">
                   <Users className="h-6 w-6 text-primary" />
@@ -119,7 +138,7 @@ export default function LaporanMahasiswaPage() {
               </div>
               <div className="mt-2 flex items-center gap-1 text-success">
                 <TrendingUp className="h-4 w-4" />
-                <span className="text-sm font-medium">+8.2%</span>
+                <span className="text-sm font-medium">+0%</span>
                 <span className="text-xs text-on-surface-variant">dari tahun lalu</span>
               </div>
             </CardContent>
@@ -129,7 +148,7 @@ export default function LaporanMahasiswaPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-on-surface-variant">Mahasiswa Aktif</p>
-                  <p className="text-3xl font-medium">856</p>
+                  <p className="text-3xl font-medium">{data.summary.active.toLocaleString()}</p>
                 </div>
                 <div className="rounded-lg bg-success/10 p-3">
                   <Users className="h-6 w-6 text-success" />
@@ -137,7 +156,7 @@ export default function LaporanMahasiswaPage() {
               </div>
               <div className="mt-2 flex items-center gap-1 text-success">
                 <TrendingUp className="h-4 w-4" />
-                <span className="text-sm font-medium">+5.4%</span>
+                <span className="text-sm font-medium">+0%</span>
                 <span className="text-xs text-on-surface-variant">dari semester lalu</span>
               </div>
             </CardContent>
@@ -146,8 +165,8 @@ export default function LaporanMahasiswaPage() {
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-on-surface-variant">Lulusan Tahun Ini</p>
-                  <p className="text-3xl font-medium">185</p>
+                  <p className="text-sm text-on-surface-variant">Lulusan Keseluruhan</p>
+                  <p className="text-3xl font-medium">{data.summary.graduated.toLocaleString()}</p>
                 </div>
                 <div className="rounded-lg bg-info/10 p-3">
                   <GraduationCap className="h-6 w-6 text-info" />
@@ -155,7 +174,7 @@ export default function LaporanMahasiswaPage() {
               </div>
               <div className="mt-2 flex items-center gap-1 text-success">
                 <TrendingUp className="h-4 w-4" />
-                <span className="text-sm font-medium">+2.8%</span>
+                <span className="text-sm font-medium">+0%</span>
                 <span className="text-xs text-on-surface-variant">dari tahun lalu</span>
               </div>
             </CardContent>
@@ -165,7 +184,7 @@ export default function LaporanMahasiswaPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-on-surface-variant">IPK Rata-rata</p>
-                  <p className="text-3xl font-medium">3.28</p>
+                  <p className="text-3xl font-medium">{data.summary.avgGpa?.toFixed(2) || '0.00'}</p>
                 </div>
                 <div className="rounded-lg bg-warning/10 p-3">
                   <TrendingUp className="h-6 w-6 text-warning" />
@@ -173,7 +192,7 @@ export default function LaporanMahasiswaPage() {
               </div>
               <div className="mt-2 flex items-center gap-1 text-success">
                 <TrendingUp className="h-4 w-4" />
-                <span className="text-sm font-medium">+0.05</span>
+                <span className="text-sm font-medium">+0</span>
                 <span className="text-xs text-on-surface-variant">dari semester lalu</span>
               </div>
             </CardContent>
@@ -190,7 +209,7 @@ export default function LaporanMahasiswaPage() {
             <CardContent>
               <div className="h-72">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={mahasiswaPerAngkatan}>
+                  <BarChart data={data.perAngkatan}>
                     <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                     <XAxis dataKey="angkatan" stroke="hsl(var(--muted-foreground))" fontSize={12} />
                     <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} />
@@ -223,7 +242,7 @@ export default function LaporanMahasiswaPage() {
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie
-                        data={mahasiswaPerProdi}
+                        data={prodiWithColors}
                         cx="50%"
                         cy="50%"
                         innerRadius={60}
@@ -231,7 +250,7 @@ export default function LaporanMahasiswaPage() {
                         paddingAngle={2}
                         dataKey="value"
                       >
-                        {mahasiswaPerProdi.map((entry, index) => (
+                        {prodiWithColors.map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={entry.color} />
                         ))}
                       </Pie>
@@ -246,7 +265,7 @@ export default function LaporanMahasiswaPage() {
                   </ResponsiveContainer>
                 </div>
                 <div className="space-y-3">
-                  {mahasiswaPerProdi.map((prodi, index) => (
+                  {prodiWithColors.map((prodi, index) => (
                     <div key={index} className="flex items-center gap-2">
                       <div
                         className="h-3 w-3 rounded-full"
@@ -274,7 +293,7 @@ export default function LaporanMahasiswaPage() {
             <CardContent>
               <div className="h-72">
                 <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={trendMahasiswa}>
+                  <AreaChart data={data.perAngkatan}>
                     <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                     <XAxis dataKey="tahun" stroke="hsl(var(--muted-foreground))" fontSize={12} />
                     <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} />
@@ -316,7 +335,7 @@ export default function LaporanMahasiswaPage() {
             <CardContent>
               <div className="h-72">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={ipkDistribusi} layout="vertical">
+                  <BarChart data={data.ipkDist} layout="vertical">
                     <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                     <XAxis type="number" stroke="hsl(var(--muted-foreground))" fontSize={12} />
                     <YAxis
@@ -356,62 +375,26 @@ export default function LaporanMahasiswaPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              <TableRow className="hover:bg-slate-50/50 transition-colors border-b border-outline-variant/5">
-                <TableCell className="px-8 py-6 font-medium text-[14px] text-on-surface">Teknik Informatika</TableCell>
-                <TableCell className="px-8 py-6 text-center font-medium">456</TableCell>
-                <TableCell className="px-8 py-6 text-center text-success font-medium">412</TableCell>
-                <TableCell className="px-8 py-6 text-center text-warning font-medium">18</TableCell>
-                <TableCell className="px-8 py-6 text-center text-info font-medium">26</TableCell>
-                <TableCell className="px-8 py-6 text-center font-medium">3.35</TableCell>
-                <TableCell className="px-8 py-6 text-center">
-                  <Badge variant="outline" className="bg-success/20 text-success">
-                    <TrendingUp className="mr-1 h-3 w-3" />
-                    +5.2%
-                  </Badge>
-                </TableCell>
-              </TableRow>
-              <TableRow className="hover:bg-slate-50/50 transition-colors border-b border-outline-variant/5">
-                <TableCell className="px-8 py-6 font-medium text-[14px] text-on-surface">Sistem Informasi</TableCell>
-                <TableCell className="px-8 py-6 text-center font-medium">398</TableCell>
-                <TableCell className="px-8 py-6 text-center text-success font-medium">365</TableCell>
-                <TableCell className="px-8 py-6 text-center text-warning font-medium">15</TableCell>
-                <TableCell className="px-8 py-6 text-center text-info font-medium">18</TableCell>
-                <TableCell className="px-8 py-6 text-center font-medium">3.28</TableCell>
-                <TableCell className="px-8 py-6 text-center">
-                  <Badge variant="outline" className="bg-success/20 text-success">
-                    <TrendingUp className="mr-1 h-3 w-3" />
-                    +3.8%
-                  </Badge>
-                </TableCell>
-              </TableRow>
-              <TableRow className="hover:bg-slate-50/50 transition-colors border-b border-outline-variant/5">
-                <TableCell className="px-8 py-6 font-medium text-[14px] text-on-surface">Teknik Elektro</TableCell>
-                <TableCell className="px-8 py-6 text-center font-medium">234</TableCell>
-                <TableCell className="px-8 py-6 text-center text-success font-medium">210</TableCell>
-                <TableCell className="px-8 py-6 text-center text-warning font-medium">8</TableCell>
-                <TableCell className="px-8 py-6 text-center text-info font-medium">16</TableCell>
-                <TableCell className="px-8 py-6 text-center font-medium">3.18</TableCell>
-                <TableCell className="px-8 py-6 text-center">
-                  <Badge variant="outline" className="bg-destructive/20 text-destructive">
-                    <TrendingDown className="mr-1 h-3 w-3" />
-                    -1.2%
-                  </Badge>
-                </TableCell>
-              </TableRow>
-              <TableRow className="hover:bg-slate-50/50 transition-colors border-b border-outline-variant/5">
-                <TableCell className="px-8 py-6 font-medium text-[14px] text-on-surface">Teknik Mesin</TableCell>
-                <TableCell className="px-8 py-6 text-center font-medium">189</TableCell>
-                <TableCell className="px-8 py-6 text-center text-success font-medium">169</TableCell>
-                <TableCell className="px-8 py-6 text-center text-warning font-medium">7</TableCell>
-                <TableCell className="px-8 py-6 text-center text-info font-medium">13</TableCell>
-                <TableCell className="px-8 py-6 text-center font-medium">3.12</TableCell>
-                <TableCell className="px-8 py-6 text-center">
-                  <Badge variant="outline" className="bg-success/20 text-success">
-                    <TrendingUp className="mr-1 h-3 w-3" />
-                    +2.1%
-                  </Badge>
-                </TableCell>
-              </TableRow>
+              {prodiWithColors.map((prodi, index) => (
+                <TableRow key={index} className="hover:bg-slate-50/50 transition-colors border-b border-outline-variant/5">
+                  <TableCell className="px-8 py-6 font-medium text-[14px] text-on-surface">{prodi.name}</TableCell>
+                  <TableCell className="px-8 py-6 text-center font-medium">{prodi.value}</TableCell>
+                  <TableCell className="px-8 py-6 text-center text-success font-medium">{prodi.active}</TableCell>
+                  <TableCell className="px-8 py-6 text-center text-warning font-medium">{prodi.leave}</TableCell>
+                  <TableCell className="px-8 py-6 text-center text-info font-medium">{prodi.graduated}</TableCell>
+                  <TableCell className="px-8 py-6 text-center font-medium">{prodi.avgGpa?.toFixed(2) || '0.00'}</TableCell>
+                  <TableCell className="px-8 py-6 text-center">
+                    <Badge variant="outline" className="bg-primary/10 text-primary">
+                      Stable
+                    </Badge>
+                  </TableCell>
+                </TableRow>
+              ))}
+              {prodiWithColors.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={7} className="text-center py-10 text-slate-400">Pilih periode untuk melihat data</TableCell>
+                </TableRow>
+              )}
             </TableBody>
           </Table>
         </div>

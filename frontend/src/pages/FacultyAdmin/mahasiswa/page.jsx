@@ -81,101 +81,105 @@ export default function MahasiswaPage() {
     return status.charAt(0).toUpperCase() + status.slice(1).toLowerCase()
   }
 
+    const columns = [
+        {
+          key: "nim",
+          label: "NIM",
+          render: (value) => <span className="font-mono text-[13px] font-bold text-on-surface-variant uppercase tracking-widest">{value}</span>
+        },
+        {
+          key: "name",
+          label: "Nama Mahasiswa",
+          render: (value, row) => (
+            <div className="flex items-center gap-4">
+              <Avatar className="h-10 w-10 border border-outline-variant/10 shadow-sm">
+                <AvatarFallback className="bg-primary/5 text-primary font-medium text-xs">
+                  {value?.split(" ").map(n => n[0]).join("").substring(0, 2) || '?'}
+                </AvatarFallback>
+              </Avatar>
+              <div>
+                 <span className="block font-medium text-[14px] text-on-surface leading-tight mb-0.5">{value}</span>
+                 <span className="text-[11px] font-medium text-on-surface-variant opacity-70 uppercase tracking-widest">{row.user?.email || '-'}</span>
+              </div>
+            </div>
+          )
+        },
+        {
+          key: "major",
+          label: "Program Studi",
+          render: (value) => <span className="text-[13px] font-medium text-on-surface-variant">{value?.name || "Belum ada prodi"}</span>
+        },
+        {
+          key: "currentSemester",
+          label: "Semester",
+          className: "text-center",
+          cellClassName: "text-center",
+          render: (value) => (
+            <div className="flex flex-col items-center">
+              <span className="text-[13px] font-medium text-on-surface">{value || 1}</span>
+              <span className="text-[9px] font-medium text-on-surface-variant/50 uppercase tracking-widest mt-0.5">SMT</span>
+            </div>
+          )
+        },
+        {
+          key: "status",
+          label: "Status",
+          className: "text-center",
+          cellClassName: "text-center",
+          render: (value) => (
+             <span className={`px-3.5 py-1.5 rounded-md text-[10px] font-medium uppercase tracking-[0.1em] whitespace-nowrap ${getStatusCapitalized(value) === 'Aktif' ? 'bg-emerald-50 text-emerald-600' : getStatusCapitalized(value) === 'Lulus' ? 'bg-blue-50 text-blue-600' : getStatusCapitalized(value) === 'Cuti' ? 'bg-amber-50 text-amber-600' : 'bg-rose-50 text-rose-600'}`}>
+                {getStatusCapitalized(value)}
+             </span>
+          )
+        }
+    ]
+
   return (
-    <div className="bg-surface text-on-surface min-h-screen">
+    <div className="text-on-surface bg-surface min-h-screen font-sans">
       <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
       <main className="lg:ml-64 ml-0 min-h-screen transition-all duration-300">
         <TopNavBar setIsOpen={setSidebarOpen} />
-        <div className="pt-24 pb-12 px-4 lg:px-8">
-          <div className="space-y-6">
-            <div>
-              <h1 className="text-2xl font-bold font-headline">Manajemen Mahasiswa</h1>
-              <p className="text-on-surface-variant">Kelola data mahasiswa fakultas</p>
-            </div>
+        <div className="pt-24 pb-12 px-4 lg:px-8 space-y-8">
+           {/* Page Header */}
+           <div className="flex flex-col md:flex-row items-start md:items-end justify-between gap-6">
+              <div>
+                 <h1 className="text-2xl font-medium tracking-tight text-on-surface font-headline uppercase leading-tight">Manajemen Mahasiswa</h1>
+                 <p className="text-on-surface-variant text-sm mt-1 font-medium">Kelola data mahasiswa dan administrasi akademik fakultas.</p>
+              </div>
+           </div>
 
-            <div className="bg-white border border-outline-variant/10 rounded-[2rem] overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
-              <div className="p-8 border-b border-outline-variant/5 flex justify-between items-center bg-white">
-                <h3 className="font-extrabold text-xl font-headline text-on-surface flex items-center gap-3">
-                  <span className="material-symbols-outlined text-[#00236f] text-[28px]">group</span>
-                  Data Mahasiswa Terdaftar
-                </h3>
-                <Link to="/faculty/mahasiswa/tambah">
-                  <button className="bg-primary hover:bg-primary-fixed text-white px-6 py-3 rounded-xl font-bold font-headline shadow-lg hover:-translate-y-1 transition-all flex items-center gap-2 text-sm">
-                    <span className="material-symbols-outlined text-[20px]">person_add</span>
-                    Tambah Mahasiswa
+           <DataTable 
+             title="Data Mahasiswa Terdaftar"
+             description="Daftar seluruh mahasiswa yang aktif terdaftar di fakultas."
+             columns={columns}
+             data={studentData}
+             loading={loading}
+             searchPlaceholder="Cari NIM atau Nama..."
+             onAdd={() => navigate('/faculty/mahasiswa/tambah')}
+             addLabel="Tambah Mahasiswa"
+             actions={(row) => (
+                <>
+                  <button 
+                    onClick={() => handleView(row)}
+                    className="h-9 w-9 rounded-xl bg-slate-50 text-on-surface-variant hover:text-primary hover:bg-primary/5 transition-all flex items-center justify-center border border-slate-100"
+                  >
+                    <Eye className="h-4 w-4" />
                   </button>
-                </Link>
-              </div>
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-sm text-on-surface">
-                  <thead className="bg-[#fcfcfd] border-b border-outline-variant/5 text-[11px] uppercase text-on-surface-variant font-extrabold tracking-[0.15em]">
-                    <tr>
-                      <th className="px-8 py-5">NIM</th>
-                      <th className="px-8 py-5">Nama Mahasiswa</th>
-                      <th className="px-8 py-5">Program Studi</th>
-                      <th className="px-8 py-5 text-center">Semester</th>
-                      <th className="px-8 py-5 text-center">Status</th>
-                      <th className="px-8 py-5 text-center">Aksi</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-outline-variant/5 font-medium bg-white">
-                    {loading ? (
-                      <tr><td colSpan="6" className="text-center py-6">Memuat data mahasiswa...</td></tr>
-                    ) : studentData.length === 0 ? (
-                      <tr><td colSpan="6" className="text-center py-6">Belum ada mahasiswa terdaftar</td></tr>
-                    ) : studentData.map((mhs) => (
-                      <tr key={mhs.id} className="hover:bg-slate-50/50 transition-colors">
-                        <td className="px-8 py-6 text-[13px] font-bold text-on-surface-variant">
-                          {mhs.nim}
-                        </td>
-                        <td className="px-8 py-6">
-                          <div className="flex items-center gap-4">
-                            <div className="w-10 h-10 rounded-full bg-primary/5 flex items-center justify-center text-primary font-black text-xs uppercase border border-primary/10">
-                              {mhs.name?.split(" ").map(n => n[0]).join("").substring(0, 2) || '?'}
-                            </div>
-                            <div>
-                               <span className="block font-bold text-[14px] text-on-surface leading-tight mb-1">{mhs.name}</span>
-                               <span className="text-[11px] font-bold text-on-surface-variant opacity-70">{mhs.user?.email || '-'}</span>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-8 py-6 font-bold text-[13px] text-on-surface-variant">
-                          {mhs.major?.name || "Belum ada prodi"}
-                        </td>
-                        <td className="px-8 py-6 text-center">
-                          <span className="text-[10px] uppercase font-black bg-[#f4f4f5] px-2.5 py-1 rounded text-on-surface-variant tracking-[0.1em] block mb-1.5 lg:mx-auto w-max">SMT {mhs.currentSemester || 1}</span>
-                          <span className="text-[12px] text-on-surface-variant font-bold">Angkatan {new Date(mhs.createdAt || Date.now()).getFullYear()}</span>
-                        </td>
-                        <td className="px-8 py-6 text-center">
-                          <span className={`text-[10px] uppercase font-black px-3.5 py-1.5 rounded-md tracking-[0.1em] whitespace-nowrap ${getStatusCapitalized(mhs.status) === 'Aktif' ? 'bg-emerald-50 text-emerald-600' : getStatusCapitalized(mhs.status) === 'Lulus' ? 'bg-blue-50 text-blue-600' : getStatusCapitalized(mhs.status) === 'Cuti' ? 'bg-amber-50 text-amber-600' : 'bg-rose-50 text-rose-600'}`}>
-                            {getStatusCapitalized(mhs.status)}
-                          </span>
-                        </td>
-                        <td className="px-8 py-6">
-                          <div className="flex justify-center gap-3">
-                             <button onClick={() => handleView(mhs)} className="w-8 h-8 rounded-lg bg-transparent hover:bg-[#00236f]/10 text-[#00236f] transition-colors flex items-center justify-center">
-                                <span className="material-symbols-outlined text-[18px]">visibility</span>
-                             </button>
-                             <button 
-                                onClick={() => navigate(`/faculty/mahasiswa/edit/${mhs.id}`)}
-                                className="w-8 h-8 rounded-lg bg-transparent hover:bg-[#00236f]/10 text-[#00236f] transition-colors flex items-center justify-center"
-                             >
-                                <span className="material-symbols-outlined text-[18px]">edit</span>
-                             </button>
-                             <button 
-                                onClick={() => handleDelete(mhs.id)}
-                                className="w-8 h-8 rounded-lg bg-transparent hover:bg-rose-100 text-rose-600 transition-colors flex items-center justify-center"
-                             >
-                                <span className="material-symbols-outlined text-[18px]">delete</span>
-                             </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
+                  <button 
+                    onClick={() => navigate(`/faculty/mahasiswa/edit/${row.id}`)}
+                    className="h-9 w-9 rounded-xl bg-slate-50 text-on-surface-variant hover:text-[#00236f] hover:bg-[#00236f]/5 transition-all flex items-center justify-center border border-slate-100"
+                  >
+                    <Pencil className="h-4 w-4" />
+                  </button>
+                  <button 
+                    onClick={() => handleDelete(row.id)}
+                    className="h-9 w-9 rounded-xl bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white transition-all flex items-center justify-center border border-rose-100"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </>
+             )}
+           />
 
             <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
               <DialogContent className="max-w-2xl bg-white shadow-2xl rounded-[2rem]">
@@ -265,7 +269,6 @@ export default function MahasiswaPage() {
                 )}
               </DialogContent>
             </Dialog>
-          </div>
         </div>
       </main>
     </div>

@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"fmt"
+	"time"
 	"siakad-backend/config"
 	"siakad-backend/models"
 
@@ -287,15 +288,29 @@ func DeleteStudent(c *fiber.Ctx) error {
 	id := c.Params("id")
 	var student models.Student
 	if err := config.DB.First(&student, id).Error; err != nil {
-		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Student not found"})
+		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Mahasiswa tidak ditemukan"})
 	}
 
-	// Delete both student and user
-	userID := student.UserID
-	config.DB.Delete(&student)
-	config.DB.Delete(&models.User{}, userID)
+	tx := config.DB.Begin()
 
-	return c.JSON(fiber.Map{"status": "success", "message": "Student deleted successfully"})
+	// 1. Delete student (this might fail if foreign key constraints are violated)
+	if err := tx.Delete(&student).Error; err != nil {
+		tx.Rollback()
+		return c.Status(500).JSON(fiber.Map{
+			"status": "error", 
+			"message": "Gagal menghapus mahasiswa. Pastikan semua data terkait (KRS, Prestasi, Beasiswa, dll) sudah dibersihkan atau coba lagi. Detail: " + err.Error(),
+		})
+	}
+
+	// 2. Delete user account
+	if err := tx.Delete(&models.User{}, student.UserID).Error; err != nil {
+		tx.Rollback()
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal menghapus akun user mahasiswa: " + err.Error()})
+	}
+
+	tx.Commit()
+
+	return c.JSON(fiber.Map{"status": "success", "message": "Mahasiswa dan akun berhasil dihapus"})
 }
 
 // GetCourses returns all subjects
@@ -729,5 +744,973 @@ func DeleteFaculty(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{
 		"status":  "success",
 		"message": "Fakultas berhasil dihapus",
+	})
+}
+
+// --- KRS & PERWALIAN (ADVISORY) CRUD ---
+
+// GetKRSSubmissions returns all KRS submissions with full associations.
+func GetKRSSubmissions(c *fiber.Ctx) error {
+	var submissions []models.KRSSubmission
+	if err := config.DB.Debug().
+		Preload("Student").
+		Preload("Student.Major").
+		Preload("Student.User").
+		Preload("Items").
+		Preload("Items.Course").
+		Order("created_at DESC").
+		Find(&submissions).Error; err != nil {
+		fmt.Printf("GetKRSSubmissions Error: %v\n", err)
+		return c.Status(500).JSON(fiber.Map{
+			"status": "error",
+			"message": "Gagal mengambil data perwalian: " + err.Error(),
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"status": "success",
+		"data": submissions,
+	})
+}
+
+// GetKRSSubmissionByID returns a single krs submission detail
+func GetKRSSubmissionByID(c *fiber.Ctx) error {
+	id := c.Params("id")
+	var submission models.KRSSubmission
+	if err := config.DB.
+		Preload("Student").
+		Preload("Student.Major").
+		Preload("Student.User").
+		Preload("Items").
+		Preload("Items.Course").
+		First(&submission, id).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{
+			"status": "error",
+			"message": "Pengajuan KRS tidak ditemukan",
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"status": "success",
+		"data": submission,
+	})
+}
+
+// ValidateKRSSubmission approves or rejects a student's study plan
+func ValidateKRSSubmission(c *fiber.Ctx) error {
+	id := c.Params("id")
+	type ValidationRequest struct {
+		Status  string `json:"status"`  // "Disetujui" or "Ditolak"
+		Remarks string `json:"remarks"` // optional
+	}
+
+	var req ValidationRequest
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Invalid request body"})
+	}
+
+	var submission models.KRSSubmission
+	if err := config.DB.First(&submission, id).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "KRS Submission NOT FOUND"})
+	}
+
+	submission.Status = req.Status
+	submission.Remarks = req.Remarks
+	
+	// Set validated time
+	now := time.Now()
+	submission.ValidatedAt = &now
+
+	if err := config.DB.Save(&submission).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal memperbarui status perwalian"})
+	}
+
+	return c.JSON(fiber.Map{
+		"status": "success",
+		"message": "KRS " + req.Status,
+		"data": submission,
+	})
+}
+
+// --- ASPIRASI (STUDENT FEEDBACK) CRUD ---
+
+// GetAspirations returns all student aspirations
+func GetAspirations(c *fiber.Ctx) error {
+	var aspirations []models.Aspiration
+	if err := config.DB.Preload("Student.Major").Preload("Student.User").Order("created_at DESC").Find(&aspirations).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal mengambil data aspirasi"})
+	}
+	return c.JSON(fiber.Map{"status": "success", "data": aspirations})
+}
+
+// UpdateAspiration handles admin response and status change
+func UpdateAspiration(c *fiber.Ctx) error {
+	id := c.Params("id")
+	type UpdateRequest struct {
+		Status   string `json:"status"`   // proses, klarifikasi, selesai, ditolak
+		Response string `json:"response"` // Jawaban admin
+	}
+
+	var req UpdateRequest
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Invalid request body"})
+	}
+
+	var aspiration models.Aspiration
+	if err := config.DB.First(&aspiration, id).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Aspirasi tidak ditemukan"})
+	}
+
+	aspiration.Status = req.Status
+	aspiration.Response = req.Response
+	
+	if err := config.DB.Save(&aspiration).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal memperbarui aspirasi"})
+	}
+
+	return c.JSON(fiber.Map{"status": "success", "message": "Aspirasi berhasil diperbarui", "data": aspiration})
+}
+
+// DeleteAspiration removes an aspiration record
+func DeleteAspiration(c *fiber.Ctx) error {
+	id := c.Params("id")
+	if err := config.DB.Delete(&models.Aspiration{}, id).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal menghapus aspirasi"})
+	}
+	return c.JSON(fiber.Map{"status": "success", "message": "Aspirasi berhasil dihapus"})
+}
+
+// --- PRESTASI (ACHIEVEMENTS) CRUD ---
+
+// GetAchievements returns all student achievement submissions
+func GetAchievements(c *fiber.Ctx) error {
+	var achievements []models.Achievement
+	if err := config.DB.Preload("Student.Major").Preload("Student.User").Order("created_at DESC").Find(&achievements).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal mengambil data prestasi: " + err.Error()})
+	}
+	return c.JSON(fiber.Map{"status": "success", "data": achievements})
+}
+
+// VerifyAchievement handles validation, points, and status change
+func VerifyAchievement(c *fiber.Ctx) error {
+	id := c.Params("id")
+	type VerifyRequest struct {
+		Status   string `json:"status"`   // Terverifikasi, Ditolak
+		Points   int    `json:"points"`   // Poin SKPI
+		Notes    string `json:"notes"`    // Catatan verifikasi
+	}
+
+	var req VerifyRequest
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Invalid request body"})
+	}
+
+	var achievement models.Achievement
+	if err := config.DB.First(&achievement, id).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Data prestasi tidak ditemukan"})
+	}
+
+	achievement.Status = req.Status
+	achievement.PoinSKPI = req.Points
+	achievement.Catatan = req.Notes
+	
+	now := time.Now()
+	achievement.VerifiedAt = &now
+	// achievement.VerifiedBy = // Could get from JWT if needed
+
+	if err := config.DB.Save(&achievement).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal memverifikasi prestasi"})
+	}
+
+	return c.JSON(fiber.Map{"status": "success", "message": "Prestasi berhasil diverifikasi", "data": achievement})
+}
+
+// DeleteAchievement removes an achievement record
+func DeleteAchievement(c *fiber.Ctx) error {
+	id := c.Params("id")
+	if err := config.DB.Delete(&models.Achievement{}, id).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal menghapus data prestasi"})
+	}
+	return c.JSON(fiber.Map{"status": "success", "message": "Data prestasi berhasil dihapus"})
+}
+
+// --- E-PERSURATAN (LETTER REQUESTS) CRUD ---
+
+// GetLetterRequests returns all student letter applications
+func GetLetterRequests(c *fiber.Ctx) error {
+	var requests []models.LetterRequest
+	if err := config.DB.Preload("Student.Major").Preload("Student.User").Order("created_at DESC").Find(&requests).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal mengambil data surat: " + err.Error()})
+	}
+	return c.JSON(fiber.Map{"status": "success", "data": requests})
+}
+
+// UpdateLetterStatus handles administrative processing of letters
+func UpdateLetterStatus(c *fiber.Ctx) error {
+	id := c.Params("id")
+	type UpdateRequest struct {
+		Status       string `json:"status"`       // diajukan, diproses, siap_ambil, selesai, ditolak
+		CatatanAdmin string `json:"adminNotes"`   // Catatan untuk mahasiswa
+		FileURL      string `json:"fileUrl"`      // Link download jika sudah selesai
+	}
+
+	var req UpdateRequest
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Invalid request body"})
+	}
+
+	var letter models.LetterRequest
+	if err := config.DB.First(&letter, id).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Data pengajuan surat tidak ditemukan"})
+	}
+
+	letter.Status = req.Status
+	letter.CatatanAdmin = req.CatatanAdmin
+	if req.FileURL != "" {
+		letter.FileURL = req.FileURL
+	}
+	
+	if err := config.DB.Save(&letter).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal memperbarui status surat"})
+	}
+
+	return c.JSON(fiber.Map{"status": "success", "message": "Status surat berhasil diperbarui", "data": letter})
+}
+
+// DeleteLetterRequest removes a letter request record
+func DeleteLetterRequest(c *fiber.Ctx) error {
+	id := c.Params("id")
+	if err := config.DB.Delete(&models.LetterRequest{}, id).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal menghapus pengajuan surat"})
+	}
+	return c.JSON(fiber.Map{"status": "success", "message": "Pengajuan surat berhasil dihapus"})
+}
+
+// --- PENDAFTARAN YUDISIUM (GRADUATION) CRUD ---
+
+// GetGraduationSubmissions returns all graduation/judicium applications
+func GetGraduationSubmissions(c *fiber.Ctx) error {
+	var submissions []models.GraduationSubmission
+	if err := config.DB.Preload("Student.Major").Preload("Student.User").Order("created_at DESC").Find(&submissions).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal mengambil data yudisium: " + err.Error()})
+	}
+	return c.JSON(fiber.Map{"status": "success", "data": submissions})
+}
+
+// UpdateGraduationStatus handles status change and exam scheduling
+func UpdateGraduationStatus(c *fiber.Ctx) error {
+	id := c.Params("id")
+	type UpdateRequest struct {
+		Status        string `json:"status"`         // pendaftaran, verifikasi, sidang, revisi, lulus, ditolak
+		Keterangan    string `json:"notes"`          // Catatan admin
+		TanggalSidang string `json:"examDate"`       // Format string YYYY-MM-DD
+	}
+
+	var req UpdateRequest
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Invalid request body"})
+	}
+
+	var graduation models.GraduationSubmission
+	if err := config.DB.First(&graduation, id).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Data yudisium tidak ditemukan"})
+	}
+
+	graduation.Status = req.Status
+	graduation.Keterangan = req.Keterangan
+
+	if req.TanggalSidang != "" {
+		t, err := time.Parse("2006-01-02", req.TanggalSidang)
+		if err == nil {
+			graduation.TanggalSidang = &t
+		}
+	}
+	
+	if err := config.DB.Save(&graduation).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal memperbarui status yudisium"})
+	}
+
+	return c.JSON(fiber.Map{"status": "success", "message": "Status yudisium berhasil diperbarui", "data": graduation})
+}
+
+// DeleteGraduationSubmission removes a graduation record
+func DeleteGraduationSubmission(c *fiber.Ctx) error {
+	id := c.Params("id")
+	if err := config.DB.Delete(&models.GraduationSubmission{}, id).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal menghapus data yudisium"})
+	}
+	return c.JSON(fiber.Map{"status": "success", "message": "Data yudisium berhasil dihapus"})
+}
+
+// --- MBKM PROGRAM MANAGEMENT CRUD ---
+
+// GetMBKMPrograms returns all students participating in MBKM
+func GetMBKMPrograms(c *fiber.Ctx) error {
+	var programs []models.MBKMProgram
+	if err := config.DB.Preload("Student.Major").Preload("Student.User").Order("created_at DESC").Find(&programs).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal mengambil data MBKM: " + err.Error()})
+	}
+	return c.JSON(fiber.Map{"status": "success", "data": programs})
+}
+
+// UpdateMBKMStatus handles status and SKS conversion
+func UpdateMBKMStatus(c *fiber.Ctx) error {
+	id := c.Params("id")
+	type UpdateRequest struct {
+		Status string `json:"status"` // terdaftar, berjalan, rekon_sks, selesai, ditolak
+		SKS    int    `json:"sks"`    // SKS yang dikonversi
+	}
+
+	var req UpdateRequest
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Invalid request body"})
+	}
+
+	var program models.MBKMProgram
+	if err := config.DB.First(&program, id).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Data MBKM tidak ditemukan"})
+	}
+
+	program.Status = req.Status
+	program.SKSKonversi = req.SKS
+
+	if err := config.DB.Save(&program).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal memperbarui status MBKM"})
+	}
+
+	return c.JSON(fiber.Map{"status": "success", "message": "Status MBKM berhasil diperbarui", "data": program})
+}
+
+// DeleteMBKMProgram removes an MBKM record
+func DeleteMBKMProgram(c *fiber.Ctx) error {
+	id := c.Params("id")
+	if err := config.DB.Delete(&models.MBKMProgram{}, id).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal menghapus data MBKM"})
+	}
+	return c.JSON(fiber.Map{"status": "success", "message": "Data MBKM berhasil dihapus"})
+}
+
+// --- SCHOLARSHIP MANAGEMENT CRUD ---
+
+// GetScholarships returns all scholarship programs with accepted count
+func GetScholarships(c *fiber.Ctx) error {
+	type ScholarshipWithCount struct {
+		models.Scholarship
+		AcceptedCount int64 `json:"acceptedCount"`
+	}
+	var scholarships []models.Scholarship
+	if err := config.DB.Order("deadline DESC").Find(&scholarships).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal mengambil data beasiswa: " + err.Error()})
+	}
+
+	var results []ScholarshipWithCount
+	for _, s := range scholarships {
+		var count int64
+		config.DB.Model(&models.ScholarshipApplication{}).Where("scholarship_id = ? AND status = ?", s.ID, "diterima").Count(&count)
+		results = append(results, ScholarshipWithCount{
+			Scholarship:   s,
+			AcceptedCount: count,
+		})
+	}
+
+	return c.JSON(fiber.Map{"status": "success", "data": results})
+}
+
+// ScholarshipDTO for flexible request handling
+type ScholarshipDTO struct {
+	Name        string  `json:"name"`
+	Provider    string  `json:"provider"`
+	Description string  `json:"description"`
+	MinGPA      float64 `json:"minGpa"`
+	Quota       int     `json:"quota"`
+	Deadline    string  `json:"deadline"` // Catch as string first
+	Status      string  `json:"status"`
+}
+
+// CreateScholarship adds a new program
+func CreateScholarship(c *fiber.Ctx) error {
+	var dto ScholarshipDTO
+	if err := c.BodyParser(&dto); err != nil {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Invalid request body"})
+	}
+
+	deadline, _ := time.Parse("2006-01-02", dto.Deadline)
+	
+	scholarship := models.Scholarship{
+		Name:        dto.Name,
+		Provider:    dto.Provider,
+		Description: dto.Description,
+		MinGPA:      dto.MinGPA,
+		Quota:       dto.Quota,
+		Deadline:    deadline,
+		Status:      dto.Status,
+	}
+
+	if err := config.DB.Create(&scholarship).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal membuat beasiswa"})
+	}
+	return c.JSON(fiber.Map{"status": "success", "message": "Program beasiswa berhasil dibuat", "data": scholarship})
+}
+
+// UpdateScholarship updates a program
+func UpdateScholarship(c *fiber.Ctx) error {
+	id := c.Params("id")
+	var scholarship models.Scholarship
+	if err := config.DB.First(&scholarship, id).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Data beasiswa tidak ditemukan"})
+	}
+
+	var dto ScholarshipDTO
+	if err := c.BodyParser(&dto); err != nil {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Invalid request body format"})
+	}
+
+	// Update fields manually from DTO
+	scholarship.Name = dto.Name
+	scholarship.Provider = dto.Provider
+	scholarship.Description = dto.Description
+	scholarship.MinGPA = dto.MinGPA
+	scholarship.Quota = dto.Quota
+	scholarship.Status = dto.Status
+	
+	if dto.Deadline != "" {
+		if d, err := time.Parse("2006-01-02", dto.Deadline); err == nil {
+			scholarship.Deadline = d
+		} else {
+			// Try fallback format if needed
+			if d, err := time.Parse(time.RFC3339, dto.Deadline); err == nil {
+				scholarship.Deadline = d
+			}
+		}
+	}
+
+	if err := config.DB.Save(&scholarship).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal memperbarui beasiswa"})
+	}
+
+	return c.JSON(fiber.Map{"status": "success", "message": "Program beasiswa berhasil diperbarui", "data": scholarship})
+}
+
+// DeleteScholarship removes a program
+func DeleteScholarship(c *fiber.Ctx) error {
+	id := c.Params("id")
+	if err := config.DB.Delete(&models.Scholarship{}, id).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal menghapus beasiswa"})
+	}
+	return c.JSON(fiber.Map{"status": "success", "message": "Program beasiswa dihapus"})
+}
+
+// GetOrmawaProposals gets all submissions
+func GetOrmawaProposals(c *fiber.Ctx) error {
+	var proposals []models.OrmawaProposal
+	if err := config.DB.Preload("Student").Find(&proposals).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal mengambil data proposal"})
+	}
+	return c.JSON(fiber.Map{"status": "success", "data": proposals})
+}
+
+// UpdateOrmawaProposalStatus updates status and notes
+func UpdateOrmawaProposalStatus(c *fiber.Ctx) error {
+	id := c.Params("id")
+	var req struct {
+		Status     string `json:"status"`
+		AdminNotes string `json:"adminNotes"`
+	}
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Invalid request body"})
+	}
+
+	if err := config.DB.Model(&models.OrmawaProposal{}).Where("id = ?", id).Updates(models.OrmawaProposal{
+		Status:     req.Status,
+		AdminNotes: req.AdminNotes,
+	}).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal memperbarui status proposal"})
+	}
+	return c.JSON(fiber.Map{"status": "success", "message": "Status proposal berhasil diperbarui"})
+}
+
+// DeleteOrmawaProposal removes a record
+func DeleteOrmawaProposal(c *fiber.Ctx) error {
+	id := c.Params("id")
+	if err := config.DB.Delete(&models.OrmawaProposal{}, id).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal menghapus data proposal"})
+	}
+	return c.JSON(fiber.Map{"status": "success", "message": "Data proposal berhasil dihapus"})
+}
+
+// --- SCHOLARSHIP APPLICATIONS ---
+
+// --- FACULTY ORGANIZATIONS ---
+
+func GetFacultyOrganizations(c *fiber.Ctx) error {
+	var orgs []models.FacultyOrganization
+	if err := config.DB.Order("id asc").Find(&orgs).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal mengambil data organisasi"})
+	}
+	return c.JSON(fiber.Map{"status": "success", "data": orgs})
+}
+
+func CreateFacultyOrganization(c *fiber.Ctx) error {
+	var org models.FacultyOrganization
+	if err := c.BodyParser(&org); err != nil {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Invalid request body"})
+	}
+	if err := config.DB.Create(&org).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal menambah organisasi"})
+	}
+	return c.JSON(fiber.Map{"status": "success", "message": "Organisasi berhasil ditambahkan", "data": org})
+}
+
+func UpdateFacultyOrganization(c *fiber.Ctx) error {
+	id := c.Params("id")
+	var org models.FacultyOrganization
+	if err := config.DB.First(&org, id).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Organisasi tidak ditemukan"})
+	}
+
+	var updateData models.FacultyOrganization
+	if err := c.BodyParser(&updateData); err != nil {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Invalid request body"})
+	}
+
+	config.DB.Model(&org).Updates(updateData)
+	return c.JSON(fiber.Map{"status": "success", "message": "Data organisasi berhasil diperbarui"})
+}
+
+func DeleteFacultyOrganization(c *fiber.Ctx) error {
+	id := c.Params("id")
+	config.DB.Delete(&models.FacultyOrganization{}, id)
+	return c.JSON(fiber.Map{"status": "success", "message": "Organisasi berhasil dihapus"})
+}
+
+// --- NEWS / ARTICLES ---
+
+func GetArticles(c *fiber.Ctx) error {
+	var articles []models.Article
+	if err := config.DB.Order("created_at desc").Find(&articles).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal mengambil data artikel"})
+	}
+	return c.JSON(fiber.Map{"status": "success", "data": articles})
+}
+
+func CreateArticle(c *fiber.Ctx) error {
+	var article models.Article
+	if err := c.BodyParser(&article); err != nil {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Invalid request body"})
+	}
+	if err := config.DB.Create(&article).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal membuat konten"})
+	}
+	return c.JSON(fiber.Map{"status": "success", "message": "Konten berhasil dipublikasikan", "data": article})
+}
+
+func UpdateArticle(c *fiber.Ctx) error {
+	id := c.Params("id")
+	var article models.Article
+	if err := config.DB.First(&article, id).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Konten tidak ditemukan"})
+	}
+	var updateData models.Article
+	if err := c.BodyParser(&updateData); err != nil {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Invalid request body"})
+	}
+	config.DB.Model(&article).Updates(updateData)
+	return c.JSON(fiber.Map{"status": "success", "message": "Konten berhasil diperbarui"})
+}
+
+func DeleteArticle(c *fiber.Ctx) error {
+	id := c.Params("id")
+	config.DB.Delete(&models.Article{}, id)
+	return c.JSON(fiber.Map{"status": "success", "message": "Konten berhasil dihapus"})
+}
+
+// GetScholarshipApplications returns all student applications
+func GetScholarshipApplications(c *fiber.Ctx) error {
+	var applications []models.ScholarshipApplication
+	if err := config.DB.Preload("Scholarship").Preload("Student.Major").Preload("Student.User").Order("created_at DESC").Find(&applications).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal mengambil data pendaftar: " + err.Error()})
+	}
+	return c.JSON(fiber.Map{"status": "success", "data": applications})
+}
+
+// UpdateScholarshipApplicationStatus handles verification with quota & GPA checks
+func UpdateScholarshipApplicationStatus(c *fiber.Ctx) error {
+	id := c.Params("id")
+	type UpdateRequest struct {
+		Status string `json:"status"` // proses, wawancara, diterima, ditolak
+		Notes  string `json:"notes"`
+	}
+	var req UpdateRequest
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Invalid request body"})
+	}
+
+	var application models.ScholarshipApplication
+	if err := config.DB.Preload("Scholarship").Preload("Student").First(&application, id).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Data pendaftaran tidak ditemukan"})
+	}
+
+	if req.Status == "diterima" {
+		var acceptedCount int64
+		config.DB.Model(&models.ScholarshipApplication{}).Where("scholarship_id = ? AND status = ?", application.ScholarshipID, "diterima").Count(&acceptedCount)
+		
+		if int(acceptedCount) >= application.Scholarship.Quota {
+			return c.Status(400).JSON(fiber.Map{
+				"status": "error", 
+				"message": fmt.Sprintf("Gagal menerima: Kuota beasiswa (%d) sudah penuh!", application.Scholarship.Quota),
+			})
+		}
+	}
+
+	application.Status = req.Status
+	application.AdminNotes = req.Notes
+
+	if err := config.DB.Save(&application).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal memperbarui status pendaftaran"})
+	}
+
+	return c.JSON(fiber.Map{"status": "success", "message": "Status pendaftaran berhasil diperbarui"})
+}
+
+// DeleteScholarshipApplication removes an application
+func DeleteScholarshipApplication(c *fiber.Ctx) error {
+	id := c.Params("id")
+	if err := config.DB.Delete(&models.ScholarshipApplication{}, id).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal menghapus data pendaftaran"})
+	}
+	return c.JSON(fiber.Map{"status": "success", "message": "Data pendaftaran berhasil dihapus"})
+}
+
+// --- PMB ADMISSION CRUD ---
+
+func GetAdmissions(c *fiber.Ctx) error {
+	var admissions []models.Admission
+	if err := config.DB.Order("created_at DESC").Find(&admissions).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal mengambil data pendaftar: " + err.Error()})
+	}
+	return c.JSON(fiber.Map{"status": "success", "data": admissions})
+}
+
+func CreateAdmission(c *fiber.Ctx) error {
+	var admission models.Admission
+	if err := c.BodyParser(&admission); err != nil {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Invalid request body"})
+	}
+
+	// Generate PendaftarID format PMB-YYYY-XXX
+	var count int64
+	config.DB.Model(&models.Admission{}).Count(&count)
+	admission.PendaftarID = fmt.Sprintf("PMB-%d-%03d", time.Now().Year(), count+1)
+	admission.TanggalDaftar = time.Now()
+
+	if err := config.DB.Create(&admission).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal menambahkan pendaftar"})
+	}
+	return c.JSON(fiber.Map{"status": "success", "message": "Pendaftar berhasil ditambahkan", "data": admission})
+}
+
+func UpdateAdmissionStatus(c *fiber.Ctx) error {
+	id := c.Params("id")
+	type UpdateRequest struct {
+		Status string `json:"status"` // Diterima, Verifikasi, Pending, Ditolak
+	}
+	var req UpdateRequest
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Invalid request body"})
+	}
+
+	if err := config.DB.Model(&models.Admission{}).Where("id = ?", id).Update("status", req.Status).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal memperbarui status"})
+	}
+	return c.JSON(fiber.Map{"status": "success", "message": "Status berhasil diperbarui"})
+}
+
+func DeleteAdmission(c *fiber.Ctx) error {
+	id := c.Params("id")
+	if err := config.DB.Delete(&models.Admission{}, id).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal menghapus pendaftar"})
+	}
+	return c.JSON(fiber.Map{"status": "success", "message": "Pendaftar berhasil dihapus"})
+}
+
+// === FACULTY RBAC CONTROLLERS ===
+
+// GetFacultyRoles retrieves all custom roles for the faculty
+func GetFacultyRoles(c *fiber.Ctx) error {
+	var roles []models.FacultyRole
+	if err := config.DB.Find(&roles).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal mengambil data role"})
+	}
+	return c.JSON(fiber.Map{"status": "success", "data": roles})
+}
+
+// CreateFacultyRole creates a new custom role with permissions
+func CreateFacultyRole(c *fiber.Ctx) error {
+	role := new(models.FacultyRole)
+	if err := c.BodyParser(role); err != nil {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Data tidak valid"})
+	}
+
+	if err := config.DB.Create(&role).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal membuat role"})
+	}
+
+	return c.JSON(fiber.Map{"status": "success", "data": role})
+}
+
+// UpdateFacultyRole updates an existing role and its permissions
+func UpdateFacultyRole(c *fiber.Ctx) error {
+	id := c.Params("id")
+	var role models.FacultyRole
+	if err := config.DB.First(&role, id).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Role tidak ditemukan"})
+	}
+
+	if err := c.BodyParser(&role); err != nil {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Data tidak valid"})
+	}
+
+	if err := config.DB.Save(&role).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal memperbarui role"})
+	}
+
+	return c.JSON(fiber.Map{"status": "success", "data": role})
+}
+
+// DeleteFacultyRole removes a custom role
+func DeleteFacultyRole(c *fiber.Ctx) error {
+	id := c.Params("id")
+	if err := config.DB.Delete(&models.FacultyRole{}, id).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal menghapus role"})
+	}
+	return c.JSON(fiber.Map{"status": "success", "message": "Role berhasil dihapus"})
+}
+
+// AssignUserFacultyRole links a user to a specific faculty role
+func AssignUserFacultyRole(c *fiber.Ctx) error {
+	type AssignRequest struct {
+		UserID        uint `json:"userId"`
+		FacultyRoleID uint `json:"facultyRoleId"`
+	}
+	req := new(AssignRequest)
+	if err := c.BodyParser(req); err != nil {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Data tidak valid"})
+	}
+
+	if err := config.DB.Model(&models.User{}).Where("id = ?", req.UserID).Update("faculty_role_id", req.FacultyRoleID).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal assigning role"})
+	}
+
+	return c.JSON(fiber.Map{"status": "success", "message": "Role berhasil ditugaskan"})
+}
+
+// GetFacultyReports generates comprehensive statistics for reporting
+func GetFacultyReports(c *fiber.Ctx) error {
+	var summary struct {
+		Total    int64   `json:"total"`
+		Active   int64   `json:"active"`
+		Graduated int64   `json:"graduated"`
+		AvgGPA   float64 `json:"avgGpa"`
+	}
+
+	// 1. Basic Summary
+	config.DB.Model(&models.Student{}).Count(&summary.Total)
+	config.DB.Model(&models.Student{}).Where("status = ?", "active").Count(&summary.Active)
+	config.DB.Model(&models.Student{}).Where("status = ?", "graduated").Count(&summary.Graduated)
+	config.DB.Model(&models.Student{}).Select("AVG(gpa)").Row().Scan(&summary.AvgGPA)
+
+	// 2. Mahasiswa per Angkatan
+	type AngkatanStat struct {
+		Angkatan string `json:"angkatan"`
+		Aktif    int    `json:"aktif"`
+		Lulus    int    `json:"lulus"`
+		Cuti     int    `json:"cuti"`
+	}
+	var perAngkatan []AngkatanStat
+	config.DB.Raw(`
+		SELECT join_year as angkatan,
+		COUNT(CASE WHEN status = 'active' THEN 1 END) as aktif,
+		COUNT(CASE WHEN status = 'graduated' THEN 1 END) as lulus,
+		COUNT(CASE WHEN status = 'leave' THEN 1 END) as cuti
+		FROM students
+		GROUP BY join_year
+		ORDER BY join_year ASC
+	`).Scan(&perAngkatan)
+
+	// 3. Mahasiswa per Prodi (Detailed for Table)
+	type ProdiStat struct {
+		Name      string  `json:"name"`
+		Value     int     `json:"value"`
+		Active    int     `json:"active"`
+		Leave     int     `json:"leave"`
+		Graduated int     `json:"graduated"`
+		AvgGPA    float64 `json:"avgGpa"`
+	}
+	var perProdi []ProdiStat
+	config.DB.Raw(`
+		SELECT 
+			m.nama_prodi as name, 
+			COUNT(s.id) as value,
+			COUNT(CASE WHEN s.status = 'active' THEN 1 END) as active,
+			COUNT(CASE WHEN s.status = 'leave' THEN 1 END) as leave,
+			COUNT(CASE WHEN s.status = 'graduated' THEN 1 END) as graduated,
+			AVG(s.gpa) as avg_gpa
+		FROM majors m
+		LEFT JOIN students s ON s.major_id = m.id
+		GROUP BY m.nama_prodi
+	`).Scan(&perProdi)
+
+	// 4. IPK Distribution
+	type IPKStat struct {
+		Range  string `json:"range"`
+		Jumlah int    `json:"jumlah"`
+	}
+	var ipkDist []IPKStat
+	config.DB.Raw(`
+		SELECT 
+			CASE 
+				WHEN gpa < 2.0 THEN '< 2.0'
+				WHEN gpa >= 2.0 AND gpa < 2.5 THEN '2.0-2.5'
+				WHEN gpa >= 2.5 AND gpa < 3.0 THEN '2.5-3.0'
+				WHEN gpa >= 3.0 AND gpa < 3.5 THEN '3.0-3.5'
+				ELSE '3.5-4.0'
+			END as range,
+			COUNT(*) as jumlah
+		FROM students
+		GROUP BY range
+		ORDER BY range ASC
+	`).Scan(&ipkDist)
+
+	return c.JSON(fiber.Map{
+		"status": "success",
+		"data": fiber.Map{
+			"summary":     summary,
+			"perAngkatan": perAngkatan,
+			"perProdi":    perProdi,
+			"ipkDist":     ipkDist,
+		},
+	})
+}
+
+// Helper to calculate Grade Label and Point based on Final Score
+// 80-100: A (4.0), 75-79: AB (3.5), 70-74: B (3.0), 
+// 65-69: BC (2.5), 60-64: C (2.0), 50-59: D (1.0), 0-49: E (0.0)
+func calculateGradeLabel(score float64) (string, float64) {
+	if score >= 80 {
+		return "A", 4.0
+	} else if score >= 75 {
+		return "AB", 3.5
+	} else if score >= 70 {
+		return "B", 3.0
+	} else if score >= 65 {
+		return "BC", 2.5
+	} else if score >= 60 {
+		return "C", 2.0
+	} else if score >= 50 {
+		return "D", 1.0
+	}
+	return "E", 0.0
+}
+
+// GetGrades returns student grades for a specific course and year
+// It lists ALL enrolled students, even if they don't have a grade yet.
+func GetGrades(c *fiber.Ctx) error {
+	courseID := c.Query("course_id")
+	tahun := c.Query("tahun")
+	semester := c.Query("semester")
+
+	if courseID == "" {
+		return c.Status(400).JSON(fiber.Map{"error": "course_id is required"})
+	}
+
+	type EnrollmentResult struct {
+		StudentID     uint    `json:"student_id"`
+		NIM           string  `json:"nim"`
+		StudentName   string  `json:"student_name"`
+		Absensi       float64 `json:"absensi"`
+		Tugas         float64 `json:"tugas"`
+		UTS           float64 `json:"uts"`
+		UAS           float64 `json:"uas"`
+		NilaiAkhir    float64 `json:"nilai_akhir"`
+		GradeLabel    string  `json:"grade_label"`
+		Point         float64 `json:"point"`
+	}
+
+	var results []EnrollmentResult
+
+	// Join Students -> KRSValidation -> KRSItems -> (Left Join) Grades
+	config.DB.Raw(`
+		SELECT 
+			s.id as student_id,
+			s.nim,
+			s.name as student_name,
+			COALESCE(g.absensi, 0) as absensi,
+			COALESCE(g.tugas, 0) as tugas,
+			COALESCE(g.uts, 0) as uts,
+			COALESCE(g.uas, 0) as uas,
+			COALESCE(g.nilai_akhir, 0) as nilai_akhir,
+			COALESCE(g.grade_label, '-') as grade_label,
+			COALESCE(g.point, 0) as point
+		FROM students s
+		JOIN krs_validation kv ON kv.student_id = s.id
+		JOIN krs_items ki ON ki.krs_submission_id = kv.id
+		LEFT JOIN grades g ON g.student_id = s.id AND g.matakuliah_id = ki.course_id
+		WHERE ki.course_id = ? AND kv.tahun_akademik = ? AND kv.semester_tipe = ?
+	`, courseID, tahun, semester).Scan(&results)
+
+	return c.JSON(fiber.Map{"status": "success", "data": results})
+}
+
+// InputGrade creates or updates a student's grade
+func InputGrade(c *fiber.Ctx) error {
+	var input struct {
+		StudentID     uint    `json:"student_id"`
+		CourseID      uint    `json:"course_id"`
+		TahunAkademik string  `json:"tahun_akademik"`
+		Semester      int     `json:"semester"`
+		Absensi       float64 `json:"absensi"`
+		Tugas         float64 `json:"tugas"`
+		UTS           float64 `json:"uts"`
+		UAS           float64 `json:"uas"`
+	}
+
+	if err := c.BodyParser(&input); err != nil {
+		return c.Status(400).JSON(fiber.Map{"error": "Invalid input"})
+	}
+
+	// Calculate Final Score (Standard Siakad: 10% Absen, 20% Tugas, 30% UTS, 40% UAS)
+	finalScore := (input.Absensi * 0.1) + (input.Tugas * 0.2) + (input.UTS * 0.3) + (input.UAS * 0.4)
+	label, point := calculateGradeLabel(finalScore)
+
+	var grade models.Grade
+	result := config.DB.Where("student_id = ? AND course_id = ? AND tahun_akademik = ?", 
+		input.StudentID, input.CourseID, input.TahunAkademik).First(&grade)
+
+	grade.StudentID = input.StudentID
+	grade.CourseID = input.CourseID
+	grade.TahunAkademik = input.TahunAkademik
+	grade.Semester = input.Semester
+	grade.Absensi = input.Absensi
+	grade.Tugas = input.Tugas
+	grade.UTS = input.UTS
+	grade.UAS = input.UAS
+	grade.NilaiAkhir = finalScore
+	grade.GradeLabel = label
+	grade.Point = point
+
+	if result.RowsAffected > 0 {
+		if err := config.DB.Save(&grade).Error; err != nil {
+			return c.Status(500).JSON(fiber.Map{"error": "Gagal update nilai"})
+		}
+	} else {
+		if err := config.DB.Create(&grade).Error; err != nil {
+			return c.Status(500).JSON(fiber.Map{"error": "Gagal simpan nilai baru"})
+		}
+	}
+
+	return c.JSON(fiber.Map{
+		"status": "success", 
+		"message": "Nilai berhasil disimpan", 
+		"data": grade,
 	})
 }
