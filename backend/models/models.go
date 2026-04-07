@@ -30,9 +30,12 @@ type Faculty struct {
 type Major struct {
 	ID          uint   `gorm:"primaryKey" json:"id"`
 	Name        string `gorm:"not null" json:"name"`
+	Code        string `gorm:"unique;not null" json:"code"`
 	FacultyID   uint   `json:"facultyId"`
 	Faculty     Faculty `gorm:"foreignKey:FacultyID" json:"faculty"`
 	DegreeLevel string `json:"degreeLevel"`
+	Akreditasi  string `json:"akreditasi"`
+	Kapasitas   int    `json:"kapasitas"`
 }
 
 // Lecturer represents a faculty member
@@ -49,17 +52,19 @@ type Lecturer struct {
 
 // Student represents an enrolled person
 type Student struct {
-	ID              uint   `gorm:"primaryKey" json:"id"`
-	UserID          uint   `json:"userId"`
-	User            User   `gorm:"foreignKey:UserID" json:"user"`
-	NIM             string `gorm:"unique;not null" json:"nim"`
-	Name            string `gorm:"not null" json:"name"`
-	MajorID         uint   `json:"majorId"`
-	Major           Major `gorm:"foreignKey:MajorID" json:"major"`
-	DPALecturerID   *uint `json:"dpaLecturerId"`
+	ID              uint    `gorm:"primaryKey" json:"id"`
+	UserID          uint    `json:"userId"`
+	User            User    `gorm:"foreignKey:UserID" json:"user"`
+	NIM             string  `gorm:"unique;not null" json:"nim"`
+	Name            string  `gorm:"not null" json:"name"`
+	MajorID         uint    `json:"majorId"`
+	Major           Major   `gorm:"foreignKey:MajorID" json:"major"`
+	DPALecturerID   *uint   `json:"dpaLecturerId"`
 	DPALecturer     *Lecturer `gorm:"foreignKey:DPALecturerID" json:"dpaLecturer"`
-	CurrentSemester int       `gorm:"default:1" json:"currentSemester"`
-	Status          string    `gorm:"default:'active'" json:"status"`
+	CurrentSemester int     `gorm:"default:1" json:"currentSemester"`
+	GPA             float64 `gorm:"column:gpa;default:0" json:"gpa"`
+	CreditLimit     int     `gorm:"column:credit_limit;default:24" json:"creditLimit"`
+	Status          string  `gorm:"default:'active'" json:"status"`
 }
 
 // AuditLog represents every sensitive action performed by admins
