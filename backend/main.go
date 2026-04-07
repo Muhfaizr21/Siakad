@@ -51,8 +51,8 @@ func main() {
 		return c.JSON(fiber.Map{"status": "success", "message": "Backend API is running and Database is fully connected!"})
 	})
 
-	// Setup Faculty Admin Routes (Our module)
-	routes.SetupFacultyRoutes(app)
+	// Setup Ormawa Routes
+	routes.SetupOrmawaRoutes(app)
 
 	// Start server
 	port := os.Getenv("PORT")
