@@ -366,7 +366,7 @@ type HasilKesehatan struct {
 
 // --- MODUL STUDENT VOICE ---
 type TiketAspirasi struct {
-	ID            string               `gorm:"primaryKey;type:uuid;default:gen_random_uuid()" json:"id"`
+	ID            string               `gorm:"primaryKey;default:gen_random_uuid()" json:"id"`
 	NomorTiket    string               `gorm:"uniqueIndex;not null" json:"nomor_tiket"` // SV-YYYYMMDD-XXXX
 	StudentID     uint                 `json:"student_id"`
 	Student       Student              `gorm:"foreignKey:StudentID" json:"student,omitempty"`
@@ -385,8 +385,8 @@ type TiketAspirasi struct {
 }
 
 type TiketTimelineEvent struct {
-	ID           string    `gorm:"primaryKey;type:uuid;default:gen_random_uuid()" json:"id"`
-	TiketID      string    `gorm:"type:uuid;not null;index" json:"tiket_id"`
+	ID           string    `gorm:"primaryKey;default:gen_random_uuid()" json:"id"`
+	TiketID      string    `gorm:"not null;index" json:"tiket_id"`
 	TipeEvent    string    `json:"tipe_event"` // dikirim | diterima_fakultas | respons_fakultas | diteruskan_universitas | respons_universitas | selesai | dibatalkan
 	Level        string    `json:"level"`      // sistem | fakultas | universitas
 	IsiRespons   string    `gorm:"type:text" json:"isi_respons"`

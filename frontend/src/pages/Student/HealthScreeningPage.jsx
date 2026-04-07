@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   Stethoscope,
   ChevronRight,
@@ -41,6 +41,7 @@ import {
 import { Skeleton } from '../../components/ui/Skeleton';
 import toast from 'react-hot-toast';
 import { NavLink } from 'react-router-dom';
+import HealthCharacter from '../../components/health/HealthCharacter';
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 const getBMICategory = (bmi) => {
@@ -58,6 +59,14 @@ const getBPStatus = (s, d) => {
   if (sv >= 140 || dv >= 90)                return { label: 'Tinggi',     color: 'text-red-600',     bg: 'bg-red-50',      bar: 'bg-red-500'     };
   if (sv >= 120 || dv >= 80)                return { label: 'Perhatian',  color: 'text-amber-600',   bg: 'bg-amber-50',    bar: 'bg-amber-400'   };
   return                                     { label: 'Normal',    color: 'text-emerald-600', bg: 'bg-emerald-50',  bar: 'bg-emerald-500' };
+};
+
+const getStatusTheme = (status) => {
+  if (!status) return { text: 'text-neutral-600', iconBg: 'bg-neutral-500 shadow-neutral-500/20' };
+  const s = status.toLowerCase();
+  if (s === 'sehat') return { text: 'text-emerald-600', iconBg: 'bg-emerald-500 shadow-emerald-500/20' };
+  if (s.includes('tindak_lanjut') || s.includes('bahaya')) return { text: 'text-rose-600', iconBg: 'bg-rose-500 shadow-rose-500/20' };
+  return { text: 'text-amber-600', iconBg: 'bg-amber-500 shadow-amber-500/20' };
 };
 
 const fmt = (dateStr, opts) => new Intl.DateTimeFormat('id-ID', opts).format(new Date(dateStr));
@@ -87,6 +96,7 @@ export default function HealthScreeningPage() {
 
   const bmiCat = getBMICategory(terbaru?.bmi);
   const bpStat = getBPStatus(terbaru?.sistolik, terbaru?.diastolik);
+  const statusTheme = getStatusTheme(terbaru?.status_kesehatan);
 
   const handleInputSubmit = (formData) => {
     mandiriMutation.mutate(formData, {
@@ -97,7 +107,7 @@ export default function HealthScreeningPage() {
 
   return (
     <div className="min-h-screen bg-[#f5f5f3] text-[#171717] font-body">
-      <div className="max-w-6xl mx-auto px-4 py-6 md:px-6 lg:px-8 lg:py-8">
+      <div className="max-w-7xl mx-auto px-4 py-6 md:px-6 lg:px-8 lg:py-8">
 
         {/* Breadcrumb */}
         <nav className="flex items-center gap-1.5 text-sm text-neutral-400 mb-6">
@@ -133,43 +143,63 @@ export default function HealthScreeningPage() {
 
             {/* Main Stats */}
             <div className="lg:col-span-8 bg-white rounded-2xl border border-neutral-100 shadow-sm overflow-hidden">
-              <div className="px-5 py-3.5 border-b border-neutral-50 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className={`w-2 h-2 rounded-full ${terbaru.status_kesehatan === 'sehat' ? 'bg-emerald-500' : 'bg-blue-500'} animate-pulse`} />
-                  <span className="text-[11px] font-semibold text-neutral-400 uppercase tracking-wider">
-                    Kondisi Terakhir · {fmt(terbaru.tanggal_periksa, { day: 'numeric', month: 'long', year: 'numeric' })}
-                  </span>
-                </div>
-                <ShieldCheck size={14} className="text-emerald-400 opacity-60" />
-              </div>
-
-              <div className="p-5 grid grid-cols-2 md:grid-cols-4 gap-5">
-                <StatItem label="Tinggi"    value={terbaru.tinggi_badan}                        unit="cm"   icon={<TrendingUp size={14} />} />
-                <StatItem label="Berat"     value={terbaru.berat_badan}                         unit="kg"   icon={<Scale size={14} />} />
-                <StatItem label="Tensi"     value={`${terbaru.sistolik}/${terbaru.diastolik}`}  unit="mmHg" icon={<Activity size={14} />} />
-                <StatItem label="Gol. Darah" value={terbaru.golongan_darah || '–'}              unit="Tipe" icon={<Droplets size={14} className="text-red-400" />} />
-              </div>
-
-              <div className="px-5 py-4 bg-neutral-50 border-t border-neutral-100 flex items-center justify-between">
+              <div className="px-5 py-4 border-b border-neutral-100 flex items-center justify-between bg-white bg-opacity-50">
                 <div className="flex items-center gap-3">
-                  <div className={`p-2 rounded-xl bg-white border border-neutral-100 shadow-sm ${bpStat.color}`}>
-                    <Heart size={16} fill="currentColor" strokeWidth={0} />
+                  <div className={`flex items-center justify-center p-2 rounded-xl text-white shadow-md ${statusTheme.iconBg}`}>
+                    <Clock size={16} />
                   </div>
                   <div>
-                    <p className="text-[10px] font-semibold text-neutral-400 uppercase tracking-wider">Status Umum</p>
-                    <p className={`text-sm font-bold capitalize ${terbaru.status_kesehatan === 'sehat' ? 'text-emerald-600' : 'text-blue-600'}`}>
-                      {terbaru.status_kesehatan.replace('_', ' ')}
+                    <h3 className="text-sm font-bold text-[#171717] tracking-tight">Kondisi Terakhir</h3>
+                    <p className="text-[11px] font-medium text-neutral-400 mt-0.5">
+                      Diperbarui {fmt(terbaru.tanggal_periksa, { day: 'numeric', month: 'long', year: 'numeric' })}
                     </p>
                   </div>
                 </div>
-                <div className="hidden sm:flex flex-col items-end gap-1">
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-[10px] font-semibold text-neutral-400 uppercase">Tekanan Darah:</span>
-                    <span className={`text-[10px] font-bold uppercase ${bpStat.color}`}>{bpStat.label}</span>
+                <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 border border-emerald-100 text-emerald-600 shadow-sm">
+                  <ShieldCheck size={14} />
+                  <span className="text-[10px] font-bold uppercase tracking-wider">Tervalidasi BKU</span>
+                </div>
+              </div>
+
+              <div className="p-5 grid grid-cols-2 md:grid-cols-4 gap-4 bg-neutral-50/50">
+                <StatItem label="Tinggi" value={terbaru.tinggi_badan} unit="cm" icon={<TrendingUp size={16} />} colorClass="text-blue-600" bgClass="bg-blue-100" />
+                <StatItem label="Berat" value={terbaru.berat_badan} unit="kg" icon={<Scale size={16} />} colorClass="text-emerald-600" bgClass="bg-emerald-100" />
+                <StatItem label="Tensi" value={`${terbaru.sistolik}/${terbaru.diastolik}`} unit="mmHg" icon={<Activity size={16} />} colorClass="text-rose-600" bgClass="bg-rose-100" />
+                <StatItem label="Gol. Darah" value={terbaru.golongan_darah || '–'} unit="Tipe" icon={<Droplets size={16} />} colorClass="text-red-600" bgClass="bg-red-100" />
+              </div>
+
+              <div className="p-6 bg-white border-t border-neutral-100 flex flex-col sm:flex-row items-center justify-between gap-6 relative overflow-hidden">
+                <div className="flex items-center gap-5 relative z-10 w-full">
+                  <HealthCharacter 
+                    bmi={terbaru.bmi} 
+                    sistolik={terbaru.sistolik} 
+                    diastolik={terbaru.diastolik} 
+                    statusKesehatan={terbaru.status_kesehatan} 
+                    className="w-20 h-20 sm:w-24 sm:h-24 shrink-0 transition-transform hover:scale-105"
+                  />
+                  <div className="flex-1">
+                    <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest mb-1.5">Status Umum</p>
+                    <p className={`text-xl sm:text-2xl font-black capitalize tracking-tight ${statusTheme.text}`}>
+                      {terbaru.status_kesehatan?.replace(/_/g, ' ')}
+                    </p>
+                    <p className={`text-xs font-medium mt-1 max-w-[280px] leading-relaxed hidden sm:block ${terbaru.status_kesehatan === 'sehat' ? 'text-neutral-500' : statusTheme.text}`}>
+                      {terbaru.status_kesehatan === 'sehat' 
+                        ? 'Indikator tubuh prima! Pertahankan pola hidup sehatmu.' 
+                        : 'Ada indikator yang perlu perhatian. Jangan ragu konsultasi klinis.'}
+                    </p>
                   </div>
-                  <div className="flex gap-1">
+                </div>
+
+                <div className="flex flex-col sm:items-end gap-2 w-full sm:w-auto relative z-10 shrink-0">
+                  <div className="flex items-center justify-between sm:justify-end gap-3 w-full">
+                    <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider">Tensi Darah</span>
+                    <span className={`text-[11px] font-black uppercase px-2.5 py-1 rounded-lg ${bpStat.bg} ${bpStat.color} shadow-sm border border-black/5`}>
+                      {bpStat.label}
+                    </span>
+                  </div>
+                  <div className="flex gap-1 w-full sm:w-32 mt-1">
                     {[0, 1, 2].map(i => (
-                      <div key={i} className={`w-8 h-1.5 rounded-full ${i === 0 ? bpStat.bar : 'bg-neutral-200'}`} />
+                      <div key={i} className={`h-1.5 flex-1 rounded-full ${i === 0 ? bpStat.bar : 'bg-neutral-100'}`} />
                     ))}
                   </div>
                 </div>
@@ -506,15 +536,20 @@ export default function HealthScreeningPage() {
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 
-function StatItem({ label, value, unit, icon }) {
+function StatItem({ label, value, unit, icon, colorClass = "text-[#00236F]", bgClass = "bg-[#00236F]/5" }) {
   return (
-    <div className="space-y-2 group/stat">
-      <div className="flex items-center gap-1.5 text-[10px] font-semibold text-neutral-400 uppercase tracking-wider group-hover/stat:text-[#00236F] transition-colors">
-        {icon} {label}
+    <div className="relative overflow-hidden bg-white border border-neutral-100 rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow group/stat flex flex-col justify-between">
+      <div className="flex items-center justify-between mb-3">
+        <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider group-hover/stat:text-neutral-600 transition-colors">
+          {label}
+        </span>
+        <div className={`p-1.5 rounded-lg ${bgClass} ${colorClass}`}>
+          {icon}
+        </div>
       </div>
       <div className="flex items-baseline gap-1">
         <span className="text-2xl font-black text-[#171717] tracking-tight">{value}</span>
-        <span className="text-[10px] font-semibold text-neutral-300 uppercase">{unit}</span>
+        <span className="text-[10px] font-bold text-neutral-400 uppercase">{unit}</span>
       </div>
     </div>
   );

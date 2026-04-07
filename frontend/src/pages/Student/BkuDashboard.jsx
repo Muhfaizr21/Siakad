@@ -41,7 +41,7 @@ export default function BkuDashboard() {
 
   return (
     <div className="min-h-screen bg-[#f8f8f6] font-body text-[#171717]">
-      <div className="max-w-5xl mx-auto px-4 py-6 md:px-6 md:py-8 lg:px-8 lg:py-10">
+      <div className="max-w-7xl mx-auto px-4 py-6 md:px-6 md:py-8 lg:px-8 lg:py-10">
         <div className="flex flex-col gap-5">
 
           {/* ── ZONA URGENT (hal mendesak di atas) ── */}

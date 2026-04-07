@@ -113,7 +113,7 @@ export default function OrganisasiPage() {
   return (
     <div className="min-h-screen bg-[#fafafa] text-[#171717] font-body px-4 py-5 md:px-6 md:py-6 lg:px-8 lg:py-8">
 
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-7xl mx-auto">
          {/* Breadcrumb */}
          <div className="flex items-center gap-2 text-sm font-medium text-[#a3a3a3] mb-6">
            <NavLink to="/student/dashboard" className="hover:text-[#00236F] cursor-pointer transition-colors">Dashboard</NavLink>

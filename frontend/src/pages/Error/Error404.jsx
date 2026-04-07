@@ -15,7 +15,7 @@ export default function Error404() {
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ duration: 0.5 }}
-            className="text-[120px] md:text-[160px] font-black text-[#f97316]/10 leading-none select-none font-headline"
+            className="text-[120px] md:text-[160px] font-black text-[#00236F]/10 leading-none select-none font-headline"
           >
             404
           </motion.div>
@@ -29,18 +29,18 @@ export default function Error404() {
             <div className="relative w-32 h-32 flex items-center justify-center">
               {/* Glassmorphism Card */}
               <div className="w-24 h-24 bg-white/80 backdrop-blur-md rounded-[2rem] shadow-2xl flex items-center justify-center border border-white/50 rotate-12 relative overflow-hidden group">
-                 <div className="absolute -top-2 -right-2 w-12 h-12 bg-[#f97316]/10 rounded-full blur-xl"></div>
-                 <Search size={44} className="text-[#f97316]" strokeWidth={2} />
+                 <div className="absolute -top-2 -right-2 w-12 h-12 bg-[#00236F]/10 rounded-full blur-xl"></div>
+                 <Search size={44} className="text-[#00236F]" strokeWidth={2} />
                  
                  {/* Floating Accent */}
-                 <div className="absolute -bottom-1 -left-1 w-8 h-8 bg-[#f97316] rounded-xl shadow-lg flex items-center justify-center text-white rotate-[-12deg]">
+                 <div className="absolute -bottom-1 -left-1 w-8 h-8 bg-[#00236F] rounded-xl shadow-lg flex items-center justify-center text-white rotate-[-12deg]">
                    <Search size={14} strokeWidth={3} />
                  </div>
               </div>
 
               {/* Decorative particles */}
-              <div className="absolute top-0 left-0 w-2 h-2 bg-[#f97316] rounded-full animate-ping opacity-20"></div>
-              <div className="absolute bottom-4 right-2 w-3 h-3 bg-[#f97316]/20 rounded-full animate-bounce"></div>
+              <div className="absolute top-0 left-0 w-2 h-2 bg-[#00236F] rounded-full animate-ping opacity-20"></div>
+              <div className="absolute bottom-4 right-2 w-3 h-3 bg-[#00236F]/20 rounded-full animate-bounce"></div>
             </div>
           </motion.div>
         </div>
@@ -62,7 +62,7 @@ export default function Error404() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <button
                onClick={() => navigate('/student/dashboard')}
-               className="px-8 py-4 bg-[#f97316] text-white rounded-3xl font-bold text-sm shadow-xl hover:bg-[#ea580c] transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-2"
+               className="px-8 py-4 bg-[#00236F] text-white rounded-3xl font-bold text-sm shadow-xl hover:bg-[#0B4FAE] transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-2"
             >
               <ChevronLeft size={18} />
               Kembali ke Dashboard

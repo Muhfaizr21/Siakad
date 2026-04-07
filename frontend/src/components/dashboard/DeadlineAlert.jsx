@@ -25,7 +25,7 @@ export default function DeadlineAlert({ deadlines }) {
           Pengingat Jatuh Tempo
         </h2>
         <NavLink 
-            to="/student/dashboard"
+            to="/student/notifikasi"
             className="text-[11px] font-bold text-[#00236F] hover:underline flex items-center gap-1 group/btn"
         >
             Lihat Semua
@@ -44,7 +44,7 @@ export default function DeadlineAlert({ deadlines }) {
           return (
             <NavLink 
                 key={i} 
-                to={item.link} 
+                to={item.link || '#'} 
                 className="bg-white/90 backdrop-blur-sm p-3 rounded-xl border border-[#dbe7ff] flex items-center justify-between hover:shadow-md hover:border-[#00236F]/30 transition-all group/card"
             >
               <div className="flex items-center gap-2.5 min-w-0">

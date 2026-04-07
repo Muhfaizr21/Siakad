@@ -16,12 +16,19 @@ func seedStudentVoiceData(db *gorm.DB) {
 		return
 	}
 
+	// Get first available student to associate seed data with
+	var student models.Student
+	if err := db.Preload("Major").First(&student).Error; err != nil {
+		log.Println("==> Seeder: No student found, skipping Student Voice seeds.")
+		return
+	}
+
 	now := time.Now()
 
 	t1 := models.TiketAspirasi{
 		NomorTiket:   "SV-20260401-0001",
-		StudentID:    1,
-		FakultasID:   1,
+		StudentID:    student.ID,
+		FakultasID:   student.Major.FacultyID,
 		Kategori:     "Fasilitas",
 		Judul:        "AC Mati di Ruang 301",
 		Isi:          "Mohon bantuan perbaikan AC di ruang 301 Gedung C, kondisinya mati total sehingga kuliah terasa sangat panas.",
@@ -36,7 +43,7 @@ func seedStudentVoiceData(db *gorm.DB) {
 		TiketID:    t1.ID,
 		TipeEvent:  "dikirim",
 		Level:      "sistem",
-		IsiRespons: "Aspirasi berhasil dikirim ke Admin Fakultas Farmasi.",
+		IsiRespons: "Aspirasi berhasil dikirim ke Admin Fakultas.",
 		CreatedAt:  t1.CreatedAt,
 	})
 	db.Create(&models.TiketTimelineEvent{
@@ -56,8 +63,8 @@ func seedStudentVoiceData(db *gorm.DB) {
 
 	t2 := models.TiketAspirasi{
 		NomorTiket:   "SV-20260403-0001",
-		StudentID:    1,
-		FakultasID:   1,
+		StudentID:    student.ID,
+		FakultasID:   student.Major.FacultyID,
 		Kategori:     "Akademik",
 		Judul:        "Keterlambatan Input Nilai Farmakologi",
 		Isi:          "Sampai saat ini nilai mata kuliah Farmakologi belum muncul di KHS, mohon bantuan untuk kroscek ke dosen pengampu.",
@@ -72,7 +79,7 @@ func seedStudentVoiceData(db *gorm.DB) {
 		TiketID:    t2.ID,
 		TipeEvent:  "dikirim",
 		Level:      "sistem",
-		IsiRespons: "Aspirasi berhasil dikirim secara anonim ke Admin Fakultas Farmasi.",
+		IsiRespons: "Aspirasi berhasil dikirim secara anonim ke Admin Fakultas.",
 		CreatedAt:  t2.CreatedAt,
 	})
 	db.Create(&models.TiketTimelineEvent{
@@ -83,7 +90,7 @@ func seedStudentVoiceData(db *gorm.DB) {
 		CreatedAt:  t2.CreatedAt.Add(time.Hour * 4),
 	})
 
-	log.Println("==> Seeder: Setup Student Voice Data successfully.")
+	log.Println("==> Seeder: Setup Student Voice Data successfully for student:", student.Name)
 }
 
 func seedOrganisasiData(db *gorm.DB) {

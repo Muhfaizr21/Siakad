@@ -1,6 +1,7 @@
 package voice
 
 import (
+	"errors"
 	"fmt"
 	"math"
 	"path/filepath"
@@ -202,7 +203,11 @@ func GetDetail(c *fiber.Ctx) error {
 	if err := config.DB.Preload("Timeline", func(db *gorm.DB) *gorm.DB {
 		return db.Order("created_at DESC")
 	}).First(&tiket, "id = ? AND student_id = ?", id, student.ID).Error; err != nil {
-		return c.Status(404).JSON(fiber.Map{"success": false, "message": "Tiket tidak ditemukan"})
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return c.Status(404).JSON(fiber.Map{"success": false, "message": "Tiket tidak ditemukan"})
+		}
+		// Return 500 for other database errors (like missing table)
+		return c.Status(500).JSON(fiber.Map{"success": false, "message": "Terjadi kesalahan internal data: " + err.Error()})
 	}
 
 	return c.JSON(fiber.Map{

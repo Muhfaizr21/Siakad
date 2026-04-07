@@ -24,7 +24,7 @@ export default function OfflinePage() {
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ duration: 0.5 }}
-            className="text-[120px] md:text-[160px] font-black text-[#f97316]/10 leading-none select-none font-headline uppercase"
+            className="text-[120px] md:text-[160px] font-black text-[#00236F]/10 leading-none select-none font-headline uppercase"
           >
             OFF
           </motion.div>
@@ -35,9 +35,9 @@ export default function OfflinePage() {
             transition={{ delay: 0.2, duration: 0.5 }}
             className="absolute inset-0 flex items-center justify-center pt-8"
           >
-            <div className="w-24 h-24 bg-white rounded-[40px] shadow-2xl flex items-center justify-center border border-[#ffedd5] relative overflow-hidden ring-4 ring-[#f97316]/5">
-               <div className="absolute top-0 right-0 w-8 h-8 bg-[#f97316]/5 rounded-bl-full"></div>
-               <WifiOff size={48} className="text-[#f97316]" strokeWidth={1.5} />
+            <div className="w-24 h-24 bg-white rounded-[40px] shadow-2xl flex items-center justify-center border border-[#D5E2FF] relative overflow-hidden ring-4 ring-[#00236F]/5">
+               <div className="absolute top-0 right-0 w-8 h-8 bg-[#00236F]/5 rounded-bl-full"></div>
+               <WifiOff size={48} className="text-[#00236F]" strokeWidth={1.5} />
                <div className="absolute -bottom-2 -left-2 w-10 h-10 bg-[#ef4444] rounded-full flex items-center justify-center text-white">
                  <CloudOff size={16} strokeWidth={2.5} />
                </div>
@@ -62,7 +62,7 @@ export default function OfflinePage() {
           <div className="flex justify-center">
             <button
                onClick={handleRetry}
-               className="px-8 py-4 bg-[#f97316] text-white rounded-3xl font-bold text-sm shadow-xl hover:bg-[#ea580c] transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-3"
+               className="px-8 py-4 bg-[#00236F] text-white rounded-3xl font-bold text-sm shadow-xl hover:bg-[#0B4FAE] transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-3"
             >
               <RefreshCcw size={18} />
               Coba Lagi

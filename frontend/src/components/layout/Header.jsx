@@ -12,6 +12,7 @@ export default function Header() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [imageError, setImageError] = useState(false);
   
   const navigate = useNavigate();
   const location = useLocation();
@@ -64,7 +65,7 @@ export default function Header() {
     <header className="h-16 bg-white border-b border-[#e5e5e5] flex items-center justify-between px-6 sticky top-0 z-50 shrink-0">
       
       <div className="flex items-center gap-4">
-        <button className="lg:hidden text-[#525252] hover:text-[#f97316] transition">
+        <button className="lg:hidden text-[#525252] hover:text-[#00236F] transition">
           <Menu size={20} />
         </button>
         
@@ -80,7 +81,7 @@ export default function Header() {
         {/* Search */}
         <div className="hidden md:block relative px-2" ref={searchRef}>
           <div className="relative flex items-center">
-            <Search size={16} className={`absolute left-3 transition-colors ${isSearchFocused ? 'text-[#f97316]' : 'text-[#a3a3a3]'}`} />
+            <Search size={16} className={`absolute left-3 transition-colors ${isSearchFocused ? 'text-[#00236F]' : 'text-[#a3a3a3]'}`} />
             <input 
               type="text" 
               placeholder="Cari layanan..." 
@@ -90,7 +91,7 @@ export default function Header() {
                 setIsSearchFocused(true);
               }}
               onFocus={() => setIsSearchFocused(true)}
-              className="pl-9 pr-4 py-1.5 w-64 rounded-full bg-[#fafafa] border border-[#e5e5e5] text-sm focus:outline-none focus:border-[#f97316] focus:ring-4 focus:ring-[#f97316]/5 transition-all"
+              className="pl-9 pr-4 py-1.5 w-64 rounded-full bg-[#fafafa] border border-[#e5e5e5] text-sm focus:outline-none focus:border-[#00236F] focus:ring-4 focus:ring-[#00236F]/5 transition-all"
             />
           </div>
 
@@ -114,9 +115,9 @@ export default function Header() {
                           setSearchQuery('');
                           setIsSearchFocused(false);
                         }}
-                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-[#fff7ed] hover:text-[#f97316] text-sm font-bold transition-all group"
+                        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-[#EAF1FF] hover:text-[#00236F] text-sm font-bold transition-all group"
                       >
-                        <div className="w-8 h-8 rounded-lg bg-[#fafafa] group-hover:bg-white flex items-center justify-center border border-[#e5e5e5] group-hover:border-[#fed7aa] transition-colors">
+                        <div className="w-8 h-8 rounded-lg bg-[#fafafa] group-hover:bg-white flex items-center justify-center border border-[#e5e5e5] group-hover:border-[#C9D8FF] transition-colors">
                           <item.icon size={16} />
                         </div>
                         {item.name}
@@ -145,9 +146,9 @@ export default function Header() {
         <div className="relative" ref={profileRef}>
           <button 
             onClick={() => setIsProfileOpen(!isProfileOpen)}
-            className={`flex items-center gap-3 p-1 rounded-full transition-all hover:bg-[#fafafa] ${isProfileOpen ? 'ring-4 ring-[#f97316]/10' : ''}`}
+            className={`flex items-center gap-3 p-1 rounded-full transition-all hover:bg-[#fafafa] ${isProfileOpen ? 'ring-4 ring-[#00236F]/10' : ''}`}
           >
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#fed7aa] to-[#f97316] text-white flex items-center justify-center font-black text-xs shadow-sm border border-white">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#C9D8FF] to-[#00236F] text-white flex items-center justify-center font-black text-xs shadow-sm border border-white">
               {mahasiswa.nama.charAt(0).toUpperCase()}
             </div>
           </button>
@@ -162,13 +163,20 @@ export default function Header() {
                 className="absolute top-full right-0 mt-3 w-72 bg-white rounded-3xl shadow-2xl border border-[#e5e5e5] overflow-hidden z-[60]"
               >
                 {/* User Info Section */}
-                <div className="bg-gradient-to-br from-[#171717] to-[#333] p-6 text-white">
+                <div className="bg-gradient-to-br from-[#0B4FAE] to-[#00236F] p-6 text-white">
                   <div className="flex items-center gap-4">
                     <div className="w-14 h-14 rounded-2xl bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/20 shadow-xl overflow-hidden shrink-0">
-                      {mahasiswa.foto_url ? (
-                        <img src={mahasiswa.foto_url} alt="Profile" className="w-full h-full object-cover" />
+                      {mahasiswa.foto_url && !imageError ? (
+                        <img 
+                          src={mahasiswa.foto_url} 
+                          alt="Profile" 
+                          className="w-full h-full object-cover" 
+                          onError={() => setImageError(true)}
+                        />
                       ) : (
-                        <User size={24} className="text-[#f97316]" />
+                        <div className="w-full h-full bg-gradient-to-br from-[#C9D8FF] to-[#00236F] text-white flex items-center justify-center font-black text-2xl">
+                          {mahasiswa.nama.charAt(0).toUpperCase()}
+                        </div>
                       )}
                     </div>
                     <div className="min-w-0">
@@ -188,7 +196,7 @@ export default function Header() {
                     <NavLink 
                       to="/student/profile" 
                       onClick={() => setIsProfileOpen(false)}
-                      className="flex items-center gap-3 px-4 py-3 rounded-2xl hover:bg-white hover:shadow-md text-sm font-bold text-[#525252] hover:text-[#f97316] transition-all group"
+                      className="flex items-center gap-3 px-4 py-3 rounded-2xl hover:bg-white hover:shadow-md text-sm font-bold text-[#525252] hover:text-[#00236F] transition-all group"
                     >
                       <User size={18} className="group-hover:scale-110 transition-transform" />
                       Data Diri
@@ -196,7 +204,7 @@ export default function Header() {
                     <NavLink 
                       to="/student/profile?tab=preferensi" 
                       onClick={() => setIsProfileOpen(false)}
-                      className="flex items-center gap-3 px-4 py-3 rounded-2xl hover:bg-white hover:shadow-md text-sm font-bold text-[#525252] hover:text-[#f97316] transition-all group"
+                      className="flex items-center gap-3 px-4 py-3 rounded-2xl hover:bg-white hover:shadow-md text-sm font-bold text-[#525252] hover:text-[#00236F] transition-all group"
                     >
                       <Settings size={18} className="group-hover:scale-110 transition-transform" />
                       Pengaturan

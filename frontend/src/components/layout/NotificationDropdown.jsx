@@ -20,12 +20,12 @@ import { id } from 'date-fns/locale';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const CATEGORY_ICONS = {
-  achievement: <Trophy size={16} className="text-[#f97316]" />,
-  beasiswa: <GraduationCap size={16} className="text-[#3b82f6]" />,
-  konseling: <HeartHandshake size={16} className="text-[#10b981]" />,
-  student_voice: <MessageSquare size={16} className="text-[#8b5cf6]" />,
-  kencana: <BookOpen size={16} className="text-[#f59e0b]" />,
-  sistem: <Bell size={16} className="text-[#64748b]" />,
+  achievement: <Trophy size={16} className="text-[#00236F]" />,
+  beasiswa: <GraduationCap size={16} className="text-[#00236F]" />,
+  konseling: <HeartHandshake size={16} className="text-[#00236F]" />,
+  student_voice: <MessageSquare size={16} className="text-[#00236F]" />,
+  kencana: <BookOpen size={16} className="text-[#00236F]" />,
+  sistem: <Bell size={16} className="text-[#00236F]" />,
 };
 
 export default function NotificationDropdown() {
@@ -102,7 +102,7 @@ export default function NotificationDropdown() {
       <button 
         onClick={() => setIsOpen(!isOpen)}
         className={`relative w-9 h-9 flex items-center justify-center rounded-full transition-all duration-300 ${
-          isOpen ? 'bg-[#fff7ed] text-[#f97316]' : 'hover:bg-[#fafafa] text-[#525252]'
+          isOpen ? 'bg-[#EAF1FF] text-[#00236F]' : 'hover:bg-[#fafafa] text-[#525252]'
         }`}
       >
         <Bell size={18} className={unreadCount > 0 ? 'animate-[ring_2s_ease-in-out_infinite]' : ''} />
@@ -128,14 +128,14 @@ export default function NotificationDropdown() {
               <div className="flex items-center gap-2">
                 <h3 className="text-base font-bold text-[#171717]">Notifikasi</h3>
                 {unreadCount > 0 && (
-                   <span className="bg-[#fff7ed] text-[#f97316] text-[10px] font-black px-2 py-0.5 rounded-lg border border-[#fed7aa]">
+                   <span className="bg-[#EAF1FF] text-[#00236F] text-[10px] font-black px-2 py-0.5 rounded-lg border border-[#C9D8FF]">
                       {unreadCount} BARU
                    </span>
                 )}
               </div>
               <button 
                 onClick={() => markAllReadMutation.mutate()}
-                className="text-xs font-bold text-[#f97316] hover:underline disabled:opacity-50"
+                className="text-xs font-bold text-[#00236F] hover:underline disabled:opacity-50"
                 disabled={unreadCount === 0}
               >
                 Tandai semua dibaca
@@ -146,7 +146,7 @@ export default function NotificationDropdown() {
             <div className="max-height-[400px] overflow-y-auto custom-scrollbar">
               {isLoading ? (
                  <div className="p-10 text-center">
-                    <div className="w-6 h-6 border-2 border-[#f97316] border-t-transparent rounded-full animate-spin mx-auto mb-2" />
+                    <div className="w-6 h-6 border-2 border-[#00236F] border-t-transparent rounded-full animate-spin mx-auto mb-2" />
                     <p className="text-xs text-[#a3a3a3] font-bold">Memuat...</p>
                  </div>
               ) : notifData?.length > 0 ? (
@@ -156,7 +156,7 @@ export default function NotificationDropdown() {
                       key={notif.id}
                       onClick={() => handleNotifClick(notif)}
                       className={`p-4 flex gap-3 cursor-pointer transition-colors hover:bg-[#fafafa] relative ${
-                        !notif.is_read ? 'bg-[#fff7ed]/50' : ''
+                        !notif.is_read ? 'bg-[#EAF1FF]/50' : ''
                       }`}
                     >
                       <div className="flex-shrink-0 mt-1">
@@ -181,7 +181,7 @@ export default function NotificationDropdown() {
 
                       {!notif.is_read && (
                         <div className="flex-shrink-0 self-center">
-                          <div className="w-2 h-2 bg-[#f97316] rounded-full shadow-[0_0_8px_rgba(249,115,22,0.5)]" />
+                          <div className="w-2 h-2 bg-[#00236F] rounded-full shadow-[0_0_8px_rgba(0,35,111,0.5)]" />
                         </div>
                       )}
                     </div>

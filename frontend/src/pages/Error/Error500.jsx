@@ -36,7 +36,7 @@ export default function Error500() {
                <motion.div 
                  animate={{ opacity: [1, 0, 1] }} 
                  transition={{ repeat: Infinity, duration: 1.5 }}
-                 className="absolute -bottom-2 -right-2 w-10 h-10 bg-[#f97316] rounded-full flex items-center justify-center text-white"
+                 className="absolute -bottom-2 -right-2 w-10 h-10 bg-[#00236F] rounded-full flex items-center justify-center text-white"
                >
                  <Zap size={20} fill="currentColor" strokeWidth={0} />
                </motion.div>
@@ -61,7 +61,7 @@ export default function Error500() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <button
                onClick={handleRefresh}
-               className="px-8 py-4 bg-[#f97316] text-white rounded-3xl font-bold text-sm shadow-xl hover:bg-[#ea580c] transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-2"
+               className="px-8 py-4 bg-[#00236F] text-white rounded-3xl font-bold text-sm shadow-xl hover:bg-[#0B4FAE] transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-2"
             >
               <RefreshCcw size={18} />
               Coba Lagi

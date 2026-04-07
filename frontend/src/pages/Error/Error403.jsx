@@ -26,7 +26,7 @@ export default function Error403() {
             transition={{ delay: 0.2, duration: 0.5 }}
             className="absolute inset-0 flex items-center justify-center pt-8"
           >
-            <div className="w-24 h-24 bg-white rounded-[40px] shadow-2xl flex items-center justify-center border border-[#ffedd5] relative overflow-hidden ring-4 ring-[#ef4444]/5">
+            <div className="w-24 h-24 bg-white rounded-[40px] shadow-2xl flex items-center justify-center border border-[#D5E2FF] relative overflow-hidden ring-4 ring-[#ef4444]/5">
                <div className="absolute top-0 right-0 w-8 h-8 bg-[#ef4444]/5 rounded-bl-full"></div>
                <Lock size={48} className="text-[#ef4444]" strokeWidth={1.5} />
                <div className="absolute -bottom-2 -left-2 w-10 h-10 bg-[#ef4444] rounded-full flex items-center justify-center text-white">

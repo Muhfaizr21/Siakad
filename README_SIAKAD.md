@@ -245,5 +245,50 @@ Karena sistem ini masif, agar pekerjaan tidak membengkak dan sangat sistematis, 
    - Generating Virtual Accounts and UKT clearance.
 
 ---
+
+## 📋 CHANGELOG — Update Log Sesi Pengerjaan
+
+### 🗓️ 07 April 2026 — Health Screening Page & HealthCharacter UI Upgrade
+
+#### ✨ `HealthScreeningPage.jsx` — Premium UI Overhaul
+**File:** `frontend/src/pages/Student/HealthScreeningPage.jsx`
+
+- **Makeover Header "Kondisi Terakhir":** Desain header card utama diubah total. Status sekarang ditampilkan dengan ikon jam berwarna dinamis (Hijau/Rose/Amber) yang menyesuaikan kondisi kesehatan mahasiswa, disertai badge **"Tervalidasi BKU"** di sisi kanan.
+- **StatItem Cards Redesign:** Keempat statistik kesehatan (Tinggi, Berat, Tensi, Gol. Darah) yang sebelumnya flat kini diubah menjadi **4 Card Independen** bergaya *bento box* premium:
+  - Setiap card punya ikon berwarna unik (Biru untuk Tinggi, Emerald untuk Berat, Rose untuk Tensi, Merah untuk Gol. Darah).
+  - Hover state menampilkan bayangan lembut (*soft shadow*) untuk kesan interaktif.
+- **Perluasan Status Umum Banner:** Area "Status Umum" di bawah statistik diubah menjadi banner hero yang lebih menonjol:
+  - Ukuran avatar karakter diperbesar dari `w-12 h-12` menjadi **`w-24 h-24`**.
+  - Teks nama status dibesarkan ke `text-2xl font-black`.
+  - Ditambahkan kalimat deskripsi kontekstual di bawah nama status.
+  - Indikator Tensi Darah kini menampilkan badge berlatar warna kondisional.
+- **Warna Status Dinamis via `getStatusTheme()`:** Ditambahkan helper function baru `getStatusTheme` yang memetakan warna teks dan ikon berdasarkan nilai `status_kesehatan`:
+  - `sehat` → **Emerald/Hijau**
+  - `perlu_tindak_lanjut` / `bahaya` → **Rose/Merah**
+  - Kondisi lain (Gemuk, Pre-Hiper) → **Amber/Kuning**
+
+---
+
+#### 🆕 `HealthCharacter.jsx` — Komponen SVG Karakter Dinamis Baru
+**File:** `frontend/src/components/health/HealthCharacter.jsx`
+
+Komponen React sepenuhnya baru yang menggantikan penggunaan emoji default OS (Windows) dengan **Karakter Wajah SVG Kustom** yang sepenuhnya dibangun dari elemen `<svg>` dan dianimasikan menggunakan `framer-motion`.
+
+**Logika Kondisi (dari prioritas tertinggi ke terendah):**
+| Kondisi | Trigger | Wajah SVG | Animasi |
+| :--- | :--- | :--- | :--- |
+| `hipertensi` | Sistolik ≥ 140 atau Diastolik ≥ 90 | Mata silang, mulut ternganga | Bergetar cepat |
+| `obesitas` | BMI ≥ 30 | Wajah lebar, mata mengantuk | Bergoyang pelan + keringat jatuh |
+| `kurus` | BMI < 18.5 | Wajah tirus, mata sayu | Melayang goyah (float) |
+| `prima` | BMI 18.5-25 + Tensi normal | Kacamata hitam 😎, senyum lebar | Melayang kalem + bintang berputar |
+| `perhatian` | Kondisi di luar 4 di atas | Muka waspada dengan tanda `?` | Napas (scale pulse) |
+| `nodata` | Data belum tersedia | Siluet abu-abu | Diam |
+
+**Fitur Visual:**
+- **Halo/Glow Effect:** Pancaran cahaya melayang di belakang karakter yang warnanya menyesuaikan kondisi (Merah, Amber, Cyan, Emerald).
+- **No Box/Frame:** Karakter tampil murni tanpa bingkai kotak — langsung menempel secara *floating* di atas card dengan `drop-shadow-2xl`.
+- **Elemen SVG Bergerak:** Uap panas di hipertensi, tetes kerigat di obesitas, dan sparkle bintang di kondisi prima semuanya dianimasikan secara independen dengan `motion.path` / `motion.text`.
+
+---
 *Analis System Architect AI: Antigravity* 🌌
 *Status: 100% Comprehensive & Ready To Build.*

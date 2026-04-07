@@ -34,12 +34,12 @@ import {
 } from '../../components/ui/Select';
 
 const CATEGORY_ICONS = {
-  achievement: <Trophy size={18} className="text-[#f97316]" />,
-  beasiswa: <GraduationCap size={18} className="text-[#3b82f6]" />,
-  konseling: <HeartHandshake size={18} className="text-[#10b981]" />,
-  student_voice: <MessageSquare size={18} className="text-[#8b5cf6]" />,
-  kencana: <BookOpen size={18} className="text-[#f59e0b]" />,
-  sistem: <Bell size={18} className="text-[#64748b]" />,
+  achievement: <Trophy size={18} className="text-[#00236F]" />,
+  beasiswa: <GraduationCap size={18} className="text-[#00236F]" />,
+  konseling: <HeartHandshake size={18} className="text-[#00236F]" />,
+  student_voice: <MessageSquare size={18} className="text-[#00236F]" />,
+  kencana: <BookOpen size={18} className="text-[#00236F]" />,
+  sistem: <Bell size={18} className="text-[#00236F]" />,
 };
 
 const CATEGORIES = [
@@ -153,7 +153,7 @@ export default function NotificationPage() {
     <div className="p-6 md:p-10 text-[#171717] min-h-screen bg-[#fafafa]">
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 text-sm font-medium text-[#a3a3a3] mb-8">
-        <NavLink to="/student/dashboard" className="hover:text-[#f97316] cursor-pointer transition-colors">Dashboard</NavLink>
+        <NavLink to="/student/dashboard" className="hover:text-[#00236F] cursor-pointer transition-colors">Dashboard</NavLink>
         <ChevronRight size={16} />
         <span className="text-[#171717]">Notifikasi</span>
       </div>
@@ -170,7 +170,7 @@ export default function NotificationPage() {
           <button 
             onClick={() => queryClient.invalidateQueries(['notifikasi'])}
             disabled={!hasUnread}
-            className="px-5 py-2.5 bg-[#fff7ed] text-[#f97316] rounded-xl text-sm font-bold border border-[#fed7aa] hover:bg-[#ffedd5] transition-all disabled:opacity-50 flex items-center gap-2"
+            className="px-5 py-2.5 bg-[#EAF1FF] text-[#00236F] rounded-xl text-sm font-bold border border-[#C9D8FF] hover:bg-[#D5E2FF] transition-all disabled:opacity-50 flex items-center gap-2"
           >
             <CheckCircle2 size={16} />
             Tandai Semua Dibaca
@@ -196,7 +196,7 @@ export default function NotificationPage() {
                 className={`px-4 py-2 rounded-xl text-sm font-bold border-2 transition-all overflow-hidden relative ${
                   filterType === cat.id 
                     ? 'bg-[#171717] text-white border-[#171717]' 
-                    : 'bg-white text-[#737373] border-[#e5e5e5] hover:border-[#f97316]'
+                    : 'bg-white text-[#737373] border-[#e5e5e5] hover:border-[#00236F]'
                 }`}
               >
                 {cat.label}
@@ -225,7 +225,7 @@ export default function NotificationPage() {
       {selectedIds.length > 0 && (
         <div className="fixed bottom-10 left-1/2 -translate-x-1/2 bg-[#171717] text-white px-6 py-4 rounded-2xl shadow-2xl z-50 flex items-center gap-6 animate-in slide-in-from-bottom-5 duration-300">
            <div className="flex items-center gap-3">
-              <span className="w-6 h-6 bg-[#f97316] rounded-full flex items-center justify-center text-[10px] font-black">
+              <span className="w-6 h-6 bg-[#00236F] rounded-full flex items-center justify-center text-[10px] font-black">
                 {selectedIds.length}
               </span>
               <span className="text-sm font-bold">dipilih</span>
@@ -234,7 +234,7 @@ export default function NotificationPage() {
            <div className="flex items-center gap-4">
               <button 
                 onClick={() => bulkReadMutation.mutate(selectedIds)}
-                className="text-sm font-bold hover:text-[#f97316] transition-colors flex items-center gap-2"
+                className="text-sm font-bold hover:text-[#00236F] transition-colors flex items-center gap-2"
               >
                 <Check size={16} /> Tandai Dibaca
               </button>
@@ -271,7 +271,7 @@ export default function NotificationPage() {
                   <div 
                     key={notif.id}
                     className={`group relative bg-white border rounded-2xl p-5 transition-all hover:shadow-md flex gap-5 items-start ${
-                      !notif.is_read ? 'border-[#f97316]/30 shadow-sm' : 'border-[#e5e5e5] grayscale-[0.5] opacity-80 hover:grayscale-0 hover:opacity-100'
+                      !notif.is_read ? 'border-[#00236F]/30 shadow-sm' : 'border-[#e5e5e5] grayscale-[0.5] opacity-80 hover:grayscale-0 hover:opacity-100'
                     }`}
                   >
                     {/* Checkbox */}
@@ -280,14 +280,14 @@ export default function NotificationPage() {
                          type="checkbox" 
                          checked={selectedIds.includes(notif.id)}
                          onChange={() => toggleSelect(notif.id)}
-                         className="w-5 h-5 rounded-md border-[#d4d4d4] text-[#f97316] focus:ring-[#f97316] cursor-pointer"
+                         className="w-5 h-5 rounded-md border-[#d4d4d4] text-[#00236F] focus:ring-[#00236F] cursor-pointer"
                        />
                     </div>
 
                     {/* Icon */}
                     <div className="flex-shrink-0">
                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center border transition-transform duration-300 group-hover:scale-110 ${
-                         !notif.is_read ? 'bg-[#fff7ed] border-[#fed7aa]' : 'bg-[#fafafa] border-[#e5e5e5]'
+                         !notif.is_read ? 'bg-[#EAF1FF] border-[#C9D8FF]' : 'bg-[#fafafa] border-[#e5e5e5]'
                        }`}>
                           {CATEGORY_ICONS[notif.type] || <Bell size={20} />}
                        </div>
@@ -311,7 +311,7 @@ export default function NotificationPage() {
                        {notif.link && (
                           <a 
                             href={notif.link}
-                            className="inline-flex items-center gap-2 text-xs font-black text-[#f97316] uppercase tracking-widest hover:underline"
+                            className="inline-flex items-center gap-2 text-xs font-black text-[#00236F] uppercase tracking-widest hover:underline"
                           >
                             Lihat Detail <ChevronRight size={14} />
                           </a>
@@ -339,7 +339,7 @@ export default function NotificationPage() {
                     </div>
 
                     {!notif.is_read && (
-                       <div className="absolute top-0 left-0 w-1 h-full bg-[#f97316] rounded-l-2xl" />
+                       <div className="absolute top-0 left-0 w-1 h-full bg-[#00236F] rounded-l-2xl" />
                     )}
                   </div>
                 ))}

@@ -10,7 +10,7 @@ export default function AnnouncementSection({ announcements }) {
           <Bell size={24} className="text-[#00236F]" />
           Pengumuman Terbaru
         </h2>
-        <NavLink to="/student/dashboard" className="text-sm font-bold text-[#00236F] hover:underline flex items-center gap-1 group">
+        <NavLink to="/student/notifikasi" className="text-sm font-bold text-[#00236F] hover:underline flex items-center gap-1 group">
           Lihat Semua
           <ArrowRight size={16} className="translate-x-0 group-hover:translate-x-1 transition-all" />
         </NavLink>
@@ -32,7 +32,7 @@ export default function AnnouncementSection({ announcements }) {
                   {item.isi_singkat}
                 </p>
                 <NavLink 
-                    to={`/student/dashboard`} // Detail would be a separate route or modal
+                    to={item.link || `/student/notifikasi`} 
                     className="inline-flex items-center gap-1.5 text-xs font-black text-[#171717] hover:text-[#00236F] uppercase tracking-widest transition-colors decoration-2 underline-offset-4 hover:underline"
                 >
                     Selengkapnya <ArrowRight size={14} />

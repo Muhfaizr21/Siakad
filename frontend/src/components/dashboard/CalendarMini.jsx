@@ -27,8 +27,13 @@ export default function CalendarMini({ events }) {
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const today = new Date();
 
-  // Highlight dates with events
-  const eventDates = events?.map(e => new Date(e.tanggal_mulai || e.tanggal).getDate()) || [];
+  // Filter events to only show in the currently viewed month
+  const viewedEvents = events?.filter(e => {
+    const d = new Date(e.tanggal_mulai || e.tanggal);
+    return d.getMonth() === month && d.getFullYear() === year;
+  }) || [];
+
+  const eventDates = viewedEvents.map(e => new Date(e.tanggal_mulai || e.tanggal).getDate());
 
   const changeMonth = (offset) => {
     setCurrentDate(new Date(year, month + offset, 1));
@@ -88,10 +93,10 @@ export default function CalendarMini({ events }) {
       </div>
 
       <div className="flex-1 flex flex-col gap-4 border-t border-[#f5f5f5] pt-6">
-         <h4 className="text-xs font-black text-[#a3a3a3] uppercase tracking-widest leading-none mb-2">Mendatang di Bulan Ini</h4>
-         {events?.length > 0 ? (
+         <h4 className="text-xs font-black text-[#a3a3a3] uppercase tracking-widest leading-none mb-2">Kegiatan di Bulan {MONTHS[month]}</h4>
+         {viewedEvents?.length > 0 ? (
            <div className="space-y-3">
-              {events.map((e, idx) => (
+              {viewedEvents.map((e, idx) => (
                 <div key={idx} className="flex items-center gap-3 group/event">
                    <div className={`w-2 h-2 rounded-full ${CATEGORY_COLORS[e.kategori] || 'bg-[#a3a3a3]'}`}></div>
                    <div className="flex-1 flex flex-col">

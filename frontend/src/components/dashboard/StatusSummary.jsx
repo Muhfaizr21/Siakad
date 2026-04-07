@@ -1,5 +1,5 @@
 import React from 'react';
-import { GraduationCap, BookOpen, MessageSquare, ChevronRight, CheckCircle2, Clock, AlertCircle } from 'lucide-react';
+import { GraduationCap, BookOpen, MessageSquare, ChevronRight, CheckCircle2, Clock, AlertCircle, Activity } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 
 export default function StatusSummary({ kencana, beasiswa, voice }) {
@@ -10,7 +10,7 @@ export default function StatusSummary({ kencana, beasiswa, voice }) {
         <div className="h-1 flex-1 bg-gradient-to-r from-[#e5e5e5] to-transparent rounded-full ml-2"></div>
       </h2>
       
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Card A: KENCANA */}
         <div className="bg-white p-4 rounded-2xl border border-[#e5e5e5] shadow-sm hover:shadow-md transition-all border-b-2 border-b-[#00236F]/20 group">
           <div className="flex items-center justify-between mb-3">
@@ -91,6 +91,27 @@ export default function StatusSummary({ kencana, beasiswa, voice }) {
           </div>
           <NavLink to="/student/voice" className="flex items-center justify-between py-1.5 text-xs font-bold text-[#00236F] hover:underline">
             Lihat Tiket <ChevronRight size={16} />
+          </NavLink>
+        </div>
+
+        {/* Card D: Health Screening */}
+        <div className="bg-white p-4 rounded-2xl border border-[#e5e5e5] shadow-sm hover:shadow-md transition-all border-b-2 border-b-[#00236F]/20 group">
+          <div className="flex items-center justify-between mb-3">
+            <div className="w-9 h-9 bg-[#f0fdf4] text-[#16a34a] rounded-xl flex items-center justify-center">
+              <Activity size={18} />
+            </div>
+            <span className="flex items-center gap-1 px-2 py-0.5 bg-[#f0fdf4] text-[#16a34a] rounded-full text-[10px] font-bold uppercase tracking-wide">
+              <CheckCircle2 size={10} /> FIT / SEHAT
+            </span>
+          </div>
+          <h3 className="font-bold text-base mb-1">Kesehatan</h3>
+          <p className="text-xs font-semibold text-[#a3a3a3] mb-4">Pemantauan Health Screening</p>
+          <div className="flex items-end gap-2 mb-5">
+            <span className="text-3xl font-black text-[#171717] leading-none">Aman</span>
+            <span className="text-xs font-bold text-[#525252] mb-1 italic">Hasil Terakhir</span>
+          </div>
+          <NavLink to="/student/health" className="flex items-center justify-between py-1.5 text-xs font-bold text-[#00236F] hover:underline">
+            Cek Riwayat <ChevronRight size={16} />
           </NavLink>
         </div>
       </div>

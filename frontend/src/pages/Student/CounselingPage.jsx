@@ -82,7 +82,7 @@ export default function CounselingPage() {
 
   return (
     <div className="min-h-screen bg-[#f5f5f3] text-[#171717] font-body">
-      <div className="max-w-6xl mx-auto px-4 py-6 md:px-6 lg:px-8 lg:py-8">
+      <div className="max-w-7xl mx-auto px-4 py-6 md:px-6 lg:px-8 lg:py-8">
 
         {/* Breadcrumb */}
         <nav className="flex items-center gap-1.5 text-sm text-neutral-400 mb-7">
