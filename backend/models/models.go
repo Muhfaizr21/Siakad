@@ -1,9 +1,6 @@
 package models
 
-import (
-	"time"
-	"gorm.io/gorm"
-)
+import "gorm.io/gorm"
 
 // Role represents a user role in the system
 type Role struct {
@@ -13,16 +10,12 @@ type Role struct {
 
 // User represents a system user
 type User struct {
-	ID           uint      `gorm:"primaryKey" json:"id"`
-	Email        string    `gorm:"unique;not null" json:"email"`
-	PasswordHash string    `gorm:"not null" json:"-"` // Hide password from JSON
-	RoleID       uint      `json:"roleId"`
-	Role         Role      `gorm:"foreignKey:RoleID" json:"role"`
-	FacultyRoleID *uint     `json:"facultyRoleId"`
-	FacultyRole   *FacultyRole `gorm:"foreignKey:FacultyRoleID" json:"facultyRole"`
-	IsActive     bool      `gorm:"default:true" json:"isActive"`
-	CreatedAt    time.Time `json:"createdAt"`
-	UpdatedAt    time.Time `json:"updatedAt"`
+	gorm.Model
+	Email        string `gorm:"unique;not null" json:"email"`
+	PasswordHash string `gorm:"not null" json:"-"` // Hide password from JSON
+	RoleID       uint   `json:"roleId"`
+	Role         Role   `gorm:"foreignKey:RoleID" json:"role"`
+	IsActive     bool   `gorm:"default:true" json:"isActive"`
 }
 
 // Faculty represents a university faculty
@@ -35,45 +28,38 @@ type Faculty struct {
 
 // Major represents a degree program
 type Major struct {
-	ID          uint    `gorm:"primaryKey" json:"id"`
-	Name        string  `gorm:"column:nama_prodi;not null;unique" json:"name"`
-	Code        string  `gorm:"column:kode_prodi;unique" json:"code"`
-	FacultyID   uint    `gorm:"column:faculty_id" json:"facultyId"`
+	ID          uint   `gorm:"primaryKey" json:"id"`
+	Name        string `gorm:"not null" json:"name"`
+	FacultyID   uint   `json:"facultyId"`
 	Faculty     Faculty `gorm:"foreignKey:FacultyID" json:"faculty"`
-	DegreeLevel string  `gorm:"column:jenjang" json:"degreeLevel"`
-	Akreditasi  string  `gorm:"column:akreditasi" json:"akreditasi"`
-	Kapasitas   int     `gorm:"column:kapasitas" json:"kapasitas"`
+	DegreeLevel string `json:"degreeLevel"`
 }
 
 // Lecturer represents a faculty member
 type Lecturer struct {
-	ID        uint    `gorm:"primaryKey" json:"id"`
-	UserID    uint    `json:"userId"`
-	User      User    `gorm:"foreignKey:UserID" json:"user"`
-	NIDN      string  `gorm:"column:nidn;unique" json:"nidn"`
-	Name      string  `gorm:"not null" json:"name"`
-	FacultyID uint    `gorm:"column:faculty_id" json:"facultyId"`
+	ID        uint   `gorm:"primaryKey" json:"id"`
+	UserID    uint   `json:"userId"`
+	User      User   `gorm:"foreignKey:UserID" json:"user"`
+	NIDN      string `gorm:"unique" json:"nidn"`
+	Name      string `gorm:"not null" json:"name"`
+	FacultyID uint   `json:"facultyId"`
 	Faculty   Faculty `gorm:"foreignKey:FacultyID" json:"faculty"`
-	IsDPA     bool    `gorm:"column:is_dpa;default:false" json:"isDpa"`
+	IsDPA     bool    `gorm:"default:false" json:"isDpa"`
 }
 
 // Student represents an enrolled person
 type Student struct {
-	ID              uint      `gorm:"primaryKey" json:"id"`
-	UserID          uint      `json:"userId"`
-	User            User      `gorm:"foreignKey:UserID" json:"user"`
-	NIM             string    `gorm:"column:nim;unique;not null" json:"nim"`
-	Name            string    `gorm:"not null" json:"name"`
-	MajorID         uint      `gorm:"column:major_id" json:"majorId"`
-	Major           Major     `gorm:"foreignKey:MajorID" json:"major"`
-	DPALecturerID   *uint     `gorm:"column:dpa_lecturer_id" json:"dpaLecturerId"`
+	ID              uint   `gorm:"primaryKey" json:"id"`
+	UserID          uint   `json:"userId"`
+	User            User   `gorm:"foreignKey:UserID" json:"user"`
+	NIM             string `gorm:"unique;not null" json:"nim"`
+	Name            string `gorm:"not null" json:"name"`
+	MajorID         uint   `json:"majorId"`
+	Major           Major `gorm:"foreignKey:MajorID" json:"major"`
+	DPALecturerID   *uint `json:"dpaLecturerId"`
 	DPALecturer     *Lecturer `gorm:"foreignKey:DPALecturerID" json:"dpaLecturer"`
-	CurrentSemester int     `gorm:"column:current_semester;default:1" json:"currentSemester"`
-	GPA             float64 `gorm:"column:gpa;default:0.0" json:"gpa"`
-	CreditLimit     int     `gorm:"column:credit_limit;default:24" json:"creditLimit"`
-	JoinYear        int     `gorm:"column:join_year;default:2024" json:"joinYear"`
-	Gender          string  `gorm:"column:gender;default:'L'" json:"gender"`
-	Status          string  `gorm:"default:'active'" json:"status"`
+	CurrentSemester int       `gorm:"default:1" json:"currentSemester"`
+	Status          string    `gorm:"default:'active'" json:"status"`
 }
 
 // AuditLog represents every sensitive action performed by admins
@@ -94,9 +80,9 @@ type AuditLog struct {
 // AcademicSettings represents the global university state controlled by Super Admin
 type AcademicSettings struct {
 	gorm.Model
-	ActiveYear       string `json:"activeYear"`     // e.g. "2023/2024"
-	ActiveSemester   string `json:"activeSemester"` // e.g. "Ganjil" / "Genap"
-	IsKrsOpen        bool   `gorm:"default:false" json:"isKrsOpen"`
+	ActiveYear      string `json:"activeYear"`      // e.g. "2023/2024"
+	ActiveSemester  string `json:"activeSemester"`  // e.g. "Ganjil" / "Genap"
+	IsKrsOpen       bool   `gorm:"default:false" json:"isKrsOpen"`
 	IsGradeInputOpen bool   `gorm:"default:false" json:"isGradeInputOpen"`
-	LastModifiedBy   uint   `json:"lastModifiedBy"`
+	LastModifiedBy  uint   `json:"lastModifiedBy"`
 }
