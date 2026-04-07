@@ -300,7 +300,7 @@ export default function CounselingPage() {
                   iconColor="text-[#00236F]"
                   iconBgClass="bg-[#eef4ff]"
                   iconBorderClass="border-[#c9d8ff]"
-                  title="Belum Ada Riwayat"
+                  title="Belum Ada Riwayat" 
                   description="Riwayat sesi konseling kamu akan muncul di sini."
                 />
               )}
