@@ -1,255 +1,243 @@
+DROP SCHEMA IF EXISTS fakultas_admin CASCADE;
+CREATE SCHEMA IF NOT EXISTS fakultas_admin;
+SET search_path TO fakultas_admin, public;
 -- ============================================================
---  SIAKAD ADMIN FAKULTAS — Skema Lengkap (Faculty Admin)
---  Versi   : 1.5.0 (Updated: Added Extended Tables)
---  Deskripsi: Tabel Dosen, Mahasiswa, Prodi, Aspirasi, KRS, 
---             Nilai, Persuratan, MBKM, dan Yudisium.
+--  SIAKAD ADMIN FAKULTAS — PostgreSQL Database Schema
+--  Versi   : 2.3.0 (Separate Schema + Localized Indo)
+--  Deskripsi: Schema lengkap untuk modul Admin Fakultas
+--             mencakup Prestasi, PKKMB, Kesehatan, Aspirasi,
+--             Beasiswa, Konseling, Laporan
 -- ============================================================
 
--- 1. TABEL USERS & ROLES
-CREATE TABLE IF NOT EXISTS public.roles (
+-- ============================================================
+--  EXTENSIONS
+-- ============================================================
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+
+-- ============================================================
+--  ENUM TYPES (Bahasa Indonesia)
+-- ============================================================
+
+DO $$ BEGIN
+    CREATE TYPE status_aspirasi_fak AS ENUM ('proses', 'klarifikasi', 'selesai', 'ditolak');
+EXCEPTION WHEN duplicate_object THEN null;
+END $$;
+
+DO $$ BEGIN
+    CREATE TYPE status_approval_indo AS ENUM ('Menunggu', 'Terverifikasi', 'Ditolak', 'Diterima');
+EXCEPTION WHEN duplicate_object THEN null;
+END $$;
+
+-- ============================================================
+--  CORE TABLES (shared with public if needed)
+-- ============================================================
+
+-- 1. TABEL ROLES
+CREATE TABLE IF NOT EXISTS fakultas_admin.roles (
     id          SERIAL PRIMARY KEY,
     name        VARCHAR(50) NOT NULL UNIQUE,
+    description TEXT,
     created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE IF NOT EXISTS public.users (
+-- 2. TABEL FAKULTAS (Jangkar Utama)
+CREATE TABLE IF NOT EXISTS fakultas_admin.faculties (
+    id          SERIAL PRIMARY KEY,
+    name        VARCHAR(255) NOT NULL,
+    code        VARCHAR(50) UNIQUE NOT NULL,
+    dean_name   VARCHAR(255),
+    created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 3. TABEL USERS
+CREATE TABLE IF NOT EXISTS fakultas_admin.users (
     id              SERIAL PRIMARY KEY,
     email           VARCHAR(150) NOT NULL UNIQUE,
     password_hash   TEXT NOT NULL,
-    role_id         INTEGER REFERENCES public.roles(id),
+    role_id         INTEGER REFERENCES fakultas_admin.roles(id),
+    faculty_id      INTEGER REFERENCES fakultas_admin.faculties(id) ON DELETE SET NULL,
     is_active       BOOLEAN DEFAULT TRUE,
     created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- 2. ENUM TYPES
-DO $$ BEGIN
-    CREATE TYPE public.status_aspirasi AS ENUM ('proses', 'klarifikasi', 'selesai', 'ditolak');
-EXCEPTION
-    WHEN duplicate_object THEN null;
-END $$;
-
-DO $$ BEGIN
-    CREATE TYPE public.status_krs      AS ENUM ('draft', 'diajukan', 'disetujui', 'perlu_revisi');
-EXCEPTION
-    WHEN duplicate_object THEN null;
-END $$;
-
-DO $$ BEGIN
-    CREATE TYPE public.status_surat    AS ENUM ('diajukan', 'diproses', 'siap_ambil', 'selesai', 'ditolak');
-EXCEPTION
-    WHEN duplicate_object THEN null;
-END $$;
-
-DO $$ BEGIN
-    CREATE TYPE public.status_mbkm     AS ENUM ('terdaftar', 'berlangsung', 'konversi_nilai', 'selesai');
-EXCEPTION
-    WHEN duplicate_object THEN null;
-END $$;
-
-DO $$ BEGIN
-    CREATE TYPE public.status_yudisium AS ENUM ('pendaftaran', 'verifikasi_berkas', 'sidang', 'lulus', 'revisi');
-EXCEPTION
-    WHEN duplicate_object THEN null;
-END $$;
-
--- 3. TABEL DOSEN
-CREATE TABLE IF NOT EXISTS public.lecturers (
+-- 4. TABEL PROGRAM STUDI (Majors)
+CREATE TABLE IF NOT EXISTS fakultas_admin.majors (
     id              SERIAL PRIMARY KEY,
-    user_id         INTEGER REFERENCES public.users(id) ON DELETE SET NULL,
+    faculty_id      INTEGER NOT NULL REFERENCES fakultas_admin.faculties(id) ON DELETE CASCADE,
+    code            VARCHAR(20) UNIQUE NOT NULL,
+    name            VARCHAR(150) NOT NULL,
+    akreditasi      VARCHAR(5) DEFAULT 'B',
+    jenjang         VARCHAR(20) DEFAULT 'S1',
+    created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 5. TABEL DOSEN (Lecturers)
+CREATE TABLE IF NOT EXISTS fakultas_admin.lecturers (
+    id              SERIAL PRIMARY KEY,
+    user_id         INTEGER UNIQUE REFERENCES fakultas_admin.users(id) ON DELETE SET NULL,
+    faculty_id      INTEGER NOT NULL REFERENCES fakultas_admin.faculties(id) ON DELETE CASCADE,
     nidn            VARCHAR(20) UNIQUE,
     name            VARCHAR(255) NOT NULL,
-    faculty_id      INTEGER,
     is_dpa          BOOLEAN DEFAULT FALSE,
     created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- 4. TABEL PROGRAM STUDI (Majors)
-CREATE TABLE IF NOT EXISTS public.majors (
-    id              SERIAL PRIMARY KEY,
-    kode_prodi      VARCHAR(20) UNIQUE NOT NULL,
-    nama_prodi      VARCHAR(150) NOT NULL,
-    akreditasi      VARCHAR(5) DEFAULT 'B',
-    jenjang         VARCHAR(20) DEFAULT 'S1',
-    kaprodi_id      INTEGER REFERENCES public.lecturers(id) ON DELETE SET NULL,
-    created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+ALTER TABLE fakultas_admin.majors ADD COLUMN IF NOT EXISTS kaprodi_id INTEGER REFERENCES fakultas_admin.lecturers(id) ON DELETE SET NULL;
 
--- 5. TABEL MAHASISWA
-CREATE TABLE IF NOT EXISTS public.students (
+-- 6. TABEL MAHASISWA (Students)
+CREATE TABLE IF NOT EXISTS fakultas_admin.students (
     id              SERIAL PRIMARY KEY,
-    user_id         INTEGER REFERENCES public.users(id) ON DELETE SET NULL,
+    user_id         INTEGER UNIQUE REFERENCES fakultas_admin.users(id) ON DELETE SET NULL,
     nim             VARCHAR(20) NOT NULL UNIQUE,
     name            VARCHAR(255) NOT NULL,
-    major_id        INTEGER REFERENCES public.majors(id),
-    dpa_lecturer_id INTEGER REFERENCES public.lecturers(id),
+    major_id        INTEGER NOT NULL REFERENCES fakultas_admin.majors(id),
+    dpa_lecturer_id INTEGER REFERENCES fakultas_admin.lecturers(id),
     current_semester INTEGER DEFAULT 1,
+    join_year       INTEGER,
+    gender          CHAR(1),
+    gpa             DECIMAL(3,2) DEFAULT 0.00,
+    credit_limit    INTEGER DEFAULT 24,
     status          VARCHAR(20) DEFAULT 'active',
     created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- 6. TABEL MATAKULIAH
-CREATE TABLE IF NOT EXISTS public.matakuliah (
+-- ============================================================
+--  FEATURE-SPECIFIC TABLES (6 FITUR UTAMA)
+-- ============================================================
+
+-- 7. TABEL PRESTASI MAHASISWA (Validasi Prestasi)
+CREATE TABLE IF NOT EXISTS fakultas_admin.achievements (
     id              SERIAL PRIMARY KEY,
-    kode_mk         VARCHAR(20) NOT NULL UNIQUE,
-    nama_mk         VARCHAR(255) NOT NULL,
-    sks             INTEGER DEFAULT 2,
-    semester        INTEGER DEFAULT 1,
-    sifat           VARCHAR(20) DEFAULT 'Wajib',
-    kurikulum       VARCHAR(10) DEFAULT '2024',
-    created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
--- 7. TABEL RUANGAN
-CREATE TABLE IF NOT EXISTS public.ruangan (
-    id              SERIAL PRIMARY KEY,
-    nama_ruangan    VARCHAR(100) NOT NULL,
-    kode_ruangan    VARCHAR(20) UNIQUE,
-    kapasitas       INTEGER DEFAULT 40,
-    lokasi_gedung   VARCHAR(255),
-    tipe_ruangan    VARCHAR(50) DEFAULT 'Kelas',
-    created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
--- 8. TABEL JADWAL KULIAH
-CREATE TABLE IF NOT EXISTS public.schedules (
-    id              SERIAL PRIMARY KEY,
-    course_id       INTEGER REFERENCES public.matakuliah(id),
-    lecturer_id     INTEGER REFERENCES public.lecturers(id),
-    room_id         INTEGER REFERENCES public.ruangan(id),
-    hari            VARCHAR(20) NOT NULL,
-    jam_mulai       TIME NOT NULL,
-    jam_selesai     TIME NOT NULL,
-    kelas           VARCHAR(20) NOT NULL,
-    tahun_akademik  VARCHAR(20) NOT NULL,
-    semester_tipe   VARCHAR(10) NOT NULL,
-    created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
--- 9. TABEL ASPIRASI
-CREATE TABLE IF NOT EXISTS public.aspirations (
-    id              SERIAL PRIMARY KEY,
-    student_id      INTEGER NOT NULL REFERENCES public.students(id) ON DELETE CASCADE,
-    title           VARCHAR(255) NOT NULL,
-    description     TEXT NOT NULL,
-    category        VARCHAR(50), 
-    status          public.status_aspirasi DEFAULT 'proses',
-    response        TEXT,
-    admin_id        INTEGER REFERENCES public.users(id),
-    created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
--- 10. TABEL KRS & NILAI
-CREATE TABLE IF NOT EXISTS public.krs_validation (
-    id              SERIAL PRIMARY KEY,
-    student_id      INTEGER NOT NULL REFERENCES public.students(id) ON DELETE CASCADE,
-    tahun_akademik  VARCHAR(20) NOT NULL,
-    semester_tipe   VARCHAR(10) NOT NULL,
-    status          VARCHAR(20) DEFAULT 'Menunggu', -- Changed from enum for flexibility
-    total_sks       INTEGER DEFAULT 0,
-    validated_by    INTEGER REFERENCES public.lecturers(id),
-    validated_at    TIMESTAMP,
-    catatan_dpa     TEXT,
-    created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE TABLE IF NOT EXISTS public.krs_items (
-    id                SERIAL PRIMARY KEY,
-    krs_submission_id INTEGER NOT NULL REFERENCES public.krs_validation(id) ON DELETE CASCADE,
-    course_id         INTEGER NOT NULL REFERENCES public.matakuliah(id),
-    created_at        TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE TABLE IF NOT EXISTS public.student_grades (
-    id              SERIAL PRIMARY KEY,
-    student_id      INTEGER NOT NULL REFERENCES public.students(id) ON DELETE CASCADE,
-    schedule_id     INTEGER NOT NULL REFERENCES public.schedules(id),
-    nilai_angka     DECIMAL(5,2),
-    nilai_huruf     VARCHAR(2),
-    bobot           DECIMAL(3,2),
-    keterangan      TEXT,
-    input_by        INTEGER REFERENCES public.users(id),
-    created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
--- 11. TABEL E-PERSURATAN
-CREATE TABLE IF NOT EXISTS public.letter_requests (
-    id              SERIAL PRIMARY KEY,
-    student_id      INTEGER NOT NULL REFERENCES public.students(id) ON DELETE CASCADE,
-    jenis_surat     VARCHAR(100) NOT NULL,
-    keperluan       TEXT NOT NULL,
-    status          public.status_surat DEFAULT 'diajukan',
-    file_url        TEXT,
-    catatan_admin   TEXT,
-    created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
--- 12. TABEL MBKM
-CREATE TABLE IF NOT EXISTS public.mbkm_programs (
-    id              SERIAL PRIMARY KEY,
-    student_id      INTEGER NOT NULL REFERENCES public.students(id) ON DELETE CASCADE,
-    jenis_mbkm      VARCHAR(100) NOT NULL,
-    mitra_nama      VARCHAR(255) NOT NULL,
-    durasi_bulan    INTEGER,
-    status          public.status_mbkm DEFAULT 'terdaftar',
-    sks_konversi    INTEGER DEFAULT 0,
-    created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
--- 13. TABEL YUDISIUM
-CREATE TABLE IF NOT EXISTS public.graduation_submissions (
-    id              SERIAL PRIMARY KEY,
-    student_id      INTEGER NOT NULL REFERENCES public.students(id) ON DELETE CASCADE,
-    judul_skripsi   TEXT,
-    ipk_akhir       DECIMAL(3,2),
-    status          public.status_yudisium DEFAULT 'pendaftaran',
-    tanggal_sidang  DATE,
-    keterangan      TEXT,
-    created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
--- 14. SEED ROLES
-INSERT INTO public.roles (name) 
-SELECT 'super_admin' WHERE NOT EXISTS (SELECT 1 FROM public.roles WHERE name='super_admin');
-INSERT INTO public.roles (name) 
-SELECT 'fakultas_admin' WHERE NOT EXISTS (SELECT 1 FROM public.roles WHERE name='fakultas_admin');
-INSERT INTO public.roles (name) 
-SELECT 'lecturer' WHERE NOT EXISTS (SELECT 1 FROM public.roles WHERE name='lecturer');
-INSERT INTO public.roles (name) 
-SELECT 'student' WHERE NOT EXISTS (SELECT 1 FROM public.roles WHERE name='student');
-
--- 15. INDEXING
-CREATE INDEX IF NOT EXISTS idx_aspirations_status ON public.aspirations(status);
-CREATE INDEX IF NOT EXISTS idx_grades_student_id  ON public.student_grades(student_id);
-CREATE INDEX IF NOT EXISTS idx_krs_student_period ON public.krs_validation(student_id, tahun_akademik);
-CREATE INDEX IF NOT EXISTS idx_students_nim       ON public.students(nim);
-CREATE INDEX IF NOT EXISTS idx_lecturers_nidn     ON public.lecturers(nidn);
-
--- 16. TABEL PRESTASI MAHASISWA
-CREATE TABLE IF NOT EXISTS public.achievements (
-    id              SERIAL PRIMARY KEY,
-    student_id      INTEGER NOT NULL REFERENCES public.students(id) ON DELETE CASCADE,
+    student_id      INTEGER NOT NULL REFERENCES fakultas_admin.students(id) ON DELETE CASCADE,
     nama_prestasi   VARCHAR(255) NOT NULL,
-    bidang          VARCHAR(50) NOT NULL, -- Akademik, Non-Akademik
-    tingkat         VARCHAR(50) NOT NULL, -- Internasional, Nasional, Regional
-    peringkat       VARCHAR(50), -- Juara 1, Peserta, dsb
+    bidang          VARCHAR(50) NOT NULL,
+    tingkat         VARCHAR(50) NOT NULL,
+    peringkat       VARCHAR(50),
     tahun           INTEGER NOT NULL,
     penyelenggara   VARCHAR(255),
     sertifikat_url  TEXT,
-    status          VARCHAR(20) DEFAULT 'Menunggu', -- Menunggu, Terverifikasi, Ditolak
+    status          status_approval_indo DEFAULT 'Menunggu',
     poin_skpi       INTEGER DEFAULT 0,
     catatan         TEXT,
     verified_at     TIMESTAMP,
-    verified_by     INTEGER REFERENCES public.users(id),
+    verified_by     INTEGER REFERENCES fakultas_admin.users(id),
     created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+-- 8. TABEL PKKMB (Monitor PKKMB)
+CREATE TABLE IF NOT EXISTS fakultas_admin.pkkmb_participations (
+    id              SERIAL PRIMARY KEY,
+    student_id      INTEGER NOT NULL REFERENCES fakultas_admin.students(id) ON DELETE CASCADE,
+    tahun_pelaksanaan INTEGER NOT NULL,
+    nilai_akademik  DECIMAL(5,2) DEFAULT 0.00,
+    kehadiran       INTEGER DEFAULT 0,
+    status_kelulusan VARCHAR(50) DEFAULT 'Tidak Lulus',
+    sertifikat_url  TEXT,
+    catatan         TEXT,
+    created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 9. TABEL KESEHATAN (Pantau Data Kesehatan)
+CREATE TABLE IF NOT EXISTS fakultas_admin.health_screenings (
+    id                  SERIAL PRIMARY KEY,
+    student_id          INTEGER NOT NULL REFERENCES fakultas_admin.students(id) ON DELETE CASCADE,
+    tanggal_screening   DATE NOT NULL,
+    golongan_darah      VARCHAR(5),
+    tinggi_badan_cm     INTEGER,
+    berat_badan_kg      INTEGER,
+    tekanan_darah       VARCHAR(20),
+    alergi              TEXT,
+    buta_warna          VARCHAR(20) DEFAULT 'Tidak',
+    riwayat_penyakit    TEXT,
+    kategori_kesehatan  VARCHAR(50),
+    catatan_medis       TEXT,
+    created_at          TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at          TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 10. TABEL ASPIRASI FAKULTAS (Kelola Student Voice)
+CREATE TABLE IF NOT EXISTS fakultas_admin.faculty_aspirations (
+    id              SERIAL PRIMARY KEY,
+    student_id      INTEGER NOT NULL REFERENCES fakultas_admin.students(id) ON DELETE CASCADE,
+    topik           VARCHAR(255) NOT NULL,
+    deskripsi       TEXT NOT NULL,
+    kategori        VARCHAR(50),
+    status          status_aspirasi_fak DEFAULT 'proses',
+    response        TEXT,
+    response_date   TIMESTAMP,
+    handled_by      INTEGER REFERENCES fakultas_admin.users(id),
+    created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 11. TABEL BEASISWA INTERNAL (Approve Beasiswa)
+CREATE TABLE IF NOT EXISTS fakultas_admin.internal_scholarships (
+    id              SERIAL PRIMARY KEY,
+    nama_beasiswa   VARCHAR(255) NOT NULL,
+    penyelenggara   VARCHAR(255) NOT NULL,
+    kuota           INTEGER NOT NULL DEFAULT 0,
+    persyaratan     TEXT,
+    nominal         DECIMAL(15,2) DEFAULT 0,
+    min_ipk         DECIMAL(3,2) DEFAULT 0.00,
+    tanggal_buka    DATE NOT NULL,
+    tanggal_tutup   DATE NOT NULL,
+    status_buka     BOOLEAN DEFAULT TRUE,
+    created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS fakultas_admin.scholarship_applications (
+    id                  SERIAL PRIMARY KEY,
+    student_id          INTEGER NOT NULL REFERENCES fakultas_admin.students(id) ON DELETE CASCADE,
+    scholarship_id      INTEGER NOT NULL REFERENCES fakultas_admin.internal_scholarships(id) ON DELETE CASCADE,
+    ipk_saat_mendaftar  DECIMAL(3,2),
+    berkas_url          TEXT,
+    status              status_approval_indo DEFAULT 'Menunggu',
+    catatan_reviewer    TEXT,
+    reviewed_by         INTEGER REFERENCES fakultas_admin.users(id),
+    reviewed_at         TIMESTAMP,
+    created_at          TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at          TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 12. TABEL KONSELING (Laporan Konseling)
+CREATE TABLE IF NOT EXISTS fakultas_admin.counselings (
+    id              SERIAL PRIMARY KEY,
+    student_id      INTEGER NOT NULL REFERENCES fakultas_admin.students(id) ON DELETE CASCADE,
+    tanggal_konseling DATE NOT NULL,
+    topik           VARCHAR(255) NOT NULL,
+    catatan         TEXT,
+    status          status_approval_indo DEFAULT 'Menunggu',
+    counselor_id    INTEGER REFERENCES fakultas_admin.users(id),
+    created_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- ============================================================
+--  INITIAL DATA SEED (Roles)
+-- ============================================================
+INSERT INTO fakultas_admin.roles (name, description)
+VALUES
+    ('super_admin', 'Full access'),
+    ('fakultas_admin', 'Faculty management access'),
+    ('lecturer', 'Academic guidance access'),
+    ('student', 'General student access')
+ON CONFLICT (name) DO NOTHING;
+
+-- ============================================================
+--  INDEXING (Optimization)
+-- ============================================================
+CREATE INDEX IF NOT EXISTS idx_fak_faculties_code ON fakultas_admin.faculties(code);
+CREATE INDEX IF NOT EXISTS idx_fak_users_email ON fakultas_admin.users(email);
+CREATE INDEX IF NOT EXISTS idx_fak_students_nim ON fakultas_admin.students(nim);
+CREATE INDEX IF NOT EXISTS idx_fak_achievements_status ON fakultas_admin.achievements(status);
+CREATE INDEX IF NOT EXISTS idx_fak_aspirations_status ON fakultas_admin.faculty_aspirations(status);
+CREATE INDEX IF NOT EXISTS idx_fak_scholarship_apps_status ON fakultas_admin.scholarship_applications(status);
