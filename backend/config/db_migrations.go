@@ -124,7 +124,7 @@ func migrateModels(db *gorm.DB) error {
 		return err
 	}
 
-	if err := db.Table("mahasiswa.riwayat_organisasi").AutoMigrate(
+	if err := db.Table("mahasiswa.riwayat_organisasis").AutoMigrate(
 		&models.RiwayatOrganisasi{},
 	); err != nil {
 		return err
@@ -183,6 +183,18 @@ func migrateModels(db *gorm.DB) error {
 
 	if err := db.Table("ormawa.ormawa_mutasi_saldo").AutoMigrate(
 		&models.OrmawaMutasiSaldo{},
+	); err != nil {
+		return err
+	}
+
+	if err := db.Table("ormawa.ormawa_aspirasi").AutoMigrate(
+		&models.OrmawaAspirasi{},
+	); err != nil {
+		return err
+	}
+
+	if err := db.Table("ormawa.ormawa_notifikasi").AutoMigrate(
+		&models.OrmawaNotifikasi{},
 	); err != nil {
 		return err
 	}

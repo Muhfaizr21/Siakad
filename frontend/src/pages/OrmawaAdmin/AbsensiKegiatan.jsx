@@ -34,11 +34,11 @@ const AbsensiKegiatan = () => {
 
       if (eventsData.status === 'success') {
         const list = (eventsData.data || []).map(ev => ({
-          id: ev.id,
-          eventName: ev.title,
-          date: new Date(ev.startDate).toLocaleDateString(),
-          isActive: new Date(ev.endDate) > new Date(),
-          codeData: `siakad-attendance-${ev.id}`
+          id: ev.ID,
+          eventName: ev.Judul,
+          date: ev.TanggalMulai ? new Date(ev.TanggalMulai).toLocaleDateString() : 'Tanpa Tanggal',
+          isActive: ev.TanggalSelesai ? new Date(ev.TanggalSelesai) > new Date() : false,
+          codeData: `siakad-attendance-${ev.ID}`
         }));
         setSessions(list);
         if (list.length > 0 && !activeSession) setActiveSession(list[0]);
@@ -60,10 +60,10 @@ const AbsensiKegiatan = () => {
   const handleStatusChange = async (studentObj, newStatus) => {
     try {
       const data = await ormawaService.recordAttendance({
-        eventScheduleId: activeSession.id,
-        studentId: studentObj.id,
-        status: newStatus,
-        timeIn: new Date().toISOString()
+        EventScheduleID: Number(activeSession.id),
+        MahasiswaID: Number(studentObj.ID),
+        Status: newStatus,
+        WaktuMasuk: new Date().toISOString()
       });
       if (data.status === 'success') fetchAttendance(activeSession.id);
     } catch (e) { 
@@ -201,15 +201,15 @@ const AbsensiKegiatan = () => {
                     </thead>
                     <tbody className="divide-y divide-outline-variant/10">
                       {(members || []).map(m => {
-                        const att = (attendees || []).find(a => a.studentId === m.studentId);
+                        const att = (attendees || []).find(a => a.MahasiswaID === m.MahasiswaID);
                         return (
-                          <tr key={m.id} className="hover:bg-surface-container-low/30 transition-colors">
+                          <tr key={m.ID} className="hover:bg-surface-container-low/30 transition-colors">
                             <td className="px-6 py-4">
                               <div className="font-bold text-sm font-headline group-hover:text-primary transition-colors">
-                                {m.student?.name}
+                                {m.Mahasiswa?.Nama}
                               </div>
                               <div className="text-[11px] text-on-surface-variant font-medium mt-0.5">
-                                NIM: {m.student?.nim} {att ? `• Tercatat: ${new Date(att.timeIn).toLocaleTimeString()}` : '• Belum Absen'}
+                                NIM: {m.Mahasiswa?.NIM} {att ? `• Tercatat: ${new Date(att.UpdatedAt).toLocaleTimeString()}` : '• Belum Absen'}
                               </div>
                             </td>
                             <td className="px-6 py-4 text-center">
@@ -218,8 +218,8 @@ const AbsensiKegiatan = () => {
                             <td className="px-6 py-4 text-right pr-6">
                                <select 
                                  className="text-[11px] font-bold border border-outline-variant/30 rounded-lg p-2 outline-none bg-surface-container-low"
-                                 value={att?.status || ''}
-                                 onChange={(e) => handleStatusChange(m.student, e.target.value)}
+                                 value={att?.Status || ''}
+                                 onChange={(e) => handleStatusChange(m.Mahasiswa, e.target.value)}
                                >
                                  <option value="">-- Set Status --</option>
                                  <option value="hadir">Hadir</option>

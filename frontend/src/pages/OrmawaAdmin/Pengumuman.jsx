@@ -11,7 +11,7 @@ const Pengumuman = () => {
   const [announcements, setAnnouncements] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedId, setSelectedId] = useState(null);
-  const [formData, setFormData] = useState({ title: '', target: 'Semua Anggota', content: '', startDate: '', endDate: '' });
+  const [formData, setFormData] = useState({ Judul: '', Target: 'Semua Anggota', Isi: '', Status: 'publish' });
 
   useEffect(() => {
     if (ormawaId) {
@@ -34,21 +34,17 @@ const Pengumuman = () => {
       if (selectedId) {
         await ormawaService.updateAnnouncement(selectedId, {
           ...formData,
-          ormawaId: Number(ormawaId),
-          startDate: new Date(formData.startDate).toISOString(),
-          endDate: new Date(formData.endDate).toISOString()
+          OrmawaID: Number(ormawaId)
         });
       } else {
         await ormawaService.createAnnouncement({
           ...formData,
-          ormawaId: Number(ormawaId),
-          startDate: new Date(formData.startDate).toISOString(),
-          endDate: new Date(formData.endDate).toISOString()
+          OrmawaID: Number(ormawaId)
         });
       }
       setIsModalOpen(false);
       setSelectedId(null);
-      setFormData({ title: '', target: 'Semua Anggota', content: '', startDate: '', endDate: '' });
+      setFormData({ Judul: '', Target: 'Semua Anggota', Isi: '', Status: 'publish' });
       fetchAnnouncements();
     } catch (e) { alert("⚠️ Gagal memproses pengumuman."); }
   };
@@ -62,13 +58,12 @@ const Pengumuman = () => {
   };
 
   const openEdit = (item) => {
-    setSelectedId(item.id);
+    setSelectedId(item.ID);
     setFormData({
-      title: item.title,
-      target: item.target,
-      content: item.content,
-      startDate: item.startDate.split('T')[0],
-      endDate: item.endDate.split('T')[0]
+      Judul: item.Judul,
+      Target: item.Target,
+      Isi: item.Isi,
+      Status: item.Status
     });
     setIsModalOpen(true);
   };
@@ -83,7 +78,7 @@ const Pengumuman = () => {
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
             <div>
               <h1 className="text-2xl font-black font-headline mb-1 text-on-surface">Siaran & Pengumuman</h1>
-              <p className="text-on-surface-variant text-xs font-medium">Broadcast informasi penting dengan sistem auto-deaktivasi.</p>
+              <p className="text-on-surface-variant text-xs font-medium">Broadcast informasi penting kepada pengurus atau publik.</p>
             </div>
             <button 
               onClick={() => setIsModalOpen(true)}
@@ -96,28 +91,21 @@ const Pengumuman = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {announcements.map((item) => (
-              <div key={item.id} className="bg-surface-container-lowest border border-outline-variant/20 rounded-2xl overflow-hidden shadow-sm flex flex-col group hover:shadow-md transition-all duration-300">
-                <div className={`h-1.5 w-full ${new Date(item.endDate) > new Date() ? 'bg-emerald-500' : 'bg-slate-300'}`}></div>
+              <div key={item.ID} className="bg-surface-container-lowest border border-outline-variant/20 rounded-2xl overflow-hidden shadow-sm flex flex-col group hover:shadow-md transition-all duration-300">
+                <div className="h-1.5 w-full bg-primary/20"></div>
                 <div className="p-5 flex-grow flex flex-col">
                   <div className="flex justify-between items-start mb-3">
-                    <span className="text-[9px] uppercase tracking-wider font-black bg-surface-container px-2 py-0.5 rounded text-primary">{item.target}</span>
-                    {new Date(item.endDate) > new Date() ? (
-                      <span className="text-[9px] font-black uppercase tracking-wider text-emerald-600 flex items-center gap-1 bg-emerald-50 px-2 py-0.5 border border-emerald-200 rounded-md animate-pulse">
-                         Live
-                      </span>
-                    ) : (
-                      <span className="text-[9px] font-black uppercase tracking-wider text-slate-500 flex items-center gap-1 bg-slate-100 px-2 py-0.5 border border-slate-300 rounded-md">
-                         Arsip
-                      </span>
-                    )}
+                    <span className="text-[9px] uppercase tracking-wider font-black bg-surface-container px-2 py-0.5 rounded text-primary">{item.Target}</span>
+                    <span className="text-[9px] font-black uppercase tracking-wider text-emerald-600 flex items-center gap-1 bg-emerald-50 px-2 py-0.5 border border-emerald-200 rounded-md">
+                        {item.Status}
+                    </span>
                   </div>
                   
-                  <h3 className="text-[17px] font-bold font-headline leading-tight mb-1.5 text-on-surface group-hover:text-primary transition-colors">{item.title}</h3>
-                  <p className="text-[13px] text-on-surface-variant leading-relaxed line-clamp-3 flex-grow opacity-85">{item.content}</p>
+                  <h3 className="text-[17px] font-bold font-headline leading-tight mb-1.5 text-on-surface group-hover:text-primary transition-colors">{item.Judul}</h3>
+                  <p className="text-[13px] text-on-surface-variant leading-relaxed line-clamp-3 flex-grow opacity-85">{item.Isi}</p>
                   
                   <div className="mt-5 pt-3 border-t border-outline-variant/10 flex justify-between items-center text-[10px] font-bold text-secondary uppercase tracking-tight">
-                     <div className="flex items-center gap-1"><span className="material-symbols-outlined text-[14px]">calendar_today</span> {new Date(item.startDate).toLocaleDateString()}</div>
-                     <div className="flex items-center gap-1">{new Date(item.endDate).toLocaleDateString()} <span className="material-symbols-outlined text-[14px]">event_available</span></div>
+                     <div className="flex items-center gap-1"><span className="material-symbols-outlined text-[14px]">calendar_today</span> {new Date(item.CreatedAt).toLocaleDateString()}</div>
                   </div>
                 </div>
                 <div className="flex bg-surface-container-low/30 border-t border-outline-variant/10">
@@ -125,7 +113,7 @@ const Pengumuman = () => {
                      <span className="material-symbols-outlined text-[14px]">edit_note</span> Edit
                   </button>
                   <div className="w-px bg-outline-variant/10 min-h-full"></div>
-                  <button onClick={() => deleteItem(item.id)} className="flex-1 py-2.5 text-on-surface-variant hover:text-rose-500 text-[11px] font-black font-headline flex justify-center items-center gap-2 transition-all hover:bg-rose-50 uppercase tracking-wider">
+                  <button onClick={() => deleteItem(item.ID)} className="flex-1 py-2.5 text-on-surface-variant hover:text-rose-500 text-[11px] font-black font-headline flex justify-center items-center gap-2 transition-all hover:bg-rose-50 uppercase tracking-wider">
                      <span className="material-symbols-outlined text-[14px]">delete</span> Tarik
                   </button>
                 </div>
@@ -150,34 +138,22 @@ const Pengumuman = () => {
                     <div>
                       <label className="block text-xs font-bold text-on-surface uppercase tracking-widest mb-2">Judul Siaran</label>
                       <input required type="text" className="w-full p-4 bg-surface-container flex border border-outline-variant/20 rounded-xl focus:border-primary text-sm font-medium" 
-                        value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} placeholder="Penting: ..." />
+                        value={formData.Judul} onChange={e => setFormData({...formData, Judul: e.target.value})} placeholder="Penting: ..." />
                     </div>
                     <div>
                       <label className="block text-xs font-bold text-on-surface uppercase tracking-widest mb-2">Target Penerima</label>
                       <select className="w-full p-4 bg-surface-container flex border border-outline-variant/20 rounded-xl focus:border-primary text-sm font-bold"
-                         value={formData.target} onChange={e => setFormData({...formData, target: e.target.value})}>
+                         value={formData.Target} onChange={e => setFormData({...formData, Target: e.target.value})}>
                           <option value="Semua Anggota">Publik (Semua Anggota)</option>
                           <option value="Divisi Keuangan">Divisi Keuangan</option>
                           <option value="Divisi Medkom">Divisi Media & Komunikasi</option>
                           <option value="Panitia Khusus">Panitia Event Berjalan</option>
                       </select>
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
-                        <div>
-                           <label className="block text-xs font-bold text-on-surface uppercase tracking-widest mb-2">Mulai Tayang</label>
-                           <input required type="date" className="w-full p-3 bg-surface-container flex border border-outline-variant/20 rounded-xl text-sm" 
-                            value={formData.startDate} onChange={e => setFormData({...formData, startDate: e.target.value})} />
-                        </div>
-                        <div>
-                           <label className="block text-xs font-bold text-on-surface uppercase tracking-widest mb-2">Akhir Tayang (Auto-Archived)</label>
-                           <input required type="date" className="w-full p-3 bg-surface-container flex border border-outline-variant/20 rounded-xl text-sm" 
-                            value={formData.endDate} onChange={e => setFormData({...formData, endDate: e.target.value})} />
-                        </div>
-                    </div>
                     <div>
                       <label className="block text-xs font-bold text-on-surface uppercase tracking-widest mb-2">Isi Pesan Detail</label>
                       <textarea required rows="4" className="w-full p-4 bg-surface-container flex border border-outline-variant/20 rounded-xl focus:border-primary text-sm font-medium resize-none shadow-inner" 
-                        value={formData.content} onChange={e => setFormData({...formData, content: e.target.value})} placeholder="Jabarkan pengumuman di sini..."></textarea>
+                        value={formData.Isi} onChange={e => setFormData({...formData, Isi: e.target.value})} placeholder="Jabarkan pengumuman di sini..."></textarea>
                     </div>
                     
                     <button type="submit" className="w-full py-4 bg-primary text-on-primary font-bold rounded-2xl shadow-xl shadow-primary/20 hover:bg-primary/90 transition-all active:scale-95 flex items-center justify-center gap-2 mt-4">
