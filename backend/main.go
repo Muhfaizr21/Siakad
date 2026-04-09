@@ -1,6 +1,8 @@
 package main
 
 import (
+	"log"
+	"os"
 	authSvc "siakad-backend/auth"
 	"siakad-backend/config"
 	"siakad-backend/controllers/mahasiswa/achievement"
@@ -131,5 +133,10 @@ func main() {
 	routes.SetupOrmawaRoutes(app)
 
 	// Start Server
-	app.Listen(":8080")
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+	log.Printf("Server starting on port %s", port)
+	app.Listen(":" + port)
 }

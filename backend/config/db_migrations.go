@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"log"
 	"siakad-backend/models"
 
@@ -8,50 +9,247 @@ import (
 )
 
 func migrateModels(db *gorm.DB) error {
-	// Buat schema fakultas_admin jika belum ada
-	db.Exec("CREATE SCHEMA IF NOT EXISTS fakultas_admin;")
+	// ========================
+	// CREATE SCHEMA
+	// ========================
+	schemas := []string{"public", "fakultas", "mahasiswa", "ormawa"}
+	for _, s := range schemas {
+		if err := db.Exec(fmt.Sprintf("CREATE SCHEMA IF NOT EXISTS %s;", s)).Error; err != nil {
+			return err
+		}
+	}
 
-	return db.AutoMigrate(
+	// ========================
+	// PUBLIC (GLOBAL / AUTH / MASTER)
+	// ========================
+	if err := db.Table("public.users").AutoMigrate(
 		&models.User{},
+	); err != nil {
+		return err
+	}
+
+	// ========================
+	// FAKULTAS
+	// ========================
+	if err := db.Table("fakultas.fakultas").AutoMigrate(
 		&models.Fakultas{},
+	); err != nil {
+		return err
+	}
+
+	if err := db.Table("fakultas.program_studi").AutoMigrate(
 		&models.ProgramStudi{},
+	); err != nil {
+		return err
+	}
+
+	if err := db.Table("fakultas.dosen").AutoMigrate(
 		&models.Dosen{},
-		&models.Mahasiswa{},
+	); err != nil {
+		return err
+	}
+
+	if err := db.Table("fakultas.pengaturan_akademik").AutoMigrate(
 		&models.PengaturanAkademik{},
+	); err != nil {
+		return err
+	}
+
+	if err := db.Table("fakultas.program_mbkm").AutoMigrate(
 		&models.ProgramMBKM{},
-		&models.Prestasi{},
-		&models.Beasiswa{},
-		&models.BeasiswaPendaftaran{},
-		&models.Aspirasi{},
-		&models.Konseling{},
-		&models.PengajuanSurat{},
-		&models.Kesehatan{},
-		&models.LogAktivitas{},
-		&models.RiwayatOrganisasi{},
-		&models.Notifikasi{},
-		&models.Ormawa{},
-		&models.OrmawaAnggota{},
-		&models.OrmawaDivisi{},
-		&models.OrmawaRole{},
-		&models.OrmawaKegiatan{},
-		&models.OrmawaKehadiran{},
-		&models.OrmawaPengumuman{},
-		&models.OrmawaMutasiSaldo{},
-		&models.Proposal{},
-		&models.ProposalRiwayat{},
-		&models.LaporanPertanggungjawaban{},
-		&models.PkkmbKegiatan{},
-		&models.PkkmbProgress{},
-		&models.PkkmbHasil{},
-		&models.PkkmbBanding{},
-		&models.PkkmbSertifikat{},
+	); err != nil {
+		return err
+	}
+
+	if err := db.Table("fakultas.berita").AutoMigrate(
 		&models.Berita{},
-	)
+	); err != nil {
+		return err
+	}
+
+	// ========================
+	// MAHASISWA
+	// ========================
+	if err := db.Table("mahasiswa.mahasiswa").AutoMigrate(
+		&models.Mahasiswa{},
+	); err != nil {
+		return err
+	}
+
+	if err := db.Table("mahasiswa.prestasi").AutoMigrate(
+		&models.Prestasi{},
+	); err != nil {
+		return err
+	}
+
+	if err := db.Table("mahasiswa.beasiswa").AutoMigrate(
+		&models.Beasiswa{},
+	); err != nil {
+		return err
+	}
+
+	if err := db.Table("mahasiswa.beasiswa_pendaftaran").AutoMigrate(
+		&models.BeasiswaPendaftaran{},
+	); err != nil {
+		return err
+	}
+
+	if err := db.Table("mahasiswa.aspirasi").AutoMigrate(
+		&models.Aspirasi{},
+	); err != nil {
+		return err
+	}
+
+	if err := db.Table("mahasiswa.konseling").AutoMigrate(
+		&models.Konseling{},
+	); err != nil {
+		return err
+	}
+
+	if err := db.Table("mahasiswa.pengajuan_surat").AutoMigrate(
+		&models.PengajuanSurat{},
+	); err != nil {
+		return err
+	}
+
+	if err := db.Table("mahasiswa.kesehatan").AutoMigrate(
+		&models.Kesehatan{},
+	); err != nil {
+		return err
+	}
+
+	if err := db.Table("mahasiswa.log_aktivitas").AutoMigrate(
+		&models.LogAktivitas{},
+	); err != nil {
+		return err
+	}
+
+	if err := db.Table("mahasiswa.riwayat_organisasi").AutoMigrate(
+		&models.RiwayatOrganisasi{},
+	); err != nil {
+		return err
+	}
+
+	if err := db.Table("mahasiswa.notifikasi").AutoMigrate(
+		&models.Notifikasi{},
+	); err != nil {
+		return err
+	}
+
+	// ========================
+	// ORMAWA
+	// ========================
+	if err := db.Table("ormawa.ormawa").AutoMigrate(
+		&models.Ormawa{},
+	); err != nil {
+		return err
+	}
+
+	if err := db.Table("ormawa.ormawa_anggota").AutoMigrate(
+		&models.OrmawaAnggota{},
+	); err != nil {
+		return err
+	}
+
+	if err := db.Table("ormawa.ormawa_divisi").AutoMigrate(
+		&models.OrmawaDivisi{},
+	); err != nil {
+		return err
+	}
+
+	if err := db.Table("ormawa.ormawa_role").AutoMigrate(
+		&models.OrmawaRole{},
+	); err != nil {
+		return err
+	}
+
+	if err := db.Table("ormawa.ormawa_kegiatan").AutoMigrate(
+		&models.OrmawaKegiatan{},
+	); err != nil {
+		return err
+	}
+
+	if err := db.Table("ormawa.ormawa_kehadiran").AutoMigrate(
+		&models.OrmawaKehadiran{},
+	); err != nil {
+		return err
+	}
+
+	if err := db.Table("ormawa.ormawa_pengumuman").AutoMigrate(
+		&models.OrmawaPengumuman{},
+	); err != nil {
+		return err
+	}
+
+	if err := db.Table("ormawa.ormawa_mutasi_saldo").AutoMigrate(
+		&models.OrmawaMutasiSaldo{},
+	); err != nil {
+		return err
+	}
+
+	if err := db.Table("ormawa.proposal").AutoMigrate(
+		&models.Proposal{},
+	); err != nil {
+		return err
+	}
+
+	if err := db.Table("ormawa.proposal_riwayat").AutoMigrate(
+		&models.ProposalRiwayat{},
+	); err != nil {
+		return err
+	}
+
+	if err := db.Table("ormawa.laporan_pertanggungjawaban").AutoMigrate(
+		&models.LaporanPertanggungjawaban{},
+	); err != nil {
+		return err
+	}
+
+	// ========================
+	// PKKMB (MASUK MAHASISWA)
+	// ========================
+	if err := db.Table("mahasiswa.pkkmb_kegiatan").AutoMigrate(
+		&models.PkkmbKegiatan{},
+	); err != nil {
+		return err
+	}
+
+	if err := db.Table("mahasiswa.pkkmb_progress").AutoMigrate(
+		&models.PkkmbProgress{},
+	); err != nil {
+		return err
+	}
+
+	if err := db.Table("mahasiswa.pkkmb_hasil").AutoMigrate(
+		&models.PkkmbHasil{},
+	); err != nil {
+		return err
+	}
+
+	if err := db.Table("mahasiswa.pkkmb_banding").AutoMigrate(
+		&models.PkkmbBanding{},
+	); err != nil {
+		return err
+	}
+
+	if err := db.Table("mahasiswa.pkkmb_sertifikat").AutoMigrate(
+		&models.PkkmbSertifikat{},
+	); err != nil {
+		return err
+	}
+
+	return nil
 }
 
-// InitialSyncFakultas melakukan sinkronisasi awal data dari public schema ke fakultas_admin.
+// ========================
+// SYNC DATA (OPTIONAL)
+// ========================
+
 func InitialSyncFakultas(db *gorm.DB) {
-	log.Println("[Initial Sync] Memulai sinkronisasi data ke fakultas_admin...")
+	log.Println("[Initial Sync] Memulai sinkronisasi data ke fakultas...")
+
+	// contoh nanti:
+	// db.Exec("INSERT INTO fakultas.fakultas SELECT * FROM public.fakultas")
 
 	log.Println("[Initial Sync] Sinkronisasi selesai.")
 }

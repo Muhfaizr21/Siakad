@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 
+	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -21,6 +22,11 @@ type databaseConfig struct {
 }
 
 func ConnectDB() {
+	// Load .env file
+	if err := godotenv.Load(); err != nil {
+		log.Println("Warning: .env file not found, using system environment variables")
+	}
+
 	cfg := loadDatabaseConfig()
 
 	ensureDatabaseExists(cfg)
@@ -40,12 +46,6 @@ func ConnectDB() {
 	} else {
 		log.Println("Migrations Completed")
 		InitialSyncFakultas(db)
-	}
-
-	if shouldRunSeed() {
-		seedData(db)
-	} else {
-		log.Println("Seeder skipped (set RUN_SEED=true to enable)")
 	}
 
 	DB = db
