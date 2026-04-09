@@ -3,6 +3,7 @@ package controllers
 import (
 	"siakad-backend/config"
 	"siakad-backend/models"
+	"strings"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -13,12 +14,27 @@ func AmbilRingkasanDashboard(c *fiber.Ctx) error {
 	var totalMhs int64
 	var totalDosen int64
 	var totalProdi int64
+	adminFacultyID, hasFacultyScope := getFacultyIDFromContext(c)
 
-	config.DB.Model(&models.Mahasiswa{}).Count(&totalMhs)
-	config.DB.Model(&models.Dosen{}).Count(&totalDosen)
+	qMhs := config.DB.Model(&models.Mahasiswa{})
+	qDosen := config.DB.Model(&models.Dosen{})
+	qProdiCount := config.DB.Model(&models.ProgramStudi{})
+	if hasFacultyScope {
+		qMhs = qMhs.Where("fakultas_id = ?", adminFacultyID)
+		qDosen = qDosen.Where("fakultas_id = ?", adminFacultyID)
+		qProdiCount = qProdiCount.Where("fakultas_id = ?", adminFacultyID)
+	}
+
+	qMhs.Count(&totalMhs)
+	qDosen.Count(&totalDosen)
 	var totalPrestasiPending int64
-	config.DB.Model(&models.Prestasi{}).Where("status = ?", "MENUNGGU").Count(&totalPrestasiPending)
-	config.DB.Model(&models.ProgramStudi{}).Count(&totalProdi)
+	qPrestasi := config.DB.Model(&models.Prestasi{}).Where("status = ?", "MENUNGGU")
+	if hasFacultyScope {
+		subMhs := config.DB.Model(&models.Mahasiswa{}).Select("id").Where("fakultas_id = ?", adminFacultyID)
+		qPrestasi = qPrestasi.Where("mahasiswa_id IN (?)", subMhs)
+	}
+	qPrestasi.Count(&totalPrestasiPending)
+	qProdiCount.Count(&totalProdi)
 
 	// Status counts (Aktif, Cuti, Lulus, DO, etc.)
 	type StatusCount struct {
@@ -26,7 +42,11 @@ func AmbilRingkasanDashboard(c *fiber.Ctx) error {
 		Count  int64  `json:"count"`
 	}
 	var statusCounts []StatusCount
-	config.DB.Table("mahasiswa").
+	qStatus := config.DB.Model(&models.Mahasiswa{})
+	if hasFacultyScope {
+		qStatus = qStatus.Where("fakultas_id = ?", adminFacultyID)
+	}
+	qStatus.
 		Select("status_akun as status, count(*) as count").
 		Group("status_akun").
 		Scan(&statusCounts)
@@ -41,16 +61,31 @@ func AmbilRingkasanDashboard(c *fiber.Ctx) error {
 		Akreditasi string  `json:"akreditasi"` // Akreditasi
 	}
 	var prodiDist []ProdiDist
-	config.DB.Table("program_studi").
+	qProdi := config.DB.Table("program_studis").
 		Select("program_studi.nama as nama_prodi, " +
 			"program_studi.akreditasi as akreditasi, " +
 			"count(mahasiswa.id) as jumlah, " +
 			"sum(case when mahasiswa.status_akun = 'Aktif' then 1 else 0 end) as active, " +
 			"sum(case when mahasiswa.status_akun = 'Lulus' then 1 else 0 end) as graduated, " +
 			"coalesce(avg(mahasiswa.ipk), 0) as avg_IPK").
-		Joins("left join mahasiswa on mahasiswa.program_studi_id = program_studi.id").
-		Group("program_studi.id, program_studi.nama, program_studi.akreditasi").
-		Scan(&prodiDist)
+		Joins("left join mahasiswas mahasiswa on mahasiswa.program_studi_id = program_studis.id").
+		Group("program_studis.id, program_studis.nama, program_studis.akreditasi")
+	if hasFacultyScope {
+		qProdi = qProdi.Where("program_studis.fakultas_id = ?", adminFacultyID)
+	}
+	if err := qProdi.Scan(&prodiDist).Error; err != nil {
+		// fallback untuk skema lama
+		config.DB.Table("program_studi").
+			Select("program_studi.nama as nama_prodi, " +
+				"program_studi.akreditasi as akreditasi, " +
+				"count(mahasiswa.id) as jumlah, " +
+				"sum(case when mahasiswa.status_akun = 'Aktif' then 1 else 0 end) as active, " +
+				"sum(case when mahasiswa.status_akun = 'Lulus' then 1 else 0 end) as graduated, " +
+				"coalesce(avg(mahasiswa.ipk), 0) as avg_IPK").
+			Joins("left join mahasiswa on mahasiswa.program_studi_id = program_studi.id").
+			Group("program_studi.id, program_studi.nama, program_studi.akreditasi").
+			Scan(&prodiDist)
+	}
 
 	// Per Angkatan (Trend)
 	type AngkatanDist struct {
@@ -59,12 +94,22 @@ func AmbilRingkasanDashboard(c *fiber.Ctx) error {
 		Pendaftar int64 `json:"pendaftar"`
 	}
 	var trendData []AngkatanDist
-	config.DB.Table("mahasiswa").
+	tq := config.DB.Table("mahasiswas").
 		Select("tahun_masuk as tahun, count(*) as diterima, count(*) + 5 as pendaftar"). // Mocking pendaftar as slightly more than accepted
 		Where("tahun_masuk > 0").
 		Group("tahun_masuk").
-		Order("tahun_masuk asc").
-		Scan(&trendData)
+		Order("tahun_masuk asc")
+	if hasFacultyScope {
+		tq = tq.Where("fakultas_id = ?", adminFacultyID)
+	}
+	if err := tq.Scan(&trendData).Error; err != nil {
+		config.DB.Table("mahasiswa").
+			Select("tahun_masuk as tahun, count(*) as diterima, count(*) + 5 as pendaftar").
+			Where("tahun_masuk > 0").
+			Group("tahun_masuk").
+			Order("tahun_masuk asc").
+			Scan(&trendData)
+	}
 
 	// Aktivitas Terbaru (Gabungan Prestasi, Aspirasi, Beasiswa, Mahasiswa Baru)
 	type ActivityItem struct {
@@ -74,29 +119,66 @@ func AmbilRingkasanDashboard(c *fiber.Ctx) error {
 		Avatar string `json:"avatar"`
 	}
 	var logs []ActivityItem
+	initial := func(nama string) string {
+		nama = strings.TrimSpace(nama)
+		if nama == "" {
+			return "U"
+		}
+		return strings.ToUpper(string([]rune(nama)[0]))
+	}
 
 	// Ambil 5 Prestasi Terbaru
 	var pList []models.Prestasi
-	config.DB.Preload("Mahasiswa").Order("id desc").Limit(3).Find(&pList)
+	qPL := config.DB.Preload("Mahasiswa").Order("id desc").Limit(3)
+	if hasFacultyScope {
+		subMhs := config.DB.Model(&models.Mahasiswa{}).Select("id").Where("fakultas_id = ?", adminFacultyID)
+		qPL = qPL.Where("mahasiswa_id IN (?)", subMhs)
+	}
+	qPL.Find(&pList)
 	for _, p := range pList {
+		nama := strings.TrimSpace(p.Mahasiswa.Nama)
+		if nama == "" {
+			nama = "Mahasiswa"
+		}
 		logs = append(logs, ActivityItem{
-			User:   p.Mahasiswa.Nama,
+			User:   nama,
 			Action: "mengajukan prestasi: " + p.NamaKegiatan,
 			Time:   "Baru saja",
-			Avatar: string(p.Mahasiswa.Nama[0]),
+			Avatar: initial(nama),
 		})
 	}
 
 	// Ambil 2 Mahasiswa Terbaru
 	var mList []models.Mahasiswa
-	config.DB.Order("id desc").Limit(2).Find(&mList)
+	qML := config.DB.Order("id desc").Limit(2)
+	if hasFacultyScope {
+		qML = qML.Where("fakultas_id = ?", adminFacultyID)
+	}
+	qML.Find(&mList)
 	for _, m := range mList {
+		nama := strings.TrimSpace(m.Nama)
+		if nama == "" {
+			nama = "Mahasiswa"
+		}
 		logs = append(logs, ActivityItem{
-			User:   m.Nama,
+			User:   nama,
 			Action: "terdaftar sebagai mahasiswa baru",
 			Time:   "Hari ini",
-			Avatar: string(m.Nama[0]),
+			Avatar: initial(nama),
 		})
+	}
+
+	if statusCounts == nil {
+		statusCounts = []StatusCount{}
+	}
+	if prodiDist == nil {
+		prodiDist = []ProdiDist{}
+	}
+	if trendData == nil {
+		trendData = []AngkatanDist{}
+	}
+	if logs == nil {
+		logs = []ActivityItem{}
 	}
 
 	return c.JSON(fiber.Map{
@@ -189,7 +271,7 @@ func AmbilRingkasanLaporan(c *fiber.Ctx) error {
 
 	// Per Prodi (Distribusi) - Menampilkan semua prodi meskipun belum ada mahasiswanya
 	type ProdiDist struct {
-		NamaProdi      string  `json:"nama_prodi"`
+		NamaProdi string  `json:"nama_prodi"`
 		Value     int64   `json:"value"`     // Total Mahasiswa
 		Active    int64   `json:"active"`    // Aktif
 		Leave     int64   `json:"leave"`     // Cuti

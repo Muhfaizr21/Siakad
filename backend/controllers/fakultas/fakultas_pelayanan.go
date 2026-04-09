@@ -11,7 +11,8 @@ import (
 
 func AmbilDaftarAspirasi(c *fiber.Ctx) error {
 	var daftar []models.Aspirasi
-	config.DB.Preload("Mahasiswa.ProgramStudi").Preload("Mahasiswa.Pengguna").Order("created_at desc").Find(&daftar)
+	query := applyFacultyScopeByMahasiswa(c, config.DB.Preload("Mahasiswa.ProgramStudi").Preload("Mahasiswa.Pengguna").Order("created_at desc"), "mahasiswa_id")
+	query.Find(&daftar)
 	return c.JSON(fiber.Map{"status": "success", "data": daftar})
 }
 
@@ -24,6 +25,18 @@ func TanggapiAspirasi(c *fiber.Ctx) error {
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Payload salah"})
 	}
+
+	var current models.Aspirasi
+	if err := config.DB.Select("id", "mahasiswa_id").First(&current, id).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Aspirasi tidak ditemukan"})
+	}
+	if err := ensureMahasiswaInScope(c, current.MahasiswaID); err != nil {
+		if ferr, ok := err.(*fiber.Error); ok {
+			return c.Status(ferr.Code).JSON(fiber.Map{"status": "error", "message": ferr.Message})
+		}
+		return c.Status(403).JSON(fiber.Map{"status": "error", "message": err.Error()})
+	}
+
 	config.DB.Model(&models.Aspirasi{}).Where("id = ?", id).Updates(models.Aspirasi{
 		Status: req.Status,
 		Respon: req.Respon,
@@ -33,6 +46,16 @@ func TanggapiAspirasi(c *fiber.Ctx) error {
 
 func HapusAspirasi(c *fiber.Ctx) error {
 	id := c.Params("id")
+	var current models.Aspirasi
+	if err := config.DB.Select("id", "mahasiswa_id").First(&current, id).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Aspirasi tidak ditemukan"})
+	}
+	if err := ensureMahasiswaInScope(c, current.MahasiswaID); err != nil {
+		if ferr, ok := err.(*fiber.Error); ok {
+			return c.Status(ferr.Code).JSON(fiber.Map{"status": "error", "message": ferr.Message})
+		}
+		return c.Status(403).JSON(fiber.Map{"status": "error", "message": err.Error()})
+	}
 	config.DB.Delete(&models.Aspirasi{}, id)
 	return c.JSON(fiber.Map{"status": "success", "message": "Aspirasi dihapus"})
 }
@@ -41,7 +64,8 @@ func HapusAspirasi(c *fiber.Ctx) error {
 
 func AmbilDaftarPrestasi(c *fiber.Ctx) error {
 	var daftar []models.Prestasi
-	config.DB.Preload("Mahasiswa.ProgramStudi").Preload("Mahasiswa.Pengguna").Order("created_at desc").Find(&daftar)
+	query := applyFacultyScopeByMahasiswa(c, config.DB.Preload("Mahasiswa.ProgramStudi").Preload("Mahasiswa.Pengguna").Order("created_at desc"), "mahasiswa_id")
+	query.Find(&daftar)
 	return c.JSON(fiber.Map{"status": "success", "data": daftar})
 }
 
@@ -55,6 +79,17 @@ func VerifikasiPrestasi(c *fiber.Ctx) error {
 		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Payload salah"})
 	}
 
+	var current models.Prestasi
+	if err := config.DB.Select("id", "mahasiswa_id").First(&current, id).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Prestasi tidak ditemukan"})
+	}
+	if err := ensureMahasiswaInScope(c, current.MahasiswaID); err != nil {
+		if ferr, ok := err.(*fiber.Error); ok {
+			return c.Status(ferr.Code).JSON(fiber.Map{"status": "error", "message": ferr.Message})
+		}
+		return c.Status(403).JSON(fiber.Map{"status": "error", "message": err.Error()})
+	}
+
 	config.DB.Model(&models.Prestasi{}).Where("id = ?", id).Updates(models.Prestasi{
 		Status: req.Status,
 	})
@@ -63,6 +98,16 @@ func VerifikasiPrestasi(c *fiber.Ctx) error {
 
 func HapusPrestasi(c *fiber.Ctx) error {
 	id := c.Params("id")
+	var current models.Prestasi
+	if err := config.DB.Select("id", "mahasiswa_id").First(&current, id).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Prestasi tidak ditemukan"})
+	}
+	if err := ensureMahasiswaInScope(c, current.MahasiswaID); err != nil {
+		if ferr, ok := err.(*fiber.Error); ok {
+			return c.Status(ferr.Code).JSON(fiber.Map{"status": "error", "message": ferr.Message})
+		}
+		return c.Status(403).JSON(fiber.Map{"status": "error", "message": err.Error()})
+	}
 	config.DB.Delete(&models.Prestasi{}, id)
 	return c.JSON(fiber.Map{"status": "success", "message": "Prestasi dihapus"})
 }
@@ -71,7 +116,8 @@ func HapusPrestasi(c *fiber.Ctx) error {
 
 func AmbilDaftarSurat(c *fiber.Ctx) error {
 	var daftar []models.PengajuanSurat
-	config.DB.Preload("Mahasiswa.ProgramStudi").Preload("Mahasiswa.Pengguna").Order("created_at desc").Find(&daftar)
+	query := applyFacultyScopeByMahasiswa(c, config.DB.Preload("Mahasiswa.ProgramStudi").Preload("Mahasiswa.Pengguna").Order("created_at desc"), "mahasiswa_id")
+	query.Find(&daftar)
 	return c.JSON(fiber.Map{"status": "success", "data": daftar})
 }
 
@@ -80,6 +126,16 @@ func PerbaruiStatusSurat(c *fiber.Ctx) error {
 	var req models.PengajuanSurat
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Payload salah"})
+	}
+	var current models.PengajuanSurat
+	if err := config.DB.Select("id", "mahasiswa_id").First(&current, id).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Data surat tidak ditemukan"})
+	}
+	if err := ensureMahasiswaInScope(c, current.MahasiswaID); err != nil {
+		if ferr, ok := err.(*fiber.Error); ok {
+			return c.Status(ferr.Code).JSON(fiber.Map{"status": "error", "message": ferr.Message})
+		}
+		return c.Status(403).JSON(fiber.Map{"status": "error", "message": err.Error()})
 	}
 	config.DB.Model(&models.PengajuanSurat{}).Where("id = ?", id).Updates(models.PengajuanSurat{
 		Status:  req.Status,
@@ -91,6 +147,16 @@ func PerbaruiStatusSurat(c *fiber.Ctx) error {
 
 func HapusSurat(c *fiber.Ctx) error {
 	id := c.Params("id")
+	var current models.PengajuanSurat
+	if err := config.DB.Select("id", "mahasiswa_id").First(&current, id).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Data surat tidak ditemukan"})
+	}
+	if err := ensureMahasiswaInScope(c, current.MahasiswaID); err != nil {
+		if ferr, ok := err.(*fiber.Error); ok {
+			return c.Status(ferr.Code).JSON(fiber.Map{"status": "error", "message": ferr.Message})
+		}
+		return c.Status(403).JSON(fiber.Map{"status": "error", "message": err.Error()})
+	}
 	config.DB.Delete(&models.PengajuanSurat{}, id)
 	return c.JSON(fiber.Map{"status": "success", "message": "Data dihapus"})
 }
@@ -144,7 +210,8 @@ func HapusBeasiswa(c *fiber.Ctx) error {
 
 func AmbilPendaftarBeasiswa(c *fiber.Ctx) error {
 	var pendaftar []models.BeasiswaPendaftaran
-	config.DB.Preload("Beasiswa").Preload("Mahasiswa.ProgramStudi").Find(&pendaftar)
+	query := applyFacultyScopeByMahasiswa(c, config.DB.Preload("Beasiswa").Preload("Mahasiswa.ProgramStudi"), "mahasiswa_id")
+	query.Find(&pendaftar)
 	return c.JSON(fiber.Map{"status": "success", "data": pendaftar})
 }
 
@@ -204,7 +271,8 @@ func HapusOrganisasi(c *fiber.Ctx) error {
 
 func AmbilDaftarProposalOrmawa(c *fiber.Ctx) error {
 	var daftar []models.Proposal
-	config.DB.Preload("Ormawa").Order("created_at desc").Find(&daftar)
+	query := applyFacultyScope(c, config.DB.Preload("Ormawa").Order("created_at desc"), "fakultas_id")
+	query.Find(&daftar)
 	return c.JSON(fiber.Map{"status": "success", "data": daftar})
 }
 
@@ -239,7 +307,8 @@ func ValidasiProposalFakultas(c *fiber.Ctx) error {
 
 func AmbilDaftarKonseling(c *fiber.Ctx) error {
 	var daftar []models.Konseling
-	config.DB.Order("created_at desc").Preload("Mahasiswa.ProgramStudi").Find(&daftar)
+	query := applyFacultyScopeByMahasiswa(c, config.DB.Order("created_at desc").Preload("Mahasiswa.ProgramStudi"), "mahasiswa_id")
+	query.Find(&daftar)
 	return c.JSON(fiber.Map{"status": "success", "data": daftar})
 }
 
@@ -247,6 +316,16 @@ func TambahSesiKonseling(c *fiber.Ctx) error {
 	var session models.Konseling
 	if err := c.BodyParser(&session); err != nil {
 		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Payload salah"})
+	}
+
+	if facultyID, ok := getFacultyIDFromContext(c); ok {
+		var mhs models.Mahasiswa
+		if err := config.DB.Select("id", "fakultas_id").First(&mhs, session.MahasiswaID).Error; err != nil {
+			return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Mahasiswa tidak ditemukan"})
+		}
+		if mhs.FakultasID != facultyID {
+			return c.Status(403).JSON(fiber.Map{"status": "error", "message": "Mahasiswa bukan dari fakultas Anda"})
+		}
 	}
 	config.DB.Create(&session)
 	return c.JSON(fiber.Map{"status": "success", "message": "Sesi konseling berhasil dibuat", "data": session})
@@ -270,16 +349,17 @@ func HapusSesiKonseling(c *fiber.Ctx) error {
 
 func AmbilDaftarKesehatan(c *fiber.Ctx) error {
 	var daftar []models.Kesehatan
-	config.DB.Preload("Mahasiswa.ProgramStudi").Find(&daftar)
+	query := applyFacultyScopeByMahasiswa(c, config.DB.Preload("Mahasiswa.ProgramStudi"), "mahasiswa_id")
+	query.Find(&daftar)
 	return c.JSON(fiber.Map{"status": "success", "data": daftar})
 }
 
 func AmbilRingkasanKesehatan(c *fiber.Ctx) error {
 	var total int64
 	var res struct {
-		BloodA int64 `json:"bloodA"`
-		BloodB int64 `json:"bloodB"`
-		BloodO int64 `json:"bloodO"`
+		BloodA  int64 `json:"bloodA"`
+		BloodB  int64 `json:"bloodB"`
+		BloodO  int64 `json:"bloodO"`
 		BloodAB int64 `json:"bloodAB"`
 	}
 	config.DB.Model(&models.Kesehatan{}).Count(&total)
@@ -291,7 +371,7 @@ func AmbilRingkasanKesehatan(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{
 		"status": "success",
 		"data": fiber.Map{
-			"total": total,
+			"total":        total,
 			"distribution": res,
 		},
 	})
@@ -304,4 +384,3 @@ func HapusDataKesehatan(c *fiber.Ctx) error {
 }
 
 // --- END OF SERVICE CONTROLLERS ---
-

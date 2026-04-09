@@ -1,6 +1,7 @@
 package main
 
 import (
+	"os"
 	authSvc "siakad-backend/auth"
 	"siakad-backend/config"
 	"siakad-backend/controllers/mahasiswa/achievement"
@@ -15,7 +16,6 @@ import (
 	"siakad-backend/controllers/mahasiswa/voice"
 	"siakad-backend/middleware"
 	"siakad-backend/routes"
-	"os"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
@@ -40,10 +40,15 @@ func main() {
 
 	// Middleware
 	app.Use(logger.New())
+	frontendOrigin := os.Getenv("FRONTEND_ORIGIN")
+	if frontendOrigin == "" {
+		frontendOrigin = "http://localhost:5173"
+	}
 	app.Use(cors.New(cors.Config{
-		AllowOrigins: "*",
-		AllowHeaders: "Origin, Content-Type, Accept, Authorization",
-		AllowMethods: "GET, POST, PUT, DELETE",
+		AllowOrigins:     frontendOrigin,
+		AllowHeaders:     "Origin, Content-Type, Accept, Authorization",
+		AllowMethods:     "GET, POST, PUT, DELETE",
+		AllowCredentials: true,
 	}))
 
 	// Static files for uploads
@@ -69,7 +74,11 @@ func main() {
 	kencanaGroup.Get("/progress", kencana.GetProgress)
 	kencanaGroup.Post("/check-in/:id", kencana.CheckIn)
 	kencanaGroup.Get("/sertifikat", kencana.GetSertifikat)
+	kencanaGroup.Post("/sertifikat/generate", kencana.GenerateSertifikat)
+	kencanaGroup.Get("/banding", kencana.GetBandingList)
 	kencanaGroup.Post("/banding", kencana.SubmitBanding)
+	kencanaGroup.Get("/kuis/:id/soal", kencana.GetKuisSoal)
+	kencanaGroup.Post("/kuis/:id/submit", kencana.SubmitKuis)
 
 	// Achievement Routes
 	achievementGroup := api.Group("/achievement", middleware.AuthProtected)
@@ -83,6 +92,10 @@ func main() {
 	profilGroup.Get("/", profil.GetProfile)
 	profilGroup.Put("/data-diri", profil.UpdateProfile)
 	profilGroup.Post("/foto", profil.UploadAvatar)
+	profilGroup.Get("/preferensi-notif", profil.GetPreferensiNotif)
+	profilGroup.Put("/preferensi-notif", profil.UpdatePreferensiNotif)
+	profilGroup.Get("/sesi-aktif", profil.GetSesiAktif)
+	profilGroup.Get("/riwayat-login", profil.GetRiwayatLogin)
 	profilGroup.Put("/ganti-password", profil.ChangePassword)
 
 	// Scholarship Routes
@@ -95,12 +108,20 @@ func main() {
 
 	// Counseling Routes
 	counselingGroup := api.Group("/counseling", middleware.AuthProtected)
+	counselingGroup.Get("/jadwal", counseling.GetCounselingJadwal)
+	counselingGroup.Get("/riwayat", counseling.GetCounselingRiwayat)
+	counselingGroup.Delete("/riwayat/:id", counseling.CancelBooking)
+	counselingGroup.Post("/booking", counseling.CreateBooking)
 	counselingGroup.Get("/status", counseling.GetCounselingStatus)
 	counselingGroup.Post("/request", counseling.RequestCounseling)
 
 	// Health Routes
 	healthGroup := api.Group("/health", middleware.AuthProtected)
+	healthGroup.Get("/ringkasan", health.GetHealthRingkasan)
 	healthGroup.Get("/riwayat", health.GetHealthRiwayat)
+	healthGroup.Get("/riwayat/:id", health.GetHealthDetail)
+	healthGroup.Get("/tips", health.GetHealthTips)
+	healthGroup.Post("/mandiri", health.CreateHealthMandiri)
 	healthGroup.Post("/record", health.CreateHealthRecord)
 
 	// Student Voice (Aspirasi) Routes
@@ -128,6 +149,7 @@ func main() {
 	notifGroup.Delete("/:id", notifikasi.DeleteNotification)
 
 	// Modular Routes
+	routes.InisialisasiRuteSuperAdmin(app)
 	routes.InisialisasiRuteFakultas(app)
 	routes.SetupOrmawaRoutes(app)
 

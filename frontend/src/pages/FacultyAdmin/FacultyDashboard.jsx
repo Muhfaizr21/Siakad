@@ -56,6 +56,18 @@ export default function DashboardPage() {
     recentActivity: []
   });
 
+  const normalizeSummaryData = (data = {}) => ({
+    totalStudents: Number(data.totalStudents || 0),
+    totalLecturers: Number(data.totalLecturers || 0),
+    totalCourses: Number(data.totalCourses || 0),
+    totalProdi: Number(data.totalProdi || 0),
+    totalPrestasi: Number(data.totalPrestasi || 0),
+    statusCounts: Array.isArray(data.statusCounts) ? data.statusCounts : [],
+    prodiDistribution: Array.isArray(data.prodiDistribution) ? data.prodiDistribution : [],
+    trendData: Array.isArray(data.trendData) ? data.trendData : [],
+    recentActivity: Array.isArray(data.recentActivity) ? data.recentActivity : [],
+  });
+
   useEffect(() => {
     setIsMounted(true);
     const fetchDashboardData = async () => {
@@ -64,7 +76,7 @@ export default function DashboardPage() {
         const response = await fetch('http://localhost:8000/api/faculty/summary');
         const result = await response.json();
         if (result.status === 'success') {
-          setSummaryData(result.data);
+          setSummaryData(normalizeSummaryData(result.data));
         }
       } catch (error) {
         console.error("Error fetching dashboard statistics:", error);
@@ -262,7 +274,7 @@ export default function DashboardPage() {
 
 
 
-                <BarChart data={summaryData.prodiDistribution} layout="vertical" margin={{ left: 20, right: 20, top: 0, bottom: 0 }}>
+                <BarChart data={Array.isArray(summaryData.prodiDistribution) ? summaryData.prodiDistribution : []} layout="vertical" margin={{ left: 20, right: 20, top: 0, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="#f1f5f9" />
                   <XAxis type="number" hide />
                   <YAxis
@@ -394,7 +406,7 @@ export default function DashboardPage() {
 
 
 
-                <LineChart data={summaryData.trendData}>
+                <LineChart data={Array.isArray(summaryData.trendData) ? summaryData.trendData : []}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                   <XAxis dataKey="tahun" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 700 }} />
                   <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 700 }} />

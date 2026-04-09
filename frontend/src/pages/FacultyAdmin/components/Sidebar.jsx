@@ -1,7 +1,8 @@
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../context/AuthContext';
 import { ChevronRight, LogOut, LayoutDashboard, Users, UserPlus, UserCheck, CheckCircle2, HeartPulse, MessageSquare, Award, GraduationCap, CalendarDays, Inbox, FileSpreadsheet, Building2, School, Settings, BarChart3, Boxes } from 'lucide-react';
+import api from '../../../lib/axios';
 
 const menuSections = [
   {
@@ -50,7 +51,19 @@ const menuSections = [
 
 const Sidebar = ({ isOpen, setIsOpen }) => {
   const location = useLocation();
+  const navigate = useNavigate();
   const { logout } = useAuth();
+
+  const handleLogout = async () => {
+    try {
+      await api.post('/auth/logout');
+    } catch {
+      // noop, tetap clear sesi di client
+    } finally {
+      logout();
+      navigate('/login', { replace: true });
+    }
+  };
 
   // Find all items that match the current path
   const allItems = menuSections.flatMap(section => section.items);
@@ -171,7 +184,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
         {/* Improved Logout Section */}
         <div className="p-4 bg-white/80 backdrop-blur-xl border-t border-slate-100">
           <button
-            onClick={logout}
+            onClick={handleLogout}
             className="w-full h-12 flex items-center justify-center gap-3 rounded-2xl bg-rose-50 hover:bg-rose-600 group transition-all duration-300 active:scale-95 border border-rose-100/50"
           >
             <LogOut className="size-4 text-rose-600 group-hover:text-white transition-colors" />

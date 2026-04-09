@@ -4,11 +4,12 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 
+	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
-	"github.com/joho/godotenv"
 )
 
 var DB *gorm.DB
@@ -59,17 +60,25 @@ func ConnectDB() {
 
 func loadDatabaseConfig() databaseConfig {
 	host := os.Getenv("DB_HOST")
-	if host == "" { host = "localhost" }
-	
+	if host == "" {
+		host = "localhost"
+	}
+
 	port := os.Getenv("DB_PORT")
-	if port == "" { port = "5432" }
-	
+	if port == "" {
+		port = "5432"
+	}
+
 	dbname := os.Getenv("DB_NAME")
-	if dbname == "" { dbname = "siakad" } // Fallback default
-	
+	if dbname == "" {
+		dbname = "siakad"
+	} // Fallback default
+
 	user := os.Getenv("DB_USER")
-	if user == "" { user = "muhfaiizr" }
-	
+	if user == "" {
+		user = "muhfaiizr"
+	}
+
 	log.Printf("[DB Config] Host: %s, Port: %s, User: %s, DBName: %s\n", host, port, user, dbname)
 
 	return databaseConfig{
@@ -118,4 +127,14 @@ func connectPostgres(dsn string, logMode logger.LogLevel) (*gorm.DB, error) {
 
 func enablePostgresExtensions(db *gorm.DB) {
 	db.Exec("CREATE EXTENSION IF NOT EXISTS \"pgcrypto\";")
+}
+
+func shouldRunSeed() bool {
+	v := strings.ToLower(strings.TrimSpace(os.Getenv("RUN_SEED")))
+	return v == "1" || v == "true" || v == "yes" || v == "on"
+}
+
+func seedData(db *gorm.DB) {
+	_ = db
+	log.Println("Seed hook active; bootstrap data handled by auth.EnsureBootstrapData()")
 }

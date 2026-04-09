@@ -1,7 +1,8 @@
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../context/AuthContext';
 import { ormawaService } from '../../../services/api';
+import api from '../../../lib/axios';
 
 const menuItems = [
   { name: 'Dashboard', path: '/ormawa', icon: 'dashboard', permission: 'dashboard' },
@@ -22,6 +23,7 @@ const menuItems = [
 
 const Sidebar = ({ isOpen, setIsOpen }) => {
   const location = useLocation();
+  const navigate = useNavigate();
   const { logout, user, hasPermission } = useAuth();
   const ormawaId = user?.ormawaId || 1;
   const [identity, setIdentity] = React.useState({ name: 'SIAKAD', alias: 'ORMAWA PORTAL' });
@@ -54,6 +56,17 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
       fetchIdentity();
     }
   }, [ormawaId]);
+
+  const handleLogout = async () => {
+    try {
+      await api.post('/auth/logout');
+    } catch {
+      // noop, tetap clear sesi di client
+    } finally {
+      logout();
+      navigate('/login', { replace: true });
+    }
+  };
 
   // Listen for global settings updates (sent from Settings.jsx)
   React.useEffect(() => {
@@ -133,7 +146,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
         {/* User / Logout Section (Always bottom) */}
         <div className="absolute bottom-0 left-0 right-0 p-5 bg-surface-container-low/80 backdrop-blur-md border-t border-outline-variant/5">
           <button
-            onClick={logout}
+            onClick={handleLogout}
             className="w-full py-3 flex items-center justify-center gap-3 rounded-2xl bg-rose-50 text-rose-600 font-black text-[10px] uppercase tracking-[0.2em] shadow-sm hover:bg-rose-600 hover:text-white transition-all active:scale-95 shadow-rose-100/50"
           >
             <span className="material-symbols-outlined text-[16px]">logout</span>

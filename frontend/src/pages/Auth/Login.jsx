@@ -9,12 +9,23 @@ import useAuthStore from '../../store/useAuthStore';
 
 // Validation Schema
 const loginSchema = z.object({
-  nim: z
+  identifier: z
     .string()
-    .min(8, 'NIM minimal 8 karakter')
-    .regex(/^\d+$/, 'NIM hanya boleh berisi angka'),
+    .min(4, 'Email atau NIM minimal 4 karakter'),
   password: z.string().min(6, 'Password minimal 6 karakter'),
 });
+
+const getRouteByRole = (role, hasMahasiswaProfile = false) => {
+  const normalizedRole = String(role || '').toLowerCase().trim();
+
+  if (['super_admin', 'superadmin', 'admin', 'admin_pusat'].includes(normalizedRole)) return '/admin';
+  if (['faculty_admin', 'admin_fakultas', 'fakultas_admin'].includes(normalizedRole)) return '/faculty';
+  if (['ormawa_admin', 'ormawa'].includes(normalizedRole)) return '/ormawa';
+  if (['dosen', 'lecturer'].includes(normalizedRole)) return '/faculty';
+  if (['student', 'mahasiswa'].includes(normalizedRole) || hasMahasiswaProfile) return '/student/dashboard';
+
+  return '/dashboard';
+};
 
 export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
@@ -34,9 +45,32 @@ export default function Login() {
     setErrorMsg('');
     try {
       const response = await api.post('/auth/login', data);
-      if (response.data.success) {
-        setAuth(response.data.data.access_token, response.data.data.mahasiswa);
-        navigate('/dashboard'); // or whatever the actual student dashboard route is
+      if (response.data.success || response.data.status === 'success') {
+        const payload = response.data.data || {};
+        const token = payload.access_token || payload.token;
+        const user = payload.user || {};
+        const mahasiswa = payload.mahasiswa || payload.user || null;
+
+        if (!token) {
+          setErrorMsg('Token login tidak ditemukan dari server.');
+          return;
+        }
+
+        setAuth(token, mahasiswa);
+
+        const targetRoute = getRouteByRole(
+          user.role || payload.role,
+          Boolean(mahasiswa && (mahasiswa.nim || mahasiswa.nama || mahasiswa.id))
+        );
+
+        navigate(targetRoute, { replace: true });
+        setTimeout(() => {
+          if (window.location.pathname === '/login') {
+            window.location.assign(targetRoute);
+          }
+        }, 50);
+      } else {
+        setErrorMsg(response.data?.message || 'Login gagal. Silakan periksa akun Anda.');
       }
     } catch (error) {
       if (error.response?.data?.message) {
@@ -92,19 +126,19 @@ export default function Login() {
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
             <div>
-              <label className="block text-sm font-medium text-neutral-900 mb-1.5" htmlFor="nim">
-                Nomor Induk Mahasiswa (NIM)
+              <label className="block text-sm font-medium text-neutral-900 mb-1.5" htmlFor="identifier">
+                Email atau NIM
               </label>
               <input
-                id="nim"
+                id="identifier"
                 type="text"
-                className={`w-full px-4 py-2.5 rounded-lg border ${errors.nim ? 'border-[#0B4FAE] focus:ring-[#0B4FAE]' : 'border-neutral-200 focus:border-[#00236F] focus:ring-[#00236F]'} focus:outline-none focus:ring-2 focus:ring-opacity-20 transition-all duration-200`}
-                placeholder="Misal: 10123456"
-                {...register('nim')}
+                className={`w-full px-4 py-2.5 rounded-lg border ${errors.identifier ? 'border-[#0B4FAE] focus:ring-[#0B4FAE]' : 'border-neutral-200 focus:border-[#00236F] focus:ring-[#00236F]'} focus:outline-none focus:ring-2 focus:ring-opacity-20 transition-all duration-200`}
+                placeholder="Misal: 10123456 atau admin@bku.ac.id"
+                {...register('identifier')}
                 disabled={isSubmitting}
               />
-              {errors.nim && (
-                <p className="mt-1.5 text-sm text-[#0B4FAE]">{errors.nim.message}</p>
+              {errors.identifier && (
+                <p className="mt-1.5 text-sm text-[#0B4FAE]">{errors.identifier.message}</p>
               )}
             </div>
 

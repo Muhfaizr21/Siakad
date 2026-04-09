@@ -24,12 +24,32 @@ type BaseModel struct {
 
 type User struct {
 	BaseModel
-	Email    string `gorm:"uniqueIndex;not null"`
-	Password string `gorm:"not null"`
-	Role     string `gorm:"index"`
+	Email          string `gorm:"uniqueIndex;not null"`
+	Password       string `gorm:"column:password_hash;not null"`
+	LegacyPassword string `gorm:"column:password"`
+	Role           string `gorm:"index"`
+	FakultasID     *uint  `gorm:"index"`
+	AdminRoleLabel string
 
 	Mahasiswa *Mahasiswa `gorm:"foreignKey:PenggunaID"`
 	Dosen     *Dosen     `gorm:"foreignKey:PenggunaID"`
+}
+
+func (u *User) BeforeSave(tx *gorm.DB) error {
+	if u.Password == "" {
+		u.Password = u.LegacyPassword
+	}
+	if u.LegacyPassword == "" {
+		u.LegacyPassword = u.Password
+	}
+	return nil
+}
+
+func (u *User) AfterFind(tx *gorm.DB) error {
+	if u.Password == "" {
+		u.Password = u.LegacyPassword
+	}
+	return nil
 }
 
 // ========================
@@ -268,10 +288,21 @@ type Kesehatan struct {
 	Mahasiswa   Mahasiswa
 
 	Tanggal          time.Time
-	JenisPemeriksaan string
-	Hasil            string
+	JenisPemeriksaan string // misal: Screening Tahunan, Cek Rutin
+	Hasil            string // Sehat, Pantauan, Perlu Perhatian
 	Catatan          string
 	FileURL          string
+
+	// Detail Medis (Completeness like Health Screening)
+	TinggiBadan     float64
+	BeratBadan      float64
+	Sistole         int
+	Diastole        int
+	GulaDarah       int
+	ButaWarna       string // Normal, Parsial, Total
+	RiwayatPenyakit string
+	StatusKesehatan string // prima, stabil, kritis
+	GolonganDarah   string // A, B, AB, O
 }
 
 type LogAktivitas struct {

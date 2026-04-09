@@ -38,12 +38,16 @@ func GetDashboard(c *fiber.Ctx) error {
 	config.DB.Model(&models.PkkmbProgress{}).Where("mahasiswa_id = ? AND status = ?", student.ID, "selesai").Count(&selesaiPkkmb)
 
 	pkkmbStatus := "Belum Dimulai"
+	pkkmbPersentase := 0.0
 	if selesaiPkkmb > 0 {
 		if selesaiPkkmb == totalPkkmb {
 			pkkmbStatus = "Selesai ✓"
 		} else {
 			pkkmbStatus = "Sedang Berlangsung"
 		}
+	}
+	if totalPkkmb > 0 {
+		pkkmbPersentase = float64(selesaiPkkmb) / float64(totalPkkmb) * 100
 	}
 
 	// 4. Beasiswa Stats
@@ -145,7 +149,7 @@ func GetDashboard(c *fiber.Ctx) error {
 			"kencana": fiber.Map{
 				"total_modul":   totalPkkmb,
 				"modul_selesai": selesaiPkkmb,
-				"persentase":    float64(selesaiPkkmb) / float64(totalPkkmb) * 100,
+				"persentase":    pkkmbPersentase,
 				"status":        pkkmbStatus,
 			},
 			"beasiswa": fiber.Map{
@@ -156,11 +160,11 @@ func GetDashboard(c *fiber.Ctx) error {
 				"jumlah_aktif":           countAspirasiAktif,
 				"jumlah_belum_direspons": countAspirasiBelumRespons,
 			},
-			"deadlines":          deadlines,
-			"aktivitas_terbaru":  activities,
-			"pengumuman":         recentNews,
-			"pesan_kontekstual":  pesan,
-			"link_kontekstual":   link,
+			"deadlines":         deadlines,
+			"aktivitas_terbaru": activities,
+			"pengumuman":        recentNews,
+			"pesan_kontekstual": pesan,
+			"link_kontekstual":  link,
 		},
 	})
 }

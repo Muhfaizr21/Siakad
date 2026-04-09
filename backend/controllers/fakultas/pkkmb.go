@@ -13,10 +13,23 @@ func AmbilRingkasanPkkmb(c *fiber.Ctx) error {
 	var totalMaba int64
 	var totalLulus int64
 	var totalProses int64
+	adminFacultyID, hasFacultyScope := getFacultyIDFromContext(c)
 
-	config.DB.Model(&models.Mahasiswa{}).Count(&totalMaba)
-	config.DB.Model(&models.PkkmbHasil{}).Where("status_kelulusan = ?", "Lulus").Count(&totalLulus)
-	config.DB.Model(&models.PkkmbHasil{}).Where("status_kelulusan = ?", "Proses").Count(&totalProses)
+	qMhs := config.DB.Model(&models.Mahasiswa{})
+	if hasFacultyScope {
+		qMhs = qMhs.Where("fakultas_id = ?", adminFacultyID)
+	}
+	qMhs.Count(&totalMaba)
+
+	qHasilLulus := config.DB.Model(&models.PkkmbHasil{}).Where("status_kelulusan = ?", "Lulus")
+	qHasilProses := config.DB.Model(&models.PkkmbHasil{}).Where("status_kelulusan = ?", "Proses")
+	if hasFacultyScope {
+		subMhs := config.DB.Model(&models.Mahasiswa{}).Select("id").Where("fakultas_id = ?", adminFacultyID)
+		qHasilLulus = qHasilLulus.Where("mahasiswa_id IN (?)", subMhs)
+		qHasilProses = qHasilProses.Where("mahasiswa_id IN (?)", subMhs)
+	}
+	qHasilLulus.Count(&totalLulus)
+	qHasilProses.Count(&totalProses)
 
 	// Breakdown per Prodi
 	type ProdiStats struct {
@@ -28,7 +41,11 @@ func AmbilRingkasanPkkmb(c *fiber.Ctx) error {
 	}
 
 	var prodis []models.ProgramStudi
-	config.DB.Find(&prodis)
+	qProdi := config.DB
+	if hasFacultyScope {
+		qProdi = qProdi.Where("fakultas_id = ?", adminFacultyID)
+	}
+	qProdi.Find(&prodis)
 
 	var listStats []ProdiStats
 	for _, p := range prodis {
@@ -122,6 +139,11 @@ func AmbilStatusKelulusanMahasiswa(c *fiber.Ctx) error {
 
 func AmbilDaftarKelulusanMaba(c *fiber.Ctx) error {
 	var list []models.PkkmbHasil
-	config.DB.Preload("Mahasiswa.ProgramStudi").Preload("Mahasiswa.Pengguna").Find(&list)
+	query := config.DB.Preload("Mahasiswa.ProgramStudi").Preload("Mahasiswa.Pengguna")
+	if facultyID, ok := getFacultyIDFromContext(c); ok {
+		subMhs := config.DB.Model(&models.Mahasiswa{}).Select("id").Where("fakultas_id = ?", facultyID)
+		query = query.Where("mahasiswa_id IN (?)", subMhs)
+	}
+	query.Find(&list)
 	return c.JSON(fiber.Map{"status": "success", "data": list})
 }

@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState } from 'react';
+import useAuthStore from '../store/useAuthStore';
 
 export const mockRoles = [
   {
@@ -86,8 +87,18 @@ export const AuthProvider = ({ children }) => {
     return user.role.permissions[module].includes(action);
   };
 
+  const logout = () => {
+    useAuthStore.getState().logout();
+    setUser({
+      id: 1,
+      name: 'Muhamad Faiz',
+      ormawaId: 1,
+      role: mockRoles[0],
+    });
+  };
+
   return (
-    <AuthContext.Provider value={{ user, hasPermission, switchMockRole, mockRoles }}>
+    <AuthContext.Provider value={{ user, hasPermission, switchMockRole, mockRoles, logout }}>
       {children}
     </AuthContext.Provider>
   );

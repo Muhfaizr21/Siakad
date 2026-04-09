@@ -11,7 +11,8 @@ import (
 
 func AmbilDaftarDosen(c *fiber.Ctx) error {
 	var daftarDosen []models.Dosen
-	if err := config.DB.Preload("Pengguna").Preload("Fakultas").Preload("ProgramStudi.Fakultas").Find(&daftarDosen).Error; err != nil {
+	query := applyFacultyScope(c, config.DB.Preload("Pengguna").Preload("Fakultas").Preload("ProgramStudi.Fakultas"), "fakultas_id")
+	if err := query.Find(&daftarDosen).Error; err != nil {
 		return c.Status(500).JSON(fiber.Map{"status": "error", "message": err.Error()})
 	}
 	return c.JSON(fiber.Map{"status": "success", "data": daftarDosen})
@@ -36,6 +37,19 @@ func TambahDosenBaru(c *fiber.Ctx) error {
 		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Format data tidak valid"})
 	}
 	c.BodyParser(&payload)
+
+	if facultyID, ok := getFacultyIDFromContext(c); ok {
+		d.FakultasID = facultyID
+		if d.ProgramStudiID != 0 {
+			var prodi models.ProgramStudi
+			if err := config.DB.Select("id", "fakultas_id").First(&prodi, d.ProgramStudiID).Error; err != nil {
+				return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Program studi tidak ditemukan"})
+			}
+			if prodi.FakultasID != facultyID {
+				return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Program studi tidak berada di fakultas admin"})
+			}
+		}
+	}
 
 	tx := config.DB.Begin()
 
@@ -112,7 +126,7 @@ func HapusDataDosen(c *fiber.Ctx) error {
 
 func AmbilDaftarMahasiswa(c *fiber.Ctx) error {
 	var mhs []models.Mahasiswa
-	query := config.DB.Preload("Pengguna").Preload("ProgramStudi.Fakultas").Preload("DosenPA")
+	query := applyFacultyScope(c, config.DB.Preload("Pengguna").Preload("ProgramStudi.Fakultas").Preload("DosenPA"), "fakultas_id")
 
 	angkatan := c.Query("angkatan")
 	if angkatan != "" {
@@ -145,12 +159,47 @@ func TambahMahasiswaBaru(c *fiber.Ctx) error {
 	}
 	c.BodyParser(&payload)
 
+	if facultyID, ok := getFacultyIDFromContext(c); ok {
+		m.FakultasID = facultyID
+
+		if m.ProgramStudiID != 0 {
+			var prodi models.ProgramStudi
+			if err := config.DB.Select("id", "fakultas_id").First(&prodi, m.ProgramStudiID).Error; err != nil {
+				return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Program studi tidak ditemukan"})
+			}
+			if prodi.FakultasID != facultyID {
+				return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Program studi tidak berada di fakultas admin"})
+			}
+		} else {
+			var fallbackProdi models.ProgramStudi
+			if err := config.DB.Where("fakultas_id = ?", facultyID).Order("id asc").First(&fallbackProdi).Error; err == nil {
+				m.ProgramStudiID = fallbackProdi.ID
+			}
+		}
+	}
+
+	if m.DosenPAID == 0 {
+		if m.FakultasID != 0 {
+			var dosenFak models.Dosen
+			if err := config.DB.Where("fakultas_id = ?", m.FakultasID).Order("id asc").First(&dosenFak).Error; err == nil {
+				m.DosenPAID = dosenFak.ID
+			}
+		}
+
+		if m.DosenPAID == 0 {
+			var anyDosen models.Dosen
+			if err := config.DB.Order("id asc").First(&anyDosen).Error; err == nil {
+				m.DosenPAID = anyDosen.ID
+			}
+		}
+	}
+
 	tx := config.DB.Begin()
 
 	user := models.User{
 		Email:    payload.Email,
 		Password: "$2a$10$r9C799sXvD8/Zk9m6p.hQ.m7I8WjKz.Y1vS/F1f7nI.Z1f7nI.Z1",
-		Role:     "mahasiswa",
+		Role:     "student",
 	}
 
 	if err := tx.Create(&user).Error; err != nil {
@@ -222,13 +271,18 @@ func HapusDataMahasiswa(c *fiber.Ctx) error {
 
 func AmbilDaftarFakultas(c *fiber.Ctx) error {
 	var f []models.Fakultas
-	config.DB.Find(&f)
+	query := config.DB
+	if facultyID, ok := getFacultyIDFromContext(c); ok {
+		query = query.Where("id = ?", facultyID)
+	}
+	query.Find(&f)
 	return c.JSON(fiber.Map{"status": "success", "data": f})
 }
 
 func AmbilDaftarProdi(c *fiber.Ctx) error {
 	var p []models.ProgramStudi
-	config.DB.Preload("Fakultas").Find(&p)
+	query := applyFacultyScope(c, config.DB.Preload("Fakultas"), "fakultas_id")
+	query.Find(&p)
 	return c.JSON(fiber.Map{"status": "success", "data": p})
 }
 
@@ -271,4 +325,3 @@ func SimpanPengaturanAkademik(c *fiber.Ctx) error {
 }
 
 // --- END OF ACADEMIC CONTROLLERS ---
-

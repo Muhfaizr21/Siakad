@@ -2,13 +2,14 @@ package routes
 
 import (
 	fakultas "siakad-backend/controllers/fakultas"
+	"siakad-backend/middleware"
 
 	"github.com/gofiber/fiber/v2"
 )
 
 // InisialisasiRuteFakultas mendaftarkan rute administrator fakultas (English Path for Frontend Compatibility)
 func InisialisasiRuteFakultas(aplikasi *fiber.App) {
-	api := aplikasi.Group("/api/faculty") // prefix kembali ke English sesuai frontend
+	api := aplikasi.Group("/api/faculty", middleware.AuthProtected, middleware.RequireRoles("faculty_admin", "super_admin")) // prefix kembali ke English sesuai frontend
 
 	// Akademik & Dosen
 	api.Get("/lecturers", fakultas.AmbilDaftarDosen)

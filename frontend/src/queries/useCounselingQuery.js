@@ -1,6 +1,15 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../lib/axios';
 
+const mapCounselingItem = (item = {}) => ({
+  id: item.ID ?? item.id,
+  tanggal: item.Tanggal || item.tanggal,
+  tipe: item.tipe || 'Akademik',
+  status: item.Status || item.status || 'Menunggu',
+  nama_konselor: item?.Dosen?.Nama || item.nama_konselor || '-',
+  jam_mulai: item.jam_mulai || '09:00',
+});
+
 // Get Available Schedules
 export const useCounselingJadwalQuery = () => {
   return useQuery({
@@ -18,7 +27,8 @@ export const useCounselingRiwayatQuery = () => {
     queryKey: ['counseling', 'riwayat'],
     queryFn: async () => {
       const { data } = await api.get('/counseling/riwayat');
-      return data.data; // List of clean BookingResponse
+      const list = Array.isArray(data?.data) ? data.data : [];
+      return list.map(mapCounselingItem);
     },
   });
 };

@@ -1,7 +1,23 @@
 import React from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
+import useAuthStore from '../../../store/useAuthStore';
+import api from '../../../lib/axios';
 
 const Sidebar = () => {
+  const navigate = useNavigate();
+  const logout = useAuthStore((state) => state.logout);
+
+  const handleLogout = async () => {
+    try {
+      await api.post('/auth/logout');
+    } catch {
+      // noop
+    } finally {
+      logout();
+      navigate('/login', { replace: true });
+    }
+  };
+
   const menuGroups = [
     {
       title: "Menu Utama",
@@ -99,13 +115,13 @@ const Sidebar = () => {
             <span>Unduh Laporan</span>
           </button>
 
-          <NavLink
-            to="/login"
-            className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-red-500 hover:bg-red-50 transition-all font-bold group "
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-red-500 hover:bg-red-50 transition-all font-bold group "
           >
             <span className="material-symbols-outlined text-[20px]">logout</span>
             <span className="text-sm">Keluar</span>
-          </NavLink>
+          </button>
         </div>
       </div>
     </aside>

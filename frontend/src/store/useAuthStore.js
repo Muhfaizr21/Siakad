@@ -9,7 +9,15 @@ const useAuthStore = create(
       
       setAuth: (accessToken, mahasiswa) => set({ accessToken, mahasiswa }),
       setAccessToken: (accessToken) => set({ accessToken }),
-      logout: () => set({ accessToken: null, mahasiswa: null })
+      logout: () => {
+        try {
+          localStorage.removeItem('siakad_auth');
+          localStorage.removeItem('auth-storage');
+        } catch {
+          // ignore storage errors
+        }
+        set({ accessToken: null, mahasiswa: null });
+      }
     }),
     {
       name: 'auth-storage', // local storage key

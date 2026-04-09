@@ -26,7 +26,18 @@ export default function ProfilePage() {
     queryKey: ['mahasiswa', 'profile'],
     queryFn: async () => {
       const { data } = await api.get('/profil');
-      return data.data;
+      const raw = data.data || {};
+      return {
+        ...raw,
+        Name: raw.Name || raw.Nama,
+        NIM: raw.NIM || raw.nim,
+        Status: raw.Status || raw.StatusAkun || raw.status,
+        PhotoURL: raw.PhotoURL || raw.FotoURL,
+        EntryYear: raw.EntryYear || raw.TahunMasuk,
+        CurrentSemester: raw.CurrentSemester || raw.SemesterSekarang,
+        Major: raw.Major || raw.ProgramStudi || null,
+        Faculty: raw.Faculty || raw.Fakultas || null,
+      };
     }
   });
 
@@ -109,6 +120,10 @@ export default function ProfilePage() {
                   <div>
                     <label className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-widest block mb-1">Program Studi</label>
                     <p className="text-sm font-bold truncate">{profile?.Major?.Name}</p>
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-widest block mb-1">Fakultas</label>
+                    <p className="text-sm font-bold truncate">{profile?.Faculty?.Nama || profile?.Major?.Fakultas?.Nama || '-'}</p>
                   </div>
                   <div>
                     <label className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-widest block mb-1">Angkatan</label>
