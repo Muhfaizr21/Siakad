@@ -33,7 +33,7 @@ type FakFaculty struct {
 	Code      string    `gorm:"column:kode_fakultas;not null;uniqueIndex"   json:"code"`
 	DeanName  string    `gorm:"column:dekan"                                json:"dean_name"`
 	CreatedAt time.Time `gorm:"column:dibuat_pada;default:CURRENT_TIMESTAMP" json:"created_at"`
-	UpdatedAt time.Time `gorm:"column:updated_at;default:CURRENT_TIMESTAMP"  json:"updated_at"`
+	UpdatedAt time.Time `gorm:"column:diperbarui_pada;default:CURRENT_TIMESTAMP"  json:"updated_at"`
 }
 
 func (FakFaculty) TableName() string {
@@ -53,7 +53,7 @@ type FakUser struct {
 	Faculty      *FakFaculty `gorm:"foreignKey:FacultyID"                       json:"faculty,omitempty"`
 	IsActive     bool       `gorm:"column:aktif;default:true"                   json:"is_active"`
 	CreatedAt    time.Time  `gorm:"column:dibuat_pada;default:CURRENT_TIMESTAMP" json:"created_at"`
-	UpdatedAt    time.Time  `gorm:"column:updated_at;default:CURRENT_TIMESTAMP" json:"updated_at"`
+	UpdatedAt    time.Time  `gorm:"column:diperbarui_pada;default:CURRENT_TIMESTAMP" json:"updated_at"`
 }
 
 func (FakUser) TableName() string {
@@ -72,7 +72,7 @@ type FakMajor struct {
 	Jenjang    string     `gorm:"column:jenjang;default:'S1'"                 json:"jenjang"`
 	KaprodiID  *uint      `gorm:"column:kaprodi_id"                           json:"kaprodi_id"`
 	CreatedAt  time.Time  `gorm:"column:dibuat_pada;default:CURRENT_TIMESTAMP" json:"created_at"`
-	UpdatedAt  time.Time  `gorm:"column:updated_at;default:CURRENT_TIMESTAMP"  json:"updated_at"`
+	UpdatedAt  time.Time  `gorm:"column:diperbarui_pada;default:CURRENT_TIMESTAMP"  json:"updated_at"`
 }
 
 func (FakMajor) TableName() string {
@@ -92,7 +92,7 @@ type FakLecturer struct {
 	Name      string     `gorm:"column:nama_dosen;not null"                  json:"name"`
 	IsDPA     bool       `gorm:"column:apakah_dpa;default:false"             json:"is_dpa"`
 	CreatedAt time.Time  `gorm:"column:dibuat_pada;default:CURRENT_TIMESTAMP" json:"created_at"`
-	UpdatedAt time.Time  `gorm:"column:updated_at;default:CURRENT_TIMESTAMP"  json:"updated_at"`
+	UpdatedAt time.Time  `gorm:"column:diperbarui_pada;default:CURRENT_TIMESTAMP"  json:"updated_at"`
 }
 
 func (FakLecturer) TableName() string {

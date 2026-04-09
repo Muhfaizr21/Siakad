@@ -87,11 +87,36 @@ func SetupOrmawaRoutes(app *fiber.App) {
 			return c.Status(400).JSON(fiber.Map{"status": "error", "message": err.Error()})
 		}
 
+		// --- DATA VALIDATION ---
+		if payload.Title == "" {
+			return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Judul kegiatan wajib diisi"})
+		}
+		if payload.Budget <= 0 {
+			return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Anggaran harus lebih besar dari 0"})
+		}
+		if payload.DateEvent.Before(time.Now()) {
+			return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Tanggal kegiatan tidak boleh di masa lalu"})
+		}
+		// -----------------------
+
+		// --- AUTO-RESOLVE IDS ---
+		// 1. Get Faculty ID from Ormawa
+		var ormawa models.Ormawa
+		if err := config.DB.First(&ormawa, payload.OrmawaID).Error; err == nil {
+			payload.FakultasID = ormawa.FacultyID
+		}
+
+		// 2. Resolve StudentID (Using Fallback if not provided)
+		if payload.StudentID == 0 {
+			var student models.Student
+			// Logic: Find student associated with the login session or sample
+			config.DB.Where("id = ?", 1).First(&student) // Default to ID 1 for now
+			payload.StudentID = student.ID
+		}
+		// -----------------------
+
 		// BUSINESS LOGIC: BLOCK IF UNFINISHED LPJ EXISTS
-		// Check for accepted proposals whose event date is in the past but have no approved LPJ
 		var unfinishedLpjCount int64
-		// We consider event dates in the past as needing an LPJ
-		// Status 'disetujui_univ' is the final stage before an event is considered "happening"
 		config.DB.Model(&models.Proposal{}).
 			Joins("LEFT JOIN lpjs ON lpjs.proposal_id = proposals.id").
 			Where("proposals.ormawa_id = ?", payload.OrmawaID).
@@ -139,6 +164,11 @@ func SetupOrmawaRoutes(app *fiber.App) {
 
 		// Jalankan Integrasi dalam Transaksi Atomik
 		err := config.DB.Transaction(func(tx *gorm.DB) error {
+			// SECURITY LOCKDOWN: Ormawa can only resubmit (status: diajukan)
+			if payload.Status != "" && payload.Status != "diajukan" {
+				return fmt.Errorf("anda tidak memiliki otoritas untuk menetapkan status '%s'", payload.Status)
+			}
+
 			// 1. Simpan Riwayat jika ada perubahan status atau notes
 			if payload.Status != "" || payload.Notes != "" {
 				history := models.ProposalHistory{
@@ -498,34 +528,51 @@ func SetupOrmawaRoutes(app *fiber.App) {
 	// NOTIFICATIONS
 	api.Get("/notifications", func(c *fiber.Ctx) error {
 		ormawaId := c.Query("ormawaId")
-		var list []models.OrmawaNotification
-		query := config.DB.Model(&models.OrmawaNotification{})
-		if ormawaId != "" {
-			query = query.Where("ormawa_id = ?", ormawaId)
+		if ormawaId == "" {
+			return c.Status(400).JSON(fiber.Map{"status": "error", "message": "ormawaId is required for security"})
 		}
-		query.Order("created_at desc").Find(&list)
+		var list []models.OrmawaNotification
+		config.DB.Where("ormawa_id = ?", ormawaId).Order("created_at desc").Find(&list)
 		return c.JSON(fiber.Map{"status": "success", "data": list})
 	})
 
 	api.Put("/notifications/:id/read", func(c *fiber.Ctx) error {
 		id := c.Params("id")
-		config.DB.Model(&models.OrmawaNotification{}).Where("id = ?", id).Update("is_read", true)
+		ormawaId := c.Query("ormawaId")
+		
+		query := config.DB.Model(&models.OrmawaNotification{}).Where("id = ?", id)
+		if ormawaId != "" {
+			query = query.Where("ormawa_id = ?", ormawaId)
+		}
+		
+		query.Update("is_read", true)
 		return c.JSON(fiber.Map{"status": "success"})
 	})
 
 	api.Put("/notifications/read-all", func(c *fiber.Ctx) error {
 		ormawaId := c.Query("ormawaId")
-		query := config.DB.Model(&models.OrmawaNotification{}).Where("is_read = ?", false)
-		if ormawaId != "" {
-			query = query.Where("ormawa_id = ?", ormawaId)
+		if ormawaId == "" {
+			return c.Status(400).JSON(fiber.Map{"status": "error", "message": "ormawaId is required"})
 		}
-		query.Update("is_read", true)
+		
+		config.DB.Model(&models.OrmawaNotification{}).
+			Where("ormawa_id = ?", ormawaId).
+			Where("is_read = ?", false).
+			Update("is_read", true)
+			
 		return c.JSON(fiber.Map{"status": "success"})
 	})
 
 	api.Delete("/notifications/:id", func(c *fiber.Ctx) error {
 		id := c.Params("id")
-		config.DB.Delete(&models.OrmawaNotification{}, id)
+		ormawaId := c.Query("ormawaId")
+		
+		query := config.DB.Where("id = ?", id)
+		if ormawaId != "" {
+			query = query.Where("ormawa_id = ?", ormawaId)
+		}
+		
+		query.Delete(&models.OrmawaNotification{})
 		return c.JSON(fiber.Map{"status": "success"})
 	})
 
@@ -715,18 +762,29 @@ func SetupOrmawaRoutes(app *fiber.App) {
 			}
 		}
 
-		if payload.Status != "" { lpj.Status = payload.Status }
+		// Save current status for the guard check
+		oldStatus := lpj.Status
+
+		if payload.Status != "" {
+			// SECURITY LOCKDOWN: Ormawa can only set to draft or diajukan
+			if payload.Status != "draft" && payload.Status != "diajukan" {
+				return c.Status(403).JSON(fiber.Map{
+					"status":  "error",
+					"message": "Anda tidak memiliki otoritas untuk menetapkan status '" + payload.Status + "'. Status ini hanya dapat diubah oleh Admin.",
+				})
+			}
+			lpj.Status = payload.Status 
+		}
 		if payload.Notes != "" { lpj.Notes = payload.Notes }
 		if payload.RealizedBudget > 0 { lpj.RealizedBudget = payload.RealizedBudget }
 		
 		config.DB.Save(&lpj)
 		
-		// If approved, mark proposal as finished and DEDUCT CASA AUTOMATICALLY
-		if lpj.Status == "disetujui" {
+		// If approved AND it wasn't approved before, mark proposal as finished and DEDUCT CASA
+		if lpj.Status == "disetujui" && oldStatus != "disetujui" {
 			config.DB.Model(&models.Proposal{}).Where("id = ?", lpj.ProposalID).Update("status", "selesai")
 			
 			//POINT 4: REKONSILIASI KAS OTOMATIS
-			// Buat mutasi keluar berdasarkan RealizedBudget
 			config.DB.Create(&models.CashMutation{
 				OrmawaID:    lpj.Proposal.OrmawaID,
 				Type:        "keluar",
@@ -734,6 +792,7 @@ func SetupOrmawaRoutes(app *fiber.App) {
 				Category:    "Kegiatan Selesai",
 				Description: "Realisasi Dana LPJ: " + lpj.Proposal.Title,
 				Date:        time.Now(),
+				ProposalID:  &lpj.ProposalID,
 			})
 
 			// Buat Notifikasi
@@ -775,6 +834,11 @@ func SetupOrmawaRoutes(app *fiber.App) {
 		if err := config.DB.First(&lpj, lpjId).Error; err != nil {
 			fmt.Println("Upload Error: LPJ ID not found", lpjId)
 			return c.Status(404).JSON(fiber.Map{"status": "error", "message": "LPJ not found"})
+		}
+
+		// SECURITY GUARD: BLOCK MODIFICATION IF APPROVED
+		if lpj.Status == "disetujui" {
+			return c.Status(403).JSON(fiber.Map{"status": "error", "message": "LPJ sudah disetujui dan tidak dapat diubah lagi."})
 		}
 
 		doc := models.LPJDocument{

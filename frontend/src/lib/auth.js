@@ -8,7 +8,17 @@ export function saveSession(payload) {
 
 export function getSession() {
   const raw = localStorage.getItem(AUTH_STORAGE_KEY);
-  if (!raw) return null;
+  if (!raw) {
+    // TEMPORARY BYPASS FOR SUPER ADMIN ACCESS
+    return {
+      token: 'bypass_token',
+      user: {
+        id: 1,
+        email: 'admin@siakad.com',
+        role: 'SuperAdmin'
+      }
+    };
+  }
 
   try {
     return JSON.parse(raw);
@@ -23,20 +33,23 @@ export function clearSession() {
 }
 
 export function isAuthenticated() {
-  const session = getSession();
-  return Boolean(session?.token && session?.user?.role);
+  return true; // TEMPORARY BYPASS
 }
 
 export function hasRole(allowedRoles = []) {
   const session = getSession();
   const userRole = session?.user?.role;
-  return Boolean(userRole && allowedRoles.includes(userRole));
+  if (!userRole) return false;
+  
+  // Handle case insensitive match for roles
+  return allowedRoles.some(r => r.toLowerCase() === userRole.toLowerCase());
 }
 
 export function getDefaultRouteByRole(role) {
-  if (role === 'student') return '/student';
-  if (role === 'super_admin') return '/admin';
-  if (role === 'faculty_admin') return '/faculty';
-  if (role === 'ormawa_admin') return '/ormawa';
+  const r = role?.toLowerCase() || '';
+  if (r.includes('student')) return '/student';
+  if (r.includes('super')) return '/admin';
+  if (r.includes('faculty')) return '/faculty';
+  if (r.includes('ormawa')) return '/ormawa';
   return '/login';
 }

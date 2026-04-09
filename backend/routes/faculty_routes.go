@@ -88,11 +88,13 @@ func SetupFacultyRoutes(app *fiber.App) {
 	api.Put("/scholarships/applications/:id", controllers.UpdateScholarshipApplicationStatus)
 	api.Delete("/scholarships/applications/:id", controllers.DeleteScholarshipApplication)
 
-	// Ormawa Proposals
+	// Ormawa Proposals & LPJ
 	ormawa := api.Group("/ormawa")
-	ormawa.Get("/proposals", controllers.GetOrmawaProposals)
-	ormawa.Put("/proposals/:id", controllers.UpdateOrmawaProposalStatus)
-	ormawa.Delete("/proposals/:id", controllers.DeleteOrmawaProposal)
+	ormawa.Get("/proposals", controllers.GetProposals)
+	ormawa.Put("/proposals/:id", controllers.UpdateProposalStatus)
+	ormawa.Delete("/proposals/:id", controllers.DeleteProposal)
+	ormawa.Get("/lpjs", controllers.GetLpjs)
+	ormawa.Put("/lpjs/:id", controllers.UpdateLpjStatus)
 
 	// News / Content Management
 	news := api.Group("/news")

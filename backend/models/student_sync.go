@@ -21,6 +21,10 @@ func (m *Major) AfterSave(tx *gorm.DB) (err error) {
 	return SyncMajorToAdmin(tx, m)
 }
 
+func (l *Lecturer) AfterSave(tx *gorm.DB) (err error) {
+	return SyncLecturerToAdmin(tx, l)
+}
+
 func SyncFacultyToAdmin(db *gorm.DB, faculty *Faculty) error {
 	fakFaculty := FakFaculty{
 		ID:       faculty.ID,
@@ -28,10 +32,16 @@ func SyncFacultyToAdmin(db *gorm.DB, faculty *Faculty) error {
 		Code:     faculty.Code,
 		DeanName: faculty.DeanName,
 	}
-	return db.Table("fakultas_admin.fakultas").Clauses(clause.OnConflict{
+	err := db.Clauses(clause.OnConflict{
 		Columns:   []clause.Column{{Name: "id"}},
-		DoUpdates: clause.AssignmentColumns([]string{"nama_fakultas", "kode_fakultas", "dekan", "updated_at"}),
+		DoUpdates: clause.AssignmentColumns([]string{"nama_fakultas", "kode_fakultas", "dekan", "diperbarui_pada"}),
 	}).Create(&fakFaculty).Error
+
+	if err != nil {
+		log.Printf("[Sync Error] Gagal menyinkronkan fakultas: %v", err)
+		return err
+	}
+	return nil
 }
 
 func SyncMajorToAdmin(db *gorm.DB, major *Major) error {
@@ -45,10 +55,16 @@ func SyncMajorToAdmin(db *gorm.DB, major *Major) error {
 	// Note: Jenjang mapping
 	fakMajor.Jenjang = "S1" // Default
 
-	return db.Table("fakultas_admin.program_studi").Clauses(clause.OnConflict{
+	err := db.Clauses(clause.OnConflict{
 		Columns:   []clause.Column{{Name: "id"}},
-		DoUpdates: clause.AssignmentColumns([]string{"fakultas_id", "kode_prodi", "nama_prodi", "akreditasi", "updated_at"}),
+		DoUpdates: clause.AssignmentColumns([]string{"fakultas_id", "kode_prodi", "nama_prodi", "akreditasi", "diperbarui_pada"}),
 	}).Create(&fakMajor).Error
+
+	if err != nil {
+		log.Printf("[Sync Error] Gagal menyinkronkan prodi: %v", err)
+		return err
+	}
+	return nil
 }
 
 // SyncStudentToFaculty menyinkronkan record mahasiswa dari public.students ke fakultas_admin.students.
@@ -75,12 +91,12 @@ func SyncStudentToFaculty(db *gorm.DB, student *Student) error {
 		Status:           student.Status,
 	}
 
-	err := db.Table("fakultas_admin.mahasiswa").Clauses(clause.OnConflict{
+	err := db.Clauses(clause.OnConflict{
 		Columns: []clause.Column{{Name: "id"}}, // We use ID as primary sync key if possible, or NIM
 		DoUpdates: clause.AssignmentColumns([]string{
 			"pengguna_id", "nim", "nama_mahasiswa", "prodi_id", "dosen_pa_id", 
-			"current_semester", "tahun_masuk", "gender", "ipk", 
-			"credit_limit", "status_akun", "updated_at",
+			"semester_sekarang", "tahun_masuk", "jenis_kelamin", "ipk", 
+			"credit_limit", "status_akun", "diperbarui_pada",
 		}),
 	}).Create(&fakStudent).Error
 
@@ -88,7 +104,29 @@ func SyncStudentToFaculty(db *gorm.DB, student *Student) error {
 		log.Printf("[Sync Error] Gagal menyinkronkan mahasiswa %s ke fakultas_admin: %v", student.NIM, err)
 		return err
 	}
+	return nil
+}
 
-	log.Printf("[Sync Success] Mahasiswa %s berhasil disinkronkan ke fakultas_admin", student.NIM)
+// SyncLecturerToAdmin menyinkronkan data dosen ke schema fakultas_admin.
+func SyncLecturerToAdmin(db *gorm.DB, lecturer *Lecturer) error {
+	fakLecturer := FakLecturer{
+		ID:        lecturer.ID,
+		UserID:    &lecturer.UserID,
+		FacultyID: lecturer.FacultyID,
+		NIDN:      lecturer.NIDN,
+		Name:      lecturer.Name,
+		IsDPA:     lecturer.IsDPA,
+	}
+
+	err := db.Table("fakultas_admin.dosen").Clauses(clause.OnConflict{
+		Columns: []clause.Column{{Name: "id"}},
+		DoUpdates: clause.AssignmentColumns([]string{
+			"pengguna_id", "fakultas_id", "nidn", "nama_dosen", "apakah_dpa", "diperbarui_pada",
+		}),
+	}).Create(&fakLecturer).Error
+
+	if err != nil {
+		log.Printf("[Sync Warning] Gagal menyinkronkan dosen %s: %v", lecturer.Name, err)
+	}
 	return nil
 }

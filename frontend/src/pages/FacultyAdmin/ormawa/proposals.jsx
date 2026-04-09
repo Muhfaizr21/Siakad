@@ -122,8 +122,8 @@ export default function FacultyProposalApproval() {
                       </TableCell>
                       <TableCell className="px-8 py-7">
                         <div className="flex flex-col gap-1">
-                          <span className="text-[10px] font-black text-primary uppercase tracking-widest bg-primary/5 self-start px-3 py-1 rounded-full">{item.ormawaName}</span>
-                          <span className="text-[11px] font-medium text-slate-400">Oleh: {item.student?.nama || 'N/A'}</span>
+                          <span className="text-[10px] font-black text-primary uppercase tracking-widest bg-primary/5 self-start px-3 py-1 rounded-full">{item.ormawa?.name || 'Ormawa'}</span>
+                          <span className="text-[11px] font-medium text-slate-400">Oleh: {item.student?.name || 'N/A'}</span>
                         </div>
                       </TableCell>
                       <TableCell className="px-8 py-7">
@@ -156,7 +156,7 @@ export default function FacultyProposalApproval() {
               <div className="p-10 space-y-8">
                 <div className="flex justify-between items-start">
                   <div className="space-y-1">
-                    <span className="text-[10px] font-black text-primary uppercase tracking-[0.3em]">{selectedProposal.ormawaName}</span>
+                    <span className="text-[10px] font-black text-primary uppercase tracking-[0.3em]">{selectedProposal.ormawa?.name || 'Ormawa'}</span>
                     <h2 className="text-2xl font-bold text-slate-900">{selectedProposal.title}</h2>
                   </div>
                   <button onClick={() => setShowModal(false)} className="p-3 bg-slate-50 rounded-full hover:bg-slate-100 transition-colors">
@@ -188,7 +188,7 @@ export default function FacultyProposalApproval() {
                 </div>
 
                 <div className="flex flex-wrap gap-3 pt-4 border-t border-slate-50 mt-4">
-                  <button onClick={() => handleUpdateStatus(selectedProposal.id, 'disetujui')} className="flex-1 bg-emerald-600 text-white font-bold text-xs uppercase tracking-widest py-4 rounded-2xl hover:bg-emerald-700 shadow-lg shadow-emerald-600/20 active:scale-95 transition-all">Setujui</button>
+                  <button onClick={() => handleUpdateStatus(selectedProposal.id, 'disetujui_fakultas')} className="flex-1 bg-emerald-600 text-white font-bold text-xs uppercase tracking-widest py-4 rounded-2xl hover:bg-emerald-700 shadow-lg shadow-emerald-600/20 active:scale-95 transition-all">Setujui</button>
                   <button onClick={() => handleUpdateStatus(selectedProposal.id, 'revisi')} className="flex-1 bg-blue-600 text-white font-bold text-xs uppercase tracking-widest py-4 rounded-2xl hover:bg-blue-700 shadow-lg shadow-blue-600/20 active:scale-95 transition-all">Minta Revisi</button>
                   <button onClick={() => handleUpdateStatus(selectedProposal.id, 'ditolak')} className="flex-1 bg-rose-600 text-white font-bold text-xs uppercase tracking-widest py-4 rounded-2xl hover:bg-rose-700 shadow-lg shadow-rose-600/20 active:scale-95 transition-all">Tolak</button>
                 </div>

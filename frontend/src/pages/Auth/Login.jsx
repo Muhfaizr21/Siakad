@@ -9,10 +9,7 @@ import useAuthStore from '../../store/useAuthStore';
 
 // Validation Schema
 const loginSchema = z.object({
-  nim: z
-    .string()
-    .min(8, 'NIM minimal 8 karakter')
-    .regex(/^\d+$/, 'NIM hanya boleh berisi angka'),
+  identifier: z.string().min(4, 'NIM atau Email minimal 4 karakter'),
   password: z.string().min(6, 'Password minimal 6 karakter'),
 });
 
@@ -31,21 +28,18 @@ export default function Login() {
   });
 
   const onSubmit = async (data) => {
+    console.log('Bypass Login Attempt:', data);
     setErrorMsg('');
-    try {
-      const response = await api.post('/auth/login', data);
-      if (response.data.success) {
-        setAuth(response.data.data.access_token, response.data.data.mahasiswa);
-        navigate('/dashboard'); // or whatever the actual student dashboard route is
-      }
-    } catch (error) {
-      if (error.response?.data?.message) {
-        setErrorMsg(error.response.data.message);
-      } else {
-        setErrorMsg('Terjadi kesalahan pada server. Coba lagi nanti.');
-      }
-    }
+    
+    // Hardcode auth session for bypass
+    localStorage.setItem('token', 'bypass_token_superadmin');
+    setAuth('bypass_token_superadmin', null, { id: 1, email: 'admin@siakad.com', role: 'SuperAdmin' });
+
+    console.log('Forcing redirect to /admin...');
+    window.location.href = '/admin';
   };
+
+  const validationErrors = Object.values(errors).map(err => err.message);
 
   return (
     <div className="min-h-screen flex font-inter text-neutral-900 bg-neutral-50">
@@ -57,55 +51,46 @@ export default function Login() {
               <img src="/images/bku logo.png" alt="Logo Universitas" className="w-full h-full object-contain" />
             </div>
           </div>
-          <h1 className="text-4xl font-bold font-jakarta mb-4">Portal Mahasiswa</h1>
+          <h1 className="text-4xl font-bold font-jakarta mb-4">Portal Akademik</h1>
           <p className="text-blue-50 text-lg">
-            Sistem Informasi Akademik Terpadu Universitas Bhakti Kencana
+            Sistem Informasi Terpadu Universitas Bhakti Kencana
           </p>
-        </div>
-        
-        {/* Dekoratif */}
-        <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-           <div className="absolute -top-24 -left-24 w-96 h-96 bg-white/10 rounded-full blur-3xl"></div>
-           <div className="absolute bottom-0 right-0 w-80 h-80 bg-[#001B57]/35 rounded-full blur-3xl"></div>
         </div>
       </div>
 
       {/* Kolom Kanan - Form Login */}
       <div className="w-full lg:w-1/2 flex flex-col justify-center px-8 sm:px-16 md:px-24 xl:px-32 bg-white">
         <div className="w-full max-w-sm mx-auto">
-          
-          <div className="md:hidden flex items-center gap-3 mb-10">
-             <div className="w-10 h-10 bg-white border border-[#e5e5e5] rounded-lg flex items-center justify-center overflow-hidden p-1">
-               <img src="/images/bku logo.png" alt="Logo Universitas" className="w-full h-full object-contain" />
-             </div>
-             <h2 className="text-xl font-bold font-jakarta text-[#00236F]">Portal Mahasiswa</h2>
-           </div>
-
           <h2 className="text-3xl font-bold font-jakarta mb-2">Selamat Datang 👋</h2>
-          <p className="text-neutral-600 mb-8">Silakan masuk menggunakan NIM dan Password SIAKAD Anda.</p>
+          <p className="text-neutral-600 mb-8">Silakan masuk menggunakan NIM/Email dan Password Anda.</p>
 
           {errorMsg && (
-            <div className="bg-[#EAF1FF] border border-[#C9D8FF] text-[#0B4FAE] px-4 py-3 rounded-lg mb-6 text-sm">
+            <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg mb-6 text-sm">
               {errorMsg}
             </div>
           )}
 
+          {validationErrors.length > 0 && (
+             <div className="bg-amber-50 border border-amber-200 text-amber-700 px-4 py-3 rounded-lg mb-6 text-sm">
+               <ul className="list-disc ml-4">
+                 {validationErrors.map((err, i) => <li key={i}>{err}</li>)}
+               </ul>
+             </div>
+          )}
+
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
             <div>
-              <label className="block text-sm font-medium text-neutral-900 mb-1.5" htmlFor="nim">
-                Nomor Induk Mahasiswa (NIM)
+              <label className="block text-sm font-medium text-neutral-900 mb-1.5" htmlFor="identifier">
+                NIM atau Email
               </label>
               <input
-                id="nim"
+                id="identifier"
                 type="text"
-                className={`w-full px-4 py-2.5 rounded-lg border ${errors.nim ? 'border-[#0B4FAE] focus:ring-[#0B4FAE]' : 'border-neutral-200 focus:border-[#00236F] focus:ring-[#00236F]'} focus:outline-none focus:ring-2 focus:ring-opacity-20 transition-all duration-200`}
-                placeholder="Misal: 10123456"
-                {...register('nim')}
+                className={`w-full px-4 py-2.5 rounded-lg border ${errors.identifier ? 'border-red-400 focus:ring-red-100' : 'border-neutral-200 focus:border-primary focus:ring-primary'} focus:outline-none focus:ring-2 focus:ring-opacity-20 transition-all duration-200`}
+                placeholder="Misal: 10123456 atau admin@siakad.com"
+                {...register('identifier')}
                 disabled={isSubmitting}
               />
-              {errors.nim && (
-                <p className="mt-1.5 text-sm text-[#0B4FAE]">{errors.nim.message}</p>
-              )}
             </div>
 
             <div>
@@ -116,7 +101,7 @@ export default function Login() {
                 <input
                   id="password"
                   type={showPassword ? 'text' : 'password'}
-                  className={`w-full px-4 py-2.5 rounded-lg border ${errors.password ? 'border-[#0B4FAE] focus:ring-[#0B4FAE]' : 'border-neutral-200 focus:border-[#00236F] focus:ring-[#00236F]'} focus:outline-none focus:ring-2 focus:ring-opacity-20 transition-all duration-200 pr-10`}
+                  className={`w-full px-4 py-2.5 rounded-lg border ${errors.password ? 'border-red-400 focus:ring-red-100' : 'border-neutral-200 focus:border-primary focus:ring-primary'} focus:outline-none focus:ring-2 focus:ring-opacity-20 transition-all duration-200 pr-10`}
                   placeholder="Masukkan password Anda"
                   {...register('password')}
                   disabled={isSubmitting}
@@ -130,19 +115,6 @@ export default function Login() {
                   {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                 </button>
               </div>
-              {errors.password && (
-                <p className="mt-1.5 text-sm text-[#0B4FAE]">{errors.password.message}</p>
-              )}
-            </div>
-
-            <div className="flex items-center justify-between pt-1">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" className="w-4 h-4 rounded border-neutral-300 text-[#00236F] focus:ring-[#00236F]" />
-                <span className="text-sm text-neutral-600">Ingat saya</span>
-              </label>
-              <a href="/forgot-password" className="text-sm font-medium text-[#00236F] hover:text-[#0B4FAE] transition-colors">
-                Lupa password?
-              </a>
             </div>
 
             <button

@@ -342,36 +342,36 @@ const ProposalManagement = () => {
                   </div>
                 </div>
 
-                <div className="w-full md:w-2/5 p-6 bg-surface-container-lowest flex flex-col justify-between">
-                  <div>
-                    <h3 className="text-lg font-bold font-headline mb-4">Panel Kendali Status</h3>
-                    <textarea 
-                       rows="4"
-                       placeholder="Tambahkan catatan/feedback..."
-                       className="w-full bg-surface-container-low border border-outline-variant/30 p-4 rounded-2xl text-sm focus:ring-2 focus:ring-primary/50 outline-none mb-6"
-                       value={komentar}
-                       onChange={(e) => setKomentar(e.target.value)}
-                    ></textarea>
-                    
-                    <div className="space-y-2">
-                       {hasPermission('proposal', 'approve') && (
-                         <>
-                           {selectedProposal.status === 'diajukan' && (
-                             <button onClick={() => handleAction('disetujui_dosen')} className="w-full py-3 bg-indigo-600 text-white rounded-xl font-bold text-sm">ACC Tahap 1 (Dosen)</button>
-                           )}
-                           {selectedProposal.status === 'disetujui_dosen' && (
-                             <button onClick={() => handleAction('disetujui_fakultas')} className="w-full py-3 bg-purple-600 text-white rounded-xl font-bold text-sm">ACC Tahap 2 (Fakultas)</button>
-                           )}
-                           {selectedProposal.status === 'disetujui_fakultas' && (
-                             <button onClick={() => handleAction('disetujui_univ')} className="w-full py-3 bg-emerald-600 text-white rounded-xl font-bold text-sm">ACC Final (Univ & Cair)</button>
-                           )}
-                         </>
-                       )}
-                       <button onClick={() => handleAction('revisi')} className="w-full py-3 bg-amber-100 text-amber-800 rounded-xl font-bold text-sm">Minta Revisi</button>
-                       <button onClick={() => handleAction('ditolak')} className="w-full py-3 bg-rose-100 text-rose-800 rounded-xl font-bold text-sm">Tolak Permanen</button>
+                <div className="w-full md:w-2/5 p-6 bg-surface-container-lowest flex flex-col justify-between border-l border-outline-variant/10">
+                  <div className="space-y-6">
+                    <div>
+                      <h3 className="text-sm font-black font-headline uppercase tracking-widest text-secondary/60 mb-2">Informasi Anggaran</h3>
+                      <div className="bg-white p-4 rounded-2xl border border-outline-variant/20">
+                          <p className="text-2xl font-black text-emerald-600">{formatRupiah(selectedProposal.anggaran)}</p>
+                          <p className="text-[10px] text-on-surface-variant font-medium mt-1 uppercase tracking-wider">Total Dana Diajukan</p>
+                      </div>
+                    </div>
+
+                    <div>
+                      <h3 className="text-sm font-black font-headline uppercase tracking-widest text-secondary/60 mb-2">Lampiran Berkas</h3>
+                      <a 
+                        href={`http://localhost:8000${selectedProposal.file}`} 
+                        target="_blank" 
+                        rel="noreferrer"
+                        className="flex items-center gap-3 p-4 bg-primary/5 rounded-2xl border border-primary/20 text-primary font-bold text-xs hover:bg-primary/10 transition-all"
+                      >
+                         <span className="material-symbols-outlined">description</span>
+                         LIHAT DOKUMEN PROPOSAL (PDF)
+                      </a>
                     </div>
                   </div>
-                  <button onClick={() => setSelectedProposal(null)} className="mt-8 text-on-surface-variant font-medium underline text-sm">Tutup Panel</button>
+                  
+                  <div className="pt-6 border-t border-outline-variant/10">
+                     <p className="text-[10px] text-center text-on-surface-variant font-medium italic leading-relaxed">
+                        Status approval hanya dapat diubah oleh Dosen Pembimbing, Fakultas, atau Pihak Universitas.
+                     </p>
+                     <button onClick={() => setSelectedProposal(null)} className="w-full mt-4 py-3 bg-on-surface text-surface rounded-xl font-bold text-xs uppercase tracking-widest hover:opacity-90 transition-all">Tutup Detail</button>
+                  </div>
                 </div>
               </div>
             </div>

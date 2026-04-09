@@ -170,8 +170,10 @@ func main() {
 	adminGroup := api.Group("/admin")
 	adminGroup.Get("/achievement/export", achievement.ExportSimkatmawa)
 
-	// Setup Ormawa Routes (from danzz)
+	// Setup Ormawa, Faculty & Super Routes
 	routes.SetupOrmawaRoutes(app)
+	routes.SetupFacultyRoutes(app)
+	routes.SetupSuperAdminRoutes(app)
 
 	// Start server
 	port := os.Getenv("PORT")

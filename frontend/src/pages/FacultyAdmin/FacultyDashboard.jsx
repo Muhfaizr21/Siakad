@@ -255,7 +255,7 @@ export default function DashboardPage() {
             </div>
 
             {/* Stats Cards */}
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
               {dynamicStats.map((stat) => (
                 <Card key={stat.title}>
                   <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -278,6 +278,24 @@ export default function DashboardPage() {
                   </CardContent>
                 </Card>
               ))}
+
+              {/* Special Ormawa Stat Card */}
+              <Card className="border-primary/20 bg-primary/5 shadow-lg shadow-primary/5">
+                <CardHeader className="flex flex-row items-center justify-between pb-2">
+                  <CardTitle className="text-sm font-bold text-primary uppercase tracking-widest">
+                    Proposal Pending
+                  </CardTitle>
+                  <FileText className="size-5 text-primary" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-black text-primary">
+                    {loading ? "..." : summaryData.pendingProposals}
+                  </div>
+                  <div className="flex items-center gap-1 text-xs mt-1">
+                    <span className="text-primary/70 font-medium">Butuh Approval Fakultas</span>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
 
             {/* Charts Row */}
@@ -484,9 +502,9 @@ export default function DashboardPage() {
                             {jadwal.hari}, {jadwal.jam_mulai} - {jadwal.jam_selesai}
                           </span>
                         </div>
-                        <h4 className="font-medium text-balance">{jadwal.matakuliah?.nama_mk || "Matakuliah"}</h4>
+                        <h4 className="font-medium text-balance">{jadwal.mata_kuliah?.nama_mk || "Matakuliah"}</h4>
                         <p className="mt-1 text-sm text-muted-foreground">
-                          {jadwal.ruangan?.nama_ruangan || "Ruangan TBA"}
+                          {jadwal.ruangan || "Ruangan TBA"}
                         </p>
                         <div className="mt-3 flex items-center gap-2">
                           <Avatar className="size-6">

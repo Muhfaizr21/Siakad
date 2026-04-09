@@ -31,43 +31,35 @@ func SeedOrganizations() {
 
 	fmt.Println("--- SEEDING FACULTY ORGANIZATIONS ---")
 
-	orgs := []models.FacultyOrganization{
+	orgs := []models.Ormawa{
 		{
 			OrgCode:     "ORG-001",
 			Name:        "BEM Fakultas Teknik",
-			LeaderName:  "Alvin Jonathan",
-			MemberCount: 45,
 			Status:      "Aktif",
 			Description: "Badan Eksekutif Mahasiswa tingkat Fakultas.",
 		},
 		{
 			OrgCode:     "ORG-002",
 			Name:        "DPM Fakultas Teknik",
-			LeaderName:  "Bella Safitra",
-			MemberCount: 25,
 			Status:      "Aktif",
 			Description: "Dewan Perwakilan Mahasiswa tingkat Fakultas.",
 		},
 		{
 			OrgCode:     "ORG-003",
 			Name:        "HIMA Informatika",
-			LeaderName:  "Caca Maheswari",
-			MemberCount: 80,
 			Status:      "Aktif",
 			Description: "Himpunan Mahasiswa Informatika.",
 		},
 		{
 			OrgCode:     "ORG-004",
 			Name:        "HIMA Sistem Informasi",
-			LeaderName:  "Dicky Fernando",
-			MemberCount: 65,
 			Status:      "Pembekuan",
 			Description: "Himpunan Mahasiswa Sistem Informasi.",
 		},
 	}
 
 	for _, o := range orgs {
-		db.Where(models.FacultyOrganization{OrgCode: o.OrgCode}).FirstOrCreate(&o)
+		db.Where(models.Ormawa{OrgCode: o.OrgCode}).FirstOrCreate(&o)
 	}
 
 	fmt.Println("Success! Seeded faculty organizations.")

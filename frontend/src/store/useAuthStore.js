@@ -6,10 +6,11 @@ const useAuthStore = create(
     (set) => ({
       accessToken: null,
       mahasiswa: null,
+      user: null,
       
-      setAuth: (accessToken, mahasiswa) => set({ accessToken, mahasiswa }),
+      setAuth: (accessToken, mahasiswa, user) => set({ accessToken, mahasiswa, user }),
       setAccessToken: (accessToken) => set({ accessToken }),
-      logout: () => set({ accessToken: null, mahasiswa: null })
+      logout: () => set({ accessToken: null, mahasiswa: null, user: null })
     }),
     {
       name: 'auth-storage', // local storage key

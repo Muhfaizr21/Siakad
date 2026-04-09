@@ -24,6 +24,8 @@ type User struct {
 	PasswordHash string         `gorm:"not null;column:kata_sandi" json:"-"` // Hide password from JSON
 	RoleID       uint           `gorm:"column:peran_id" json:"roleId"`
 	Role         Role           `gorm:"foreignKey:RoleID" json:"role"`
+	FacultyID    *uint          `gorm:"column:fakultas_id" json:"facultyId"`
+	Faculty      *Faculty       `gorm:"foreignKey:FacultyID" json:"faculty,omitempty"`
 	IsActive     bool           `gorm:"default:true;column:aktif" json:"isActive"`
 	CreatedAt    time.Time      `gorm:"column:dibuat_pada;default:CURRENT_TIMESTAMP" json:"createdAt"`
 	DeletedAt    gorm.DeletedAt `gorm:"index" json:"-"`
@@ -157,19 +159,22 @@ type MataKuliahPrasyarat struct {
 
 type JadwalKuliah struct {
 	ID            uint            `gorm:"primaryKey" json:"id"`
-	MataKuliahID  uint            `gorm:"column:mk_id" json:"mk_id"`
+	MataKuliahID  uint            `gorm:"column:mk_id" json:"matakuliah_id"`
 	MataKuliah    MataKuliah      `gorm:"foreignKey:MataKuliahID" json:"mata_kuliah,omitempty"`
-	LecturerID    uint            `gorm:"column:dosen_id" json:"lecturer_id"`
+	LecturerID    uint            `gorm:"column:dosen_id" json:"dosen_id"`
 	Lecturer      Lecturer        `gorm:"foreignKey:LecturerID" json:"lecturer,omitempty"`
 	PeriodeID     uint            `gorm:"column:periode_id" json:"periode_id"`
 	PeriodeAkademik PeriodeAkademik `gorm:"foreignKey:PeriodeID" json:"periode,omitempty"`
-	Hari          int             `gorm:"column:hari" json:"hari"` // 1-7
+	Hari          int             `gorm:"column:hari" json:"hari"` 
 	JamMulai      string          `gorm:"column:jam_mulai" json:"jam_mulai"`
 	JamSelesai    string          `gorm:"column:jam_selesai" json:"jam_selesai"`
 	Ruang         string          `gorm:"column:ruangan" json:"ruangan"`
+	RuanganID     uint            `gorm:"column:ruangan_id" json:"ruangan_id"`
+	Kelas         string          `gorm:"column:kelas" json:"kelas"`
 	Kuota         int             `gorm:"column:kuota" json:"kuota"`
 	SisaKuota     int             `gorm:"column:sisa_kuota" json:"sisa_kuota"`
 	TahunAkademik string          `gorm:"column:tahun_akademik" json:"tahun_akademik"`
+	SemesterTipe  string          `gorm:"column:semester_tipe" json:"semester_tipe"`
 }
 
 func (JadwalKuliah) TableName() string {

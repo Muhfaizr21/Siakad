@@ -11,4 +11,5 @@ func seedStudentModuleData(db *gorm.DB) {
 	seedOrganisasiData(db)
 	seedDashboardData(db)
 	seedNotificationData(db)
+	seedProposalData(db)
 }

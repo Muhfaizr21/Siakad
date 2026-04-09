@@ -1,7 +1,6 @@
 package auth
 
 import (
-	"log"
 	"siakad-backend/config"
 	"siakad-backend/models"
 	"time"
@@ -11,96 +10,89 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-// In a real app, this should be in .env
-var jwtSecret = []byte("my_super_secret_key_siakad")
+// JWT secret is now fetched from config.GetJWTSecret()
 
 type LoginRequest struct {
-	NIM      string `json:"nim"`
-	Password string `json:"password"`
+	Identifier string `json:"identifier"` // Can be NIM or Email
+	Password   string `json:"password"`
 }
 
 type ChangePasswordRequest struct {
-	OldPassword     string `json:"old_password"`
-	NewPassword     string `json:"new_password"`
+	OldPassword string `json:"old_password"`
+	NewPassword string `json:"new_password"`
 }
 
-// Login logic: We authenticate via NIM (Student) -> get User -> check Password
 func Login(c *fiber.Ctx) error {
 	var req LoginRequest
 	if err := c.BodyParser(&req); err != nil {
-		return c.Status(400).JSON(fiber.Map{"success": false, "message": "Invalid request payload", "errors": []fiber.Map{{"field": "body", "message": "Format tidak valid"}}})
+		return c.Status(400).JSON(fiber.Map{"success": false, "message": "Invalid request payload"})
 	}
 
-	// Find the student by NIM
+	var user models.User
 	var student models.Student
-	if err := config.DB.Preload("User").Preload("Major").First(&student, "nim = ?", req.NIM).Error; err != nil {
-		return c.Status(401).JSON(fiber.Map{"success": false, "message": "NIM atau Password salah"})
+	isStudent := false
+
+	// 1. Try to find by Email first (for Admins)
+	if err := config.DB.Preload("Role").Where("email = ?", req.Identifier).First(&user).Error; err == nil {
+		// Found as Admin/User
+	} else {
+		// 2. Try to find by Student NIM
+		if err := config.DB.Preload("User").Preload("User.Role").Preload("Major").Where("nim = ?", req.Identifier).First(&student).Error; err == nil {
+			user = student.User
+			isStudent = true
+		} else {
+			return c.Status(401).JSON(fiber.Map{"success": false, "message": "Email/NIM atau Password salah"})
+		}
 	}
 
-	// Check password via bcrypt
-	if err := bcrypt.CompareHashAndPassword([]byte(student.User.PasswordHash), []byte(req.Password)); err != nil {
-		return c.Status(401).JSON(fiber.Map{"success": false, "message": "NIM atau Password salah"})
+	// 3. Check password
+	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(req.Password)); err != nil {
+		return c.Status(401).JSON(fiber.Map{"success": false, "message": "Email/NIM atau Password salah"})
 	}
 
-	if !student.User.IsActive {
-		return c.Status(403).JSON(fiber.Map{"success": false, "message": "Akun tidak aktif. Silakan hubungi admin."})
+	if !user.IsActive {
+		return c.Status(403).JSON(fiber.Map{"success": false, "message": "Akun tidak aktif"})
 	}
 
-	// Generate Access Token (15 mins)
+	// 4. Generate Token
 	now := time.Now()
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"sub": student.UserID,
-		"sid": student.ID,
-		"nim": student.NIM,
-		"exp": now.Add(15 * time.Minute).Unix(),
-	})
-	tokenString, err := token.SignedString(jwtSecret)
+	claims := jwt.MapClaims{
+		"sub":  user.ID,
+		"role": user.Role.Name,
+		"exp":  now.Add(24 * time.Hour).Unix(),
+	}
+	if isStudent {
+		claims["sid"] = student.ID
+		claims["nim"] = student.NIM
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	tokenString, err := token.SignedString(config.GetJWTSecret())
 	if err != nil {
-		log.Printf("JWT Error: %v", err)
 		return c.Status(500).JSON(fiber.Map{"success": false, "message": "Error generating token"})
 	}
 
-	// Generate Refresh Token (7 days)
-	refreshToken := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"sub": student.UserID,
-		"sid": student.ID,
-		"nim": student.NIM,
-		"exp": now.Add(7 * 24 * time.Hour).Unix(),
-		"typ": "refresh",
-	})
-	rtString, err := refreshToken.SignedString(jwtSecret)
-	if err != nil {
-		log.Printf("JWT Refresh Error: %v", err)
-		return c.Status(500).JSON(fiber.Map{"success": false, "message": "Error generating refresh token"})
+	// Response
+	respData := fiber.Map{
+		"access_token": tokenString,
+		"user": fiber.Map{
+			"id":    user.ID,
+			"email": user.Email,
+			"role":  user.Role.Name,
+		},
 	}
-
-	// Set Refresh Token HTTP Only Cookie
-	c.Cookie(&fiber.Cookie{
-		Name:     "refresh_token",
-		Value:    rtString,
-		Expires:  now.Add(7 * 24 * time.Hour),
-		HTTPOnly: true,
-		Secure:   false, // set true in production if HTTPS
-		SameSite: "Strict",
-	})
+	if isStudent {
+		respData["mahasiswa"] = fiber.Map{
+			"id":   student.ID,
+			"nim":  student.NIM,
+			"nama": student.Name,
+		}
+	}
 
 	return c.JSON(fiber.Map{
 		"success": true,
 		"message": "Berhasil login",
-		"data": fiber.Map{
-			"access_token": tokenString,
-			"expires_in":   900,
-			"mahasiswa": fiber.Map{
-				"id":        student.ID,
-				"nim":       student.NIM,
-				"nama":      student.Name,
-				"prodi_id":  student.MajorID,
-				"prodi":     student.Major.Name,
-				"foto_url":  student.PhotoURL,
-				"status":    student.Status,
-				"angkatan":  student.EntryYear,
-			},
-		},
+		"data":    respData,
 	})
 }
 
@@ -112,7 +104,7 @@ func RefreshToken(c *fiber.Ctx) error {
 
 	// Parse token
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-		return jwtSecret, nil
+		return config.GetJWTSecret(), nil
 	})
 
 	if err != nil || !token.Valid {
@@ -132,7 +124,7 @@ func RefreshToken(c *fiber.Ctx) error {
 		"nim": claims["nim"],
 		"exp": now.Add(15 * time.Minute).Unix(),
 	})
-	newAT, err := newToken.SignedString(jwtSecret)
+	newAT, err := newToken.SignedString(config.GetJWTSecret())
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"success": false, "message": "Gagal generate token baru"})
 	}

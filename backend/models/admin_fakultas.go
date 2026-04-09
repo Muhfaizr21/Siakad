@@ -187,44 +187,9 @@ type ScholarshipApplication struct {
 	UpdatedAt     time.Time   `json:"updatedAt"`
 }
 
-// OrmawaProposal — DEPRECATED: Tabel "ormawa_proposals" tidak ada di schema utama.
-// Ini dikelola oleh modul Ormawa terpisah di routes/ormawa.
-type OrmawaProposal struct {
-	ID            uint      `gorm:"primaryKey" json:"id"`
-	StudentID     uint      `gorm:"column:student_id" json:"studentId"`
-	Student       Student   `gorm:"foreignKey:StudentID;constraint:OnDelete:CASCADE" json:"student"`
-	OrmawaName    string    `gorm:"column:ormawa_name" json:"ormawaName"`
-	Title         string    `gorm:"column:title" json:"title"`
-	Description   string    `gorm:"column:description" json:"description"`
-	DocumentURL   string    `gorm:"column:document_url" json:"documentUrl"`
-	RequestedBudget float64 `gorm:"column:requested_budget" json:"budget"`
-	Status        string    `gorm:"column:status;default:'diajukan'" json:"status"` // diajukan, revisi, disetujui, ditolak
-	AdminNotes    string    `gorm:"column:admin_notes" json:"adminNotes"`
-	CreatedAt     time.Time `json:"createdAt"`
-	UpdatedAt     time.Time `json:"updatedAt"`
-}
+// FacultyOrganization and OrmawaProposal are now unified in ormawa.go
+// Note: Use models.Ormawa and models.Proposal for cross-schema features
 
-func (OrmawaProposal) TableName() string {
-	return "ormawa_proposals"
-}
-
-// FacultyOrganization — DEPRECATED: Tabel "faculty_organizations" tidak ada di schema target.
-// Perlu didesain ulang dengan nama Indonesia jika fitur organisasi fakultas diperlukan.
-type FacultyOrganization struct {
-	ID          uint      `gorm:"primaryKey" json:"id"`
-	OrgCode     string    `gorm:"column:org_code;unique" json:"orgCode"`
-	Name        string    `gorm:"column:name" json:"name"`
-	LeaderName  string    `gorm:"column:leader_name" json:"leaderName"`
-	MemberCount int       `gorm:"column:member_count" json:"memberCount"`
-	Status      string    `gorm:"column:status;default:'Aktif'" json:"status"` // Aktif, Pembekuan
-	Description string    `gorm:"column:description" json:"description"`
-	CreatedAt   time.Time `json:"createdAt"`
-	UpdatedAt   time.Time `json:"updatedAt"`
-}
-
-func (FacultyOrganization) TableName() string {
-	return "faculty_organizations"
-}
 
 // Article merepresentasikan tabel `berita`.
 // Selaras dengan schema target Indonesia (berita).

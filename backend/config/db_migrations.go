@@ -11,16 +11,15 @@ func migrateModels(db *gorm.DB) error {
 	// Buat schema fakultas_admin jika belum ada
 	db.Exec("CREATE SCHEMA IF NOT EXISTS fakultas_admin;")
 
-	return db.AutoMigrate(
-		// ─── PUBLIC SCHEMA ──────────────────────────────────────────────────────
-		// Core Entities
+	// 1. Core Public Entities
+	log.Println("[Migration] Migrating Core Public Entities...")
+	if err := db.AutoMigrate(
 		&models.Role{},
 		&models.User{},
 		&models.Faculty{},
 		&models.Major{},
 		&models.Lecturer{},
 		&models.Student{},
-		// Akademik & KRS
 		&models.PeriodeAkademik{},
 		&models.MataKuliah{},
 		&models.MataKuliahPrasyarat{},
@@ -28,7 +27,13 @@ func migrateModels(db *gorm.DB) error {
 		&models.KHS{},
 		&models.KRSHeader{},
 		&models.KRSDetail{},
-		// Kencana (PKKMB)
+	); err != nil {
+		log.Printf("[Migration Error] Core Public: %v", err)
+	}
+
+	// 2. Kencana & Feature Modules
+	log.Println("[Migration] Migrating Feature Modules...")
+	if err := db.AutoMigrate(
 		&models.KencanaTahap{},
 		&models.KencanaMateri{},
 		&models.KencanaKuis{},
@@ -37,7 +42,6 @@ func migrateModels(db *gorm.DB) error {
 		&models.KencanaProgress{},
 		&models.KencanaBanding{},
 		&models.KencanaSertifikat{},
-		// Prestasi, Beasiswa, Konseling
 		&models.Achievement{},
 		&models.Beasiswa{},
 		&models.PengajuanBeasiswa{},
@@ -45,24 +49,28 @@ func migrateModels(db *gorm.DB) error {
 		&models.PengajuanPipelineLog{},
 		&models.JadwalKonseling{},
 		&models.BookingKonseling{},
-		// Student Voice & Organisasi
 		&models.TiketAspirasi{},
 		&models.TiketTimelineEvent{},
 		&models.RiwayatOrganisasi{},
-		// Notifikasi & Umum
 		&models.Pengumuman{},
 		&models.KegiatanKampus{},
 		&models.AktivitasLog{},
 		&models.LoginHistory{},
 		&models.NotificationPreference{},
 		&models.Notification{},
-		// PKKMB & Health from new SQL
+	); err != nil {
+		log.Printf("[Migration Error] Feature Modules: %v", err)
+	}
+
+	// 3. Health & Ormawa
+	log.Println("[Migration] Migrating Health & Ormawa...")
+	if err := db.AutoMigrate(
 		&models.ProgramScreening{},
 		&models.HasilScreening{},
+		&models.HasilKesehatan{},
 		&models.PkkmbKegiatan{},
 		&models.Article{},
 		&models.Admission{},
-		// Ormawa
 		&models.Ormawa{},
 		&models.OrmawaMember{},
 		&models.Proposal{},
@@ -77,17 +85,19 @@ func migrateModels(db *gorm.DB) error {
 		&models.OrmawaAnnouncement{},
 		&models.OrmawaNotification{},
 		&models.OrmawaDivision{},
+	); err != nil {
+		log.Printf("[Migration Error] Health/Ormawa: %v", err)
+	}
 
-		// ─── SCHEMA: fakultas_admin ──────────────────────────────────────────────
-		// Core Admin Fakultas (diperlukan sebelum tabel feature)
+	// 4. Schema: fakultas_admin
+	log.Println("[Migration] Migrating Fakultad Admin Schema...")
+	if err := db.AutoMigrate(
 		&models.FakRole{},
 		&models.FakFaculty{},
 		&models.FakUser{},
 		&models.FakMajor{},
 		&models.FakLecturer{},
-		// Bridge: Data Mahasiswa di sisi Admin Fakultas
 		&models.FakStudent{},
-		// Feature Tables (bergantung ke FakStudent)
 		&models.FakAchievement{},
 		&models.FakPKKMB{},
 		&models.FakHealthScreening{},
@@ -95,7 +105,22 @@ func migrateModels(db *gorm.DB) error {
 		&models.FakScholarship{},
 		&models.FakScholarshipApp{},
 		&models.FakCounseling{},
-	)
+		&models.PeriodeAkademikFak{},
+		&models.PkkmbMateri{},
+		&models.PkkmbTugas{},
+		&models.PkkmbKelulusan{},
+		&models.PengajuanSurat{},
+		&models.ProgramMBKM{},
+		&models.OrganisasiMahasiswa{},
+		&models.ProposalOrmawa{},
+		&models.ProposalFakultas{},
+		&models.PengumumanFak{},
+		&models.BeritaFak{},
+	); err != nil {
+		log.Printf("[Migration Error] Fakultad Admin: %v", err)
+	}
+
+	return nil
 }
 
 // InitialSyncFakultas melakukan sinkronisasi awal data dari public schema ke fakultas_admin.
@@ -124,5 +149,48 @@ func InitialSyncFakultas(db *gorm.DB) {
 		models.SyncStudentToFaculty(db, &s)
 	}
 
+	ResetSequences(db)
 	log.Println("[Initial Sync] Sinkronisasi selesai.")
+}
+
+// ResetSequences mensinkronkan kembali sequence ID PostgreSQL dengan data yang ada di tabel.
+// Hal ini mencegah error "duplicate key value violates unique constraint" saat menambahkan data baru
+// setelah proses Seeding data dengan ID manual.
+func ResetSequences(db *gorm.DB) {
+	log.Println("[Database] Mensinkronkan sequence ID...")
+	
+	tables := []struct {
+		SchemaName string
+		TableName  string
+	}{
+		{"public", "roles"},
+		{"public", "users"},
+		{"public", "fakultas"},
+		{"public", "program_studi"},
+		{"public", "dosen"},
+		{"public", "mahasiswa"},
+		{"fakultas_admin", "peran"},
+		{"fakultas_admin", "pengguna"},
+		{"fakultas_admin", "fakultas"},
+		{"fakultas_admin", "program_studi"},
+		{"fakultas_admin", "dosen"},
+		{"fakultas_admin", "mahasiswa"},
+	}
+
+	for _, t := range tables {
+		fullName := t.TableName
+		if t.SchemaName != "public" {
+			fullName = t.SchemaName + "." + t.TableName
+		}
+		
+		// Kita cari nama sequence-nya (biasanya {table}_{column}_seq)
+		// Tapi lebih aman pakai pg_get_serial_sequence
+		var seqName string
+		db.Raw("SELECT pg_get_serial_sequence(?, 'id')", fullName).Scan(&seqName)
+		
+		if seqName != "" {
+			db.Exec("SELECT setval(?, COALESCE((SELECT MAX(id) FROM ?), 1), true)", seqName, fullName)
+		}
+	}
+	log.Println("[Database] Sequence ID berhasil disinkronkan.")
 }

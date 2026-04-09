@@ -57,7 +57,7 @@ func seedScholarshipData(db *gorm.DB) {
 
 	for _, s := range scholarships {
 		var existing models.Beasiswa
-		db.Where("nama = ?", s.Nama).First(&existing)
+		db.Where("nama_beasiswa = ?", s.Nama).First(&existing)
 		if existing.ID == 0 {
 			s.CreatedAt = time.Now()
 			db.Create(&s)

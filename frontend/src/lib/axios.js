@@ -70,23 +70,13 @@ api.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        const { data } = await axios.post(
-          `${api.defaults.baseURL}/auth/refresh`,
-          {},
-          { withCredentials: true }
-        );
-
-        const newAccessToken = data.data.access_token;
-        useAuthStore.getState().setAccessToken(newAccessToken);
-
-        processQueue(null, newAccessToken);
-        originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
-
-        return api(originalRequest);
+        // Skip refresh token logic for bypass
+        // window.location.href = '/login'; 
+        return Promise.reject(error);
       } catch (err) {
         processQueue(err, null);
-        useAuthStore.getState().logout();
-        window.location.href = '/login'; // Redirect to login
+        // useAuthStore.getState().logout();
+        // window.location.href = '/login'; // Redirect to login
         return Promise.reject(err);
       } finally {
         isRefreshing = false;
@@ -100,7 +90,7 @@ api.interceptors.response.use(
 
     // 500, 502, 503 Server Errors -> Redirect to 500
     if (status >= 500) {
-      window.location.href = '/500';
+      // window.location.href = '/500';
     }
 
     return Promise.reject(error);

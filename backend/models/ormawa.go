@@ -17,6 +17,10 @@ type Ormawa struct {
 	Phone       string `json:"phone"`
 	Instagram   string `json:"instagram"`
 	Website     string `json:"website"`
+	FacultyID   *uint   `json:"facultyId"`
+	Faculty     Faculty `gorm:"foreignKey:FacultyID" json:"faculty,omitempty"`
+	OrgCode     string `gorm:"unique" json:"orgCode"`
+	Status      string `gorm:"default:'Aktif'" json:"status"`
 	CreatedAt   time.Time `json:"createdAt"`
 	UpdatedAt   time.Time `json:"updatedAt"`
 }
@@ -41,11 +45,17 @@ type Proposal struct {
 	OrmawaID            uint      `json:"ormawaId"`
 	Ormawa              Ormawa    `gorm:"foreignKey:OrmawaID" json:"ormawa"`
 	Title               string    `gorm:"not null" json:"title"`
+	Description         string    `gorm:"type:text" json:"description"`
+	FileUrl             string    `json:"fileUrl"`
 	DateEvent           time.Time `json:"dateEvent"`
 	Budget              float64   `json:"budget"`
 	Status              string    `gorm:"default:'diajukan'" json:"status"` // diajukan, disetujui_dosen, disetujui_fakultas, disetujui_univ, ditolak, revisi
 	Notes               string    `gorm:"type:text" json:"notes"`
 	RequestedBy         uint      `json:"requestedBy"` // User ID who created
+	StudentID           *uint     `json:"studentId"`   // References Student table for formal record
+	Student             Student   `gorm:"foreignKey:StudentID" json:"student,omitempty"`
+	FakultasID          *uint     `json:"fakultasId"`  // The faculty that approves this
+	Fakultas            Faculty   `gorm:"foreignKey:FakultasID" json:"fakultas,omitempty"`
 	ApprovedByDosenID   *uint     `json:"approvedByDosenId"`
 	ApprovedByFacultyID *uint     `json:"approvedByFacultyId"`
 	ApprovedBySuperID   *uint     `json:"approvedBySuperId"`
@@ -122,9 +132,11 @@ type OrmawaAspiration struct {
 	Title       string    `json:"title"`
 	Description string    `gorm:"type:text" json:"description"`
 	Status      string    `gorm:"default:'pending'" json:"status"` // pending, responded, ignored
-	Response    string    `gorm:"type:text" json:"response"`
-	CreatedAt   time.Time `json:"createdAt"`
-	UpdatedAt   time.Time `json:"updatedAt"`
+	Response             string    `gorm:"type:text" json:"response"`
+	EscalateToFacultyID  *uint     `json:"escalateToFacultyId"`
+	Faculty              Faculty   `gorm:"foreignKey:EscalateToFacultyID" json:"faculty,omitempty"`
+	CreatedAt            time.Time `json:"createdAt"`
+	UpdatedAt            time.Time `json:"updatedAt"`
 }
 
 // EventSchedule represents an event schedule in calendar
