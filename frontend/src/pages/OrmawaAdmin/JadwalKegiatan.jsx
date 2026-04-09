@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Sidebar from './components/Sidebar';
 import TopNavBar from './components/TopNavBar';
 import { useAuth } from '../../context/AuthContext';
+import { ormawaService } from '../../services/api';
 
 const JadwalKegiatan = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -37,30 +38,29 @@ const JadwalKegiatan = () => {
 
   const fetchEvents = async () => {
     try {
-      const res = await fetch(`http://localhost:8000/api/ormawa/events?ormawaId=${ormawaId}`);
-      const data = await res.json();
-      if (data.status === 'success') setEvents(data.data);
+      const data = await ormawaService.getEvents(ormawaId);
+      if (data.status === 'success') setEvents(data.data || []);
     } catch (e) { console.error(e); }
   };
 
   const deleteEvent = async (id) => {
     if (!window.confirm("Hapus permanen kegiatan ini?")) return;
     try {
-       const res = await fetch(`http://localhost:8000/api/ormawa/events/${id}`, { method: 'DELETE' });
-       if (res.ok) fetchEvents();
+       await ormawaService.deleteEvent(id);
+       fetchEvents();
     } catch (e) { console.error(e); }
   };
 
   const loadEventForEdit = (ev) => {
-    setEditingId(ev.id);
+    setEditingId(ev.ID);
     setFormData({
-      title: ev.title,
-      date: ev.startDate ? ev.startDate.split('T')[0] : '',
-      startTime: ev.startDate ? new Date(ev.startDate).toTimeString().slice(0,5) : '',
-      endTime: ev.endDate ? new Date(ev.endDate).toTimeString().slice(0,5) : '',
-      location: ev.location,
-      type: ev.description || 'internal',
-      reminder: ev.reminder || false
+      title: ev.Judul,
+      date: ev.TanggalMulai ? ev.TanggalMulai.split('T')[0] : '',
+      startTime: ev.TanggalMulai ? new Date(ev.TanggalMulai).toTimeString().slice(0,5) : '',
+      endTime: ev.TanggalSelesai ? new Date(ev.TanggalSelesai).toTimeString().slice(0,5) : '',
+      location: ev.Lokasi,
+      type: ev.Deskripsi || 'internal',
+      reminder: false
     });
     setIsModalOpen(true);
   };
@@ -97,9 +97,9 @@ const JadwalKegiatan = () => {
   };
 
   const checkConflict = () => {
-    const conflict = (events || []).find(ev => ev.startDate && ev.startDate.startsWith(formData.date) && ev.status === 'terjadwal');
+    const conflict = (events || []).find(ev => ev.TanggalMulai && ev.TanggalMulai.startsWith(formData.date) && ev.Status === 'terjadwal');
     if(conflict) {
-      setConflictWarning(`Peringatan Konflik! Sudah ada kegiatan: "${conflict.title}" pada lokasi ${conflict.location} di hari yang sama.`);
+      setConflictWarning(`Peringatan Konflik! Sudah ada kegiatan: "${conflict.Judul}" pada lokasi ${conflict.Lokasi} di hari yang sama.`);
       return true;
     }
     return false;
@@ -110,13 +110,22 @@ const JadwalKegiatan = () => {
     if(checkConflict() && !conflictWarning) return; 
     
     try {
+      // Fix time formatting if user uses "." instead of ":"
+      const startTime = formData.startTime.replace('.', ':');
+      const endTime = formData.endTime.replace('.', ':');
+
+      if (!formData.date || !startTime || !endTime) {
+         throw new Error("Tanggal dan Jam wajib diisi dengan benar.");
+      }
+
       const payload = {
-        title: formData.title,
-        description: formData.type,
-        startDate: new Date(`${formData.date}T${formData.startTime}`).toISOString(),
-        endDate: new Date(`${formData.date}T${formData.endTime}`).toISOString(),
-        location: formData.location,
-        ormawaId: Number(ormawaId)
+        Judul: formData.title,
+        Deskripsi: formData.type,
+        TanggalMulai: new Date(`${formData.date}T${startTime}`).toISOString(),
+        TanggalSelesai: new Date(`${formData.date}T${endTime}`).toISOString(),
+        Lokasi: formData.location,
+        OrmawaID: Number(ormawaId),
+        Status: 'terjadwal'
       };
 
       if (editingId) {
@@ -129,13 +138,17 @@ const JadwalKegiatan = () => {
       setEditingId(null);
       setFormData({ title: '', date: '', startTime: '', endTime: '', location: '', type: 'internal', reminder: false });
       fetchEvents();
-    } catch (e) { console.error(e); }
+      alert("✅ Jadwal berhasil disimpan!");
+    } catch (e) { 
+      console.error("Save error:", e);
+      alert(`⚠️ Gagal menyimpan: ${e.message}. Pastikan format jam benar (HH:mm)`);
+    }
   };
 
   const cancelEvent = async (id) => {
     if (!window.confirm("Hapus kegiatan ini?")) return;
     try {
-      await ormawaService.updateEvent(id, { status: 'dibatalkan' });
+      await ormawaService.updateEvent(id, { Status: 'dibatalkan' });
       fetchEvents();
     } catch (e) { console.error(e); }
   };
@@ -251,7 +264,7 @@ const JadwalKegiatan = () => {
              </div>
           </div>
 
-          {/* Render Calendar View */}
+           {/* Render Calendar View */}
           {viewMode === 'calendar' && (
             <div className="overflow-x-auto no-scrollbar pb-6">
               <div className="min-w-[800px] grid grid-cols-7 gap-px bg-outline-variant/20 border border-outline-variant/20 rounded-2xl overflow-hidden shadow-sm">
@@ -263,7 +276,7 @@ const JadwalKegiatan = () => {
                  if (item.type === 'empty') return <div key={item.id} className="bg-surface-container-low/20 h-24 border-t border-outline-variant/10"></div>;
                  
                  const dateStr = item.dateStr;
-                 const dayEvents = (events || []).filter(e => e.startDate && e.startDate.startsWith(dateStr));
+                 const dayEvents = (events || []).filter(e => e.TanggalMulai && e.TanggalMulai.startsWith(dateStr));
                  return (
                    <div 
                      key={dateStr} 
@@ -279,11 +292,11 @@ const JadwalKegiatan = () => {
                      <div className="flex flex-col gap-1">
                        {dayEvents.map(ev => (
                          <div 
-                           key={ev.id} 
+                           key={ev.ID} 
                            onClick={(e) => e.stopPropagation()} // Prevent opening modal when clicking on event
                            className="px-2 py-1 flex flex-col rounded-md text-[10px] font-semibold border-l-2 leading-tight bg-blue-50 border-blue-500 text-blue-700"
                          >
-                           <span className="truncate">{ev.startDate ? new Date(ev.startDate).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : ''} {ev.title}</span>
+                           <span className="truncate">{ev.TanggalMulai ? new Date(ev.TanggalMulai).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : ''} {ev.Judul}</span>
                          </div>
                        ))}
                      </div>
@@ -303,50 +316,39 @@ const JadwalKegiatan = () => {
                    <tr>
                      <th className="px-5 py-3.5">Informasi Kegiatan</th>
                      <th className="px-5 py-3.5">Waktu & Tempat</th>
-                     <th className="px-5 py-3.5 text-center">Notifikasi</th>
                      <th className="px-5 py-3.5 text-center">Status</th>
                      <th className="px-5 py-3.5 text-right">Aksi</th>
                    </tr>
                  </thead>
                  <tbody className="divide-y divide-outline-variant/10">
                     {(events || []).map((ev) => (
-                      <tr key={ev.id} className="hover:bg-surface-container-low/30 group">
+                      <tr key={ev.ID} className="hover:bg-surface-container-low/30 group">
                         <td className="px-6 py-4">
-                          <div className="font-bold font-headline text-base text-primary mb-1">{ev.title}</div>
+                          <div className="font-bold font-headline text-base text-primary mb-1">{ev.Judul}</div>
                           <div className="text-xs font-semibold text-on-surface-variant flex items-center gap-2">
-                            <span className={`px-2 py-0.5 rounded-md ${ev.description === 'internal' ? 'bg-blue-100 text-blue-700' : ev.description === 'eksternal' ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'}`}>
-                              {ev.description ? ev.description.toUpperCase() : 'EVENT'}
+                            <span className={`px-2 py-0.5 rounded-md ${ev.Deskripsi === 'internal' ? 'bg-blue-100 text-blue-700' : ev.Deskripsi === 'eksternal' ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'}`}>
+                              {ev.Deskripsi ? ev.Deskripsi.toUpperCase() : 'EVENT'}
                             </span>
                           </div>
                         </td>
                         <td className="px-6 py-4">
-                          <div className="font-semibold">{new Date(ev.startDate).toLocaleDateString()}</div>
-                          <div className="text-xs text-on-surface-variant mt-1 flex items-center gap-1"><span className="material-symbols-outlined text-[14px]">schedule</span> {new Date(ev.startDate).toLocaleTimeString()} - {new Date(ev.endDate).toLocaleTimeString()}</div>
-                          <div className="text-xs text-on-surface-variant mt-1 flex items-center gap-1"><span className="material-symbols-outlined text-[14px]">location_on</span> {ev.location}</div>
-                        </td>
-                        <td className="px-6 py-4 text-center">
-                          {ev.reminder ? (
-                            <div className="flex flex-col items-center justify-center text-emerald-600 gap-1">
-                              <span className="material-symbols-outlined text-[20px]">notifications_active</span>
-                              <span className="text-[10px] font-bold uppercase">H-1 Auto</span>
-                            </div>
-                          ) : (
-                            <span className="material-symbols-outlined text-slate-500">notifications_off</span>
-                          )}
+                          <div className="font-semibold">{new Date(ev.TanggalMulai).toLocaleDateString()}</div>
+                          <div className="text-xs text-on-surface-variant mt-1 flex items-center gap-1"><span className="material-symbols-outlined text-[14px]">schedule</span> {new Date(ev.TanggalMulai).toLocaleTimeString()} - {new Date(ev.TanggalSelesai).toLocaleTimeString()}</div>
+                          <div className="text-xs text-on-surface-variant mt-1 flex items-center gap-1"><span className="material-symbols-outlined text-[14px]">location_on</span> {ev.Lokasi}</div>
                         </td>
                         <td className="px-5 py-3 text-center">
-                          {ev.status === 'terjadwal' ? (
+                          {ev.Status === 'terjadwal' ? (
                             <span className="bg-blue-100 text-blue-700 px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider">Terjadwal</span>
                           ) : (
-                            <span className="bg-surface-container-high text-on-surface-variant px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider line-through">Batal</span>
+                            <span className="bg-surface-container-high text-on-surface-variant px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider line-through">{ev.Status || 'Selesai'}</span>
                           )}
                         </td>
                         <td className="px-5 py-3 text-right">
                           <div className="flex justify-end gap-1">
                             <button onClick={() => loadEventForEdit(ev)} className="p-1.5 text-on-surface-variant hover:text-primary transition-colors"><span className="material-symbols-outlined text-[18px]">edit</span></button>
-                            <button onClick={() => deleteEvent(ev.id)} className="p-1.5 text-on-surface-variant hover:text-rose-500 transition-colors"><span className="material-symbols-outlined text-[18px]">delete</span></button>
-                            {ev.status === 'terjadwal' && (
-                              <button onClick={() => cancelEvent(ev.id)} className="p-1.5 text-on-surface-variant hover:text-amber-600 transition-colors" title="Batalkan Kegiatan"><span className="material-symbols-outlined text-[18px]">block</span></button>
+                            <button onClick={() => deleteEvent(ev.ID)} className="p-1.5 text-on-surface-variant hover:text-rose-500 transition-colors"><span className="material-symbols-outlined text-[18px]">delete</span></button>
+                            {ev.Status === 'terjadwal' && (
+                              <button onClick={() => cancelEvent(ev.ID)} className="p-1.5 text-on-surface-variant hover:text-amber-600 transition-colors" title="Batalkan Kegiatan"><span className="material-symbols-outlined text-[18px]">block</span></button>
                             )}
                           </div>
                         </td>

@@ -12,11 +12,11 @@ const KeuanganKas = () => {
   const [transaksi, setTransaksi] = useState([]);
   const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
-    description: '',
-    nominal: '',
-    category: 'Operasional',
-    type: 'keluar',
-    date: new Date().toISOString().split('T')[0]
+    Deskripsi: '',
+    Nominal: '',
+    Kategori: 'Operasional',
+    Tipe: 'keluar',
+    Tanggal: new Date().toISOString().split('T')[0]
   });
 
   useEffect(() => {
@@ -42,17 +42,18 @@ const KeuanganKas = () => {
     try {
       const data = await ormawaService.addTransaction({
         ...formData,
-        nominal: Number(formData.nominal),
-        ormawaId: Number(ormawaId)
+        Nominal: Number(formData.Nominal),
+        OrmawaID: Number(ormawaId),
+        Tanggal: new Date(formData.Tanggal).toISOString()
       });
       if (data.status === 'success') {
         setIsModalOpen(false);
         setFormData({ 
-          description: '', 
-          nominal: '', 
-          category: 'Operasional', 
-          type: 'keluar', 
-          date: new Date().toISOString().split('T')[0] 
+          Deskripsi: '', 
+          Nominal: '', 
+          Kategori: 'Operasional', 
+          Tipe: 'keluar', 
+          Tanggal: new Date().toISOString().split('T')[0] 
         });
         fetchData();
       }
@@ -62,8 +63,8 @@ const KeuanganKas = () => {
   };
 
   const saldoAktif = (transaksi || []).reduce((acc, curr) => {
-    const nominal = Number(curr.nominal) || 0;
-    return curr.type === 'masuk' ? acc + nominal : acc - nominal;
+    const nominal = Number(curr.Nominal) || 0;
+    return curr.Tipe === 'masuk' ? acc + nominal : acc - nominal;
   }, 0);
 
   const formatRp = (angka) => {
@@ -122,22 +123,22 @@ const KeuanganKas = () => {
                     </thead>
                     <tbody className="divide-y divide-outline-variant/10 font-medium">
                        {(transaksi || []).map((trx) => (
-                        <tr key={trx.id} className="hover:bg-surface-container-low/50 transition-colors">
+                        <tr key={trx.ID} className="hover:bg-surface-container-low/50 transition-colors">
                           <td className="px-6 py-3.5 text-[11px] font-bold text-on-surface-variant opacity-70">
-                            {trx.date ? new Date(trx.date).toLocaleDateString('id-ID') : '-'}
+                            {trx.Tanggal ? new Date(trx.Tanggal).toLocaleDateString('id-ID') : '-'}
                           </td>
                           <td className="px-6 py-3.5">
-                            <span className="block font-bold mb-0.5 text-on-surface text-[13.5px] leading-tight">{trx.description}</span>
+                            <span className="block font-bold mb-0.5 text-on-surface text-[13.5px] leading-tight">{trx.Deskripsi}</span>
                             <div className="flex items-center gap-2">
-                               <span className="text-[9px] uppercase font-black bg-outline-variant/10 px-1.5 py-0.5 rounded text-on-surface-variant tracking-wider">{trx.category}</span>
-                               {trx.proposalId && <span className="text-[9px] text-primary font-black flex items-center gap-0.5 uppercase"><span className="material-symbols-outlined text-[11px]">link</span> PROP #{trx.proposalId}</span>}
+                               <span className="text-[9px] uppercase font-black bg-outline-variant/10 px-1.5 py-0.5 rounded text-on-surface-variant tracking-wider">{trx.Kategori}</span>
+                               {trx.ProposalID && <span className="text-[9px] text-primary font-black flex items-center gap-0.5 uppercase"><span className="material-symbols-outlined text-[11px]">link</span> PROP #{trx.ProposalID}</span>}
                             </div>
                           </td>
                           <td className="px-6 py-3.5 text-right font-black text-emerald-600 text-[13px]">
-                            {trx.type === 'masuk' ? formatRp(trx.nominal) : '-'}
+                            {trx.Tipe === 'masuk' ? formatRp(trx.Nominal) : '-'}
                           </td>
                           <td className="px-6 py-3.5 text-right font-black text-rose-600 text-[13px]">
-                            {trx.type === 'keluar' ? formatRp(trx.nominal) : '-'}
+                            {trx.Tipe === 'keluar' ? formatRp(trx.Nominal) : '-'}
                           </td>
                         </tr>
                       ))}
@@ -169,16 +170,16 @@ const KeuanganKas = () => {
                  <form onSubmit={saveMutation} className="space-y-4">
                    <div>
                      <label className="block text-xs font-bold text-on-surface uppercase mb-1 tracking-widest">Keterangan / Item</label>
-                     <input required placeholder="Ex: Pembelian Banner" className="w-full bg-surface-container-low p-3.5 rounded-xl border border-outline-variant/30" value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} />
+                     <input required placeholder="Ex: Pembelian Banner" className="w-full bg-surface-container-low p-3.5 rounded-xl border border-outline-variant/30" value={formData.Deskripsi} onChange={e => setFormData({...formData, Deskripsi: e.target.value})} />
                    </div>
                    <div className="grid grid-cols-2 gap-4">
                      <div>
                        <label className="block text-xs font-bold text-on-surface uppercase mb-1 tracking-widest">Nominal (Rp)</label>
-                       <input required type="number" placeholder="Ex: 50000" className="w-full bg-surface-container-low p-3.5 rounded-xl border border-outline-variant/30" value={formData.nominal} onChange={e => setFormData({...formData, nominal: e.target.value})} />
+                       <input required type="number" placeholder="Ex: 50000" className="w-full bg-surface-container-low p-3.5 rounded-xl border border-outline-variant/30" value={formData.Nominal} onChange={e => setFormData({...formData, Nominal: e.target.value})} />
                      </div>
                      <div>
                        <label className="block text-xs font-bold text-on-surface uppercase mb-1 tracking-widest">Jenis</label>
-                       <select className="w-full bg-surface-container-low p-3.5 rounded-xl border border-outline-variant/30 font-bold" value={formData.type} onChange={e => setFormData({...formData, type: e.target.value})}>
+                       <select className="w-full bg-surface-container-low p-3.5 rounded-xl border border-outline-variant/30 font-bold" value={formData.Tipe} onChange={e => setFormData({...formData, Tipe: e.target.value})}>
                          <option value="keluar">Keluar (-)</option>
                          <option value="masuk">Masuk (+)</option>
                        </select>
@@ -187,11 +188,11 @@ const KeuanganKas = () => {
                    <div className="grid grid-cols-2 gap-4">
                      <div>
                        <label className="block text-xs font-bold text-on-surface uppercase mb-1 tracking-widest">Kategori</label>
-                       <input required placeholder="Ex: Konsumsi" className="w-full bg-surface-container-low p-3.5 rounded-xl border border-outline-variant/30" value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})} />
+                       <input required placeholder="Ex: Konsumsi" className="w-full bg-surface-container-low p-3.5 rounded-xl border border-outline-variant/30" value={formData.Kategori} onChange={e => setFormData({...formData, Kategori: e.target.value})} />
                      </div>
                      <div>
                        <label className="block text-xs font-bold text-on-surface uppercase mb-1 tracking-widest">Tanggal</label>
-                       <input required type="date" className="w-full bg-surface-container-low p-3.5 rounded-xl border border-outline-variant/30" value={formData.date} onChange={e => setFormData({...formData, date: e.target.value})} />
+                       <input required type="date" className="w-full bg-surface-container-low p-3.5 rounded-xl border border-outline-variant/30" value={formData.Tanggal} onChange={e => setFormData({...formData, Tanggal: e.target.value})} />
                      </div>
                    </div>
                    

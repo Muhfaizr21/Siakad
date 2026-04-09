@@ -2,6 +2,7 @@ package auth
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"strings"
 	"time"
@@ -12,7 +13,6 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
-	"gorm.io/gorm"
 )
 
 type loginRequest struct {
@@ -297,46 +297,98 @@ func ChangePassword(c *fiber.Ctx) error {
 
 
 func EnsureBootstrapData() error {
-	// Root Student User check
-	var user models.User
-	userErr := config.DB.Where("email = ?", "student@bku.ac.id").First(&user).Error
-	if errors.Is(userErr, gorm.ErrRecordNotFound) {
-		hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("student123"), bcrypt.DefaultCost)
-		user = models.User{
-			Email:    "student@bku.ac.id",
-			Password: string(hashedPassword),
-			Role:     "student",
-		}
-		config.DB.Create(&user)
-	}
+	fmt.Println("🚀 [SEEDER] Starting aggressive seed process...")
 
-	// Support tables check
+	// 1. Ensure Fakultas
 	var fakultas models.Fakultas
 	if err := config.DB.Where("kode = ?", "SOC").First(&fakultas).Error; err != nil {
-		// Wait, model.go might have 'Kode' instead of 'KodeFakultas'
-		// Recheck model.go for Fakultas fields.
 		fakultas = models.Fakultas{Nama: "School of Computing", Kode: "SOC", Dekan: "Prof. Demo"}
-		config.DB.Create(&fakultas)
+		if err := config.DB.Create(&fakultas).Error; err != nil {
+			panic("Failed to seed Fakultas: " + err.Error())
+		}
+		fmt.Println("✅ [SEEDER] Created Fakultas: SOC")
 	}
 
+	// 2. Ensure Program Studi
 	var major models.ProgramStudi
 	if err := config.DB.Where("nama = ?", "Informatics").First(&major).Error; err != nil {
-		major = models.ProgramStudi{Nama: "Informatics", FakultasID: fakultas.ID, Jenjang: "S1"}
-		config.DB.Create(&major)
+		major = models.ProgramStudi{Nama: "Informatics", FakultasID: fakultas.ID, Jenjang: "S1", Kode: "INF01"}
+		if err := config.DB.Create(&major).Error; err != nil {
+			panic("Failed to seed ProgramStudi: " + err.Error())
+		}
+		fmt.Println("✅ [SEEDER] Created Program Studi: Informatics")
 	}
 
+	// 3. Ensure Dosen User & Dosen Profile
+	var dosenUser models.User
+	if err := config.DB.Where("email = ?", "dosen@bku.ac.id").First(&dosenUser).Error; err != nil {
+		hp, _ := bcrypt.GenerateFromPassword([]byte("dosen123"), bcrypt.DefaultCost)
+		dosenUser = models.User{Email: "dosen@bku.ac.id", Password: string(hp), Role: "dosen"}
+		config.DB.Create(&dosenUser)
+	}
+
+	var dosen models.Dosen
+	// Note: GORM maps NIDN to n_id_n by default
+	if err := config.DB.Where("n_id_n = ?", "0400000001").First(&dosen).Error; err != nil {
+		dosen = models.Dosen{
+			Nama: "Dosen PA Demo", 
+			NIDN: "0400000001", 
+			PenggunaID: dosenUser.ID,
+			FakultasID: fakultas.ID, 
+			ProgramStudiID: major.ID,
+		}
+		if err := config.DB.Create(&dosen).Error; err != nil {
+			panic("Failed to seed Dosen: " + err.Error())
+		}
+		fmt.Println("✅ [SEEDER] Created Dosen: 0400000001")
+	}
+
+	// 4. Ensure Ormawa
+	var ormawa models.Ormawa
+	if err := config.DB.Where("id = ?", 1).First(&ormawa).Error; err != nil {
+		ormawa = models.Ormawa{
+			Nama: "HMP Informatics",
+			Deskripsi: "Himpunan Mahasiswa Informatics",
+			Visi: "Menjadi himpunan terbaik",
+			Misi: "Meningkatkan skill mahasiswa",
+		}
+		ormawa.ID = 1
+		if err := config.DB.Create(&ormawa).Error; err != nil {
+			panic("Failed to seed Ormawa: " + err.Error())
+		}
+		fmt.Println("✅ [SEEDER] Created Ormawa ID: 1")
+	}
+
+	// 5. Ensure Student User
+	var user models.User
+	if err := config.DB.Where("email = ?", "student@bku.ac.id").First(&user).Error; err != nil {
+		hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("student123"), bcrypt.DefaultCost)
+		user = models.User{Email: "student@bku.ac.id", Password: string(hashedPassword), Role: "student"}
+		if err := config.DB.Create(&user).Error; err != nil {
+			panic("Failed to seed User: " + err.Error())
+		}
+		fmt.Println("✅ [SEEDER] Created User: student@bku.ac.id")
+	}
+
+	// 6. Ensure Mahasiswa
 	var student models.Mahasiswa
 	if err := config.DB.Where("nim = ?", "BKU2024001").First(&student).Error; err != nil {
 		student = models.Mahasiswa{
 			PenggunaID:       user.ID,
 			NIM:              "BKU2024001",
 			Nama:             "Mahasiswa Demo",
+			FakultasID:       fakultas.ID,
 			ProgramStudiID:   major.ID,
+			DosenPAID:        dosen.ID,
 			SemesterSekarang: 2,
 			StatusAkun:       "Aktif",
 		}
-		config.DB.Create(&student)
+		if err := config.DB.Create(&student).Error; err != nil {
+			panic("Failed to seed Mahasiswa: " + err.Error())
+		}
+		fmt.Println("✅ [SEEDER] Created Mahasiswa: BKU2024001")
 	}
 
+	fmt.Println("🏁 [SEEDER] All data seeded successfully.")
 	return nil
 }

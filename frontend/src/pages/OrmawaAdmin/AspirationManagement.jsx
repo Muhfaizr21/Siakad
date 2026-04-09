@@ -38,15 +38,18 @@ const AspirationManagement = () => {
     if (!newAspiration.title || !newAspiration.description) return alert("Mohon lengkapi data!");
     try {
       const data = await ormawaService.createAspiration({
-        ...newAspiration,
-        ormawaId: Number(ormawaId),
-        status: 'pending'
+        Judul: newAspiration.title,
+        Kategori: newAspiration.category,
+        Isi: newAspiration.description,
+        OrmawaID: Number(ormawaId),
+        Status: 'pending',
+        MahasiswaID: 1 // Default untuk demo
       });
       
       if (data.status === 'success') {
         setShowAddModal(false);
         setNewAspiration({ title: '', category: 'Kegiatan', description: '' });
-        fetchData();
+        loadInitialData();
       }
     } catch (e) { 
       console.error("Gagal mengirim aspirasi:", e);
@@ -85,36 +88,37 @@ const AspirationManagement = () => {
               </div>
             ) : (
               aspirations.map(item => (
-                <div key={item.id} className="bg-white rounded-2xl border border-outline-variant/10 p-6 hover:shadow-xl transition-all group flex flex-col justify-between">
+                <div key={item.ID} className="bg-white rounded-2xl border border-outline-variant/10 p-6 hover:shadow-xl transition-all group flex flex-col justify-between">
                   <div>
                     <div className="flex justify-between items-start mb-4">
-                      <div className={`px-2.5 py-1 rounded-md text-[9px] font-black uppercase tracking-wider flex items-center gap-1.5 ${CATEGORIES.find(c => c.id === item.category)?.color === 'rose' ? 'bg-rose-100 text-rose-700' : 'bg-primary/10 text-primary'}`}>
-                        <span className="material-symbols-outlined text-[13px]">{CATEGORIES.find(c => c.id === item.category)?.icon}</span>
-                        {item.category}
+                      <div className={`px-2.5 py-1 rounded-md text-[9px] font-black uppercase tracking-wider flex items-center gap-1.5 ${(CATEGORIES.find(c => c.id === item.Kategori)?.color || 'slate') === 'rose' ? 'bg-rose-100 text-rose-700' : 'bg-primary/10 text-primary'}`}>
+                        <span className="material-symbols-outlined text-[13px]">{CATEGORIES.find(c => c.id === item.Kategori)?.icon || 'info'}</span>
+                        {item.Kategori || 'Lainnya'}
                       </div>
-                      <div className={`px-2.5 py-1 rounded-md text-[9px] font-black uppercase tracking-wider border ${item.status === 'responded' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-amber-50 text-amber-600 border-amber-100'}`}>
-                        {item.status === 'responded' ? 'DIBALAS' : 'PENDING'}
+                      <div className={`px-2.5 py-1 rounded-md text-[9px] font-black uppercase tracking-wider border ${item.Status === 'ditanggapi' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-amber-50 text-amber-600 border-amber-100'}`}>
+                        {item.Status === 'ditanggapi' ? 'DIBALAS' : 'PENDING'}
                       </div>
                     </div>
                     
-                    <h3 className="text-lg font-bold text-on-surface mb-2 font-headline leading-tight">{item.title}</h3>
-                    <p className="text-[12.5px] text-on-surface-variant leading-relaxed line-clamp-3 mb-4 opacity-80">{item.description}</p>
+                    <h3 className="text-lg font-bold text-on-surface mb-2 font-headline leading-tight">{item.Judul}</h3>
+                    <p className="text-[12.5px] text-on-surface-variant leading-relaxed line-clamp-3 mb-4 opacity-80">{item.Isi}</p>
+                    {item.Mahasiswa && <p className="text-[10px] text-on-surface-variant mb-4 font-bold italic">Oleh: {item.Mahasiswa.Nama}</p>}
 
-                    {item.response && (
+                    {item.Tanggapan && (
                       <div className="mt-6 pt-6 border-t border-dashed border-emerald-100">
                         <p className="text-[10px] font-black text-emerald-600 uppercase tracking-[0.2em] mb-3 flex items-center gap-2">
                           <span className="material-symbols-outlined text-[16px]">how_to_reg</span> TANGGAPAN FAKULTAS
                         </p>
                         <div className="bg-emerald-50/50 p-5 rounded-2xl border border-emerald-100  text-sm text-emerald-800">
-                           "{item.response}"
+                           "{item.Tanggapan}"
                         </div>
                       </div>
                     )}
                   </div>
 
                   <div className="mt-8 pt-6 border-t border-outline-variant/5 flex justify-between items-center text-[10px] font-bold text-on-surface-variant opacity-40">
-                    <span>Dikirim: {new Date(item.createdAt).toLocaleDateString()}</span>
-                    <span>#{item.id}</span>
+                    <span>Dikirim: {new Date(item.CreatedAt).toLocaleDateString()}</span>
+                    <span>#{item.ID}</span>
                   </div>
                 </div>
               ))

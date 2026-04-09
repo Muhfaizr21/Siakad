@@ -83,9 +83,9 @@ const ProposalManagement = () => {
       if (data.status === 'success') {
         const now = new Date();
         const pending = (data.data || []).filter(p => 
-          p.status === 'disetujui_univ' && 
-          new Date(p.dateEvent) < now &&
-          (!p.lpj || p.lpj.status !== 'disetujui')
+          p.Status === 'disetujui_univ' && 
+          new Date(p.TanggalKegiatan) < now &&
+          (!p.Lpj || p.Lpj.Status !== 'disetujui')
         );
         
         if (pending.length > 0) {
@@ -103,17 +103,17 @@ const ProposalManagement = () => {
       const data = await ormawaService.getProposals(ormawaId);
       if (data.status === 'success') {
         const formatted = (data.data || []).map(p => ({
-          id: `PROP-${p.id}`,
-          realId: p.id,
-          nama_kegiatan: p.title,
-          tujuan: p.notes || 'Tujuan operasional atau deskripsi tidak tersedia',
-          tanggal_iso: p.dateEvent ? p.dateEvent.split('T')[0] : '',
-          tanggal_pelaksanaan: p.dateEvent ? new Date(p.dateEvent).toLocaleDateString('id-ID', { year: 'numeric', month: 'short', day: 'numeric' }) : '-',
-          status: p.status || 'diajukan',
-          anggaran: p.budget || 0,
-          penanggung_jawab: p.ormawa ? p.ormawa.name : 'Ormawa',
-          file: p.fileUrl || 'tidak ada lampiran',
-          ormawaId: p.ormawaId
+          id: `PROP-${p.ID}`,
+          realId: p.ID,
+          nama_kegiatan: p.Judul,
+          tujuan: p.Catatan || 'Deskripsi tidak tersedia',
+          tanggal_iso: p.TanggalKegiatan ? p.TanggalKegiatan.split('T')[0] : '',
+          tanggal_pelaksanaan: p.TanggalKegiatan ? new Date(p.TanggalKegiatan).toLocaleDateString('id-ID', { year: 'numeric', month: 'short', day: 'numeric' }) : '-',
+          status: p.Status || 'diajukan',
+          anggaran: p.Anggaran || 0,
+          penanggung_jawab: p.Ormawa ? p.Ormawa.Nama : 'Ormawa',
+          file: p.FileURL || 'tidak ada lampiran',
+          ormawaId: p.OrmawaID
         }));
         setProposals(formatted);
       }
@@ -171,9 +171,9 @@ const ProposalManagement = () => {
 
     try {
       const data = await ormawaService.updateProposal(selectedProposal.realId, { 
-        status: newStatus, 
-        notes: komentar,
-        userId: user?.id || 0
+        Status: newStatus, 
+        Catatan: komentar,
+        UserID: user?.id || 0
       });
       if (data.status === 'success') {
         fetchProposals();
@@ -198,13 +198,12 @@ const ProposalManagement = () => {
   const handleSaveForm = async (e) => {
     e.preventDefault();
     const payload = {
-      title: formData.nama_kegiatan,
-      notes: formData.tujuan,
-      dateEvent: formData.tanggal_pelaksanaan ? new Date(formData.tanggal_pelaksanaan).toISOString() : new Date().toISOString(),
-      budget: Number(formData.anggaran),
-      ormawaId: ormawaId,
-      status: 'diajukan',
-      fileUrl: formData.file_url
+      Judul: formData.nama_kegiatan,
+      Catatan: formData.tujuan,
+      TanggalKegiatan: formData.tanggal_pelaksanaan ? new Date(formData.tanggal_pelaksanaan).toISOString() : new Date().toISOString(),
+      Anggaran: Number(formData.anggaran),
+      OrmawaID: Number(ormawaId),
+      FileURL: formData.file_url
     };
 
     try {
@@ -324,16 +323,16 @@ const ProposalManagement = () => {
                       </h3>
                       <div className="space-y-4 pl-4 relative before:absolute before:left-5 before:top-2 before:bottom-0 before:w-px before:bg-outline-variant/30">
                         {history.map((log) => (
-                          <div key={log.id} className="relative z-10 flex gap-4 bg-surface rounded-xl p-4 shadow-sm border border-outline-variant/10">
+                          <div key={log.ID} className="relative z-10 flex gap-4 bg-surface rounded-xl p-4 shadow-sm border border-outline-variant/10">
                             <div className="w-8 h-8 shrink-0 rounded-full bg-surface-container border-2 border-primary-container flex items-center justify-center -ml-8">
                                <span className="material-symbols-outlined text-[14px] text-primary">done</span>
                             </div>
                             <div>
                                <div className="flex items-center gap-2 mb-1">
-                                 {getStatusBadge(log.status)}
-                                 <span className="text-xs text-on-surface-variant font-label">{new Date(log.createdAt).toLocaleString()}</span>
+                                 {getStatusBadge(log.Status)}
+                                 <span className="text-xs text-on-surface-variant font-label">{new Date(log.CreatedAt).toLocaleString()}</span>
                                </div>
-                               <p className="text-sm text-on-surface font-medium leading-relaxed bg-surface-container-low p-2 rounded-lg mt-1">{log.notes || 'Tanpa catatan'}</p>
+                               <p className="text-sm text-on-surface font-medium leading-relaxed bg-surface-container-low p-2 rounded-lg mt-1">{log.Catatan || 'Tanpa catatan'}</p>
                             </div>
                           </div>
                         ))}
@@ -352,8 +351,7 @@ const ProposalManagement = () => {
                        value={komentar}
                        onChange={(e) => setKomentar(e.target.value)}
                     ></textarea>
-                    
-                    <div className="space-y-2">
+                     <div className="space-y-2">
                        {hasPermission('proposal', 'approve') && (
                          <>
                            {selectedProposal.status === 'diajukan' && (
@@ -371,7 +369,7 @@ const ProposalManagement = () => {
                        <button onClick={() => handleAction('ditolak')} className="w-full py-3 bg-rose-100 text-rose-800 rounded-xl font-bold text-sm">Tolak Permanen</button>
                     </div>
                   </div>
-                  <button onClick={() => setSelectedProposal(null)} className="mt-8 text-on-surface-variant font-medium underline text-sm">Tutup Panel</button>
+                  <button onClick={() => { setSelectedProposal(null); setKomentar(''); }} className="mt-8 text-on-surface-variant font-medium underline text-sm">Tutup Panel</button>
                 </div>
               </div>
             </div>

@@ -37,6 +37,8 @@ func migrateModels(db *gorm.DB) error {
 		&models.OrmawaKehadiran{},
 		&models.OrmawaPengumuman{},
 		&models.OrmawaMutasiSaldo{},
+		&models.OrmawaAspirasi{},
+		&models.OrmawaNotifikasi{},
 		&models.Proposal{},
 		&models.ProposalRiwayat{},
 		&models.LaporanPertanggungjawaban{},

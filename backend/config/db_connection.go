@@ -8,6 +8,7 @@ import (
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
+	"github.com/joho/godotenv"
 )
 
 var DB *gorm.DB
@@ -21,6 +22,11 @@ type databaseConfig struct {
 }
 
 func ConnectDB() {
+	// Load .env file
+	if err := godotenv.Load(".env"); err != nil {
+		log.Println("Warning: .env file not found, using system environment variables")
+	}
+
 	cfg := loadDatabaseConfig()
 
 	ensureDatabaseExists(cfg)
@@ -52,23 +58,41 @@ func ConnectDB() {
 }
 
 func loadDatabaseConfig() databaseConfig {
+	host := os.Getenv("DB_HOST")
+	if host == "" { host = "localhost" }
+	
+	port := os.Getenv("DB_PORT")
+	if port == "" { port = "5432" }
+	
+	dbname := os.Getenv("DB_NAME")
+	if dbname == "" { dbname = "siakad" } // Fallback default
+	
+	user := os.Getenv("DB_USER")
+	if user == "" { user = "muhfaiizr" }
+	
+	log.Printf("[DB Config] Host: %s, Port: %s, User: %s, DBName: %s\n", host, port, user, dbname)
+
 	return databaseConfig{
-		Host:     os.Getenv("DB_HOST"),
-		User:     os.Getenv("DB_USER"),
+		Host:     host,
+		User:     user,
 		Password: os.Getenv("DB_PASSWORD"),
-		DBName:   os.Getenv("DB_NAME"),
-		Port:     os.Getenv("DB_PORT"),
+		DBName:   dbname,
+		Port:     port,
 	}
 }
 
 func buildDSN(cfg databaseConfig, dbName string) string {
+	passwordPart := ""
+	if cfg.Password != "" {
+		passwordPart = ":" + cfg.Password
+	}
 	return fmt.Sprintf(
-		"host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=Asia/Jakarta",
-		cfg.Host,
+		"postgres://%s%s@%s:%s/%s?sslmode=disable&TimeZone=Asia/Jakarta",
 		cfg.User,
-		cfg.Password,
-		dbName,
+		passwordPart,
+		cfg.Host,
 		cfg.Port,
+		dbName,
 	)
 }
 

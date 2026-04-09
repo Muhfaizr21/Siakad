@@ -330,6 +330,8 @@ type Ormawa struct {
 	Proposals  []Proposal          `gorm:"foreignKey:OrmawaID"`
 	Pengumuman []OrmawaPengumuman  `gorm:"foreignKey:OrmawaID"`
 	Divisi     []OrmawaDivisi      `gorm:"foreignKey:OrmawaID"`
+	Aspirasi   []OrmawaAspirasi    `gorm:"foreignKey:OrmawaID"`
+	Notifikasi []OrmawaNotifikasi  `gorm:"foreignKey:OrmawaID"`
 }
 
 type OrmawaAnggota struct {
@@ -375,7 +377,7 @@ type OrmawaKegiatan struct {
 	Lokasi         string
 	Status         string
 
-	Kehadiran []OrmawaKehadiran
+	Kehadiran []OrmawaKehadiran `gorm:"foreignKey:KegiatanID"`
 }
 
 type OrmawaKehadiran struct {
@@ -442,7 +444,7 @@ type Proposal struct {
 	ApprovedFakultasID *uint `gorm:"index"`
 
 	Riwayat []ProposalRiwayat
-	LPJ     []LaporanPertanggungjawaban
+	LPJ     []LaporanPertanggungjawaban `gorm:"foreignKey:ProposalID"`
 }
 
 type ProposalRiwayat struct {
@@ -531,4 +533,28 @@ type Berita struct {
 
 	Status         string
 	TanggalPublish time.Time
+}
+
+type OrmawaAspirasi struct {
+	BaseModel
+	OrmawaID    uint `gorm:"index"`
+	MahasiswaID uint `gorm:"index"`
+
+	Ormawa    Ormawa
+	Mahasiswa Mahasiswa
+
+	Kategori  string
+	Judul     string
+	Isi       string
+	Status    string `gorm:"default:'pending'"` // pending, ditanggapi, diabaikan
+	Tanggapan string
+}
+
+type OrmawaNotifikasi struct {
+	BaseModel
+	OrmawaID uint   `gorm:"index"`
+	Tipe     string // approval, proposal, finance, event
+	Judul    string
+	Pesan    string
+	IsRead   bool `gorm:"default:false"`
 }

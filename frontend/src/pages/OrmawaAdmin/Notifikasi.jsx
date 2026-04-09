@@ -65,7 +65,7 @@ const Notifikasi = () => {
   return (
     <div className="bg-surface text-on-surface min-h-screen">
       <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
-      <main className="lg:ml-64 min-h-screen pb-12 transition-all duration-300">
+      <main className="lg:ml-60 min-h-screen pb-12 transition-all duration-300">
         <TopNavBar setIsOpen={setSidebarOpen} />
         
         <div className="pt-24 px-4 lg:px-8 max-w-5xl mx-auto">
@@ -74,7 +74,7 @@ const Notifikasi = () => {
               <h1 className="text-3xl font-extrabold font-headline mb-2 text-on-surface">Pusat Notifikasi</h1>
               <p className="text-on-surface-variant text-sm font-medium">Log riwayat pemberitahuan operasional dari seluruh lini modul.</p>
             </div>
-            {notifs.filter(n => !n.isRead).length > 0 && (
+            {notifs.filter(n => !n.IsRead).length > 0 && (
               <button onClick={markAllRead} className="flex items-center gap-2 px-5 py-2.5 bg-surface-container-high text-primary font-bold rounded-xl hover:bg-surface-container hover:text-primary-fixed transition-colors">
                 <span className="material-symbols-outlined text-[18px]">done_all</span>
                 Tandai Semua Dibaca
@@ -91,24 +91,24 @@ const Notifikasi = () => {
              ) : (
                 <div className="divide-y divide-outline-variant/10">
                    {notifs.map(item => (
-                      <div key={item.id} className={`p-6 flex items-start gap-4 transition-colors ${item.isRead ? 'bg-surface/50 opacity-90' : 'bg-primary/5 hover:bg-primary/10 cursor-pointer'}`} onClick={() => !item.isRead && markAsRead(item.id)}>
-                         <div className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 shadow-sm border ${item.isRead ? 'bg-surface-container border-outline-variant/20' : 'bg-white border-primary/20'}`}>
-                            {getIcon(item.type)}
+                      <div key={item.ID} className={`p-6 flex items-start gap-4 transition-colors ${item.IsRead ? 'bg-surface/50 opacity-90' : 'bg-primary/5 hover:bg-primary/10 cursor-pointer'}`} onClick={() => !item.IsRead && markAsRead(item.ID)}>
+                         <div className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 shadow-sm border ${item.IsRead ? 'bg-surface-container border-outline-variant/20' : 'bg-white border-primary/20'}`}>
+                            {getIcon(item.Tipe)}
                          </div>
                          <div className="flex-grow">
                             <div className="flex justify-between items-start mb-1">
-                               <h3 className={`text-base font-headline ${item.isRead ? 'font-semibold text-on-surface-variant' : 'font-extrabold text-on-surface'}`}>{item.title}</h3>
-                               <span className="text-[10px] font-bold text-secondary uppercase tracking-wider">{formatTime(item.createdAt)}</span>
+                               <h3 className={`text-base font-headline ${item.IsRead ? 'font-semibold text-on-surface-variant' : 'font-extrabold text-on-surface'}`}>{item.Judul}</h3>
+                               <span className="text-[10px] font-bold text-secondary uppercase tracking-wider">{formatTime(item.CreatedAt)}</span>
                             </div>
-                            <p className="text-sm font-body text-on-surface-variant leading-relaxed max-w-3xl">{item.desc}</p>
+                            <p className="text-sm font-body text-on-surface-variant leading-relaxed max-w-3xl">{item.Pesan}</p>
                             
-                            {!item.isRead && (
+                            {!item.IsRead && (
                                <div className="mt-3">
                                  <button className="text-xs font-bold text-primary hover:underline">Tinjau Sekarang &rarr;</button>
                                </div>
                             )}
                          </div>
-                         <button onClick={(e) => { e.stopPropagation(); deleteNotif(item.id); }} className="w-8 h-8 rounded-full flex justify-center items-center text-on-surface-variant hover:bg-rose-50 hover:text-rose-500 transition-colors shrink-0">
+                         <button onClick={(e) => { e.stopPropagation(); deleteNotif(item.ID); }} className="w-8 h-8 rounded-full flex justify-center items-center text-on-surface-variant hover:bg-rose-50 hover:text-rose-500 transition-colors shrink-0">
                             <span className="material-symbols-outlined text-[18px]">delete</span>
                          </button>
                       </div>

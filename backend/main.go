@@ -15,6 +15,7 @@ import (
 	"siakad-backend/controllers/mahasiswa/voice"
 	"siakad-backend/middleware"
 	"siakad-backend/routes"
+	"os"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
@@ -131,5 +132,9 @@ func main() {
 	routes.SetupOrmawaRoutes(app)
 
 	// Start Server
-	app.Listen(":8080")
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8000"
+	}
+	app.Listen(":" + port)
 }

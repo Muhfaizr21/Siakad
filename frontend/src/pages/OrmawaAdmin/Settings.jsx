@@ -11,15 +11,15 @@ const Settings = () => {
   const ormawaId = user?.ormawaId || 1;
 
   const [config, setConfig] = useState({
-    name: '',
-    description: '',
-    vision: '',
-    mission: '',
-    logoUrl: '',
-    email: '',
-    phone: '',
-    instagram: '',
-    website: ''
+    Nama: '',
+    Deskripsi: '',
+    Visi: '',
+    Misi: '',
+    LogoURL: '',
+    Email: '',
+    Telepon: '',
+    Instagram: '',
+    Website: ''
   });
 
   useEffect(() => {
@@ -53,7 +53,7 @@ const Settings = () => {
       });
       const data = await res.json();
       if (data.status === 'success') {
-        setConfig({ ...config, logoUrl: data.url });
+        setConfig({ ...config, LogoURL: data.url });
       }
     } catch (e) { console.error(e); }
     setLoading(false);
@@ -86,9 +86,9 @@ const Settings = () => {
   };
 
   return (
-    <div className="bg-surface text-on-surface min-h-screen">
+    <div className="bg-surface text-on-surface h-screen overflow-hidden">
       <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
-      <main className="lg:ml-64 min-h-screen pb-12 transition-all duration-300">
+      <main className="lg:ml-60 h-screen overflow-y-auto pb-24 transition-all duration-300">
         <TopNavBar setIsOpen={setSidebarOpen} />
         
         <div className="pt-24 px-4 lg:px-8 max-w-5xl mx-auto font-body">
@@ -118,27 +118,27 @@ const Settings = () => {
                       <label className="block text-xs font-black text-on-surface-variant uppercase tracking-widest mb-2 px-1">Nama Ormawa</label>
                       <input 
                         type="text" 
-                        value={config.name}
-                        onChange={(e) => setConfig({...config, name: e.target.value})}
+                        value={config.Nama}
+                        onChange={(e) => setConfig({...config, Nama: e.target.value})}
                         className="w-full p-4 bg-surface-container-low border-none rounded-2xl text-sm font-bold shadow-inner"
                       />
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <label className="block text-xs font-black text-on-surface-variant uppercase tracking-widest mb-2 px-1">Visi</label>
-                        <textarea rows="3" value={config.vision} onChange={e => setConfig({...config, vision: e.target.value})} className="w-full p-4 bg-surface-container-low border-none rounded-2xl text-sm shadow-inner"></textarea>
+                        <textarea rows="3" value={config.Visi} onChange={e => setConfig({...config, Visi: e.target.value})} className="w-full p-4 bg-surface-container-low border-none rounded-2xl text-sm shadow-inner"></textarea>
                       </div>
                       <div>
                         <label className="block text-xs font-black text-on-surface-variant uppercase tracking-widest mb-2 px-1">Misi</label>
-                        <textarea rows="3" value={config.mission} onChange={e => setConfig({...config, mission: e.target.value})} className="w-full p-4 bg-surface-container-low border-none rounded-2xl text-sm shadow-inner"></textarea>
+                        <textarea rows="3" value={config.Misi} onChange={e => setConfig({...config, Misi: e.target.value})} className="w-full p-4 bg-surface-container-low border-none rounded-2xl text-sm shadow-inner"></textarea>
                       </div>
                     </div>
                     <div>
                       <label className="block text-xs font-black text-on-surface-variant uppercase tracking-widest mb-2 px-1">Deskripsi Singkat</label>
                       <textarea 
                         rows="3"
-                        value={config.description}
-                        onChange={(e) => setConfig({...config, description: e.target.value})}
+                        value={config.Deskripsi}
+                        onChange={(e) => setConfig({...config, Deskripsi: e.target.value})}
                         className="w-full p-4 bg-surface-container-low border-none rounded-2xl text-sm shadow-inner"
                       ></textarea>
                     </div>
@@ -153,19 +153,19 @@ const Settings = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                       <label className="block text-[10px] font-black text-on-surface-variant uppercase tracking-widest mb-1 px-1">Email Resmi</label>
-                      <input placeholder="Email" value={config.email || ''} onChange={e => setConfig({...config, email: e.target.value})} className="w-full p-4 bg-surface-container-low rounded-xl border-none shadow-inner text-sm" />
+                      <input placeholder="Email" value={config.Email || ''} onChange={e => setConfig({...config, Email: e.target.value})} className="w-full p-4 bg-surface-container-low rounded-xl border-none shadow-inner text-sm" />
                     </div>
                     <div>
                       <label className="block text-[10px] font-black text-on-surface-variant uppercase tracking-widest mb-1 px-1">Nomor Telepon / WA</label>
-                      <input placeholder="Telepon" value={config.phone || ''} onChange={e => setConfig({...config, phone: e.target.value})} className="w-full p-4 bg-surface-container-low rounded-xl border-none shadow-inner text-sm" />
+                      <input placeholder="Telepon" value={config.Telepon || ''} onChange={e => setConfig({...config, Telepon: e.target.value})} className="w-full p-4 bg-surface-container-low rounded-xl border-none shadow-inner text-sm" />
                     </div>
                     <div>
                       <label className="block text-[10px] font-black text-on-surface-variant uppercase tracking-widest mb-1 px-1">Username Instagram</label>
-                      <input placeholder="Instagram (tanpa @)" value={config.instagram || ''} onChange={e => setConfig({...config, instagram: e.target.value})} className="w-full p-4 bg-surface-container-low rounded-xl border-none shadow-inner text-sm" />
+                      <input placeholder="Instagram (tanpa @)" value={config.Instagram || ''} onChange={e => setConfig({...config, Instagram: e.target.value})} className="w-full p-4 bg-surface-container-low rounded-xl border-none shadow-inner text-sm" />
                     </div>
                     <div>
                       <label className="block text-[10px] font-black text-on-surface-variant uppercase tracking-widest mb-1 px-1">Website URL</label>
-                      <input placeholder="https://..." value={config.website || ''} onChange={e => setConfig({...config, website: e.target.value})} className="w-full p-4 bg-surface-container-low rounded-xl border-none shadow-inner text-sm" />
+                      <input placeholder="https://..." value={config.Website || ''} onChange={e => setConfig({...config, Website: e.target.value})} className="w-full p-4 bg-surface-container-low rounded-xl border-none shadow-inner text-sm" />
                     </div>
                   </div>
                 </section>

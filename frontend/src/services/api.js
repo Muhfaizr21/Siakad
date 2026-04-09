@@ -10,6 +10,19 @@ export const ormawaService = {
   // Stats & Dashboard
   getStats: (id) => fetch(`${API_BASE_URL}/ormawa/stats?ormawaId=${id}`).then(handleResponse),
   getEvents: (id) => fetch(`${API_BASE_URL}/ormawa/events?ormawaId=${id}`).then(handleResponse),
+  createEvent: (data) => fetch(`${API_BASE_URL}/ormawa/events`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  }).then(handleResponse),
+  updateEvent: (id, data) => fetch(`${API_BASE_URL}/ormawa/events/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  }).then(handleResponse),
+  deleteEvent: (id) => fetch(`${API_BASE_URL}/ormawa/events/${id}`, {
+    method: 'DELETE'
+  }).then(handleResponse),
   
   // Membership & Staff
   getMembers: (id) => fetch(`${API_BASE_URL}/ormawa/members?ormawaId=${id}`).then(handleResponse),

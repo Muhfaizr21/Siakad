@@ -11,7 +11,7 @@ const AnggotaManagement = () => {
   const [anggotaList, setAnggotaList] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [formData, setFormData] = useState({ studentId: '', role: 'Staf', division: '', status: 'pending' });
+  const [formData, setFormData] = useState({ studentId: '', role: 'Staf', division: '', status: 'aktif' });
   const [students, setStudents] = useState([]);
   const [divisions, setDivisions] = useState([]);
 
@@ -46,7 +46,7 @@ const AnggotaManagement = () => {
 
   const handleUpdateStatus = async (id, newStatus) => {
     try {
-      const data = await ormawaService.updateMember(id, { status: newStatus });
+      const data = await ormawaService.updateMember(id, { Status: newStatus });
       if (data.status === 'success') fetchMembers();
     } catch (e) { alert("⚠️ Gagal memperbarui status."); }
   };
@@ -63,23 +63,23 @@ const AnggotaManagement = () => {
     e.preventDefault();
     try {
       const data = await ormawaService.addMember({
-        ormawaId: ormawaId,
-        studentId: parseInt(formData.studentId),
-        role: formData.role,
-        division: formData.division,
-        status: 'aktif'
+        OrmawaID: Number(ormawaId),
+        MahasiswaID: parseInt(formData.studentId),
+        Role: formData.role,
+        Divisi: formData.division,
+        Status: 'aktif'
       });
       if (data.status === 'success') {
         setIsModalOpen(false);
-        setFormData({ studentId: '', role: 'Staf', division: '', status: 'pending' });
+        setFormData({ studentId: '', role: 'Staf', division: '', status: 'aktif' });
         fetchMembers();
       }
     } catch (e) { alert(`⚠️ Gagal mendaftarkan: ${e.message}`); }
   };
 
   const filteredData = anggotaList.filter(item => 
-    item.student?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.student?.nim?.toString().includes(searchTerm)
+    item.Mahasiswa?.Nama?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    item.Mahasiswa?.NIM?.toString().includes(searchTerm)
   );
 
   return (
@@ -136,30 +136,32 @@ const AnggotaManagement = () => {
                 </thead>
                 <tbody className="divide-y divide-outline-variant/10">
                   {filteredData.map((anggota) => (
-                    <tr key={anggota.id} className="hover:bg-surface-container-low/30 transition-colors group">
+                    <tr key={anggota.ID} className="hover:bg-surface-container-low/30 transition-colors group">
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-4">
                           <div className="w-12 h-12 rounded-full overflow-hidden bg-primary-container text-primary flex justify-center items-center font-bold text-lg shadow-inner">
-                            {anggota.student?.name?.charAt(0)}
+                            {anggota.Mahasiswa?.Nama?.charAt(0)}
                           </div>
                           <div>
-                            <div className="font-bold font-headline text-base text-on-surface group-hover:text-primary transition-colors">{anggota.student?.name}</div>
-                            <div className="text-xs font-medium text-on-surface-variant mt-0.5">NIM: {anggota.student?.nim}</div>
+                            <div className="font-bold font-headline text-base text-on-surface group-hover:text-primary transition-colors">{anggota.Mahasiswa?.Nama}</div>
+                            <div className="text-xs font-medium text-on-surface-variant mt-0.5">NIM: {anggota.Mahasiswa?.NIM}</div>
                           </div>
                         </div>
                       </td>
                       <td className="px-6 py-4">
-                        <div className="font-semibold text-on-surface">{anggota.role}</div>
-                        <div className="text-xs font-medium text-on-surface-variant mt-0.5">{anggota.division || 'Tanpa Divisi'}</div>
+                        <div className="font-semibold text-on-surface">{anggota.Role}</div>
+                        <div className="text-xs font-medium text-on-surface-variant mt-0.5">{anggota.Divisi || 'Tanpa Divisi'}</div>
                       </td>
                       <td className="px-6 py-4 text-center">
-                        {getStatusBadge(anggota.status)}
+                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${anggota.Status === 'aktif' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-600'}`}>
+                           {anggota.Status}
+                        </span>
                       </td>
                       <td className="px-6 py-4 text-right space-x-2">
                         <div className="flex items-center justify-end gap-2">
                           <select 
-                            value={anggota.status}
-                            onChange={(e) => handleUpdateStatus(anggota.id, e.target.value)}
+                            value={anggota.Status}
+                            onChange={(e) => handleUpdateStatus(anggota.ID, e.target.value)}
                             className="bg-surface-container-low border border-outline-variant/30 text-xs font-bold rounded-lg px-2 py-1 outline-none focus:ring-1 focus:ring-primary transition-all"
                           >
                             <option value="pending">Pending</option>
@@ -169,7 +171,7 @@ const AnggotaManagement = () => {
                             <option value="ditolak">Ditolak</option>
                           </select>
                           <button 
-                            onClick={() => handleDelete(anggota.id)}
+                            onClick={() => handleDelete(anggota.ID)}
                             className="w-8 h-8 rounded-lg flex items-center justify-center text-on-surface-variant hover:bg-rose-50 hover:text-rose-600 transition-all border border-transparent hover:border-rose-100"
                           >
                             <span className="material-symbols-outlined text-[18px]">delete</span>
@@ -215,7 +217,7 @@ const AnggotaManagement = () => {
                 >
                   <option value="">-- Cari Nama atau NIM --</option>
                   {students.map(s => (
-                    <option key={s.id} value={s.id}>{s.name} ({s.nim})</option>
+                    <option key={s.ID} value={s.ID}>{s.Nama} ({s.NIM})</option>
                   ))}
                 </select>
               </div>
@@ -238,7 +240,7 @@ const AnggotaManagement = () => {
                   >
                     <option value="">-- Pilih Divisi --</option>
                     {divisions.map(d => (
-                      <option key={d.id} value={d.name}>{d.name}</option>
+                      <option key={d.ID} value={d.Nama}>{d.Nama}</option>
                     ))}
                     <option value="INTI">UMUM / INTI</option>
                   </select>
