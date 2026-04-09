@@ -19,11 +19,11 @@ type DeadlineItem struct {
 }
 
 func GetDashboard(c *fiber.Ctx) error {
-	userID := c.Locals("user_id").(uint)
+	PenggunaID := c.Locals("user_id").(uint)
 
 	// 1. Fetch Student Data
-	var student models.Student
-	if err := config.DB.Preload("Major").First(&student, "user_id = ?", userID).Error; err != nil {
+	var student models.Mahasiswa
+	if err := config.DB.Preload("ProgramStudi").First(&student, "user_id = ?", PenggunaID).Error; err != nil {
 		return c.Status(404).JSON(fiber.Map{"success": false, "message": "Mahasiswa tidak ditemukan"})
 	}
 
@@ -163,12 +163,12 @@ func GetDashboard(c *fiber.Ctx) error {
 			"mahasiswa": fiber.Map{
 				"id":       student.ID,
 				"nim":      student.NIM,
-				"nama":     student.Name,
-				"nama_depan": strings.Split(student.Name, " ")[0],
-				"prodi":    student.Major.Name,
-				"semester": student.CurrentSemester,
-				"foto_url": student.PhotoURL,
-				"status":   student.Status,
+				"nama":     student.NamaMahasiswa,
+				"nama_depan": strings.Split(student.NamaMahasiswa, " ")[0],
+				"prodi":    student.ProgramStudi.NamaProdi,
+				"semester": student.SemesterSekarang,
+				"foto_url": student.FotoURL,
+				"status":   student.StatusAkun,
 			},
 			"banner_pinned": fiber.Map{
 				"aktif": banner.ID != 0,
@@ -201,7 +201,7 @@ func GetDashboard(c *fiber.Ctx) error {
 }
 
 func GetKegiatan(c *fiber.Ctx) error {
-	studentID := c.Locals("user_id").(uint) // Get from context
+	MahasiswaID := c.Locals("user_id").(uint) // Get from context
 	
 	bulan := c.QueryInt("bulan", int(time.Now().Month()))
 	tahun := c.QueryInt("tahun", time.Now().Year())
@@ -232,7 +232,7 @@ func GetKegiatan(c *fiber.Ctx) error {
 
 	// 3. Counseling Bookings
 	var bookings []models.BookingKonseling
-	config.DB.Preload("JadwalKonseling").Where("student_id = ? AND status = ?", studentID, "Dikonfirmasi").Find(&bookings)
+	config.DB.Preload("JadwalKonseling").Where("student_id = ? AND status = ?", MahasiswaID, "Dikonfirmasi").Find(&bookings)
 	for _, b := range bookings {
 		if b.JadwalKonseling.Tanggal.After(startOfMonth) && b.JadwalKonseling.Tanggal.Before(endOfMonth) {
 			events = append(events, Event{Tanggal: b.JadwalKonseling.Tanggal, Judul: "Sesi Konseling " + b.JadwalKonseling.Tipe, Kategori: "konseling"})

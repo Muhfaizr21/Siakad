@@ -17,8 +17,8 @@ func main() {
 
 	// 1. Ambil Role ID murni dari SQL
 	var dosenRoleID, mhsRoleID int
-	db.Raw("SELECT id FROM public.roles WHERE name = 'lecturer'").Scan(&dosenRoleID)
-	db.Raw("SELECT id FROM public.roles WHERE name = 'student'").Scan(&mhsRoleID)
+	db.Raw("SELECT id FROM public.roles WHERE NamaMahasiswa = 'lecturer'").Scan(&dosenRoleID)
+	db.Raw("SELECT id FROM public.roles WHERE NamaMahasiswa = 'student'").Scan(&mhsRoleID)
 	fmt.Printf("SQL: Role Dosen=%d, Role Mhs=%d\n", dosenRoleID, mhsRoleID)
 
 	hash, _ := bcrypt.GenerateFromPassword([]byte("password123"), 10)
@@ -31,7 +31,7 @@ func main() {
 
 	// 3. INJECT DOSEN BUDI
 	var dosenBudiID int
-	db.Raw("INSERT INTO public.lecturers (user_id, nidn, name, is_dpa) VALUES (?, ?, ?, ?) ON CONFLICT (nidn) DO UPDATE SET name=EXCLUDED.name RETURNING id", userBudiID, "0011223301", "Drs. Budi Santoso, M.Kom", true).Scan(&dosenBudiID)
+	db.Raw("INSERT INTO public.lecturers (user_id, nidn, NamaMahasiswa, is_dpa) VALUES (?, ?, ?, ?) ON CONFLICT (nidn) DO UPDATE SET NamaMahasiswa=EXCLUDED.NamaMahasiswa RETURNING id", userBudiID, "0011223301", "Drs. Budi Santoso, M.Kom", true).Scan(&dosenBudiID)
 	fmt.Printf("SQL: Dosen Budi ID=%d\n", dosenBudiID)
 
 	// 4. INJECT USER FAIZ
@@ -41,7 +41,7 @@ func main() {
 
 	// 5. INJECT MAHASISWA FAIZ
 	var mhsFaizID int
-	db.Raw("INSERT INTO public.students (user_id, nim, name, current_semester, dpa_lecturer_id) VALUES (?, ?, ?, ?, ?) ON CONFLICT (nim) DO UPDATE SET name=EXCLUDED.name RETURNING id", userFaizID, "220510001", "Muhamad Faiz", 4, dosenBudiID).Scan(&mhsFaizID)
+	db.Raw("INSERT INTO public.students (user_id, nim, NamaMahasiswa, current_semester, dpa_lecturer_id) VALUES (?, ?, ?, ?, ?) ON CONFLICT (nim) DO UPDATE SET NamaMahasiswa=EXCLUDED.NamaMahasiswa RETURNING id", userFaizID, "220510001", "Muhamad Faiz", 4, dosenBudiID).Scan(&mhsFaizID)
 	fmt.Printf("SQL: Mhs Faiz ID=%d\n", mhsFaizID)
 
 	fmt.Println("--- PURE SQL SEED FINISHED ---")

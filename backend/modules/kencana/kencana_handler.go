@@ -15,17 +15,17 @@ import (
 
 // ==================== HELPER ====================
 
-func getStudent(c *fiber.Ctx) (models.Student, error) {
-	userID := c.Locals("user_id")
-	var student models.Student
-	if err := config.DB.First(&student, "user_id = ?", userID).Error; err != nil {
+func getStudent(c *fiber.Ctx) (models.Mahasiswa, error) {
+	PenggunaID := c.Locals("user_id")
+	var student models.Mahasiswa
+	if err := config.DB.First(&student, "user_id = ?", PenggunaID).Error; err != nil {
 		return student, err
 	}
 	return student, nil
 }
 
 // hitungKumulatif menghitung nilai kumulatif berdasarkan bobot per kuis
-func hitungKumulatif(studentID uint) float64 {
+func hitungKumulatif(MahasiswaID uint) float64 {
 	var kuisList []models.KencanaKuis
 	config.DB.Where("is_aktif = true").Find(&kuisList)
 
@@ -33,7 +33,7 @@ func hitungKumulatif(studentID uint) float64 {
 	for _, kuis := range kuisList {
 		// Ambil nilai terbaik
 		var hasil models.KencanaHasilKuis
-		config.DB.Where("student_id = ? AND kencana_kuis_id = ?", studentID, kuis.ID).
+		config.DB.Where("student_id = ? AND kencana_kuis_id = ?", MahasiswaID, kuis.ID).
 			Order("skor desc").First(&hasil)
 
 		nilaiKuis := 0.0
@@ -195,7 +195,7 @@ func GetProgress(c *fiber.Ctx) error {
 	// Update KencanaProgress
 	var progress models.KencanaProgress
 	config.DB.Where("student_id = ?", student.ID).FirstOrCreate(&progress, models.KencanaProgress{
-		StudentID: student.ID,
+		MahasiswaID: student.ID,
 	})
 	progress.NilaiKumulatif = nilaiKumulatif
 	progress.StatusKeseluruhan = statusKeseluruhan
@@ -323,7 +323,7 @@ func SubmitKuis(c *fiber.Ctx) error {
 
 	now := time.Now()
 	hasil := models.KencanaHasilKuis{
-		StudentID:     student.ID,
+		MahasiswaID:     student.ID,
 		KencanaKuisID: kuis.ID,
 		Skor:          nilai,
 		JumlahBenar:   jumlahBenar,
@@ -339,7 +339,7 @@ func SubmitKuis(c *fiber.Ctx) error {
 
 	// Update KencanaProgress
 	var progress models.KencanaProgress
-	config.DB.Where("student_id = ?", student.ID).FirstOrCreate(&progress, models.KencanaProgress{StudentID: student.ID})
+	config.DB.Where("student_id = ?", student.ID).FirstOrCreate(&progress, models.KencanaProgress{MahasiswaID: student.ID})
 	progress.NilaiKumulatif = nilaiKumulatif
 	if nilaiKumulatif >= 75 {
 		progress.StatusKeseluruhan = "lulus"
@@ -352,7 +352,7 @@ func SubmitKuis(c *fiber.Ctx) error {
 	// Trigger Notification
 	if lulus {
 		notifikasi.Kirim(config.DB, notifikasi.KirimParams{
-			StudentID: student.ID,
+			MahasiswaID: student.ID,
 			Type:      "kencana",
 			Title:     "Lulus Kuis KENCANA",
 			Content:   fmt.Sprintf("Selamat! Kamu lulus kuis '%s' dengan nilai %.0f.", kuis.Judul, nilai),
@@ -361,7 +361,7 @@ func SubmitKuis(c *fiber.Ctx) error {
 	}
 	if nilaiKumulatif >= 75 && progress.StatusKeseluruhan == "lulus" {
 		notifikasi.Kirim(config.DB, notifikasi.KirimParams{
-			StudentID: student.ID,
+			MahasiswaID: student.ID,
 			Type:      "kencana",
 			Title:     "🎉 Selamat! Kamu Lulus KENCANA",
 			Content:   fmt.Sprintf("Nilai kumulatif KENCANA kamu mencapai %.1f. Sertifikat sudah bisa diunduh!", nilaiKumulatif),
@@ -442,7 +442,7 @@ func GenerateSertifikat(c *fiber.Ctx) error {
 	dummyURL := fmt.Sprintf("/uploads/sertifikat/%s.pdf", nomorSerti)
 
 	sertifikat := models.KencanaSertifikat{
-		StudentID:       student.ID,
+		MahasiswaID:       student.ID,
 		NomorSertifikat: nomorSerti,
 		FileURL:         dummyURL,
 		DiterbitkanAt:   time.Now(),
@@ -450,7 +450,7 @@ func GenerateSertifikat(c *fiber.Ctx) error {
 	config.DB.Create(&sertifikat)
 
 	notifikasi.Kirim(config.DB, notifikasi.KirimParams{
-		StudentID: student.ID,
+		MahasiswaID: student.ID,
 		Type:      "kencana",
 		Title:     "Sertifikat KENCANA Terbit",
 		Content:   fmt.Sprintf("Sertifikat PKKMB (%s) telah diterbitkan. Silakan unduh di menu KENCANA.", nomorSerti),
@@ -537,15 +537,15 @@ func AjukanBanding(c *fiber.Ctx) error {
 		if file.Size > 5*1024*1024 {
 			return c.Status(400).JSON(fiber.Map{"success": false, "message": "Ukuran file maksimal 5MB"})
 		}
-		filename := fmt.Sprintf("banding_%d_%d%s", student.ID, time.Now().UnixNano(), ext)
-		savePath := fmt.Sprintf("./uploads/banding/%s", filename)
+		fileNamaMahasiswa := fmt.Sprintf("banding_%d_%d%s", student.ID, time.Now().UnixNano(), ext)
+		savePath := fmt.Sprintf("./uploads/banding/%s", fileNamaMahasiswa)
 		if saveErr := c.SaveFile(file, savePath); saveErr == nil {
-			buktiURL = fmt.Sprintf("/uploads/banding/%s", filename)
+			buktiURL = fmt.Sprintf("/uploads/banding/%s", fileNamaMahasiswa)
 		}
 	}
 
 	banding := models.KencanaBanding{
-		StudentID: student.ID,
+		MahasiswaID: student.ID,
 		KuisID:    kuis.ID,
 		Alasan:    alasan,
 		BuktiURL:  buktiURL,

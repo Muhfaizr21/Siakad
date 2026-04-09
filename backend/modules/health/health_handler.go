@@ -11,10 +11,10 @@ import (
 
 // GetHealthRingkasan returns the most recent health screening for the student
 func GetHealthRingkasan(c *fiber.Ctx) error {
-	userID := c.Locals("user_id").(uint)
+	PenggunaID := c.Locals("user_id").(uint)
 
-	var student models.Student
-	if err := config.DB.First(&student, "user_id = ?", userID).Error; err != nil {
+	var student models.Mahasiswa
+	if err := config.DB.First(&student, "user_id = ?", PenggunaID).Error; err != nil {
 		return c.Status(404).JSON(fiber.Map{"success": false, "message": "Mahasiswa tidak ditemukan"})
 	}
 
@@ -38,11 +38,11 @@ func GetHealthRingkasan(c *fiber.Ctx) error {
 
 // GetHealthRiwayat returns all health screenings with pagination and filtering
 func GetHealthRiwayat(c *fiber.Ctx) error {
-	userID := c.Locals("user_id").(uint)
+	PenggunaID := c.Locals("user_id").(uint)
 	sumber := c.Query("sumber") // mandiri, kencana_screening, klinik_kampus
 
-	var student models.Student
-	if err := config.DB.First(&student, "user_id = ?", userID).Error; err != nil {
+	var student models.Mahasiswa
+	if err := config.DB.First(&student, "user_id = ?", PenggunaID).Error; err != nil {
 		return c.Status(404).JSON(fiber.Map{"success": false, "message": "Mahasiswa tidak ditemukan"})
 	}
 
@@ -66,10 +66,10 @@ func GetHealthRiwayat(c *fiber.Ctx) error {
 // GetHealthDetailRecord returns single health screening data
 func GetHealthDetailRecord(c *fiber.Ctx) error {
 	id := c.Params("id")
-	userID := c.Locals("user_id").(uint)
+	PenggunaID := c.Locals("user_id").(uint)
 
-	var student models.Student
-	if err := config.DB.First(&student, "user_id = ?", userID).Error; err != nil {
+	var student models.Mahasiswa
+	if err := config.DB.First(&student, "user_id = ?", PenggunaID).Error; err != nil {
 		return c.Status(404).JSON(fiber.Map{"success": false, "message": "Mahasiswa tidak ditemukan"})
 	}
 
@@ -86,10 +86,10 @@ func GetHealthDetailRecord(c *fiber.Ctx) error {
 
 // CreateHealthMandiri handles student self-input
 func CreateHealthMandiri(c *fiber.Ctx) error {
-	userID := c.Locals("user_id").(uint)
+	PenggunaID := c.Locals("user_id").(uint)
 
-	var student models.Student
-	if err := config.DB.First(&student, "user_id = ?", userID).Error; err != nil {
+	var student models.Mahasiswa
+	if err := config.DB.First(&student, "user_id = ?", PenggunaID).Error; err != nil {
 		return c.Status(404).JSON(fiber.Map{"success": false, "message": "Mahasiswa tidak ditemukan"})
 	}
 
@@ -155,7 +155,7 @@ func CreateHealthMandiri(c *fiber.Ctx) error {
 	}
 
 	hasil := models.HasilKesehatan{
-		StudentID:             student.ID,
+		MahasiswaID:             student.ID,
 		TanggalPeriksa:        input.Tanggal,
 		TinggiBadan:           input.TinggiBadan,
 		BeratBadan:            input.BeratBadan,

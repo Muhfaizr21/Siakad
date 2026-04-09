@@ -15,7 +15,6 @@ import (
 	"siakad-backend/modules/voice"
 	"siakad-backend/modules/organisasi"
 	"siakad-backend/modules/kencana"
-	"siakad-backend/modules/krs"
 	"siakad-backend/modules/profil"
 	"siakad-backend/modules/notifikasi"
 	"siakad-backend/routes"
@@ -80,15 +79,7 @@ func main() {
 	mahasiswaGroup.Get("/dashboard", middleware.AuthProtected, dashboard.GetDashboard)
 	mahasiswaGroup.Get("/kegiatan", middleware.AuthProtected, dashboard.GetKegiatan)
 
-	// KRS Routes
-	krsGroup := api.Group("/krs", middleware.AuthProtected)
-	krsGroup.Get("/periode", krs.GetPeriode)
-	krsGroup.Get("/matakuliah", krs.GetKatalog)
-	krsGroup.Get("/saya", krs.GetKRSSaya)
-	krsGroup.Post("/tambah", krs.TambahKRS)
-	krsGroup.Delete("/:id", krs.HapusKRS)
-	krsGroup.Post("/submit", krs.SubmitKRS)
-	krsGroup.Get("/cetak", krs.CetakKRS)
+
 
 	// Kencana Routes
 	kencanaGroup := api.Group("/kencana", middleware.AuthProtected)
@@ -169,6 +160,9 @@ func main() {
 	// Admin Routes
 	adminGroup := api.Group("/admin")
 	adminGroup.Get("/achievement/export", achievement.ExportSimkatmawa)
+
+	// Setup Faculty Routes
+	routes.InisialisasiRuteFakultas(app)
 
 	// Setup Ormawa Routes (from danzz)
 	routes.SetupOrmawaRoutes(app)

@@ -11,17 +11,18 @@ import (
 )
 
 func SeedPrestasi() {
+	godotenv.Load("../../.env")
 	godotenv.Load("../.env")
 	godotenv.Load(".env")
 
 	host := os.Getenv("DB_HOST")
 	user := os.Getenv("DB_USER")
 	password := os.Getenv("DB_PASSWORD")
-	dbname := os.Getenv("DB_NAME")
+	dbName := os.Getenv("DB_NAME")
 	port := os.Getenv("DB_PORT")
 
 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=Asia/Jakarta",
-		host, user, password, dbname, port)
+		host, user, password, dbName, port)
 
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
@@ -30,13 +31,7 @@ func SeedPrestasi() {
 
 	fmt.Println("--- SEEDING ACHIEVEMENTS ---")
 
-	// Ensure table exists
-	err = db.AutoMigrate(&models.Achievement{})
-	if err != nil {
-		log.Fatal("AutoMigrate error:", err)
-	}
-
-	var student models.Student
+	var student models.Mahasiswa
 	db.First(&student)
 
 	if student.ID == 0 {
@@ -45,7 +40,7 @@ func SeedPrestasi() {
 
 	achievements := []models.Achievement{
 		{
-			StudentID:     student.ID,
+			MahasiswaID:   student.ID,
 			NamaLomba:     "Juara 1 Lomba National Programming Contest",
 			Kategori:      "Akademik",
 			Tingkat:       "Nasional",
@@ -56,7 +51,7 @@ func SeedPrestasi() {
 			Status:        "Menunggu",
 		},
 		{
-			StudentID:     student.ID,
+			MahasiswaID:   student.ID,
 			NamaLomba:     "Medali Perak Karatedo Internasional Open",
 			Kategori:      "Non-Akademik",
 			Tingkat:       "Internasional",
@@ -72,7 +67,7 @@ func SeedPrestasi() {
 		if err := db.Create(&a).Error; err != nil {
 			fmt.Println("Failed to seed achievement:", err)
 		} else {
-			fmt.Printf("Seeded: %s for Student ID: %d\n", a.NamaLomba, a.StudentID)
+			fmt.Printf("Seeded: %s for Student ID: %d\n", a.NamaLomba, a.MahasiswaID)
 		}
 	}
 

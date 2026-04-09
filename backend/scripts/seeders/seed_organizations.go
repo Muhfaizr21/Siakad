@@ -18,11 +18,11 @@ func SeedOrganizations() {
 	host := os.Getenv("DB_HOST")
 	user := os.Getenv("DB_USER")
 	password := os.Getenv("DB_PASSWORD")
-	dbname := os.Getenv("DB_NAME")
+	dbName := os.Getenv("DB_NAME")
 	port := os.Getenv("DB_PORT")
 
 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=Asia/Jakarta",
-		host, user, password, dbname, port)
+		host, user, password, dbName, port)
 
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
@@ -31,43 +31,47 @@ func SeedOrganizations() {
 
 	fmt.Println("--- SEEDING FACULTY ORGANIZATIONS ---")
 
-	orgs := []models.FacultyOrganization{
+	orgs := []models.OrganisasiMahasiswa{
 		{
-			OrgCode:     "ORG-001",
-			Name:        "BEM Fakultas Teknik",
-			LeaderName:  "Alvin Jonathan",
-			MemberCount: 45,
-			Status:      "Aktif",
-			Description: "Badan Eksekutif Mahasiswa tingkat Fakultas.",
+			KodeOrg:       "ORG-001",
+			NamaOrg:       "BEM Fakultas Teknik",
+			KetuaNama:     "Alvin Jonathan",
+			JumlahAnggota: 45,
+			Status:        "Aktif",
+			Deskripsi:     "Badan Eksekutif Mahasiswa tingkat Fakultas.",
+			Tipe:          "BEM",
 		},
 		{
-			OrgCode:     "ORG-002",
-			Name:        "DPM Fakultas Teknik",
-			LeaderName:  "Bella Safitra",
-			MemberCount: 25,
-			Status:      "Aktif",
-			Description: "Dewan Perwakilan Mahasiswa tingkat Fakultas.",
+			KodeOrg:       "ORG-002",
+			NamaOrg:       "DPM Fakultas Teknik",
+			KetuaNama:     "Bella Safitra",
+			JumlahAnggota: 25,
+			Status:        "Aktif",
+			Deskripsi:     "Dewan Perwakilan Mahasiswa tingkat Fakultas.",
+			Tipe:          "DPM",
 		},
 		{
-			OrgCode:     "ORG-003",
-			Name:        "HIMA Informatika",
-			LeaderName:  "Caca Maheswari",
-			MemberCount: 80,
-			Status:      "Aktif",
-			Description: "Himpunan Mahasiswa Informatika.",
+			KodeOrg:       "ORG-003",
+			NamaOrg:       "HIMA Informatika",
+			KetuaNama:     "Caca Maheswari",
+			JumlahAnggota: 80,
+			Status:        "Aktif",
+			Deskripsi:     "Himpunan Mahasiswa Informatika.",
+			Tipe:          "Himpunan",
 		},
 		{
-			OrgCode:     "ORG-004",
-			Name:        "HIMA Sistem Informasi",
-			LeaderName:  "Dicky Fernando",
-			MemberCount: 65,
-			Status:      "Pembekuan",
-			Description: "Himpunan Mahasiswa Sistem Informasi.",
+			KodeOrg:       "ORG-004",
+			NamaOrg:       "HIMA Sistem Informasi",
+			KetuaNama:     "Dicky Fernando",
+			JumlahAnggota: 65,
+			Status:        "Pembekuan",
+			Deskripsi:     "Himpunan Mahasiswa Sistem Informasi.",
+			Tipe:          "Himpunan",
 		},
 	}
 
 	for _, o := range orgs {
-		db.Where(models.FacultyOrganization{OrgCode: o.OrgCode}).FirstOrCreate(&o)
+		db.Where(models.OrganisasiMahasiswa{KodeOrg: o.KodeOrg}).FirstOrCreate(&o)
 	}
 
 	fmt.Println("Success! Seeded faculty organizations.")

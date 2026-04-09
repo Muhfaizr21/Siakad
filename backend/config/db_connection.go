@@ -16,7 +16,7 @@ type databaseConfig struct {
 	Host     string
 	User     string
 	Password string
-	Name     string
+	DBName   string
 	Port     string
 }
 
@@ -25,7 +25,7 @@ func ConnectDB() {
 
 	ensureDatabaseExists(cfg)
 
-	db, err := connectPostgres(buildDSN(cfg, cfg.Name), logger.Info)
+	db, err := connectPostgres(buildDSN(cfg, cfg.DBName), logger.Info)
 	if err != nil {
 		log.Fatal("Failed to connect to database. \n", err)
 	}
@@ -56,7 +56,7 @@ func loadDatabaseConfig() databaseConfig {
 		Host:     os.Getenv("DB_HOST"),
 		User:     os.Getenv("DB_USER"),
 		Password: os.Getenv("DB_PASSWORD"),
-		Name:     os.Getenv("DB_NAME"),
+		DBName:   os.Getenv("DB_NAME"),
 		Port:     os.Getenv("DB_PORT"),
 	}
 }
@@ -79,10 +79,10 @@ func ensureDatabaseExists(cfg databaseConfig) {
 	}
 
 	var existing string
-	defaultDB.Raw("SELECT datname FROM pg_database WHERE datname = ?", cfg.Name).Scan(&existing)
+	defaultDB.Raw("SELECT datname FROM pg_database WHERE datname = ?", cfg.DBName).Scan(&existing)
 	if existing == "" {
-		log.Println("Database does not exist. Creating database:", cfg.Name)
-		defaultDB.Exec(fmt.Sprintf("CREATE DATABASE %s;", cfg.Name))
+		log.Println("Database does not exist. Creating database:", cfg.DBName)
+		defaultDB.Exec(fmt.Sprintf("CREATE DATABASE %s;", cfg.DBName))
 	}
 }
 

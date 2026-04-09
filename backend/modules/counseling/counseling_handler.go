@@ -42,10 +42,10 @@ func GetJadwalKonseling(c *fiber.Ctx) error {
 
 // CreateBooking handles student booking request
 func CreateBooking(c *fiber.Ctx) error {
-	userID := c.Locals("user_id")
+	PenggunaID := c.Locals("user_id")
 
-	var student models.Student
-	if err := config.DB.First(&student, "user_id = ?", userID).Error; err != nil {
+	var student models.Mahasiswa
+	if err := config.DB.First(&student, "user_id = ?", PenggunaID).Error; err != nil {
 		return c.Status(404).JSON(fiber.Map{"success": false, "message": "Mahasiswa tidak ditemukan"})
 	}
 
@@ -88,7 +88,7 @@ func CreateBooking(c *fiber.Ctx) error {
 
 		// Create Booking Record
 		newBooking := models.BookingKonseling{
-			StudentID:   student.ID,
+			MahasiswaID:   student.ID,
 			JadwalID:    jadwal.ID,
 			KeluhanAwal: req.KeluhanAwal,
 			Status:      "Menunggu",
@@ -114,10 +114,10 @@ func CreateBooking(c *fiber.Ctx) error {
 
 // GetRiwayatBooking returns student history without CatatanKonselor
 func GetRiwayatBooking(c *fiber.Ctx) error {
-	userID := c.Locals("user_id")
+	PenggunaID := c.Locals("user_id")
 
-	var student models.Student
-	if err := config.DB.First(&student, "user_id = ?", userID).Error; err != nil {
+	var student models.Mahasiswa
+	if err := config.DB.First(&student, "user_id = ?", PenggunaID).Error; err != nil {
 		return c.Status(404).JSON(fiber.Map{"success": false, "message": "Mahasiswa tidak ditemukan"})
 	}
 
@@ -157,10 +157,10 @@ func GetRiwayatBooking(c *fiber.Ctx) error {
 // CancelBooking cancels a pending booking
 func CancelBooking(c *fiber.Ctx) error {
 	id := c.Params("id")
-	userID := c.Locals("user_id")
+	PenggunaID := c.Locals("user_id")
 
-	var student models.Student
-	if err := config.DB.First(&student, "user_id = ?", userID).Error; err != nil {
+	var student models.Mahasiswa
+	if err := config.DB.First(&student, "user_id = ?", PenggunaID).Error; err != nil {
 		return c.Status(404).JSON(fiber.Map{"success": false, "message": "Mahasiswa tidak ditemukan"})
 	}
 

@@ -16,10 +16,10 @@ import (
 )
 
 func GetProfile(c *fiber.Ctx) error {
-	userID := c.Locals("user_id").(uint)
+	PenggunaID := c.Locals("user_id").(uint)
 
-	var student models.Student
-	if err := config.DB.Preload("Major.Faculty").Preload("User").First(&student, "user_id = ?", userID).Error; err != nil {
+	var student models.Mahasiswa
+	if err := config.DB.Preload("ProgramStudi.Fakultas").Preload("Pengguna").First(&student, "user_id = ?", PenggunaID).Error; err != nil {
 		return c.Status(404).JSON(fiber.Map{"success": false, "message": "Profil tidak ditemukan"})
 	}
 
@@ -30,18 +30,18 @@ func GetProfile(c *fiber.Ctx) error {
 }
 
 func UpdateProfile(c *fiber.Ctx) error {
-	userID := c.Locals("user_id").(uint)
+	PenggunaID := c.Locals("user_id").(uint)
 
 	type UpdateRequest struct {
 		Email      string `json:"email"`
 		Phone      string `json:"phone"`
 		BirthPlace string `json:"birth_place"`
 		BirthDate  string `json:"birth_date"`
-		Gender     string `json:"gender"`
+		JenisKelamin     string `json:"JenisKelamin"`
 		Religion   string `json:"religion"`
 		Address    string `json:"address"`
 		City       string `json:"city"`
-		ZipCode    string `json:"zip_code"`
+		ZipCode    string `json:"zip_KodeFakultas"`
 	}
 
 	var req UpdateRequest
@@ -49,21 +49,21 @@ func UpdateProfile(c *fiber.Ctx) error {
 		return c.Status(400).JSON(fiber.Map{"success": false, "message": "Format data tidak valid"})
 	}
 
-	var student models.Student
-	config.DB.First(&student, "user_id = ?", userID)
+	var student models.Mahasiswa
+	config.DB.First(&student, "user_id = ?", PenggunaID)
 
-	student.Email = req.Email
-	student.Phone = req.Phone
-	student.BirthPlace = req.BirthPlace
+	student.EmailPersonal = req.Email
+	student.NoHP = req.Phone
+	student.TempatLahir = req.BirthPlace
 	if req.BirthDate != "" {
 		t, _ := time.Parse("2006-01-02", req.BirthDate)
-		student.BirthDate = &t
+		student.TanggalLahir = &t
 	}
-	student.Gender = req.Gender
-	student.Religion = req.Religion
-	student.Address = req.Address
-	student.City = req.City
-	student.ZipCode = req.ZipCode
+	student.JenisKelamin = req.JenisKelamin
+	student.Agama = req.Religion
+	student.Alamat = req.Address
+	student.Kota = req.City
+	student.KodePos = req.ZipCode
 
 	if err := config.DB.Save(&student).Error; err != nil {
 		return c.Status(500).JSON(fiber.Map{"success": false, "message": "Gagal memperbarui profil"})
@@ -73,7 +73,7 @@ func UpdateProfile(c *fiber.Ctx) error {
 }
 
 func UploadAvatar(c *fiber.Ctx) error {
-	userID := c.Locals("user_id").(uint)
+	PenggunaID := c.Locals("user_id").(uint)
 
 	file, err := c.FormFile("foto")
 	if err != nil {
@@ -98,8 +98,8 @@ func UploadAvatar(c *fiber.Ctx) error {
 	}
 
 	// 4. Save Temporary for Resizing
-	tempName := uuid.New().String() + ext
-	tempPath := filepath.Join(uploadDir, "temp_"+tempName)
+	tempNamaMahasiswa := uuid.New().String() + ext
+	tempPath := filepath.Join(uploadDir, "temp_"+tempNamaMahasiswa)
 	if err := c.SaveFile(file, tempPath); err != nil {
 		return c.Status(500).JSON(fiber.Map{"success": false, "message": "Gagal memproses file"})
 	}
@@ -112,33 +112,33 @@ func UploadAvatar(c *fiber.Ctx) error {
 	}
 	dst := imaging.Fill(src, 400, 400, imaging.Center, imaging.Lanczos)
 	
-	finalName := uuid.New().String() + ".jpg"
-	finalPath := filepath.Join(uploadDir, finalName)
+	finalNamaMahasiswa := uuid.New().String() + ".jpg"
+	finalPath := filepath.Join(uploadDir, finalNamaMahasiswa)
 	if err := imaging.Save(dst, finalPath); err != nil {
 		return c.Status(500).JSON(fiber.Map{"success": false, "message": "Gagal menyimpan gambar"})
 	}
 
 	// 6. Update Database & Delete Old Photo
-	var student models.Student
-	config.DB.First(&student, "user_id = ?", userID)
+	var student models.Mahasiswa
+	config.DB.First(&student, "user_id = ?", PenggunaID)
 	
-	if student.PhotoURL != "" {
-		oldPath := strings.Replace(student.PhotoURL, "http://localhost:8000/", "./", 1)
+	if student.FotoURL != "" {
+		oldPath := strings.Replace(student.FotoURL, "http://localhost:8000/", "./", 1)
 		os.Remove(oldPath)
 	}
 
-	student.PhotoURL = fmt.Sprintf("http://localhost:8000/uploads/profile_pics/%s", finalName)
+	student.FotoURL = fmt.Sprintf("http://localhost:8000/uploads/profile_pics/%s", finalNamaMahasiswa)
 	config.DB.Save(&student)
 
 	return c.JSON(fiber.Map{
 		"success": true, 
 		"message": "Foto profil berhasil diperbarui",
-		"data": fiber.Map{"url": student.PhotoURL},
+		"data": fiber.Map{"url": student.FotoURL},
 	})
 }
 
 func ChangePassword(c *fiber.Ctx) error {
-	userID := c.Locals("user_id").(uint)
+	PenggunaID := c.Locals("user_id").(uint)
 
 	type PasswordRequest struct {
 		OldPassword     string `json:"old_password"`
@@ -155,15 +155,15 @@ func ChangePassword(c *fiber.Ctx) error {
 		return c.Status(400).JSON(fiber.Map{"success": false, "message": "Konfirmasi password baru tidak cocok"})
 	}
 
-	var user models.User
-	config.DB.First(&user, userID)
+	var user models.Pengguna
+	config.DB.First(&user, PenggunaID)
 
-	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(req.OldPassword)); err != nil {
+	if err := bcrypt.CompareHashAndPassword([]byte(user.KataSandi), []byte(req.OldPassword)); err != nil {
 		return c.Status(400).JSON(fiber.Map{"success": false, "message": "Password saat ini salah"})
 	}
 
 	hash, _ := bcrypt.GenerateFromPassword([]byte(req.NewPassword), 12)
-	user.PasswordHash = string(hash)
+	user.KataSandi = string(hash)
 	config.DB.Save(&user)
 
 	// TODO: Invalidate other sessions (if Redis exists)
@@ -188,34 +188,34 @@ func GetSessions(c *fiber.Ctx) error {
 }
 
 func GetLoginHistory(c *fiber.Ctx) error {
-	userID := c.Locals("user_id").(uint)
-	var student models.Student
-	config.DB.First(&student, "user_id = ?", userID)
+	PenggunaID := c.Locals("user_id").(uint)
+	var student models.Mahasiswa
+	config.DB.First(&student, "user_id = ?", PenggunaID)
 
 	var history []models.LoginHistory
-	config.DB.Where("pengguna_id = ?", userID).Order("dibuat_pada desc").Limit(10).Find(&history)
+	config.DB.Where("pengguna_id = ?", PenggunaID).Order("dibuat_pada desc").Limit(10).Find(&history)
 
 	return c.JSON(fiber.Map{"success": true, "data": history})
 }
 
 func GetPreferences(c *fiber.Ctx) error {
-	userID := c.Locals("user_id").(uint)
-	var student models.Student
-	config.DB.First(&student, "user_id = ?", userID)
+	PenggunaID := c.Locals("user_id").(uint)
+	var student models.Mahasiswa
+	config.DB.First(&student, "user_id = ?", PenggunaID)
 
 	var pref models.NotificationPreference
-	config.DB.FirstOrCreate(&pref, models.NotificationPreference{UserID: userID})
+	config.DB.FirstOrCreate(&pref, models.NotificationPreference{PenggunaID: PenggunaID})
 
 	return c.JSON(fiber.Map{"success": true, "data": pref})
 }
 
 func UpdatePreferences(c *fiber.Ctx) error {
-	userID := c.Locals("user_id").(uint)
-	var student models.Student
-	config.DB.First(&student, "user_id = ?", userID)
+	PenggunaID := c.Locals("user_id").(uint)
+	var student models.Mahasiswa
+	config.DB.First(&student, "user_id = ?", PenggunaID)
 
 	var pref models.NotificationPreference
-	config.DB.First(&pref, "pengguna_id = ?", userID)
+	config.DB.First(&pref, "pengguna_id = ?", PenggunaID)
 
 	if err := c.BodyParser(&pref); err != nil {
 		return c.Status(400).JSON(fiber.Map{"success": false, "message": "Data tidak valid"})

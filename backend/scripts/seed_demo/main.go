@@ -23,24 +23,24 @@ func main() {
 	// db.Exec("TRUNCATE TABLE ormawa_notifications, ormawa_announcements, event_attendances, event_schedules, lpjs, cash_mutations, proposal_histories, proposals, ormawa_members, ormawa_roles, ormawas, students RESTART IDENTITY CASCADE")
 
 	// 2. SEED STUDENTS (The Pool)
-	students := []models.Student{
-		{NIM: "220101001", Name: "Ahmad Fauzi", MajorID: 1, CurrentSemester: 4},
-		{NIM: "220101002", Name: "Siti Aminah", MajorID: 1, CurrentSemester: 4},
-		{NIM: "220101003", Name: "Budi Santoso", MajorID: 2, CurrentSemester: 6},
-		{NIM: "220101004", Name: "Dewi Lestari", MajorID: 2, CurrentSemester: 2},
-		{NIM: "220101005", Name: "Eko Prasetyo", MajorID: 1, CurrentSemester: 8},
-		{NIM: "220101006", Name: "Fitri Handayani", MajorID: 3, CurrentSemester: 4},
-		{NIM: "220101007", Name: "Gilang Ramadhan", MajorID: 3, CurrentSemester: 6},
-		{NIM: "220101008", Name: "Hani Safitri", MajorID: 4, CurrentSemester: 2},
+	students := []models.Mahasiswa{
+		{NIM: "220101001", NamaMahasiswa: "Ahmad Fauzi", ProgramStudiID: 1, SemesterSekarang: 4},
+		{NIM: "220101002", NamaMahasiswa: "Siti Aminah", ProgramStudiID: 1, SemesterSekarang: 4},
+		{NIM: "220101003", NamaMahasiswa: "Budi Santoso", ProgramStudiID: 2, SemesterSekarang: 6},
+		{NIM: "220101004", NamaMahasiswa: "Dewi Lestari", ProgramStudiID: 2, SemesterSekarang: 2},
+		{NIM: "220101005", NamaMahasiswa: "Eko Prasetyo", ProgramStudiID: 1, SemesterSekarang: 8},
+		{NIM: "220101006", NamaMahasiswa: "Fitri Handayani", ProgramStudiID: 3, SemesterSekarang: 4},
+		{NIM: "220101007", NamaMahasiswa: "Gilang Ramadhan", ProgramStudiID: 3, SemesterSekarang: 6},
+		{NIM: "220101008", NamaMahasiswa: "Hani Safitri", ProgramStudiID: 4, SemesterSekarang: 2},
 	}
 	for i := range students {
-		db.FirstOrCreate(&students[i], models.Student{NIM: students[i].NIM})
+		db.FirstOrCreate(&students[i], models.Mahasiswa{NIM: students[i].NIM})
 	}
 
 	// 3. SEED ORMAWA
 	ormawa := models.Ormawa{
 		ID:          1,
-		Name:        "Himpunan Mahasiswa Rekayasa Perangkat Lunak (HIMA RPL)",
+		Nama:        "Himpunan Mahasiswa Rekayasa Perangkat Lunak (HIMA RPL)",
 		Description: "Organisasi wadah aspirasi mahasiswa prodi RPL Polindra.",
 		Vision:      "Menjadi ormawa unggulan dalam pengembangan software dan integritas mahasiswa.",
 		Mission:     "Meningkatkan skill teknis, mempererat kekeluargaan, dan melayani mahasiswa.",
@@ -65,23 +65,23 @@ func main() {
 	jsonAdmin, _ := json.Marshal(permsAdmin)
 
 	roles := []models.OrmawaRole{
-		{Name: "Ketua Umum", Description: "Pemegang kendali penuh organisasi", IsCustom: false, Permissions: jsonAdmin},
-		{Name: "Sekretaris", Description: "Pengelola administrasi dan surat menyurat", IsCustom: false, Permissions: jsonAdmin},
-		{Name: "Bendahara", Description: "Pengelola keuangan dan buku kas", IsCustom: false, Permissions: jsonAdmin},
-		{Name: "Staf Ahli", Description: "Anggota fungsionaris divisi", IsCustom: true, Permissions: jsonAdmin},
+		{Nama: "Ketua Umum", Description: "Pemegang kendali penuh organisasi", IsCustom: false, Permissions: jsonAdmin},
+		{Nama: "Sekretaris", Description: "Pengelola administrasi dan surat menyurat", IsCustom: false, Permissions: jsonAdmin},
+		{Nama: "Bendahara", Description: "Pengelola keuangan dan buku kas", IsCustom: false, Permissions: jsonAdmin},
+		{Nama: "Staf Ahli", Description: "Anggota fungsionaris divisi", IsCustom: true, Permissions: jsonAdmin},
 	}
 	for i := range roles {
-		db.FirstOrCreate(&roles[i], models.OrmawaRole{Name: roles[i].Name})
+		db.FirstOrCreate(&roles[i], models.OrmawaRole{Nama: roles[i].Nama})
 	}
 
 	// 5. SEED MEMBERS
 	members := []models.OrmawaMember{
-		{OrmawaID: 1, StudentID: students[0].ID, Role: "Ketua Umum", Division: "Inti", Status: "aktif"},
-		{OrmawaID: 1, StudentID: students[1].ID, Role: "Sekretaris", Division: "Inti", Status: "aktif"},
-		{OrmawaID: 1, StudentID: students[2].ID, Role: "Bendahara", Division: "Inti", Status: "aktif"},
-		{OrmawaID: 1, StudentID: students[3].ID, Role: "Staf", Division: "Humas", Status: "aktif"},
-		{OrmawaID: 1, StudentID: students[4].ID, Role: "Staf", Division: "Minat Bakat", Status: "pending"},
-		{OrmawaID: 1, StudentID: students[5].ID, Role: "Staf", Division: "Kaderisasi", Status: "pending"},
+		{OrmawaID: 1, MahasiswaID: students[0].ID, Role: "Ketua Umum", Division: "Inti", Status: "aktif"},
+		{OrmawaID: 1, MahasiswaID: students[1].ID, Role: "Sekretaris", Division: "Inti", Status: "aktif"},
+		{OrmawaID: 1, MahasiswaID: students[2].ID, Role: "Bendahara", Division: "Inti", Status: "aktif"},
+		{OrmawaID: 1, MahasiswaID: students[3].ID, Role: "Staf", Division: "Humas", Status: "aktif"},
+		{OrmawaID: 1, MahasiswaID: students[4].ID, Role: "Staf", Division: "Minat Bakat", Status: "pending"},
+		{OrmawaID: 1, MahasiswaID: students[5].ID, Role: "Staf", Division: "Kaderisasi", Status: "pending"},
 	}
 	for i := range members {
 		db.Save(&members[i])

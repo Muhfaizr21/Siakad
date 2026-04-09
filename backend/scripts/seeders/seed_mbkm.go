@@ -18,11 +18,11 @@ func SeedMbkm() {
 	host := os.Getenv("DB_HOST")
 	user := os.Getenv("DB_USER")
 	password := os.Getenv("DB_PASSWORD")
-	dbname := os.Getenv("DB_NAME")
+	dbName := os.Getenv("DB_NAME")
 	port := os.Getenv("DB_PORT")
 
 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=Asia/Jakarta",
-		host, user, password, dbname, port)
+		host, user, password, dbName, port)
 
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
@@ -31,16 +31,16 @@ func SeedMbkm() {
 
 	fmt.Println("--- SEEDING MBKM PROGRAMS ---")
 
-	var student models.Student
+	var student models.Mahasiswa
 	db.First(&student)
 
 	if student.ID == 0 {
 		log.Fatal("Run students seeder first!")
 	}
 
-	programs := []models.MBKMProgram{
+	programs := []models.ProgramMBKM{
 		{
-			StudentID:   student.ID,
+			MahasiswaID: student.ID,
 			JenisMBKM:   "Magang Bersertifikat",
 			MitraNama:   "PT Telkom Indonesia",
 			DurasiBulan: 6,
@@ -48,7 +48,7 @@ func SeedMbkm() {
 			SKSKonversi: 20,
 		},
 		{
-			StudentID:   student.ID,
+			MahasiswaID: student.ID,
 			JenisMBKM:   "Studi Independen",
 			MitraNama:   "Gojek (GoAcademy)",
 			DurasiBulan: 4,

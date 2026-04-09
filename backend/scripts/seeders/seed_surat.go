@@ -11,17 +11,18 @@ import (
 )
 
 func SeedSurat() {
+	godotenv.Load("../../.env")
 	godotenv.Load("../.env")
 	godotenv.Load(".env")
 
 	host := os.Getenv("DB_HOST")
 	user := os.Getenv("DB_USER")
 	password := os.Getenv("DB_PASSWORD")
-	dbname := os.Getenv("DB_NAME")
+	dbName := os.Getenv("DB_NAME")
 	port := os.Getenv("DB_PORT")
 
 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=Asia/Jakarta",
-		host, user, password, dbname, port)
+		host, user, password, dbName, port)
 
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
@@ -30,25 +31,25 @@ func SeedSurat() {
 
 	fmt.Println("--- SEEDING LETTER REQUESTS ---")
 
-	var student models.Student
+	var student models.Mahasiswa
 	db.First(&student)
 
 	if student.ID == 0 {
 		log.Fatal("Run students seeder first!")
 	}
 
-	requests := []models.LetterRequest{
+	requests := []models.PengajuanSurat{
 		{
-			StudentID:  student.ID,
-			JenisSurat: "Surat Keterangan Aktif Kuliah",
-			Keperluan:  "Pengajuan Beasiswa Bank Indonesia",
-			Status:     "diajukan",
+			MahasiswaID: student.ID,
+			JenisSurat:  "Surat Keterangan Aktif Kuliah",
+			Keperluan:   "Pengajuan Beasiswa Bank Indonesia",
+			Status:      "diajukan",
 		},
 		{
-			StudentID:  student.ID,
-			JenisSurat: "Surat Izin Penelitian",
-			Keperluan:  "Tugas Akhir Skripsi di PT. Maju Jaya",
-			Status:     "diproses",
+			MahasiswaID: student.ID,
+			JenisSurat:  "Surat Izin Penelitian",
+			Keperluan:   "Tugas Akhir Skripsi di PT. Maju Jaya",
+			Status:      "diproses",
 		},
 	}
 

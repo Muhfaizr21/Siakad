@@ -129,7 +129,7 @@ func SetupOrmawaRoutes(app *fiber.App) {
 		var payload struct {
 			Status string  `json:"status"`
 			Notes  string  `json:"notes"`
-			UserId uint    `json:"userId"`
+			PenggunaID uint    `json:"PenggunaID"`
 			Budget float64 `json:"budget"`
 			Title  string  `json:"title"`
 		}
@@ -145,7 +145,7 @@ func SetupOrmawaRoutes(app *fiber.App) {
 					ProposalID: proposal.ID,
 					Status:     payload.Status,
 					Notes:      payload.Notes,
-					CreatedBy:  payload.UserId,
+					CreatedBy:  payload.PenggunaID,
 				}
 				if err := tx.Create(&history).Error; err != nil {
 					return err
@@ -223,15 +223,15 @@ func SetupOrmawaRoutes(app *fiber.App) {
 		// Ensure directory exists
 		os.MkdirAll("./uploads", os.ModePerm)
 
-		fileName := fmt.Sprintf("%d_%s", time.Now().Unix(), file.Filename)
-		filePath := fmt.Sprintf("./uploads/%s", fileName)
+		fileNamaMahasiswa := fmt.Sprintf("%d_%s", time.Now().Unix(), file.Filename)
+		filePath := fmt.Sprintf("./uploads/%s", fileNamaMahasiswa)
 		if err := c.SaveFile(file, filePath); err != nil {
 			return c.Status(500).JSON(fiber.Map{"status": "error", "message": err.Error()})
 		}
 
 		return c.JSON(fiber.Map{
 			"status": "success", 
-			"url":    fmt.Sprintf("http://localhost:8000/uploads/%s", fileName),
+			"url":    fmt.Sprintf("http://localhost:8000/uploads/%s", fileNamaMahasiswa),
 		})
 	})
 
@@ -417,7 +417,7 @@ func SetupOrmawaRoutes(app *fiber.App) {
 	api.Post("/absensi", func(c *fiber.Ctx) error {
 		type AttendanceInput struct {
 			EventID   uint   `json:"eventId"`
-			StudentID uint   `json:"studentId"`
+			MahasiswaID uint   `json:"MahasiswaID"`
 		}
 		var input AttendanceInput
 		if err := c.BodyParser(&input); err != nil {
@@ -426,14 +426,14 @@ func SetupOrmawaRoutes(app *fiber.App) {
 
 		// 1. Cek apakah Mahasiswa sudah absen sebelumnya? (Cegah Duplikasi)
 		var existing models.EventAttendance
-		if err := config.DB.Where("event_schedule_id = ? AND student_id = ?", input.EventID, input.StudentID).First(&existing).Error; err == nil {
+		if err := config.DB.Where("event_schedule_id = ? AND student_id = ?", input.EventID, input.MahasiswaID).First(&existing).Error; err == nil {
 			return c.Status(409).JSON(fiber.Map{"status": "error", "message": "Anda sudah terabsen di kegiatan ini"})
 		}
 
 		// 2. Simpan Absensi
 		newAttendance := models.EventAttendance{
 			EventScheduleID: input.EventID,
-			StudentID:       input.StudentID,
+			MahasiswaID:       input.MahasiswaID,
 			TimeIn:          time.Now(),
 			Status:          "hadir",
 		}
@@ -490,7 +490,7 @@ func SetupOrmawaRoutes(app *fiber.App) {
 	})
 
 	api.Get("/students", func(c *fiber.Ctx) error {
-		var students []models.Student
+		var students []models.Mahasiswa
 		config.DB.Find(&students)
 		return c.JSON(fiber.Map{"status": "success", "data": students})
 	})
@@ -634,7 +634,7 @@ func SetupOrmawaRoutes(app *fiber.App) {
 		
 		// UPSERT logic: If already exists for this student and event, update status
 		var existing models.EventAttendance
-		err := config.DB.Where("event_schedule_id = ? AND student_id = ?", payload.EventScheduleID, payload.StudentID).First(&existing).Error
+		err := config.DB.Where("event_schedule_id = ? AND student_id = ?", payload.EventScheduleID, payload.MahasiswaID).First(&existing).Error
 		if err == nil {
 			existing.Status = payload.Status
 			existing.TimeIn = time.Now()
@@ -764,8 +764,8 @@ func SetupOrmawaRoutes(app *fiber.App) {
 			fmt.Println("Upload Error: Failed to create directory", err)
 		}
 
-		filename := fmt.Sprintf("LPJ_%s_%d_%s", category, time.Now().Unix(), file.Filename)
-		filePath := "./uploads/" + filename
+		fileNamaMahasiswa := fmt.Sprintf("LPJ_%s_%d_%s", category, time.Now().Unix(), file.Filename)
+		filePath := "./uploads/" + fileNamaMahasiswa
 		if err := c.SaveFile(file, filePath); err != nil {
 			fmt.Println("Upload Error: SaveFile failed", err)
 			return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Failed to save file"})
@@ -780,8 +780,8 @@ func SetupOrmawaRoutes(app *fiber.App) {
 		doc := models.LPJDocument{
 			LPJID:    lpj.ID,
 			Category: category,
-			FileName: file.Filename,
-			FileUrl:  "/uploads/" + filename,
+			FileNama: file.Filename,
+			FileUrl:  "/uploads/" + fileNamaMahasiswa,
 		}
 		
 		if err := config.DB.Create(&doc).Error; err != nil {
@@ -806,14 +806,14 @@ func SetupOrmawaRoutes(app *fiber.App) {
 		if err != nil {
 			return c.Status(400).JSON(fiber.Map{"status": "error", "message": "No file uploaded"})
 		}
-		filename := time.Now().Format("20060102150405") + "_" + file.Filename
+		fileNamaMahasiswa := time.Now().Format("20060102150405") + "_" + file.Filename
 		if _, err := os.Stat("./uploads"); os.IsNotExist(err) {
 			os.Mkdir("./uploads", 0755)
 		}
-		if err := c.SaveFile(file, "./uploads/"+filename); err != nil {
+		if err := c.SaveFile(file, "./uploads/"+fileNamaMahasiswa); err != nil {
 			return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Failed to save file"})
 		}
-		return c.JSON(fiber.Map{"status": "success", "url": "/uploads/" + filename})
+		return c.JSON(fiber.Map{"status": "success", "url": "/uploads/" + fileNamaMahasiswa})
 	})
 
 	// ASPIRATIONS (PROTECTED)

@@ -1,57 +1,247 @@
-import React from 'react';
+"use client"
+import React, { useState, useRef, useEffect } from 'react'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
+import {
+  Search,
+  Bell,
+  Calendar,
+  Menu,
+  User,
+  ChevronRight,
+  LayoutGrid,
+  CheckCircle2,
+  AlertCircle,
+  Users,
+  UserCheck,
+  Stethoscope,
+  Award,
+  BookOpen,
+  FileText,
+  Settings,
+  PieChart,
+  Megaphone,
+  PlusCircle,
+  Database,
+  Headphones,
+  Command
+} from 'lucide-react'
 
 const TopNavBar = ({ setIsOpen }) => {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [searchQuery, setSearchQuery] = useState("");
+  const [showResults, setShowResults] = useState(false);
+  const searchRef = useRef(null);
+  const pathnames = location.pathname.split('/').filter((x) => x);
+
+  const pages = [
+    { name: 'Dashboard Utama', path: '/faculty', icon: LayoutGrid },
+    { name: 'Data Mahasiswa', path: '/faculty/mahasiswa', icon: Users },
+    { name: 'Mahasiswa Baru', path: '/faculty/mahasiswa/baru', icon: PlusCircle },
+    { name: 'Monitor PKKMB', path: '/faculty/pkkmb', icon: Database },
+    { name: 'Manajemen Dosen', path: '/faculty/dosen', icon: UserCheck },
+    { name: 'Status Kesehatan', path: '/faculty/kesehatan', icon: Stethoscope },
+    { name: 'Student Voice', path: '/faculty/aspirasi', icon: Megaphone },
+    { name: 'Validasi Prestasi', path: '/faculty/prestasi', icon: Award },
+    { name: 'Beasiswa Internal', path: '/faculty/beasiswa', icon: Award },
+    { name: 'Jadwal Konseling', path: '/faculty/konseling', icon: Headphones },
+    { name: 'E-Persuratan', path: '/faculty/persuratan', icon: FileText },
+    { name: 'ORMAWA Hub', path: '/faculty/ormawa/proposals', icon: FileText },
+    { name: 'Organisasi Fakultas', path: '/faculty/organisasi', icon: Users },
+    { name: 'Program Studi', path: '/faculty/prodi', icon: BookOpen },
+    { name: 'Manajemen Konten', path: '/faculty/konten', icon: Megaphone },
+    { name: 'Analisis Laporan', path: '/faculty/laporan', icon: PieChart },
+    { name: 'Sistem & Pengaturan', path: '/faculty/pengaturan', icon: Settings },
+  ];
+
+  const filteredResults = pages.filter(page =>
+    page.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (searchRef.current && !searchRef.current.contains(event.target)) {
+        setShowResults(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleNavigate = (path) => {
+    navigate(path);
+    setSearchQuery("");
+    setShowResults(false);
+  };
+
+  const getBreadcrumbLabel = (path) => {
+    const labels = {
+      'faculty': 'Portal Fakultas',
+      'mahasiswa': 'Data Mahasiswa',
+      'baru': 'Mahasiswa Baru',
+      'pkkmb': 'Monitor PKKMB',
+      'kesehatan': 'Status Kesehatan',
+      'aspirasi': 'Student Voice',
+      'prestasi': 'Validasi Prestasi',
+      'beasiswa': 'Beasiswa Internal',
+      'konseling': 'Jadwal Konseling',
+      'persuratan': 'E-Persuratan',
+      'ormawa': 'ORMAWA Hub',
+      'proposals': 'Proposal & Anggaran',
+      'organisasi': 'Organisasi Fakultas',
+      'konten': 'Konten & Artikel',
+      'laporan': 'Analisis Laporan',
+      'prodi': 'Program Studi',
+      'pengaturan': 'Sistem & Konfigurasi',
+    };
+    return labels[path.toLowerCase()] || path.charAt(0) + path.slice(1);
+  };
+
   return (
-    <header className="fixed top-2 right-4 left-4 lg:left-72 z-50 flex justify-between items-center px-6 py-3 bg-white/70 backdrop-blur-xl border border-white/20 rounded-[2rem] shadow-xl shadow-primary/5">
-      <div className="flex items-center gap-4 flex-1">
-        {/* Hamburger for mobile */}
+    <header className="fixed top-0 right-0 left-0 lg:left-64 z-[50] h-20 bg-white/70 backdrop-blur-xl border-b border-slate-200/50 flex items-center justify-between px-6 lg:px-10 font-body transition-all duration-300">
+      <div className="flex items-center gap-6 flex-1">
+        {/* Mobile Toggle */}
         <button
           onClick={() => setIsOpen(true)}
-          className="lg:hidden w-10 h-10 flex items-center justify-center rounded-xl bg-primary/5 text-primary hover:bg-primary/10 transition-colors"
+          className="lg:hidden p-2.5 rounded-xl bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 transition-all shadow-sm active:scale-95"
         >
-          <span className="material-symbols-outlined">menu</span>
+          <Menu className="size-5" />
         </button>
 
-        <div className="relative w-full max-w-md hidden sm:block">
-          <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-600 text-sm">search</span>
-          <input
-            className="w-full pl-11 pr-4 py-2.5 bg-slate-50/50 border border-slate-100 rounded-2xl text-sm focus:ring-4 focus:ring-primary/5 focus:bg-white focus:border-primary/20 transition-all outline-none"
-            placeholder="Cari data, dosen, atau mahasiswa..."
-            type="text"
-          />
+        {/* Dynamic Breadcrumbs */}
+        <nav className="hidden md:flex items-center gap-2 overflow-hidden">
+          <div className="p-2 rounded-lg bg-primary/5 text-primary">
+            <LayoutGrid className="size-4" />
+          </div>
+          <div className="flex items-center text-[11px] font-bold tracking-tight uppercase">
+            {pathnames.map((value, index) => {
+              const last = index === pathnames.length - 1;
+              const to = `/${pathnames.slice(0, index + 1).join('/')}`;
+
+              return (
+                <React.Fragment key={to}>
+                  <ChevronRight className="size-3 mx-1 text-slate-300 first:hidden" />
+                  {last ? (
+                    <span className="text-slate-900 truncate max-w-[150px]">
+                      {getBreadcrumbLabel(value)}
+                    </span>
+                  ) : (
+                    <Link
+                      to={to}
+                      className="text-slate-400 hover:text-primary transition-colors truncate max-w-[150px]"
+                    >
+                      {getBreadcrumbLabel(value)}
+                    </Link>
+                  )}
+                </React.Fragment>
+              );
+            })}
+          </div>
+        </nav>
+
+        {/* Global Search Interface */}
+        <div ref={searchRef} className="relative w-full max-w-sm hidden xl:flex flex-col items-center group ml-4">
+          <div className="relative w-full flex items-center">
+            <div className="absolute left-4 p-0.5 rounded transition-colors group-focus-within:text-primary text-slate-400">
+              <Search className="size-4 stroke-[2.5px]" />
+            </div>
+            <input
+              className="w-full h-11 pl-12 pr-12 bg-gray-100/50 border-transparent border focus:border-primary/20 focus:bg-white rounded-2xl text-[13px] font-semibold text-slate-700 placeholder:text-slate-400 focus:ring-4 focus:ring-primary/5 transition-all outline-none shadow-inner"
+              placeholder="Cari fitur atau halaman..."
+              type="text"
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setShowResults(true);
+              }}
+              onFocus={() => setShowResults(true)}
+            />
+            <div className="absolute right-4 flex items-center gap-1 opacity-40 group-focus-within:opacity-100 transition-opacity">
+              <div className="px-1.5 py-0.5 rounded-md bg-white border border-slate-200 text-[10px] font-bold text-slate-500 shadow-sm flex items-center gap-1">
+                <Command className="size-2.5" />
+                <span>/</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Search Results Dropdown */}
+          {showResults && searchQuery.length > 0 && (
+            <div className="absolute top-full mt-2 w-full bg-white border border-slate-200 rounded-2xl shadow-2xl p-2 z-[60] animate-in fade-in zoom-in-95 duration-200">
+              <div className="px-3 py-2 border-b border-slate-50 mb-1">
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Hasil Pencarian</p>
+              </div>
+              <div className="space-y-0.5 max-h-[300px] overflow-y-auto">
+                {filteredResults.length > 0 ? (
+                  filteredResults.map((page, index) => (
+                    <div
+                      key={index}
+                      onClick={() => handleNavigate(page.path)}
+                      className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 cursor-pointer transition-all group"
+                    >
+                      <div className="p-2 rounded-lg bg-primary/5 text-primary group-hover:bg-primary group-hover:text-white transition-colors">
+                        <page.icon className="size-4" />
+                      </div>
+                      <span className="text-sm font-bold text-slate-700">{page.name}</span>
+                    </div>
+                  ))
+                ) : (
+                  <div className="p-8 text-center">
+                    <p className="text-xs font-medium text-slate-400">Tidak ada fitur yang cocok</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
-      <div className="flex items-center gap-4">
-        {/* Quick Actions */}
-        <div className="flex items-center gap-1 bg-slate-50 p-1 rounded-2xl border border-slate-100">
-          <button className="w-10 h-10 flex items-center justify-center text-slate-600 hover:text-primary hover:bg-white rounded-xl transition-all relative">
-            <span className="material-symbols-outlined text-[20px]">notifications</span>
-            <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-rose-500 rounded-full border-2 border-white"></span>
+      <div className="flex items-center gap-3 lg:gap-5">
+        {/* Quick Notification Tray */}
+        <div className="flex items-center gap-1 bg-slate-50 p-1 rounded-2xl border border-slate-100/50">
+          <button className="relative p-2.5 rounded-xl hover:bg-white text-slate-500 hover:text-primary transition-all hover:shadow-sm active:scale-90 group">
+            <Bell className="size-5" />
+            <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-rose-500 rounded-full border-2 border-white ring-2 ring-rose-500/20 animate-pulse"></span>
+
+            {/* Popover Preview (Simulated for Premium Look) */}
+            <div className="absolute top-full right-0 mt-4 w-64 bg-white rounded-2xl shadow-2xl border border-slate-100 p-4 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 translate-y-2 group-hover:translate-y-0">
+              <div className="flex justify-between items-center mb-3">
+                <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Pemberitahuan</h4>
+                <span className="text-[10px] font-bold text-primary">Lihat Semua</span>
+              </div>
+              <div className="space-y-2.5">
+                <div className="flex gap-3 items-start">
+                  <div className="p-1.5 rounded-lg bg-emerald-50 text-emerald-600"><CheckCircle2 className="size-3.5" /></div>
+                  <p className="text-[11px] font-bold text-slate-600 leading-tight">Proposal BEM-FT telah disetujui Kaprodi.</p>
+                </div>
+                <div className="flex gap-3 items-start">
+                  <div className="p-1.5 rounded-lg bg-amber-50 text-amber-600"><AlertCircle className="size-3.5" /></div>
+                  <p className="text-[11px] font-bold text-slate-600 leading-tight">3 Antrean persuratan baru menunggu verifikasi.</p>
+                </div>
+              </div>
+            </div>
           </button>
-          <button className="w-10 h-10 flex items-center justify-center text-slate-600 hover:text-primary hover:bg-white rounded-xl transition-all">
-            <span className="material-symbols-outlined text-[20px]">calendar_month</span>
+
+          <button className="hidden sm:flex p-2.5 rounded-xl hover:bg-white text-slate-500 hover:text-primary transition-all hover:shadow-sm active:scale-90">
+            <Calendar className="size-5" />
           </button>
         </div>
 
-        {/* User Profile */}
-        <div className="flex items-center gap-3 pl-2 group cursor-pointer">
-          <div className="text-right hidden md:block">
-            <p className="text-[13px] font-black text-slate-900 leading-none mb-1">Prof. Dr. Sarah Chen</p>
-            <p className="text-[10px] text-primary font-bold uppercase tracking-widest opacity-80">Admin Fakultas</p>
+        {/* User Account Profile */}
+        <div className="flex items-center gap-3.5 pl-4 border-l border-slate-200/60 group cursor-pointer ml-2">
+          <div className="flex flex-col items-end leading-none">
+            <p className="text-sm font-black text-slate-900 tracking-tight">Admin Fakultas</p>
+            <p className="text-[10px] font-bold text-primary tracking-widest uppercase mt-0.5 opacity-70">Super Control</p>
           </div>
           <div className="relative">
-            <img
-              alt="Profile"
-              className="w-11 h-11 rounded-2xl object-cover ring-2 ring-primary/10 group-hover:ring-primary/30 transition-all"
-              src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=150"
-            />
-            <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 border-2 border-white rounded-full"></div>
+            <div className="w-11 h-11 rounded-2xl bg-slate-900 border-[3px] border-slate-100 text-white flex items-center justify-center font-black text-xs shadow-xl shadow-slate-900/10 group-hover:shadow-primary/20 group-hover:border-primary/20 transition-all duration-300">
+              AF
+            </div>
+            <div className="absolute -bottom-1 -right-1 size-4 bg-emerald-500 border-[3px] border-white rounded-full shadow-lg shadow-emerald-500/20"></div>
           </div>
         </div>
       </div>
     </header>
-  );
-};
+  )
+}
 
-export default TopNavBar;
+export default TopNavBar

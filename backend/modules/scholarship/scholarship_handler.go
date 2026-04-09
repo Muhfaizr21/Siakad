@@ -72,10 +72,10 @@ func GetBeasiswaDetail(c *fiber.Ctx) error {
 // DaftarBeasiswa handles multipart/form-data for scholarship applications with Transaction & Pipeline
 func DaftarBeasiswa(c *fiber.Ctx) error {
 	beasiswaID := c.Params("id")
-	userID := c.Locals("user_id")
+	PenggunaID := c.Locals("user_id")
 
-	var student models.Student
-	if err := config.DB.First(&student, "user_id = ?", userID).Error; err != nil {
+	var student models.Mahasiswa
+	if err := config.DB.First(&student, "user_id = ?", PenggunaID).Error; err != nil {
 		return c.Status(404).JSON(fiber.Map{"success": false, "message": "Mahasiswa tidak ditemukan"})
 	}
 
@@ -128,7 +128,7 @@ func DaftarBeasiswa(c *fiber.Ctx) error {
 
 	// CREATE PENGAJUAN
 	pengajuan := models.PengajuanBeasiswa{
-		StudentID:      student.ID,
+		MahasiswaID:      student.ID,
 		BeasiswaID:     beasiswa.ID,
 		NomorReferensi: refNum,
 		Motivasi:       motivasi,
@@ -164,8 +164,8 @@ func DaftarBeasiswa(c *fiber.Ctx) error {
 		}
 
 		ext := strings.ToLower(filepath.Ext(file.Filename))
-		filename := fmt.Sprintf("%s_%s_%s%s", refNum, key, uuid.New().String()[:8], ext)
-		savePath := filepath.Join(uploadDir, filename)
+		fileNamaMahasiswa := fmt.Sprintf("%s_%s_%s%s", refNum, key, uuid.New().String()[:8], ext)
+		savePath := filepath.Join(uploadDir, fileNamaMahasiswa)
 
 		if err := c.SaveFile(file, savePath); err != nil {
 			tx.Rollback()
@@ -175,7 +175,7 @@ func DaftarBeasiswa(c *fiber.Ctx) error {
 		tx.Create(&models.PengajuanBerkas{
 			PengajuanID: pengajuan.ID,
 			TipeBerkas:  key,
-			FileURL:     "/uploads/scholarship/" + filename,
+			FileURL:     "/uploads/scholarship/" + fileNamaMahasiswa,
 			UploadedAt:  time.Now(),
 		})
 	}
@@ -198,7 +198,7 @@ func DaftarBeasiswa(c *fiber.Ctx) error {
 
 	// Trigger Notification
 	notifikasi.Kirim(config.DB, notifikasi.KirimParams{
-		StudentID: student.ID,
+		MahasiswaID: student.ID,
 		Type:      "beasiswa",
 		Title:     "Pendaftaran Berhasil",
 		Content:   "Pengajuan beasiswa '" + beasiswa.Nama + "' berhasil dikirim. Nomor Referensi: " + refNum,
@@ -214,10 +214,10 @@ func DaftarBeasiswa(c *fiber.Ctx) error {
 
 // GetRiwayatPengajuan retrieves historical submissions with stats
 func GetRiwayatPengajuan(c *fiber.Ctx) error {
-	userID := c.Locals("user_id")
+	PenggunaID := c.Locals("user_id")
 
-	var student models.Student
-	if err := config.DB.First(&student, "user_id = ?", userID).Error; err != nil {
+	var student models.Mahasiswa
+	if err := config.DB.First(&student, "user_id = ?", PenggunaID).Error; err != nil {
 		return c.Status(404).JSON(fiber.Map{"success": false, "message": "Mahasiswa tidak ditemukan"})
 	}
 
@@ -251,10 +251,10 @@ func GetRiwayatPengajuan(c *fiber.Ctx) error {
 // GetPengajuanDetail retrieves detailed tracking info + pipeline logs
 func GetPengajuanDetail(c *fiber.Ctx) error {
 	id := c.Params("id")
-	userID := c.Locals("user_id")
+	PenggunaID := c.Locals("user_id")
 
-	var student models.Student
-	config.DB.First(&student, "user_id = ?", userID)
+	var student models.Mahasiswa
+	config.DB.First(&student, "user_id = ?", PenggunaID)
 
 	var pengajuan models.PengajuanBeasiswa
 	if err := config.DB.Preload("Beasiswa").Where("id = ? AND student_id = ?", id, student.ID).First(&pengajuan).Error; err != nil {

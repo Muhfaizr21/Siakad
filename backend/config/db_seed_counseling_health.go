@@ -65,7 +65,7 @@ func seedHealthData(db *gorm.DB) {
 	petugasID := uint(1)
 
 	db.Create(&models.HasilKesehatan{
-		StudentID:             1,
+		MahasiswaID:             1,
 		TanggalPeriksa:        time.Now().AddDate(0, -6, 0),
 		TinggiBadan:           170,
 		BeratBadan:            65,
@@ -82,7 +82,7 @@ func seedHealthData(db *gorm.DB) {
 	})
 
 	db.Create(&models.HasilKesehatan{
-		StudentID:             1,
+		MahasiswaID:             1,
 		TanggalPeriksa:        time.Now().AddDate(0, -2, 0),
 		TinggiBadan:           170,
 		BeratBadan:            75,
@@ -97,7 +97,7 @@ func seedHealthData(db *gorm.DB) {
 	})
 
 	db.Create(&models.HasilKesehatan{
-		StudentID:             1,
+		MahasiswaID:             1,
 		TanggalPeriksa:        time.Now().AddDate(0, 0, -5),
 		TinggiBadan:           171,
 		BeratBadan:            72,

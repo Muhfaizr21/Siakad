@@ -10,9 +10,9 @@ import (
 
 // GetList returns all organisation history for the logged-in student
 func GetList(c *fiber.Ctx) error {
-	userID := c.Locals("user_id")
-	var student models.Student
-	if err := config.DB.First(&student, "user_id = ?", userID).Error; err != nil {
+	PenggunaID := c.Locals("user_id")
+	var student models.Mahasiswa
+	if err := config.DB.First(&student, "user_id = ?", PenggunaID).Error; err != nil {
 		return c.Status(404).JSON(fiber.Map{"success": false, "message": "Mahasiswa tidak ditemukan"})
 	}
 
@@ -24,9 +24,9 @@ func GetList(c *fiber.Ctx) error {
 
 // Create adds a new organisation record
 func Create(c *fiber.Ctx) error {
-	userID := c.Locals("user_id")
-	var student models.Student
-	if err := config.DB.First(&student, "user_id = ?", userID).Error; err != nil {
+	PenggunaID := c.Locals("user_id")
+	var student models.Mahasiswa
+	if err := config.DB.First(&student, "user_id = ?", PenggunaID).Error; err != nil {
 		return c.Status(404).JSON(fiber.Map{"success": false, "message": "Mahasiswa tidak ditemukan"})
 	}
 
@@ -53,7 +53,7 @@ func Create(c *fiber.Ctx) error {
 	}
 
 	rec := models.RiwayatOrganisasi{
-		StudentID:         student.ID,
+		MahasiswaID:         student.ID,
 		NamaOrganisasi:    req.NamaOrganisasi,
 		Tipe:              req.Tipe,
 		Jabatan:           req.Jabatan,
@@ -75,9 +75,9 @@ func Create(c *fiber.Ctx) error {
 // Update edits an existing record (only if status is Menunggu)
 func Update(c *fiber.Ctx) error {
 	id := c.Params("id")
-	userID := c.Locals("user_id")
-	var student models.Student
-	if err := config.DB.First(&student, "user_id = ?", userID).Error; err != nil {
+	PenggunaID := c.Locals("user_id")
+	var student models.Mahasiswa
+	if err := config.DB.First(&student, "user_id = ?", PenggunaID).Error; err != nil {
 		return c.Status(404).JSON(fiber.Map{"success": false, "message": "Mahasiswa tidak ditemukan"})
 	}
 
@@ -121,9 +121,9 @@ func Update(c *fiber.Ctx) error {
 // Delete removes a record (only if status is Menunggu)
 func Delete(c *fiber.Ctx) error {
 	id := c.Params("id")
-	userID := c.Locals("user_id")
-	var student models.Student
-	if err := config.DB.First(&student, "user_id = ?", userID).Error; err != nil {
+	PenggunaID := c.Locals("user_id")
+	var student models.Mahasiswa
+	if err := config.DB.First(&student, "user_id = ?", PenggunaID).Error; err != nil {
 		return c.Status(404).JSON(fiber.Map{"success": false, "message": "Mahasiswa tidak ditemukan"})
 	}
 

@@ -9,7 +9,7 @@ import (
 )
 
 type KirimParams struct {
-	StudentID uint
+	MahasiswaID uint
 	Type      string // achievement, beasiswa, konseling, student_voice, kencana, sistem
 	Title     string
 	Content   string
@@ -20,7 +20,7 @@ type KirimParams struct {
 func Kirim(db *gorm.DB, params KirimParams) error {
 	// 1. Save to Database
 	notif := models.Notification{
-		UserID:  params.StudentID, // Mapping student to user for now if IDs match
+		PenggunaID:  params.MahasiswaID, // Mapping student to user for now if IDs match
 		Type:    params.Type,
 		Title:   params.Title,
 		Message: params.Content,
@@ -35,8 +35,8 @@ func Kirim(db *gorm.DB, params KirimParams) error {
 	// 2. Check Preferences & Send Email (Async)
 	go func() {
 		var pref models.NotificationPreference
-		if err := db.Where("pengguna_id = ?", params.StudentID).First(&pref).Error; err != nil {
-			log.Printf("[Notifikasi] Error checking preferences for student %d: %v", params.StudentID, err)
+		if err := db.Where("pengguna_id = ?", params.MahasiswaID).First(&pref).Error; err != nil {
+			log.Printf("[Notifikasi] Error checking preferences for student %d: %v", params.MahasiswaID, err)
 			return
 		}
 
@@ -69,7 +69,7 @@ func Kirim(db *gorm.DB, params KirimParams) error {
 func kirimEmail(params KirimParams) {
 	// Here you would integrate with an SMTP server or email API
 	log.Printf("[Notifikasi] SENDING EMAIL to Student %d: [%s] %s - %s", 
-		params.StudentID, params.Type, params.Title, params.Content)
+		params.MahasiswaID, params.Type, params.Title, params.Content)
 	
 	// Mock HTML Template logic
 	/*

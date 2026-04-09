@@ -25,7 +25,7 @@ type userResponse struct {
 	Email string `json:"email"`
 	Role  string `json:"role"`
 	NIM   string `json:"nim,omitempty"`
-	Name  string `json:"name,omitempty"`
+	Nama  string `json:"nama,omitempty"`
 }
 
 func jwtSecret() []byte {
@@ -36,10 +36,10 @@ func jwtSecret() []byte {
 	return []byte(secret)
 }
 
-func createToken(userID uint, role string) (string, error) {
+func createToken(penggunaID uint, role string) (string, error) {
 	now := time.Now()
 	claims := jwt.MapClaims{
-		"uid":  userID,
+		"uid":  penggunaID,
 		"role": role,
 		"iat":  now.Unix(),
 		"exp":  now.Add(24 * time.Hour).Unix(),
@@ -96,45 +96,45 @@ func Login(c *fiber.Ctx) error {
 		})
 	}
 
-	var user models.User
+	var user models.Pengguna
 	var roleName string
 	var nim string
-	var name string
+	var nama string
 
-	var student models.Student
-	studentErr := config.DB.Preload("User.Role").Where("nim = ?", identifier).First(&student).Error
+	var student models.Mahasiswa
+	studentErr := config.DB.Preload("Pengguna.Peran").Where("nim = ?", identifier).First(&student).Error
 	if studentErr == nil {
-		user = student.User
+		user = student.Pengguna
 		nim = student.NIM
-		name = student.Name
-		roleName = student.User.Role.Name
+		nama = student.NamaMahasiswa
+		roleName = student.Pengguna.Peran.NamaPeran
 	} else {
-		userErr := config.DB.Preload("Role").Where("email = ?", identifier).First(&user).Error
+		userErr := config.DB.Preload("Peran").Where("email = ?", identifier).First(&user).Error
 		if userErr != nil {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 				"status":  "error",
 				"message": "Email/NIM atau password salah",
 			})
 		}
-		roleName = user.Role.Name
+		roleName = user.Peran.NamaPeran
 
 		if roleName == "student" {
-			_ = config.DB.Where("user_id = ?", user.ID).First(&student).Error
+			_ = config.DB.Where("pengguna_id = ?", user.ID).First(&student).Error
 			if student.ID != 0 {
 				nim = student.NIM
-				name = student.Name
+				nama = student.NamaMahasiswa
 			}
 		}
 	}
 
-	if !user.IsActive {
+	if !user.Aktif {
 		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
 			"status":  "error",
 			"message": "Akun dinonaktifkan. Hubungi administrator",
 		})
 	}
 
-	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(password)); err != nil {
+	if err := bcrypt.CompareHashAndPassword([]byte(user.KataSandi), []byte(password)); err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			"status":  "error",
 			"message": "Email/NIM atau password salah",
@@ -159,7 +159,7 @@ func Login(c *fiber.Ctx) error {
 				Email: user.Email,
 				Role:  roleName,
 				NIM:   nim,
-				Name:  name,
+				Nama:  nama,
 			},
 		},
 	})
@@ -182,16 +182,16 @@ func Me(c *fiber.Ctx) error {
 		})
 	}
 
-	var user models.User
-	if err := config.DB.Preload("Role").First(&user, uint(uidValue)).Error; err != nil {
+	var user models.Pengguna
+	if err := config.DB.Preload("Peran").First(&user, uint(uidValue)).Error; err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			"status":  "error",
 			"message": "User not found",
 		})
 	}
 
-	var student models.Student
-	_ = config.DB.Where("user_id = ?", user.ID).First(&student).Error
+	var student models.Mahasiswa
+	_ = config.DB.Where("pengguna_id = ?", user.ID).First(&student).Error
 
 	return c.JSON(fiber.Map{
 		"status": "success",
@@ -199,9 +199,9 @@ func Me(c *fiber.Ctx) error {
 			"user": userResponse{
 				ID:    user.ID,
 				Email: user.Email,
-				Role:  user.Role.Name,
+				Role:  user.Peran.NamaPeran,
 				NIM:   student.NIM,
-				Name:  student.Name,
+				Nama:  student.NamaMahasiswa,
 			},
 		},
 	})
@@ -210,18 +210,18 @@ func Me(c *fiber.Ctx) error {
 func EnsureBootstrapData() error {
 	roles := []string{"super_admin", "faculty_admin", "ormawa_admin", "student"}
 	for _, roleName := range roles {
-		role := models.Role{Name: roleName}
-		if err := config.DB.Where(models.Role{Name: roleName}).FirstOrCreate(&role).Error; err != nil {
+		peran := models.Peran{NamaPeran: roleName}
+		if err := config.DB.Where(models.Peran{NamaPeran: roleName}).FirstOrCreate(&peran).Error; err != nil {
 			return err
 		}
 	}
 
-	var studentRole models.Role
-	if err := config.DB.Where("name = ?", "student").First(&studentRole).Error; err != nil {
+	var studentRole models.Peran
+	if err := config.DB.Where("nama_peran = ?", "student").First(&studentRole).Error; err != nil {
 		return err
 	}
 
-	var user models.User
+	var user models.Pengguna
 	userErr := config.DB.Where("email = ?", "student@bku.ac.id").First(&user).Error
 	if errors.Is(userErr, gorm.ErrRecordNotFound) {
 		hashedPassword, err := bcrypt.GenerateFromPassword([]byte("student123"), bcrypt.DefaultCost)
@@ -229,11 +229,11 @@ func EnsureBootstrapData() error {
 			return err
 		}
 
-		user = models.User{
-			Email:        "student@bku.ac.id",
-			PasswordHash: string(hashedPassword),
-			RoleID:       studentRole.ID,
-			IsActive:     true,
+		user = models.Pengguna{
+			Email:     "student@bku.ac.id",
+			KataSandi: string(hashedPassword),
+			PeranID:   studentRole.ID,
+			Aktif:     true,
 		}
 		if err := config.DB.Create(&user).Error; err != nil {
 			return err
@@ -242,26 +242,32 @@ func EnsureBootstrapData() error {
 		return userErr
 	}
 
-	faculty := models.Faculty{Name: "School of Computing", Code: "SOC", DeanName: "Prof. Demo"}
-	if err := config.DB.Where(models.Faculty{Code: "SOC"}).FirstOrCreate(&faculty).Error; err != nil {
-		return err
+	var fakultas models.Fakultas
+	dbFakultas := config.DB.Where("kode_fakultas = ?", "SOC").First(&fakultas)
+	if dbFakultas.Error != nil {
+		fakultas = models.Fakultas{NamaFakultas: "School of Computing", KodeFakultas: "SOC", Dekan: "Prof. Demo"}
+		config.DB.Create(&fakultas)
 	}
 
-	major := models.Major{Name: "Informatics", FacultyID: faculty.ID, DegreeLevel: "S1"}
-	if err := config.DB.Where(models.Major{Name: "Informatics", FacultyID: faculty.ID}).FirstOrCreate(&major).Error; err != nil {
-		return err
+	var major models.ProgramStudi
+	dbProdi := config.DB.Where("nama_prodi = ?", "Informatics").First(&major)
+	if dbProdi.Error != nil {
+		major = models.ProgramStudi{NamaProdi: "Informatics", FakultasID: fakultas.ID, Jenjang: "S1"}
+		config.DB.Create(&major)
 	}
 
-	student := models.Student{
-		UserID:          user.ID,
-		NIM:             "BKU2024001",
-		Name:            "Mahasiswa Demo",
-		MajorID:         major.ID,
-		CurrentSemester: 2,
-		Status:          "active",
-	}
-	if err := config.DB.Where(models.Student{NIM: "BKU2024001"}).FirstOrCreate(&student).Error; err != nil {
-		return err
+	var student models.Mahasiswa
+	dbStudent := config.DB.Where("nim = ?", "BKU2024001").First(&student)
+	if dbStudent.Error != nil {
+		student = models.Mahasiswa{
+			PenggunaID:       user.ID,
+			NIM:              "BKU2024001",
+			NamaMahasiswa:    "Mahasiswa Demo",
+			ProgramStudiID:   major.ID,
+			SemesterSekarang: 2,
+			StatusAkun:       "Aktif",
+		}
+		config.DB.Create(&student)
 	}
 
 	return nil

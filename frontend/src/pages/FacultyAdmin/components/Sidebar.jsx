@@ -1,59 +1,49 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../../context/AuthContext';
+import { ChevronRight, LogOut, LayoutDashboard, Users, UserPlus, UserCheck, CheckCircle2, HeartPulse, MessageSquare, Award, GraduationCap, CalendarDays, Inbox, FileSpreadsheet, Building2, School, Settings, BarChart3, Boxes } from 'lucide-react';
 
 const menuSections = [
   {
-    label: 'Utama',
+    label: 'Overview',
     items: [
-      { name: 'Dashboard', path: '/faculty', icon: 'grid_view' },
+      { name: 'Dashboard', path: '/faculty', icon: LayoutDashboard },
     ]
   },
   {
-    label: 'Akademik',
+    label: 'Academic Management',
     items: [
-      { name: 'Penerimaan (PMB)', path: '/faculty/pmb', icon: 'person_add' },
-      { name: 'Manajemen Mahasiswa', path: '/faculty/mahasiswa', icon: 'group' },
-      { name: 'Data Dosen', path: '/faculty/dosen', icon: 'supervisor_account' },
-      { name: 'Program Studi', path: '/faculty/prodi', icon: 'account_balance' },
-      { name: 'Jadwal Kuliah', path: '/faculty/jadwal', icon: 'event_note' },
-      { name: 'Validasi KRS', path: '/faculty/krs', icon: 'fact_check' },
-      { name: 'Input Nilai', path: '/faculty/nilai', icon: 'grade' },
+      { name: 'Data Dosen', path: '/faculty/dosen', icon: UserCheck },
+      { name: 'Data Mahasiswa', path: '/faculty/mahasiswa', icon: Users },
+      { name: 'Mahasiswa Baru', path: '/faculty/mahasiswa/baru', icon: UserPlus },
+      { name: 'Monitor PKKMB', path: '/faculty/pkkmb', icon: CheckCircle2 },
+      { name: 'Pantau Kesehatan', path: '/faculty/kesehatan', icon: HeartPulse },
     ]
   },
   {
-    label: 'Layanan Mahasiswa',
+    label: 'Student Services',
     items: [
-      { name: 'Aspirasi Mahasiswa', path: '/faculty/aspirasi', icon: 'forum' },
-      { name: 'Jadwal Konseling', path: '/faculty/konseling', icon: 'event_available' },
-      { name: 'Verifikasi Prestasi', path: '/faculty/prestasi', icon: 'verified' },
-      { name: 'E-Persuratan', path: '/faculty/persuratan', icon: 'forward_to_inbox' },
+      { name: 'Student Voice', path: '/faculty/aspirasi', icon: MessageSquare },
+      { name: 'Validasi Prestasi', path: '/faculty/prestasi', icon: Award },
+      { name: 'Beasiswa Internal', path: '/faculty/beasiswa', icon: GraduationCap },
+      { name: 'Jadwal Konseling', path: '/faculty/konseling', icon: CalendarDays },
+      { name: 'E-Persuratan', path: '/faculty/persuratan', icon: Inbox },
     ]
   },
   {
-    label: 'Kelulusan & Karir',
+    label: 'Community & Content',
     items: [
-      { name: 'Pendaftaran Yudisium', path: '/faculty/yudisium', icon: 'school' },
-      { name: 'Manajemen MBKM', path: '/faculty/mbkm', icon: 'explore' },
-      { name: 'Pengajuan Beasiswa', path: '/faculty/beasiswa', icon: 'workspace_premium' },
+      { name: 'Proposal ORMAWA', path: '/faculty/ormawa/proposals', icon: FileSpreadsheet },
+      { name: 'Organisasi Fakultas', path: '/faculty/organisasi', icon: Building2 },
+      { name: 'Konten & Artikel', path: '/faculty/konten', icon: Boxes },
     ]
   },
   {
-    label: 'Organisasi & Konten',
+    label: 'System & Reports',
     items: [
-      { name: 'Proposal ORMAWA', path: '/faculty/ormawa/proposals', icon: 'description' },
-      { name: 'Organisasi Fakultas', path: '/faculty/organisasi', icon: 'groups' },
-      { name: 'Konten Website', path: '/faculty/konten', icon: 'newspaper' },
-    ]
-  },
-  {
-    label: 'Administrasi',
-    items: [
-      { name: 'Mahasiswa Baru', path: '/faculty/mahasiswa/baru', icon: 'person_add' },
-      { name: 'Master Fakultas', path: '/faculty/fakultas', icon: 'corporate_fare' },
-      { name: 'Laporan & Rekap', path: '/faculty/laporan', icon: 'analytics' },
-      { name: 'Pengaturan Akun', path: '/faculty/pengaturan', icon: 'settings' },
-      { name: 'Manajemen Role (RBAC)', path: '/faculty/pengaturan/rbac', icon: 'manage_accounts' },
+      { name: 'Laporan Fakultas', path: '/faculty/laporan', icon: BarChart3 },
+      { name: 'Program Studi', path: '/faculty/prodi', icon: School },
+      { name: 'Pengaturan', path: '/faculty/pengaturan', icon: Settings },
     ]
   },
 ];
@@ -62,76 +52,114 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
   const location = useLocation();
   const { logout } = useAuth();
 
+  // Find all items that match the current path
+  const allItems = menuSections.flatMap(section => section.items);
+  
+  const isActive = (itemPath) => {
+    const currentPath = location.pathname;
+    
+    // 1. Check for exact match
+    if (currentPath === itemPath) return true;
+    
+    // 2. Dashboard is always exact match
+    if (itemPath === '/faculty') return currentPath === '/faculty';
+    
+    // 3. For sub-paths (like /faculty/mahasiswa/baru vs /faculty/mahasiswa)
+    // We check if current path starts with itemPath
+    if (currentPath.startsWith(itemPath)) {
+      // Check if there's any other menu item that has a more specific match (longer path)
+      const moreSpecificMatch = allItems.find(item => 
+        item.path !== itemPath && 
+        item.path.length > itemPath.length && 
+        currentPath.startsWith(item.path)
+      );
+      
+      // If no other menu item matches the current path better, then this one is the winner
+      return !moreSpecificMatch;
+    }
+    
+    return false;
+  };
+
   return (
     <>
       {/* Mobile Overlay */}
       {isOpen && (
         <div
-          className="lg:hidden fixed inset-0 z-[60] bg-on-surface/40 backdrop-blur-sm animate-in fade-in duration-300"
+          className="lg:hidden fixed inset-0 z-[60] bg-slate-900/40 backdrop-blur-md animate-in fade-in duration-500"
           onClick={() => setIsOpen(false)}
         />
       )}
 
       {/* Main Sidebar Container */}
       <aside className={`
-        fixed left-0 top-0 h-screen z-[70]
-        bg-surface-container-low border-r border-outline-variant/10
+        fixed left-0 top-0 h-[100dvh] z-[70]
+        bg-white border-r border-slate-200/60
         transition-all duration-500 ease-in-out font-body
-        ${isOpen ? 'translate-x-0 w-72 shadow-2xl shadow-primary/20' : '-translate-x-full lg:translate-x-0 w-64'}
+        flex flex-col overscroll-contain
+        ${isOpen ? 'translate-x-0 w-72 shadow-2xl shadow-primary/10' : '-translate-x-full lg:translate-x-0 w-64'}
       `}>
+
         {/* Logo Section */}
-        <div className="p-6 pb-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center text-primary shadow-lg shadow-primary/5 border border-primary/20">
-              <span className="material-symbols-outlined font-black">school</span>
+        <div className="px-6 py-8 flex items-center justify-between">
+          <Link to="/faculty" className="flex items-center gap-3.5 group">
+            <div className="relative">
+              <div className="w-11 h-11 bg-primary rounded-2xl flex items-center justify-center text-white shadow-xl shadow-primary/30 group-hover:scale-105 transition-transform duration-300">
+                <LayoutDashboard className="size-6" />
+              </div>
+              <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 rounded-full border-2 border-white shadow-sm"></div>
             </div>
-            <div className="leading-none overflow-hidden max-w-[120px]">
-              <span className="text-xs font-black text-on-surface uppercase tracking-widest block truncate">
-                SIAKAD
+            <div className="flex flex-col leading-tight">
+              <span className="text-sm font-black text-slate-900 uppercase tracking-wider">
+                STUDENT HUB
               </span>
-              <p className="text-[9px] font-bold text-primary opacity-60 uppercase truncate">Portal Fakultas</p>
+              <span className="text-[10px] font-bold text-primary/60 uppercase tracking-widest">Portal Fakultas</span>
             </div>
-          </div>
-          {/* Close for mobile */}
+          </Link>
           <button
             onClick={() => setIsOpen(false)}
-            className="lg:hidden w-8 h-8 rounded-full bg-surface-container flex items-center justify-center"
+            className="lg:hidden w-9 h-9 rounded-xl bg-slate-50 hover:bg-slate-100 flex items-center justify-center text-slate-400 transition-colors"
           >
-            <span className="material-symbols-outlined text-sm">close</span>
+            <ChevronRight className="size-4 rotate-180" />
           </button>
         </div>
 
         {/* Navigation Items */}
-        <nav className="px-3 py-1 h-[calc(100vh-170px)] overflow-y-auto no-scrollbar">
+        <nav className="flex-1 px-4 overflow-y-auto no-scrollbar scroll-smooth pb-10 overscroll-contain">
           {menuSections.map((section, sIdx) => (
-            <div key={sIdx} className="mt-5">
-              {/* Section Label */}
-              <div className="px-4 mb-2">
-                <span className="text-[10px] font-black text-on-surface-variant/40 uppercase tracking-[0.2em]">
-                  {section.label}
-                </span>
-              </div>
+            <div key={sIdx} className="mb-8 last:mb-0">
+              <h3 className="px-4 mb-3 text-[10px] font-black text-slate-400/80 uppercase tracking-[0.25em]">
+                {section.label}
+              </h3>
 
-              {/* Section Items */}
               <div className="space-y-1">
                 {section.items.map((item) => {
-                  const isActive = location.pathname === item.path;
+                  const active = isActive(item.path);
+                  const Icon = item.icon;
                   return (
                     <Link
                       key={item.path}
                       to={item.path}
-                      onClick={() => setIsOpen(false)}
                       className={`
-                        flex items-center gap-3 px-4 py-2.5 rounded-2xl font-bold transition-all duration-200 group
-                        ${isActive
-                          ? 'bg-primary text-white shadow-lg shadow-primary/20 scale-[1.02]'
-                          : 'text-on-surface-variant hover:bg-surface-container-high/60 hover:text-on-surface'}
+                        relative flex items-center gap-3.5 px-4 py-2.5 rounded-2xl font-bold transition-all duration-300 group
+                        ${active
+                          ? 'bg-primary text-white shadow-lg shadow-primary/25 translate-x-1'
+                          : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900 hover:translate-x-1'}
                       `}
                     >
-                      <span className={`material-symbols-outlined text-[20px] transition-transform duration-200 ${isActive ? '' : 'text-on-surface-variant/70 group-hover:scale-110'}`}>
-                        {item.icon}
-                      </span>
-                      <span className="text-[13px] tracking-tight">{item.name}</span>
+                      {active && (
+                        <div className="absolute left-[-1rem] w-1.5 h-6 bg-primary rounded-r-full" />
+                      )}
+                      
+                      <Icon className={`size-[18px] transition-all duration-300 ${active ? 'scale-110' : 'group-hover:scale-110 opacity-70 group-hover:opacity-100'}`} />
+                      
+                      <span className="text-[13px] tracking-tight flex-1">{item.name}</span>
+                      
+                      {active ? (
+                        <ChevronRight className="size-3 text-white/50" />
+                      ) : (
+                        <ChevronRight className="size-3 text-slate-300 opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all duration-300" />
+                      )}
                     </Link>
                   );
                 })}
@@ -140,14 +168,14 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
           ))}
         </nav>
 
-        {/* User / Logout Section */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 bg-surface-container-low/80 backdrop-blur-md border-t border-outline-variant/10">
+        {/* Improved Logout Section */}
+        <div className="p-4 bg-white/80 backdrop-blur-xl border-t border-slate-100">
           <button
             onClick={logout}
-            className="w-full py-3.5 flex items-center justify-center gap-3 rounded-[1.5rem] bg-rose-50 text-rose-600 font-bold text-[11px] uppercase tracking-[0.2em] shadow-sm hover:bg-rose-600 hover:text-white transition-all active:scale-95 shadow-rose-100/50"
+            className="w-full h-12 flex items-center justify-center gap-3 rounded-2xl bg-rose-50 hover:bg-rose-600 group transition-all duration-300 active:scale-95 border border-rose-100/50"
           >
-            <span className="material-symbols-outlined text-[18px]">logout</span>
-            KELUAR
+            <LogOut className="size-4 text-rose-600 group-hover:text-white transition-colors" />
+            <span className="text-[11px] font-black text-rose-600 group-hover:text-white uppercase tracking-widest transition-colors">KELUAR</span>
           </button>
         </div>
       </aside>

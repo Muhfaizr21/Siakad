@@ -14,29 +14,18 @@ func migrateModels(db *gorm.DB) error {
 	return db.AutoMigrate(
 		// ─── PUBLIC SCHEMA ──────────────────────────────────────────────────────
 		// Core Entities
-		&models.Role{},
-		&models.User{},
-		&models.Faculty{},
-		&models.Major{},
-		&models.Lecturer{},
-		&models.Student{},
-		// Akademik & KRS
-		&models.PeriodeAkademik{},
-		&models.MataKuliah{},
-		&models.MataKuliahPrasyarat{},
-		&models.JadwalKuliah{},
-		&models.KHS{},
-		&models.KRSHeader{},
-		&models.KRSDetail{},
+		&models.Peran{},
+		&models.Pengguna{},
+		&models.Fakultas{},
+		&models.ProgramStudi{},
+		&models.Dosen{},
+		&models.Mahasiswa{},
 		// Kencana (PKKMB)
 		&models.KencanaTahap{},
 		&models.KencanaMateri{},
 		&models.KencanaKuis{},
 		&models.KuisSoal{},
 		&models.KencanaHasilKuis{},
-		&models.KencanaProgress{},
-		&models.KencanaBanding{},
-		&models.KencanaSertifikat{},
 		// Prestasi, Beasiswa, Konseling
 		&models.Achievement{},
 		&models.Beasiswa{},
@@ -56,10 +45,12 @@ func migrateModels(db *gorm.DB) error {
 		&models.LoginHistory{},
 		&models.NotificationPreference{},
 		&models.Notification{},
-		// PKKMB & Health from new SQL
-		&models.ProgramScreening{},
-		&models.HasilScreening{},
+		// PKKMB & Health
 		&models.PkkmbKegiatan{},
+		&models.PkkmbMateri{},
+		&models.PkkmbTugas{},
+		&models.PkkmbKelulusan{},
+		&models.HasilKesehatan{},
 		&models.Article{},
 		&models.Admission{},
 		// Ormawa
@@ -77,51 +68,38 @@ func migrateModels(db *gorm.DB) error {
 		&models.OrmawaAnnouncement{},
 		&models.OrmawaNotification{},
 		&models.OrmawaDivision{},
-
-		// ─── SCHEMA: fakultas_admin ──────────────────────────────────────────────
-		// Core Admin Fakultas (diperlukan sebelum tabel feature)
-		&models.FakRole{},
-		&models.FakFaculty{},
-		&models.FakUser{},
-		&models.FakMajor{},
-		&models.FakLecturer{},
-		// Bridge: Data Mahasiswa di sisi Admin Fakultas
-		&models.FakStudent{},
-		// Feature Tables (bergantung ke FakStudent)
-		&models.FakAchievement{},
-		&models.FakPKKMB{},
-		&models.FakHealthScreening{},
-		&models.FakAspiration{},
-		&models.FakScholarship{},
-		&models.FakScholarshipApp{},
-		&models.FakCounseling{},
+		// Proposal Baru
+		&models.PengajuanSurat{},
+		&models.ProgramMBKM{},
+		&models.OrganisasiMahasiswa{},
+		&models.ProposalOrmawa{},
+		&models.ProposalFakultas{},
 	)
 }
 
 // InitialSyncFakultas melakukan sinkronisasi awal data dari public schema ke fakultas_admin.
-// Ini berguna jika tabel baru saja dibuat dan kita ingin data lama langsung muncul di sana.
 func InitialSyncFakultas(db *gorm.DB) {
 	log.Println("[Initial Sync] Memulai sinkronisasi data ke fakultas_admin...")
 
 	// 1. Sync Faculties
-	var faculties []models.Faculty
+	var faculties []models.Fakultas
 	db.Find(&faculties)
 	for _, f := range faculties {
-		models.SyncFacultyToAdmin(db, &f)
+		models.SyncFakultasKeAdmin(db, &f)
 	}
 
 	// 2. Sync Majors
-	var majors []models.Major
+	var majors []models.ProgramStudi
 	db.Find(&majors)
 	for _, m := range majors {
-		models.SyncMajorToAdmin(db, &m)
+		models.SyncProdiKeAdmin(db, &m)
 	}
 
 	// 3. Sync Students
-	var students []models.Student
+	var students []models.Mahasiswa
 	db.Find(&students)
 	for _, s := range students {
-		models.SyncStudentToFaculty(db, &s)
+		models.SyncMahasiswaKeFakultas(db, &s)
 	}
 
 	log.Println("[Initial Sync] Sinkronisasi selesai.")

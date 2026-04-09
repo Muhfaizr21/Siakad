@@ -28,7 +28,7 @@ func VerifyAchievement(db *gorm.DB, achievementID uint, adminID uint) error {
 
 	// Trigger Notification
 	notifikasi.Kirim(db, notifikasi.KirimParams{
-		StudentID: achievement.StudentID,
+		MahasiswaID: achievement.MahasiswaID,
 		Type:      "achievement",
 		Title:     "Prestasi Diverifikasi",
 		Content:   "Pencapaian kamu '" + achievement.NamaLomba + "' telah diverifikasi oleh admin. Selamat!",
@@ -59,7 +59,7 @@ func RejectAchievement(db *gorm.DB, achievementID uint, adminID uint, reason str
 
 	// Trigger Notification
 	notifikasi.Kirim(db, notifikasi.KirimParams{
-		StudentID: achievement.StudentID,
+		MahasiswaID: achievement.MahasiswaID,
 		Type:      "achievement",
 		Title:     "Prestasi Ditolak",
 		Content:   "Mohon maaf, laporan prestasi '" + achievement.NamaLomba + "' kamu ditolak. Alasan: " + reason,

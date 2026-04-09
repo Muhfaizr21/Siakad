@@ -64,25 +64,25 @@ func seedDashboardData(db *gorm.DB) {
 	db.Model(&models.AktivitasLog{}).Count(&logCount)
 	if logCount == 0 {
 		db.Create(&models.AktivitasLog{
-			StudentID: 1,
-			Tipe:      "achievement",
-			Deskripsi: "Prestasi 'Juara 2 Lomba Karya Tulis' berhasil diverifikasi",
-			Link:      "/student/achievement",
-			CreatedAt: time.Now().Add(-2 * time.Hour),
+			MahasiswaID: 1,
+			Tipe:        "achievement",
+			Deskripsi:   "Prestasi 'Juara 2 Lomba Karya Tulis' berhasil diverifikasi",
+			Link:        "/student/achievement",
+			CreatedAt:   time.Now().Add(-2 * time.Hour),
 		})
 		db.Create(&models.AktivitasLog{
-			StudentID: 1,
-			Tipe:      "voice",
-			Deskripsi: "Tiket aspirasi #SV-20260401-0001 telah direspons oleh admin",
-			Link:      "/student/voice",
-			CreatedAt: time.Now().AddDate(0, 0, -1),
+			MahasiswaID: 1,
+			Tipe:        "voice",
+			Deskripsi:   "Tiket aspirasi #SV-20260401-0001 telah direspons oleh admin",
+			Link:        "/student/voice",
+			CreatedAt:   time.Now().AddDate(0, 0, -1),
 		})
 		db.Create(&models.AktivitasLog{
-			StudentID: 1,
-			Tipe:      "beasiswa",
-			Deskripsi: "Pengajuan beasiswa 'Beasiswa Industri Farmasi Juara' berhasil dikirim",
-			Link:      "/student/scholarship",
-			CreatedAt: time.Now().AddDate(0, 0, -3),
+			MahasiswaID: 1,
+			Tipe:        "beasiswa",
+			Deskripsi:   "Pengajuan beasiswa 'Beasiswa Industri Farmasi Juara' berhasil dikirim",
+			Link:        "/student/scholarship",
+			CreatedAt:   time.Now().AddDate(0, 0, -3),
 		})
 	}
 }
@@ -91,7 +91,7 @@ func seedNotificationData(db *gorm.DB) {
 	var prefCount int64
 	db.Model(&models.NotificationPreference{}).Where("pengguna_id = ?", 1).Count(&prefCount)
 	if prefCount == 0 {
-		db.Create(&models.NotificationPreference{UserID: 1})
+		db.Create(&models.NotificationPreference{PenggunaID: 1})
 	}
 
 	var notifCount int64
@@ -101,27 +101,27 @@ func seedNotificationData(db *gorm.DB) {
 	}
 
 	db.Create(&models.Notification{
-		UserID:    1,
-		Type:      "achievement",
-		Title:     "Prestasi Diverifikasi",
-		Message:   "Pencapaian kamu 'Juara 1 Lomba Koding' telah diverifikasi oleh admin. Selamat!",
-		Link:      "/student/achievement",
-		IsRead:    false,
+		PenggunaID: 1,
+		Type:       "achievement",
+		Title:      "Prestasi Diverifikasi",
+		Message:    "Pencapaian kamu 'Juara 1 Lomba Koding' telah diverifikasi oleh admin. Selamat!",
+		Link:       "/student/achievement",
+		IsRead:     false,
 	})
 	db.Create(&models.Notification{
-		UserID:    1,
-		Type:      "konseling",
-		Title:     "Konseling Dikonfirmasi",
-		Message:   "Jadwal konseling kamu besok pukul 10:00 telah dikonfirmasi oleh konselor.",
-		Link:      "/student/counseling",
-		IsRead:    false,
+		PenggunaID: 1,
+		Type:       "konseling",
+		Title:      "Konseling Dikonfirmasi",
+		Message:    "Jadwal konseling kamu besok pukul 10:00 telah dikonfirmasi oleh konselor.",
+		Link:       "/student/counseling",
+		IsRead:     false,
 	})
 	db.Create(&models.Notification{
-		UserID:    1,
-		Type:      "sistem",
-		Title:     "Selamat Datang!",
-		Message:   "Selamat datang di portal BKU Student Hub. Lengkapi profilmu sekarang.",
-		Link:      "/student/profil",
-		IsRead:    true,
+		PenggunaID: 1,
+		Type:       "sistem",
+		Title:      "Selamat Datang!",
+		Message:    "Selamat datang di portal BKU Student Hub. Lengkapi profilmu sekarang.",
+		Link:       "/student/profil",
+		IsRead:     true,
 	})
 }

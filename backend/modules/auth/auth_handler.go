@@ -32,24 +32,24 @@ func Login(c *fiber.Ctx) error {
 	}
 
 	// Find the student by NIM
-	var student models.Student
-	if err := config.DB.Preload("User").Preload("Major").First(&student, "nim = ?", req.NIM).Error; err != nil {
+	var student models.Mahasiswa
+	if err := config.DB.Preload("Pengguna").Preload("ProgramStudi").First(&student, "nim = ?", req.NIM).Error; err != nil {
 		return c.Status(401).JSON(fiber.Map{"success": false, "message": "NIM atau Password salah"})
 	}
 
 	// Check password via bcrypt
-	if err := bcrypt.CompareHashAndPassword([]byte(student.User.PasswordHash), []byte(req.Password)); err != nil {
+	if err := bcrypt.CompareHashAndPassword([]byte(student.Pengguna.KataSandi), []byte(req.Password)); err != nil {
 		return c.Status(401).JSON(fiber.Map{"success": false, "message": "NIM atau Password salah"})
 	}
 
-	if !student.User.IsActive {
+	if !student.Pengguna.Aktif {
 		return c.Status(403).JSON(fiber.Map{"success": false, "message": "Akun tidak aktif. Silakan hubungi admin."})
 	}
 
 	// Generate Access Token (15 mins)
 	now := time.Now()
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"sub": student.UserID,
+		"sub": student.PenggunaID,
 		"sid": student.ID,
 		"nim": student.NIM,
 		"exp": now.Add(15 * time.Minute).Unix(),
@@ -62,7 +62,7 @@ func Login(c *fiber.Ctx) error {
 
 	// Generate Refresh Token (7 days)
 	refreshToken := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"sub": student.UserID,
+		"sub": student.PenggunaID,
 		"sid": student.ID,
 		"nim": student.NIM,
 		"exp": now.Add(7 * 24 * time.Hour).Unix(),
@@ -93,12 +93,12 @@ func Login(c *fiber.Ctx) error {
 			"mahasiswa": fiber.Map{
 				"id":        student.ID,
 				"nim":       student.NIM,
-				"nama":      student.Name,
-				"prodi_id":  student.MajorID,
-				"prodi":     student.Major.Name,
-				"foto_url":  student.PhotoURL,
-				"status":    student.Status,
-				"angkatan":  student.EntryYear,
+				"nama":      student.NamaMahasiswa,
+				"prodi_id":  student.ProgramStudiID,
+				"prodi":     student.ProgramStudi.NamaProdi,
+				"foto_url":  student.FotoURL,
+				"status":    student.StatusAkun,
+				"angkatan":  student.TahunMasuk,
 			},
 		},
 	})
@@ -157,7 +157,7 @@ func Logout(c *fiber.Ctx) error {
 	})
 
 	// Optional: we can blacklist the access token here using Redis as requested by the user,
-	// but currently redis might not be fully setup in the given code. For now, wiping cookie is standard.
+	// but currently redis might not be fully setup in the given KodeFakultas. For now, wiping cookie is standard.
 	return c.JSON(fiber.Map{
 		"success": true,
 		"message": "Berhasil logout",
@@ -165,20 +165,20 @@ func Logout(c *fiber.Ctx) error {
 }
 
 func ChangePassword(c *fiber.Ctx) error {
-	userID := c.Locals("user_id") // set via middleware
+	PenggunaID := c.Locals("user_id") // set via middleware
 
 	var req ChangePasswordRequest
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(400).JSON(fiber.Map{"success": false, "message": "Invalid request payload"})
 	}
 
-	var user models.User
-	if err := config.DB.First(&user, userID).Error; err != nil {
+	var user models.Pengguna
+	if err := config.DB.First(&user, PenggunaID).Error; err != nil {
 		return c.Status(404).JSON(fiber.Map{"success": false, "message": "User tidak ditemukan"})
 	}
 
 	// verify old password
-	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(req.OldPassword)); err != nil {
+	if err := bcrypt.CompareHashAndPassword([]byte(user.KataSandi), []byte(req.OldPassword)); err != nil {
 		return c.Status(400).JSON(fiber.Map{"success": false, "message": "Password lama salah"})
 	}
 
@@ -188,7 +188,7 @@ func ChangePassword(c *fiber.Ctx) error {
 		return c.Status(500).JSON(fiber.Map{"success": false, "message": "Gagal mengenkripsi password baru"})
 	}
 
-	user.PasswordHash = string(hash)
+	user.KataSandi = string(hash)
 	config.DB.Save(&user)
 
 	return c.JSON(fiber.Map{

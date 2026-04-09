@@ -33,7 +33,7 @@ func UpdatePengajuanStatus(db *gorm.DB, pengajuanID uint, status string, reason 
 	}
 
 	notifikasi.Kirim(db, notifikasi.KirimParams{
-		StudentID: pengajuan.StudentID,
+		MahasiswaID: pengajuan.MahasiswaID,
 		Type:      "beasiswa",
 		Title:     title,
 		Content:   content,
@@ -54,7 +54,7 @@ func CekDeadlineBeasiswa(db *gorm.DB) error {
 		// In a real app, you would send to all students or specific eligible ones
 		// For now, let's just trigger a notification (dummy student 1)
 		notifikasi.Kirim(db, notifikasi.KirimParams{
-			StudentID: 1, // Student 1 example
+			MahasiswaID: 1, // Student 1 example
 			Type:      "beasiswa",
 			Title:     "Peringatan Deadline Beasiswa",
 			Content:   "Pendaftaran '" + b.Nama + "' akan ditutup dalam 3 hari. Segera daftar!",

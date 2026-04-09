@@ -5,10 +5,10 @@ import (
     "encoding/json"
 )
 
-// Ormawa represents a student organization
+// Ormawa represents a Mahasiswa organization
 type Ormawa struct {
 	ID          uint   `gorm:"primaryKey" json:"id"`
-	Name        string `gorm:"not null" json:"name"` // e.g. "BEM Fakultas", "HIMA Informatika"
+	Nama        string `gorm:"not null" json:"Nama"` // e.g. "BEM Fakultas", "HIMA Informatika"
 	Description string `json:"description"`
 	Vision      string `gorm:"type:text" json:"vision"`
 	Mission     string `gorm:"type:text" json:"mission"`
@@ -21,13 +21,13 @@ type Ormawa struct {
 	UpdatedAt   time.Time `json:"updatedAt"`
 }
 
-// OrmawaMember represents a student joining an Ormawa
+// OrmawaMember represents a Mahasiswa joining an Ormawa
 type OrmawaMember struct {
 	ID        uint    `gorm:"primaryKey" json:"id"`
 	OrmawaID  uint    `json:"ormawaId"`
 	Ormawa    Ormawa  `gorm:"foreignKey:OrmawaID" json:"ormawa"`
-	StudentID uint    `json:"studentId"`
-	Student   Student `gorm:"foreignKey:StudentID" json:"student"` // references NIM, Name from Student table
+	MahasiswaID uint    `json:"MahasiswaID"`
+	Mahasiswa   Mahasiswa `gorm:"foreignKey:MahasiswaID" json:"Mahasiswa"` // references NIM, Nama from Mahasiswa table
 	Role      string  `gorm:"not null" json:"role"`             // e.g. "Ketua Umum", "Sekretaris", "Staf"
 	Division  string  `json:"division"` // e.g. "Minat Bakat", "Kaderisasi"
 	Status    string  `gorm:"default:'pending'" json:"status"` // pending, aktif, ditolak, alumni
@@ -47,7 +47,7 @@ type Proposal struct {
 	Notes               string    `gorm:"type:text" json:"notes"`
 	RequestedBy         uint      `json:"requestedBy"` // User ID who created
 	ApprovedByDosenID   *uint     `json:"approvedByDosenId"`
-	ApprovedByFacultyID *uint     `json:"approvedByFacultyId"`
+	ApprovedByFakultasID *uint     `json:"approvedByFakultasID"`
 	ApprovedBySuperID   *uint     `json:"approvedBySuperId"`
 	CreatedAt           time.Time `json:"createdAt"`
 	UpdatedAt           time.Time `json:"updatedAt"`
@@ -80,7 +80,7 @@ type CashMutation struct {
 // OrmawaRole represents custom and default roles in Ormawa
 type OrmawaRole struct {
 	ID          uint            `gorm:"primaryKey" json:"id"`
-	Name        string          `gorm:"not null" json:"name"`
+	Nama        string          `gorm:"not null" json:"Nama"`
 	Description string          `json:"description"`
 	UserCount   int             `gorm:"-" json:"userCount"`
 	IsCustom    bool            `json:"isCustom"`
@@ -98,7 +98,7 @@ type LPJ struct {
 	RealizedBudget float64       `json:"realizedBudget"`
 	Status         string        `gorm:"default:'draft'" json:"status"` // draft, diajukan, disetujui, revisi
 	Notes          string        `gorm:"type:text" json:"notes"`
-	SubmittedBy    uint          `json:"submittedBy"` // ID Student/User
+	SubmittedBy    uint          `json:"submittedBy"` // ID Mahasiswa/User
 	CreatedAt      time.Time     `json:"createdAt"`
 	UpdatedAt      time.Time     `json:"updatedAt"`
 }
@@ -108,7 +108,7 @@ type LPJDocument struct {
 	ID        uint      `gorm:"primaryKey" json:"id"`
 	LPJID     uint      `json:"lpjId"`
 	Category  string    `json:"category"` // e.g. "Dokumentasi", "Keuangan", "Daftar Hadir"
-	FileName  string    `json:"fileName"`
+	FileNama  string    `json:"fileNama"`
 	FileUrl   string    `json:"fileUrl"`
 	CreatedAt time.Time `json:"createdAt"`
 }
@@ -116,8 +116,8 @@ type LPJDocument struct {
 type OrmawaAspiration struct {
 	ID          uint      `gorm:"primaryKey" json:"id"`
 	OrmawaID    uint      `json:"ormawaId"`
-	StudentID   uint      `json:"studentId"`
-	Student     Student   `gorm:"foreignKey:StudentID" json:"student"`
+	MahasiswaID   uint      `json:"MahasiswaID"`
+	Mahasiswa     Mahasiswa   `gorm:"foreignKey:MahasiswaID" json:"Mahasiswa"`
 	Category    string    `json:"category"` // Keluhan, Ide, Aspirasi Umum
 	Title       string    `json:"title"`
 	Description string    `gorm:"type:text" json:"description"`
@@ -144,8 +144,8 @@ type EventAttendance struct {
 	ID              uint          `gorm:"primaryKey" json:"id"`
 	EventScheduleID uint          `json:"eventScheduleId"`
 	EventSchedule   EventSchedule `gorm:"foreignKey:EventScheduleID" json:"eventSchedule"`
-	StudentID       uint          `json:"studentId"`
-	Student         Student       `gorm:"foreignKey:StudentID" json:"student"`
+	MahasiswaID       uint          `json:"MahasiswaID"`
+	Mahasiswa         Mahasiswa       `gorm:"foreignKey:MahasiswaID" json:"Mahasiswa"`
 	Status          string        `json:"status"` // hadir, izin, sakit, alpa
 	TimeIn          time.Time     `json:"timeIn"`
 }
@@ -177,7 +177,7 @@ type OrmawaNotification struct {
 type OrmawaDivision struct {
 	ID          uint      `gorm:"primaryKey" json:"id"`
 	OrmawaID    uint      `json:"ormawaId"`
-	Name        string    `gorm:"not null" json:"name"`
+	Nama        string    `gorm:"not null" json:"Nama"`
 	Description string    `json:"description"`
 	CreatedAt   time.Time `json:"createdAt"`
 }

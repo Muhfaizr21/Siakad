@@ -29,7 +29,7 @@ func RespondAspirasi(db *gorm.DB, ticketID uint, response string, status string)
 
 	// Trigger Notification
 	notifikasi.Kirim(db, notifikasi.KirimParams{
-		StudentID: ticket.StudentID,
+		MahasiswaID: ticket.MahasiswaID,
 		Type:      "student_voice",
 		Title:     "Aspirasi Dibalas",
 		Content:   "Tiket aspirasi kamu #" + ticket.NomorTiket + " ('" + ticket.Judul + "') telah mendapatkan respon dari admin.",

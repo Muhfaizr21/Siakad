@@ -17,8 +17,8 @@ func seedStudentVoiceData(db *gorm.DB) {
 	}
 
 	// Get first available student to associate seed data with
-	var student models.Student
-	if err := db.Preload("Major").First(&student).Error; err != nil {
+	var student models.Mahasiswa
+	if err := db.Preload("ProgramStudi").First(&student).Error; err != nil {
 		log.Println("==> Seeder: No student found, skipping Student Voice seeds.")
 		return
 	}
@@ -27,8 +27,8 @@ func seedStudentVoiceData(db *gorm.DB) {
 
 	t1 := models.TiketAspirasi{
 		NomorTiket:   "SV-20260401-0001",
-		StudentID:    student.ID,
-		FakultasID:   student.Major.FacultyID,
+		MahasiswaID:    student.ID,
+		FakultasID:   student.ProgramStudi.FakultasID,
 		Kategori:     "Fasilitas",
 		Judul:        "AC Mati di Ruang 301",
 		Isi:          "Mohon bantuan perbaikan AC di ruang 301 Gedung C, kondisinya mati total sehingga kuliah terasa sangat panas.",
@@ -63,8 +63,8 @@ func seedStudentVoiceData(db *gorm.DB) {
 
 	t2 := models.TiketAspirasi{
 		NomorTiket:   "SV-20260403-0001",
-		StudentID:    student.ID,
-		FakultasID:   student.Major.FacultyID,
+		MahasiswaID:    student.ID,
+		FakultasID:   student.ProgramStudi.FakultasID,
 		Kategori:     "Akademik",
 		Judul:        "Keterlambatan Input Nilai Farmakologi",
 		Isi:          "Sampai saat ini nilai mata kuliah Farmakologi belum muncul di KHS, mohon bantuan untuk kroscek ke dosen pengampu.",
@@ -90,7 +90,7 @@ func seedStudentVoiceData(db *gorm.DB) {
 		CreatedAt:  t2.CreatedAt.Add(time.Hour * 4),
 	})
 
-	log.Println("==> Seeder: Setup Student Voice Data successfully for student:", student.Name)
+	log.Println("==> Seeder: Setup Student Voice Data successfully for student:", student.NamaMahasiswa)
 }
 
 func seedOrganisasiData(db *gorm.DB) {
@@ -103,7 +103,7 @@ func seedOrganisasiData(db *gorm.DB) {
 	selesai2024 := 2024
 	selesai2025 := 2025
 	db.Create(&models.RiwayatOrganisasi{
-		StudentID:         1,
+		MahasiswaID:         1,
 		NamaOrganisasi:    "UKM Korps Sukarela PMI",
 		Tipe:              "UKM",
 		Jabatan:           "Anggota Divisi Medis",
@@ -115,7 +115,7 @@ func seedOrganisasiData(db *gorm.DB) {
 	})
 
 	db.Create(&models.RiwayatOrganisasi{
-		StudentID:         1,
+		MahasiswaID:         1,
 		NamaOrganisasi:    "Himpunan Mahasiswa Farmasi BKU",
 		Tipe:              "Himpunan",
 		Jabatan:           "Sekretaris Umum",

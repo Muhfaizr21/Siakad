@@ -17,10 +17,10 @@ import (
 
 // GetStats returns count summary for student voice
 func GetStats(c *fiber.Ctx) error {
-	userID := c.Locals("user_id").(uint)
+	PenggunaID := c.Locals("user_id").(uint)
 
-	var student models.Student
-	if err := config.DB.First(&student, "user_id = ?", userID).Error; err != nil {
+	var student models.Mahasiswa
+	if err := config.DB.First(&student, "user_id = ?", PenggunaID).Error; err != nil {
 		return c.Status(404).JSON(fiber.Map{"success": false, "message": "Mahasiswa tidak ditemukan"})
 	}
 
@@ -47,10 +47,10 @@ func GetStats(c *fiber.Ctx) error {
 
 // CreateAspirasi handles new aspiration submission with file upload support
 func CreateAspirasi(c *fiber.Ctx) error {
-	userID := c.Locals("user_id").(uint)
+	PenggunaID := c.Locals("user_id").(uint)
 
-	var student models.Student
-	if err := config.DB.Preload("Major").First(&student, "user_id = ?", userID).Error; err != nil {
+	var student models.Mahasiswa
+	if err := config.DB.Preload("ProgramStudi").First(&student, "user_id = ?", PenggunaID).Error; err != nil {
 		return c.Status(404).JSON(fiber.Map{"success": false, "message": "Mahasiswa tidak ditemukan"})
 	}
 
@@ -97,10 +97,10 @@ func CreateAspirasi(c *fiber.Ctx) error {
 		
 		ext := strings.ToLower(filepath.Ext(file.Filename))
 		if ext == ".pdf" || ext == ".jpg" || ext == ".jpeg" || ext == ".png" {
-			filename := fmt.Sprintf("%s_%d%s", nomorTiket, time.Now().Unix(), ext)
-			savePath := filepath.Join("./uploads/student_voice", filename)
+			fileNamaMahasiswa := fmt.Sprintf("%s_%d%s", nomorTiket, time.Now().Unix(), ext)
+			savePath := filepath.Join("./uploads/student_voice", fileNamaMahasiswa)
 			if err := c.SaveFile(file, savePath); err == nil {
-				lampiranURL = "/uploads/student_voice/" + filename
+				lampiranURL = "/uploads/student_voice/" + fileNamaMahasiswa
 			}
 		}
 	}
@@ -108,8 +108,8 @@ func CreateAspirasi(c *fiber.Ctx) error {
 	// Create Ticket
 	tiket := models.TiketAspirasi{
 		NomorTiket:   nomorTiket,
-		StudentID:    student.ID,
-		FakultasID:   student.Major.FacultyID,
+		MahasiswaID:    student.ID,
+		FakultasID:   student.ProgramStudi.FakultasID,
 		Kategori:     kategori,
 		Judul:        judul,
 		Isi:          isi,
@@ -124,15 +124,15 @@ func CreateAspirasi(c *fiber.Ctx) error {
 	}
 
 	// Create Initial Timeline Event
-	fakultasName := "Fakultas"
-	var faculty models.Faculty
-	if err := config.DB.First(&faculty, student.Major.FacultyID).Error; err == nil {
-		fakultasName = faculty.Name
+	fakultasNamaMahasiswa := "Fakultas"
+	var faculty models.Fakultas
+	if err := config.DB.First(&faculty, student.ProgramStudi.FakultasID).Error; err == nil {
+		fakultasNamaMahasiswa = faculty.TableName()
 	}
 
-	timelineText := fmt.Sprintf("Aspirasi berhasil dikirim ke Admin %s.", fakultasName)
+	timelineText := fmt.Sprintf("Aspirasi berhasil dikirim ke Admin %s.", lastTicket.Fakultas.TableName())
 	if isAnonim {
-		timelineText = fmt.Sprintf("Aspirasi berhasil dikirim secara anonim ke Admin %s.", fakultasName)
+		timelineText = fmt.Sprintf("Aspirasi berhasil dikirim secara anonim ke Admin %s.", fakultasNamaMahasiswa)
 	}
 
 	config.DB.Create(&models.TiketTimelineEvent{
@@ -144,10 +144,10 @@ func CreateAspirasi(c *fiber.Ctx) error {
 
 	// Trigger Notification to Student
 	notifikasi.Kirim(config.DB, notifikasi.KirimParams{
-		StudentID: student.ID,
+		MahasiswaID: student.ID,
 		Type:      "student_voice",
 		Title:     "Aspirasi Berhasil Dikirim",
-		Content:   fmt.Sprintf("Aspirasi %s telah dikirim ke Admin %s.", nomorTiket, fakultasName),
+		Content:   fmt.Sprintf("Aspirasi %s telah dikirim ke Admin %s.", nomorTiket, fakultasNamaMahasiswa),
 		Link:      fmt.Sprintf("/student/voice/tiket/%s", tiket.ID),
 	})
 
@@ -160,10 +160,10 @@ func CreateAspirasi(c *fiber.Ctx) error {
 
 // GetAspirasiList returns paged list of student's own tickets
 func GetAspirasiList(c *fiber.Ctx) error {
-	userID := c.Locals("user_id").(uint)
+	PenggunaID := c.Locals("user_id").(uint)
 
-	var student models.Student
-	if err := config.DB.First(&student, "user_id = ?", userID).Error; err != nil {
+	var student models.Mahasiswa
+	if err := config.DB.First(&student, "user_id = ?", PenggunaID).Error; err != nil {
 		return c.Status(404).JSON(fiber.Map{"success": false, "message": "Mahasiswa tidak ditemukan"})
 	}
 
@@ -192,10 +192,10 @@ func GetAspirasiList(c *fiber.Ctx) error {
 // GetDetail returns full detail with timeline
 func GetDetail(c *fiber.Ctx) error {
 	id := c.Params("id")
-	userID := c.Locals("user_id").(uint)
+	PenggunaID := c.Locals("user_id").(uint)
 
-	var student models.Student
-	if err := config.DB.First(&student, "user_id = ?", userID).Error; err != nil {
+	var student models.Mahasiswa
+	if err := config.DB.First(&student, "user_id = ?", PenggunaID).Error; err != nil {
 		return c.Status(404).JSON(fiber.Map{"success": false, "message": "Mahasiswa tidak ditemukan"})
 	}
 
@@ -219,10 +219,10 @@ func GetDetail(c *fiber.Ctx) error {
 // CancelAspirasi allows student to cancel their own ticket
 func CancelAspirasi(c *fiber.Ctx) error {
 	id := c.Params("id")
-	userID := c.Locals("user_id").(uint)
+	PenggunaID := c.Locals("user_id").(uint)
 
-	var student models.Student
-	if err := config.DB.First(&student, "user_id = ?", userID).Error; err != nil {
+	var student models.Mahasiswa
+	if err := config.DB.First(&student, "user_id = ?", PenggunaID).Error; err != nil {
 		return c.Status(404).JSON(fiber.Map{"success": false, "message": "Mahasiswa tidak ditemukan"})
 	}
 

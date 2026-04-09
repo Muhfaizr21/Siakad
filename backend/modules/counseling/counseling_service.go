@@ -22,7 +22,7 @@ func ConfirmBooking(db *gorm.DB, bookingID uint) error {
 	// Trigger Notification
 	tanggalStr := booking.JadwalKonseling.Tanggal.Format("02 January 2006")
 	notifikasi.Kirim(db, notifikasi.KirimParams{
-		StudentID: booking.StudentID,
+		MahasiswaID: booking.MahasiswaID,
 		Type:      "konseling",
 		Title:     "Konseling Dikonfirmasi",
 		Content:   "Jadwal konseling kamu dengan " + booking.JadwalKonseling.NamaKonselor + " pada tanggal " + tanggalStr + " pukul " + booking.JadwalKonseling.JamMulai + " telah dikonfirmasi.",
@@ -41,7 +41,7 @@ func RemindBooking(db *gorm.DB, bookingID uint) error {
 
 	// Trigger Notification
 	notifikasi.Kirim(db, notifikasi.KirimParams{
-		StudentID: booking.StudentID,
+		MahasiswaID: booking.MahasiswaID,
 		Type:      "konseling",
 		Title:     "Peringatan Konseling",
 		Content:   "Jangan lupa! Kamu memiliki jadwal konseling hari ini pukul " + booking.JadwalKonseling.JamMulai + " di " + booking.JadwalKonseling.Lokasi,

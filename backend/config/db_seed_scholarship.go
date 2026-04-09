@@ -68,7 +68,7 @@ func seedScholarshipData(db *gorm.DB) {
 				"kuota":           s.Kuota,
 				"sisa_kuota":      s.SisaKuota,
 				"deadline":        s.Deadline,
-				"min_ipk":         s.SyaratIPKMin,
+				"syarat_ipk_min":  s.SyaratIPKMin,
 				"is_aktif":        s.IsAktif,
 			})
 		}
