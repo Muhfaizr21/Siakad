@@ -9,119 +9,55 @@ import (
 )
 
 func seedDashboardData(db *gorm.DB) {
-	var pCount int64
-	db.Model(&models.Pengumuman{}).Count(&pCount)
-	if pCount <= 3 {
-		publishedAt := time.Now()
-		db.Create(&models.Pengumuman{
-			Judul:       "Pendaftaran Beasiswa KIP-K 2025",
-			IsiSingkat:  "Pendaftaran beasiswa KIP-K dibuka hingga 30 April 2025. Segera lengkapi berkasmu!",
-			IsiLengkap:  "Pengumuman lengkap pendaftaran KIP-K...",
-			Kategori:    "Kemahasiswaan",
-			IsPinned:    true,
-			IsAktif:     true,
-			PublishedAt: &publishedAt,
-			CreatedAt:   time.Now(),
-		})
-
-		db.Create(&models.Pengumuman{
-			Judul:       "Informasi Libur Hari Raya",
-			IsiSingkat:  "Kegiatan akademik diliburkan mulai tanggal 10 April s.d 15 April 2025.",
-			IsiLengkap:  "Detail pengumuman libur...",
-			Kategori:    "Umum",
-			IsPinned:    false,
-			IsAktif:     true,
-			PublishedAt: &publishedAt,
-			CreatedAt:   time.Now(),
-		})
-	}
-
-	var kegCount int64
-	db.Model(&models.KegiatanKampus{}).Count(&kegCount)
-	if kegCount == 0 {
-		startDate := time.Now().AddDate(0, 0, 5)
-		endDate := startDate.Add(2 * time.Hour)
-		db.Create(&models.KegiatanKampus{
-			Judul:          "Webinar Persiapan Karir di Industri Farmasi",
-			Deskripsi:      "Webinar bersama praktisi dari PT Bio Farma.",
-			TanggalMulai:   startDate,
-			TanggalSelesai: &endDate,
-			Kategori:       "kampus",
-			IsAktif:        true,
-		})
-
-		kencanaDate := time.Now().AddDate(0, 0, 8)
-		db.Create(&models.KegiatanKampus{
-			Judul:        "Pelatihan Sistem Akademik (KENCANA)",
-			Deskripsi:    "Sesi offline pelatihan penggunaan portal.",
-			TanggalMulai: kencanaDate,
-			Kategori:     "kencana",
-			IsAktif:      true,
+	var count int64
+	db.Model(&models.Berita{}).Count(&count)
+	if count == 0 {
+		var user models.User
+		db.First(&user)
+		db.Create(&models.Berita{
+			Judul:          "Pendaftaran Beasiswa KIP-K 2025",
+			Isi:            "Pendaftaran beasiswa KIP-K dibuka hingga 30 April 2025. Segera lengkapi berkasmu!",
+			PenulisID:      user.ID,
+			Status:         "Published",
+			TanggalPublish: time.Now(),
 		})
 	}
 
 	var logCount int64
-	db.Model(&models.AktivitasLog{}).Count(&logCount)
+	db.Model(&models.LogAktivitas{}).Count(&logCount)
 	if logCount == 0 {
-		db.Create(&models.AktivitasLog{
-			MahasiswaID: 1,
-			Tipe:        "achievement",
+		var mhs models.Mahasiswa
+		db.First(&mhs)
+		db.Create(&models.LogAktivitas{
+			MahasiswaID: mhs.ID,
+			Aktivitas:   "Prestasi Verifikasi",
 			Deskripsi:   "Prestasi 'Juara 2 Lomba Karya Tulis' berhasil diverifikasi",
-			Link:        "/student/achievement",
-			CreatedAt:   time.Now().Add(-2 * time.Hour),
-		})
-		db.Create(&models.AktivitasLog{
-			MahasiswaID: 1,
-			Tipe:        "voice",
-			Deskripsi:   "Tiket aspirasi #SV-20260401-0001 telah direspons oleh admin",
-			Link:        "/student/voice",
-			CreatedAt:   time.Now().AddDate(0, 0, -1),
-		})
-		db.Create(&models.AktivitasLog{
-			MahasiswaID: 1,
-			Tipe:        "beasiswa",
-			Deskripsi:   "Pengajuan beasiswa 'Beasiswa Industri Farmasi Juara' berhasil dikirim",
-			Link:        "/student/scholarship",
-			CreatedAt:   time.Now().AddDate(0, 0, -3),
 		})
 	}
 }
 
 func seedNotificationData(db *gorm.DB) {
-	var prefCount int64
-	db.Model(&models.NotificationPreference{}).Where("pengguna_id = ?", 1).Count(&prefCount)
-	if prefCount == 0 {
-		db.Create(&models.NotificationPreference{PenggunaID: 1})
-	}
-
 	var notifCount int64
-	db.Model(&models.Notification{}).Count(&notifCount)
+	db.Model(&models.Notifikasi{}).Count(&notifCount)
 	if notifCount != 0 {
 		return
 	}
 
-	db.Create(&models.Notification{
-		PenggunaID: 1,
-		Type:       "achievement",
-		Title:      "Prestasi Diverifikasi",
-		Message:    "Pencapaian kamu 'Juara 1 Lomba Koding' telah diverifikasi oleh admin. Selamat!",
-		Link:       "/student/achievement",
-		IsRead:     false,
+	var user models.User
+	db.First(&user)
+
+	db.Create(&models.Notifikasi{
+		UserID:    user.ID,
+		Tipe:      "Prestasi",
+		Judul:     "Prestasi Diverifikasi",
+		Deskripsi: "Pencapaian kamu 'Juara 1 Lomba Koding' telah diverifikasi oleh admin. Selamat!",
+		IsRead:    false,
 	})
-	db.Create(&models.Notification{
-		PenggunaID: 1,
-		Type:       "konseling",
-		Title:      "Konseling Dikonfirmasi",
-		Message:    "Jadwal konseling kamu besok pukul 10:00 telah dikonfirmasi oleh konselor.",
-		Link:       "/student/counseling",
-		IsRead:     false,
-	})
-	db.Create(&models.Notification{
-		PenggunaID: 1,
-		Type:       "sistem",
-		Title:      "Selamat Datang!",
-		Message:    "Selamat datang di portal BKU Student Hub. Lengkapi profilmu sekarang.",
-		Link:       "/student/profil",
-		IsRead:     true,
+	db.Create(&models.Notifikasi{
+		UserID:    user.ID,
+		Tipe:      "Sistem",
+		Judul:     "Selamat Datang!",
+		Deskripsi: "Selamat datang di portal Siakad. Lengkapi profilmu sekarang.",
+		IsRead:    true,
 	})
 }

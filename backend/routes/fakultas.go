@@ -113,4 +113,22 @@ func InisialisasiRuteFakultas(aplikasi *fiber.App) {
 	api.Get("/academic-periods", fakultas.AmbilPengaturanAkademik)
 	api.Post("/academic-periods", fakultas.SimpanPengaturanAkademik)
 	api.Put("/academic-periods", fakultas.SimpanPengaturanAkademik) // ALIAS
+
+	api.Get("/ringkasan", fakultas.AmbilRingkasanPkkmb)
+	api.Get("/peserta", fakultas.AmbilDaftarKelulusanMaba)
+
+	// Agenda/Kegiatan
+	api.Get("/kegiatan", fakultas.AmbilDaftarKegiatanPkkmb)
+	api.Post("/kegiatan", fakultas.TambahKegiatanPkkmb)
+	// pkkmb.Put("/kegiatan/:id", fakultas.UpdateKegiatanPkkmb)
+	// pkkmb.Delete("/kegiatan/:id", fakultas.HapusKegiatanPkkmb)
+
+	// Materi
+	api.Get("/materi", fakultas.AmbilDaftarMateriPkkmb)
+
+	// Tugas
+	api.Get("/tugas", fakultas.AmbilDaftarTugasPkkmb)
+
+	// Kelulusan
+	api.Get("/kelulusan/:id", fakultas.AmbilStatusKelulusanMahasiswa)
 }

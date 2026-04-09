@@ -1,16 +1,17 @@
 package controllers
 
 import (
+	"fmt"
 	"siakad-backend/config"
 	"siakad-backend/models"
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
 )
 
-// GetUsers returns list of all users with their roles for RBAC management
+// GetUsers returns list of all users for RBAC management
 func GetUsers(c *fiber.Ctx) error {
-	var users []models.Pengguna
-	result := config.DB.Preload("Role").Find(&users)
+	var users []models.User
+	result := config.DB.Find(&users)
 	if result.Error != nil {
 		return c.Status(500).JSON(fiber.Map{
 			"status": "error",
@@ -24,11 +25,11 @@ func GetUsers(c *fiber.Ctx) error {
 	})
 }
 
-// UpdateUserRole handles role assignment and logs the event in audit_log
+// UpdateUserRole handles role assignment and logs the event in log_aktivitas
 func UpdateUserRole(c *fiber.Ctx) error {
 	type UpdateRequest struct {
-		PenggunaID uint `json:"PenggunaID"`
-		RoleID uint `json:"roleId"`
+		UserID uint   `json:"userId"`
+		Role   string `json:"role"`
 	}
 
 	var req UpdateRequest
@@ -37,63 +38,57 @@ func UpdateUserRole(c *fiber.Ctx) error {
 	}
 
 	// 1. Find user to be modified
-	var user models.Pengguna
-	if err := config.DB.Preload("Role").First(&user, req.PenggunaID).Error; err != nil {
-		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "User sequence not found"})
+	var user models.User
+	if err := config.DB.First(&user, req.UserID).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "User not found"})
 	}
 
-	// 2. Validate Role existence before assignment
-	var newRole models.Peran
-	if err := config.DB.First(&newRole, req.RoleID).Error; err != nil {
-		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "The specified Role ID does not exist"})
-	}
-
-	// 3. Execution with Transaction & Audit Logging
+	// 2. Execution with User Update
 	err := config.DB.Transaction(func(tx *gorm.DB) error {
-		oldRoleNamaMahasiswa := user.Peran.NamaPeran
+		oldRole := user.Role
 		
 		// Update user role
-		if err := tx.Model(&user).Update("role_id", req.RoleID).Error; err != nil {
+		if err := tx.Model(&user).Update("role", req.Role).Error; err != nil {
 			return err
 		}
 
-		// Create Audit Log Entry
-		audit := models.AuditLog{
-			PenggunaID:    1, // TODO: Get from auth middleware context
-			Action:    "UPDATE_USER_ROLE",
-			Entity:    "users",
-			EntityID:  req.PenggunaID,
-			OldValue:  oldRoleNamaMahasiswa,
-			NewValue:  newRole.TableName(),
-			IPAddress: c.IP(),
-			UserAgent: c.Get("User-Agent"),
+		// Log activity if user is a student (LogAktivitas in model.go is tied to Mahasiswa)
+		var maba models.Mahasiswa
+		if err := tx.Where("pengguna_id = ?", user.ID).First(&maba).Error; err == nil {
+			logEntry := models.LogAktivitas{
+				MahasiswaID: maba.ID,
+				Aktivitas:   "UPDATE_USER_ROLE",
+				Deskripsi:   fmt.Sprintf("Changed role from '%s' to '%s'. IP: %s", oldRole, req.Role, c.IP()),
+				IPAddress:   c.IP(),
+			}
+			tx.Create(&logEntry)
 		}
 		
-		return tx.Create(&audit).Error
+		return nil
 	})
 
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{
 			"status": "error",
-			"message": "Critical failure during role update or audit logging",
+			"message": "Critical failure during role update",
 			"debug": err.Error(),
 		})
 	}
 
 	return c.JSON(fiber.Map{
 		"status": "success", 
-		"message": "Institutional role has been successfully elevated/revoked",
+		"message": "Institutional role has been successfully updated",
 		"data": fiber.Map{
 			"user": user.Email,
-			"new_role": newRole.TableName(),
+			"new_role": req.Role,
 		},
 	})
 }
 
 // GetAuditLogs returns all historical actions performed in the system
 func GetAuditLogs(c *fiber.Ctx) error {
-	var logs []models.AuditLog
-	result := config.DB.Order("created_at desc").Limit(100).Find(&logs)
+	var logs []models.LogAktivitas
+	result := config.DB.Preload("Mahasiswa").Order("created_at desc").Limit(100).Find(&logs)
 	if result.Error != nil {
 		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Database error retrieving logs"})
 	}

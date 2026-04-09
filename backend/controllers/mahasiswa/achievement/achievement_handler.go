@@ -7,7 +7,6 @@ import (
 	"siakad-backend/config"
 	"siakad-backend/models"
 	"strings"
-	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
@@ -15,39 +14,39 @@ import (
 
 // GetAchievements returns paginated achievements and total stats for an individual student
 func GetAchievements(c *fiber.Ctx) error {
-	PenggunaID := c.Locals("user_id")
+	PenggunaID := c.Locals("user_id").(uint)
 
 	var student models.Mahasiswa
-	if err := config.DB.First(&student, "user_id = ?", PenggunaID).Error; err != nil {
+	if err := config.DB.First(&student, "pengguna_id = ?", PenggunaID).Error; err != nil {
 		return c.Status(404).JSON(fiber.Map{"success": false, "message": "Mahasiswa tidak ditemukan"})
 	}
 
 	search := c.Query("search", "")
 
 	// Base Query
-	query := config.DB.Model(&models.Achievement{}).Where("student_id = ?", student.ID)
+	query := config.DB.Model(&models.Prestasi{}).Where("mahasiswa_id = ?", student.ID)
 
 	if search != "" {
-		query = query.Where("nama_lomba ILIKE ?", "%"+search+"%")
+		query = query.Where("nama_kegiatan LIKE ?", "%"+search+"%")
 	}
 
 	var totalReported, verifiedCount, pendingCount int64
 	// Stats for all achievements (ignoring search)
-	config.DB.Model(&models.Achievement{}).Where("student_id = ?", student.ID).Count(&totalReported)
-	config.DB.Model(&models.Achievement{}).Where("student_id = ? AND status = ?", student.ID, "Diverifikasi").Count(&verifiedCount)
-	config.DB.Model(&models.Achievement{}).Where("student_id = ? AND status = ?", student.ID, "Menunggu").Count(&pendingCount)
+	config.DB.Model(&models.Prestasi{}).Where("mahasiswa_id = ?", student.ID).Count(&totalReported)
+	config.DB.Model(&models.Prestasi{}).Where("mahasiswa_id = ? AND status = ?", student.ID, "Diverifikasi").Count(&verifiedCount)
+	config.DB.Model(&models.Prestasi{}).Where("mahasiswa_id = ? AND status = ?", student.ID, "Menunggu").Count(&pendingCount)
 
 	// Fetch List
-	var achievements []models.Achievement
+	var achievements []models.Prestasi
 	query.Order("created_at desc").Find(&achievements)
 
 	return c.JSON(fiber.Map{
 		"success": true,
 		"data": fiber.Map{
 			"stats": fiber.Map{
-				"total":         totalReported,
-				"verified":      verifiedCount,
-				"pending":       pendingCount,
+				"total":    totalReported,
+				"verified": verifiedCount,
+				"pending":  pendingCount,
 			},
 			"list": achievements,
 		},
@@ -56,33 +55,26 @@ func GetAchievements(c *fiber.Ctx) error {
 
 // CreateAchievement handles new achievement submissions with file upload
 func CreateAchievement(c *fiber.Ctx) error {
-	PenggunaID := c.Locals("user_id")
+	PenggunaID := c.Locals("user_id").(uint)
 
 	var student models.Mahasiswa
-	if err := config.DB.First(&student, "user_id = ?", PenggunaID).Error; err != nil {
+	if err := config.DB.First(&student, "pengguna_id = ?", PenggunaID).Error; err != nil {
 		return c.Status(404).JSON(fiber.Map{"success": false, "message": "Mahasiswa tidak ditemukan"})
 	}
 
-	namaLomba := c.FormValue("nama_lomba")
+	namaKegiatan := c.FormValue("nama_kegiatan")
 	kategori := c.FormValue("kategori")
-	penyelenggara := c.FormValue("penyelenggara")
 	tingkat := c.FormValue("tingkat")
-	tanggalStr := c.FormValue("tanggal")
 	peringkat := c.FormValue("peringkat")
 
-	if namaLomba == "" || tingkat == "" || penyelenggara == "" || tanggalStr == "" || peringkat == "" {
-		return c.Status(400).JSON(fiber.Map{"success": false, "message": "Semua field teks harus diisi"})
-	}
-
-	tanggal, err := time.Parse("2006-01-02", tanggalStr)
-	if err != nil {
-		return c.Status(400).JSON(fiber.Map{"success": false, "message": "Format tanggal salah (YYYY-MM-DD)"})
+	if namaKegiatan == "" || tingkat == "" {
+		return c.Status(400).JSON(fiber.Map{"success": false, "message": "Field nama kegiatan dan tingkat wajib diisi"})
 	}
 
 	// Handle File Upload
-	file, err := c.FormFile("sertifikat")
+	file, err := c.FormFile("bukti")
 	if err != nil {
-		return c.Status(400).JSON(fiber.Map{"success": false, "message": "File sertifikat wajib diunggah"})
+		return c.Status(400).JSON(fiber.Map{"success": false, "message": "File bukti wajib diunggah"})
 	}
 
 	// Validate File Size (Max 5MB)
@@ -98,34 +90,27 @@ func CreateAchievement(c *fiber.Ctx) error {
 
 	// Buat direktori jika belum ada
 	uploadDir := "./uploads/achievements"
-	if err := os.MkdirAll(uploadDir, os.ModePerm); err != nil {
-		return c.Status(500).JSON(fiber.Map{"success": false, "message": "Gagal membuat direktori sistem"})
-	}
+	_ = os.MkdirAll(uploadDir, os.ModePerm)
 
 	fileId := uuid.New().String()
-	fileNamaMahasiswa := fmt.Sprintf("%s%s", fileId, ext)
-	savePath := filepath.Join(uploadDir, fileNamaMahasiswa)
+	fileOutputName := fmt.Sprintf("%s%s", fileId, ext)
+	savePath := filepath.Join(uploadDir, fileOutputName)
 
 	if err := c.SaveFile(file, savePath); err != nil {
 		return c.Status(500).JSON(fiber.Map{"success": false, "message": "Gagal menyimpan file"})
 	}
 
-	// Relative Public URL (akan dihost oleh fiber static route)
-	sertifikatURL := "/uploads/achievements/" + fileNamaMahasiswa
+	buktiURL := "/uploads/achievements/" + fileOutputName
 
-	tahun := tanggal.Year()
-
-	achievement := models.Achievement{
-		MahasiswaID:     student.ID,
-		NamaLomba:     namaLomba,
-		Kategori:      kategori,
-		Penyelenggara: penyelenggara,
-		Tingkat:       tingkat,
-		Tahun:         tahun,
-		Peringkat:     peringkat,
-		SertifikatURL: sertifikatURL,
-		Status:        "Menunggu",
-		CreatedAt:     time.Now(),
+	achievement := models.Prestasi{
+		MahasiswaID:  student.ID,
+		NamaKegiatan: namaKegiatan,
+		Kategori:     kategori,
+		Tingkat:      tingkat,
+		Peringkat:    peringkat,
+		BuktiURL:     buktiURL,
+		Status:       "Menunggu",
+		Poin:         0, // Default for now
 	}
 
 	config.DB.Create(&achievement)
@@ -140,15 +125,15 @@ func CreateAchievement(c *fiber.Ctx) error {
 // GetAchievementDetail returns single achievement data
 func GetAchievementDetail(c *fiber.Ctx) error {
 	id := c.Params("id")
-	PenggunaID := c.Locals("user_id")
+	PenggunaID := c.Locals("user_id").(uint)
 
 	var student models.Mahasiswa
-	if err := config.DB.First(&student, "user_id = ?", PenggunaID).Error; err != nil {
+	if err := config.DB.First(&student, "pengguna_id = ?", PenggunaID).Error; err != nil {
 		return c.Status(404).JSON(fiber.Map{"success": false, "message": "Mahasiswa tidak ditemukan"})
 	}
 
-	var achievement models.Achievement
-	if err := config.DB.Where("id = ? AND student_id = ?", id, student.ID).First(&achievement).Error; err != nil {
+	var achievement models.Prestasi
+	if err := config.DB.Where("id = ? AND mahasiswa_id = ?", id, student.ID).First(&achievement).Error; err != nil {
 		return c.Status(404).JSON(fiber.Map{"success": false, "message": "Data tidak ditemukan"})
 	}
 
@@ -161,20 +146,20 @@ func GetAchievementDetail(c *fiber.Ctx) error {
 // DeleteAchievement deletes an achievement ONLY if its status is Menunggu
 func DeleteAchievement(c *fiber.Ctx) error {
 	id := c.Params("id")
-	PenggunaID := c.Locals("user_id")
+	PenggunaID := c.Locals("user_id").(uint)
 
 	var student models.Mahasiswa
-	if err := config.DB.First(&student, "user_id = ?", PenggunaID).Error; err != nil {
+	if err := config.DB.First(&student, "pengguna_id = ?", PenggunaID).Error; err != nil {
 		return c.Status(404).JSON(fiber.Map{"success": false, "message": "Mahasiswa tidak ditemukan"})
 	}
 
-	var achievement models.Achievement
-	if err := config.DB.Where("id = ? AND student_id = ?", id, student.ID).First(&achievement).Error; err != nil {
+	var achievement models.Prestasi
+	if err := config.DB.Where("id = ? AND mahasiswa_id = ?", id, student.ID).First(&achievement).Error; err != nil {
 		return c.Status(404).JSON(fiber.Map{"success": false, "message": "Data tidak ditemukan"})
 	}
 
 	if achievement.Status != "Menunggu" {
-		return c.Status(400).JSON(fiber.Map{"success": false, "message": "Hanya presatsi dengan status Menunggu yang dapat dihapus"})
+		return c.Status(400).JSON(fiber.Map{"success": false, "message": "Hanya prestasi dengan status Menunggu yang dapat dihapus"})
 	}
 
 	config.DB.Delete(&achievement)
@@ -182,36 +167,5 @@ func DeleteAchievement(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{
 		"success": true,
 		"message": "Prestasi berhasil dihapus",
-	})
-}
-
-// ExportSimkatmawa generates a CSV mock response for Kemendikbud Reporting (for admin ideally, but placed here for dummy)
-func ExportSimkatmawa(c *fiber.Ctx) error {
-	// Di skenario asli fungsi ini butuh otorisasi (Role Admin), namun untuk demonstrasi
-	// kita mengekspor data yang sudah Diverifikasi saja dari seluruh mahasiswa.
-	
-	type SimkatmawaDump struct {
-		NamaMahasiswa string    `json:"nama_mahasiswa"`
-		NIM           string    `json:"nim"`
-		ProgramStudi  string    `json:"prodi"`
-		NamaLomba     string    `json:"nama_lomba"`
-		Tingkat       string    `json:"tingkat"`
-		Peringkat     string    `json:"peringkat"`
-		Penyelenggara string    `json:"penyelenggara"`
-		Tanggal       time.Time `json:"tanggal"`
-	}
-
-	var results []SimkatmawaDump
-	config.DB.Table("achievements").
-		Select("users.NamaMahasiswa as nama_mahasiswa, students.nim, majors.NamaMahasiswa as program_studi, achievements.nama_lomba, achievements.tingkat, achievements.peringkat, achievements.penyelenggara, achievements.tanggal").
-		Joins("left join students on students.id = achievements.student_id").
-		Joins("left join users on users.id = students.user_id").
-		Joins("left join majors on majors.id = students.major_id").
-		Where("achievements.status = ?", "Diverifikasi").
-		Scan(&results)
-
-	return c.JSON(fiber.Map{
-		"success": true,
-		"data":    results, // Output raw json mapped to Simkatmawa
 	})
 }

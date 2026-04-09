@@ -1,7 +1,6 @@
 package auth
 
 import (
-	"log"
 	"siakad-backend/config"
 	"siakad-backend/models"
 	"time"
@@ -28,7 +27,7 @@ type ChangePasswordRequest struct {
 func Login(c *fiber.Ctx) error {
 	var req LoginRequest
 	if err := c.BodyParser(&req); err != nil {
-		return c.Status(400).JSON(fiber.Map{"success": false, "message": "Invalid request payload", "errors": []fiber.Map{{"field": "body", "message": "Format tidak valid"}}})
+		return c.Status(400).JSON(fiber.Map{"success": false, "message": "Invalid request payload"})
 	}
 
 	// Find the student by NIM
@@ -38,11 +37,11 @@ func Login(c *fiber.Ctx) error {
 	}
 
 	// Check password via bcrypt
-	if err := bcrypt.CompareHashAndPassword([]byte(student.Pengguna.KataSandi), []byte(req.Password)); err != nil {
+	if err := bcrypt.CompareHashAndPassword([]byte(student.Pengguna.Password), []byte(req.Password)); err != nil {
 		return c.Status(401).JSON(fiber.Map{"success": false, "message": "NIM atau Password salah"})
 	}
 
-	if !student.Pengguna.Aktif {
+	if student.StatusAkun != "Aktif" {
 		return c.Status(403).JSON(fiber.Map{"success": false, "message": "Akun tidak aktif. Silakan hubungi admin."})
 	}
 
@@ -56,7 +55,6 @@ func Login(c *fiber.Ctx) error {
 	})
 	tokenString, err := token.SignedString(jwtSecret)
 	if err != nil {
-		log.Printf("JWT Error: %v", err)
 		return c.Status(500).JSON(fiber.Map{"success": false, "message": "Error generating token"})
 	}
 
@@ -70,7 +68,6 @@ func Login(c *fiber.Ctx) error {
 	})
 	rtString, err := refreshToken.SignedString(jwtSecret)
 	if err != nil {
-		log.Printf("JWT Refresh Error: %v", err)
 		return c.Status(500).JSON(fiber.Map{"success": false, "message": "Error generating refresh token"})
 	}
 
@@ -80,7 +77,7 @@ func Login(c *fiber.Ctx) error {
 		Value:    rtString,
 		Expires:  now.Add(7 * 24 * time.Hour),
 		HTTPOnly: true,
-		Secure:   false, // set true in production if HTTPS
+		Secure:   false,
 		SameSite: "Strict",
 	})
 
@@ -93,9 +90,9 @@ func Login(c *fiber.Ctx) error {
 			"mahasiswa": fiber.Map{
 				"id":        student.ID,
 				"nim":       student.NIM,
-				"nama":      student.NamaMahasiswa,
+				"nama":      student.Nama,
 				"prodi_id":  student.ProgramStudiID,
-				"prodi":     student.ProgramStudi.NamaProdi,
+				"prodi":     student.ProgramStudi.Nama,
 				"foto_url":  student.FotoURL,
 				"status":    student.StatusAkun,
 				"angkatan":  student.TahunMasuk,
@@ -110,7 +107,6 @@ func RefreshToken(c *fiber.Ctx) error {
 		return c.Status(401).JSON(fiber.Map{"success": false, "message": "Refresh token tidak ditemukan"})
 	}
 
-	// Parse token
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		return jwtSecret, nil
 	})
@@ -124,7 +120,6 @@ func RefreshToken(c *fiber.Ctx) error {
 		return c.Status(401).JSON(fiber.Map{"success": false, "message": "Refresh token invalid type"})
 	}
 
-	// Create new access token
 	now := time.Now()
 	newToken := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"sub": claims["sub"],
@@ -148,7 +143,6 @@ func RefreshToken(c *fiber.Ctx) error {
 }
 
 func Logout(c *fiber.Ctx) error {
-	// clear cookie
 	c.Cookie(&fiber.Cookie{
 		Name:     "refresh_token",
 		Value:    "",
@@ -156,8 +150,6 @@ func Logout(c *fiber.Ctx) error {
 		HTTPOnly: true,
 	})
 
-	// Optional: we can blacklist the access token here using Redis as requested by the user,
-	// but currently redis might not be fully setup in the given KodeFakultas. For now, wiping cookie is standard.
 	return c.JSON(fiber.Map{
 		"success": true,
 		"message": "Berhasil logout",
@@ -165,30 +157,28 @@ func Logout(c *fiber.Ctx) error {
 }
 
 func ChangePassword(c *fiber.Ctx) error {
-	PenggunaID := c.Locals("user_id") // set via middleware
+	UserID := c.Locals("user_id")
 
 	var req ChangePasswordRequest
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(400).JSON(fiber.Map{"success": false, "message": "Invalid request payload"})
 	}
 
-	var user models.Pengguna
-	if err := config.DB.First(&user, PenggunaID).Error; err != nil {
+	var user models.User
+	if err := config.DB.First(&user, UserID).Error; err != nil {
 		return c.Status(404).JSON(fiber.Map{"success": false, "message": "User tidak ditemukan"})
 	}
 
-	// verify old password
-	if err := bcrypt.CompareHashAndPassword([]byte(user.KataSandi), []byte(req.OldPassword)); err != nil {
+	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.OldPassword)); err != nil {
 		return c.Status(400).JSON(fiber.Map{"success": false, "message": "Password lama salah"})
 	}
 
-	// hash new password
 	hash, err := bcrypt.GenerateFromPassword([]byte(req.NewPassword), bcrypt.DefaultCost)
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"success": false, "message": "Gagal mengenkripsi password baru"})
 	}
 
-	user.KataSandi = string(hash)
+	user.Password = string(hash)
 	config.DB.Save(&user)
 
 	return c.JSON(fiber.Map{
@@ -196,3 +186,4 @@ func ChangePassword(c *fiber.Ctx) error {
 		"message": "Password berhasil diubah",
 	})
 }
+

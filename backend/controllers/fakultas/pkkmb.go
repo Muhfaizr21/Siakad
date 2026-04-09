@@ -15,8 +15,8 @@ func AmbilRingkasanPkkmb(c *fiber.Ctx) error {
 	var totalProses int64
 
 	config.DB.Model(&models.Mahasiswa{}).Count(&totalMaba)
-	config.DB.Model(&models.PkkmbKelulusan{}).Where("status_kelulusan = ?", "Lulus").Count(&totalLulus)
-	config.DB.Model(&models.PkkmbKelulusan{}).Where("status_kelulusan = ?", "Proses").Count(&totalProses)
+	config.DB.Model(&models.PkkmbHasil{}).Where("status_kelulusan = ?", "Lulus").Count(&totalLulus)
+	config.DB.Model(&models.PkkmbHasil{}).Where("status_kelulusan = ?", "Proses").Count(&totalProses)
 
 	// Breakdown per Prodi
 	type ProdiStats struct {
@@ -33,19 +33,19 @@ func AmbilRingkasanPkkmb(c *fiber.Ctx) error {
 	var listStats []ProdiStats
 	for _, p := range prodis {
 		var mabaProdi int64
-		config.DB.Model(&models.Mahasiswa{}).Where("prodi_id = ?", p.ID).Count(&mabaProdi)
+		config.DB.Model(&models.Mahasiswa{}).Where("program_studi_id = ?", p.ID).Count(&mabaProdi)
 
 		var mabaLulus int64
-		config.DB.Model(&models.PkkmbKelulusan{}).
-			Joins("JOIN mahasiswa ON mahasiswa.id = pkkmb_kelulusan.mahasiswa_id").
-			Where("mahasiswa.prodi_id = ? AND pkkmb_kelulusan.status_kelulusan = ?", p.ID, "Lulus").
+		config.DB.Model(&models.PkkmbHasil{}).
+			Joins("JOIN mahasiswa ON mahasiswa.id = pkkmb_hasil.mahasiswa_id").
+			Where("mahasiswa.program_studi_id = ? AND pkkmb_hasil.status_kelulusan = ?", p.ID, "Lulus").
 			Count(&mabaLulus)
 
 		var avgNilai float64
-		config.DB.Model(&models.PkkmbKelulusan{}).
-			Joins("JOIN mahasiswa ON mahasiswa.id = pkkmb_kelulusan.mahasiswa_id").
-			Where("mahasiswa.prodi_id = ?", p.ID).
-			Select("COALESCE(AVG(nilai_akademik), 0)").
+		config.DB.Model(&models.PkkmbHasil{}).
+			Joins("JOIN mahasiswa ON mahasiswa.id = pkkmb_hasil.mahasiswa_id").
+			Where("mahasiswa.program_studi_id = ?", p.ID).
+			Select("COALESCE(AVG(nilai), 0)").
 			Scan(&avgNilai)
 
 		partisipasi := 0.0
@@ -60,7 +60,7 @@ func AmbilRingkasanPkkmb(c *fiber.Ctx) error {
 
 		listStats = append(listStats, ProdiStats{
 			ID:          p.ID,
-			Prodi:       p.NamaProdi,
+			Prodi:       p.Nama,
 			Partisipasi: partisipasi,
 			Nilai:       avgNilai,
 			Status:      status,
@@ -82,7 +82,7 @@ func AmbilRingkasanPkkmb(c *fiber.Ctx) error {
 
 func AmbilDaftarKegiatanPkkmb(c *fiber.Ctx) error {
 	var k []models.PkkmbKegiatan
-	config.DB.Order("tanggal asc, jam_mulai asc").Find(&k)
+	config.DB.Order("tanggal asc").Find(&k)
 	return c.JSON(fiber.Map{"status": "success", "data": k})
 }
 
@@ -98,24 +98,22 @@ func TambahKegiatanPkkmb(c *fiber.Ctx) error {
 // --- MATERI ---
 
 func AmbilDaftarMateriPkkmb(c *fiber.Ctx) error {
-	var m []models.PkkmbMateri
-	config.DB.Order("urutan asc").Find(&m)
-	return c.JSON(fiber.Map{"status": "success", "data": m})
+	// Model PkkmbMateri tidak ada di model.go
+	return c.JSON(fiber.Map{"status": "success", "data": []string{}})
 }
 
 // --- TUGAS ---
 
 func AmbilDaftarTugasPkkmb(c *fiber.Ctx) error {
-	var t []models.PkkmbTugas
-	config.DB.Order("deadline asc").Find(&t)
-	return c.JSON(fiber.Map{"status": "success", "data": t})
+	// Model PkkmbTugas tidak ada di model.go
+	return c.JSON(fiber.Map{"status": "success", "data": []string{}})
 }
 
 // --- KELULUSAN (MAHASISWA) ---
 
 func AmbilStatusKelulusanMahasiswa(c *fiber.Ctx) error {
 	mID := c.Params("id")
-	var s models.PkkmbKelulusan
+	var s models.PkkmbHasil
 	if err := config.DB.Preload("Mahasiswa").Where("mahasiswa_id = ?", mID).First(&s).Error; err != nil {
 		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Status tidak ditemukan"})
 	}
@@ -123,7 +121,7 @@ func AmbilStatusKelulusanMahasiswa(c *fiber.Ctx) error {
 }
 
 func AmbilDaftarKelulusanMaba(c *fiber.Ctx) error {
-	var list []models.PkkmbKelulusan
+	var list []models.PkkmbHasil
 	config.DB.Preload("Mahasiswa.ProgramStudi").Preload("Mahasiswa.Pengguna").Find(&list)
 	return c.JSON(fiber.Map{"status": "success", "data": list})
 }

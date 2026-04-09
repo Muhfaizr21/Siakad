@@ -6,193 +6,63 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
-	"gorm.io/gorm"
 )
 
-// ResponseDTO to omit sensitive CatatanKonselor
-type BookingResponse struct {
-	ID              uint                   `json:"id"`
-	Tipe            string                 `json:"tipe"`
-	NamaKonselor    string                 `json:"nama_konselor"`
-	Tanggal         time.Time              `json:"tanggal"`
-	JamMulai        string                 `json:"jam_mulai"`
-	JamSelesai      string                 `json:"jam_selesai"`
-	Lokasi          string                 `json:"lokasi"`
-	KeluhanAwal     string                 `json:"keluhan_awal"`
-	Status          string                 `json:"status"`
-	CreatedAt       time.Time              `json:"created_at"`
-}
+// GetCounselingStatus returns student's counseling records
+func GetCounselingStatus(c *fiber.Ctx) error {
+	PenggunaID := c.Locals("user_id").(uint)
 
-// GetJadwalKonseling returns available slots
-func GetJadwalKonseling(c *fiber.Ctx) error {
-	var jadwal []models.JadwalKonseling
-	// Only show future/active schedules with sisa_kuota > 0
-	err := config.DB.Where("is_aktif = ? AND sisa_kuota > ? AND tanggal >= ?", true, 0, time.Now().Format("2006-01-02")).
-		Order("tanggal asc, jam_mulai asc").
-		Find(&jadwal).Error
-	if err != nil {
-		return c.Status(500).JSON(fiber.Map{"success": false, "message": "Gagal mengambil jadwal"})
+	var student models.Mahasiswa
+	if err := config.DB.First(&student, "pengguna_id = ?", PenggunaID).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{"success": false, "message": "Mahasiswa tidak ditemukan"})
+	}
+
+	var records []models.Konseling
+	if err := config.DB.Preload("Dosen").Where("mahasiswa_id = ?", student.ID).Order("tanggal desc").Find(&records).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"success": false, "message": "Gagal mengambil data"})
 	}
 
 	return c.JSON(fiber.Map{
 		"success": true,
-		"data":    jadwal,
+		"data":    records,
 	})
 }
 
-// CreateBooking handles student booking request
-func CreateBooking(c *fiber.Ctx) error {
-	PenggunaID := c.Locals("user_id")
+// RequestCounseling handles new counseling submission
+func RequestCounseling(c *fiber.Ctx) error {
+	PenggunaID := c.Locals("user_id").(uint)
 
 	var student models.Mahasiswa
-	if err := config.DB.First(&student, "user_id = ?", PenggunaID).Error; err != nil {
+	if err := config.DB.First(&student, "pengguna_id = ?", PenggunaID).Error; err != nil {
 		return c.Status(404).JSON(fiber.Map{"success": false, "message": "Mahasiswa tidak ditemukan"})
 	}
 
-	type BookingRequest struct {
-		JadwalID    uint   `json:"jadwal_id"`
-		KeluhanAwal string `json:"keluhan_awal"`
+	type RequestBody struct {
+		DosenID uint      `json:"dosen_id"`
+		Topik   string    `json:"topik"`
+		Tanggal time.Time `json:"tanggal"`
 	}
 
-	var req BookingRequest
+	var req RequestBody
 	if err := c.BodyParser(&req); err != nil {
-		return c.Status(400).JSON(fiber.Map{"success": false, "message": "Format request tidak valid"})
+		return c.Status(400).JSON(fiber.Map{"success": false, "message": "Input tidak valid"})
 	}
 
-	if len(req.KeluhanAwal) < 20 {
-		return c.Status(400).JSON(fiber.Map{"success": false, "message": "Deskripsi keluhan minimal 20 karakter"})
+	konseling := models.Konseling{
+		MahasiswaID: student.ID,
+		DosenID:     req.DosenID,
+		Tanggal:     req.Tanggal,
+		Topik:       req.Topik,
+		Status:      "Menunggu",
 	}
 
-	// Transaction to ensure atomicity
-	err := config.DB.Transaction(func(tx *gorm.DB) error {
-		var jadwal models.JadwalKonseling
-		if err := tx.Set("gorm:query_option", "FOR UPDATE").First(&jadwal, req.JadwalID).Error; err != nil {
-			return gorm.ErrRecordNotFound
-		}
-
-		if jadwal.SisaKuota <= 0 || !jadwal.IsAktif {
-			return fiber.NewError(400, "Kuota jadwal ini sudah habis")
-		}
-
-		// Double booking check: student should not have another "Menunggu/Dikonfirmasi" booking on same slot
-		var existing models.BookingKonseling
-		tx.Where("student_id = ? AND jadwal_id = ? AND status IN ?", student.ID, jadwal.ID, []string{"Menunggu", "Dikonfirmasi"}).First(&existing)
-		if existing.ID != 0 {
-			return fiber.NewError(400, "Kamu sudah memiliki booking aktif untuk jadwal ini")
-		}
-
-		// Update Quota
-		if err := tx.Model(&jadwal).Update("sisa_kuota", jadwal.SisaKuota-1).Error; err != nil {
-			return err
-		}
-
-		// Create Booking Record
-		newBooking := models.BookingKonseling{
-			MahasiswaID:   student.ID,
-			JadwalID:    jadwal.ID,
-			KeluhanAwal: req.KeluhanAwal,
-			Status:      "Menunggu",
-			CreatedAt:   time.Now(),
-		}
-
-		if err := tx.Create(&newBooking).Error; err != nil {
-			return err
-		}
-
-		return nil
-	})
-
-	if err != nil {
-		return c.Status(400).JSON(fiber.Map{"success": false, "message": err.Error()})
+	if err := config.DB.Create(&konseling).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"success": false, "message": "Gagal mengajukan konseling"})
 	}
 
 	return c.Status(201).JSON(fiber.Map{
 		"success": true,
-		"message": "Booking berhasil diajukan. Mohon tunggu konfirmasi admin.",
-	})
-}
-
-// GetRiwayatBooking returns student history without CatatanKonselor
-func GetRiwayatBooking(c *fiber.Ctx) error {
-	PenggunaID := c.Locals("user_id")
-
-	var student models.Mahasiswa
-	if err := config.DB.First(&student, "user_id = ?", PenggunaID).Error; err != nil {
-		return c.Status(404).JSON(fiber.Map{"success": false, "message": "Mahasiswa tidak ditemukan"})
-	}
-
-	var bookings []models.BookingKonseling
-	err := config.DB.Preload("JadwalKonseling").
-		Where("student_id = ?", student.ID).
-		Order("created_at desc").
-		Find(&bookings).Error
-
-	if err != nil {
-		return c.Status(500).JSON(fiber.Map{"success": false, "message": "Gagal mengambil riwayat"})
-	}
-
-	// Map to Clean DTO
-	var cleanList []BookingResponse
-	for _, b := range bookings {
-		cleanList = append(cleanList, BookingResponse{
-			ID:           b.ID,
-			Tipe:         b.JadwalKonseling.Tipe,
-			NamaKonselor: b.JadwalKonseling.NamaKonselor,
-			Tanggal:      b.JadwalKonseling.Tanggal,
-			JamMulai:     b.JadwalKonseling.JamMulai,
-			JamSelesai:   b.JadwalKonseling.JamSelesai,
-			Lokasi:       b.JadwalKonseling.Lokasi,
-			KeluhanAwal:  b.KeluhanAwal,
-			Status:       b.Status,
-			CreatedAt:    b.CreatedAt,
-		})
-	}
-
-	return c.JSON(fiber.Map{
-		"success": true,
-		"data":    cleanList,
-	})
-}
-
-// CancelBooking cancels a pending booking
-func CancelBooking(c *fiber.Ctx) error {
-	id := c.Params("id")
-	PenggunaID := c.Locals("user_id")
-
-	var student models.Mahasiswa
-	if err := config.DB.First(&student, "user_id = ?", PenggunaID).Error; err != nil {
-		return c.Status(404).JSON(fiber.Map{"success": false, "message": "Mahasiswa tidak ditemukan"})
-	}
-
-	err := config.DB.Transaction(func(tx *gorm.DB) error {
-		var booking models.BookingKonseling
-		if err := tx.First(&booking, "id = ? AND student_id = ?", id, student.ID).Error; err != nil {
-			return gorm.ErrRecordNotFound
-		}
-
-		if booking.Status != "Menunggu" {
-			return fiber.NewError(400, "Booking hanya bisa dibatalkan jika masih status Menunggu")
-		}
-
-		// Update Booking Status
-		if err := tx.Model(&booking).Update("status", "Dibatalkan").Error; err != nil {
-			return err
-		}
-
-		// Revert Quota
-		if err := tx.Model(&models.JadwalKonseling{}).Where("id = ?", booking.JadwalID).UpdateColumn("sisa_kuota", gorm.Expr("sisa_kuota + 1")).Error; err != nil {
-			return err
-		}
-
-		return nil
-	})
-
-	if err != nil {
-		return c.Status(400).JSON(fiber.Map{"success": false, "message": err.Error()})
-	}
-
-	return c.JSON(fiber.Map{
-		"success": true,
-		"message": "Booking berhasil dibatalkan",
+		"message": "Konseling berhasil diajukan",
+		"data":    konseling,
 	})
 }

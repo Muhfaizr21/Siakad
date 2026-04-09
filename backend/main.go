@@ -1,95 +1,74 @@
 package main
 
 import (
-	"log"
-	"os"
-
+	authSvc "siakad-backend/auth"
 	"siakad-backend/config"
-	"siakad-backend/middleware"
-	"siakad-backend/controllers/mahasiswa/auth"
-	"siakad-backend/controllers/mahasiswa/dashboard"
 	"siakad-backend/controllers/mahasiswa/achievement"
-	"siakad-backend/controllers/mahasiswa/scholarship"
 	"siakad-backend/controllers/mahasiswa/counseling"
+	"siakad-backend/controllers/mahasiswa/dashboard"
 	"siakad-backend/controllers/mahasiswa/health"
-	"siakad-backend/controllers/mahasiswa/voice"
-	"siakad-backend/controllers/mahasiswa/organisasi"
 	"siakad-backend/controllers/mahasiswa/kencana"
-	"siakad-backend/controllers/mahasiswa/profil"
 	"siakad-backend/controllers/mahasiswa/notifikasi"
+	"siakad-backend/controllers/mahasiswa/organisasi"
+	"siakad-backend/controllers/mahasiswa/profil"
+	"siakad-backend/controllers/mahasiswa/scholarship"
+	"siakad-backend/controllers/mahasiswa/voice"
+	"siakad-backend/middleware"
 	"siakad-backend/routes"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/logger"
-	"github.com/joho/godotenv"
 )
 
 func main() {
-	// Initialize .env file
-	err := godotenv.Load()
-	if err != nil {
-		log.Println("Error loading .env file or .env file not found, continuing with system defaults")
-	}
-
-	// Connect to PostgreSQL
+	// Connect to Database
 	config.ConnectDB()
 
-	// Setup Fiber App
-	app := fiber.New()
+	// Bootstrap Data (Optional)
+	authSvc.EnsureBootstrapData()
+
+	app := fiber.New(fiber.Config{
+		ErrorHandler: func(c *fiber.Ctx, err error) error {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"success": false,
+				"message": err.Error(),
+			})
+		},
+	})
 
 	// Middleware
 	app.Use(logger.New())
 	app.Use(cors.New(cors.Config{
-		AllowOrigins:     "http://localhost:5173",
-		AllowHeaders:     "Origin, Content-Type, Accept, Authorization",
-		AllowMethods:     "GET, POST, PUT, DELETE, PATCH, OPTIONS",
-		AllowCredentials: true,
+		AllowOrigins: "*",
+		AllowHeaders: "Origin, Content-Type, Accept, Authorization",
+		AllowMethods: "GET, POST, PUT, DELETE",
 	}))
 
-	// Serve Static Files for Uploads
+	// Static files for uploads
 	app.Static("/uploads", "./uploads")
 
-	// Basic route to check if DB is connected
-	app.Get("/api/health", func(c *fiber.Ctx) error {
-		// Ping DB
-		sqlDB, err := config.DB.DB()
-		if err != nil {
-			return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Database not configured properly", "data": err.Error()})
-		}
-		err = sqlDB.Ping()
-		if err != nil {
-			return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Database is disconnected", "data": err.Error()})
-		}
-		return c.JSON(fiber.Map{"status": "success", "message": "Backend API is running and Database is fully connected!"})
-	})
+	// API Groups
+	api := app.Group("/api")
 
 	// Auth Routes
-	api := app.Group("/api/v1")
 	authGroup := api.Group("/auth")
-	authGroup.Post("/login", func(c *fiber.Ctx) error {
-		return auth.Login(c)
-	})
-	authGroup.Post("/refresh", auth.RefreshToken)
-	authGroup.Post("/logout", auth.Logout)
-	authGroup.Put("/change-password", middleware.AuthProtected, auth.ChangePassword)
+	authGroup.Post("/login", authSvc.Login)
+	authGroup.Post("/refresh", authSvc.RefreshToken)
+	authGroup.Post("/logout", authSvc.Logout)
+	authGroup.Put("/change-password", middleware.AuthProtected, authSvc.ChangePassword)
 
 	// Mahasiswa Routes
-	mahasiswaGroup := api.Group("/mahasiswa")
-	mahasiswaGroup.Get("/dashboard", middleware.AuthProtected, dashboard.GetDashboard)
-	mahasiswaGroup.Get("/kegiatan", middleware.AuthProtected, dashboard.GetKegiatan)
+	mahasiswaGroup := api.Group("/mahasiswa", middleware.AuthProtected)
+	mahasiswaGroup.Get("/dashboard", dashboard.GetDashboard)
+	mahasiswaGroup.Get("/kegiatan", dashboard.GetKegiatan)
 
-
-
-	// Kencana Routes
+	// PKKMB (Kencana) Routes
 	kencanaGroup := api.Group("/kencana", middleware.AuthProtected)
 	kencanaGroup.Get("/progress", kencana.GetProgress)
-	kencanaGroup.Get("/kuis/:kuisId/soal", kencana.GetSoalKuis)
-	kencanaGroup.Post("/kuis/:kuisId/submit", kencana.SubmitKuis)
-	kencanaGroup.Get("/sertifikat", kencana.CekSertifikat)
-	kencanaGroup.Post("/sertifikat/generate", kencana.GenerateSertifikat)
-	kencanaGroup.Get("/banding", kencana.GetBanding)
-	kencanaGroup.Post("/banding", kencana.AjukanBanding)
+	kencanaGroup.Post("/check-in/:id", kencana.CheckIn)
+	kencanaGroup.Get("/sertifikat", kencana.GetSertifikat)
+	kencanaGroup.Post("/banding", kencana.SubmitBanding)
 
 	// Achievement Routes
 	achievementGroup := api.Group("/achievement", middleware.AuthProtected)
@@ -104,10 +83,6 @@ func main() {
 	profilGroup.Put("/data-diri", profil.UpdateProfile)
 	profilGroup.Post("/foto", profil.UploadAvatar)
 	profilGroup.Put("/ganti-password", profil.ChangePassword)
-	profilGroup.Get("/sesi-aktif", profil.GetSessions)
-	profilGroup.Get("/riwayat-login", profil.GetLoginHistory)
-	profilGroup.Get("/preferensi-notif", profil.GetPreferences)
-	profilGroup.Put("/preferensi-notif", profil.UpdatePreferences)
 
 	// Scholarship Routes
 	scholarshipGroup := api.Group("/scholarship", middleware.AuthProtected)
@@ -115,24 +90,19 @@ func main() {
 	scholarshipGroup.Get("/riwayat", scholarship.GetRiwayatPengajuan)
 	scholarshipGroup.Get("/pengajuan/:id", scholarship.GetPengajuanDetail)
 	scholarshipGroup.Get("/:id", scholarship.GetBeasiswaDetail)
-	scholarshipGroup.Post("/:id/daftar", scholarship.DaftarBeasiswa)
+	scholarshipGroup.Post("/daftar/:id", scholarship.DaftarBeasiswa)
 
 	// Counseling Routes
 	counselingGroup := api.Group("/counseling", middleware.AuthProtected)
-	counselingGroup.Get("/jadwal", counseling.GetJadwalKonseling)
-	counselingGroup.Get("/riwayat", counseling.GetRiwayatBooking)
-	counselingGroup.Post("/booking", counseling.CreateBooking)
-	counselingGroup.Delete("/riwayat/:id", counseling.CancelBooking)
+	counselingGroup.Get("/status", counseling.GetCounselingStatus)
+	counselingGroup.Post("/request", counseling.RequestCounseling)
 
 	// Health Routes
 	healthGroup := api.Group("/health", middleware.AuthProtected)
-	healthGroup.Get("/ringkasan", health.GetHealthRingkasan)
 	healthGroup.Get("/riwayat", health.GetHealthRiwayat)
-	healthGroup.Get("/riwayat/:id", health.GetHealthDetailRecord)
-	healthGroup.Post("/mandiri", health.CreateHealthMandiri)
-	healthGroup.Get("/tips", health.GetHealthTips)
+	healthGroup.Post("/record", health.CreateHealthRecord)
 
-	// Student Voice Routes
+	// Student Voice (Aspirasi) Routes
 	voiceGroup := api.Group("/student-voice", middleware.AuthProtected)
 	voiceGroup.Get("/", voice.GetAspirasiList)
 	voiceGroup.Get("/stats", voice.GetStats)
@@ -144,7 +114,6 @@ func main() {
 	orgGroup := api.Group("/organisasi", middleware.AuthProtected)
 	orgGroup.Get("/", organisasi.GetList)
 	orgGroup.Post("/", organisasi.Create)
-	orgGroup.Put("/:id", organisasi.Update)
 	orgGroup.Delete("/:id", organisasi.Delete)
 
 	// Notification Routes
@@ -157,25 +126,10 @@ func main() {
 	notifGroup.Delete("/hapus-sudah-dibaca", notifikasi.DeleteRead)
 	notifGroup.Delete("/:id", notifikasi.DeleteNotification)
 
-	// Admin Routes
-	adminGroup := api.Group("/admin")
-	adminGroup.Get("/achievement/export", achievement.ExportSimkatmawa)
-
-	// Setup Faculty Routes
+	// Modular Routes
 	routes.InisialisasiRuteFakultas(app)
-
-	// Setup Ormawa Routes (from danzz)
 	routes.SetupOrmawaRoutes(app)
 
-	// Start server
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "8000"
-	}
-
-	log.Printf("Starting Server on port %s...", port)
-	err = app.Listen(":" + port)
-	if err != nil {
-		log.Fatal(err)
-	}
+	// Start Server
+	app.Listen(":8080")
 }

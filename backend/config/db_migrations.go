@@ -12,95 +12,46 @@ func migrateModels(db *gorm.DB) error {
 	db.Exec("CREATE SCHEMA IF NOT EXISTS fakultas_admin;")
 
 	return db.AutoMigrate(
-		// ─── PUBLIC SCHEMA ──────────────────────────────────────────────────────
-		// Core Entities
-		&models.Peran{},
-		&models.Pengguna{},
+		&models.User{},
 		&models.Fakultas{},
 		&models.ProgramStudi{},
 		&models.Dosen{},
 		&models.Mahasiswa{},
-		// Kencana (PKKMB)
-		&models.KencanaTahap{},
-		&models.KencanaMateri{},
-		&models.KencanaKuis{},
-		&models.KuisSoal{},
-		&models.KencanaHasilKuis{},
-		// Prestasi, Beasiswa, Konseling
-		&models.Achievement{},
-		&models.Beasiswa{},
-		&models.PengajuanBeasiswa{},
-		&models.PengajuanBerkas{},
-		&models.PengajuanPipelineLog{},
-		&models.JadwalKonseling{},
-		&models.BookingKonseling{},
-		// Student Voice & Organisasi
-		&models.TiketAspirasi{},
-		&models.TiketTimelineEvent{},
-		&models.RiwayatOrganisasi{},
-		// Notifikasi & Umum
-		&models.Pengumuman{},
-		&models.KegiatanKampus{},
-		&models.AktivitasLog{},
-		&models.LoginHistory{},
-		&models.NotificationPreference{},
-		&models.Notification{},
-		// PKKMB & Health
-		&models.PkkmbKegiatan{},
-		&models.PkkmbMateri{},
-		&models.PkkmbTugas{},
-		&models.PkkmbKelulusan{},
-		&models.HasilKesehatan{},
-		&models.Article{},
-		&models.Admission{},
-		// Ormawa
-		&models.Ormawa{},
-		&models.OrmawaMember{},
-		&models.Proposal{},
-		&models.ProposalHistory{},
-		&models.CashMutation{},
-		&models.OrmawaRole{},
-		&models.LPJ{},
-		&models.LPJDocument{},
-		&models.OrmawaAspiration{},
-		&models.EventSchedule{},
-		&models.EventAttendance{},
-		&models.OrmawaAnnouncement{},
-		&models.OrmawaNotification{},
-		&models.OrmawaDivision{},
-		// Proposal Baru
-		&models.PengajuanSurat{},
+		&models.PengaturanAkademik{},
 		&models.ProgramMBKM{},
-		&models.OrganisasiMahasiswa{},
-		&models.ProposalOrmawa{},
-		&models.ProposalFakultas{},
+		&models.Prestasi{},
+		&models.Beasiswa{},
+		&models.BeasiswaPendaftaran{},
+		&models.Aspirasi{},
+		&models.Konseling{},
+		&models.PengajuanSurat{},
+		&models.Kesehatan{},
+		&models.LogAktivitas{},
+		&models.RiwayatOrganisasi{},
+		&models.Notifikasi{},
+		&models.Ormawa{},
+		&models.OrmawaAnggota{},
+		&models.OrmawaDivisi{},
+		&models.OrmawaRole{},
+		&models.OrmawaKegiatan{},
+		&models.OrmawaKehadiran{},
+		&models.OrmawaPengumuman{},
+		&models.OrmawaMutasiSaldo{},
+		&models.Proposal{},
+		&models.ProposalRiwayat{},
+		&models.LaporanPertanggungjawaban{},
+		&models.PkkmbKegiatan{},
+		&models.PkkmbProgress{},
+		&models.PkkmbHasil{},
+		&models.PkkmbBanding{},
+		&models.PkkmbSertifikat{},
+		&models.Berita{},
 	)
 }
 
 // InitialSyncFakultas melakukan sinkronisasi awal data dari public schema ke fakultas_admin.
 func InitialSyncFakultas(db *gorm.DB) {
 	log.Println("[Initial Sync] Memulai sinkronisasi data ke fakultas_admin...")
-
-	// 1. Sync Faculties
-	var faculties []models.Fakultas
-	db.Find(&faculties)
-	for _, f := range faculties {
-		models.SyncFakultasKeAdmin(db, &f)
-	}
-
-	// 2. Sync Majors
-	var majors []models.ProgramStudi
-	db.Find(&majors)
-	for _, m := range majors {
-		models.SyncProdiKeAdmin(db, &m)
-	}
-
-	// 3. Sync Students
-	var students []models.Mahasiswa
-	db.Find(&students)
-	for _, s := range students {
-		models.SyncMahasiswaKeFakultas(db, &s)
-	}
 
 	log.Println("[Initial Sync] Sinkronisasi selesai.")
 }

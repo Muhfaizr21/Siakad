@@ -10,59 +10,64 @@ import (
 )
 
 func seedCoreAcademicData(db *gorm.DB) {
-	var peran models.Peran
-	db.FirstOrCreate(&peran, models.Peran{NamaPeran: "Mahasiswa"})
-
+	// Create Fakultas
 	var fakultas models.Fakultas
-	db.Where("kode_fakultas = ?", "FIK").FirstOrCreate(&fakultas, models.Fakultas{
-		NamaFakultas: "Fakultas Ilmu Komputer",
-		KodeFakultas: "FIK",
+	db.Where("kode = ?", "FIK").FirstOrCreate(&fakultas, models.Fakultas{
+		Nama: "Fakultas Ilmu Komputer",
+		Kode: "FIK",
 	})
 
+	// Create Program Studi
 	var prodi models.ProgramStudi
-	db.Where("nama_prodi = ? AND fakultas_id = ?", "Teknik Informatika", fakultas.ID).FirstOrCreate(&prodi, models.ProgramStudi{
-		NamaProdi:  "Teknik Informatika",
-		KodeProdi:  "IF",
+	db.Where("nama = ? AND fakultas_id = ?", "Teknik Informatika", fakultas.ID).FirstOrCreate(&prodi, models.ProgramStudi{
+		Nama:       "Teknik Informatika",
+		Kode:       "IF",
 		FakultasID: fakultas.ID,
 	})
 
-	var dosen models.Dosen
-	var dosenUser models.Pengguna
+	// Create Dosen User
+	var dosenUser models.User
 	db.Where("email = ?", "dosen1@bku.ac.id").First(&dosenUser)
 	if dosenUser.ID == 0 {
 		hash, _ := bcrypt.GenerateFromPassword([]byte("password123"), bcrypt.DefaultCost)
-		dosenUser = models.Pengguna{
-			Email:     "dosen1@bku.ac.id",
-			KataSandi: string(hash),
-			PeranID:   peran.ID,
-			Aktif:     true,
+		dosenUser = models.User{
+			Email:    "dosen1@bku.ac.id",
+			Password: string(hash),
+			Role:     "Dosen",
 		}
 		db.Create(&dosenUser)
 	}
+
+	// Create Dosen Profile
+	var dosen models.Dosen
 	db.Where("pengguna_id = ?", dosenUser.ID).FirstOrCreate(&dosen, models.Dosen{
-		PenggunaID: dosenUser.ID,
-		NIDN:       "9988776655",
-		NamaDosen:  "Budi Santoso, M.Kom",
-		FakultasID: fakultas.ID,
+		PenggunaID:     dosenUser.ID,
+		NIDN:           "9988776655",
+		Nama:           "Budi Santoso, M.Kom",
+		FakultasID:     fakultas.ID,
+		ProgramStudiID: prodi.ID,
 	})
 
-	var mhs models.Mahasiswa
-	var mhsUser models.Pengguna
+	// Create Mahasiswa User
+	var mhsUser models.User
 	db.Where("email = ?", "mahasiswa@bku.ac.id").First(&mhsUser)
 	if mhsUser.ID == 0 {
 		hash, _ := bcrypt.GenerateFromPassword([]byte("password123"), bcrypt.DefaultCost)
-		mhsUser = models.Pengguna{
-			Email:     "mahasiswa@bku.ac.id",
-			KataSandi: string(hash),
-			PeranID:   peran.ID,
-			Aktif:     true,
+		mhsUser = models.User{
+			Email:    "mahasiswa@bku.ac.id",
+			Password: string(hash),
+			Role:     "Mahasiswa",
 		}
 		db.Create(&mhsUser)
 	}
+
+	// Create Mahasiswa Profile
+	var mhs models.Mahasiswa
 	db.Where("pengguna_id = ?", mhsUser.ID).FirstOrCreate(&mhs, models.Mahasiswa{
 		PenggunaID:       mhsUser.ID,
 		NIM:              "10123456",
-		NamaMahasiswa:    "Tegar Mahasiswa BKU",
+		Nama:             "Tegar Mahasiswa BKU",
+		FakultasID:       fakultas.ID,
 		ProgramStudiID:   prodi.ID,
 		SemesterSekarang: 5,
 		StatusAkun:       "Aktif",

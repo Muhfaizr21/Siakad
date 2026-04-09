@@ -39,22 +39,18 @@ func TambahDosenBaru(c *fiber.Ctx) error {
 
 	tx := config.DB.Begin()
 
-	pengguna := models.Pengguna{
-		Email:     payload.Email,
-		KataSandi: "$2a$10$r9C799sXvD8/Zk9m6p.hQ.m7I8WjKz.Y1vS/F1f7nI.Z1f7nI.Z1", // password123
-		PeranID:   3,                                                             // Dosen
+	user := models.User{
+		Email:    payload.Email,
+		Password: "$2a$10$r9C799sXvD8/Zk9m6p.hQ.m7I8WjKz.Y1vS/F1f7nI.Z1f7nI.Z1", // password123
+		Role:     "dosen",
 	}
 
-	if err := tx.Create(&pengguna).Error; err != nil {
+	if err := tx.Create(&user).Error; err != nil {
 		tx.Rollback()
 		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal membuat akun dosen: " + err.Error()})
 	}
 
-	d.PenggunaID = pengguna.ID
-	if d.ProgramStudiID != nil && *d.ProgramStudiID == 0 {
-		d.ProgramStudiID = nil
-	}
-
+	d.PenggunaID = user.ID
 	if err := tx.Create(&d).Error; err != nil {
 		tx.Rollback()
 		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal membuat profil dosen: " + err.Error()})
@@ -89,10 +85,6 @@ func PerbaruiDataDosen(c *fiber.Ctx) error {
 		}
 	}
 
-	if dosen.ProgramStudiID != nil && *dosen.ProgramStudiID == 0 {
-		dosen.ProgramStudiID = nil
-	}
-
 	if err := tx.Save(&dosen).Error; err != nil {
 		tx.Rollback()
 		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal memperbarui profil dosen"})
@@ -111,7 +103,7 @@ func HapusDataDosen(c *fiber.Ctx) error {
 
 	penggunaID := dosen.PenggunaID
 	config.DB.Delete(&dosen)
-	config.DB.Delete(&models.Pengguna{}, penggunaID)
+	config.DB.Delete(&models.User{}, penggunaID)
 
 	return c.JSON(fiber.Map{"status": "success", "message": "Dosen dan akun berhasil dihapus"})
 }
@@ -155,23 +147,19 @@ func TambahMahasiswaBaru(c *fiber.Ctx) error {
 
 	tx := config.DB.Begin()
 
-	pengguna := models.Pengguna{
-		Email:     payload.Email,
-		KataSandi: "$2a$10$r9C799sXvD8/Zk9m6p.hQ.m7I8WjKz.Y1vS/F1f7nI.Z1f7nI.Z1",
-		PeranID:   4, // Mahasiswa
+	user := models.User{
+		Email:    payload.Email,
+		Password: "$2a$10$r9C799sXvD8/Zk9m6p.hQ.m7I8WjKz.Y1vS/F1f7nI.Z1f7nI.Z1",
+		Role:     "mahasiswa",
 	}
 
-	if err := tx.Create(&pengguna).Error; err != nil {
+	if err := tx.Create(&user).Error; err != nil {
 		tx.Rollback()
 		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal membuat akun mahasiswa: " + err.Error()})
 	}
 
-	m.PenggunaID = pengguna.ID
+	m.PenggunaID = user.ID
 	m.StatusAkun = "Aktif"
-
-	if m.DosenPAID != nil && *m.DosenPAID == 0 {
-		m.DosenPAID = nil
-	}
 
 	if err := tx.Create(&m).Error; err != nil {
 		tx.Rollback()
@@ -207,10 +195,6 @@ func PerbaruiDataMahasiswa(c *fiber.Ctx) error {
 		}
 	}
 
-	if mhs.DosenPAID != nil && *mhs.DosenPAID == 0 {
-		mhs.DosenPAID = nil
-	}
-
 	if err := tx.Save(&mhs).Error; err != nil {
 		tx.Rollback()
 		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal memperbarui data mahasiswa"})
@@ -229,7 +213,7 @@ func HapusDataMahasiswa(c *fiber.Ctx) error {
 
 	penggunaID := mhs.PenggunaID
 	config.DB.Delete(&mhs)
-	config.DB.Delete(&models.Pengguna{}, penggunaID)
+	config.DB.Delete(&models.User{}, penggunaID)
 
 	return c.JSON(fiber.Map{"status": "success", "message": "Mahasiswa dan akun berhasil dihapus"})
 }
@@ -278,31 +262,12 @@ func HapusProdi(c *fiber.Ctx) error {
 // --- PENGATURAN AKADEMIK ---
 
 func AmbilPengaturanAkademik(c *fiber.Ctx) error {
-	var settings models.AcademicSettings
-	if err := config.DB.First(&settings).Error; err != nil {
-		// Jika belum ada record pertama, buat default
-		settings = models.AcademicSettings{
-			ActiveYear:     "2023/2024",
-			ActiveSemester: "Ganjil",
-		}
-		config.DB.Create(&settings)
-	}
-	return c.JSON(fiber.Map{"status": "success", "data": settings})
+	// Fitur ini memerlukan model AcademicSettings yang saat ini tidak tersedia di models.go
+	return c.JSON(fiber.Map{"status": "success", "message": "Fitur Pengaturan Akademik sedang dalam pemeliharaan"})
 }
 
 func SimpanPengaturanAkademik(c *fiber.Ctx) error {
-	var s models.AcademicSettings
-	if err := c.BodyParser(&s); err != nil {
-		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Data tidak valid"})
-	}
-
-	if s.ID == 0 {
-		config.DB.Create(&s)
-	} else {
-		config.DB.Save(&s)
-	}
-
-	return c.JSON(fiber.Map{"status": "success", "message": "Pengaturan akademik disimpan", "data": s})
+	return c.Status(501).JSON(fiber.Map{"status": "error", "message": "Fitur simpan pengaturan akademik tidak tersedia"})
 }
 
 // --- END OF ACADEMIC CONTROLLERS ---

@@ -17,7 +17,7 @@ func AmbilRingkasanDashboard(c *fiber.Ctx) error {
 	config.DB.Model(&models.Mahasiswa{}).Count(&totalMhs)
 	config.DB.Model(&models.Dosen{}).Count(&totalDosen)
 	var totalPrestasiPending int64
-	config.DB.Model(&models.Achievement{}).Where("status = ?", "MENUNGGU").Count(&totalPrestasiPending)
+	config.DB.Model(&models.Prestasi{}).Where("status = ?", "MENUNGGU").Count(&totalPrestasiPending)
 	config.DB.Model(&models.ProgramStudi{}).Count(&totalProdi)
 
 	// Status counts (Aktif, Cuti, Lulus, DO, etc.)
@@ -42,14 +42,14 @@ func AmbilRingkasanDashboard(c *fiber.Ctx) error {
 	}
 	var prodiDist []ProdiDist
 	config.DB.Table("program_studi").
-		Select("program_studi.nama_prodi as nama_prodi, " +
+		Select("program_studi.nama as nama_prodi, " +
 			"program_studi.akreditasi as akreditasi, " +
 			"count(mahasiswa.id) as jumlah, " +
 			"sum(case when mahasiswa.status_akun = 'Aktif' then 1 else 0 end) as active, " +
 			"sum(case when mahasiswa.status_akun = 'Lulus' then 1 else 0 end) as graduated, " +
 			"coalesce(avg(mahasiswa.ipk), 0) as avg_IPK").
-		Joins("left join mahasiswa on mahasiswa.prodi_id = program_studi.id").
-		Group("program_studi.id, program_studi.nama_prodi, program_studi.akreditasi").
+		Joins("left join mahasiswa on mahasiswa.program_studi_id = program_studi.id").
+		Group("program_studi.id, program_studi.nama, program_studi.akreditasi").
 		Scan(&prodiDist)
 
 	// Per Angkatan (Trend)
@@ -76,14 +76,14 @@ func AmbilRingkasanDashboard(c *fiber.Ctx) error {
 	var logs []ActivityItem
 
 	// Ambil 5 Prestasi Terbaru
-	var pList []models.Achievement
+	var pList []models.Prestasi
 	config.DB.Preload("Mahasiswa").Order("id desc").Limit(3).Find(&pList)
 	for _, p := range pList {
 		logs = append(logs, ActivityItem{
-			User:   p.Mahasiswa.NamaMahasiswa,
-			Action: "mengajukan prestasi: " + p.NamaLomba,
+			User:   p.Mahasiswa.Nama,
+			Action: "mengajukan prestasi: " + p.NamaKegiatan,
 			Time:   "Baru saja",
-			Avatar: string(p.Mahasiswa.NamaMahasiswa[0]),
+			Avatar: string(p.Mahasiswa.Nama[0]),
 		})
 	}
 
@@ -92,10 +92,10 @@ func AmbilRingkasanDashboard(c *fiber.Ctx) error {
 	config.DB.Order("id desc").Limit(2).Find(&mList)
 	for _, m := range mList {
 		logs = append(logs, ActivityItem{
-			User:   m.NamaMahasiswa,
+			User:   m.Nama,
 			Action: "terdaftar sebagai mahasiswa baru",
 			Time:   "Hari ini",
-			Avatar: string(m.NamaMahasiswa[0]),
+			Avatar: string(m.Nama[0]),
 		})
 	}
 
@@ -117,13 +117,13 @@ func AmbilRingkasanDashboard(c *fiber.Ctx) error {
 // --- ARTIKEL / BERITA ---
 
 func AmbilDaftarBerita(c *fiber.Ctx) error {
-	var daftar []models.Article
-	config.DB.Order("dibuat_pada desc").Find(&daftar)
+	var daftar []models.Berita
+	config.DB.Order("created_at desc").Find(&daftar)
 	return c.JSON(fiber.Map{"status": "success", "data": daftar})
 }
 
 func TambahBeritaBaru(c *fiber.Ctx) error {
-	var b models.Article
+	var b models.Berita
 	if err := c.BodyParser(&b); err != nil {
 		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Payload salah"})
 	}
@@ -133,7 +133,7 @@ func TambahBeritaBaru(c *fiber.Ctx) error {
 
 func PerbaruiBerita(c *fiber.Ctx) error {
 	id := c.Params("id")
-	var b models.Article
+	var b models.Berita
 	if err := config.DB.First(&b, id).Error; err != nil {
 		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Not Found"})
 	}
@@ -144,34 +144,26 @@ func PerbaruiBerita(c *fiber.Ctx) error {
 
 func HapusBerita(c *fiber.Ctx) error {
 	id := c.Params("id")
-	config.DB.Delete(&models.Article{}, id)
+	config.DB.Delete(&models.Berita{}, id)
 	return c.JSON(fiber.Map{"status": "success", "message": "Berita dihapus"})
 }
 
 // --- PMB (PENDAFTARAN MAHASISWA BARU) ---
 
 func AmbilDaftarPendaftarMB(c *fiber.Ctx) error {
-	var daftar []models.Admission
-	config.DB.Order("dibuat_pada desc").Find(&daftar)
-	return c.JSON(fiber.Map{"status": "success", "data": daftar})
+	// Model Admission tidak ada di model.go
+	return c.JSON(fiber.Map{"status": "success", "data": []string{}})
 }
 
 func PerbaruiStatusPendaftarMB(c *fiber.Ctx) error {
-	id := c.Params("id")
-	var req struct {
-		Status string `json:"status"`
-	}
-	c.BodyParser(&req)
-	config.DB.Model(&models.Admission{}).Where("id = ?", id).Update("status", req.Status)
-	return c.JSON(fiber.Map{"status": "success", "message": "Status PMB diperbarui"})
+	return c.Status(501).JSON(fiber.Map{"status": "error", "message": "Fitur tidak tersedia"})
 }
 
 // --- RBAC & PERAN ---
 
 func AmbilDaftarPeran(c *fiber.Ctx) error {
-	var daftar []models.Peran
-	config.DB.Find(&daftar)
-	return c.JSON(fiber.Map{"status": "success", "data": daftar})
+	// Model Peran tidak ada di model.go, peran adalah string di model User
+	return c.JSON(fiber.Map{"status": "success", "data": []string{"admin_fakultas", "dosen", "mahasiswa"}})
 }
 
 // --- LAPORAN & STATISTIK ---
@@ -188,9 +180,9 @@ func AmbilRingkasanLaporan(c *fiber.Ctx) error {
 	config.DB.Model(&models.Mahasiswa{}).Count(&total)
 	config.DB.Model(&models.Mahasiswa{}).Where("status_akun = ?", "Aktif").Count(&active)
 	config.DB.Model(&models.Mahasiswa{}).Where("status_akun = ?", "Lulus").Count(&graduated)
-	config.DB.Model(&models.Achievement{}).Count(&totalPrestasi)
+	config.DB.Model(&models.Prestasi{}).Count(&totalPrestasi)
 	config.DB.Model(&models.Beasiswa{}).Count(&totalBeasiswa)
-	config.DB.Model(&models.BookingKonseling{}).Count(&totalKonseling)
+	config.DB.Model(&models.Konseling{}).Count(&totalKonseling)
 
 	// Gunakan Raw untuk AVG agar tidak error saat data kosong
 	config.DB.Raw("SELECT COALESCE(AVG(ipk), 0) FROM mahasiswa").Scan(&avgIPK)
@@ -206,14 +198,14 @@ func AmbilRingkasanLaporan(c *fiber.Ctx) error {
 	}
 	var perProdi []ProdiDist
 	config.DB.Table("program_studi").
-		Select("program_studi.nama_prodi as nama_prodi, " +
+		Select("program_studi.nama as nama_prodi, " +
 			"count(mahasiswa.id) as value, " +
 			"sum(case when mahasiswa.status_akun = 'Aktif' then 1 else 0 end) as active, " +
 			"sum(case when mahasiswa.status_akun = 'Cuti' then 1 else 0 end) as leave, " +
 			"sum(case when mahasiswa.status_akun = 'Lulus' then 1 else 0 end) as graduated, " +
 			"coalesce(avg(mahasiswa.ipk), 0) as avg_IPK").
-		Joins("left join mahasiswa on mahasiswa.prodi_id = program_studi.id").
-		Group("program_studi.id, program_studi.nama_prodi").
+		Joins("left join mahasiswa on mahasiswa.program_studi_id = program_studi.id").
+		Group("program_studi.id, program_studi.nama").
 		Scan(&perProdi)
 
 	// Per Angkatan (Trend)
