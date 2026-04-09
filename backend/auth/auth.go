@@ -16,6 +16,8 @@ import (
 
 type loginRequest struct {
 	Identifier string `json:"identifier"`
+	Email      string `json:"email"`
+	NIM        string `json:"nim"`
 	Password   string `json:"password"`
 }
 
@@ -85,6 +87,12 @@ func Login(c *fiber.Ctx) error {
 	}
 
 	identifier := strings.TrimSpace(body.Identifier)
+	if identifier == "" {
+		identifier = strings.TrimSpace(body.Email)
+	}
+	if identifier == "" {
+		identifier = strings.TrimSpace(body.NIM)
+	}
 	password := strings.TrimSpace(body.Password)
 	if identifier == "" || password == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
@@ -106,7 +114,7 @@ func Login(c *fiber.Ctx) error {
 		roleName = student.Pengguna.Role
 	} else {
 		// 2. Try to find user by Email
-		if err := config.DB.Where("email = ?", identifier).First(&user).Error; err != nil {
+		if err := config.DB.Where("LOWER(email) = ?", strings.ToLower(identifier)).First(&user).Error; err != nil {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 				"status":  "error",
 				"message": "Email/NIM atau password salah",
@@ -114,7 +122,7 @@ func Login(c *fiber.Ctx) error {
 		}
 		roleName = user.Role
 
-		if roleName == "mahasiswa" {
+		if roleName == "mahasiswa" || roleName == "student" {
 			_ = config.DB.Where("pengguna_id = ?", user.ID).First(&student).Error
 			if student.ID != 0 {
 				nim = student.NIM
@@ -140,9 +148,18 @@ func Login(c *fiber.Ctx) error {
 
 	return c.JSON(fiber.Map{
 		"success": true,
+		"status":  "success",
 		"data": fiber.Map{
-			"token":     token,
-			"mahasiswa": student, // although for admin it might be empty
+			"token":        token,
+			"access_token": token,
+			"mahasiswa":    student, // although for admin it might be empty
+			"user": userResponse{
+				ID:    user.ID,
+				Email: user.Email,
+				Role:  roleName,
+				NIM:   student.NIM,
+				Nama:  student.Nama,
+			},
 		},
 	})
 }
@@ -300,28 +317,51 @@ func Protected() fiber.Handler {
 	}
 }
 
-
 func EnsureBootstrapData() error {
 	fmt.Println("🚀 [SEEDER] Starting aggressive seed process...")
 
 	// 1. Ensure Fakultas
-	var fakultas models.Fakultas
-	if err := config.DB.Where("kode = ?", "SOC").First(&fakultas).Error; err != nil {
-		fakultas = models.Fakultas{Nama: "School of Computing", Kode: "SOC", Dekan: "Prof. Demo"}
-		if err := config.DB.Create(&fakultas).Error; err != nil {
-			panic("Failed to seed Fakultas: " + err.Error())
+	fakultasSeeds := []models.Fakultas{
+		{Nama: "School of Computing", Kode: "SOC", Dekan: "Prof. Demo"},
+		{Nama: "Fakultas Teknik", Kode: "FT", Dekan: "Prof. Teknik"},
+		{Nama: "Fakultas Hukum", Kode: "FH", Dekan: "Prof. Hukum"},
+		{Nama: "Fakultas Ekonomi", Kode: "FE", Dekan: "Prof. Ekonomi"},
+	}
+	for _, seed := range fakultasSeeds {
+		var existing models.Fakultas
+		if err := config.DB.Where("kode = ?", seed.Kode).First(&existing).Error; err != nil {
+			if err := config.DB.Create(&seed).Error; err != nil {
+				panic("Failed to seed Fakultas: " + err.Error())
+			}
+			fmt.Printf("✅ [SEEDER] Created Fakultas: %s\n", seed.Kode)
 		}
-		fmt.Println("✅ [SEEDER] Created Fakultas: SOC")
+	}
+
+	var fakultasSOC models.Fakultas
+	if err := config.DB.Where("kode = ?", "SOC").First(&fakultasSOC).Error; err != nil {
+		panic("Failed to get SOC Fakultas: " + err.Error())
+	}
+	var fakultasFH models.Fakultas
+	if err := config.DB.Where("kode = ?", "FH").First(&fakultasFH).Error; err != nil {
+		panic("Failed to get FH Fakultas: " + err.Error())
 	}
 
 	// 2. Ensure Program Studi
-	var major models.ProgramStudi
-	if err := config.DB.Where("nama = ?", "Informatics").First(&major).Error; err != nil {
-		major = models.ProgramStudi{Nama: "Informatics", FakultasID: fakultas.ID, Jenjang: "S1", Kode: "INF01"}
-		if err := config.DB.Create(&major).Error; err != nil {
-			panic("Failed to seed ProgramStudi: " + err.Error())
+	var majorSOC models.ProgramStudi
+	if err := config.DB.Where("kode = ?", "INF01").First(&majorSOC).Error; err != nil {
+		majorSOC = models.ProgramStudi{Nama: "Informatics", FakultasID: fakultasSOC.ID, Jenjang: "S1", Kode: "INF01"}
+		if err := config.DB.Create(&majorSOC).Error; err != nil {
+			panic("Failed to seed ProgramStudi SOC: " + err.Error())
 		}
 		fmt.Println("✅ [SEEDER] Created Program Studi: Informatics")
+	}
+	var majorFH models.ProgramStudi
+	if err := config.DB.Where("kode = ?", "LAW01").First(&majorFH).Error; err != nil {
+		majorFH = models.ProgramStudi{Nama: "Ilmu Hukum", FakultasID: fakultasFH.ID, Jenjang: "S1", Kode: "LAW01"}
+		if err := config.DB.Create(&majorFH).Error; err != nil {
+			panic("Failed to seed ProgramStudi FH: " + err.Error())
+		}
+		fmt.Println("✅ [SEEDER] Created Program Studi: Ilmu Hukum")
 	}
 
 	// 3. Ensure Dosen User & Dosen Profile
@@ -330,17 +370,20 @@ func EnsureBootstrapData() error {
 		hp, _ := bcrypt.GenerateFromPassword([]byte("dosen123"), bcrypt.DefaultCost)
 		dosenUser = models.User{Email: "dosen@bku.ac.id", Password: string(hp), Role: "dosen"}
 		config.DB.Create(&dosenUser)
+	} else if dosenUser.Role != "dosen" {
+		dosenUser.Role = "dosen"
+		config.DB.Save(&dosenUser)
 	}
 
 	var dosen models.Dosen
 	// Note: GORM maps NIDN to n_id_n by default
 	if err := config.DB.Where("n_id_n = ?", "0400000001").First(&dosen).Error; err != nil {
 		dosen = models.Dosen{
-			Nama: "Dosen PA Demo", 
-			NIDN: "0400000001", 
-			PenggunaID: dosenUser.ID,
-			FakultasID: fakultas.ID, 
-			ProgramStudiID: major.ID,
+			Nama:           "Dosen PA Demo",
+			NIDN:           "0400000001",
+			PenggunaID:     dosenUser.ID,
+			FakultasID:     fakultasSOC.ID,
+			ProgramStudiID: majorSOC.ID,
 		}
 		if err := config.DB.Create(&dosen).Error; err != nil {
 			panic("Failed to seed Dosen: " + err.Error())
@@ -352,10 +395,10 @@ func EnsureBootstrapData() error {
 	var ormawa models.Ormawa
 	if err := config.DB.Where("id = ?", 1).First(&ormawa).Error; err != nil {
 		ormawa = models.Ormawa{
-			Nama: "HMP Informatics",
+			Nama:      "HMP Informatics",
 			Deskripsi: "Himpunan Mahasiswa Informatics",
-			Visi: "Menjadi himpunan terbaik",
-			Misi: "Meningkatkan skill mahasiswa",
+			Visi:      "Menjadi himpunan terbaik",
+			Misi:      "Meningkatkan skill mahasiswa",
 		}
 		ormawa.ID = 1
 		if err := config.DB.Create(&ormawa).Error; err != nil {
@@ -364,26 +407,67 @@ func EnsureBootstrapData() error {
 		fmt.Println("✅ [SEEDER] Created Ormawa ID: 1")
 	}
 
-	// 5. Ensure Student User
+	// 5. Ensure Super Admin User
+	var superAdmin models.User
+	if err := config.DB.Where("email = ?", "superadmin@bku.ac.id").First(&superAdmin).Error; err != nil {
+		hash, _ := bcrypt.GenerateFromPassword([]byte("superadmin123"), bcrypt.DefaultCost)
+		superAdmin = models.User{Email: "superadmin@bku.ac.id", Password: string(hash), Role: "super_admin"}
+		if err := config.DB.Create(&superAdmin).Error; err != nil {
+			panic("Failed to seed Super Admin: " + err.Error())
+		}
+		fmt.Println("✅ [SEEDER] Created Super Admin: superadmin@bku.ac.id")
+	}
+
+	// 6. Ensure Faculty Admin User per Fakultas
+	var allFakultas []models.Fakultas
+	config.DB.Find(&allFakultas)
+	for _, fak := range allFakultas {
+		email := strings.ToLower(fmt.Sprintf("admin.%s@bku.ac.id", fak.Kode))
+		var facultyAdmin models.User
+		if err := config.DB.Where("email = ?", email).First(&facultyAdmin).Error; err != nil {
+			hash, _ := bcrypt.GenerateFromPassword([]byte("adminfak123"), bcrypt.DefaultCost)
+			facultyAdmin = models.User{Email: email, Password: string(hash), Role: "faculty_admin"}
+			if err := config.DB.Create(&facultyAdmin).Error; err != nil {
+				panic("Failed to seed Faculty Admin: " + err.Error())
+			}
+			fmt.Printf("✅ [SEEDER] Created Faculty Admin: %s\n", email)
+		}
+	}
+
+	// 7. Ensure Ormawa Admin User
+	var ormawaAdmin models.User
+	if err := config.DB.Where("email = ?", "ormawa@bku.ac.id").First(&ormawaAdmin).Error; err != nil {
+		hash, _ := bcrypt.GenerateFromPassword([]byte("ormawa123"), bcrypt.DefaultCost)
+		ormawaAdmin = models.User{Email: "ormawa@bku.ac.id", Password: string(hash), Role: "ormawa_admin"}
+		if err := config.DB.Create(&ormawaAdmin).Error; err != nil {
+			panic("Failed to seed Ormawa Admin: " + err.Error())
+		}
+		fmt.Println("✅ [SEEDER] Created Ormawa Admin: ormawa@bku.ac.id")
+	}
+
+	// 8. Ensure Student User
 	var user models.User
 	if err := config.DB.Where("email = ?", "student@bku.ac.id").First(&user).Error; err != nil {
 		hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("student123"), bcrypt.DefaultCost)
-		user = models.User{Email: "student@bku.ac.id", Password: string(hashedPassword), Role: "mahasiswa"}
+		user = models.User{Email: "student@bku.ac.id", Password: string(hashedPassword), Role: "student"}
 		if err := config.DB.Create(&user).Error; err != nil {
 			panic("Failed to seed User: " + err.Error())
 		}
-		fmt.Println("✅ [SEEDER] Created User: student@bku.ac.id (role: mahasiswa)")
+		fmt.Println("✅ [SEEDER] Created User: student@bku.ac.id (role: student)")
+	} else if user.Role != "student" {
+		user.Role = "student"
+		config.DB.Save(&user)
 	}
 
-	// 6. Ensure Mahasiswa
+	// 9. Ensure Mahasiswa
 	var student models.Mahasiswa
 	if err := config.DB.Where("nim = ?", "BKU2024001").First(&student).Error; err != nil {
 		student = models.Mahasiswa{
 			PenggunaID:       user.ID,
 			NIM:              "BKU2024001",
 			Nama:             "Mahasiswa Demo",
-			FakultasID:       fakultas.ID,
-			ProgramStudiID:   major.ID,
+			FakultasID:       fakultasFH.ID,
+			ProgramStudiID:   majorFH.ID,
 			DosenPAID:        dosen.ID,
 			SemesterSekarang: 2,
 			StatusAkun:       "Aktif",
@@ -392,6 +476,13 @@ func EnsureBootstrapData() error {
 			panic("Failed to seed Mahasiswa: " + err.Error())
 		}
 		fmt.Println("✅ [SEEDER] Created Mahasiswa: BKU2024001")
+	} else {
+		student.FakultasID = fakultasFH.ID
+		student.ProgramStudiID = majorFH.ID
+		if student.PenggunaID == 0 {
+			student.PenggunaID = user.ID
+		}
+		config.DB.Save(&student)
 	}
 
 	fmt.Println("🏁 [SEEDER] All data seeded successfully.")
