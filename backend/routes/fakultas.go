@@ -1,7 +1,7 @@
 package routes
 
 import (
-	"siakad-backend/controllers"
+	fakultas "siakad-backend/controllers/fakultas"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -11,106 +11,106 @@ func InisialisasiRuteFakultas(aplikasi *fiber.App) {
 	api := aplikasi.Group("/api/faculty") // prefix kembali ke English sesuai frontend
 
 	// Akademik & Dosen
-	api.Get("/lecturers", controllers.AmbilDaftarDosen)
-	api.Get("/lecturers/:id", controllers.AmbilDosenBerdasarID)
-	api.Post("/lecturers", controllers.TambahDosenBaru)
-	api.Put("/lecturers/:id", controllers.PerbaruiDataDosen)
-	api.Delete("/lecturers/:id", controllers.HapusDataDosen)
+	api.Get("/lecturers", fakultas.AmbilDaftarDosen)
+	api.Get("/lecturers/:id", fakultas.AmbilDosenBerdasarID)
+	api.Post("/lecturers", fakultas.TambahDosenBaru)
+	api.Put("/lecturers/:id", fakultas.PerbaruiDataDosen)
+	api.Delete("/lecturers/:id", fakultas.HapusDataDosen)
 
 	// Mahasiswa
-	api.Get("/students", controllers.AmbilDaftarMahasiswa)
-	api.Get("/students/:id", controllers.AmbilMahasiswaBerdasarID)
-	api.Post("/students", controllers.TambahMahasiswaBaru)
-	api.Put("/students/:id", controllers.PerbaruiDataMahasiswa)
-	api.Delete("/students/:id", controllers.HapusDataMahasiswa)
+	api.Get("/students", fakultas.AmbilDaftarMahasiswa)
+	api.Get("/students/:id", fakultas.AmbilMahasiswaBerdasarID)
+	api.Post("/students", fakultas.TambahMahasiswaBaru)
+	api.Put("/students/:id", fakultas.PerbaruiDataMahasiswa)
+	api.Delete("/students/:id", fakultas.HapusDataMahasiswa)
 
 	// Struktur Organisasi (Fakultas & Prodi/Majors)
-	api.Get("/faculties", controllers.AmbilDaftarFakultas)
-	api.Get("/majors", controllers.AmbilDaftarProdi)
-	api.Post("/majors", controllers.TambahProdiBaru)
-	api.Put("/majors/:id", controllers.PerbaruiProdi)
-	api.Delete("/majors/:id", controllers.HapusProdi)
+	api.Get("/faculties", fakultas.AmbilDaftarFakultas)
+	api.Get("/majors", fakultas.AmbilDaftarProdi)
+	api.Post("/majors", fakultas.TambahProdiBaru)
+	api.Put("/majors/:id", fakultas.PerbaruiProdi)
+	api.Delete("/majors/:id", fakultas.HapusProdi)
 
 	// Matakuliah & Jadwal
-	api.Get("/courses", controllers.AmbilDaftarProdi) // ALIAS: Frontend Mahasiswa.jsx calls this for majors
+	api.Get("/courses", fakultas.AmbilDaftarProdi) // ALIAS: Frontend Mahasiswa.jsx calls this for majors
 
 	// Dashboard & Ringkasan
-	api.Get("/summary", controllers.AmbilRingkasanDashboard)
-	api.Get("/reports/summary", controllers.AmbilRingkasanLaporan)
+	api.Get("/summary", fakultas.AmbilRingkasanDashboard)
+	api.Get("/reports/summary", fakultas.AmbilRingkasanLaporan)
 
 	// Pelayanan Mahasiswa (Aspirasi, Prestasi, Surat)
-	api.Get("/aspirations", controllers.AmbilDaftarAspirasi)
-	api.Get("/aspirasi", controllers.AmbilDaftarAspirasi) // ALIAS
-	api.Put("/aspirations/:id", controllers.TanggapiAspirasi)
-	api.Put("/aspirasi/:id", controllers.TanggapiAspirasi) // ALIAS
-	api.Delete("/aspirations/:id", controllers.HapusAspirasi)
+	api.Get("/aspirations", fakultas.AmbilDaftarAspirasi)
+	api.Get("/aspirasi", fakultas.AmbilDaftarAspirasi) // ALIAS
+	api.Put("/aspirations/:id", fakultas.TanggapiAspirasi)
+	api.Put("/aspirasi/:id", fakultas.TanggapiAspirasi) // ALIAS
+	api.Delete("/aspirations/:id", fakultas.HapusAspirasi)
 
-	api.Get("/achievements", controllers.AmbilDaftarPrestasi)
-	api.Get("/prestasi", controllers.AmbilDaftarPrestasi) // ALIAS
-	api.Put("/achievements/:id/verify", controllers.VerifikasiPrestasi)
-	api.Put("/prestasi/:id/verify", controllers.VerifikasiPrestasi) // ALIAS
-	api.Put("/prestasi/:id", controllers.VerifikasiPrestasi)        // ALIAS
-	api.Delete("/achievements/:id", controllers.HapusPrestasi)
-	api.Delete("/prestasi/:id", controllers.HapusPrestasi) // ALIAS
+	api.Get("/achievements", fakultas.AmbilDaftarPrestasi)
+	api.Get("/prestasi", fakultas.AmbilDaftarPrestasi) // ALIAS
+	api.Put("/achievements/:id/verify", fakultas.VerifikasiPrestasi)
+	api.Put("/prestasi/:id/verify", fakultas.VerifikasiPrestasi) // ALIAS
+	api.Put("/prestasi/:id", fakultas.VerifikasiPrestasi)        // ALIAS
+	api.Delete("/achievements/:id", fakultas.HapusPrestasi)
+	api.Delete("/prestasi/:id", fakultas.HapusPrestasi) // ALIAS
 
-	api.Get("/letters", controllers.AmbilDaftarSurat)
-	api.Get("/surat", controllers.AmbilDaftarSurat) // ALIAS
-	api.Put("/letters/:id", controllers.PerbaruiStatusSurat)
-	api.Put("/surat/:id", controllers.PerbaruiStatusSurat) // ALIAS
-	api.Delete("/letters/:id", controllers.HapusSurat)
+	api.Get("/letters", fakultas.AmbilDaftarSurat)
+	api.Get("/surat", fakultas.AmbilDaftarSurat) // ALIAS
+	api.Put("/letters/:id", fakultas.PerbaruiStatusSurat)
+	api.Put("/surat/:id", fakultas.PerbaruiStatusSurat) // ALIAS
+	api.Delete("/letters/:id", fakultas.HapusSurat)
 
 	// MBKM & Beasiswa
-	api.Get("/mbkm", controllers.AmbilDaftarMBKM)
-	api.Put("/mbkm/:id", controllers.PerbaruiStatusMBKM)
-	api.Delete("/mbkm/:id", controllers.HapusMBKM)
+	api.Get("/mbkm", fakultas.AmbilDaftarMBKM)
+	api.Put("/mbkm/:id", fakultas.PerbaruiStatusMBKM)
+	api.Delete("/mbkm/:id", fakultas.HapusMBKM)
 
-	api.Get("/scholarships", controllers.AmbilDaftarBeasiswa)
-	api.Post("/scholarships", controllers.TambahBeasiswa)
-	api.Put("/scholarships/:id", controllers.PerbaruiBeasiswa)
-	api.Delete("/scholarships/:id", controllers.HapusBeasiswa)
-	api.Get("/scholarships/applications", controllers.AmbilPendaftarBeasiswa)
-	api.Put("/scholarships/applications/:id", controllers.VerifikasiBeasiswa)
-	api.Delete("/scholarships/applications/:id", controllers.HapusPendaftarBeasiswa)
+	api.Get("/scholarships", fakultas.AmbilDaftarBeasiswa)
+	api.Post("/scholarships", fakultas.TambahBeasiswa)
+	api.Put("/scholarships/:id", fakultas.PerbaruiBeasiswa)
+	api.Delete("/scholarships/:id", fakultas.HapusBeasiswa)
+	api.Get("/scholarships/applications", fakultas.AmbilPendaftarBeasiswa)
+	api.Put("/scholarships/applications/:id", fakultas.VerifikasiBeasiswa)
+	api.Delete("/scholarships/applications/:id", fakultas.HapusPendaftarBeasiswa)
 
 	// Konten & Berita
-	api.Get("/articles", controllers.AmbilDaftarBerita)
-	api.Get("/news", controllers.AmbilDaftarBerita) // ALIAS
-	api.Post("/articles", controllers.TambahBeritaBaru)
-	api.Post("/news", controllers.TambahBeritaBaru) // ALIAS
-	api.Put("/articles/:id", controllers.PerbaruiBerita)
-	api.Put("/news/:id", controllers.PerbaruiBerita) // ALIAS
-	api.Delete("/articles/:id", controllers.HapusBerita)
-	api.Delete("/news/:id", controllers.HapusBerita) // ALIAS
+	api.Get("/articles", fakultas.AmbilDaftarBerita)
+	api.Get("/news", fakultas.AmbilDaftarBerita) // ALIAS
+	api.Post("/articles", fakultas.TambahBeritaBaru)
+	api.Post("/news", fakultas.TambahBeritaBaru) // ALIAS
+	api.Put("/articles/:id", fakultas.PerbaruiBerita)
+	api.Put("/news/:id", fakultas.PerbaruiBerita) // ALIAS
+	api.Delete("/articles/:id", fakultas.HapusBerita)
+	api.Delete("/news/:id", fakultas.HapusBerita) // ALIAS
 
 	// Pendaftaran Mahasiswa Baru (PMB)
-	api.Get("/admissions", controllers.AmbilDaftarPendaftarMB)
-	api.Put("/admissions/:id/status", controllers.PerbaruiStatusPendaftarMB)
+	api.Get("/admissions", fakultas.AmbilDaftarPendaftarMB)
+	api.Put("/admissions/:id/status", fakultas.PerbaruiStatusPendaftarMB)
 
 	// Organisasi & Proposal
-	api.Get("/organizations", controllers.AmbilDaftarOrganisasi)
-	api.Get("/organizations-faculty", controllers.AmbilDaftarOrganisasi) // ALIAS
-	api.Post("/organizations", controllers.TambahOrganisasi)
-	api.Put("/organizations/:id", controllers.PerbaruiOrganisasi)
-	api.Delete("/organizations/:id", controllers.HapusOrganisasi)
+	api.Get("/organizations", fakultas.AmbilDaftarOrganisasi)
+	api.Get("/organizations-faculty", fakultas.AmbilDaftarOrganisasi) // ALIAS
+	api.Post("/organizations", fakultas.TambahOrganisasi)
+	api.Put("/organizations/:id", fakultas.PerbaruiOrganisasi)
+	api.Delete("/organizations/:id", fakultas.HapusOrganisasi)
 
-	api.Get("/ormawa/proposals", controllers.AmbilDaftarProposalOrmawa)
-	api.Put("/ormawa/proposals/:id", controllers.ValidasiProposalOrmawa)
+	api.Get("/ormawa/proposals", fakultas.AmbilDaftarProposalOrmawa)
+	api.Put("/ormawa/proposals/:id", fakultas.ValidasiProposalOrmawa)
 
-	api.Get("/internal/proposals", controllers.AmbilDaftarProposalFakultas)
-	api.Put("/internal/proposals/:id", controllers.ValidasiProposalFakultas)
+	api.Get("/internal/proposals", fakultas.AmbilDaftarProposalFakultas)
+	api.Put("/internal/proposals/:id", fakultas.ValidasiProposalFakultas)
 
-	api.Get("/counseling", controllers.AmbilDaftarKonseling)
-	api.Post("/counseling", controllers.TambahSesiKonseling)
-	api.Put("/counseling/:id", controllers.UpdateSesiKonseling)
-	api.Delete("/counseling/:id", controllers.HapusSesiKonseling)
+	api.Get("/counseling", fakultas.AmbilDaftarKonseling)
+	api.Post("/counseling", fakultas.TambahSesiKonseling)
+	api.Put("/counseling/:id", fakultas.UpdateSesiKonseling)
+	api.Delete("/counseling/:id", fakultas.HapusSesiKonseling)
 
 	// Layanan Kesehatan (Health Screening)
-	api.Get("/health-screening", controllers.AmbilDaftarKesehatan)
-	api.Get("/health-screening/summary", controllers.AmbilRingkasanKesehatan)
-	api.Delete("/health-screening/:id", controllers.HapusDataKesehatan)
+	api.Get("/health-screening", fakultas.AmbilDaftarKesehatan)
+	api.Get("/health-screening/summary", fakultas.AmbilRingkasanKesehatan)
+	api.Delete("/health-screening/:id", fakultas.HapusDataKesehatan)
 
 	// Periode Akademik (Pengaturan)
-	api.Get("/academic-periods", controllers.AmbilPengaturanAkademik)
-	api.Post("/academic-periods", controllers.SimpanPengaturanAkademik)
-	api.Put("/academic-periods", controllers.SimpanPengaturanAkademik) // ALIAS
+	api.Get("/academic-periods", fakultas.AmbilPengaturanAkademik)
+	api.Post("/academic-periods", fakultas.SimpanPengaturanAkademik)
+	api.Put("/academic-periods", fakultas.SimpanPengaturanAkademik) // ALIAS
 }
