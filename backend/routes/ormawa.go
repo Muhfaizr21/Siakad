@@ -1,12 +1,13 @@
 package routes
 
 import (
-	ormawa "siakad-backend/controllers/ormawa"
+	"siakad-backend/controllers/ormawa"
+	"siakad-backend/middleware"
 	"github.com/gofiber/fiber/v2"
 )
 
 func SetupOrmawaRoutes(app *fiber.App) {
-	api := app.Group("/api/ormawa")
+	api := app.Group("/api/ormawa", middleware.AuthProtected, middleware.OrmawaCheck)
 
 	// DASHBOARD STATS
 	api.Get("/stats", ormawa.GetOrmawaStats)

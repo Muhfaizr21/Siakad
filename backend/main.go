@@ -41,9 +41,10 @@ func main() {
 	// Middleware
 	app.Use(logger.New())
 	app.Use(cors.New(cors.Config{
-		AllowOrigins: "*",
+		AllowOrigins: "http://localhost:5173, http://127.0.0.1:5173",
 		AllowHeaders: "Origin, Content-Type, Accept, Authorization",
 		AllowMethods: "GET, POST, PUT, DELETE",
+		AllowCredentials: true,
 	}))
 
 	// Static files for uploads
@@ -130,6 +131,7 @@ func main() {
 	// Modular Routes
 	routes.InisialisasiRuteFakultas(app)
 	routes.SetupOrmawaRoutes(app)
+	routes.SetupSuperAdminRoutes(app)
 
 	// Start Server
 	port := os.Getenv("PORT")

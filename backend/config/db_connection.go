@@ -5,10 +5,10 @@ import (
 	"log"
 	"os"
 
+	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
-	"github.com/joho/godotenv"
 )
 
 var DB *gorm.DB
@@ -23,7 +23,7 @@ type databaseConfig struct {
 
 func ConnectDB() {
 	// Load .env file
-	if err := godotenv.Load(".env"); err != nil {
+	if err := godotenv.Load(); err != nil {
 		log.Println("Warning: .env file not found, using system environment variables")
 	}
 
@@ -48,28 +48,30 @@ func ConnectDB() {
 		InitialSyncFakultas(db)
 	}
 
-	if shouldRunSeed() {
-		seedData(db)
-	} else {
-		log.Println("Seeder skipped (set RUN_SEED=true to enable)")
-	}
-
 	DB = db
 }
 
 func loadDatabaseConfig() databaseConfig {
 	host := os.Getenv("DB_HOST")
-	if host == "" { host = "localhost" }
-	
+	if host == "" {
+		host = "localhost"
+	}
+
 	port := os.Getenv("DB_PORT")
-	if port == "" { port = "5432" }
-	
+	if port == "" {
+		port = "5432"
+	}
+
 	dbname := os.Getenv("DB_NAME")
-	if dbname == "" { dbname = "siakad" } // Fallback default
-	
+	if dbname == "" {
+		dbname = "siakad"
+	}
+
 	user := os.Getenv("DB_USER")
-	if user == "" { user = "muhfaiizr" }
-	
+	if user == "" {
+		user = "postgres"
+	}
+
 	log.Printf("[DB Config] Host: %s, Port: %s, User: %s, DBName: %s\n", host, port, user, dbname)
 
 	return databaseConfig{

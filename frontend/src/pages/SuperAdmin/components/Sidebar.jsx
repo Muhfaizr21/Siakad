@@ -14,6 +14,7 @@ const Sidebar = () => {
       title: "Manajemen Data",
       items: [
         { name: "Data Fakultas", icon: "domain", path: "/admin/faculties" },
+        { name: "Data Prodi", icon: "account_tree", path: "/admin/prodi" },
         { name: "Data Mahasiswa", icon: "database", path: "/admin/students" },
         { name: "Data Dosen", icon: "badge", path: "/admin/lecturers" },
       ]

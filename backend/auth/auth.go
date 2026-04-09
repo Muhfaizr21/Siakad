@@ -3,7 +3,6 @@ package auth
 import (
 	"errors"
 	"fmt"
-	"os"
 	"strings"
 	"time"
 
@@ -29,11 +28,7 @@ type userResponse struct {
 }
 
 func jwtSecret() []byte {
-	secret := os.Getenv("JWT_SECRET")
-	if secret == "" {
-		secret = "siakad-dev-secret-change-me"
-	}
-	return []byte(secret)
+	return config.GetJWTSecret()
 }
 
 func createToken(userID uint, studentID uint, nim string, role string) (string, error) {
@@ -101,7 +96,6 @@ func Login(c *fiber.Ctx) error {
 	var user models.User
 	var roleName string
 	var nim string
-	var nama string
 
 	// 1. Try to find student by NIM first
 	var student models.Mahasiswa
@@ -109,7 +103,6 @@ func Login(c *fiber.Ctx) error {
 	if err == nil {
 		user = student.Pengguna
 		nim = student.NIM
-		nama = student.Nama
 		roleName = student.Pengguna.Role
 	} else {
 		// 2. Try to find user by Email
@@ -121,11 +114,10 @@ func Login(c *fiber.Ctx) error {
 		}
 		roleName = user.Role
 
-		if roleName == "student" {
+		if roleName == "mahasiswa" {
 			_ = config.DB.Where("pengguna_id = ?", user.ID).First(&student).Error
 			if student.ID != 0 {
 				nim = student.NIM
-				nama = student.Nama
 			}
 		}
 	}
@@ -147,17 +139,10 @@ func Login(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(fiber.Map{
-		"status":  "success",
-		"message": "Login berhasil",
+		"success": true,
 		"data": fiber.Map{
-			"token": token,
-			"user": userResponse{
-				ID:    user.ID,
-				Email: user.Email,
-				Role:  roleName,
-				NIM:   nim,
-				Nama:  nama,
-			},
+			"token":     token,
+			"mahasiswa": student, // although for admin it might be empty
 		},
 	})
 }
@@ -295,6 +280,26 @@ func ChangePassword(c *fiber.Ctx) error {
 	})
 }
 
+func Protected() fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		claims, err := parseBearerToken(c)
+		if err != nil {
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+				"status":  "error",
+				"message": "Sesi berakhir atau tidak valid. Silakan login kembali.",
+			})
+		}
+
+		c.Locals("user_id", uint(claims["sub"].(float64)))
+		c.Locals("role", claims["role"].(string))
+		if sid, ok := claims["sid"].(float64); ok {
+			c.Locals("student_id", uint(sid))
+		}
+
+		return c.Next()
+	}
+}
+
 
 func EnsureBootstrapData() error {
 	fmt.Println("🚀 [SEEDER] Starting aggressive seed process...")
@@ -363,11 +368,11 @@ func EnsureBootstrapData() error {
 	var user models.User
 	if err := config.DB.Where("email = ?", "student@bku.ac.id").First(&user).Error; err != nil {
 		hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("student123"), bcrypt.DefaultCost)
-		user = models.User{Email: "student@bku.ac.id", Password: string(hashedPassword), Role: "student"}
+		user = models.User{Email: "student@bku.ac.id", Password: string(hashedPassword), Role: "mahasiswa"}
 		if err := config.DB.Create(&user).Error; err != nil {
 			panic("Failed to seed User: " + err.Error())
 		}
-		fmt.Println("✅ [SEEDER] Created User: student@bku.ac.id")
+		fmt.Println("✅ [SEEDER] Created User: student@bku.ac.id (role: mahasiswa)")
 	}
 
 	// 6. Ensure Mahasiswa
