@@ -1,18 +1,46 @@
 "use client"
 
 import React, { useState, useEffect } from 'react'
-import axios from 'axios'
+import api from '../../lib/axios'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "./components/card"
 import { Button } from "./components/button"
 import { DataTable } from "./components/data-table"
 import { Badge } from "./components/badge"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./components/dialog"
 import { toast, Toaster } from 'react-hot-toast'
 import { cn } from "@/lib/utils"
-import { HeartPulse, Activity, AlertCircle, RefreshCw, FileText } from 'lucide-react'
+import { HeartPulse, Activity, AlertCircle, Eye } from 'lucide-react'
+
+const fmtDate = (value) => {
+  if (!value) return '-'
+  const d = new Date(value)
+  if (Number.isNaN(d.getTime())) return '-'
+  return d.toLocaleDateString('id-ID')
+}
+
+const normalizeHealthRow = (item = {}) => ({
+  id: item.id || item.ID || 0,
+  tanggal_periksa: item.tanggal_periksa || item.Tanggal || item.tanggal || item.created_at || item.CreatedAt || null,
+  mahasiswa_id: item.mahasiswa_id || item.MahasiswaID || 0,
+  nim: item.nim || item.NIM || item?.Mahasiswa?.NIM || '-',
+  nama_mahasiswa: item.nama_mahasiswa || item.NamaMahasiswa || item?.Mahasiswa?.Nama || '-',
+  prodi: item.prodi || item?.Mahasiswa?.ProgramStudi?.Nama || '-',
+  status_kesehatan: item.status_kesehatan || item.StatusKesehatan || 'sehat',
+  golongan_darah: item.golongan_darah || item.GolonganDarah || '-',
+  sumber: item.sumber || item.Sumber || 'kencana_screening',
+  tinggi_badan: Number(item.tinggi_badan ?? item.TinggiBadan ?? 0),
+  berat_badan: Number(item.berat_badan ?? item.BeratBadan ?? 0),
+  sistolik: Number(item.sistolik ?? item.Sistole ?? 0),
+  diastolik: Number(item.diastolik ?? item.Diastole ?? 0),
+  bmi: Number(item.bmi ?? 0),
+  catatan_medis: item.catatan_medis || item.Catatan || '-',
+})
 
 export default function FacultyKesehatan() {
   const [loading, setLoading] = useState(true)
   const [screeningPrograms, setScreeningPrograms] = useState([])
+  const [selectedRecord, setSelectedRecord] = useState(null)
+  const [isDetailOpen, setIsDetailOpen] = useState(false)
   const [statsData, setStatsData] = useState({
     total: 0,
     prima: 0,
@@ -23,12 +51,13 @@ export default function FacultyKesehatan() {
     try {
       setLoading(true)
       const [progRes, summaryRes] = await Promise.all([
-        axios.get('http://localhost:8000/api/faculty/health-screening'),
-        axios.get('http://localhost:8000/api/faculty/health-screening/summary')
+        api.get('/faculty/health-screening'),
+        api.get('/faculty/health-screening/summary')
       ])
 
       if (progRes.data.status === 'success') {
-        setScreeningPrograms(progRes.data.data || [])
+        const rows = Array.isArray(progRes.data.data) ? progRes.data.data.map(normalizeHealthRow) : []
+        setScreeningPrograms(rows)
       }
       if (summaryRes.data.status === 'success') {
         setStatsData(summaryRes.data.data || { total: 0, distribution: {} })
@@ -47,7 +76,7 @@ export default function FacultyKesehatan() {
   const stats = [
     { label: 'Screening Selesai', value: (statsData.total || 0).toLocaleString(), icon: Activity, color: 'text-blue-600', bg: 'bg-blue-50', gradient: 'from-blue-500/10 to-blue-500/5' },
     { label: 'Golongan Darah O', value: (statsData.distribution?.bloodO || 0).toLocaleString(), icon: HeartPulse, color: 'text-emerald-600', bg: 'bg-emerald-50', gradient: 'from-emerald-500/10 to-emerald-500/5' },
-    { label: 'Golongan Darah A', value: (statsData.distribution?.bloodA || 0).toLocaleString(), icon: AlertCircle, color: 'text-amber-600', bg: 'bg-amber-50', gradient: 'from-amber-500/10 to-amber-500/5' },
+    { label: 'Status Pantauan', value: (statsData.status?.pantauan || 0).toLocaleString(), icon: AlertCircle, color: 'text-amber-600', bg: 'bg-amber-50', gradient: 'from-amber-500/10 to-amber-500/5' },
   ]
 
   const columns = [
@@ -56,9 +85,19 @@ export default function FacultyKesehatan() {
       label: "Tanggal Periksa",
       render: (value) => (
          <div className="flex flex-col">
-            <span className="font-bold text-slate-800 font-headline tracking-tight">{new Date(value).toLocaleDateString('id-ID')}</span>
+            <span className="font-bold text-slate-800 font-headline tracking-tight">{fmtDate(value)}</span>
             <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mt-1">Official Record</span>
          </div>
+      )
+    },
+    {
+      key: "nama_mahasiswa",
+      label: "Mahasiswa",
+      render: (value, row) => (
+        <div className="flex flex-col">
+          <span className="font-bold text-slate-900 font-headline tracking-tight text-[13px]">{value || '-'}</span>
+          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mt-1">{row.nim || '-'} • {row.prodi || '-'}</span>
+        </div>
       )
     },
     {
@@ -154,9 +193,55 @@ export default function FacultyKesehatan() {
             onSync={fetchData}
             onExport={() => alert("Ekspor Data Kesehatan...")}
             exportLabel="Download Laporan"
+            actions={(row) => (
+              <Button
+                onClick={() => {
+                  setSelectedRecord(row)
+                  setIsDetailOpen(true)
+                }}
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 hover:text-primary hover:bg-primary/10 rounded-xl"
+              >
+                <Eye className="size-4" />
+              </Button>
+            )}
           />
         </CardContent>
       </Card>
+
+      <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
+        <DialogContent className="max-w-xl">
+          <DialogHeader>
+            <DialogTitle>Detail Health Screening</DialogTitle>
+          </DialogHeader>
+          {selectedRecord && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+              <DetailItem label="Tanggal" value={fmtDate(selectedRecord.tanggal_periksa)} />
+              <DetailItem label="Status" value={String(selectedRecord.status_kesehatan || '-').replace('_', ' ')} />
+              <DetailItem label="Mahasiswa" value={selectedRecord.nama_mahasiswa || '-'} />
+              <DetailItem label="NIM" value={selectedRecord.nim || '-'} />
+              <DetailItem label="Program Studi" value={selectedRecord.prodi || '-'} />
+              <DetailItem label="Gol. Darah" value={selectedRecord.golongan_darah || '-'} />
+              <DetailItem label="Tinggi Badan" value={`${selectedRecord.tinggi_badan || 0} cm`} />
+              <DetailItem label="Berat Badan" value={`${selectedRecord.berat_badan || 0} kg`} />
+              <DetailItem label="Tekanan Darah" value={`${selectedRecord.sistolik || 0}/${selectedRecord.diastolik || 0} mmHg`} />
+              <DetailItem label="BMI" value={selectedRecord.bmi || 0} />
+              <DetailItem label="Sumber" value={String(selectedRecord.sumber || '-').replace('_', ' ')} />
+              <DetailItem label="Catatan" value={selectedRecord.catatan_medis || '-'} full />
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+    </div>
+  )
+}
+
+function DetailItem({ label, value, full = false }) {
+  return (
+    <div className={full ? 'sm:col-span-2' : ''}>
+      <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">{label}</p>
+      <p className="text-sm font-semibold text-slate-800 mt-1 break-words">{value}</p>
     </div>
   )
 }

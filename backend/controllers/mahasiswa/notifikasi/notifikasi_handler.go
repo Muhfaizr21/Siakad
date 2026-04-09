@@ -8,9 +8,20 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
+func getUserID(c *fiber.Ctx) (uint, error) {
+	v, ok := c.Locals("user_id").(uint)
+	if !ok || v == 0 {
+		return 0, fiber.NewError(fiber.StatusUnauthorized, "User tidak terautentikasi")
+	}
+	return v, nil
+}
+
 // GetNotifications returns a list of notifications for the current student
 func GetNotifications(c *fiber.Ctx) error {
-	UserID := c.Locals("user_id").(uint)
+	UserID, err := getUserID(c)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"success": false, "message": "User tidak terautentikasi"})
+	}
 
 	// Filters
 	tipe := c.Query("tipe")
@@ -43,7 +54,7 @@ func GetNotifications(c *fiber.Ctx) error {
 	}
 
 	var notifs []models.Notifikasi
-	err := query.Order("created_at DESC").Find(&notifs).Error
+	err = query.Order("created_at DESC").Find(&notifs).Error
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"success": false, "message": "Gagal mengambil notifikasi"})
 	}
@@ -53,10 +64,13 @@ func GetNotifications(c *fiber.Ctx) error {
 
 // GetUnreadCount returns the number of unread notifications
 func GetUnreadCount(c *fiber.Ctx) error {
-	UserID := c.Locals("user_id").(uint)
+	UserID, err := getUserID(c)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"success": false, "message": "User tidak terautentikasi"})
+	}
 
 	var count int64
-	err := config.DB.Model(&models.Notifikasi{}).
+	err = config.DB.Model(&models.Notifikasi{}).
 		Where("user_id = ? AND is_read = ?", UserID, false).
 		Count(&count).Error
 
@@ -69,10 +83,13 @@ func GetUnreadCount(c *fiber.Ctx) error {
 
 // MarkAsRead marks a single notification as read
 func MarkAsRead(c *fiber.Ctx) error {
-	UserID := c.Locals("user_id").(uint)
+	UserID, err := getUserID(c)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"success": false, "message": "User tidak terautentikasi"})
+	}
 	id := c.Params("id")
 
-	err := config.DB.Model(&models.Notifikasi{}).
+	err = config.DB.Model(&models.Notifikasi{}).
 		Where("id = ? AND user_id = ?", id, UserID).
 		Update("is_read", true).Error
 
@@ -85,9 +102,12 @@ func MarkAsRead(c *fiber.Ctx) error {
 
 // MarkAllAsRead marks all notifications as read for the current user
 func MarkAllAsRead(c *fiber.Ctx) error {
-	UserID := c.Locals("user_id").(uint)
+	UserID, err := getUserID(c)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"success": false, "message": "User tidak terautentikasi"})
+	}
 
-	err := config.DB.Model(&models.Notifikasi{}).
+	err = config.DB.Model(&models.Notifikasi{}).
 		Where("user_id = ? AND is_read = ?", UserID, false).
 		Update("is_read", true).Error
 
@@ -100,10 +120,13 @@ func MarkAllAsRead(c *fiber.Ctx) error {
 
 // DeleteNotification deletes a single notification
 func DeleteNotification(c *fiber.Ctx) error {
-	UserID := c.Locals("user_id").(uint)
+	UserID, err := getUserID(c)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"success": false, "message": "User tidak terautentikasi"})
+	}
 	id := c.Params("id")
 
-	err := config.DB.Where("id = ? AND user_id = ?", id, UserID).Delete(&models.Notifikasi{}).Error
+	err = config.DB.Where("id = ? AND user_id = ?", id, UserID).Delete(&models.Notifikasi{}).Error
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"success": false, "message": "Gagal menghapus notifikasi"})
 	}
@@ -113,7 +136,10 @@ func DeleteNotification(c *fiber.Ctx) error {
 
 // DeleteBulk deletes multiple notifications
 func DeleteBulk(c *fiber.Ctx) error {
-	UserID := c.Locals("user_id").(uint)
+	UserID, err := getUserID(c)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"success": false, "message": "User tidak terautentikasi"})
+	}
 
 	var req struct {
 		IDs []string `json:"ids"`
@@ -122,7 +148,7 @@ func DeleteBulk(c *fiber.Ctx) error {
 		return c.Status(400).JSON(fiber.Map{"success": false, "message": "Data tidak valid"})
 	}
 
-	err := config.DB.Where("id IN ? AND user_id = ?", req.IDs, UserID).Delete(&models.Notifikasi{}).Error
+	err = config.DB.Where("id IN ? AND user_id = ?", req.IDs, UserID).Delete(&models.Notifikasi{}).Error
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"success": false, "message": "Gagal menghapus beberapa notifikasi"})
 	}
@@ -132,9 +158,12 @@ func DeleteBulk(c *fiber.Ctx) error {
 
 // DeleteRead deletes all read notifications
 func DeleteRead(c *fiber.Ctx) error {
-	UserID := c.Locals("user_id").(uint)
+	UserID, err := getUserID(c)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"success": false, "message": "User tidak terautentikasi"})
+	}
 
-	err := config.DB.Where("user_id = ? AND is_read = ?", UserID, true).Delete(&models.Notifikasi{}).Error
+	err = config.DB.Where("user_id = ? AND is_read = ?", UserID, true).Delete(&models.Notifikasi{}).Error
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"success": false, "message": "Gagal menghapus notifikasi"})
 	}

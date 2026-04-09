@@ -31,7 +31,6 @@ import HealthScreeningPage from './pages/Student/HealthScreeningPage'
 import StudentVoicePage from './pages/Student/StudentVoicePage'
 import StudentVoiceDetailPage from './pages/Student/StudentVoiceDetailPage'
 import OrganisasiPage from './pages/Student/OrganisasiPage'
-import StudentKRS from './pages/Student/KRS/index'
 import ProfilePage from './pages/Student/ProfilePage'
 import NotificationPage from './pages/Student/NotificationPage'
 
@@ -239,7 +238,6 @@ function App() {
               <Route path="voice" element={<StudentVoicePage />} />
               <Route path="voice/tiket/:id" element={<StudentVoiceDetailPage />} />
               <Route path="organisasi" element={<OrganisasiPage />} />
-              <Route path="krs" element={<StudentKRS />} />
               <Route path="profile" element={<ProfilePage />} />
               <Route path="notifikasi" element={<NotificationPage />} />
             </Route>

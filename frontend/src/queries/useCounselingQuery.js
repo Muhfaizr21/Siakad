@@ -1,6 +1,35 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../lib/axios';
 
+const toValidDate = (value) => {
+  if (!value) return null;
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return null;
+  return d;
+};
+
+const normalizeRiwayatItem = (item = {}) => {
+  const tanggalRaw = item.tanggal || item.Tanggal || item.created_at || item.CreatedAt;
+  const tanggalDate = toValidDate(tanggalRaw);
+  const dosen = item.dosen || item.Dosen || {};
+
+  const jamMulai =
+    item.jam_mulai ||
+    item.JamMulai ||
+    (tanggalDate
+      ? tanggalDate.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false })
+      : '-');
+
+  return {
+    id: item.id || item.ID || 0,
+    tanggal: tanggalDate ? tanggalDate.toISOString() : null,
+    status: item.status || item.Status || 'Menunggu',
+    tipe: item.tipe || item.Tipe || item.topik || item.Topik || 'Konseling',
+    nama_konselor: item.nama_konselor || item.NamaKonselor || dosen.nama || dosen.Nama || '-',
+    jam_mulai: jamMulai,
+  };
+};
+
 // Get Available Schedules
 export const useCounselingJadwalQuery = () => {
   return useQuery({
@@ -18,7 +47,8 @@ export const useCounselingRiwayatQuery = () => {
     queryKey: ['counseling', 'riwayat'],
     queryFn: async () => {
       const { data } = await api.get('/counseling/riwayat');
-      return data.data; // List of clean BookingResponse
+      const list = Array.isArray(data?.data) ? data.data : [];
+      return list.map(normalizeRiwayatItem);
     },
   });
 };

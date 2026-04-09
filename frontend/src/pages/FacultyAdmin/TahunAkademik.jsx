@@ -58,7 +58,7 @@ export default function TahunAkademikPage() {
   const fetchData = async () => {
     try {
       setLoading(true)
-      const res = await axios.get("http://localhost:8000/api/faculty/academic-periods")
+      const res = await axios.get("/api/faculty/academic-periods")
       if (res.data.status === "success") {
         setData([res.data.data])
       }
@@ -90,10 +90,10 @@ export default function TahunAkademikPage() {
     setIsSubmitting(true)
     try {
       if (isEditMode) {
-        await axios.post(`http://localhost:8000/api/faculty/academic-periods`, formData)
+        await axios.post(`/api/faculty/academic-periods`, formData)
         toast.success("Periode berhasil diperbarui")
       } else {
-        await axios.post("http://localhost:8000/api/faculty/academic-periods", formData)
+        await axios.post("/api/faculty/academic-periods", formData)
         toast.success("Periode baru telah ditambahkan")
       }
       fetchData()
@@ -109,7 +109,7 @@ export default function TahunAkademikPage() {
     if (!selectedPeriodId) return
     setIsSubmitting(true)
     try {
-      await axios.delete(`http://localhost:8000/api/faculty/academic-periods/${selectedPeriodId}`)
+      await axios.delete(`/api/faculty/academic-periods/${selectedPeriodId}`)
       toast.success("Periode akademik berhasil dihapus")
       fetchData()
       setIsDelOpen(false)

@@ -12,6 +12,8 @@ import {
   GraduationCap,
   BookOpen,
   UserCheck,
+  HeartPulse,
+  MessageSquare,
   TrendingUp,
   ArrowUpRight,
   Calendar,
@@ -39,6 +41,24 @@ import {
   Legend,
 } from "recharts"
 import { DataTable } from "./components/data-table"
+import api from '../../lib/axios'
+
+const toArray = (value) => (Array.isArray(value) ? value : []);
+
+const normalizeSummaryData = (raw = {}) => ({
+  totalStudents: Number(raw.totalStudents) || 0,
+  totalLecturers: Number(raw.totalLecturers) || 0,
+  totalCourses: Number(raw.totalCourses) || 0,
+  totalProdi: Number(raw.totalProdi) || 0,
+  totalPrestasi: Number(raw.totalPrestasi) || 0,
+  totalAspirasi: Number(raw.totalAspirasi) || 0,
+  totalHealth: Number(raw.totalHealth) || 0,
+  totalKonseling: Number(raw.totalKonseling) || 0,
+  statusCounts: toArray(raw.statusCounts),
+  prodiDistribution: toArray(raw.prodiDistribution),
+  trendData: toArray(raw.trendData),
+  recentActivity: toArray(raw.recentActivity),
+});
 
 export default function DashboardPage() {
   const navigate = useNavigate();
@@ -50,6 +70,10 @@ export default function DashboardPage() {
     totalLecturers: 0,
     totalCourses: 0,
     totalProdi: 0,
+    totalPrestasi: 0,
+    totalAspirasi: 0,
+    totalHealth: 0,
+    totalKonseling: 0,
     statusCounts: [],
     prodiDistribution: [],
     trendData: [],
@@ -61,10 +85,9 @@ export default function DashboardPage() {
     const fetchDashboardData = async () => {
 
       try {
-        const response = await fetch('http://localhost:8000/api/faculty/summary');
-        const result = await response.json();
-        if (result.status === 'success') {
-          setSummaryData(result.data);
+        const { data: result } = await api.get('/faculty/summary');
+        if (result?.status === 'success') {
+          setSummaryData(normalizeSummaryData(result.data));
         }
       } catch (error) {
         console.error("Error fetching dashboard statistics:", error);
@@ -123,6 +146,36 @@ export default function DashboardPage() {
       color: "text-amber-600",
       bg: "bg-amber-50",
       gradient: "from-amber-500/10 to-amber-500/5"
+    },
+    {
+      key: "totalAspirasi",
+      title: "Aspirasi Mahasiswa",
+      icon: MessageSquare,
+      description: "total tiket aspirasi",
+      value: (summaryData.totalAspirasi || 0).toLocaleString(),
+      color: "text-cyan-700",
+      bg: "bg-cyan-50",
+      gradient: "from-cyan-500/10 to-cyan-500/5"
+    },
+    {
+      key: "totalHealth",
+      title: "Health Screening",
+      icon: HeartPulse,
+      description: "riwayat screening",
+      value: (summaryData.totalHealth || 0).toLocaleString(),
+      color: "text-rose-600",
+      bg: "bg-rose-50",
+      gradient: "from-rose-500/10 to-rose-500/5"
+    },
+    {
+      key: "totalKonseling",
+      title: "Sesi Konseling",
+      icon: GraduationCap,
+      description: "total sesi mahasiswa",
+      value: (summaryData.totalKonseling || 0).toLocaleString(),
+      color: "text-violet-600",
+      bg: "bg-violet-50",
+      gradient: "from-violet-500/10 to-violet-500/5"
     },
     {
       key: "totalProdi",
@@ -257,11 +310,8 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="h-[300px] mt-4 relative w-full min-w-0">
-              {isMounted && (
-                <ResponsiveContainer width="99%" height={300} debounce={50}>
-
-
-
+              {isMounted && summaryData.prodiDistribution.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%" debounce={50}>
                 <BarChart data={summaryData.prodiDistribution} layout="vertical" margin={{ left: 20, right: 20, top: 0, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="#f1f5f9" />
                   <XAxis type="number" hide />
@@ -280,6 +330,8 @@ export default function DashboardPage() {
                   <Bar dataKey="jumlah" fill="#3b82f6" radius={[0, 10, 10, 0]} barSize={16} />
                 </BarChart>
               </ResponsiveContainer>
+              ) : (
+                <div className="h-full w-full flex items-center justify-center text-xs font-semibold text-slate-400">Belum ada data prodi.</div>
               )}
             </div>
           </CardContent>
@@ -303,11 +355,8 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="h-[300px] relative w-full min-w-0">
-              {isMounted && (
-                <ResponsiveContainer width="99%" height={300} debounce={50}>
-
-
-
+              {isMounted && dynamicStatusData.some((d) => d.value > 0) ? (
+                <ResponsiveContainer width="100%" height="100%" debounce={50}>
                 <PieChart>
                   <Pie
                     data={dynamicStatusData}
@@ -328,6 +377,8 @@ export default function DashboardPage() {
                   />
                 </PieChart>
               </ResponsiveContainer>
+              ) : (
+                <div className="h-full w-full flex items-center justify-center text-xs font-semibold text-slate-400">Belum ada data status mahasiswa.</div>
               )}
             </div>
             <div className="flex flex-wrap justify-center gap-x-6 gap-y-2 pb-2">
@@ -389,11 +440,8 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent className="pt-6">
             <div className="h-[300px] relative w-full min-w-0">
-              {isMounted && (
-                <ResponsiveContainer width="99%" height={300} debounce={50}>
-
-
-
+              {isMounted && summaryData.trendData.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%" debounce={50}>
                 <LineChart data={summaryData.trendData}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                   <XAxis dataKey="tahun" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 700 }} />
@@ -406,6 +454,8 @@ export default function DashboardPage() {
                   <Line type="monotone" dataKey="diterima" stroke="#10b981" strokeWidth={4} dot={{ r: 6, fill: '#10b981', strokeWidth: 2, stroke: '#fff' }} activeDot={{ r: 8 }} name="Diterima" />
                 </LineChart>
               </ResponsiveContainer>
+              ) : (
+                <div className="h-full w-full flex items-center justify-center text-xs font-semibold text-slate-400">Belum ada data tren pendaftaran.</div>
               )}
             </div>
           </CardContent>

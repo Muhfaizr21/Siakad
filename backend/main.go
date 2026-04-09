@@ -70,7 +70,11 @@ func main() {
 	kencanaGroup.Get("/progress", kencana.GetProgress)
 	kencanaGroup.Post("/check-in/:id", kencana.CheckIn)
 	kencanaGroup.Get("/sertifikat", kencana.GetSertifikat)
+	kencanaGroup.Post("/sertifikat/generate", kencana.GenerateSertifikat)
+	kencanaGroup.Get("/banding", kencana.GetBandingList)
 	kencanaGroup.Post("/banding", kencana.SubmitBanding)
+	kencanaGroup.Get("/kuis/:id/soal", kencana.GetKuisSoal)
+	kencanaGroup.Post("/kuis/:id/submit", kencana.SubmitKuis)
 
 	// Achievement Routes
 	achievementGroup := api.Group("/achievement", middleware.AuthProtected)
@@ -84,6 +88,10 @@ func main() {
 	profilGroup.Get("/", profil.GetProfile)
 	profilGroup.Put("/data-diri", profil.UpdateProfile)
 	profilGroup.Post("/foto", profil.UploadAvatar)
+	profilGroup.Get("/preferensi-notif", profil.GetPreferensiNotif)
+	profilGroup.Put("/preferensi-notif", profil.UpdatePreferensiNotif)
+	profilGroup.Get("/sesi-aktif", profil.GetSesiAktif)
+	profilGroup.Get("/riwayat-login", profil.GetRiwayatLogin)
 	profilGroup.Put("/ganti-password", profil.ChangePassword)
 
 	// Scholarship Routes
@@ -96,12 +104,20 @@ func main() {
 
 	// Counseling Routes
 	counselingGroup := api.Group("/counseling", middleware.AuthProtected)
+	counselingGroup.Get("/jadwal", counseling.GetCounselingJadwal)
+	counselingGroup.Get("/riwayat", counseling.GetCounselingRiwayat)
+	counselingGroup.Delete("/riwayat/:id", counseling.CancelBooking)
+	counselingGroup.Post("/booking", counseling.CreateBooking)
 	counselingGroup.Get("/status", counseling.GetCounselingStatus)
 	counselingGroup.Post("/request", counseling.RequestCounseling)
 
 	// Health Routes
 	healthGroup := api.Group("/health", middleware.AuthProtected)
+	healthGroup.Get("/ringkasan", health.GetHealthRingkasan)
 	healthGroup.Get("/riwayat", health.GetHealthRiwayat)
+	healthGroup.Get("/riwayat/:id", health.GetHealthDetail)
+	healthGroup.Get("/tips", health.GetHealthTips)
+	healthGroup.Post("/mandiri", health.CreateHealthMandiri)
 	healthGroup.Post("/record", health.CreateHealthRecord)
 
 	// Student Voice (Aspirasi) Routes

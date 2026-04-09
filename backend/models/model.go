@@ -25,7 +25,7 @@ type BaseModel struct {
 type User struct {
 	BaseModel
 	Email    string `gorm:"uniqueIndex;not null"`
-	Password string `gorm:"not null"`
+	Password string `gorm:"column:password_hash;not null"`
 	Role     string `gorm:"index"`
 
 	Mahasiswa *Mahasiswa `gorm:"foreignKey:PenggunaID"`

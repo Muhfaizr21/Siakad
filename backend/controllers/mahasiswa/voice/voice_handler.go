@@ -10,9 +10,20 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
+func getUserID(c *fiber.Ctx) (uint, error) {
+	v, ok := c.Locals("user_id").(uint)
+	if !ok || v == 0 {
+		return 0, fiber.NewError(fiber.StatusUnauthorized, "User tidak terautentikasi")
+	}
+	return v, nil
+}
+
 // GetStats returns count summary for student voice
 func GetStats(c *fiber.Ctx) error {
-	PenggunaID := c.Locals("user_id").(uint)
+	PenggunaID, err := getUserID(c)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"success": false, "message": "User tidak terautentikasi"})
+	}
 
 	var student models.Mahasiswa
 	if err := config.DB.First(&student, "pengguna_id = ?", PenggunaID).Error; err != nil {
@@ -36,7 +47,10 @@ func GetStats(c *fiber.Ctx) error {
 }
 
 func CreateAspirasi(c *fiber.Ctx) error {
-	PenggunaID := c.Locals("user_id").(uint)
+	PenggunaID, err := getUserID(c)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"success": false, "message": "User tidak terautentikasi"})
+	}
 
 	var student models.Mahasiswa
 	if err := config.DB.Preload("ProgramStudi").First(&student, "pengguna_id = ?", PenggunaID).Error; err != nil {
@@ -84,7 +98,10 @@ func CreateAspirasi(c *fiber.Ctx) error {
 }
 
 func GetAspirasiList(c *fiber.Ctx) error {
-	PenggunaID := c.Locals("user_id").(uint)
+	PenggunaID, err := getUserID(c)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"success": false, "message": "User tidak terautentikasi"})
+	}
 
 	var student models.Mahasiswa
 	if err := config.DB.First(&student, "pengguna_id = ?", PenggunaID).Error; err != nil {
@@ -115,7 +132,10 @@ func GetAspirasiList(c *fiber.Ctx) error {
 
 func GetDetail(c *fiber.Ctx) error {
 	id := c.Params("id")
-	PenggunaID := c.Locals("user_id").(uint)
+	PenggunaID, err := getUserID(c)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"success": false, "message": "User tidak terautentikasi"})
+	}
 
 	var student models.Mahasiswa
 	if err := config.DB.First(&student, "pengguna_id = ?", PenggunaID).Error; err != nil {
@@ -135,7 +155,10 @@ func GetDetail(c *fiber.Ctx) error {
 
 func CancelAspirasi(c *fiber.Ctx) error {
 	id := c.Params("id")
-	PenggunaID := c.Locals("user_id").(uint)
+	PenggunaID, err := getUserID(c)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"success": false, "message": "User tidak terautentikasi"})
+	}
 
 	var student models.Mahasiswa
 	if err := config.DB.First(&student, "pengguna_id = ?", PenggunaID).Error; err != nil {

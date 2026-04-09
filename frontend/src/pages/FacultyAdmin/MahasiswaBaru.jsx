@@ -17,7 +17,7 @@ export default function FacultyMahasiswaBaru() {
     const fetchBaru = async () => {
       setLoading(true)
       try {
-        const res = await fetch('http://localhost:8000/api/faculty/admissions')
+        const res = await fetch('/api/faculty/admissions')
         const json = await res.json()
         if (json.status === 'success') {
           setStudents(json.data)

@@ -13,6 +13,14 @@ import (
 	"github.com/google/uuid"
 )
 
+func getUserID(c *fiber.Ctx) (uint, error) {
+	v, ok := c.Locals("user_id").(uint)
+	if !ok || v == 0 {
+		return 0, fiber.NewError(fiber.StatusUnauthorized, "User tidak terautentikasi")
+	}
+	return v, nil
+}
+
 // Pipeline Statuses
 const (
 	StatusMenunggu = "Menunggu"
@@ -51,7 +59,10 @@ func GetBeasiswaDetail(c *fiber.Ctx) error {
 // DaftarBeasiswa handles scholarship applications
 func DaftarBeasiswa(c *fiber.Ctx) error {
 	beasiswaID := c.Params("id")
-	PenggunaID := c.Locals("user_id").(uint)
+	PenggunaID, err := getUserID(c)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"success": false, "message": "User tidak terautentikasi"})
+	}
 
 	var student models.Mahasiswa
 	if err := config.DB.First(&student, "pengguna_id = ?", PenggunaID).Error; err != nil {
@@ -117,7 +128,10 @@ func DaftarBeasiswa(c *fiber.Ctx) error {
 
 // GetRiwayatPengajuan retrieves historical submissions
 func GetRiwayatPengajuan(c *fiber.Ctx) error {
-	PenggunaID := c.Locals("user_id").(uint)
+	PenggunaID, err := getUserID(c)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"success": false, "message": "User tidak terautentikasi"})
+	}
 
 	var student models.Mahasiswa
 	if err := config.DB.First(&student, "pengguna_id = ?", PenggunaID).Error; err != nil {
@@ -136,7 +150,10 @@ func GetRiwayatPengajuan(c *fiber.Ctx) error {
 // GetPengajuanDetail retrieves detailed tracking info
 func GetPengajuanDetail(c *fiber.Ctx) error {
 	id := c.Params("id")
-	PenggunaID := c.Locals("user_id").(uint)
+	PenggunaID, err := getUserID(c)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"success": false, "message": "User tidak terautentikasi"})
+	}
 
 	var student models.Mahasiswa
 	config.DB.First(&student, "pengguna_id = ?", PenggunaID)

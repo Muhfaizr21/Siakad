@@ -24,7 +24,7 @@ export default function FacultyProposalApproval() {
     const fetchData = async () => {
         try {
             setLoading(true)
-            const res = await axios.get('http://localhost:8000/api/faculty/ormawa/proposals')
+            const res = await axios.get('/api/faculty/ormawa/proposals')
             if (res.data.status === 'success') {
                 setProposals(res.data.data)
             }
@@ -43,7 +43,7 @@ export default function FacultyProposalApproval() {
         if (!selectedProposal) return
         setIsSubmitting(true)
         try {
-            const res = await axios.put(`http://localhost:8000/api/faculty/ormawa/proposals/${selectedProposal.id}`, {
+            const res = await axios.put(`/api/faculty/ormawa/proposals/${selectedProposal.id}`, {
                 status: status,
                 catatan_admin: form.catatan_admin
             })

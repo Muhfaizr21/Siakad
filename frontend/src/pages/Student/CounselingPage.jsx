@@ -27,10 +27,14 @@ import EmptyState from '../../components/ui/EmptyState';
 import { toast } from 'react-hot-toast';
 import { NavLink } from 'react-router-dom';
 
-const formatLongDate = (dateStr) =>
-  new Intl.DateTimeFormat('id-ID', {
+const formatLongDate = (dateStr) => {
+  if (!dateStr) return '-';
+  const d = new Date(dateStr);
+  if (Number.isNaN(d.getTime())) return '-';
+  return new Intl.DateTimeFormat('id-ID', {
     weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
-  }).format(new Date(dateStr));
+  }).format(d);
+};
 
 const TIPE_CONFIG = {
   Akademik: { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-100', dot: 'bg-blue-500' },

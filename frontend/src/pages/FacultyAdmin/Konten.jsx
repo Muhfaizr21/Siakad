@@ -60,7 +60,7 @@ export default function KontenPage() {
   const fetchData = async () => {
     setLoading(true)
     try {
-      const res = await axios.get("http://localhost:8000/api/faculty/news")
+      const res = await axios.get("/api/faculty/news")
       if (res.data.status === "success") {
         setArticles(res.data.data)
       }
@@ -99,7 +99,7 @@ export default function KontenPage() {
     if (!selectedArticleId) return
     setIsSubmitting(true)
     try {
-      await axios.delete(`http://localhost:8000/api/faculty/news/${selectedArticleId}`)
+      await axios.delete(`/api/faculty/news/${selectedArticleId}`)
       toast.success("Konten berhasil dihapus")
       setIsDelOpen(false)
       fetchData()
@@ -115,10 +115,10 @@ export default function KontenPage() {
     setIsSubmitting(true)
     try {
       if (isEditMode) {
-        await axios.put(`http://localhost:8000/api/faculty/news/${formData.id}`, formData)
+        await axios.put(`/api/faculty/news/${formData.id}`, formData)
         toast.success("Konten diperbarui")
       } else {
-        await axios.post("http://localhost:8000/api/faculty/news", formData)
+        await axios.post("/api/faculty/news", formData)
         toast.success("Konten dipublikasikan")
       }
       setIsModalOpen(false)

@@ -26,7 +26,7 @@ export default function FacultyPrestasi() {
   const fetchData = async () => {
     try {
       setLoading(true)
-      const res = await fetch('http://localhost:8000/api/faculty/prestasi')
+      const res = await fetch('/api/faculty/prestasi')
       const json = await res.json()
       if (json.status === "success") {
         setAchievements(json.data)
@@ -41,7 +41,7 @@ export default function FacultyPrestasi() {
   const handleValidation = async (id, status) => {
     setIsSubmitting(true)
     try {
-      const res = await fetch(`http://localhost:8000/api/faculty/prestasi/${id}/verify`, {
+      const res = await fetch(`/api/faculty/prestasi/${id}/verify`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -67,7 +67,7 @@ export default function FacultyPrestasi() {
     if (!selectedAchievement?.id) return
     setIsSubmitting(true)
     try {
-      const res = await fetch(`http://localhost:8000/api/faculty/prestasi/${selectedAchievement.id}`, { method: 'DELETE' })
+      const res = await fetch(`/api/faculty/prestasi/${selectedAchievement.id}`, { method: 'DELETE' })
       const json = await res.json()
       if (json.status === 'success') {
         toast.success("Data dihapus")
