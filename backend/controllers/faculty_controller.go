@@ -1397,10 +1397,10 @@ func CreateAdmission(c *fiber.Ctx) error {
 		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Invalid request body"})
 	}
 
-	// Generate PendaftarID format PMB-YYYY-XXX
+	// Generate NomorDaftar format PMB-YYYY-XXX
 	var count int64
 	config.DB.Model(&models.Admission{}).Count(&count)
-	admission.PendaftarID = fmt.Sprintf("PMB-%d-%03d", time.Now().Year(), count+1)
+	admission.NomorDaftar = fmt.Sprintf("PMB-%d-%03d", time.Now().Year(), count+1)
 	admission.TanggalDaftar = time.Now()
 
 	if err := config.DB.Create(&admission).Error; err != nil {
@@ -1515,9 +1515,9 @@ func GetFacultyReports(c *fiber.Ctx) error {
 
 	// 1. Basic Summary
 	config.DB.Model(&models.Student{}).Count(&summary.Total)
-	config.DB.Model(&models.Student{}).Where("status = ?", "active").Count(&summary.Active)
-	config.DB.Model(&models.Student{}).Where("status = ?", "graduated").Count(&summary.Graduated)
-	config.DB.Model(&models.Student{}).Select("AVG(gpa)").Row().Scan(&summary.AvgGPA)
+	config.DB.Model(&models.Student{}).Where("status_akun = ?", "Aktif").Count(&summary.Active)
+	config.DB.Model(&models.Student{}).Where("status_akun = ?", "Lulus").Count(&summary.Graduated)
+	config.DB.Model(&models.Student{}).Select("AVG(ipk)").Row().Scan(&summary.AvgGPA)
 
 	// 2. Mahasiswa per Angkatan
 	type AngkatanStat struct {
@@ -1528,13 +1528,13 @@ func GetFacultyReports(c *fiber.Ctx) error {
 	}
 	var perAngkatan []AngkatanStat
 	config.DB.Raw(`
-		SELECT join_year as angkatan,
-		COUNT(CASE WHEN status = 'active' THEN 1 END) as aktif,
-		COUNT(CASE WHEN status = 'graduated' THEN 1 END) as lulus,
-		COUNT(CASE WHEN status = 'leave' THEN 1 END) as cuti
-		FROM students
-		GROUP BY join_year
-		ORDER BY join_year ASC
+		SELECT tahun_masuk as angkatan,
+		COUNT(CASE WHEN status_akun = 'Aktif' THEN 1 END) as aktif,
+		COUNT(CASE WHEN status_akun = 'Lulus' THEN 1 END) as lulus,
+		COUNT(CASE WHEN status_akun = 'Cuti' THEN 1 END) as cuti
+		FROM mahasiswa
+		GROUP BY tahun_masuk
+		ORDER BY tahun_masuk ASC
 	`).Scan(&perAngkatan)
 
 	// 3. Mahasiswa per Prodi (Detailed for Table)
@@ -1551,12 +1551,12 @@ func GetFacultyReports(c *fiber.Ctx) error {
 		SELECT 
 			m.nama_prodi as name, 
 			COUNT(s.id) as value,
-			COUNT(CASE WHEN s.status = 'active' THEN 1 END) as active,
-			COUNT(CASE WHEN s.status = 'leave' THEN 1 END) as leave,
-			COUNT(CASE WHEN s.status = 'graduated' THEN 1 END) as graduated,
-			AVG(s.gpa) as avg_gpa
-		FROM majors m
-		LEFT JOIN students s ON s.major_id = m.id
+			COUNT(CASE WHEN s.status_akun = 'Aktif' THEN 1 END) as active,
+			COUNT(CASE WHEN s.status_akun = 'Cuti' THEN 1 END) as leave,
+			COUNT(CASE WHEN s.status_akun = 'Lulus' THEN 1 END) as graduated,
+			AVG(s.ipk) as avg_gpa
+		FROM program_studi m
+		LEFT JOIN mahasiswa s ON s.prodi_id = m.id
 		GROUP BY m.nama_prodi
 	`).Scan(&perProdi)
 
@@ -1569,14 +1569,14 @@ func GetFacultyReports(c *fiber.Ctx) error {
 	config.DB.Raw(`
 		SELECT 
 			CASE 
-				WHEN gpa < 2.0 THEN '< 2.0'
-				WHEN gpa >= 2.0 AND gpa < 2.5 THEN '2.0-2.5'
-				WHEN gpa >= 2.5 AND gpa < 3.0 THEN '2.5-3.0'
-				WHEN gpa >= 3.0 AND gpa < 3.5 THEN '3.0-3.5'
+				WHEN ipk < 2.0 THEN '< 2.0'
+				WHEN ipk >= 2.0 AND ipk < 2.5 THEN '2.0-2.5'
+				WHEN ipk >= 2.5 AND ipk < 3.0 THEN '2.5-3.0'
+				WHEN ipk >= 3.0 AND ipk < 3.5 THEN '3.0-3.5'
 				ELSE '3.5-4.0'
 			END as range,
 			COUNT(*) as jumlah
-		FROM students
+		FROM mahasiswa
 		GROUP BY range
 		ORDER BY range ASC
 	`).Scan(&ipkDist)
@@ -1643,7 +1643,7 @@ func GetGrades(c *fiber.Ctx) error {
 		SELECT 
 			s.id as student_id,
 			s.nim,
-			s.name as student_name,
+			s.nama_mahasiswa as student_name,
 			COALESCE(g.absensi, 0) as absensi,
 			COALESCE(g.tugas, 0) as tugas,
 			COALESCE(g.uts, 0) as uts,
@@ -1651,7 +1651,7 @@ func GetGrades(c *fiber.Ctx) error {
 			COALESCE(g.nilai_akhir, 0) as nilai_akhir,
 			COALESCE(g.grade_label, '-') as grade_label,
 			COALESCE(g.point, 0) as point
-		FROM students s
+		FROM mahasiswa s
 		JOIN krs_validation kv ON kv.student_id = s.id
 		JOIN krs_items ki ON ki.krs_submission_id = kv.id
 		LEFT JOIN grades g ON g.student_id = s.id AND g.matakuliah_id = ki.course_id

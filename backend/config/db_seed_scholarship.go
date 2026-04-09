@@ -63,17 +63,13 @@ func seedScholarshipData(db *gorm.DB) {
 			db.Create(&s)
 		} else {
 			db.Model(&existing).Updates(map[string]interface{}{
-				"penyelenggara":       s.Penyelenggara,
-				"kategori":            s.Kategori,
-				"deskripsi":           s.Deskripsi,
-				"persyaratan":         s.Persyaratan,
-				"nilai_bantuan":       s.NilaiBantuan,
-				"kuota":               s.Kuota,
-				"sisa_kuota":          s.SisaKuota,
-				"deadline":            s.Deadline,
-				"syarat_ipk_min":      s.SyaratIPKMin,
-				"is_berbasis_ekonomi": s.IsBerbasisEkonomi,
-				"is_aktif":            s.IsAktif,
+				"persyaratan":     s.Persyaratan,
+				"nilai_bantuan":   s.NilaiBantuan,
+				"kuota":           s.Kuota,
+				"sisa_kuota":      s.SisaKuota,
+				"deadline":        s.Deadline,
+				"min_ipk":         s.SyaratIPKMin,
+				"is_aktif":        s.IsAktif,
 			})
 		}
 	}

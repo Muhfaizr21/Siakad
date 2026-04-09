@@ -31,7 +31,9 @@ import EmptyState from '../../components/ui/EmptyState';
 
 // Format Date Utility
 function formatDate(dateStr) {
+  if (!dateStr) return '-';
   const date = new Date(dateStr);
+  if (isNaN(date.getTime())) return '-';
   return new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }).format(date);
 }
 

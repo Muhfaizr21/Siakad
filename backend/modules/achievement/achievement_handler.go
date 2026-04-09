@@ -113,13 +113,15 @@ func CreateAchievement(c *fiber.Ctx) error {
 	// Relative Public URL (akan dihost oleh fiber static route)
 	sertifikatURL := "/uploads/achievements/" + filename
 
+	tahun := tanggal.Year()
+
 	achievement := models.Achievement{
 		StudentID:     student.ID,
 		NamaLomba:     namaLomba,
 		Kategori:      kategori,
 		Penyelenggara: penyelenggara,
 		Tingkat:       tingkat,
-		Tanggal:       tanggal,
+		Tahun:         tahun,
 		Peringkat:     peringkat,
 		SertifikatURL: sertifikatURL,
 		Status:        "Menunggu",

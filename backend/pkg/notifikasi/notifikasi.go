@@ -20,12 +20,12 @@ type KirimParams struct {
 func Kirim(db *gorm.DB, params KirimParams) error {
 	// 1. Save to Database
 	notif := models.Notification{
-		StudentID: params.StudentID,
-		Type:      params.Type,
-		Title:     params.Title,
-		Content:   params.Content,
-		Link:      params.Link,
-		IsRead:    false,
+		UserID:  params.StudentID, // Mapping student to user for now if IDs match
+		Type:    params.Type,
+		Title:   params.Title,
+		Message: params.Content,
+		Link:    params.Link,
+		IsRead:  false,
 	}
 
 	if err := db.Create(&notif).Error; err != nil {
@@ -35,7 +35,7 @@ func Kirim(db *gorm.DB, params KirimParams) error {
 	// 2. Check Preferences & Send Email (Async)
 	go func() {
 		var pref models.NotificationPreference
-		if err := db.Where("student_id = ?", params.StudentID).First(&pref).Error; err != nil {
+		if err := db.Where("pengguna_id = ?", params.StudentID).First(&pref).Error; err != nil {
 			log.Printf("[Notifikasi] Error checking preferences for student %d: %v", params.StudentID, err)
 			return
 		}

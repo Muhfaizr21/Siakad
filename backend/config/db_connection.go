@@ -39,6 +39,7 @@ func ConnectDB() {
 		log.Println("Migration Error:", err)
 	} else {
 		log.Println("Migrations Completed")
+		InitialSyncFakultas(db)
 	}
 
 	if shouldRunSeed() {

@@ -26,6 +26,10 @@ Konsep RBAC di sistem ini tidak sekadar tipe akun, melainkan mapping dari spesif
 | **Student Voice** | ✅ Monitoring All | ✅ Faculty Review | ❌ Deny | ❌ Deny | ✅ Create & Track |
 | **Health Screening** | ✅ Health Analytics| ✅ View Reports | ❌ Deny | ❌ Deny | ✅ Self-Input |
 | **KENCANA Hub** | ✅ Manage Stages | ✅ Monitoring | ❌ Deny | ❌ Deny | ✅ Learn & Quiz |
+| **E-Persuratan** | ✅ Full Access | ✅ Process & Approve | ❌ Deny | ❌ Deny | ✅ Pengajuan |
+| **Program MBKM** | ✅ Full Access | ✅ Approve/Monitor | ✅ Verify | ❌ Deny | ✅ Daftar & Track |
+| **Ormawa & Proposal** | ✅ Final Approve | ✅ Dept. Approve | ❌ Deny | ✅ Create & Manage | ➖ Lihat Info |
+| **Pengumuman Fakultas** | ✅ CRUD All | ✅ Publish Fakultas | ❌ Deny | ❌ Deny | ➖ Read Only |
 
 ---
 
@@ -69,83 +73,110 @@ Sistem dirancang dengan arsitektur **Decoupled Full-Stack** untuk skalabilitas t
 
 ## 🗄️ DATABASE SCHEMA (Extended Production Blueprint)
 
-Model relasional ini mencakup seluruh modul akademik dan non-akademik:
+Sistem menggunakan **dual-schema PostgreSQL architecture**:
+- **`public`** — Schema utama untuk portal mahasiswa
+- **`fakultas_admin`** — Schema terisolasi untuk operasional admin fakultas
 
-### Core & Academic
-- `users`, `roles`, `permissions`, `role_permissions` (RBAC System)
-- `faculties`, `majors`, `lecturers`, `students` (Master Data)
-- `courses` (Mata Kuliah), `mata_kuliah_prasyarat` (Prerequisites)
-- `classes` (Jadwal), `student_krs` (Header/Detail), `student_grades` (KHS)
+### Schema `public` — Portal Mahasiswa
 
-### Student Life & Engagement
-- **Student Voice**: `tiket_aspirasis`, `tiket_timeline_events` (Tracking flow)
-- **Health**: `hasil_kesehatans` (TB, BB, Tekanan Darah, BMI)
-- **KENCANA**: `kencana_tahaps`, `kencana_materis`, `kencana_kuis`, `kuis_soal`, `kencana_hasil_kuis`, `kencana_progress`, `kencana_banding`, `kencana_sertifikats`
-- **Scholarship**: `beasiswas`, `pengajuan_beasiswas`, `pengajuan_berkas`, `pengajuan_pipeline_logs`
-- **Others**: `achievements`, `riwayat_organisasi`, `booking_konselings`, `kegiatan_kampus`, `aktivitas_logs`
+#### Core & Otentikasi
+- `peran` (id, nama_peran, deskripsi)
+- `pengguna` (id, email, kata_sandi, peran_id, aktif, deleted_at)
+- `fakultas` (id, nama_fakultas, kode_fakultas, dekan)
+- `program_studi` (id, fakultas_id, nama_prodi, kode_prodi, jenjang, akreditasi)
+- `dosen` (id, pengguna_id, nidn, nama_dosen, fakultas_id, prodi_id, apakah_dpa)
+- `mahasiswa` (id, pengguna_id, nim, nama_mahasiswa, prodi_id, dosen_pa_id, ipk, total_sks, current_semester, foto_url, tempat_lahir, jenis_kelamin, agama, golongan_darah, credit_limit, ...)
 
-### System Utilities
-- `notifications` (Real-time student alerts)
-- `pengumumans` (Global portal announcements)
-- `login_histories` (Security & Audit trails)
-- `notification_preferences` (Student self-settings)
+#### Modul Akademik
+- `periode_akademik` (id, nama_periode, semester, is_aktif, krs_buka)
+- `mata_kuliah` (id, kode_mk, nama_mk, sks, semester, prodi_id)
+- `jadwal_kuliah` (id, mk_id, dosen_id, periode_id, hari, jam_mulai, ruangan, kuota)
+- `krs_header` (id, mahasiswa_id, periode_id, status, total_sks, catatan_wali)
+- `krs_detail` (id, krs_id, jadwal_id)
+
+#### Layanan Mahasiswa
+- `prestasi` (id, mahasiswa_id, nama_prestasi, bidang, tingkat, tahun, status, poin_skpi, catatan, verified_by, verified_at)
+- `beasiswa` (id, nama_beasiswa, min_ipk, deadline, kuota, status, kategori, nilai_bantuan, is_aktif)
+- `pendaftaran_beasiswa` (id, beasiswa_id, mahasiswa_id, status, nomor_referensi, motivasi)
+
+#### Student Voice
+- `aspirasi` (id: **UUID**, nomor_tiket, mahasiswa_id, judul, deskripsi, kategori, status, fakultas_id, is_anonim, level_saat_ini)
+- `tiket_timeline_events` (id: UUID, tiket_id, tipe_event, level, isi_respons, dilakukan_oleh)
+
+#### Kesehatan & Konseling
+- `konseling` (id, mahasiswa_id, jenis, tanggal, status, konselor, jadwal_id, keluhan_awal)
+- `program_screening` (id, periode, target_smt, status)
+- `hasil_screening` (id, mahasiswa_id, program_id, kondisi, catatan)
+
+#### PKKMB & Kencana
+- `pkkmb_kegiatan` (id, judul, tanggal, lokasi, pemateri)
+- `kencana_tahap` (id, nama, label, urutan, status)
+- `kencana_materi` (id, tahap_id, judul, file_url, tipe)
+- `kencana_kuis` (id, materi_id, judul, passing_grade, bobot_persen, durasi_menit)
+- `kuis_soal` (id, kuis_id, pertanyaan, opsi_a/b/c/d, kunci_jawaban)
+- `kencana_hasil_kuis` (id, mahasiswa_id, kuis_id, skor, lulus, percobaan_ke)
+
+#### Dashboard & Utilitas
+- `berita` (id, judul, konten, status, thumbnail, views)
+- `pendaftaran_mahasiswa_baru` (id, nomor_daftar, nama_lengkap, pilihan_prodi, status, jalur)
+- `pengumuman` (id, judul, isi_singkat, kategori, is_pinned, is_aktif)
+- `notifikasi` (id: UUID, pengguna_id, tipe, judul, pesan, sudah_dibaca)
+- `riwayat_login` (id, pengguna_id, alamat_ip, status)
+- `log_aktivitas` (id, mahasiswa_id, tipe, deskripsi)
+- `log_audit` (id, pengguna_id, aksi, entitas, nilai_lama, nilai_baru)
 
 ---
 
-## 1. 🛡️ SUPER ADMIN (Dewa / Kendali Absolut)
-*Fokus Utama: Parameter Sistem, Keamanan Master, Modul Keuangan & Infrastruktur Global.*
+### Schema `fakultas_admin` — Admin Fakultas (Terisolasi)
 
-- **Dynamic RBAC Engineering**:
-  - Konfigurasi `permissions` table dan `role_permissions` secara dinamis.
-  - Revoke hak akses Admin Fakultas tertentu jika terjadi kecurangan.
-- **Global Academic Setup**:
-  - Membuka / Menutup portal Tahun Akademik (*Academic Year / Semester Aktif*).
-  - Integrasi Batch: Import/Export data Dosen dan Mahasiswa Baru (CSV/Excel via API).
-- **Audit & Security (Log System)**:
-  - Menyimpan *Activity Log* ber-timestamp. Menyimpan *Payload Activity* untuk mencegah manipulasi data krusial (seperti audit jejak siapa yang mengganti Nilai Mahasiswa menjadi A).
-- **Financial Gateway Module**:
-  - Sinkronisasi Data Tagihan UKT. Generate Virtual Account.
-  - Setup Beasiswa & Keringanan Biaya/Dispensasi Pembayaran bagi mahasiswa khusus.
+#### Core (v3.0.0 — Refactored ke Bahasa Indonesia)
+- `peran`, `pengguna`, `fakultas`, `program_studi`, `dosen`, `mahasiswa`
 
-## 2. 🏢 FACULTY ADMIN (Pusat Operasional Fakultas)
-*Fokus Utama: Birokrasi Kurikulum, Tenaga Pendidik, Validasi Syarat Kelulusan Fakultas.*
-*(Catatan Keamanan RBAC: Data query selalu di-filter secara strict `WHERE faculty_id = ?`)*
+#### Feature Tables
+- `prestasi` (+ `catatan`, `diverifikasi_pada` — *NEW*)
+- `pkkmb_kegiatan` (+ `deskripsi`, `wajib` — *NEW*)
+- `kesehatan`, `aspirasi_fakultas`, `beasiswa_internal`, `pendaftaran_beasiswa`, `konseling`
+- `periode_akademik` — *NEW*: Pengaturan tahun ajaran & semester aktif
+- `pkkmb_materi` — *NEW*: File/link materi pembekalan
+- `pkkmb_tugas` — *NEW*: Penugasan selama PKKMB
+- `pkkmb_kelulusan` — *NEW*: Evaluasi akhir kelulusan PKKMB
+- `pengajuan_surat` — *NEW*: Layanan E-Persuratan mahasiswa
+- `program_mbkm` — *NEW*: Pelacakan MBKM (Merdeka Belajar)
+- `organisasi_mahasiswa` — *NEW*: Master data Ormawa tingkat fakultas
+- `proposal_ormawa` — *NEW*: Pengajuan anggaran/kegiatan ke Dekanat
+- `proposal_fakultas` — *NEW*: Pengajuan kegiatan internal fakultas
+- `pengumuman` — *NEW*: Broadcast informasi resmi
+- `berita` (+ `thumbnail`, `dilihat`, `diperbarui_pada` — *NEW*)
 
-- **Curriculum & Plotting Scheduling**:
-  - Manajemen Prasyarat Beban SKS dari satu Mata Kuliah Ke Mata Kuliah Lain (contoh: Kalkulus II syaratnya harus lulus Kalkulus I).
-  - Plotting Ruang Kelas dan Plotting Dosen Pengampu agar tidak terjadi `Schedule Clash` (Bentrok Jadwal).
-- **Student Progression Administration**:
-  - Manajemen Cuti Akademik (Leave of Absence) dan mutasi pertukaran Mahasiswa Antar Kampus/MBKM.
-  - Proses verifikasi persyaratan dokumen Yudisium & Skripsi.
-  - Cetak Transkrip Resmi yang di-_generate_ dengan _Digital Signature/QR Code_.
-- **Dashboard Fakultas**:
-  - Statistik *Key Performance Indicator* (KPI) Dosen berdasarkan kehadiran mengajar, dan KPI grafik distribusi IPK (Indeks Prestasi Kumulatif) mahasiswa satu fakultas.
+---
 
-## 3. 👨‍🏫 LECTURER / DOSEN (Baru Ditambahkan: Kunci Verifikasi Akademik)
-*Fokus Utama: Delivery Pendidikan, Bimbingan KRS, & Otoritas Mutlak Penilaian Akademik.*
-*(Catatan Keamanan RBAC: Data query selalu di-filter berdasarkan plot assignment dosen terkait)*
+## 🏗️ ARSITEKTUR KODE
 
-- **Dosen Pembimbing Akademik (DPA)**:
-  - Melihat riwayat _Student Record_ mahasiswa perwaliannya (GPA History, SKS Sisa).
-  - Menyetujui (Approve) atau Menolak dan merombak daftar pengajuan KRS Mahasiswa untuk semester ini.
-- **Dosen Pengampu Mata Kuliah**:
-  - Mengelola *Absensi Mahasiswa* secara real-time pada setiap sesi pertemuan.
-  - **Portal Grading (Penilaian)**: Input komponen nilai (Tugas, UTS, UAS, Praktikum) yang akan menghitung skor berbobot otomatis ke dalam KHS. *Zero tolerance* untuk edit setelah tenggat waktu `Grade Lock` habis.
+### Struktur Backend
+```
+backend/
+├── config/           # DB connection, migrations, seeders
+├── database/
+│   └── migrations/   # SQL migration files (01-04)
+├── middleware/        # JWT auth, RBAC guards
+├── models/
+│   ├── models.go              # Model utama (public schema)
+│   ├── admin_fakultas.go      # Model admin + model baru
+│   ├── fakultas_schema.go     # Fak-admin bridge models
+│   ├── student_bridge.go      # FakStudent (bridge utama)
+│   └── student_sync.go        # GORM hooks sinkronisasi
+└── modules/          # Handler modules per fitur
+```
 
-## 4. ⛺ ORMAWA ADMIN (Penggerak Organisasi Mahasiswa)
-*Fokus Utama: E-Birokrasi Kampus, Pendanaan, & Ekstrakurikuler Ekosistem.*
-*(Catatan Keamanan RBAC: Admin UKM A tidak dapat melihat database UKM B)*
+### Migration Files
+| File | Deskripsi |
+|---|---|
+| `01_initial.sql` | Setup awal, extension, enum |
+| `02_admin_fakultas_schema.sql` | Schema `fakultas_admin` (v3.0.0) |
+| `03_student_schema_relasi.sql` | Schema legacy (referensi) |
+| `04_localized_schema.sql` | **Schema Indonesia definitif** (public) |
 
-- **Recruitment & HR Module**:
-  - Publikasi E-Oprec via Dashboard Utama Mahasiswa.
-  - Verifikasi keanggotaan dan menjabat posisi kepanitiaan (Ketua Kegiatan, Divisi Acara, dsb).
-- **Smart E-Proposal & Grants**:
-  - Sistem pengajuan Dokumen Proposal Kegiatan dan Form RAB (Rencana Anggaran Biaya).
-  - **Approval Pipeline Flow**: `Draft` ➔ `Review Pembina` ➔ `Review Fakultas / Kemahasiswaan Pusat` ➔ `Approved / Funded`.
-- **E-LPJ (Laporan Pertanggungjawaban)**:
-  - Unggah rincian riil pemakaian dana dan dokumentasi acara penutup. Jika LPJ ditangguhkan, sistem akan "hold" proposal baru.
-- **Facility Reservation Module**:
-  - Antarmuka visual ketersediaan gedung/aula, booking secara live dan menunggu persetujuan (Ticket System).
+---
 
 ## 5. 🎓 STUDENT (Pusat Pelayanan)
 *Fokus Utama: Self-Service Akademik, Cek Nilai, Interaksi Kampus.*
@@ -174,121 +205,132 @@ Model relasional ini mencakup seluruh modul akademik dan non-akademik:
 
 ---
 
-## 🗄️ STRUKTUR DATABASE (Production DB Schema)
+## 🚀 ROADMAP STATUS
 
-Model relasional ini menangkai interkoneksi kompleks:
-
-```sql
--- RBAC Core
-[users] (id, email, password_hash, role_id, is_active)
-[roles] (id, name: super_admin, faculty_admin, lecturer, student, ormawa_admin)
-[permissions] (id, name: "approve_krs", "edit_grades", "delete_users")
-[role_permissions] (role_id, permission_id)
-
--- Master Data Hub
-[faculties] (id, name, code, dean_name)
-[majors] (id, name, faculty_id, degree_level)
-[lecturers] (id, user_id, nidn, name, faculty_id, is_dpa)
-[students] (id, user_id, nim, name, major_id, dpa_lecturer_id, current_semester, status)
-
--- Curriculum & Classes
-[courses] (id, code, name, credits, major_id, min_semester)
-[classes] (id, course_id, lecturer_id, academic_year, semester_type, room, schedule_day, start_time, end_time, quota)
-
--- Academic Realities
-[student_krs] (id, student_id, class_id, status: "pending", "approved", "rejected")
-[student_grades] (id, student_id, class_id, assignment_score, mid_score, final_score, total_score, grade_letter)
-
--- Non-Academic & Engagement
-[ormawa] (id, user_id_admin, name, type, description)
-[proposals] (id, ormawa_id, title, requested_budget, status)
-[facilities] (id, name, type, capacity)
-[bookings] (id, user_id, facility_id, start_time, end_time, status)
-
--- Student Voice (Aspirasi)
-[tiket_aspirasi] (id: uuid, nomor_tiket: unique, student_id, fakultas_id, kategori, judul, isi, is_anonim, level_saat_ini, status)
-[tiket_timeline_events] (id: uuid, tiket_id, tipe_event, level, isi_respons, dilakukan_oleh)
-
--- Health & Kencana
-[hasil_kesehatans] (id, student_id, tanggal_periksa, tinggi_badan, berat_badan, bmi, sistolik, diastolik, status_kesehatan, sumber)
-[kencana_tahaps] (id, nama, label, urutan, status, is_aktif)
-[kencana_materis] (id, tahap_id, judul, file_url, tipe)
-[kencana_kuis] (id, materi_id, judul, passing_grade, bobot_persen)
-[kencana_hasil_kuis] (id, student_id, kuis_id, nilai, lulus, attempt_ke)
-
--- Scholarship & Achievements
-[beasiswas] (id, nama, kategori, nilai_bantuan, kuota, deadline)
-[pengajuan_beasiswas] (id, student_id, beasiswa_id, nomor_referensi, status)
-[achievements] (id, student_id, nama_lomba, kategori, peringkat, status)
-```
-
----
-
-## 🚀 TAHAPAN KERJA KITA SELANJUTNYA (ROADMAP REACT IMPLEMENTATION)
-
-Karena sistem ini masif, agar pekerjaan tidak membengkak dan sangat sistematis, alur pengerjaan pada Frontend React kita selanjutnya adalah:
-
-1. **RBAC & Auth Foundation (Completed)**
-   - Login system, JWT Auth, and Role-Based Routing.
-
-2. **Student Experience Module (Current - 90% Done)**
-   - **Student Voice**: Backend & Frontend integrasi 100%.
-   - **Health Screening**: Core logic & UI Dashboard 100%.
-   - **KENCANA Program**: Sertifikasi & Kuis 100%.
-   - **Profile & Achievement**: Riwayat prestasi mahasiswa.
-
-3. **Academic Core Module (Next Milestone)**
-   - **Smart KRS**: Logika bentrok jadwal dan prasyarat SKS.
-   - **KHS & Transcript**: Penilaian oleh dosen dan validasi fakultas.
-
-4. **Finance & Infrastructure**
-   - Generating Virtual Accounts and UKT clearance.
+| Modul | Status | Progress |
+|---|---|---|
+| Auth & JWT | ✅ Selesai | 100% |
+| Student Voice (Aspirasi) | ✅ Selesai | 100% |
+| Health Screening | ✅ Selesai | 100% |
+| KENCANA Program | ✅ Selesai | 100% |
+| Profile & Achievement | ✅ Selesai | 100% |
+| Schema Localization (Indonesia) | ✅ Selesai | 100% |
+| Admin Fakultas Schema v3.0 | ✅ Selesai | 100% |
+| Smart KRS | 🔧 In Progress | ~30% |
+| KHS & Grading | 📋 Planned | 0% |
+| E-Persuratan | 📋 Planned | 0% |
+| MBKM Module | 📋 Planned | 0% |
+| Ormawa & Proposal | 📋 Planned | 0% |
+| Finance / UKT | 📋 Planned | 0% |
 
 ---
 
 ## 📋 CHANGELOG — Update Log Sesi Pengerjaan
+
+### 🗓️ 09 April 2026 — Database Schema Localization & Sync (v3.0.0)
+
+#### ✅ Sinkronisasi Schema Database (public)
+**File:** `backend/models/models.go`
+
+Selaraskan semua GORM `column:` tags agar nama kolom di database benar-benar sesuai dengan target schema Bahasa Indonesia:
+
+- **`Student`**: Tambah column tags ke 11 extra fields → `current_semester`, `foto_url`, `email_personal`, `tempat_lahir`, `tanggal_lahir`, `jenis_kelamin`, `agama`, `kota`, `kode_pos`, `golongan_darah`, `credit_limit`
+- **`Achievement`**: Hapus field `Tanggal` (dummy), tambah `gorm:"column:verified_by"` & `column:verified_at`
+- **`Beasiswa`**: Tambah column tags ke `kategori`, `persyaratan`, `nilai_bantuan`, `sisa_kuota`, `is_berbasis_ekonomi`, `is_aktif`
+- **`PengajuanBeasiswa`**: Tambah tags ke `nomor_referensi`, `motivasi`, `prestasi`, `diupdate_pada`
+- **`TiketAspirasi`**: Tambah tags ke `fakultas_id`, `lampiran_url`, `is_anonim`, `level_saat_ini`, `diupdate_pada`. **UUID dipertahankan** (tidak diganti SERIAL)
+- **`BookingKonseling`**: Tambah `column:jadwal_id` & `column:keluhan_awal`
+
+#### ✅ Migration Baru: `04_localized_schema.sql`
+**File:** `backend/database/migrations/04_localized_schema.sql`
+
+SQL migration definitif dengan nama tabel & kolom Bahasa Indonesia (25+ tabel), mencakup:
+- Semua tabel dari target schema + kolom extended yang dibutuhkan app
+- Tabel `aspirasi` menggunakan **UUID primary key** (bukan SERIAL)
+- Index & foreign key constraint lengkap
+- Tabel baru: `periode_akademik`, `krs_header`, `krs_detail`, `kencana_*`, `notifikasi`, `riwayat_login`, `log_audit`, dll
+
+#### ✅ Cleanup `admin_fakultas.go`
+- 13 struct dengan tabel bahasa Inggris ditandai **DEPRECATED** dengan komentar pengarah ke counterpart Indonesia
+
+---
+
+### 🗓️ 09 April 2026 — Admin Fakultas Schema v3.0.0 (10 Tabel Baru)
+
+#### ✅ Refactor `02_admin_fakultas_schema.sql` → v3.0.0
+**File:** `backend/database/migrations/02_admin_fakultas_schema.sql`
+
+Perubahan besar pada schema admin fakultas:
+- Semua nama tabel diubah ke Bahasa Indonesia (`peran`, `pengguna`, `program_studi`, `dosen`, `mahasiswa`, dll.)
+- Enum diperbarui (bahasa Indonesia)
+
+**Kolom baru pada tabel eksisting:**
+| Tabel | Kolom Baru | Fungsi |
+|---|---|---|
+| `mahasiswa` | `semester_sekarang` | Posisi semester aktif |
+| `mahasiswa` | `diperbarui_pada` | Timestamp sinkronisasi data |
+| `dosen` | `diperbarui_pada` | Pelacakan pembaruan profil |
+| `prestasi` | `catatan` | Feedback dari admin/dekanat |
+| `prestasi` | `diverifikasi_pada` | Timestamp resmi persetujuan |
+| `pkkmb_kegiatan` | `deskripsi` | Detail agenda kegiatan |
+| `pkkmb_kegiatan` | `wajib` | Flag wajib/opsional |
+| `berita` | `thumbnail` | Link gambar utama |
+| `berita` | `dilihat` | Counter view statistik |
+| `berita` | `diperbarui_pada` | Info update artikel |
+
+**10 Tabel baru:**
+| Tabel | Fungsi |
+|---|---|
+| `periode_akademik` | Pengaturan tahun ajaran & semester aktif |
+| `pengajuan_surat` | Layanan E-Persuratan mahasiswa |
+| `program_mbkm` | Pelacakan keterlibatan mahasiswa MBKM |
+| `organisasi_mahasiswa` | Master data Ormawa tingkat fakultas |
+| `proposal_ormawa` | Pengajuan anggaran/kegiatan ke Dekanat |
+| `proposal_fakultas` | Pengajuan kegiatan internal/struktural |
+| `pkkmb_materi` | File & link materi pembekalan PKKMB |
+| `pkkmb_tugas` | Pengelolaan penugasan selama PKKMB |
+| `pkkmb_kelulusan` | Monitoring evaluasi akhir kelulusan PKKMB |
+| `pengumuman` | Broadcast informasi resmi fakultas |
+| `berita` | Portal konten artikel + tracking view |
+
+#### ✅ GORM Models Baru
+**File:** `backend/models/admin_fakultas.go`
+
+11 struct GORM baru ditambahkan: `PeriodeAkademikFak`, `PkkmbMateri`, `PkkmbTugas`, `PkkmbKelulusan`, `PengajuanSurat`, `ProgramMBKM`, `OrganisasiMahasiswa`, `ProposalOrmawa`, `ProposalFakultas`, `PengumumanFak`, `BeritaFak`
+
+#### ✅ Update GORM Models Existing
+- **`fakultas_schema.go`** — `FakAchievement`: migrated ke `fakultas_admin.prestasi`, + field `DiverifikasiPada`
+- **`student_bridge.go`** — `FakStudent`: + field `SemesterSekarang`, `DiperbaruiPada`, nama kolom diubah ke Indonesia
+- **`student_sync.go`** — Fix mapping `CurrentSemester` → `SemesterSekarang`
+
+---
 
 ### 🗓️ 07 April 2026 — Health Screening Page & HealthCharacter UI Upgrade
 
 #### ✨ `HealthScreeningPage.jsx` — Premium UI Overhaul
 **File:** `frontend/src/pages/Student/HealthScreeningPage.jsx`
 
-- **Makeover Header "Kondisi Terakhir":** Desain header card utama diubah total. Status sekarang ditampilkan dengan ikon jam berwarna dinamis (Hijau/Rose/Amber) yang menyesuaikan kondisi kesehatan mahasiswa, disertai badge **"Tervalidasi BKU"** di sisi kanan.
-- **StatItem Cards Redesign:** Keempat statistik kesehatan (Tinggi, Berat, Tensi, Gol. Darah) yang sebelumnya flat kini diubah menjadi **4 Card Independen** bergaya *bento box* premium:
-  - Setiap card punya ikon berwarna unik (Biru untuk Tinggi, Emerald untuk Berat, Rose untuk Tensi, Merah untuk Gol. Darah).
-  - Hover state menampilkan bayangan lembut (*soft shadow*) untuk kesan interaktif.
-- **Perluasan Status Umum Banner:** Area "Status Umum" di bawah statistik diubah menjadi banner hero yang lebih menonjol:
-  - Ukuran avatar karakter diperbesar dari `w-12 h-12` menjadi **`w-24 h-24`**.
-  - Teks nama status dibesarkan ke `text-2xl font-black`.
-  - Ditambahkan kalimat deskripsi kontekstual di bawah nama status.
-  - Indikator Tensi Darah kini menampilkan badge berlatar warna kondisional.
-- **Warna Status Dinamis via `getStatusTheme()`:** Ditambahkan helper function baru `getStatusTheme` yang memetakan warna teks dan ikon berdasarkan nilai `status_kesehatan`:
-  - `sehat` → **Emerald/Hijau**
-  - `perlu_tindak_lanjut` / `bahaya` → **Rose/Merah**
-  - Kondisi lain (Gemuk, Pre-Hiper) → **Amber/Kuning**
-
----
+- **Makeover Header "Kondisi Terakhir":** Status ditampilkan dengan ikon jam berwarna dinamis (Hijau/Rose/Amber) + badge **"Tervalidasi BKU"**
+- **StatItem Cards Redesign:** 4 Card Independen bergaya *bento box* premium dengan ikon berwarna unik
+- **Perluasan Status Umum Banner:** Avatar karakter diperbesar ke `w-24 h-24`, teks `text-2xl font-black`, tambah deskripsi kontekstual
+- **`getStatusTheme()`:** Helper function baru — map warna berdasarkan `status_kesehatan` (emerald/rose/amber)
 
 #### 🆕 `HealthCharacter.jsx` — Komponen SVG Karakter Dinamis Baru
 **File:** `frontend/src/components/health/HealthCharacter.jsx`
 
-Komponen React sepenuhnya baru yang menggantikan penggunaan emoji default OS (Windows) dengan **Karakter Wajah SVG Kustom** yang sepenuhnya dibangun dari elemen `<svg>` dan dianimasikan menggunakan `framer-motion`.
+Karakter wajah SVG kustom berbasis `framer-motion`, menggantikan emoji OS default.
 
-**Logika Kondisi (dari prioritas tertinggi ke terendah):**
-| Kondisi | Trigger | Wajah SVG | Animasi |
-| :--- | :--- | :--- | :--- |
-| `hipertensi` | Sistolik ≥ 140 atau Diastolik ≥ 90 | Mata silang, mulut ternganga | Bergetar cepat |
-| `obesitas` | BMI ≥ 30 | Wajah lebar, mata mengantuk | Bergoyang pelan + keringat jatuh |
-| `kurus` | BMI < 18.5 | Wajah tirus, mata sayu | Melayang goyah (float) |
-| `prima` | BMI 18.5-25 + Tensi normal | Kacamata hitam 😎, senyum lebar | Melayang kalem + bintang berputar |
-| `perhatian` | Kondisi di luar 4 di atas | Muka waspada dengan tanda `?` | Napas (scale pulse) |
-| `nodata` | Data belum tersedia | Siluet abu-abu | Diam |
-
-**Fitur Visual:**
-- **Halo/Glow Effect:** Pancaran cahaya melayang di belakang karakter yang warnanya menyesuaikan kondisi (Merah, Amber, Cyan, Emerald).
-- **No Box/Frame:** Karakter tampil murni tanpa bingkai kotak — langsung menempel secara *floating* di atas card dengan `drop-shadow-2xl`.
-- **Elemen SVG Bergerak:** Uap panas di hipertensi, tetes kerigat di obesitas, dan sparkle bintang di kondisi prima semuanya dianimasikan secara independen dengan `motion.path` / `motion.text`.
+| Kondisi | Trigger | Animasi |
+| :--- | :--- | :--- |
+| `hipertensi` | Sistolik ≥ 140 atau Diastolik ≥ 90 | Bergetar cepat |
+| `obesitas` | BMI ≥ 30 | Bergoyang pelan + keringat jatuh |
+| `kurus` | BMI < 18.5 | Melayang goyah (float) |
+| `prima` | BMI 18.5-25 + tensi normal | Melayang kalem + bintang berputar |
+| `perhatian` | Kondisi lain | Napas (scale pulse) |
+| `nodata` | Data belum tersedia | Diam |
 
 ---
-*Analis System Architect AI: Antigravity* 🌌
-*Status: 100% Comprehensive & Ready To Build.*
+
+*System Architect AI: Antigravity* 🌌
+*Schema Version: public v1.0 | fakultas_admin v3.0.0*
+*Last Updated: 09 April 2026*

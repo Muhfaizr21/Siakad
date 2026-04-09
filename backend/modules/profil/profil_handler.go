@@ -193,7 +193,7 @@ func GetLoginHistory(c *fiber.Ctx) error {
 	config.DB.First(&student, "user_id = ?", userID)
 
 	var history []models.LoginHistory
-	config.DB.Where("student_id = ?", student.ID).Order("created_at desc").Limit(10).Find(&history)
+	config.DB.Where("pengguna_id = ?", userID).Order("dibuat_pada desc").Limit(10).Find(&history)
 
 	return c.JSON(fiber.Map{"success": true, "data": history})
 }
@@ -204,7 +204,7 @@ func GetPreferences(c *fiber.Ctx) error {
 	config.DB.First(&student, "user_id = ?", userID)
 
 	var pref models.NotificationPreference
-	config.DB.FirstOrCreate(&pref, models.NotificationPreference{StudentID: student.ID})
+	config.DB.FirstOrCreate(&pref, models.NotificationPreference{UserID: userID})
 
 	return c.JSON(fiber.Map{"success": true, "data": pref})
 }
@@ -215,7 +215,7 @@ func UpdatePreferences(c *fiber.Ctx) error {
 	config.DB.First(&student, "user_id = ?", userID)
 
 	var pref models.NotificationPreference
-	config.DB.First(&pref, "student_id = ?", student.ID)
+	config.DB.First(&pref, "pengguna_id = ?", userID)
 
 	if err := c.BodyParser(&pref); err != nil {
 		return c.Status(400).JSON(fiber.Map{"success": false, "message": "Data tidak valid"})

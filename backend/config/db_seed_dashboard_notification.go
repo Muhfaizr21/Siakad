@@ -89,9 +89,9 @@ func seedDashboardData(db *gorm.DB) {
 
 func seedNotificationData(db *gorm.DB) {
 	var prefCount int64
-	db.Model(&models.NotificationPreference{}).Where("student_id = ?", 1).Count(&prefCount)
+	db.Model(&models.NotificationPreference{}).Where("pengguna_id = ?", 1).Count(&prefCount)
 	if prefCount == 0 {
-		db.Create(&models.NotificationPreference{StudentID: 1})
+		db.Create(&models.NotificationPreference{UserID: 1})
 	}
 
 	var notifCount int64
@@ -101,26 +101,26 @@ func seedNotificationData(db *gorm.DB) {
 	}
 
 	db.Create(&models.Notification{
-		StudentID: 1,
+		UserID:    1,
 		Type:      "achievement",
 		Title:     "Prestasi Diverifikasi",
-		Content:   "Pencapaian kamu 'Juara 1 Lomba Koding' telah diverifikasi oleh admin. Selamat!",
+		Message:   "Pencapaian kamu 'Juara 1 Lomba Koding' telah diverifikasi oleh admin. Selamat!",
 		Link:      "/student/achievement",
 		IsRead:    false,
 	})
 	db.Create(&models.Notification{
-		StudentID: 1,
+		UserID:    1,
 		Type:      "konseling",
 		Title:     "Konseling Dikonfirmasi",
-		Content:   "Jadwal konseling kamu besok pukul 10:00 telah dikonfirmasi oleh konselor.",
+		Message:   "Jadwal konseling kamu besok pukul 10:00 telah dikonfirmasi oleh konselor.",
 		Link:      "/student/counseling",
 		IsRead:    false,
 	})
 	db.Create(&models.Notification{
-		StudentID: 1,
+		UserID:    1,
 		Type:      "sistem",
 		Title:     "Selamat Datang!",
-		Content:   "Selamat datang di portal BKU Student Hub. Lengkapi profilmu sekarang.",
+		Message:   "Selamat datang di portal BKU Student Hub. Lengkapi profilmu sekarang.",
 		Link:      "/student/profil",
 		IsRead:    true,
 	})

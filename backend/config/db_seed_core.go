@@ -14,13 +14,13 @@ func seedCoreAcademicData(db *gorm.DB) {
 	db.FirstOrCreate(&role, models.Role{Name: "Student"})
 
 	var faculty models.Faculty
-	db.Where("code = ?", "FIK").FirstOrCreate(&faculty, models.Faculty{
+	db.Where("kode_fakultas = ?", "FIK").FirstOrCreate(&faculty, models.Faculty{
 		Name: "Fakultas Ilmu Komputer",
 		Code: "FIK",
 	})
 
 	var major models.Major
-	db.Where("name = ? AND faculty_id = ?", "Teknik Informatika", faculty.ID).FirstOrCreate(&major, models.Major{
+	db.Where("nama_prodi = ? AND fakultas_id = ?", "Teknik Informatika", faculty.ID).FirstOrCreate(&major, models.Major{
 		Name:      "Teknik Informatika",
 		FacultyID: faculty.ID,
 	})
@@ -38,7 +38,7 @@ func seedCoreAcademicData(db *gorm.DB) {
 		}
 		db.Create(&dosenUser)
 	}
-	db.Where("user_id = ?", dosenUser.ID).FirstOrCreate(&dosen, models.Lecturer{
+	db.Where("pengguna_id = ?", dosenUser.ID).FirstOrCreate(&dosen, models.Lecturer{
 		UserID:    dosenUser.ID,
 		NIDN:      "9988776655",
 		Name:      "Budi Santoso, M.Kom",
@@ -58,13 +58,13 @@ func seedCoreAcademicData(db *gorm.DB) {
 		}
 		db.Create(&user)
 	}
-	db.Where("user_id = ?", user.ID).FirstOrCreate(&student, models.Student{
+	db.Where("pengguna_id = ?", user.ID).FirstOrCreate(&student, models.Student{
 		UserID:          user.ID,
 		NIM:             "10123456",
 		Name:            "Tegar Mahasiswa BKU",
 		MajorID:         major.ID,
 		CurrentSemester: 5,
-		Status:          "aktif",
+		Status:          "Aktif",
 		EntryYear:       2021,
 	})
 

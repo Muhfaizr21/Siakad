@@ -37,6 +37,7 @@ func Create(c *fiber.Ctx) error {
 		PeriodeMulai      int    `json:"periode_mulai"`
 		PeriodeSelesai    *int   `json:"periode_selesai"`
 		DeskripsiKegiatan string `json:"deskripsi_kegiatan"`
+		Apresiasi         string `json:"apresiasi"`
 	}
 
 	var req OrgRequest
@@ -59,6 +60,7 @@ func Create(c *fiber.Ctx) error {
 		PeriodeMulai:      req.PeriodeMulai,
 		PeriodeSelesai:    req.PeriodeSelesai,
 		DeskripsiKegiatan: req.DeskripsiKegiatan,
+		Apresiasi:         req.Apresiasi,
 		StatusVerifikasi:  "Menunggu",
 		CreatedAt:         time.Now(),
 	}
@@ -94,6 +96,7 @@ func Update(c *fiber.Ctx) error {
 		PeriodeMulai      int    `json:"periode_mulai"`
 		PeriodeSelesai    *int   `json:"periode_selesai"`
 		DeskripsiKegiatan string `json:"deskripsi_kegiatan"`
+		Apresiasi         string `json:"apresiasi"`
 	}
 	var req OrgRequest
 	if err := c.BodyParser(&req); err != nil {
@@ -109,6 +112,7 @@ func Update(c *fiber.Ctx) error {
 	rec.PeriodeMulai = req.PeriodeMulai
 	rec.PeriodeSelesai = req.PeriodeSelesai
 	rec.DeskripsiKegiatan = req.DeskripsiKegiatan
+	rec.Apresiasi = req.Apresiasi
 	config.DB.Save(&rec)
 
 	return c.JSON(fiber.Map{"success": true, "data": rec})

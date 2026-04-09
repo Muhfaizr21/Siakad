@@ -34,11 +34,11 @@ func hitungKumulatif(studentID uint) float64 {
 		// Ambil nilai terbaik
 		var hasil models.KencanaHasilKuis
 		config.DB.Where("student_id = ? AND kencana_kuis_id = ?", studentID, kuis.ID).
-			Order("nilai desc").First(&hasil)
+			Order("skor desc").First(&hasil)
 
 		nilaiKuis := 0.0
 		if hasil.ID != 0 {
-			nilaiKuis = hasil.Nilai
+			nilaiKuis = hasil.Skor
 		}
 		kumulatif += nilaiKuis * (kuis.BobotPersen / 100.0)
 	}
@@ -136,7 +136,7 @@ func GetProgress(c *fiber.Ctx) error {
 
 				var hasilTerbaik models.KencanaHasilKuis
 				config.DB.Where("student_id = ? AND kencana_kuis_id = ?", student.ID, kuis.ID).
-					Order("nilai desc").First(&hasilTerbaik)
+					Order("skor desc").First(&hasilTerbaik)
 
 				var countAttempt int64
 				config.DB.Model(&models.KencanaHasilKuis{}).
@@ -151,7 +151,7 @@ func GetProgress(c *fiber.Ctx) error {
 					} else {
 						status = "tidak_lulus"
 					}
-					t := hasilTerbaik.DikerjakanAt
+					t := hasilTerbaik.CreatedAt
 					tglKerjakan = &t
 				}
 
@@ -162,7 +162,7 @@ func GetProgress(c *fiber.Ctx) error {
 					BobotPersen: kuis.BobotPersen,
 					DurasiMenit: kuis.DurasiMenit,
 					Status:      status,
-					NilaiTerbaik: hasilTerbaik.Nilai,
+					NilaiTerbaik: hasilTerbaik.Skor,
 					JumlahAttempt: int(countAttempt),
 					TerakhirDikerjakan: tglKerjakan,
 				}
@@ -325,12 +325,11 @@ func SubmitKuis(c *fiber.Ctx) error {
 	hasil := models.KencanaHasilKuis{
 		StudentID:     student.ID,
 		KencanaKuisID: kuis.ID,
-		Nilai:         nilai,
+		Skor:          nilai,
 		JumlahBenar:   jumlahBenar,
 		TotalSoal:     totalSoal,
 		Lulus:         lulus,
-		AttemptKe:     int(countAttempt) + 1,
-		DikerjakanAt:  now,
+		PercobaanKe:   int(countAttempt) + 1,
 		CreatedAt:     now,
 	}
 	config.DB.Create(&hasil)
@@ -510,12 +509,12 @@ func AjukanBanding(c *fiber.Ctx) error {
 	// Cek apakah ada hasil kuis (dikerjakan dalam 72 jam terakhir)
 	var hasil models.KencanaHasilKuis
 	config.DB.Where("student_id = ? AND kencana_kuis_id = ?", student.ID, kuis.ID).
-		Order("dikerjakan_at desc").First(&hasil)
+		Order("dibuat_pada desc").First(&hasil)
 
 	if hasil.ID == 0 {
 		return c.Status(400).JSON(fiber.Map{"success": false, "message": "Kamu belum mengerjakan kuis ini"})
 	}
-	if time.Since(hasil.DikerjakanAt) > 72*time.Hour {
+	if time.Since(hasil.CreatedAt) > 72*time.Hour {
 		return c.Status(400).JSON(fiber.Map{"success": false, "message": "Batas waktu pengajuan banding 72 jam setelah kuis dikerjakan sudah lewat"})
 	}
 

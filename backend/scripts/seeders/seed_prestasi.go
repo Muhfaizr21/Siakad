@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"time"
 	"siakad-backend/models"
 	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
@@ -51,7 +50,7 @@ func SeedPrestasi() {
 			Kategori:      "Akademik",
 			Tingkat:       "Nasional",
 			Peringkat:     "Juara 1",
-			Tanggal:       time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC),
+			Tahun:         2024,
 			Penyelenggara: "RISTEKDIKTI",
 			SertifikatURL: "https://example.com/sertifikat1.pdf",
 			Status:        "Menunggu",
@@ -62,7 +61,7 @@ func SeedPrestasi() {
 			Kategori:      "Non-Akademik",
 			Tingkat:       "Internasional",
 			Peringkat:     "Medali Perak",
-			Tanggal:       time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC),
+			Tahun:         2024,
 			Penyelenggara: "WKF (World Karate Federation)",
 			SertifikatURL: "https://example.com/sertifikat2.pdf",
 			Status:        "Menunggu",
