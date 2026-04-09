@@ -1,6 +1,7 @@
 package main
 
 import (
+	"os"
 	authSvc "siakad-backend/auth"
 	"siakad-backend/config"
 	"siakad-backend/controllers/mahasiswa/achievement"
@@ -15,7 +16,6 @@ import (
 	"siakad-backend/controllers/mahasiswa/voice"
 	"siakad-backend/middleware"
 	"siakad-backend/routes"
-	"os"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
@@ -38,12 +38,12 @@ func main() {
 		},
 	})
 
-	// Middleware
+	// Middleware woi
 	app.Use(logger.New())
 	app.Use(cors.New(cors.Config{
-		AllowOrigins: "http://localhost:5173, http://127.0.0.1:5173",
-		AllowHeaders: "Origin, Content-Type, Accept, Authorization",
-		AllowMethods: "GET, POST, PUT, DELETE",
+		AllowOrigins:     "http://localhost:5173, http://127.0.0.1:5173",
+		AllowHeaders:     "Origin, Content-Type, Accept, Authorization",
+		AllowMethods:     "GET, POST, PUT, DELETE",
 		AllowCredentials: true,
 	}))
 
