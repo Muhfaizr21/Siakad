@@ -161,5 +161,6 @@ func main() {
 	if port == "" {
 		port = "8000"
 	}
+	log.Printf("Server starting on port :%s", port)
 	app.Listen(":" + port)
 }
