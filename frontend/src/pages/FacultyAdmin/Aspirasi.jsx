@@ -213,7 +213,7 @@ const FacultyAspirationManagement = () => {
 
       {/* Response Dialog */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="max-w-[95vw] sm:max-w-2xl sm:left-[58%] p-0 overflow-hidden border-none shadow-2xl rounded-[3rem] bg-white font-headline">
+        <DialogContent className="max-w-3xl p-0 overflow-hidden border-none shadow-2xl rounded-[2.5rem] bg-white font-headline">
           {selectedItem && (
             <div className="relative flex flex-col h-[85vh]">
               {/* Premium Header */}
@@ -345,8 +345,8 @@ const FacultyAspirationManagement = () => {
                 </div>
               </div>
 
-              {/* Premium Footer */}
-              <div className="h-24 px-12 flex items-center justify-between border-t border-slate-100 bg-white shrink-0">
+              {/* Footer Actions */}
+              <div className="p-8 px-10 flex items-center justify-between border-t border-slate-100 shrink-0 bg-white">
                 <div className="flex items-center gap-4">
                   <div className="size-9 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-500">
                     <Reply className="size-5" />
@@ -356,13 +356,13 @@ const FacultyAspirationManagement = () => {
                     <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tight">Faculty Official Record Portal</span>
                   </div>
                 </div>
-                <div className="flex items-center gap-6">
-                  <button onClick={() => setIsModalOpen(false)} className="text-[11px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-900 transition-colors">
+                <div className="flex items-center gap-3">
+                  <Button variant="ghost" onClick={() => setIsModalOpen(false)} className="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-900 px-8 h-12 rounded-2xl font-headline">
                     BATALKAN
-                  </button>
+                  </Button>
                   <Button
                     onClick={() => setIsModalOpen(false)}
-                    className="h-12 px-10 rounded-2xl bg-slate-950 text-white hover:bg-slate-800 transition-all font-black text-[11px] uppercase tracking-widest font-headline shadow-xl shadow-slate-950/20"
+                    className="text-[10px] font-black uppercase tracking-widest h-12 px-10 rounded-2xl shadow-xl shadow-primary/20 bg-primary text-white hover:bg-primary/90 transition-all hover:scale-[1.02] active:scale-95 font-headline"
                   >
                     TUTUP PENANGANAN
                   </Button>

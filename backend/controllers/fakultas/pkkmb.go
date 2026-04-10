@@ -10,13 +10,25 @@ import (
 // --- RINGKASAN & MONITORING (UNTUK DASHBOARD) ---
 
 func AmbilRingkasanPkkmb(c *fiber.Ctx) error {
+	role := c.Locals("role").(string)
+	fid := c.Locals("fakultas_id").(uint)
+
 	var totalMaba int64
 	var totalLulus int64
 	var totalProses int64
 
-	config.DB.Model(&models.Mahasiswa{}).Count(&totalMaba)
-	config.DB.Model(&models.PkkmbHasil{}).Where("status_kelulusan = ?", "Lulus").Count(&totalLulus)
-	config.DB.Model(&models.PkkmbHasil{}).Where("status_kelulusan = ?", "Proses").Count(&totalProses)
+	qMhs := config.DB.Model(&models.Mahasiswa{})
+	qHasil := config.DB.Model(&models.PkkmbHasil{})
+
+	if role == "faculty_admin" {
+		qMhs = qMhs.Where("fakultas_id = ?", fid)
+		qHasil = qHasil.Joins("JOIN mahasiswa.mahasiswa ON mahasiswa.mahasiswa.id = mahasiswa.pkkmb_hasil.mahasiswa_id").
+			Where("mahasiswa.mahasiswa.fakultas_id = ?", fid)
+	}
+
+	qMhs.Count(&totalMaba)
+	qHasil.Where("status_kelulusan = ?", "Lulus").Count(&totalLulus)
+	qHasil.Where("status_kelulusan = ?", "Proses").Count(&totalProses)
 
 	// Breakdown per Prodi
 	type ProdiStats struct {
@@ -28,7 +40,11 @@ func AmbilRingkasanPkkmb(c *fiber.Ctx) error {
 	}
 
 	var prodis []models.ProgramStudi
-	config.DB.Find(&prodis)
+	qProdi := config.DB
+	if role == "faculty_admin" {
+		qProdi = qProdi.Where("fakultas_id = ?", fid)
+	}
+	qProdi.Find(&prodis)
 
 	var listStats []ProdiStats
 	for _, p := range prodis {
@@ -37,16 +53,16 @@ func AmbilRingkasanPkkmb(c *fiber.Ctx) error {
 
 		var mabaLulus int64
 		config.DB.Model(&models.PkkmbHasil{}).
-			Joins("JOIN mahasiswa ON mahasiswa.id = pkkmb_hasil.mahasiswa_id").
-			Where("mahasiswa.program_studi_id = ?", p.ID).
-			Where("pkkmb_hasil.status_kelulusan = ?", "Lulus").
+			Joins("JOIN mahasiswa.mahasiswa ON mahasiswa.mahasiswa.id = mahasiswa.pkkmb_hasil.mahasiswa_id").
+			Where("mahasiswa.mahasiswa.program_studi_id = ?", p.ID).
+			Where("mahasiswa.pkkmb_hasil.status_kelulusan = ?", "Lulus").
 			Count(&mabaLulus)
 
 		var avgNilai float64
 		config.DB.Model(&models.PkkmbHasil{}).
-			Joins("JOIN mahasiswa ON mahasiswa.id = pkkmb_hasil.mahasiswa_id").
-			Where("mahasiswa.program_studi_id = ?", p.ID).
-			Select("COALESCE(AVG(pkkmb_hasil.nilai), 0)").
+			Joins("JOIN mahasiswa.mahasiswa ON mahasiswa.mahasiswa.id = mahasiswa.pkkmb_hasil.mahasiswa_id").
+			Where("mahasiswa.mahasiswa.program_studi_id = ?", p.ID).
+			Select("COALESCE(AVG(mahasiswa.pkkmb_hasil.nilai), 0)").
 			Scan(&avgNilai)
 
 		partisipasi := 0.0
@@ -113,16 +129,36 @@ func AmbilDaftarTugasPkkmb(c *fiber.Ctx) error {
 // --- KELULUSAN (MAHASISWA) ---
 
 func AmbilStatusKelulusanMahasiswa(c *fiber.Ctx) error {
+	role := c.Locals("role").(string)
+	fid := c.Locals("fakultas_id").(uint)
+
 	mID := c.Params("id")
 	var s models.PkkmbHasil
-	if err := config.DB.Preload("Mahasiswa").Where("mahasiswa_id = ?", mID).First(&s).Error; err != nil {
-		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Status tidak ditemukan"})
+	
+	query := config.DB.Preload("Mahasiswa")
+	if role == "faculty_admin" {
+		query = query.Joins("JOIN mahasiswa.mahasiswa ON mahasiswa.mahasiswa.id = mahasiswa.pkkmb_hasil.mahasiswa_id").
+			Where("mahasiswa.mahasiswa.fakultas_id = ?", fid)
+	}
+
+	if err := query.Where("mahasiswa_id = ?", mID).First(&s).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Status tidak ditemukan atau Anda tidak memiliki akses"})
 	}
 	return c.JSON(fiber.Map{"status": "success", "data": s})
 }
 
 func AmbilDaftarKelulusanMaba(c *fiber.Ctx) error {
+	role := c.Locals("role").(string)
+	fid := c.Locals("fakultas_id").(uint)
+
 	var list []models.PkkmbHasil
-	config.DB.Preload("Mahasiswa.ProgramStudi").Preload("Mahasiswa.Pengguna").Find(&list)
+	query := config.DB.Preload("Mahasiswa.ProgramStudi").Preload("Mahasiswa.Pengguna")
+	
+	if role == "faculty_admin" {
+		query = query.Joins("JOIN mahasiswa.mahasiswa ON mahasiswa.mahasiswa.id = mahasiswa.pkkmb_hasil.mahasiswa_id").
+			Where("mahasiswa.mahasiswa.fakultas_id = ?", fid)
+	}
+
+	query.Find(&list)
 	return c.JSON(fiber.Map{"status": "success", "data": list})
 }

@@ -27,6 +27,7 @@ type User struct {
 	Email    string `gorm:"uniqueIndex;not null"`
 	Password string
 	Role     string `gorm:"index"`
+	FakultasID *uint `gorm:"index"`
 
 	Mahasiswa *Mahasiswa `gorm:"foreignKey:PenggunaID"`
 	Dosen     *Dosen     `gorm:"foreignKey:PenggunaID"`

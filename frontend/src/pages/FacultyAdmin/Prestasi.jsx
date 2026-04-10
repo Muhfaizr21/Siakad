@@ -188,7 +188,7 @@ export default function FacultyPrestasi() {
 
       {/* ===== PREMIUM DETAIL + VERIFICATION DIALOG ===== */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="max-w-[95vw] sm:max-w-4xl sm:left-[58%] p-0 overflow-hidden border-none shadow-2xl rounded-[3rem] bg-white font-headline">
+        <DialogContent className="max-w-4xl p-0 overflow-hidden border-none shadow-2xl rounded-[2.5rem] bg-white font-headline">
           {sel && (
             <div className="relative flex flex-col h-[88vh]">
 

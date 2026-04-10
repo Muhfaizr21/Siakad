@@ -43,6 +43,14 @@ func AuthProtected(c *fiber.Ctx) error {
 	}
 	if role, ok := claims["role"].(string); ok {
 		c.Locals("role", role)
+	} else {
+		c.Locals("role", "")
+	}
+
+	if fid, ok := claims["fid"].(float64); ok {
+		c.Locals("fakultas_id", uint(fid))
+	} else {
+		c.Locals("fakultas_id", uint(0))
 	}
 	
 	c.Locals("nim", claims["nim"])

@@ -86,8 +86,15 @@ export const AuthProvider = ({ children }) => {
     return user.role.permissions[module].includes(action);
   };
 
+  const logout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('user');
+    window.location.href = '/login';
+  };
+
   return (
-    <AuthContext.Provider value={{ user, hasPermission, switchMockRole, mockRoles }}>
+    <AuthContext.Provider value={{ user, hasPermission, switchMockRole, mockRoles, logout }}>
       {children}
     </AuthContext.Provider>
   );

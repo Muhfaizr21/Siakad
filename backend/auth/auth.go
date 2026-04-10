@@ -33,13 +33,14 @@ func jwtSecret() []byte {
 	return config.GetJWTSecret()
 }
 
-func createToken(userID uint, studentID uint, nim string, role string) (string, error) {
+func createToken(userID uint, studentID uint, nim string, role string, facultyID *uint) (string, error) {
 	now := time.Now()
 	claims := jwt.MapClaims{
 		"sub":  userID,
 		"sid":  studentID,
 		"nim":  nim,
 		"role": role,
+		"fid":  facultyID,
 		"iat":  now.Unix(),
 		"exp":  now.Add(24 * time.Hour).Unix(),
 	}
@@ -138,7 +139,7 @@ func Login(c *fiber.Ctx) error {
 		})
 	}
 
-	token, err := createToken(user.ID, student.ID, nim, roleName)
+	token, err := createToken(user.ID, student.ID, nim, roleName, user.FakultasID)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"status":  "error",
@@ -225,14 +226,13 @@ func RefreshToken(c *fiber.Ctx) error {
 		return c.Status(401).JSON(fiber.Map{"success": false, "message": "Refresh token invalid type"})
 	}
 
-	now := time.Now()
-	newToken := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"sub": claims["sub"],
-		"sid": claims["sid"],
-		"nim": claims["nim"],
-		"exp": now.Add(15 * time.Minute).Unix(),
-	})
-	newAT, err := newToken.SignedString(jwtSecret())
+	var fid *uint
+	if f, ok := claims["fid"].(float64); ok {
+		val := uint(f)
+		fid = &val
+	}
+
+	newAT, err := createToken(uint(claims["sub"].(float64)), uint(claims["sid"].(float64)), claims["nim"].(string), claims["role"].(string), fid)
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"success": false, "message": "Gagal generate token baru"})
 	}
@@ -426,11 +426,23 @@ func EnsureBootstrapData() error {
 		var facultyAdmin models.User
 		if err := config.DB.Where("email = ?", email).First(&facultyAdmin).Error; err != nil {
 			hash, _ := bcrypt.GenerateFromPassword([]byte("adminfak123"), bcrypt.DefaultCost)
-			facultyAdmin = models.User{Email: email, Password: string(hash), Role: "faculty_admin"}
+			facultyAdmin = models.User{
+				Email:      email,
+				Password:   string(hash),
+				Role:       "faculty_admin",
+				FakultasID: &fak.ID,
+			}
 			if err := config.DB.Create(&facultyAdmin).Error; err != nil {
 				panic("Failed to seed Faculty Admin: " + err.Error())
 			}
 			fmt.Printf("✅ [SEEDER] Created Faculty Admin: %s\n", email)
+		} else {
+			// Update if FakultasID is missing
+			if facultyAdmin.FakultasID == nil || *facultyAdmin.FakultasID != fak.ID {
+				facultyAdmin.FakultasID = &fak.ID
+				config.DB.Save(&facultyAdmin)
+				fmt.Printf("✅ [SEEDER] Updated Faculty Admin association: %s\n", email)
+			}
 		}
 	}
 
@@ -446,24 +458,28 @@ func EnsureBootstrapData() error {
 	}
 
 	// 8. Ensure Student User
-	var user models.User
-	if err := config.DB.Where("email = ?", "student@bku.ac.id").First(&user).Error; err != nil {
+	var studentUser models.User
+	if err := config.DB.Unscoped().Where("email = ?", "student@bku.ac.id").First(&studentUser).Error; err != nil {
 		hashedPassword, _ := bcrypt.GenerateFromPassword([]byte("student123"), bcrypt.DefaultCost)
-		user = models.User{Email: "student@bku.ac.id", Password: string(hashedPassword), Role: "student"}
-		if err := config.DB.Create(&user).Error; err != nil {
-			panic("Failed to seed User: " + err.Error())
+		studentUser = models.User{Email: "student@bku.ac.id", Password: string(hashedPassword), Role: "student"}
+		if err := config.DB.Create(&studentUser).Error; err != nil {
+			fmt.Println("⚠️ [SEEDER] Failed to create Student User, it may already exist due to unique constraints:", err)
+		} else {
+			fmt.Println("✅ [SEEDER] Created User: student@bku.ac.id (role: student)")
 		}
-		fmt.Println("✅ [SEEDER] Created User: student@bku.ac.id (role: student)")
-	} else if user.Role != "student" {
-		user.Role = "student"
-		config.DB.Save(&user)
+	} else {
+		if studentUser.Role != "student" || studentUser.DeletedAt.Valid {
+			studentUser.Role = "student"
+			studentUser.DeletedAt.Valid = false
+			config.DB.Unscoped().Save(&studentUser)
+		}
 	}
 
 	// 9. Ensure Mahasiswa
 	var student models.Mahasiswa
-	if err := config.DB.Where("nim = ?", "BKU2024001").First(&student).Error; err != nil {
+	if err := config.DB.Unscoped().Where("nim = ?", "BKU2024001").First(&student).Error; err != nil {
 		student = models.Mahasiswa{
-			PenggunaID:       user.ID,
+			PenggunaID:       studentUser.ID,
 			NIM:              "BKU2024001",
 			Nama:             "Mahasiswa Demo",
 			FakultasID:       fakultasFH.ID,
@@ -473,16 +489,18 @@ func EnsureBootstrapData() error {
 			StatusAkun:       "Aktif",
 		}
 		if err := config.DB.Create(&student).Error; err != nil {
-			panic("Failed to seed Mahasiswa: " + err.Error())
+			fmt.Println("⚠️ [SEEDER] Failed to create Mahasiswa:", err)
+		} else {
+			fmt.Println("✅ [SEEDER] Created Mahasiswa: BKU2024001")
 		}
-		fmt.Println("✅ [SEEDER] Created Mahasiswa: BKU2024001")
 	} else {
+		student.DeletedAt.Valid = false
 		student.FakultasID = fakultasFH.ID
 		student.ProgramStudiID = majorFH.ID
 		if student.PenggunaID == 0 {
-			student.PenggunaID = user.ID
+			student.PenggunaID = studentUser.ID
 		}
-		config.DB.Save(&student)
+		config.DB.Unscoped().Save(&student)
 	}
 
 	fmt.Println("🏁 [SEEDER] All data seeded successfully.")

@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"siakad-backend/config"
 	"siakad-backend/models"
 
@@ -10,15 +11,31 @@ import (
 // --- DASHBOARD ---
 
 func AmbilRingkasanDashboard(c *fiber.Ctx) error {
+	role := c.Locals("role").(string)
+	fid := c.Locals("fakultas_id").(uint)
+
 	var totalMhs int64
 	var totalDosen int64
 	var totalProdi int64
 
-	config.DB.Model(&models.Mahasiswa{}).Count(&totalMhs)
-	config.DB.Model(&models.Dosen{}).Count(&totalDosen)
+	qMhs := config.DB.Model(&models.Mahasiswa{})
+	qDosen := config.DB.Model(&models.Dosen{})
+	qPrestasi := config.DB.Model(&models.Prestasi{})
+	qProdi := config.DB.Model(&models.ProgramStudi{})
+
+	if role == "faculty_admin" {
+		qMhs = qMhs.Where("fakultas_id = ?", fid)
+		qDosen = qDosen.Where("fakultas_id = ?", fid)
+		qPrestasi = qPrestasi.Joins("Mahasiswa").Where("\"Mahasiswa\".fakultas_id = ?", fid)
+		qProdi = qProdi.Where("fakultas_id = ?", fid)
+	}
+
+	qMhs.Count(&totalMhs)
+	qDosen.Count(&totalDosen)
+	qProdi.Count(&totalProdi)
+	
 	var totalPrestasiPending int64
-	config.DB.Model(&models.Prestasi{}).Where("status = ?", "Menunggu").Count(&totalPrestasiPending)
-	config.DB.Model(&models.ProgramStudi{}).Count(&totalProdi)
+	qPrestasi.Where("status = ?", "Menunggu").Count(&totalPrestasiPending)
 
 	// Status counts (Aktif, Cuti, Lulus, DO, etc.)
 	type StatusCount struct {
@@ -26,10 +43,15 @@ func AmbilRingkasanDashboard(c *fiber.Ctx) error {
 		Count  int64  `json:"count"`
 	}
 	var statusCounts = []StatusCount{}
-	config.DB.Table("mahasiswas").
+	qStatus := config.DB.Table("mahasiswa.mahasiswa").
 		Select("status_akun as status, count(*) as count").
-		Group("status_akun").
-		Scan(&statusCounts)
+		Where("deleted_at IS NULL").
+		Group("status_akun")
+	
+	if role == "faculty_admin" {
+		qStatus = qStatus.Where("fakultas_id = ?", fid)
+	}
+	qStatus.Scan(&statusCounts)
 
 	// Prodi Distribution with Accreditation & Avg IPK
 	type ProdiDist struct {
@@ -41,7 +63,8 @@ func AmbilRingkasanDashboard(c *fiber.Ctx) error {
 		Akreditasi string  `gorm:"column:akreditasi" json:"akreditasi"`
 	}
 	var prodiDist = []ProdiDist{}
-	config.DB.Raw(`
+	
+	sqlProdi := `
 		SELECT 
 			ps.nama as name,
 			ps.akreditasi as akreditasi,
@@ -49,11 +72,16 @@ func AmbilRingkasanDashboard(c *fiber.Ctx) error {
 			SUM(CASE WHEN m.status_akun = 'Aktif' THEN 1 ELSE 0 END) as active,
 			SUM(CASE WHEN m.status_akun = 'Lulus' THEN 1 ELSE 0 END) as graduated,
 			COALESCE(AVG(m.ip_k), 0) as avg_gpa
-		FROM program_studis ps
-		LEFT JOIN mahasiswas m ON m.program_studi_id = ps.id AND m.deleted_at IS NULL
-		WHERE ps.deleted_at IS NULL
-		GROUP BY ps.id, ps.nama, ps.akreditasi
-	`).Scan(&prodiDist)
+		FROM fakultas.program_studi ps
+		LEFT JOIN mahasiswa.mahasiswa m ON m.program_studi_id = ps.id AND m.deleted_at IS NULL
+		WHERE ps.deleted_at IS NULL `
+	
+	if role == "faculty_admin" {
+		sqlProdi += fmt.Sprintf(" AND ps.fakultas_id = %d ", fid)
+	}
+	
+	sqlProdi += " GROUP BY ps.id, ps.nama, ps.akreditasi"
+	config.DB.Raw(sqlProdi).Scan(&prodiDist)
 
 	// Per Angkatan (Trend)
 	type AngkatanDist struct {
@@ -62,14 +90,18 @@ func AmbilRingkasanDashboard(c *fiber.Ctx) error {
 		Pendaftar int64 `json:"pendaftar"`
 	}
 	var trendData = []AngkatanDist{}
-	config.DB.Table("mahasiswas").
-		Select("tahun_masuk as tahun, count(*) as diterima, count(*) + 5 as pendaftar"). // Mocking pendaftar as slightly more than accepted
-		Where("tahun_masuk > 0").
+	qTrend := config.DB.Table("mahasiswa.mahasiswa").
+		Select("tahun_masuk as tahun, count(*) as diterima, count(*) + 5 as pendaftar"). 
+		Where("tahun_masuk > 0 AND deleted_at IS NULL").
 		Group("tahun_masuk").
-		Order("tahun_masuk asc").
-		Scan(&trendData)
+		Order("tahun_masuk asc")
+	
+	if role == "faculty_admin" {
+		qTrend = qTrend.Where("fakultas_id = ?", fid)
+	}
+	qTrend.Scan(&trendData)
 
-	// Aktivitas Terbaru (Gabungan Prestasi, Aspirasi, Beasiswa, Mahasiswa Baru)
+	// Aktivitas Terbaru
 	type ActivityItem struct {
 		User   string `json:"user"`
 		Action string `json:"action"`
@@ -78,9 +110,12 @@ func AmbilRingkasanDashboard(c *fiber.Ctx) error {
 	}
 	var logs = []ActivityItem{}
 
-	// Ambil 5 Prestasi Terbaru
+	qPList := config.DB.Preload("Mahasiswa").Order("id desc").Limit(3)
+	if role == "faculty_admin" {
+		qPList = qPList.Joins("Mahasiswa").Where("\"Mahasiswa\".fakultas_id = ?", fid)
+	}
 	var pList []models.Prestasi
-	config.DB.Preload("Mahasiswa").Order("id desc").Limit(3).Find(&pList)
+	qPList.Find(&pList)
 	for _, p := range pList {
 		logs = append(logs, ActivityItem{
 			User:   p.Mahasiswa.Nama,
@@ -90,9 +125,12 @@ func AmbilRingkasanDashboard(c *fiber.Ctx) error {
 		})
 	}
 
-	// Ambil 2 Mahasiswa Terbaru
+	qMList := config.DB.Order("id desc").Limit(2)
+	if role == "faculty_admin" {
+		qMList = qMList.Where("fakultas_id = ?", fid)
+	}
 	var mList []models.Mahasiswa
-	config.DB.Order("id desc").Limit(2).Find(&mList)
+	qMList.Find(&mList)
 	for _, m := range mList {
 		logs = append(logs, ActivityItem{
 			User:   m.Nama,
@@ -124,35 +162,80 @@ func AmbilRingkasanDashboard(c *fiber.Ctx) error {
 // --- ARTIKEL / BERITA ---
 
 func AmbilDaftarBerita(c *fiber.Ctx) error {
+	role := c.Locals("role").(string)
+	fid := c.Locals("fakultas_id").(uint)
+
 	var daftar []models.Berita
-	config.DB.Order("created_at desc").Find(&daftar)
+	query := config.DB.Order("created_at desc")
+	if role == "faculty_admin" {
+		query = query.Where("penulis_id IN (SELECT id FROM users WHERE fakultas_id = ?)", fid)
+	}
+
+	query.Find(&daftar)
 	return c.JSON(fiber.Map{"status": "success", "data": daftar})
 }
 
 func TambahBeritaBaru(c *fiber.Ctx) error {
+	uid := c.Locals("user_id").(uint)
+
 	var b models.Berita
 	if err := c.BodyParser(&b); err != nil {
 		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Payload salah"})
 	}
-	config.DB.Create(&b)
-	return c.JSON(fiber.Map{"status": "success", "message": "Berita diterbitkan", "data": b})
+
+	// Force current user as author
+	b.PenulisID = uid
+	
+	if err := config.DB.Create(&b).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal menerbitkan berita"})
+	}
+	return c.Status(201).JSON(fiber.Map{"status": "success", "message": "Berita diterbitkan", "data": b})
 }
 
 func PerbaruiBerita(c *fiber.Ctx) error {
+	role := c.Locals("role").(string)
+	fid := c.Locals("fakultas_id").(uint)
+
 	id := c.Params("id")
 	var b models.Berita
-	if err := config.DB.First(&b, id).Error; err != nil {
-		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Not Found"})
+	
+	query := config.DB.Preload("Penulis")
+	if role == "faculty_admin" {
+		query = query.Joins("JOIN users ON users.id = fakultas.berita.penulis_id").
+			Where("users.fakultas_id = ?", fid)
 	}
-	c.BodyParser(&b)
+
+	if err := query.First(&b, id).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Berita tidak ditemukan atau Anda tidak memiliki akses"})
+	}
+
+	if err := c.BodyParser(&b); err != nil {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Format data tidak valid"})
+	}
+
 	config.DB.Save(&b)
-	return c.JSON(fiber.Map{"status": "success", "message": "Berita diperbarui"})
+	return c.JSON(fiber.Map{"status": "success", "message": "Berita berhasil diperbarui", "data": b})
 }
 
 func HapusBerita(c *fiber.Ctx) error {
+	role := c.Locals("role").(string)
+	fid := c.Locals("fakultas_id").(uint)
+
 	id := c.Params("id")
-	config.DB.Delete(&models.Berita{}, id)
-	return c.JSON(fiber.Map{"status": "success", "message": "Berita dihapus"})
+	var b models.Berita
+	
+	query := config.DB
+	if role == "faculty_admin" {
+		query = query.Joins("JOIN users ON users.id = fakultas.berita.penulis_id").
+			Where("users.fakultas_id = ?", fid)
+	}
+
+	if err := query.First(&b, id).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Berita tidak ditemukan atau Anda tidak memiliki akses"})
+	}
+
+	config.DB.Delete(&b)
+	return c.JSON(fiber.Map{"status": "success", "message": "Berita berhasil dihapus"})
 }
 
 // --- PMB (PENDAFTARAN MAHASISWA BARU) ---
@@ -176,6 +259,9 @@ func AmbilDaftarPeran(c *fiber.Ctx) error {
 // --- LAPORAN & STATISTIK ---
 
 func AmbilRingkasanLaporan(c *fiber.Ctx) error {
+	role := c.Locals("role").(string)
+	fid := c.Locals("fakultas_id").(uint)
+
 	var total int64
 	var active int64
 	var graduated int64
@@ -184,18 +270,39 @@ func AmbilRingkasanLaporan(c *fiber.Ctx) error {
 	var totalBeasiswa int64
 	var totalKonseling int64
 
-	config.DB.Model(&models.Mahasiswa{}).Count(&total)
-	config.DB.Model(&models.Mahasiswa{}).Where("status_akun = ?", "Aktif").Count(&active)
-	config.DB.Model(&models.Mahasiswa{}).Where("status_akun = ?", "Lulus").Count(&graduated)
-	config.DB.Model(&models.Prestasi{}).Count(&totalPrestasi)
-	config.DB.Model(&models.Beasiswa{}).Count(&totalBeasiswa)
-	config.DB.Model(&models.Konseling{}).Count(&totalKonseling)
+	qMhs := config.DB.Model(&models.Mahasiswa{})
+	if role == "faculty_admin" {
+		qMhs = qMhs.Where("fakultas_id = ?", fid)
+	}
 
-	// Gunakan Raw untuk AVG agar tidak error saat data kosong
-	config.DB.Raw("SELECT COALESCE(AVG(ip_k), 0) FROM mahasiswas").Scan(&avgIPK)
+	qMhs.Count(&total)
+	qMhs.Where("status_akun = ?", "Aktif").Count(&active)
+	qMhs.Where("status_akun = ?", "Lulus").Count(&graduated)
 
-	// Per Prodi (Distribusi) - Menampilkan semua prodi meskipun belum ada mahasiswanya
-	type ProdiDist struct {
+	qP := config.DB.Model(&models.Prestasi{})
+	qB := config.DB.Model(&models.Beasiswa{}) // Beasiswa is global, but pendaftar is per mhs
+	qK := config.DB.Model(&models.Konseling{})
+
+	if role == "faculty_admin" {
+		qP = qP.Joins("Mahasiswa").Where("\"Mahasiswa\".fakultas_id = ?", fid)
+		qK = qK.Joins("Mahasiswa").Where("\"Mahasiswa\".fakultas_id = ?", fid)
+        // For beasiswa, we count participants from this faculty
+		config.DB.Model(&models.BeasiswaPendaftaran{}).Joins("Mahasiswa").Where("\"Mahasiswa\".fakultas_id = ?", fid).Count(&totalBeasiswa)
+	} else {
+		qB.Count(&totalBeasiswa)
+	}
+
+	qP.Count(&totalPrestasi)
+	qK.Count(&totalKonseling)
+
+	sqlAvg := "SELECT COALESCE(AVG(ip_k), 0) FROM mahasiswa.mahasiswa WHERE deleted_at IS NULL"
+	if role == "faculty_admin" {
+		sqlAvg += fmt.Sprintf(" AND fakultas_id = %d", fid)
+	}
+	config.DB.Raw(sqlAvg).Scan(&avgIPK)
+
+	// Per Prodi (Distribusi)
+	type ProdiDistReport struct {
 		NamaProdi string  `gorm:"column:nama_prodi" json:"nama_prodi"`
 		Value     int64   `gorm:"column:value" json:"value"`
 		Active    int64   `gorm:"column:active" json:"active"`
@@ -203,10 +310,9 @@ func AmbilRingkasanLaporan(c *fiber.Ctx) error {
 		Graduated int64   `gorm:"column:graduated" json:"graduated"`
 		AvgGpa    float64 `gorm:"column:avg_gpa" json:"avgIPK"`
 	}
-	var perProdi = []ProdiDist{}
+	var perProdi = []ProdiDistReport{}
 
-	// Use Raw SQL for better predictability with JOIN and GROUP BY
-	config.DB.Raw(`
+	sqlProdiDist := `
 		SELECT 
 			ps.nama as nama_prodi,
 			COUNT(m.id) as value,
@@ -214,27 +320,36 @@ func AmbilRingkasanLaporan(c *fiber.Ctx) error {
 			SUM(CASE WHEN m.status_akun = 'Cuti' THEN 1 ELSE 0 END) as leave,
 			SUM(CASE WHEN m.status_akun = 'Lulus' THEN 1 ELSE 0 END) as graduated,
 			COALESCE(AVG(m.ip_k), 0) as avg_gpa
-		FROM program_studis ps
-		LEFT JOIN mahasiswas m ON m.program_studi_id = ps.id AND m.deleted_at IS NULL
-		WHERE ps.deleted_at IS NULL
-		GROUP BY ps.id, ps.nama
-	`).Scan(&perProdi)
+		FROM fakultas.program_studi ps
+		LEFT JOIN mahasiswa.mahasiswa m ON m.program_studi_id = ps.id AND m.deleted_at IS NULL
+		WHERE ps.deleted_at IS NULL `
+	
+	if role == "faculty_admin" {
+		sqlProdiDist += fmt.Sprintf(" AND ps.fakultas_id = %d ", fid)
+	}
+	sqlProdiDist += " GROUP BY ps.id, ps.nama"
+	
+	config.DB.Raw(sqlProdiDist).Scan(&perProdi)
 
 	// Per Angkatan (Trend)
-	type AngkatanDist struct {
+	type AngkatanDistReport struct {
 		Angkatan int   `json:"angkatan"`
 		Aktif    int64 `json:"aktif"`
 		Lulus    int64 `json:"lulus"`
 	}
-	var perAngkatan = []AngkatanDist{}
-	config.DB.Table("mahasiswas").
+	var perAngkatan = []AngkatanDistReport{}
+	qTrend := config.DB.Table("mahasiswa.mahasiswa").
 		Select("tahun_masuk as angkatan, " +
 			"sum(case when status_akun = 'Aktif' then 1 else 0 end) as aktif, " +
 			"sum(case when status_akun = 'Lulus' then 1 else 0 end) as lulus").
-		Where("tahun_masuk > 0").
+		Where("tahun_masuk > 0 AND deleted_at IS NULL").
 		Group("tahun_masuk").
-		Order("tahun_masuk asc").
-		Scan(&perAngkatan)
+		Order("tahun_masuk asc")
+	
+	if role == "faculty_admin" {
+		qTrend = qTrend.Where("fakultas_id = ?", fid)
+	}
+	qTrend.Scan(&perAngkatan)
 
 	// Distribusi IPK Real
 	type IPKRange struct {
@@ -242,7 +357,7 @@ func AmbilRingkasanLaporan(c *fiber.Ctx) error {
 		Count int64  `json:"count"`
 	}
 	var ipkDist = []IPKRange{}
-	config.DB.Raw(`
+	sqlIPK := `
 		SELECT 
 			CASE 
 				WHEN ip_k >= 3.5 THEN '3.5 - 4.0'
@@ -251,10 +366,14 @@ func AmbilRingkasanLaporan(c *fiber.Ctx) error {
 				ELSE '< 2.5'
 			END as range,
 			COUNT(*) as count
-		FROM mahasiswas
-		GROUP BY range
-		ORDER BY range DESC
-	`).Scan(&ipkDist)
+		FROM mahasiswa.mahasiswa 
+		WHERE deleted_at IS NULL `
+	
+	if role == "faculty_admin" {
+		sqlIPK += fmt.Sprintf(" AND fakultas_id = %d", fid)
+	}
+	sqlIPK += " GROUP BY range ORDER BY range DESC"
+	config.DB.Raw(sqlIPK).Scan(&ipkDist)
 
 	return c.JSON(fiber.Map{
 		"status": "success",
@@ -276,18 +395,26 @@ func AmbilRingkasanLaporan(c *fiber.Ctx) error {
 }
 
 func AmbilNotifikasiAntrean(c *fiber.Ctx) error {
+	role := c.Locals("role").(string)
+	fid := c.Locals("fakultas_id").(uint)
+
 	var countAspirasi int64
 	var countSurat int64
 	var countPrestasi int64
 
-	// Status 'pending' sesuai permintaan user
-	config.DB.Model(&models.Aspirasi{}).Where("status = ?", "pending").Count(&countAspirasi)
+	qAsp := config.DB.Model(&models.Aspirasi{}).Where("status = ?", "pending")
+	qSurat := config.DB.Model(&models.PengajuanSurat{}).Where("status = ?", "diajukan")
+	qPres := config.DB.Model(&models.Prestasi{}).Where("status = ?", "Menunggu")
 
-	// Status 'diajukan' sesuai default migration
-	config.DB.Model(&models.PengajuanSurat{}).Where("status = ?", "diajukan").Count(&countSurat)
+	if role == "faculty_admin" {
+		qAsp = qAsp.Joins("Mahasiswa").Where("\"Mahasiswa\".fakultas_id = ?", fid)
+		qSurat = qSurat.Joins("Mahasiswa").Where("\"Mahasiswa\".fakultas_id = ?", fid)
+		qPres = qPres.Joins("Mahasiswa").Where("\"Mahasiswa\".fakultas_id = ?", fid)
+	}
 
-	// Status 'Menunggu' sesuai default
-	config.DB.Model(&models.Prestasi{}).Where("status = ?", "Menunggu").Count(&countPrestasi)
+	qAsp.Count(&countAspirasi)
+	qSurat.Count(&countSurat)
+	qPres.Count(&countPrestasi)
 
 	return c.JSON(fiber.Map{
 		"status": "success",

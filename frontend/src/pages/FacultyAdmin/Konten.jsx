@@ -329,7 +329,7 @@ export default function KontenPage() {
                         onChange={(e) => setFormData({...formData, title: e.target.value})} 
                         placeholder="Masukkan judul artikel yang deskriptif..." 
                         required 
-                        className="h-11 rounded-xl border-slate-200 bg-slate-50/50 focus:bg-white transition-all font-bold text-sm font-headline uppercase tracking-tight"
+                        className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white transition-all font-bold text-sm font-headline uppercase tracking-tight"
                      />
                   </div>
                </div>
@@ -338,10 +338,10 @@ export default function KontenPage() {
                   <div className="space-y-1.5 font-headline">
                      <Label className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] ml-0.5 font-headline">Kategori</Label>
                      <Select value={formData.category} onValueChange={(val) => setFormData({...formData, category: val})}>
-                        <SelectTrigger className="h-11 rounded-xl border-slate-200 bg-slate-50/50 font-bold font-headline text-[11px] px-4">
+                        <SelectTrigger className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 font-bold font-headline text-[11px] px-4">
                            <SelectValue />
                         </SelectTrigger>
-                        <SelectContent className="rounded-xl border-slate-100 shadow-2xl font-headline overflow-hidden p-1 font-headline">
+                        <SelectContent className="rounded-2xl shadow-2xl p-1 font-headline overflow-hidden">
                            <SelectItem value="Akademik" className="text-[10px] font-bold uppercase rounded-lg mb-0.5 focus:bg-primary/5 font-headline">Akademik</SelectItem>
                            <SelectItem value="Wisuda" className="text-[10px] font-bold uppercase rounded-lg mb-0.5 focus:bg-primary/5 font-headline">Wisuda</SelectItem>
                            <SelectItem value="Kegiatan" className="text-[10px] font-bold uppercase rounded-lg mb-0.5 focus:bg-primary/5 font-headline">Kegiatan</SelectItem>
@@ -352,10 +352,10 @@ export default function KontenPage() {
                   <div className="space-y-1.5 font-headline">
                      <Label className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] ml-0.5 font-headline">Status Publikasi</Label>
                      <Select value={formData.status} onValueChange={(val) => setFormData({...formData, status: val})}>
-                        <SelectTrigger className="h-11 rounded-xl border-slate-200 bg-slate-50/50 font-bold font-headline text-[11px] px-4">
+                        <SelectTrigger className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 font-bold font-headline text-[11px] px-4">
                            <SelectValue />
                         </SelectTrigger>
-                        <SelectContent className="rounded-xl border-slate-100 shadow-2xl font-headline overflow-hidden p-1 font-headline">
+                        <SelectContent className="rounded-2xl shadow-2xl p-1 font-headline overflow-hidden">
                            <SelectItem value="Published" className="text-[10px] font-black uppercase rounded-lg mb-0.5 focus:bg-emerald-50 text-emerald-600 font-headline">Published</SelectItem>
                            <SelectItem value="Draft" className="text-[10px] font-black uppercase rounded-lg focus:bg-slate-50 text-slate-500 font-headline">Draft</SelectItem>
                         </SelectContent>
@@ -373,7 +373,7 @@ export default function KontenPage() {
                         value={formData.thumbnail} 
                         onChange={(e) => setFormData({...formData, thumbnail: e.target.value})} 
                         placeholder="https://images.unsplash.com/..." 
-                        className="pl-11 h-11 rounded-xl border-slate-200 bg-slate-50/50 focus:bg-white transition-all font-bold text-[11px] font-headline"
+                        className="pl-11 h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white transition-all font-bold text-[11px] font-headline"
                      />
                   </div>
                </div>
@@ -390,18 +390,18 @@ export default function KontenPage() {
                </div>
             </div>
 
-            <DialogFooter className="pt-4 flex flex-row items-center justify-end gap-3 border-t border-slate-100 -mx-8 px-8 bg-slate-50/10 rounded-b-[2rem]">
-               <Button type="button" variant="ghost" onClick={() => setIsModalOpen(false)} className="text-[9px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-900 px-6 h-12 rounded-xl transition-all font-headline">
+            <DialogFooter className="pt-4 flex flex-row items-center justify-end gap-3 border-t border-slate-100 -mx-8 px-8 bg-slate-50/30">
+               <Button type="button" variant="ghost" onClick={() => setIsModalOpen(false)} className="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-900 px-8 h-12 rounded-2xl font-headline">
                   Batalkan
                </Button>
-               <Button type="submit" disabled={isSubmitting} className="px-8 h-12 rounded-xl bg-primary text-white hover:bg-primary/90 shadow-xl shadow-primary/20 transition-all hover:scale-[1.02] active:scale-95 disabled:opacity-50 border-none font-headline">
+               <Button type="submit" disabled={isSubmitting} className="h-12 px-10 rounded-2xl bg-primary text-white hover:bg-primary/90 shadow-xl shadow-primary/20 transition-all hover:scale-[1.02] active:scale-95 font-headline">
                   {isSubmitting ? (
-                    <Loader2 className="animate-spin size-4 mr-2"/>
+                    <Loader2 className="animate-spin size-4 mr-3"/>
                   ) : (
-                    <Save className="size-4 mr-2 stroke-[3px]"/>
+                    <Save className="size-4 mr-3 stroke-[3px]"/>
                   )}
-                  <span className="text-[9px] font-black uppercase tracking-[0.15em]">
-                    {isEditMode ? 'Simpan' : 'Terbitkan Sekarang'}
+                  <span className="text-[10px] font-black uppercase tracking-[0.2em] font-headline">
+                    {isEditMode ? 'Update Record' : 'Terbitkan Sekarang'}
                   </span>
                </Button>
             </DialogFooter>

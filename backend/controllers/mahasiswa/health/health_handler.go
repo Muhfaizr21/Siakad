@@ -133,6 +133,11 @@ func CreateHealthRecord(c *fiber.Ctx) error {
 		jenisPemeriksaan = "Screening Mandiri"
 	}
 
+	golonganDarah := strings.ToUpper(strings.TrimSpace(input.GolonganDarah))
+	if golonganDarah == "" {
+		golonganDarah = student.GolonganDarah
+	}
+
 	record := models.Kesehatan{
 		MahasiswaID:      student.ID,
 		Tanggal:          tanggal,
@@ -143,7 +148,7 @@ func CreateHealthRecord(c *fiber.Ctx) error {
 		BeratBadan:       input.BeratBadan,
 		Sistole:          input.Sistolik,
 		Diastole:         input.Diastolik,
-		GolonganDarah:    strings.ToUpper(strings.TrimSpace(input.GolonganDarah)),
+		GolonganDarah:    golonganDarah,
 		StatusKesehatan:  statusKesehatan,
 	}
 

@@ -67,7 +67,8 @@ export default function Login() {
         const roleFromResponse = payload?.user?.role;
         const role = roleFromResponse || getRoleFromToken(token);
 
-        setAuth(token, payload.mahasiswa || payload.user || null);
+        const userData = (payload.mahasiswa && payload.mahasiswa.nim) ? payload.mahasiswa : payload.user;
+        setAuth(token, userData || null);
         navigate(getRouteByRole(role), { replace: true });
       }
     } catch (error) {

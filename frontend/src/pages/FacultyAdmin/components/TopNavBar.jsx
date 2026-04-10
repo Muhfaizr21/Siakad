@@ -1,5 +1,6 @@
 "use client"
 import React, { useState, useRef, useEffect } from 'react'
+import useAuthStore from '../../../store/useAuthStore'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import {
   Search,
@@ -286,12 +287,32 @@ const TopNavBar = ({ setIsOpen }) => {
         {/* User Account Profile */}
         <div className="flex items-center gap-3.5 pl-4 border-l border-slate-200/60 group cursor-pointer ml-2">
           <div className="flex flex-col items-end leading-none">
-            <p className="text-sm font-black text-slate-900 tracking-tight">Admin Fakultas</p>
-            <p className="text-[10px] font-bold text-primary tracking-widest uppercase mt-0.5 opacity-70">Super Control</p>
+            <p className="text-sm font-black text-slate-900 tracking-tight">
+              {(() => {
+                const userEmail = useAuthStore(state => state.mahasiswa?.email) || "";
+                const match = userEmail.match(/^admin\.([a-zA-Z0-9]+)@/i);
+                if (match) {
+                  const code = match[1].toUpperCase();
+                  if (code === 'SOC') return 'Admin School of Computing';
+                  if (code === 'FT') return 'Admin Fakultas Teknik';
+                  if (code === 'FH') return 'Admin Fakultas Hukum';
+                  if (code === 'FE') return 'Admin Fakultas Ekonomi';
+                  return `Admin Fakultas ${code}`;
+                }
+                return "Admin Fakultas";
+              })()}
+            </p>
+            <p className="text-[10px] font-bold text-primary tracking-widest uppercase mt-1 opacity-70">
+              Portal Management
+            </p>
           </div>
           <div className="relative">
             <div className="w-11 h-11 rounded-2xl bg-slate-900 border-[3px] border-slate-100 text-white flex items-center justify-center font-black text-xs shadow-xl shadow-slate-900/10 group-hover:shadow-primary/20 group-hover:border-primary/20 transition-all duration-300">
-              AF
+               {(() => {
+                const userEmail = useAuthStore(state => state.mahasiswa?.email) || "";
+                const match = userEmail.match(/^admin\.([a-zA-Z0-9]+)@/i);
+                return match ? match[1].toUpperCase() : "AF";
+              })()}
             </div>
             <div className="absolute -bottom-1 -right-1 size-4 bg-emerald-500 border-[3px] border-white rounded-full shadow-lg shadow-emerald-500/20"></div>
           </div>

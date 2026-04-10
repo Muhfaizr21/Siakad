@@ -193,7 +193,7 @@ export default function FacultyKesehatan() {
         </CardContent>
       </Card>      {/* DETAIL DIALOG */}
       <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
-        <DialogContent className="max-w-[95vw] sm:max-w-5xl sm:left-[58%] p-0 overflow-hidden border-none shadow-2xl rounded-[3rem] bg-white font-headline">
+        <DialogContent className="max-w-3xl p-0 overflow-hidden border-none shadow-2xl rounded-[2.5rem] bg-white/95 backdrop-blur-xl">
           {selectedRecord && (
             <div className="relative flex flex-col h-[90vh]">
               {/* Header Section */}
@@ -312,9 +312,9 @@ export default function FacultyKesehatan() {
                 </div>
               </div>
 
-              {/* Professional Footer */}
-              <div className="h-24 px-12 flex items-center justify-between border-t border-slate-100 bg-white shrink-0">
-                <div className="flex items-center gap-5">
+              {/* Footer Actions */}
+              <div className="p-8 px-10 flex items-center justify-end gap-3 border-t border-slate-100 shrink-0 bg-slate-50/50">
+                <div className="flex items-center gap-5 mr-auto">
                   <div className="flex items-center gap-2.5">
                     <div className="size-5 rounded-lg bg-slate-900 flex items-center justify-center text-white scale-90">
                       <Activity className="size-3" />
@@ -327,20 +327,18 @@ export default function FacultyKesehatan() {
                     <span>Authenticated via Blockchain Registry</span>
                   </div>
                 </div>
-                <div className="flex items-center gap-10">
-                  <button
-                    onClick={() => window.print()}
-                    className="text-[11px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-900 transition-all hover:tracking-[0.2em]"
-                  >
-                    PRINT VIEW
-                  </button>
-                  <Button
-                    onClick={() => setIsDetailOpen(false)}
-                    className="h-12 px-12 rounded-2xl bg-slate-950 text-white hover:bg-primary transition-all duration-300 font-black text-[11px] uppercase tracking-widest font-headline shadow-2xl shadow-slate-900/20"
-                  >
-                    ARCHIVE DATA
-                  </Button>
-                </div>
+                <button
+                  onClick={() => window.print()}
+                  className="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-900 px-8 h-12 rounded-2xl font-headline hover:bg-slate-50 transition-all"
+                >
+                  PRINT VIEW
+                </button>
+                <Button
+                  onClick={() => setIsDetailOpen(false)}
+                  className="text-[10px] font-black uppercase tracking-widest h-12 px-10 rounded-2xl shadow-xl shadow-primary/20 bg-primary text-white hover:bg-primary/90 transition-all hover:scale-[1.02] active:scale-95 font-headline"
+                >
+                  ARCHIVE DATA
+                </Button>
               </div>
             </div>
           )}

@@ -104,8 +104,8 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
         <div className="px-6 py-8 flex items-center justify-between">
           <Link to="/faculty" className="flex items-center gap-3.5 group">
             <div className="relative">
-              <div className="w-11 h-11 bg-primary rounded-2xl flex items-center justify-center text-white shadow-xl shadow-primary/30 group-hover:scale-105 transition-transform duration-300">
-                <LayoutDashboard className="size-6" />
+              <div className="w-11 h-11 bg-white border border-slate-200 rounded-2xl flex items-center justify-center shadow-xl shadow-slate-200/50 group-hover:scale-105 transition-transform duration-300 p-1.5">
+                <img src="/images/bku logo.png" alt="BKU Logo" className="w-full h-full object-contain" />
               </div>
               <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 rounded-full border-2 border-white shadow-sm"></div>
             </div>

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"siakad-backend/config"
 	"siakad-backend/models"
+	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -100,6 +101,11 @@ func UpdateProfile(c *fiber.Ctx) error {
 
 	if err := config.DB.Save(&student).Error; err != nil {
 		return c.Status(500).JSON(fiber.Map{"success": false, "message": "Gagal memperbarui profil"})
+	}
+
+	// Sinkronisasi Golongan Darah ke tabel kesehatan jika ada perubahan
+	if req.GolonganDarah != "" {
+		config.DB.Model(&models.Kesehatan{}).Where("mahasiswa_id = ?", student.ID).Update("golongan_darah", strings.ToUpper(strings.TrimSpace(req.GolonganDarah)))
 	}
 
 	return c.JSON(fiber.Map{"success": true, "message": "Profil berhasil diperbarui"})
