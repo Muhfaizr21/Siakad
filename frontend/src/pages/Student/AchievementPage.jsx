@@ -7,6 +7,7 @@ import {
   useCreateAchievementMutation,
   useDeleteAchievementMutation,
 } from '../../queries/useAchievementQuery';
+import { useOrganisasiListQuery } from '../../queries/useOrganisasiQuery';
 import {
   Trophy,
   CheckCircle2,
@@ -62,6 +63,7 @@ const achievementSchema = z.object({
       (files) => ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg'].includes(files?.[0]?.type),
       'Format hanya PDF, JPG, atau PNG'
     ),
+  riwayat_organisasi_id: z.string().optional(),
 });
 
 export default function AchievementPage() {
@@ -76,6 +78,9 @@ export default function AchievementPage() {
 
   const stats = achievementData?.stats || { total: 0, verified: 0, pending: 0 };
   const data = useMemo(() => achievementData?.list || [], [achievementData]);
+
+  const { data: orgData } = useOrganisasiListQuery();
+  const orgList = orgData || [];
 
   // Form setup
   const {
@@ -92,13 +97,17 @@ export default function AchievementPage() {
 
   const onSubmit = (formData) => {
     const payload = new FormData();
-    payload.append('nama_lomba', formData.nama_lomba);
+    payload.append('nama_kegiatan', formData.nama_lomba);
     payload.append('kategori', formData.kategori);
     payload.append('tingkat', formData.tingkat);
     payload.append('penyelenggara', formData.penyelenggara);
     payload.append('tanggal', formData.tanggal);
     payload.append('peringkat', formData.peringkat);
-    payload.append('sertifikat', formData.sertifikat[0]);
+    payload.append('bukti', formData.sertifikat[0]);
+    
+    if (formData.riwayat_organisasi_id) {
+       payload.append('riwayat_organisasi_id', formData.riwayat_organisasi_id);
+    }
 
     createMutation.mutate(payload, {
       onSuccess: () => {
@@ -129,7 +138,7 @@ export default function AchievementPage() {
         cell: (info) => info.row.index + 1,
       },
       {
-        accessorKey: 'NamaLomba',
+        accessorKey: 'NamaKegiatan',
         header: 'Nama Lomba & Kategori',
         cell: (info) => (
           <div>
@@ -149,7 +158,7 @@ export default function AchievementPage() {
         cell: (info) => <span className="font-semibold text-[#00236F]">{info.getValue()}</span>,
       },
       {
-        accessorKey: 'Tanggal',
+        accessorKey: 'CreatedAt',
         header: 'Tanggal',
         cell: (info) => <span className="text-[#525252] text-sm">{formatDate(info.getValue())}</span>,
       },
@@ -430,6 +439,16 @@ export default function AchievementPage() {
               </div>
 
               <div>
+                 <label className="block text-sm font-semibold mb-1 text-[#525252]">Pilih Organisasi Berafiliasi (Opsional)</label>
+                 <select {...register('riwayat_organisasi_id')} className="w-full border border-[#e5e5e5] rounded-xl px-4 py-2 focus:border-[#00236F] outline-none text-[#171717]">
+                    <option value="">(Tidak terkait organisasi)</option>
+                    {orgList.map(org => (
+                       <option key={org.ID} value={org.ID}>{org.NamaOrganisasi} ({org.Jabatan})</option>
+                    ))}
+                 </select>
+              </div>
+
+              <div>
                 <label className="block text-sm font-semibold mb-1 text-[#525252]">Upload Sertifikat/Bukti <span className="text-red-500">*</span></label>
                 <div className="border-2 border-dashed border-[#e5e5e5] rounded-xl p-6 text-center hover:bg-[#fafafa] transition-colors relative">
                   <input type="file" accept=".pdf,.png,.jpg,.jpeg" {...register('sertifikat')} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
@@ -479,7 +498,7 @@ export default function AchievementPage() {
 
               <table className="w-full text-sm">
                 <tbody>
-                  <tr className="border-b border-[#f5f5f5]"><td className="py-2.5 font-semibold text-[#a3a3a3] w-1/3">Nama Lomba</td><td className="py-2 font-bold text-[#171717]">{selectedDetail.NamaLomba}</td></tr>
+                  <tr className="border-b border-[#f5f5f5]"><td className="py-2.5 font-semibold text-[#a3a3a3] w-1/3">Nama Lomba</td><td className="py-2 font-bold text-[#171717]">{selectedDetail.NamaKegiatan}</td></tr>
                   <tr className="border-b border-[#f5f5f5]"><td className="py-2.5 font-semibold text-[#a3a3a3]">Kategori / Tingkat</td><td className="py-2 font-bold text-[#171717]">{selectedDetail.Kategori} - {selectedDetail.Tingkat}</td></tr>
                   <tr className="border-b border-[#f5f5f5]"><td className="py-2.5 font-semibold text-[#a3a3a3]">Penyelenggara</td><td className="py-2 font-bold text-[#171717]">{selectedDetail.Penyelenggara}</td></tr>
                   <tr className="border-b border-[#f5f5f5]"><td className="py-2.5 font-semibold text-[#a3a3a3]">Peringkat</td><td className="py-2 font-bold text-[#00236F]">{selectedDetail.Peringkat}</td></tr>
@@ -489,8 +508,8 @@ export default function AchievementPage() {
 
               <div className="mt-6">
                 <p className="font-semibold text-sm mb-2 text-[#a3a3a3]">Bukti Sertifikat</p>
-                {selectedDetail.SertifikatURL ? (
-                  <a href={`http://localhost:8000${selectedDetail.SertifikatURL}`} target="_blank" rel="noreferrer" className="flex items-center justify-center p-3 border border-[#e5e5e5] rounded-xl hover:bg-[#eef4ff] hover:border-[#00236F] transition-colors text-sm font-bold text-[#00236F]">
+                {selectedDetail.BuktiURL ? (
+                  <a href={`http://localhost:8000${selectedDetail.BuktiURL}`} target="_blank" rel="noreferrer" className="flex items-center justify-center p-3 border border-[#e5e5e5] rounded-xl hover:bg-[#eef4ff] hover:border-[#00236F] transition-colors text-sm font-bold text-[#00236F]">
                     Lihat Dokumen Sertifikat
                   </a>
                 ) : (

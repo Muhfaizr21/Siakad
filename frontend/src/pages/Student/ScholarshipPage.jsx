@@ -63,8 +63,8 @@ function ApplyWizard({ scholarship, onClose, onSuccess }) {
   const isStep1Valid = motivasi.length >= 150;
   
   const requiredFiles = ['foto', 'ktm', 'kk'];
-  if (scholarship.is_berbasis_ekonomi) requiredFiles.push('sktm');
-  if (scholarship.syarat_ipk_min > 0) requiredFiles.push('transkrip');
+  if (false) requiredFiles.push('sktm');
+  if (scholarship.IPKMin > 0) requiredFiles.push('transkrip');
   
   const isStep2Valid = requiredFiles.every(key => !!files[key]);
 
@@ -76,7 +76,7 @@ function ApplyWizard({ scholarship, onClose, onSuccess }) {
       formData.append(key, file);
     });
 
-    daftarMutation.mutate({ id: scholarship.id, formData }, {
+    daftarMutation.mutate({ id: scholarship.ID, formData }, {
       onSuccess: () => {
         onSuccess();
       },
@@ -101,7 +101,7 @@ function ApplyWizard({ scholarship, onClose, onSuccess }) {
               <span className="bg-[#00236F] text-white text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest">Langkah {step} dari 3</span>
               <h2 className="text-2xl font-black font-headline">Pendaftaran Beasiswa</h2>
             </div>
-            <p className="text-sm font-bold text-[#a3a3a3] uppercase tracking-wider">{scholarship.nama}</p>
+            <p className="text-sm font-bold text-[#a3a3a3] uppercase tracking-wider">{scholarship.Nama}</p>
           </div>
           <button onClick={onClose} className="p-2 hover:bg-white rounded-full transition-colors border border-transparent hover:border-[#e5e5e5]">
             <X size={24} className="text-[#a3a3a3]" />
@@ -188,7 +188,7 @@ function ApplyWizard({ scholarship, onClose, onSuccess }) {
                 <div className="space-y-3">
                   <div className="flex justify-between text-sm">
                     <span className="text-[#a3a3a3] font-bold">Beasiswa</span>
-                    <span className="font-black text-[#171717]">{scholarship.nama}</span>
+                    <span className="font-black text-[#171717]">{scholarship.Nama}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-[#a3a3a3] font-bold">Berkas Terunggah</span>
@@ -353,12 +353,12 @@ export default function ScholarshipPage() {
               <CardGridSkeleton count={6} />
             ) : katalog?.length > 0 ? (
               katalog.map((beasiswa, idx) => {
-                const daysLeft = getDaysLeft(beasiswa.deadline);
+                const daysLeft = getDaysLeft(beasiswa.Deadline);
                 const isUrgent = daysLeft < 14;
 
                 return (
                   <motion.div 
-                    key={beasiswa.id}
+                    key={beasiswa.ID}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: idx * 0.05 }}
@@ -367,11 +367,11 @@ export default function ScholarshipPage() {
                     <div className="p-4 md:p-5 pb-3 flex-1">
                       <div className="flex justify-between items-start mb-4">
                         <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border ${
-                          beasiswa.kategori === 'Internal' ? 'bg-[#eef4ff] text-[#00236F] border-[#c9d8ff]' :
-                          beasiswa.kategori === 'Alumni' ? 'bg-[#eff6ff] text-[#3b82f6] border-[#dbeafe]' :
+                          (beasiswa.Kategori || 'Internal') === 'Internal' ? 'bg-[#eef4ff] text-[#00236F] border-[#c9d8ff]' :
+                          (beasiswa.Kategori || 'Internal') === 'Alumni' ? 'bg-[#eff6ff] text-[#3b82f6] border-[#dbeafe]' :
                           'bg-[#f0fdf4] text-[#16a34a] border-[#bbf7d0]'
                         }`}>
-                          {beasiswa.kategori}
+                          {(beasiswa.Kategori || 'Internal')}
                         </span>
                         {isUrgent && (
                            <div className="flex items-center gap-1 text-[#dc2626] bg-red-50 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter">
@@ -380,9 +380,9 @@ export default function ScholarshipPage() {
                         )}
                       </div>
                       
-                      <h3 className="text-base md:text-lg font-black mb-1 leading-tight group-hover:text-[#00236F] transition-colors">{beasiswa.nama}</h3>
-                      <p className="text-[11px] text-[#a3a3a3] font-bold uppercase tracking-wider mb-6">{beasiswa.penyelenggara}</p>
-                      <p className="text-xs text-[#737373] leading-relaxed mb-4 line-clamp-2">{beasiswa.deskripsi}</p>
+                      <h3 className="text-base md:text-lg font-black mb-1 leading-tight group-hover:text-[#00236F] transition-colors">{beasiswa.Nama}</h3>
+                      <p className="text-[11px] text-[#a3a3a3] font-bold uppercase tracking-wider mb-6">{beasiswa.Penyelenggara}</p>
+                      <p className="text-xs text-[#737373] leading-relaxed mb-4 line-clamp-2">{beasiswa.Deskripsi}</p>
 
                       <div className="space-y-3 pt-3 border-t border-[#f5f5f5]">
                         <div className="flex items-center justify-between">
@@ -392,7 +392,7 @@ export default function ScholarshipPage() {
                             </div>
                             <div>
                                <p className="text-[9px] font-black text-[#a3a3a3] uppercase tracking-widest">Nilai Bantuan</p>
-                               <p className="text-sm font-black text-[#171717]">{formatRupiah(beasiswa.nilai_bantuan)}</p>
+                               <p className="text-sm font-black text-[#171717]">{formatRupiah((beasiswa.NilaiBantuan || 5000000))}</p>
                             </div>
                           </div>
                         </div>
@@ -403,7 +403,7 @@ export default function ScholarshipPage() {
                             </div>
                             <div>
                                <p className="text-[9px] font-black text-[#a3a3a3] uppercase tracking-widest">Kuota</p>
-                               <p className="text-sm font-black text-[#171717]">{beasiswa.sisa_kuota} <span className="text-[#a3a3a3] font-bold">/ {beasiswa.kuota}</span></p>
+                               <p className="text-sm font-black text-[#171717]">{(beasiswa.Kuota || '-')} <span className="text-[#a3a3a3] font-bold">/ {(beasiswa.Kuota || '-')}</span></p>
                             </div>
                           </div>
                         </div>
@@ -475,21 +475,21 @@ export default function ScholarshipPage() {
                     <tr><td colSpan="5" className="p-8"><TableSkeleton rows={5} cols={5} /></td></tr>
                   ) : riwayatList.length > 0 ? (
                     riwayatList.map(item => {
-                      const badge = STATUS_BADGE[item.status] || STATUS_BADGE.dikirim;
+                      const badge = STATUS_BADGE[item.Status] || STATUS_BADGE.dikirim;
                       return (
-                        <tr key={item.id} className="hover:bg-[#f7faff] transition-colors group">
+                        <tr key={item.ID} className="hover:bg-[#f7faff] transition-colors group">
                           <td className="px-4 md:px-6 py-3.5">
                             <div className="flex flex-col">
-                               <p className="font-black text-[#171717]">{item.beasiswa?.nama}</p>
-                               <p className="text-[10px] text-[#a3a3a3] font-bold uppercase tracking-wide">{item.beasiswa?.kategori} Beasiswa</p>
+                               <p className="font-black text-[#171717]">{item.Beasiswa?.Nama}</p>
+                               <p className="text-[10px] text-[#a3a3a3] font-bold uppercase tracking-wide">{(item.Beasiswa?.Kategori || 'Internal')} Beasiswa</p>
                             </div>
                           </td>
                           <td className="px-4 md:px-6 py-3.5">
-                             <code className="text-[10px] font-bold bg-[#f5f5f5] px-2 py-1 rounded-lg text-[#525252]">{item.nomor_referensi}</code>
+                             <code className="text-[10px] font-bold bg-[#f5f5f5] px-2 py-1 rounded-lg text-[#525252]">{item.ID}</code>
                           </td>
                           <td className="px-4 md:px-6 py-3.5 text-center">
                             <span className="text-sm font-bold text-[#525252]">
-                              {new Date(item.submitted_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
+                              {new Date(item.CreatedAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
                             </span>
                           </td>
                           <td className="px-4 md:px-6 py-3.5 text-center">
@@ -500,8 +500,8 @@ export default function ScholarshipPage() {
                           <td className="px-4 md:px-6 py-3.5 text-center">
                              <button 
                               onClick={() => {
-                                if (item.id) {
-                                  navigate(`/student/scholarship/pengajuan/${item.id}`);
+                                if (item.ID) {
+                                  navigate(`/student/scholarship/pengajuan/${item.ID}`);
                                 } else {
                                   toast.error('ID Pengajuan tidak ditemukan');
                                 }
@@ -553,8 +553,8 @@ export default function ScholarshipPage() {
                    <X size={24} />
                  </button>
                  <div>
-                    <h2 className="text-2xl font-black text-white pr-10">{selectedSch.nama}</h2>
-                    <p className="text-[10px] text-white/50 font-black uppercase tracking-[0.3em] mt-1">{selectedSch.penyelenggara}</p>
+                    <h2 className="text-2xl font-black text-white pr-10">{selectedSch.Nama}</h2>
+                    <p className="text-[10px] text-white/50 font-black uppercase tracking-[0.3em] mt-1">{selectedSch.Penyelenggara}</p>
                  </div>
               </div>
               
@@ -562,33 +562,33 @@ export default function ScholarshipPage() {
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
                   <div className="p-3.5 bg-[#fafafa] rounded-xl border border-[#e5e5e5]">
                     <p className="text-[9px] font-black text-[#a3a3a3] uppercase tracking-widest mb-1">Nilai Bantuan</p>
-                    <p className="text-sm font-black text-[#00236F]">{formatRupiah(selectedSch.nilai_bantuan)}</p>
+                    <p className="text-sm font-black text-[#00236F]">{formatRupiah((selectedSch.NilaiBantuan || 5000000))}</p>
                   </div>
                   <div className="p-3.5 bg-[#fafafa] rounded-xl border border-[#e5e5e5]">
                     <p className="text-[9px] font-black text-[#a3a3a3] uppercase tracking-widest mb-1">Kuota Sisa</p>
-                    <p className="text-sm font-black text-[#171717]">{selectedSch.sisa_kuota} <span className="text-[10px] text-[#a3a3a3]">Org</span></p>
+                    <p className="text-sm font-black text-[#171717]">{(selectedSch.Kuota || '-')} <span className="text-[10px] text-[#a3a3a3]">Org</span></p>
                   </div>
                   <div className="p-3.5 bg-[#fafafa] rounded-xl border border-[#e5e5e5]">
                     <p className="text-[9px] font-black text-[#a3a3a3] uppercase tracking-widest mb-1">Min. IPK</p>
-                    <p className="text-sm font-black text-[#171717]">{selectedSch?.syarat_ipk_min?.toFixed(2) || '0.00'}</p>
+                    <p className="text-sm font-black text-[#171717]">{selectedSch?.IPKMin?.toFixed(2) || '0.00'}</p>
                   </div>
-                  <div className={`p-3.5 rounded-xl border ${getDaysLeft(selectedSch.deadline) < 7 ? 'bg-red-50 border-red-200' : 'bg-[#fafafa] border-[#e5e5e5]'}`}>
-                    <p className={`text-[9px] font-black uppercase tracking-widest mb-1 ${getDaysLeft(selectedSch.deadline) < 7 ? 'text-red-500' : 'text-[#a3a3a3]'}`}>Deadline</p>
-                    <p className={`text-sm font-black ${getDaysLeft(selectedSch.deadline) < 7 ? 'text-red-600' : 'text-[#171717]'}`}>{new Date(selectedSch.deadline).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}</p>
+                  <div className={`p-3.5 rounded-xl border ${getDaysLeft(selectedSch.Deadline) < 7 ? 'bg-red-50 border-red-200' : 'bg-[#fafafa] border-[#e5e5e5]'}`}>
+                    <p className={`text-[9px] font-black uppercase tracking-widest mb-1 ${getDaysLeft(selectedSch.Deadline) < 7 ? 'text-red-500' : 'text-[#a3a3a3]'}`}>Deadline</p>
+                    <p className={`text-sm font-black ${getDaysLeft(selectedSch.Deadline) < 7 ? 'text-red-600' : 'text-[#171717]'}`}>{new Date(selectedSch.Deadline).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}</p>
                   </div>
                 </div>
 
                 <div className="space-y-6">
                   <div>
                     <h4 className="flex items-center gap-2 text-sm font-black uppercase tracking-widest mb-3"><Info size={16} className="text-[#00236F]" /> Deskripsi Program</h4>
-                    <p className="text-sm text-[#525252] font-medium leading-relaxed">{selectedSch.deskripsi}</p>
+                    <p className="text-sm text-[#525252] font-medium leading-relaxed">{selectedSch.Deskripsi}</p>
                   </div>
 
                   <div>
                     <h4 className="flex items-center gap-2 text-sm font-black uppercase tracking-widest mb-3"><FileText size={16} className="text-[#00236F]" /> Persyaratan</h4>
                     <div className="bg-[#fafafa] p-6 rounded-[24px] border border-[#e5e5e5]">
                        <pre className="text-sm text-[#525252] font-medium whitespace-pre-line font-body leading-relaxed">
-                         {selectedSch.persyaratan}
+                         {selectedSch.Deskripsi}
                        </pre>
                     </div>
                   </div>

@@ -1,5 +1,6 @@
 import React from 'react';
 import { useDashboardQuery } from '../../queries/useDashboardQuery';
+import { useHealthRingkasanQuery } from '../../queries/useHealthQuery';
 import { DashboardSkeleton } from '../../components/ui/SkeletonGroups';
 import BannerPinned from '../../components/dashboard/BannerPinned';
 import HeroCard from '../../components/dashboard/HeroCard';
@@ -12,6 +13,7 @@ import AnnouncementSection from '../../components/dashboard/AnnouncementSection'
 
 export default function BkuDashboard() {
   const { data, isLoading, isError } = useDashboardQuery();
+  const { data: kesehatanData, isLoading: kesehatanLoading } = useHealthRingkasanQuery();
 
   if (isLoading) {
     return <DashboardSkeleton />;
@@ -73,6 +75,8 @@ export default function BkuDashboard() {
               kencana={data.kencana}
               beasiswa={data.beasiswa}
               voice={data.student_voice}
+              kesehatan={kesehatanData}
+              kesehatanLoading={kesehatanLoading}
             />
           </section>
 

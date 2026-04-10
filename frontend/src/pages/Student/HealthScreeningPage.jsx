@@ -47,26 +47,97 @@ import HealthCharacter from '../../components/health/HealthCharacter';
 const getBMICategory = (bmi) => {
   if (!bmi || isNaN(bmi)) return { label: 'Unknown', color: 'text-neutral-400', bg: 'bg-neutral-50', border: 'border-neutral-200', dot: 'bg-neutral-300', bar: 'bg-neutral-300' };
   const v = parseFloat(bmi);
-  if (v < 18.5) return { label: 'Kurus',   color: 'text-blue-600',   bg: 'bg-blue-50',   border: 'border-blue-200',   dot: 'bg-blue-400',   bar: 'bg-blue-400'   };
-  if (v < 25)   return { label: 'Normal',  color: 'text-emerald-600',bg: 'bg-emerald-50',border: 'border-emerald-200',dot: 'bg-emerald-500',bar: 'bg-emerald-500'};
-  if (v < 30)   return { label: 'Gemuk',   color: 'text-amber-600',  bg: 'bg-amber-50',  border: 'border-amber-200',  dot: 'bg-amber-400',  bar: 'bg-amber-400'  };
-  return         { label: 'Obesitas', color: 'text-red-600',    bg: 'bg-red-50',    border: 'border-red-200',    dot: 'bg-red-500',    bar: 'bg-red-500'    };
+  if (v < 18.5) return { label: 'Kekurangan BB', color: 'text-blue-600',   bg: 'bg-blue-50',   border: 'border-blue-200',   dot: 'bg-blue-400',   bar: 'bg-blue-400'   };
+  if (v < 25)   return { label: 'Normal',        color: 'text-emerald-600',bg: 'bg-emerald-50',border: 'border-emerald-200',dot: 'bg-emerald-500',bar: 'bg-emerald-500'};
+  if (v < 30)   return { label: 'Kelebihan BB',  color: 'text-amber-600',  bg: 'bg-amber-50',  border: 'border-amber-200',  dot: 'bg-amber-400',  bar: 'bg-amber-400'  };
+  return         { label: 'Obesitas',             color: 'text-red-600',    bg: 'bg-red-50',    border: 'border-red-200',    dot: 'bg-red-500',    bar: 'bg-red-500'    };
 };
 
 const getBPStatus = (s, d) => {
   const sv = parseInt(s), dv = parseInt(d);
-  if (!sv || !dv || isNaN(sv) || isNaN(dv)) return { label: 'Pending',    color: 'text-neutral-400', bg: 'bg-neutral-50',  bar: 'bg-neutral-300' };
-  if (sv >= 140 || dv >= 90)                return { label: 'Tinggi',     color: 'text-red-600',     bg: 'bg-red-50',      bar: 'bg-red-500'     };
-  if (sv >= 120 || dv >= 80)                return { label: 'Perhatian',  color: 'text-amber-600',   bg: 'bg-amber-50',    bar: 'bg-amber-400'   };
-  return                                     { label: 'Normal',    color: 'text-emerald-600', bg: 'bg-emerald-50',  bar: 'bg-emerald-500' };
+  if (!sv || !dv || isNaN(sv) || isNaN(dv)) return { label: 'Belum Ada Data', color: 'text-neutral-400', bg: 'bg-neutral-50', bar: 'bg-neutral-300' };
+  if (sv >= 140 || dv >= 90)                return { label: 'Hipertensi',      color: 'text-red-600',     bg: 'bg-red-50',      bar: 'bg-red-500'     };
+  if (sv >= 120 || dv >= 80)                return { label: 'Pre-Hipertensi',  color: 'text-amber-600',   bg: 'bg-amber-50',    bar: 'bg-amber-400'   };
+  return                                     { label: 'Normal',               color: 'text-emerald-600', bg: 'bg-emerald-50',  bar: 'bg-emerald-500' };
 };
 
-const getStatusTheme = (status) => {
-  if (!status) return { text: 'text-neutral-600', iconBg: 'bg-neutral-500 shadow-neutral-500/20' };
-  const s = status.toLowerCase();
-  if (s === 'sehat') return { text: 'text-emerald-600', iconBg: 'bg-emerald-500 shadow-emerald-500/20' };
-  if (s.includes('tindak_lanjut') || s.includes('bahaya')) return { text: 'text-rose-600', iconBg: 'bg-rose-500 shadow-rose-500/20' };
-  return { text: 'text-amber-600', iconBg: 'bg-amber-500 shadow-amber-500/20' };
+// Returns display label + description + color theme based on overall health status
+const getStatusInfo = (status, bmi, sistolik, diastolik) => {
+  const sv = parseInt(sistolik);
+  const dv = parseInt(diastolik);
+  const vBmi = parseFloat(bmi);
+
+  // Hipertensi is most critical
+  if (sv >= 140 || dv >= 90) {
+    return {
+      label: 'Hipertensi',
+      desc: 'Tekanan darah kamu tinggi. Segera konsultasikan ke dokter atau klinik kampus.',
+      text: 'text-rose-600',
+      iconBg: 'bg-rose-500 shadow-rose-500/20',
+    };
+  }
+
+  // Check string status from backend
+  if (status) {
+    const s = status.toLowerCase();
+    if (s === 'sehat' || s === 'baik') {
+      return {
+        label: 'Sehat',
+        desc: 'Indikator tubuh kamu prima! Pertahankan pola hidup sehat dan olahraga rutin.',
+        text: 'text-emerald-600',
+        iconBg: 'bg-emerald-500 shadow-emerald-500/20',
+      };
+    }
+    if (s.includes('bahaya') || s.includes('kritis') || s.includes('darurat')) {
+      return {
+        label: 'Memerlukan Tindakan',
+        desc: 'Kondisi kesehatanmu memerlukan perhatian segera. Hubungi klinik kampus sekarang.',
+        text: 'text-rose-600',
+        iconBg: 'bg-rose-500 shadow-rose-500/20',
+      };
+    }
+    if (s.includes('tindak') || s.includes('lanjut')) {
+      return {
+        label: 'Perlu Tindak Lanjut',
+        desc: 'Ada indikator yang perlu ditindaklanjuti. Jadwalkan konsultasi dengan tenaga medis.',
+        text: 'text-rose-500',
+        iconBg: 'bg-rose-500 shadow-rose-500/20',
+      };
+    }
+    if (s.includes('pantauan') || s.includes('observasi') || s.includes('waspada')) {
+      return {
+        label: 'Dalam Pantauan',
+        desc: 'Beberapa indikator perlu diperhatikan. Jangan ragu konsultasi ke klinik kampus.',
+        text: 'text-amber-600',
+        iconBg: 'bg-amber-500 shadow-amber-500/20',
+      };
+    }
+  }
+
+  // BMI-based fallback
+  if (!isNaN(vBmi)) {
+    if (vBmi >= 30) return { label: 'Obesitas', desc: 'Indeks massa tubuh kamu perlu perhatian serius. Konsultasikan program diet sehat.', text: 'text-red-600', iconBg: 'bg-red-500 shadow-red-500/20' };
+    if (vBmi >= 25) return { label: 'Kelebihan Berat Badan', desc: 'Berat badanmu melebihi ideal. Coba terapkan pola makan sehat dan olahraga teratur.', text: 'text-amber-600', iconBg: 'bg-amber-500 shadow-amber-500/20' };
+    if (vBmi < 18.5) return { label: 'Kekurangan Berat Badan', desc: 'Berat badanmu kurang dari ideal. Tingkatkan asupan nutrisi dan konsumsi makanan bergizi.', text: 'text-blue-600', iconBg: 'bg-blue-500 shadow-blue-500/20' };
+  }
+
+  // Pre-hypertension
+  if ((sv >= 120 && sv < 140) || (dv >= 80 && dv < 90)) {
+    return {
+      label: 'Pre-Hipertensi',
+      desc: 'Tekanan darahmu sedikit di atas normal. Kurangi stres, konsumsi garam, dan rutin olahraga.',
+      text: 'text-amber-600',
+      iconBg: 'bg-amber-500 shadow-amber-500/20',
+    };
+  }
+
+  // Default healthy
+  return {
+    label: 'Sehat',
+    desc: 'Semua indikator kesehatanmu dalam batas normal. Pertahankan gaya hidup sehat!',
+    text: 'text-emerald-600',
+    iconBg: 'bg-emerald-500 shadow-emerald-500/20',
+  };
 };
 
 const fmt = (dateStr, opts) => {
@@ -101,7 +172,7 @@ export default function HealthScreeningPage() {
 
   const bmiCat = getBMICategory(terbaru?.bmi);
   const bpStat = getBPStatus(terbaru?.sistolik, terbaru?.diastolik);
-  const statusTheme = getStatusTheme(terbaru?.status_kesehatan);
+  const statusInfo = getStatusInfo(terbaru?.status_kesehatan, terbaru?.bmi, terbaru?.sistolik, terbaru?.diastolik);
 
   const handleInputSubmit = (formData) => {
     mandiriMutation.mutate(formData, {
@@ -150,7 +221,7 @@ export default function HealthScreeningPage() {
             <div className="lg:col-span-8 bg-white rounded-2xl border border-neutral-100 shadow-sm overflow-hidden">
               <div className="px-5 py-4 border-b border-neutral-100 flex items-center justify-between bg-white bg-opacity-50">
                 <div className="flex items-center gap-3">
-                  <div className={`flex items-center justify-center p-2 rounded-xl text-white shadow-md ${statusTheme.iconBg}`}>
+                  <div className={`flex items-center justify-center p-2 rounded-xl text-white shadow-md ${statusInfo.iconBg}`}>
                     <Clock size={16} />
                   </div>
                   <div>
@@ -184,13 +255,11 @@ export default function HealthScreeningPage() {
                   />
                   <div className="flex-1">
                     <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest mb-1.5">Status Umum</p>
-                    <p className={`text-xl sm:text-2xl font-black capitalize tracking-tight ${statusTheme.text}`}>
-                      {terbaru.status_kesehatan?.replace(/_/g, ' ')}
+                    <p className={`text-xl sm:text-2xl font-black capitalize tracking-tight ${statusInfo.text}`}>
+                      {statusInfo.label}
                     </p>
-                    <p className={`text-xs font-medium mt-1 max-w-[280px] leading-relaxed hidden sm:block ${terbaru.status_kesehatan === 'sehat' ? 'text-neutral-500' : statusTheme.text}`}>
-                      {terbaru.status_kesehatan === 'sehat' 
-                        ? 'Indikator tubuh prima! Pertahankan pola hidup sehatmu.' 
-                        : 'Ada indikator yang perlu perhatian. Jangan ragu konsultasi klinis.'}
+                    <p className={`text-xs font-medium mt-1 max-w-[280px] leading-relaxed hidden sm:block text-neutral-500`}>
+                      {statusInfo.desc}
                     </p>
                   </div>
                 </div>
@@ -282,9 +351,9 @@ export default function HealthScreeningPage() {
                 </div>
               </div>
             </div>
-            <div className="h-48 w-full">
+            <div className="w-full" style={{ minHeight: '200px' }}>
               {chartData.length > 0 ? (
-                <ResponsiveContainer width="100%" height="100%" debounce={50}>
+                <ResponsiveContainer width="100%" height={200} debounce={50}>
                   <AreaChart data={chartData}>
                     <defs>
                       <linearGradient id="colorBerat" x1="0" y1="0" x2="0" y2="1">

@@ -127,6 +127,14 @@ func CreateAchievement(c *fiber.Ctx) error {
 		Poin:         0, // Default for now
 	}
 
+	orgID := c.FormValue("riwayat_organisasi_id")
+	if orgID != "" {
+		var org models.RiwayatOrganisasi
+		if err := config.DB.First(&org, orgID).Error; err == nil {
+			achievement.RiwayatOrganisasiID = &org.ID
+		}
+	}
+
 	config.DB.Create(&achievement)
 
 	return c.Status(201).JSON(fiber.Map{

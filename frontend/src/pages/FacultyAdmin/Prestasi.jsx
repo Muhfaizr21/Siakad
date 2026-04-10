@@ -46,13 +46,13 @@ export default function FacultyPrestasi() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           status: status,
-          poin_skpi: status === 'DISETUJUI' ? 5 : 0,
-          catatan: status === 'DISETUJUI' ? 'Prestasi terverifikasi oleh fakultas.' : 'Berkas tidak sesuai kriteria.'
+          poin_skpi: status === 'Diverifikasi' ? 5 : 0,
+          catatan: status === 'Diverifikasi' ? 'Prestasi terverifikasi oleh fakultas.' : 'Berkas tidak sesuai kriteria.'
         })
       })
       const json = await res.json()
       if (json.status === 'success') {
-        toast.success(status === 'DISETUJUI' ? 'Prestasi disetujui' : 'Prestasi ditolak')
+        toast.success(status === 'Diverifikasi' ? 'Prestasi disetujui' : 'Prestasi ditolak')
         setIsModalOpen(false)
         fetchData()
       }
@@ -64,10 +64,10 @@ export default function FacultyPrestasi() {
   }
 
   const handleDelete = async () => {
-    if (!selectedAchievement?.id) return
+    if (!selectedAchievement?.ID) return
     setIsSubmitting(true)
     try {
-      const res = await fetch(`/api/faculty/prestasi/${selectedAchievement.id}`, { method: 'DELETE' })
+      const res = await fetch(`/api/faculty/prestasi/${selectedAchievement.ID}`, { method: 'DELETE' })
       const json = await res.json()
       if (json.status === 'success') {
         toast.success("Data dihapus")
@@ -83,27 +83,27 @@ export default function FacultyPrestasi() {
 
   const columns = [
     {
-       key: "student",
+       key: "Mahasiswa",
        label: "Mahasiswa",
        render: (val) => (
           <div className="flex flex-col text-left leading-tight">
-             <span className="font-bold text-slate-900 font-headline tracking-tighter uppercase text-[13px]">{val?.nama_mahasiswa || '-'}</span>
-             <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-0.5">{val?.nim || '-'}</span>
+             <span className="font-bold text-slate-900 font-headline tracking-tighter uppercase text-[13px]">{val?.Nama || '-'}</span>
+             <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-0.5">{val?.NIM || '-'}</span>
           </div>
        )
     },
     {
-      key: "title",
+      key: "NamaKegiatan",
       label: "Prestasi / Penghargaan",
       render: (val, row) => (
          <div className="flex flex-col text-left leading-tight">
             <span className="font-bold text-slate-800 text-[12px] font-headline uppercase tracking-tight">{val}</span>
-            <span className="text-[9px] font-black text-blue-600 uppercase tracking-widest mt-1 w-fit bg-blue-50 px-2 py-0.5 rounded border border-blue-100/50">{row.category}</span>
+            <span className="text-[9px] font-black text-blue-600 uppercase tracking-widest mt-1 w-fit bg-blue-50 px-2 py-0.5 rounded border border-blue-100/50">{row.Kategori}</span>
          </div>
       ),
     },
     {
-       key: "date",
+       key: "CreatedAt",
        label: "Tahun",
        render: (val) => (
           <div className="flex items-center gap-1.5 text-[10px] font-black text-slate-500 font-headline uppercase">
@@ -113,15 +113,15 @@ export default function FacultyPrestasi() {
        )
     },
     {
-      key: "status",
+      key: "Status",
       label: "Validasi",
       render: (val) => (
          <Badge 
           className={cn(
             "capitalize font-black text-[10px] px-3 py-1 border-none shadow-sm font-headline uppercase",
-            val === 'DISETUJUI' ? "bg-emerald-100 text-emerald-700 ring-1 ring-emerald-500/20" :
-            val === 'MENUNGGU' ? "bg-amber-100 text-amber-700 ring-1 ring-amber-500/20" :
-            val === 'DITOLAK' ? "bg-rose-100 text-rose-700 ring-1 ring-rose-500/20" :
+            val === 'DISETUJUI' || val === 'Diverifikasi' ? "bg-emerald-100 text-emerald-700 ring-1 ring-emerald-500/20" :
+            val === 'MENUNGGU' || val === 'Menunggu' ? "bg-amber-100 text-amber-700 ring-1 ring-amber-500/20" :
+            val === 'DITOLAK' || val === 'Ditolak' ? "bg-rose-100 text-rose-700 ring-1 ring-rose-500/20" :
             "bg-slate-100 text-slate-700 ring-1 ring-slate-500/20"
           )}
         >
@@ -159,11 +159,12 @@ export default function FacultyPrestasi() {
             exportLabel="Download Rekap"
             filters={[
               {
-                key: 'status',
+                key: 'Status',
                 placeholder: 'Filter Status',
                 options: [
-                  { label: 'Disetujui', value: 'DISETUJUI' },
-                  { label: 'Menunggu', value: 'MENUNGGU' },
+                  { label: 'Disetujui', value: 'Diverifikasi' },
+                  { label: 'Menunggu', value: 'Menunggu' },
+                  { label: 'Ditolak', value: 'Ditolak' },
                 ]
               }
             ]}
@@ -172,7 +173,7 @@ export default function FacultyPrestasi() {
                  <Button onClick={() => { setSelectedAchievement(row); setIsModalOpen(true); }} variant="ghost" size="icon" className="h-9 w-9 hover:text-blue-600 rounded-xl hover:bg-blue-50 transition-all">
                     <Eye className="size-4" />
                  </Button>
-                 <Button onClick={() => handleValidation(row.id, 'DISETUJUI')} variant="ghost" size="icon" className="h-9 w-9 hover:text-emerald-600 rounded-xl hover:bg-emerald-50 transition-all">
+                 <Button onClick={() => handleValidation(row.ID, 'Diverifikasi')} variant="ghost" size="icon" className="h-9 w-9 hover:text-emerald-600 rounded-xl hover:bg-emerald-50 transition-all">
                     <CheckCircle2 className="size-4" />
                  </Button>
                  <Button onClick={() => { setSelectedAchievement(row); setIsDelOpen(true); }} variant="ghost" size="icon" className="h-9 w-9 hover:text-rose-600 rounded-xl hover:bg-rose-50 transition-all text-slate-400">
@@ -208,27 +209,27 @@ export default function FacultyPrestasi() {
 
            <div className="p-8 pt-6 space-y-6">
               <div className="p-6 rounded-[2rem] bg-slate-50 border border-slate-100 space-y-4 shadow-inner">
-                 <div className="flex items-center justify-between font-headline">
+                  <div className="flex items-center justify-between font-headline">
                     <div className="space-y-1">
-                       <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none font-headline">{selectedAchievement?.student.nim}</p>
-                       <h4 className="font-black text-slate-900 font-headline text-lg tracking-tighter leading-none uppercase">{selectedAchievement?.student.nama_mahasiswa}</h4>
+                       <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none font-headline">{selectedAchievement?.Mahasiswa?.NIM}</p>
+                       <h4 className="font-black text-slate-900 font-headline text-lg tracking-tighter leading-none uppercase">{selectedAchievement?.Mahasiswa?.Nama}</h4>
                     </div>
                     <Badge variant="outline" className="uppercase font-black text-[9px] border-slate-200 bg-white shadow-sm font-headline">
-                       {selectedAchievement?.status}
+                       {selectedAchievement?.Status}
                     </Badge>
                  </div>
                  <div className="pt-5 border-t border-slate-200/60 space-y-2 font-headline">
                     <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 leading-none">Judul Prestasi / Penghargaan</p>
-                    <p className="font-black text-slate-700 text-[13px] leading-tight uppercase bg-white/80 p-4 rounded-2xl border border-white shadow-sm italic">"{selectedAchievement?.title || '-'}"</p>
+                    <p className="font-black text-slate-700 text-[13px] leading-tight uppercase bg-white/80 p-4 rounded-2xl border border-white shadow-sm italic">"{selectedAchievement?.NamaKegiatan || '-'}"</p>
                  </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3 pt-2">
-                 <Button onClick={() => handleValidation(selectedAchievement?.id, 'DISETUJUI')} disabled={isSubmitting} className="h-14 rounded-2xl bg-emerald-600 text-white hover:bg-emerald-700 shadow-xl shadow-emerald-500/20 group font-headline border-none">
+                 <Button onClick={() => handleValidation(selectedAchievement?.ID, 'Diverifikasi')} disabled={isSubmitting} className="h-14 rounded-2xl bg-emerald-600 text-white hover:bg-emerald-700 shadow-xl shadow-emerald-500/20 group font-headline border-none">
                     <CheckCircle2 className="size-4 group-hover:scale-125 transition-transform mr-2" />
                     <span className="text-[10px] font-black uppercase tracking-widest">Validasi Berkas</span>
                  </Button>
-                 <Button onClick={() => handleValidation(selectedAchievement?.id, 'DITOLAK')} disabled={isSubmitting} className="h-14 rounded-2xl bg-rose-600 hover:bg-rose-700 text-white shadow-xl shadow-rose-500/20 group font-headline border-none">
+                 <Button onClick={() => handleValidation(selectedAchievement?.ID, 'Ditolak')} disabled={isSubmitting} className="h-14 rounded-2xl bg-rose-600 hover:bg-rose-700 text-white shadow-xl shadow-rose-500/20 group font-headline border-none">
                     <XCircle className="size-4 group-hover:rotate-12 transition-transform mr-2" />
                     <span className="text-[10px] font-black uppercase tracking-widest">Tolak Data</span>
                  </Button>

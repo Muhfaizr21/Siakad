@@ -51,7 +51,7 @@ func seedStudentVoiceData(db *gorm.DB) {
 
 func seedOrganisasiData(db *gorm.DB) {
 	var count int64
-	db.Model(&models.Ormawa{}).Count(&count)
+	db.Model(&models.RiwayatOrganisasi{}).Count(&count)
 	if count != 0 {
 		return
 	}
@@ -66,29 +66,30 @@ func seedOrganisasiData(db *gorm.DB) {
 		db.Create(&o)
 	}
 
-	var student models.Mahasiswa
-	db.First(&student)
+	var students []models.Mahasiswa
+	db.Find(&students)
 
 	var pmi, hmf models.Ormawa
 	db.Where("nama = ?", "UKM Korps Sukarela PMI").First(&pmi)
 	db.Where("nama = ?", "Himpunan Mahasiswa Farmasi").First(&hmf)
 
-	// Only seed riwayat if a valid mahasiswa exists
-	if student.ID != 0 {
+	for _, student := range students {
 		riwayat := []models.RiwayatOrganisasi{
 			{
-				MahasiswaID: student.ID,
-				OrmawaID:    pmi.ID,
-				Jabatan:     "Anggota Divisi Medis",
-				Periode:     "2023-2024",
-				Status:      "Diverifikasi",
+				MahasiswaID:      student.ID,
+				NamaOrganisasi:   pmi.Nama,
+				Tipe:             "UKM",
+				Jabatan:          "Anggota Divisi Medis",
+				PeriodeMulai:     2023,
+				StatusVerifikasi: "Diverifikasi",
 			},
 			{
-				MahasiswaID: student.ID,
-				OrmawaID:    hmf.ID,
-				Jabatan:     "Sekretaris Umum",
-				Periode:     "2024-2025",
-				Status:      "Menunggu",
+				MahasiswaID:      student.ID,
+				NamaOrganisasi:   hmf.Nama,
+				Tipe:             "Himpunan Prodi",
+				Jabatan:          "Sekretaris Umum",
+				PeriodeMulai:     2024,
+				StatusVerifikasi: "Menunggu",
 			},
 		}
 

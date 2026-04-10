@@ -49,6 +49,19 @@ func UpdateProfile(c *fiber.Ctx) error {
 		Gender     string `json:"gender"`
 		Religion   string `json:"religion"`
 		Address    string `json:"address"`
+		City             string `json:"city"`
+		ZipCode          string `json:"zip_code"`
+		NIK              string `json:"nik"`
+		NISN             string `json:"nisn"`
+		Kewarganegaraan  string `json:"kewarganegaraan"`
+		StatusPernikahan string `json:"status_pernikahan"`
+		GolonganDarah    string `json:"golongan_darah"`
+		NamaAyah         string `json:"nama_ayah"`
+		NamaIbuKandung   string `json:"nama_ibu_kandung"`
+		PekerjaanAyah    string `json:"pekerjaan_ayah"`
+		PekerjaanIbu     string `json:"pekerjaan_ibu"`
+		PenghasilanOrtu  int    `json:"penghasilan_ortu"`
+		AsalSekolah      string `json:"asal_sekolah"`
 	}
 
 	var req UpdateRequest
@@ -71,6 +84,19 @@ func UpdateProfile(c *fiber.Ctx) error {
 	student.JenisKelamin = req.Gender
 	student.Agama = req.Religion
 	student.Alamat = req.Address
+	student.Kota = req.City
+	student.KodePos = req.ZipCode
+	student.NIK = req.NIK
+	student.NISN = req.NISN
+	student.Kewarganegaraan = req.Kewarganegaraan
+	student.StatusPernikahan = req.StatusPernikahan
+	student.GolonganDarah = req.GolonganDarah
+	student.NamaAyah = req.NamaAyah
+	student.NamaIbuKandung = req.NamaIbuKandung
+	student.PekerjaanAyah = req.PekerjaanAyah
+	student.PekerjaanIbu = req.PekerjaanIbu
+	student.PenghasilanOrtu = req.PenghasilanOrtu
+	student.AsalSekolah = req.AsalSekolah
 
 	if err := config.DB.Save(&student).Error; err != nil {
 		return c.Status(500).JSON(fiber.Map{"success": false, "message": "Gagal memperbarui profil"})

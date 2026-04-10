@@ -47,8 +47,8 @@ export default function ScholarshipDetailPage() {
     diterima: 5,
     ditolak: 5
   };
-  const currentStageIdx = statusToStage[pengajuan.status] || 0;
-  const isFinal = pengajuan.status === 'diterima' || pengajuan.status === 'ditolak';
+  const currentStageIdx = statusToStage[pengajuan.Status] || 0;
+  const isFinal = pengajuan.Status === 'diterima' || pengajuan.Status === 'ditolak';
 
   return (
     <div className="px-4 py-5 md:px-6 md:py-6 lg:px-8 lg:py-8 font-body text-[#171717] min-h-screen bg-[#fafafa]">
@@ -93,7 +93,7 @@ export default function ScholarshipDetailPage() {
                   </div>
                   <div className="px-4 py-2 bg-[#fafafa] rounded-2xl border border-[#e5e5e5] flex items-center gap-2">
                     <Calendar size={14} className="text-[#a3a3a3]" />
-                    <span className="text-xs font-bold text-[#525252]">Terdaftar: {new Date(pengajuan.submitted_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+                    <span className="text-xs font-bold text-[#525252]">Terdaftar: {new Date(pengajuan.CreatedAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
                   </div>
                 </div>
 
@@ -122,12 +122,12 @@ export default function ScholarshipDetailPage() {
 
               <div className="flex flex-col items-center md:items-end justify-center">
                 <div className={`px-8 py-4 rounded-[28px] border-2 ${
-                  pengajuan.status === 'diterima' ? 'bg-green-50 border-green-200 text-green-600' : 
-                  pengajuan.status === 'ditolak' ? 'bg-red-50 border-red-200 text-red-600' :
+                  pengajuan.Status === 'diterima' ? 'bg-green-50 border-green-200 text-green-600' : 
+                  pengajuan.Status === 'ditolak' ? 'bg-red-50 border-red-200 text-red-600' :
                    'bg-[#eef4ff] border-[#c9d8ff] text-[#00236F]'
                 }`}>
                   <p className="text-[9px] font-black uppercase tracking-[0.3em] text-center opacity-70 mb-1">Status Final</p>
-                  <p className="text-xl font-black uppercase tracking-widest text-center">{pengajuan.status.replace('_', ' ')}</p>
+                  <p className="text-xl font-black uppercase tracking-widest text-center">{pengajuan.Status.replace('_', ' ')}</p>
                 </div>
               </div>
             </div>
@@ -150,7 +150,7 @@ export default function ScholarshipDetailPage() {
                   {STAGES.map((s, idx) => {
                     const isCompleted = idx < currentStageIdx;
                     const isActive = idx === currentStageIdx;
-                    const isRejected = s.key === 'hasil' && pengajuan.status === 'ditolak';
+                    const isRejected = s.key === 'hasil' && pengajuan.Status === 'ditolak';
 
                     return (
                       <div key={s.key} className="flex gap-10 relative items-start group">

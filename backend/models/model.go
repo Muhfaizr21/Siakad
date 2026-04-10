@@ -25,7 +25,7 @@ type BaseModel struct {
 type User struct {
 	BaseModel
 	Email    string `gorm:"uniqueIndex;not null"`
-	Password string `gorm:"column:password_hash;not null"`
+	Password string
 	Role     string `gorm:"index"`
 
 	Mahasiswa *Mahasiswa `gorm:"foreignKey:PenggunaID"`
@@ -195,6 +195,9 @@ type Prestasi struct {
 	Status       string
 	Poin         int
 	BuktiURL     string
+
+	RiwayatOrganisasiID *uint
+	RiwayatOrganisasi   *RiwayatOrganisasi `gorm:"foreignKey:RiwayatOrganisasiID"`
 }
 
 type Beasiswa struct {
@@ -205,6 +208,8 @@ type Beasiswa struct {
 	Deadline      time.Time
 	Kuota         int
 	IPKMin        float64
+	Kategori      string
+	NilaiBantuan  float64
 
 	Pendaftaran []BeasiswaPendaftaran
 }
@@ -298,15 +303,19 @@ type LogAktivitas struct {
 
 type RiwayatOrganisasi struct {
 	BaseModel
-	MahasiswaID uint `gorm:"index"`
-	OrmawaID    uint `gorm:"index"`
+	MahasiswaID       uint   `gorm:"index"`
+	Mahasiswa         Mahasiswa
 
-	Mahasiswa Mahasiswa
-	Ormawa    Ormawa
-
-	Jabatan string
-	Periode string
-	Status  string
+	NamaOrganisasi    string 
+	Tipe              string 
+	Jabatan           string
+	PeriodeMulai      int
+	PeriodeSelesai    *int    
+	DeskripsiKegiatan string
+	Apresiasi         string  
+	StatusVerifikasi  string `gorm:"default:'Menunggu'"`
+	
+	Prestasi []Prestasi `gorm:"foreignKey:RiwayatOrganisasiID"`
 }
 
 type Notifikasi struct {

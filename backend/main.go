@@ -138,6 +138,7 @@ func main() {
 	orgGroup := api.Group("/organisasi", middleware.AuthProtected)
 	orgGroup.Get("/", organisasi.GetList)
 	orgGroup.Post("/", organisasi.Create)
+	orgGroup.Put("/:id", organisasi.Update)
 	orgGroup.Delete("/:id", organisasi.Delete)
 
 	// Notification Routes

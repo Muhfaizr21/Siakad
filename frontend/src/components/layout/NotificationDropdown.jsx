@@ -49,8 +49,16 @@ export default function NotificationDropdown() {
     queryKey: ['notifikasi', 'list-dropdown'],
     queryFn: async () => {
       const { data } = await api.get('/notifikasi?status=unread');
-      // Just take the latest 5 for dropdown
-      return data.data.slice(0, 5);
+      // Map Go PascalCase fields to camelCase
+      return (data.data || []).slice(0, 5).map(raw => ({
+        id: raw.ID,
+        title: raw.Judul || 'Tanpa Judul',
+        content: raw.Deskripsi || '',
+        type: (raw.Tipe || 'sistem').toLowerCase(),
+        is_read: raw.IsRead ?? false,
+        created_at: raw.CreatedAt,
+        link: raw.Link || ''
+      }));
     },
     enabled: isOpen
   });
@@ -160,19 +168,26 @@ export default function NotificationDropdown() {
                       }`}
                     >
                       <div className="flex-shrink-0 mt-1">
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center border border-[#e5e5e5] bg-white`}>
+                        <div className="w-8 h-8 rounded-full flex items-center justify-center border border-[#e5e5e5] bg-white">
                           {CATEGORY_ICONS[notif.type] || <Bell size={16} />}
                         </div>
                       </div>
                       
                       <div className="flex-1 min-w-0">
                         <div className="flex justify-between items-start gap-2 mb-0.5">
-                           <h4 className={`text-xs truncate ${!notif.is_read ? 'font-bold text-[#171717]' : 'font-semibold text-[#525252]'}`}>
-                             {notif.title}
-                           </h4>
-                           <span className="text-[10px] font-bold text-[#a3a3a3] flex-shrink-0">
-                              {formatDistanceToNow(new Date(notif.created_at), { addSuffix: true, locale: id })}
-                           </span>
+                          <h4 className={`text-xs truncate ${!notif.is_read ? 'font-bold text-[#171717]' : 'font-semibold text-[#525252]'}`}>
+                            {notif.title}
+                          </h4>
+                          <span className="text-[10px] font-bold text-[#a3a3a3] flex-shrink-0">
+                            {(() => {
+                              if (!notif.created_at) return '';
+                              try {
+                                return formatDistanceToNow(new Date(notif.created_at), { addSuffix: true, locale: id });
+                              } catch (e) {
+                                return '';
+                              }
+                            })()}
+                          </span>
                         </div>
                         <p className="text-xs text-[#737373] line-clamp-2 leading-relaxed">
                           {notif.content}

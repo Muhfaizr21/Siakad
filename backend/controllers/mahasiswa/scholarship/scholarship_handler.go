@@ -32,7 +32,20 @@ const (
 // GetKatalogBeasiswa retrieves all active scholarships
 func GetKatalogBeasiswa(c *fiber.Ctx) error {
 	var beasiswaList []models.Beasiswa
-	query := config.DB.Where("deadline > ?", time.Now()).Order("deadline asc")
+	query := config.DB.Where("deadline > ?", time.Now())
+
+	kategori := c.Query("kategori")
+	if kategori != "" && kategori != "Semua" {
+		query = query.Where("kategori = ?", kategori)
+	}
+
+	sortParam := c.Query("sort")
+	if sortParam == "nilai_desc" {
+		query = query.Order("nilai_bantuan desc")
+	} else {
+		query = query.Order("deadline asc") // default deadline_asc
+	}
+
 	query.Find(&beasiswaList)
 
 	return c.JSON(fiber.Map{

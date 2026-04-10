@@ -62,7 +62,15 @@ export default function NotificationPage() {
     queryKey: ['notifikasi', 'full-list', filterType, filterTime],
     queryFn: async () => {
       const { data } = await api.get(`/notifikasi?tipe=${filterType}&waktu=${filterTime}`);
-      return data.data;
+      return (data.data || []).map(raw => ({
+        id: raw.ID,
+        title: raw.Judul || 'Tanpa Judul',
+        content: raw.Deskripsi || '',
+        type: (raw.Tipe || 'sistem').toLowerCase(),
+        is_read: raw.IsRead ?? false,
+        created_at: raw.CreatedAt || new Date().toISOString(),
+        link: raw.Link || ''
+      }));
     }
   });
 
@@ -131,14 +139,22 @@ export default function NotificationPage() {
     };
 
     notifData.forEach(notif => {
-      const date = parseISO(notif.created_at);
-      if (isToday(date)) {
-        groups['Hari Ini'].push(notif);
-      } else if (isYesterday(date)) {
-        groups['Kemarin'].push(notif);
-      } else if (isThisWeek(date)) {
-        groups['Minggu Ini'].push(notif);
-      } else {
+      try {
+        const date = new Date(notif.created_at);
+        if (isNaN(date.getTime())) {
+          groups['Lebih Lama'].push(notif);
+          return;
+        }
+        if (isToday(date)) {
+          groups['Hari Ini'].push(notif);
+        } else if (isYesterday(date)) {
+          groups['Kemarin'].push(notif);
+        } else if (isThisWeek(date)) {
+          groups['Minggu Ini'].push(notif);
+        } else {
+          groups['Lebih Lama'].push(notif);
+        }
+      } catch (e) {
         groups['Lebih Lama'].push(notif);
       }
     });
@@ -299,10 +315,16 @@ export default function NotificationPage() {
                           <h3 className={`text-base tracking-tight ${!notif.is_read ? 'font-black text-[#171717]' : 'font-bold text-[#525252]'}`}>
                             {notif.title}
                           </h3>
-                          <span className="text-[11px] font-bold text-[#a3a3a3] flex items-center gap-1">
-                             <Clock size={12} />
-                             {format(parseISO(notif.created_at), 'HH:mm')}
-                          </span>
+                           <span className="text-[11px] font-bold text-[#a3a3a3] flex items-center gap-1">
+                              <Clock size={12} />
+                              {(() => {
+                                try {
+                                  return format(new Date(notif.created_at), 'HH:mm');
+                                } catch (e) {
+                                  return '';
+                                }
+                              })()}
+                           </span>
                        </div>
                        <p className="text-sm font-medium text-[#737373] leading-relaxed mb-4">
                          {notif.content}
