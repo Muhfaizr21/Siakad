@@ -31,7 +31,7 @@ export default function FacultyOrganisasi() {
   const fetchData = async () => {
     try {
       setLoading(true)
-      const res = await axios.get('http://localhost:8000/api/faculty/organizations')
+      const res = await axios.get('/api/faculty/organizations')
       if (res.data.status === 'success') {
         setOrganizations(res.data.data)
       }
@@ -51,10 +51,10 @@ export default function FacultyOrganisasi() {
     setIsSubmitting(true)
     try {
       if (editingOrg) {
-        await axios.put(`http://localhost:8000/api/faculty/organizations/${editingOrg.id}`, formData)
+        await axios.put(`/api/faculty/organizations/${editingOrg.id}`, formData)
         toast.success("Organisasi diperbarui")
       } else {
-        await axios.post('http://localhost:8000/api/faculty/organizations', formData)
+        await axios.post('/api/faculty/organizations', formData)
         toast.success("Organisasi ditambahkan")
       }
       setShowModal(false)
@@ -70,7 +70,7 @@ export default function FacultyOrganisasi() {
     if (!selectedOrgId) return
     setIsSubmitting(true)
     try {
-      await axios.delete(`http://localhost:8000/api/faculty/organizations/${selectedOrgId}`)
+      await axios.delete(`/api/faculty/organizations/${selectedOrgId}`)
       toast.success("Organisasi dihapus")
       setIsDelOpen(false)
       fetchData()

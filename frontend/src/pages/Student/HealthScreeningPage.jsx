@@ -69,7 +69,12 @@ const getStatusTheme = (status) => {
   return { text: 'text-amber-600', iconBg: 'bg-amber-500 shadow-amber-500/20' };
 };
 
-const fmt = (dateStr, opts) => new Intl.DateTimeFormat('id-ID', opts).format(new Date(dateStr));
+const fmt = (dateStr, opts) => {
+  if (!dateStr) return '-';
+  const d = new Date(dateStr);
+  if (Number.isNaN(d.getTime())) return '-';
+  return new Intl.DateTimeFormat('id-ID', opts).format(d);
+};
 // ─────────────────────────────────────────────────────────────────────────────
 
 export default function HealthScreeningPage() {

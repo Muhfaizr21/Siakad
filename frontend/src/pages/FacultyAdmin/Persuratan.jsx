@@ -43,7 +43,7 @@ export default function FacultyPersuratan() {
   const fetchRequests = async () => {
     try {
       setLoading(true)
-      const response = await axios.get('http://localhost:8000/api/faculty/surat')
+      const response = await axios.get('/api/faculty/surat')
       if (response.data.status === 'success') {
         setRequests(response.data.data)
       }
@@ -58,7 +58,7 @@ export default function FacultyPersuratan() {
     if (e) e.preventDefault();
     setIsSubmitting(true)
     try {
-      const response = await axios.put(`http://localhost:8000/api/faculty/surat/${selectedItem.id}`, adminData)
+      const response = await axios.put(`/api/faculty/surat/${selectedItem.id}`, adminData)
       if (response.data.status === 'success') {
         toast.success('Status surat diperbarui')
         setShowModal(false)
@@ -75,7 +75,7 @@ export default function FacultyPersuratan() {
     if (!selectedItem?.id) return
     setIsSubmitting(true)
     try {
-      const response = await axios.delete(`http://localhost:8000/api/faculty/surat/${selectedItem.id}`)
+      const response = await axios.delete(`/api/faculty/surat/${selectedItem.id}`)
       if (response.data.status === 'success') {
         toast.success('Pengajuan dihapus')
         setIsDelOpen(false)

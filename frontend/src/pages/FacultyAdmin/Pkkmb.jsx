@@ -26,7 +26,7 @@ export default function FacultyPkkmb() {
 
   const fetchSummary = async () => {
     try {
-      const response = await fetch('http://localhost:8000/api/pkkmb/ringkasan')
+      const response = await fetch('/api/pkkmb/ringkasan')
       const result = await response.json()
       if (result.status === 'success') {
         setData(result.prodiBreakdown)
@@ -40,7 +40,7 @@ export default function FacultyPkkmb() {
   const fetchStudents = async () => {
     setLoading(true)
     try {
-      const response = await fetch('http://localhost:8000/api/pkkmb/peserta')
+      const response = await fetch('/api/pkkmb/peserta')
       const result = await response.json()
       if (result.status === 'success') {
         setStudents(result.data)

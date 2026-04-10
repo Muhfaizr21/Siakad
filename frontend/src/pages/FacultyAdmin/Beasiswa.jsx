@@ -48,10 +48,10 @@ export default function FacultyScholarship() {
     try {
       setLoading(true)
       if (activeTab === 'programs') {
-        const res = await axios.get('http://localhost:8000/api/faculty/scholarships')
+        const res = await axios.get('/api/faculty/scholarships')
         setScholarships(res.data.data)
       } else {
-        const res = await axios.get('http://localhost:8000/api/faculty/scholarships/applications')
+        const res = await axios.get('/api/faculty/scholarships/applications')
         setApplications(res.data.data)
       }
     } catch {
@@ -66,8 +66,8 @@ export default function FacultyScholarship() {
     setIsSubmitting(true)
     try {
       const url = progForm.id
-        ? `http://localhost:8000/api/faculty/scholarships/${progForm.id}`
-        : 'http://localhost:8000/api/faculty/scholarships'
+        ? `/api/faculty/scholarships/${progForm.id}`
+        : '/api/faculty/scholarships'
 
       const method = progForm.id ? 'put' : 'post'
       await axios[method](url, progForm)
@@ -85,7 +85,7 @@ export default function FacultyScholarship() {
     if (!selectedItem?.id) return
     setIsSubmitting(true)
     try {
-      await axios.put(`http://localhost:8000/api/faculty/scholarships/applications/${selectedItem.id}`, appForm)
+      await axios.put(`/api/faculty/scholarships/applications/${selectedItem.id}`, appForm)
       toast.success('Status diperbarui')
       setShowAppModal(false)
       fetchData()

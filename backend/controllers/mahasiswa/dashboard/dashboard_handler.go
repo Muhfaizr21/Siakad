@@ -18,8 +18,23 @@ type DeadlineItem struct {
 	Link     string    `json:"link"`
 }
 
+func firstWordOrDefault(s string, fallback string) string {
+	s = strings.TrimSpace(s)
+	if s == "" {
+		return fallback
+	}
+	parts := strings.Fields(s)
+	if len(parts) == 0 {
+		return fallback
+	}
+	return parts[0]
+}
+
 func GetDashboard(c *fiber.Ctx) error {
-	PenggunaID := c.Locals("user_id").(uint)
+	PenggunaID, ok := c.Locals("user_id").(uint)
+	if !ok || PenggunaID == 0 {
+		return c.Status(401).JSON(fiber.Map{"success": false, "message": "User tidak terautentikasi"})
+	}
 
 	// 1. Fetch Student Data
 	var student models.Mahasiswa
@@ -38,12 +53,16 @@ func GetDashboard(c *fiber.Ctx) error {
 	config.DB.Model(&models.PkkmbProgress{}).Where("mahasiswa_id = ? AND status = ?", student.ID, "selesai").Count(&selesaiPkkmb)
 
 	pkkmbStatus := "Belum Dimulai"
+	pkkmbPersentase := 0.0
 	if selesaiPkkmb > 0 {
 		if selesaiPkkmb == totalPkkmb {
 			pkkmbStatus = "Selesai ✓"
 		} else {
 			pkkmbStatus = "Sedang Berlangsung"
 		}
+	}
+	if totalPkkmb > 0 {
+		pkkmbPersentase = float64(selesaiPkkmb) / float64(totalPkkmb) * 100
 	}
 
 	// 4. Beasiswa Stats
@@ -130,7 +149,7 @@ func GetDashboard(c *fiber.Ctx) error {
 				"id":         student.ID,
 				"nim":        student.NIM,
 				"nama":       student.Nama,
-				"nama_depan": strings.Split(student.Nama, " ")[0],
+				"nama_depan": firstWordOrDefault(student.Nama, "Mahasiswa"),
 				"prodi":      student.ProgramStudi.Nama,
 				"semester":   student.SemesterSekarang,
 				"foto_url":   student.FotoURL,
@@ -145,7 +164,7 @@ func GetDashboard(c *fiber.Ctx) error {
 			"kencana": fiber.Map{
 				"total_modul":   totalPkkmb,
 				"modul_selesai": selesaiPkkmb,
-				"persentase":    float64(selesaiPkkmb) / float64(totalPkkmb) * 100,
+				"persentase":    pkkmbPersentase,
 				"status":        pkkmbStatus,
 			},
 			"beasiswa": fiber.Map{
@@ -156,19 +175,24 @@ func GetDashboard(c *fiber.Ctx) error {
 				"jumlah_aktif":           countAspirasiAktif,
 				"jumlah_belum_direspons": countAspirasiBelumRespons,
 			},
-			"deadlines":          deadlines,
-			"aktivitas_terbaru":  activities,
-			"pengumuman":         recentNews,
-			"pesan_kontekstual":  pesan,
-			"link_kontekstual":   link,
+			"deadlines":         deadlines,
+			"aktivitas_terbaru": activities,
+			"pengumuman":        recentNews,
+			"pesan_kontekstual": pesan,
+			"link_kontekstual":  link,
 		},
 	})
 }
 
 func GetKegiatan(c *fiber.Ctx) error {
-	PenggunaID := c.Locals("user_id").(uint)
+	PenggunaID, ok := c.Locals("user_id").(uint)
+	if !ok || PenggunaID == 0 {
+		return c.Status(401).JSON(fiber.Map{"success": false, "message": "User tidak terautentikasi"})
+	}
 	var student models.Mahasiswa
-	config.DB.First(&student, "pengguna_id = ?", PenggunaID)
+	if err := config.DB.First(&student, "pengguna_id = ?", PenggunaID).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{"success": false, "message": "Mahasiswa tidak ditemukan"})
+	}
 
 	bulan := c.QueryInt("bulan", int(time.Now().Month()))
 	tahun := c.QueryInt("tahun", time.Now().Year())

@@ -73,7 +73,7 @@ export default function DosenPage() {
   const fetchLecturers = async () => {
     setLoading(true)
     try {
-      const res = await fetch('http://localhost:8000/api/faculty/lecturers')
+      const res = await fetch('/api/faculty/lecturers')
       const json = await res.json()
       if (json.status === 'success') {
         setLecturers(json.data)
@@ -88,8 +88,8 @@ export default function DosenPage() {
   const fetchDependencies = async () => {
     try {
       const [facRes, majRes] = await Promise.all([
-        fetch('http://localhost:8000/api/faculty/faculties'),
-        fetch('http://localhost:8000/api/faculty/majors')
+        fetch('/api/faculty/faculties'),
+        fetch('/api/faculty/majors')
       ])
       const facJson = await facRes.json()
       const majJson = await majRes.json()
@@ -139,8 +139,8 @@ export default function DosenPage() {
     setIsSubmitting(true)
 
     const url = isEditMode
-      ? `http://localhost:8000/api/faculty/lecturers/${formData.id}`
-      : 'http://localhost:8000/api/faculty/lecturers'
+      ? `/api/faculty/lecturers/${formData.id}`
+      : '/api/faculty/lecturers'
     const method = isEditMode ? 'PUT' : 'POST'
 
     try {
@@ -173,7 +173,7 @@ export default function DosenPage() {
     if (!selectedDosen?.id) return
     setIsSubmitting(true)
     try {
-      const res = await fetch(`http://localhost:8000/api/faculty/lecturers/${selectedDosen.id}`, { method: 'DELETE' })
+      const res = await fetch(`/api/faculty/lecturers/${selectedDosen.id}`, { method: 'DELETE' })
       const json = await res.json()
       if (json.status === 'success') {
         toast.success("Dosen berhasil dihapus")

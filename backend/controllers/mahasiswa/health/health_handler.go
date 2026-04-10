@@ -3,22 +3,72 @@ package health
 import (
 	"siakad-backend/config"
 	"siakad-backend/models"
+	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
 )
 
-// GetHealthRiwayat returns all health screenings
-func GetHealthRiwayat(c *fiber.Ctx) error {
-	PenggunaID := c.Locals("user_id").(uint)
+func parseTanggal(input ...string) time.Time {
+	for _, raw := range input {
+		v := strings.TrimSpace(raw)
+		if v == "" {
+			continue
+		}
+		if t, err := time.Parse(time.RFC3339, v); err == nil {
+			return t
+		}
+		if t, err := time.Parse("2006-01-02", v); err == nil {
+			return t
+		}
+	}
+	return time.Now()
+}
+
+func buildStatusKesehatan(sistolik int, diastolik int, bmi float64) string {
+	if sistolik >= 140 || diastolik >= 90 || bmi >= 30 {
+		return "tindak_lanjut"
+	}
+	if sistolik >= 120 || diastolik >= 80 || bmi >= 25 || bmi < 18.5 {
+		return "pantauan"
+	}
+	return "sehat"
+}
+
+func buildHasil(status string) string {
+	switch status {
+	case "tindak_lanjut":
+		return "Perlu Perhatian"
+	case "pantauan":
+		return "Pantauan"
+	default:
+		return "Sehat"
+	}
+}
+
+func getStudent(c *fiber.Ctx) (*models.Mahasiswa, error) {
+	PenggunaID, ok := c.Locals("user_id").(uint)
+	if !ok || PenggunaID == 0 {
+		return nil, fiber.NewError(fiber.StatusUnauthorized, "User tidak terautentikasi")
+	}
 
 	var student models.Mahasiswa
 	if err := config.DB.First(&student, "pengguna_id = ?", PenggunaID).Error; err != nil {
+		return nil, err
+	}
+
+	return &student, nil
+}
+
+// GetHealthRiwayat returns all health screenings
+func GetHealthRiwayat(c *fiber.Ctx) error {
+	student, err := getStudent(c)
+	if err != nil {
 		return c.Status(404).JSON(fiber.Map{"success": false, "message": "Mahasiswa tidak ditemukan"})
 	}
 
 	var histories []models.Kesehatan
-	err := config.DB.Where("mahasiswa_id = ?", student.ID).Order("tanggal DESC").Find(&histories).Error
+	err = config.DB.Where("mahasiswa_id = ?", student.ID).Order("created_at DESC").Find(&histories).Error
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"success": false, "message": "Gagal mengambil riwayat kesehatan"})
 	}
@@ -31,18 +81,23 @@ func GetHealthRiwayat(c *fiber.Ctx) error {
 
 // CreateHealthRecord handles new health input
 func CreateHealthRecord(c *fiber.Ctx) error {
-	PenggunaID := c.Locals("user_id").(uint)
-
-	var student models.Mahasiswa
-	if err := config.DB.First(&student, "pengguna_id = ?", PenggunaID).Error; err != nil {
+	student, err := getStudent(c)
+	if err != nil {
 		return c.Status(404).JSON(fiber.Map{"success": false, "message": "Mahasiswa tidak ditemukan"})
 	}
 
 	type Input struct {
-		Tanggal          time.Time `json:"tanggal"`
-		JenisPemeriksaan string    `json:"jenis_pemeriksaan"`
-		Hasil            string    `json:"hasil"`
-		Catatan          string    `json:"catatan"`
+		Tanggal          string  `json:"tanggal"`
+		TanggalPeriksa   string  `json:"tanggal_periksa"`
+		JenisPemeriksaan string  `json:"jenis_pemeriksaan"`
+		Hasil            string  `json:"hasil"`
+		Catatan          string  `json:"catatan"`
+		Keluhan          string  `json:"keluhan"`
+		TinggiBadan      float64 `json:"tinggi_badan"`
+		BeratBadan       float64 `json:"berat_badan"`
+		Sistolik         int     `json:"sistolik"`
+		Diastolik        int     `json:"diastolik"`
+		GolonganDarah    string  `json:"golongan_darah"`
 	}
 
 	var input Input
@@ -50,21 +105,104 @@ func CreateHealthRecord(c *fiber.Ctx) error {
 		return c.Status(400).JSON(fiber.Map{"success": false, "message": "Format data tidak valid"})
 	}
 
-	hasil := models.Kesehatan{
-		MahasiswaID:      student.ID,
-		Tanggal:          input.Tanggal,
-		JenisPemeriksaan: input.JenisPemeriksaan,
-		Hasil:            input.Hasil,
-		Catatan:          input.Catatan,
+	tanggal := parseTanggal(input.TanggalPeriksa, input.Tanggal)
+
+	if input.TinggiBadan <= 0 || input.BeratBadan <= 0 {
+		return c.Status(400).JSON(fiber.Map{"success": false, "message": "Tinggi badan dan berat badan wajib diisi"})
 	}
 
-	if err := config.DB.Create(&hasil).Error; err != nil {
+	heightMeter := input.TinggiBadan / 100
+	bmi := 0.0
+	if heightMeter > 0 {
+		bmi = input.BeratBadan / (heightMeter * heightMeter)
+	}
+
+	statusKesehatan := buildStatusKesehatan(input.Sistolik, input.Diastolik, bmi)
+	hasilText := strings.TrimSpace(input.Hasil)
+	if hasilText == "" {
+		hasilText = buildHasil(statusKesehatan)
+	}
+
+	catatan := strings.TrimSpace(input.Catatan)
+	if catatan == "" {
+		catatan = strings.TrimSpace(input.Keluhan)
+	}
+
+	jenisPemeriksaan := strings.TrimSpace(input.JenisPemeriksaan)
+	if jenisPemeriksaan == "" {
+		jenisPemeriksaan = "Screening Mandiri"
+	}
+
+	record := models.Kesehatan{
+		MahasiswaID:      student.ID,
+		Tanggal:          tanggal,
+		JenisPemeriksaan: jenisPemeriksaan,
+		Hasil:            hasilText,
+		Catatan:          catatan,
+		TinggiBadan:      input.TinggiBadan,
+		BeratBadan:       input.BeratBadan,
+		Sistole:          input.Sistolik,
+		Diastole:         input.Diastolik,
+		GolonganDarah:    strings.ToUpper(strings.TrimSpace(input.GolonganDarah)),
+		StatusKesehatan:  statusKesehatan,
+	}
+
+	if err := config.DB.Create(&record).Error; err != nil {
 		return c.Status(500).JSON(fiber.Map{"success": false, "message": "Gagal menyimpan data"})
 	}
 
 	return c.JSON(fiber.Map{
 		"success": true,
 		"message": "Data kesehatan berhasil disimpan.",
-		"data":    hasil,
+		"data":    record,
 	})
+}
+
+func GetHealthRingkasan(c *fiber.Ctx) error {
+	student, err := getStudent(c)
+	if err != nil {
+		return c.Status(404).JSON(fiber.Map{"success": false, "message": "Mahasiswa tidak ditemukan"})
+	}
+
+	var rec models.Kesehatan
+	_ = config.DB.Where("mahasiswa_id = ?", student.ID).Order("created_at DESC").First(&rec).Error
+
+	return c.JSON(fiber.Map{
+		"success": true,
+		"data": fiber.Map{
+			"terakhir": rec,
+			"ada_data": rec.ID != 0,
+		},
+	})
+}
+
+func GetHealthDetail(c *fiber.Ctx) error {
+	student, err := getStudent(c)
+	if err != nil {
+		return c.Status(404).JSON(fiber.Map{"success": false, "message": "Mahasiswa tidak ditemukan"})
+	}
+
+	id := c.Params("id")
+	var rec models.Kesehatan
+	if err := config.DB.Where("id = ? AND mahasiswa_id = ?", id, student.ID).First(&rec).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{"success": false, "message": "Data kesehatan tidak ditemukan"})
+	}
+
+	return c.JSON(fiber.Map{"success": true, "data": rec})
+}
+
+func CreateHealthMandiri(c *fiber.Ctx) error {
+	return CreateHealthRecord(c)
+}
+
+func GetHealthTips(c *fiber.Ctx) error {
+	bmi := c.QueryFloat("bmi", 0)
+	tips := "Jaga pola makan, tidur cukup, dan olahraga rutin."
+	if bmi > 0 && bmi < 18.5 {
+		tips = "BMI rendah: pertimbangkan menambah asupan nutrisi seimbang."
+	} else if bmi >= 25 {
+		tips = "BMI tinggi: tingkatkan aktivitas fisik dan kurangi gula berlebih."
+	}
+
+	return c.JSON(fiber.Map{"success": true, "tips": tips})
 }

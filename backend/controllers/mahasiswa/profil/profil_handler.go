@@ -10,8 +10,19 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+func getUserID(c *fiber.Ctx) (uint, error) {
+	v, ok := c.Locals("user_id").(uint)
+	if !ok || v == 0 {
+		return 0, fiber.NewError(fiber.StatusUnauthorized, "User tidak terautentikasi")
+	}
+	return v, nil
+}
+
 func GetProfile(c *fiber.Ctx) error {
-	PenggunaID := c.Locals("user_id").(uint)
+	PenggunaID, err := getUserID(c)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"success": false, "message": "User tidak terautentikasi"})
+	}
 
 	var student models.Mahasiswa
 	if err := config.DB.Preload("ProgramStudi.Fakultas").Preload("Pengguna").First(&student, "pengguna_id = ?", PenggunaID).Error; err != nil {
@@ -25,7 +36,10 @@ func GetProfile(c *fiber.Ctx) error {
 }
 
 func UpdateProfile(c *fiber.Ctx) error {
-	PenggunaID := c.Locals("user_id").(uint)
+	PenggunaID, err := getUserID(c)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"success": false, "message": "User tidak terautentikasi"})
+	}
 
 	type UpdateRequest struct {
 		Email      string `json:"email"`
@@ -66,7 +80,10 @@ func UpdateProfile(c *fiber.Ctx) error {
 }
 
 func ChangePassword(c *fiber.Ctx) error {
-	PenggunaID := c.Locals("user_id").(uint)
+	PenggunaID, err := getUserID(c)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"success": false, "message": "User tidak terautentikasi"})
+	}
 
 	type PasswordRequest struct {
 		OldPassword     string `json:"old_password"`
@@ -98,8 +115,11 @@ func ChangePassword(c *fiber.Ctx) error {
 }
 
 func UploadAvatar(c *fiber.Ctx) error {
-	PenggunaID := c.Locals("user_id").(uint)
-	
+	PenggunaID, err := getUserID(c)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"success": false, "message": "User tidak terautentikasi"})
+	}
+
 	file, err := c.FormFile("foto")
 	if err != nil {
 		return c.Status(400).JSON(fiber.Map{"success": false, "message": "Tidak ada file yang diunggah"})
@@ -107,7 +127,7 @@ func UploadAvatar(c *fiber.Ctx) error {
 
 	filename := fmt.Sprintf("avatar_%d_%v", PenggunaID, file.Filename)
 	path := "./uploads/avatars/" + filename
-	
+
 	if err := c.SaveFile(file, path); err != nil {
 		return c.Status(500).JSON(fiber.Map{"success": false, "message": "Gagal menyimpan file"})
 	}
@@ -115,5 +135,48 @@ func UploadAvatar(c *fiber.Ctx) error {
 	var student models.Mahasiswa
 	config.DB.Model(&student).Where("pengguna_id = ?", PenggunaID).Update("foto_url", "/uploads/avatars/"+filename)
 
-	return c.JSON(fiber.Map{"success": true, "message": "Foto berhasil diunggah", "url": "/uploads/avatars/"+filename})
+	return c.JSON(fiber.Map{"success": true, "message": "Foto berhasil diunggah", "url": "/uploads/avatars/" + filename})
+}
+
+func GetPreferensiNotif(c *fiber.Ctx) error {
+	return c.JSON(fiber.Map{
+		"success": true,
+		"data": fiber.Map{
+			"email":  true,
+			"push":   true,
+			"in_app": true,
+		},
+	})
+}
+
+func UpdatePreferensiNotif(c *fiber.Ctx) error {
+	var body map[string]any
+	if err := c.BodyParser(&body); err != nil {
+		return c.Status(400).JSON(fiber.Map{"success": false, "message": "Format data tidak valid"})
+	}
+
+	return c.JSON(fiber.Map{"success": true, "message": "Preferensi berhasil diperbarui", "data": body})
+}
+
+func GetSesiAktif(c *fiber.Ctx) error {
+	return c.JSON(fiber.Map{
+		"success": true,
+		"data": []fiber.Map{{
+			"device":      "Web Browser",
+			"last_active": time.Now(),
+			"ip":          "127.0.0.1",
+			"current":     true,
+		}},
+	})
+}
+
+func GetRiwayatLogin(c *fiber.Ctx) error {
+	return c.JSON(fiber.Map{
+		"success": true,
+		"data": []fiber.Map{{
+			"waktu":  time.Now(),
+			"ip":     "127.0.0.1",
+			"status": "Berhasil",
+		}},
+	})
 }

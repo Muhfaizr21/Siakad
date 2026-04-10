@@ -93,7 +93,7 @@ export default function StudentDashboard() {
 
         {/* Quick Links */}
         <section className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-          <QuickLink icon={Map} label="KRS Online" href="/student/krs" />
+          <QuickLink icon={Map} label="Kencana" href="/student/kencana" />
           <QuickLink icon={FileCheck} label="Nilai & Transkrip" href="/akademik/nilai" />
           <QuickLink icon={CheckSquare} label="Absensi" href="/akademik/absensi" />
           <QuickLink icon={CalendarDays} label="Jadwal Ujian" href="/akademik/ujian" />

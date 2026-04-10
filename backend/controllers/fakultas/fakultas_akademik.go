@@ -3,8 +3,10 @@ package controllers
 import (
 	"siakad-backend/config"
 	"siakad-backend/models"
+	"strings"
 
 	"github.com/gofiber/fiber/v2"
+	"golang.org/x/crypto/bcrypt"
 )
 
 // --- DOSEN ---
@@ -135,21 +137,91 @@ func AmbilMahasiswaBerdasarID(c *fiber.Ctx) error {
 }
 
 func TambahMahasiswaBaru(c *fiber.Ctx) error {
-	var m models.Mahasiswa
-	var payload struct {
-		Email string `json:"email"`
+	var req struct {
+		NIM             string `json:"nim"`
+		Nama            string `json:"nama"`
+		NamaMahasiswa   string `json:"nama_mahasiswa"`
+		Email           string `json:"email"`
+		Password        string `json:"password"`
+		ProgramStudiID  uint   `json:"program_studi_id"`
+		ProdiID         uint   `json:"prodi_id"`
+		DosenPAID       uint   `json:"dosen_pa_id"`
+		DPALecturerID   uint   `json:"dpa_lecturer_id"`
+		CurrentSemester int    `json:"currentSemester"`
+		Semester        int    `json:"semester"`
+		Status          string `json:"status"`
+		StatusAkun      string `json:"status_akun"`
+		Alamat          string `json:"alamat"`
+		NoHP            string `json:"no_hp"`
 	}
 
-	if err := c.BodyParser(&m); err != nil {
+	if err := c.BodyParser(&req); err != nil {
 		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Format data tidak valid"})
 	}
-	c.BodyParser(&payload)
+
+	nim := strings.TrimSpace(req.NIM)
+	nama := strings.TrimSpace(req.Nama)
+	if nama == "" {
+		nama = strings.TrimSpace(req.NamaMahasiswa)
+	}
+	email := strings.ToLower(strings.TrimSpace(req.Email))
+	prodiID := req.ProgramStudiID
+	if prodiID == 0 {
+		prodiID = req.ProdiID
+	}
+	dosenPAID := req.DosenPAID
+	if dosenPAID == 0 {
+		dosenPAID = req.DPALecturerID
+	}
+	semester := req.Semester
+	if semester == 0 {
+		semester = req.CurrentSemester
+	}
+	if semester <= 0 {
+		semester = 1
+	}
+	statusAkun := strings.TrimSpace(req.StatusAkun)
+	if statusAkun == "" {
+		statusAkun = strings.TrimSpace(req.Status)
+	}
+	if statusAkun == "" {
+		statusAkun = "Aktif"
+	}
+
+	if nim == "" || nama == "" || email == "" || prodiID == 0 {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "NIM, nama, email, dan program studi wajib diisi"})
+	}
+
+	var existing models.User
+	if err := config.DB.Where("LOWER(email) = ?", email).First(&existing).Error; err == nil {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Email sudah digunakan"})
+	}
+
+	var existingMhs models.Mahasiswa
+	if err := config.DB.Where("nim = ?", nim).First(&existingMhs).Error; err == nil {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "NIM sudah terdaftar"})
+	}
+
+	var prodi models.ProgramStudi
+	if err := config.DB.First(&prodi, prodiID).Error; err != nil {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Program studi tidak ditemukan"})
+	}
 
 	tx := config.DB.Begin()
 
+	passwordToHash := "password123"
+	if strings.TrimSpace(req.Password) != "" {
+		passwordToHash = strings.TrimSpace(req.Password)
+	}
+
+	hash, err := bcrypt.GenerateFromPassword([]byte(passwordToHash), bcrypt.DefaultCost)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal memproses password"})
+	}
+
 	user := models.User{
-		Email:    payload.Email,
-		Password: "$2a$10$r9C799sXvD8/Zk9m6p.hQ.m7I8WjKz.Y1vS/F1f7nI.Z1f7nI.Z1",
+		Email:    email,
+		Password: string(hash),
 		Role:     "mahasiswa",
 	}
 
@@ -158,8 +230,18 @@ func TambahMahasiswaBaru(c *fiber.Ctx) error {
 		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal membuat akun mahasiswa: " + err.Error()})
 	}
 
-	m.PenggunaID = user.ID
-	m.StatusAkun = "Aktif"
+	m := models.Mahasiswa{
+		PenggunaID:       user.ID,
+		NIM:              nim,
+		Nama:             nama,
+		FakultasID:       prodi.FakultasID,
+		ProgramStudiID:   prodiID,
+		DosenPAID:        &dosenPAID,
+		SemesterSekarang: semester,
+		StatusAkun:       statusAkun,
+		Alamat:           strings.TrimSpace(req.Alamat),
+		NoHP:             strings.TrimSpace(req.NoHP),
+	}
 
 	if err := tx.Create(&m).Error; err != nil {
 		tx.Rollback()
@@ -271,4 +353,3 @@ func SimpanPengaturanAkademik(c *fiber.Ctx) error {
 }
 
 // --- END OF ACADEMIC CONTROLLERS ---
-

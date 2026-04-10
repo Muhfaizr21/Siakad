@@ -131,6 +131,22 @@ export const ormawaService = {
     method: 'DELETE'
   }).then(handleResponse),
 
+  // Roles & Permissions
+  getRoles: (id) => fetch(`${API_BASE_URL}/ormawa/roles?ormawaId=${id}`).then(handleResponse),
+  createRole: (data) => fetch(`${API_BASE_URL}/ormawa/roles`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  }).then(handleResponse),
+  updateRole: (id, data) => fetch(`${API_BASE_URL}/ormawa/roles/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  }).then(handleResponse),
+  deleteRole: (id) => fetch(`${API_BASE_URL}/ormawa/roles/${id}`, {
+    method: 'DELETE'
+  }).then(handleResponse),
+
   // Settings
   getSettings: (id) => fetch(`${API_BASE_URL}/ormawa/settings/${id}`).then(handleResponse),
   updateSettings: (id, data) => fetch(`${API_BASE_URL}/ormawa/settings/${id}`, {
@@ -143,5 +159,205 @@ export const ormawaService = {
   uploadFile: (formData) => fetch(`${API_BASE_URL}/ormawa/upload`, {
     method: 'POST',
     body: formData
+  }).then(handleResponse),
+};
+
+export const fakultasService = {
+  getAll: () => fetch(`${API_BASE_URL}/admin/fakultas`, {
+    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+  }).then(handleResponse),
+  create: (data) => fetch(`${API_BASE_URL}/admin/fakultas`, {
+    method: 'POST',
+    headers: { 
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${localStorage.getItem('token')}`
+    },
+    body: JSON.stringify(data)
+  }).then(handleResponse),
+  update: (id, data) => fetch(`${API_BASE_URL}/admin/fakultas/${id}`, {
+    method: 'PUT',
+    headers: { 
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${localStorage.getItem('token')}`
+    },
+    body: JSON.stringify(data)
+  }).then(handleResponse),
+  delete: (id) => fetch(`${API_BASE_URL}/admin/fakultas/${id}`, {
+    method: 'DELETE',
+    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+  }).then(handleResponse),
+};
+
+export const adminService = {
+  getStats: () => fetch(`${API_BASE_URL}/admin/stats`, {
+    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+  }).then(handleResponse),
+  getAuditLogs: () => fetch(`${API_BASE_URL}/admin/audit-logs`, {
+    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+  }).then(handleResponse),
+  getAllFaculties: () => fetch(`${API_BASE_URL}/admin/fakultas`, {
+    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+  }).then(handleResponse),
+  getAllStudents: () => fetch(`${API_BASE_URL}/admin/students`, {
+    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+  }).then(handleResponse),
+  createStudent: (data) => fetch(`${API_BASE_URL}/admin/students`, {
+    method: 'POST',
+    headers: { 
+      'Authorization': `Bearer ${localStorage.getItem('token')}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(data)
+  }).then(handleResponse),
+  updateStudent: (id, data) => fetch(`${API_BASE_URL}/admin/students/${id}`, {
+    method: 'PUT',
+    headers: { 
+      'Authorization': `Bearer ${localStorage.getItem('token')}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(data)
+  }).then(handleResponse),
+  deleteStudent: (id) => fetch(`${API_BASE_URL}/admin/students/${id}`, {
+    method: 'DELETE',
+    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+  }).then(handleResponse),
+  getAllProdi: () => fetch(`${API_BASE_URL}/admin/prodi`, {
+    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+  }).then(handleResponse),
+  createProdi: (data) => fetch(`${API_BASE_URL}/admin/prodi`, {
+    method: 'POST',
+    headers: { 
+      'Authorization': `Bearer ${localStorage.getItem('token')}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(data)
+  }).then(handleResponse),
+  updateProdi: (id, data) => fetch(`${API_BASE_URL}/admin/prodi/${id}`, {
+    method: 'PUT',
+    headers: { 
+      'Authorization': `Bearer ${localStorage.getItem('token')}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(data)
+  }).then(handleResponse),
+  deleteProdi: (id) => fetch(`${API_BASE_URL}/admin/prodi/${id}`, {
+    method: 'DELETE',
+    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+  }).then(handleResponse),
+  getAllLecturers: () => fetch(`${API_BASE_URL}/admin/lecturers`, {
+    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+  }).then(handleResponse),
+  createLecturer: (data) => fetch(`${API_BASE_URL}/admin/lecturers`, {
+    method: 'POST',
+    headers: { 
+      'Authorization': `Bearer ${localStorage.getItem('token')}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(data)
+  }).then(handleResponse),
+  updateLecturer: (id, data) => fetch(`${API_BASE_URL}/admin/lecturers/${id}`, {
+    method: 'PUT',
+    headers: { 
+      'Authorization': `Bearer ${localStorage.getItem('token')}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(data)
+  }).then(handleResponse),
+  deleteLecturer: (id) => fetch(`${API_BASE_URL}/admin/lecturers/${id}`, {
+    method: 'DELETE',
+    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+  }).then(handleResponse),
+  getAllOrmawa: () => fetch(`${API_BASE_URL}/admin/ormawa`, {
+    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+  }).then(handleResponse),
+  createOrmawa: (data) => fetch(`${API_BASE_URL}/admin/ormawa`, {
+    method: 'POST',
+    headers: { 
+      'Authorization': `Bearer ${localStorage.getItem('token')}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(data)
+  }).then(handleResponse),
+  updateOrmawa: (id, data) => fetch(`${API_BASE_URL}/admin/ormawa/${id}`, {
+    method: 'PUT',
+    headers: { 
+      'Authorization': `Bearer ${localStorage.getItem('token')}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(data)
+  }).then(handleResponse),
+  deleteOrmawa: (id) => fetch(`${API_BASE_URL}/admin/ormawa/${id}`, {
+    method: 'DELETE',
+    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+  }).then(handleResponse),
+  getGlobalAspirations: () => fetch(`${API_BASE_URL}/admin/aspirations`, {
+    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+  }).then(handleResponse),
+  getGlobalProposals: () => fetch(`${API_BASE_URL}/admin/proposals`, {
+    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+  }).then(handleResponse),
+  approveProposal: (id) => fetch(`${API_BASE_URL}/admin/proposals/${id}/approve`, {
+    method: 'PUT',
+    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+  }).then(handleResponse),
+  rejectProposal: (id, nota) => fetch(`${API_BASE_URL}/admin/proposals/${id}/reject`, {
+    method: 'PUT',
+    headers: { 
+      'Authorization': `Bearer ${localStorage.getItem('token')}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ catatan: nota })
+  }).then(handleResponse),
+  getAllScholarships: () => fetch(`${API_BASE_URL}/admin/scholarships`, {
+    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+  }).then(handleResponse),
+  createScholarship: (data) => fetch(`${API_BASE_URL}/admin/scholarships`, {
+    method: 'POST',
+    headers: { 
+      'Authorization': `Bearer ${localStorage.getItem('token')}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(data)
+  }).then(handleResponse),
+  updateScholarship: (id, data) => fetch(`${API_BASE_URL}/admin/scholarships/${id}`, {
+    method: 'PUT',
+    headers: { 
+      'Authorization': `Bearer ${localStorage.getItem('token')}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(data)
+  }).then(handleResponse),
+  deleteScholarship: (id) => fetch(`${API_BASE_URL}/admin/scholarships/${id}`, {
+    method: 'DELETE',
+    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+  }).then(handleResponse),
+  getAllCounseling: () => fetch(`${API_BASE_URL}/admin/counseling`, {
+    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+  }).then(handleResponse),
+  getAllUsers: () => fetch(`${API_BASE_URL}/admin/users`, {
+    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+  }).then(handleResponse),
+  createUser: (data) => fetch(`${API_BASE_URL}/admin/users`, {
+    method: 'POST',
+    headers: { 
+      'Authorization': `Bearer ${localStorage.getItem('token')}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(data)
+  }).then(handleResponse),
+  updateUserRole: (data) => fetch(`${API_BASE_URL}/admin/users/role`, {
+    method: 'PUT',
+    headers: { 
+      'Authorization': `Bearer ${localStorage.getItem('token')}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(data)
+  }).then(handleResponse),
+  deleteUser: (id) => fetch(`${API_BASE_URL}/admin/users/${id}`, {
+    method: 'DELETE',
+    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+  }).then(handleResponse),
+  getAuditLogs: () => fetch(`${API_BASE_URL}/admin/audit-logs`, {
+    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
   }).then(handleResponse),
 };

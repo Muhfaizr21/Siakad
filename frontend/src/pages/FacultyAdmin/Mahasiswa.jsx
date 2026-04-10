@@ -29,6 +29,52 @@ import {
 import { toast, Toaster } from "react-hot-toast"
 import { cn } from "@/lib/utils"
 
+const normalizeStudent = (item = {}) => {
+  const user = item.Pengguna || item.pengguna || {};
+  const prodi = item.ProgramStudi || item.program_studi || {};
+  const dpa = item.DosenPA || item.dosen_pa || {};
+
+  return {
+    id: item.ID || item.id || 0,
+    nim: item.NIM || item.nim || '-',
+    nama_mahasiswa: item.Nama || item.nama || '-',
+    name: item.Nama || item.nama || '-',
+    email: user.Email || user.email || '',
+    user: {
+      email: user.Email || user.email || '',
+    },
+    fakultas_id: item.FakultasID || item.fakultas_id || '',
+    prodi_id: item.ProgramStudiID || item.program_studi_id || '',
+    prodi: {
+      id: prodi.ID || prodi.id || item.ProgramStudiID || item.program_studi_id || '',
+      nama_prodi: prodi.Nama || prodi.nama || '-',
+    },
+    major: {
+      id: prodi.ID || prodi.id || item.ProgramStudiID || item.program_studi_id || '',
+      name: prodi.Nama || prodi.nama || '-',
+    },
+    currentSemester: item.Semester || item.semester || 1,
+    status: item.StatusAkun || item.status_akun || 'Aktif',
+    phone: item.NoHP || item.no_hp || '-',
+    address: item.Alamat || item.alamat || '',
+    dpaLecturerId: item.DosenPAID || item.dosen_pa_id || 0,
+    dpaLecturer: {
+      id: dpa.ID || dpa.id || 0,
+      name: dpa.Nama || dpa.nama || 'BELUM DITENTUKAN',
+    },
+  };
+};
+
+const normalizeMajor = (item = {}) => ({
+  id: item.ID || item.id || 0,
+  name: item.Nama || item.nama || '-',
+});
+
+const normalizeLecturer = (item = {}) => ({
+  id: item.ID || item.id || 0,
+  name: item.Nama || item.nama || '-',
+});
+
 export default function MahasiswaPage() {
   const [selectedMahasiswa, setSelectedMahasiswa] = useState(null)
   const [isDetailOpen, setIsDetailOpen] = useState(false)
@@ -45,12 +91,17 @@ export default function MahasiswaPage() {
     id: null,
     nim: "",
     nama_mahasiswa: "",
+    name: "",
     email: "",
     fakultas_id: "",
     prodi_id: "",
+    majorId: "",
+    dpaLecturerId: "0",
     currentSemester: 1,
     status: "Aktif",
-    photoUrl: ""
+    photoUrl: "",
+    address: "",
+    phone: "",
   })
 
   // Dropdown Data
@@ -60,10 +111,11 @@ export default function MahasiswaPage() {
   const fetchStudents = async () => {
     setLoading(true)
     try {
-      const res = await fetch('http://localhost:8000/api/faculty/students')
+      const res = await fetch('/api/faculty/students')
       const json = await res.json()
       if (json.status === 'success') {
-        setStudentData(json.data)
+        const list = Array.isArray(json.data) ? json.data.map(normalizeStudent) : []
+        setStudentData(list)
       }
     } catch (err) {
       toast.error("Gagal mengambil data mahasiswa")
@@ -75,15 +127,21 @@ export default function MahasiswaPage() {
   const fetchDependencies = async () => {
     try {
       const [majorsRes, lecturersRes] = await Promise.all([
-        fetch('http://localhost:8000/api/faculty/courses'),
-        fetch('http://localhost:8000/api/faculty/lecturers')
+        fetch('/api/faculty/courses'),
+        fetch('/api/faculty/lecturers')
       ])
 
       const majorsJson = await majorsRes.json()
       const lectJson = await lecturersRes.json()
 
-      if (majorsJson.status === 'success') setMajors(majorsJson.data)
-      if (lectJson.status === 'success') setLecturers(lectJson.data)
+      if (majorsJson.status === 'success') {
+        const majorList = Array.isArray(majorsJson.data) ? majorsJson.data.map(normalizeMajor) : []
+        setMajors(majorList)
+      }
+      if (lectJson.status === 'success') {
+        const lecturerList = Array.isArray(lectJson.data) ? lectJson.data.map(normalizeLecturer) : []
+        setLecturers(lecturerList)
+      }
     } catch (err) {
       console.error("Failed to fetch dependencies")
     }
@@ -97,7 +155,20 @@ export default function MahasiswaPage() {
   const handleOpenAdd = () => {
     setIsEditMode(false)
     setFormData({
-      id: null, nim: "", nama_mahasiswa: "", email: "", fakultas_id: "", prodi_id: "", currentSemester: 1, status: "Aktif", photoUrl: ""
+      id: null,
+      nim: "",
+      nama_mahasiswa: "",
+      name: "",
+      email: "",
+      fakultas_id: "",
+      prodi_id: "",
+      majorId: "",
+      dpaLecturerId: "0",
+      currentSemester: 1,
+      status: "Aktif",
+      photoUrl: "",
+      address: "",
+      phone: "",
     })
     setIsCrudOpen(true)
   }
@@ -108,12 +179,17 @@ export default function MahasiswaPage() {
       id: student.id,
       nim: student.nim,
       nama_mahasiswa: student.nama_mahasiswa,
+      name: student.name || student.nama_mahasiswa,
       email: student.email || "",
       fakultas_id: student.fakultas_id?.toString() || "",
       prodi_id: student.prodi_id?.toString() || "",
+      majorId: student.major?.id ? String(student.major.id) : (student.prodi_id?.toString() || ""),
+      dpaLecturerId: student.dpaLecturer?.id ? String(student.dpaLecturer.id) : "0",
       currentSemester: student.currentSemester,
       status: student.status || "Aktif",
-      photoUrl: student.photoUrl || ""
+      photoUrl: student.photoUrl || "",
+      address: student.address || "",
+      phone: student.phone || "",
     })
     setIsCrudOpen(true)
   }
@@ -121,14 +197,19 @@ export default function MahasiswaPage() {
   const handleSave = async (e) => {
     if (e) e.preventDefault()
     setIsSubmitting(true)
-    const url = isEditMode ? `http://localhost:8000/api/faculty/students/${formData.id}` : 'http://localhost:8000/api/faculty/students'
+    const url = isEditMode ? `/api/faculty/students/${formData.id}` : '/api/faculty/students'
     const method = isEditMode ? 'PUT' : 'POST'
 
     const payload = {
-      ...formData,
-      fakultas_id: parseInt(formData.fakultas_id),
-      prodi_id: parseInt(formData.prodi_id),
-      currentSemester: parseInt(formData.currentSemester)
+      nim: formData.nim,
+      nama: formData.name || formData.nama_mahasiswa,
+      program_studi_id: parseInt(formData.majorId || formData.prodi_id) || 0,
+      dosen_pa_id: parseInt(formData.dpaLecturerId) || 0,
+      semester: parseInt(formData.currentSemester) || 1,
+      status_akun: formData.status || 'Aktif',
+      alamat: formData.address || '',
+      no_hp: formData.phone || '',
+      email: formData.email || '',
     }
 
     try {
@@ -157,7 +238,7 @@ export default function MahasiswaPage() {
     if (!selectedMahasiswa?.id) return
     setIsSubmitting(true)
     try {
-      const res = await fetch(`http://localhost:8000/api/faculty/students/${selectedMahasiswa.id}`, { method: 'DELETE' })
+      const res = await fetch(`/api/faculty/students/${selectedMahasiswa.id}`, { method: 'DELETE' })
       const json = await res.json()
       if (json.status === 'success') {
         toast.success("Mahasiswa dihapus")
@@ -409,7 +490,7 @@ export default function MahasiswaPage() {
 
       {/* CRUD MODAL */}
       <Dialog open={isCrudOpen} onOpenChange={setIsCrudOpen}>
-        <DialogContent className="max-w-xl p-0 overflow-hidden border-none shadow-2xl rounded-[2rem] bg-white/95 backdrop-blur-xl">
+        <DialogContent className="max-w-2xl p-0 overflow-hidden border-none shadow-2xl rounded-[2rem] bg-white/95 backdrop-blur-xl max-h-[85vh]">
           <DialogHeader className="p-8 pb-6 bg-gradient-to-br from-slate-50 to-white border-b border-slate-100 relative overflow-hidden">
             <div className="absolute top-0 right-0 p-8 opacity-5">
               <GraduationCap className="size-24 rotate-12" />
@@ -432,9 +513,9 @@ export default function MahasiswaPage() {
             </div>
           </DialogHeader>
 
-          <form onSubmit={handleSave} className="p-8 pt-6 space-y-6">
+          <form onSubmit={handleSave} className="p-8 pt-6 space-y-6 overflow-y-auto max-h-[68vh]">
             <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Nomor Induk (NIM)</Label>
                   <Input
@@ -457,7 +538,7 @@ export default function MahasiswaPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Alamat Email</Label>
                   <Input
@@ -486,7 +567,7 @@ export default function MahasiswaPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Dosen Wali (DPA)</Label>
                   <Select value={formData.dpaLecturerId} onValueChange={(val) => setFormData({ ...formData, dpaLecturerId: val })}>

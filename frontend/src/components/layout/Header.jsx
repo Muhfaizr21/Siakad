@@ -21,6 +21,10 @@ export default function Header() {
   
   const logout = useAuthStore(state => state.logout);
   const mahasiswa = useAuthStore(state => state.mahasiswa) || { nama: 'Tegar', nim: '10123456' };
+  const displayName = String(mahasiswa?.nama || mahasiswa?.Nama || mahasiswa?.name || 'User');
+  const displayNim = String(mahasiswa?.nim || mahasiswa?.NIM || '-');
+  const displayPhoto = mahasiswa?.foto_url || mahasiswa?.FotoURL || mahasiswa?.photo_url || '';
+  const displayInitial = displayName.charAt(0).toUpperCase();
 
   const handleLogout = async () => {
     try {
@@ -149,7 +153,7 @@ export default function Header() {
             className={`flex items-center gap-3 p-1 rounded-full transition-all hover:bg-[#fafafa] ${isProfileOpen ? 'ring-4 ring-[#00236F]/10' : ''}`}
           >
             <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#C9D8FF] to-[#00236F] text-white flex items-center justify-center font-black text-xs shadow-sm border border-white">
-              {mahasiswa.nama.charAt(0).toUpperCase()}
+              {displayInitial}
             </div>
           </button>
 
@@ -166,22 +170,22 @@ export default function Header() {
                 <div className="bg-gradient-to-br from-[#0B4FAE] to-[#00236F] p-6 text-white">
                   <div className="flex items-center gap-4">
                     <div className="w-14 h-14 rounded-2xl bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/20 shadow-xl overflow-hidden shrink-0">
-                      {mahasiswa.foto_url && !imageError ? (
+                      {displayPhoto && !imageError ? (
                         <img 
-                          src={mahasiswa.foto_url} 
+                          src={displayPhoto} 
                           alt="Profile" 
                           className="w-full h-full object-cover" 
                           onError={() => setImageError(true)}
                         />
                       ) : (
                         <div className="w-full h-full bg-gradient-to-br from-[#C9D8FF] to-[#00236F] text-white flex items-center justify-center font-black text-2xl">
-                          {mahasiswa.nama.charAt(0).toUpperCase()}
+                          {displayInitial}
                         </div>
                       )}
                     </div>
                     <div className="min-w-0">
-                      <h4 className="font-bold text-base truncate">{mahasiswa.nama}</h4>
-                      <p className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-widest truncate">{mahasiswa.nim}</p>
+                      <h4 className="font-bold text-base truncate">{displayName}</h4>
+                      <p className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-widest truncate">{displayNim}</p>
                       <div className="mt-1 flex items-center gap-1.5">
                         <span className="w-2 h-2 rounded-full bg-[#16a34a] animate-pulse"></span>
                         <span className="text-[10px] font-bold text-[#16a34a] uppercase">Aktif</span>

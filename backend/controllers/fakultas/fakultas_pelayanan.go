@@ -1,8 +1,10 @@
 package controllers
 
 import (
+	"math"
 	"siakad-backend/config"
 	"siakad-backend/models"
+	"strings"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -270,29 +272,142 @@ func HapusSesiKonseling(c *fiber.Ctx) error {
 
 func AmbilDaftarKesehatan(c *fiber.Ctx) error {
 	var daftar []models.Kesehatan
-	config.DB.Preload("Mahasiswa.ProgramStudi").Find(&daftar)
-	return c.JSON(fiber.Map{"status": "success", "data": daftar})
+	if err := config.DB.Preload("Mahasiswa.ProgramStudi").Order("created_at desc").Find(&daftar).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal mengambil data kesehatan"})
+	}
+
+	type HealthRow struct {
+		ID              uint    `json:"id"`
+		TanggalPeriksa  string  `json:"tanggal_periksa"`
+		MahasiswaID     uint    `json:"mahasiswa_id"`
+		NIM             string  `json:"nim"`
+		NamaMahasiswa   string  `json:"nama_mahasiswa"`
+		Prodi           string  `json:"prodi"`
+		StatusKesehatan string  `json:"status_kesehatan"`
+		GolonganDarah   string  `json:"golongan_darah"`
+		Sumber          string  `json:"sumber"`
+		TinggiBadan     float64 `json:"tinggi_badan"`
+		BeratBadan      float64 `json:"berat_badan"`
+		Sistolik        int     `json:"sistolik"`
+		Diastolik       int     `json:"diastolik"`
+		BMI             float64 `json:"bmi"`
+		CatatanMedis    string  `json:"catatan_medis"`
+	}
+
+	rows := make([]HealthRow, 0, len(daftar))
+	for _, rec := range daftar {
+		sumber := "kencana_screening"
+		if strings.Contains(strings.ToLower(rec.JenisPemeriksaan), "mandiri") {
+			sumber = "mandiri"
+		}
+
+		status := strings.TrimSpace(strings.ToLower(rec.StatusKesehatan))
+		if status == "" {
+			hasil := strings.TrimSpace(strings.ToLower(rec.Hasil))
+			switch {
+			case strings.Contains(hasil, "sehat"):
+				status = "sehat"
+			case strings.Contains(hasil, "pantau"):
+				status = "pantauan"
+			default:
+				status = "tindak_lanjut"
+			}
+		}
+
+		bmi := 0.0
+		if rec.TinggiBadan > 0 && rec.BeratBadan > 0 {
+			h := rec.TinggiBadan / 100
+			bmi = math.Round((rec.BeratBadan/(h*h))*10) / 10
+		}
+
+		rows = append(rows, HealthRow{
+			ID:              rec.ID,
+			TanggalPeriksa:  rec.Tanggal.Format("2006-01-02T15:04:05Z07:00"),
+			MahasiswaID:     rec.MahasiswaID,
+			NIM:             rec.Mahasiswa.NIM,
+			NamaMahasiswa:   rec.Mahasiswa.Nama,
+			Prodi:           rec.Mahasiswa.ProgramStudi.Nama,
+			StatusKesehatan: status,
+			GolonganDarah:   strings.ToUpper(strings.TrimSpace(rec.GolonganDarah)),
+			Sumber:          sumber,
+			TinggiBadan:     rec.TinggiBadan,
+			BeratBadan:      rec.BeratBadan,
+			Sistolik:        rec.Sistole,
+			Diastolik:       rec.Diastole,
+			BMI:             bmi,
+			CatatanMedis:    rec.Catatan,
+		})
+	}
+
+	return c.JSON(fiber.Map{"status": "success", "data": rows})
 }
 
 func AmbilRingkasanKesehatan(c *fiber.Ctx) error {
-	var total int64
-	var res struct {
-		BloodA int64 `json:"bloodA"`
-		BloodB int64 `json:"bloodB"`
-		BloodO int64 `json:"bloodO"`
-		BloodAB int64 `json:"bloodAB"`
+	var daftar []models.Kesehatan
+	if err := config.DB.Find(&daftar).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal mengambil ringkasan kesehatan"})
 	}
-	config.DB.Model(&models.Kesehatan{}).Count(&total)
-	config.DB.Model(&models.Kesehatan{}).Where("hasil = ?", "Baik").Count(&res.BloodA)
-	config.DB.Model(&models.Kesehatan{}).Where("hasil = ?", "Sakit").Count(&res.BloodB)
-	config.DB.Model(&models.Kesehatan{}).Where("hasil = ?", "Pemulihan").Count(&res.BloodO)
-	config.DB.Model(&models.Kesehatan{}).Where("hasil = ?", "Lainnya").Count(&res.BloodAB)
+
+	total := int64(len(daftar))
+	var bloodA int64
+	var bloodB int64
+	var bloodO int64
+	var bloodAB int64
+	var sehat int64
+	var pantauan int64
+	var tindakLanjut int64
+
+	for _, rec := range daftar {
+		gd := strings.ToUpper(strings.TrimSpace(rec.GolonganDarah))
+		switch gd {
+		case "A":
+			bloodA++
+		case "B":
+			bloodB++
+		case "O":
+			bloodO++
+		case "AB":
+			bloodAB++
+		}
+
+		status := strings.ToLower(strings.TrimSpace(rec.StatusKesehatan))
+		if status == "" {
+			h := strings.ToLower(strings.TrimSpace(rec.Hasil))
+			switch {
+			case strings.Contains(h, "sehat"):
+				status = "sehat"
+			case strings.Contains(h, "pantau"):
+				status = "pantauan"
+			default:
+				status = "tindak_lanjut"
+			}
+		}
+
+		switch status {
+		case "sehat", "prima", "stabil":
+			sehat++
+		case "pantauan", "perlu_perhatian":
+			pantauan++
+		default:
+			tindakLanjut++
+		}
+	}
 
 	return c.JSON(fiber.Map{
 		"status": "success",
 		"data": fiber.Map{
 			"total": total,
-			"distribution": res,
+			"distribution": fiber.Map{
+				"bloodA":  bloodA,
+				"bloodB":  bloodB,
+				"bloodO":  bloodO,
+				"bloodAB": bloodAB,
+			},
+			"status": fiber.Map{
+				"sehat":         sehat,
+				"pantauan":      pantauan,
+				"tindak_lanjut": tindakLanjut,
+			},
 		},
 	})
 }
@@ -304,4 +419,3 @@ func HapusDataKesehatan(c *fiber.Ctx) error {
 }
 
 // --- END OF SERVICE CONTROLLERS ---
-

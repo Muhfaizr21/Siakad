@@ -1,92 +1,92 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Sidebar from './components/Sidebar';
 import TopNavBar from './components/TopNavBar';
+import { adminService } from '../../services/api';
 
 const AdminPerformance = () => {
+    const [logs, setLogs] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        loadLogs();
+    }, []);
+
+    const loadLogs = async () => {
+        try {
+            setLoading(true);
+            const res = await adminService.getAuditLogs();
+            if (res.status === 'success') {
+                setLogs(res.data || []);
+            }
+        } catch (error) {
+            console.error('Gagal memuat audit logs:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return (
-        <div className="bg-surface text-on-surface min-h-screen flex font-headline font-body font-sans select-none">
+        <div className="bg-slate-50 text-slate-900 min-h-screen flex font-body select-none">
           <Sidebar />
-          <main className="pl-80 flex flex-col min-h-screen w-full">
+          <main className="pl-80 flex flex-col min-h-screen w-full font-body">
             <TopNavBar />
             <div className="p-8 space-y-8">
               <header className="flex justify-between items-end">
                 <div>
-                  <h1 className="text-3xl font-extrabold text-primary tracking-tight font-headline uppercase tracking-widest ">Institutional Staff Analytics</h1>
-                  <p className="text-secondary mt-1">Cross-faculty performance evaluation and response metrics for all administrative nodes.</p>
+                  <h1 className="text-3xl font-extrabold text-primary tracking-tight uppercase leading-none">Security Intelligence & Audit</h1>
+                  <p className="text-slate-600 mt-2 font-medium opacity-90">Pemantauan aktivitas sistem real-time dan audit jejak digital seluruh entitas administratif.</p>
                 </div>
               </header>
 
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-                 <section className="bg-white p-12 rounded-[3.5rem] border border-outline-variant/30 space-y-10 shadow-sm relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 p-10 opacity-5 group-hover:scale-110 transition-transform duration-700">
-                        <span className="material-symbols-outlined text-[150px] text-primary">assessment</span>
-                    </div>
-                    <h3 className="text-xl font-black text-primary uppercase tracking-widest font-headline">Faculty Efficiency Ranking</h3>
-                    <div className="space-y-10">
-                        {[ 
-                            { fac: "Fakultas Teknik", rate: 94, avgTime: "2.4h", tickets: 124 },
-                            { fac: "Fakultas Ekonomi", rate: 86, avgTime: "4.1h", tickets: 88 },
-                            { fac: "Fakultas MIPA", rate: 72, avgTime: "12.5h", tickets: 45 }
-                        ].map((item, i) => (
-                            <div key={i} className="flex items-center justify-between group">
-                                <div className="space-y-3 flex-1 px-4">
-                                    <div className="flex justify-between items-end">
-                                        <p className="font-extrabold text-primary tracking-tight leading-tight uppercase tracking-widest text-sm">{item.fac}</p>
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-[10px] text-secondary/40 font-black tracking-widest uppercase">Efficiency Index:</span>
-                                            <span className="text-xl font-black text-primary">{item.rate}%</span>
-                                        </div>
-                                    </div>
-                                    <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden flex shadow-inner">
-                                        <div className={`h-full transition-all duration-1000 bg-primary group-hover:shadow-[0_0_12px_rgba(0,35,111,0.3)]`} style={{width: `${item.rate}%`}}></div>
-                                    </div>
-                                    <div className="flex gap-6 text-[10px] font-black uppercase text-secondary/40 tracking-widest ">
-                                        <span>Avg Response: {item.avgTime}</span>
-                                        <span>Total Tickets: {item.tickets}</span>
-                                    </div>
-                                </div>
-                                <span className="material-symbols-outlined text-secondary opacity-20 group-hover:opacity-100 transition-opacity">trending_up</span>
-                            </div>
-                        ))}
-                    </div>
-                 </section>
-
-                 <section className="bg-primary-container p-12 rounded-[3.5rem] text-white space-y-12 shadow-xl shadow-primary-container/20 relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 p-10 opacity-10 group-hover:rotate-12 transition-transform duration-700">
-                        <span className="material-symbols-outlined text-[180px] text-white">person_search</span>
-                    </div>
-                    <div>
-                        <h3 className="text-2xl font-black uppercase tracking-widest  leading-tight">Admin Performance <br/> Spotlight</h3>
-                        <p className="text-xs text-white/60 font-medium font-body leading-relaxed max-w-sm mt-4">Identify top-performing nodes and potential bottlenecks in the institutional workflow.</p>
-                    </div>
-
-                    <div className="space-y-6">
-                        {[1, 2, 3].map(i => (
-                            <div key={i} className="p-8 bg-white/5 border border-white/10 rounded-[2.5rem] flex items-center justify-between hover:bg-white/10 transition-all border-dashed">
-                                <div className="flex items-center gap-5">
-                                    <div className="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center text-white font-bold">
-                                        JD
-                                    </div>
-                                    <div>
-                                        <p className="font-bold text-white tracking-tight">John Doe (FT Admin)</p>
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-[10px] font-black uppercase text-white/40 tracking-widest ">Resolved: 45 | Average: 1.2h</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="flex flex-col items-end">
-                                    <span className="text-2xl font-black text-emerald-400">98%</span>
-                                    <span className="text-[10px] font-black uppercase text-secondary/50 tracking-widest">SLA Score</span>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-
-                    <div className="text-center">
-                        <p className="text-xs text-secondary  font-body opacity-80">This analysis is for institutional intelligence and workflow optimization purposes.</p>
-                    </div>
-                 </section>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-6 font-body">
+                  <div className="bg-white p-10 rounded-[3.5rem] border border-slate-200 space-y-2 shadow-sm font-body">
+                      <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Total Event Terpantau</p>
+                      <h3 className="text-3xl font-black text-primary uppercase tracking-tighter">{loading ? '...' : logs.length.toString().padStart(2, '0')} Aktivitas</h3>
+                  </div>
               </div>
+
+              <section className="bg-white border border-slate-200 rounded-[3.5rem] overflow-hidden shadow-sm font-body">
+                 <div className="p-10 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center font-body">
+                    <h3 className="text-sm font-black text-primary uppercase tracking-widest">Jejak Digital (Audit Logs)</h3>
+                    <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Sistem Operasional Normal</span>
+                 </div>
+                 <div className="divide-y divide-slate-100 select-text font-body">
+                    {loading ? (
+                        <div className="p-20 text-center text-slate-400 uppercase font-black text-[10px] tracking-widest leading-loose">Mensinkronkan log keamanan...</div>
+                    ) : logs.length === 0 ? (
+                        <div className="p-20 text-center text-slate-400 uppercase font-black text-[10px] tracking-widest leading-loose">Tidak ada aktivitas terdeteksi dalam 24 jam terakhir.</div>
+                    ) : logs.map((log) => (
+                      <div key={log.ID} className="p-8 hover:bg-slate-50 transition-all flex items-center justify-between group border-b border-slate-50 font-body">
+                        <div className="flex gap-6 items-start font-body">
+                            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-black text-xs shadow-inner ${
+                                log.Aktivitas.includes('DELETE') ? 'bg-rose-50 text-rose-600' :
+                                log.Aktivitas.includes('UPDATE') ? 'bg-amber-50 text-amber-600' :
+                                'bg-emerald-50 text-emerald-600'
+                            }`}>
+                                <span className="material-symbols-outlined text-[20px]">
+                                    {log.Aktivitas.includes('DELETE') ? 'delete_forever' : 
+                                     log.Aktivitas.includes('UPDATE') ? 'edit_square' : 'history'}
+                                </span>
+                            </div>
+                            <div className="font-body">
+                                <div className="flex items-center gap-4">
+                                    <span className="text-primary font-black text-sm uppercase tracking-tight ">{log.Aktivitas}</span>
+                                    <span className="text-[10px] text-slate-300 font-black uppercase tracking-widest">{new Date(log.CreatedAt).toLocaleTimeString('id-ID')}</span>
+                                </div>
+                                <p className="text-xs font-bold text-slate-500 mt-1 max-w-xl group-hover:text-slate-900 transition-colors uppercase italic leading-relaxed tracking-tighter">
+                                    {log.Deskripsi}
+                                </p>
+                                <div className="flex items-center gap-4 mt-3">
+                                    <span className="text-[9px] font-black uppercase tracking-widest bg-slate-100 px-3 py-1 rounded-lg text-slate-500">OPERATOR: {log.User?.Email || 'SYSTEM'}</span>
+                                    <span className="text-[9px] font-black uppercase tracking-widest bg-slate-100 px-3 py-1 rounded-lg text-slate-500">IP: {log.IPAddress || '0.0.0.0'}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <span className="text-[10px] font-bold text-slate-300 uppercase tracking-widest">Verified Log</span>
+                      </div>
+                    ))}
+                 </div>
+              </section>
             </div>
           </main>
         </div>

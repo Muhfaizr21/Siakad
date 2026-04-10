@@ -32,7 +32,7 @@ export default function ProdiPage() {
   const fetchMajors = async () => {
     setLoading(true)
     try {
-      const res = await fetch('http://localhost:8000/api/faculty/majors')
+      const res = await fetch('/api/faculty/majors')
       const json = await res.json()
       if (json.status === 'success') {
         setMajors(json.data)
@@ -46,7 +46,7 @@ export default function ProdiPage() {
 
   const fetchFaculties = async () => {
     try {
-      const res = await fetch('http://localhost:8000/api/faculty/faculties')
+      const res = await fetch('/api/faculty/faculties')
       const json = await res.json()
       if (json.status === 'success') {
         setFaculties(json.data)
@@ -76,7 +76,7 @@ export default function ProdiPage() {
   const handleSave = async (e) => {
     if (e) e.preventDefault()
     setIsSubmitting(true)
-    const url = isEditMode ? `http://localhost:8000/api/faculty/majors/${formData.id}` : 'http://localhost:8000/api/faculty/majors'
+    const url = isEditMode ? `/api/faculty/majors/${formData.id}` : '/api/faculty/majors'
     const method = isEditMode ? 'PUT' : 'POST'
 
     try {
@@ -104,7 +104,7 @@ export default function ProdiPage() {
     if (!selectedProdiId) return
     setIsSubmitting(true)
     try {
-      const res = await fetch(`http://localhost:8000/api/faculty/majors/${selectedProdiId}`, { method: 'DELETE' })
+      const res = await fetch(`/api/faculty/majors/${selectedProdiId}`, { method: 'DELETE' })
       const json = await res.json()
       if (json.status === 'success') {
         toast.success("Program studi telah dihapus")

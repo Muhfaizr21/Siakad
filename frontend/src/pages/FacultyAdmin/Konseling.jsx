@@ -83,8 +83,8 @@ export default function FacultyKonseling() {
     try {
       setLoading(true)
       const [cRes, sRes] = await Promise.all([
-        axios.get('http://localhost:8000/api/faculty/counseling'),
-        axios.get('http://localhost:8000/api/faculty/students')
+        axios.get('/api/faculty/counseling'),
+        axios.get('/api/faculty/students')
       ])
       
       if (cRes.data.status === 'success') setSessions(cRes.data.data)
@@ -143,7 +143,7 @@ export default function FacultyKonseling() {
     try {
       setIsSubmitting(true)
       if (modalMode === 'create') {
-        const res = await axios.post(`http://localhost:8000/api/faculty/counseling`, {
+        const res = await axios.post(`/api/faculty/counseling`, {
           studentId: parseInt(formData.studentId),
           type: formData.jenis,
           date: new Date(formData.tanggal),
@@ -154,7 +154,7 @@ export default function FacultyKonseling() {
         })
         if (res.data.status === 'success') toast.success("Sesi baru dijadwalkan")
       } else {
-        const res = await axios.put(`http://localhost:8000/api/faculty/counseling/${selectedSession.id}`, {
+        const res = await axios.put(`/api/faculty/counseling/${selectedSession.id}`, {
           ...selectedSession,
           studentId: parseInt(formData.studentId),
           type: formData.jenis,
@@ -177,7 +177,7 @@ export default function FacultyKonseling() {
 
   const handleDelete = async () => {
     try {
-      const res = await axios.delete(`http://localhost:8000/api/faculty/counseling/${selectedSession.id}`)
+      const res = await axios.delete(`/api/faculty/counseling/${selectedSession.id}`)
       if (res.data.status === 'success') {
         toast.success("Sesi berhasil dihapus")
         setIsDelOpen(false)

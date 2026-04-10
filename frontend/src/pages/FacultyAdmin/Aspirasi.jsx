@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState, useEffect } from 'react'
-import axios from 'axios'
+import api from '../../lib/axios'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "./components/card"
 import { Button } from "./components/button"
 import { Badge } from "./components/badge"
@@ -13,6 +13,40 @@ import { Textarea } from "./components/textarea"
 import { Label } from "./components/label"
 import { DataTable } from "./components/data-table"
 import { cn } from "@/lib/utils"
+
+const normalizeStatus = (status) => {
+  const s = String(status || '').toLowerCase()
+  if (s.includes('selesai')) return 'selesai'
+  if (s.includes('batal') || s.includes('tolak')) return 'ditolak'
+  if (s.includes('klarifikasi')) return 'klarifikasi'
+  if (s.includes('proses')) return 'proses'
+  if (s.includes('tindak')) return 'proses'
+  return 'proses'
+}
+
+const normalizeAspiration = (item = {}) => {
+  const mhs = item.Mahasiswa || item.mahasiswa || {}
+  const user = mhs.Pengguna || mhs.pengguna || {}
+  const nama = item.IsAnonim || item.is_anonim ? 'Anonim' : (mhs.Nama || mhs.nama || 'Mahasiswa')
+  const nim = item.IsAnonim || item.is_anonim ? '-' : (mhs.NIM || mhs.nim || '-')
+
+  return {
+    id: item.ID || item.id || 0,
+    judul: item.Judul || item.judul || '-',
+    isi: item.Isi || item.isi || '-',
+    category: item.Kategori || item.kategori || 'Umum',
+    tujuan: item.Tujuan || item.tujuan || '-',
+    status: normalizeStatus(item.Status || item.status),
+    response: item.Respon || item.respon || '',
+    createdAt: item.CreatedAt || item.created_at || null,
+    student: {
+      name: nama,
+      nama_mahasiswa: nama,
+      nim,
+      email: user.Email || user.email || '-',
+    },
+  }
+}
 
 const FacultyAspirationManagement = () => {
   const [activeTab, setActiveTab] = useState('all')
@@ -31,9 +65,10 @@ const FacultyAspirationManagement = () => {
   const fetchAspirations = async () => {
     try {
       setLoading(true)
-      const response = await axios.get('http://localhost:8000/api/faculty/aspirasi')
+      const response = await api.get('/faculty/aspirasi')
       if (response.data.status === 'success') {
-        setAspirations(response.data.data)
+        const rows = Array.isArray(response.data.data) ? response.data.data.map(normalizeAspiration) : []
+        setAspirations(rows)
       }
     } catch (error) {
       toast.error('Gagal mengambil data aspirasi')
@@ -44,7 +79,7 @@ const FacultyAspirationManagement = () => {
 
   const handleUpdateStatus = async (status) => {
     try {
-      const response = await axios.put(`http://localhost:8000/api/faculty/aspirasi/${selectedItem.id}`, {
+      const response = await api.put(`/faculty/aspirasi/${selectedItem.id}`, {
         status,
         tanggapan: adminResponse
       })
@@ -63,7 +98,7 @@ const FacultyAspirationManagement = () => {
     if (!selectedItem?.id) return
     setIsSubmitting(true)
     try {
-      const response = await axios.delete(`http://localhost:8000/api/faculty/aspirasi/${selectedItem.id}`)
+      const response = await api.delete(`/faculty/aspirasi/${selectedItem.id}`)
       if (response.data.status === 'success') {
         toast.success('Aspirasi dihapus')
         setIsDelOpen(false)
@@ -169,7 +204,7 @@ const FacultyAspirationManagement = () => {
                 </Badge>
               )
             }]}
-            data={aspirations}
+            data={filteredAspirations}
             loading={loading}
             searchPlaceholder="Cari Pengirim atau Judul..."
             onSync={fetchAspirations}

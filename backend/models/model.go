@@ -25,7 +25,7 @@ type BaseModel struct {
 type User struct {
 	BaseModel
 	Email    string `gorm:"uniqueIndex;not null"`
-	Password string `gorm:"not null"`
+	Password string `gorm:"column:password_hash;not null"`
 	Role     string `gorm:"index"`
 
 	Mahasiswa *Mahasiswa `gorm:"foreignKey:PenggunaID"`
@@ -85,7 +85,7 @@ type Dosen struct {
 	NoHP    string
 	Alamat  string
 
-	MahasiswaBimbingan []Mahasiswa `gorm:"foreignKey:DosenPAID"`
+	MahasiswaBimbingan []Mahasiswa `gorm:"foreignKey:DosenPAID;references:ID"`
 	Konseling          []Konseling
 }
 
@@ -99,11 +99,11 @@ type Mahasiswa struct {
 
 	FakultasID     uint `gorm:"index"`
 	ProgramStudiID uint `gorm:"index"`
-	DosenPAID      uint `gorm:"index"`
+	DosenPAID      *uint `gorm:"index"`
 
 	Fakultas     Fakultas
 	ProgramStudi ProgramStudi
-	DosenPA      Dosen `gorm:"foreignKey:DosenPAID"`
+	DosenPA      *Dosen `gorm:"foreignKey:DosenPAID"`
 
 	SemesterSekarang int
 	StatusAkun       string
@@ -147,7 +147,7 @@ type Mahasiswa struct {
 	Aspirasi          []Aspirasi            `gorm:"foreignKey:MahasiswaID"`
 	Konseling         []Konseling           `gorm:"foreignKey:MahasiswaID"`
 	Kesehatan         []Kesehatan           `gorm:"foreignKey:MahasiswaID"`
-	LogAktivitas      []LogAktivitas        `gorm:"foreignKey:MahasiswaID"`
+	LogAktivitas      []LogAktivitas        `gorm:"foreignKey:UserID"`
 	RiwayatOrganisasi []RiwayatOrganisasi   `gorm:"foreignKey:MahasiswaID"`
 	PengajuanSurat    []PengajuanSurat      `gorm:"foreignKey:MahasiswaID"`
 	PkkmbProgress     []PkkmbProgress       `gorm:"foreignKey:MahasiswaID"`
@@ -231,7 +231,9 @@ type Aspirasi struct {
 	Isi      string
 	Kategori string
 	Tujuan   string
-	Status   string
+	Status    string
+	Prioritas string // LOW, MEDIUM, HIGH, CRITICAL
+	Deadline  *time.Time
 	IsAnonim bool
 	Respon   string
 }
@@ -268,17 +270,27 @@ type Kesehatan struct {
 	Mahasiswa   Mahasiswa
 
 	Tanggal          time.Time
-	JenisPemeriksaan string
-	Hasil            string
+	JenisPemeriksaan string // misal: Screening Tahunan, Cek Rutin
+	Hasil            string // Sehat, Pantauan, Perlu Perhatian
 	Catatan          string
 	FileURL          string
+
+	// Detail Medis (Completeness like Health Screening)
+	TinggiBadan     float64
+	BeratBadan      float64
+	Sistole         int
+	Diastole        int
+	GulaDarah       int
+	ButaWarna       string // Normal, Parsial, Total
+	RiwayatPenyakit string
+	StatusKesehatan string // prima, stabil, kritis
+	GolonganDarah   string // A, B, AB, O
 }
 
 type LogAktivitas struct {
 	BaseModel
-	MahasiswaID uint `gorm:"index"`
-	Mahasiswa   Mahasiswa
-
+	UserID    uint `gorm:"index"`
+	User      User `gorm:"foreignKey:UserID"`
 	Aktivitas string
 	Deskripsi string
 	IPAddress string
@@ -443,7 +455,7 @@ type Proposal struct {
 	ApprovedDosenID    *uint `gorm:"index"`
 	ApprovedFakultasID *uint `gorm:"index"`
 
-	Riwayat []ProposalRiwayat
+	Riwayat []ProposalRiwayat           `gorm:"foreignKey:ProposalID"`
 	LPJ     []LaporanPertanggungjawaban `gorm:"foreignKey:ProposalID"`
 }
 

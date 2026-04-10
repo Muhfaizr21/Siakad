@@ -12,9 +12,20 @@ import (
 	"github.com/google/uuid"
 )
 
+func getUserID(c *fiber.Ctx) (uint, error) {
+	v, ok := c.Locals("user_id").(uint)
+	if !ok || v == 0 {
+		return 0, fiber.NewError(fiber.StatusUnauthorized, "User tidak terautentikasi")
+	}
+	return v, nil
+}
+
 // GetAchievements returns paginated achievements and total stats for an individual student
 func GetAchievements(c *fiber.Ctx) error {
-	PenggunaID := c.Locals("user_id").(uint)
+	PenggunaID, err := getUserID(c)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"success": false, "message": "User tidak terautentikasi"})
+	}
 
 	var student models.Mahasiswa
 	if err := config.DB.First(&student, "pengguna_id = ?", PenggunaID).Error; err != nil {
@@ -55,7 +66,10 @@ func GetAchievements(c *fiber.Ctx) error {
 
 // CreateAchievement handles new achievement submissions with file upload
 func CreateAchievement(c *fiber.Ctx) error {
-	PenggunaID := c.Locals("user_id").(uint)
+	PenggunaID, err := getUserID(c)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"success": false, "message": "User tidak terautentikasi"})
+	}
 
 	var student models.Mahasiswa
 	if err := config.DB.First(&student, "pengguna_id = ?", PenggunaID).Error; err != nil {
@@ -125,7 +139,10 @@ func CreateAchievement(c *fiber.Ctx) error {
 // GetAchievementDetail returns single achievement data
 func GetAchievementDetail(c *fiber.Ctx) error {
 	id := c.Params("id")
-	PenggunaID := c.Locals("user_id").(uint)
+	PenggunaID, err := getUserID(c)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"success": false, "message": "User tidak terautentikasi"})
+	}
 
 	var student models.Mahasiswa
 	if err := config.DB.First(&student, "pengguna_id = ?", PenggunaID).Error; err != nil {
@@ -146,7 +163,10 @@ func GetAchievementDetail(c *fiber.Ctx) error {
 // DeleteAchievement deletes an achievement ONLY if its status is Menunggu
 func DeleteAchievement(c *fiber.Ctx) error {
 	id := c.Params("id")
-	PenggunaID := c.Locals("user_id").(uint)
+	PenggunaID, err := getUserID(c)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"success": false, "message": "User tidak terautentikasi"})
+	}
 
 	var student models.Mahasiswa
 	if err := config.DB.First(&student, "pengguna_id = ?", PenggunaID).Error; err != nil {

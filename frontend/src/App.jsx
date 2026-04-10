@@ -31,7 +31,6 @@ import HealthScreeningPage from './pages/Student/HealthScreeningPage'
 import StudentVoicePage from './pages/Student/StudentVoicePage'
 import StudentVoiceDetailPage from './pages/Student/StudentVoiceDetailPage'
 import OrganisasiPage from './pages/Student/OrganisasiPage'
-import StudentKRS from './pages/Student/KRS/index'
 import ProfilePage from './pages/Student/ProfilePage'
 import NotificationPage from './pages/Student/NotificationPage'
 
@@ -101,6 +100,7 @@ import AdminPerformance from './pages/SuperAdmin/AdminPerformance'
 import SecuritySettings from './pages/SuperAdmin/SecuritySettings'
 import LecturerDirectory from './pages/SuperAdmin/LecturerDirectory'
 import KelolaFakultas from './pages/SuperAdmin/KelolaFakultas'
+import KelolaProdi from './pages/SuperAdmin/KelolaProdi'
 import KelolaBeasiswa from './pages/SuperAdmin/KelolaBeasiswa'
 import KelolaOrganisasi from './pages/SuperAdmin/KelolaOrganisasi'
 import NotFound from './pages/NotFound/NotFound'
@@ -162,6 +162,7 @@ function App() {
             <Route path="/admin/lecturers" element={<LecturerDirectory />} />
             <Route path="/admin/config" element={<AcademicPortal />} />
             <Route path="/admin/faculties" element={<KelolaFakultas />} />
+            <Route path="/admin/prodi" element={<KelolaProdi />} />
             <Route path="/admin/scholarships" element={<KelolaBeasiswa />} />
             <Route path="/admin/organizations" element={<KelolaOrganisasi />} />
             <Route path="/admin/ormawa" element={<ProposalPipeline />} />
@@ -237,7 +238,6 @@ function App() {
               <Route path="voice" element={<StudentVoicePage />} />
               <Route path="voice/tiket/:id" element={<StudentVoiceDetailPage />} />
               <Route path="organisasi" element={<OrganisasiPage />} />
-              <Route path="krs" element={<StudentKRS />} />
               <Route path="profile" element={<ProfilePage />} />
               <Route path="notifikasi" element={<NotificationPage />} />
             </Route>

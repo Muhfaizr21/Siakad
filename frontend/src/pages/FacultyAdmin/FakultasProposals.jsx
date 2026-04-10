@@ -42,7 +42,7 @@ export default function FacultyInternalProposals() {
   const fetchData = async () => {
     try {
       setLoading(true)
-      const res = await axios.get('http://localhost:8000/api/faculty/internal/proposals')
+      const res = await axios.get('/api/faculty/internal/proposals')
       if (res.data.status === 'success') {
         setData(res.data.data)
       }
@@ -74,7 +74,7 @@ export default function FacultyInternalProposals() {
   const handleSaveReview = async () => {
     setIsSubmitting(true)
     try {
-      const res = await axios.put(`http://localhost:8000/api/faculty/internal/proposals/${selectedProposal.id}`, {
+      const res = await axios.put(`/api/faculty/internal/proposals/${selectedProposal.id}`, {
         status: reviewForm.status,
         catatan_reviewer: reviewForm.notes
       })

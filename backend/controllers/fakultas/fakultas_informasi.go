@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"siakad-backend/config"
 	"siakad-backend/models"
 
@@ -13,12 +14,18 @@ func AmbilRingkasanDashboard(c *fiber.Ctx) error {
 	var totalMhs int64
 	var totalDosen int64
 	var totalProdi int64
+	var totalAspirasi int64
+	var totalHealth int64
+	var totalKonseling int64
 
 	config.DB.Model(&models.Mahasiswa{}).Count(&totalMhs)
 	config.DB.Model(&models.Dosen{}).Count(&totalDosen)
 	var totalPrestasiPending int64
-	config.DB.Model(&models.Prestasi{}).Where("status = ?", "MENUNGGU").Count(&totalPrestasiPending)
+	config.DB.Model(&models.Prestasi{}).Where("LOWER(status) = ?", "menunggu").Count(&totalPrestasiPending)
 	config.DB.Model(&models.ProgramStudi{}).Count(&totalProdi)
+	config.DB.Model(&models.Aspirasi{}).Count(&totalAspirasi)
+	config.DB.Model(&models.Kesehatan{}).Count(&totalHealth)
+	config.DB.Model(&models.Konseling{}).Count(&totalKonseling)
 
 	// Status counts (Aktif, Cuti, Lulus, DO, etc.)
 	type StatusCount struct {
@@ -47,7 +54,7 @@ func AmbilRingkasanDashboard(c *fiber.Ctx) error {
 			"count(mahasiswa.id) as jumlah, " +
 			"sum(case when mahasiswa.status_akun = 'Aktif' then 1 else 0 end) as active, " +
 			"sum(case when mahasiswa.status_akun = 'Lulus' then 1 else 0 end) as graduated, " +
-			"coalesce(avg(mahasiswa.ipk), 0) as avg_IPK").
+			"coalesce(avg(mahasiswa.ipk), 0) as avg_ipk").
 		Joins("left join mahasiswa on mahasiswa.program_studi_id = program_studi.id").
 		Group("program_studi.id, program_studi.nama, program_studi.akreditasi").
 		Scan(&prodiDist)
@@ -79,11 +86,15 @@ func AmbilRingkasanDashboard(c *fiber.Ctx) error {
 	var pList []models.Prestasi
 	config.DB.Preload("Mahasiswa").Order("id desc").Limit(3).Find(&pList)
 	for _, p := range pList {
+		avatar := "U"
+		if p.Mahasiswa.Nama != "" {
+			avatar = string([]rune(p.Mahasiswa.Nama)[0])
+		}
 		logs = append(logs, ActivityItem{
 			User:   p.Mahasiswa.Nama,
 			Action: "mengajukan prestasi: " + p.NamaKegiatan,
 			Time:   "Baru saja",
-			Avatar: string(p.Mahasiswa.Nama[0]),
+			Avatar: avatar,
 		})
 	}
 
@@ -91,12 +102,58 @@ func AmbilRingkasanDashboard(c *fiber.Ctx) error {
 	var mList []models.Mahasiswa
 	config.DB.Order("id desc").Limit(2).Find(&mList)
 	for _, m := range mList {
+		avatar := "M"
+		if m.Nama != "" {
+			avatar = string([]rune(m.Nama)[0])
+		}
 		logs = append(logs, ActivityItem{
 			User:   m.Nama,
 			Action: "terdaftar sebagai mahasiswa baru",
 			Time:   "Hari ini",
-			Avatar: string(m.Nama[0]),
+			Avatar: avatar,
 		})
+	}
+
+	var aspirasiTerbaru []models.Aspirasi
+	config.DB.Preload("Mahasiswa").Order("created_at desc").Limit(2).Find(&aspirasiTerbaru)
+	for _, a := range aspirasiTerbaru {
+		nama := a.Mahasiswa.Nama
+		if nama == "" {
+			nama = "Mahasiswa"
+		}
+		avatar := "A"
+		if nama != "" {
+			avatar = string([]rune(nama)[0])
+		}
+		logs = append(logs, ActivityItem{
+			User:   nama,
+			Action: fmt.Sprintf("mengirim aspirasi: %s", a.Judul),
+			Time:   "Baru saja",
+			Avatar: avatar,
+		})
+	}
+
+	var kesehatanTerbaru []models.Kesehatan
+	config.DB.Preload("Mahasiswa").Order("created_at desc").Limit(2).Find(&kesehatanTerbaru)
+	for _, k := range kesehatanTerbaru {
+		nama := k.Mahasiswa.Nama
+		if nama == "" {
+			nama = "Mahasiswa"
+		}
+		avatar := "H"
+		if nama != "" {
+			avatar = string([]rune(nama)[0])
+		}
+		logs = append(logs, ActivityItem{
+			User:   nama,
+			Action: "memperbarui data health screening",
+			Time:   "Hari ini",
+			Avatar: avatar,
+		})
+	}
+
+	if len(logs) > 8 {
+		logs = logs[:8]
 	}
 
 	return c.JSON(fiber.Map{
@@ -106,6 +163,9 @@ func AmbilRingkasanDashboard(c *fiber.Ctx) error {
 			"totalLecturers":    totalDosen,
 			"totalProdi":        totalProdi,
 			"totalPrestasi":     totalPrestasiPending,
+			"totalAspirasi":     totalAspirasi,
+			"totalHealth":       totalHealth,
+			"totalKonseling":    totalKonseling,
 			"statusCounts":      statusCounts,
 			"prodiDistribution": prodiDist,
 			"trendData":         trendData,
@@ -189,7 +249,7 @@ func AmbilRingkasanLaporan(c *fiber.Ctx) error {
 
 	// Per Prodi (Distribusi) - Menampilkan semua prodi meskipun belum ada mahasiswanya
 	type ProdiDist struct {
-		NamaProdi      string  `json:"nama_prodi"`
+		NamaProdi string  `json:"nama_prodi"`
 		Value     int64   `json:"value"`     // Total Mahasiswa
 		Active    int64   `json:"active"`    // Aktif
 		Leave     int64   `json:"leave"`     // Cuti
