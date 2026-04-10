@@ -50,6 +50,10 @@ type Fakultas struct {
 	Proposals    []Proposal     `gorm:"foreignKey:FakultasID"`
 }
 
+func (Fakultas) TableName() string {
+	return "fakultas.fakultas"
+}
+
 type ProgramStudi struct {
 	BaseModel
 	FakultasID uint
@@ -65,6 +69,10 @@ type ProgramStudi struct {
 
 	Dosen     []Dosen     `gorm:"foreignKey:ProgramStudiID"`
 	Mahasiswa []Mahasiswa `gorm:"foreignKey:ProgramStudiID"`
+}
+
+func (ProgramStudi) TableName() string {
+	return "fakultas.program_studi"
 }
 
 type Dosen struct {
@@ -88,6 +96,10 @@ type Dosen struct {
 
 	MahasiswaBimbingan []Mahasiswa `gorm:"foreignKey:DosenPAID;references:ID"`
 	Konseling          []Konseling
+}
+
+func (Dosen) TableName() string {
+	return "fakultas.dosen"
 }
 
 type Mahasiswa struct {
@@ -157,6 +169,10 @@ type Mahasiswa struct {
 	PkkmbSertifikat   *PkkmbSertifikat      `gorm:"foreignKey:MahasiswaID"`
 }
 
+func (Mahasiswa) TableName() string {
+	return "mahasiswa.mahasiswa"
+}
+
 // ========================
 // AKADEMIK
 // ========================
@@ -179,6 +195,10 @@ type PengaturanAkademik struct {
 	IsMBKMOpen    bool
 }
 
+func (PengaturanAkademik) TableName() string {
+	return "fakultas.pengaturan_akademik"
+}
+
 type ProgramMBKM struct {
 	BaseModel
 	NamaProgram        string
@@ -187,6 +207,10 @@ type ProgramMBKM struct {
 	Deskripsi          string
 	SKSKonversiDefault int
 	Periode            string
+}
+
+func (ProgramMBKM) TableName() string {
+	return "fakultas.program_mbkm"
 }
 
 // ========================
@@ -210,6 +234,10 @@ type Prestasi struct {
 	RiwayatOrganisasi   *RiwayatOrganisasi `gorm:"foreignKey:RiwayatOrganisasiID"`
 }
 
+func (Prestasi) TableName() string {
+	return "mahasiswa.prestasi"
+}
+
 type Beasiswa struct {
 	BaseModel
 	Nama          string
@@ -224,6 +252,10 @@ type Beasiswa struct {
 	Pendaftaran []BeasiswaPendaftaran
 }
 
+func (Beasiswa) TableName() string {
+	return "mahasiswa.beasiswa"
+}
+
 type BeasiswaPendaftaran struct {
 	BaseModel
 	MahasiswaID uint `gorm:"index"`
@@ -235,6 +267,10 @@ type BeasiswaPendaftaran struct {
 	Status   string
 	Catatan  string
 	BuktiURL string
+}
+
+func (BeasiswaPendaftaran) TableName() string {
+	return "mahasiswa.beasiswa_pendaftaran"
 }
 
 type Aspirasi struct {
@@ -253,6 +289,10 @@ type Aspirasi struct {
 	Respon   string
 }
 
+func (Aspirasi) TableName() string {
+	return "mahasiswa.aspirasi"
+}
+
 type Konseling struct {
 	BaseModel
 	MahasiswaID uint `gorm:"index"`
@@ -267,6 +307,10 @@ type Konseling struct {
 	Catatan string
 }
 
+func (Konseling) TableName() string {
+	return "mahasiswa.konseling"
+}
+
 type PengajuanSurat struct {
 	BaseModel
 	MahasiswaID uint `gorm:"index"`
@@ -277,6 +321,10 @@ type PengajuanSurat struct {
 	Status     string
 	FileURL    string
 	Catatan    string
+}
+
+func (PengajuanSurat) TableName() string {
+	return "mahasiswa.pengajuan_surat"
 }
 
 type Kesehatan struct {
@@ -302,6 +350,10 @@ type Kesehatan struct {
 	GolonganDarah   string // A, B, AB, O
 }
 
+func (Kesehatan) TableName() string {
+	return "mahasiswa.kesehatan"
+}
+
 type LogAktivitas struct {
 	BaseModel
 	UserID    uint `gorm:"index"`
@@ -309,6 +361,10 @@ type LogAktivitas struct {
 	Aktivitas string
 	Deskripsi string
 	IPAddress string
+}
+
+func (LogAktivitas) TableName() string {
+	return "mahasiswa.log_aktivitas"
 }
 
 type RiwayatOrganisasi struct {
@@ -335,6 +391,10 @@ type RiwayatOrganisasi struct {
 	Prestasi []Prestasi `gorm:"foreignKey:RiwayatOrganisasiID"`
 }
 
+func (RiwayatOrganisasi) TableName() string {
+	return "mahasiswa.riwayat_organisasis"
+}
+
 type Notifikasi struct {
 	BaseModel
 	UserID uint `gorm:"index"`
@@ -344,6 +404,10 @@ type Notifikasi struct {
 	Deskripsi string
 	Tipe      string
 	IsRead    bool
+}
+
+func (Notifikasi) TableName() string {
+	return "mahasiswa.notifikasi"
 }
 
 // ========================
@@ -369,7 +433,11 @@ type Ormawa struct {
 	Pengumuman []OrmawaPengumuman  `gorm:"foreignKey:OrmawaID"`
 	Divisi     []OrmawaDivisi      `gorm:"foreignKey:OrmawaID"`
 	Aspirasi   []OrmawaAspirasi    `gorm:"foreignKey:OrmawaID"`
-	Notifikasi []OrmawaNotifikasi  `gorm:"foreignKey:OrmawaID"`
+	Notifikasi []OrmawaNotifikasi  `gorm:"foreignKey:OrmawaID" json:"notifikasi,omitempty"`
+}
+
+func (Ormawa) TableName() string {
+	return "ormawa.ormawa"
 }
 
 type OrmawaAnggota struct {
@@ -387,6 +455,10 @@ type OrmawaAnggota struct {
 	JoinedAt time.Time
 }
 
+func (OrmawaAnggota) TableName() string {
+	return "ormawa.ormawa_anggota"
+}
+
 type OrmawaDivisi struct {
 	BaseModel
 	OrmawaID uint `gorm:"index"`
@@ -396,11 +468,19 @@ type OrmawaDivisi struct {
 	Deskripsi string
 }
 
+func (OrmawaDivisi) TableName() string {
+	return "ormawa.ormawa_divisi"
+}
+
 type OrmawaRole struct {
 	BaseModel
 	Nama        string
 	Deskripsi   string
 	Permissions datatypes.JSON
+}
+
+func (OrmawaRole) TableName() string {
+	return "ormawa.ormawa_role"
 }
 
 type OrmawaKegiatan struct {
@@ -418,6 +498,10 @@ type OrmawaKegiatan struct {
 	Kehadiran []OrmawaKehadiran `gorm:"foreignKey:KegiatanID"`
 }
 
+func (OrmawaKegiatan) TableName() string {
+	return "ormawa.ormawa_kegiatan"
+}
+
 type OrmawaKehadiran struct {
 	BaseModel
 	KegiatanID  uint `gorm:"index"`
@@ -430,6 +514,10 @@ type OrmawaKehadiran struct {
 	WaktuHadir time.Time
 }
 
+func (OrmawaKehadiran) TableName() string {
+	return "ormawa.ormawa_kehadiran"
+}
+
 type OrmawaPengumuman struct {
 	BaseModel
 	OrmawaID uint `gorm:"index"`
@@ -440,6 +528,10 @@ type OrmawaPengumuman struct {
 	Target         string
 	TanggalMulai   time.Time
 	TanggalSelesai time.Time
+}
+
+func (OrmawaPengumuman) TableName() string {
+	return "ormawa.ormawa_pengumuman"
 }
 
 type OrmawaMutasiSaldo struct {
@@ -455,6 +547,10 @@ type OrmawaMutasiSaldo struct {
 	Kategori  string
 	Deskripsi string
 	Tanggal   time.Time
+}
+
+func (OrmawaMutasiSaldo) TableName() string {
+	return "ormawa.ormawa_mutasi_saldo"
 }
 
 // ========================
@@ -485,6 +581,10 @@ type Proposal struct {
 	LPJ     []LaporanPertanggungjawaban `gorm:"foreignKey:ProposalID"`
 }
 
+func (Proposal) TableName() string {
+	return "ormawa.proposal"
+}
+
 type ProposalRiwayat struct {
 	BaseModel
 	ProposalID uint `gorm:"index"`
@@ -493,6 +593,10 @@ type ProposalRiwayat struct {
 	Status    string
 	Catatan   string
 	CreatedBy uint
+}
+
+func (ProposalRiwayat) TableName() string {
+	return "ormawa.proposal_riwayat"
 }
 
 type LaporanPertanggungjawaban struct {
@@ -504,6 +608,10 @@ type LaporanPertanggungjawaban struct {
 	Status            string
 	Catatan           string
 	FileURL           string
+}
+
+func (LaporanPertanggungjawaban) TableName() string {
+	return "ormawa.laporan_pertanggungjawaban"
 }
 
 // ========================
@@ -518,6 +626,10 @@ type PkkmbKegiatan struct {
 	Lokasi    string
 }
 
+func (PkkmbKegiatan) TableName() string {
+	return "mahasiswa.pkkmb_kegiatan"
+}
+
 type PkkmbProgress struct {
 	BaseModel
 	MahasiswaID uint `gorm:"index"`
@@ -529,6 +641,10 @@ type PkkmbProgress struct {
 	Status string
 }
 
+func (PkkmbProgress) TableName() string {
+	return "mahasiswa.pkkmb_progress"
+}
+
 type PkkmbHasil struct {
 	BaseModel
 	MahasiswaID uint `gorm:"index"`
@@ -536,6 +652,10 @@ type PkkmbHasil struct {
 
 	Nilai           float64
 	StatusKelulusan string
+}
+
+func (PkkmbHasil) TableName() string {
+	return "mahasiswa.pkkmb_hasil"
 }
 
 type PkkmbBanding struct {
@@ -547,6 +667,10 @@ type PkkmbBanding struct {
 	Status string
 }
 
+func (PkkmbBanding) TableName() string {
+	return "mahasiswa.pkkmb_banding"
+}
+
 type PkkmbSertifikat struct {
 	BaseModel
 	MahasiswaID uint `gorm:"index"`
@@ -554,6 +678,10 @@ type PkkmbSertifikat struct {
 
 	FileURL       string
 	TanggalTerbit time.Time
+}
+
+func (PkkmbSertifikat) TableName() string {
+	return "mahasiswa.pkkmb_sertifikat"
 }
 
 // ========================
@@ -573,6 +701,10 @@ type Berita struct {
 	TanggalPublish time.Time
 }
 
+func (Berita) TableName() string {
+	return "fakultas.berita"
+}
+
 type OrmawaAspirasi struct {
 	BaseModel
 	OrmawaID    uint `gorm:"index"`
@@ -588,6 +720,10 @@ type OrmawaAspirasi struct {
 	Tanggapan string
 }
 
+func (OrmawaAspirasi) TableName() string {
+	return "ormawa.ormawa_aspirasi"
+}
+
 type OrmawaNotifikasi struct {
 	BaseModel
 	OrmawaID uint   `gorm:"index"`
@@ -595,4 +731,8 @@ type OrmawaNotifikasi struct {
 	Judul    string
 	Pesan    string
 	IsRead   bool `gorm:"default:false"`
+}
+
+func (OrmawaNotifikasi) TableName() string {
+	return "ormawa.ormawa_notifikasi"
 }
