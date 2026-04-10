@@ -55,12 +55,13 @@ type ProgramStudi struct {
 	FakultasID uint
 	Fakultas   Fakultas `gorm:"foreignKey:FakultasID"`
 
-	Nama        string
-	Kode        string `gorm:"uniqueIndex"`
-	Jenjang     string
-	Akreditasi  string
-	Kapasitas   int
-	KepalaProdi string
+	Nama             string
+	Kode             string `gorm:"uniqueIndex"`
+	Jenjang          string
+	Akreditasi       string
+	Kapasitas        int
+	CurrentMahasiswa int64 `json:"CurrentMahasiswa" gorm:"-"`
+	KepalaProdi      string
 
 	Dosen     []Dosen     `gorm:"foreignKey:ProgramStudiID"`
 	Mahasiswa []Mahasiswa `gorm:"foreignKey:ProgramStudiID"`
@@ -159,6 +160,15 @@ type Mahasiswa struct {
 // ========================
 // AKADEMIK
 // ========================
+
+type AcademicPeriod struct {
+	BaseModel
+	Name         string `gorm:"column:nama_periode"`
+	Semester     string `gorm:"column:semester"`
+	AcademicYear string `gorm:"column:tahun_ajaran"`
+	IsActive     bool   `gorm:"column:is_aktif"`
+	IsKRSOpen    bool   `gorm:"column:krs_buka"`
+}
 
 type PengaturanAkademik struct {
 	BaseModel
@@ -303,18 +313,25 @@ type LogAktivitas struct {
 
 type RiwayatOrganisasi struct {
 	BaseModel
-	MahasiswaID       uint   `gorm:"index"`
-	Mahasiswa         Mahasiswa
+	MahasiswaID uint `gorm:"index"`
+	OrmawaID    uint `gorm:"index"`
 
-	NamaOrganisasi    string 
-	Tipe              string 
+	Mahasiswa Mahasiswa
+	Ormawa    Ormawa
+
+	NamaOrganisasi    string
+	Tipe              string
 	Jabatan           string
 	PeriodeMulai      int
-	PeriodeSelesai    *int    
+	PeriodeSelesai    *int
 	DeskripsiKegiatan string
-	Apresiasi         string  
+	Apresiasi         string
 	StatusVerifikasi  string `gorm:"default:'Menunggu'"`
-	
+
+	// Fields from nidan for compatibility
+	Periode string
+	Status  string
+
 	Prestasi []Prestasi `gorm:"foreignKey:RiwayatOrganisasiID"`
 }
 
