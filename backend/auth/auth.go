@@ -295,7 +295,6 @@ func ChangePassword(c *fiber.Ctx) error {
 	})
 }
 
-
 func EnsureBootstrapData() error {
 	fmt.Println("🚀 [SEEDER] Starting aggressive seed process...")
 
@@ -309,14 +308,31 @@ func EnsureBootstrapData() error {
 		fmt.Println("✅ [SEEDER] Created Fakultas: SOC")
 	}
 
-	// 2. Ensure Program Studi
-	var major models.ProgramStudi
-	if err := config.DB.Where("nama = ?", "Informatics").First(&major).Error; err != nil {
-		major = models.ProgramStudi{Nama: "Informatics", FakultasID: fakultas.ID, Jenjang: "S1", Kode: "INF01"}
-		if err := config.DB.Create(&major).Error; err != nil {
-			panic("Failed to seed ProgramStudi: " + err.Error())
+	// 2. Ensure Program Studi (Expanded)
+	majors := []models.ProgramStudi{
+		{Nama: "Informatics", FakultasID: fakultas.ID, Jenjang: "S1", Kode: "INF01", Akreditasi: "Unggul"},
+		{Nama: "Sistem Informasi", FakultasID: fakultas.ID, Jenjang: "S1", Kode: "SI01", Akreditasi: "A"},
+		{Nama: "Teknik Sipil", FakultasID: fakultas.ID, Jenjang: "S1", Kode: "TS01", Akreditasi: "B"},
+		{Nama: "Teknik Mesin", FakultasID: fakultas.ID, Jenjang: "S1", Kode: "TM01", Akreditasi: "Unggul"},
+		{Nama: "Arsitektur", FakultasID: fakultas.ID, Jenjang: "S1", Kode: "ARS01", Akreditasi: "B"},
+		{Nama: "Teknik Elektro", FakultasID: fakultas.ID, Jenjang: "S1", Kode: "TE01", Akreditasi: "Unggul"},
+		{Nama: "Teknik Kimia", FakultasID: fakultas.ID, Jenjang: "S1", Kode: "TK01", Akreditasi: "A"},
+	}
+
+	var major models.ProgramStudi // Default for students
+	for i, m := range majors {
+		var existing models.ProgramStudi
+		if err := config.DB.Where("nama = ?", m.Nama).First(&existing).Error; err != nil {
+			config.DB.Create(&m)
+			fmt.Printf("✅ [SEEDER] Created Program Studi: %s\n", m.Nama)
+			if i == 0 {
+				major = m
+			}
+		} else {
+			if i == 0 {
+				major = existing
+			}
 		}
-		fmt.Println("✅ [SEEDER] Created Program Studi: Informatics")
 	}
 
 	// 3. Ensure Dosen User & Dosen Profile
@@ -331,10 +347,12 @@ func EnsureBootstrapData() error {
 	// Note: GORM maps NIDN to n_id_n by default
 	if err := config.DB.Where("n_id_n = ?", "0400000001").First(&dosen).Error; err != nil {
 		dosen = models.Dosen{
-			Nama: "Dosen PA Demo", 
-			NIDN: "0400000001", 
-			PenggunaID: dosenUser.ID,
-			FakultasID: fakultas.ID, 
+			Nama:           "Dosen PA Demo",
+			NIDN:           "0400000001",
+			Jabatan:        "Dosen Pengajar",
+			IsDPA:          true,
+			PenggunaID:     dosenUser.ID,
+			FakultasID:     fakultas.ID,
 			ProgramStudiID: major.ID,
 		}
 		if err := config.DB.Create(&dosen).Error; err != nil {
@@ -347,16 +365,32 @@ func EnsureBootstrapData() error {
 	var ormawa models.Ormawa
 	if err := config.DB.Where("id = ?", 1).First(&ormawa).Error; err != nil {
 		ormawa = models.Ormawa{
-			Nama: "HMP Informatics",
-			Deskripsi: "Himpunan Mahasiswa Informatics",
-			Visi: "Menjadi himpunan terbaik",
-			Misi: "Meningkatkan skill mahasiswa",
+			Nama:          "HMP Informatics",
+			Kode:          "HMP-I",
+			Status:        "Aktif",
+			JumlahAnggota: 150,
+			Deskripsi:     "Himpunan Mahasiswa Informatics",
+			Visi:          "Menjadi himpunan terbaik",
+			Misi:          "Meningkatkan skill mahasiswa",
+			Email:         "hmp.inf@siakad.ac.id",
+			Phone:         "08123456789",
 		}
 		ormawa.ID = 1
 		if err := config.DB.Create(&ormawa).Error; err != nil {
 			panic("Failed to seed Ormawa: " + err.Error())
 		}
 		fmt.Println("✅ [SEEDER] Created Ormawa ID: 1")
+	} else {
+		// Update if empty
+		if ormawa.Email == "" || ormawa.Phone == "" || ormawa.Kode == "" {
+			ormawa.Email = "hmp.inf@siakad.ac.id"
+			ormawa.Phone = "08123456789"
+			ormawa.Kode = "HMP-I"
+			ormawa.Status = "Aktif"
+			ormawa.JumlahAnggota = 150
+			config.DB.Save(&ormawa)
+			fmt.Println("✅ [SEEDER] Updated Ormawa ID: 1 with missing fields")
+		}
 	}
 
 	// 5. Ensure Student User
@@ -387,6 +421,38 @@ func EnsureBootstrapData() error {
 			panic("Failed to seed Mahasiswa: " + err.Error())
 		}
 		fmt.Println("✅ [SEEDER] Created Mahasiswa: BKU2024001")
+
+		// Create Demo Health Record
+		health := models.Kesehatan{
+			MahasiswaID:      student.ID,
+			Tanggal:          time.Now(),
+			JenisPemeriksaan: "Screening Tahunan",
+			Hasil:            "Sehat",
+			StatusKesehatan:  "prima",
+			Catatan:          "Kondisi fisik sangat baik, disarankan menjaga asupan cairan.",
+			TinggiBadan:      175,
+			BeratBadan:       68,
+			Sistole:          120,
+			Diastole:         80,
+			GulaDarah:        95,
+			ButaWarna:        "Normal",
+			GolonganDarah:    "O",
+		}
+		config.DB.Create(&health)
+		fmt.Println("✅ [SEEDER] Created Health Record for Demo Student")
+	}
+
+	// 7. Distribute Students across Prodis (for demo variety)
+	var allProdis []models.ProgramStudi
+	config.DB.Find(&allProdis)
+	if len(allProdis) > 1 {
+		var studList []models.Mahasiswa
+		config.DB.Limit(100).Find(&studList) // Redistribute first 100 students
+		for i, s := range studList {
+			targetProdi := allProdis[i%len(allProdis)]
+			config.DB.Model(&s).Update("program_studi_id", targetProdi.ID)
+		}
+		fmt.Println("🎨 [SEEDER] Distributed 100 students across various prodis for visualization.")
 	}
 
 	fmt.Println("🏁 [SEEDER] All data seeded successfully.")

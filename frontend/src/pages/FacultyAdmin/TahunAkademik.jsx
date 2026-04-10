@@ -98,8 +98,9 @@ export default function TahunAkademikPage() {
       }
       fetchData()
       setIsCrudOpen(false)
-    } catch {
-      toast.error("Gagal menyimpan data")
+    } catch (err) {
+      const errorMsg = err.response?.data?.message || "Gagal menyimpan data periode"
+      toast.error(errorMsg)
     } finally {
       setIsSubmitting(false)
     }

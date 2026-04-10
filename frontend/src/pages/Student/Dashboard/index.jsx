@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { useDashboardQuery } from '../../../queries/useDashboardQuery';
 import useAuthStore from '../../../store/useAuthStore';
-import { Bell, Map, FileCheck, CheckSquare, CalendarDays, Library, AlertCircle, FileText } from 'lucide-react';
+import { Bell, FileCheck, CheckSquare, CalendarDays, Library, AlertCircle, FileText } from 'lucide-react';
 import { StatCard, JadwalCard, TagihanCard, NotifItem, QuickLink } from './DashboardComponents';
 import { Skeleton } from '../../../components/ui/Skeleton';
 
@@ -92,8 +92,7 @@ export default function StudentDashboard() {
         </section>
 
         {/* Quick Links */}
-        <section className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-          <QuickLink icon={Map} label="KRS Online" href="/student/krs" />
+        <section className="grid grid-cols-2 md:grid-cols-5 gap-4">
           <QuickLink icon={FileCheck} label="Nilai & Transkrip" href="/akademik/nilai" />
           <QuickLink icon={CheckSquare} label="Absensi" href="/akademik/absensi" />
           <QuickLink icon={CalendarDays} label="Jadwal Ujian" href="/akademik/ujian" />

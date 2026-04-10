@@ -55,12 +55,13 @@ type ProgramStudi struct {
 	FakultasID uint
 	Fakultas   Fakultas `gorm:"foreignKey:FakultasID"`
 
-	Nama        string
-	Kode        string `gorm:"uniqueIndex"`
-	Jenjang     string
-	Akreditasi  string
-	Kapasitas   int
-	KepalaProdi string
+	Nama             string
+	Kode             string `gorm:"uniqueIndex"`
+	Jenjang          string
+	Akreditasi       string
+	Kapasitas        int
+	CurrentMahasiswa int64 `json:"CurrentMahasiswa" gorm:"-"`
+	KepalaProdi      string
 
 	Dosen     []Dosen     `gorm:"foreignKey:ProgramStudiID"`
 	Mahasiswa []Mahasiswa `gorm:"foreignKey:ProgramStudiID"`
@@ -159,6 +160,15 @@ type Mahasiswa struct {
 // ========================
 // AKADEMIK
 // ========================
+
+type AcademicPeriod struct {
+	BaseModel
+	Name         string `gorm:"column:nama_periode"`
+	Semester     string `gorm:"column:semester"`
+	AcademicYear string `gorm:"column:tahun_ajaran"`
+	IsActive     bool   `gorm:"column:is_aktif"`
+	IsKRSOpen    bool   `gorm:"column:krs_buka"`
+}
 
 type PengaturanAkademik struct {
 	BaseModel
@@ -268,10 +278,21 @@ type Kesehatan struct {
 	Mahasiswa   Mahasiswa
 
 	Tanggal          time.Time
-	JenisPemeriksaan string
-	Hasil            string
+	JenisPemeriksaan string // misal: Screening Tahunan, Cek Rutin
+	Hasil            string // Sehat, Pantauan, Perlu Perhatian
 	Catatan          string
 	FileURL          string
+
+	// Detail Medis (Completeness like Health Screening)
+	TinggiBadan     float64
+	BeratBadan      float64
+	Sistole         int
+	Diastole        int
+	GulaDarah       int
+	ButaWarna       string // Normal, Parsial, Total
+	RiwayatPenyakit string
+	StatusKesehatan string // prima, stabil, kritis
+	GolonganDarah   string // A, B, AB, O
 }
 
 type LogAktivitas struct {
@@ -314,24 +335,27 @@ type Notifikasi struct {
 
 type Ormawa struct {
 	BaseModel
-	Nama      string
-	Deskripsi string
-	Visi      string
-	Misi      string
-	LogoURL   string
-	Email     string
-	Phone     string
-	Instagram string
-	Website   string
+	Nama          string `json:"nama"`
+	Kode          string `json:"kode"`
+	Status        string `json:"status"`
+	JumlahAnggota int    `json:"jumlah_anggota"`
+	Deskripsi     string `json:"deskripsi"`
+	Visi          string `json:"visi"`
+	Misi          string `json:"misi"`
+	LogoURL       string `json:"logo_url"`
+	Email         string `json:"email"`
+	Phone         string `json:"phone"`
+	Instagram     string `json:"instagram"`
+	Website       string `json:"website"`
 
-	Anggota    []OrmawaAnggota     `gorm:"foreignKey:OrmawaID"`
-	Kegiatan   []OrmawaKegiatan    `gorm:"foreignKey:OrmawaID"`
-	Mutasi     []OrmawaMutasiSaldo `gorm:"foreignKey:OrmawaID"`
-	Proposals  []Proposal          `gorm:"foreignKey:OrmawaID"`
-	Pengumuman []OrmawaPengumuman  `gorm:"foreignKey:OrmawaID"`
-	Divisi     []OrmawaDivisi      `gorm:"foreignKey:OrmawaID"`
-	Aspirasi   []OrmawaAspirasi    `gorm:"foreignKey:OrmawaID"`
-	Notifikasi []OrmawaNotifikasi  `gorm:"foreignKey:OrmawaID"`
+	Anggota    []OrmawaAnggota     `gorm:"foreignKey:OrmawaID" json:"anggota,omitempty"`
+	Kegiatan   []OrmawaKegiatan    `gorm:"foreignKey:OrmawaID" json:"kegiatan,omitempty"`
+	Mutasi     []OrmawaMutasiSaldo `gorm:"foreignKey:OrmawaID" json:"mutasi,omitempty"`
+	Proposals  []Proposal          `gorm:"foreignKey:OrmawaID" json:"proposals,omitempty"`
+	Pengumuman []OrmawaPengumuman  `gorm:"foreignKey:OrmawaID" json:"pengumuman,omitempty"`
+	Divisi     []OrmawaDivisi      `gorm:"foreignKey:OrmawaID" json:"divisi,omitempty"`
+	Aspirasi   []OrmawaAspirasi    `gorm:"foreignKey:OrmawaID" json:"aspirasi,omitempty"`
+	Notifikasi []OrmawaNotifikasi  `gorm:"foreignKey:OrmawaID" json:"notifikasi,omitempty"`
 }
 
 type OrmawaAnggota struct {

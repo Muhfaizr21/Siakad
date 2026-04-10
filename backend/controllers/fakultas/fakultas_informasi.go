@@ -17,7 +17,7 @@ func AmbilRingkasanDashboard(c *fiber.Ctx) error {
 	config.DB.Model(&models.Mahasiswa{}).Count(&totalMhs)
 	config.DB.Model(&models.Dosen{}).Count(&totalDosen)
 	var totalPrestasiPending int64
-	config.DB.Model(&models.Prestasi{}).Where("status = ?", "MENUNGGU").Count(&totalPrestasiPending)
+	config.DB.Model(&models.Prestasi{}).Where("status = ?", "Menunggu").Count(&totalPrestasiPending)
 	config.DB.Model(&models.ProgramStudi{}).Count(&totalProdi)
 
 	// Status counts (Aktif, Cuti, Lulus, DO, etc.)
@@ -25,32 +25,35 @@ func AmbilRingkasanDashboard(c *fiber.Ctx) error {
 		Status string `json:"status"`
 		Count  int64  `json:"count"`
 	}
-	var statusCounts []StatusCount
-	config.DB.Table("mahasiswa").
+	var statusCounts = []StatusCount{}
+	config.DB.Table("mahasiswas").
 		Select("status_akun as status, count(*) as count").
 		Group("status_akun").
 		Scan(&statusCounts)
 
 	// Prodi Distribution with Accreditation & Avg IPK
 	type ProdiDist struct {
-		NamaProdi  string  `json:"nama_prodi"`
-		Jumlah     int64   `json:"jumlah"`     // Total Mahasiswa
-		Active     int64   `json:"active"`     // Aktif
-		Graduated  int64   `json:"graduated"`  // Lulus
-		AvgIPK     float64 `json:"avgIPK"`     // Rata-rata IPK
-		Akreditasi string  `json:"akreditasi"` // Akreditasi
+		Name       string  `gorm:"column:name" json:"name"`
+		Jumlah     int64   `gorm:"column:jumlah" json:"jumlah"`
+		Active     int64   `gorm:"column:active" json:"active"`
+		Graduated  int64   `gorm:"column:graduated" json:"graduated"`
+		AvgGpa     float64 `gorm:"column:avg_gpa" json:"avgGpa"`
+		Akreditasi string  `gorm:"column:akreditasi" json:"akreditasi"`
 	}
-	var prodiDist []ProdiDist
-	config.DB.Table("program_studi").
-		Select("program_studi.nama as nama_prodi, " +
-			"program_studi.akreditasi as akreditasi, " +
-			"count(mahasiswa.id) as jumlah, " +
-			"sum(case when mahasiswa.status_akun = 'Aktif' then 1 else 0 end) as active, " +
-			"sum(case when mahasiswa.status_akun = 'Lulus' then 1 else 0 end) as graduated, " +
-			"coalesce(avg(mahasiswa.ipk), 0) as avg_IPK").
-		Joins("left join mahasiswa on mahasiswa.program_studi_id = program_studi.id").
-		Group("program_studi.id, program_studi.nama, program_studi.akreditasi").
-		Scan(&prodiDist)
+	var prodiDist = []ProdiDist{}
+	config.DB.Raw(`
+		SELECT 
+			ps.nama as name,
+			ps.akreditasi as akreditasi,
+			COUNT(m.id) as jumlah,
+			SUM(CASE WHEN m.status_akun = 'Aktif' THEN 1 ELSE 0 END) as active,
+			SUM(CASE WHEN m.status_akun = 'Lulus' THEN 1 ELSE 0 END) as graduated,
+			COALESCE(AVG(m.ip_k), 0) as avg_gpa
+		FROM program_studis ps
+		LEFT JOIN mahasiswas m ON m.program_studi_id = ps.id AND m.deleted_at IS NULL
+		WHERE ps.deleted_at IS NULL
+		GROUP BY ps.id, ps.nama, ps.akreditasi
+	`).Scan(&prodiDist)
 
 	// Per Angkatan (Trend)
 	type AngkatanDist struct {
@@ -58,8 +61,8 @@ func AmbilRingkasanDashboard(c *fiber.Ctx) error {
 		Diterima  int64 `json:"diterima"`
 		Pendaftar int64 `json:"pendaftar"`
 	}
-	var trendData []AngkatanDist
-	config.DB.Table("mahasiswa").
+	var trendData = []AngkatanDist{}
+	config.DB.Table("mahasiswas").
 		Select("tahun_masuk as tahun, count(*) as diterima, count(*) + 5 as pendaftar"). // Mocking pendaftar as slightly more than accepted
 		Where("tahun_masuk > 0").
 		Group("tahun_masuk").
@@ -73,7 +76,7 @@ func AmbilRingkasanDashboard(c *fiber.Ctx) error {
 		Time   string `json:"time"`
 		Avatar string `json:"avatar"`
 	}
-	var logs []ActivityItem
+	var logs = []ActivityItem{}
 
 	// Ambil 5 Prestasi Terbaru
 	var pList []models.Prestasi
@@ -99,6 +102,9 @@ func AmbilRingkasanDashboard(c *fiber.Ctx) error {
 		})
 	}
 
+	var activePeriod models.AcademicPeriod
+	config.DB.Where("is_aktif = ?", true).First(&activePeriod)
+
 	return c.JSON(fiber.Map{
 		"status": "success",
 		"data": fiber.Map{
@@ -110,6 +116,7 @@ func AmbilRingkasanDashboard(c *fiber.Ctx) error {
 			"prodiDistribution": prodiDist,
 			"trendData":         trendData,
 			"recentActivity":    logs,
+			"activePeriod":      activePeriod.Name,
 		},
 	})
 }
@@ -185,28 +192,33 @@ func AmbilRingkasanLaporan(c *fiber.Ctx) error {
 	config.DB.Model(&models.Konseling{}).Count(&totalKonseling)
 
 	// Gunakan Raw untuk AVG agar tidak error saat data kosong
-	config.DB.Raw("SELECT COALESCE(AVG(ipk), 0) FROM mahasiswa").Scan(&avgIPK)
+	config.DB.Raw("SELECT COALESCE(AVG(ip_k), 0) FROM mahasiswas").Scan(&avgIPK)
 
 	// Per Prodi (Distribusi) - Menampilkan semua prodi meskipun belum ada mahasiswanya
 	type ProdiDist struct {
-		NamaProdi      string  `json:"nama_prodi"`
-		Value     int64   `json:"value"`     // Total Mahasiswa
-		Active    int64   `json:"active"`    // Aktif
-		Leave     int64   `json:"leave"`     // Cuti
-		Graduated int64   `json:"graduated"` // Lulus
-		AvgIPK    float64 `json:"avgIPK"`    // Rata-rata IPK
+		NamaProdi string  `gorm:"column:nama_prodi" json:"nama_prodi"`
+		Value     int64   `gorm:"column:value" json:"value"`
+		Active    int64   `gorm:"column:active" json:"active"`
+		Leave     int64   `gorm:"column:leave" json:"leave"`
+		Graduated int64   `gorm:"column:graduated" json:"graduated"`
+		AvgGpa    float64 `gorm:"column:avg_gpa" json:"avgIPK"`
 	}
-	var perProdi []ProdiDist
-	config.DB.Table("program_studi").
-		Select("program_studi.nama as nama_prodi, " +
-			"count(mahasiswa.id) as value, " +
-			"sum(case when mahasiswa.status_akun = 'Aktif' then 1 else 0 end) as active, " +
-			"sum(case when mahasiswa.status_akun = 'Cuti' then 1 else 0 end) as leave, " +
-			"sum(case when mahasiswa.status_akun = 'Lulus' then 1 else 0 end) as graduated, " +
-			"coalesce(avg(mahasiswa.ipk), 0) as avg_IPK").
-		Joins("left join mahasiswa on mahasiswa.program_studi_id = program_studi.id").
-		Group("program_studi.id, program_studi.nama").
-		Scan(&perProdi)
+	var perProdi = []ProdiDist{}
+
+	// Use Raw SQL for better predictability with JOIN and GROUP BY
+	config.DB.Raw(`
+		SELECT 
+			ps.nama as nama_prodi,
+			COUNT(m.id) as value,
+			SUM(CASE WHEN m.status_akun = 'Aktif' THEN 1 ELSE 0 END) as active,
+			SUM(CASE WHEN m.status_akun = 'Cuti' THEN 1 ELSE 0 END) as leave,
+			SUM(CASE WHEN m.status_akun = 'Lulus' THEN 1 ELSE 0 END) as graduated,
+			COALESCE(AVG(m.ip_k), 0) as avg_gpa
+		FROM program_studis ps
+		LEFT JOIN mahasiswas m ON m.program_studi_id = ps.id AND m.deleted_at IS NULL
+		WHERE ps.deleted_at IS NULL
+		GROUP BY ps.id, ps.nama
+	`).Scan(&perProdi)
 
 	// Per Angkatan (Trend)
 	type AngkatanDist struct {
@@ -214,8 +226,8 @@ func AmbilRingkasanLaporan(c *fiber.Ctx) error {
 		Aktif    int64 `json:"aktif"`
 		Lulus    int64 `json:"lulus"`
 	}
-	var perAngkatan []AngkatanDist
-	config.DB.Table("mahasiswa").
+	var perAngkatan = []AngkatanDist{}
+	config.DB.Table("mahasiswas").
 		Select("tahun_masuk as angkatan, " +
 			"sum(case when status_akun = 'Aktif' then 1 else 0 end) as aktif, " +
 			"sum(case when status_akun = 'Lulus' then 1 else 0 end) as lulus").
@@ -229,17 +241,17 @@ func AmbilRingkasanLaporan(c *fiber.Ctx) error {
 		Range string `json:"range"`
 		Count int64  `json:"count"`
 	}
-	var ipkDist []IPKRange
+	var ipkDist = []IPKRange{}
 	config.DB.Raw(`
 		SELECT 
 			CASE 
-				WHEN ipk >= 3.5 THEN '3.5 - 4.0'
-				WHEN ipk >= 3.0 THEN '3.0 - 3.49'
-				WHEN ipk >= 2.5 THEN '2.5 - 2.99'
+				WHEN ip_k >= 3.5 THEN '3.5 - 4.0'
+				WHEN ip_k >= 3.0 THEN '3.0 - 3.49'
+				WHEN ip_k >= 2.5 THEN '2.5 - 2.99'
 				ELSE '< 2.5'
 			END as range,
 			COUNT(*) as count
-		FROM mahasiswa
+		FROM mahasiswas
 		GROUP BY range
 		ORDER BY range DESC
 	`).Scan(&ipkDist)
@@ -259,6 +271,31 @@ func AmbilRingkasanLaporan(c *fiber.Ctx) error {
 			"perProdi":    perProdi,
 			"perAngkatan": perAngkatan,
 			"ipkDist":     ipkDist,
+		},
+	})
+}
+
+func AmbilNotifikasiAntrean(c *fiber.Ctx) error {
+	var countAspirasi int64
+	var countSurat int64
+	var countPrestasi int64
+
+	// Status 'pending' sesuai permintaan user
+	config.DB.Model(&models.Aspirasi{}).Where("status = ?", "pending").Count(&countAspirasi)
+
+	// Status 'diajukan' sesuai default migration
+	config.DB.Model(&models.PengajuanSurat{}).Where("status = ?", "diajukan").Count(&countSurat)
+
+	// Status 'Menunggu' sesuai default
+	config.DB.Model(&models.Prestasi{}).Where("status = ?", "Menunggu").Count(&countPrestasi)
+
+	return c.JSON(fiber.Map{
+		"status": "success",
+		"data": fiber.Map{
+			"aspirasi": countAspirasi,
+			"surat":    countSurat,
+			"prestasi": countPrestasi,
+			"total":    countAspirasi + countSurat + countPrestasi,
 		},
 	})
 }

@@ -42,7 +42,7 @@ export default function Sidebar() {
             className={({ isActive }) => 
               `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 ${
                 isActive 
-                  ? 'bg-[#eef4ff] text-[#00236F] border border-[#c9d8ff]' 
+                  ? 'bg-[#eef4ff] text-[#00236F] border border-[#c9d8ff] hover:bg-[#e0ebff]' 
                   : 'text-[#525252] hover:bg-[#f7faff] hover:text-[#171717]'
               }`
             }

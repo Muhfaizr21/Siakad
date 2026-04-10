@@ -61,8 +61,8 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
     // 1. Check for exact match
     if (currentPath === itemPath) return true;
     
-    // 2. Dashboard is always exact match
-    if (itemPath === '/faculty') return currentPath === '/faculty';
+    // 2. Dashboard is always active if path is /faculty or /faculty/dashboard
+    if (itemPath === '/faculty') return currentPath === '/faculty' || currentPath === '/faculty/dashboard';
     
     // 3. For sub-paths (like /faculty/mahasiswa/baru vs /faculty/mahasiswa)
     // We check if current path starts with itemPath
@@ -143,7 +143,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                       className={`
                         relative flex items-center gap-3.5 px-4 py-2.5 rounded-2xl font-bold transition-all duration-300 group
                         ${active
-                          ? 'bg-primary text-white shadow-lg shadow-primary/25 translate-x-1'
+                          ? 'bg-primary text-white shadow-xl shadow-primary/25 translate-x-1 hover:bg-primary/90'
                           : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900 hover:translate-x-1'}
                       `}
                     >

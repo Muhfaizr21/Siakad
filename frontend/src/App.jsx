@@ -31,7 +31,6 @@ import HealthScreeningPage from './pages/Student/HealthScreeningPage'
 import StudentVoicePage from './pages/Student/StudentVoicePage'
 import StudentVoiceDetailPage from './pages/Student/StudentVoiceDetailPage'
 import OrganisasiPage from './pages/Student/OrganisasiPage'
-import StudentKRS from './pages/Student/KRS/index'
 import ProfilePage from './pages/Student/ProfilePage'
 import NotificationPage from './pages/Student/NotificationPage'
 
@@ -54,29 +53,14 @@ import AspirationManagement from './pages/OrmawaAdmin/AspirationManagement'
 import FacultyAspirationManagement from './pages/FacultyAdmin/Aspirasi'
 import FacultyPmb from './pages/FacultyAdmin/MahasiswaBaru'
 import FacultyProdi from './pages/FacultyAdmin/Prodi'
-import FacultyDosen from './pages/FacultyAdmin/Dosen'
 import FacultyMahasiswa from './pages/FacultyAdmin/Mahasiswa'
-import FacultyMahasiswaImport from './pages/FacultyAdmin/Mahasiswa'
-import FacultyMahasiswaStatus from './pages/FacultyAdmin/Mahasiswa'
-import FacultyMahasiswaTambah from './pages/FacultyAdmin/Mahasiswa'
-import FacultyMahasiswaEdit from './pages/FacultyAdmin/Mahasiswa'
-import FacultyDosenTambah from './pages/FacultyAdmin/Dosen'
-import FacultyDosenEdit from './pages/FacultyAdmin/Dosen'
-import FacultyProdiTambah from './pages/FacultyAdmin/Prodi'
-import FacultyProdiEdit from './pages/FacultyAdmin/Prodi'
-import FacultyProdiKurikulum from './pages/FacultyAdmin/Prodi'
-import FacultyProdiMatakuliah from './pages/FacultyAdmin/Prodi'
-import FacultyJadwal from './pages/FacultyAdmin/TahunAkademik'
-import FacultyKrs from './pages/FacultyAdmin/Mahasiswa'
-import FacultyNilai from './pages/FacultyAdmin/Mahasiswa'
+import FacultyDosen from './pages/FacultyAdmin/Dosen'
+import FacultyTahunAkademik from './pages/FacultyAdmin/TahunAkademik'
 import FacultyLaporan from './pages/FacultyAdmin/Laporan'
 import FacultyKonten from './pages/FacultyAdmin/Konten'
-import FacultyPengaturan from './pages/FacultyAdmin/TahunAkademik'
 import FacultyKonseling from './pages/FacultyAdmin/Konseling'
 import FacultyPrestasi from './pages/FacultyAdmin/Prestasi'
 import FacultyFakultas from './pages/FacultyAdmin/FakultasProposals'
-import FacultyFakultasTambah from './pages/FacultyAdmin/FakultasProposals'
-import FacultyFakultasEdit from './pages/FacultyAdmin/FakultasProposals'
 import FacultyPersuratan from './pages/FacultyAdmin/Persuratan'
 import FacultyBeasiswa from './pages/FacultyAdmin/Beasiswa'
 import FacultyMahasiswaBaru from './pages/FacultyAdmin/MahasiswaBaru'
@@ -174,28 +158,27 @@ function App() {
               <Route path="aspirasi" element={<FacultyAspirationManagement />} />
               <Route path="pmb" element={<FacultyPmb />} />
               <Route path="fakultas" element={<FacultyFakultas />} />
-              <Route path="fakultas/tambah" element={<FacultyFakultasTambah />} />
-              <Route path="fakultas/edit/:id" element={<FacultyFakultasEdit />} />
+              <Route path="fakultas/tambah" element={<FacultyFakultas />} />
+              <Route path="fakultas/edit/:id" element={<FacultyFakultas />} />
               <Route path="prodi" element={<FacultyProdi />} />
-              <Route path="prodi/tambah" element={<FacultyProdiTambah />} />
-              <Route path="prodi/edit/:id" element={<FacultyProdiEdit />} />
-              <Route path="prodi/kurikulum" element={<FacultyProdiKurikulum />} />
-              <Route path="prodi/matakuliah" element={<FacultyProdiMatakuliah />} />
+              <Route path="prodi/tambah" element={<FacultyProdi />} />
+              <Route path="prodi/edit/:id" element={<FacultyProdi />} />
+              <Route path="prodi/kurikulum" element={<FacultyProdi />} />
+              <Route path="prodi/matakuliah" element={<FacultyProdi />} />
               <Route path="dosen" element={<FacultyDosen />} />
               <Route path="mahasiswa" element={<FacultyMahasiswa />} />
-              <Route path="mahasiswa/import" element={<FacultyMahasiswaImport />} />
-              <Route path="mahasiswa/status" element={<FacultyMahasiswaStatus />} />
-              <Route path="mahasiswa/tambah" element={<FacultyMahasiswaTambah />} />
-              <Route path="mahasiswa/edit/:id" element={<FacultyMahasiswaEdit />} />
-              <Route path="dosen/tambah" element={<FacultyDosenTambah />} />
-              <Route path="dosen/edit/:id" element={<FacultyDosenEdit />} />
-              <Route path="jadwal" element={<FacultyJadwal />} />
-              <Route path="krs" element={<FacultyKrs />} />
-              <Route path="nilai" element={<FacultyNilai />} />
+              <Route path="mahasiswa/import" element={<FacultyMahasiswa />} />
+              <Route path="mahasiswa/status" element={<FacultyMahasiswa />} />
+              <Route path="mahasiswa/tambah" element={<FacultyMahasiswa />} />
+              <Route path="mahasiswa/edit/:id" element={<FacultyMahasiswa />} />
+              <Route path="dosen/tambah" element={<FacultyDosen />} />
+              <Route path="dosen/edit/:id" element={<FacultyDosen />} />
+              <Route path="jadwal" element={<FacultyTahunAkademik />} />
+              <Route path="nilai" element={<FacultyMahasiswa />} />
               <Route path="laporan" element={<FacultyLaporan />} />
               <Route path="laporan/mahasiswa" element={<FacultyLaporan />} />
               <Route path="konten" element={<FacultyKonten />} />
-              <Route path="pengaturan" element={<FacultyPengaturan />} />
+              <Route path="pengaturan" element={<FacultyTahunAkademik />} />
               <Route path="konseling" element={<FacultyKonseling />} />
               <Route path="prestasi" element={<FacultyPrestasi />} />
               <Route path="persuratan" element={<FacultyPersuratan />} />
@@ -237,7 +220,6 @@ function App() {
               <Route path="voice" element={<StudentVoicePage />} />
               <Route path="voice/tiket/:id" element={<StudentVoiceDetailPage />} />
               <Route path="organisasi" element={<OrganisasiPage />} />
-              <Route path="krs" element={<StudentKRS />} />
               <Route path="profile" element={<ProfilePage />} />
               <Route path="notifikasi" element={<NotificationPage />} />
             </Route>

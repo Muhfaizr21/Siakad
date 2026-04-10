@@ -117,7 +117,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                 className={`
                   flex items-center gap-3.5 px-4 py-2.5 rounded-xl font-bold transition-all duration-300 group
                   ${isActive
-                    ? 'bg-primary text-white shadow-lg shadow-primary/20 translate-x-1'
+                    ? 'bg-primary text-white shadow-lg shadow-primary/20 translate-x-1 hover:bg-primary/90'
                     : 'text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface text-sm'}
                 `}
               >

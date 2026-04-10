@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"siakad-backend/config"
 	"siakad-backend/models"
 
@@ -10,7 +11,7 @@ import (
 // --- DOSEN ---
 
 func AmbilDaftarDosen(c *fiber.Ctx) error {
-	var daftarDosen []models.Dosen
+	var daftarDosen = []models.Dosen{}
 	if err := config.DB.Preload("Pengguna").Preload("Fakultas").Preload("ProgramStudi.Fakultas").Find(&daftarDosen).Error; err != nil {
 		return c.Status(500).JSON(fiber.Map{"status": "error", "message": err.Error()})
 	}
@@ -111,7 +112,7 @@ func HapusDataDosen(c *fiber.Ctx) error {
 // --- MAHASISWA ---
 
 func AmbilDaftarMahasiswa(c *fiber.Ctx) error {
-	var mhs []models.Mahasiswa
+	var mhs = []models.Mahasiswa{}
 	query := config.DB.Preload("Pengguna").Preload("ProgramStudi.Fakultas").Preload("DosenPA")
 
 	angkatan := c.Query("angkatan")
@@ -144,6 +145,23 @@ func TambahMahasiswaBaru(c *fiber.Ctx) error {
 		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Format data tidak valid"})
 	}
 	c.BodyParser(&payload)
+
+	// --- LOGIKA CEK KAPASITAS (SLOT) ---
+	var prodi models.ProgramStudi
+	if err := config.DB.First(&prodi, m.ProgramStudiID).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Program Studi tidak ditemukan"})
+	}
+
+	var currentCount int64
+	config.DB.Model(&models.Mahasiswa{}).Where("program_studi_id = ?", m.ProgramStudiID).Count(&currentCount)
+
+	if prodi.Kapasitas > 0 && currentCount >= int64(prodi.Kapasitas) {
+		return c.Status(400).JSON(fiber.Map{
+			"status":  "error",
+			"message": fmt.Sprintf("Kapasitas Penuh! Slot (%d/%d) untuk prodi %s sudah habis.", currentCount, prodi.Kapasitas, prodi.Nama),
+		})
+	}
+	// ------------------------------------
 
 	tx := config.DB.Begin()
 
@@ -186,6 +204,26 @@ func PerbaruiDataMahasiswa(c *fiber.Ctx) error {
 	}
 	c.BodyParser(&payload)
 
+	// --- LOGIKA CEK KAPASITAS (SLOT) SAAT PINDAH PRODI ---
+	if mhs.ProgramStudiID != 0 {
+		var prodi models.ProgramStudi
+		if err := config.DB.First(&prodi, mhs.ProgramStudiID).Error; err == nil {
+			var currentCount int64
+			config.DB.Model(&models.Mahasiswa{}).
+				Where("program_studi_id = ?", mhs.ProgramStudiID).
+				Where("id <> ?", mhs.ID). // Jangan hitung diri sendiri
+				Count(&currentCount)
+
+			if prodi.Kapasitas > 0 && currentCount >= int64(prodi.Kapasitas) {
+				return c.Status(400).JSON(fiber.Map{
+					"status":  "error",
+					"message": fmt.Sprintf("Gagal Pindah! Kapasitas prodi %s sudah penuh (%d/%d).", prodi.Nama, currentCount, prodi.Kapasitas),
+				})
+			}
+		}
+	}
+	// ----------------------------------------------------
+
 	tx := config.DB.Begin()
 
 	if payload.Email != "" && payload.Email != mhs.Pengguna.Email {
@@ -221,14 +259,22 @@ func HapusDataMahasiswa(c *fiber.Ctx) error {
 // --- FAKULTAS & PRODI ---
 
 func AmbilDaftarFakultas(c *fiber.Ctx) error {
-	var f []models.Fakultas
+	var f = []models.Fakultas{}
 	config.DB.Find(&f)
 	return c.JSON(fiber.Map{"status": "success", "data": f})
 }
 
 func AmbilDaftarProdi(c *fiber.Ctx) error {
-	var p []models.ProgramStudi
+	var p = []models.ProgramStudi{}
 	config.DB.Preload("Fakultas").Find(&p)
+
+	// Hitung jumlah mahasiswa untuk setiap prodi (Slot)
+	for i := range p {
+		var count int64
+		config.DB.Model(&models.Mahasiswa{}).Where("program_studi_id = ?", p[i].ID).Count(&count)
+		p[i].CurrentMahasiswa = count
+	}
+
 	return c.JSON(fiber.Map{"status": "success", "data": p})
 }
 
@@ -261,14 +307,62 @@ func HapusProdi(c *fiber.Ctx) error {
 
 // --- PENGATURAN AKADEMIK ---
 
+// --- PENGATURAN AKADEMIK ---
+
 func AmbilPengaturanAkademik(c *fiber.Ctx) error {
-	// Fitur ini memerlukan model AcademicSettings yang saat ini tidak tersedia di models.go
-	return c.JSON(fiber.Map{"status": "success", "message": "Fitur Pengaturan Akademik sedang dalam pemeliharaan"})
+	var period models.AcademicPeriod
+	// Ambil periode yang aktif
+	if err := config.DB.Where("is_aktif = ?", true).First(&period).Error; err != nil {
+		// Jika tidak ada yang aktif, ambil yang terakhir dibuat
+		config.DB.Order("id desc").First(&period)
+	}
+
+	// Map ke format yang diharapkan frontend
+	return c.JSON(fiber.Map{
+		"status": "success",
+		"data": fiber.Map{
+			"id":               period.ID,
+			"activeYear":       period.AcademicYear,
+			"activeSemester":   period.Semester,
+			"isKrsOpen":        period.IsKRSOpen,
+			"isGradeInputOpen": true, // Defaulting for dashboard compatibility
+			"updatedAt":        period.UpdatedAt,
+		},
+	})
 }
 
 func SimpanPengaturanAkademik(c *fiber.Ctx) error {
-	return c.Status(501).JSON(fiber.Map{"status": "error", "message": "Fitur simpan pengaturan akademik tidak tersedia"})
+	var payload struct {
+		ID               uint   `json:"id"`
+		ActiveYear       string `json:"activeYear"`
+		ActiveSemester   string `json:"activeSemester"`
+		IsKrsOpen        bool   `json:"isKrsOpen"`
+		IsGradeInputOpen bool   `json:"isGradeInputOpen"`
+	}
+
+	if err := c.BodyParser(&payload); err != nil {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Invalid payload"})
+	}
+
+	var period models.AcademicPeriod
+	if payload.ID != 0 {
+		config.DB.First(&period, payload.ID)
+	}
+
+	period.AcademicYear = payload.ActiveYear
+	period.Semester = payload.ActiveSemester
+	period.IsKRSOpen = payload.IsKrsOpen
+	period.IsActive = true
+	period.Name = fmt.Sprintf("%s %s", payload.ActiveSemester, payload.ActiveYear)
+
+	// Set yang lain jadi tidak aktif jika ini aktif
+	config.DB.Model(&models.AcademicPeriod{}).Where("id <> ?", period.ID).Update("is_aktif", false)
+
+	if err := config.DB.Save(&period).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal menyimpan periode: " + err.Error()})
+	}
+
+	return c.JSON(fiber.Map{"status": "success", "message": "Periode akademik diperbarui", "data": period})
 }
 
 // --- END OF ACADEMIC CONTROLLERS ---
-
