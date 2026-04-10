@@ -85,7 +85,7 @@ type Dosen struct {
 	NoHP    string
 	Alamat  string
 
-	MahasiswaBimbingan []Mahasiswa `gorm:"foreignKey:DosenPAID"`
+	MahasiswaBimbingan []Mahasiswa `gorm:"foreignKey:DosenPAID;references:ID"`
 	Konseling          []Konseling
 }
 
@@ -99,11 +99,11 @@ type Mahasiswa struct {
 
 	FakultasID     uint `gorm:"index"`
 	ProgramStudiID uint `gorm:"index"`
-	DosenPAID      uint `gorm:"index"`
+	DosenPAID      *uint `gorm:"index"`
 
 	Fakultas     Fakultas
 	ProgramStudi ProgramStudi
-	DosenPA      Dosen `gorm:"foreignKey:DosenPAID"`
+	DosenPA      *Dosen `gorm:"foreignKey:DosenPAID"`
 
 	SemesterSekarang int
 	StatusAkun       string
@@ -455,7 +455,7 @@ type Proposal struct {
 	ApprovedDosenID    *uint `gorm:"index"`
 	ApprovedFakultasID *uint `gorm:"index"`
 
-	Riwayat []ProposalRiwayat
+	Riwayat []ProposalRiwayat           `gorm:"foreignKey:ProposalID"`
 	LPJ     []LaporanPertanggungjawaban `gorm:"foreignKey:ProposalID"`
 }
 

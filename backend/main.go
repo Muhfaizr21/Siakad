@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"os"
 	authSvc "siakad-backend/auth"
 	"siakad-backend/config"
@@ -20,9 +21,14 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/logger"
+	"github.com/joho/godotenv"
 )
 
 func main() {
+	if err := godotenv.Load(); err != nil {
+		log.Println("Peringatan: Tidak dapat memuat file .env, menggunakan environment default")
+	}
+
 	// Connect to Database
 	config.ConnectDB()
 
