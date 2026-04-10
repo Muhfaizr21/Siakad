@@ -25,6 +25,8 @@ import {
   Headphones,
   Command
 } from 'lucide-react'
+import { Button } from './button'
+import { Badge } from './badge'
 
 const TopNavBar = ({ setIsOpen }) => {
   const location = useLocation();
@@ -53,6 +55,28 @@ const TopNavBar = ({ setIsOpen }) => {
     { name: 'Analisis Laporan', path: '/faculty/laporan', icon: PieChart },
     { name: 'Sistem & Pengaturan', path: '/faculty/pengaturan', icon: Settings },
   ];
+
+  const [notifications, setNotifications] = useState({ aspirasi: 0, surat: 0, prestasi: 0, total: 0 });
+  const [loadingNotif, setLoadingNotif] = useState(false);
+
+  const fetchNotifStats = async () => {
+    try {
+      const res = await fetch('http://localhost:8000/api/faculty/notifications/stats');
+      const json = await res.json();
+      if (json.status === 'success') {
+        setNotifications(json.data);
+      }
+    } catch (err) {
+      console.error("Failed to fetch notifications");
+    }
+  };
+
+  useEffect(() => {
+    fetchNotifStats();
+    // Refresh setiap 30 detik untuk real-time feel
+    const interval = setInterval(fetchNotifStats, 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   const filteredResults = pages.filter(page =>
     page.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -198,28 +222,61 @@ const TopNavBar = ({ setIsOpen }) => {
       <div className="flex items-center gap-3 lg:gap-5">
         {/* Quick Notification Tray */}
         <div className="flex items-center gap-1 bg-slate-50 p-1 rounded-2xl border border-slate-100/50">
-          <button className="relative p-2.5 rounded-xl hover:bg-white text-slate-500 hover:text-primary transition-all hover:shadow-sm active:scale-90 group">
-            <Bell className="size-5" />
-            <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-rose-500 rounded-full border-2 border-white ring-2 ring-rose-500/20 animate-pulse"></span>
+          <div className="relative p-2.5 rounded-xl hover:bg-white text-slate-500 hover:text-primary transition-all hover:shadow-sm group cursor-pointer">
+            <Bell className="size-5 active:scale-90 transition-transform" />
+            {notifications.total > 0 && (
+              <span className="absolute top-1 right-1 w-4 h-4 bg-rose-500 text-white text-[8px] font-black flex items-center justify-center rounded-full border-2 border-white ring-2 ring-rose-500/20 animate-pulse">
+                {notifications.total > 9 ? '9+' : notifications.total}
+              </span>
+            )}
 
-            {/* Popover Preview (Simulated for Premium Look) */}
-            <div className="absolute top-full right-0 mt-4 w-64 bg-white rounded-2xl shadow-2xl border border-slate-100 p-4 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 translate-y-2 group-hover:translate-y-0">
-              <div className="flex justify-between items-center mb-3">
-                <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Pemberitahuan</h4>
-                <span className="text-[10px] font-bold text-primary">Lihat Semua</span>
+            {/* Popover Preview (Real Data) */}
+            <div className="absolute top-full right-0 mt-4 w-72 bg-white rounded-[2rem] shadow-2xl border border-slate-100 p-6 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 translate-y-2 group-hover:translate-y-0 z-[100] cursor-default" onClick={(e) => e.stopPropagation()}>
+              <div className="flex justify-between items-center mb-5">
+                <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Inbox Antrean</h4>
+                {notifications.total > 0 && (
+                  <Badge variant="secondary" className="bg-rose-50 text-rose-600 border-none font-black text-[9px] px-2 py-0.5">
+                    {notifications.total} NEW
+                  </Badge>
+                )}
               </div>
-              <div className="space-y-2.5">
-                <div className="flex gap-3 items-start">
-                  <div className="p-1.5 rounded-lg bg-emerald-50 text-emerald-600"><CheckCircle2 className="size-3.5" /></div>
-                  <p className="text-[11px] font-bold text-slate-600 leading-tight">Proposal BEM-FT telah disetujui Kaprodi.</p>
+              <div className="space-y-4">
+                <div className="flex gap-4 items-center p-3 rounded-2xl hover:bg-slate-50 transition-colors cursor-pointer group/item" onClick={() => navigate('/faculty/persuratan')}>
+                  <div className="p-2.5 rounded-xl bg-amber-50 text-amber-600 group-hover/item:bg-amber-100 transition-colors">
+                    <FileText className="size-4" />
+                  </div>
+                  <div className="flex flex-col">
+                    <p className="text-[11px] font-black text-slate-900 leading-none uppercase tracking-tighter">E-Persuratan</p>
+                    <p className="text-[10px] font-bold text-slate-400 mt-1">{notifications.surat} berkas menunggu verifikasi</p>
+                  </div>
                 </div>
-                <div className="flex gap-3 items-start">
-                  <div className="p-1.5 rounded-lg bg-amber-50 text-amber-600"><AlertCircle className="size-3.5" /></div>
-                  <p className="text-[11px] font-bold text-slate-600 leading-tight">3 Antrean persuratan baru menunggu verifikasi.</p>
+
+                <div className="flex gap-4 items-center p-3 rounded-2xl hover:bg-slate-50 transition-colors cursor-pointer group/item" onClick={() => navigate('/faculty/aspirasi')}>
+                  <div className="p-2.5 rounded-xl bg-primary/5 text-primary group-hover/item:bg-primary transition-colors group-hover/item:text-white">
+                    <Megaphone className="size-4" />
+                  </div>
+                  <div className="flex flex-col">
+                    <p className="text-[11px] font-black text-slate-900 leading-none uppercase tracking-tighter">Student Voice</p>
+                    <p className="text-[10px] font-bold text-slate-400 mt-1">{notifications.aspirasi} aspirasi baru masuk</p>
+                  </div>
+                </div>
+
+                <div className="flex gap-4 items-center p-3 rounded-2xl hover:bg-slate-50 transition-colors cursor-pointer group/item" onClick={() => navigate('/faculty/prestasi')}>
+                  <div className="p-2.5 rounded-xl bg-emerald-50 text-emerald-600 group-hover/item:bg-emerald-100 transition-colors">
+                    <Award className="size-4" />
+                  </div>
+                  <div className="flex flex-col">
+                    <p className="text-[11px] font-black text-slate-900 leading-none uppercase tracking-tighter">Validasi Prestasi</p>
+                    <p className="text-[10px] font-bold text-slate-400 mt-1">{notifications.prestasi} klaim menunggu dpa</p>
+                  </div>
                 </div>
               </div>
+
+              <Button onClick={() => navigate('/faculty')} variant="ghost" className="w-full mt-6 h-11 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-primary hover:bg-primary/5">
+                Pusat Kendali Utama
+              </Button>
             </div>
-          </button>
+          </div>
 
           <button className="hidden sm:flex p-2.5 rounded-xl hover:bg-white text-slate-500 hover:text-primary transition-all hover:shadow-sm active:scale-90">
             <Calendar className="size-5" />

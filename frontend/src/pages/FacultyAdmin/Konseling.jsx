@@ -7,47 +7,25 @@ import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "./com
 import { Button } from "./components/button"
 import { Badge } from "./components/badge"
 import { DataTable } from "./components/data-table"
-import { Input } from "./components/input"
-import { Label } from "./components/label"
-import { Textarea } from "./components/textarea"
 import { Avatar, AvatarFallback } from "./components/avatar"
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
-  DialogDescription
 } from "./components/dialog"
-import { DeleteConfirmModal } from "./components/DeleteConfirmModal"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "./components/select"
 import {
   Calendar,
   Clock,
   User,
   Headphones,
   CheckCircle2,
-  Trash2,
   AlertCircle,
   CalendarCheck,
-  Search,
   Check,
-  X,
-  Plus,
   Eye,
-  Edit2,
   LayoutDashboard,
-  Save,
-  Loader2,
-  UserPlus,
   FileText,
-  BadgeInfo,
   History,
   Tag,
   Sticker,
@@ -61,34 +39,16 @@ export default function FacultyKonseling() {
   const [loading, setLoading] = useState(true)
   const [students, setStudents] = useState([])
   
-  const [isModalOpen, setIsModalOpen] = useState(false)
   const [isDetailOpen, setIsDetailOpen] = useState(false)
-  const [isDelOpen, setIsDelOpen] = useState(false)
-  
-  const [modalMode, setModalMode] = useState('create') 
   const [selectedSession, setSelectedSession] = useState(null)
-  const [isSubmitting, setIsSubmitting] = useState(false)
   
-  const [formData, setFormData] = useState({
-    studentId: "",
-    jenis: "",
-    tanggal: "",
-    jam: "",
-    konselor: "",
-    catatan: "",
-    status: "pending"
-  })
+
 
   const fetchData = async () => {
     try {
       setLoading(true)
-      const [cRes, sRes] = await Promise.all([
-        axios.get('/api/faculty/counseling'),
-        axios.get('/api/faculty/students')
-      ])
-      
+      const cRes = await axios.get('http://localhost:8000/api/faculty/counseling')
       if (cRes.data.status === 'success') setSessions(cRes.data.data)
-      if (sRes.data.status === 'success') setStudents(sRes.data.data)
     } catch {
       toast.error("Gagal sinkronisasi data")
     } finally {
@@ -100,92 +60,9 @@ export default function FacultyKonseling() {
     fetchData()
   }, [])
 
-  const resetForm = () => {
-    setFormData({
-        studentId: "",
-        jenis: "Akademik",
-        tanggal: new Date().toISOString().split('T')[0],
-        jam: "10:00",
-        konselor: "",
-        catatan: "",
-        status: "pending"
-    })
-  }
-
-  const openCreate = () => {
-    setModalMode('create')
-    resetForm()
-    setIsModalOpen(true)
-  }
-
-  const openEdit = (session) => {
-    setModalMode('edit')
-    setSelectedSession(session)
-    setFormData({
-      studentId: session.studentId?.toString() || "",
-      jenis: session.type || "",
-      tanggal: session.date ? new Date(session.date).toISOString().split('T')[0] : "",
-      jam: session.time || "",
-      konselor: session.counselor || "",
-      catatan: session.notes || "",
-      status: session.status || "pending"
-    })
-    setIsModalOpen(true)
-  }
-
   const openShow = (session) => {
     setSelectedSession(session)
     setIsDetailOpen(true)
-  }
-
-  const handleSubmit = async (e) => {
-    if (e) e.preventDefault()
-    try {
-      setIsSubmitting(true)
-      if (modalMode === 'create') {
-        const res = await axios.post(`/api/faculty/counseling`, {
-          studentId: parseInt(formData.studentId),
-          type: formData.jenis,
-          date: new Date(formData.tanggal),
-          time: formData.jam,
-          counselor: formData.konselor,
-          notes: formData.catatan,
-          status: formData.status
-        })
-        if (res.data.status === 'success') toast.success("Sesi baru dijadwalkan")
-      } else {
-        const res = await axios.put(`/api/faculty/counseling/${selectedSession.id}`, {
-          ...selectedSession,
-          studentId: parseInt(formData.studentId),
-          type: formData.jenis,
-          date: new Date(formData.tanggal),
-          time: formData.jam,
-          counselor: formData.konselor,
-          notes: formData.catatan,
-          status: formData.status
-        })
-        if (res.data.status === 'success') toast.success("Perubahan disimpan")
-      }
-      setIsModalOpen(false)
-      fetchData()
-    } catch {
-      toast.error("Gagal memproses permintaan")
-    } finally {
-      setIsSubmitting(false)
-    }
-  }
-
-  const handleDelete = async () => {
-    try {
-      const res = await axios.delete(`/api/faculty/counseling/${selectedSession.id}`)
-      if (res.data.status === 'success') {
-        toast.success("Sesi berhasil dihapus")
-        setIsDelOpen(false)
-        fetchData()
-      }
-    } catch {
-      toast.error("Gagal menghapus data")
-    }
   }
 
   const columns = [
@@ -196,22 +73,22 @@ export default function FacultyKonseling() {
         <div className="flex items-center gap-4 text-left">
           <Avatar className="h-10 w-10 rounded-2xl border-2 border-white shadow-sm ring-1 ring-slate-100 uppercase font-black text-slate-800">
             <AvatarFallback className="bg-slate-100 text-slate-800 text-[10px] font-black uppercase font-headline">
-              {val?.name?.split(" ").map(n => n[0]).join("").substring(0, 2) || '?'}
+              {val?.Nama?.split(" ").map(n => n[0]).join("").substring(0, 2) || '?'}
             </AvatarFallback>
           </Avatar>
           <div className="flex flex-col leading-tight">
             <span className="font-bold text-slate-900 font-headline uppercase text-[13px] tracking-tighter">
-                {val?.name || "Mahasiswa Teknik"}
+                {val?.Nama || "Mahasiswa Teknik"}
             </span>
             <span className="text-[10px] font-bold text-slate-400 font-headline uppercase tracking-widest mt-1">
-                {val?.nim || "210001"}
+                {val?.NIM || "210001"}
             </span>
           </div>
         </div>
       )
     },
     {
-      key: "type",
+      key: "Topik",
       label: "Kategori",
       render: (val) => (
         <Badge className="bg-indigo-100/50 text-indigo-700 border-none font-black text-[9px] uppercase tracking-widest px-3 py-1.5 rounded-xl">
@@ -220,7 +97,7 @@ export default function FacultyKonseling() {
       )
     },
     {
-      key: "date",
+      key: "Tanggal",
       label: "Waktu & Sesi",
       render: (val, row) => (
         <div className="flex flex-col gap-1.5">
@@ -230,13 +107,13 @@ export default function FacultyKonseling() {
           </div>
           <div className="flex items-center gap-2 text-[9px] font-black text-slate-400 uppercase tracking-wider font-headline font-bold">
              <Clock className="size-3" />
-             {row.time || "00:00"} — {row.counselor || "Dosen PA"}
+             {row.jam || "00:00"} — {row.konselor || "Dosen PA"}
           </div>
         </div>
       )
     },
     {
-      key: "status",
+      key: "Status",
       label: "Status",
       render: (val) => {
         const config = {
@@ -256,9 +133,9 @@ export default function FacultyKonseling() {
   ]
 
   const statsData = [
-    { label: 'Antrean Baru', value: (sessions || []).filter(s => s.status === 'pending').length, icon: AlertCircle, color: 'text-amber-600', bg: 'bg-amber-50' },
-    { label: 'Sesi Aktif', value: (sessions || []).filter(s => s.status === 'approved').length, icon: CalendarCheck, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-    { label: 'Total Selesai', value: (sessions || []).filter(s => s.status === 'finished').length, icon: CheckCircle2, color: 'text-blue-600', bg: 'bg-blue-50' },
+    { label: 'Antrean Baru', value: (sessions || []).filter(s => s.Status === 'pending').length, icon: AlertCircle, color: 'text-amber-600', bg: 'bg-amber-50' },
+    { label: 'Sesi Aktif', value: (sessions || []).filter(s => s.Status === 'approved').length, icon: CalendarCheck, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+    { label: 'Total Selesai', value: (sessions || []).filter(s => s.Status === 'finished').length, icon: CheckCircle2, color: 'text-blue-600', bg: 'bg-blue-50' },
   ]
 
   return (
@@ -276,7 +153,7 @@ export default function FacultyKonseling() {
           </div>
           <div className="flex items-center gap-2">
              <div className="h-1 w-10 bg-primary rounded-full shadow-sm shadow-primary/30" />
-             <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Portal Bimbingan Akademik & Personal</p>
+             <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Monitoring Bimbingan Akademik & Personal</p>
           </div>
         </div>
       </div>
@@ -295,7 +172,7 @@ export default function FacultyKonseling() {
                         </div>
                         <div className="space-y-1">
                             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline">{stat.label}</p>
-                            <h3 className={cn("text-3xl font-black font-headline tracking-tighter text-slate-900")}>{stat.val}</h3>
+                            <h3 className={cn("text-3xl font-black font-headline tracking-tighter text-slate-900")}>{stat.value}</h3>
                         </div>
                     </CardContent>
                 </Card>
@@ -309,11 +186,9 @@ export default function FacultyKonseling() {
                 data={sessions}
                 loading={loading}
                 searchPlaceholder="Cari Nama Mahasiswa..."
-                onAdd={openCreate}
-                addLabel="Booking Manual"
                 filters={[
                   {
-                    key: 'status',
+                    key: 'Status',
                     placeholder: 'Status Sesi',
                     options: [
                       { label: 'Antrean', value: 'pending' },
@@ -326,12 +201,6 @@ export default function FacultyKonseling() {
                   <div className="flex items-center gap-2">
                     <Button variant="ghost" size="sm" className="size-9 p-0 rounded-xl text-slate-400 hover:text-slate-900 hover:bg-slate-50 transition-all font-headline" onClick={() => openShow(row)}>
                         <Eye className="size-4" />
-                    </Button>
-                    <Button variant="ghost" size="sm" className="size-9 p-0 rounded-xl text-slate-400 hover:text-primary hover:bg-primary/5 transition-all font-headline" onClick={() => openEdit(row)}>
-                        <Edit2 className="size-4" />
-                    </Button>
-                    <Button variant="ghost" size="sm" className="size-9 p-0 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-all shadow-none font-headline" onClick={() => { setSelectedSession(row); setIsDelOpen(true); }}>
-                        <Trash2 className="size-4" />
                     </Button>
                   </div>
                 )}
@@ -392,15 +261,15 @@ export default function FacultyKonseling() {
                             </div>
                             <div className="flex flex-col">
                                 <h2 className="text-xl font-black text-slate-900 uppercase tracking-tighter leading-none">Detail Sesi Konseling</h2>
-                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mt-1.5 leading-none">RESUME ID: #{selectedSession.id || "000"}</p>
+                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mt-1.5 leading-none">RESUME ID: #{selectedSession.ID || "000"}</p>
                             </div>
                         </div>
                         <Badge className={cn(
                             "rounded-xl px-4 py-2 font-black text-[9px] uppercase tracking-widest border-none flex shadow-sm",
-                            selectedSession.status === 'pending' ? "bg-amber-100 text-amber-700" :
-                            selectedSession.status === 'approved' ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-600"
+                            selectedSession.Status === 'pending' ? "bg-amber-100 text-amber-700" :
+                            selectedSession.Status === 'approved' ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-600"
                         )}>
-                            {selectedSession.status || 'Reviewing'}
+                            {selectedSession.Status || 'Reviewing'}
                         </Badge>
                     </div>
 
@@ -411,12 +280,12 @@ export default function FacultyKonseling() {
                                 <div className="flex items-center gap-3">
                                     <Avatar className="h-12 w-12 rounded-2xl border-2 border-white shadow-xl ring-1 ring-slate-100">
                                         <AvatarFallback className="bg-white text-slate-900 font-black text-[12px] uppercase">
-                                            {selectedSession.Mahasiswa?.name?.charAt(0)}
+                                            {selectedSession.Mahasiswa?.Nama?.charAt(0)}
                                         </AvatarFallback>
                                     </Avatar>
                                     <div className="flex flex-col">
-                                        <span className="text-[13px] font-black text-slate-900 uppercase tracking-tight leading-none">{selectedSession.Mahasiswa?.name}</span>
-                                        <span className="text-[10px] font-black text-primary font-headline mt-1.5">{selectedSession.Mahasiswa?.nim}</span>
+                                        <span className="text-[13px] font-black text-slate-900 uppercase tracking-tight leading-none">{selectedSession.Mahasiswa?.Nama}</span>
+                                        <span className="text-[10px] font-black text-primary font-headline mt-1.5">{selectedSession.Mahasiswa?.NIM}</span>
                                     </div>
                                 </div>
                             </div>
@@ -472,10 +341,10 @@ export default function FacultyKonseling() {
                             Tutup
                         </Button>
                         <Button
-                            onClick={() => { setIsDetailOpen(false); openEdit(selectedSession); }}
+                            onClick={() => setIsDetailOpen(false)}
                             className="h-12 px-10 rounded-2xl bg-primary text-white font-black text-[10px] uppercase tracking-[0.2em] border-none shadow-xl shadow-primary/20 hover:bg-primary/90 active:scale-95 transition-all font-headline"
                         >
-                            Rework Agenda
+                            Tutup Detail
                         </Button>
                     </div>
                 </div>
@@ -483,151 +352,6 @@ export default function FacultyKonseling() {
         </DialogContent>
       </Dialog>
 
-      {/* CRUD DIALOG (Exact Mahasiswa Copy Style) */}
-      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="max-w-xl p-0 overflow-hidden border-none shadow-2xl rounded-[2rem] bg-white/95 backdrop-blur-xl flex flex-col max-h-[90vh]">
-          <DialogHeader className="p-8 pb-6 bg-gradient-to-br from-slate-50 to-white border-b border-slate-100 relative overflow-hidden flex-shrink-0 text-left">
-            <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none">
-              <Headphones className="size-24 rotate-12" />
-            </div>
-            <div className="relative z-10 flex flex-col text-left items-start">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="size-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary text-xs font-black">
-                  {modalMode === 'edit' ? <Edit2 className="size-4" /> : <Plus className="size-4 stroke-[3px]" />}
-                </div>
-                <Badge variant="secondary" className="text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 bg-primary/5 text-primary border-none font-headline">
-                  Counseling Registry
-                </Badge>
-              </div>
-              <DialogTitle className="text-2xl font-black font-headline tracking-tighter text-slate-900 uppercase">
-                {modalMode === 'edit' ? 'Update Mahasiswa' : 'Registrasi Sesi'}
-              </DialogTitle>
-              <DialogDescription className="text-xs font-medium text-slate-400 mt-1 font-headline">
-                Dokumentasi bimbingan akademik & personal terintegrasi.
-              </DialogDescription>
-            </div>
-          </DialogHeader>
-
-          <form onSubmit={handleSubmit} className="p-8 pt-6 space-y-6 flex-1 overflow-y-auto scrollbar-hide">
-            <div className="space-y-4">
-              <div className="space-y-2">
-                  <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Nomor Induk / Identitas Siswa</Label>
-                  {modalMode === 'create' ? (
-                      <Select value={formData.studentId} onValueChange={val => setFormData({ ...formData, studentId: val })}>
-                          <SelectTrigger className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white transition-all font-bold text-sm font-headline">
-                              <SelectValue placeholder="Pilih Mahasiswa..." />
-                          </SelectTrigger>
-                          <SelectContent className="rounded-2xl shadow-2xl p-1 font-headline overflow-hidden">
-                              {students.map(s => (
-                                  <SelectItem key={s.id} value={s.id.toString()} className="rounded-xl font-bold text-[11px] p-3 focus:bg-primary/5 focus:text-primary uppercase font-headline">
-                                      {s.nim} — {s.name}
-                                  </SelectItem>
-                              ))}
-                          </SelectContent>
-                      </Select>
-                  ) : (
-                      <div className="h-12 p-4 rounded-2xl bg-slate-50 border border-slate-100 flex items-center gap-3">
-                           <Avatar className="size-6 rounded-lg bg-white border flex items-center justify-center font-black text-[9px] text-slate-400">
-                               <AvatarFallback>{selectedSession?.Mahasiswa?.name?.charAt(0)}</AvatarFallback>
-                           </Avatar>
-                           <span className="text-[11px] font-black text-slate-600 uppercase tracking-tight font-headline">{selectedSession?.Mahasiswa?.name} ({selectedSession?.Mahasiswa?.nim})</span>
-                      </div>
-                  )}
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Kategori Sesi</Label>
-                  <Input 
-                      value={formData.jenis} 
-                      onChange={e => setFormData({ ...formData, jenis: e.target.value })}
-                      placeholder="Akademik / Pribadi"
-                      className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white transition-all font-bold text-sm font-headline"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Status Agenda</Label>
-                  <Select value={formData.status} onValueChange={val => setFormData({ ...formData, status: val })}>
-                    <SelectTrigger className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 font-bold font-headline text-xs text-left">
-                        <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="rounded-2xl shadow-2xl p-1 font-headline overflow-hidden">
-                        <SelectItem value="pending" className="rounded-xl font-bold text-[11px] p-3 uppercase font-headline">REVIEW ANTIREAN</SelectItem>
-                        <SelectItem value="approved" className="rounded-xl font-bold text-[11px] p-3 uppercase font-headline text-emerald-600 focus:bg-emerald-50">JADWALKAN SESI</SelectItem>
-                        <SelectItem value="finished" className="rounded-xl font-bold text-[11px] p-3 uppercase font-headline">SESI SELESAI</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Jadwal Tanggal</Label>
-                  <Input 
-                      type="date"
-                      value={formData.tanggal} 
-                      onChange={e => setFormData({ ...formData, tanggal: e.target.value })}
-                      className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white transition-all font-bold text-sm font-headline"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Waktu (WIB)</Label>
-                  <Input 
-                      placeholder="Contoh: 10:30"
-                      value={formData.jam} 
-                      onChange={e => setFormData({ ...formData, jam: e.target.value })}
-                      className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white transition-all font-bold text-sm font-headline text-center"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Konselor Bertugas</Label>
-                <Input 
-                    placeholder="Nama Lengkap Dosen / Konselor"
-                    value={formData.konselor} 
-                    onChange={e => setFormData({ ...formData, konselor: e.target.value })}
-                    className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white transition-all font-bold text-sm font-headline"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Catatan & Histori Konsultasi</Label>
-                <Textarea 
-                    value={formData.catatan} 
-                    onChange={e => setFormData({ ...formData, catatan: e.target.value })}
-                    placeholder="Entry resume hasil bimbingan..."
-                    className="min-h-[100px] rounded-[1.5rem] border-slate-200 bg-slate-50/50 focus:bg-white p-4 font-medium text-sm leading-relaxed font-headline uppercase"
-                />
-              </div>
-            </div>
-
-            <DialogFooter className="pt-4 flex flex-row items-center justify-end gap-3 border-t border-slate-100 -mx-8 px-8 bg-slate-50/30 flex-shrink-0 rounded-b-[2rem]">
-              <Button type="button" variant="ghost" onClick={() => setIsModalOpen(false)} className="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-900 px-8 h-12 rounded-2xl font-headline">
-                Batalkan
-              </Button>
-              <Button type="submit" disabled={isSubmitting} onClick={handleSubmit} className="h-12 px-10 rounded-2xl bg-primary text-white hover:bg-primary/90 shadow-xl shadow-primary/20 transition-all hover:scale-[1.02] active:scale-95 font-headline border-none">
-                {isSubmitting ? (
-                  <Loader2 className="animate-spin size-4 mr-3" />
-                ) : (
-                  <Save className="size-4 mr-3 stroke-[3px]" />
-                )}
-                <span className="text-[10px] font-black uppercase tracking-[0.2em] font-headline">{modalMode === 'edit' ? 'Update Data' : 'Booking Now'}</span>
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
-
-      {/* SHARED DELETE MODAL */}
-      <DeleteConfirmModal 
-        isOpen={isDelOpen}
-        onClose={() => setIsDelOpen(false)}
-        onConfirm={handleDelete}
-        title="Hapus Sesi?"
-        description="Tindakan ini bersifat permanen. Data histori bimbingan mahasiswa akan dihapus dari sistem fakultas secara total."
-        loading={isSubmitting}
-      />
     </div>
   )
 }

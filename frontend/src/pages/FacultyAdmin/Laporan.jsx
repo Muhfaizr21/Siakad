@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useState, useEffect } from "react"
+import axios from "axios"
 import { toast, Toaster } from "react-hot-toast"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "./components/card"
 import { Badge } from "./components/badge"
@@ -31,24 +32,6 @@ import {
 } from "recharts"
 import { DataTable } from "./components/data-table"
 import { cn } from "@/lib/utils"
-import api from '../../lib/axios'
-
-const toArray = (value) => (Array.isArray(value) ? value : []);
-
-const normalizeReportData = (raw = {}) => ({
-  summary: {
-    total: Number(raw?.summary?.total) || 0,
-    active: Number(raw?.summary?.active) || 0,
-    graduated: Number(raw?.summary?.graduated) || 0,
-    avgIPK: Number(raw?.summary?.avgIPK) || 0,
-    totalPrestasi: Number(raw?.summary?.totalPrestasi) || 0,
-    totalBeasiswa: Number(raw?.summary?.totalBeasiswa) || 0,
-    totalKonseling: Number(raw?.summary?.totalKonseling) || 0,
-  },
-  perAngkatan: toArray(raw?.perAngkatan),
-  perProdi: toArray(raw?.perProdi),
-  ipkDist: toArray(raw?.ipkDist),
-});
 
 const CHART_COLORS = [
   "#3b82f6", // blue-500
@@ -84,9 +67,14 @@ export default function LaporanFakultasPage() {
 
   const fetchData = async () => {
     try {
-      const { data: res } = await api.get('/faculty/reports/summary')
-      if (res?.status === "success") {
-        setData(normalizeReportData(res.data))
+      const res = await axios.get("http://localhost:8000/api/faculty/reports/summary")
+      if (res.data.status === "success") {
+        setData(res.data.data || {
+          summary: { total: 0, active: 0, graduated: 0, avgIPK: 0, totalPrestasi: 0, totalBeasiswa: 0, totalKonseling: 0 },
+          perAngkatan: [],
+          perProdi: [],
+          ipkDist: []
+        })
       }
     } catch (error) {
       toast.error("Gagal memuat data laporan")
@@ -236,8 +224,8 @@ export default function LaporanFakultasPage() {
           </CardHeader>
           <CardContent>
             <div className="h-72 relative w-full min-w-0">
-              {isMounted && data.perAngkatan.length > 0 ? (
-                <ResponsiveContainer width="100%" height="100%" debounce={50}>
+              {isMounted && (
+                <ResponsiveContainer width="99%" height={288} debounce={50}>
                   <BarChart data={data.perAngkatan}>
 
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
@@ -252,8 +240,6 @@ export default function LaporanFakultasPage() {
                   <Bar dataKey="lulus" name="Lulus" fill="#10b981" radius={[4, 4, 0, 0]} barSize={24} />
                 </BarChart>
               </ResponsiveContainer>
-              ) : (
-                <div className="h-full w-full flex items-center justify-center text-xs font-semibold text-slate-400">Belum ada data per angkatan.</div>
               )}
             </div>
           </CardContent>
@@ -268,8 +254,8 @@ export default function LaporanFakultasPage() {
           <CardContent>
             <div className="flex flex-col sm:flex-row items-center gap-6">
               <div className="h-64 flex-1 relative w-full min-w-0">
-                {isMounted && prodiWithColors.some((p) => (p.value || 0) > 0) ? (
-                  <ResponsiveContainer width="100%" height="100%" debounce={50}>
+                {isMounted && (
+                  <ResponsiveContainer width="99%" height={256} debounce={50}>
                     <PieChart>
 
                     <Pie
@@ -288,8 +274,6 @@ export default function LaporanFakultasPage() {
                     <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)', fontSize: '11px', fontWeight: 'bold' }} />
                   </PieChart>
                 </ResponsiveContainer>
-                ) : (
-                  <div className="h-full w-full flex items-center justify-center text-xs font-semibold text-slate-400">Belum ada data distribusi prodi.</div>
                 )}
               </div>
               <div className="flex flex-col gap-3">

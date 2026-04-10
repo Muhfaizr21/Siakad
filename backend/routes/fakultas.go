@@ -33,10 +33,13 @@ func InisialisasiRuteFakultas(aplikasi *fiber.App) {
 
 	// Matakuliah & Jadwal
 	api.Get("/courses", fakultas.AmbilDaftarProdi) // ALIAS: Frontend Mahasiswa.jsx calls this for majors
+	api.Put("/courses/:id", fakultas.PerbaruiProdi)
+	api.Delete("/courses/:id", fakultas.HapusProdi)
 
 	// Dashboard & Ringkasan
 	api.Get("/summary", fakultas.AmbilRingkasanDashboard)
 	api.Get("/reports/summary", fakultas.AmbilRingkasanLaporan)
+	api.Get("/notifications/stats", fakultas.AmbilNotifikasiAntrean)
 
 	// Pelayanan Mahasiswa (Aspirasi, Prestasi, Surat)
 	api.Get("/aspirations", fakultas.AmbilDaftarAspirasi)

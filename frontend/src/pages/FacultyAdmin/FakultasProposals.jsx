@@ -42,7 +42,7 @@ export default function FacultyInternalProposals() {
   const fetchData = async () => {
     try {
       setLoading(true)
-      const res = await axios.get('/api/faculty/internal/proposals')
+      const res = await axios.get('http://localhost:8000/api/faculty/internal/proposals')
       if (res.data.status === 'success') {
         setData(res.data.data)
       }
@@ -74,8 +74,8 @@ export default function FacultyInternalProposals() {
   const handleSaveReview = async () => {
     setIsSubmitting(true)
     try {
-      const res = await axios.put(`/api/faculty/internal/proposals/${selectedProposal.id}`, {
-        status: reviewForm.status,
+      const res = await axios.put(`http://localhost:8000/api/faculty/internal/proposals/${selectedProposal.ID}`, {
+        Status: reviewForm.status,
         catatan_reviewer: reviewForm.notes
       })
       if (res.data.status === 'success') {
@@ -83,8 +83,9 @@ export default function FacultyInternalProposals() {
         setIsReviewOpen(false)
         fetchData()
       }
-    } catch {
-      toast.error("Gagal menyimpan perubahan")
+    } catch (err) {
+      const errorMsg = err.response?.data?.message || "Gagal menyimpan perubahan"
+      toast.error(errorMsg)
     } finally {
       setIsSubmitting(false)
     }
@@ -92,37 +93,37 @@ export default function FacultyInternalProposals() {
 
   const columns = [
     {
-      key: "judul",
+      key: "Judul",
       label: "Unit Kerja / Kegiatan",
       render: (val, row) => (
         <div className="flex flex-col">
           <span className="font-bold text-slate-900 font-headline tracking-tighter text-[13px]">{val}</span>
-          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-0.5">{row.deskripsi?.substring(0, 30)}...</span>
+          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-0.5">{row.Deskripsi?.substring(0, 30)}...</span>
         </div>
       )
     },
     {
-      key: "created_at",
+      key: "CreatedAt",
       label: "Tanggal Pengajuan",
       render: (val) => (
         <div className="flex items-center gap-1.5 text-xs font-bold text-slate-500 font-headline">
           <Calendar className="size-3 text-primary opacity-60" />
-          {new Date(val).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
+          {val ? new Date(val).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '-'}
         </div>
       )
     },
     {
-      key: "anggaran",
+      key: "Anggaran",
       label: "Pagu Anggaran",
       render: (val) => <span className="font-black text-emerald-600 text-[13px] tabular-nums font-headline tracking-tighter">{formatIDR(val)}</span>
     },
     {
-      key: "status",
+      key: "Status",
       label: "Status",
       className: "text-center",
       cellClassName: "text-center",
       render: (val) => (
-        <Badge variant={val === 'disetujui' ? 'success' : val === 'diajukan' ? 'warning' : 'destructive'} className="capitalize font-black text-[9px] px-3">
+        <Badge variant={val?.toLowerCase() === 'disetujui' ? 'success' : val?.toLowerCase() === 'diajukan' ? 'warning' : 'destructive'} className="capitalize font-black text-[9px] px-3">
           {val}
         </Badge>
       )
@@ -169,9 +170,9 @@ export default function FacultyInternalProposals() {
       {/* MAIN TABLE */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
         {[
-          { label: 'Total Pengajuan Anggaran', value: formatIDR(data.reduce((acc, p) => acc + (p.anggaran || 0), 0)), icon: Wallet, color: 'text-indigo-600', bg: 'bg-indigo-50' },
-          { label: 'Proposal Menunggu', value: data.filter(p => p.status === 'diajukan').length, icon: Clock, color: 'text-amber-600', bg: 'bg-amber-50' },
-          { label: 'Disetujui Dekanat', value: data.filter(p => p.status === 'disetujui').length, icon: ShieldCheck, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+          { label: 'Total Pengajuan Anggaran', value: formatIDR(data.reduce((acc, p) => acc + (p.Anggaran || 0), 0)), icon: Wallet, color: 'text-indigo-600', bg: 'bg-indigo-50' },
+          { label: 'Proposal Menunggu', value: data.filter(p => p.Status?.toLowerCase() === 'diajukan').length, icon: Clock, color: 'text-amber-600', bg: 'bg-amber-50' },
+          { label: 'Disetujui Dekanat', value: data.filter(p => p.Status?.toLowerCase() === 'disetujui').length, icon: ShieldCheck, color: 'text-emerald-600', bg: 'bg-emerald-50' },
         ].map((stat, i) => (
           <Card key={i} className="border border-slate-200 shadow-sm rounded-2xl overflow-hidden relative group">
             <CardContent className="p-6 relative">
@@ -202,6 +203,17 @@ export default function FacultyInternalProposals() {
             data={data}
             loading={loading}
             searchPlaceholder="Cari Unit atau Kegiatan..."
+            filters={[
+              {
+                key: 'Status',
+                placeholder: 'Filter Status',
+                options: [
+                  { label: 'Diajukan', value: 'diajukan' },
+                  { label: 'Disetujui', value: 'disetujui' },
+                  { label: 'Ditolak', value: 'ditolak' },
+                ]
+              }
+            ]}
             actions={(row) => (
               <Button
                 onClick={() => handleOpenReview(row)}
@@ -245,12 +257,12 @@ export default function FacultyInternalProposals() {
               <div className="flex justify-between items-start">
                 <div className="space-y-0.5">
                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">Identitas Kegiatan</p>
-                  <h4 className="font-bold text-slate-900 font-headline text-lg tracking-tight leading-snug">{selectedProposal?.judul}</h4>
-                  <p className="text-xs font-bold text-primary font-headline tracking-tighter uppercase">{selectedProposal?.deskripsi?.substring(0, 50)}...</p>
+                  <h4 className="font-bold text-slate-900 font-headline text-lg tracking-tight leading-snug">{selectedProposal?.Judul}</h4>
+                  <p className="text-xs font-bold text-primary font-headline tracking-tighter uppercase">{selectedProposal?.Deskripsi?.substring(0, 50)}...</p>
                 </div>
                 <div className="text-right">
                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Nominal</p>
-                  <p className="text-2xl font-black text-emerald-600 font-headline tracking-tighter leading-none">{formatIDR(selectedProposal?.anggaran || 0)}</p>
+                  <p className="text-2xl font-black text-emerald-600 font-headline tracking-tighter leading-none">{formatIDR(selectedProposal?.Anggaran || 0)}</p>
                 </div>
               </div>
             </div>

@@ -38,14 +38,15 @@ func AmbilRingkasanPkkmb(c *fiber.Ctx) error {
 		var mabaLulus int64
 		config.DB.Model(&models.PkkmbHasil{}).
 			Joins("JOIN mahasiswa ON mahasiswa.id = pkkmb_hasil.mahasiswa_id").
-			Where("mahasiswa.program_studi_id = ? AND pkkmb_hasil.status_kelulusan = ?", p.ID, "Lulus").
+			Where("mahasiswa.program_studi_id = ?", p.ID).
+			Where("pkkmb_hasil.status_kelulusan = ?", "Lulus").
 			Count(&mabaLulus)
 
 		var avgNilai float64
 		config.DB.Model(&models.PkkmbHasil{}).
 			Joins("JOIN mahasiswa ON mahasiswa.id = pkkmb_hasil.mahasiswa_id").
 			Where("mahasiswa.program_studi_id = ?", p.ID).
-			Select("COALESCE(AVG(nilai), 0)").
+			Select("COALESCE(AVG(pkkmb_hasil.nilai), 0)").
 			Scan(&avgNilai)
 
 		partisipasi := 0.0

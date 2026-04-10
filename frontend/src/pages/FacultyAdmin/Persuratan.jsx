@@ -6,9 +6,8 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "./com
 import { Button } from "./components/button"
 import { Badge } from "./components/badge"
 import { DataTable } from "./components/data-table"
-import { DeleteConfirmModal } from "./components/DeleteConfirmModal"
 import { toast, Toaster } from 'react-hot-toast'
-import { RefreshCw, CheckCircle2, Trash2, ShieldCheck, ExternalLink, Loader2, Save, FileText, Mail } from 'lucide-react'
+import { RefreshCw, CheckCircle2, ShieldCheck, ExternalLink, Loader2, Save, FileText, Mail } from 'lucide-react'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "./components/dialog"
 import { Input } from "./components/input"
 import { Label } from "./components/label"
@@ -28,7 +27,6 @@ export default function FacultyPersuratan() {
   const [selectedItem, setSelectedItem] = useState(null)
   const [showModal, setShowModal] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [isDelOpen, setIsDelOpen] = useState(false)
 
   const [adminData, setAdminData] = useState({
     status: 'diproses',
@@ -43,7 +41,7 @@ export default function FacultyPersuratan() {
   const fetchRequests = async () => {
     try {
       setLoading(true)
-      const response = await axios.get('/api/faculty/surat')
+      const response = await axios.get('http://localhost:8000/api/faculty/surat')
       if (response.data.status === 'success') {
         setRequests(response.data.data)
       }
@@ -58,76 +56,64 @@ export default function FacultyPersuratan() {
     if (e) e.preventDefault();
     setIsSubmitting(true)
     try {
-      const response = await axios.put(`/api/faculty/surat/${selectedItem.id}`, adminData)
+      const response = await axios.put(`http://localhost:8000/api/faculty/surat/${selectedItem.ID}`, adminData)
       if (response.data.status === 'success') {
         toast.success('Status surat diperbarui')
         setShowModal(false)
         fetchRequests()
+      } else {
+        toast.error(`Gagal perbarui: ${response.data.message || 'Error response'}`)
       }
     } catch (error) {
-      toast.error('Gagal memperbarui data')
+      const msg = error.response?.data?.message || 'Server sibuk'
+      toast.error(`Gagal memperbarui data: ${msg}`)
     } finally {
       setIsSubmitting(false)
     }
   }
 
-  const handleDelete = async () => {
-    if (!selectedItem?.id) return
-    setIsSubmitting(true)
-    try {
-      const response = await axios.delete(`/api/faculty/surat/${selectedItem.id}`)
-      if (response.data.status === 'success') {
-        toast.success('Pengajuan dihapus')
-        setIsDelOpen(false)
-        fetchRequests()
-      }
-    } catch (error) {
-      toast.error('Gagal menghapus data')
-    } finally {
-      setIsSubmitting(false)
-    }
-  }
+
 
   const columns = [
     {
-      key: "id",
+      key: "ID",
       label: "ID & Tanggal",
       render: (v, row) => (
         <div className="flex flex-col leading-tight text-left">
           <span className="font-mono text-primary font-black text-[11px] tracking-widest leading-none">#SRT-{v}</span>
           <span className="text-[10px] text-slate-400 font-black mt-1 uppercase tracking-tight font-headline">
-            {new Date(row.created_at).toLocaleDateString('id-ID')}
+            {new Date(row.CreatedAt).toLocaleDateString('id-ID')}
           </span>
         </div>
       )
     },
     {
-      key: "mahasiswa",
+      key: "Mahasiswa",
       label: "Identitas Pengusul",
       render: (v) => (
         <div className="flex items-center gap-3 text-left">
           <div className="size-9 rounded-2xl bg-slate-100 flex items-center justify-center font-black text-[10px] uppercase text-slate-800 border-2 border-white shadow-sm ring-1 ring-slate-100">
-            {v?.nama_mahasiswa?.charAt(0) || '?'}
+            {v?.Nama?.charAt(0) || '?'}
           </div>
           <div className="flex flex-col leading-tight">
-            <span className="font-bold text-slate-900 font-headline tracking-tighter uppercase text-[13px]">{v?.nama_mahasiswa || 'Anonim'}</span>
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-0.5">{v?.nim || '-'}</span>
+            <span className="font-bold text-slate-900 font-headline tracking-tighter uppercase text-[13px]">{v?.Nama || 'Anonim'}</span>
+            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-0.5">{v?.NIM || '-'}</span>
           </div>
         </div>
       )
     },
     {
-      key: "jenis_surat",
+      key: "Jenis",
       label: "Klasifikasi Surat",
       render: (v, row) => (
         <div className="flex flex-col leading-tight text-left">
           <span className="font-black text-slate-900 font-headline text-[12px] uppercase tracking-tight">{v}</span>
-          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wide line-clamp-1 mt-0.5">"{row.keperluan}"</p>
+          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wide line-clamp-1 mt-0.5">"{row.Catatan}"</p>
         </div>
       )
     },
     {
-      key: "status",
+      key: "Status",
       label: "Status Progress",
       className: "text-center",
       cellClassName: "text-center",
@@ -191,16 +177,10 @@ export default function FacultyPersuratan() {
             actions={(row) => (
               <div className="flex items-center gap-1.5">
                 <Button
-                  onClick={() => { setSelectedItem(row); setAdminData({ status: row.status, catatan_admin: row.catatan_admin || '', file_url: row.file_url || '' }); setShowModal(true); }}
+                  onClick={() => { setSelectedItem(row); setAdminData({ status: row.Status, catatan_admin: row.Catatan || '', file_url: row.FileURL || '' }); setShowModal(true); }}
                   variant="ghost" size="icon" className="h-9 w-9 hover:text-primary hover:bg-primary/10 rounded-xl transition-all"
                 >
                   <ShieldCheck className="size-4 stroke-[2.5px]" />
-                </Button>
-                <Button
-                  onClick={() => { setSelectedItem(row); setIsDelOpen(true); }}
-                  variant="ghost" size="icon" className="h-9 w-9 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all text-slate-400"
-                >
-                  <Trash2 className="size-4 stroke-[2.5px]" />
                 </Button>
               </div>
             )}
@@ -241,8 +221,8 @@ export default function FacultyPersuratan() {
                      <FileText className="size-3.5 text-primary" />
                      <p className="text-[10px] font-black text-primary uppercase tracking-[0.2em] leading-none">Detail Permohonan</p>
                   </div>
-                  <h4 className="font-bold text-slate-900 font-headline text-lg tracking-tight leading-none uppercase">{selectedItem?.jenis_surat}</h4>
-                  <p className="text-[11px] font-bold text-slate-500 italic mt-3 bg-white/80 p-4 rounded-2xl border border-white shadow-sm uppercase">"{selectedItem?.keperluan}"</p>
+                  <h4 className="font-bold text-slate-900 font-headline text-lg tracking-tight leading-none uppercase">{selectedItem?.Jenis}</h4>
+                  <p className="text-[11px] font-bold text-slate-500 italic mt-3 bg-white/80 p-4 rounded-2xl border border-white shadow-sm uppercase">"{selectedItem?.Catatan}"</p>
                </div>
             </div>
 
@@ -307,14 +287,6 @@ export default function FacultyPersuratan() {
         </DialogContent>
       </Dialog>
 
-      <DeleteConfirmModal 
-        isOpen={isDelOpen}
-        onClose={() => setIsDelOpen(false)}
-        onConfirm={handleDelete}
-        title="Hapus Permohonan Surat?"
-        description="Data permohonan surat akan dihapus permanen dari antrean administratif fakultas."
-        loading={isSubmitting}
-      />
     </div>
   )
 }

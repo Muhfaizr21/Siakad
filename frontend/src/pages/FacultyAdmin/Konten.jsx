@@ -60,7 +60,7 @@ export default function KontenPage() {
   const fetchData = async () => {
     setLoading(true)
     try {
-      const res = await axios.get("/api/faculty/news")
+      const res = await axios.get("http://localhost:8000/api/faculty/news")
       if (res.data.status === "success") {
         setArticles(res.data.data)
       }
@@ -99,12 +99,17 @@ export default function KontenPage() {
     if (!selectedArticleId) return
     setIsSubmitting(true)
     try {
-      await axios.delete(`/api/faculty/news/${selectedArticleId}`)
-      toast.success("Konten berhasil dihapus")
-      setIsDelOpen(false)
-      fetchData()
+      const res = await axios.delete(`http://localhost:8000/api/faculty/news/${selectedArticleId}`)
+      if (res.data.status === "success") {
+        toast.success("Konten berhasil dihapus")
+        setIsDelOpen(false)
+        fetchData()
+      } else {
+        toast.error(`Gagal hapus: ${res.data.message || 'Response gagal'}`)
+      }
     } catch (error) {
-      toast.error("Gagal menghapus konten")
+      const msg = error.response?.data?.message || 'Gangguan server'
+      toast.error(`Gagal menghapus konten: ${msg}`)
     } finally {
       setIsSubmitting(false)
     }
@@ -114,17 +119,24 @@ export default function KontenPage() {
     if (e) e.preventDefault()
     setIsSubmitting(true)
     try {
-      if (isEditMode) {
-        await axios.put(`/api/faculty/news/${formData.id}`, formData)
-        toast.success("Konten diperbarui")
+      const url = isEditMode 
+        ? `http://localhost:8000/api/faculty/news/${formData.id}` 
+        : "http://localhost:8000/api/faculty/news"
+      const method = isEditMode ? "put" : "post"
+      
+      const res = await axios({ method, url, data: formData })
+      
+      if (res.data.status === "success") {
+        toast.success(isEditMode ? "Konten diperbarui" : "Konten dipublikasikan")
+        setIsModalOpen(false)
+        fetchData()
       } else {
-        await axios.post("/api/faculty/news", formData)
-        toast.success("Konten dipublikasikan")
+        toast.error(`Gagal simpan: ${res.data.message || 'Gagal menyimpan'}`)
       }
-      setIsModalOpen(false)
-      fetchData()
     } catch (error) {
-      toast.error("Gagal menyimpan konten")
+      const msg = error.response?.data?.message || 'Batas waktu habis'
+      const action = isEditMode ? "simpan" : "terbitkan"
+      toast.error(`Gagal ${action} konten: ${msg}`)
     } finally {
       setIsSubmitting(false)
     }
@@ -182,7 +194,7 @@ export default function KontenPage() {
           </div>
           <div className="flex items-center gap-2">
              <div className="h-1 w-10 bg-primary rounded-full shadow-sm shadow-primary/30" />
-             <p className="text-xs font-bold text-slate-400 uppercase tracking-widest leading-none">Portal Publikasi & Informasi Kampus</p>
+             <p className="text-xs font-bold text-slate-400 uppercase tracking-widest leading-none">Portal Publikasi & Informasi Internal Fakultas</p>
           </div>
         </div>
 

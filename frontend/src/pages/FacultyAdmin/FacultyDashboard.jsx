@@ -12,8 +12,6 @@ import {
   GraduationCap,
   BookOpen,
   UserCheck,
-  HeartPulse,
-  MessageSquare,
   TrendingUp,
   ArrowUpRight,
   Calendar,
@@ -41,24 +39,6 @@ import {
   Legend,
 } from "recharts"
 import { DataTable } from "./components/data-table"
-import api from '../../lib/axios'
-
-const toArray = (value) => (Array.isArray(value) ? value : []);
-
-const normalizeSummaryData = (raw = {}) => ({
-  totalStudents: Number(raw.totalStudents) || 0,
-  totalLecturers: Number(raw.totalLecturers) || 0,
-  totalCourses: Number(raw.totalCourses) || 0,
-  totalProdi: Number(raw.totalProdi) || 0,
-  totalPrestasi: Number(raw.totalPrestasi) || 0,
-  totalAspirasi: Number(raw.totalAspirasi) || 0,
-  totalHealth: Number(raw.totalHealth) || 0,
-  totalKonseling: Number(raw.totalKonseling) || 0,
-  statusCounts: toArray(raw.statusCounts),
-  prodiDistribution: toArray(raw.prodiDistribution),
-  trendData: toArray(raw.trendData),
-  recentActivity: toArray(raw.recentActivity),
-});
 
 export default function DashboardPage() {
   const navigate = useNavigate();
@@ -70,10 +50,6 @@ export default function DashboardPage() {
     totalLecturers: 0,
     totalCourses: 0,
     totalProdi: 0,
-    totalPrestasi: 0,
-    totalAspirasi: 0,
-    totalHealth: 0,
-    totalKonseling: 0,
     statusCounts: [],
     prodiDistribution: [],
     trendData: [],
@@ -85,9 +61,10 @@ export default function DashboardPage() {
     const fetchDashboardData = async () => {
 
       try {
-        const { data: result } = await api.get('/faculty/summary');
-        if (result?.status === 'success') {
-          setSummaryData(normalizeSummaryData(result.data));
+        const response = await fetch('http://localhost:8000/api/faculty/summary');
+        const result = await response.json();
+        if (result.status === 'success') {
+          setSummaryData(result.data);
         }
       } catch (error) {
         console.error("Error fetching dashboard statistics:", error);
@@ -106,13 +83,20 @@ export default function DashboardPage() {
     'DO': '#ef4444',
   };
 
-  const defaultStatuses = ['Aktif', 'Cuti', 'Lulus', 'DO'];
-  const dynamicStatusData = defaultStatuses.map(status => {
-    const found = summaryData.statusCounts?.find(s => s.status === status);
+  const baseStatuses = ['Aktif', 'Cuti', 'Lulus', 'DO'];
+
+  // Ambil semua status unik dari data backend + base statuses
+  const allStatusNames = [...new Set([
+    ...baseStatuses,
+    ...(summaryData.statusCounts?.map(s => s.status) || [])
+  ])];
+
+  const dynamicStatusData = allStatusNames.map(name => {
+    const found = summaryData.statusCounts?.find(s => s.status === name);
     return {
-      name: status,
+      name: name || "Lainnya",
       value: found ? found.count : 0,
-      color: statusColors[status] || '#cbd5e1'
+      color: statusColors[name] || '#cbd5e1'
     };
   });
 
@@ -148,36 +132,6 @@ export default function DashboardPage() {
       gradient: "from-amber-500/10 to-amber-500/5"
     },
     {
-      key: "totalAspirasi",
-      title: "Aspirasi Mahasiswa",
-      icon: MessageSquare,
-      description: "total tiket aspirasi",
-      value: (summaryData.totalAspirasi || 0).toLocaleString(),
-      color: "text-cyan-700",
-      bg: "bg-cyan-50",
-      gradient: "from-cyan-500/10 to-cyan-500/5"
-    },
-    {
-      key: "totalHealth",
-      title: "Health Screening",
-      icon: HeartPulse,
-      description: "riwayat screening",
-      value: (summaryData.totalHealth || 0).toLocaleString(),
-      color: "text-rose-600",
-      bg: "bg-rose-50",
-      gradient: "from-rose-500/10 to-rose-500/5"
-    },
-    {
-      key: "totalKonseling",
-      title: "Sesi Konseling",
-      icon: GraduationCap,
-      description: "total sesi mahasiswa",
-      value: (summaryData.totalKonseling || 0).toLocaleString(),
-      color: "text-violet-600",
-      bg: "bg-violet-50",
-      gradient: "from-violet-500/10 to-violet-500/5"
-    },
-    {
       key: "totalProdi",
       title: "Unit Akademik",
       icon: Layers,
@@ -196,18 +150,18 @@ export default function DashboardPage() {
       render: (val) => <span className="font-bold text-slate-800 font-headline uppercase text-[11px] tracking-tight">{val}</span>
     },
     {
-        key: "akreditasi",
-        label: "Akreditasi",
-        render: (val) => (
-            <Badge className={cn(
-                "font-black text-[10px] px-3 py-0.5 border-none shadow-sm font-headline",
-                val === 'A' || val === 'Unggul' ? "bg-emerald-100 text-emerald-700" :
-                val === 'B' || val === 'Baik Sekali' ? "bg-blue-100 text-blue-700" :
-                "bg-slate-100 text-slate-700"
-            )}>
-                {val || '-'}
-            </Badge>
-        )
+      key: "akreditasi",
+      label: "Akreditasi",
+      render: (val) => (
+        <Badge className={cn(
+          "font-black text-[10px] px-3 py-0.5 border-none shadow-sm font-headline",
+          val === 'A' || val === 'Unggul' ? "bg-emerald-100 text-emerald-700" :
+            val === 'B' || val === 'Baik Sekali' ? "bg-blue-100 text-blue-700" :
+              "bg-slate-100 text-slate-700"
+        )}>
+          {val || '-'}
+        </Badge>
+      )
     },
     {
       key: "jumlah",
@@ -253,7 +207,9 @@ export default function DashboardPage() {
           </div>
           <h1 className="text-3xl font-black text-slate-900 font-headline tracking-tighter uppercase flex items-center gap-3">
             Dashboard
-            <div className="px-3 py-1 bg-primary/10 text-primary text-[10px] font-black tracking-widest rounded-full not-italic border border-primary/20">SISTEM AKTIF</div>
+            <div className="px-3 py-1 bg-primary/10 text-primary text-[10px] font-black tracking-widest rounded-full not-italic border border-primary/20">
+              {summaryData.activePeriod || "SISTEM AKTIF"}
+            </div>
           </h1>
         </div>
         <div className="flex items-center gap-2">
@@ -273,8 +229,8 @@ export default function DashboardPage() {
                   <stat.icon className="size-5" />
                 </div>
                 <div className="flex items-center gap-1 text-[10px] font-black text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded-full uppercase tracking-widest leading-none">
-                    <TrendingUp className="size-2.5" />
-                    Live
+                  <TrendingUp className="size-2.5" />
+                  Live
                 </div>
               </div>
               <div className="space-y-1">
@@ -310,28 +266,29 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="h-[300px] mt-4 relative w-full min-w-0">
-              {isMounted && summaryData.prodiDistribution.length > 0 ? (
-                <ResponsiveContainer width="100%" height="100%" debounce={50}>
-                <BarChart data={summaryData.prodiDistribution} layout="vertical" margin={{ left: 20, right: 20, top: 0, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="#f1f5f9" />
-                  <XAxis type="number" hide />
-                  <YAxis
-                    dataKey="name"
-                    type="category"
-                    width={120}
-                    tick={{ fontSize: 9, fontWeight: 700, fill: '#64748b' }}
-                    axisLine={false}
-                    tickLine={false}
-                  />
-                  <Tooltip
-                    cursor={{ fill: '#f8fafc' }}
-                    contentStyle={{ backgroundColor: "#fff", border: "none", borderRadius: "16px", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)", fontSize: "11px", fontWeight: "bold" }}
-                  />
-                  <Bar dataKey="jumlah" fill="#3b82f6" radius={[0, 10, 10, 0]} barSize={16} />
-                </BarChart>
-              </ResponsiveContainer>
-              ) : (
-                <div className="h-full w-full flex items-center justify-center text-xs font-semibold text-slate-400">Belum ada data prodi.</div>
+              {isMounted && (
+                <ResponsiveContainer width="99%" height={300} debounce={50}>
+
+
+
+                  <BarChart data={summaryData.prodiDistribution} layout="vertical" margin={{ left: 20, right: 20, top: 0, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="#f1f5f9" />
+                    <XAxis type="number" hide />
+                    <YAxis
+                      dataKey="name"
+                      type="category"
+                      width={120}
+                      tick={{ fontSize: 9, fontWeight: 700, fill: '#64748b' }}
+                      axisLine={false}
+                      tickLine={false}
+                    />
+                    <Tooltip
+                      cursor={{ fill: '#f8fafc' }}
+                      contentStyle={{ backgroundColor: "#fff", border: "none", borderRadius: "16px", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)", fontSize: "11px", fontWeight: "bold" }}
+                    />
+                    <Bar dataKey="jumlah" fill="#3b82f6" radius={[0, 10, 10, 0]} barSize={16} />
+                  </BarChart>
+                </ResponsiveContainer>
               )}
             </div>
           </CardContent>
@@ -355,42 +312,43 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="h-[300px] relative w-full min-w-0">
-              {isMounted && dynamicStatusData.some((d) => d.value > 0) ? (
-                <ResponsiveContainer width="100%" height="100%" debounce={50}>
-                <PieChart>
-                  <Pie
-                    data={dynamicStatusData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={70}
-                    outerRadius={100}
-                    paddingAngle={8}
-                    dataKey="value"
-                    stroke="none"
-                  >
-                    {dynamicStatusData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip
-                    contentStyle={{ backgroundColor: "#fff", border: "none", borderRadius: "16px", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)", fontSize: "11px", fontWeight: "bold" }}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-              ) : (
-                <div className="h-full w-full flex items-center justify-center text-xs font-semibold text-slate-400">Belum ada data status mahasiswa.</div>
+              {isMounted && (
+                <ResponsiveContainer width="99%" height={300} debounce={50}>
+
+
+
+                  <PieChart>
+                    <Pie
+                      data={dynamicStatusData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={70}
+                      outerRadius={100}
+                      paddingAngle={8}
+                      dataKey="value"
+                      stroke="none"
+                    >
+                      {dynamicStatusData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      contentStyle={{ backgroundColor: "#fff", border: "none", borderRadius: "16px", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)", fontSize: "11px", fontWeight: "bold" }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
               )}
             </div>
             <div className="flex flex-wrap justify-center gap-x-6 gap-y-2 pb-2">
               {dynamicStatusData.map((item) => (
                 <div key={item.name} className="flex items-center gap-2">
-                  <Badge 
+                  <Badge
                     className={cn(
-                        "font-black text-[9px] px-2 py-0 border-none font-headline uppercase",
-                        item.name === 'Aktif' ? "bg-emerald-50 text-emerald-600" :
+                      "font-black text-[9px] px-2 py-0 border-none font-headline uppercase",
+                      item.name === 'Aktif' ? "bg-emerald-50 text-emerald-600" :
                         item.name === 'Cuti' ? "bg-amber-50 text-amber-600" :
-                        item.name === 'Lulus' ? "bg-blue-50 text-blue-600" :
-                        "bg-rose-50 text-rose-600"
+                          item.name === 'Lulus' ? "bg-blue-50 text-blue-600" :
+                            "bg-rose-50 text-rose-600"
                     )}
                   >
                     <div className="size-1.5 rounded-full bg-current mr-1.5" />
@@ -408,13 +366,13 @@ export default function DashboardPage() {
         <CardHeader className="pb-6 border-b border-slate-100 bg-white">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-                <div className="p-2 bg-indigo-50 rounded-xl text-indigo-600">
-                    <Award className="size-5" />
-                </div>
-                <div>
+              <div className="p-2 bg-indigo-50 rounded-xl text-indigo-600">
+                <Award className="size-5" />
+              </div>
+              <div>
                 <CardTitle className="text-lg font-black font-headline tracking-tight uppercase text-primary">Akreditasi & Performansi Prodi</CardTitle>
                 <CardDescription className="text-[11px] font-bold uppercase tracking-wider text-slate-400 font-headline">Statistik operasional terintegrasi</CardDescription>
-                </div>
+              </div>
             </div>
             <Badge className="bg-blue-50 text-blue-600 border-none font-black text-[10px] px-3 py-1 font-headline uppercase">{summaryData.totalProdi} Prodi Aktif</Badge>
           </div>
@@ -434,28 +392,29 @@ export default function DashboardPage() {
         <Card className="lg:col-span-2 border border-slate-200 shadow-sm rounded-2xl bg-white overflow-hidden">
           <CardHeader className="border-b border-slate-50">
             <div className="flex items-center justify-between">
-                <CardTitle className="text-base font-black font-headline uppercase tracking-tight text-slate-700">Trend Pendaftaran Mahasiswa Baru</CardTitle>
-                <TrendingUp className="size-5 text-emerald-500" />
+              <CardTitle className="text-base font-black font-headline uppercase tracking-tight text-slate-700">Trend Pendaftaran Mahasiswa Baru</CardTitle>
+              <TrendingUp className="size-5 text-emerald-500" />
             </div>
           </CardHeader>
           <CardContent className="pt-6">
             <div className="h-[300px] relative w-full min-w-0">
-              {isMounted && summaryData.trendData.length > 0 ? (
-                <ResponsiveContainer width="100%" height="100%" debounce={50}>
-                <LineChart data={summaryData.trendData}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                  <XAxis dataKey="tahun" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 700 }} />
-                  <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 700 }} />
-                  <Tooltip
-                    contentStyle={{ backgroundColor: "#fff", border: "none", borderRadius: "16px", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)", fontSize: "11px", fontWeight: "bold" }}
-                  />
-                  <Legend iconType="circle" wrapperStyle={{ paddingTop: '20px', fontSize: '10px', fontWeight: '900', textTransform: 'uppercase' }} />
-                  <Line type="monotone" dataKey="pendaftar" stroke="#3b82f6" strokeWidth={4} dot={{ r: 6, fill: '#3b82f6', strokeWidth: 2, stroke: '#fff' }} activeDot={{ r: 8 }} name="Pendaftar" />
-                  <Line type="monotone" dataKey="diterima" stroke="#10b981" strokeWidth={4} dot={{ r: 6, fill: '#10b981', strokeWidth: 2, stroke: '#fff' }} activeDot={{ r: 8 }} name="Diterima" />
-                </LineChart>
-              </ResponsiveContainer>
-              ) : (
-                <div className="h-full w-full flex items-center justify-center text-xs font-semibold text-slate-400">Belum ada data tren pendaftaran.</div>
+              {isMounted && (
+                <ResponsiveContainer width="99%" height={300} debounce={50}>
+
+
+
+                  <LineChart data={summaryData.trendData}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                    <XAxis dataKey="tahun" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 700 }} />
+                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 700 }} />
+                    <Tooltip
+                      contentStyle={{ backgroundColor: "#fff", border: "none", borderRadius: "16px", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)", fontSize: "11px", fontWeight: "bold" }}
+                    />
+                    <Legend iconType="circle" wrapperStyle={{ paddingTop: '20px', fontSize: '10px', fontWeight: '900', textTransform: 'uppercase' }} />
+                    <Line type="monotone" dataKey="pendaftar" stroke="#3b82f6" strokeWidth={4} dot={{ r: 6, fill: '#3b82f6', strokeWidth: 2, stroke: '#fff' }} activeDot={{ r: 8 }} name="Pendaftar" />
+                    <Line type="monotone" dataKey="diterima" stroke="#10b981" strokeWidth={4} dot={{ r: 6, fill: '#10b981', strokeWidth: 2, stroke: '#fff' }} activeDot={{ r: 8 }} name="Diterima" />
+                  </LineChart>
+                </ResponsiveContainer>
               )}
             </div>
           </CardContent>
@@ -503,25 +462,25 @@ export default function DashboardPage() {
       {/* Quick Actions Row */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 pt-4">
         {[
-            { label: 'Validasi Prestasi', icon: Trophy, path: '/faculty/prestasi', color: 'bg-emerald-600 text-white shadow-emerald-600/20 hover:bg-emerald-700' },
-            { label: 'Monitor PKKMB', icon: UserCheck, path: '/faculty/pkkmb', color: 'bg-indigo-600 text-white shadow-indigo-600/20 hover:bg-indigo-700' },
-            { label: 'Screening Kesehatan', icon: BookOpen, path: '/faculty/kesehatan', color: 'bg-amber-500 text-white shadow-amber-500/20 hover:bg-amber-600' },
-            { label: 'Aspirasi Mahasiswa', icon: FileText, path: '/faculty/aspirasi', color: 'bg-rose-600 text-white shadow-rose-600/20 hover:bg-rose-700' },
+          { label: 'Validasi Prestasi', icon: Trophy, path: '/faculty/prestasi', color: 'bg-emerald-600 text-white shadow-emerald-600/20 hover:bg-emerald-700' },
+          { label: 'Monitor PKKMB', icon: UserCheck, path: '/faculty/pkkmb', color: 'bg-indigo-600 text-white shadow-indigo-600/20 hover:bg-indigo-700' },
+          { label: 'Screening Kesehatan', icon: BookOpen, path: '/faculty/kesehatan', color: 'bg-amber-500 text-white shadow-amber-500/20 hover:bg-amber-600' },
+          { label: 'Aspirasi Mahasiswa', icon: FileText, path: '/faculty/aspirasi', color: 'bg-rose-600 text-white shadow-rose-600/20 hover:bg-rose-700' },
         ].map((item, i) => (
-            <Button 
-                key={i} 
-                onClick={() => navigate(item.path)} 
-                variant="outline" 
-                className={cn(
-                    "h-16 rounded-2xl border-none shadow-xl flex items-center justify-start gap-4 px-6 transition-all hover:scale-[1.02] active:scale-95",
-                    item.color
-                )}
-            >
-                <div className="size-8 rounded-xl bg-white/20 flex items-center justify-center">
-                    <item.icon className="size-4" />
-                </div>
-                <span className="text-[10px] font-black uppercase tracking-widest">{item.label}</span>
-            </Button>
+          <Button
+            key={i}
+            onClick={() => navigate(item.path)}
+            variant="outline"
+            className={cn(
+              "h-16 rounded-2xl border-none shadow-xl flex items-center justify-start gap-4 px-6 transition-all hover:scale-[1.02] active:scale-95",
+              item.color
+            )}
+          >
+            <div className="size-8 rounded-xl bg-white/20 flex items-center justify-center">
+              <item.icon className="size-4" />
+            </div>
+            <span className="text-[10px] font-black uppercase tracking-widest">{item.label}</span>
+          </Button>
         ))}
       </div>
     </div>

@@ -26,7 +26,7 @@ export default function FacultyPkkmb() {
 
   const fetchSummary = async () => {
     try {
-      const response = await fetch('/api/pkkmb/ringkasan')
+      const response = await fetch('http://localhost:8000/api/faculty/ringkasan')
       const result = await response.json()
       if (result.status === 'success') {
         setData(result.prodiBreakdown)
@@ -40,7 +40,7 @@ export default function FacultyPkkmb() {
   const fetchStudents = async () => {
     setLoading(true)
     try {
-      const response = await fetch('/api/pkkmb/peserta')
+      const response = await fetch('http://localhost:8000/api/faculty/peserta')
       const result = await response.json()
       if (result.status === 'success') {
         setStudents(result.data)
@@ -111,19 +111,19 @@ export default function FacultyPkkmb() {
 
   const studentColumns = [
     {
-      key: "student",
+      key: "Mahasiswa",
       label: "Mahasiswa",
       render: (v) => (
         <div className="flex flex-col">
-          <span className="font-bold text-slate-900 font-headline tracking-tighter text-[13px]">{v?.name}</span>
-          <span className="text-[10px] text-slate-400 font-black uppercase tracking-widest">{v?.nim}</span>
+          <span className="font-bold text-slate-900 font-headline tracking-tighter text-[13px]">{v?.Nama}</span>
+          <span className="text-[10px] text-slate-400 font-black uppercase tracking-widest">{v?.NIM}</span>
         </div>
       )
     },
     {
-      key: "student",
+      key: "MahasiswaProdi",
       label: "Prodi",
-      render: (v) => <span className="text-[10px] font-bold text-slate-500 uppercase">{v?.major?.name || '-'}</span>
+      render: (_, row) => <span className="text-[10px] font-bold text-slate-500 uppercase">{row.Mahasiswa?.ProgramStudi?.Nama || '-'}</span>
     },
     {
       key: "attendanceRate",
@@ -133,14 +133,14 @@ export default function FacultyPkkmb() {
       render: (v) => <span className="font-black text-slate-700 font-headline text-xs">{v || 0}%</span>
     },
     {
-      key: "averageScore",
+      key: "Nilai",
       label: "Nilai",
       className: "text-center",
       cellClassName: "text-center",
       render: (v) => <span className="font-black text-primary font-headline text-xs">{v || 0}</span>
     },
     {
-      key: "status",
+      key: "StatusKelulusan",
       label: "Status Akhir",
       className: "text-center",
       cellClassName: "text-center",
@@ -232,7 +232,7 @@ export default function FacultyPkkmb() {
             exportLabel="Ekspor Rekap"
             filters={activeTab === 'prodi' ? [] : [
               {
-                key: 'status',
+                key: 'StatusKelulusan',
                 placeholder: 'Filter Status',
                 options: [
                   { label: 'Lulus', value: 'Lulus' },

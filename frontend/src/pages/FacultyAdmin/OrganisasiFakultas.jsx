@@ -25,18 +25,44 @@ export default function FacultyOrganisasi() {
   const [selectedOrgId, setSelectedOrgId] = useState(null)
 
   const [formData, setFormData] = useState({
-    kode_org: '', nama_org: '', ketua_nama: '', jumlah_anggota: 0, status: 'Aktif'
+    kode_org: '',
+    nama_org: '',
+    ketua_nama: '',
+    jumlah_anggota: 0,
+    status: 'Aktif',
+    email: '',
+    phone: ''
   })
 
+  // 🔥 FIX MAPPING API → UI
+  // ================= FETCH =================
   const fetchData = async () => {
     try {
       setLoading(true)
-      const res = await axios.get('/api/faculty/organizations')
-      if (res.data.status === 'success') {
-        setOrganizations(res.data.data)
-      }
-    } catch (error) {
-      toast.error("Gagal mengambil data organisasi")
+
+      const res = await fetch('http://localhost:8000/api/faculty/organizations')
+
+      const data = await res.json()
+
+      // 🔥 FIX: pastikan array & mapping aman
+      const mapped = Array.isArray(data.data)
+        ? data.data.map((item) => ({
+          id: item.id,
+          nama: item.nama,
+          kode: item.kode,
+          status: item.status,
+          jumlah_anggota: item.jumlah_anggota,
+          deskripsi: item.deskripsi,
+          email: item.email || '',
+          phone: item.phone || ''
+        }))
+        : []
+
+      setOrganizations(mapped)
+
+    } catch (err) {
+      console.error("❌ ERROR:", err)
+      toast.error("Gagal fetch (backend ga nyambung)")
     } finally {
       setLoading(false)
     }
@@ -46,100 +72,139 @@ export default function FacultyOrganisasi() {
     fetchData()
   }, [])
 
+
+  // ================= SUBMIT =================
   const handleSubmit = async (e) => {
     if (e) e.preventDefault()
     setIsSubmitting(true)
+
+    const payload = {
+      nama: formData.nama_org,
+      kode: formData.kode_org,
+      status: formData.status,
+      jumlah_anggota: formData.jumlah_anggota,
+      deskripsi: formData.ketua_nama,
+      email: formData.email,
+      phone: formData.phone
+    }
+
     try {
+      let res;
       if (editingOrg) {
-        await axios.put(`/api/faculty/organizations/${editingOrg.id}`, formData)
+        res = await axios.put(
+          `http://localhost:8000/api/faculty/organizations/${editingOrg.id}`,
+          payload
+        )
         toast.success("Organisasi diperbarui")
       } else {
-        await axios.post('/api/faculty/organizations', formData)
+        res = await axios.post(
+          'http://localhost:8000/api/faculty/organizations',
+          payload
+        )
         toast.success("Organisasi ditambahkan")
       }
+
       setShowModal(false)
       fetchData()
     } catch (error) {
-      toast.error(error.response?.data?.message || "Terjadi kesalahan")
+      let errorMsg = error.response?.data?.message || ""
+      if (errorMsg.includes("Duplicate entry") || errorMsg.includes("unique constraint")) {
+        errorMsg = "Kode Organisasi sudah terdaftar."
+      }
+      const action = editingOrg ? "memperbarui" : "menambah"
+      toast.error(`Gagal ${action} organisasi: ${errorMsg || 'Database error'}`)
     } finally {
       setIsSubmitting(false)
     }
   }
 
+
+  // ================= DELETE =================
   const handleDelete = async () => {
     if (!selectedOrgId) return
     setIsSubmitting(true)
+
     try {
-      await axios.delete(`/api/faculty/organizations/${selectedOrgId}`)
-      toast.success("Organisasi dihapus")
-      setIsDelOpen(false)
-      fetchData()
+      const res = await axios.delete(
+        `http://localhost:8000/api/faculty/organizations/${selectedOrgId}`
+      )
+      if (res.data.status === 'success') {
+        toast.success("Organisasi dihapus")
+        setIsDelOpen(false)
+        fetchData()
+      } else {
+        toast.error(`Gagal hapus: ${res.data.message || 'Error response'}`)
+      }
     } catch (error) {
-      toast.error("Gagal menghapus")
+      toast.error(`Gagal menghapus organisasi: ${error.response?.data?.message || 'Server sibuk'}`)
     } finally {
       setIsSubmitting(false)
     }
   }
 
+
+  // ================= EDIT =================
   const openEdit = (org) => {
     setEditingOrg(org)
     setFormData({
-      kode_org: org.kode_org,
-      nama_org: org.nama_org,
-      ketua_nama: org.ketua_nama,
-      jumlah_anggota: org.jumlah_anggota,
-      status: org.status
+      kode_org: org.kode || '',
+      nama_org: org.nama || '',
+      ketua_nama: org.deskripsi || '',
+      jumlah_anggota: org.jumlah_anggota || 0,
+      status: org.status || 'Aktif',
+      email: org.email || '',
+      phone: org.phone || ''
     })
     setShowModal(true)
   }
 
+
+  // ================= TABLE =================
   const columns = [
     {
-      key: "kode_org",
+      key: "kode",
       label: "Kode",
-      render: (val) => <span className="font-mono font-black text-primary text-[11px] tracking-widest leading-none uppercase text-left">{val}</span>
-    },
-    {
-      key: "nama_org",
-      label: "Nama Organisasi",
-      render: (val) => <span className="font-bold text-slate-900 font-headline uppercase text-[12px] tracking-tight">{val}</span>
-    },
-    {
-      key: "ketua_nama",
-      label: "Ketua Umum",
       render: (val) => (
-        <div className="flex items-center gap-3 text-left">
-          <div className="size-8 rounded-2xl bg-slate-100 flex items-center justify-center font-black text-[10px] text-slate-800 border-2 border-white shadow-sm ring-1 ring-slate-100 uppercase">
-            {val?.charAt(0)}
-          </div>
-          <span className="text-[11px] font-bold text-slate-600 uppercase font-headline">{val}</span>
-        </div>
+        <Badge variant="outline" className="font-black text-[10px] border-slate-200 bg-slate-50 text-slate-500 rounded-lg px-2 py-0.5 tracking-tighter uppercase font-headline">
+          {val || '-'}
+        </Badge>
       )
     },
     {
-      key: "jumlah_anggota",
-      label: "Anggota",
-      className: "text-center",
-      cellClassName: "text-center",
-      render: (val) => <span className="font-black text-slate-800 font-headline text-[13px]">{val} <span className="text-[9px] text-slate-400 font-black uppercase tracking-widest ml-1">AKTIF</span></span>
+      key: "nama",
+      label: "Nama Organisasi",
+      render: (val) => <span className="font-bold text-slate-900">{val}</span>
+    },
+    {
+      key: "deskripsi",
+      label: "Deskripsi",
+      render: (val) => (
+        <span className="text-xs text-slate-500">{val || '-'}</span>
+      )
+    },
+    {
+      key: "email",
+      label: "Email",
+      render: (val) => <span className="text-xs">{val || '-'}</span>
+    },
+    {
+      key: "phone",
+      label: "Kontak",
+      render: (val) => <span className="text-xs">{val || '-'}</span>
     },
     {
       key: "status",
       label: "Status",
       render: (val) => (
-        <Badge
-          className={cn(
-            "capitalize font-black text-[10px] px-3 py-1 border-none shadow-sm font-headline uppercase",
-            val === 'Aktif' ? "bg-emerald-100 text-emerald-700 ring-1 ring-emerald-500/20" :
-              "bg-slate-100 text-slate-700 ring-1 ring-slate-500/20"
-          )}
-        >
-          {val}
+        <Badge className={cn(
+          "text-[9px] font-black px-2 py-0.5 rounded-md border-none uppercase font-headline tracking-tighter",
+          val === 'Aktif' ? "bg-emerald-100 text-emerald-600" : "bg-rose-100 text-rose-600"
+        )}>
+          {val || 'Aktif'}
         </Badge>
       )
     }
   ]
-
   return (
     <div className="space-y-6">
       <Toaster position="top-right" />
@@ -163,7 +228,7 @@ export default function FacultyOrganisasi() {
             data={organizations}
             loading={loading}
             searchPlaceholder="Cari Nama atau Kode..."
-            onAdd={() => { setEditingOrg(null); setFormData({ kode_org: '', nama_org: '', ketua_nama: '', jumlah_anggota: 0, status: 'Aktif' }); setShowModal(true); }}
+            onAdd={() => { setEditingOrg(null); setFormData({ kode_org: '', nama_org: '', ketua_nama: '', jumlah_anggota: 0, status: 'Aktif', email: '', phone: '' }); setShowModal(true); }}
             addLabel="Tambah ORMAWA"
             actions={(row) => (
               <div className="flex items-center gap-2">
@@ -261,6 +326,28 @@ export default function FacultyOrganisasi() {
                     onChange={(e) => setFormData({ ...formData, jumlah_anggota: parseInt(e.target.value) })}
                     className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white text-sm font-black font-headline text-center"
                     required
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Email Resmi</Label>
+                  <Input
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    placeholder="E.G. info@hmp-it.com"
+                    className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white transition-all font-bold text-sm font-headline"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">No HP Kontak</Label>
+                  <Input
+                    value={formData.phone}
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    placeholder="E.G. 08123xxx"
+                    className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white text-sm font-bold font-headline"
                   />
                 </div>
               </div>

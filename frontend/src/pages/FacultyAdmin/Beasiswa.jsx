@@ -33,11 +33,11 @@ export default function FacultyScholarship() {
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const [progForm, setProgForm] = useState({
-    id: null, name: '', provider: '', description: '', minGpa: 3.5, quota: 10, deadline: '', status: 'buka'
+    ID: null, Nama: '', Penyelenggara: '', Deskripsi: '', MinIPK: 3.5, Kuota: 10, Deadline: '', Status: 'buka'
   })
 
   const [appForm, setAppForm] = useState({
-    status: 'proses', notes: ''
+    Status: 'proses', Catatan: ''
   })
 
   useEffect(() => {
@@ -48,10 +48,10 @@ export default function FacultyScholarship() {
     try {
       setLoading(true)
       if (activeTab === 'programs') {
-        const res = await axios.get('/api/faculty/scholarships')
+        const res = await axios.get('http://localhost:8000/api/faculty/scholarships')
         setScholarships(res.data.data)
       } else {
-        const res = await axios.get('/api/faculty/scholarships/applications')
+        const res = await axios.get('http://localhost:8000/api/faculty/scholarships/applications')
         setApplications(res.data.data)
       }
     } catch {
@@ -63,34 +63,20 @@ export default function FacultyScholarship() {
 
   const handleProgSubmit = async (e) => {
     if (e) e.preventDefault()
-    setIsSubmitting(true)
-    try {
-      const url = progForm.id
-        ? `/api/faculty/scholarships/${progForm.id}`
-        : '/api/faculty/scholarships'
-
-      const method = progForm.id ? 'put' : 'post'
-      await axios[method](url, progForm)
-      toast.success(progForm.id ? 'Beasiswa diperbarui' : 'Beasiswa dibuat')
-      setShowProgModal(false)
-      fetchData()
-    } catch {
-      toast.error('Gagal menyimpan beasiswa')
-    } finally {
-      setIsSubmitting(false)
-    }
+    toast.error('Program beasiswa hanya dapat dibuat/diubah oleh Superadmin')
   }
 
   const handleAppUpdate = async () => {
-    if (!selectedItem?.id) return
+    if (!selectedItem?.ID) return
     setIsSubmitting(true)
     try {
-      await axios.put(`/api/faculty/scholarships/applications/${selectedItem.id}`, appForm)
+      await axios.put(`http://localhost:8000/api/faculty/scholarships/applications/${selectedItem.ID}`, appForm)
       toast.success('Status diperbarui')
       setShowAppModal(false)
       fetchData()
-    } catch {
-      toast.error('Gagal update')
+    } catch (err) {
+      const errorMsg = err.response?.data?.message || 'Gagal memperbarui status pendaftaran'
+      toast.error(errorMsg)
     } finally {
       setIsSubmitting(false)
     }
@@ -98,64 +84,64 @@ export default function FacultyScholarship() {
 
   const openEditProg = (row) => {
     setProgForm({
-        ...row,
-        deadline: row.deadline ? new Date(row.deadline).toISOString().split('T')[0] : ""
+      ...row,
+      deadline: row.deadline ? new Date(row.deadline).toISOString().split('T')[0] : ""
     })
     setShowProgModal(true)
   }
 
   const progColumns = [
     {
-      key: "nama",
+      key: "Nama",
       label: "Program Beasiswa",
       render: (v) => (
         <div className="flex flex-col leading-tight">
           <span className="font-bold text-slate-900 font-headline tracking-tighter text-[13px] uppercase">{v}</span>
           <span className="text-[10px] text-slate-400 font-bold uppercase tracking-tight flex items-center gap-1">
-             <CapIcon className="size-2.5 opacity-60" />
-             Faculty Academic Scholarship
+            <CapIcon className="size-2.5 opacity-60" />
+            Faculty Academic Scholarship
           </span>
         </div>
       )
     },
     {
-      key: "penyelenggara",
+      key: "Penyelenggara",
       label: "Penyelenggara",
       render: (v) => <span className="text-xs text-slate-600 font-black font-headline uppercase">{v}</span>
     },
     {
-      key: "quota",
+      key: "Kuota",
       label: "Slot / Kuota",
       className: "text-center",
       cellClassName: "text-center",
       render: (v, r) => (
         <span className="font-bold text-slate-900 font-headline text-sm tracking-tighter">
-            {r.acceptedCount || 0} / {v}
+          {r.acceptedCount || 0} / {v}
         </span>
       )
     },
     {
-      key: "deadline",
+      key: "Deadline",
       label: "Deadline",
       render: (v) => (
         <Badge className="bg-rose-50 text-rose-600 border-none font-black text-[9px] uppercase tracking-widest px-3 py-1 rounded-md shadow-sm">
-           {new Date(v).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })}
+          {new Date(v).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })}
         </Badge>
       )
     },
     {
-      key: "status",
+      key: "Status",
       label: "Status",
       className: "text-center",
       cellClassName: "text-center",
-      render: (val) => {
-        const isBuka = val?.toLowerCase() === 'buka';
+      render: (val, row) => {
+        const isBuka = new Date(row.Deadline) > new Date();
         return (
-          <Badge 
+          <Badge
             className={cn(
               "capitalize font-black text-[10px] px-3 py-1 border-none shadow-sm font-headline",
               isBuka ? "bg-emerald-100 text-emerald-700 ring-1 ring-emerald-500/20" :
-              "bg-rose-100 text-rose-700 ring-1 ring-rose-500/20"
+                "bg-rose-100 text-rose-700 ring-1 ring-rose-500/20"
             )}
           >
             {isBuka ? "Aktif" : "Selesai"}
@@ -167,29 +153,29 @@ export default function FacultyScholarship() {
 
   const appColumns = [
     {
-      key: "student",
+      key: "Mahasiswa",
       label: "Identitas Mahasiswa",
       render: (v) => (
         <div className="flex items-center gap-3">
-            <Avatar className="h-10 w-10 rounded-2xl border-2 border-white shadow-sm ring-1 ring-slate-100 uppercase font-black text-slate-800">
-                <AvatarFallback className="bg-slate-100 text-[10px] font-black uppercase">
-                    {v?.name?.split(" ").map(n => n[0]).join("").substring(0, 2) || '?'}
-                </AvatarFallback>
-            </Avatar>
-            <div className="flex flex-col leading-tight">
-                <span className="font-bold text-slate-900 font-headline uppercase text-[13px] tracking-tighter">{v?.nama_mahasiswa || 'Unknown'}</span>
-                <span className="text-[10px] font-bold text-slate-400 font-headline uppercase tracking-widest mt-0.5">{v?.nim || '-'}</span>
-            </div>
+          <Avatar className="h-10 w-10 rounded-2xl border-2 border-white shadow-sm ring-1 ring-slate-100 uppercase font-black text-slate-800">
+            <AvatarFallback className="bg-slate-100 text-[10px] font-black uppercase">
+              {v?.Nama?.split(" ").map(n => n[0]).join("").substring(0, 2) || '?'}
+            </AvatarFallback>
+          </Avatar>
+          <div className="flex flex-col leading-tight">
+            <span className="font-bold text-slate-900 font-headline uppercase text-[13px] tracking-tighter">{v?.Nama || 'Unknown'}</span>
+            <span className="text-[10px] font-bold text-slate-400 font-headline uppercase tracking-widest mt-0.5">{v?.NIM || '-'}</span>
+          </div>
         </div>
       )
     },
     {
-      key: "beasiswa",
+      key: "Beasiswa",
       label: "Nama Program",
-      render: (v) => <span className="text-xs text-slate-600 font-black font-headline uppercase">{v?.nama}</span>
+      render: (_, row) => <span className="text-xs text-slate-600 font-black font-headline uppercase">{row?.Beasiswa?.Nama || '-'}</span>
     },
     {
-      key: "file_url",
+      key: "FileURL",
       label: "Berkas",
       render: (v) => (
         <a href={v} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase text-primary hover:underline">
@@ -198,19 +184,19 @@ export default function FacultyScholarship() {
       )
     },
     {
-      key: "status",
+      key: "Status",
       label: "Status Review",
       className: "text-center",
       cellClassName: "text-center",
       render: (val) => {
-        const status = val?.toLowerCase();
+        const status = (val || 'proses').toLowerCase();
         return (
-          <Badge 
+          <Badge
             className={cn(
               "capitalize font-black text-[10px] px-3 py-1 border-none shadow-sm font-headline",
               status === 'diterima' ? "bg-emerald-100 text-emerald-700 ring-1 ring-emerald-500/20" :
-              status === 'ditolak' ? "bg-rose-100 text-rose-700 ring-1 ring-rose-500/20" :
-              "bg-amber-100 text-amber-700 ring-1 ring-amber-500/20"
+                status === 'ditolak' ? "bg-rose-100 text-rose-700 ring-1 ring-rose-500/20" :
+                  "bg-amber-100 text-amber-700 ring-1 ring-amber-500/20"
             )}
           >
             {status}
@@ -226,9 +212,9 @@ export default function FacultyScholarship() {
 
   const statsData = [
     { label: 'Total Beasiswa', value: (scholarships || []).length, icon: CapIcon, color: 'text-blue-600', bg: 'bg-blue-50', gradient: 'from-blue-500/10 to-blue-500/5' },
-    { label: 'Pendaftar Baru', value: (applications || []).filter(a => a.status === 'proses').length, icon: Users, color: 'text-emerald-600', bg: 'bg-emerald-50', gradient: 'from-emerald-500/10 to-emerald-500/5' },
-    { label: 'Daftar Diterima', value: (applications || []).filter(a => a.status === 'diterima').length, icon: UserCheck, color: 'text-indigo-600', bg: 'bg-indigo-50', gradient: 'from-indigo-500/10 to-indigo-500/5' },
-    { label: 'Kuota Aktif', value: (scholarships || []).filter(s => s.status === 'buka').length, icon: Clock, color: 'text-amber-600', bg: 'bg-amber-50', gradient: 'from-amber-500/10 to-amber-500/5' },
+    { label: 'Pendaftar Baru', value: (applications || []).filter(a => (a.Status || 'proses').toLowerCase() === 'proses').length, icon: Users, color: 'text-emerald-600', bg: 'bg-emerald-50', gradient: 'from-emerald-500/10 to-emerald-500/5' },
+    { label: 'Daftar Diterima', value: (applications || []).filter(a => (a.Status || '').toLowerCase() === 'diterima').length, icon: UserCheck, color: 'text-indigo-600', bg: 'bg-indigo-50', gradient: 'from-indigo-500/10 to-indigo-500/5' },
+    { label: 'Kuota Aktif', value: (scholarships || []).filter(s => new Date(s.Deadline) > new Date()).length, icon: Clock, color: 'text-amber-600', bg: 'bg-amber-50', gradient: 'from-amber-500/10 to-amber-500/5' },
   ]
 
   return (
@@ -243,7 +229,7 @@ export default function FacultyScholarship() {
         </div>
         <div className="flex items-center gap-2">
           <div className="h-1 w-10 bg-primary rounded-full shadow-sm shadow-primary/30" />
-          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Portal Bantuan Dana & Seleksi Fakultas Teknik</p>
+          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Verifikasi Pendaftar Beasiswa Fakultas</p>
         </div>
       </div>
 
@@ -260,7 +246,7 @@ export default function FacultyScholarship() {
               <div className="space-y-1">
                 <p className="text-[10px] font-black uppercase tracking-[0.15em] text-slate-400 font-headline">{stat.label}</p>
                 <h3 className={cn("text-3xl font-black font-headline tracking-tighter text-slate-900")}>
-                    {loading ? "..." : stat.value}
+                  {loading ? "..." : stat.value}
                 </h3>
               </div>
             </CardContent>
@@ -296,13 +282,11 @@ export default function FacultyScholarship() {
             data={activeTab === 'programs' ? scholarships : applications}
             loading={loading}
             searchPlaceholder={activeTab === 'programs' ? "Cari nama beasiswa..." : "Cari mahasiswa atau NIM..."}
-            onAdd={activeTab === 'programs' ? () => { setProgForm({ id: null, name: '', provider: '', description: '', minGpa: 3.5, quota: 10, deadline: '', status: 'buka' }); setShowProgModal(true); } : null}
-            addLabel="Program Baru"
             onExport={() => alert("Ekspor Data Beasiswa...")}
             exportLabel="Master Data"
             filters={[
               {
-                key: 'status',
+                key: 'Status',
                 placeholder: 'Filter Status',
                 options: statusOptions
               }
@@ -310,9 +294,7 @@ export default function FacultyScholarship() {
             actions={(row) => (
               activeTab === 'programs' ? (
                 <div className="flex items-center gap-2">
-                    <Button onClick={() => openEditProg(row)} variant="ghost" size="icon" className="h-8 w-8 hover:text-primary hover:bg-primary/10 rounded-xl">
-                    <Pencil className="size-4" />
-                    </Button>
+                  <Badge className="text-[9px] font-black uppercase tracking-widest px-3 py-1 bg-slate-100 text-slate-400 border-none rounded-lg">Superadmin Only</Badge>
                 </div>
               ) : (
                 <Button onClick={() => { setSelectedItem(row); setShowAppModal(true) }} variant="ghost" size="icon" className="h-8 w-8 hover:text-primary hover:bg-primary/10 rounded-xl">
@@ -337,7 +319,7 @@ export default function FacultyScholarship() {
                   {progForm.id ? <Pencil className="size-4" /> : <Plus className="size-4 stroke-[3px]" />}
                 </div>
                 <Badge variant="secondary" className="text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 bg-primary/5 text-primary border-none font-headline">
-                   Scholarship Registry
+                  Scholarship Registry
                 </Badge>
               </div>
               <DialogTitle className="text-2xl font-black font-headline tracking-tighter text-slate-900 uppercase">
@@ -411,11 +393,11 @@ export default function FacultyScholarship() {
                   <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 text-center font-headline">Status Beasiswa</Label>
                   <Select value={progForm.status} onValueChange={v => setProgForm({ ...progForm, status: v })}>
                     <SelectTrigger className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 font-bold font-headline text-xs">
-                        <SelectValue />
+                      <SelectValue />
                     </SelectTrigger>
                     <SelectContent className="rounded-2xl shadow-2xl p-1 font-headline overflow-hidden">
-                        <SelectItem value="buka" className="rounded-xl font-bold text-[11px] p-3 uppercase text-emerald-600 font-headline">DIBUKA (AKTIF)</SelectItem>
-                        <SelectItem value="tutup" className="rounded-xl font-bold text-[11px] p-3 uppercase text-rose-600 font-headline">DITUTUP (OFF)</SelectItem>
+                      <SelectItem value="buka" className="rounded-xl font-bold text-[11px] p-3 uppercase text-emerald-600 font-headline">DIBUKA (AKTIF)</SelectItem>
+                      <SelectItem value="tutup" className="rounded-xl font-bold text-[11px] p-3 uppercase text-rose-600 font-headline">DITUTUP (OFF)</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -457,48 +439,48 @@ export default function FacultyScholarship() {
               <UserCheck className="size-24 rotate-12" />
             </div>
             <div className="relative z-10 flex flex-col items-start">
-               <div className="flex items-center gap-3 mb-2">
+              <div className="flex items-center gap-3 mb-2">
                 <div className="size-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary text-xs font-black">
-                   <UserCheck className="size-4" />
+                  <UserCheck className="size-4" />
                 </div>
                 <Badge variant="secondary" className="text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 bg-primary/5 text-primary border-none font-headline">
-                   Scholarship Review
+                  Scholarship Review
                 </Badge>
               </div>
               <DialogTitle className="text-2xl font-black font-headline tracking-tighter text-slate-900 uppercase">
-                 Validasi Seleksi
+                Validasi Seleksi
               </DialogTitle>
               <DialogDescription className="text-xs font-medium text-slate-400 mt-1 font-headline">
-                 Verifikasi histori akademik dan kelayakan berkas mahasiswa.
+                Verifikasi histori akademik dan kelayakan berkas mahasiswa.
               </DialogDescription>
             </div>
           </DialogHeader>
 
           <div className="p-8 pt-6 space-y-6">
             <div className="p-6 rounded-3xl bg-slate-50 border border-slate-100 flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                    <Avatar className="h-14 w-14 rounded-2xl border-2 border-white shadow-xl">
-                        <AvatarFallback className="bg-white text-slate-900 font-black">
-                            {selectedItem?.student?.name?.charAt(0)}
-                        </AvatarFallback>
-                    </Avatar>
-                    <div className="space-y-0.5">
-                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Student Applicant</p>
-                        <h4 className="font-bold text-slate-900 font-headline text-lg tracking-tight uppercase leading-none">{selectedItem?.student?.nama_mahasiswa}</h4>
-                        <p className="text-[10px] font-black text-primary font-headline tracking-tighter uppercase">{selectedItem?.beasiswa?.nama}</p>
-                    </div>
+              <div className="flex items-center gap-4">
+                <Avatar className="h-14 w-14 rounded-2xl border-2 border-white shadow-xl">
+                  <AvatarFallback className="bg-white text-slate-900 font-black">
+                    {selectedItem?.student?.name?.charAt(0)}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="space-y-0.5">
+                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Student Applicant</p>
+                  <h4 className="font-bold text-slate-900 font-headline text-lg tracking-tight uppercase leading-none">{selectedItem?.student?.nama_mahasiswa}</h4>
+                  <p className="text-[10px] font-black text-primary font-headline tracking-tighter uppercase">{selectedItem?.beasiswa?.nama}</p>
                 </div>
-                {selectedItem?.documentUrl && (
-                  <a href={selectedItem.documentUrl} target="_blank" rel="noreferrer" className="size-12 rounded-2xl bg-white shadow-xl flex items-center justify-center text-slate-400 hover:text-primary transition-all active:scale-95 group border border-slate-50">
-                    <ExternalLink className="size-5 group-hover:rotate-12 transition-transform" />
-                  </a>
-                )}
+              </div>
+              {selectedItem?.documentUrl && (
+                <a href={selectedItem.documentUrl} target="_blank" rel="noreferrer" className="size-12 rounded-2xl bg-white shadow-xl flex items-center justify-center text-slate-400 hover:text-primary transition-all active:scale-95 group border border-slate-50">
+                  <ExternalLink className="size-5 group-hover:rotate-12 transition-transform" />
+                </a>
+              )}
             </div>
 
             <div className="space-y-4">
-               <div className="space-y-2">
-                 <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 font-headline">Keputusan Seleksi</Label>
-                 <div className="grid grid-cols-3 gap-3">
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 font-headline">Keputusan Seleksi</Label>
+                <div className="grid grid-cols-3 gap-3">
                   {['proses', 'diterima', 'ditolak'].map((s) => (
                     <div
                       key={s}
@@ -511,28 +493,28 @@ export default function FacultyScholarship() {
                       {s}
                     </div>
                   ))}
-                 </div>
-               </div>
+                </div>
+              </div>
 
-               <div className="space-y-2">
-                 <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 font-headline">Catatan Reviewer Internal</Label>
-                 <Textarea
-                    value={appForm.notes}
-                    onChange={e => setAppForm({ ...appForm, notes: e.target.value })}
-                    className="min-h-[100px] rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white transition-all font-bold text-xs p-4 leading-relaxed uppercase"
-                    placeholder="Berikan alasan keputusan atau perbaikan..."
-                 />
-               </div>
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 font-headline">Catatan Reviewer Internal</Label>
+                <Textarea
+                  value={appForm.notes}
+                  onChange={e => setAppForm({ ...appForm, notes: e.target.value })}
+                  className="min-h-[100px] rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white transition-all font-bold text-xs p-4 leading-relaxed uppercase"
+                  placeholder="Berikan alasan keputusan atau perbaikan..."
+                />
+              </div>
             </div>
 
             <DialogFooter className="pt-4 flex flex-row items-center justify-end gap-3 border-t border-slate-100 -mx-8 px-8 bg-slate-50/30 rounded-b-[2rem]">
-               <Button onClick={() => setShowAppModal(false)} variant="ghost" className="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-900 px-8 h-12 rounded-2xl font-headline">
-                  Tutup
-               </Button>
-               <Button onClick={handleAppUpdate} disabled={isSubmitting} className="h-12 px-10 rounded-2xl bg-primary text-white hover:bg-primary/90 shadow-xl shadow-primary/20 transition-all hover:scale-[1.02] active:scale-95 font-headline border-none">
-                  {isSubmitting ? <Loader2 className="animate-spin size-4 mr-3" /> : <Save className="size-4 mr-3 stroke-[3px]" />}
-                  <span className="text-[10px] font-black uppercase tracking-[0.2em] font-headline">Simpan Keputusan</span>
-               </Button>
+              <Button onClick={() => setShowAppModal(false)} variant="ghost" className="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-900 px-8 h-12 rounded-2xl font-headline">
+                Tutup
+              </Button>
+              <Button onClick={handleAppUpdate} disabled={isSubmitting} className="h-12 px-10 rounded-2xl bg-primary text-white hover:bg-primary/90 shadow-xl shadow-primary/20 transition-all hover:scale-[1.02] active:scale-95 font-headline border-none">
+                {isSubmitting ? <Loader2 className="animate-spin size-4 mr-3" /> : <Save className="size-4 mr-3 stroke-[3px]" />}
+                <span className="text-[10px] font-black uppercase tracking-[0.2em] font-headline">Simpan Keputusan</span>
+              </Button>
             </DialogFooter>
           </div>
         </DialogContent>

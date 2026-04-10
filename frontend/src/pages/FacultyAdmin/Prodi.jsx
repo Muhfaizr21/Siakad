@@ -26,13 +26,13 @@ export default function ProdiPage() {
   const [selectedProdiId, setSelectedProdiId] = useState(null)
 
   const [formData, setFormData] = useState({
-    id: null, facultyId: "", code: "", name: "", degreeLevel: "S1", akreditasi: "B", kapasitas: 100
+    ID: null, FakultasID: "", Kode: "", Nama: "", Jenjang: "S1", Akreditasi: "B", Kapasitas: 100
   })
 
   const fetchMajors = async () => {
     setLoading(true)
     try {
-      const res = await fetch('/api/faculty/majors')
+      const res = await fetch('http://localhost:8000/api/faculty/courses')
       const json = await res.json()
       if (json.status === 'success') {
         setMajors(json.data)
@@ -46,7 +46,7 @@ export default function ProdiPage() {
 
   const fetchFaculties = async () => {
     try {
-      const res = await fetch('/api/faculty/faculties')
+      const res = await fetch('http://localhost:8000/api/faculty/faculties')
       const json = await res.json()
       if (json.status === 'success') {
         setFaculties(json.data)
@@ -61,14 +61,14 @@ export default function ProdiPage() {
 
   const handleOpenAdd = () => {
     setIsEditMode(false)
-    setFormData({ id: null, facultyId: "", code: "", name: "", degreeLevel: "S1", akreditasi: "B", kapasitas: 100 })
+    setFormData({ ID: null, FakultasID: "", Kode: "", Nama: "", Jenjang: "S1", Akreditasi: "B", Kapasitas: 100 })
     setIsCrudOpen(true)
   }
 
   const handleOpenEdit = (prodi) => {
     setIsEditMode(true)
     setFormData({
-      id: prodi.id, facultyId: prodi.facultyId.toString(), code: prodi.code || "", name: prodi.name, degreeLevel: prodi.degreeLevel || "S1", akreditasi: prodi.akreditasi || "B", kapasitas: prodi.kapasitas || 100
+      ID: prodi.ID, FakultasID: prodi.FakultasID.toString(), Kode: prodi.Kode || "", Nama: prodi.Nama, Jenjang: prodi.Jenjang || "S1", Akreditasi: prodi.Akreditasi || "B", Kapasitas: prodi.Kapasitas || 100
     })
     setIsCrudOpen(true)
   }
@@ -76,25 +76,32 @@ export default function ProdiPage() {
   const handleSave = async (e) => {
     if (e) e.preventDefault()
     setIsSubmitting(true)
-    const url = isEditMode ? `/api/faculty/majors/${formData.id}` : '/api/faculty/majors'
+    const url = isEditMode ? `http://localhost:8000/api/faculty/courses/${formData.ID}` : 'http://localhost:8000/api/faculty/courses'
     const method = isEditMode ? 'PUT' : 'POST'
 
     try {
       const res = await fetch(url, {
         method, headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...formData, facultyId: parseInt(formData.facultyId), kapasitas: parseInt(formData.kapasitas) })
+        body: JSON.stringify({ ...formData, FakultasID: parseInt(formData.FakultasID), Kapasitas: parseInt(formData.Kapasitas) })
       })
 
       const json = await res.json()
-      if (json.status === 'success') {
+      if (res.ok && json.status === 'success') {
         toast.success(isEditMode ? "Prodi diperbarui" : "Prodi ditambahkan")
         setIsCrudOpen(false)
         fetchMajors()
       } else {
-        toast.error(json.message)
+        let errorMsg = json.message || ""
+        if (errorMsg.includes("Duplicate entry") || errorMsg.includes("unique constraint")) {
+          errorMsg = "Kode Prodi atau Nama sudah digunakan."
+        }
+
+        const actionName = isEditMode ? "memperbarui prodi" : "menambah prodi"
+        toast.error(`Gagal ${actionName}: ${errorMsg}`)
       }
     } catch (err) {
-      toast.error("Terjadi kesalahan sistem")
+      const actionName = isEditMode ? "perbarui prodi" : "tambah prodi"
+      toast.error(`Sistem sibuk: Gagal ${actionName}`)
     } finally {
       setIsSubmitting(false)
     }
@@ -104,7 +111,7 @@ export default function ProdiPage() {
     if (!selectedProdiId) return
     setIsSubmitting(true)
     try {
-      const res = await fetch(`/api/faculty/majors/${selectedProdiId}`, { method: 'DELETE' })
+      const res = await fetch(`http://localhost:8000/api/faculty/courses/${selectedProdiId}`, { method: 'DELETE' })
       const json = await res.json()
       if (json.status === 'success') {
         toast.success("Program studi telah dihapus")
@@ -120,33 +127,33 @@ export default function ProdiPage() {
 
   const statsData = [
     { label: 'Total Program Studi', value: majors.length, icon: GraduationCap, color: 'text-blue-600', bg: 'bg-blue-50', gradient: 'from-blue-500/10 to-blue-500/5' },
-    { label: 'Akreditasi Unggul/A', value: majors.filter(m => m.akreditasi === 'Unggul' || m.akreditasi === 'A').length, icon: Save, color: 'text-emerald-600', bg: 'bg-emerald-50', gradient: 'from-emerald-500/10 to-emerald-500/5' },
-    { label: 'Total Kapasitas', value: majors.reduce((acc, m) => acc + (m.kapasitas || 0), 0), icon: Plus, color: 'text-indigo-600', bg: 'bg-indigo-50', gradient: 'from-indigo-500/10 to-indigo-500/5' },
+    { label: 'Akreditasi Unggul/A', value: majors.filter(m => m.Akreditasi === 'Unggul' || m.Akreditasi === 'A').length, icon: Save, color: 'text-emerald-600', bg: 'bg-emerald-50', gradient: 'from-emerald-500/10 to-emerald-500/5' },
+    { label: 'Total Kapasitas', value: majors.reduce((acc, m) => acc + (m.Kapasitas || 0), 0), icon: Plus, color: 'text-indigo-600', bg: 'bg-indigo-50', gradient: 'from-indigo-500/10 to-indigo-500/5' },
   ]
 
   const columns = [
     {
-      key: "nama_prodi",
+      key: "Nama",
       label: "Program Studi",
       render: (value, row) => (
         <div className="flex flex-col">
           <span className="font-bold text-slate-900 font-headline tracking-tight uppercase text-[13px]">{value}</span>
-          <span className="text-[10px] text-slate-400 font-black uppercase tracking-widest leading-none mt-1">{row.jenjang || 'S1'} — {row.faculty?.nama_fakultas || 'FAKULTAS'}</span>
+          <span className="text-[10px] text-slate-400 font-black uppercase tracking-widest leading-none mt-1">{row.Jenjang || 'S1'} — {row.Fakultas?.Nama || 'FAKULTAS'}</span>
         </div>
       ),
     },
     {
-      key: "akreditasi",
+      key: "Akreditasi",
       label: "Akreditasi",
       className: "text-center",
       cellClassName: "text-center",
       render: (value) => (
-        <Badge 
+        <Badge
           className={cn(
             "font-black text-[10px] px-3 py-1 border-none shadow-sm font-headline uppercase",
             (value === 'A' || value === 'Unggul') ? "bg-emerald-100 text-emerald-700 ring-1 ring-emerald-500/20" :
-            (value === 'B' || value === 'Baik Sekali') ? "bg-blue-100 text-blue-700 ring-1 ring-blue-500/20" :
-            "bg-slate-100 text-slate-700 ring-1 ring-slate-500/20"
+              (value === 'B' || value === 'Baik Sekali') ? "bg-blue-100 text-blue-700 ring-1 ring-blue-500/20" :
+                "bg-slate-100 text-slate-700 ring-1 ring-slate-500/20"
           )}
         >
           {value || 'B'}
@@ -154,17 +161,17 @@ export default function ProdiPage() {
       ),
     },
     {
-      key: "mahasiswaAktif",
+      key: "CurrentMahasiswa",
       label: "Slot Kapasitas",
       className: "text-center",
       cellClassName: "text-center",
       render: (value, row) => (
         <div className="flex flex-col items-center">
-          <span className="font-black text-slate-700 font-headline text-sm tracking-tight">{value || 0} <span className="text-slate-300 font-medium">/</span> {row.kapasitas || 0}</span>
+          <span className="font-black text-slate-700 font-headline text-sm tracking-tight">{value || 0} <span className="text-slate-300 font-medium">/</span> {row.Kapasitas || 0}</span>
           <div className="w-16 h-1 bg-slate-100 rounded-full mt-1 overflow-hidden">
             <div
               className="h-full bg-primary"
-              style={{ width: `${Math.min(((value || 0) / (row.kapasitas || 1)) * 100, 100)}%` }}
+              style={{ width: `${Math.min(((value || 0) / (row.Kapasitas || 1)) * 100, 100)}%` }}
             />
           </div>
         </div>
@@ -175,18 +182,18 @@ export default function ProdiPage() {
   return (
     <div className="space-y-6">
       <Toaster position="top-right" />
-        <div className="flex flex-col gap-1.5">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-primary/10 rounded-xl text-primary">
-              <GraduationCap className="size-6" />
-            </div>
-            <h1 className="text-2xl font-black text-slate-900 font-headline tracking-tighter uppercase">Master Program Studi</h1>
+      <div className="flex flex-col gap-1.5">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-primary/10 rounded-xl text-primary">
+            <GraduationCap className="size-6" />
           </div>
-          <div className="flex items-center gap-2">
-            <div className="h-1 w-10 bg-primary rounded-full shadow-sm shadow-primary/30" />
-            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Portal Akademik & Manajemen Kurikulum</p>
-          </div>
+          <h1 className="text-2xl font-black text-slate-900 font-headline tracking-tighter uppercase">Master Program Studi</h1>
         </div>
+        <div className="flex items-center gap-2">
+          <div className="h-1 w-10 bg-primary rounded-full shadow-sm shadow-primary/30" />
+          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Portal Akademik & Manajemen Kurikulum</p>
+        </div>
+      </div>
 
       <Card className="border-none shadow-sm flex flex-col overflow-hidden bg-white/50 backdrop-blur-md rounded-3xl">
         <CardContent className="p-0 font-headline">
@@ -203,7 +210,7 @@ export default function ProdiPage() {
                 <Button onClick={() => handleOpenEdit(row)} variant="ghost" size="icon" className="h-9 w-9 hover:text-blue-600 rounded-xl hover:bg-blue-50">
                   <Pencil className="size-4" />
                 </Button>
-                <Button onClick={() => { setSelectedProdiId(row.id); setIsDelOpen(true); }} variant="ghost" size="icon" className="h-9 w-9 hover:text-rose-600 rounded-xl hover:bg-rose-50">
+                <Button onClick={() => { setSelectedProdiId(row.ID); setIsDelOpen(true); }} variant="ghost" size="icon" className="h-9 w-9 hover:text-rose-600 rounded-xl hover:bg-rose-50">
                   <Trash2 className="size-4" />
                 </Button>
               </div>
@@ -241,14 +248,14 @@ export default function ProdiPage() {
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Fakultas Naungan</Label>
-                <Select value={formData.facultyId} onValueChange={(val) => setFormData({ ...formData, facultyId: val })}>
+                <Select value={formData.FakultasID} onValueChange={(val) => setFormData({ ...formData, FakultasID: val })}>
                   <SelectTrigger className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 font-bold font-headline text-xs focus:bg-white transition-all">
                     <SelectValue placeholder="Pilih Instansi Fakultas" />
                   </SelectTrigger>
                   <SelectContent className="rounded-2xl shadow-2xl p-1 font-headline overflow-hidden">
                     {faculties.map(f => (
-                      (f.id !== undefined && f.id !== null && f.id !== "") && (
-                        <SelectItem key={f.id} value={String(f.id)} className="rounded-xl font-bold text-[11px] p-3 focus:bg-primary/5 focus:text-primary uppercase font-headline">{f.name}</SelectItem>
+                      (f.ID !== undefined && f.ID !== null && f.ID !== "") && (
+                        <SelectItem key={f.ID} value={String(f.ID)} className="rounded-xl font-bold text-[11px] p-3 focus:bg-primary/5 focus:text-primary uppercase font-headline">{f.Nama}</SelectItem>
                       )
                     ))}
                   </SelectContent>
@@ -259,8 +266,8 @@ export default function ProdiPage() {
                 <div className="space-y-2">
                   <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Akronim / Kode</Label>
                   <Input
-                    value={formData.code}
-                    onChange={(e) => setFormData({ ...formData, code: e.target.value.toUpperCase() })}
+                    value={formData.Kode}
+                    onChange={(e) => setFormData({ ...formData, Kode: e.target.value.toUpperCase() })}
                     placeholder="E.G. TI, SI, MN..."
                     className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white transition-all font-bold text-sm font-headline uppercase"
                     required
@@ -268,7 +275,7 @@ export default function ProdiPage() {
                 </div>
                 <div className="space-y-2">
                   <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Jenjang Pendidikan</Label>
-                  <Select value={formData.degreeLevel} onValueChange={(val) => setFormData({ ...formData, degreeLevel: val })}>
+                  <Select value={formData.Jenjang} onValueChange={(val) => setFormData({ ...formData, Jenjang: val })}>
                     <SelectTrigger className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 font-bold font-headline text-xs focus:bg-white transition-all">
                       <SelectValue />
                     </SelectTrigger>
@@ -284,8 +291,8 @@ export default function ProdiPage() {
               <div className="space-y-2">
                 <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Nama Lengkap Program Studi</Label>
                 <Input
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  value={formData.Nama}
+                  onChange={(e) => setFormData({ ...formData, Nama: e.target.value })}
                   placeholder="Masukkan nama resmi prodi..."
                   className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white transition-all font-bold text-sm font-headline"
                   required
@@ -295,7 +302,7 @@ export default function ProdiPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Status Akreditasi</Label>
-                  <Select value={formData.akreditasi} onValueChange={(val) => setFormData({ ...formData, akreditasi: val })}>
+                  <Select value={formData.Akreditasi} onValueChange={(val) => setFormData({ ...formData, Akreditasi: val })}>
                     <SelectTrigger className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 font-bold font-headline text-xs focus:bg-white transition-all">
                       <SelectValue />
                     </SelectTrigger>
@@ -311,8 +318,8 @@ export default function ProdiPage() {
                   <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Kapasitas Slot (MHS)</Label>
                   <Input
                     type="number"
-                    value={formData.kapasitas}
-                    onChange={(e) => setFormData({ ...formData, kapasitas: e.target.value })}
+                    value={formData.Kapasitas}
+                    onChange={(e) => setFormData({ ...formData, Kapasitas: e.target.value })}
                     className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white text-sm font-black font-headline text-center"
                   />
                 </div>
@@ -336,7 +343,7 @@ export default function ProdiPage() {
         </DialogContent>
       </Dialog>
 
-      <DeleteConfirmModal 
+      <DeleteConfirmModal
         isOpen={isDelOpen}
         onClose={() => setIsDelOpen(false)}
         onConfirm={handleDelete}
