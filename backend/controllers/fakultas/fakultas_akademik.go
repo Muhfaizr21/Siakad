@@ -236,7 +236,7 @@ func TambahMahasiswaBaru(c *fiber.Ctx) error {
 		Nama:             nama,
 		FakultasID:       prodi.FakultasID,
 		ProgramStudiID:   prodiID,
-		DosenPAID:        dosenPAID,
+		DosenPAID:        &dosenPAID,
 		SemesterSekarang: semester,
 		StatusAkun:       statusAkun,
 		Alamat:           strings.TrimSpace(req.Alamat),

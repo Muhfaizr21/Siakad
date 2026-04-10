@@ -466,9 +466,9 @@ func EnsureBootstrapData() error {
 			PenggunaID:       user.ID,
 			NIM:              "BKU2024001",
 			Nama:             "Mahasiswa Demo",
-			FakultasID:       fakultas.ID,
-			ProgramStudiID:   major.ID,
-			DosenPAID:        dosen.ID,
+			FakultasID:       fakultasFH.ID,
+			ProgramStudiID:   majorFH.ID,
+			DosenPAID:        &dosen.ID,
 			SemesterSekarang: 2,
 			StatusAkun:       "Aktif",
 		}
