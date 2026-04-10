@@ -1,23 +1,27 @@
 "use client"
 
-import React, { useState } from 'react';
-import Sidebar from './components/Sidebar';
-import TopNavBar from './components/TopNavBar';
-
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from "react-router-dom";
+import { cn } from "@/lib/utils";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./components/card"
 import { Button } from "./components/button"
 import { Avatar, AvatarFallback } from "./components/avatar"
+import { Badge } from "./components/badge"
 import {
   Users,
   GraduationCap,
   BookOpen,
   UserCheck,
   TrendingUp,
-  TrendingDown,
   ArrowUpRight,
   Calendar,
   Clock,
   FileText,
+  Loader2,
+  LayoutDashboard,
+  Layers,
+  Award,
+  Trophy
 } from "lucide-react"
 import {
   BarChart,
@@ -34,434 +38,451 @@ import {
   Line,
   Legend,
 } from "recharts"
-
-const statsData = [
-  {
-    title: "Total Mahasiswa",
-    value: "2,847",
-    change: "+12.5%",
-    trend: "up",
-    icon: Users,
-    description: "dari tahun lalu",
-  },
-  {
-    title: "Mahasiswa Aktif",
-    value: "2,634",
-    change: "+8.2%",
-    trend: "up",
-    icon: UserCheck,
-    description: "92.5% dari total",
-  },
-  {
-    title: "Program Studi",
-    value: "8",
-    change: "+2",
-    trend: "up",
-    icon: GraduationCap,
-    description: "prodi aktif",
-  },
-  {
-    title: "Total Dosen",
-    value: "156",
-    change: "+5.1%",
-    trend: "up",
-    icon: BookOpen,
-    description: "dosen aktif",
-  },
-]
-
-const mahasiswaPerProdi = [
-  { name: "Teknik Informatika", jumlah: 520 },
-  { name: "Sistem Informasi", jumlah: 480 },
-  { name: "Teknik Elektro", jumlah: 380 },
-  { name: "Teknik Mesin", jumlah: 350 },
-  { name: "Teknik Sipil", jumlah: 420 },
-  { name: "Arsitektur", jumlah: 280 },
-  { name: "Teknik Industri", jumlah: 310 },
-  { name: "Teknik Kimia", jumlah: 107 },
-]
-
-const statusMahasiswa = [
-  { name: "Aktif", value: 2634, color: "#22c55e" },
-  { name: "Cuti", value: 89, color: "#eab308" },
-  { name: "Lulus", value: 98, color: "#3b82f6" },
-  { name: "DO", value: 26, color: "#ef4444" },
-]
-
-const trendPendaftaran = [
-  { tahun: "2020", pendaftar: 1200, diterima: 820 },
-  { tahun: "2021", pendaftar: 1350, diterima: 890 },
-  { tahun: "2022", pendaftar: 1480, diterima: 920 },
-  { tahun: "2023", pendaftar: 1650, diterima: 980 },
-  { tahun: "2024", pendaftar: 1820, diterima: 1050 },
-  { tahun: "2025", pendaftar: 2100, diterima: 1180 },
-]
-
-const aktivitasTerbaru = [
-  {
-    id: 1,
-    user: "Dr. Ahmad Yani",
-    action: "menginput nilai Algoritma",
-    time: "5 menit lalu",
-    avatar: "AY",
-  },
-  {
-    id: 2,
-    user: "Staff TU",
-    action: "memvalidasi KRS mahasiswa",
-    time: "15 menit lalu",
-    avatar: "ST",
-  },
-  {
-    id: 3,
-    user: "Kaprodi TI",
-    action: "mengupdate kurikulum",
-    time: "1 jam lalu",
-    avatar: "KT",
-  },
-  {
-    id: 4,
-    user: "Admin PMB",
-    action: "menambah pendaftar baru",
-    time: "2 jam lalu",
-    avatar: "AP",
-  },
-  {
-    id: 5,
-    user: "Dr. Siti Rahayu",
-    action: "mengupload materi kuliah",
-    time: "3 jam lalu",
-    avatar: "SR",
-  },
-]
-
-const jadwalHariIni = [
-  {
-    matakuliah: "Algoritma & Pemrograman",
-    jam: "08:00 - 10:30",
-    ruangan: "Lab Komputer 1",
-    dosen: "Dr. Ahmad Yani",
-  },
-  {
-    matakuliah: "Basis Data",
-    jam: "10:30 - 13:00",
-    ruangan: "R.301",
-    dosen: "Dr. Budi Santoso",
-  },
-  {
-    matakuliah: "Jaringan Komputer",
-    jam: "13:00 - 15:30",
-    ruangan: "Lab Jaringan",
-    dosen: "Dr. Rina Wijaya",
-  },
-  {
-    matakuliah: "Kecerdasan Buatan",
-    jam: "15:30 - 18:00",
-    ruangan: "R.405",
-    dosen: "Dr. Hendra Kusuma",
-  },
-]
+import { DataTable } from "./components/data-table"
 
 export default function DashboardPage() {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
+  const [isMounted, setIsMounted] = useState(false);
+  const [summaryData, setSummaryData] = useState({
+
+    totalStudents: 0,
+    totalLecturers: 0,
+    totalCourses: 0,
+    totalProdi: 0,
+    statusCounts: [],
+    prodiDistribution: [],
+    trendData: [],
+    recentActivity: []
+  });
+
+  useEffect(() => {
+    setIsMounted(true);
+    const fetchDashboardData = async () => {
+
+      try {
+        const response = await fetch('http://localhost:8000/api/faculty/summary');
+        const result = await response.json();
+        if (result.status === 'success') {
+          setSummaryData(result.data);
+        }
+      } catch (error) {
+        console.error("Error fetching dashboard statistics:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboardData();
+  }, []);
+
+  const statusColors = {
+    'Aktif': '#22c55e',
+    'Cuti': '#eab308',
+    'Lulus': '#3b82f6',
+    'DO': '#ef4444',
+  };
+
+  const baseStatuses = ['Aktif', 'Cuti', 'Lulus', 'DO'];
+
+  // Ambil semua status unik dari data backend + base statuses
+  const allStatusNames = [...new Set([
+    ...baseStatuses,
+    ...(summaryData.statusCounts?.map(s => s.status) || [])
+  ])];
+
+  const dynamicStatusData = allStatusNames.map(name => {
+    const found = summaryData.statusCounts?.find(s => s.status === name);
+    return {
+      name: name || "Lainnya",
+      value: found ? found.count : 0,
+      color: statusColors[name] || '#cbd5e1'
+    };
+  });
+
+  const dynamicStats = [
+    {
+      key: "totalStudents",
+      title: "Total Mahasiswa",
+      icon: Users,
+      description: "mahasiswa terdaftar",
+      value: (summaryData.totalStudents || 0).toLocaleString(),
+      color: "text-blue-600",
+      bg: "bg-blue-50",
+      gradient: "from-blue-500/10 to-blue-500/5"
+    },
+    {
+      key: "totalLecturers",
+      title: "Tenaga Pendidik",
+      icon: BookOpen,
+      description: "dosen aktif",
+      value: (summaryData.totalLecturers || 0).toLocaleString(),
+      color: "text-emerald-600",
+      bg: "bg-emerald-50",
+      gradient: "from-emerald-500/10 to-emerald-500/5"
+    },
+    {
+      key: "totalPrestasi",
+      title: "Prestasi Baru",
+      icon: Award,
+      description: "menunggu validasi",
+      value: (summaryData.totalPrestasi || 0).toLocaleString(),
+      color: "text-amber-600",
+      bg: "bg-amber-50",
+      gradient: "from-amber-500/10 to-amber-500/5"
+    },
+    {
+      key: "totalProdi",
+      title: "Unit Akademik",
+      icon: Layers,
+      description: "program studi aktif",
+      value: (summaryData.totalProdi || 0).toLocaleString(),
+      color: "text-indigo-600",
+      bg: "bg-indigo-50",
+      gradient: "from-indigo-500/10 to-indigo-500/5"
+    },
+  ];
+
+  const prodiColumns = [
+    {
+      key: "name",
+      label: "Program Studi",
+      render: (val) => <span className="font-bold text-slate-800 font-headline uppercase text-[11px] tracking-tight">{val}</span>
+    },
+    {
+      key: "akreditasi",
+      label: "Akreditasi",
+      render: (val) => (
+        <Badge className={cn(
+          "font-black text-[10px] px-3 py-0.5 border-none shadow-sm font-headline",
+          val === 'A' || val === 'Unggul' ? "bg-emerald-100 text-emerald-700" :
+            val === 'B' || val === 'Baik Sekali' ? "bg-blue-100 text-blue-700" :
+              "bg-slate-100 text-slate-700"
+        )}>
+          {val || '-'}
+        </Badge>
+      )
+    },
+    {
+      key: "jumlah",
+      label: "Mhs",
+      className: "text-center",
+      cellClassName: "text-center font-black text-slate-700 font-headline",
+    },
+    {
+      key: "active",
+      label: "Aktif",
+      className: "text-center",
+      cellClassName: "text-center font-bold text-emerald-600",
+      render: (val) => (
+        <Badge className="bg-emerald-50 text-emerald-600 border-none font-black text-[10px] px-2 py-0 font-headline">{val || 0}</Badge>
+      )
+    },
+    {
+      key: "graduated",
+      label: "Lulus",
+      className: "text-center",
+      cellClassName: "text-center font-bold text-blue-600",
+      render: (val) => (
+        <Badge className="bg-blue-50 text-blue-600 border-none font-black text-[10px] px-2 py-0 font-headline">{val || 0}</Badge>
+      )
+    },
+    {
+      key: "avgGpa",
+      label: "Avg IPK",
+      className: "text-center",
+      cellClassName: "text-center",
+      render: (val) => (
+        <span className="font-black text-amber-600 font-headline text-xs">{val?.toFixed(2) || '0.00'}</span>
+      )
+    }
+  ]
 
   return (
-    <div className="bg-[#F8FAFC] text-slate-900 min-h-screen font-body">
-      <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
-      <main className="lg:ml-64 min-h-screen pb-12 transition-all duration-300">
-        <TopNavBar setIsOpen={setSidebarOpen} />
-
-        <div className="pt-24 px-4 lg:px-8">
-          <div className="flex flex-col gap-6">
-            {/* Page Header */}
-            <div className="flex flex-col gap-1">
-              <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
-              <p className="text-muted-foreground">
-                Selamat datang di SIAKAD Fakultas. Berikut ringkasan data akademik terkini.
-              </p>
+    <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-1.5 mb-8 pt-2">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-primary/10 rounded-xl text-primary">
+            <LayoutDashboard className="size-6" />
+          </div>
+          <h1 className="text-3xl font-black text-slate-900 font-headline tracking-tighter uppercase flex items-center gap-3">
+            Dashboard
+            <div className="px-3 py-1 bg-primary/10 text-primary text-[10px] font-black tracking-widest rounded-full not-italic border border-primary/20">
+              {summaryData.activePeriod || "SISTEM AKTIF"}
             </div>
+          </h1>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="h-1 w-10 bg-primary rounded-full shadow-sm shadow-primary/30" />
+          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Pusat Kendali Akademik Fakultas</p>
+        </div>
+      </div>
 
-            {/* Stats Cards */}
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              {statsData.map((stat) => (
-                <Card key={stat.title}>
-                  <CardHeader className="flex flex-row items-center justify-between pb-2">
-                    <CardTitle className="text-sm font-medium text-muted-foreground">
-                      {stat.title}
-                    </CardTitle>
-                    <stat.icon className="size-5 text-muted-foreground" />
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">{stat.value}</div>
-                    <div className="flex items-center gap-1 text-xs">
-                      {stat.trend === "up" ? (
-                        <TrendingUp className="size-3 text-green-500" />
-                      ) : (
-                        <TrendingDown className="size-3 text-destructive" />
-                      )}
-                      <span className={stat.trend === "up" ? "text-green-500" : "text-destructive"}>
-                        {stat.change}
-                      </span>
-                      <span className="text-muted-foreground">{stat.description}</span>
-                    </div>
-                  </CardContent>
-                </Card>
+      {/* Stats Cards Row */}
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {dynamicStats.map((stat) => (
+          <Card key={stat.title} className="border border-slate-200 shadow-sm shadow-slate-200/50 overflow-hidden relative group transition-all duration-300 hover:shadow-xl hover:shadow-primary/5 rounded-2xl bg-white">
+            <div className={`absolute inset-0 bg-gradient-to-br ${stat.gradient} opacity-50`} />
+            <CardContent className="p-6 relative">
+              <div className="flex items-center justify-between mb-4">
+                <div className={`p-2.5 rounded-xl ${stat.bg} ${stat.color} shadow-sm group-hover:scale-110 transition-transform duration-500`}>
+                  <stat.icon className="size-5" />
+                </div>
+                <div className="flex items-center gap-1 text-[10px] font-black text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded-full uppercase tracking-widest leading-none">
+                  <TrendingUp className="size-2.5" />
+                  Live
+                </div>
+              </div>
+              <div className="space-y-1">
+                <p className="text-[10px] font-black uppercase tracking-[0.15em] text-slate-400">{stat.title}</p>
+                <div className="flex items-baseline gap-2">
+                  <h3 className="text-3xl font-black text-slate-900 font-headline tracking-tighter">
+                    {loading ? "..." : stat.value}
+                  </h3>
+                </div>
+                <p className="text-[10px] font-bold text-slate-400/80 uppercase tracking-tight">{stat.description}</p>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {/* Charts Row */}
+      <div className="grid gap-6 lg:grid-cols-2">
+        {/* Mahasiswa per Prodi Chart */}
+        <Card className="border border-slate-200 shadow-sm shadow-slate-200/40 rounded-2xl bg-white overflow-hidden">
+          <CardHeader className="pb-2">
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-lg font-black font-headline tracking-tight uppercase">Mahasiswa per Prodi</CardTitle>
+                <CardDescription className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                  Distribusi jumlah mahasiswa aktif
+                </CardDescription>
+              </div>
+              <div className="p-2 bg-slate-50 rounded-xl">
+                <Users className="size-4 text-slate-400" />
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="h-[300px] mt-4 relative w-full min-w-0">
+              {isMounted && (
+                <ResponsiveContainer width="99%" height={300} debounce={50}>
+
+
+
+                  <BarChart data={summaryData.prodiDistribution} layout="vertical" margin={{ left: 20, right: 20, top: 0, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="#f1f5f9" />
+                    <XAxis type="number" hide />
+                    <YAxis
+                      dataKey="name"
+                      type="category"
+                      width={120}
+                      tick={{ fontSize: 9, fontWeight: 700, fill: '#64748b' }}
+                      axisLine={false}
+                      tickLine={false}
+                    />
+                    <Tooltip
+                      cursor={{ fill: '#f8fafc' }}
+                      contentStyle={{ backgroundColor: "#fff", border: "none", borderRadius: "16px", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)", fontSize: "11px", fontWeight: "bold" }}
+                    />
+                    <Bar dataKey="jumlah" fill="#3b82f6" radius={[0, 10, 10, 0]} barSize={16} />
+                  </BarChart>
+                </ResponsiveContainer>
+              )}
+            </div>
+          </CardContent>
+
+        </Card>
+
+        {/* Status Mahasiswa Pie Chart */}
+        <Card className="border border-slate-200 shadow-sm shadow-slate-200/40 rounded-2xl bg-white overflow-hidden">
+          <CardHeader className="pb-2">
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-lg font-black font-headline tracking-tight uppercase">Status Akademik</CardTitle>
+                <CardDescription className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                  Kondisi status mahasiswa saat ini
+                </CardDescription>
+              </div>
+              <div className="p-2 bg-slate-50 rounded-xl text-slate-400">
+                <UserCheck className="size-4" />
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="h-[300px] relative w-full min-w-0">
+              {isMounted && (
+                <ResponsiveContainer width="99%" height={300} debounce={50}>
+
+
+
+                  <PieChart>
+                    <Pie
+                      data={dynamicStatusData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={70}
+                      outerRadius={100}
+                      paddingAngle={8}
+                      dataKey="value"
+                      stroke="none"
+                    >
+                      {dynamicStatusData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      contentStyle={{ backgroundColor: "#fff", border: "none", borderRadius: "16px", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)", fontSize: "11px", fontWeight: "bold" }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+              )}
+            </div>
+            <div className="flex flex-wrap justify-center gap-x-6 gap-y-2 pb-2">
+              {dynamicStatusData.map((item) => (
+                <div key={item.name} className="flex items-center gap-2">
+                  <Badge
+                    className={cn(
+                      "font-black text-[9px] px-2 py-0 border-none font-headline uppercase",
+                      item.name === 'Aktif' ? "bg-emerald-50 text-emerald-600" :
+                        item.name === 'Cuti' ? "bg-amber-50 text-amber-600" :
+                          item.name === 'Lulus' ? "bg-blue-50 text-blue-600" :
+                            "bg-rose-50 text-rose-600"
+                    )}
+                  >
+                    <div className="size-1.5 rounded-full bg-current mr-1.5" />
+                    {item.name}: {item.value.toLocaleString()}
+                  </Badge>
+                </div>
               ))}
             </div>
+          </CardContent>
+        </Card>
+      </div>
 
-            {/* Charts Row */}
-            <div className="grid gap-6 lg:grid-cols-2">
-              {/* Mahasiswa per Prodi Chart */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Mahasiswa per Program Studi</CardTitle>
-                  <CardDescription>
-                    Distribusi jumlah mahasiswa aktif di setiap prodi
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="h-[300px]">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={mahasiswaPerProdi} layout="vertical">
-                        <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} />
-                        <XAxis type="number" />
-                        <YAxis
-                          dataKey="name"
-                          type="category"
-                          width={100}
-                          tick={{ fontSize: 12 }}
-                        />
-                        <Tooltip
-                          contentStyle={{
-                            backgroundColor: "hsl(var(--card))",
-                            border: "1px solid hsl(var(--border))",
-                            borderRadius: "var(--radius)",
-                          }}
-                        />
-                        <Bar dataKey="jumlah" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Status Mahasiswa Pie Chart */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Status Mahasiswa</CardTitle>
-                  <CardDescription>
-                    Persentase status mahasiswa saat ini
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="h-[300px]">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                        <Pie
-                          data={statusMahasiswa}
-                          cx="50%"
-                          cy="50%"
-                          innerRadius={60}
-                          outerRadius={100}
-                          paddingAngle={2}
-                          dataKey="value"
-                          label={({ name, percent }) =>
-                            `${name} ${(percent * 100).toFixed(0)}%`
-                          }
-                          labelLine={false}
-                        >
-                          {statusMahasiswa.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={entry.color} />
-                          ))}
-                        </Pie>
-                        <Tooltip
-                          contentStyle={{
-                            backgroundColor: "hsl(var(--card))",
-                            border: "1px solid hsl(var(--border))",
-                            borderRadius: "var(--radius)",
-                          }}
-                        />
-                      </PieChart>
-                    </ResponsiveContainer>
-                  </div>
-                  <div className="mt-4 flex flex-wrap justify-center gap-4">
-                    {statusMahasiswa.map((item) => (
-                      <div key={item.name} className="flex items-center gap-2">
-                        <div
-                          className="size-3 rounded-full"
-                          style={{ backgroundColor: item.color }}
-                        />
-                        <span className="text-sm text-muted-foreground">
-                          {item.name}: {item.value.toLocaleString()}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
+      {/* Program Studi Performance Table */}
+      <Card className="border border-slate-200 shadow-sm shadow-slate-200/40 rounded-3xl bg-white overflow-hidden">
+        <CardHeader className="pb-6 border-b border-slate-100 bg-white">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-indigo-50 rounded-xl text-indigo-600">
+                <Award className="size-5" />
+              </div>
+              <div>
+                <CardTitle className="text-lg font-black font-headline tracking-tight uppercase text-primary">Akreditasi & Performansi Prodi</CardTitle>
+                <CardDescription className="text-[11px] font-bold uppercase tracking-wider text-slate-400 font-headline">Statistik operasional terintegrasi</CardDescription>
+              </div>
             </div>
-
-            {/* Trend & Activity Row */}
-            <div className="grid gap-6 lg:grid-cols-3">
-              {/* Trend Pendaftaran */}
-              <Card className="lg:col-span-2">
-                <CardHeader>
-                  <CardTitle>Trend Pendaftaran Mahasiswa Baru</CardTitle>
-                  <CardDescription>
-                    Perbandingan pendaftar dan yang diterima per tahun
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="h-[300px]">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={trendPendaftaran}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="tahun" />
-                        <YAxis />
-                        <Tooltip
-                          contentStyle={{
-                            backgroundColor: "hsl(var(--card))",
-                            border: "1px solid hsl(var(--border))",
-                            borderRadius: "var(--radius)",
-                          }}
-                        />
-                        <Legend />
-                        <Line
-                          type="monotone"
-                          dataKey="pendaftar"
-                          stroke="hsl(var(--primary))"
-                          strokeWidth={2}
-                          dot={{ r: 4 }}
-                          name="Pendaftar"
-                        />
-                        <Line
-                          type="monotone"
-                          dataKey="diterima"
-                          stroke="#22c55e"
-                          strokeWidth={2}
-                          dot={{ r: 4 }}
-                          name="Diterima"
-                        />
-                      </LineChart>
-                    </ResponsiveContainer>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Aktivitas Terbaru */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Aktivitas Terbaru</CardTitle>
-                  <CardDescription>Aktivitas pengguna sistem</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex flex-col gap-4">
-                    {aktivitasTerbaru.map((activity) => (
-                      <div key={activity.id} className="flex items-start gap-3">
-                        <Avatar className="size-8">
-                          <AvatarFallback className="bg-primary/10 text-primary text-xs">
-                            {activity.avatar}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm">
-                            <span className="font-medium">{activity.user}</span>{" "}
-                            <span className="text-muted-foreground">
-                              {activity.action}
-                            </span>
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            {activity.time}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Jadwal Hari Ini */}
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between">
-                <div>
-                  <CardTitle>Jadwal Kuliah Hari Ini</CardTitle>
-                  <CardDescription>
-                    Jadwal perkuliahan yang berlangsung hari ini
-                  </CardDescription>
-                </div>
-                <Button variant="outline" size="sm">
-                  <Calendar className="mr-2 size-4" />
-                  Lihat Semua Jadwal
-                </Button>
-              </CardHeader>
-              <CardContent>
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                  {jadwalHariIni.map((jadwal, index) => (
-                    <div
-                      key={index}
-                      className="rounded-lg border bg-card p-4 transition-colors hover:bg-muted/50"
-                    >
-                      <div className="mb-3 flex items-center gap-2">
-                        <Clock className="size-4 text-primary" />
-                        <span className="text-sm font-medium text-primary">
-                          {jadwal.jam}
-                        </span>
-                      </div>
-                      <h4 className="font-medium text-balance">{jadwal.matakuliah}</h4>
-                      <p className="mt-1 text-sm text-muted-foreground">
-                        {jadwal.ruangan}
-                      </p>
-                      <div className="mt-3 flex items-center gap-2">
-                        <Avatar className="size-6">
-                          <AvatarFallback className="bg-primary/10 text-primary text-[10px]">
-                            {jadwal.dosen
-                              .split(" ")
-                              .map((n) => n[0])
-                              .join("")
-                              .slice(0, 2)}
-                          </AvatarFallback>
-                        </Avatar>
-                        <span className="text-xs text-muted-foreground">
-                          {jadwal.dosen}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Quick Actions */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Aksi Cepat</CardTitle>
-                <CardDescription>Pintasan untuk tugas yang sering dilakukan</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-4">
-                  <Button variant="outline" className="h-auto flex-col gap-2 p-4">
-                    <Users className="size-6 text-primary" />
-                    <span className="text-sm">Tambah Mahasiswa</span>
-                  </Button>
-                  <Button variant="outline" className="h-auto flex-col gap-2 p-4">
-                    <FileText className="size-6 text-primary" />
-                    <span className="text-sm">Validasi KRS</span>
-                  </Button>
-                  <Button variant="outline" className="h-auto flex-col gap-2 p-4">
-                    <Calendar className="size-6 text-primary" />
-                    <span className="text-sm">Atur Jadwal</span>
-                  </Button>
-                  <Button variant="outline" className="h-auto flex-col gap-2 p-4">
-                    <ArrowUpRight className="size-6 text-primary" />
-                    <span className="text-sm">Export Laporan</span>
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+            <Badge className="bg-blue-50 text-blue-600 border-none font-black text-[10px] px-3 py-1 font-headline uppercase">{summaryData.totalProdi} Prodi Aktif</Badge>
           </div>
-        </div>
-      </main>
+        </CardHeader>
+        <CardContent className="p-0">
+          <DataTable
+            columns={prodiColumns}
+            data={summaryData.prodiDistribution}
+            loading={loading}
+          />
+        </CardContent>
+      </Card>
+
+      {/* Trend & Activity Row */}
+      <div className="grid gap-6 lg:grid-cols-3">
+        {/* Trend Pendaftaran */}
+        <Card className="lg:col-span-2 border border-slate-200 shadow-sm rounded-2xl bg-white overflow-hidden">
+          <CardHeader className="border-b border-slate-50">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-base font-black font-headline uppercase tracking-tight text-slate-700">Trend Pendaftaran Mahasiswa Baru</CardTitle>
+              <TrendingUp className="size-5 text-emerald-500" />
+            </div>
+          </CardHeader>
+          <CardContent className="pt-6">
+            <div className="h-[300px] relative w-full min-w-0">
+              {isMounted && (
+                <ResponsiveContainer width="99%" height={300} debounce={50}>
+
+
+
+                  <LineChart data={summaryData.trendData}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                    <XAxis dataKey="tahun" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 700 }} />
+                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 700 }} />
+                    <Tooltip
+                      contentStyle={{ backgroundColor: "#fff", border: "none", borderRadius: "16px", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)", fontSize: "11px", fontWeight: "bold" }}
+                    />
+                    <Legend iconType="circle" wrapperStyle={{ paddingTop: '20px', fontSize: '10px', fontWeight: '900', textTransform: 'uppercase' }} />
+                    <Line type="monotone" dataKey="pendaftar" stroke="#3b82f6" strokeWidth={4} dot={{ r: 6, fill: '#3b82f6', strokeWidth: 2, stroke: '#fff' }} activeDot={{ r: 8 }} name="Pendaftar" />
+                    <Line type="monotone" dataKey="diterima" stroke="#10b981" strokeWidth={4} dot={{ r: 6, fill: '#10b981', strokeWidth: 2, stroke: '#fff' }} activeDot={{ r: 8 }} name="Diterima" />
+                  </LineChart>
+                </ResponsiveContainer>
+              )}
+            </div>
+          </CardContent>
+
+        </Card>
+
+        {/* Aktivitas Terbaru */}
+        <Card className="border border-slate-200 shadow-sm shadow-slate-200/40 rounded-2xl bg-white overflow-hidden">
+          <CardHeader className="border-b border-slate-50">
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-base font-black font-headline tracking-tight uppercase text-slate-700">Aktivitas Sistem</CardTitle>
+              </div>
+              <div className="p-2 bg-slate-50 rounded-xl">
+                <Clock className="size-4 text-slate-400" />
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="pt-6">
+            <div className="flex flex-col gap-6">
+              {summaryData.recentActivity?.length > 0 ? summaryData.recentActivity.map((activity, idx) => (
+                <div key={idx} className="flex items-start gap-4 relative group">
+                  <div className="absolute left-4 top-8 bottom-[-24px] w-[1px] bg-slate-100 last:hidden" />
+                  <Avatar className="size-9 rounded-2xl shadow-sm border-2 border-white group-hover:scale-110 transition-transform duration-300">
+                    <AvatarFallback className="bg-primary/5 text-primary text-[10px] font-black">{activity.avatar}</AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between mb-0.5">
+                      <p className="text-[10px] font-black text-slate-900 font-headline uppercase truncate tracking-tight">{activity.user}</p>
+                      <span className="text-[8px] font-black text-slate-300 uppercase">{activity.time}</span>
+                    </div>
+                    <p className="text-[10px] text-slate-500 font-medium leading-relaxed">{activity.action}</p>
+                  </div>
+                </div>
+              )) : (
+                <div className="py-10 text-center opacity-30">
+                  <span className="text-[10px] font-black uppercase tracking-widest">Belum ada aktivitas</span>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Quick Actions Row */}
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 pt-4">
+        {[
+          { label: 'Validasi Prestasi', icon: Trophy, path: '/faculty/prestasi', color: 'bg-emerald-600 text-white shadow-emerald-600/20 hover:bg-emerald-700' },
+          { label: 'Monitor PKKMB', icon: UserCheck, path: '/faculty/pkkmb', color: 'bg-indigo-600 text-white shadow-indigo-600/20 hover:bg-indigo-700' },
+          { label: 'Screening Kesehatan', icon: BookOpen, path: '/faculty/kesehatan', color: 'bg-amber-500 text-white shadow-amber-500/20 hover:bg-amber-600' },
+          { label: 'Aspirasi Mahasiswa', icon: FileText, path: '/faculty/aspirasi', color: 'bg-rose-600 text-white shadow-rose-600/20 hover:bg-rose-700' },
+        ].map((item, i) => (
+          <Button
+            key={i}
+            onClick={() => navigate(item.path)}
+            variant="outline"
+            className={cn(
+              "h-16 rounded-2xl border-none shadow-xl flex items-center justify-start gap-4 px-6 transition-all hover:scale-[1.02] active:scale-95",
+              item.color
+            )}
+          >
+            <div className="size-8 rounded-xl bg-white/20 flex items-center justify-center">
+              <item.icon className="size-4" />
+            </div>
+            <span className="text-[10px] font-black uppercase tracking-widest">{item.label}</span>
+          </Button>
+        ))}
+      </div>
     </div>
   )
 }
