@@ -10,9 +10,10 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "./components/dialog"
 import { Card, CardContent } from "./components/card"
-import { Eye, Mail, BookOpen, GraduationCap, Users, UserCheck } from "lucide-react"
+import { Eye, Mail, BookOpen, GraduationCap, Users, UserCheck, ShieldCheck, MapPin, Phone } from "lucide-react"
 import { toast, Toaster } from "react-hot-toast"
 import { cn } from "@/lib/utils"
 
@@ -160,147 +161,132 @@ export default function MahasiswaPage() {
       <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
         <DialogContent className="max-w-3xl p-0 overflow-hidden border-none shadow-2xl rounded-[2.5rem] bg-white/95 backdrop-blur-xl">
           {selectedMahasiswa && (
-            <div className="relative flex flex-col max-h-[90vh]">
-              {/* Header Profile Section */}
-              <div className="h-44 bg-slate-900 relative overflow-hidden shrink-0">
-                <div className="absolute inset-0 bg-gradient-to-br from-primary/40 to-transparent transition-transform duration-700" />
-                <div className="absolute top-0 right-0 p-12 opacity-[0.05] pointer-events-none">
-                  <GraduationCap className="size-48 rotate-12 text-white" />
+            <div className="flex flex-col max-h-[90vh]">
+               {/* Premium Header Logic Style */}
+               <DialogHeader className="p-8 pb-6 bg-gradient-to-br from-slate-50 to-white border-b border-slate-100 relative overflow-hidden shrink-0">
+                <div className="absolute top-0 right-0 p-8 opacity-5">
+                  <GraduationCap className="size-24 rotate-12" />
                 </div>
-
-                <div className="absolute top-8 right-8 z-20">
-                  <Badge
-                    className={cn(
-                      "capitalize text-[10px] font-black px-4 py-2 rounded-full border border-white/20 backdrop-blur-md shadow-xl",
-                      selectedMahasiswa.StatusAkun === 'Aktif'
-                        ? "bg-emerald-500/20 text-emerald-400"
-                        : "bg-amber-500/20 text-amber-400"
-                    )}
-                  >
-                    <span className="size-2 rounded-full bg-current mr-2 animate-pulse" />
-                    {selectedMahasiswa.StatusAkun || 'Aktif'}
-                  </Badge>
+                <div className="relative z-10">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="size-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary text-xs font-black">
+                      <ShieldCheck className="size-4" />
+                    </div>
+                    <Badge variant="secondary" className="text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 bg-primary/5 text-primary border-none">
+                      Integrated Student Master data
+                    </Badge>
+                  </div>
+                  <DialogTitle className="text-2xl font-black font-headline tracking-tighter text-slate-900 uppercase">
+                    Detail Mahasiswa
+                  </DialogTitle>
+                  <DialogDescription className="text-xs font-medium text-slate-400 mt-1 uppercase tracking-wider font-bold">
+                    Arsip lengkap database akademik & personal.
+                  </DialogDescription>
                 </div>
+              </DialogHeader>
 
-                <div className="absolute -bottom-12 left-10 z-20 p-2 bg-white rounded-[2.2rem] shadow-2xl shadow-slate-900/10">
-                  <Avatar className="h-32 w-32 rounded-[1.8rem] border-4 border-slate-50">
-                    <AvatarFallback className="bg-gradient-to-br from-slate-100 to-slate-200 text-slate-800 text-4xl font-black font-headline">
+              {/* Content Styling */}
+              <div className="overflow-y-auto p-8 space-y-10 custom-scrollbar">
+                {/* Identity Header */}
+                <div className="flex items-center gap-6 p-6 rounded-[1.8rem] bg-slate-50 border border-slate-100 shadow-inner">
+                  <Avatar className="h-24 w-24 rounded-2xl border-4 border-white shadow-xl flex-shrink-0">
+                    <AvatarFallback className="bg-gradient-to-br from-slate-200 to-slate-300 text-slate-800 text-3xl font-black uppercase">
                       {selectedMahasiswa.Nama?.split(" ").map(n => n[0]).join("").substring(0, 2) || '?'}
                     </AvatarFallback>
                   </Avatar>
+                  <div className="flex flex-col">
+                    <h3 className="text-3xl font-black text-slate-900 font-headline tracking-tighter uppercase leading-none">{selectedMahasiswa.Nama}</h3>
+                    <div className="flex items-center gap-3 mt-2">
+                       <span className="font-bold text-slate-400 uppercase tracking-widest text-[11px] font-headline">{selectedMahasiswa.NIM}</span>
+                       <Badge className={cn(
+                          "uppercase text-[9px] font-black px-3 py-0.5 border-none",
+                          selectedMahasiswa.StatusAkun === 'Aktif' ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"
+                       )}>
+                          {selectedMahasiswa.StatusAkun || 'Aktif'}
+                       </Badge>
+                    </div>
+                  </div>
                 </div>
+
+                <div className="grid grid-cols-2 gap-10">
+                   {/* Col 1: Academic */}
+                   <div className="space-y-6">
+                      <div className="flex items-center gap-2 px-1 border-b border-slate-100 pb-2">
+                        <BookOpen className="size-3 text-primary" />
+                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Data Akademik</span>
+                      </div>
+                      <div className="grid grid-cols-1 gap-4">
+                        <InfoItem label="Program Studi" value={selectedMahasiswa.ProgramStudi?.Nama} />
+                        <div className="grid grid-cols-2 gap-4">
+                           <InfoItem label="Semester" value={selectedMahasiswa.SemesterSekarang} />
+                           <InfoItem label="Tahun Masuk" value={selectedMahasiswa.TahunMasuk || selectedMahasiswa.NIM?.substring(3, 7)} />
+                        </div>
+                        <InfoItem label="Dosen Wali (DPA)" value={selectedMahasiswa.DosenPA?.Nama || 'Belum Ditentukan'} highlight />
+                        <div className="flex items-center gap-3 p-4 bg-primary/5 rounded-2xl border border-primary/10 border-dashed mt-2">
+                           <div className="flex-1 flex flex-col items-center border-r border-primary/20 pr-3">
+                              <span className="text-[8px] font-black text-primary/50 uppercase tracking-tighter">IPK</span>
+                              <span className="text-xl font-black text-primary font-headline tracking-tighter leading-none">{selectedMahasiswa.IPK?.toFixed(2) || '0.00'}</span>
+                           </div>
+                           <div className="flex-1 flex flex-col items-center">
+                              <span className="text-[8px] font-black text-primary/50 uppercase tracking-tighter">TOTAL SKS</span>
+                              <span className="text-xl font-black text-primary font-headline tracking-tighter leading-none">{selectedMahasiswa.TotalSKS || '0'}</span>
+                           </div>
+                        </div>
+                      </div>
+                   </div>
+
+                   {/* Col 2: Info & Contact */}
+                   <div className="space-y-6">
+                      <div className="flex items-center gap-2 px-1 border-b border-slate-100 pb-2">
+                        <UserCheck className="size-3 text-emerald-500" />
+                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Kontak & Domisili</span>
+                      </div>
+                      <div className="grid grid-cols-1 gap-4">
+                         <div className="flex items-center gap-3 p-3 rounded-xl bg-white border border-slate-100 hover:border-primary transition-all group">
+                            <Mail className="size-4 text-slate-300 group-hover:text-primary transition-colors" />
+                            <div className="flex flex-col">
+                               <span className="text-[8px] font-bold text-slate-400 uppercase">Email Kampus</span>
+                               <span className="text-[11px] font-bold text-slate-700">{selectedMahasiswa.EmailKampus || selectedMahasiswa.Pengguna?.Email}</span>
+                            </div>
+                         </div>
+                         <div className="flex items-center gap-3 p-3 rounded-xl bg-white border border-slate-100 hover:border-primary transition-all group">
+                            <Phone className="size-4 text-slate-300 group-hover:text-primary transition-colors" />
+                            <div className="flex flex-col">
+                               <span className="text-[8px] font-bold text-slate-400 uppercase">Handphone</span>
+                               <span className="text-[11px] font-bold text-slate-700">{selectedMahasiswa.NoHP || '—'}</span>
+                            </div>
+                         </div>
+                         <div className="flex items-start gap-3 p-3 rounded-xl bg-white border border-slate-100 hover:border-primary transition-all group">
+                            <MapPin className="size-4 text-slate-300 mt-1 group-hover:text-primary transition-colors" />
+                            <div className="flex flex-col">
+                               <span className="text-[8px] font-bold text-slate-400 uppercase">Alamat Lengkap</span>
+                               <span className="text-[11px] font-bold text-slate-700 leading-tight">{selectedMahasiswa.Alamat || '—'}</span>
+                            </div>
+                         </div>
+                      </div>
+                   </div>
+                </div>
+
+                 {/* Personal Grid Section */}
+                 <div className="space-y-6 pt-4">
+                    <div className="flex items-center gap-2 px-1 border-b border-slate-100 pb-2">
+                      <Users className="size-3 text-indigo-500" />
+                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Biodata Pribadi</span>
+                    </div>
+                    <div className="grid grid-cols-4 gap-4">
+                       <InfoItem label="Tempat Lahir" value={selectedMahasiswa.TempatLahir} />
+                       <InfoItem label="Tanggal Lahir" value={selectedMahasiswa.TanggalLahir ? new Date(selectedMahasiswa.TanggalLahir).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'} />
+                       <InfoItem label="Jenis Kelamin" value={selectedMahasiswa.JenisKelamin === 'L' ? 'Laki-laki' : 'Perempuan'} />
+                       <InfoItem label="NIK" value={selectedMahasiswa.NIK} />
+                    </div>
+                 </div>
               </div>
 
-              {/* Scrollable Content */}
-              <div className="overflow-y-auto p-10 pt-16 space-y-10 custom-scrollbar">
-                <div className="flex flex-col gap-1">
-                  <h2 className="text-4xl font-black text-slate-900 font-headline tracking-tighter leading-none uppercase">{selectedMahasiswa.Nama}</h2>
-                  <div className="flex items-center gap-3">
-                    <Badge variant="secondary" className="text-[10px] font-black bg-primary/5 text-primary border-none px-3 py-1 rounded-md tracking-wider">
-                      STUDENT ARCHIVE
-                    </Badge>
-                    <p className="text-sm font-bold text-slate-400 uppercase tracking-[0.2em] font-headline">{selectedMahasiswa.NIM}</p>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-4">
-                  {/* Academic Info */}
-                  <div className="space-y-6">
-                    <div className="flex items-center gap-3 border-b border-slate-100 pb-3">
-                      <div className="size-8 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600">
-                        <BookOpen className="size-4" />
-                      </div>
-                      <h3 className="font-black text-xs uppercase tracking-widest text-slate-900 font-headline">Record Akademik</h3>
-                    </div>
-                    <div className="space-y-4 px-1">
-                      <DetailItem label="Program Studi" value={selectedMahasiswa.ProgramStudi?.Nama} />
-                      <DetailItem label="Fakultas" value={selectedMahasiswa.ProgramStudi?.Fakultas?.Nama} />
-                      <div className="grid grid-cols-2 gap-4">
-                        <DetailItem label="Semester" value={selectedMahasiswa.SemesterSekarang} />
-                        <DetailItem label="Tahun Masuk" value={selectedMahasiswa.TahunMasuk || selectedMahasiswa.NIM?.substring(3, 7)} />
-                      </div>
-                      <div className="grid grid-cols-3 gap-2 p-3 bg-slate-50 rounded-2xl border border-slate-100">
-                        <StatItem label="IPK" value={selectedMahasiswa.IPK?.toFixed(2) || '0.00'} color="text-emerald-600" />
-                        <StatItem label="SKS" value={selectedMahasiswa.TotalSKS || '0'} color="text-blue-600" />
-                        <StatItem label="LIMIT" value={selectedMahasiswa.CreditLimit || '24'} color="text-indigo-600" />
-                      </div>
-                      <DetailItem label="Dosen Wali (DPA)" value={selectedMahasiswa.DosenPA?.Nama || 'Belum Ditentukan'} isHighlight />
-                      <DetailItem label="Jalur Masuk" value={selectedMahasiswa.JalurMasuk} />
-                    </div>
-                  </div>
-
-                  {/* Personal Info */}
-                  <div className="space-y-6">
-                    <div className="flex items-center gap-3 border-b border-slate-100 pb-3">
-                      <div className="size-8 rounded-xl bg-rose-50 flex items-center justify-center text-rose-600">
-                        <Users className="size-4" />
-                      </div>
-                      <h3 className="font-black text-xs uppercase tracking-widest text-slate-900 font-headline">Data Pribadi</h3>
-                    </div>
-                    <div className="space-y-4 px-1">
-                      <div className="grid grid-cols-2 gap-4">
-                        <DetailItem label="NIK" value={selectedMahasiswa.NIK} />
-                        <DetailItem label="NISN" value={selectedMahasiswa.NISN} />
-                      </div>
-                      <DetailItem label="TTL" value={`${selectedMahasiswa.TempatLahir || '—'}, ${selectedMahasiswa.TanggalLahir ? new Date(selectedMahasiswa.TanggalLahir).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : '—'}`} />
-                      <div className="grid grid-cols-2 gap-4">
-                        <DetailItem label="Jenis Kelamin" value={selectedMahasiswa.JenisKelamin === 'L' ? 'Laki-laki' : 'Perempuan'} />
-                        <DetailItem label="Agama" value={selectedMahasiswa.Agama} />
-                      </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <DetailItem label="Goldar" value={selectedMahasiswa.GolonganDarah} />
-                        <DetailItem label="Status" value={selectedMahasiswa.StatusPernikahan} />
-                      </div>
-                      <DetailItem label="Kewarganegaraan" value={selectedMahasiswa.Kewarganegaraan} />
-                    </div>
-                  </div>
-
-                  {/* Contact Info */}
-                  <div className="space-y-6">
-                    <div className="flex items-center gap-3 border-b border-slate-100 pb-3">
-                      <div className="size-8 rounded-xl bg-amber-50 flex items-center justify-center text-amber-600">
-                        <Mail className="size-4" />
-                      </div>
-                      <h3 className="font-black text-xs uppercase tracking-widest text-slate-900 font-headline">Kontak & Domisili</h3>
-                    </div>
-                    <div className="space-y-4 px-1">
-                      <DetailItem label="Email Kampus" value={selectedMahasiswa.EmailKampus || selectedMahasiswa.Pengguna?.Email} />
-                      <DetailItem label="No. Handphone" value={selectedMahasiswa.NoHP} />
-                      <DetailItem label="Alamat" value={selectedMahasiswa.Alamat} />
-                      <div className="grid grid-cols-2 gap-4">
-                        <DetailItem label="Kota" value={selectedMahasiswa.Kota} />
-                        <DetailItem label="Kode Pos" value={selectedMahasiswa.KodePos} />
-                      </div>
-                      <DetailItem label="Kontak Darurat" value={selectedMahasiswa.KontakDarurat} />
-                    </div>
-                  </div>
-
-                  {/* Family Info */}
-                  <div className="space-y-6">
-                    <div className="flex items-center gap-3 border-b border-slate-100 pb-3">
-                      <div className="size-8 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600">
-                        <UserCheck className="size-4" />
-                      </div>
-                      <h3 className="font-black text-xs uppercase tracking-widest text-slate-900 font-headline">Data Orang Tua</h3>
-                    </div>
-                    <div className="space-y-4 px-1">
-                      <DetailItem label="Nama Ayah" value={selectedMahasiswa.NamaAyah} />
-                      <DetailItem label="Pekerjaan Ayah" value={selectedMahasiswa.PekerjaanAyah} />
-                      <DetailItem label="Nama Ibu" value={selectedMahasiswa.NamaIbuKandung} />
-                      <DetailItem label="Pekerjaan Ibu" value={selectedMahasiswa.PekerjaanIbu} />
-                      <DetailItem label="Penghasilan Ortu" value={selectedMahasiswa.PenghasilanOrtu ? `Rp ${selectedMahasiswa.PenghasilanOrtu.toLocaleString('id-ID')}` : '—'} />
-                      <DetailItem label="Asal Sekolah" value={selectedMahasiswa.AsalSekolah} />
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Footer Actions */}
-              <div className="p-8 px-10 flex items-center justify-end gap-3 border-t border-slate-100 shrink-0 bg-slate-50/50">
+              {/* Close Action */}
+              <div className="p-8 px-10 flex items-center justify-end border-t border-slate-100 bg-slate-50/50 shrink-0">
                 <Button
-                  variant="ghost"
                   onClick={() => setIsDetailOpen(false)}
-                  className="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-900 px-8 h-12 rounded-2xl font-headline"
+                  className="text-[10px] font-black uppercase tracking-widest h-12 px-12 rounded-2xl bg-white border border-slate-200 text-slate-900 shadow-sm hover:bg-slate-50 active:scale-95 transition-all font-headline"
                 >
                   Tutup
                 </Button>
@@ -313,26 +299,16 @@ export default function MahasiswaPage() {
   )
 }
 
-// Helper Components for Details
-function DetailItem({ label, value, isHighlight = false }) {
+function InfoItem({ label, value, highlight = false }) {
   return (
     <div className="flex flex-col gap-1">
-      <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest font-headline">{label}</span>
+      <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">{label}</span>
       <span className={cn(
-        "text-[12px] font-bold font-headline uppercase truncate",
-        isHighlight ? "text-primary tracking-tight" : "text-slate-700"
+        "text-[11px] font-black uppercase font-headline truncate",
+        highlight ? "text-primary tracking-tight" : "text-slate-800"
       )}>
         {value || '—'}
       </span>
-    </div>
-  )
-}
-
-function StatItem({ label, value, color }) {
-  return (
-    <div className="flex flex-col items-center justify-center p-2 rounded-xl bg-white/50 border border-slate-100/50 shadow-sm">
-      <span className="text-[8px] font-black text-slate-400 uppercase tracking-tighter mb-0.5">{label}</span>
-      <span className={cn("text-sm font-black font-headline tracking-tighter", color)}>{value}</span>
     </div>
   )
 }

@@ -10,15 +10,17 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "./components/dialog"
 import { Card, CardContent } from "./components/card"
 import {
   Eye,
   Mail,
   BookOpen,
-  Loader2,
   Users,
   Award,
+  ShieldCheck,
+  UserCheck
 } from "lucide-react"
 import { toast, Toaster } from "react-hot-toast"
 import { cn } from "@/lib/utils"
@@ -164,94 +166,94 @@ export default function DosenPage() {
 
       {/* DETAIL DIALOG */}
       <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
-        <DialogContent className="max-w-xl p-0 overflow-hidden border-none shadow-2xl rounded-[2.5rem] bg-white/95 backdrop-blur-xl">
+        <DialogContent className="max-w-xl p-0 overflow-hidden border-none shadow-2xl rounded-[2rem] bg-white/95 backdrop-blur-xl">
           {selectedDosen && (
-            <div className="relative flex flex-col max-h-[90vh]">
-              {/* Header Profile Section */}
-              <div className="h-44 bg-slate-900 relative overflow-hidden shrink-0">
-                <div className="absolute inset-0 bg-gradient-to-br from-primary/40 to-transparent transition-transform duration-700" />
-                <div className="absolute top-0 right-0 p-12 opacity-[0.05] pointer-events-none">
-                  <Award className="size-48 rotate-12 text-white" />
+            <div className="flex flex-col max-h-[90vh]">
+              {/* Premium Header Logic Style */}
+              <DialogHeader className="p-8 pb-6 bg-gradient-to-br from-slate-50 to-white border-b border-slate-100 relative overflow-hidden shrink-0">
+                <div className="absolute top-0 right-0 p-8 opacity-5">
+                  <Award className="size-24 rotate-12" />
                 </div>
-
-                <div className="absolute top-8 right-8 z-20">
-                  <Badge
-                    className={cn(
-                      "capitalize text-[10px] font-black px-4 py-2 rounded-full border border-white/20 backdrop-blur-md shadow-xl",
-                      "bg-primary/20 text-white font-headline tracking-tighter italic"
-                    )}
-                  >
-                    <span className="size-2 rounded-full bg-current mr-2 animate-pulse" />
-                    {selectedDosen.Jabatan || 'Dosen Pengajar'}
-                  </Badge>
+                <div className="relative z-10">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="size-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary text-xs font-black">
+                      <ShieldCheck className="size-4" />
+                    </div>
+                    <Badge variant="secondary" className="text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 bg-primary/5 text-primary border-none">
+                      Verified Academic Profile
+                    </Badge>
+                  </div>
+                  <DialogTitle className="text-2xl font-black font-headline tracking-tighter text-slate-900 uppercase">
+                    Detail Profil Dosen
+                  </DialogTitle>
+                  <DialogDescription className="text-xs font-medium text-slate-400 mt-1 uppercase tracking-wider font-bold">
+                    Arsip Profil tenaga pengajar fakultas.
+                  </DialogDescription>
                 </div>
+              </DialogHeader>
 
-                <div className="absolute -bottom-12 left-10 z-20 p-2 bg-white rounded-[2.2rem] shadow-2xl shadow-slate-900/10">
-                  <Avatar className="h-32 w-32 rounded-[1.8rem] border-4 border-slate-50">
+              {/* Content Styling */}
+              <div className="overflow-y-auto p-8 space-y-8 custom-scrollbar">
+                {/* Profile Identity Card */}
+                <div className="flex items-center gap-6 p-6 rounded-[1.5rem] bg-slate-50 border border-slate-100">
+                  <Avatar className="h-20 w-20 rounded-2xl border-4 border-white shadow-lg shrink-0">
                     <AvatarImage src={selectedDosen.AvatarURL} />
-                    <AvatarFallback className="bg-gradient-to-br from-slate-100 to-slate-200 text-slate-800 text-4xl font-black font-headline">
+                    <AvatarFallback className="bg-gradient-to-br from-slate-200 to-slate-300 text-slate-800 text-2xl font-black uppercase">
                       {selectedDosen.Nama?.split(" ").map(n => n[0]).join("").substring(0, 2) || '?'}
                     </AvatarFallback>
                   </Avatar>
-                </div>
-              </div>
-
-              {/* Scrollable Content */}
-              <div className="overflow-y-auto p-10 pt-16 space-y-10 custom-scrollbar">
-                <div className="flex flex-col gap-1">
-                  <h2 className="text-4xl font-black text-slate-900 font-headline tracking-tighter leading-none uppercase">{selectedDosen.Nama}</h2>
-                  <div className="flex items-center gap-3">
-                    <Badge variant="secondary" className="text-[10px] font-black bg-primary/5 text-primary border-none px-3 py-1 rounded-md tracking-wider">
-                      FACULTY LECTURER
-                    </Badge>
-                    <p className="text-sm font-bold text-slate-400 uppercase tracking-[0.2em] font-headline">NIDN: {selectedDosen.NIDN}</p>
+                  <div className="flex flex-col">
+                    <h3 className="text-xl font-black text-slate-900 font-headline tracking-tighter uppercase leading-tight">{selectedDosen.Nama}</h3>
+                    <div className="flex items-center gap-2 mt-1">
+                       <span className="text-[10px] font-black text-primary uppercase tracking-[0.2em]">{selectedDosen.Jabatan || 'Dosen Pengajar'}</span>
+                       <span className="size-1 rounded-full bg-slate-300" />
+                       <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">NIDN: {selectedDosen.NIDN}</span>
+                    </div>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-4">
-                  {/* Academic Info */}
-                  <div className="space-y-6">
-                    <div className="flex items-center gap-3 border-b border-slate-100 pb-3">
-                      <div className="size-8 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600">
-                        <BookOpen className="size-4" />
-                      </div>
-                      <h3 className="font-black text-xs uppercase tracking-widest text-slate-900 font-headline">Distribusi Akademik</h3>
+                <div className="grid grid-cols-2 gap-6">
+                  {/* Academic Assignment */}
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2 px-1">
+                      <BookOpen className="size-3 text-blue-500" />
+                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Penugasan Akademik</span>
                     </div>
-                    <div className="space-y-4 px-1">
-                      <DetailItem label="Program Studi" value={selectedDosen.ProgramStudi?.Nama} />
-                      <DetailItem label="Fakultas" value={selectedDosen.Fakultas?.Nama || selectedDosen.ProgramStudi?.Fakultas?.Nama} />
-                      <DetailItem label="Jabatan Akademik" value={selectedDosen.Jabatan} />
+                    <div className="space-y-3">
+                      <InfoBlock label="Program Studi" value={selectedDosen.ProgramStudi?.Nama} />
+                      <InfoBlock label="Fakultas" value={selectedDosen.Fakultas?.Nama || selectedDosen.ProgramStudi?.Fakultas?.Nama} />
                     </div>
                   </div>
 
-                  {/* Contact Info */}
-                  <div className="space-y-6">
-                    <div className="flex items-center gap-3 border-b border-slate-100 pb-3">
-                      <div className="size-8 rounded-xl bg-amber-50 flex items-center justify-center text-amber-600">
-                        <Mail className="size-4" />
-                      </div>
-                      <h3 className="font-black text-xs uppercase tracking-widest text-slate-900 font-headline">Data Kontak Resmi</h3>
+                  {/* Verification & Status */}
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2 px-1">
+                      <UserCheck className="size-3 text-emerald-500" />
+                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Status Verifikasi</span>
                     </div>
-                    <div className="space-y-4 px-1">
-                      <DetailItem label="Email Resmi" value={selectedDosen.Pengguna?.Email} />
-                      <DetailItem
-                        label="Status DPA"
-                        value={selectedDosen.IsDPA ? 'Protokol DPA Aktif' : 'Non-DPA Staff'}
-                        isHighlight={selectedDosen.IsDPA}
-                      />
+                    <div className="space-y-3">
+                      <InfoBlock label="Email Institusi" value={selectedDosen.Pengguna?.Email} />
+                      <div className="flex flex-col gap-1">
+                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Wewenang DPA</span>
+                        <Badge className={cn(
+                          "w-fit text-[9px] font-black px-3 py-1 border-none",
+                          selectedDosen.IsDPA ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-400"
+                        )}>
+                          {selectedDosen.IsDPA ? 'AKTIF' : 'TIDAK AKTIF'}
+                        </Badge>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* Footer Actions */}
-              <div className="p-8 px-10 flex items-center justify-end gap-3 border-t border-slate-100 shrink-0 bg-slate-50/50">
+              {/* Close Action */}
+              <div className="p-6 px-8 flex items-center justify-end border-t border-slate-100 bg-slate-50/50 shrink-0">
                 <Button
-                  variant="ghost"
                   onClick={() => setIsDetailOpen(false)}
-                  className="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-900 px-8 h-12 rounded-2xl font-headline"
+                  className="text-[10px] font-black uppercase tracking-widest h-12 px-10 rounded-2xl bg-white border border-slate-200 text-slate-900 shadow-sm hover:bg-slate-50 active:scale-95 transition-all font-headline"
                 >
-                  Tutup
+                  Tutup Arsip
                 </Button>
               </div>
             </div>
@@ -262,16 +264,11 @@ export default function DosenPage() {
   )
 }
 
-function DetailItem({ label, value, isHighlight = false }) {
+function InfoBlock({ label, value }) {
   return (
-    <div className="flex flex-col gap-1">
-      <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest font-headline">{label}</span>
-      <span className={cn(
-        "text-[12px] font-bold font-headline uppercase truncate",
-        isHighlight ? "text-primary tracking-tight" : "text-slate-700"
-      )}>
-        {value || '—'}
-      </span>
+    <div className="flex flex-col gap-1 p-3 rounded-xl bg-white border border-slate-100 shadow-sm">
+      <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">{label}</span>
+      <span className="text-[11px] font-black text-slate-800 uppercase font-headline truncate">{value || '—'}</span>
     </div>
   )
 }
