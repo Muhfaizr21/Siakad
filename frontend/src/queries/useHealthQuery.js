@@ -96,8 +96,17 @@ export const useHealthMandiriMutation = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (payload) => {
-      const { data } = await api.post('/student-health/mandiri', payload);
-      return data;
+      try {
+        const { data } = await api.post('/student-health/mandiri', payload);
+        return data;
+      } catch (err) {
+        const status = err?.response?.status;
+        if (status === 404) {
+          const { data } = await api.post('/student-health/record', payload);
+          return data;
+        }
+        throw err;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['health'] });
