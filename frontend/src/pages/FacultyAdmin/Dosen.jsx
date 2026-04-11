@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useState, useEffect } from "react"
+import api from "../../lib/axios"
 import { DataTable } from "./components/data-table"
 import { Badge } from "./components/badge"
 import { Button } from "./components/button"
@@ -8,37 +9,20 @@ import { Avatar, AvatarFallback, AvatarImage } from "./components/avatar"
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
 } from "./components/dialog"
-import { DeleteConfirmModal } from "./components/DeleteConfirmModal"
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "./components/card"
+import { Card, CardContent } from "./components/card"
 import {
   Eye,
-  Pencil,
-  Trash2,
   Mail,
   BookOpen,
-  Loader2,
-  Plus,
-  Save,
-  UserCheck,
-  GraduationCap,
   Users,
+  ShieldCheck,
   Award,
-  ShieldCheck
+  Phone,
+  Layout
 } from "lucide-react"
-import { Input } from "./components/input"
-import { Label } from "./components/label"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "./components/select"
 import { toast, Toaster } from "react-hot-toast"
 import { cn } from "@/lib/utils"
 
@@ -48,35 +32,12 @@ export default function DosenPage() {
   const [selectedDosen, setSelectedDosen] = useState(null)
   const [isDetailOpen, setIsDetailOpen] = useState(false)
 
-  // CRUD Modal States
-  const [isCrudOpen, setIsCrudOpen] = useState(false)
-  const [isEditMode, setIsEditMode] = useState(false)
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [isDelOpen, setIsDelOpen] = useState(false)
-
-  const [formData, setFormData] = useState({
-    ID: null,
-    Nama: "",
-    NIDN: "",
-    Email: "",
-    FakultasID: "",
-    ProgramStudiID: "",
-    Jabatan: "Dosen Pengajar",
-    IsDPA: false,
-    AvatarURL: ""
-  })
-
-  // Dropdown Data
-  const [faculties, setFaculties] = useState([])
-  const [majors, setMajors] = useState([])
-
   const fetchLecturers = async () => {
     setLoading(true)
     try {
-      const res = await fetch('http://localhost:8000/api/faculty/lecturers')
-      const json = await res.json()
-      if (json.status === 'success') {
-        setLecturers(json.data)
+      const res = await api.get("/faculty/lecturers")
+      if (res.data.status === 'success') {
+        setLecturers(res.data.data)
       }
     } catch (err) {
       toast.error("Gagal mengambil data dosen")
@@ -85,175 +46,51 @@ export default function DosenPage() {
     }
   }
 
-  const fetchDependencies = async () => {
-    try {
-      const [facRes, majRes] = await Promise.all([
-        fetch('http://localhost:8000/api/faculty/faculties'),
-        fetch('http://localhost:8000/api/faculty/courses')
-      ])
-      const facJson = await facRes.json()
-      const majJson = await majRes.json()
-      if (facJson.status === 'success') setFaculties(facJson.data)
-      if (majJson.status === 'success') setMajors(majJson.data)
-    } catch (err) {
-      console.error("Gagal mengambil data pendukung")
-    }
-  }
-
   useEffect(() => {
     fetchLecturers()
-    fetchDependencies()
   }, [])
-
-  const handleOpenAdd = () => {
-    setIsEditMode(false)
-    setFormData({
-      ID: null, Nama: "", NIDN: "", Email: "", FakultasID: "", ProgramStudiID: "", Jabatan: "Dosen Pengajar", IsDPA: false, AvatarURL: ""
-    })
-    setIsCrudOpen(true)
-  }
-
-  const handleOpenEdit = (dosen) => {
-    setIsEditMode(true)
-    setFormData({
-      ID: dosen.ID,
-      Nama: dosen.Nama,
-      NIDN: dosen.NIDN,
-      Email: dosen.Pengguna?.Email || "",
-      FakultasID: dosen.FakultasID?.toString() || "",
-      ProgramStudiID: dosen.ProgramStudiID?.toString() || "",
-      Jabatan: dosen.Jabatan || "Dosen Pengajar",
-      IsDPA: dosen.IsDPA || false,
-      AvatarURL: dosen.AvatarURL || ""
-    })
-    setIsCrudOpen(true)
-  }
 
   const handleView = (dosen) => {
     setSelectedDosen(dosen)
     setIsDetailOpen(true)
   }
 
-  const handleSave = async (e) => {
-    if (e) e.preventDefault()
-    setIsSubmitting(true)
-
-    const url = isEditMode
-      ? `http://localhost:8000/api/faculty/lecturers/${formData.ID}`
-      : 'http://localhost:8000/api/faculty/lecturers'
-    const method = isEditMode ? 'PUT' : 'POST'
-
-    try {
-      const res = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...formData,
-          FakultasID: parseInt(formData.FakultasID),
-          ProgramStudiID: formData.ProgramStudiID ? parseInt(formData.ProgramStudiID) : 0,
-        })
-      })
-
-      const json = await res.json()
-      if (res.ok && json.status === 'success') {
-        toast.success(isEditMode ? "Data dosen diperbarui" : "Dosen berhasil ditambahkan")
-        setIsCrudOpen(false)
-        fetchLecturers()
-      } else {
-        let errorMsg = json.message || ""
-        if (errorMsg.includes("Duplicate entry") || errorMsg.includes("unique constraint")) {
-          errorMsg = "Email atau NIDN sudah terdaftar."
-        }
-        
-        const actionName = isEditMode ? "memperbarui data" : "menambah dosen"
-        toast.error(`Gagal ${actionName}: ${errorMsg}`)
-      }
-    } catch (err) {
-      const actionName = isEditMode ? "perbarui data" : "tambah dosen"
-      toast.error(`Terjadi gangguan koneksi saat ${actionName}`)
-    } finally {
-      setIsSubmitting(false)
-    }
-  }
-
-  const handleDelete = async () => {
-    if (!selectedDosen?.ID) return
-    setIsSubmitting(true)
-    try {
-      const res = await fetch(`http://localhost:8000/api/faculty/lecturers/${selectedDosen.ID}`, { method: 'DELETE' })
-      const json = await res.json()
-      if (json.status === 'success') {
-        toast.success("Dosen berhasil dihapus")
-        setIsDelOpen(false)
-        fetchLecturers()
-      }
-    } catch (err) {
-      toast.error("Gagal menghapus data")
-    } finally {
-      setIsSubmitting(false)
-    }
-  }
-
   const columns = [
     {
       key: "NIDN",
       label: "NIDN",
-      className: "w-[150px]",
-      render: (value) => <span className="font-bold text-slate-400 font-headline uppercase text-[10px] tracking-widest">{value || '-'}</span>
+      className: "w-[120px]",
+      render: (value) => <span className="font-medium text-slate-500 text-[11px] tracking-tight">{value || '-'}</span>
     },
     {
       key: "Nama",
-      label: "Profil Dosen",
-      className: "w-auto min-w-[280px]",
+      label: "Dosen",
+      className: "w-auto min-w-[250px]",
       render: (value, row) => (
         <div className="flex items-center gap-3">
-          <Avatar className="h-10 w-10 rounded-2xl border-2 border-white shadow-sm ring-1 ring-slate-100 uppercase font-black text-slate-800">
+          <Avatar className="h-8 w-8 rounded-lg border border-slate-200 bg-white">
             <AvatarImage src={row.AvatarURL} />
-            <AvatarFallback className="bg-slate-100 text-slate-800 text-[10px] font-black uppercase">
+            <AvatarFallback className="bg-white text-slate-800 text-[10px] font-bold uppercase transition-transform group-hover:scale-110">
               {value?.split(" ").map(n => n[0]).join("").substring(0, 2) || '?'}
             </AvatarFallback>
           </Avatar>
-          <div className="flex flex-col leading-tight">
-            <span className="font-bold text-slate-900 font-headline tracking-tighter text-[13px]">{value}</span>
-            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-tight flex items-center gap-1">
-              <Mail className="size-2.5 opacity-60" />
-              {row.Pengguna?.Email || '-'}
-            </span>
+          <div className="flex flex-col">
+            <span className="font-bold text-slate-900 text-[13px] tracking-tight">{value}</span>
+            <span className="text-[10px] text-slate-400 font-medium uppercase tracking-widest">{row.Jabatan || 'Dosen'}</span>
           </div>
         </div>
       )
     },
     {
-      key: "ProgramStudi",
-      label: "Program Studi",
-      className: "w-auto min-w-[200px]",
-      render: (value) => (
-        <div className="flex flex-col">
-          <span className="text-xs font-bold text-slate-700">{value?.Nama || '-'}</span>
-          <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">{value?.Fakultas?.Nama || '-'}</span>
-        </div>
-      )
-    },
-    {
-      key: "Jabatan",
-      label: "Jabatan",
-      className: "w-[180px]",
-      render: (value) => (
-        <Badge variant="outline" className="bg-slate-50 text-slate-600 border-slate-200 text-[10px] font-bold px-2 py-1 rounded-lg">
-          {value || 'Dosen Pengajar'}
-        </Badge>
-      )
-    },
-    {
       key: "IsDPA",
       label: "DPA",
-      className: "w-[120px] text-center",
+      className: "w-[100px] text-center",
       cellClassName: "text-center",
       render: (value) => (
         value ? (
-          <Badge className="bg-emerald-100 text-emerald-700 border-none shadow-none text-[9px] font-black px-2.5 py-1">TERDAFTAR</Badge>
+          <Badge className="bg-emerald-50 text-emerald-600 border-emerald-100 text-[9px] font-bold px-2 py-0.5 rounded-full shadow-none">AKTIF</Badge>
         ) : (
-          <Badge variant="ghost" className="text-slate-300 text-[9px] font-bold border-none">TIDAK</Badge>
+          <span className="text-[9px] font-bold text-slate-300">TIDAK</span>
         )
       )
     }
@@ -263,336 +100,121 @@ export default function DosenPage() {
     <div className="space-y-6">
       <Toaster position="top-right" />
 
-      {/* HEADER SECTION */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-8 pt-2">
-        <div className="flex flex-col gap-1.5">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-primary/10 rounded-xl text-primary">
-              <Users className="size-6" />
-            </div>
-            <h1 className="text-2xl font-black text-slate-900 font-headline tracking-tighter uppercase">Manajemen Dosen</h1>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="h-1 w-10 bg-primary rounded-full shadow-sm shadow-primary/30" />
-            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Database Tenaga Pengajar & Pimpinan Fakultas</p>
-          </div>
+      <div className="flex flex-col gap-1 mb-8">
+        <div className="flex items-center gap-2">
+           <div className="p-1.5 bg-slate-100 rounded-lg">
+              <BookOpen className="size-5 text-slate-900" />
+           </div>
+           <h1 className="text-xl font-bold text-slate-900 tracking-tight">Direktori Dosen</h1>
         </div>
-
+        <p className="text-[11px] text-slate-400 font-medium ml-1">Database tenaga pengajar dan staf ahli fakultas.</p>
       </div>
 
-      {/* MAIN TABLE */}
-      <Card className="border-none shadow-sm mt-4 overflow-hidden rounded-3xl">
+      <Card className="border shadow-sm overflow-hidden bg-white">
         <CardContent className="p-0">
           <DataTable
             columns={columns}
             data={lecturers}
             loading={loading}
             searchPlaceholder="Cari Nama, NIDN atau Jabatan..."
-            onAdd={handleOpenAdd}
-            addLabel="Registrasi Dosen"
             actions={(row) => (
-              <div className="flex items-center gap-2">
-                <Button
+              <Button
                   onClick={() => handleView(row)}
                   variant="ghost"
                   size="icon"
-                  className="h-9 w-9 rounded-xl hover:bg-blue-50 hover:text-blue-600 transition-colors"
+                  className="h-8 w-8 text-slate-400 hover:text-slate-900"
                 >
                   <Eye className="size-4" />
-                </Button>
-                <Button
-                  onClick={() => handleOpenEdit(row)}
-                  variant="ghost"
-                  size="icon"
-                  className="h-9 w-9 rounded-xl hover:bg-blue-50 hover:text-blue-600 transition-colors"
-                >
-                  <Pencil className="size-4" />
-                </Button>
-                <Button
-                  onClick={() => { setSelectedDosen(row); setIsDelOpen(true); }}
-                  variant="ghost"
-                  size="icon"
-                  className="h-9 w-9 rounded-xl hover:bg-rose-50 hover:text-rose-600 transition-colors text-slate-400"
-                >
-                  <Trash2 className="size-4" />
-                </Button>
-              </div>
+              </Button>
             )}
           />
         </CardContent>
       </Card>
 
-      {/* DETAIL DIALOG */}
+      {/* DETAIL DIALOG - CLEAN DATA SHEET STYLE */}
       <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
-        <DialogContent className="max-w-xl p-0 overflow-hidden border-none shadow-2xl rounded-[2.5rem] bg-white/95 backdrop-blur-xl">
+        <DialogContent className="max-w-xl p-0 overflow-hidden border-none shadow-2xl rounded-2xl bg-white">
           {selectedDosen && (
-            <div className="relative flex flex-col max-h-[90vh]">
-              {/* Header Profile Section */}
-              <div className="h-44 bg-slate-900 relative overflow-hidden shrink-0">
-                <div className="absolute inset-0 bg-gradient-to-br from-primary/40 to-transparent transition-transform duration-700" />
-                <div className="absolute top-0 right-0 p-12 opacity-[0.05] pointer-events-none">
-                  <Award className="size-48 rotate-12 text-white" />
-                </div>
+            <div className="flex flex-col max-h-[90vh]">
+               <DialogHeader className="p-6 border-b border-slate-100 bg-slate-50/50 shrink-0">
+                  <div className="flex items-center gap-4">
+                     <Avatar className="h-12 w-12 rounded-xl border border-slate-200 shadow-sm bg-white">
+                        <AvatarImage src={selectedDosen.AvatarURL} />
+                        <AvatarFallback className="text-slate-900 font-bold bg-white">{selectedDosen.Nama?.[0]}</AvatarFallback>
+                     </Avatar>
+                     <div className="flex flex-col">
+                        <DialogTitle className="text-lg font-bold text-slate-900 tracking-tight leading-none">
+                           {selectedDosen.Nama}
+                        </DialogTitle>
+                        <span className="text-[10px] font-black text-primary mt-1 uppercase tracking-[0.15em]">{selectedDosen.Jabatan || 'Dosen Pengajar'}</span>
+                     </div>
+                     <Badge className="ml-auto bg-white border border-slate-200 text-slate-600 text-[10px] font-bold px-3 py-1 rounded-lg">
+                        NIDN: {selectedDosen.NIDN}
+                     </Badge>
+                  </div>
+               </DialogHeader>
 
-                <div className="absolute top-8 right-8 z-20">
-                  <Badge
-                    className={cn(
-                      "capitalize text-[10px] font-black px-4 py-2 rounded-full border border-white/20 backdrop-blur-md shadow-xl",
-                      "bg-primary/20 text-white font-headline tracking-tighter italic"
-                    )}
+               <div className="overflow-y-auto p-8 space-y-8 custom-scrollbar">
+                  {/* SEKSI: PENUGASAN */}
+                  <div className="space-y-4">
+                     <div className="flex items-center gap-2 text-slate-900">
+                        <Layout className="size-4 opacity-40" />
+                        <h4 className="text-[11px] font-bold uppercase tracking-[0.1em]">Penugasan Akademik</h4>
+                     </div>
+                     <div className="grid grid-cols-2 gap-x-12 gap-y-4 border-l-2 border-slate-100 pl-4 py-1">
+                        <DataField label="Program Studi" value={selectedDosen.ProgramStudi?.Nama} />
+                        <DataField label="Fakultas" value={selectedDosen.Fakultas?.Nama || selectedDosen.ProgramStudi?.Fakultas?.Nama} />
+                        <DataField label="Jabatan Fungsional" value={selectedDosen.Jabatan} />
+                        <DataField label="Email Institusi" value={selectedDosen.Pengguna?.Email} isPrimary />
+                     </div>
+                  </div>
+
+                  {/* SEKSI: VERIFIKASI */}
+                  <div className="space-y-4">
+                     <div className="flex items-center gap-2 text-slate-900">
+                        <ShieldCheck className="size-4 opacity-40" />
+                        <h4 className="text-[11px] font-bold uppercase tracking-[0.1em]">Status & Wewenang</h4>
+                     </div>
+                     <div className="grid grid-cols-2 gap-x-12 gap-y-4 border-l-2 border-slate-100 pl-4 py-1">
+                        <div className="flex flex-col gap-1">
+                           <span className="text-[10px] font-medium text-slate-400 uppercase tracking-tighter">Status Wali (DPA)</span>
+                           <Badge className={cn(
+                              "w-fit text-[9px] font-bold px-2.5 py-0.5 border shadow-none",
+                              selectedDosen.IsDPA ? "bg-emerald-50 text-emerald-600 border-emerald-100" : "bg-slate-50 text-slate-400 border-slate-100"
+                           )}>
+                              {selectedDosen.IsDPA ? 'AKTIF' : 'NON-DPA'}
+                           </Badge>
+                        </div>
+                        <DataField label="Nomor Kontak (HP/WA)" value={selectedDosen.NoHP || '-'} isPrimary />
+                     </div>
+                  </div>
+               </div>
+
+               <div className="p-6 border-t border-slate-100 flex justify-end shrink-0">
+                  <Button
+                     onClick={() => setIsDetailOpen(false)}
+                     className="bg-slate-900 text-white text-[11px] font-bold px-8 h-10 rounded-lg hover:bg-slate-800 transition-all uppercase tracking-widest"
                   >
-                    <span className="size-2 rounded-full bg-current mr-2 animate-pulse" />
-                    {selectedDosen.Jabatan || 'Dosen Pengajar'}
-                  </Badge>
-                </div>
-
-                <div className="absolute -bottom-12 left-10 z-20 p-2 bg-white rounded-[2.2rem] shadow-2xl shadow-slate-900/10">
-                  <Avatar className="h-32 w-32 rounded-[1.8rem] border-4 border-slate-50">
-                    <AvatarImage src={selectedDosen.AvatarURL} />
-                    <AvatarFallback className="bg-gradient-to-br from-slate-100 to-slate-200 text-slate-800 text-4xl font-black font-headline">
-                      {selectedDosen.Nama?.split(" ").map(n => n[0]).join("").substring(0, 2) || '?'}
-                    </AvatarFallback>
-                  </Avatar>
-                </div>
-              </div>
-
-              {/* Scrollable Content */}
-              <div className="overflow-y-auto p-10 pt-16 space-y-10 custom-scrollbar">
-                <div className="flex flex-col gap-1">
-                  <h2 className="text-4xl font-black text-slate-900 font-headline tracking-tighter leading-none uppercase">{selectedDosen.Nama}</h2>
-                  <div className="flex items-center gap-3">
-                    <Badge variant="secondary" className="text-[10px] font-black bg-primary/5 text-primary border-none px-3 py-1 rounded-md tracking-wider">
-                      FACULTY LECTURER
-                    </Badge>
-                    <p className="text-sm font-bold text-slate-400 uppercase tracking-[0.2em] font-headline">NIDN: {selectedDosen.NIDN}</p>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-4">
-                  {/* Academic Info */}
-                  <div className="space-y-6">
-                    <div className="flex items-center gap-3 border-b border-slate-100 pb-3">
-                      <div className="size-8 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600">
-                        <BookOpen className="size-4" />
-                      </div>
-                      <h3 className="font-black text-xs uppercase tracking-widest text-slate-900 font-headline">Distribusi Akademik</h3>
-                    </div>
-                    <div className="space-y-4 px-1">
-                      <DetailItem label="Program Studi" value={selectedDosen.ProgramStudi?.Nama} />
-                      <DetailItem label="Fakultas" value={selectedDosen.Fakultas?.Nama || selectedDosen.ProgramStudi?.Fakultas?.Nama} />
-                      <DetailItem label="Jabatan Akademik" value={selectedDosen.Jabatan} />
-                    </div>
-                  </div>
-
-                  {/* Contact Info */}
-                  <div className="space-y-6">
-                    <div className="flex items-center gap-3 border-b border-slate-100 pb-3">
-                      <div className="size-8 rounded-xl bg-amber-50 flex items-center justify-center text-amber-600">
-                        <Mail className="size-4" />
-                      </div>
-                      <h3 className="font-black text-xs uppercase tracking-widest text-slate-900 font-headline">Data Kontak Resmi</h3>
-                    </div>
-                    <div className="space-y-4 px-1">
-                      <DetailItem label="Email Resmi" value={selectedDosen.Pengguna?.Email} />
-                      <DetailItem
-                        label="Status DPA"
-                        value={selectedDosen.IsDPA ? 'Protokol DPA Aktif' : 'Non-DPA Staff'}
-                        isHighlight={selectedDosen.IsDPA}
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Footer Actions */}
-              <div className="p-8 px-10 flex items-center justify-end gap-3 border-t border-slate-100 shrink-0 bg-slate-50/50">
-                <Button
-                  variant="ghost"
-                  onClick={() => setIsDetailOpen(false)}
-                  className="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-900 px-8 h-12 rounded-2xl font-headline"
-                >
-                  Close Archive
-                </Button>
-                <Button
-                  onClick={() => { setIsDetailOpen(false); handleOpenEdit(selectedDosen); }}
-                  className="text-[10px] font-black uppercase tracking-widest h-12 px-10 rounded-2xl shadow-xl shadow-primary/20 bg-primary text-white hover:bg-primary/90 transition-all hover:scale-[1.02] active:scale-95 font-headline"
-                >
-                  Edit Records
-                </Button>
-              </div>
+                     Tutup
+                  </Button>
+               </div>
             </div>
           )}
         </DialogContent>
       </Dialog>
-
-      {/* CRUD MODAL */}
-      <Dialog open={isCrudOpen} onOpenChange={setIsCrudOpen}>
-        <DialogContent className="max-w-xl p-0 overflow-hidden border-none shadow-2xl rounded-[2rem] bg-white/95 backdrop-blur-xl">
-          <DialogHeader className="p-8 pb-6 bg-gradient-to-br from-slate-50 to-white border-b border-slate-100 relative overflow-hidden">
-            <div className="absolute top-0 right-0 p-8 opacity-5">
-              <Award className="size-24 rotate-12" />
-            </div>
-            <div className="relative z-10">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="size-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary text-xs font-black">
-                  {isEditMode ? <Pencil className="size-4" /> : <Plus className="size-4 stroke-[3px]" />}
-                </div>
-                <Badge variant="secondary" className="text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 bg-primary/5 text-primary border-none">
-                  Institutional Registry
-                </Badge>
-              </div>
-              <DialogTitle className="text-2xl font-black font-headline tracking-tighter text-slate-900 uppercase">
-                {isEditMode ? 'Update Data Dosen' : 'Registrasi Pengajar'}
-              </DialogTitle>
-              <DialogDescription className="text-xs font-medium text-slate-400 mt-1">
-                Dokumentasi profil akademik & tenaga pengajar fakultas.
-              </DialogDescription>
-            </div>
-          </DialogHeader>
-
-          <form onSubmit={handleSave} className="p-8 pt-6 space-y-6">
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2 col-span-2">
-                  <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Nama Lengkap & Gelar Akademik</Label>
-                  <Input
-                    value={formData.Nama}
-                    onChange={(e) => setFormData({ ...formData, Nama: e.target.value })}
-                    placeholder="Contoh: Dr. Ir. Ahmad, M.T."
-                    className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white transition-all font-bold text-sm font-headline"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Universal ID (NIDN)</Label>
-                  <Input
-                    value={formData.NIDN}
-                    onChange={(e) => setFormData({ ...formData, NIDN: e.target.value })}
-                    placeholder="00123xxx"
-                    className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white transition-all font-black text-sm font-headline tracking-widest"
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Email Resmi Perpustakaan</Label>
-                  <Input
-                    type="email"
-                    value={formData.Email}
-                    onChange={(e) => setFormData({ ...formData, Email: e.target.value })}
-                    placeholder="nama@univ.ac.id"
-                    className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white transition-all font-bold text-sm font-headline"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Divisi Fakultas</Label>
-                  <Select value={formData.FakultasID} onValueChange={(val) => setFormData({ ...formData, FakultasID: val })}>
-                    <SelectTrigger className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 font-bold font-headline text-xs px-4">
-                      <SelectValue placeholder="Pilih Instansi" />
-                    </SelectTrigger>
-                    <SelectContent className="rounded-2xl shadow-2xl p-1 font-headline overflow-hidden">
-                      {faculties.map(f => (
-                        (f.ID !== undefined && f.ID !== null && f.ID !== "") && (
-                          <SelectItem key={f.ID} value={String(f.ID)} className="rounded-xl font-bold text-[11px] p-3 focus:bg-primary/5 focus:text-primary uppercase font-headline">{f.Nama}</SelectItem>
-                        )
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Program Studi</Label>
-                  <Select value={formData.ProgramStudiID} onValueChange={(val) => setFormData({ ...formData, ProgramStudiID: val })}>
-                    <SelectTrigger className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 font-bold font-headline text-xs px-4">
-                      <SelectValue placeholder="Pilih Bidang" />
-                    </SelectTrigger>
-                    <SelectContent className="rounded-2xl shadow-2xl p-1 font-headline overflow-hidden">
-                      {majors.map(m => (
-                        (m.ID !== undefined && m.ID !== null && m.ID !== "") && (
-                          <SelectItem key={m.ID} value={String(m.ID)} className="rounded-xl font-bold text-[11px] p-3 focus:bg-primary/5 focus:text-primary uppercase font-headline">{m.Nama}</SelectItem>
-                        )
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4 items-end">
-                <div className="space-y-2">
-                  <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Posisi Jabatan Akademik</Label>
-                  <Select value={formData.Jabatan} onValueChange={(val) => setFormData({ ...formData, Jabatan: val })}>
-                    <SelectTrigger className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 font-bold font-headline text-xs px-4">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="rounded-2xl shadow-2xl p-1 font-headline overflow-hidden">
-                      <SelectItem value="Dosen Pengajar" className="rounded-xl font-bold text-[11px] p-3 font-headline uppercase">Dosen Pengajar</SelectItem>
-                      <SelectItem value="Ketua Program Studi" className="rounded-xl font-bold text-[11px] p-3 font-black text-primary uppercase leading-tight tracking-tighter italic border-b border-primary/20 font-headline">Ketua Program Studi</SelectItem>
-                      <SelectItem value="Sekretaris Prodi" className="rounded-xl font-bold text-[11px] p-3 font-black text-primary uppercase leading-tight tracking-tighter italic border-b border-primary/20 font-headline">Sekretaris Prodi</SelectItem>
-                      <SelectItem value="Dekan" className="rounded-xl font-bold text-[11px] p-3 font-black text-primary uppercase leading-tight tracking-tighter italic border-b border-primary/20 font-headline">Dekan</SelectItem>
-                      <SelectItem value="Wakil Dekan" className="rounded-xl font-bold text-[11px] p-3 font-black text-primary uppercase leading-tight tracking-tighter italic border-b border-primary/20 font-headline">Wakil Dekan</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Status Pembimbing (DPA)</Label>
-                  <div className="flex items-center space-x-3 bg-slate-50/50 p-3 h-12 rounded-2xl border border-slate-100 transition-all hover:bg-white cursor-pointer group">
-                    <input
-                      type="checkbox"
-                      id="IsDPA"
-                      checked={formData.IsDPA}
-                      onChange={(e) => setFormData({ ...formData, IsDPA: e.target.checked })}
-                      className="h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary shadow-sm"
-                    />
-                    <Label htmlFor="IsDPA" className="text-[10px] font-bold text-slate-500 cursor-pointer uppercase tracking-tight group-hover:text-primary transition-colors font-headline">Aktifkan Protokol DPA</Label>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <DialogFooter className="pt-4 flex flex-row items-center justify-end gap-3 border-t border-slate-100 -mx-8 px-8 bg-slate-50/30">
-              <Button type="button" variant="ghost" onClick={() => setIsCrudOpen(false)} className="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-900 px-8 h-12 rounded-2xl font-headline">
-                Batalkan
-              </Button>
-              <Button type="submit" disabled={isSubmitting} className="h-12 px-10 rounded-2xl bg-primary text-white hover:bg-primary/90 shadow-xl shadow-primary/20 transition-all hover:scale-[1.02] active:scale-95 font-headline">
-                {isSubmitting ? (
-                  <Loader2 className="animate-spin size-4 mr-3" />
-                ) : (
-                  <Save className="size-4 mr-3 stroke-[3px]" />
-                )}
-                <span className="text-[10px] font-black uppercase tracking-[0.2em] font-headline">{isEditMode ? 'Update Database' : 'Finalize Profile'}</span>
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
-
-      <DeleteConfirmModal
-        isOpen={isDelOpen}
-        onClose={() => setIsDelOpen(false)}
-        onConfirm={handleDelete}
-        title="Hapus Data Dosen?"
-        description="Seluruh kredensial login dan riwayat penugasan dosen ini akan dihapus permanen dari sistem fakultas."
-        loading={isSubmitting}
-      />
     </div>
   )
 }
 
-// Helper Component
-function DetailItem({ label, value, isHighlight = false }) {
+function DataField({ label, value, isPrimary = false }) {
   return (
-    <div className="flex flex-col gap-1">
-      <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest font-headline">{label}</span>
+    <div className="flex flex-col gap-0.5">
+      <span className="text-[10px] font-medium text-slate-400 uppercase tracking-tighter">{label}</span>
       <span className={cn(
-        "text-[12px] font-bold font-headline uppercase truncate",
-        isHighlight ? "text-primary tracking-tight" : "text-slate-700"
+         "text-[12px] font-bold tracking-tight uppercase truncate",
+         isPrimary ? "text-primary italic" : "text-slate-700"
       )}>
-        {value || '—'}
+         {value || '—'}
       </span>
     </div>
   )

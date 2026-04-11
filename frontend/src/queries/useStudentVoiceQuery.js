@@ -115,10 +115,21 @@ export const useCreateVoiceMutation = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (formData) => {
-      const { data } = await api.post('/student-voice', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
-      return data;
+      try {
+        const { data } = await api.post('/student-voice/create', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
+        return data;
+      } catch (err) {
+        const status = err?.response?.status;
+        if (status === 404 || status === 405) {
+          const { data } = await api.post('/student-voice', formData, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+          });
+          return data;
+        }
+        throw err;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['student-voice'] });

@@ -11,7 +11,6 @@ import (
 	"gorm.io/gorm"
 )
 
-
 func GetUsers(c *fiber.Ctx) error {
 	fmt.Println(">>> RBAC: Fetching all users via RAW SQL...")
 	var users []models.User
@@ -30,11 +29,10 @@ func GetUsers(c *fiber.Ctx) error {
 	})
 }
 
-
 // UpdateUserRole handles role assignment and logs the event in log_aktivitas
 func UpdateUserRole(c *fiber.Ctx) error {
 	type UpdateRequest struct {
-		UserID uint `json:"userId"`
+		UserID uint   `json:"userId"`
 		Role   string `json:"role"`
 	}
 
@@ -45,7 +43,6 @@ func UpdateUserRole(c *fiber.Ctx) error {
 	}
 	fmt.Printf(">>> RBAC: Updating User %d to Role %s\n", req.UserID, req.Role)
 
-
 	// 1. Find user to be modified
 	var user models.User
 	if err := config.DB.First(&user, req.UserID).Error; err != nil {
@@ -55,26 +52,23 @@ func UpdateUserRole(c *fiber.Ctx) error {
 	// 2. Execution with User Update
 	err := config.DB.Transaction(func(tx *gorm.DB) error {
 
-
 		// Update user role via raw SQL to bypass any GORM association issues
 		if err := tx.Exec("UPDATE public.users SET role = ?, updated_at = ? WHERE id = ?", req.Role, time.Now(), user.ID).Error; err != nil {
 			return err
 		}
 
-
 		// Log activity (Temporarily disabled until schema fix)
 		/*
-		logEntry := models.LogAktivitas{
-			UserID:    user.ID,
-			Aktivitas: "UPDATE_USER_ROLE",
-			Deskripsi: fmt.Sprintf("Changed role from '%s' to '%s'. IP: %s", oldRole, req.Role, c.IP()),
-			IPAddress: c.IP(),
-		}
-		if err := tx.Create(&logEntry).Error; err != nil {
-			return err
-		}
+			logEntry := models.LogAktivitas{
+				UserID:    user.ID,
+				Aktivitas: "UPDATE_USER_ROLE",
+				Deskripsi: fmt.Sprintf("Changed role from '%s' to '%s'. IP: %s", oldRole, req.Role, c.IP()),
+				IPAddress: c.IP(),
+			}
+			if err := tx.Create(&logEntry).Error; err != nil {
+				return err
+			}
 		*/
-
 
 		return nil
 	})
@@ -129,7 +123,6 @@ func CreateUser(c *fiber.Ctx) error {
 		Password: string(hashedPassword),
 		Role:     req.Role,
 	}
-
 
 	if err := config.DB.Create(&user).Error; err != nil {
 		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Failed to create user"})
@@ -227,12 +220,12 @@ func RejectProposalUniv(c *fiber.Ctx) error {
 func GetAllFakultas(c *fiber.Ctx) error {
 	var faks []models.Fakultas
 	config.DB.Preload("ProgramStudi").Find(&faks)
-	
+
 	type FacultyWithCount struct {
 		models.Fakultas
 		JumlahProdi int `json:"jumlah_prodi"`
 	}
-	
+
 	var result []FacultyWithCount
 	for _, f := range faks {
 		result = append(result, FacultyWithCount{
@@ -240,11 +233,9 @@ func GetAllFakultas(c *fiber.Ctx) error {
 			JumlahProdi: len(f.ProgramStudi),
 		})
 	}
-		
+
 	return c.JSON(fiber.Map{"status": "success", "data": result})
 }
-
-
 
 func CreateFakultas(c *fiber.Ctx) error {
 	var fak models.Fakultas
@@ -299,7 +290,6 @@ func GetAllOrmawa(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"status": "success", "data": orgs})
 }
 
-
 func GetAllStudents(c *fiber.Ctx) error {
 	var mhs []models.Mahasiswa
 	config.DB.Preload("Fakultas").Preload("ProgramStudi").Order("nama asc").Find(&mhs)
@@ -334,7 +324,7 @@ func CreateStudent(c *fiber.Ctx) error {
 
 		user := models.User{
 			Email:    email,
-			Password: "password123", 
+			Password: "password123",
 			Role:     "mahasiswa",
 		}
 		// 1. Create User first
@@ -351,7 +341,7 @@ func CreateStudent(c *fiber.Ctx) error {
 		fmt.Printf("[DEBUG] User created with ID: %d\n", user.ID)
 
 		// 2. Prepare Mahasiswa data
-		mhs.PenggunaID = user.ID 
+		mhs.PenggunaID = user.ID
 		mhs.Pengguna = user // Beritahu GORM ini user-nya
 		mhs.SemesterSekarang = 1
 		mhs.StatusAkun = "Aktif"
@@ -433,7 +423,7 @@ func DeleteProgramStudi(c *fiber.Ctx) error {
 func GetAllScholarships(c *fiber.Ctx) error {
 	var list []models.Beasiswa
 	config.DB.Find(&list)
-	
+
 	// Manual mapping to PascalCase for Frontend compatibility without changing the model
 	var mappedList []map[string]interface{}
 	for _, b := range list {
@@ -453,7 +443,6 @@ func GetAllScholarships(c *fiber.Ctx) error {
 
 	return c.JSON(fiber.Map{"status": "success", "data": mappedList})
 }
-
 
 func CreateScholarship(c *fiber.Ctx) error {
 	var payload struct {
@@ -480,8 +469,6 @@ func CreateScholarship(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"status": "success", "message": "Beasiswa created"})
 }
 
-
-
 func UpdateScholarship(c *fiber.Ctx) error {
 	id := c.Params("id")
 	var payload struct {
@@ -507,8 +494,6 @@ func UpdateScholarship(c *fiber.Ctx) error {
 	}
 	return c.JSON(fiber.Map{"status": "success", "message": "Beasiswa updated"})
 }
-
-
 
 func DeleteScholarship(c *fiber.Ctx) error {
 	id := c.Params("id")
@@ -584,8 +569,6 @@ func CreateOrmawa(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"status": "success", "message": "Ormawa created successfully"})
 }
 
-
-
 func UpdateOrmawa(c *fiber.Ctx) error {
 	id := c.Params("id")
 	var payload struct {
@@ -610,8 +593,6 @@ func UpdateOrmawa(c *fiber.Ctx) error {
 
 	return c.JSON(fiber.Map{"status": "success", "message": "Ormawa updated successfully"})
 }
-
-
 
 func DeleteOrmawa(c *fiber.Ctx) error {
 	id := c.Params("id")
@@ -717,4 +698,3 @@ func DeleteNews(c *fiber.Ctx) error {
 	config.DB.Delete(&models.Berita{}, id)
 	return c.JSON(fiber.Map{"status": "success", "message": "Berita dihapus"})
 }
-

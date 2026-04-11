@@ -24,12 +24,12 @@ type BaseModel struct {
 
 type User struct {
 	BaseModel
-	Email      string `gorm:"uniqueIndex;not null"`
-	Password   string `gorm:"column:password_hash"`
-	Role       string `gorm:"index"`
-	FakultasID *uint  `gorm:"index"`
+	Email      string `gorm:"uniqueIndex;not null" json:"email"`
+	Password   string `gorm:"column:password" json:"-"`
+	Role       string `gorm:"index" json:"role"`
+	FakultasID *uint  `gorm:"index" json:"fakultas_id"`
 
-	Dosen *Dosen `gorm:"foreignKey:PenggunaID"`
+	Dosen *Dosen `gorm:"foreignKey:PenggunaID" json:"dosen,omitempty"`
 }
 
 func (User) TableName() string {
@@ -81,8 +81,8 @@ func (ProgramStudi) TableName() string {
 
 type Dosen struct {
 	BaseModel
-	PenggunaID uint
-	Pengguna   User `gorm:"foreignKey:PenggunaID"`
+	PenggunaID uint   `json:"pengguna_id"`
+	Pengguna   *User  `gorm:"foreignKey:PenggunaID" json:"pengguna,omitempty"`
 
 	NIDN           string `gorm:"uniqueIndex"`
 	Nama           string
@@ -188,6 +188,10 @@ type AcademicPeriod struct {
 	AcademicYear string `gorm:"column:tahun_ajaran"`
 	IsActive     bool   `gorm:"column:is_aktif"`
 	IsKRSOpen    bool   `gorm:"column:krs_buka"`
+}
+
+func (AcademicPeriod) TableName() string {
+	return "fakultas.academic_periods"
 }
 
 type PengaturanAkademik struct {

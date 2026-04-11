@@ -40,6 +40,7 @@ func migrateModels(db *gorm.DB) error {
 	}
 
 	if err := db.AutoMigrate(
+		&models.AcademicPeriod{},
 		&models.PengaturanAkademik{},
 		&models.ProgramMBKM{},
 		&models.Berita{},

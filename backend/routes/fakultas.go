@@ -14,16 +14,16 @@ func InisialisasiRuteFakultas(aplikasi *fiber.App) {
 	// Akademik & Dosen
 	api.Get("/lecturers", fakultas.AmbilDaftarDosen)
 	api.Get("/lecturers/:id", fakultas.AmbilDosenBerdasarID)
-	api.Post("/lecturers", fakultas.TambahDosenBaru)
-	api.Put("/lecturers/:id", fakultas.PerbaruiDataDosen)
-	api.Delete("/lecturers/:id", fakultas.HapusDataDosen)
+	// api.Post("/lecturers", fakultas.TambahDosenBaru)
+	// api.Put("/lecturers/:id", fakultas.PerbaruiDataDosen)
+	// api.Delete("/lecturers/:id", fakultas.HapusDataDosen)
 
 	// Mahasiswa
 	api.Get("/students", fakultas.AmbilDaftarMahasiswa)
 	api.Get("/students/:id", fakultas.AmbilMahasiswaBerdasarID)
-	api.Post("/students", fakultas.TambahMahasiswaBaru)
-	api.Put("/students/:id", fakultas.PerbaruiDataMahasiswa)
-	api.Delete("/students/:id", fakultas.HapusDataMahasiswa)
+	// api.Post("/students", fakultas.TambahMahasiswaBaru)
+	// api.Put("/students/:id", fakultas.PerbaruiDataMahasiswa)
+	// api.Delete("/students/:id", fakultas.HapusDataMahasiswa)
 
 	// Struktur Organisasi (Fakultas & Prodi/Majors)
 	api.Get("/faculties", fakultas.AmbilDaftarFakultas)
@@ -117,6 +117,11 @@ func InisialisasiRuteFakultas(aplikasi *fiber.App) {
 	api.Get("/academic-periods", fakultas.AmbilPengaturanAkademik)
 	api.Post("/academic-periods", fakultas.SimpanPengaturanAkademik)
 	api.Put("/academic-periods", fakultas.SimpanPengaturanAkademik) // ALIAS
+
+    // Akun & Profil (Baru) - Terpisah dari Mahasiswa
+    api.Get("/profile", fakultas.AmbilProfilAdminFakultas)
+    api.Put("/profile", fakultas.PerbaruiProfilAdminFakultas)
+    api.Put("/change-password", fakultas.GantiPasswordAdminFakultas)
 
 	api.Get("/ringkasan", fakultas.AmbilRingkasanPkkmb)
 	api.Get("/peserta", fakultas.AmbilDaftarKelulusanMaba)

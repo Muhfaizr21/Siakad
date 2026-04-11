@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState, useEffect } from "react"
-import axios from "axios"
+import api from "../../lib/axios"
 import { toast, Toaster } from "react-hot-toast"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./components/card"
 import { Badge } from "./components/badge"
@@ -9,7 +9,7 @@ import { Button } from "./components/button"
 import { DataTable } from "./components/data-table"
 import { DeleteConfirmModal } from "./components/DeleteConfirmModal"
 import {
-  Calendar,
+  CalendarDays,
   Plus,
   Pencil,
   Trash2,
@@ -18,6 +18,7 @@ import {
   Clock,
   CheckCircle2,
   Settings,
+  Calendar,
 } from "lucide-react"
 import {
   Dialog,
@@ -58,8 +59,8 @@ export default function TahunAkademikPage() {
   const fetchData = async () => {
     try {
       setLoading(true)
-      const res = await axios.get("http://localhost:8000/api/faculty/academic-periods")
-      if (res.data.status === "success") {
+      const res = await api.get("/faculty/academic-periods")
+      if (res.data.status === "success" && res.data.data) {
         setData([res.data.data])
       }
     } catch {
@@ -75,13 +76,19 @@ export default function TahunAkademikPage() {
 
   const handleOpenAdd = () => {
     setIsEditMode(false)
-    setFormData({ id: null, year: "", semester: "Ganjil", startDate: "", endDate: "", isActive: true })
+    setFormData({ id: 0, activeYear: "", activeSemester: "Ganjil", isKrsOpen: false, isGradeInputOpen: false })
     setIsCrudOpen(true)
   }
 
   const handleOpenEdit = (row) => {
     setIsEditMode(true)
-    setFormData(row)
+    setFormData({
+        id: row.id,
+        activeYear: row.activeYear,
+        activeSemester: row.activeSemester,
+        isKrsOpen: row.isKrsOpen,
+        isGradeInputOpen: row.isGradeInputOpen
+    })
     setIsCrudOpen(true)
   }
 
@@ -89,28 +96,22 @@ export default function TahunAkademikPage() {
     if (e) e.preventDefault()
     setIsSubmitting(true)
     try {
-      if (isEditMode) {
-        await axios.post(`http://localhost:8000/api/faculty/academic-periods`, formData)
-        toast.success("Periode berhasil diperbarui")
-      } else {
-        await axios.post("http://localhost:8000/api/faculty/academic-periods", formData)
-        toast.success("Periode baru telah ditambahkan")
-      }
+      await api.post("/faculty/academic-periods", formData)
+      toast.success(isEditMode ? "Periode berhasil diperbarui" : "Periode baru diinisialisasi")
       fetchData()
       setIsCrudOpen(false)
     } catch (err) {
-      const errorMsg = err.response?.data?.message || "Gagal menyimpan data periode"
-      toast.error(errorMsg)
+      toast.error(err.response?.data?.message || "Gagal menyimpan data periode")
     } finally {
       setIsSubmitting(false)
     }
   }
 
-  const handleDelete = async () => {
+    const handleDelete = async () => {
     if (!selectedPeriodId) return
     setIsSubmitting(true)
     try {
-      await axios.delete(`http://localhost:8000/api/faculty/academic-periods/${selectedPeriodId}`)
+      await api.delete(`/faculty/academic-periods/${selectedPeriodId}`)
       toast.success("Periode akademik berhasil dihapus")
       fetchData()
       setIsDelOpen(false)
@@ -167,13 +168,13 @@ export default function TahunAkademikPage() {
         <div className="flex flex-col gap-1.5">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-primary/10 rounded-xl text-primary">
-              <Settings className="size-6" />
+              <CalendarDays className="size-6" />
             </div>
-            <h1 className="text-2xl font-black text-slate-900 font-headline tracking-tighter uppercase">Konfigurasi Periode</h1>
+            <h1 className="text-2xl font-black text-slate-900 font-headline tracking-tighter uppercase">Periode Akademik</h1>
           </div>
           <div className="flex items-center gap-2">
              <div className="h-1 w-10 bg-primary rounded-full shadow-sm shadow-primary/30" />
-             <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Kalender Akademik & Parameter Sistem</p>
+             <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Manajemen Kalender & Parameter Sistem</p>
           </div>
         </div>
 

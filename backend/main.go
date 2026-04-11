@@ -64,17 +64,17 @@ func main() {
 	// Unprotected routes
 	app.Get("/api/health", func(c *fiber.Ctx) error {
 		return c.Status(200).JSON(fiber.Map{
-			"status": "success",
+			"status":  "success",
 			"message": "Backend is online",
 		})
 	})
 	app.Get("/api/status", func(c *fiber.Ctx) error {
 		return c.Status(200).JSON(fiber.Map{
-			"status": "success",
+			"status":  "success",
 			"message": "Backend is online",
 		})
 	})
-	
+
 	// Auth Routes
 	authGroup := app.Group("/api/auth")
 	authGroup.Post("/login", authSvc.Login)
@@ -85,7 +85,7 @@ func main() {
 
 	// API Group for typical authenticated users
 	api := app.Group("/api", middleware.AuthProtected)
-	
+
 	// Mahasiswa Dashboard
 	api.Get("/mahasiswa/dashboard", dashboard.GetDashboard)
 	api.Get("/mahasiswa/kegiatan", dashboard.GetKegiatan)
@@ -129,6 +129,7 @@ func main() {
 	// Student Health Records
 	studentHealthGroup := api.Group("/student-health")
 	studentHealthGroup.Get("/riwayat", health.GetHealthRiwayat)
+	studentHealthGroup.Get("/riwayat/:id", health.GetHealthDetail)
 	studentHealthGroup.Get("/ringkasan", health.GetHealthRingkasan)
 	studentHealthGroup.Get("/tips", health.GetHealthTips)
 	studentHealthGroup.Post("/record", health.CreateHealthRecord)
@@ -138,8 +139,10 @@ func main() {
 	counselingGroup := api.Group("/counseling")
 	counselingGroup.Get("/status", counseling.GetCounselingStatus)
 	counselingGroup.Get("/jadwal", counseling.GetCounselingJadwal)
+	counselingGroup.Post("/booking", counseling.CreateBooking)
 	counselingGroup.Post("/request", counseling.RequestCounseling)
 	counselingGroup.Get("/riwayat", counseling.GetCounselingRiwayat)
+	counselingGroup.Delete("/riwayat/:id", counseling.CancelBooking)
 
 	// Scholarship
 	scholarshipGroup := api.Group("/scholarship")
@@ -153,8 +156,9 @@ func main() {
 	voiceGroup := api.Group("/student-voice")
 	voiceGroup.Get("/stats", voice.GetStats)
 	voiceGroup.Get("/", voice.GetAspirasiList)
+	voiceGroup.Post("/create", voice.CreateAspirasi)
+	voiceGroup.Put("/:id/cancel", voice.CancelAspirasi)
 	voiceGroup.Get("/:id", voice.GetDetail)
-	voiceGroup.Post("/", voice.CreateAspirasi)
 	voiceGroup.Post("/create", voice.CreateAspirasi)
 	voiceGroup.Delete("/:id", voice.CancelAspirasi)
 
