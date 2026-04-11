@@ -1,237 +1,164 @@
-import React, { useState, useEffect } from 'react';
-import Sidebar from './components/Sidebar';
-import TopNavBar from './components/TopNavBar';
-import { adminService, fakultasService } from '../../services/api';
+"use client"
 
-const KelolaProdi = () => {
-    const [prodis, setProdis] = useState([]);
-    const [faculties, setFaculties] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [editingProdi, setEditingProdi] = useState(null);
-    const [formData, setFormData] = useState({ 
-        Nama: '', Kode: '', Jenjang: 'S1', Akreditasi: 'B', 
-        Kapasitas: 0, KepalaProdi: '', FakultasID: '' 
-    });
+import React, { useState, useEffect } from 'react'
+import { DataTable } from '../FacultyAdmin/components/data-table'
+import { Badge } from '../FacultyAdmin/components/badge'
+import { Button } from '../FacultyAdmin/components/button'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '../FacultyAdmin/components/dialog'
+import { DeleteConfirmModal } from '../FacultyAdmin/components/DeleteConfirmModal'
+import { Card, CardContent } from '../FacultyAdmin/components/card'
+import { Input } from '../FacultyAdmin/components/input'
+import { Label } from '../FacultyAdmin/components/label'
+import { Pencil, Trash2, Loader2, Plus, Save, BookOpen } from 'lucide-react'
+import { toast, Toaster } from 'react-hot-toast'
+import { cn } from '@/lib/utils'
+import Sidebar from './components/Sidebar'
+import TopNavBar from './components/TopNavBar'
+import { adminService } from '../../services/api'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../FacultyAdmin/components/select'
 
-    useEffect(() => {
-        loadData();
-    }, []);
+export default function KelolaProdi() {
+  const [data, setData] = useState([])
+  const [faculties, setFaculties] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [isCrudOpen, setIsCrudOpen] = useState(false)
+  const [isDelOpen, setIsDelOpen] = useState(false)
+  const [isEditMode, setIsEditMode] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [selected, setSelected] = useState(null)
+  const [form, setForm] = useState({ Nama: '', Kode: '', Jenjang: 'S1', FakultasID: '' })
 
-    const loadData = async () => {
-        try {
-            setLoading(true);
-            const [prodiRes, fakRes] = await Promise.all([
-                adminService.getAllProdi(),
-                fakultasService.getAll()
-            ]);
-            if (prodiRes.status === 'success') setProdis(prodiRes.data || []);
-            if (fakRes.status === 'success') setFaculties(fakRes.data || []);
-        } catch (error) {
-            console.error('Audit Error Prodi:', error);
-            // alert(`Sistem Audit: Gagal memuat data prodi. ${error.message}`);
-        } finally {
-            setLoading(false);
-        }
-    };
+  const fetchData = async () => {
+    setLoading(true)
+    try {
+      const [prodiRes, facRes] = await Promise.all([adminService.getAllProdi(), adminService.getAllFaculties()])
+      if (prodiRes.status === 'success') setData(prodiRes.data || [])
+      if (facRes.status === 'success') setFaculties(facRes.data || [])
+    } catch { toast.error('Gagal memuat data') } finally { setLoading(false) }
+  }
+  useEffect(() => { fetchData() }, [])
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        try {
-            const data = {
-                ...formData,
-                FakultasID: parseInt(formData.FakultasID),
-                Kapasitas: parseInt(formData.Kapasitas)
-            };
+  const handleOpenAdd = () => { setIsEditMode(false); setForm({ Nama: '', Kode: '', Jenjang: 'S1', FakultasID: '' }); setIsCrudOpen(true) }
+  const handleOpenEdit = (row) => { setIsEditMode(true); setForm({ ID: row.ID, Nama: row.Nama || '', Kode: row.Kode || '', Jenjang: row.Jenjang || 'S1', FakultasID: String(row.FakultasID || '') }); setIsCrudOpen(true) }
+  const handleSave = async (e) => {
+    e.preventDefault(); setIsSubmitting(true)
+    const payload = { ...form, FakultasID: parseInt(form.FakultasID) || 0 }
+    try {
+      const res = form.ID ? await adminService.updateProdi(form.ID, payload) : await adminService.createProdi(payload)
+      if (res.status === 'success') { toast.success(form.ID ? 'Prodi diperbarui' : 'Prodi ditambahkan'); setIsCrudOpen(false); fetchData() }
+      else toast.error(res.message || 'Gagal menyimpan')
+    } catch { toast.error('Terjadi kesalahan') } finally { setIsSubmitting(false) }
+  }
+  const handleDelete = async () => {
+    setIsSubmitting(true)
+    try {
+      await adminService.deleteProdi(selected.ID)
+      toast.success('Prodi dihapus'); setIsDelOpen(false); fetchData()
+    } catch { toast.error('Gagal menghapus') } finally { setIsSubmitting(false) }
+  }
 
-            if (editingProdi) {
-                await adminService.updateProdi(editingProdi.ID, data);
-                // alert('Program Studi berhasil diperbarui');
-            } else {
-                await adminService.createProdi(data);
-                // alert('Program Studi berhasil ditambahkan');
-            }
-            setIsModalOpen(false);
-            setEditingProdi(null);
-            setFormData({ Nama: '', Kode: '', Jenjang: 'S1', Akreditasi: 'B', Kapasitas: 0, KepalaProdi: '', FakultasID: '' });
-            loadData();
-        } catch (error) {
-            alert('Gagal menyimpan data: ' + error.message);
-        }
-    };
+  const JENJANG_COLORS = { S1: 'bg-blue-100 text-blue-700', S2: 'bg-violet-100 text-violet-700', S3: 'bg-indigo-100 text-indigo-700', D3: 'bg-amber-100 text-amber-700', D4: 'bg-emerald-100 text-emerald-700' }
 
-    const handleDelete = async (id) => {
-        if (!window.confirm('Apakah Anda yakin ingin menghapus prodi ini?')) return;
-        try {
-            await adminService.deleteProdi(id);
-            // alert('Program Studi berhasil dihapus');
-            loadData();
-        } catch (error) {
-            alert('Gagal menghapus data: ' + error.message);
-        }
-    };
+  const columns = [
+    { key: 'Kode', label: 'Kode', className: 'w-[100px]', render: v => <span className="font-bold text-slate-400 font-headline uppercase text-[10px] tracking-widest">{v || '—'}</span> },
+    { key: 'Nama', label: 'Nama Program Studi', className: 'min-w-[260px]', render: v => <span className="font-bold text-slate-900 font-headline tracking-tighter text-[13px]">{v || '—'}</span> },
+    { key: 'Jenjang', label: 'Jenjang', className: 'w-[100px] text-center', cellClassName: 'text-center',
+      render: v => <Badge className={cn('font-black text-[10px] px-3 py-1 border-none shadow-sm', JENJANG_COLORS[v] || 'bg-slate-100 text-slate-600')}>{v || 'S1'}</Badge>
+    },
+    { key: 'Fakultas', label: 'Fakultas', className: 'w-[220px]', render: (v, row) => <span className="text-[12px] font-bold text-slate-600 font-headline">{v?.Nama || row.FakultasNama || '—'}</span> }
+  ]
 
-    const openEditModal = (prodi) => {
-        setEditingProdi(prodi);
-        setFormData({ 
-            Nama: prodi.Nama, 
-            Kode: prodi.Kode, 
-            Jenjang: prodi.Jenjang, 
-            Akreditasi: prodi.Akreditasi, 
-            Kapasitas: prodi.Kapasitas, 
-            KepalaProdi: prodi.KepalaProdi,
-            FakultasID: prodi.FakultasID 
-        });
-        setIsModalOpen(true);
-    };
+  return (
+    <div className="bg-slate-50 min-h-screen flex font-sans">
+      <Sidebar />
+      <main className="pl-72 pt-20 flex flex-col min-h-screen w-full">
 
-    return (
-        <div className="bg-slate-50 text-slate-900 min-h-screen flex font-body select-none ">
-          <Sidebar />
-          <main className="pl-80 flex flex-col min-h-screen w-full font-body">
-            <TopNavBar />
-            <div className="p-8 space-y-8">
-              <header className="flex justify-between items-end">
-                <div>
-                  <h1 className="text-3xl font-extrabold text-primary tracking-tight uppercase leading-none">Manajemen Progam Studi</h1>
-                  <p className="text-slate-600 mt-2 font-medium opacity-90">Otoritas akademik untuk mengelola departemen dan kurikulum spesifik prodi.</p>
-                </div>
-                <button 
-                    onClick={() => { setEditingProdi(null); setFormData({ Nama: '', Kode: '', Jenjang: 'S1', Akreditasi: 'B', Kapasitas: 0, KepalaProdi: '', FakultasID: '' }); setIsModalOpen(true); }}
-                    className="bg-primary text-white px-8 py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-primary/20 hover:scale-105 transition-all font-body"
-                >
-                    Tambah Prodi Baru
-                </button>
-              </header>
-
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                 <div className="bg-white p-8 rounded-[2.5rem] border border-slate-200 space-y-2 shadow-sm">
-                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Total Program Studi</p>
-                    <h3 className="text-4xl font-black text-primary ">{prodis.length.toString().padStart(2, '0')}</h3>
-                 </div>
-              </div>
-
-              <section className="bg-white border border-slate-200 rounded-[3.5rem] overflow-hidden shadow-sm">
-                <table className="w-full text-left font-body">
-                  <thead>
-                    <tr className="bg-slate-50 text-[10px] font-black uppercase tracking-[0.2em] text-slate-600 border-b border-slate-100">
-                      <th className="px-10 py-6">Nama Prodi</th>
-                      <th className="px-10 py-6">Fakultas</th>
-                      <th className="px-10 py-6 text-center">Jenjang</th>
-                      <th className="px-10 py-6 text-center">Kapasitas</th>
-                      <th className="px-10 py-6 text-right">Aksi</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100 font-body select-text text-sm">
-                    {loading ? (
-                        <tr><td colSpan="5" className="px-10 py-20 text-center text-slate-400 uppercase font-black text-[10px] tracking-widest">Memproses database...</td></tr>
-                    ) : prodis.length === 0 ? (
-                        <tr><td colSpan="5" className="px-10 py-20 text-center text-slate-400 uppercase font-black text-[10px] tracking-widest">Belum ada data prodi.</td></tr>
-                    ) : prodis.map((p) => (
-                      <tr key={p.ID} className="hover:bg-slate-50 transition-all group border-b border-slate-50">
-                        <td className="px-10 py-6">
-                           <div className="leading-tight">
-                                <span className="font-extrabold text-primary uppercase tracking-tight group-hover:text-blue-700 transition-colors">{p.Nama}</span>
-                                <p className="text-[10px] text-slate-400 font-black tracking-widest">KODE: {p.Kode}</p>
-                           </div>
-                        </td>
-                        <td className="px-10 py-6">
-                            <span className="text-xs font-bold text-slate-600 uppercase italic opacity-70">
-                                {p.Fakultas?.Nama || '-'}
-                            </span>
-                        </td>
-                        <td className="px-10 py-6 text-center">
-                            <span className="px-3 py-1 bg-primary/5 text-primary text-[10px] font-black rounded-lg border border-primary/10 uppercase">
-                                {p.Jenjang} - {p.Akreditasi}
-                            </span>
-                        </td>
-                        <td className="px-10 py-6 text-center font-black text-primary opacity-60">{p.Kapasitas} Mhs</td>
-                        <td className="px-10 py-6 text-right">
-                           <div className="flex justify-end gap-2">
-                                <button 
-                                    onClick={() => openEditModal(p)}
-                                    className="p-3 hover:bg-amber-50 rounded-xl text-amber-600 transition-all"
-                                >
-                                    <span className="material-symbols-outlined text-[20px]">edit</span>
-                                </button>
-                                <button 
-                                    onClick={() => handleDelete(p.ID)}
-                                    className="p-3 hover:bg-rose-50 rounded-xl text-rose-500 transition-all"
-                                >
-                                    <span className="material-symbols-outlined text-[20px]">delete</span>
-                                </button>
-                           </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </section>
+        <TopNavBar />
+        <div className="p-8 space-y-6">
+          <Toaster position="top-right" />
+          <div className="flex flex-col gap-1.5">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-primary/10 rounded-xl text-primary"><BookOpen className="size-6" /></div>
+              <h1 className="text-2xl font-black text-slate-900 font-headline tracking-tighter uppercase">Kelola Program Studi</h1>
             </div>
-          </main>
-
-          {/* Modal Form */}
-          {isModalOpen && (
-              <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
-                  <div className="bg-white w-full max-w-2xl rounded-[3rem] shadow-2xl p-10 flex flex-col gap-8 animate-in zoom-in duration-300">
-                      <header className="flex justify-between items-center">
-                          <div>
-                              <h2 className="text-2xl font-black text-primary uppercase tracking-tighter">{editingProdi ? 'Edit' : 'Tambah'} Program Studi</h2>
-                              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Struktur Akademik Terintegrasi</p>
-                          </div>
-                      </header>
-
-                      <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-6">
-                          <div className="flex flex-col gap-1.5 label-input">
-                              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Fakultas Induk</label>
-                              <select 
-                                required
-                                value={formData.FakultasID}
-                                onChange={(e) => setFormData({...formData, FakultasID: e.target.value})}
-                                className="bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 text-sm font-bold text-primary focus:border-primary transition-all outline-none"
-                              >
-                                  <option value="">Pilih Fakultas</option>
-                                  {faculties.map(f => <option key={f.ID} value={f.ID}>{f.Nama}</option>)}
-                              </select>
-                          </div>
-                          <div className="flex flex-col gap-1.5">
-                              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Kode Prodi</label>
-                              <input required value={formData.Kode} onChange={(e) => setFormData({...formData, Kode: e.target.value})} className="bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 text-sm font-bold" />
-                          </div>
-                          <div className="col-span-2 flex flex-col gap-1.5 focus-within:ring-2 ring-primary/5 rounded-2xl transition-all">
-                              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Nama Program Studi</label>
-                              <input required value={formData.Nama} onChange={(e) => setFormData({...formData, Nama: e.target.value})} className="bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 text-sm font-bold" />
-                          </div>
-                          <div className="flex flex-col gap-1.5">
-                              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Jenjang</label>
-                              <select value={formData.Jenjang} onChange={(e) => setFormData({...formData, Jenjang: e.target.value})} className="bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 text-sm font-bold">
-                                  <option value="D3">Diploma III</option>
-                                  <option value="D4">Diploma IV</option>
-                                  <option value="S1">Sarjana (S1)</option>
-                                  <option value="S2">Magister (S2)</option>
-                              </select>
-                          </div>
-                          <div className="flex flex-col gap-1.5">
-                              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Akreditasi</label>
-                              <select value={formData.Akreditasi} onChange={(e) => setFormData({...formData, Akreditasi: e.target.value})} className="bg-slate-50 border border-slate-200 rounded-2xl px-5 py-4 text-sm font-bold">
-                                  <option value="Unggul">Unggul</option>
-                                  <option value="A">A</option>
-                                  <option value="B">B</option>
-                                  <option value="C">C</option>
-                              </select>
-                          </div>
-                          <div className="col-span-2 flex gap-4 pt-4">
-                            <button type="submit" className="flex-1 bg-primary text-white py-4 rounded-3xl font-black text-xs uppercase tracking-[0.2em] shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all">
-                                {editingProdi ? 'Simpan Perubahan' : 'Daftarkan Prodi'}
-                            </button>
-                            <button type="button" onClick={() => setIsModalOpen(false)} className="px-10 bg-slate-100 text-slate-500 py-4 rounded-3xl font-black text-xs uppercase tracking-[0.2em]">Batal</button>
-                          </div>
-                      </form>
+            <div className="flex items-center gap-2">
+              <div className="h-1 w-10 bg-primary rounded-full shadow-sm shadow-primary/30" />
+              <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Manajemen Program Studi Seluruh Fakultas</p>
+            </div>
+          </div>
+          <Card className="border-none shadow-sm overflow-hidden bg-white/50 backdrop-blur-md">
+            <CardContent className="p-0">
+              <DataTable
+                columns={columns} data={data} loading={loading}
+                searchPlaceholder="Cari nama atau kode prodi..."
+                onAdd={handleOpenAdd} addLabel="Tambah Prodi"
+                filters={[
+                  { key: 'Jenjang', placeholder: 'Filter Jenjang', options: ['S1','S2','S3','D3','D4'].map(j => ({ label: j, value: j })) },
+                  { key: 'FakultasID', placeholder: 'Filter Fakultas', options: faculties.map(f => ({ label: f.Nama, value: f.ID })) }
+                ]}
+                actions={(row) => (
+                  <div className="flex items-center gap-2">
+                    <Button onClick={() => handleOpenEdit(row)} variant="ghost" size="icon" className="h-8 w-8 hover:text-amber-600 hover:bg-amber-50 rounded-xl"><Pencil className="size-4" /></Button>
+                    <Button onClick={() => { setSelected(row); setIsDelOpen(true) }} variant="ghost" size="icon" className="h-8 w-8 hover:text-rose-600 hover:bg-rose-50 rounded-xl"><Trash2 className="size-4" /></Button>
                   </div>
-              </div>
-          )}
-        </div>
-    )
-}
+                )}
+              />
 
-export default KelolaProdi;
+            </CardContent>
+          </Card>
+        </div>
+      </main>
+
+      <Dialog open={isCrudOpen} onOpenChange={setIsCrudOpen}>
+        <DialogContent className="max-w-lg p-0 overflow-hidden border-none shadow-2xl rounded-[2rem] bg-white/95 backdrop-blur-xl">
+          <DialogHeader className="p-8 pb-6 bg-gradient-to-br from-slate-50 to-white border-b border-slate-100 relative overflow-hidden">
+            <div className="absolute top-0 right-0 p-8 opacity-5"><BookOpen className="size-24 rotate-12" /></div>
+            <div className="relative z-10">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="size-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary">{isEditMode ? <Pencil className="size-4" /> : <Plus className="size-4 stroke-[3px]" />}</div>
+                <Badge className="text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 bg-primary/5 text-primary border-none">Prodi Registry</Badge>
+              </div>
+              <DialogTitle className="text-2xl font-black font-headline tracking-tighter text-slate-900 uppercase">{isEditMode ? 'Edit Prodi' : 'Tambah Prodi Baru'}</DialogTitle>
+            </div>
+          </DialogHeader>
+          <form onSubmit={handleSave} className="p-8 pt-6 space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2"><Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Nama Prodi</Label><Input required value={form.Nama} onChange={e => setForm({ ...form, Nama: e.target.value })} placeholder="Nama Program Studi..." className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white font-bold text-sm font-headline" /></div>
+              <div className="space-y-2"><Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Kode</Label><Input required value={form.Kode} onChange={e => setForm({ ...form, Kode: e.target.value })} placeholder="Misal: SI, TK..." className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white font-bold text-sm font-headline uppercase" /></div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Jenjang</Label>
+                <Select value={form.Jenjang} onValueChange={v => setForm({ ...form, Jenjang: v })}>
+                  <SelectTrigger className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 font-bold text-xs"><SelectValue /></SelectTrigger>
+                  <SelectContent className="rounded-2xl shadow-2xl p-1">
+                    {['S1','S2','S3','D3','D4'].map(j => <SelectItem key={j} value={j} className="rounded-xl font-bold text-[11px] p-3">{j}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Fakultas</Label>
+                <Select value={form.FakultasID} onValueChange={v => setForm({ ...form, FakultasID: v })}>
+                  <SelectTrigger className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 font-bold text-xs"><SelectValue placeholder="Pilih Fakultas" /></SelectTrigger>
+                  <SelectContent className="rounded-2xl shadow-2xl p-1">
+                    {faculties.map(f => <SelectItem key={f.ID} value={String(f.ID)} className="rounded-xl font-bold text-[11px] p-3 uppercase">{f.Nama}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <DialogFooter className="pt-4 flex flex-row gap-3 border-t border-slate-100 -mx-8 px-8 bg-slate-50/30">
+              <Button type="button" variant="ghost" onClick={() => setIsCrudOpen(false)} className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-8 h-12 rounded-2xl">Batalkan</Button>
+              <Button type="submit" disabled={isSubmitting} className="h-12 px-10 rounded-2xl bg-primary text-white hover:bg-primary/90 shadow-xl shadow-primary/20 transition-all hover:scale-[1.02] active:scale-95">
+                {isSubmitting ? <Loader2 className="animate-spin size-4 mr-2" /> : <Save className="size-4 mr-2 stroke-[3px]" />}
+                <span className="text-[10px] font-black uppercase tracking-[0.2em]">{isEditMode ? 'Update Record' : 'Create Record'}</span>
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      <DeleteConfirmModal isOpen={isDelOpen} onClose={() => setIsDelOpen(false)} onConfirm={handleDelete}
+        title="Hapus Program Studi?" description="Program studi ini akan dihapus permanen beserta semua data terkait." loading={isSubmitting} />
+    </div>
+  )
+}

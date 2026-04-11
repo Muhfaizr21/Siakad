@@ -1,413 +1,503 @@
-import React, { useState, useEffect } from 'react';
-import Sidebar from './components/Sidebar';
-import TopNavBar from './components/TopNavBar';
-import { useAuth } from '../../context/AuthContext';
-import { ormawaService } from '../../services/api';
+"use client"
 
-const mockProposals = [
-  { 
-    id: 'PROP/2023/042', 
-    nama_kegiatan: 'Pekan Olahraga Fakultas', 
-    tujuan: 'Meningkatkan solidaritas dan kebugaran mahasiswa antar jurusan.', 
-    tanggal_pelaksanaan: '2023-11-15', 
-    lokasi: 'Gor Kampus Timur', 
-    anggaran: 25000000, 
-    penanggung_jawab: 'Budi Santoso', 
-    status: 'pending',
-    histori: [
-      { id: 1, tanggal: '2023-10-20', status: 'diajukan', catatan: 'Proposal pertama kali diajukan oleh divisi minat bakat.' }
-    ]
-  },
-  { 
-    id: 'PROP/2023/040', 
-    nama_kegiatan: 'Diskusi Publik Teknologi AI', 
-    tujuan: 'Membuka wawasan tentang kecerdasan buatan pada industri 4.0.', 
-    tanggal_pelaksanaan: '2023-10-25', 
-    lokasi: 'Auditorium Gd. A', 
-    anggaran: 8500000, 
-    penanggung_jawab: 'Andi Pratama', 
-    status: 'revisi',
-    histori: [
-      { id: 1, tanggal: '2023-10-15', status: 'diajukan', catatan: 'Proposal diajukan oleh divisi Akademik.' },
-      { id: 2, tanggal: '2023-10-18', status: 'revisi', catatan: 'Estimasi dana konsumsi terlalu tinggi. Tolong sesuaikan dengan standar RAB universitas.' }
-    ]
-  },
-  { 
-    id: 'PROP/2023/038', 
-    nama_kegiatan: 'Bakti Sosial Desa Mekar', 
-    tujuan: 'Pengabdian masyarakat dan pembagian sembako ke panti asuhan.', 
-    tanggal_pelaksanaan: '2023-12-05', 
-    lokasi: 'Desa Mekar Jaya', 
-    anggaran: 15400000, 
-    penanggung_jawab: 'Siti Aminah', 
-    status: 'disetujui',
-    histori: [
-      { id: 1, tanggal: '2023-10-01', status: 'diajukan', catatan: 'Draft diajukan oleh divisi sosial masyarakat.' },
-      { id: 2, tanggal: '2023-10-05', status: 'disetujui', catatan: 'Sangat baik. Lanjutkan proses pencairan dana ke bendahara.' }
-    ]
-  }
-];
+import React, { useState, useEffect } from 'react'
+import { DataTable } from '../FacultyAdmin/components/data-table'
+import { Badge } from '../FacultyAdmin/components/badge'
+import { Button } from '../FacultyAdmin/components/button'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '../FacultyAdmin/components/dialog'
+import { DeleteConfirmModal } from '../FacultyAdmin/components/DeleteConfirmModal'
+import { Card, CardContent } from '../FacultyAdmin/components/card'
+import { Input } from '../FacultyAdmin/components/input'
+import { Label } from '../FacultyAdmin/components/label'
+import { Textarea } from '../FacultyAdmin/components/textarea'
+import { Eye, Pencil, Trash2, Loader2, Plus, Save, FileText, CheckCircle2, XCircle, AlertCircle, Clock } from 'lucide-react'
+import { toast, Toaster } from 'react-hot-toast'
+import { cn } from '@/lib/utils'
+import Sidebar from './components/Sidebar'
+import TopNavBar from './components/TopNavBar'
+import useAuthStore from '../../store/useAuthStore'
+import { fetchWithAuth, API_BASE_URL } from '../../services/api'
 
-const ProposalManagement = () => {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [proposals, setProposals] = useState([]);
-  const [isLocked, setIsLocked] = useState(false);
-  const [lockMessage, setLockMessage] = useState("");
-  const [selectedProposal, setSelectedProposal] = useState(null);
-  const [history, setHistory] = useState([]);
-  const [komentar, setKomentar] = useState('');
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  const [editingId, setEditingId] = useState(null);
-  const [uploading, setUploading] = useState(false);
-  const [formData, setFormData] = useState({
-    nama_kegiatan: '',
-    tujuan: '',
-    tanggal_pelaksanaan: '',
-    anggaran: '',
-    file_url: ''
-  });
-  const { user, hasPermission } = useAuth();
-  
-  const ormawaId = user?.ormawaId || 1;
+const API = `${API_BASE_URL}/ormawa`
 
-  useEffect(() => {
-    if (ormawaId) {
-      fetchProposals();
-      checkLpjLock();
-    }
-  }, [ormawaId]);
+const STATUS_CONFIG = {
+  diajukan:           { label: 'Diajukan',        cls: 'bg-blue-50 text-blue-700 ring-1 ring-blue-500/20',    icon: Clock },
+  disetujui_dosen:    { label: 'ACC Dosen',        cls: 'bg-indigo-50 text-indigo-700 ring-1 ring-indigo-500/20', icon: CheckCircle2 },
+  disetujui_fakultas: { label: 'ACC Fakultas',     cls: 'bg-violet-50 text-violet-700 ring-1 ring-violet-500/20', icon: CheckCircle2 },
+  disetujui_univ:     { label: 'Disetujui Univ',   cls: 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-500/20', icon: CheckCircle2 },
+  revisi:             { label: 'Butuh Revisi',     cls: 'bg-amber-50 text-amber-700 ring-1 ring-amber-500/20', icon: AlertCircle },
+  ditolak:            { label: 'Ditolak',          cls: 'bg-rose-50 text-rose-700 ring-1 ring-rose-500/20',   icon: XCircle },
+  selesai:            { label: 'Selesai',          cls: 'bg-slate-100 text-slate-600 ring-1 ring-slate-400/20', icon: CheckCircle2 },
+}
 
-  const checkLpjLock = async () => {
-    try {
-      const data = await ormawaService.getProposals(ormawaId);
-      if (data.status === 'success') {
-        const now = new Date();
-        const pending = (data.data || []).filter(p => 
-          p.Status === 'disetujui_univ' && 
-          new Date(p.TanggalKegiatan) < now &&
-          (!p.Lpj || p.Lpj.Status !== 'disetujui')
-        );
-        
-        if (pending.length > 0) {
-          setIsLocked(true);
-          setLockMessage(`Attention: Anda memiliki ${pending.length} kegiatan yang belum menyelesaikan LPJ.`);
-        } else {
-          setIsLocked(false);
-        }
-      }
-    } catch (e) { console.error("Lock check error:", e); }
-  };
+const StatusBadge = ({ status }) => {
+  const cfg = STATUS_CONFIG[status] || { label: status, cls: 'bg-slate-100 text-slate-600', icon: FileText }
+  return (
+    <Badge className={cn('capitalize font-black text-[10px] px-3 py-1 border-none shadow-sm', cfg.cls)}>
+      {cfg.label}
+    </Badge>
+  )
+}
+
+const formatRupiah = (n) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(n || 0)
+
+export default function ProposalManagement() {
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [proposals, setProposals] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [selected, setSelected] = useState(null)
+  const [history, setHistory] = useState([])
+  const [isDetailOpen, setIsDetailOpen] = useState(false)
+  const [isCrudOpen, setIsCrudOpen] = useState(false)
+  const [isDelOpen, setIsDelOpen] = useState(false)
+  const [isEditMode, setIsEditMode] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [komentar, setKomentar] = useState('')
+  const ormawaId = useAuthStore.getState()?.mahasiswa?.OrmawaID || useAuthStore.getState()?.mahasiswa?.ormawaId || useAuthStore.getState()?.mahasiswa?.ID || 1
+  const [formData, setFormData] = useState({ Judul: '', Catatan: '', TanggalKegiatan: '', Anggaran: '', OrmawaID: ormawaId })
 
   const fetchProposals = async () => {
+    setLoading(true)
     try {
-      const data = await ormawaService.getProposals(ormawaId);
-      if (data.status === 'success') {
-        const formatted = (data.data || []).map(p => ({
-          id: `PROP-${p.ID}`,
-          realId: p.ID,
-          nama_kegiatan: p.Judul,
-          tujuan: p.Catatan || 'Deskripsi tidak tersedia',
-          tanggal_iso: p.TanggalKegiatan ? p.TanggalKegiatan.split('T')[0] : '',
-          tanggal_pelaksanaan: p.TanggalKegiatan ? new Date(p.TanggalKegiatan).toLocaleDateString('id-ID', { year: 'numeric', month: 'short', day: 'numeric' }) : '-',
-          status: p.Status || 'diajukan',
-          anggaran: p.Anggaran || 0,
-          penanggung_jawab: p.Ormawa ? p.Ormawa.Nama : 'Ormawa',
-          file: p.FileURL || 'tidak ada lampiran',
-          ormawaId: p.OrmawaID
-        }));
-        setProposals(formatted);
-      }
-    } catch (err) { 
-      console.error("Gagal memuat proposal:", err);
-      alert("⚠️ Eror: Gagal memuat data proposal.");
+      const data = await fetchWithAuth(`${API}/proposals?ormawaId=${ormawaId}`)
+      if (data.status === 'success') setProposals(data.data || [])
+      else toast.error('Gagal memuat data proposal')
+    } catch {
+      toast.error('Koneksi ke server gagal')
+    } finally {
+      setLoading(false)
     }
-  };
+  }
 
   const fetchHistory = async (proposalId) => {
     try {
-      const data = await ormawaService.getProposalHistory(proposalId);
-      if (data.status === 'success') setHistory(data.data || []);
-    } catch (e) { console.error(e); }
-  };
-  
-  const getStatusBadge = (status) => {
-    const badges = {
-      'diajukan': { label: 'Diajukan', class: 'bg-blue-100 text-blue-700' },
-      'disetujui_dosen': { label: 'ACC Dosen', class: 'bg-indigo-100 text-indigo-700' },
-      'disetujui_fakultas': { label: 'ACC Fakultas', class: 'bg-purple-100 text-purple-700' },
-      'disetujui_univ': { label: 'Disetujui Univ', class: 'bg-emerald-100 text-emerald-700' },
-      'revisi': { label: 'Butuh Revisi', class: 'bg-amber-100 text-amber-700' },
-      'ditolak': { label: 'Ditolak', class: 'bg-rose-100 text-rose-700' }
-    };
-    const b = badges[status] || { label: status, class: 'bg-slate-100 text-slate-700' };
-    return <span className={`${b.class} border px-3 py-1 rounded-full text-xs font-bold uppercase`}>{b.label}</span>;
-  };
+      const data = await fetchWithAuth(`${API}/proposals/${proposalId}/history`)
+      if (data.status === 'success') setHistory(data.data || [])
+    } catch {}
+  }
 
-  const handleFileUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
+  useEffect(() => { fetchProposals() }, [])
 
-    setUploading(true);
-    const fd = new FormData();
-    fd.append('file', file);
+  const handleOpenAdd = () => {
+    setIsEditMode(false)
+    setFormData({ Judul: '', Catatan: '', TanggalKegiatan: '', Anggaran: '', OrmawaID: ormawaId })
+    setIsCrudOpen(true)
+  }
 
+  const handleOpenEdit = (row) => {
+    setIsEditMode(true)
+    setFormData({
+      ID: row.ID,
+      Judul: row.Judul || '',
+      Catatan: row.Catatan || '',
+      TanggalKegiatan: row.TanggalKegiatan ? row.TanggalKegiatan.split('T')[0] : '',
+      Anggaran: row.Anggaran || '',
+      OrmawaID: row.OrmawaID || ormawaId,
+    })
+    setIsCrudOpen(true)
+  }
+
+  const handleView = (row) => {
+    setSelected(row)
+    setHistory([])
+    fetchHistory(row.ID)
+    setIsDetailOpen(true)
+  }
+
+  const handleSave = async (e) => {
+    e.preventDefault()
+    setIsSubmitting(true)
+    const url = isEditMode ? `${API}/proposals/${formData.ID}` : `${API}/proposals`
+    const method = isEditMode ? 'PUT' : 'POST'
+    const payload = { ...formData, Anggaran: Number(formData.Anggaran), OrmawaID: Number(formData.OrmawaID), TanggalKegiatan: formData.TanggalKegiatan ? new Date(formData.TanggalKegiatan).toISOString() : new Date().toISOString() }
     try {
-      const data = await ormawaService.uploadFile(fd);
+      const data = await fetchWithAuth(url, { 
+        method, 
+        body: JSON.stringify(payload),
+        headers: { 'Content-Type': 'application/json' }
+      })
       if (data.status === 'success') {
-        setFormData({ ...formData, file_url: data.url });
+        toast.success(isEditMode ? 'Proposal diperbarui' : 'Proposal berhasil diajukan')
+        setIsCrudOpen(false)
+        fetchProposals()
+      } else {
+        toast.error(data.message || 'Gagal menyimpan proposal')
       }
-    } catch (e) {
-      alert("⚠️ Gagal mengunggah file.");
+    } catch (err) {
+      toast.error(err.message || 'Terjadi kesalahan sistem')
     } finally {
-      setUploading(false);
+      setIsSubmitting(false)
     }
-  };
+  }
 
-  const handleAction = async (newStatus) => {
-    if (!selectedProposal || (!komentar.trim() && (newStatus === 'revisi' || newStatus === 'ditolak'))) {
-      alert("Komentar/Alasan wajib diisi untuk revisi atau penolakan!");
-      return;
+  const handleAction = async (status) => {
+    if (!selected) return
+    if ((status === 'revisi' || status === 'ditolak') && !komentar.trim()) {
+      toast.error('Catatan/alasan wajib diisi untuk revisi atau penolakan')
+      return
     }
-
+    setIsSubmitting(true)
     try {
-      const data = await ormawaService.updateProposal(selectedProposal.realId, { 
-        Status: newStatus, 
-        Catatan: komentar,
-        UserID: user?.id || 0
-      });
+      const data = await fetchWithAuth(`${API}/proposals/${selected.ID}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ Status: status, Catatan: komentar })
+      })
       if (data.status === 'success') {
-        fetchProposals();
-        setSelectedProposal(null);
-        setKomentar('');
-      }
-    } catch (error) {
-       alert(`⚠️ Gagal memperbarui status: ${error.message}`);
-    }
-  };
-
-  const handleDelete = async (realId) => {
-    if (!window.confirm("Yakin ingin menghapus proposal ini secara permanen?")) return;
-    try {
-      await ormawaService.deleteProposal(realId);
-      fetchProposals();
-    } catch (err) {
-      alert("⚠️ Gagal menghapus proposal.");
-    }
-  };
-
-  const handleSaveForm = async (e) => {
-    e.preventDefault();
-    const payload = {
-      Judul: formData.nama_kegiatan,
-      Catatan: formData.tujuan,
-      TanggalKegiatan: formData.tanggal_pelaksanaan ? new Date(formData.tanggal_pelaksanaan).toISOString() : new Date().toISOString(),
-      Anggaran: Number(formData.anggaran),
-      OrmawaID: Number(ormawaId),
-      FileURL: formData.file_url
-    };
-
-    try {
-      const data = editingId 
-        ? await ormawaService.updateProposal(editingId, payload)
-        : await ormawaService.createProposal(payload);
-      
-      if (data.status === 'success') {
-        setIsFormOpen(false);
-        fetchProposals();
+        toast.success('Status proposal diperbarui')
+        setIsDetailOpen(false)
+        setKomentar('')
+        fetchProposals()
+      } else {
+        toast.error(data.message || 'Gagal memperbarui status')
       }
     } catch (err) {
-      alert(`⚠️ Eror saat menyimpan: ${err.message}`);
+      toast.error(err.message || 'Terjadi kesalahan sistem')
+    } finally {
+      setIsSubmitting(false)
     }
-  };
+  }
 
-  const openReviewModal = (proposal) => {
-    setSelectedProposal(proposal);
-    setHistory([]);
-    fetchHistory(proposal.realId);
-    setKomentar('');
-  };
+  const handleDelete = async () => {
+    if (!selected?.ID) return
+    setIsSubmitting(true)
+    try {
+      await fetchWithAuth(`${API}/proposals/${selected.ID}`, { method: 'DELETE' })
+      toast.success('Proposal dihapus')
+      setIsDelOpen(false)
+      fetchProposals()
+    } catch {
+      toast.error('Gagal menghapus proposal')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
 
-  const formatRupiah = (number) => {
-    return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(number);
-  };
+  const columns = [
+    {
+      key: 'ID',
+      label: 'Kode Ref',
+      className: 'w-[120px]',
+      render: (val) => <span className="font-bold text-slate-400 font-headline uppercase text-[10px] tracking-widest">PROP-{val}</span>
+    },
+    {
+      key: 'Judul',
+      label: 'Kegiatan',
+      className: 'min-w-[280px]',
+      render: (val, row) => (
+        <div className="flex flex-col leading-tight">
+          <span className="font-bold text-slate-900 font-headline tracking-tighter text-[13px]">{val || '—'}</span>
+          <span className="text-[10px] text-slate-400 font-bold uppercase tracking-tight mt-0.5">
+            {row.TanggalKegiatan ? new Date(row.TanggalKegiatan).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
+          </span>
+        </div>
+      )
+    },
+    {
+      key: 'Anggaran',
+      label: 'Anggaran',
+      className: 'w-[180px]',
+      render: (val) => <span className="font-black text-emerald-600 text-[12px] font-headline">{formatRupiah(val)}</span>
+    },
+    {
+      key: 'Status',
+      label: 'Status',
+      className: 'w-[170px] text-center',
+      cellClassName: 'text-center',
+      render: (val) => <StatusBadge status={val} />
+    }
+  ]
 
   return (
-    <div className="bg-surface text-on-surface min-h-screen">
+    <div className="bg-slate-50 min-h-screen font-sans">
       <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
-      <main className="lg:ml-60 min-h-screen pb-12 transition-all duration-300">
+      <main className="lg:ml-60 min-h-screen transition-all duration-300">
         <TopNavBar setIsOpen={setSidebarOpen} />
-        
-        <div className="pt-20 px-4 lg:px-6">
-          {/* Header */}
-          <div className="mb-6 flex flex-col md:flex-row justify-between items-start md:items-end gap-3">
-            <div>
-              <h1 className="text-2xl font-extrabold font-headline mb-1 text-on-surface">Manajemen Proposal</h1>
-              <p className="text-on-surface-variant text-xs font-medium leading-relaxed max-w-2xl">
-                Ajukan dan pantau status persetujuan: Dosen ➔ Fakultas ➔ Universitas.
-              </p>
-            </div>
-            {hasPermission('proposal', 'create') && (
-              <button 
-                onClick={() => { setEditingId(null); setFormData({ nama_kegiatan: '', tujuan: '', tanggal_pelaksanaan: '', anggaran: '', file_url: '' }); setIsFormOpen(true); }}
-                className="bg-primary hover:bg-primary-fixed text-white px-5 py-2.5 rounded-xl font-black font-headline shadow-md hover:-translate-y-1 transition-all flex items-center gap-2 whitespace-nowrap text-sm uppercase tracking-wider"
-              >
-                <span className="material-symbols-outlined text-[20px]">add</span>
-                Buat Proposal
-              </button>
-            )}
-          </div>
+        <div className="pt-20 px-6 pb-12">
+          <Toaster position="top-right" />
 
-          {/* Proposal List Section */}
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-            {proposals.map(proposal => (
-              <div key={proposal.id} className="bg-surface-container-lowest rounded-2xl border border-outline-variant/20 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col h-full group">
-                <div className="p-5 border-b border-outline-variant/10">
-                  <div className="flex justify-between items-start mb-3 gap-2">
-                    <span className="text-[10px] font-black text-on-surface-variant bg-surface-container-high px-2 py-0.5 rounded-md tracking-wider font-label uppercase">{proposal.id}</span>
-                    {getStatusBadge(proposal.status)}
-                  </div>
-                  <h3 className="text-lg font-bold font-headline leading-tight text-primary mb-1.5 line-clamp-1 group-hover:text-primary-container transition-colors">{proposal.nama_kegiatan}</h3>
-                  <p className="text-[12px] font-medium text-on-surface-variant line-clamp-2 leading-relaxed">{proposal.tujuan}</p>
-                </div>
-                <div className="p-5 flex-grow grid grid-cols-2 gap-3 text-[12px]">
-                  <div>
-                    <p className="text-[10px] text-secondary font-black uppercase tracking-widest mb-1 opacity-70">Tanggal</p>
-                    <p className="font-bold text-on-surface">{proposal.tanggal_pelaksanaan}</p>
-                  </div>
-                  <div>
-                    <p className="text-[10px] text-secondary font-black uppercase tracking-widest mb-1 opacity-70">Anggaran</p>
-                    <p className="font-black text-emerald-600">{formatRupiah(proposal.anggaran)}</p>
-                  </div>
-                </div>
-                <div className="p-3.5 border-t border-outline-variant/10 flex gap-3">
-                  <button 
-                    onClick={() => openReviewModal(proposal)}
-                    className="flex-1 py-2.5 bg-primary/10 text-primary rounded-xl font-black font-headline hover:bg-primary hover:text-white transition-all flex justify-center items-center gap-2 text-[11px] uppercase tracking-wider"
-                  >
-                    <span className="material-symbols-outlined text-[16px]">rate_review</span>
-                    Detail & History
-                  </button>
-                </div>
+          {/* Page Header */}
+          <div className="flex flex-col gap-1.5 mb-8">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-primary/10 rounded-xl text-primary">
+                <FileText className="size-6" />
               </div>
-            ))}
+              <h1 className="text-2xl font-black text-slate-900 font-headline tracking-tighter uppercase">Manajemen Proposal</h1>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="h-1 w-10 bg-primary rounded-full shadow-sm shadow-primary/30" />
+              <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Ajukan & Pantau Persetujuan: Dosen → Fakultas → Universitas</p>
+            </div>
           </div>
 
-          {/* Modal Review & Detail */}
-          {selectedProposal && (
-            <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/30 backdrop-blur-sm p-4">
-              <div className="bg-surface w-full max-w-4xl max-h-[90vh] rounded-3xl shadow-2xl overflow-hidden flex flex-col md:flex-row animate-in fade-in zoom-in-95 duration-200 border border-outline-variant/10">
-                <div className="w-full md:w-3/5 border-r border-outline-variant/20 flex flex-col h-full bg-surface">
-                  <div className="p-5 border-b flex justify-between items-center bg-surface-container-low/50">
-                    <div>
-                      <h2 className="text-lg font-black font-headline text-primary uppercase tracking-tight">{selectedProposal.nama_kegiatan}</h2>
-                      <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">{selectedProposal.id}</span>
-                    </div>
-                    {getStatusBadge(selectedProposal.status)}
+          <Card className="border-none shadow-sm overflow-hidden bg-white/50 backdrop-blur-md">
+            <CardContent className="p-0">
+              <DataTable
+                columns={columns}
+                data={proposals}
+                loading={loading}
+                searchPlaceholder="Cari judul atau kode proposal..."
+                onAdd={handleOpenAdd}
+                addLabel="Buat Proposal"
+                filters={[
+                  {
+                    key: 'Status',
+                    placeholder: 'Filter Status',
+                    options: Object.entries(STATUS_CONFIG).map(([value, { label }]) => ({ label, value }))
+                  }
+                ]}
+                actions={(row) => (
+                  <div className="flex items-center gap-2">
+                    <Button onClick={() => handleView(row)} variant="ghost" size="icon" className="h-8 w-8 hover:text-primary hover:bg-primary/10 rounded-xl">
+                      <Eye className="size-4" />
+                    </Button>
+                    <Button onClick={() => handleOpenEdit(row)} variant="ghost" size="icon" className="h-8 w-8 hover:text-amber-600 hover:bg-amber-50 rounded-xl">
+                      <Pencil className="size-4" />
+                    </Button>
+                    <Button onClick={() => { setSelected(row); setIsDelOpen(true) }} variant="ghost" size="icon" className="h-8 w-8 hover:text-rose-600 hover:bg-rose-50 rounded-xl">
+                      <Trash2 className="size-4" />
+                    </Button>
                   </div>
-                  
-                  <div className="p-6 overflow-y-auto flex-grow space-y-6">
-                    <div className="bg-surface-container-highest/20 p-5 rounded-2xl border border-outline-variant/10">
-                       <p className="text-xs text-secondary font-label uppercase mb-1">Status Alur Persetujuan</p>
-                       <div className="flex gap-2 mb-4">
-                          <span className={`w-3 h-3 rounded-full ${['disetujui_dosen','disetujui_fakultas','disetujui_univ'].includes(selectedProposal.status) ? 'bg-emerald-500' : 'bg-slate-300'}`}></span>
-                          <span className={`w-3 h-3 rounded-full ${['disetujui_fakultas','disetujui_univ'].includes(selectedProposal.status) ? 'bg-emerald-500' : 'bg-slate-300'}`}></span>
-                          <span className={`w-3 h-3 rounded-full ${['disetujui_univ'].includes(selectedProposal.status) ? 'bg-emerald-500' : 'bg-slate-300'}`}></span>
-                          <span className="text-[10px] text-on-surface-variant ">(Dosen ➔ Fakultas ➔ Universitas)</span>
-                       </div>
-                       <p className="text-sm font-body text-on-surface-variant leading-relaxed">{selectedProposal.tujuan}</p>
-                    </div>
+                )}
+              />
+            </CardContent>
+          </Card>
+        </div>
+      </main>
 
-                    <div>
-                      <h3 className="text-sm font-bold font-headline mb-4 flex items-center gap-2">
-                        <span className="material-symbols-outlined text-primary">history</span> Riwayat Status (Audit)
-                      </h3>
-                      <div className="space-y-4 pl-4 relative before:absolute before:left-5 before:top-2 before:bottom-0 before:w-px before:bg-outline-variant/30">
-                        {history.map((log) => (
-                          <div key={log.ID} className="relative z-10 flex gap-4 bg-surface rounded-xl p-4 shadow-sm border border-outline-variant/10">
-                            <div className="w-8 h-8 shrink-0 rounded-full bg-surface-container border-2 border-primary-container flex items-center justify-center -ml-8">
-                               <span className="material-symbols-outlined text-[14px] text-primary">done</span>
-                            </div>
-                            <div>
-                               <div className="flex items-center gap-2 mb-1">
-                                 {getStatusBadge(log.Status)}
-                                 <span className="text-xs text-on-surface-variant font-label">{new Date(log.CreatedAt).toLocaleString()}</span>
-                               </div>
-                               <p className="text-sm text-on-surface font-medium leading-relaxed bg-surface-container-low p-2 rounded-lg mt-1">{log.Catatan || 'Tanpa catatan'}</p>
-                            </div>
-                          </div>
-                        ))}
+      {/* DETAIL & REVIEW DIALOG */}
+      <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
+        <DialogContent className="max-w-6xl p-0 overflow-hidden border-none shadow-2xl rounded-[2.5rem] bg-white/95 backdrop-blur-xl">
+          {selected && (
+            <div className="flex flex-col md:flex-row min-h-[500px] max-h-[90vh]">
+              {/* Left: Detail */}
+              <div className="flex-1 flex flex-col overflow-hidden border-r border-slate-100">
+                <div className="p-8 bg-gradient-to-br from-slate-900 to-slate-800 relative overflow-hidden shrink-0">
+                  <div className="absolute inset-0 bg-gradient-to-br from-primary/30 to-transparent" />
+                  <div className="absolute top-0 right-0 p-10 opacity-5 pointer-events-none">
+                    <FileText className="size-40 rotate-12 text-white" />
+                  </div>
+                  <div className="relative z-10">
+                    <div className="flex items-start justify-between gap-4">
+                      <div>
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] font-headline mb-1">PROP-{selected.ID}</p>
+                        <h2 className="text-xl font-black text-white font-headline tracking-tighter leading-tight line-clamp-2">{selected.Judul}</h2>
+                      </div>
+                      <StatusBadge status={selected.Status} />
+                    </div>
+                    <div className="mt-4 flex items-center gap-4">
+                      <div>
+                        <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Anggaran</p>
+                        <p className="text-sm font-black text-emerald-400 font-headline">{formatRupiah(selected.Anggaran)}</p>
+                      </div>
+                      <div className="h-8 w-px bg-slate-700" />
+                      <div>
+                        <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Tanggal</p>
+                        <p className="text-sm font-black text-white font-headline">
+                          {selected.TanggalKegiatan ? new Date(selected.TanggalKegiatan).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' }) : '—'}
+                        </p>
                       </div>
                     </div>
                   </div>
                 </div>
 
-                <div className="w-full md:w-2/5 p-6 bg-surface-container-lowest flex flex-col justify-between">
+                <div className="overflow-y-auto flex-1 p-7 space-y-6">
+                  {/* Tujuan */}
+                  {selected.Catatan && (
+                    <div>
+                      <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2 font-headline">Tujuan / Deskripsi</p>
+                      <p className="text-[12px] font-medium text-slate-600 leading-relaxed bg-slate-50 p-4 rounded-2xl border border-slate-100 max-h-32 overflow-y-auto">{selected.Catatan}</p>
+                    </div>
+                  )}
+
+                  {/* Alur Persetujuan */}
                   <div>
-                    <h3 className="text-lg font-bold font-headline mb-4">Panel Kendali Status</h3>
-                    <textarea 
-                       rows="4"
-                       placeholder="Tambahkan catatan/feedback..."
-                       className="w-full bg-surface-container-low border border-outline-variant/30 p-4 rounded-2xl text-sm focus:ring-2 focus:ring-primary/50 outline-none mb-6"
-                       value={komentar}
-                       onChange={(e) => setKomentar(e.target.value)}
-                    ></textarea>
-                     <div className="space-y-2">
-                       {hasPermission('proposal', 'approve') && (
-                         <>
-                           {selectedProposal.status === 'diajukan' && (
-                             <button onClick={() => handleAction('disetujui_dosen')} className="w-full py-3 bg-indigo-600 text-white rounded-xl font-bold text-sm">ACC Tahap 1 (Dosen)</button>
-                           )}
-                           {selectedProposal.status === 'disetujui_dosen' && (
-                             <button onClick={() => handleAction('disetujui_fakultas')} className="w-full py-3 bg-purple-600 text-white rounded-xl font-bold text-sm">ACC Tahap 2 (Fakultas)</button>
-                           )}
-                           {selectedProposal.status === 'disetujui_fakultas' && (
-                             <button onClick={() => handleAction('disetujui_univ')} className="w-full py-3 bg-emerald-600 text-white rounded-xl font-bold text-sm">ACC Final (Univ & Cair)</button>
-                           )}
-                         </>
-                       )}
-                       <button onClick={() => handleAction('revisi')} className="w-full py-3 bg-amber-100 text-amber-800 rounded-xl font-bold text-sm">Minta Revisi</button>
-                       <button onClick={() => handleAction('ditolak')} className="w-full py-3 bg-rose-100 text-rose-800 rounded-xl font-bold text-sm">Tolak Permanen</button>
+                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3 font-headline">Alur Persetujuan</p>
+                    <div className="flex items-center gap-2">
+                      {['disetujui_dosen', 'disetujui_fakultas', 'disetujui_univ'].map((s, i) => {
+                        const passed = ['disetujui_dosen', 'disetujui_fakultas', 'disetujui_univ', 'selesai'].slice(i).some(v => v !== 'selesai' || selected.Status === 'selesai')
+                        const active = (['disetujui_dosen', 'disetujui_fakultas', 'disetujui_univ'].indexOf(selected.Status) >= i)
+                        return (
+                          <React.Fragment key={s}>
+                            <div className={cn('flex flex-col items-center gap-1.5', active ? '' : 'opacity-30')}>
+                              <div className={cn('size-8 rounded-xl flex items-center justify-center', active ? 'bg-emerald-100 text-emerald-600' : 'bg-slate-100 text-slate-400')}>
+                                <CheckCircle2 className="size-4" />
+                              </div>
+                              <span className="text-[9px] font-black uppercase tracking-[0.1em] text-slate-500 font-headline text-center">{['Dosen Pembina', 'Dekanat Fakultas', 'Kemahasiswaan Univ'][i]}</span>
+                            </div>
+                            {i < 2 && <div className={cn('flex-1 h-1 rounded-full', active ? 'bg-emerald-200' : 'bg-slate-100')} />}
+                          </React.Fragment>
+                        )
+                      })}
                     </div>
                   </div>
-                  <button onClick={() => { setSelectedProposal(null); setKomentar(''); }} className="mt-8 text-on-surface-variant font-medium underline text-sm">Tutup Panel</button>
+
+                  {/* Histori */}
+                  <div>
+                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3 font-headline">Riwayat Status</p>
+                    <div className="space-y-3 relative before:absolute before:left-5 before:top-4 before:bottom-0 before:w-px before:bg-slate-100">
+                      {history.length === 0 && <p className="text-[10px] text-slate-400 font-bold pl-4">Belum ada riwayat</p>}
+                      {history.map((log) => (
+                        <div key={log.ID} className="flex gap-4 relative z-10">
+                          <div className="size-10 shrink-0 rounded-2xl bg-white border border-slate-100 shadow-sm flex items-center justify-center">
+                            <FileText className="size-4 text-primary" />
+                          </div>
+                          <div className="flex-1 bg-slate-50 rounded-2xl p-3 border border-slate-100">
+                            <div className="flex items-center gap-2 mb-1">
+                              <StatusBadge status={log.Status} />
+                              <span className="text-[9px] text-slate-400 font-bold uppercase tracking-widest">{new Date(log.CreatedAt).toLocaleString('id-ID')}</span>
+                            </div>
+                            <p className="text-[11px] text-slate-600 font-medium">{log.Catatan || 'Tanpa catatan'}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
-          )}
 
-          {/* Form Modal (Create / Edit) */}
-          {isFormOpen && (
-            <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/30 backdrop-blur-sm p-4">
-              <div className="bg-surface w-full max-w-2xl rounded-[2.5rem] shadow-2xl p-8 animate-in fade-in zoom-in-95 border border-outline-variant/10">
-                <h2 className="text-2xl font-bold font-headline text-primary mb-6">Buat Proposal Baru</h2>
-                <form onSubmit={handleSaveForm} className="space-y-4">
-                  <input required placeholder="Nama Kegiatan" className="w-full bg-surface-container p-3.5 rounded-xl border border-outline-variant/30" value={formData.nama_kegiatan} onChange={e => setFormData({...formData, nama_kegiatan: e.target.value})} />
-                  <div className="grid grid-cols-2 gap-4">
-                    <input required type="date" className="w-full bg-surface-container p-3.5 rounded-xl border border-outline-variant/30" value={formData.tanggal_pelaksanaan} onChange={e => setFormData({...formData, tanggal_pelaksanaan: e.target.value})} />
-                    <input required type="number" placeholder="Anggaran (Rp)" className="w-full bg-surface-container p-3.5 rounded-xl border border-outline-variant/30" value={formData.anggaran} onChange={e => setFormData({...formData, anggaran: e.target.value})} />
-                  </div>
-                  <textarea required rows="4" placeholder="Tujuan / Deskripsi" className="w-full bg-surface-container p-3.5 rounded-xl border border-outline-variant/30" value={formData.tujuan} onChange={e => setFormData({...formData, tujuan: e.target.value})}></textarea>
-                  
-                  <div className="bg-surface-container-low p-4 rounded-xl border border-dashed border-outline-variant/50">
-                    <p className="text-xs font-bold mb-2">Lampiran File (PDF/DOC)</p>
-                    <input type="file" onChange={handleFileUpload} className="text-xs" />
-                    {uploading && <p className="text-[10px] text-blue-500 mt-1">Mengunggah...</p>}
-                    {formData.file_url && <p className="text-[10px] text-emerald-500 mt-1">✓ File siap: {formData.file_url}</p>}
-                  </div>
-
-                  <div className="pt-4 flex gap-3">
-                    <button type="button" onClick={() => setIsFormOpen(false)} className="w-full py-3.5 text-on-surface-variant font-bold">Batal</button>
-                    <button type="submit" className="w-full py-4 bg-primary text-on-primary font-bold rounded-2xl">Ajukan Proposal</button>
-                  </div>
-                </form>
+              {/* Right: Panel Aksi */}
+              <div className="w-full md:w-[350px] shrink-0 flex flex-col p-7 gap-6 bg-slate-50/50">
+                <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline">Panel Kendali Status</h3>
+                <Textarea
+                  rows={6}
+                  placeholder="Berikan catatan atau feedback untuk pengurus ormawa (wajib jika revisi/tolak)..."
+                  className="rounded-2xl border-slate-200 bg-white text-xs font-medium resize-none p-4 focus:ring-primary focus:border-primary transition-all"
+                  value={komentar}
+                  onChange={(e) => setKomentar(e.target.value)}
+                />
+                <div className="space-y-2 flex-1">
+                  {selected.Status === 'diajukan' && (
+                    <Button disabled={isSubmitting} onClick={() => handleAction('disetujui_dosen')} className="w-full h-11 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-black text-[10px] uppercase tracking-widest">
+                      {isSubmitting ? <Loader2 className="size-4 animate-spin" /> : 'ACC Tahap 1 (Dosen)'}
+                    </Button>
+                  )}
+                  {selected.Status === 'disetujui_dosen' && (
+                    <Button disabled={isSubmitting} onClick={() => handleAction('disetujui_fakultas')} className="w-full h-11 rounded-2xl bg-violet-600 hover:bg-violet-700 text-white font-black text-[10px] uppercase tracking-widest">
+                      {isSubmitting ? <Loader2 className="size-4 animate-spin" /> : 'ACC Tahap 2 (Fakultas)'}
+                    </Button>
+                  )}
+                  {selected.Status === 'disetujui_fakultas' && (
+                    <Button disabled={isSubmitting} onClick={() => handleAction('disetujui_univ')} className="w-full h-11 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-[10px] uppercase tracking-widest">
+                      {isSubmitting ? <Loader2 className="size-4 animate-spin" /> : 'ACC Final (Univ & Cair)'}
+                    </Button>
+                  )}
+                  <Button onClick={() => handleAction('revisi')} variant="outline" className="w-full h-11 rounded-2xl border-amber-200 bg-amber-50 text-amber-800 hover:bg-amber-100 font-black text-[10px] uppercase tracking-widest">
+                    Minta Revisi
+                  </Button>
+                  <Button onClick={() => handleAction('ditolak')} variant="outline" className="w-full h-11 rounded-2xl border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100 font-black text-[10px] uppercase tracking-widest">
+                    Tolak Permanen
+                  </Button>
+                </div>
+                <Button variant="ghost" onClick={() => { setIsDetailOpen(false); setKomentar('') }} className="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-900 h-10 rounded-2xl mt-auto">
+                  Tutup Panel
+                </Button>
               </div>
             </div>
           )}
-        </div>
-      </main>
+        </DialogContent>
+      </Dialog>
+
+      {/* CRUD MODAL */}
+      <Dialog open={isCrudOpen} onOpenChange={setIsCrudOpen}>
+        <DialogContent className="max-w-xl p-0 overflow-hidden border-none shadow-2xl rounded-[2rem] bg-white/95 backdrop-blur-xl">
+          <DialogHeader className="p-8 pb-6 bg-gradient-to-br from-slate-50 to-white border-b border-slate-100 relative overflow-hidden">
+            <div className="absolute top-0 right-0 p-8 opacity-5">
+              <FileText className="size-24 rotate-12" />
+            </div>
+            <div className="relative z-10">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="size-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                  {isEditMode ? <Pencil className="size-4" /> : <Plus className="size-4 stroke-[3px]" />}
+                </div>
+                <Badge variant="secondary" className="text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 bg-primary/5 text-primary border-none">
+                  Proposal Registry
+                </Badge>
+              </div>
+              <DialogTitle className="text-2xl font-black font-headline tracking-tighter text-slate-900 uppercase">
+                {isEditMode ? 'Edit Proposal' : 'Buat Proposal Baru'}
+              </DialogTitle>
+              <DialogDescription className="text-xs font-medium text-slate-400 mt-1">
+                Isi data kegiatan dan anggaran yang dibutuhkan untuk pengajuan.
+              </DialogDescription>
+            </div>
+          </DialogHeader>
+
+          <form onSubmit={handleSave} className="p-8 pt-6 space-y-5">
+            <div className="space-y-2">
+              <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Judul / Nama Kegiatan</Label>
+              <Input
+                required
+                value={formData.Judul}
+                onChange={(e) => setFormData({ ...formData, Judul: e.target.value })}
+                placeholder="Contoh: Pekan Olahraga Fakultas..."
+                className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white transition-all font-bold text-sm font-headline"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Tanggal Kegiatan</Label>
+                <Input
+                  required
+                  type="date"
+                  value={formData.TanggalKegiatan}
+                  onChange={(e) => setFormData({ ...formData, TanggalKegiatan: e.target.value })}
+                  className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white transition-all font-bold text-sm font-headline"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Anggaran (Rp)</Label>
+                <Input
+                  required
+                  type="number"
+                  value={formData.Anggaran}
+                  onChange={(e) => setFormData({ ...formData, Anggaran: e.target.value })}
+                  placeholder="0"
+                  className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white transition-all font-bold text-sm font-headline"
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Tujuan / Deskripsi</Label>
+              <Textarea
+                required
+                value={formData.Catatan}
+                onChange={(e) => setFormData({ ...formData, Catatan: e.target.value })}
+                placeholder="Deskripsikan tujuan dan manfaat kegiatan..."
+                className="min-h-[100px] rounded-[1.5rem] border-slate-200 bg-slate-50/50 focus:bg-white p-4 font-medium text-sm leading-relaxed font-headline"
+              />
+            </div>
+
+            <DialogFooter className="pt-4 flex flex-row items-center justify-end gap-3 border-t border-slate-100 -mx-8 px-8 bg-slate-50/30">
+              <Button type="button" variant="ghost" onClick={() => setIsCrudOpen(false)} className="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-900 px-8 h-12 rounded-2xl font-headline">
+                Batalkan
+              </Button>
+              <Button type="submit" disabled={isSubmitting} className="h-12 px-10 rounded-2xl bg-primary text-white hover:bg-primary/90 shadow-xl shadow-primary/20 transition-all hover:scale-[1.02] active:scale-95 font-headline">
+                {isSubmitting ? <Loader2 className="animate-spin size-4 mr-3" /> : <Save className="size-4 mr-3 stroke-[3px]" />}
+                <span className="text-[10px] font-black uppercase tracking-[0.2em] font-headline">
+                  {isEditMode ? 'Update Record' : 'Create Record'}
+                </span>
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      <DeleteConfirmModal
+        isOpen={isDelOpen}
+        onClose={() => setIsDelOpen(false)}
+        onConfirm={handleDelete}
+        title="Hapus Proposal?"
+        description="Proposal dan seluruh riwayat persetujuannya akan dihapus permanen dari sistem."
+        loading={isSubmitting}
+      />
     </div>
-  );
-};
-
-
-export default ProposalManagement;
+  )
+}

@@ -1,10 +1,11 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { useAuth } from '../../../context/AuthContext';
+import useAuthStore from '../../../store/useAuthStore';
 import { ormawaService } from '../../../services/api';
 
 const menuItems = [
   { name: 'Dashboard', path: '/ormawa', icon: 'dashboard', permission: 'dashboard' },
+  { name: 'KENCANA (PKKMB)', path: '/ormawa/pkkmb', icon: 'school', permission: 'dashboard' },
   { name: 'Manajemen Anggota', path: '/ormawa/anggota', icon: 'group', permission: 'anggota' },
   { name: 'Manajemen Staf', path: '/ormawa/staff', icon: 'groups', permission: 'anggota' },
   { name: 'Proposal & Kegiatan', path: '/ormawa/proposal', icon: 'edit_note', permission: 'proposal' },
@@ -22,8 +23,11 @@ const menuItems = [
 
 const Sidebar = ({ isOpen, setIsOpen }) => {
   const location = useLocation();
-  const { logout, user, hasPermission } = useAuth();
-  const ormawaId = user?.ormawaId || 1;
+  const logout = useAuthStore(state => state.logout);
+  const user = useAuthStore(state => state.user);
+  const mahasiswa = useAuthStore(state => state.mahasiswa);
+  const ormawaId = mahasiswa?.ormawaId || mahasiswa?.OrmawaID || 1;
+  const hasPermission = (perm, action) => true; // Temporary mapping or fetch from user roles
   const [identity, setIdentity] = React.useState({ name: 'SIAKAD', alias: 'ORMAWA PORTAL' });
 
   // Filter menu based on permissions
@@ -44,9 +48,10 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
   const getFullLogoUrl = (url) => {
     if (!url) return null;
     if (url.startsWith('http')) return url;
-    // Standardize local path handling
+    // Derive base domain from API_BASE_URL (remove /api)
+    const baseDomain = API_BASE_URL ? API_BASE_URL.replace('/api', '') : 'http://localhost:8000';
     const cleanPath = url.replace(/^\.\//, '/').replace(/^uploads/, '/uploads');
-    return `http://localhost:8000${cleanPath.startsWith('/') ? cleanPath : '/' + cleanPath}`;
+    return `${baseDomain}${cleanPath.startsWith('/') ? cleanPath : '/' + cleanPath}`;
   };
 
   React.useEffect(() => {

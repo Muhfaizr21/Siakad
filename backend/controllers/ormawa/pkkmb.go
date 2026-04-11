@@ -1,4 +1,4 @@
-package controllers
+package ormawa
 
 import (
 	"siakad-backend/config"
@@ -7,24 +7,15 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-// --- RINGKASAN & MONITORING (UNTUK DASHBOARD) ---
+// --- RINGKASAN & MONITORING (UNTUK DASHBOARD ORMAWA) ---
 
 func AmbilRingkasanPkkmb(c *fiber.Ctx) error {
-	role := c.Locals("role").(string)
-	fid := c.Locals("fakultas_id").(uint)
-
 	var totalMaba int64
 	var totalLulus int64
 	var totalProses int64
 
 	qMhs := config.DB.Model(&models.Mahasiswa{})
 	qHasil := config.DB.Model(&models.PkkmbHasil{})
-
-	if role == "faculty_admin" {
-		qMhs = qMhs.Where("fakultas_id = ?", fid)
-		qHasil = qHasil.Joins("JOIN mahasiswa.mahasiswa ON mahasiswa.mahasiswa.id = mahasiswa.pkkmb_hasil.mahasiswa_id").
-			Where("mahasiswa.mahasiswa.fakultas_id = ?", fid)
-	}
 
 	qMhs.Count(&totalMaba)
 	qHasil.Where("status_kelulusan = ?", "Lulus").Count(&totalLulus)
@@ -40,11 +31,7 @@ func AmbilRingkasanPkkmb(c *fiber.Ctx) error {
 	}
 
 	var prodis []models.ProgramStudi
-	qProdi := config.DB
-	if role == "faculty_admin" {
-		qProdi = qProdi.Where("fakultas_id = ?", fid)
-	}
-	qProdi.Find(&prodis)
+	config.DB.Find(&prodis)
 
 	var listStats []ProdiStats
 	for _, p := range prodis {
@@ -95,7 +82,13 @@ func AmbilRingkasanPkkmb(c *fiber.Ctx) error {
 	})
 }
 
-// --- KEGIATAN (AGENDA) ---
+func AmbilDaftarKelulusanMaba(c *fiber.Ctx) error {
+	var list []models.PkkmbHasil
+	config.DB.Preload("Mahasiswa.ProgramStudi").Preload("Mahasiswa.Pengguna").Find(&list)
+	return c.JSON(fiber.Map{"status": "success", "data": list})
+}
+
+// --- KEGIATAN (AGENDA) CRUD ORMAWA ---
 
 func AmbilDaftarKegiatanPkkmb(c *fiber.Ctx) error {
 	var k []models.PkkmbKegiatan
@@ -103,53 +96,32 @@ func AmbilDaftarKegiatanPkkmb(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"status": "success", "data": k})
 }
 
-// --- MATERI ---
-
-func AmbilDaftarMateriPkkmb(c *fiber.Ctx) error {
-	// Model PkkmbMateri tidak ada di model.go
-	return c.JSON(fiber.Map{"status": "success", "data": []string{}})
+func TambahKegiatanPkkmb(c *fiber.Ctx) error {
+	var k models.PkkmbKegiatan
+	if err := c.BodyParser(&k); err != nil {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Gagal memproses data"})
+	}
+	config.DB.Create(&k)
+	return c.Status(201).JSON(fiber.Map{"status": "success", "data": k})
 }
 
-// --- TUGAS ---
-
-func AmbilDaftarTugasPkkmb(c *fiber.Ctx) error {
-	// Model PkkmbTugas tidak ada di model.go
-	return c.JSON(fiber.Map{"status": "success", "data": []string{}})
+func UpdateKegiatanPkkmb(c *fiber.Ctx) error {
+	id := c.Params("id")
+	var k models.PkkmbKegiatan
+	if err := config.DB.First(&k, id).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Kegiatan tidak ditemukan"})
+	}
+	if err := c.BodyParser(&k); err != nil {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Format data tidak valid"})
+	}
+	config.DB.Save(&k)
+	return c.JSON(fiber.Map{"status": "success", "data": k, "message": "Kegiatan berhasil diperbarui"})
 }
 
-// --- KELULUSAN (MAHASISWA) ---
-
-func AmbilStatusKelulusanMahasiswa(c *fiber.Ctx) error {
-	role := c.Locals("role").(string)
-	fid := c.Locals("fakultas_id").(uint)
-
-	mID := c.Params("id")
-	var s models.PkkmbHasil
-	
-	query := config.DB.Preload("Mahasiswa")
-	if role == "faculty_admin" {
-		query = query.Joins("JOIN mahasiswa.mahasiswa ON mahasiswa.mahasiswa.id = mahasiswa.pkkmb_hasil.mahasiswa_id").
-			Where("mahasiswa.mahasiswa.fakultas_id = ?", fid)
+func HapusKegiatanPkkmb(c *fiber.Ctx) error {
+	id := c.Params("id")
+	if err := config.DB.Delete(&models.PkkmbKegiatan{}, id).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal menghapus kegiatan"})
 	}
-
-	if err := query.Where("mahasiswa_id = ?", mID).First(&s).Error; err != nil {
-		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Status tidak ditemukan atau Anda tidak memiliki akses"})
-	}
-	return c.JSON(fiber.Map{"status": "success", "data": s})
-}
-
-func AmbilDaftarKelulusanMaba(c *fiber.Ctx) error {
-	role := c.Locals("role").(string)
-	fid := c.Locals("fakultas_id").(uint)
-
-	var list []models.PkkmbHasil
-	query := config.DB.Preload("Mahasiswa.ProgramStudi").Preload("Mahasiswa.Pengguna")
-	
-	if role == "faculty_admin" {
-		query = query.Joins("JOIN mahasiswa.mahasiswa ON mahasiswa.mahasiswa.id = mahasiswa.pkkmb_hasil.mahasiswa_id").
-			Where("mahasiswa.mahasiswa.fakultas_id = ?", fid)
-	}
-
-	query.Find(&list)
-	return c.JSON(fiber.Map{"status": "success", "data": list})
+	return c.JSON(fiber.Map{"status": "success", "message": "Kegiatan berhasil dihapus"})
 }

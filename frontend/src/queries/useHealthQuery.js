@@ -53,7 +53,7 @@ export const useHealthRingkasanQuery = () => {
   return useQuery({
     queryKey: ['health', 'ringkasan'],
     queryFn: async () => {
-      const { data } = await api.get('/health/ringkasan');
+      const { data } = await api.get('/student-health/ringkasan');
       const terakhir = data?.data?.terakhir;
       if (!terakhir) return null;
       return normalizeHealthRecord(terakhir);
@@ -72,7 +72,7 @@ export const useHealthRiwayatQuery = (filters = { sumber: 'Semua' }) => {
       const params = new URLSearchParams();
       if (filters.sumber !== 'Semua') params.append('sumber', filters.sumber);
 
-      const { data } = await api.get(`/health/riwayat?${params.toString()}`);
+      const { data } = await api.get(`/student-health/riwayat?${params.toString()}`);
       const list = Array.isArray(data?.data) ? data.data : [];
       return list.map(normalizeHealthRecord);
     },
@@ -84,7 +84,7 @@ export const useHealthDetailQuery = (id) => {
   return useQuery({
     queryKey: ['health', 'detail', id],
     queryFn: async () => {
-      const { data } = await api.get(`/health/riwayat/${id}`);
+      const { data } = await api.get(`/student-health/riwayat/${id}`);
       return normalizeHealthRecord(data?.data || {});
     },
     enabled: !!id,
@@ -96,7 +96,7 @@ export const useHealthMandiriMutation = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (payload) => {
-      const { data } = await api.post('/health/mandiri', payload);
+      const { data } = await api.post('/student-health/mandiri', payload);
       return data;
     },
     onSuccess: () => {
@@ -110,7 +110,7 @@ export const useHealthTipsQuery = (bmi) => {
   return useQuery({
     queryKey: ['health', 'tips', bmi],
     queryFn: async () => {
-      const { data } = await api.get(`/health/tips?bmi=${bmi}`);
+      const { data } = await api.get(`/student-health/tips?bmi=${bmi}`);
       return data.tips;
     },
     enabled: !!bmi,

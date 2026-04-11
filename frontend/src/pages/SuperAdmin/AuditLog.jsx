@@ -1,114 +1,107 @@
-import React, { useState, useEffect } from 'react';
-import Sidebar from './components/Sidebar';
-import TopNavBar from './components/TopNavBar';
-import { adminService } from '../../services/api';
+"use client"
 
-const AuditLog = () => {
-    const [logs, setLogs] = useState([]);
-    const [loading, setLoading] = useState(true);
+import React, { useState, useEffect } from 'react'
+import { DataTable } from '../FacultyAdmin/components/data-table'
+import { Badge } from '../FacultyAdmin/components/badge'
+import { Button } from '../FacultyAdmin/components/button'
+import { Card, CardContent } from '../FacultyAdmin/components/card'
+import { ShieldCheck, Download } from 'lucide-react'
+import { toast, Toaster } from 'react-hot-toast'
+import { cn } from '@/lib/utils'
+import Sidebar from './components/Sidebar'
+import TopNavBar from './components/TopNavBar'
+import { adminService } from '../../services/api'
 
-    useEffect(() => {
-        fetchLogs();
-    }, []);
-
-    const fetchLogs = async () => {
-        try {
-            setLoading(true);
-            const res = await adminService.getAuditLogs();
-            if (res.status === 'success') {
-                setLogs(res.data || []);
-            }
-        } catch (e) {
-            console.error("Gagal load logs:", e);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    return (
-        <div className="bg-slate-50 text-slate-900 min-h-screen flex font-body select-none font-sans">
-          <Sidebar />
-          <main className="pl-80 flex flex-col min-h-screen w-full font-body">
-            <TopNavBar />
-            <div className="p-8 space-y-8 font-body">
-              <header className="flex justify-between items-end font-body">
-                <div>
-                  <h1 className="text-3xl font-extrabold text-primary tracking-tight uppercase leading-none">Log Audit Absolut (Immutable)</h1>
-                  <p className="text-slate-600 mt-2 font-medium opacity-90 leading-relaxed font-body">Rekaman jejak forensik seluruh aksi administratif sistem yang tidak dapat diubah oleh siapapun.</p>
-                </div>
-                <div className="flex gap-4 font-body">
-                    <button className="bg-white border border-slate-200 px-6 py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-50 transition-all font-body">
-                        Cek Integritas
-                    </button>
-                    <button className="bg-primary text-white px-8 py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-primary/20 hover:scale-105 transition-all font-body leading-none h-12 flex items-center">
-                        Ekspor Log Forensik
-                    </button>
-                </div>
-              </header>
-
-              <section className="bg-white border border-slate-200 rounded-[3.5rem] overflow-hidden shadow-sm font-body">
-                 <div className="p-10 border-b border-slate-100 bg-slate-50/50 flex justify-between items-end font-body">
-                    <h3 className="text-sm font-black text-primary uppercase tracking-widest">Registri Aktivitas Global</h3>
-                    <span className="text-[10px] text-slate-400 font-black uppercase tracking-widest">Verified by Institutional Node</span>
-                 </div>
-                 <table className="w-full text-left font-body">
-                  <thead>
-                    <tr className="bg-slate-50 text-[10px] font-black uppercase tracking-[0.2em] text-slate-600 leading-tight">
-                      <th className="px-10 py-6">Operator Admin</th>
-                      <th className="px-10 py-6">Aksi & Deskripsi</th>
-                      <th className="px-10 py-6 text-center">Jejak Waktu</th>
-                      <th className="px-10 py-6 text-right">IP Address</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100 font-body select-text text-sm">
-                    {loading ? (
-                        <tr><td colSpan="4" className="px-10 py-20 text-center text-slate-400 uppercase font-black text-[10px] tracking-widest leading-loose">Memverifikasi rekaman forensik...</td></tr>
-                    ) : logs.length === 0 ? (
-                        <tr><td colSpan="4" className="px-10 py-20 text-center text-slate-400 uppercase font-black text-[10px] tracking-widest leading-loose">Tidak ada jejak aktivitas ditemukan.</td></tr>
-                    ) : logs.map((log) => (
-                      <tr key={log.ID} className="hover:bg-slate-50/50 transition-all group border-b border-slate-50">
-                        <td className="px-10 py-6 font-body">
-                            <div className="flex items-center gap-4">
-                                <div className="w-9 h-9 bg-primary/5 rounded-xl flex items-center justify-center font-black text-primary shadow-inner uppercase text-[10px]">
-                                    {log.User?.Email ? log.User.Email[0] : 'S'}
-                                </div>
-                                <div className="font-body">
-                                    <span className="font-extrabold text-primary group-hover:text-blue-700 transition-colors uppercase tracking-tight leading-none truncate block max-w-[150px]">
-                                        {log.User?.Email || 'SYSTEM'}
-                                    </span>
-                                    <p className="text-[9px] text-slate-400 font-black tracking-widest uppercase mt-1">Verified Node</p>
-                                </div>
-                            </div>
-                        </td>
-                        <td className="px-10 py-6 font-body">
-                             <div className="flex flex-col font-body">
-                                <span className={`text-[10px] font-black uppercase tracking-widest mb-1 ${
-                                    log.Aktivitas.includes('DELETE') ? 'text-rose-600' :
-                                    log.Aktivitas.includes('UPDATE') ? 'text-amber-600' : 'text-emerald-600'
-                                }`}>
-                                    {log.Aktivitas.replace(/_/g, ' ')}
-                                </span>
-                                <p className="font-bold text-slate-500 tracking-tight leading-relaxed max-w-lg italic opacity-80 uppercase text-[11px]">{log.Deskripsi}</p>
-                             </div>
-                        </td>
-                        <td className="px-10 py-6 text-center font-body">
-                            <div className="flex flex-col items-center">
-                                <span className="text-[10px] font-black text-slate-700 uppercase tracking-tighter">{new Date(log.CreatedAt).toLocaleDateString('id-ID')}</span>
-                                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">{new Date(log.CreatedAt).toLocaleTimeString('id-ID')}</span>
-                            </div>
-                        </td>
-                        <td className="px-10 py-6 text-right font-body">
-                            <span className="px-4 py-1.5 bg-slate-100 text-slate-500 rounded-lg text-[9px] font-black tracking-[0.1em]">IP: {log.IPAddress || '0.0.0.0'}</span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </section>
-            </div>
-          </main>
-        </div>
-    )
+const ACTION_COLORS = {
+  LOGIN: 'bg-blue-100 text-blue-700',
+  LOGOUT: 'bg-slate-100 text-slate-600',
+  CREATE: 'bg-emerald-100 text-emerald-700',
+  UPDATE: 'bg-amber-100 text-amber-700',
+  DELETE: 'bg-rose-100 text-rose-700',
+  APPROVE: 'bg-indigo-100 text-indigo-700',
+  REJECT: 'bg-rose-100 text-rose-700',
 }
 
-export default AuditLog;
+const getActionColor = (action = '') => {
+  const k = Object.keys(ACTION_COLORS).find(k => action.toUpperCase().includes(k))
+  return ACTION_COLORS[k] || 'bg-slate-100 text-slate-600'
+}
+
+export default function AuditLog() {
+  const [logs, setLogs] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  const fetchData = async () => {
+    setLoading(true)
+    try {
+      const res = await adminService.getAuditLogs()
+      if (res.status === 'success') setLogs(res.data || [])
+      else toast.error('Gagal memuat audit log')
+    } catch { toast.error('Koneksi gagal') } finally { setLoading(false) }
+  }
+  useEffect(() => { fetchData() }, [])
+
+  const columns = [
+    { key: 'Aktivitas', label: 'Aktivitas', className: 'min-w-[220px]',
+      render: v => (
+        <Badge className={cn('font-black text-[10px] px-3 py-1 border-none shadow-sm uppercase', getActionColor(v))}>
+          {(v || '—').replace(/_/g, ' ')}
+        </Badge>
+      )
+    },
+    { key: 'Deskripsi', label: 'Deskripsi', className: 'min-w-[300px]',
+      render: v => <span className="font-bold text-slate-700 text-[12px] font-headline">{v || '—'}</span>
+    },
+    { key: 'AdminNama', label: 'Operator', className: 'w-[200px]',
+      render: (v, row) => (
+        <div className="flex flex-col leading-tight">
+          <span className="font-bold text-slate-900 text-[12px] font-headline tracking-tighter">{v || row.AdminEmail || '—'}</span>
+          <span className="text-[9px] text-slate-400 font-bold uppercase tracking-widest">{row.IPAddress || '—'}</span>
+        </div>
+      )
+    },
+    { key: 'CreatedAt', label: 'Waktu', className: 'w-[200px]',
+      render: v => (
+        <span className="font-bold text-slate-400 text-[11px] font-headline">
+          {v ? new Date(v).toLocaleString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—'}
+        </span>
+      )
+    }
+  ]
+
+  return (
+    <div className="bg-slate-50 min-h-screen flex font-sans">
+      <Sidebar />
+      <main className="pl-72 pt-20 flex flex-col min-h-screen w-full">
+
+        <TopNavBar />
+        <div className="p-8 space-y-6">
+          <Toaster position="top-right" />
+          <div className="flex flex-col gap-1.5">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-primary/10 rounded-xl text-primary"><ShieldCheck className="size-6" /></div>
+                <h1 className="text-2xl font-black text-slate-900 font-headline tracking-tighter uppercase">Audit Log Absolut</h1>
+              </div>
+              <Button onClick={() => alert('Ekspor log forensik...')} variant="outline" className="h-10 px-6 rounded-2xl border-slate-200 text-[10px] font-black uppercase tracking-widest text-slate-600 hover:bg-slate-100 gap-2">
+                <Download className="size-4" /> Ekspor Forensik
+              </Button>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="h-1 w-10 bg-primary rounded-full shadow-sm shadow-primary/30" />
+              <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Rekaman Jejak Tindakan Administratif — Immutable Log</p>
+            </div>
+          </div>
+          <Card className="border-none shadow-sm overflow-hidden bg-white/50 backdrop-blur-md">
+            <CardContent className="p-0">
+              <DataTable
+                columns={columns} data={logs} loading={loading}
+                searchPlaceholder="Cari aktivitas, operator, atau IP..."
+              />
+            </CardContent>
+          </Card>
+        </div>
+      </main>
+    </div>
+  )
+}

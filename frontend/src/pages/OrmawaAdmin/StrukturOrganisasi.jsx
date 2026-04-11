@@ -1,353 +1,233 @@
-import React, { useState, useEffect } from 'react';
-import Sidebar from './components/Sidebar';
-import TopNavBar from './components/TopNavBar';
-import { useAuth } from '../../context/AuthContext';
+"use client"
 
-const StrukturOrganisasi = () => {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { user, hasPermission } = useAuth();
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [members, setMembers] = useState([]);
-  const [divisions, setDivisions] = useState([]);
-  const [isDivModalOpen, setIsDivModalOpen] = useState(false);
-  const [newDivName, setNewDivName] = useState('');
-  const [org, setOrg] = useState({
-    presiden: { nama: 'Memuat...', nim: '-', role: 'Ketua Umum' },
-    wakil: { nama: 'Memuat...', nim: '-', role: 'Wakil Ketua' },
-    inti: [],
-    divisi: []
-  });
+import React, { useState, useEffect } from 'react'
+import { Badge } from '../FacultyAdmin/components/badge'
+import { Button } from '../FacultyAdmin/components/button'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '../FacultyAdmin/components/dialog'
+import { Card, CardContent } from '../FacultyAdmin/components/card'
+import { Input } from '../FacultyAdmin/components/input'
+import { Label } from '../FacultyAdmin/components/label'
+import { Avatar, AvatarFallback } from '../FacultyAdmin/components/avatar'
+import { Network, Plus, Save, Loader2, Pencil, Trash2 } from 'lucide-react'
+import { toast, Toaster } from 'react-hot-toast'
+import { DeleteConfirmModal } from '../FacultyAdmin/components/DeleteConfirmModal'
+import { cn } from '@/lib/utils'
+import Sidebar from './components/Sidebar'
+import TopNavBar from './components/TopNavBar'
 
-  const [selectedMemberId, setSelectedMemberId] = useState('');
-  const [editRole, setEditRole] = useState('');
-  const [editDivision, setEditDivision] = useState('');
-  const [editParentId, setEditParentId] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  
-  const ormawaId = user?.ormawaId || 1;
+import { fetchWithAuth, API_BASE_URL } from '../../services/api'
+import useAuthStore from '../../store/useAuthStore'
 
-  useEffect(() => {
-    fetchMembers();
-    fetchDivisions();
-  }, [ormawaId]);
+const API = `${API_BASE_URL}/ormawa`
 
-  const fetchDivisions = async () => {
+const OrgCard = ({ member, color = 'bg-primary/10', textColor = 'text-primary', size = 'md' }) => {
+  if (!member) return null
+  const sizes = { lg: 'p-4 gap-3', md: 'p-3 gap-2', sm: 'p-2.5 gap-1.5' }
+  const avatarSizes = { lg: 'size-14 rounded-2xl text-lg', md: 'size-10 rounded-xl text-sm', sm: 'size-8 rounded-xl text-[10px]' }
+  const nameSizes = { lg: 'text-sm', md: 'text-[12px]', sm: 'text-[10px]' }
+  return (
+    <div className={cn('flex items-center bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-all', sizes[size])}>
+      <Avatar className={cn(avatarSizes[size], color)}>
+        <AvatarFallback className={cn('font-black uppercase', color, textColor)}>
+          {(member.Mahasiswa?.Nama || member.Nama || '—').split(' ').map(n => n[0]).join('').substring(0, 2)}
+        </AvatarFallback>
+      </Avatar>
+      <div>
+        <p className={cn('font-black font-headline tracking-tighter text-slate-900 truncate max-w-[140px]', nameSizes[size])}>{member.Mahasiswa?.Nama || member.Nama || '—'}</p>
+        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">{member.Role}</p>
+      </div>
+    </div>
+  )
+}
+
+export default function StrukturOrganisasi() {
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [members, setMembers] = useState([])
+  const [divisions, setDivisions] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [isAddDivOpen, setIsAddDivOpen] = useState(false)
+  const [divName, setDivName] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [delDiv, setDelDiv] = useState(null)
+  const ormawaId = useAuthStore.getState()?.mahasiswa?.ormawaId || useAuthStore.getState()?.mahasiswa?.ID || 1
+
+  const fetchData = async () => {
+    setLoading(true)
     try {
-      const res = await fetch(`http://localhost:8000/api/ormawa/divisions?ormawaId=${ormawaId}`);
-      const json = await res.json();
-      if (json.status === 'success') setDivisions(json.data || []);
-    } catch (e) { console.error(e); }
-  };
-
-  useEffect(() => {
-    if (members.length >= 0) {
-      // Root: Ketua/Presiden yang tidak punya atasan
-      const ketua = members.find(m => (m.role.toLowerCase().includes('ketua') || m.role.toLowerCase().includes('presiden')) && !m.parentId) 
-                  || members[0] 
-                  || { student: { name: 'Belum Ada', nim: '-' }, role: 'Ketua Umum' };
-
-      // Wakil: Bawahan langsung ketua dengan role wakil
-      const wakil = members.find(m => m.parentId === ketua.id && m.role.toLowerCase().includes('wakil'))
-                  || members.find(m => m.role.toLowerCase().includes('wakil'))
-                  || { student: { name: 'Belum Ada', nim: '-' }, role: 'Wakil Ketua' };
-      
-      const pengurusInti = members.filter(m => 
-        m.id !== ketua.id && m.id !== wakil.id && 
-        (m.parentId === ketua.id || m.parentId === wakil.id || (!m.division || m.division === 'INTI'))
-      ).map(m => ({
-        id: m.id,
-        nama: m.student?.name || 'Unknown',
-        role: m.role
-      }));
-
-      // Group by Divisions (Showing ALL created divisions)
-      const officialDivNames = new Set(divisions.map(d => d.name));
-      const divArray = divisions.map(d => {
-        const staffInDiv = members.filter(m => m.division === d.name);
-        const kepala = staffInDiv.find(m => 
-          m.role.toLowerCase().includes('kepala') || 
-          m.role.toLowerCase().includes('kadiv') || 
-          m.role.toLowerCase().includes('koordinator')
-        )?.student?.name || 'Belum Ada';
-
-        return {
-          nama: d.name,
-          kepala: kepala,
-          kuota: staffInDiv.length,
-          staff: staffInDiv
-        };
-      });
-
-      // Add "Other" divisions that members might have but aren't in official list
-      const adhocDivs = [];
-      members.forEach(m => {
-        if (m.division && m.division !== 'INTI' && !officialDivNames.has(m.division)) {
-           // Find if already added to adhoc
-           let existing = adhocDivs.find(a => a.nama === m.division);
-           if (!existing) {
-             existing = { nama: m.division, kepala: 'Belum Ada', kuota: 0, staff: [] };
-             adhocDivs.push(existing);
-           }
-           if (m.role.toLowerCase().includes('kepala')) existing.kepala = m.student?.name;
-           else existing.staff.push(m);
-           existing.kuota++;
-        }
-      });
-
-      setOrg({
-        presiden: { id: ketua.id, nama: ketua.student?.name || 'Unknown', nim: ketua.student?.nim, role: ketua.role },
-        wakil: { id: wakil.id, nama: wakil.student?.name || 'Unknown', nim: wakil.student?.nim, role: wakil.role },
-        inti: pengurusInti,
-        divisi: [...divArray, ...adhocDivs]
-      });
-    }
-  }, [members, divisions]);
-
-  const fetchMembers = async () => {
-    try {
-      const res = await fetch(`http://localhost:8000/api/ormawa/members?ormawaId=${ormawaId}`);
-      const json = await res.json();
-      if (json.status === 'success') {
-        setMembers(json.data || []);
-      }
-    } catch (err) {
-       console.error("Gagal mengambil anggota", err);
-    }
-  };
-
-  const openReshuffleModal = () => {
-    setSelectedMemberId('');
-    setEditRole('');
-    setEditDivision('');
-    setEditParentId('');
-    setIsModalOpen(true);
-  };
-
-  const handleMemberSelect = (e) => {
-    const id = e.target.value;
-    setSelectedMemberId(id);
-    const m = members.find(x => x.id.toString() === id);
-    if (m) {
-       setEditRole(m.role);
-       setEditDivision(m.division || '');
-       setEditParentId(m.parentId || '');
-    }
-  };
-
-  const submitReshuffle = async (e) => {
-    e.preventDefault();
-    if (!selectedMemberId) return alert('Pilih anggota terlebih dahulu');
-    setIsSubmitting(true);
-    try {
-      const res = await fetch(`http://localhost:8000/api/ormawa/members/${selectedMemberId}`, {
-         method: 'PUT',
-         headers: { 'Content-Type': 'application/json' },
-         body: JSON.stringify({
-            role: editRole,
-            division: editDivision,
-            parentId: editParentId ? Number(editParentId) : null
-         })
-      });
-      const data = await res.json();
-      if (data.status === 'success') {
-         setIsModalOpen(false);
-         fetchMembers();
-      }
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+      const [memberJson, divJson] = await Promise.all([
+        fetchWithAuth(`${API}/members?ormawaId=${ormawaId}`),
+        fetchWithAuth(`${API}/divisions?ormawaId=${ormawaId}`)
+      ])
+      if (memberJson.status === 'success') setMembers(memberJson.data || [])
+      if (divJson.status === 'success') setDivisions(divJson.data || [])
+    } catch { toast.error('Gagal memuat data') } finally { setLoading(false) }
+  }
+  useEffect(() => { fetchData() }, [])
 
   const handleAddDivision = async (e) => {
-    e.preventDefault();
-    if (!newDivName) return;
+    e.preventDefault(); setIsSubmitting(true)
     try {
-      const res = await fetch('http://localhost:8000/api/ormawa/divisions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ormawaId: Number(ormawaId), name: newDivName })
-      });
-      if (res.ok) {
-        setNewDivName('');
-        setIsDivModalOpen(false);
-        fetchDivisions();
-      }
-    } catch (e) { console.error(e); }
-  };
+      const json = await fetchWithAuth(`${API}/divisions`, { method: 'POST', body: JSON.stringify({ Nama: divName, OrmawaID: ormawaId }) })
+      if (json.status === 'success') { toast.success('Divisi ditambahkan'); setIsAddDivOpen(false); setDivName(''); fetchData() }
+      else toast.error(json.message || 'Gagal menambahkan divisi')
+    } catch { toast.error('Terjadi kesalahan') } finally { setIsSubmitting(false) }
+  }
+  const handleDeleteDivision = async () => {
+    setIsSubmitting(true)
+    try {
+      const json = await fetchWithAuth(`${API}/divisions/${delDiv?.ID}`, { method: 'DELETE' })
+      if (json.status === 'success') { toast.success('Divisi dihapus'); setDelDiv(null); fetchData() }
+      else toast.error('Gagal menghapus')
+    } catch { toast.error('Terjadi kesalahan') } finally { setIsSubmitting(false) }
+  }
+
+  const ketua = members.find(m => m.Role?.toLowerCase().includes('ketua') && !m.ParentID) || members[0]
+  const wakil = members.find(m => m.Role?.toLowerCase().includes('wakil')) || null
+  const pengurusInti = members.filter(m => m.ID !== ketua?.ID && m.ID !== wakil?.ID && (!m.Divisi || m.Divisi === '' || m.Divisi === 'INTI'))
+
+  const getDivisionMembers = (divName) => members.filter(m => m.Divisi === divName)
 
   return (
-    <div className="bg-surface text-on-surface min-h-screen">
+    <div className="bg-slate-50 min-h-screen font-sans">
       <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
-      <main className="lg:ml-60 min-h-screen pb-12 transition-all duration-300">
+      <main className="lg:ml-60 min-h-screen transition-all duration-300">
         <TopNavBar setIsOpen={setSidebarOpen} />
-        
-        <div className="pt-20 px-4 lg:px-6">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
-            <div>
-              <h1 className="text-2xl font-extrabold font-headline mb-1 text-on-surface text-primary">Struktur Kepengurusan</h1>
-              <p className="text-on-surface-variant text-xs font-medium leading-relaxed">Manajemen hierarki & ploting formasi divisi.</p>
+        <div className="pt-20 px-6 pb-12">
+          <Toaster position="top-right" />
+          <div className="flex flex-col gap-1.5 mb-8">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-primary/10 rounded-xl text-primary"><Network className="size-6" /></div>
+                <h1 className="text-2xl font-black text-slate-900 font-headline tracking-tighter uppercase">Struktur Pengurus</h1>
+              </div>
+              <Button onClick={() => setIsAddDivOpen(true)} className="h-10 px-6 rounded-2xl bg-primary text-white font-black text-[10px] uppercase tracking-widest shadow-xl shadow-primary/20 gap-2">
+                <Plus className="size-4 stroke-[3px]" /> Tambah Divisi
+              </Button>
             </div>
             <div className="flex items-center gap-2">
-              <button 
-                onClick={() => setIsDivModalOpen(true)}
-                className="flex items-center gap-2 px-4 py-2 bg-surface-container-high text-primary font-black rounded-xl border border-primary/20 shadow-sm hover:bg-white transition-all text-xs uppercase tracking-wider"
-              >
-                <span className="material-symbols-outlined text-[16px]">account_tree</span>
-                Divisi
-              </button>
-              {hasPermission('struktur', 'edit') && (
-                <button 
-                  onClick={openReshuffleModal}
-                  className="flex items-center gap-2 px-4 py-2 bg-primary text-white font-black rounded-xl shadow-lg hover:-translate-y-0.5 transition-all outline-none text-xs uppercase tracking-wider"
-                >
-                  <span className="material-symbols-outlined text-[16px]">group_add</span>
-                  Edit Struktur
-                </button>
+              <div className="h-1 w-10 bg-primary rounded-full shadow-sm shadow-primary/30" />
+              <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Hierarki & Bagan Organisasi Ormawa</p>
+            </div>
+          </div>
+
+          {loading ? (
+            <div className="flex items-center justify-center h-64"><div className="size-8 border-4 border-primary/30 border-t-primary rounded-full animate-spin" /></div>
+          ) : (
+            <div className="space-y-8">
+              {/* Root: Ketua */}
+              <div className="flex flex-col items-center gap-4">
+                {ketua && (
+                  <OrgCard member={ketua} color="bg-primary/10" textColor="text-primary" size="lg" />
+                )}
+                {/* Connector */}
+                {wakil && <div className="h-8 w-px bg-slate-200" />}
+                {wakil && <OrgCard member={wakil} color="bg-violet-100" textColor="text-violet-600" size="md" />}
+              </div>
+
+              {/* Pengurus Inti */}
+              {pengurusInti.length > 0 && (
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <div className="h-px flex-1 bg-slate-100" />
+                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.3em] font-headline">Pengurus Inti</p>
+                    <div className="h-px flex-1 bg-slate-100" />
+                  </div>
+                  <div className="flex flex-wrap gap-3 justify-center">
+                    {pengurusInti.map(m => <OrgCard key={m.ID} member={m} color="bg-blue-50" textColor="text-blue-600" size="sm" />)}
+                  </div>
+                </div>
+              )}
+
+              {/* Divisi-Divisi */}
+              {divisions.length > 0 && (
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <div className="h-px flex-1 bg-slate-100" />
+                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.3em] font-headline">Divisi</p>
+                    <div className="h-px flex-1 bg-slate-100" />
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {divisions.map((div) => {
+                      const divMembers = getDivisionMembers(div.Nama)
+                      return (
+                        <Card key={div.ID} className="border-none shadow-sm overflow-hidden bg-white/50 backdrop-blur-md">
+                          <CardContent className="p-5">
+                            <div className="flex items-center justify-between mb-4">
+                              <div>
+                                <h3 className="font-black text-slate-900 font-headline tracking-tighter text-sm uppercase">{div.Nama}</h3>
+                                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">{divMembers.length} anggota</p>
+                              </div>
+                              <Button onClick={() => setDelDiv(div)} variant="ghost" size="icon" className="h-7 w-7 hover:text-rose-600 hover:bg-rose-50 rounded-xl">
+                                <Trash2 className="size-3.5" />
+                              </Button>
+                            </div>
+                            <div className="flex flex-wrap gap-2">
+                              {divMembers.length === 0
+                                ? <p className="text-[9px] font-bold text-slate-300 uppercase tracking-widest">Belum ada anggota</p>
+                                : divMembers.map(m => (
+                                  <div key={m.ID} className="flex items-center gap-1.5 bg-slate-50 rounded-xl px-2.5 py-1.5 border border-slate-100">
+                                    <div className="size-5 rounded-lg bg-primary/10 text-primary flex items-center justify-center text-[8px] font-black uppercase">
+                                      {(m.Mahasiswa?.Nama || '—').split(' ').map(n => n[0]).join('').substring(0, 2)}
+                                    </div>
+                                    <span className="text-[9px] font-bold text-slate-600 uppercase font-headline">{m.Mahasiswa?.Nama?.split(' ')[0] || '—'}</span>
+                                  </div>
+                                ))
+                              }
+                            </div>
+                          </CardContent>
+                        </Card>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {divisions.length === 0 && pengurusInti.length === 0 && !ketua && (
+                <Card className="border-none shadow-sm bg-white/50 backdrop-blur-md">
+                  <CardContent className="flex flex-col items-center justify-center py-20 gap-4">
+                    <Network className="size-12 text-slate-300 stroke-[1px]" />
+                    <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest text-center">Belum ada data struktur organisasi.<br />Tambahkan anggota terlebih dahulu.</p>
+                  </CardContent>
+                </Card>
               )}
             </div>
-          </div>
-
-          <div className="bg-surface-container-lowest border border-outline-variant/20 rounded-2xl p-6 lg:p-10 overflow-x-auto shadow-sm min-h-[500px] flex flex-col items-center relative">
-            <div className="flex flex-col items-center mt-2">
-              {/* Leader */}
-              <div className="w-56 bg-primary-container text-primary-fixed border-[3px] border-white shadow-xl rounded-2xl p-4 flex flex-col items-center text-center">
-                 <div className="w-14 h-14 bg-primary rounded-full mb-2 flex items-center justify-center text-white text-xl overflow-hidden border-2 border-white shadow-sm">
-                    <img src={`https://i.pravatar.cc/150?u=${org.presiden.id}`} alt="avatar" />
-                 </div>
-                 <h3 className="font-black font-headline leading-tight text-[15px] uppercase tracking-tight">{org.presiden.role}</h3>
-                 <p className="text-xs font-bold mt-1 opacity-80">{org.presiden.nama}</p>
-              </div>
-
-              <div className="w-0.5 h-6 bg-outline-variant/30"></div>
-
-              {/* Vice */}
-              <div className="w-48 bg-surface border border-outline-variant/20 shadow-md rounded-2xl p-3 flex flex-col items-center text-center">
-                 <h3 className="font-black text-[11px] text-secondary font-headline uppercase tracking-wider">{org.wakil.role}</h3>
-                 <p className="text-xs font-bold text-on-surface mt-0.5">{org.wakil.nama}</p>
-              </div>
-
-              <div className="w-0.5 h-10 bg-outline-variant/20 relative">
-                 <div className="absolute top-full left-1/2 -translate-x-1/2 w-[30rem] h-0.5 bg-outline-variant/20"></div>
-              </div>
-
-              {/* Core / Divisions */}
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
-                {org.divisi.length > 0 ? org.divisi.map((div, i) => (
-                  <div key={i} className="bg-surface border border-outline-variant/20 shadow-sm rounded-xl overflow-hidden min-w-[170px]">
-                     <div className="bg-surface-container py-3 px-4 flex justify-between items-center border-b border-outline-variant/10">
-                        <h4 className="font-bold text-sm font-headline text-on-surface">{div.nama}</h4>
-                        <button 
-                          onClick={async (e) => {
-                             e.stopPropagation();
-                             const d = divisions.find(dv => dv.name === div.nama);
-                             if (d && window.confirm(`Hapus divisi ${div.nama}?`)) {
-                               await fetch(`http://localhost:8000/api/ormawa/divisions/${d.id}`, { method: 'DELETE' });
-                               fetchDivisions();
-                               fetchMembers();
-                             }
-                          }}
-                          className="w-6 h-6 rounded-md hover:bg-rose-50 text-rose-500 flex items-center justify-center transition-colors"
-                        >
-                          <span className="material-symbols-outlined text-[14px]">delete</span>
-                        </button>
-                     </div>
-                     <div className="p-4 text-center">
-                        <p className="text-[9px] text-secondary font-black uppercase tracking-[0.15em] mb-1 opacity-60">Kadiv</p>
-                        <p className="font-bold text-[12.5px] text-primary line-clamp-1 leading-tight">{div.kepala}</p>
-                        <div className="mt-2.5 flex justify-center -space-x-1.5">
-                           {div.staff.slice(0,3).map((s, idx) => (
-                             <img key={idx} src={`https://i.pravatar.cc/150?u=${s.id}`} className="w-5 h-5 rounded-full border border-white shadow-sm" />
-                           ))}
-                        </div>
-                        <p className="text-[9px] font-black text-on-surface-variant mt-2 tracking-widest uppercase opacity-50">{div.kuota} Anggota</p>
-                     </div>
-                  </div>
-                )) : <p className="col-span-4 text-[13px] text-on-surface-variant py-8 font-medium">Belum ada divisi yang diplot</p>}
-              </div>
-            </div>
-          </div>
+          )}
         </div>
       </main>
 
-      {/* Reshuffle Modal */}
-      {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
-          <div className="bg-white rounded-[2.5rem] w-full max-w-lg shadow-2xl animate-in zoom-in-95 duration-200 border border-outline-variant/20">
-            <div className="px-8 py-6 border-b border-outline-variant/10">
-               <h2 className="text-2xl font-bold font-headline text-on-surface">Atur Hierarki & Posisi</h2>
+      {/* Add Division Dialog */}
+      <Dialog open={isAddDivOpen} onOpenChange={setIsAddDivOpen}>
+        <DialogContent className="max-w-md p-0 overflow-hidden border-none shadow-2xl rounded-[2rem] bg-white/95 backdrop-blur-xl">
+          <DialogHeader className="p-8 pb-6 bg-gradient-to-br from-slate-50 to-white border-b border-slate-100 relative overflow-hidden">
+            <div className="absolute top-0 right-0 p-8 opacity-5"><Network className="size-24 rotate-12" /></div>
+            <div className="relative z-10">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="size-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary"><Plus className="size-4 stroke-[3px]" /></div>
+                <Badge className="text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 bg-primary/5 text-primary border-none">Division Registry</Badge>
+              </div>
+              <DialogTitle className="text-2xl font-black font-headline tracking-tighter text-slate-900 uppercase">Tambah Divisi Baru</DialogTitle>
+              <DialogDescription className="text-xs font-medium text-slate-400 mt-1">Buat divisi baru untuk pembagian tugas organisasi.</DialogDescription>
             </div>
-            
-            <form onSubmit={submitReshuffle} className="p-8 space-y-6">
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-2">Pilih Fungsionaris</label>
-                  <select required value={selectedMemberId} onChange={handleMemberSelect} className="w-full bg-surface-container p-4 rounded-xl border-none outline-none text-sm">
-                    <option value="">-- Pilih Anggota --</option>
-                    {members.map(m => (
-                      <option key={m.id} value={m.id}>{m.student?.name} ({m.role})</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-2">Role / Jabatan</label>
-                    <input required value={editRole} onChange={e => setEditRole(e.target.value)} className="w-full bg-surface-container p-4 rounded-xl border-none outline-none text-sm" placeholder="Contoh: Bendahara" />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-2">Divisi</label>
-                    <select value={editDivision} onChange={e => setEditDivision(e.target.value)} className="w-full bg-surface-container p-4 rounded-xl border-none outline-none text-sm">
-                      <option value="">-- Tanpa Divisi (Inti) --</option>
-                      {divisions.map(d => (
-                        <option key={d.id} value={d.name}>{d.name}</option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-2">Atasan Langsung (Report To)</label>
-                  <select value={editParentId} onChange={e => setEditParentId(e.target.value)} className="w-full bg-surface-container p-4 rounded-xl border-none outline-none text-sm">
-                    <option value="">-- Tanpa Atasan (Top Level) --</option>
-                    {members.filter(m => m.id.toString() !== selectedMemberId).map(m => (
-                      <option key={m.id} value={m.id}>{m.student?.name} ({m.role})</option>
-                    ))}
-                  </select>
-                  <p className="text-[10px] text-on-surface-variant mt-2 ">*Digunakan untuk membangun bagan organisasi hirarkis.</p>
-                </div>
-
-                <div className="flex gap-3 pt-4">
-                   <button type="button" onClick={() => setIsModalOpen(false)} className="w-full py-4 font-bold text-on-surface-variant">Batal</button>
-                   <button type="submit" disabled={isSubmitting} className="w-full py-4 bg-primary text-white font-bold rounded-2xl shadow-lg">Simpan Perubahan</button>
-                </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Add Division Modal */}
-      {isDivModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
-          <div className="bg-white rounded-[2.5rem] w-full max-w-sm shadow-2xl animate-in zoom-in-95 duration-200 border border-outline-variant/20">
-            <div className="px-8 py-6 border-b border-outline-variant/10">
-               <h2 className="text-xl font-bold font-headline text-on-surface">Tambah Divisi Baru</h2>
+          </DialogHeader>
+          <form onSubmit={handleAddDivision} className="p-8 pt-6 space-y-5">
+            <div className="space-y-2">
+              <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Nama Divisi</Label>
+              <Input required value={divName} onChange={e => setDivName(e.target.value)} placeholder="Misal: Humas, Akademik, IT..."
+                className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white transition-all font-bold text-sm font-headline" />
             </div>
-            <form onSubmit={handleAddDivision} className="p-8 space-y-4">
-               <div>
-                  <label className="block text-xs font-bold uppercase tracking-wider text-on-surface-variant mb-2">Nama Divisi</label>
-                  <input required autoFocus value={newDivName} onChange={e => setNewDivName(e.target.value)} className="w-full bg-surface-container p-4 rounded-xl border-none outline-none text-sm" placeholder="Contoh: Divisi Kaderisasi" />
-               </div>
-               <div className="flex gap-3 pt-4">
-                  <button type="button" onClick={() => setIsDivModalOpen(false)} className="w-full py-3 font-bold text-on-surface-variant">Batal</button>
-                  <button type="submit" className="w-full py-3 bg-primary text-white font-bold rounded-xl shadow-lg">Buat Divisi</button>
-               </div>
-            </form>
-          </div>
-        </div>
-      )}
+            <DialogFooter className="pt-4 flex flex-row gap-3 border-t border-slate-100 -mx-8 px-8 bg-slate-50/30">
+              <Button type="button" variant="ghost" onClick={() => setIsAddDivOpen(false)} className="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-900 px-8 h-12 rounded-2xl flex-1">Batalkan</Button>
+              <Button type="submit" disabled={isSubmitting} className="h-12 px-8 rounded-2xl bg-primary text-white hover:bg-primary/90 shadow-xl shadow-primary/20 transition-all flex-1">
+                {isSubmitting ? <Loader2 className="animate-spin size-4 mr-2" /> : <Save className="size-4 mr-2 stroke-[3px]" />}
+                <span className="text-[10px] font-black uppercase tracking-[0.2em]">Simpan Divisi</span>
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      <DeleteConfirmModal isOpen={!!delDiv} onClose={() => setDelDiv(null)} onConfirm={handleDeleteDivision}
+        title={`Hapus Divisi ${delDiv?.name}?`} description="Divisi ini akan dihapus. Anggota yang berada di divisi ini tidak akan ikut terhapus." loading={isSubmitting} />
     </div>
-  );
-};
-
-export default StrukturOrganisasi;
+  )
+}

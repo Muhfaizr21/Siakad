@@ -1,8 +1,11 @@
 import React from 'react';
-import { useAuth } from '../../../context/AuthContext';
+import useAuthStore from '../../../store/useAuthStore';
 
 const TopNavBar = ({ setIsOpen }) => {
-  const { user, switchMockRole, mockRoles } = useAuth();
+  const user = useAuthStore(state => state.user);
+  const mahasiswa = useAuthStore(state => state.mahasiswa);
+  const name = user?.nama || mahasiswa?.Nama || user?.Email || 'User';
+  const role = user?.role || 'Ormawa Admin';
 
   return (
     <header className="fixed top-0 right-0 w-full lg:w-[calc(100%-15rem)] z-[50] bg-white/80 backdrop-blur-md flex justify-between items-center px-4 lg:px-6 h-16 border-b border-outline-variant/5 shadow-sm transition-all duration-300">
@@ -30,17 +33,6 @@ const TopNavBar = ({ setIsOpen }) => {
       </div>
 
       <div className="flex items-center gap-3 lg:gap-4">
-        {/* Role Switcher - Hidden on small mobile */}
-        <div className="hidden md:flex items-center gap-2">
-           <select 
-              value={user?.role?.id || ''}
-              onChange={(e) => switchMockRole(parseInt(e.target.value))}
-              className="bg-primary/5 border border-primary/20 text-primary text-[9px] font-black uppercase tracking-widest rounded-lg focus:ring-primary focus:border-primary px-3 py-1.5 cursor-pointer outline-none transition-all hover:bg-primary/10"
-           >
-              {mockRoles.map(r => (r.id && <option key={r.id} value={r.id}>{r.name}</option>))}
-           </select>
-        </div>
-
         <button className="text-on-surface-variant hover:text-primary transition-colors p-2.5 rounded-xl bg-surface-container-low/50 border border-outline-variant/5 hover:border-primary/30 relative group">
           <span className="material-symbols-outlined text-[18px] group-hover:scale-110 transition-transform">notifications</span>
           <span className="absolute top-2.5 right-2.5 w-1.5 h-1.5 bg-rose-500 rounded-full border border-white"></span>
@@ -48,11 +40,11 @@ const TopNavBar = ({ setIsOpen }) => {
         
         <div className="flex items-center gap-3 pl-3 lg:pl-4 border-l border-outline-variant/10">
           <div className="text-right hidden sm:block">
-             <div className="text-[12px] font-black text-on-surface leading-none mb-0.5">{user?.name}</div>
-             <div className="text-[8px] text-primary font-black uppercase tracking-widest opacity-80">{user?.role?.name}</div>
+             <div className="text-[12px] font-black text-on-surface leading-none mb-0.5">{name}</div>
+             <div className="text-[8px] text-primary font-black uppercase tracking-widest opacity-80">{role}</div>
           </div>
           <div className="w-9 h-9 bg-primary text-white rounded-xl flex justify-center items-center font-black text-base shadow-lg shadow-primary/20 hover:scale-105 transition-transform cursor-pointer border border-white/50 overflow-hidden">
-             {user?.name?.charAt(0) || 'U'}
+             {name.charAt(0)}
           </div>
         </div>
       </div>

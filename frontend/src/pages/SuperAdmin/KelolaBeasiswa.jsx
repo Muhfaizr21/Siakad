@@ -1,245 +1,159 @@
-import React, { useState, useEffect } from 'react';
-import Sidebar from './components/Sidebar';
-import TopNavBar from './components/TopNavBar';
-import { adminService } from '../../services/api';
+"use client"
 
-const KelolaBeasiswa = () => {
-    const [scholarships, setScholarships] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [editingSch, setEditingSch] = useState(null);
-    const [formData, setFormData] = useState({ 
-        Nama: '', Penyelenggara: '', Deskripsi: '', 
-        Deadline: '', Kuota: 0, IPKMin: 0 
-    });
+import React, { useState, useEffect } from 'react'
+import { DataTable } from '../FacultyAdmin/components/data-table'
+import { Badge } from '../FacultyAdmin/components/badge'
+import { Button } from '../FacultyAdmin/components/button'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '../FacultyAdmin/components/dialog'
+import { DeleteConfirmModal } from '../FacultyAdmin/components/DeleteConfirmModal'
+import { Card, CardContent } from '../FacultyAdmin/components/card'
+import { Input } from '../FacultyAdmin/components/input'
+import { Label } from '../FacultyAdmin/components/label'
+import { Textarea } from '../FacultyAdmin/components/textarea'
+import { Eye, Pencil, Trash2, Loader2, Plus, Save, Award } from 'lucide-react'
+import { toast, Toaster } from 'react-hot-toast'
+import { cn } from '@/lib/utils'
+import Sidebar from './components/Sidebar'
+import TopNavBar from './components/TopNavBar'
+import { adminService } from '../../services/api'
 
-    useEffect(() => {
-        loadData();
-    }, []);
+export default function KelolaBeasiswa() {
+  const [data, setData] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [selected, setSelected] = useState(null)
+  const [isCrudOpen, setIsCrudOpen] = useState(false)
+  const [isDelOpen, setIsDelOpen] = useState(false)
+  const [isEditMode, setIsEditMode] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [form, setForm] = useState({ Nama: '', Penyelenggara: '', Deskripsi: '', Deadline: '', Kuota: 0, IPKMin: 0, Anggaran: 0 })
 
-    const loadData = async () => {
-        try {
-            setLoading(true);
-            const res = await adminService.getAllScholarships();
-            if (res.status === 'success') {
-                setScholarships(res.data || []);
-            }
-        } catch (error) {
-            console.error('Gagal memuat data beasiswa:', error);
-        } finally {
-            setLoading(false);
-        }
-    };
+  const fetchData = async () => {
+    setLoading(true)
+    try {
+      const res = await adminService.getAllScholarships()
+      if (res.status === 'success') setData(res.data || [])
+      else toast.error('Gagal memuat data beasiswa')
+    } catch { toast.error('Koneksi gagal') } finally { setLoading(false) }
+  }
+  useEffect(() => { fetchData() }, [])
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        try {
-            const data = {
-                ...formData,
-                Kuota: parseInt(formData.Kuota),
-                IPKMin: parseFloat(formData.IPKMin),
-                Deadline: new Date(formData.Deadline).toISOString()
-            };
+  const handleOpenAdd = () => { setIsEditMode(false); setForm({ Nama: '', Penyelenggara: '', Deskripsi: '', Deadline: '', Kuota: 0, IPKMin: 0, Anggaran: 0 }); setIsCrudOpen(true) }
+  const handleOpenEdit = (row) => {
+    setIsEditMode(true)
+    setForm({ ID: row.ID, Nama: row.Nama || '', Penyelenggara: row.Penyelenggara || '', Deskripsi: row.Deskripsi || '', Deadline: (row.Deadline || '').split('T')[0], Kuota: row.Kuota || 0, IPKMin: row.IPKMin || 0, Anggaran: row.Anggaran || 0 })
+    setIsCrudOpen(true)
+  }
+  const handleSave = async (e) => {
+    e.preventDefault(); setIsSubmitting(true)
+    const payload = { ...form, Kuota: parseInt(form.Kuota), IPKMin: parseFloat(form.IPKMin), Anggaran: parseFloat(form.Anggaran), Deadline: form.Deadline ? new Date(form.Deadline).toISOString() : null }
+    try {
+      const res = form.ID ? await adminService.updateScholarship(form.ID, payload) : await adminService.createScholarship(payload)
+      if (res.status === 'success') { toast.success(form.ID ? 'Beasiswa diperbarui' : 'Beasiswa ditambahkan'); setIsCrudOpen(false); fetchData() }
+      else toast.error(res.message || 'Gagal menyimpan')
+    } catch { toast.error('Terjadi kesalahan') } finally { setIsSubmitting(false) }
+  }
+  const handleDelete = async () => {
+    setIsSubmitting(true)
+    try {
+      await adminService.deleteScholarship(selected.ID)
+      toast.success('Beasiswa dihapus'); setIsDelOpen(false); fetchData()
+    } catch { toast.error('Gagal menghapus') } finally { setIsSubmitting(false) }
+  }
 
-            if (editingSch) {
-                await adminService.updateScholarship(editingSch.ID, data);
-            } else {
-                await adminService.createScholarship(data);
-            }
-            setIsModalOpen(false);
-            setEditingSch(null);
-            setFormData({ Nama: '', Penyelenggara: '', Deskripsi: '', Deadline: '', Kuota: 0, IPKMin: 0 });
-            loadData();
-        } catch (error) {
-            alert('Gagal menyimpan data: ' + error.message);
-        }
-    };
+  const isDeadlinePassed = (d) => d && new Date(d) < new Date()
 
-    const handleDelete = async (id) => {
-        if (!window.confirm('Hapus program beasiswa ini?')) return;
-        try {
-            await adminService.deleteScholarship(id);
-            loadData();
-        } catch (error) {
-            alert('Gagal menghapus: ' + error.message);
-        }
-    };
+  const columns = [
+    { key: 'Nama', label: 'Nama Program Beasiswa', className: 'min-w-[260px]', render: v => <span className="font-bold text-slate-900 font-headline tracking-tighter text-[13px]">{v || '—'}</span> },
+    { key: 'Penyelenggara', label: 'Penyelenggara', className: 'w-[200px]', render: v => <span className="text-[12px] font-bold text-slate-600 font-headline">{v || '—'}</span> },
+    { key: 'IPKMin', label: 'IPK Min', className: 'w-[100px] text-center', cellClassName: 'text-center', render: v => <span className="font-black text-primary text-sm font-headline">{parseFloat(v || 0).toFixed(2)}</span> },
+    { key: 'Kuota', label: 'Kuota', className: 'w-[90px] text-center', cellClassName: 'text-center', render: v => <span className="font-black text-slate-700 text-sm font-headline">{v || 0}</span> },
+    { key: 'Anggaran', label: 'Anggaran', className: 'w-[160px] text-right', cellClassName: 'text-right', 
+      render: v => <span className="font-black text-slate-900 text-sm font-headline">Rp {new Intl.NumberFormat('id-ID').format(v || 0)}</span> 
+    },
+    { key: 'Deadline', label: 'Deadline', className: 'w-[160px] text-center', cellClassName: 'text-center',
+      render: v => (
+        <Badge className={cn('font-black text-[10px] px-3 py-1 border-none shadow-sm', isDeadlinePassed(v) ? 'bg-rose-100 text-rose-700' : 'bg-emerald-100 text-emerald-700')}>
+          {v ? new Date(v).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
+        </Badge>
+      )
+    }
+  ]
 
-    const openEditModal = (sch) => {
-        setEditingSch(sch);
-        setFormData({ 
-            Nama: sch.Nama, 
-            Penyelenggara: sch.Penyelenggara, 
-            Deskripsi: sch.Deskripsi, 
-            Deadline: sch.Deadline ? new Date(sch.Deadline).toISOString().split('T')[0] : '', 
-            Kuota: sch.Kuota, 
-            IPKMin: sch.IPKMin 
-        });
-        setIsModalOpen(true);
-    };
+  return (
+    <div className="bg-slate-50 min-h-screen flex font-sans">
+      <Sidebar />
+      <main className="pl-72 pt-20 flex flex-col min-h-screen w-full">
 
-    return (
-        <div className="bg-slate-50 text-slate-900 min-h-screen flex font-body select-none">
-          <Sidebar />
-          <main className="pl-80 flex flex-col min-h-screen w-full font-body">
-            <TopNavBar />
-            <div className="p-8 space-y-8">
-              <header className="flex justify-between items-end">
-                <div>
-                  <h1 className="text-3xl font-extrabold text-primary tracking-tight uppercase leading-none">Manajemen Beasiswa Institusi</h1>
-                  <p className="text-slate-600 mt-2 font-medium opacity-90">Otoritas pusat untuk mengelola skema bantuan pendidikan dan pemantauan distribusi dana.</p>
-                </div>
-                <button 
-                  onClick={() => { setEditingSch(null); setFormData({ Nama: '', Penyelenggara: '', Deskripsi: '', Deadline: '', Kuota: 0, IPKMin: 0 }); setIsModalOpen(true); }}
-                  className="bg-primary text-white px-8 py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-primary/20 hover:scale-105 transition-all font-body"
-                >
-                    Buat Program Beasiswa
-                </button>
-              </header>
-
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-6 font-body">
-                  <div className="bg-white p-10 rounded-[3.5rem] border border-slate-200 space-y-2 shadow-sm">
-                      <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Program Aktif</p>
-                      <h3 className="text-3xl font-black text-primary uppercase tracking-tighter">{loading ? '...' : scholarships.length.toString().padStart(2, '0')} Unit</h3>
-                  </div>
-              </div>
-
-              <section className="bg-white border border-slate-200 rounded-[3.5rem] overflow-hidden shadow-sm font-body">
-                 <div className="p-10 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
-                    <h3 className="text-sm font-black text-primary uppercase tracking-widest">Daftar Program Beasiswa Aktif</h3>
-                 </div>
-                 <table className="w-full text-left font-body">
-                  <thead className="bg-slate-50 text-[10px] font-black uppercase tracking-[0.2em] text-slate-600">
-                    <tr>
-                      <th className="px-10 py-6">Nama Program</th>
-                      <th className="px-10 py-6">Penyelenggara</th>
-                      <th className="px-10 py-6 text-center">Kuota</th>
-                      <th className="px-10 py-6 text-center">Sisa Waktu</th>
-                      <th className="px-10 py-6 text-right">Aksi</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100 select-text">
-                    {loading ? (
-                        <tr><td colSpan="5" className="px-10 py-20 text-center text-slate-400 uppercase font-black text-[10px] tracking-widest">Memuat data beasiswa...</td></tr>
-                    ) : scholarships.length === 0 ? (
-                        <tr><td colSpan="5" className="px-10 py-20 text-center text-slate-400 uppercase font-black text-[10px] tracking-widest">Belum ada program beasiswa.</td></tr>
-                    ) : scholarships.map((s) => (
-                      <tr key={s.ID} className="hover:bg-slate-50/50 transition-all group border-b border-slate-50">
-                        <td className="px-10 py-6">
-                            <span className="font-extrabold text-primary uppercase tracking-tight group-hover:text-blue-700 transition-colors leading-tight">{s.Nama}</span>
-                        </td>
-                        <td className="px-10 py-6 text-xs font-bold text-slate-600 uppercase italic opacity-70">{s.Penyelenggara}</td>
-                        <td className="px-10 py-6 text-center font-black text-primary opacity-60">{s.Kuota} Slot</td>
-                        <td className="px-10 py-6 text-center">
-                             <div className="flex flex-col items-center">
-                                 <span className="text-[10px] font-black uppercase text-slate-400">Deadline</span>
-                                 <span className="text-xs font-bold text-slate-700">{new Date(s.Deadline).toLocaleDateString('id-ID')}</span>
-                             </div>
-                        </td>
-                        <td className="px-10 py-6 text-right font-body">
-                             <div className="flex justify-end gap-2">
-                                <button 
-                                    onClick={() => openEditModal(s)}
-                                    className="p-3 hover:bg-amber-50 rounded-xl text-amber-600 transition-all"
-                                >
-                                    <span className="material-symbols-outlined text-[20px]">edit</span>
-                                </button>
-                                <button 
-                                    onClick={() => handleDelete(s.ID)}
-                                    className="p-3 hover:bg-rose-50 rounded-xl text-rose-500 transition-all font-body"
-                                >
-                                    <span className="material-symbols-outlined text-[20px]">delete</span>
-                                </button>
-                             </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </section>
+        <TopNavBar />
+        <div className="p-8 space-y-6">
+          <Toaster position="top-right" />
+          <div className="flex flex-col gap-1.5">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-primary/10 rounded-xl text-primary"><Award className="size-6" /></div>
+              <h1 className="text-2xl font-black text-slate-900 font-headline tracking-tighter uppercase">Program Beasiswa</h1>
             </div>
-          </main>
-
-          {/* Modal Form */}
-          {isModalOpen && (
-              <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 font-body">
-                  <div className="bg-white w-full max-w-2xl rounded-[3rem] shadow-2xl p-12 flex flex-col gap-8 animate-in zoom-in duration-300">
-                      <header>
-                          <h2 className="text-2xl font-black text-primary uppercase tracking-tighter">{editingSch ? 'Edit' : 'Buka'} Beasiswa</h2>
-                          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1 italic">Program Bantuan Pendidikan</p>
-                      </header>
-
-                      <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-6">
-                          <div className="col-span-2 flex flex-col gap-1.5">
-                              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1 font-body">Nama Program Beasiswa</label>
-                              <input 
-                                required
-                                value={formData.Nama}
-                                onChange={(e) => setFormData({...formData, Nama: e.target.value})}
-                                className="bg-slate-50 border border-slate-200 rounded-2xl px-6 py-4 text-sm font-bold text-primary focus:border-primary transition-all outline-none" 
-                                placeholder="E.g. Beasiswa PPA 2024"
-                              />
-                          </div>
-                          <div className="flex flex-col gap-1.5">
-                              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1 font-body">Penyelenggara</label>
-                              <input 
-                                required
-                                value={formData.Penyelenggara}
-                                onChange={(e) => setFormData({...formData, Penyelenggara: e.target.value})}
-                                className="bg-slate-50 border border-slate-200 rounded-2xl px-6 py-4 text-sm font-bold text-primary focus:border-primary transition-all outline-none" 
-                                placeholder="E.g. Kemendikbud"
-                              />
-                          </div>
-                          <div className="flex flex-col gap-1.5 font-body">
-                              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Deadline Pendaftaran</label>
-                              <input 
-                                required
-                                type="date"
-                                value={formData.Deadline}
-                                onChange={(e) => setFormData({...formData, Deadline: e.target.value})}
-                                className="bg-slate-50 border border-slate-200 rounded-2xl px-6 py-4 text-sm font-bold text-primary focus:border-primary transition-all outline-none" 
-                              />
-                          </div>
-                          <div className="flex flex-col gap-1.5 label-input">
-                              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Kuota Penerima</label>
-                              <input 
-                                type="number"
-                                value={formData.Kuota}
-                                onChange={(e) => setFormData({...formData, Kuota: e.target.value})}
-                                className="bg-slate-50 border border-slate-200 rounded-2xl px-6 py-4 text-sm font-bold text-primary focus:border-primary transition-all outline-none" 
-                              />
-                          </div>
-                          <div className="flex flex-col gap-1.5 font-body">
-                              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Syarat IPK Minimal</label>
-                              <input 
-                                type="number"
-                                step="0.1"
-                                value={formData.IPKMin}
-                                onChange={(e) => setFormData({...formData, IPKMin: e.target.value})}
-                                className="bg-slate-50 border border-slate-200 rounded-2xl px-6 py-4 text-sm font-bold text-primary focus:border-primary transition-all outline-none" 
-                              />
-                          </div>
-                          <div className="col-span-2 flex flex-col gap-1.5 font-body">
-                              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Deskripsi Singkat</label>
-                              <textarea 
-                                value={formData.Deskripsi}
-                                onChange={(e) => setFormData({...formData, Deskripsi: e.target.value})}
-                                className="bg-slate-50 border border-slate-200 rounded-2xl px-6 py-4 text-sm font-bold text-primary focus:border-primary transition-all outline-none min-h-[80px]" 
-                                placeholder="Jelaskan kriteria dan manfaat beasiswa..."
-                              />
-                          </div>
-                          <div className="col-span-2 flex gap-4 pt-4 font-body">
-                            <button type="submit" className="flex-1 bg-primary text-white py-4 rounded-3xl font-black text-xs uppercase tracking-[0.2em] shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all">
-                                {editingSch ? 'Simpan Perubahan' : 'Buka Program'}
-                            </button>
-                            <button type="button" onClick={() => setIsModalOpen(false)} className="px-10 bg-slate-100 text-slate-500 py-4 rounded-3xl font-black text-xs uppercase tracking-[0.2em]">Batal</button>
-                          </div>
-                      </form>
+            <div className="flex items-center gap-2">
+              <div className="h-1 w-10 bg-primary rounded-full shadow-sm shadow-primary/30" />
+              <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Manajemen Program Beasiswa & Bantuan Studi</p>
+            </div>
+          </div>
+          <Card className="border-none shadow-sm overflow-hidden bg-white/50 backdrop-blur-md">
+            <CardContent className="p-0">
+              <DataTable
+                columns={columns} data={data} loading={loading}
+                searchPlaceholder="Cari nama program atau penyelenggara..."
+                onAdd={handleOpenAdd} addLabel="Tambah Beasiswa"
+                actions={(row) => (
+                  <div className="flex items-center gap-2">
+                    <Button onClick={() => handleOpenEdit(row)} variant="ghost" size="icon" className="h-8 w-8 hover:text-amber-600 hover:bg-amber-50 rounded-xl"><Pencil className="size-4" /></Button>
+                    <Button onClick={() => { setSelected(row); setIsDelOpen(true) }} variant="ghost" size="icon" className="h-8 w-8 hover:text-rose-600 hover:bg-rose-50 rounded-xl"><Trash2 className="size-4" /></Button>
                   </div>
-              </div>
-          )}
+                )}
+              />
+            </CardContent>
+          </Card>
         </div>
-    )
-}
+      </main>
 
-export default KelolaBeasiswa;
+      <Dialog open={isCrudOpen} onOpenChange={setIsCrudOpen}>
+        <DialogContent className="max-w-xl p-0 overflow-hidden border-none shadow-2xl rounded-[2rem] bg-white/95 backdrop-blur-xl">
+          <DialogHeader className="p-8 pb-6 bg-gradient-to-br from-slate-50 to-white border-b border-slate-100 relative overflow-hidden">
+            <div className="absolute top-0 right-0 p-8 opacity-5"><Award className="size-24 rotate-12" /></div>
+            <div className="relative z-10">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="size-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary">{isEditMode ? <Pencil className="size-4" /> : <Plus className="size-4 stroke-[3px]" />}</div>
+                <Badge className="text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 bg-primary/5 text-primary border-none">Scholarship Registry</Badge>
+              </div>
+              <DialogTitle className="text-2xl font-black font-headline tracking-tighter text-slate-900 uppercase">{isEditMode ? 'Edit Beasiswa' : 'Program Beasiswa Baru'}</DialogTitle>
+            </div>
+          </DialogHeader>
+          <form onSubmit={handleSave} className="p-8 pt-6 space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2"><Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Nama Program</Label><Input required value={form.Nama} onChange={e => setForm({ ...form, Nama: e.target.value })} placeholder="Nama beasiswa..." className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white font-bold text-sm font-headline" /></div>
+              <div className="space-y-2"><Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Penyelenggara</Label><Input value={form.Penyelenggara} onChange={e => setForm({ ...form, Penyelenggara: e.target.value })} placeholder="Kemendikbud, dll..." className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white font-bold text-sm font-headline" /></div>
+            </div>
+            <div className="grid grid-cols-4 gap-4">
+              <div className="space-y-2 col-span-1"><Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">IPK Min</Label><Input type="number" step="0.01" min="0" max="4" value={form.IPKMin} onChange={e => setForm({ ...form, IPKMin: e.target.value })} placeholder="3.0" className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white font-bold text-sm" /></div>
+              <div className="space-y-2 col-span-1"><Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Kuota</Label><Input type="number" min="1" value={form.Kuota} onChange={e => setForm({ ...form, Kuota: e.target.value })} placeholder="50" className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white font-bold text-sm" /></div>
+              <div className="space-y-2 col-span-2"><Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Total Anggaran (Rp)</Label><Input type="number" min="0" value={form.Anggaran} onChange={e => setForm({ ...form, Anggaran: e.target.value })} placeholder="10000000" className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white font-bold text-sm font-headline text-emerald-600" /></div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2"><Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Deadline Pendaftaran</Label><Input required type="date" value={form.Deadline} onChange={e => setForm({ ...form, Deadline: e.target.value })} className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white font-bold text-sm" /></div>
+            </div>
+            <div className="space-y-2"><Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Deskripsi</Label><Textarea value={form.Deskripsi} onChange={e => setForm({ ...form, Deskripsi: e.target.value })} placeholder="Persyaratan dan keuntungan beasiswa..." className="min-h-[80px] rounded-[1.5rem] border-slate-200 bg-slate-50/50 focus:bg-white p-4 font-medium text-sm leading-relaxed font-headline" /></div>
+            <DialogFooter className="pt-4 flex flex-row gap-3 border-t border-slate-100 -mx-8 px-8 bg-slate-50/30">
+              <Button type="button" variant="ghost" onClick={() => setIsCrudOpen(false)} className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-8 h-12 rounded-2xl">Batalkan</Button>
+              <Button type="submit" disabled={isSubmitting} className="h-12 px-10 rounded-2xl bg-primary text-white hover:bg-primary/90 shadow-xl shadow-primary/20 transition-all hover:scale-[1.02] active:scale-95">
+                {isSubmitting ? <Loader2 className="animate-spin size-4 mr-2" /> : <Save className="size-4 mr-2 stroke-[3px]" />}
+                <span className="text-[10px] font-black uppercase tracking-[0.2em]">{isEditMode ? 'Update Record' : 'Create Record'}</span>
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      <DeleteConfirmModal isOpen={isDelOpen} onClose={() => setIsDelOpen(false)} onConfirm={handleDelete}
+        title="Hapus Program Beasiswa?" description="Program beasiswa ini akan dihapus permanen dari sistem." loading={isSubmitting} />
+    </div>
+  )
+}

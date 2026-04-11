@@ -1,6 +1,7 @@
 package ormawa
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"siakad-backend/config"
@@ -8,6 +9,7 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"gorm.io/datatypes"
 	"gorm.io/gorm"
 )
 
@@ -167,11 +169,11 @@ func UpdateProposal(c *fiber.Ctx) error {
 	}
 	
 	var payload struct {
-		Status string  `json:"status"`
-		Notes  string  `json:"notes"`
-		UserId uint    `json:"userId"`
-		Budget float64 `json:"budget"`
-		Judul  string  `json:"title"`
+		Status   string  `json:"Status"`
+		Catatan  string  `json:"Catatan"`
+		UserId   uint    `json:"UserId"`
+		Anggaran float64 `json:"Anggaran"`
+		Judul    string  `json:"Judul"`
 	}
 	if err := c.BodyParser(&payload); err != nil {
 		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Payload tidak valid"})
@@ -183,11 +185,11 @@ func UpdateProposal(c *fiber.Ctx) error {
 			// return fmt.Errorf("anda tidak memiliki otoritas untuk menetapkan status '%s'", payload.Status)
 		}
 
-		if payload.Status != "" || payload.Notes != "" {
+		if payload.Status != "" || payload.Catatan != "" {
 			history := models.ProposalRiwayat{
 				ProposalID: proposal.ID,
 				Status:     payload.Status,
-				Catatan:    payload.Notes,
+				Catatan:    payload.Catatan,
 			}
 			if err := tx.Create(&history).Error; err != nil {
 				return err
@@ -197,7 +199,7 @@ func UpdateProposal(c *fiber.Ctx) error {
 		updates := make(map[string]interface{})
 		if payload.Status != "" { updates["status"] = payload.Status }
 		if payload.Judul != "" { updates["judul"] = payload.Judul }
-		if payload.Budget > 0 { updates["anggaran"] = payload.Budget }
+		if payload.Anggaran > 0 { updates["anggaran"] = payload.Anggaran }
 		
 		if len(updates) > 0 {
 			if err := tx.Model(&proposal).Updates(updates).Error; err != nil {
@@ -366,31 +368,34 @@ func GetAttendance(c *fiber.Ctx) error {
 }
 
 func SubmitAttendance(c *fiber.Ctx) error {
-	var payload models.OrmawaKehadiran
-	if err := c.BodyParser(&payload); err != nil {
+	var data struct {
+		KegiatanID  uint   `json:"KegiatanID"`
+		MahasiswaID uint   `json:"MahasiswaID"`
+		Status      string `json:"Status"`
+	}
+	if err := c.BodyParser(&data); err != nil {
 		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Input tidak valid"})
 	}
 	
-	if payload.KegiatanID == 0 || payload.MahasiswaID == 0 {
+	if data.KegiatanID == 0 || data.MahasiswaID == 0 {
 		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "KegiatanID dan MahasiswaID wajib diisi"})
 	}
 
 	var existing models.OrmawaKehadiran
-	err := config.DB.Where("kegiatan_id = ? AND mahasiswa_id = ?", payload.KegiatanID, payload.MahasiswaID).First(&existing).Error
+	err := config.DB.Where("kegiatan_id = ? AND mahasiswa_id = ?", data.KegiatanID, data.MahasiswaID).First(&existing).Error
 	
 	if err == nil {
-		// Update existing attendance
-		existing.Status = payload.Status
-		if existing.WaktuHadir.IsZero() {
-			existing.WaktuHadir = time.Now()
-		}
+		existing.Status = data.Status
+		existing.WaktuHadir = time.Now()
 		config.DB.Save(&existing)
 		return c.JSON(fiber.Map{"status": "success", "message": "Absensi diperbarui", "data": existing})
 	}
 
-	// Create new record
-	if payload.WaktuHadir.IsZero() {
-		payload.WaktuHadir = time.Now()
+	payload := models.OrmawaKehadiran{
+		KegiatanID:  data.KegiatanID,
+		MahasiswaID: data.MahasiswaID,
+		Status:      data.Status,
+		WaktuHadir:  time.Now(),
 	}
 	if err := config.DB.Create(&payload).Error; err != nil {
 		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal mencatat absensi"})
@@ -444,6 +449,46 @@ func GetOrmawaRoles(c *fiber.Ctx) error {
 	var roles []models.OrmawaRole
 	config.DB.Find(&roles)
 	return c.JSON(fiber.Map{"status": "success", "data": roles})
+}
+
+func CreateOrmawaRole(c *fiber.Ctx) error {
+	var data struct {
+		Nama      string   `json:"Nama"`
+		Deskripsi string   `json:"Deskripsi"`
+		Hak       []string `json:"Hak"`
+	}
+	if err := c.BodyParser(&data); err != nil { return c.Status(400).JSON(fiber.Map{"status": "error", "message": err.Error()}) }
+	
+	// Convert array to JSON
+	perms, _ := json.Marshal(data.Hak)
+	role := models.OrmawaRole{ 
+		Nama:        data.Nama, 
+		Deskripsi:   data.Deskripsi,
+		Permissions: datatypes.JSON(perms),
+	}
+	if err := config.DB.Create(&role).Error; err != nil { return c.Status(500).JSON(fiber.Map{"status": "error"}) }
+	return c.Status(201).JSON(fiber.Map{"status": "success", "data": role})
+}
+
+func UpdateOrmawaRole(c *fiber.Ctx) error {
+	id := c.Params("id")
+	var role models.OrmawaRole
+	if err := config.DB.First(&role, id).Error; err != nil { return c.Status(404).JSON(fiber.Map{"status": "error"}) }
+	
+	var data struct {
+		Nama      string   `json:"Nama"`
+		Deskripsi string   `json:"Deskripsi"`
+		Hak       []string `json:"Hak"`
+	}
+	c.BodyParser(&data)
+	
+	perms, _ := json.Marshal(data.Hak)
+	role.Nama = data.Nama
+	role.Deskripsi = data.Deskripsi
+	role.Permissions = datatypes.JSON(perms)
+	
+	config.DB.Save(&role)
+	return c.JSON(fiber.Map{"status": "success", "data": role})
 }
 
 func DeleteOrmawaRole(c *fiber.Ctx) error {
@@ -590,9 +635,9 @@ func UpdateLPJ(c *fiber.Ctx) error {
 	}
 	
 	var payload struct {
-		Status    string  `json:"status"`
-		Notes     string  `json:"notes"`
-		Realisasi float64 `json:"realizedBudget"`
+		Status            string  `json:"Status"`
+		Catatan           string  `json:"Catatan"`
+		RealisasiAnggaran float64 `json:"RealisasiAnggaran"`
 	}
 	c.BodyParser(&payload)
 
@@ -601,8 +646,8 @@ func UpdateLPJ(c *fiber.Ctx) error {
 	if payload.Status != "" {
 		lpj.Status = payload.Status 
 	}
-	if payload.Notes != "" { lpj.Catatan = payload.Notes }
-	if payload.Realisasi > 0 { lpj.RealisasiAnggaran = payload.Realisasi }
+	if payload.Catatan != "" { lpj.Catatan = payload.Catatan }
+	if payload.RealisasiAnggaran > 0 { lpj.RealisasiAnggaran = payload.RealisasiAnggaran }
 	
 	config.DB.Save(&lpj)
 	

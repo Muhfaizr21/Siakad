@@ -1,226 +1,171 @@
-import React, { useState, useEffect } from 'react';
-import Sidebar from './components/Sidebar';
-import TopNavBar from './components/TopNavBar';
-import { adminService } from '../../services/api';
+"use client"
 
-const KelolaOrganisasi = () => {
-    const [orgs, setOrgs] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [editingOrg, setEditingOrg] = useState(null);
-    const [formData, setFormData] = useState({ 
-        Nama: '', Jenis: 'UKM', Deskripsi: '', Email: '', 
-        Visi: '', Misi: '', Logo: '' 
-    });
+import React, { useState, useEffect } from 'react'
+import { DataTable } from '../FacultyAdmin/components/data-table'
+import { Badge } from '../FacultyAdmin/components/badge'
+import { Button } from '../FacultyAdmin/components/button'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '../FacultyAdmin/components/dialog'
+import { DeleteConfirmModal } from '../FacultyAdmin/components/DeleteConfirmModal'
+import { Card, CardContent } from '../FacultyAdmin/components/card'
+import { Input } from '../FacultyAdmin/components/input'
+import { Label } from '../FacultyAdmin/components/label'
+import { Textarea } from '../FacultyAdmin/components/textarea'
+import { Eye, Pencil, Trash2, Loader2, Plus, Save, Building } from 'lucide-react'
+import { toast, Toaster } from 'react-hot-toast'
+import { cn } from '@/lib/utils'
+import Sidebar from './components/Sidebar'
+import TopNavBar from './components/TopNavBar'
+import { adminService } from '../../services/api'
 
-    useEffect(() => {
-        loadOrgs();
-    }, []);
+export default function KelolaOrganisasi() {
+  const [data, setData] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [selected, setSelected] = useState(null)
+  const [isDetailOpen, setIsDetailOpen] = useState(false)
+  const [isCrudOpen, setIsCrudOpen] = useState(false)
+  const [isDelOpen, setIsDelOpen] = useState(false)
+  const [isEditMode, setIsEditMode] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [form, setForm] = useState({ Nama: '', Singkatan: '', Deskripsi: '', Visi: '', Misi: '', Email: '', LogoURL: '', Phone: '' })
 
-    const loadOrgs = async () => {
-        try {
-            setLoading(true);
-            const res = await adminService.getAllOrmawa();
-            if (res.status === 'success') {
-                setOrgs(res.data || []);
-            }
-        } catch (error) {
-            console.error('Gagal memuat data ormawa:', error);
-        } finally {
-            setLoading(false);
-        }
-    };
+  const fetchData = async () => {
+    setLoading(true)
+    try {
+      const res = await adminService.getAllOrmawa()
+      if (res.status === 'success') setData(res.data || [])
+      else toast.error('Gagal memuat data')
+    } catch { toast.error('Koneksi gagal') } finally { setLoading(false) }
+  }
+  useEffect(() => { fetchData() }, [])
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        try {
-            if (editingOrg) {
-                await adminService.updateOrmawa(editingOrg.ID, formData);
-                // alert('Ormawa berhasil diperbarui');
-            } else {
-                await adminService.createOrmawa(formData);
-                // alert('Ormawa berhasil didaftarkan');
-            }
-            setIsModalOpen(false);
-            setEditingOrg(null);
-            setFormData({ Nama: '', Jenis: 'UKM', Deskripsi: '', Email: '', Visi: '', Misi: '', Logo: '' });
-            loadOrgs();
-        } catch (error) {
-            alert('Gagal menyimpan data: ' + error.message);
-        }
-    };
+  const handleOpenAdd = () => { setIsEditMode(false); setForm({ Nama: '', Singkatan: '', Deskripsi: '', Visi: '', Misi: '', Email: '', LogoURL: '', Phone: '' }); setIsCrudOpen(true) }
+  const handleOpenEdit = (row) => { setIsEditMode(true); setForm({ ID: row.ID, Nama: row.Nama || '', Singkatan: row.Singkatan || '', Deskripsi: row.Deskripsi || '', Visi: row.Visi || '', Misi: row.Misi || '', Email: row.Email || '', LogoURL: row.LogoURL || '', Phone: row.Phone || '' }); setIsCrudOpen(true) }
 
-    const handleDelete = async (id) => {
-        if (!window.confirm('Apakah Anda yakin ingin menghapus ormawa ini? Seluruh data terkait akan hilang.')) return;
-        try {
-            await adminService.deleteOrmawa(id);
-            loadOrgs();
-        } catch (error) {
-            alert('Gagal menghapus data: ' + error.message);
-        }
-    };
+  const handleSave = async (e) => {
+    e.preventDefault(); setIsSubmitting(true)
+    try {
+      const res = form.ID ? await adminService.updateOrmawa(form.ID, form) : await adminService.createOrmawa(form)
+      if (res.status === 'success') { toast.success(form.ID ? 'Ormawa diperbarui' : 'Ormawa ditambahkan'); setIsCrudOpen(false); fetchData() }
+      else toast.error(res.message || 'Gagal menyimpan')
+    } catch { toast.error('Terjadi kesalahan') } finally { setIsSubmitting(false) }
+  }
+  const handleDelete = async () => {
+    setIsSubmitting(true)
+    try {
+      await adminService.deleteOrmawa(selected.ID)
+      toast.success('Ormawa dihapus'); setIsDelOpen(false); fetchData()
+    } catch { toast.error('Gagal menghapus') } finally { setIsSubmitting(false) }
+  }
 
-    const openEditModal = (org) => {
-        setEditingOrg(org);
-        setFormData({ 
-            Nama: org.Nama, 
-            Jenis: org.Jenis, 
-            Deskripsi: org.Deskripsi, 
-            Email: org.Email, 
-            Visi: org.Visi, 
-            Misi: org.Misi, 
-            Logo: org.Logo 
-        });
-        setIsModalOpen(true);
-    };
+  const columns = [
+    { key: 'Singkatan', label: 'Kode', className: 'w-[100px]', render: v => <span className="font-bold text-slate-400 font-headline uppercase text-[10px] tracking-widest">{v || '—'}</span> },
+    { key: 'Nama', label: 'Nama Ormawa', className: 'min-w-[260px]', render: v => <span className="font-bold text-slate-900 font-headline tracking-tighter text-[13px]">{v || '—'}</span> },
+    { key: 'Email', label: 'Kontak', className: 'w-[220px]', render: v => <span className="text-[11px] font-bold text-slate-500">{v || '—'}</span> },
+    { key: 'JumlahAnggota', label: 'Anggota', className: 'w-[100px] text-center', cellClassName: 'text-center', render: (v, row) => <span className="font-black text-primary text-sm font-headline">{v || row.jumlah_anggota || 0}</span> }
+  ]
 
-    return (
-        <div className="bg-slate-50 text-slate-900 min-h-screen flex font-body select-none">
-          <Sidebar />
-          <main className="pl-80 flex flex-col min-h-screen w-full font-body">
-            <TopNavBar />
-            <div className="p-8 space-y-8">
-              <header className="flex justify-between items-end">
-                <div>
-                  <h1 className="text-3xl font-extrabold text-primary tracking-tight uppercase leading-none">Registri & Legalitas Ormawa</h1>
-                  <p className="text-slate-600 mt-2 font-medium opacity-90">Otoritas pusat untuk pendaftaran, pembekuan, dan monitoring kepengurusan ORMAWA.</p>
-                </div>
-                <button 
-                    onClick={() => { setEditingOrg(null); setFormData({ Nama: '', Jenis: 'UKM', Deskripsi: '', Email: '', Visi: '', Misi: '', Logo: '' }); setIsModalOpen(true); }}
-                    className="bg-primary text-white px-8 py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-primary/20 hover:scale-105 transition-all font-body"
-                >
-                    Registrasi Ormawa Baru
-                </button>
-              </header>
+  return (
+    <div className="bg-slate-50 min-h-screen flex font-sans">
+      <Sidebar />
+      <main className="pl-72 pt-20 flex flex-col min-h-screen w-full">
 
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-6 items-start font-body">
-                  <div className="bg-white p-10 rounded-[3.5rem] border border-slate-200 space-y-2 shadow-sm">
-                      <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 leading-tight">Total Ormawa Terdaftar</p>
-                      <h3 className="text-3xl font-black text-primary uppercase tracking-tighter">{loading ? '...' : orgs.length.toString().padStart(2, '0')} Unit</h3>
-                  </div>
-              </div>
-
-              <section className="bg-white border border-slate-200 rounded-[3.5rem] overflow-hidden shadow-sm">
-                 <table className="w-full text-left font-body">
-                  <thead>
-                    <tr className="bg-slate-50 text-[10px] font-black uppercase tracking-[0.2em] text-slate-600 leading-tight border-b border-slate-100">
-                      <th className="px-10 py-6">Nama Organisasi</th>
-                      <th className="px-10 py-6">Tipe Unit</th>
-                      <th className="px-10 py-6">Fokus Bidang</th>
-                      <th className="px-10 py-6">Anggota</th>
-                      <th className="px-10 py-6 text-right">Aksi</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100 font-body select-text">
-                    {loading ? (
-                        <tr><td colSpan="5" className="px-10 py-20 text-center text-slate-400 uppercase font-black text-[10px] tracking-widest">Mensinkronkan registri...</td></tr>
-                    ) : orgs.length === 0 ? (
-                        <tr><td colSpan="5" className="px-10 py-20 text-center text-slate-400 uppercase font-black text-[10px] tracking-widest">Belum ada ormawa terdaftar.</td></tr>
-                    ) : orgs.map((o) => (
-                      <tr key={o.ID} className="hover:bg-slate-50/50 transition-all group border-b border-slate-50">
-                        <td className="px-10 py-6">
-                            <div className="flex items-center gap-4">
-                                <div className="w-10 h-10 rounded-xl bg-primary/5 flex items-center justify-center text-primary font-black text-xs">
-                                    {o.Logo ? <img src={o.Logo} alt="" className="w-full h-full object-cover rounded-xl" /> : o.Nama.charAt(0)}
-                                </div>
-                                <span className="font-extrabold text-primary uppercase tracking-tight group-hover:text-blue-700 transition-colors leading-tight">{o.Nama}</span>
-                            </div>
-                        </td>
-                        <td className="px-10 py-6">
-                             <span className="text-[10px] font-black uppercase tracking-widest bg-emerald-50 text-emerald-600 px-3 py-1.5 rounded-lg border border-emerald-100">
-                                {o.Jenis}
-                             </span>
-                        </td>
-                        <td className="px-10 py-6 text-sm font-bold text-slate-600 truncate max-w-xs">{o.Deskripsi || '-'}</td>
-                        <td className="px-10 py-6 text-xs font-black text-slate-400 italic">
-                            {o.Anggota?.length || 0} Mahasiswa
-                        </td>
-                        <td className="px-10 py-6 text-right">
-                           <div className="flex justify-end gap-2">
-                                <button 
-                                    onClick={() => openEditModal(o)}
-                                    className="p-3 hover:bg-amber-50 rounded-xl text-amber-600 transition-all"
-                                >
-                                    <span className="material-symbols-outlined text-[20px]">edit</span>
-                                </button>
-                                <button 
-                                    onClick={() => handleDelete(o.ID)}
-                                    className="p-3 hover:bg-rose-50 rounded-xl text-rose-500 transition-all"
-                                >
-                                    <span className="material-symbols-outlined text-[20px]">delete</span>
-                                </button>
-                           </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </section>
+        <TopNavBar />
+        <div className="p-8 space-y-6">
+          <Toaster position="top-right" />
+          <div className="flex flex-col gap-1.5">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-primary/10 rounded-xl text-primary"><Building className="size-6" /></div>
+              <h1 className="text-2xl font-black text-slate-900 font-headline tracking-tighter uppercase">Kelola Organisasi Mahasiswa</h1>
             </div>
-          </main>
-
-          {/* Modal Form */}
-          {isModalOpen && (
-              <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 font-body">
-                  <div className="bg-white w-full max-w-2xl rounded-[3rem] shadow-2xl p-12 flex flex-col gap-8 animate-in zoom-in duration-300">
-                      <header>
-                          <h2 className="text-2xl font-black text-primary uppercase tracking-tighter">{editingOrg ? 'Edit' : 'Registrasi'} ORMAWA</h2>
-                          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1 italic">Entitas Organisasi Terverifikasi</p>
-                      </header>
-
-                      <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-6">
-                          <div className="col-span-2 flex flex-col gap-1.5">
-                              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Nama Organisasi Mahasiswa</label>
-                              <input 
-                                required
-                                value={formData.Nama}
-                                onChange={(e) => setFormData({...formData, Nama: e.target.value})}
-                                className="bg-slate-50 border border-slate-200 rounded-2xl px-6 py-4 text-sm font-bold text-primary focus:border-primary transition-all outline-none" 
-                                placeholder="Himpunan Mahasiswa..."
-                              />
-                          </div>
-                          <div className="flex flex-col gap-1.5">
-                              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Tipe Organisasi</label>
-                              <select 
-                                value={formData.Jenis}
-                                onChange={(e) => setFormData({...formData, Jenis: e.target.value})}
-                                className="bg-slate-50 border border-slate-200 rounded-2xl px-6 py-4 text-sm font-bold text-primary focus:border-primary transition-all outline-none"
-                              >
-                                  <option value="UKM">Unit Kegiatan Mahasiswa (UKM)</option>
-                                  <option value="Hima">Himpunan Mahasiswa (Hima)</option>
-                                  <option value="BEM">Badan Eksekutif Mahasiswa (BEM)</option>
-                              </select>
-                          </div>
-                          <div className="flex flex-col gap-1.5">
-                              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Email Official</label>
-                              <input 
-                                value={formData.Email}
-                                onChange={(e) => setFormData({...formData, Email: e.target.value})}
-                                className="bg-slate-50 border border-slate-200 rounded-2xl px-6 py-4 text-sm font-bold text-primary focus:border-primary transition-all outline-none" 
-                                placeholder="ormawa@univ.ac.id"
-                              />
-                          </div>
-                          <div className="col-span-2 flex flex-col gap-1.5">
-                              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Deskripsi & Fokus</label>
-                              <textarea 
-                                value={formData.Deskripsi}
-                                onChange={(e) => setFormData({...formData, Deskripsi: e.target.value})}
-                                className="bg-slate-50 border border-slate-200 rounded-2xl px-6 py-4 text-sm font-bold text-primary focus:border-primary transition-all outline-none min-h-[80px]" 
-                                placeholder="Jelaskan fokus dan kegiatan utama organisasi..."
-                              />
-                          </div>
-                          <div className="col-span-2 flex gap-4 pt-4">
-                            <button type="submit" className="flex-1 bg-primary text-white py-4 rounded-3xl font-black text-xs uppercase tracking-[0.2em] shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all">
-                                {editingOrg ? 'Simpan Perubahan' : 'Daftarkan Ormawa'}
-                            </button>
-                            <button type="button" onClick={() => setIsModalOpen(false)} className="px-10 bg-slate-100 text-slate-500 py-4 rounded-3xl font-black text-xs uppercase tracking-[0.2em]">Batal</button>
-                          </div>
-                      </form>
+            <div className="flex items-center gap-2">
+              <div className="h-1 w-10 bg-primary rounded-full shadow-sm shadow-primary/30" />
+              <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Registri & Manajemen Seluruh Ormawa Universitas</p>
+            </div>
+          </div>
+          <Card className="border-none shadow-sm overflow-hidden bg-white/50 backdrop-blur-md">
+            <CardContent className="p-0">
+              <DataTable
+                columns={columns} data={data} loading={loading}
+                searchPlaceholder="Cari nama atau singkatan ormawa..."
+                onAdd={handleOpenAdd} addLabel="Tambah Ormawa"
+                actions={(row) => (
+                  <div className="flex items-center gap-2">
+                    <Button onClick={() => { setSelected(row); setIsDetailOpen(true) }} variant="ghost" size="icon" className="h-8 w-8 hover:text-primary hover:bg-primary/10 rounded-xl"><Eye className="size-4" /></Button>
+                    <Button onClick={() => handleOpenEdit(row)} variant="ghost" size="icon" className="h-8 w-8 hover:text-amber-600 hover:bg-amber-50 rounded-xl"><Pencil className="size-4" /></Button>
+                    <Button onClick={() => { setSelected(row); setIsDelOpen(true) }} variant="ghost" size="icon" className="h-8 w-8 hover:text-rose-600 hover:bg-rose-50 rounded-xl"><Trash2 className="size-4" /></Button>
                   </div>
-              </div>
-          )}
+                )}
+              />
+            </CardContent>
+          </Card>
         </div>
-    )
-}
+      </main>
 
-export default KelolaOrganisasi;
+      {/* Detail */}
+      <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
+        <DialogContent className="max-w-xl p-0 overflow-hidden border-none shadow-2xl rounded-[2.5rem] bg-white/95 backdrop-blur-xl">
+          {selected && (
+            <div>
+              <div className="p-8 bg-gradient-to-br from-slate-900 to-slate-800 relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-primary/30 to-transparent" />
+                <div className="relative z-10">
+                  <Badge className="font-black text-[9px] px-2.5 py-0.5 bg-white/10 text-white border-none mb-3 uppercase tracking-widest">{selected.Singkatan}</Badge>
+                  <h2 className="text-xl font-black text-white font-headline tracking-tighter">{selected.Nama}</h2>
+                  <p className="text-[10px] text-slate-400 font-bold mt-1">{selected.Email || '—'}</p>
+                </div>
+              </div>
+              <div className="p-8 space-y-4">
+                {selected.Visi && <div><p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 font-headline">Visi</p><p className="text-sm text-slate-600 leading-relaxed">{selected.Visi}</p></div>}
+                {selected.Misi && <div><p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 font-headline">Misi</p><p className="text-sm text-slate-600 leading-relaxed">{selected.Misi}</p></div>}
+                <div className="flex justify-end gap-3">
+                  <Button variant="ghost" onClick={() => setIsDetailOpen(false)} className="text-[10px] font-black uppercase text-slate-400 px-8 h-10 rounded-2xl">Tutup</Button>
+                  <Button onClick={() => { setIsDetailOpen(false); handleOpenEdit(selected) }} className="h-10 px-8 rounded-2xl bg-primary text-white font-black text-[10px] uppercase">Edit</Button>
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* CRUD */}
+      <Dialog open={isCrudOpen} onOpenChange={setIsCrudOpen}>
+        <DialogContent className="max-w-xl p-0 overflow-hidden border-none shadow-2xl rounded-[2rem] bg-white/95 backdrop-blur-xl">
+          <DialogHeader className="p-8 pb-6 bg-gradient-to-br from-slate-50 to-white border-b border-slate-100 relative overflow-hidden">
+            <div className="absolute top-0 right-0 p-8 opacity-5"><Building className="size-24 rotate-12" /></div>
+            <div className="relative z-10">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="size-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary">{isEditMode ? <Pencil className="size-4" /> : <Plus className="size-4 stroke-[3px]" />}</div>
+                <Badge className="text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 bg-primary/5 text-primary border-none">Ormawa Registry</Badge>
+              </div>
+              <DialogTitle className="text-2xl font-black font-headline tracking-tighter text-slate-900 uppercase">{isEditMode ? 'Edit Ormawa' : 'Daftarkan Ormawa Baru'}</DialogTitle>
+            </div>
+          </DialogHeader>
+          <form onSubmit={handleSave} className="p-8 pt-6 space-y-4">
+            <div className="grid grid-cols-3 gap-4">
+              <div className="space-y-2 col-span-2"><Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Nama Organisasi</Label><Input required value={form.Nama} onChange={e => setForm({ ...form, Nama: e.target.value })} placeholder="Nama lengkap..." className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white font-bold text-sm font-headline" /></div>
+              <div className="space-y-2"><Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Kode / Singkatan</Label><Input required value={form.Singkatan} onChange={e => setForm({ ...form, Singkatan: e.target.value })} placeholder="CTR, HMP, etc" className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white font-bold text-sm font-headline" /></div>
+            </div>
+            <div className="space-y-2"><Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Kontak / HP</Label><Input value={form.Phone} onChange={e => setForm({ ...form, Phone: e.target.value })} placeholder="08xxx..." className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white font-bold text-sm font-headline" /></div>
+
+            <div className="space-y-2"><Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Email Resmi</Label><Input type="email" value={form.Email} onChange={e => setForm({ ...form, Email: e.target.value })} placeholder="email@ormawa.bku.ac.id" className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white font-bold text-sm" /></div>
+            <div className="space-y-2"><Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Deskripsi Organisasi</Label><Textarea value={form.Deskripsi} onChange={e => setForm({ ...form, Deskripsi: e.target.value })} placeholder="Singkatan atau deskripsi singkat..." className="min-h-[60px] rounded-[1.5rem] border-slate-200 bg-slate-50/50 focus:bg-white p-4 text-sm font-medium font-headline" /></div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2"><Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Visi</Label><Textarea value={form.Visi} onChange={e => setForm({ ...form, Visi: e.target.value })} placeholder="Visi organisasi..." className="min-h-[80px] rounded-[1.5rem] border-slate-200 bg-slate-50/50 focus:bg-white p-4 text-sm font-medium font-headline" /></div>
+              <div className="space-y-2"><Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Misi</Label><Textarea value={form.Misi} onChange={e => setForm({ ...form, Misi: e.target.value })} placeholder="Misi organisasi..." className="min-h-[80px] rounded-[1.5rem] border-slate-200 bg-slate-50/50 focus:bg-white p-4 text-sm font-medium font-headline" /></div>
+            </div>
+            <DialogFooter className="pt-4 flex flex-row gap-3 border-t border-slate-100 -mx-8 px-8 bg-slate-50/30">
+              <Button type="button" variant="ghost" onClick={() => setIsCrudOpen(false)} className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-8 h-12 rounded-2xl">Batalkan</Button>
+              <Button type="submit" disabled={isSubmitting} className="h-12 px-10 rounded-2xl bg-primary text-white hover:bg-primary/90 shadow-xl shadow-primary/20 transition-all hover:scale-[1.02] active:scale-95">
+                {isSubmitting ? <Loader2 className="animate-spin size-4 mr-2" /> : <Save className="size-4 mr-2 stroke-[3px]" />}
+                <span className="text-[10px] font-black uppercase tracking-[0.2em]">{isEditMode ? 'Update Record' : 'Create Record'}</span>
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      <DeleteConfirmModal isOpen={isDelOpen} onClose={() => setIsDelOpen(false)} onConfirm={handleDelete}
+        title="Hapus Organisasi?" description="Data organisasi mahasiswa ini akan dihapus permanen dari sistem." loading={isSubmitting} />
+    </div>
+  )
+}

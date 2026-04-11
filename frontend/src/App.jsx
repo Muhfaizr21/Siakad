@@ -17,6 +17,7 @@ import Error404 from './pages/Error/Error404'
 import Error403 from './pages/Error/Error403'
 import Error500 from './pages/Error/Error500'
 import OfflinePage from './pages/Error/OfflinePage'
+import { Loader2 } from 'lucide-react'
 
 // App Layout & Student BKU Modules
 import AppLayout from './components/layout/AppLayout'
@@ -48,7 +49,7 @@ import StaffManagement from './pages/OrmawaAdmin/StaffManagement'
 import Notifikasi from './pages/OrmawaAdmin/Notifikasi'
 import Settings from './pages/OrmawaAdmin/Settings'
 import AspirationManagement from './pages/OrmawaAdmin/AspirationManagement'
-
+import PkkmbManagement from './pages/OrmawaAdmin/PkkmbManagement'
 // Faculty Admin Modules (from danzz)
 import FacultyAspirationManagement from './pages/FacultyAdmin/Aspirasi'
 import FacultyPmb from './pages/FacultyAdmin/MahasiswaBaru'
@@ -105,11 +106,14 @@ import KelolaBeasiswa from './pages/SuperAdmin/KelolaBeasiswa'
 import KelolaOrganisasi from './pages/SuperAdmin/KelolaOrganisasi'
 import NotFound from './pages/NotFound/NotFound'
 import { AuthProvider } from './context/AuthContext'
+import ProtectedRoute from './components/ProtectedRoute'
+import useAuthStore from './store/useAuthStore'
 
 import './index.css'
 
 function App() {
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
+  const [isHydrated, setIsHydrated] = useState(false);
 
   useEffect(() => {
     const handleOnline = () => setIsOffline(false);
@@ -117,6 +121,14 @@ function App() {
 
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
+
+    // Initial hydration check for Zustand store
+    const checkHydration = () => {
+      const state = useAuthStore.getState();
+      // Even if token is null, hydration is 'done' once we've read from storage
+      setIsHydrated(true);
+    };
+    checkHydration();
 
     return () => {
       window.removeEventListener('online', handleOnline);
@@ -126,6 +138,10 @@ function App() {
 
   if (isOffline) {
     return <OfflinePage />;
+  }
+
+  if (!isHydrated) {
+    return <div className="min-h-screen flex items-center justify-center bg-slate-50"><Loader2 className="animate-spin text-primary size-10" /></div>;
   }
 
   return (
@@ -146,84 +162,102 @@ function App() {
             <Route path="/500" element={<Error500 />} />
 
             {/* Super Admin Routes */}
-            <Route path="/admin" element={<AdminDashboard />} />
-            <Route path="/admin/rbac" element={<UserManagement />} />
-            <Route path="/admin/academic" element={<AcademicPortal />} />
-            <Route path="/admin/aspirations" element={<AspirationControl />} />
-            <Route path="/admin/proposals" element={<ProposalPipeline />} />
-            <Route path="/admin/audit" element={<AuditLog />} />
-            <Route path="/admin/counseling" element={<CounselingAchievement />} />
-            <Route path="/admin/announcements" element={<ContentManagement />} />
-            <Route path="/admin/broadcast" element={<ContentManagement />} />
-            <Route path="/admin/reports" element={<ReportsGenerator />} />
-            <Route path="/admin/students" element={<StudentDirectory />} />
-            <Route path="/admin/performance" element={<AdminPerformance />} />
-            <Route path="/admin/security" element={<SecuritySettings />} />
-            <Route path="/admin/lecturers" element={<LecturerDirectory />} />
-            <Route path="/admin/config" element={<AcademicPortal />} />
-            <Route path="/admin/faculties" element={<KelolaFakultas />} />
-            <Route path="/admin/prodi" element={<KelolaProdi />} />
-            <Route path="/admin/scholarships" element={<KelolaBeasiswa />} />
-            <Route path="/admin/organizations" element={<KelolaOrganisasi />} />
-            <Route path="/admin/ormawa" element={<ProposalPipeline />} />
-            <Route path="/admin/treasury" element={<ReportsGenerator />} />
-            <Route path="/admin/infrastructure" element={<AcademicPortal />} />
+            <Route path="/admin/*" element={
+              <ProtectedRoute allowedRoles={['super_admin']}>
+                <Routes>
+                  <Route index element={<AdminDashboard />} />
+                  <Route path="rbac" element={<UserManagement />} />
+                  <Route path="academic" element={<AcademicPortal />} />
+                  <Route path="aspirations" element={<AspirationControl />} />
+                  <Route path="proposals" element={<ProposalPipeline />} />
+                  <Route path="audit" element={<AuditLog />} />
+                  <Route path="counseling" element={<CounselingAchievement />} />
+                  <Route path="announcements" element={<ContentManagement />} />
+                  <Route path="broadcast" element={<ContentManagement />} />
+                  <Route path="reports" element={<ReportsGenerator />} />
+                  <Route path="students" element={<StudentDirectory />} />
+                  <Route path="performance" element={<AdminPerformance />} />
+                  <Route path="security" element={<SecuritySettings />} />
+                  <Route path="lecturers" element={<LecturerDirectory />} />
+                  <Route path="config" element={<AcademicPortal />} />
+                  <Route path="faculties" element={<KelolaFakultas />} />
+                  <Route path="prodi" element={<KelolaProdi />} />
+                  <Route path="scholarships" element={<KelolaBeasiswa />} />
+                  <Route path="organizations" element={<KelolaOrganisasi />} />
+                  <Route path="ormawa" element={<ProposalPipeline />} />
+                  <Route path="treasury" element={<ReportsGenerator />} />
+                  <Route path="infrastructure" element={<AcademicPortal />} />
+                </Routes>
+              </ProtectedRoute>
+            } />
 
-            <Route path="/faculty" element={<FacultyLayout />}>
-              <Route index element={<Navigate to="dashboard" replace />} />
-              <Route path="dashboard" element={<FacultyDashboard />} />
-              <Route path="aspirasi" element={<FacultyAspirationManagement />} />
-              <Route path="pmb" element={<FacultyPmb />} />
-              <Route path="fakultas" element={<FacultyFakultas />} />
-              <Route path="fakultas/tambah" element={<FacultyFakultasTambah />} />
-              <Route path="fakultas/edit/:id" element={<FacultyFakultasEdit />} />
-              <Route path="prodi" element={<FacultyProdi />} />
-              <Route path="prodi/tambah" element={<FacultyProdiTambah />} />
-              <Route path="prodi/edit/:id" element={<FacultyProdiEdit />} />
-              <Route path="prodi/kurikulum" element={<FacultyProdiKurikulum />} />
-              <Route path="prodi/matakuliah" element={<FacultyProdiMatakuliah />} />
-              <Route path="dosen" element={<FacultyDosen />} />
-              <Route path="mahasiswa" element={<FacultyMahasiswa />} />
-              <Route path="mahasiswa/import" element={<FacultyMahasiswaImport />} />
-              <Route path="mahasiswa/status" element={<FacultyMahasiswaStatus />} />
-              <Route path="mahasiswa/tambah" element={<FacultyMahasiswaTambah />} />
-              <Route path="mahasiswa/edit/:id" element={<FacultyMahasiswaEdit />} />
-              <Route path="dosen/tambah" element={<FacultyDosenTambah />} />
-              <Route path="dosen/edit/:id" element={<FacultyDosenEdit />} />
-              <Route path="jadwal" element={<FacultyJadwal />} />
-              <Route path="krs" element={<FacultyKrs />} />
-              <Route path="nilai" element={<FacultyNilai />} />
-              <Route path="laporan" element={<FacultyLaporan />} />
-              <Route path="laporan/mahasiswa" element={<FacultyLaporan />} />
-              <Route path="konten" element={<FacultyKonten />} />
-              <Route path="pengaturan" element={<FacultyPengaturan />} />
-              <Route path="konseling" element={<FacultyKonseling />} />
-              <Route path="prestasi" element={<FacultyPrestasi />} />
-              <Route path="persuratan" element={<FacultyPersuratan />} />
-              <Route path="beasiswa" element={<FacultyBeasiswa />} />
-              <Route path="mahasiswa/baru" element={<FacultyMahasiswaBaru />} />
-              <Route path="pkkmb" element={<FacultyPkkmb />} />
-              <Route path="kesehatan" element={<FacultyHealth />} />
-              <Route path="ormawa/proposals" element={<FacultyProposalApproval />} />
-              <Route path="organisasi" element={<FacultyOrganisasi />} />
-            </Route>
+            <Route path="/faculty/*" element={
+              <ProtectedRoute allowedRoles={['faculty_admin', 'dosen']}>
+                <Routes>
+                  <Route element={<FacultyLayout />}>
+                    <Route index element={<Navigate to="dashboard" replace />} />
+                    <Route path="dashboard" element={<FacultyDashboard />} />
+                    <Route path="aspirasi" element={<FacultyAspirationManagement />} />
+                    <Route path="pmb" element={<FacultyPmb />} />
+                    <Route path="fakultas" element={<FacultyFakultas />} />
+                    <Route path="fakultas/tambah" element={<FacultyFakultasTambah />} />
+                    <Route path="fakultas/edit/:id" element={<FacultyFakultasEdit />} />
+                    <Route path="prodi" element={<FacultyProdi />} />
+                    <Route path="prodi/tambah" element={<FacultyProdiTambah />} />
+                    <Route path="prodi/edit/:id" element={<FacultyProdiEdit />} />
+                    <Route path="prodi/kurikulum" element={<FacultyProdiKurikulum />} />
+                    <Route path="prodi/matakuliah" element={<FacultyProdiMatakuliah />} />
+                    <Route path="dosen" element={<FacultyDosen />} />
+                    <Route path="mahasiswa" element={<FacultyMahasiswa />} />
+                    <Route path="mahasiswa/import" element={<FacultyMahasiswaImport />} />
+                    <Route path="mahasiswa/status" element={<FacultyMahasiswaStatus />} />
+                    <Route path="mahasiswa/tambah" element={<FacultyMahasiswaTambah />} />
+                    <Route path="mahasiswa/edit/:id" element={<FacultyMahasiswaEdit />} />
+                    <Route path="dosen/tambah" element={<FacultyDosenTambah />} />
+                    <Route path="dosen/edit/:id" element={<FacultyDosenEdit />} />
+                    <Route path="jadwal" element={<FacultyJadwal />} />
+                    <Route path="krs" element={<FacultyKrs />} />
+                    <Route path="nilai" element={<FacultyNilai />} />
+                    <Route path="laporan" element={<FacultyLaporan />} />
+                    <Route path="laporan/mahasiswa" element={<FacultyLaporan />} />
+                    <Route path="konten" element={<FacultyKonten />} />
+                    <Route path="pengaturan" element={<FacultyPengaturan />} />
+                    <Route path="konseling" element={<FacultyKonseling />} />
+                    <Route path="prestasi" element={<FacultyPrestasi />} />
+                    <Route path="persuratan" element={<FacultyPersuratan />} />
+                    <Route path="beasiswa" element={<FacultyBeasiswa />} />
+                    <Route path="mahasiswa/baru" element={<FacultyMahasiswaBaru />} />
+                    <Route path="pkkmb" element={<FacultyPkkmb />} />
+                    <Route path="kesehatan" element={<FacultyHealth />} />
+                    <Route path="ormawa/proposals" element={<FacultyProposalApproval />} />
+                    <Route path="organisasi" element={<FacultyOrganisasi />} />
+                  </Route>
+                </Routes>
+              </ProtectedRoute>
+            } />
 
             {/* Ormawa Admin Routes */}
-            <Route path="/ormawa" element={<OrmawaDashboard />} />
-            <Route path="/ormawa/anggota" element={<AnggotaManagement />} />
-            <Route path="/ormawa/proposal" element={<ProposalManagement />} />
-            <Route path="/ormawa/jadwal" element={<JadwalKegiatan />} />
-            <Route path="/ormawa/absensi" element={<AbsensiKegiatan />} />
-            <Route path="/ormawa/keuangan" element={<KeuanganKas />} />
-            <Route path="/ormawa/lpj" element={<LpjManagement />} />
-            <Route path="/ormawa/pengumuman" element={<Pengumuman />} />
-            <Route path="/ormawa/struktur" element={<StrukturOrganisasi />} />
-            <Route path="/ormawa/staff" element={<StaffManagement />} />
-            <Route path="/ormawa/rbac" element={<RoleBasedAccess />} />
-            <Route path="/ormawa/notifikasi" element={<Notifikasi />} />
-            <Route path="/ormawa/pengaturan" element={<Settings />} />
-            <Route path="/ormawa/aspirasi" element={<AspirationManagement />} />
-
+            <Route path="/ormawa/*" element={
+              <ProtectedRoute allowedRoles={['ormawa_admin', 'mahasiswa', 'ormawa']}>
+                <Routes>
+                  <Route index element={<OrmawaDashboard />} />
+                  <Route path="anggota" element={<AnggotaManagement />} />
+                  <Route path="proposal" element={<ProposalManagement />} />
+                  <Route path="jadwal" element={<JadwalKegiatan />} />
+                  <Route path="absensi" element={<AbsensiKegiatan />} />
+                  <Route path="keuangan" element={<KeuanganKas />} />
+                  <Route path="lpj" element={<LpjManagement />} />
+                  <Route path="pengumuman" element={<Pengumuman />} />
+                  <Route path="struktur" element={<StrukturOrganisasi />} />
+                  <Route path="staff" element={<StaffManagement />} />
+                  <Route path="rbac" element={<RoleBasedAccess />} />
+                  <Route path="notifikasi" element={<Notifikasi />} />
+                  <Route path="pengaturan" element={<Settings />} />
+                  <Route path="aspirasi" element={<AspirationManagement />} />
+                  <Route path="pkkmb" element={<PkkmbManagement />} />
+                </Routes>
+              </ProtectedRoute>
+            } />
             {/* Student Portal (BKU Student Hub) */}
             <Route path="/student" element={<AppLayout />}>
               <Route index element={<Navigate to="dashboard" replace />} />

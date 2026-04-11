@@ -1,459 +1,256 @@
-import React, { useState, useEffect } from 'react';
-import Sidebar from './components/Sidebar';
-import TopNavBar from './components/TopNavBar';
-import { useAuth } from '../../context/AuthContext';
-import { ormawaService } from '../../services/api';
+"use client"
 
-const JadwalKegiatan = () => {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { user } = useAuth();
-  const ormawaId = user?.ormawaId || 1;
-  const [events, setEvents] = useState([]);
-  const [viewMode, setViewMode] = useState('calendar'); 
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isDatePickerOpen, setIsDatePickerOpen] = useState(false); // New state for custom picker
-  const [editingId, setEditingId] = useState(null);
-  const [conflictWarning, setConflictWarning] = useState(null);
-  const [currDate, setCurrDate] = useState(new Date()); // New state for navigation
-  const [formData, setFormData] = useState({
-    title: '', date: '', startTime: '', endTime: '', location: '', type: 'internal', reminder: false
-  });
+import React, { useState, useEffect } from 'react'
+import { DataTable } from '../FacultyAdmin/components/data-table'
+import { Badge } from '../FacultyAdmin/components/badge'
+import { Button } from '../FacultyAdmin/components/button'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '../FacultyAdmin/components/dialog'
+import { DeleteConfirmModal } from '../FacultyAdmin/components/DeleteConfirmModal'
+import { Card, CardContent } from '../FacultyAdmin/components/card'
+import { Input } from '../FacultyAdmin/components/input'
+import { Label } from '../FacultyAdmin/components/label'
+import { Textarea } from '../FacultyAdmin/components/textarea'
+import { Eye, Pencil, Trash2, Loader2, Plus, Save, Calendar, MapPin, Clock } from 'lucide-react'
+import { toast, Toaster } from 'react-hot-toast'
+import { cn } from '@/lib/utils'
+import Sidebar from './components/Sidebar'
+import TopNavBar from './components/TopNavBar'
 
-  const openAddModal = (initialDate = null) => {
-    setFormData({
-      title: '', 
-      date: initialDate || '', 
-      startTime: '', 
-      endTime: '', 
-      location: '', 
-      type: 'internal', 
-      reminder: false
-    });
-    setIsModalOpen(true);
-  };
+import { fetchWithAuth } from '../../services/api'
+import useAuthStore from '../../store/useAuthStore'
 
-  useEffect(() => {
-    fetchEvents();
-  }, [ormawaId]);
+const API = 'http://localhost:8000/api/ormawa'
+
+const STATUS_CFG = {
+  terjadwal: { label: 'Terjadwal', cls: 'bg-blue-100 text-blue-700 ring-1 ring-blue-500/20' },
+  berlangsung: { label: 'Berlangsung', cls: 'bg-emerald-100 text-emerald-700 ring-1 ring-emerald-500/20' },
+  selesai: { label: 'Selesai', cls: 'bg-slate-100 text-slate-600 ring-1 ring-slate-400/20' },
+  dibatalkan: { label: 'Dibatalkan', cls: 'bg-rose-100 text-rose-700 ring-1 ring-rose-500/20' },
+}
+
+export default function JadwalKegiatan() {
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [data, setData] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [selected, setSelected] = useState(null)
+  const [isDetailOpen, setIsDetailOpen] = useState(false)
+  const [isCrudOpen, setIsCrudOpen] = useState(false)
+  const [isDelOpen, setIsDelOpen] = useState(false)
+  const [isEditMode, setIsEditMode] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const ormawaId = useAuthStore.getState()?.mahasiswa?.ormawaId || useAuthStore.getState()?.mahasiswa?.OrmawaID || 1
+  const [form, setForm] = useState({ Judul: '', Deskripsi: '', TanggalMulai: '', TanggalSelesai: '', Lokasi: '', Status: 'terjadwal', OrmawaID: ormawaId })
 
   const fetchEvents = async () => {
+    setLoading(true)
     try {
-      const data = await ormawaService.getEvents(ormawaId);
-      if (data.status === 'success') setEvents(data.data || []);
-    } catch (e) { console.error(e); }
-  };
+      const res = await fetchWithAuth(`${API}/events?ormawaId=${ormawaId}`)
+      if (res.status === 'success') setData(res.data || [])
+      else toast.error('Gagal memuat jadwal')
+    } catch { toast.error('Koneksi gagal') } finally { setLoading(false) }
+  }
+  useEffect(() => { fetchEvents() }, [])
 
-  const deleteEvent = async (id) => {
-    if (!window.confirm("Hapus permanen kegiatan ini?")) return;
+  const handleOpenAdd = () => { setIsEditMode(false); setForm({ Judul: '', Deskripsi: '', Lokasi: '', TanggalMulai: '', TanggalSelesai: '', Status: 'terjadwal', OrmawaID: ormawaId }); setIsCrudOpen(true) }
+  const handleOpenEdit = (row) => {
+    setIsEditMode(true)
+    setForm({ ID: row.ID, Judul: row.Judul || row.judul || '', Deskripsi: row.Deskripsi || row.deskripsi || '', Lokasi: row.Lokasi || row.lokasi || '', TanggalMulai: (row.TanggalMulai || row.tanggalMulai || '').split('T')[0], TanggalSelesai: (row.TanggalSelesai || row.tanggalSelesai || '').split('T')[0], Status: row.Status || row.status || 'terjadwal', OrmawaID: ormawaId })
+    setIsCrudOpen(true)
+  }
+  const handleSave = async (e) => {
+    e.preventDefault(); setIsSubmitting(true)
+    const url = isEditMode ? `${API}/events/${form.ID}` : `${API}/events`
+    const method = isEditMode ? 'PUT' : 'POST'
+    const payload = { ...form, OrmawaID: Number(form.OrmawaID), TanggalMulai: form.TanggalMulai ? new Date(form.TanggalMulai).toISOString() : null, TanggalSelesai: form.TanggalSelesai ? new Date(form.TanggalSelesai).toISOString() : null }
     try {
-       await ormawaService.deleteEvent(id);
-       fetchEvents();
-    } catch (e) { console.error(e); }
-  };
-
-  const loadEventForEdit = (ev) => {
-    setEditingId(ev.ID);
-    setFormData({
-      title: ev.Judul,
-      date: ev.TanggalMulai ? ev.TanggalMulai.split('T')[0] : '',
-      startTime: ev.TanggalMulai ? new Date(ev.TanggalMulai).toTimeString().slice(0,5) : '',
-      endTime: ev.TanggalSelesai ? new Date(ev.TanggalSelesai).toTimeString().slice(0,5) : '',
-      location: ev.Lokasi,
-      type: ev.Deskripsi || 'internal',
-      reminder: false
-    });
-    setIsModalOpen(true);
-  };
-
-  const getDayGrid = () => {
-    const year = currDate.getFullYear();
-    const month = currDate.getMonth();
-    const firstDay = new Date(year, month, 1).getDay();
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
-    
-    let grid = [];
-    // Padding from prev month
-    for(let i = 0; i < firstDay; i++) {
-       grid.push({ type: 'empty', id: `empty-${i}` });
-    }
-    // Days in current month
-    for(let i = 1; i <= daysInMonth; i++) {
-      const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
-      grid.push({ type: 'day', dateStr, dayNum: i });
-    }
-    return grid;
-  };
-
-  const days = getDayGrid();
-
-  const changeMonth = (offset) => {
-    setCurrDate(new Date(currDate.getFullYear(), currDate.getMonth() + offset, 1));
-  };
-
-  const handleInputChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setFormData(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
-    setConflictWarning(null); 
-  };
-
-  const checkConflict = () => {
-    const conflict = (events || []).find(ev => ev.TanggalMulai && ev.TanggalMulai.startsWith(formData.date) && ev.Status === 'terjadwal');
-    if(conflict) {
-      setConflictWarning(`Peringatan Konflik! Sudah ada kegiatan: "${conflict.Judul}" pada lokasi ${conflict.Lokasi} di hari yang sama.`);
-      return true;
-    }
-    return false;
-  };
-
-  const saveEvent = async (e) => {
-    e.preventDefault();
-    if(checkConflict() && !conflictWarning) return; 
-    
+      const data = await fetchWithAuth(url, { method, body: JSON.stringify(payload), headers: { 'Content-Type': 'application/json' } })
+      if (data.status === 'success') { toast.success(isEditMode ? 'Kegiatan diperbarui' : 'Kegiatan dijadwalkan'); setIsCrudOpen(false); fetchEvents() }
+      else toast.error(data.message || 'Gagal menyimpan')
+    } catch { toast.error('Terjadi kesalahan') } finally { setIsSubmitting(false) }
+  }
+  const handleDelete = async () => {
+    setIsSubmitting(true)
     try {
-      // Fix time formatting if user uses "." instead of ":"
-      const startTime = formData.startTime.replace('.', ':');
-      const endTime = formData.endTime.replace('.', ':');
+      const data = await fetchWithAuth(`${API}/events/${selected.ID}`, { method: 'DELETE' })
+      if (data.status === 'success') { toast.success('Kegiatan dibatalkan'); setIsDelOpen(false); fetchEvents() }
+      else toast.error('Gagal menghapus')
+    } catch { toast.error('Terjadi kesalahan') } finally { setIsSubmitting(false) }
+  }
 
-      if (!formData.date || !startTime || !endTime) {
-         throw new Error("Tanggal dan Jam wajib diisi dengan benar.");
+  const columns = [
+    {
+      key: 'Judul', label: 'Nama Kegiatan', className: 'min-w-[280px]',
+      render: (v, row) => (
+        <div className="flex flex-col leading-tight">
+          <span className="font-bold text-slate-900 text-[13px] font-headline tracking-tighter">{v || '—'}</span>
+          <span className="text-[10px] text-slate-400 font-bold uppercase tracking-tight mt-0.5 flex items-center gap-1">
+            <MapPin className="size-2.5 opacity-60" /> {row.Lokasi || 'Belum ditentukan'}
+          </span>
+        </div>
+      )
+    },
+    {
+      key: 'TanggalMulai', label: 'Tanggal', className: 'w-[200px]',
+      render: (v, row) => {
+        const start = v || row.tanggalMulai
+        const end = row.TanggalSelesai || row.tanggalSelesai
+        return (
+          <div className="flex flex-col leading-tight">
+            <span className="font-bold text-slate-700 text-[11px] font-headline">{start ? new Date(start).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}</span>
+            {end && <span className="text-[10px] text-slate-400 font-bold">s/d {new Date(end).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })}</span>}
+          </div>
+        )
       }
-
-      const payload = {
-        Judul: formData.title,
-        Deskripsi: formData.type,
-        TanggalMulai: new Date(`${formData.date}T${startTime}`).toISOString(),
-        TanggalSelesai: new Date(`${formData.date}T${endTime}`).toISOString(),
-        Lokasi: formData.location,
-        OrmawaID: Number(ormawaId),
-        Status: 'terjadwal'
-      };
-
-      if (editingId) {
-        await ormawaService.updateEvent(editingId, payload);
-      } else {
-        await ormawaService.createEvent(payload);
+    },
+    {
+      key: 'Status', label: 'Status', className: 'w-[150px] text-center', cellClassName: 'text-center',
+      render: (v) => {
+        const cfg = STATUS_CFG[v] || { label: v, cls: 'bg-slate-100 text-slate-600' }
+        return <Badge className={cn('font-black text-[10px] px-3 py-1 border-none shadow-sm', cfg.cls)}>{cfg.label}</Badge>
       }
-
-      setIsModalOpen(false);
-      setEditingId(null);
-      setFormData({ title: '', date: '', startTime: '', endTime: '', location: '', type: 'internal', reminder: false });
-      fetchEvents();
-      alert("✅ Jadwal berhasil disimpan!");
-    } catch (e) { 
-      console.error("Save error:", e);
-      alert(`⚠️ Gagal menyimpan: ${e.message}. Pastikan format jam benar (HH:mm)`);
     }
-  };
-
-  const cancelEvent = async (id) => {
-    if (!window.confirm("Hapus kegiatan ini?")) return;
-    try {
-      await ormawaService.updateEvent(id, { Status: 'dibatalkan' });
-      fetchEvents();
-    } catch (e) { console.error(e); }
-  };
+  ]
 
   return (
-    <div className="bg-surface text-on-surface min-h-screen">
+    <div className="bg-slate-50 min-h-screen font-sans">
       <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
-      <main className="lg:ml-60 min-h-screen pb-12 transition-all duration-300">
+      <main className="lg:ml-60 min-h-screen transition-all duration-300">
         <TopNavBar setIsOpen={setSidebarOpen} />
-        
-        <div className="pt-20 px-4 lg:px-6">
-          
-          {/* Header */}
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
-            <div className="max-w-xl">
-              <h1 className="text-xl lg:text-2xl font-extrabold font-headline mb-1 text-on-surface">Jadwal & Kalender</h1>
-              <p className="text-on-surface-variant text-[12px] font-medium leading-relaxed">Manajemen operasional dan blokir jadwal demi kelancaran kegiatan.</p>
+        <div className="pt-20 px-6 pb-12">
+          <Toaster position="top-right" />
+          <div className="flex flex-col gap-1.5 mb-8">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-primary/10 rounded-xl text-primary"><Calendar className="size-6" /></div>
+              <h1 className="text-2xl font-black text-slate-900 font-headline tracking-tighter uppercase">Jadwal Kalender</h1>
             </div>
-            <div className="flex items-center gap-3 bg-surface-container-low p-1.5 rounded-xl border border-outline-variant/20 shadow-sm w-full md:w-auto overflow-x-auto no-scrollbar">
-                <button 
-                  onClick={() => setViewMode('calendar')}
-                  className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-black transition-all whitespace-nowrap uppercase tracking-wider ${viewMode === 'calendar' ? 'bg-primary text-white shadow-md' : 'text-on-surface-variant hover:bg-surface-container-high'}`}
-                >
-                  <span className="material-symbols-outlined text-[16px]">calendar_month</span>
-                  Kalender
-                </button>
-                <button 
-                  onClick={() => setViewMode('list')}
-                  className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-black transition-all whitespace-nowrap uppercase tracking-wider ${viewMode === 'list' ? 'bg-primary text-white shadow-md' : 'text-on-surface-variant hover:bg-surface-container-high'}`}
-                >
-                  <span className="material-symbols-outlined text-[16px]">view_list</span>
-                  Daftar
-                </button>
+            <div className="flex items-center gap-2">
+              <div className="h-1 w-10 bg-primary rounded-full shadow-sm shadow-primary/30" />
+              <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Manajemen Agenda & Jadwal Kegiatan Ormawa</p>
             </div>
           </div>
-
-          <div className="mb-6 flex flex-col xl:flex-row justify-between items-stretch xl:items-center bg-surface-container-lowest p-3.5 rounded-2xl border border-outline-variant/20 shadow-sm gap-4">
-             <div className="flex items-center justify-between xl:justify-start gap-1">
-                <button onClick={() => changeMonth(-1)} className="w-9 h-9 rounded-xl hover:bg-surface-container flex items-center justify-center text-on-surface-variant border border-outline-variant/10">
-                  <span className="material-symbols-outlined text-[20px]">chevron_left</span>
-                </button>
-                
-                <button 
-                  onClick={() => setIsDatePickerOpen(!isDatePickerOpen)}
-                  className="px-4 h-9 rounded-xl hover:bg-surface-container flex items-center justify-center gap-2 text-primary border border-outline-variant/10 flex-1 xl:flex-none transition-colors"
-                >
-                    <span className="material-symbols-outlined text-primary text-[18px]">event_note</span>
-                    <span className="text-sm font-black font-headline tracking-tight whitespace-nowrap">
-                      {currDate.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' })}
-                    </span>
-                    <span className="material-symbols-outlined text-outline text-[16px]">expand_more</span>
-                </button>
-
-                <button onClick={() => changeMonth(1)} className="w-9 h-9 rounded-xl hover:bg-surface-container flex items-center justify-center text-on-surface-variant border border-outline-variant/10">
-                  <span className="material-symbols-outlined text-[20px]">chevron_right</span>
-                </button>
-
-                {/* Custom Date Picker Popup */}
-                {isDatePickerOpen && (
-                  <div className="absolute top-[3.5rem] left-0 z-[100] bg-white border border-outline-variant/30 shadow-[0_20px_50px_rgba(0,0,0,0.15)] rounded-[2rem] p-6 animate-in fade-in slide-in-from-top-2 duration-300 min-w-[340px] backdrop-blur-md">
-                    <div className="flex justify-between items-center mb-4 pb-2 border-b border-outline-variant/10">
-                      <h3 className="text-sm font-bold text-primary font-headline uppercase tracking-widest">Pilih Waktu</h3>
-                      <button onClick={() => setIsDatePickerOpen(false)} className="material-symbols-outlined text-on-surface-variant hover:text-primary">close</button>
-                    </div>
-                    
-                    <div className="grid grid-cols-3 gap-2 mb-6">
-                      {['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'].map((m, i) => (
-                        <button 
-                          key={m}
-                          onClick={() => {
-                            setCurrDate(new Date(currDate.getFullYear(), i, 1));
-                            setIsDatePickerOpen(false);
-                          }}
-                          className={`py-3 rounded-xl text-xs font-bold transition-all ${currDate.getMonth() === i ? 'bg-primary text-white shadow-xl shadow-primary/20 scale-105' : 'hover:bg-surface-container text-on-surface-variant'}`}
-                        >
-                          {m}
-                        </button>
-                      ))}
-                    </div>
-                    
-                    <div className="grid grid-cols-4 gap-2 border-t border-outline-variant/10 pt-4 max-h-56 overflow-y-auto pr-2 custom-scrollbar">
-                      {Array.from({ length: 100 }, (_, i) => 2000 + i).map(y => (
-                        <button 
-                          key={y}
-                          id={y === currDate.getFullYear() ? 'selected-year' : ''}
-                          onClick={() => {
-                            setCurrDate(new Date(y, currDate.getMonth(), 1));
-                            setIsDatePickerOpen(false);
-                          }}
-                          className={`py-3 rounded-xl text-xs font-bold transition-all ${currDate.getFullYear() === y ? 'bg-primary text-white shadow-xl shadow-primary/20 scale-105' : 'hover:bg-surface-container text-on-surface-variant'}`}
-                        >
-                          {y}
-                        </button>
-                      ))}
-                    </div>
+          <Card className="border-none shadow-sm overflow-hidden bg-white/50 backdrop-blur-md">
+            <CardContent className="p-0">
+              <DataTable
+                columns={columns} data={data} loading={loading}
+                searchPlaceholder="Cari nama atau lokasi kegiatan..."
+                onAdd={handleOpenAdd} addLabel="Tambah Kegiatan"
+                filters={[{ key: 'Status', placeholder: 'Filter Status', options: Object.entries(STATUS_CFG).map(([v, { label }]) => ({ label, value: v })) }]}
+                actions={(row) => (
+                  <div className="flex items-center gap-2">
+                    <Button onClick={() => { setSelected(row); setIsDetailOpen(true) }} variant="ghost" size="icon" className="h-8 w-8 hover:text-primary hover:bg-primary/10 rounded-xl"><Eye className="size-4" /></Button>
+                    <Button onClick={() => handleOpenEdit(row)} variant="ghost" size="icon" className="h-8 w-8 hover:text-amber-600 hover:bg-amber-50 rounded-xl"><Pencil className="size-4" /></Button>
+                    <Button onClick={() => { setSelected(row); setIsDelOpen(true) }} variant="ghost" size="icon" className="h-8 w-8 hover:text-rose-600 hover:bg-rose-50 rounded-xl"><Trash2 className="size-4" /></Button>
                   </div>
                 )}
-             </div>
+              />
+            </CardContent>
+          </Card>
+        </div>
+      </main>
 
-             <div className="flex gap-3">
-                <button 
-                  onClick={() => setCurrDate(new Date())}
-                  className="px-4 py-2 bg-surface-container-high text-on-surface-variant font-bold rounded-xl border border-outline-variant/20 transition-all hover:bg-surface-container-highest active:scale-95 flex items-center gap-2 text-[11px] uppercase tracking-wider"
-                >
-                  Hari Ini
-                </button>
-                <button 
-                   onClick={() => openAddModal()}
-                   className="px-4 py-2 bg-primary text-white font-black rounded-xl shadow-lg shadow-primary/10 flex items-center gap-2 transition-all hover:scale-[1.02] active:scale-95 text-[11px] uppercase tracking-wider"
-                >
-                  <span className="material-symbols-outlined text-[20px]">add_circle</span> Tambah Kegiatan
-                </button>
-             </div>
-          </div>
-
-           {/* Render Calendar View */}
-          {viewMode === 'calendar' && (
-            <div className="overflow-x-auto no-scrollbar pb-6">
-              <div className="min-w-[800px] grid grid-cols-7 gap-px bg-outline-variant/20 border border-outline-variant/20 rounded-2xl overflow-hidden shadow-sm">
-              {['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'].map(day => (
-                <div key={day} className="bg-surface-container-low text-center py-3 font-bold text-[11px] text-secondary uppercase tracking-[0.2em]">{day}</div>
-              ))}
-              
-              {days.map(item => {
-                 if (item.type === 'empty') return <div key={item.id} className="bg-surface-container-low/20 h-24 border-t border-outline-variant/10"></div>;
-                 
-                 const dateStr = item.dateStr;
-                 const dayEvents = (events || []).filter(e => e.TanggalMulai && e.TanggalMulai.startsWith(dateStr));
-                 return (
-                   <div 
-                     key={dateStr} 
-                     onClick={() => openAddModal(dateStr)}
-                     className="bg-surface p-2 h-24 hover:bg-surface-container-lowest transition-all relative border-t border-outline-variant/10 overflow-y-auto cursor-pointer group/day"
-                   >
-                     <div className="flex justify-between items-start mb-1">
-                       <span className="text-xs font-bold w-6 h-6 flex items-center justify-center rounded-full text-on-surface-variant group-hover/day:bg-primary group-hover/day:text-white transition-colors">
-                         {item.dayNum}
-                       </span>
-                       <span className="material-symbols-outlined text-[14px] opacity-0 group-hover/day:opacity-100 text-primary transition-opacity">add</span>
-                     </div>
-                     <div className="flex flex-col gap-1">
-                       {dayEvents.map(ev => (
-                         <div 
-                           key={ev.ID} 
-                           onClick={(e) => e.stopPropagation()} // Prevent opening modal when clicking on event
-                           className="px-2 py-1 flex flex-col rounded-md text-[10px] font-semibold border-l-2 leading-tight bg-blue-50 border-blue-500 text-blue-700"
-                         >
-                           <span className="truncate">{ev.TanggalMulai ? new Date(ev.TanggalMulai).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : ''} {ev.Judul}</span>
-                         </div>
-                       ))}
-                     </div>
-                   </div>
-                 )
-              })}
-            </div>
-          </div>
-          )}
-
-          {/* Render List View */}
-          {viewMode === 'list' && (
-            <div className="bg-surface-container-lowest border border-outline-variant/20 rounded-2xl shadow-sm overflow-hidden">
-               <div className="overflow-x-auto">
-                 <table className="w-full text-left text-sm">
-                 <thead className="bg-surface-container-low/50 text-[10px] uppercase text-on-surface-variant font-black tracking-widest border-b border-outline-variant/20">
-                   <tr>
-                     <th className="px-5 py-3.5">Informasi Kegiatan</th>
-                     <th className="px-5 py-3.5">Waktu & Tempat</th>
-                     <th className="px-5 py-3.5 text-center">Status</th>
-                     <th className="px-5 py-3.5 text-right">Aksi</th>
-                   </tr>
-                 </thead>
-                 <tbody className="divide-y divide-outline-variant/10">
-                    {(events || []).map((ev) => (
-                      <tr key={ev.ID} className="hover:bg-surface-container-low/30 group">
-                        <td className="px-6 py-4">
-                          <div className="font-bold font-headline text-base text-primary mb-1">{ev.Judul}</div>
-                          <div className="text-xs font-semibold text-on-surface-variant flex items-center gap-2">
-                            <span className={`px-2 py-0.5 rounded-md ${ev.Deskripsi === 'internal' ? 'bg-blue-100 text-blue-700' : ev.Deskripsi === 'eksternal' ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'}`}>
-                              {ev.Deskripsi ? ev.Deskripsi.toUpperCase() : 'EVENT'}
-                            </span>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="font-semibold">{new Date(ev.TanggalMulai).toLocaleDateString()}</div>
-                          <div className="text-xs text-on-surface-variant mt-1 flex items-center gap-1"><span className="material-symbols-outlined text-[14px]">schedule</span> {new Date(ev.TanggalMulai).toLocaleTimeString()} - {new Date(ev.TanggalSelesai).toLocaleTimeString()}</div>
-                          <div className="text-xs text-on-surface-variant mt-1 flex items-center gap-1"><span className="material-symbols-outlined text-[14px]">location_on</span> {ev.Lokasi}</div>
-                        </td>
-                        <td className="px-5 py-3 text-center">
-                          {ev.Status === 'terjadwal' ? (
-                            <span className="bg-blue-100 text-blue-700 px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider">Terjadwal</span>
-                          ) : (
-                            <span className="bg-surface-container-high text-on-surface-variant px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider line-through">{ev.Status || 'Selesai'}</span>
-                          )}
-                        </td>
-                        <td className="px-5 py-3 text-right">
-                          <div className="flex justify-end gap-1">
-                            <button onClick={() => loadEventForEdit(ev)} className="p-1.5 text-on-surface-variant hover:text-primary transition-colors"><span className="material-symbols-outlined text-[18px]">edit</span></button>
-                            <button onClick={() => deleteEvent(ev.ID)} className="p-1.5 text-on-surface-variant hover:text-rose-500 transition-colors"><span className="material-symbols-outlined text-[18px]">delete</span></button>
-                            {ev.Status === 'terjadwal' && (
-                              <button onClick={() => cancelEvent(ev.ID)} className="p-1.5 text-on-surface-variant hover:text-amber-600 transition-colors" title="Batalkan Kegiatan"><span className="material-symbols-outlined text-[18px]">block</span></button>
-                            )}
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                 </tbody>
-               </table>
+      {/* Detail */}
+      <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
+        <DialogContent className="max-w-xl p-0 overflow-hidden border-none shadow-2xl rounded-[2.5rem] bg-white/95 backdrop-blur-xl">
+          {selected && (
+            <div>
+              <div className="p-8 bg-gradient-to-br from-slate-900 to-slate-800 relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-primary/30 to-transparent" />
+                <div className="relative z-10">
+                  <div className="flex items-start justify-between gap-4">
+                    <h2 className="text-xl font-black text-white font-headline tracking-tighter">{selected.Judul}</h2>
+                    <Badge className={cn('font-black text-[9px] px-3 py-1 border-none shrink-0', STATUS_CFG[selected.Status]?.cls || 'bg-slate-100 text-slate-600')}>
+                      {STATUS_CFG[selected.Status]?.label || 'Terjadwal'}
+                    </Badge>
+                  </div>
+                  <div className="mt-3 grid grid-cols-2 gap-4">
+                    <div className="flex items-center gap-2"><Clock className="size-3 text-slate-400" /><span className="text-[10px] font-bold text-slate-300">{selected.TanggalMulai ? new Date(selected.TanggalMulai).toLocaleDateString('id-ID') : '—'}</span></div>
+                    <div className="flex items-center gap-2"><MapPin className="size-3 text-slate-400" /><span className="text-[10px] font-bold text-slate-300">{selected.Lokasi || 'Belum ditentukan'}</span></div>
+                  </div>
+                </div>
+              </div>
+              <div className="p-8 space-y-4">
+                {selected.Deskripsi && (
+                  <div>
+                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2 font-headline">Deskripsi</p>
+                    <p className="text-sm text-slate-600 font-medium leading-relaxed bg-slate-50 p-4 rounded-2xl border border-slate-100">{selected.Deskripsi}</p>
+                  </div>
+                )}
+                <div className="flex justify-end gap-3">
+                  <Button variant="ghost" onClick={() => setIsDetailOpen(false)} className="text-[10px] font-black uppercase text-slate-400 px-8 h-10 rounded-2xl">Tutup</Button>
+                  <Button onClick={() => { setIsDetailOpen(false); handleOpenEdit(selected) }} className="text-[10px] font-black uppercase h-10 px-8 rounded-2xl bg-primary text-white">Edit</Button>
+                </div>
               </div>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
 
-          {isModalOpen && (
-            <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/30 backdrop-blur-sm p-4 text-[13px]">
-               <div className="bg-surface w-full max-w-xl rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 border border-outline-variant/10">
-                  <div className="px-6 py-4 border-b border-outline-variant/10 flex justify-between items-center bg-surface-container-low/50">
-                    <div>
-                      <h2 className="text-xl font-black font-headline text-primary flex items-center gap-2 uppercase tracking-tight">
-                        <span className="material-symbols-outlined text-[20px]">{editingId ? 'edit' : 'edit_calendar'}</span> {editingId ? 'Update' : 'Setup Kegiatan'}
-                      </h2>
-                    </div>
-                    <button onClick={() => { setIsModalOpen(false); setConflictWarning(null); }} className="w-8 h-8 hover:bg-rose-50 hover:text-rose-600 rounded-full flex justify-center items-center text-on-surface-variant transition-colors"><span className="material-symbols-outlined text-[18px]">close</span></button>
-                  </div>
-
-                  <form onSubmit={saveEvent} className="p-8">
-                    
-                    {conflictWarning && (
-                      <div className="mb-6 p-4 bg-rose-50 border border-rose-200 text-rose-700 rounded-xl flex gap-3 shadow-inner">
-                        <span className="material-symbols-outlined flex-shrink-0 animate-pulse">warning</span>
-                        <div>
-                          <p className="font-bold text-sm">Bentrok Jadwal Ditemukan!</p>
-                          <p className="text-xs mt-1 leading-relaxed">{conflictWarning}</p>
-                          <button type="button" onClick={() => setConflictWarning(null)} className="mt-2 text-xs font-bold underline hover:text-rose-900">Tetap Paksakan Simpan</button>
-                        </div>
-                      </div>
-                    )}
-
-                    <div className="grid grid-cols-2 gap-6 mb-6">
-                      <div className="col-span-2">
-                        <label className="block text-xs font-bold text-on-surface uppercase tracking-widest mb-2">Nama Kegiatan</label>
-                        <input required name="title" value={formData.title} onChange={handleInputChange} type="text" className="w-full p-4 bg-surface-container flex border border-outline-variant/20 rounded-xl focus:border-primary text-sm font-medium" placeholder="Ex: Pelatihan Desain Grafis" />
-                      </div>
-                      
-                      <div className="col-span-2 md:col-span-1">
-                        <label className="block text-xs font-bold text-on-surface uppercase tracking-widest mb-2">Tanggal Pelaksanaan</label>
-                        <input required name="date" value={formData.date} onChange={handleInputChange} type="date" className="w-full p-4 bg-surface-container flex border border-outline-variant/20 rounded-xl focus:border-primary text-sm font-medium cursor-pointer" />
-                      </div>
-                      
-                      <div className="col-span-2 md:col-span-1">
-                        <label className="block text-xs font-bold text-on-surface uppercase tracking-widest mb-2">Kategori Skala</label>
-                        <select name="type" value={formData.type} onChange={handleInputChange} className="w-full p-4 bg-surface-container flex border border-outline-variant/20 rounded-xl focus:border-primary text-sm font-bold appearance-none">
-                           <option value="internal">Rapat Internal</option>
-                           <option value="eksternal">Event Kampus (Eksternal)</option>
-                           <option value="sosial">Sosial / Pengabdian</option>
-                        </select>
-                      </div>
-
-                      <div>
-                        <label className="block text-xs font-bold text-on-surface uppercase tracking-widest mb-2">Jam Mulai</label>
-                        <input required name="startTime" value={formData.startTime} onChange={handleInputChange} type="time" className="w-full p-4 bg-surface-container flex border border-outline-variant/20 rounded-xl focus:border-primary text-sm font-medium" />
-                      </div>
-
-                      <div>
-                        <label className="block text-xs font-bold text-on-surface uppercase tracking-widest mb-2">Jam Selesai</label>
-                        <input required name="endTime" value={formData.endTime} onChange={handleInputChange} type="time" className="w-full p-4 bg-surface-container flex border border-outline-variant/20 rounded-xl focus:border-primary text-sm font-medium" />
-                      </div>
-
-                      <div className="col-span-2">
-                        <label className="block text-xs font-bold text-on-surface uppercase tracking-widest mb-2">Lokasi / Ruangan</label>
-                        <input required name="location" value={formData.location} onChange={handleInputChange} type="text" className="w-full p-4 bg-surface-container flex border border-outline-variant/20 rounded-xl focus:border-primary text-sm font-medium" placeholder="Ex: Auditorium Gedung B" />
-                      </div>
-
-                      <div className="col-span-2 mt-2 bg-primary/5 p-4 rounded-xl border border-primary/20 flex flex-row items-center justify-between">
-                         <div>
-                            <h4 className="font-bold text-primary font-headline text-sm">Aktifkan Pengingat Otomatis (H-1)</h4>
-                            <p className="text-xs text-on-surface-variant font-medium mt-1">Kirim broadcast notifikasi via platform dan email ke semua anggota pengurus.</p>
-                         </div>
-                         <label className="relative inline-flex items-center cursor-pointer">
-                           <input type="checkbox" name="reminder" checked={formData.reminder} onChange={handleInputChange} className="sr-only peer" />
-                           <div className="w-14 h-7 bg-surface-container-highest peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-1 after:left-[4px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500 shadow-inner"></div>
-                         </label>
-                      </div>
-
-                    </div>
-
-                    <div className="flex gap-4 pt-4 border-t border-outline-variant/10">
-                      <button type="button" onClick={() => checkConflict()} className="flex-1 py-4 bg-surface-container hover:bg-surface-container-high text-on-surface rounded-xl font-bold transition-all text-sm border border-outline-variant/30 flex items-center justify-center gap-2">
-                        <span className="material-symbols-outlined text-[18px]">rule</span>
-                        Cek Konflik Area
-                      </button>
-                      <button type="submit" className="flex-1 py-4 bg-primary hover:bg-primary-fixed hover:-translate-y-1 text-white rounded-xl font-bold transition-all text-sm shadow-xl shadow-primary/20 flex items-center justify-center gap-2">
-                        <span className="material-symbols-outlined text-[18px]">check_circle</span>
-                        Simpan Jadwal Utama
-                      </button>
-                    </div>
-
-                  </form>
-
-               </div>
+      {/* CRUD */}
+      <Dialog open={isCrudOpen} onOpenChange={setIsCrudOpen}>
+        <DialogContent className="max-w-xl p-0 overflow-hidden border-none shadow-2xl rounded-[2rem] bg-white/95 backdrop-blur-xl">
+          <DialogHeader className="p-8 pb-6 bg-gradient-to-br from-slate-50 to-white border-b border-slate-100 relative overflow-hidden">
+            <div className="absolute top-0 right-0 p-8 opacity-5"><Calendar className="size-24 rotate-12" /></div>
+            <div className="relative z-10">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="size-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                  {isEditMode ? <Pencil className="size-4" /> : <Plus className="size-4 stroke-[3px]" />}
+                </div>
+                <Badge className="text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 bg-primary/5 text-primary border-none">Event Registry</Badge>
+              </div>
+              <DialogTitle className="text-2xl font-black font-headline tracking-tighter text-slate-900 uppercase">{isEditMode ? 'Edit Kegiatan' : 'Jadwalkan Kegiatan'}</DialogTitle>
+              <DialogDescription className="text-xs font-medium text-slate-400 mt-1">Tambahkan agenda dan kegiatan resmi ormawa.</DialogDescription>
             </div>
-          )}
+          </DialogHeader>
+          <form onSubmit={handleSave} className="p-8 pt-6 space-y-5">
+            <div className="space-y-2">
+              <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Nama Kegiatan</Label>
+              <Input required value={form.Judul} onChange={e => setForm({ ...form, Judul: e.target.value })} placeholder="Nama kegiatan resmi..."
+                className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white transition-all font-bold text-sm font-headline" />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Tanggal Mulai</Label>
+                <Input required type="date" value={form.TanggalMulai} onChange={e => setForm({ ...form, TanggalMulai: e.target.value })}
+                  className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white transition-all font-bold text-sm font-headline" />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Tanggal Selesai</Label>
+                <Input type="date" value={form.TanggalSelesai} onChange={e => setForm({ ...form, TanggalSelesai: e.target.value })}
+                  className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white transition-all font-bold text-sm font-headline" />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Lokasi</Label>
+                <Input value={form.Lokasi} onChange={e => setForm({ ...form, Lokasi: e.target.value })} placeholder="Gedung / Ruang..."
+                  className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white transition-all font-bold text-sm font-headline" />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Status</Label>
+                <select value={form.Status} onChange={e => setForm({ ...form, Status: e.target.value })}
+                  className="w-full h-12 rounded-2xl border border-slate-200 bg-slate-50/50 px-4 text-sm font-bold text-slate-700 focus:outline-none focus:bg-white transition-all">
+                  {Object.entries(STATUS_CFG).map(([v, { label }]) => <option key={v} value={v}>{label}</option>)}
+                </select>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Deskripsi</Label>
+              <Textarea value={form.Deskripsi} onChange={e => setForm({ ...form, Deskripsi: e.target.value })} placeholder="Informasi tambahan kegiatan..."
+                className="min-h-[80px] rounded-[1.5rem] border-slate-200 bg-slate-50/50 focus:bg-white p-4 font-medium text-sm leading-relaxed font-headline" />
+            </div>
+            <DialogFooter className="pt-4 flex flex-row items-center justify-end gap-3 border-t border-slate-100 -mx-8 px-8 bg-slate-50/30">
+              <Button type="button" variant="ghost" onClick={() => setIsCrudOpen(false)} className="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-900 px-8 h-12 rounded-2xl">Batalkan</Button>
+              <Button type="submit" disabled={isSubmitting} className="h-12 px-10 rounded-2xl bg-primary text-white hover:bg-primary/90 shadow-xl shadow-primary/20 transition-all hover:scale-[1.02] active:scale-95">
+                {isSubmitting ? <Loader2 className="animate-spin size-4 mr-2" /> : <Save className="size-4 mr-2 stroke-[3px]" />}
+                <span className="text-[10px] font-black uppercase tracking-[0.2em]">{isEditMode ? 'Update Record' : 'Create Record'}</span>
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
 
-        </div>
-      </main>
+      <DeleteConfirmModal isOpen={isDelOpen} onClose={() => setIsDelOpen(false)} onConfirm={handleDelete}
+        title="Hapus Kegiatan?" description="Data kegiatan ini akan dihapus permanen dari jadwal." loading={isSubmitting} />
     </div>
-  );
-};
-
-export default JadwalKegiatan;
+  )
+}

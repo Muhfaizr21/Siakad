@@ -347,22 +347,24 @@ func EnsureBootstrapData() error {
 	}
 
 	// 2. Ensure Program Studi
+	// 2. Ensure Program Studi
 	var majorSOC models.ProgramStudi
-	if err := config.DB.Where("kode = ?", "INF01").First(&majorSOC).Error; err != nil {
-		majorSOC = models.ProgramStudi{Nama: "Informatics", FakultasID: fakultasSOC.ID, Jenjang: "S1", Kode: "INF01"}
-		if err := config.DB.Create(&majorSOC).Error; err != nil {
-			panic("Failed to seed ProgramStudi SOC: " + err.Error())
-		}
-		fmt.Println("✅ [SEEDER] Created Program Studi: Informatics")
-	}
+	config.DB.Where("kode = ?", "INF01").FirstOrCreate(&majorSOC, models.ProgramStudi{
+		Nama:       "Informatics",
+		FakultasID: fakultasSOC.ID,
+		Jenjang:    "S1",
+		Kode:       "INF01",
+	})
+	fmt.Println("✅ [SEEDER] Verified Program Studi: Informatics")
+
 	var majorFH models.ProgramStudi
-	if err := config.DB.Where("kode = ?", "LAW01").First(&majorFH).Error; err != nil {
-		majorFH = models.ProgramStudi{Nama: "Ilmu Hukum", FakultasID: fakultasFH.ID, Jenjang: "S1", Kode: "LAW01"}
-		if err := config.DB.Create(&majorFH).Error; err != nil {
-			panic("Failed to seed ProgramStudi FH: " + err.Error())
-		}
-		fmt.Println("✅ [SEEDER] Created Program Studi: Ilmu Hukum")
-	}
+	config.DB.Where("kode = ?", "LAW01").FirstOrCreate(&majorFH, models.ProgramStudi{
+		Nama:       "Ilmu Hukum",
+		FakultasID: fakultasFH.ID,
+		Jenjang:    "S1",
+		Kode:       "LAW01",
+	})
+	fmt.Println("✅ [SEEDER] Verified Program Studi: Ilmu Hukum")
 
 	// 3. Ensure Dosen User & Dosen Profile
 	var dosenUser models.User
@@ -391,6 +393,41 @@ func EnsureBootstrapData() error {
 		fmt.Println("✅ [SEEDER] Created Dosen: 0400000001")
 	}
 
+	// Additional Premium Lecturers
+	premiumLecturers := []struct {
+		Name  string
+		NIDN  string
+		Jabatan string
+		Email string
+	}{
+		{"Dr. Ahmad Wijaya, M.T.", "0401018501", "Lektor Kepala", "ahmad.wijaya@bku.ac.id"},
+		{"Siti Aminah, M.Kom.", "0412059002", "Asisten Ahli", "siti.aminah@bku.ac.id"},
+		{"Ir. Bambang Triyono, Ph.D.", "0009087503", "Profesor", "bambang.tri@bku.ac.id"},
+	}
+
+	for _, d := range premiumLecturers {
+		var u models.User
+		if err := config.DB.Where("email = ?", d.Email).First(&u).Error; err != nil {
+			hp, _ := bcrypt.GenerateFromPassword([]byte("dosen123"), bcrypt.DefaultCost)
+			u = models.User{Email: d.Email, Password: string(hp), Role: "dosen"}
+			config.DB.Create(&u)
+		}
+		var l models.Dosen
+		if err := config.DB.Where("n_id_n = ?", d.NIDN).First(&l).Error; err != nil {
+			l = models.Dosen{
+				Nama:           d.Name,
+				NIDN:           d.NIDN,
+				Jabatan:        d.Jabatan,
+				PenggunaID:     u.ID,
+				FakultasID:     fakultasSOC.ID,
+				ProgramStudiID: majorSOC.ID,
+				Email:          d.Email,
+			}
+			config.DB.Create(&l)
+			fmt.Printf("✅ [SEEDER] Created Premium Dosen: %s\n", d.Name)
+		}
+	}
+
 	// 4. Ensure Ormawa
 	var ormawa models.Ormawa
 	if err := config.DB.Where("id = ?", 1).First(&ormawa).Error; err != nil {
@@ -409,52 +446,52 @@ func EnsureBootstrapData() error {
 
 	// 5. Ensure Super Admin User
 	var superAdmin models.User
+	hashSA, _ := bcrypt.GenerateFromPassword([]byte("superadmin123"), bcrypt.DefaultCost)
 	if err := config.DB.Where("email = ?", "superadmin@bku.ac.id").First(&superAdmin).Error; err != nil {
-		hash, _ := bcrypt.GenerateFromPassword([]byte("superadmin123"), bcrypt.DefaultCost)
-		superAdmin = models.User{Email: "superadmin@bku.ac.id", Password: string(hash), Role: "super_admin"}
-		if err := config.DB.Create(&superAdmin).Error; err != nil {
-			panic("Failed to seed Super Admin: " + err.Error())
-		}
+		superAdmin = models.User{Email: "superadmin@bku.ac.id", Password: string(hashSA), Role: "super_admin"}
+		config.DB.Create(&superAdmin)
 		fmt.Println("✅ [SEEDER] Created Super Admin: superadmin@bku.ac.id")
+	} else {
+		superAdmin.Password = string(hashSA)
+		superAdmin.Role = "super_admin"
+		config.DB.Save(&superAdmin)
 	}
 
 	// 6. Ensure Faculty Admin User per Fakultas
 	var allFakultas []models.Fakultas
 	config.DB.Find(&allFakultas)
+	hashFA, _ := bcrypt.GenerateFromPassword([]byte("adminfak123"), bcrypt.DefaultCost)
 	for _, fak := range allFakultas {
 		email := strings.ToLower(fmt.Sprintf("admin.%s@bku.ac.id", fak.Kode))
 		var facultyAdmin models.User
 		if err := config.DB.Where("email = ?", email).First(&facultyAdmin).Error; err != nil {
-			hash, _ := bcrypt.GenerateFromPassword([]byte("adminfak123"), bcrypt.DefaultCost)
 			facultyAdmin = models.User{
-				Email:      email,
-				Password:   string(hash),
-				Role:       "faculty_admin",
-				FakultasID: &fak.ID,
+				Email:        email,
+				Password: string(hashFA),
+				Role:         "faculty_admin",
+				FakultasID:   &fak.ID,
 			}
-			if err := config.DB.Create(&facultyAdmin).Error; err != nil {
-				panic("Failed to seed Faculty Admin: " + err.Error())
-			}
+			config.DB.Create(&facultyAdmin)
 			fmt.Printf("✅ [SEEDER] Created Faculty Admin: %s\n", email)
 		} else {
-			// Update if FakultasID is missing
-			if facultyAdmin.FakultasID == nil || *facultyAdmin.FakultasID != fak.ID {
-				facultyAdmin.FakultasID = &fak.ID
-				config.DB.Save(&facultyAdmin)
-				fmt.Printf("✅ [SEEDER] Updated Faculty Admin association: %s\n", email)
-			}
+			facultyAdmin.Password = string(hashFA)
+			facultyAdmin.Role = "faculty_admin"
+			facultyAdmin.FakultasID = &fak.ID
+			config.DB.Save(&facultyAdmin)
 		}
 	}
 
 	// 7. Ensure Ormawa Admin User
 	var ormawaAdmin models.User
+	hashOA, _ := bcrypt.GenerateFromPassword([]byte("ormawa123"), bcrypt.DefaultCost)
 	if err := config.DB.Where("email = ?", "ormawa@bku.ac.id").First(&ormawaAdmin).Error; err != nil {
-		hash, _ := bcrypt.GenerateFromPassword([]byte("ormawa123"), bcrypt.DefaultCost)
-		ormawaAdmin = models.User{Email: "ormawa@bku.ac.id", Password: string(hash), Role: "ormawa_admin"}
-		if err := config.DB.Create(&ormawaAdmin).Error; err != nil {
-			panic("Failed to seed Ormawa Admin: " + err.Error())
-		}
+		ormawaAdmin = models.User{Email: "ormawa@bku.ac.id", Password: string(hashOA), Role: "ormawa_admin"}
+		config.DB.Create(&ormawaAdmin)
 		fmt.Println("✅ [SEEDER] Created Ormawa Admin: ormawa@bku.ac.id")
+	} else {
+		ormawaAdmin.Password = string(hashOA)
+		ormawaAdmin.Role = "ormawa_admin"
+		config.DB.Save(&ormawaAdmin)
 	}
 
 	// 8. Ensure Student User
@@ -501,6 +538,82 @@ func EnsureBootstrapData() error {
 			student.PenggunaID = studentUser.ID
 		}
 		config.DB.Unscoped().Save(&student)
+	}
+
+	// 10. Ensure Student Voice (Aspirasi)
+	var aspirasiCount int64
+	config.DB.Model(&models.Aspirasi{}).Count(&aspirasiCount)
+	if aspirasiCount == 0 && student.ID != 0 {
+		aspirasis := []models.Aspirasi{
+			{
+				MahasiswaID: student.ID,
+				Judul:       "AC Mati di Ruang 301",
+				Isi:         "Mohon bantuan perbaikan AC di ruang 301 Gedung C.",
+				Kategori:    "Fasilitas",
+				Tujuan:      "Sarpras",
+				Status:      "Selesai",
+				IsAnonim:    false,
+				Respon:      "AC sudah diperbaiki oleh tim sarpras.",
+			},
+			{
+				MahasiswaID: student.ID,
+				Judul:       "Keterlambatan Input Nilai",
+				Isi:         "Nilai Farmakologi belum muncul di KHS.",
+				Kategori:    "Akademik",
+				Tujuan:      "Akademik",
+				Status:      "Diproses",
+				IsAnonim:    true,
+			},
+		}
+		for _, a := range aspirasis {
+			config.DB.Create(&a)
+		}
+		fmt.Println("✅ [SEEDER] Created Aspirasi data")
+	}
+
+	// 11. Ensure more Ormawa and Riwayat Organisasi
+	var ormawaPMI models.Ormawa
+	if err := config.DB.Where("nama = ?", "UKM Korps Sukarela PMI").First(&ormawaPMI).Error; err != nil {
+		ormawaPMI = models.Ormawa{Nama: "UKM Korps Sukarela PMI", Deskripsi: "Unit Kegiatan Mahasiswa di bidang kemanusiaan."}
+		config.DB.Create(&ormawaPMI)
+	}
+
+	var ormawaHMF models.Ormawa
+	if err := config.DB.Where("nama = ?", "Himpunan Mahasiswa Farmasi").First(&ormawaHMF).Error; err != nil {
+		ormawaHMF = models.Ormawa{Nama: "Himpunan Mahasiswa Farmasi", Deskripsi: "Organisasi mahasiswa tingkat program studi."}
+		config.DB.Create(&ormawaHMF)
+	}
+
+	// Update sequence manually if needed (postgres fix)
+	config.DB.Exec("SELECT setval('ormawa.ormawa_id_seq', (SELECT MAX(id) FROM ormawa.ormawa))")
+
+	var riwayatCount int64
+	config.DB.Model(&models.RiwayatOrganisasi{}).Count(&riwayatCount)
+	if riwayatCount == 0 && student.ID != 0 && ormawaPMI.ID != 0 && ormawaHMF.ID != 0 {
+		riwayats := []models.RiwayatOrganisasi{
+			{
+				MahasiswaID:      student.ID,
+				OrmawaID:         ormawaPMI.ID,
+				NamaOrganisasi:   ormawaPMI.Nama,
+				Tipe:             "UKM",
+				Jabatan:          "Anggota Divisi Medis",
+				PeriodeMulai:     2023,
+				StatusVerifikasi: "Diverifikasi",
+			},
+			{
+				MahasiswaID:      student.ID,
+				OrmawaID:         ormawaHMF.ID,
+				NamaOrganisasi:   ormawaHMF.Nama,
+				Tipe:             "Himpunan Prodi",
+				Jabatan:          "Sekretaris Umum",
+				PeriodeMulai:     2024,
+				StatusVerifikasi: "Menunggu",
+			},
+		}
+		for _, r := range riwayats {
+			config.DB.Create(&r)
+		}
+		fmt.Println("✅ [SEEDER] Created Riwayat Organisasi data")
 	}
 
 	fmt.Println("🏁 [SEEDER] All data seeded successfully.")

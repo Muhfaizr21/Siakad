@@ -1,211 +1,176 @@
-import React, { useState, useEffect } from 'react';
-import Sidebar from './components/Sidebar';
-import TopNavBar from './components/TopNavBar';
-import { useAuth } from '../../context/AuthContext';
+"use client"
 
-const Settings = () => {
-  const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { user } = useAuth();
-  const ormawaId = user?.ormawaId || 1;
+import React, { useState, useEffect } from 'react'
+import { Button } from '../FacultyAdmin/components/button'
+import { Card, CardContent } from '../FacultyAdmin/components/card'
+import { Input } from '../FacultyAdmin/components/input'
+import { Label } from '../FacultyAdmin/components/label'
+import { Textarea } from '../FacultyAdmin/components/textarea'
+import { Badge } from '../FacultyAdmin/components/badge'
+import { Settings2, Save, Loader2, Upload, CheckCircle2, Globe } from 'lucide-react'
+import { toast, Toaster } from 'react-hot-toast'
+import Sidebar from './components/Sidebar'
+import TopNavBar from './components/TopNavBar'
+import { fetchWithAuth, API_BASE_URL } from '../../services/api'
+import useAuthStore from '../../store/useAuthStore'
 
-  const [config, setConfig] = useState({
-    Nama: '',
-    Deskripsi: '',
-    Visi: '',
-    Misi: '',
-    LogoURL: '',
-    Email: '',
-    Telepon: '',
-    Instagram: '',
-    Website: ''
-  });
+const API = `${API_BASE_URL}/ormawa`
 
-  useEffect(() => {
-    fetchSettings();
-  }, [ormawaId]);
+const FieldGroup = ({ label, children }) => (
+  <div className="space-y-2">
+    <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">{label}</Label>
+    {children}
+  </div>
+)
+
+export default function Settings() {
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [uploading, setUploading] = useState(false)
+  const [config, setConfig] = useState({ Nama: '', Deskripsi: '', Visi: '', Misi: '', LogoURL: '', Email: '', Phone: '', Instagram: '', Website: '' })
+  const ormawaId = useAuthStore.getState()?.mahasiswa?.ormawaId || useAuthStore.getState()?.mahasiswa?.ID || 1
 
   const fetchSettings = async () => {
     try {
-      const res = await fetch(`http://localhost:8000/api/ormawa/settings/${ormawaId}`);
-      if (!res.ok) return;
-
-      const data = await res.json();
-      if (data.status === 'success') {
-         setConfig(data.data);
-      }
-    } catch (e) { console.error(e); }
-  };
+      const data = await fetchWithAuth(`${API}/settings/${ormawaId}`)
+      if (data.status === 'success') setConfig(data.data)
+    } catch {}
+  }
+  useEffect(() => { fetchSettings() }, [])
 
   const handleLogoUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    setLoading(true);
-    const fd = new FormData();
-    fd.append('file', file);
-
+    const file = e.target.files[0]
+    if (!file) return
+    setUploading(true)
+    const fd = new FormData()
+    fd.append('file', file)
     try {
-      const res = await fetch('http://localhost:8000/api/ormawa/upload', {
-        method: 'POST',
-        body: fd
-      });
-      const data = await res.json();
-      if (data.status === 'success') {
-        setConfig({ ...config, LogoURL: data.url });
-      }
-    } catch (e) { console.error(e); }
-    setLoading(false);
-  };
-
-  const getFullLogoUrl = (url) => {
-    if (!url) return null;
-    if (url.startsWith('http')) return url;
-    // Clean up relative path if it exists
-    const cleanPath = url.replace('./', '/');
-    return `http://localhost:8000${cleanPath.startsWith('/') ? cleanPath : '/' + cleanPath}`;
-  };
+      const json = await fetchWithAuth(`${API}/upload`, { method: 'POST', body: fd })
+      if (json.status === 'success') { setConfig(c => ({ ...c, LogoURL: json.url })); toast.success('Logo diperbarui') }
+      else toast.error('Gagal upload logo')
+    } catch { toast.error('Gagal upload') } finally { setUploading(false) }
+  }
 
   const handleSave = async (e) => {
-    e.preventDefault();
-    setLoading(true);
+    e.preventDefault(); setLoading(true)
     try {
-      const res = await fetch(`http://localhost:8000/api/ormawa/settings/${ormawaId}`, {
+      const json = await fetchWithAuth(`${API}/settings/${ormawaId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(config)
-      });
-      if (res.ok) {
-        setSuccess(true);
-        window.dispatchEvent(new Event('ormawa_settings_updated'));
-        setTimeout(() => setSuccess(false), 3000);
-      }
-    } catch (e) { console.error(e); }
-    setLoading(false);
-  };
+      })
+      if (json.status === 'success') { toast.success('Pengaturan berhasil disimpan'); window.dispatchEvent(new Event('ormawa_settings_updated')) }
+      else toast.error(json.message || 'Gagal menyimpan')
+    } catch { toast.error('Terjadi kesalahan') } finally { setLoading(false) }
+  }
+
+  const getLogoPath = (path) => {
+    if (!path) return null;
+    if (path.startsWith('http')) return path;
+    const baseDomain = API_BASE_URL ? API_BASE_URL.replace('/api', '') : 'http://localhost:8000';
+    return `${baseDomain}${path.startsWith('/') ? '' : '/'}${path}`;
+  }
+  const logoUrl = getLogoPath(config.LogoURL);
 
   return (
-    <div className="bg-surface text-on-surface h-screen overflow-hidden">
+    <div className="bg-slate-50 min-h-screen font-sans">
       <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
-      <main className="lg:ml-60 h-screen overflow-y-auto pb-24 transition-all duration-300">
+      <main className="lg:ml-60 min-h-screen transition-all duration-300">
         <TopNavBar setIsOpen={setSidebarOpen} />
-        
-        <div className="pt-24 px-4 lg:px-8 max-w-5xl mx-auto font-body">
-          <div className="mb-10 flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
-            <div>
-              <h1 className="text-3xl font-black font-headline mb-2 text-on-surface">Profil & Pengaturan</h1>
-              <p className="text-on-surface-variant text-sm font-medium">Kelola identitas publik dan visi misi organisasi Anda.</p>
+        <div className="pt-20 px-6 pb-12">
+          <Toaster position="top-right" />
+          <div className="flex flex-col gap-1.5 mb-8">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-primary/10 rounded-xl text-primary"><Settings2 className="size-6" /></div>
+              <h1 className="text-2xl font-black text-slate-900 font-headline tracking-tighter uppercase">Pengaturan Sistem</h1>
             </div>
-            {success && (
-              <div className="bg-emerald-50 text-emerald-700 px-4 py-2 rounded-xl text-sm font-bold border border-emerald-100 flex items-center gap-2 animate-in fade-in slide-in-from-top-4">
-                <span className="material-symbols-outlined text-[18px]">check_circle</span>
-                Berhasil Disimpan
-              </div>
-            )}
+            <div className="flex items-center gap-2">
+              <div className="h-1 w-10 bg-primary rounded-full shadow-sm shadow-primary/30" />
+              <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Konfigurasi Profil & Identitas Ormawa</p>
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-2 space-y-8">
-              <form onSubmit={handleSave} className="bg-surface-container-lowest border border-outline-variant/30 rounded-[2.5rem] shadow-xl p-10 space-y-8">
-                <section>
-                  <h3 className="text-sm font-black text-primary uppercase tracking-widest mb-6 flex items-center gap-2">
-                    <span className="material-symbols-outlined text-[20px]">badge</span> 
-                    Identitas Dasar
-                  </h3>
-                  <div className="space-y-6">
-                    <div>
-                      <label className="block text-xs font-black text-on-surface-variant uppercase tracking-widest mb-2 px-1">Nama Ormawa</label>
-                      <input 
-                        type="text" 
-                        value={config.Nama}
-                        onChange={(e) => setConfig({...config, Nama: e.target.value})}
-                        className="w-full p-4 bg-surface-container-low border-none rounded-2xl text-sm font-bold shadow-inner"
-                      />
+          <form onSubmit={handleSave}>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Logo Panel */}
+              <Card className="border-none shadow-sm overflow-hidden bg-white/50 backdrop-blur-md lg:col-span-1">
+                <CardContent className="p-8 flex flex-col items-center gap-6">
+                  <div className="w-28 h-28 rounded-[2rem] border-2 border-slate-100 shadow-xl overflow-hidden bg-slate-50 flex items-center justify-center">
+                    {logoUrl ? <img src={logoUrl} alt="Logo" className="w-full h-full object-contain" /> : <Settings2 className="size-10 text-slate-300" />}
+                  </div>
+                  <label className="cursor-pointer w-full">
+                    <div className="w-full h-11 rounded-2xl border border-dashed border-slate-300 bg-slate-50/50 hover:bg-slate-100/80 flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-500 transition-all">
+                      {uploading ? <Loader2 className="size-4 animate-spin" /> : <Upload className="size-4" />}
+                      {uploading ? 'Mengunggah...' : 'Upload Logo'}
                     </div>
+                    <input type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} />
+                  </label>
+                  <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest text-center">PNG/JPG, Maks. 2MB<br />Disarankan 1:1 (persegi)</p>
+                </CardContent>
+              </Card>
+
+              {/* Form Panel */}
+              <Card className="border-none shadow-sm overflow-hidden bg-white/50 backdrop-blur-md lg:col-span-2">
+                <CardContent className="p-8 space-y-6">
+                  <div>
+                    <p className="text-[9px] font-black text-primary uppercase tracking-widest mb-4 flex items-center gap-1.5 font-headline"><CheckCircle2 className="size-3" /> IDENTITAS ORGANISASI</p>
+                    <div className="space-y-5">
+                      <FieldGroup label="Nama Ormawa">
+                        <Input required value={config.Nama} onChange={e => setConfig({ ...config, Nama: e.target.value })} placeholder="Nama resmi organisasi..."
+                          className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white transition-all font-bold text-sm font-headline" />
+                      </FieldGroup>
+                      <FieldGroup label="Deskripsi Singkat">
+                        <Textarea value={config.Deskripsi} onChange={e => setConfig({ ...config, Deskripsi: e.target.value })} placeholder="Deskripsi singkat organisasi..."
+                          className="min-h-[80px] rounded-[1.5rem] border-slate-200 bg-slate-50/50 focus:bg-white p-4 font-medium text-sm leading-relaxed font-headline" />
+                      </FieldGroup>
+                      <div className="grid grid-cols-1 gap-5">
+                        <FieldGroup label="Visi">
+                          <Textarea value={config.Visi} onChange={e => setConfig({ ...config, Visi: e.target.value })} placeholder="Visi organisasi..."
+                            className="min-h-[60px] rounded-[1.5rem] border-slate-200 bg-slate-50/50 focus:bg-white p-4 font-medium text-sm leading-relaxed font-headline" />
+                        </FieldGroup>
+                        <FieldGroup label="Misi">
+                          <Textarea value={config.Misi} onChange={e => setConfig({ ...config, Misi: e.target.value })} placeholder="Misi organisasi..."
+                            className="min-h-[60px] rounded-[1.5rem] border-slate-200 bg-slate-50/50 focus:bg-white p-4 font-medium text-sm leading-relaxed font-headline" />
+                        </FieldGroup>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="border-t border-slate-100 pt-6">
+                    <p className="text-[9px] font-black text-primary uppercase tracking-widest mb-4 flex items-center gap-1.5 font-headline"><Globe className="size-3" /> KONTAK & MEDIA SOSIAL</p>
                     <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-xs font-black text-on-surface-variant uppercase tracking-widest mb-2 px-1">Visi</label>
-                        <textarea rows="3" value={config.Visi} onChange={e => setConfig({...config, Visi: e.target.value})} className="w-full p-4 bg-surface-container-low border-none rounded-2xl text-sm shadow-inner"></textarea>
-                      </div>
-                      <div>
-                        <label className="block text-xs font-black text-on-surface-variant uppercase tracking-widest mb-2 px-1">Misi</label>
-                        <textarea rows="3" value={config.Misi} onChange={e => setConfig({...config, Misi: e.target.value})} className="w-full p-4 bg-surface-container-low border-none rounded-2xl text-sm shadow-inner"></textarea>
-                      </div>
-                    </div>
-                    <div>
-                      <label className="block text-xs font-black text-on-surface-variant uppercase tracking-widest mb-2 px-1">Deskripsi Singkat</label>
-                      <textarea 
-                        rows="3"
-                        value={config.Deskripsi}
-                        onChange={(e) => setConfig({...config, Deskripsi: e.target.value})}
-                        className="w-full p-4 bg-surface-container-low border-none rounded-2xl text-sm shadow-inner"
-                      ></textarea>
-                    </div>
-                  </div>
-                </section>
-
-                <section>
-                  <h3 className="text-sm font-black text-primary uppercase tracking-widest mb-6 flex items-center gap-2">
-                    <span className="material-symbols-outlined text-[20px]">contact_support</span> 
-                    Informasi Kontak
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <label className="block text-[10px] font-black text-on-surface-variant uppercase tracking-widest mb-1 px-1">Email Resmi</label>
-                      <input placeholder="Email" value={config.Email || ''} onChange={e => setConfig({...config, Email: e.target.value})} className="w-full p-4 bg-surface-container-low rounded-xl border-none shadow-inner text-sm" />
-                    </div>
-                    <div>
-                      <label className="block text-[10px] font-black text-on-surface-variant uppercase tracking-widest mb-1 px-1">Nomor Telepon / WA</label>
-                      <input placeholder="Telepon" value={config.Telepon || ''} onChange={e => setConfig({...config, Telepon: e.target.value})} className="w-full p-4 bg-surface-container-low rounded-xl border-none shadow-inner text-sm" />
-                    </div>
-                    <div>
-                      <label className="block text-[10px] font-black text-on-surface-variant uppercase tracking-widest mb-1 px-1">Username Instagram</label>
-                      <input placeholder="Instagram (tanpa @)" value={config.Instagram || ''} onChange={e => setConfig({...config, Instagram: e.target.value})} className="w-full p-4 bg-surface-container-low rounded-xl border-none shadow-inner text-sm" />
-                    </div>
-                    <div>
-                      <label className="block text-[10px] font-black text-on-surface-variant uppercase tracking-widest mb-1 px-1">Website URL</label>
-                      <input placeholder="https://..." value={config.Website || ''} onChange={e => setConfig({...config, Website: e.target.value})} className="w-full p-4 bg-surface-container-low rounded-xl border-none shadow-inner text-sm" />
+                      <FieldGroup label="Email">
+                        <Input type="email" value={config.Email} onChange={e => setConfig({ ...config, Email: e.target.value })} placeholder="email@ormawa.com"
+                          className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white transition-all font-bold text-sm font-headline" />
+                      </FieldGroup>
+                      <FieldGroup label="Telepon">
+                        <Input value={config.Phone} onChange={e => setConfig({ ...config, Phone: e.target.value })} placeholder="08xx-xxxx-xxxx"
+                          className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white transition-all font-bold text-sm font-headline" />
+                      </FieldGroup>
+                      <FieldGroup label="Instagram">
+                        <Input value={config.Instagram} onChange={e => setConfig({ ...config, Instagram: e.target.value })} placeholder="@nama_ormawa"
+                          className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white transition-all font-bold text-sm font-headline" />
+                      </FieldGroup>
+                      <FieldGroup label="Website">
+                        <Input type="url" value={config.Website} onChange={e => setConfig({ ...config, Website: e.target.value })} placeholder="https://ormawa.bku.ac.id"
+                          className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white transition-all font-bold text-sm font-headline" />
+                      </FieldGroup>
                     </div>
                   </div>
-                </section>
-
-                <div className="pt-6 border-t border-outline-variant/10 flex justify-end">
-                  <button 
-                    type="submit"
-                    disabled={loading}
-                    className="bg-primary text-on-primary px-10 py-4 rounded-2xl font-black shadow-xl hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-3 disabled:opacity-70"
-                  >
-                    {loading ? 'Menyimpan...' : 'Simpan Profil'}
-                  </button>
-                </div>
-              </form>
+                </CardContent>
+              </Card>
             </div>
 
-            <div className="lg:col-span-1 space-y-6">
-              <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-[2.5rem] p-8 text-center flex flex-col items-center shadow-lg">
-                <h3 className="text-xs font-black text-on-surface-variant uppercase tracking-widest mb-6 px-1">Logo Organisasi</h3>
-                <div className="relative group cursor-pointer mb-6">
-                   <div className="w-40 h-40 bg-surface-container rounded-[2rem] border-4 border-dashed border-outline-variant/40 flex flex-col items-center justify-center p-2 overflow-hidden">
-                      {config.logoUrl ? (
-                         <img src={getFullLogoUrl(config.logoUrl)} alt="Logo" className="w-full h-full object-contain" />
-                      ) : (
-                         <span className="material-symbols-outlined text-4xl text-on-surface-variant">add_photo_alternate</span>
-                      )}
-                   </div>
-                   <input type="file" onChange={handleLogoUpload} className="absolute inset-0 opacity-0 cursor-pointer" title="Unggah Logo" />
-                </div>
-                <p className="text-[11px] text-on-surface-variant leading-relaxed">
-                  Logo akan ditampilkan di Header dan Sidebar aplikasi.
-                </p>
-              </div>
+            {/* Save Button */}
+            <div className="flex justify-end mt-6">
+              <Button type="submit" disabled={loading} className="h-14 px-12 rounded-2xl bg-primary text-white hover:bg-primary/90 shadow-xl shadow-primary/20 transition-all hover:scale-[1.02] active:scale-95 font-headline">
+                {loading ? <Loader2 className="animate-spin size-5 mr-3" /> : <Save className="size-5 mr-3 stroke-[2.5px]" />}
+                <span className="text-[10px] font-black uppercase tracking-[0.2em]">Simpan Semua Perubahan</span>
+              </Button>
             </div>
-          </div>
+          </form>
         </div>
       </main>
     </div>
-  );
-};
-
-export default Settings;
-
+  )
+}

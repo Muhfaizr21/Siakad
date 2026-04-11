@@ -1,246 +1,218 @@
-import React, { useState, useEffect } from 'react';
-import Sidebar from './components/Sidebar';
-import TopNavBar from './components/TopNavBar';
-import { useAuth } from '../../context/AuthContext';
-import { ormawaService } from '../../services/api';
+"use client"
 
-const AbsensiKegiatan = () => {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { user } = useAuth();
-  const ormawaId = user?.ormawaId || 1;
-  const [sessions, setSessions] = useState([]);
-  const [activeSession, setActiveSession] = useState(null);
-  const [attendees, setAttendees] = useState([]);
-  const [members, setMembers] = useState([]);
+import React, { useState, useEffect } from 'react'
+import { DataTable } from '../FacultyAdmin/components/data-table'
+import { Badge } from '../FacultyAdmin/components/badge'
+import { Button } from '../FacultyAdmin/components/button'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '../FacultyAdmin/components/dialog'
+import { Card, CardContent } from '../FacultyAdmin/components/card'
+import { Avatar, AvatarFallback } from '../FacultyAdmin/components/avatar'
+import { ScanLine, CheckCircle2, XCircle, Loader2, Users, CalendarCheck } from 'lucide-react'
+import { toast, Toaster } from 'react-hot-toast'
+import { cn } from '@/lib/utils'
+import Sidebar from './components/Sidebar'
+import TopNavBar from './components/TopNavBar'
 
-  useEffect(() => {
-    if (ormawaId) {
-      loadInitialData();
-    }
-  }, [ormawaId]);
+import { fetchWithAuth, API_BASE_URL } from '../../services/api'
+import useAuthStore from '../../store/useAuthStore'
 
-  useEffect(() => {
-    if (activeSession) {
-      fetchAttendance(activeSession.id);
-    }
-  }, [activeSession]);
+const API = `${API_BASE_URL}/ormawa`
 
-  const loadInitialData = async () => {
+export default function AbsensiKegiatan() {
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [events, setEvents] = useState([])
+  const [attendance, setAttendance] = useState([])
+  const [selectedEvent, setSelectedEvent] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [loadingAtt, setLoadingAtt] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isQrOpen, setIsQrOpen] = useState(false)
+  const [qrUrl, setQrUrl] = useState('')
+  const ormawaId = useAuthStore.getState()?.mahasiswa?.ormawaId || useAuthStore.getState()?.mahasiswa?.ID || 1
+
+  const fetchEvents = async () => {
+    setLoading(true)
     try {
-      const [eventsData, membersData] = await Promise.all([
-        ormawaService.getEvents(ormawaId),
-        ormawaService.getMembers(ormawaId)
-      ]);
-
-      if (eventsData.status === 'success') {
-        const list = (eventsData.data || []).map(ev => ({
-          id: ev.ID,
-          eventName: ev.Judul,
-          date: ev.TanggalMulai ? new Date(ev.TanggalMulai).toLocaleDateString() : 'Tanpa Tanggal',
-          isActive: ev.TanggalSelesai ? new Date(ev.TanggalSelesai) > new Date() : false,
-          codeData: `siakad-attendance-${ev.ID}`
-        }));
-        setSessions(list);
-        if (list.length > 0 && !activeSession) setActiveSession(list[0]);
-      }
-
-      if (membersData.status === 'success') setMembers(membersData.data || []);
-    } catch (e) {
-      console.error("Gagal memuat data absensi:", e);
-    }
-  };
+      const data = await fetchWithAuth(`${API}/events?ormawaId=${ormawaId}`)
+      if (data.status === 'success') setEvents(data.data || [])
+    } catch { toast.error('Gagal memuat kegiatan') } finally { setLoading(false) }
+  }
 
   const fetchAttendance = async (eventId) => {
+    setLoadingAtt(true)
     try {
-      const data = await ormawaService.getAttendance(eventId);
-      if (data.status === 'success') setAttendees(data.data || []);
-    } catch (e) { console.error(e); }
-  };
+      const data = await fetchWithAuth(`${API}/attendance/${eventId}`)
+      if (data.status === 'success') setAttendance(data.data || [])
+    } catch {} finally { setLoadingAtt(false) }
+  }
 
-  const handleStatusChange = async (studentObj, newStatus) => {
+  useEffect(() => { fetchEvents() }, [])
+
+  const handleSelectEvent = (event) => {
+    setSelectedEvent(event)
+    const data = JSON.stringify({ type: 'absensi', event_id: event.ID, ormawa_id: ormawaId, timestamp: Date.now() })
+    setQrUrl(`https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(data)}`)
+    fetchAttendance(event.ID)
+  }
+
+  const handleRecordAttendance = async (studentId, status) => {
+    setIsSubmitting(true)
     try {
-      const data = await ormawaService.recordAttendance({
-        EventScheduleID: Number(activeSession.id),
-        MahasiswaID: Number(studentObj.ID),
-        Status: newStatus,
-        WaktuMasuk: new Date().toISOString()
-      });
-      if (data.status === 'success') fetchAttendance(activeSession.id);
-    } catch (e) { 
-      alert(`⚠️ Gagal mencatat absensi: ${e.message}`);
-    }
-  };
+      const data = await fetchWithAuth(`${API}/absensi`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ KegiatanID: selectedEvent.ID, MahasiswaID: studentId, Status: status, OrmawaID: ormawaId })
+      })
+      if (data.status === 'success') { toast.success('Kehadiran dicatat'); fetchAttendance(selectedEvent.ID) }
+      else toast.error(data.message || 'Gagal mencatat')
+    } catch { toast.error('Terjadi kesalahan') } finally { setIsSubmitting(false) }
+  }
 
-  const getStatusBadge = (status) => {
-    switch (status) {
-      case 'hadir':
-        return <span className="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-xs font-bold uppercase border border-emerald-200">Hadir</span>;
-      case 'izin':
-        return <span className="bg-amber-100 text-amber-700 px-3 py-1 rounded-full text-xs font-bold uppercase border border-amber-200">Izin</span>;
-      case 'alpa':
-        return <span className="bg-rose-100 text-rose-700 px-3 py-1 rounded-full text-xs font-bold uppercase border border-rose-200">Alpa</span>;
-      case 'sakit':
-        return <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-bold uppercase border border-blue-200">Sakit</span>;
-      default:
-        return <span className="text-xs uppercase font-bold text-on-surface-variant">Pending</span>;
-    }
-  };
-
-  if (!activeSession && sessions.length === 0) return (
-    <div className="bg-surface text-on-surface min-h-screen">
-      <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
-      <main className="lg:ml-64 min-h-screen pb-12 transition-all duration-300 flex items-center justify-center p-4">
-        <TopNavBar setIsOpen={setSidebarOpen} />
-        <div className="text-center bg-surface-container-lowest p-8 lg:p-12 rounded-[3rem] border border-outline-variant/10 shadow-xl max-w-lg w-full">
-          <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center text-primary mx-auto mb-6">
-             <span className="material-symbols-outlined text-4xl">calendar_today</span>
-          </div>
-          <h2 className="text-2xl font-black font-headline text-on-surface mb-2">Sesi Tidak Ditemukan</h2>
-          <p className="text-on-surface-variant mb-8 text-sm font-medium leading-relaxed ">Belum ada sesi kegiatan aktif untuk organisasi Anda saat ini.</p>
-          <button onClick={() => window.location.href='/ormawa/jadwal'} className="bg-primary hover:bg-primary-fixed text-white px-8 py-4 rounded-2xl font-black shadow-xl shadow-primary/20 transition-all active:scale-95 w-full lg:w-auto">Buat Jadwal Di Sini</button>
+  const eventColumns = [
+    {
+      key: 'Judul', label: 'Nama Kegiatan', className: 'min-w-[260px]',
+      render: (v, row) => (
+        <div className="flex flex-col leading-tight">
+          <span className="font-bold text-slate-900 text-[13px] font-headline tracking-tighter">{v || '—'}</span>
+          <span className="text-[10px] text-slate-400 font-bold uppercase tracking-tight mt-0.5">{row.TanggalMulai ? new Date(row.TanggalMulai).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}</span>
         </div>
-      </main>
-    </div>
-  );
+      )
+    },
+    {
+      key: 'Status', label: 'Status', className: 'w-[150px] text-center', cellClassName: 'text-center',
+      render: (v) => {
+        const colors = { terjadwal: 'bg-blue-100 text-blue-700', berlangsung: 'bg-emerald-100 text-emerald-700', selesai: 'bg-slate-100 text-slate-600', dibatalkan: 'bg-rose-100 text-rose-700' }
+        return <Badge className={cn('font-black text-[10px] px-3 py-1 border-none', colors[v] || 'bg-slate-100 text-slate-600')}>{v || 'terjadwal'}</Badge>
+      }
+    }
+  ]
+
+  const attendedCount = attendance.filter(a => a.Status === 'hadir').length
+  const absentCount = attendance.filter(a => a.Status === 'tidak_hadir').length
 
   return (
-    <div className="bg-surface text-on-surface min-h-screen">
+    <div className="bg-slate-50 min-h-screen font-sans">
       <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
-      <main className="lg:ml-64 min-h-screen pb-12 transition-all duration-300">
+      <main className="lg:ml-60 min-h-screen transition-all duration-300">
         <TopNavBar setIsOpen={setSidebarOpen} />
-        
-        <div className="pt-24 px-4 lg:px-8">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
-            <div>
-              <h1 className="text-3xl font-extrabold font-headline mb-2 text-on-surface">Generator Presensi QR</h1>
-              <p className="text-on-surface-variant text-sm font-medium">Buat sesi absensi kegiatan secara instan, lacak kehadiran via pindai (scan), dan kelola rekapan otomatis.</p>
+        <div className="pt-20 px-6 pb-12">
+          <Toaster position="top-right" />
+          <div className="flex flex-col gap-1.5 mb-8">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-primary/10 rounded-xl text-primary"><CalendarCheck className="size-6" /></div>
+              <h1 className="text-2xl font-black text-slate-900 font-headline tracking-tighter uppercase">Sistem Absensi (QR)</h1>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="h-1 w-10 bg-primary rounded-full shadow-sm shadow-primary/30" />
+              <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Manajemen Kehadiran Anggota per Kegiatan</p>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
-            <div className="xl:col-span-1 border border-outline-variant/20 rounded-3xl bg-surface-container-lowest shadow-sm flex flex-col p-6 items-center text-center">
-              <div className="w-full flex justify-between items-center mb-6">
-                <span className="text-sm font-bold font-headline text-primary">Live Session</span>
-                {activeSession?.isActive ? (
-                  <span className="flex items-center gap-1.5 px-3 py-1 bg-emerald-50 border border-emerald-200 text-emerald-600 font-bold text-[10px] uppercase rounded-full tracking-widest animate-pulse">
-                    <span className="w-2 h-2 rounded-full bg-emerald-500"></span> Active
-                  </span>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Daftar Kegiatan */}
+            <Card className="border-none shadow-sm overflow-hidden bg-white/50 backdrop-blur-md">
+              <CardContent className="p-0">
+                <DataTable
+                  columns={eventColumns} data={events} loading={loading}
+                  searchPlaceholder="Cari kegiatan..."
+                  actions={(row) => (
+                    <Button onClick={() => handleSelectEvent(row)} size="sm" className={cn('h-8 px-4 rounded-xl text-[10px] font-black uppercase', selectedEvent?.ID === row.ID ? 'bg-primary text-white' : 'bg-primary/10 text-primary hover:bg-primary/20')}>
+                      {selectedEvent?.ID === row.ID ? 'Dipilih' : 'Pilih'}
+                    </Button>
+                  )}
+                />
+              </CardContent>
+            </Card>
+
+            {/* Panel Absensi */}
+            <Card className="border-none shadow-sm overflow-hidden bg-white/50 backdrop-blur-md">
+              <CardContent className="p-6">
+                {!selectedEvent ? (
+                  <div className="flex flex-col items-center justify-center h-64 text-slate-300 gap-4">
+                    <CalendarCheck className="size-12 stroke-[1px]" />
+                    <p className="text-[11px] font-black uppercase tracking-widest text-center text-slate-400">Pilih kegiatan untuk<br />melihat & mencatat absensi</p>
+                  </div>
                 ) : (
-                  <span className="flex items-center gap-1.5 px-3 py-1 bg-surface-container text-on-surface-variant font-bold text-[10px] uppercase rounded-full tracking-widest">
-                    <span className="w-2 h-2 rounded-full bg-slate-400"></span> Ended
-                  </span>
+                  <div className="space-y-4">
+                    <div className="p-4 bg-gradient-to-r from-primary/5 to-transparent rounded-2xl border border-primary/10 flex items-center justify-between">
+                      <div>
+                        <h3 className="font-black text-slate-900 font-headline tracking-tighter">{selectedEvent.Judul}</h3>
+                        <div className="flex gap-4 mt-2">
+                          <span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">Hadir: {attendedCount}</span>
+                          <span className="text-[10px] font-black text-rose-500 uppercase tracking-widest">Tidak Hadir: {absentCount}</span>
+                        </div>
+                      </div>
+                      <Button onClick={() => setIsQrOpen(true)} className="h-10 px-6 rounded-2xl bg-slate-900 text-white hover:bg-slate-800 gap-2 shadow-xl shadow-slate-900/20">
+                        <ScanLine className="size-4" /> <span className="text-[10px] font-black uppercase">Buka QR Code</span>
+                      </Button>
+                    </div>
+                    {loadingAtt ? (
+                      <div className="flex justify-center py-8"><Loader2 className="size-6 animate-spin text-primary" /></div>
+                    ) : attendance.length === 0 ? (
+                      <div className="flex flex-col items-center py-8 gap-2">
+                        <Users className="size-8 text-slate-300" />
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Belum ada data absensi</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-2 max-h-96 overflow-y-auto pr-1">
+                        {attendance.map((att) => (
+                          <div key={att.ID} className="flex items-center gap-3 p-3 bg-white rounded-2xl border border-slate-100 shadow-sm">
+                             <Avatar className="h-9 w-9 rounded-xl shrink-0">
+                               <AvatarFallback className="bg-slate-100 text-slate-700 text-[10px] font-black uppercase">
+                                 {att.Mahasiswa?.Nama?.split(' ').map(n => n[0]).join('').substring(0, 2) || '?'}
+                               </AvatarFallback>
+                             </Avatar>
+                             <div className="flex-1 min-w-0">
+                               <p className="font-bold text-slate-900 text-[12px] font-headline truncate">{att.Mahasiswa?.Nama || '—'}</p>
+                               <p className="text-[9px] text-slate-400 font-bold uppercase">{att.Mahasiswa?.NIM}</p>
+                             </div>
+                            <div className="flex gap-1.5">
+                              <button onClick={() => handleRecordAttendance(att.StudentID || att.MahasiswaID, 'hadir')}
+                                className={cn('size-8 rounded-xl flex items-center justify-center transition-all', att.Status === 'hadir' ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/25' : 'bg-slate-100 text-slate-400 hover:bg-emerald-100 hover:text-emerald-600')}>
+                                <CheckCircle2 className="size-4" />
+                              </button>
+                              <button onClick={() => handleRecordAttendance(att.StudentID || att.MahasiswaID, 'tidak_hadir')}
+                                className={cn('size-8 rounded-xl flex items-center justify-center transition-all', att.Status === 'tidak_hadir' ? 'bg-rose-500 text-white shadow-lg shadow-rose-500/25' : 'bg-slate-100 text-slate-400 hover:bg-rose-100 hover:text-rose-600')}>
+                                <XCircle className="size-4" />
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 )}
-              </div>
-              
-              <div className="mb-2 w-full text-left">
-                <h2 className="text-xl font-bold font-headline leading-tight">{activeSession?.eventName}</h2>
-                <p className="text-xs font-semibold text-on-surface-variant mt-1 mb-8">{activeSession?.date} • ID: {activeSession?.id}</p>
-              </div>
-              
-              <div className="bg-white p-6 rounded-[2.5rem] shadow-2xl shadow-primary/5 border border-outline-variant/10 mb-8 relative group">
-                 <img 
-                   src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${activeSession?.codeData}&color=00236f&bgcolor=ffffff`}
-                   alt="Session QR"
-                   className="w-56 h-56 object-contain"
-                 />
-              </div>
-
-              <p className="text-xs text-on-surface-variant mb-4 px-4 font-medium leading-relaxed">
-                Tampilkan layar ini di meja registrasi. Anggota dapat memindai kehadiran via aplikasi.
-              </p>
-
-              <div className="w-full pt-6 border-t border-outline-variant/20 mt-auto">
-                <label className="text-[10px] font-black text-primary text-left block mb-3 uppercase tracking-[0.2em]">Pilih Sesi Kegiatan</label>
-                <div className="relative group/select">
-                  <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant group-focus-within/select:text-primary transition-colors z-10 pointer-events-none">calendar_month</span>
-                  <select 
-                    className="w-full bg-surface-container-low/50 border border-outline-variant/30 hover:border-primary/30 pl-12 pr-4 py-4 rounded-[1.25rem] focus:ring-2 focus:ring-primary/10 focus:border-primary font-black text-sm outline-none appearance-none cursor-pointer transition-all shadow-inner"
-                    value={activeSession?.id}
-                    onChange={(e) => setActiveSession((sessions || []).find(s => s.id.toString() === e.target.value))}
-                  >
-                    {(sessions || []).map(s => (
-                      <option key={s.id} value={s.id}>{s.eventName} — {s.date}</option>
-                    ))}
-                  </select>
-                  <span className="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none text-[20px]">expand_more</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="xl:col-span-2 border border-outline-variant/20 rounded-3xl bg-surface-container-lowest shadow-sm flex flex-col overflow-hidden">
-               <div className="p-6 border-b border-outline-variant/10 flex justify-between items-center bg-surface-container-low/30">
-                  <h3 className="font-bold text-lg font-headline flex items-center gap-2">
-                    <span className="material-symbols-outlined text-primary">groups</span>
-                    Rekap Kehadiran
-                  </h3>
-               </div>
-               
-               <div className="p-6 grid grid-cols-3 gap-4 border-b border-outline-variant/10 bg-surface">
-                 <div className="bg-emerald-50 rounded-2xl p-4 border border-emerald-100 flex flex-col justify-center items-center">
-                   <h4 className="text-3xl font-extrabold text-emerald-700 font-headline">{attendees.filter(a => a.status === 'hadir').length}</h4>
-                   <p className="text-[10px] uppercase font-bold text-emerald-600 tracking-wider">Hadir</p>
-                 </div>
-                 <div className="bg-rose-50 rounded-2xl p-4 border border-rose-100 flex flex-col justify-center items-center">
-                   <h4 className="text-3xl font-extrabold text-rose-700 font-headline">{attendees.filter(a => a.status === 'alpa').length}</h4>
-                   <p className="text-[10px] uppercase font-bold text-rose-600 tracking-wider">Alpa</p>
-                 </div>
-                 <div className="bg-amber-50 rounded-2xl p-4 border border-amber-100 flex flex-col justify-center items-center">
-                   <h4 className="text-3xl font-extrabold text-amber-700 font-headline">{attendees.filter(a => a.status === 'izin' || a.status === 'sakit').length}</h4>
-                   <p className="text-[10px] uppercase font-bold text-amber-600 tracking-wider">Izin / Sakit</p>
-                 </div>
-               </div>
-
-               <div className="overflow-x-auto flex-grow h-full bg-surface-container-lowest">
-                  <table className="w-full text-left text-sm text-on-surface">
-                    <thead className="text-xs text-on-surface-variant uppercase bg-surface border-b border-outline-variant/20 font-label tracking-wider sticky top-0 z-10">
-                      <tr>
-                        <th className="px-6 py-4 font-bold">Mahasiswa</th>
-                        <th className="px-6 py-4 font-bold text-center">Status</th>
-                        <th className="px-6 py-4 font-bold text-right pr-10">Tandai Manual</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-outline-variant/10">
-                      {(members || []).map(m => {
-                        const att = (attendees || []).find(a => a.MahasiswaID === m.MahasiswaID);
-                        return (
-                          <tr key={m.ID} className="hover:bg-surface-container-low/30 transition-colors">
-                            <td className="px-6 py-4">
-                              <div className="font-bold text-sm font-headline group-hover:text-primary transition-colors">
-                                {m.Mahasiswa?.Nama}
-                              </div>
-                              <div className="text-[11px] text-on-surface-variant font-medium mt-0.5">
-                                NIM: {m.Mahasiswa?.NIM} {att ? `• Tercatat: ${new Date(att.UpdatedAt).toLocaleTimeString()}` : '• Belum Absen'}
-                              </div>
-                            </td>
-                            <td className="px-6 py-4 text-center">
-                              {getStatusBadge(att?.status)}
-                            </td>
-                            <td className="px-6 py-4 text-right pr-6">
-                               <select 
-                                 className="text-[11px] font-bold border border-outline-variant/30 rounded-lg p-2 outline-none bg-surface-container-low"
-                                 value={att?.Status || ''}
-                                 onChange={(e) => handleStatusChange(m.Mahasiswa, e.target.value)}
-                               >
-                                 <option value="">-- Set Status --</option>
-                                 <option value="hadir">Hadir</option>
-                                 <option value="izin">Izin</option>
-                                 <option value="sakit">Sakit</option>
-                                 <option value="alpa">Alpa</option>
-                               </select>
-                            </td>
-                          </tr>
-                        );
-                      })}
-                      {(members || []).length === 0 && <tr><td colSpan="3" className="text-center py-12  text-on-surface-variant">Belum ada data anggota</td></tr>}
-                    </tbody>
-                  </table>
-               </div>
-            </div>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </main>
-    </div>
-  );
-};
 
-export default AbsensiKegiatan;
+      <Dialog open={isQrOpen} onOpenChange={setIsQrOpen}>
+        <DialogContent className="max-w-sm p-0 overflow-hidden border-none shadow-2xl rounded-[2.5rem] bg-white">
+          <div className="p-8 flex flex-col items-center gap-6">
+            <div className="text-center space-y-1">
+              <h3 className="text-xl font-black text-slate-900 font-headline tracking-tighter uppercase">{selectedEvent?.Judul}</h3>
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Scan QR ini untuk melakukan presensi</p>
+            </div>
+            
+            <div className="size-64 p-4 bg-slate-50 rounded-[2rem] border-4 border-slate-100 flex items-center justify-center relative group">
+              <img src={qrUrl} alt="QR Code Absensi" className="size-full object-contain" />
+              <div className="absolute inset-0 bg-white/40 backdrop-blur-[2px] opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-[1.8rem]">
+                <ScanLine className="size-12 text-primary animate-pulse" />
+              </div>
+            </div>
+
+            <div className="w-full space-y-3">
+              <div className="p-4 bg-primary/5 rounded-2xl border border-primary/10 text-center">
+                <p className="text-[9px] font-black text-primary uppercase tracking-[0.2em]">Kode Keamanan Aktif</p>
+                <p className="text-[11px] font-bold text-slate-600 mt-1 uppercase tracking-tighter">Berlaku untuk seluruh anggota terdaftar</p>
+              </div>
+              <Button onClick={() => setIsQrOpen(false)} className="w-full h-12 rounded-2xl bg-slate-900 text-white font-black text-[10px] uppercase tracking-widest">Tutup QR</Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
+  )
+}

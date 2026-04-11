@@ -1,357 +1,268 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import Sidebar from './components/Sidebar';
-import TopNavBar from './components/TopNavBar';
-import { adminService, fakultasService } from '../../services/api';
+"use client"
 
-const StudentDirectory = () => {
-    const [students, setStudents] = useState([]);
-    const [fakultas, setFakultas] = useState([]);
-    const [prodi, setProdi] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [searchQuery, setSearchQuery] = useState('');
-    
-    // Pagination & Filter States
-    const [currentPage, setCurrentPage] = useState(1);
-    const [itemsPerPage, setItemsPerPage] = useState(25);
-    const [filterFakultas, setFilterFakultas] = useState('');
-    const [filterProdi, setFilterProdi] = useState('');
-    const [filterAngkatan, setFilterAngkatan] = useState('');
+import React, { useState, useEffect } from 'react'
+import { DataTable } from '../FacultyAdmin/components/data-table'
+import { Badge } from '../FacultyAdmin/components/badge'
+import { Button } from '../FacultyAdmin/components/button'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '../FacultyAdmin/components/dialog'
+import { DeleteConfirmModal } from '../FacultyAdmin/components/DeleteConfirmModal'
+import { Card, CardContent } from '../FacultyAdmin/components/card'
+import { Input } from '../FacultyAdmin/components/input'
+import { Label } from '../FacultyAdmin/components/label'
+import { Avatar, AvatarFallback } from '../FacultyAdmin/components/avatar'
+import { Eye, Pencil, Trash2, Loader2, Plus, Save, Users, BookOpen, Mail, GraduationCap } from 'lucide-react'
+import { toast, Toaster } from 'react-hot-toast'
+import { cn } from '@/lib/utils'
+import Sidebar from './components/Sidebar'
+import TopNavBar from './components/TopNavBar'
+import { adminService } from '../../services/api'
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue
+} from '../FacultyAdmin/components/select'
 
-    // Modal states
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [currentStudent, setCurrentStudent] = useState(null);
-    const [formData, setFormData] = useState({
-        NIM: '', Nama: '', FakultasID: '', ProgramStudiID: '', TahunMasuk: new Date().getFullYear(), IPK: 0.0, StatusAkademik: 'Aktif'
-    });
+const EMPTY_FORM = { NIM: '', Nama: '', EmailKampus: '', FakultasID: '', ProgramStudiID: '', SemesterSekarang: 1, StatusAkun: 'Aktif', Alamat: '', TahunMasuk: new Date().getFullYear() }
 
-    useEffect(() => {
-        loadData();
-    }, []);
+export default function StudentDirectory() {
+  const [students, setStudents] = useState([])
+  const [prodi, setProdi] = useState([])
+  const [faculties, setFaculties] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [selected, setSelected] = useState(null)
+  const [isDetailOpen, setIsDetailOpen] = useState(false)
+  const [isCrudOpen, setIsCrudOpen] = useState(false)
+  const [isDelOpen, setIsDelOpen] = useState(false)
+  const [isEditMode, setIsEditMode] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [form, setForm] = useState(EMPTY_FORM)
 
-    const loadData = async () => {
-        try {
-            setLoading(true);
-            const [mhsRes, fakRes, prodiRes] = await Promise.all([
-                adminService.getAllStudents(),
-                fakultasService.getAll(),
-                adminService.getAllProdi()
-            ]);
-            
-            if (mhsRes.status === 'success') setStudents(mhsRes.data || []);
-            if (fakRes.status === 'success') setFakultas(fakRes.data || []);
-            if (prodiRes.status === 'success') setProdi(prodiRes.data || []);
-        } catch (error) {
-            console.error('Gagal memuat data:', error);
-        } finally {
-            setLoading(false);
-        }
-    };
+  const fetchData = async () => {
+    setLoading(true)
+    try {
+      const [stdRes, prodiRes, facRes] = await Promise.all([adminService.getAllStudents(), adminService.getAllProdi(), adminService.getAllFaculties()])
+      if (stdRes.status === 'success') setStudents(stdRes.data || [])
+      if (prodiRes.status === 'success') setProdi(prodiRes.data || [])
+      if (facRes.status === 'success') setFaculties(facRes.data || [])
+    } catch { toast.error('Gagal memuat data') } finally { setLoading(false) }
+  }
+  useEffect(() => { fetchData() }, [])
 
-    // Advanced Filtering Logic
-    const filteredStudents = useMemo(() => {
-        const query = searchQuery.toLowerCase();
-        return students.filter(s => {
-            const matchSearch = s.Nama.toLowerCase().includes(query) || s.NIM.toLowerCase().includes(query);
-            const matchFakultas = filterFakultas === '' || s.FakultasID === parseInt(filterFakultas);
-            const matchProdi = filterProdi === '' || s.ProgramStudiID === parseInt(filterProdi);
-            const matchAngkatan = filterAngkatan === '' || s.TahunMasuk === parseInt(filterAngkatan);
-            
-            return matchSearch && matchFakultas && matchProdi && matchAngkatan;
-        });
-    }, [students, searchQuery, filterFakultas, filterProdi, filterAngkatan]);
+  const handleOpenAdd = () => { setIsEditMode(false); setForm(EMPTY_FORM); setIsCrudOpen(true) }
+  const handleOpenEdit = (row) => {
+    setIsEditMode(true)
+    setForm({ ID: row.ID, NIM: row.NIM || '', Nama: row.Nama || '', EmailKampus: row.EmailKampus || row.Pengguna?.Email || '', FakultasID: String(row.FakultasID || ''), ProgramStudiID: String(row.ProgramStudiID || ''), SemesterSekarang: row.SemesterSekarang || 1, StatusAkun: row.StatusAkun || 'Aktif', Alamat: row.Alamat || '', TahunMasuk: row.TahunMasuk || new Date().getFullYear() })
+    setIsCrudOpen(true)
+  }
+  const handleSave = async (e) => {
+    e.preventDefault(); setIsSubmitting(true)
+    const payload = { ...form, FakultasID: parseInt(form.FakultasID) || 0, ProgramStudiID: parseInt(form.ProgramStudiID) || 0, SemesterSekarang: parseInt(form.SemesterSekarang) || 1, TahunMasuk: parseInt(form.TahunMasuk) || new Date().getFullYear() }
+    try {
+      const res = form.ID ? await adminService.updateStudent(form.ID, payload) : await adminService.createStudent(payload)
+      if (res.status === 'success') {
+        toast.success(form.ID ? 'Data diperbarui' : 'Mahasiswa ditambahkan')
+        setIsCrudOpen(false)
+        fetchData()
+      } else {
+        toast.error(res.message || 'Gagal menyimpan')
+      }
+    } catch (err) {
+      toast.error(err.message || 'Terjadi kesalahan sistem')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+  const handleDelete = async () => {
+    setIsSubmitting(true)
+    try {
+      await adminService.deleteStudent(selected.ID)
+      toast.success('Mahasiswa dihapus'); setIsDelOpen(false); fetchData()
+    } catch { toast.error('Gagal menghapus') } finally { setIsSubmitting(false) }
+  }
 
-    // Pagination Logic
-    const totalPages = Math.ceil(filteredStudents.length / itemsPerPage);
-    const paginatedStudents = useMemo(() => {
-        const startIndex = (currentPage - 1) * itemsPerPage;
-        return filteredStudents.slice(startIndex, startIndex + itemsPerPage);
-    }, [filteredStudents, currentPage, itemsPerPage]);
+  const columns = [
+    { key: 'NIM', label: 'NIM / ID', className: 'w-[140px]', render: v => <span className="font-bold text-slate-400 font-headline uppercase text-[10px] tracking-widest">{v}</span> },
+    { key: 'Nama', label: 'Profil Mahasiswa', className: 'min-w-[280px]',
+      render: (v, row) => (
+        <div className="flex items-center gap-3">
+          <Avatar className="h-10 w-10 rounded-2xl border-2 border-white shadow-sm ring-1 ring-slate-100">
+            <AvatarFallback className="bg-slate-100 text-slate-800 text-[10px] font-black uppercase">
+              {v?.split(' ').map(n => n[0]).join('').substring(0, 2) || '?'}
+            </AvatarFallback>
+          </Avatar>
+          <div className="flex flex-col leading-tight">
+            <span className="font-bold text-slate-900 font-headline tracking-tighter text-[13px]">{v}</span>
+            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-tight flex items-center gap-1">
+              <Mail className="size-2.5 opacity-60" />{row.EmailKampus || row.Pengguna?.Email || '—'}
+            </span>
+          </div>
+        </div>
+      )
+    },
+    { key: 'Fakultas', label: 'Fakultas', className: 'w-[180px]', render: v => <span className="text-[12px] font-bold text-slate-500 font-headline uppercase">{v?.Nama || '—'}</span> },
+    { key: 'ProgramStudi', label: 'Program Studi', className: 'w-[200px]', render: v => <span className="text-xs text-slate-600 font-black font-headline uppercase">{v?.Nama || '—'}</span> },
+    { key: 'SemesterSekarang', label: 'Semester', className: 'w-[80px] text-center', cellClassName: 'text-center', render: v => <span className="font-bold text-slate-900 font-headline text-xs">{v || 1}</span> },
+    { key: 'StatusAkun', label: 'Status', className: 'w-[120px] text-center', cellClassName: 'text-center',
+      render: v => (
+        <Badge className={cn('capitalize font-black text-[10px] px-3 py-1 border-none shadow-sm',
+          v === 'Aktif' ? 'bg-emerald-100 text-emerald-700 ring-1 ring-emerald-500/20' :
+          v === 'Cuti' ? 'bg-amber-100 text-amber-700 ring-1 ring-amber-500/20' :
+          v === 'Lulus' ? 'bg-indigo-100 text-indigo-700 ring-1 ring-indigo-500/20' : 'bg-slate-100 text-slate-600')}>{v || 'Aktif'}
+        </Badge>
+      )
+    }
+  ]
 
-    // Derived Data for Filters
-    const availableAngkatan = useMemo(() => {
-        const years = students.map(s => s.TahunMasuk);
-        return [...new Set(years)].sort((a, b) => b - a);
-    }, [students]);
+  return (
+    <div className="bg-slate-50 min-h-screen flex font-sans">
+      <Sidebar />
+      <main className="pl-72 pt-20 flex flex-col min-h-screen w-full">
 
-    useEffect(() => {
-        setCurrentPage(1); // Reset to page 1 when filters or density change
-    }, [searchQuery, filterFakultas, filterProdi, filterAngkatan, itemsPerPage]);
-
-    const handleOpenModal = (student = null) => {
-        if (student) {
-            setCurrentStudent(student);
-            setFormData({
-                NIM: student.NIM, Nama: student.Nama, FakultasID: student.FakultasID, ProgramStudiID: student.ProgramStudiID,
-                TahunMasuk: student.TahunMasuk, IPK: student.IPK, StatusAkademik: student.StatusAkademik
-            });
-        } else {
-            setCurrentStudent(null);
-            setFormData({ NIM: '', Nama: '', FakultasID: '', ProgramStudiID: '', TahunMasuk: new Date().getFullYear(), IPK: 0.0, StatusAkademik: 'Aktif' });
-        }
-        setIsModalOpen(true);
-    };
-
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        try {
-            const data = { ...formData, FakultasID: parseInt(formData.FakultasID), ProgramStudiID: parseInt(formData.ProgramStudiID),
-                TahunMasuk: parseInt(formData.TahunMasuk), IPK: parseFloat(formData.IPK) };
-
-            if (currentStudent) await adminService.updateStudent(currentStudent.ID, data);
-            else await adminService.createStudent(data);
-            
-            setIsModalOpen(false);
-            loadData();
-        } catch (error) {
-            alert('Gagal menyimpan data: ' + error.message);
-        }
-    };
-
-    const handleDelete = async (id) => {
-        if (window.confirm('Hapus data mahasiswa ini?')) {
-            try { await adminService.deleteStudent(id); loadData(); }
-            catch (error) { alert('Gagal menghapus: ' + error.message); }
-        }
-    };
-
-    return (
-        <div className="bg-slate-50 text-slate-900 min-h-screen flex font-body select-none">
-          <Sidebar />
-          <main className="pl-80 flex flex-col min-h-screen w-full font-body">
-            <TopNavBar />
-            <div className="p-8 space-y-6 font-body">
-              <header className="flex justify-between items-end">
-                <div>
-                  <h1 className="text-3xl font-extrabold text-primary tracking-tight uppercase leading-none italic">Student Registry</h1>
-                  <p className="text-[10px] text-slate-500 mt-2 font-black uppercase tracking-[0.3em] opacity-80">Database Pusat: {students.length} Mahasiswa Terdaftar</p>
-                </div>
-                <button 
-                  onClick={() => handleOpenModal()}
-                  className="bg-primary text-white px-8 py-3.5 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all font-body"
-                >
-                  Tambah Mahasiswa
-                </button>
-              </header>
-
-              {/* Advanced Filtering Suite */}
-              <div className="flex flex-col gap-4 bg-white p-6 rounded-[2.5rem] border border-slate-200 shadow-sm font-body">
-                  <div className="flex items-center gap-4">
-                      <div className="relative flex-1">
-                          <span className="material-symbols-outlined absolute left-6 top-1/2 -translate-y-1/2 text-slate-400">search</span>
-                          <input 
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full bg-slate-50 pl-16 pr-6 py-4 rounded-2xl text-sm font-bold text-primary placeholder:text-slate-400 outline-none border border-transparent focus:border-primary/30 transition-all font-body" 
-                            placeholder="Cari NIM atau Nama..." 
-                          />
-                      </div>
-                      <div className="flex gap-3 font-body">
-                          <select 
-                            value={filterFakultas}
-                            onChange={(e) => { setFilterFakultas(e.target.value); setFilterProdi(''); }}
-                            className="bg-slate-50 px-4 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest text-slate-600 outline-none border border-transparent focus:border-primary/30 min-w-[180px] font-body"
-                          >
-                              <option value="">Semua Fakultas</option>
-                              {fakultas.map(f => <option key={f.ID} value={f.ID}>{f.Nama}</option>)}
-                          </select>
-                          <select 
-                            value={filterProdi}
-                            onChange={(e) => setFilterProdi(e.target.value)}
-                            className="bg-slate-50 px-4 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest text-slate-600 outline-none border border-transparent focus:border-primary/30 min-w-[180px] font-body"
-                            disabled={!filterFakultas}
-                          >
-                              <option value="">Semua Prodi</option>
-                              {prodi.filter(p => !filterFakultas || p.FakultasID === parseInt(filterFakultas)).map(p => (
-                                  <option key={p.ID} value={p.ID}>{p.Nama}</option>
-                              ))}
-                          </select>
-                          <select 
-                            value={filterAngkatan}
-                            onChange={(e) => setFilterAngkatan(e.target.value)}
-                            className="bg-slate-50 px-4 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest text-slate-600 outline-none border border-transparent focus:border-primary/30 font-body"
-                          >
-                              <option value="">Angkatan</option>
-                              {availableAngkatan.map(y => <option key={y} value={y}>{y}</option>)}
-                          </select>
-                      </div>
-                  </div>
-              </div>
-
-              <section className="bg-white border border-slate-200 rounded-[3rem] overflow-hidden shadow-sm flex flex-col min-h-[600px] font-body relative">
-                <table className="w-full text-left font-body">
-                  <thead>
-                    <tr className="bg-slate-50/50 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 border-b border-slate-100 leading-tight">
-                      <th className="px-10 py-6">Profil Mahasiswa</th>
-                      <th className="px-10 py-6">Unit / Program Studi</th>
-                      <th className="px-10 py-6 text-center">Angkatan</th>
-                      <th className="px-10 py-6 text-center">IPK</th>
-                      <th className="px-10 py-6">Status</th>
-                      <th className="px-10 py-6 text-right">Aksi</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-50 font-body select-text text-sm">
-                    {loading ? (
-                        <tr><td colSpan="6" className="px-10 py-32 text-center text-slate-300 font-bold uppercase tracking-[0.3em] text-[10px] animate-pulse">Mensinkronkan Database Pusat...</td></tr>
-                    ) : paginatedStudents.length === 0 ? (
-                        <tr><td colSpan="6" className="px-10 py-32 text-center text-slate-300 font-bold uppercase tracking-[0.3em] text-[10px]">Data Tidak Ditemukan</td></tr>
-                    ) : paginatedStudents.map((s) => (
-                      <tr key={s.ID} className="hover:bg-slate-50/30 transition-all group font-body">
-                        <td className="px-10 py-5">
-                            <div className="flex items-center gap-4">
-                                <div className="w-11 h-11 bg-slate-100 rounded-2xl flex items-center justify-center text-primary font-black group-hover:bg-primary group-hover:text-white transition-all shadow-inner text-xs">
-                                  {s.Nama[0]}
-                                </div>
-                                <div className="flex flex-col leading-tight">
-                                    <span className="font-extrabold text-primary uppercase text-sm">{s.Nama}</span>
-                                    <p className="text-[10px] text-slate-400 font-black tracking-widest mt-0.5">{s.NIM}</p>
-                                </div>
-                            </div>
-                        </td>
-                        <td className="px-10 py-5 leading-tight uppercase">
-                            <p className="text-[9px] font-black text-slate-400 tracking-tight leading-tight truncate w-48">{s.Fakultas?.Nama || '-'}</p>
-                            <p className="text-[11px] font-bold text-slate-600 leading-tight truncate w-48 mt-0.5">{s.ProgramStudi?.Nama || '-'}</p>
-                        </td>
-                        <td className="px-10 py-5 text-center">
-                            <span className="px-3 py-1 bg-slate-100 text-slate-500 text-[10px] font-black rounded-lg border border-slate-200/50">
-                                {s.TahunMasuk}
-                            </span>
-                        </td>
-                        <td className="px-10 py-5 text-center font-black text-primary text-base">{s.IPK.toFixed(2)}</td>
-                        <td className="px-10 py-5">
-                            <div className="flex items-center gap-2">
-                                <div className={`w-1.5 h-1.5 rounded-full ${s.StatusAkademik === 'Aktif' ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'bg-slate-300'}`}></div>
-                                <span className={`text-[10px] font-black uppercase tracking-widest ${s.StatusAkademik === 'Aktif' ? 'text-emerald-700' : 'text-slate-400'}`}>{s.StatusAkademik}</span>
-                            </div>
-                        </td>
-                        <td className="px-10 py-5 text-right">
-                            <div className="flex justify-end gap-1 font-body">
-                                <button onClick={() => handleOpenModal(s)} className="p-2 hover:bg-slate-100 rounded-xl text-slate-400 hover:text-primary transition-all font-body"><span className="material-symbols-outlined text-[18px]">edit</span></button>
-                                <button onClick={() => handleDelete(s.ID)} className="p-2 hover:bg-rose-50 rounded-xl text-slate-400 hover:text-rose-500 transition-all font-body"><span className="material-symbols-outlined text-[18px]">delete</span></button>
-                            </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-
-                {/* Pagination Controls */}
-                {!loading && (
-                    <div className="mt-auto p-8 border-t border-slate-100 bg-slate-50/30 flex justify-between items-center font-body">
-                        <div className="flex items-center gap-6">
-                            <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">Halaman {currentPage} dari {totalPages || 1}</p>
-                            <div className="h-4 w-[1px] bg-slate-200"></div>
-                            <div className="flex items-center gap-3">
-                                <span className="text-[10px] text-slate-400 font-black uppercase tracking-widest">Tampilkan:</span>
-                                {[25, 50, 100].map(size => (
-                                    <button 
-                                      key={size}
-                                      onClick={() => setItemsPerPage(size)}
-                                      className={`px-3 py-1 rounded-lg text-[10px] font-black transition-all ${itemsPerPage === size ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'bg-white text-slate-400 border border-slate-200 hover:border-primary/30'}`}
-                                    >
-                                        {size}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-                        
-                        {totalPages > 1 && (
-                            <div className="flex gap-2">
-                                <button 
-                                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                                  disabled={currentPage === 1}
-                                  className="px-6 py-2 bg-white border border-slate-200 rounded-xl text-[10px] font-black uppercase tracking-widest hover:border-primary hover:text-primary disabled:opacity-30 disabled:hover:border-slate-200 disabled:hover:text-slate-400 transition-all font-body"
-                                >
-                                    Sebelumnya
-                                </button>
-                                <button 
-                                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                                  disabled={currentPage === totalPages}
-                                  className="px-6 py-2 bg-white border border-slate-200 rounded-xl text-[10px] font-black uppercase tracking-widest hover:border-primary hover:text-primary disabled:opacity-30 disabled:hover:border-slate-200 disabled:hover:text-slate-400 transition-all font-body"
-                                >
-                                    Berikutnya
-                                </button>
-                            </div>
-                        )}
-                    </div>
-                )}
-              </section>
+        <TopNavBar />
+        <div className="p-8 space-y-6">
+          <Toaster position="top-right" />
+          <div className="flex flex-col gap-1.5">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-primary/10 rounded-xl text-primary"><GraduationCap className="size-6" /></div>
+              <h1 className="text-2xl font-black text-slate-900 font-headline tracking-tighter uppercase">Direktori Mahasiswa</h1>
             </div>
-          </main>
+            <div className="flex items-center gap-2">
+              <div className="h-1 w-10 bg-primary rounded-full shadow-sm shadow-primary/30" />
+              <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Manajemen Data Mahasiswa Seluruh Fakultas</p>
+            </div>
+          </div>
+          <Card className="border-none shadow-sm overflow-hidden bg-white/50 backdrop-blur-md">
+            <CardContent className="p-0">
+              <DataTable
+                columns={columns} data={students} loading={loading}
+                searchPlaceholder="Cari NIM atau Nama mahasiswa..."
+                onAdd={handleOpenAdd} addLabel="Mahasiswa Baru"
+                onExport={() => alert('Ekspor data mahasiswa...')} exportLabel="Download Master"
+                filters={[
+                  { key: 'StatusAkun', placeholder: 'Filter Status', options: [{ label: 'Aktif', value: 'Aktif' }, { label: 'Cuti', value: 'Cuti' }, { label: 'Lulus', value: 'Lulus' }] },
+                  { key: 'FakultasID', placeholder: 'Filter Fakultas', options: faculties.map(f => ({ label: f.Nama, value: f.ID })) },
+                  { key: 'ProgramStudiID', placeholder: 'Filter Prodi', options: prodi.map(p => ({ label: p.Nama, value: p.ID })) }
+                ]}
 
-          {/* Modal Components */}
-          {isModalOpen && (
-            <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-50 flex items-center justify-center p-4 font-body">
-                <div className="bg-white rounded-[3rem] w-full max-w-2xl overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-300 border border-white/20 font-body">
-                    <div className="p-10 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center font-body">
-                        <div>
-                            <h2 className="text-2xl font-black text-primary uppercase tracking-tighter italic font-body">{currentStudent ? 'Edit Profil' : 'Daftar Baru'}</h2>
-                            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.2em] mt-1 italic font-body">Registry Core v2.4</p>
-                        </div>
-                        <button onClick={() => setIsModalOpen(false)} className="w-12 h-12 rounded-2xl hover:bg-white hover:shadow-lg flex items-center justify-center transition-all group font-body">
-                            <span className="material-symbols-outlined text-slate-300 group-hover:text-rose-500 transition-colors font-body">close</span>
-                        </button>
-                    </div>
-                    <form onSubmit={handleSubmit} className="p-10 space-y-6 font-body">
-                        <div className="grid grid-cols-2 gap-6 font-body">
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1 font-body">NIM / ID Mahasiswa</label>
-                                <input required value={formData.NIM} onChange={(e) => setFormData({...formData, NIM: e.target.value})} className="w-full bg-slate-50 border border-slate-100 px-6 py-4 rounded-2xl font-bold text-primary focus:bg-white focus:border-primary/30 outline-none transition-all font-body" placeholder="Contoh: 240001002" />
-                            </div>
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1 font-body">Nama Mahasiswa</label>
-                                <input required value={formData.Nama} onChange={(e) => setFormData({...formData, Nama: e.target.value})} className="w-full bg-slate-50 border border-slate-100 px-6 py-4 rounded-2xl font-bold text-primary focus:bg-white focus:border-primary/30 outline-none transition-all font-body" placeholder="Nama lengkap..." />
-                            </div>
-                        </div>
+                actions={(row) => (
+                  <div className="flex items-center gap-2">
+                    <Button onClick={() => { setSelected(row); setIsDetailOpen(true) }} variant="ghost" size="icon" className="h-8 w-8 hover:text-primary hover:bg-primary/10 rounded-xl"><Eye className="size-4" /></Button>
+                    <Button onClick={() => handleOpenEdit(row)} variant="ghost" size="icon" className="h-8 w-8 hover:text-amber-600 hover:bg-amber-50 rounded-xl"><Pencil className="size-4" /></Button>
+                    <Button onClick={() => { setSelected(row); setIsDelOpen(true) }} variant="ghost" size="icon" className="h-8 w-8 hover:text-rose-600 hover:bg-rose-50 rounded-xl"><Trash2 className="size-4" /></Button>
+                  </div>
+                )}
+              />
+            </CardContent>
+          </Card>
+        </div>
+      </main>
 
-                        <div className="grid grid-cols-2 gap-6 font-body">
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Fakultas Homebase</label>
-                                <select required value={formData.FakultasID} onChange={(e) => setFormData({...formData, FakultasID: e.target.value, ProgramStudiID: ''})} className="w-full bg-slate-50 border border-slate-100 px-6 py-4 rounded-2xl font-bold text-primary focus:bg-white focus:border-primary/30 outline-none transition-all font-body">
-                                    <option value="">Pilih Fakultas</option>
-                                    {fakultas.map(f => <option key={f.ID} value={f.ID}>{f.Nama}</option>)}
-                                </select>
-                            </div>
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Program Studi</label>
-                                <select required value={formData.ProgramStudiID} onChange={(e) => setFormData({...formData, ProgramStudiID: e.target.value})} className="w-full bg-slate-50 border border-slate-100 px-6 py-4 rounded-2xl font-bold text-primary focus:bg-white focus:border-primary/30 outline-none transition-all font-body">
-                                    <option value="">Pilih Prodi</option>
-                                    {prodi.filter(p => !formData.FakultasID || p.FakultasID == formData.FakultasID).map(p => ( <option key={p.ID} value={p.ID}>{p.Nama}</option> ))}
-                                </select>
-                            </div>
-                        </div>
-
-                        <div className="grid grid-cols-3 gap-6 font-body">
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Angkatan</label>
-                                <input type="number" required value={formData.TahunMasuk} onChange={(e) => setFormData({...formData, TahunMasuk: e.target.value})} className="w-full bg-slate-50 border border-slate-100 px-6 py-4 rounded-2xl font-bold text-primary focus:bg-white focus:border-primary/30 outline-none transition-all font-body" />
-                            </div>
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">IPK Kumulatif</label>
-                                <input type="number" step="0.01" min="0" max="4" required value={formData.IPK} onChange={(e) => setFormData({...formData, IPK: e.target.value})} className="w-full bg-slate-50 border border-slate-100 px-6 py-4 rounded-2xl font-bold text-primary focus:bg-white focus:border-primary/30 outline-none transition-all font-body" />
-                            </div>
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Status Akademik</label>
-                                <select value={formData.StatusAkademik} onChange={(e) => setFormData({...formData, StatusAkademik: e.target.value})} className="w-full bg-slate-50 border border-slate-100 px-6 py-4 rounded-2xl font-bold text-primary focus:bg-white focus:border-primary/30 outline-none transition-all font-body">
-                                    <option value="Aktif">Aktif</option>
-                                    <option value="Cuti">Cuti</option>
-                                    <option value="Drop Out">Drop Out</option>
-                                    <option value="Lulus">Lulus</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div className="pt-6 flex gap-4 font-body">
-                            <button type="submit" className="flex-1 bg-primary text-white py-5 rounded-[1.5rem] font-black text-xs uppercase tracking-[0.3em] shadow-2xl shadow-primary/30 hover:shadow-primary/50 hover:-translate-y-1 transition-all">
-                                {currentStudent ? 'Simpan Perubahan' : 'Finalisasi Registrasi'}
-                            </button>
-                            <button type="button" onClick={() => setIsModalOpen(false)} className="px-10 bg-slate-100 text-slate-500 py-5 rounded-[1.5rem] font-black text-xs uppercase tracking-widest hover:bg-slate-200 transition-all font-body">Batal</button>
-                        </div>
-                    </form>
+      {/* Detail */}
+      <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
+        <DialogContent className="max-w-2xl p-0 overflow-hidden border-none shadow-2xl rounded-[2.5rem] bg-white/95 backdrop-blur-xl">
+          {selected && (
+            <div className="flex flex-col max-h-[85vh]">
+              <div className="h-40 bg-slate-900 relative overflow-hidden shrink-0">
+                <div className="absolute inset-0 bg-gradient-to-br from-primary/40 to-transparent" />
+                <div className="absolute -bottom-10 left-8 z-20 p-1.5 bg-white rounded-[1.5rem] shadow-2xl">
+                  <Avatar className="h-20 w-20 rounded-[1.2rem]">
+                    <AvatarFallback className="bg-gradient-to-br from-slate-100 to-slate-200 text-slate-800 text-2xl font-black">{selected.Nama?.split(' ').map(n => n[0]).join('').substring(0, 2) || '?'}</AvatarFallback>
+                  </Avatar>
                 </div>
+              </div>
+              <div className="overflow-y-auto p-8 pt-14 space-y-6">
+                <div>
+                  <h2 className="text-2xl font-black text-slate-900 font-headline tracking-tighter uppercase">{selected.Nama}</h2>
+                  <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{selected.NIM}</p>
+                </div>
+                <div className="grid grid-cols-2 gap-6">
+                  {[ ['Program Studi', selected.ProgramStudi?.Nama], ['Semester', selected.SemesterSekarang], ['Status', selected.StatusAkun], ['Email', selected.Pengguna?.Email], ['IPK', selected.IPK?.toFixed(2) || '0.00'], ['Total SKS', selected.TotalSKS || 0] ].map(([label, val]) => (
+                    <div key={label}>
+                      <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{label}</p>
+                      <p className="text-sm font-black text-slate-900 font-headline truncate">{val || '—'}</p>
+                    </div>
+                  ))}
+                  <div>
+                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Tahun Masuk / Angkatan</p>
+                    <p className="text-sm font-black text-slate-900 font-headline">{selected.TahunMasuk || '—'}</p>
+                  </div>
+                </div>
+              </div>
+              <div className="p-6 border-t border-slate-100 flex justify-end gap-3 bg-slate-50/50">
+                <Button variant="ghost" onClick={() => setIsDetailOpen(false)} className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-8 h-10 rounded-2xl">Tutup</Button>
+                <Button onClick={() => { setIsDetailOpen(false); handleOpenEdit(selected) }} className="h-10 px-8 rounded-2xl bg-primary text-white font-black text-[10px] uppercase tracking-widest">Edit Data</Button>
+              </div>
             </div>
           )}
-        </div>
-    )
-}
+        </DialogContent>
+      </Dialog>
 
-export default StudentDirectory;
+      {/* CRUD */}
+      <Dialog open={isCrudOpen} onOpenChange={setIsCrudOpen}>
+        <DialogContent className="max-w-xl p-0 overflow-hidden border-none shadow-2xl rounded-[2rem] bg-white/95 backdrop-blur-xl">
+          <DialogHeader className="p-8 pb-6 bg-gradient-to-br from-slate-50 to-white border-b border-slate-100 relative overflow-hidden">
+            <div className="absolute top-0 right-0 p-8 opacity-5"><GraduationCap className="size-24 rotate-12" /></div>
+            <div className="relative z-10">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="size-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary">{isEditMode ? <Pencil className="size-4" /> : <Plus className="size-4 stroke-[3px]" />}</div>
+                <Badge className="text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 bg-primary/5 text-primary border-none">Student Registry</Badge>
+              </div>
+              <DialogTitle className="text-2xl font-black font-headline tracking-tighter text-slate-900 uppercase">{isEditMode ? 'Update Mahasiswa' : 'Registrasi Baru'}</DialogTitle>
+              <DialogDescription className="text-xs font-medium text-slate-400 mt-1">Dokumentasi data akademik & personal mahasiswa.</DialogDescription>
+            </div>
+          </DialogHeader>
+          <form onSubmit={handleSave} className="p-8 pt-6 space-y-4 max-h-[60vh] overflow-y-auto">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2"><Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">NIM</Label><Input required value={form.NIM} onChange={e => setForm({ ...form, NIM: e.target.value })} placeholder="BKU2024001" className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white font-bold text-sm font-headline uppercase" /></div>
+              <div className="space-y-2"><Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Nama Lengkap</Label><Input required value={form.Nama} onChange={e => setForm({ ...form, Nama: e.target.value })} placeholder="Nama mahasiswa..." className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white font-bold text-sm font-headline" /></div>
+            </div>
+            <div className="space-y-2"><Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Email Kampus</Label><Input required type="email" value={form.EmailKampus} onChange={e => setForm({ ...form, EmailKampus: e.target.value })} placeholder="email@bku.ac.id" className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white font-bold text-sm font-headline" /></div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Fakultas</Label>
+                <Select value={String(form.FakultasID)} onValueChange={v => setForm({ ...form, FakultasID: v, ProgramStudiID: '' })}>
+                  <SelectTrigger className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white font-bold text-sm font-headline"><SelectValue placeholder="Pilih Fakultas" /></SelectTrigger>
+                  <SelectContent className="rounded-2xl shadow-2xl p-1">
+                    {faculties.map(f => <SelectItem key={f.ID} value={String(f.ID)} className="rounded-xl font-bold text-[11px] p-3 uppercase">{f.Nama}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Program Studi</Label>
+                <Select value={String(form.ProgramStudiID)} onValueChange={v => setForm({ ...form, ProgramStudiID: v })}>
+                  <SelectTrigger className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white font-bold text-sm font-headline"><SelectValue placeholder="Pilih Prodi" /></SelectTrigger>
+                  <SelectContent className="rounded-2xl shadow-2xl p-1">
+                    {prodi.filter(p => !form.FakultasID || p.FakultasID === parseInt(form.FakultasID)).map(p => (
+                      <SelectItem key={p.ID} value={String(p.ID)} className="rounded-xl font-bold text-[11px] p-3 uppercase">{p.Nama}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Status Akun</Label>
+                <Select value={form.StatusAkun} onValueChange={v => setForm({ ...form, StatusAkun: v })}>
+                  <SelectTrigger className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white font-bold text-sm font-headline"><SelectValue /></SelectTrigger>
+                  <SelectContent className="rounded-2xl shadow-2xl p-1">
+                    {['Aktif', 'Cuti', 'Lulus', 'Nonaktif'].map(s => <SelectItem key={s} value={s} className="rounded-xl font-bold text-[11px] p-3 uppercase">{s}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2"><Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Semester Aktif</Label><Input type="number" min={1} max={14} value={form.SemesterSekarang} onChange={e => setForm({ ...form, SemesterSekarang: e.target.value })} className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white font-bold text-sm font-headline" /></div>
+            </div>
+            <div className="space-y-2"><Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Tahun Masuk</Label><Input type="number" value={form.TahunMasuk} onChange={e => setForm({ ...form, TahunMasuk: e.target.value })} className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white font-bold text-sm font-headline" /></div>
+          </form>
+          <div className="px-8 pb-8 pt-4 flex flex-row items-center justify-end gap-3 border-t border-slate-100 bg-slate-50/30">
+            <Button type="button" variant="ghost" onClick={() => setIsCrudOpen(false)} className="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-900 px-8 h-12 rounded-2xl">Batalkan</Button>
+            <Button onClick={handleSave} disabled={isSubmitting} className="h-12 px-10 rounded-2xl bg-primary text-white hover:bg-primary/90 shadow-xl shadow-primary/20 transition-all hover:scale-[1.02] active:scale-95">
+              {isSubmitting ? <Loader2 className="animate-spin size-4 mr-2" /> : <Save className="size-4 mr-2 stroke-[3px]" />}
+              <span className="text-[10px] font-black uppercase tracking-[0.2em]">{isEditMode ? 'Update Record' : 'Create Record'}</span>
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <DeleteConfirmModal isOpen={isDelOpen} onClose={() => setIsDelOpen(false)} onConfirm={handleDelete}
+        title="Hapus Mahasiswa?" description="Data akademik mahasiswa ini akan dihapus permanen dari sistem." loading={isSubmitting} />
+    </div>
+  )
+}

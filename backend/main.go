@@ -2,7 +2,6 @@ package main
 
 import (
 	"log"
-	"os"
 	authSvc "siakad-backend/auth"
 	"siakad-backend/config"
 	"siakad-backend/controllers/mahasiswa/achievement"
@@ -11,7 +10,6 @@ import (
 	"siakad-backend/controllers/mahasiswa/health"
 	"siakad-backend/controllers/mahasiswa/kencana"
 	"siakad-backend/controllers/mahasiswa/notifikasi"
-	"siakad-backend/controllers/mahasiswa/organisasi"
 	"siakad-backend/controllers/mahasiswa/profil"
 	"siakad-backend/controllers/mahasiswa/scholarship"
 	"siakad-backend/controllers/mahasiswa/voice"
@@ -33,7 +31,7 @@ func main() {
 	// Connect to Database
 	config.ConnectDB()
 
-	// Bootstrap Data (Optional)
+	// Bootstrap Data
 	authSvc.EnsureBootstrapData()
 
 	app := fiber.New(fiber.Config{
@@ -45,36 +43,50 @@ func main() {
 		},
 	})
 
-	// Middleware woi
+	// Middleware
 	app.Use(recover.New())
 	app.Use(logger.New())
 	app.Use(cors.New(cors.Config{
 		AllowOrigins:     "http://localhost:5173, http://127.0.0.1:5173",
 		AllowHeaders:     "Origin, Content-Type, Accept, Authorization",
-		AllowMethods:     "GET, POST, PUT, DELETE",
+		AllowMethods:     "GET, POST, PUT, DELETE, OPTIONS",
 		AllowCredentials: true,
 	}))
 
-	// Static files for uploads
+	// Static files
 	app.Static("/uploads", "./uploads")
 
-	// API Groups
-	api := app.Group("/api")
-
+	// Unprotected routes
+	app.Get("/api/health", func(c *fiber.Ctx) error {
+		return c.Status(200).JSON(fiber.Map{
+			"status": "success",
+			"message": "Backend is online",
+		})
+	})
+	app.Get("/api/status", func(c *fiber.Ctx) error {
+		return c.Status(200).JSON(fiber.Map{
+			"status": "success",
+			"message": "Backend is online",
+		})
+	})
+	
 	// Auth Routes
-	authGroup := api.Group("/auth")
+	authGroup := app.Group("/api/auth")
 	authGroup.Post("/login", authSvc.Login)
-	authGroup.Post("/refresh", authSvc.RefreshToken)
-	authGroup.Post("/logout", authSvc.Logout)
-	authGroup.Put("/change-password", middleware.AuthProtected, authSvc.ChangePassword)
 
-	// Mahasiswa Routes
-	mahasiswaGroup := api.Group("/mahasiswa", middleware.AuthProtected)
-	mahasiswaGroup.Get("/dashboard", dashboard.GetDashboard)
-	mahasiswaGroup.Get("/kegiatan", dashboard.GetKegiatan)
+	// Admin Routes (Protected separately)
+	adminGroup := app.Group("/api/admin", middleware.AuthProtected, middleware.AdminCheck)
+	routes.SetupSuperAdminRoutes(adminGroup)
 
-	// PKKMB (Kencana) Routes
-	kencanaGroup := api.Group("/kencana", middleware.AuthProtected)
+	// API Group for typical authenticated users
+	api := app.Group("/api", middleware.AuthProtected)
+	
+	// Mahasiswa Dashboard
+	api.Get("/mahasiswa/dashboard", dashboard.GetDashboard)
+	api.Get("/mahasiswa/kegiatan", dashboard.GetKegiatan)
+
+	// PKKMB (Kencana)
+	kencanaGroup := api.Group("/kencana")
 	kencanaGroup.Get("/progress", kencana.GetProgress)
 	kencanaGroup.Post("/check-in/:id", kencana.CheckIn)
 	kencanaGroup.Get("/sertifikat", kencana.GetSertifikat)
@@ -84,85 +96,54 @@ func main() {
 	kencanaGroup.Get("/kuis/:id/soal", kencana.GetKuisSoal)
 	kencanaGroup.Post("/kuis/:id/submit", kencana.SubmitKuis)
 
-	// Achievement Routes
-	achievementGroup := api.Group("/achievement", middleware.AuthProtected)
+	// Achievement
+	achievementGroup := api.Group("/achievement")
 	achievementGroup.Get("/", achievement.GetAchievements)
-	achievementGroup.Get("/:id", achievement.GetAchievementDetail)
 	achievementGroup.Post("/", achievement.CreateAchievement)
+	achievementGroup.Get("/:id", achievement.GetAchievementDetail)
 	achievementGroup.Delete("/:id", achievement.DeleteAchievement)
 
-	// Profil Routes
-	profilGroup := api.Group("/profil", middleware.AuthProtected)
+	// Profil
+	profilGroup := api.Group("/profil")
 	profilGroup.Get("/", profil.GetProfile)
 	profilGroup.Put("/data-diri", profil.UpdateProfile)
-	profilGroup.Post("/foto", profil.UploadAvatar)
-	profilGroup.Get("/preferensi-notif", profil.GetPreferensiNotif)
-	profilGroup.Put("/preferensi-notif", profil.UpdatePreferensiNotif)
-	profilGroup.Get("/sesi-aktif", profil.GetSesiAktif)
-	profilGroup.Get("/riwayat-login", profil.GetRiwayatLogin)
-	profilGroup.Put("/ganti-password", profil.ChangePassword)
+	profilGroup.Put("/change-password", profil.ChangePassword)
 
-	// Scholarship Routes
-	scholarshipGroup := api.Group("/scholarship", middleware.AuthProtected)
-	scholarshipGroup.Get("/", scholarship.GetKatalogBeasiswa)
-	scholarshipGroup.Get("/riwayat", scholarship.GetRiwayatPengajuan)
-	scholarshipGroup.Get("/pengajuan/:id", scholarship.GetPengajuanDetail)
-	scholarshipGroup.Get("/:id", scholarship.GetBeasiswaDetail)
-	scholarshipGroup.Post("/daftar/:id", scholarship.DaftarBeasiswa)
+	// Student Health Records
+	studentHealthGroup := api.Group("/student-health")
+	studentHealthGroup.Get("/riwayat", health.GetHealthRiwayat)
+	studentHealthGroup.Get("/ringkasan", health.GetHealthRingkasan)
+	studentHealthGroup.Post("/record", health.CreateHealthRecord)
 
-	// Counseling Routes
-	counselingGroup := api.Group("/counseling", middleware.AuthProtected)
-	counselingGroup.Get("/jadwal", counseling.GetCounselingJadwal)
-	counselingGroup.Get("/riwayat", counseling.GetCounselingRiwayat)
-	counselingGroup.Delete("/riwayat/:id", counseling.CancelBooking)
-	counselingGroup.Post("/booking", counseling.CreateBooking)
+	// Counseling
+	counselingGroup := api.Group("/counseling")
 	counselingGroup.Get("/status", counseling.GetCounselingStatus)
 	counselingGroup.Post("/request", counseling.RequestCounseling)
+	counselingGroup.Get("/riwayat", counseling.GetCounselingRiwayat)
 
-	// Health Routes
-	healthGroup := api.Group("/health", middleware.AuthProtected)
-	healthGroup.Get("/ringkasan", health.GetHealthRingkasan)
-	healthGroup.Get("/riwayat", health.GetHealthRiwayat)
-	healthGroup.Get("/riwayat/:id", health.GetHealthDetail)
-	healthGroup.Get("/tips", health.GetHealthTips)
-	healthGroup.Post("/mandiri", health.CreateHealthMandiri)
-	healthGroup.Post("/record", health.CreateHealthRecord)
+	// Scholarship
+	scholarshipGroup := api.Group("/scholarship")
+	scholarshipGroup.Get("/katalog", scholarship.GetKatalogBeasiswa)
+	scholarshipGroup.Get("/riwayat", scholarship.GetRiwayatPengajuan)
 
-	// Student Voice (Aspirasi) Routes
-	voiceGroup := api.Group("/student-voice", middleware.AuthProtected)
-	voiceGroup.Get("/", voice.GetAspirasiList)
+	// Voice (Aspirasi)
+	voiceGroup := api.Group("/voice")
 	voiceGroup.Get("/stats", voice.GetStats)
-	voiceGroup.Get("/:id", voice.GetDetail)
-	voiceGroup.Post("/", voice.CreateAspirasi)
-	voiceGroup.Put("/:id/cancel", voice.CancelAspirasi)
+	voiceGroup.Get("/list", voice.GetAspirasiList)
+	voiceGroup.Post("/create", voice.CreateAspirasi)
 
-	// Organisasi Routes
-	orgGroup := api.Group("/organisasi", middleware.AuthProtected)
-	orgGroup.Get("/", organisasi.GetList)
-	orgGroup.Post("/", organisasi.Create)
-	orgGroup.Put("/:id", organisasi.Update)
-	orgGroup.Delete("/:id", organisasi.Delete)
-
-	// Notification Routes
-	notifGroup := api.Group("/notifikasi", middleware.AuthProtected)
+	// Notification
+	notifGroup := api.Group("/notifikasi")
 	notifGroup.Get("/", notifikasi.GetNotifications)
 	notifGroup.Get("/unread-count", notifikasi.GetUnreadCount)
 	notifGroup.Put("/:id/baca", notifikasi.MarkAsRead)
 	notifGroup.Put("/baca-semua", notifikasi.MarkAllAsRead)
-	notifGroup.Delete("/hapus-bulk", notifikasi.DeleteBulk)
-	notifGroup.Delete("/hapus-sudah-dibaca", notifikasi.DeleteRead)
-	notifGroup.Delete("/:id", notifikasi.DeleteNotification)
 
 	// Modular Routes
 	routes.InisialisasiRuteFakultas(app)
 	routes.SetupOrmawaRoutes(app)
-	routes.SetupSuperAdminRoutes(app)
 
 	// Start Server
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "8000"
-	}
-	log.Printf("Server starting on port :%s", port)
-	app.Listen(":" + port)
+	port := "8000"
+	log.Fatal(app.Listen(":" + port))
 }

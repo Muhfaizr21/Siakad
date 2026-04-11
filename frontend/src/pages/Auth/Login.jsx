@@ -67,8 +67,12 @@ export default function Login() {
         const roleFromResponse = payload?.user?.role;
         const role = roleFromResponse || getRoleFromToken(token);
 
-        const userData = (payload.mahasiswa && payload.mahasiswa.nim) ? payload.mahasiswa : payload.user;
-        setAuth(token, userData || null);
+        // Save both if available, the store will sort it out or we can be explicit
+        // For now, let's just pass the payload.user as 'user' and payload.mahasiswa as 'mahasiswa'
+        // But our useAuthStore.setAuth (token, data) only takes one 'data'.
+        // Let's modify setAuth again to take (token, user, mahasiswa)
+        
+        setAuth(token, payload.user, payload.mahasiswa);
         navigate(getRouteByRole(role), { replace: true });
       }
     } catch (error) {

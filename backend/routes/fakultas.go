@@ -123,9 +123,6 @@ func InisialisasiRuteFakultas(aplikasi *fiber.App) {
 
 	// Agenda/Kegiatan
 	api.Get("/kegiatan", fakultas.AmbilDaftarKegiatanPkkmb)
-	api.Post("/kegiatan", fakultas.TambahKegiatanPkkmb)
-	// pkkmb.Put("/kegiatan/:id", fakultas.UpdateKegiatanPkkmb)
-	// pkkmb.Delete("/kegiatan/:id", fakultas.HapusKegiatanPkkmb)
 
 	// Materi
 	api.Get("/materi", fakultas.AmbilDaftarMateriPkkmb)

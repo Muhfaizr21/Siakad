@@ -1,22 +1,28 @@
 import React from 'react';
-import { Navigate } from 'react-router-dom';
-import { getDefaultRouteByRole, getSession, hasRole, isAuthenticated } from '../lib/auth';
+import { Navigate, useLocation } from 'react-router-dom';
+import useAuthStore from '../store/useAuthStore';
 
-export default function ProtectedRoute({ children, allowedRoles = [] }) {
-  if (!isAuthenticated()) {
-    return <Navigate to="/login" replace />;
+const ProtectedRoute = ({ children, allowedRoles = [] }) => {
+  const { isAuthenticated, user, accessToken } = useAuthStore();
+  const location = useLocation();
+
+  // If not authenticated, redirect to login
+  if (!isAuthenticated || !accessToken) {
+    return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  if (allowedRoles.length === 0) {
-    return children;
-  }
-
-  const session = getSession();
-  const role = session?.user?.role;
-
-  if (!hasRole(allowedRoles)) {
-    return <Navigate to={getDefaultRouteByRole(role)} replace />;
+  // If roles are specified, check if user has one of them
+  if (allowedRoles.length > 0 && user) {
+    const userRole = String(user.role || '').toLowerCase();
+    const isAllowed = allowedRoles.some(role => role.toLowerCase() === userRole);
+    
+    if (!isAllowed) {
+      // Redirect to a 403 page or home
+      return <Navigate to="/403" replace />;
+    }
   }
 
   return children;
-}
+};
+
+export default ProtectedRoute;

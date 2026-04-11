@@ -1,264 +1,241 @@
-import React, { useState, useEffect } from 'react';
-import Sidebar from './components/Sidebar';
-import TopNavBar from './components/TopNavBar';
-import { useAuth } from '../../context/AuthContext';
-import { ormawaService } from '../../services/api';
+"use client"
 
-const AnggotaManagement = () => {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { user } = useAuth();
-  const ormawaId = user?.ormawaId || 1;
-  const [anggotaList, setAnggotaList] = useState([]);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [formData, setFormData] = useState({ studentId: '', role: 'Staf', division: '', status: 'aktif' });
-  const [students, setStudents] = useState([]);
-  const [divisions, setDivisions] = useState([]);
+import React, { useState, useEffect } from 'react'
+import { DataTable } from '../FacultyAdmin/components/data-table'
+import { Badge } from '../FacultyAdmin/components/badge'
+import { Button } from '../FacultyAdmin/components/button'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '../FacultyAdmin/components/dialog'
+import { DeleteConfirmModal } from '../FacultyAdmin/components/DeleteConfirmModal'
+import { Card, CardContent } from '../FacultyAdmin/components/card'
+import { Input } from '../FacultyAdmin/components/input'
+import { Label } from '../FacultyAdmin/components/label'
+import { Avatar, AvatarFallback } from '../FacultyAdmin/components/avatar'
+import { Eye, Pencil, Trash2, Loader2, Plus, Save, Users, Mail } from 'lucide-react'
+import { toast, Toaster } from 'react-hot-toast'
+import { cn } from '@/lib/utils'
+import Sidebar from './components/Sidebar'
+import TopNavBar from './components/TopNavBar'
 
-  useEffect(() => {
-    if (ormawaId) {
-      loadInitialData();
-    }
-  }, [ormawaId]);
+import { fetchWithAuth, API_BASE_URL } from '../../services/api'
+import useAuthStore from '../../store/useAuthStore'
 
-  const loadInitialData = async () => {
-    try {
-      const [members, divs, allStudents] = await Promise.all([
-        ormawaService.getMembers(ormawaId),
-        ormawaService.getDivisions(ormawaId),
-        ormawaService.getAllStudents()
-      ]);
+const API = `${API_BASE_URL}/ormawa`
 
-      if (members.status === 'success') setAnggotaList(members.data || []);
-      if (divs.status === 'success') setDivisions(divs.data || []);
-      if (allStudents.status === 'success') setStudents(allStudents.data || []);
-    } catch (e) {
-      console.error("Gagal memuat data keanggotaan:", e);
-    }
-  };
+const ROLES = ['Ketua Umum', 'Wakil Ketua', 'Sekretaris', 'Bendahara', 'Kepala Divisi', 'Staff', 'Anggota']
+
+export default function AnggotaManagement() {
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [members, setMembers] = useState([])
+  const [students, setStudents] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [selected, setSelected] = useState(null)
+  const [isDetailOpen, setIsDetailOpen] = useState(false)
+  const [isCrudOpen, setIsCrudOpen] = useState(false)
+  const [isDelOpen, setIsDelOpen] = useState(false)
+  const [isEditMode, setIsEditMode] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const ormawaId = useAuthStore.getState()?.mahasiswa?.ormawaId || useAuthStore.getState()?.mahasiswa?.ID || 1
+  const [form, setForm] = useState({ MahasiswaID: '', Role: 'Anggota', Divisi: '', OrmawaID: ormawaId })
 
   const fetchMembers = async () => {
+    setLoading(true)
     try {
-      const data = await ormawaService.getMembers(ormawaId);
-      if (data.status === 'success') setAnggotaList(data.data || []);
-    } catch (e) { console.error(e); }
-  };
+      const data = await fetchWithAuth(`${API}/members?ormawaId=${ormawaId}`)
+      if (data.status === 'success') setMembers(data.data || [])
+      else toast.error('Gagal memuat anggota')
+    } catch { toast.error('Koneksi gagal') } finally { setLoading(false) }
+  }
+  const fetchStudents = async () => {
+    try { const data = await fetchWithAuth(`${API}/students`); if (data.status === 'success') setStudents(data.data || []) } catch {}
+  }
 
-  const handleUpdateStatus = async (id, newStatus) => {
+  useEffect(() => { fetchMembers(); fetchStudents() }, [])
+
+  const handleOpenAdd = () => {
+    setIsEditMode(false); setForm({ MahasiswaID: '', Role: 'Anggota', Divisi: '', OrmawaID: ormawaId }); setIsCrudOpen(true)
+  }
+  const handleOpenEdit = (row) => {
+    setIsEditMode(true); setForm({ ID: row.ID, MahasiswaID: String(row.MahasiswaID || ''), Role: row.Role || 'Anggota', Divisi: row.Divisi || '', OrmawaID: ormawaId }); setIsCrudOpen(true)
+  }
+  const handleSave = async (e) => {
+    e.preventDefault(); setIsSubmitting(true)
+    const url = isEditMode ? `${API}/members/${form.ID}` : `${API}/members`
+    const method = isEditMode ? 'PUT' : 'POST'
+    const payload = { ...form, MahasiswaID: Number(form.MahasiswaID), OrmawaID: Number(form.OrmawaID) }
     try {
-      const data = await ormawaService.updateMember(id, { Status: newStatus });
-      if (data.status === 'success') fetchMembers();
-    } catch (e) { alert("⚠️ Gagal memperbarui status."); }
-  };
-
-  const handleDelete = async (id) => {
-    if (!window.confirm('Hapus anggota ini dari organisasi?')) return;
+      const data = await fetchWithAuth(url, { method, body: JSON.stringify(payload), headers: { 'Content-Type': 'application/json' } })
+      if (data.status === 'success') { toast.success(isEditMode ? 'Data diperbarui' : 'Anggota ditambahkan'); setIsCrudOpen(false); fetchMembers() }
+      else toast.error(data.message || 'Gagal menyimpan')
+    } catch { toast.error('Terjadi kesalahan') } finally { setIsSubmitting(false) }
+  }
+  const handleDelete = async () => {
+    setIsSubmitting(true)
     try {
-      const data = await ormawaService.deleteMember(id);
-      if (data.status === 'success') fetchMembers();
-    } catch (e) { alert("⚠️ Gagal menghapus anggota."); }
-  };
+      const data = await fetchWithAuth(`${API}/members/${selected.ID}`, { method: 'DELETE' })
+      if (data.status === 'success') { toast.success('Anggota dihapus'); setIsDelOpen(false); fetchMembers() }
+      else toast.error('Gagal menghapus')
+    } catch { toast.error('Terjadi kesalahan') } finally { setIsSubmitting(false) }
+  }
 
-  const handleAddMember = async (e) => {
-    e.preventDefault();
-    try {
-      const data = await ormawaService.addMember({
-        OrmawaID: Number(ormawaId),
-        MahasiswaID: parseInt(formData.studentId),
-        Role: formData.role,
-        Divisi: formData.division,
-        Status: 'aktif'
-      });
-      if (data.status === 'success') {
-        setIsModalOpen(false);
-        setFormData({ studentId: '', role: 'Staf', division: '', status: 'aktif' });
-        fetchMembers();
-      }
-    } catch (e) { alert(`⚠️ Gagal mendaftarkan: ${e.message}`); }
-  };
-
-  const filteredData = anggotaList.filter(item => 
-    item.Mahasiswa?.Nama?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.Mahasiswa?.NIM?.toString().includes(searchTerm)
-  );
+  const columns = [
+    {
+      key: 'Mahasiswa', label: 'Profil Anggota', className: 'min-w-[280px]',
+      render: (val, row) => (
+        <div className="flex items-center gap-3">
+          <Avatar className="h-10 w-10 rounded-2xl border-2 border-white shadow-sm ring-1 ring-slate-100">
+            <AvatarFallback className="bg-slate-100 text-slate-800 text-[10px] font-black uppercase">
+              {row.Mahasiswa?.Nama?.split(' ').map(n => n[0]).join('').substring(0, 2) || '?'}
+            </AvatarFallback>
+          </Avatar>
+          <div className="flex flex-col leading-tight">
+            <span className="font-bold text-slate-900 font-headline tracking-tighter text-[13px]">{row.Mahasiswa?.Nama || '—'}</span>
+            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-tight flex items-center gap-1">
+              <Mail className="size-2.5 opacity-60" />{row.Mahasiswa?.NIM || '—'}
+            </span>
+          </div>
+        </div>
+      )
+    },
+    {
+      key: 'Role', label: 'Jabatan', className: 'w-[200px]',
+      render: (val) => <span className="text-xs text-slate-600 font-black font-headline uppercase">{val || '—'}</span>
+    },
+    {
+      key: 'Divisi', label: 'Divisi', className: 'w-[180px]',
+      render: (val) => val
+        ? <Badge className="bg-primary/5 text-primary font-black text-[10px] border-none">{val}</Badge>
+        : <span className="text-slate-300 text-xs font-bold">Umum</span>
+    },
+    {
+      key: 'Status', label: 'Status', className: 'w-[130px] text-center', cellClassName: 'text-center',
+      render: (val) => (
+        <Badge className={cn('font-black text-[10px] px-3 py-1 border-none shadow-sm',
+          val === 'aktif' || !val ? 'bg-emerald-100 text-emerald-700 ring-1 ring-emerald-500/20' : 'bg-slate-100 text-slate-600')}>
+          {val === 'aktif' || !val ? 'Aktif' : val}
+        </Badge>
+      )
+    }
+  ]
 
   return (
-    <div className="bg-surface text-on-surface min-h-screen">
+    <div className="bg-slate-50 min-h-screen font-sans">
       <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
-      <main className="lg:ml-64 min-h-screen pb-12 transition-all duration-300">
+      <main className="lg:ml-60 min-h-screen transition-all duration-300">
         <TopNavBar setIsOpen={setSidebarOpen} />
-        
-        <div className="pt-24 px-4 lg:px-8">
-          
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
-            <div>
-              <h1 className="text-3xl font-extrabold font-headline mb-2 text-on-surface">Manajemen Anggota</h1>
-              <p className="text-on-surface-variant text-sm font-medium">Kelola data keanggotaan, persetujuan pendaftar, dan status alumni organisasi Anda.</p>
-            </div>
+        <div className="pt-20 px-6 pb-12">
+          <Toaster position="top-right" />
+          <div className="flex flex-col gap-1.5 mb-8">
             <div className="flex items-center gap-3">
-              <button 
-                onClick={() => setIsModalOpen(true)}
-                className="flex items-center gap-2 px-5 py-2.5 bg-primary text-white font-bold rounded-xl hover:bg-primary-dark transition-all shadow-lg shadow-primary/20"
-              >
-                <span className="material-symbols-outlined text-[18px]">person_add</span>
-                Tambah Anggota
-              </button>
-              <button className="flex items-center gap-2 px-5 py-2.5 bg-rose-50 text-rose-600 font-bold rounded-xl hover:bg-rose-100 transition-colors border border-rose-200">
-                <span className="material-symbols-outlined text-[18px]">picture_as_pdf</span>
-                Export PDF
-              </button>
+              <div className="p-2 bg-primary/10 rounded-xl text-primary"><Users className="size-6" /></div>
+              <h1 className="text-2xl font-black text-slate-900 font-headline tracking-tighter uppercase">Manajemen Anggota</h1>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="h-1 w-10 bg-primary rounded-full shadow-sm shadow-primary/30" />
+              <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Database Keanggotaan & Struktur Ormawa</p>
             </div>
           </div>
-
-          <div className="bg-surface-container-lowest p-6 rounded-3xl border border-outline-variant/20 shadow-sm mb-6 flex flex-col lg:flex-row gap-4 items-center justify-between">
-            <div className="relative w-full lg:w-96">
-              <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
-              <input 
-                type="text" 
-                placeholder="Cari berdasarkan NIM atau Nama..." 
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full bg-surface-container-low border border-outline-variant/30 text-on-surface text-sm rounded-xl focus:ring-primary focus:border-primary block pl-12 p-3 font-medium transition-all"
+          <Card className="border-none shadow-sm overflow-hidden bg-white/50 backdrop-blur-md">
+            <CardContent className="p-0">
+              <DataTable
+                columns={columns} data={members} loading={loading}
+                searchPlaceholder="Cari nama atau NIM anggota..."
+                onAdd={handleOpenAdd} addLabel="Tambah Anggota"
+                actions={(row) => (
+                  <div className="flex items-center gap-2">
+                    <Button onClick={() => { setSelected(row); setIsDetailOpen(true) }} variant="ghost" size="icon" className="h-8 w-8 hover:text-primary hover:bg-primary/10 rounded-xl"><Eye className="size-4" /></Button>
+                    <Button onClick={() => handleOpenEdit(row)} variant="ghost" size="icon" className="h-8 w-8 hover:text-amber-600 hover:bg-amber-50 rounded-xl"><Pencil className="size-4" /></Button>
+                    <Button onClick={() => { setSelected(row); setIsDelOpen(true) }} variant="ghost" size="icon" className="h-8 w-8 hover:text-rose-600 hover:bg-rose-50 rounded-xl"><Trash2 className="size-4" /></Button>
+                  </div>
+                )}
               />
-            </div>
-          </div>
-
-          <div className="bg-surface-container-lowest border border-outline-variant/20 rounded-3xl overflow-hidden shadow-sm">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm text-on-surface">
-                <thead className="text-xs text-on-surface-variant uppercase bg-surface-container-low/50 border-b border-outline-variant/20 font-label tracking-wider">
-                  <tr>
-                    <th className="px-6 py-5 font-bold">Profil Anggota</th>
-                    <th className="px-6 py-5 font-bold">Jabatan & Divisi</th>
-                    <th className="px-6 py-5 font-bold text-center">Status</th>
-                    <th className="px-6 py-5 font-bold text-right">Aksi</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-outline-variant/10">
-                  {filteredData.map((anggota) => (
-                    <tr key={anggota.ID} className="hover:bg-surface-container-low/30 transition-colors group">
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-4">
-                          <div className="w-12 h-12 rounded-full overflow-hidden bg-primary-container text-primary flex justify-center items-center font-bold text-lg shadow-inner">
-                            {anggota.Mahasiswa?.Nama?.charAt(0)}
-                          </div>
-                          <div>
-                            <div className="font-bold font-headline text-base text-on-surface group-hover:text-primary transition-colors">{anggota.Mahasiswa?.Nama}</div>
-                            <div className="text-xs font-medium text-on-surface-variant mt-0.5">NIM: {anggota.Mahasiswa?.NIM}</div>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="font-semibold text-on-surface">{anggota.Role}</div>
-                        <div className="text-xs font-medium text-on-surface-variant mt-0.5">{anggota.Divisi || 'Tanpa Divisi'}</div>
-                      </td>
-                      <td className="px-6 py-4 text-center">
-                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${anggota.Status === 'aktif' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-600'}`}>
-                           {anggota.Status}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-right space-x-2">
-                        <div className="flex items-center justify-end gap-2">
-                          <select 
-                            value={anggota.Status}
-                            onChange={(e) => handleUpdateStatus(anggota.ID, e.target.value)}
-                            className="bg-surface-container-low border border-outline-variant/30 text-xs font-bold rounded-lg px-2 py-1 outline-none focus:ring-1 focus:ring-primary transition-all"
-                          >
-                            <option value="pending">Pending</option>
-                            <option value="aktif">Aktif</option>
-                            <option value="tidak_aktif">Non-Aktif</option>
-                            <option value="alumni">Alumni</option>
-                            <option value="ditolak">Ditolak</option>
-                          </select>
-                          <button 
-                            onClick={() => handleDelete(anggota.ID)}
-                            className="w-8 h-8 rounded-lg flex items-center justify-center text-on-surface-variant hover:bg-rose-50 hover:text-rose-600 transition-all border border-transparent hover:border-rose-100"
-                          >
-                            <span className="material-symbols-outlined text-[18px]">delete</span>
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                  {filteredData.length === 0 && (
-                    <tr>
-                      <td colSpan="4" className="px-6 py-12 text-center text-on-surface-variant font-medium">
-                        Tidak ada data anggota.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
+            </CardContent>
+          </Card>
         </div>
       </main>
 
-      {/* Modal Add Member */}
-      {isModalOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/30 backdrop-blur-sm p-4">
-          <div className="bg-surface w-full max-w-md rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 border border-outline-variant/10">
-            <div className="px-8 py-8 flex justify-between items-center bg-primary/5">
-              <div>
-                <h2 className="text-2xl font-bold font-headline text-on-surface">Tambah Anggota</h2>
-                <p className="text-xs text-on-surface-variant font-medium mt-1 uppercase tracking-widest">Portal Fungsionaris</p>
+      {/* DETAIL */}
+      <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
+        <DialogContent className="max-w-md p-0 overflow-hidden border-none shadow-2xl rounded-[2.5rem] bg-white/95 backdrop-blur-xl">
+          {selected && (
+            <div>
+              <div className="h-36 bg-slate-900 relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-primary/40 to-transparent" />
+                <div className="absolute -bottom-10 left-8 z-20 p-1.5 bg-white rounded-[1.5rem] shadow-2xl">
+                  <Avatar className="h-20 w-20 rounded-[1.2rem]">
+                    <AvatarFallback className="bg-gradient-to-br from-slate-100 to-slate-200 text-slate-800 text-2xl font-black">
+                      {selected.Mahasiswa?.Nama?.split(' ').map(n => n[0]).join('').substring(0, 2) || '?'}
+                    </AvatarFallback>
+                  </Avatar>
+                </div>
               </div>
-              <button onClick={() => setIsModalOpen(false)} className="w-10 h-10 rounded-full hover:bg-surface-container-high flex items-center justify-center text-on-surface-variant transition-colors"><span className="material-symbols-outlined">close</span></button>
+              <div className="p-8 pt-14 space-y-4">
+                <div>
+                  <h2 className="text-2xl font-black text-slate-900 font-headline tracking-tighter uppercase">{selected.Mahasiswa?.Nama}</h2>
+                  <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{selected.Mahasiswa?.NIM}</p>
+                </div>
+                <div className="grid grid-cols-2 gap-4 bg-slate-50 rounded-2xl p-4 border border-slate-100">
+                  <div><p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Jabatan</p><p className="text-sm font-black text-slate-900 font-headline uppercase">{selected.Role || '—'}</p></div>
+                  <div><p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Divisi</p><p className="text-sm font-black text-primary font-headline uppercase">{selected.Divisi || 'Umum'}</p></div>
+                </div>
+                <Button onClick={() => setIsDetailOpen(false)} className="w-full h-12 rounded-2xl bg-primary text-white font-black text-[10px] uppercase tracking-widest">Tutup</Button>
+              </div>
             </div>
-            <form onSubmit={handleAddMember} className="p-8 space-y-6">
-              <div>
-                <label className="block text-xs font-black text-on-surface-variant uppercase tracking-widest mb-2 px-1">Pilih Mahasiswa</label>
-                <select 
-                  required
-                  value={formData.studentId} 
-                  onChange={e => setFormData({...formData, studentId: e.target.value})}
-                  className="w-full p-4 bg-surface-container-low border border-outline-variant/20 rounded-2xl text-sm font-semibold focus:ring-2 focus:ring-primary/20 outline-none transition-all"
-                >
-                  <option value="">-- Cari Nama atau NIM --</option>
-                  {students.map(s => (
-                    <option key={s.ID} value={s.ID}>{s.Nama} ({s.NIM})</option>
-                  ))}
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* CRUD */}
+      <Dialog open={isCrudOpen} onOpenChange={setIsCrudOpen}>
+        <DialogContent className="max-w-lg p-0 overflow-hidden border-none shadow-2xl rounded-[2rem] bg-white/95 backdrop-blur-xl">
+          <DialogHeader className="p-8 pb-6 bg-gradient-to-br from-slate-50 to-white border-b border-slate-100 relative overflow-hidden">
+            <div className="absolute top-0 right-0 p-8 opacity-5"><Users className="size-24 rotate-12" /></div>
+            <div className="relative z-10">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="size-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                  {isEditMode ? <Pencil className="size-4" /> : <Plus className="size-4 stroke-[3px]" />}
+                </div>
+                <Badge className="text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 bg-primary/5 text-primary border-none">Anggota Registry</Badge>
+              </div>
+              <DialogTitle className="text-2xl font-black font-headline tracking-tighter text-slate-900 uppercase">{isEditMode ? 'Edit Anggota' : 'Tambah Anggota Baru'}</DialogTitle>
+              <DialogDescription className="text-xs font-medium text-slate-400 mt-1">Daftarkan mahasiswa sebagai anggota aktif ormawa.</DialogDescription>
+            </div>
+          </DialogHeader>
+          <form onSubmit={handleSave} className="p-8 pt-6 space-y-5">
+            <div className="space-y-2">
+              <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Pilih Mahasiswa</Label>
+              <select required value={form.MahasiswaID} onChange={e => setForm({ ...form, MahasiswaID: e.target.value })}
+                className="w-full h-12 rounded-2xl border border-slate-200 bg-slate-50/50 px-4 text-sm font-bold text-slate-700 focus:outline-none focus:bg-white transition-all">
+                <option value="">-- Pilih Mahasiswa --</option>
+                {students.map(s => <option key={s.ID} value={s.ID}>{s.Nama} ({s.NIM})</option>)}
+              </select>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Jabatan</Label>
+                <select value={form.Role} onChange={e => setForm({ ...form, Role: e.target.value })}
+                  className="w-full h-12 rounded-2xl border border-slate-200 bg-slate-50/50 px-4 text-sm font-bold text-slate-700 focus:outline-none focus:bg-white transition-all">
+                  {ROLES.map(r => <option key={r} value={r}>{r}</option>)}
                 </select>
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-bold text-on-surface uppercase tracking-widest mb-2">Role/Jabatan</label>
-                  <input 
-                    required type="text" placeholder="Staf, Sekretaris..."
-                    value={formData.role} onChange={e => setFormData({...formData, role: e.target.value})}
-                    className="w-full p-3 bg-surface-container border border-outline-variant/20 rounded-xl text-sm focus:ring-1 focus:ring-primary outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-on-surface uppercase tracking-widest mb-2 px-1">Divisi</label>
-                  <select 
-                    required
-                    value={formData.division} 
-                    onChange={e => setFormData({...formData, division: e.target.value})}
-                    className="w-full p-3 bg-surface-container border border-outline-variant/20 rounded-xl text-sm focus:ring-1 focus:ring-primary outline-none transition-all"
-                  >
-                    <option value="">-- Pilih Divisi --</option>
-                    {divisions.map(d => (
-                      <option key={d.ID} value={d.Nama}>{d.Nama}</option>
-                    ))}
-                    <option value="INTI">UMUM / INTI</option>
-                  </select>
-                </div>
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Divisi</Label>
+                <Input value={form.Divisi} onChange={e => setForm({ ...form, Divisi: e.target.value })} placeholder="Misal: Humas, IT, dll."
+                  className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white transition-all font-bold text-sm font-headline" />
               </div>
-              <button 
-                type="submit" 
-                className="w-full py-4 bg-primary text-on-primary font-bold rounded-2xl shadow-xl shadow-primary/20 hover:bg-primary/90 transition-all active:scale-95 flex items-center justify-center gap-2 mt-4"
-              >
-                <span className="material-symbols-outlined text-[20px]">person_check</span>
-                Daftarkan Anggota Baru
-              </button>
-            </form>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-};
+            </div>
+            <DialogFooter className="pt-4 flex flex-row items-center justify-end gap-3 border-t border-slate-100 -mx-8 px-8 bg-slate-50/30">
+              <Button type="button" variant="ghost" onClick={() => setIsCrudOpen(false)} className="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-900 px-8 h-12 rounded-2xl">Batalkan</Button>
+              <Button type="submit" disabled={isSubmitting} className="h-12 px-10 rounded-2xl bg-primary text-white hover:bg-primary/90 shadow-xl shadow-primary/20 transition-all hover:scale-[1.02] active:scale-95">
+                {isSubmitting ? <Loader2 className="animate-spin size-4 mr-2" /> : <Save className="size-4 mr-2 stroke-[3px]" />}
+                <span className="text-[10px] font-black uppercase tracking-[0.2em]">{isEditMode ? 'Update Record' : 'Create Record'}</span>
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
 
-export default AnggotaManagement;
+      <DeleteConfirmModal isOpen={isDelOpen} onClose={() => setIsDelOpen(false)} onConfirm={handleDelete}
+        title="Hapus Anggota?" description="Data keanggotaan ini akan dihapus permanen dari sistem." loading={isSubmitting} />
+    </div>
+  )
+}

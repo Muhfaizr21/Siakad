@@ -22,7 +22,7 @@ func migrateModels(db *gorm.DB) error {
 	// ========================
 	// PUBLIC (GLOBAL / AUTH / MASTER)
 	// ========================
-	if err := db.Table("public.users").AutoMigrate(
+	if err := db.AutoMigrate(
 		&models.User{},
 	); err != nil {
 		return err
@@ -70,6 +70,8 @@ func migrateModels(db *gorm.DB) error {
 	// ORMAWA
 	// ========================
 	if err := db.AutoMigrate(
+		&models.Proposal{},
+		&models.ProposalRiwayat{},
 		&models.Ormawa{},
 		&models.OrmawaAnggota{},
 		&models.OrmawaDivisi{},
@@ -80,8 +82,6 @@ func migrateModels(db *gorm.DB) error {
 		&models.OrmawaMutasiSaldo{},
 		&models.OrmawaAspirasi{},
 		&models.OrmawaNotifikasi{},
-		&models.Proposal{},
-		&models.ProposalRiwayat{},
 		&models.LaporanPertanggungjawaban{},
 	); err != nil {
 		return err

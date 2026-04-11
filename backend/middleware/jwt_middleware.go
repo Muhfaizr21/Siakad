@@ -59,8 +59,8 @@ func AuthProtected(c *fiber.Ctx) error {
 }
 
 func AdminCheck(c *fiber.Ctx) error {
-	role := c.Locals("role")
-	if role != "super_admin" {
+	role, ok := c.Locals("role").(string)
+	if !ok || strings.ToLower(role) != "super_admin" {
 		return c.Status(403).JSON(fiber.Map{
 			"status": "error",
 			"message": "Akses ditolak. Fitur ini hanya untuk Super Admin.",
@@ -70,8 +70,12 @@ func AdminCheck(c *fiber.Ctx) error {
 }
 
 func OrmawaCheck(c *fiber.Ctx) error {
-	role := c.Locals("role")
-	if role != "ormawa" && role != "mahasiswa" {
+	role, ok := c.Locals("role").(string)
+	if !ok {
+		return c.Status(403).JSON(fiber.Map{"status": "error", "message": "Akses ditolak."})
+	}
+	r := strings.ToLower(role)
+	if r != "ormawa" && r != "mahasiswa" && r != "ormawa_admin" {
 		// Mahasiswa allowed because Ormawa leads are Mahasiswa
 		return c.Status(403).JSON(fiber.Map{
 			"status": "error",
@@ -80,3 +84,4 @@ func OrmawaCheck(c *fiber.Ctx) error {
 	}
 	return c.Next()
 }
+

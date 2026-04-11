@@ -1,114 +1,160 @@
 import React from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
+import { 
+  LayoutDashboard, ShieldAlert, Building2, Database,
+  GraduationCap, Briefcase, ClipboardList, Users,
+  CreditCard, MessageSquare, BrainCircuit,
+  ShieldCheck, Activity, Newspaper, Settings, LogOut
+} from 'lucide-react';
+import useAuthStore from '../../../store/useAuthStore';
+
+const menuGroups = [
+  {
+    title: "Menu Utama",
+    items: [
+      { name: "Dashboard", icon: LayoutDashboard, path: "/admin", exact: true },
+      { name: "Log Aktivitas", icon: ShieldAlert, path: "/admin/audit" },
+    ]
+  },
+  {
+    title: "Manajemen Data",
+    items: [
+      { name: "Data Fakultas", icon: Building2, path: "/admin/faculties" },
+      { name: "Data Prodi", icon: Database, path: "/admin/prodi" },
+      { name: "Data Mahasiswa", icon: GraduationCap, path: "/admin/students" },
+      { name: "Data Dosen", icon: Briefcase, path: "/admin/lecturers" },
+    ]
+  },
+  {
+    title: "Kegiatan & Ormawa",
+    items: [
+      { name: "Global Proposals", icon: ClipboardList, path: "/admin/proposals" },
+      { name: "Kelola Ormawa", icon: Users, path: "/admin/organizations" },
+    ]
+  },
+  {
+    title: "Layanan & Bantuan",
+    items: [
+      { name: "Beasiswa", icon: CreditCard, path: "/admin/scholarships" },
+      { name: "Aspirasi", icon: MessageSquare, path: "/admin/aspirations" },
+      { name: "Konseling", icon: BrainCircuit, path: "/admin/counseling" },
+    ]
+  },
+  {
+    title: "Keamanan & Akses",
+    items: [
+      { name: "Kelola Akses (RBAC)", icon: ShieldCheck, path: "/admin/rbac" },
+      { name: "Performa Admin", icon: Activity, path: "/admin/performance" },
+    ]
+  },
+  {
+    title: "Sistem & Informasi",
+    items: [
+      { name: "Kelola Berita", icon: Newspaper, path: "/admin/announcements" },
+      { name: "Pengaturan Sistem", icon: Settings, path: "/admin/config" },
+    ]
+  }
+];
 
 const Sidebar = () => {
-  const menuGroups = [
-    {
-      title: "Menu Utama",
-      items: [
-        { name: "Dashboard", icon: "dashboard", path: "/admin" },
-        { name: "Log Aktivitas", icon: "policy", path: "/admin/audit" },
-      ]
-    },
-    {
-      title: "Manajemen Data",
-      items: [
-        { name: "Data Fakultas", icon: "domain", path: "/admin/faculties" },
-        { name: "Data Prodi", icon: "account_tree", path: "/admin/prodi" },
-        { name: "Data Mahasiswa", icon: "database", path: "/admin/students" },
-        { name: "Data Dosen", icon: "badge", path: "/admin/lecturers" },
-      ]
-    },
-    {
-      title: "Kegiatan & Ormawa",
-      items: [
-        { name: "Monitoring Proposal", icon: "task", path: "/admin/proposals" },
-        { name: "Kelola Ormawa", icon: "groups", path: "/admin/organizations" },
-      ]
-    },
-    {
-      title: "Layanan & Bantuan",
-      items: [
-        { name: "Beasiswa", icon: "payments", path: "/admin/scholarships" },
-        { name: "Aspirasi", icon: "forum", path: "/admin/aspirations" },
-        { name: "Konseling", icon: "psychology", path: "/admin/counseling" },
-      ]
-    },
-    {
-      title: "Keamanan & Akses",
-      items: [
-        { name: "Kelola Akses", icon: "admin_panel_settings", path: "/admin/rbac" },
-        { name: "Performa Admin", icon: "monitoring", path: "/admin/performance" },
-      ]
-    },
-    {
-      title: "Sistem & Informasi",
-      items: [
-        { name: "Kelola Berita", icon: "campaign", path: "/admin/announcements" },
-        { name: "Pengaturan", icon: "settings", path: "/admin/config" },
-      ]
-    }
-  ];
+  const navigate = useNavigate();
+  const { logout } = useAuthStore();
 
-  const activeStyle = "flex items-center gap-3 px-4 py-2.5 rounded-xl text-primary font-bold bg-primary/10 transition-all shadow-sm border border-primary/5";
-  const inactiveStyle = "flex items-center gap-3 px-4 py-2.5 rounded-xl text-slate-600 hover:text-primary hover:bg-slate-50 transition-all group";
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
 
   return (
-    <aside className="h-screen w-80 fixed left-0 top-0 flex flex-col bg-white border-r border-slate-200 z-50 select-none">
+    <aside className="h-screen w-72 fixed left-0 top-0 flex flex-col bg-[#f6f3f2] border-r border-slate-200/50 z-50 select-none">
       <div className="flex flex-col h-full overflow-hidden">
-        {/* Header Brand */}
-        <div className="p-8 pb-4 flex items-center gap-4">
-          <div className="w-12 h-12 bg-primary rounded-2xl flex items-center justify-center text-white shadow-lg shadow-primary/30">
-            <span className="material-symbols-outlined text-2xl">account_balance</span>
+
+        {/* Brand Header */}
+        <div className="shrink-0 px-6 py-6 flex items-center gap-4">
+          <div className="size-11 rounded-2xl flex items-center justify-center text-white shrink-0 shadow-lg shadow-primary/20"
+            style={{ background: '#00236f' }}>
+            <ShieldCheck size={20} strokeWidth={2.5} />
           </div>
           <div>
-            <h1 className="text-xl font-black text-primary leading-tight uppercase ">Master Hub</h1>
-            <p className="text-[10px] uppercase tracking-widest text-slate-600 font-bold opacity-90">Super Admin Panel</p>
+            <p className="text-[13px] font-black text-slate-900 uppercase tracking-tighter leading-none font-headline">Master Hub</p>
+            <p className="text-[9px] font-bold text-[#00236f] uppercase tracking-[0.2em] mt-1 opacity-80">Super Admin Panel</p>
           </div>
         </div>
 
-        {/* Scrollable Navigation */}
-        <nav className="flex-1 overflow-y-auto px-4 py-4 space-y-8 scrollbar-hide ">
-          {menuGroups.map((group, idx) => (
-            <div key={idx} className="space-y-1">
-              <h3 className="px-4 text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-2">
+        {/* Nav */}
+        <nav className="flex-1 overflow-y-auto py-2 px-3 no-scrollbar">
+          {menuGroups.map((group, gi) => (
+            <div key={gi} className="mb-6">
+              <p className="px-4 mb-2 text-[8px] font-black uppercase tracking-[0.4em] text-slate-400/80 font-headline">
                 {group.title}
-              </h3>
-              <div className="space-y-0.5">
-                {group.items.map((item, itemIdx) => (
-                  <NavLink
-                    key={itemIdx}
-                    to={item.path}
-                    end={item.path === "/admin"}
-                    className={({ isActive }) => isActive ? activeStyle : inactiveStyle}
-                  >
-                    <span className="material-symbols-outlined text-[20px]">
-                      {item.icon}
-                    </span>
-                    <span className="text-sm font-bold tracking-tight ">{item.name}</span>
-                  </NavLink>
-                ))}
-              </div>
+              </p>
+              {group.items.map((item, ii) => (
+                <NavLink
+                  key={ii}
+                  to={item.path}
+                  end={!!item.exact}
+                  className={({ isActive }) =>
+                    isActive
+                      ? 'sa-nav-item sa-nav-active'
+                      : 'sa-nav-item sa-nav-inactive'
+                  }
+                >
+                  <item.icon size={18} strokeWidth={2} className="shrink-0" />
+                  <span className="text-[12px] tracking-tight">{item.name}</span>
+                </NavLink>
+              ))}
             </div>
           ))}
         </nav>
 
-        {/* Footer Actions */}
-        <div className="p-6 border-t border-slate-200 space-y-2 bg-slate-50/50 ">
-          <button className="w-full py-3 bg-primary text-white rounded-xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-3 shadow-lg shadow-primary/20 hover:scale-[1.01] active:scale-95 transition-all ">
-            <span className="material-symbols-outlined text-[18px]">download</span>
-            <span>Unduh Laporan</span>
-          </button>
-
-          <NavLink
-            to="/login"
-            className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-red-500 hover:bg-red-50 transition-all font-bold group "
+        {/* Logout */}
+        <div className="shrink-0 px-4 py-6 border-t border-slate-200/30">
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center justify-center gap-3 py-3 rounded-2xl bg-rose-50 text-rose-600 font-black text-[10px] uppercase tracking-[0.2em] shadow-sm hover:bg-rose-600 hover:text-white transition-all active:scale-95 shadow-rose-100/50"
           >
-            <span className="material-symbols-outlined text-[20px]">logout</span>
-            <span className="text-sm">Keluar</span>
-          </NavLink>
+            <LogOut size={16} />
+            Keluar Sistem
+          </button>
         </div>
       </div>
+
+      <style>{`
+        .sa-nav-item {
+          display: flex;
+          align-items: center;
+          gap: 14px;
+          padding: 11px 16px;
+          border-radius: 14px;
+          margin-bottom: 2px;
+          font-weight: 700;
+          text-transform: uppercase;
+          text-decoration: none;
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .sa-nav-active {
+          background: #00236f !important;
+          color: #ffffff !important;
+          box-shadow: 0 10px 15px -3px rgba(0, 35, 111, 0.25);
+          transform: translateX(4px);
+        }
+        .sa-nav-inactive {
+          color: #64748b;
+          background: transparent;
+        }
+        .sa-nav-inactive:hover {
+          background: #eae7e7;
+          color: #00236f;
+          transform: translateX(2px);
+        }
+        .no-scrollbar::-webkit-scrollbar {
+          display: none;
+        }
+        .no-scrollbar {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+      `}</style>
     </aside>
   );
 };

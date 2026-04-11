@@ -24,13 +24,16 @@ type BaseModel struct {
 
 type User struct {
 	BaseModel
-	Email    string `gorm:"uniqueIndex;not null"`
-	Password string
-	Role     string `gorm:"index"`
-	FakultasID *uint `gorm:"index"`
+	Email      string `gorm:"uniqueIndex;not null"`
+	Password   string `gorm:"column:password_hash"`
+	Role       string `gorm:"index"`
+	FakultasID *uint  `gorm:"index"`
 
-	Mahasiswa *Mahasiswa `gorm:"foreignKey:PenggunaID"`
-	Dosen     *Dosen     `gorm:"foreignKey:PenggunaID"`
+	Dosen *Dosen `gorm:"foreignKey:PenggunaID"`
+}
+
+func (User) TableName() string {
+	return "public.users"
 }
 
 // ========================
@@ -57,7 +60,7 @@ func (Fakultas) TableName() string {
 
 type ProgramStudi struct {
 	BaseModel
-	FakultasID uint
+	FakultasID uint     `gorm:"index"`
 	Fakultas   Fakultas `gorm:"foreignKey:FakultasID"`
 
 	Nama             string
@@ -106,13 +109,13 @@ func (Dosen) TableName() string {
 type Mahasiswa struct {
 	BaseModel
 	PenggunaID uint
-	Pengguna   User `gorm:"foreignKey:PenggunaID"`
+	Pengguna   User `gorm:"foreignKey:PenggunaID;references:ID"`
 
 	NIM  string `gorm:"uniqueIndex"`
 	Nama string
 
-	FakultasID     uint `gorm:"index"`
-	ProgramStudiID uint `gorm:"index"`
+	FakultasID     uint  `gorm:"index"`
+	ProgramStudiID uint  `gorm:"index"`
 	DosenPAID      *uint `gorm:"index"`
 
 	Fakultas     Fakultas
@@ -249,6 +252,7 @@ type Beasiswa struct {
 	IPKMin        float64
 	Kategori      string
 	NilaiBantuan  float64
+	Anggaran      float64 `json:"anggaran"`
 
 	Pendaftaran []BeasiswaPendaftaran
 }
@@ -279,15 +283,15 @@ type Aspirasi struct {
 	MahasiswaID uint `gorm:"index"`
 	Mahasiswa   Mahasiswa
 
-	Judul    string
-	Isi      string
-	Kategori string
-	Tujuan   string
+	Judul     string
+	Isi       string
+	Kategori  string
+	Tujuan    string
 	Status    string
 	Prioritas string // LOW, MEDIUM, HIGH, CRITICAL
 	Deadline  *time.Time
-	IsAnonim bool
-	Respon   string
+	IsAnonim  bool
+	Respon    string
 }
 
 func (Aspirasi) TableName() string {
@@ -418,7 +422,9 @@ func (Notifikasi) TableName() string {
 type Ormawa struct {
 	BaseModel
 	Nama      string
+	Singkatan string `gorm:"size:20"`
 	Deskripsi string
+
 	Visi      string
 	Misi      string
 	LogoURL   string
