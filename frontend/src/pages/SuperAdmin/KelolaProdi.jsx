@@ -12,8 +12,6 @@ import { Label } from './components/ui/label'
 import { Pencil, Trash2, Loader2, Plus, Save, BookOpen } from 'lucide-react'
 import { toast, Toaster } from 'react-hot-toast'
 import { cn } from '@/lib/utils'
-import Sidebar from './components/Sidebar'
-import TopNavBar from './components/TopNavBar'
 import { adminService } from '../../services/api'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './components/ui/select'
 
@@ -69,12 +67,7 @@ export default function KelolaProdi() {
   ]
 
   return (
-    <div className="bg-slate-50 min-h-screen flex font-sans">
-      <Sidebar />
-      <main className="pl-72 pt-20 flex flex-col min-h-screen w-full">
-
-        <TopNavBar />
-        <div className="p-8 space-y-6">
+    <div className="p-4 md:p-8 space-y-6">
           <Toaster position="top-right" />
           <div className="flex flex-col gap-1.5">
             <div className="flex items-center gap-3">
@@ -106,8 +99,6 @@ export default function KelolaProdi() {
 
             </CardContent>
           </Card>
-        </div>
-      </main>
 
       <Dialog open={isCrudOpen} onOpenChange={setIsCrudOpen}>
         <DialogContent className="max-w-lg p-0 overflow-hidden border-none shadow-2xl rounded-[2rem] bg-white/95 backdrop-blur-xl">
@@ -118,7 +109,8 @@ export default function KelolaProdi() {
                 <div className="size-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary">{isEditMode ? <Pencil className="size-4" /> : <Plus className="size-4 stroke-[3px]" />}</div>
                 <Badge className="text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 bg-primary/5 text-primary border-none">Prodi Registry</Badge>
               </div>
-              <DialogTitle className="text-2xl font-black font-headline tracking-tighter text-slate-900 uppercase">{isEditMode ? 'Edit Prodi' : 'Tambah Prodi Baru'}</DialogTitle>
+              <DialogTitle className="text-2xl font-black font-headline tracking-tighter text-slate-900 uppercase leading-none">{isEditMode ? 'Edit Program Studi' : 'Program Studi Baru'}</DialogTitle>
+              <DialogDescription className="sr-only">Formulir untuk menambah atau memperbarui data program studi.</DialogDescription>
             </div>
           </DialogHeader>
           <form onSubmit={handleSave} className="p-8 pt-6 space-y-4">

@@ -1,15 +1,9 @@
 import React from 'react';
-import Sidebar from './components/Sidebar';
-import TopNavBar from './components/TopNavBar';
 import { ShieldCheck, Lock, Globe, KeyRound, Clock, UserX, Plus, Settings } from 'lucide-react';
 
 const SecuritySettings = () => {
     return (
-        <div className="bg-slate-50 text-slate-900 min-h-screen flex font-sans select-none">
-            <Sidebar />
-            <main className="pl-72 pt-20 flex flex-col min-h-screen w-full">
-                <TopNavBar />
-                <div className="p-8 space-y-8">
+        <div className="p-4 md:p-8 space-y-8">
                     <div className="flex flex-col gap-1.5">
                         <div className="flex items-center gap-3">
                             <div className="p-2 bg-primary/10 rounded-xl text-primary"><ShieldCheck className="size-6" /></div>
@@ -123,8 +117,6 @@ const SecuritySettings = () => {
                             </div>
                         </section>
                     </div>
-                </div>
-            </main>
         </div>
     );
 };

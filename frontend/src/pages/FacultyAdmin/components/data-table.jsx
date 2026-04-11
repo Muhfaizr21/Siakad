@@ -113,7 +113,7 @@ export function DataTable({
       {/* Premium Toolbar */}
       <div className="p-6 pb-4 bg-gradient-to-b from-slate-50/50 to-white flex flex-col gap-5 border-b border-slate-100">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="flex flex-1 items-center gap-3">
+          <div className="flex flex-1 flex-wrap items-center gap-3">
             <div className="relative flex-1 max-w-md group">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 size-4 text-slate-300 group-focus-within:text-primary transition-colors" />
               <Input
@@ -147,7 +147,7 @@ export function DataTable({
             ))}
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             {onExport && (
               <Button onClick={onExport} variant="outline" className="h-11 px-6 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] bg-white text-slate-700 border-slate-200/60 hover:bg-slate-50 shadow-sm gap-2.5 transition-all hover:scale-[1.02] active:scale-95 group">
                 <Download className="size-3.5 text-primary group-hover:translate-y-0.5 transition-transform duration-300" />

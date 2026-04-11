@@ -183,8 +183,8 @@ export default function KeamananTab() {
          </div>
 
          <div className="space-y-4">
-            {sessions?.map((s) => (
-               <div key={s.id} className="flex items-center justify-between p-4 rounded-2xl border border-[#f5f5f5] hover:bg-[#fafafa] transition-all group">
+            {sessions?.map((s, idx) => (
+               <div key={`session-${s.id ?? idx}-${s.device ?? 'unknown'}-${s.last_active ?? ''}`} className="flex items-center justify-between p-4 rounded-2xl border border-[#f5f5f5] hover:bg-[#fafafa] transition-all group">
                   <div className="flex items-center gap-4">
                      <div className="w-12 h-12 rounded-xl bg-white border border-[#e5e5e5] shadow-sm flex items-center justify-center text-[#525252]">
                         {s.device.includes('iPhone') || s.device.includes('Android') ? <Smartphone size={24} /> : <Globe size={24} />}
@@ -229,8 +229,8 @@ export default function KeamananTab() {
                   </tr>
                </thead>
                <tbody className="divide-y divide-[#f5f5f5]">
-                  {history?.map((h) => (
-                    <tr key={h.id} className="hover:bg-[#fafafa] transition-colors">
+                  {history?.map((h, idx) => (
+                    <tr key={`history-${h.id ?? idx}-${h.created_at ?? ''}-${h.user_agent ?? 'unknown'}`} className="hover:bg-[#fafafa] transition-colors">
                        <td className="px-8 py-4 text-sm font-bold text-[#525252]">
                           {new Date(h.created_at).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' })}
                        </td>

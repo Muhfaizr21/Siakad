@@ -6,7 +6,7 @@ import { menuItems } from '../../constants/menuItems';
 import api from '../../lib/axios';
 import { toast } from 'react-hot-toast';
 
-export default function Sidebar() {
+export default function Sidebar({ onNavigate }) {
   const logout = useAuthStore(state => state.logout);
   const navigate = useNavigate();
 
@@ -39,6 +39,7 @@ export default function Sidebar() {
           <NavLink
             key={item.path}
             to={item.path}
+            onClick={onNavigate}
             className={({ isActive }) => 
               `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 ${
                 isActive 

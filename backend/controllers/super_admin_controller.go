@@ -308,6 +308,35 @@ func GetGlobalAspirations(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"status": "success", "data": asps})
 }
 
+func UpdateAspirationStatus(c *fiber.Ctx) error {
+	id := c.Params("id")
+	var payload struct {
+		Status string `json:"status"`
+		Respon string `json:"respon"`
+	}
+	if err := c.BodyParser(&payload); err != nil {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Invalid request body"})
+	}
+
+	var asp models.Aspirasi
+	if err := config.DB.First(&asp, id).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Aspiration not found"})
+	}
+
+	asp.Status = payload.Status
+	asp.Respon = payload.Respon
+
+	if err := config.DB.Save(&asp).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": err.Error()})
+	}
+
+	return c.JSON(fiber.Map{
+		"status":  "success",
+		"message": "Status aspirasi berhasil diperbarui",
+		"data":    asp,
+	})
+}
+
 // Additional CRUD for Mahasiswa
 func CreateStudent(c *fiber.Ctx) error {
 	var mhs models.Mahasiswa
@@ -542,6 +571,48 @@ func UpdateCounseling(c *fiber.Ctx) error {
 func DeleteCounseling(c *fiber.Ctx) error {
 	id := c.Params("id")
 	config.DB.Delete(&models.Konseling{}, id)
+	return c.JSON(fiber.Map{"status": "success", "message": "Deleted"})
+}
+
+// Jadwal Konseling Handlers (Master Data)
+func GetAllCounselingJadwal(c *fiber.Ctx) error {
+	var list []models.JadwalKonseling
+	if err := config.DB.Order("tanggal desc").Find(&list).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": err.Error()})
+	}
+	return c.JSON(fiber.Map{"status": "success", "data": list})
+}
+
+func CreateCounselingJadwal(c *fiber.Ctx) error {
+	var data models.JadwalKonseling
+	if err := c.BodyParser(&data); err != nil {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Invalid request"})
+	}
+	data.SisaKuota = data.Kuota
+	if err := config.DB.Create(&data).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": err.Error()})
+	}
+	return c.JSON(fiber.Map{"status": "success", "data": data})
+}
+
+func UpdateCounselingJadwal(c *fiber.Ctx) error {
+	id := c.Params("id")
+	var data models.JadwalKonseling
+	if err := config.DB.First(&data, id).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Not found"})
+	}
+	if err := c.BodyParser(&data); err != nil {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Invalid request"})
+	}
+	if err := config.DB.Save(&data).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": err.Error()})
+	}
+	return c.JSON(fiber.Map{"status": "success", "data": data})
+}
+
+func DeleteCounselingJadwal(c *fiber.Ctx) error {
+	id := c.Params("id")
+	config.DB.Delete(&models.JadwalKonseling{}, id)
 	return c.JSON(fiber.Map{"status": "success", "message": "Deleted"})
 }
 
@@ -822,6 +893,47 @@ func UpdateAcademicSettings(c *fiber.Ctx) error {
 		"status": "success",
 		"message": "Konfigurasi akademik berhasil diperbarui",
 		"data": settings,
+	})
+}
+
+// GetAllScholarshipApplications returns all scholarship applications
+func GetAllScholarshipApplications(c *fiber.Ctx) error {
+	var applications []models.BeasiswaPendaftaran
+	err := config.DB.Preload("Mahasiswa").Preload("Beasiswa").Order("created_at desc").Find(&applications).Error
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": err.Error()})
+	}
+
+	return c.JSON(fiber.Map{"status": "success", "data": applications})
+}
+
+// UpdateScholarshipApplicationStatus updates the status of a scholarship application
+func UpdateScholarshipApplicationStatus(c *fiber.Ctx) error {
+	id := c.Params("id")
+	var payload struct {
+		Status  string `json:"status"`
+		Catatan string `json:"catatan"`
+	}
+	if err := c.BodyParser(&payload); err != nil {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Invalid request body"})
+	}
+
+	var application models.BeasiswaPendaftaran
+	if err := config.DB.Preload("Beasiswa").First(&application, id).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Application not found"})
+	}
+
+	application.Status = payload.Status
+	application.Catatan = payload.Catatan
+
+	if err := config.DB.Save(&application).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": err.Error()})
+	}
+
+	return c.JSON(fiber.Map{
+		"status":  "success",
+		"message": "Status pendaftaran beasiswa berhasil diperbarui",
+		"data":    application,
 	})
 }
 

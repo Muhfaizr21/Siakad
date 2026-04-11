@@ -48,17 +48,24 @@ func SetupSuperAdminRoutes(r fiber.Router) {
 	r.Delete("/lecturers/:id", controllers.DeleteLecturer)
 
 	r.Get("/aspirations", controllers.GetGlobalAspirations)
+	r.Put("/aspirations/:id/status", controllers.UpdateAspirationStatus)
 
 	r.Get("/scholarships", controllers.GetAllScholarships)
 	r.Post("/scholarships", controllers.CreateScholarship)
 	r.Put("/scholarships/:id", controllers.UpdateScholarship)
 	r.Delete("/scholarships/:id", controllers.DeleteScholarship)
+	r.Get("/scholarship-applications", controllers.GetAllScholarshipApplications)
+	r.Put("/scholarship-applications/:id/status", controllers.UpdateScholarshipApplicationStatus)
 
 	// Counseling
 	r.Get("/counseling-records", controllers.GetAllCounseling)
 	r.Post("/counseling-records", controllers.CreateCounseling)
 	r.Put("/counseling-records/:id", controllers.UpdateCounseling)
 	r.Delete("/counseling-records/:id", controllers.DeleteCounseling)
+	r.Get("/counseling-schedules", controllers.GetAllCounselingJadwal)
+	r.Post("/counseling-schedules", controllers.CreateCounselingJadwal)
+	r.Put("/counseling-schedules/:id", controllers.UpdateCounselingJadwal)
+	r.Delete("/counseling-schedules/:id", controllers.DeleteCounselingJadwal)
 
 	// News & Content
 	r.Get("/news", controllers.GetAllNews)

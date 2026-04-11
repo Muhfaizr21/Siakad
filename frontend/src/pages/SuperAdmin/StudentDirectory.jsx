@@ -1,4 +1,4 @@
-"use client"
+
 
 import React, { useState, useEffect } from 'react'
 import { DataTable } from './components/ui/data-table'
@@ -13,8 +13,6 @@ import { Avatar, AvatarFallback } from './components/ui/avatar'
 import { Eye, Pencil, Trash2, Loader2, Plus, Save, Users, BookOpen, Mail, GraduationCap } from 'lucide-react'
 import { toast, Toaster } from 'react-hot-toast'
 import { cn } from '@/lib/utils'
-import Sidebar from './components/Sidebar'
-import TopNavBar from './components/TopNavBar'
 import { adminService } from '../../services/api'
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue
@@ -112,12 +110,7 @@ export default function StudentDirectory() {
   ]
 
   return (
-    <div className="bg-slate-50 min-h-screen flex font-sans">
-      <Sidebar />
-      <main className="pl-72 pt-20 flex flex-col min-h-screen w-full">
-
-        <TopNavBar />
-        <div className="p-8 space-y-6">
+    <div className="p-4 md:p-8 space-y-8">
           <Toaster position="top-right" />
           <div className="flex flex-col gap-1.5">
             <div className="flex items-center gap-3">
@@ -153,12 +146,12 @@ export default function StudentDirectory() {
               />
             </CardContent>
           </Card>
-        </div>
-      </main>
 
       {/* Detail */}
       <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
         <DialogContent className="max-w-2xl p-0 overflow-hidden border-none shadow-2xl rounded-[2.5rem] bg-white/95 backdrop-blur-xl">
+          <DialogTitle className="sr-only">{selected?.Nama || 'Detail Mahasiswa'}</DialogTitle>
+          <DialogDescription className="sr-only">Informasi lengkap mengenai biodata dan status akademik mahasiswa.</DialogDescription>
           {selected && (
             <div className="flex flex-col max-h-[85vh]">
               <div className="h-40 bg-slate-900 relative overflow-hidden shrink-0">

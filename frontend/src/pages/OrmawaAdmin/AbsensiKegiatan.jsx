@@ -95,7 +95,7 @@ export default function AbsensiKegiatan() {
       <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
       <main className="lg:ml-60 min-h-screen transition-all duration-300">
         <TopNavBar setIsOpen={setSidebarOpen} />
-        <div className="pt-20 px-6 pb-12">
+        <div className="pt-20 px-4 lg:px-8 pb-12">
           <Toaster position="top-right" />
           <div className="flex flex-col gap-1.5 mb-8">
             <div className="flex items-center gap-3">
@@ -134,7 +134,7 @@ export default function AbsensiKegiatan() {
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    <div className="p-4 bg-gradient-to-r from-primary/5 to-transparent rounded-2xl border border-primary/10 flex items-center justify-between">
+                    <div className="p-4 bg-gradient-to-r from-primary/5 to-transparent rounded-2xl border border-primary/10 flex flex-col sm:flex-row sm:items-center gap-3 sm:justify-between">
                       <div>
                         <h3 className="font-black text-slate-900 font-headline tracking-tighter">{selectedEvent.Judul}</h3>
                         <div className="flex gap-4 mt-2">
@@ -142,7 +142,7 @@ export default function AbsensiKegiatan() {
                           <span className="text-[10px] font-black text-rose-500 uppercase tracking-widest">Tidak Hadir: {absentCount}</span>
                         </div>
                       </div>
-                      <Button onClick={() => setIsQrOpen(true)} className="h-10 px-6 rounded-2xl bg-slate-900 text-white hover:bg-slate-800 gap-2 shadow-xl shadow-slate-900/20">
+                      <Button onClick={() => setIsQrOpen(true)} className="w-full sm:w-auto h-10 px-6 rounded-2xl bg-slate-900 text-white hover:bg-slate-800 gap-2 shadow-xl shadow-slate-900/20">
                         <ScanLine className="size-4" /> <span className="text-[10px] font-black uppercase">Buka QR Code</span>
                       </Button>
                     </div>
@@ -189,7 +189,7 @@ export default function AbsensiKegiatan() {
       </main>
 
       <Dialog open={isQrOpen} onOpenChange={setIsQrOpen}>
-        <DialogContent className="max-w-sm p-0 overflow-hidden border-none shadow-2xl rounded-[2.5rem] bg-white">
+        <DialogContent className="max-w-sm p-0 overflow-hidden border-none shadow-2xl rounded-[2.5rem] bg-white ">
           <div className="p-8 flex flex-col items-center gap-6">
             <div className="text-center space-y-1">
               <h3 className="text-xl font-black text-slate-900 font-headline tracking-tighter uppercase">{selectedEvent?.Judul}</h3>

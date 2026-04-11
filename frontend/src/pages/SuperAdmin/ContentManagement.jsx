@@ -1,12 +1,10 @@
 "use client"
 
 import React, { useState, useEffect } from 'react'
-import Sidebar from './components/Sidebar'
-import TopNavBar from './components/TopNavBar'
 import { adminService } from '../../services/api'
 import { toast, Toaster } from 'react-hot-toast'
 import { Pencil, Trash2, Plus, Save, Loader2, Newspaper, Clock } from 'lucide-react'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from './components/ui/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from './components/ui/dialog'
 import { Badge } from './components/ui/badge'
 import { Button } from './components/ui/button'
 import { Input } from './components/ui/input'
@@ -122,13 +120,9 @@ export default function ContentManagement() {
     ]
 
     return (
-        <div className="bg-slate-50 min-h-screen flex font-sans">
+        <div className="p-4 md:p-8 space-y-6">
             <Toaster position="top-right" />
-            <Sidebar />
-            <main className="pl-72 pt-20 flex flex-col min-h-screen w-full">
-                <TopNavBar />
-                <div className="p-8 space-y-6">
-                    <div className="flex flex-col gap-1.5">
+            <div className="flex flex-col gap-1.5">
                         <div className="flex items-center gap-3">
                             <div className="p-2 bg-primary/10 rounded-xl text-primary"><Newspaper className="size-6" /></div>
                             <h1 className="text-2xl font-black text-slate-900 font-headline tracking-tighter uppercase">Kelola Berita & Konten</h1>
@@ -155,8 +149,6 @@ export default function ContentManagement() {
                             />
                         </CardContent>
                     </Card>
-                </div>
-            </main>
 
             {/* CRUD Dialog */}
             <Dialog open={isCrudOpen} onOpenChange={setIsCrudOpen}>
@@ -169,6 +161,7 @@ export default function ContentManagement() {
                                 <Badge className="text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 bg-primary/5 text-primary border-none">Content Registry</Badge>
                             </div>
                             <DialogTitle className="text-2xl font-black font-headline tracking-tighter text-slate-900 uppercase">{isEditMode ? 'Edit Berita' : 'Tulis Berita Baru'}</DialogTitle>
+                            <DialogDescription className="sr-only">Editor publikasi berita dan pengumuman universitas.</DialogDescription>
                         </div>
                     </DialogHeader>
                     <form onSubmit={handleSave} className="p-8 pt-6 space-y-4 max-h-[65vh] overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200">

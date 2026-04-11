@@ -316,6 +316,11 @@ export const adminService = {
     method: 'DELETE'
   }),
   getGlobalAspirations: () => fetchWithAuth(`${API_BASE_URL}/admin/aspirations`),
+  updateAspirationStatus: (id, data) => fetchWithAuth(`${API_BASE_URL}/admin/aspirations/${id}/status`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  }),
   getGlobalProposals: () => fetchWithAuth(`${API_BASE_URL}/admin/proposals`),
   approveProposal: (id) => fetchWithAuth(`${API_BASE_URL}/admin/proposals/${id}/approve`, {
     method: 'PUT'
@@ -339,6 +344,12 @@ export const adminService = {
   deleteScholarship: (id) => fetchWithAuth(`${API_BASE_URL}/admin/scholarships/${id}`, {
     method: 'DELETE'
   }),
+  getAllScholarshipApplications: () => fetchWithAuth(`${API_BASE_URL}/admin/scholarship-applications`),
+  updateScholarshipApplicationStatus: (id, data) => fetchWithAuth(`${API_BASE_URL}/admin/scholarship-applications/${id}/status`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  }),
   getAllCounseling: () => fetchWithAuth(`${API_BASE_URL}/admin/counseling-records`),
   createCounseling: (data) => fetchWithAuth(`${API_BASE_URL}/admin/counseling-records`, {
     method: 'POST',
@@ -351,6 +362,20 @@ export const adminService = {
     body: JSON.stringify(data)
   }),
   deleteCounseling: (id) => fetchWithAuth(`${API_BASE_URL}/admin/counseling-records/${id}`, {
+    method: 'DELETE'
+  }),
+  getAllCounselingSchedules: () => fetchWithAuth(`${API_BASE_URL}/admin/counseling-schedules`),
+  createCounselingSchedule: (data) => fetchWithAuth(`${API_BASE_URL}/admin/counseling-schedules`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  }),
+  updateCounselingSchedule: (id, data) => fetchWithAuth(`${API_BASE_URL}/admin/counseling-schedules/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  }),
+  deleteCounselingSchedule: (id) => fetchWithAuth(`${API_BASE_URL}/admin/counseling-schedules/${id}`, {
     method: 'DELETE'
   }),
   getAllUsers: () => fetchWithAuth(`${API_BASE_URL}/admin/users`),

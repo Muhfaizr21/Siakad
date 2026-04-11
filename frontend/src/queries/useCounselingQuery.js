@@ -30,13 +30,31 @@ const normalizeRiwayatItem = (item = {}) => {
   };
 };
 
+const normalizeJadwalItem = (item = {}) => {
+  const tanggalRaw = item.tanggal || item.Tanggal || item.created_at || item.CreatedAt;
+  const tanggalDate = toValidDate(tanggalRaw);
+
+  return {
+    ID: item.id || item.ID || 0,
+    NamaKonselor: item.nama_konselor || item.NamaKonselor || item.nama || item.Nama || 'Konselor BKU',
+    Tipe: item.tipe || item.Tipe || 'Akademik',
+    Tanggal: tanggalDate ? tanggalDate.toISOString() : new Date().toISOString(),
+    JamMulai: item.jam_mulai || item.JamMulai || '09:00',
+    JamSelesai: item.jam_selesai || item.JamSelesai || '10:00',
+    Lokasi: item.lokasi || item.Lokasi || 'Ruang Konseling',
+    Kuota: Number(item.kuota ?? item.Kuota ?? 0),
+    SisaKuota: Number(item.sisa_kuota ?? item.SisaKuota ?? 0),
+  };
+};
+
 // Get Available Schedules
 export const useCounselingJadwalQuery = () => {
   return useQuery({
     queryKey: ['counseling', 'jadwal'],
     queryFn: async () => {
       const { data } = await api.get('/counseling/jadwal');
-      return data.data; // List of JadwalKonseling
+      const list = Array.isArray(data?.data) ? data.data : [];
+      return list.map(normalizeJadwalItem);
     },
   });
 };

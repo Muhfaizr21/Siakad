@@ -1,4 +1,4 @@
-"use client"
+
 
 import React, { useState, useEffect } from 'react'
 import { DataTable } from './components/ui/data-table'
@@ -13,8 +13,6 @@ import { Avatar, AvatarFallback } from './components/ui/avatar'
 import { Eye, Pencil, Trash2, Loader2, Plus, Save, GraduationCap, Mail, Briefcase } from 'lucide-react'
 import { toast, Toaster } from 'react-hot-toast'
 import { cn } from '@/lib/utils'
-import Sidebar from './components/Sidebar'
-import TopNavBar from './components/TopNavBar'
 import { adminService } from '../../services/api'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './components/ui/select'
 
@@ -92,11 +90,7 @@ export default function LecturerDirectory() {
   ]
 
   return (
-    <div className="bg-slate-50 min-h-screen flex font-sans">
-      <Sidebar />
-      <main className="pl-72 pt-20 flex flex-col min-h-screen w-full">
-        <TopNavBar />
-        <div className="p-8 space-y-6">
+    <div className="p-4 md:p-8 space-y-6">
           <Toaster position="top-right" />
           <div className="flex flex-col gap-1.5">
             <div className="flex items-center gap-3">
@@ -130,8 +124,6 @@ export default function LecturerDirectory() {
               />
             </CardContent>
           </Card>
-        </div>
-      </main>
 
       {/* CRUD */}
       <Dialog open={isCrudOpen} onOpenChange={setIsCrudOpen}>
@@ -144,6 +136,7 @@ export default function LecturerDirectory() {
                 <Badge className="text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 bg-primary/5 text-primary border-none">Lecturer Registry</Badge>
               </div>
               <DialogTitle className="text-2xl font-black font-headline tracking-tighter text-slate-900 uppercase">{isEditMode ? 'Edit Data Dosen' : 'Tambah Dosen Baru'}</DialogTitle>
+              <DialogDescription className="sr-only">Formulir manajemen data dosen dan tenaga pengajar.</DialogDescription>
             </div>
           </DialogHeader>
           <form onSubmit={handleSave} className="p-8 pt-6 space-y-4">

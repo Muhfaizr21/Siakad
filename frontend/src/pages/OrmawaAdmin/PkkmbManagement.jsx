@@ -197,44 +197,44 @@ const PkkmbManagement = () => {
               </p>
             </div>
             
-            <div className="p-6 grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-6">
-              <div className="bg-[#f5f5f5] rounded-2xl p-5 border border-[#e5e5e5] hover:border-[#00236F] transition-colors">
-                <div className="flex items-center gap-3 mb-3">
-                  <Users className="text-[#00236F]" size={20} />
-                  <h3 className="text-xs font-bold text-[#a3a3a3] uppercase tracking-widest">Total Peserta</h3>
+            <div className="p-4 lg:p-6 grid grid-cols-1 sm:grid-cols-3 gap-3 lg:gap-6">
+              <div className="bg-[#f5f5f5] rounded-2xl p-4 lg:p-5 border border-[#e5e5e5] hover:border-[#00236F] transition-colors">
+                <div className="flex items-center gap-3 mb-2 lg:mb-3">
+                  <Users className="text-[#00236F]" size={18} />
+                  <h3 className="text-[10px] font-bold text-[#a3a3a3] uppercase tracking-widest">Total Peserta</h3>
                 </div>
-                <p className="text-4xl font-black text-[#171717]">{loading ? '...' : summary.totalMaba}</p>
+                <p className="text-3xl lg:text-4xl font-black text-[#171717]">{loading ? '...' : summary.totalMaba}</p>
               </div>
-              <div className="bg-[#f0fdf4] rounded-2xl p-5 border border-[#bbf7d0] hover:border-[#16a34a] transition-colors">
-                <div className="flex items-center gap-3 mb-3">
-                  <CheckCircle className="text-[#16a34a]" size={20} />
-                  <h3 className="text-xs font-bold text-[#16a34a] uppercase tracking-widest">Selesai / Lulus</h3>
+              <div className="bg-[#f0fdf4] rounded-2xl p-4 lg:p-5 border border-[#bbf7d0] hover:border-[#16a34a] transition-colors">
+                <div className="flex items-center gap-3 mb-2 lg:mb-3">
+                  <CheckCircle className="text-[#16a34a]" size={18} />
+                  <h3 className="text-[10px] font-bold text-[#16a34a] uppercase tracking-widest">Selesai / Lulus</h3>
                 </div>
-                <p className="text-4xl font-black text-[#16a34a]">{loading ? '...' : summary.totalLulus}</p>
+                <p className="text-3xl lg:text-4xl font-black text-[#16a34a]">{loading ? '...' : summary.totalLulus}</p>
               </div>
-              <div className="bg-[#fffbeb] rounded-2xl p-5 border border-[#fde68a] hover:border-[#d97706] transition-colors">
-                <div className="flex items-center gap-3 mb-3">
-                  <Clock className="text-[#d97706]" size={20} />
-                  <h3 className="text-xs font-bold text-[#d97706] uppercase tracking-widest">Masih Berproses</h3>
+              <div className="bg-[#fffbeb] rounded-2xl p-4 lg:p-5 border border-[#fde68a] hover:border-[#d97706] transition-colors">
+                <div className="flex items-center gap-3 mb-2 lg:mb-3">
+                  <Clock className="text-[#d97706]" size={18} />
+                  <h3 className="text-[10px] font-bold text-[#d97706] uppercase tracking-widest">Berproses</h3>
                 </div>
-                <p className="text-4xl font-black text-[#d97706]">{loading ? '...' : summary.totalProses}</p>
+                <p className="text-3xl lg:text-4xl font-black text-[#d97706]">{loading ? '...' : summary.totalProses}</p>
               </div>
             </div>
           </motion.div>
 
           {/* Tab Navigation */}
-          <div className="flex flex-wrap gap-2 mb-6 bg-white p-2 rounded-2xl border border-[#e5e5e5] w-fit shadow-sm">
+          <div className="flex items-center gap-2 mb-6 bg-white p-2 rounded-2xl border border-[#e5e5e5] shadow-sm overflow-x-auto no-scrollbar scroll-smooth">
             {[
-              { id: 'ringkasan', label: 'Ringkasan & Prodi' },
-              { id: 'kegiatan', label: 'Kegiatan / Agenda' },
-              { id: 'kuis', label: 'Kuis Evaluasi' },
-              { id: 'peserta', label: 'Data Peserta' },
-              { id: 'banding', label: 'Review Banding' }
+              { id: 'ringkasan', label: 'Ringkasan' },
+              { id: 'kegiatan', label: 'Kegiatan' },
+              { id: 'kuis', label: 'Kuis' },
+              { id: 'peserta', label: 'Peserta' },
+              { id: 'banding', label: 'Banding' }
             ].map(tab => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`px-5 py-2.5 rounded-xl font-bold text-sm transition-all ${
+                className={`px-4 py-2 rounded-xl font-bold text-[11px] md:text-sm transition-all whitespace-nowrap ${
                   activeTab === tab.id 
                     ? 'bg-[#00236F] text-white shadow-md' 
                     : 'text-[#737373] hover:bg-[#f5f5f5]'
@@ -254,7 +254,7 @@ const PkkmbManagement = () => {
                   <h2 className="text-lg font-black text-[#171717] uppercase tracking-wide">Breakdown Per Program Studi</h2>
                 </div>
                 <div className="overflow-x-auto">
-                  <table className="w-full text-left border-collapse">
+                  <table className="w-full text-left border-collapse min-w-[600px]">
                     <thead>
                       <tr className="border-b-2 border-[#e5e5e5]">
                         <th className="p-4 text-xs font-black text-[#a3a3a3] uppercase tracking-widest">Program Studi</th>
@@ -415,7 +415,7 @@ const PkkmbManagement = () => {
                   </div>
                 </div>
                 <div className="overflow-x-auto">
-                  <table className="w-full text-left border-collapse">
+                  <table className="w-full text-left border-collapse min-w-[600px]">
                     <thead>
                       <tr className="border-b-2 border-[#e5e5e5]">
                         <th className="p-4 text-xs font-black text-[#a3a3a3] uppercase tracking-widest">Mahasiswa</th>
@@ -507,13 +507,13 @@ const PkkmbManagement = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[99] flex justify-center items-center p-4"
+            className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[99] flex justify-center items-start pt-4 sm:items-center p-4 overflow-y-auto"
           >
             <motion.div 
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="bg-white rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden"
+              className="bg-white rounded-3xl w-full max-w-lg sm:max-w-md md:max-w-lg shadow-2xl overflow-hidden  max-h-[90dvh] overflow-y-auto"
             >
               <div className="p-6 bg-gradient-to-r from-[#00236F] to-[#0B4FAE] text-white flex justify-between items-center">
                 <h3 className="font-black font-headline text-lg tracking-wide uppercase">
@@ -595,13 +595,13 @@ const PkkmbManagement = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[99] flex justify-center items-center p-4 overflow-y-auto"
+            className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[99] flex justify-center items-start pt-4 sm:items-center p-4 overflow-y-auto"
           >
             <motion.div 
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="bg-white rounded-3xl w-full max-w-2xl shadow-2xl overflow-hidden my-8"
+              className="bg-white rounded-3xl w-full max-w-2xl md:max-w-xl lg:max-w-2xl shadow-2xl overflow-hidden my-8  max-h-[90dvh] overflow-y-auto"
             >
               <div className="p-6 bg-gradient-to-r from-[#00236F] to-[#0B4FAE] text-white flex justify-between items-center">
                 <h3 className="font-black font-headline text-lg tracking-wide uppercase">

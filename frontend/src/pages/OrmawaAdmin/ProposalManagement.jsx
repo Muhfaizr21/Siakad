@@ -220,7 +220,7 @@ export default function ProposalManagement() {
       <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
       <main className="lg:ml-60 min-h-screen transition-all duration-300">
         <TopNavBar setIsOpen={setSidebarOpen} />
-        <div className="pt-20 px-6 pb-12">
+        <div className="pt-20 px-4 lg:px-8 pb-12">
           <Toaster position="top-right" />
 
           {/* Page Header */}
@@ -274,14 +274,14 @@ export default function ProposalManagement() {
 
       {/* DETAIL & REVIEW DIALOG */}
       <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
-        <DialogContent className="max-w-6xl p-0 overflow-hidden border-none shadow-2xl rounded-[2.5rem] bg-white max-h-[90dvh] flex flex-col">
+        <DialogContent className="max-w-6xl p-0 overflow-hidden border-none shadow-2xl rounded-[2.5rem] bg-white h-[90dvh] md:max-h-[85vh] flex flex-col ">
           {selected && (
             <div className="flex flex-col md:flex-row flex-1 overflow-hidden">
               {/* Left: Detail */}
               <div className="flex-1 flex flex-col overflow-hidden border-r border-slate-100">
                 <div className="p-6 bg-gradient-to-br from-slate-900 to-slate-800 relative overflow-hidden shrink-0">
                   <div className="absolute inset-0 bg-gradient-to-br from-primary/30 to-transparent" />
-                  <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none text-white">
+                  <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none pointer-events-none text-white">
                     <FileText className="size-32 rotate-12" />
                   </div>
                   <div className="relative z-10 space-y-3">
@@ -408,13 +408,13 @@ export default function ProposalManagement() {
 
       {/* CRUD MODAL */}
       <Dialog open={isCrudOpen} onOpenChange={setIsCrudOpen}>
-        <DialogContent className="max-w-xl p-0 overflow-hidden border-none shadow-2xl rounded-[2rem] bg-white/95 backdrop-blur-xl">
-          <DialogHeader className="p-8 pb-6 bg-gradient-to-br from-slate-50 to-white border-b border-slate-100 relative overflow-hidden">
-            <div className="absolute top-0 right-0 p-8 opacity-5">
+        <DialogContent className="max-w-xl p-0 overflow-hidden border-none shadow-2xl rounded-[2rem] bg-white/95 backdrop-blur-xl ">
+          <DialogHeader className="p-4 md:p-8 pb-3 md:pb-6 bg-gradient-to-br from-slate-50 to-white border-b border-slate-100 relative overflow-hidden">
+            <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none">
               <FileText className="size-24 rotate-12" />
             </div>
             <div className="relative z-10">
-              <div className="flex items-center gap-3 mb-2">
+              <div className="flex items-center gap-3 mb-1 md:mb-2">
                 <div className="size-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
                   {isEditMode ? <Pencil className="size-4" /> : <Plus className="size-4 stroke-[3px]" />}
                 </div>
@@ -422,67 +422,67 @@ export default function ProposalManagement() {
                   Proposal Registry
                 </Badge>
               </div>
-              <DialogTitle className="text-2xl font-black font-headline tracking-tighter text-slate-900 uppercase">
+              <DialogTitle className="text-lg md:text-2xl font-black font-headline tracking-tighter text-slate-900 uppercase">
                 {isEditMode ? 'Edit Proposal' : 'Buat Proposal Baru'}
               </DialogTitle>
-              <DialogDescription className="text-xs font-medium text-slate-400 mt-1">
+              <DialogDescription className="text-[10px] md:text-xs font-medium text-slate-400 mt-1">
                 Isi data kegiatan dan anggaran yang dibutuhkan untuk pengajuan.
               </DialogDescription>
             </div>
           </DialogHeader>
 
-          <form onSubmit={handleSave} className="p-8 pt-6 space-y-5 max-h-[65vh] overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200">
+          <form onSubmit={handleSave} className="p-4 md:p-8 pt-3 md:pt-6 space-y-3 md:space-y-5 max-h-[60vh] md:max-h-[65vh] overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200">
             <div className="space-y-2">
-              <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Judul / Nama Kegiatan</Label>
+              <Label className="text-[9px] md:text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Judul / Nama Kegiatan</Label>
               <Input
                 required
                 value={formData.Judul}
                 onChange={(e) => setFormData({ ...formData, Judul: e.target.value })}
                 placeholder="Contoh: Pekan Olahraga Fakultas..."
-                className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white transition-all font-bold text-sm font-headline"
+                className="h-10 md:h-12 rounded-xl md:rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white transition-all font-bold text-xs md:text-sm font-headline"
               />
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Tanggal Kegiatan</Label>
+                <Label className="text-[9px] md:text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Tanggal Kegiatan</Label>
                 <Input
                   required
                   type="date"
                   value={formData.TanggalKegiatan}
                   onChange={(e) => setFormData({ ...formData, TanggalKegiatan: e.target.value })}
-                  className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white transition-all font-bold text-sm font-headline"
+                  className="h-10 md:h-12 rounded-xl md:rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white transition-all font-bold text-xs md:text-sm font-headline"
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Anggaran (Rp)</Label>
+                <Label className="text-[9px] md:text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Anggaran (Rp)</Label>
                 <Input
                   required
                   type="number"
                   value={formData.Anggaran}
                   onChange={(e) => setFormData({ ...formData, Anggaran: e.target.value })}
                   placeholder="0"
-                  className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white transition-all font-bold text-sm font-headline"
+                  className="h-10 md:h-12 rounded-xl md:rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white transition-all font-bold text-xs md:text-sm font-headline"
                 />
               </div>
             </div>
             <div className="space-y-2">
-              <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Tujuan / Deskripsi</Label>
+              <Label className="text-[9px] md:text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Tujuan / Deskripsi</Label>
               <Textarea
                 required
                 value={formData.Catatan}
                 onChange={(e) => setFormData({ ...formData, Catatan: e.target.value })}
                 placeholder="Deskripsikan tujuan dan manfaat kegiatan..."
-                className="min-h-[100px] rounded-[1.5rem] border-slate-200 bg-slate-50/50 focus:bg-white p-4 font-medium text-sm leading-relaxed font-headline"
+                className="min-h-[80px] md:min-h-[100px] rounded-xl md:rounded-[1.5rem] border-slate-200 bg-slate-50/50 focus:bg-white p-3 md:p-4 font-medium text-xs md:text-sm leading-relaxed font-headline"
               />
             </div>
 
-            <DialogFooter className="pt-4 flex flex-row items-center justify-end gap-3 border-t border-slate-100 -mx-8 px-8 bg-slate-50/30">
-              <Button type="button" variant="ghost" onClick={() => setIsCrudOpen(false)} className="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-900 px-8 h-12 rounded-2xl font-headline">
+            <DialogFooter className="mt-4 pt-4 flex flex-col md:flex-row items-center justify-end gap-2 md:gap-3 border-t border-slate-100 - md:-mx-8 px-4 md:px-8 bg-slate-50/30 pb-4 md:pb-0">
+              <Button type="button" variant="ghost" onClick={() => setIsCrudOpen(false)} className="w-full md:w-auto text-[9px] md:text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-900 px-8 h-10 md:h-12 rounded-xl md:rounded-2xl font-headline">
                 Batalkan
               </Button>
-              <Button type="submit" disabled={isSubmitting} className="h-12 px-10 rounded-2xl bg-primary text-white hover:bg-primary/90 shadow-xl shadow-primary/20 transition-all hover:scale-[1.02] active:scale-95 font-headline">
-                {isSubmitting ? <Loader2 className="animate-spin size-4 mr-3" /> : <Save className="size-4 mr-3 stroke-[3px]" />}
-                <span className="text-[10px] font-black uppercase tracking-[0.2em] font-headline">
+              <Button type="submit" disabled={isSubmitting} className="w-full md:w-auto h-10 md:h-12 px-6 md:px-10 rounded-xl md:rounded-2xl bg-primary text-white hover:bg-primary/90 shadow-xl shadow-primary/20 transition-all hover:scale-[1.02] active:scale-95 font-headline">
+                {isSubmitting ? <Loader2 className="animate-spin size-4 mr-2" /> : <Save className="size-4 mr-2 stroke-[3px]" />}
+                <span className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.2em] font-headline">
                   {isEditMode ? 'Update Record' : 'Create Record'}
                 </span>
               </Button>

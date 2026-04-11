@@ -82,7 +82,7 @@ export default function AspirationManagement() {
       <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
       <main className="lg:ml-60 min-h-screen transition-all duration-300">
         <TopNavBar setIsOpen={setSidebarOpen} />
-        <div className="pt-20 px-6 pb-12">
+        <div className="pt-20 px-4 lg:px-8 pb-12">
           <Toaster position="top-right" />
           <div className="flex flex-col gap-1.5 mb-8">
             <div className="flex items-center gap-3">
@@ -112,10 +112,10 @@ export default function AspirationManagement() {
       </main>
 
       <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
-        <DialogContent className="max-w-2xl p-0 overflow-hidden border-none shadow-2xl rounded-[2.5rem] bg-white/95 backdrop-blur-xl">
+        <DialogContent className="max-w-2xl p-0 overflow-hidden border-none shadow-2xl rounded-[2.5rem] bg-white/95 backdrop-blur-xl ">
           {selected && (
             <div>
-              <div className="p-8 bg-gradient-to-br from-slate-900 to-slate-800 relative overflow-hidden">
+              <div className="p-6 md:p-8 bg-gradient-to-br from-slate-900 to-slate-800 relative overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-br from-primary/30 to-transparent" />
                 <div className="relative z-10">
                   <div className="flex items-start justify-between gap-4">
@@ -130,7 +130,7 @@ export default function AspirationManagement() {
                   </div>
                 </div>
               </div>
-              <div className="p-8 space-y-6">
+              <div className="p-6 md:p-8 space-y-4 md:space-y-6">
                 <div>
                   <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2 font-headline">Isi Aspirasi</p>
                   <p className="text-sm text-slate-600 font-medium leading-relaxed bg-slate-50 p-4 rounded-2xl border border-slate-100">{selected.Isi || selected.Konten || '—'}</p>

@@ -9,7 +9,7 @@ import { menuItems } from '../../constants/menuItems';
 import api from '../../lib/axios';
 import { toast } from 'react-hot-toast';
 
-export default function Header() {
+export default function Header({ onMenuClick }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -89,7 +89,11 @@ export default function Header() {
     <header className="h-16 bg-white border-b border-[#e5e5e5] flex items-center justify-between px-6 sticky top-0 z-50 shrink-0">
       
       <div className="flex items-center gap-4">
-        <button className="lg:hidden text-[#525252] hover:text-[#00236F] transition">
+        <button
+          onClick={onMenuClick}
+          className="lg:hidden text-[#525252] hover:text-[#00236F] transition"
+          aria-label="Buka menu"
+        >
           <Menu size={20} />
         </button>
         

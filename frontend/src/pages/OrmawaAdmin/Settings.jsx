@@ -77,7 +77,7 @@ export default function Settings() {
       <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
       <main className="lg:ml-60 min-h-screen transition-all duration-300">
         <TopNavBar setIsOpen={setSidebarOpen} />
-        <div className="pt-20 px-6 pb-12">
+        <div className="pt-20 px-4 lg:px-8 pb-12">
           <Toaster position="top-right" />
           <div className="flex flex-col gap-1.5 mb-8">
             <div className="flex items-center gap-3">
@@ -94,7 +94,7 @@ export default function Settings() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* Logo Panel */}
               <Card className="border-none shadow-sm overflow-hidden bg-white/50 backdrop-blur-md lg:col-span-1">
-                <CardContent className="p-8 flex flex-col items-center gap-6">
+                <CardContent className="p-5 md:p-8 flex flex-col items-center gap-5 md:gap-6">
                   <div className="w-28 h-28 rounded-[2rem] border-2 border-slate-100 shadow-xl overflow-hidden bg-slate-50 flex items-center justify-center">
                     {logoUrl ? <img src={logoUrl} alt="Logo" className="w-full h-full object-contain" /> : <Settings2 className="size-10 text-slate-300" />}
                   </div>
@@ -111,7 +111,7 @@ export default function Settings() {
 
               {/* Form Panel */}
               <Card className="border-none shadow-sm overflow-hidden bg-white/50 backdrop-blur-md lg:col-span-2">
-                <CardContent className="p-8 space-y-6">
+                <CardContent className="p-5 md:p-8 space-y-5 md:space-y-6">
                   <div>
                     <p className="text-[9px] font-black text-primary uppercase tracking-widest mb-4 flex items-center gap-1.5 font-headline"><CheckCircle2 className="size-3" /> IDENTITAS ORGANISASI</p>
                     <div className="space-y-5">
@@ -138,7 +138,7 @@ export default function Settings() {
 
                   <div className="border-t border-slate-100 pt-6">
                     <p className="text-[9px] font-black text-primary uppercase tracking-widest mb-4 flex items-center gap-1.5 font-headline"><Globe className="size-3" /> KONTAK & MEDIA SOSIAL</p>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <FieldGroup label="Email">
                         <Input type="email" value={config.Email} onChange={e => setConfig({ ...config, Email: e.target.value })} placeholder="email@ormawa.com"
                           className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white transition-all font-bold text-sm font-headline" />
@@ -163,7 +163,7 @@ export default function Settings() {
 
             {/* Save Button */}
             <div className="flex justify-end mt-6">
-              <Button type="submit" disabled={loading} className="h-14 px-12 rounded-2xl bg-primary text-white hover:bg-primary/90 shadow-xl shadow-primary/20 transition-all hover:scale-[1.02] active:scale-95 font-headline">
+              <Button type="submit" disabled={loading} className="w-full md:w-auto h-12 md:h-14 px-8 md:px-12 rounded-2xl bg-primary text-white hover:bg-primary/90 shadow-xl shadow-primary/20 transition-all hover:scale-[1.02] active:scale-95 font-headline">
                 {loading ? <Loader2 className="animate-spin size-5 mr-3" /> : <Save className="size-5 mr-3 stroke-[2.5px]" />}
                 <span className="text-[10px] font-black uppercase tracking-[0.2em]">Simpan Semua Perubahan</span>
               </Button>

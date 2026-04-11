@@ -1,72 +1,67 @@
 import React, { useState, useEffect } from 'react';
-import Sidebar from './components/Sidebar';
-import TopNavBar from './components/TopNavBar';
 import { adminService } from '../../services/api';
 import { toast, Toaster } from 'react-hot-toast';
-import { Plus, Pencil, Trash2, Calendar, User, UserCheck, CheckCircle2, AlertCircle, Save, X, Loader2 } from 'lucide-react';
+import { 
+    Plus, Pencil, Trash2, Calendar, User, UserCheck, 
+    CheckCircle2, AlertCircle, Save, X, Loader2,
+    Clock, MapPin, Users, LayoutDashboard, ClipboardList
+} from 'lucide-react';
 
 const CounselingAchievement = () => {
-    const [sessions, setSessions] = useState([]);
+    const [activeTab, setActiveTab] = useState('schedules'); // 'schedules' or 'bookings'
+    const [schedules, setSchedules] = useState([]);
+    const [bookings, setBookings] = useState([]);
     const [loading, setLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isEditMode, setIsEditMode] = useState(false);
     const [selectedID, setSelectedID] = useState(null);
 
-    const [form, setForm] = useState({
-        MahasiswaID: '',
-        DosenID: '',
-        Topik: '',
-        Status: 'Diproses',
-        Tanggal: new Date().toISOString().split('T')[0],
-        Catatan: ''
+    // Form for Schedules
+    const [scheduleForm, setScheduleForm] = useState({
+        kategori: 'Akademik',
+        nama_konselor: '',
+        tanggal: new Date().toISOString().split('T')[0],
+        jam_mulai: '09:00',
+        jam_selesai: '10:00',
+        lokasi: '',
+        kuota: 10,
+        is_aktif: true
     });
-
-    const [students, setStudents] = useState([]);
-    const [lecturers, setLecturers] = useState([]);
 
     useEffect(() => {
         loadData();
-        loadDropdowns();
-    }, []);
+    }, [activeTab]);
 
     const loadData = async () => {
         try {
             setLoading(true);
-            const res = await adminService.getAllCounseling();
-            if (res.status === 'success') {
-                setSessions(res.data || []);
+            if (activeTab === 'schedules') {
+                const res = await adminService.getAllCounselingSchedules();
+                if (res.status === 'success') setSchedules(res.data || []);
+            } else {
+                const res = await adminService.getAllCounseling();
+                if (res.status === 'success') setBookings(res.data || []);
             }
         } catch (error) {
             console.error('Fetch Error:', error);
-            toast.error(error.message || 'Gagal memuat data konseling');
+            toast.error('Gagal memuat data');
         } finally {
             setLoading(false);
         }
     };
 
-    const loadDropdowns = async () => {
-        try {
-            const [stdRes, lecRes] = await Promise.all([
-                adminService.getAllStudents(),
-                adminService.getAllLecturers()
-            ]);
-            if (stdRes.status === 'success') setStudents(stdRes.data || []);
-            if (lecRes.status === 'success') setLecturers(lecRes.data || []);
-        } catch (error) {
-            console.error('Failed to load dropdown data');
-        }
-    };
-
     const handleOpenAdd = () => {
         setIsEditMode(false);
-        setForm({
-            MahasiswaID: '',
-            DosenID: '',
-            Topik: '',
-            Status: 'Diproses',
-            Tanggal: new Date().toISOString().split('T')[0],
-            Catatan: ''
+        setScheduleForm({
+            kategori: 'Akademik',
+            nama_konselor: '',
+            tanggal: new Date().toISOString().split('T')[0],
+            jam_mulai: '09:00',
+            jam_selesai: '10:00',
+            lokasi: '',
+            kuota: 10,
+            is_aktif: true
         });
         setIsModalOpen(true);
     };
@@ -74,284 +69,374 @@ const CounselingAchievement = () => {
     const handleOpenEdit = (s) => {
         setIsEditMode(true);
         setSelectedID(s.ID);
-        setForm({
-            MahasiswaID: s.MahasiswaID,
-            DosenID: s.DosenID,
-            Topik: s.Topik,
-            Status: s.Status,
-            Tanggal: s.Tanggal ? s.Tanggal.split('T')[0] : '',
-            Catatan: s.Catatan || ''
+        setScheduleForm({
+            kategori: s.kategori || 'Akademik',
+            nama_konselor: s.nama_konselor || '',
+            tanggal: s.tanggal ? s.tanggal.split('T')[0] : '',
+            jam_mulai: s.jam_mulai || '09:00',
+            jam_selesai: s.jam_selesai || '10:00',
+            lokasi: s.lokasi || '',
+            kuota: s.kuota || 10,
+            is_aktif: s.is_aktif
         });
         setIsModalOpen(true);
     };
 
-    const handleDelete = async (id) => {
-        if (!window.confirm('Yakin ingin menghapus sesi konseling ini?')) return;
+    const handleDeleteSchedule = async (id) => {
+        if (!window.confirm('Yakin ingin menghapus jadwal ini?')) return;
         try {
-            await adminService.deleteCounseling(id);
-            toast.success('Sesi berhasil dihapus');
+            await adminService.deleteCounselingSchedule(id);
+            toast.success('Jadwal berhasil dihapus');
             loadData();
         } catch (error) {
-            toast.error('Gagal menghapus sesi');
+            toast.error('Gagal menghapus jadwal');
         }
     };
 
-    const handleSubmit = async (e) => {
+    const handleUpdateBookingStatus = async (id, status) => {
+        try {
+            await adminService.updateCounseling(id, { Status: status });
+            toast.success('Status booking diperbarui');
+            loadData();
+        } catch (error) {
+            toast.error('Gagal memperbarui status');
+        }
+    };
+
+    const handleSubmitSchedule = async (e) => {
         e.preventDefault();
         setIsSubmitting(true);
         try {
-            // Bersihkan data sebelum dikirim
             const payload = {
-                MahasiswaID: parseInt(form.MahasiswaID),
-                DosenID: parseInt(form.DosenID),
-                Topik: form.Topik,
-                Status: form.Status,
-                Catatan: form.Catatan,
-                Tanggal: new Date(form.Tanggal).toISOString() // Kirim dalam format ISO8601 agar Go bisa baca
+                ...scheduleForm,
+                kuota: parseInt(scheduleForm.kuota),
+                tanggal: new Date(scheduleForm.tanggal).toISOString()
             };
 
             const res = isEditMode 
-                ? await adminService.updateCounseling(selectedID, payload)
-                : await adminService.createCounseling(payload);
+                ? await adminService.updateCounselingSchedule(selectedID, payload)
+                : await adminService.createCounselingSchedule(payload);
 
             if (res.status === 'success') {
-                toast.success(isEditMode ? 'Sesi diperbarui' : 'Sesi berhasil dibuat');
+                toast.success(isEditMode ? 'Jadwal diperbarui' : 'Jadwal berhasil dibuat');
                 setIsModalOpen(false);
                 loadData();
-            } else {
-                toast.error(res.message || 'Gagal menyimpan data');
             }
         } catch (error) {
-            console.error('Submission Error:', error);
-            toast.error(error.message || 'Terjadi kesalahan sistem');
+            toast.error(error.message || 'Terjadi kesalahan');
         } finally {
             setIsSubmitting(false);
         }
     };
 
-    const pendingSessions = sessions.filter(s => s.Status !== 'Selesai').length;
-
     return (
-        <div className="bg-slate-50 text-slate-900 min-h-screen flex font-body select-none">
-            <Sidebar />
+        <div className="p-4 md:p-8 space-y-8">
             <Toaster position="top-right" />
-            <main className="pl-72 pt-20 flex flex-col min-h-screen w-full font-body">
-
-                <TopNavBar />
-                <div className="p-8 space-y-8">
-                    <header className="flex justify-between items-end">
-                        <div className="flex flex-col gap-1.5">
-                            <div className="flex items-center gap-3">
-                                <div className="p-2 bg-primary/10 rounded-xl text-primary"><Calendar className="size-6" /></div>
-                                <h1 className="text-2xl font-black text-slate-900 font-headline tracking-tighter uppercase leading-none">Global Welfare & Counseling</h1>
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <div className="h-1 w-10 bg-primary rounded-full shadow-sm shadow-primary/30" />
-                                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Cross-faculty monitoring of student mental health and consultation sessions.</p>
-                            </div>
-                        </div>
-                        <button 
-                            onClick={handleOpenAdd}
-                            className="bg-primary px-8 py-4 rounded-2xl font-black text-[11px] uppercase tracking-widest flex items-center gap-3 text-white hover:bg-primary/90 transition-all shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95">
-                            <Plus className="size-4 stroke-[3px]" />
-                            Record New Session
-                        </button>
-                    </header>
-
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-                        {/* Achievement Verification Queue */}
-                        <section className="lg:col-span-2 bg-white p-10 rounded-[3.5rem] border border-slate-200/60 space-y-8 shadow-sm relative overflow-hidden">
-                            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary/50 to-transparent opacity-20" />
-                            <div className="flex justify-between items-center font-body">
-                                <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest leading-tight flex items-center gap-3">
-                                    <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-                                    Consultation Pipeline
-                                </h3>
-                                <div className="flex items-center gap-2">
-                                    <span className="px-3 py-1 bg-primary/5 text-primary rounded-full text-[10px] font-black tracking-widest uppercase border border-primary/10">
-                                        {loading ? '...' : pendingSessions} Active Sessions
-                                    </span>
-                                </div>
-                            </div>
-
-                            <div className="space-y-4 font-body">
-                                {loading ? (
-                                    <div className="py-20 flex flex-col items-center justify-center gap-4 text-slate-400 uppercase font-black text-[10px] tracking-widest">
-                                        <Loader2 className="size-8 animate-spin text-primary/40" />
-                                        Mensinkronkan sesi konseling...
-                                    </div>
-                                ) : sessions.length === 0 ? (
-                                    <div className="py-20 text-center text-slate-400 uppercase font-black text-[10px] tracking-widest flex flex-col items-center gap-4">
-                                        <div className="size-20 bg-slate-50 rounded-[2.5rem] flex items-center justify-center border border-slate-100"><Calendar className="size-8 opacity-20" /></div>
-                                        Tidak ada record sesi ditemukan.
-                                    </div>
-                                ) : sessions.map((s) => (
-                                    <div key={s.ID} className="flex items-center justify-between p-6 bg-slate-50/30 rounded-[2.5rem] border border-slate-100 group hover:border-primary/40 hover:bg-white hover:scale-[1.01] transition-all duration-300">
-                                        <div className="flex items-center gap-6">
-                                            <div className="w-16 h-16 bg-white rounded-3xl flex items-center justify-center text-primary shadow-sm border border-slate-100 group-hover:bg-primary group-hover:text-white transition-colors duration-300">
-                                                <UserCheck className="size-6 stroke-[2.5px]" />
-                                            </div>
-                                            <div className="font-body space-y-1">
-                                                <p className="font-black text-slate-900 leading-tight uppercase tracking-tight text-sm">{s.Topik}</p>
-                                                <div className="flex items-center gap-4 mt-2">
-                                                    <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-500 uppercase tracking-tighter italic">
-                                                        <User className="size-3" />
-                                                        Pasien: {s.Mahasiswa?.Nama || 'Mahasiswa'} (NIM: {s.Mahasiswa?.NIM || '-'})
-                                                    </div>
-                                                    <div className="w-1 h-1 rounded-full bg-slate-300" />
-                                                    <div className="flex items-center gap-1.5 text-[10px] text-slate-400 font-bold uppercase tracking-widest">
-                                                        <UserCheck className="size-3" />
-                                                        Dosen: {s.Dosen?.Nama || 'Dosen'}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div className="flex items-center gap-6 text-right font-body">
-                                            <div>
-                                                <span className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest border shadow-sm ${
-                                                    s.Status === 'Selesai' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 
-                                                    'bg-amber-50 text-amber-700 border-amber-100'
-                                                }`}>
-                                                    {s.Status}
-                                                </span>
-                                                <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mt-2 italic">{new Date(s.Tanggal).toLocaleDateString('id-ID', {day: 'numeric', month: 'short', year: 'numeric'})}</p>
-                                            </div>
-                                            <div className="flex gap-2">
-                                                <button onClick={() => handleOpenEdit(s)} className="p-3 bg-white border border-slate-200 rounded-2xl text-slate-400 hover:text-amber-600 hover:border-amber-200 transition-all"><Pencil className="size-4" /></button>
-                                                <button onClick={() => handleDelete(s.ID)} className="p-3 bg-white border border-slate-200 rounded-2xl text-slate-400 hover:text-rose-600 hover:border-rose-200 transition-all"><Trash2 className="size-4" /></button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </section>
-
-                        {/* Counseling Activity Stats */}
-                        <section className="bg-white p-10 rounded-[3.5rem] border border-slate-200 space-y-8 shadow-sm font-body relative overflow-hidden">
-                            <div className="absolute top-0 right-0 p-8 opacity-5"><Calendar className="size-32 rotate-12" /></div>
-                            <div className="space-y-2 relative z-10">
-                                <div className="text-[10px] font-black uppercase tracking-widest text-slate-400 flex items-center gap-2">
-                                    <div className="w-3 h-1 bg-primary/30 rounded-full" />
-                                    Total Record
-                                </div>
-                                <h3 className="text-4xl font-black text-slate-900 tracking-tighter">{sessions.length.toString().padStart(2, '0')}</h3>
-                            </div>
-                            
-                            <div className="p-8 bg-slate-50/50 border border-slate-100 rounded-[2.5rem] flex flex-col gap-5 font-body">
-                                <div className="size-12 rounded-[1.5rem] bg-white border border-slate-200 flex items-center justify-center text-primary shadow-sm">
-                                    <CheckCircle2 className="size-6" />
-                                </div>
-                                <p className="text-[11px] text-slate-500 font-bold leading-relaxed italic">
-                                    Data ini merupakan agregat sesi konseling tingkat universitas untuk memantau beban kerja bimbingan akademik dan kesehatan mental mahasiswa.
-                                </p>
-                            </div>
-
-                            <button className="w-full py-4 bg-white border border-slate-200 rounded-2xl font-black text-[10px] uppercase tracking-widest text-primary hover:bg-primary hover:text-white hover:border-primary transition-all shadow-sm">
-                                Export Summary Report
-                            </button>
-                        </section>
+            
+            <header className="flex justify-between items-end">
+                <div className="flex flex-col gap-1.5">
+                    <div className="flex items-center gap-3">
+                        <div className="p-2 bg-primary/10 rounded-xl text-primary"><Calendar className="size-6" /></div>
+                        <h1 className="text-2xl font-black text-slate-900 font-headline tracking-tighter uppercase leading-none">Counseling Hub</h1>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <div className="h-1 w-10 bg-primary rounded-full" />
+                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Manage consultation slots and student appointments.</p>
                     </div>
                 </div>
+                {activeTab === 'schedules' && (
+                    <button 
+                        onClick={handleOpenAdd}
+                        className="bg-primary px-8 py-4 rounded-2xl font-black text-[11px] uppercase tracking-widest flex items-center gap-3 text-white hover:bg-primary/90 transition-all shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95">
+                        <Plus className="size-4 stroke-[3px]" />
+                        Create New Slot
+                    </button>
+                )}
+            </header>
 
-                {/* CRUD MODAL */}
-                {isModalOpen && (
-                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-8 bg-slate-900/60 backdrop-blur-md animate-in fade-in duration-300">
-                        <div className="bg-white w-full max-w-2xl rounded-[3.5rem] shadow-2xl overflow-hidden border border-white/20 animate-in zoom-in-95 duration-300">
-                            <header className="p-10 pb-6 border-b border-slate-100 flex justify-between items-start bg-slate-50/50">
-                                <div>
-                                    <div className="flex items-center gap-3 mb-2">
-                                        <div className="p-2 bg-primary/10 rounded-xl text-primary">{isEditMode ? <Pencil className="size-4" /> : <Plus className="size-4" />}</div>
-                                        <span className="text-[10px] font-black uppercase tracking-widest text-primary/60">Welfare Management</span>
-                                    </div>
-                                    <h2 className="text-2xl font-black text-slate-900 uppercase tracking-tighter font-headline">{isEditMode ? 'Edit Session Record' : 'Record New Counseling'}</h2>
+            {/* Tabs */}
+            <div className="flex gap-4 border-b border-slate-200">
+                <button 
+                    onClick={() => setActiveTab('schedules')}
+                    className={`pb-4 px-6 text-xs font-black uppercase tracking-widest transition-all relative ${activeTab === 'schedules' ? 'text-primary' : 'text-slate-400 hover:text-slate-600'}`}>
+                    Master Jadwal
+                    {activeTab === 'schedules' && <div className="absolute bottom-0 left-0 w-full h-1 bg-primary rounded-t-full shadow-[0_-2px_10px_rgba(var(--primary-rgb),0.5)]" />}
+                </button>
+                <button 
+                    onClick={() => setActiveTab('bookings')}
+                    className={`pb-4 px-6 text-xs font-black uppercase tracking-widest transition-all relative ${activeTab === 'bookings' ? 'text-primary' : 'text-slate-400 hover:text-slate-600'}`}>
+                    Booking Mahasiswa
+                    {activeTab === 'bookings' && <div className="absolute bottom-0 left-0 w-full h-1 bg-primary rounded-t-full shadow-[0_-2px_10px_rgba(var(--primary-rgb),0.5)]" />}
+                </button>
+            </div>
+
+            <div className="grid grid-cols-1 gap-8">
+                <section className="bg-white p-10 rounded-[3.5rem] border border-slate-200/60 space-y-8 shadow-sm relative overflow-hidden">
+                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary/50 to-transparent opacity-20" />
+                    
+                    {loading ? (
+                        <div className="py-20 flex flex-col items-center justify-center gap-4 text-slate-400 uppercase font-black text-[10px] tracking-widest">
+                            <Loader2 className="size-8 animate-spin text-primary/40" />
+                            Mensinkronkan data...
+                        </div>
+                    ) : activeTab === 'schedules' ? (
+                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                            {schedules.length === 0 ? (
+                                <div className="col-span-full py-20 text-center text-slate-400 uppercase font-black text-[10px] tracking-widest flex flex-col items-center gap-4">
+                                    <div className="size-20 bg-slate-50 rounded-[2.5rem] flex items-center justify-center border border-slate-100"><Calendar className="size-8 opacity-20" /></div>
+                                    Belum ada jadwal yang dibuat.
                                 </div>
-                                <button onClick={() => setIsModalOpen(false)} className="p-4 bg-white rounded-3xl text-slate-400 hover:text-slate-900 shadow-sm border border-slate-200 hover:rotate-90 transition-all duration-500"><X className="size-5" /></button>
-                            </header>
-
-                            <form onSubmit={handleSubmit} className="p-10 space-y-6">
-                                <div className="grid grid-cols-2 gap-6">
-                                    <div className="space-y-2">
-                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">Nama Mahasiswa</label>
-                                        <select 
-                                            required
-                                            value={form.MahasiswaID}
-                                            onChange={e => setForm({...form, MahasiswaID: e.target.value})}
-                                            className="w-full h-14 bg-slate-50 border border-slate-200 rounded-2xl px-6 font-bold text-sm focus:bg-white focus:ring-2 ring-primary/20 transition-all appearance-none outline-none"
-                                        >
-                                            <option value="">Pilih Mahasiswa...</option>
-                                            {students.map(s => <option key={s.ID} value={s.ID}>{s.Nama} ({s.NIM})</option>)}
-                                        </select>
+                            ) : schedules.map((s) => (
+                                <div key={s.ID} className="p-8 bg-slate-50/30 rounded-[2.5rem] border border-slate-100 space-y-6 hover:border-primary/40 hover:bg-white transition-all group">
+                                    <div className="flex justify-between items-start">
+                                        <div className="space-y-1">
+                                            <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border ${
+                                                s.kategori === 'Akademik' ? 'bg-blue-50 text-blue-600 border-blue-100' :
+                                                s.kategori === 'Karir' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
+                                                'bg-rose-50 text-rose-600 border-rose-100'
+                                            }`}>
+                                                {s.kategori}
+                                            </span>
+                                            <h3 className="text-base font-black text-slate-900 uppercase tracking-tight leading-tight">{s.nama_konselor}</h3>
+                                        </div>
+                                        <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <button onClick={() => handleOpenEdit(s)} className="p-2.5 bg-white border border-slate-200 rounded-xl text-slate-400 hover:text-amber-600 hover:border-amber-200 transition-all"><Pencil className="size-3.5" /></button>
+                                            <button onClick={() => handleDeleteSchedule(s.ID)} className="p-2.5 bg-white border border-slate-200 rounded-xl text-slate-400 hover:text-rose-600 hover:border-rose-200 transition-all"><Trash2 className="size-3.5" /></button>
+                                        </div>
                                     </div>
-                                    <div className="space-y-2">
-                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">Dosen Pembimbing</label>
-                                        <select 
-                                            required
-                                            value={form.DosenID}
-                                            onChange={e => setForm({...form, DosenID: e.target.value})}
-                                            className="w-full h-14 bg-slate-50 border border-slate-200 rounded-2xl px-6 font-bold text-sm focus:bg-white focus:ring-2 ring-primary/20 transition-all appearance-none outline-none"
-                                        >
-                                            <option value="">Pilih Dosen...</option>
-                                            {lecturers.map(l => <option key={l.ID} value={l.ID}>{l.Nama} ({l.NIDN})</option>)}
-                                        </select>
+
+                                    <div className="space-y-3">
+                                        <div className="flex items-center gap-3 text-slate-500 font-bold text-[11px] uppercase tracking-tight">
+                                            <Calendar className="size-4 text-primary" />
+                                            {new Date(s.tanggal).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long' })}
+                                        </div>
+                                        <div className="flex items-center gap-3 text-slate-500 font-bold text-[11px] uppercase tracking-tight">
+                                            <Clock className="size-4 text-primary" />
+                                            {s.jam_mulai} - {s.jam_selesai}
+                                        </div>
+                                        <div className="flex items-center gap-3 text-slate-500 font-bold text-[11px] uppercase tracking-tight">
+                                            <MapPin className="size-4 text-primary" />
+                                            {s.lokasi}
+                                        </div>
+                                    </div>
+
+                                    <div className="pt-4 border-t border-slate-100 flex justify-between items-center">
+                                        <div className="flex items-center gap-2">
+                                            <Users className="size-4 text-slate-300" />
+                                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Kuota: {s.sisa_kuota} / {s.kuota}</span>
+                                        </div>
+                                        <div className={`size-3 rounded-full ${s.is_aktif ? 'bg-emerald-400' : 'bg-slate-300'}`} title={s.is_aktif ? 'Aktif' : 'Nonaktif'} />
                                     </div>
                                 </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="space-y-4">
+                            {bookings.length === 0 ? (
+                                <div className="py-20 text-center text-slate-400 uppercase font-black text-[10px] tracking-widest flex flex-col items-center gap-4">
+                                    <div className="size-20 bg-slate-50 rounded-[2.5rem] flex items-center justify-center border border-slate-100"><ClipboardList className="size-8 opacity-20" /></div>
+                                    Tidak ada riwayat booking ditemukan.
+                                </div>
+                            ) : (
+                                <div className="overflow-x-auto">
+                                    <table className="w-full text-left">
+                                        <thead>
+                                            <tr className="border-b border-slate-100">
+                                                <th className="pb-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">Mahasiswa</th>
+                                                <th className="pb-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">Sesi / Topik</th>
+                                                <th className="pb-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">Waktu</th>
+                                                <th className="pb-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">Status</th>
+                                                <th className="pb-6 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Aksi</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-slate-50">
+                                            {bookings.map((b) => (
+                                                <tr key={b.ID} className="group hover:bg-slate-50/50 transition-colors">
+                                                    <td className="py-6">
+                                                        <div className="flex items-center gap-4">
+                                                            <div className="w-10 h-10 bg-primary/5 rounded-xl flex items-center justify-center text-primary font-black text-xs">
+                                                                {b.Mahasiswa?.Nama?.charAt(0) || 'M'}
+                                                            </div>
+                                                            <div>
+                                                                <p className="text-[13px] font-black text-slate-900 tracking-tight uppercase">{b.Mahasiswa?.Nama || 'Mahasiswa'}</p>
+                                                                <p className="text-[10px] font-bold text-slate-400 tracking-widest uppercase italic">{b.Mahasiswa?.NIM || '-'}</p>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td className="py-6">
+                                                        <p className="text-[12px] font-black text-slate-600 uppercase tracking-tight leading-tight">{b.Topik}</p>
+                                                        <div className="flex items-center gap-2 mt-1">
+                                                            <p className="text-[10px] font-bold text-slate-400">{b.Catatan?.split(',')[0] || 'Unknown Konselor'}</p>
+                                                        </div>
+                                                    </td>
+                                                    <td className="py-6">
+                                                        <p className="text-[11px] font-black text-slate-800 uppercase tracking-tighter">
+                                                            {new Date(b.Tanggal).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
+                                                        </p>
+                                                    </td>
+                                                    <td className="py-6">
+                                                        <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border ${
+                                                            b.Status === 'Selesai' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
+                                                            b.Status === 'Batal' ? 'bg-rose-50 text-rose-600 border-rose-100' :
+                                                            'bg-amber-50 text-amber-600 border-amber-100'
+                                                        }`}>
+                                                            {b.Status}
+                                                        </span>
+                                                    </td>
+                                                    <td className="py-6 text-right">
+                                                        <div className="flex justify-end gap-2">
+                                                            {b.Status === 'Menunggu' && (
+                                                                <>
+                                                                    <button 
+                                                                        onClick={() => handleUpdateBookingStatus(b.ID, 'Proses')}
+                                                                        className="px-3 py-2 bg-emerald-500 text-white rounded-lg text-[9px] font-black uppercase tracking-widest hover:bg-emerald-600 transition-all">
+                                                                        Confirm
+                                                                    </button>
+                                                                    <button 
+                                                                        onClick={() => handleUpdateBookingStatus(b.ID, 'Batal')}
+                                                                        className="px-3 py-2 bg-rose-500 text-white rounded-lg text-[9px] font-black uppercase tracking-widest hover:bg-rose-600 transition-all">
+                                                                        Reject
+                                                                    </button>
+                                                                </>
+                                                            )}
+                                                            {b.Status === 'Proses' && (
+                                                                <button 
+                                                                    onClick={() => handleUpdateBookingStatus(b.ID, 'Selesai')}
+                                                                    className="px-4 py-2 bg-primary text-white rounded-lg text-[9px] font-black uppercase tracking-widest hover:bg-primary/90 transition-all">
+                                                                    Complete
+                                                                </button>
+                                                            )}
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </section>
+            </div>
 
+            {/* CRUD MODAL FOR SCHEDULES */}
+            {isModalOpen && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-8 bg-slate-900/60 backdrop-blur-md animate-in fade-in duration-300">
+                    <div className="bg-white w-full max-w-2xl rounded-[3.5rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
+                        <header className="p-10 pb-6 border-b border-slate-100 flex justify-between items-start bg-slate-50/50">
+                            <div>
+                                <div className="flex items-center gap-3 mb-2">
+                                    <div className="p-2 bg-primary/10 rounded-xl text-primary">{isEditMode ? <Pencil className="size-4" /> : <Plus className="size-4" />}</div>
+                                    <span className="text-[10px] font-black uppercase tracking-widest text-primary/60">Schedule Configuration</span>
+                                </div>
+                                <h2 className="text-2xl font-black text-slate-900 uppercase tracking-tighter font-headline">{isEditMode ? 'Edit consultation Slot' : 'Create New Slot'}</h2>
+                            </div>
+                            <button onClick={() => setIsModalOpen(false)} className="p-4 bg-white rounded-3xl text-slate-400 hover:text-slate-900 shadow-sm border border-slate-200 hover:rotate-90 transition-all duration-500"><X className="size-5" /></button>
+                        </header>
+
+                        <form onSubmit={handleSubmitSchedule} className="p-10 space-y-6">
+                            <div className="grid grid-cols-2 gap-6">
                                 <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">Topik Konseling</label>
+                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">Kategori</label>
+                                    <select 
+                                        required
+                                        value={scheduleForm.kategori}
+                                        onChange={e => setScheduleForm({...scheduleForm, kategori: e.target.value})}
+                                        className="w-full h-14 bg-slate-50 border border-slate-200 rounded-2xl px-6 font-bold text-sm focus:bg-white focus:ring-2 ring-primary/20 transition-all outline-none"
+                                    >
+                                        <option value="Akademik">Akademik</option>
+                                        <option value="Karir">Karir</option>
+                                        <option value="Personal">Personal</option>
+                                    </select>
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">Nama Psikiater / Konselor</label>
                                     <input 
                                         required
-                                        value={form.Topik}
-                                        onChange={e => setForm({...form, Topik: e.target.value})}
-                                        placeholder="Masukan topik bimbingan/keluhan..."
+                                        value={scheduleForm.nama_konselor}
+                                        onChange={e => setScheduleForm({...scheduleForm, nama_konselor: e.target.value})}
+                                        placeholder="Nama lengkap konselor..."
                                         className="w-full h-14 bg-slate-50 border border-slate-200 rounded-2xl px-6 font-bold text-sm focus:bg-white focus:ring-2 ring-primary/20 transition-all outline-none"
                                     />
                                 </div>
+                            </div>
 
-                                <div className="grid grid-cols-2 gap-6">
-                                    <div className="space-y-2">
-                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">Tanggal Sesi</label>
-                                        <input 
-                                            type="date"
-                                            required
-                                            value={form.Tanggal}
-                                            onChange={e => setForm({...form, Tanggal: e.target.value})}
-                                            className="w-full h-14 bg-slate-50 border border-slate-200 rounded-2xl px-6 font-bold text-sm focus:bg-white focus:ring-2 ring-primary/20 transition-all outline-none"
-                                        />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">Status</label>
-                                        <select 
-                                            value={form.Status}
-                                            onChange={e => setForm({...form, Status: e.target.value})}
-                                            className="w-full h-14 bg-slate-50 border border-slate-200 rounded-2xl px-6 font-bold text-sm focus:bg-white focus:ring-2 ring-primary/20 transition-all appearance-none outline-none"
-                                        >
-                                            <option value="Diproses">Diproses</option>
-                                            <option value="Selesai">Selesai</option>
-                                            <option value="Batal">Batal</option>
-                                        </select>
-                                    </div>
+                            <div className="grid grid-cols-3 gap-6">
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">Tanggal</label>
+                                    <input 
+                                        type="date"
+                                        required
+                                        value={scheduleForm.tanggal}
+                                        onChange={e => setScheduleForm({...scheduleForm, tanggal: e.target.value})}
+                                        className="w-full h-14 bg-slate-50 border border-slate-200 rounded-2xl px-6 font-bold text-sm focus:bg-white outline-none ring-primary/20 transition-all"
+                                    />
                                 </div>
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">Jam Mulai</label>
+                                    <input 
+                                        type="time"
+                                        required
+                                        value={scheduleForm.jam_mulai}
+                                        onChange={e => setScheduleForm({...scheduleForm, jam_mulai: e.target.value})}
+                                        className="w-full h-14 bg-slate-50 border border-slate-200 rounded-2xl px-6 font-bold text-sm focus:bg-white outline-none"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">Jam Selesai</label>
+                                    <input 
+                                        type="time"
+                                        required
+                                        value={scheduleForm.jam_selesai}
+                                        onChange={e => setScheduleForm({...scheduleForm, jam_selesai: e.target.value})}
+                                        className="w-full h-14 bg-slate-50 border border-slate-200 rounded-2xl px-6 font-bold text-sm focus:bg-white outline-none"
+                                    />
+                                </div>
+                            </div>
 
-                                <footer className="pt-6 flex gap-4">
-                                    <button 
-                                        type="button"
-                                        onClick={() => setIsModalOpen(false)}
-                                        className="flex-1 h-16 rounded-2xl border border-slate-200 font-black text-[10px] uppercase tracking-widest text-slate-400 hover:bg-slate-50 transition-all">
-                                        Cancel
-                                    </button>
-                                    <button 
-                                        type="submit"
-                                        disabled={isSubmitting}
-                                        className="flex-[2] h-16 rounded-2xl bg-primary text-white font-black text-[10px] uppercase tracking-[0.3em] shadow-xl shadow-primary/20 hover:bg-primary/90 transition-all flex items-center justify-center gap-3">
-                                        {isSubmitting ? <Loader2 className="animate-spin size-4" /> : <Save className="size-4" />}
-                                        {isEditMode ? 'Update Session' : 'Save Session'}
-                                    </button>
-                                </footer>
-                            </form>
-                        </div>
+                            <div className="grid grid-cols-2 gap-6">
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">Ruangan / Lokasi</label>
+                                    <input 
+                                        required
+                                        value={scheduleForm.lokasi}
+                                        onChange={e => setScheduleForm({...scheduleForm, lokasi: e.target.value})}
+                                        placeholder="Contoh: Gedung A, Lantai 2"
+                                        className="w-full h-14 bg-slate-50 border border-slate-200 rounded-2xl px-6 font-bold text-sm focus:bg-white outline-none"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">Kuota Siswa</label>
+                                    <input 
+                                        type="number"
+                                        required
+                                        min="1"
+                                        value={scheduleForm.kuota}
+                                        onChange={e => setScheduleForm({...scheduleForm, kuota: e.target.value})}
+                                        className="w-full h-14 bg-slate-50 border border-slate-200 rounded-2xl px-6 font-bold text-sm focus:bg-white outline-none"
+                                    />
+                                </div>
+                            </div>
+
+                            <footer className="pt-6 flex gap-4">
+                                <button 
+                                    type="button"
+                                    onClick={() => setIsModalOpen(false)}
+                                    className="flex-1 h-16 rounded-2xl border border-slate-200 font-black text-[10px] uppercase tracking-widest text-slate-400 hover:bg-slate-50 transition-all">
+                                    Cancel
+                                </button>
+                                <button 
+                                    type="submit"
+                                    disabled={isSubmitting}
+                                    className="flex-[2] h-16 rounded-2xl bg-primary text-white font-black text-[10px] uppercase tracking-[0.3em] shadow-xl shadow-primary/20 hover:bg-primary/90 transition-all flex items-center justify-center gap-3">
+                                    {isSubmitting ? <Loader2 className="animate-spin size-4" /> : <Save className="size-4" />}
+                                    {isEditMode ? 'Update schedule' : 'Save schedule'}
+                                </button>
+                            </footer>
+                        </form>
                     </div>
-                )}
-            </main>
+                </div>
+            )}
         </div>
     );
 };

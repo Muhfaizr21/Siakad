@@ -13,8 +13,6 @@ import { Textarea } from './components/ui/textarea'
 import { Pencil, Trash2, Loader2, Plus, Save, Building2 } from 'lucide-react'
 import { toast, Toaster } from 'react-hot-toast'
 import { cn } from '@/lib/utils'
-import Sidebar from './components/Sidebar'
-import TopNavBar from './components/TopNavBar'
 import { adminService } from '../../services/api'
 
 export default function KelolaFakultas() {
@@ -69,12 +67,7 @@ export default function KelolaFakultas() {
   ]
 
   return (
-    <div className="bg-slate-50 min-h-screen flex font-sans">
-      <Sidebar />
-      <main className="pl-72 pt-20 flex flex-col min-h-screen w-full">
-
-        <TopNavBar />
-        <div className="p-8 space-y-6">
+    <div className="p-4 md:p-8 space-y-6">
           <Toaster position="top-right" />
           <div className="flex flex-col gap-1.5">
             <div className="flex items-center gap-3">
@@ -101,8 +94,6 @@ export default function KelolaFakultas() {
               />
             </CardContent>
           </Card>
-        </div>
-      </main>
 
       <Dialog open={isCrudOpen} onOpenChange={setIsCrudOpen}>
         <DialogContent className="max-w-lg p-0 overflow-hidden border-none shadow-2xl rounded-[2rem] bg-white/95 backdrop-blur-xl">
@@ -114,6 +105,7 @@ export default function KelolaFakultas() {
                 <Badge className="text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 bg-primary/5 text-primary border-none">Faculty Registry</Badge>
               </div>
               <DialogTitle className="text-2xl font-black font-headline tracking-tighter text-slate-900 uppercase">{isEditMode ? 'Edit Fakultas' : 'Tambah Fakultas Baru'}</DialogTitle>
+              <DialogDescription className="sr-only">Formulir pendaftaran dan pembaruan data fakultas dalam sistem.</DialogDescription>
             </div>
           </DialogHeader>
           <form onSubmit={handleSave} className="p-8 pt-6 space-y-4 max-h-[65vh] overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200">

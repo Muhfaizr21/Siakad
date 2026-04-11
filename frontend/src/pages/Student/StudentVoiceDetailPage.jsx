@@ -96,18 +96,27 @@ export default function StudentVoiceDetailPage() {
                       <span className="text-xs font-semibold text-gray-600">Dikirim secara Anonim</span>
                     </div>
                   )}
-                  <h2 className="text-xl md:text-2xl font-bold font-headline text-[#171717] leading-tight">
-                    {ticket.judul}
-                  </h2>
+                <h2 className="text-xl md:text-2xl font-bold font-headline text-[#171717] leading-tight break-words">
+                  {ticket.judul}
+                </h2>
                 </div>
 
                 <div className="h-px w-full bg-gray-100 mb-6" />
 
-                <div className="prose prose-neutral max-w-none mb-8">
-                  <p className="text-sm md:text-base text-gray-700 leading-relaxed font-body whitespace-pre-wrap">
+                <div className="prose prose-neutral max-w-none mb-8 overflow-hidden">
+                  <p className="text-sm md:text-base text-gray-700 leading-relaxed font-body whitespace-pre-wrap break-words [overflow-wrap:anywhere]">
                     {ticket.isi}
                   </p>
                 </div>
+
+                {ticket.respon && (
+                  <div className="p-4 bg-blue-50/70 rounded-xl border border-blue-100 overflow-hidden">
+                    <p className="text-[11px] font-bold text-blue-700 uppercase tracking-wider mb-2">Respons Admin</p>
+                    <p className="text-sm text-blue-900 leading-relaxed whitespace-pre-wrap break-words [overflow-wrap:anywhere]">
+                      {ticket.respon}
+                    </p>
+                  </div>
+                )}
 
                 {ticket.lampiran_url && (
                   <div className="p-4 bg-gray-50 rounded-xl border border-gray-200 group/file">
@@ -171,9 +180,9 @@ export default function StudentVoiceDetailPage() {
                 <Layers size={18} className="text-gray-300" />
               </div>
 
-              <div className="relative pl-8 space-y-8 z-10">
+              <div className="relative pl-8 space-y-6 z-10">
                 {/* Vertical Line Connector */}
-                <div className="absolute left-[15px] top-6 bottom-4 w-0.5 bg-gray-100">
+                <div className="absolute left-[15px] top-4 bottom-6 w-0.5 bg-gray-100">
                    <motion.div 
                      initial={{ height: 0 }} 
                      animate={{ height: '100%' }}
@@ -183,7 +192,7 @@ export default function StudentVoiceDetailPage() {
                 </div>
 
                 {/* Timeline Events */}
-                {ticket.timeline?.map((event, idx) => (
+                {(ticket.timeline || []).map((event, idx) => (
                   <TimelineEvent 
                     key={event.id} 
                     event={event} 
@@ -191,6 +200,12 @@ export default function StudentVoiceDetailPage() {
                     idx={idx}
                   />
                 ))}
+
+                {(!ticket.timeline || ticket.timeline.length === 0) && (
+                  <div className="text-xs text-gray-500 bg-gray-50 border border-gray-100 rounded-xl px-3 py-2">
+                    Belum ada riwayat proses untuk tiket ini.
+                  </div>
+                )}
 
                 {/* Progress Goal */}
                 {ticket.status !== 'selesai' && (
@@ -232,7 +247,7 @@ function TimelineEvent({ event, isLatest, idx }) {
         </div>
       </div>
 
-      <div className={`p-4 rounded-xl border transition-colors ${isLatest ? 'bg-blue-50/30 border-blue-100 shadow-sm' : 'bg-white border-gray-100'}`}>
+      <div className={`p-4 rounded-xl border transition-colors overflow-hidden ${isLatest ? 'bg-blue-50/30 border-blue-100 shadow-sm' : 'bg-white border-gray-100'}`}>
         <div className="flex flex-col gap-2 mb-3">
           <div className="flex items-center justify-between">
             <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md border ${config.badgeStyle}`}>
@@ -252,7 +267,7 @@ function TimelineEvent({ event, isLatest, idx }) {
         </div>
 
         {event.isi_respons && (
-          <div className={`p-3 rounded-lg text-xs font-semibold leading-relaxed border italic relative ${config.msgStyle}`}>
+          <div className={`p-3 rounded-lg text-xs font-semibold leading-relaxed border italic relative whitespace-pre-wrap break-words [overflow-wrap:anywhere] ${config.msgStyle}`}>
              "{event.isi_respons}"
           </div>
         )}

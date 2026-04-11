@@ -82,7 +82,7 @@ export default function Pengumuman() {
       <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
       <main className="lg:ml-60 min-h-screen transition-all duration-300">
         <TopNavBar setIsOpen={setSidebarOpen} />
-        <div className="pt-20 px-6 pb-12">
+        <div className="pt-20 px-4 lg:px-8 pb-12">
           <Toaster position="top-right" />
           <div className="flex flex-col gap-1.5 mb-8">
             <div className="flex items-center gap-3">
@@ -116,7 +116,7 @@ export default function Pengumuman() {
 
       {/* Detail */}
       <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
-        <DialogContent className="max-w-xl p-0 overflow-hidden border-none shadow-2xl rounded-[2.5rem] bg-white/95 backdrop-blur-xl">
+        <DialogContent className="max-w-xl p-0 overflow-hidden border-none shadow-2xl rounded-[2.5rem] bg-white/95 backdrop-blur-xl ">
           {selected && (
             <div>
               <div className="p-8 bg-gradient-to-br from-slate-900 to-slate-800 relative overflow-hidden">
@@ -141,21 +141,21 @@ export default function Pengumuman() {
 
       {/* CRUD */}
       <Dialog open={isCrudOpen} onOpenChange={setIsCrudOpen}>
-        <DialogContent className="max-w-xl p-0 overflow-hidden border-none shadow-2xl rounded-[2rem] bg-white/95 backdrop-blur-xl">
-          <DialogHeader className="p-8 pb-6 bg-gradient-to-br from-slate-50 to-white border-b border-slate-100 relative overflow-hidden">
-            <div className="absolute top-0 right-0 p-8 opacity-5"><Megaphone className="size-24 rotate-12" /></div>
+        <DialogContent className="max-w-xl p-0 overflow-hidden border-none shadow-2xl rounded-[2rem] bg-white/95 backdrop-blur-xl ">
+          <DialogHeader className="p-4 md:p-8 pb-3 md:pb-6 bg-gradient-to-br from-slate-50 to-white border-b border-slate-100 relative overflow-hidden">
+            <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none"><Megaphone className="size-24 rotate-12" /></div>
             <div className="relative z-10">
-              <div className="flex items-center gap-3 mb-2">
+              <div className="flex items-center gap-3 mb-1 md:mb-2">
                 <div className="size-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
                   {isEditMode ? <Pencil className="size-4" /> : <Plus className="size-4 stroke-[3px]" />}
                 </div>
                 <Badge className="text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 bg-primary/5 text-primary border-none">Announcement</Badge>
               </div>
-              <DialogTitle className="text-2xl font-black font-headline tracking-tighter text-slate-900 uppercase">{isEditMode ? 'Edit Pengumuman' : 'Buat Pengumuman Baru'}</DialogTitle>
-              <DialogDescription className="text-xs font-medium text-slate-400 mt-1">Publikasikan informasi penting untuk seluruh anggota.</DialogDescription>
+              <DialogTitle className="text-lg md:text-2xl font-black font-headline tracking-tighter text-slate-900 uppercase">{isEditMode ? 'Edit Pengumuman' : 'Buat Pengumuman Baru'}</DialogTitle>
+              <DialogDescription className="text-[10px] md:text-xs font-medium text-slate-400 mt-1">Publikasikan informasi penting untuk seluruh anggota.</DialogDescription>
             </div>
           </DialogHeader>
-          <form onSubmit={handleSave} className="p-8 pt-6 space-y-5">
+          <form onSubmit={handleSave} className="p-4 md:p-8 pt-3 md:pt-6 space-y-3 md:space-y-4">
             <div className="space-y-2">
               <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Judul Pengumuman</Label>
               <Input required value={form.Judul} onChange={e => setForm({ ...form, Judul: e.target.value })} placeholder="Masukkan judul pengumuman..."
@@ -173,11 +173,11 @@ export default function Pengumuman() {
               <Textarea required value={form.Isi} onChange={e => setForm({ ...form, Isi: e.target.value })} placeholder="Tuliskan isi pengumuman di sini..."
                 className="min-h-[120px] rounded-[1.5rem] border-slate-200 bg-slate-50/50 focus:bg-white p-4 font-medium text-sm leading-relaxed font-headline" />
             </div>
-            <DialogFooter className="pt-4 flex flex-row items-center justify-end gap-3 border-t border-slate-100 -mx-8 px-8 bg-slate-50/30">
-              <Button type="button" variant="ghost" onClick={() => setIsCrudOpen(false)} className="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-900 px-8 h-12 rounded-2xl">Batalkan</Button>
-              <Button type="submit" disabled={isSubmitting} className="h-12 px-10 rounded-2xl bg-primary text-white hover:bg-primary/90 shadow-xl shadow-primary/20 transition-all hover:scale-[1.02] active:scale-95">
+            <DialogFooter className="mt-4 pt-4 flex flex-col md:flex-row items-center justify-end gap-2 md:gap-3 border-t border-slate-100 -mx-4 md:-mx-8 px-4 md:px-8 bg-slate-50/30 pb-4 md:pb-0">
+              <Button type="button" variant="ghost" onClick={() => setIsCrudOpen(false)} className="w-full md:w-auto text-[9px] md:text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-900 px-8 h-10 md:h-12 rounded-xl md:rounded-2xl">Batalkan</Button>
+              <Button type="submit" disabled={isSubmitting} className="w-full md:w-auto h-10 md:h-12 px-10 rounded-xl md:rounded-2xl bg-primary text-white hover:bg-primary/90 shadow-xl shadow-primary/20 transition-all hover:scale-[1.02] active:scale-95">
                 {isSubmitting ? <Loader2 className="animate-spin size-4 mr-2" /> : <Save className="size-4 mr-2 stroke-[3px]" />}
-                <span className="text-[10px] font-black uppercase tracking-[0.2em]">{isEditMode ? 'Update Record' : 'Publish Sekarang'}</span>
+                <span className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.2em]">{isEditMode ? 'Update Record' : 'Publish Sekarang'}</span>
               </Button>
             </DialogFooter>
           </form>

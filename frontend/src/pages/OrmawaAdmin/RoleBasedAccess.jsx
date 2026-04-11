@@ -129,7 +129,7 @@ export default function RoleBasedAccess() {
       <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
       <main className="lg:ml-60 min-h-screen transition-all duration-300">
         <TopNavBar setIsOpen={setSidebarOpen} />
-        <div className="pt-20 px-6 pb-12">
+        <div className="pt-20 px-4 lg:px-8 pb-12">
           <Toaster position="top-right" />
           <div className="flex flex-col gap-1.5 mb-8">
             <div className="flex items-center gap-3">
@@ -161,22 +161,22 @@ export default function RoleBasedAccess() {
 
       {/* CRUD */}
       <Dialog open={isCrudOpen} onOpenChange={setIsCrudOpen}>
-        <DialogContent className="max-w-4xl p-0 overflow-hidden border-none shadow-2xl rounded-[2rem] bg-white/95 backdrop-blur-xl">
-          <DialogHeader className="p-8 pb-6 bg-gradient-to-br from-slate-50 to-white border-b border-slate-100 relative overflow-hidden">
-            <div className="absolute top-0 right-0 p-8 opacity-5"><Shield className="size-24 rotate-12" /></div>
+        <DialogContent className="max-w-4xl p-0 overflow-hidden border-none shadow-2xl rounded-[2rem] bg-white/95 backdrop-blur-xl ">
+          <DialogHeader className="p-4 md:p-8 pb-3 md:pb-6 bg-gradient-to-br from-slate-50 to-white border-b border-slate-100 relative overflow-hidden">
+            <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none"><Shield className="size-24 rotate-12" /></div>
             <div className="relative z-10">
-              <div className="flex items-center gap-3 mb-2">
+              <div className="flex items-center gap-3 mb-1 md:mb-2">
                 <div className="size-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
                   {isEditMode ? <Pencil className="size-4" /> : <Plus className="size-4 stroke-[3px]" />}
                 </div>
                 <Badge className="text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 bg-primary/5 text-primary border-none">RBAC Registry</Badge>
               </div>
-              <DialogTitle className="text-2xl font-black font-headline tracking-tighter text-slate-900 uppercase">{isEditMode ? 'Edit Role' : 'Buat Role Baru'}</DialogTitle>
-              <DialogDescription className="text-xs font-medium text-slate-400 mt-1">Definisikan role dan hak akses sistem untuk anggota ormawa.</DialogDescription>
+              <DialogTitle className="text-lg md:text-2xl font-black font-headline tracking-tighter text-slate-900 uppercase">{isEditMode ? 'Edit Role' : 'Buat Role Baru'}</DialogTitle>
+              <DialogDescription className="text-[10px] md:text-xs font-medium text-slate-400 mt-1">Definisikan role dan hak akses sistem untuk anggota ormawa.</DialogDescription>
             </div>
           </DialogHeader>
-          <form onSubmit={handleSave} className="p-8 pt-6 space-y-5">
-            <div className="grid grid-cols-2 gap-4">
+          <form onSubmit={handleSave} className="p-4 md:p-8 pt-3 md:pt-6 space-y-3 md:space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Nama Role</Label>
                 <Input required value={form.Nama} onChange={e => setForm({ ...form, Nama: e.target.value })} placeholder="Misal: Ketua, Bendahara..."
@@ -190,7 +190,7 @@ export default function RoleBasedAccess() {
             </div>
             <div className="space-y-3">
               <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Pilih Hak Akses (Centang Semua yang Berlaku)</Label>
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
                 {PERMISSIONS.map(p => (
                   <label key={p} className={cn('flex items-center gap-2 p-2.5 rounded-xl border cursor-pointer transition-all', form.Hak.includes(p) ? 'border-primary/30 bg-primary/5' : 'border-slate-100 bg-slate-50/50 hover:border-slate-200')}>
                     <input type="checkbox" checked={form.Hak.includes(p)} onChange={() => toggleHak(p)} className="w-3.5 h-3.5 rounded text-primary border-slate-300 focus:ring-primary" />
@@ -199,11 +199,11 @@ export default function RoleBasedAccess() {
                 ))}
               </div>
             </div>
-            <DialogFooter className="pt-4 flex flex-row items-center justify-end gap-3 border-t border-slate-100 -mx-8 px-8 bg-slate-50/30">
-              <Button type="button" variant="ghost" onClick={() => setIsCrudOpen(false)} className="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-900 px-8 h-12 rounded-2xl">Batalkan</Button>
-              <Button type="submit" disabled={isSubmitting} className="h-12 px-10 rounded-2xl bg-primary text-white hover:bg-primary/90 shadow-xl shadow-primary/20 transition-all hover:scale-[1.02] active:scale-95">
+            <DialogFooter className="mt-4 pt-4 flex flex-col md:flex-row items-center justify-end gap-2 md:gap-3 border-t border-slate-100 -mx-4 md:-mx-8 px-4 md:px-8 bg-slate-50/30 pb-4 md:pb-0">
+              <Button type="button" variant="ghost" onClick={() => setIsCrudOpen(false)} className="w-full md:w-auto text-[9px] md:text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-900 px-8 h-10 md:h-12 rounded-xl md:rounded-2xl">Batalkan</Button>
+              <Button type="submit" disabled={isSubmitting} className="w-full md:w-auto h-10 md:h-12 px-10 rounded-xl md:rounded-2xl bg-primary text-white hover:bg-primary/90 shadow-xl shadow-primary/20 transition-all hover:scale-[1.02] active:scale-95">
                 {isSubmitting ? <Loader2 className="animate-spin size-4 mr-2" /> : <Save className="size-4 mr-2 stroke-[3px]" />}
-                <span className="text-[10px] font-black uppercase tracking-[0.2em]">{isEditMode ? 'Update Role' : 'Buat Role'}</span>
+                <span className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.2em]">{isEditMode ? 'Update Role' : 'Buat Role'}</span>
               </Button>
             </DialogFooter>
           </form>

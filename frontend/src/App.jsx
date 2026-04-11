@@ -106,6 +106,7 @@ import KelolaFakultas from './pages/SuperAdmin/KelolaFakultas'
 import KelolaProdi from './pages/SuperAdmin/KelolaProdi'
 import KelolaBeasiswa from './pages/SuperAdmin/KelolaBeasiswa'
 import KelolaOrganisasi from './pages/SuperAdmin/KelolaOrganisasi'
+import SuperAdminLayout from './pages/SuperAdmin/components/SuperAdminLayout'
 import NotFound from './pages/NotFound/NotFound'
 import { AuthProvider } from './context/AuthContext'
 import ProtectedRoute from './components/ProtectedRoute'
@@ -167,31 +168,33 @@ function App() {
             {/* Super Admin Routes */}
             <Route path="/admin/*" element={
               <ProtectedRoute allowedRoles={['super_admin']}>
-                <Routes>
-                  <Route index element={<AdminDashboard />} />
-                  <Route path="profile" element={<AdminProfile />} />
-                  <Route path="rbac" element={<UserManagement />} />
-                  <Route path="academic" element={<AcademicPortal />} />
-                  <Route path="aspirations" element={<AspirationControl />} />
-                  <Route path="proposals" element={<ProposalPipeline />} />
-                  <Route path="audit" element={<AuditLog />} />
-                  <Route path="counseling" element={<CounselingAchievement />} />
-                  <Route path="announcements" element={<ContentManagement />} />
-                  <Route path="broadcast" element={<ContentManagement />} />
-                  <Route path="reports" element={<ReportsGenerator />} />
-                  <Route path="students" element={<StudentDirectory />} />
-                  <Route path="performance" element={<AdminPerformance />} />
-                  <Route path="security" element={<SecuritySettings />} />
-                  <Route path="lecturers" element={<LecturerDirectory />} />
-                  <Route path="config" element={<AcademicPortal />} />
-                  <Route path="faculties" element={<KelolaFakultas />} />
-                  <Route path="prodi" element={<KelolaProdi />} />
-                  <Route path="scholarships" element={<KelolaBeasiswa />} />
-                  <Route path="organizations" element={<KelolaOrganisasi />} />
-                  <Route path="ormawa" element={<ProposalPipeline />} />
-                  <Route path="treasury" element={<ReportsGenerator />} />
-                  <Route path="infrastructure" element={<AcademicPortal />} />
-                </Routes>
+                <SuperAdminLayout>
+                  <Routes>
+                    <Route index element={<AdminDashboard />} />
+                    <Route path="profile" element={<AdminProfile />} />
+                    <Route path="rbac" element={<UserManagement />} />
+                    <Route path="academic" element={<AcademicPortal />} />
+                    <Route path="aspirations" element={<AspirationControl />} />
+                    <Route path="proposals" element={<ProposalPipeline />} />
+                    <Route path="audit" element={<AuditLog />} />
+                    <Route path="counseling" element={<CounselingAchievement />} />
+                    <Route path="announcements" element={<ContentManagement />} />
+                    <Route path="broadcast" element={<ContentManagement />} />
+                    <Route path="reports" element={<ReportsGenerator />} />
+                    <Route path="students" element={<StudentDirectory />} />
+                    <Route path="performance" element={<AdminPerformance />} />
+                    <Route path="security" element={<SecuritySettings />} />
+                    <Route path="lecturers" element={<LecturerDirectory />} />
+                    <Route path="config" element={<AcademicPortal />} />
+                    <Route path="faculties" element={<KelolaFakultas />} />
+                    <Route path="prodi" element={<KelolaProdi />} />
+                    <Route path="scholarships" element={<KelolaBeasiswa />} />
+                    <Route path="organizations" element={<KelolaOrganisasi />} />
+                    <Route path="ormawa" element={<ProposalPipeline />} />
+                    <Route path="treasury" element={<ReportsGenerator />} />
+                    <Route path="infrastructure" element={<AcademicPortal />} />
+                  </Routes>
+                </SuperAdminLayout>
               </ProtectedRoute>
             } />
 

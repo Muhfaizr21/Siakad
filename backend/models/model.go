@@ -81,8 +81,8 @@ func (ProgramStudi) TableName() string {
 
 type Dosen struct {
 	BaseModel
-	PenggunaID uint   `json:"pengguna_id"`
-	Pengguna   *User  `gorm:"foreignKey:PenggunaID" json:"pengguna,omitempty"`
+	PenggunaID uint  `json:"pengguna_id"`
+	Pengguna   *User `gorm:"foreignKey:PenggunaID" json:"pengguna,omitempty"`
 
 	NIDN           string `gorm:"uniqueIndex"`
 	Nama           string
@@ -650,12 +650,12 @@ func (PkkmbTahap) TableName() string {
 
 type PkkmbMateri struct {
 	BaseModel
-	TahapID     uint   `gorm:"index" json:"tahap_id"`
-	Judul       string `json:"judul"`
-	Tipe        string `json:"tipe"` // PDF, VIDEO
-	FileURL     string `json:"file_url"`
-	Deskripsi   string `json:"deskripsi"`
-	Order       int    `json:"order"`
+	TahapID   uint   `gorm:"index" json:"tahap_id"`
+	Judul     string `json:"judul"`
+	Tipe      string `json:"tipe"` // PDF, VIDEO
+	FileURL   string `json:"file_url"`
+	Deskripsi string `json:"deskripsi"`
+	Order     int    `json:"order"`
 
 	Quiz *PkkmbQuiz `gorm:"foreignKey:MateriID" json:"kuis,omitempty"`
 }
