@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useState, useEffect } from "react"
+import api from "../../lib/axios"
 import { DataTable } from "./components/data-table"
 import { Badge } from "./components/badge"
 import { Button } from "./components/button"
@@ -13,7 +14,7 @@ import {
   DialogDescription,
 } from "./components/dialog"
 import { Card, CardContent } from "./components/card"
-import { Eye, Mail, BookOpen, GraduationCap, Users, UserCheck, ShieldCheck, MapPin, Phone } from "lucide-react"
+import { Eye, Mail, BookOpen, GraduationCap, Users, UserCheck, ShieldCheck, MapPin, Phone, Heart } from "lucide-react"
 import { toast, Toaster } from "react-hot-toast"
 import { cn } from "@/lib/utils"
 
@@ -26,10 +27,9 @@ export default function MahasiswaPage() {
   const fetchStudents = async () => {
     setLoading(true)
     try {
-      const res = await fetch('http://localhost:8000/api/faculty/students')
-      const json = await res.json()
-      if (json.status === 'success') {
-        setStudentData(json.data)
+      const res = await api.get("/faculty/students")
+      if (res.data.status === 'success') {
+        setStudentData(res.data.data)
       }
     } catch (err) {
       toast.error("Gagal mengambil data mahasiswa")
@@ -117,14 +117,13 @@ export default function MahasiswaPage() {
           <div className="p-2 bg-primary/10 rounded-xl text-primary">
             <GraduationCap className="size-6" />
           </div>
-          <h1 className="text-2xl font-black text-slate-900 font-headline tracking-tighter uppercase">Daftar Mahasiswa</h1>
+          <h1 className="text-2xl font-black text-slate-900 font-headline tracking-tighter uppercase">Database Mahasiswa</h1>
         </div>
         <div className="flex items-center gap-2">
           <div className="h-1 w-10 bg-primary rounded-full shadow-sm shadow-primary/30" />
-          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Informasi Akademik & Database Mahasiswa Fakultas</p>
+          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Portal Arsip & Monitoring Akademik Fakultas</p>
         </div>
       </div>
-
 
       <Card className="border-none shadow-sm flex flex-col overflow-hidden bg-white/50 backdrop-blur-md">
         <CardContent className="p-0">
@@ -135,17 +134,6 @@ export default function MahasiswaPage() {
             searchPlaceholder="Cari NIM atau Nama..."
             onExport={() => alert("Ekspor Seluruh Mahasiswa...")}
             exportLabel="Download Master"
-            filters={[
-              {
-                key: 'StatusAkun',
-                placeholder: 'Filter Status',
-                options: [
-                  { label: 'Aktif', value: 'Aktif' },
-                  { label: 'Cuti', value: 'Cuti' },
-                  { label: 'Lulus', value: 'Lulus' },
-                ]
-              }
-            ]}
             actions={(row) => (
               <div className="flex items-center gap-2">
                 <Button onClick={() => handleView(row)} variant="ghost" size="icon" className="h-8 w-8 hover:text-primary hover:bg-primary/10 rounded-xl">
@@ -162,7 +150,6 @@ export default function MahasiswaPage() {
         <DialogContent className="max-w-3xl p-0 overflow-hidden border-none shadow-2xl rounded-[2.5rem] bg-white/95 backdrop-blur-xl">
           {selectedMahasiswa && (
             <div className="flex flex-col max-h-[90vh]">
-               {/* Premium Header Logic Style */}
                <DialogHeader className="p-8 pb-6 bg-gradient-to-br from-slate-50 to-white border-b border-slate-100 relative overflow-hidden shrink-0">
                 <div className="absolute top-0 right-0 p-8 opacity-5">
                   <GraduationCap className="size-24 rotate-12" />
@@ -173,23 +160,18 @@ export default function MahasiswaPage() {
                       <ShieldCheck className="size-4" />
                     </div>
                     <Badge variant="secondary" className="text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 bg-primary/5 text-primary border-none">
-                      Integrated Student Master data
+                      Student Master Record
                     </Badge>
                   </div>
-                  <DialogTitle className="text-2xl font-black font-headline tracking-tighter text-slate-900 uppercase">
-                    Detail Mahasiswa
+                  <DialogTitle className="text-2xl font-black font-headline tracking-tighter text-slate-900 uppercase leading-none">
+                    Arsip Mahasiswa
                   </DialogTitle>
-                  <DialogDescription className="text-xs font-medium text-slate-400 mt-1 uppercase tracking-wider font-bold">
-                    Arsip lengkap database akademik & personal.
-                  </DialogDescription>
                 </div>
               </DialogHeader>
 
-              {/* Content Styling */}
               <div className="overflow-y-auto p-8 space-y-10 custom-scrollbar">
-                {/* Identity Header */}
-                <div className="flex items-center gap-6 p-6 rounded-[1.8rem] bg-slate-50 border border-slate-100 shadow-inner">
-                  <Avatar className="h-24 w-24 rounded-2xl border-4 border-white shadow-xl flex-shrink-0">
+                <div className="flex items-center gap-6 p-6 rounded-[2rem] bg-slate-50 border border-slate-100 shadow-inner">
+                  <Avatar className="h-24 w-24 rounded-[1.5rem] border-4 border-white shadow-xl flex-shrink-0">
                     <AvatarFallback className="bg-gradient-to-br from-slate-200 to-slate-300 text-slate-800 text-3xl font-black uppercase">
                       {selectedMahasiswa.Nama?.split(" ").map(n => n[0]).join("").substring(0, 2) || '?'}
                     </AvatarFallback>
@@ -209,80 +191,65 @@ export default function MahasiswaPage() {
                 </div>
 
                 <div className="grid grid-cols-2 gap-10">
-                   {/* Col 1: Academic */}
                    <div className="space-y-6">
-                      <div className="flex items-center gap-2 px-1 border-b border-slate-100 pb-2">
-                        <BookOpen className="size-3 text-primary" />
-                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Data Akademik</span>
+                      <div className="flex items-center gap-2 px-1 border-b border-slate-100 pb-2 text-primary">
+                        <BookOpen className="size-3" />
+                        <span className="text-[10px] font-black uppercase tracking-[0.2em]">Data Akademik</span>
                       </div>
-                      <div className="grid grid-cols-1 gap-4">
+                      <div className="grid grid-cols-1 gap-5">
                         <InfoItem label="Program Studi" value={selectedMahasiswa.ProgramStudi?.Nama} />
                         <div className="grid grid-cols-2 gap-4">
                            <InfoItem label="Semester" value={selectedMahasiswa.SemesterSekarang} />
                            <InfoItem label="Tahun Masuk" value={selectedMahasiswa.TahunMasuk || selectedMahasiswa.NIM?.substring(3, 7)} />
                         </div>
                         <InfoItem label="Dosen Wali (DPA)" value={selectedMahasiswa.DosenPA?.Nama || 'Belum Ditentukan'} highlight />
-                        <div className="flex items-center gap-3 p-4 bg-primary/5 rounded-2xl border border-primary/10 border-dashed mt-2">
-                           <div className="flex-1 flex flex-col items-center border-r border-primary/20 pr-3">
-                              <span className="text-[8px] font-black text-primary/50 uppercase tracking-tighter">IPK</span>
-                              <span className="text-xl font-black text-primary font-headline tracking-tighter leading-none">{selectedMahasiswa.IPK?.toFixed(2) || '0.00'}</span>
-                           </div>
-                           <div className="flex-1 flex flex-col items-center">
-                              <span className="text-[8px] font-black text-primary/50 uppercase tracking-tighter">TOTAL SKS</span>
-                              <span className="text-xl font-black text-primary font-headline tracking-tighter leading-none">{selectedMahasiswa.TotalSKS || '0'}</span>
-                           </div>
-                        </div>
                       </div>
                    </div>
 
-                   {/* Col 2: Info & Contact */}
                    <div className="space-y-6">
-                      <div className="flex items-center gap-2 px-1 border-b border-slate-100 pb-2">
-                        <UserCheck className="size-3 text-emerald-500" />
-                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Kontak & Domisili</span>
+                      <div className="flex items-center gap-2 px-1 border-b border-slate-100 pb-2 text-rose-500">
+                        <Heart className="size-3" />
+                        <span className="text-[10px] font-black uppercase tracking-[0.2em]">Data Orang Tua</span>
                       </div>
                       <div className="grid grid-cols-1 gap-4">
-                         <div className="flex items-center gap-3 p-3 rounded-xl bg-white border border-slate-100 hover:border-primary transition-all group">
-                            <Mail className="size-4 text-slate-300 group-hover:text-primary transition-colors" />
-                            <div className="flex flex-col">
-                               <span className="text-[8px] font-bold text-slate-400 uppercase">Email Kampus</span>
-                               <span className="text-[11px] font-bold text-slate-700">{selectedMahasiswa.EmailKampus || selectedMahasiswa.Pengguna?.Email}</span>
-                            </div>
+                         <div className="flex items-center gap-3 p-4 rounded-2xl bg-white border border-slate-100">
+                           <div className="flex flex-col">
+                              <span className="text-[8px] font-black text-slate-400 uppercase">Nama Ayah</span>
+                              <span className="text-[11px] font-black text-slate-800 uppercase font-headline">{selectedMahasiswa.NamaAyah || '—'}</span>
+                           </div>
                          </div>
-                         <div className="flex items-center gap-3 p-3 rounded-xl bg-white border border-slate-100 hover:border-primary transition-all group">
-                            <Phone className="size-4 text-slate-300 group-hover:text-primary transition-colors" />
-                            <div className="flex flex-col">
-                               <span className="text-[8px] font-bold text-slate-400 uppercase">Handphone</span>
-                               <span className="text-[11px] font-bold text-slate-700">{selectedMahasiswa.NoHP || '—'}</span>
-                            </div>
-                         </div>
-                         <div className="flex items-start gap-3 p-3 rounded-xl bg-white border border-slate-100 hover:border-primary transition-all group">
-                            <MapPin className="size-4 text-slate-300 mt-1 group-hover:text-primary transition-colors" />
-                            <div className="flex flex-col">
-                               <span className="text-[8px] font-bold text-slate-400 uppercase">Alamat Lengkap</span>
-                               <span className="text-[11px] font-bold text-slate-700 leading-tight">{selectedMahasiswa.Alamat || '—'}</span>
-                            </div>
+                         <div className="flex items-center gap-3 p-4 rounded-2xl bg-white border border-slate-100">
+                           <div className="flex flex-col">
+                              <span className="text-[8px] font-black text-slate-400 uppercase">Nama Ibu Kandung</span>
+                              <span className="text-[11px] font-black text-slate-800 uppercase font-headline">{selectedMahasiswa.NamaIbuKandung || '—'}</span>
+                           </div>
                          </div>
                       </div>
                    </div>
                 </div>
 
-                 {/* Personal Grid Section */}
-                 <div className="space-y-6 pt-4">
-                    <div className="flex items-center gap-2 px-1 border-b border-slate-100 pb-2">
-                      <Users className="size-3 text-indigo-500" />
-                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Biodata Pribadi</span>
-                    </div>
-                    <div className="grid grid-cols-4 gap-4">
-                       <InfoItem label="Tempat Lahir" value={selectedMahasiswa.TempatLahir} />
-                       <InfoItem label="Tanggal Lahir" value={selectedMahasiswa.TanggalLahir ? new Date(selectedMahasiswa.TanggalLahir).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'} />
-                       <InfoItem label="Jenis Kelamin" value={selectedMahasiswa.JenisKelamin === 'L' ? 'Laki-laki' : 'Perempuan'} />
-                       <InfoItem label="NIK" value={selectedMahasiswa.NIK} />
-                    </div>
-                 </div>
+                <div className="space-y-6">
+                   <div className="flex items-center gap-2 px-1 border-b border-slate-100 pb-2 text-blue-500">
+                      <UserCheck className="size-3" />
+                      <span className="text-[10px] font-black uppercase tracking-[0.2em]">Biodata & Domisili</span>
+                   </div>
+                   <div className="grid grid-cols-3 gap-6">
+                      <InfoItem label="TTL" value={`${selectedMahasiswa.TempatLahir || '—'}, ${selectedMahasiswa.TanggalLahir ? new Date(selectedMahasiswa.TanggalLahir).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }) : '—'}`} />
+                      <InfoItem label="NIK" value={selectedMahasiswa.NIK} />
+                      <InfoItem label="Jenis Kelamin" value={selectedMahasiswa.JenisKelamin === 'L' ? 'Laki-laki' : 'Perempuan'} />
+                   </div>
+                   <div className="grid grid-cols-1 gap-4">
+                      <div className="flex items-center gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-200/50">
+                         <Phone className="size-4 text-slate-400" />
+                         <span className="text-xs font-bold text-slate-700">{selectedMahasiswa.NoHP || '—'}</span>
+                         <span className="h-4 w-px bg-slate-200 mx-2" />
+                         <MapPin className="size-4 text-slate-400" />
+                         <span className="text-xs font-bold text-slate-700 truncate">{selectedMahasiswa.Alamat || '—'}</span>
+                      </div>
+                   </div>
+                </div>
               </div>
 
-              {/* Close Action */}
               <div className="p-8 px-10 flex items-center justify-end border-t border-slate-100 bg-slate-50/50 shrink-0">
                 <Button
                   onClick={() => setIsDetailOpen(false)}
