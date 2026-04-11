@@ -11,7 +11,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogDescription,
 } from "./components/dialog"
 import { Card, CardContent } from "./components/card"
 import {
@@ -19,11 +18,10 @@ import {
   Mail,
   BookOpen,
   Users,
-  Award,
   ShieldCheck,
-  UserCheck,
+  Award,
   Phone,
-  Bookmark
+  Layout
 } from "lucide-react"
 import { toast, Toaster } from "react-hot-toast"
 import { cn } from "@/lib/utils"
@@ -61,62 +59,38 @@ export default function DosenPage() {
     {
       key: "NIDN",
       label: "NIDN",
-      className: "w-[150px]",
-      render: (value) => <span className="font-bold text-slate-400 font-headline uppercase text-[10px] tracking-widest">{value || '-'}</span>
+      className: "w-[120px]",
+      render: (value) => <span className="font-medium text-slate-500 text-[11px] tracking-tight">{value || '-'}</span>
     },
     {
       key: "Nama",
-      label: "Profil Dosen",
-      className: "w-auto min-w-[280px]",
+      label: "Dosen",
+      className: "w-auto min-w-[250px]",
       render: (value, row) => (
         <div className="flex items-center gap-3">
-          <Avatar className="h-10 w-10 rounded-2xl border-2 border-white shadow-sm ring-1 ring-slate-100 uppercase font-black text-slate-800">
+          <Avatar className="h-8 w-8 rounded-lg border border-slate-200 bg-white">
             <AvatarImage src={row.AvatarURL} />
-            <AvatarFallback className="bg-slate-100 text-slate-800 text-[10px] font-black uppercase">
+            <AvatarFallback className="bg-white text-slate-800 text-[10px] font-bold uppercase transition-transform group-hover:scale-110">
               {value?.split(" ").map(n => n[0]).join("").substring(0, 2) || '?'}
             </AvatarFallback>
           </Avatar>
-          <div className="flex flex-col leading-tight">
-            <span className="font-bold text-slate-900 font-headline tracking-tighter text-[13px]">{value}</span>
-            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-tight flex items-center gap-1">
-              <Mail className="size-2.5 opacity-60" />
-              {row.Pengguna?.Email || '-'}
-            </span>
+          <div className="flex flex-col">
+            <span className="font-bold text-slate-900 text-[13px] tracking-tight">{value}</span>
+            <span className="text-[10px] text-slate-400 font-medium uppercase tracking-widest">{row.Jabatan || 'Dosen'}</span>
           </div>
         </div>
       )
     },
     {
-      key: "ProgramStudi",
-      label: "Program Studi",
-      className: "w-auto min-w-[200px]",
-      render: (value) => (
-        <div className="flex flex-col">
-          <span className="text-xs font-bold text-slate-700">{value?.Nama || '-'}</span>
-          <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">{value?.Fakultas?.Nama || '-'}</span>
-        </div>
-      )
-    },
-    {
-      key: "Jabatan",
-      label: "Jabatan",
-      className: "w-[180px]",
-      render: (value) => (
-        <Badge variant="outline" className="bg-slate-50 text-slate-600 border-slate-200 text-[10px] font-bold px-2 py-1 rounded-lg">
-          {value || 'Dosen Pengajar'}
-        </Badge>
-      )
-    },
-    {
       key: "IsDPA",
       label: "DPA",
-      className: "w-[120px] text-center",
+      className: "w-[100px] text-center",
       cellClassName: "text-center",
       render: (value) => (
         value ? (
-          <Badge className="bg-emerald-100 text-emerald-700 border-none shadow-none text-[9px] font-black px-2.5 py-1">TERDAFTAR</Badge>
+          <Badge className="bg-emerald-50 text-emerald-600 border-emerald-100 text-[9px] font-bold px-2 py-0.5 rounded-full shadow-none">AKTIF</Badge>
         ) : (
-          <Badge variant="ghost" className="text-slate-300 text-[9px] font-bold border-none">TIDAK</Badge>
+          <span className="text-[9px] font-bold text-slate-300">TIDAK</span>
         )
       )
     }
@@ -126,24 +100,17 @@ export default function DosenPage() {
     <div className="space-y-6">
       <Toaster position="top-right" />
 
-      {/* HEADER SECTION */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-8 pt-2">
-        <div className="flex flex-col gap-1.5">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-primary/10 rounded-xl text-primary">
-              <Users className="size-6" />
-            </div>
-            <h1 className="text-2xl font-black text-slate-900 font-headline tracking-tighter uppercase">Direktori Dosen</h1>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="h-1 w-10 bg-primary rounded-full shadow-sm shadow-primary/30" />
-            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Database Tenaga Pengajar & Pejabat Fakultas</p>
-          </div>
+      <div className="flex flex-col gap-1 mb-8">
+        <div className="flex items-center gap-2">
+           <div className="p-1.5 bg-slate-100 rounded-lg">
+              <BookOpen className="size-5 text-slate-900" />
+           </div>
+           <h1 className="text-xl font-bold text-slate-900 tracking-tight">Direktori Dosen</h1>
         </div>
+        <p className="text-[11px] text-slate-400 font-medium ml-1">Database tenaga pengajar dan staf ahli fakultas.</p>
       </div>
 
-      {/* MAIN TABLE */}
-      <Card className="border-none shadow-sm mt-4 overflow-hidden rounded-3xl">
+      <Card className="border shadow-sm overflow-hidden bg-white">
         <CardContent className="p-0">
           <DataTable
             columns={columns}
@@ -151,120 +118,86 @@ export default function DosenPage() {
             loading={loading}
             searchPlaceholder="Cari Nama, NIDN atau Jabatan..."
             actions={(row) => (
-              <div className="flex items-center gap-2">
-                <Button
+              <Button
                   onClick={() => handleView(row)}
                   variant="ghost"
                   size="icon"
-                  className="h-9 w-9 rounded-xl hover:bg-blue-50 hover:text-blue-600 transition-colors"
+                  className="h-8 w-8 text-slate-400 hover:text-slate-900"
                 >
                   <Eye className="size-4" />
-                </Button>
-              </div>
+              </Button>
             )}
           />
         </CardContent>
       </Card>
 
-      {/* DETAIL DIALOG */}
+      {/* DETAIL DIALOG - CLEAN DATA SHEET STYLE */}
       <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
-        <DialogContent className="max-w-xl p-0 overflow-hidden border-none shadow-2xl rounded-[2.5rem] bg-white/95 backdrop-blur-xl">
+        <DialogContent className="max-w-xl p-0 overflow-hidden border-none shadow-2xl rounded-2xl bg-white">
           {selectedDosen && (
             <div className="flex flex-col max-h-[90vh]">
-              <DialogHeader className="p-8 pb-6 bg-gradient-to-br from-slate-50 to-white border-b border-slate-100 relative overflow-hidden shrink-0">
-                <div className="absolute top-0 right-0 p-8 opacity-5">
-                  <Award className="size-24 rotate-12" />
-                </div>
-                <div className="relative z-10">
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className="size-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary text-xs font-black">
-                      <ShieldCheck className="size-4" />
-                    </div>
-                    <Badge variant="secondary" className="text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 bg-primary/5 text-primary border-none">
-                      Authorized Academic Staff
-                    </Badge>
+               <DialogHeader className="p-6 border-b border-slate-100 bg-slate-50/50 shrink-0">
+                  <div className="flex items-center gap-4">
+                     <Avatar className="h-12 w-12 rounded-xl border border-slate-200 shadow-sm bg-white">
+                        <AvatarImage src={selectedDosen.AvatarURL} />
+                        <AvatarFallback className="text-slate-900 font-bold bg-white">{selectedDosen.Nama?.[0]}</AvatarFallback>
+                     </Avatar>
+                     <div className="flex flex-col">
+                        <DialogTitle className="text-lg font-bold text-slate-900 tracking-tight leading-none">
+                           {selectedDosen.Nama}
+                        </DialogTitle>
+                        <span className="text-[10px] font-black text-primary mt-1 uppercase tracking-[0.15em]">{selectedDosen.Jabatan || 'Dosen Pengajar'}</span>
+                     </div>
+                     <Badge className="ml-auto bg-white border border-slate-200 text-slate-600 text-[10px] font-bold px-3 py-1 rounded-lg">
+                        NIDN: {selectedDosen.NIDN}
+                     </Badge>
                   </div>
-                  <DialogTitle className="text-2xl font-black font-headline tracking-tighter text-slate-900 uppercase">
-                    Arsip Profil Dosen
-                  </DialogTitle>
-                </div>
-              </DialogHeader>
+               </DialogHeader>
 
-              <div className="overflow-y-auto p-8 space-y-8 custom-scrollbar">
-                <div className="flex items-center gap-6 p-6 rounded-[2rem] bg-slate-50 border border-slate-100 shadow-inner">
-                  <Avatar className="h-24 w-24 rounded-[1.5rem] border-4 border-white shadow-xl shrink-0">
-                    <AvatarImage src={selectedDosen.AvatarURL} />
-                    <AvatarFallback className="bg-gradient-to-br from-slate-200 to-slate-300 text-slate-800 text-3xl font-black uppercase">
-                      {selectedDosen.Nama?.split(" ").map(n => n[0]).join("").substring(0, 2) || '?'}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex flex-col min-w-0">
-                    <h3 className="text-2xl font-black text-slate-900 font-headline tracking-tighter uppercase leading-tight truncate">{selectedDosen.Nama}</h3>
-                    <div className="flex items-center gap-3 mt-2">
-                       <span className="text-[10px] font-black text-primary uppercase tracking-[0.2em]">{selectedDosen.Jabatan || 'Dosen Pengajar'}</span>
-                       <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">NIDN: {selectedDosen.NIDN}</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-8">
+               <div className="overflow-y-auto p-8 space-y-8 custom-scrollbar">
+                  {/* SEKSI: PENUGASAN */}
                   <div className="space-y-4">
-                    <div className="flex items-center gap-2 px-1 text-primary">
-                      <Bookmark className="size-3" />
-                      <span className="text-[10px] font-black uppercase tracking-[0.2em]">Penugasan</span>
-                    </div>
-                    <div className="space-y-3">
-                      <InfoBlock label="Program Studi" value={selectedDosen.ProgramStudi?.Nama} />
-                      <InfoBlock label="Fakultas" value={selectedDosen.Fakultas?.Nama || selectedDosen.ProgramStudi?.Fakultas?.Nama} />
-                    </div>
+                     <div className="flex items-center gap-2 text-slate-900">
+                        <Layout className="size-4 opacity-40" />
+                        <h4 className="text-[11px] font-bold uppercase tracking-[0.1em]">Penugasan Akademik</h4>
+                     </div>
+                     <div className="grid grid-cols-2 gap-x-12 gap-y-4 border-l-2 border-slate-100 pl-4 py-1">
+                        <DataField label="Program Studi" value={selectedDosen.ProgramStudi?.Nama} />
+                        <DataField label="Fakultas" value={selectedDosen.Fakultas?.Nama || selectedDosen.ProgramStudi?.Fakultas?.Nama} />
+                        <DataField label="Jabatan Fungsional" value={selectedDosen.Jabatan} />
+                        <DataField label="Email Institusi" value={selectedDosen.Pengguna?.Email} isPrimary />
+                     </div>
                   </div>
 
+                  {/* SEKSI: VERIFIKASI */}
                   <div className="space-y-4">
-                    <div className="flex items-center gap-2 px-1 text-emerald-500">
-                      <UserCheck className="size-3" />
-                      <span className="text-[10px] font-black uppercase tracking-[0.2em]">Verifikasi Akun</span>
-                    </div>
-                    <div className="space-y-3">
-                       <div className="flex flex-col gap-1">
-                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Wewenang Wali</span>
-                        <Badge className={cn(
-                          "w-fit text-[9px] font-black px-3 py-1 border-none",
-                          selectedDosen.IsDPA ? "bg-emerald-500 text-white" : "bg-slate-200 text-slate-500"
-                        )}>
-                          {selectedDosen.IsDPA ? 'DPA AKTIF' : 'NON-DPA'}
-                        </Badge>
-                      </div>
-                    </div>
+                     <div className="flex items-center gap-2 text-slate-900">
+                        <ShieldCheck className="size-4 opacity-40" />
+                        <h4 className="text-[11px] font-bold uppercase tracking-[0.1em]">Status & Wewenang</h4>
+                     </div>
+                     <div className="grid grid-cols-2 gap-x-12 gap-y-4 border-l-2 border-slate-100 pl-4 py-1">
+                        <div className="flex flex-col gap-1">
+                           <span className="text-[10px] font-medium text-slate-400 uppercase tracking-tighter">Status Wali (DPA)</span>
+                           <Badge className={cn(
+                              "w-fit text-[9px] font-bold px-2.5 py-0.5 border shadow-none",
+                              selectedDosen.IsDPA ? "bg-emerald-50 text-emerald-600 border-emerald-100" : "bg-slate-50 text-slate-400 border-slate-100"
+                           )}>
+                              {selectedDosen.IsDPA ? 'AKTIF' : 'NON-DPA'}
+                           </Badge>
+                        </div>
+                        <DataField label="Nomor Kontak (HP/WA)" value={selectedDosen.NoHP || '-'} isPrimary />
+                     </div>
                   </div>
-                </div>
+               </div>
 
-                {/* Important Contact Section */}
-                <div className="space-y-4 bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm">
-                   <div className="flex items-center gap-2 px-1 text-blue-500">
-                      <Mail className="size-3" />
-                      <span className="text-[10px] font-black uppercase tracking-[0.2em]">Kredensial Kontak</span>
-                   </div>
-                   <div className="grid grid-cols-2 gap-4">
-                       <div className="flex flex-col gap-1 p-4 rounded-xl bg-slate-50 border border-slate-100 group hover:border-blue-200 transition-colors">
-                          <span className="text-[8px] font-black text-slate-400 uppercase">Email Institusi</span>
-                          <span className="text-[11px] font-black text-slate-800 font-headline truncate uppercase">{selectedDosen.Pengguna?.Email || '—'}</span>
-                       </div>
-                       <div className="flex flex-col gap-1 p-4 rounded-xl bg-slate-50 border border-slate-100 group hover:border-emerald-200 transition-colors">
-                          <span className="text-[8px] font-black text-slate-400 uppercase">Nomor HP/WA</span>
-                          <span className="text-[12px] font-black text-slate-800 font-headline uppercase">{selectedDosen.NoHP || '—'}</span>
-                       </div>
-                   </div>
-                </div>
-              </div>
-
-              <div className="p-8 px-10 flex items-center justify-end border-t border-slate-100 bg-white shrink-0">
-                <Button
-                  onClick={() => setIsDetailOpen(false)}
-                  className="text-[10px] font-black uppercase tracking-widest h-12 px-12 rounded-2xl bg-slate-900 text-white shadow-xl hover:bg-slate-800 active:scale-95 transition-all font-headline"
-                >
-                  Selesai
-                </Button>
-              </div>
+               <div className="p-6 border-t border-slate-100 flex justify-end shrink-0">
+                  <Button
+                     onClick={() => setIsDetailOpen(false)}
+                     className="bg-slate-900 text-white text-[11px] font-bold px-8 h-10 rounded-lg hover:bg-slate-800 transition-all uppercase tracking-widest"
+                  >
+                     Tutup
+                  </Button>
+               </div>
             </div>
           )}
         </DialogContent>
@@ -273,11 +206,16 @@ export default function DosenPage() {
   )
 }
 
-function InfoBlock({ label, value }) {
+function DataField({ label, value, isPrimary = false }) {
   return (
-    <div className="flex flex-col gap-1 p-4 rounded-2xl bg-white border border-slate-100 shadow-sm">
-      <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">{label}</span>
-      <span className="text-[11px] font-black text-slate-800 uppercase font-headline truncate">{value || '—'}</span>
+    <div className="flex flex-col gap-0.5">
+      <span className="text-[10px] font-medium text-slate-400 uppercase tracking-tighter">{label}</span>
+      <span className={cn(
+         "text-[12px] font-bold tracking-tight uppercase truncate",
+         isPrimary ? "text-primary italic" : "text-slate-700"
+      )}>
+         {value || '—'}
+      </span>
     </div>
   )
 }

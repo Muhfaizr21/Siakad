@@ -11,10 +11,9 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogDescription,
 } from "./components/dialog"
 import { Card, CardContent } from "./components/card"
-import { Eye, Mail, BookOpen, GraduationCap, Users, UserCheck, ShieldCheck, MapPin, Phone, Heart } from "lucide-react"
+import { Eye, Mail, GraduationCap, MapPin, Phone, User, BookOpen, Heart, FileText } from "lucide-react"
 import { toast, Toaster } from "react-hot-toast"
 import { cn } from "@/lib/utils"
 
@@ -50,57 +49,47 @@ export default function MahasiswaPage() {
   const columns = [
     {
       key: "NIM",
-      label: "NIM / ID",
-      className: "w-[150px]",
-      render: (value) => <span className="font-bold text-slate-400 font-headline uppercase text-[10px] tracking-widest">{value}</span>
+      label: "NIM",
+      className: "w-[120px]",
+      render: (value) => <span className="font-medium text-slate-500 text-[11px] tracking-tight">{value}</span>
     },
     {
       key: "Nama",
-      label: "Profil Mahasiswa",
-      className: "w-auto min-w-[300px]",
+      label: "Mahasiswa",
+      className: "w-auto min-w-[250px]",
       render: (value, row) => (
         <div className="flex items-center gap-3">
-          <Avatar className="h-10 w-10 rounded-2xl border-2 border-white shadow-sm ring-1 ring-slate-100 uppercase font-black text-slate-800">
-            <AvatarFallback className="bg-slate-100 text-slate-800 text-[10px] font-black uppercase">
+          <Avatar className="h-8 w-8 rounded-lg border border-slate-200">
+            <AvatarFallback className="bg-slate-50 text-slate-600 text-[10px] font-bold uppercase">
               {value?.split(" ").map(n => n[0]).join("").substring(0, 2) || '?'}
             </AvatarFallback>
           </Avatar>
-          <div className="flex flex-col leading-tight">
-            <span className="font-bold text-slate-900 font-headline tracking-tighter text-[13px]">{value}</span>
-            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-tight flex items-center gap-1">
-              <Mail className="size-2.5 opacity-60" />
-              {row.Pengguna?.Email || '-'}
-            </span>
+          <div className="flex flex-col">
+            <span className="font-bold text-slate-900 text-[13px] tracking-tight">{value}</span>
+            <span className="text-[10px] text-slate-400 font-medium">{row.ProgramStudi?.Nama || '-'}</span>
           </div>
         </div>
       )
     },
     {
-      key: "ProgramStudi",
-      label: "Program Studi",
-      className: "w-[250px]",
-      render: (value) => <span className="text-xs text-slate-600 font-black font-headline uppercase">{value?.Nama || "-"}</span>
-    },
-    {
       key: "SemesterSekarang",
-      label: "Semester",
-      className: "w-[100px] text-center",
+      label: "Smt",
+      className: "w-[80px] text-center",
       cellClassName: "text-center",
-      render: (value) => <span className="font-bold text-slate-900 font-headline text-sm tracking-tighter">{value || 1}</span>
+      render: (value) => <span className="font-bold text-slate-700 text-xs">{value || 1}</span>
     },
     {
       key: "StatusAkun",
       label: "Status",
-      className: "w-[150px] text-center",
+      className: "w-[120px] text-center",
       cellClassName: "text-center",
       render: (val) => (
         <Badge
           className={cn(
-            "capitalize font-black text-[10px] px-3 py-1 border-none shadow-sm font-headline",
-            (val === 'active' || val === 'Aktif') ? "bg-emerald-100 text-emerald-700 ring-1 ring-emerald-500/20" :
-              (val === 'leave' || val === 'Cuti') ? "bg-amber-100 text-amber-700 ring-1 ring-amber-500/20" :
-                (val === 'graduated' || val === 'Lulus') ? "bg-indigo-100 text-indigo-700 ring-1 ring-indigo-500/20" :
-                  "bg-slate-100 text-slate-700 ring-1 ring-slate-500/20"
+            "capitalize font-bold text-[9px] px-2.5 py-0.5 rounded-full border shadow-none",
+            (val === 'active' || val === 'Aktif') ? "bg-emerald-50 text-emerald-600 border-emerald-100" :
+              (val === 'leave' || val === 'Cuti') ? "bg-amber-50 text-amber-600 border-amber-100" :
+                "bg-slate-50 text-slate-600 border-slate-200"
           )}
         >
           {val || 'Aktif'}
@@ -112,170 +101,109 @@ export default function MahasiswaPage() {
   return (
     <div className="space-y-6">
       <Toaster position="top-right" />
-      <div className="flex flex-col gap-1.5 mb-8">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-primary/10 rounded-xl text-primary">
-            <GraduationCap className="size-6" />
-          </div>
-          <h1 className="text-2xl font-black text-slate-900 font-headline tracking-tighter uppercase">Database Mahasiswa</h1>
-        </div>
+      <div className="flex flex-col gap-1 mb-8">
         <div className="flex items-center gap-2">
-          <div className="h-1 w-10 bg-primary rounded-full shadow-sm shadow-primary/30" />
-          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Portal Arsip & Monitoring Akademik Fakultas</p>
+           <div className="p-1.5 bg-slate-100 rounded-lg">
+              <Users className="size-5 text-slate-900" />
+           </div>
+           <h1 className="text-xl font-bold text-slate-900 tracking-tight">Database Mahasiswa</h1>
         </div>
+        <p className="text-[11px] text-slate-400 font-medium ml-1">Manajemen data dan arsip akademik mahasiswa fakultas.</p>
       </div>
 
-      <Card className="border-none shadow-sm flex flex-col overflow-hidden bg-white/50 backdrop-blur-md">
+      <Card className="border shadow-sm overflow-hidden bg-white">
         <CardContent className="p-0">
           <DataTable
             columns={columns}
             data={studentData}
             loading={loading}
             searchPlaceholder="Cari NIM atau Nama..."
-            onExport={() => alert("Ekspor Seluruh Mahasiswa...")}
-            exportLabel="Download Master"
             actions={(row) => (
-              <div className="flex items-center gap-2">
-                <Button onClick={() => handleView(row)} variant="ghost" size="icon" className="h-8 w-8 hover:text-primary hover:bg-primary/10 rounded-xl">
-                  <Eye className="size-4" />
-                </Button>
-              </div>
+              <Button onClick={() => handleView(row)} variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-slate-900">
+                <Eye className="size-4" />
+              </Button>
             )}
           />
         </CardContent>
       </Card>
 
-      {/* DETAIL DIALOG */}
+      {/* DETAIL DIALOG - CLEAN DATA SHEET STYLE */}
       <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
-        <DialogContent className="max-w-3xl p-0 overflow-hidden border-none shadow-2xl rounded-[2.5rem] bg-white/95 backdrop-blur-xl">
+        <DialogContent className="max-w-2xl p-0 overflow-hidden border-none shadow-2xl rounded-2xl bg-white">
           {selectedMahasiswa && (
             <div className="flex flex-col max-h-[90vh]">
-               <DialogHeader className="p-8 pb-6 bg-gradient-to-br from-slate-50 to-white border-b border-slate-100 relative overflow-hidden shrink-0">
-                <div className="absolute top-0 right-0 p-8 opacity-5">
-                  <GraduationCap className="size-24 rotate-12" />
-                </div>
-                <div className="relative z-10">
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className="size-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary text-xs font-black">
-                      <ShieldCheck className="size-4" />
-                    </div>
-                    <Badge variant="secondary" className="text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 bg-primary/5 text-primary border-none">
-                      Integrated Student Profile
-                    </Badge>
+               <DialogHeader className="p-6 border-b border-slate-100 bg-slate-50/50 shrink-0">
+                  <div className="flex items-center gap-4">
+                     <Avatar className="h-12 w-12 rounded-xl border border-slate-200 shadow-sm bg-white">
+                        <AvatarFallback className="text-slate-900 font-bold bg-white">{selectedMahasiswa.Nama?.[0]}</AvatarFallback>
+                     </Avatar>
+                     <div className="flex flex-col">
+                        <DialogTitle className="text-lg font-bold text-slate-900 tracking-tight leading-none">
+                           {selectedMahasiswa.Nama}
+                        </DialogTitle>
+                        <span className="text-xs font-medium text-slate-400 mt-1 uppercase tracking-wider">{selectedMahasiswa.NIM}</span>
+                     </div>
+                     <Badge className="ml-auto bg-white border border-slate-200 text-slate-600 text-[10px] font-bold px-3 py-1 rounded-lg">
+                        {selectedMahasiswa.StatusAkun || 'Aktif'}
+                     </Badge>
                   </div>
-                  <DialogTitle className="text-2xl font-black font-headline tracking-tighter text-slate-900 uppercase leading-none">
-                    Profil Lengkap Mahasiswa
-                  </DialogTitle>
-                </div>
-              </DialogHeader>
+               </DialogHeader>
 
-              <div className="overflow-y-auto p-8 space-y-10 custom-scrollbar">
-                {/* Identity Header */}
-                <div className="flex items-center gap-6 p-6 rounded-[2rem] bg-slate-50 border border-slate-200/50 shadow-inner">
-                  <Avatar className="h-28 w-28 rounded-[1.8rem] border-4 border-white shadow-xl flex-shrink-0">
-                    <AvatarFallback className="bg-gradient-to-br from-slate-200 to-slate-300 text-slate-800 text-4xl font-black uppercase">
-                      {selectedMahasiswa.Nama?.split(" ").map(n => n[0]).join("").substring(0, 2) || '?'}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex flex-col">
-                    <h3 className="text-4xl font-black text-slate-900 font-headline tracking-tighter uppercase leading-none">{selectedMahasiswa.Nama}</h3>
-                    <div className="flex items-center gap-3 mt-3">
-                       <span className="font-bold text-slate-400 uppercase tracking-[0.2em] text-[12px] font-headline">{selectedMahasiswa.NIM}</span>
-                       <Badge className={cn(
-                          "uppercase text-[10px] font-black px-4 py-1 border-none shadow-sm",
-                          selectedMahasiswa.StatusAkun === 'Aktif' ? "bg-emerald-500 text-white" : "bg-amber-500 text-white"
-                       )}>
-                          {selectedMahasiswa.StatusAkun || 'Aktif'}
-                       </Badge>
-                    </div>
+               <div className="overflow-y-auto p-8 space-y-8 custom-scrollbar">
+                  {/* SEKSI: AKADEMIK */}
+                  <div className="space-y-4">
+                     <div className="flex items-center gap-2 text-slate-900">
+                        <BookOpen className="size-4 opacity-40" />
+                        <h4 className="text-[11px] font-bold uppercase tracking-[0.1em]">Informasi Akademik</h4>
+                     </div>
+                     <div className="grid grid-cols-2 gap-x-12 gap-y-4 border-l-2 border-slate-100 pl-4 py-1">
+                        <DataField label="Program Studi" value={selectedMahasiswa.ProgramStudi?.Nama} />
+                        <DataField label="Semester / Angkatan" value={`${selectedMahasiswa.SemesterSekarang || 1} / ${selectedMahasiswa.TahunMasuk || '-'}`} />
+                        <DataField label="Dosen Wali (DPA)" value={selectedMahasiswa.DosenPA?.Nama || 'Belum Ditentukan'} isPrimary />
+                        <DataField label="Jalur Masuk" value={selectedMahasiswa.JalurMasuk || 'Mandiri'} />
+                     </div>
                   </div>
-                </div>
 
-                <div className="grid grid-cols-2 gap-10">
-                   <div className="space-y-6">
-                      <div className="flex items-center gap-2 px-1 border-b border-slate-100 pb-2 text-primary">
-                        <BookOpen className="size-3" />
-                        <span className="text-[10px] font-black uppercase tracking-[0.2em]">Akademik</span>
-                      </div>
-                      <div className="grid grid-cols-1 gap-5">
-                        <InfoItem label="Program Studi" value={selectedMahasiswa.ProgramStudi?.Nama} />
-                        <div className="grid grid-cols-2 gap-4">
-                           <InfoItem label="Semester" value={selectedMahasiswa.SemesterSekarang} />
-                           <InfoItem label="Tahun Masuk" value={selectedMahasiswa.TahunMasuk || selectedMahasiswa.NIM?.substring(3, 7)} />
-                        </div>
-                        <InfoItem label="Dosen Wali (DPA)" value={selectedMahasiswa.DosenPA?.Nama || 'Belum Ditentukan'} highlight />
-                      </div>
-                   </div>
+                  {/* SEKSI: ORANG TUA */}
+                  <div className="space-y-4">
+                     <div className="flex items-center gap-2 text-slate-900">
+                        <Heart className="size-4 opacity-40" />
+                        <h4 className="text-[11px] font-bold uppercase tracking-[0.1em]">Data Orang Tua</h4>
+                     </div>
+                     <div className="grid grid-cols-2 gap-x-12 gap-y-4 border-l-2 border-slate-100 pl-4 py-1">
+                        <DataField label="Nama Ayah" value={selectedMahasiswa.NamaAyah} />
+                        <DataField label="Nama Ibu" value={selectedMahasiswa.NamaIbuKandung} />
+                        <DataField label="Pekerjaan Ortu" value={selectedMahasiswa.PekerjaanAyah || selectedMahasiswa.PekerjaanIbu} />
+                        <DataField label="Penghasilan" value={selectedMahasiswa.PenghasilanOrtu ? `Rp ${selectedMahasiswa.PenghasilanOrtu.toLocaleString('id-ID')}` : '-'} />
+                     </div>
+                  </div>
 
-                   <div className="space-y-6">
-                      <div className="flex items-center gap-2 px-1 border-b border-slate-100 pb-2 text-rose-500">
-                        <Heart className="size-3" />
-                        <span className="text-[10px] font-black uppercase tracking-[0.2em]">Keluarga</span>
-                      </div>
-                      <div className="grid grid-cols-1 gap-4">
-                         <div className="p-4 rounded-2xl bg-white border border-slate-100 group hover:border-rose-200 transition-colors">
-                            <span className="text-[8px] font-black text-slate-400 uppercase block mb-1">Nama Ayah</span>
-                            <span className="text-[11px] font-black text-slate-800 uppercase font-headline">{selectedMahasiswa.NamaAyah || '—'}</span>
-                         </div>
-                         <div className="p-4 rounded-2xl bg-white border border-slate-100 group hover:border-rose-200 transition-colors">
-                            <span className="text-[8px] font-black text-slate-400 uppercase block mb-1">Nama Ibu Kandung</span>
-                            <span className="text-[11px] font-black text-slate-800 uppercase font-headline">{selectedMahasiswa.NamaIbuKandung || '—'}</span>
-                         </div>
-                      </div>
-                   </div>
-                </div>
+                  {/* SEKSI: BIODATA & KONTAK */}
+                  <div className="space-y-4">
+                     <div className="flex items-center gap-2 text-slate-900">
+                        <FileText className="size-4 opacity-40" />
+                        <h4 className="text-[11px] font-bold uppercase tracking-[0.1em]">Biodata & Kontak</h4>
+                     </div>
+                     <div className="grid grid-cols-2 gap-x-12 gap-y-4 border-l-2 border-slate-100 pl-4 py-1">
+                        <DataField label="Tempat, Tgl Lahir" value={`${selectedMahasiswa.TempatLahir || '-'}, ${selectedMahasiswa.TanggalLahir ? new Date(selectedMahasiswa.TanggalLahir).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : '-'}`} />
+                        <DataField label="Nomor WhatsApp" value={selectedMahasiswa.NoHP} isPrimary />
+                        <DataField label="NIK" value={selectedMahasiswa.NIK} />
+                        <DataField label="Email Institusi" value={selectedMahasiswa.EmailKampus || selectedMahasiswa.Pengguna?.Email} />
+                     </div>
+                     <div className="border-l-2 border-slate-100 pl-4 py-1 mt-2">
+                        <DataField label="Alamat Lengkap" value={selectedMahasiswa.Alamat} isFull />
+                     </div>
+                  </div>
+               </div>
 
-                <div className="space-y-6 bg-slate-50/50 p-6 rounded-[2rem] border border-slate-100 shadow-sm">
-                   <div className="flex items-center gap-2 px-1 border-b border-slate-200/50 pb-2 text-blue-500">
-                      <UserCheck className="size-3" />
-                      <span className="text-[10px] font-black uppercase tracking-[0.2em]">Biodata & Kontak Resmi</span>
-                   </div>
-                   <div className="grid grid-cols-3 gap-8 px-1">
-                      <InfoItem label="Tempat, Tgl Lahir" value={`${selectedMahasiswa.TempatLahir || '—'}, ${selectedMahasiswa.TanggalLahir ? new Date(selectedMahasiswa.TanggalLahir).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}`} />
-                      <InfoItem label="NIK" value={selectedMahasiswa.NIK} />
-                      <InfoItem label="Jenis Kelamin" value={selectedMahasiswa.JenisKelamin === 'L' ? 'Laki-laki' : 'Perempuan'} />
-                   </div>
-                   
-                   {/* Prominent Contact Info */}
-                   <div className="grid grid-cols-2 gap-4 mt-2">
-                       <div className="flex items-center gap-4 p-4 rounded-2xl bg-white border border-slate-100 shadow-sm group hover:border-blue-300 transition-all">
-                          <div className="size-10 rounded-xl bg-blue-50 flex items-center justify-center text-blue-500 shrink-0">
-                             <Mail className="size-5" />
-                          </div>
-                          <div className="flex flex-col min-w-0">
-                             <span className="text-[8px] font-black text-slate-400 uppercase tracking-tighter">Email Institusi</span>
-                             <span className="text-[11px] font-black text-slate-900 truncate font-headline">{selectedMahasiswa.EmailKampus || selectedMahasiswa.Pengguna?.Email || '—'}</span>
-                          </div>
-                       </div>
-                       <div className="flex items-center gap-4 p-4 rounded-2xl bg-white border border-slate-100 shadow-sm group hover:border-emerald-300 transition-all">
-                          <div className="size-10 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-500 shrink-0">
-                             <Phone className="size-5" />
-                          </div>
-                          <div className="flex flex-col min-w-0">
-                             <span className="text-[8px] font-black text-slate-400 uppercase tracking-tighter">Nomor Whatsapp/HP</span>
-                             <span className="text-[12px] font-black text-slate-900 font-headline tracking-tight">{selectedMahasiswa.NoHP || '—'}</span>
-                          </div>
-                       </div>
-                   </div>
-
-                   <div className="flex items-start gap-4 p-4 rounded-2xl bg-white border border-slate-100 shadow-sm">
-                      <MapPin className="size-4 text-slate-300 mt-1 shrink-0" />
-                      <div className="flex flex-col">
-                         <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Alamat Domisili</span>
-                         <span className="text-[11px] font-bold text-slate-700 leading-relaxed uppercase">{selectedMahasiswa.Alamat || '—'}</span>
-                      </div>
-                   </div>
-                </div>
-              </div>
-
-              <div className="p-8 px-10 flex items-center justify-end border-t border-slate-100 bg-white shrink-0">
-                <Button
-                  onClick={() => setIsDetailOpen(false)}
-                  className="text-[10px] font-black uppercase tracking-widest h-12 px-12 rounded-2xl bg-slate-900 text-white shadow-xl hover:bg-slate-800 active:scale-95 transition-all font-headline"
-                >
-                  Selesai
-                </Button>
-              </div>
+               <div className="p-6 border-t border-slate-100 flex justify-end shrink-0">
+                  <Button
+                     onClick={() => setIsDetailOpen(false)}
+                     className="bg-slate-900 text-white text-[11px] font-bold px-8 h-10 rounded-lg hover:bg-slate-800 transition-all uppercase tracking-widest"
+                  >
+                     Tutup
+                  </Button>
+               </div>
             </div>
           )}
         </DialogContent>
@@ -284,15 +212,15 @@ export default function MahasiswaPage() {
   )
 }
 
-function InfoItem({ label, value, highlight = false }) {
+function DataField({ label, value, isPrimary = false, isFull = false }) {
   return (
-    <div className="flex flex-col gap-1">
-      <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">{label}</span>
+    <div className={cn("flex flex-col gap-0.5", isFull ? "col-span-2" : "")}>
+      <span className="text-[10px] font-medium text-slate-400 uppercase tracking-tighter">{label}</span>
       <span className={cn(
-        "text-[11px] font-black uppercase font-headline truncate",
-        highlight ? "text-primary tracking-tight font-black" : "text-slate-800"
+         "text-[12px] font-bold tracking-tight",
+         isPrimary ? "text-primary italic" : "text-slate-700"
       )}>
-        {value || '—'}
+         {value || '—'}
       </span>
     </div>
   )
