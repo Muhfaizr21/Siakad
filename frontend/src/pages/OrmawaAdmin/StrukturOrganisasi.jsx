@@ -33,7 +33,7 @@ const OrgCard = ({ member, color = 'bg-primary/10', textColor = 'text-primary', 
         </AvatarFallback>
       </Avatar>
       <div>
-        <p className={cn('font-black font-headline tracking-tighter text-slate-900 truncate max-w-[140px]', nameSizes[size])}>{member.Mahasiswa?.Nama || member.Nama || '—'}</p>
+        <p className={cn('font-black font-headline tracking-tighter text-slate-900 truncate max-w-[160px] sm:max-w-[200px]', nameSizes[size])}>{member.Mahasiswa?.Nama || member.Nama || '—'}</p>
         <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">{member.Role}</p>
       </div>
     </div>
@@ -96,15 +96,15 @@ export default function StrukturOrganisasi() {
       <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
       <main className="lg:ml-60 min-h-screen transition-all duration-300">
         <TopNavBar setIsOpen={setSidebarOpen} />
-        <div className="pt-20 px-6 pb-12">
+        <div className="pt-20 px-4 lg:px-8 pb-12">
           <Toaster position="top-right" />
           <div className="flex flex-col gap-1.5 mb-8">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-primary/10 rounded-xl text-primary"><Network className="size-6" /></div>
                 <h1 className="text-2xl font-black text-slate-900 font-headline tracking-tighter uppercase">Struktur Pengurus</h1>
               </div>
-              <Button onClick={() => setIsAddDivOpen(true)} className="h-10 px-6 rounded-2xl bg-primary text-white font-black text-[10px] uppercase tracking-widest shadow-xl shadow-primary/20 gap-2">
+              <Button onClick={() => setIsAddDivOpen(true)} className="h-10 px-6 rounded-2xl bg-primary text-white font-black text-[10px] uppercase tracking-widest shadow-xl shadow-primary/20 gap-2 w-full md:w-auto">
                 <Plus className="size-4 stroke-[3px]" /> Tambah Divisi
               </Button>
             </div>
@@ -201,29 +201,29 @@ export default function StrukturOrganisasi() {
 
       {/* Add Division Dialog */}
       <Dialog open={isAddDivOpen} onOpenChange={setIsAddDivOpen}>
-        <DialogContent className="max-w-md p-0 overflow-hidden border-none shadow-2xl rounded-[2rem] bg-white/95 backdrop-blur-xl">
-          <DialogHeader className="p-8 pb-6 bg-gradient-to-br from-slate-50 to-white border-b border-slate-100 relative overflow-hidden">
-            <div className="absolute top-0 right-0 p-8 opacity-5"><Network className="size-24 rotate-12" /></div>
+        <DialogContent className="max-w-md p-0 overflow-hidden border-none shadow-2xl rounded-[2rem] bg-white/95 backdrop-blur-xl ">
+          <DialogHeader className="p-4 md:p-8 pb-3 md:pb-6 bg-gradient-to-br from-slate-50 to-white border-b border-slate-100 relative overflow-hidden">
+            <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none"><Network className="size-24 rotate-12" /></div>
             <div className="relative z-10">
-              <div className="flex items-center gap-3 mb-2">
+              <div className="flex items-center gap-3 mb-1 md:mb-2">
                 <div className="size-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary"><Plus className="size-4 stroke-[3px]" /></div>
                 <Badge className="text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 bg-primary/5 text-primary border-none">Division Registry</Badge>
               </div>
-              <DialogTitle className="text-2xl font-black font-headline tracking-tighter text-slate-900 uppercase">Tambah Divisi Baru</DialogTitle>
-              <DialogDescription className="text-xs font-medium text-slate-400 mt-1">Buat divisi baru untuk pembagian tugas organisasi.</DialogDescription>
+              <DialogTitle className="text-lg md:text-2xl font-black font-headline tracking-tighter text-slate-900 uppercase">Tambah Divisi Baru</DialogTitle>
+              <DialogDescription className="text-[10px] md:text-xs font-medium text-slate-400 mt-1">Buat divisi baru untuk pembagian tugas organisasi.</DialogDescription>
             </div>
           </DialogHeader>
-          <form onSubmit={handleAddDivision} className="p-8 pt-6 space-y-5">
+          <form onSubmit={handleAddDivision} className="p-4 md:p-8 pt-3 md:pt-6 space-y-3 md:space-y-4">
             <div className="space-y-2">
               <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Nama Divisi</Label>
               <Input required value={divName} onChange={e => setDivName(e.target.value)} placeholder="Misal: Humas, Akademik, IT..."
                 className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white transition-all font-bold text-sm font-headline" />
             </div>
-            <DialogFooter className="pt-4 flex flex-row gap-3 border-t border-slate-100 -mx-8 px-8 bg-slate-50/30">
-              <Button type="button" variant="ghost" onClick={() => setIsAddDivOpen(false)} className="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-900 px-8 h-12 rounded-2xl flex-1">Batalkan</Button>
-              <Button type="submit" disabled={isSubmitting} className="h-12 px-8 rounded-2xl bg-primary text-white hover:bg-primary/90 shadow-xl shadow-primary/20 transition-all flex-1">
+            <DialogFooter className="mt-4 pt-4 flex flex-col md:flex-row gap-2 md:gap-3 border-t border-slate-100 -mx-4 md:-mx-8 px-4 md:px-8 bg-slate-50/30 pb-4 md:pb-0">
+              <Button type="button" variant="ghost" onClick={() => setIsAddDivOpen(false)} className="w-full md:w-auto text-[9px] md:text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-900 px-8 h-10 md:h-12 rounded-xl md:rounded-2xl flex-1">Batalkan</Button>
+              <Button type="submit" disabled={isSubmitting} className="w-full md:w-auto h-10 md:h-12 px-8 rounded-xl md:rounded-2xl bg-primary text-white hover:bg-primary/90 shadow-xl shadow-primary/20 transition-all flex-1">
                 {isSubmitting ? <Loader2 className="animate-spin size-4 mr-2" /> : <Save className="size-4 mr-2 stroke-[3px]" />}
-                <span className="text-[10px] font-black uppercase tracking-[0.2em]">Simpan Divisi</span>
+                <span className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.2em]">Simpan Divisi</span>
               </Button>
             </DialogFooter>
           </form>

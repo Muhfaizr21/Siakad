@@ -101,7 +101,7 @@ export default function KeuanganKas() {
       <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
       <main className="lg:ml-60 min-h-screen transition-all duration-300">
         <TopNavBar setIsOpen={setSidebarOpen} />
-        <div className="pt-20 px-6 pb-12">
+        <div className="pt-20 px-4 lg:px-8 pb-12">
           <Toaster position="top-right" />
           <div className="flex flex-col gap-1.5 mb-8">
             <div className="flex items-center gap-3">
@@ -115,15 +115,22 @@ export default function KeuanganKas() {
           </div>
 
           {/* Summary Cards */}
-          <div className="grid grid-cols-3 gap-4 mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
             {[
               { label: 'Saldo Kas', value: formatRp(saldo), color: 'text-primary', bg: 'bg-primary/5', icon: DollarSign },
               { label: 'Total Pemasukan', value: formatRp(totalIn), color: 'text-emerald-600', bg: 'bg-emerald-50', icon: TrendingUp },
               { label: 'Total Pengeluaran', value: formatRp(totalOut), color: 'text-rose-600', bg: 'bg-rose-50', icon: TrendingDown },
             ].map(({ label, value, color, bg, icon: Icon }) => (
-              <div key={label} className={cn('rounded-2xl p-5 border border-slate-100 shadow-sm', bg)}>
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{label}</p>
-                <p className={cn('text-xl font-black font-headline tracking-tighter', color)}>{value}</p>
+              <div key={label} className={cn('rounded-[1.5rem] p-5 lg:p-6 border border-slate-100/50 shadow-sm flex flex-col justify-between', bg)}>
+                <div className="flex items-center justify-between mb-4">
+                  <div className={cn('p-2 rounded-xl bg-white/50 shadow-sm')}>
+                    <Icon className={cn('size-4', color)} />
+                  </div>
+                </div>
+                <div>
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] mb-1 font-headline">{label}</p>
+                  <p className={cn('text-xl lg:text-2xl font-black font-headline tracking-tighter', color)}>{value}</p>
+                </div>
               </div>
             ))}
           </div>
@@ -149,25 +156,25 @@ export default function KeuanganKas() {
       </main>
 
       <Dialog open={isCrudOpen} onOpenChange={setIsCrudOpen}>
-        <DialogContent className="max-w-lg p-0 overflow-hidden border-none shadow-2xl rounded-[2rem] bg-white/95 backdrop-blur-xl">
-          <DialogHeader className="p-8 pb-6 bg-gradient-to-br from-slate-50 to-white border-b border-slate-100 relative overflow-hidden">
-            <div className="absolute top-0 right-0 p-8 opacity-5"><DollarSign className="size-24 rotate-12" /></div>
+        <DialogContent className="max-w-lg p-0 overflow-hidden border-none shadow-2xl rounded-[2rem] bg-white/95 backdrop-blur-xl ">
+          <DialogHeader className="p-4 md:p-8 pb-3 md:pb-6 bg-gradient-to-br from-slate-50 to-white border-b border-slate-100 relative overflow-hidden">
+            <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none"><DollarSign className="size-24 rotate-12" /></div>
             <div className="relative z-10">
-              <div className="flex items-center gap-3 mb-2">
+              <div className="flex items-center gap-3 mb-1 md:mb-2">
                 <div className="size-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary"><Plus className="size-4 stroke-[3px]" /></div>
                 <Badge className="text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 bg-primary/5 text-primary border-none">Kas Registry</Badge>
               </div>
-              <DialogTitle className="text-2xl font-black font-headline tracking-tighter text-slate-900 uppercase">Catat Transaksi Baru</DialogTitle>
-              <DialogDescription className="text-xs font-medium text-slate-400 mt-1">Dokumentasikan pemasukan atau pengeluaran kas ormawa.</DialogDescription>
+              <DialogTitle className="text-lg md:text-2xl font-black font-headline tracking-tighter text-slate-900 uppercase">Catat Transaksi Baru</DialogTitle>
+              <DialogDescription className="text-[10px] md:text-xs font-medium text-slate-400 mt-1">Dokumentasikan pemasukan atau pengeluaran kas ormawa.</DialogDescription>
             </div>
           </DialogHeader>
-          <form onSubmit={handleSave} className="p-8 pt-6 space-y-5">
+          <form onSubmit={handleSave} className="p-4 md:p-8 pt-3 md:pt-6 space-y-3 md:space-y-5">
             <div className="space-y-2">
               <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Keterangan</Label>
               <Input required value={form.Deskripsi} onChange={e => setForm({ ...form, Deskripsi: e.target.value })} placeholder="Misal: Iuran anggota bulan April..."
                 className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white transition-all font-bold text-sm font-headline" />
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Jenis</Label>
                 <select value={form.Tipe} onChange={e => setForm({ ...form, Tipe: e.target.value })}
@@ -187,11 +194,11 @@ export default function KeuanganKas() {
               <Input required type="date" value={form.Tanggal} onChange={e => setForm({ ...form, Tanggal: e.target.value })}
                 className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white transition-all font-bold text-sm font-headline" />
             </div>
-            <DialogFooter className="pt-4 flex flex-row items-center justify-end gap-3 border-t border-slate-100 -mx-8 px-8 bg-slate-50/30">
-              <Button type="button" variant="ghost" onClick={() => setIsCrudOpen(false)} className="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-900 px-8 h-12 rounded-2xl">Batalkan</Button>
-              <Button type="submit" disabled={isSubmitting} className="h-12 px-10 rounded-2xl bg-primary text-white hover:bg-primary/90 shadow-xl shadow-primary/20 transition-all hover:scale-[1.02] active:scale-95">
+            <DialogFooter className="mt-4 pt-4 flex flex-col md:flex-row items-center justify-end gap-3 border-t border-slate-100 - md:-mx-8 px-4 md:px-8 bg-slate-50/30 pb-4 md:pb-0">
+              <Button type="button" variant="ghost" onClick={() => setIsCrudOpen(false)} className="w-full md:w-auto text-[9px] md:text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-900 px-8 h-10 md:h-12 rounded-xl md:rounded-2xl">Batalkan</Button>
+              <Button type="submit" disabled={isSubmitting} className="w-full md:w-auto h-10 md:h-12 px-10 rounded-xl md:rounded-2xl bg-primary text-white hover:bg-primary/90 shadow-xl shadow-primary/20 transition-all hover:scale-[1.02] active:scale-95">
                 {isSubmitting ? <Loader2 className="animate-spin size-4 mr-2" /> : <Save className="size-4 mr-2 stroke-[3px]" />}
-                <span className="text-[10px] font-black uppercase tracking-[0.2em]">Simpan Transaksi</span>
+                <span className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.2em]">Simpan Transaksi</span>
               </Button>
             </DialogFooter>
           </form>

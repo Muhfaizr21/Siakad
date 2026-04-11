@@ -116,7 +116,7 @@ export default function LpjManagement() {
       <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
       <main className="lg:ml-60 min-h-screen transition-all duration-300">
         <TopNavBar setIsOpen={setSidebarOpen} />
-        <div className="pt-20 px-6 pb-12">
+        <div className="pt-20 px-4 lg:px-8 pb-12">
           <Toaster position="top-right" />
           <div className="flex flex-col gap-1.5 mb-8">
             <div className="flex items-center gap-3">
@@ -150,7 +150,7 @@ export default function LpjManagement() {
 
       {/* Detail */}
       <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
-        <DialogContent className="max-w-xl p-0 overflow-hidden border-none shadow-2xl rounded-[2.5rem] bg-white/95 backdrop-blur-xl">
+        <DialogContent className="max-w-xl p-0 overflow-hidden border-none shadow-2xl rounded-[2.5rem] bg-white/95 backdrop-blur-xl ">
           {selected && (
             <div>
               <div className="p-8 bg-gradient-to-br from-slate-900 to-slate-800 relative overflow-hidden">
@@ -165,7 +165,7 @@ export default function LpjManagement() {
                       {STATUS_CFG[selected.Status]?.label || selected.Status || 'Draft'}
                     </Badge>
                   </div>
-                  <div className="mt-4 grid grid-cols-2 gap-4">
+                  <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div><p className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Anggaran</p><p className="text-sm font-black text-white font-headline">{formatRp(selected.TotalAnggaran)}</p></div>
                     <div><p className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Realisasi</p><p className="text-sm font-black text-emerald-400 font-headline">{formatRp(selected.RealisasiAnggaran)}</p></div>
                   </div>
@@ -190,21 +190,21 @@ export default function LpjManagement() {
 
       {/* CRUD */}
       <Dialog open={isCrudOpen} onOpenChange={setIsCrudOpen}>
-        <DialogContent className="max-w-xl p-0 overflow-hidden border-none shadow-2xl rounded-[2rem] bg-white/95 backdrop-blur-xl">
-          <DialogHeader className="p-8 pb-6 bg-gradient-to-br from-slate-50 to-white border-b border-slate-100 relative overflow-hidden">
-            <div className="absolute top-0 right-0 p-8 opacity-5"><FileCheck className="size-24 rotate-12" /></div>
+        <DialogContent className="max-w-xl p-0 overflow-hidden border-none shadow-2xl rounded-[2rem] bg-white/95 backdrop-blur-xl ">
+          <DialogHeader className="p-4 md:p-8 pb-3 md:pb-6 bg-gradient-to-br from-slate-50 to-white border-b border-slate-100 relative overflow-hidden">
+            <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none"><FileCheck className="size-24 rotate-12" /></div>
             <div className="relative z-10">
-              <div className="flex items-center gap-3 mb-2">
+              <div className="flex items-center gap-3 mb-1 md:mb-2">
                 <div className="size-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
                   {isEditMode ? <Pencil className="size-4" /> : <Plus className="size-4 stroke-[3px]" />}
                 </div>
                 <Badge className="text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 bg-primary/5 text-primary border-none">LPJ Registry</Badge>
               </div>
-              <DialogTitle className="text-2xl font-black font-headline tracking-tighter text-slate-900 uppercase">{isEditMode ? 'Edit LPJ' : 'Buat Laporan Baru'}</DialogTitle>
-              <DialogDescription className="text-xs font-medium text-slate-400 mt-1">Dokumentasikan laporan pertanggungjawaban kegiatan.</DialogDescription>
+              <DialogTitle className="text-lg md:text-2xl font-black font-headline tracking-tighter text-slate-900 uppercase">{isEditMode ? 'Edit LPJ' : 'Buat Laporan Baru'}</DialogTitle>
+              <DialogDescription className="text-[10px] md:text-xs font-medium text-slate-400 mt-1">Dokumentasikan laporan pertanggungjawaban kegiatan.</DialogDescription>
             </div>
           </DialogHeader>
-          <form onSubmit={handleSave} className="p-8 pt-6 space-y-5">
+          <form onSubmit={handleSave} className="p-4 md:p-8 pt-3 md:pt-6 space-y-3 md:space-y-5">
             <div className="space-y-2">
               <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Pilih Proposal Kegiatan</Label>
               <select required value={form.ProposalID} onChange={e => setForm({ ...form, ProposalID: e.target.value })}
@@ -218,7 +218,7 @@ export default function LpjManagement() {
               <Input required value={form.Judul} onChange={e => setForm({ ...form, Judul: e.target.value })} placeholder="Nama kegiatan yang dilaporkan..."
                 className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white transition-all font-bold text-sm font-headline" />
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Total Anggaran (Rp)</Label>
                 <Input required type="number" value={form.TotalAnggaran} onChange={e => setForm({ ...form, TotalAnggaran: e.target.value })} placeholder="0"
@@ -231,15 +231,15 @@ export default function LpjManagement() {
               </div>
             </div>
             <div className="space-y-2">
-              <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Catatan & Evaluasi</Label>
+              <Label className="text-[9px] md:text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Catatan & Evaluasi</Label>
               <Textarea required value={form.Catatan} onChange={e => setForm({ ...form, Catatan: e.target.value })} placeholder="Tuliskan evaluasi dan catatan kegiatan..."
-                className="min-h-[100px] rounded-[1.5rem] border-slate-200 bg-slate-50/50 focus:bg-white p-4 font-medium text-sm leading-relaxed font-headline" />
+                className="min-h-[80px] md:min-h-[100px] rounded-xl md:rounded-[1.5rem] border-slate-200 bg-slate-50/50 focus:bg-white p-3 md:p-4 font-medium text-xs md:text-sm leading-relaxed font-headline" />
             </div>
-            <DialogFooter className="pt-4 flex flex-row items-center justify-end gap-3 border-t border-slate-100 -mx-8 px-8 bg-slate-50/30">
-              <Button type="button" variant="ghost" onClick={() => setIsCrudOpen(false)} className="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-900 px-8 h-12 rounded-2xl">Batalkan</Button>
-              <Button type="submit" disabled={isSubmitting} className="h-12 px-10 rounded-2xl bg-primary text-white hover:bg-primary/90 shadow-xl shadow-primary/20 transition-all hover:scale-[1.02] active:scale-95">
+            <DialogFooter className="mt-4 pt-4 flex flex-col md:flex-row items-center justify-end gap-3 border-t border-slate-100 - md:-mx-8 px-4 md:px-8 bg-slate-50/30 pb-4 md:pb-0">
+              <Button type="button" variant="ghost" onClick={() => setIsCrudOpen(false)} className="w-full md:w-auto text-[9px] md:text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-900 px-8 h-10 md:h-12 rounded-xl md:rounded-2xl">Batalkan</Button>
+              <Button type="submit" disabled={isSubmitting} className="w-full md:w-auto h-10 md:h-12 px-10 rounded-xl md:rounded-2xl bg-primary text-white hover:bg-primary/90 shadow-xl shadow-primary/20 transition-all hover:scale-[1.02] active:scale-95">
                 {isSubmitting ? <Loader2 className="animate-spin size-4 mr-2" /> : <Save className="size-4 mr-2 stroke-[3px]" />}
-                <span className="text-[10px] font-black uppercase tracking-[0.2em]">{isEditMode ? 'Update Record' : 'Submit LPJ'}</span>
+                <span className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.2em]">{isEditMode ? 'Update Record' : 'Submit LPJ'}</span>
               </Button>
             </DialogFooter>
           </form>

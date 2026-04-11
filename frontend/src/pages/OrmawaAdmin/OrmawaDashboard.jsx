@@ -61,7 +61,7 @@ export default function OrmawaDashboard() {
       <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
       <main className="lg:ml-60 min-h-screen transition-all duration-300">
         <TopNavBar setIsOpen={setSidebarOpen} />
-        <div className="pt-20 px-6 pb-12 space-y-6">
+        <div className="pt-20 px-4 lg:px-8 pb-12 space-y-6">
 
           {/* Page Header */}
           <div className="flex flex-col gap-1.5">

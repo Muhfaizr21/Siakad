@@ -61,9 +61,9 @@ export default function Notifikasi() {
       <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
       <main className="lg:ml-60 min-h-screen transition-all duration-300">
         <TopNavBar setIsOpen={setSidebarOpen} />
-        <div className="pt-20 px-6 pb-12">
+        <div className="pt-20 px-4 lg:px-8 pb-12">
           <div className="flex flex-col gap-1.5 mb-8">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-primary/10 rounded-xl text-primary relative">
                   <Bell className="size-6" />
@@ -72,7 +72,7 @@ export default function Notifikasi() {
                 <h1 className="text-2xl font-black text-slate-900 font-headline tracking-tighter uppercase">Pusat Notifikasi</h1>
               </div>
               {unreadCount > 0 && (
-                <Button onClick={handleMarkAllRead} variant="outline" className="h-10 px-6 rounded-2xl border-slate-200 text-[10px] font-black uppercase tracking-widest text-slate-600 hover:bg-slate-100 gap-2">
+                <Button onClick={handleMarkAllRead} variant="outline" className="h-10 px-6 rounded-2xl border-slate-200 text-[10px] font-black uppercase tracking-widest text-slate-600 hover:bg-slate-100 gap-2 w-full md:w-auto">
                   <CheckCheck className="size-4" /> Tandai Semua Dibaca
                 </Button>
               )}
