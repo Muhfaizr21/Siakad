@@ -21,7 +21,9 @@ import {
   Users,
   Award,
   ShieldCheck,
-  UserCheck
+  UserCheck,
+  Phone,
+  Bookmark
 } from "lucide-react"
 import { toast, Toaster } from "react-hot-toast"
 import { cn } from "@/lib/utils"
@@ -131,11 +133,11 @@ export default function DosenPage() {
             <div className="p-2 bg-primary/10 rounded-xl text-primary">
               <Users className="size-6" />
             </div>
-            <h1 className="text-2xl font-black text-slate-900 font-headline tracking-tighter uppercase">Daftar Dosen</h1>
+            <h1 className="text-2xl font-black text-slate-900 font-headline tracking-tighter uppercase">Direktori Dosen</h1>
           </div>
           <div className="flex items-center gap-2">
             <div className="h-1 w-10 bg-primary rounded-full shadow-sm shadow-primary/30" />
-            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Arsip Tenaga Pengajar & Monitoring Pimpinan</p>
+            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Database Tenaga Pengajar & Pejabat Fakultas</p>
           </div>
         </div>
       </div>
@@ -179,28 +181,27 @@ export default function DosenPage() {
                       <ShieldCheck className="size-4" />
                     </div>
                     <Badge variant="secondary" className="text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 bg-primary/5 text-primary border-none">
-                      Academic Faculty Records
+                      Authorized Academic Staff
                     </Badge>
                   </div>
                   <DialogTitle className="text-2xl font-black font-headline tracking-tighter text-slate-900 uppercase">
-                    Profil Dosen
+                    Arsip Profil Dosen
                   </DialogTitle>
                 </div>
               </DialogHeader>
 
               <div className="overflow-y-auto p-8 space-y-8 custom-scrollbar">
                 <div className="flex items-center gap-6 p-6 rounded-[2rem] bg-slate-50 border border-slate-100 shadow-inner">
-                  <Avatar className="h-20 w-20 rounded-2xl border-4 border-white shadow-lg shrink-0">
+                  <Avatar className="h-24 w-24 rounded-[1.5rem] border-4 border-white shadow-xl shrink-0">
                     <AvatarImage src={selectedDosen.AvatarURL} />
-                    <AvatarFallback className="bg-gradient-to-br from-slate-200 to-slate-300 text-slate-800 text-2xl font-black uppercase">
+                    <AvatarFallback className="bg-gradient-to-br from-slate-200 to-slate-300 text-slate-800 text-3xl font-black uppercase">
                       {selectedDosen.Nama?.split(" ").map(n => n[0]).join("").substring(0, 2) || '?'}
                     </AvatarFallback>
                   </Avatar>
-                  <div className="flex flex-col">
-                    <h3 className="text-xl font-black text-slate-900 font-headline tracking-tighter uppercase leading-tight">{selectedDosen.Nama}</h3>
-                    <div className="flex items-center gap-2 mt-1">
+                  <div className="flex flex-col min-w-0">
+                    <h3 className="text-2xl font-black text-slate-900 font-headline tracking-tighter uppercase leading-tight truncate">{selectedDosen.Nama}</h3>
+                    <div className="flex items-center gap-3 mt-2">
                        <span className="text-[10px] font-black text-primary uppercase tracking-[0.2em]">{selectedDosen.Jabatan || 'Dosen Pengajar'}</span>
-                       <span className="size-1 rounded-full bg-slate-300" />
                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">NIDN: {selectedDosen.NIDN}</span>
                     </div>
                   </div>
@@ -209,8 +210,8 @@ export default function DosenPage() {
                 <div className="grid grid-cols-2 gap-8">
                   <div className="space-y-4">
                     <div className="flex items-center gap-2 px-1 text-primary">
-                      <BookOpen className="size-3" />
-                      <span className="text-[10px] font-black uppercase tracking-[0.2em]">Akademik</span>
+                      <Bookmark className="size-3" />
+                      <span className="text-[10px] font-black uppercase tracking-[0.2em]">Penugasan</span>
                     </div>
                     <div className="space-y-3">
                       <InfoBlock label="Program Studi" value={selectedDosen.ProgramStudi?.Nama} />
@@ -221,22 +222,47 @@ export default function DosenPage() {
                   <div className="space-y-4">
                     <div className="flex items-center gap-2 px-1 text-emerald-500">
                       <UserCheck className="size-3" />
-                      <span className="text-[10px] font-black uppercase tracking-[0.2em]">Verifikasi</span>
+                      <span className="text-[10px] font-black uppercase tracking-[0.2em]">Verifikasi Akun</span>
                     </div>
                     <div className="space-y-3">
-                      <InfoBlock label="Email Resmi" value={selectedDosen.Pengguna?.Email} />
-                      <InfoBlock label="Wewenang DPA" value={selectedDosen.IsDPA ? 'AKTIF' : 'TIDAK'} />
+                       <div className="flex flex-col gap-1">
+                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Wewenang Wali</span>
+                        <Badge className={cn(
+                          "w-fit text-[9px] font-black px-3 py-1 border-none",
+                          selectedDosen.IsDPA ? "bg-emerald-500 text-white" : "bg-slate-200 text-slate-500"
+                        )}>
+                          {selectedDosen.IsDPA ? 'DPA AKTIF' : 'NON-DPA'}
+                        </Badge>
+                      </div>
                     </div>
                   </div>
                 </div>
+
+                {/* Important Contact Section */}
+                <div className="space-y-4 bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm">
+                   <div className="flex items-center gap-2 px-1 text-blue-500">
+                      <Mail className="size-3" />
+                      <span className="text-[10px] font-black uppercase tracking-[0.2em]">Kredensial Kontak</span>
+                   </div>
+                   <div className="grid grid-cols-2 gap-4">
+                       <div className="flex flex-col gap-1 p-4 rounded-xl bg-slate-50 border border-slate-100 group hover:border-blue-200 transition-colors">
+                          <span className="text-[8px] font-black text-slate-400 uppercase">Email Institusi</span>
+                          <span className="text-[11px] font-black text-slate-800 font-headline truncate uppercase">{selectedDosen.Pengguna?.Email || '—'}</span>
+                       </div>
+                       <div className="flex flex-col gap-1 p-4 rounded-xl bg-slate-50 border border-slate-100 group hover:border-emerald-200 transition-colors">
+                          <span className="text-[8px] font-black text-slate-400 uppercase">Nomor HP/WA</span>
+                          <span className="text-[12px] font-black text-slate-800 font-headline uppercase">{selectedDosen.NoHP || '—'}</span>
+                       </div>
+                   </div>
+                </div>
               </div>
 
-              <div className="p-8 px-10 flex items-center justify-end border-t border-slate-100 bg-slate-50/50 shrink-0">
+              <div className="p-8 px-10 flex items-center justify-end border-t border-slate-100 bg-white shrink-0">
                 <Button
                   onClick={() => setIsDetailOpen(false)}
-                  className="text-[10px] font-black uppercase tracking-widest h-12 px-12 rounded-2xl bg-white border border-slate-200 text-slate-900 shadow-sm hover:bg-slate-50 active:scale-95 transition-all font-headline"
+                  className="text-[10px] font-black uppercase tracking-widest h-12 px-12 rounded-2xl bg-slate-900 text-white shadow-xl hover:bg-slate-800 active:scale-95 transition-all font-headline"
                 >
-                  Tutup
+                  Selesai
                 </Button>
               </div>
             </div>
@@ -249,7 +275,7 @@ export default function DosenPage() {
 
 function InfoBlock({ label, value }) {
   return (
-    <div className="flex flex-col gap-1 p-3 rounded-2xl bg-white border border-slate-100 shadow-sm">
+    <div className="flex flex-col gap-1 p-4 rounded-2xl bg-white border border-slate-100 shadow-sm">
       <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">{label}</span>
       <span className="text-[11px] font-black text-slate-800 uppercase font-headline truncate">{value || '—'}</span>
     </div>
