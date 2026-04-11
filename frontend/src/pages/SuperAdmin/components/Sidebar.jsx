@@ -70,14 +70,20 @@ const Sidebar = () => {
       <div className="flex flex-col h-full overflow-hidden">
 
         {/* Brand Header */}
-        <div className="shrink-0 px-6 py-6 flex items-center gap-4">
-          <div className="size-11 rounded-2xl flex items-center justify-center text-white shrink-0 shadow-lg shadow-primary/20"
-            style={{ background: '#00236f' }}>
-            <ShieldCheck size={20} strokeWidth={2.5} />
-          </div>
-          <div>
-            <p className="text-[13px] font-black text-slate-900 uppercase tracking-tighter leading-none font-headline">Master Hub</p>
-            <p className="text-[9px] font-bold text-[#00236f] uppercase tracking-[0.2em] mt-1 opacity-80">Super Admin Panel</p>
+        <div className="px-6 py-8 flex items-center justify-between shrink-0">
+          <div className="flex items-center gap-3.5 group cursor-pointer" onClick={() => navigate('/admin')}>
+            <div className="relative">
+              <div className="w-11 h-11 bg-white border border-slate-200 rounded-2xl flex items-center justify-center shadow-xl shadow-slate-200/50 group-hover:scale-105 transition-transform duration-300 p-1.5">
+                <img src="/images/bku logo.png" alt="BKU Logo" className="w-full h-full object-contain" />
+              </div>
+              <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 rounded-full border-2 border-white shadow-sm"></div>
+            </div>
+            <div className="flex flex-col leading-tight">
+              <span className="text-sm font-black text-slate-900 uppercase tracking-wider">
+                MASTER HUB
+              </span>
+              <span className="text-[10px] font-bold text-[#00236f] uppercase tracking-widest opacity-80">Super Admin Panel</span>
+            </div>
           </div>
         </div>
 

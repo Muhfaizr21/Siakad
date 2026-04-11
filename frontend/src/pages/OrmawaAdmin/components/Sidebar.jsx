@@ -85,26 +85,29 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
         ${isOpen ? 'translate-x-0 w-64 shadow-2xl shadow-primary/20' : '-translate-x-full lg:translate-x-0 w-60'}
       `}>
         {/* Logo Section */}
-        <div className="p-5 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 bg-primary/10 rounded-xl flex items-center justify-center text-primary shadow-lg shadow-primary/5 overflow-hidden border border-primary/20">
-              {identity.logoUrl ? (
-                <img src={getFullLogoUrl(identity.logoUrl)} alt="Logo" className="w-full h-full object-cover" />
-              ) : (
-                <span className="material-symbols-outlined font-black text-[20px]">hub</span>
-              )}
+        <div className="px-6 py-8 flex items-center justify-between shrink-0">
+          <Link to="/ormawa" className="flex items-center gap-3.5 group">
+            <div className="relative">
+              <div className="w-11 h-11 bg-white border border-slate-200 rounded-2xl flex items-center justify-center shadow-xl shadow-slate-200/50 group-hover:scale-105 transition-transform duration-300 p-1.5 overflow-hidden shrink-0">
+                {identity.logoUrl ? (
+                  <img src={getFullLogoUrl(identity.logoUrl)} alt="Logo" className="w-full h-full object-contain" />
+                ) : (
+                  <img src="/images/bku logo.png" alt="BKU Logo" className="w-full h-full object-contain" />
+                )}
+              </div>
+              <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 rounded-full border-2 border-white shadow-sm"></div>
             </div>
-            <div className="leading-none overflow-hidden max-w-[120px]">
-              <span className="text-[11px] font-black text-on-surface uppercase tracking-widest block truncate">
+            <div className="flex flex-col leading-tight overflow-hidden max-w-[120px]">
+              <span className="text-sm font-black text-on-surface uppercase tracking-wider truncate">
                 {identity.alias || identity.name}
               </span>
-              <p className="text-[8px] font-bold text-primary opacity-80 uppercase truncate">Portal Ormawa</p>
+              <span className="text-[10px] font-bold text-primary/60 uppercase tracking-widest">Portal Ormawa</span>
             </div>
-          </div>
+          </Link>
           {/* Close for mobile */}
           <button
             onClick={() => setIsOpen(false)}
-            className="lg:hidden w-7 h-7 rounded-full bg-surface-container flex items-center justify-center"
+            className="lg:hidden w-9 h-9 rounded-xl bg-slate-50 hover:bg-slate-100 flex items-center justify-center text-slate-400 transition-colors"
           >
             <span className="material-symbols-outlined text-xs">close</span>
           </button>
