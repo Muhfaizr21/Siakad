@@ -14,16 +14,16 @@ func InisialisasiRuteFakultas(aplikasi *fiber.App) {
 	// Akademik & Dosen
 	api.Get("/lecturers", fakultas.AmbilDaftarDosen)
 	api.Get("/lecturers/:id", fakultas.AmbilDosenBerdasarID)
-	api.Post("/lecturers", fakultas.TambahDosenBaru)
-	api.Put("/lecturers/:id", fakultas.PerbaruiDataDosen)
-	api.Delete("/lecturers/:id", fakultas.HapusDataDosen)
+	// api.Post("/lecturers", fakultas.TambahDosenBaru)
+	// api.Put("/lecturers/:id", fakultas.PerbaruiDataDosen)
+	// api.Delete("/lecturers/:id", fakultas.HapusDataDosen)
 
 	// Mahasiswa
 	api.Get("/students", fakultas.AmbilDaftarMahasiswa)
 	api.Get("/students/:id", fakultas.AmbilMahasiswaBerdasarID)
-	api.Post("/students", fakultas.TambahMahasiswaBaru)
-	api.Put("/students/:id", fakultas.PerbaruiDataMahasiswa)
-	api.Delete("/students/:id", fakultas.HapusDataMahasiswa)
+	// api.Post("/students", fakultas.TambahMahasiswaBaru)
+	// api.Put("/students/:id", fakultas.PerbaruiDataMahasiswa)
+	// api.Delete("/students/:id", fakultas.HapusDataMahasiswa)
 
 	// Struktur Organisasi (Fakultas & Prodi/Majors)
 	api.Get("/faculties", fakultas.AmbilDaftarFakultas)
