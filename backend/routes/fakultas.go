@@ -118,6 +118,11 @@ func InisialisasiRuteFakultas(aplikasi *fiber.App) {
 	api.Post("/academic-periods", fakultas.SimpanPengaturanAkademik)
 	api.Put("/academic-periods", fakultas.SimpanPengaturanAkademik) // ALIAS
 
+    // Akun & Profil (Baru) - Terpisah dari Mahasiswa
+    api.Get("/profile", fakultas.AmbilProfilAdminFakultas)
+    api.Put("/profile", fakultas.PerbaruiProfilAdminFakultas)
+    api.Put("/change-password", fakultas.GantiPasswordAdminFakultas)
+
 	api.Get("/ringkasan", fakultas.AmbilRingkasanPkkmb)
 	api.Get("/peserta", fakultas.AmbilDaftarKelulusanMaba)
 

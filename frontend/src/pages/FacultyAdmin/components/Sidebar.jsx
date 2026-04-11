@@ -41,6 +41,7 @@ const menuSections = [
   {
     label: 'System & Reports',
     items: [
+      { name: 'Periode Akademik', path: '/faculty/jadwal', icon: CalendarDays },
       { name: 'Laporan Fakultas', path: '/faculty/laporan', icon: BarChart3 },
       { name: 'Program Studi', path: '/faculty/prodi', icon: School },
       { name: 'Pengaturan', path: '/faculty/pengaturan', icon: Settings },

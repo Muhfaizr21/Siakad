@@ -43,13 +43,13 @@ func UpdateProfile(c *fiber.Ctx) error {
 	}
 
 	type UpdateRequest struct {
-		Email      string `json:"email"`
-		Phone      string `json:"phone"`
-		BirthPlace string `json:"birth_place"`
-		BirthDate  string `json:"birth_date"`
-		Gender     string `json:"gender"`
-		Religion   string `json:"religion"`
-		Address    string `json:"address"`
+		Email            string `json:"email"`
+		Phone            string `json:"phone"`
+		BirthPlace       string `json:"birth_place"`
+		BirthDate        string `json:"birth_date"`
+		Gender           string `json:"gender"`
+		Religion         string `json:"religion"`
+		Address          string `json:"address"`
 		City             string `json:"city"`
 		ZipCode          string `json:"zip_code"`
 		NIK              string `json:"nik"`
