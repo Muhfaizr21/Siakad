@@ -11,8 +11,6 @@ import { Label } from './components/ui/label'
 import { Eye, Loader2, CheckCircle2, XCircle, FileText, Clock, Building2, Wallet, ShieldCheck, Filter, Search, AlertCircle } from 'lucide-react'
 import { toast, Toaster } from 'react-hot-toast'
 import { cn } from '@/lib/utils'
-import Sidebar from './components/Sidebar'
-import TopNavBar from './components/TopNavBar'
 import { adminService } from '../../services/api'
 
 const STATUS_CFG = {
@@ -95,13 +93,8 @@ export default function ProposalPipeline() {
   ]
 
   return (
-    <div className="bg-slate-50 min-h-screen flex font-sans">
+    <div className="p-4 md:p-10 space-y-6 md:space-y-10">
       <Toaster position="top-right" />
-      <Sidebar />
-      <main className="pl-72 pt-20 flex flex-col min-h-screen w-full transition-all duration-300">
-
-        <TopNavBar />
-        <div className="p-10 space-y-10">
           <header className="flex justify-between items-end">
              <div className="space-y-1.5">
                 <div className="flex items-center gap-3">
@@ -111,10 +104,10 @@ export default function ProposalPipeline() {
                     </div>
                     <h1 className="text-3xl font-black text-slate-900 tracking-tighter font-headline uppercase leading-none">Proposal Global Pipeline</h1>
                 </div>
-                <p className="text-slate-400 font-bold uppercase text-[10px] tracking-[0.2em] flex items-center gap-2">
+                <div className="text-slate-400 font-bold uppercase text-[10px] tracking-[0.2em] flex items-center gap-2">
                     <div className="h-1 w-10 bg-primary rounded-full" />
                     Monitoring & Pengesahan Akhir Anggaran Kegiatan Mahasiswa
-                </p>
+                </div>
             </div>
           </header>
 
@@ -165,12 +158,12 @@ export default function ProposalPipeline() {
                />
             </CardContent>
           </Card>
-        </div>
-      </main>
 
       {/* Detail Dialog */}
       <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
         <DialogContent className="max-w-3xl p-0 overflow-hidden border-none shadow-2xl rounded-[3rem] bg-white">
+          <DialogTitle className="sr-only">Detail Proposal</DialogTitle>
+          <DialogDescription className="sr-only">Rincian lengkap proposal kegiatan mahasiswa.</DialogDescription>
           {selected && (
             <div className="flex flex-col">
               <div className="p-10 bg-slate-900 relative overflow-hidden shrink-0">
@@ -215,10 +208,11 @@ export default function ProposalPipeline() {
 
                  {selected.Catatan && (
                     <div className="bg-rose-50 border border-rose-100 p-8 rounded-[2rem] space-y-2">
-                        <p className="text-[9px] font-black text-rose-500 uppercase tracking-widest font-headline flex items-center gap-2">
-                            <AlertCircle className="size-3" /> Catatan Verifikasi
-                        </p>
-                        <p className="text-sm text-rose-700 font-medium">{selected.Catatan}</p>
+                        <div className="text-[9px] font-black text-rose-500 uppercase tracking-widest font-headline flex items-center gap-2">
+                            <div className="h-0.5 w-6 bg-rose-500 rounded-full" />
+                            Dana Perlu Verifikasi Proposal
+                        </div>
+                        <div className="text-sm text-rose-700 font-medium">{selected.Catatan}</div>
                     </div>
                  )}
               </div>

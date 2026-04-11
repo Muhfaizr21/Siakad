@@ -1,6 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import Sidebar from './components/Sidebar';
-import TopNavBar from './components/TopNavBar';
 import { adminService } from '../../services/api';
 import { 
   Search, Loader2, MessageSquare, AlertCircle, 
@@ -88,23 +86,18 @@ const AspirationControl = () => {
   );
 
   return (
-    <div className="bg-slate-50 text-slate-900 min-h-screen flex font-sans select-none">
+    <div className="p-4 md:p-8 space-y-8">
       <Toaster position="top-right" />
-      <Sidebar />
-      <main className="pl-72 pt-20 flex flex-col min-h-screen w-full transition-all duration-300">
-
-        <TopNavBar />
-        <div className="p-8 space-y-8">
-          <header className="flex justify-between items-end">
-             <div className="space-y-1.5">
-                <div className="flex items-center gap-3">
+      <header className="flex justify-between items-end">
+         <div className="space-y-1.5">
+            <div className="flex items-center gap-3">
                     <div className="p-2 bg-primary/10 rounded-xl text-primary"><MessageSquare className="size-6" /></div>
                     <h1 className="text-3xl font-black text-slate-900 tracking-tighter font-headline uppercase leading-none">Global Aspiration Hub</h1>
                 </div>
-                <p className="text-slate-400 font-bold uppercase text-[10px] tracking-[0.2em] flex items-center gap-2">
+                <div className="text-slate-400 font-bold uppercase text-[10px] tracking-[0.2em] flex items-center gap-2">
                     <div className="h-1 w-10 bg-primary rounded-full" />
                     Pusat Monitoring Aspirasi Mahasiswa Seluruh Fakultas
-                </p>
+                </div>
             </div>
           </header>
 
@@ -227,7 +220,6 @@ const AspirationControl = () => {
               </tbody>
             </table>
           </section>
-        </div>
 
         {/* AUDIT MODAL */}
         {isModalOpen && selectedAsp && (
@@ -360,7 +352,6 @@ const AspirationControl = () => {
             </div>
           </div>
         )}
-      </main>
     </div>
   );
 };

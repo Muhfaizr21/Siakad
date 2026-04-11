@@ -1,4 +1,4 @@
-"use client"
+
 import React, { useState, useEffect } from 'react'
 import { Card, CardContent } from './components/ui/card'
 import {
@@ -8,8 +8,6 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Link } from 'react-router-dom'
-import Sidebar from './components/Sidebar'
-import TopNavBar from './components/TopNavBar'
 import { adminService } from '../../services/api'
 import { toast } from 'react-hot-toast'
 
@@ -89,15 +87,9 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="bg-[#f8fafc] min-h-screen flex font-sans">
-      <Sidebar />
-      <main className="pl-72 pt-20 flex flex-col min-h-screen w-full">
-
-        <TopNavBar />
-
-        <div className="p-10 space-y-10">
-          {/* Hero Welcome */}
-          <div className="relative overflow-hidden bg-white border border-slate-200 p-10 rounded-[4rem] shadow-sm">
+    <div className="p-4 md:p-6 lg:p-10 space-y-6 lg:space-y-10 max-w-[1600px] mx-auto">
+      {/* Hero Welcome */}
+      <div className="relative overflow-hidden bg-white border border-slate-200 p-6 md:p-10 rounded-[2rem] lg:rounded-[4rem] shadow-sm">
             <div className="absolute top-0 right-0 p-10 opacity-10"><Activity className="size-40 text-primary" /></div>
             <div className="relative z-10 flex flex-col gap-2">
               <div className="flex items-center gap-2">
@@ -193,9 +185,7 @@ export default function AdminDashboard() {
                 </div>
               </Card>
             </div>
-          </div>
         </div>
-      </main>
     </div>
   )
 }

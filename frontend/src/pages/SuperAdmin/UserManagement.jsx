@@ -20,8 +20,6 @@ import {
 
 import { toast, Toaster } from 'react-hot-toast'
 import { cn } from '@/lib/utils'
-import Sidebar from './components/Sidebar'
-import TopNavBar from './components/TopNavBar'
 import { adminService } from '../../services/api'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './components/ui/select'
 
@@ -186,13 +184,7 @@ export default function UserManagement() {
   ]
 
   return (
-    <div className="bg-slate-50 min-h-screen flex font-sans">
-      <Sidebar />
-      <main className="pl-72 pt-20 flex flex-col min-h-screen w-full transition-all duration-300">
-
-        <TopNavBar />
-        
-        <div className="p-10 space-y-10">
+    <div className="p-4 md:p-10 space-y-6 md:space-y-10">
           <Toaster position="top-right" />
 
           {/* Header & Stats Summary */}
@@ -202,10 +194,10 @@ export default function UserManagement() {
                   <div className="p-3 bg-slate-900 rounded-2xl text-white shadow-xl shadow-slate-900/10"><ShieldAlert className="size-6" /></div>
                   <div>
                     <h1 className="text-3xl font-black text-slate-900 font-headline tracking-tighter uppercase leading-none">RBAC System Control</h1>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mt-2 flex items-center gap-2">
+                    <div className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mt-2 flex items-center gap-2">
                        <div className="h-1 w-8 bg-primary rounded-full" />
                        Governance & Identity Access Management
-                    </p>
+                    </div>
                   </div>
                </div>
             </div>
@@ -249,8 +241,6 @@ export default function UserManagement() {
               />
             </CardContent>
           </Card>
-        </div>
-      </main>
 
       {/* Permissions Matrix Info Modal */}
       <Dialog open={isPermsOpen} onOpenChange={setIsPermsOpen}>
@@ -409,7 +399,7 @@ export default function UserManagement() {
       <DeleteConfirmModal isOpen={isDelOpen} onClose={() => setIsDelOpen(false)} onConfirm={handleDelete}
         title="Otorisasi Penghapusan Akun?" description="Seluruh hak akses dan keterkaitan data identitas pengguna ini akan dicabut permanen dari infrastruktur sistem." loading={isSubmitting} />
 
-      <style jsx>{`
+      <style>{`
          .no-scrollbar::-webkit-scrollbar { display: none; }
          .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
       `}</style>

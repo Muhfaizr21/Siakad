@@ -1,4 +1,4 @@
-"use client"
+
 
 import React, { useState, useEffect } from 'react'
 import { DataTable } from './components/ui/data-table'
@@ -8,8 +8,6 @@ import { Card, CardContent } from './components/ui/card'
 import { ShieldCheck, Download } from 'lucide-react'
 import { toast, Toaster } from 'react-hot-toast'
 import { cn } from '@/lib/utils'
-import Sidebar from './components/Sidebar'
-import TopNavBar from './components/TopNavBar'
 import { adminService } from '../../services/api'
 
 const ACTION_COLORS = {
@@ -70,12 +68,7 @@ export default function AuditLog() {
   ]
 
   return (
-    <div className="bg-slate-50 min-h-screen flex font-sans">
-      <Sidebar />
-      <main className="pl-72 pt-20 flex flex-col min-h-screen w-full">
-
-        <TopNavBar />
-        <div className="p-8 space-y-6">
+    <div className="p-4 md:p-8 space-y-6">
           <Toaster position="top-right" />
           <div className="flex flex-col gap-1.5">
             <div className="flex items-center justify-between">
@@ -101,7 +94,5 @@ export default function AuditLog() {
             </CardContent>
           </Card>
         </div>
-      </main>
-    </div>
   )
 }

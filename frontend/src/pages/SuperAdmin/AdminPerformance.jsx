@@ -1,6 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import Sidebar from './components/Sidebar';
-import TopNavBar from './components/TopNavBar';
 import { adminService } from '../../services/api';
 import { toast, Toaster } from 'react-hot-toast';
 import { Trash2, Edit3, ShieldCheck, Activity, Loader2 } from 'lucide-react';
@@ -30,25 +28,22 @@ const AdminPerformance = () => {
     };
 
     const getActionIcon = (activity = '') => {
-        if (activity.includes('DELETE')) return <Trash2 className="size-5" />;
-        if (activity.includes('UPDATE') || activity.includes('EDIT')) return <Edit3 className="size-5" />;
+        const act = activity.toUpperCase();
+        if (act.includes('DELETE')) return <Trash2 className="size-5" />;
+        if (act.includes('UPDATE') || act.includes('EDIT')) return <Edit3 className="size-5" />;
         return <Activity className="size-5" />;
     };
 
     const getActionColors = (activity = '') => {
-        if (activity.includes('DELETE')) return 'bg-rose-50 text-rose-600';
-        if (activity.includes('UPDATE')) return 'bg-amber-50 text-amber-600';
+        const act = activity.toUpperCase();
+        if (act.includes('DELETE')) return 'bg-rose-50 text-rose-600';
+        if (act.includes('UPDATE')) return 'bg-amber-50 text-amber-600';
         return 'bg-emerald-50 text-emerald-600';
     };
 
     return (
-        <div className="bg-slate-50 text-slate-900 min-h-screen flex font-sans select-none">
+        <div className="p-4 md:p-8 space-y-8">
             <Toaster position="top-right" />
-            <Sidebar />
-            <main className="pl-72 pt-20 flex flex-col min-h-screen w-full">
-
-                <TopNavBar />
-                <div className="p-8 space-y-8">
                     <div className="flex flex-col gap-1.5">
                         <div className="flex items-center gap-3">
                             <div className="p-2 bg-primary/10 rounded-xl text-primary"><ShieldCheck className="size-6" /></div>
@@ -111,8 +106,8 @@ const AdminPerformance = () => {
                             ) : logs.map((log) => (
                                 <div key={log.ID} className="p-8 hover:bg-slate-50/50 transition-all flex items-center justify-between group">
                                     <div className="flex gap-6 items-start">
-                                        <div className={`size-10 rounded-2xl flex items-center justify-center font-black text-xs shadow-sm shrink-0 ${getActionColors(log.Aktivitas)}`}>
-                                            {getActionIcon(log.Aktivitas)}
+                                        <div className={`size-10 rounded-2xl flex items-center justify-center font-black text-xs shadow-sm shrink-0 ${getActionColors(log.Aktivitas || '')}`}>
+                                            {getActionIcon(log.Aktivitas || '')}
                                         </div>
                                         <div className="space-y-1">
                                             <div className="flex items-center gap-4">
@@ -137,8 +132,6 @@ const AdminPerformance = () => {
                             ))}
                         </div>
                     </section>
-                </div>
-            </main>
         </div>
     );
 };

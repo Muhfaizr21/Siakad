@@ -56,7 +56,7 @@ const menuGroups = [
   }
 ];
 
-const Sidebar = () => {
+const Sidebar = ({ isOpen, setIsOpen }) => {
   const navigate = useNavigate();
   const { logout } = useAuthStore();
 
@@ -66,7 +66,7 @@ const Sidebar = () => {
   };
 
   return (
-    <aside className="h-screen w-72 fixed left-0 top-0 flex flex-col bg-[#f6f3f2] border-r border-slate-200/50 z-50 select-none">
+    <aside className={`h-screen w-72 fixed left-0 top-0 flex flex-col bg-[#f6f3f2] border-r border-slate-200/50 z-50 select-none transition-transform duration-300 lg:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
       <div className="flex flex-col h-full overflow-hidden">
 
         {/* Brand Header */}

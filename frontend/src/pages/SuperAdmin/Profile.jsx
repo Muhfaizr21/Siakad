@@ -4,8 +4,6 @@ import {
     ShieldCheck, Bell, Activity, Clock, ShieldAlert,
     ChevronRight, Camera, UserCircle2
 } from 'lucide-react';
-import Sidebar from './components/Sidebar';
-import TopNavBar from './components/TopNavBar';
 import api from '../../lib/axios';
 import { toast, Toaster } from 'react-hot-toast';
 import useAuthStore from '../../store/useAuthStore';
@@ -84,13 +82,7 @@ const AdminProfile = () => {
     }
 
     return (
-        <div className="bg-slate-50 text-slate-900 min-h-screen flex font-sans select-none">
-            <Toaster position="top-right" />
-            <Sidebar />
-            <main className="pl-72 pt-20 flex flex-col min-h-screen w-full">
-                <TopNavBar />
-                
-                <div className="p-8 lg:p-12 space-y-10 max-w-6xl mx-auto w-full">
+        <div className="p-4 md:p-8 lg:p-12 space-y-10 max-w-6xl mx-auto w-full">
                     {/* Breadcrumbs */}
                     <div className="flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-slate-400">
                         <span className="hover:text-[#00236f] transition-colors cursor-pointer">Super Admin Hub</span>
@@ -297,8 +289,6 @@ const AdminProfile = () => {
                             </div>
                         </div>
                     </div>
-                </div>
-            </main>
         </div>
     );
 };

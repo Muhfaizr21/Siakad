@@ -14,8 +14,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from './components/ui/tabs'
 import { Eye, Pencil, Trash2, Loader2, Plus, Save, Award, Users, Check, X, FileText, ExternalLink } from 'lucide-react'
 import { toast, Toaster } from 'react-hot-toast'
 import { cn } from '@/lib/utils'
-import Sidebar from './components/Sidebar'
-import TopNavBar from './components/TopNavBar'
 import { adminService, API_BASE_URL } from '../../services/api'
 
 export default function KelolaBeasiswa() {
@@ -147,71 +145,65 @@ export default function KelolaBeasiswa() {
   ]
 
   return (
-    <div className="bg-slate-50 min-h-screen flex font-sans">
-      <Sidebar />
-      <main className="pl-72 pt-20 flex flex-col min-h-screen w-full">
-        <TopNavBar />
-        <div className="p-8 space-y-6">
-          <Toaster position="top-right" />
-          <div className="flex flex-col gap-1.5">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-primary/10 rounded-xl text-primary"><Award className="size-6" /></div>
-              <h1 className="text-2xl font-black text-slate-900 font-headline tracking-tighter uppercase">Manajemen Beasiswa</h1>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="h-1 w-10 bg-primary rounded-full shadow-sm shadow-primary/30" />
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Kelola Program & Verifikasi Pendaftaran Mahasiswa</p>
-            </div>
-          </div>
-
-          <Tabs defaultValue="programs" className="w-full">
-            <TabsList className="bg-white/50 backdrop-blur-md border border-slate-200 p-1 rounded-2xl mb-6">
-              <TabsTrigger value="programs" className="rounded-xl px-8 py-2.5 data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-primary/20 transition-all">
-                < Award className="size-4 mr-2" />
-                <span className="text-[11px] font-black uppercase tracking-wider">Program Beasiswa</span>
-              </TabsTrigger>
-              <TabsTrigger value="applications" className="rounded-xl px-8 py-2.5 data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-primary/20 transition-all">
-                < Users className="size-4 mr-2" />
-                <span className="text-[11px] font-black uppercase tracking-wider">Verifikasi Pendaftar</span>
-              </TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="programs">
-              <Card className="border-none shadow-sm overflow-hidden bg-white/50 backdrop-blur-md">
-                <CardContent className="p-0">
-                  <DataTable
-                    columns={columns} data={data} loading={loading}
-                    searchPlaceholder="Cari nama program atau penyelenggara..."
-                    onAdd={handleOpenAdd} addLabel="Tambah Beasiswa"
-                    actions={(row) => (
-                      <div className="flex items-center gap-2">
-                        <Button onClick={() => handleOpenEdit(row)} variant="ghost" size="icon" className="h-8 w-8 hover:text-amber-600 hover:bg-amber-50 rounded-xl"><Pencil className="size-4" /></Button>
-                        <Button onClick={() => { setSelected(row); setIsDelOpen(true) }} variant="ghost" size="icon" className="h-8 w-8 hover:text-rose-600 hover:bg-rose-50 rounded-xl"><Trash2 className="size-4" /></Button>
-                      </div>
-                    )}
-                  />
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="applications">
-              <Card className="border-none shadow-sm overflow-hidden bg-white/50 backdrop-blur-md">
-                <CardContent className="p-0">
-                  <DataTable
-                    columns={appColumns} data={appsData} loading={appsLoading}
-                    searchPlaceholder="Cari mahasiswa atau program beasiswa..."
-                    actions={(row) => (
-                      <div className="flex items-center gap-2">
-                        <Button onClick={() => handleOpenApp(row)} variant="ghost" size="icon" className="h-8 w-8 hover:text-primary hover:bg-primary/5 rounded-xl"><Eye className="size-4" /></Button>
-                      </div>
-                    )}
-                  />
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
+    <div className="p-4 md:p-10 space-y-6 md:space-y-10">
+      <Toaster position="top-right" />
+      <div className="flex flex-col gap-1.5">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-primary/10 rounded-xl text-primary"><Award className="size-6" /></div>
+          <h1 className="text-2xl font-black text-slate-900 font-headline tracking-tighter uppercase">Manajemen Beasiswa</h1>
         </div>
-      </main>
+        <div className="flex items-center gap-2">
+          <div className="h-1 w-10 bg-primary rounded-full shadow-sm shadow-primary/30" />
+          <div className="text-xs font-bold text-slate-400 uppercase tracking-widest">Kelola Program & Verifikasi Pendaftaran Mahasiswa</div>
+        </div>
+      </div>
+
+      <Tabs defaultValue="programs" className="w-full">
+        <TabsList className="bg-white/50 backdrop-blur-md border border-slate-200 p-1 rounded-2xl mb-6">
+          <TabsTrigger value="programs" className="rounded-xl px-8 py-2.5 data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-primary/20 transition-all">
+            < Award className="size-4 mr-2" />
+            <span className="text-[11px] font-black uppercase tracking-wider">Program Beasiswa</span>
+          </TabsTrigger>
+          <TabsTrigger value="applications" className="rounded-xl px-8 py-2.5 data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-primary/20 transition-all">
+            < Users className="size-4 mr-2" />
+            <span className="text-[11px] font-black uppercase tracking-wider">Verifikasi Pendaftar</span>
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="programs">
+          <Card className="border-none shadow-sm overflow-hidden bg-white/50 backdrop-blur-md">
+            <CardContent className="p-0">
+              <DataTable
+                columns={columns} data={data} loading={loading}
+                searchPlaceholder="Cari nama program atau penyelenggara..."
+                onAdd={handleOpenAdd} addLabel="Tambah Beasiswa"
+                actions={(row) => (
+                  <div className="flex items-center gap-2">
+                    <Button onClick={() => handleOpenEdit(row)} variant="ghost" size="icon" className="h-8 w-8 hover:text-amber-600 hover:bg-amber-50 rounded-xl"><Pencil className="size-4" /></Button>
+                    <Button onClick={() => { setSelected(row); setIsDelOpen(true) }} variant="ghost" size="icon" className="h-8 w-8 hover:text-rose-600 hover:bg-rose-50 rounded-xl"><Trash2 className="size-4" /></Button>
+                  </div>
+                )}
+              />
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="applications">
+          <Card className="border-none shadow-sm overflow-hidden bg-white/50 backdrop-blur-md">
+            <CardContent className="p-0">
+              <DataTable
+                columns={appColumns} data={appsData} loading={appsLoading}
+                searchPlaceholder="Cari mahasiswa atau program beasiswa..."
+                actions={(row) => (
+                  <div className="flex items-center gap-2">
+                    <Button onClick={() => handleOpenApp(row)} variant="ghost" size="icon" className="h-8 w-8 hover:text-primary hover:bg-primary/5 rounded-xl"><Eye className="size-4" /></Button>
+                  </div>
+                )}
+              />
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
 
       {/* MODAL: CREATE/EDIT BEASISWA */}
       <Dialog open={isCrudOpen} onOpenChange={setIsCrudOpen}>
@@ -224,6 +216,7 @@ export default function KelolaBeasiswa() {
                 <Badge className="text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 bg-primary/5 text-primary border-none">Scholarship Registry</Badge>
               </div>
               <DialogTitle className="text-2xl font-black font-headline tracking-tighter text-slate-900 uppercase">{isEditMode ? 'Edit Beasiswa' : 'Program Beasiswa Baru'}</DialogTitle>
+              <DialogDescription className="sr-only">Formulir untuk menambah atau mengedit data program beasiswa.</DialogDescription>
             </div>
           </DialogHeader>
           <form onSubmit={handleSave} className="p-8 pt-6 space-y-4">
@@ -262,6 +255,7 @@ export default function KelolaBeasiswa() {
                 <Badge className="text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 bg-primary/5 text-primary border-none">Applicant Verification</Badge>
               </div>
               <DialogTitle className="text-2xl font-black font-headline tracking-tighter text-slate-900 uppercase">Detail Pendaftaran</DialogTitle>
+              <DialogDescription className="sr-only">Lakukan verifikasi dan pembaruan status pendaftaran mahasiswa.</DialogDescription>
             </div>
           </DialogHeader>
           <div className="p-8 pt-6 space-y-6 overflow-y-auto max-h-[70vh]">
