@@ -89,4 +89,11 @@ func SetupOrmawaRoutes(app *fiber.App) {
 	api.Post("/kencana/kegiatan", ormawa.TambahKegiatanPkkmb)
 	api.Put("/kencana/kegiatan/:id", ormawa.UpdateKegiatanPkkmb)
 	api.Delete("/kencana/kegiatan/:id", ormawa.HapusKegiatanPkkmb)
+
+	// PKKMB QUIZ
+	api.Get("/kencana/kuis", ormawa.AmbilDaftarKuis)
+	api.Post("/kencana/kuis", ormawa.TambahKuis)
+	api.Put("/kencana/kuis/:id", ormawa.UpdateKuis)
+	api.Delete("/kencana/kuis/:id", ormawa.HapusKuis)
+	api.Get("/kencana/kuis-hasil", ormawa.AmbilHasilKuis)
 }

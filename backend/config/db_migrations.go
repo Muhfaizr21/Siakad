@@ -96,6 +96,10 @@ func migrateModels(db *gorm.DB) error {
 		&models.PkkmbHasil{},
 		&models.PkkmbBanding{},
 		&models.PkkmbSertifikat{},
+		&models.PkkmbQuiz{},
+		&models.PkkmbQuizQuestion{},
+		&models.PkkmbQuizOption{},
+		&models.PkkmbQuizAttempt{},
 	); err != nil {
 		return err
 	}

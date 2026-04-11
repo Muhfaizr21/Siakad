@@ -14,10 +14,23 @@ const PkkmbManagement = () => {
   const [prodiData, setProdiData] = useState([]);
   const [students, setStudents] = useState([]);
   const [kegiatans, setKegiatans] = useState([]);
+  const [quizzes, setQuizzes] = useState([]);
 
   // CRUD Kegiatan States
   const [showModal, setShowModal] = useState(false);
   const [formData, setFormData] = useState({ id: null, judul: '', deskripsi: '', tanggal: '', lokasi: '' });
+
+  // CRUD Quiz States
+  const [showQuizModal, setShowQuizModal] = useState(false);
+  const [quizFormData, setQuizFormData] = useState({ 
+    id: null, 
+    judul: '', 
+    deskripsi: '', 
+    durasi: 30, 
+    questions: [
+      { pertanyaan: '', tipe: 'multiple_choice', point: 10, options: [{ opsi: '', is_benar: false }] }
+    ] 
+  });
 
   useEffect(() => {
     fetchData();
@@ -40,6 +53,11 @@ const PkkmbManagement = () => {
       const dataKegiatan = await ormawaService.getKencanaEvents();
       if (dataKegiatan.status === 'success') {
         setKegiatans(dataKegiatan.data);
+      }
+
+      const dataQuizzes = await ormawaService.getKencanaQuizzes();
+      if (dataQuizzes.status === 'success') {
+        setQuizzes(dataQuizzes.data);
       }
     } catch (e) {
       console.error(e);
@@ -109,6 +127,43 @@ const PkkmbManagement = () => {
     setShowModal(true);
   };
 
+  const handleSaveQuiz = async (e) => {
+    e.preventDefault();
+    const isEditing = !!quizFormData.id;
+    try {
+      const data = isEditing 
+        ? await ormawaService.updateKencanaQuiz(quizFormData.id, quizFormData)
+        : await ormawaService.createKencanaQuiz(quizFormData);
+      if (data.status === 'success') {
+        setShowQuizModal(false);
+        fetchData();
+        alert('Kuis berhasil disimpan');
+      }
+    } catch (e) {
+      console.error(e);
+      alert('Gagal menyimpan kuis');
+    }
+  };
+
+  const openEditQuiz = (q) => {
+    setQuizFormData({
+      id: q.ID,
+      judul: q.judul,
+      deskripsi: q.deskripsi,
+      durasi: q.durasi,
+      questions: q.questions || []
+    });
+    setShowQuizModal(true);
+  };
+
+  const handleDeleteQuiz = async (id) => {
+    if (!confirm('Hapus kuis ini?')) return;
+    try {
+      await ormawaService.deleteKencanaQuiz(id);
+      fetchData();
+    } catch (e) { console.error(e); }
+  };
+
   const mockBanding = [
     { id: 1, nama: 'Budi Santoso', nim: 'BKU2024001', kuis: 'Kuis Sejarah Kampus', nilaiLama: 60, alasan: 'Ada gangguan koneksi saat submit', status: 'Menunggu' },
     { id: 2, nama: 'Siti Aminah', nim: 'BKU2024102', kuis: 'Kuis Etika Akademik', nilaiLama: 65, alasan: 'Waktu kurang cukup untuk soal esai', status: 'Menunggu' },
@@ -172,6 +227,7 @@ const PkkmbManagement = () => {
             {[
               { id: 'ringkasan', label: 'Ringkasan & Prodi' },
               { id: 'kegiatan', label: 'Kegiatan / Agenda' },
+              { id: 'kuis', label: 'Kuis Evaluasi' },
               { id: 'peserta', label: 'Data Peserta' },
               { id: 'banding', label: 'Review Banding' }
             ].map(tab => (
@@ -280,6 +336,64 @@ const PkkmbManagement = () => {
                       <div className="flex items-center gap-1.5 mt-auto pt-3 border-t border-[#e5e5e5]/60 text-[11px] font-bold text-[#525252]">
                         <span className="material-symbols-outlined text-[14px]">location_on</span>
                         {k.Lokasi}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'kuis' && (
+              <div className="p-6">
+                <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <h2 className="text-lg font-black text-[#171717] uppercase tracking-wide flex items-center gap-2">
+                    <CheckCircle className="text-[#00236F]" size={20} />
+                    Manajemen Kuis Evaluasi
+                  </h2>
+                  <button 
+                    onClick={() => { 
+                      setQuizFormData({ 
+                        id: null, judul: '', deskripsi: '', durasi: 30, 
+                        questions: [{ pertanyaan: '', tipe: 'multiple_choice', point: 10, options: [{ opsi: '', is_benar: false }] }] 
+                      }); 
+                      setShowQuizModal(true); 
+                    }}
+                    className="flex items-center justify-center gap-2 px-5 py-2.5 bg-[#00236F] hover:bg-[#0B4FAE] text-white rounded-xl font-bold transition-all shadow-md active:scale-95"
+                  >
+                    <Plus size={16} /> Buat Kuis Baru
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {quizzes.length === 0 && !loading && (
+                    <div className="col-span-full p-8 text-center text-[#a3a3a3] border-2 border-dashed border-[#e5e5e5] rounded-2xl">
+                      Belum ada kuis yang dibuat
+                    </div>
+                  )}
+                  {quizzes.map(q => (
+                    <div key={q.ID} className="group border border-[#e5e5e5] p-5 rounded-2xl bg-[#fafafa] hover:border-[#00236F]/30 hover:shadow-md transition-all">
+                      <div className="flex justify-between items-start mb-3">
+                        <span className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest ${q.is_active ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-200 text-gray-600'}`}>
+                          {q.is_active ? 'Aktif' : 'Non-Aktif'}
+                        </span>
+                        <div className="flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button onClick={() => openEditQuiz(q)} className="p-1.5 bg-white border border-[#e5e5e5] text-[#171717] rounded-lg shadow-sm hover:text-[#00236F] hover:border-[#00236F]">
+                            <Edit2 size={12} />
+                          </button>
+                          <button onClick={() => handleDeleteQuiz(q.ID)} className="p-1.5 bg-white border border-[#e5e5e5] text-[#dc2626] rounded-lg shadow-sm hover:border-[#dc2626] hover:bg-rose-50">
+                            <Trash2 size={12} />
+                          </button>
+                        </div>
+                      </div>
+                      <h3 className="font-bold text-[#171717] text-[15px] mb-1 leading-tight">{q.judul}</h3>
+                      <p className="text-[12px] text-[#737373] mb-3 line-clamp-2 leading-relaxed">{q.deskripsi}</p>
+                      <div className="flex items-center justify-between mt-auto pt-3 border-t border-[#e5e5e5]/60 text-[11px] font-bold text-[#525252]">
+                        <span className="flex items-center gap-1">
+                          <Clock size={12} /> {q.durasi} Menit
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Users size={12} /> {q.questions?.length || 0} Soal
+                        </span>
                       </div>
                     </div>
                   ))}
@@ -466,6 +580,184 @@ const PkkmbManagement = () => {
                     className="px-6 py-2.5 bg-[#00236F] hover:bg-[#0B4FAE] text-white rounded-xl font-bold shadow-md transition-all active:scale-95 text-sm"
                   >
                     Simpan Kegiatan
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* MODAL FORM KUIS */}
+      <AnimatePresence>
+        {showQuizModal && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[99] flex justify-center items-center p-4 overflow-y-auto"
+          >
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="bg-white rounded-3xl w-full max-w-2xl shadow-2xl overflow-hidden my-8"
+            >
+              <div className="p-6 bg-gradient-to-r from-[#00236F] to-[#0B4FAE] text-white flex justify-between items-center">
+                <h3 className="font-black font-headline text-lg tracking-wide uppercase">
+                  {quizFormData.id ? 'Edit Kuis Evaluasi' : 'Buat Kuis Evaluasi Baru'}
+                </h3>
+                <button onClick={() => setShowQuizModal(false)} className="w-8 h-8 flex items-center justify-center bg-white/10 hover:bg-white/20 rounded-full transition-colors">
+                  <X size={16} />
+                </button>
+              </div>
+              
+              <form onSubmit={handleSaveQuiz} className="p-6 space-y-6 max-h-[70vh] overflow-y-auto custom-scrollbar">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="md:col-span-2">
+                    <label className="block text-xs font-black text-[#737373] uppercase tracking-widest mb-1.5">Judul Kuis</label>
+                    <input
+                      type="text" required
+                      value={quizFormData.judul}
+                      onChange={(e) => setQuizFormData({...quizFormData, judul: e.target.value})}
+                      className="w-full px-4 py-2.5 bg-[#f5f5f5] border border-[#e5e5e5] rounded-xl text-sm font-medium focus:outline-none focus:border-[#00236F] transition-all"
+                      placeholder="Misal: Kuis Wawasan Kebangsaan"
+                    />
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="block text-xs font-black text-[#737373] uppercase tracking-widest mb-1.5">Deskripsi</label>
+                    <textarea
+                      required
+                      value={quizFormData.deskripsi}
+                      onChange={(e) => setQuizFormData({...quizFormData, deskripsi: e.target.value})}
+                      className="w-full px-4 py-2.5 bg-[#f5f5f5] border border-[#e5e5e5] rounded-xl text-sm font-medium focus:outline-none focus:border-[#00236F] min-h-[80px]"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-black text-[#737373] uppercase tracking-widest mb-1.5">Durasi (Menit)</label>
+                    <input
+                      type="number" required
+                      value={quizFormData.durasi}
+                      onChange={(e) => setQuizFormData({...quizFormData, durasi: parseInt(e.target.value)})}
+                      className="w-full px-4 py-2.5 bg-[#f5f5f5] border border-[#e5e5e5] rounded-xl text-sm font-medium focus:outline-none focus:border-[#00236F]"
+                    />
+                  </div>
+                </div>
+
+                <div className="border-t border-[#f5f5f5] pt-6">
+                  <div className="flex justify-between items-center mb-4">
+                    <h4 className="text-sm font-black text-[#171717] uppercase tracking-wide">Daftar Pertanyaan</h4>
+                    <button 
+                      type="button"
+                      onClick={() => {
+                        const newQuestions = [...quizFormData.questions, { pertanyaan: '', tipe: 'multiple_choice', point: 10, options: [{ opsi: '', is_benar: false }] }];
+                        setQuizFormData({...quizFormData, questions: newQuestions});
+                      }}
+                      className="text-xs font-black text-[#00236F] hover:underline flex items-center gap-1"
+                    >
+                      <Plus size={14} /> Tambah Soal
+                    </button>
+                  </div>
+
+                  <div className="space-y-6">
+                    {quizFormData.questions.map((q, qIndex) => (
+                      <div key={qIndex} className="p-4 bg-[#fafafa] rounded-2xl border border-[#e5e5e5] relative group">
+                        <button 
+                          type="button"
+                          onClick={() => {
+                            const newQ = quizFormData.questions.filter((_, i) => i !== qIndex);
+                            setQuizFormData({...quizFormData, questions: newQ});
+                          }}
+                          className="absolute -right-2 -top-2 w-6 h-6 bg-rose-500 text-white rounded-full flex items-center justify-center shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <X size={12} />
+                        </button>
+                        
+                        <div className="mb-4">
+                          <label className="block text-[10px] font-black text-[#a3a3a3] uppercase mb-1">Pertanyaan #{qIndex + 1}</label>
+                          <input
+                            type="text" required
+                            value={q.pertanyaan}
+                            onChange={(e) => {
+                              const newQ = [...quizFormData.questions];
+                              newQ[qIndex].pertanyaan = e.target.value;
+                              setQuizFormData({...quizFormData, questions: newQ});
+                            }}
+                            className="w-full px-4 py-2 bg-white border border-[#e5e5e5] rounded-xl text-sm"
+                            placeholder="Tulis soal di sini..."
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <div className="flex justify-between items-center">
+                            <label className="block text-[10px] font-black text-[#a3a3a3] uppercase">Pilihan Jawaban</label>
+                            <button 
+                              type="button"
+                              onClick={() => {
+                                const newQ = [...quizFormData.questions];
+                                newQ[qIndex].options.push({ opsi: '', is_benar: false });
+                                setQuizFormData({...quizFormData, questions: newQ});
+                              }}
+                              className="text-[10px] font-black text-[#00236F]"
+                            >
+                              + Opsi
+                            </button>
+                          </div>
+                          {q.options.map((opt, oIndex) => (
+                            <div key={oIndex} className="flex gap-2 items-center">
+                              <input 
+                                type="radio" 
+                                name={`correct-${qIndex}`}
+                                checked={opt.is_benar}
+                                onChange={() => {
+                                  const newQ = [...quizFormData.questions];
+                                  newQ[qIndex].options.forEach((o, i) => o.is_benar = i === oIndex);
+                                  setQuizFormData({...quizFormData, questions: newQ});
+                                }}
+                              />
+                              <input
+                                type="text" required
+                                value={opt.opsi}
+                                onChange={(e) => {
+                                  const newQ = [...quizFormData.questions];
+                                  newQ[qIndex].options[oIndex].opsi = e.target.value;
+                                  setQuizFormData({...quizFormData, questions: newQ});
+                                }}
+                                className="flex-1 px-3 py-1.5 bg-white border border-[#e5e5e5] rounded-lg text-xs"
+                                placeholder={`Opsi ${oIndex + 1}`}
+                              />
+                              <button 
+                                type="button"
+                                onClick={() => {
+                                  const newQ = [...quizFormData.questions];
+                                  newQ[qIndex].options = newQ[qIndex].options.filter((_, i) => i !== oIndex);
+                                  setQuizFormData({...quizFormData, questions: newQ});
+                                }}
+                                className="text-rose-500"
+                              >
+                                <X size={14} />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                
+                <div className="pt-6 flex justify-end gap-2 border-t border-[#e5e5e5]">
+                  <button
+                    type="button"
+                    onClick={() => setShowQuizModal(false)}
+                    className="px-5 py-2.5 text-[#525252] hover:bg-[#f5f5f5] rounded-xl font-bold transition-colors text-sm"
+                  >
+                    Batal
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-6 py-2.5 bg-[#00236F] hover:bg-[#0B4FAE] text-white rounded-xl font-bold shadow-md transition-all active:scale-95 text-sm"
+                  >
+                    Simpan Seluruh Kuis
                   </button>
                 </div>
               </form>

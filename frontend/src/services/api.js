@@ -221,6 +221,21 @@ export const ormawaService = {
   deleteKencanaEvent: (id) => fetchWithAuth(`${API_BASE_URL}/ormawa/kencana/kegiatan/${id}`, {
     method: 'DELETE'
   }),
+  getKencanaQuizzes: () => fetchWithAuth(`${API_BASE_URL}/ormawa/kencana/kuis`),
+  createKencanaQuiz: (data) => fetchWithAuth(`${API_BASE_URL}/ormawa/kencana/kuis`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  }),
+  updateKencanaQuiz: (id, data) => fetchWithAuth(`${API_BASE_URL}/ormawa/kencana/kuis/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  }),
+  deleteKencanaQuiz: (id) => fetchWithAuth(`${API_BASE_URL}/ormawa/kencana/kuis/${id}`, {
+    method: 'DELETE'
+  }),
+  getKencanaQuizResults: () => fetchWithAuth(`${API_BASE_URL}/ormawa/kencana/kuis-hasil`),
 };
 
 export const fakultasService = {
