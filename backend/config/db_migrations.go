@@ -92,6 +92,8 @@ func migrateModels(db *gorm.DB) error {
 	// PKKMB (MASUK MAHASISWA)
 	// ========================
 	if err := db.AutoMigrate(
+		&models.PkkmbTahap{},
+		&models.PkkmbMateri{},
 		&models.PkkmbKegiatan{},
 		&models.PkkmbProgress{},
 		&models.PkkmbHasil{},

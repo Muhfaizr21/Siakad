@@ -120,6 +120,11 @@ func main() {
 	profilGroup.Get("/", profil.GetProfile)
 	profilGroup.Put("/data-diri", profil.UpdateProfile)
 	profilGroup.Put("/change-password", profil.ChangePassword)
+	profilGroup.Post("/foto", profil.UploadAvatar)
+	profilGroup.Get("/preferensi-notif", profil.GetPreferensiNotif)
+	profilGroup.Put("/preferensi-notif", profil.UpdatePreferensiNotif)
+	profilGroup.Get("/sesi-aktif", profil.GetSesiAktif)
+	profilGroup.Get("/riwayat-login", profil.GetRiwayatLogin)
 
 	// Student Health Records
 	studentHealthGroup := api.Group("/student-health")
@@ -143,7 +148,9 @@ func main() {
 	scholarshipGroup := api.Group("/scholarship")
 	scholarshipGroup.Get("/", scholarship.GetKatalogBeasiswa)
 	scholarshipGroup.Get("/riwayat", scholarship.GetRiwayatPengajuan)
-	scholarshipGroup.Get("/pengajuan/:id", scholarship.GetRiwayatPengajuan) // Placeholder for detail if needed
+	scholarshipGroup.Get("/:id", scholarship.GetBeasiswaDetail)
+	scholarshipGroup.Post("/:id/daftar", scholarship.DaftarBeasiswa)
+	scholarshipGroup.Get("/pengajuan/:id", scholarship.GetPengajuanDetail)
 
 	// Voice (Aspirasi)
 	voiceGroup := api.Group("/student-voice")
@@ -152,6 +159,8 @@ func main() {
 	voiceGroup.Post("/create", voice.CreateAspirasi)
 	voiceGroup.Put("/:id/cancel", voice.CancelAspirasi)
 	voiceGroup.Get("/:id", voice.GetDetail)
+	voiceGroup.Post("/create", voice.CreateAspirasi)
+	voiceGroup.Delete("/:id", voice.CancelAspirasi)
 
 	// Notification
 	notifGroup := api.Group("/notifikasi")

@@ -629,6 +629,41 @@ func (LaporanPertanggungjawaban) TableName() string {
 // PKKMB
 // ========================
 
+// ========================
+// KENCANA (PKKMB)
+// ========================
+
+type PkkmbTahap struct {
+	BaseModel
+	Label          string    `json:"label"`
+	Status         string    `json:"status"` // akan_datang, berlangsung, selesai
+	TanggalMulai   time.Time `json:"tanggal_mulai"`
+	TanggalSelesai time.Time `json:"tanggal_selesai"`
+	Order          int       `json:"order"`
+
+	Materis []PkkmbMateri `gorm:"foreignKey:TahapID" json:"materis,omitempty"`
+}
+
+func (PkkmbTahap) TableName() string {
+	return "mahasiswa.pkkmb_tahap"
+}
+
+type PkkmbMateri struct {
+	BaseModel
+	TahapID     uint   `gorm:"index" json:"tahap_id"`
+	Judul       string `json:"judul"`
+	Tipe        string `json:"tipe"` // PDF, VIDEO
+	FileURL     string `json:"file_url"`
+	Deskripsi   string `json:"deskripsi"`
+	Order       int    `json:"order"`
+
+	Quiz *PkkmbQuiz `gorm:"foreignKey:MateriID" json:"kuis,omitempty"`
+}
+
+func (PkkmbMateri) TableName() string {
+	return "mahasiswa.pkkmb_materi"
+}
+
 type PkkmbKegiatan struct {
 	BaseModel
 	Judul     string

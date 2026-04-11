@@ -2,6 +2,7 @@ package profil
 
 import (
 	"fmt"
+	"os"
 	"siakad-backend/config"
 	"siakad-backend/models"
 	"strings"
@@ -158,7 +159,9 @@ func UploadAvatar(c *fiber.Ctx) error {
 	}
 
 	filename := fmt.Sprintf("avatar_%d_%v", PenggunaID, file.Filename)
-	path := "./uploads/avatars/" + filename
+	uploadDir := "./uploads/avatars"
+	_ = os.MkdirAll(uploadDir, os.ModePerm)
+	path := uploadDir + "/" + filename
 
 	if err := c.SaveFile(file, path); err != nil {
 		return c.Status(500).JSON(fiber.Map{"success": false, "message": "Gagal menyimpan file"})

@@ -53,6 +53,7 @@ export default function AvatarUploadModal({ isOpen, onClose, currentPhoto }) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['mahasiswa', 'profile']);
+      queryClient.invalidateQueries(['mahasiswa', 'dashboard']);
       toast.success('Foto profil berhasil diperbarui');
       handleClose();
     },
