@@ -6,6 +6,7 @@ import (
 	"siakad-backend/models"
 
 	"github.com/gofiber/fiber/v2"
+	"golang.org/x/crypto/bcrypt"
 )
 
 // --- DOSEN ---
@@ -16,7 +17,7 @@ func AmbilDaftarDosen(c *fiber.Ctx) error {
 
 	var daftarDosen = []models.Dosen{}
 	query := config.DB.Preload("Pengguna").Preload("Fakultas").Preload("ProgramStudi.Fakultas")
-	
+
 	if role == "faculty_admin" {
 		query = query.Where("fakultas_id = ?", fid)
 	}
@@ -34,7 +35,7 @@ func AmbilDosenBerdasarID(c *fiber.Ctx) error {
 	id := c.Params("id")
 	var dosen models.Dosen
 	query := config.DB.Preload("Pengguna").Preload("Fakultas").Preload("ProgramStudi.Fakultas")
-	
+
 	if role == "faculty_admin" {
 		query = query.Where("fakultas_id = ?", fid)
 	}
@@ -65,10 +66,15 @@ func TambahDosenBaru(c *fiber.Ctx) error {
 	}
 
 	tx := config.DB.Begin()
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte("password123"), bcrypt.DefaultCost)
+	if err != nil {
+		tx.Rollback()
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal menyiapkan password akun dosen"})
+	}
 
 	user := models.User{
 		Email:      payload.Email,
-		Password:   "$2a$10$r9C799sXvD8/Zk9m6p.hQ.m7I8WjKz.Y1vS/F1f7nI.Z1f7nI.Z1", // password123
+		Password:   string(hashedPassword),
 		Role:       "dosen",
 		FakultasID: &d.FakultasID,
 	}
@@ -94,7 +100,7 @@ func PerbaruiDataDosen(c *fiber.Ctx) error {
 
 	id := c.Params("id")
 	var dosen models.Dosen
-	
+
 	query := config.DB.Preload("Pengguna")
 	if role == "faculty_admin" {
 		query = query.Where("fakultas_id = ?", fid)
@@ -142,7 +148,7 @@ func HapusDataDosen(c *fiber.Ctx) error {
 
 	id := c.Params("id")
 	var dosen models.Dosen
-	
+
 	query := config.DB
 	if role == "faculty_admin" {
 		query = query.Where("fakultas_id = ?", fid)
@@ -187,7 +193,7 @@ func AmbilMahasiswaBerdasarID(c *fiber.Ctx) error {
 	id := c.Params("id")
 	var mhs models.Mahasiswa
 	query := config.DB.Preload("Pengguna").Preload("ProgramStudi.Fakultas").Preload("DosenPA")
-	
+
 	if role == "faculty_admin" {
 		query = query.Where("fakultas_id = ?", fid)
 	}
@@ -240,10 +246,15 @@ func TambahMahasiswaBaru(c *fiber.Ctx) error {
 	// ------------------------------------
 
 	tx := config.DB.Begin()
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte("password123"), bcrypt.DefaultCost)
+	if err != nil {
+		tx.Rollback()
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal menyiapkan password akun mahasiswa"})
+	}
 
 	user := models.User{
 		Email:      payload.Email,
-		Password:   "$2a$10$r9C799sXvD8/Zk9m6p.hQ.m7I8WjKz.Y1vS/F1f7nI.Z1f7nI.Z1",
+		Password:   string(hashedPassword),
 		Role:       "mahasiswa",
 		FakultasID: &m.FakultasID,
 	}
@@ -271,7 +282,7 @@ func PerbaruiDataMahasiswa(c *fiber.Ctx) error {
 
 	id := c.Params("id")
 	var mhs models.Mahasiswa
-	
+
 	query := config.DB.Preload("Pengguna")
 	if role == "faculty_admin" {
 		query = query.Where("fakultas_id = ?", fid)
@@ -319,7 +330,7 @@ func HapusDataMahasiswa(c *fiber.Ctx) error {
 
 	id := c.Params("id")
 	var mhs models.Mahasiswa
-	
+
 	query := config.DB
 	if role == "faculty_admin" {
 		query = query.Where("fakultas_id = ?", fid)
@@ -409,7 +420,7 @@ func PerbaruiProdi(c *fiber.Ctx) error {
 
 	id := c.Params("id")
 	var p models.ProgramStudi
-	
+
 	query := config.DB
 	if role == "faculty_admin" {
 		query = query.Where("fakultas_id = ?", fid)
@@ -438,7 +449,7 @@ func HapusProdi(c *fiber.Ctx) error {
 
 	id := c.Params("id")
 	var p models.ProgramStudi
-	
+
 	query := config.DB
 	if role == "faculty_admin" {
 		query = query.Where("fakultas_id = ?", fid)

@@ -4,10 +4,12 @@ import "time"
 
 type PkkmbQuiz struct {
 	BaseModel
+	MateriID  uint   `gorm:"index" json:"materi_id"`
 	Judul     string `json:"judul"`
 	Deskripsi string `json:"deskripsi"`
 	Durasi    int    `json:"durasi"` // minutes
 	IsActive  bool   `json:"is_active" gorm:"default:true"`
+	Bobot     int    `json:"bobot_persen" gorm:"default:10"`
 
 	Questions []PkkmbQuizQuestion `gorm:"foreignKey:QuizID" json:"questions,omitempty"`
 }

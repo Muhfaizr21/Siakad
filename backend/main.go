@@ -10,6 +10,7 @@ import (
 	"siakad-backend/controllers/mahasiswa/health"
 	"siakad-backend/controllers/mahasiswa/kencana"
 	"siakad-backend/controllers/mahasiswa/notifikasi"
+	"siakad-backend/controllers/mahasiswa/organisasi"
 	"siakad-backend/controllers/mahasiswa/profil"
 	"siakad-backend/controllers/mahasiswa/scholarship"
 	"siakad-backend/controllers/mahasiswa/voice"
@@ -36,7 +37,11 @@ func main() {
 
 	app := fiber.New(fiber.Config{
 		ErrorHandler: func(c *fiber.Ctx, err error) error {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			code := fiber.StatusInternalServerError
+			if e, ok := err.(*fiber.Error); ok {
+				code = e.Code
+			}
+			return c.Status(code).JSON(fiber.Map{
 				"success": false,
 				"message": err.Error(),
 			})
@@ -59,17 +64,17 @@ func main() {
 	// Unprotected routes
 	app.Get("/api/health", func(c *fiber.Ctx) error {
 		return c.Status(200).JSON(fiber.Map{
-			"status": "success",
+			"status":  "success",
 			"message": "Backend is online",
 		})
 	})
 	app.Get("/api/status", func(c *fiber.Ctx) error {
 		return c.Status(200).JSON(fiber.Map{
-			"status": "success",
+			"status":  "success",
 			"message": "Backend is online",
 		})
 	})
-	
+
 	// Auth Routes
 	authGroup := app.Group("/api/auth")
 	authGroup.Post("/login", authSvc.Login)
@@ -80,7 +85,7 @@ func main() {
 
 	// API Group for typical authenticated users
 	api := app.Group("/api", middleware.AuthProtected)
-	
+
 	// Mahasiswa Dashboard
 	api.Get("/mahasiswa/dashboard", dashboard.GetDashboard)
 	api.Get("/mahasiswa/kegiatan", dashboard.GetKegiatan)
@@ -103,34 +108,59 @@ func main() {
 	achievementGroup.Get("/:id", achievement.GetAchievementDetail)
 	achievementGroup.Delete("/:id", achievement.DeleteAchievement)
 
+	// Organisasi
+	organisasiGroup := api.Group("/organisasi")
+	organisasiGroup.Get("/", organisasi.GetList)
+	organisasiGroup.Post("/", organisasi.Create)
+	organisasiGroup.Put("/:id", organisasi.Update)
+	organisasiGroup.Delete("/:id", organisasi.Delete)
+
 	// Profil
 	profilGroup := api.Group("/profil")
 	profilGroup.Get("/", profil.GetProfile)
 	profilGroup.Put("/data-diri", profil.UpdateProfile)
 	profilGroup.Put("/change-password", profil.ChangePassword)
+	profilGroup.Post("/foto", profil.UploadAvatar)
+	profilGroup.Get("/preferensi-notif", profil.GetPreferensiNotif)
+	profilGroup.Put("/preferensi-notif", profil.UpdatePreferensiNotif)
+	profilGroup.Get("/sesi-aktif", profil.GetSesiAktif)
+	profilGroup.Get("/riwayat-login", profil.GetRiwayatLogin)
 
 	// Student Health Records
 	studentHealthGroup := api.Group("/student-health")
 	studentHealthGroup.Get("/riwayat", health.GetHealthRiwayat)
+	studentHealthGroup.Get("/riwayat/:id", health.GetHealthDetail)
 	studentHealthGroup.Get("/ringkasan", health.GetHealthRingkasan)
+	studentHealthGroup.Get("/tips", health.GetHealthTips)
 	studentHealthGroup.Post("/record", health.CreateHealthRecord)
+	studentHealthGroup.Post("/mandiri", health.CreateHealthMandiri)
 
 	// Counseling
 	counselingGroup := api.Group("/counseling")
 	counselingGroup.Get("/status", counseling.GetCounselingStatus)
+	counselingGroup.Get("/jadwal", counseling.GetCounselingJadwal)
+	counselingGroup.Post("/booking", counseling.CreateBooking)
 	counselingGroup.Post("/request", counseling.RequestCounseling)
 	counselingGroup.Get("/riwayat", counseling.GetCounselingRiwayat)
+	counselingGroup.Delete("/riwayat/:id", counseling.CancelBooking)
 
 	// Scholarship
 	scholarshipGroup := api.Group("/scholarship")
-	scholarshipGroup.Get("/katalog", scholarship.GetKatalogBeasiswa)
+	scholarshipGroup.Get("/", scholarship.GetKatalogBeasiswa)
 	scholarshipGroup.Get("/riwayat", scholarship.GetRiwayatPengajuan)
+	scholarshipGroup.Get("/:id", scholarship.GetBeasiswaDetail)
+	scholarshipGroup.Post("/:id/daftar", scholarship.DaftarBeasiswa)
+	scholarshipGroup.Get("/pengajuan/:id", scholarship.GetPengajuanDetail)
 
 	// Voice (Aspirasi)
-	voiceGroup := api.Group("/voice")
+	voiceGroup := api.Group("/student-voice")
 	voiceGroup.Get("/stats", voice.GetStats)
-	voiceGroup.Get("/list", voice.GetAspirasiList)
+	voiceGroup.Get("/", voice.GetAspirasiList)
 	voiceGroup.Post("/create", voice.CreateAspirasi)
+	voiceGroup.Put("/:id/cancel", voice.CancelAspirasi)
+	voiceGroup.Get("/:id", voice.GetDetail)
+	voiceGroup.Post("/create", voice.CreateAspirasi)
+	voiceGroup.Delete("/:id", voice.CancelAspirasi)
 
 	// Notification
 	notifGroup := api.Group("/notifikasi")
