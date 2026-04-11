@@ -1,13 +1,14 @@
 "use client"
 
 import React, { useState, useEffect } from "react"
-import api from "../../lib/axios"
+import axios from "axios"
 import { toast, Toaster } from "react-hot-toast"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "./components/card"
 import { Badge } from "./components/badge"
 import { Button } from "./components/button"
 import {
   Users,
+  GraduationCap,
   TrendingUp,
   Download,
   BarChart3,
@@ -42,10 +43,10 @@ const CHART_COLORS = [
 
 export default function LaporanFakultasPage() {
   const [data, setData] = useState({
-    summary: { 
-      total: 0, 
-      active: 0, 
-      graduated: 0, 
+    summary: {
+      total: 0,
+      active: 0,
+      graduated: 0,
       avgIPK: 0,
       totalPrestasi: 0,
       totalBeasiswa: 0,
@@ -57,15 +58,16 @@ export default function LaporanFakultasPage() {
   })
   const [loading, setLoading] = useState(true)
   const [isMounted, setIsMounted] = useState(false)
- 
+
   useEffect(() => {
     setIsMounted(true)
     fetchData()
   }, [])
 
+
   const fetchData = async () => {
     try {
-      const res = await api.get("/faculty/reports/summary")
+      const res = await axios.get("http://localhost:8000/api/faculty/reports/summary")
       if (res.data.status === "success") {
         setData(res.data.data || {
           summary: { total: 0, active: 0, graduated: 0, avgIPK: 0, totalPrestasi: 0, totalBeasiswa: 0, totalKonseling: 0 },
@@ -79,28 +81,6 @@ export default function LaporanFakultasPage() {
     } finally {
       setLoading(false)
     }
-  }
-
-  const exportToCSV = (jsonData, filename) => {
-    if (!jsonData || jsonData.length === 0) {
-      toast.error("Tidak ada data untuk diekspor")
-      return
-    }
-
-    const headers = Object.keys(jsonData[0]).join(",")
-    const rows = jsonData.map(obj => 
-      Object.values(obj).map(val => `"${val}"`).join(",")
-    )
-    const csvContent = "data:text/csv;charset=utf-8," + [headers, ...rows].join("\n")
-    
-    const encodedUri = encodeURI(csvContent)
-    const link = document.createElement("a")
-    link.setAttribute("href", encodedUri)
-    link.setAttribute("download", `${filename}_${new Date().toLocaleDateString()}.csv`)
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-    toast.success(`${filename} Berhasil Diunduh`)
   }
 
   const prodiWithColors = (data.perProdi || []).map((item, index) => ({
@@ -170,7 +150,7 @@ export default function LaporanFakultasPage() {
         if (gpa >= 3.5) color = "bg-emerald-500";
         else if (gpa >= 3.0) color = "bg-blue-500";
         else if (gpa >= 2.5) color = "bg-amber-500";
-        
+
         return (
           <div className="flex flex-col items-center gap-1.5 mx-auto max-w-[80px]">
             <span className="font-black text-slate-900 font-headline text-xs tracking-tighter">{gpa.toFixed(2)}</span>
@@ -181,7 +161,9 @@ export default function LaporanFakultasPage() {
         )
       }
     },
+
   ]
+
 
   const statsData = [
     { label: 'Total Mahasiswa', value: data.summary.total, icon: Users, color: 'text-blue-600', bg: 'bg-blue-50', gradient: 'from-blue-500/10 to-blue-500/5', desc: 'terdaftar semester ini' },
@@ -193,7 +175,7 @@ export default function LaporanFakultasPage() {
   return (
     <div className="flex flex-col gap-6">
       <Toaster position="top-right" />
-      
+
       {/* Header */}
       <div className="flex flex-col gap-1.5 pt-2">
         <div className="flex items-center gap-3">
@@ -208,6 +190,7 @@ export default function LaporanFakultasPage() {
         </div>
       </div>
 
+      {/* Summary Stats Row - Keeping UI Same as requested */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 font-headline">
         {statsData.map((stat, i) => (
           <Card key={i} className="border border-slate-200 shadow-sm shadow-slate-200/50 overflow-hidden relative group transition-all duration-300 hover:shadow-xl hover:shadow-primary/5 rounded-2xl">
@@ -232,6 +215,7 @@ export default function LaporanFakultasPage() {
         ))}
       </div>
 
+      {/* Charts Row - Keeping UI Same as requested */}
       <div className="grid gap-6 lg:grid-cols-2">
         <Card className="border border-slate-200 shadow-sm shadow-slate-200/40 rounded-2xl overflow-hidden">
           <CardHeader className="pb-2">
@@ -243,21 +227,23 @@ export default function LaporanFakultasPage() {
               {isMounted && (
                 <ResponsiveContainer width="99%" height={288} debounce={50}>
                   <BarChart data={data.perAngkatan}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                  <XAxis dataKey="angkatan" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 700 }} />
-                  <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 700 }} />
-                  <Tooltip
-                    contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)', fontSize: '11px', fontWeight: 'bold' }}
-                    cursor={{ fill: '#f8fafc' }}
-                  />
-                  <Legend iconType="circle" wrapperStyle={{ fontSize: '10px', fontWeight: '900', textTransform: 'uppercase' }} />
-                  <Bar dataKey="aktif" name="Aktif" fill="#3b82f6" radius={[4, 4, 0, 0]} barSize={24} />
-                  <Bar dataKey="lulus" name="Lulus" fill="#10b981" radius={[4, 4, 0, 0]} barSize={24} />
-                </BarChart>
-              </ResponsiveContainer>
+
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                    <XAxis dataKey="angkatan" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 700 }} />
+                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 700 }} />
+                    <Tooltip
+                      contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)', fontSize: '11px', fontWeight: 'bold' }}
+                      cursor={{ fill: '#f8fafc' }}
+                    />
+                    <Legend iconType="circle" wrapperStyle={{ fontSize: '10px', fontWeight: '900', textTransform: 'uppercase' }} />
+                    <Bar dataKey="aktif" name="Aktif" fill="#3b82f6" radius={[4, 4, 0, 0]} barSize={24} />
+                    <Bar dataKey="lulus" name="Lulus" fill="#10b981" radius={[4, 4, 0, 0]} barSize={24} />
+                  </BarChart>
+                </ResponsiveContainer>
               )}
             </div>
           </CardContent>
+
         </Card>
 
         <Card className="border border-slate-200 shadow-sm shadow-slate-200/40 rounded-2xl overflow-hidden">
@@ -271,22 +257,23 @@ export default function LaporanFakultasPage() {
                 {isMounted && (
                   <ResponsiveContainer width="99%" height={256} debounce={50}>
                     <PieChart>
-                    <Pie
-                      data={prodiWithColors}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={60}
-                      outerRadius={90}
-                      paddingAngle={2}
-                      dataKey="value"
-                    >
-                      {prodiWithColors.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} stroke="none" />
-                      ))}
-                    </Pie>
-                    <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)', fontSize: '11px', fontWeight: 'bold' }} />
-                  </PieChart>
-                </ResponsiveContainer>
+
+                      <Pie
+                        data={prodiWithColors}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={60}
+                        outerRadius={90}
+                        paddingAngle={2}
+                        dataKey="value"
+                      >
+                        {prodiWithColors.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} stroke="none" />
+                        ))}
+                      </Pie>
+                      <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)', fontSize: '11px', fontWeight: 'bold' }} />
+                    </PieChart>
+                  </ResponsiveContainer>
                 )}
               </div>
               <div className="flex flex-col gap-3">
@@ -305,83 +292,78 @@ export default function LaporanFakultasPage() {
         </Card>
       </div>
 
+      {/* Strategic Report Cards Row */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {[
-            { 
-                label: 'Laporan Prestasi', 
-                icon: Award, 
-                desc: 'Dataset kompetisi & penghargaan mahasiswa berprestasi.', 
-                color: 'bg-emerald-600', 
-                bg: 'bg-emerald-50',
-                stats: `${data.summary.totalPrestasi} Capaian`,
-                data: [{ label: 'Total Prestasi', value: data.summary.totalPrestasi }]
-            },
-            { 
-                label: 'Laporan Beasiswa', 
-                icon: Globe, 
-                desc: 'Transkrip penerima bantuan finansial & beasiswa internal.', 
-                color: 'bg-indigo-600', 
-                bg: 'bg-indigo-50',
-                stats: `${data.summary.totalBeasiswa} Penerima`,
-                data: [{ label: 'Total Penerima', value: data.summary.totalBeasiswa }]
-            },
-            { 
-                label: 'Laporan Konseling', 
-                icon: HeartPulse, 
-                desc: 'Monitoring layanan bimbingan & kesehatan mahasiswa.', 
-                color: 'bg-rose-600', 
-                bg: 'bg-rose-50',
-                stats: `${data.summary.totalKonseling} Konsultasi`,
-                data: [{ label: 'Total Konseling', value: data.summary.totalKonseling }]
-            },
-          ].map((item, i) => (
-            <Card key={i} className="border border-slate-200 shadow-sm rounded-[2rem] bg-white overflow-hidden group hover:shadow-2xl transition-all duration-500">
-                <CardContent className="p-6">
-                    <div className="flex items-start justify-between mb-8">
-                        <div className={cn("p-4 rounded-[1.5rem] shadow-xl text-white shadow-current/20", item.color)}>
-                            <item.icon className="size-6" />
-                        </div>
-                        <Badge className="bg-slate-50 text-slate-400 border-none font-black text-[9px] px-3 py-1 uppercase font-headline">SEM-II 2024</Badge>
-                    </div>
-                    <div className="space-y-2 mb-8">
-                        <h4 className="text-xl font-black font-headline tracking-tighter uppercase text-slate-900">{item.label}</h4>
-                        <p className="text-[11px] font-bold text-slate-400/80 leading-relaxed uppercase tracking-tight">{item.desc}</p>
-                    </div>
-                    <div className="flex items-center justify-between pt-6 border-t border-slate-100">
-                        <div className="flex flex-col">
-                            <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Master Data</span>
-                            <span className="text-sm font-black text-slate-700 tabular-nums font-headline">{item.stats}</span>
-                        </div>
-                        <Button 
-                          onClick={() => exportToCSV(item.data, item.label.replace(" ", "_"))}
-                          className="h-12 w-12 rounded-2xl bg-slate-900 text-white hover:bg-primary transition-all shadow-xl shadow-slate-900/10 border-none group-hover:scale-105"
-                        >
-                            <Download className="size-4" />
-                        </Button>
-                    </div>
-                </CardContent>
-            </Card>
-          ))}
+        {[
+          {
+            label: 'Laporan Prestasi',
+            icon: Award,
+            desc: 'Dataset kompetisi & penghargaan mahasiswa berprestasi.',
+            color: 'bg-emerald-600',
+            bg: 'bg-emerald-50',
+            stats: `${data.summary.totalPrestasi} Capaian`
+          },
+          {
+            label: 'Laporan Beasiswa',
+            icon: Globe,
+            desc: 'Transkrip penerima bantuan finansial & beasiswa internal.',
+            color: 'bg-indigo-600',
+            bg: 'bg-indigo-50',
+            stats: `${data.summary.totalBeasiswa} Penerima`
+          },
+          {
+            label: 'Laporan Konseling',
+            icon: HeartPulse,
+            desc: 'Monitoring layanan bimbingan & kesehatan mahasiswa.',
+            color: 'bg-rose-600',
+            bg: 'bg-rose-50',
+            stats: `${data.summary.totalKonseling} Konsultasi`
+          },
+        ].map((item, i) => (
+          <Card key={i} className="border border-slate-200 shadow-sm rounded-[2rem] bg-white overflow-hidden group hover:shadow-2xl transition-all duration-500">
+            <CardContent className="p-6">
+              <div className="flex items-start justify-between mb-8">
+                <div className={cn("p-4 rounded-[1.5rem] shadow-xl text-white shadow-current/20", item.color)}>
+                  <item.icon className="size-6" />
+                </div>
+                <Badge className="bg-slate-50 text-slate-400 border-none font-black text-[9px] px-3 py-1 uppercase font-headline">SEM-II 2024</Badge>
+              </div>
+              <div className="space-y-2 mb-8">
+                <h4 className="text-xl font-black font-headline tracking-tighter uppercase text-slate-900">{item.label}</h4>
+                <p className="text-[11px] font-bold text-slate-400/80 leading-relaxed uppercase tracking-tight">{item.desc}</p>
+              </div>
+              <div className="flex items-center justify-between pt-6 border-t border-slate-100">
+                <div className="flex flex-col">
+                  <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Master Data</span>
+                  <span className="text-sm font-black text-slate-700 tabular-nums font-headline">{item.stats}</span>
+                </div>
+                <Button className="h-12 w-12 rounded-2xl bg-slate-900 text-white hover:bg-primary transition-all shadow-xl shadow-slate-900/10 border-none group-hover:scale-105">
+                  <Download className="size-4" />
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
       </div>
 
       <Card className="border border-slate-200 shadow-sm shadow-slate-200/40 rounded-3xl overflow-hidden bg-white/50 backdrop-blur-md">
         <CardHeader className="bg-white/80 border-b border-slate-100 pb-6">
-            <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                    <div className="p-2 bg-slate-100 rounded-xl text-slate-600">
-                        <FileText className="size-5" />
-                    </div>
-                    <CardTitle className="text-lg font-black font-headline uppercase tracking-tight">Ringkasan Capaian Prodi</CardTitle>
-                </div>
-                <Badge className="bg-blue-50 text-blue-600 border-none font-black text-[10px] px-3 py-1 uppercase font-headline">Verified Data</Badge>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-slate-100 rounded-xl text-slate-600">
+                <FileText className="size-5" />
+              </div>
+              <CardTitle className="text-lg font-black font-headline uppercase tracking-tight">Ringkasan Capaian Prodi</CardTitle>
             </div>
+            <Badge className="bg-blue-50 text-blue-600 border-none font-black text-[10px] px-3 py-1 uppercase font-headline">Verified Data</Badge>
+          </div>
         </CardHeader>
         <CardContent className="p-0">
           <DataTable
             columns={columns}
             data={data.perProdi}
             loading={loading}
-            onExport={() => exportToCSV(data.perProdi, "Ringkasan_Laporan_Prodi")}
+            onExport={() => alert("Mencetak Laporan Utama Fakultas...")}
             exportLabel="Ekspor Master Laporan"
             filters={[
               {
