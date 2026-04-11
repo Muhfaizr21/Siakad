@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useState, useEffect } from "react"
+import api from "../../lib/axios"
 import { DataTable } from "./components/data-table"
 import { Badge } from "./components/badge"
 import { Button } from "./components/button"
@@ -34,10 +35,9 @@ export default function DosenPage() {
   const fetchLecturers = async () => {
     setLoading(true)
     try {
-      const res = await fetch('http://localhost:8000/api/faculty/lecturers')
-      const json = await res.json()
-      if (json.status === 'success') {
-        setLecturers(json.data)
+      const res = await api.get("/faculty/lecturers")
+      if (res.data.status === 'success') {
+        setLecturers(res.data.data)
       }
     } catch (err) {
       toast.error("Gagal mengambil data dosen")
@@ -135,7 +135,7 @@ export default function DosenPage() {
           </div>
           <div className="flex items-center gap-2">
             <div className="h-1 w-10 bg-primary rounded-full shadow-sm shadow-primary/30" />
-            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Informasi Tenaga Pengajar & Pimpinan Fakultas</p>
+            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Arsip Tenaga Pengajar & Monitoring Pimpinan</p>
           </div>
         </div>
       </div>
@@ -166,10 +166,9 @@ export default function DosenPage() {
 
       {/* DETAIL DIALOG */}
       <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
-        <DialogContent className="max-w-xl p-0 overflow-hidden border-none shadow-2xl rounded-[2rem] bg-white/95 backdrop-blur-xl">
+        <DialogContent className="max-w-xl p-0 overflow-hidden border-none shadow-2xl rounded-[2.5rem] bg-white/95 backdrop-blur-xl">
           {selectedDosen && (
             <div className="flex flex-col max-h-[90vh]">
-              {/* Premium Header Logic Style */}
               <DialogHeader className="p-8 pb-6 bg-gradient-to-br from-slate-50 to-white border-b border-slate-100 relative overflow-hidden shrink-0">
                 <div className="absolute top-0 right-0 p-8 opacity-5">
                   <Award className="size-24 rotate-12" />
@@ -180,22 +179,17 @@ export default function DosenPage() {
                       <ShieldCheck className="size-4" />
                     </div>
                     <Badge variant="secondary" className="text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 bg-primary/5 text-primary border-none">
-                      Verified Academic Profile
+                      Academic Faculty Records
                     </Badge>
                   </div>
                   <DialogTitle className="text-2xl font-black font-headline tracking-tighter text-slate-900 uppercase">
-                    Detail Profil Dosen
+                    Profil Dosen
                   </DialogTitle>
-                  <DialogDescription className="text-xs font-medium text-slate-400 mt-1 uppercase tracking-wider font-bold">
-                    Arsip Profil tenaga pengajar fakultas.
-                  </DialogDescription>
                 </div>
               </DialogHeader>
 
-              {/* Content Styling */}
               <div className="overflow-y-auto p-8 space-y-8 custom-scrollbar">
-                {/* Profile Identity Card */}
-                <div className="flex items-center gap-6 p-6 rounded-[1.5rem] bg-slate-50 border border-slate-100">
+                <div className="flex items-center gap-6 p-6 rounded-[2rem] bg-slate-50 border border-slate-100 shadow-inner">
                   <Avatar className="h-20 w-20 rounded-2xl border-4 border-white shadow-lg shrink-0">
                     <AvatarImage src={selectedDosen.AvatarURL} />
                     <AvatarFallback className="bg-gradient-to-br from-slate-200 to-slate-300 text-slate-800 text-2xl font-black uppercase">
@@ -212,12 +206,11 @@ export default function DosenPage() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-6">
-                  {/* Academic Assignment */}
+                <div className="grid grid-cols-2 gap-8">
                   <div className="space-y-4">
-                    <div className="flex items-center gap-2 px-1">
-                      <BookOpen className="size-3 text-blue-500" />
-                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Penugasan Akademik</span>
+                    <div className="flex items-center gap-2 px-1 text-primary">
+                      <BookOpen className="size-3" />
+                      <span className="text-[10px] font-black uppercase tracking-[0.2em]">Akademik</span>
                     </div>
                     <div className="space-y-3">
                       <InfoBlock label="Program Studi" value={selectedDosen.ProgramStudi?.Nama} />
@@ -225,35 +218,25 @@ export default function DosenPage() {
                     </div>
                   </div>
 
-                  {/* Verification & Status */}
                   <div className="space-y-4">
-                    <div className="flex items-center gap-2 px-1">
-                      <UserCheck className="size-3 text-emerald-500" />
-                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Status Verifikasi</span>
+                    <div className="flex items-center gap-2 px-1 text-emerald-500">
+                      <UserCheck className="size-3" />
+                      <span className="text-[10px] font-black uppercase tracking-[0.2em]">Verifikasi</span>
                     </div>
                     <div className="space-y-3">
-                      <InfoBlock label="Email Institusi" value={selectedDosen.Pengguna?.Email} />
-                      <div className="flex flex-col gap-1">
-                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Wewenang DPA</span>
-                        <Badge className={cn(
-                          "w-fit text-[9px] font-black px-3 py-1 border-none",
-                          selectedDosen.IsDPA ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-400"
-                        )}>
-                          {selectedDosen.IsDPA ? 'AKTIF' : 'TIDAK AKTIF'}
-                        </Badge>
-                      </div>
+                      <InfoBlock label="Email Resmi" value={selectedDosen.Pengguna?.Email} />
+                      <InfoBlock label="Wewenang DPA" value={selectedDosen.IsDPA ? 'AKTIF' : 'TIDAK'} />
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* Close Action */}
-              <div className="p-6 px-8 flex items-center justify-end border-t border-slate-100 bg-slate-50/50 shrink-0">
+              <div className="p-8 px-10 flex items-center justify-end border-t border-slate-100 bg-slate-50/50 shrink-0">
                 <Button
                   onClick={() => setIsDetailOpen(false)}
-                  className="text-[10px] font-black uppercase tracking-widest h-12 px-10 rounded-2xl bg-white border border-slate-200 text-slate-900 shadow-sm hover:bg-slate-50 active:scale-95 transition-all font-headline"
+                  className="text-[10px] font-black uppercase tracking-widest h-12 px-12 rounded-2xl bg-white border border-slate-200 text-slate-900 shadow-sm hover:bg-slate-50 active:scale-95 transition-all font-headline"
                 >
-                  Tutup Arsip
+                  Tutup
                 </Button>
               </div>
             </div>
@@ -266,7 +249,7 @@ export default function DosenPage() {
 
 function InfoBlock({ label, value }) {
   return (
-    <div className="flex flex-col gap-1 p-3 rounded-xl bg-white border border-slate-100 shadow-sm">
+    <div className="flex flex-col gap-1 p-3 rounded-2xl bg-white border border-slate-100 shadow-sm">
       <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">{label}</span>
       <span className="text-[11px] font-black text-slate-800 uppercase font-headline truncate">{value || '—'}</span>
     </div>
