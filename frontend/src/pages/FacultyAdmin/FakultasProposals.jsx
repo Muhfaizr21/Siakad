@@ -138,44 +138,33 @@ export default function FacultyInternalProposals() {
   ]
 
   return (
-    <div className="space-y-6">
+    <PageContainer>
       <Toaster position="top-right" />
 
-      {/* HEADER SECTION */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-8 pt-2">
-        <div className="flex flex-col gap-1.5">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-primary/10 rounded-xl text-primary">
-              <FileText className="size-6" />
-            </div>
-            <h1 className="text-2xl font-black text-slate-900 font-headline tracking-tighter uppercase">Proposal Fakultas</h1>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="h-1 w-10 bg-primary rounded-full shadow-sm shadow-primary/30" />
-            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Tinjau & Validasi Penggunaan Dana Internal Unit Kerja</p>
-          </div>
-        </div>
-
+      <PageHeader
+        icon={FileText}
+        title="Proposal Fakultas"
+        description="Tinjau & Validasi Penggunaan Dana Internal Unit Kerja"
+      >
         <Button
-          className="bg-primary hover:bg-primary/90 text-white rounded-2xl px-6 py-6 shadow-lg shadow-primary/20 flex items-center gap-2 group transition-all duration-300 active:scale-95"
+          className="bg-primary hover:bg-primary/90 text-white rounded-2xl h-12 px-6 shadow-xl shadow-primary/20 flex items-center gap-2 group transition-all duration-300 active:scale-95 border-none font-headline"
         >
           <div className="bg-white/20 p-1.5 rounded-lg group-hover:rotate-90 transition-transform duration-500">
             <Plus className="size-4" />
           </div>
-          <span className="font-bold text-sm tracking-tight">Ajukan Proposal Baru</span>
+          <span className="font-black text-[10px] uppercase tracking-widest">Ajukan Baru</span>
         </Button>
-      </div>
+      </PageHeader>
 
-
-      {/* MAIN TABLE */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+      <ResponsiveGrid cols={3}>
         {[
-          { label: 'Total Pengajuan Anggaran', value: formatIDR(data.reduce((acc, p) => acc + (p.Anggaran || 0), 0)), icon: Wallet, color: 'text-indigo-600', bg: 'bg-indigo-50' },
-          { label: 'Proposal Menunggu', value: data.filter(p => p.Status?.toLowerCase() === 'diajukan').length, icon: Clock, color: 'text-amber-600', bg: 'bg-amber-50' },
-          { label: 'Disetujui Dekanat', value: data.filter(p => p.Status?.toLowerCase() === 'disetujui').length, icon: ShieldCheck, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+          { label: 'Total Pengajuan Anggaran', value: formatIDR(data.reduce((acc, p) => acc + (p.Anggaran || 0), 0)), icon: Wallet, color: 'text-indigo-600', bg: 'bg-indigo-50', gradient: 'from-indigo-500/10 to-indigo-500/5' },
+          { label: 'Proposal Menunggu', value: data.filter(p => p.Status?.toLowerCase() === 'diajukan').length, icon: Clock, color: 'text-amber-600', bg: 'bg-amber-50', gradient: 'from-amber-500/10 to-amber-500/5' },
+          { label: 'Disetujui Dekanat', value: data.filter(p => p.Status?.toLowerCase() === 'disetujui').length, icon: ShieldCheck, color: 'text-emerald-600', bg: 'bg-emerald-50', gradient: 'from-emerald-500/10 to-emerald-500/5' },
         ].map((stat, i) => (
-          <Card key={i} className="border border-slate-200 shadow-sm rounded-2xl overflow-hidden relative group">
-            <CardContent className="p-6 relative">
+          <ResponsiveCard key={i} className="relative group p-0 min-h-[140px]">
+            <div className={`absolute inset-0 bg-gradient-to-br ${stat.gradient} opacity-50`} />
+            <div className="p-6 relative">
               <div className="flex items-center justify-between mb-4">
                 <div className={`p-2.5 rounded-xl ${stat.bg} ${stat.color} shadow-sm group-hover:scale-110 transition-transform duration-500`}>
                   <stat.icon className="size-5" />
@@ -186,51 +175,55 @@ export default function FacultyInternalProposals() {
                 </div>
               </div>
               <div className="space-y-1">
-                <p className="text-[10px] font-black uppercase tracking-[0.15em] text-slate-400">{stat.label}</p>
-                <h3 className={`${stat.label.includes('Anggaran') ? 'text-xl' : 'text-3xl'} font-black text-slate-900 font-headline tracking-tighter`}>
-                  {loading ? "..." : stat.value}
-                </h3>
+                <p className="text-[10px] font-black uppercase tracking-[0.15em] text-slate-400 font-headline">{stat.label}</p>
+                <div className="flex items-baseline gap-2">
+                  <h3 className={`${stat.label.includes('Anggaran') ? 'text-xl' : 'text-3xl'} font-black text-slate-900 font-headline tracking-tighter uppercase whitespace-nowrap`}>
+                    {loading ? "..." : stat.value}
+                  </h3>
+                </div>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </ResponsiveCard>
         ))}
-      </div>
+      </ResponsiveGrid>
 
-      <Card className="border border-slate-200 shadow-sm mt-4 overflow-hidden rounded-2xl bg-white/50 backdrop-blur-md">
-        <CardContent className="p-0">
-          <DataTable
-            columns={columns}
-            data={data}
-            loading={loading}
-            searchPlaceholder="Cari Unit atau Kegiatan..."
-            filters={[
-              {
-                key: 'Status',
-                placeholder: 'Filter Status',
-                options: [
-                  { label: 'Diajukan', value: 'diajukan' },
-                  { label: 'Disetujui', value: 'disetujui' },
-                  { label: 'Ditolak', value: 'ditolak' },
-                ]
-              }
-            ]}
-            actions={(row) => (
+      <ResponsiveCard noPadding>
+        <DataTable
+          columns={columns}
+          data={data}
+          loading={loading}
+          searchPlaceholder="Cari Unit atau Kegiatan..."
+          onSync={fetchData}
+          filters={[
+            {
+              key: 'Status',
+              placeholder: 'Filter Status',
+              options: [
+                { label: 'Diajukan', value: 'diajukan' },
+                { label: 'Disetujui', value: 'disetujui' },
+                { label: 'Ditolak', value: 'ditolak' },
+              ]
+            }
+          ]}
+          actions={(row) => (
+            <div className="flex items-center justify-end pr-2">
               <Button
                 onClick={() => handleOpenReview(row)}
-                variant="ghost"
-                className="h-9 px-4 rounded-xl hover:bg-emerald-50 hover:text-emerald-600 transition-colors text-[10px] font-black uppercase tracking-widest"
+                variant="outline"
+                className="h-9 px-4 rounded-xl border-slate-200 hover:border-primary hover:bg-primary/5 hover:text-primary transition-all font-black text-[10px] uppercase tracking-widest flex items-center gap-2 group shadow-sm bg-white"
               >
-                Review Anggaran
+                <ShieldCheck className="size-3.5 transition-transform group-hover:scale-110" />
+                Review
               </Button>
-            )}
-          />
-        </CardContent>
-      </Card>
+            </div>
+          )}
+        />
+      </ResponsiveCard>
 
       {/* REVIEW DIALOG */}
       <Dialog open={isReviewOpen} onOpenChange={setIsReviewOpen}>
         <DialogContent className="max-w-xl p-0 overflow-hidden border-none shadow-2xl rounded-[2rem] bg-white/95 backdrop-blur-xl">
-          <DialogHeader className="p-8 pb-6 bg-gradient-to-br from-slate-50 to-white border-b border-slate-100 relative overflow-hidden">
+          <DialogHeader className="p-8 pb-6 bg-gradient-to-br from-slate-50 to-white border-b border-slate-100 relative overflow-hidden text-left">
             <div className="absolute top-0 right-0 p-8 opacity-5">
               <Wallet className="size-24 rotate-12" />
             </div>
@@ -239,29 +232,30 @@ export default function FacultyInternalProposals() {
                 <div className="size-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary text-xs font-black">
                   <ShieldCheck className="size-4" />
                 </div>
-                <Badge variant="secondary" className="text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 bg-primary/5 text-primary border-none">
+                <Badge variant="secondary" className="text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 bg-primary/5 text-primary border-none font-headline">
                   Fakultas Finance & Compliance
                 </Badge>
               </div>
               <DialogTitle className="text-2xl font-black font-headline tracking-tighter text-slate-900 uppercase">
                 Keputusan Anggaran
               </DialogTitle>
-              <DialogDescription className="text-xs font-medium text-slate-400 mt-1">
+              <DialogDescription className="text-xs font-medium text-slate-400 mt-1 uppercase font-headline">
                 Validasi pengajuan dana berdasarkan kebutuhan mendesak & ketersediaan pagi.
               </DialogDescription>
             </div>
           </DialogHeader>
 
           <div className="p-8 pt-6 space-y-6">
-            <div className="p-5 rounded-2xl bg-slate-50 border border-slate-100 space-y-3">
-              <div className="flex justify-between items-start">
-                <div className="space-y-0.5">
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">Identitas Kegiatan</p>
-                  <h4 className="font-bold text-slate-900 font-headline text-lg tracking-tight leading-snug">{selectedProposal?.Judul}</h4>
-                  <p className="text-xs font-bold text-primary font-headline tracking-tighter uppercase">{selectedProposal?.Deskripsi?.substring(0, 50)}...</p>
+            <div className="p-6 rounded-[2rem] bg-slate-50 border border-slate-100 relative group overflow-hidden shadow-inner font-headline">
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+              <div className="relative z-10 flex justify-between items-start">
+                <div className="space-y-1">
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] leading-none">Identitas Kegiatan</p>
+                  <h4 className="font-bold text-slate-900 font-headline text-lg tracking-tight leading-snug uppercase">{selectedProposal?.Judul}</h4>
+                  <p className="text-[10px] font-bold text-primary font-headline tracking-tighter uppercase italic">"{selectedProposal?.Deskripsi?.substring(0, 50)}..."</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Nominal</p>
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-2">Nominal Pagu</p>
                   <p className="text-2xl font-black text-emerald-600 font-headline tracking-tighter leading-none">{formatIDR(selectedProposal?.Anggaran || 0)}</p>
                 </div>
               </div>
@@ -269,14 +263,14 @@ export default function FacultyInternalProposals() {
 
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Keputusan Akhir</Label>
+                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 font-headline">Keputusan Akhir</Label>
                 <div className="grid grid-cols-2 gap-3">
                   {['disetujui', 'ditolak'].map((s) => (
                     <div
                       key={s}
                       onClick={() => setReviewForm({ ...reviewForm, status: s })}
-                      className={`flex items-center justify-center h-14 rounded-2xl border text-[10px] font-black uppercase tracking-widest cursor-pointer transition-all ${reviewForm.status === s
-                          ? (s === 'disetujui' ? 'bg-emerald-600 border-emerald-600 text-white shadow-lg shadow-emerald-500/20' : 'bg-rose-600 border-rose-600 text-white shadow-lg shadow-rose-500/20')
+                      className={`flex items-center justify-center h-14 rounded-2xl border text-[10px] font-black uppercase tracking-widest cursor-pointer transition-all font-headline ${reviewForm.status === s
+                          ? (s === 'disetujui' ? 'bg-emerald-600 border-emerald-600 text-white shadow-xl shadow-emerald-500/20 scale-[1.02]' : 'bg-rose-600 border-rose-600 text-white shadow-xl shadow-rose-500/20 scale-[1.02]')
                           : 'bg-white text-slate-400 border-slate-100 hover:border-slate-300'
                         }`}
                     >
@@ -287,28 +281,29 @@ export default function FacultyInternalProposals() {
               </div>
 
               <div className="space-y-2">
-                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Observasi Reviewer</Label>
+                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 font-headline">Observasi Reviewer</Label>
                 <Textarea
                   value={reviewForm.notes}
                   onChange={e => setReviewForm({ ...reviewForm, notes: e.target.value })}
-                  className="min-h-[100px] rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white transition-all font-medium text-sm p-4 leading-relaxed"
-                  placeholder="Berikan catatan tambahan untuk unit pengaju..."
+                  className="min-h-[100px] rounded-[1.5rem] border-slate-200 bg-slate-50/50 focus:bg-white transition-all font-black text-[11px] p-4 leading-relaxed uppercase"
+                  placeholder="Berikan catatan tambahan untuk unit pengaju atau alasan penolakan anggaran..."
                 />
               </div>
             </div>
 
-            <DialogFooter className="pt-4 flex flex-row items-center justify-end gap-3 border-t border-slate-100 -mx-8 px-8 bg-slate-50/30">
-              <button onClick={() => setIsReviewOpen(false)} className="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-900 px-8 h-12 rounded-2xl transition-all">
+            <DialogFooter className="pt-4 flex flex-row items-center justify-end gap-3 border-t border-slate-100 -mx-8 px-8 bg-slate-50/30 rounded-b-[2rem]">
+              <button onClick={() => setIsReviewOpen(false)} className="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-900 px-8 h-12 rounded-2xl font-headline transition-all border-none bg-transparent cursor-pointer font-headline">
                 Batalkan
               </button>
-              <Button onClick={handleSaveReview} disabled={isSubmitting} className="h-12 px-10 rounded-2xl bg-primary text-white hover:bg-primary/90 shadow-xl shadow-primary/20 transition-all hover:scale-[1.02] active:scale-95">
+              <Button onClick={handleSaveReview} disabled={isSubmitting} className="h-12 px-10 rounded-2xl bg-primary text-white hover:bg-primary/90 shadow-xl shadow-primary/20 transition-all hover:scale-[1.02] active:scale-95 border-none font-headline">
                 {isSubmitting ? <Loader2 className="animate-spin size-4 mr-3" /> : <Save className="size-4 mr-3 stroke-[3px]" />}
-                <span className="text-[10px] font-black uppercase tracking-[0.2em]">Authorize Budget</span>
+                <span className="text-[10px] font-black uppercase tracking-[0.15em] font-headline">Authorize Budget</span>
               </Button>
             </DialogFooter>
           </div>
         </DialogContent>
       </Dialog>
-    </div>
+    </PageContainer>
+
   )
 }

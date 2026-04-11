@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState, useEffect } from 'react'
-import axios from 'axios'
+import api from '../../lib/axios'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "./components/card"
 import { Button } from "./components/button"
 import { DataTable } from "./components/data-table"
@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils"
 import { HeartPulse, Activity, AlertCircle, RefreshCw, FileText, Eye, User, Thermometer, Droplet, Scaling, Clock, GraduationCap, ShieldCheck } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./components/dialog"
 import { Avatar, AvatarFallback } from "./components/avatar"
+import { PageContainer, PageHeader, ResponsiveGrid, ResponsiveCard } from "./components/responsive-layout"
 
 export default function FacultyKesehatan() {
   const [loading, setLoading] = useState(true)
@@ -27,8 +28,8 @@ export default function FacultyKesehatan() {
     try {
       setLoading(true)
       const [progRes, summaryRes] = await Promise.all([
-        axios.get('http://localhost:8000/api/faculty/health-screening'),
-        axios.get('http://localhost:8000/api/faculty/health-screening/summary')
+        api.get('/faculty/health-screening'),
+        api.get('/faculty/health-screening/summary')
       ])
 
       if (progRes.data.status === 'success') {
@@ -60,7 +61,7 @@ export default function FacultyKesehatan() {
       label: "Mahasiswa",
       render: (m) => (
         <div className="flex flex-col">
-          <span className="font-bold text-slate-900 font-headline tracking-tighter text-[13px] uppercase">{m?.Nama || 'Mahasiswa'}</span>
+          <span className="font-black text-slate-900 font-headline tracking-tighter text-[13px] uppercase">{m?.Nama || 'Mahasiswa'}</span>
           <span className="text-[10px] text-slate-400 font-black uppercase tracking-widest">{m?.NIM || '-'}</span>
         </div>
       )
@@ -127,50 +128,43 @@ export default function FacultyKesehatan() {
   ]
 
   return (
-    <div className="space-y-6">
+    <PageContainer>
       <Toaster position="top-right" />
-      <div className="flex flex-col gap-1.5 mb-8 pt-2">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-primary/10 rounded-xl text-primary">
-            <HeartPulse className="size-6" />
-          </div>
-          <h1 className="text-2xl font-black text-slate-900 font-headline tracking-tighter uppercase">Pantau Kesehatan</h1>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="h-1 w-10 bg-primary rounded-full shadow-sm shadow-primary/30" />
-          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Medical Monitoring & Student Screening System</p>
-        </div>
-      </div>
+      
+      <PageHeader
+        icon={HeartPulse}
+        title="Pantau Kesehatan"
+        description="Medical Monitoring & Student Screening System"
+      />
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <ResponsiveGrid cols={3}>
         {stats.map((stat, i) => (
-          <Card key={i} className="border border-slate-200 shadow-sm shadow-slate-200/50 overflow-hidden relative group transition-all duration-300 hover:shadow-xl hover:shadow-primary/5 rounded-[2rem] bg-white">
-            <div className={`absolute inset-0 bg-gradient-to-br ${stat.gradient} opacity-50`} />
-            <CardContent className="p-7 relative">
-              <div className="flex items-center justify-between mb-5">
-                <div className={`p-3 rounded-2xl ${stat.bg} ${stat.color} shadow-sm group-hover:scale-110 transition-transform duration-500`}>
-                  <stat.icon className="size-6" />
+          <ResponsiveCard key={i} className="relative group p-0">
+             <div className={`absolute inset-0 bg-gradient-to-br ${stat.gradient} opacity-50`} />
+             <div className="p-7 relative">
+                <div className="flex items-center justify-between mb-5">
+                  <div className={`p-3 rounded-2xl ${stat.bg} ${stat.color} shadow-sm group-hover:rotate-12 transition-transform duration-500`}>
+                    <stat.icon className="size-6" />
+                  </div>
+                  <div className="flex items-center gap-1.5 text-[10px] font-black text-primary bg-primary/10 px-3 py-1 rounded-full uppercase tracking-widest leading-none">
+                    <Activity className="size-3" />
+                    Live Feed
+                  </div>
                 </div>
-                <div className="flex items-center gap-1.5 text-[10px] font-black text-primary bg-primary/10 px-3 py-1 rounded-full uppercase tracking-tighter sm:tracking-widest leading-none">
-                  <Activity className="size-3" />
-                  Live Feed
+                <div className="space-y-1">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">{stat.label}</p>
+                  <div className="flex items-baseline gap-2">
+                    <h3 className="text-4xl font-black text-slate-900 font-headline tracking-tighter leading-none">
+                      {loading ? "..." : stat.value}
+                    </h3>
+                  </div>
                 </div>
-              </div>
-              <div className="space-y-1">
-                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">{stat.label}</p>
-                <div className="flex items-baseline gap-2">
-                  <h3 className="text-4xl font-black text-slate-900 font-headline tracking-tighter leading-none">
-                    {loading ? "..." : stat.value}
-                  </h3>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+             </div>
+          </ResponsiveCard>
         ))}
-      </div>
+      </ResponsiveGrid>
 
-      <Card className="border border-slate-200 shadow-sm flex flex-col overflow-hidden bg-white/50 backdrop-blur-md rounded-[2rem]">
-        <CardContent className="p-0 font-headline">
+      <ResponsiveCard noPadding>
           <DataTable
             columns={columns}
             data={healthRecords}
@@ -190,8 +184,8 @@ export default function FacultyKesehatan() {
               }
             ]}
           />
-        </CardContent>
-      </Card>      {/* DETAIL DIALOG */}
+      </ResponsiveCard>
+      {/* DETAIL DIALOG */}
       <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
         <DialogContent className="max-w-3xl p-0 overflow-hidden border-none shadow-2xl rounded-[2.5rem] bg-white/95 backdrop-blur-xl">
           {selectedRecord && (
@@ -344,7 +338,7 @@ export default function FacultyKesehatan() {
           )}
         </DialogContent>
       </Dialog>
-    </div>
+    </PageContainer>
   )
 }
 

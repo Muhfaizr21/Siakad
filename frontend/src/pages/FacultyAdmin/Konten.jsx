@@ -2,8 +2,6 @@
 
 import React, { useState, useEffect } from "react"
 import axios from "axios"
-import { toast, Toaster } from "react-hot-toast"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "./components/card"
 import { Button } from "./components/button"
 import { Badge } from "./components/badge"
 import { Input } from "./components/input"
@@ -11,6 +9,7 @@ import { Textarea } from "./components/textarea"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./components/tabs"
 import { DataTable } from "./components/data-table"
 import { DeleteConfirmModal } from "./components/DeleteConfirmModal"
+import { toast, Toaster } from "react-hot-toast"
 import {
   Select,
   SelectContent,
@@ -30,7 +29,6 @@ import {
 } from "./components/dialog"
 import {
   Megaphone,
-  CheckCircle,
   Clock,
   FileText,
   Calendar,
@@ -41,6 +39,7 @@ import {
   Trash2,
   Eye
 } from "lucide-react"
+import { PageContainer, PageHeader, ResponsiveGrid, ResponsiveCard } from "./components/responsive-layout"
 
 export default function KontenPage() {
   const [loading, setLoading] = useState(true)
@@ -145,25 +144,18 @@ export default function KontenPage() {
   const columns = [
     {
       key: "title",
-      label: "Informasi Konten",
+      label: "Publikasi",
       render: (value, row) => (
         <div className="flex flex-col text-left">
-          <span className="font-bold text-slate-900 line-clamp-1 uppercase tracking-tight text-[13px]">{value}</span>
-          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-0.5">{row.author || "Admin"} — {new Date(row.CreatedAt).toLocaleDateString()}</span>
+          <span className="font-black text-slate-900 font-headline uppercase text-[12px] tracking-tight leading-none truncate max-w-[200px]">{value}</span>
+          <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-1 leading-none">{row.author || "Admin"} — {new Date(row.CreatedAt).toLocaleDateString()}</span>
         </div>
       )
     },
     {
       key: "category",
-      label: "Kategori",
-      render: (value) => <Badge variant="secondary" className="text-[10px] font-black uppercase tracking-widest bg-slate-100 text-slate-500 border-none shadow-none">{value}</Badge>
-    },
-    {
-      key: "views",
-      label: "Views",
-      className: "text-center",
-      cellClassName: "text-center",
-      render: (value) => <span className="text-[11px] font-black text-slate-500 font-headline">{value || 0}</span>
+      label: "Klasifikasi",
+      render: (value) => <Badge variant="secondary" className="text-[9px] font-black uppercase tracking-widest bg-slate-50 text-slate-500 border-none shadow-none font-headline px-2 py-0.5">{value}</Badge>
     },
     {
       key: "status",
@@ -171,9 +163,8 @@ export default function KontenPage() {
       render: (val) => (
         <Badge 
           className={cn(
-            "capitalize font-black text-[10px] px-3 py-1 border-none shadow-sm font-headline uppercase",
-            val === 'Published' ? "bg-emerald-100 text-emerald-700 ring-1 ring-emerald-500/20" :
-            "bg-amber-100 text-amber-700 ring-1 ring-amber-500/20"
+            "capitalize font-black text-[9px] px-2 py-0.5 border-none shadow-sm font-headline uppercase tracking-widest",
+            val === 'Published' ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"
           )}
         >
           {val}
@@ -182,25 +173,38 @@ export default function KontenPage() {
     }
   ]
 
-  return (
-    <div className="space-y-6">
-      <Toaster position="top-right" />
-        <div className="flex flex-col gap-1.5">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-primary/10 rounded-xl text-primary">
-              <Megaphone className="size-6" />
-            </div>
-            <h1 className="text-2xl font-black text-slate-900 font-headline tracking-tighter uppercase leading-none">Manajemen Konten</h1>
-          </div>
-          <div className="flex items-center gap-2">
-             <div className="h-1 w-10 bg-primary rounded-full shadow-sm shadow-primary/30" />
-             <p className="text-xs font-bold text-slate-400 uppercase tracking-widest leading-none">Portal Publikasi & Informasi Internal Fakultas</p>
-          </div>
-        </div>
+  const statsData = [
+    { label: 'Total Publikasi', value: articles.length, icon: Megaphone, color: 'text-blue-600', bg: 'bg-blue-50' },
+    { label: 'Views Akumulasi', value: articles.reduce((acc, a) => acc + (a.views || 0), 0), icon: Eye, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+    { label: 'Draft Tersimpan', value: articles.filter(a => a.status === 'Draft').length, icon: Clock, color: 'text-amber-600', bg: 'bg-amber-50' },
+  ]
 
+  return (
+    <PageContainer>
+      <Toaster position="top-right" />
+      
+      <PageHeader
+        icon={Megaphone}
+        title="Manajemen Konten"
+        description="Portal Publikasi & Informasi Internal"
+      />
+
+      <ResponsiveGrid cols={3}>
+        {statsData.map((stat, i) => (
+          <ResponsiveCard key={i} className="flex flex-row items-center gap-4">
+            <div className={`p-3 rounded-xl ${stat.bg} ${stat.color}`}>
+              <stat.icon className="size-5" />
+            </div>
+            <div className="flex flex-col font-headline leading-tight">
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">{stat.label}</span>
+              <span className="text-xl font-black text-slate-900 tracking-tighter uppercase">{loading ? '...' : stat.value}</span>
+            </div>
+          </ResponsiveCard>
+        ))}
+      </ResponsiveGrid>
 
       <Tabs defaultValue="pengumuman" className="w-full">
-        <TabsList className="bg-white border-slate-200/60 border rounded-2xl p-1.5 h-auto gap-1.5 shadow-sm">
+        <TabsList className="bg-white border-slate-200/60 border rounded-2xl p-1.5 h-auto gap-1.5 shadow-sm mt-6">
           <TabsTrigger 
             value="pengumuman" 
             className="rounded-2xl px-6 py-2.5 data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-primary/25 text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-bold text-[13px] gap-3 transition-all duration-300"
@@ -225,8 +229,7 @@ export default function KontenPage() {
         </TabsList>
 
         <TabsContent value="pengumuman" className="mt-4">
-          <Card className="border-none shadow-sm overflow-hidden rounded-3xl bg-white">
-            <CardContent className="p-0 font-headline">
+          <ResponsiveCard noPadding>
                <DataTable 
                   columns={columns}
                   data={articles}
@@ -249,7 +252,7 @@ export default function KontenPage() {
                     }
                   ]}
                   actions={(row) => (
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center justify-end gap-2 pr-2">
                       <Button onClick={() => handleOpenEdit(row)} variant="ghost" size="icon" className="h-9 w-9 hover:text-amber-600 rounded-xl hover:bg-amber-50 transition-all">
                         <Pencil className="size-4" />
                       </Button>
@@ -259,12 +262,11 @@ export default function KontenPage() {
                     </div>
                   )}
                />
-            </CardContent>
-          </Card>
+          </ResponsiveCard>
         </TabsContent>
 
         <TabsContent value="kalender">
-           <Card className="border-none shadow-sm shadow-slate-200/50 min-h-[400px] flex items-center justify-center text-center bg-white/50 backdrop-blur-md rounded-[2rem] relative overflow-hidden group font-headline">
+           <ResponsiveCard className="min-h-[400px] flex items-center justify-center text-center bg-white/50 backdrop-blur-md relative overflow-hidden group font-headline">
               <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent" />
               <div className="space-y-6 relative z-10">
                  <div className="size-20 rounded-[2rem] bg-primary/5 flex items-center justify-center mx-auto border border-primary/10 group-hover:scale-110 transition-transform duration-500 shadow-xl shadow-primary/5">
@@ -275,11 +277,11 @@ export default function KontenPage() {
                     <p className="text-sm font-bold text-slate-400 uppercase tracking-widest max-w-[200px] mx-auto leading-relaxed">Fitur Kalender Akademik Terintegrasi</p>
                  </div>
               </div>
-           </Card>
+           </ResponsiveCard>
         </TabsContent>
 
         <TabsContent value="template">
-           <Card className="border-none shadow-sm shadow-slate-200/50 min-h-[400px] flex items-center justify-center text-center bg-white/50 backdrop-blur-md rounded-[2rem] relative overflow-hidden group font-headline">
+           <ResponsiveCard className="min-h-[400px] flex items-center justify-center text-center bg-white/50 backdrop-blur-md relative overflow-hidden group font-headline">
               <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-transparent" />
               <div className="space-y-6 relative z-10">
                  <div className="size-20 rounded-[2rem] bg-indigo-50/50 flex items-center justify-center mx-auto border border-indigo-100 group-hover:scale-110 transition-transform duration-500 shadow-xl shadow-indigo-500/5">
@@ -291,7 +293,7 @@ export default function KontenPage() {
                  </div>
                  <Button variant="outline" className="h-12 rounded-2xl px-8 border-indigo-100 text-indigo-600 font-black text-[10px] uppercase tracking-widest hover:bg-indigo-50 transition-all font-headline border-none ring-1 ring-indigo-100">Upload Template</Button>
               </div>
-           </Card>
+           </ResponsiveCard>
         </TabsContent>
       </Tabs>
 
@@ -316,6 +318,9 @@ export default function KontenPage() {
                <DialogTitle className="text-2xl font-black font-headline tracking-tighter text-slate-900 uppercase leading-none">
                   {isEditMode ? 'Edit Informasi' : 'Publikasi Baru'}
                </DialogTitle>
+               <DialogDescription className="text-xs font-medium text-slate-400 mt-1 uppercase leading-none font-headline">
+                  Manajemen distribusi informasi dan publikasi artikel resmi fakultas.
+               </DialogDescription>
             </div>
           </DialogHeader>
 
@@ -417,6 +422,6 @@ export default function KontenPage() {
         description="Konten yang dihapus akan segera hilang dari portal informasi fakultas dan aplikasi mobile mahasiswa."
         loading={isSubmitting}
       />
-    </div>
+    </PageContainer>
   )
 }

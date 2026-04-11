@@ -4,12 +4,12 @@ import React, { useState, useEffect } from "react"
 import { DataTable } from "./components/data-table"
 import { Button } from "./components/button"
 import { Badge } from "./components/badge"
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "./components/card"
-import { CheckCircle2, XCircle, Eye, Calendar, Award, TrendingUp, User, AlertCircle, Trophy, GraduationCap, MapPin, Building, FileText, ExternalLink, ShieldCheck, Star, X } from "lucide-react"
+import { CheckCircle2, XCircle, Eye, Calendar, Award, AlertCircle, Trophy, GraduationCap, Building, FileText, ExternalLink, ShieldCheck, Star, Clock, X } from "lucide-react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "./components/dialog"
 import { Avatar, AvatarFallback } from "./components/avatar"
 import { toast, Toaster } from "react-hot-toast"
 import { cn } from "@/lib/utils"
+import { PageContainer, PageHeader, ResponsiveGrid, ResponsiveCard } from "./components/responsive-layout"
 
 export default function FacultyPrestasi() {
   const [achievements, setAchievements] = useState([])
@@ -88,7 +88,7 @@ export default function FacultyPrestasi() {
       label: "Mahasiswa",
       render: (val) => (
         <div className="flex flex-col text-left leading-tight">
-          <span className="font-bold text-slate-900 font-headline tracking-tighter uppercase text-[13px]">{val?.Nama || '-'}</span>
+          <span className="font-black text-slate-900 font-headline tracking-tighter uppercase text-[13px]">{val?.Nama || '-'}</span>
           <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-0.5">{val?.NIM || '-'}</span>
         </div>
       )
@@ -119,7 +119,7 @@ export default function FacultyPrestasi() {
       render: (val) => (
         <Badge
           className={cn(
-            "capitalize font-black text-[10px] px-3 py-1 border-none shadow-sm font-headline uppercase",
+            "capitalize font-black text-[10px] px-3 py-1 border-none shadow-sm font-headline uppercase tracking-widest",
             val === 'verified' ? "bg-emerald-100 text-emerald-700 ring-1 ring-emerald-500/20" :
               val === 'pending' ? "bg-amber-100 text-amber-700 ring-1 ring-amber-500/20" :
                 val === 'rejected' ? "bg-rose-100 text-rose-700 ring-1 ring-rose-500/20" :
@@ -132,59 +132,71 @@ export default function FacultyPrestasi() {
     }
   ]
 
+  const statsData = [
+    { label: 'Total Pengajuan', value: achievements.length, icon: Trophy, color: 'text-blue-600', bg: 'bg-blue-50' },
+    { label: 'Tervalidasi', value: achievements.filter(a => a.Status === 'verified').length, icon: CheckCircle2, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+    { label: 'Menunggu', value: achievements.filter(a => a.Status === 'pending').length, icon: Clock, color: 'text-amber-600', bg: 'bg-amber-50' },
+  ]
+
   const sel = selectedAchievement
   const statusCfg = sel ? getStatusConfig(sel.Status) : getStatusConfig()
 
   return (
-    <div className="space-y-6">
+    <PageContainer>
       <Toaster position="top-right" />
-      <div className="flex flex-col gap-1.5">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-primary/10 rounded-xl text-primary">
-            <Award className="size-6" />
-          </div>
-          <h1 className="text-2xl font-black text-slate-900 font-headline tracking-tighter uppercase leading-none">Validasi Prestasi</h1>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="h-1 w-10 bg-primary rounded-full shadow-sm shadow-primary/30" />
-          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest leading-none">Portal Verifikasi Capaian Mahasiswa</p>
-        </div>
-      </div>
+      
+      <PageHeader
+        icon={Award}
+        title="Validasi Prestasi"
+        description="Portal Verifikasi Capaian Mahasiswa"
+      />
 
-      <Card className="border-none shadow-sm flex flex-col overflow-hidden bg-white/50 backdrop-blur-md rounded-3xl">
-        <CardContent className="p-0 font-headline">
-          <DataTable
-            columns={columns}
-            data={achievements}
-            loading={loading}
-            searchPlaceholder="Cari Nama atau Prestasi..."
-            onSync={fetchData}
-            onExport={() => alert("Ekspor Rekap Prestasi...")}
-            exportLabel="Download Rekap"
-            filters={[
-              {
-                key: 'Status',
-                placeholder: 'Filter Status',
-                options: [
-                  { label: 'Disetujui', value: 'verified' },
-                  { label: 'Menunggu', value: 'pending' },
-                  { label: 'Ditolak', value: 'rejected' },
-                ]
-              }
-            ]}
-            actions={(row) => (
-              <div className="flex items-center gap-2">
-                <Button onClick={() => { setSelectedAchievement(row); setIsModalOpen(true); }} variant="ghost" size="icon" className="h-9 w-9 hover:text-blue-600 rounded-xl hover:bg-blue-50 transition-all">
-                  <Eye className="size-4" />
-                </Button>
-                <Button onClick={() => handleValidation(row.ID, 'verified')} variant="ghost" size="icon" className="h-9 w-9 hover:text-emerald-600 rounded-xl hover:bg-emerald-50 transition-all">
-                  <CheckCircle2 className="size-4" />
-                </Button>
-              </div>
-            )}
-          />
-        </CardContent>
-      </Card>
+      <ResponsiveGrid cols={3}>
+        {statsData.map((stat, i) => (
+          <ResponsiveCard key={i} className="flex flex-row items-center gap-4">
+            <div className={`p-3 rounded-xl ${stat.bg} ${stat.color}`}>
+              <stat.icon className="size-5" />
+            </div>
+            <div className="flex flex-col">
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{stat.label}</span>
+              <span className="text-xl font-black text-slate-900 font-headline tracking-tighter leading-none uppercase">{loading ? '...' : stat.value}</span>
+            </div>
+          </ResponsiveCard>
+        ))}
+      </ResponsiveGrid>
+
+      <ResponsiveCard noPadding>
+        <DataTable
+          columns={columns}
+          data={achievements}
+          loading={loading}
+          searchPlaceholder="Cari Nama atau Prestasi..."
+          onSync={fetchData}
+          onExport={() => alert("Ekspor Rekap Prestasi...")}
+          exportLabel="Download Rekap"
+          filters={[
+            {
+              key: 'Status',
+              placeholder: 'Filter Status',
+              options: [
+                { label: 'Disetujui', value: 'verified' },
+                { label: 'Menunggu', value: 'pending' },
+                { label: 'Ditolak', value: 'rejected' },
+              ]
+            }
+          ]}
+          actions={(row) => (
+            <div className="flex items-center justify-end gap-2">
+              <Button onClick={() => { setSelectedAchievement(row); setIsModalOpen(true); }} variant="outline" size="icon" className="h-9 w-9 border-slate-200 hover:text-blue-600 rounded-xl hover:bg-blue-50 shadow-sm transition-all">
+                <Eye className="size-4" />
+              </Button>
+              <Button onClick={() => handleValidation(row.ID, 'verified')} variant="outline" size="icon" className="h-9 w-9 border-slate-200 hover:text-emerald-600 rounded-xl hover:bg-emerald-50 shadow-sm transition-all">
+                <CheckCircle2 className="size-4" />
+              </Button>
+            </div>
+          )}
+        />
+      </ResponsiveCard>
 
       {/* ===== PREMIUM DETAIL + VERIFICATION DIALOG ===== */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
@@ -219,12 +231,13 @@ export default function FacultyPrestasi() {
                       <Badge variant="outline" className="text-[8px] font-black border-white/20 text-white/60 bg-white/5 px-2 py-0.5 rounded tracking-widest uppercase">
                         Achievement Record
                       </Badge>
+                      <DialogDescription className="sr-only">Detail prestasi mahasiswa dan panel verifikasi</DialogDescription>
                       <div className="h-3 w-px bg-white/10" />
                       <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest">ID: {sel.ID?.toString().padStart(6, '0')}</span>
                     </div>
-                    <h2 className="text-2xl font-black tracking-tighter leading-none uppercase drop-shadow-md">
+                    <DialogTitle className="text-2xl font-black tracking-tighter leading-none uppercase drop-shadow-md">
                       {sel.Mahasiswa?.Nama || '-'}
-                    </h2>
+                    </DialogTitle>
                     <div className="flex items-center gap-3 mt-0.5">
                       <div className="flex items-center gap-1.5 px-2.5 py-0.5 bg-white/5 backdrop-blur-md rounded-lg border border-white/10">
                         <GraduationCap className="size-3 text-white/50" />
@@ -423,7 +436,7 @@ export default function FacultyPrestasi() {
         </DialogContent>
       </Dialog>
 
-    </div>
+    </PageContainer>
   )
 }
 

@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from 'react'
 import axios from 'axios'
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "./components/card"
 import { Button } from "./components/button"
 import { Badge } from "./components/badge"
 import { DataTable } from "./components/data-table"
@@ -20,6 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "./components/select"
+import { PageContainer, PageHeader, ResponsiveGrid, ResponsiveCard } from "./components/responsive-layout"
 
 export default function FacultyPersuratan() {
   const [requests, setRequests] = useState([])
@@ -72,15 +72,13 @@ export default function FacultyPersuratan() {
     }
   }
 
-
-
   const columns = [
     {
       key: "ID",
-      label: "ID & Tanggal",
+      label: "Referensi",
       render: (v, row) => (
         <div className="flex flex-col leading-tight text-left">
-          <span className="font-mono text-primary font-black text-[11px] tracking-widest leading-none">#SRT-{v}</span>
+          <span className="font-mono text-primary font-black text-[11px] tracking-widest leading-none uppercase">#SRT-{v}</span>
           <span className="text-[10px] text-slate-400 font-black mt-1 uppercase tracking-tight font-headline">
             {new Date(row.CreatedAt).toLocaleDateString('id-ID')}
           </span>
@@ -89,38 +87,38 @@ export default function FacultyPersuratan() {
     },
     {
       key: "Mahasiswa",
-      label: "Identitas Pengusul",
+      label: "Pengusul",
       render: (v) => (
         <div className="flex items-center gap-3 text-left">
           <div className="size-9 rounded-2xl bg-slate-100 flex items-center justify-center font-black text-[10px] uppercase text-slate-800 border-2 border-white shadow-sm ring-1 ring-slate-100">
             {v?.Nama?.charAt(0) || '?'}
           </div>
           <div className="flex flex-col leading-tight">
-            <span className="font-bold text-slate-900 font-headline tracking-tighter uppercase text-[13px]">{v?.Nama || 'Anonim'}</span>
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-0.5">{v?.NIM || '-'}</span>
+            <span className="font-black text-slate-900 font-headline uppercase text-[13px] tracking-tighter leading-none">{v?.Nama || 'Anonim'}</span>
+            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1 leading-none">{v?.NIM || '-'}</span>
           </div>
         </div>
       )
     },
     {
       key: "Jenis",
-      label: "Klasifikasi Surat",
+      label: "Klasifikasi",
       render: (v, row) => (
         <div className="flex flex-col leading-tight text-left">
-          <span className="font-black text-slate-900 font-headline text-[12px] uppercase tracking-tight">{v}</span>
-          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wide line-clamp-1 mt-0.5">"{row.Catatan}"</p>
+          <span className="font-black text-slate-900 font-headline text-[12px] uppercase tracking-tight leading-none">{v}</span>
+          <p className="text-[10px] text-slate-400 font-black uppercase tracking-tight line-clamp-1 mt-1 leading-none italic">"{row.Catatan}"</p>
         </div>
       )
     },
     {
       key: "Status",
-      label: "Status Progress",
+      label: "Progress",
       className: "text-center",
       cellClassName: "text-center",
       render: (val) => (
         <Badge
           className={cn(
-            "capitalize font-black text-[10px] px-3 py-1 border-none shadow-sm font-headline uppercase",
+            "capitalize font-black text-[10px] px-3 py-1 border-none shadow-sm font-headline uppercase tracking-widest",
             val === 'selesai' ? "bg-emerald-100 text-emerald-700 ring-1 ring-emerald-500/20" :
             val === 'ditolak' ? "bg-rose-100 text-rose-700 ring-1 ring-rose-500/20" :
             val === 'diproses' ? "bg-blue-100 text-blue-700 ring-1 ring-blue-500/20" :
@@ -134,59 +132,72 @@ export default function FacultyPersuratan() {
     }
   ]
 
-  return (
-    <div className="space-y-6">
-      <Toaster position="top-right" />
-        <div className="flex flex-col gap-1.5">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-primary/10 rounded-xl text-primary">
-              <Mail className="size-6" />
-            </div>
-            <h1 className="text-2xl font-black text-slate-900 font-headline tracking-tighter uppercase leading-none">E-Persuratan</h1>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="h-1 w-8 bg-primary rounded-full" />
-            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest leading-none">Antrean & Monitoring Dokumen Digital</p>
-          </div>
-        </div>
+  const statsData = [
+    { label: 'Total Antrean', value: requests.length, icon: Mail, color: 'text-blue-600', bg: 'bg-blue-50' },
+    { label: 'Sedang Proses', value: requests.filter(r => r.Status === 'diproses').length, icon: RefreshCw, color: 'text-amber-600', bg: 'bg-amber-50' },
+    { label: 'Selesai Terbit', value: requests.filter(r => r.Status === 'selesai').length, icon: CheckCircle2, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+  ]
 
-      <Card className="border-none shadow-sm flex flex-col overflow-hidden bg-white/50 backdrop-blur-md rounded-3xl">
-        <CardContent className="p-0 text-slate-600 font-headline">
-          <DataTable
-            columns={columns}
-            data={requests}
-            loading={loading}
-            searchPlaceholder="Cari NIM, Nama, atau Jenis Surat..."
-            onSync={fetchRequests}
-            syncLabel="Refresh Data"
-            onExport={() => alert("Ekspor Rekap Persuratan...")}
-            exportLabel="Download Rekap"
-            filters={[
-              {
-                key: 'status',
-                placeholder: 'Filter Status',
-                options: [
-                  { label: 'Antrean', value: 'diajukan' },
-                  { label: 'Proses', value: 'diproses' },
-                  { label: 'Siap Ambil', value: 'siap_ambil' },
-                  { label: 'Selesai', value: 'selesai' },
-                  { label: 'Ditolak', value: 'ditolak' },
-                ]
-              }
-            ]}
-            actions={(row) => (
-              <div className="flex items-center gap-1.5">
-                <Button
-                  onClick={() => { setSelectedItem(row); setAdminData({ status: row.Status, catatan_admin: row.Catatan || '', file_url: row.FileURL || '' }); setShowModal(true); }}
-                  variant="ghost" size="icon" className="h-9 w-9 hover:text-primary hover:bg-primary/10 rounded-xl transition-all"
-                >
-                  <ShieldCheck className="size-4 stroke-[2.5px]" />
-                </Button>
-              </div>
-            )}
-          />
-        </CardContent>
-      </Card>
+  return (
+    <PageContainer>
+      <Toaster position="top-right" />
+      
+      <PageHeader
+        icon={Mail}
+        title="E-Persuratan"
+        description="Antrean & Monitoring Dokumen Digital"
+      />
+
+      <ResponsiveGrid cols={3}>
+        {statsData.map((stat, i) => (
+          <ResponsiveCard key={i} className="flex flex-row items-center gap-4">
+            <div className={`p-3 rounded-xl ${stat.bg} ${stat.color}`}>
+              <stat.icon className="size-5" />
+            </div>
+            <div className="flex flex-col font-headline">
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">{stat.label}</span>
+              <span className="text-xl font-black text-slate-900 tracking-tighter leading-none uppercase">{loading ? '...' : stat.value}</span>
+            </div>
+          </ResponsiveCard>
+        ))}
+      </ResponsiveGrid>
+
+      <ResponsiveCard noPadding>
+        <DataTable
+          columns={columns}
+          data={requests}
+          loading={loading}
+          searchPlaceholder="Cari NIM, Nama, atau Jenis Surat..."
+          onSync={fetchRequests}
+          syncLabel="Refresh Data"
+          onExport={() => alert("Ekspor Rekap Persuratan...")}
+          exportLabel="Download Rekap"
+          filters={[
+            {
+              key: 'status',
+              placeholder: 'Filter Status',
+              options: [
+                { label: 'Antrean', value: 'diajukan' },
+                { label: 'Proses', value: 'diproses' },
+                { label: 'Siap Ambil', value: 'siap_ambil' },
+                { label: 'Selesai', value: 'selesai' },
+                { label: 'Ditolak', value: 'ditolak' },
+              ]
+            }
+          ]}
+          actions={(row) => (
+            <div className="flex items-center justify-end pr-2">
+              <Button
+                onClick={() => { setSelectedItem(row); setAdminData({ status: row.Status, catatan_admin: row.Catatan || '', file_url: row.FileURL || '' }); setShowModal(true); }}
+                variant="outline" size="sm" className="h-9 px-3 border-slate-200 hover:text-primary rounded-xl shadow-sm transition-all hover:bg-primary/5"
+              >
+                <ShieldCheck className="size-4 stroke-[2.5px] mr-2" />
+                <span className="text-[10px] font-black uppercase tracking-widest">Verify</span>
+              </Button>
+            </div>
+          )}
+        />
+      </ResponsiveCard>
 
       {/* Action Dialog */}
       <Dialog open={showModal} onOpenChange={setShowModal}>
@@ -286,7 +297,6 @@ export default function FacultyPersuratan() {
           </div>
         </DialogContent>
       </Dialog>
-
-    </div>
+    </PageContainer>
   )
 }

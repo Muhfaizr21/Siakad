@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../../context/AuthContext';
-import { ChevronRight, LogOut, LayoutDashboard, Users, UserPlus, UserCheck, CheckCircle2, HeartPulse, MessageSquare, Award, GraduationCap, CalendarDays, Inbox, FileSpreadsheet, Building2, School, Settings, BarChart3, Boxes } from 'lucide-react';
+import { ChevronRight, LogOut, LayoutDashboard, Users, UserPlus, UserCheck, CheckCircle2, HeartPulse, MessageSquare, Award, GraduationCap, CalendarDays, Inbox, FileSpreadsheet, Building2, School, Settings, BarChart3, Boxes, FileText } from 'lucide-react';
 
 const menuSections = [
   {
@@ -33,6 +33,7 @@ const menuSections = [
   {
     label: 'Community & Content',
     items: [
+      { name: 'Proposal Fakultas', path: '/faculty/fakultas', icon: FileText },
       { name: 'Proposal ORMAWA', path: '/faculty/ormawa/proposals', icon: FileSpreadsheet },
       { name: 'Organisasi Fakultas', path: '/faculty/organisasi', icon: Building2 },
       { name: 'Konten & Artikel', path: '/faculty/konten', icon: Boxes },

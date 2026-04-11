@@ -39,13 +39,13 @@ import {
   Legend,
 } from "recharts"
 import { DataTable } from "./components/data-table"
+import { PageContainer, PageHeader, ResponsiveGrid, ResponsiveCard } from "./components/responsive-layout"
 
 export default function DashboardPage() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [isMounted, setIsMounted] = useState(false);
   const [summaryData, setSummaryData] = useState({
-
     totalStudents: 0,
     totalLecturers: 0,
     totalCourses: 0,
@@ -59,7 +59,6 @@ export default function DashboardPage() {
   useEffect(() => {
     setIsMounted(true);
     const fetchDashboardData = async () => {
-
       try {
         const response = await fetch('http://localhost:8000/api/faculty/summary');
         const result = await response.json();
@@ -84,8 +83,6 @@ export default function DashboardPage() {
   };
 
   const baseStatuses = ['Aktif', 'Cuti', 'Lulus', 'DO'];
-
-  // Ambil semua status unik dari data backend + base statuses
   const allStatusNames = [...new Set([
     ...baseStatuses,
     ...(summaryData.statusCounts?.map(s => s.status) || [])
@@ -199,31 +196,22 @@ export default function DashboardPage() {
   ]
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-1.5 mb-8 pt-2">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-primary/10 rounded-xl text-primary">
-            <LayoutDashboard className="size-6" />
-          </div>
-          <h1 className="text-3xl font-black text-slate-900 font-headline tracking-tighter uppercase flex items-center gap-3">
-            Dashboard
-            <div className="px-3 py-1 bg-primary/10 text-primary text-[10px] font-black tracking-widest rounded-full not-italic border border-primary/20">
-              {summaryData.activePeriod || "SISTEM AKTIF"}
-            </div>
-          </h1>
+    <PageContainer>
+      <PageHeader
+        icon={LayoutDashboard}
+        title="Dashboard"
+        description="Pusat Kendali Akademik Fakultas"
+      >
+        <div className="px-4 py-1.5 bg-primary/10 text-primary text-[10px] font-black tracking-widest rounded-xl border border-primary/20 uppercase">
+          {summaryData.activePeriod || "SISTEM AKTIF"}
         </div>
-        <div className="flex items-center gap-2">
-          <div className="h-1 w-10 bg-primary rounded-full shadow-sm shadow-primary/30" />
-          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Pusat Kendali Akademik Fakultas</p>
-        </div>
-      </div>
+      </PageHeader>
 
-      {/* Stats Cards Row */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <ResponsiveGrid cols={4}>
         {dynamicStats.map((stat) => (
-          <Card key={stat.title} className="border border-slate-200 shadow-sm shadow-slate-200/50 overflow-hidden relative group transition-all duration-300 hover:shadow-xl hover:shadow-primary/5 rounded-2xl bg-white">
+          <ResponsiveCard key={stat.title} className="relative group p-0 min-h-[140px]">
             <div className={`absolute inset-0 bg-gradient-to-br ${stat.gradient} opacity-50`} />
-            <CardContent className="p-6 relative">
+            <div className="p-6 relative">
               <div className="flex items-center justify-between mb-4">
                 <div className={`p-2.5 rounded-xl ${stat.bg} ${stat.color} shadow-sm group-hover:scale-110 transition-transform duration-500`}>
                   <stat.icon className="size-5" />
@@ -236,16 +224,15 @@ export default function DashboardPage() {
               <div className="space-y-1">
                 <p className="text-[10px] font-black uppercase tracking-[0.15em] text-slate-400">{stat.title}</p>
                 <div className="flex items-baseline gap-2">
-                  <h3 className="text-3xl font-black text-slate-900 font-headline tracking-tighter">
+                  <h3 className="text-3xl font-black text-slate-900 font-headline tracking-tighter uppercase whitespace-nowrap">
                     {loading ? "..." : stat.value}
                   </h3>
                 </div>
-                <p className="text-[10px] font-bold text-slate-400/80 uppercase tracking-tight">{stat.description}</p>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </ResponsiveCard>
         ))}
-      </div>
+      </ResponsiveGrid>
 
       {/* Charts Row */}
       <div className="grid gap-6 lg:grid-cols-2">
@@ -483,6 +470,6 @@ export default function DashboardPage() {
           </Button>
         ))}
       </div>
-    </div>
+    </PageContainer>
   )
 }

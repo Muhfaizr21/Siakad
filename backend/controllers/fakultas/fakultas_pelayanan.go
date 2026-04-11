@@ -17,7 +17,8 @@ func AmbilDaftarAspirasi(c *fiber.Ctx) error {
 	query := config.DB.Preload("Mahasiswa.ProgramStudi").Preload("Mahasiswa.Pengguna").Order("created_at desc")
 	
 	if role == "faculty_admin" {
-		query = query.Joins("Mahasiswa").Where("\"Mahasiswa\".fakultas_id = ?", fid)
+		query = query.Joins("JOIN mahasiswa.mahasiswa ON mahasiswa.mahasiswa.id = mahasiswa.aspirasi.mahasiswa_id").
+			Where("mahasiswa.mahasiswa.fakultas_id = ?", fid)
 	}
 
 	query.Find(&daftar)
@@ -80,7 +81,8 @@ func AmbilDaftarPrestasi(c *fiber.Ctx) error {
 	query := config.DB.Preload("Mahasiswa.ProgramStudi").Preload("Mahasiswa.Pengguna").Order("created_at desc")
 	
 	if role == "faculty_admin" {
-		query = query.Joins("Mahasiswa").Where("\"Mahasiswa\".fakultas_id = ?", fid)
+		query = query.Joins("JOIN mahasiswa.mahasiswa ON mahasiswa.mahasiswa.id = mahasiswa.prestasi.mahasiswa_id").
+			Where("mahasiswa.mahasiswa.fakultas_id = ?", fid)
 	}
 
 	query.Find(&daftar)
@@ -130,7 +132,8 @@ func AmbilDaftarSurat(c *fiber.Ctx) error {
 	query := config.DB.Preload("Mahasiswa.ProgramStudi").Preload("Mahasiswa.Pengguna").Order("created_at desc")
 	
 	if role == "faculty_admin" {
-		query = query.Joins("Mahasiswa").Where("\"Mahasiswa\".fakultas_id = ?", fid)
+		query = query.Joins("JOIN mahasiswa.mahasiswa ON mahasiswa.mahasiswa.id = mahasiswa.pengajuan_surat.mahasiswa_id").
+			Where("mahasiswa.mahasiswa.fakultas_id = ?", fid)
 	}
 
 	query.Find(&daftar)
@@ -214,7 +217,8 @@ func AmbilPendaftarBeasiswa(c *fiber.Ctx) error {
 	query := config.DB.Preload("Beasiswa").Preload("Mahasiswa.ProgramStudi")
 	
 	if role == "faculty_admin" {
-		query = query.Joins("Mahasiswa").Where("\"Mahasiswa\".fakultas_id = ?", fid)
+		query = query.Joins("JOIN mahasiswa.mahasiswa ON mahasiswa.mahasiswa.id = mahasiswa.beasiswa_pendaftaran.mahasiswa_id").
+			Where("mahasiswa.mahasiswa.fakultas_id = ?", fid)
 	}
 
 	query.Find(&pendaftar)
@@ -343,7 +347,8 @@ func AmbilDaftarKonseling(c *fiber.Ctx) error {
 	query := config.DB.Order("created_at desc").Preload("Mahasiswa.ProgramStudi")
 	
 	if role == "faculty_admin" {
-		query = query.Joins("Mahasiswa").Where("\"Mahasiswa\".fakultas_id = ?", fid)
+		query = query.Joins("JOIN mahasiswa.mahasiswa ON mahasiswa.mahasiswa.id = mahasiswa.konseling.mahasiswa_id").
+			Where("mahasiswa.mahasiswa.fakultas_id = ?", fid)
 	}
 
 	query.Find(&daftar)
@@ -372,18 +377,18 @@ func AmbilDaftarKesehatan(c *fiber.Ctx) error {
 	fid := c.Locals("fakultas_id").(uint)
 
 	var daftar = []models.Kesehatan{}
-	query := config.DB.Preload("Mahasiswa.ProgramStudi")
+	query := config.DB.Preload("Mahasiswa.ProgramStudi").Preload("Mahasiswa.Pengguna")
 	
 	if role == "faculty_admin" {
-		query = query.Joins("Mahasiswa").Where("\"Mahasiswa\".fakultas_id = ?", fid)
+		query = query.Joins("JOIN mahasiswa.mahasiswa ON mahasiswa.mahasiswa.id = mahasiswa.kesehatan.mahasiswa_id").
+			Where("mahasiswa.mahasiswa.fakultas_id = ?", fid)
 	}
 
-	query.Find(&daftar)
+	query.Order("mahasiswa.kesehatan.created_at desc").Find(&daftar)
 	return c.JSON(fiber.Map{"status": "success", "data": daftar})
 }
 
 func AmbilRingkasanKesehatan(c *fiber.Ctx) error {
-	role := c.Locals("role").(string)
 	fid := c.Locals("fakultas_id").(uint)
 
 	var total int64
@@ -398,12 +403,10 @@ func AmbilRingkasanKesehatan(c *fiber.Ctx) error {
 		Pantauan int64 `json:"pantauan"`
 	}
 
-	qBase := config.DB.Model(&models.Kesehatan{})
-	if role == "faculty_admin" {
-		qBase = qBase.Joins("Mahasiswa").Where("\"Mahasiswa\".fakultas_id = ?", fid)
-	}
-
-	qBase.Count(&total)
+	config.DB.Model(&models.Kesehatan{}).
+		Joins("JOIN mahasiswa.mahasiswa ON mahasiswa.mahasiswa.id = mahasiswa.kesehatan.mahasiswa_id").
+		Where("mahasiswa.mahasiswa.fakultas_id = ? OR ? = 0", fid, fid).
+		Count(&total)
 	
 	// Create clones to avoid carrying over Where conditions to other counts if they share the same base
 	config.DB.Model(&models.Kesehatan{}).

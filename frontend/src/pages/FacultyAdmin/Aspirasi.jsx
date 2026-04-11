@@ -13,6 +13,7 @@ import { Textarea } from "./components/textarea"
 import { Label } from "./components/label"
 import { DataTable } from "./components/data-table"
 import { cn } from "@/lib/utils"
+import { PageContainer, PageHeader, ResponsiveGrid, ResponsiveCard } from "./components/responsive-layout"
 
 const FacultyAspirationManagement = () => {
   const [selectedItem, setSelectedItem] = useState(null)
@@ -81,8 +82,6 @@ const FacultyAspirationManagement = () => {
     }
   }
 
-
-
   const statsData = [
     { label: 'Total Masuk', value: (aspirations || []).length, icon: MessageSquare, color: 'text-blue-600', bg: 'bg-blue-50', gradient: 'from-blue-500/10 to-blue-500/5' },
     { label: 'Selesai', value: (aspirations || []).filter(a => a.Status === 'selesai').length, icon: CheckCircle2, color: 'text-emerald-600', bg: 'bg-emerald-50', gradient: 'from-emerald-500/10 to-emerald-500/5' },
@@ -91,126 +90,112 @@ const FacultyAspirationManagement = () => {
   ]
 
   return (
-    <div className="space-y-6">
+    <PageContainer>
       <Toaster position="top-right" />
-      <div className="flex flex-col gap-1.5 mb-8">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-primary/10 rounded-xl text-primary">
-            <MessageSquare className="size-6" />
-          </div>
-          <h1 className="text-2xl font-black text-slate-900 font-headline tracking-tighter uppercase leading-none">Manajemen Aspirasi</h1>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="h-1 w-10 bg-primary rounded-full shadow-sm shadow-primary/30" />
-          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest leading-none">Pusat Keluhan & Saran Mahasiswa</p>
-        </div>
-      </div>
+      
+      <PageHeader
+        icon={MessageSquare}
+        title="Manajemen Aspirasi"
+        description="Pusat Keluhan & Saran Mahasiswa"
+      />
 
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 mt-2">
+      <ResponsiveGrid cols={4}>
         {statsData.map((stat, i) => (
-          <Card key={i} className="border-none shadow-sm overflow-hidden rounded-3xl group hover:shadow-md transition-all duration-500 bg-white">
-            <CardContent className="p-0">
-              <div className={cn("p-6 flex items-start justify-between relative overflow-hidden", stat.bg)}>
+          <ResponsiveCard key={i} className="relative group p-0 min-h-[120px]">
+             <div className={cn("p-6 flex items-start justify-between relative overflow-hidden h-full rounded-[2rem]", stat.bg)}>
                 <div className={cn("absolute top-0 right-0 w-32 h-32 bg-gradient-to-br -mr-16 -mt-16 rounded-full opacity-20 transition-transform duration-700 group-hover:scale-110", stat.gradient)} />
                 <div className="relative z-10 flex flex-col">
-                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1 font-headline">{stat.label}</span>
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2rem] mb-1 font-headline">{stat.label}</span>
                   <div className="flex items-baseline gap-2">
-                    <span className={cn("text-3xl font-black font-headline tracking-tighter", stat.color)}>{stat.value.toLocaleString()}</span>
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">Record</span>
+                    <span className={cn("text-3xl font-black font-headline tracking-tighter uppercase", stat.color)}>{loading ? '...' : stat.value.toLocaleString()}</span>
                   </div>
                 </div>
-                <div className={cn("relative z-10 p-3 rounded-2xl shadow-sm bg-white/50 backdrop-blur-sm border border-white/50", stat.color)}>
+                <div className={cn("relative z-10 p-3 rounded-2xl shadow-sm bg-white/50 backdrop-blur-sm border border-white/50 group-hover:rotate-12 transition-transform duration-500", stat.color)}>
                   <stat.icon className="size-5" />
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+             </div>
+          </ResponsiveCard>
         ))}
-      </div>
+      </ResponsiveGrid>
 
-
-      <Card className="border-none shadow-sm mt-4 overflow-hidden rounded-3xl bg-white">
-        <CardContent className="p-0 font-headline">
-          <DataTable
-            columns={[{
-              key: "Mahasiswa",
-              label: "Mahasiswa",
-              render: (val) => (
-                <div className="flex items-center gap-4 text-left">
-                  <div className="w-10 h-10 rounded-2xl bg-slate-100 flex items-center justify-center font-black text-[10px] uppercase text-slate-800 font-headline shadow-inner border border-white">
-                    {val?.Nama?.charAt(0) || '?'}
-                  </div>
-                  <div className="flex flex-col leading-tight">
-                    <span className="font-bold text-slate-900 font-headline tracking-tighter uppercase text-[13px]">{val?.Nama || 'Anonim'}</span>
-                    <span className="text-[10px] text-slate-400 font-headline font-bold uppercase tracking-widest mt-0.5">{val?.NIM || '-'}</span>
-                  </div>
+      <ResponsiveCard noPadding>
+        <DataTable
+          columns={[{
+            key: "Mahasiswa",
+            label: "Mahasiswa",
+            render: (val) => (
+              <div className="flex items-center gap-4 text-left">
+                <div className="w-10 h-10 rounded-2xl bg-slate-100 flex items-center justify-center font-black text-[10px] uppercase text-slate-800 font-headline shadow-inner border border-white">
+                  {val?.Nama?.charAt(0) || '?'}
                 </div>
-              )
-            }, {
-              key: "Judul",
-              label: "Aspirasi & Keluhan",
-              render: (val, row) => (
-                <div className="flex flex-col gap-1 text-left">
-                  <span className="text-[9px] font-black text-blue-600 font-headline uppercase tracking-widest w-fit px-2 py-0.5 bg-blue-50/50 rounded-md border border-blue-100/30">{row.Kategori || 'Umum'}</span>
-                  <span className="font-bold text-slate-900 text-xs font-headline line-clamp-1 uppercase tracking-tight">{val}</span>
+                <div className="flex flex-col leading-tight">
+                  <span className="font-black text-slate-900 font-headline tracking-tighter uppercase text-[13px]">{val?.Nama || 'Anonim'}</span>
+                  <span className="text-[10px] text-slate-400 font-headline font-bold uppercase tracking-widest mt-0.5">{val?.NIM || '-'}</span>
                 </div>
-              )
-            }, {
-              key: "Isi",
-              label: "Informasi",
-              render: (val) => <p className="text-[11px] text-slate-500 line-clamp-1 italic font-bold font-headline max-w-[250px] uppercase">"{val}"</p>
-            }, {
-              key: "Status",
-              label: "Status",
-              className: "text-center",
-              cellClassName: "text-center",
-              render: (val) => (
-                <Badge
-                  className={cn(
-                    "capitalize font-black text-[10px] px-3 py-1 border-none shadow-sm font-headline",
-                    val === 'selesai' ? "bg-emerald-100 text-emerald-700 ring-1 ring-emerald-500/20" :
-                      val === 'ditolak' ? "bg-rose-100 text-rose-700 ring-1 ring-rose-500/20" :
-                        val === 'klarifikasi' ? "bg-amber-100 text-amber-700 ring-1 ring-amber-500/20" :
-                          val === 'proses' ? "bg-blue-100 text-blue-700 ring-1 ring-blue-500/20" :
-                            "bg-slate-100 text-slate-700 ring-1 ring-slate-500/20"
-                  )}
-                >
-                  {val || 'Pending'}
-                </Badge>
-              )
-            }]}
-            data={aspirations}
-            loading={loading}
-            searchPlaceholder="Cari Pengirim atau Judul..."
-            onSync={fetchAspirations}
-            syncLabel="Refresh Data"
-            filters={[
-              {
-                key: 'Status',
-                placeholder: 'Filter Status...',
-                options: [
-                  { label: 'Proses', value: 'proses' },
-                  { label: 'Klarifikasi', value: 'klarifikasi' },
-                  { label: 'Selesai', value: 'selesai' },
-                  { label: 'Ditolak', value: 'ditolak' },
-                ]
-              }
-            ]}
-            actions={(row) => (
-              <div className="flex items-center gap-1">
-                <Button onClick={() => { setSelectedItem(row); setAdminResponse(row.response || ''); setIsModalOpen(true); }} variant="ghost" size="icon" className="h-9 w-9 hover:text-blue-600 rounded-xl hover:bg-blue-50 transition-all">
-                  <Reply className="size-4" />
-                </Button>
-                <Button onClick={() => { setSelectedItem(row); setIsDelOpen(true); }} variant="ghost" size="icon" className="h-9 w-9 hover:text-amber-600 rounded-xl hover:bg-amber-50 transition-all text-slate-400" title="Arsipkan">
-                  <Archive className="size-4" />
-                </Button>
               </div>
-            )}
-          />
-        </CardContent>
-      </Card>
-
+            )
+          }, {
+            key: "Judul",
+            label: "Aspirasi & Keluhan",
+            render: (val, row) => (
+              <div className="flex flex-col gap-1 text-left">
+                <span className="text-[9px] font-black text-blue-600 font-headline uppercase tracking-widest w-fit px-2 py-0.5 bg-blue-50/50 rounded-md border border-blue-100/30">{row.Kategori || 'Umum'}</span>
+                <span className="font-bold text-slate-900 text-xs font-headline line-clamp-1 uppercase tracking-tight">{val}</span>
+              </div>
+            )
+          }, {
+            key: "Isi",
+            label: "Informasi",
+            render: (val) => <p className="text-[11px] text-slate-500 line-clamp-1 italic font-bold font-headline max-w-[250px] uppercase">"{val}"</p>
+          }, {
+            key: "Status",
+            label: "Status",
+            className: "text-center",
+            cellClassName: "text-center",
+            render: (val) => (
+              <Badge
+                className={cn(
+                  "capitalize font-black text-[10px] px-3 py-1 border-none shadow-sm font-headline",
+                  val === 'selesai' ? "bg-emerald-100 text-emerald-700 ring-1 ring-emerald-500/20" :
+                    val === 'ditolak' ? "bg-rose-100 text-rose-700 ring-1 ring-rose-500/20" :
+                      val === 'klarifikasi' ? "bg-amber-100 text-amber-700 ring-1 ring-amber-500/20" :
+                        val === 'proses' ? "bg-blue-100 text-blue-700 ring-1 ring-blue-500/20" :
+                          "bg-slate-100 text-slate-700 ring-1 ring-slate-500/20"
+                )}
+              >
+                {val || 'Pending'}
+              </Badge>
+            )
+          }]}
+          data={aspirations}
+          loading={loading}
+          searchPlaceholder="Cari Pengirim atau Judul..."
+          onSync={fetchAspirations}
+          syncLabel="Refresh Data"
+          filters={[
+            {
+              key: 'Status',
+              placeholder: 'Filter Status...',
+              options: [
+                { label: 'Proses', value: 'proses' },
+                { label: 'Klarifikasi', value: 'klarifikasi' },
+                { label: 'Selesai', value: 'selesai' },
+                { label: 'Ditolak', value: 'ditolak' },
+              ]
+            }
+          ]}
+          actions={(row) => (
+            <div className="flex items-center justify-end gap-1">
+              <Button onClick={() => { setSelectedItem(row); setAdminResponse(row.response || ''); setIsModalOpen(true); }} variant="outline" size="icon" className="h-9 w-9 border-slate-200 hover:text-blue-600 rounded-xl hover:bg-blue-50 transition-all shadow-sm">
+                <Reply className="size-4" />
+              </Button>
+              <Button onClick={() => { setSelectedItem(row); setIsDelOpen(true); }} variant="outline" size="icon" className="h-9 w-9 border-slate-200 hover:text-amber-600 rounded-xl hover:bg-amber-50 transition-all text-slate-400 shadow-sm" title="Arsipkan">
+                <Archive className="size-4" />
+              </Button>
+            </div>
+          )}
+        />
+      </ResponsiveCard>
       {/* Response Dialog */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent className="max-w-3xl p-0 overflow-hidden border-none shadow-2xl rounded-[2.5rem] bg-white font-headline">
@@ -233,21 +218,17 @@ const FacultyAspirationManagement = () => {
                   <div className="flex flex-col gap-1.5 text-white">
                     <div className="flex items-center gap-2">
                       <Badge className="bg-blue-500/20 text-blue-400 border-none px-2.5 py-0.5 text-[9px] font-black tracking-widest uppercase">
-                        {selectedItem.Kategori || 'UMUM'}
+                        Response Panel
                       </Badge>
-                      <div className="h-3 w-px bg-white/10" />
-                      <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Aspiration ID: {selectedItem.ID?.toString().padStart(6, '0')}</span>
+                      <DialogDescription className="sr-only">Panel tanggapan untuk aspirasi mahasiswa</DialogDescription>
                     </div>
-                    <h2 className="text-2xl font-black tracking-tighter leading-none uppercase max-w-[500px] truncate">
-                      {selectedItem.Judul}
-                    </h2>
-                    <div className="flex items-center gap-3 mt-1">
-                      <div className="flex items-center gap-2">
-                        <User className="size-3 text-white/40" />
-                        <span className="text-[11px] font-bold text-white/80 uppercase tracking-tight">{selectedItem.Mahasiswa?.Nama}</span>
-                      </div>
-                      <div className="size-1 rounded-full bg-white/10" />
-                      <span className="text-[11px] font-bold text-white/40 uppercase tracking-tight">{selectedItem.Mahasiswa?.NIM}</span>
+                    <DialogTitle className="text-2xl font-black tracking-tighter uppercase whitespace-nowrap leading-none mt-1">
+                      {selectedItem.Mahasiswa?.Nama || 'Student Voice'}
+                    </DialogTitle>
+                    <div className="flex items-center gap-3 text-white/50 font-bold text-[10px] uppercase tracking-widest mt-1">
+                      <span>NIM: {selectedItem.Mahasiswa?.NIM || '-'}</span>
+                      <div className="w-1 h-1 bg-white/20 rounded-full" />
+                      <span>{selectedItem.Kategori || 'General'}</span>
                     </div>
                   </div>
                 </div>
@@ -381,7 +362,7 @@ const FacultyAspirationManagement = () => {
         description="Aspirasi akan diarsipkan dan tidak lagi tampil di daftar aktif. Data tidak dihapus permanen."
         loading={isSubmitting}
       />
-    </div>
+    </PageContainer>
   )
 }
 

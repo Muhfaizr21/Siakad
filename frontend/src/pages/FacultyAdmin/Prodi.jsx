@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react"
 import { DataTable } from "./components/data-table"
 import { Button } from "./components/button"
 import { Badge } from "./components/badge"
-import { GraduationCap, Pencil, Trash2, Plus, Save, Loader2, CheckCircle2 } from "lucide-react"
+import { GraduationCap, Pencil, Trash2, Plus, Save, Loader2, CheckCircle2, Users } from "lucide-react"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "./components/dialog"
 import { DeleteConfirmModal } from "./components/DeleteConfirmModal"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "./components/card"
@@ -13,6 +13,7 @@ import { Label } from "./components/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./components/select"
 import { toast, Toaster } from "react-hot-toast"
 import { cn } from "@/lib/utils"
+import { PageContainer, PageHeader, ResponsiveGrid, ResponsiveCard } from "./components/responsive-layout"
 
 export default function ProdiPage() {
   const [majors, setMajors] = useState([])
@@ -28,6 +29,13 @@ export default function ProdiPage() {
   const [formData, setFormData] = useState({
     ID: null, FakultasID: "", Kode: "", Nama: "", Jenjang: "S1", Akreditasi: "B", Kapasitas: 100
   })
+
+  // Stats for prodi
+  const stats = [
+    { label: 'Total Prodi', value: majors.length, icon: GraduationCap, color: 'text-blue-600', bg: 'bg-blue-50' },
+    { label: 'Akreditasi A', value: majors.filter(m => m.Akreditasi === 'Unggul' || m.Akreditasi === 'A').length, icon: CheckCircle2, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+    { label: 'Kapasitas', value: majors.reduce((acc, m) => acc + (m.Kapasitas || 0), 0), icon: Users, color: 'text-indigo-600', bg: 'bg-indigo-50' },
+  ]
 
   const fetchMajors = async () => {
     setLoading(true)
@@ -125,20 +133,14 @@ export default function ProdiPage() {
     }
   }
 
-  const statsData = [
-    { label: 'Total Program Studi', value: majors.length, icon: GraduationCap, color: 'text-blue-600', bg: 'bg-blue-50', gradient: 'from-blue-500/10 to-blue-500/5' },
-    { label: 'Akreditasi Unggul/A', value: majors.filter(m => m.Akreditasi === 'Unggul' || m.Akreditasi === 'A').length, icon: Save, color: 'text-emerald-600', bg: 'bg-emerald-50', gradient: 'from-emerald-500/10 to-emerald-500/5' },
-    { label: 'Total Kapasitas', value: majors.reduce((acc, m) => acc + (m.Kapasitas || 0), 0), icon: Plus, color: 'text-indigo-600', bg: 'bg-indigo-50', gradient: 'from-indigo-500/10 to-indigo-500/5' },
-  ]
-
   const columns = [
     {
       key: "Nama",
       label: "Program Studi",
       render: (value, row) => (
         <div className="flex flex-col">
-          <span className="font-bold text-slate-900 font-headline tracking-tight uppercase text-[13px]">{value}</span>
-          <span className="text-[10px] text-slate-400 font-black uppercase tracking-widest leading-none mt-1">{row.Jenjang || 'S1'} — {row.Fakultas?.Nama || 'FAKULTAS'}</span>
+          <span className="font-black text-slate-900 font-headline tracking-tighter uppercase text-[13px] leading-tight">{value}</span>
+          <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">{row.Jenjang || 'S1'} — {row.Fakultas?.Nama || 'FAKULTAS'}</span>
         </div>
       ),
     },
@@ -150,7 +152,7 @@ export default function ProdiPage() {
       render: (value) => (
         <Badge
           className={cn(
-            "font-black text-[10px] px-3 py-1 border-none shadow-sm font-headline uppercase",
+            "font-black text-[10px] px-3 py-1 border-none shadow-sm font-headline uppercase tracking-widest",
             (value === 'A' || value === 'Unggul') ? "bg-emerald-100 text-emerald-700 ring-1 ring-emerald-500/20" :
               (value === 'B' || value === 'Baik Sekali') ? "bg-blue-100 text-blue-700 ring-1 ring-blue-500/20" :
                 "bg-slate-100 text-slate-700 ring-1 ring-slate-500/20"
@@ -162,15 +164,15 @@ export default function ProdiPage() {
     },
     {
       key: "CurrentMahasiswa",
-      label: "Slot Kapasitas",
-      className: "text-center",
-      cellClassName: "text-center",
+      label: "Kapasitas",
+      className: "text-right",
+      cellClassName: "text-right",
       render: (value, row) => (
-        <div className="flex flex-col items-center">
-          <span className="font-black text-slate-700 font-headline text-sm tracking-tight">{value || 0} <span className="text-slate-300 font-medium">/</span> {row.Kapasitas || 0}</span>
-          <div className="w-16 h-1 bg-slate-100 rounded-full mt-1 overflow-hidden">
+        <div className="flex flex-col items-end">
+          <span className="font-black text-slate-700 font-headline text-sm tracking-tighter uppercase whitespace-nowrap">{value || 0} / {row.Kapasitas || 0} MHS</span>
+          <div className="w-20 h-1 bg-slate-100 rounded-full mt-1.5 overflow-hidden">
             <div
-              className="h-full bg-primary"
+              className={cn("h-full", (value/row.Kapasitas > 0.9) ? "bg-rose-500" : "bg-primary")}
               style={{ width: `${Math.min(((value || 0) / (row.Kapasitas || 1)) * 100, 100)}%` }}
             />
           </div>
@@ -180,44 +182,50 @@ export default function ProdiPage() {
   ]
 
   return (
-    <div className="space-y-6">
+    <PageContainer>
       <Toaster position="top-right" />
-      <div className="flex flex-col gap-1.5">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-primary/10 rounded-xl text-primary">
-            <GraduationCap className="size-6" />
-          </div>
-          <h1 className="text-2xl font-black text-slate-900 font-headline tracking-tighter uppercase">Master Program Studi</h1>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="h-1 w-10 bg-primary rounded-full shadow-sm shadow-primary/30" />
-          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Portal Akademik & Manajemen Kurikulum</p>
-        </div>
-      </div>
+      
+      <PageHeader
+        icon={GraduationCap}
+        title="Master Program Studi"
+        description="Portal Akademik & Manajemen Kurikulum"
+      />
 
-      <Card className="border-none shadow-sm flex flex-col overflow-hidden bg-white/50 backdrop-blur-md rounded-3xl">
-        <CardContent className="p-0 font-headline">
-          <DataTable
-            columns={columns}
-            data={majors}
-            loading={loading}
-            searchPlaceholder="Cari Nama Prodi atau Jenjang..."
-            onAdd={handleOpenAdd}
-            onSync={fetchMajors}
-            addLabel="Registrasi Prodi"
-            actions={(row) => (
-              <div className="flex items-center gap-2">
-                <Button onClick={() => handleOpenEdit(row)} variant="ghost" size="icon" className="h-9 w-9 hover:text-blue-600 rounded-xl hover:bg-blue-50">
-                  <Pencil className="size-4" />
-                </Button>
-                <Button onClick={() => { setSelectedProdiId(row.ID); setIsDelOpen(true); }} variant="ghost" size="icon" className="h-9 w-9 hover:text-rose-600 rounded-xl hover:bg-rose-50">
-                  <Trash2 className="size-4" />
-                </Button>
-              </div>
-            )}
-          />
-        </CardContent>
-      </Card>
+      <ResponsiveGrid cols={3}>
+        {stats.map((s, i) => (
+          <ResponsiveCard key={i} className="flex flex-row items-center gap-5">
+            <div className={`p-4 rounded-2xl ${s.bg} ${s.color}`}>
+              <s.icon className="size-6" />
+            </div>
+            <div>
+              <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest">{s.label}</p>
+              <h3 className="text-2xl font-black text-slate-900 font-headline tracking-tighter uppercase">{loading ? '...' : s.value}</h3>
+            </div>
+          </ResponsiveCard>
+        ))}
+      </ResponsiveGrid>
+
+      <ResponsiveCard noPadding>
+        <DataTable
+          columns={columns}
+          data={majors}
+          loading={loading}
+          onSync={fetchMajors}
+          onAdd={handleOpenAdd}
+          addLabel="Registrasi Prodi"
+          searchPlaceholder="Cari Nama Prodi atau Jenjang..."
+          actions={(row) => (
+            <div className="flex items-center justify-end gap-2">
+              <Button onClick={() => handleOpenEdit(row)} variant="outline" size="sm" className="h-9 px-3 border-slate-200 rounded-xl hover:text-blue-600 hover:bg-blue-50 hover:border-blue-200">
+                <Pencil className="size-3.5" />
+              </Button>
+              <Button onClick={() => { setSelectedProdiId(row.ID); setIsDelOpen(true); }} variant="outline" size="sm" className="h-9 px-3 border-slate-200 rounded-xl hover:text-rose-600 hover:bg-rose-50 hover:border-rose-200">
+                <Trash2 className="size-3.5" />
+              </Button>
+            </div>
+          )}
+        />
+      </ResponsiveCard>
 
       {/* CRUD MODAL */}
       <Dialog open={isCrudOpen} onOpenChange={setIsCrudOpen}>
@@ -351,6 +359,6 @@ export default function ProdiPage() {
         description="Menghapus basis program studi akan berdampak pada kurikulum dan data mahasiswa terkait di masa depan."
         loading={isSubmitting}
       />
-    </div>
+    </PageContainer>
   )
 }

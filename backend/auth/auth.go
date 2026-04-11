@@ -395,10 +395,10 @@ func EnsureBootstrapData() error {
 
 	// Additional Premium Lecturers
 	premiumLecturers := []struct {
-		Name  string
-		NIDN  string
+		Name    string
+		NIDN    string
 		Jabatan string
-		Email string
+		Email   string
 	}{
 		{"Dr. Ahmad Wijaya, M.T.", "0401018501", "Lektor Kepala", "ahmad.wijaya@bku.ac.id"},
 		{"Siti Aminah, M.Kom.", "0412059002", "Asisten Ahli", "siti.aminah@bku.ac.id"},
@@ -466,10 +466,10 @@ func EnsureBootstrapData() error {
 		var facultyAdmin models.User
 		if err := config.DB.Where("email = ?", email).First(&facultyAdmin).Error; err != nil {
 			facultyAdmin = models.User{
-				Email:        email,
-				Password: string(hashFA),
-				Role:         "faculty_admin",
-				FakultasID:   &fak.ID,
+				Email:      email,
+				Password:   string(hashFA),
+				Role:       "faculty_admin",
+				FakultasID: &fak.ID,
 			}
 			config.DB.Create(&facultyAdmin)
 			fmt.Printf("✅ [SEEDER] Created Faculty Admin: %s\n", email)

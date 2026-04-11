@@ -2,18 +2,17 @@
 
 import React, { useState, useEffect } from 'react'
 import axios from 'axios'
-import { Card, CardContent } from "./components/card"
-import { Button } from "./components/button"
-import { Badge } from "./components/badge"
 import { DataTable } from "./components/data-table"
-import { toast, Toaster } from 'react-hot-toast'
-import { Plus, Pencil, ExternalLink, Loader2, Save, GraduationCap as CapIcon, Users, UserCheck, Clock, Building2, CalendarDays, FileText, Download, Filter } from 'lucide-react'
+import { Badge } from "./components/badge"
+import { Button } from "./components/button"
+import { Plus, Pencil, ExternalLink, Loader2, Save, GraduationCap as CapIcon, Users, UserCheck, Clock, FileText, X } from 'lucide-react'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "./components/dialog"
 import { Input } from "./components/input"
 import { Label } from "./components/label"
 import { Textarea } from "./components/textarea"
 import { Avatar, AvatarFallback } from "./components/avatar"
 import { cn } from "@/lib/utils"
+import { toast, Toaster } from 'react-hot-toast'
 import {
   Select,
   SelectContent,
@@ -21,6 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "./components/select"
+import { PageContainer, PageHeader, ResponsiveGrid, ResponsiveCard } from "./components/responsive-layout"
 
 export default function FacultyScholarship() {
   const [activeTab, setActiveTab] = useState('programs')
@@ -82,22 +82,14 @@ export default function FacultyScholarship() {
     }
   }
 
-  const openEditProg = (row) => {
-    setProgForm({
-      ...row,
-      deadline: row.deadline ? new Date(row.deadline).toISOString().split('T')[0] : ""
-    })
-    setShowProgModal(true)
-  }
-
   const progColumns = [
     {
       key: "Nama",
       label: "Program Beasiswa",
       render: (v) => (
         <div className="flex flex-col leading-tight">
-          <span className="font-bold text-slate-900 font-headline tracking-tighter text-[13px] uppercase">{v}</span>
-          <span className="text-[10px] text-slate-400 font-bold uppercase tracking-tight flex items-center gap-1">
+          <span className="font-black text-slate-900 font-headline tracking-tighter text-[13px] uppercase">{v}</span>
+          <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1 flex items-center gap-1 leading-none">
             <CapIcon className="size-2.5 opacity-60" />
             Faculty Academic Scholarship
           </span>
@@ -106,17 +98,17 @@ export default function FacultyScholarship() {
     },
     {
       key: "Penyelenggara",
-      label: "Penyelenggara",
-      render: (v) => <span className="text-xs text-slate-600 font-black font-headline uppercase">{v}</span>
+      label: "Provider",
+      render: (v) => <span className="text-[10px] text-slate-600 font-black font-headline uppercase tracking-widest">{v}</span>
     },
     {
       key: "Kuota",
-      label: "Slot / Kuota",
+      label: "Kapasitas",
       className: "text-center",
       cellClassName: "text-center",
       render: (v, r) => (
-        <span className="font-bold text-slate-900 font-headline text-sm tracking-tighter">
-          {r.acceptedCount || 0} / {v}
+        <span className="font-black text-slate-700 font-headline text-[13px] tracking-tighter uppercase whitespace-nowrap">
+          {r.acceptedCount || 0} / {v} SLOT
         </span>
       )
     },
@@ -139,7 +131,7 @@ export default function FacultyScholarship() {
         return (
           <Badge
             className={cn(
-              "capitalize font-black text-[10px] px-3 py-1 border-none shadow-sm font-headline",
+              "capitalize font-black text-[10px] px-3 py-1 border-none shadow-sm font-headline uppercase tracking-widest",
               isBuka ? "bg-emerald-100 text-emerald-700 ring-1 ring-emerald-500/20" :
                 "bg-rose-100 text-rose-700 ring-1 ring-rose-500/20"
             )}
@@ -154,7 +146,7 @@ export default function FacultyScholarship() {
   const appColumns = [
     {
       key: "Mahasiswa",
-      label: "Identitas Mahasiswa",
+      label: "Pendaftar",
       render: (v) => (
         <div className="flex items-center gap-3">
           <Avatar className="h-10 w-10 rounded-2xl border-2 border-white shadow-sm ring-1 ring-slate-100 uppercase font-black text-slate-800">
@@ -163,29 +155,29 @@ export default function FacultyScholarship() {
             </AvatarFallback>
           </Avatar>
           <div className="flex flex-col leading-tight">
-            <span className="font-bold text-slate-900 font-headline uppercase text-[13px] tracking-tighter">{v?.Nama || 'Unknown'}</span>
-            <span className="text-[10px] font-bold text-slate-400 font-headline uppercase tracking-widest mt-0.5">{v?.NIM || '-'}</span>
+            <span className="font-black text-slate-900 font-headline uppercase text-[13px] tracking-tighter">{v?.Nama || 'Unknown'}</span>
+            <span className="text-[10px] font-black text-slate-400 font-headline uppercase tracking-widest mt-0.5">{v?.NIM || '-'}</span>
           </div>
         </div>
       )
     },
     {
       key: "Beasiswa",
-      label: "Nama Program",
-      render: (_, row) => <span className="text-xs text-slate-600 font-black font-headline uppercase">{row?.Beasiswa?.Nama || '-'}</span>
+      label: "Jenis Program",
+      render: (_, row) => <span className="text-[10px] text-slate-600 font-black font-headline uppercase tracking-widest">{row?.Beasiswa?.Nama || '-'}</span>
     },
     {
       key: "FileURL",
-      label: "Berkas",
+      label: "Berkas Berkas",
       render: (v) => (
-        <a href={v} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase text-primary hover:underline">
+        <a href={v} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase text-primary hover:underline tracking-tight">
           <FileText className="size-3" /> Lihat Berkas
         </a>
       )
     },
     {
       key: "Status",
-      label: "Status Review",
+      label: "Validasi Lanjutan",
       className: "text-center",
       cellClassName: "text-center",
       render: (val) => {
@@ -193,7 +185,7 @@ export default function FacultyScholarship() {
         return (
           <Badge
             className={cn(
-              "capitalize font-black text-[10px] px-3 py-1 border-none shadow-sm font-headline",
+              "capitalize font-black text-[10px] px-3 py-1 border-none shadow-sm font-headline uppercase tracking-widest",
               status === 'diterima' ? "bg-emerald-100 text-emerald-700 ring-1 ring-emerald-500/20" :
                 status === 'ditolak' ? "bg-rose-100 text-rose-700 ring-1 ring-rose-500/20" :
                   "bg-amber-100 text-amber-700 ring-1 ring-amber-500/20"
@@ -211,100 +203,80 @@ export default function FacultyScholarship() {
     : [{ label: 'Proses', value: 'proses' }, { label: 'Diterima', value: 'diterima' }, { label: 'Ditolak', value: 'ditolak' }]
 
   const statsData = [
-    { label: 'Total Beasiswa', value: (scholarships || []).length, icon: CapIcon, color: 'text-blue-600', bg: 'bg-blue-50', gradient: 'from-blue-500/10 to-blue-500/5' },
-    { label: 'Pendaftar Baru', value: (applications || []).filter(a => (a.Status || 'proses').toLowerCase() === 'proses').length, icon: Users, color: 'text-emerald-600', bg: 'bg-emerald-50', gradient: 'from-emerald-500/10 to-emerald-500/5' },
-    { label: 'Daftar Diterima', value: (applications || []).filter(a => (a.Status || '').toLowerCase() === 'diterima').length, icon: UserCheck, color: 'text-indigo-600', bg: 'bg-indigo-50', gradient: 'from-indigo-500/10 to-indigo-500/5' },
-    { label: 'Kuota Aktif', value: (scholarships || []).filter(s => new Date(s.Deadline) > new Date()).length, icon: Clock, color: 'text-amber-600', bg: 'bg-amber-50', gradient: 'from-amber-500/10 to-amber-500/5' },
+    { label: 'Total Beasiswa', value: (scholarships || []).length, icon: CapIcon, color: 'text-blue-600', bg: 'bg-blue-50' },
+    { label: 'Pendaftar Baru', value: (applications || []).filter(a => (a.Status || 'proses').toLowerCase() === 'proses').length, icon: Users, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+    { label: 'Lolos Seleksi', value: (applications || []).filter(a => (a.Status || '').toLowerCase() === 'diterima').length, icon: UserCheck, color: 'text-indigo-600', bg: 'bg-indigo-50' },
+    { label: 'Kuota Aktif', value: (scholarships || []).filter(s => new Date(s.Deadline) > new Date()).length, icon: Clock, color: 'text-amber-600', bg: 'bg-amber-50' },
   ]
 
   return (
-    <div className="space-y-6">
+    <PageContainer>
       <Toaster position="top-right" />
-      <div className="flex flex-col gap-1.5 mb-8">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-primary/10 rounded-xl text-primary">
-            <CapIcon className="size-6" />
-          </div>
-          <h1 className="text-2xl font-black text-slate-900 font-headline tracking-tighter uppercase leading-none">Manajemen Beasiswa</h1>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="h-1 w-10 bg-primary rounded-full shadow-sm shadow-primary/30" />
-          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Verifikasi Pendaftar Beasiswa Fakultas</p>
-        </div>
-      </div>
+      
+      <PageHeader
+        icon={CapIcon}
+        title="Manajemen Beasiswa"
+        description="Verifikasi Pendaftar Beasiswa Fakultas"
+      />
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+      <ResponsiveGrid cols={4}>
         {statsData.map((stat, i) => (
-          <Card key={i} className="border-none shadow-sm flex flex-col overflow-hidden bg-white relative group transition-all duration-300 rounded-[1.5rem] hover:shadow-xl">
-            <div className={`absolute inset-0 bg-gradient-to-br ${stat.gradient} opacity-50`} />
-            <CardContent className="p-6 relative">
-              <div className="flex items-center justify-between mb-4">
-                <div className={`p-2.5 rounded-xl ${stat.bg} ${stat.color} shadow-sm transition-transform duration-500 group-hover:scale-110`}>
-                  <stat.icon className="size-5" />
-                </div>
-              </div>
-              <div className="space-y-1">
-                <p className="text-[10px] font-black uppercase tracking-[0.15em] text-slate-400 font-headline">{stat.label}</p>
-                <h3 className={cn("text-3xl font-black font-headline tracking-tighter text-slate-900")}>
-                  {loading ? "..." : stat.value}
-                </h3>
-              </div>
-            </CardContent>
-          </Card>
+          <ResponsiveCard key={i} className="flex flex-row items-center gap-4">
+            <div className={`p-3 rounded-xl ${stat.bg} ${stat.color}`}>
+              <stat.icon className="size-5" />
+            </div>
+            <div className="flex flex-col">
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{stat.label}</span>
+              <span className="text-xl font-black text-slate-900 font-headline tracking-tighter leading-none uppercase">{loading ? '...' : stat.value}</span>
+            </div>
+          </ResponsiveCard>
         ))}
+      </ResponsiveGrid>
+
+      <div className="flex p-1.5 bg-white border border-slate-200/60 rounded-2xl shadow-sm w-fit gap-1 my-6 overflow-x-auto no-scrollbar max-w-full">
+        <button
+          onClick={() => setActiveTab('programs')}
+          className={`px-6 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all duration-300 flex items-center gap-2 whitespace-nowrap ${activeTab === 'programs' ? 'bg-primary text-white shadow-xl shadow-primary/25' : 'text-slate-500 hover:bg-slate-50'
+            }`}
+        >
+          <CapIcon className="size-4" />
+          Program Beasiswa
+        </button>
+        <button
+          onClick={() => setActiveTab('applications')}
+          className={`px-6 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all duration-300 flex items-center gap-2 whitespace-nowrap ${activeTab === 'applications' ? 'bg-primary text-white shadow-xl shadow-primary/25' : 'text-slate-500 hover:bg-slate-50'
+            }`}
+        >
+          <Users className="size-4" />
+          Review Pendaftar
+        </button>
       </div>
 
-      <div className="flex items-center justify-between gap-4 flex-wrap">
-        <div className="flex p-1.5 bg-white border border-slate-200/60 rounded-2xl shadow-sm w-fit gap-1">
-          <button
-            onClick={() => setActiveTab('programs')}
-            className={`px-6 py-2.5 text-[11px] font-black uppercase tracking-widest rounded-xl transition-all duration-300 flex items-center gap-2 ${activeTab === 'programs' ? 'bg-primary text-white shadow-lg shadow-primary/25 translate-x-1' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
-              }`}
-          >
-            <CapIcon className="size-4" />
-            Program Beasiswa
-          </button>
-          <button
-            onClick={() => setActiveTab('applications')}
-            className={`px-6 py-2.5 text-[11px] font-black uppercase tracking-widest rounded-xl transition-all duration-300 flex items-center gap-2 ${activeTab === 'applications' ? 'bg-primary text-white shadow-lg shadow-primary/25 translate-x-1' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
-              }`}
-          >
-            <Users className="size-4" />
-            Review Pendaftar
-          </button>
-        </div>
-      </div>
-
-      <Card className="border-none shadow-sm flex flex-col overflow-hidden bg-white rounded-3xl">
-        <CardContent className="p-0">
-          <DataTable
-            columns={activeTab === 'programs' ? progColumns : appColumns}
-            data={activeTab === 'programs' ? scholarships : applications}
-            loading={loading}
-            searchPlaceholder={activeTab === 'programs' ? "Cari nama beasiswa..." : "Cari mahasiswa atau NIM..."}
-            onExport={() => alert("Ekspor Data Beasiswa...")}
-            exportLabel="Master Data"
-            filters={[
-              {
-                key: 'Status',
-                placeholder: 'Filter Status',
-                options: statusOptions
-              }
-            ]}
-            actions={(row) => (
-              activeTab === 'programs' ? (
-                <div className="flex items-center gap-2">
-                  <Badge className="text-[9px] font-black uppercase tracking-widest px-3 py-1 bg-slate-100 text-slate-400 border-none rounded-lg">Superadmin Only</Badge>
-                </div>
-              ) : (
-                <Button onClick={() => { setSelectedItem(row); setShowAppModal(true) }} variant="ghost" size="icon" className="h-8 w-8 hover:text-primary hover:bg-primary/10 rounded-xl">
+      <ResponsiveCard noPadding>
+        <DataTable
+          columns={activeTab === 'programs' ? progColumns : appColumns}
+          data={activeTab === 'programs' ? scholarships : applications}
+          loading={loading}
+          searchPlaceholder={activeTab === 'programs' ? "Cari nama beasiswa..." : "Cari mahasiswa atau NIM..."}
+          onExport={() => alert("Ekspor Data Beasiswa...")}
+          exportLabel="Master Data"
+          filters={[{ key: 'Status', placeholder: 'Filter Status', options: statusOptions }]}
+          actions={(row) => (
+            activeTab === 'programs' ? (
+              <div className="flex items-center justify-end gap-2 pr-2">
+                <Badge className="text-[9px] font-black uppercase tracking-widest px-3 py-1 bg-slate-100 text-slate-400 border-none rounded-lg font-headline">LOCKED</Badge>
+              </div>
+            ) : (
+              <div className="flex items-center justify-end pr-2">
+                <Button onClick={() => { setSelectedItem(row); setShowAppModal(true) }} variant="outline" size="sm" className="h-9 px-3 border-slate-200 hover:text-primary rounded-xl shadow-sm transition-all hover:bg-primary/5">
                   <ExternalLink className="size-4" />
                 </Button>
-              )
-            )}
-          />
-        </CardContent>
-      </Card>
+              </div>
+            )
+          )}
+        />
+      </ResponsiveCard>
+
 
       {/* Program Modal (Exact Mahasiswa Copy Style) */}
       <Dialog open={showProgModal} onOpenChange={setShowProgModal}>
@@ -519,6 +491,6 @@ export default function FacultyScholarship() {
           </div>
         </DialogContent>
       </Dialog>
-    </div>
+    </PageContainer>
   )
 }

@@ -1,5 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { toast, Toaster } from 'react-hot-toast';
+"use client"
+
+import React, { useState, useEffect } from "react"
+import { toast, Toaster } from "react-hot-toast"
 import { 
   User, 
   Mail, 
@@ -7,49 +9,14 @@ import {
   ShieldCheck, 
   Save, 
   Loader2,
-  KeyRound,
   AlertCircle
-} from 'lucide-react';
-import api from '../../lib/axios';
-
-// Re-using local minimalist components to be safe from import issues while keeping premium look
-const Card = ({ children, className = "" }) => (
-  <div className={`bg-white rounded-[2.5rem] border border-slate-200/60 shadow-sm overflow-hidden transition-all hover:shadow-md ${className}`}>
-    {children}
-  </div>
-);
-
-const CardContent = ({ children, className = "" }) => (
-  <div className={`p-8 ${className}`}>{children}</div>
-);
-
-const Input = ({ icon: Icon, label, ...props }) => (
-  <div className="space-y-2">
-    {label && <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">{label}</label>}
-    <div className="relative group">
-      <input 
-        {...props}
-        className="w-full h-12 pl-12 pr-4 rounded-2xl border border-slate-200 bg-slate-50/50 focus:bg-white focus:border-primary focus:ring-4 focus:ring-primary/5 outline-none transition-all font-bold text-sm font-headline"
-      />
-      {Icon && <Icon className="absolute left-4 top-1/2 -translate-y-1/2 size-4 text-slate-400 group-focus-within:text-primary transition-colors" />}
-    </div>
-  </div>
-);
-
-const CustomButton = ({ children, loading, icon: Icon, variant = "primary", ...props }) => {
-  const baseClass = "h-12 px-10 rounded-2xl shadow-xl transition-all hover:scale-[1.02] active:scale-95 flex items-center justify-center font-headline border-none cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed";
-  const variants = {
-    primary: "bg-primary text-white shadow-primary/20 hover:bg-primary/90",
-    dark: "bg-slate-900 text-white shadow-slate-200 hover:bg-black"
-  };
-  
-  return (
-    <button className={`${baseClass} ${variants[variant]}`} disabled={loading} {...props}>
-      {loading ? <Loader2 className="animate-spin size-4 mr-3" /> : Icon && <Icon className="size-4 mr-3" />}
-      <span className="text-[10px] font-black uppercase tracking-[0.2em]">{children}</span>
-    </button>
-  );
-};
+} from "lucide-react"
+import api from "../../lib/axios"
+import { Button } from "./components/button"
+import { Input } from "./components/input"
+import { Label } from "./components/label"
+import { Badge } from "./components/badge"
+import { PageContainer, PageHeader, ResponsiveGrid, ResponsiveCard } from "./components/responsive-layout"
 
 export default function Settings() {
   const [loading, setLoading] = useState(true);
@@ -126,155 +93,135 @@ export default function Settings() {
   }
 
   return (
-    <div className="p-6 md:p-8 space-y-8 animate-in fade-in duration-700">
+    <PageContainer>
       <Toaster position="top-right" />
       
-      {/* Header */}
-      <div className="flex flex-col gap-1.5">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-primary/10 rounded-xl text-primary">
-            <ShieldCheck className="size-6" />
-          </div>
-          <h1 className="text-2xl font-black text-slate-900 font-headline tracking-tighter uppercase">Pengaturan Akun</h1>
-        </div>
-        <div className="flex items-center gap-2">
-           <div className="h-1 w-10 bg-primary rounded-full shadow-sm shadow-primary/30" />
-           <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Kelola Keamanan & Akses Portal Fakultas</p>
-        </div>
-      </div>
+      <PageHeader
+        icon={ShieldCheck}
+        title="Pengaturan Akun"
+        description="Kelola Keamanan & Akses Portal"
+      />
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        
-        {/* Left Col: Info & Help */}
+      <ResponsiveGrid cols={3}>
         <div className="lg:col-span-1 space-y-6">
-          <Card className="p-2 relative bg-white group">
-            <CardContent className="p-6 relative z-10">
-              <div className="size-16 rounded-2xl bg-slate-50 flex items-center justify-center mb-6 border border-slate-100 group-hover:scale-110 transition-transform duration-500 shadow-sm">
-                <User className="size-8 text-primary" />
-              </div>
-              <h3 className="text-lg font-black text-slate-900 font-headline uppercase tracking-tight mb-2">Informasi Akun</h3>
-              <p className="text-[11px] text-slate-500 font-bold leading-relaxed mb-6 uppercase">
-                Pastikan email Anda aktif untuk menerima notifikasi sistem dan laporan berkala. Password harus diganti secara rutin.
-              </p>
-              
-              <div className="flex items-center gap-3 p-4 rounded-2xl bg-slate-50 border border-slate-100 italic font-medium">
-                <div className="size-8 rounded-lg bg-white flex items-center justify-center shadow-sm">
-                  <ShieldCheck className="size-4 text-emerald-500" />
+          <ResponsiveCard className="h-fit">
+                <div className="size-16 rounded-2xl bg-slate-50 flex items-center justify-center mb-6 border border-slate-100 shadow-sm">
+                  <User className="size-8 text-primary" />
                 </div>
-                <div>
-                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none">Status Role</p>
-                  <p className="text-[11px] font-black text-slate-900 mt-1 uppercase tracking-tight">{profile.role?.replace('_', ' ')}</p>
+                <h3 className="text-lg font-black text-slate-900 font-headline uppercase tracking-tight mb-2">Informasi Akun</h3>
+                <p className="text-[11px] text-slate-400 font-bold leading-relaxed mb-6 uppercase">
+                  Pastikan email Anda aktif untuk menerima notifikasi sistem dan laporan berkala.
+                </p>
+                
+                <div className="flex items-center gap-3 p-4 rounded-2xl bg-slate-50 border border-slate-100">
+                  <div className="size-8 rounded-lg bg-white flex items-center justify-center shadow-sm">
+                    <ShieldCheck className="size-4 text-emerald-500" />
+                  </div>
+                  <div>
+                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none">Status Role</p>
+                    <p className="text-[11px] font-black text-slate-900 mt-1 uppercase tracking-tight">{profile.role?.replace('_', ' ')}</p>
+                  </div>
                 </div>
-              </div>
-            </CardContent>
-            <div className="absolute -right-8 -bottom-8 size-32 bg-primary/5 rounded-full blur-2xl"></div>
-          </Card>
+          </ResponsiveCard>
 
           <div className="bg-rose-50 border border-rose-100 p-6 rounded-[2rem] flex gap-4">
             <div className="size-10 rounded-xl bg-white flex items-center justify-center text-rose-500 shrink-0 shadow-sm border border-rose-200/50">
               <AlertCircle className="size-5" />
             </div>
             <div>
-              <h4 className="text-sm font-bold text-rose-900 uppercase tracking-tight mb-1 font-headline">Keamanan Lapisan Ganda</h4>
+              <h4 className="text-sm font-bold text-rose-900 uppercase tracking-tight mb-1 font-headline">Keamanan Akun</h4>
               <p className="text-[10px] text-rose-700/80 leading-relaxed font-bold uppercase">
-                Admin dilarang memberikan akses email dan password kepada pihak lain di luar administrator resmi.
+                Jangan berikan akses akun anda kepada pihak lain di luar otoritas resmi.
               </p>
             </div>
           </div>
         </div>
 
-        {/* Right Col: Forms */}
-        <div className="lg:col-span-2 space-y-8">
-          
-          {/* Email Update Form */}
-          <Card>
-            <div className="p-8 border-b border-slate-100 flex items-center justify-between bg-slate-50/30">
-              <div className="flex items-center gap-4">
-                <div className="size-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center shadow-sm text-primary">
-                  <Mail className="size-5" />
-                </div>
-                <div>
-                  <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest font-headline">Alamat Email</h3>
-                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">Kontak Utama Administrator</p>
-                </div>
+        <div className="lg:col-span-2 space-y-6">
+          <ResponsiveCard>
+            <div className="flex items-center gap-4 mb-8">
+              <div className="size-10 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-primary">
+                <Mail className="size-5" />
+              </div>
+              <div>
+                <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest font-headline">Alamat Email</h3>
+                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">Kontak Utama Administrator</p>
               </div>
             </div>
-            <CardContent>
-              <form onSubmit={handleUpdateEmail} className="space-y-6">
+            <form onSubmit={handleUpdateEmail} className="space-y-6">
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline">Email Pengguna</Label>
                 <Input 
-                  label="Email Pengguna"
-                  icon={Mail}
                   type="email" 
                   value={profile.email}
                   onChange={(e) => setProfile({...profile, email: e.target.value})}
-                  placeholder="nama@bku.ac.id" 
+                  className="h-12 rounded-2xl font-bold font-headline"
                   required
                 />
-                <div className="flex justify-end">
-                  <CustomButton type="submit" loading={submitting} icon={Save}>
-                    Simpan Perubahan
-                  </CustomButton>
-                </div>
-              </form>
-            </CardContent>
-          </Card>
+              </div>
+              <div className="flex justify-end">
+                <Button type="submit" disabled={submitting} className="h-12 px-10 rounded-2xl font-headline">
+                  {submitting ? <Loader2 className="animate-spin size-4 mr-2" /> : <Save className="size-4 mr-2" />}
+                  <span className="text-[10px] font-black uppercase tracking-widest">Simpan Perubahan</span>
+                </Button>
+              </div>
+            </form>
+          </ResponsiveCard>
 
-          {/* Password Change Form */}
-          <Card>
-            <div className="p-8 border-b border-slate-100 flex items-center justify-between bg-slate-50/30">
-              <div className="flex items-center gap-4">
-                <div className="size-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center shadow-sm text-primary">
-                  <Lock className="size-5" />
-                </div>
-                <div>
-                  <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest font-headline">Ganti Password</h3>
-                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">Pembaruan Kode Keamanan</p>
-                </div>
+          <ResponsiveCard>
+            <div className="flex items-center gap-4 mb-8">
+              <div className="size-10 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-primary">
+                <Lock className="size-5" />
+              </div>
+              <div>
+                <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest font-headline">Ganti Password</h3>
+                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-0.5">Pembaruan Kode Keamanan</p>
               </div>
             </div>
-            <CardContent>
-              <form onSubmit={handleChangePassword} className="space-y-6">
+            <form onSubmit={handleChangePassword} className="space-y-6">
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline">Password Saat Ini</Label>
                 <Input 
-                  label="Password Saat Ini"
-                  icon={KeyRound}
                   type="password" 
                   value={passwordData.old_password}
                   onChange={(e) => setPasswordData({...passwordData, old_password: e.target.value})}
-                  placeholder="••••••••" 
+                  className="h-12 rounded-2xl font-bold font-headline"
+                  placeholder="••••••••"
                   required
                 />
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              </div>
+              <ResponsiveGrid cols={2}>
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline">Password Baru</Label>
                   <Input 
-                    label="Password Baru"
-                    icon={Lock}
                     type="password" 
                     value={passwordData.new_password}
                     onChange={(e) => setPasswordData({...passwordData, new_password: e.target.value})}
-                    placeholder="Minimal 8 karakter" 
+                    className="h-12 rounded-2xl font-bold font-headline"
                     required
-                    minLength={8}
                   />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline">Konfirmasi</Label>
                   <Input 
-                    label="Konfirmasi Password"
-                    icon={Lock}
                     type="password" 
                     value={passwordData.confirm_password}
                     onChange={(e) => setPasswordData({...passwordData, confirm_password: e.target.value})}
-                    placeholder="Ulangi password baru" 
+                    className="h-12 rounded-2xl font-bold font-headline"
                     required
-                    minLength={8}
                   />
                 </div>
-                <div className="flex justify-end pt-2">
-                  <CustomButton type="submit" variant="dark" loading={submitting} icon={Lock}>
-                    Update Password
-                  </CustomButton>
-                </div>
-              </form>
-            </CardContent>
-          </Card>
+              </ResponsiveGrid>
+              <div className="flex justify-end pt-2">
+                <Button type="submit" disabled={submitting} variant="outline" className="h-12 px-10 rounded-2xl font-headline bg-slate-900 text-white hover:bg-black border-none">
+                  {submitting ? <Loader2 className="animate-spin size-4 mr-2" /> : <Lock className="size-4 mr-2" />}
+                  <span className="text-[10px] font-black uppercase tracking-widest">Update Password</span>
+                </Button>
+              </div>
+            </form>
+          </ResponsiveCard>
         </div>
-      </div>
-    </div>
-  );
+      </ResponsiveGrid>
+    </PageContainer>
+  )
 }

@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from "react"
 import api from "../../lib/axios"
 import { toast, Toaster } from "react-hot-toast"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./components/card"
 import { Badge } from "./components/badge"
 import { Button } from "./components/button"
 import { DataTable } from "./components/data-table"
@@ -17,7 +16,6 @@ import {
   Loader2,
   Clock,
   CheckCircle2,
-  Settings,
   Calendar,
 } from "lucide-react"
 import {
@@ -38,6 +36,7 @@ import {
   SelectValue,
 } from "./components/select"
 import { cn } from "@/lib/utils"
+import { PageContainer, PageHeader, ResponsiveGrid, ResponsiveCard } from "./components/responsive-layout"
 
 export default function TahunAkademikPage() {
   const [data, setData] = useState([])
@@ -122,127 +121,73 @@ export default function TahunAkademikPage() {
     }
   }
 
-
   const columns = [
     {
       key: "activeYear",
-      label: "Tahun Ajaran",
-      render: (value) => (
-        <span className="font-bold text-primary text-[13px] font-headline tracking-tighter uppercase">{value}</span>
-      )
-    },
-    {
-      key: "activeSemester",
-      label: "Semester",
-      render: (value) => (
-        <span className="font-black text-slate-600 uppercase text-[10px] tracking-widest font-headline">
-          {value}
-        </span>
+      label: "Siklus Akademik",
+      render: (value, row) => (
+        <div className="flex flex-col text-left">
+          <span className="font-black text-slate-900 font-headline uppercase text-[12px] tracking-tight leading-none">{value}</span>
+          <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-1 leading-none">{row.activeSemester} (Global)</span>
+        </div>
       )
     },
     {
       key: "isKrsOpen",
-      label: "Status KRS",
-      className: "text-center",
-      cellClassName: "text-center",
-      render: (val) => (
-        <Badge
-          className={cn(
-            "capitalize font-black text-[10px] px-3 py-1 border-none shadow-sm font-headline uppercase",
-            val ? "bg-emerald-100 text-emerald-700 ring-1 ring-emerald-500/20" :
-            "bg-slate-100 text-slate-700 ring-1 ring-slate-500/20"
-          )}
-        >
-          {val ? "Terbuka" : "Tertutup"}
-        </Badge>
+      label: "Akses Portal",
+      render: (val, row) => (
+        <div className="flex items-center gap-2">
+          <Badge className={cn("text-[9px] font-black px-2 py-0.5 border-none shadow-sm uppercase font-headline tracking-widest", val ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-500")}>
+            KRS: {val ? "OPEN" : "CLOSE"}
+          </Badge>
+          <Badge className={cn("text-[9px] font-black px-2 py-0.5 border-none shadow-sm uppercase font-headline tracking-widest", row.isGradeInputOpen ? "bg-indigo-100 text-indigo-700" : "bg-slate-100 text-slate-500")}>
+            NILAI: {row.isGradeInputOpen ? "OPEN" : "CLOSE"}
+          </Badge>
+        </div>
       )
     }
   ]
 
-
+  const statsData = [
+    { label: 'Siklus Aktif', value: data[0]?.activeYear || 'IDLE', icon: CalendarDays, color: 'text-blue-600', bg: 'bg-blue-50' },
+    { label: 'Semester', value: data[0]?.activeSemester || '...', icon: Clock, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+    { label: 'KRS Status', value: data[0]?.isKrsOpen ? 'OPEN' : 'CLOSED', icon: CheckCircle2, color: 'text-indigo-600', bg: 'bg-indigo-50' },
+  ]
 
   return (
-    <div className="space-y-6">
+    <PageContainer>
       <Toaster position="top-right" />
-      {/* HEADER */}
-        <div className="flex flex-col gap-1.5">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-primary/10 rounded-xl text-primary">
-              <CalendarDays className="size-6" />
+      
+      <PageHeader
+        icon={CalendarDays}
+        title="Periode Akademik"
+        description="Manajemen Kalender & Parameter Sistem"
+      />
+
+      <ResponsiveGrid cols={3}>
+        {statsData.map((stat, i) => (
+          <ResponsiveCard key={i} className="flex flex-row items-center gap-4">
+            <div className={`p-3 rounded-xl ${stat.bg} ${stat.color}`}>
+              <stat.icon className="size-5" />
             </div>
-            <h1 className="text-2xl font-black text-slate-900 font-headline tracking-tighter uppercase">Periode Akademik</h1>
-          </div>
-          <div className="flex items-center gap-2">
-             <div className="h-1 w-10 bg-primary rounded-full shadow-sm shadow-primary/30" />
-             <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Manajemen Kalender & Parameter Sistem</p>
-          </div>
-        </div>
-
-      {/* CARD PERIODE AKTIF */}
-      <Card className="border-none shadow-sm overflow-hidden bg-primary text-white relative rounded-3xl">
-        <div className="absolute right-0 top-0 p-8 opacity-20 pointer-events-none text-white">
-          <Calendar className="size-32" />
-        </div>
-
-        <CardHeader>
-          <div className="flex items-center gap-3">
-            <div className="p-3 rounded-xl bg-white/10 border border-white/20">
-              <Calendar className="size-5" />
+            <div className="flex flex-col font-headline leading-tight">
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">{stat.label}</span>
+              <span className="text-xl font-black text-slate-900 tracking-tighter uppercase">{loading ? '...' : stat.value}</span>
             </div>
-            <div className="font-headline">
-              <CardTitle className="text-lg font-black uppercase tracking-tight text-white leading-none">
-                Periode Terpilih
-              </CardTitle>
-              <CardDescription className="text-white/60 font-medium text-[10px] uppercase tracking-widest mt-1">
-                {data[0]?.activeYear || "IDLE"} / {data[0]?.activeSemester || "PENDING"}
-              </CardDescription>
-            </div>
-          </div>
-        </CardHeader>
+          </ResponsiveCard>
+        ))}
+      </ResponsiveGrid>
 
-        <CardContent>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-             <div className="bg-white/10 border border-white/10 p-4 rounded-xl space-y-2 hover:bg-white/20 transition-all font-headline">
-                <p className="text-[10px] font-black uppercase tracking-widest text-white/50">Status KRS</p>
-                <p className="text-[11px] font-black truncate text-white uppercase">{data[0]?.isKrsOpen ? "TERBUKA" : "TERTUTUP"}</p>
-                <Badge className={cn("text-[8px] h-5 border-none shadow-none font-black uppercase px-2 rounded-md", data[0]?.isKrsOpen ? "bg-emerald-400" : "bg-white/20")}>
-                    {data[0]?.isKrsOpen ? "OPEN" : "CLOSED"}
-                </Badge>
-             </div>
-             <div className="bg-white/10 border border-white/10 p-4 rounded-xl space-y-2 hover:bg-white/20 transition-all font-headline">
-                <p className="text-[10px] font-black uppercase tracking-widest text-white/50">Input Nilai</p>
-                <p className="text-[11px] font-black truncate text-white uppercase">{data[0]?.isGradeInputOpen ? "TERBUKA" : "TERTUTUP"}</p>
-                <Badge className={cn("text-[8px] h-5 border-none shadow-none font-black uppercase px-2 rounded-md", data[0]?.isGradeInputOpen ? "bg-emerald-400" : "bg-white/20")}>
-                    {data[0]?.isGradeInputOpen ? "OPEN" : "CLOSED"}
-                </Badge>
-             </div>
-             <div className="bg-white/10 border border-white/10 p-4 rounded-xl space-y-2 hover:bg-white/20 transition-all font-headline">
-                <p className="text-[10px] font-black uppercase tracking-widest text-white/50">Periode</p>
-                <p className="text-[11px] font-black truncate text-white uppercase">{data[0]?.activeSemester || "REGULER"}</p>
-                <Badge className="text-[8px] h-5 border-none shadow-none font-black uppercase px-2 rounded-md bg-white/20 text-white">GLOBAL</Badge>
-             </div>
-             <div className="bg-white/10 border border-white/10 p-4 rounded-xl space-y-2 hover:bg-white/20 transition-all font-headline">
-                <p className="text-[10px] font-black uppercase tracking-widest text-white/50">Update Terakhir</p>
-                <p className="text-[11px] font-black truncate text-white uppercase">{data[0]?.updatedAt ? new Date(data[0].updatedAt).toLocaleDateString() : "-"}</p>
-                <Badge className="text-[8px] h-5 border-none shadow-none font-black uppercase px-2 rounded-md bg-white/20 text-white">SYSTEM</Badge>
-             </div>
-          </div>
-        </CardContent>
-      </Card>
-
-
-      {/* TABLE */}
-      <Card className="border-none shadow-sm mt-4 overflow-hidden rounded-3xl bg-white">
-        <CardContent className="p-0 font-headline">
+      <ResponsiveCard noPadding className="mt-6">
           <DataTable
             columns={columns}
             data={data}
-            loading={false}
+            loading={loading}
             searchPlaceholder="Cari Tahun..."
             onAdd={handleOpenAdd}
-            addLabel="Konfigurasi Periode"
+            addLabel="Parameter Baru"
             actions={(row) => (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center justify-end gap-2 pr-2">
                 <Button 
                   onClick={() => handleOpenEdit(row)}
                   variant="ghost" 
@@ -251,7 +196,6 @@ export default function TahunAkademikPage() {
                 >
                   <Pencil className="size-4" />
                 </Button>
-
                 <Button 
                   onClick={() => { setSelectedPeriodId(row.id); setIsDelOpen(true); }}
                   variant="ghost" 
@@ -263,8 +207,7 @@ export default function TahunAkademikPage() {
               </div>
             )}
           />
-        </CardContent>
-      </Card>
+      </ResponsiveCard>
 
       {/* CRUD MODAL */}
       <Dialog open={isCrudOpen} onOpenChange={setIsCrudOpen}>
@@ -285,8 +228,8 @@ export default function TahunAkademikPage() {
               <DialogTitle className="text-2xl font-black font-headline tracking-tighter text-slate-900 uppercase">
                 {isEditMode ? 'Update Periode' : 'Inisialisasi Periode'}
               </DialogTitle>
-              <DialogDescription className="text-xs font-medium text-slate-400 mt-1">
-                Konfigurasi parameter waktu dan status siklus akademik.
+              <DialogDescription className="text-xs font-medium text-slate-400 mt-1 uppercase leading-none font-headline">
+                Konfigurasi semester berjalan dan jadwal input nilai fakultas.
               </DialogDescription>
             </div>
           </DialogHeader>
@@ -321,7 +264,7 @@ export default function TahunAkademikPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Akses KRS</Label>
+                  <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Akses Portal</Label>
                   <div
                     onClick={() => setFormData({ ...formData, isKrsOpen: !formData.isKrsOpen })}
                     className={`flex items-center justify-between p-4 h-14 rounded-2xl border transition-all cursor-pointer group font-headline ${
@@ -333,7 +276,7 @@ export default function TahunAkademikPage() {
                     <div className="flex items-center gap-2">
                       <div className={`size-2 rounded-full ${formData.isKrsOpen ? 'bg-emerald-500' : 'bg-slate-300'}`} />
                       <span className={`text-[10px] font-black uppercase tracking-widest font-headline ${formData.isKrsOpen ? 'text-primary' : 'text-slate-400'}`}>
-                        {formData.isKrsOpen ? "Terbuka" : "Tertutup"}
+                        {formData.isKrsOpen ? "Terbuka (KRS)" : "Tertutup (KRS)"}
                       </span>
                     </div>
                   </div>
@@ -351,7 +294,7 @@ export default function TahunAkademikPage() {
                     <div className="flex items-center gap-2">
                       <div className={`size-2 rounded-full ${formData.isGradeInputOpen ? 'bg-emerald-500' : 'bg-slate-300'}`} />
                       <span className={`text-[10px] font-black uppercase tracking-widest font-headline ${formData.isGradeInputOpen ? 'text-primary' : 'text-slate-400'}`}>
-                        {formData.isGradeInputOpen ? "Terbuka" : "Tertutup"}
+                        {formData.isGradeInputOpen ? "Terbuka (Grade)" : "Tertutup (Grade)"}
                       </span>
                     </div>
                   </div>
@@ -384,6 +327,6 @@ export default function TahunAkademikPage() {
         description="Menghapus periode akan menghentikan seluruh aktivitas akademik dan portal mahasiswa pada rentang waktu tersebut."
         loading={isSubmitting}
       />
-    </div>
+    </PageContainer>
   )
 }

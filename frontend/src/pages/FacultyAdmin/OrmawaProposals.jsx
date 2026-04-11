@@ -2,16 +2,16 @@
 
 import React, { useState, useEffect } from 'react'
 import axios from 'axios'
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "./components/card"
 import { Button } from "./components/button"
 import { Badge } from "./components/badge"
 import { DataTable } from "./components/data-table"
 import { toast, Toaster } from 'react-hot-toast'
-import { CheckCircle2, XCircle, FileText, Loader2, Activity, Clock } from 'lucide-react'
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "./components/dialog"
+import { CheckCircle2, XCircle, FileText, Activity, Clock } from 'lucide-react'
+import { Dialog, DialogContent, DialogTitle, DialogDescription, DialogHeader } from "./components/dialog"
 import { cn } from "@/lib/utils"
 import { Label } from "./components/label"
 import { Textarea } from "./components/textarea"
+import { PageContainer, PageHeader, ResponsiveGrid, ResponsiveCard } from "./components/responsive-layout"
 
 export default function FacultyProposalApproval() {
     const [proposals, setProposals] = useState([])
@@ -81,9 +81,9 @@ export default function FacultyProposalApproval() {
             key: "Judul",
             label: "Program Kerja",
             render: (val, row) => (
-                <div className="flex flex-col">
-                    <span className="font-bold text-slate-900 font-headline tracking-tighter text-[13px] leading-tight">{val}</span>
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-0.5">{row.CreatedAt ? new Date(row.CreatedAt).toLocaleDateString('id-ID') : '-'}</span>
+                <div className="flex flex-col text-left">
+                    <span className="font-black text-slate-900 font-headline tracking-tighter text-[13px] leading-tight uppercase">{val}</span>
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1 leading-none">{row.CreatedAt ? new Date(row.CreatedAt).toLocaleDateString('id-ID') : '-'}</span>
                 </div>
             )
         },
@@ -92,9 +92,8 @@ export default function FacultyProposalApproval() {
             label: "Organisasi",
             render: (_, row) => {
                 const orm = row.Ormawa || row.ormawa || row.Organisasi;
-                // Backend Ormawa struct uses `json:"nama"`
                 return (
-                    <Badge variant="outline" className="bg-slate-50 border-slate-200 text-[10px] text-slate-600 font-bold uppercase tracking-tight">
+                    <Badge variant="outline" className="bg-slate-50 border-slate-200 text-[10px] text-slate-600 font-black uppercase tracking-widest px-3 py-1 rounded-xl shadow-sm">
                         {orm?.nama || orm?.Nama || orm?.NamaOrg || '-'}
                     </Badge>
                 );
@@ -102,20 +101,20 @@ export default function FacultyProposalApproval() {
         },
         {
             key: "Anggaran",
-            label: "Anggaran Diajukan",
-            render: (val) => <span className="font-bold text-emerald-600 text-[13px] tabular-nums">{formatIDR(val)}</span>
+            label: "Anggaran",
+            render: (val) => <span className="font-black text-emerald-600 text-[13px] tabular-nums font-headline">{formatIDR(val)}</span>
         },
         {
             key: "Status",
-            label: "Status",
+            label: "Validasi",
             render: (val) => (
                 <Badge 
                     className={cn(
-                        "capitalize font-black text-[10px] px-3 py-1 border-none",
+                        "capitalize font-black text-[10px] px-3 py-1 border-none shadow-sm uppercase tracking-widest transition-all",
                         (val?.toLowerCase() === 'disetujui' || val?.toLowerCase() === 'approved') ? "bg-emerald-100 text-emerald-700" :
                         (val?.toLowerCase() === 'revisi' || val?.toLowerCase() === 'pending') ? "bg-blue-100 text-blue-700" :
-                        (val?.toLowerCase() === 'ditolak' || val?.toLowerCase() === 'rejected') ? "bg-red-600 text-white shadow-sm shadow-red-200" :
-                        "bg-amber-100 text-amber-700"
+                        (val?.toLowerCase() === 'ditolak' || val?.toLowerCase() === 'rejected') ? "bg-rose-100 text-rose-700" :
+                        "bg-amber-100 text-amber-700 font-headline"
                     )}
                 >
                     {(val?.toLowerCase() === 'disetujui' || val?.toLowerCase() === 'approved') ? 'TERVERIFIKASI' : (val || 'DIAJUKAN')}
@@ -124,90 +123,66 @@ export default function FacultyProposalApproval() {
         }
     ]
 
-    // Removed manual filtering in favor of DataTable filters
-
     const statsData = [
-        { label: 'Total Proposal', value: proposals.length, icon: FileText, color: 'text-blue-600', bg: 'bg-blue-50', gradient: 'from-blue-500/10 to-blue-500/5' },
-        { label: 'Total Pengajuan Anggaran', value: formatIDR(proposals.reduce((acc, p) => acc + (p.Anggaran || 0), 0)), icon: Activity, color: 'text-emerald-600', bg: 'bg-emerald-50', gradient: 'from-emerald-500/10 to-emerald-500/5' },
-        { label: 'Proposal Disetujui', value: proposals.filter(p => p.Status?.toLowerCase() === 'disetujui').length, icon: CheckCircle2, color: 'text-indigo-600', bg: 'bg-indigo-50', gradient: 'from-indigo-500/10 to-indigo-500/5' },
-        { label: 'Pending / Revisi', value: proposals.filter(p => p.Status?.toLowerCase() === 'pending' || p.Status?.toLowerCase() === 'revisi').length, icon: Clock, color: 'text-amber-600', bg: 'bg-amber-50', gradient: 'from-amber-500/10 to-amber-500/5' },
+        { label: 'Total Proposal', value: proposals.length, icon: FileText, color: 'text-blue-600', bg: 'bg-blue-50' },
+        { label: 'Total Anggaran', value: formatIDR(proposals.reduce((acc, p) => acc + (p.Anggaran || 0), 0)), icon: Activity, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+        { label: 'Proposal Disetujui', value: proposals.filter(p => p.Status?.toLowerCase() === 'disetujui').length, icon: CheckCircle2, color: 'text-indigo-600', bg: 'bg-indigo-50' },
+        { label: 'Pending / Revisi', value: proposals.filter(p => p.Status?.toLowerCase() === 'pending' || p.Status?.toLowerCase() === 'revisi').length, icon: Clock, color: 'text-amber-600', bg: 'bg-amber-50' },
     ]
 
     return (
-        <div className="space-y-6">
+        <PageContainer>
             <Toaster position="top-right" />
-            <div className="flex flex-col gap-1.5 mb-8">
-                <div className="flex items-center gap-3">
-                    <div className="p-2 bg-primary/10 rounded-xl text-primary">
-                        <FileText className="size-6" />
-                    </div>
-                    <h1 className="text-2xl font-black text-slate-900 font-headline tracking-tighter uppercase">Proposal ORMAWA</h1>
-                </div>
-                <div className="flex items-center gap-2">
-                   <div className="h-1 w-10 bg-primary rounded-full shadow-sm shadow-primary/30" />
-                   <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Validasi Anggaran & Persetujuan Kegiatan</p>
-                </div>
-            </div>
+            
+            <PageHeader
+                icon={FileText}
+                title="Proposal ORMAWA"
+                description="Validasi Anggaran & Persetujuan Kegiatan"
+            />
 
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-4">
+            <ResponsiveGrid cols={4}>
                 {statsData.map((stat, i) => (
-                  <Card key={i} className="border border-slate-200 shadow-sm shadow-slate-200/50 overflow-hidden relative group transition-all duration-300 hover:shadow-xl hover:shadow-primary/5 rounded-2xl">
-                     <div className={`absolute inset-0 bg-gradient-to-br ${stat.gradient} opacity-50`} />
-                     <CardContent className="p-6 relative">
-                       <div className="flex items-center justify-between mb-4">
-                         <div className={`p-2.5 rounded-xl ${stat.bg} ${stat.color} shadow-sm group-hover:scale-110 transition-transform duration-500`}>
-                           <stat.icon className="size-5" />
-                         </div>
-                         <div className="flex flex-col items-end">
-                           <div className="flex items-center gap-1 text-[10px] font-black text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded-full uppercase tracking-widest leading-none">
-                             <Activity className="size-2.5" />
-                             Live
-                           </div>
-                         </div>
-                       </div>
-                       <div className="space-y-1">
-                         <p className="text-[10px] font-black uppercase tracking-[0.15em] text-slate-400">{stat.label}</p>
-                         <div className="flex items-baseline gap-2">
-                           <h3 className={`${stat.label.includes('Anggaran') ? 'text-xl' : 'text-3xl'} font-black text-slate-900 font-headline tracking-tighter leading-none`}>
-                             {loading ? "..." : stat.value}
-                           </h3>
-                         </div>
-                         <p className="text-[10px] font-bold text-slate-400/80 uppercase tracking-tight">Finance Traceability</p>
-                       </div>
-                     </CardContent>
-                  </Card>
+                  <ResponsiveCard key={i} className="flex flex-row items-center gap-4">
+                    <div className={`p-3 rounded-xl ${stat.bg} ${stat.color}`}>
+                      <stat.icon className="size-5" />
+                    </div>
+                    <div className="flex flex-col font-headline leading-tight">
+                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">{stat.label}</span>
+                      <span className={`${stat.label.includes('Anggaran') ? 'text-lg' : 'text-xl'} font-black text-slate-900 tracking-tighter uppercase`}>
+                        {loading ? '...' : stat.value}
+                      </span>
+                    </div>
+                  </ResponsiveCard>
                 ))}
-            </div>
+            </ResponsiveGrid>
 
-            {/* Filter UI moved to DataTable */}
-
-            <Card className="border border-slate-200 shadow-sm flex flex-col overflow-hidden bg-white/50 backdrop-blur-md rounded-2xl">
-                <CardContent className="pt-4 p-0">
-                    <DataTable
-                        columns={columns}
-                        data={proposals}
-                        loading={loading}
-                        searchPlaceholder="Cari Nama Kegiatan..."
-                        filters={[
-                            {
-                                key: 'Status',
-                                placeholder: 'Filter Status',
-                                options: [
-                                    { label: 'Diajukan', value: 'pending' },
-                                    { label: 'Revisi', value: 'revisi' },
-                                    { label: 'Disetujui', value: 'disetujui' },
-                                    { label: 'Ditolak', value: 'ditolak' },
-                                ]
-                            }
-                        ]}
-                        actions={(row) => (
-                            <Button onClick={() => openActionModal(row)} variant="outline" size="sm" className="h-8 text-[11px] font-bold uppercase tracking-tight">
-                                Verifikasi
+            <ResponsiveCard noPadding className="mt-6">
+                <DataTable
+                    columns={columns}
+                    data={proposals}
+                    loading={loading}
+                    searchPlaceholder="Cari Nama Kegiatan..."
+                    filters={[
+                        {
+                            key: 'Status',
+                            placeholder: 'Filter Status',
+                            options: [
+                                { label: 'Diajukan', value: 'pending' },
+                                { label: 'Revisi', value: 'revisi' },
+                                { label: 'Disetujui', value: 'disetujui' },
+                                { label: 'Ditolak', value: 'ditolak' },
+                            ]
+                        }
+                    ]}
+                    actions={(row) => (
+                        <div className="flex items-center justify-end pr-2">
+                            <Button onClick={() => openActionModal(row)} variant="outline" size="sm" className="h-9 px-3 border-slate-200 hover:text-primary rounded-xl shadow-sm transition-all hover:bg-primary/5">
+                                <span className="text-[10px] font-black uppercase tracking-widest">Verifikasi</span>
                             </Button>
-                        )}
-                    />
-                </CardContent>
-            </Card>
+                        </div>
+                    )}
+                />
+            </ResponsiveCard>
 
             {/* Action Dialog */}
             <Dialog open={showModal} onOpenChange={setShowModal}>
@@ -231,6 +206,9 @@ export default function FacultyProposalApproval() {
                             <DialogTitle className="text-2xl font-black font-headline tracking-tighter text-slate-900 uppercase leading-none">
                                 Validasi Dokumen
                             </DialogTitle>
+                            <DialogDescription className="text-xs font-medium text-slate-400 mt-1 uppercase leading-none font-headline">
+                                Peninjauan berkas program kerja dan kelayakan anggaran organisasi.
+                            </DialogDescription>
                         </div>
                     </DialogHeader>
 
@@ -323,6 +301,6 @@ export default function FacultyProposalApproval() {
                     </div>
                 </DialogContent>
             </Dialog>
-        </div>
+        </PageContainer>
     )
 }

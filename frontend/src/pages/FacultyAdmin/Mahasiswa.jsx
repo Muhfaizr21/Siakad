@@ -16,6 +16,7 @@ import { Card, CardContent } from "./components/card"
 import { Eye, Mail, GraduationCap, MapPin, Phone, User, BookOpen, Heart, FileText, Users } from "lucide-react"
 import { toast, Toaster } from "react-hot-toast"
 import { cn } from "@/lib/utils"
+import { PageContainer, PageHeader, ResponsiveGrid, ResponsiveCard } from "./components/responsive-layout"
 
 export default function MahasiswaPage() {
   const [selectedMahasiswa, setSelectedMahasiswa] = useState(null)
@@ -51,7 +52,7 @@ export default function MahasiswaPage() {
       key: "NIM",
       label: "NIM",
       className: "w-[120px]",
-      render: (value) => <span className="font-medium text-slate-500 text-[11px] tracking-tight">{value}</span>
+      render: (value) => <span className="font-bold text-slate-500 text-[11px] tracking-tight">{value}</span>
     },
     {
       key: "Nama",
@@ -59,14 +60,14 @@ export default function MahasiswaPage() {
       className: "w-auto min-w-[250px]",
       render: (value, row) => (
         <div className="flex items-center gap-3">
-          <Avatar className="h-8 w-8 rounded-lg border border-slate-200">
-            <AvatarFallback className="bg-slate-50 text-slate-600 text-[10px] font-bold uppercase">
+          <Avatar className="h-9 w-9 rounded-xl border border-slate-200 bg-white shadow-sm">
+            <AvatarFallback className="bg-slate-50 text-slate-600 text-[10px] font-black uppercase">
               {value?.split(" ").map(n => n[0]).join("").substring(0, 2) || '?'}
             </AvatarFallback>
           </Avatar>
           <div className="flex flex-col">
-            <span className="font-bold text-slate-900 text-[13px] tracking-tight">{value}</span>
-            <span className="text-[10px] text-slate-400 font-medium">{row.ProgramStudi?.Nama || '-'}</span>
+            <span className="font-black text-slate-900 text-[13px] tracking-tight uppercase">{value}</span>
+            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{row.ProgramStudi?.Nama || '-'}</span>
           </div>
         </div>
       )
@@ -76,7 +77,7 @@ export default function MahasiswaPage() {
       label: "Smt",
       className: "w-[80px] text-center",
       cellClassName: "text-center",
-      render: (value) => <span className="font-bold text-slate-700 text-xs">{value || 1}</span>
+      render: (value) => <span className="font-black text-slate-700 text-xs">{value || 1}</span>
     },
     {
       key: "StatusAkun",
@@ -86,7 +87,7 @@ export default function MahasiswaPage() {
       render: (val) => (
         <Badge
           className={cn(
-            "capitalize font-bold text-[9px] px-2.5 py-0.5 rounded-full border shadow-none",
+            "capitalize font-bold text-[9px] px-3 py-1 border shadow-none uppercase tracking-widest",
             (val === 'active' || val === 'Aktif') ? "bg-emerald-50 text-emerald-600 border-emerald-100" :
               (val === 'leave' || val === 'Cuti') ? "bg-amber-50 text-amber-600 border-amber-100" :
                 "bg-slate-50 text-slate-600 border-slate-200"
@@ -99,37 +100,45 @@ export default function MahasiswaPage() {
   ]
 
   return (
-    <div className="space-y-6">
+    <PageContainer>
       <Toaster position="top-right" />
-      <div className="flex flex-col gap-1 mb-8">
-        <div className="flex items-center gap-2">
-           <div className="p-1.5 bg-slate-100 rounded-lg">
-              <Users className="size-5 text-slate-900" />
-           </div>
-           <h1 className="text-xl font-bold text-slate-900 tracking-tight">Database Mahasiswa</h1>
+      
+      <PageHeader 
+        icon={Users} 
+        title="Database Mahasiswa" 
+        description="Manajemen data dan arsip akademik mahasiswa fakultas"
+      >
+        <div className="hidden md:flex items-center gap-2">
+           <Badge variant="outline" className="bg-white border-slate-200 text-slate-500 font-bold px-3 py-1.5 rounded-xl">
+             TOTAL: {studentData.length} MHS
+           </Badge>
         </div>
-        <p className="text-[11px] text-slate-400 font-medium ml-1">Manajemen data dan arsip akademik mahasiswa fakultas.</p>
-      </div>
+      </PageHeader>
 
-      <Card className="border shadow-sm overflow-hidden bg-white">
-        <CardContent className="p-0">
-          <DataTable
-            columns={columns}
-            data={studentData}
-            loading={loading}
-            searchPlaceholder="Cari NIM atau Nama..."
-            actions={(row) => (
-              <Button onClick={() => handleView(row)} variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-slate-900">
-                <Eye className="size-4" />
-              </Button>
-            )}
-          />
-        </CardContent>
-      </Card>
+      <ResponsiveCard noPadding>
+        <DataTable
+          columns={columns}
+          data={studentData}
+          loading={loading}
+          searchPlaceholder="Cari NIM atau Nama..."
+          onSync={fetchStudents}
+          actions={(row) => (
+            <Button 
+              onClick={() => handleView(row)} 
+              variant="outline" 
+              size="sm" 
+              className="h-9 px-4 rounded-xl border-slate-200 hover:border-primary hover:bg-primary/5 hover:text-primary transition-all font-bold text-[10px] uppercase tracking-widest flex items-center gap-2 group shadow-sm bg-white"
+            >
+              <Eye className="size-4 transition-transform group-hover:scale-110" />
+              Detail
+            </Button>
+          )}
+        />
+      </ResponsiveCard>
 
       {/* DETAIL DIALOG - CLEAN DATA SHEET STYLE */}
       <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
-        <DialogContent className="max-w-2xl p-0 overflow-hidden border-none shadow-2xl rounded-2xl bg-white">
+        <DialogContent aria-describedby={undefined} className="max-w-2xl p-0 overflow-hidden border-none shadow-2xl rounded-2xl bg-white">
           {selectedMahasiswa && (
             <div className="flex flex-col max-h-[90vh]">
                <DialogHeader className="p-6 border-b border-slate-100 bg-slate-50/50 shrink-0">
@@ -208,7 +217,7 @@ export default function MahasiswaPage() {
           )}
         </DialogContent>
       </Dialog>
-    </div>
+    </PageContainer>
   )
 }
 

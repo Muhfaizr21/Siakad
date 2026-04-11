@@ -2,18 +2,18 @@
 
 import React, { useState, useEffect } from 'react'
 import axios from 'axios'
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "./components/card"
 import { Button } from "./components/button"
 import { Badge } from "./components/badge"
 import { DataTable } from "./components/data-table"
 import { DeleteConfirmModal } from "./components/DeleteConfirmModal"
-import { Plus, Users2, Pencil, Trash2, CheckCircle2, ShieldCheck, Loader2, Save, X } from 'lucide-react'
+import { Plus, Users2, Pencil, Trash2, CheckCircle2, ShieldCheck, Loader2, Save } from 'lucide-react'
 import { toast, Toaster } from 'react-hot-toast'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "./components/dialog"
 import { Input } from "./components/input"
 import { Label } from "./components/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./components/select"
 import { cn } from "@/lib/utils"
+import { PageContainer, PageHeader, ResponsiveGrid, ResponsiveCard } from "./components/responsive-layout"
 
 export default function FacultyOrganisasi() {
   const [organizations, setOrganizations] = useState([])
@@ -35,16 +35,11 @@ export default function FacultyOrganisasi() {
   })
 
   // 🔥 FIX MAPPING API → UI
-  // ================= FETCH =================
   const fetchData = async () => {
     try {
       setLoading(true)
-
       const res = await fetch('http://localhost:8000/api/faculty/organizations')
-
       const data = await res.json()
-
-      // 🔥 FIX: pastikan array & mapping aman
       const mapped = Array.isArray(data.data)
         ? data.data.map((item) => ({
           id: item.id,
@@ -57,12 +52,10 @@ export default function FacultyOrganisasi() {
           phone: item.phone || ''
         }))
         : []
-
       setOrganizations(mapped)
-
     } catch (err) {
       console.error("❌ ERROR:", err)
-      toast.error("Gagal fetch (backend ga nyambung)")
+      toast.error("Gagal mengambil data organisasi")
     } finally {
       setLoading(false)
     }
@@ -72,8 +65,6 @@ export default function FacultyOrganisasi() {
     fetchData()
   }, [])
 
-
-  // ================= SUBMIT =================
   const handleSubmit = async (e) => {
     if (e) e.preventDefault()
     setIsSubmitting(true)
@@ -89,45 +80,27 @@ export default function FacultyOrganisasi() {
     }
 
     try {
-      let res;
       if (editingOrg) {
-        res = await axios.put(
-          `http://localhost:8000/api/faculty/organizations/${editingOrg.id}`,
-          payload
-        )
+        await axios.put(`http://localhost:8000/api/faculty/organizations/${editingOrg.id}`, payload)
         toast.success("Organisasi diperbarui")
       } else {
-        res = await axios.post(
-          'http://localhost:8000/api/faculty/organizations',
-          payload
-        )
+        await axios.post('http://localhost:8000/api/faculty/organizations', payload)
         toast.success("Organisasi ditambahkan")
       }
-
       setShowModal(false)
       fetchData()
     } catch (error) {
-      let errorMsg = error.response?.data?.message || ""
-      if (errorMsg.includes("Duplicate entry") || errorMsg.includes("unique constraint")) {
-        errorMsg = "Kode Organisasi sudah terdaftar."
-      }
-      const action = editingOrg ? "memperbarui" : "menambah"
-      toast.error(`Gagal ${action} organisasi: ${errorMsg || 'Database error'}`)
+      toast.error(`Gagal menyimpan: ${error.response?.data?.message || 'Database error'}`)
     } finally {
       setIsSubmitting(false)
     }
   }
 
-
-  // ================= DELETE =================
   const handleDelete = async () => {
     if (!selectedOrgId) return
     setIsSubmitting(true)
-
     try {
-      const res = await axios.delete(
-        `http://localhost:8000/api/faculty/organizations/${selectedOrgId}`
-      )
+      const res = await axios.delete(`http://localhost:8000/api/faculty/organizations/${selectedOrgId}`)
       if (res.data.status === 'success') {
         toast.success("Organisasi dihapus")
         setIsDelOpen(false)
@@ -136,14 +109,12 @@ export default function FacultyOrganisasi() {
         toast.error(`Gagal hapus: ${res.data.message || 'Error response'}`)
       }
     } catch (error) {
-      toast.error(`Gagal menghapus organisasi: ${error.response?.data?.message || 'Server sibuk'}`)
+      toast.error(`Gagal menghapus: ${error.response?.data?.message || 'Server sibuk'}`)
     } finally {
       setIsSubmitting(false)
     }
   }
 
-
-  // ================= EDIT =================
   const openEdit = (org) => {
     setEditingOrg(org)
     setFormData({
@@ -158,8 +129,6 @@ export default function FacultyOrganisasi() {
     setShowModal(true)
   }
 
-
-  // ================= TABLE =================
   const columns = [
     {
       key: "kode",
@@ -173,31 +142,23 @@ export default function FacultyOrganisasi() {
     {
       key: "nama",
       label: "Nama Organisasi",
-      render: (val) => <span className="font-bold text-slate-900">{val}</span>
-    },
-    {
-      key: "deskripsi",
-      label: "Deskripsi",
       render: (val) => (
-        <span className="text-xs text-slate-500">{val || '-'}</span>
+        <div className="flex flex-col text-left">
+          <span className="font-black text-slate-900 font-headline uppercase text-[12px] tracking-tight leading-none">{val}</span>
+        </div>
       )
     },
     {
-      key: "email",
-      label: "Email",
-      render: (val) => <span className="text-xs">{val || '-'}</span>
-    },
-    {
-      key: "phone",
-      label: "Kontak",
-      render: (val) => <span className="text-xs">{val || '-'}</span>
+      key: "deskripsi",
+      label: "Pic / Ketua",
+      render: (val) => <span className="text-[11px] font-bold text-slate-600 uppercase font-headline">{val || '-'}</span>
     },
     {
       key: "status",
       label: "Status",
       render: (val) => (
         <Badge className={cn(
-          "text-[9px] font-black px-2 py-0.5 rounded-md border-none uppercase font-headline tracking-tighter",
+          "text-[9px] font-black px-2 py-0.5 rounded-md border-none uppercase font-headline tracking-widest",
           val === 'Aktif' ? "bg-emerald-100 text-emerald-600" : "bg-rose-100 text-rose-600"
         )}>
           {val || 'Aktif'}
@@ -205,44 +166,57 @@ export default function FacultyOrganisasi() {
       )
     }
   ]
-  return (
-    <div className="space-y-6">
-      <Toaster position="top-right" />
-      <div className="flex flex-col gap-1.5">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-primary/10 rounded-xl text-primary">
-            <Users2 className="size-6" />
-          </div>
-          <h1 className="text-2xl font-black text-slate-900 font-headline tracking-tighter uppercase leading-none">Organisasi Fakultas</h1>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="h-1 w-10 bg-primary rounded-full shadow-sm shadow-primary/30" />
-          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest leading-none">Master Data & Legalitas ORMAWA</p>
-        </div>
-      </div>
 
-      <Card className="border-none shadow-sm h-full overflow-hidden bg-white/50 backdrop-blur-md rounded-3xl">
-        <CardContent className="p-0 font-headline">
-          <DataTable
-            columns={columns}
-            data={organizations}
-            loading={loading}
-            searchPlaceholder="Cari Nama atau Kode..."
-            onAdd={() => { setEditingOrg(null); setFormData({ kode_org: '', nama_org: '', ketua_nama: '', jumlah_anggota: 0, status: 'Aktif', email: '', phone: '' }); setShowModal(true); }}
-            addLabel="Tambah ORMAWA"
-            actions={(row) => (
-              <div className="flex items-center gap-2">
-                <Button onClick={() => openEdit(row)} variant="ghost" size="icon" className="h-9 w-9 hover:text-amber-600 rounded-xl hover:bg-amber-50 transition-all">
-                  <Pencil className="size-4" />
-                </Button>
-                <Button onClick={() => { setSelectedOrgId(row.id); setIsDelOpen(true); }} variant="ghost" size="icon" className="h-9 w-9 hover:text-rose-600 rounded-xl hover:bg-rose-50 transition-all text-slate-400">
-                  <Trash2 className="size-4" />
-                </Button>
-              </div>
-            )}
-          />
-        </CardContent>
-      </Card>
+  const statsData = [
+    { label: 'Total ORMAWA', value: organizations.length, icon: Users2, color: 'text-blue-600', bg: 'bg-blue-50' },
+    { label: 'Organisasi Aktif', value: organizations.filter(o => o.status === 'Aktif').length, icon: CheckCircle2, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+    { label: 'Reach Anggota', value: organizations.reduce((acc, o) => acc + (o.jumlah_anggota || 0), 0), icon: ShieldCheck, color: 'text-indigo-600', bg: 'bg-indigo-50' },
+  ]
+
+  return (
+    <PageContainer>
+      <Toaster position="top-right" />
+      
+      <PageHeader
+        icon={Users2}
+        title="Organisasi Fakultas"
+        description="Master Data & Legalitas ORMAWA"
+      />
+
+      <ResponsiveGrid cols={3}>
+        {statsData.map((stat, i) => (
+          <ResponsiveCard key={i} className="flex flex-row items-center gap-4">
+            <div className={`p-3 rounded-xl ${stat.bg} ${stat.color}`}>
+              <stat.icon className="size-5" />
+            </div>
+            <div className="flex flex-col font-headline leading-tight">
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">{stat.label}</span>
+              <span className="text-xl font-black text-slate-900 tracking-tighter uppercase">{loading ? '...' : stat.value}</span>
+            </div>
+          </ResponsiveCard>
+        ))}
+      </ResponsiveGrid>
+
+      <ResponsiveCard noPadding className="mt-6">
+        <DataTable
+          columns={columns}
+          data={organizations}
+          loading={loading}
+          searchPlaceholder="Cari Nama atau Kode..."
+          onAdd={() => { setEditingOrg(null); setFormData({ kode_org: '', nama_org: '', ketua_nama: '', jumlah_anggota: 0, status: 'Aktif', email: '', phone: '' }); setShowModal(true); }}
+          addLabel="Tambah ORMAWA"
+          actions={(row) => (
+            <div className="flex items-center justify-end gap-2 pr-2">
+              <Button onClick={() => openEdit(row)} variant="ghost" size="icon" className="h-9 w-9 hover:text-amber-600 rounded-xl hover:bg-amber-50 transition-all">
+                <Pencil className="size-4" />
+              </Button>
+              <Button onClick={() => { setSelectedOrgId(row.id); setIsDelOpen(true); }} variant="ghost" size="icon" className="h-9 w-9 hover:text-rose-600 rounded-xl hover:bg-rose-50 transition-all text-slate-400">
+                <Trash2 className="size-4" />
+              </Button>
+            </div>
+          )}
+        />
+      </ResponsiveCard>
 
       {/* Modal Dialog */}
       <Dialog open={showModal} onOpenChange={setShowModal}>
@@ -378,6 +352,6 @@ export default function FacultyOrganisasi() {
         description="Eksistensi organisasi ini akan dihapus dari record resmi fakultas. Pastikan seluruh laporan pertanggungjawaban telah diarsipkan."
         loading={isSubmitting}
       />
-    </div>
+    </PageContainer>
   )
 }
