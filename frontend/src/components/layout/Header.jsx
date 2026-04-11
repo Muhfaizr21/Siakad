@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Bell, Search, Menu, User, LogOut, ChevronRight, Settings } from 'lucide-react';
 import { useLocation, useNavigate, NavLink } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import NotificationDropdown from './NotificationDropdown';
 import useAuthStore from '../../store/useAuthStore';
@@ -20,11 +21,30 @@ export default function Header() {
   const searchRef = useRef(null);
   
   const logout = useAuthStore(state => state.logout);
-  const mahasiswa = useAuthStore(state => state.mahasiswa) || { nama: 'Tegar', nim: '10123456' };
-  const displayName = String(mahasiswa?.nama || mahasiswa?.Nama || mahasiswa?.name || 'User');
-  const displayNim = String(mahasiswa?.nim || mahasiswa?.NIM || '-');
-  const displayPhoto = mahasiswa?.foto_url || mahasiswa?.FotoURL || mahasiswa?.photo_url || '';
+  const mahasiswaStore = useAuthStore(state => state.mahasiswa);
+  
+  // Use React Query for reactive profile data (synced with upload)
+  const { data: profile } = useQuery({
+    queryKey: ['mahasiswa', 'profile'],
+    queryFn: async () => {
+      const { data } = await api.get('/profil');
+      return data.data;
+    },
+    placeholderData: mahasiswaStore // Fallback to store while loading
+  });
+
+  const student = profile || mahasiswaStore || { nama: 'Tegar', nim: '10123456' };
+  const displayName = String(student?.nama || student?.Nama || student?.name || 'User');
+  const displayNim = String(student?.nim || student?.NIM || '-');
+  const displayPhoto = student?.foto_url || student?.FotoURL || student?.photo_url || '';
   const displayInitial = displayName.charAt(0).toUpperCase();
+
+  const getFullUrl = (path) => {
+    if (!path) return null;
+    if (path.startsWith('http')) return path;
+    const baseUrl = (import.meta.env.VITE_API_URL || 'http://localhost:8000/api').replace('/api', '');
+    return `${baseUrl}${path}`;
+  };
 
   const handleLogout = async () => {
     try {
@@ -152,8 +172,17 @@ export default function Header() {
             onClick={() => setIsProfileOpen(!isProfileOpen)}
             className={`flex items-center gap-3 p-1 rounded-full transition-all hover:bg-[#fafafa] ${isProfileOpen ? 'ring-4 ring-[#00236F]/10' : ''}`}
           >
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#C9D8FF] to-[#00236F] text-white flex items-center justify-center font-black text-xs shadow-sm border border-white">
-              {displayInitial}
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#C9D8FF] to-[#00236F] text-white flex items-center justify-center font-black text-xs shadow-sm border border-white overflow-hidden">
+              {displayPhoto && !imageError ? (
+                <img 
+                  src={getFullUrl(displayPhoto)} 
+                  alt="Nav Profile" 
+                  className="w-full h-full object-cover"
+                  onError={() => setImageError(true)}
+                />
+              ) : (
+                displayInitial
+              )}
             </div>
           </button>
 
@@ -172,7 +201,7 @@ export default function Header() {
                     <div className="w-14 h-14 rounded-2xl bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/20 shadow-xl overflow-hidden shrink-0">
                       {displayPhoto && !imageError ? (
                         <img 
-                          src={displayPhoto} 
+                          src={getFullUrl(displayPhoto)} 
                           alt="Profile" 
                           className="w-full h-full object-cover" 
                           onError={() => setImageError(true)}

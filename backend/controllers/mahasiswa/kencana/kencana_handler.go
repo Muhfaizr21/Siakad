@@ -2,13 +2,13 @@ package kencana
 
 import (
 	"fmt"
-	"math"
 	"siakad-backend/config"
 	"siakad-backend/models"
 	"siakad-backend/pkg/notifikasi"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"gorm.io/gorm"
 )
 
 // ==================== HELPER ====================
@@ -34,64 +34,152 @@ func GetProgress(c *fiber.Ctx) error {
 		return c.Status(404).JSON(fiber.Map{"success": false, "message": "Mahasiswa tidak ditemukan"})
 	}
 
-	// 1. Get All Activities
-	var kegiatan []models.PkkmbKegiatan
-	config.DB.Order("tanggal asc").Find(&kegiatan)
-
-	// 2. Get Student Progress
-	var progress []models.PkkmbProgress
-	config.DB.Where("mahasiswa_id = ?", student.ID).Find(&progress)
-
-	progressMap := make(map[uint]string)
-	for _, p := range progress {
-		progressMap[p.KegiatanID] = p.Status
+	// 1. Fetch All Stages with Materials and their Quizzes
+	var tahaps []models.PkkmbTahap
+	if err := config.DB.Order("\"order\" asc").Preload("Materis", func(db *gorm.DB) *gorm.DB {
+		return db.Order("\"order\" asc")
+	}).Preload("Materis.Quiz").Find(&tahaps).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"success": false, "message": "Gagal mengambil data tahapan"})
 	}
 
-	// 3. Get Final Result
-	var hasil models.PkkmbHasil
-	config.DB.Where("mahasiswa_id = ?", student.ID).First(&hasil)
+	// 2. Fetch All Quiz Attempts for this student
+	var attempts []models.PkkmbQuizAttempt
+	config.DB.Where("mahasiswa_id = ?", student.ID).Find(&attempts)
 
-	// Build List Info
-	type ActivityInfo struct {
-		ID        uint      `json:"id"`
-		Nama      string    `json:"nama"`
-		Deskripsi string    `json:"deskripsi"`
-		Tanggal   time.Time `json:"tanggal"`
-		Lokasi    string    `json:"lokasi"`
-		Status    string    `json:"status"` // Terdaftar, Hadir, Selesai
+	// Map best score and status for each quiz
+	type quizResult struct {
+		BestScore float64
+		Attempts  int
+		Status    string
 	}
-
-	var list []ActivityInfo
-	selesaiCount := 0
-	for _, k := range kegiatan {
-		status := "Belum"
-		if s, ok := progressMap[k.ID]; ok {
-			status = s
-			if s == "Selesai" {
-				selesaiCount++
-			}
+	resultMap := make(map[uint]quizResult)
+	for _, a := range attempts {
+		res := resultMap[a.QuizID]
+		res.Attempts++
+		if a.Nilai > res.BestScore {
+			res.BestScore = a.Nilai
 		}
-		list = append(list, ActivityInfo{
-			ID:        k.ID,
-			Nama:      k.Judul,
-			Deskripsi: k.Deskripsi,
-			Tanggal:   k.Tanggal,
-			Lokasi:    k.Lokasi,
-			Status:    status,
+		if a.Nilai >= 70 { // Assuming 70 is passing grade
+			res.Status = "lulus"
+		} else if res.Status != "lulus" {
+			res.Status = "tidak_lulus"
+		}
+		resultMap[a.QuizID] = res
+	}
+
+	// 3. Build Hierarchical Response
+	totalKuis := 0
+	kuisSelesai := 0
+	nilaiTotal := 0.0
+
+	type QuizInfo struct {
+		KuisID           uint    `json:"kuis_id"`
+		Status           string  `json:"status"`
+		NilaiTerbaik     float64 `json:"nilai_terbaik"`
+		BobotPersen      int     `json:"bobot_persen"`
+		JumlahAttempt    int     `json:"jumlah_attempt"`
+		JudulKuis        string  `json:"judul_kuis"`
+	}
+
+	type MateriInfo struct {
+		MateriID  uint      `json:"materi_id"`
+		Judul     string    `json:"judul"`
+		Tipe      string    `json:"tipe"`
+		FileURL   string    `json:"file_url"`
+		Kuis      *QuizInfo `json:"kuis"`
+	}
+
+	type TahapInfo struct {
+		TahapID        uint         `json:"tahap_id"`
+		Label          string       `json:"label"`
+		Status         string       `json:"status"`
+		TanggalMulai   time.Time    `json:"tanggal_mulai"`
+		TanggalSelesai time.Time    `json:"tanggal_selesai"`
+		TotalKuis      int          `json:"total_kuis"`
+		KuisSelesai    int          `json:"kuis_selesai"`
+		Materis        []MateriInfo `json:"materis"`
+	}
+
+	var stages []TahapInfo
+	for _, t := range tahaps {
+		tTotal := 0
+		tSelesai := 0
+		var mInfos []MateriInfo
+
+		for _, m := range t.Materis {
+			var qInfo *QuizInfo
+			if m.Quiz != nil {
+				tTotal++
+				totalKuis++
+				res := resultMap[m.Quiz.ID]
+				
+				status := "belum_dikerjakan"
+				if res.Attempts > 0 {
+					status = res.Status
+					if status == "lulus" {
+						tSelesai++
+						kuisSelesai++
+						nilaiTotal += (res.BestScore * float64(m.Quiz.Bobot) / 100)
+					}
+				}
+
+				qInfo = &QuizInfo{
+					KuisID:        m.Quiz.ID,
+					Status:        status,
+					NilaiTerbaik:  res.BestScore,
+					BobotPersen:   m.Quiz.Bobot,
+					JumlahAttempt: res.Attempts,
+					JudulKuis:     m.Quiz.Judul,
+				}
+			}
+
+			mInfos = append(mInfos, MateriInfo{
+				MateriID: m.ID,
+				Judul:    m.Judul,
+				Tipe:     m.Tipe,
+				FileURL:  m.FileURL,
+				Kuis:     qInfo,
+			})
+		}
+
+		// Determine stage status
+		tahapStatus := t.Status
+		if tSelesai == tTotal && tTotal > 0 {
+			tahapStatus = "selesai"
+		} else if tSelesai > 0 {
+			tahapStatus = "berlangsung"
+		}
+
+		stages = append(stages, TahapInfo{
+			TahapID:        t.ID,
+			Label:          t.Label,
+			Status:         tahapStatus,
+			TanggalMulai:   t.TanggalMulai,
+			TanggalSelesai: t.TanggalSelesai,
+			TotalKuis:      tTotal,
+			KuisSelesai:    tSelesai,
+			Materis:        mInfos,
 		})
+	}
+
+	// Overall status
+	statusKeseluruhan := "belum_mulai"
+	if kuisSelesai == totalKuis && totalKuis > 0 {
+		statusKeseluruhan = "lulus"
+	} else if kuisSelesai > 0 {
+		statusKeseluruhan = "berlangsung"
 	}
 
 	return c.JSON(fiber.Map{
 		"success": true,
 		"data": fiber.Map{
-			"mahasiswa": student.Nama,
-			"hasil":     hasil,
-			"progress":  list,
-			"stats": fiber.Map{
-				"total":   len(kegiatan),
-				"selesai": selesaiCount,
-				"persen":  float64(selesaiCount) / math.Max(1, float64(len(kegiatan))) * 100,
-			},
+			"nilai_kumulatif":     nilaiTotal,
+			"status_keseluruhan":  statusKeseluruhan,
+			"total_kuis":          totalKuis,
+			"kuis_selesai":        kuisSelesai,
+			"tahaps":              stages,
+			"has_sertifikat":      false, // Logic for sertifikat can be added
+			"eligible_sertifikat": statusKeseluruhan == "lulus",
 		},
 	})
 }

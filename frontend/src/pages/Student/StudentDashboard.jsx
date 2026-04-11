@@ -1,8 +1,18 @@
 import React from 'react';
 import Sidebar from './components/Sidebar';
 import TopNavBar from './components/TopNavBar';
+import { useQuery } from '@tanstack/react-query';
+import api from '../../lib/axios';
 
 const StudentDashboard = () => {
+  const { data: profile } = useQuery({
+    queryKey: ['mahasiswa', 'profile'],
+    queryFn: async () => {
+      const { data } = await api.get('/profil');
+      return data.data;
+    }
+  });
+
   return (
     <div className="bg-surface text-on-surface min-h-screen">
       {/* TopNavBar */}
@@ -25,7 +35,9 @@ const StudentDashboard = () => {
             <div className="absolute inset-0 bg-gradient-to-r from-primary-container via-primary-container/80 to-transparent"></div>
           </div>
           <div className="relative z-10 px-10">
-            <h1 className="text-4xl font-extrabold text-white font-headline mb-3 tracking-tight">Welcome back, Alex!</h1>
+            <h1 className="text-4xl font-extrabold text-white font-headline mb-3 tracking-tight">
+              Welcome back, {profile?.Nama?.split(' ')[0] || 'Student'}!
+            </h1>
             <p className="text-on-primary-container text-lg font-medium max-w-md">You have 3 upcoming assignments and 1 class today. Stay focused!</p>
             <div className="mt-6 flex gap-4">
               <button className="bg-white text-primary px-6 py-2.5 rounded-xl font-bold text-sm shadow-sm hover:shadow-md transition-all">

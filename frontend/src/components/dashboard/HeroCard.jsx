@@ -21,6 +21,13 @@ export default function HeroCard({ data }) {
 
   const currentStatus = mahasiswa?.status?.toLowerCase() || 'alumni';
 
+  const getFullUrl = (path) => {
+    if (!path) return null;
+    if (path.startsWith('http')) return path;
+    const baseUrl = (import.meta.env.VITE_API_URL || 'http://localhost:8000/api').replace('/api', '');
+    return `${baseUrl}${path}`;
+  };
+
   return (
     <div className="bg-gradient-to-br from-[#eef4ff] to-[#e2ebff] border-l-4 border-[#00236F] rounded-2xl p-4 md:p-5 mb-2 shadow-sm relative overflow-hidden group">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 relative z-10">
@@ -41,7 +48,7 @@ export default function HeroCard({ data }) {
             <span className="text-[#d4d4d4] hidden md:inline">•</span>
             <span>Semester {mahasiswa?.semester}</span>
           </p>
-
+ 
           {/* Contextual Message */}
           <NavLink 
             to={link_kontekstual || '#'} 
@@ -51,12 +58,12 @@ export default function HeroCard({ data }) {
             <ChevronRight size={16} className="translate-x-0 group-hover/btn:translate-x-1 transition-transform" />
           </NavLink>
         </div>
-
+ 
         {/* Avatar */}
         <div className="hidden sm:block">
           <div className="w-[68px] h-[68px] rounded-full bg-white border-2 border-[#00236F] shadow-md flex items-center justify-center overflow-hidden transition-transform group-hover:scale-105 duration-500">
              {mahasiswa?.foto_url ? (
-               <img src={mahasiswa.foto_url} alt="Profile" className="w-full h-full object-cover" />
+               <img src={getFullUrl(mahasiswa.foto_url)} alt="Profile" className="w-full h-full object-cover" />
              ) : (
                <UserCircle2 size={42} className="text-[#a3a3a3]" strokeWidth={1} />
              )}
