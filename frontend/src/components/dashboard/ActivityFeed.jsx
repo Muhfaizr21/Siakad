@@ -27,7 +27,7 @@ export default function ActivityFeed({ activities }) {
           <Activity size={20} className="text-[#00236F]" />
           Aktivitas Terbaru
         </h3>
-        {/* <NavLink to="/student/dashboard" className="text-xs font-bold text-[#a3a3a3] hover:text-[#f97316] transition-colors">Lihat Semua</NavLink> */}
+        {/* <NavLink to="/student/dashboard" className="text-xs font-bold text-[#a3a3a3] hover:text-primary transition-colors">Lihat Semua</NavLink> */}
       </div>
 
       {activities?.length > 0 ? (

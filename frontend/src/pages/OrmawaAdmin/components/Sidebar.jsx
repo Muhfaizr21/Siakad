@@ -28,7 +28,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
   const mahasiswa = useAuthStore(state => state.mahasiswa);
   const ormawaId = mahasiswa?.ormawaId || mahasiswa?.OrmawaID || 1;
   const hasPermission = (perm, action) => true; // Temporary mapping or fetch from user roles
-  const [identity, setIdentity] = React.useState({ name: 'SIAKAD', alias: 'ORMAWA PORTAL' });
+  const [identity, setIdentity] = React.useState({ name: 'STUDENT HUB', alias: 'ORMAWA PORTAL' });
 
   // Filter menu based on permissions
   const filteredMenu = menuItems.filter(item => {

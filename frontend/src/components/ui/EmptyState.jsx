@@ -13,14 +13,14 @@ import * as Icons from 'lucide-react';
  */
 export default function EmptyState({ 
   icon, 
-  iconColor = "text-[#f97316]", 
-  iconBgClass = "bg-[#fff7ed]",
+  iconColor = "text-primary", 
+  iconBgClass = "bg-primary/5",
   iconBorderClass = "border-[#ffedd5]",
   title, 
   description, 
   actionLabel, 
   onAction, 
-  actionClassName = "bg-[#f97316] hover:bg-[#ea580c]",
+  actionClassName = "bg-primary hover:bg-primary/90",
   size = "md" 
 }) {
   const IconComponent = Icons[icon] || Icons.HelpCircle;

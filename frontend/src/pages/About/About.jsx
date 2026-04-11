@@ -4,7 +4,6 @@ import MissionVision from './components/MissionVision';
 import Values from './components/Values';
 import Leadership from './components/Leadership';
 import Milestones from './components/Milestones';
-import Footer from '../Landing/components/Footer';
 
 const About = () => {
   return (
@@ -16,8 +15,6 @@ const About = () => {
             <Leadership />
             <Milestones />
         </main>
-        {/* We are reusing the Landing footer per visual consistency guidelines */}
-        <Footer />
     </div>
   );
 };

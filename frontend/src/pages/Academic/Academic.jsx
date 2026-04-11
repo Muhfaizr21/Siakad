@@ -3,7 +3,6 @@ import AcademicHero from './components/AcademicHero';
 import Faculties from './components/Faculties';
 import Calendar from './components/Calendar';
 import Research from './components/Research';
-import Footer from '../Landing/components/Footer';
 
 const Academic = () => {
   return (
@@ -14,7 +13,6 @@ const Academic = () => {
             <Calendar />
             <Research />
         </main>
-        <Footer />
     </div>
   );
 };

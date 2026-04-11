@@ -85,8 +85,8 @@ export default function CounselingPage() {
   const filtered = jadwal?.filter(s => filterTipe === 'Semua' || s.Tipe === filterTipe) ?? [];
 
   return (
-    <div className="min-h-screen bg-[#f5f5f3] text-[#171717] font-body">
-      <div className="max-w-6xl mx-auto px-4 py-6 md:px-6 lg:px-8 lg:py-8">
+    <div className="px-4 py-5 md:px-6 md:py-6 lg:px-8 lg:py-8 font-body text-[#171717] min-h-screen bg-[#fafafa]">
+      <div className="w-full">
 
         {/* Breadcrumb */}
         <nav className="flex items-center gap-1.5 text-sm text-neutral-400 mb-7">

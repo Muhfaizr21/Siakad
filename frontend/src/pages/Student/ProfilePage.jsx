@@ -126,7 +126,7 @@ export default function ProfilePage() {
           
           <div className="mt-6 pt-5 border-t border-[#f5f5f5] flex items-center gap-2 text-xs font-bold text-[#a3a3a3] italic">
             <Info size={14} className="text-[#d4d4d4]" />
-            Data di atas bersumber dari SIAKAD kampus dan bersifat read-only (tidak dapat diubah).
+            Data di atas bersumber dari sistem Student Hub dan bersifat read-only (tidak dapat diubah).
           </div>
 
           <div className="absolute top-0 right-0 w-64 h-64 bg-[#00236F] opacity-[0.03] rounded-full translate-x-1/3 -translate-y-1/3 pointer-events-none group-hover:scale-110 transition-transform duration-700"></div>

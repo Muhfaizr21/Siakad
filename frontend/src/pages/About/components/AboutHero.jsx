@@ -1,5 +1,4 @@
 import React from 'react';
-import Navbar from '../../Landing/components/Navbar';
 
 const AboutHero = () => {
   return (
@@ -10,9 +9,6 @@ const AboutHero = () => {
                 src="https://lh3.googleusercontent.com/aida-public/AB6AXuAGlAKDQN83dAeuGVlHtbB1c2CHQmUE2iGGipEOPFuQuCQi8N9SDWGqJmpSepAt6rxuWNGO-9bqbdr9FSXw3n_EAgIUrET5DcEi3Sq-De_HYg2usUAWt5EzXtpIW2EPZuoOJgla6MrYSUhqPxwYz_m4LOxBEnJk-Pvc3dhno-RUtZoL185JL-ks3N41zndjwMroalGAPqEu8JtrXc8j3TsXNFpwAVDMLIk4m-Yq5M1UIsFcmWrZ0r5xY98GTZDErvEPAoFOuA1TJ3kJ" />
             <div className="absolute inset-0 bg-gradient-to-r from-primary/90 to-primary/40"></div>
         </div>
-        
-        {/* Reusing Landing Navbar logic inside Hero */}
-        <Navbar />
 
         <div className="relative z-10 flex-grow flex items-center max-w-7xl mx-auto px-8 w-full">
             <div className="max-w-2xl">

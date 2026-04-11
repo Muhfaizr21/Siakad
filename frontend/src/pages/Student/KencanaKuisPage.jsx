@@ -358,8 +358,8 @@ export default function KencanaKuisPage() {
               exit={{ scale: 0.9, opacity: 0 }}
               className="bg-white w-full max-w-sm rounded-3xl p-8 shadow-2xl text-center"
             >
-              <div className="w-16 h-16 bg-[#fff7ed] rounded-2xl flex items-center justify-center mx-auto mb-5">
-                <Star size={28} className="text-[#f97316]" />
+              <div className="w-16 h-16 bg-primary/5 rounded-2xl flex items-center justify-center mx-auto mb-5">
+                <Star size={28} className="text-primary" />
               </div>
               <h3 className="text-xl font-black font-headline mb-2 text-[#171717]">Kumpulkan Jawaban?</h3>
               <p className="text-[#737373] mb-2 text-sm font-medium">
@@ -379,7 +379,7 @@ export default function KencanaKuisPage() {
                 <button
                   onClick={() => { setShowConfirm(false); handleSubmitFinal(); }}
                   disabled={submitKuisMutation.isPending}
-                  className="flex-1 py-3 rounded-2xl bg-[#f97316] text-white font-bold hover:bg-[#ea580c] disabled:opacity-50 transition-colors"
+                  className="flex-1 py-3 rounded-2xl bg-primary text-white font-bold hover:bg-primary/90 disabled:opacity-50 transition-colors"
                 >
                   {submitKuisMutation.isPending ? 'Loading...' : 'Ya, Kumpulkan'}
                 </button>

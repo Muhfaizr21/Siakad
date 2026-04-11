@@ -58,7 +58,7 @@ class ErrorBoundary extends React.Component {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <button
                  onClick={() => window.location.reload()}
-                 className="px-8 py-4 bg-[#f97316] text-white rounded-3xl font-bold text-sm shadow-xl hover:bg-[#ea580c] transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-2"
+                 className="px-8 py-4 bg-primary text-white rounded-3xl font-bold text-sm shadow-xl hover:bg-primary/90 transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-2"
               >
                 <RefreshCcw size={18} />
                 Muat Ulang

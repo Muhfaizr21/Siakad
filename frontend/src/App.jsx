@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
-import Landing from './pages/Landing/Landing'
+
 import About from './pages/About/About'
 import Academic from './pages/Academic/Academic'
 import Services from './pages/Services/Services'
 import Login from './pages/Auth/Login'
 import ChangePassword from './pages/Auth/ChangePassword'
+import ForgotPassword from './pages/Auth/ForgotPassword'
 import AdminDashboard from './pages/SuperAdmin/AdminDashboard'
 import FacultyLayout from './pages/FacultyAdmin/components/FacultyLayout'
 import FacultyDashboard from './pages/FacultyAdmin/FacultyDashboard'
@@ -149,11 +150,12 @@ function App() {
       <AuthProvider>
         <Router>
           <Routes>
-            <Route path="/" element={<Landing />} />
+            <Route path="/" element={<Navigate to="/login" replace />} />
             <Route path="/about" element={<About />} />
             <Route path="/academic" element={<Academic />} />
             <Route path="/services" element={<Services />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/change-password" element={<ChangePassword />} />
 
             {/* Error Pages */}

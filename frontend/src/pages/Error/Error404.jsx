@@ -80,7 +80,7 @@ export default function Error404() {
 
         {/* Footer info */}
         <p className="mt-16 text-xs font-bold text-[#d4d4d4] uppercase tracking-widest">
-          BKU Student Hub &bull; Siakad v2.0
+          BKU Student Hub &bull; Portal v2.0
         </p>
       </div>
     </div>

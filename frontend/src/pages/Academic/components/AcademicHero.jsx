@@ -1,5 +1,4 @@
 import React from 'react';
-import Navbar from '../../Landing/components/Navbar';
 
 const AcademicHero = () => {
   return (
@@ -10,9 +9,6 @@ const AcademicHero = () => {
                 src="https://lh3.googleusercontent.com/aida-public/AB6AXuC9lX3EypKOCc3S8wPp4Llf2x10Ejr2WT-633nk1LFV_l9L0xd40ee1nTtGKGbkTfGo4Pw8oaMGAi2wcag-puotM4blcGNtDSB09gIAj5c0Y4uKjywyqdt1OTeRA1KWix5xnTkyN_XStfoIDoRziX4zpvZ8zovcTDCD-l3X6t0o_q3Ej6IbExReqm23doLIT-rzyLfKbdXrMwzoY8Tb4pRrYt39G9Z4u2gBLwwjR4beHMYi_yszwqTmVM51BotBznMEDXmjphhJzFDE" />
             <div className="absolute inset-0 bg-primary/40 glass-effect"></div>
         </div>
-        
-        {/* We keep Navbar here to preserve the transparent overlay effect */}
-        <Navbar />
         
         <div className="relative z-10 flex-grow flex items-center max-w-7xl mx-auto px-8 w-full">
             <div>
