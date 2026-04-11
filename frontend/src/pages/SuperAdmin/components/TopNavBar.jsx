@@ -109,9 +109,9 @@ const TopNavBar = ({ setIsOpen }) => {
 
         <div className="h-8 w-[1px] bg-slate-200 mx-1"></div>
 
-        <div className="flex items-center gap-3.5 pl-2 group cursor-pointer">
+        <Link to="/admin/profile" className="flex items-center gap-3.5 pl-2 group cursor-pointer transition-all hover:opacity-80 active:scale-95">
           <div className="flex flex-col items-end leading-none">
-            <p className="text-[12px] font-black text-slate-900 tracking-tight font-headline uppercase leading-none">
+            <p className="text-[12px] font-black text-slate-900 tracking-tight font-headline uppercase leading-none group-hover:text-[#00236f] transition-colors">
               {user?.Email?.split('@')[0] || 'Super Admin'}
             </p>
             <p className="text-[9px] font-bold text-[#00236f] tracking-widest uppercase mt-1.5 opacity-70">
@@ -119,12 +119,12 @@ const TopNavBar = ({ setIsOpen }) => {
             </p>
           </div>
           <div className="relative">
-            <div className="w-11 h-11 rounded-2xl bg-slate-900 border-[3px] border-slate-100/50 text-white flex items-center justify-center font-black text-xs shadow-xl shadow-slate-900/10 transition-all group-hover:border-[#00236f]/20 overflow-hidden">
+            <div className="w-11 h-11 rounded-2xl bg-slate-900 border-[3px] border-slate-100/50 text-white flex items-center justify-center font-black text-xs shadow-xl shadow-slate-900/10 transition-all group-hover:border-[#00236f]/20 group-hover:scale-105 overflow-hidden">
                {user?.Email?.[0]?.toUpperCase() || <UserCircle2 className="size-6" />}
             </div>
             <div className="absolute -bottom-1 -right-1 size-4 bg-emerald-500 border-[3px] border-white rounded-full shadow-lg shadow-emerald-500/20"></div>
           </div>
-        </div>
+        </Link>
       </div>
     </header>
   );

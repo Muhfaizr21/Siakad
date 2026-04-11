@@ -82,7 +82,11 @@ export default function RoleBasedAccess() {
     const url = isEditMode ? `${API}/roles/${form.ID}` : `${API}/roles`
     const method = isEditMode ? 'PUT' : 'POST'
     try {
-      const json = await fetchWithAuth(url, { method, body: JSON.stringify({ ...form, OrmawaID: Number(form.OrmawaID) }) })
+      const json = await fetchWithAuth(url, { 
+        method, 
+        body: JSON.stringify({ ...form, OrmawaID: Number(form.OrmawaID) }),
+        headers: { 'Content-Type': 'application/json' }
+      })
       if (json.status === 'success') { toast.success(isEditMode ? 'Role diperbarui' : 'Role dibuat'); setIsCrudOpen(false); fetchData() }
       else toast.error(json.message || 'Gagal menyimpan')
     } catch { toast.error('Terjadi kesalahan') } finally { setIsSubmitting(false) }

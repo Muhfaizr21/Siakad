@@ -99,6 +99,7 @@ import ContentManagement from './pages/SuperAdmin/ContentManagement'
 import ReportsGenerator from './pages/SuperAdmin/ReportsGenerator'
 import StudentDirectory from './pages/SuperAdmin/StudentDirectory'
 import AdminPerformance from './pages/SuperAdmin/AdminPerformance'
+import AdminProfile from './pages/SuperAdmin/Profile'
 import SecuritySettings from './pages/SuperAdmin/SecuritySettings'
 import LecturerDirectory from './pages/SuperAdmin/LecturerDirectory'
 import KelolaFakultas from './pages/SuperAdmin/KelolaFakultas'
@@ -168,6 +169,7 @@ function App() {
               <ProtectedRoute allowedRoles={['super_admin']}>
                 <Routes>
                   <Route index element={<AdminDashboard />} />
+                  <Route path="profile" element={<AdminProfile />} />
                   <Route path="rbac" element={<UserManagement />} />
                   <Route path="academic" element={<AcademicPortal />} />
                   <Route path="aspirations" element={<AspirationControl />} />

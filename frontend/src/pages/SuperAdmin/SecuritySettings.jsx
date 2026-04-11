@@ -7,7 +7,7 @@ const SecuritySettings = () => {
     return (
         <div className="bg-slate-50 text-slate-900 min-h-screen flex font-sans select-none">
             <Sidebar />
-            <main className="pl-72 flex flex-col min-h-screen w-full">
+            <main className="pl-72 pt-20 flex flex-col min-h-screen w-full">
                 <TopNavBar />
                 <div className="p-8 space-y-8">
                     <div className="flex flex-col gap-1.5">

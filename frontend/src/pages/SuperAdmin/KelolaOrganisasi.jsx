@@ -1,15 +1,15 @@
 "use client"
 
 import React, { useState, useEffect } from 'react'
-import { DataTable } from '../FacultyAdmin/components/data-table'
-import { Badge } from '../FacultyAdmin/components/badge'
-import { Button } from '../FacultyAdmin/components/button'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '../FacultyAdmin/components/dialog'
-import { DeleteConfirmModal } from '../FacultyAdmin/components/DeleteConfirmModal'
-import { Card, CardContent } from '../FacultyAdmin/components/card'
-import { Input } from '../FacultyAdmin/components/input'
-import { Label } from '../FacultyAdmin/components/label'
-import { Textarea } from '../FacultyAdmin/components/textarea'
+import { DataTable } from './components/ui/data-table'
+import { Badge } from './components/ui/badge'
+import { Button } from './components/ui/button'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from './components/ui/dialog'
+import { DeleteConfirmModal } from './components/ui/DeleteConfirmModal'
+import { Card, CardContent } from './components/ui/card'
+import { Input } from './components/ui/input'
+import { Label } from './components/ui/label'
+import { Textarea } from './components/ui/textarea'
 import { Eye, Pencil, Trash2, Loader2, Plus, Save, Building } from 'lucide-react'
 import { toast, Toaster } from 'react-hot-toast'
 import { cn } from '@/lib/utils'
@@ -140,12 +140,12 @@ export default function KelolaOrganisasi() {
               <DialogTitle className="text-2xl font-black font-headline tracking-tighter text-slate-900 uppercase">{isEditMode ? 'Edit Ormawa' : 'Daftarkan Ormawa Baru'}</DialogTitle>
             </div>
           </DialogHeader>
-          <form onSubmit={handleSave} className="p-8 pt-6 space-y-4">
+          <form onSubmit={handleSave} className="p-8 pt-6 space-y-4 max-h-[65vh] overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200">
             <div className="grid grid-cols-3 gap-4">
               <div className="space-y-2 col-span-2"><Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Nama Organisasi</Label><Input required value={form.Nama} onChange={e => setForm({ ...form, Nama: e.target.value })} placeholder="Nama lengkap..." className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white font-bold text-sm font-headline" /></div>
               <div className="space-y-2"><Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Kode / Singkatan</Label><Input required value={form.Singkatan} onChange={e => setForm({ ...form, Singkatan: e.target.value })} placeholder="CTR, HMP, etc" className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white font-bold text-sm font-headline" /></div>
             </div>
-            <div className="space-y-2"><Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Kontak / HP</Label><Input value={form.Phone} onChange={e => setForm({ ...form, Phone: e.target.value })} placeholder="08xxx..." className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white font-bold text-sm font-headline" /></div>
+            <div className="space-y-2"><Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Kontak / HP</Label><Input value={form.Phone} onChange={e => { const val = e.target.value.replace(/\D/g, ''); setForm({ ...form, Phone: val }); }} placeholder="08xxx..." className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white font-bold text-sm font-headline" /></div>
 
             <div className="space-y-2"><Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Email Resmi</Label><Input type="email" value={form.Email} onChange={e => setForm({ ...form, Email: e.target.value })} placeholder="email@ormawa.bku.ac.id" className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white font-bold text-sm" /></div>
             <div className="space-y-2"><Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Deskripsi Organisasi</Label><Textarea value={form.Deskripsi} onChange={e => setForm({ ...form, Deskripsi: e.target.value })} placeholder="Singkatan atau deskripsi singkat..." className="min-h-[60px] rounded-[1.5rem] border-slate-200 bg-slate-50/50 focus:bg-white p-4 text-sm font-medium font-headline" /></div>

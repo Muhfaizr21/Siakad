@@ -1,15 +1,15 @@
 "use client"
 
 import React, { useState, useEffect } from 'react'
-import { DataTable } from '../FacultyAdmin/components/data-table'
-import { Badge } from '../FacultyAdmin/components/badge'
-import { Button } from '../FacultyAdmin/components/button'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '../FacultyAdmin/components/dialog'
-import { DeleteConfirmModal } from '../FacultyAdmin/components/DeleteConfirmModal'
-import { Card, CardContent } from '../FacultyAdmin/components/card'
-import { Input } from '../FacultyAdmin/components/input'
-import { Label } from '../FacultyAdmin/components/label'
-import { Avatar, AvatarFallback } from '../FacultyAdmin/components/avatar'
+import { DataTable } from './components/ui/data-table'
+import { Badge } from './components/ui/badge'
+import { Button } from './components/ui/button'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from './components/ui/dialog'
+import { DeleteConfirmModal } from './components/ui/DeleteConfirmModal'
+import { Card, CardContent } from './components/ui/card'
+import { Input } from './components/ui/input'
+import { Label } from './components/ui/label'
+import { Avatar, AvatarFallback } from './components/ui/avatar'
 import { Eye, Pencil, Trash2, Loader2, Plus, Save, Users, BookOpen, Mail, GraduationCap } from 'lucide-react'
 import { toast, Toaster } from 'react-hot-toast'
 import { cn } from '@/lib/utils'
@@ -18,7 +18,7 @@ import TopNavBar from './components/TopNavBar'
 import { adminService } from '../../services/api'
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue
-} from '../FacultyAdmin/components/select'
+} from './components/ui/select'
 
 const EMPTY_FORM = { NIM: '', Nama: '', EmailKampus: '', FakultasID: '', ProgramStudiID: '', SemesterSekarang: 1, StatusAkun: 'Aktif', Alamat: '', TahunMasuk: new Date().getFullYear() }
 
@@ -141,6 +141,7 @@ export default function StudentDirectory() {
                   { key: 'FakultasID', placeholder: 'Filter Fakultas', options: faculties.map(f => ({ label: f.Nama, value: f.ID })) },
                   { key: 'ProgramStudiID', placeholder: 'Filter Prodi', options: prodi.map(p => ({ label: p.Nama, value: p.ID })) }
                 ]}
+                searchWidth="max-w-xl"
 
                 actions={(row) => (
                   <div className="flex items-center gap-2">

@@ -49,7 +49,7 @@ export default function StrukturOrganisasi() {
   const [divName, setDivName] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [delDiv, setDelDiv] = useState(null)
-  const ormawaId = useAuthStore.getState()?.mahasiswa?.ormawaId || useAuthStore.getState()?.mahasiswa?.ID || 1
+  const ormawaId = useAuthStore.getState()?.mahasiswa?.ormawaId || useAuthStore.getState()?.mahasiswa?.OrmawaID || 1
 
   const fetchData = async () => {
     setLoading(true)
@@ -67,7 +67,11 @@ export default function StrukturOrganisasi() {
   const handleAddDivision = async (e) => {
     e.preventDefault(); setIsSubmitting(true)
     try {
-      const json = await fetchWithAuth(`${API}/divisions`, { method: 'POST', body: JSON.stringify({ Nama: divName, OrmawaID: ormawaId }) })
+      const json = await fetchWithAuth(`${API}/divisions`, { 
+        method: 'POST', 
+        body: JSON.stringify({ Nama: divName, OrmawaID: Number(ormawaId) }),
+        headers: { 'Content-Type': 'application/json' }
+      })
       if (json.status === 'success') { toast.success('Divisi ditambahkan'); setIsAddDivOpen(false); setDivName(''); fetchData() }
       else toast.error(json.message || 'Gagal menambahkan divisi')
     } catch { toast.error('Terjadi kesalahan') } finally { setIsSubmitting(false) }

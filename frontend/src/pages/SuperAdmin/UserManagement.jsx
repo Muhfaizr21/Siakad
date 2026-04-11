@@ -1,15 +1,15 @@
 "use client"
 
 import React, { useState, useEffect } from 'react'
-import { DataTable } from '../FacultyAdmin/components/data-table'
-import { Badge } from '../FacultyAdmin/components/badge'
-import { Button } from '../FacultyAdmin/components/button'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '../FacultyAdmin/components/dialog'
-import { DeleteConfirmModal } from '../FacultyAdmin/components/DeleteConfirmModal'
-import { Card, CardContent } from '../FacultyAdmin/components/card'
-import { Input } from '../FacultyAdmin/components/input'
-import { Label } from '../FacultyAdmin/components/label'
-import { Avatar, AvatarFallback } from '../FacultyAdmin/components/avatar'
+import { DataTable } from './components/ui/data-table'
+import { Badge } from './components/ui/badge'
+import { Button } from './components/ui/button'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from './components/ui/dialog'
+import { DeleteConfirmModal } from './components/ui/DeleteConfirmModal'
+import { Card, CardContent } from './components/ui/card'
+import { Input } from './components/ui/input'
+import { Label } from './components/ui/label'
+import { Avatar, AvatarFallback } from './components/ui/avatar'
 import { 
   Eye, Pencil, Trash2, Loader2, Plus, Save, 
   UserCheck, Mail, KeyRound, ShieldAlert, 
@@ -23,7 +23,7 @@ import { cn } from '@/lib/utils'
 import Sidebar from './components/Sidebar'
 import TopNavBar from './components/TopNavBar'
 import { adminService } from '../../services/api'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../FacultyAdmin/components/select'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './components/ui/select'
 
 const ROLES = ['super_admin', 'faculty_admin', 'ormawa_admin', 'dosen', 'mahasiswa']
 
@@ -237,6 +237,7 @@ export default function UserManagement() {
                 searchPlaceholder="Cari identitas, email atau level akses..."
                 onAdd={() => { setForm({ Email: '', Password: '', Role: 'mahasiswa' }); setIsCrudOpen(true) }} addLabel="Registrasi Akun"
                 filters={[{ key: 'role', placeholder: 'Pilih Level Akses', options: ROLES.map(r => ({ label: ROLE_DETAILS[r]?.label || r, value: r })) }]}
+                searchWidth="max-w-xl"
                 actions={(row) => (
                   <div className="flex items-center gap-2">
                     <Button onClick={() => { setSelected(row); setNewRole(row.role || row.Role || ''); setIsRoleOpen(true) }} variant="ghost" className="h-10 px-4 gap-2 hover:text-primary hover:bg-primary/10 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all">

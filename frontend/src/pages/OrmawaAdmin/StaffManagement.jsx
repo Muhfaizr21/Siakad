@@ -1,15 +1,15 @@
 "use client"
 
 import React, { useState, useEffect } from 'react'
-import { DataTable } from '../FacultyAdmin/components/data-table'
-import { Badge } from '../FacultyAdmin/components/badge'
-import { Button } from '../FacultyAdmin/components/button'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '../FacultyAdmin/components/dialog'
-import { DeleteConfirmModal } from '../FacultyAdmin/components/DeleteConfirmModal'
-import { Card, CardContent } from '../FacultyAdmin/components/card'
-import { Input } from '../FacultyAdmin/components/input'
-import { Label } from '../FacultyAdmin/components/label'
-import { Avatar, AvatarFallback } from '../FacultyAdmin/components/avatar'
+import { DataTable } from './components/ui/data-table'
+import { Badge } from './components/ui/badge'
+import { Button } from './components/ui/button'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from './components/ui/dialog'
+import { DeleteConfirmModal } from './components/ui/DeleteConfirmModal'
+import { Card, CardContent } from './components/ui/card'
+import { Input } from './components/ui/input'
+import { Label } from './components/ui/label'
+import { Avatar, AvatarFallback } from './components/ui/avatar'
 import { Eye, Pencil, Trash2, Loader2, Plus, Save, UserCog, Mail } from 'lucide-react'
 import { toast, Toaster } from 'react-hot-toast'
 import { cn } from '@/lib/utils'
@@ -35,7 +35,7 @@ export default function StaffManagement() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [students, setStudents] = useState([])
   const ormawaId = useAuthStore.getState()?.mahasiswa?.ormawaId || useAuthStore.getState()?.mahasiswa?.OrmawaID || 1
-  const [form, setForm] = useState({ Nama: '', MahasiswaID: '', Jabatan: 'Pembina', Email: '', NoHP: '', OrmawaID: ormawaId })
+  const [form, setForm] = useState({ Nama: '', MahasiswaID: '', Jabatan: 'Pembina', Divisi: 'Umum', Email: '', NoHP: '', OrmawaID: ormawaId })
 
   const fetchData = async () => {
     setLoading(true)
@@ -53,7 +53,16 @@ export default function StaffManagement() {
   const handleOpenAdd = () => { setIsEditMode(false); setForm({ Nama: '', MahasiswaID: '', Jabatan: 'Pembina', Email: '', NoHP: '', OrmawaID: ormawaId }); setIsCrudOpen(true) }
   const handleOpenEdit = (row) => {
     setIsEditMode(true)
-    setForm({ ID: row.ID, Nama: row.Mahasiswa?.Nama || '', MahasiswaID: String(row.MahasiswaID || ''), Jabatan: row.Role || 'Pembina', Email: row.Email || '', NoHP: row.NoHP || '', OrmawaID: ormawaId })
+    setForm({ 
+      ID: row.ID, 
+      Nama: row.Mahasiswa?.Nama || '', 
+      MahasiswaID: String(row.MahasiswaID || ''), 
+      Jabatan: row.Role || 'Pembina', 
+      Divisi: row.Divisi || 'Umum',
+      Email: row.Mahasiswa?.EmailKampus || '', 
+      NoHP: row.Mahasiswa?.NoHP || '', 
+      OrmawaID: ormawaId 
+    })
     setIsCrudOpen(true)
   }
   const handleSave = async (e) => {
@@ -61,7 +70,14 @@ export default function StaffManagement() {
     const url = isEditMode ? `${API}/members/${form.ID}` : `${API}/members`
     const method = isEditMode ? 'PUT' : 'POST'
     try {
-      const payload = { Role: form.Jabatan, MahasiswaID: Number(form.MahasiswaID), OrmawaID: Number(form.OrmawaID) }
+      const payload = { 
+        Role: form.Jabatan, 
+        Divisi: form.Divisi,
+        MahasiswaID: Number(form.MahasiswaID), 
+        OrmawaID: Number(form.OrmawaID),
+        EmailKampus: form.Email,
+        NoHP: form.NoHP
+      }
       const data = await fetchWithAuth(url, { method, body: JSON.stringify(payload), headers: { 'Content-Type': 'application/json' } })
       if (data.status === 'success') { toast.success(isEditMode ? 'Data diperbarui' : 'Staf ditambahkan'); setIsCrudOpen(false); fetchData() }
       else toast.error(data.message || 'Gagal menyimpan')
@@ -169,9 +185,14 @@ export default function StaffManagement() {
             <div className="space-y-2">
               <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Jabatan</Label>
               <select value={form.Jabatan} onChange={e => setForm({ ...form, Jabatan: e.target.value })}
-                className="w-full h-12 rounded-2xl border border-slate-200 bg-slate-50/50 px-4 text-sm font-bold text-slate-700 focus:outline-none focus:bg-white transition-all">
+                className="w-full h-12 rounded-2xl border border-slate-200 bg-slate-50/50 px-4 text-sm font-bold text-slate-700 focus:outline-none focus:bg-white transition-all font-headline">
                 {JABATAN.map(j => <option key={j} value={j}>{j}</option>)}
               </select>
+            </div>
+            <div className="space-y-2">
+              <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Divisi</Label>
+              <Input value={form.Divisi} onChange={e => setForm({ ...form, Divisi: e.target.value })} placeholder="Masukkan nama divisi..."
+                className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white transition-all font-bold text-sm" />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
@@ -198,6 +219,78 @@ export default function StaffManagement() {
 
       <DeleteConfirmModal isOpen={isDelOpen} onClose={() => setIsDelOpen(false)} onConfirm={handleDelete}
         title="Hapus Staf?" description="Data staf ini akan dihapus permanen dari sistem." loading={isSubmitting} />
+
+      {/* DETAIL VIEW */}
+      <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
+        <DialogContent className="max-w-2xl p-0 overflow-hidden border-none shadow-2xl rounded-[2.5rem] bg-white">
+          <div className="relative">
+            {/* Header / Banner */}
+            <div className="h-32 bg-gradient-to-r from-primary/20 via-primary/10 to-transparent" />
+            
+            <div className="px-8 pb-8 -mt-12 relative z-10">
+              <div className="flex items-end justify-between mb-8">
+                <Avatar className="size-24 rounded-[2rem] border-4 border-white shadow-xl ring-1 ring-slate-100">
+                  <AvatarFallback className="bg-primary/10 text-primary text-2xl font-black uppercase">
+                    {selected?.Mahasiswa?.Nama?.split(' ').map(n => n[0]).join('').substring(0, 2) || '?'}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex gap-2 mb-2">
+                  <Badge className="bg-primary/5 text-primary font-black text-[10px] border-none px-4 py-1.5 uppercase tracking-widest">
+                    {selected?.Role || 'STAF'}
+                  </Badge>
+                </div>
+              </div>
+
+              <div className="space-y-6">
+                <div>
+                  <h2 className="text-3xl font-black text-slate-900 font-headline tracking-tight leading-tight mb-1">
+                    {selected?.Mahasiswa?.Nama || 'Nama Tidak Tersedia'}
+                  </h2>
+                  <p className="text-xs font-bold text-slate-400 uppercase tracking-[0.2em] font-headline">
+                    NIM: {selected?.Mahasiswa?.NIM || '—'}
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-6 p-6 rounded-3xl bg-slate-50 border border-slate-100">
+                  <div className="space-y-1.5">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline">Jabatan Struktural</p>
+                    <p className="text-sm font-bold text-slate-700">{selected?.Role || 'Anggota'}</p>
+                  </div>
+                  <div className="space-y-1.5">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline">Divisi Kerja</p>
+                    <p className="text-sm font-bold text-slate-700">{selected?.Divisi || 'Umum'}</p>
+                  </div>
+                  <div className="space-y-1.5">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline">Email Kampus</p>
+                    <p className="text-sm font-bold text-slate-700 underline underline-offset-4 decoration-primary/30">
+                      {selected?.Mahasiswa?.EmailKampus || selected?.Mahasiswa?.email_kampus || '—'}
+                    </p>
+                  </div>
+                  <div className="space-y-1.5">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline">No. WhatsApp</p>
+                    <p className="text-sm font-bold text-slate-700">
+                      {selected?.Mahasiswa?.NoHP || selected?.Mahasiswa?.no_hp || '—'}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline ml-1">Tugas & Kontribusi</p>
+                  <p className="text-sm text-slate-600 leading-relaxed bg-white p-4 rounded-2xl border border-slate-100 italic">
+                    "Staf bertanggung jawab dalam membantu koordinasi internal organisasi sesuai dengan jabatan yang diamanahkan."
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter className="p-6 bg-slate-50 border-t border-slate-100">
+            <Button onClick={() => setIsDetailOpen(false)} className="w-full h-12 rounded-2xl bg-white text-slate-900 border border-slate-200 font-black text-[10px] uppercase tracking-[0.2em] hover:bg-slate-50 shadow-sm">
+              Tutup Pratinjau
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

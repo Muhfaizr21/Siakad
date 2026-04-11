@@ -1,6 +1,6 @@
 "use client"
 import React, { useState, useEffect } from 'react'
-import { Card, CardContent } from '../FacultyAdmin/components/card'
+import { Card, CardContent } from './components/ui/card'
 import { 
   Users, MessageSquare, FileText, LayoutDashboard, 
   TrendingUp, AlertTriangle, CheckCircle2, Clock, 

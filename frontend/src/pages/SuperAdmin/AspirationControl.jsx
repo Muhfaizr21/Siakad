@@ -3,7 +3,7 @@ import Sidebar from './components/Sidebar';
 import TopNavBar from './components/TopNavBar';
 import { adminService } from '../../services/api';
 import { Search, Loader2, MessageSquare, AlertCircle, CheckCircle2, ChevronRight, Filter, ShieldCheck, Mail, Users } from 'lucide-react';
-import { Badge } from '../FacultyAdmin/components/badge';
+import { Badge } from './components/ui/badge';
 import { cn } from '@/lib/utils';
 import { toast, Toaster } from 'react-hot-toast';
 

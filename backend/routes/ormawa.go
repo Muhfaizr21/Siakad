@@ -26,6 +26,7 @@ func SetupOrmawaRoutes(app *fiber.App) {
 	// CASH MUTATIONS (BUKU KAS)
 	api.Get("/kas", ormawa.GetCashMutations)
 	api.Post("/kas", ormawa.CreateCashMutation)
+	api.Delete("/kas/:id", ormawa.DeleteCashMutation)
 
 	// EVENTS
 	api.Get("/events", ormawa.GetEvents)
@@ -45,6 +46,7 @@ func SetupOrmawaRoutes(app *fiber.App) {
 
 	// ROLES
 	api.Get("/roles", ormawa.GetOrmawaRoles)
+	api.Post("/roles", ormawa.CreateOrmawaRole)
 	api.Delete("/roles/:id", ormawa.DeleteOrmawaRole)
 
 	// MEMBERS

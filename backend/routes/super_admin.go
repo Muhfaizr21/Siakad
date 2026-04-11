@@ -13,6 +13,8 @@ func SetupSuperAdminRoutes(r fiber.Router) {
 	r.Put("/users/role", controllers.UpdateUserRole)
 	r.Delete("/users/:id", controllers.DeleteUser)
 	r.Get("/audit-logs", controllers.GetAuditLogs)
+	r.Get("/profile", controllers.GetAdminProfile)
+	r.Put("/profile", controllers.UpdateAdminProfile)
 
 	// Global Proposal Pipeline
 	r.Get("/proposals", controllers.GetGlobalProposals)
@@ -63,4 +65,6 @@ func SetupSuperAdminRoutes(r fiber.Router) {
 	r.Post("/news", controllers.CreateNews)
 	r.Put("/news/:id", controllers.UpdateNews)
 	r.Delete("/news/:id", controllers.DeleteNews)
+	r.Get("/academic-settings", controllers.GetAcademicSettings)
+	r.Put("/academic-settings", controllers.UpdateAcademicSettings)
 }

@@ -673,9 +673,17 @@ func CreateNews(c *fiber.Ctx) error {
 	if err := c.BodyParser(&b); err != nil {
 		return c.Status(400).JSON(fiber.Map{"status": "error", "message": err.Error()})
 	}
+
+	userID, ok := c.Locals("user_id").(uint)
+	if !ok {
+		return c.Status(401).JSON(fiber.Map{"status": "error", "message": "Author identity required"})
+	}
+
+	b.PenulisID = userID
 	b.TanggalPublish = time.Now()
+	
 	if err := config.DB.Create(&b).Error; err != nil {
-		return c.Status(500).JSON(fiber.Map{"status": "error", "message": err.Error()})
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal menyimpan berita: " + err.Error()})
 	}
 	return c.JSON(fiber.Map{"status": "success", "data": b})
 }
@@ -698,3 +706,122 @@ func DeleteNews(c *fiber.Ctx) error {
 	config.DB.Delete(&models.Berita{}, id)
 	return c.JSON(fiber.Map{"status": "success", "message": "Berita dihapus"})
 }
+
+
+// GetAdminProfile returns the profile of the currently logged-in admin
+func GetAdminProfile(c *fiber.Ctx) error {
+	userID := c.Locals("user_id")
+	if userID == nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"status": "error", "message": "Unauthorized access"})
+	}
+
+	var user models.User
+	if err := config.DB.First(&user, userID).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Admin not found"})
+	}
+
+	return c.JSON(fiber.Map{
+		"status": "success",
+		"data":   user,
+	})
+}
+
+// UpdateAdminProfile updates basic security info for admin
+func UpdateAdminProfile(c *fiber.Ctx) error {
+	userID := c.Locals("user_id")
+	if userID == nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"status": "error", "message": "Unauthorized access"})
+	}
+
+	type UpdateReq struct {
+		Email string `json:"Email"`
+		OldPassword string `json:"OldPassword"`
+		NewPassword string `json:"NewPassword"`
+	}
+	var req UpdateReq
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Invalid request body"})
+	}
+
+	var user models.User
+	if err := config.DB.First(&user, userID).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Admin not found"})
+	}
+
+	// Update Email
+	if req.Email != "" {
+		user.Email = req.Email
+	}
+
+	// Update Password if requested
+	if req.OldPassword != "" && req.NewPassword != "" {
+		if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.OldPassword)); err != nil {
+			return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Incorrect current password"})
+		}
+		
+		hashed, err := bcrypt.GenerateFromPassword([]byte(req.NewPassword), bcrypt.DefaultCost)
+		if err != nil {
+			return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Failed to hash new password"})
+		}
+		user.Password = string(hashed)
+	}
+
+	if err := config.DB.Save(&user).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Failed to update profile"})
+	}
+
+	return c.JSON(fiber.Map{
+		"status": "success",
+		"message": "Admin profile updated successfully",
+		"data": user,
+	})
+}
+
+// GetAcademicSettings returns the global academic configuration
+func GetAcademicSettings(c *fiber.Ctx) error {
+	var settings models.PengaturanAkademik
+	// Try to find the first/active settings
+	if err := config.DB.First(&settings).Error; err != nil {
+		// If not found, create a default one
+		settings = models.PengaturanAkademik{
+			TahunAkademik: "2024 / 2025",
+			Semester:      "Ganjil",
+			IsKRSOpen:     false,
+			IsNilaiOpen:   false,
+			IsMBKMOpen:    false,
+		}
+		config.DB.Create(&settings)
+	}
+
+	return c.JSON(fiber.Map{
+		"status": "success",
+		"data":   settings,
+	})
+}
+
+// UpdateAcademicSettings updates the global academic configuration
+func UpdateAcademicSettings(c *fiber.Ctx) error {
+	var payload models.PengaturanAkademik
+	if err := c.BodyParser(&payload); err != nil {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Invalid request body"})
+	}
+
+	var settings models.PengaturanAkademik
+	if err := config.DB.First(&settings).Error; err != nil {
+		// If not found, create a new one
+		if err := config.DB.Create(&payload).Error; err != nil {
+			return c.Status(500).JSON(fiber.Map{"status": "error", "message": err.Error()})
+		}
+		settings = payload
+	} else {
+		// Update existing
+		config.DB.Model(&settings).Updates(payload)
+	}
+
+	return c.JSON(fiber.Map{
+		"status": "success",
+		"message": "Konfigurasi akademik berhasil diperbarui",
+		"data": settings,
+	})
+}
+

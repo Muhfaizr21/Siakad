@@ -1,22 +1,22 @@
 "use client"
 
 import React, { useState, useEffect } from 'react'
-import { DataTable } from '../FacultyAdmin/components/data-table'
-import { Badge } from '../FacultyAdmin/components/badge'
-import { Button } from '../FacultyAdmin/components/button'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '../FacultyAdmin/components/dialog'
-import { DeleteConfirmModal } from '../FacultyAdmin/components/DeleteConfirmModal'
-import { Card, CardContent } from '../FacultyAdmin/components/card'
-import { Input } from '../FacultyAdmin/components/input'
-import { Label } from '../FacultyAdmin/components/label'
-import { Avatar, AvatarFallback } from '../FacultyAdmin/components/avatar'
+import { DataTable } from './components/ui/data-table'
+import { Badge } from './components/ui/badge'
+import { Button } from './components/ui/button'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from './components/ui/dialog'
+import { DeleteConfirmModal } from './components/ui/DeleteConfirmModal'
+import { Card, CardContent } from './components/ui/card'
+import { Input } from './components/ui/input'
+import { Label } from './components/ui/label'
+import { Avatar, AvatarFallback } from './components/ui/avatar'
 import { Eye, Pencil, Trash2, Loader2, Plus, Save, GraduationCap, Mail, Briefcase } from 'lucide-react'
 import { toast, Toaster } from 'react-hot-toast'
 import { cn } from '@/lib/utils'
 import Sidebar from './components/Sidebar'
 import TopNavBar from './components/TopNavBar'
 import { adminService } from '../../services/api'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../FacultyAdmin/components/select'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './components/ui/select'
 
 const EMPTY_FORM = { NIDN: '', Nama: '', Email: '', Jabatan: 'Lektor', FakultasID: '', ProgramStudiID: '' }
 
@@ -94,7 +94,7 @@ export default function LecturerDirectory() {
   return (
     <div className="bg-slate-50 min-h-screen flex font-sans">
       <Sidebar />
-      <main className="pl-72 flex flex-col min-h-screen w-full">
+      <main className="pl-72 pt-20 flex flex-col min-h-screen w-full">
         <TopNavBar />
         <div className="p-8 space-y-6">
           <Toaster position="top-right" />
@@ -119,7 +119,7 @@ export default function LecturerDirectory() {
                   { key: 'FakultasID', placeholder: 'Filter Fakultas', options: faculties.map(f => ({ label: f.Nama, value: f.ID })) },
                   { key: 'ProgramStudiID', placeholder: 'Filter Prodi', options: prodi.map(p => ({ label: p.Nama, value: p.ID })) }
                 ]}
-
+                searchWidth="max-w-xl"
                 actions={(row) => (
                   <div className="flex items-center gap-2">
                     <Button onClick={() => { setSelected(row); setIsDetailOpen(true) }} variant="ghost" size="icon" className="h-8 w-8 hover:text-primary hover:bg-primary/10 rounded-xl"><Eye className="size-4" /></Button>

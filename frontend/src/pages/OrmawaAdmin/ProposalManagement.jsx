@@ -1,9 +1,9 @@
 "use client"
 
 import React, { useState, useEffect } from 'react'
-import { DataTable } from '../FacultyAdmin/components/data-table'
-import { Badge } from '../FacultyAdmin/components/badge'
-import { Button } from '../FacultyAdmin/components/button'
+import { DataTable } from './components/ui/data-table'
+import { Badge } from './components/ui/badge'
+import { Button } from './components/ui/button'
 import {
   Dialog,
   DialogContent,
@@ -11,12 +11,12 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
-} from '../FacultyAdmin/components/dialog'
-import { DeleteConfirmModal } from '../FacultyAdmin/components/DeleteConfirmModal'
-import { Card, CardContent } from '../FacultyAdmin/components/card'
-import { Input } from '../FacultyAdmin/components/input'
-import { Label } from '../FacultyAdmin/components/label'
-import { Textarea } from '../FacultyAdmin/components/textarea'
+} from './components/ui/dialog'
+import { DeleteConfirmModal } from './components/ui/DeleteConfirmModal'
+import { Card, CardContent } from './components/ui/card'
+import { Input } from './components/ui/input'
+import { Label } from './components/ui/label'
+import { Textarea } from './components/ui/textarea'
 import { Eye, Pencil, Trash2, Loader2, Plus, Save, FileText, CheckCircle2, XCircle, AlertCircle, Clock } from 'lucide-react'
 import { toast, Toaster } from 'react-hot-toast'
 import { cn } from '@/lib/utils'
@@ -274,33 +274,33 @@ export default function ProposalManagement() {
 
       {/* DETAIL & REVIEW DIALOG */}
       <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
-        <DialogContent className="max-w-6xl p-0 overflow-hidden border-none shadow-2xl rounded-[2.5rem] bg-white/95 backdrop-blur-xl">
+        <DialogContent className="max-w-6xl p-0 overflow-hidden border-none shadow-2xl rounded-[2.5rem] bg-white max-h-[90dvh] flex flex-col">
           {selected && (
-            <div className="flex flex-col md:flex-row min-h-[500px] max-h-[90vh]">
+            <div className="flex flex-col md:flex-row flex-1 overflow-hidden">
               {/* Left: Detail */}
               <div className="flex-1 flex flex-col overflow-hidden border-r border-slate-100">
-                <div className="p-8 bg-gradient-to-br from-slate-900 to-slate-800 relative overflow-hidden shrink-0">
+                <div className="p-6 bg-gradient-to-br from-slate-900 to-slate-800 relative overflow-hidden shrink-0">
                   <div className="absolute inset-0 bg-gradient-to-br from-primary/30 to-transparent" />
-                  <div className="absolute top-0 right-0 p-10 opacity-5 pointer-events-none">
-                    <FileText className="size-40 rotate-12 text-white" />
+                  <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none text-white">
+                    <FileText className="size-32 rotate-12" />
                   </div>
-                  <div className="relative z-10">
+                  <div className="relative z-10 space-y-3">
                     <div className="flex items-start justify-between gap-4">
                       <div>
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] font-headline mb-1">PROP-{selected.ID}</p>
-                        <h2 className="text-xl font-black text-white font-headline tracking-tighter leading-tight line-clamp-2">{selected.Judul}</h2>
+                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] font-headline mb-1">PROP-{selected.ID}</p>
+                        <h2 className="text-lg font-black text-white font-headline tracking-tighter leading-tight line-clamp-2 uppercase">{selected.Judul}</h2>
                       </div>
                       <StatusBadge status={selected.Status} />
                     </div>
-                    <div className="mt-4 flex items-center gap-4">
+                    <div className="mt-2 flex items-center gap-4">
                       <div>
-                        <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Anggaran</p>
-                        <p className="text-sm font-black text-emerald-400 font-headline">{formatRupiah(selected.Anggaran)}</p>
+                        <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest leading-none mb-1">Anggaran</p>
+                        <p className="text-xs font-black text-emerald-400 font-headline">{formatRupiah(selected.Anggaran)}</p>
                       </div>
-                      <div className="h-8 w-px bg-slate-700" />
+                      <div className="h-6 w-px bg-slate-700" />
                       <div>
-                        <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Tanggal</p>
-                        <p className="text-sm font-black text-white font-headline">
+                        <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest leading-none mb-1">Tanggal</p>
+                        <p className="text-xs font-black text-white font-headline">
                           {selected.TanggalKegiatan ? new Date(selected.TanggalKegiatan).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' }) : '—'}
                         </p>
                       </div>
@@ -308,12 +308,12 @@ export default function ProposalManagement() {
                   </div>
                 </div>
 
-                <div className="overflow-y-auto flex-1 p-7 space-y-6">
+                <div className="overflow-y-auto flex-1 p-6 space-y-6 scrollbar-thin scrollbar-thumb-slate-200">
                   {/* Tujuan */}
                   {selected.Catatan && (
                     <div>
                       <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2 font-headline">Tujuan / Deskripsi</p>
-                      <p className="text-[12px] font-medium text-slate-600 leading-relaxed bg-slate-50 p-4 rounded-2xl border border-slate-100 max-h-32 overflow-y-auto">{selected.Catatan}</p>
+                      <p className="text-[11px] font-medium text-slate-600 leading-relaxed bg-slate-50 p-4 rounded-2xl border border-slate-100">{selected.Catatan}</p>
                     </div>
                   )}
 
@@ -322,17 +322,16 @@ export default function ProposalManagement() {
                     <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3 font-headline">Alur Persetujuan</p>
                     <div className="flex items-center gap-2">
                       {['disetujui_dosen', 'disetujui_fakultas', 'disetujui_univ'].map((s, i) => {
-                        const passed = ['disetujui_dosen', 'disetujui_fakultas', 'disetujui_univ', 'selesai'].slice(i).some(v => v !== 'selesai' || selected.Status === 'selesai')
-                        const active = (['disetujui_dosen', 'disetujui_fakultas', 'disetujui_univ'].indexOf(selected.Status) >= i)
+                        const active = (['disetujui_dosen', 'disetujui_fakultas', 'disetujui_univ', 'selesai'].indexOf(selected.Status) >= i)
                         return (
                           <React.Fragment key={s}>
-                            <div className={cn('flex flex-col items-center gap-1.5', active ? '' : 'opacity-30')}>
-                              <div className={cn('size-8 rounded-xl flex items-center justify-center', active ? 'bg-emerald-100 text-emerald-600' : 'bg-slate-100 text-slate-400')}>
-                                <CheckCircle2 className="size-4" />
+                            <div className={cn('flex flex-col items-center gap-1', active ? '' : 'opacity-30')}>
+                              <div className={cn('size-7 rounded-lg flex items-center justify-center', active ? 'bg-emerald-100 text-emerald-600' : 'bg-slate-100 text-slate-400')}>
+                                <CheckCircle2 className="size-3.5" />
                               </div>
-                              <span className="text-[9px] font-black uppercase tracking-[0.1em] text-slate-500 font-headline text-center">{['Dosen Pembina', 'Dekanat Fakultas', 'Kemahasiswaan Univ'][i]}</span>
+                              <span className="text-[8px] font-black uppercase tracking-tight text-slate-500 font-headline text-center leading-none">{['Dosen', 'Fakultas', 'Univ'][i]}</span>
                             </div>
-                            {i < 2 && <div className={cn('flex-1 h-1 rounded-full', active ? 'bg-emerald-200' : 'bg-slate-100')} />}
+                            {i < 2 && <div className={cn('flex-1 h-0.5 rounded-full', active ? 'bg-emerald-200' : 'bg-slate-100')} />}
                           </React.Fragment>
                         )
                       })}
@@ -342,8 +341,8 @@ export default function ProposalManagement() {
                   {/* Histori */}
                   <div>
                     <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3 font-headline">Riwayat Status</p>
-                    <div className="space-y-3 relative before:absolute before:left-5 before:top-4 before:bottom-0 before:w-px before:bg-slate-100">
-                      {history.length === 0 && <p className="text-[10px] text-slate-400 font-bold pl-4">Belum ada riwayat</p>}
+                    <div className="space-y-2 relative before:absolute before:left-5 before:top-4 before:bottom-0 before:w-px before:bg-slate-100">
+                      {history.length === 0 && <p className="text-[10px] text-slate-400 font-bold pl-4 uppercase">Belum ada riwayat</p>}
                       {history.map((log) => (
                         <div key={log.ID} className="flex gap-4 relative z-10">
                           <div className="size-10 shrink-0 rounded-2xl bg-white border border-slate-100 shadow-sm flex items-center justify-center">
@@ -352,9 +351,9 @@ export default function ProposalManagement() {
                           <div className="flex-1 bg-slate-50 rounded-2xl p-3 border border-slate-100">
                             <div className="flex items-center gap-2 mb-1">
                               <StatusBadge status={log.Status} />
-                              <span className="text-[9px] text-slate-400 font-bold uppercase tracking-widest">{new Date(log.CreatedAt).toLocaleString('id-ID')}</span>
+                              <span className="text-[8px] text-slate-400 font-bold uppercase tracking-widest leading-none">{new Date(log.CreatedAt).toLocaleString('id-ID')}</span>
                             </div>
-                            <p className="text-[11px] text-slate-600 font-medium">{log.Catatan || 'Tanpa catatan'}</p>
+                            <p className="text-[11px] text-slate-600 font-medium leading-normal">{log.Catatan || 'Tanpa catatan'}</p>
                           </div>
                         </div>
                       ))}
@@ -364,41 +363,43 @@ export default function ProposalManagement() {
               </div>
 
               {/* Right: Panel Aksi */}
-              <div className="w-full md:w-[350px] shrink-0 flex flex-col p-7 gap-6 bg-slate-50/50">
+              <div className="w-full md:w-[320px] shrink-0 flex flex-col p-6 gap-5 bg-slate-50/50 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200">
                 <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline">Panel Kendali Status</h3>
                 <Textarea
-                  rows={6}
-                  placeholder="Berikan catatan atau feedback untuk pengurus ormawa (wajib jika revisi/tolak)..."
-                  className="rounded-2xl border-slate-200 bg-white text-xs font-medium resize-none p-4 focus:ring-primary focus:border-primary transition-all"
+                  rows={5}
+                  placeholder="Berikan catatan atau feedback..."
+                  className="rounded-xl border-slate-200 bg-white text-[11px] font-medium resize-none p-4 focus:ring-primary focus:border-primary transition-all shadow-inner"
                   value={komentar}
                   onChange={(e) => setKomentar(e.target.value)}
                 />
-                <div className="space-y-2 flex-1">
+                <div className="space-y-2">
                   {selected.Status === 'diajukan' && (
-                    <Button disabled={isSubmitting} onClick={() => handleAction('disetujui_dosen')} className="w-full h-11 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-black text-[10px] uppercase tracking-widest">
-                      {isSubmitting ? <Loader2 className="size-4 animate-spin" /> : 'ACC Tahap 1 (Dosen)'}
+                    <Button disabled={isSubmitting} onClick={() => handleAction('disetujui_dosen')} className="w-full h-10 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-black text-[10px] uppercase tracking-widest">
+                      {isSubmitting ? <Loader2 className="size-3 animate-spin" /> : 'ACC TAHAP 1'}
                     </Button>
                   )}
                   {selected.Status === 'disetujui_dosen' && (
-                    <Button disabled={isSubmitting} onClick={() => handleAction('disetujui_fakultas')} className="w-full h-11 rounded-2xl bg-violet-600 hover:bg-violet-700 text-white font-black text-[10px] uppercase tracking-widest">
-                      {isSubmitting ? <Loader2 className="size-4 animate-spin" /> : 'ACC Tahap 2 (Fakultas)'}
+                    <Button disabled={isSubmitting} onClick={() => handleAction('disetujui_fakultas')} className="w-full h-10 rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-black text-[10px] uppercase tracking-widest">
+                      {isSubmitting ? <Loader2 className="size-3 animate-spin" /> : 'ACC TAHAP 2'}
                     </Button>
                   )}
                   {selected.Status === 'disetujui_fakultas' && (
-                    <Button disabled={isSubmitting} onClick={() => handleAction('disetujui_univ')} className="w-full h-11 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-[10px] uppercase tracking-widest">
-                      {isSubmitting ? <Loader2 className="size-4 animate-spin" /> : 'ACC Final (Univ & Cair)'}
+                    <Button disabled={isSubmitting} onClick={() => handleAction('disetujui_univ')} className="w-full h-10 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-[10px] uppercase tracking-widest">
+                      {isSubmitting ? <Loader2 className="size-3 animate-spin" /> : 'ACC FINAL (CAIR)'}
                     </Button>
                   )}
-                  <Button onClick={() => handleAction('revisi')} variant="outline" className="w-full h-11 rounded-2xl border-amber-200 bg-amber-50 text-amber-800 hover:bg-amber-100 font-black text-[10px] uppercase tracking-widest">
-                    Minta Revisi
+                  <Button onClick={() => handleAction('revisi')} variant="outline" className="w-full h-10 rounded-xl border-amber-200 bg-amber-50 text-amber-800 hover:bg-amber-100 font-black text-[10px] uppercase tracking-widest">
+                    MINTA REVISI
                   </Button>
-                  <Button onClick={() => handleAction('ditolak')} variant="outline" className="w-full h-11 rounded-2xl border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100 font-black text-[10px] uppercase tracking-widest">
-                    Tolak Permanen
+                  <Button onClick={() => handleAction('ditolak')} variant="outline" className="w-full h-10 rounded-xl border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100 font-black text-[10px] uppercase tracking-widest">
+                    TOLAK PERMANEN
                   </Button>
                 </div>
-                <Button variant="ghost" onClick={() => { setIsDetailOpen(false); setKomentar('') }} className="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-900 h-10 rounded-2xl mt-auto">
-                  Tutup Panel
-                </Button>
+                <div className="mt-auto pt-4">
+                  <Button variant="ghost" onClick={() => { setIsDetailOpen(false); setKomentar('') }} className="w-full text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-900 h-9 rounded-xl">
+                    TUTUP PANEL
+                  </Button>
+                </div>
               </div>
             </div>
           )}
@@ -430,7 +431,7 @@ export default function ProposalManagement() {
             </div>
           </DialogHeader>
 
-          <form onSubmit={handleSave} className="p-8 pt-6 space-y-5">
+          <form onSubmit={handleSave} className="p-8 pt-6 space-y-5 max-h-[65vh] overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200">
             <div className="space-y-2">
               <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Judul / Nama Kegiatan</Label>
               <Input

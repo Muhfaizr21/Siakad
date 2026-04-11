@@ -58,7 +58,15 @@ export default function JadwalKegiatan() {
     setIsCrudOpen(true)
   }
   const handleSave = async (e) => {
-    e.preventDefault(); setIsSubmitting(true)
+    e.preventDefault(); 
+    
+    // Validasi Rentang Tanggal (Frontend Check)
+    if (form.TanggalSelesai && new Date(form.TanggalSelesai) < new Date(form.TanggalMulai)) {
+      toast.error('Tanggal selesai tidak boleh sebelum tanggal mulai');
+      return;
+    }
+
+    setIsSubmitting(true)
     const url = isEditMode ? `${API}/events/${form.ID}` : `${API}/events`
     const method = isEditMode ? 'PUT' : 'POST'
     const payload = { ...form, OrmawaID: Number(form.OrmawaID), TanggalMulai: form.TanggalMulai ? new Date(form.TanggalMulai).toISOString() : null, TanggalSelesai: form.TanggalSelesai ? new Date(form.TanggalSelesai).toISOString() : null }

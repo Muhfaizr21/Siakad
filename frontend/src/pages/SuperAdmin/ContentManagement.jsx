@@ -6,15 +6,15 @@ import TopNavBar from './components/TopNavBar'
 import { adminService } from '../../services/api'
 import { toast, Toaster } from 'react-hot-toast'
 import { Pencil, Trash2, Plus, Save, Loader2, Newspaper, Clock } from 'lucide-react'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '../FacultyAdmin/components/dialog'
-import { Badge } from '../FacultyAdmin/components/badge'
-import { Button } from '../FacultyAdmin/components/button'
-import { Input } from '../FacultyAdmin/components/input'
-import { Label } from '../FacultyAdmin/components/label'
-import { Textarea } from '../FacultyAdmin/components/textarea'
-import { Card, CardContent } from '../FacultyAdmin/components/card'
-import { DataTable } from '../FacultyAdmin/components/data-table'
-import { DeleteConfirmModal } from '../FacultyAdmin/components/DeleteConfirmModal'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from './components/ui/dialog'
+import { Badge } from './components/ui/badge'
+import { Button } from './components/ui/button'
+import { Input } from './components/ui/input'
+import { Label } from './components/ui/label'
+import { Textarea } from './components/ui/textarea'
+import { Card, CardContent } from './components/ui/card'
+import { DataTable } from './components/ui/data-table'
+import { DeleteConfirmModal } from './components/ui/DeleteConfirmModal'
 import { cn } from '@/lib/utils'
 
 export default function ContentManagement() {
@@ -125,7 +125,7 @@ export default function ContentManagement() {
         <div className="bg-slate-50 min-h-screen flex font-sans">
             <Toaster position="top-right" />
             <Sidebar />
-            <main className="pl-72 flex flex-col min-h-screen w-full">
+            <main className="pl-72 pt-20 flex flex-col min-h-screen w-full">
                 <TopNavBar />
                 <div className="p-8 space-y-6">
                     <div className="flex flex-col gap-1.5">
@@ -171,7 +171,7 @@ export default function ContentManagement() {
                             <DialogTitle className="text-2xl font-black font-headline tracking-tighter text-slate-900 uppercase">{isEditMode ? 'Edit Berita' : 'Tulis Berita Baru'}</DialogTitle>
                         </div>
                     </DialogHeader>
-                    <form onSubmit={handleSave} className="p-8 pt-6 space-y-4">
+                    <form onSubmit={handleSave} className="p-8 pt-6 space-y-4 max-h-[65vh] overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200">
                         <div className="space-y-2">
                             <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Judul Berita</Label>
                             <Input required value={form.Judul} onChange={e => setForm({ ...form, Judul: e.target.value })} placeholder="Masukkan judul berita yang menarik..." className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white font-bold text-sm font-headline" />
