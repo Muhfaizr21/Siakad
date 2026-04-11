@@ -429,6 +429,11 @@ type Ormawa struct {
 	Singkatan string `gorm:"size:20"`
 	Deskripsi string
 
+	// Faculty Admin fields
+	Status        string `gorm:"default:'Aktif'"`
+	Kategori      string `gorm:"default:'Himpunan'"` // BEM, Himpunan, UKM, Komunitas, Lainnya
+	JumlahAnggota int    `json:"JumlahAnggota"`
+
 	Visi      string
 	Misi      string
 	LogoURL   string

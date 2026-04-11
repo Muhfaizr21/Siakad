@@ -18,14 +18,8 @@ import {
   CheckCircle2,
   Calendar,
 } from "lucide-react"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "./components/dialog"
+import { Modal, ModalBody, ModalFooter, ModalBtn } from "./components/Modal"
+
 import { Input } from "./components/input"
 import { Label } from "./components/label"
 import {
@@ -210,31 +204,16 @@ export default function TahunAkademikPage() {
       </ResponsiveCard>
 
       {/* CRUD MODAL */}
-      <Dialog open={isCrudOpen} onOpenChange={setIsCrudOpen}>
-        <DialogContent className="max-w-xl p-0 overflow-hidden border-none shadow-2xl rounded-[2rem] bg-white/95 backdrop-blur-xl">
-          <DialogHeader className="p-8 pb-6 bg-gradient-to-br from-slate-50 to-white border-b border-slate-100 relative overflow-hidden text-left">
-            <div className="absolute top-0 right-0 p-8 opacity-5">
-              <Calendar className="size-24 rotate-12" />
-            </div>
-            <div className="relative z-10 flex flex-col items-start">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="size-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary text-xs font-black">
-                  {isEditMode ? <Pencil className="size-4" /> : <Plus className="size-4 stroke-[3px]" />}
-                </div>
-                <Badge variant="secondary" className="text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 bg-primary/5 text-primary border-none">
-                  Academic Cycle Registry
-                </Badge>
-              </div>
-              <DialogTitle className="text-2xl font-black font-headline tracking-tighter text-slate-900 uppercase">
-                {isEditMode ? 'Update Periode' : 'Inisialisasi Periode'}
-              </DialogTitle>
-              <DialogDescription className="text-xs font-medium text-slate-400 mt-1 uppercase leading-none font-headline">
-                Konfigurasi semester berjalan dan jadwal input nilai fakultas.
-              </DialogDescription>
-            </div>
-          </DialogHeader>
-
-          <form onSubmit={handleSave} className="p-8 pt-6 space-y-6">
+      <Modal
+        open={isCrudOpen}
+        onClose={() => setIsCrudOpen(false)}
+        title={isEditMode ? 'Update Periode' : 'Inisialisasi Periode'}
+        subtitle="Konfigurasi semester berjalan dan jadwal input nilai fakultas."
+        icon={<Calendar size={18} />}
+        maxWidth="max-w-xl"
+      >
+        <form onSubmit={handleSave}>
+          <ModalBody>
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
@@ -301,23 +280,23 @@ export default function TahunAkademikPage() {
                 </div>
               </div>
             </div>
+          </ModalBody>
 
-            <DialogFooter className="pt-4 flex flex-row items-center justify-end gap-3 border-t border-slate-100 -mx-8 px-8 bg-slate-50/30 rounded-b-[2rem]">
-              <Button type="button" variant="ghost" onClick={() => setIsCrudOpen(false)} className="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-900 px-8 h-12 rounded-2xl font-headline">
-                Batalkan
-              </Button>
-              <Button type="submit" disabled={isSubmitting} className="h-12 px-10 rounded-2xl bg-primary text-white hover:bg-primary/90 shadow-xl shadow-primary/20 transition-all hover:scale-[1.02] active:scale-95 border-none font-headline">
-                {isSubmitting ? (
-                  <Loader2 className="animate-spin size-4 mr-3" />
-                ) : (
-                  <Save className="size-4 mr-3 stroke-[3px]" />
-                )}
-                <span className="text-[10px] font-black uppercase tracking-[0.2em] font-headline">{isEditMode ? 'Authorize Update' : 'Initialize Cycle'}</span>
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+          <ModalFooter>
+            <ModalBtn variant="ghost" type="button" onClick={() => setIsCrudOpen(false)}>
+              Batalkan
+            </ModalBtn>
+            <ModalBtn type="submit" disabled={isSubmitting}>
+              {isSubmitting ? (
+                <Loader2 className="animate-spin size-4" />
+              ) : (
+                <Save size={14} className="stroke-[3px]" />
+              )}
+              <span className="uppercase tracking-[0.1em]">{isEditMode ? 'Authorize Update' : 'Initialize Cycle'}</span>
+            </ModalBtn>
+          </ModalFooter>
+        </form>
+      </Modal>
 
       <DeleteConfirmModal 
         isOpen={isDelOpen}

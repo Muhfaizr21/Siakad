@@ -6,9 +6,10 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "./com
 import { Button } from "./components/button"
 import { Badge } from "./components/badge"
 import { toast, Toaster } from 'react-hot-toast'
-import { RefreshCw, Reply, Archive, X, MessageSquare, CheckCircle2, Clock, AlertCircle, Search, User } from 'lucide-react'
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "./components/dialog"
-import { DeleteConfirmModal } from "./components/DeleteConfirmModal"
+import { RefreshCw, Reply, MessageSquare, CheckCircle2, Clock, AlertCircle, X, User } from 'lucide-react'
+import { Modal, ModalBody, ModalFooter, ModalBtn } from "./components/Modal"
+
+
 import { Textarea } from "./components/textarea"
 import { Label } from "./components/label"
 import { DataTable } from "./components/data-table"
@@ -21,7 +22,6 @@ const FacultyAspirationManagement = () => {
   const [aspirations, setAspirations] = useState([])
   const [loading, setLoading] = useState(true)
   const [adminResponse, setAdminResponse] = useState('')
-  const [isDelOpen, setIsDelOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   useEffect(() => {
@@ -62,37 +62,18 @@ const FacultyAspirationManagement = () => {
     }
   }
 
-  const handleDelete = async () => {
-    if (!selectedItem?.ID) return
-    setIsSubmitting(true)
-    try {
-      const response = await axios.delete(`http://localhost:8000/api/faculty/aspirasi/${selectedItem.ID}`)
-      if (response.data.status === 'success') {
-        toast.success('Aspirasi diarsipkan')
-        setIsDelOpen(false)
-        fetchAspirations()
-      } else {
-        toast.error(`Gagal arsipkan: ${response.data.message || 'Response gagal'}`)
-      }
-    } catch (error) {
-      const msg = error.response?.data?.message || 'Server sibuk'
-      toast.error(`Gagal arsipkan aspirasi: ${msg}`)
-    } finally {
-      setIsSubmitting(false)
-    }
-  }
 
   const statsData = [
     { label: 'Total Masuk', value: (aspirations || []).length, icon: MessageSquare, color: 'text-blue-600', bg: 'bg-blue-50', gradient: 'from-blue-500/10 to-blue-500/5' },
-    { label: 'Selesai', value: (aspirations || []).filter(a => a.Status === 'selesai').length, icon: CheckCircle2, color: 'text-emerald-600', bg: 'bg-emerald-50', gradient: 'from-emerald-500/10 to-emerald-500/5' },
-    { label: 'Dalam Proses', value: (aspirations || []).filter(a => a.Status === 'proses').length, icon: Clock, color: 'text-amber-600', bg: 'bg-amber-50', gradient: 'from-amber-500/10 to-amber-500/5' },
-    { label: 'Klarifikasi', value: (aspirations || []).filter(a => a.Status === 'klarifikasi').length, icon: AlertCircle, color: 'text-rose-600', bg: 'bg-rose-50', gradient: 'from-rose-500/10 to-rose-500/5' },
+    { label: 'Selesai', value: (aspirations || []).filter(a => (a.Status || '').toLowerCase() === 'selesai').length, icon: CheckCircle2, color: 'text-emerald-600', bg: 'bg-emerald-50', gradient: 'from-emerald-500/10 to-emerald-500/5' },
+    { label: 'Dalam Proses', value: (aspirations || []).filter(a => (a.Status || '').toLowerCase() === 'proses').length, icon: Clock, color: 'text-amber-600', bg: 'bg-amber-50', gradient: 'from-amber-500/10 to-amber-500/5' },
+    { label: 'Klarifikasi', value: (aspirations || []).filter(a => (a.Status || '').toLowerCase() === 'klarifikasi').length, icon: AlertCircle, color: 'text-rose-600', bg: 'bg-rose-50', gradient: 'from-rose-500/10 to-rose-500/5' },
   ]
 
   return (
     <PageContainer>
       <Toaster position="top-right" />
-      
+
       <PageHeader
         icon={MessageSquare}
         title="Manajemen Aspirasi"
@@ -102,18 +83,18 @@ const FacultyAspirationManagement = () => {
       <ResponsiveGrid cols={4}>
         {statsData.map((stat, i) => (
           <ResponsiveCard key={i} className="relative group p-0 min-h-[120px]">
-             <div className={cn("p-6 flex items-start justify-between relative overflow-hidden h-full rounded-[2rem]", stat.bg)}>
-                <div className={cn("absolute top-0 right-0 w-32 h-32 bg-gradient-to-br -mr-16 -mt-16 rounded-full opacity-20 transition-transform duration-700 group-hover:scale-110", stat.gradient)} />
-                <div className="relative z-10 flex flex-col">
-                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2rem] mb-1 font-headline">{stat.label}</span>
-                  <div className="flex items-baseline gap-2">
-                    <span className={cn("text-3xl font-black font-headline tracking-tighter uppercase", stat.color)}>{loading ? '...' : stat.value.toLocaleString()}</span>
-                  </div>
+            <div className={cn("p-6 flex items-start justify-between relative overflow-hidden h-full rounded-[2rem]", stat.bg)}>
+              <div className={cn("absolute top-0 right-0 w-32 h-32 bg-gradient-to-br -mr-16 -mt-16 rounded-full opacity-20 transition-transform duration-700 group-hover:scale-110", stat.gradient)} />
+              <div className="relative z-10 flex flex-col">
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2rem] mb-1 font-headline">{stat.label}</span>
+                <div className="flex items-baseline gap-2">
+                  <span className={cn("text-3xl font-black font-headline tracking-tighter uppercase", stat.color)}>{loading ? '...' : stat.value.toLocaleString()}</span>
                 </div>
-                <div className={cn("relative z-10 p-3 rounded-2xl shadow-sm bg-white/50 backdrop-blur-sm border border-white/50 group-hover:rotate-12 transition-transform duration-500", stat.color)}>
-                  <stat.icon className="size-5" />
-                </div>
-             </div>
+              </div>
+              <div className={cn("relative z-10 p-3 rounded-2xl shadow-sm bg-white/50 backdrop-blur-sm border border-white/50 group-hover:rotate-12 transition-transform duration-500", stat.color)}>
+                <stat.icon className="size-5" />
+              </div>
+            </div>
           </ResponsiveCard>
         ))}
       </ResponsiveGrid>
@@ -152,20 +133,21 @@ const FacultyAspirationManagement = () => {
             label: "Status",
             className: "text-center",
             cellClassName: "text-center",
-            render: (val) => (
-              <Badge
-                className={cn(
-                  "capitalize font-black text-[10px] px-3 py-1 border-none shadow-sm font-headline",
-                  val === 'selesai' ? "bg-emerald-100 text-emerald-700 ring-1 ring-emerald-500/20" :
-                    val === 'ditolak' ? "bg-rose-100 text-rose-700 ring-1 ring-rose-500/20" :
-                      val === 'klarifikasi' ? "bg-amber-100 text-amber-700 ring-1 ring-amber-500/20" :
-                        val === 'proses' ? "bg-blue-100 text-blue-700 ring-1 ring-blue-500/20" :
-                          "bg-slate-100 text-slate-700 ring-1 ring-slate-500/20"
-                )}
-              >
-                {val || 'Pending'}
-              </Badge>
-            )
+            render: (val) => {
+              const s = (val || 'terbuka').toLowerCase();
+              const config =
+                s === 'selesai' ? { label: 'SELESAI', class: "bg-emerald-100 text-emerald-700 ring-1 ring-emerald-500/20" } :
+                  s === 'ditolak' ? { label: 'DITOLAK', class: "bg-rose-100 text-rose-700 ring-1 ring-rose-500/20" } :
+                    s === 'klarifikasi' ? { label: 'KLARIFIKASI', class: "bg-amber-100 text-amber-700 ring-1 ring-amber-500/20" } :
+                      s === 'proses' ? { label: 'PROSES', class: "bg-blue-100 text-blue-700 ring-1 ring-blue-500/20" } :
+                        { label: 'TERBUKA', class: "bg-amber-100 text-amber-700 ring-1 ring-amber-500/20 shadow-inner" };
+
+              return (
+                <Badge className={cn("capitalize font-black text-[10px] px-3 py-1 border-none shadow-sm font-headline uppercase", config.class)}>
+                  {config.label}
+                </Badge>
+              );
+            }
           }]}
           data={aspirations}
           loading={loading}
@@ -189,179 +171,130 @@ const FacultyAspirationManagement = () => {
               <Button onClick={() => { setSelectedItem(row); setAdminResponse(row.response || ''); setIsModalOpen(true); }} variant="outline" size="icon" className="h-9 w-9 border-slate-200 hover:text-blue-600 rounded-xl hover:bg-blue-50 transition-all shadow-sm">
                 <Reply className="size-4" />
               </Button>
-              <Button onClick={() => { setSelectedItem(row); setIsDelOpen(true); }} variant="outline" size="icon" className="h-9 w-9 border-slate-200 hover:text-amber-600 rounded-xl hover:bg-amber-50 transition-all text-slate-400 shadow-sm" title="Arsipkan">
-                <Archive className="size-4" />
-              </Button>
             </div>
           )}
         />
       </ResponsiveCard>
       {/* Response Dialog */}
-      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="max-w-3xl p-0 overflow-hidden border-none shadow-2xl rounded-[2.5rem] bg-white font-headline">
-          {selectedItem && (
-            <div className="relative flex flex-col h-[85vh]">
-              {/* Premium Header */}
-              <div className="h-40 bg-slate-900 relative shrink-0">
-                <div className="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 opacity-95" />
-                <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, white 1px, transparent 0)', backgroundSize: '20px 20px' }} />
-
-                <div className="absolute inset-y-0 left-12 flex items-center gap-6">
-                  <div className="relative group">
-                    <div className="size-24 rounded-2xl bg-white/10 backdrop-blur-xl border border-white/20 flex items-center justify-center font-black text-2xl text-white shadow-2xl transition-transform group-hover:scale-105">
-                      {selectedItem.Mahasiswa?.Nama?.charAt(0) || '?'}
-                    </div>
-                    <div className="absolute -bottom-2 -right-2 size-8 bg-blue-500 rounded-xl border-2 border-slate-900 flex items-center justify-center text-white shadow-lg">
-                      <Reply className="size-4" />
-                    </div>
-                  </div>
-                  <div className="flex flex-col gap-1.5 text-white">
-                    <div className="flex items-center gap-2">
-                      <Badge className="bg-blue-500/20 text-blue-400 border-none px-2.5 py-0.5 text-[9px] font-black tracking-widest uppercase">
-                        Response Panel
-                      </Badge>
-                      <DialogDescription className="sr-only">Panel tanggapan untuk aspirasi mahasiswa</DialogDescription>
-                    </div>
-                    <DialogTitle className="text-2xl font-black tracking-tighter uppercase whitespace-nowrap leading-none mt-1">
-                      {selectedItem.Mahasiswa?.Nama || 'Student Voice'}
-                    </DialogTitle>
-                    <div className="flex items-center gap-3 text-white/50 font-bold text-[10px] uppercase tracking-widest mt-1">
-                      <span>NIM: {selectedItem.Mahasiswa?.NIM || '-'}</span>
-                      <div className="w-1 h-1 bg-white/20 rounded-full" />
-                      <span>{selectedItem.Kategori || 'General'}</span>
-                    </div>
-                  </div>
-                </div>
-                <button onClick={() => setIsModalOpen(false)} className="absolute top-8 right-8 text-white/40 hover:text-white transition-colors">
-                  <X className="size-6" />
-                </button>
+      <Modal
+        open={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        title={selectedItem?.Mahasiswa?.Nama || 'Student Voice'}
+        subtitle={`NIM: ${selectedItem?.Mahasiswa?.NIM || '-'} • ${selectedItem?.Kategori || 'General'}`}
+        icon={<MessageSquare size={18} />}
+        maxWidth="max-w-3xl"
+      >
+        <div className="flex flex-col h-full font-headline">
+          {/* Content Area */}
+          <div className="flex-1 overflow-y-auto custom-scrollbar p-8 space-y-10">
+            {/* Summary Card */}
+            <div className="bg-slate-50/50 rounded-[2.5rem] p-8 border border-slate-100 shadow-inner relative overflow-hidden group">
+              <div className="absolute top-0 right-0 p-8 opacity-[0.02] group-hover:rotate-12 transition-transform duration-700">
+                <MessageSquare className="size-40 text-slate-900" />
               </div>
-
-              {/* Content Area */}
-              <div className="flex-1 overflow-y-auto custom-scrollbar bg-slate-50/10">
-                <div className="p-10 space-y-10">
-                  {/* Summary Card */}
-                  <div className="bg-white rounded-[2.5rem] p-8 border border-slate-100 shadow-sm relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 p-8 opacity-[0.02] group-hover:rotate-12 transition-transform duration-700">
-                      <MessageSquare className="size-40 text-slate-900" />
-                    </div>
-                    <div className="relative z-10 flex flex-col gap-6">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2.5">
-                          <div className="size-2 rounded-full bg-blue-500 shadow-sm shadow-blue-500/50" />
-                          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Detail Keluhan & Aspirasi</span>
-                        </div>
-                        <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">
-                          {new Date(selectedItem.CreatedAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
-                        </span>
-                      </div>
-                      <p className="text-[14px] font-bold text-slate-600 leading-relaxed italic bg-slate-50 p-8 rounded-[2rem] border border-slate-100 font-headline uppercase">
-                        "{selectedItem.Isi}"
-                      </p>
-                    </div>
+              <div className="relative z-10 flex flex-col gap-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <div className="size-2 rounded-full bg-blue-500 shadow-sm shadow-blue-500/50" />
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Detail Keluhan & Aspirasi</span>
                   </div>
-
-                  {/* Response Section */}
-                  <div className="space-y-6">
-                    <div className="flex items-center justify-between px-2">
-                      <div className="flex items-center gap-3">
-                        <Reply className="size-5 text-primary" />
-                        <h3 className="text-[12px] font-black text-slate-900 uppercase tracking-widest">Respon Resmi Fakultas</h3>
-                      </div>
-                      {selectedItem.Status && (
-                        <Badge className={cn(
-                          "capitalize font-black text-[9px] px-3 py-1 border-none tracking-widest",
-                          selectedItem.Status === 'selesai' ? "bg-emerald-50 text-emerald-600" :
-                            selectedItem.Status === 'proses' ? "bg-blue-50 text-blue-600" : "bg-slate-50 text-slate-500"
-                        )}>
-                          Current Status: {selectedItem.Status}
-                        </Badge>
-                      )}
-                    </div>
-                    <Textarea
-                      value={adminResponse}
-                      onChange={(e) => setAdminResponse(e.target.value)}
-                      className="min-h-[160px] rounded-[2rem] border-slate-100 bg-white focus:bg-white shadow-sm ring-1 ring-slate-100 focus:ring-primary/20 transition-all font-bold text-[13px] p-8 leading-relaxed placeholder:text-slate-300 placeholder:italic uppercase"
-                      placeholder="Berikan tanggapan resmi fakultas yang informatif dan solutif..."
-                    />
-                  </div>
-
-                  {/* Action Grid */}
-                  <div className="space-y-4 pt-2">
-                    <div className="flex items-center gap-2 px-2">
-                      <div className="size-1.5 rounded-full bg-slate-300" />
-                      <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none">Pilih Status Penanganan Baru:</span>
-                    </div>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                      <StatusButton
-                        onClick={handleUpdateStatus}
-                        status="proses"
-                        icon={<Clock />}
-                        label="PROSES"
-                        color="blue"
-                      />
-                      <StatusButton
-                        onClick={handleUpdateStatus}
-                        status="klarifikasi"
-                        icon={<MessageSquare />}
-                        label="KLARIFIKASI"
-                        color="amber"
-                      />
-                      <StatusButton
-                        onClick={handleUpdateStatus}
-                        status="selesai"
-                        icon={<CheckCircle2 />}
-                        label="SELESAIKAN"
-                        color="emerald"
-                      />
-                      <StatusButton
-                        onClick={handleUpdateStatus}
-                        status="ditolak"
-                        icon={<AlertCircle />}
-                        label="TOLAK"
-                        color="rose"
-                      />
-                    </div>
-                  </div>
+                  <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">
+                    {selectedItem?.CreatedAt ? new Date(selectedItem.CreatedAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : '-'}
+                  </span>
                 </div>
-              </div>
-
-              {/* Footer Actions */}
-              <div className="p-8 px-10 flex items-center justify-between border-t border-slate-100 shrink-0 bg-white">
-                <div className="flex items-center gap-4">
-                  <div className="size-9 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-500">
-                    <Reply className="size-5" />
-                  </div>
-                  <div className="flex flex-col leading-none gap-1">
-                    <span className="text-[11px] font-black uppercase text-slate-900 tracking-tight">E-Aspiration System</span>
-                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tight">Faculty Official Record Portal</span>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <Button variant="ghost" onClick={() => setIsModalOpen(false)} className="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-900 px-8 h-12 rounded-2xl font-headline">
-                    BATALKAN
-                  </Button>
-                  <Button
-                    onClick={() => setIsModalOpen(false)}
-                    className="text-[10px] font-black uppercase tracking-widest h-12 px-10 rounded-2xl shadow-xl shadow-primary/20 bg-primary text-white hover:bg-primary/90 transition-all hover:scale-[1.02] active:scale-95 font-headline"
-                  >
-                    TUTUP PENANGANAN
-                  </Button>
-                </div>
+                <p className="text-[14px] font-bold text-slate-600 leading-relaxed italic bg-white p-8 rounded-[2rem] border border-slate-100 font-headline uppercase">
+                  "{selectedItem?.Isi}"
+                </p>
               </div>
             </div>
-          )}
-        </DialogContent>
-      </Dialog>
 
-      <DeleteConfirmModal
-        isOpen={isDelOpen}
-        onClose={() => setIsDelOpen(false)}
-        onConfirm={handleDelete}
-        title="Arsipkan Aspirasi?"
-        description="Aspirasi akan diarsipkan dan tidak lagi tampil di daftar aktif. Data tidak dihapus permanen."
-        loading={isSubmitting}
-      />
+            {/* Response Section */}
+            <div className="space-y-6">
+              <div className="flex items-center justify-between px-2">
+                <div className="flex items-center gap-3">
+                  <Reply className="size-4 text-primary" />
+                  <h3 className="text-[10px] font-black text-slate-900 uppercase tracking-widest">Respon Resmi Fakultas</h3>
+                </div>
+                {selectedItem?.Status && (
+                  <Badge className={cn(
+                    "capitalize font-black text-[9px] px-3 py-1 border-none tracking-widest",
+                    selectedItem.Status === 'selesai' ? "bg-emerald-50 text-emerald-600" :
+                      selectedItem.Status === 'proses' ? "bg-blue-50 text-blue-600" : "bg-slate-50 text-slate-500"
+                  )}>
+                    CURRENT: {selectedItem.Status.toUpperCase()}
+                  </Badge>
+                )}
+              </div>
+              <Textarea
+                value={adminResponse}
+                onChange={(e) => setAdminResponse(e.target.value)}
+                className="min-h-[160px] rounded-[2rem] border-slate-100 bg-white focus:bg-white shadow-sm ring-1 ring-slate-100 focus:ring-primary/20 transition-all font-black text-[11px] p-8 leading-relaxed placeholder:text-slate-300 placeholder:italic uppercase"
+                placeholder="Berikan tanggapan resmi fakultas yang informatif dan solutif..."
+              />
+            </div>
+
+            {/* Action Grid */}
+            <div className="space-y-4 pt-2">
+              <div className="flex items-center gap-2 px-2">
+                <div className="size-1.5 rounded-full bg-slate-300" />
+                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none">Pilih Status Penanganan Baru:</span>
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <StatusButton
+                  onClick={handleUpdateStatus}
+                  status="proses"
+                  icon={<Clock />}
+                  label="PROSES"
+                  color="blue"
+                />
+                <StatusButton
+                  onClick={handleUpdateStatus}
+                  status="klarifikasi"
+                  icon={<MessageSquare />}
+                  label="KLARIFIKASI"
+                  color="amber"
+                />
+                <StatusButton
+                  onClick={handleUpdateStatus}
+                  status="selesai"
+                  icon={<CheckCircle2 />}
+                  label="SELESAIKAN"
+                  color="emerald"
+                />
+                <StatusButton
+                  onClick={handleUpdateStatus}
+                  status="ditolak"
+                  icon={<AlertCircle />}
+                  label="TOLAK"
+                  color="rose"
+                />
+              </div>
+            </div>
+          </div>
+
+          <ModalFooter>
+            <div className="flex items-center gap-4">
+              <div className="size-9 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-500">
+                <Reply className="size-4" />
+              </div>
+              <div className="flex flex-col leading-none gap-1">
+                <span className="text-[11px] font-black uppercase text-slate-900 tracking-tight">E-Aspiration System</span>
+                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tight">Faculty Official Record Portal</span>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <ModalBtn variant="ghost" onClick={() => setIsModalOpen(false)}>
+                BATALKAN
+              </ModalBtn>
+              <ModalBtn onClick={() => setIsModalOpen(false)}>
+                TUTUP VIEW
+              </ModalBtn>
+            </div>
+          </ModalFooter>
+        </div>
+      </Modal>
+
+
     </PageContainer>
   )
 }

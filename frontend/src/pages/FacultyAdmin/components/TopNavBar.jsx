@@ -24,7 +24,8 @@ import {
   PlusCircle,
   Database,
   Headphones,
-  Command
+  Command,
+  Mail
 } from 'lucide-react'
 import { Button } from './button'
 import { Badge } from './badge'
@@ -242,9 +243,19 @@ const TopNavBar = ({ setIsOpen }) => {
                 )}
               </div>
               <div className="space-y-4">
+                <div className="flex gap-4 items-center p-3 rounded-2xl hover:bg-slate-50 transition-colors cursor-pointer group/item" onClick={() => navigate('/faculty/ormawa/proposals')}>
+                  <div className="p-2.5 rounded-xl bg-indigo-50 text-indigo-600 group-hover/item:bg-indigo-100 transition-colors">
+                    <FileText className="size-4" />
+                  </div>
+                  <div className="flex flex-col">
+                    <p className="text-[11px] font-black text-slate-900 leading-none uppercase tracking-tighter">Proposal ORMAWA</p>
+                    <p className="text-[10px] font-bold text-slate-400 mt-1">{notifications.proposal} antrean pengajuan baru</p>
+                  </div>
+                </div>
+
                 <div className="flex gap-4 items-center p-3 rounded-2xl hover:bg-slate-50 transition-colors cursor-pointer group/item" onClick={() => navigate('/faculty/persuratan')}>
                   <div className="p-2.5 rounded-xl bg-amber-50 text-amber-600 group-hover/item:bg-amber-100 transition-colors">
-                    <FileText className="size-4" />
+                    <Mail className="size-4" />
                   </div>
                   <div className="flex flex-col">
                     <p className="text-[11px] font-black text-slate-900 leading-none uppercase tracking-tighter">E-Persuratan</p>
@@ -285,7 +296,10 @@ const TopNavBar = ({ setIsOpen }) => {
         </div>
 
         {/* User Account Profile */}
-        <div className="flex items-center gap-3.5 pl-4 border-l border-slate-200/60 group cursor-pointer ml-2">
+        <div 
+          onClick={() => navigate('/faculty/pengaturan')}
+          className="flex items-center gap-3.5 pl-4 border-l border-slate-200/60 group cursor-pointer ml-2 hover:opacity-80 transition-all"
+        >
           <div className="flex flex-col items-end leading-none">
             <p className="text-sm font-black text-slate-900 tracking-tight">
               {(() => {

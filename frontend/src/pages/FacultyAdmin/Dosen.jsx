@@ -6,12 +6,8 @@ import { DataTable } from "./components/data-table"
 import { Badge } from "./components/badge"
 import { Button } from "./components/button"
 import { Avatar, AvatarFallback, AvatarImage } from "./components/avatar"
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "./components/dialog"
+import { Modal, ModalBtn } from "./components/Modal"
+
 import { Card, CardContent } from "./components/card"
 import {
   Eye,
@@ -134,77 +130,61 @@ export default function DosenPage() {
         />
       </ResponsiveCard>
 
-      {/* DETAIL DIALOG - CLEAN DATA SHEET STYLE */}
-      <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
-        <DialogContent aria-describedby={undefined} className="max-w-xl p-0 overflow-hidden border-none shadow-2xl rounded-2xl bg-white">
-          {selectedDosen && (
-            <div className="flex flex-col max-h-[90vh]">
-               <DialogHeader className="p-6 border-b border-slate-100 bg-slate-50/50 shrink-0">
-                  <div className="flex items-center gap-4">
-                     <Avatar className="h-12 w-12 rounded-xl border border-slate-200 shadow-sm bg-white">
-                        <AvatarImage src={selectedDosen.AvatarURL} />
-                        <AvatarFallback className="text-slate-900 font-bold bg-white">{selectedDosen.Nama?.[0]}</AvatarFallback>
-                     </Avatar>
-                     <div className="flex flex-col">
-                        <DialogTitle className="text-lg font-bold text-slate-900 tracking-tight leading-none">
-                           {selectedDosen.Nama}
-                        </DialogTitle>
-                        <span className="text-[10px] font-black text-primary mt-1 uppercase tracking-[0.15em]">{selectedDosen.Jabatan || 'Dosen Pengajar'}</span>
-                     </div>
-                     <Badge className="ml-auto bg-white border border-slate-200 text-slate-600 text-[10px] font-bold px-3 py-1 rounded-lg">
-                        NIDN: {selectedDosen.NIDN}
-                     </Badge>
-                  </div>
-               </DialogHeader>
-
-               <div className="overflow-y-auto p-8 space-y-8 custom-scrollbar">
-                  {/* SEKSI: PENUGASAN */}
-                  <div className="space-y-4">
-                     <div className="flex items-center gap-2 text-slate-900">
-                        <Layout className="size-4 opacity-40" />
-                        <h4 className="text-[11px] font-bold uppercase tracking-[0.1em]">Penugasan Akademik</h4>
-                     </div>
-                     <div className="grid grid-cols-2 gap-x-12 gap-y-4 border-l-2 border-slate-100 pl-4 py-1">
-                        <DataField label="Program Studi" value={selectedDosen.ProgramStudi?.Nama} />
-                        <DataField label="Fakultas" value={selectedDosen.Fakultas?.Nama || selectedDosen.ProgramStudi?.Fakultas?.Nama} />
-                        <DataField label="Jabatan Fungsional" value={selectedDosen.Jabatan} />
-                        <DataField label="Email Institusi" value={selectedDosen.Pengguna?.Email} isPrimary />
-                     </div>
-                  </div>
-
-                  {/* SEKSI: VERIFIKASI */}
-                  <div className="space-y-4">
-                     <div className="flex items-center gap-2 text-slate-900">
-                        <ShieldCheck className="size-4 opacity-40" />
-                        <h4 className="text-[11px] font-bold uppercase tracking-[0.1em]">Status & Wewenang</h4>
-                     </div>
-                     <div className="grid grid-cols-2 gap-x-12 gap-y-4 border-l-2 border-slate-100 pl-4 py-1">
-                        <div className="flex flex-col gap-1">
-                           <span className="text-[10px] font-medium text-slate-400 uppercase tracking-tighter">Status Wali (DPA)</span>
-                           <Badge className={cn(
-                              "w-fit text-[9px] font-bold px-2.5 py-0.5 border shadow-none",
-                              selectedDosen.IsDPA ? "bg-emerald-50 text-emerald-600 border-emerald-100" : "bg-slate-50 text-slate-400 border-slate-100"
-                           )}>
-                              {selectedDosen.IsDPA ? 'AKTIF' : 'NON-DPA'}
-                           </Badge>
-                        </div>
-                        <DataField label="Nomor Kontak (HP/WA)" value={selectedDosen.NoHP || '-'} isPrimary />
-                     </div>
-                  </div>
-               </div>
-
-               <div className="p-6 border-t border-slate-100 flex justify-end shrink-0">
-                  <Button
-                     onClick={() => setIsDetailOpen(false)}
-                     className="bg-slate-900 text-white text-[11px] font-bold px-8 h-10 rounded-lg hover:bg-slate-800 transition-all uppercase tracking-widest"
-                  >
-                     Tutup
-                  </Button>
-               </div>
+      <Modal
+        open={isDetailOpen}
+        onClose={() => setIsDetailOpen(false)}
+        title={selectedDosen?.Nama}
+        subtitle={selectedDosen?.Jabatan || 'Dosen Pengajar'}
+        maxWidth="max-w-xl"
+      >
+        {selectedDosen && (
+          <div className="p-8 space-y-8">
+            <div className="flex items-center justify-between mb-2">
+              <Badge className="bg-white border border-slate-200 text-slate-600 text-[10px] font-bold px-3 py-1 rounded-lg">
+                NIDN: {selectedDosen.NIDN}
+              </Badge>
             </div>
-          )}
-        </DialogContent>
-      </Dialog>
+
+            {/* SEKSI: PENUGASAN */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 text-slate-900">
+                <Layout className="size-4 opacity-40" />
+                <h4 className="text-[11px] font-bold uppercase tracking-[0.1em]">Penugasan Akademik</h4>
+              </div>
+              <div className="grid grid-cols-2 gap-x-12 gap-y-4 border-l-2 border-slate-100 pl-4 py-1">
+                <DataField label="Program Studi" value={selectedDosen.ProgramStudi?.Nama} />
+                <DataField label="Fakultas" value={selectedDosen.Fakultas?.Nama || selectedDosen.ProgramStudi?.Fakultas?.Nama} />
+                <DataField label="Jabatan Fungsional" value={selectedDosen.Jabatan} />
+                <DataField label="Email Institusi" value={selectedDosen.Pengguna?.Email} isPrimary />
+              </div>
+            </div>
+
+            {/* SEKSI: VERIFIKASI */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 text-slate-900">
+                <ShieldCheck className="size-4 opacity-40" />
+                <h4 className="text-[11px] font-bold uppercase tracking-[0.1em]">Status & Wewenang</h4>
+              </div>
+              <div className="grid grid-cols-2 gap-x-12 gap-y-4 border-l-2 border-slate-100 pl-4 py-1">
+                <div className="flex flex-col gap-1">
+                  <span className="text-[10px] font-medium text-slate-400 uppercase tracking-tighter">Status Wali (DPA)</span>
+                  <Badge className={cn(
+                    "w-fit text-[9px] font-bold px-2.5 py-0.5 border shadow-none",
+                    selectedDosen.IsDPA ? "bg-emerald-50 text-emerald-600 border-emerald-100" : "bg-slate-50 text-slate-400 border-slate-100"
+                  )}>
+                    {selectedDosen.IsDPA ? 'AKTIF' : 'NON-DPA'}
+                  </Badge>
+                </div>
+                <DataField label="Nomor Kontak (HP/WA)" value={selectedDosen.NoHP || '-'} isPrimary />
+              </div>
+            </div>
+
+            <div className="pt-4 border-t border-slate-100 flex justify-end">
+              <ModalBtn variant="default" onClick={() => setIsDetailOpen(false)}>Tutup</ModalBtn>
+            </div>
+          </div>
+        )}
+      </Modal>
     </PageContainer>
   )
 }

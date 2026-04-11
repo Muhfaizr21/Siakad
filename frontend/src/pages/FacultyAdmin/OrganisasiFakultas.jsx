@@ -8,7 +8,8 @@ import { DataTable } from "./components/data-table"
 import { DeleteConfirmModal } from "./components/DeleteConfirmModal"
 import { Plus, Users2, Pencil, Trash2, CheckCircle2, ShieldCheck, Loader2, Save } from 'lucide-react'
 import { toast, Toaster } from 'react-hot-toast'
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "./components/dialog"
+import { Modal, ModalBody, ModalFooter, ModalBtn } from "./components/Modal"
+
 import { Input } from "./components/input"
 import { Label } from "./components/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./components/select"
@@ -30,6 +31,7 @@ export default function FacultyOrganisasi() {
     ketua_nama: '',
     jumlah_anggota: 0,
     status: 'Aktif',
+    kategori: 'Himpunan',
     email: '',
     phone: ''
   })
@@ -40,16 +42,18 @@ export default function FacultyOrganisasi() {
       setLoading(true)
       const res = await fetch('http://localhost:8000/api/faculty/organizations')
       const data = await res.json()
+      // Go backend returns PascalCase fields
       const mapped = Array.isArray(data.data)
         ? data.data.map((item) => ({
-          id: item.id,
-          nama: item.nama,
-          kode: item.kode,
-          status: item.status,
-          jumlah_anggota: item.jumlah_anggota,
-          deskripsi: item.deskripsi,
-          email: item.email || '',
-          phone: item.phone || ''
+          id: item.ID,
+          nama: item.Nama,
+          kode: item.Singkatan || item.Kode || '',
+          status: item.Status || 'Aktif',
+          kategori: item.Kategori || '',
+          jumlah_anggota: item.JumlahAnggota || 0,
+          deskripsi: item.Deskripsi || '',
+          email: item.Email || '',
+          phone: item.Phone || ''
         }))
         : []
       setOrganizations(mapped)
@@ -69,14 +73,16 @@ export default function FacultyOrganisasi() {
     if (e) e.preventDefault()
     setIsSubmitting(true)
 
+    // Fiber BodyParser maps lowercase keys to Go PascalCase struct fields
     const payload = {
-      nama: formData.nama_org,
-      kode: formData.kode_org,
-      status: formData.status,
-      jumlah_anggota: formData.jumlah_anggota,
-      deskripsi: formData.ketua_nama,
-      email: formData.email,
-      phone: formData.phone
+      Nama: formData.nama_org,
+      Singkatan: formData.kode_org,
+      Status: formData.status,
+      Kategori: formData.kategori,
+      JumlahAnggota: formData.jumlah_anggota,
+      Deskripsi: formData.ketua_nama,
+      Email: formData.email,
+      Phone: formData.phone
     }
 
     try {
@@ -123,6 +129,7 @@ export default function FacultyOrganisasi() {
       ketua_nama: org.deskripsi || '',
       jumlah_anggota: org.jumlah_anggota || 0,
       status: org.status || 'Aktif',
+      kategori: org.kategori || 'Himpunan',
       email: org.email || '',
       phone: org.phone || ''
     })
@@ -154,6 +161,16 @@ export default function FacultyOrganisasi() {
       render: (val) => <span className="text-[11px] font-bold text-slate-600 uppercase font-headline">{val || '-'}</span>
     },
     {
+      key: "jumlah_anggota",
+      label: "Anggota",
+      render: (val) => (
+        <div className="flex items-center gap-1.5 text-slate-600">
+            <Users2 className="size-3" />
+            <span className="text-[11px] font-black font-headline">{val || 0}</span>
+        </div>
+      )
+    },
+    {
       key: "status",
       label: "Status",
       render: (val) => (
@@ -176,7 +193,7 @@ export default function FacultyOrganisasi() {
   return (
     <PageContainer>
       <Toaster position="top-right" />
-      
+
       <PageHeader
         icon={Users2}
         title="Organisasi Fakultas"
@@ -203,7 +220,7 @@ export default function FacultyOrganisasi() {
           data={organizations}
           loading={loading}
           searchPlaceholder="Cari Nama atau Kode..."
-          onAdd={() => { setEditingOrg(null); setFormData({ kode_org: '', nama_org: '', ketua_nama: '', jumlah_anggota: 0, status: 'Aktif', email: '', phone: '' }); setShowModal(true); }}
+          onAdd={() => { setEditingOrg(null); setFormData({ kode_org: '', nama_org: '', ketua_nama: '', jumlah_anggota: 0, status: 'Aktif', kategori: 'Himpunan', email: '', phone: '' }); setShowModal(true); }}
           addLabel="Tambah ORMAWA"
           actions={(row) => (
             <div className="flex items-center justify-end gap-2 pr-2">
@@ -219,31 +236,16 @@ export default function FacultyOrganisasi() {
       </ResponsiveCard>
 
       {/* Modal Dialog */}
-      <Dialog open={showModal} onOpenChange={setShowModal}>
-        <DialogContent className="max-w-xl p-0 overflow-hidden border-none shadow-2xl rounded-[2rem] bg-white/95 backdrop-blur-xl font-headline">
-          <DialogHeader className="p-8 pb-6 bg-gradient-to-br from-slate-50 to-white border-b border-slate-100 relative overflow-hidden text-left">
-            <div className="absolute top-0 right-0 p-8 opacity-5">
-              <Users2 className="size-24 rotate-12" />
-            </div>
-            <div className="relative z-10 flex flex-col items-start translate-x-0.5">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="size-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary text-xs font-black">
-                  {editingOrg ? <Pencil className="size-4" /> : <Plus className="size-4 stroke-[3px]" />}
-                </div>
-                <Badge variant="secondary" className="text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 bg-primary/5 text-primary border-none">
-                  ORMAWA Registry
-                </Badge>
-              </div>
-              <DialogTitle className="text-2xl font-black font-headline tracking-tighter text-slate-900 uppercase">
-                {editingOrg ? 'Update Organisasi' : 'Registrasi Baru'}
-              </DialogTitle>
-              <DialogDescription className="text-xs font-medium text-slate-400 mt-1 uppercase leading-none">
-                Manajemen identitas & legalitas organisasi mahasiswa fakultas.
-              </DialogDescription>
-            </div>
-          </DialogHeader>
-
-          <form onSubmit={handleSubmit} className="p-8 pt-6 space-y-6">
+      <Modal
+        open={showModal}
+        onClose={() => setShowModal(false)}
+        title={editingOrg ? 'Update Organisasi' : 'Registrasi Baru'}
+        subtitle="Manajemen identitas & legalitas organisasi mahasiswa fakultas."
+        icon={<Users2 size={18} />}
+        maxWidth="max-w-xl"
+      >
+        <form onSubmit={handleSubmit}>
+          <ModalBody>
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
@@ -257,6 +259,24 @@ export default function FacultyOrganisasi() {
                   />
                 </div>
                 <div className="space-y-2">
+                  <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Kategori / Tipe</Label>
+                  <Select value={formData.kategori} onValueChange={(val) => setFormData({ ...formData, kategori: val })}>
+                    <SelectTrigger className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 font-black font-headline text-[11px] px-4">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-2xl shadow-2xl p-1 font-headline overflow-hidden">
+                      <SelectItem value="BEM" className="rounded-xl font-bold text-[11px] p-3 focus:bg-primary/5 text-primary uppercase font-headline">BEM (Badan Eksekutif)</SelectItem>
+                      <SelectItem value="Himpunan" className="rounded-xl font-bold text-[11px] p-3 focus:bg-blue-50 text-blue-600 uppercase font-headline">Himpunan Mahasiswa</SelectItem>
+                      <SelectItem value="UKM" className="rounded-xl font-bold text-[11px] p-3 focus:bg-indigo-50 text-indigo-600 uppercase font-headline">UKM (Unit Kegiatan)</SelectItem>
+                      <SelectItem value="Komunitas" className="rounded-xl font-bold text-[11px] p-3 focus:bg-violet-50 text-violet-600 uppercase font-headline">Komunitas</SelectItem>
+                      <SelectItem value="Lainnya" className="rounded-xl font-bold text-[11px] p-3 focus:bg-slate-50 text-slate-600 uppercase font-headline">Lainnya</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
                   <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Status Operasional</Label>
                   <Select value={formData.status} onValueChange={(val) => setFormData({ ...formData, status: val })}>
                     <SelectTrigger className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 font-black font-headline text-[11px] px-4">
@@ -264,9 +284,19 @@ export default function FacultyOrganisasi() {
                     </SelectTrigger>
                     <SelectContent className="rounded-2xl shadow-2xl p-1 font-headline overflow-hidden">
                       <SelectItem value="Aktif" className="rounded-xl font-bold text-[11px] p-3 focus:bg-emerald-50 text-emerald-600 uppercase font-headline">Aktif (Active)</SelectItem>
+                      <SelectItem value="Nonaktif" className="rounded-xl font-bold text-[11px] p-3 focus:bg-amber-50 text-amber-600 uppercase font-headline">Nonaktif (Inactive)</SelectItem>
                       <SelectItem value="Pembekuan" className="rounded-xl font-bold text-[11px] p-3 focus:bg-rose-50 text-rose-600 uppercase font-headline">Pembekuan (Frozen)</SelectItem>
                     </SelectContent>
                   </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Jumlah Anggota</Label>
+                  <Input
+                    type="number"
+                    value={formData.jumlah_anggota}
+                    onChange={(e) => setFormData({ ...formData, jumlah_anggota: parseInt(e.target.value) || 0 })}
+                    className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white text-sm font-black font-headline text-center"
+                  />
                 </div>
               </div>
 
@@ -293,19 +323,6 @@ export default function FacultyOrganisasi() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Jumlah Anggota</Label>
-                  <Input
-                    type="number"
-                    value={formData.jumlah_anggota}
-                    onChange={(e) => setFormData({ ...formData, jumlah_anggota: parseInt(e.target.value) })}
-                    className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white text-sm font-black font-headline text-center"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
                   <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Email Resmi</Label>
                   <Input
                     type="email"
@@ -315,34 +332,35 @@ export default function FacultyOrganisasi() {
                     className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white transition-all font-bold text-sm font-headline"
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">No HP Kontak</Label>
-                  <Input
-                    value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    placeholder="E.G. 08123xxx"
-                    className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white text-sm font-bold font-headline"
-                  />
-                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">No HP Kontak</Label>
+                <Input
+                  value={formData.phone}
+                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  placeholder="E.G. 08123xxx"
+                  className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white text-sm font-bold font-headline"
+                />
               </div>
             </div>
+          </ModalBody>
 
-            <DialogFooter className="pt-4 flex flex-row items-center justify-end gap-3 border-t border-slate-100 -mx-8 px-8 bg-slate-50/30 rounded-b-[2rem]">
-              <Button type="button" variant="ghost" onClick={() => setShowModal(false)} className="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-900 px-8 h-12 rounded-2xl transition-all font-headline">
-                Batalkan
-              </Button>
-              <Button type="submit" disabled={isSubmitting} className="h-12 px-10 rounded-2xl bg-primary text-white hover:bg-primary/90 shadow-xl shadow-primary/20 transition-all hover:scale-[1.02] active:scale-95 border-none font-headline">
-                {isSubmitting ? (
-                  <Loader2 className="animate-spin size-4 mr-3" />
-                ) : (
-                  <Save className="size-4 mr-3 stroke-[3px]" />
-                )}
-                <span className="text-[10px] font-black uppercase tracking-[0.2em]">{editingOrg ? 'Update Data' : 'Submit Data'}</span>
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+          <ModalFooter>
+            <ModalBtn variant="ghost" type="button" onClick={() => setShowModal(false)}>
+              Batalkan
+            </ModalBtn>
+            <ModalBtn type="submit" disabled={isSubmitting}>
+              {isSubmitting ? (
+                <Loader2 className="animate-spin size-4" />
+              ) : (
+                <Save size={14} className="stroke-[3px]" />
+              )}
+              <span className="uppercase tracking-[0.1em]">{editingOrg ? 'Update Data' : 'Submit Data'}</span>
+            </ModalBtn>
+          </ModalFooter>
+        </form>
+      </Modal>
 
       <DeleteConfirmModal
         isOpen={isDelOpen}

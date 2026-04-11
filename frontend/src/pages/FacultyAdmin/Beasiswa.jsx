@@ -6,7 +6,8 @@ import { DataTable } from "./components/data-table"
 import { Badge } from "./components/badge"
 import { Button } from "./components/button"
 import { Plus, Pencil, ExternalLink, Loader2, Save, GraduationCap as CapIcon, Users, UserCheck, Clock, FileText, X } from 'lucide-react'
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "./components/dialog"
+import { Modal, ModalBody, ModalFooter, ModalBtn } from "./components/Modal"
+
 import { Input } from "./components/input"
 import { Label } from "./components/label"
 import { Textarea } from "./components/textarea"
@@ -278,32 +279,17 @@ export default function FacultyScholarship() {
       </ResponsiveCard>
 
 
-      {/* Program Modal (Exact Mahasiswa Copy Style) */}
-      <Dialog open={showProgModal} onOpenChange={setShowProgModal}>
-        <DialogContent className="max-w-xl p-0 overflow-hidden border-none shadow-2xl rounded-[2rem] bg-white/95 backdrop-blur-xl">
-          <DialogHeader className="p-8 pb-6 bg-gradient-to-br from-slate-50 to-white border-b border-slate-100 relative overflow-hidden">
-            <div className="absolute top-0 right-0 p-8 opacity-5">
-              <CapIcon className="size-24 rotate-12" />
-            </div>
-            <div className="relative z-10 flex flex-col items-start">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="size-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary text-xs font-black">
-                  {progForm.id ? <Pencil className="size-4" /> : <Plus className="size-4 stroke-[3px]" />}
-                </div>
-                <Badge variant="secondary" className="text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 bg-primary/5 text-primary border-none font-headline">
-                  Scholarship Registry
-                </Badge>
-              </div>
-              <DialogTitle className="text-2xl font-black font-headline tracking-tighter text-slate-900 uppercase">
-                {progForm.id ? 'Update Parameter' : 'Inisialisasi Baru'}
-              </DialogTitle>
-              <DialogDescription className="text-xs font-medium text-slate-400 mt-1 font-headline">
-                Konfigurasi parameter dana & kriteria seleksi mahasiswa akademik.
-              </DialogDescription>
-            </div>
-          </DialogHeader>
-
-          <form onSubmit={handleProgSubmit} className="p-8 pt-6 space-y-6">
+      {/* Program Modal (Locked) */}
+      <Modal
+        open={showProgModal}
+        onClose={() => setShowProgModal(false)}
+        title="Scholarship Registry"
+        subtitle="Konfigurasi parameter dana & kriteria seleksi mahasiswa akademik."
+        icon={<CapIcon size={18} />}
+        maxWidth="max-w-xl"
+      >
+        <form onSubmit={handleProgSubmit}>
+          <ModalBody>
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Nama Lengkap Program Beasiswa</Label>
@@ -385,65 +371,50 @@ export default function FacultyScholarship() {
                 />
               </div>
             </div>
+          </ModalBody>
 
-            <DialogFooter className="pt-4 flex flex-row items-center justify-end gap-3 border-t border-slate-100 -mx-8 px-8 bg-slate-50/30 rounded-b-[2rem]">
-              <Button type="button" variant="ghost" onClick={() => setShowProgModal(false)} className="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-900 px-8 h-12 rounded-2xl font-headline">
-                Batalkan
-              </Button>
-              <Button type="submit" disabled={isSubmitting} className="h-12 px-10 rounded-2xl bg-primary text-white hover:bg-primary/90 shadow-xl shadow-primary/20 transition-all hover:scale-[1.02] active:scale-95 font-headline border-none">
-                {isSubmitting ? (
-                  <Loader2 className="animate-spin size-4 mr-3" />
-                ) : (
-                  <Save className="size-4 mr-3 stroke-[3px]" />
-                )}
-                <span className="text-[10px] font-black uppercase tracking-[0.2em] font-headline">{progForm.id ? 'Update Record' : 'Create Record'}</span>
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+          <ModalFooter>
+            <ModalBtn variant="ghost" type="button" onClick={() => setShowProgModal(false)}>
+              Batalkan
+            </ModalBtn>
+            <ModalBtn type="submit" disabled={isSubmitting}>
+              {isSubmitting ? (
+                <Loader2 className="animate-spin size-4" />
+              ) : (
+                <Save size={14} className="stroke-[3px]" />
+              )}
+              <span className="uppercase tracking-[0.1em]">{progForm.id ? 'Update Record' : 'Create Record'}</span>
+            </ModalBtn>
+          </ModalFooter>
+        </form>
+      </Modal>
 
       {/* Review Application Modal */}
-      <Dialog open={showAppModal} onOpenChange={setShowAppModal}>
-        <DialogContent className="max-w-xl p-0 overflow-hidden border-none shadow-2xl rounded-[2.5rem] bg-white/95 backdrop-blur-xl">
-          <DialogHeader className="p-8 pb-6 bg-gradient-to-br from-slate-50 to-white border-b border-slate-100 relative overflow-hidden flex-shrink-0 text-left">
-            <div className="absolute top-0 right-0 p-8 opacity-5">
-              <UserCheck className="size-24 rotate-12" />
-            </div>
-            <div className="relative z-10 flex flex-col items-start">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="size-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary text-xs font-black">
-                  <UserCheck className="size-4" />
-                </div>
-                <Badge variant="secondary" className="text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 bg-primary/5 text-primary border-none font-headline">
-                  Scholarship Review
-                </Badge>
-              </div>
-              <DialogTitle className="text-2xl font-black font-headline tracking-tighter text-slate-900 uppercase">
-                Validasi Seleksi
-              </DialogTitle>
-              <DialogDescription className="text-xs font-medium text-slate-400 mt-1 font-headline">
-                Verifikasi histori akademik dan kelayakan berkas mahasiswa.
-              </DialogDescription>
-            </div>
-          </DialogHeader>
-
-          <div className="p-8 pt-6 space-y-6">
+      <Modal
+        open={showAppModal}
+        onClose={() => setShowAppModal(false)}
+        title="Validasi Seleksi"
+        subtitle="Verifikasi histori akademik dan kelayakan berkas mahasiswa."
+        icon={<UserCheck size={18} />}
+        maxWidth="max-w-xl"
+      >
+        <ModalBody>
+          <div className="space-y-6">
             <div className="p-6 rounded-3xl bg-slate-50 border border-slate-100 flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <Avatar className="h-14 w-14 rounded-2xl border-2 border-white shadow-xl">
                   <AvatarFallback className="bg-white text-slate-900 font-black">
-                    {selectedItem?.student?.name?.charAt(0)}
+                    {selectedItem?.student?.nama_mahasiswa?.charAt(0)}
                   </AvatarFallback>
                 </Avatar>
                 <div className="space-y-0.5">
-                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Student Applicant</p>
+                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Student Applicant</p>
                   <h4 className="font-bold text-slate-900 font-headline text-lg tracking-tight uppercase leading-none">{selectedItem?.student?.nama_mahasiswa}</h4>
-                  <p className="text-[10px] font-black text-primary font-headline tracking-tighter uppercase">{selectedItem?.beasiswa?.nama}</p>
+                  <p className="text-[10px] font-black text-primary font-headline tracking-tighter uppercase mt-1">{selectedItem?.beasiswa?.nama}</p>
                 </div>
               </div>
-              {selectedItem?.documentUrl && (
-                <a href={selectedItem.documentUrl} target="_blank" rel="noreferrer" className="size-12 rounded-2xl bg-white shadow-xl flex items-center justify-center text-slate-400 hover:text-primary transition-all active:scale-95 group border border-slate-50">
+              {selectedItem?.FileURL && (
+                <a href={selectedItem.FileURL} target="_blank" rel="noreferrer" className="size-12 rounded-2xl bg-white shadow-xl flex items-center justify-center text-slate-400 hover:text-primary transition-all active:scale-95 group border border-slate-50">
                   <ExternalLink className="size-5 group-hover:rotate-12 transition-transform" />
                 </a>
               )}
@@ -478,19 +449,19 @@ export default function FacultyScholarship() {
                 />
               </div>
             </div>
-
-            <DialogFooter className="pt-4 flex flex-row items-center justify-end gap-3 border-t border-slate-100 -mx-8 px-8 bg-slate-50/30 rounded-b-[2rem]">
-              <Button onClick={() => setShowAppModal(false)} variant="ghost" className="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-900 px-8 h-12 rounded-2xl font-headline">
-                Tutup
-              </Button>
-              <Button onClick={handleAppUpdate} disabled={isSubmitting} className="h-12 px-10 rounded-2xl bg-primary text-white hover:bg-primary/90 shadow-xl shadow-primary/20 transition-all hover:scale-[1.02] active:scale-95 font-headline border-none">
-                {isSubmitting ? <Loader2 className="animate-spin size-4 mr-3" /> : <Save className="size-4 mr-3 stroke-[3px]" />}
-                <span className="text-[10px] font-black uppercase tracking-[0.2em] font-headline">Simpan Keputusan</span>
-              </Button>
-            </DialogFooter>
           </div>
-        </DialogContent>
-      </Dialog>
+        </ModalBody>
+
+        <ModalFooter>
+          <ModalBtn onClick={() => setShowAppModal(false)} variant="ghost">
+            Tutup
+          </ModalBtn>
+          <ModalBtn onClick={handleAppUpdate} disabled={isSubmitting}>
+            {isSubmitting ? <Loader2 className="animate-spin size-4" /> : <Save size={14} className="stroke-[3px]" />}
+            <span className="uppercase tracking-[0.1em]">Simpan Keputusan</span>
+          </ModalBtn>
+        </ModalFooter>
+      </Modal>
     </PageContainer>
   )
 }

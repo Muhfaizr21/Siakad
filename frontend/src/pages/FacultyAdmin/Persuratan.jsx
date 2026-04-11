@@ -7,7 +7,8 @@ import { Badge } from "./components/badge"
 import { DataTable } from "./components/data-table"
 import { toast, Toaster } from 'react-hot-toast'
 import { RefreshCw, CheckCircle2, ShieldCheck, ExternalLink, Loader2, Save, FileText, Mail } from 'lucide-react'
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "./components/dialog"
+import { Modal, ModalBody, ModalFooter, ModalBtn } from "./components/Modal"
+
 import { Input } from "./components/input"
 import { Label } from "./components/label"
 import { Textarea } from "./components/textarea"
@@ -200,103 +201,91 @@ export default function FacultyPersuratan() {
       </ResponsiveCard>
 
       {/* Action Dialog */}
-      <Dialog open={showModal} onOpenChange={setShowModal}>
-        <DialogContent className="max-w-xl p-0 overflow-hidden border-none shadow-2xl rounded-[2rem] bg-white/95 backdrop-blur-xl">
-          <DialogHeader className="p-8 pb-6 bg-gradient-to-br from-slate-50 to-white border-b border-slate-100 relative overflow-hidden text-left">
-             <div className="absolute top-0 right-0 p-8 opacity-5">
-                <ShieldCheck className="size-24 rotate-12" />
-             </div>
-             <div className="relative z-10 flex flex-col items-start translate-x-0.5">
-                <div className="flex items-center gap-3 mb-2">
-                   <div className="size-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary text-xs font-black">
-                      <ShieldCheck className="size-4" />
-                   </div>
-                   <Badge variant="secondary" className="text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 bg-primary/5 text-primary border-none font-headline">
-                      Verification Panel
-                   </Badge>
-                </div>
-                <DialogTitle className="text-2xl font-black font-headline tracking-tighter text-slate-900 uppercase">
-                   Verifikasi & Keputusan
-                </DialogTitle>
-                <DialogDescription className="text-xs font-medium text-slate-400 mt-1 uppercase leading-none font-headline">
-                   Otorisasi dokumen & pembaruan status progress administratif.
-                </DialogDescription>
-             </div>
-          </DialogHeader>
+      <Modal
+        open={showModal}
+        onClose={() => setShowModal(false)}
+        title="Verifikasi & Keputusan"
+        subtitle="Otorisasi dokumen & pembaruan status progress administratif."
+        icon={<ShieldCheck size={18} />}
+        maxWidth="max-w-xl"
+      >
+        <div className="flex flex-col font-headline">
+          <ModalBody>
+            <div className="space-y-6">
+              <div className="p-6 rounded-[2rem] bg-slate-50 border border-slate-100 relative group overflow-hidden shadow-inner font-headline">
+                 <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                 <div className="relative z-10 space-y-2 font-headline">
+                    <div className="flex items-center gap-2">
+                       <FileText className="size-3.5 text-primary" />
+                       <p className="text-[10px] font-black text-primary uppercase tracking-[0.2em] leading-none">Detail Permohonan</p>
+                    </div>
+                    <h4 className="font-bold text-slate-900 font-headline text-lg tracking-tight leading-none uppercase">{selectedItem?.Jenis}</h4>
+                    <p className="text-[11px] font-bold text-slate-500 italic mt-3 bg-white/80 p-4 rounded-2xl border border-white shadow-sm uppercase">"{selectedItem?.Catatan}"</p>
+                 </div>
+              </div>
 
-          <div className="p-8 pt-6 space-y-6">
-            <div className="p-6 rounded-[2rem] bg-slate-50 border border-slate-100 relative group overflow-hidden shadow-inner">
-               <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-               <div className="relative z-10 space-y-2 font-headline">
-                  <div className="flex items-center gap-2">
-                     <FileText className="size-3.5 text-primary" />
-                     <p className="text-[10px] font-black text-primary uppercase tracking-[0.2em] leading-none">Detail Permohonan</p>
+              <form onSubmit={handleUpdate} className="space-y-5" id="surat-form">
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 font-headline">Status Progress Terkini</Label>
+                  <Select
+                    value={adminData.status}
+                    onValueChange={(val) => setAdminData({ ...adminData, status: val })}
+                  >
+                    <SelectTrigger className="h-12 rounded-2xl border-slate-100 bg-slate-50/50 font-black font-headline text-[11px] focus:ring-4 focus:ring-primary/5 transition-all">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-2xl shadow-2xl p-1 font-headline overflow-hidden">
+                      <SelectItem value="diajukan" className="rounded-xl font-bold text-[11px] p-3 focus:bg-primary/5 focus:text-primary uppercase font-headline">Diterima (Antrean)</SelectItem>
+                      <SelectItem value="diproses" className="rounded-xl font-bold text-[11px] p-3 focus:bg-primary/5 focus:text-primary uppercase font-headline">Sedang Diproses</SelectItem>
+                      <SelectItem value="siap_ambil" className="rounded-xl font-bold text-[11px] p-3 focus:bg-primary/5 focus:text-primary uppercase font-headline">Siap Diambil (Fisik)</SelectItem>
+                      <SelectItem value="selesai" className="rounded-xl font-bold text-[11px] p-3 focus:bg-emerald-50 text-emerald-600 uppercase font-headline">Selesai (Digital Terbit)</SelectItem>
+                      <SelectItem value="ditolak" className="rounded-xl font-bold text-[11px] p-3 focus:bg-rose-50 text-rose-600 uppercase font-headline">Tolak Pengajuan</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 font-headline">Lampiran Digital (Cloud storage)</Label>
+                  <div className="relative group">
+                    <Input
+                      value={adminData.file_url}
+                      onChange={(e) => setAdminData({ ...adminData, file_url: e.target.value })}
+                      className="h-12 rounded-2xl border-slate-100 bg-slate-50/50 font-black font-headline text-[11px] pr-12 focus:bg-white focus:ring-4 focus:ring-primary/5 transition-all"
+                      placeholder="https://drive.google.com/..."
+                    />
+                    <ExternalLink className="absolute right-4 top-1/2 -translate-y-1/2 size-4 text-slate-300 group-focus-within:text-primary transition-colors" />
                   </div>
-                  <h4 className="font-bold text-slate-900 font-headline text-lg tracking-tight leading-none uppercase">{selectedItem?.Jenis}</h4>
-                  <p className="text-[11px] font-bold text-slate-500 italic mt-3 bg-white/80 p-4 rounded-2xl border border-white shadow-sm uppercase">"{selectedItem?.Catatan}"</p>
-               </div>
-            </div>
-
-            <form onSubmit={handleUpdate} className="space-y-5">
-              <div className="space-y-2">
-                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 font-headline">Status Progress Terkini</Label>
-                <Select
-                  value={adminData.status}
-                  onValueChange={(val) => setAdminData({ ...adminData, status: val })}
-                >
-                  <SelectTrigger className="h-12 rounded-2xl border-slate-100 bg-slate-50/50 font-black font-headline text-[11px] focus:ring-4 focus:ring-primary/5 transition-all">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="rounded-2xl shadow-2xl p-1 font-headline overflow-hidden">
-                    <SelectItem value="diajukan" className="rounded-xl font-bold text-[11px] p-3 focus:bg-primary/5 focus:text-primary uppercase font-headline">Diterima (Antrean)</SelectItem>
-                    <SelectItem value="diproses" className="rounded-xl font-bold text-[11px] p-3 focus:bg-primary/5 focus:text-primary uppercase font-headline">Sedang Diproses</SelectItem>
-                    <SelectItem value="siap_ambil" className="rounded-xl font-bold text-[11px] p-3 focus:bg-primary/5 focus:text-primary uppercase font-headline">Siap Diambil (Fisik)</SelectItem>
-                    <SelectItem value="selesai" className="rounded-xl font-bold text-[11px] p-3 focus:bg-emerald-50 text-emerald-600 uppercase font-headline">Selesai (Digital Terbit)</SelectItem>
-                    <SelectItem value="ditolak" className="rounded-xl font-bold text-[11px] p-3 focus:bg-rose-50 text-rose-600 uppercase font-headline">Tolak Pengajuan</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 font-headline">Lampiran Digital (Cloud storage)</Label>
-                <div className="relative group">
-                  <Input
-                    value={adminData.file_url}
-                    onChange={(e) => setAdminData({ ...adminData, file_url: e.target.value })}
-                    className="h-12 rounded-2xl border-slate-100 bg-slate-50/50 font-black font-headline text-[11px] pr-12 focus:bg-white focus:ring-4 focus:ring-primary/5 transition-all"
-                    placeholder="https://drive.google.com/..."
-                  />
-                  <ExternalLink className="absolute right-4 top-1/2 -translate-y-1/2 size-4 text-slate-300 group-focus-within:text-primary transition-colors" />
                 </div>
-              </div>
 
-              <div className="space-y-2">
-                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 font-headline">Feedback Administratif</Label>
-                <Textarea
-                  value={adminData.catatan_admin}
-                  onChange={(e) => setAdminData({ ...adminData, catatan_admin: e.target.value })}
-                  className="min-h-[100px] rounded-[1.5rem] border-slate-100 bg-slate-50/50 font-black text-[11px] p-4 focus:bg-white focus:ring-4 focus:ring-primary/5 transition-all uppercase"
-                  placeholder="Informasikan detail pengambilan atau alasan penolakan..."
-                />
-              </div>
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 font-headline">Feedback Administratif</Label>
+                  <Textarea
+                    value={adminData.catatan_admin}
+                    onChange={(e) => setAdminData({ ...adminData, catatan_admin: e.target.value })}
+                    className="min-h-[100px] rounded-[1.5rem] border-slate-100 bg-slate-50/50 font-black text-[11px] p-4 focus:bg-white focus:ring-4 focus:ring-primary/5 transition-all uppercase"
+                    placeholder="Informasikan detail pengambilan atau alasan penolakan..."
+                  />
+                </div>
+              </form>
+            </div>
+          </ModalBody>
 
-              <DialogFooter className="pt-4 flex flex-row items-center justify-end gap-3 border-t border-slate-100 -mx-8 px-8 bg-slate-50/30 rounded-b-[2rem]">
-                <Button type="button" variant="ghost" onClick={() => setShowModal(false)} className="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-900 px-8 h-12 rounded-2xl font-headline transition-all">
-                   Tutup
-                </Button>
-                <Button type="submit" disabled={isSubmitting} className="h-12 px-10 rounded-2xl bg-primary text-white hover:bg-primary/90 shadow-xl shadow-primary/20 transition-all hover:scale-[1.02] active:scale-95 border-none font-headline">
-                  {isSubmitting ? (
-                    <Loader2 className="animate-spin size-4 mr-3" />
-                  ) : (
-                    <CheckCircle2 className="size-4 mr-3 stroke-[3px]" />
-                  )}
-                  <span className="text-[10px] font-black uppercase tracking-[0.15em]">Verifikasi & Simpan</span>
-                </Button>
-              </DialogFooter>
-            </form>
-          </div>
-        </DialogContent>
-      </Dialog>
+          <ModalFooter>
+             <ModalBtn type="button" variant="ghost" onClick={() => setShowModal(false)}>
+                Tutup
+             </ModalBtn>
+             <ModalBtn type="submit" form="surat-form" disabled={isSubmitting}>
+               {isSubmitting ? (
+                 <Loader2 className="animate-spin size-4" />
+               ) : (
+                 <CheckCircle2 size={14} className="stroke-[3px]" />
+               )}
+               <span className="uppercase tracking-[0.1em]">Verifikasi & Simpan</span>
+             </ModalBtn>
+          </ModalFooter>
+        </div>
+      </Modal>
     </PageContainer>
   )
 }
+

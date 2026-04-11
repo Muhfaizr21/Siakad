@@ -33,10 +33,9 @@ const menuSections = [
   {
     label: 'Community & Content',
     items: [
-      { name: 'Proposal Fakultas', path: '/faculty/fakultas', icon: FileText },
+      { name: 'Program Studi', path: '/faculty/prodi', icon: School },
       { name: 'Proposal ORMAWA', path: '/faculty/ormawa/proposals', icon: FileSpreadsheet },
       { name: 'Organisasi Fakultas', path: '/faculty/organisasi', icon: Building2 },
-      { name: 'Konten & Artikel', path: '/faculty/konten', icon: Boxes },
     ]
   },
   {
@@ -44,7 +43,6 @@ const menuSections = [
     items: [
       { name: 'Periode Akademik', path: '/faculty/jadwal', icon: CalendarDays },
       { name: 'Laporan Fakultas', path: '/faculty/laporan', icon: BarChart3 },
-      { name: 'Program Studi', path: '/faculty/prodi', icon: School },
       { name: 'Pengaturan', path: '/faculty/pengaturan', icon: Settings },
     ]
   },

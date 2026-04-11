@@ -75,9 +75,7 @@ import FacultyKonten from './pages/FacultyAdmin/Konten'
 import FacultyPengaturan from './pages/FacultyAdmin/Settings'
 import FacultyKonseling from './pages/FacultyAdmin/Konseling'
 import FacultyPrestasi from './pages/FacultyAdmin/Prestasi'
-import FacultyFakultas from './pages/FacultyAdmin/FakultasProposals'
-import FacultyFakultasTambah from './pages/FacultyAdmin/FakultasProposals'
-import FacultyFakultasEdit from './pages/FacultyAdmin/FakultasProposals'
+
 import FacultyPersuratan from './pages/FacultyAdmin/Persuratan'
 import FacultyBeasiswa from './pages/FacultyAdmin/Beasiswa'
 import FacultyMahasiswaBaru from './pages/FacultyAdmin/MahasiswaBaru'
@@ -206,9 +204,7 @@ function App() {
                     <Route path="dashboard" element={<FacultyDashboard />} />
                     <Route path="aspirasi" element={<FacultyAspirationManagement />} />
                     <Route path="pmb" element={<FacultyPmb />} />
-                    <Route path="fakultas" element={<FacultyFakultas />} />
-                    <Route path="fakultas/tambah" element={<FacultyFakultasTambah />} />
-                    <Route path="fakultas/edit/:id" element={<FacultyFakultasEdit />} />
+
                     <Route path="prodi" element={<FacultyProdi />} />
                     <Route path="prodi/tambah" element={<FacultyProdiTambah />} />
                     <Route path="prodi/edit/:id" element={<FacultyProdiEdit />} />
@@ -227,7 +223,7 @@ function App() {
                     <Route path="nilai" element={<FacultyNilai />} />
                     <Route path="laporan" element={<FacultyLaporan />} />
                     <Route path="laporan/mahasiswa" element={<FacultyLaporan />} />
-                    <Route path="konten" element={<FacultyKonten />} />
+                    {/* <Route path="konten" element={<FacultyKonten />} /> */}
                     <Route path="pengaturan" element={<FacultyPengaturan />} />
                     <Route path="konseling" element={<FacultyKonseling />} />
                     <Route path="prestasi" element={<FacultyPrestasi />} />

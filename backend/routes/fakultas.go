@@ -34,6 +34,7 @@ func InisialisasiRuteFakultas(aplikasi *fiber.App) {
 
 	// Matakuliah & Jadwal
 	api.Get("/courses", fakultas.AmbilDaftarProdi) // ALIAS: Frontend Mahasiswa.jsx calls this for majors
+	api.Post("/courses", fakultas.TambahProdiBaru) // ALIAS for adding majors
 	api.Put("/courses/:id", fakultas.PerbaruiProdi)
 	api.Delete("/courses/:id", fakultas.HapusProdi)
 
@@ -76,15 +77,17 @@ func InisialisasiRuteFakultas(aplikasi *fiber.App) {
 	api.Put("/scholarships/applications/:id", fakultas.VerifikasiBeasiswa)
 	api.Delete("/scholarships/applications/:id", fakultas.HapusPendaftarBeasiswa)
 
-	// Konten & Berita
-	api.Get("/articles", fakultas.AmbilDaftarBerita)
-	api.Get("/news", fakultas.AmbilDaftarBerita) // ALIAS
-	api.Post("/articles", fakultas.TambahBeritaBaru)
-	api.Post("/news", fakultas.TambahBeritaBaru) // ALIAS
-	api.Put("/articles/:id", fakultas.PerbaruiBerita)
-	api.Put("/news/:id", fakultas.PerbaruiBerita) // ALIAS
-	api.Delete("/articles/:id", fakultas.HapusBerita)
-	api.Delete("/news/:id", fakultas.HapusBerita) // ALIAS
+	// Konten & Berita (DISABLED BY USER REQUEST)
+	/*
+		api.Get("/articles", fakultas.AmbilDaftarBerita)
+		api.Get("/news", fakultas.AmbilDaftarBerita) // ALIAS
+		api.Post("/articles", fakultas.TambahBeritaBaru)
+		api.Post("/news", fakultas.TambahBeritaBaru) // ALIAS
+		api.Put("/articles/:id", fakultas.PerbaruiBerita)
+		api.Put("/news/:id", fakultas.PerbaruiBerita) // ALIAS
+		api.Delete("/articles/:id", fakultas.HapusBerita)
+		api.Delete("/news/:id", fakultas.HapusBerita) // ALIAS
+	*/
 
 	// Pendaftaran Mahasiswa Baru (PMB)
 	api.Get("/admissions", fakultas.AmbilDaftarPendaftarMB)
@@ -100,8 +103,8 @@ func InisialisasiRuteFakultas(aplikasi *fiber.App) {
 	api.Get("/ormawa/proposals", fakultas.AmbilDaftarProposalOrmawa)
 	api.Put("/ormawa/proposals/:id", fakultas.ValidasiProposalOrmawa)
 
-	api.Get("/internal/proposals", fakultas.AmbilDaftarProposalFakultas)
-	api.Put("/internal/proposals/:id", fakultas.ValidasiProposalFakultas)
+	// api.Get("/internal/proposals", fakultas.AmbilDaftarProposalFakultas)
+	// api.Put("/internal/proposals/:id", fakultas.ValidasiProposalFakultas)
 
 	api.Get("/counseling", fakultas.AmbilDaftarKonseling)
 	api.Post("/counseling", fakultas.TambahSesiKonseling)
@@ -118,10 +121,10 @@ func InisialisasiRuteFakultas(aplikasi *fiber.App) {
 	api.Post("/academic-periods", fakultas.SimpanPengaturanAkademik)
 	api.Put("/academic-periods", fakultas.SimpanPengaturanAkademik) // ALIAS
 
-    // Akun & Profil (Baru) - Terpisah dari Mahasiswa
-    api.Get("/profile", fakultas.AmbilProfilAdminFakultas)
-    api.Put("/profile", fakultas.PerbaruiProfilAdminFakultas)
-    api.Put("/change-password", fakultas.GantiPasswordAdminFakultas)
+	// Akun & Profil (Baru) - Terpisah dari Mahasiswa
+	api.Get("/profile", fakultas.AmbilProfilAdminFakultas)
+	api.Put("/profile", fakultas.PerbaruiProfilAdminFakultas)
+	api.Put("/change-password", fakultas.GantiPasswordAdminFakultas)
 
 	api.Get("/ringkasan", fakultas.AmbilRingkasanPkkmb)
 	api.Get("/peserta", fakultas.AmbilDaftarKelulusanMaba)

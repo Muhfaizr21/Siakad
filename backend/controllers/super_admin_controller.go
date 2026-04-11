@@ -181,39 +181,102 @@ func GetGlobalProposals(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"status": "success", "data": proposals})
 }
 
-// ApproveProposalUniv final approval by university
+// ApproveProposalUniv final approval by university with financial integration
 func ApproveProposalUniv(c *fiber.Ctx) error {
 	id := c.Params("id")
 	var proposal models.Proposal
-	if err := config.DB.First(&proposal, id).Error; err != nil {
+	
+	// Preload Ormawa for notification and balance update
+	if err := config.DB.Preload("Ormawa").First(&proposal, id).Error; err != nil {
 		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Proposal not found"})
 	}
 
-	proposal.Status = "disetujui_univ"
-	config.DB.Save(&proposal)
+	// Double check to only approve if it's already approved by faculty
+	if proposal.Status != "disetujui_fakultas" {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Proposal must be approved by Faculty first"})
+	}
 
-	return c.JSON(fiber.Map{"status": "success", "message": "Proposal has been officially approved by University"})
+	err := config.DB.Transaction(func(tx *gorm.DB) error {
+		// 1. Update status to final
+		if err := tx.Model(&proposal).Update("status", "disetujui_univ").Error; err != nil {
+			return err
+		}
+
+		// 2. Create financial mutation (Disbursement)
+		mutation := models.OrmawaMutasiSaldo{
+			OrmawaID:   proposal.OrmawaID,
+			Tipe:       "masuk",
+			Nominal:    proposal.Anggaran, // Now using Anggaran field from proposal
+			Kategori:   "Pencairan Proposal",
+			Deskripsi:  fmt.Sprintf("Pencairan dana Universitas untuk kegiatan: %s", proposal.Judul),
+			ProposalID: &proposal.ID,
+			Tanggal:    time.Now(),
+		}
+		if err := tx.Create(&mutation).Error; err != nil {
+			return err
+		}
+
+		// 3. Create Notification for Ormawa
+		tx.Create(&models.OrmawaNotifikasi{
+			OrmawaID: proposal.OrmawaID,
+			Tipe:     "proposal",
+			Judul:    "Dana Disyahkan Universitas",
+			Pesan:    fmt.Sprintf("Proposal '%s' telah disetujui Universitas. Anggaran %v telah dicairkan ke kas organisasi.", proposal.Judul, proposal.Anggaran),
+		})
+
+		return nil
+	})
+
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal memproses pengesahan & pencairan: " + err.Error()})
+	}
+
+	return c.JSON(fiber.Map{"status": "success", "message": "Proposal has been officially approved & funds disbursed"})
 }
 
-// RejectProposalUniv rejection with note
+// RejectProposalUniv rejection with note and notification
 func RejectProposalUniv(c *fiber.Ctx) error {
 	id := c.Params("id")
 	type RejectReq struct {
 		Catatan string `json:"catatan"`
 	}
 	var req RejectReq
-	c.BodyParser(&req)
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Body request tidak valid"})
+	}
 
 	var proposal models.Proposal
 	if err := config.DB.First(&proposal, id).Error; err != nil {
 		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Proposal not found"})
 	}
 
-	proposal.Status = "ditolak"
-	proposal.Catatan = req.Catatan
-	config.DB.Save(&proposal)
+	err := config.DB.Transaction(func(tx *gorm.DB) error {
+		// Update status and note
+		updates := map[string]interface{}{
+			"status": "revisi", // Changed from 'ditolak' to 'revisi' to follow standard flow
+			"catatan": req.Catatan,
+		}
+		
+		if err := tx.Model(&proposal).Updates(updates).Error; err != nil {
+			return err
+		}
 
-	return c.JSON(fiber.Map{"status": "success", "message": "Proposal has been rejected"})
+		// Create Notification for Ormawa
+		tx.Create(&models.OrmawaNotifikasi{
+			OrmawaID: proposal.OrmawaID,
+			Tipe:     "proposal",
+			Judul:    "Proposal Dikembalikan Univ",
+			Pesan:    fmt.Sprintf("Proposal '%s' membutuhkan revisi dari Universitas: %s", proposal.Judul, req.Catatan),
+		})
+
+		return nil
+	})
+
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal memproses penolakan: " + err.Error()})
+	}
+
+	return c.JSON(fiber.Map{"status": "success", "message": "Proposal has been sent back for revision"})
 }
 
 // GetAllFakultas master data

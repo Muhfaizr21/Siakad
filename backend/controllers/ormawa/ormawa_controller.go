@@ -196,6 +196,11 @@ func UpdateProposal(c *fiber.Ctx) error {
 			}
 		}
 
+		// Mapping logic for Faculty Admin
+		if payload.Status == "disetujui" {
+			payload.Status = "disetujui_fakultas"
+		}
+
 		updates := make(map[string]interface{})
 		if payload.Status != "" { updates["status"] = payload.Status }
 		if payload.Judul != "" { updates["judul"] = payload.Judul }
@@ -207,34 +212,20 @@ func UpdateProposal(c *fiber.Ctx) error {
 			}
 		}
 
-		if payload.Status == "disetujui_univ" {
-			mutation := models.OrmawaMutasiSaldo{
-				OrmawaID:   proposal.OrmawaID,
-				Tipe:       "masuk",
-				Nominal:    proposal.Anggaran,
-				Kategori:   "Pencairan Proposal",
-				Deskripsi:  fmt.Sprintf("Pencairan dana kegiatan: %s", proposal.Judul),
-				ProposalID: &proposal.ID,
-				Tanggal:    time.Now(),
-			}
-			if err := tx.Create(&mutation).Error; err != nil {
-				return err
-			}
-			
+		if payload.Status != "" {
 			// Notifikasi ormawa
+			pesan := fmt.Sprintf("Status proposal '%s' berubah menjadi '%s'.", proposal.Judul, payload.Status)
+			if payload.Status == "disetujui_fakultas" {
+				pesan = fmt.Sprintf("Proposal '%s' telah disetujui Fakultas dan sedang menunggu pengesahan Universitas.", proposal.Judul)
+			} else if payload.Status == "revisi" {
+				pesan = fmt.Sprintf("Proposal '%s' dikembalikan oleh Fakultas: %s", proposal.Judul, payload.Catatan)
+			}
+
 			tx.Create(&models.OrmawaNotifikasi{
 				OrmawaID: proposal.OrmawaID,
 				Tipe:     "proposal",
-				Judul:    "Proposal Disetujui",
-				Pesan:    fmt.Sprintf("Proposal '%s' telah disetujui oleh Universitas.", proposal.Judul),
-			})
-		} else if payload.Status != "" {
-			// Notifikasi ormawa
-			tx.Create(&models.OrmawaNotifikasi{
-				OrmawaID: proposal.OrmawaID,
-				Tipe:     "proposal",
-				Judul:    "Status Proposal Update",
-				Pesan:    fmt.Sprintf("Status proposal '%s' berubah menjadi '%s'.", proposal.Judul, payload.Status),
+				Judul:    "Update Status Proposal",
+				Pesan:    pesan,
 			})
 		}
 

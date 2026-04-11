@@ -5,8 +5,8 @@ import { DataTable } from "./components/data-table"
 import { Button } from "./components/button"
 import { Badge } from "./components/badge"
 import { CheckCircle2, XCircle, Eye, Calendar, Award, AlertCircle, Trophy, GraduationCap, Building, FileText, ExternalLink, ShieldCheck, Star, Clock, X } from "lucide-react"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "./components/dialog"
-import { Avatar, AvatarFallback } from "./components/avatar"
+import { Modal, ModalBody, ModalFooter, ModalBtn } from "./components/Modal"
+
 import { toast, Toaster } from "react-hot-toast"
 import { cn } from "@/lib/utils"
 import { PageContainer, PageHeader, ResponsiveGrid, ResponsiveCard } from "./components/responsive-layout"
@@ -116,26 +116,32 @@ export default function FacultyPrestasi() {
     {
       key: "Status",
       label: "Validasi",
-      render: (val) => (
-        <Badge
-          className={cn(
-            "capitalize font-black text-[10px] px-3 py-1 border-none shadow-sm font-headline uppercase tracking-widest",
-            val === 'verified' ? "bg-emerald-100 text-emerald-700 ring-1 ring-emerald-500/20" :
-              val === 'pending' ? "bg-amber-100 text-amber-700 ring-1 ring-amber-500/20" :
-                val === 'rejected' ? "bg-rose-100 text-rose-700 ring-1 ring-rose-500/20" :
-                  "bg-slate-100 text-slate-700 ring-1 ring-slate-500/20"
-          )}
-        >
-          {val || 'PENDING'}
-        </Badge>
-      ),
+      render: (val) => {
+        const s = (val || 'pending').toLowerCase();
+        const config = 
+          s === 'verified' || s === 'terverifikasi' || s === 'disetujui' ? { label: 'TERVERIFIKASI', class: "bg-emerald-100 text-emerald-700 ring-1 ring-emerald-500/20" } :
+          s === 'rejected' || s === 'ditolak' ? { label: 'DITOLAK', class: "bg-rose-100 text-rose-700 ring-1 ring-rose-500/20" } :
+          { label: 'MENUNGGU', class: "bg-amber-100 text-amber-700 ring-1 ring-amber-500/20" };
+        
+        return (
+          <Badge className={cn("capitalize font-black text-[10px] px-3 py-1 border-none shadow-sm font-headline uppercase tracking-widest", config.class)}>
+            {config.label}
+          </Badge>
+        );
+      },
     }
   ]
 
   const statsData = [
     { label: 'Total Pengajuan', value: achievements.length, icon: Trophy, color: 'text-blue-600', bg: 'bg-blue-50' },
-    { label: 'Tervalidasi', value: achievements.filter(a => a.Status === 'verified').length, icon: CheckCircle2, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-    { label: 'Menunggu', value: achievements.filter(a => a.Status === 'pending').length, icon: Clock, color: 'text-amber-600', bg: 'bg-amber-50' },
+    { label: 'Tervalidasi', value: achievements.filter(a => {
+        const s = (a.Status || '').toLowerCase();
+        return s === 'verified' || s === 'terverifikasi' || s === 'disetujui';
+    }).length, icon: CheckCircle2, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+    { label: 'Menunggu', value: achievements.filter(a => {
+        const s = (a.Status || '').toLowerCase();
+        return s !== 'verified' && s !== 'terverifikasi' && s !== 'disetujui' && s !== 'rejected' && s !== 'ditolak';
+    }).length, icon: Clock, color: 'text-amber-600', bg: 'bg-amber-50' },
   ]
 
   const sel = selectedAchievement
@@ -198,261 +204,117 @@ export default function FacultyPrestasi() {
         />
       </ResponsiveCard>
 
-      {/* ===== PREMIUM DETAIL + VERIFICATION DIALOG ===== */}
-      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="max-w-4xl p-0 overflow-hidden border-none shadow-2xl rounded-[2.5rem] bg-white font-headline">
-          {sel && (
-            <div className="relative flex flex-col h-[88vh]">
+      {/* ===== DETAIL MODAL ===== */}
+      <Modal
+        open={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        title={sel?.NamaKegiatan || 'Detail Prestasi'}
+        subtitle={`${sel?.Mahasiswa?.Nama || '-'} · ${sel?.Mahasiswa?.NIM || '-'} • Kategori: ${sel?.Kategori || 'Umum'}`}
+        icon={<Trophy size={18} />}
+        maxWidth="max-w-2xl"
+      >
+        <ModalBody>
+          <div className="space-y-5">
 
-              {/* ── HEADER HERO ── */}
-              <div className="h-48 bg-slate-900 relative shrink-0 overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800" />
-                <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, white 0.5px, transparent 0)', backgroundSize: '16px 16px' }} />
-                {/* Decorative trophy watermark */}
-                <div className="absolute -right-6 -bottom-6 opacity-[0.04]">
-                  <Trophy className="size-56 text-white" />
-                </div>
-
-                <div className="absolute inset-y-0 left-10 flex items-center gap-6">
-                  <div className="relative group">
-                    <Avatar className="h-24 w-24 rounded-2xl border-4 border-white/10 shadow-2xl transition-transform duration-500 group-hover:scale-105">
-                      <AvatarFallback className="bg-white/10 backdrop-blur-xl text-white text-2xl font-black rounded-2xl border border-white/10">
-                        {sel.Mahasiswa?.Nama?.split(" ")?.map(n => n[0]).join("")?.substring(0, 2) || '?'}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className={cn("absolute -bottom-1.5 -right-1.5 size-8 rounded-xl border-2 border-slate-900 flex items-center justify-center text-white shadow-lg",
-                      statusCfg.color
-                    )}>
-                      {statusCfg.icon}
-                    </div>
-                  </div>
-                  <div className="flex flex-col gap-1.5 text-white">
-                    <div className="flex items-center gap-2 mb-0.5">
-                      <Badge variant="outline" className="text-[8px] font-black border-white/20 text-white/60 bg-white/5 px-2 py-0.5 rounded tracking-widest uppercase">
-                        Achievement Record
-                      </Badge>
-                      <DialogDescription className="sr-only">Detail prestasi mahasiswa dan panel verifikasi</DialogDescription>
-                      <div className="h-3 w-px bg-white/10" />
-                      <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest">ID: {sel.ID?.toString().padStart(6, '0')}</span>
-                    </div>
-                    <DialogTitle className="text-2xl font-black tracking-tighter leading-none uppercase drop-shadow-md">
-                      {sel.Mahasiswa?.Nama || '-'}
-                    </DialogTitle>
-                    <div className="flex items-center gap-3 mt-0.5">
-                      <div className="flex items-center gap-1.5 px-2.5 py-0.5 bg-white/5 backdrop-blur-md rounded-lg border border-white/10">
-                        <GraduationCap className="size-3 text-white/50" />
-                        <span className="text-[10px] font-bold text-white/70 uppercase tracking-tight">{sel.Mahasiswa?.NIM || '-'}</span>
-                      </div>
-                      {sel.Mahasiswa?.ProgramStudi?.Nama && (
-                        <>
-                          <div className="size-1 rounded-full bg-white/20" />
-                          <div className="flex items-center gap-1.5">
-                            <Building className="size-3 text-white/40" />
-                            <span className="text-[10px] font-bold text-white/50 uppercase tracking-tight">{sel.Mahasiswa.ProgramStudi.Nama}</span>
-                          </div>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                <button onClick={() => setIsModalOpen(false)} className="absolute top-6 right-6 text-white/30 hover:text-white transition-colors p-2 rounded-xl hover:bg-white/10">
-                  <X className="size-5" />
-                </button>
-              </div>
-
-              {/* ── CONTENT AREA ── */}
-              <div className="flex-1 overflow-y-auto custom-scrollbar">
-                <div className="p-10 space-y-8">
-
-                  {/* Status Alert for Rejected */}
-                  {sel.Status === 'rejected' && (
-                    <div className="p-5 rounded-2xl bg-rose-50 border border-rose-100 flex items-start gap-4">
-                      <div className="size-10 rounded-2xl bg-rose-100 flex items-center justify-center text-rose-600 shrink-0">
-                        <XCircle className="size-5" />
-                      </div>
-                      <div>
-                        <p className="text-[11px] font-black text-rose-700 uppercase tracking-widest mb-1">Pengajuan Ditolak</p>
-                        <p className="text-[13px] font-bold text-rose-600/80 leading-relaxed">Berkas tidak sesuai kriteria verifikasi fakultas. Mahasiswa dapat mengajukan ulang dengan dokumen yang telah diperbaiki.</p>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* ── DETAIL GRID ── */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-                    {/* LEFT: Competition Details */}
-                    <div className="space-y-6">
-                      <div className="flex items-center gap-3">
-                        <div className="size-9 rounded-2xl bg-slate-900 text-white flex items-center justify-center shadow-lg transform -rotate-3 transition-transform hover:rotate-0">
-                          <Trophy className="size-4" />
-                        </div>
-                        <h3 className="font-black text-[12px] uppercase tracking-[0.2em] text-slate-900">Detail Kompetisi</h3>
-                      </div>
-
-                      <div className="bg-white rounded-[2rem] border border-slate-100 shadow-sm overflow-hidden">
-                        <div className="divide-y divide-slate-50">
-                          <DetailRow label="Nama Kegiatan" value={sel.NamaKegiatan} primary />
-                          <DetailRow label="Kategori" value={
-                            <Badge className="bg-blue-50 text-blue-700 border-none font-black text-[10px] px-3 py-1 ring-1 ring-blue-200/50 uppercase tracking-widest">
-                              {sel.Kategori || '-'}
-                            </Badge>
-                          } />
-                          <DetailRow label="Tingkat" value={
-                            <Badge className={cn("border-none font-black text-[10px] px-3 py-1 ring-1 uppercase tracking-widest", getTingkatColor(sel.Tingkat))}>
-                              {sel.Tingkat || '-'}
-                            </Badge>
-                          } />
-                          <DetailRow label="Peringkat" value={
-                            <div className="flex items-center gap-2">
-                              <Star className="size-4 text-amber-500 fill-amber-500" />
-                              <span className="font-black text-slate-900 text-[14px] uppercase tracking-tight">{sel.Peringkat || '-'}</span>
-                            </div>
-                          } />
-
-                          <DetailRow label="Tanggal Submit" value={
-                            <div className="flex items-center gap-2">
-                              <Calendar className="size-3.5 text-slate-400" />
-                              <span className="font-bold text-slate-700 text-[12px]">
-                                {sel.CreatedAt ? new Date(sel.CreatedAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : '-'}
-                              </span>
-                            </div>
-                          } />
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* RIGHT: Document & Status */}
-                    <div className="space-y-6">
-                      <div className="flex items-center gap-3">
-                        <div className="size-9 rounded-2xl bg-slate-900 text-white flex items-center justify-center shadow-lg transform rotate-3 transition-transform hover:rotate-0">
-                          <FileText className="size-4" />
-                        </div>
-                        <h3 className="font-black text-[12px] uppercase tracking-[0.2em] text-slate-900">Dokumen & Status</h3>
-                      </div>
-
-                      {/* Status Card */}
-                      <div className="p-6 rounded-[2rem] bg-white border border-slate-100 shadow-sm space-y-5">
-                        <div className="flex items-center justify-between">
-                          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Status Verifikasi</span>
-                          <Badge className={cn("font-black text-[10px] px-4 py-1.5 border-none ring-1 uppercase tracking-widest", statusCfg.bgColor, statusCfg.textColor, statusCfg.ring)}>
-                            {statusCfg.icon}
-                            <span className="ml-1.5">{statusCfg.label}</span>
-                          </Badge>
-                        </div>
-
-                        <div className="h-px bg-slate-100" />
-
-                        <div className="flex items-center justify-between">
-                          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">ID Record</span>
-                          <span className="font-mono font-black text-[12px] text-primary tracking-widest">#{sel.ID?.toString().padStart(6, '0')}</span>
-                        </div>
-                      </div>
-
-                      {/* Certificate / Evidence Card */}
-                      <div className="p-6 rounded-[2rem] bg-white border border-slate-100 shadow-sm space-y-4">
-                        <div className="flex items-center gap-2">
-                          <div className="size-1.5 rounded-full bg-primary/40 shadow-sm" />
-                          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Bukti / Sertifikat</span>
-                        </div>
-
-                        {sel.BuktiURL ? (
-                          <a
-                            href={`http://localhost:8000${sel.BuktiURL}`}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="flex items-center gap-4 p-5 rounded-2xl bg-primary/5 border border-primary/10 hover:bg-primary/10 hover:border-primary/20 transition-all group cursor-pointer"
-                          >
-                            <div className="size-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform shadow-sm">
-                              <FileText className="size-5" />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <p className="text-[12px] font-black text-primary uppercase tracking-tight">Lihat Dokumen Sertifikat</p>
-                              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5 truncate">{sel.BuktiURL}</p>
-                            </div>
-                            <ExternalLink className="size-4 text-primary/40 group-hover:text-primary transition-colors shrink-0" />
-                          </a>
-                        ) : (
-                          <div className="flex items-center gap-4 p-5 rounded-2xl bg-slate-50 border border-slate-100">
-                            <div className="size-12 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-300">
-                              <FileText className="size-5" />
-                            </div>
-                            <div>
-                              <p className="text-[12px] font-black text-slate-400 uppercase tracking-tight">Tidak Ada Lampiran</p>
-                              <p className="text-[10px] font-bold text-slate-300 uppercase tracking-widest mt-0.5">Mahasiswa belum mengupload bukti</p>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
+            {/* Rejected Alert */}
+            {(sel?.Status || '').toLowerCase() === 'rejected' && (
+              <div className="bg-[#fef2f2] border border-[#fecaca] rounded-xl p-4 flex items-start gap-3">
+                <XCircle size={18} className="text-[#dc2626] shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-bold text-[#dc2626] text-sm">Pengajuan Ditolak</p>
+                  <p className="text-[#991b1b] text-sm mt-0.5">Berkas tidak sesuai kriteria. Mahasiswa dapat mengajukan ulang.</p>
                 </div>
               </div>
+            )}
 
-              {/* ── FOOTER: Verification Actions ── */}
-              <div className="h-24 px-10 flex items-center justify-between border-t border-slate-100 bg-white shrink-0">
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-2.5">
-                    <div className="size-5 rounded-lg bg-slate-900 flex items-center justify-center text-white scale-90">
-                      <ShieldCheck className="size-3" />
-                    </div>
-                    <span className="text-[11px] font-black uppercase tracking-widest text-slate-900">Faculty Verification</span>
-                  </div>
-                  <div className="h-4 w-px bg-slate-200" />
-                  <Badge className={cn("font-black text-[9px] px-2.5 py-0.5 border-none uppercase tracking-widest", statusCfg.bgColor, statusCfg.textColor)}>
-                    {statusCfg.label}
-                  </Badge>
-                </div>
-
-                <div className="flex items-center gap-3">
-                  <Button
-                    variant="ghost"
-                    onClick={() => setIsModalOpen(false)}
-                    className="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-900 h-12 px-6 rounded-2xl transition-all"
-                  >
-                    Tutup
-                  </Button>
-                  <Button
-                    onClick={() => handleValidation(sel.ID, 'rejected')}
-                    disabled={isSubmitting}
-                    variant="outline"
-                    className="h-12 px-8 rounded-2xl bg-white border-2 border-slate-100 text-slate-500 hover:text-rose-600 hover:border-rose-100 hover:bg-rose-50 transition-all duration-300 font-headline active:scale-95"
-                  >
-                    <XCircle className="size-4 mr-2" />
-                    <span className="text-[10px] font-black uppercase tracking-widest">Tolak</span>
-                  </Button>
-                  <Button
-                    onClick={() => handleValidation(sel.ID, 'verified')}
-                    disabled={isSubmitting}
-                    className="h-12 px-10 rounded-2xl bg-slate-950 text-white hover:bg-primary transition-all duration-300 font-headline active:scale-95 shadow-2xl shadow-slate-900/20"
-                  >
-                    <CheckCircle2 className="size-4 mr-2" />
-                    <span className="text-[10px] font-black uppercase tracking-widest">Validasi Prestasi</span>
-                  </Button>
-                </div>
-              </div>
+            {/* Info Table */}
+            <div className="bg-[#f4f8ff] rounded-xl p-5">
+              <p className="text-xs font-bold text-[#1E3A8A] uppercase tracking-wider mb-4">Detail Kompetisi</p>
+              <table className="w-full text-sm">
+                <tbody className="divide-y divide-[#e5e5e5]">
+                  <tr>
+                    <td className="py-2.5 font-semibold text-[#a3a3a3] w-2/5">Nama Kegiatan</td>
+                    <td className="py-2.5 font-bold text-[#171717]">{sel?.NamaKegiatan || '-'}</td>
+                  </tr>
+                  <tr>
+                    <td className="py-2.5 font-semibold text-[#a3a3a3]">Prodi</td>
+                    <td className="py-2.5 font-bold text-[#171717]">{sel?.Mahasiswa?.ProgramStudi?.Nama || '-'}</td>
+                  </tr>
+                  <tr>
+                    <td className="py-2.5 font-semibold text-[#a3a3a3]">Kategori</td>
+                    <td className="py-2.5 font-bold text-[#171717]">{sel?.Kategori || '-'}</td>
+                  </tr>
+                  <tr>
+                    <td className="py-2.5 font-semibold text-[#a3a3a3]">Tingkat</td>
+                    <td className="py-2.5 font-bold text-[#171717]">{sel?.Tingkat || '-'}</td>
+                  </tr>
+                  <tr>
+                    <td className="py-2.5 font-semibold text-[#a3a3a3]">Peringkat</td>
+                    <td className="py-2.5 font-bold text-[#00236F]">{sel?.Peringkat || '-'}</td>
+                  </tr>
+                  <tr>
+                    <td className="py-2.5 font-semibold text-[#a3a3a3]">Tanggal</td>
+                    <td className="py-2.5 font-bold text-[#171717]">{sel?.CreatedAt ? new Date(sel.CreatedAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : '-'}</td>
+                  </tr>
+                  <tr>
+                    <td className="py-2.5 font-semibold text-[#a3a3a3]">Status</td>
+                    <td className="py-2.5">
+                      <span className={`px-3 py-1 rounded-full text-xs font-bold border ${
+                        (sel?.Status||'').toLowerCase().includes('verif') ? 'bg-[#f0fdf4] text-[#16a34a] border-[#bbf7d0]' :
+                        (sel?.Status||'').toLowerCase().includes('tolak') || (sel?.Status||'').toLowerCase() === 'rejected' ? 'bg-[#fef2f2] text-[#dc2626] border-[#fecaca]' :
+                        'bg-[#eef4ff] text-[#00236F] border-[#c9d8ff]'
+                      }`}>{sel?.Status || 'Menunggu'}</span>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="py-2.5 font-semibold text-[#a3a3a3]">Poin</td>
+                    <td className="py-2.5 font-bold text-[#171717]">{sel?.Poin || 0}</td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
-          )}
-        </DialogContent>
-      </Dialog>
+
+            {/* Certificate */}
+            <div>
+              <p className="text-xs font-bold text-[#a3a3a3] uppercase tracking-wider mb-3">Bukti / Sertifikat</p>
+              {sel?.BuktiURL ? (
+                <a href={`http://localhost:8000${sel.BuktiURL}`} target="_blank" rel="noreferrer"
+                  className="flex items-center gap-3 p-4 border border-[#e5e5e5] rounded-xl hover:bg-[#eef4ff] hover:border-[#00236F] transition-colors">
+                  <div className="w-10 h-10 bg-[#eef4ff] rounded-xl flex items-center justify-center text-[#00236F] shrink-0">
+                    <FileText size={18} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-bold text-[#00236F] text-sm">Lihat Dokumen Sertifikat</p>
+                    <p className="text-xs text-[#a3a3a3] truncate mt-0.5">{sel.BuktiURL}</p>
+                  </div>
+                  <ExternalLink size={16} className="text-[#00236F]/40 shrink-0" />
+                </a>
+              ) : (
+                <div className="flex items-center gap-3 p-4 border border-[#e5e5e5] rounded-xl bg-[#fafafa]">
+                  <div className="w-10 h-10 bg-[#f5f5f5] rounded-xl flex items-center justify-center text-[#a3a3a3] shrink-0">
+                    <FileText size={18} />
+                  </div>
+                  <p className="text-sm text-[#a3a3a3] font-semibold italic">Tidak ada lampiran. Mahasiswa belum mengupload bukti.</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </ModalBody>
+
+        <ModalFooter>
+          <span className="text-xs font-semibold text-[#a3a3a3] mr-auto">Faculty Verification Panel</span>
+          <ModalBtn variant="ghost" onClick={() => setIsModalOpen(false)}>
+            Tutup
+          </ModalBtn>
+          <ModalBtn variant="danger" onClick={() => handleValidation(sel?.ID, 'rejected')} disabled={isSubmitting}>
+            <XCircle size={14} /> Tolak
+          </ModalBtn>
+          <ModalBtn onClick={() => handleValidation(sel?.ID, 'verified')} disabled={isSubmitting}>
+            <CheckCircle2 size={14} /> Validasi
+          </ModalBtn>
+        </ModalFooter>
+      </Modal>
 
     </PageContainer>
-  )
-}
-
-// ── Helper Component ──
-function DetailRow({ label, value, primary = false }) {
-  return (
-    <div className="flex items-center justify-between px-6 py-4 group hover:bg-slate-50/50 transition-colors">
-      <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest shrink-0 mr-4">{label}</span>
-      <div className="text-right">
-        {typeof value === 'string' ? (
-          <span className={cn(
-            "font-headline uppercase tracking-tight",
-            primary ? "font-black text-slate-900 text-[14px]" : "font-bold text-slate-700 text-[12px]"
-          )}>{value || '-'}</span>
-        ) : value}
-      </div>
-    </div>
   )
 }

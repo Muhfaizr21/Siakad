@@ -19,14 +19,8 @@ import {
 } from "./components/select"
 import { Label } from "./components/label"
 import { cn } from "@/lib/utils"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "./components/dialog"
+import { Modal, ModalBody, ModalFooter, ModalBtn } from "./components/Modal"
+
 import {
   Megaphone,
   Clock,
@@ -298,121 +292,102 @@ export default function KontenPage() {
       </Tabs>
 
       {/* CRUD Modal */}
-      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="max-w-xl p-0 border-none shadow-2xl overflow-hidden rounded-[2rem] bg-white/95 backdrop-blur-xl">
-          <DialogHeader className="p-8 pb-6 bg-gradient-to-br from-slate-50 via-white to-slate-50 border-b border-slate-100 relative overflow-hidden text-left">
-            <div className="absolute top-0 right-0 p-8 opacity-[0.03] pointer-events-none">
-               <Megaphone className="size-32 rotate-12" />
-            </div>
-            <div className="relative z-10 flex flex-col items-start translate-x-0.5">
-               <div className="flex items-center gap-3 mb-3">
-                  <div className="size-9 rounded-xl bg-primary/10 flex items-center justify-center text-primary group transition-all duration-500 hover:rotate-6">
-                     {isEditMode ? <Pencil className="size-4" /> : <Plus className="size-4 stroke-[3px]" />}
-                  </div>
-                  <div className="flex flex-col">
-                    <Badge variant="secondary" className="w-fit text-[8px] font-black uppercase tracking-[0.2em] px-2 py-0.5 bg-primary/5 text-primary border-none mb-1 font-headline">
-                       Content Registry Protocol
-                    </Badge>
-                  </div>
-               </div>
-               <DialogTitle className="text-2xl font-black font-headline tracking-tighter text-slate-900 uppercase leading-none">
-                  {isEditMode ? 'Edit Informasi' : 'Publikasi Baru'}
-               </DialogTitle>
-               <DialogDescription className="text-xs font-medium text-slate-400 mt-1 uppercase leading-none font-headline">
-                  Manajemen distribusi informasi dan publikasi artikel resmi fakultas.
-               </DialogDescription>
-            </div>
-          </DialogHeader>
-
-          <form onSubmit={handleSubmit} className="p-8 pt-6 space-y-6">
+      <Modal
+        open={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        title={isEditMode ? 'Edit Informasi' : 'Publikasi Baru'}
+        subtitle="Manajemen distribusi informasi dan publikasi artikel resmi fakultas."
+        icon={isEditMode ? <Pencil size={18} /> : <Plus size={18} />}
+        maxWidth="max-w-xl"
+      >
+        <form onSubmit={handleSubmit}>
+          <ModalBody>
             <div className="space-y-4">
-               <div className="grid grid-cols-1 gap-4">
-                  <div className="space-y-1.5 font-headline">
-                     <Label className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] ml-0.5 font-headline">Judul Utama Konten</Label>
-                     <Input 
-                        value={formData.title} 
-                        onChange={(e) => setFormData({...formData, title: e.target.value})} 
-                        placeholder="Masukkan judul artikel yang deskriptif..." 
-                        required 
-                        className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white transition-all font-bold text-sm font-headline uppercase tracking-tight"
-                     />
-                  </div>
-               </div>
-
-               <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1.5 font-headline">
-                     <Label className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] ml-0.5 font-headline">Kategori</Label>
-                     <Select value={formData.category} onValueChange={(val) => setFormData({...formData, category: val})}>
-                        <SelectTrigger className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 font-bold font-headline text-[11px] px-4">
-                           <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent className="rounded-2xl shadow-2xl p-1 font-headline overflow-hidden">
-                           <SelectItem value="Akademik" className="text-[10px] font-bold uppercase rounded-lg mb-0.5 focus:bg-primary/5 font-headline">Akademik</SelectItem>
-                           <SelectItem value="Wisuda" className="text-[10px] font-bold uppercase rounded-lg mb-0.5 focus:bg-primary/5 font-headline">Wisuda</SelectItem>
-                           <SelectItem value="Kegiatan" className="text-[10px] font-bold uppercase rounded-lg mb-0.5 focus:bg-primary/5 font-headline">Kegiatan</SelectItem>
-                           <SelectItem value="Umum" className="text-[10px] font-bold uppercase rounded-lg focus:bg-primary/5 font-headline">Umum</SelectItem>
-                        </SelectContent>
-                     </Select>
-                  </div>
-                  <div className="space-y-1.5 font-headline">
-                     <Label className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] ml-0.5 font-headline">Status Publikasi</Label>
-                     <Select value={formData.status} onValueChange={(val) => setFormData({...formData, status: val})}>
-                        <SelectTrigger className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 font-bold font-headline text-[11px] px-4">
-                           <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent className="rounded-2xl shadow-2xl p-1 font-headline overflow-hidden">
-                           <SelectItem value="Published" className="text-[10px] font-black uppercase rounded-lg mb-0.5 focus:bg-emerald-50 text-emerald-600 font-headline">Published</SelectItem>
-                           <SelectItem value="Draft" className="text-[10px] font-black uppercase rounded-lg focus:bg-slate-50 text-slate-500 font-headline">Draft</SelectItem>
-                        </SelectContent>
-                     </Select>
-                  </div>
-               </div>
-
-               <div className="space-y-1.5 font-headline">
-                  <Label className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] ml-0.5 font-headline">Thumbnail URL</Label>
-                  <div className="relative group">
-                     <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-primary transition-colors">
-                        <FileText className="size-3.5" />
-                     </div>
-                     <Input 
-                        value={formData.thumbnail} 
-                        onChange={(e) => setFormData({...formData, thumbnail: e.target.value})} 
-                        placeholder="https://images.unsplash.com/..." 
-                        className="pl-11 h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white transition-all font-bold text-[11px] font-headline"
-                     />
-                  </div>
-               </div>
-
-               <div className="space-y-1.5 font-headline">
-                  <Label className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] ml-0.5 font-headline">Narasi Konten Lengkap</Label>
-                  <Textarea 
-                     value={formData.content} 
-                     onChange={(e) => setFormData({...formData, content: e.target.value})} 
-                     className="min-h-[140px] rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white transition-all font-black text-[10px] p-4 leading-relaxed focus:ring-4 focus:ring-primary/5 placeholder:text-slate-300 font-headline uppercase" 
-                     placeholder="Tuliskan isi pengumuman secara lengkap..." 
-                     required 
+              <div className="grid grid-cols-1 gap-4">
+                <div className="space-y-1.5 font-headline">
+                  <Label className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] ml-0.5 font-headline">Judul Utama Konten</Label>
+                  <Input
+                    value={formData.title}
+                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                    placeholder="Masukkan judul artikel yang deskriptif..."
+                    required
+                    className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white transition-all font-bold text-sm font-headline uppercase tracking-tight"
                   />
-               </div>
-            </div>
+                </div>
+              </div>
 
-            <DialogFooter className="pt-4 flex flex-row items-center justify-end gap-3 border-t border-slate-100 -mx-8 px-8 bg-slate-50/30">
-               <Button type="button" variant="ghost" onClick={() => setIsModalOpen(false)} className="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-900 px-8 h-12 rounded-2xl font-headline">
-                  Batalkan
-               </Button>
-               <Button type="submit" disabled={isSubmitting} className="h-12 px-10 rounded-2xl bg-primary text-white hover:bg-primary/90 shadow-xl shadow-primary/20 transition-all hover:scale-[1.02] active:scale-95 font-headline">
-                  {isSubmitting ? (
-                    <Loader2 className="animate-spin size-4 mr-3"/>
-                  ) : (
-                    <Save className="size-4 mr-3 stroke-[3px]"/>
-                  )}
-                  <span className="text-[10px] font-black uppercase tracking-[0.2em] font-headline">
-                    {isEditMode ? 'Update Record' : 'Terbitkan Sekarang'}
-                  </span>
-               </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5 font-headline">
+                  <Label className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] ml-0.5 font-headline">Kategori</Label>
+                  <Select value={formData.category} onValueChange={(val) => setFormData({ ...formData, category: val })}>
+                    <SelectTrigger className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 font-bold font-headline text-[11px] px-4">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-2xl shadow-2xl p-1 font-headline overflow-hidden">
+                      <SelectItem value="Akademik" className="text-[10px] font-bold uppercase rounded-lg mb-0.5 focus:bg-primary/5 font-headline">Akademik</SelectItem>
+                      <SelectItem value="Wisuda" className="text-[10px] font-bold uppercase rounded-lg mb-0.5 focus:bg-primary/5 font-headline">Wisuda</SelectItem>
+                      <SelectItem value="Kegiatan" className="text-[10px] font-bold uppercase rounded-lg mb-0.5 focus:bg-primary/5 font-headline">Kegiatan</SelectItem>
+                      <SelectItem value="Umum" className="text-[10px] font-bold uppercase rounded-lg focus:bg-primary/5 font-headline">Umum</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5 font-headline">
+                  <Label className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] ml-0.5 font-headline">Status Publikasi</Label>
+                  <Select value={formData.status} onValueChange={(val) => setFormData({ ...formData, status: val })}>
+                    <SelectTrigger className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 font-bold font-headline text-[11px] px-4">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-2xl shadow-2xl p-1 font-headline overflow-hidden">
+                      <SelectItem value="Published" className="text-[10px] font-black uppercase rounded-lg mb-0.5 focus:bg-emerald-50 text-emerald-600 font-headline">Published</SelectItem>
+                      <SelectItem value="Draft" className="text-[10px] font-black uppercase rounded-lg focus:bg-slate-50 text-slate-500 font-headline">Draft</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="space-y-1.5 font-headline">
+                <Label className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] ml-0.5 font-headline">Thumbnail URL</Label>
+                <div className="relative group">
+                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-primary transition-colors">
+                    <FileText className="size-3.5" />
+                  </div>
+                  <Input
+                    value={formData.thumbnail}
+                    onChange={(e) => setFormData({ ...formData, thumbnail: e.target.value })}
+                    placeholder="https://images.unsplash.com/..."
+                    className="pl-11 h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white transition-all font-bold text-[11px] font-headline"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1.5 font-headline">
+                <Label className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] ml-0.5 font-headline">Narasi Konten Lengkap</Label>
+                <Textarea
+                  value={formData.content}
+                  onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+                  className="min-h-[140px] rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white transition-all font-black text-[10px] p-4 leading-relaxed focus:ring-4 focus:ring-primary/5 placeholder:text-slate-300 font-headline uppercase"
+                  placeholder="Tuliskan isi pengumuman secara lengkap..."
+                  required
+                />
+              </div>
+            </div>
+          </ModalBody>
+
+          <ModalFooter>
+            <ModalBtn variant="ghost" type="button" onClick={() => setIsModalOpen(false)}>
+              Batalkan
+            </ModalBtn>
+            <ModalBtn type="submit" disabled={isSubmitting}>
+              {isSubmitting ? (
+                <Loader2 className="animate-spin size-4" />
+              ) : (
+                <Save size={14} className="stroke-[3px]" />
+              )}
+              <span className="uppercase tracking-[0.1em]">{isEditMode ? "Update Changes" : "Publish Content"}</span>
+            </ModalBtn>
+          </ModalFooter>
+        </form>
+      </Modal>
 
       <DeleteConfirmModal 
         isOpen={isDelOpen}

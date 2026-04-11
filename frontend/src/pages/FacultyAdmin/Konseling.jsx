@@ -7,10 +7,8 @@ import { Button } from "./components/button"
 import { Badge } from "./components/badge"
 import { DataTable } from "./components/data-table"
 import { Avatar, AvatarFallback } from "./components/avatar"
-import {
-  Dialog,
-  DialogContent,
-} from "./components/dialog"
+import { Modal, ModalBody, ModalFooter, ModalBtn } from "./components/Modal"
+
 import {
   Calendar,
   Clock,
@@ -225,115 +223,92 @@ export default function FacultyKonseling() {
       </div>
 
       {/* DETAIL DIALOG */}
-      <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
-        <DialogContent className="max-w-2xl p-0 overflow-hidden border-none shadow-2xl rounded-[2.5rem] bg-white/95 backdrop-blur-xl">
-            {selectedSession && (
-                <div className="relative flex flex-col max-h-[90vh] font-headline">
-                    {/* Header Hero Banner */}
-                    <div className="h-44 bg-slate-900 relative overflow-hidden shrink-0">
-                        <div className="absolute inset-0 bg-gradient-to-br from-primary/40 to-transparent transition-transform duration-700" />
-                        <div className="absolute top-0 right-0 p-12 opacity-[0.05] pointer-events-none">
-                            <Headphones className="size-48 rotate-12 text-white" />
-                        </div>
+      <Modal
+        open={isDetailOpen}
+        onClose={() => setIsDetailOpen(false)}
+        title={selectedSession?.Mahasiswa?.Nama || 'Mahasiswa'}
+        subtitle={`Topik: ${selectedSession?.Topik || 'Konseling'} • NIM: ${selectedSession?.Mahasiswa?.NIM || '-'}`}
+        icon={<Headphones size={18} />}
+        maxWidth="max-w-2xl"
+      >
+        <div className="flex flex-col font-headline">
+          {/* Header Hero Banner (Optional, keep for style) */}
+          <div className="h-24 bg-slate-900 relative overflow-hidden shrink-0">
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/40 to-transparent transition-transform duration-700" />
+            <div className="absolute top-0 right-0 p-8 opacity-[0.05] pointer-events-none">
+              <Headphones className="size-32 rotate-12 text-white" />
+            </div>
+            <div className="absolute inset-y-0 right-8 flex items-center">
+              <Badge className={cn(
+                "capitalize text-[10px] font-black px-4 py-2 rounded-full border border-white/20 backdrop-blur-md shadow-xl",
+                selectedSession?.Status === 'pending' ? "bg-amber-500/20 text-amber-400" :
+                  selectedSession?.Status === 'approved' ? "bg-emerald-500/20 text-emerald-400" : "bg-slate-500/20 text-slate-300"
+              )}>
+                <span className="size-2 rounded-full bg-current mr-2 animate-pulse" />
+                {selectedSession?.Status || 'Pending'}
+              </Badge>
+            </div>
+          </div>
 
-                        <div className="absolute top-8 right-8 z-20">
-                            <Badge className={cn(
-                                "capitalize text-[10px] font-black px-4 py-2 rounded-full border border-white/20 backdrop-blur-md shadow-xl",
-                                selectedSession.Status === 'pending' ? "bg-amber-500/20 text-amber-400" :
-                                selectedSession.Status === 'approved' ? "bg-emerald-500/20 text-emerald-400" : "bg-slate-500/20 text-slate-300"
-                            )}>
-                                <span className="size-2 rounded-full bg-current mr-2 animate-pulse" />
-                                {selectedSession.Status || 'Pending'}
-                            </Badge>
-                        </div>
-
-                        <div className="absolute -bottom-12 left-10 z-20 p-2 bg-white rounded-[2.2rem] shadow-2xl shadow-slate-900/10">
-                            <Avatar className="h-32 w-32 rounded-[1.8rem] border-4 border-slate-50">
-                                <AvatarFallback className="bg-gradient-to-br from-slate-100 to-slate-200 text-slate-800 text-4xl font-black font-headline">
-                                    {selectedSession.Mahasiswa?.Nama?.split(" ").map(n => n[0]).join("").substring(0, 2) || '?'}
-                                </AvatarFallback>
-                            </Avatar>
-                        </div>
+          <ModalBody>
+            <div className="space-y-10">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {/* Info Sesi */}
+                <div className="space-y-6">
+                  <div className="flex items-center gap-3 border-b border-slate-100 pb-3">
+                    <div className="size-8 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600">
+                      <Calendar className="size-4" />
                     </div>
-
-                    {/* Scrollable Content */}
-                    <div className="overflow-y-auto p-10 pt-16 space-y-10 custom-scrollbar">
-                        <div className="flex flex-col gap-1">
-                            <h2 className="text-4xl font-black text-slate-900 font-headline tracking-tighter leading-none uppercase">{selectedSession.Mahasiswa?.Nama || 'Mahasiswa'}</h2>
-                            <div className="flex items-center gap-3">
-                                <Badge variant="secondary" className="text-[10px] font-black bg-primary/5 text-primary border-none px-3 py-1 rounded-md tracking-wider">
-                                    SESI KONSELING
-                                </Badge>
-                                <p className="text-sm font-bold text-slate-400 uppercase tracking-[0.2em] font-headline">ID: #{selectedSession.ID || '000'}</p>
-                            </div>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-4">
-                            {/* Info Sesi */}
-                            <div className="space-y-6">
-                                <div className="flex items-center gap-3 border-b border-slate-100 pb-3">
-                                    <div className="size-8 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600">
-                                        <Calendar className="size-4" />
-                                    </div>
-                                    <h3 className="font-black text-xs uppercase tracking-widest text-slate-900 font-headline">Info Sesi</h3>
-                                </div>
-                                <div className="space-y-4 px-1">
-                                    <KonselingDetailItem label="NIM" value={selectedSession.Mahasiswa?.NIM} />
-                                    <KonselingDetailItem label="Topik / Kategori" value={selectedSession.Topik} />
-                                    <KonselingDetailItem label="Tanggal" value={selectedSession.Tanggal ? new Date(selectedSession.Tanggal).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : '-'} />
-                                    <KonselingDetailItem label="Waktu" value={selectedSession.jam || '-'} />
-                                </div>
-                            </div>
-
-                            {/* Info Konselor */}
-                            <div className="space-y-6">
-                                <div className="flex items-center gap-3 border-b border-slate-100 pb-3">
-                                    <div className="size-8 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600">
-                                        <UserCheck className="size-4" />
-                                    </div>
-                                    <h3 className="font-black text-xs uppercase tracking-widest text-slate-900 font-headline">Konselor</h3>
-                                </div>
-                                <div className="space-y-4 px-1">
-                                    <KonselingDetailItem label="Nama Konselor" value={selectedSession.counselor || 'Dosen PA'} />
-                                    <KonselingDetailItem label="Prodi" value={selectedSession.Mahasiswa?.ProgramStudi?.Nama || '-'} />
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Catatan / Resume */}
-                        <div className="p-6 rounded-[2rem] bg-slate-50 border border-slate-100 shadow-sm space-y-3">
-                            <div className="flex items-center gap-3">
-                                <div className="size-8 rounded-xl bg-slate-100 flex items-center justify-center text-slate-500">
-                                    <FileText className="size-4" />
-                                </div>
-                                <h3 className="font-black text-xs uppercase tracking-widest text-slate-900 font-headline">Narasi Hasil Konsultasi</h3>
-                            </div>
-                            <p className="text-[13px] font-bold text-slate-600 leading-relaxed italic px-2 uppercase">
-                                "{selectedSession.notes || 'Sesi ini belum memiliki catatan resume detail dari konselor. Data akan sinkron secara otomatis setelah sesi dinyatakan selesai.'}"
-                            </p>
-                        </div>
-                    </div>
-
-                    {/* Footer Actions */}
-                    <div className="p-8 px-10 flex items-center justify-end gap-3 border-t border-slate-100 shrink-0 bg-slate-50/50">
-                        <Button
-                            variant="ghost"
-                            onClick={() => setIsDetailOpen(false)}
-                            className="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-900 px-8 h-12 rounded-2xl font-headline"
-                        >
-                            Tutup
-                        </Button>
-                        <Button
-                            onClick={() => setIsDetailOpen(false)}
-                            className="text-[10px] font-black uppercase tracking-widest h-12 px-10 rounded-2xl shadow-xl shadow-primary/20 bg-primary text-white hover:bg-primary/90 transition-all hover:scale-[1.02] active:scale-95 font-headline"
-                        >
-                            Tandai Selesai
-                        </Button>
-                    </div>
+                    <h3 className="font-black text-xs uppercase tracking-widest text-slate-900 font-headline">Info Sesi</h3>
+                  </div>
+                  <div className="space-y-4 px-1">
+                    <KonselingDetailItem label="NIM" value={selectedSession?.Mahasiswa?.NIM} />
+                    <KonselingDetailItem label="Topik / Kategori" value={selectedSession?.Topik} />
+                    <KonselingDetailItem label="Tanggal" value={selectedSession?.Tanggal ? new Date(selectedSession.Tanggal).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : '-'} />
+                    <KonselingDetailItem label="Waktu" value={selectedSession?.jam || '-'} />
+                  </div>
                 </div>
-            )}
-        </DialogContent>
-      </Dialog>
+
+                {/* Info Konselor */}
+                <div className="space-y-6">
+                  <div className="flex items-center gap-3 border-b border-slate-100 pb-3">
+                    <div className="size-8 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600">
+                      <UserCheck className="size-4" />
+                    </div>
+                    <h3 className="font-black text-xs uppercase tracking-widest text-slate-900 font-headline">Konselor</h3>
+                  </div>
+                  <div className="space-y-4 px-1">
+                    <KonselingDetailItem label="Nama Konselor" value={selectedSession?.counselor || 'Dosen PA'} />
+                    <KonselingDetailItem label="Prodi" value={selectedSession?.Mahasiswa?.ProgramStudi?.Nama || '-'} />
+                  </div>
+                </div>
+              </div>
+
+              {/* Catatan / Resume */}
+              <div className="p-6 rounded-[2rem] bg-slate-50 border border-slate-100 shadow-sm space-y-3">
+                <div className="flex items-center gap-3">
+                  <div className="size-8 rounded-xl bg-slate-100 flex items-center justify-center text-slate-500">
+                    <FileText className="size-4" />
+                  </div>
+                  <h3 className="font-black text-xs uppercase tracking-widest text-slate-900 font-headline">Narasi Hasil Konsultasi</h3>
+                </div>
+                <p className="text-[13px] font-bold text-slate-600 leading-relaxed italic px-2 uppercase">
+                  "{selectedSession?.notes || 'Sesi ini belum memiliki catatan resume detail dari konselor. Data akan sinkron secara otomatis setelah sesi dinyatakan selesai.'}"
+                </p>
+              </div>
+            </div>
+          </ModalBody>
+
+          <ModalFooter>
+              <ModalBtn variant="ghost" onClick={() => setIsDetailOpen(false)}>
+                Tutup
+              </ModalBtn>
+              <ModalBtn onClick={() => setIsDetailOpen(false)}>
+                Tandai Selesai
+              </ModalBtn>
+          </ModalFooter>
+        </div>
+      </Modal>
 
     </PageContainer>
   )

@@ -82,7 +82,7 @@ export default function ProposalPipeline() {
         </div>
       )
     },
-    { key: 'TotalAnggaran', label: 'Estimasi Anggaran', className: 'w-[180px]', render: v => <span className="font-black text-slate-700 text-[12px] font-headline">{formatRp(v)}</span> },
+    { key: 'Anggaran', label: 'Estimasi Anggaran', className: 'w-[180px]', render: v => <span className="font-black text-slate-700 text-[12px] font-headline">{formatRp(v)}</span> },
     { key: 'Status', label: 'Status Verifikasi', className: 'w-[160px] text-center', cellClassName: 'text-center',
       render: v => {
         const cfg = STATUS_CFG[v] || { label: v || '—', cls: 'bg-slate-100 text-slate-600' }
@@ -123,7 +123,7 @@ export default function ProposalPipeline() {
                 <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-110 transition-transform"><Wallet className="size-20 text-white" /></div>
                 <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">Total Proyeksi Anggaran</p>
                 <h3 className="text-4xl font-black text-white font-headline tracking-tighter uppercase relative z-10">
-                    {formatRp(data.filter(p => p.Status === 'disetujui_fakultas').reduce((acc, curr) => acc + curr.TotalAnggaran, 0))}
+                    {formatRp(data.filter(p => p.Status === 'disetujui_fakultas').reduce((acc, curr) => acc + (curr.Anggaran || 0), 0))}
                 </h3>
                 <p className="text-[10px] font-black text-emerald-400 uppercase tracking-widest mt-2">Dana Menunggu Verifikasi Univ</p>
              </div>
@@ -188,7 +188,7 @@ export default function ProposalPipeline() {
                  <div className="grid grid-cols-2 gap-8">
                     <div className="bg-slate-50 p-6 rounded-[2rem] border border-slate-100 space-y-2">
                         <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest font-headline">Total Anggaran</p>
-                        <p className="text-2xl font-black text-emerald-600 font-headline">{formatRp(selected.TotalAnggaran)}</p>
+                        <p className="text-2xl font-black text-emerald-600 font-headline">{formatRp(selected.Anggaran)}</p>
                     </div>
                     <div className="bg-slate-50 p-6 rounded-[2rem] border border-slate-100 space-y-2">
                         <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest font-headline">Status Pipeline</p>

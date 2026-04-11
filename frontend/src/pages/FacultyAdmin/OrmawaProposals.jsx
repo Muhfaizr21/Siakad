@@ -6,8 +6,9 @@ import { Button } from "./components/button"
 import { Badge } from "./components/badge"
 import { DataTable } from "./components/data-table"
 import { toast, Toaster } from 'react-hot-toast'
-import { CheckCircle2, XCircle, FileText, Activity, Clock } from 'lucide-react'
-import { Dialog, DialogContent, DialogTitle, DialogDescription, DialogHeader } from "./components/dialog"
+import { CheckCircle2, XCircle, FileText, Activity, Clock, ShieldCheck } from 'lucide-react'
+import { Modal, ModalBody, ModalFooter, ModalBtn } from "./components/Modal"
+
 import { cn } from "@/lib/utils"
 import { Label } from "./components/label"
 import { Textarea } from "./components/textarea"
@@ -107,27 +108,36 @@ export default function FacultyProposalApproval() {
         {
             key: "Status",
             label: "Validasi",
-            render: (val) => (
-                <Badge 
-                    className={cn(
-                        "capitalize font-black text-[10px] px-3 py-1 border-none shadow-sm uppercase tracking-widest transition-all",
-                        (val?.toLowerCase() === 'disetujui' || val?.toLowerCase() === 'approved') ? "bg-emerald-100 text-emerald-700" :
-                        (val?.toLowerCase() === 'revisi' || val?.toLowerCase() === 'pending') ? "bg-blue-100 text-blue-700" :
-                        (val?.toLowerCase() === 'ditolak' || val?.toLowerCase() === 'rejected') ? "bg-rose-100 text-rose-700" :
-                        "bg-amber-100 text-amber-700 font-headline"
-                    )}
-                >
-                    {(val?.toLowerCase() === 'disetujui' || val?.toLowerCase() === 'approved') ? 'TERVERIFIKASI' : (val || 'DIAJUKAN')}
-                </Badge>
-            )
+            render: (val) => {
+                const s = val?.toLowerCase() || '';
+                const isFakultas = s === 'disetujui_fakultas';
+                const isUniv = s === 'disetujui_univ';
+                const isRevisi = s === 'revisi';
+                const isDitolak = s === 'ditolak';
+
+                return (
+                    <Badge 
+                        className={cn(
+                            "capitalize font-black text-[10px] px-3 py-1 border-none shadow-sm uppercase tracking-widest transition-all",
+                            isUniv ? "bg-emerald-100 text-emerald-700" :
+                            isFakultas ? "bg-indigo-100 text-indigo-700" :
+                            isRevisi ? "bg-blue-100 text-blue-700" :
+                            isDitolak ? "bg-rose-100 text-rose-700" :
+                            "bg-amber-100 text-amber-700 font-headline"
+                        )}
+                    >
+                        {isUniv ? 'DISYAHKAN UNIV' : isFakultas ? 'ACC FAKULTAS' : isRevisi ? 'REVISI' : isDitolak ? 'DITOLAK' : (val || 'DIAJUKAN')}
+                    </Badge>
+                )
+            }
         }
     ]
 
     const statsData = [
         { label: 'Total Proposal', value: proposals.length, icon: FileText, color: 'text-blue-600', bg: 'bg-blue-50' },
         { label: 'Total Anggaran', value: formatIDR(proposals.reduce((acc, p) => acc + (p.Anggaran || 0), 0)), icon: Activity, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-        { label: 'Proposal Disetujui', value: proposals.filter(p => p.Status?.toLowerCase() === 'disetujui').length, icon: CheckCircle2, color: 'text-indigo-600', bg: 'bg-indigo-50' },
-        { label: 'Pending / Revisi', value: proposals.filter(p => p.Status?.toLowerCase() === 'pending' || p.Status?.toLowerCase() === 'revisi').length, icon: Clock, color: 'text-amber-600', bg: 'bg-amber-50' },
+        { label: 'ACC Fakultas', value: proposals.filter(p => p.Status === 'disetujui_fakultas').length, icon: CheckCircle2, color: 'text-indigo-600', bg: 'bg-indigo-50' },
+        { label: 'Disyahkan Univ', value: proposals.filter(p => p.Status === 'disetujui_univ').length, icon: ShieldCheck, color: 'text-emerald-600', bg: 'bg-emerald-50' },
     ]
 
     return (
@@ -184,123 +194,106 @@ export default function FacultyProposalApproval() {
                 />
             </ResponsiveCard>
 
-            {/* Action Dialog */}
-            <Dialog open={showModal} onOpenChange={setShowModal}>
-                <DialogContent className="max-w-lg p-0 overflow-hidden border-none shadow-2xl rounded-[2rem] bg-white/95 backdrop-blur-xl">
-                    <DialogHeader className="p-8 pb-6 bg-gradient-to-br from-slate-50 via-white to-slate-50 border-b border-slate-100 relative overflow-hidden">
-                        <div className="absolute top-0 right-0 p-8 opacity-[0.03] pointer-events-none">
-                            <FileText className="size-32 rotate-12" />
-                        </div>
-                        <div className="relative z-10 text-center sm:text-left">
-                            <div className="flex flex-col sm:flex-row items-center gap-3 mb-3">
-                                <div className="size-9 rounded-xl bg-primary/10 flex items-center justify-center text-primary group">
-                                    <Activity className="size-4" />
-                                </div>
-                                <div className="flex flex-col items-center sm:items-start leading-none">
-                                    <Badge variant="secondary" className="w-fit text-[8px] font-black uppercase tracking-[0.2em] px-2 py-0.5 bg-primary/5 text-primary border-none mb-1">
-                                        Preliminary Verification
-                                    </Badge>
-                                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest font-headline">Fakultas Verifikator Unit</p>
-                                </div>
-                            </div>
-                            <DialogTitle className="text-2xl font-black font-headline tracking-tighter text-slate-900 uppercase leading-none">
-                                Validasi Dokumen
-                            </DialogTitle>
-                            <DialogDescription className="text-xs font-medium text-slate-400 mt-1 uppercase leading-none font-headline">
-                                Peninjauan berkas program kerja dan kelayakan anggaran organisasi.
-                            </DialogDescription>
-                        </div>
-                    </DialogHeader>
-
-                    <div className="p-8 pt-6 space-y-6">
-                        <div className="p-5 rounded-3xl bg-slate-50 border border-slate-100 relative group overflow-hidden transition-all duration-500 hover:shadow-xl hover:shadow-emerald-500/5">
-                            <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 via-transparent to-transparent opacity-100" />
-                            <div className="relative z-10 space-y-4">
-                                <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
-                                    <div className="space-y-1 flex-1">
-                                        <div className="flex items-center gap-2 mb-0.5">
-                                            <span className="size-1 rounded-full bg-emerald-500 shadow-sm shadow-emerald-500/50" />
-                                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] leading-none font-headline">
-                                                {selectedProposal?.Ormawa?.nama || selectedProposal?.Ormawa?.Nama || selectedProposal?.ormawa?.nama || selectedProposal?.Organisasi?.NamaOrg || '-'}
-                                            </p>
+            <Modal
+                open={showModal}
+                onClose={() => setShowModal(false)}
+                title="Validasi Dokumen"
+                subtitle="Peninjauan berkas program kerja dan kelayakan anggaran organisasi."
+                icon={<Activity size={18} />}
+                maxWidth="max-w-lg"
+            >
+                <div className="flex flex-col font-headline">
+                    <ModalBody>
+                        <div className="space-y-6">
+                            <div className="p-5 rounded-3xl bg-slate-50 border border-slate-100 relative group overflow-hidden transition-all duration-500 hover:shadow-xl hover:shadow-emerald-500/5 font-headline">
+                                <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 via-transparent to-transparent opacity-100" />
+                                <div className="relative z-10 space-y-4 font-headline">
+                                    <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
+                                        <div className="space-y-1 flex-1">
+                                            <div className="flex items-center gap-2 mb-0.5">
+                                                <span className="size-1 rounded-full bg-emerald-500 shadow-sm shadow-emerald-500/50" />
+                                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] leading-none font-headline">
+                                                    {selectedProposal?.Ormawa?.nama || selectedProposal?.Ormawa?.Nama || selectedProposal?.ormawa?.nama || selectedProposal?.Organisasi?.NamaOrg || '-'}
+                                                </p>
+                                            </div>
+                                            <h4 className="font-bold text-slate-900 font-headline text-lg tracking-tight leading-tight line-clamp-2 uppercase">{selectedProposal?.Judul}</h4>
                                         </div>
-                                        <h4 className="font-bold text-slate-900 font-headline text-lg tracking-tight leading-tight line-clamp-2">{selectedProposal?.Judul}</h4>
+                                        <div className="text-center sm:text-right bg-emerald-600/5 px-4 py-2 rounded-2xl border border-emerald-500/10">
+                                            <p className="text-[9px] font-black text-emerald-600/60 uppercase tracking-widest leading-none mb-1 font-headline">Budget</p>
+                                            <p className="text-xl font-black text-emerald-600 font-headline tabular-nums tracking-tighter leading-none">{formatIDR(selectedProposal?.Anggaran || 0)}</p>
+                                        </div>
                                     </div>
-                                    <div className="text-center sm:text-right bg-emerald-600/5 px-4 py-2 rounded-2xl border border-emerald-500/10">
-                                        <p className="text-[9px] font-black text-emerald-600/60 uppercase tracking-widest leading-none mb-1 font-headline">Budget</p>
-                                        <p className="text-xl font-black text-emerald-600 font-headline tabular-nums tracking-tighter leading-none">{formatIDR(selectedProposal?.Anggaran || 0)}</p>
+                                    
+                                    <div className="pt-4 border-t border-slate-200/60 flex items-center justify-between">
+                                        <div className="flex flex-col">
+                                            <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1 font-headline">Registration Date</p>
+                                            <p className="text-[10px] font-bold text-slate-600 font-headline">{selectedProposal?.CreatedAt ? new Date(selectedProposal.CreatedAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '-'}</p>
+                                        </div>
+                                        <a 
+                                          href={selectedProposal?.FileURL} 
+                                          target="_blank" 
+                                          rel="noreferrer" 
+                                          className="h-9 px-4 rounded-xl bg-white border border-slate-200 text-slate-900 font-black text-[9px] uppercase tracking-widest shadow-sm hover:shadow-md transition-all flex items-center gap-2 hover:scale-[1.02] active:scale-95 group/btn font-headline"
+                                        >
+                                            <FileText className="size-3.5 text-primary group-hover/btn:scale-110 transition-transform" /> 
+                                            <span>PDF Document</span>
+                                        </a>
                                     </div>
                                 </div>
-                                
-                                <div className="pt-4 border-t border-slate-200/60 flex items-center justify-between">
-                                    <div className="flex flex-col">
-                                        <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1 font-headline">Registration Date</p>
-                                        <p className="text-[10px] font-bold text-slate-600 font-headline">{selectedProposal?.CreatedAt ? new Date(selectedProposal.CreatedAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '-'}</p>
-                                    </div>
-                                    <a 
-                                      href={selectedProposal?.FileURL} 
-                                      target="_blank" 
-                                      rel="noreferrer" 
-                                      className="h-9 px-4 rounded-xl bg-white border border-slate-200 text-slate-900 font-black text-[9px] uppercase tracking-widest shadow-sm hover:shadow-md transition-all flex items-center gap-2 hover:scale-[1.02] active:scale-95 group/btn font-headline"
-                                    >
-                                        <FileText className="size-3.5 text-primary group-hover/btn:scale-110 transition-transform" /> 
-                                        <span>PDF Document</span>
-                                    </a>
+                            </div>
+
+                            <div className="space-y-3">
+                                <div className="flex items-center justify-between px-1">
+                                    <Label className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] font-headline">Instruksi Revisi & Catatan</Label>
                                 </div>
+                                <Textarea
+                                    value={form.catatan_admin}
+                                    onChange={(e) => setForm({ ...form, catatan_admin: e.target.value })}
+                                    className="min-h-[100px] rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white transition-all font-medium text-xs p-4 leading-relaxed focus:ring-4 focus:ring-primary/5 placeholder:text-slate-300 font-headline font-semibold uppercase"
+                                    placeholder="Tulis catatan atau instruksi perbaikan..."
+                                />
+                            </div>
+
+                            <div className="grid grid-cols-3 gap-3 pt-2">
+                                 <Button 
+                                    onClick={() => handleUpdateStatus('disetujui_fakultas')} 
+                                    disabled={isSubmitting || selectedProposal?.Status === 'disetujui_univ'} 
+                                    className="h-16 rounded-2xl bg-indigo-600 text-white hover:bg-indigo-700 shadow-xl shadow-indigo-500/20 flex-col gap-1 group transition-all duration-300 hover:scale-[1.02] active:scale-95 font-headline border-none"
+                                 >
+                                    <CheckCircle2 className="size-4 group-hover:scale-125 transition-transform" />
+                                    <span className="text-[9px] font-black uppercase tracking-widest leading-none">ACC FAKULTAS</span>
+                                 </Button>
+                                 <Button 
+                                    onClick={() => handleUpdateStatus('revisi')} 
+                                    disabled={isSubmitting} 
+                                    className="h-16 rounded-2xl bg-blue-600 text-white hover:bg-blue-700 shadow-xl shadow-blue-500/20 flex-col gap-1 group transition-all duration-300 hover:scale-[1.02] active:scale-95 font-headline border-none"
+                                 >
+                                    <Clock className="size-4 group-hover:rotate-12 transition-transform" />
+                                    <span className="text-[9px] font-black uppercase tracking-widest leading-none">Revisi</span>
+                                 </Button>
+                                 <Button 
+                                    onClick={() => handleUpdateStatus('ditolak')} 
+                                    disabled={isSubmitting} 
+                                    className="h-16 rounded-2xl bg-red-600 text-white hover:bg-red-700 shadow-xl shadow-red-200/20 flex-col gap-1 group transition-all duration-300 hover:scale-[1.02] active:scale-95 font-headline border-none"
+                                 >
+                                    <XCircle className="size-4 group-hover:rotate-12 transition-transform" />
+                                    <span className="text-[9px] font-black uppercase tracking-widest leading-none">Tolak Berkas</span>
+                                 </Button>
                             </div>
                         </div>
-
-                        <div className="space-y-3">
-                            <div className="flex items-center justify-between px-1">
-                                <Label className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] font-headline">Instruksi Revisi & Catatan</Label>
-                            </div>
-                            <Textarea
-                                value={form.catatan_admin}
-                                onChange={(e) => setForm({ ...form, catatan_admin: e.target.value })}
-                                className="min-h-[100px] rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white transition-all font-medium text-xs p-4 leading-relaxed focus:ring-4 focus:ring-primary/5 placeholder:text-slate-300 font-headline"
-                                placeholder="Tulis catatan atau instruksi perbaikan..."
-                            />
-                        </div>
-
-                        <div className="grid grid-cols-3 gap-3 pt-2">
-                             <Button 
-                                onClick={() => handleUpdateStatus('disetujui')} 
-                                disabled={isSubmitting} 
-                                className="h-16 rounded-2xl bg-emerald-600 text-white hover:bg-emerald-700 shadow-xl shadow-emerald-500/20 flex-col gap-1 group transition-all duration-300 hover:scale-[1.02] active:scale-95 font-headline"
-                             >
-                                <CheckCircle2 className="size-4 group-hover:scale-125 transition-transform" />
-                                <span className="text-[9px] font-black uppercase tracking-widest leading-none">Validasi & Kirim</span>
-                             </Button>
-                             <Button 
-                                onClick={() => handleUpdateStatus('revisi')} 
-                                disabled={isSubmitting} 
-                                className="h-16 rounded-2xl bg-blue-600 text-white hover:bg-blue-700 shadow-xl shadow-blue-500/20 flex-col gap-1 group transition-all duration-300 hover:scale-[1.02] active:scale-95 font-headline"
-                             >
-                                <Clock className="size-4 group-hover:rotate-12 transition-transform" />
-                                <span className="text-[9px] font-black uppercase tracking-widest leading-none">Revisi</span>
-                             </Button>
-                             <Button 
-                                onClick={() => handleUpdateStatus('ditolak')} 
-                                disabled={isSubmitting} 
-                                className="h-16 rounded-2xl bg-red-600 text-white hover:bg-red-700 shadow-xl shadow-red-200/20 flex-col gap-1 group transition-all duration-300 hover:scale-[1.02] active:scale-95 font-headline border-none"
-                             >
-                                <XCircle className="size-4 group-hover:rotate-12 transition-transform" />
-                                <span className="text-[9px] font-black uppercase tracking-widest leading-none">Tolak Berkas</span>
-                             </Button>
-                        </div>
-                        
-                        <div className="pt-4 flex flex-row items-center justify-end -mx-8 px-8 bg-slate-50/10 border-t border-slate-100">
-                             <Button 
-                                variant="ghost" 
-                                onClick={() => setShowModal(false)} 
-                                className="text-[9px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-900 px-8 h-12 rounded-2xl transition-all font-headline"
-                             >
-                                Close View
-                             </Button>
-                        </div>
-                    </div>
-                </DialogContent>
-            </Dialog>
+                    </ModalBody>
+                    
+                    <ModalFooter>
+                         <ModalBtn 
+                            variant="ghost" 
+                            onClick={() => setShowModal(false)} 
+                         >
+                            Close View
+                         </ModalBtn>
+                    </ModalFooter>
+                </div>
+            </Modal>
         </PageContainer>
     )
 }
+

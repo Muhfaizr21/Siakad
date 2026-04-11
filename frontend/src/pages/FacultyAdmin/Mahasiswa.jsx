@@ -6,12 +6,9 @@ import { DataTable } from "./components/data-table"
 import { Badge } from "./components/badge"
 import { Button } from "./components/button"
 import { Avatar, AvatarFallback } from "./components/avatar"
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "./components/dialog"
+import { Modal, ModalBody, ModalFooter, ModalBtn } from "./components/Modal"
+
+
 import { Card, CardContent } from "./components/card"
 import { Eye, Mail, GraduationCap, MapPin, Phone, User, BookOpen, Heart, FileText, Users } from "lucide-react"
 import { toast, Toaster } from "react-hot-toast"
@@ -135,88 +132,74 @@ export default function MahasiswaPage() {
           )}
         />
       </ResponsiveCard>
-
-      {/* DETAIL DIALOG - CLEAN DATA SHEET STYLE */}
-      <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
-        <DialogContent aria-describedby={undefined} className="max-w-2xl p-0 overflow-hidden border-none shadow-2xl rounded-2xl bg-white">
-          {selectedMahasiswa && (
-            <div className="flex flex-col max-h-[90vh]">
-               <DialogHeader className="p-6 border-b border-slate-100 bg-slate-50/50 shrink-0">
-                  <div className="flex items-center gap-4">
-                     <Avatar className="h-12 w-12 rounded-xl border border-slate-200 shadow-sm bg-white">
-                        <AvatarFallback className="text-slate-900 font-bold bg-white">{selectedMahasiswa.Nama?.[0]}</AvatarFallback>
-                     </Avatar>
-                     <div className="flex flex-col">
-                        <DialogTitle className="text-lg font-bold text-slate-900 tracking-tight leading-none">
-                           {selectedMahasiswa.Nama}
-                        </DialogTitle>
-                        <span className="text-xs font-medium text-slate-400 mt-1 uppercase tracking-wider">{selectedMahasiswa.NIM}</span>
-                     </div>
-                     <Badge className="ml-auto bg-white border border-slate-200 text-slate-600 text-[10px] font-bold px-3 py-1 rounded-lg">
-                        {selectedMahasiswa.StatusAkun || 'Aktif'}
-                     </Badge>
+      {/* Detail Modal */}
+      <Modal
+        open={isDetailOpen}
+        onClose={() => setIsDetailOpen(false)}
+        title={selectedMahasiswa?.Nama || 'Mahasiswa'}
+        subtitle={selectedMahasiswa?.NIM || '-'}
+        icon={<User size={18} />}
+        maxWidth="max-w-2xl"
+      >
+        {selectedMahasiswa && (
+          <div className="flex flex-col font-headline">
+            <ModalBody>
+              <div className="space-y-8">
+                {/* SEKSI: AKADEMIK */}
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2 text-slate-900">
+                    <BookOpen className="size-4 opacity-40" />
+                    <h4 className="text-[11px] font-black uppercase tracking-[0.1em] font-headline">Informasi Akademik</h4>
                   </div>
-               </DialogHeader>
-
-               <div className="overflow-y-auto p-8 space-y-8 custom-scrollbar">
-                  {/* SEKSI: AKADEMIK */}
-                  <div className="space-y-4">
-                     <div className="flex items-center gap-2 text-slate-900">
-                        <BookOpen className="size-4 opacity-40" />
-                        <h4 className="text-[11px] font-bold uppercase tracking-[0.1em]">Informasi Akademik</h4>
-                     </div>
-                     <div className="grid grid-cols-2 gap-x-12 gap-y-4 border-l-2 border-slate-100 pl-4 py-1">
-                        <DataField label="Program Studi" value={selectedMahasiswa.ProgramStudi?.Nama} />
-                        <DataField label="Semester / Angkatan" value={`${selectedMahasiswa.SemesterSekarang || 1} / ${selectedMahasiswa.TahunMasuk || '-'}`} />
-                        <DataField label="Dosen Wali (DPA)" value={selectedMahasiswa.DosenPA?.Nama || 'Belum Ditentukan'} isPrimary />
-                        <DataField label="Jalur Masuk" value={selectedMahasiswa.JalurMasuk || 'Mandiri'} />
-                     </div>
+                  <div className="grid grid-cols-2 gap-x-12 gap-y-4 border-l-2 border-slate-100 pl-4 py-1">
+                    <DataField label="Program Studi" value={selectedMahasiswa.ProgramStudi?.Nama} />
+                    <DataField label="Semester / Angkatan" value={`${selectedMahasiswa.SemesterSekarang || 1} / ${selectedMahasiswa.TahunMasuk || '-'}`} />
+                    <DataField label="Dosen Wali (DPA)" value={selectedMahasiswa.DosenPA?.Nama || 'Belum Ditentukan'} isPrimary />
+                    <DataField label="Jalur Masuk" value={selectedMahasiswa.JalurMasuk || 'Mandiri'} />
                   </div>
+                </div>
 
-                  {/* SEKSI: ORANG TUA */}
-                  <div className="space-y-4">
-                     <div className="flex items-center gap-2 text-slate-900">
-                        <Heart className="size-4 opacity-40" />
-                        <h4 className="text-[11px] font-bold uppercase tracking-[0.1em]">Data Orang Tua</h4>
-                     </div>
-                     <div className="grid grid-cols-2 gap-x-12 gap-y-4 border-l-2 border-slate-100 pl-4 py-1">
-                        <DataField label="Nama Ayah" value={selectedMahasiswa.NamaAyah} />
-                        <DataField label="Nama Ibu" value={selectedMahasiswa.NamaIbuKandung} />
-                        <DataField label="Pekerjaan Ortu" value={selectedMahasiswa.PekerjaanAyah || selectedMahasiswa.PekerjaanIbu} />
-                        <DataField label="Penghasilan" value={selectedMahasiswa.PenghasilanOrtu ? `Rp ${selectedMahasiswa.PenghasilanOrtu.toLocaleString('id-ID')}` : '-'} />
-                     </div>
+                {/* SEKSI: ORANG TUA */}
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2 text-slate-900">
+                    <Heart className="size-4 opacity-40" />
+                    <h4 className="text-[11px] font-black uppercase tracking-[0.1em] font-headline">Data Orang Tua</h4>
                   </div>
-
-                  {/* SEKSI: BIODATA & KONTAK */}
-                  <div className="space-y-4">
-                     <div className="flex items-center gap-2 text-slate-900">
-                        <FileText className="size-4 opacity-40" />
-                        <h4 className="text-[11px] font-bold uppercase tracking-[0.1em]">Biodata & Kontak</h4>
-                     </div>
-                     <div className="grid grid-cols-2 gap-x-12 gap-y-4 border-l-2 border-slate-100 pl-4 py-1">
-                        <DataField label="Tempat, Tgl Lahir" value={`${selectedMahasiswa.TempatLahir || '-'}, ${selectedMahasiswa.TanggalLahir ? new Date(selectedMahasiswa.TanggalLahir).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : '-'}`} />
-                        <DataField label="Nomor WhatsApp" value={selectedMahasiswa.NoHP} isPrimary />
-                        <DataField label="NIK" value={selectedMahasiswa.NIK} />
-                        <DataField label="Email Institusi" value={selectedMahasiswa.EmailKampus || selectedMahasiswa.Pengguna?.Email} />
-                     </div>
-                     <div className="border-l-2 border-slate-100 pl-4 py-1 mt-2">
-                        <DataField label="Alamat Lengkap" value={selectedMahasiswa.Alamat} isFull />
-                     </div>
+                  <div className="grid grid-cols-2 gap-x-12 gap-y-4 border-l-2 border-slate-100 pl-4 py-1">
+                    <DataField label="Nama Ayah" value={selectedMahasiswa.NamaAyah} />
+                    <DataField label="Nama Ibu" value={selectedMahasiswa.NamaIbuKandung} />
+                    <DataField label="Pekerjaan Ortu" value={selectedMahasiswa.PekerjaanAyah || selectedMahasiswa.PekerjaanIbu} />
+                    <DataField label="Penghasilan" value={selectedMahasiswa.PenghasilanOrtu ? `Rp ${selectedMahasiswa.PenghasilanOrtu.toLocaleString('id-ID')}` : '-'} />
                   </div>
-               </div>
+                </div>
 
-               <div className="p-6 border-t border-slate-100 flex justify-end shrink-0">
-                  <Button
-                     onClick={() => setIsDetailOpen(false)}
-                     className="bg-slate-900 text-white text-[11px] font-bold px-8 h-10 rounded-lg hover:bg-slate-800 transition-all uppercase tracking-widest"
-                  >
-                     Tutup
-                  </Button>
-               </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+                {/* SEKSI: BIODATA & KONTAK */}
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2 text-slate-900">
+                    <FileText className="size-4 opacity-40" />
+                    <h4 className="text-[11px] font-black uppercase tracking-[0.1em] font-headline">Biodata & Kontak</h4>
+                  </div>
+                  <div className="grid grid-cols-2 gap-x-12 gap-y-4 border-l-2 border-slate-100 pl-4 py-1">
+                    <DataField label="Tempat, Tgl Lahir" value={`${selectedMahasiswa.TempatLahir || '-'}, ${selectedMahasiswa.TanggalLahir ? new Date(selectedMahasiswa.TanggalLahir).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : '-'}`} />
+                    <DataField label="Nomor WhatsApp" value={selectedMahasiswa.NoHP} isPrimary />
+                    <DataField label="NIK" value={selectedMahasiswa.NIK} />
+                    <DataField label="Email Institusi" value={selectedMahasiswa.EmailKampus || selectedMahasiswa.Pengguna?.Email} />
+                  </div>
+                  <div className="border-l-2 border-slate-100 pl-4 py-1 mt-2">
+                    <DataField label="Alamat Lengkap" value={selectedMahasiswa.Alamat} isFull />
+                  </div>
+                </div>
+              </div>
+            </ModalBody>
+
+            <ModalFooter>
+              <ModalBtn onClick={() => setIsDetailOpen(false)}>
+                Tutup Detail
+              </ModalBtn>
+            </ModalFooter>
+          </div>
+        )}
+      </Modal>
     </PageContainer>
   )
 }
