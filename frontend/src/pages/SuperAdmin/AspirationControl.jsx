@@ -293,8 +293,10 @@ const AspirationControl = () => {
                           </Badge>
                         </div>
                       </div>
-                      <div className="p-6 bg-slate-50/50 rounded-2xl border border-slate-100">
-                        <p className="text-[12px] text-slate-600 font-bold leading-relaxed italic">"{selectedAsp.Isi || 'No description provided.'}"</p>
+                      <div className="p-6 bg-slate-50/50 rounded-2xl border border-slate-100 overflow-hidden">
+                        <p className="text-[12px] text-slate-600 font-bold leading-relaxed italic whitespace-pre-wrap break-words [overflow-wrap:anywhere]">
+                          "{selectedAsp.Isi || 'No description provided.'}"
+                        </p>
                       </div>
                     </div>
                   </section>

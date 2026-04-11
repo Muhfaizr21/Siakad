@@ -25,6 +25,65 @@ const normalizeLevel = (tujuan, status) => {
   return 'fakultas';
 };
 
+const buildVoiceTimeline = (item = {}) => {
+  const createdAt = toValidDateISO(item.created_at || item.CreatedAt);
+  const updatedAt = toValidDateISO(item.updated_at || item.UpdatedAt) || createdAt;
+  const status = normalizeStatus(item.status || item.Status);
+  const respon = String(item.respon || item.Respon || '').trim();
+
+  const events = [];
+
+  if (createdAt) {
+    events.push({
+      id: `evt-${item.id || item.ID || 'x'}-created`,
+      tipe_event: 'dikirim',
+      created_at: createdAt,
+      level: 'sistem',
+      isi_respons: '',
+    });
+  }
+
+  if (status === 'diproses' || status === 'ditindaklanjuti' || status === 'selesai') {
+    events.push({
+      id: `evt-${item.id || item.ID || 'x'}-accepted`,
+      tipe_event: 'diterima_fakultas',
+      created_at: updatedAt,
+      level: 'fakultas',
+      isi_respons: '',
+    });
+  }
+
+  if (status === 'dibatalkan') {
+    events.push({
+      id: `evt-${item.id || item.ID || 'x'}-cancelled`,
+      tipe_event: 'dibatalkan',
+      created_at: updatedAt,
+      level: 'sistem',
+      isi_respons: respon,
+    });
+  } else if (status === 'selesai') {
+    events.push({
+      id: `evt-${item.id || item.ID || 'x'}-done`,
+      tipe_event: 'selesai',
+      created_at: updatedAt,
+      level: 'fakultas',
+      isi_respons: respon,
+    });
+  } else if (respon) {
+    events.push({
+      id: `evt-${item.id || item.ID || 'x'}-response`,
+      tipe_event: 'respons_fakultas',
+      created_at: updatedAt,
+      level: 'fakultas',
+      isi_respons: respon,
+    });
+  }
+
+  return events
+    .filter((e) => Boolean(e.created_at))
+    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+};
+
 const normalizeVoiceItem = (item = {}) => {
   const id = item.id || item.ID || 0;
   const createdAt = toValidDateISO(item.created_at || item.CreatedAt);
@@ -42,6 +101,8 @@ const normalizeVoiceItem = (item = {}) => {
     level_saat_ini: normalizeLevel(tujuan, status),
     is_anonim: Boolean(item.is_anonim ?? item.IsAnonim),
     lampiran_url: item.lampiran_url || item.LampiranURL || '',
+    respon: item.respon || item.Respon || '',
+    timeline: buildVoiceTimeline(item),
   };
 };
 
