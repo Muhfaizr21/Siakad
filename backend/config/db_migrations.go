@@ -57,6 +57,7 @@ func migrateModels(db *gorm.DB) error {
 		&models.Beasiswa{},
 		&models.BeasiswaPendaftaran{},
 		&models.Aspirasi{},
+		&models.JadwalKonseling{},
 		&models.Konseling{},
 		&models.PengajuanSurat{},
 		&models.Kesehatan{},

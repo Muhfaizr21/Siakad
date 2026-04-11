@@ -94,28 +94,12 @@ func RequestCounseling(c *fiber.Ctx) error {
 }
 
 func GetCounselingJadwal(c *fiber.Ctx) error {
-	var dosens []models.Dosen
-	if err := config.DB.Select("id", "nama", "email").Limit(50).Find(&dosens).Error; err != nil {
+	var schedules []models.JadwalKonseling
+	if err := config.DB.Where("is_aktif = ?", true).Order("tanggal asc").Find(&schedules).Error; err != nil {
 		return c.Status(500).JSON(fiber.Map{"success": false, "message": "Gagal mengambil jadwal konseling"})
 	}
 
-	now := time.Now()
-	list := make([]fiber.Map, 0, len(dosens))
-	for _, d := range dosens {
-		list = append(list, fiber.Map{
-			"ID":           d.ID,
-			"NamaKonselor": d.Nama,
-			"Tipe":         "Akademik",
-			"Tanggal":      now,
-			"JamMulai":     "09:00",
-			"JamSelesai":   "10:00",
-			"Lokasi":       "Ruang Konseling",
-			"Kuota":        10,
-			"SisaKuota":    8,
-		})
-	}
-
-	return c.JSON(fiber.Map{"success": true, "data": list})
+	return c.JSON(fiber.Map{"success": true, "data": schedules})
 }
 
 func GetCounselingRiwayat(c *fiber.Ctx) error {
@@ -126,9 +110,6 @@ func CreateBooking(c *fiber.Ctx) error {
 	type BookingPayload struct {
 		JadwalID    uint   `json:"jadwal_id"`
 		KeluhanAwal string `json:"keluhan_awal"`
-		DosenID     uint   `json:"dosen_id"`
-		Topik       string `json:"topik"`
-		Tanggal     string `json:"tanggal"`
 	}
 
 	var payload BookingPayload
@@ -136,53 +117,50 @@ func CreateBooking(c *fiber.Ctx) error {
 		return c.Status(400).JSON(fiber.Map{"success": false, "message": "Input booking tidak valid"})
 	}
 
-	parsedDate := time.Now().AddDate(0, 0, 1)
-	if payload.Tanggal != "" {
-		if t, err := time.Parse(time.RFC3339, payload.Tanggal); err == nil {
-			parsedDate = t
-		}
-	}
-
 	student, err := getStudent(c)
 	if err != nil {
 		return c.Status(404).JSON(fiber.Map{"success": false, "message": "Mahasiswa tidak ditemukan"})
 	}
 
-	dosenID := payload.DosenID
-	if dosenID == 0 {
-		dosenID = payload.JadwalID
-	}
-	if dosenID == 0 {
-		var d models.Dosen
-		if err := config.DB.Order("id asc").First(&d).Error; err == nil {
-			dosenID = d.ID
-		}
-	}
-	if dosenID == 0 {
-		return c.Status(400).JSON(fiber.Map{"success": false, "message": "Dosen konseling belum tersedia"})
+	var schedule models.JadwalKonseling
+	if err := config.DB.First(&schedule, payload.JadwalID).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{"success": false, "message": "Jadwal konseling tidak ditemukan"})
 	}
 
-	topik := payload.Topik
-	if topik == "" {
-		topik = payload.KeluhanAwal
-	}
-	if topik == "" {
-		topik = "Konseling"
+	if schedule.SisaKuota <= 0 {
+		return c.Status(400).JSON(fiber.Map{"success": false, "message": "Kuota untuk jadwal ini sudah penuh"})
 	}
 
+	// Create counseling record
+	// Karena tidak boleh mengubah model Konseling, kita simpan informasi jadwal di field yang ada
+	// Idealnya ada field JadwalID di models.Konseling, tapi kita hindari merubah model.go
 	konseling := models.Konseling{
 		MahasiswaID: student.ID,
-		DosenID:     dosenID,
-		Tanggal:     parsedDate,
-		Topik:       topik,
+		Tanggal:     schedule.Tanggal,
+		Topik:       "[" + schedule.Kategori + "] " + payload.KeluhanAwal,
 		Status:      "Menunggu",
+		Catatan:     "Konselor: " + schedule.NamaKonselor + ", Lokasi: " + schedule.Lokasi,
 	}
 
-	if err := config.DB.Create(&konseling).Error; err != nil {
-		return c.Status(500).JSON(fiber.Map{"success": false, "message": "Gagal mengajukan booking"})
+	// Transaksi untuk memastikan kuota berkurang aman
+	tx := config.DB.Begin()
+	if err := tx.Create(&konseling).Error; err != nil {
+		tx.Rollback()
+		return c.Status(500).JSON(fiber.Map{"success": false, "message": "Gagal membuat booking"})
 	}
 
-	return c.Status(201).JSON(fiber.Map{"success": true, "message": "Booking konseling berhasil diajukan", "data": konseling})
+	if err := tx.Model(&schedule).Update("sisa_kuota", schedule.SisaKuota-1).Error; err != nil {
+		tx.Rollback()
+		return c.Status(500).JSON(fiber.Map{"success": false, "message": "Gagal mereservasi kuota"})
+	}
+
+	tx.Commit()
+
+	return c.Status(201).JSON(fiber.Map{
+		"success": true,
+		"message": "Booking konseling berhasil diajukan",
+		"data":    konseling,
+	})
 }
 
 func CancelBooking(c *fiber.Ctx) error {
