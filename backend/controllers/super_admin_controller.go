@@ -56,9 +56,10 @@ func GetUsers(c *fiber.Ctx) error {
 // UpdateUserRole handles role assignment and logs the event in log_aktivitas
 func UpdateUserRole(c *fiber.Ctx) error {
 	type UpdateRequest struct {
-		UserID   uint   `json:"userId"`
-		Role     string `json:"role"`
-		OrmawaID uint   `json:"ormawaId"`
+		UserID       uint   `json:"userId"`
+		Role         string `json:"role"`
+		OrmawaID     uint   `json:"ormawaId"`
+		OrmawaAssign string `json:"ormawaAssign"`
 	}
 
 	var req UpdateRequest
@@ -78,7 +79,7 @@ func UpdateUserRole(c *fiber.Ctx) error {
 	err := config.DB.Transaction(func(tx *gorm.DB) error {
 
 		// Update user role via raw SQL to bypass any GORM association issues
-		if err := tx.Exec("UPDATE public.users SET role = ?, updated_at = ? WHERE id = ?", req.Role, time.Now(), user.ID).Error; err != nil {
+		if err := tx.Exec("UPDATE public.users SET role = ?, ormawa_assign = ?, updated_at = ? WHERE id = ?", req.Role, req.OrmawaAssign, time.Now(), user.ID).Error; err != nil {
 			return err
 		}
 
@@ -149,6 +150,7 @@ func CreateUser(c *fiber.Ctx) error {
 		FakultasID     uint   `json:"FakultasID"`
 		ProgramStudiID uint   `json:"ProgramStudiID"`
 		OrmawaID       uint   `json:"OrmawaID"`
+		OrmawaAssign   string `json:"OrmawaAssign"`
 	}
 
 	var req CreateRequest
@@ -194,9 +196,10 @@ func CreateUser(c *fiber.Ctx) error {
 	err = config.DB.Transaction(func(tx *gorm.DB) error {
 		// 1. Create User
 		user := models.User{
-			Email:    req.Email,
-			Password: string(hashedPassword),
-			Role:     req.Role,
+			Email:        req.Email,
+			Password:     string(hashedPassword),
+			Role:         req.Role,
+			OrmawaAssign: req.OrmawaAssign,
 		}
 
 		// Set FakultasID for Admin/Faculty roles

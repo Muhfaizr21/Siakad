@@ -33,6 +33,7 @@ export default function FacultyOrganisasi() {
     status: 'Aktif',
     kategori: 'Himpunan',
     email: '',
+    password: '',
     phone: ''
   })
 
@@ -82,6 +83,7 @@ export default function FacultyOrganisasi() {
       JumlahAnggota: formData.jumlah_anggota,
       Deskripsi: formData.ketua_nama,
       Email: formData.email,
+      Password: formData.password,
       Phone: formData.phone
     }
 
@@ -131,6 +133,7 @@ export default function FacultyOrganisasi() {
       status: org.status || 'Aktif',
       kategori: org.kategori || 'Himpunan',
       email: org.email || '',
+      password: '',
       phone: org.phone || ''
     })
     setShowModal(true)
@@ -220,7 +223,7 @@ export default function FacultyOrganisasi() {
           data={organizations}
           loading={loading}
           searchPlaceholder="Cari Nama atau Kode..."
-          onAdd={() => { setEditingOrg(null); setFormData({ kode_org: '', nama_org: '', ketua_nama: '', jumlah_anggota: 0, status: 'Aktif', kategori: 'Himpunan', email: '', phone: '' }); setShowModal(true); }}
+          onAdd={() => { setEditingOrg(null); setFormData({ kode_org: '', nama_org: '', ketua_nama: '', jumlah_anggota: 0, status: 'Aktif', kategori: 'Himpunan', email: '', password: '', phone: '' }); setShowModal(true); }}
           addLabel="Tambah ORMAWA"
           actions={(row) => (
             <div className="flex items-center justify-end gap-2 pr-2">
@@ -332,6 +335,18 @@ export default function FacultyOrganisasi() {
                     className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white transition-all font-bold text-sm font-headline"
                   />
                 </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Password Akun Admin</Label>
+                <Input
+                  type="password"
+                  value={formData.password}
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  placeholder={editingOrg ? 'Biarkan kosong jika tidak ingin mengubah password' : 'Password untuk login Admin Ormawa...'}
+                  className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white transition-all font-bold text-sm"
+                  required={!editingOrg}
+                />
               </div>
 
               <div className="space-y-2">

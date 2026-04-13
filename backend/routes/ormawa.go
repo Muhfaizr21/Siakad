@@ -10,6 +10,7 @@ func SetupOrmawaRoutes(app *fiber.App) {
 	api := app.Group("/api/ormawa", middleware.AuthProtected, middleware.OrmawaCheck)
 
 	// DASHBOARD STATS
+	api.Get("/profile", ormawa.GetOrmawaProfile)
 	api.Get("/stats", ormawa.GetOrmawaStats)
 
 	// PROPOSALS

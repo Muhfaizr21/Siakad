@@ -25,8 +25,20 @@ import {
   Database,
   Headphones,
   Command,
-  Mail
+  Mail,
+  LogOut,
+  UserCircle,
+  ChevronDown,
+  ShieldCheck
 } from 'lucide-react'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from './dropdown-menu'
 import { Button } from './button'
 import { Badge } from './badge'
 
@@ -35,6 +47,8 @@ const TopNavBar = ({ setIsOpen }) => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [showResults, setShowResults] = useState(false);
+  const logout = useAuthStore((state) => state.logout);
+  const user = useAuthStore((state) => state.user);
   const searchRef = useRef(null);
   const pathnames = location.pathname.split('/').filter((x) => x);
 
@@ -123,13 +137,35 @@ const TopNavBar = ({ setIsOpen }) => {
     return labels[path.toLowerCase()] || path.charAt(0) + path.slice(1);
   };
 
+  const [facultyName, setFacultyName] = useState("");
+
+  useEffect(() => {
+    const fetchFacultyName = async () => {
+      try {
+        const token = useAuthStore.getState().accessToken;
+        const res = await fetch('http://localhost:8000/api/faculty/faculties', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        const json = await res.json();
+        if (json.status === 'success' && json.data && json.data.length > 0) {
+          setFacultyName(json.data[0].Nama);
+        }
+      } catch (err) {
+        console.error("Failed to fetch faculty name");
+      }
+    };
+    fetchFacultyName();
+  }, []);
+
   return (
     <header className="fixed top-0 right-0 left-0 lg:left-64 z-[50] h-20 bg-white/70 backdrop-blur-xl border-b border-slate-200/50 flex items-center justify-between px-6 lg:px-10 font-body transition-all duration-300">
       <div className="flex items-center gap-6 flex-1">
         {/* Mobile Toggle */}
         <button
           onClick={() => setIsOpen(true)}
-          className="lg:hidden p-2.5 rounded-xl bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 transition-all shadow-sm active:scale-95"
+          className="lg:hidden p-2 rounded-lg bg-slate-50 text-slate-600 hover:bg-slate-100 transition-all border border-slate-200"
         >
           <Menu className="size-5" />
         </button>
@@ -295,42 +331,74 @@ const TopNavBar = ({ setIsOpen }) => {
           </button>
         </div>
 
-        {/* User Account Profile */}
-        <div 
-          onClick={() => navigate('/faculty/pengaturan')}
-          className="flex items-center gap-3.5 pl-4 border-l border-slate-200/60 group cursor-pointer ml-2 hover:opacity-80 transition-all"
-        >
-          <div className="flex flex-col items-end leading-none">
-            <p className="text-sm font-black text-slate-900 tracking-tight">
-              {(() => {
-                const userEmail = useAuthStore(state => state.user?.email) || "";
-                const match = userEmail.match(/^admin\.([a-zA-Z0-9]+)@/i);
-                if (match) {
-                  const code = match[1].toUpperCase();
-                  if (code === 'SOC') return 'School of Computing';
-                  if (code === 'FT') return 'Fakultas Teknik';
-                  if (code === 'FH') return 'Fakultas Hukum';
-                  if (code === 'FE') return 'Fakultas Ekonomi';
-                  return `Fakultas ${code}`;
-                }
-                return "Administrator";
-              })()}
-            </p>
-            <p className="text-[10px] font-bold text-primary tracking-widest uppercase mt-1 opacity-70">
-              Portal Management
-            </p>
-          </div>
-          <div className="relative">
-            <div className="w-11 h-11 rounded-2xl bg-slate-900 border-[3px] border-slate-100 text-white flex items-center justify-center font-black text-xs shadow-xl shadow-slate-900/10 group-hover:shadow-primary/20 group-hover:border-primary/20 transition-all duration-300">
-               {(() => {
-                const userEmail = useAuthStore(state => state.user?.email) || "";
-                const match = userEmail.match(/^admin\.([a-zA-Z0-9]+)@/i);
-                return match ? match[1].toUpperCase() : "ADM";
-              })()}
-            </div>
-            <div className="absolute -bottom-1 -right-1 size-4 bg-emerald-500 border-[3px] border-white rounded-full shadow-lg shadow-emerald-500/20"></div>
-          </div>
+        <div className="h-8 w-px bg-slate-200 mx-2 hidden sm:block"></div>
+
+        {/* Real Faculty Label (Moved to Right) */}
+        <div className="hidden sm:flex flex-col text-right mr-1">
+          <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Administrator</span>
+          <span className="text-[12px] font-black text-slate-900 leading-tight">
+            {facultyName || (() => {
+              const userEmail = user?.Email || "";
+              const match = userEmail.match(/^admin\.([a-zA-Z0-9]+)@/i);
+              if (match) {
+                const code = match[1].toUpperCase();
+                const namaMap = {
+                  'FF':  'Farmasi',
+                  'FK':  'Keperawatan',
+                  'FIK': 'Ilmu Kesehatan',
+                  'FS':  'Sosial',
+                };
+                return namaMap[code] ? `Fak. ${namaMap[code]}` : `Fak. ${code}`;
+              }
+              return "Portal Admin";
+            })()}
+          </span>
         </div>
+
+        {/* User Account Profile Dropdown */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <div className="flex items-center gap-3 cursor-pointer group hover:bg-slate-50 p-1.5 pr-3 rounded-full transition-all outline-none border border-transparent hover:border-slate-100">
+              <div className="w-9 h-9 rounded-full bg-slate-900 text-white flex items-center justify-center font-bold text-xs ring-2 ring-white shadow-sm">
+                 {user?.Email?.match(/^admin\.([a-zA-Z0-9]+)@/i)?.[1]?.[0]?.toUpperCase() || 'A'}
+              </div>
+              <div className="flex flex-col">
+                <span className="text-xs font-bold text-slate-700 leading-none truncate max-w-[100px]">{user?.Email?.split('@')[0]}</span>
+                <span className="text-[10px] text-slate-400 mt-1">Admin</span>
+              </div>
+              <ChevronDown className="size-3.5 text-slate-400 group-hover:text-slate-600 transition-colors" />
+            </div>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-56 mt-2 rounded-2xl p-1.5 shadow-xl border border-slate-100 bg-white">
+            <div className="px-3 py-2 mb-1 border-b border-slate-50">
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Akun Saya</p>
+              <p className="text-xs font-bold text-slate-900 truncate mt-0.5">{user?.Email}</p>
+            </div>
+            
+            <DropdownMenuItem onClick={() => navigate('/faculty/pengaturan')} className="rounded-xl p-2.5 focus:bg-slate-50 group cursor-pointer">
+              <UserCircle className="mr-2 size-4 text-slate-400 group-hover:text-primary transition-colors" />
+              <span className="text-xs font-medium text-slate-600 group-hover:text-slate-900 transition-colors">Profil</span>
+            </DropdownMenuItem>
+
+            <DropdownMenuItem onClick={() => navigate('/faculty/pengaturan')} className="rounded-xl p-2.5 focus:bg-slate-50 group cursor-pointer">
+              <Settings className="mr-2 size-4 text-slate-400 group-hover:text-primary transition-colors" />
+              <span className="text-xs font-medium text-slate-600 group-hover:text-slate-900 transition-colors">Pengaturan</span>
+            </DropdownMenuItem>
+
+            <DropdownMenuSeparator className="my-1.5 bg-slate-50" />
+            
+            <DropdownMenuItem 
+              onClick={() => {
+                logout();
+                navigate('/login');
+              }} 
+              className="rounded-xl p-2.5 focus:bg-rose-50 group cursor-pointer"
+            >
+              <LogOut className="mr-2 size-4 text-rose-400 group-hover:text-rose-600 transition-colors" />
+              <span className="text-xs font-bold text-rose-500 group-hover:text-rose-600 transition-colors">Keluar</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </header>
   )

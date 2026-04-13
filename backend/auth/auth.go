@@ -22,18 +22,19 @@ type loginRequest struct {
 }
 
 type userResponse struct {
-	ID    uint   `json:"id"`
-	Email string `json:"email"`
-	Role  string `json:"role"`
-	NIM   string `json:"nim,omitempty"`
-	Nama  string `json:"nama,omitempty"`
+	ID        uint   `json:"id"`
+	Email     string `json:"email"`
+	Role      string `json:"role"`
+	NIM       string `json:"nim,omitempty"`
+	Nama      string `json:"nama,omitempty"`
+	OrmawaID  *uint  `json:"ormawa_id,omitempty"`
 }
 
 func jwtSecret() []byte {
 	return config.GetJWTSecret()
 }
 
-func createToken(userID uint, studentID uint, nim string, role string, facultyID *uint) (string, error) {
+func createToken(userID uint, studentID uint, nim string, role string, facultyID *uint, ormawaID *uint, ormawaAssign string) (string, error) {
 	now := time.Now()
 	claims := jwt.MapClaims{
 		"sub":  userID,
@@ -41,6 +42,8 @@ func createToken(userID uint, studentID uint, nim string, role string, facultyID
 		"nim":  nim,
 		"role": role,
 		"fid":  facultyID,
+		"oid":  ormawaID,
+		"oas":  ormawaAssign,
 		"iat":  now.Unix(),
 		"exp":  now.Add(24 * time.Hour).Unix(),
 	}
@@ -139,7 +142,7 @@ func Login(c *fiber.Ctx) error {
 		})
 	}
 
-	token, err := createToken(user.ID, student.ID, nim, roleName, user.FakultasID)
+	token, err := createToken(user.ID, student.ID, nim, roleName, user.FakultasID, user.OrmawaID, user.OrmawaAssign)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"status":  "error",
@@ -155,11 +158,12 @@ func Login(c *fiber.Ctx) error {
 			"access_token": token,
 			"mahasiswa":    student, // although for admin it might be empty
 			"user": userResponse{
-				ID:    user.ID,
-				Email: user.Email,
-				Role:  roleName,
-				NIM:   student.NIM,
-				Nama:  student.Nama,
+				ID:        user.ID,
+				Email:     user.Email,
+				Role:      roleName,
+				NIM:       student.NIM,
+				Nama:      student.Nama,
+				OrmawaID:  user.OrmawaID,
 			},
 		},
 	})
@@ -197,11 +201,12 @@ func Me(c *fiber.Ctx) error {
 		"status": "success",
 		"data": fiber.Map{
 			"user": userResponse{
-				ID:    user.ID,
-				Email: user.Email,
-				Role:  user.Role,
-				NIM:   student.NIM,
-				Nama:  student.Nama,
+				ID:        user.ID,
+				Email:     user.Email,
+				Role:      user.Role,
+				NIM:       student.NIM,
+				Nama:      student.Nama,
+				OrmawaID:  user.OrmawaID,
 			},
 		},
 	})
@@ -232,7 +237,18 @@ func RefreshToken(c *fiber.Ctx) error {
 		fid = &val
 	}
 
-	newAT, err := createToken(uint(claims["sub"].(float64)), uint(claims["sid"].(float64)), claims["nim"].(string), claims["role"].(string), fid)
+	var oid *uint
+	if o, ok := claims["oid"].(float64); ok {
+		val := uint(o)
+		oid = &val
+	}
+
+	var oas string
+	if as, ok := claims["oas"].(string); ok {
+		oas = as
+	}
+
+	newAT, err := createToken(uint(claims["sub"].(float64)), uint(claims["sid"].(float64)), claims["nim"].(string), claims["role"].(string), fid, oid, oas)
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"success": false, "message": "Gagal generate token baru"})
 	}
@@ -315,6 +331,9 @@ func Protected() fiber.Handler {
 		if fid, ok := claims["fid"].(float64); ok {
 			c.Locals("fakultas_id", uint(fid))
 		}
+		if oid, ok := claims["oid"].(float64); ok {
+			c.Locals("ormawa_id", uint(oid))
+		}
 
 		return c.Next()
 	}
@@ -383,7 +402,7 @@ func EnsureBootstrapData() error {
 	}
 
 	// 4. Ensure Super Admin
-	superAdminUser, err := ensureUser("superadmin@bku.ac.id", "superadmin123", "super_admin", nil)
+	superAdminUser, err := ensureUser("superadmin@bku.ac.id", "superadmin123", "super_admin", nil, nil)
 	if err != nil {
 		return err
 	}
@@ -391,7 +410,7 @@ func EnsureBootstrapData() error {
 	// 5. Ensure Faculty Admins
 	for _, fak := range allFakultas {
 		email := strings.ToLower(fmt.Sprintf("admin.%s@bku.ac.id", fak.Kode))
-		if _, err := ensureUser(email, "adminfak123", "faculty_admin", &fak.ID); err != nil {
+		if _, err := ensureUser(email, "adminfak123", "faculty_admin", &fak.ID, nil); err != nil {
 			return err
 		}
 	}
@@ -422,7 +441,7 @@ func EnsureBootstrapData() error {
 		}
 
 		email := strings.ToLower(fmt.Sprintf("%s@student.bku.ac.id", s.NIM))
-		user, err := ensureUser(email, "student123", "mahasiswa", &fak.ID)
+		user, err := ensureUser(email, "student123", "mahasiswa", &fak.ID, nil)
 		if err != nil {
 			return err
 		}
@@ -467,7 +486,7 @@ func EnsureBootstrapData() error {
 	if ff, ok := fakultasByKode["FF"]; ok {
 		defaultFakID = &ff.ID
 	}
-	ormawaUser, err := ensureUser("ormawa@bku.ac.id", "ormawa123", "ormawa", defaultFakID)
+	ormawaUser, err := ensureUser("ormawa@bku.ac.id", "ormawa123", "ormawa", defaultFakID, nil)
 	if err != nil {
 		return err
 	}
@@ -487,6 +506,9 @@ func EnsureBootstrapData() error {
 			return err
 		}
 	}
+
+	// Link user to Ormawa
+	config.DB.Model(&ormawaUser).Update("ormawa_id", ormawa.ID)
 
 	var sampleMhs models.Mahasiswa
 	if err := config.DB.Where("nim = ?", "231FF01001").First(&sampleMhs).Error; err == nil {
@@ -542,7 +564,7 @@ func EnsureBootstrapData() error {
 	if ff, ok := fakultasByKode["FF"]; ok {
 		var prodiFarmasi models.ProgramStudi
 		if err := config.DB.Where("LOWER(nama) = LOWER(?) AND LOWER(jenjang) = LOWER(?)", "Farmasi", "S1").First(&prodiFarmasi).Error; err == nil {
-			dosenUser, err := ensureUser("dosen.farmasi@bku.ac.id", "dosen123", "dosen", &ff.ID)
+			dosenUser, err := ensureUser("dosen.farmasi@bku.ac.id", "dosen123", "dosen", &ff.ID, nil)
 			if err != nil {
 				return err
 			}
@@ -727,7 +749,7 @@ func EnsureBootstrapData() error {
 	return nil
 }
 
-func ensureUser(email, plainPassword, role string, fakultasID *uint) (models.User, error) {
+func ensureUser(email, plainPassword, role string, fakultasID *uint, ormawaID *uint) (models.User, error) {
 	var user models.User
 	if err := config.DB.Where("LOWER(email) = ?", strings.ToLower(email)).First(&user).Error; err == nil {
 		updates := map[string]interface{}{}
@@ -736,6 +758,9 @@ func ensureUser(email, plainPassword, role string, fakultasID *uint) (models.Use
 		}
 		if fakultasID != nil {
 			updates["fakultas_id"] = *fakultasID
+		}
+		if ormawaID != nil {
+			updates["ormawa_id"] = *ormawaID
 		}
 		if len(updates) > 0 {
 			if err := config.DB.Model(&user).Updates(updates).Error; err != nil {
@@ -758,6 +783,9 @@ func ensureUser(email, plainPassword, role string, fakultasID *uint) (models.Use
 	}
 	if fakultasID != nil {
 		user.FakultasID = fakultasID
+	}
+	if ormawaID != nil {
+		user.OrmawaID = ormawaID
 	}
 
 	if err := config.DB.Create(&user).Error; err != nil {

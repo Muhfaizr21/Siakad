@@ -28,6 +28,8 @@ type User struct {
 	Password   string `gorm:"column:password" json:"-"`
 	Role       string `gorm:"index" json:"role"`
 	FakultasID *uint  `gorm:"index" json:"fakultas_id"`
+	OrmawaID   *uint  `gorm:"index" json:"ormawa_id"`
+	OrmawaAssign string `gorm:"size:100" json:"ormawa_assign"`
 
 	Dosen *Dosen `gorm:"foreignKey:PenggunaID" json:"dosen,omitempty"`
 }
@@ -428,6 +430,8 @@ type Ormawa struct {
 	Nama      string
 	Singkatan string `gorm:"size:20"`
 	Deskripsi string
+	FakultasID uint `gorm:"index"`
+	Fakultas   Fakultas
 
 	// Faculty Admin fields
 	Status        string `gorm:"default:'Aktif'"`

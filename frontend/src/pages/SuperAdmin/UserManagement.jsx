@@ -85,7 +85,7 @@ export default function UserManagement() {
     Nama: '',
     FakultasID: '',
     ProgramStudiID: '',
-    OrmawaID: ''
+    OrmawaAssign: ''
   })
 
   const fetchData = async () => {
@@ -122,7 +122,7 @@ export default function UserManagement() {
         Nama: String(form.Nama || '').trim(),
         FakultasID: Number(form.FakultasID) || 0,
         ProgramStudiID: Number(form.ProgramStudiID) || 0,
-        OrmawaID: Number(form.OrmawaID) || 0,
+        OrmawaAssign: String(form.OrmawaAssign || '').trim(),
       }
       const res = await adminService.createUser(payload)
       if (res.status === 'success') { toast.success('Pengguna dibuat'); setIsCrudOpen(false); fetchData() }
@@ -137,7 +137,7 @@ export default function UserManagement() {
       const res = await adminService.updateUserRole({ 
         userId: selected.ID, 
         role: newRole,
-        ormawaId: Number(form.OrmawaID) || 0
+        ormawaAssign: String(form.OrmawaAssign || '').trim()
       })
       if (res.status === 'success') { 
         toast.success('Role diperbarui')
@@ -198,7 +198,7 @@ export default function UserManagement() {
         } else if (role === 'faculty_admin' || role === 'FACULTY_ADMIN') {
           context = v || 'Fakultas Belum Set'
         } else if (role === 'ormawa_admin' || role === 'ORMAWA_ADMIN') {
-          context = row.ormawa_nama || 'Organisasi Belum Set'
+          context = row.ormawa_assign || row.ormawa_nama || 'Organisasi Belum Set'
           subContext = v ? `At ${v}` : ''
         } else if (role === 'mahasiswa' || role === 'MAHASISWA') {
           context = row.prodi_nama || '-'
@@ -290,7 +290,7 @@ export default function UserManagement() {
               <DataTable
                 columns={columns} data={users} loading={loading}
                 searchPlaceholder="Cari identitas, email atau level akses..."
-                onAdd={() => { setForm({ Email: '', Password: '', Role: 'mahasiswa', Nama: '', FakultasID: '', ProgramStudiID: '' }); setIsCrudOpen(true) }} addLabel="Registrasi Akun"
+                onAdd={() => { setForm({ Email: '', Password: '', Role: 'mahasiswa', Nama: '', FakultasID: '', ProgramStudiID: '', OrmawaAssign: '' }); setIsCrudOpen(true) }} addLabel="Registrasi Akun"
                 filters={[{ key: 'role', placeholder: 'Pilih Level Akses', options: ROLES.map(r => ({ label: ROLE_DETAILS[r]?.label || r, value: r })) }]}
                 searchWidth="max-w-xl"
                 actions={(row) => (
@@ -436,14 +436,12 @@ export default function UserManagement() {
             {form.Role === 'ormawa_admin' && (
               <div className="space-y-2.5 animate-in fade-in slide-in-from-top-2 duration-300">
                 <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Organisasi Mahasiswa (Assign)</Label>
-                <Select value={String(form.OrmawaID)} onValueChange={v => setForm({ ...form, OrmawaID: v })}>
-                  <SelectTrigger className="h-14 rounded-2xl border-slate-200 bg-slate-50/50 font-black font-headline text-[11px] uppercase tracking-tighter shadow-inner px-6 text-slate-900"><SelectValue placeholder="Pilih Organisasi" /></SelectTrigger>
-                  <SelectContent className="rounded-3xl shadow-2xl p-2 border-slate-100 max-h-60 overflow-y-auto">
-                    {allOrmawa.map(o => (
-                      <SelectItem key={o.ID} value={String(o.ID)} className="rounded-2xl font-black text-[10px] p-4 uppercase tracking-tighter cursor-pointer">{o.Nama}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="relative">
+                   <LayoutGrid className="absolute left-5 top-1/2 -translate-y-1/2 size-4 text-slate-300" />
+                   <Input required value={form.OrmawaAssign} onChange={e => setForm({ ...form, OrmawaAssign: e.target.value })} placeholder="Masukkan Nama Organisasi (Manually)..." 
+                     className="h-14 pl-14 pr-6 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white font-bold text-sm tracking-tight placeholder:text-slate-300 shadow-inner transition-all text-slate-900 uppercase" />
+                </div>
+                <p className="text-[9px] text-slate-400 font-medium ml-1">Ketik nama Himpunan/Unit Kegiatan secara manual untuk fleksibilitas per Program Studi.</p>
               </div>
             )}
             
@@ -504,15 +502,12 @@ export default function UserManagement() {
 
              {newRole === 'ormawa_admin' && (
                 <div className="space-y-4 animate-in fade-in slide-in-from-top-2">
-                   <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2 font-headline">Select Target Organization</Label>
-                   <Select value={String(form.OrmawaID)} onValueChange={v => setForm({ ...form, OrmawaID: v })}>
-                     <SelectTrigger className="h-14 rounded-2xl border-slate-200 bg-slate-50/50 font-black font-headline text-[11px] uppercase tracking-tighter px-6 shadow-inner text-slate-900"><SelectValue placeholder="Pilih Ormawa" /></SelectTrigger>
-                     <SelectContent className="rounded-[2rem] shadow-2xl p-2 border-slate-100 max-h-60 overflow-y-auto">
-                       {allOrmawa.map(o => (
-                         <SelectItem key={o.ID} value={String(o.ID)} className="rounded-xl font-black text-[10px] p-4 uppercase cursor-pointer">{o.Nama}</SelectItem>
-                       ))}
-                     </SelectContent>
-                   </Select>
+                   <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2 font-headline">Organization Assignment (Manual)</Label>
+                   <div className="relative">
+                      <LayoutGrid className="absolute left-5 top-1/2 -translate-y-1/2 size-4 text-slate-300" />
+                      <Input required value={form.OrmawaAssign} onChange={e => setForm({ ...form, OrmawaAssign: e.target.value })} placeholder="Type Organization Name..." 
+                        className="h-14 pl-14 pr-6 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white font-bold text-sm tracking-tight placeholder:text-slate-300 shadow-inner transition-all text-slate-900 uppercase" />
+                   </div>
                 </div>
              )}
 

@@ -6,6 +6,7 @@ import (
 	"siakad-backend/models"
 
 	"github.com/gofiber/fiber/v2"
+	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
@@ -293,18 +294,53 @@ func HapusPendaftarBeasiswa(c *fiber.Ctx) error {
 // --- ORGANISASI & PROPOSAL ---
 
 func AmbilDaftarOrganisasi(c *fiber.Ctx) error {
+	fid := c.Locals("fakultas_id").(uint)
+	role := c.Locals("role").(string)
+
 	var daftar = []models.Ormawa{}
-	config.DB.Find(&daftar)
+	query := config.DB.Model(&models.Ormawa{})
+
+	if role == "faculty_admin" {
+		query = query.Where("fakultas_id = ?", fid)
+	}
+
+	query.Find(&daftar)
 	return c.JSON(fiber.Map{"status": "success", "data": daftar})
 }
 
 func TambahOrganisasi(c *fiber.Ctx) error {
-	var org models.Ormawa
-	if err := c.BodyParser(&org); err != nil {
+	var body struct {
+		models.Ormawa
+		Password string `json:"Password"`
+	}
+
+	if err := c.BodyParser(&body); err != nil {
 		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Payload salah"})
 	}
-	config.DB.Create(&org)
-	return c.JSON(fiber.Map{"status": "success", "message": "Organisasi ditambahkan"})
+
+	fid := c.Locals("fakultas_id").(uint)
+
+	org := body.Ormawa
+	org.FakultasID = fid
+
+	if err := config.DB.Create(&org).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal simpan ormawa: " + err.Error()})
+	}
+
+	// Create user for this ormawa if email & password present
+	if org.Email != "" && body.Password != "" {
+		hashed, _ := bcrypt.GenerateFromPassword([]byte(body.Password), bcrypt.DefaultCost)
+		newUser := models.User{
+			Email:      org.Email,
+			Password:   string(hashed),
+			Role:       "ormawa",
+			FakultasID: &org.FakultasID,
+			OrmawaID:   &org.ID,
+		}
+		config.DB.Create(&newUser)
+	}
+
+	return c.JSON(fiber.Map{"status": "success", "message": "Organisasi & Akun ditambahkan"})
 }
 
 func PerbaruiOrganisasi(c *fiber.Ctx) error {

@@ -15,6 +15,32 @@ import (
 
 // --- DASHBOARD ---
 
+func GetOrmawaProfile(c *fiber.Ctx) error {
+	ormawaId := c.Locals("ormawa_id")
+	ormawaAssign := c.Locals("ormawa_assign").(string)
+
+	if ormawaId == nil || ormawaId == uint(0) {
+		if ormawaAssign != "" {
+			return c.JSON(fiber.Map{
+				"status": "success", 
+				"data": models.Ormawa{
+					Nama: ormawaAssign,
+					Status: "Aktif",
+					Kategori: "Manual Assign",
+				},
+			})
+		}
+		return c.Status(401).JSON(fiber.Map{"status": "error", "message": "Unauthorized: Ormawa context missing"})
+	}
+
+	var ormawa models.Ormawa
+	if err := config.DB.First(&ormawa, ormawaId).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Organisasi tidak ditemukan"})
+	}
+
+	return c.JSON(fiber.Map{"status": "success", "data": ormawa})
+}
+
 func GetOrmawaStats(c *fiber.Ctx) error {
 	ormawaId := c.Query("ormawaId")
 	if ormawaId == "" {
