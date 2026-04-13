@@ -19,6 +19,7 @@ export default function KelolaProdi() {
   const [data, setData] = useState([])
   const [faculties, setFaculties] = useState([])
   const [loading, setLoading] = useState(true)
+  const [isSyncing, setIsSyncing] = useState(false)
   const [isCrudOpen, setIsCrudOpen] = useState(false)
   const [isDelOpen, setIsDelOpen] = useState(false)
   const [isEditMode, setIsEditMode] = useState(false)
@@ -26,15 +27,45 @@ export default function KelolaProdi() {
   const [selected, setSelected] = useState(null)
   const [form, setForm] = useState({ Nama: '', Kode: '', Jenjang: 'S1', FakultasID: '' })
 
-  const fetchData = async () => {
+  const fetchData = async ({ syncFromPddikti = false, showSyncToast = false } = {}) => {
     setLoading(true)
     try {
+      let pddiktiProdiKeys = new Set()
+      if (syncFromPddikti) {
+        const syncRes = await adminService.syncPddikti('Universitas Bhakti Kencana', 'all')
+        const pddiktiProdi = syncRes?.data?.prodi || []
+        pddiktiProdiKeys = new Set(
+          pddiktiProdi.map(p => `${String(p?.nama || '').trim().toLowerCase()}|${String(p?.jenjang || '').trim().toLowerCase()}`).filter(Boolean)
+        )
+        if (showSyncToast) toast.success('Sinkronisasi Prodi dari PDDIKTI selesai')
+      }
       const [prodiRes, facRes] = await Promise.all([adminService.getAllProdi(), adminService.getAllFaculties()])
-      if (prodiRes.status === 'success') setData(prodiRes.data || [])
-      if (facRes.status === 'success') setFaculties(facRes.data || [])
+      if (prodiRes.status === 'success') {
+        const prodiAll = prodiRes.data || []
+        const prodiFiltered = pddiktiProdiKeys.size > 0
+          ? prodiAll.filter(p => pddiktiProdiKeys.has(`${String(p?.Nama || '').trim().toLowerCase()}|${String(p?.Jenjang || '').trim().toLowerCase()}`))
+          : prodiAll
+        setData(prodiFiltered)
+
+        if (facRes.status === 'success') {
+          const facultyIds = new Set(prodiFiltered.map(p => p.FakultasID).filter(Boolean))
+          setFaculties((facRes.data || []).filter(f => facultyIds.size === 0 || facultyIds.has(f.ID)))
+        }
+      } else if (facRes.status === 'success') {
+        setFaculties(facRes.data || [])
+      }
     } catch { toast.error('Gagal memuat data') } finally { setLoading(false) }
   }
-  useEffect(() => { fetchData() }, [])
+  useEffect(() => { fetchData({ syncFromPddikti: true }) }, [])
+
+  const handleSyncPddikti = async () => {
+    setIsSyncing(true)
+    try {
+      await fetchData({ syncFromPddikti: true, showSyncToast: true })
+    } finally {
+      setIsSyncing(false)
+    }
+  }
 
   const handleOpenAdd = () => { setIsEditMode(false); setForm({ Nama: '', Kode: '', Jenjang: 'S1', FakultasID: '' }); setIsCrudOpen(true) }
   const handleOpenEdit = (row) => { setIsEditMode(true); setForm({ ID: row.ID, Nama: row.Nama || '', Kode: row.Kode || '', Jenjang: row.Jenjang || 'S1', FakultasID: String(row.FakultasID || '') }); setIsCrudOpen(true) }
@@ -86,6 +117,7 @@ export default function KelolaProdi() {
             columns={columns} data={data} loading={loading}
             searchPlaceholder="Cari nama atau kode prodi..."
             onAdd={handleOpenAdd} addLabel="Tambah Prodi"
+            onExport={handleSyncPddikti} exportLabel={isSyncing ? 'Menyinkronkan...' : 'Sync PDDIKTI'}
             filters={[
               { key: 'Jenjang', placeholder: 'Filter Jenjang', options: ['S1', 'S2', 'S3', 'D3', 'D4'].map(j => ({ label: j, value: j })) },
               { key: 'FakultasID', placeholder: 'Filter Fakultas', options: faculties.map(f => ({ label: f.Nama, value: f.ID })) }

@@ -338,30 +338,400 @@ func EnsureBootstrapData() error {
 		}
 	}
 
-	// 2. Program Studi will be populated via PDDikti Sync or manual entry.
-
-	// 3. Ensure Super Admin
-	var superAdmin models.User
-	if err := config.DB.Where("email = ?", "superadmin@bku.ac.id").First(&superAdmin).Error; err != nil {
-		hash, _ := bcrypt.GenerateFromPassword([]byte("superadmin123"), bcrypt.DefaultCost)
-		superAdmin = models.User{Email: "superadmin@bku.ac.id", Password: string(hash), Role: "super_admin"}
-		config.DB.Create(&superAdmin)
+	// 2. Load fakultas map
+	var allFakultas []models.Fakultas
+	if err := config.DB.Find(&allFakultas).Error; err != nil {
+		return err
+	}
+	fakultasByKode := map[string]models.Fakultas{}
+	for _, fak := range allFakultas {
+		fakultasByKode[fak.Kode] = fak
 	}
 
-	// 4. Ensure Faculty Admins
-	var allFakultas []models.Fakultas
-	config.DB.Find(&allFakultas)
-	hashFA, _ := bcrypt.GenerateFromPassword([]byte("adminfak123"), bcrypt.DefaultCost)
-	for _, fak := range allFakultas {
-		email := strings.ToLower(fmt.Sprintf("admin.%s@bku.ac.id", fak.Kode))
-		var fa models.User
-		if err := config.DB.Where("email = ?", email).First(&fa).Error; err != nil {
-			fa = models.User{Email: email, Password: string(hashFA), Role: "faculty_admin", FakultasID: &fak.ID}
-			config.DB.Create(&fa)
+	// 3. Ensure baseline prodi (idempotent)
+	prodiSeeds := []models.ProgramStudi{}
+	if ff, ok := fakultasByKode["FF"]; ok {
+		prodiSeeds = append(prodiSeeds,
+			models.ProgramStudi{Nama: "Farmasi", Jenjang: "S1", Kode: "FF-FAR-S1", FakultasID: ff.ID},
+			models.ProgramStudi{Nama: "Farmasi", Jenjang: "D3", Kode: "FF-FAR-D3", FakultasID: ff.ID},
+		)
+	}
+	if fk, ok := fakultasByKode["FK"]; ok {
+		prodiSeeds = append(prodiSeeds,
+			models.ProgramStudi{Nama: "Keperawatan", Jenjang: "S1", Kode: "FK-KEP-S1", FakultasID: fk.ID},
+			models.ProgramStudi{Nama: "Keperawatan", Jenjang: "D3", Kode: "FK-KEP-D3", FakultasID: fk.ID},
+		)
+	}
+	if fik, ok := fakultasByKode["FIK"]; ok {
+		prodiSeeds = append(prodiSeeds,
+			models.ProgramStudi{Nama: "Kebidanan", Jenjang: "D3", Kode: "FIK-KBD-D3", FakultasID: fik.ID},
+			models.ProgramStudi{Nama: "Kesehatan Masyarakat", Jenjang: "S1", Kode: "FIK-KM-S1", FakultasID: fik.ID},
+		)
+	}
+	if fs, ok := fakultasByKode["FS"]; ok {
+		prodiSeeds = append(prodiSeeds,
+			models.ProgramStudi{Nama: "Ilmu Komunikasi", Jenjang: "S1", Kode: "FS-IKOM-S1", FakultasID: fs.ID},
+			models.ProgramStudi{Nama: "Psikologi", Jenjang: "S1", Kode: "FS-PSI-S1", FakultasID: fs.ID},
+		)
+	}
+	for _, seed := range prodiSeeds {
+		var existing models.ProgramStudi
+		err := config.DB.Where("LOWER(nama) = LOWER(?) AND LOWER(jenjang) = LOWER(?)", seed.Nama, seed.Jenjang).First(&existing).Error
+		if err != nil {
+			config.DB.Create(&seed)
 		}
 	}
 
-	// 5. Minimal Setup Completed
-	fmt.Println("✅ [SEEDER] Clean bootstrap completed successfully (Essential accounts only).")
+	// 4. Ensure Super Admin
+	superAdminUser, err := ensureUser("superadmin@bku.ac.id", "superadmin123", "super_admin", nil)
+	if err != nil {
+		return err
+	}
+
+	// 5. Ensure Faculty Admins
+	for _, fak := range allFakultas {
+		email := strings.ToLower(fmt.Sprintf("admin.%s@bku.ac.id", fak.Kode))
+		if _, err := ensureUser(email, "adminfak123", "faculty_admin", &fak.ID); err != nil {
+			return err
+		}
+	}
+
+	// 6. Ensure mahasiswa seeds (multi faculty)
+	studentSeeds := []struct {
+		NIM          string
+		Nama         string
+		ProdiNama    string
+		ProdiJenjang string
+		FakKode      string
+		TahunMasuk   int
+	}{
+		{NIM: "231FF01001", Nama: "Mahasiswa Farmasi", ProdiNama: "Farmasi", ProdiJenjang: "S1", FakKode: "FF", TahunMasuk: 2023},
+		{NIM: "231FK01001", Nama: "Mahasiswa Keperawatan", ProdiNama: "Keperawatan", ProdiJenjang: "S1", FakKode: "FK", TahunMasuk: 2023},
+		{NIM: "231FIK01001", Nama: "Mahasiswa Ilmu Kesehatan", ProdiNama: "Kesehatan Masyarakat", ProdiJenjang: "S1", FakKode: "FIK", TahunMasuk: 2023},
+		{NIM: "231FS01001", Nama: "Mahasiswa Sosial", ProdiNama: "Ilmu Komunikasi", ProdiJenjang: "S1", FakKode: "FS", TahunMasuk: 2023},
+	}
+	for _, s := range studentSeeds {
+		fak, ok := fakultasByKode[s.FakKode]
+		if !ok {
+			continue
+		}
+
+		var prodi models.ProgramStudi
+		if err := config.DB.Where("LOWER(nama) = LOWER(?) AND LOWER(jenjang) = LOWER(?)", s.ProdiNama, s.ProdiJenjang).First(&prodi).Error; err != nil {
+			continue
+		}
+
+		email := strings.ToLower(fmt.Sprintf("%s@student.bku.ac.id", s.NIM))
+		user, err := ensureUser(email, "student123", "mahasiswa", &fak.ID)
+		if err != nil {
+			return err
+		}
+
+		var mhs models.Mahasiswa
+		if err := config.DB.Where("nim = ?", s.NIM).First(&mhs).Error; err != nil {
+			mhs = models.Mahasiswa{
+				PenggunaID:       user.ID,
+				NIM:              s.NIM,
+				Nama:             s.Nama,
+				FakultasID:       fak.ID,
+				ProgramStudiID:   prodi.ID,
+				SemesterSekarang: 6,
+				StatusAkun:       "Aktif",
+				TahunMasuk:       s.TahunMasuk,
+				JalurMasuk:       "SEEDER",
+				EmailKampus:      email,
+			}
+			if err := config.DB.Create(&mhs).Error; err != nil {
+				return err
+			}
+		} else {
+			updates := map[string]interface{}{
+				"pengguna_id":      user.ID,
+				"nama":             s.Nama,
+				"fakultas_id":      fak.ID,
+				"program_studi_id": prodi.ID,
+				"email_kampus":     email,
+				"status_akun":      "Aktif",
+			}
+			if mhs.SemesterSekarang <= 0 {
+				updates["semester_sekarang"] = 6
+			}
+			if err := config.DB.Model(&mhs).Updates(updates).Error; err != nil {
+				return err
+			}
+		}
+	}
+
+	// 7. Ensure Ormawa role account + organisasi sample
+	var defaultFakID *uint
+	if ff, ok := fakultasByKode["FF"]; ok {
+		defaultFakID = &ff.ID
+	}
+	ormawaUser, err := ensureUser("ormawa@bku.ac.id", "ormawa123", "ormawa", defaultFakID)
+	if err != nil {
+		return err
+	}
+
+	var ormawa models.Ormawa
+	if err := config.DB.Where("LOWER(singkatan) = LOWER(?)", "BEMKBK").First(&ormawa).Error; err != nil {
+		ormawa = models.Ormawa{
+			Nama:          "BEM KBM Bhakti Kencana",
+			Singkatan:     "BEMKBK",
+			Deskripsi:     "Badan Eksekutif Mahasiswa tingkat universitas",
+			Status:        "Aktif",
+			Kategori:      "BEM",
+			JumlahAnggota: 1,
+			Email:         "ormawa@bku.ac.id",
+		}
+		if err := config.DB.Create(&ormawa).Error; err != nil {
+			return err
+		}
+	}
+
+	var sampleMhs models.Mahasiswa
+	if err := config.DB.Where("nim = ?", "231FF01001").First(&sampleMhs).Error; err == nil {
+		var anggota models.OrmawaAnggota
+		if err := config.DB.Where("ormawa_id = ? AND mahasiswa_id = ?", ormawa.ID, sampleMhs.ID).First(&anggota).Error; err != nil {
+			anggota = models.OrmawaAnggota{
+				OrmawaID:    ormawa.ID,
+				MahasiswaID: sampleMhs.ID,
+				Role:        "Ketua",
+				Status:      "Aktif",
+				Divisi:      "Inti",
+				JoinedAt:    time.Now(),
+			}
+			if err := config.DB.Create(&anggota).Error; err != nil {
+				return err
+			}
+		}
+	}
+
+	// 8. Ensure Dosen seed for counseling and academic workflows
+	var sampleDosen models.Dosen
+	if ff, ok := fakultasByKode["FF"]; ok {
+		var prodiFarmasi models.ProgramStudi
+		if err := config.DB.Where("LOWER(nama) = LOWER(?) AND LOWER(jenjang) = LOWER(?)", "Farmasi", "S1").First(&prodiFarmasi).Error; err == nil {
+			dosenUser, err := ensureUser("dosen.farmasi@bku.ac.id", "dosen123", "dosen", &ff.ID)
+			if err != nil {
+				return err
+			}
+			if err := config.DB.Where("n_id_n = ?", "0401000001").First(&sampleDosen).Error; err != nil {
+				sampleDosen = models.Dosen{
+					PenggunaID:     dosenUser.ID,
+					NIDN:           "0401000001",
+					Nama:           "Dr. Dosen Pembimbing",
+					FakultasID:     ff.ID,
+					ProgramStudiID: prodiFarmasi.ID,
+				}
+				if err := config.DB.Create(&sampleDosen).Error; err != nil {
+					return err
+				}
+			}
+		}
+	}
+
+	// 9. Seed Academic configuration for faculty admin menus
+	var period models.AcademicPeriod
+	if err := config.DB.Where("nama_periode = ?", "Genap 2025/2026").First(&period).Error; err != nil {
+		period = models.AcademicPeriod{Name: "Genap 2025/2026", Semester: "Genap", AcademicYear: "2025/2026", IsActive: true, IsKRSOpen: true}
+		if err := config.DB.Create(&period).Error; err != nil {
+			return err
+		}
+	}
+
+	var setting models.PengaturanAkademik
+	if err := config.DB.Where("tahun_akademik = ? AND semester = ?", "2025/2026", "Genap").First(&setting).Error; err != nil {
+		setting = models.PengaturanAkademik{TahunAkademik: "2025/2026", Semester: "Genap", IsKRSOpen: true, IsNilaiOpen: true, IsMBKMOpen: true}
+		if err := config.DB.Create(&setting).Error; err != nil {
+			return err
+		}
+	}
+
+	var mbkm models.ProgramMBKM
+	if err := config.DB.Where("nama_program = ?", "Magang Industri Farmasi").First(&mbkm).Error; err != nil {
+		mbkm = models.ProgramMBKM{NamaProgram: "Magang Industri Farmasi", Jenis: "Magang", Mitra: "PT Sehat Sentosa", Deskripsi: "Program magang 1 semester", SKSKonversiDefault: 20, Periode: "2025/2026 Genap"}
+		if err := config.DB.Create(&mbkm).Error; err != nil {
+			return err
+		}
+	}
+
+	// 10. Seed Student service menus
+	if sampleMhs.ID != 0 {
+		var bea models.Beasiswa
+		if err := config.DB.Where("nama = ?", "Beasiswa Prestasi UBK").First(&bea).Error; err != nil {
+			bea = models.Beasiswa{
+				Nama:          "Beasiswa Prestasi UBK",
+				Penyelenggara: "Universitas Bhakti Kencana",
+				Deskripsi:     "Beasiswa untuk mahasiswa berprestasi akademik dan non akademik",
+				Deadline:      time.Now().AddDate(0, 2, 0),
+				Kuota:         50,
+				IPKMin:        3.25,
+				Kategori:      "Prestasi",
+				NilaiBantuan:  5000000,
+				Anggaran:      250000000,
+			}
+			if err := config.DB.Create(&bea).Error; err != nil {
+				return err
+			}
+		}
+
+		var daftarBea models.BeasiswaPendaftaran
+		if err := config.DB.Where("mahasiswa_id = ? AND beasiswa_id = ?", sampleMhs.ID, bea.ID).First(&daftarBea).Error; err != nil {
+			daftarBea = models.BeasiswaPendaftaran{MahasiswaID: sampleMhs.ID, BeasiswaID: bea.ID, Status: "Diajukan", Catatan: "Dokumen lengkap", BuktiURL: "/uploads/sample-beasiswa.pdf"}
+			if err := config.DB.Create(&daftarBea).Error; err != nil {
+				return err
+			}
+		}
+
+		var aspirasi models.Aspirasi
+		if err := config.DB.Where("mahasiswa_id = ? AND judul = ?", sampleMhs.ID, "Peningkatan Fasilitas Laboratorium").First(&aspirasi).Error; err != nil {
+			aspirasi = models.Aspirasi{MahasiswaID: sampleMhs.ID, Judul: "Peningkatan Fasilitas Laboratorium", Isi: "Mohon penambahan alat praktikum terbaru untuk mendukung pembelajaran.", Kategori: "Akademik", Tujuan: "Fakultas", Status: "Menunggu", Prioritas: "HIGH", IsAnonim: false}
+			if err := config.DB.Create(&aspirasi).Error; err != nil {
+				return err
+			}
+		}
+
+		if sampleDosen.ID != 0 {
+			var konseling models.Konseling
+			if err := config.DB.Where("mahasiswa_id = ? AND topik = ?", sampleMhs.ID, "Rencana Studi Semester").First(&konseling).Error; err != nil {
+				konseling = models.Konseling{MahasiswaID: sampleMhs.ID, DosenID: sampleDosen.ID, Tanggal: time.Now().AddDate(0, 0, 3), Topik: "Rencana Studi Semester", Status: "Terjadwal", Catatan: "Diskusi mata kuliah dan target IPK"}
+				if err := config.DB.Create(&konseling).Error; err != nil {
+					return err
+				}
+			}
+		}
+
+		var surat models.PengajuanSurat
+		if err := config.DB.Where("mahasiswa_id = ? AND jenis = ?", sampleMhs.ID, "Surat Keterangan Aktif").First(&surat).Error; err != nil {
+			surat = models.PengajuanSurat{MahasiswaID: sampleMhs.ID, Jenis: "Surat Keterangan Aktif", NomorSurat: "SKA/UBK/2026/001", Status: "Diproses", Catatan: "Menunggu verifikasi akademik"}
+			if err := config.DB.Create(&surat).Error; err != nil {
+				return err
+			}
+		}
+
+		var kesehatan models.Kesehatan
+		if err := config.DB.Where("mahasiswa_id = ? AND jenis_pemeriksaan = ?", sampleMhs.ID, "Screening Tahunan").First(&kesehatan).Error; err != nil {
+			kesehatan = models.Kesehatan{MahasiswaID: sampleMhs.ID, Tanggal: time.Now().AddDate(0, -1, 0), JenisPemeriksaan: "Screening Tahunan", Hasil: "Sehat", Catatan: "Kondisi umum baik", TinggiBadan: 168, BeratBadan: 62, Sistole: 120, Diastole: 80, GulaDarah: 95, ButaWarna: "Normal", StatusKesehatan: "prima", GolonganDarah: "O"}
+			if err := config.DB.Create(&kesehatan).Error; err != nil {
+				return err
+			}
+		}
+	}
+
+	// 11. Seed ORMAWA menus
+	if ormawa.ID != 0 && sampleMhs.ID != 0 {
+		var proposal models.Proposal
+		if err := config.DB.Where("ormawa_id = ? AND judul = ?", ormawa.ID, "Festival Mahasiswa UBK 2026").First(&proposal).Error; err != nil {
+			proposal = models.Proposal{
+				OrmawaID:        ormawa.ID,
+				MahasiswaID:     sampleMhs.ID,
+				FakultasID:      sampleMhs.FakultasID,
+				Judul:           "Festival Mahasiswa UBK 2026",
+				TanggalKegiatan: time.Now().AddDate(0, 1, 10),
+				Anggaran:        25000000,
+				Jenis:           "Kegiatan Mahasiswa",
+				Status:          "Diajukan",
+				Catatan:         "Proposal awal kegiatan lintas fakultas",
+			}
+			if err := config.DB.Create(&proposal).Error; err != nil {
+				return err
+			}
+		}
+
+		var riwayat models.ProposalRiwayat
+		if err := config.DB.Where("proposal_id = ? AND status = ?", proposal.ID, "Diajukan").First(&riwayat).Error; err != nil {
+			riwayat = models.ProposalRiwayat{ProposalID: proposal.ID, Status: "Diajukan", Catatan: "Pengajuan awal", CreatedBy: ormawaUser.ID}
+			if err := config.DB.Create(&riwayat).Error; err != nil {
+				return err
+			}
+		}
+
+		var lpj models.LaporanPertanggungjawaban
+		if err := config.DB.Where("proposal_id = ?", proposal.ID).First(&lpj).Error; err != nil {
+			lpj = models.LaporanPertanggungjawaban{ProposalID: proposal.ID, RealisasiAnggaran: 0, Status: "Draft", Catatan: "LPJ belum final"}
+			if err := config.DB.Create(&lpj).Error; err != nil {
+				return err
+			}
+		}
+
+		var pengumuman models.OrmawaPengumuman
+		if err := config.DB.Where("ormawa_id = ? AND judul = ?", ormawa.ID, "Open Recruitment Pengurus").First(&pengumuman).Error; err != nil {
+			pengumuman = models.OrmawaPengumuman{OrmawaID: ormawa.ID, Judul: "Open Recruitment Pengurus", Isi: "Pendaftaran pengurus baru dibuka sampai akhir bulan.", Target: "Semua Mahasiswa", TanggalMulai: time.Now(), TanggalSelesai: time.Now().AddDate(0, 0, 14)}
+			if err := config.DB.Create(&pengumuman).Error; err != nil {
+				return err
+			}
+		}
+
+		var mutasi models.OrmawaMutasiSaldo
+		if err := config.DB.Where("ormawa_id = ? AND deskripsi = ?", ormawa.ID, "Saldo awal organisasi").First(&mutasi).Error; err != nil {
+			mutasi = models.OrmawaMutasiSaldo{OrmawaID: ormawa.ID, Tipe: "Kredit", Nominal: 10000000, Kategori: "Dana Awal", Deskripsi: "Saldo awal organisasi", Tanggal: time.Now()}
+			if err := config.DB.Create(&mutasi).Error; err != nil {
+				return err
+			}
+		}
+	}
+
+	// 12. Seed content/news and audit
+	var berita models.Berita
+	if err := config.DB.Where("judul = ?", "Kalender Akademik 2026").First(&berita).Error; err != nil {
+		berita = models.Berita{Judul: "Kalender Akademik 2026", Isi: "Informasi kalender akademik terbaru untuk seluruh mahasiswa.", PenulisID: superAdminUser.ID, Status: "Published", TanggalPublish: time.Now()}
+		if err := config.DB.Create(&berita).Error; err != nil {
+			return err
+		}
+	}
+
+	var logAct models.LogAktivitas
+	if err := config.DB.Where("user_id = ? AND aktivitas = ?", superAdminUser.ID, "SEEDER_BOOTSTRAP").First(&logAct).Error; err != nil {
+		logAct = models.LogAktivitas{UserID: superAdminUser.ID, Aktivitas: "SEEDER_BOOTSTRAP", Deskripsi: "Seeder default untuk semua role dan menu", IPAddress: "127.0.0.1"}
+		if err := config.DB.Create(&logAct).Error; err != nil {
+			return err
+		}
+	}
+
+	fmt.Println("✅ [SEEDER] Bootstrap completed successfully.")
+	fmt.Println("   super_admin   : superadmin@bku.ac.id / superadmin123")
+	fmt.Println("   faculty_admin : admin.<KODE_FAK>@bku.ac.id / adminfak123")
+	fmt.Println("   mahasiswa     : <NIM>@student.bku.ac.id / student123")
+	fmt.Println("   ormawa        : ormawa@bku.ac.id / ormawa123")
 	return nil
+}
+
+func ensureUser(email, plainPassword, role string, fakultasID *uint) (models.User, error) {
+	var user models.User
+	if err := config.DB.Where("LOWER(email) = ?", strings.ToLower(email)).First(&user).Error; err == nil {
+		updates := map[string]interface{}{}
+		if role != "" && user.Role != role {
+			updates["role"] = role
+		}
+		if fakultasID != nil {
+			updates["fakultas_id"] = *fakultasID
+		}
+		if len(updates) > 0 {
+			if err := config.DB.Model(&user).Updates(updates).Error; err != nil {
+				return models.User{}, err
+			}
+			_ = config.DB.First(&user, user.ID).Error
+		}
+		return user, nil
+	}
+
+	hash, err := bcrypt.GenerateFromPassword([]byte(plainPassword), bcrypt.DefaultCost)
+	if err != nil {
+		return models.User{}, err
+	}
+
+	user = models.User{
+		Email:    strings.ToLower(email),
+		Password: string(hash),
+		Role:     role,
+	}
+	if fakultasID != nil {
+		user.FakultasID = fakultasID
+	}
+
+	if err := config.DB.Create(&user).Error; err != nil {
+		return models.User{}, err
+	}
+
+	return user, nil
 }

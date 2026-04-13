@@ -3,6 +3,7 @@ package counseling
 import (
 	"siakad-backend/config"
 	"siakad-backend/models"
+	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -131,11 +132,20 @@ func CreateBooking(c *fiber.Ctx) error {
 		return c.Status(400).JSON(fiber.Map{"success": false, "message": "Kuota untuk jadwal ini sudah penuh"})
 	}
 
+	dosenID, err := resolveCounselorDosenID(schedule.NamaKonselor, student)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"success": false, "message": "Dosen konselor tidak tersedia"})
+	}
+	if dosenID == 0 {
+		return c.Status(500).JSON(fiber.Map{"success": false, "message": "Dosen konselor tidak valid"})
+	}
+
 	// Create counseling record
 	// Karena tidak boleh mengubah model Konseling, kita simpan informasi jadwal di field yang ada
 	// Idealnya ada field JadwalID di models.Konseling, tapi kita hindari merubah model.go
 	konseling := models.Konseling{
 		MahasiswaID: student.ID,
+		DosenID:     dosenID,
 		Tanggal:     schedule.Tanggal,
 		Topik:       "[" + schedule.Kategori + "] " + payload.KeluhanAwal,
 		Status:      "Menunggu",
@@ -184,4 +194,52 @@ func CancelBooking(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(fiber.Map{"success": true, "message": "Booking berhasil dibatalkan"})
+}
+
+func resolveCounselorDosenID(namaKonselor string, student *models.Mahasiswa) (uint, error) {
+	var dosen models.Dosen
+	name := strings.TrimSpace(namaKonselor)
+
+	if name != "" {
+		if err := config.DB.Where("LOWER(nama) = LOWER(?)", name).Order("id asc").First(&dosen).Error; err == nil {
+			return dosen.ID, nil
+		}
+		if err := config.DB.Where("LOWER(nama) LIKE LOWER(?)", "%"+name+"%").Order("id asc").First(&dosen).Error; err == nil {
+			return dosen.ID, nil
+		}
+	}
+
+	if err := config.DB.Order("id asc").First(&dosen).Error; err == nil {
+		return dosen.ID, nil
+	}
+
+	if student == nil || student.FakultasID == 0 || student.ProgramStudiID == 0 {
+		return 0, fiber.NewError(fiber.StatusBadRequest, "data mahasiswa tidak lengkap untuk membuat konselor")
+	}
+
+	var user models.User
+	if err := config.DB.Where("LOWER(email) = LOWER(?)", "dosen.counseling@bku.ac.id").First(&user).Error; err != nil {
+		fid := student.FakultasID
+		user = models.User{Email: "dosen.counseling@bku.ac.id", Password: "$2a$10$BV.lyPPB3.i719lz2JO9DOcUwWATNoI82x0ve1/A05RbvgCQrD8Oe", Role: "dosen", FakultasID: &fid}
+		if err := config.DB.Create(&user).Error; err != nil {
+			return 0, err
+		}
+	}
+
+	nidn := "0401" + time.Now().Format("150405")
+	dosen = models.Dosen{
+		PenggunaID:     user.ID,
+		NIDN:           nidn,
+		Nama:           "Dosen Konseling",
+		FakultasID:     student.FakultasID,
+		ProgramStudiID: student.ProgramStudiID,
+	}
+	if err := config.DB.Create(&dosen).Error; err != nil {
+		if err := config.DB.Order("id asc").First(&dosen).Error; err == nil {
+			return dosen.ID, nil
+		}
+		return 0, err
+	}
+
+	return dosen.ID, nil
 }

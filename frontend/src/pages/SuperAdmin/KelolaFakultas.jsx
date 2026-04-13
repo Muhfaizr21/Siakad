@@ -18,6 +18,7 @@ import { adminService } from '../../services/api'
 export default function KelolaFakultas() {
   const [data, setData] = useState([])
   const [loading, setLoading] = useState(true)
+  const [isSyncing, setIsSyncing] = useState(false)
   const [isCrudOpen, setIsCrudOpen] = useState(false)
   const [isDelOpen, setIsDelOpen] = useState(false)
   const [isEditMode, setIsEditMode] = useState(false)
@@ -25,15 +26,28 @@ export default function KelolaFakultas() {
   const [selected, setSelected] = useState(null)
   const [form, setForm] = useState({ Nama: '', Kode: '', Email: '', NoHP: '', Dekan: '' })
 
-  const fetchData = async () => {
+  const fetchData = async ({ syncFromPddikti = false, showSyncToast = false } = {}) => {
     setLoading(true)
     try {
+      if (syncFromPddikti) {
+        await adminService.syncPddikti('Universitas Bhakti Kencana', 'all')
+        if (showSyncToast) toast.success('Sinkronisasi Fakultas dari PDDIKTI selesai')
+      }
       const res = await adminService.getAllFaculties()
       if (res.status === 'success') setData(res.data || [])
       else toast.error('Gagal memuat data')
     } catch { toast.error('Koneksi gagal') } finally { setLoading(false) }
   }
-  useEffect(() => { fetchData() }, [])
+  useEffect(() => { fetchData({ syncFromPddikti: true }) }, [])
+
+  const handleSyncPddikti = async () => {
+    setIsSyncing(true)
+    try {
+      await fetchData({ syncFromPddikti: true, showSyncToast: true })
+    } finally {
+      setIsSyncing(false)
+    }
+  }
 
   const handleOpenAdd = () => { setIsEditMode(false); setForm({ Nama: '', Kode: '', Email: '', NoHP: '', Dekan: '' }); setIsCrudOpen(true) }
   const handleOpenEdit = (row) => { setIsEditMode(true); setForm({ ID: row.ID, Nama: row.Nama || '', Kode: row.Kode || '', Email: row.Email || '', NoHP: row.NoHP || '', Dekan: row.Dekan || '' }); setIsCrudOpen(true) }
@@ -85,6 +99,7 @@ export default function KelolaFakultas() {
                 columns={columns} data={data} loading={loading}
                 searchPlaceholder="Cari nama atau kode fakultas..."
                 onAdd={handleOpenAdd} addLabel="Tambah Fakultas"
+                onExport={handleSyncPddikti} exportLabel={isSyncing ? 'Menyinkronkan...' : 'Sync PDDIKTI'}
                 actions={(row) => (
                   <div className="flex items-center gap-2">
                     <Button onClick={() => handleOpenEdit(row)} variant="ghost" size="icon" className="h-8 w-8 hover:text-amber-600 hover:bg-amber-50 rounded-xl"><Pencil className="size-4" /></Button>

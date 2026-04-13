@@ -78,6 +78,7 @@ func main() {
 
 	authGroup := app.Group("/api/auth")
 	authGroup.Post("/login", authSvc.Login)
+	authGroup.Post("/logout", authSvc.Logout)
 
 	// Admin Routes (Protected separately)
 	adminGroup := app.Group("/api/admin", middleware.AuthProtected, middleware.AdminCheck)

@@ -31,6 +31,7 @@ const getRouteByRole = (role) => {
   if (r === 'super_admin') return '/admin';
   if (r === 'faculty_admin') return '/faculty';
   if (r === 'ormawa_admin') return '/ormawa';
+  if (r === 'ormawa') return '/ormawa';
   if (r === 'dosen') return '/faculty';
   return '/student/dashboard';
 };

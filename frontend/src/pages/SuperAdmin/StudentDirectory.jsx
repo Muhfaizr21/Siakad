@@ -20,8 +20,33 @@ import {
 
 const EMPTY_FORM = { NIM: '', Nama: '', EmailKampus: '', FakultasID: '', ProgramStudiID: '', SemesterSekarang: 1, StatusAkun: 'Aktif', Alamat: '', TahunMasuk: new Date().getFullYear() }
 
+function mapStatusAkun(statusAkun = '', statusAkademik = '') {
+  const source = `${statusAkun} ${statusAkademik}`.toLowerCase()
+  if (source.includes('lulus')) return 'Lulus'
+  if (source.includes('cuti')) return 'Cuti'
+  if (source.includes('non-aktif') || source.includes('nonaktif') || source.includes('mengundurkan') || source.includes('drop out') || source.includes('keluar')) return 'Non-Aktif'
+  return 'Aktif'
+}
+
+function mapSemester(statusAkun = '', semester = 1) {
+  if ((statusAkun || '').toLowerCase() === 'lulus') return 0
+  const parsed = Number(semester)
+  if (!Number.isInteger(parsed) || parsed < 1) return 1
+  return parsed
+}
+
+function normalizeStudentRow(row = {}) {
+  const normalizedStatus = mapStatusAkun(row.StatusAkun, row.StatusAkademik)
+  return {
+    ...row,
+    StatusAkun: normalizedStatus,
+    SemesterSekarang: mapSemester(normalizedStatus, row.SemesterSekarang)
+  }
+}
+
 export default function StudentDirectory() {
   const [students, setStudents] = useState([])
+  const [syncedNims, setSyncedNims] = useState(new Set())
   const [prodi, setProdi] = useState([])
   const [faculties, setFaculties] = useState([])
   const [loading, setLoading] = useState(true)
@@ -33,25 +58,39 @@ export default function StudentDirectory() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [form, setForm] = useState(EMPTY_FORM)
 
-  const fetchData = async () => {
+  const fetchData = async ({ syncFromPddikti = false, showSyncToast = false } = {}) => {
     setLoading(true)
     try {
+      let latestSyncedNims = syncedNims
+      if (syncFromPddikti) {
+        const syncRes = await adminService.syncPddikti('Universitas Bhakti Kencana', 'all')
+        const syncedList = syncRes?.data?.mahasiswa || []
+        latestSyncedNims = new Set(syncedList.map(m => String(m?.nim || '').trim()).filter(Boolean))
+        setSyncedNims(latestSyncedNims)
+        if (showSyncToast) {
+          toast.success('Sync PDDikti selesai! Data mahasiswa seluruh fakultas diperbarui.')
+        }
+      }
       const [stdRes, prodiRes, facRes] = await Promise.all([adminService.getAllStudents(), adminService.getAllProdi(), adminService.getAllFaculties()])
-      if (stdRes.status === 'success') setStudents(stdRes.data || [])
+      if (stdRes.status === 'success') {
+        const allStudents = (stdRes.data || []).map(normalizeStudentRow)
+        const filteredStudents = latestSyncedNims.size > 0
+          ? allStudents.filter(s => latestSyncedNims.has(String(s?.NIM || '').trim()))
+          : allStudents
+        setStudents(filteredStudents)
+      }
       if (prodiRes.status === 'success') setProdi(prodiRes.data || [])
       if (facRes.status === 'success') setFaculties(facRes.data || [])
     } catch { toast.error('Gagal memuat data') } finally { setLoading(false) }
   }
-  useEffect(() => { fetchData() }, [])
+  useEffect(() => { fetchData({ syncFromPddikti: true }) }, [])
 
   const [isSyncing, setIsSyncing] = useState(false)
 
   const handleSyncPddikti = async () => {
     setIsSyncing(true)
     try {
-      await adminService.syncPddikti('Universitas Bhakti Kencana', 'mhs')
-      toast.success('Sync PDDikti selesai! Data mahasiswa diperbarui.')
-      fetchData()
+      await fetchData({ syncFromPddikti: true, showSyncToast: true })
     } catch {
       toast.error('Gagal sync PDDikti')
     } finally {
@@ -112,13 +151,15 @@ export default function StudentDirectory() {
     },
     { key: 'Fakultas', label: 'Fakultas', className: 'w-[180px]', render: v => <span className="text-[12px] font-bold text-slate-500 font-headline uppercase">{v?.Nama || '—'}</span> },
     { key: 'ProgramStudi', label: 'Program Studi', className: 'w-[200px]', render: v => <span className="text-xs text-slate-600 font-black font-headline uppercase">{v?.Nama || '—'}</span> },
-    { key: 'SemesterSekarang', label: 'Semester', className: 'w-[80px] text-center', cellClassName: 'text-center', render: v => <span className="font-bold text-slate-900 font-headline text-xs">{v || 1}</span> },
+    { key: 'SemesterSekarang', label: 'Semester', className: 'w-[80px] text-center', cellClassName: 'text-center', render: (v, row) => <span className="font-bold text-slate-900 font-headline text-xs">{row.StatusAkun === 'Lulus' ? '-' : (v || 1)}</span> },
     { key: 'StatusAkun', label: 'Status', className: 'w-[120px] text-center', cellClassName: 'text-center',
       render: v => (
         <Badge className={cn('capitalize font-black text-[10px] px-3 py-1 border-none shadow-sm',
           v === 'Aktif' ? 'bg-emerald-100 text-emerald-700 ring-1 ring-emerald-500/20' :
           v === 'Cuti' ? 'bg-amber-100 text-amber-700 ring-1 ring-amber-500/20' :
-          v === 'Lulus' ? 'bg-indigo-100 text-indigo-700 ring-1 ring-indigo-500/20' : 'bg-slate-100 text-slate-600')}>{v || 'Aktif'}
+          v === 'Lulus' ? 'bg-indigo-100 text-indigo-700 ring-1 ring-indigo-500/20' :
+          v === 'Non-Aktif' ? 'bg-rose-100 text-rose-700 ring-1 ring-rose-500/20' :
+          'bg-slate-100 text-slate-600')}>{v || 'Aktif'}
         </Badge>
       )
     }
@@ -183,7 +224,7 @@ export default function StudentDirectory() {
                   <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{selected.NIM}</p>
                 </div>
                 <div className="grid grid-cols-2 gap-6">
-                  {[ ['Program Studi', selected.ProgramStudi?.Nama], ['Semester', selected.SemesterSekarang], ['Status', selected.StatusAkun], ['Email', selected.Pengguna?.Email], ['IPK', selected.IPK?.toFixed(2) || '0.00'], ['Total SKS', selected.TotalSKS || 0] ].map(([label, val]) => (
+                  {[ ['Program Studi', selected.ProgramStudi?.Nama], ['Semester', selected.StatusAkun === 'Lulus' ? '-' : selected.SemesterSekarang], ['Status', selected.StatusAkun], ['Email', selected.Pengguna?.Email], ['IPK', selected.IPK?.toFixed(2) || '0.00'], ['Total SKS', selected.TotalSKS || 0] ].map(([label, val]) => (
                     <div key={label}>
                       <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{label}</p>
                       <p className="text-sm font-black text-slate-900 font-headline truncate">{val || '—'}</p>

@@ -25,13 +25,13 @@ func GetOrmawaStats(c *fiber.Ctx) error {
 	var totalMember int64
 	var totalEvents int64
 	var totalAnnouncements int64
-	
+
 	// Stats Counts
 	config.DB.Model(&models.Proposal{}).Where("ormawa_id = ?", ormawaId).Count(&totalProposal)
 	config.DB.Model(&models.OrmawaAnggota{}).Where("ormawa_id = ?", ormawaId).Count(&totalMember)
 	config.DB.Model(&models.OrmawaKegiatan{}).Where("ormawa_id = ?", ormawaId).Count(&totalEvents)
 	config.DB.Model(&models.OrmawaPengumuman{}).Where("ormawa_id = ?", ormawaId).Count(&totalAnnouncements)
-	
+
 	// Kas Calculation
 	var masuk float64
 	var keluar float64
@@ -110,7 +110,7 @@ func CreateProposal(c *fiber.Ctx) error {
 			payload.MahasiswaID = mhs.ID
 		}
 	}
-	
+
 	if payload.FakultasID == 0 {
 		var fak models.Fakultas
 		// Try to match with Mahasiswa's faculty first
@@ -141,12 +141,12 @@ func CreateProposal(c *fiber.Ctx) error {
 
 	if err := config.DB.Create(&payload).Error; err != nil {
 		return c.Status(500).JSON(fiber.Map{
-			"status": "error", 
+			"status":  "error",
 			"message": "Gagal menyimpan proposal: " + err.Error(),
 			"debug_info": fiber.Map{
 				"MahasiswaID": payload.MahasiswaID,
-				"FakultasID": payload.FakultasID,
-				"OrmawaID": payload.OrmawaID,
+				"FakultasID":  payload.FakultasID,
+				"OrmawaID":    payload.OrmawaID,
 			},
 		})
 	}
@@ -167,7 +167,7 @@ func UpdateProposal(c *fiber.Ctx) error {
 	if err := config.DB.First(&proposal, id).Error; err != nil {
 		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Proposal tidak ditemukan"})
 	}
-	
+
 	var payload struct {
 		Status   string  `json:"Status"`
 		Catatan  string  `json:"Catatan"`
@@ -202,10 +202,16 @@ func UpdateProposal(c *fiber.Ctx) error {
 		}
 
 		updates := make(map[string]interface{})
-		if payload.Status != "" { updates["status"] = payload.Status }
-		if payload.Judul != "" { updates["judul"] = payload.Judul }
-		if payload.Anggaran > 0 { updates["anggaran"] = payload.Anggaran }
-		
+		if payload.Status != "" {
+			updates["status"] = payload.Status
+		}
+		if payload.Judul != "" {
+			updates["judul"] = payload.Judul
+		}
+		if payload.Anggaran > 0 {
+			updates["anggaran"] = payload.Anggaran
+		}
+
 		if len(updates) > 0 {
 			if err := tx.Model(&proposal).Updates(updates).Error; err != nil {
 				return err
@@ -428,14 +434,14 @@ func SubmitAttendance(c *fiber.Ctx) error {
 	if err := c.BodyParser(&data); err != nil {
 		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Input tidak valid"})
 	}
-	
+
 	if data.KegiatanID == 0 || data.MahasiswaID == 0 {
 		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "KegiatanID dan MahasiswaID wajib diisi"})
 	}
 
 	var existing models.OrmawaKehadiran
 	err := config.DB.Where("kegiatan_id = ? AND mahasiswa_id = ?", data.KegiatanID, data.MahasiswaID).First(&existing).Error
-	
+
 	if err == nil {
 		existing.Status = data.Status
 		existing.WaktuHadir = time.Now()
@@ -452,7 +458,7 @@ func SubmitAttendance(c *fiber.Ctx) error {
 	if err := config.DB.Create(&payload).Error; err != nil {
 		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal mencatat absensi"})
 	}
-	
+
 	return c.Status(201).JSON(fiber.Map{"status": "success", "data": payload})
 }
 
@@ -509,36 +515,42 @@ func CreateOrmawaRole(c *fiber.Ctx) error {
 		Deskripsi string   `json:"Deskripsi"`
 		Hak       []string `json:"Hak"`
 	}
-	if err := c.BodyParser(&data); err != nil { return c.Status(400).JSON(fiber.Map{"status": "error", "message": err.Error()}) }
-	
+	if err := c.BodyParser(&data); err != nil {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": err.Error()})
+	}
+
 	// Convert array to JSON
 	perms, _ := json.Marshal(data.Hak)
-	role := models.OrmawaRole{ 
-		Nama:        data.Nama, 
+	role := models.OrmawaRole{
+		Nama:        data.Nama,
 		Deskripsi:   data.Deskripsi,
 		Permissions: datatypes.JSON(perms),
 	}
-	if err := config.DB.Create(&role).Error; err != nil { return c.Status(500).JSON(fiber.Map{"status": "error"}) }
+	if err := config.DB.Create(&role).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error"})
+	}
 	return c.Status(201).JSON(fiber.Map{"status": "success", "data": role})
 }
 
 func UpdateOrmawaRole(c *fiber.Ctx) error {
 	id := c.Params("id")
 	var role models.OrmawaRole
-	if err := config.DB.First(&role, id).Error; err != nil { return c.Status(404).JSON(fiber.Map{"status": "error"}) }
-	
+	if err := config.DB.First(&role, id).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{"status": "error"})
+	}
+
 	var data struct {
 		Nama      string   `json:"Nama"`
 		Deskripsi string   `json:"Deskripsi"`
 		Hak       []string `json:"Hak"`
 	}
 	c.BodyParser(&data)
-	
+
 	perms, _ := json.Marshal(data.Hak)
 	role.Nama = data.Nama
 	role.Deskripsi = data.Deskripsi
 	role.Permissions = datatypes.JSON(perms)
-	
+
 	config.DB.Save(&role)
 	return c.JSON(fiber.Map{"status": "success", "data": role})
 }
@@ -664,7 +676,7 @@ func CreateDivision(c *fiber.Ctx) error {
 	if err := config.DB.Create(&payload).Error; err != nil {
 		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal menyimpan divisi baru"})
 	}
-	
+
 	return c.JSON(fiber.Map{"status": "success", "data": payload})
 }
 
@@ -684,23 +696,92 @@ func GetLPJs(c *fiber.Ctx) error {
 		query = query.Joins("JOIN ormawa.proposal ON ormawa.proposal.id = ormawa.laporan_pertanggungjawaban.proposal_id").
 			Where("ormawa.proposal.ormawa_id = ?", ormawaId)
 	}
-	query.Find(&list)
-	return c.JSON(fiber.Map{"status": "success", "data": list})
+	query.Order("ormawa.laporan_pertanggungjawaban.created_at desc").Find(&list)
+
+	data := make([]fiber.Map, 0, len(list))
+	for _, item := range list {
+		data = append(data, fiber.Map{
+			"ID":                item.ID,
+			"ProposalID":        item.ProposalID,
+			"Judul":             item.Proposal.Judul,
+			"Status":            item.Status,
+			"Catatan":           item.Catatan,
+			"RealisasiAnggaran": item.RealisasiAnggaran,
+			"TotalAnggaran":     item.Proposal.Anggaran,
+			"FileURL":           item.FileURL,
+			"Proposal":          item.Proposal,
+			"CreatedAt":         item.CreatedAt,
+			"UpdatedAt":         item.UpdatedAt,
+		})
+	}
+
+	return c.JSON(fiber.Map{"status": "success", "data": data})
 }
 
 func CreateLPJ(c *fiber.Ctx) error {
-	var payload models.LaporanPertanggungjawaban
+	var payload struct {
+		ProposalID        uint    `json:"ProposalID"`
+		RealisasiAnggaran float64 `json:"RealisasiAnggaran"`
+		TotalAnggaran     float64 `json:"TotalAnggaran"`
+		Catatan           string  `json:"Catatan"`
+		Status            string  `json:"Status"`
+	}
 	if err := c.BodyParser(&payload); err != nil {
 		return c.Status(400).JSON(fiber.Map{"status": "error", "message": err.Error()})
 	}
-	
+
+	if payload.ProposalID == 0 {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Proposal wajib dipilih"})
+	}
+
+	var proposal models.Proposal
+	if err := config.DB.First(&proposal, payload.ProposalID).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Proposal tidak ditemukan"})
+	}
+	if payload.TotalAnggaran > 0 {
+		if err := config.DB.Model(&proposal).Update("anggaran", payload.TotalAnggaran).Error; err == nil {
+			proposal.Anggaran = payload.TotalAnggaran
+		}
+	}
+
 	var existing models.LaporanPertanggungjawaban
 	if err := config.DB.Where("proposal_id = ?", payload.ProposalID).First(&existing).Error; err == nil {
 		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "LPJ already exists for this proposal"})
 	}
 
-	config.DB.Create(&payload)
-	return c.JSON(fiber.Map{"status": "success", "data": payload})
+	status := payload.Status
+	if status == "" {
+		status = "draft"
+	}
+
+	lpj := models.LaporanPertanggungjawaban{
+		ProposalID:        payload.ProposalID,
+		RealisasiAnggaran: payload.RealisasiAnggaran,
+		Catatan:           payload.Catatan,
+		Status:            status,
+	}
+
+	if err := config.DB.Create(&lpj).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal menyimpan LPJ: " + err.Error()})
+	}
+
+	if err := config.DB.Preload("Proposal").First(&lpj, lpj.ID).Error; err != nil {
+		return c.JSON(fiber.Map{"status": "success", "data": lpj})
+	}
+
+	return c.JSON(fiber.Map{"status": "success", "data": fiber.Map{
+		"ID":                lpj.ID,
+		"ProposalID":        lpj.ProposalID,
+		"Judul":             lpj.Proposal.Judul,
+		"Status":            lpj.Status,
+		"Catatan":           lpj.Catatan,
+		"RealisasiAnggaran": lpj.RealisasiAnggaran,
+		"TotalAnggaran":     lpj.Proposal.Anggaran,
+		"FileURL":           lpj.FileURL,
+		"Proposal":          lpj.Proposal,
+		"CreatedAt":         lpj.CreatedAt,
+		"UpdatedAt":         lpj.UpdatedAt,
+	}})
 }
 
 func UpdateLPJ(c *fiber.Ctx) error {
@@ -709,27 +790,37 @@ func UpdateLPJ(c *fiber.Ctx) error {
 	if err := config.DB.Preload("Proposal").First(&lpj, id).Error; err != nil {
 		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Not Found"})
 	}
-	
+
 	var payload struct {
 		Status            string  `json:"Status"`
 		Catatan           string  `json:"Catatan"`
 		RealisasiAnggaran float64 `json:"RealisasiAnggaran"`
+		TotalAnggaran     float64 `json:"TotalAnggaran"`
 	}
 	c.BodyParser(&payload)
 
 	oldStatus := lpj.Status
 
 	if payload.Status != "" {
-		lpj.Status = payload.Status 
+		lpj.Status = payload.Status
 	}
-	if payload.Catatan != "" { lpj.Catatan = payload.Catatan }
-	if payload.RealisasiAnggaran > 0 { lpj.RealisasiAnggaran = payload.RealisasiAnggaran }
-	
+	if payload.Catatan != "" {
+		lpj.Catatan = payload.Catatan
+	}
+	if payload.RealisasiAnggaran > 0 {
+		lpj.RealisasiAnggaran = payload.RealisasiAnggaran
+	}
+
 	config.DB.Save(&lpj)
-	
+
+	if payload.TotalAnggaran > 0 {
+		config.DB.Model(&models.Proposal{}).Where("id = ?", lpj.ProposalID).Update("anggaran", payload.TotalAnggaran)
+		lpj.Proposal.Anggaran = payload.TotalAnggaran
+	}
+
 	if lpj.Status == "disetujui" && oldStatus != "disetujui" {
 		config.DB.Model(&models.Proposal{}).Where("id = ?", lpj.ProposalID).Update("status", "selesai")
-		
+
 		config.DB.Create(&models.OrmawaMutasiSaldo{
 			OrmawaID:   lpj.Proposal.OrmawaID,
 			Tipe:       "keluar",
@@ -765,7 +856,7 @@ func UploadLPJDocument(c *fiber.Ctx) error {
 
 	lpj.FileURL = "/uploads/" + filename
 	config.DB.Save(&lpj)
-	
+
 	return c.JSON(fiber.Map{"status": "success", "data": lpj})
 }
 
@@ -805,16 +896,20 @@ func UpdateAspiration(c *fiber.Ctx) error {
 	if err := config.DB.First(&aspiration, id).Error; err != nil {
 		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Aspirasi tidak ditemukan"})
 	}
-	
+
 	var payload struct {
 		Status    string `json:"Status"`
 		Tanggapan string `json:"Tanggapan"`
 	}
 	c.BodyParser(&payload)
 
-	if payload.Status != "" { aspiration.Status = payload.Status }
-	if payload.Tanggapan != "" { aspiration.Tanggapan = payload.Tanggapan }
-	
+	if payload.Status != "" {
+		aspiration.Status = payload.Status
+	}
+	if payload.Tanggapan != "" {
+		aspiration.Tanggapan = payload.Tanggapan
+	}
+
 	config.DB.Save(&aspiration)
 	return c.JSON(fiber.Map{"status": "success", "data": aspiration})
 }

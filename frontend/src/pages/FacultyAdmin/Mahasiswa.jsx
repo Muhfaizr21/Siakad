@@ -29,17 +29,21 @@ export default function MahasiswaPage() {
       // Backend now returns: { status: 'success', data: { mahasiswa: [...], dosen: [...], prodi: [...] } }
       const mhsList = res?.data?.mahasiswa || []
 
-      const mappedData = mhsList.map(m => ({
-        ID: m.id,
-        NIM: m.nim,
-        Nama: m.nama,
-        ProgramStudi: { Nama: m.nama_prodi || '-' },
-        SemesterSekarang: 1,
-        StatusAkun: 'Aktif',
-        TahunMasuk: m.nim ? '20' + m.nim.substring(0, 2) : '2023',
-        NoHP: "-",
-        JalurMasuk: 'PDDIKTI SYNC'
-      }))
+      const mappedData = mhsList.map(m => {
+        const isLulus = (m.status_akun || '').toLowerCase() === 'lulus'
+        return {
+          ID: m.id,
+          NIM: m.nim,
+          Nama: m.nama,
+          ProgramStudi: { Nama: m.nama_prodi || '-' },
+          SemesterSekarang: isLulus ? 0 : (Number.isInteger(m.semester_saat_ini) && m.semester_saat_ini > 0 ? m.semester_saat_ini : 1),
+          StatusAkun: m.status_akun || 'Aktif',
+          StatusAkademik: m.status_saat_ini || '-',
+          TahunMasuk: m.tanggal_masuk ? new Date(m.tanggal_masuk).getFullYear().toString() : (m.nim ? '20' + m.nim.substring(0, 2) : '2023'),
+          NoHP: "-",
+          JalurMasuk: 'PDDIKTI SYNC'
+        }
+      })
       setStudentData(mappedData)
     } catch (err) {
       toast.error("Gagal sinkronisasi data dari PDDIKTI")
@@ -88,7 +92,7 @@ export default function MahasiswaPage() {
       label: "Smt",
       className: "w-[80px] text-center",
       cellClassName: "text-center",
-      render: (value) => <span className="font-black text-slate-700 text-xs">{value || 1}</span>
+      render: (value, row) => <span className="font-black text-slate-700 text-xs">{row.StatusAkun === 'Lulus' ? '-' : (value || 1)}</span>
     },
     {
       key: "StatusAkun",
@@ -101,7 +105,9 @@ export default function MahasiswaPage() {
             "capitalize font-bold text-[9px] px-3 py-1 border shadow-none uppercase tracking-widest",
             (val === 'active' || val === 'Aktif') ? "bg-emerald-50 text-emerald-600 border-emerald-100" :
               (val === 'leave' || val === 'Cuti') ? "bg-amber-50 text-amber-600 border-amber-100" :
-                "bg-slate-50 text-slate-600 border-slate-200"
+                (val === 'Lulus') ? "bg-sky-50 text-sky-600 border-sky-100" :
+                  (val === 'Non-Aktif') ? "bg-rose-50 text-rose-600 border-rose-100" :
+                    "bg-slate-50 text-slate-600 border-slate-200"
           )}
         >
           {val || 'Aktif'}
@@ -167,7 +173,8 @@ export default function MahasiswaPage() {
                   </div>
                   <div className="grid grid-cols-2 gap-x-12 gap-y-4 border-l-2 border-slate-100 pl-4 py-1">
                     <DataField label="Program Studi" value={selectedMahasiswa.ProgramStudi?.Nama} />
-                    <DataField label="Semester / Angkatan" value={`${selectedMahasiswa.SemesterSekarang || 1} / ${selectedMahasiswa.TahunMasuk || '-'}`} />
+                    <DataField label="Semester / Angkatan" value={`${selectedMahasiswa.StatusAkun === 'Lulus' ? '-' : (selectedMahasiswa.SemesterSekarang || 1)} / ${selectedMahasiswa.TahunMasuk || '-'}`} />
+                    <DataField label="Status Akademik PDDIKTI" value={selectedMahasiswa.StatusAkademik || '-'} />
                     <DataField label="Dosen Wali (DPA)" value={selectedMahasiswa.DosenPA?.Nama || 'Belum Ditentukan'} isPrimary />
                     <DataField label="Jalur Masuk" value={selectedMahasiswa.JalurMasuk || 'Mandiri'} />
                   </div>

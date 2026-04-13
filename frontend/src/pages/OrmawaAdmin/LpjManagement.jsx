@@ -42,13 +42,16 @@ export default function LpjManagement() {
   const [isEditMode, setIsEditMode] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [proposals, setProposals] = useState([])
-  const ormawaId = useAuthStore.getState()?.mahasiswa?.ormawaId || useAuthStore.getState()?.mahasiswa?.OrmawaID || 1
-  const [form, setForm] = useState({ Judul: '', RealisasiAnggaran: '', TotalAnggaran: '', Catatan: '', ProposalID: '', OrmawaID: ormawaId })
+  const authState = useAuthStore((s) => s)
+  const ormawaId = authState?.mahasiswa?.ormawaId || authState?.mahasiswa?.OrmawaID || authState?.user?.ormawaId || ''
+  const [form, setForm] = useState({ Judul: '', RealisasiAnggaran: '', TotalAnggaran: '', Catatan: '', ProposalID: '', OrmawaID: ormawaId || '' })
+
+  const buildOrmawaQuery = () => (ormawaId ? `?ormawaId=${ormawaId}` : '')
 
   const fetchData = async () => {
     setLoading(true)
     try {
-      const data = await fetchWithAuth(`${API}/lpjs?ormawaId=${ormawaId}`)
+      const data = await fetchWithAuth(`${API}/lpjs${buildOrmawaQuery()}`)
       if (data.status === 'success') setData(data.data || [])
       else toast.error('Gagal memuat LPJ')
     } catch { toast.error('Koneksi gagal') } finally { setLoading(false) }
@@ -56,24 +59,26 @@ export default function LpjManagement() {
 
   const fetchProposals = async () => {
     try {
-      const data = await fetchWithAuth(`${API}/proposals?ormawaId=${ormawaId}`)
+      const data = await fetchWithAuth(`${API}/proposals${buildOrmawaQuery()}`)
       if (data.status === 'success') setProposals(data.data || [])
     } catch {}
   }
-  useEffect(() => { fetchData(); fetchProposals() }, [])
+  useEffect(() => { fetchData(); fetchProposals() }, [ormawaId])
 
-  const handleOpenAdd = () => { setIsEditMode(false); setForm({ Judul: '', RealisasiAnggaran: '', TotalAnggaran: '', Catatan: '', ProposalID: '', OrmawaID: ormawaId }); setIsCrudOpen(true) }
-  const handleOpenEdit = (row) => { setIsEditMode(true); setForm({ ID: row.ID, Judul: row.Judul || '', RealisasiAnggaran: row.RealisasiAnggaran || '', TotalAnggaran: row.TotalAnggaran || '', Catatan: row.Catatan || '', ProposalID: String(row.ProposalID || ''), OrmawaID: ormawaId }); setIsCrudOpen(true) }
+  const handleOpenAdd = () => { setIsEditMode(false); setForm({ Judul: '', RealisasiAnggaran: '', TotalAnggaran: '', Catatan: '', ProposalID: '', OrmawaID: ormawaId || '' }); setIsCrudOpen(true) }
+  const handleOpenEdit = (row) => { setIsEditMode(true); setForm({ ID: row.ID, Judul: row.Judul || '', RealisasiAnggaran: row.RealisasiAnggaran || '', TotalAnggaran: row.TotalAnggaran || '', Catatan: row.Catatan || '', ProposalID: String(row.ProposalID || ''), OrmawaID: ormawaId || '' }); setIsCrudOpen(true) }
   const handleSave = async (e) => {
     e.preventDefault(); setIsSubmitting(true)
     const url = isEditMode ? `${API}/lpjs/${form.ID}` : `${API}/lpjs`
     const method = isEditMode ? 'PUT' : 'POST'
-    const payload = { ...form, RealisasiAnggaran: Number(form.RealisasiAnggaran), TotalAnggaran: Number(form.TotalAnggaran), ProposalID: Number(form.ProposalID), OrmawaID: Number(form.OrmawaID) }
+    const payload = isEditMode
+      ? { Status: form.Status, Catatan: form.Catatan, RealisasiAnggaran: Number(form.RealisasiAnggaran), TotalAnggaran: Number(form.TotalAnggaran) }
+      : { ProposalID: Number(form.ProposalID), Catatan: form.Catatan, RealisasiAnggaran: Number(form.RealisasiAnggaran), TotalAnggaran: Number(form.TotalAnggaran), Status: 'draft' }
     try {
       const data = await fetchWithAuth(url, { method, body: JSON.stringify(payload), headers: { 'Content-Type': 'application/json' } })
       if (data.status === 'success') { toast.success(isEditMode ? 'LPJ diperbarui' : 'LPJ diajukan'); setIsCrudOpen(false); fetchData() }
       else toast.error(data.message || 'Gagal menyimpan')
-    } catch { toast.error('Terjadi kesalahan') } finally { setIsSubmitting(false) }
+    } catch (err) { toast.error(err?.message || 'Terjadi kesalahan') } finally { setIsSubmitting(false) }
   }
   const handleDelete = async () => {
     setIsSubmitting(true)
