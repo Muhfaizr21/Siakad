@@ -290,6 +290,15 @@ func GetAllOrmawa(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"status": "success", "data": orgs})
 }
 
+func GetOrmawaMembers(c *fiber.Ctx) error {
+	id := c.Params("id")
+	var members []models.OrmawaAnggota
+	if err := config.DB.Preload("Mahasiswa").Where("ormawa_id = ?", id).Find(&members).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal mengambil data anggota: " + err.Error()})
+	}
+	return c.JSON(fiber.Map{"status": "success", "data": members})
+}
+
 func GetAllStudents(c *fiber.Ctx) error {
 	var mhs []models.Mahasiswa
 	config.DB.Preload("Fakultas").Preload("ProgramStudi").Order("nama asc").Find(&mhs)

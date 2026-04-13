@@ -315,6 +315,7 @@ export const adminService = {
   deleteOrmawa: (id) => fetchWithAuth(`${API_BASE_URL}/admin/ormawa/${id}`, {
     method: 'DELETE'
   }),
+  getOrmawaMembers: (id) => fetchWithAuth(`${API_BASE_URL}/admin/ormawa/${id}/members`),
   getGlobalAspirations: () => fetchWithAuth(`${API_BASE_URL}/admin/aspirations`),
   updateAspirationStatus: (id, data) => fetchWithAuth(`${API_BASE_URL}/admin/aspirations/${id}/status`, {
     method: 'PUT',

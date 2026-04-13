@@ -10,7 +10,7 @@ import { Card, CardContent } from './components/ui/card'
 import { Input } from './components/ui/input'
 import { Label } from './components/ui/label'
 import { Textarea } from './components/ui/textarea'
-import { Eye, Pencil, Trash2, Loader2, Plus, Save, Building } from 'lucide-react'
+import { Eye, Pencil, Trash2, Loader2, Plus, Save, Building, Users } from 'lucide-react'
 import { toast, Toaster } from 'react-hot-toast'
 import { cn } from '@/lib/utils'
 import { adminService } from '../../services/api'
@@ -25,6 +25,8 @@ export default function KelolaOrganisasi() {
   const [isEditMode, setIsEditMode] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [form, setForm] = useState({ Nama: '', Singkatan: '', Deskripsi: '', Visi: '', Misi: '', Email: '', LogoURL: '', Phone: '' })
+  const [members, setMembers] = useState([])
+  const [membersLoading, setMembersLoading] = useState(false)
 
   const fetchData = async () => {
     setLoading(true)
@@ -36,8 +38,23 @@ export default function KelolaOrganisasi() {
   }
   useEffect(() => { fetchData() }, [])
 
+  const fetchMembers = async (id) => {
+    setMembersLoading(true)
+    try {
+      const res = await adminService.getOrmawaMembers(id)
+      if (res.status === 'success') setMembers(res.data || [])
+      else toast.error('Gagal memuat anggota')
+    } catch { toast.error('Gagal koneksi anggota') } finally { setMembersLoading(false) }
+  }
+
   const handleOpenAdd = () => { setIsEditMode(false); setForm({ Nama: '', Singkatan: '', Deskripsi: '', Visi: '', Misi: '', Email: '', LogoURL: '', Phone: '' }); setIsCrudOpen(true) }
   const handleOpenEdit = (row) => { setIsEditMode(true); setForm({ ID: row.ID, Nama: row.Nama || '', Singkatan: row.Singkatan || '', Deskripsi: row.Deskripsi || '', Visi: row.Visi || '', Misi: row.Misi || '', Email: row.Email || '', LogoURL: row.LogoURL || '', Phone: row.Phone || '' }); setIsCrudOpen(true) }
+
+  const handleOpenDetail = (row) => {
+    setSelected(row)
+    setIsDetailOpen(true)
+    fetchMembers(row.ID)
+  }
 
   const handleSave = async (e) => {
     e.preventDefault(); setIsSubmitting(true)
@@ -66,13 +83,13 @@ export default function KelolaOrganisasi() {
     <div className="p-4 md:p-8 space-y-6">
           <Toaster position="top-right" />
           <div className="flex flex-col gap-1.5">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-primary/10 rounded-xl text-primary"><Building className="size-6" /></div>
-              <h1 className="text-2xl font-black text-slate-900 font-headline tracking-tighter uppercase">Kelola Organisasi Mahasiswa</h1>
+            <div className="flex items-start gap-3">
+              <div className="p-2 bg-primary/10 rounded-xl text-primary shrink-0"><Building className="size-5 md:size-6" /></div>
+              <h1 className="text-lg md:text-2xl font-black text-slate-900 font-headline tracking-tighter uppercase leading-tight">Kelola Organisasi Mahasiswa</h1>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 pl-1">
               <div className="h-1 w-10 bg-primary rounded-full shadow-sm shadow-primary/30" />
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Registri & Manajemen Seluruh Ormawa Universitas</p>
+              <p className="text-[10px] md:text-xs font-bold text-slate-400 uppercase tracking-widest">Registri & Manajemen Seluruh Ormawa Universitas</p>
             </div>
           </div>
           <Card className="border-none shadow-sm overflow-hidden bg-white/50 backdrop-blur-md">
@@ -83,7 +100,7 @@ export default function KelolaOrganisasi() {
                 onAdd={handleOpenAdd} addLabel="Tambah Ormawa"
                 actions={(row) => (
                   <div className="flex items-center gap-2">
-                    <Button onClick={() => { setSelected(row); setIsDetailOpen(true) }} variant="ghost" size="icon" className="h-8 w-8 hover:text-primary hover:bg-primary/10 rounded-xl"><Eye className="size-4" /></Button>
+                    <Button onClick={() => handleOpenDetail(row)} variant="ghost" size="icon" className="h-8 w-8 hover:text-primary hover:bg-primary/10 rounded-xl"><Eye className="size-4" /></Button>
                     <Button onClick={() => handleOpenEdit(row)} variant="ghost" size="icon" className="h-8 w-8 hover:text-amber-600 hover:bg-amber-50 rounded-xl"><Pencil className="size-4" /></Button>
                     <Button onClick={() => { setSelected(row); setIsDelOpen(true) }} variant="ghost" size="icon" className="h-8 w-8 hover:text-rose-600 hover:bg-rose-50 rounded-xl"><Trash2 className="size-4" /></Button>
                   </div>
@@ -94,24 +111,107 @@ export default function KelolaOrganisasi() {
 
       {/* Detail */}
       <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
-        <DialogContent className="max-w-xl p-0 overflow-hidden border-none shadow-2xl rounded-[2.5rem] bg-white/95 backdrop-blur-xl">
+        <DialogContent showCloseButton={false} className="max-w-[96vw] sm:max-w-4xl p-0 border-none shadow-2xl rounded-[1.5rem] md:rounded-[2.5rem] bg-white/95 backdrop-blur-xl transition-all duration-300 max-h-[85svh]">
+          {/* Accessibility: hidden title & description for screen readers */}
+          <DialogTitle className="sr-only">{selected?.Nama ?? 'Detail Organisasi'}</DialogTitle>
+          <DialogDescription className="sr-only">Informasi lengkap dan daftar anggota organisasi mahasiswa.</DialogDescription>
           {selected && (
-            <div>
-              <div className="p-8 bg-gradient-to-br from-slate-900 to-slate-800 relative overflow-hidden">
+            <div className="flex flex-col flex-1 min-h-0">
+              {/* Premium Header */}
+              <div className="p-5 md:p-8 bg-gradient-to-br from-slate-900 to-slate-800 relative overflow-hidden shrink-0">
                 <div className="absolute inset-0 bg-gradient-to-br from-primary/30 to-transparent" />
-                <div className="relative z-10">
-                  <Badge className="font-black text-[9px] px-2.5 py-0.5 bg-white/10 text-white border-none mb-3 uppercase tracking-widest">{selected.Singkatan}</Badge>
-                  <h2 className="text-xl font-black text-white font-headline tracking-tighter">{selected.Nama}</h2>
-                  <p className="text-[10px] text-slate-400 font-bold mt-1">{selected.Email || '—'}</p>
+                <div className="relative z-10 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <Badge className="font-black text-[8px] md:text-[9px] px-2.5 py-1 md:px-2.5 md:py-0.5 bg-white/10 text-white border-none uppercase tracking-widest">{selected.Singkatan}</Badge>
+                    <div className="flex items-center gap-1.5 md:gap-2">
+                      <Button variant="outline" size="sm" onClick={() => { setIsDetailOpen(false); handleOpenEdit(selected) }} className="h-7 md:h-8 px-2.5 md:px-4 rounded-lg md:rounded-xl bg-white/10 border-white/20 text-white hover:bg-white/20 text-[8px] md:text-[10px] font-black uppercase">Edit Profil</Button>
+                      <Button variant="ghost" size="sm" onClick={() => setIsDetailOpen(false)} className="h-7 w-7 md:h-8 md:w-8 p-0 rounded-lg md:rounded-xl text-white/50 hover:text-white hover:bg-white/10 border border-white/5">✕</Button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h2 className="text-xl md:text-3xl font-black text-white font-headline tracking-tighter leading-tight">{selected.Nama}</h2>
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 mt-3">
+                      <div className="flex items-center gap-2 px-2 py-1 rounded-lg bg-white/5 border border-white/5">
+                        <span className="text-[8px] md:text-[10px] font-black text-primary uppercase tracking-tighter">Email</span>
+                        <span className="text-[10px] md:text-[11px] text-slate-300 font-bold truncate max-w-[120px] md:max-w-none">{selected.Email || '—'}</span>
+                      </div>
+                      <div className="flex items-center gap-2 px-2 py-1 rounded-lg bg-white/5 border border-white/5">
+                        <span className="text-[8px] md:text-[10px] font-black text-emerald-400 uppercase tracking-tighter">Anggota</span>
+                        <span className="text-[10px] md:text-[11px] text-slate-300 font-bold">{selected.jumlah_anggota || 0} Mahasiswa</span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
-              <div className="p-8 space-y-4">
-                {selected.Visi && <div><p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 font-headline">Visi</p><p className="text-sm text-slate-600 leading-relaxed">{selected.Visi}</p></div>}
-                {selected.Misi && <div><p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 font-headline">Misi</p><p className="text-sm text-slate-600 leading-relaxed">{selected.Misi}</p></div>}
-                <div className="flex justify-end gap-3">
-                  <Button variant="ghost" onClick={() => setIsDetailOpen(false)} className="text-[10px] font-black uppercase text-slate-400 px-8 h-10 rounded-2xl">Tutup</Button>
-                  <Button onClick={() => { setIsDetailOpen(false); handleOpenEdit(selected) }} className="h-10 px-8 rounded-2xl bg-primary text-white font-black text-[10px] uppercase">Edit</Button>
+
+              <div className="flex-1 overflow-y-auto p-3 md:p-8 pt-4 md:pt-6 space-y-4 md:space-y-8 scrollbar-thin scrollbar-thumb-slate-200">
+                {/* Info Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
+                  {selected.Visi && <div className="space-y-1.5 md:space-y-2"><p className="text-[8px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1 font-headline">Manajemen Visi</p><div className="p-4 md:p-5 rounded-xl md:rounded-3xl bg-slate-50 border border-slate-100/50 text-[12px] md:text-sm text-slate-600 leading-relaxed font-semibold">{selected.Visi}</div></div>}
+                  {selected.Misi && <div className="space-y-1.5 md:space-y-2"><p className="text-[8px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1 font-headline">Manajemen Misi</p><div className="p-4 md:p-5 rounded-xl md:rounded-3xl bg-slate-50 border border-slate-100/50 text-[12px] md:text-sm text-slate-600 leading-relaxed font-semibold">{selected.Misi}</div></div>}
                 </div>
+
+                {/* Members List */}
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between pl-1">
+                    <div className="space-y-0.5">
+                      <p className="text-[11px] md:text-xs font-black text-slate-900 uppercase tracking-tight font-headline">Struktur Kepengurusan & Anggota</p>
+                      <p className="text-[9px] md:text-[10px] font-medium text-slate-400 uppercase tracking-widest">Daftar mahasiswa terdaftar</p>
+                    </div>
+                  </div>
+
+                  <div className="rounded-2xl md:rounded-[2rem] border border-slate-100 overflow-x-auto bg-white shadow-sm scrollbar-thin scrollbar-thumb-slate-200">
+                    <table className="w-full text-left border-collapse min-w-[380px] md:min-w-full">
+                      <thead>
+                        <tr className="bg-slate-50/50 border-b border-slate-100">
+                          <th className="px-4 md:px-6 py-3 md:py-4 text-[8px] md:text-[9px] font-black text-slate-400 uppercase tracking-widest">Nama Mahasiswa / NIM</th>
+                          <th className="px-4 md:px-6 py-3 md:py-4 text-[8px] md:text-[9px] font-black text-slate-400 uppercase tracking-widest text-center">Jabatan</th>
+                          <th className="px-4 md:px-6 py-3 md:py-4 text-[8px] md:text-[9px] font-black text-slate-400 uppercase tracking-widest text-center">Bidang / Divisi</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {membersLoading ? (
+                          [1, 2, 3].map(i => (
+                            <tr key={i} className="animate-pulse">
+                              <td colSpan={3} className="px-6 py-4"><div className="h-10 bg-slate-50 rounded-xl w-full" /></td>
+                            </tr>
+                          ))
+                        ) : members.length > 0 ? (
+                          members.map((m, idx) => (
+                            <tr key={idx} className="border-b border-slate-50 hover:bg-slate-50/30 transition-colors">
+                              <td className="px-4 md:px-6 py-3 md:py-4">
+                                <div className="flex flex-col">
+                                  <span className="text-[12px] md:text-[13px] font-black text-slate-800 font-headline leading-tight">{m.Mahasiswa?.Nama || 'NAMA Error'}</span>
+                                  <span className="text-[9px] md:text-[10px] font-bold text-slate-400 uppercase tracking-tighter">{m.Mahasiswa?.NIM}</span>
+                                </div>
+                              </td>
+                              <td className="px-4 md:px-6 py-3 md:py-4 text-center">
+                                <Badge className="bg-primary/5 text-primary border-none text-[8px] md:text-[9px] font-black px-2 md:px-3 py-0.5 md:py-1 uppercase">{m.Role}</Badge>
+                              </td>
+                              <td className="px-4 md:px-6 py-3 md:py-4 text-center">
+                                <span className="text-[10px] md:text-[11px] font-bold text-slate-500 uppercase tracking-tight">{m.Divisi || 'Inti'}</span>
+                              </td>
+                            </tr>
+                          ))
+                        ) : (
+                          <tr>
+                            <td colSpan={3} className="px-6 py-10 md:py-16 text-center">
+                              <div className="flex flex-col items-center gap-2 opacity-30">
+                                <Users className="size-6 md:size-8" />
+                                <p className="text-[9px] md:text-[10px] font-black uppercase tracking-widest">Belum Ada Anggota Terdaftar</p>
+                              </div>
+                            </td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-5 md:p-8 pt-4 bg-slate-50/50 border-t border-slate-100 flex justify-end shrink-0">
+                <Button variant="ghost" onClick={() => setIsDetailOpen(false)} className="text-[9px] md:text-[10px] font-black uppercase tracking-widest text-slate-400 px-6 md:px-10 h-10 md:h-12 rounded-xl md:rounded-2xl hover:bg-white transition-all">Selesai Meninjau</Button>
               </div>
             </div>
           )}
@@ -120,34 +220,35 @@ export default function KelolaOrganisasi() {
 
       {/* CRUD */}
       <Dialog open={isCrudOpen} onOpenChange={setIsCrudOpen}>
-        <DialogContent className="max-w-xl p-0 overflow-hidden border-none shadow-2xl rounded-[2rem] bg-white/95 backdrop-blur-xl">
-          <DialogHeader className="p-8 pb-6 bg-gradient-to-br from-slate-50 to-white border-b border-slate-100 relative overflow-hidden">
+        <DialogContent className="max-w-[95vw] sm:max-w-xl p-0 overflow-hidden border-none shadow-2xl rounded-[1.5rem] sm:rounded-[2rem] bg-white/95 backdrop-blur-xl">
+          <DialogHeader className="p-5 md:p-8 pb-4 md:pb-6 bg-gradient-to-br from-slate-50 to-white border-b border-slate-100 relative overflow-hidden">
             <div className="absolute top-0 right-0 p-8 opacity-5"><Building className="size-24 rotate-12" /></div>
             <div className="relative z-10">
               <div className="flex items-center gap-3 mb-2">
-                <div className="size-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary">{isEditMode ? <Pencil className="size-4" /> : <Plus className="size-4 stroke-[3px]" />}</div>
+                <div className="size-7 md:size-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary">{isEditMode ? <Pencil className="size-3.5 md:size-4" /> : <Plus className="size-3.5 md:size-4 stroke-[3px]" />}</div>
                 <Badge className="text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 bg-primary/5 text-primary border-none">Ormawa Registry</Badge>
               </div>
-              <DialogTitle className="text-2xl font-black font-headline tracking-tighter text-slate-900 uppercase">{isEditMode ? 'Edit Ormawa' : 'Daftarkan Ormawa Baru'}</DialogTitle>
+              <DialogTitle className="text-xl md:text-2xl font-black font-headline tracking-tighter text-slate-900 uppercase">{isEditMode ? 'Edit Ormawa' : 'Daftarkan Ormawa Baru'}</DialogTitle>
               <DialogDescription className="sr-only">Formulir pendaftaran dan pembaruan data organisasi mahasiswa.</DialogDescription>
             </div>
           </DialogHeader>
-          <form onSubmit={handleSave} className="p-8 pt-6 space-y-4 max-h-[65vh] overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200">
-            <div className="grid grid-cols-3 gap-4">
-              <div className="space-y-2 col-span-2"><Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Nama Organisasi</Label><Input required value={form.Nama} onChange={e => setForm({ ...form, Nama: e.target.value })} placeholder="Nama lengkap..." className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white font-bold text-sm font-headline" /></div>
-              <div className="space-y-2"><Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Kode / Singkatan</Label><Input required value={form.Singkatan} onChange={e => setForm({ ...form, Singkatan: e.target.value })} placeholder="CTR, HMP, etc" className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white font-bold text-sm font-headline" /></div>
+          <form onSubmit={handleSave} className="p-5 md:p-8 pt-4 md:pt-6 space-y-4 max-h-[65vh] overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4">
+              <div className="space-y-2 sm:col-span-2"><Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Nama Organisasi</Label><Input required value={form.Nama} onChange={e => setForm({ ...form, Nama: e.target.value })} placeholder="Nama lengkap..." className="h-11 md:h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white font-bold text-sm font-headline" /></div>
+              <div className="space-y-2"><Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Kode / Singkatan</Label><Input required value={form.Singkatan} onChange={e => setForm({ ...form, Singkatan: e.target.value })} placeholder="CTR, HMP, etc" className="h-11 md:h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white font-bold text-sm font-headline" /></div>
             </div>
-            <div className="space-y-2"><Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Kontak / HP</Label><Input value={form.Phone} onChange={e => { const val = e.target.value.replace(/\D/g, ''); setForm({ ...form, Phone: val }); }} placeholder="08xxx..." className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white font-bold text-sm font-headline" /></div>
-
-            <div className="space-y-2"><Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Email Resmi</Label><Input type="email" value={form.Email} onChange={e => setForm({ ...form, Email: e.target.value })} placeholder="email@ormawa.bku.ac.id" className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white font-bold text-sm" /></div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
+              <div className="space-y-2"><Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Kontak / HP</Label><Input value={form.Phone} onChange={e => { const val = e.target.value.replace(/\D/g, ''); setForm({ ...form, Phone: val }); }} placeholder="08xxx..." className="h-11 md:h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white font-bold text-sm font-headline" /></div>
+              <div className="space-y-2"><Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Email Resmi</Label><Input type="email" value={form.Email} onChange={e => setForm({ ...form, Email: e.target.value })} placeholder="email@ormawa.bku.ac.id" className="h-11 md:h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white font-bold text-sm" /></div>
+            </div>
             <div className="space-y-2"><Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Deskripsi Organisasi</Label><Textarea value={form.Deskripsi} onChange={e => setForm({ ...form, Deskripsi: e.target.value })} placeholder="Singkatan atau deskripsi singkat..." className="min-h-[60px] rounded-[1.5rem] border-slate-200 bg-slate-50/50 focus:bg-white p-4 text-sm font-medium font-headline" /></div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2"><Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Visi</Label><Textarea value={form.Visi} onChange={e => setForm({ ...form, Visi: e.target.value })} placeholder="Visi organisasi..." className="min-h-[80px] rounded-[1.5rem] border-slate-200 bg-slate-50/50 focus:bg-white p-4 text-sm font-medium font-headline" /></div>
-              <div className="space-y-2"><Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Misi</Label><Textarea value={form.Misi} onChange={e => setForm({ ...form, Misi: e.target.value })} placeholder="Misi organisasi..." className="min-h-[80px] rounded-[1.5rem] border-slate-200 bg-slate-50/50 focus:bg-white p-4 text-sm font-medium font-headline" /></div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
+              <div className="space-y-2"><Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Visi</Label><Textarea value={form.Visi} onChange={e => setForm({ ...form, Visi: e.target.value })} placeholder="Visi organisasi..." className="min-h-[70px] md:min-h-[80px] rounded-[1.5rem] border-slate-200 bg-slate-50/50 focus:bg-white p-4 text-sm font-medium font-headline" /></div>
+              <div className="space-y-2"><Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Misi</Label><Textarea value={form.Misi} onChange={e => setForm({ ...form, Misi: e.target.value })} placeholder="Misi organisasi..." className="min-h-[70px] md:min-h-[80px] rounded-[1.5rem] border-slate-200 bg-slate-50/50 focus:bg-white p-4 text-sm font-medium font-headline" /></div>
             </div>
-            <DialogFooter className="pt-4 flex flex-row gap-3 border-t border-slate-100 -mx-8 px-8 bg-slate-50/30">
-              <Button type="button" variant="ghost" onClick={() => setIsCrudOpen(false)} className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-8 h-12 rounded-2xl">Batalkan</Button>
-              <Button type="submit" disabled={isSubmitting} className="h-12 px-10 rounded-2xl bg-primary text-white hover:bg-primary/90 shadow-xl shadow-primary/20 transition-all hover:scale-[1.02] active:scale-95">
+            <DialogFooter className="pt-4 flex flex-col-reverse sm:flex-row gap-2 sm:gap-3 border-t border-slate-100 -mx-5 md:-mx-8 px-5 md:px-8 bg-slate-50/30">
+              <Button type="button" variant="ghost" onClick={() => setIsCrudOpen(false)} className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-6 md:px-8 h-11 md:h-12 rounded-2xl w-full sm:w-auto">Batalkan</Button>
+              <Button type="submit" disabled={isSubmitting} className="h-11 md:h-12 px-8 md:px-10 rounded-2xl bg-primary text-white hover:bg-primary/90 shadow-xl shadow-primary/20 transition-all hover:scale-[1.02] active:scale-95 w-full sm:w-auto">
                 {isSubmitting ? <Loader2 className="animate-spin size-4 mr-2" /> : <Save className="size-4 mr-2 stroke-[3px]" />}
                 <span className="text-[10px] font-black uppercase tracking-[0.2em]">{isEditMode ? 'Update Record' : 'Create Record'}</span>
               </Button>

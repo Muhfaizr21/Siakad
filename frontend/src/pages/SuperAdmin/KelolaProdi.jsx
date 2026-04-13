@@ -24,7 +24,7 @@ export default function KelolaProdi() {
   const [isEditMode, setIsEditMode] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [selected, setSelected] = useState(null)
-  const [form, setForm] = useState({ Nama: '', Kode: '', Jenjang: 'S1', FakultasID: '' })
+  const [form, setForm] = useState({ Nama: '', Kode: '', Jenjang: 'S1', FakultasID: '', Akreditasi: 'Baik' })
 
   const fetchData = async () => {
     setLoading(true)
@@ -36,8 +36,8 @@ export default function KelolaProdi() {
   }
   useEffect(() => { fetchData() }, [])
 
-  const handleOpenAdd = () => { setIsEditMode(false); setForm({ Nama: '', Kode: '', Jenjang: 'S1', FakultasID: '' }); setIsCrudOpen(true) }
-  const handleOpenEdit = (row) => { setIsEditMode(true); setForm({ ID: row.ID, Nama: row.Nama || '', Kode: row.Kode || '', Jenjang: row.Jenjang || 'S1', FakultasID: String(row.FakultasID || '') }); setIsCrudOpen(true) }
+  const handleOpenAdd = () => { setIsEditMode(false); setForm({ Nama: '', Kode: '', Jenjang: 'S1', FakultasID: '', Akreditasi: 'Baik' }); setIsCrudOpen(true) }
+  const handleOpenEdit = (row) => { setIsEditMode(true); setForm({ ID: row.ID, Nama: row.Nama || '', Kode: row.Kode || '', Jenjang: row.Jenjang || 'S1', FakultasID: String(row.FakultasID || ''), Akreditasi: row.Akreditasi || 'Baik' }); setIsCrudOpen(true) }
   const handleSave = async (e) => {
     e.preventDefault(); setIsSubmitting(true)
     const payload = { ...form, FakultasID: parseInt(form.FakultasID) || 0 }
@@ -56,12 +56,27 @@ export default function KelolaProdi() {
   }
 
   const JENJANG_COLORS = { S1: 'bg-blue-100 text-blue-700', S2: 'bg-violet-100 text-violet-700', S3: 'bg-indigo-100 text-indigo-700', D3: 'bg-amber-100 text-amber-700', D4: 'bg-emerald-100 text-emerald-700' }
+  const AKREDITASI_COLORS = { 
+    'Unggul': 'bg-rose-100 text-rose-700 border-rose-200',
+    'Baik Sekali': 'bg-amber-100 text-amber-700 border-amber-200',
+    'Baik': 'bg-slate-100 text-slate-700 border-slate-200',
+    'A': 'bg-emerald-100 text-emerald-700 border-emerald-200',
+    'B': 'bg-blue-100 text-blue-700 border-blue-200',
+    'C': 'bg-slate-100 text-slate-700 border-slate-200'
+  }
 
   const columns = [
     { key: 'Kode', label: 'Kode', className: 'w-[100px]', render: v => <span className="font-bold text-slate-400 font-headline uppercase text-[10px] tracking-widest">{v || '—'}</span> },
     { key: 'Nama', label: 'Nama Program Studi', className: 'min-w-[260px]', render: v => <span className="font-bold text-slate-900 font-headline tracking-tighter text-[13px]">{v || '—'}</span> },
     { key: 'Jenjang', label: 'Jenjang', className: 'w-[100px] text-center', cellClassName: 'text-center',
       render: v => <Badge className={cn('font-black text-[10px] px-3 py-1 border-none shadow-sm', JENJANG_COLORS[v] || 'bg-slate-100 text-slate-600')}>{v || 'S1'}</Badge>
+    },
+    { key: 'Akreditasi', label: 'Akreditasi', className: 'w-[120px] text-center', cellClassName: 'text-center',
+      render: v => (
+        <Badge variant="outline" className={cn('font-black text-[10px] px-3 py-1 uppercase tracking-tighter', AKREDITASI_COLORS[v] || 'bg-slate-50 text-slate-400')}>
+          {v || 'Baik'}
+        </Badge>
+      )
     },
     { key: 'Fakultas', label: 'Fakultas', className: 'w-[220px]', render: (v, row) => <span className="text-[12px] font-bold text-slate-600 font-headline">{v?.Nama || row.FakultasNama || '—'}</span> }
   ]
@@ -118,7 +133,7 @@ export default function KelolaProdi() {
               <div className="space-y-2"><Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Nama Prodi</Label><Input required value={form.Nama} onChange={e => setForm({ ...form, Nama: e.target.value })} placeholder="Nama Program Studi..." className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white font-bold text-sm font-headline" /></div>
               <div className="space-y-2"><Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Kode</Label><Input required value={form.Kode} onChange={e => setForm({ ...form, Kode: e.target.value })} placeholder="Misal: SI, TK..." className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white font-bold text-sm font-headline uppercase" /></div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-3 gap-4">
               <div className="space-y-2">
                 <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Jenjang</Label>
                 <Select value={form.Jenjang} onValueChange={v => setForm({ ...form, Jenjang: v })}>
@@ -129,11 +144,20 @@ export default function KelolaProdi() {
                 </Select>
               </div>
               <div className="space-y-2">
+                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Akreditasi</Label>
+                <Select value={form.Akreditasi} onValueChange={v => setForm({ ...form, Akreditasi: v })}>
+                  <SelectTrigger className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 font-bold text-xs uppercase"><SelectValue /></SelectTrigger>
+                  <SelectContent className="rounded-2xl shadow-2xl p-1">
+                    {['Unggul','Baik Sekali','Baik','A','B','C'].map(j => <SelectItem key={j} value={j} className="rounded-xl font-bold text-[11px] p-3 uppercase">{j}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
                 <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Fakultas</Label>
                 <Select value={form.FakultasID} onValueChange={v => setForm({ ...form, FakultasID: v })}>
-                  <SelectTrigger className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 font-bold text-xs"><SelectValue placeholder="Pilih Fakultas" /></SelectTrigger>
+                  <SelectTrigger className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 font-bold text-xs"><SelectValue placeholder="Pilih" /></SelectTrigger>
                   <SelectContent className="rounded-2xl shadow-2xl p-1">
-                    {faculties.map(f => <SelectItem key={f.ID} value={String(f.ID)} className="rounded-xl font-bold text-[11px] p-3 uppercase">{f.Nama}</SelectItem>)}
+                    {faculties.map(f => <SelectItem key={f.ID} value={String(f.ID)} className="rounded-xl font-bold text-[11px] p-3 uppercase font-headline">{f.Nama}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>

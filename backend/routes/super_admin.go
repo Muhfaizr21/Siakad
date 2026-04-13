@@ -30,6 +30,7 @@ func SetupSuperAdminRoutes(r fiber.Router) {
 	r.Get("/ormawa", controllers.GetAllOrmawa)
 	r.Post("/ormawa", controllers.CreateOrmawa)
 	r.Put("/ormawa/:id", controllers.UpdateOrmawa)
+	r.Get("/ormawa/:id/members", controllers.GetOrmawaMembers)
 	r.Delete("/ormawa/:id", controllers.DeleteOrmawa)
 
 	r.Get("/students", controllers.GetAllStudents)
