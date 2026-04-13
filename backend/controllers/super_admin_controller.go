@@ -56,8 +56,9 @@ func GetUsers(c *fiber.Ctx) error {
 // UpdateUserRole handles role assignment and logs the event in log_aktivitas
 func UpdateUserRole(c *fiber.Ctx) error {
 	type UpdateRequest struct {
-		UserID uint   `json:"userId"`
-		Role   string `json:"role"`
+		UserID   uint   `json:"userId"`
+		Role     string `json:"role"`
+		OrmawaID uint   `json:"ormawaId"`
 	}
 
 	var req UpdateRequest
@@ -79,6 +80,20 @@ func UpdateUserRole(c *fiber.Ctx) error {
 		// Update user role via raw SQL to bypass any GORM association issues
 		if err := tx.Exec("UPDATE public.users SET role = ?, updated_at = ? WHERE id = ?", req.Role, time.Now(), user.ID).Error; err != nil {
 			return err
+		}
+
+		// Handle Ormawa Assignment for ormawa_admin
+		if req.Role == "ormawa_admin" && req.OrmawaID != 0 {
+			var mhs models.Mahasiswa
+			if err := tx.Where("pengguna_id = ?", user.ID).First(&mhs).Error; err == nil {
+				// Create or update membership
+				var exists bool
+				tx.Raw("SELECT EXISTS(SELECT 1 FROM ormawa.ormawa_anggota WHERE mahasiswa_id = ? AND ormawa_id = ?)", mhs.ID, req.OrmawaID).Scan(&exists)
+				if !exists {
+					tx.Exec("INSERT INTO ormawa.ormawa_anggota (mahasiswa_id, ormawa_id, role, status, joined_at, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
+						mhs.ID, req.OrmawaID, "Ketua/Admin", "aktif", time.Now(), time.Now(), time.Now())
+				}
+			}
 		}
 
 		// Log activity (Temporarily disabled until schema fix)
@@ -133,6 +148,7 @@ func CreateUser(c *fiber.Ctx) error {
 		Nama           string `json:"Nama"`
 		FakultasID     uint   `json:"FakultasID"`
 		ProgramStudiID uint   `json:"ProgramStudiID"`
+		OrmawaID       uint   `json:"OrmawaID"`
 	}
 
 	var req CreateRequest
@@ -222,22 +238,26 @@ func CreateUser(c *fiber.Ctx) error {
 				return err
 			}
 		case "ormawa_admin":
-			if req.ProgramStudiID != 0 {
-				nim := strings.Split(req.Email, "@")[0]
-				mhs := models.Mahasiswa{
-					PenggunaID:       user.ID,
-					Nama:             req.Nama,
-					NIM:              nim,
-					FakultasID:       req.FakultasID,
-					ProgramStudiID:   req.ProgramStudiID,
-					StatusAkun:       "Aktif",
-					StatusAkademik:   "Aktif",
-					SemesterSekarang: 1,
-					TahunMasuk:       time.Now().Year(),
-				}
-				if err := tx.Create(&mhs).Error; err != nil {
-					return err
-				}
+			nim := strings.Split(req.Email, "@")[0]
+			mhs := models.Mahasiswa{
+				PenggunaID:       user.ID,
+				Nama:             req.Nama,
+				NIM:              nim,
+				FakultasID:       req.FakultasID,
+				ProgramStudiID:   req.ProgramStudiID, // Optional for ormawa_admin
+				StatusAkun:       "Aktif",
+				StatusAkademik:   "Aktif",
+				SemesterSekarang: 1,
+				TahunMasuk:       time.Now().Year(),
+			}
+			if err := tx.Create(&mhs).Error; err != nil {
+				return err
+			}
+
+			// Assign to Ormawa if provided
+			if req.OrmawaID != 0 {
+				tx.Exec("INSERT INTO ormawa.ormawa_anggota (mahasiswa_id, ormawa_id, role, status, joined_at, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
+					mhs.ID, req.OrmawaID, "Ketua/Admin", "aktif", time.Now(), time.Now(), time.Now())
 			}
 		}
 
