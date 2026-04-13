@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"siakad-backend/config"
 	"siakad-backend/models"
+	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -12,20 +13,43 @@ import (
 )
 
 func GetUsers(c *fiber.Ctx) error {
-	fmt.Println(">>> RBAC: Fetching all users via RAW SQL...")
-	var users []models.User
-	result := config.DB.Raw("SELECT id, email, role, fakultas_id, created_at, updated_at FROM public.users WHERE deleted_at IS NULL").Scan(&users)
-	if result.Error != nil {
-		fmt.Printf(">>> RAW SQL Error: %v\n", result.Error)
-		return c.Status(500).JSON(fiber.Map{
-			"status":  "error",
-			"message": "Gagal mengambil data user dari database",
-			"debug":   result.Error.Error(),
-		})
+	type UserWithContext struct {
+		models.User
+		FakultasNama string `json:"fakultas_nama"`
+		IdentityName string `json:"identity_name"`
+		IdentityCode string `json:"identity_code"`
+		ProdiNama    string `json:"prodi_nama"`
+		OrmawaNama   string `json:"ormawa_nama"`
 	}
+
+	var results []UserWithContext
+	// Hardened SQL join with explicit quoting for PostgreSQL schema/table/column resolution
+	err := config.DB.Table("public.users").
+		Select(`
+			"public"."users".*, 
+			f.nama as fakultas_nama,
+			COALESCE(m.nama, d.nama) as identity_name,
+			COALESCE(m.nim, d.nidn) as identity_code,
+			p.nama as prodi_nama,
+			(SELECT orm.nama FROM ormawa.ormawa_anggota oa 
+			 JOIN ormawa.ormawa orm ON orm.id = oa.ormawa_id 
+			 WHERE oa.mahasiswa_id = m.id LIMIT 1) as ormawa_nama
+		`).
+		Joins(`LEFT JOIN "fakultas"."fakultas" f ON f.id = "public"."users".fakultas_id`).
+		Joins(`LEFT JOIN "mahasiswa"."mahasiswa" m ON m.pengguna_id = "public"."users".id`).
+		Joins(`LEFT JOIN "fakultas"."program_studi" p ON p.id = m.program_studi_id`).
+		Joins(`LEFT JOIN "fakultas"."dosen" d ON d.pengguna_id = "public"."users".id`).
+		Where(`"public"."users".deleted_at IS NULL`).
+		Order(`"public"."users".created_at desc`).
+		Scan(&results).Error
+
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal sinkronisasi data identitas: " + err.Error()})
+	}
+
 	return c.JSON(fiber.Map{
 		"status": "success",
-		"data":   users,
+		"data":   results,
 	})
 }
 
@@ -103,32 +127,85 @@ func GetAuditLogs(c *fiber.Ctx) error {
 
 func CreateUser(c *fiber.Ctx) error {
 	type CreateRequest struct {
-		Email    string `json:"Email"`
-		Password string `json:"Password"`
-		Role     string `json:"Role"`
+		Email          string `json:"Email"`
+		Password       string `json:"Password"`
+		Role           string `json:"Role"`
+		Nama           string `json:"Nama"`
+		FakultasID     uint   `json:"FakultasID"`
+		ProgramStudiID uint   `json:"ProgramStudiID"`
 	}
+
 	var req CreateRequest
 	if err := c.BodyParser(&req); err != nil {
-		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Invalid request"})
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Format data tidak valid"})
 	}
 
-	// Use BCrypt to hash the password before saving
+	if req.Email == "" || req.Password == "" || req.Role == "" {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Email, Password dan Role wajib diisi"})
+	}
+
+	// 1. Hash Password
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	if err != nil {
-		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Failed to hash password"})
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal mengamankan password"})
 	}
 
-	user := models.User{
-		Email:    req.Email,
-		Password: string(hashedPassword),
-		Role:     req.Role,
+	// 2. Begin Transaction
+	err = config.DB.Transaction(func(tx *gorm.DB) error {
+		// 1. Create User
+		user := models.User{
+			Email:    req.Email,
+			Password: string(hashedPassword),
+			Role:     req.Role,
+		}
+
+		// Set FakultasID for Admin/Faculty roles
+		if req.FakultasID != 0 {
+			user.FakultasID = &req.FakultasID
+		}
+
+		if err := tx.Create(&user).Error; err != nil {
+			return err
+		}
+
+		// 2. Create Identity Link (Mahasiswa/Dosen/etc)
+		switch req.Role {
+		case "mahasiswa", "MAHASISWA":
+			nim := strings.Split(req.Email, "@")[0] // Fallback NIM from email
+			mhs := models.Mahasiswa{
+				PenggunaID:     user.ID,
+				Nama:           req.Nama,
+				NIM:            nim,
+				FakultasID:     req.FakultasID,
+				ProgramStudiID: req.ProgramStudiID,
+				StatusAkun:     "Aktif",
+				StatusAkademik: "Aktif",
+				TahunMasuk:     time.Now().Year(),
+			}
+			if err := tx.Create(&mhs).Error; err != nil {
+				return err
+			}
+		case "dosen", "DOSEN":
+			nidn := strings.Split(req.Email, "@")[0]
+			dosen := models.Dosen{
+				PenggunaID: user.ID,
+				Nama:       req.Nama,
+				NIDN:       nidn,
+				FakultasID: req.FakultasID,
+			}
+			if err := tx.Create(&dosen).Error; err != nil {
+				return err
+			}
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal registrasi akun: " + err.Error()})
 	}
 
-	if err := config.DB.Create(&user).Error; err != nil {
-		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Failed to create user"})
-	}
-
-	return c.JSON(fiber.Map{"status": "success", "data": user})
+	return c.JSON(fiber.Map{"status": "success", "message": "Akun berhasil diregistrasi dengan identitas terhubung"})
 }
 
 func DeleteUser(c *fiber.Ctx) error {

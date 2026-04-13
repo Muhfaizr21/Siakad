@@ -15,7 +15,7 @@ import {
   UserCheck, Mail, KeyRound, ShieldAlert, 
   Fingerprint, Info, ShieldCheck, UserCog,
   LayoutGrid, Database, ClipboardList, Activity,
-  ArrowRight
+  ArrowRight, User
 } from 'lucide-react'
 
 import { toast, Toaster } from 'react-hot-toast'
@@ -67,6 +67,8 @@ const ROLE_DETAILS = {
 
 export default function UserManagement() {
   const [users, setUsers] = useState([])
+  const [faculties, setFaculties] = useState([])
+  const [allProdi, setAllProdi] = useState([])
   const [loading, setLoading] = useState(true)
   const [selected, setSelected] = useState(null)
   const [isCrudOpen, setIsCrudOpen] = useState(false)
@@ -75,20 +77,30 @@ export default function UserManagement() {
   const [isPermsOpen, setIsPermsOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [newRole, setNewRole] = useState('')
-  const [form, setForm] = useState({ Email: '', Password: '', Role: 'mahasiswa' })
+  const [form, setForm] = useState({ 
+    Email: '', 
+    Password: '', 
+    Role: 'mahasiswa',
+    Nama: '',
+    FakultasID: '',
+    ProgramStudiID: ''
+  })
 
   const fetchData = async () => {
     setLoading(true)
     try {
-      const res = await adminService.getAllUsers()
-      if (res && res.status === 'success') {
-        setUsers(res.data || [])
-      } else {
-        toast.error(res?.message || 'Gagal memuat pengguna')
-      }
+      const [userRes, facRes, prodiRes] = await Promise.all([
+        adminService.getAllUsers(),
+        adminService.getAllFaculties(),
+        adminService.getAllProdi()
+      ])
+
+      if (userRes?.status === 'success') setUsers(userRes.data || [])
+      if (facRes?.status === 'success') setFaculties(facRes.data || [])
+      if (prodiRes?.status === 'success') setAllProdi(prodiRes.data || [])
     } catch (err) { 
       console.error("RBAC Fetch Error:", err)
-      toast.error(err.message || 'Koneksi gagal - Pastikan backend berjalan di port 8000') 
+      toast.error('Gagal sinkronisasi data master') 
     } finally { setLoading(false) }
   }
 
@@ -134,14 +146,14 @@ export default function UserManagement() {
     {
       key: 'email', label: 'Pengguna & Identitas', className: 'min-w-[320px]',
       render: (v, row) => {
-        const linkedName = row.Dosen?.Nama || (row.Role === 'super_admin' ? 'System Administrator' : 'Account Identity')
-        const isLinked = !!row.Dosen || row.Role === 'super_admin'
+        const linkedName = row.identity_name || (row.role === 'super_admin' ? 'System Administrator' : 'Account Identity')
+        const isLinked = !!row.identity_name
         return (
           <div className="flex items-center gap-3">
             <div className="relative">
               <Avatar className="h-12 w-12 rounded-2xl border-2 border-white shadow-sm ring-1 ring-slate-100">
                 <AvatarFallback className="bg-gradient-to-br from-slate-100 to-slate-200 text-slate-800 text-[10px] font-black uppercase">
-                  {(v || row.Email || '').split('@')[0].substring(0, 2).toUpperCase()}
+                  {(v || row.email || '').split('@')[0].substring(0, 2).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
               <div className={cn("absolute -bottom-1 -right-1 size-4 rounded-full border-2 border-white shadow-sm flex items-center justify-center", isLinked ? "bg-emerald-500" : "bg-slate-300")}>
@@ -150,17 +162,50 @@ export default function UserManagement() {
             </div>
             <div className="flex flex-col leading-tight">
               <span className="font-black text-slate-900 font-headline tracking-tighter text-[13px] uppercase">{linkedName}</span>
-              <span className="text-[10px] text-slate-400 font-bold tracking-tight opacity-80">{v || row.Email || '—'}</span>
+              <span className="text-[10px] text-slate-400 font-bold tracking-tight opacity-80">{v || row.email || '—'}</span>
             </div>
           </div>
         )
       }
     },
-
     {
-      key: 'role', label: 'Level Akses', className: 'w-[180px]',
+      key: 'fakultas_nama', label: 'Konteks Afiliasi', className: 'w-[240px]',
       render: (v, row) => {
-        const r = v || row.Role || ''
+        const role = row.role || ''
+        let context = '-'
+        let subContext = ''
+
+        if (role === 'super_admin') {
+          context = 'Universitas (Global)'
+        } else if (role === 'faculty_admin' || role === 'FACULTY_ADMIN') {
+          context = v || 'Fakultas Belum Set'
+        } else if (role === 'ormawa_admin' || role === 'ORMAWA_ADMIN') {
+          context = row.ormawa_nama || 'Organisasi Belum Set'
+          subContext = v ? `At ${v}` : ''
+        } else if (role === 'mahasiswa' || role === 'MAHASISWA') {
+          context = row.prodi_nama || '-'
+          subContext = v || ''
+        } else if (role === 'dosen' || role === 'DOSEN') {
+          context = v || '-'
+          subContext = row.prodi_nama || ''
+        }
+        
+        return (
+          <div className="flex flex-col gap-0.5">
+            <div className="flex items-center gap-1.5">
+              <div className="size-1.5 rounded-full bg-primary/30" />
+              <span className="text-[11px] font-black text-slate-900 font-headline uppercase leading-tight tracking-tighter">{context}</span>
+            </div>
+            {subContext && <span className="text-[9px] font-bold text-slate-400 ml-3 uppercase tracking-tight">{subContext}</span>}
+            {row.identity_code && <span className="text-[8px] font-medium text-primary ml-3 font-mono">ID: {row.identity_code}</span>}
+          </div>
+        )
+      }
+    },
+    {
+      key: 'role', label: 'Level Akses', className: 'w-[160px]',
+      render: (v, row) => {
+        const r = v || row.role || ''
         const cfg = ROLE_DETAILS[r] || { label: r, cls: 'bg-slate-100 text-slate-600' }
         return (
           <div className="flex flex-col gap-1.5">
@@ -172,9 +217,9 @@ export default function UserManagement() {
     {
       key: 'created_at', label: 'Tgl Registrasi', className: 'w-[140px]',
       render: (v, row) => {
-        const d = v || row.CreatedAt || row.created_at
+        const d = v || row.created_at
         return (
-          <div className="flex flex-col">
+          <div className="flex flex-col text-right">
             <span className="font-bold text-slate-900 text-[11px] font-headline">{d ? new Date(d).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}</span>
             <span className="text-[9px] text-slate-400 font-bold uppercase">{d ? new Date(d).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : ''}</span>
           </div>
@@ -227,7 +272,7 @@ export default function UserManagement() {
               <DataTable
                 columns={columns} data={users} loading={loading}
                 searchPlaceholder="Cari identitas, email atau level akses..."
-                onAdd={() => { setForm({ Email: '', Password: '', Role: 'mahasiswa' }); setIsCrudOpen(true) }} addLabel="Registrasi Akun"
+                onAdd={() => { setForm({ Email: '', Password: '', Role: 'mahasiswa', Nama: '', FakultasID: '', ProgramStudiID: '' }); setIsCrudOpen(true) }} addLabel="Registrasi Akun"
                 filters={[{ key: 'role', placeholder: 'Pilih Level Akses', options: ROLES.map(r => ({ label: ROLE_DETAILS[r]?.label || r, value: r })) }]}
                 searchWidth="max-w-xl"
                 actions={(row) => (
@@ -294,7 +339,7 @@ export default function UserManagement() {
               </div>
             </div>
           </DialogHeader>
-          <form onSubmit={handleCreate} className="p-10 space-y-6">
+          <form onSubmit={handleCreate} className="p-10 space-y-5">
             <div className="space-y-2.5">
               <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Identity (Email Handle)</Label>
               <div className="relative">
@@ -303,10 +348,20 @@ export default function UserManagement() {
                   className="h-14 pl-14 pr-6 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white font-bold text-sm tracking-tight placeholder:text-slate-300 shadow-inner outline-none focus:ring-4 focus:ring-primary/5 transition-all text-slate-900" />
               </div>
             </div>
+
+            <div className="space-y-2.5">
+              <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Nama Lengkap Sesuai Identitas</Label>
+              <div className="relative">
+                <User className="absolute left-5 top-1/2 -translate-y-1/2 size-4 text-slate-300" />
+                <Input required value={form.Nama} onChange={e => setForm({ ...form, Nama: e.target.value })} placeholder="Masukkan nama lengkap..." 
+                  className="h-14 pl-14 pr-6 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white font-bold text-sm tracking-tight placeholder:text-slate-300 shadow-inner transition-all text-slate-900 uppercase" />
+              </div>
+            </div>
+
             <div className="grid grid-cols-2 gap-6">
                <div className="space-y-2.5">
                   <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Account Level</Label>
-                  <Select value={form.Role} onValueChange={v => setForm({ ...form, Role: v })}>
+                  <Select value={form.Role} onValueChange={v => setForm({ ...form, Role: v, FakultasID: '', ProgramStudiID: '' })}>
                     <SelectTrigger className="h-14 rounded-2xl border-slate-200 bg-slate-50/50 font-black font-headline text-[11px] uppercase tracking-tighter shadow-inner px-6 text-slate-900"><SelectValue /></SelectTrigger>
                     <SelectContent className="rounded-3xl shadow-2xl p-2 border-slate-100">
                       {ROLES.map(r => (
@@ -329,12 +384,42 @@ export default function UserManagement() {
                   </div>
                </div>
             </div>
+
+            {form.Role !== 'super_admin' && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in slide-in-from-top-2 duration-300">
+                <div className="space-y-2.5">
+                  <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Fakultas / Unit Kerja</Label>
+                  <Select value={String(form.FakultasID)} onValueChange={v => setForm({ ...form, FakultasID: v, ProgramStudiID: '' })}>
+                    <SelectTrigger className="h-14 rounded-2xl border-slate-200 bg-slate-50/50 font-black font-headline text-[11px] uppercase tracking-tighter shadow-inner px-6 text-slate-900"><SelectValue placeholder="Pilih Fakultas" /></SelectTrigger>
+                    <SelectContent className="rounded-3xl shadow-2xl p-2 border-slate-100 max-h-60 overflow-y-auto">
+                      {faculties.map(f => (
+                        <SelectItem key={f.ID} value={String(f.ID)} className="rounded-2xl font-black text-[10px] p-4 uppercase tracking-tighter cursor-pointer">{f.Nama}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {['mahasiswa', 'MAHASISWA'].includes(form.Role) && (
+                  <div className="space-y-2.5">
+                    <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Program Studi</Label>
+                    <Select value={String(form.ProgramStudiID)} onValueChange={v => setForm({ ...form, ProgramStudiID: v })}>
+                      <SelectTrigger className="h-14 rounded-2xl border-slate-200 bg-slate-50/50 font-black font-headline text-[11px] uppercase tracking-tighter shadow-inner px-6 text-slate-900"><SelectValue placeholder="Pilih Prodi" /></SelectTrigger>
+                      <SelectContent className="rounded-3xl shadow-2xl p-2 border-slate-100 max-h-60 overflow-y-auto">
+                        {allProdi.filter(p => !form.FakultasID || p.FakultasID === Number(form.FakultasID)).map(p => (
+                          <SelectItem key={p.ID} value={String(p.ID)} className="rounded-2xl font-black text-[10px] p-4 uppercase tracking-tighter cursor-pointer">{p.Nama}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+              </div>
+            )}
             
             <div className="pt-8 flex flex-row gap-4 border-t border-slate-50">
                <Button type="button" variant="ghost" onClick={() => setIsCrudOpen(false)} className="text-[11px] font-black uppercase tracking-widest text-slate-400 px-10 h-14 rounded-2xl flex-1 hover:bg-slate-50 transition-all">Batalkan</Button>
                <Button type="submit" disabled={isSubmitting} className="h-14 px-10 rounded-2xl bg-slate-900 text-white hover:bg-primary shadow-xl shadow-slate-900/20 flex-1 hover:shadow-primary/30 transition-all">
                   {isSubmitting ? <Loader2 className="animate-spin size-4 mr-2" /> : <Save className="size-4 mr-2 stroke-[3px]" />}
-                  <span className="text-[11px] font-black uppercase tracking-[0.2em]">Sahkan Akun Baru</span>
+                  <span className="text-[11px] font-black uppercase tracking-[0.2em]">Sahkan Akun & Identitas</span>
                </Button>
             </div>
           </form>
