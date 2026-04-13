@@ -379,6 +379,25 @@ export const adminService = {
   deleteCounselingSchedule: (id) => fetchWithAuth(`${API_BASE_URL}/admin/counseling-schedules/${id}`, {
     method: 'DELETE'
   }),
+  getPrestasiMandiriQueue: (status = 'forwarded_to_superadmin') => fetchWithAuth(`${API_BASE_URL}/admin/prestasi-mandiri?status=${status}`),
+  approvePrestasiMandiri: (id, data) => fetchWithAuth(`${API_BASE_URL}/admin/prestasi-mandiri/${id}/approve`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data || {})
+  }),
+  rejectPrestasiMandiri: (id, data) => fetchWithAuth(`${API_BASE_URL}/admin/prestasi-mandiri/${id}/reject`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data || {})
+  }),
+  markPrestasiMandiriSyncSuccess: (id) => fetchWithAuth(`${API_BASE_URL}/admin/prestasi-mandiri/${id}/sync-success`, {
+    method: 'PUT'
+  }),
+  markPrestasiMandiriSyncFailed: (id, data) => fetchWithAuth(`${API_BASE_URL}/admin/prestasi-mandiri/${id}/sync-failed`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data || {})
+  }),
   getAllUsers: () => fetchWithAuth(`${API_BASE_URL}/admin/users`),
   createUser: (data) => fetchWithAuth(`${API_BASE_URL}/admin/users`, {
     method: 'POST',

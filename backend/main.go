@@ -105,8 +105,16 @@ func main() {
 	achievementGroup := api.Group("/achievement")
 	achievementGroup.Get("/", achievement.GetAchievements)
 	achievementGroup.Post("/", achievement.CreateAchievement)
+	achievementGroup.Post("/prestasi-mandiri", achievement.CreatePrestasiMandiri)
+	achievementGroup.Put("/prestasi-mandiri/:id", achievement.UpdatePrestasiMandiri)
+	achievementGroup.Post("/prestasi-mandiri/:id/submit", achievement.SubmitPrestasiMandiri)
 	achievementGroup.Get("/:id", achievement.GetAchievementDetail)
 	achievementGroup.Delete("/:id", achievement.DeleteAchievement)
+
+	// Flat aliases to avoid route conflicts in clients
+	api.Post("/prestasi-mandiri", achievement.CreatePrestasiMandiri)
+	api.Put("/prestasi-mandiri/:id", achievement.UpdatePrestasiMandiri)
+	api.Post("/prestasi-mandiri/:id/submit", achievement.SubmitPrestasiMandiri)
 
 	// Organisasi
 	organisasiGroup := api.Group("/organisasi")

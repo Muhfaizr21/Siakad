@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Avatar, AvatarFallback } from "./components/avatar"
 import { toast, Toaster } from "react-hot-toast"
 import { cn } from "@/lib/utils"
+import { getAuthToken } from "../../services/api"
 
 export default function FacultyPrestasi() {
   const [achievements, setAchievements] = useState([])
@@ -25,7 +26,10 @@ export default function FacultyPrestasi() {
   const fetchData = async () => {
     try {
       setLoading(true)
-      const res = await fetch('http://localhost:8000/api/faculty/prestasi')
+      const token = getAuthToken()
+      const res = await fetch('http://localhost:8000/api/faculty/prestasi', {
+        headers: token ? { Authorization: `Bearer ${token}` } : {}
+      })
       const json = await res.json()
       if (json.status === "success") {
         setAchievements(json.data)
@@ -40,18 +44,22 @@ export default function FacultyPrestasi() {
   const handleValidation = async (id, status) => {
     setIsSubmitting(true)
     try {
+      const token = getAuthToken()
+      const mappedStatus = status === 'verified' ? 'forwarded_to_superadmin' : 'draft'
       const res = await fetch(`http://localhost:8000/api/faculty/prestasi/${id}/verify`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
         body: JSON.stringify({
-          Status: status,
-          Poin: status === 'verified' ? 5 : 0,
-          Catatan: status === 'verified' ? 'Prestasi terverifikasi oleh fakultas.' : 'Berkas tidak sesuai kriteria.'
+          status: mappedStatus,
+          catatan: status === 'verified' ? 'Diteruskan ke super admin untuk approval final.' : 'Perlu perbaikan data dari mahasiswa.'
         })
       })
       const json = await res.json()
       if (json.status === 'success') {
-        toast.success(status === 'verified' ? 'Prestasi disetujui' : 'Prestasi ditolak')
+        toast.success(status === 'verified' ? 'Prestasi dikirim ke Super Admin' : 'Prestasi dikembalikan ke mahasiswa')
         setIsModalOpen(false)
         fetchData()
       } else {
@@ -67,8 +75,9 @@ export default function FacultyPrestasi() {
 
   const getStatusConfig = (status) => {
     switch(status) {
-      case 'verified': return { label: 'TERVERIFIKASI', color: 'bg-emerald-500', textColor: 'text-emerald-700', bgColor: 'bg-emerald-50', ring: 'ring-emerald-500/20', icon: <CheckCircle2 className="size-3.5" /> }
-      case 'rejected': return { label: 'DITOLAK', color: 'bg-rose-500', textColor: 'text-rose-700', bgColor: 'bg-rose-50', ring: 'ring-rose-500/20', icon: <XCircle className="size-3.5" /> }
+      case 'approved_superadmin': return { label: 'TERVERIFIKASI', color: 'bg-emerald-500', textColor: 'text-emerald-700', bgColor: 'bg-emerald-50', ring: 'ring-emerald-500/20', icon: <CheckCircle2 className="size-3.5" /> }
+      case 'rejected_superadmin': return { label: 'DITOLAK', color: 'bg-rose-500', textColor: 'text-rose-700', bgColor: 'bg-rose-50', ring: 'ring-rose-500/20', icon: <XCircle className="size-3.5" /> }
+      case 'forwarded_to_superadmin': return { label: 'KE SUPER ADMIN', color: 'bg-indigo-500', textColor: 'text-indigo-700', bgColor: 'bg-indigo-50', ring: 'ring-indigo-500/20', icon: <ShieldCheck className="size-3.5" /> }
       default: return { label: 'MENUNGGU', color: 'bg-amber-500', textColor: 'text-amber-700', bgColor: 'bg-amber-50', ring: 'ring-amber-500/20', icon: <AlertCircle className="size-3.5" /> }
     }
   }
@@ -120,9 +129,10 @@ export default function FacultyPrestasi() {
         <Badge
           className={cn(
             "capitalize font-black text-[10px] px-3 py-1 border-none shadow-sm font-headline uppercase",
-            val === 'verified' ? "bg-emerald-100 text-emerald-700 ring-1 ring-emerald-500/20" :
-              val === 'pending' ? "bg-amber-100 text-amber-700 ring-1 ring-amber-500/20" :
-                val === 'rejected' ? "bg-rose-100 text-rose-700 ring-1 ring-rose-500/20" :
+            val === 'approved_superadmin' ? "bg-emerald-100 text-emerald-700 ring-1 ring-emerald-500/20" :
+              val === 'submitted_to_fakultas' || val === 'review_fakultas' ? "bg-amber-100 text-amber-700 ring-1 ring-amber-500/20" :
+                val === 'rejected_superadmin' ? "bg-rose-100 text-rose-700 ring-1 ring-rose-500/20" :
+                  val === 'forwarded_to_superadmin' ? "bg-indigo-100 text-indigo-700 ring-1 ring-indigo-500/20" :
                   "bg-slate-100 text-slate-700 ring-1 ring-slate-500/20"
           )}
         >
@@ -166,9 +176,10 @@ export default function FacultyPrestasi() {
                 key: 'Status',
                 placeholder: 'Filter Status',
                 options: [
-                  { label: 'Disetujui', value: 'verified' },
-                  { label: 'Menunggu', value: 'pending' },
-                  { label: 'Ditolak', value: 'rejected' },
+                  { label: 'Menunggu Fakultas', value: 'submitted_to_fakultas' },
+                  { label: 'Ke Super Admin', value: 'forwarded_to_superadmin' },
+                  { label: 'Disetujui Super Admin', value: 'approved_superadmin' },
+                  { label: 'Ditolak Super Admin', value: 'rejected_superadmin' },
                 ]
               }
             ]}
@@ -253,14 +264,14 @@ export default function FacultyPrestasi() {
                 <div className="p-10 space-y-8">
 
                   {/* Status Alert for Rejected */}
-                  {sel.Status === 'rejected' && (
+                  {sel.Status === 'rejected_superadmin' && (
                     <div className="p-5 rounded-2xl bg-rose-50 border border-rose-100 flex items-start gap-4">
                       <div className="size-10 rounded-2xl bg-rose-100 flex items-center justify-center text-rose-600 shrink-0">
                         <XCircle className="size-5" />
                       </div>
                       <div>
                         <p className="text-[11px] font-black text-rose-700 uppercase tracking-widest mb-1">Pengajuan Ditolak</p>
-                        <p className="text-[13px] font-bold text-rose-600/80 leading-relaxed">Berkas tidak sesuai kriteria verifikasi fakultas. Mahasiswa dapat mengajukan ulang dengan dokumen yang telah diperbaiki.</p>
+                          <p className="text-[13px] font-bold text-rose-600/80 leading-relaxed">Berkas ditolak pada approval super admin. Mahasiswa dapat mengajukan ulang dengan perbaikan data.</p>
                       </div>
                     </div>
                   )}
@@ -414,7 +425,7 @@ export default function FacultyPrestasi() {
                     className="h-12 px-10 rounded-2xl bg-slate-950 text-white hover:bg-primary transition-all duration-300 font-headline active:scale-95 shadow-2xl shadow-slate-900/20"
                   >
                     <CheckCircle2 className="size-4 mr-2" />
-                    <span className="text-[10px] font-black uppercase tracking-widest">Validasi Prestasi</span>
+                    <span className="text-[10px] font-black uppercase tracking-widest">Kirim ke Super Admin</span>
                   </Button>
                 </div>
               </div>

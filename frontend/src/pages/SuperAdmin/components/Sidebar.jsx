@@ -38,6 +38,7 @@ const menuGroups = [
       { name: "Beasiswa", icon: CreditCard, path: "/admin/scholarships" },
       { name: "Aspirasi", icon: MessageSquare, path: "/admin/aspirations" },
       { name: "Konseling", icon: BrainCircuit, path: "/admin/counseling" },
+      { name: "Prestasi Mandiri", icon: ShieldCheck, path: "/admin/prestasi-mandiri" },
     ]
   },
   {

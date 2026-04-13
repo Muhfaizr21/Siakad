@@ -45,6 +45,45 @@ export const useCreateAchievementMutation = () => {
   });
 };
 
+export const useCreatePrestasiMandiriMutation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (payload) => {
+      const { data } = await api.post('/prestasi-mandiri', payload);
+      return data.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['achievements'] });
+    },
+  });
+};
+
+export const useUpdatePrestasiMandiriMutation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, payload }) => {
+      const { data } = await api.put(`/prestasi-mandiri/${id}`, payload);
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['achievements'] });
+    },
+  });
+};
+
+export const useSubmitPrestasiMandiriMutation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id) => {
+      const { data } = await api.post(`/prestasi-mandiri/${id}/submit`);
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['achievements'] });
+    },
+  });
+};
+
 // Delete Achievement
 export const useDeleteAchievementMutation = () => {
   const queryClient = useQueryClient();

@@ -761,7 +761,7 @@ func CreateNews(c *fiber.Ctx) error {
 
 	b.PenulisID = userID
 	b.TanggalPublish = time.Now()
-	
+
 	if err := config.DB.Create(&b).Error; err != nil {
 		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal menyimpan berita: " + err.Error()})
 	}
@@ -787,6 +787,121 @@ func DeleteNews(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"status": "success", "message": "Berita dihapus"})
 }
 
+// Prestasi Mandiri (SIMKATMAWA flow)
+func GetPrestasiMandiriQueue(c *fiber.Ctx) error {
+	status := c.Query("status", "forwarded_to_superadmin")
+
+	var list []models.Prestasi
+	q := config.DB.Preload("Mahasiswa.ProgramStudi").Preload("Mahasiswa.Pengguna").Order("created_at desc")
+	if status != "all" {
+		q = q.Where("status = ?", status)
+	}
+
+	if err := q.Find(&list).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal mengambil data prestasi mandiri"})
+	}
+
+	return c.JSON(fiber.Map{"status": "success", "data": list})
+}
+
+func ApprovePrestasiMandiri(c *fiber.Ctx) error {
+	id := c.Params("id")
+
+	var req struct {
+		Catatan string `json:"catatan"`
+	}
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Payload salah"})
+	}
+
+	var item models.Prestasi
+	if err := config.DB.First(&item, id).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Data tidak ditemukan"})
+	}
+
+	if item.Status != "forwarded_to_superadmin" {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Data belum dikirim dari fakultas"})
+	}
+
+	if err := config.DB.Model(&item).Updates(map[string]interface{}{
+		"status":         "approved_superadmin",
+		"status_sinkron": "queued_sync",
+		"keterangan":     req.Catatan,
+	}).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal menyetujui data"})
+	}
+
+	return c.JSON(fiber.Map{"status": "success", "message": "Prestasi mandiri disetujui super admin"})
+}
+
+func RejectPrestasiMandiri(c *fiber.Ctx) error {
+	id := c.Params("id")
+
+	var req struct {
+		Catatan string `json:"catatan"`
+	}
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Payload salah"})
+	}
+	if req.Catatan == "" {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Catatan penolakan wajib diisi"})
+	}
+
+	var item models.Prestasi
+	if err := config.DB.First(&item, id).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Data tidak ditemukan"})
+	}
+
+	if item.Status != "forwarded_to_superadmin" {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Data belum dikirim dari fakultas"})
+	}
+
+	if err := config.DB.Model(&item).Updates(map[string]interface{}{
+		"status":         "rejected_superadmin",
+		"status_sinkron": "draft",
+		"keterangan":     req.Catatan,
+	}).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal menolak data"})
+	}
+
+	return c.JSON(fiber.Map{"status": "success", "message": "Prestasi mandiri ditolak super admin"})
+}
+
+func MarkPrestasiMandiriSynced(c *fiber.Ctx) error {
+	id := c.Params("id")
+	now := time.Now()
+
+	if err := config.DB.Model(&models.Prestasi{}).Where("id = ?", id).Updates(map[string]interface{}{
+		"status_sinkron":        "synced",
+		"terakhir_sinkron_pada": &now,
+	}).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal mengubah status sinkron"})
+	}
+
+	return c.JSON(fiber.Map{"status": "success", "message": "Status sinkron ditandai berhasil"})
+}
+
+func MarkPrestasiMandiriSyncFailed(c *fiber.Ctx) error {
+	id := c.Params("id")
+
+	var req struct {
+		Catatan string `json:"catatan"`
+	}
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Payload salah"})
+	}
+
+	now := time.Now()
+	if err := config.DB.Model(&models.Prestasi{}).Where("id = ?", id).Updates(map[string]interface{}{
+		"status_sinkron":        "sync_failed",
+		"terakhir_sinkron_pada": &now,
+		"keterangan":            req.Catatan,
+	}).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal mengubah status sinkron"})
+	}
+
+	return c.JSON(fiber.Map{"status": "success", "message": "Status sinkron ditandai gagal"})
+}
 
 // GetAdminProfile returns the profile of the currently logged-in admin
 func GetAdminProfile(c *fiber.Ctx) error {
@@ -814,7 +929,7 @@ func UpdateAdminProfile(c *fiber.Ctx) error {
 	}
 
 	type UpdateReq struct {
-		Email string `json:"Email"`
+		Email       string `json:"Email"`
 		OldPassword string `json:"OldPassword"`
 		NewPassword string `json:"NewPassword"`
 	}
@@ -838,7 +953,7 @@ func UpdateAdminProfile(c *fiber.Ctx) error {
 		if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.OldPassword)); err != nil {
 			return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Incorrect current password"})
 		}
-		
+
 		hashed, err := bcrypt.GenerateFromPassword([]byte(req.NewPassword), bcrypt.DefaultCost)
 		if err != nil {
 			return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Failed to hash new password"})
@@ -851,9 +966,9 @@ func UpdateAdminProfile(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(fiber.Map{
-		"status": "success",
+		"status":  "success",
 		"message": "Admin profile updated successfully",
-		"data": user,
+		"data":    user,
 	})
 }
 
@@ -899,9 +1014,9 @@ func UpdateAcademicSettings(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(fiber.Map{
-		"status": "success",
+		"status":  "success",
 		"message": "Konfigurasi akademik berhasil diperbarui",
-		"data": settings,
+		"data":    settings,
 	})
 }
 
@@ -945,4 +1060,3 @@ func UpdateScholarshipApplicationStatus(c *fiber.Ctx) error {
 		"data":    application,
 	})
 }
-

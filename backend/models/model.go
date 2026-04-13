@@ -230,13 +230,31 @@ type Prestasi struct {
 	MahasiswaID uint
 	Mahasiswa   Mahasiswa
 
-	NamaKegiatan string
-	Kategori     string
-	Tingkat      string
-	Peringkat    string
-	Status       string
-	Poin         int
-	BuktiURL     string
+	NamaKegiatan        string
+	Kategori            string
+	Tingkat             string
+	Peringkat           string
+	Status              string
+	Poin                int
+	BuktiURL            string
+	Level               string
+	Cabang              string
+	Penyelenggara       string
+	JumlahUnitPeserta   int
+	KelompokPrestasi    string
+	Bentuk              string
+	URLPeserta          string
+	URLSertifikat       string
+	TanggalSertifikat   *time.Time
+	URLFotoUPP          string
+	URLDokumenUndangan  string
+	Keterangan          string
+	MahasiswaPayload    datatypes.JSON `gorm:"type:jsonb"`
+	DosenPayload        datatypes.JSON `gorm:"type:jsonb"`
+	StatusSinkron       string
+	SimkatResponseID    *uint
+	SimkatResponseRaw   datatypes.JSON `gorm:"type:jsonb"`
+	TerakhirSinkronPada *time.Time
 
 	RiwayatOrganisasiID *uint
 	RiwayatOrganisasi   *RiwayatOrganisasi `gorm:"foreignKey:RiwayatOrganisasiID"`
@@ -244,6 +262,59 @@ type Prestasi struct {
 
 func (Prestasi) TableName() string {
 	return "mahasiswa.prestasi"
+}
+
+type Sertifikasi struct {
+	BaseModel
+	MahasiswaID uint `gorm:"index"`
+	Mahasiswa   Mahasiswa
+
+	Level               string
+	Nama                string
+	Penyelenggara       string
+	URLPeserta          string
+	URLSertifikat       string
+	TanggalSertifikat   *time.Time
+	URLFotoUPP          string
+	URLDokumenUndangan  string
+	Keterangan          string
+	MahasiswaPayload    datatypes.JSON `gorm:"type:jsonb"`
+	DosenPayload        datatypes.JSON `gorm:"type:jsonb"`
+	StatusSinkron       string
+	SimkatResponseID    *uint
+	SimkatResponseRaw   datatypes.JSON `gorm:"type:jsonb"`
+	TerakhirSinkronPada *time.Time
+}
+
+func (Sertifikasi) TableName() string {
+	return "mahasiswa.sertifikasi"
+}
+
+type Rekognisi struct {
+	BaseModel
+	MahasiswaID uint `gorm:"index"`
+	Mahasiswa   Mahasiswa
+
+	Level               string
+	Nama                string
+	Jenis               string
+	Penyelenggara       string
+	URLPeserta          string
+	URLSertifikat       string
+	TanggalSertifikat   *time.Time
+	URLFotoUPP          string
+	URLDokumenUndangan  string
+	Keterangan          string
+	MahasiswaPayload    datatypes.JSON `gorm:"type:jsonb"`
+	DosenPayload        datatypes.JSON `gorm:"type:jsonb"`
+	StatusSinkron       string
+	SimkatResponseID    *uint
+	SimkatResponseRaw   datatypes.JSON `gorm:"type:jsonb"`
+	TerakhirSinkronPada *time.Time
+}
+
+func (Rekognisi) TableName() string {
+	return "mahasiswa.rekognisi"
 }
 
 type Beasiswa struct {

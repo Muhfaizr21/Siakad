@@ -1,8 +1,8 @@
 package routes
 
 import (
-	"siakad-backend/controllers"
 	"github.com/gofiber/fiber/v2"
+	"siakad-backend/controllers"
 )
 
 func SetupSuperAdminRoutes(r fiber.Router) {
@@ -67,6 +67,13 @@ func SetupSuperAdminRoutes(r fiber.Router) {
 	r.Post("/counseling-schedules", controllers.CreateCounselingJadwal)
 	r.Put("/counseling-schedules/:id", controllers.UpdateCounselingJadwal)
 	r.Delete("/counseling-schedules/:id", controllers.DeleteCounselingJadwal)
+
+	// Prestasi Mandiri Approval + Sync Control
+	r.Get("/prestasi-mandiri", controllers.GetPrestasiMandiriQueue)
+	r.Put("/prestasi-mandiri/:id/approve", controllers.ApprovePrestasiMandiri)
+	r.Put("/prestasi-mandiri/:id/reject", controllers.RejectPrestasiMandiri)
+	r.Put("/prestasi-mandiri/:id/sync-success", controllers.MarkPrestasiMandiriSynced)
+	r.Put("/prestasi-mandiri/:id/sync-failed", controllers.MarkPrestasiMandiriSyncFailed)
 
 	// News & Content
 	r.Get("/news", controllers.GetAllNews)

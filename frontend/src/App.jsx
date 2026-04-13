@@ -95,6 +95,7 @@ import AspirationControl from './pages/SuperAdmin/AspirationControl'
 import ProposalPipeline from './pages/SuperAdmin/ProposalPipeline'
 import AuditLog from './pages/SuperAdmin/AuditLog'
 import CounselingAchievement from './pages/SuperAdmin/CounselingAchievement'
+import PrestasiMandiriApproval from './pages/SuperAdmin/PrestasiMandiriApproval'
 import ContentManagement from './pages/SuperAdmin/ContentManagement'
 import ReportsGenerator from './pages/SuperAdmin/ReportsGenerator'
 import StudentDirectory from './pages/SuperAdmin/StudentDirectory'
@@ -178,6 +179,7 @@ function App() {
                     <Route path="proposals" element={<ProposalPipeline />} />
                     <Route path="audit" element={<AuditLog />} />
                     <Route path="counseling" element={<CounselingAchievement />} />
+                    <Route path="prestasi-mandiri" element={<PrestasiMandiriApproval />} />
                     <Route path="announcements" element={<ContentManagement />} />
                     <Route path="broadcast" element={<ContentManagement />} />
                     <Route path="reports" element={<ReportsGenerator />} />

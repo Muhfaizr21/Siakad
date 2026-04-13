@@ -4,7 +4,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import {
   useAchievementsQuery,
-  useCreateAchievementMutation,
+  useCreatePrestasiMandiriMutation,
+  useSubmitPrestasiMandiriMutation,
   useDeleteAchievementMutation,
 } from '../../queries/useAchievementQuery';
 import { useOrganisasiListQuery } from '../../queries/useOrganisasiQuery';
@@ -52,17 +53,7 @@ const achievementSchema = z.object({
   peringkat: z.enum(['Juara 1', 'Juara 2', 'Juara 3', 'Harapan 1', 'Harapan 2', 'Finalis', 'Peserta'], {
     required_error: 'Pilih peringkat',
   }),
-  sertifikat: z
-    .any()
-    .refine((files) => files?.length === 1, 'Sertifikat wajib diunggah')
-    .refine(
-      (files) => files?.[0]?.size <= 5 * 1024 * 1024,
-      'Ukuran file maksimal 5MB'
-    )
-    .refine(
-      (files) => ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg'].includes(files?.[0]?.type),
-      'Format hanya PDF, JPG, atau PNG'
-    ),
+  sertifikat: z.any().optional(),
   riwayat_organisasi_id: z.string().optional(),
 });
 
@@ -73,7 +64,8 @@ export default function AchievementPage() {
 
   // Queries
   const { data: achievementData, isLoading } = useAchievementsQuery();
-  const createMutation = useCreateAchievementMutation();
+  const createMutation = useCreatePrestasiMandiriMutation();
+  const submitMutation = useSubmitPrestasiMandiriMutation();
   const deleteMutation = useDeleteAchievementMutation();
 
   const stats = achievementData?.stats || { total: 0, verified: 0, pending: 0 };
@@ -96,28 +88,65 @@ export default function AchievementPage() {
   const fileValue = watch('sertifikat');
 
   const onSubmit = (formData) => {
-    const payload = new FormData();
-    payload.append('nama_kegiatan', formData.nama_lomba);
-    payload.append('kategori', formData.kategori);
-    payload.append('tingkat', formData.tingkat);
-    payload.append('penyelenggara', formData.penyelenggara);
-    payload.append('tanggal', formData.tanggal);
-    payload.append('peringkat', formData.peringkat);
-    payload.append('bukti', formData.sertifikat[0]);
-    
-    if (formData.riwayat_organisasi_id) {
-       payload.append('riwayat_organisasi_id', formData.riwayat_organisasi_id);
-    }
+    const levelMap = {
+      Lokal: 'KAB',
+      Regional: 'PROV',
+      Nasional: 'NAS',
+      Internasional: 'INT',
+    };
+    const kategoriMap = {
+      Akademik: 'RISNOV',
+      'Non-Akademik': 'MINAT',
+      Olahraga: 'OLAHRAGA',
+      Seni: 'SENBUD',
+      Wirausaha: 'RISNOVSSH',
+    };
+    const peringkatMap = {
+      'Juara 1': 'JUARA1',
+      'Juara 2': 'JUARA2',
+      'Juara 3': 'JUARA3',
+      'Harapan 1': 'HARAPAN1',
+      'Harapan 2': 'HARAPAN2',
+      Finalis: 'APRESIASI',
+      Peserta: 'PESERTA',
+    };
+
+    const payload = {
+      level: levelMap[formData.tingkat] || 'NAS',
+      kategori: kategoriMap[formData.kategori] || 'MINAT',
+      lomba: formData.nama_lomba,
+      cabang: formData.kategori,
+      penyelenggara: formData.penyelenggara,
+      peringkat: peringkatMap[formData.peringkat] || 'PESERTA',
+      jumlah_unit_peserta: 1,
+      kelompok_prestasi: 'INDIVIDU',
+      bentuk: 'LURING',
+      url_peserta: 'https://example.com/peserta',
+      url_sertifikat: 'https://example.com/sertifikat',
+      tgl_sertifikat: formData.tanggal,
+      url_foto_upp: '',
+      url_dokumen_undangan: '',
+      keterangan: formData.riwayat_organisasi_id || '',
+      mahasiswa: [],
+      dosen: [],
+    };
 
     createMutation.mutate(payload, {
       onSuccess: () => {
-        toast.success('Prestasi berhasil dilaporkan!');
+        toast.success('Draft prestasi mandiri berhasil disimpan');
         reset();
         setIsModalOpen(false);
       },
       onError: (err) => {
-        toast.error(err.response?.data?.message || 'Gagal melaporkan prestasi');
+        toast.error(err.response?.data?.message || 'Gagal menyimpan draft prestasi');
       },
+    });
+  };
+
+  const handleSubmitToFaculty = (id) => {
+    submitMutation.mutate(id, {
+      onSuccess: () => toast.success('Berhasil dikirim ke admin fakultas'),
+      onError: (err) => toast.error(err.response?.data?.message || 'Gagal kirim ke fakultas'),
     });
   };
 
@@ -168,9 +197,9 @@ export default function AchievementPage() {
         cell: (info) => {
           const val = info.getValue();
           let style = 'bg-[#f5f5f5] text-[#525252] border-[#e5e5e5]';
-          if (val === 'Diverifikasi') style = 'bg-[#f0fdf4] text-[#16a34a] border-[#bbf7d0]';
-          if (val === 'Menunggu') style = 'bg-[#eef4ff] text-[#00236F] border-[#c9d8ff]';
-          if (val === 'Ditolak') style = 'bg-[#fef2f2] text-[#dc2626] border-[#fecaca]';
+          if (val === 'Diverifikasi' || val === 'approved_superadmin') style = 'bg-[#f0fdf4] text-[#16a34a] border-[#bbf7d0]';
+          if (val === 'Menunggu' || val === 'submitted_to_fakultas' || val === 'review_fakultas' || val === 'forwarded_to_superadmin') style = 'bg-[#eef4ff] text-[#00236F] border-[#c9d8ff]';
+          if (val === 'Ditolak' || val === 'rejected_superadmin') style = 'bg-[#fef2f2] text-[#dc2626] border-[#fecaca]';
 
           return (
             <span className={`px-3 py-1 rounded-full text-xs font-bold border ${style}`}>
@@ -191,15 +220,24 @@ export default function AchievementPage() {
             >
               <Eye size={16} />
             </button>
-            {info.row.original.Status === 'Menunggu' && (
-              <button
-                onClick={() => handleDelete(info.row.original.ID)}
-                className="p-1.5 text-[#dc2626] bg-[#fef2f2] rounded hover:bg-[#fee2e2] transition-colors"
-                title="Hapus"
-              >
-                <Trash2 size={16} />
-              </button>
-            )}
+             {info.row.original.Status === 'draft' && (
+               <button
+                 onClick={() => handleSubmitToFaculty(info.row.original.ID)}
+                 className="px-2.5 py-1.5 text-xs font-bold text-white bg-[#00236F] rounded hover:bg-[#0B4FAE] transition-colors"
+                 title="Kirim"
+               >
+                 Kirim
+               </button>
+             )}
+             {(info.row.original.Status === 'Menunggu' || info.row.original.Status === 'draft' || info.row.original.Status === 'rejected_superadmin') && (
+               <button
+                 onClick={() => handleDelete(info.row.original.ID)}
+                 className="p-1.5 text-[#dc2626] bg-[#fef2f2] rounded hover:bg-[#fee2e2] transition-colors"
+                 title="Hapus"
+               >
+                 <Trash2 size={16} />
+               </button>
+             )}
           </div>
         ),
       },
