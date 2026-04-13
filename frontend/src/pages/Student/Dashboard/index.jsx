@@ -5,6 +5,16 @@ import { Bell, Map, FileCheck, CheckSquare, CalendarDays, Library, AlertCircle, 
 import { StatCard, JadwalCard, TagihanCard, NotifItem, QuickLink } from './DashboardComponents';
 import { Skeleton } from '../../../components/ui/Skeleton';
 
+const mapPengumumanToNotif = (items = []) => {
+  return items.map((p, idx) => ({
+    id: p.id || p.ID || `pengumuman-${idx}`,
+    judul: p.judul || p.Judul || 'Pengumuman',
+    isi_singkat: p.isi || p.Isi || 'Ada pengumuman baru untuk mahasiswa.',
+    tipe: 'Pengumuman',
+    is_read: false,
+  }));
+};
+
 export default function StudentDashboard() {
   const { data, isLoading, isError, error, refetch } = useDashboardQuery();
   const mahasiswaGlobal = useAuthStore((state) => state.mahasiswa);
@@ -12,6 +22,9 @@ export default function StudentDashboard() {
   // Use data from API if available, fallback to global store for optimistic UI
   const mahasiswa = data?.mahasiswa || mahasiswaGlobal || {};
   const akademik = data?.akademik;
+  const notifList = (data?.notifikasi && data.notifikasi.length > 0)
+    ? data.notifikasi
+    : mapPengumumanToNotif(data?.pengumuman || []);
 
   if (isError) {
     return (
@@ -160,8 +173,8 @@ export default function StudentDashboard() {
                       </div>
                     ))}
                   </div>
-                ) : data?.notifikasi?.length > 0 ? (
-                  data.notifikasi.map((n) => <NotifItem key={n.id} notif={n} />)
+                ) : notifList?.length > 0 ? (
+                  notifList.map((n) => <NotifItem key={n.id} notif={n} />)
                 ) : (
                   <div className="p-8 text-center text-sm text-neutral-500">
                     Belum ada notifikasi baru.

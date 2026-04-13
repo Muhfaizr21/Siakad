@@ -110,10 +110,19 @@ export default function UserManagement() {
   const handleCreate = async (e) => {
     e.preventDefault(); setIsSubmitting(true)
     try {
-      const res = await adminService.createUser(form)
+      const payload = {
+        ...form,
+        Email: String(form.Email || '').trim(),
+        Password: String(form.Password || ''),
+        Role: String(form.Role || '').trim(),
+        Nama: String(form.Nama || '').trim(),
+        FakultasID: Number(form.FakultasID) || 0,
+        ProgramStudiID: Number(form.ProgramStudiID) || 0,
+      }
+      const res = await adminService.createUser(payload)
       if (res.status === 'success') { toast.success('Pengguna dibuat'); setIsCrudOpen(false); fetchData() }
       else toast.error(res.message || 'Gagal membuat pengguna')
-    } catch { toast.error('Terjadi kesalahan') } finally { setIsSubmitting(false) }
+    } catch (err) { toast.error(err?.message || 'Terjadi kesalahan') } finally { setIsSubmitting(false) }
   }
 
   const handleUpdateRole = async () => {
@@ -399,14 +408,14 @@ export default function UserManagement() {
                   </Select>
                 </div>
 
-                {['mahasiswa', 'MAHASISWA'].includes(form.Role) && (
+                {['mahasiswa', 'MAHASISWA', 'ormawa_admin'].includes(form.Role) && (
                   <div className="space-y-2.5">
-                    <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Program Studi</Label>
+                    <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Program Studi {form.Role === 'ormawa_admin' ? '(Opsional)' : ''}</Label>
                     <Select value={String(form.ProgramStudiID)} onValueChange={v => setForm({ ...form, ProgramStudiID: v })}>
                       <SelectTrigger className="h-14 rounded-2xl border-slate-200 bg-slate-50/50 font-black font-headline text-[11px] uppercase tracking-tighter shadow-inner px-6 text-slate-900"><SelectValue placeholder="Pilih Prodi" /></SelectTrigger>
                       <SelectContent className="rounded-3xl shadow-2xl p-2 border-slate-100 max-h-60 overflow-y-auto">
                         {allProdi.filter(p => !form.FakultasID || p.FakultasID === Number(form.FakultasID)).map(p => (
-                          <SelectItem key={p.ID} value={String(p.ID)} className="rounded-2xl font-black text-[10px] p-4 uppercase tracking-tighter cursor-pointer">{p.Nama}</SelectItem>
+                          <SelectItem key={p.ID} value={String(p.ID)} className="rounded-2xl font-black text-[10px] p-4 uppercase tracking-tighter cursor-pointer">{p.Nama} {p.Jenjang ? `(${p.Jenjang})` : ''}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>

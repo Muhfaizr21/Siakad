@@ -56,7 +56,7 @@ export default function KelolaProdi() {
       }
     } catch { toast.error('Gagal memuat data') } finally { setLoading(false) }
   }
-  useEffect(() => { fetchData({ syncFromPddikti: true }) }, [])
+  useEffect(() => { fetchData() }, [])
 
   const handleSyncPddikti = async () => {
     setIsSyncing(true)

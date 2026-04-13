@@ -29,7 +29,7 @@ func GetUsers(c *fiber.Ctx) error {
 			"public"."users".*, 
 			f.nama as fakultas_nama,
 			COALESCE(m.nama, d.nama) as identity_name,
-			COALESCE(m.nim, d.nidn) as identity_code,
+			COALESCE(m.nim, d.n_id_n) as identity_code,
 			p.nama as prodi_nama,
 			(SELECT orm.nama FROM ormawa.ormawa_anggota oa 
 			 JOIN ormawa.ormawa orm ON orm.id = oa.ormawa_id 
@@ -144,6 +144,30 @@ func CreateUser(c *fiber.Ctx) error {
 		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Email, Password dan Role wajib diisi"})
 	}
 
+	req.Email = strings.TrimSpace(strings.ToLower(req.Email))
+	req.Role = strings.TrimSpace(req.Role)
+	req.Nama = strings.TrimSpace(req.Nama)
+
+	if req.Role != "super_admin" && req.FakultasID == 0 {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Fakultas wajib dipilih"})
+	}
+
+	if req.Role == "ormawa_admin" && req.ProgramStudiID != 0 {
+		var prodi models.ProgramStudi
+		if err := config.DB.First(&prodi, req.ProgramStudiID).Error; err != nil {
+			return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Program studi tidak valid"})
+		}
+		if req.FakultasID != 0 && prodi.FakultasID != req.FakultasID {
+			return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Program studi tidak sesuai fakultas"})
+		}
+	}
+
+	if req.Role == "mahasiswa" || req.Role == "MAHASISWA" {
+		if req.ProgramStudiID == 0 {
+			return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Program studi wajib dipilih untuk mahasiswa"})
+		}
+	}
+
 	// 1. Hash Password
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	if err != nil {
@@ -188,13 +212,32 @@ func CreateUser(c *fiber.Ctx) error {
 		case "dosen", "DOSEN":
 			nidn := strings.Split(req.Email, "@")[0]
 			dosen := models.Dosen{
-				PenggunaID: user.ID,
-				Nama:       req.Nama,
-				NIDN:       nidn,
-				FakultasID: req.FakultasID,
+				PenggunaID:     user.ID,
+				Nama:           req.Nama,
+				NIDN:           nidn,
+				FakultasID:     req.FakultasID,
+				ProgramStudiID: req.ProgramStudiID,
 			}
 			if err := tx.Create(&dosen).Error; err != nil {
 				return err
+			}
+		case "ormawa_admin":
+			if req.ProgramStudiID != 0 {
+				nim := strings.Split(req.Email, "@")[0]
+				mhs := models.Mahasiswa{
+					PenggunaID:       user.ID,
+					Nama:             req.Nama,
+					NIM:              nim,
+					FakultasID:       req.FakultasID,
+					ProgramStudiID:   req.ProgramStudiID,
+					StatusAkun:       "Aktif",
+					StatusAkademik:   "Aktif",
+					SemesterSekarang: 1,
+					TahunMasuk:       time.Now().Year(),
+				}
+				if err := tx.Create(&mhs).Error; err != nil {
+					return err
+				}
 			}
 		}
 
@@ -202,6 +245,9 @@ func CreateUser(c *fiber.Ctx) error {
 	})
 
 	if err != nil {
+		if strings.Contains(strings.ToLower(err.Error()), "duplicate key") {
+			return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Email/NIM/NIDN sudah digunakan"})
+		}
 		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal registrasi akun: " + err.Error()})
 	}
 
@@ -262,7 +308,7 @@ func GetGlobalProposals(c *fiber.Ctx) error {
 func ApproveProposalUniv(c *fiber.Ctx) error {
 	id := c.Params("id")
 	var proposal models.Proposal
-	
+
 	// Preload Ormawa for notification and balance update
 	if err := config.DB.Preload("Ormawa").First(&proposal, id).Error; err != nil {
 		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Proposal not found"})
@@ -330,10 +376,10 @@ func RejectProposalUniv(c *fiber.Ctx) error {
 	err := config.DB.Transaction(func(tx *gorm.DB) error {
 		// Update status and note
 		updates := map[string]interface{}{
-			"status": "revisi", // Changed from 'ditolak' to 'revisi' to follow standard flow
+			"status":  "revisi", // Changed from 'ditolak' to 'revisi' to follow standard flow
 			"catatan": req.Catatan,
 		}
-		
+
 		if err := tx.Model(&proposal).Updates(updates).Error; err != nil {
 			return err
 		}
@@ -892,7 +938,7 @@ func CreateNews(c *fiber.Ctx) error {
 
 	b.PenulisID = userID
 	b.TanggalPublish = time.Now()
-	
+
 	if err := config.DB.Create(&b).Error; err != nil {
 		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal menyimpan berita: " + err.Error()})
 	}
@@ -917,7 +963,6 @@ func DeleteNews(c *fiber.Ctx) error {
 	config.DB.Delete(&models.Berita{}, id)
 	return c.JSON(fiber.Map{"status": "success", "message": "Berita dihapus"})
 }
-
 
 // GetAdminProfile returns the profile of the currently logged-in admin
 func GetAdminProfile(c *fiber.Ctx) error {
@@ -945,7 +990,7 @@ func UpdateAdminProfile(c *fiber.Ctx) error {
 	}
 
 	type UpdateReq struct {
-		Email string `json:"Email"`
+		Email       string `json:"Email"`
 		OldPassword string `json:"OldPassword"`
 		NewPassword string `json:"NewPassword"`
 	}
@@ -969,7 +1014,7 @@ func UpdateAdminProfile(c *fiber.Ctx) error {
 		if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.OldPassword)); err != nil {
 			return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Incorrect current password"})
 		}
-		
+
 		hashed, err := bcrypt.GenerateFromPassword([]byte(req.NewPassword), bcrypt.DefaultCost)
 		if err != nil {
 			return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Failed to hash new password"})
@@ -982,9 +1027,9 @@ func UpdateAdminProfile(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(fiber.Map{
-		"status": "success",
+		"status":  "success",
 		"message": "Admin profile updated successfully",
-		"data": user,
+		"data":    user,
 	})
 }
 
@@ -1030,9 +1075,9 @@ func UpdateAcademicSettings(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(fiber.Map{
-		"status": "success",
+		"status":  "success",
 		"message": "Konfigurasi akademik berhasil diperbarui",
-		"data": settings,
+		"data":    settings,
 	})
 }
 
@@ -1076,4 +1121,3 @@ func UpdateScholarshipApplicationStatus(c *fiber.Ctx) error {
 		"data":    application,
 	})
 }
-

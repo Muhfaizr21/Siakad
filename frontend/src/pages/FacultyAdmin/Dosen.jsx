@@ -27,31 +27,48 @@ import { PageContainer, PageHeader, ResponsiveCard } from "./components/responsi
 export default function DosenPage() {
   const [lecturers, setLecturers] = useState([])
   const [loading, setLoading] = useState(true)
+  const [isSyncing, setIsSyncing] = useState(false)
   const [selectedDosen, setSelectedDosen] = useState(null)
   const [isDetailOpen, setIsDetailOpen] = useState(false)
+
+  const mapLecturer = (d) => ({
+    ID: d.ID,
+    NIDN: d.NIDN,
+    Nama: d.Nama,
+    Jabatan: d.Jabatan || 'Dosen',
+    ProgramStudi: d.ProgramStudi ? { Nama: d.ProgramStudi.Nama } : { Nama: '-' },
+    Fakultas: d.Fakultas,
+    Status: 'AKTIF',
+    AvatarURL: null,
+    Pengguna: d.Pengguna,
+    NoHP: d.NoHP
+  })
 
   const fetchLecturers = async () => {
     setLoading(true)
     try {
-      const res = await pddiktiService.fetchData('Universitas Bhakti Kencana', 'dosen')
-      // Backend now returns: { status: 'success', data: { mahasiswa: [...], dosen: [...], prodi: [...] } }
-      const dosenList = res?.data?.dosen || []
-
-      const mappedData = dosenList.map(d => ({
-        ID: d.id,
-        NIDN: d.nidn,
-        Nama: d.nama,
-        Jabatan: "Lektor",
-        ProgramStudi: { Nama: d.nama_prodi || '-' },
-        Status: "AKTIF",
-        AvatarURL: null
-      }))
-      setLecturers(mappedData)
+      const res = await api.get('/faculty/lecturers')
+      const dosenList = res?.data?.data || []
+      setLecturers(dosenList.map(mapLecturer))
     } catch (err) {
-      toast.error("Gagal sinkronisasi data dosen dari PDDIKTI")
+      toast.error("Gagal memuat data dosen")
       console.error(err)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleSync = async () => {
+    setIsSyncing(true)
+    try {
+      await pddiktiService.fetchData('Universitas Bhakti Kencana', 'dosen')
+      await fetchLecturers()
+      toast.success('Sinkronisasi dosen selesai')
+    } catch (err) {
+      toast.error('Gagal sinkronisasi data dosen dari PDDIKTI')
+      console.error(err)
+    } finally {
+      setIsSyncing(false)
     }
   }
 
@@ -123,8 +140,8 @@ export default function DosenPage() {
         <DataTable
           columns={columns}
           data={lecturers}
-          loading={loading}
-          onSync={fetchLecturers}
+          loading={loading || isSyncing}
+          onSync={handleSync}
           searchPlaceholder="Cari Nama, NIDN atau Jabatan..."
           actions={(row) => (
             <Button

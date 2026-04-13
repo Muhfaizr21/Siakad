@@ -38,7 +38,7 @@ export default function KelolaFakultas() {
       else toast.error('Gagal memuat data')
     } catch { toast.error('Koneksi gagal') } finally { setLoading(false) }
   }
-  useEffect(() => { fetchData({ syncFromPddikti: true }) }, [])
+  useEffect(() => { fetchData() }, [])
 
   const handleSyncPddikti = async () => {
     setIsSyncing(true)

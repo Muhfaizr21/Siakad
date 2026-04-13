@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   Users,
   ChevronRight,
@@ -7,6 +7,10 @@ import {
   Calendar,
   Award,
   Trophy,
+  Eye,
+  X,
+  ClipboardList,
+  Shield,
 } from 'lucide-react';
 import { useOrganisasiListQuery } from '../../queries/useOrganisasiQuery';
 import { CardGridSkeleton } from '../../components/ui/SkeletonGroups';
@@ -24,8 +28,11 @@ const TIPE_COLORS = {
 
 export default function OrganisasiPage() {
   const { data: list, isLoading } = useOrganisasiListQuery();
+  const [selectedOrg, setSelectedOrg] = useState(null);
+  const [activeTab, setActiveTab] = useState('ringkasan');
 
   const tipeColor = (tipe) => TIPE_COLORS[tipe] ?? TIPE_COLORS['Lainnya'];
+  const currentAchievements = useMemo(() => selectedOrg?.Prestasi || [], [selectedOrg]);
 
   return (
     <div className="min-h-screen bg-[#fafafa] text-[#171717] font-body px-4 py-5 md:px-6 md:py-6 lg:px-8 lg:py-8">
@@ -143,6 +150,15 @@ export default function OrganisasiPage() {
                         </div>
                       </div>
                     )}
+
+                    <div className="pt-3 border-t border-[#f5f5f5] flex justify-end">
+                      <button
+                        onClick={() => { setSelectedOrg(item); setActiveTab('ringkasan'); }}
+                        className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#00236F] text-white text-xs font-bold hover:bg-[#0B4FAE] transition-colors"
+                      >
+                        <Eye size={14} /> Lihat Detail
+                      </button>
+                    </div>
                   </div>
                 </div>
               );
@@ -158,6 +174,103 @@ export default function OrganisasiPage() {
           />
         )}
       </div>
+
+      {selectedOrg && (
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="w-full max-w-4xl max-h-[90vh] bg-white rounded-3xl overflow-hidden border border-[#e5e5e5] shadow-2xl flex flex-col">
+            <div className="bg-[#00236F] text-white p-6 md:p-7 flex items-start justify-between gap-4">
+              <div>
+                <p className="text-xs font-semibold text-white/70 uppercase tracking-wider">Detail Organisasi</p>
+                <h3 className="text-xl md:text-2xl font-extrabold mt-1 leading-tight">{selectedOrg.NamaOrganisasi}</h3>
+                <p className="text-sm text-white/80 mt-1">{selectedOrg.Jabatan} • {selectedOrg.Tipe}</p>
+              </div>
+              <button
+                onClick={() => setSelectedOrg(null)}
+                className="p-2 rounded-xl bg-white/10 hover:bg-white/20 transition-colors"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="px-6 pt-4 border-b border-[#f0f0f0] flex gap-2 overflow-x-auto">
+              {[
+                { key: 'ringkasan', label: 'Ringkasan', icon: ClipboardList },
+                { key: 'prestasi', label: 'Prestasi', icon: Trophy },
+                { key: 'verifikasi', label: 'Status & Verifikasi', icon: Shield },
+              ].map((tab) => {
+                const Icon = tab.icon;
+                const isActive = activeTab === tab.key;
+                return (
+                  <button
+                    key={tab.key}
+                    onClick={() => setActiveTab(tab.key)}
+                    className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-t-xl text-xs font-bold whitespace-nowrap border-b-2 transition-colors ${
+                      isActive ? 'text-[#00236F] border-[#00236F] bg-[#EEF4FF]' : 'text-[#737373] border-transparent hover:text-[#171717]'
+                    }`}
+                  >
+                    <Icon size={14} /> {tab.label}
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="p-6 overflow-y-auto">
+              {activeTab === 'ringkasan' && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <DetailItem label="Nama Organisasi" value={selectedOrg.NamaOrganisasi} />
+                  <DetailItem label="Jenis" value={selectedOrg.Tipe} />
+                  <DetailItem label="Jabatan" value={selectedOrg.Jabatan} />
+                  <DetailItem label="Periode" value={`${selectedOrg.PeriodeMulai} - ${selectedOrg.PeriodeSelesai || 'Sekarang'}`} />
+                  <DetailItem label="Deskripsi Kegiatan" value={selectedOrg.DeskripsiKegiatan || '-'} full />
+                  <DetailItem label="Apresiasi" value={selectedOrg.Apresiasi || '-'} full />
+                </div>
+              )}
+
+              {activeTab === 'prestasi' && (
+                <div className="space-y-3">
+                  {currentAchievements.length > 0 ? currentAchievements.map((p) => (
+                    <div key={p.ID} className="rounded-2xl border border-[#fde68a] bg-[#fffbeb] p-4">
+                      <p className="font-bold text-[#b45309] text-sm">{p.NamaKegiatan || '-'}</p>
+                      <p className="text-xs text-[#d97706] mt-1">{p.Tingkat || '-'} • {p.Peringkat || '-'}</p>
+                    </div>
+                  )) : (
+                    <EmptyState
+                      size="sm"
+                      icon="Trophy"
+                      title="Belum Ada Prestasi"
+                      description="Prestasi yang terkait organisasi ini belum tersedia."
+                      iconBgClass="bg-[#fff7ed]"
+                      iconBorderClass="border-[#fed7aa]"
+                    />
+                  )}
+                </div>
+              )}
+
+              {activeTab === 'verifikasi' && (
+                <div className="space-y-4">
+                  <div className="rounded-2xl border border-[#e5e5e5] p-4 bg-[#fafafa]">
+                    <p className="text-xs text-[#737373]">Status Keanggotaan</p>
+                    <p className="text-base font-bold text-[#171717] mt-1">{selectedOrg.PeriodeSelesai ? 'Selesai/Purna' : 'Aktif'}</p>
+                  </div>
+                  <div className="rounded-2xl border border-[#e5e5e5] p-4 bg-[#fafafa]">
+                    <p className="text-xs text-[#737373]">Status Verifikasi</p>
+                    <p className="text-base font-bold mt-1 text-[#171717]">{selectedOrg.StatusVerifikasi || 'Menunggu'}</p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function DetailItem({ label, value, full = false }) {
+  return (
+    <div className={`rounded-2xl border border-[#e5e5e5] p-4 bg-[#fafafa] ${full ? 'md:col-span-2' : ''}`}>
+      <p className="text-xs text-[#737373]">{label}</p>
+      <p className="text-sm font-semibold text-[#171717] mt-1 whitespace-pre-wrap">{value || '-'}</p>
     </div>
   );
 }

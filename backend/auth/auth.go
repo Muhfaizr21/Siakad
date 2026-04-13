@@ -506,6 +506,37 @@ func EnsureBootstrapData() error {
 		}
 	}
 
+	// Ensure each seeded student has organisasi portfolio data
+	for _, s := range studentSeeds {
+		var mhs models.Mahasiswa
+		if err := config.DB.Where("nim = ?", s.NIM).First(&mhs).Error; err != nil {
+			continue
+		}
+
+		var riwayat models.RiwayatOrganisasi
+		if err := config.DB.Where("mahasiswa_id = ? AND ormawa_id = ? AND jabatan = ?", mhs.ID, ormawa.ID, "Anggota").First(&riwayat).Error; err != nil {
+			mulai := s.TahunMasuk
+			selesai := s.TahunMasuk + 1
+			riwayat = models.RiwayatOrganisasi{
+				MahasiswaID:       mhs.ID,
+				OrmawaID:          ormawa.ID,
+				NamaOrganisasi:    ormawa.Nama,
+				Tipe:              ormawa.Kategori,
+				Jabatan:           "Anggota",
+				PeriodeMulai:      mulai,
+				PeriodeSelesai:    &selesai,
+				DeskripsiKegiatan: "Aktif sebagai anggota organisasi kampus",
+				Apresiasi:         "Partisipasi kegiatan internal",
+				StatusVerifikasi:  "Terverifikasi",
+				Periode:           fmt.Sprintf("%d/%d", mulai, selesai),
+				Status:            "Aktif",
+			}
+			if err := config.DB.Create(&riwayat).Error; err != nil {
+				return err
+			}
+		}
+	}
+
 	// 8. Ensure Dosen seed for counseling and academic workflows
 	var sampleDosen models.Dosen
 	if ff, ok := fakultasByKode["FF"]; ok {

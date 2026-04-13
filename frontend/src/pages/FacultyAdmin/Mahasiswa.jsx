@@ -21,35 +21,62 @@ export default function MahasiswaPage() {
   const [isDetailOpen, setIsDetailOpen] = useState(false)
   const [studentData, setStudentData] = useState([])
   const [loading, setLoading] = useState(true)
+  const [isSyncing, setIsSyncing] = useState(false)
+
+  const mapStudent = (m) => {
+    const statusAkun = m.StatusAkun || 'Aktif'
+    const isLulus = String(statusAkun).toLowerCase() === 'lulus'
+    return {
+      ID: m.ID,
+      NIM: m.NIM,
+      Nama: m.Nama,
+      ProgramStudi: { Nama: m.ProgramStudi?.Nama || '-' },
+      SemesterSekarang: isLulus ? 0 : (Number.isInteger(m.SemesterSekarang) && m.SemesterSekarang > 0 ? m.SemesterSekarang : 1),
+      StatusAkun: statusAkun,
+      StatusAkademik: m.StatusAkademik || '-',
+      TahunMasuk: m.TahunMasuk ? String(m.TahunMasuk) : (m.NIM ? `20${m.NIM.substring(0, 2)}` : '2023'),
+      NoHP: m.NoHP || '-',
+      JalurMasuk: m.JalurMasuk || 'PDDIKTI SYNC',
+      DosenPA: m.DosenPA,
+      TempatLahir: m.TempatLahir,
+      TanggalLahir: m.TanggalLahir,
+      NIK: m.NIK,
+      EmailKampus: m.EmailKampus,
+      Pengguna: m.Pengguna,
+      Alamat: m.Alamat,
+      NamaAyah: m.NamaAyah,
+      NamaIbuKandung: m.NamaIbuKandung,
+      PekerjaanAyah: m.PekerjaanAyah,
+      PekerjaanIbu: m.PekerjaanIbu,
+      PenghasilanOrtu: m.PenghasilanOrtu
+    }
+  }
 
   const fetchStudents = async () => {
     setLoading(true)
     try {
-      const res = await pddiktiService.fetchData('Universitas Bhakti Kencana', 'mhs')
-      // Backend now returns: { status: 'success', data: { mahasiswa: [...], dosen: [...], prodi: [...] } }
-      const mhsList = res?.data?.mahasiswa || []
-
-      const mappedData = mhsList.map(m => {
-        const isLulus = (m.status_akun || '').toLowerCase() === 'lulus'
-        return {
-          ID: m.id,
-          NIM: m.nim,
-          Nama: m.nama,
-          ProgramStudi: { Nama: m.nama_prodi || '-' },
-          SemesterSekarang: isLulus ? 0 : (Number.isInteger(m.semester_saat_ini) && m.semester_saat_ini > 0 ? m.semester_saat_ini : 1),
-          StatusAkun: m.status_akun || 'Aktif',
-          StatusAkademik: m.status_saat_ini || '-',
-          TahunMasuk: m.tanggal_masuk ? new Date(m.tanggal_masuk).getFullYear().toString() : (m.nim ? '20' + m.nim.substring(0, 2) : '2023'),
-          NoHP: "-",
-          JalurMasuk: 'PDDIKTI SYNC'
-        }
-      })
-      setStudentData(mappedData)
+      const res = await api.get('/faculty/students')
+      const mhsList = res?.data?.data || []
+      setStudentData(mhsList.map(mapStudent))
     } catch (err) {
-      toast.error("Gagal sinkronisasi data dari PDDIKTI")
+      toast.error("Gagal memuat data mahasiswa")
       console.error(err)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleSync = async () => {
+    setIsSyncing(true)
+    try {
+      await pddiktiService.fetchData('Universitas Bhakti Kencana', 'mhs')
+      await fetchStudents()
+      toast.success('Sinkronisasi selesai')
+    } catch (err) {
+      toast.error('Gagal sinkronisasi data dari PDDIKTI')
+      console.error(err)
+    } finally {
+      setIsSyncing(false)
     }
   }
 
@@ -136,9 +163,9 @@ export default function MahasiswaPage() {
         <DataTable
           columns={columns}
           data={studentData}
-          loading={loading}
+          loading={loading || isSyncing}
           searchPlaceholder="Cari NIM atau Nama..."
-          onSync={fetchStudents}
+          onSync={handleSync}
           actions={(row) => (
             <Button
               onClick={() => handleView(row)}

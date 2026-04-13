@@ -83,7 +83,7 @@ export default function StudentDirectory() {
       if (facRes.status === 'success') setFaculties(facRes.data || [])
     } catch { toast.error('Gagal memuat data') } finally { setLoading(false) }
   }
-  useEffect(() => { fetchData({ syncFromPddikti: true }) }, [])
+  useEffect(() => { fetchData() }, [])
 
   const [isSyncing, setIsSyncing] = useState(false)
 
