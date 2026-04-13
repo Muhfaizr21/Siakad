@@ -383,8 +383,6 @@ func ValidasiProposalOrmawa(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"status": "success", "message": "Keputusan fakultas telah disimpan dan diteruskan"})
 }
 
-// --- PROPOSAL INTERNAL FAKULTAS ---
-
 func AmbilDaftarProposalFakultas(c *fiber.Ctx) error {
 	role := c.Locals("role").(string)
 	fid := c.Locals("fakultas_id").(uint)
@@ -425,8 +423,6 @@ func ValidasiProposalFakultas(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"status": "success", "message": "Validasi internal disimpan"})
 }
 
-// --- KONSELING ---
-
 func AmbilDaftarKonseling(c *fiber.Ctx) error {
 	role := c.Locals("role").(string)
 	fid := c.Locals("fakultas_id").(uint)
@@ -443,22 +439,18 @@ func AmbilDaftarKonseling(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"status": "success", "data": daftar})
 }
 
-// TambahSesiKonseling — CRUD konseling = milik unit konseling. Admin fakultas hanya monitoring.
 func TambahSesiKonseling(c *fiber.Ctx) error {
 	return c.Status(403).JSON(fiber.Map{"status": "error", "message": "Pembuatan sesi konseling hanya dapat dilakukan oleh unit konseling"})
 }
 
-// UpdateSesiKonseling — Admin fakultas hanya monitoring.
 func UpdateSesiKonseling(c *fiber.Ctx) error {
 	return c.Status(403).JSON(fiber.Map{"status": "error", "message": "Edit sesi konseling hanya dapat dilakukan oleh unit konseling"})
 }
 
-// HapusSesiKonseling — Admin fakultas hanya monitoring.
 func HapusSesiKonseling(c *fiber.Ctx) error {
 	return c.Status(403).JSON(fiber.Map{"status": "error", "message": "Hapus sesi konseling hanya dapat dilakukan oleh unit konseling"})
 }
 
-// --- KESEHATAN / SCREENING ---
 
 func AmbilDaftarKesehatan(c *fiber.Ctx) error {
 	role := c.Locals("role").(string)
@@ -536,9 +528,6 @@ func AmbilRingkasanKesehatan(c *fiber.Ctx) error {
 	})
 }
 
-// HapusDataKesehatan — Admin fakultas hanya monitoring, tidak input/hapus screening
 func HapusDataKesehatan(c *fiber.Ctx) error {
 	return c.Status(403).JSON(fiber.Map{"status": "error", "message": "Admin fakultas tidak diizinkan menghapus data kesehatan"})
 }
-
-// --- END OF SERVICE CONTROLLERS ---

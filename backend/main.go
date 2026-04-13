@@ -14,6 +14,7 @@ import (
 	"siakad-backend/controllers/mahasiswa/profil"
 	"siakad-backend/controllers/mahasiswa/scholarship"
 	"siakad-backend/controllers/mahasiswa/voice"
+	"siakad-backend/controllers/pddikti"
 	"siakad-backend/middleware"
 	"siakad-backend/routes"
 
@@ -75,7 +76,6 @@ func main() {
 		})
 	})
 
-	// Auth Routes
 	authGroup := app.Group("/api/auth")
 	authGroup.Post("/login", authSvc.Login)
 
@@ -89,6 +89,9 @@ func main() {
 	// Mahasiswa Dashboard
 	api.Get("/mahasiswa/dashboard", dashboard.GetDashboard)
 	api.Get("/mahasiswa/kegiatan", dashboard.GetKegiatan)
+
+	// PDDIKTI Proxy (Now Protected)
+	api.Get("/pddikti/proxy", pddikti.PddiktiProxy)
 
 	// PKKMB (Kencana)
 	kencanaGroup := api.Group("/kencana")

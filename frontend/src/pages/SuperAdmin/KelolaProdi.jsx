@@ -60,7 +60,8 @@ export default function KelolaProdi() {
   const columns = [
     { key: 'Kode', label: 'Kode', className: 'w-[100px]', render: v => <span className="font-bold text-slate-400 font-headline uppercase text-[10px] tracking-widest">{v || '—'}</span> },
     { key: 'Nama', label: 'Nama Program Studi', className: 'min-w-[260px]', render: v => <span className="font-bold text-slate-900 font-headline tracking-tighter text-[13px]">{v || '—'}</span> },
-    { key: 'Jenjang', label: 'Jenjang', className: 'w-[100px] text-center', cellClassName: 'text-center',
+    {
+      key: 'Jenjang', label: 'Jenjang', className: 'w-[100px] text-center', cellClassName: 'text-center',
       render: v => <Badge className={cn('font-black text-[10px] px-3 py-1 border-none shadow-sm', JENJANG_COLORS[v] || 'bg-slate-100 text-slate-600')}>{v || 'S1'}</Badge>
     },
     { key: 'Fakultas', label: 'Fakultas', className: 'w-[220px]', render: (v, row) => <span className="text-[12px] font-bold text-slate-600 font-headline">{v?.Nama || row.FakultasNama || '—'}</span> }
@@ -68,37 +69,37 @@ export default function KelolaProdi() {
 
   return (
     <div className="p-4 md:p-8 space-y-6">
-          <Toaster position="top-right" />
-          <div className="flex flex-col gap-1.5">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-primary/10 rounded-xl text-primary"><BookOpen className="size-6" /></div>
-              <h1 className="text-2xl font-black text-slate-900 font-headline tracking-tighter uppercase">Kelola Program Studi</h1>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="h-1 w-10 bg-primary rounded-full shadow-sm shadow-primary/30" />
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Manajemen Program Studi Seluruh Fakultas</p>
-            </div>
-          </div>
-          <Card className="border-none shadow-sm overflow-hidden bg-white/50 backdrop-blur-md">
-            <CardContent className="p-0">
-              <DataTable
-                columns={columns} data={data} loading={loading}
-                searchPlaceholder="Cari nama atau kode prodi..."
-                onAdd={handleOpenAdd} addLabel="Tambah Prodi"
-                filters={[
-                  { key: 'Jenjang', placeholder: 'Filter Jenjang', options: ['S1','S2','S3','D3','D4'].map(j => ({ label: j, value: j })) },
-                  { key: 'FakultasID', placeholder: 'Filter Fakultas', options: faculties.map(f => ({ label: f.Nama, value: f.ID })) }
-                ]}
-                actions={(row) => (
-                  <div className="flex items-center gap-2">
-                    <Button onClick={() => handleOpenEdit(row)} variant="ghost" size="icon" className="h-8 w-8 hover:text-amber-600 hover:bg-amber-50 rounded-xl"><Pencil className="size-4" /></Button>
-                    <Button onClick={() => { setSelected(row); setIsDelOpen(true) }} variant="ghost" size="icon" className="h-8 w-8 hover:text-rose-600 hover:bg-rose-50 rounded-xl"><Trash2 className="size-4" /></Button>
-                  </div>
-                )}
-              />
+      <Toaster position="top-right" />
+      <div className="flex flex-col gap-1.5">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-primary/10 rounded-xl text-primary"><BookOpen className="size-6" /></div>
+          <h1 className="text-2xl font-black text-slate-900 font-headline tracking-tighter uppercase">Kelola Program Studi</h1>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="h-1 w-10 bg-primary rounded-full shadow-sm shadow-primary/30" />
+          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Manajemen Program Studi Seluruh Fakultas</p>
+        </div>
+      </div>
+      <Card className="border-none shadow-sm overflow-hidden bg-white/50 backdrop-blur-md">
+        <CardContent className="p-0">
+          <DataTable
+            columns={columns} data={data} loading={loading}
+            searchPlaceholder="Cari nama atau kode prodi..."
+            onAdd={handleOpenAdd} addLabel="Tambah Prodi"
+            filters={[
+              { key: 'Jenjang', placeholder: 'Filter Jenjang', options: ['S1', 'S2', 'S3', 'D3', 'D4'].map(j => ({ label: j, value: j })) },
+              { key: 'FakultasID', placeholder: 'Filter Fakultas', options: faculties.map(f => ({ label: f.Nama, value: f.ID })) }
+            ]}
+            actions={(row) => (
+              <div className="flex items-center gap-2">
+                <Button onClick={() => handleOpenEdit(row)} variant="ghost" size="icon" className="h-8 w-8 hover:text-amber-600 hover:bg-amber-50 rounded-xl"><Pencil className="size-4" /></Button>
+                <Button onClick={() => { setSelected(row); setIsDelOpen(true) }} variant="ghost" size="icon" className="h-8 w-8 hover:text-rose-600 hover:bg-rose-50 rounded-xl"><Trash2 className="size-4" /></Button>
+              </div>
+            )}
+          />
 
-            </CardContent>
-          </Card>
+        </CardContent>
+      </Card>
 
       <Dialog open={isCrudOpen} onOpenChange={setIsCrudOpen}>
         <DialogContent className="max-w-lg p-0 overflow-hidden border-none shadow-2xl rounded-[2rem] bg-white/95 backdrop-blur-xl">
@@ -124,7 +125,7 @@ export default function KelolaProdi() {
                 <Select value={form.Jenjang} onValueChange={v => setForm({ ...form, Jenjang: v })}>
                   <SelectTrigger className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 font-bold text-xs"><SelectValue /></SelectTrigger>
                   <SelectContent className="rounded-2xl shadow-2xl p-1">
-                    {['S1','S2','S3','D3','D4'].map(j => <SelectItem key={j} value={j} className="rounded-xl font-bold text-[11px] p-3">{j}</SelectItem>)}
+                    {['S1', 'S2', 'S3', 'D3', 'D4'].map(j => <SelectItem key={j} value={j} className="rounded-xl font-bold text-[11px] p-3">{j}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>

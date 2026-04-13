@@ -8,7 +8,7 @@ export const handleResponse = async (res) => {
   } catch (e) {
     data = { message: `Gagal memproses respon server (${res.status}). Pastikan backend berjalan.` };
   }
-  
+
   if (!res.ok) throw new Error(data.message || `Error ${res.status}`);
   return data;
 };
@@ -29,14 +29,14 @@ export const getAuthToken = () => {
   } catch (e) {
     console.warn("Failed to parse auth-storage:", e);
   }
-  
+
   // 3. Last resort fallbacks
   return localStorage.getItem('token') || localStorage.getItem('access_token') || null;
 };
 
 export const fetchWithAuth = (url, options = {}) => {
   const token = getAuthToken();
-  
+
   if (!token) {
     console.error(`Attempted fetchWithAuth to ${url} but NO TOKEN was found. This will likely result in a 401.`);
   }
@@ -45,7 +45,7 @@ export const fetchWithAuth = (url, options = {}) => {
     ...options.headers,
     ...(token ? { 'Authorization': `Bearer ${token}` } : {})
   };
-  
+
   return fetch(url, { ...options, headers }).then(handleResponse);
 };
 
@@ -66,7 +66,7 @@ export const ormawaService = {
   deleteEvent: (id) => fetchWithAuth(`${API_BASE_URL}/ormawa/events/${id}`, {
     method: 'DELETE'
   }),
-  
+
   // Membership & Staff
   getMembers: (id) => fetchWithAuth(`${API_BASE_URL}/ormawa/members?ormawaId=${id}`),
   updateMember: (id, data) => fetchWithAuth(`${API_BASE_URL}/ormawa/members/${id}`, {
@@ -257,6 +257,9 @@ export const fakultasService = {
 
 export const adminService = {
   getStats: () => fetchWithAuth(`${API_BASE_URL}/admin/stats`),
+  // Trigger PDDikti sync for the whole university (Super Admin only, no faculty filter)
+  syncPddikti: (keyword = 'Universitas Bhakti Kencana', type = 'all') =>
+    fetchWithAuth(`${API_BASE_URL}/pddikti/proxy?keyword=${encodeURIComponent(keyword)}&type=${type}&sync=true`),
   getAuditLogs: () => fetchWithAuth(`${API_BASE_URL}/admin/audit-logs`),
   getAllFaculties: () => fetchWithAuth(`${API_BASE_URL}/admin/fakultas`),
   getAllStudents: () => fetchWithAuth(`${API_BASE_URL}/admin/students`),
@@ -421,6 +424,14 @@ export const adminService = {
   deleteFaculty: (id) => fetchWithAuth(`${API_BASE_URL}/admin/fakultas/${id}`, {
     method: 'DELETE'
   }),
+};
+
+export const pddiktiService = {
+  fetchData: (keyword = 'Universitas Bhakti Kencana', type = 'all') => {
+    // Note: We use the proxy endpoint in our backend to avoid CORS issues
+    // Now using fetchWithAuth as the route is protected
+    return fetchWithAuth(`${API_BASE_URL}/pddikti/proxy?keyword=${encodeURIComponent(keyword)}&type=${type}`);
+  }
 };
 
 

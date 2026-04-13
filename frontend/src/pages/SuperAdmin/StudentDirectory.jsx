@@ -10,7 +10,7 @@ import { Card, CardContent } from './components/ui/card'
 import { Input } from './components/ui/input'
 import { Label } from './components/ui/label'
 import { Avatar, AvatarFallback } from './components/ui/avatar'
-import { Eye, Pencil, Trash2, Loader2, Plus, Save, Users, BookOpen, Mail, GraduationCap } from 'lucide-react'
+import { Eye, Pencil, Trash2, Loader2, Plus, Save, Users, BookOpen, Mail, GraduationCap, RefreshCw } from 'lucide-react'
 import { toast, Toaster } from 'react-hot-toast'
 import { cn } from '@/lib/utils'
 import { adminService } from '../../services/api'
@@ -43,6 +43,21 @@ export default function StudentDirectory() {
     } catch { toast.error('Gagal memuat data') } finally { setLoading(false) }
   }
   useEffect(() => { fetchData() }, [])
+
+  const [isSyncing, setIsSyncing] = useState(false)
+
+  const handleSyncPddikti = async () => {
+    setIsSyncing(true)
+    try {
+      await adminService.syncPddikti('Universitas Bhakti Kencana', 'mhs')
+      toast.success('Sync PDDikti selesai! Data mahasiswa diperbarui.')
+      fetchData()
+    } catch {
+      toast.error('Gagal sync PDDikti')
+    } finally {
+      setIsSyncing(false)
+    }
+  }
 
   const handleOpenAdd = () => { setIsEditMode(false); setForm(EMPTY_FORM); setIsCrudOpen(true) }
   const handleOpenEdit = (row) => {
@@ -128,7 +143,7 @@ export default function StudentDirectory() {
                 columns={columns} data={students} loading={loading}
                 searchPlaceholder="Cari NIM atau Nama mahasiswa..."
                 onAdd={handleOpenAdd} addLabel="Mahasiswa Baru"
-                onExport={() => alert('Ekspor data mahasiswa...')} exportLabel="Download Master"
+                onExport={handleSyncPddikti} exportLabel={isSyncing ? "Menyinkronkan..." : "Sync PDDikti"}
                 filters={[
                   { key: 'StatusAkun', placeholder: 'Filter Status', options: [{ label: 'Aktif', value: 'Aktif' }, { label: 'Cuti', value: 'Cuti' }, { label: 'Lulus', value: 'Lulus' }] },
                   { key: 'FakultasID', placeholder: 'Filter Fakultas', options: faculties.map(f => ({ label: f.Nama, value: f.ID })) },

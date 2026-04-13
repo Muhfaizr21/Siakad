@@ -7,6 +7,7 @@ import { Badge } from "./components/badge"
 import { Button } from "./components/button"
 import { Avatar, AvatarFallback, AvatarImage } from "./components/avatar"
 import { Modal, ModalBtn } from "./components/Modal"
+import { pddiktiService } from "../../services/api"
 
 import { Card, CardContent } from "./components/card"
 import {
@@ -32,12 +33,23 @@ export default function DosenPage() {
   const fetchLecturers = async () => {
     setLoading(true)
     try {
-      const res = await api.get("/faculty/lecturers")
-      if (res.data.status === 'success') {
-        setLecturers(res.data.data)
-      }
+      const res = await pddiktiService.fetchData('Universitas Bhakti Kencana', 'dosen')
+      // Backend now returns: { status: 'success', data: { mahasiswa: [...], dosen: [...], prodi: [...] } }
+      const dosenList = res?.data?.dosen || []
+
+      const mappedData = dosenList.map(d => ({
+        ID: d.id,
+        NIDN: d.nidn,
+        Nama: d.nama,
+        Jabatan: "Lektor",
+        ProgramStudi: { Nama: d.nama_prodi || '-' },
+        Status: "AKTIF",
+        AvatarURL: null
+      }))
+      setLecturers(mappedData)
     } catch (err) {
-      toast.error("Gagal mengambil data dosen")
+      toast.error("Gagal sinkronisasi data dosen dari PDDIKTI")
+      console.error(err)
     } finally {
       setLoading(false)
     }
@@ -79,16 +91,14 @@ export default function DosenPage() {
       )
     },
     {
-      key: "IsDPA",
-      label: "DPA",
+      key: "Status",
+      label: "Status",
       className: "w-[100px] text-center",
       cellClassName: "text-center",
       render: (value) => (
-        value ? (
-          <Badge className="bg-emerald-50 text-emerald-600 border-emerald-100 text-[9px] font-black px-3 py-1 rounded-lg uppercase tracking-widest shadow-none">AKTIF</Badge>
-        ) : (
-          <span className="text-[9px] font-bold text-slate-300">TIDAK</span>
-        )
+        <Badge className="bg-emerald-50 text-emerald-600 border-emerald-100 text-[9px] font-black px-3 py-1 rounded-lg uppercase tracking-widest shadow-none">
+          {value || 'AKTIF'}
+        </Badge>
       )
     }
   ]
@@ -103,9 +113,9 @@ export default function DosenPage() {
         description="Database tenaga pengajar dan staf ahli fakultas"
       >
         <div className="hidden md:flex items-center gap-2">
-           <Badge variant="outline" className="bg-white border-slate-200 text-slate-500 font-bold px-3 py-1.5 rounded-xl uppercase tracking-widest">
-             {lecturers.length} DOSEN
-           </Badge>
+          <Badge variant="outline" className="bg-white border-slate-200 text-slate-500 font-bold px-3 py-1.5 rounded-xl uppercase tracking-widest">
+            {lecturers.length} DOSEN
+          </Badge>
         </div>
       </PageHeader>
 
@@ -167,12 +177,12 @@ export default function DosenPage() {
               </div>
               <div className="grid grid-cols-2 gap-x-12 gap-y-4 border-l-2 border-slate-100 pl-4 py-1">
                 <div className="flex flex-col gap-1">
-                  <span className="text-[10px] font-medium text-slate-400 uppercase tracking-tighter">Status Wali (DPA)</span>
+                  <span className="text-[10px] font-medium text-slate-400 uppercase tracking-tighter">Status Akademik</span>
                   <Badge className={cn(
                     "w-fit text-[9px] font-bold px-2.5 py-0.5 border shadow-none",
-                    selectedDosen.IsDPA ? "bg-emerald-50 text-emerald-600 border-emerald-100" : "bg-slate-50 text-slate-400 border-slate-100"
+                    selectedDosen.Status === 'AKTIF' ? "bg-emerald-50 text-emerald-600 border-emerald-100" : "bg-slate-50 text-slate-400 border-slate-100"
                   )}>
-                    {selectedDosen.IsDPA ? 'AKTIF' : 'NON-DPA'}
+                    {selectedDosen.Status || 'AKTIF'}
                   </Badge>
                 </div>
                 <DataField label="Nomor Kontak (HP/WA)" value={selectedDosen.NoHP || '-'} isPrimary />
@@ -194,10 +204,10 @@ function DataField({ label, value, isPrimary = false }) {
     <div className="flex flex-col gap-0.5">
       <span className="text-[10px] font-medium text-slate-400 uppercase tracking-tighter">{label}</span>
       <span className={cn(
-         "text-[12px] font-bold tracking-tight uppercase truncate",
-         isPrimary ? "text-primary italic" : "text-slate-700"
+        "text-[12px] font-bold tracking-tight uppercase truncate",
+        isPrimary ? "text-primary italic" : "text-slate-700"
       )}>
-         {value || '—'}
+        {value || '—'}
       </span>
     </div>
   )

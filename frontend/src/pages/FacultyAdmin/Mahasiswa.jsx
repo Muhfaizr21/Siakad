@@ -7,6 +7,7 @@ import { Badge } from "./components/badge"
 import { Button } from "./components/button"
 import { Avatar, AvatarFallback } from "./components/avatar"
 import { Modal, ModalBody, ModalFooter, ModalBtn } from "./components/Modal"
+import { pddiktiService } from "../../services/api"
 
 
 import { Card, CardContent } from "./components/card"
@@ -24,12 +25,25 @@ export default function MahasiswaPage() {
   const fetchStudents = async () => {
     setLoading(true)
     try {
-      const res = await api.get("/faculty/students")
-      if (res.data.status === 'success') {
-        setStudentData(res.data.data)
-      }
+      const res = await pddiktiService.fetchData('Universitas Bhakti Kencana', 'mhs')
+      // Backend now returns: { status: 'success', data: { mahasiswa: [...], dosen: [...], prodi: [...] } }
+      const mhsList = res?.data?.mahasiswa || []
+
+      const mappedData = mhsList.map(m => ({
+        ID: m.id,
+        NIM: m.nim,
+        Nama: m.nama,
+        ProgramStudi: { Nama: m.nama_prodi || '-' },
+        SemesterSekarang: 1,
+        StatusAkun: 'Aktif',
+        TahunMasuk: m.nim ? '20' + m.nim.substring(0, 2) : '2023',
+        NoHP: "-",
+        JalurMasuk: 'PDDIKTI SYNC'
+      }))
+      setStudentData(mappedData)
     } catch (err) {
-      toast.error("Gagal mengambil data mahasiswa")
+      toast.error("Gagal sinkronisasi data dari PDDIKTI")
+      console.error(err)
     } finally {
       setLoading(false)
     }
@@ -99,16 +113,16 @@ export default function MahasiswaPage() {
   return (
     <PageContainer>
       <Toaster position="top-right" />
-      
-      <PageHeader 
-        icon={Users} 
-        title="Database Mahasiswa" 
+
+      <PageHeader
+        icon={Users}
+        title="Database Mahasiswa"
         description="Manajemen data dan arsip akademik mahasiswa fakultas"
       >
         <div className="hidden md:flex items-center gap-2">
-           <Badge variant="outline" className="bg-white border-slate-200 text-slate-500 font-bold px-3 py-1.5 rounded-xl">
-             TOTAL: {studentData.length} MHS
-           </Badge>
+          <Badge variant="outline" className="bg-white border-slate-200 text-slate-500 font-bold px-3 py-1.5 rounded-xl">
+            TOTAL: {studentData.length} MHS
+          </Badge>
         </div>
       </PageHeader>
 
@@ -120,10 +134,10 @@ export default function MahasiswaPage() {
           searchPlaceholder="Cari NIM atau Nama..."
           onSync={fetchStudents}
           actions={(row) => (
-            <Button 
-              onClick={() => handleView(row)} 
-              variant="outline" 
-              size="sm" 
+            <Button
+              onClick={() => handleView(row)}
+              variant="outline"
+              size="sm"
               className="h-9 px-4 rounded-xl border-slate-200 hover:border-primary hover:bg-primary/5 hover:text-primary transition-all font-bold text-[10px] uppercase tracking-widest flex items-center gap-2 group shadow-sm bg-white"
             >
               <Eye className="size-4 transition-transform group-hover:scale-110" />
@@ -209,10 +223,10 @@ function DataField({ label, value, isPrimary = false, isFull = false }) {
     <div className={cn("flex flex-col gap-0.5", isFull ? "col-span-2" : "")}>
       <span className="text-[10px] font-medium text-slate-400 uppercase tracking-tighter">{label}</span>
       <span className={cn(
-         "text-[12px] font-bold tracking-tight",
-         isPrimary ? "text-primary italic" : "text-slate-700"
+        "text-[12px] font-bold tracking-tight",
+        isPrimary ? "text-primary italic" : "text-slate-700"
       )}>
-         {value || '—'}
+        {value || '—'}
       </span>
     </div>
   )
