@@ -329,7 +329,7 @@ func EnsureBootstrapData() error {
 	}
 	for _, seed := range fakultasSeeds {
 		var existing models.Fakultas
-		if err := config.DB.Where("kode = ?", seed.Kode).First(&existing).Error; err != nil {
+		if err := config.DB.Unscoped().Where("kode = ?", seed.Kode).First(&existing).Error; err != nil {
 			if err := config.DB.Create(&seed).Error; err != nil {
 				panic("Failed to seed Fakultas: " + err.Error())
 			}
@@ -338,18 +338,18 @@ func EnsureBootstrapData() error {
 	}
 
 	var fakultasSOC models.Fakultas
-	if err := config.DB.Where("kode = ?", "SOC").First(&fakultasSOC).Error; err != nil {
+	if err := config.DB.Unscoped().Where("kode = ?", "SOC").First(&fakultasSOC).Error; err != nil {
 		panic("Failed to get SOC Fakultas: " + err.Error())
 	}
 	var fakultasFH models.Fakultas
-	if err := config.DB.Where("kode = ?", "FH").First(&fakultasFH).Error; err != nil {
+	if err := config.DB.Unscoped().Where("kode = ?", "FH").First(&fakultasFH).Error; err != nil {
 		panic("Failed to get FH Fakultas: " + err.Error())
 	}
 
 	// 2. Ensure Program Studi
 	// 2. Ensure Program Studi
 	var majorSOC models.ProgramStudi
-	config.DB.Where("kode = ?", "INF01").FirstOrCreate(&majorSOC, models.ProgramStudi{
+	config.DB.Unscoped().Where("kode = ?", "INF01").FirstOrCreate(&majorSOC, models.ProgramStudi{
 		Nama:       "Informatics",
 		FakultasID: fakultasSOC.ID,
 		Jenjang:    "S1",
@@ -358,7 +358,7 @@ func EnsureBootstrapData() error {
 	fmt.Println("✅ [SEEDER] Verified Program Studi: Informatics")
 
 	var majorFH models.ProgramStudi
-	config.DB.Where("kode = ?", "LAW01").FirstOrCreate(&majorFH, models.ProgramStudi{
+	config.DB.Unscoped().Where("kode = ?", "LAW01").FirstOrCreate(&majorFH, models.ProgramStudi{
 		Nama:       "Ilmu Hukum",
 		FakultasID: fakultasFH.ID,
 		Jenjang:    "S1",

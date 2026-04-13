@@ -273,6 +273,27 @@ export const adminService = {
   deleteStudent: (id) => fetchWithAuth(`${API_BASE_URL}/admin/students/${id}`, {
     method: 'DELETE'
   }),
+  syncStudentPDDikti: (id) => fetchWithAuth(`${API_BASE_URL}/admin/students/${id}/sync-pddikti`, {
+    method: 'POST'
+  }),
+  batchSyncStudentsPDDikti: () => fetchWithAuth(`${API_BASE_URL}/admin/students/batch-sync-pddikti`, {
+    method: 'POST'
+  }),
+  exportStudents: async () => {
+    const token = getAuthToken();
+    const res = await fetch(`${API_BASE_URL}/admin/students/export`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (!res.ok) throw new Error('Gagal mengekspor data');
+    const blob = await res.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `master_mahasiswa_${new Date().toISOString().split('T')[0]}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  },
   getAllProdi: () => fetchWithAuth(`${API_BASE_URL}/admin/prodi`),
   createProdi: (data) => fetchWithAuth(`${API_BASE_URL}/admin/prodi`, {
     method: 'POST',

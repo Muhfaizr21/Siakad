@@ -1,7 +1,14 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { CheckCircle2, RefreshCcw, ShieldCheck, XCircle } from 'lucide-react';
-import { toast } from 'react-hot-toast';
+import { CheckCircle2, RefreshCcw, ShieldCheck, XCircle, Trophy, Clock, CheckCircle, AlertCircle, Eye, Search, Filter } from 'lucide-react';
+import { toast, Toaster } from 'react-hot-toast';
 import { adminService } from '../../services/api';
+import { DataTable } from './components/ui/data-table';
+import { Badge } from './components/ui/badge';
+import { Button } from './components/ui/button';
+import { Card, CardContent } from './components/ui/card';
+import { Avatar, AvatarFallback } from './components/ui/avatar';
+import { Input } from './components/ui/input';
+import { cn } from '@/lib/utils';
 
 const STATUS_OPTIONS = [
   { label: 'Menunggu Super Admin', value: 'forwarded_to_superadmin' },
@@ -88,84 +95,153 @@ export default function PrestasiMandiriApproval() {
     }
   };
 
+  const columns = [
+    { 
+      key: 'Mahasiswa', 
+      label: 'Mahasiswa', 
+      className: 'min-w-[240px]',
+      render: (_, row) => (
+        <div className="flex items-center gap-3">
+          <Avatar className="h-9 w-9 rounded-xl border-2 border-white shadow-sm">
+            <AvatarFallback className="bg-slate-100 text-slate-800 text-[10px] font-black uppercase">
+              {row.Mahasiswa?.Nama?.[0] || '?'}
+            </AvatarFallback>
+          </Avatar>
+          <div className="flex flex-col leading-tight">
+            <span className="font-bold text-slate-900 text-[13px]">{row.Mahasiswa?.Nama || '—'}</span>
+            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-tight">{row.Mahasiswa?.NIM || '—'}</span>
+          </div>
+        </div>
+      )
+    },
+    { 
+      key: 'NamaKegiatan', 
+      label: 'Kegiatan / Lomba', 
+      className: 'min-w-[200px]',
+      render: v => <span className="text-xs font-bold text-slate-600 uppercase tracking-tight">{v || '—'}</span>
+    },
+    { 
+      key: 'Status', 
+      label: 'Status Approval', 
+      className: 'w-[160px]',
+      render: v => (
+        <Badge className={cn('capitalize font-black text-[9px] px-2.5 py-0.5 border-none shadow-sm',
+          v === 'approved_superadmin' ? 'bg-emerald-100 text-emerald-700' :
+          v === 'rejected_superadmin' ? 'bg-rose-100 text-rose-700' :
+          'bg-amber-100 text-amber-700')}>
+          {v?.replace(/_/g, ' ') || 'Pending'}
+        </Badge>
+      )
+    },
+    { 
+      key: 'StatusSinkron', 
+      label: 'Sinkronisasi', 
+      className: 'w-[140px]',
+      render: v => (
+        <Badge className={cn('capitalize font-bold text-[9px] px-2 py-0.5 border-none',
+          v === 'synced' ? 'bg-indigo-100 text-indigo-700' :
+          v === 'sync_failed' ? 'bg-rose-100 text-rose-700' :
+          'bg-slate-100 text-slate-500')}>
+          {v?.replace(/_/g, ' ') || 'Belum'}
+        </Badge>
+      )
+    }
+  ];
+
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-black text-slate-900">Approval Prestasi Mandiri</h1>
-          <p className="text-sm text-slate-500">Tahap final approval dan monitoring sinkronisasi SIMKATMAWA.</p>
+    <div className="p-4 md:p-8 space-y-8">
+      <Toaster position="top-right" />
+      
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="space-y-1">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-primary/10 rounded-xl text-primary"><Trophy className="size-6" /></div>
+            <h1 className="text-2xl font-black text-slate-900 font-headline tracking-tighter uppercase">Approval Prestasi Mandiri</h1>
+          </div>
+          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-12">Monitoring & Final Approval Sinkronisasi SIMKATMAWA</p>
         </div>
-        <button onClick={loadData} className="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 font-bold text-sm inline-flex items-center gap-2">
-          <RefreshCcw size={16} /> Muat Ulang
-        </button>
+        <Button onClick={loadData} variant="outline" className="rounded-2xl gap-2 font-black text-[10px] uppercase tracking-widest h-11 px-6 border-slate-200">
+          <RefreshCcw size={14} className={cn(loading && "animate-spin")} /> Muat Ulang
+        </Button>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <div className="p-4 rounded-2xl bg-white border">Total: <b>{summary.total}</b></div>
-        <div className="p-4 rounded-2xl bg-white border">Queued: <b>{summary.queued}</b></div>
-        <div className="p-4 rounded-2xl bg-white border">Synced: <b>{summary.synced}</b></div>
-        <div className="p-4 rounded-2xl bg-white border">Failed: <b>{summary.failed}</b></div>
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {[
+          { label: 'Total Pengajuan', val: summary.total, icon: Trophy, color: 'text-blue-600', bg: 'bg-blue-50' },
+          { label: 'Dalam Antrean', val: summary.queued, icon: Clock, color: 'text-amber-600', bg: 'bg-amber-50' },
+          { label: 'Sudah Sinkron', val: summary.synced, icon: CheckCircle, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+          { label: 'Gagal Sinkron', val: summary.failed, icon: AlertCircle, color: 'text-rose-600', bg: 'bg-rose-50' }
+        ].map((s) => (
+          <Card key={s.label} className="border-none shadow-sm bg-white/50 backdrop-blur-md overflow-hidden group hover:shadow-md transition-all">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div className="space-y-1">
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{s.label}</p>
+                  <p className="text-3xl font-black text-slate-900 font-headline">{s.val}</p>
+                </div>
+                <div className={cn("p-3 rounded-2xl transition-transform group-hover:scale-110", s.bg, s.color)}>
+                  <s.icon size={24} />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
       </div>
 
-      <div className="bg-white border rounded-2xl p-4 space-y-3">
-        <div className="flex flex-col md:flex-row gap-3">
-          <select value={status} onChange={(e) => setStatus(e.target.value)} className="border rounded-xl px-3 py-2 text-sm">
-            {STATUS_OPTIONS.map((opt) => (
-              <option key={opt.value} value={opt.value}>{opt.label}</option>
-            ))}
-          </select>
-          <input
-            value={note}
-            onChange={(e) => setNote(e.target.value)}
-            placeholder="Catatan approval/reject/sync failed"
-            className="flex-1 border rounded-xl px-3 py-2 text-sm"
-          />
+      {/* Content Table */}
+      <Card className="border-none shadow-sm bg-white/50 backdrop-blur-md overflow-hidden">
+        <div className="p-6 border-b border-slate-100 flex flex-col md:flex-row gap-4 bg-slate-50/30">
+          <div className="flex-1 space-y-1.5">
+            <label className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Catatan Progress</label>
+            <Input 
+              value={note} 
+              onChange={(e) => setNote(e.target.value)}
+              placeholder="Catatan approval/reject/sync failed..."
+              className="h-11 rounded-2xl border-slate-200 bg-white/80 font-bold text-sm"
+            />
+          </div>
         </div>
 
-        <div className="overflow-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b text-left">
-                <th className="py-2">Mahasiswa</th>
-                <th className="py-2">Lomba</th>
-                <th className="py-2">Status</th>
-                <th className="py-2">Sinkron</th>
-                <th className="py-2">Aksi</th>
-              </tr>
-            </thead>
-            <tbody>
-              {loading ? (
-                <tr><td colSpan="5" className="py-8 text-center text-slate-400">Memuat data...</td></tr>
-              ) : items.length === 0 ? (
-                <tr><td colSpan="5" className="py-8 text-center text-slate-400">Tidak ada data</td></tr>
-              ) : items.map((row) => (
-                <tr key={row.ID} className="border-b">
-                  <td className="py-2">{row.Mahasiswa?.Nama || '-'} ({row.Mahasiswa?.NIM || '-'})</td>
-                  <td className="py-2">{row.NamaKegiatan || '-'}</td>
-                  <td className="py-2">{row.Status}</td>
-                  <td className="py-2">{row.StatusSinkron || '-'}</td>
-                  <td className="py-2">
-                    <div className="flex flex-wrap gap-2">
-                      {row.Status === 'forwarded_to_superadmin' && (
-                        <>
-                          <button onClick={() => approve(row.ID)} className="px-3 py-1 rounded-lg bg-emerald-600 text-white inline-flex items-center gap-1"><CheckCircle2 size={14} />Approve</button>
-                          <button onClick={() => reject(row.ID)} className="px-3 py-1 rounded-lg bg-rose-600 text-white inline-flex items-center gap-1"><XCircle size={14} />Reject</button>
-                        </>
-                      )}
-                      {row.Status === 'approved_superadmin' && (
-                        <>
-                          <button onClick={() => markSynced(row.ID)} className="px-3 py-1 rounded-lg bg-indigo-600 text-white inline-flex items-center gap-1"><ShieldCheck size={14} />Sync OK</button>
-                          <button onClick={() => markFailed(row.ID)} className="px-3 py-1 rounded-lg bg-amber-600 text-white">Sync Failed</button>
-                        </>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
+        <DataTable
+          columns={columns}
+          data={items}
+          loading={loading}
+          searchPlaceholder="Cari nama mahasiswa atau lomba..."
+          filters={[
+            { 
+              key: 'Status', 
+              placeholder: 'Filter Status Approval', 
+              options: STATUS_OPTIONS.filter(o => o.value !== 'all') 
+            }
+          ]}
+          actions={(row) => (
+            <div className="flex items-center gap-2">
+              {row.Status === 'forwarded_to_superadmin' && (
+                <>
+                  <Button onClick={() => approve(row.ID)} className="h-8 px-3 rounded-xl bg-emerald-600 text-white text-[10px] font-black uppercase tracking-wider gap-1">
+                    <CheckCircle2 size={12} /> Approve
+                  </Button>
+                  <Button onClick={() => reject(row.ID)} variant="outline" className="h-8 px-3 rounded-xl border-rose-200 text-rose-600 hover:bg-rose-50 text-[10px] font-black uppercase tracking-wider gap-1">
+                    <XCircle size={12} /> Reject
+                  </Button>
+                </>
+              )}
+              {row.Status === 'approved_superadmin' && (
+                <>
+                  <Button onClick={() => markSynced(row.ID)} className="h-8 px-3 rounded-xl bg-indigo-600 text-white text-[10px] font-black uppercase tracking-wider gap-1">
+                    <ShieldCheck size={12} /> Sync OK
+                  </Button>
+                  <Button onClick={() => markFailed(row.ID)} variant="outline" className="h-8 px-3 rounded-xl border-amber-200 text-amber-600 hover:bg-amber-50 text-[10px] font-black uppercase tracking-wider">
+                    Fail
+                  </Button>
+                </>
+              )}
+            </div>
+          )}
+        />
+      </Card>
     </div>
   );
 }

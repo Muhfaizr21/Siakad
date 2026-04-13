@@ -34,6 +34,7 @@ func SetupSuperAdminRoutes(r fiber.Router) {
 	r.Delete("/ormawa/:id", controllers.DeleteOrmawa)
 
 	r.Get("/students", controllers.GetAllStudents)
+	r.Get("/students/export", controllers.ExportStudents)
 	r.Post("/students", controllers.CreateStudent)
 	r.Put("/students/:id", controllers.UpdateStudent)
 	r.Delete("/students/:id", controllers.DeleteStudent)

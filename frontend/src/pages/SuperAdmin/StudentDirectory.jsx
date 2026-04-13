@@ -76,6 +76,8 @@ export default function StudentDirectory() {
     } catch { toast.error('Gagal menghapus') } finally { setIsSubmitting(false) }
   }
 
+
+
   const columns = [
     { key: 'NIM', label: 'NIM / ID', className: 'w-[140px]', render: v => <span className="font-bold text-slate-400 font-headline uppercase text-[10px] tracking-widest">{v}</span> },
     { key: 'Nama', label: 'Profil Mahasiswa', className: 'min-w-[280px]',
@@ -128,7 +130,8 @@ export default function StudentDirectory() {
                 columns={columns} data={students} loading={loading}
                 searchPlaceholder="Cari NIM atau Nama mahasiswa..."
                 onAdd={handleOpenAdd} addLabel="Mahasiswa Baru"
-                onExport={() => alert('Ekspor data mahasiswa...')} exportLabel="Download Master"
+                onExport={adminService.exportStudents} exportLabel="Download Master"
+                customButtons={[]}
                 filters={[
                   { key: 'StatusAkun', placeholder: 'Filter Status', options: [{ label: 'Aktif', value: 'Aktif' }, { label: 'Cuti', value: 'Cuti' }, { label: 'Lulus', value: 'Lulus' }] },
                   { key: 'FakultasID', placeholder: 'Filter Fakultas', options: faculties.map(f => ({ label: f.Nama, value: f.ID })) },

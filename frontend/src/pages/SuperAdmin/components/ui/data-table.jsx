@@ -43,7 +43,8 @@ export function DataTable({
   exportLabel = "Export",
   actions,
   filters = [],
-  searchWidth = "max-w-md"
+  searchWidth = "max-w-md",
+  customButtons = []
 }) {
   const [searchTerm, setSearchTerm] = useState("")
   const [activeFilters, setActiveFilters] = useState({})
@@ -160,6 +161,10 @@ export function DataTable({
                 <span>{exportLabel || "Export"}</span>
               </Button>
             )}
+
+            {customButtons && customButtons.length > 0 && customButtons.map((btn, idx) => (
+              <React.Fragment key={idx}>{btn}</React.Fragment>
+            ))}
 
             {onAdd && (
               <Button onClick={onAdd} className="h-11 px-6 rounded-2xl font-black bg-primary text-white hover:bg-primary/90 shadow-xl shadow-primary/20 gap-2.5 transition-all hover:scale-[1.02] active:scale-95 border-none">

@@ -1,9 +1,12 @@
 package controllers
 
 import (
+	"encoding/csv"
 	"fmt"
 	"siakad-backend/config"
 	"siakad-backend/models"
+	"siakad-backend/pkg/pddikti"
+	"strconv"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -305,6 +308,36 @@ func GetAllStudents(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"status": "success", "data": mhs})
 }
 
+func ExportStudents(c *fiber.Ctx) error {
+	var mhs []models.Mahasiswa
+	config.DB.Preload("Fakultas").Preload("ProgramStudi").Order("nama asc").Find(&mhs)
+
+	c.Set("Content-Type", "text/csv")
+	c.Set("Content-Disposition", "attachment; filename=master_mahasiswa_"+time.Now().Format("2006-01-02")+".csv")
+
+	writer := csv.NewWriter(c)
+	// Header
+	writer.Write([]string{"ID", "NIM", "Nama", "Email", "Fakultas", "Program Studi", "Semester", "IPK", "Status"})
+
+	for _, m := range mhs {
+		row := []string{
+			strconv.FormatUint(uint64(m.ID), 10),
+			m.NIM,
+			m.Nama,
+			m.EmailKampus,
+			m.Fakultas.Nama,
+			m.ProgramStudi.Nama,
+			strconv.Itoa(m.SemesterSekarang),
+			fmt.Sprintf("%.2f", m.IPK),
+			m.StatusAkun,
+		}
+		writer.Write(row)
+	}
+
+	writer.Flush()
+	return nil
+}
+
 func GetAllLecturers(c *fiber.Ctx) error {
 	var lecturers []models.Dosen
 	config.DB.Preload("Fakultas").Preload("ProgramStudi").Order("nama asc").Find(&lecturers)
@@ -419,6 +452,65 @@ func DeleteStudent(c *fiber.Ctx) error {
 		return c.Status(500).JSON(fiber.Map{"status": "error", "message": err.Error()})
 	}
 	return c.JSON(fiber.Map{"status": "success", "message": "Mahasiswa deleted"})
+}
+
+func SyncStudentWithPDDikti(c *fiber.Ctx) error {
+	id := c.Params("id")
+	var mhs models.Mahasiswa
+	if err := config.DB.First(&mhs, id).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Mahasiswa not found"})
+	}
+
+	fmt.Printf("[PDDIKTI] Attempting to sync NIM: %s\n", mhs.NIM)
+	data, err := pddikti.GetStudentDetailByNIM(mhs.NIM)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal sinkron PDDikti: " + err.Error()})
+	}
+
+	// Update local data with real info from PDDikti
+	mhs.Nama = data.Nama
+	// mhs.EmailKampus = fmt.Sprintf("%s@bku.ac.id", mhs.NIM) // Optional: update email too?
+	
+	if err := config.DB.Save(&mhs).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal update database: " + err.Error()})
+	}
+
+	return c.JSON(fiber.Map{
+		"status":  "success",
+		"message": "Data berhasil disinkronkan dengan PDDikti",
+		"data":    mhs,
+	})
+}
+
+// BatchSyncMahasiswaPDDikti updates all students' names from PDDikti
+func BatchSyncMahasiswaPDDikti(c *fiber.Ctx) error {
+	var totalStudents []models.Mahasiswa
+	config.DB.Find(&totalStudents)
+
+	// We'll process this in a simple loop for now. 
+	// For production we'd use a background worker, but for this maintenance task 
+	// we'll do it synchronously and return progress summary.
+	
+	successCount := 0
+	failedCount := 0
+
+	for _, m := range totalStudents {
+		data, err := pddikti.GetStudentDetailByNIM(m.NIM)
+		if err == nil {
+			m.Nama = data.Nama
+			config.DB.Save(&m)
+			successCount++
+		} else {
+			failedCount++
+		}
+		// Small sleep to not hammer the API
+		time.Sleep(100 * time.Millisecond)
+	}
+
+	return c.JSON(fiber.Map{
+		"status": "success",
+		"message": fmt.Sprintf("Sinkronisasi masal selesai. %d berhasil, %d gagal.", successCount, failedCount),
+	})
 }
 
 func GetAllProgramStudi(c *fiber.Ctx) error {
