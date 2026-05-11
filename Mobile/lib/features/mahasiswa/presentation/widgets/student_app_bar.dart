@@ -1,0 +1,169 @@
+import 'package:flutter/material.dart';
+import 'package:bkuhub_mobile/core/theme/app_colors.dart';
+import 'package:bkuhub_mobile/core/theme/app_text_styles.dart';
+
+class StudentAppBar extends StatelessWidget {
+  final String title;
+  final String? label;
+  final double expandedHeight;
+  final List<Widget>? actions;
+  final Widget? leading;
+  final bool pinned;
+
+  const StudentAppBar({
+    super.key,
+    required this.title,
+    this.label,
+    this.expandedHeight = 200.0,
+    this.actions,
+    this.leading,
+    this.pinned = true,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final topPadding = MediaQuery.of(context).padding.top;
+
+    return SliverAppBar(
+      expandedHeight: expandedHeight,
+      pinned: pinned,
+      elevation: 0,
+      backgroundColor: Colors.transparent,
+      iconTheme: const IconThemeData(color: Colors.white),
+      leading: leading,
+      centerTitle: true,
+      actions: [
+        if (actions != null) ...actions!,
+        const SizedBox(width: 8),
+      ],
+      bottom: PreferredSize(
+        preferredSize: const Size.fromHeight(20),
+        child: Container(
+          height: 20,
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(32),
+              topRight: Radius.circular(32),
+            ),
+          ),
+        ),
+      ),
+      flexibleSpace: LayoutBuilder(
+        builder: (context, constraints) {
+          final double percentage = (constraints.biggest.height - (kToolbarHeight + topPadding)) / (expandedHeight - (kToolbarHeight + topPadding));
+          final bool isCollapsed = percentage <= 0.1;
+
+          return Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Color(0xFF00164E), // Deep dark blue
+                  AppColors.primary, // Main brand blue
+                  AppColors.primaryContainer, // Vibrant blue
+                ],
+              ),
+            ),
+            child: FlexibleSpaceBar(
+              stretchModes: const [StretchMode.zoomBackground],
+              centerTitle: true,
+              titlePadding: EdgeInsets.zero,
+              title: AnimatedOpacity(
+                duration: const Duration(milliseconds: 200),
+                opacity: isCollapsed ? 1.0 : 0.0,
+                child: Container(
+                  height: kToolbarHeight,
+                  alignment: Alignment.center,
+                  child: Text(
+                    title,
+                    style: AppTextStyles.titleLg.copyWith(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ),
+              ),
+              background: Stack(
+                children: [
+                  // Decorative elements for premium look
+                  Positioned(
+                    top: -20,
+                    right: -20,
+                    child: Container(
+                      width: 140,
+                      height: 140,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withAlpha(10),
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    bottom: 50,
+                    left: -10,
+                    child: Container(
+                      width: 100,
+                      height: 100,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withAlpha(5),
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  ),
+                  
+                  // Content
+                  Positioned.fill(
+                    child: Padding(
+                      padding: EdgeInsets.only(top: topPadding, bottom: 20),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          if (label != null)
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withAlpha(30),
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(color: Colors.white.withAlpha(20)),
+                              ),
+                              child: Text(
+                                label!.toUpperCase(),
+                                style: AppTextStyles.labelSm.copyWith(
+                                  color: Colors.white,
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.w900,
+                                  letterSpacing: 1.2,
+                                ),
+                              ),
+                            ),
+                          const SizedBox(height: 10),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 40),
+                            child: Text(
+                              title,
+                              textAlign: TextAlign.center,
+                              style: AppTextStyles.titleLg.copyWith(
+                                color: Colors.white,
+                                fontSize: 24,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: -0.5,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
