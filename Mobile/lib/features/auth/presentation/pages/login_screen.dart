@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:dio/dio.dart';
 import 'package:bkuhub_mobile/core/theme/app_colors.dart';
 import 'package:bkuhub_mobile/core/theme/app_text_styles.dart';
 import 'package:bkuhub_mobile/core/widgets/fade_in_animation.dart';
@@ -24,32 +25,61 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _handleLogin() async {
     if (_usernameController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('NIM tidak boleh kosong')),
+        const SnackBar(content: Text('NIM / Email tidak boleh kosong')),
+      );
+      return;
+    }
+    if (_passwordController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Password tidak boleh kosong')),
       );
       return;
     }
 
     setState(() => _isLoading = true);
     
-    final success = await _authService.login(
-      _usernameController.text, 
-      _passwordController.text,
-    );
+    String errorMessage = 'Login gagal. Periksa kembali NIM/Email dan Password Anda.';
 
-    if (!mounted) return;
-    setState(() => _isLoading = false);
+    try {
+      final success = await _authService.login(
+        _usernameController.text, 
+        _passwordController.text,
+      );
 
-    if (success) {
-      if (_authService.currentRole == UserRole.ormawa) {
-        context.go(AppRoutes.ormawaMain);
-      } else if (_authService.currentRole == UserRole.psychologist) {
-        context.go(AppRoutes.psychologistMain);
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+
+      if (success) {
+        if (_authService.currentRole == UserRole.ormawa) {
+          context.go(AppRoutes.ormawaMain);
+        } else if (_authService.currentRole == UserRole.psychologist) {
+          context.go(AppRoutes.psychologistMain);
+        } else {
+          context.go(AppRoutes.studentMain);
+        }
       } else {
-        context.go(AppRoutes.studentMain);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(errorMessage)),
+        );
       }
-    } else {
+    } on DioException catch (e) {
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+      
+      if (e.response?.data != null && e.response?.data['message'] != null) {
+        errorMessage = e.response!.data['message'];
+      } else if (e.type == DioExceptionType.connectionTimeout || e.type == DioExceptionType.connectionError) {
+        errorMessage = 'Tidak dapat terhubung ke server. Periksa koneksi Anda.';
+      }
+      
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Login gagal. Periksa kembali NIM/Password Anda.')),
+        SnackBar(content: Text(errorMessage)),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(errorMessage)),
       );
     }
   }
@@ -126,8 +156,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       FadeInAnimation(
                         delay: 0.7,
                         child: _buildTextField(
-                          label: 'NIM',
-                          placeholder: 'Masukkan NIM Anda',
+                          label: 'NIM / Email',
+                          placeholder: 'Masukkan NIM atau Email Anda',
                           icon: Icons.person_rounded,
                           controller: _usernameController,
                         ),

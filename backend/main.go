@@ -53,7 +53,7 @@ func main() {
 	app.Use(recover.New())
 	app.Use(logger.New())
 	app.Use(cors.New(cors.Config{
-		AllowOrigins:     "http://localhost:5173, http://127.0.0.1:5173",
+		AllowOrigins:     "http://localhost:5173, http://127.0.0.1:5173, http://192.168.18.65:5173",
 		AllowHeaders:     "Origin, Content-Type, Accept, Authorization",
 		AllowMethods:     "GET, POST, PUT, DELETE, OPTIONS",
 		AllowCredentials: true,
@@ -178,6 +178,8 @@ func main() {
 	routes.SetupOrmawaRoutes(app)
 
 	// Start Server
-	port := "8000"
-	log.Fatal(app.Listen(":" + port))
+	port := config.GetAppPort()
+	host := config.GetAppHost()
+	log.Printf("Server starting on %s:%s", host, port)
+	log.Fatal(app.Listen(host + ":" + port))
 }

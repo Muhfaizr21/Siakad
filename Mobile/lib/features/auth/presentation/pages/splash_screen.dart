@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:bkuhub_mobile/core/theme/app_colors.dart';
 import 'package:bkuhub_mobile/core/theme/app_text_styles.dart';
 import 'package:bkuhub_mobile/core/routes/app_routes.dart';
+import 'package:bkuhub_mobile/core/services/auth_service.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -34,12 +35,28 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
 
     _controller.forward();
 
-    _navigateToLogin();
+    _checkSessionAndNavigate();
   }
 
-  Future<void> _navigateToLogin() async {
-    await Future.delayed(const Duration(seconds: 3));
-    if (mounted) {
+  Future<void> _checkSessionAndNavigate() async {
+    await Future.delayed(const Duration(seconds: 2));
+
+    final authService = AuthService();
+    await authService.loadSession();
+
+    if (!mounted) return;
+
+    if (authService.token != null && authService.currentRole != UserRole.guest) {
+      // Session exists, go to correct main screen
+      if (authService.currentRole == UserRole.ormawa) {
+        context.go(AppRoutes.ormawaMain);
+      } else if (authService.currentRole == UserRole.psychologist) {
+        context.go(AppRoutes.psychologistMain);
+      } else {
+        context.go(AppRoutes.studentMain);
+      }
+    } else {
+      // No session, go to login
       context.go(AppRoutes.login);
     }
   }
