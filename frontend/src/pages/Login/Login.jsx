@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from "react";
+import { API_BASE_URL } from "../../services/api";
 
 export default function LoginPage() {
     const [dbStatus, setDbStatus] = useState("Checking database connection...");
 
     useEffect(() => {
-        fetch("http://localhost:8000/api/health")
+        fetch(`${API_BASE_URL}/health`)
             .then(res => res.json())
             .then(data => {
                 if (data.status === "success") {

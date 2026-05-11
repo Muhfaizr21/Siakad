@@ -67,7 +67,7 @@ export default function Settings() {
   const getLogoPath = (path) => {
     if (!path) return null;
     if (path.startsWith('http')) return path;
-    const baseDomain = API_BASE_URL ? API_BASE_URL.replace('/api', '') : 'http://localhost:8000';
+    const baseDomain = API_BASE_URL ? API_BASE_URL.replace('/api', '') : '';
     return `${baseDomain}${path.startsWith('/') ? '' : '/'}${path}`;
   }
   const logoUrl = getLogoPath(config.LogoURL);

@@ -13,6 +13,9 @@ import { cn } from "@/lib/utils"
 import { Label } from "./components/label"
 import { Textarea } from "./components/textarea"
 import { PageContainer, PageHeader, ResponsiveGrid, ResponsiveCard } from "./components/responsive-layout"
+import { API_BASE_URL } from "../../services/api"
+
+const API = `${API_BASE_URL}/faculty`
 
 export default function FacultyProposalApproval() {
     const [proposals, setProposals] = useState([])
@@ -25,7 +28,7 @@ export default function FacultyProposalApproval() {
     const fetchData = async () => {
         try {
             setLoading(true)
-            const res = await axios.get('http://localhost:8000/api/faculty/ormawa/proposals')
+            const res = await axios.get(`${API}/ormawa/proposals`)
             if (res.data.status === 'success') {
                 setProposals(res.data.data)
             }
@@ -44,7 +47,7 @@ export default function FacultyProposalApproval() {
         if (!selectedProposal) return
         setIsSubmitting(true)
         try {
-            const res = await axios.put(`http://localhost:8000/api/faculty/ormawa/proposals/${selectedProposal.ID}`, {
+            const res = await axios.put(`${API}/ormawa/proposals/${selectedProposal.ID}`, {
                 Status: status,
                 catatan_admin: form.catatan_admin
             })

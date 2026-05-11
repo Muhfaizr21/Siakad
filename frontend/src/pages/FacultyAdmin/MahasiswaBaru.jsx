@@ -8,6 +8,9 @@ import { Avatar, AvatarFallback } from "./components/avatar"
 import { Calendar, Download, Users, UserCheck, Clock, GraduationCap, Mail } from "lucide-react"
 import { toast, Toaster } from "react-hot-toast"
 import { PageContainer, PageHeader, ResponsiveGrid, ResponsiveCard } from "./components/responsive-layout"
+import { API_BASE_URL } from "../../services/api"
+
+const API = `${API_BASE_URL}/faculty`
 
 export default function FacultyMahasiswaBaru() {
   const [students, setStudents] = useState([])
@@ -17,7 +20,7 @@ export default function FacultyMahasiswaBaru() {
     const fetchBaru = async () => {
       setLoading(true)
       try {
-        const res = await fetch('http://localhost:8000/api/faculty/admissions')
+        const res = await fetch(`${API}/admissions`)
         const json = await res.json()
         if (json.status === 'success') {
           setStudents(json.data)

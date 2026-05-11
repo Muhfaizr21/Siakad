@@ -1,6 +1,7 @@
 import React from 'react';
 import { UserCircle2, ChevronRight } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
+import { API_BASE_URL } from '../../services/api';
 
 export default function HeroCard({ data }) {
   const { mahasiswa, pesan_kontekstual, link_kontekstual } = data;
@@ -24,7 +25,7 @@ export default function HeroCard({ data }) {
   const getFullUrl = (path) => {
     if (!path) return null;
     if (path.startsWith('http')) return path;
-    const baseUrl = (import.meta.env.VITE_API_URL || 'http://localhost:8000/api').replace('/api', '');
+    const baseUrl = API_BASE_URL.replace('/api', '');
     return `${baseUrl}${path}`;
   };
 

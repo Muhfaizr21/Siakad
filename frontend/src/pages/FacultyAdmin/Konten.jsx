@@ -34,6 +34,9 @@ import {
   Eye
 } from "lucide-react"
 import { PageContainer, PageHeader, ResponsiveGrid, ResponsiveCard } from "./components/responsive-layout"
+import { API_BASE_URL } from "../../services/api"
+
+const API = `${API_BASE_URL}/faculty`
 
 export default function KontenPage() {
   const [loading, setLoading] = useState(true)
@@ -53,7 +56,7 @@ export default function KontenPage() {
   const fetchData = async () => {
     setLoading(true)
     try {
-      const res = await axios.get("http://localhost:8000/api/faculty/news")
+      const res = await axios.get(`${API}/news`)
       if (res.data.status === "success") {
         setArticles(res.data.data)
       }
@@ -92,7 +95,7 @@ export default function KontenPage() {
     if (!selectedArticleId) return
     setIsSubmitting(true)
     try {
-      const res = await axios.delete(`http://localhost:8000/api/faculty/news/${selectedArticleId}`)
+      const res = await axios.delete(`${API}/news/${selectedArticleId}`)
       if (res.data.status === "success") {
         toast.success("Konten berhasil dihapus")
         setIsDelOpen(false)
@@ -113,8 +116,8 @@ export default function KontenPage() {
     setIsSubmitting(true)
     try {
       const url = isEditMode 
-        ? `http://localhost:8000/api/faculty/news/${formData.id}` 
-        : "http://localhost:8000/api/faculty/news"
+        ? `${API}/news/${formData.id}` 
+        : `${API}/news`
       const method = isEditMode ? "put" : "post"
       
       const res = await axios({ method, url, data: formData })

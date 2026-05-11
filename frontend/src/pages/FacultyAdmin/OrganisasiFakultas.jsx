@@ -15,6 +15,9 @@ import { Label } from "./components/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./components/select"
 import { cn } from "@/lib/utils"
 import { PageContainer, PageHeader, ResponsiveGrid, ResponsiveCard } from "./components/responsive-layout"
+import { API_BASE_URL } from "../../services/api"
+
+const API = `${API_BASE_URL}/faculty`
 
 export default function FacultyOrganisasi() {
   const [organizations, setOrganizations] = useState([])
@@ -41,7 +44,7 @@ export default function FacultyOrganisasi() {
   const fetchData = async () => {
     try {
       setLoading(true)
-      const res = await fetch('http://localhost:8000/api/faculty/organizations')
+      const res = await fetch(`${API}/organizations`)
       const data = await res.json()
       // Go backend returns PascalCase fields
       const mapped = Array.isArray(data.data)
@@ -89,10 +92,10 @@ export default function FacultyOrganisasi() {
 
     try {
       if (editingOrg) {
-        await axios.put(`http://localhost:8000/api/faculty/organizations/${editingOrg.id}`, payload)
+        await axios.put(`${API}/organizations/${editingOrg.id}`, payload)
         toast.success("Organisasi diperbarui")
       } else {
-        await axios.post('http://localhost:8000/api/faculty/organizations', payload)
+        await axios.post(`${API}/organizations`, payload)
         toast.success("Organisasi ditambahkan")
       }
       setShowModal(false)
@@ -108,7 +111,7 @@ export default function FacultyOrganisasi() {
     if (!selectedOrgId) return
     setIsSubmitting(true)
     try {
-      const res = await axios.delete(`http://localhost:8000/api/faculty/organizations/${selectedOrgId}`)
+      const res = await axios.delete(`${API}/organizations/${selectedOrgId}`)
       if (res.data.status === 'success') {
         toast.success("Organisasi dihapus")
         setIsDelOpen(false)

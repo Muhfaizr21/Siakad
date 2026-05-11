@@ -18,6 +18,7 @@ import {
 } from './ui/dropdown-menu';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
+import { API_BASE_URL } from '../../../services/api';
 
 const TopNavBar = ({ setIsOpen }) => {
   const location = useLocation();
@@ -52,7 +53,7 @@ const TopNavBar = ({ setIsOpen }) => {
   const fetchStats = async () => {
     try {
       const token = useAuthStore.getState().accessToken;
-      const res = await fetch('http://localhost:8000/api/admin/stats', {
+      const res = await fetch(`${API_BASE_URL}/admin/stats`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const json = await res.json();

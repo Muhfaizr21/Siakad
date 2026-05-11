@@ -41,6 +41,9 @@ import {
 } from './dropdown-menu'
 import { Button } from './button'
 import { Badge } from './badge'
+import { API_BASE_URL } from '../../../services/api'
+
+const API = `${API_BASE_URL}/faculty`
 
 const TopNavBar = ({ setIsOpen }) => {
   const location = useLocation();
@@ -77,7 +80,7 @@ const TopNavBar = ({ setIsOpen }) => {
 
   const fetchNotifStats = async () => {
     try {
-      const res = await fetch('http://localhost:8000/api/faculty/notifications/stats');
+      const res = await fetch(`${API}/notifications/stats`);
       const json = await res.json();
       if (json.status === 'success') {
         setNotifications(json.data);
@@ -143,7 +146,7 @@ const TopNavBar = ({ setIsOpen }) => {
     const fetchFacultyName = async () => {
       try {
         const token = useAuthStore.getState().accessToken;
-        const res = await fetch('http://localhost:8000/api/faculty/faculties', {
+        const res = await fetch(`${API}/faculties`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }
