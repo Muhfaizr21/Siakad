@@ -4,6 +4,7 @@ import 'package:bkuhub_mobile/core/theme/app_text_styles.dart';
 import 'package:bkuhub_mobile/core/widgets/bku_app_bar.dart';
 import 'package:bkuhub_mobile/core/providers/ormawa_provider.dart';
 import 'package:bkuhub_mobile/features/ormawa/domain/entities/pkkmb_mission.dart';
+import 'package:bkuhub_mobile/features/ormawa/domain/entities/ormawa_pkkmb.dart';
 
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
@@ -17,6 +18,14 @@ class OrmawaPKKMBScreen extends StatefulWidget {
 }
 
 class _OrmawaPKKMBScreenState extends State<OrmawaPKKMBScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<OrmawaProvider>().refreshData();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final ormawaProvider = context.watch<OrmawaProvider>();
@@ -245,14 +254,11 @@ class _OrmawaPKKMBScreenState extends State<OrmawaPKKMBScreen> {
   }
 
   Widget _buildActionGrid(OrmawaProvider provider) {
-    final missions = provider.pkkmbMissions;
-    final activitiesCount = missions.length;
-    final modulesCount = missions
-        .where((m) => m.type == 'PDF' || m.type == 'Video')
-        .length;
-    final quizzesCount = missions.where((m) => m.type == 'Quiz').length;
+    final activitiesCount = provider.pkkmbEvents.length;
+    final modulesCount = 0; // Backend endpoint not available for modules yet
+    final quizzesCount = provider.pkkmbQuizzes.length;
     final pendingAppealsCount = provider.appeals
-        .where((a) => a.status == 'MENUNGGU')
+        .where((a) => a.status == 'MENUNGGU' || a.status == 'PROSES')
         .length;
 
     return Padding(
@@ -289,7 +295,7 @@ class _OrmawaPKKMBScreenState extends State<OrmawaPKKMBScreen> {
           ),
           _buildServiceItem(
             'Peserta',
-            '10k+',
+            '${provider.totalPKKMBParticipants}',
             Icons.people_alt_rounded,
             const Color(0xFF10B981),
             () => _navigateTo(const PKKMBPesertaView()),
@@ -303,7 +309,7 @@ class _OrmawaPKKMBScreenState extends State<OrmawaPKKMBScreen> {
           ),
           _buildServiceItem(
             'Sertifikat',
-            '10k+',
+            '${provider.passedPKKMBCount}',
             Icons.verified_rounded,
             Colors.cyan,
             () => _navigateTo(const PKKMBSertifikatView()),
@@ -363,32 +369,12 @@ class _OrmawaPKKMBScreenState extends State<OrmawaPKKMBScreen> {
   }
 
   Widget _buildProdiList() {
-    final prodiData = [
-      {
-        'name': 'S1 Keperawatan',
-        'total': 2450,
-        'passed': 2100,
-        'color': AppColors.primary,
-      },
-      {
-        'name': 'S1 Farmasi',
-        'total': 1820,
-        'passed': 1650,
-        'color': const Color(0xFF6366F1),
-      },
-      {
-        'name': 'D3 Kebidanan',
-        'total': 1200,
-        'passed': 950,
-        'color': const Color(0xFF10B981),
-      },
-      {
-        'name': 'S1 Gizi',
-        'total': 980,
-        'passed': 820,
-        'color': const Color(0xFFF59E0B),
-      },
-    ];
+    final ormawaProvider = context.watch<OrmawaProvider>();
+    final summary = ormawaProvider.pkkmbSummary;
+    
+    if (summary == null || summary.prodiBreakdown.isEmpty) {
+      return const SizedBox.shrink();
+    }
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -400,12 +386,19 @@ class _OrmawaPKKMBScreenState extends State<OrmawaPKKMBScreen> {
           border: Border.all(color: const Color(0xFFF1F5F9)),
         ),
         child: Column(
-          children: prodiData.asMap().entries.map((entry) {
+          children: summary.prodiBreakdown.asMap().entries.map((entry) {
             final int index = entry.key;
-            final prodi = entry.value;
-            final double progress =
-                (prodi['passed'] as int) / (prodi['total'] as int);
-            final Color color = prodi['color'] as Color;
+            final prodiStat = entry.value;
+            final double progress = prodiStat.partisipasi / 100;
+            
+            // Assign colors based on index or prodi name
+            final List<Color> colors = [
+              AppColors.primary,
+              const Color(0xFF6366F1),
+              const Color(0xFF10B981),
+              const Color(0xFFF59E0B),
+            ];
+            final Color color = colors[index % colors.length];
 
             return Column(
               children: [
@@ -426,7 +419,7 @@ class _OrmawaPKKMBScreenState extends State<OrmawaPKKMBScreen> {
                       ),
                       child: Center(
                         child: Text(
-                          (prodi['name'] as String)[0],
+                          prodiStat.prodi.isNotEmpty ? prodiStat.prodi[0] : '?',
                           style: TextStyle(
                             color: color,
                             fontWeight: FontWeight.bold,
@@ -443,12 +436,15 @@ class _OrmawaPKKMBScreenState extends State<OrmawaPKKMBScreen> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text(
-                                prodi['name'] as String,
-                                style: AppTextStyles.labelMd.copyWith(
-                                  fontWeight: FontWeight.w900,
-                                  color: const Color(0xFF1E293B),
-                                  fontSize: 13,
+                              Expanded(
+                                child: Text(
+                                  prodiStat.prodi,
+                                  style: AppTextStyles.labelMd.copyWith(
+                                    fontWeight: FontWeight.w900,
+                                    color: const Color(0xFF1E293B),
+                                    fontSize: 13,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
                                 ),
                               ),
                               Text(
@@ -476,16 +472,16 @@ class _OrmawaPKKMBScreenState extends State<OrmawaPKKMBScreen> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
-                                '${prodi['total']} Mhs',
+                                'Rata-rata: ${prodiStat.nilai.toStringAsFixed(1)}',
                                 style: AppTextStyles.labelSm.copyWith(
                                   color: const Color(0xFF94A3B8),
                                   fontSize: 9,
                                 ),
                               ),
                               Text(
-                                '${prodi['passed']} Lulus',
+                                prodiStat.status,
                                 style: AppTextStyles.labelSm.copyWith(
-                                  color: const Color(0xFF10B981),
+                                  color: prodiStat.status.toLowerCase().contains('baik') ? const Color(0xFF10B981) : const Color(0xFFF59E0B),
                                   fontSize: 9,
                                   fontWeight: FontWeight.bold,
                                 ),
@@ -509,8 +505,15 @@ class _OrmawaPKKMBScreenState extends State<OrmawaPKKMBScreen> {
 }
 
 // Sub-Screens
-class PKKMBKegiatanView extends StatelessWidget {
+class PKKMBKegiatanView extends StatefulWidget {
   const PKKMBKegiatanView({super.key});
+
+  @override
+  State<PKKMBKegiatanView> createState() => _PKKMBKegiatanViewState();
+}
+
+class _PKKMBKegiatanViewState extends State<PKKMBKegiatanView> {
+  String _searchQuery = '';
 
   void _showAddScreen(BuildContext context) {
     Navigator.push(
@@ -524,7 +527,12 @@ class PKKMBKegiatanView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ormawaProvider = context.watch<OrmawaProvider>();
-    final missions = ormawaProvider.pkkmbMissions;
+    final events = ormawaProvider.pkkmbEvents.where((e) {
+      final query = _searchQuery.toLowerCase();
+      return e.judul.toLowerCase().contains(query) || 
+             e.deskripsi.toLowerCase().contains(query) ||
+             e.lokasi.toLowerCase().contains(query);
+    }).toList();
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
@@ -532,35 +540,102 @@ class PKKMBKegiatanView extends StatelessWidget {
         title: 'Agenda & Kegiatan',
         variant: AppBarVariant.ormawa,
       ),
-      body: SingleChildScrollView(
-        physics: const BouncingScrollPhysics(),
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          children: [
-            _SubScreenHeader(
-              title: 'Manajemen Agenda',
-              onAdd: () => _showAddScreen(context),
-            ),
-            const SizedBox(height: 24),
-            if (missions.isEmpty)
-              _buildEmptyState()
-            else
-              ...missions.map(
-                (mission) => Padding(
-                  padding: const EdgeInsets.only(bottom: 16),
-                  child: _KegiatanItem(
-                    title: mission.title,
-                    subtitle: mission.stage,
-                    date: mission.type,
-                    location: mission.desc,
-                    icon: mission.icon,
-                    color: mission.color,
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+            child: _buildSearchField('Cari agenda atau lokasi...'),
+          ),
+          Expanded(
+            child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                children: [
+                  _SubScreenHeader(
+                    title: 'Manajemen Agenda',
+                    onAdd: () => _showAddScreen(context),
                   ),
+                  const SizedBox(height: 24),
+                  if (events.isEmpty)
+                    _buildEmptyState()
+                  else
+                    ...events.map(
+                      (event) => Padding(
+                        padding: const EdgeInsets.only(bottom: 16),
+                        child: _KegiatanItem(
+                          id: event.id.toString(),
+                          title: event.judul,
+                          subtitle: event.deskripsi,
+                          date: DateFormat('EEEE, dd MMMM yyyy', 'id').format(event.tanggal),
+                          location: event.lokasi,
+                          icon: Icons.event_available_rounded,
+                          color: AppColors.primary,
+                          onDelete: () async {
+                            final confirm = await showDialog<bool>(
+                              context: context,
+                              builder: (context) => AlertDialog(
+                                title: const Text('Hapus Agenda?'),
+                                content: const Text('Tindakan ini tidak dapat dibatalkan.'),
+                                actions: [
+                                  TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Batal')),
+                                  TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Hapus', style: TextStyle(color: Colors.red))),
+                                ],
+                              ),
+                            );
+                            if (confirm == true) {
+                              try {
+                                await context.read<OrmawaProvider>().deletePkkmbEvent(event.id.toString());
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Agenda berhasil dihapus')));
+                                }
+                              } catch (e) {
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Gagal menghapus: $e')));
+                                }
+                              }
+                            }
+                          },
+                        ),
+                      ),
+                    ),
+                  const SizedBox(height: 40),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSearchField(String hint) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      height: 56,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFF1F5F9)),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.search_rounded, color: AppColors.primary, size: 22),
+          const SizedBox(width: 12),
+          Expanded(
+            child: TextField(
+              onChanged: (value) => setState(() => _searchQuery = value),
+              decoration: InputDecoration(
+                hintText: hint,
+                border: InputBorder.none,
+                hintStyle: AppTextStyles.labelSm.copyWith(
+                  color: const Color(0xFF94A3B8),
+                  fontSize: 13,
                 ),
               ),
-            const SizedBox(height: 40),
-          ],
-        ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -570,24 +645,24 @@ class PKKMBKegiatanView extends StatelessWidget {
       child: Column(
         children: [
           const SizedBox(height: 60),
-          Icon(
-            Icons.event_busy_rounded,
-            size: 80,
-            color: AppColors.outline.withAlpha(30),
-          ),
+          Icon(Icons.event_busy_rounded, size: 64, color: Colors.grey.withAlpha(50)),
           const SizedBox(height: 16),
-          Text(
-            'Belum ada agenda terdaftar',
-            style: AppTextStyles.labelMd.copyWith(color: AppColors.outline),
-          ),
+          Text('Tidak ada agenda', style: AppTextStyles.labelMd.copyWith(color: Colors.grey)),
         ],
       ),
     );
   }
 }
 
-class PKKMBKuisView extends StatelessWidget {
+class PKKMBKuisView extends StatefulWidget {
   const PKKMBKuisView({super.key});
+
+  @override
+  State<PKKMBKuisView> createState() => _PKKMBKuisViewState();
+}
+
+class _PKKMBKuisViewState extends State<PKKMBKuisView> {
+  String _searchQuery = '';
 
   void _showAddScreen(BuildContext context) {
     Navigator.push(
@@ -599,38 +674,108 @@ class PKKMBKuisView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ormawaProvider = context.watch<OrmawaProvider>();
-    final quizMissions = ormawaProvider.pkkmbMissions
-        .where((m) => m.type == 'Quiz')
-        .toList();
+    final quizzes = ormawaProvider.pkkmbQuizzes.where((q) {
+      final query = _searchQuery.toLowerCase();
+      return q.judul.toLowerCase().contains(query) || 
+             q.deskripsi.toLowerCase().contains(query);
+    }).toList();
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
       appBar: BkuStaticAppBar(title: 'Kuis Evaluasi', variant: AppBarVariant.ormawa),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          children: [
-            _SubScreenHeader(
-              title: 'Manajemen Kuis',
-              onAdd: () => _showAddScreen(context),
-            ),
-            const SizedBox(height: 24),
-            if (quizMissions.isEmpty)
-              _buildEmptyState('Kuis')
-            else
-              ...quizMissions.map(
-                (quiz) => Padding(
-                  padding: const EdgeInsets.only(bottom: 16),
-                  child: _KuisItem(
-                    title: quiz.title,
-                    type: quiz.stage,
-                    duration: '30 Menit',
-                    questions: '10 Soal',
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+            child: _buildSearchField('Cari kuis...'),
+          ),
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                children: [
+                  _SubScreenHeader(
+                    title: 'Manajemen Kuis',
+                    onAdd: () => _showAddScreen(context),
                   ),
+                  const SizedBox(height: 24),
+                  if (quizzes.isEmpty)
+                    _buildEmptyState('Kuis')
+                  else
+                    ...quizzes.map(
+                      (quiz) => Padding(
+                        padding: const EdgeInsets.only(bottom: 16),
+                        child: _KuisItem(
+                          id: quiz.id.toString(),
+                          title: quiz.judul,
+                          type: quiz.isActive ? 'Aktif' : 'Non-Aktif',
+                          questions: '${quiz.pertanyaanCount} Pertanyaan',
+                          duration: '${quiz.durasi} Menit',
+                          onDelete: () async {
+                            final confirm = await showDialog<bool>(
+                              context: context,
+                              builder: (context) => AlertDialog(
+                                title: const Text('Hapus Kuis?'),
+                                content: const Text('Tindakan ini tidak dapat dibatalkan.'),
+                                actions: [
+                                  TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Batal')),
+                                  TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Hapus', style: TextStyle(color: Colors.red))),
+                                ],
+                              ),
+                            );
+                            if (confirm == true) {
+                              try {
+                                await context.read<OrmawaProvider>().deletePkkmbQuiz(quiz.id.toString());
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Kuis berhasil dihapus')));
+                                }
+                              } catch (e) {
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Gagal menghapus: $e')));
+                                }
+                              }
+                            }
+                          },
+                        ),
+                      ),
+                    ),
+                  const SizedBox(height: 40),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSearchField(String hint) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      height: 56,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFF1F5F9)),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.search_rounded, color: AppColors.primary, size: 22),
+          const SizedBox(width: 12),
+          Expanded(
+            child: TextField(
+              onChanged: (value) => setState(() => _searchQuery = value),
+              decoration: InputDecoration(
+                hintText: hint,
+                border: InputBorder.none,
+                hintStyle: AppTextStyles.labelSm.copyWith(
+                  color: const Color(0xFF94A3B8),
+                  fontSize: 13,
                 ),
               ),
-          ],
-        ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -640,26 +785,33 @@ class PKKMBKuisView extends StatelessWidget {
       child: Column(
         children: [
           const SizedBox(height: 60),
-          Icon(
-            Icons.quiz_outlined,
-            size: 80,
-            color: AppColors.outline.withAlpha(30),
-          ),
+          Icon(Icons.quiz_outlined, size: 64, color: Colors.grey.withAlpha(50)),
           const SizedBox(height: 16),
-          Text(
-            'Belum ada $type terdaftar',
-            style: AppTextStyles.labelMd.copyWith(color: AppColors.outline),
-          ),
+          Text('Tidak ada $type', style: AppTextStyles.labelMd.copyWith(color: Colors.grey)),
         ],
       ),
     );
   }
 }
 
-class PKKMBPesertaView extends StatelessWidget {
+class PKKMBPesertaView extends StatefulWidget {
   const PKKMBPesertaView({super.key});
+
+  @override
+  State<PKKMBPesertaView> createState() => _PKKMBPesertaViewState();
+}
+
+class _PKKMBPesertaViewState extends State<PKKMBPesertaView> {
+  String _searchQuery = '';
+
   @override
   Widget build(BuildContext context) {
+    final ormawaProvider = context.watch<OrmawaProvider>();
+    final participants = ormawaProvider.pkkmbParticipants.where((p) {
+      final query = _searchQuery.toLowerCase();
+      return p.name.toLowerCase().contains(query) || p.nim.contains(query);
+    }).toList();
+
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
       appBar: BkuStaticAppBar(title: 'Data Peserta', variant: AppBarVariant.ormawa),
@@ -668,49 +820,66 @@ class PKKMBPesertaView extends StatelessWidget {
         child: Column(
           children: [
             _buildSearchField('Cari NIM atau Nama Mahasiswa...'),
-            const Spacer(flex: 1),
-            Center(
-              child: Column(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(32),
-                    decoration: BoxDecoration(
-                      color: AppColors.primary.withAlpha(8),
-                      shape: BoxShape.circle,
+            const SizedBox(height: 20),
+            Expanded(
+              child: participants.isEmpty
+                  ? _buildEmptyState()
+                  : ListView.builder(
+                      physics: const BouncingScrollPhysics(),
+                      itemCount: participants.length,
+                      itemBuilder: (context, index) {
+                        final participant = participants[index];
+                        return _ParticipantItem(participant: participant);
+                      },
                     ),
-                    child: Icon(
-                      Icons.person_search_rounded,
-                      size: 64,
-                      color: AppColors.primary.withAlpha(40),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  Text(
-                    'Belum Ada Peserta',
-                    style: AppTextStyles.titleLg.copyWith(
-                      color: const Color(0xFF1E293B),
-                      fontSize: 18,
-                      fontWeight: FontWeight.w900,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 40),
-                    child: Text(
-                      'Daftar mahasiswa yang terdaftar dalam PKKMB akan muncul di sini.',
-                      textAlign: TextAlign.center,
-                      style: AppTextStyles.labelMd.copyWith(
-                        color: const Color(0xFF64748B),
-                        height: 1.5,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
             ),
-            const Spacer(flex: 2),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(32),
+            decoration: BoxDecoration(
+              color: AppColors.primary.withAlpha(8),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Icons.person_search_rounded,
+              size: 64,
+              color: AppColors.primary.withAlpha(40),
+            ),
+          ),
+          const SizedBox(height: 24),
+          Text(
+            _searchQuery.isEmpty ? 'Belum Ada Peserta' : 'Peserta Tidak Ditemukan',
+            style: AppTextStyles.titleLg.copyWith(
+              color: const Color(0xFF1E293B),
+              fontSize: 18,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 40),
+            child: Text(
+              _searchQuery.isEmpty
+                  ? 'Daftar mahasiswa yang terdaftar dalam PKKMB akan muncul di sini.'
+                  : 'Coba gunakan kata kunci pencarian lain atau periksa kembali NIM/Nama.',
+              textAlign: TextAlign.center,
+              style: AppTextStyles.labelMd.copyWith(
+                color: const Color(0xFF64748B),
+                height: 1.5,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -736,26 +905,110 @@ class PKKMBPesertaView extends StatelessWidget {
           const Icon(Icons.search_rounded, color: AppColors.primary, size: 24),
           const SizedBox(width: 16),
           Expanded(
-            child: Text(
-              hint,
-              style: AppTextStyles.labelSm.copyWith(
-                color: const Color(0xFF94A3B8),
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
+            child: TextField(
+              onChanged: (value) => setState(() => _searchQuery = value),
+              decoration: InputDecoration(
+                hintText: hint,
+                border: InputBorder.none,
+                hintStyle: AppTextStyles.labelSm.copyWith(
+                  color: const Color(0xFF94A3B8),
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
             ),
           ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ParticipantItem extends StatelessWidget {
+  final PkkmbParticipant participant;
+
+  const _ParticipantItem({required this.participant});
+
+  @override
+  Widget build(BuildContext context) {
+    final bool isPassed = participant.status.toLowerCase().contains('lulus');
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFFF1F5F9)),
+      ),
+      child: Row(
+        children: [
           Container(
-            padding: const EdgeInsets.all(8),
+            width: 48,
+            height: 48,
             decoration: BoxDecoration(
-              color: const Color(0xFFF1F5F9),
-              borderRadius: BorderRadius.circular(10),
+              color: AppColors.primary.withAlpha(10),
+              borderRadius: BorderRadius.circular(14),
             ),
-            child: const Icon(
-              Icons.tune_rounded,
-              size: 18,
-              color: Color(0xFF64748B),
+            child: const Center(
+              child: Icon(Icons.person_rounded, color: AppColors.primary, size: 24),
             ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  participant.name,
+                  style: AppTextStyles.labelMd.copyWith(
+                    fontWeight: FontWeight.w900,
+                    color: const Color(0xFF1E293B),
+                  ),
+                ),
+                Text(
+                  '${participant.nim} • ${participant.prodi}',
+                  style: AppTextStyles.labelSm.copyWith(
+                    color: const Color(0xFF64748B),
+                    fontSize: 11,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                'Nilai: ${participant.nilai.toStringAsFixed(1)}',
+                style: AppTextStyles.labelSm.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.primary,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: isPassed ? const Color(0xFF10B981).withAlpha(15) : const Color(0xFFF59E0B).withAlpha(15),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  participant.status,
+                  style: AppTextStyles.labelSm.copyWith(
+                    color: isPassed ? const Color(0xFF10B981) : const Color(0xFFF59E0B),
+                    fontSize: 9,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(width: 8),
+          const Icon(
+            Icons.visibility_outlined,
+            color: Color(0xFF94A3B8),
+            size: 20,
           ),
         ],
       ),
@@ -935,16 +1188,20 @@ class _SubScreenHeader extends StatelessWidget {
 }
 
 class _KegiatanItem extends StatelessWidget {
+  final String id;
   final String title, subtitle, date, location;
   final IconData icon;
   final Color color;
+  final VoidCallback? onDelete;
   const _KegiatanItem({
+    required this.id,
     required this.title,
     required this.subtitle,
     required this.date,
     required this.location,
     required this.icon,
     required this.color,
+    this.onDelete,
   });
 
   @override
@@ -1009,10 +1266,13 @@ class _KegiatanItem extends StatelessWidget {
                           color: const Color(0xFF94A3B8),
                         ),
                         const SizedBox(width: 12),
-                        const Icon(
-                          Icons.delete_outline_rounded,
-                          size: 16,
-                          color: Colors.redAccent,
+                        InkWell(
+                          onTap: onDelete,
+                          child: const Icon(
+                            Icons.delete_outline_rounded,
+                            size: 16,
+                            color: Colors.redAccent,
+                          ),
                         ),
                       ],
                     ),
@@ -1074,12 +1334,16 @@ class _KegiatanItem extends StatelessWidget {
 }
 
 class _KuisItem extends StatelessWidget {
+  final String id;
   final String title, type, duration, questions;
+  final VoidCallback? onDelete;
   const _KuisItem({
+    required this.id,
     required this.title,
     required this.type,
     required this.duration,
     required this.questions,
+    this.onDelete,
   });
   @override
   Widget build(BuildContext context) {
@@ -1109,21 +1373,21 @@ class _KuisItem extends StatelessWidget {
                   vertical: 6,
                 ),
                 decoration: BoxDecoration(
-                  color: Colors.green.withAlpha(15),
+                  color: (type == 'Aktif' ? Colors.green : Colors.orange).withAlpha(15),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Row(
                   children: [
-                    const Icon(
-                      Icons.check_circle_rounded,
-                      color: Colors.green,
+                    Icon(
+                      type == 'Aktif' ? Icons.check_circle_rounded : Icons.pause_circle_rounded,
+                      color: type == 'Aktif' ? Colors.green : Colors.orange,
                       size: 12,
                     ),
                     const SizedBox(width: 6),
                     Text(
-                      'AKTIF',
+                      type.toUpperCase(),
                       style: AppTextStyles.labelSm.copyWith(
-                        color: Colors.green,
+                        color: type == 'Aktif' ? Colors.green : Colors.orange,
                         fontSize: 9,
                         fontWeight: FontWeight.w900,
                       ),
@@ -1139,10 +1403,13 @@ class _KuisItem extends StatelessWidget {
                     color: const Color(0xFF94A3B8),
                   ),
                   const SizedBox(width: 12),
-                  const Icon(
-                    Icons.delete_outline_rounded,
-                    size: 18,
-                    color: Colors.redAccent,
+                  InkWell(
+                    onTap: onDelete,
+                    child: const Icon(
+                      Icons.delete_outline_rounded,
+                      size: 18,
+                      color: Colors.redAccent,
+                    ),
                   ),
                 ],
               ),
@@ -1518,56 +1785,64 @@ class _OrmawaCreateKegiatanScreenState
     extends State<OrmawaCreateKegiatanScreen> {
   final _titleController = TextEditingController();
   final _descController = TextEditingController();
-  String _selectedStage = 'Pra-PKKMB';
-  String _selectedType = 'PDF';
+  final _locationController = TextEditingController();
+  DateTime _selectedDate = DateTime.now();
   bool _isSaving = false;
 
   @override
   void dispose() {
     _titleController.dispose();
     _descController.dispose();
+    _locationController.dispose();
     super.dispose();
   }
 
   void _handleSave() async {
     if (_titleController.text.isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Judul tidak boleh kosong')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Judul tidak boleh kosong')),
+      );
       return;
     }
 
     setState(() => _isSaving = true);
-    await Future.delayed(const Duration(seconds: 1)); // Simulate save
+    try {
+      await context.read<OrmawaProvider>().createPkkmbEvent({
+        'Judul': _titleController.text,
+        'Deskripsi': _descController.text,
+        'Tanggal': _selectedDate.toIso8601String(),
+        'Lokasi': _locationController.text,
+      });
 
-    if (mounted) {
-      context.read<OrmawaProvider>().addPKKMBMission(
-        PKKMBMission(
-          id: DateTime.now().toString(),
-          title: _titleController.text,
-          desc: _descController.text,
-          stage: _selectedStage,
-          type: _selectedType,
-          icon: _selectedType == 'Quiz'
-              ? Icons.quiz_rounded
-              : (_selectedType == 'Video'
-                    ? Icons.play_circle_fill_rounded
-                    : Icons.picture_as_pdf_rounded),
-          color: _selectedStage == 'Pra-PKKMB'
-              ? Colors.blue
-              : (_selectedStage == 'Pelaksanaan Inti'
-                    ? Colors.purple
-                    : Colors.orange),
-        ),
-      );
+      if (mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Agenda PKKMB berhasil dibuat!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Gagal membuat agenda: $e'), backgroundColor: Colors.red),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
+    }
+  }
 
-      Navigator.pop(context);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Agenda berhasil dipublikasikan ke Mahasiswa!'),
-          backgroundColor: Colors.green,
-        ),
-      );
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate,
+      firstDate: DateTime.now(),
+      lastDate: DateTime(2101),
+    );
+    if (picked != null && picked != _selectedDate) {
+      setState(() => _selectedDate = picked);
     }
   }
 
@@ -1589,51 +1864,68 @@ class _OrmawaCreateKegiatanScreenState
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Detail Kegiatan Baru',
+                    'Detail Agenda Baru',
                     style: AppTextStyles.titleLg.copyWith(
                       color: AppColors.primary,
                       fontWeight: FontWeight.w900,
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Agenda ini akan otomatis muncul di timeline "Journey" mahasiswa.',
-                    style: AppTextStyles.labelSm.copyWith(
-                      color: const Color(0xFF94A3B8),
-                    ),
-                  ),
                   const SizedBox(height: 32),
 
                   _InputField(
-                    label: 'Judul Kegiatan',
-                    hint: 'Contoh: Visi Misi & Pengenalan Kampus',
+                    label: 'Judul Agenda',
+                    hint: 'Contoh: Pembukaan PKKMB 2024',
                     icon: Icons.event_rounded,
                     controller: _titleController,
                   ),
                   const SizedBox(height: 16),
 
-                  _buildDropdownField(
-                    'Tahapan PKKMB',
-                    _selectedStage,
-                    ['Pra-PKKMB', 'Pelaksanaan Inti', 'Pasca-PKKMB'],
-                    (val) => setState(() => _selectedStage = val!),
-                  ),
-                  const SizedBox(height: 16),
-
-                  _buildDropdownField(
-                    'Tipe Misi',
-                    _selectedType,
-                    ['PDF', 'Video', 'Quiz'],
-                    (val) => setState(() => _selectedType = val!),
+                  _InputField(
+                    label: 'Deskripsi',
+                    hint: 'Contoh: Agenda pembukaan resmi...',
+                    icon: Icons.description_rounded,
+                    controller: _descController,
+                    maxLines: 3,
                   ),
                   const SizedBox(height: 16),
 
                   _InputField(
-                    label: 'Instruksi / Lokasi',
-                    hint: 'Gedung A / Baca PDF Berikut...',
+                    label: 'Lokasi',
+                    hint: 'Contoh: Gedung Serbaguna',
                     icon: Icons.location_on_rounded,
-                    controller: _descController,
-                    maxLines: 3,
+                    controller: _locationController,
+                  ),
+                  const SizedBox(height: 16),
+
+                  GestureDetector(
+                    onTap: () => _selectDate(context),
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF8FAFC),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: const Color(0xFFE2E8F0)),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.calendar_today_rounded, color: AppColors.primary, size: 20),
+                          const SizedBox(width: 12),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Tanggal Kegiatan',
+                                style: AppTextStyles.labelSm.copyWith(color: const Color(0xFF64748B), fontSize: 10),
+                              ),
+                              Text(
+                                DateFormat('EEEE, dd MMMM yyyy', 'id').format(_selectedDate),
+                                style: AppTextStyles.labelMd.copyWith(fontWeight: FontWeight.bold, color: const Color(0xFF1E293B)),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                   const SizedBox(height: 40),
 
@@ -1651,18 +1943,204 @@ class _OrmawaCreateKegiatanScreenState
                       ),
                       child: _isSaving
                           ? const CircularProgressIndicator(color: Colors.white)
-                          : const Text(
-                              'PUBLIKASIKAN SEKARANG',
-                              style: TextStyle(
+                          : Text(
+                              'PUBLIKASIKAN AGENDA',
+                              style: AppTextStyles.labelMd.copyWith(
                                 color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 14,
+                                fontWeight: FontWeight.w900,
                                 letterSpacing: 1,
                               ),
                             ),
                     ),
                   ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class OrmawaCreateKuisScreen extends StatefulWidget {
+  const OrmawaCreateKuisScreen({super.key});
+
+  @override
+  State<OrmawaCreateKuisScreen> createState() => _OrmawaCreateKuisScreenState();
+}
+
+class _OrmawaCreateKuisScreenState extends State<OrmawaCreateKuisScreen> {
+  final _titleController = TextEditingController();
+  final _descController = TextEditingController();
+  final _durationController = TextEditingController(text: '30');
+  final _weightController = TextEditingController(text: '10');
+  
+  final List<QuestionPayload> _questions = [];
+  bool _isSaving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _addQuestion(); // Add one initial question
+  }
+
+  void _addQuestion() {
+    setState(() {
+      _questions.add(QuestionPayload());
+    });
+  }
+
+  void _removeQuestion(int index) {
+    setState(() {
+      _questions.removeAt(index);
+    });
+  }
+
+  void _handleSave() async {
+    if (_titleController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Judul tidak boleh kosong')));
+      return;
+    }
+
+    if (_questions.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Kuis harus memiliki minimal 1 soal')));
+      return;
+    }
+
+    setState(() => _isSaving = true);
+    try {
+      final payload = {
+        'materi_id': 0, // Backend handles default
+        'judul': _titleController.text,
+        'deskripsi': _descController.text,
+        'durasi': int.tryParse(_durationController.text) ?? 30,
+        'bobot_persen': int.tryParse(_weightController.text) ?? 10,
+        'questions': _questions.map((q) => q.toJson()).toList(),
+      };
+
+      await context.read<OrmawaProvider>().createPkkmbQuiz(payload);
+
+      if (mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Kuis PKKMB berhasil dibuat!'), backgroundColor: Colors.green),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Gagal membuat kuis: $e'), backgroundColor: Colors.red),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFF8FAFC),
+      body: Column(
+        children: [
+          BkuStaticAppBar(
+            title: 'KONFIGURASI KUIS',
+            variant: AppBarVariant.ormawa,
+            showBackButton: true,
+          ),
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildSectionHeader('Info Dasar Kuis'),
+                  const SizedBox(height: 16),
+                  _InputField(
+                    label: 'Judul Kuis',
+                    hint: 'Contoh: Kuis Etika & Budaya Kampus',
+                    icon: Icons.quiz_rounded,
+                    controller: _titleController,
+                  ),
+                  const SizedBox(height: 16),
+                  _InputField(
+                    label: 'Deskripsi / Instruksi',
+                    hint: 'Petunjuk pengerjaan kuis...',
+                    icon: Icons.description_rounded,
+                    controller: _descController,
+                    maxLines: 2,
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _InputField(
+                          label: 'Durasi (Menit)',
+                          hint: '30',
+                          icon: Icons.timer_rounded,
+                          controller: _durationController,
+                          keyboardType: TextInputType.number,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: _InputField(
+                          label: 'Bobot Nilai (%)',
+                          hint: '10',
+                          icon: Icons.percent_rounded,
+                          controller: _weightController,
+                          keyboardType: TextInputType.number,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 32),
+                  
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      _buildSectionHeader('Daftar Soal'),
+                      TextButton.icon(
+                        onPressed: _addQuestion,
+                        icon: const Icon(Icons.add_circle_outline_rounded, size: 20),
+                        label: const Text('Tambah Soal'),
+                        style: TextButton.styleFrom(foregroundColor: AppColors.primary),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  
+                  ..._questions.asMap().entries.map((entry) {
+                    return _QuestionForm(
+                      index: entry.key,
+                      payload: entry.value,
+                      onRemove: () => _removeQuestion(entry.key),
+                    );
+                  }),
+                  
                   const SizedBox(height: 40),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 56,
+                    child: ElevatedButton(
+                      onPressed: _isSaving ? null : _handleSave,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        elevation: 4,
+                      ),
+                      child: _isSaving
+                          ? const CircularProgressIndicator(color: Colors.white)
+                          : Text(
+                              'SIMPAN KUIS',
+                              style: AppTextStyles.labelMd.copyWith(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w900,
+                              ),
+                            ),
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -1672,181 +2150,183 @@ class _OrmawaCreateKegiatanScreenState
     );
   }
 
-  Widget _buildDropdownField(
-    String label,
-    String value,
-    List<String> items,
-    Function(String?) onChanged,
-  ) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: AppTextStyles.labelSm.copyWith(
-            color: const Color(0xFF475569),
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          decoration: BoxDecoration(
-            color: const Color(0xFFF8FAFC),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: const Color(0xFFE2E8F0)),
-          ),
-          child: DropdownButtonHideUnderline(
-            child: DropdownButton<String>(
-              value: value,
-              isExpanded: true,
-              icon: const Icon(
-                Icons.keyboard_arrow_down_rounded,
-                color: AppColors.primary,
-              ),
-              items: items.map((String item) {
-                return DropdownMenuItem(
-                  value: item,
-                  child: Text(item, style: AppTextStyles.labelMd),
-                );
-              }).toList(),
-              onChanged: onChanged,
-            ),
-          ),
-        ),
-      ],
+  Widget _buildSectionHeader(String title) {
+    return Text(
+      title,
+      style: AppTextStyles.titleMd.copyWith(
+        color: AppColors.primary,
+        fontWeight: FontWeight.w900,
+      ),
     );
   }
 }
 
-class OrmawaCreateKuisScreen extends StatelessWidget {
-  const OrmawaCreateKuisScreen({super.key});
+class QuestionPayload {
+  final TextEditingController questionController = TextEditingController();
+  final TextEditingController pointController = TextEditingController(text: '10');
+  String type = 'multiple_choice';
+  final List<OptionPayload> options = [
+    OptionPayload(),
+    OptionPayload(),
+  ];
+
+  Map<String, dynamic> toJson() {
+    return {
+      'pertanyaan': questionController.text,
+      'tipe': type,
+      'point': int.tryParse(pointController.text) ?? 10,
+      'options': options.map((o) => o.toJson()).toList(),
+    };
+  }
+}
+
+class OptionPayload {
+  final TextEditingController opsiController = TextEditingController();
+  bool isBenar = false;
+
+  Map<String, dynamic> toJson() {
+    return {
+      'opsi': opsiController.text,
+      'is_benar': isBenar,
+    };
+  }
+}
+
+class _QuestionForm extends StatefulWidget {
+  final int index;
+  final QuestionPayload payload;
+  final VoidCallback onRemove;
+
+  const _QuestionForm({
+    required this.index,
+    required this.payload,
+    required this.onRemove,
+  });
+
+  @override
+  State<_QuestionForm> createState() => _QuestionFormState();
+}
+
+class _QuestionFormState extends State<_QuestionForm> {
+  void _addOption() {
+    setState(() {
+      widget.payload.options.add(OptionPayload());
+    });
+  }
+
+  void _removeOption(int index) {
+    setState(() {
+      widget.payload.options.removeAt(index);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: BkuStaticAppBar(
-        title: 'Konfigurasi Kuis',
-        variant: AppBarVariant.ormawa,
+    return Container(
+      margin: const EdgeInsets.only(bottom: 24),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withAlpha(5),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Set-up Kuis Kencana',
-              style: AppTextStyles.titleLg.copyWith(
-                color: AppColors.primary,
-                fontWeight: FontWeight.w900,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Soal #${widget.index + 1}',
+                style: AppTextStyles.labelMd.copyWith(fontWeight: FontWeight.bold),
               ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Pastikan standar kelulusan sesuai dengan regulasi kampus.',
-              style: AppTextStyles.labelSm.copyWith(
-                color: const Color(0xFF94A3B8),
+              IconButton(
+                onPressed: widget.onRemove,
+                icon: const Icon(Icons.delete_outline_rounded, color: Colors.red, size: 20),
               ),
-            ),
-            const SizedBox(height: 32),
-            _InputField(
-              label: 'Judul Kuis',
-              hint: 'Contoh: Kuis Etika & Budaya Kampus',
-              icon: Icons.quiz_rounded,
-            ),
-            const SizedBox(height: 16),
-            _InputField(
-              label: 'Instruksi / Aturan',
-              hint: 'Tuliskan poin-poin instruksi untuk mahasiswa...',
-              icon: Icons.description_rounded,
-              maxLines: 4,
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: _InputField(
-                    label: 'Durasi (Menit)',
-                    hint: '30',
-                    icon: Icons.timer_rounded,
+            ],
+          ),
+          const SizedBox(height: 12),
+          _InputField(
+            label: 'Pertanyaan',
+            hint: 'Tulis pertanyaan di sini...',
+            icon: Icons.help_outline_rounded,
+            controller: widget.payload.questionController,
+            maxLines: 2,
+          ),
+          const SizedBox(height: 16),
+          _InputField(
+            label: 'Poin',
+            hint: '10',
+            icon: Icons.star_outline_rounded,
+            controller: widget.payload.pointController,
+            keyboardType: TextInputType.number,
+          ),
+          const SizedBox(height: 24),
+          Text(
+            'Pilihan Jawaban',
+            style: AppTextStyles.labelSm.copyWith(fontWeight: FontWeight.bold, color: const Color(0xFF64748B)),
+          ),
+          const SizedBox(height: 12),
+          ...widget.payload.options.asMap().entries.map((entry) {
+            final optIndex = entry.key;
+            final opt = entry.value;
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Row(
+                children: [
+                  Checkbox(
+                    value: opt.isBenar,
+                    onChanged: (val) {
+                      setState(() {
+                        // Uncheck others if multiple_choice logic (single answer)
+                        for (var o in widget.payload.options) {
+                          o.isBenar = false;
+                        }
+                        opt.isBenar = val!;
+                      });
+                    },
+                    activeColor: AppColors.primary,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
                   ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: _InputField(
-                    label: 'Passing Grade (KKM)',
-                    hint: '75',
-                    icon: Icons.verified_rounded,
+                  Expanded(
+                    child: TextField(
+                      controller: opt.opsiController,
+                      decoration: InputDecoration(
+                        hintText: 'Opsi ${optIndex + 1}',
+                        isDense: true,
+                        filled: true,
+                        fillColor: const Color(0xFFF8FAFC),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
+                      ),
+                      style: AppTextStyles.labelSm,
+                    ),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: _InputField(
-                    label: 'Jumlah Soal',
-                    hint: '20',
-                    icon: Icons.list_alt_rounded,
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: _InputField(
-                    label: 'Batas Percobaan',
-                    hint: '3x',
-                    icon: Icons.replay_rounded,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: _InputField(
-                    label: 'Waktu Mulai',
-                    hint: '01/09/2024',
-                    icon: Icons.calendar_today_rounded,
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: _InputField(
-                    label: 'Waktu Berakhir',
-                    hint: '15/09/2024',
-                    icon: Icons.event_available_rounded,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 40),
-            SizedBox(
-              width: double.infinity,
-              height: 56,
-              child: ElevatedButton(
-                onPressed: () => Navigator.pop(context),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  elevation: 8,
-                  shadowColor: AppColors.primary.withAlpha(50),
-                ),
-                child: const Text(
-                  'Publikasikan Kuis',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                  ),
-                ),
+                  if (widget.payload.options.length > 2)
+                    IconButton(
+                      onPressed: () => _removeOption(optIndex),
+                      icon: const Icon(Icons.remove_circle_outline, color: Colors.red, size: 18),
+                    ),
+                ],
               ),
-            ),
-          ],
-        ),
+            );
+          }),
+          TextButton.icon(
+            onPressed: _addOption,
+            icon: const Icon(Icons.add, size: 16),
+            label: const Text('Tambah Opsi', style: TextStyle(fontSize: 12)),
+            style: TextButton.styleFrom(foregroundColor: AppColors.primary),
+          ),
+        ],
       ),
     );
   }
@@ -1857,12 +2337,14 @@ class _InputField extends StatelessWidget {
   final IconData icon;
   final int maxLines;
   final TextEditingController? controller;
+  final TextInputType keyboardType;
   const _InputField({
     required this.label,
     required this.hint,
     required this.icon,
     this.maxLines = 1,
     this.controller,
+    this.keyboardType = TextInputType.text,
   });
 
   @override
@@ -1899,6 +2381,7 @@ class _InputField extends StatelessWidget {
                 child: TextField(
                   controller: controller,
                   maxLines: maxLines,
+                  keyboardType: keyboardType,
                   style: AppTextStyles.labelMd,
                   decoration: InputDecoration(
                     hintText: hint,
@@ -2526,11 +3009,13 @@ class PKKMBSertifikatView extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 4),
-                  Text(
-                    '8.420 mahasiswa telah memenuhi syarat kelulusan PKKMB.',
-                    textAlign: TextAlign.center,
-                    style: AppTextStyles.labelSm.copyWith(
-                      color: const Color(0xFF92400E),
+                  Consumer<OrmawaProvider>(
+                    builder: (context, provider, child) => Text(
+                      '${provider.passedPKKMBCount} mahasiswa telah memenuhi syarat kelulusan PKKMB.',
+                      textAlign: TextAlign.center,
+                      style: AppTextStyles.labelSm.copyWith(
+                        color: const Color(0xFF92400E),
+                      ),
                     ),
                   ),
                   const SizedBox(height: 20),

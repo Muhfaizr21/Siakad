@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+import 'package:bkuhub_mobile/core/providers/ormawa_provider.dart';
 import 'package:bkuhub_mobile/core/routes/app_routes.dart';
 import 'package:bkuhub_mobile/core/theme/app_colors.dart';
 import 'package:bkuhub_mobile/core/theme/app_text_styles.dart';
-import 'package:bkuhub_mobile/features/auth/presentation/pages/login_screen.dart';
+import 'package:bkuhub_mobile/features/ormawa/rbac/presentation/pages/ormawa_role_screen.dart';
 import 'package:bkuhub_mobile/core/widgets/bku_app_bar.dart';
+import 'package:bkuhub_mobile/core/widgets/coming_soon_screen.dart';
 
 class OrmawaSettingsScreen extends StatefulWidget {
   final bool showBackButton;
@@ -40,9 +43,28 @@ class _OrmawaSettingsScreenState extends State<OrmawaSettingsScreen> {
               children: [
                 const SizedBox(height: 24),
                 _buildSectionHeader('MANAJEMEN ORGANISASI'),
-                _buildSettingTile(Icons.storefront_rounded, 'Profil Organisasi', 'Nama, Logo, Visi & Misi', Colors.blue),
-                _buildSettingTile(Icons.admin_panel_settings_rounded, 'Hak Akses & Role', 'Kelola admin & staf', Colors.indigo),
-                _buildSettingTile(Icons.security_rounded, 'Keamanan Portal', 'Password & Autentikasi', Colors.teal),
+                _buildSettingTile(
+                  Icons.storefront_rounded, 
+                  'Profil Organisasi', 
+                  'Nama, Logo, Visi & Misi', 
+                  Colors.blue,
+                  () => Navigator.push(context, MaterialPageRoute(builder: (context) => const ComingSoonScreen(featureName: 'Profil Organisasi'))),
+                ),
+                if (context.watch<OrmawaProvider>().hasPermission('ADMIN_PANEL'))
+                  _buildSettingTile(
+                    Icons.admin_panel_settings_rounded, 
+                    'Hak Akses & Role', 
+                    'Kelola admin & staf', 
+                    Colors.indigo,
+                    () => Navigator.push(context, MaterialPageRoute(builder: (context) => const OrmawaRoleScreen())),
+                  ),
+                _buildSettingTile(
+                  Icons.security_rounded, 
+                  'Keamanan Portal', 
+                  'Password & Autentikasi', 
+                  Colors.teal,
+                  () => Navigator.push(context, MaterialPageRoute(builder: (context) => const ComingSoonScreen(featureName: 'Keamanan Portal'))),
+                ),
                 
                 const SizedBox(height: 32),
                 _buildSectionHeader('PREFERENSI NOTIFIKASI'),
@@ -52,8 +74,20 @@ class _OrmawaSettingsScreenState extends State<OrmawaSettingsScreen> {
                 
                 const SizedBox(height: 32),
                 _buildSectionHeader('LAINNYA'),
-                _buildSettingTile(Icons.help_outline_rounded, 'Pusat Bantuan', 'Panduan penggunaan portal', Colors.orange),
-                _buildSettingTile(Icons.info_outline_rounded, 'Tentang BKUhub', 'Informasi versi & pengembang', Colors.blueGrey),
+                _buildSettingTile(
+                  Icons.help_outline_rounded, 
+                  'Pusat Bantuan', 
+                  'Panduan penggunaan portal', 
+                  Colors.orange,
+                  () => Navigator.push(context, MaterialPageRoute(builder: (context) => const ComingSoonScreen(featureName: 'Pusat Bantuan'))),
+                ),
+                _buildSettingTile(
+                  Icons.info_outline_rounded, 
+                  'Tentang BKUhub', 
+                  'Informasi versi & pengembang', 
+                  Colors.blueGrey,
+                  () => Navigator.push(context, MaterialPageRoute(builder: (context) => const ComingSoonScreen(featureName: 'Tentang BKUhub'))),
+                ),
                 
                 const SizedBox(height: 40),
                 _buildLogoutButton(),
@@ -76,7 +110,7 @@ class _OrmawaSettingsScreenState extends State<OrmawaSettingsScreen> {
     );
   }
 
-  Widget _buildSettingTile(IconData icon, String title, String subtitle, Color color) {
+  Widget _buildSettingTile(IconData icon, String title, String subtitle, Color color, VoidCallback onTap) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
       decoration: BoxDecoration(
@@ -94,7 +128,7 @@ class _OrmawaSettingsScreenState extends State<OrmawaSettingsScreen> {
         title: Text(title, style: AppTextStyles.bodyMd.copyWith(fontWeight: FontWeight.w900, color: const Color(0xFF1E293B))),
         subtitle: Text(subtitle, style: AppTextStyles.labelSm.copyWith(color: const Color(0xFF94A3B8))),
         trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: Color(0xFFCBD5E1)),
-        onTap: () {},
+        onTap: onTap,
       ),
     );
   }

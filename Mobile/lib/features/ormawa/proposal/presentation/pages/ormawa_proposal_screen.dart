@@ -147,9 +147,9 @@ class _OrmawaProposalScreenState extends State<OrmawaProposalScreen> {
 
   Widget _buildProposalStats(OrmawaProvider provider) {
     final proposals = provider.proposals;
-    final diajukan = proposals.where((p) => p.status == 'Diajukan').length;
-    final disetujui = proposals.where((p) => p.status == 'Disetujui').length;
-    final ditolak = proposals.where((p) => p.status == 'Ditolak').length;
+    final diajukan = proposals.where((p) => p.status.toLowerCase() == 'diajukan').length;
+    final disetujui = proposals.where((p) => p.status.toLowerCase() == 'disetujui' || p.status.toLowerCase() == 'disetujui_fakultas').length;
+    final ditolak = proposals.where((p) => p.status.toLowerCase() == 'ditolak').length;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -317,16 +317,18 @@ class _OrmawaProposalScreenState extends State<OrmawaProposalScreen> {
     Color statusColor;
     switch (proposal.status.toUpperCase()) {
       case 'DISETUJUI':
+      case 'DISETUJUI_FAKULTAS':
         statusColor = Colors.green;
         break;
       case 'DITOLAK':
         statusColor = Colors.red;
         break;
       case 'PROSES':
-        statusColor = Colors.blue;
+      case 'DIAJUKAN':
+        statusColor = Colors.orange;
         break;
       default:
-        statusColor = Colors.orange;
+        statusColor = Colors.blue;
     }
 
     return FadeInAnimation(
@@ -413,7 +415,10 @@ class _OrmawaProposalScreenState extends State<OrmawaProposalScreen> {
                     }),
                     const SizedBox(width: 8),
                     _buildActionButton(Icons.edit_outlined, Colors.teal, () {
-                      // Edit logic
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => CreateProposalScreen(initialProposal: proposal)),
+                      );
                     }),
                     const SizedBox(width: 8),
                     _buildActionButton(Icons.delete_outline_rounded, Colors.red, () {
@@ -456,12 +461,15 @@ class _OrmawaProposalScreenState extends State<OrmawaProposalScreen> {
             child: Text('BATAL', style: AppTextStyles.labelMd.copyWith(color: AppColors.outline)),
           ),
           ElevatedButton(
-            onPressed: () {
-              // Delete logic
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Proposal berhasil dihapus'), backgroundColor: Colors.red),
-              );
+            onPressed: () async {
+              final provider = Provider.of<OrmawaProvider>(context, listen: false);
+              await provider.deleteProposal(proposal.id);
+              if (context.mounted) {
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Proposal berhasil dihapus'), backgroundColor: Colors.red),
+                );
+              }
             },
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
             child: Text('HAPUS', style: AppTextStyles.labelMd.copyWith(color: Colors.white)),

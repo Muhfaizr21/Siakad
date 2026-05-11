@@ -5,6 +5,7 @@ class OrmawaAgendaModel extends OrmawaAgenda {
     required super.id,
     required super.title,
     required super.date,
+    required super.endDate,
     required super.status,
     required super.description,
     required super.location,
@@ -12,23 +13,30 @@ class OrmawaAgendaModel extends OrmawaAgenda {
 
   factory OrmawaAgendaModel.fromJson(Map<String, dynamic> json) {
     return OrmawaAgendaModel(
-      id: json['id'],
-      title: json['title'],
-      date: DateTime.parse(json['date']),
-      status: json['status'],
-      description: json['description'],
-      location: json['location'],
+      id: json['ID']?.toString() ?? json['id']?.toString() ?? '',
+      title: json['Judul'] ?? json['title'] ?? '',
+      date: json['TanggalMulai'] != null 
+          ? DateTime.parse(json['TanggalMulai']) 
+          : (json['date'] != null ? DateTime.parse(json['date']) : DateTime.now()),
+      endDate: json['TanggalSelesai'] != null
+          ? DateTime.parse(json['TanggalSelesai'])
+          : (json['TanggalMulai'] != null 
+              ? DateTime.parse(json['TanggalMulai']).add(const Duration(hours: 2))
+              : DateTime.now().add(const Duration(hours: 2))),
+      status: json['Status'] ?? json['status'] ?? 'Persiapan',
+      description: json['Deskripsi'] ?? json['description'] ?? '',
+      location: json['Lokasi'] ?? json['location'] ?? '',
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'id': id,
-      'title': title,
-      'date': date.toIso8601String(),
-      'status': status,
-      'description': description,
-      'location': location,
+      'Judul': title,
+      'Deskripsi': description,
+      'TanggalMulai': date.toIso8601String(),
+      'TanggalSelesai': endDate.toIso8601String(),
+      'Lokasi': location,
+      'Status': status,
     };
   }
 }

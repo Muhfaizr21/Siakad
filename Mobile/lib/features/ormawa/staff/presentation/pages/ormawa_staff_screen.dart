@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:bkuhub_mobile/core/theme/app_colors.dart';
 import 'package:bkuhub_mobile/core/theme/app_text_styles.dart';
 import 'package:bkuhub_mobile/core/widgets/bku_app_bar.dart';
+import 'package:provider/provider.dart';
+import 'package:bkuhub_mobile/core/providers/ormawa_provider.dart';
+import 'package:bkuhub_mobile/features/ormawa/domain/entities/ormawa_member.dart';
 
 class OrmawaStaffScreen extends StatefulWidget {
   const OrmawaStaffScreen({super.key});
@@ -11,8 +14,19 @@ class OrmawaStaffScreen extends StatefulWidget {
 }
 
 class _OrmawaStaffScreenState extends State<OrmawaStaffScreen> {
+  String _searchQuery = '';
+  final TextEditingController _searchController = TextEditingController();
+
   @override
   Widget build(BuildContext context) {
+    final ormawaProvider = context.watch<OrmawaProvider>();
+    final members = ormawaProvider.members.where((m) {
+      final nameLower = m.name.toLowerCase();
+      final roleLower = m.role.toLowerCase();
+      final queryLower = _searchQuery.toLowerCase();
+      return nameLower.contains(queryLower) || roleLower.contains(queryLower);
+    }).toList();
+
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
       body: CustomScrollView(
@@ -20,7 +34,7 @@ class _OrmawaStaffScreenState extends State<OrmawaStaffScreen> {
           BkuAppBar(
             variant: AppBarVariant.ormawa,
             title: 'MANAJEMEN STAF',
-            subtitle: 'PENGELOLAAN INTERNAL',
+            subtitle: ormawaProvider.orgName,
             expandedHeight: 160.0,
             showBackButton: true,
             isExpandable: false,
@@ -31,28 +45,17 @@ class _OrmawaStaffScreenState extends State<OrmawaStaffScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildStatsSection(),
+                  _buildStatsSection(ormawaProvider),
                   const SizedBox(height: 32),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        'Daftar Staf Aktif',
+                        'Daftar Staf Aktif (${members.length})',
                         style: AppTextStyles.labelMd.copyWith(
                           color: const Color(0xFF475569),
                           fontWeight: FontWeight.w900,
                           letterSpacing: 0.5,
-                        ),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(10), border: Border.all(color: const Color(0xFFE2E8F0))),
-                        child: Row(
-                          children: [
-                            const Icon(Icons.sort_rounded, size: 14, color: Color(0xFF64748B)),
-                            const SizedBox(width: 4),
-                            Text('Urutkan', style: AppTextStyles.labelSm.copyWith(color: const Color(0xFF64748B))),
-                          ],
                         ),
                       ),
                     ],
@@ -60,57 +63,55 @@ class _OrmawaStaffScreenState extends State<OrmawaStaffScreen> {
                   const SizedBox(height: 16),
                   _buildSearchField(),
                   const SizedBox(height: 20),
-                  _buildStaffCard(
-                    context,
-                    'Mahasiswa Farmasi',
-                    'Ketua Umum',
-                    'BPH Inti',
-                    'MF',
-                    const Color(0xFF1E293B),
-                  ),
-                  const SizedBox(height: 12),
-                  _buildStaffCard(
-                    context,
-                    'Dr. Andi Wijaya',
-                    'Pembina',
-                    'Dosen Pendamping',
-                    'AW',
-                    Colors.orange[800]!,
-                  ),
-                  const SizedBox(height: 12),
-                  _buildStaffCard(
-                    context,
-                    'Rina Kartika',
-                    'Sekretaris 1',
-                    'Kesekretariatan',
-                    'RK',
-                    Colors.blue[800]!,
-                  ),
-                  const SizedBox(height: 12),
-                  _buildStaffCard(
-                    context,
-                    'Fahri Hamzah',
-                    'Koord. Humas',
-                    'Divisi Hubmas',
-                    'FH',
-                    Colors.purple[800]!,
-                  ),
+                  if (members.isEmpty)
+                    Center(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 40),
+                        child: Text('Tidak ada staf yang ditemukan.', style: AppTextStyles.bodyMd.copyWith(color: AppColors.outline)),
+                      ),
+                    ),
+                  ...members.map((member) => Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: _buildStaffCard(
+                      context,
+                      member,
+                      _getRoleColor(member.role),
+                    ),
+                  )),
                 ],
               ),
             ),
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _showAddStaff(context),
-        backgroundColor: AppColors.primary,
-        icon: const Icon(Icons.add_moderator_rounded, color: Colors.white),
-        label: const Text('Tambah Staf', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-      ),
+      floatingActionButton: ormawaProvider.hasPermission('MANAJEMEN_ANGGOTA') 
+        ? FloatingActionButton.extended(
+            onPressed: () => _showAddStaff(context),
+            backgroundColor: AppColors.primary,
+            icon: const Icon(Icons.add_moderator_rounded, color: Colors.white),
+            label: const Text('Tambah Staf', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          )
+        : null,
     );
   }
 
-  Widget _buildStatsSection() {
+  Color _getRoleColor(String role) {
+    final r = role.toUpperCase();
+    if (r.contains('KETUA')) return const Color(0xFF1E293B);
+    if (r.contains('SEKRETARIS')) return Colors.blue[800]!;
+    if (r.contains('BENDAHARA')) return Colors.green[800]!;
+    if (r.contains('KEPALA') || r.contains('KADEP')) return Colors.indigo[800]!;
+    return Colors.purple[800]!;
+  }
+
+  Widget _buildStatsSection(OrmawaProvider provider) {
+    final Map<String, int> divMap = {};
+    for (var m in provider.members) {
+      if (m.division.isNotEmpty && m.division != '-') {
+        divMap[m.division] = (divMap[m.division] ?? 0) + 1;
+      }
+    }
+
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -121,11 +122,11 @@ class _OrmawaStaffScreenState extends State<OrmawaStaffScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          _buildStatItem('24', 'Total Staf', Icons.badge_rounded, Colors.blue),
+          _buildStatItem(provider.members.length.toString(), 'Total Staf', Icons.badge_rounded, Colors.blue),
           Container(width: 1, height: 40, color: const Color(0xFFF1F5F9)),
-          _buildStatItem('8', 'Divisi', Icons.account_tree_rounded, Colors.indigo),
+          _buildStatItem(divMap.length.toString(), 'Divisi', Icons.account_tree_rounded, Colors.indigo),
           Container(width: 1, height: 40, color: const Color(0xFFF1F5F9)),
-          _buildStatItem('12', 'Panitia', Icons.assignment_ind_rounded, Colors.teal),
+          _buildStatItem(provider.members.where((m) => m.role.toUpperCase().contains('PANITIA')).length.toString(), 'Panitia', Icons.assignment_ind_rounded, Colors.teal),
         ],
       ),
     );
@@ -157,6 +158,12 @@ class _OrmawaStaffScreenState extends State<OrmawaStaffScreen> {
           const SizedBox(width: 12),
           Expanded(
             child: TextField(
+              controller: _searchController,
+              onChanged: (value) {
+                setState(() {
+                  _searchQuery = value;
+                });
+              },
               decoration: InputDecoration(
                 hintText: 'Cari nama atau jabatan staf...',
                 hintStyle: AppTextStyles.labelSm.copyWith(color: const Color(0xFF94A3B8)),
@@ -164,23 +171,36 @@ class _OrmawaStaffScreenState extends State<OrmawaStaffScreen> {
               ),
             ),
           ),
+          if (_searchQuery.isNotEmpty)
+            GestureDetector(
+              onTap: () {
+                _searchController.clear();
+                setState(() {
+                  _searchQuery = '';
+                });
+              },
+              child: const Icon(Icons.close_rounded, color: Color(0xFF94A3B8), size: 20),
+            ),
         ],
       ),
     );
   }
 
-  Widget _buildStaffCard(BuildContext context, String name, String role, String division, String initial, Color roleColor) {
+  Widget _buildStaffCard(BuildContext context, OrmawaMember member, Color roleColor) {
     return GestureDetector(
       onTap: () {
         Navigator.push(
           context,
           MaterialPageRoute(
             builder: (context) => OrmawaStaffDetailScreen(
-              name: name,
-              role: role,
-              division: division,
-              initial: initial,
+              name: member.name,
+              role: member.role,
+              division: member.division,
+              initial: member.initial,
               roleColor: roleColor,
+              nim: member.nim,
+              email: member.email ?? '-',
+              phone: member.phone ?? '-',
             ),
           ),
         );
@@ -201,7 +221,7 @@ class _OrmawaStaffScreenState extends State<OrmawaStaffScreen> {
                 gradient: LinearGradient(colors: [roleColor.withAlpha(200), roleColor]),
                 borderRadius: BorderRadius.circular(16),
               ),
-              child: Center(child: Text(initial, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16))),
+              child: Center(child: Text(member.initial, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16))),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -211,18 +231,18 @@ class _OrmawaStaffScreenState extends State<OrmawaStaffScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(name, style: AppTextStyles.bodyMd.copyWith(fontWeight: FontWeight.w900)),
+                      Text(member.name, style: AppTextStyles.bodyMd.copyWith(fontWeight: FontWeight.w900)),
                       const Icon(Icons.verified_user_rounded, size: 16, color: Colors.blue),
                     ],
                   ),
                   const SizedBox(height: 2),
-                  Text(role, style: AppTextStyles.labelSm.copyWith(color: roleColor, fontWeight: FontWeight.bold, fontSize: 11)),
+                  Text(member.role, style: AppTextStyles.labelSm.copyWith(color: roleColor, fontWeight: FontWeight.bold, fontSize: 11)),
                   const SizedBox(height: 8),
                   Row(
                     children: [
                       const Icon(Icons.corporate_fare_rounded, size: 12, color: Color(0xFF94A3B8)),
                       const SizedBox(width: 6),
-                      Text(division, style: AppTextStyles.labelSm.copyWith(color: const Color(0xFF94A3B8), fontSize: 10)),
+                      Text(member.division, style: AppTextStyles.labelSm.copyWith(color: const Color(0xFF94A3B8), fontSize: 10)),
                     ],
                   ),
                 ],
@@ -380,6 +400,9 @@ class OrmawaStaffDetailScreen extends StatelessWidget {
   final String division;
   final String initial;
   final Color roleColor;
+  final String nim;
+  final String email;
+  final String phone;
 
   const OrmawaStaffDetailScreen({
     super.key,
@@ -388,6 +411,9 @@ class OrmawaStaffDetailScreen extends StatelessWidget {
     required this.division,
     required this.initial,
     required this.roleColor,
+    required this.nim,
+    required this.email,
+    required this.phone,
   });
 
   @override
@@ -460,10 +486,10 @@ class OrmawaStaffDetailScreen extends StatelessWidget {
                 children: [
                    Text('Informasi Personal', style: AppTextStyles.labelSm.copyWith(color: const Color(0xFF94A3B8), fontWeight: FontWeight.w900, letterSpacing: 1.5)),
                   const SizedBox(height: 16),
-                  _buildInfoItem(Icons.badge_rounded, 'NIM / ID Staf', '231FF01001'),
+                  _buildInfoItem(Icons.badge_rounded, 'NIM / ID Staf', nim),
                   _buildInfoItem(Icons.corporate_fare_rounded, 'Divisi Utama', division),
-                  _buildInfoItem(Icons.email_rounded, 'Email Institusi', 'mahasiswa@bku.ac.id'),
-                  _buildInfoItem(Icons.phone_android_rounded, 'Nomor HP', '+62 812-3456-7890'),
+                  _buildInfoItem(Icons.email_rounded, 'Email Institusi', email),
+                  _buildInfoItem(Icons.phone_android_rounded, 'Nomor HP', phone),
                   const SizedBox(height: 32),
                    Text('Statistik Performa', style: AppTextStyles.labelSm.copyWith(color: const Color(0xFF94A3B8), fontWeight: FontWeight.w900, letterSpacing: 1.5)),
                   const SizedBox(height: 16),

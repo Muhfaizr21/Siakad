@@ -4,21 +4,65 @@ import 'package:bkuhub_mobile/core/theme/app_text_styles.dart';
 import 'package:bkuhub_mobile/core/widgets/bku_app_bar.dart';
 import 'package:bkuhub_mobile/core/widgets/fade_in_animation.dart';
 import 'package:bkuhub_mobile/features/ormawa/struktur/presentation/pages/manage_struktur_screen.dart';
+import 'package:provider/provider.dart';
+import 'package:bkuhub_mobile/core/providers/ormawa_provider.dart';
+import 'package:bkuhub_mobile/features/ormawa/domain/entities/ormawa_member.dart';
+import 'package:bkuhub_mobile/features/ormawa/data/models/ormawa_member_model.dart';
 
-class OrmawaStrukturScreen extends StatelessWidget {
+class OrmawaStrukturScreen extends StatefulWidget {
   const OrmawaStrukturScreen({super.key});
 
   @override
+  State<OrmawaStrukturScreen> createState() => _OrmawaStrukturScreenState();
+}
+
+class _OrmawaStrukturScreenState extends State<OrmawaStrukturScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<OrmawaProvider>().refreshData();
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final ormawaProvider = context.watch<OrmawaProvider>();
+    final members = ormawaProvider.members;
+    
+    // Core members
+    final ketua = members.firstWhere(
+      (m) => m.role.toUpperCase() == 'KETUA UMUM' || m.role.toUpperCase() == 'KETUA', 
+      orElse: () => OrmawaMemberModel(id: '', mahasiswaId: '', name: '-', nim: '-', role: 'Ketua Umum', division: 'BPH', status: 'Aktif')
+    );
+    final wakil = members.firstWhere(
+      (m) => m.role.toUpperCase().contains('WAKIL KETUA'), 
+      orElse: () => OrmawaMemberModel(id: '', mahasiswaId: '', name: '-', nim: '-', role: 'Wakil Ketua Umum', division: 'BPH', status: 'Aktif')
+    );
+    
+    final sekretaris = members.where((m) => m.role.toUpperCase().contains('SEKRETARIS')).toList();
+    final bendahara = members.where((m) => m.role.toUpperCase().contains('BENDAHARA')).toList();
+
+    // Group others by division
+    final Map<String, List<OrmawaMember>> departments = {};
+    for (var m in members) {
+      if (m.division != 'BPH' && m.division != '-' && m.division.isNotEmpty) {
+        if (!departments.containsKey(m.division)) {
+          departments[m.division] = [];
+        }
+        departments[m.division]!.add(m);
+      }
+    }
+
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
       body: CustomScrollView(
         physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
         slivers: [
           BkuAppBar(
-            title: 'STRUKTUR ORGANISASI',
-            subtitle: 'MANAJEMEN INTERNAL',
             variant: AppBarVariant.ormawa,
+            title: 'STRUKTUR ORGANISASI',
+            subtitle: ormawaProvider.orgName,
             expandedHeight: 160.0,
             showBackButton: true,
             isExpandable: false,
@@ -29,68 +73,108 @@ class OrmawaStrukturScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildCabinetInfo(),
+                  _buildCabinetInfo(ormawaProvider.academicYear),
                   const SizedBox(height: 32),
                   
-                  // 1. Pimpinan Inti Section
-                  _buildSectionTitle('Pimpinan Inti'),
+                  // 1. Pimpinan Inti
+                  _buildSectionTitle('PIMPINAN INTI'),
                   const SizedBox(height: 16),
-                  _buildPrimaryMemberCard('Ahmad Fauzi', 'Ketua Umum', 'Teknik Informatika', Icons.stars_rounded),
+                  _buildPrimaryMemberCard(
+                    ketua.name,
+                    ketua.role,
+                    'BPH',
+                    Icons.stars_rounded,
+                  ),
                   const SizedBox(height: 12),
-                  _buildPrimaryMemberCard('Siti Nurhaliza', 'Wakil Ketua Umum', 'Farmasi', Icons.verified_user_rounded),
+                  _buildSecondaryMemberCard(
+                    wakil.name,
+                    wakil.role,
+                    Icons.shield_rounded,
+                  ),
                   
                   const SizedBox(height: 32),
-                  
-                  // 2. Sekretariat & Bendahara Section
-                  _buildSectionTitle('Sekretariat & Bendahara'),
+                  _buildSectionTitle('BADAN PENGURUS HARIAN'),
                   const SizedBox(height: 16),
+                  
+                  // Sekretaris & Bendahara Row
                   Row(
                     children: [
-                      Expanded(child: _buildSecondaryMemberCard('Budi Santoso', 'Sekretaris', Icons.edit_document)),
+                      Expanded(
+                        child: Column(
+                          children: sekretaris.map((m) => Padding(
+                            padding: const EdgeInsets.only(bottom: 8),
+                            child: _buildStaffTile(m.name, m.role, m.nim, isHead: false),
+                          )).toList(),
+                        ),
+                      ),
                       const SizedBox(width: 12),
-                      Expanded(child: _buildSecondaryMemberCard('Lestari Putri', 'Bendahara', Icons.payments_rounded)),
+                      Expanded(
+                        child: Column(
+                          children: bendahara.map((m) => Padding(
+                            padding: const EdgeInsets.only(bottom: 8),
+                            child: _buildStaffTile(m.name, m.role, m.nim, isHead: false),
+                          )).toList(),
+                        ),
+                      ),
                     ],
                   ),
                   
                   const SizedBox(height: 32),
                   
-                  // 3. Departments
-                  _buildDepartmentCard('Departemen Pengembangan SDM', [
-                    _buildStaffTile('Rizky Ramadhan', 'Kepala Departemen', 'Psikologi', isHead: true),
-                    _buildStaffTile('Dewi Sartika', 'Staff Ahli', 'Hukum'),
-                    _buildStaffTile('Andi Wijaya', 'Staff Muda', 'Sosiologi'),
-                  ]),
+                  // 2. Departments
+                  if (departments.isNotEmpty) ...[
+                    _buildSectionTitle('DIVISI & DEPARTEMEN'),
+                    const SizedBox(height: 16),
+                    ...departments.entries.map((dept) => Padding(
+                      padding: const EdgeInsets.only(bottom: 16),
+                      child: _buildDepartmentCard(dept.key, [
+                        ...dept.value.map((m) => _buildStaffTile(
+                          m.name, 
+                          m.role, 
+                          m.nim,
+                          isHead: m.role.toUpperCase().contains('KEPALA') || m.role.toUpperCase().contains('KADEP') || m.role.toUpperCase().contains('KOORDINATOR'),
+                        )),
+                      ]),
+                    )),
+                  ],
                   
-                  const SizedBox(height: 16),
+                  if (members.isEmpty && !ormawaProvider.isLoading) 
+                    const Center(
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(vertical: 40),
+                        child: Text('Data pengurus belum tersedia'),
+                      ),
+                    ),
                   
-                  _buildDepartmentCard('Departemen Minat & Bakat', [
-                    _buildStaffTile('Gilang Dirga', 'Kepala Departemen', 'Ilmu Komunikasi', isHead: true),
-                    _buildStaffTile('Maya Sofia', 'Staff Ahli', 'Seni Rupa'),
-                  ]),
-                  
-                  const SizedBox(height: 120),
+                  const SizedBox(height: 100),
                 ],
               ),
             ),
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const ManageStrukturScreen()),
-          );
-        },
-        backgroundColor: AppColors.primary,
-        elevation: 8,
-        icon: const Icon(Icons.auto_fix_high_rounded, color: Colors.white),
-        label: const Text('Kelola Struktur', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, letterSpacing: 0.5)),
-      ),
+      floatingActionButton: _buildFab(context, ormawaProvider),
     );
   }
 
-  Widget _buildCabinetInfo() {
+  Widget? _buildFab(BuildContext context, OrmawaProvider provider) {
+    if (!provider.hasPermission('MANAJEMEN_STRUKTUR')) return null;
+    
+    return FloatingActionButton.extended(
+      onPressed: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const ManageStrukturScreen()),
+        );
+      },
+      backgroundColor: AppColors.primary,
+      elevation: 8,
+      icon: const Icon(Icons.auto_fix_high_rounded, color: Colors.white),
+      label: const Text('Kelola Struktur', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, letterSpacing: 0.5)),
+    );
+  }
+
+  Widget _buildCabinetInfo(String year) {
     return FadeInAnimation(
       delay: 0.2,
       child: Container(
@@ -122,12 +206,12 @@ class OrmawaStrukturScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Kabinet Digital Era',
+                    'Struktur Kepengurusan',
                     style: AppTextStyles.titleLg.copyWith(fontSize: 18, fontWeight: FontWeight.w900, color: AppColors.primary),
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'Periode Kepengurusan 2026/2027',
+                    'Periode $year',
                     style: AppTextStyles.labelSm.copyWith(color: const Color(0xFF64748B), fontWeight: FontWeight.bold),
                   ),
                 ],

@@ -9,7 +9,9 @@ class ApiInterceptor extends Interceptor {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('access_token');
     
-    if (token != null) {
+    final isLoginRequest = options.path.contains('/auth/login');
+    
+    if (token != null && !isLoginRequest) {
       options.headers['Authorization'] = 'Bearer $token';
     }
 

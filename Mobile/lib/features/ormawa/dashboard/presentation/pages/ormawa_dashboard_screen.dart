@@ -14,6 +14,7 @@ import 'package:bkuhub_mobile/features/ormawa/dashboard/presentation/widgets/orm
 import 'package:bkuhub_mobile/features/ormawa/proposal/presentation/pages/ormawa_proposal_screen.dart';
 import 'package:bkuhub_mobile/features/ormawa/kalender/presentation/pages/ormawa_kalender_screen.dart';
 import 'package:bkuhub_mobile/features/ormawa/kalender/presentation/pages/ormawa_agenda_detail_screen.dart';
+import 'package:bkuhub_mobile/features/ormawa/notifications/presentation/pages/ormawa_notification_screen.dart';
 
 class OrmawaDashboardScreen extends StatefulWidget {
   const OrmawaDashboardScreen({super.key});
@@ -23,6 +24,14 @@ class OrmawaDashboardScreen extends StatefulWidget {
 }
 
 class _OrmawaDashboardScreenState extends State<OrmawaDashboardScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<OrmawaProvider>().refreshData();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -45,6 +54,13 @@ class _OrmawaDashboardScreenState extends State<OrmawaDashboardScreen> {
               showProfileOnCollapse: true,
               profileImage: Icon(Icons.groups_rounded, color: Colors.white, size: 28),
               isExpandable: true,
+              notificationCount: context.watch<OrmawaProvider>().unreadNotificationsCount,
+              onNotificationTap: (context, variant) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const OrmawaNotificationScreen()),
+                );
+              },
               actions: [],
             ),
             SliverToBoxAdapter(
@@ -181,7 +197,7 @@ class _OrmawaDashboardScreenState extends State<OrmawaDashboardScreen> {
                     style: AppTextStyles.bodyMd.copyWith(fontWeight: FontWeight.w900),
                   ),
                   Text(
-                    DateFormat('dd MMMM yyyy').format(agenda.date),
+                    '${DateFormat('dd MMM').format(agenda.date)} • ${DateFormat('HH:mm').format(agenda.date)} - ${DateFormat('HH:mm').format(agenda.endDate)}',
                     style: AppTextStyles.labelSm.copyWith(color: AppColors.outline),
                   ),
                 ],

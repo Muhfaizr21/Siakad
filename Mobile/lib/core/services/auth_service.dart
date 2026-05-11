@@ -26,9 +26,10 @@ class AuthService {
       if (response.data['success'] == true) {
         final data = response.data['data'];
         _token = data['access_token'];
-        _userData = data['user'];
+        _userData = data; // Store entire data object including user and mahasiswa
         
-        final roleStr = _userData!['role'].toString().toLowerCase();
+        final userObj = _userData!['user'] ?? _userData!;
+        final roleStr = userObj['role']?.toString().toLowerCase() ?? 'guest';
         if (roleStr == 'mahasiswa' || roleStr == 'student') {
           _currentRole = UserRole.student;
         } else if (roleStr == 'ormawa') {

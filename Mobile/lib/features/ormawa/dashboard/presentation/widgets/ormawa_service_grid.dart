@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:bkuhub_mobile/core/providers/ormawa_provider.dart';
 import 'package:bkuhub_mobile/core/theme/app_colors.dart';
 import 'package:bkuhub_mobile/core/theme/app_text_styles.dart';
 import 'package:bkuhub_mobile/core/widgets/fade_in_animation.dart';
@@ -18,6 +20,8 @@ import 'package:bkuhub_mobile/features/ormawa/pengumuman/presentation/pages/orma
 import 'package:bkuhub_mobile/features/ormawa/notifications/presentation/pages/ormawa_notifications_screen.dart';
 import 'package:bkuhub_mobile/features/ormawa/settings/presentation/pages/ormawa_settings_screen.dart';
 import 'package:bkuhub_mobile/features/ormawa/struktur/presentation/pages/ormawa_struktur_screen.dart';
+import 'package:bkuhub_mobile/features/ormawa/rbac/presentation/pages/ormawa_role_screen.dart';
+import 'package:bkuhub_mobile/features/ormawa/notifications/presentation/pages/ormawa_notification_screen.dart';
 
 class OrmawaServiceGrid extends StatelessWidget {
   const OrmawaServiceGrid({super.key});
@@ -75,14 +79,14 @@ class OrmawaServiceGrid extends StatelessWidget {
             icon: Icons.event_rounded,
             color: Colors.orange,
             delay: 0.75,
-            target: const ComingSoonScreen(featureName: 'Kalender Organisasi'),
+            target: const OrmawaKalenderScreen(),
           ),
           _ServiceIcon(
             title: 'Laporan',
             icon: Icons.assignment_rounded,
             color: Colors.red,
             delay: 0.8,
-            target: const ComingSoonScreen(featureName: 'Laporan Organisasi'),
+            target: const OrmawaLaporanScreen(),
           ),
           _ServiceIcon(
             title: 'Lainnya',
@@ -236,19 +240,28 @@ class _ServiceIcon extends StatelessWidget {
                     target: const OrmawaStrukturScreen(),
                   ),
                   _ServiceIcon(
-                    title: 'Manaj. Staf',
-                    icon: Icons.person_add_alt_1_rounded,
-                    color: Colors.blue,
-                    delay: 0,
-                    target: const OrmawaStaffScreen(),
-                  ),
-                  _ServiceIcon(
-                    title: 'Hak Akses',
-                    icon: Icons.admin_panel_settings_rounded,
+                    title: 'Notifikasi',
+                    icon: Icons.notifications_active_rounded,
                     color: Colors.blueGrey,
                     delay: 0,
-                    target: const ComingSoonScreen(featureName: 'Manajemen Hak Akses'),
+                    target: const OrmawaNotificationScreen(),
                   ),
+                  if (context.watch<OrmawaProvider>().hasPermission('MANAJEMEN_ANGGOTA'))
+                    _ServiceIcon(
+                      title: 'Manaj. Staf',
+                      icon: Icons.person_add_alt_1_rounded,
+                      color: Colors.blue,
+                      delay: 0,
+                      target: const OrmawaStaffScreen(),
+                    ),
+                  if (context.watch<OrmawaProvider>().hasPermission('ADMIN_PANEL'))
+                    _ServiceIcon(
+                      title: 'Hak Akses',
+                      icon: Icons.admin_panel_settings_rounded,
+                      color: Colors.blueGrey,
+                      delay: 0,
+                      target: const OrmawaRoleScreen(),
+                    ),
                   _ServiceIcon(
                     title: 'Kalender',
                     icon: Icons.event_rounded,

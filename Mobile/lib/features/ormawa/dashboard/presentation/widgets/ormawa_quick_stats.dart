@@ -3,6 +3,7 @@ import 'package:bkuhub_mobile/core/theme/app_text_styles.dart';
 import 'package:bkuhub_mobile/core/widgets/fade_in_animation.dart';
 import 'package:provider/provider.dart';
 import 'package:bkuhub_mobile/core/providers/ormawa_provider.dart';
+import 'package:intl/intl.dart';
 
 class OrmawaQuickStats extends StatelessWidget {
   const OrmawaQuickStats({super.key});
@@ -60,7 +61,11 @@ class OrmawaQuickStats extends StatelessWidget {
                       Container(width: 1, height: 40, color: Colors.white.withAlpha(30)),
                       _MiniStat(
                         title: 'Kas Organisasi',
-                        value: 'Rp ${(ormawa.balance / 1000000).toStringAsFixed(1)}M',
+                        value: NumberFormat.compactCurrency(
+                          symbol: 'Rp',
+                          locale: 'id_ID',
+                          decimalDigits: 1,
+                        ).format(ormawa.balance),
                         icon: Icons.account_balance_wallet_rounded,
                         color: Colors.greenAccent,
                       ),

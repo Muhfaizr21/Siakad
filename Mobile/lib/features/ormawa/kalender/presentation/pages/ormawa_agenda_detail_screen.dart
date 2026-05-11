@@ -50,7 +50,7 @@ class OrmawaAgendaDetailScreen extends StatelessWidget {
                         const Divider(height: 32, color: Color(0xFFE2E8F0)),
                         _buildInfoItem(Icons.calendar_today_rounded, 'Waktu Pelaksanaan', DateFormat('EEEE, dd MMMM yyyy').format(agenda.date)),
                         const SizedBox(height: 16),
-                        _buildInfoItem(Icons.access_time_rounded, 'Jam', DateFormat('HH:mm').format(agenda.date) + ' WIB'),
+                        _buildInfoItem(Icons.access_time_rounded, 'Jam', '${DateFormat('HH:mm').format(agenda.date)} - ${DateFormat('HH:mm').format(agenda.endDate)} WIB'),
                         const SizedBox(height: 16),
                         _buildInfoItem(Icons.location_on_rounded, 'Lokasi', agenda.location),
                       ],

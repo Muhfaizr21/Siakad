@@ -20,6 +20,7 @@ class BkuAppBar extends StatelessWidget {
   final bool showProfileOnCollapse;
   final bool isExpandable;
   final String? info;
+  final int notificationCount;
 
   final void Function(BuildContext, AppBarVariant)? onNotificationTap;
   final VoidCallback? onProfileTap;
@@ -44,6 +45,7 @@ class BkuAppBar extends StatelessWidget {
     this.isExpandable = true,
     this.onNotificationTap,
     this.onProfileTap,
+    this.notificationCount = 0,
   });
 
   @override
@@ -166,17 +168,31 @@ class BkuAppBar extends StatelessWidget {
                   icon: const Icon(Icons.notifications_outlined, size: 24, color: Colors.white),
                   tooltip: 'Notifikasi',
                 ),
-                Positioned(
-                  right: 12,
-                  top: 12,
-                  child: Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: const BoxDecoration(
-                      color: Colors.red,
-                      shape: BoxShape.circle,
+                if (notificationCount > 0)
+                  Positioned(
+                    right: 8,
+                    top: 8,
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: const BoxDecoration(
+                        color: Colors.red,
+                        shape: BoxShape.circle,
+                      ),
+                      constraints: const BoxConstraints(
+                        minWidth: 16,
+                        minHeight: 16,
+                      ),
+                      child: Text(
+                        notificationCount > 9 ? '9+' : '$notificationCount',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 8,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
                     ),
                   ),
-                ),
               ],
             ),
           ),

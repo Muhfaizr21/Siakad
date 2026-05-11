@@ -2,9 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:bkuhub_mobile/core/theme/app_colors.dart';
 import 'package:bkuhub_mobile/core/theme/app_text_styles.dart';
 import 'package:bkuhub_mobile/core/widgets/bku_app_bar.dart';
+import 'package:bkuhub_mobile/features/ormawa/domain/entities/ormawa_proposal.dart';
+import 'package:bkuhub_mobile/core/providers/ormawa_provider.dart';
+import 'package:provider/provider.dart';
 
 class CreateProposalScreen extends StatefulWidget {
-  const CreateProposalScreen({super.key});
+  final OrmawaProposal? initialProposal;
+  const CreateProposalScreen({super.key, this.initialProposal});
 
   @override
   State<CreateProposalScreen> createState() => _CreateProposalScreenState();
@@ -15,6 +19,19 @@ class _CreateProposalScreenState extends State<CreateProposalScreen> {
   final _budgetController = TextEditingController();
   final _descController = TextEditingController();
   bool _isSubmitting = false;
+
+  DateTime _selectedDate = DateTime.now();
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.initialProposal != null) {
+      _nameController.text = widget.initialProposal!.title;
+      _budgetController.text = widget.initialProposal!.budget.toString();
+      _selectedDate = widget.initialProposal!.date;
+      _descController.text = widget.initialProposal!.description ?? '';
+    }
+  }
 
   @override
   void dispose() {
@@ -34,19 +51,47 @@ class _CreateProposalScreenState extends State<CreateProposalScreen> {
 
     setState(() => _isSubmitting = true);
     
-    // Simulate API call
-    await Future.delayed(const Duration(seconds: 2));
-    
-    if (mounted) {
-      setState(() => _isSubmitting = false);
-      Navigator.pop(context);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Proposal berhasil diajukan ke Pihak Kampus!'),
-          backgroundColor: Colors.green,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+    final provider = Provider.of<OrmawaProvider>(context, listen: false);
+    final isEdit = widget.initialProposal != null;
+
+    final proposal = OrmawaProposal(
+      id: isEdit ? widget.initialProposal!.id : '',
+      ormawaId: isEdit ? widget.initialProposal!.ormawaId : provider.ormawaId,
+      mahasiswaId: isEdit ? widget.initialProposal!.mahasiswaId : provider.mahasiswaId,
+      fakultasId: isEdit ? widget.initialProposal!.fakultasId : provider.fakultasId,
+      title: _nameController.text,
+      code: isEdit ? widget.initialProposal!.code : '',
+      status: isEdit ? widget.initialProposal!.status : 'diajukan',
+      date: _selectedDate,
+      budget: double.tryParse(_budgetController.text) ?? 0,
+      description: _descController.text,
+    );
+
+    try {
+      if (isEdit) {
+        await provider.updateProposal(proposal);
+      } else {
+        await provider.addProposal(proposal);
+      }
+      
+      if (mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(isEdit ? 'Proposal berhasil diperbarui!' : 'Proposal berhasil diajukan ke Pihak Kampus!'),
+            backgroundColor: Colors.green,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Gagal menyimpan proposal: $e'), backgroundColor: Colors.red),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
     }
   }
 
@@ -57,7 +102,7 @@ class _CreateProposalScreenState extends State<CreateProposalScreen> {
       body: Column(
         children: [
           BkuStaticAppBar(
-            title: 'BUAT PROPOSAL BARU',
+            title: widget.initialProposal != null ? 'EDIT PROPOSAL' : 'BUAT PROPOSAL BARU',
             variant: AppBarVariant.ormawa,
             showBackButton: true,
           ),
@@ -71,8 +116,16 @@ class _CreateProposalScreenState extends State<CreateProposalScreen> {
                   const SizedBox(height: 16),
                   _buildTextField('Nama Kegiatan', 'Contoh: Seminar Nasional IT 2026', Icons.event_rounded, controller: _nameController),
                   const SizedBox(height: 16),
-                  _buildTextField('Tanggal Kegiatan', 'Pilih Tanggal', Icons.calendar_today_rounded, isReadOnly: true, onTap: () {
-                    // Date picker logic
+                  _buildTextField('Tanggal Kegiatan', '${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}', Icons.calendar_today_rounded, isReadOnly: true, onTap: () async {
+                    final picked = await showDatePicker(
+                      context: context,
+                      initialDate: _selectedDate,
+                      firstDate: DateTime(2020),
+                      lastDate: DateTime(2101),
+                    );
+                    if (picked != null) {
+                      setState(() => _selectedDate = picked);
+                    }
                   }),
                   const SizedBox(height: 24),
                   
@@ -199,10 +252,10 @@ class _CreateProposalScreenState extends State<CreateProposalScreen> {
         ),
         child: _isSubmitting 
           ? const CircularProgressIndicator(color: Colors.white)
-          : Text(
-              'AJUKAN PROPOSAL',
-              style: AppTextStyles.labelMd.copyWith(color: Colors.white, fontWeight: FontWeight.w900, letterSpacing: 1),
-            ),
+            : Text(
+                widget.initialProposal != null ? 'SIMPAN PERUBAHAN' : 'AJUKAN PROPOSAL',
+                style: AppTextStyles.labelMd.copyWith(color: Colors.white, fontWeight: FontWeight.w900, letterSpacing: 1),
+              ),
       ),
     );
   }
