@@ -1,4 +1,4 @@
-package dashboard
+package mahasiswa
 
 import (
 	"siakad-backend/config"

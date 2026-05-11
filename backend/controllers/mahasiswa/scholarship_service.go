@@ -1,4 +1,4 @@
-package scholarship
+package mahasiswa
 
 import (
 	"siakad-backend/models"

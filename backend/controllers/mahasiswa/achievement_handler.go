@@ -1,4 +1,4 @@
-package achievement
+package mahasiswa
 
 import (
 	"fmt"
@@ -12,13 +12,6 @@ import (
 	"github.com/google/uuid"
 )
 
-func getUserID(c *fiber.Ctx) (uint, error) {
-	v, ok := c.Locals("user_id").(uint)
-	if !ok || v == 0 {
-		return 0, fiber.NewError(fiber.StatusUnauthorized, "User tidak terautentikasi")
-	}
-	return v, nil
-}
 
 // GetAchievements returns paginated achievements and total stats for an individual student
 func GetAchievements(c *fiber.Ctx) error {

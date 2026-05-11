@@ -1,7 +1,6 @@
-package kencana
+package mahasiswa
 
 import (
-	"fmt"
 	"siakad-backend/config"
 	"siakad-backend/models"
 	"siakad-backend/pkg/notifikasi"
@@ -13,18 +12,6 @@ import (
 
 // ==================== HELPER ====================
 
-func getStudent(c *fiber.Ctx) (models.Mahasiswa, error) {
-	PenggunaValue := c.Locals("user_id")
-	PenggunaID, ok := PenggunaValue.(uint)
-	if !ok {
-		return models.Mahasiswa{}, fmt.Errorf("invalid user id")
-	}
-	var student models.Mahasiswa
-	if err := config.DB.First(&student, "pengguna_id = ?", PenggunaID).Error; err != nil {
-		return student, err
-	}
-	return student, nil
-}
 
 // ==================== GET PROGRESS ====================
 

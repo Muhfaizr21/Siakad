@@ -1,4 +1,4 @@
-package counseling
+package mahasiswa
 
 import (
 	"siakad-backend/models"

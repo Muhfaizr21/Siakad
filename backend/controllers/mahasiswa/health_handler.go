@@ -1,4 +1,4 @@
-package health
+package mahasiswa
 
 import (
 	"siakad-backend/config"
@@ -46,19 +46,6 @@ func buildHasil(status string) string {
 	}
 }
 
-func getStudent(c *fiber.Ctx) (*models.Mahasiswa, error) {
-	PenggunaID, ok := c.Locals("user_id").(uint)
-	if !ok || PenggunaID == 0 {
-		return nil, fiber.NewError(fiber.StatusUnauthorized, "User tidak terautentikasi")
-	}
-
-	var student models.Mahasiswa
-	if err := config.DB.First(&student, "pengguna_id = ?", PenggunaID).Error; err != nil {
-		return nil, err
-	}
-
-	return &student, nil
-}
 
 // GetHealthRiwayat returns all health screenings
 func GetHealthRiwayat(c *fiber.Ctx) error {

@@ -1,4 +1,4 @@
-package counseling
+package mahasiswa
 
 import (
 	"siakad-backend/config"
@@ -9,19 +9,6 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-func getStudent(c *fiber.Ctx) (*models.Mahasiswa, error) {
-	PenggunaID, ok := c.Locals("user_id").(uint)
-	if !ok || PenggunaID == 0 {
-		return nil, fiber.NewError(fiber.StatusUnauthorized, "User tidak terautentikasi")
-	}
-
-	var student models.Mahasiswa
-	if err := config.DB.First(&student, "pengguna_id = ?", PenggunaID).Error; err != nil {
-		return nil, err
-	}
-
-	return &student, nil
-}
 
 // GetCounselingStatus returns student's counseling records
 func GetCounselingStatus(c *fiber.Ctx) error {

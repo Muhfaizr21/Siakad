@@ -1,4 +1,4 @@
-package achievement
+package mahasiswa
 
 import (
 	"siakad-backend/models"

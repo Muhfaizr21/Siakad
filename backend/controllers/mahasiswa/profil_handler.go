@@ -1,4 +1,4 @@
-package profil
+package mahasiswa
 
 import (
 	"fmt"
@@ -12,13 +12,6 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func getUserID(c *fiber.Ctx) (uint, error) {
-	v, ok := c.Locals("user_id").(uint)
-	if !ok || v == 0 {
-		return 0, fiber.NewError(fiber.StatusUnauthorized, "User tidak terautentikasi")
-	}
-	return v, nil
-}
 
 func GetProfile(c *fiber.Ctx) error {
 	PenggunaID, err := getUserID(c)

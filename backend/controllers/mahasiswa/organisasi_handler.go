@@ -1,4 +1,4 @@
-package organisasi
+package mahasiswa
 
 import (
 	"siakad-backend/config"
@@ -7,13 +7,6 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-func getUserID(c *fiber.Ctx) (uint, error) {
-	v, ok := c.Locals("user_id").(uint)
-	if !ok || v == 0 {
-		return 0, fiber.NewError(fiber.StatusUnauthorized, "User tidak terautentikasi")
-	}
-	return v, nil
-}
 
 // GetList returns all organisation history for the logged-in student
 func GetList(c *fiber.Ctx) error {

@@ -1,4 +1,4 @@
-package voice
+package mahasiswa
 
 import (
 	"fmt"
@@ -10,13 +10,6 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-func getUserID(c *fiber.Ctx) (uint, error) {
-	v, ok := c.Locals("user_id").(uint)
-	if !ok || v == 0 {
-		return 0, fiber.NewError(fiber.StatusUnauthorized, "User tidak terautentikasi")
-	}
-	return v, nil
-}
 
 // GetStats returns count summary for student voice
 func GetStats(c *fiber.Ctx) error {

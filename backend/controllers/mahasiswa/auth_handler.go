@@ -1,4 +1,4 @@
-package auth
+package mahasiswa
 
 import (
 	"siakad-backend/config"
@@ -156,7 +156,7 @@ func Logout(c *fiber.Ctx) error {
 	})
 }
 
-func ChangePassword(c *fiber.Ctx) error {
+func ChangePasswordAuth(c *fiber.Ctx) error {
 	UserID := c.Locals("user_id")
 
 	var req ChangePasswordRequest
