@@ -493,10 +493,14 @@ func EnsureBootstrapData() error {
 
 	var ormawa models.Ormawa
 	if err := config.DB.Where("LOWER(singkatan) = LOWER(?)", "BEMKBK").First(&ormawa).Error; err != nil {
+		var firstFak models.Fakultas
+		config.DB.First(&firstFak)
+
 		ormawa = models.Ormawa{
 			Nama:          "BEM KBM Bhakti Kencana",
 			Singkatan:     "BEMKBK",
 			Deskripsi:     "Badan Eksekutif Mahasiswa tingkat universitas",
+			FakultasID:    firstFak.ID,
 			Status:        "Aktif",
 			Kategori:      "BEM",
 			JumlahAnggota: 1,
