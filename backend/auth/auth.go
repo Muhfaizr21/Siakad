@@ -745,11 +745,17 @@ func EnsureBootstrapData() error {
 		}
 	}
 
+	_, err = ensureUser("psikolog@bku.ac.id", "psikolog123", "psikolog", nil, nil)
+	if err != nil {
+		return err
+	}
+
 	fmt.Println("✅ [SEEDER] Bootstrap completed successfully.")
 	fmt.Println("   super_admin   : superadmin@bku.ac.id / superadmin123")
 	fmt.Println("   faculty_admin : admin.<KODE_FAK>@bku.ac.id / adminfak123")
 	fmt.Println("   mahasiswa     : <NIM>@student.bku.ac.id / student123")
 	fmt.Println("   ormawa        : ormawa@bku.ac.id / ormawa123")
+	fmt.Println("   psikolog      : psikolog@bku.ac.id / psikolog123")
 	return nil
 }
 

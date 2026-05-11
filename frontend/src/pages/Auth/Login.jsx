@@ -33,6 +33,7 @@ const getRouteByRole = (role) => {
   if (r === 'ormawa_admin') return '/ormawa';
   if (r === 'ormawa') return '/ormawa';
   if (r === 'dosen') return '/faculty';
+  if (r === 'psikolog') return '/psychologist';
   return '/student/dashboard';
 };
 

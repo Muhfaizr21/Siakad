@@ -7,12 +7,19 @@ class AssessmentManagementScreen extends StatefulWidget {
   const AssessmentManagementScreen({super.key});
 
   @override
-  State<AssessmentManagementScreen> createState() => _AssessmentManagementScreenState();
+  State<AssessmentManagementScreen> createState() =>
+      _AssessmentManagementScreenState();
 }
 
-class _AssessmentManagementScreenState extends State<AssessmentManagementScreen> {
+class _AssessmentManagementScreenState
+    extends State<AssessmentManagementScreen> {
   String selectedTest = 'DASS-21';
-  final List<String> testTypes = ['DASS-21', 'SRQ-20', 'Kuesioner MBTI', 'Tes Minat Bakat'];
+  final List<String> testTypes = [
+    'DASS-21',
+    'SRQ-20',
+    'Kuesioner MBTI',
+    'Tes Minat Bakat',
+  ];
 
   final List<Map<String, dynamic>> assessments = [
     {
@@ -27,7 +34,11 @@ class _AssessmentManagementScreenState extends State<AssessmentManagementScreen>
       'name': 'Siti Aminah',
       'nim': '20220512',
       'date': '07 Mei 2026',
-      'scores': {'Depresi': 'Berat', 'Kecemasan': 'Sangat Berat', 'Stres': 'Berat'},
+      'scores': {
+        'Depresi': 'Berat',
+        'Kecemasan': 'Sangat Berat',
+        'Stres': 'Berat',
+      },
       'status': 'Perlu Tindakan',
       'color': Colors.red,
     },
@@ -68,7 +79,7 @@ class _AssessmentManagementScreenState extends State<AssessmentManagementScreen>
                   const SizedBox(height: 32),
                   _buildSectionHeader('Hasil Asesmen Terbaru'),
                   const SizedBox(height: 16),
-                  ...assessments.map((a) => _buildAssessmentCard(a)).toList(),
+                  ...assessments.map((a) => _buildAssessmentCard(a)),
                   const SizedBox(height: 100),
                 ],
               ),
@@ -82,28 +93,64 @@ class _AssessmentManagementScreenState extends State<AssessmentManagementScreen>
   Widget _buildStatsRow() {
     return Row(
       children: [
-        Expanded(child: _buildStatCard('Total Tes', '124', Icons.assignment_rounded, AppColors.primary)),
+        Expanded(
+          child: _buildStatCard(
+            'Total Tes',
+            '124',
+            Icons.assignment_rounded,
+            AppColors.primary,
+          ),
+        ),
         const SizedBox(width: 16),
-        Expanded(child: _buildStatCard('Butuh Atensi', '12', Icons.warning_amber_rounded, Colors.red)),
+        Expanded(
+          child: _buildStatCard(
+            'Butuh Atensi',
+            '12',
+            Icons.warning_amber_rounded,
+            Colors.red,
+          ),
+        ),
       ],
     );
   }
 
-  Widget _buildStatCard(String label, String value, IconData icon, Color color) {
+  Widget _buildStatCard(
+    String label,
+    String value,
+    IconData icon,
+    Color color,
+  ) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
-        boxShadow: [BoxShadow(color: Colors.black.withAlpha(5), blurRadius: 15, offset: const Offset(0, 8))],
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withAlpha(5),
+            blurRadius: 15,
+            offset: const Offset(0, 8),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Icon(icon, color: color, size: 28),
           const SizedBox(height: 12),
-          Text(value, style: AppTextStyles.titleLg.copyWith(fontWeight: FontWeight.w900, color: const Color(0xFF1E293B))),
-          Text(label, style: AppTextStyles.labelSm.copyWith(color: const Color(0xFF64748B))),
+          Text(
+            value,
+            style: AppTextStyles.titleLg.copyWith(
+              fontWeight: FontWeight.w900,
+              color: const Color(0xFF1E293B),
+            ),
+          ),
+          Text(
+            label,
+            style: AppTextStyles.labelSm.copyWith(
+              color: const Color(0xFF64748B),
+            ),
+          ),
         ],
       ),
     );
@@ -126,7 +173,11 @@ class _AssessmentManagementScreenState extends State<AssessmentManagementScreen>
               decoration: BoxDecoration(
                 color: isSelected ? AppColors.primary : Colors.white,
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: isSelected ? AppColors.primary : Colors.grey.withAlpha(30)),
+                border: Border.all(
+                  color: isSelected
+                      ? AppColors.primary
+                      : Colors.grey.withAlpha(30),
+                ),
               ),
               child: Center(
                 child: Text(
@@ -151,27 +202,62 @@ class _AssessmentManagementScreenState extends State<AssessmentManagementScreen>
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
-        boxShadow: [BoxShadow(color: Colors.black.withAlpha(5), blurRadius: 12, offset: const Offset(0, 6))],
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withAlpha(5),
+            blurRadius: 12,
+            offset: const Offset(0, 6),
+          ),
+        ],
       ),
       child: Column(
         children: [
           Row(
             children: [
-              CircleAvatar(backgroundColor: AppColors.primary.withAlpha(10), child: const Icon(Icons.person_outline_rounded, color: AppColors.primary)),
+              CircleAvatar(
+                backgroundColor: AppColors.primary.withAlpha(10),
+                child: const Icon(
+                  Icons.person_outline_rounded,
+                  color: AppColors.primary,
+                ),
+              ),
               const SizedBox(width: 16),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(a['name'], style: AppTextStyles.bodyLg.copyWith(fontWeight: FontWeight.w900)),
-                    Text('NIM: ${a['nim']} • ${a['date']}', style: AppTextStyles.labelSm.copyWith(color: const Color(0xFF64748B))),
+                    Text(
+                      a['name'],
+                      style: AppTextStyles.bodyLg.copyWith(
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    Text(
+                      'NIM: ${a['nim']} • ${a['date']}',
+                      style: AppTextStyles.labelSm.copyWith(
+                        color: const Color(0xFF64748B),
+                      ),
+                    ),
                   ],
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(color: (a['color'] as Color).withAlpha(15), borderRadius: BorderRadius.circular(8)),
-                child: Text(a['status'], style: TextStyle(color: a['color'] as Color, fontSize: 10, fontWeight: FontWeight.w900)),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
+                decoration: BoxDecoration(
+                  color: (a['color'] as Color).withAlpha(15),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  a['status'],
+                  style: TextStyle(
+                    color: a['color'] as Color,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
               ),
             ],
           ),
@@ -180,7 +266,9 @@ class _AssessmentManagementScreenState extends State<AssessmentManagementScreen>
           const SizedBox(height: 16),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: (a['scores'] as Map<String, String>).entries.map((e) => _buildScoreItem(e.key, e.value)).toList(),
+            children: (a['scores'] as Map<String, String>).entries
+                .map((e) => _buildScoreItem(e.key, e.value))
+                .toList(),
           ),
         ],
       ),
@@ -194,14 +282,32 @@ class _AssessmentManagementScreenState extends State<AssessmentManagementScreen>
 
     return Column(
       children: [
-        Text(label, style: AppTextStyles.labelSm.copyWith(color: const Color(0xFF94A3B8), fontSize: 10)),
+        Text(
+          label,
+          style: AppTextStyles.labelSm.copyWith(
+            color: const Color(0xFF94A3B8),
+            fontSize: 10,
+          ),
+        ),
         const SizedBox(height: 4),
-        Text(value, style: AppTextStyles.bodyMd.copyWith(color: scoreColor, fontWeight: FontWeight.bold)),
+        Text(
+          value,
+          style: AppTextStyles.bodyMd.copyWith(
+            color: scoreColor,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
       ],
     );
   }
 
   Widget _buildSectionHeader(String title) {
-    return Text(title, style: AppTextStyles.titleMd.copyWith(fontWeight: FontWeight.w900, color: const Color(0xFF0F172A)));
+    return Text(
+      title,
+      style: AppTextStyles.titleMd.copyWith(
+        fontWeight: FontWeight.w900,
+        color: const Color(0xFF0F172A),
+      ),
+    );
   }
 }

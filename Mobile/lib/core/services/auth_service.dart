@@ -1,5 +1,3 @@
-import 'package:flutter/material.dart';
-
 enum UserRole { student, ormawa, psychologist, guest }
 
 class AuthService {
@@ -20,8 +18,8 @@ class AuthService {
     if (normalizedUsername.isEmpty) return false;
 
     // Logic penentuan role (Professional rule)
-    if (normalizedUsername.contains('bem') || 
-        normalizedUsername.contains('hima') || 
+    if (normalizedUsername.contains('bem') ||
+        normalizedUsername.contains('hima') ||
         normalizedUsername.contains('ormawa')) {
       _currentRole = UserRole.ormawa;
       return true;

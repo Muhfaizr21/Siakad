@@ -7,7 +7,8 @@ class CounselingBookingScreen extends StatefulWidget {
   const CounselingBookingScreen({super.key});
 
   @override
-  State<CounselingBookingScreen> createState() => _CounselingBookingScreenState();
+  State<CounselingBookingScreen> createState() =>
+      _CounselingBookingScreenState();
 }
 
 class _CounselingBookingScreenState extends State<CounselingBookingScreen> {
@@ -81,7 +82,9 @@ class _CounselingBookingScreenState extends State<CounselingBookingScreen> {
             children: [
               Text(
                 'Dr. Sarah Specialist',
-                style: AppTextStyles.bodyLg.copyWith(fontWeight: FontWeight.bold),
+                style: AppTextStyles.bodyLg.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               Text(
                 'Spesialis Kecemasan & Karir',
@@ -97,12 +100,15 @@ class _CounselingBookingScreenState extends State<CounselingBookingScreen> {
   Widget _buildSectionHeader(String title) {
     return Text(
       title,
-      style: AppTextStyles.bodyLg.copyWith(fontWeight: FontWeight.bold, color: AppColors.primary),
+      style: AppTextStyles.bodyLg.copyWith(
+        fontWeight: FontWeight.bold,
+        color: AppColors.primary,
+      ),
     );
   }
 
   Widget _buildDatePicker() {
-    return Container(
+    return SizedBox(
       height: 100,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
@@ -165,7 +171,9 @@ class _CounselingBookingScreenState extends State<CounselingBookingScreen> {
             decoration: BoxDecoration(
               color: isSelected ? AppColors.primary : Colors.white,
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: isSelected ? AppColors.primary : const Color(0xFFE2E8F0)),
+              border: Border.all(
+                color: isSelected ? AppColors.primary : const Color(0xFFE2E8F0),
+              ),
             ),
             child: Text(
               slot,
@@ -189,10 +197,15 @@ class _CounselingBookingScreenState extends State<CounselingBookingScreen> {
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primary,
           foregroundColor: Colors.white,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
           elevation: 0,
         ),
-        child: const Text('Lanjutkan Booking', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+        child: const Text(
+          'Lanjutkan Booking',
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+        ),
       ),
     );
   }
@@ -219,7 +232,11 @@ class _CounselingBookingScreenState extends State<CounselingBookingScreen> {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.check_circle_rounded, color: Colors.green, size: 80),
+            const Icon(
+              Icons.check_circle_rounded,
+              color: Colors.green,
+              size: 80,
+            ),
             const SizedBox(height: 24),
             const Text(
               'Booking Berhasil!',
@@ -242,7 +259,9 @@ class _CounselingBookingScreenState extends State<CounselingBookingScreen> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
                   foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
                 ),
                 child: const Text('Tutup'),
               ),
@@ -270,12 +289,23 @@ class _InformedConsentSheet extends StatelessWidget {
       child: Column(
         children: [
           const SizedBox(height: 12),
-          Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(2))),
+          Container(
+            width: 40,
+            height: 4,
+            decoration: BoxDecoration(
+              color: Colors.grey[300],
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
           Expanded(
             child: ListView(
               padding: const EdgeInsets.all(24),
               children: [
-                const Icon(Icons.assignment_rounded, color: AppColors.primary, size: 48),
+                const Icon(
+                  Icons.assignment_rounded,
+                  color: AppColors.primary,
+                  size: 48,
+                ),
                 const SizedBox(height: 24),
                 const Text(
                   'Informed Consent Digital',
@@ -283,17 +313,29 @@ class _InformedConsentSheet extends StatelessWidget {
                   style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 24),
-                _buildConsentPoint('Kerahasiaan', 'Semua informasi yang kamu sampaikan dalam sesi konseling bersifat rahasia dan dilindungi oleh kode etik psikologi.'),
-                _buildConsentPoint('Komitmen Jadwal', 'Mohon hadir tepat waktu. Pembatalan harus dilakukan maksimal 24 jam sebelum sesi dimulai.'),
-                _buildConsentPoint('Data Keamanan', 'Catatan sesi akan disimpan dalam sistem EHR terenkripsi yang hanya bisa diakses oleh psikolog Anda.'),
+                _buildConsentPoint(
+                  'Kerahasiaan',
+                  'Semua informasi yang kamu sampaikan dalam sesi konseling bersifat rahasia dan dilindungi oleh kode etik psikologi.',
+                ),
+                _buildConsentPoint(
+                  'Komitmen Jadwal',
+                  'Mohon hadir tepat waktu. Pembatalan harus dilakukan maksimal 24 jam sebelum sesi dimulai.',
+                ),
+                _buildConsentPoint(
+                  'Data Keamanan',
+                  'Catatan sesi akan disimpan dalam sistem EHR terenkripsi yang hanya bisa diakses oleh psikolog Anda.',
+                ),
                 const SizedBox(height: 32),
                 Container(
                   padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(color: Colors.blue[50], borderRadius: BorderRadius.circular(16)),
+                  decoration: BoxDecoration(
+                    color: Colors.blue[50],
+                    borderRadius: BorderRadius.circular(16),
+                  ),
                   child: const Row(
                     children: [
                       Icon(Icons.info_outline_rounded, color: Colors.blue),
-                      const SizedBox(width: 12),
+                      SizedBox(width: 12),
                       Expanded(
                         child: Text(
                           'Dengan menekan setuju, kamu menyatakan telah membaca dan menyetujui aturan konseling di BKU.',
@@ -312,13 +354,24 @@ class _InformedConsentSheet extends StatelessWidget {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
                       foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
                     ),
-                    child: const Text('Saya Setuju & Lanjutkan', style: TextStyle(fontWeight: FontWeight.bold)),
+                    child: const Text(
+                      'Saya Setuju & Lanjutkan',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 12),
-                TextButton(onPressed: () => Navigator.pop(context), child: const Text('Batal', style: TextStyle(color: Colors.grey))),
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text(
+                    'Batal',
+                    style: TextStyle(color: Colors.grey),
+                  ),
+                ),
               ],
             ),
           ),
@@ -333,7 +386,10 @@ class _InformedConsentSheet extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+          Text(
+            title,
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+          ),
           const SizedBox(height: 4),
           Text(desc, style: const TextStyle(color: Colors.grey, fontSize: 14)),
         ],

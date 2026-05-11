@@ -23,16 +23,16 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> _handleLogin() async {
     if (_usernameController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('NIM tidak boleh kosong')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('NIM tidak boleh kosong')));
       return;
     }
 
     setState(() => _isLoading = true);
-    
+
     final success = await _authService.login(
-      _usernameController.text, 
+      _usernameController.text,
       _passwordController.text,
     );
 
@@ -49,7 +49,9 @@ class _LoginScreenState extends State<LoginScreen> {
       }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Login gagal. Periksa kembali NIM/Password Anda.')),
+        const SnackBar(
+          content: Text('Login gagal. Periksa kembali NIM/Password Anda.'),
+        ),
       );
     }
   }
@@ -62,21 +64,24 @@ class _LoginScreenState extends State<LoginScreen> {
         children: [
           // 1. Background Blue with Batik Pattern
           _buildHeaderBackground(context),
-          
+
           // 2. Scrollable Content
           SingleChildScrollView(
             physics: const BouncingScrollPhysics(),
             child: Column(
               children: [
-                const SizedBox(height: 50), 
+                const SizedBox(height: 50),
                 _buildLogoSection(),
-                const SizedBox(height: 32), 
-                
+                const SizedBox(height: 32),
+
                 // 3. Login Body with Premium Styling
                 Container(
                   width: double.infinity,
                   constraints: BoxConstraints(
-                    minHeight: (MediaQuery.of(context).size.height - 300).clamp(0, double.infinity),
+                    minHeight: (MediaQuery.of(context).size.height - 300).clamp(
+                      0,
+                      double.infinity,
+                    ),
                   ),
                   decoration: BoxDecoration(
                     color: Colors.white,
@@ -91,7 +96,10 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ],
                   ),
-                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 48),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 32,
+                    vertical: 48,
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -122,7 +130,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                       const SizedBox(height: 32),
-                      
+
                       FadeInAnimation(
                         delay: 0.7,
                         child: _buildTextField(
@@ -133,7 +141,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                       const SizedBox(height: 16),
-                      
+
                       FadeInAnimation(
                         delay: 0.8,
                         child: _buildTextField(
@@ -144,7 +152,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           controller: _passwordController,
                         ),
                       ),
-                      
+
                       const SizedBox(height: 16),
                       FadeInAnimation(
                         delay: 0.9,
@@ -163,23 +171,14 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                       const SizedBox(height: 32),
-                      
-                      FadeInAnimation(
-                        delay: 1.0,
-                        child: _buildLoginButton(),
-                      ),
-                      
+
+                      FadeInAnimation(delay: 1.0, child: _buildLoginButton()),
+
                       const SizedBox(height: 24),
-                      FadeInAnimation(
-                        delay: 1.1,
-                        child: _buildHelpInfo(),
-                      ),
-                      
+                      FadeInAnimation(delay: 1.1, child: _buildHelpInfo()),
+
                       const SizedBox(height: 24),
-                      FadeInAnimation(
-                        delay: 1.2,
-                        child: _buildFooter(),
-                      ),
+                      FadeInAnimation(delay: 1.2, child: _buildFooter()),
                     ],
                   ),
                 ),
@@ -210,7 +209,10 @@ class _LoginScreenState extends State<LoginScreen> {
             child: Container(
               decoration: const BoxDecoration(
                 image: DecorationImage(
-                  image: ExactAssetImage('assets/images/batik_pattern.png', scale: 4.0),
+                  image: ExactAssetImage(
+                    'assets/images/batik_pattern.png',
+                    scale: 4.0,
+                  ),
                   repeat: ImageRepeat.repeat,
                   fit: BoxFit.none,
                 ),
@@ -295,7 +297,7 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Widget _buildLoginButton() {
-    return Container(
+    return SizedBox(
       width: double.infinity,
       height: 56, // Reduced height
       child: ElevatedButton(
@@ -397,11 +399,17 @@ class _LoginScreenState extends State<LoginScreen> {
             hintStyle: AppTextStyles.labelMd.copyWith(
               color: AppColors.outline.withAlpha(80),
             ),
-            prefixIcon: Icon(icon, color: AppColors.primary.withAlpha(180), size: 20),
+            prefixIcon: Icon(
+              icon,
+              color: AppColors.primary.withAlpha(180),
+              size: 20,
+            ),
             suffixIcon: isPassword
                 ? IconButton(
                     icon: Icon(
-                      _isPasswordVisible ? Icons.visibility_rounded : Icons.visibility_off_rounded,
+                      _isPasswordVisible
+                          ? Icons.visibility_rounded
+                          : Icons.visibility_off_rounded,
                       color: AppColors.outline.withAlpha(120),
                       size: 20,
                     ),
@@ -420,9 +428,15 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
-              borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+              borderSide: const BorderSide(
+                color: AppColors.primary,
+                width: 1.5,
+              ),
             ),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 20,
+              vertical: 18,
+            ),
           ),
         ),
       ],

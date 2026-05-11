@@ -11,6 +11,17 @@ import AdminDashboard from './pages/SuperAdmin/AdminDashboard'
 import FacultyLayout from './pages/FacultyAdmin/components/FacultyLayout'
 import FacultyDashboard from './pages/FacultyAdmin/FacultyDashboard'
 import OrmawaDashboard from './pages/OrmawaAdmin/OrmawaDashboard'
+import PsychologistDashboard from './pages/Psychologist/PsychologistDashboard'
+import BookingManagement from './pages/Psychologist/BookingManagement'
+import BookingDetail from './pages/Psychologist/BookingDetail'
+import ScheduleManagement from './pages/Psychologist/ScheduleManagement'
+import PatientList from './pages/Psychologist/PatientList'
+import PatientMedicalRecord from './pages/Psychologist/PatientMedicalRecord'
+import AssessmentManagement from './pages/Psychologist/AssessmentManagement'
+import AnalyticsTrends from './pages/Psychologist/AnalyticsTrends'
+import ClinicalReports from './pages/Psychologist/ClinicalReports'
+import NotificationsCenter from './pages/Psychologist/NotificationsCenter'
+import PsychologistSettings from './pages/Psychologist/PsychologistSettings'
 
 // Error Pages & Components
 import ErrorBoundary from './components/ErrorBoundary'
@@ -261,6 +272,26 @@ function App() {
                 </Routes>
               </ProtectedRoute>
             } />
+            {/* Psychologist Portal Routes */}
+            <Route path="/psychologist/*" element={
+              <ProtectedRoute allowedRoles={['dosen', 'psikolog']}>
+                <Routes>
+                  <Route index element={<PsychologistDashboard />} />
+                  {/* Sub-routes can be added here later */}
+                  <Route path="bookings" element={<BookingManagement />} />
+                  <Route path="bookings/:id" element={<BookingDetail />} />
+                  <Route path="schedule" element={<ScheduleManagement />} />
+                  <Route path="patients" element={<PatientList />} />
+                  <Route path="patients/:id/medical-record" element={<PatientMedicalRecord />} />
+                  <Route path="assessments" element={<AssessmentManagement />} />
+                  <Route path="analytics" element={<AnalyticsTrends />} />
+                  <Route path="reports" element={<ClinicalReports />} />
+                  <Route path="notifications" element={<NotificationsCenter />} />
+                  <Route path="settings" element={<PsychologistSettings />} />
+                </Routes>
+              </ProtectedRoute>
+            } />
+
             {/* Student Portal (BKU Student Hub) */}
             <Route path="/student" element={<AppLayout />}>
               <Route index element={<Navigate to="dashboard" replace />} />

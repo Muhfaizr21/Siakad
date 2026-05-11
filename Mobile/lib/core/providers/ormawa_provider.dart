@@ -12,18 +12,18 @@ class OrmawaProvider extends ChangeNotifier {
 
   // Organization Info
   String _orgName = "BEM KBM BHAKTI KENCANA";
-  String _academicYear = "2025/2026";
-  
+  final String _academicYear = "2025/2026";
+
   // Stats
-  int _totalMembers = 124;
-  double _balance = 2400000; // 2.4M
+  final int _totalMembers = 124;
+  final double _balance = 2400000; // 2.4M
   int _activeProposalsCount = 3;
-  int _upcomingAgendasCount = 2;
+  final int _upcomingAgendasCount = 2;
 
   // PKKMB Stats
-  int _totalPKKMBParticipants = 10160;
-  int _passedPKKMBCount = 8450;
-  int _inProgressPKKMBCount = 1710;
+  final int _totalPKKMBParticipants = 10160;
+  final int _passedPKKMBCount = 8450;
+  final int _inProgressPKKMBCount = 1710;
 
   // Getters
   String get orgName => _orgName;
@@ -32,7 +32,7 @@ class OrmawaProvider extends ChangeNotifier {
   double get balance => _balance;
   int get activeProposalsCount => _activeProposalsCount;
   int get upcomingAgendasCount => _upcomingAgendasCount;
-  
+
   List<OrmawaProposal> get proposals => _repository.getProposals();
   List<OrmawaAgenda> get agendas => _repository.getAgendas();
 
