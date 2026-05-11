@@ -21,6 +21,7 @@ import { motion } from 'framer-motion';
 import { useParams, Link, NavLink } from 'react-router-dom';
 import { useVoiceDetailQuery } from '../../queries/useStudentVoiceQuery';
 import { Skeleton } from '../../components/ui/Skeleton';
+import { API_BASE_URL } from '../../services/api';
 
 export default function StudentVoiceDetailPage() {
   const { id } = useParams();
@@ -133,7 +134,7 @@ export default function StudentVoiceDetailPage() {
                         </div>
                       </div>
                       <a 
-                        href={`http://localhost:8000${ticket.lampiran_url}`} 
+                        href={`${API_BASE_URL.replace('/api', '')}${ticket.lampiran_url}`} 
                         target="_blank" 
                         rel="noopener noreferrer"
                         className="flex items-center justify-center gap-2 px-6 py-2.5 bg-[#00236F] text-white font-medium rounded-xl hover:bg-[#0B4FAE] transition-colors text-sm"

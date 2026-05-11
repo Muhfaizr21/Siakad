@@ -32,6 +32,9 @@ import {
 import { DataTable } from "./components/data-table"
 import { cn } from "@/lib/utils"
 import { PageContainer, PageHeader, ResponsiveGrid, ResponsiveCard } from "./components/responsive-layout"
+import { API_BASE_URL } from "../../services/api"
+
+const API = `${API_BASE_URL}/faculty`
 
 const CHART_COLORS = [
   "#3b82f6", // blue-500
@@ -66,7 +69,7 @@ export default function LaporanFakultasPage() {
 
   const fetchData = async () => {
     try {
-      const res = await axios.get("http://localhost:8000/api/faculty/reports/summary")
+      const res = await axios.get(`${API}/reports/summary`)
       if (res.data.status === "success") {
         setData(res.data.data || {
           summary: { total: 0, active: 0, graduated: 0, avgIPK: 0, totalPrestasi: 0, totalBeasiswa: 0, totalKonseling: 0 },

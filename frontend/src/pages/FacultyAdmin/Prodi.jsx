@@ -14,7 +14,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { toast, Toaster } from "react-hot-toast"
 import { cn } from "@/lib/utils"
 import { PageContainer, PageHeader, ResponsiveGrid, ResponsiveCard } from "./components/responsive-layout"
-import { pddiktiService } from "../../services/api"
+import { pddiktiService, API_BASE_URL } from "../../services/api"
+
+const API = `${API_BASE_URL}/faculty`
 
 export default function ProdiPage() {
   const [majors, setMajors] = useState([])
@@ -71,7 +73,7 @@ export default function ProdiPage() {
 
   const fetchFaculties = async () => {
     try {
-      const res = await fetch('http://localhost:8000/api/faculty/faculties')
+      const res = await fetch(`${API}/faculties`)
       const json = await res.json()
       if (json.status === 'success') {
         setFaculties(json.data)
@@ -101,7 +103,7 @@ export default function ProdiPage() {
   const handleSave = async (e) => {
     if (e) e.preventDefault()
     setIsSubmitting(true)
-    const url = isEditMode ? `http://localhost:8000/api/faculty/courses/${formData.ID}` : 'http://localhost:8000/api/faculty/courses'
+    const url = isEditMode ? `${API}/courses/${formData.ID}` : `${API}/courses`
     const method = isEditMode ? 'PUT' : 'POST'
 
     try {
@@ -136,7 +138,7 @@ export default function ProdiPage() {
     if (!selectedProdiId) return
     setIsSubmitting(true)
     try {
-      const res = await fetch(`http://localhost:8000/api/faculty/courses/${selectedProdiId}`, { method: 'DELETE' })
+      const res = await fetch(`${API}/courses/${selectedProdiId}`, { method: 'DELETE' })
       const json = await res.json()
       if (json.status === 'success') {
         toast.success("Program studi telah dihapus")

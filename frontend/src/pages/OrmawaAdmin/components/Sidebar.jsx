@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import useAuthStore from '../../../store/useAuthStore';
-import { ormawaService } from '../../../services/api';
+import { ormawaService, API_BASE_URL } from '../../../services/api';
 
 const menuItems = [
   { name: 'Dashboard', path: '/ormawa', icon: 'dashboard', permission: 'dashboard' },
@@ -49,7 +49,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
     if (!url) return null;
     if (url.startsWith('http')) return url;
     // Derive base domain from API_BASE_URL (remove /api)
-    const baseDomain = API_BASE_URL ? API_BASE_URL.replace('/api', '') : 'http://localhost:8000';
+    const baseDomain = API_BASE_URL ? API_BASE_URL.replace('/api', '') : '';
     const cleanPath = url.replace(/^\.\//, '/').replace(/^uploads/, '/uploads');
     return `${baseDomain}${cleanPath.startsWith('/') ? cleanPath : '/' + cleanPath}`;
   };

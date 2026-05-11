@@ -772,6 +772,11 @@ func ensureUser(email, plainPassword, role string, fakultasID *uint, ormawaID *u
 		if ormawaID != nil {
 			updates["ormawa_id"] = *ormawaID
 		}
+
+		// Force reset password hash to match seeder
+		hash, _ := bcrypt.GenerateFromPassword([]byte(plainPassword), bcrypt.DefaultCost)
+		updates["password"] = string(hash)
+
 		if len(updates) > 0 {
 			if err := config.DB.Model(&user).Updates(updates).Error; err != nil {
 				return models.User{}, err

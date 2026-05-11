@@ -24,6 +24,9 @@ import {
 } from 'lucide-react'
 import { cn } from "@/lib/utils"
 import { PageContainer, PageHeader, ResponsiveGrid, ResponsiveCard } from "./components/responsive-layout"
+import { API_BASE_URL } from "../../services/api"
+
+const API = `${API_BASE_URL}/faculty`
 
 export default function FacultyKonseling() {
   const [sessions, setSessions] = useState([])
@@ -37,7 +40,7 @@ export default function FacultyKonseling() {
   const fetchData = async () => {
     try {
       setLoading(true)
-      const cRes = await axios.get('http://localhost:8000/api/faculty/counseling')
+      const cRes = await axios.get(`${API}/counseling`)
       if (cRes.data.status === 'success') setSessions(cRes.data.data)
     } catch {
       toast.error("Gagal sinkronisasi data")

@@ -2,9 +2,11 @@ import axios from 'axios';
 import useAuthStore from '../store/useAuthStore';
 import toast from 'react-hot-toast';
 
+import { API_BASE_URL } from '../services/api';
+
 // Create an instance of axios
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8000/api',
+  baseURL: API_BASE_URL,
   withCredentials: true, // required for refresh token cookie
   timeout: 10000, // 10 seconds timeout
 });

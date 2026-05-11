@@ -6,6 +6,9 @@ import { Badge } from "./components/badge"
 import { Users, CheckCircle, Clock, Activity } from 'lucide-react'
 import { cn } from "@/lib/utils"
 import { PageContainer, PageHeader, ResponsiveGrid, ResponsiveCard } from "./components/responsive-layout"
+import { API_BASE_URL } from "../../services/api"
+
+const API = `${API_BASE_URL}/faculty`
 
 export default function FacultyPkkmb() {
   const [activeTab, setActiveTab] = useState('prodi') // 'prodi' or 'students'
@@ -25,7 +28,7 @@ export default function FacultyPkkmb() {
 
   const fetchSummary = async () => {
     try {
-      const response = await fetch('http://localhost:8000/api/faculty/ringkasan')
+      const response = await fetch(`${API}/ringkasan`)
       const result = await response.json()
       if (result.status === 'success') {
         setData(result.prodiBreakdown)
@@ -39,7 +42,7 @@ export default function FacultyPkkmb() {
   const fetchStudents = async () => {
     setLoading(true)
     try {
-      const response = await fetch('http://localhost:8000/api/faculty/peserta')
+      const response = await fetch(`${API}/peserta`)
       const result = await response.json()
       if (result.status === 'success') {
         setStudents(result.data)

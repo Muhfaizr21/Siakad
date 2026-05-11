@@ -7,7 +7,7 @@ class ApiInterceptor extends Interceptor {
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) async {
     // Inject token if available
     final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('auth_token');
+    final token = prefs.getString('access_token');
     
     if (token != null) {
       options.headers['Authorization'] = 'Bearer $token';
@@ -37,7 +37,7 @@ class ApiInterceptor extends Interceptor {
     if (err.response?.statusCode == 401) {
       log('Unauthorized! Session expired or invalid token.');
       final prefs = await SharedPreferences.getInstance();
-      await prefs.remove('auth_token');
+      await prefs.remove('access_token');
       // TODO: Handle global navigation to Login Screen
     }
 

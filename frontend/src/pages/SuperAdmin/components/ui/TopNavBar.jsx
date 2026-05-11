@@ -28,6 +28,7 @@ import {
 } from 'lucide-react'
 import { Button } from './button'
 import { Badge } from './badge'
+import { API_BASE_URL } from '../../../services/api'
 
 const TopNavBar = ({ setIsOpen }) => {
   const location = useLocation();
@@ -62,7 +63,7 @@ const TopNavBar = ({ setIsOpen }) => {
 
   const fetchNotifStats = async () => {
     try {
-      const res = await fetch('http://localhost:8000/api/faculty/notifications/stats');
+      const res = await fetch(`${API_BASE_URL}/faculty/notifications/stats`);
       const json = await res.json();
       if (json.status === 'success') {
         setNotifications(json.data);

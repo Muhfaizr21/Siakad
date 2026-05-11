@@ -29,6 +29,7 @@ import {
 import { toast } from 'react-hot-toast';
 import { TableSkeleton } from '../../components/ui/SkeletonGroups';
 import EmptyState from '../../components/ui/EmptyState';
+import { API_BASE_URL } from '../../services/api';
 
 // Format Date Utility
 function formatDate(dateStr) {
@@ -509,7 +510,7 @@ export default function AchievementPage() {
               <div className="mt-6">
                 <p className="font-semibold text-sm mb-2 text-[#a3a3a3]">Bukti Sertifikat</p>
                 {selectedDetail.BuktiURL ? (
-                  <a href={`http://localhost:8000${selectedDetail.BuktiURL}`} target="_blank" rel="noreferrer" className="flex items-center justify-center p-3 border border-[#e5e5e5] rounded-xl hover:bg-[#eef4ff] hover:border-[#00236F] transition-colors text-sm font-bold text-[#00236F]">
+                  <a href={`${API_BASE_URL.replace('/api', '')}${selectedDetail.BuktiURL}`} target="_blank" rel="noreferrer" className="flex items-center justify-center p-3 border border-[#e5e5e5] rounded-xl hover:bg-[#eef4ff] hover:border-[#00236F] transition-colors text-sm font-bold text-[#00236F]">
                     Lihat Dokumen Sertifikat
                   </a>
                 ) : (

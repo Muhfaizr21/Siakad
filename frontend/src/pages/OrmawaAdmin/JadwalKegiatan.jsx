@@ -16,10 +16,10 @@ import { cn } from '@/lib/utils'
 import Sidebar from './components/Sidebar'
 import TopNavBar from './components/TopNavBar'
 
-import { fetchWithAuth } from '../../services/api'
+import { fetchWithAuth, API_BASE_URL } from '../../services/api'
 import useAuthStore from '../../store/useAuthStore'
 
-const API = 'http://localhost:8000/api/ormawa'
+const API = `${API_BASE_URL}/ormawa`
 
 const STATUS_CFG = {
   terjadwal: { label: 'Terjadwal', cls: 'bg-blue-100 text-blue-700 ring-1 ring-blue-500/20' },

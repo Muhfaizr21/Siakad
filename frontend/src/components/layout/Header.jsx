@@ -8,6 +8,7 @@ import useAuthStore from '../../store/useAuthStore';
 import { menuItems } from '../../constants/menuItems';
 import api from '../../lib/axios';
 import { toast } from 'react-hot-toast';
+import { API_BASE_URL } from '../../services/api';
 
 export default function Header({ onMenuClick }) {
   const [searchQuery, setSearchQuery] = useState('');
@@ -42,7 +43,7 @@ export default function Header({ onMenuClick }) {
   const getFullUrl = (path) => {
     if (!path) return null;
     if (path.startsWith('http')) return path;
-    const baseUrl = (import.meta.env.VITE_API_URL || 'http://localhost:8000/api').replace('/api', '');
+    const baseUrl = API_BASE_URL.replace('/api', '');
     return `${baseUrl}${path}`;
   };
 

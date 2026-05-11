@@ -15,6 +15,9 @@ import { Label } from "./components/label"
 import { DataTable } from "./components/data-table"
 import { cn } from "@/lib/utils"
 import { PageContainer, PageHeader, ResponsiveGrid, ResponsiveCard } from "./components/responsive-layout"
+import { API_BASE_URL } from "../../services/api"
+
+const API = `${API_BASE_URL}/faculty`
 
 const FacultyAspirationManagement = () => {
   const [selectedItem, setSelectedItem] = useState(null)
@@ -31,7 +34,7 @@ const FacultyAspirationManagement = () => {
   const fetchAspirations = async () => {
     try {
       setLoading(true)
-      const response = await axios.get('http://localhost:8000/api/faculty/aspirasi')
+      const response = await axios.get(`${API}/aspirasi`)
       if (response.data.status === 'success') {
         setAspirations(response.data.data)
       }
@@ -44,7 +47,7 @@ const FacultyAspirationManagement = () => {
 
   const handleUpdateStatus = async (status) => {
     try {
-      const response = await axios.put(`http://localhost:8000/api/faculty/aspirasi/${selectedItem.ID}`, {
+      const response = await axios.put(`${API}/aspirasi/${selectedItem.ID}`, {
         Status: status,
         tanggapan: adminResponse
       })

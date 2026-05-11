@@ -1,5 +1,5 @@
 import 'package:dio/dio.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
+import '../services/api_gate.dart';
 import 'api_interceptors.dart';
 
 class ApiClient {
@@ -9,7 +9,7 @@ class ApiClient {
   late Dio dio;
 
   ApiClient._internal() {
-    final baseUrl = dotenv.env['BASE_URL'] ?? 'http://10.0.2.2:8080/api/v1';
+    final baseUrl = ApiGate.baseUrl;
 
     dio = Dio(
       BaseOptions(

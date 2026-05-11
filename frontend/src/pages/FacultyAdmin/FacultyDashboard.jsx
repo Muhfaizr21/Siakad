@@ -40,6 +40,9 @@ import {
 } from "recharts"
 import { DataTable } from "./components/data-table"
 import { PageContainer, PageHeader, ResponsiveGrid, ResponsiveCard } from "./components/responsive-layout"
+import { API_BASE_URL } from "../../services/api"
+
+const API = `${API_BASE_URL}/faculty`
 
 export default function DashboardPage() {
   const navigate = useNavigate();
@@ -60,7 +63,7 @@ export default function DashboardPage() {
     setIsMounted(true);
     const fetchDashboardData = async () => {
       try {
-        const response = await fetch('http://localhost:8000/api/faculty/summary');
+        const response = await fetch(`${API}/summary`);
         const result = await response.json();
         if (result.status === 'success') {
           setSummaryData(result.data);

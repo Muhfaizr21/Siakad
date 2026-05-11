@@ -21,6 +21,9 @@ import {
   SelectValue,
 } from "./components/select"
 import { PageContainer, PageHeader, ResponsiveGrid, ResponsiveCard } from "./components/responsive-layout"
+import { API_BASE_URL } from "../../services/api"
+
+const API = `${API_BASE_URL}/faculty`
 
 export default function FacultyPersuratan() {
   const [requests, setRequests] = useState([])
@@ -42,7 +45,7 @@ export default function FacultyPersuratan() {
   const fetchRequests = async () => {
     try {
       setLoading(true)
-      const response = await axios.get('http://localhost:8000/api/faculty/surat')
+      const response = await axios.get(`${API}/surat`)
       if (response.data.status === 'success') {
         setRequests(response.data.data)
       }
@@ -57,7 +60,7 @@ export default function FacultyPersuratan() {
     if (e) e.preventDefault();
     setIsSubmitting(true)
     try {
-      const response = await axios.put(`http://localhost:8000/api/faculty/surat/${selectedItem.ID}`, adminData)
+      const response = await axios.put(`${API}/surat/${selectedItem.ID}`, adminData)
       if (response.data.status === 'success') {
         toast.success('Status surat diperbarui')
         setShowModal(false)

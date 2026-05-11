@@ -16,10 +16,10 @@ import { cn } from '@/lib/utils'
 import Sidebar from './components/Sidebar'
 import TopNavBar from './components/TopNavBar'
 
-import { fetchWithAuth } from '../../services/api'
+import { fetchWithAuth, API_BASE_URL } from '../../services/api'
 import useAuthStore from '../../store/useAuthStore'
 
-const API = 'http://localhost:8000/api/ormawa'
+const API = `${API_BASE_URL}/ormawa`
 const formatRp = (n) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(n || 0)
 
 const STATUS_CFG = {

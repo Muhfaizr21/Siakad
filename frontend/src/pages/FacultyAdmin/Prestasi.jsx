@@ -10,6 +10,9 @@ import { Modal, ModalBody, ModalFooter, ModalBtn } from "./components/Modal"
 import { toast, Toaster } from "react-hot-toast"
 import { cn } from "@/lib/utils"
 import { PageContainer, PageHeader, ResponsiveGrid, ResponsiveCard } from "./components/responsive-layout"
+import { API_BASE_URL } from "../../services/api"
+
+const API = `${API_BASE_URL}/faculty`
 
 export default function FacultyPrestasi() {
   const [achievements, setAchievements] = useState([])
@@ -25,7 +28,7 @@ export default function FacultyPrestasi() {
   const fetchData = async () => {
     try {
       setLoading(true)
-      const res = await fetch('http://localhost:8000/api/faculty/prestasi')
+      const res = await fetch(`${API}/prestasi`)
       const json = await res.json()
       if (json.status === "success") {
         setAchievements(json.data)
@@ -40,7 +43,7 @@ export default function FacultyPrestasi() {
   const handleValidation = async (id, status) => {
     setIsSubmitting(true)
     try {
-      const res = await fetch(`http://localhost:8000/api/faculty/prestasi/${id}/verify`, {
+      const res = await fetch(`${API}/prestasi/${id}/verify`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -278,7 +281,7 @@ export default function FacultyPrestasi() {
             <div>
               <p className="text-xs font-bold text-[#a3a3a3] uppercase tracking-wider mb-3">Bukti / Sertifikat</p>
               {sel?.BuktiURL ? (
-                <a href={`http://localhost:8000${sel.BuktiURL}`} target="_blank" rel="noreferrer"
+                <a href={`${API_BASE_URL.replace('/api', '')}${sel.BuktiURL}`} target="_blank" rel="noreferrer"
                   className="flex items-center gap-3 p-4 border border-[#e5e5e5] rounded-xl hover:bg-[#eef4ff] hover:border-[#00236F] transition-colors">
                   <div className="w-10 h-10 bg-[#eef4ff] rounded-xl flex items-center justify-center text-[#00236F] shrink-0">
                     <FileText size={18} />

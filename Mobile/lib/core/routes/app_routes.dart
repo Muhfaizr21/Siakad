@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:bkuhub_mobile/features/auth/presentation/pages/login_screen.dart';
+import 'package:bkuhub_mobile/features/auth/presentation/pages/splash_screen.dart';
 import 'package:bkuhub_mobile/features/main/presentation/pages/main_screen.dart';
 import 'package:bkuhub_mobile/features/ormawa/main/presentation/pages/ormawa_main_screen.dart';
 import 'package:bkuhub_mobile/features/mahasiswa/organisasi/presentation/pages/organisasi_screen.dart';
@@ -22,7 +23,8 @@ import 'package:bkuhub_mobile/features/counseling/presentation/pages/psychologis
 import 'package:bkuhub_mobile/features/mahasiswa/health/presentation/pages/health_screen.dart';
 
 class AppRoutes {
-  static const String login = '/';
+  static const String splash = '/';
+  static const String login = '/login';
   static const String studentMain = '/main';
   static const String ormawaMain = '/ormawa';
   static const String organisasi = '/organisasi';
@@ -52,8 +54,12 @@ class AppRoutes {
   static const String ormawa = ormawaMain;
 
   static final GoRouter router = GoRouter(
-    initialLocation: login,
+    initialLocation: splash,
     routes: [
+      GoRoute(
+        path: splash,
+        builder: (context, state) => const SplashScreen(),
+      ),
       GoRoute(
         path: login,
         builder: (context, state) => const LoginScreen(),

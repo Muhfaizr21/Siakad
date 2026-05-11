@@ -22,6 +22,9 @@ import {
   SelectValue,
 } from "./components/select"
 import { PageContainer, PageHeader, ResponsiveGrid, ResponsiveCard } from "./components/responsive-layout"
+import { API_BASE_URL } from "../../services/api"
+
+const API = `${API_BASE_URL}/faculty`
 
 export default function FacultyScholarship() {
   const [activeTab, setActiveTab] = useState('programs')
@@ -49,10 +52,10 @@ export default function FacultyScholarship() {
     try {
       setLoading(true)
       if (activeTab === 'programs') {
-        const res = await axios.get('http://localhost:8000/api/faculty/scholarships')
+        const res = await axios.get(`${API}/scholarships`)
         setScholarships(res.data.data)
       } else {
-        const res = await axios.get('http://localhost:8000/api/faculty/scholarships/applications')
+        const res = await axios.get(`${API}/scholarships/applications`)
         setApplications(res.data.data)
       }
     } catch {
@@ -71,7 +74,7 @@ export default function FacultyScholarship() {
     if (!selectedItem?.ID) return
     setIsSubmitting(true)
     try {
-      await axios.put(`http://localhost:8000/api/faculty/scholarships/applications/${selectedItem.ID}`, appForm)
+      await axios.put(`${API}/scholarships/applications/${selectedItem.ID}`, appForm)
       toast.success('Status diperbarui')
       setShowAppModal(false)
       fetchData()

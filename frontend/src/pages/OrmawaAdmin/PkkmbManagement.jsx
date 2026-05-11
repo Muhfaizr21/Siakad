@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Users, CheckCircle, Clock, GraduationCap, AlertCircle, Search, CalendarDays, Plus, Edit2, Trash2, X } from 'lucide-react';
-import { ormawaService, fetchWithAuth, getAuthToken } from '../../services/api';
+import { ormawaService, fetchWithAuth, getAuthToken, API_BASE_URL } from '../../services/api';
 import useAuthStore from '../../store/useAuthStore';
+
+const API = `${API_BASE_URL}/ormawa`;
 import Sidebar from './components/Sidebar';
 import TopNavBar from './components/TopNavBar';
 import { motion, AnimatePresence } from 'framer-motion';
