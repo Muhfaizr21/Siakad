@@ -39,6 +39,17 @@ func main() {
 		},
 	})
 
+	// Manual OPTIONS handler for Preflight
+	app.Use(func(c *fiber.Ctx) error {
+		if c.Method() == "OPTIONS" {
+			c.Set("Access-Control-Allow-Origin", "*")
+			c.Set("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS")
+			c.Set("Access-Control-Allow-Headers", "Origin, Content-Type, Accept, Authorization")
+			return c.SendStatus(fiber.StatusOK)
+		}
+		return c.Next()
+	})
+
 	// Middleware
 	app.Use(recover.New())
 	app.Use(logger.New())

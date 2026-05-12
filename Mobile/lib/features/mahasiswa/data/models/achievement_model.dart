@@ -26,28 +26,25 @@ class AchievementModel extends Achievement {
   factory AchievementModel.fromJson(Map<String, dynamic> json) {
     return AchievementModel(
       id: json['id']?.toString() ?? '',
-      title: json['title'] ?? '',
-      organizer: json['organizer'] ?? '',
-      level: json['level'] ?? '',
-      rank: json['rank'] ?? '',
-      date: json['date'] != null ? DateTime.parse(json['date']) : DateTime.now(),
+      title: json['nama_kegiatan'] ?? '',
+      organizer: json['penyelenggara'] ?? '',
+      level: json['tingkat'] ?? '',
+      rank: json['peringkat'] ?? '',
+      date: json['created_at'] != null ? DateTime.parse(json['created_at']) : DateTime.now(),
       status: json['status'] ?? 'Pending',
-      isSynced: json['isSynced'] ?? false,
-      certificateUrl: json['certificateUrl'],
+      isSynced: true,
+      certificateUrl: json['bukti_url'],
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'id': id,
-      'title': title,
-      'organizer': organizer,
-      'level': level,
-      'rank': rank,
-      'date': date.toIso8601String(),
+      'nama_kegiatan': title,
+      'kategori': 'Prestasi',
+      'tingkat': level,
+      'peringkat': rank,
       'status': status,
-      'isSynced': isSynced,
-      'certificateUrl': certificateUrl,
+      'bukti_url': certificateUrl,
     };
   }
 }

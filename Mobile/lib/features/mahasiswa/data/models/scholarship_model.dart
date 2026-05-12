@@ -26,28 +26,23 @@ class ScholarshipModel extends Scholarship {
   factory ScholarshipModel.fromJson(Map<String, dynamic> json) {
     return ScholarshipModel(
       id: json['id']?.toString() ?? '',
-      title: json['title'] ?? '',
-      provider: json['provider'] ?? '',
-      category: json['category'] ?? '',
+      title: json['nama'] ?? '',
+      provider: json['penyelenggara'] ?? '',
+      category: json['kategori'] ?? '',
       deadline: json['deadline'] ?? '',
-      coverAmount: json['coverAmount'] ?? '',
-      description: json['description'] ?? '',
+      coverAmount: (json['nilai_bantuan'] ?? 0).toString(),
+      description: json['deskripsi'] ?? '',
       status: json['status'] ?? 'Open',
-      applicationStatus: json['applicationStatus'],
+      applicationStatus: json['application_status'],
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'id': id,
-      'title': title,
-      'provider': provider,
-      'category': category,
-      'deadline': deadline,
-      'coverAmount': coverAmount,
-      'description': description,
-      'status': status,
-      'applicationStatus': applicationStatus,
+      'nama': title,
+      'penyelenggara': provider,
+      'kategori': category,
+      'deskripsi': description,
     };
   }
 }

@@ -13,25 +13,22 @@ class HealthRecordModel extends HealthRecord {
 
   factory HealthRecordModel.fromJson(Map<String, dynamic> json) {
     return HealthRecordModel(
-      id: json['id'] ?? '',
-      height: (json['height'] ?? 0).toDouble(),
-      weight: (json['weight'] ?? 0).toDouble(),
-      bloodPressure: json['bloodPressure'] ?? '',
-      heartRate: json['heartRate'] ?? 0,
-      temperature: (json['temperature'] ?? 0).toDouble(),
-      date: json['date'] != null ? DateTime.parse(json['date']) : DateTime.now(),
+      id: json['id']?.toString() ?? '',
+      height: (json['tinggi_badan'] ?? 0).toDouble(),
+      weight: (json['berat_badan'] ?? 0).toDouble(),
+      bloodPressure: "${json['sistole'] ?? 0}/${json['diastole'] ?? 0}",
+      heartRate: 0, // Not available in current backend
+      temperature: 0.0, // Not available in current backend
+      date: json['tanggal'] != null ? DateTime.parse(json['tanggal']) : DateTime.now(),
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'id': id,
-      'height': height,
-      'weight': weight,
-      'bloodPressure': bloodPressure,
-      'heartRate': heartRate,
-      'temperature': temperature,
-      'date': date.toIso8601String(),
+      'tinggi_badan': height,
+      'berat_badan': weight,
+      'sistole': int.tryParse(bloodPressure.split('/').first) ?? 0,
+      'diastole': int.tryParse(bloodPressure.split('/').last) ?? 0,
     };
   }
 }

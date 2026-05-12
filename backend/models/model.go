@@ -12,10 +12,10 @@ import (
 // ========================
 
 type BaseModel struct {
-	ID        uint `gorm:"primaryKey"`
-	CreatedAt time.Time
-	UpdatedAt time.Time
-	DeletedAt gorm.DeletedAt `gorm:"index"`
+	ID        uint           `gorm:"primaryKey" json:"id"`
+	CreatedAt time.Time      `json:"created_at"`
+	UpdatedAt time.Time      `json:"updated_at"`
+	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
 }
 
 // ========================
@@ -229,19 +229,19 @@ func (ProgramMBKM) TableName() string {
 
 type Prestasi struct {
 	BaseModel
-	MahasiswaID uint
-	Mahasiswa   Mahasiswa
+	MahasiswaID uint      `json:"mahasiswa_id"`
+	Mahasiswa   Mahasiswa `json:"mahasiswa,omitempty"`
 
-	NamaKegiatan string
-	Kategori     string
-	Tingkat      string
-	Peringkat    string
-	Status       string
-	Poin         int
-	BuktiURL     string
+	NamaKegiatan string `json:"nama_kegiatan"`
+	Kategori     string `json:"kategori"`
+	Tingkat      string `json:"tingkat"`
+	Peringkat    string `json:"peringkat"`
+	Status       string `json:"status"`
+	Poin         int    `json:"poin"`
+	BuktiURL     string `json:"bukti_url"`
 
-	RiwayatOrganisasiID *uint
-	RiwayatOrganisasi   *RiwayatOrganisasi `gorm:"foreignKey:RiwayatOrganisasiID"`
+	RiwayatOrganisasiID *uint              `json:"riwayat_organisasi_id,omitempty"`
+	RiwayatOrganisasi   *RiwayatOrganisasi `gorm:"foreignKey:RiwayatOrganisasiID" json:"riwayat_organisasi,omitempty"`
 }
 
 func (Prestasi) TableName() string {
@@ -250,17 +250,17 @@ func (Prestasi) TableName() string {
 
 type Beasiswa struct {
 	BaseModel
-	Nama          string
-	Penyelenggara string
-	Deskripsi     string
-	Deadline      time.Time
-	Kuota         int
-	IPKMin        float64
-	Kategori      string
-	NilaiBantuan  float64
-	Anggaran      float64 `json:"anggaran"`
+	Nama          string    `json:"nama"`
+	Penyelenggara string    `json:"penyelenggara"`
+	Deskripsi     string    `json:"deskripsi"`
+	Deadline      time.Time `json:"deadline"`
+	Kuota         int       `json:"kuota"`
+	IPKMin        float64   `json:"ipk_min"`
+	Kategori      string    `json:"kategori"`
+	NilaiBantuan  float64   `json:"nilai_bantuan"`
+	Anggaran      float64   `json:"anggaran"`
 
-	Pendaftaran []BeasiswaPendaftaran
+	Pendaftaran []BeasiswaPendaftaran `json:"pendaftaran,omitempty"`
 }
 
 func (Beasiswa) TableName() string {
@@ -286,18 +286,18 @@ func (BeasiswaPendaftaran) TableName() string {
 
 type Aspirasi struct {
 	BaseModel
-	MahasiswaID uint `gorm:"index"`
-	Mahasiswa   Mahasiswa
+	MahasiswaID uint      `gorm:"index" json:"mahasiswa_id"`
+	Mahasiswa   Mahasiswa `json:"mahasiswa,omitempty"`
 
-	Judul     string
-	Isi       string
-	Kategori  string
-	Tujuan    string
-	Status    string
-	Prioritas string // LOW, MEDIUM, HIGH, CRITICAL
-	Deadline  *time.Time
-	IsAnonim  bool
-	Respon    string
+	Judul     string     `json:"judul"`
+	Isi       string     `json:"isi"`
+	Kategori  string     `json:"kategori"`
+	Tujuan    string     `json:"tujuan"`
+	Status    string     `json:"status"`
+	Prioritas string     `json:"prioritas"` // LOW, MEDIUM, HIGH, CRITICAL
+	Deadline  *time.Time `json:"deadline,omitempty"`
+	IsAnonim  bool       `json:"is_anonim"`
+	Respon    string     `json:"respon"`
 }
 
 func (Aspirasi) TableName() string {
@@ -340,25 +340,25 @@ func (PengajuanSurat) TableName() string {
 
 type Kesehatan struct {
 	BaseModel
-	MahasiswaID uint `gorm:"index"`
-	Mahasiswa   Mahasiswa
+	MahasiswaID uint      `gorm:"index" json:"mahasiswa_id"`
+	Mahasiswa   Mahasiswa `json:"mahasiswa,omitempty"`
 
-	Tanggal          time.Time
-	JenisPemeriksaan string // misal: Screening Tahunan, Cek Rutin
-	Hasil            string // Sehat, Pantauan, Perlu Perhatian
-	Catatan          string
-	FileURL          string
+	Tanggal          time.Time `json:"tanggal"`
+	JenisPemeriksaan string    `json:"jenis_pemeriksaan"` // misal: Screening Tahunan, Cek Rutin
+	Hasil            string    `json:"hasil"`             // Sehat, Pantauan, Perlu Perhatian
+	Catatan          string    `json:"catatan"`
+	FileURL          string    `json:"file_url"`
 
 	// Detail Medis (Completeness like Health Screening)
-	TinggiBadan     float64
-	BeratBadan      float64
-	Sistole         int
-	Diastole        int
-	GulaDarah       int
-	ButaWarna       string // Normal, Parsial, Total
-	RiwayatPenyakit string
-	StatusKesehatan string // prima, stabil, kritis
-	GolonganDarah   string // A, B, AB, O
+	TinggiBadan     float64 `json:"tinggi_badan"`
+	BeratBadan      float64 `json:"berat_badan"`
+	Sistole         int     `json:"sistole"`
+	Diastole        int     `json:"diastole"`
+	GulaDarah       int     `json:"gula_darah"`
+	ButaWarna       string  `json:"buta_warna"` // Normal, Parsial, Total
+	RiwayatPenyakit string  `json:"riwayat_penyakit"`
+	StatusKesehatan string  `json:"status_kesehatan"` // prima, stabil, kritis
+	GolonganDarah   string  `json:"golongan_darah"`   // A, B, AB, O
 }
 
 func (Kesehatan) TableName() string {

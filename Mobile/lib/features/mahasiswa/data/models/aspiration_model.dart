@@ -14,27 +14,24 @@ class AspirationModel extends Aspiration {
 
   factory AspirationModel.fromJson(Map<String, dynamic> json) {
     return AspirationModel(
-      id: json['id'] ?? '',
-      category: json['category'] ?? '',
-      title: json['title'] ?? '',
-      description: json['description'] ?? '',
-      date: json['date'] != null ? DateTime.parse(json['date']) : DateTime.now(),
+      id: json['id']?.toString() ?? '',
+      category: json['kategori'] ?? '',
+      title: json['judul'] ?? '',
+      description: json['isi'] ?? '',
+      date: json['created_at'] != null ? DateTime.parse(json['created_at']) : DateTime.now(),
       status: json['status'] ?? '',
-      feedback: json['feedback'],
-      imageUrl: json['imageUrl'],
+      feedback: json['respon'],
+      imageUrl: json['file_url'],
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'id': id,
-      'category': category,
-      'title': title,
-      'description': description,
-      'date': date.toIso8601String(),
-      'status': status,
-      'feedback': feedback,
-      'imageUrl': imageUrl,
+      'judul': title,
+      'isi': description,
+      'kategori': category,
+      'is_anonim': false,
+      'tujuan': 'Fakultas',
     };
   }
 }
