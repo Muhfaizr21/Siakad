@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Sidebar from './components/Sidebar';
 import TopNavBar from './components/TopNavBar';
@@ -10,6 +10,7 @@ import {
   Bookmark, AlertCircle, X, Save
 } from 'lucide-react';
 import { UI } from '../../constants/designSystem';
+import { psychologistService } from '../../services/api';
 
 export default function PatientMedicalRecord() {
   const { id } = useParams();
@@ -25,55 +26,26 @@ export default function PatientMedicalRecord() {
     mood: 'Stabil'
   });
 
-  const [records, setRecords] = useState([
-    {
-      id: 1,
-      date: '10 Mei 2026',
-      time: '09:00',
-      complaint: 'Stres Akademik & Kurang Tidur',
-      observation: 'Mahasiswa terlihat gelisah, kontak mata kurang stabil. Mengaku kesulitan mengatur waktu antara praktikum dan organisasi.',
-      recommendation: 'Latihan teknik pernapasan (Box Breathing) 3x sehari. Kurangi kafein setelah jam 4 sore.',
-      mood: 'Cemas',
-      type: 'Konseling Individu'
-    },
-    {
-      id: 2,
-      date: '03 Mei 2026',
-      time: '14:00',
-      complaint: 'Kecemasan Menghadapi Ujian',
-      observation: 'Kondisi lebih tenang dibanding sesi sebelumnya. Sudah mencoba teknik pernapasan.',
-      recommendation: 'Lanjutkan jurnal harian untuk identifikasi pemicu cemas.',
-      mood: 'Netral',
-      type: 'Follow-up'
-    }
-  ]);
+  const [records, setRecords] = useState([]);
+  const [patient, setPatient] = useState({ id, name: 'Memuat...', nim: '-', faculty: '-', color: 'bg-primary', initials: '-', status: 'Baru', totalSessions: 0 });
 
-  const patient = {
-    id: id,
-    name: 'Ahmad Rizki Pratama',
-    nim: '2021310001',
-    faculty: 'Farmasi',
-    color: 'bg-primary',
-    initials: 'ARP',
-    status: 'Stabil',
-    totalSessions: records.length,
-  };
+  useEffect(() => {
+    let ignore = false;
+    psychologistService.getMedicalRecord(id).then((res) => {
+      if (!ignore) {
+        setPatient(res.data.patient);
+        setRecords(res.data.records || []);
+      }
+    });
+    return () => { ignore = true; };
+  }, [id]);
 
-  const handleAddRecord = (e) => {
+  const handleAddRecord = async (e) => {
     e.preventDefault();
-    const today = new Date();
-    const dateStr = today.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
-    const timeStr = today.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
-
-    const recordToAdd = {
-      id: Date.now(),
-      date: dateStr,
-      time: timeStr,
-      ...newRecord,
-      type: 'Konseling Baru'
-    };
-
-    setRecords([recordToAdd, ...records]);
+    await psychologistService.createSessionNote(id, { ...newRecord, type: 'Konseling Baru', status: newRecord.mood });
+    const res = await psychologistService.getMedicalRecord(id);
+    setPatient(res.data.patient);
+    setRecords(res.data.records || []);
     setIsModalOpen(false);
     setNewRecord({ complaint: '', observation: '', recommendation: '', mood: 'Stabil' });
   };

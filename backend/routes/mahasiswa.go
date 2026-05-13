@@ -13,6 +13,7 @@ func SetupMahasiswaRoutes(app *fiber.App) {
 
 	// Mahasiswa Dashboard
 	api.Get("/mahasiswa/dashboard", mahasiswa.GetDashboard)
+	api.Get("/mahasiswa/summary", mahasiswa.GetStudentSummary)
 	api.Get("/mahasiswa/kegiatan", mahasiswa.GetKegiatan)
 
 	// PKKMB (Kencana)
@@ -64,6 +65,11 @@ func SetupMahasiswaRoutes(app *fiber.App) {
 	counselingGroup := api.Group("/counseling")
 	counselingGroup.Get("/status", mahasiswa.GetCounselingStatus)
 	counselingGroup.Get("/jadwal", mahasiswa.GetCounselingJadwal)
+	counselingGroup.Get("/psychologists", mahasiswa.ListPsychologists)
+	counselingGroup.Get("/psychologists/:id/schedules", mahasiswa.GetPsychologistSchedules)
+	counselingGroup.Get("/psychologist-bookings", mahasiswa.GetStudentPsychologistBookings)
+	counselingGroup.Post("/psychologist-bookings", mahasiswa.CreateStudentPsychologistBooking)
+	counselingGroup.Delete("/psychologist-bookings/:id", mahasiswa.CancelStudentPsychologistBooking)
 	counselingGroup.Post("/booking", mahasiswa.CreateBooking)
 	counselingGroup.Post("/request", mahasiswa.RequestCounseling)
 	counselingGroup.Get("/riwayat", mahasiswa.GetCounselingRiwayat)

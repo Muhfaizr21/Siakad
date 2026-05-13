@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Sidebar from './components/Sidebar';
 import TopNavBar from './components/TopNavBar';
 import { 
@@ -9,17 +9,30 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { UI } from '../../constants/designSystem';
+import { psychologistService } from '../../services/api';
 
 export default function ClinicalReports() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
-  const reports = [
-    { id: 1, title: 'Laporan Bulanan Kesehatan Mental - Mei 2026', type: 'PDF', size: '2.4 MB', date: '10 Mei 2026', status: 'Selesai', color: 'text-rose-500', bg: 'bg-rose-50' },
-    { id: 2, title: 'Statistik Penggunaan Layanan Konseling Q1', type: 'XLSX', size: '1.8 MB', date: '05 Mei 2026', status: 'Selesai', color: 'text-emerald-500', bg: 'bg-emerald-50' },
-    { id: 3, title: 'Ringkasan Kasus Mahasiswa Berisiko Tinggi', type: 'PDF', size: '3.1 MB', date: '28 Apr 2026', status: 'Tinjauan', color: 'text-amber-500', bg: 'bg-amber-50' },
-    { id: 4, title: 'Laporan Tahunan BK 2025/2026', type: 'PDF', size: '12.5 MB', date: '15 Apr 2026', status: 'Selesai', color: 'text-blue-500', bg: 'bg-blue-50' },
-  ];
+  const [reports, setReports] = useState([]);
+
+  const loadReports = () => psychologistService.getReports().then((res) => setReports(res.data || []));
+
+  useEffect(() => {
+    let ignore = false;
+    psychologistService.getReports().then((res) => {
+      if (!ignore) setReports(res.data || []);
+    });
+    return () => { ignore = true; };
+  }, []);
+
+  const createReport = async () => {
+    await psychologistService.createReport();
+    await loadReports();
+  };
+
+  const filteredReports = reports.filter((report) => report.title.toLowerCase().includes(searchQuery.toLowerCase()));
 
   return (
     <div className="bg-surface text-on-surface min-h-screen">
@@ -36,7 +49,7 @@ export default function ClinicalReports() {
                 <h1 className="text-xl font-black text-primary uppercase tracking-tight font-headline">Laporan Klinis</h1>
                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Arsip dan manajemen dokumen laporan konseling</p>
              </div>
-             <button className="bg-primary text-white px-6 py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-primary/20 hover:scale-[1.02] transition-all flex items-center gap-2">
+              <button onClick={createReport} className="bg-primary text-white px-6 py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-primary/20 hover:scale-[1.02] transition-all flex items-center gap-2">
                 <FilePlus size={16} /> Generate Laporan Baru
              </button>
           </div>
@@ -75,11 +88,11 @@ export default function ClinicalReports() {
                          </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-50">
-                         {reports.map((report) => (
+                          {filteredReports.map((report) => (
                            <tr key={report.id} className="group hover:bg-slate-50/50 transition-colors">
                               <td className="px-8 py-5">
                                  <div className="flex items-center gap-4">
-                                    <div className={`size-10 rounded-xl ${report.bg} ${report.color} flex items-center justify-center shadow-sm`}>
+                                     <div className={`size-10 rounded-xl ${report.type === 'PDF' ? 'bg-rose-50 text-rose-500' : 'bg-emerald-50 text-emerald-500'} flex items-center justify-center shadow-sm`}>
                                        {report.type === 'PDF' ? <FileText size={18} /> : <FileSpreadsheet size={18} />}
                                     </div>
                                     <div>

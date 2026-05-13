@@ -22,12 +22,12 @@ type loginRequest struct {
 }
 
 type userResponse struct {
-	ID        uint   `json:"id"`
-	Email     string `json:"email"`
-	Role      string `json:"role"`
-	NIM       string `json:"nim,omitempty"`
-	Nama      string `json:"nama,omitempty"`
-	OrmawaID  *uint  `json:"ormawa_id,omitempty"`
+	ID       uint   `json:"id"`
+	Email    string `json:"email"`
+	Role     string `json:"role"`
+	NIM      string `json:"nim,omitempty"`
+	Nama     string `json:"nama,omitempty"`
+	OrmawaID *uint  `json:"ormawa_id,omitempty"`
 }
 
 func jwtSecret() []byte {
@@ -158,12 +158,12 @@ func Login(c *fiber.Ctx) error {
 			"access_token": token,
 			"mahasiswa":    student, // although for admin it might be empty
 			"user": userResponse{
-				ID:        user.ID,
-				Email:     user.Email,
-				Role:      roleName,
-				NIM:       student.NIM,
-				Nama:      student.Nama,
-				OrmawaID:  user.OrmawaID,
+				ID:       user.ID,
+				Email:    user.Email,
+				Role:     roleName,
+				NIM:      student.NIM,
+				Nama:     student.Nama,
+				OrmawaID: user.OrmawaID,
 			},
 		},
 	})
@@ -201,12 +201,12 @@ func Me(c *fiber.Ctx) error {
 		"status": "success",
 		"data": fiber.Map{
 			"user": userResponse{
-				ID:        user.ID,
-				Email:     user.Email,
-				Role:      user.Role,
-				NIM:       student.NIM,
-				Nama:      student.Nama,
-				OrmawaID:  user.OrmawaID,
+				ID:       user.ID,
+				Email:    user.Email,
+				Role:     user.Role,
+				NIM:      student.NIM,
+				Nama:     student.Nama,
+				OrmawaID: user.OrmawaID,
 			},
 		},
 	})
@@ -745,8 +745,12 @@ func EnsureBootstrapData() error {
 		}
 	}
 
-	_, err = ensureUser("psikolog@bku.ac.id", "psikolog123", "psikolog", nil, nil)
+	psikologUser, err := ensureUser("psikolog@bku.ac.id", "psikolog123", "psikolog", nil, nil)
 	if err != nil {
+		return err
+	}
+
+	if err := ensurePsychologistBootstrap(psikologUser); err != nil {
 		return err
 	}
 
@@ -757,6 +761,154 @@ func EnsureBootstrapData() error {
 	fmt.Println("   ormawa        : ormawa@bku.ac.id / ormawa123")
 	fmt.Println("   psikolog      : psikolog@bku.ac.id / psikolog123")
 	return nil
+}
+
+func ensurePsychologistBootstrap(user models.User) error {
+	var psikolog models.Psikolog
+	if err := config.DB.Where("user_id = ?", user.ID).First(&psikolog).Error; err != nil {
+		psikolog = models.Psikolog{
+			UserID:       user.ID,
+			Nama:         "Psikolog BKU",
+			Email:        user.Email,
+			NoHP:         "+62 812 3456 7890",
+			Spesialisasi: "Psikolog Klinis Pendidikan",
+			Bio:          "Berpengalaman menangani stres akademik, kecemasan, adaptasi kampus, dan pengembangan diri mahasiswa.",
+			Lokasi:       "Ruang Konseling Student Hub",
+			Bahasa:       "Indonesia, Inggris",
+			Tarif:        150000,
+			IsAktif:      true,
+		}
+		if err := config.DB.Create(&psikolog).Error; err != nil {
+			return err
+		}
+	} else {
+		updates := map[string]interface{}{
+			"email":    user.Email,
+			"is_aktif": true,
+		}
+		if psikolog.Nama == "" {
+			updates["nama"] = "Psikolog BKU"
+		}
+		if psikolog.Spesialisasi == "" {
+			updates["spesialisasi"] = "Psikolog Klinis Pendidikan"
+		}
+		if err := config.DB.Model(&psikolog).Updates(updates).Error; err != nil {
+			return err
+		}
+	}
+
+	scheduleSeeds := []models.PsikologScheduleSlot{
+		{PsikologID: psikolog.ID, Hari: "Senin", JamMulai: "09:00", JamSelesai: "12:00", Lokasi: "Ruang Konseling A", Kuota: 3, IsAktif: true},
+		{PsikologID: psikolog.ID, Hari: "Senin", JamMulai: "13:00", JamSelesai: "16:00", Lokasi: "Ruang Konseling A", Kuota: 3, IsAktif: true},
+		{PsikologID: psikolog.ID, Hari: "Selasa", JamMulai: "10:00", JamSelesai: "15:00", Lokasi: "Ruang Konseling A", Kuota: 4, IsAktif: true},
+		{PsikologID: psikolog.ID, Hari: "Rabu", JamMulai: "09:00", JamSelesai: "12:00", Lokasi: "Ruang Konseling B", Kuota: 3, IsAktif: true},
+		{PsikologID: psikolog.ID, Hari: "Jumat", JamMulai: "08:00", JamSelesai: "11:00", Lokasi: "Ruang Konseling A", Kuota: 2, IsAktif: true},
+	}
+	for _, seed := range scheduleSeeds {
+		var existing models.PsikologScheduleSlot
+		if err := config.DB.Where("psikolog_id = ? AND hari = ? AND jam_mulai = ?", psikolog.ID, seed.Hari, seed.JamMulai).First(&existing).Error; err != nil {
+			if err := config.DB.Create(&seed).Error; err != nil {
+				return err
+			}
+		}
+	}
+
+	students := []models.Mahasiswa{}
+	if err := config.DB.Preload("Fakultas").Preload("ProgramStudi").Limit(4).Find(&students).Error; err != nil {
+		return err
+	}
+	if len(students) == 0 {
+		return nil
+	}
+
+	topics := []string{"Stres Akademik", "Anxiety", "Adaptasi Kampus", "Kecemasan Ujian"}
+	statuses := []string{"Menunggu", "Dikonfirmasi", "Selesai", "Ditolak"}
+	for i, student := range students {
+		var booking models.PsikologBooking
+		if err := config.DB.Where("psikolog_id = ? AND mahasiswa_id = ? AND topik = ?", psikolog.ID, student.ID, topics[i%len(topics)]).First(&booking).Error; err != nil {
+			booking = models.PsikologBooking{
+				PsikologID:  psikolog.ID,
+				MahasiswaID: student.ID,
+				Tanggal:     time.Now().AddDate(0, 0, i+1),
+				JamMulai:    fmt.Sprintf("%02d:00", 9+i),
+				JamSelesai:  fmt.Sprintf("%02d:00", 10+i),
+				Topik:       topics[i%len(topics)],
+				Keluhan:     "Mahasiswa membutuhkan pendampingan terkait tekanan akademik dan pengelolaan emosi.",
+				Status:      statuses[i%len(statuses)],
+			}
+			if err := config.DB.Create(&booking).Error; err != nil {
+				return err
+			}
+		}
+
+		if i < 3 {
+			var note models.PsikologSessionNote
+			if err := config.DB.Where("psikolog_id = ? AND mahasiswa_id = ? AND keluhan = ?", psikolog.ID, student.ID, topics[i%len(topics)]).First(&note).Error; err != nil {
+				note = models.PsikologSessionNote{
+					PsikologID:   psikolog.ID,
+					MahasiswaID:  student.ID,
+					BookingID:    &booking.ID,
+					Tanggal:      time.Now().AddDate(0, 0, -i-1),
+					Keluhan:      topics[i%len(topics)],
+					Observasi:    "Mahasiswa terlihat kooperatif, mampu menjelaskan pemicu utama, dan membutuhkan struktur belajar yang lebih jelas.",
+					Rekomendasi:  "Latihan pernapasan, jurnal harian, dan jadwal belajar bertahap selama satu minggu.",
+					Mood:         []string{"Cemas", "Netral", "Stabil"}[i%3],
+					JenisSesi:    "Konseling Individu",
+					StatusPasien: []string{"Perlu Perhatian", "Pemulihan", "Stabil"}[i%3],
+				}
+				if err := config.DB.Create(&note).Error; err != nil {
+					return err
+				}
+			}
+		}
+	}
+
+	assessmentSeeds := []models.PsikologAssessment{
+		{PsikologID: psikolog.ID, MahasiswaID: &students[0].ID, Nama: "DASS-21 (Depresi)", Kategori: "Kesehatan Mental", Deskripsi: "Screening kondisi depresi, kecemasan, dan stres", Skor: "Normal", Status: "Selesai", SubmittedAt: ptrTime(time.Now().AddDate(0, 0, -1))},
+		{PsikologID: psikolog.ID, MahasiswaID: &students[0].ID, Nama: "Kecemasan Akademik", Kategori: "Kesehatan Mental", Deskripsi: "Pengukuran kecemasan terkait proses akademik", Skor: "Tinggi", Status: "Perlu Tinjauan", SubmittedAt: ptrTime(time.Now().AddDate(0, 0, -2))},
+		{PsikologID: psikolog.ID, Nama: "Tes Minat Karir", Kategori: "Minat Bakat", Deskripsi: "Instrumen eksplorasi minat karir mahasiswa", Skor: "-", Status: "Draft"},
+	}
+	for _, seed := range assessmentSeeds {
+		var existing models.PsikologAssessment
+		if err := config.DB.Where("psikolog_id = ? AND nama = ?", psikolog.ID, seed.Nama).First(&existing).Error; err != nil {
+			if err := config.DB.Create(&seed).Error; err != nil {
+				return err
+			}
+		}
+	}
+
+	reportSeeds := []models.PsikologReport{
+		{PsikologID: psikolog.ID, Judul: "Laporan Bulanan Kesehatan Mental - Mei 2026", Tipe: "PDF", Ukuran: "2.4 MB", Status: "Selesai", Periode: "Mei 2026", Tanggal: time.Now().AddDate(0, 0, -2), Ringkasan: "Ringkasan layanan konseling bulanan."},
+		{PsikologID: psikolog.ID, Judul: "Statistik Penggunaan Layanan Konseling Q1", Tipe: "XLSX", Ukuran: "1.8 MB", Status: "Selesai", Periode: "Q1 2026", Tanggal: time.Now().AddDate(0, 0, -7), Ringkasan: "Statistik agregat penggunaan layanan."},
+	}
+	for _, seed := range reportSeeds {
+		var existing models.PsikologReport
+		if err := config.DB.Where("psikolog_id = ? AND judul = ?", psikolog.ID, seed.Judul).First(&existing).Error; err != nil {
+			if err := config.DB.Create(&seed).Error; err != nil {
+				return err
+			}
+		}
+	}
+
+	notificationSeeds := []models.PsikologNotification{
+		{PsikologID: psikolog.ID, UserID: user.ID, Judul: "Janji Temu Baru", Deskripsi: "Mahasiswa menjadwalkan sesi konseling baru untuk besok pagi.", Tipe: "booking", IsRead: false},
+		{PsikologID: psikolog.ID, UserID: user.ID, Judul: "Submisi Asesmen", Deskripsi: "Hasil asesmen kecemasan akademik membutuhkan tinjauan.", Tipe: "assessment", IsRead: false},
+		{PsikologID: psikolog.ID, UserID: user.ID, Judul: "Laporan Siap", Deskripsi: "Laporan bulanan telah berhasil dibuat.", Tipe: "report", IsRead: true},
+	}
+	for _, seed := range notificationSeeds {
+		var existing models.PsikologNotification
+		if err := config.DB.Where("psikolog_id = ? AND judul = ?", psikolog.ID, seed.Judul).First(&existing).Error; err != nil {
+			if err := config.DB.Create(&seed).Error; err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
+func ptrTime(value time.Time) *time.Time {
+	return &value
 }
 
 func ensureUser(email, plainPassword, role string, fakultasID *uint, ormawaID *uint) (models.User, error) {

@@ -5,7 +5,7 @@ export const handleResponse = async (res) => {
   let data;
   try {
     data = await res.json();
-  } catch (e) {
+  } catch {
     data = { message: `Gagal memproses respon server (${res.status}). Pastikan backend berjalan.` };
   }
 
@@ -47,6 +47,54 @@ export const fetchWithAuth = (url, options = {}) => {
   };
 
   return fetch(url, { ...options, headers }).then(handleResponse);
+};
+
+export const psychologistService = {
+  getMe: () => fetchWithAuth(`${API_BASE_URL}/psychologist/me`),
+  updateProfile: (data) => fetchWithAuth(`${API_BASE_URL}/psychologist/profile`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  }),
+  changePassword: (data) => fetchWithAuth(`${API_BASE_URL}/psychologist/change-password`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  }),
+  getDashboard: () => fetchWithAuth(`${API_BASE_URL}/psychologist/dashboard`),
+  getBookings: () => fetchWithAuth(`${API_BASE_URL}/psychologist/bookings`),
+  getBookingDetail: (id) => fetchWithAuth(`${API_BASE_URL}/psychologist/bookings/${id}`),
+  updateBookingStatus: (id, status, note = '') => fetchWithAuth(`${API_BASE_URL}/psychologist/bookings/${id}/status`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ status, note })
+  }),
+  getSchedules: () => fetchWithAuth(`${API_BASE_URL}/psychologist/schedules`),
+  saveSchedules: (data) => fetchWithAuth(`${API_BASE_URL}/psychologist/schedules`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  }),
+  getPatients: () => fetchWithAuth(`${API_BASE_URL}/psychologist/patients`),
+  getMedicalRecord: (id) => fetchWithAuth(`${API_BASE_URL}/psychologist/patients/${id}/medical-record`),
+  createSessionNote: (id, data) => fetchWithAuth(`${API_BASE_URL}/psychologist/patients/${id}/session-notes`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  }),
+  getAssessments: () => fetchWithAuth(`${API_BASE_URL}/psychologist/assessments`),
+  createAssessment: (data) => fetchWithAuth(`${API_BASE_URL}/psychologist/assessments`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  }),
+  getAnalytics: () => fetchWithAuth(`${API_BASE_URL}/psychologist/analytics`),
+  getReports: () => fetchWithAuth(`${API_BASE_URL}/psychologist/reports`),
+  createReport: () => fetchWithAuth(`${API_BASE_URL}/psychologist/reports`, { method: 'POST' }),
+  getNotifications: () => fetchWithAuth(`${API_BASE_URL}/psychologist/notifications`),
+  markNotificationRead: (id) => fetchWithAuth(`${API_BASE_URL}/psychologist/notifications/${id}/read`, { method: 'PUT' }),
+  markAllNotificationsRead: () => fetchWithAuth(`${API_BASE_URL}/psychologist/notifications/read-all`, { method: 'PUT' }),
+  deleteNotification: (id) => fetchWithAuth(`${API_BASE_URL}/psychologist/notifications/${id}`, { method: 'DELETE' })
 };
 
 export const ormawaService = {
@@ -302,6 +350,15 @@ export const adminService = {
     body: JSON.stringify(data)
   }),
   deleteLecturer: (id) => fetchWithAuth(`${API_BASE_URL}/admin/lecturers/${id}`, {
+    method: 'DELETE'
+  }),
+  getAllPsychologists: () => fetchWithAuth(`${API_BASE_URL}/admin/psychologists`),
+  updatePsychologist: (id, data) => fetchWithAuth(`${API_BASE_URL}/admin/psychologists/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  }),
+  deletePsychologist: (id) => fetchWithAuth(`${API_BASE_URL}/admin/psychologists/${id}`, {
     method: 'DELETE'
   }),
   getAllOrmawa: () => fetchWithAuth(`${API_BASE_URL}/admin/ormawa`),

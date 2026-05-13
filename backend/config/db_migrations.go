@@ -12,7 +12,7 @@ func migrateModels(db *gorm.DB) error {
 	// ========================
 	// CREATE SCHEMA
 	// ========================
-	schemas := []string{"public", "fakultas", "mahasiswa", "ormawa"}
+	schemas := []string{"public", "fakultas", "mahasiswa", "ormawa", "psikolog"}
 	for _, s := range schemas {
 		if err := db.Exec(fmt.Sprintf("CREATE SCHEMA IF NOT EXISTS %s;", s)).Error; err != nil {
 			return err
@@ -64,6 +64,21 @@ func migrateModels(db *gorm.DB) error {
 		&models.LogAktivitas{},
 		&models.RiwayatOrganisasi{},
 		&models.Notifikasi{},
+	); err != nil {
+		return err
+	}
+
+	// ========================
+	// PSIKOLOG
+	// ========================
+	if err := db.AutoMigrate(
+		&models.Psikolog{},
+		&models.PsikologScheduleSlot{},
+		&models.PsikologBooking{},
+		&models.PsikologSessionNote{},
+		&models.PsikologAssessment{},
+		&models.PsikologReport{},
+		&models.PsikologNotification{},
 	); err != nil {
 		return err
 	}

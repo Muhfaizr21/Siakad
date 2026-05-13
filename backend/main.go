@@ -39,25 +39,20 @@ func main() {
 		},
 	})
 
-	// Manual OPTIONS handler for Preflight
-	app.Use(func(c *fiber.Ctx) error {
-		if c.Method() == "OPTIONS" {
-			c.Set("Access-Control-Allow-Origin", "*")
-			c.Set("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS")
-			c.Set("Access-Control-Allow-Headers", "Origin, Content-Type, Accept, Authorization")
-			return c.SendStatus(fiber.StatusOK)
-		}
-		return c.Next()
-	})
-
 	// Middleware
 	app.Use(recover.New())
 	app.Use(logger.New())
+
+	frontendURL := os.Getenv("FRONTEND_URL")
+	if frontendURL == "" {
+		frontendURL = "http://localhost:5173" // fallback
+	}
+
 	app.Use(cors.New(cors.Config{
-		AllowOrigins:     "*",
+		AllowOrigins:     frontendURL,
 		AllowHeaders:     "Origin, Content-Type, Accept, Authorization",
 		AllowMethods:     "GET, POST, PUT, DELETE, OPTIONS",
-		AllowCredentials: false,
+		AllowCredentials: true,
 	}))
 
 	// Static files
@@ -89,6 +84,7 @@ func main() {
 	routes.SetupMahasiswaRoutes(app)
 	routes.InisialisasiRuteFakultas(app)
 	routes.SetupOrmawaRoutes(app)
+	routes.SetupPsychologistRoutes(app)
 
 	// PDDIKTI Routes
 	api := app.Group("/api", middleware.AuthProtected)

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from './components/Sidebar';
 import TopNavBar from './components/TopNavBar';
@@ -9,19 +9,27 @@ import {
   TrendingUp, Download
 } from 'lucide-react';
 import { UI } from '../../constants/designSystem';
+import { psychologistService } from '../../services/api';
 
 export default function PatientList() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const navigate = useNavigate();
 
-  const patients = [
-    { id: 1, name: 'Ahmad Rizki Pratama', nim: '2021310001', faculty: 'Farmasi', sessions: 4, lastVisit: '10 Mei 2026', status: 'Stabil', color: 'bg-blue-500' },
-    { id: 2, name: 'Siti Rahayu Putri', nim: '2022310042', faculty: 'Farmasi', sessions: 2, lastVisit: '08 Mei 2026', status: 'Perlu Perhatian', color: 'bg-amber-500' },
-    { id: 3, name: 'Budi Santoso', nim: '2020310087', faculty: 'TI', sessions: 8, lastVisit: '05 Mei 2026', status: 'Pemulihan', color: 'bg-emerald-500' },
-    { id: 4, name: 'Dewi Lestari', nim: '2021310055', faculty: 'Psikologi', sessions: 1, lastVisit: '02 Mei 2026', status: 'Baru', color: 'bg-indigo-500' },
-    { id: 5, name: 'Fajar Nugroho', nim: '2022310019', faculty: 'Hukum', sessions: 5, lastVisit: '28 Apr 2026', status: 'Stabil', color: 'bg-blue-500' },
-  ];
+  const [patients, setPatients] = useState([]);
+
+  useEffect(() => {
+    let ignore = false;
+    psychologistService.getPatients().then((res) => {
+      if (!ignore) setPatients(res.data || []);
+    });
+    return () => { ignore = true; };
+  }, []);
+
+  const filteredPatients = useMemo(() => patients.filter((patient) => {
+    const query = searchQuery.toLowerCase();
+    return patient.name.toLowerCase().includes(query) || patient.nim.includes(searchQuery);
+  }), [patients, searchQuery]);
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -82,7 +90,7 @@ export default function PatientList() {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-50">
-                        {patients.map((patient) => (
+                         {filteredPatients.map((patient) => (
                           <tr key={patient.id} className="group hover:bg-slate-50/30 transition-colors">
                             <td className="px-6 py-4">
                               <div className="flex items-center gap-3">
@@ -143,14 +151,14 @@ export default function PatientList() {
                            <TrendingUp size={12} className="text-blue-400" />
                         </div>
                         <p className="text-[8px] font-black text-blue-400 uppercase tracking-widest">Total Pasien Unik</p>
-                        <p className="text-lg font-black text-blue-700">128 Orang</p>
+                         <p className="text-lg font-black text-blue-700">{patients.length} Orang</p>
                      </div>
                      <div className="p-4 rounded-2xl bg-amber-50/50 border border-amber-100">
                         <div className="flex items-center justify-between mb-2">
                            <Activity size={16} className="text-amber-600" />
                         </div>
                         <p className="text-[8px] font-black text-amber-400 uppercase tracking-widest">Sesi Bulan Ini</p>
-                        <p className="text-lg font-black text-amber-700">42 Sesi</p>
+                         <p className="text-lg font-black text-amber-700">{patients.reduce((sum, item) => sum + Number(item.sessions || 0), 0)} Sesi</p>
                      </div>
                   </div>
                </div>

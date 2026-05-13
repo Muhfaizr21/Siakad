@@ -1,228 +1,370 @@
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import Sidebar from './components/Sidebar';
 import TopNavBar from './components/TopNavBar';
-import { 
-  TrendingUp, Calendar, Users, Activity,
-  ArrowUpRight, ArrowDownRight, Filter,
-  Download, BarChart3, PieChart, LineChart,
-  Brain, AlertCircle, CheckCircle2,
-  Clock, MessageSquare
+import {
+  Activity,
+  AlertCircle,
+  BarChart3,
+  Brain,
+  CalendarDays,
+  CheckCircle2,
+  Clock,
+  Database,
+  Loader2,
+  MessageSquare,
+  RefreshCw,
+  TrendingUp,
+  Users,
 } from 'lucide-react';
 import { UI } from '../../constants/designSystem';
+import { psychologistService } from '../../services/api';
+
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+
+const STAT_SKINS = [
+  { icon: Users, color: 'text-primary', bg: 'bg-primary/10', ring: 'ring-primary/10' },
+  { icon: CheckCircle2, color: 'text-emerald-600', bg: 'bg-emerald-50', ring: 'ring-emerald-100' },
+  { icon: AlertCircle, color: 'text-rose-600', bg: 'bg-rose-50', ring: 'ring-rose-100' },
+  { icon: Activity, color: 'text-amber-600', bg: 'bg-amber-50', ring: 'ring-amber-100' },
+];
+
+const SOURCE_TABLES = [
+  { table: 'psikolog.bookings', note: 'isu dominan dan pasien unik' },
+  { table: 'psikolog.session_notes', note: 'sesi, tren bulanan, stabilitas' },
+  { table: 'psikolog.assessments', note: 'kasus mendesak' },
+];
+
+function toNumber(value) {
+  const number = Number(value);
+  return Number.isFinite(number) ? number : 0;
+}
+
+function formatValue(value) {
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric)) return value ?? '-';
+  return new Intl.NumberFormat('id-ID').format(numeric);
+}
 
 export default function AnalyticsTrends() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [timeRange, setTimeRange] = useState('6 Bulan Terakhir');
+  const [analytics, setAnalytics] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
-  const stats = [
-    { label: 'Total Pasien Unik', value: '1,284', trend: '+12%', isPositive: true, icon: Users, color: 'text-primary', bg: 'bg-primary/5' },
-    { label: 'Sesi Selesai', value: '452', trend: '+8%', isPositive: true, icon: CheckCircle2, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-    { label: 'Kasus Mendesak', value: '12', trend: '-15%', isPositive: true, icon: AlertCircle, color: 'text-rose-600', bg: 'bg-rose-50' },
-    { label: 'Kepuasan Layanan', value: '4.9', trend: '+2%', isPositive: true, icon: Activity, color: 'text-amber-600', bg: 'bg-amber-50' },
-  ];
+  const fetchAnalytics = useCallback(async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const res = await psychologistService.getAnalytics();
+      setAnalytics(res.data ?? res);
+    } catch (err) {
+      setError(err?.message || 'Gagal memuat data analitik.');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
-  const topIssues = [
-    { name: 'Stres Akademik', percentage: 45, color: 'bg-primary' },
-    { name: 'Kecemasan Karir', percentage: 25, color: 'bg-indigo-500' },
-    { name: 'Masalah Relasi', percentage: 15, color: 'bg-rose-500' },
-    { name: 'Lain-lain', percentage: 15, color: 'bg-slate-300' },
-  ];
+  useEffect(() => {
+    let mounted = true;
+    psychologistService
+      .getAnalytics()
+      .then((res) => {
+        if (mounted) setAnalytics(res.data ?? res);
+      })
+      .catch((err) => {
+        if (mounted) setError(err?.message || 'Gagal memuat data analitik.');
+      })
+      .finally(() => {
+        if (mounted) setLoading(false);
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const stats = useMemo(() => {
+    const rawStats = Array.isArray(analytics?.stats) ? analytics.stats : [];
+    return rawStats.map((stat, index) => ({
+      ...stat,
+      value: formatValue(stat.value),
+      icon: STAT_SKINS[index]?.icon || Activity,
+      color: STAT_SKINS[index]?.color || 'text-primary',
+      bg: STAT_SKINS[index]?.bg || 'bg-primary/10',
+      ring: STAT_SKINS[index]?.ring || 'ring-primary/10',
+    }));
+  }, [analytics]);
+
+  const monthly = useMemo(() => {
+    const source = Array.isArray(analytics?.monthly) ? analytics.monthly : [];
+    return MONTHS.map((_, index) => toNumber(source[index]));
+  }, [analytics]);
+
+  const topIssues = Array.isArray(analytics?.top_issues) ? analytics.top_issues : [];
+  const recommendations = Array.isArray(analytics?.recommendations) ? analytics.recommendations : [];
+  const activities = Array.isArray(analytics?.activities) ? analytics.activities : [];
+  const maxMonthly = Math.max(...monthly, 1);
+  const totalMonthlySessions = monthly.reduce((sum, item) => sum + item, 0);
+  const stablePercentage = Math.max(0, Math.min(100, toNumber(analytics?.stable_percentage)));
+  const hasAnalytics = Boolean(analytics) && !loading;
 
   return (
-    <div className="bg-surface text-on-surface min-h-screen">
+    <div className="min-h-screen bg-surface text-on-surface">
       <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
-      
+
       <main className={UI.layout.main}>
         <TopNavBar setIsOpen={setSidebarOpen} />
-        
-        <div className={UI.layout.canvas}>
-          
-          {/* Header & Filter */}
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
-             <div>
-                <h1 className="text-xl font-black text-primary uppercase tracking-tight font-headline">Analitik & Tren</h1>
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Pantau statistik kesehatan mental mahasiswa secara kolektif</p>
-             </div>
-             <div className="flex items-center gap-3">
-                <div className="bg-white border border-slate-100 rounded-2xl px-4 py-2 shadow-sm flex items-center gap-3">
-                   <Calendar size={16} className="text-slate-400" />
-                   <select 
-                     value={timeRange}
-                     onChange={(e) => setTimeRange(e.target.value)}
-                     className="text-[10px] font-black uppercase tracking-widest outline-none bg-transparent cursor-pointer"
-                   >
-                      <option>30 Hari Terakhir</option>
-                      <option>6 Bulan Terakhir</option>
-                      <option>1 Tahun Terakhir</option>
-                   </select>
-                </div>
-                <button className="p-2.5 bg-white border border-slate-100 rounded-2xl text-slate-400 hover:text-primary shadow-sm transition-all">
-                   <Download size={18} />
-                </button>
-             </div>
-          </div>
 
-          {/* Quick Stats Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-             {stats.map((stat, i) => (
-                <div key={i} className="bg-white p-6 rounded-[2.5rem] border border-slate-100 shadow-sm relative overflow-hidden group hover:scale-[1.03] transition-all">
-                   <div className="flex items-center justify-between mb-4">
-                      <div className={`size-12 rounded-2xl ${stat.bg} ${stat.color} flex items-center justify-center`}>
-                         <stat.icon size={24} />
-                      </div>
-                      <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-[9px] font-black ${stat.isPositive ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
-                         {stat.isPositive ? <ArrowUpRight size={10} /> : <ArrowDownRight size={10} />}
-                         {stat.trend}
-                      </div>
-                   </div>
-                   <h3 className="text-2xl font-black text-slate-900 tracking-tighter mb-1 font-headline">{stat.value}</h3>
-                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{stat.label}</p>
+        <div className={`${UI.layout.canvas} space-y-6`}>
+          <section className="overflow-hidden rounded-[2rem] border border-slate-100 bg-white shadow-sm">
+            <div className="grid gap-6 p-6 lg:grid-cols-[1fr_auto] lg:items-center lg:p-8">
+              <div className="space-y-4">
+                <div className="inline-flex items-center gap-2 rounded-full border border-primary/10 bg-primary/5 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-primary">
+                  <Database size={14} />
+                  Schema psikolog
                 </div>
-             ))}
-          </div>
+                <div>
+                  <h1 className="font-headline text-2xl font-black uppercase tracking-tight text-primary sm:text-3xl">
+                    Analitik & Tren
+                  </h1>
+                  <p className="mt-1 max-w-2xl text-xs font-semibold uppercase tracking-wider text-slate-400">
+                    Ringkasan real-time dari booking, catatan sesi, dan asesmen yang tersimpan di database.
+                  </p>
+                </div>
+              </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-             
-             {/* Main Chart Card (Col 8) */}
-             <div className="lg:col-span-8 space-y-6">
-                <div className="bg-white p-8 rounded-[3rem] border border-slate-100 shadow-sm">
-                   <div className="flex items-center justify-between mb-10">
+              <button
+                type="button"
+                onClick={fetchAnalytics}
+                disabled={loading}
+                className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 text-[10px] font-black uppercase tracking-widest text-slate-600 shadow-sm transition hover:border-primary/30 hover:text-primary disabled:cursor-wait disabled:opacity-60"
+              >
+                {loading ? <Loader2 size={16} className="animate-spin" /> : <RefreshCw size={16} />}
+                Muat Ulang
+              </button>
+            </div>
+          </section>
+
+          {error && (
+            <div className="flex items-start gap-3 rounded-3xl border border-rose-100 bg-rose-50 px-5 py-4 text-rose-700">
+              <AlertCircle size={18} className="mt-0.5 shrink-0" />
+              <div>
+                <p className="text-xs font-black uppercase tracking-widest">Data belum bisa dimuat</p>
+                <p className="mt-1 text-sm font-medium">{error}</p>
+              </div>
+            </div>
+          )}
+
+          <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            {loading && !analytics
+              ? Array.from({ length: 4 }).map((_, index) => (
+                  <div key={index} className="h-36 animate-pulse rounded-[2rem] border border-slate-100 bg-white p-5 shadow-sm">
+                    <div className="mb-5 size-12 rounded-2xl bg-slate-100" />
+                    <div className="mb-3 h-7 w-20 rounded bg-slate-100" />
+                    <div className="h-3 w-32 rounded bg-slate-100" />
+                  </div>
+                ))
+              : stats.map((stat, index) => {
+                  const Icon = stat.icon;
+                  return (
+                    <div
+                      key={stat.label || index}
+                      className="rounded-[2rem] border border-slate-100 bg-white p-5 shadow-sm ring-1 ring-transparent transition hover:-translate-y-0.5 hover:shadow-md"
+                    >
+                      <div className="mb-5 flex items-center justify-between">
+                        <div className={`flex size-12 items-center justify-center rounded-2xl ${stat.bg} ${stat.color} ring-1 ${stat.ring}`}>
+                          <Icon size={23} />
+                        </div>
+                        <span className="rounded-full border border-slate-100 bg-slate-50 px-2.5 py-1 text-[9px] font-black uppercase tracking-widest text-slate-400">
+                          Live
+                        </span>
+                      </div>
+                      <p className="font-headline text-3xl font-black tracking-tight text-slate-950">{stat.value}</p>
+                      <p className="mt-1 text-[10px] font-black uppercase tracking-widest text-slate-400">{stat.label}</p>
+                    </div>
+                  );
+                })}
+          </section>
+
+          <section className="grid grid-cols-1 gap-6 xl:grid-cols-12">
+            <div className="space-y-6 xl:col-span-8">
+              <div className="rounded-[2rem] border border-slate-100 bg-white p-5 shadow-sm sm:p-6">
+                <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                  <div>
+                    <h2 className="flex items-center gap-2 text-sm font-black uppercase tracking-widest text-primary">
+                      <BarChart3 size={18} />
+                      Tren Sesi Bulanan
+                    </h2>
+                    <p className="mt-1 text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                      Total {formatValue(totalMonthlySessions)} sesi dari catatan sesi tersimpan
+                    </p>
+                  </div>
+                  <div className="inline-flex items-center gap-2 rounded-full border border-slate-100 bg-slate-50 px-3 py-1.5 text-[9px] font-black uppercase tracking-widest text-slate-500">
+                    <CalendarDays size={13} />
+                    Jan-Des
+                  </div>
+                </div>
+
+                <div className="h-72">
+                  {hasAnalytics && totalMonthlySessions === 0 ? (
+                    <div className="flex h-full items-center justify-center rounded-3xl border border-dashed border-slate-200 bg-slate-50 text-center">
                       <div>
-                         <h3 className="text-sm font-black text-primary uppercase tracking-widest flex items-center gap-2">
-                            <LineChart size={18} /> Tren Konseling Bulanan
-                         </h3>
-                         <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">Volume sesi selama {timeRange}</p>
+                        <p className="text-xs font-black uppercase tracking-widest text-slate-500">Belum ada sesi selesai</p>
+                        <p className="mt-1 text-xs font-semibold text-slate-400">Grafik akan terisi dari `psikolog.session_notes`.</p>
                       </div>
-                      <div className="flex gap-2">
-                         <div className="flex items-center gap-2 px-3 py-1 bg-slate-50 rounded-full border border-slate-100">
-                            <div className="size-2 bg-primary rounded-full"></div>
-                            <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest">Tahun Ini</span>
-                         </div>
-                      </div>
-                   </div>
-
-                   {/* Mock Chart Area */}
-                   <div className="h-64 flex items-end justify-between gap-4 px-2">
-                      {[40, 65, 45, 90, 75, 85, 60, 95, 80, 100, 70, 85].map((h, i) => (
-                        <div key={i} className="flex-1 flex flex-col items-center gap-3 group">
-                           <div className="w-full relative">
-                              <div 
-                                className="w-full bg-slate-50 rounded-full group-hover:bg-primary/10 transition-colors" 
-                                style={{ height: '200px' }}
-                              ></div>
-                              <div 
-                                className="absolute bottom-0 left-0 w-full bg-primary rounded-full group-hover:bg-indigo-600 transition-all duration-700"
-                                style={{ height: `${h}%` }}
-                              >
-                                 <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[8px] font-black px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">
-                                    {h}
-                                 </div>
-                              </div>
-                           </div>
-                           <span className="text-[8px] font-black text-slate-300 uppercase tracking-widest">
-                              {['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'][i]}
-                           </span>
-                        </div>
-                      ))}
-                   </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                   <div className="bg-slate-900 p-8 rounded-[3rem] text-white relative overflow-hidden shadow-xl shadow-slate-900/20">
-                      <div className="relative z-10">
-                         <h4 className="text-[10px] font-black uppercase tracking-widest mb-6 text-white/50">Isu Paling Dominan</h4>
-                         <div className="space-y-6">
-                            {topIssues.map((issue, i) => (
-                               <div key={i}>
-                                  <div className="flex justify-between items-center mb-2">
-                                     <span className="text-[10px] font-black uppercase tracking-widest">{issue.name}</span>
-                                     <span className="text-[10px] font-black">{issue.percentage}%</span>
-                                  </div>
-                                  <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
-                                     <div className={`h-full ${issue.color} rounded-full`} style={{ width: `${issue.percentage}%` }}></div>
-                                  </div>
-                               </div>
-                            ))}
-                         </div>
-                      </div>
-                      <Brain size={150} className="absolute -right-12 -bottom-12 text-white/5" />
-                   </div>
-
-                   <div className="bg-white p-8 rounded-[3rem] border border-slate-100 shadow-sm flex flex-col items-center justify-center text-center">
-                      <div className="size-32 rounded-full border-[12px] border-slate-50 flex items-center justify-center relative mb-6">
-                         <div className="absolute inset-0 rounded-full border-[12px] border-emerald-500 border-t-transparent -rotate-45"></div>
-                         <div className="text-center">
-                            <p className="text-2xl font-black text-slate-900 leading-none">82%</p>
-                            <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mt-1">Stabil</p>
-                         </div>
-                      </div>
-                      <h4 className="text-xs font-black text-slate-900 uppercase tracking-tight mb-2">Kesehatan Mental Kampus</h4>
-                      <p className="text-[10px] font-medium text-slate-400 uppercase leading-relaxed px-4">
-                         Sebagian besar mahasiswa dalam kondisi psikologis stabil bulan ini.
-                      </p>
-                   </div>
-                </div>
-             </div>
-
-             {/* Side Insights (Col 4) */}
-             <div className="lg:col-span-4 space-y-6">
-                <div className="bg-white p-8 rounded-[3rem] border border-slate-100 shadow-sm">
-                   <h3 className="text-xs font-black text-primary uppercase tracking-widest flex items-center gap-2 mb-8">
-                      <TrendingUp size={18} /> Rekomendasi Klinis
-                   </h3>
-                   <div className="space-y-6">
-                      <div className="p-4 bg-primary/5 rounded-3xl border border-primary/10 relative overflow-hidden group hover:bg-primary/10 transition-colors">
-                         <div className="relative z-10">
-                            <div className="flex items-center gap-2 mb-3">
-                               <div className="p-1.5 bg-primary text-white rounded-lg">
-                                  <AlertCircle size={14} />
-                               </div>
-                               <span className="text-[9px] font-black text-primary uppercase tracking-widest">Tindakan Diperlukan</span>
+                    </div>
+                  ) : (
+                    <div className="grid h-full grid-cols-12 items-end gap-2 sm:gap-3">
+                      {monthly.map((value, index) => {
+                        const height = value > 0 ? Math.max(8, Math.round((value / maxMonthly) * 100)) : 2;
+                        return (
+                          <div key={MONTHS[index]} className="group flex h-full min-w-0 flex-col items-center justify-end gap-2">
+                            <div className="relative flex h-full w-full items-end rounded-full bg-slate-50">
+                              <div
+                                className="w-full rounded-full bg-primary transition-all duration-500 group-hover:bg-indigo-600"
+                                style={{ height: `${height}%` }}
+                              />
+                              <span className="pointer-events-none absolute -top-7 left-1/2 -translate-x-1/2 rounded-full bg-slate-950 px-2 py-1 text-[9px] font-black text-white opacity-0 transition group-hover:opacity-100">
+                                {value}
+                              </span>
                             </div>
-                            <p className="text-[10px] font-bold text-slate-700 leading-relaxed uppercase">
-                               Tren stres akademik naik tajam menjelang UTS. Disarankan mengadakan workshop "Stress Management".
-                            </p>
-                         </div>
-                      </div>
-
-                      <div className="p-4 bg-emerald-50 rounded-3xl border border-emerald-100 relative overflow-hidden group hover:bg-emerald-100 transition-colors">
-                         <div className="relative z-10">
-                            <div className="flex items-center gap-2 mb-3">
-                               <div className="p-1.5 bg-emerald-500 text-white rounded-lg">
-                                  <CheckCircle2 size={14} />
-                               </div>
-                               <span className="text-[9px] font-black text-emerald-600 uppercase tracking-widest">Insight Positif</span>
-                            </div>
-                            <p className="text-[10px] font-bold text-slate-700 leading-relaxed uppercase">
-                               Program meditasi harian di asrama berhasil menurunkan tingkat kecemasan sebesar 15%.
-                            </p>
-                         </div>
-                      </div>
-                   </div>
+                            <span className="text-[9px] font-black uppercase tracking-widest text-slate-300">{MONTHS[index]}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
+              </div>
 
-                <div className="bg-white p-8 rounded-[3rem] border border-slate-100 shadow-sm">
-                   <h3 className="text-xs font-black text-primary uppercase tracking-widest flex items-center gap-2 mb-8">
-                      <Clock size={18} /> Aktivitas Terakhir
-                   </h3>
-                   <div className="space-y-6">
-                      {[1, 2, 3].map((_, i) => (
-                        <div key={i} className="flex gap-4 group cursor-pointer">
-                           <div className="size-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-primary/5 group-hover:text-primary transition-all">
-                              <MessageSquare size={18} />
-                           </div>
-                           <div className="flex-1">
-                              <p className="text-[10px] font-black text-slate-900 uppercase tracking-tight">Sesi Baru Selesai</p>
-                              <p className="text-[8px] font-bold text-slate-400 uppercase mt-0.5">30 Menit yang lalu • Farmasi</p>
-                           </div>
+              <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+                <div className="rounded-[2rem] bg-slate-950 p-6 text-white shadow-sm">
+                  <div className="mb-6 flex items-center justify-between gap-4">
+                    <div>
+                      <h3 className="text-xs font-black uppercase tracking-widest text-white">Isu Dominan</h3>
+                      <p className="mt-1 text-[10px] font-bold uppercase tracking-widest text-white/40">Dihitung dari topik booking</p>
+                    </div>
+                    <Brain size={26} className="text-white/30" />
+                  </div>
+
+                  <div className="space-y-5">
+                    {topIssues.length > 0 ? (
+                      topIssues.map((issue, index) => (
+                        <div key={`${issue.name}-${index}`}>
+                          <div className="mb-2 flex items-center justify-between gap-3">
+                            <span className="truncate text-[11px] font-black uppercase tracking-wider">{issue.name || 'Tanpa Topik'}</span>
+                            <span className="text-[11px] font-black text-white/70">{toNumber(issue.percentage)}%</span>
+                          </div>
+                          <div className="h-2 overflow-hidden rounded-full bg-white/10">
+                            <div className="h-full rounded-full bg-primary" style={{ width: `${Math.min(100, toNumber(issue.percentage))}%` }} />
+                          </div>
                         </div>
-                      ))}
-                   </div>
+                      ))
+                    ) : (
+                      <div className="rounded-3xl border border-white/10 bg-white/5 p-5 text-center">
+                        <p className="text-xs font-black uppercase tracking-widest text-white/70">Belum ada topik booking</p>
+                        <p className="mt-1 text-xs font-semibold text-white/40">Data muncul setelah ada booking mahasiswa.</p>
+                      </div>
+                    )}
+                  </div>
                 </div>
-             </div>
 
-          </div>
+                <div className="rounded-[2rem] border border-slate-100 bg-white p-6 text-center shadow-sm">
+                  <div className="mx-auto mb-5 flex size-36 items-center justify-center rounded-full bg-slate-50">
+                    <div
+                      className="flex size-28 items-center justify-center rounded-full"
+                      style={{ background: `conic-gradient(#10b981 ${stablePercentage * 3.6}deg, #e2e8f0 0deg)` }}
+                    >
+                      <div className="flex size-20 flex-col items-center justify-center rounded-full bg-white">
+                        <span className="font-headline text-2xl font-black text-slate-950">{stablePercentage}%</span>
+                        <span className="text-[8px] font-black uppercase tracking-widest text-slate-400">Stabil</span>
+                      </div>
+                    </div>
+                  </div>
+                  <h3 className="text-xs font-black uppercase tracking-widest text-slate-950">Stabilitas Pasien</h3>
+                  <p className="mx-auto mt-2 max-w-xs text-xs font-semibold leading-relaxed text-slate-400">
+                    Persentase status Stabil, Pemulihan, atau Membaik dari `psikolog.session_notes`.
+                  </p>
+                </div>
+              </div>
+            </div>
 
+            <aside className="space-y-6 xl:col-span-4">
+              <div className="rounded-[2rem] border border-slate-100 bg-white p-6 shadow-sm">
+                <h3 className="mb-5 flex items-center gap-2 text-xs font-black uppercase tracking-widest text-primary">
+                  <Database size={17} />
+                  Sumber Data
+                </h3>
+                <div className="space-y-3">
+                  {SOURCE_TABLES.map((source) => (
+                    <div key={source.table} className="rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3">
+                      <p className="text-[11px] font-black text-slate-900">{source.table}</p>
+                      <p className="mt-0.5 text-[9px] font-bold uppercase tracking-widest text-slate-400">{source.note}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="rounded-[2rem] border border-slate-100 bg-white p-6 shadow-sm">
+                <h3 className="mb-5 flex items-center gap-2 text-xs font-black uppercase tracking-widest text-primary">
+                  <TrendingUp size={17} />
+                  Rekomendasi
+                </h3>
+                <div className="space-y-3">
+                  {recommendations.length > 0 ? (
+                    recommendations.map((rec, index) => {
+                      const positive = rec.type === 'positive';
+                      return (
+                        <div
+                          key={`${rec.title}-${index}`}
+                          className={`rounded-2xl border px-4 py-3 ${positive ? 'border-emerald-100 bg-emerald-50' : 'border-amber-100 bg-amber-50'}`}
+                        >
+                          <div className="mb-2 flex items-center gap-2">
+                            {positive ? <CheckCircle2 size={15} className="text-emerald-600" /> : <AlertCircle size={15} className="text-amber-600" />}
+                            <p className={`text-[10px] font-black uppercase tracking-widest ${positive ? 'text-emerald-700' : 'text-amber-700'}`}>
+                              {rec.title}
+                            </p>
+                          </div>
+                          <p className="text-xs font-semibold leading-relaxed text-slate-600">{rec.description}</p>
+                        </div>
+                      );
+                    })
+                  ) : (
+                    <p className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-5 text-center text-xs font-semibold text-slate-400">
+                      Belum ada rekomendasi dari data saat ini.
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <div className="rounded-[2rem] border border-slate-100 bg-white p-6 shadow-sm">
+                <h3 className="mb-5 flex items-center gap-2 text-xs font-black uppercase tracking-widest text-primary">
+                  <Clock size={17} />
+                  Aktivitas Terakhir
+                </h3>
+                <div className="space-y-4">
+                  {activities.length > 0 ? (
+                    activities.map((activity, index) => (
+                      <div key={`${activity.title}-${index}`} className="flex gap-3">
+                        <div className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-primary/5 text-primary">
+                          <MessageSquare size={17} />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="truncate text-xs font-black uppercase tracking-wide text-slate-950">{activity.title}</p>
+                          <p className="mt-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">{activity.time}</p>
+                          <p className="mt-1 line-clamp-2 text-xs font-medium leading-relaxed text-slate-500">{activity.description}</p>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-5 text-center text-xs font-semibold text-slate-400">
+                      Belum ada aktivitas sesi.
+                    </p>
+                  )}
+                </div>
+              </div>
+            </aside>
+          </section>
         </div>
       </main>
     </div>

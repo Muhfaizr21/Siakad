@@ -23,6 +23,7 @@ const menuGroups = [
       { name: "Data Prodi", icon: Database, path: "/admin/prodi" },
       { name: "Data Mahasiswa", icon: GraduationCap, path: "/admin/students" },
       { name: "Data Dosen", icon: Briefcase, path: "/admin/lecturers" },
+      { name: "Data Psikolog", icon: BrainCircuit, path: "/admin/psychologists" },
     ]
   },
   {

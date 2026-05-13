@@ -22,6 +22,7 @@ obj/
 backend/server_*.log
 
 # Go
+.gocache/
 backend/vendor/
 backend/go.sum~
 backend/*.test

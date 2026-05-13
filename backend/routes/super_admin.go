@@ -47,6 +47,10 @@ func SetupSuperAdminRoutes(r fiber.Router) {
 	r.Put("/lecturers/:id", controllers.UpdateLecturer)
 	r.Delete("/lecturers/:id", controllers.DeleteLecturer)
 
+	r.Get("/psychologists", controllers.GetAllPsychologists)
+	r.Put("/psychologists/:id", controllers.UpdatePsychologist)
+	r.Delete("/psychologists/:id", controllers.DeletePsychologist)
+
 	r.Get("/aspirations", controllers.GetGlobalAspirations)
 	r.Put("/aspirations/:id/status", controllers.UpdateAspirationStatus)
 

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Sidebar from './components/Sidebar';
 import TopNavBar from './components/TopNavBar';
 import { 
@@ -8,32 +8,54 @@ import {
   TrendingUp, Clock, MoreVertical, X, Save
 } from 'lucide-react';
 import { UI } from '../../constants/designSystem';
+import { psychologistService } from '../../services/api';
 
 export default function AssessmentManagement() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('Semua');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [newAssessment, setNewAssessment] = useState({ nama: '', kategori: 'Kesehatan Mental', deskripsi: '' });
+  const [assessmentMeta, setAssessmentMeta] = useState({ verificationQueue: [], mentalScore: 0 });
 
-  const categories = [
-    { name: 'Kesehatan Mental', count: 12, icon: Heart, color: 'text-rose-600', bg: 'bg-rose-50', border: 'border-rose-100' },
-    { name: 'Kepribadian', count: 8, icon: Brain, color: 'text-indigo-600', bg: 'bg-indigo-50', border: 'border-indigo-100' },
-    { name: 'Minat Bakat', count: 5, icon: Target, color: 'text-amber-600', bg: 'bg-amber-50', border: 'border-amber-100' },
-    { name: 'Lainnya', count: 3, icon: Sparkles, color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-100' },
-  ];
+  const categoryStyle = {
+    'Kesehatan Mental': { icon: Heart, color: 'text-rose-600', bg: 'bg-rose-50', border: 'border-rose-100' },
+    'Kepribadian': { icon: Brain, color: 'text-indigo-600', bg: 'bg-indigo-50', border: 'border-indigo-100' },
+    'Minat Bakat': { icon: Target, color: 'text-amber-600', bg: 'bg-amber-50', border: 'border-amber-100' },
+    'Lainnya': { icon: Sparkles, color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-100' },
+  };
+  const [categories, setCategories] = useState(['Kesehatan Mental', 'Kepribadian', 'Minat Bakat', 'Lainnya'].map((name) => ({ name, count: 0, ...categoryStyle[name] })));
 
   const filterChips = ['Semua', 'Kesehatan Mental', 'Kepribadian', 'Minat Bakat', 'Lainnya'];
 
-  const [submissions, setSubmissions] = useState([
-    { id: 1, name: 'Ahmad Rizki Pratama', assessment: 'DASS-21 (Depresi)', category: 'Kesehatan Mental', score: 'Normal', date: 'Hari ini', color: 'bg-blue-500' },
-    { id: 2, name: 'Siti Rahayu Putri', assessment: 'Kecemasan Akademik', category: 'Kesehatan Mental', score: 'Tinggi', date: 'Kemarin', color: 'bg-rose-500' },
-    { id: 3, name: 'Budi Santoso', assessment: 'MBTI Personality', category: 'Kepribadian', score: 'INFP', date: '2 hari lalu', color: 'bg-indigo-500' },
-    { id: 4, name: 'Dewi Lestari', assessment: 'Tes Minat Karir', category: 'Minat Bakat', score: 'Artistik', date: '3 hari lalu', color: 'bg-amber-500' },
-  ]);
+  const [submissions, setSubmissions] = useState([]);
+
+  useEffect(() => {
+    let ignore = false;
+    psychologistService.getAssessments().then((res) => {
+      if (!ignore) {
+        setSubmissions(res.data.submissions || []);
+        setCategories((res.data.categories || []).map((cat) => ({ ...cat, ...(categoryStyle[cat.name] || categoryStyle.Lainnya) })));
+        setAssessmentMeta({ verificationQueue: res.data.verification_queue || [], mentalScore: res.data.mental_score || 0 });
+      }
+    });
+    return () => { ignore = true; };
+  }, []);
+
+  const handleCreateAssessment = async (e) => {
+    e.preventDefault();
+    await psychologistService.createAssessment(newAssessment);
+    const res = await psychologistService.getAssessments();
+    setSubmissions(res.data.submissions || []);
+    setCategories((res.data.categories || []).map((cat) => ({ ...cat, ...(categoryStyle[cat.name] || categoryStyle.Lainnya) })));
+    setAssessmentMeta({ verificationQueue: res.data.verification_queue || [], mentalScore: res.data.mental_score || 0 });
+    setNewAssessment({ nama: '', kategori: 'Kesehatan Mental', deskripsi: '' });
+    setIsModalOpen(false);
+  };
 
   const filteredSubmissions = submissions.filter(sub => {
     const matchesCategory = selectedCategory === 'Semua' || sub.category === selectedCategory;
-    const matchesSearch = sub.name.toLowerCase().includes(searchQuery.toLowerCase()) || sub.assessment.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch = (sub.name || '').toLowerCase().includes(searchQuery.toLowerCase()) || (sub.assessment || '').toLowerCase().includes(searchQuery.toLowerCase());
     return matchesCategory && matchesSearch;
   });
 
@@ -151,11 +173,11 @@ export default function AssessmentManagement() {
                    <div className="relative z-10">
                       <TrendingUp size={24} className="mb-4 text-white/50" />
                       <h4 className="text-[10px] font-black uppercase tracking-widest mb-2 opacity-70">Rata-rata Skor Mental</h4>
-                      <p className="text-3xl font-black tracking-tighter mb-4 font-headline">78.5</p>
+                       <p className="text-3xl font-black tracking-tighter mb-4 font-headline">{assessmentMeta.mentalScore}</p>
                       <div className="h-1 bg-white/20 rounded-full overflow-hidden">
                          <div className="h-full bg-white w-3/4 rounded-full"></div>
                       </div>
-                      <p className="text-[8px] font-bold uppercase tracking-widest mt-4 text-white/50">Meningkat 12% dari bulan lalu</p>
+                       <p className="text-[8px] font-bold uppercase tracking-widest mt-4 text-white/50">Dihitung dari skor asesmen tersimpan</p>
                    </div>
                    <Brain size={120} className="absolute -right-8 -bottom-8 text-white/5" />
                 </div>
@@ -165,16 +187,17 @@ export default function AssessmentManagement() {
                       <Clock size={16} /> Antrean Verifikasi
                    </h3>
                    <div className="space-y-4">
-                      {[1, 2].map((_, i) => (
-                        <div key={i} className="flex items-center gap-3">
-                           <div className="size-2 bg-amber-400 rounded-full"></div>
-                           <div className="flex-1">
-                              <p className="text-[10px] font-bold text-slate-700 uppercase tracking-tight">Tes Minat Bakat #129</p>
-                              <p className="text-[8px] text-slate-400 font-bold uppercase">12 Mahasiswa menunggu</p>
-                           </div>
-                           <button className="text-[8px] font-black text-primary uppercase tracking-widest hover:underline">Cek</button>
-                        </div>
-                      ))}
+                       {assessmentMeta.verificationQueue.map((item, i) => (
+                         <div key={i} className="flex items-center gap-3">
+                            <div className="size-2 bg-amber-400 rounded-full"></div>
+                            <div className="flex-1">
+                              <p className="text-[10px] font-bold text-slate-700 uppercase tracking-tight">{item.name}</p>
+                              <p className="text-[8px] text-slate-400 font-bold uppercase">{item.count} data menunggu</p>
+                            </div>
+                            <button className="text-[8px] font-black text-primary uppercase tracking-widest hover:underline">Cek</button>
+                         </div>
+                       ))}
+                       {assessmentMeta.verificationQueue.length === 0 && <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Tidak ada antrean</p>}
                    </div>
                 </div>
              </div>
@@ -197,27 +220,27 @@ export default function AssessmentManagement() {
                   </button>
                </div>
 
-               <form className="p-8 space-y-6">
+                <form onSubmit={handleCreateAssessment} className="p-8 space-y-6">
                   <div className="space-y-4">
                      <div>
                         <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-2 block">Nama Instrumen</label>
-                        <input className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-5 py-3 text-xs font-bold focus:ring-2 focus:ring-primary/20 transition-all outline-none" placeholder="Contoh: Tes Kecemasan DASS-21" />
+                         <input required value={newAssessment.nama} onChange={(e) => setNewAssessment({ ...newAssessment, nama: e.target.value })} className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-5 py-3 text-xs font-bold focus:ring-2 focus:ring-primary/20 transition-all outline-none" placeholder="Contoh: Tes Kecemasan DASS-21" />
                      </div>
                      <div>
                         <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-2 block">Kategori</label>
-                        <select className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-5 py-3 text-xs font-bold focus:ring-2 focus:ring-primary/20 transition-all outline-none appearance-none cursor-pointer">
+                         <select value={newAssessment.kategori} onChange={(e) => setNewAssessment({ ...newAssessment, kategori: e.target.value })} className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-5 py-3 text-xs font-bold focus:ring-2 focus:ring-primary/20 transition-all outline-none appearance-none cursor-pointer">
                            {categories.map(c => <option key={c.name}>{c.name}</option>)}
                         </select>
                      </div>
                      <div>
                         <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-2 block">Deskripsi Singkat</label>
-                        <textarea className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-5 py-3 text-xs font-medium focus:ring-2 focus:ring-primary/20 transition-all outline-none h-24 resize-none" placeholder="Jelaskan tujuan tes ini..." />
+                         <textarea value={newAssessment.deskripsi} onChange={(e) => setNewAssessment({ ...newAssessment, deskripsi: e.target.value })} className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-5 py-3 text-xs font-medium focus:ring-2 focus:ring-primary/20 transition-all outline-none h-24 resize-none" placeholder="Jelaskan tujuan tes ini..." />
                      </div>
                   </div>
 
                   <div className="pt-4 flex gap-3">
                      <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 py-4 bg-slate-50 text-slate-400 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-100 transition-all">Batal</button>
-                     <button type="button" className="flex-2 bg-primary text-white px-10 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-primary/20 flex items-center justify-center gap-2 hover:bg-primary/90 transition-all">
+                      <button type="submit" className="flex-2 bg-primary text-white px-10 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-primary/20 flex items-center justify-center gap-2 hover:bg-primary/90 transition-all">
                         <Save size={16} /> Publikasikan Tes
                      </button>
                   </div>

@@ -28,7 +28,7 @@ func GetUsers(c *fiber.Ctx) error {
 		Select(`
 			"public"."users".*, 
 			f.nama as fakultas_nama,
-			COALESCE(m.nama, d.nama) as identity_name,
+			COALESCE(m.nama, d.nama, ps.nama) as identity_name,
 			COALESCE(m.nim, d.n_id_n) as identity_code,
 			p.nama as prodi_nama,
 			(SELECT orm.nama FROM ormawa.ormawa_anggota oa 
@@ -39,6 +39,7 @@ func GetUsers(c *fiber.Ctx) error {
 		Joins(`LEFT JOIN "mahasiswa"."mahasiswa" m ON m.pengguna_id = "public"."users".id`).
 		Joins(`LEFT JOIN "fakultas"."program_studi" p ON p.id = m.program_studi_id`).
 		Joins(`LEFT JOIN "fakultas"."dosen" d ON d.pengguna_id = "public"."users".id`).
+		Joins(`LEFT JOIN "psikolog"."profiles" ps ON ps.user_id = "public"."users".id`).
 		Where(`"public"."users".deleted_at IS NULL`).
 		Order(`"public"."users".created_at desc`).
 		Scan(&results).Error
@@ -166,7 +167,7 @@ func CreateUser(c *fiber.Ctx) error {
 	req.Role = strings.TrimSpace(req.Role)
 	req.Nama = strings.TrimSpace(req.Nama)
 
-	if req.Role != "super_admin" && req.FakultasID == 0 {
+	if req.Role != "super_admin" && req.Role != "psikolog" && req.Role != "PSIKOLOG" && req.FakultasID == 0 {
 		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Fakultas wajib dipilih"})
 	}
 
@@ -261,6 +262,17 @@ func CreateUser(c *fiber.Ctx) error {
 			if req.OrmawaID != 0 {
 				tx.Exec("INSERT INTO ormawa.ormawa_anggota (mahasiswa_id, ormawa_id, role, status, joined_at, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
 					mhs.ID, req.OrmawaID, "Ketua/Admin", "aktif", time.Now(), time.Now(), time.Now())
+			}
+		case "psikolog", "PSIKOLOG":
+			psikolog := models.Psikolog{
+				UserID:       user.ID,
+				Nama:         req.Nama,
+				Email:        req.Email,
+				Spesialisasi: "Umum", // Default spesialisasi
+				IsAktif:      true,
+			}
+			if err := tx.Create(&psikolog).Error; err != nil {
+				return err
 			}
 		}
 
@@ -510,6 +522,35 @@ func GetAllLecturers(c *fiber.Ctx) error {
 	config.DB.Preload("Fakultas").Preload("ProgramStudi").Order("nama asc").Find(&lecturers)
 	return c.JSON(fiber.Map{"status": "success", "data": lecturers})
 }
+
+func GetAllPsychologists(c *fiber.Ctx) error {
+	var psychologists []models.Psikolog
+	config.DB.Order("nama asc").Find(&psychologists)
+	return c.JSON(fiber.Map{"status": "success", "data": psychologists})
+}
+
+func UpdatePsychologist(c *fiber.Ctx) error {
+	id := c.Params("id")
+	var psikolog models.Psikolog
+	if err := config.DB.First(&psikolog, id).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Psikolog not found"})
+	}
+	if err := c.BodyParser(&psikolog); err != nil {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": err.Error()})
+	}
+	config.DB.Save(&psikolog)
+	return c.JSON(fiber.Map{"status": "success", "data": psikolog})
+}
+
+func DeletePsychologist(c *fiber.Ctx) error {
+	id := c.Params("id")
+	if err := config.DB.Delete(&models.Psikolog{}, id).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": err.Error()})
+	}
+	return c.JSON(fiber.Map{"status": "success", "message": "Psikolog deleted"})
+}
+
+
 
 func GetGlobalAspirations(c *fiber.Ctx) error {
 	var asps []models.Aspirasi

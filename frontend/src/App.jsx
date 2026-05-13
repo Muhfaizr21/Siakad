@@ -111,6 +111,7 @@ import AdminPerformance from './pages/SuperAdmin/AdminPerformance'
 import AdminProfile from './pages/SuperAdmin/Profile'
 import SecuritySettings from './pages/SuperAdmin/SecuritySettings'
 import LecturerDirectory from './pages/SuperAdmin/LecturerDirectory'
+import PsychologistDirectory from './pages/SuperAdmin/PsychologistDirectory'
 import KelolaFakultas from './pages/SuperAdmin/KelolaFakultas'
 import KelolaProdi from './pages/SuperAdmin/KelolaProdi'
 import KelolaBeasiswa from './pages/SuperAdmin/KelolaBeasiswa'
@@ -194,6 +195,7 @@ function App() {
                     <Route path="performance" element={<AdminPerformance />} />
                     <Route path="security" element={<SecuritySettings />} />
                     <Route path="lecturers" element={<LecturerDirectory />} />
+                    <Route path="psychologists" element={<PsychologistDirectory />} />
                     <Route path="config" element={<AcademicPortal />} />
                     <Route path="faculties" element={<KelolaFakultas />} />
                     <Route path="prodi" element={<KelolaProdi />} />

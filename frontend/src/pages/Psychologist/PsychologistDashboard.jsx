@@ -1,27 +1,46 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Sidebar from './components/Sidebar';
 import TopNavBar from './components/TopNavBar';
+import { useNavigate } from 'react-router-dom';
 import { 
   Users, Calendar, Clock, ClipboardCheck, 
   TrendingUp, ArrowRight, Activity, 
   CheckCircle2, AlertCircle, FileText
 } from 'lucide-react';
 import { UI } from '../../constants/designSystem';
+import { psychologistService } from '../../services/api';
 
 export default function PsychologistDashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [dashboard, setDashboard] = useState(null);
+  const navigate = useNavigate();
 
-  const psychoStats = [
-    { label: 'Total Pasien', value: '128', progress: '100%', color: 'bg-blue-500' },
-    { label: 'Sesi Selesai', value: '42', progress: '75%', color: 'bg-emerald-500' },
-    { label: 'Menunggu', value: '12', progress: '25%', color: 'bg-amber-500' },
+  useEffect(() => {
+    let ignore = false;
+    psychologistService.getDashboard().then((res) => {
+      if (!ignore) setDashboard(res.data);
+    }).catch(() => {
+      if (!ignore) setDashboard(null);
+    });
+    return () => { ignore = true; };
+  }, []);
+
+  const psychoStats = dashboard?.stats || [
+    { label: 'Total Pasien', value: '0', progress: '0%', color: 'bg-blue-500' },
+    { label: 'Sesi Selesai', value: '0', progress: '0%', color: 'bg-emerald-500' },
+    { label: 'Menunggu', value: '0', progress: '0%', color: 'bg-amber-500' },
   ];
+  const bookings = dashboard?.bookings || [];
+  const waitingCount = dashboard?.waiting_count ?? 0;
+  const profileName = dashboard?.profile?.nama || 'Psikolog';
+  const currentSession = dashboard?.current_session || { available: false };
+  const recentActivities = dashboard?.recent_activities || [];
 
   const services = [
-    { name: 'Jadwal', icon: Calendar, color: 'text-blue-600', bg: 'bg-blue-50', hover: 'hover:bg-blue-600' },
-    { name: 'Rekam', icon: FileText, color: 'text-emerald-600', bg: 'bg-emerald-50', hover: 'hover:bg-emerald-600' },
-    { name: 'Asesmen', icon: ClipboardCheck, color: 'text-indigo-600', bg: 'bg-indigo-50', hover: 'hover:bg-indigo-600' },
-    { name: 'Analitik', icon: TrendingUp, color: 'text-amber-600', bg: 'bg-amber-50', hover: 'hover:bg-amber-600' },
+    { name: 'Jadwal', icon: Calendar, color: 'text-blue-600', bg: 'bg-blue-50', path: '/psychologist/schedule' },
+    { name: 'Rekam', icon: FileText, color: 'text-emerald-600', bg: 'bg-emerald-50', path: '/psychologist/patients' },
+    { name: 'Asesmen', icon: ClipboardCheck, color: 'text-indigo-600', bg: 'bg-indigo-50', path: '/psychologist/assessments' },
+    { name: 'Analitik', icon: TrendingUp, color: 'text-amber-600', bg: 'bg-amber-50', path: '/psychologist/analytics' },
   ];
 
   return (
@@ -45,16 +64,16 @@ export default function PsychologistDashboard() {
             </div>
             <div className="relative z-10 px-8">
               <h1 className="text-2xl font-black text-primary font-headline tracking-tight">
-                Selamat Sore, Psikolog! 👋
+                Selamat Sore, {profileName}! 👋
               </h1>
               <p className="text-sm font-medium text-on-primary-container/80 mt-1 max-w-md">
-                Ada 12 antrean menunggu perhatian Anda hari ini.
+                Ada {waitingCount} antrean menunggu perhatian Anda hari ini.
               </p>
               <div className="mt-4 flex gap-3">
-                <button className="bg-primary text-white px-4 py-2 rounded-xl font-bold text-xs shadow-sm hover:shadow-md transition-all">
+                <button onClick={() => navigate('/psychologist/bookings')} className="bg-primary text-white px-4 py-2 rounded-xl font-bold text-xs shadow-sm hover:shadow-md transition-all">
                   Lihat Hari Ini
                 </button>
-                <button className="bg-white/20 backdrop-blur-md border border-white/20 text-white px-4 py-2 rounded-xl font-bold text-xs hover:bg-white/30 transition-all">
+                <button onClick={() => navigate('/psychologist/patients')} className="bg-white/20 backdrop-blur-md border border-white/20 text-white px-4 py-2 rounded-xl font-bold text-xs hover:bg-white/30 transition-all">
                   Riwayat
                 </button>
               </div>
@@ -94,11 +113,11 @@ export default function PsychologistDashboard() {
                     <Activity size={20} />
                   </div>
                   <div>
-                    <h4 className="font-bold text-primary text-sm">Ahmad Syarif</h4>
-                    <p className="text-on-secondary-container text-[10px] font-medium">Stres Akademik</p>
+                    <h4 className="font-bold text-primary text-sm">{currentSession.available ? currentSession.name : 'Tidak ada sesi aktif'}</h4>
+                    <p className="text-on-secondary-container text-[10px] font-medium">{currentSession.available ? currentSession.issue : 'Jadwal hari ini kosong'}</p>
                   </div>
                 </div>
-                <button className="w-full bg-primary text-white py-2.5 rounded-xl font-bold text-xs hover:bg-primary/90 transition-colors shadow-sm">
+                <button onClick={() => currentSession.available && navigate(`/psychologist/patients/${currentSession.mahasiswa_id}/medical-record`)} className="w-full bg-primary text-white py-2.5 rounded-xl font-bold text-xs hover:bg-primary/90 transition-colors shadow-sm">
                   Buka Rekam Medis
                 </button>
               </div>
@@ -109,7 +128,7 @@ export default function PsychologistDashboard() {
               {/* Compact Quick Access */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 {services.map((item, i) => (
-                  <button key={i} className="group flex flex-col items-center justify-center p-4 bg-surface-container-low rounded-[1.5rem] border border-transparent hover:border-primary/20 hover:bg-white hover:shadow-md transition-all">
+                  <button key={i} onClick={() => navigate(item.path)} className="group flex flex-col items-center justify-center p-4 bg-surface-container-low rounded-[1.5rem] border border-transparent hover:border-primary/20 hover:bg-white hover:shadow-md transition-all">
                     <div className={`size-10 rounded-xl ${item.bg} ${item.color} flex items-center justify-center mb-2 group-hover:scale-110 transition-transform`}>
                       <item.icon size={20} />
                     </div>
@@ -122,21 +141,39 @@ export default function PsychologistDashboard() {
               <div className={UI.card.base + " p-5"}>
                 <div className="flex justify-between items-center mb-4">
                   <h3 className="font-bold text-primary text-sm">Booking Baru</h3>
-                  <button className="text-primary text-[10px] font-bold hover:underline">Lihat Semua</button>
+                  <button onClick={() => navigate('/psychologist/bookings')} className="text-primary text-[10px] font-bold hover:underline">Lihat Semua</button>
                 </div>
                 <div className="space-y-3">
-                  {[1, 2].map((_, i) => (
-                    <div key={i} className="bg-surface-container-low p-3 rounded-xl flex items-center gap-3 hover:bg-white hover:shadow-sm transition-all border border-transparent hover:border-slate-100">
+                  {bookings.slice(0, 2).map((booking) => (
+                    <button key={booking.id} onClick={() => navigate(`/psychologist/bookings/${booking.id}`)} className="w-full text-left bg-surface-container-low p-3 rounded-xl flex items-center gap-3 hover:bg-white hover:shadow-sm transition-all border border-transparent hover:border-slate-100">
                       <div className="size-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
                         <Users size={16} />
                       </div>
                       <div className="flex-1">
-                        <h5 className="font-bold text-xs">John Doe Syahputra</h5>
-                        <p className="text-[10px] text-on-surface-variant truncate italic">"Butuh bantuan terkait kecemasan skripsi."</p>
+                        <h5 className="font-bold text-xs">{booking.name}</h5>
+                        <p className="text-[10px] text-on-surface-variant truncate italic">"{booking.note || booking.issue}"</p>
                       </div>
                       <ArrowRight size={14} className="text-slate-300" />
+                    </button>
+                  ))}
+                  {bookings.length === 0 && <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Belum ada booking baru</p>}
+                </div>
+              </div>
+
+              <div className={UI.card.base + " p-5"}>
+                <h3 className="font-bold text-primary text-sm mb-4">Aktivitas Database Terbaru</h3>
+                <div className="space-y-3">
+                  {recentActivities.map((activity, i) => (
+                    <div key={i} className="flex gap-3 items-center p-3 rounded-xl bg-surface-container-low">
+                      <div className="size-8 rounded-lg bg-primary/5 text-primary flex items-center justify-center"><Clock size={14} /></div>
+                      <div className="flex-1">
+                        <p className="text-[10px] font-black text-slate-900 uppercase tracking-tight">{activity.title}</p>
+                        <p className="text-[9px] font-bold text-slate-400 uppercase">{activity.description}</p>
+                      </div>
+                      <span className="text-[8px] font-black text-slate-300 uppercase">{activity.time}</span>
                     </div>
                   ))}
+                  {recentActivities.length === 0 && <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Belum ada aktivitas</p>}
                 </div>
               </div>
             </div>

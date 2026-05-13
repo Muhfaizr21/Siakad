@@ -2,8 +2,9 @@ package middleware
 
 import (
 	"log"
-	"strings"
 	"siakad-backend/config"
+	"strings"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v5"
 )
@@ -64,7 +65,7 @@ func AuthProtected(c *fiber.Ctx) error {
 	} else {
 		c.Locals("ormawa_assign", "")
 	}
-	
+
 	c.Locals("nim", claims["nim"])
 
 	return c.Next()
@@ -74,7 +75,7 @@ func AdminCheck(c *fiber.Ctx) error {
 	role, ok := c.Locals("role").(string)
 	if !ok || strings.ToLower(role) != "super_admin" {
 		return c.Status(403).JSON(fiber.Map{
-			"status": "error",
+			"status":  "error",
 			"message": "Akses ditolak. Fitur ini hanya untuk Super Admin.",
 		})
 	}
@@ -90,10 +91,20 @@ func OrmawaCheck(c *fiber.Ctx) error {
 	if r != "ormawa" && r != "mahasiswa" && r != "ormawa_admin" {
 		// Mahasiswa allowed because Ormawa leads are Mahasiswa
 		return c.Status(403).JSON(fiber.Map{
-			"status": "error",
+			"status":  "error",
 			"message": "Akses ditolak. Fitur ini hanya untuk pengurus Ormawa.",
 		})
 	}
 	return c.Next()
 }
 
+func PsikologCheck(c *fiber.Ctx) error {
+	role, ok := c.Locals("role").(string)
+	if !ok || strings.ToLower(role) != "psikolog" {
+		return c.Status(403).JSON(fiber.Map{
+			"status":  "error",
+			"message": "Akses ditolak. Fitur ini hanya untuk Psikolog.",
+		})
+	}
+	return c.Next()
+}

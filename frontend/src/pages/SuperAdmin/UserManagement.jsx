@@ -23,7 +23,7 @@ import { cn } from '@/lib/utils'
 import { adminService } from '../../services/api'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './components/ui/select'
 
-const ROLES = ['super_admin', 'faculty_admin', 'ormawa_admin', 'dosen', 'mahasiswa']
+const ROLES = ['super_admin', 'faculty_admin', 'ormawa_admin', 'dosen', 'mahasiswa', 'psikolog']
 
 const ROLE_DETAILS = {
   super_admin: {
@@ -61,7 +61,14 @@ const ROLE_DETAILS = {
     desc: 'Pengguna akhir dengan akses ke layanan mandiri, pengajuan, dan aspirasi.',
     perms: ['Self Service', 'Aspiration', 'Proposal Submit', 'Profile View']
   },
-  MAHASISWA: { label: 'Mahasiswa', cls: 'bg-emerald-100 text-emerald-700 ring-1 ring-emerald-500/20', desc: 'Mahasiswa', perms: ['Self Service'] }
+  MAHASISWA: { label: 'Mahasiswa', cls: 'bg-emerald-100 text-emerald-700 ring-1 ring-emerald-500/20', desc: 'Mahasiswa', perms: ['Self Service'] },
+  psikolog: {
+    label: 'Psikolog',
+    cls: 'bg-teal-100 text-teal-700 ring-1 ring-teal-500/20',
+    desc: 'Otoritas pengelolaan konseling dan layanan psikologi mahasiswa.',
+    perms: ['Counseling', 'Assessments', 'Patient Reports', 'Schedule Mgmt']
+  },
+  PSIKOLOG: { label: 'Psikolog', cls: 'bg-teal-100 text-teal-700 ring-1 ring-teal-500/20', desc: 'Psikolog', perms: ['Counseling'] }
 }
 
 
@@ -69,7 +76,6 @@ export default function UserManagement() {
   const [users, setUsers] = useState([])
   const [faculties, setFaculties] = useState([])
   const [allProdi, setAllProdi] = useState([])
-  const [allOrmawa, setAllOrmawa] = useState([])
   const [loading, setLoading] = useState(true)
   const [selected, setSelected] = useState(null)
   const [isCrudOpen, setIsCrudOpen] = useState(false)
@@ -91,25 +97,25 @@ export default function UserManagement() {
   const fetchData = async () => {
     setLoading(true)
     try {
-      const [userRes, facRes, prodiRes, ormRes] = await Promise.all([
+      const [userRes, facRes, prodiRes] = await Promise.all([
         adminService.getAllUsers(),
         adminService.getAllFaculties(),
-        adminService.getAllProdi(),
-        adminService.getAllOrmawa()
+        adminService.getAllProdi()
       ])
 
       if (userRes?.status === 'success') setUsers(userRes.data || [])
       if (facRes?.status === 'success') setFaculties(facRes.data || [])
       if (prodiRes?.status === 'success') setAllProdi(prodiRes.data || [])
-      if (ormRes?.status === 'success') setAllOrmawa(ormRes.data || [])
     } catch (err) { 
       console.error("RBAC Fetch Error:", err)
       toast.error('Gagal sinkronisasi data master') 
     } finally { setLoading(false) }
   }
 
-
-  useEffect(() => { fetchData() }, [])
+  useEffect(() => { 
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchData() 
+  }, [])
 
   const handleCreate = async (e) => {
     e.preventDefault(); setIsSubmitting(true)
@@ -206,6 +212,9 @@ export default function UserManagement() {
         } else if (role === 'dosen' || role === 'DOSEN') {
           context = v || '-'
           subContext = row.prodi_nama || ''
+        } else if (role === 'psikolog' || role === 'PSIKOLOG') {
+          context = 'Layanan Psikologi'
+          subContext = 'Klinik Universitas'
         }
         
         return (
@@ -403,7 +412,7 @@ export default function UserManagement() {
                </div>
             </div>
 
-            {form.Role !== 'super_admin' && (
+            {form.Role !== 'super_admin' && form.Role !== 'psikolog' && form.Role !== 'PSIKOLOG' && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in slide-in-from-top-2 duration-300">
                 <div className="space-y-2.5">
                   <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Fakultas / Unit Kerja</Label>
@@ -417,7 +426,7 @@ export default function UserManagement() {
                   </Select>
                 </div>
 
-                {['mahasiswa', 'MAHASISWA', 'ormawa_admin'].includes(form.Role) && (
+                {['mahasiswa', 'MAHASISWA', 'ormawa_admin', 'dosen'].includes(form.Role) && (
                   <div className="space-y-2.5">
                     <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Program Studi {form.Role === 'ormawa_admin' ? '(Opsional)' : ''}</Label>
                     <Select value={String(form.ProgramStudiID)} onValueChange={v => setForm({ ...form, ProgramStudiID: v })}>

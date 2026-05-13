@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Sidebar from './components/Sidebar';
 import TopNavBar from './components/TopNavBar';
@@ -10,32 +10,32 @@ import {
   Activity, ExternalLink
 } from 'lucide-react';
 import { UI } from '../../constants/designSystem';
+import { psychologistService } from '../../services/api';
 
 export default function BookingDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [booking, setBooking] = useState(null);
 
-  const booking = {
-    id: id,
-    name: 'Ahmad Rizki Pratama',
-    nim: '2021310001',
-    email: 'ahmad.rizki@student.bku.ac.id',
-    phone: '0812-3456-7890',
-    prodi: 'S1 Farmasi',
-    semester: 6,
-    date: 'Senin, 12 Mei 2026',
-    time: '09:00 - 10:00',
-    issue: 'Stres Akademik',
-    status: 'Menunggu',
-    avatar: 'AR',
-    color: 'bg-primary',
-    note: 'Mahasiswa mengalami tekanan tinggi menjelang UAS dan kesulitan mengatur waktu belajar.',
-    history: [
-      { action: 'Booking Dibuat', time: '10 Mei, 14:20', icon: MessageSquare, color: 'text-blue-500' },
-      { action: 'Menunggu Konfirmasi', time: 'Sekarang', icon: Clock, color: 'text-amber-500' },
-    ]
+  useEffect(() => {
+    let ignore = false;
+    psychologistService.getBookingDetail(id).then((res) => {
+      if (!ignore) setBooking({ ...res.data, color: 'bg-primary' });
+    });
+    return () => { ignore = true; };
+  }, [id]);
+
+  const handleStatus = async (status) => {
+    await psychologistService.updateBookingStatus(id, status);
+    setBooking((prev) => ({ ...prev, status }));
   };
+
+  if (!booking) {
+    return <div className="bg-surface text-on-surface min-h-screen"><Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} /><main className={UI.layout.main}><TopNavBar setIsOpen={setSidebarOpen} /><div className={UI.layout.canvas}>Memuat detail booking...</div></main></div>;
+  }
+
+  const history = (booking.history || []).map((item) => ({ ...item, icon: item.type === 'created' ? MessageSquare : Clock, color: item.type === 'created' ? 'text-blue-500' : 'text-amber-500' }));
 
   return (
     <div className="bg-surface text-on-surface min-h-screen">
@@ -136,12 +136,12 @@ export default function BookingDetail() {
               <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 space-y-4">
                  <h3 className="text-[9px] font-black text-primary uppercase tracking-widest">Tindakan</h3>
                  <div className="space-y-2">
-                    <button className="w-full py-3 bg-primary text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-sm hover:shadow-md transition-all">
-                       Konfirmasi
-                    </button>
-                    <button className="w-full py-3 bg-rose-50 text-rose-600 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-rose-600 hover:text-white transition-all">
-                       Tolak
-                    </button>
+                     <button onClick={() => handleStatus('Dikonfirmasi')} className="w-full py-3 bg-primary text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-sm hover:shadow-md transition-all">
+                        Konfirmasi
+                     </button>
+                     <button onClick={() => handleStatus('Ditolak')} className="w-full py-3 bg-rose-50 text-rose-600 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-rose-600 hover:text-white transition-all">
+                        Tolak
+                     </button>
                  </div>
                  <button className="w-full py-3 border border-slate-100 text-slate-400 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2">
                     <FileText size={14} /> Rekam Medis
@@ -151,7 +151,7 @@ export default function BookingDetail() {
               <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
                  <h3 className="text-[9px] font-black text-primary uppercase tracking-widest mb-6">Riwayat</h3>
                  <div className="space-y-6 relative before:absolute before:left-5 before:top-2 before:bottom-2 before:w-[1px] before:bg-slate-100">
-                    {booking.history.map((item, i) => (
+                     {history.map((item, i) => (
                       <div key={i} className="flex gap-4 relative z-10">
                          <div className="size-10 rounded-xl bg-white border border-slate-100 flex items-center justify-center shadow-sm">
                             <item.icon className={`size-4 ${item.color}`} />
