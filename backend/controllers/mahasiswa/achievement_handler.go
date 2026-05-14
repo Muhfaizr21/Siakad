@@ -12,7 +12,6 @@ import (
 	"github.com/google/uuid"
 )
 
-
 // GetAchievements returns paginated achievements and total stats for an individual student
 func GetAchievements(c *fiber.Ctx) error {
 	PenggunaID, err := getUserID(c)
@@ -69,45 +68,53 @@ func CreateAchievement(c *fiber.Ctx) error {
 		return c.Status(404).JSON(fiber.Map{"success": false, "message": "Mahasiswa tidak ditemukan"})
 	}
 
-	namaKegiatan := c.FormValue("nama_kegiatan")
-	kategori := c.FormValue("kategori")
-	tingkat := c.FormValue("tingkat")
-	peringkat := c.FormValue("peringkat")
+	var input struct {
+		NamaKegiatan string `json:"nama_kegiatan"`
+		Kategori     string `json:"kategori"`
+		Tingkat      string `json:"tingkat"`
+		Peringkat    string `json:"peringkat"`
+		BuktiURL     string `json:"bukti_url"`
+	}
+	_ = c.BodyParser(&input)
+
+	namaKegiatan := firstNonEmpty(c.FormValue("nama_kegiatan"), input.NamaKegiatan)
+	kategori := firstNonEmpty(c.FormValue("kategori"), input.Kategori)
+	tingkat := firstNonEmpty(c.FormValue("tingkat"), input.Tingkat)
+	peringkat := firstNonEmpty(c.FormValue("peringkat"), input.Peringkat)
 
 	if namaKegiatan == "" || tingkat == "" {
 		return c.Status(400).JSON(fiber.Map{"success": false, "message": "Field nama kegiatan dan tingkat wajib diisi"})
 	}
 
 	// Handle File Upload
+	buktiURL := strings.TrimSpace(input.BuktiURL)
 	file, err := c.FormFile("bukti")
-	if err != nil {
-		return c.Status(400).JSON(fiber.Map{"success": false, "message": "File bukti wajib diunggah"})
+	if err == nil {
+		// Validate File Size (Max 5MB)
+		if file.Size > 5*1024*1024 {
+			return c.Status(400).JSON(fiber.Map{"success": false, "message": "Ukuran file melebihi 5MB"})
+		}
+
+		// Validate Extension
+		ext := strings.ToLower(filepath.Ext(file.Filename))
+		if ext != ".pdf" && ext != ".jpg" && ext != ".jpeg" && ext != ".png" {
+			return c.Status(400).JSON(fiber.Map{"success": false, "message": "Format file hanya boleh PDF, JPG, atau PNG"})
+		}
+
+		// Buat direktori jika belum ada
+		uploadDir := "./uploads/achievements"
+		_ = os.MkdirAll(uploadDir, os.ModePerm)
+
+		fileId := uuid.New().String()
+		fileOutputName := fmt.Sprintf("%s%s", fileId, ext)
+		savePath := filepath.Join(uploadDir, fileOutputName)
+
+		if err := c.SaveFile(file, savePath); err != nil {
+			return c.Status(500).JSON(fiber.Map{"success": false, "message": "Gagal menyimpan file"})
+		}
+
+		buktiURL = "/uploads/achievements/" + fileOutputName
 	}
-
-	// Validate File Size (Max 5MB)
-	if file.Size > 5*1024*1024 {
-		return c.Status(400).JSON(fiber.Map{"success": false, "message": "Ukuran file melebihi 5MB"})
-	}
-
-	// Validate Extension
-	ext := strings.ToLower(filepath.Ext(file.Filename))
-	if ext != ".pdf" && ext != ".jpg" && ext != ".jpeg" && ext != ".png" {
-		return c.Status(400).JSON(fiber.Map{"success": false, "message": "Format file hanya boleh PDF, JPG, atau PNG"})
-	}
-
-	// Buat direktori jika belum ada
-	uploadDir := "./uploads/achievements"
-	_ = os.MkdirAll(uploadDir, os.ModePerm)
-
-	fileId := uuid.New().String()
-	fileOutputName := fmt.Sprintf("%s%s", fileId, ext)
-	savePath := filepath.Join(uploadDir, fileOutputName)
-
-	if err := c.SaveFile(file, savePath); err != nil {
-		return c.Status(500).JSON(fiber.Map{"success": false, "message": "Gagal menyimpan file"})
-	}
-
-	buktiURL := "/uploads/achievements/" + fileOutputName
 
 	achievement := models.Prestasi{
 		MahasiswaID:  student.ID,
@@ -135,6 +142,15 @@ func CreateAchievement(c *fiber.Ctx) error {
 		"message": "Prestasi berhasil dilaporkan",
 		"data":    achievement,
 	})
+}
+
+func firstNonEmpty(values ...string) string {
+	for _, value := range values {
+		if trimmed := strings.TrimSpace(value); trimmed != "" {
+			return trimmed
+		}
+	}
+	return ""
 }
 
 // GetAchievementDetail returns single achievement data

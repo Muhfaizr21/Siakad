@@ -300,6 +300,7 @@ function CreateAspirasiModal({ onClose }) {
     data.append('judul', formData.judul);
     data.append('kategori', formData.kategori);
     data.append('isi', formData.isi);
+    data.append('tujuan', 'Fakultas');
     data.append('is_anonim', formData.is_anonim);
     if (formData.lampiran) {
       data.append('lampiran', formData.lampiran);

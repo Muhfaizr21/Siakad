@@ -315,6 +315,7 @@ Body:
 |---|---|---|
 | GET | `/ormawa/roles` | List role internal |
 | POST | `/ormawa/roles` | Buat role internal |
+| PUT | `/ormawa/roles/:id` | Update role internal |
 | DELETE | `/ormawa/roles/:id` | Hapus role |
 | GET | `/ormawa/divisions` | List divisi |
 | POST | `/ormawa/divisions` | Buat divisi |
@@ -441,6 +442,8 @@ file: file
 |---|---|---|
 | GET | `/ormawa/kencana/ringkasan` | Ringkasan PKKMB |
 | GET | `/ormawa/kencana/peserta` | List peserta |
+| GET | `/ormawa/kencana/banding` | List banding PKKMB |
+| POST | `/ormawa/kencana/banding/:id/review` | Review banding PKKMB |
 | GET | `/ormawa/kencana/kegiatan` | List kegiatan PKKMB |
 | POST | `/ormawa/kencana/kegiatan` | Buat kegiatan PKKMB |
 | PUT | `/ormawa/kencana/kegiatan/:id` | Update kegiatan |

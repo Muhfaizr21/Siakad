@@ -33,6 +33,7 @@ type PsikologScheduleSlot struct {
 	Psikolog   Psikolog `gorm:"foreignKey:PsikologID" json:"psikolog,omitempty"`
 
 	Hari       string `gorm:"index" json:"hari"`
+	Kategori   string `gorm:"index" json:"kategori"`
 	JamMulai   string `json:"jam_mulai"`
 	JamSelesai string `json:"jam_selesai"`
 	Lokasi     string `json:"lokasi"`

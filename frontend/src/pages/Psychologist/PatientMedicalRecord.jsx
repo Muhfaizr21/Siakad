@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import Sidebar from './components/Sidebar';
 import TopNavBar from './components/TopNavBar';
 import { 
@@ -15,6 +15,8 @@ import { psychologistService } from '../../services/api';
 export default function PatientMedicalRecord() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const bookingId = searchParams.get('bookingId');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -42,11 +44,17 @@ export default function PatientMedicalRecord() {
 
   const handleAddRecord = async (e) => {
     e.preventDefault();
-    await psychologistService.createSessionNote(id, { ...newRecord, type: 'Konseling Baru', status: newRecord.mood });
+    await psychologistService.createSessionNote(id, {
+      ...newRecord,
+      type: 'Konseling Baru',
+      status: newRecord.mood,
+      ...(bookingId ? { booking_id: Number(bookingId) } : {}),
+    });
     const res = await psychologistService.getMedicalRecord(id);
     setPatient(res.data.patient);
     setRecords(res.data.records || []);
     setIsModalOpen(false);
+    if (bookingId) setSearchParams({});
     setNewRecord({ complaint: '', observation: '', recommendation: '', mood: 'Stabil' });
   };
 
@@ -224,7 +232,7 @@ export default function PatientMedicalRecord() {
                <div className="bg-primary p-6 text-white flex justify-between items-center">
                   <div>
                     <h3 className="text-sm font-black uppercase tracking-tight font-headline">Tambah Sesi Baru</h3>
-                    <p className="text-[10px] text-white/70 font-bold uppercase tracking-widest mt-0.5">Lengkapi detail konseling hari ini</p>
+                    <p className="text-[10px] text-white/70 font-bold uppercase tracking-widest mt-0.5">{bookingId ? `Terhubung ke booking #${bookingId}` : 'Lengkapi detail konseling hari ini'}</p>
                   </div>
                   <button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-white/10 rounded-xl transition-colors">
                     <X size={20} />

@@ -36,6 +36,7 @@ export default function BookingDetail() {
   }
 
   const history = (booking.history || []).map((item) => ({ ...item, icon: item.type === 'created' ? MessageSquare : Clock, color: item.type === 'created' ? 'text-blue-500' : 'text-amber-500' }));
+  const isLocked = booking.status === 'Dikonfirmasi' || booking.status === 'Selesai';
 
   return (
     <div className="bg-surface text-on-surface min-h-screen">
@@ -136,14 +137,30 @@ export default function BookingDetail() {
               <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 space-y-4">
                  <h3 className="text-[9px] font-black text-primary uppercase tracking-widest">Tindakan</h3>
                  <div className="space-y-2">
-                     <button onClick={() => handleStatus('Dikonfirmasi')} className="w-full py-3 bg-primary text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-sm hover:shadow-md transition-all">
+                     <button
+                       onClick={() => handleStatus('Dikonfirmasi')}
+                       disabled={isLocked}
+                       className="w-full py-3 bg-primary text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-sm hover:shadow-md transition-all disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none"
+                     >
                         Konfirmasi
                      </button>
-                     <button onClick={() => handleStatus('Ditolak')} className="w-full py-3 bg-rose-50 text-rose-600 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-rose-600 hover:text-white transition-all">
+                     <button
+                       onClick={() => handleStatus('Ditolak')}
+                       disabled={isLocked}
+                       className="w-full py-3 bg-rose-50 text-rose-600 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-rose-600 hover:text-white transition-all disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-300"
+                     >
                         Tolak
                      </button>
                  </div>
-                 <button className="w-full py-3 border border-slate-100 text-slate-400 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2">
+                 {isLocked && (
+                   <p className="rounded-2xl bg-slate-50 px-4 py-3 text-[10px] font-bold leading-5 text-slate-500">
+                     Booking sudah {booking.status.toLowerCase()} dan tidak dapat diubah dari halaman ini.
+                   </p>
+                 )}
+                 <button
+                    onClick={() => navigate(`/psychologist/patients/${booking.mahasiswa_id}/medical-record?bookingId=${booking.id}`)}
+                    className="w-full py-3 border border-slate-100 text-slate-400 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:border-primary/30 hover:text-primary transition-all"
+                 >
                     <FileText size={14} /> Rekam Medis
                  </button>
               </div>

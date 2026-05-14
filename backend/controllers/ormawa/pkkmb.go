@@ -3,6 +3,7 @@ package ormawa
 import (
 	"siakad-backend/config"
 	"siakad-backend/models"
+	"strings"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -86,6 +87,54 @@ func AmbilDaftarKelulusanMaba(c *fiber.Ctx) error {
 	var list []models.PkkmbHasil
 	config.DB.Preload("Mahasiswa.ProgramStudi").Preload("Mahasiswa.Pengguna").Find(&list)
 	return c.JSON(fiber.Map{"status": "success", "data": list})
+}
+
+func AmbilDaftarBandingPkkmb(c *fiber.Ctx) error {
+	var list []models.PkkmbBanding
+	query := config.DB.Preload("Mahasiswa.ProgramStudi").Order("created_at desc")
+	if status := strings.TrimSpace(c.Query("status")); status != "" {
+		query = query.Where("LOWER(status) = LOWER(?)", status)
+	}
+	if err := query.Find(&list).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal mengambil data banding"})
+	}
+	return c.JSON(fiber.Map{"status": "success", "data": list})
+}
+
+func ReviewBandingPkkmb(c *fiber.Ctx) error {
+	id := c.Params("id")
+	var banding models.PkkmbBanding
+	if err := config.DB.First(&banding, id).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Banding tidak ditemukan"})
+	}
+
+	var payload struct {
+		Approved *bool  `json:"approved"`
+		Status   string `json:"status"`
+		Catatan  string `json:"catatan"`
+	}
+	if err := c.BodyParser(&payload); err != nil {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Payload review tidak valid"})
+	}
+
+	status := strings.TrimSpace(payload.Status)
+	if status == "" && payload.Approved != nil {
+		if *payload.Approved {
+			status = "Disetujui"
+		} else {
+			status = "Ditolak"
+		}
+	}
+	if status == "" {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Status review wajib diisi"})
+	}
+
+	if err := config.DB.Model(&banding).Update("status", status).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal memperbarui status banding"})
+	}
+	banding.Status = status
+
+	return c.JSON(fiber.Map{"status": "success", "message": "Banding berhasil direview", "data": banding})
 }
 
 // --- KEGIATAN (AGENDA) CRUD ORMAWA ---

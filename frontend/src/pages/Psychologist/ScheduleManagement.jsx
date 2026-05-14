@@ -16,16 +16,19 @@ import {
 } from 'lucide-react';
 import { UI } from '../../constants/designSystem';
 import { psychologistService } from '../../services/api';
+import { toast } from 'react-hot-toast';
 
 const defaultSchedule = [
-  { day: 'Senin', enabled: true, slots: [{ start: '09:00', end: '12:00', lokasi: 'Ruang Konseling A', kuota: 3 }, { start: '13:00', end: '16:00', lokasi: 'Ruang Konseling A', kuota: 3 }] },
-  { day: 'Selasa', enabled: true, slots: [{ start: '10:00', end: '15:00', lokasi: 'Ruang Konseling A', kuota: 4 }] },
-  { day: 'Rabu', enabled: true, slots: [{ start: '09:00', end: '12:00', lokasi: 'Ruang Konseling B', kuota: 3 }] },
+  { day: 'Senin', enabled: true, slots: [{ kategori: 'Personal', start: '09:00', end: '12:00', lokasi: 'Ruang Konseling A', kuota: 3 }, { kategori: 'Akademik', start: '13:00', end: '16:00', lokasi: 'Ruang Konseling A', kuota: 3 }] },
+  { day: 'Selasa', enabled: true, slots: [{ kategori: 'Karir', start: '10:00', end: '15:00', lokasi: 'Ruang Konseling A', kuota: 4 }] },
+  { day: 'Rabu', enabled: true, slots: [{ kategori: 'Personal', start: '09:00', end: '12:00', lokasi: 'Ruang Konseling B', kuota: 3 }] },
   { day: 'Kamis', enabled: false, slots: [] },
-  { day: 'Jumat', enabled: true, slots: [{ start: '08:00', end: '11:00', lokasi: 'Ruang Konseling A', kuota: 2 }] },
+  { day: 'Jumat', enabled: true, slots: [{ kategori: 'Akademik', start: '08:00', end: '11:00', lokasi: 'Ruang Konseling A', kuota: 2 }] },
   { day: 'Sabtu', enabled: false, slots: [] },
   { day: 'Minggu', enabled: false, slots: [] },
 ];
+
+const scheduleTypes = ['Personal', 'Akademik', 'Karir'];
 
 const dayIcons = {
   Senin: Sun,
@@ -41,6 +44,7 @@ const normalizeSchedule = (items) => {
       ...fallback,
       ...source,
       slots: (source.slots || []).map((slot) => ({
+        kategori: slot.kategori || slot.Kategori || 'Personal',
         start: slot.start || '09:00',
         end: slot.end || '10:00',
         lokasi: slot.lokasi || 'Ruang Konseling A',
@@ -108,7 +112,7 @@ export default function ScheduleManagement() {
         ...item,
         enabled: nextEnabled,
         slots: nextEnabled && item.slots.length === 0
-          ? [{ start: '09:00', end: '12:00', lokasi: 'Ruang Konseling A', kuota: 1 }]
+          ? [{ kategori: 'Personal', start: '09:00', end: '12:00', lokasi: 'Ruang Konseling A', kuota: 1 }]
           : item.slots,
       };
     }));
@@ -116,7 +120,7 @@ export default function ScheduleManagement() {
 
   const addSlot = (day) => {
     setSchedule((prev) => prev.map((item) => item.day === day
-      ? { ...item, enabled: true, slots: [...item.slots, { start: '09:00', end: '10:00', lokasi: 'Ruang Konseling A', kuota: 1 }] }
+      ? { ...item, enabled: true, slots: [...item.slots, { kategori: 'Personal', start: '09:00', end: '10:00', lokasi: 'Ruang Konseling A', kuota: 1 }] }
       : item));
   };
 
@@ -135,16 +139,28 @@ export default function ScheduleManagement() {
   const resetChanges = () => {
     const restored = JSON.parse(savedSnapshot);
     setSchedule(restored);
+    toast.success('Perubahan jadwal dikembalikan ke versi tersimpan.');
   };
 
   const saveSchedule = async () => {
+    const invalidSlot = schedule
+      .flatMap((item) => item.slots.map((slot, index) => ({ ...slot, day: item.day, index, enabled: item.enabled })))
+      .find((slot) => slot.enabled && toMinutes(slot.end) <= toMinutes(slot.start));
+
+    if (invalidSlot) {
+      toast.error(`${invalidSlot.day} slot ${invalidSlot.index + 1}: jam selesai harus setelah jam mulai.`);
+      return;
+    }
+
     setSaving(true);
     try {
       const res = await psychologistService.saveSchedules(schedule);
       const nextSchedule = Array.isArray(res.data) ? normalizeSchedule(res.data) : schedule;
       setSchedule(nextSchedule);
       setSavedSnapshot(JSON.stringify(nextSchedule));
-    } catch {
+      toast.success('Jadwal berhasil disimpan dan tersinkron ke portal mahasiswa.');
+    } catch (error) {
+      toast.error(error?.message || 'Gagal menyimpan jadwal. Coba lagi.');
       // Keep the form state intact when save fails.
     } finally {
       setSaving(false);
@@ -168,7 +184,7 @@ export default function ScheduleManagement() {
                 </div>
                 <h1 className="mt-3 text-2xl font-black text-primary uppercase tracking-tight font-headline">Manajemen Jadwal</h1>
                 <p className="mt-1 max-w-2xl text-xs font-bold leading-5 text-slate-500">
-                  Atur hari aktif, slot waktu, lokasi, dan kuota agar mahasiswa melihat jadwal yang jelas saat melakukan booking.
+                  Atur hari aktif, jenis layanan, slot waktu, lokasi, dan kuota agar mahasiswa melihat jadwal yang jelas saat melakukan booking.
                 </p>
               </div>
 
@@ -287,7 +303,7 @@ export default function ScheduleManagement() {
                             <Clock className="size-4" />
                             Slot Waktu
                           </h3>
-                          <p className="mt-1 text-[11px] font-semibold text-slate-500">Setiap slot bisa punya lokasi dan kuota berbeda.</p>
+                          <p className="mt-1 text-[11px] font-semibold text-slate-500">Setiap slot bisa punya jenis layanan, lokasi, dan kuota berbeda.</p>
                         </div>
 
                         <button
@@ -342,7 +358,19 @@ export default function ScheduleManagement() {
                                     </label>
                                   </div>
 
-                                  <div className="grid flex-[1.35] grid-cols-1 gap-3 sm:grid-cols-[1fr_110px]">
+                                  <div className="grid flex-[1.7] grid-cols-1 gap-3 sm:grid-cols-[150px_1fr_110px]">
+                                    <label className="space-y-2">
+                                      <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">Jenis</span>
+                                      <select
+                                        value={slot.kategori || 'Personal'}
+                                        onChange={(event) => updateSlot(selectedDay, index, 'kategori', event.target.value)}
+                                        className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-xs font-black text-slate-700 outline-none transition-all focus:border-primary focus:ring-4 focus:ring-primary/10"
+                                      >
+                                        {scheduleTypes.map((type) => (
+                                          <option key={type} value={type}>{type}</option>
+                                        ))}
+                                      </select>
+                                    </label>
                                     <label className="space-y-2">
                                       <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">Lokasi</span>
                                       <input

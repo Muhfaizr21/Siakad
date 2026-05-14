@@ -305,6 +305,12 @@ func UpdateBookingStatus(c *fiber.Ctx) error {
 	if err := config.DB.Where("id = ? AND psikolog_id = ?", c.Params("id"), psikolog.ID).First(&booking).Error; err != nil {
 		return err
 	}
+	if booking.Status == "Dikonfirmasi" {
+		return fiber.NewError(fiber.StatusBadRequest, "Booking yang sudah dikonfirmasi tidak dapat diubah")
+	}
+	if booking.Status == "Selesai" {
+		return fiber.NewError(fiber.StatusBadRequest, "Booking selesai tidak dapat diubah dari halaman booking")
+	}
 
 	if err := config.DB.Model(&booking).Updates(map[string]any{"status": body.Status, "catatan_admin": body.Note}).Error; err != nil {
 		return err
@@ -333,7 +339,7 @@ func GetSchedules(c *fiber.Ctx) error {
 				if slot.IsAktif {
 					enabled = true
 				}
-				daySlots = append(daySlots, fiber.Map{"id": slot.ID, "start": slot.JamMulai, "end": slot.JamSelesai, "lokasi": slot.Lokasi, "kuota": slot.Kuota})
+				daySlots = append(daySlots, fiber.Map{"id": slot.ID, "kategori": firstNonEmpty(slot.Kategori, "Personal"), "start": slot.JamMulai, "end": slot.JamSelesai, "lokasi": slot.Lokasi, "kuota": slot.Kuota})
 			}
 		}
 		grouped = append(grouped, fiber.Map{"day": day, "enabled": enabled, "slots": daySlots})
@@ -351,10 +357,11 @@ func SaveSchedules(c *fiber.Ctx) error {
 		Day     string `json:"day"`
 		Enabled bool   `json:"enabled"`
 		Slots   []struct {
-			Start  string `json:"start"`
-			End    string `json:"end"`
-			Lokasi string `json:"lokasi"`
-			Kuota  int    `json:"kuota"`
+			Kategori string `json:"kategori"`
+			Start    string `json:"start"`
+			End      string `json:"end"`
+			Lokasi   string `json:"lokasi"`
+			Kuota    int    `json:"kuota"`
 		} `json:"slots"`
 	}
 	if err := c.BodyParser(&body); err != nil {
@@ -371,7 +378,8 @@ func SaveSchedules(c *fiber.Ctx) error {
 				if kuota <= 0 {
 					kuota = 1
 				}
-				record := models.PsikologScheduleSlot{PsikologID: psikolog.ID, Hari: day.Day, JamMulai: slot.Start, JamSelesai: slot.End, Lokasi: slot.Lokasi, Kuota: kuota, IsAktif: day.Enabled}
+				kategori := normalizeScheduleCategory(slot.Kategori)
+				record := models.PsikologScheduleSlot{PsikologID: psikolog.ID, Hari: day.Day, Kategori: kategori, JamMulai: slot.Start, JamSelesai: slot.End, Lokasi: slot.Lokasi, Kuota: kuota, IsAktif: day.Enabled}
 				if err := tx.Create(&record).Error; err != nil {
 					return err
 				}
@@ -462,6 +470,7 @@ func CreateSessionNote(c *fiber.Ctx) error {
 		Mood           string `json:"mood"`
 		Type           string `json:"type"`
 		Status         string `json:"status"`
+		BookingID      uint   `json:"booking_id"`
 	}
 	if err := c.BodyParser(&body); err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, "Payload catatan sesi tidak valid")
@@ -472,7 +481,16 @@ func CreateSessionNote(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusBadRequest, "ID mahasiswa tidak valid")
 	}
 
-	record := models.PsikologSessionNote{PsikologID: psikolog.ID, MahasiswaID: uint(studentID), Tanggal: time.Now(), Keluhan: body.Complaint, Observasi: body.Observation, Rekomendasi: body.Recommendation, Mood: body.Mood, JenisSesi: body.Type, StatusPasien: body.Status}
+	var bookingID *uint
+	if body.BookingID != 0 {
+		var booking models.PsikologBooking
+		if err := config.DB.Where("id = ? AND psikolog_id = ? AND mahasiswa_id = ?", body.BookingID, psikolog.ID, studentID).First(&booking).Error; err != nil {
+			return fiber.NewError(fiber.StatusBadRequest, "Booking tidak valid untuk mahasiswa ini")
+		}
+		bookingID = &body.BookingID
+	}
+
+	record := models.PsikologSessionNote{PsikologID: psikolog.ID, MahasiswaID: uint(studentID), BookingID: bookingID, Tanggal: time.Now(), Keluhan: body.Complaint, Observasi: body.Observation, Rekomendasi: body.Recommendation, Mood: body.Mood, JenisSesi: body.Type, StatusPasien: body.Status}
 	if record.JenisSesi == "" {
 		record.JenisSesi = "Konseling Baru"
 	}
@@ -481,6 +499,9 @@ func CreateSessionNote(c *fiber.Ctx) error {
 	}
 	if err := config.DB.Create(&record).Error; err != nil {
 		return err
+	}
+	if bookingID != nil {
+		_ = config.DB.Model(&models.PsikologBooking{}).Where("id = ? AND psikolog_id = ?", *bookingID, psikolog.ID).Update("status", "Selesai").Error
 	}
 	return jsonOK(c, record)
 }
@@ -708,4 +729,26 @@ func DeleteNotification(c *fiber.Ctx) error {
 		return err
 	}
 	return jsonOK(c, fiber.Map{"deleted": true, "id": c.Params("id")})
+}
+
+func firstNonEmpty(values ...string) string {
+	for _, value := range values {
+		if trimmed := strings.TrimSpace(value); trimmed != "" {
+			return trimmed
+		}
+	}
+	return ""
+}
+
+func normalizeScheduleCategory(value string) string {
+	switch strings.ToLower(strings.TrimSpace(value)) {
+	case "akademik":
+		return "Akademik"
+	case "karir":
+		return "Karir"
+	case "personal":
+		return "Personal"
+	default:
+		return "Personal"
+	}
 }

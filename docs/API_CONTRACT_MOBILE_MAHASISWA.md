@@ -496,13 +496,14 @@ Submit kuis body:
 Create prestasi:
 
 ```text
-multipart/form-data
+multipart/form-data atau application/json
 nama_kegiatan: string
 kategori: string
 tingkat: string
 peringkat: string
 riwayat_organisasi_id: optional
-bukti: file PDF/JPG/JPEG/PNG max 5MB
+bukti: optional file PDF/JPG/JPEG/PNG max 5MB
+bukti_url: optional string untuk JSON
 ```
 
 ### 5.5 Beasiswa

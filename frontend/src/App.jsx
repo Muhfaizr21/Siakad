@@ -40,6 +40,7 @@ import AchievementPage from './pages/Student/AchievementPage'
 import ScholarshipPage from './pages/Student/ScholarshipPage'
 import ScholarshipDetailPage from './pages/Student/ScholarshipDetailPage'
 import CounselingPage from './pages/Student/CounselingPage'
+import CounselingHistoryPage from './pages/Student/CounselingHistoryPage'
 import HealthScreeningPage from './pages/Student/HealthScreeningPage'
 import StudentVoicePage from './pages/Student/StudentVoicePage'
 import StudentVoiceDetailPage from './pages/Student/StudentVoiceDetailPage'
@@ -304,6 +305,7 @@ function App() {
               <Route path="scholarship" element={<ScholarshipPage />} />
               <Route path="scholarship/pengajuan/:id" element={<ScholarshipDetailPage />} />
               <Route path="counseling" element={<CounselingPage />} />
+              <Route path="counseling/history" element={<CounselingHistoryPage />} />
               <Route path="health" element={<HealthScreeningPage />} />
               <Route path="voice" element={<StudentVoicePage />} />
               <Route path="voice/tiket/:id" element={<StudentVoiceDetailPage />} />

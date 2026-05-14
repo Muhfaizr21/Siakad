@@ -7,22 +7,21 @@ import {
   ShieldCheck, 
   Calendar, 
   MapPin, 
-  User, 
   Clock, 
   X, 
   CheckCircle2, 
   ChevronRight,
-  Trash2,
   Sparkles,
-  ArrowRight
+  ArrowRight,
+  FileText,
+  Activity
 } from 'lucide-react';
 import { 
   useCounselingJadwalQuery, 
   useCounselingRiwayatQuery, 
   useBookingMutation, 
-  useCancelBookingMutation 
 } from '../../queries/useCounselingQuery';
-import { CardGridSkeleton, NotifListSkeleton } from '../../components/ui/SkeletonGroups';
+import { CardGridSkeleton } from '../../components/ui/SkeletonGroups';
 import EmptyState from '../../components/ui/EmptyState';
 import { toast } from 'react-hot-toast';
 import { NavLink } from 'react-router-dom';
@@ -42,13 +41,6 @@ const TIPE_CONFIG = {
   Personal: { bg: 'bg-rose-50', text: 'text-rose-700', border: 'border-rose-100', dot: 'bg-rose-500' },
 };
 
-const STATUS_CONFIG = {
-  Selesai:      { bg: 'bg-emerald-50', text: 'text-emerald-700', bar: 'bg-emerald-500' },
-  Dikonfirmasi: { bg: 'bg-blue-50',    text: 'text-blue-700',    bar: 'bg-blue-500'    },
-  Menunggu:     { bg: 'bg-amber-50',   text: 'text-amber-700',   bar: 'bg-amber-400'   },
-  default:      { bg: 'bg-neutral-50', text: 'text-neutral-500', bar: 'bg-neutral-300' },
-};
-
 export default function CounselingPage() {
   const [selectedSlot, setSelectedSlot] = useState(null);
   const [keluhan, setKeluhan] = useState('');
@@ -56,30 +48,29 @@ export default function CounselingPage() {
   const [filterTipe, setFilterTipe] = useState('Semua');
 
   const { data: jadwal, isLoading: isJadwalLoading } = useCounselingJadwalQuery();
-  const { data: riwayat, isLoading: isRiwayatLoading } = useCounselingRiwayatQuery();
+  const { data: riwayat } = useCounselingRiwayatQuery();
   const bookingMutation = useBookingMutation();
-  const cancelMutation  = useCancelBookingMutation();
 
   const totalSlot     = jadwal?.length ?? 0;
   const totalRiwayat  = riwayat?.length ?? 0;
   const totalMenunggu = riwayat?.filter(r => r.status === 'Menunggu').length ?? 0;
+  const totalMedicalRecords = riwayat?.reduce((total, item) => total + Number(item.medical_record_count || 0), 0) ?? 0;
 
   const handleBooking = () => {
     if (!privacyAgreed) return toast.error('Harap setujui pernyataan privasi');
     if (keluhan.length < 20) return toast.error('Ceritakan topik minimal 20 karakter');
-    bookingMutation.mutate({ jadwal_id: selectedSlot.ID, keluhan_awal: keluhan }, {
+    bookingMutation.mutate({
+      psikolog_id: selectedSlot.PsikologID,
+      slot_id: selectedSlot.SlotID || selectedSlot.ID,
+      date: selectedSlot.Tanggal?.slice(0, 10),
+      start: selectedSlot.JamMulai,
+      end: selectedSlot.JamSelesai,
+      topic: selectedSlot.Tipe || selectedSlot.Spesialisasi || 'Konseling',
+      complaint: keluhan,
+    }, {
       onSuccess: () => { toast.success('Booking berhasil diajukan!'); setSelectedSlot(null); setKeluhan(''); setPrivacyAgreed(false); },
       onError: (err) => toast.error(err.response?.data?.message || 'Gagal melakukan booking'),
     });
-  };
-
-  const handleCancel = (id) => {
-    if (confirm('Yakin ingin membatalkan jadwal konseling ini?')) {
-      cancelMutation.mutate(id, {
-        onSuccess: () => toast.success('Berhasil dibatalkan'),
-        onError:   () => toast.error('Gagal membatalkan booking'),
-      });
-    }
   };
 
   const filtered = jadwal?.filter(s => filterTipe === 'Semua' || s.Tipe === filterTipe) ?? [];
@@ -112,13 +103,14 @@ export default function CounselingPage() {
               Layanan Konseling<br />Mahasiswa BKU
             </h1>
             <p className="text-white/60 text-sm md:text-[15px] leading-relaxed mb-7 max-w-lg">
-              Sesi privat bersama konselor profesional — rahasia, sukarela, dan aman untuk semua mahasiswa.
+              Sesi privat bersama psikolog profesional — rahasia, sukarela, dan aman untuk semua mahasiswa.
             </p>
             <div className="flex flex-wrap gap-3">
               {[
                 { label: 'Slot Tersedia', value: totalSlot },
                 { label: 'Total Sesi',    value: totalRiwayat },
                 { label: 'Menunggu',      value: totalMenunggu },
+                { label: 'Rekam Medis',   value: totalMedicalRecords },
               ].map(({ label, value }) => (
                 <div key={label} className="bg-white/10 border border-white/15 rounded-2xl px-4 py-2.5 text-center min-w-[90px]">
                   <p className="text-white font-extrabold text-xl leading-none">{value}</p>
@@ -164,7 +156,7 @@ export default function CounselingPage() {
                       LIVE
                     </span>
                   </div>
-                  <p className="text-xs text-neutral-400 mt-0.5">Pilih slot yang paling sesuai kebutuhanmu</p>
+                  <p className="text-xs text-neutral-400 mt-0.5">Slot ini tersinkron dari jadwal aktif psikolog</p>
                 </div>
 
                 {/* Filter pills — sejajar judul di desktop, full width di mobile */}
@@ -211,7 +203,10 @@ export default function CounselingPage() {
                           </span>
                         </div>
 
-                        <h4 className="font-bold text-[15px] mb-3">{slot.NamaKonselor}</h4>
+                        <h4 className="font-bold text-[15px] mb-1">{slot.NamaKonselor}</h4>
+                        {slot.Spesialisasi && (
+                          <p className="text-xs font-semibold text-neutral-400 mb-3">{slot.Spesialisasi}</p>
+                        )}
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1.5 text-sm text-neutral-500">
                           <span className="flex items-center gap-2"><Calendar size={14} className="text-neutral-300 shrink-0" />{formatLongDate(slot.Tanggal)}</span>
@@ -248,67 +243,53 @@ export default function CounselingPage() {
             </div>
           </div>
 
-          {/* RIGHT — Riwayat */}
+          {/* RIGHT — Riwayat Summary */}
           <div className="space-y-4 lg:sticky lg:top-6 h-fit">
-            <div className="bg-white rounded-2xl border border-neutral-100 px-5 py-4">
-              <h2 className="text-lg font-bold font-headline">Riwayat Konseling</h2>
-              <p className="text-xs text-neutral-400 mt-0.5">Pantau status sesi yang sudah diajukan</p>
-            </div>
+            <div className="overflow-hidden rounded-2xl border border-neutral-100 bg-white shadow-sm">
+              <div className="bg-[#00236F] p-5 text-white">
+                <div className="flex items-center gap-2 text-white/70">
+                  <FileText size={16} />
+                  <span className="text-[10px] font-bold uppercase tracking-widest">Riwayat Konseling</span>
+                </div>
+                <h2 className="mt-2 text-xl font-extrabold font-headline">Pantau Sesi & Rekam Medis</h2>
+                <p className="mt-1 text-sm font-medium leading-relaxed text-white/60">
+                  Riwayat booking dan catatan psikolog sekarang tersedia di halaman khusus agar lebih mudah dibaca.
+                </p>
+              </div>
 
-            <div className="space-y-3">
-              {isRiwayatLoading ? (
-                <NotifListSkeleton count={4} />
-              ) : riwayat?.length > 0 ? (
-                riwayat.map((h) => {
-                  const sc = STATUS_CONFIG[h.status] ?? STATUS_CONFIG.default;
-                  return (
-                    <div key={h.id} className="bg-white rounded-2xl border border-neutral-100 overflow-hidden hover:border-blue-100 transition-colors">
-                      {/* Status bar top */}
-                      <div className={`h-1 w-full ${sc.bar}`} />
-                      <div className="p-4">
-                        <div className="flex items-start justify-between gap-2 mb-2">
-                          <div>
-                            <p className="text-[10px] font-semibold text-neutral-400 uppercase tracking-wide">{formatLongDate(h.tanggal)}</p>
-                            <h5 className="font-bold text-sm mt-0.5">{h.tipe}</h5>
-                          </div>
-                          <span className={`shrink-0 px-2.5 py-1 rounded-lg text-[10px] font-bold ${sc.bg} ${sc.text}`}>
-                            {h.status}
-                          </span>
-                        </div>
+              <div className="p-5">
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="rounded-2xl border border-neutral-100 bg-neutral-50 p-3 text-center">
+                    <p className="text-xl font-extrabold text-neutral-900">{totalRiwayat}</p>
+                    <p className="mt-1 text-[9px] font-bold uppercase tracking-wide text-neutral-400">Total</p>
+                  </div>
+                  <div className="rounded-2xl border border-amber-100 bg-amber-50 p-3 text-center">
+                    <p className="text-xl font-extrabold text-amber-700">{totalMenunggu}</p>
+                    <p className="mt-1 text-[9px] font-bold uppercase tracking-wide text-amber-500">Menunggu</p>
+                  </div>
+                  <div className="rounded-2xl border border-emerald-100 bg-emerald-50 p-3 text-center">
+                    <p className="text-xl font-extrabold text-emerald-700">{totalMedicalRecords}</p>
+                    <p className="mt-1 text-[9px] font-bold uppercase tracking-wide text-emerald-500">Rekam</p>
+                  </div>
+                </div>
 
-                        <p className="text-xs text-neutral-500 font-medium flex items-center gap-1.5 mb-3">
-                          <User size={12} className="text-neutral-300" /> {h.nama_konselor}
-                        </p>
+                <NavLink
+                  to="/student/counseling/history"
+                  className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-[#00236F] px-4 py-3 text-sm font-bold text-white transition-all hover:bg-[#0B4FAE]"
+                >
+                  Buka Riwayat Konseling
+                  <ChevronRight size={16} />
+                </NavLink>
 
-                        <div className="flex items-center justify-between border-t border-neutral-50 pt-3">
-                          <span className="text-[11px] text-neutral-400 font-semibold flex items-center gap-1">
-                            <Clock size={11} /> {h.jam_mulai}
-                          </span>
-                          {h.status === 'Menunggu' && (
-                            <button
-                              onClick={() => handleCancel(h.id)}
-                              className="flex items-center gap-1 text-xs font-bold text-red-400 hover:text-red-600 hover:bg-red-50 px-2 py-1 rounded-lg transition-all"
-                              title="Batalkan Antrean"
-                            >
-                              <Trash2 size={13} /> Batalkan
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })
-              ) : (
-                <EmptyState
-                  size="sm"
-                  icon="Clock"
-                  iconColor="text-[#00236F]"
-                  iconBgClass="bg-[#eef4ff]"
-                  iconBorderClass="border-[#c9d8ff]"
-                  title="Belum Ada Riwayat" 
-                  description="Riwayat sesi konseling kamu akan muncul di sini."
-                />
-              )}
+                <div className="mt-4 rounded-2xl border border-blue-100 bg-blue-50 p-4">
+                  <div className="flex items-start gap-3">
+                    <Activity size={18} className="mt-0.5 shrink-0 text-blue-600" />
+                    <p className="text-xs font-semibold leading-relaxed text-blue-900">
+                      Rekam medis hanya muncul setelah psikolog menyimpan catatan sesi pada halaman pasien.
+                    </p>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>

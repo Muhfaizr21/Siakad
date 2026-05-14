@@ -9,6 +9,38 @@ import { Badge } from './components/ui/badge';
 import { cn } from '@/lib/utils';
 import { toast, Toaster } from 'react-hot-toast';
 
+const normalizeAspiration = (asp = {}) => {
+  const mahasiswa = asp.Mahasiswa || asp.mahasiswa || {};
+  const fakultas = asp.Fakultas || asp.fakultas || mahasiswa.Fakultas || mahasiswa.fakultas || {};
+  const id = asp.ID ?? asp.id ?? '';
+
+  return {
+    ...asp,
+    ID: id,
+    Judul: asp.Judul ?? asp.judul ?? asp.Subjek ?? asp.subjek ?? '',
+    Subjek: asp.Subjek ?? asp.subjek ?? asp.Judul ?? asp.judul ?? '',
+    Isi: asp.Isi ?? asp.isi ?? '',
+    Kategori: asp.Kategori ?? asp.kategori ?? 'General',
+    Priority: asp.Priority ?? asp.Prioritas ?? asp.prioritas ?? 'NORMAL',
+    Deadline: asp.Deadline ?? asp.deadline ?? null,
+    Status: asp.Status ?? asp.status ?? 'OPEN',
+    Respon: asp.Respon ?? asp.respon ?? '',
+    Mahasiswa: {
+      ...mahasiswa,
+      Nama: mahasiswa.Nama ?? mahasiswa.nama ?? 'System Identity',
+      NIM: mahasiswa.NIM ?? mahasiswa.nim ?? '-',
+      Fakultas: {
+        ...fakultas,
+        Nama: fakultas.Nama ?? fakultas.nama ?? 'Institusional',
+      },
+    },
+    Fakultas: {
+      ...fakultas,
+      Nama: fakultas.Nama ?? fakultas.nama ?? 'Institusional',
+    },
+  };
+};
+
 const AspirationControl = () => {
   const [aspirations, setAspirations] = useState([]);
   const [stats, setStats] = useState({ active: 0, overdue: 0, resolved: 0 });
@@ -37,7 +69,7 @@ const AspirationControl = () => {
       ]);
 
       if (aspRes.status === 'success') {
-        setAspirations(aspRes.data || []);
+        setAspirations((aspRes.data || []).map(normalizeAspiration));
       }
       if (statsRes.status === 'success') {
         setStats({
@@ -64,6 +96,10 @@ const AspirationControl = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!selectedAsp?.ID) {
+      toast.error('ID aspirasi tidak ditemukan');
+      return;
+    }
     setIsSubmitting(true);
     try {
       const res = await adminService.updateAspirationStatus(selectedAsp.ID, form);
@@ -79,11 +115,18 @@ const AspirationControl = () => {
     }
   };
 
-  const filteredAspirations = aspirations.filter(asp => 
-    asp.Judul?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    asp.Mahasiswa?.Nama?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    asp.ID.toString().includes(searchTerm)
-  );
+  const normalizedSearch = searchTerm.toLowerCase();
+  const filteredAspirations = aspirations.filter(asp => {
+    const title = asp.Judul?.toString().toLowerCase() || '';
+    const studentName = asp.Mahasiswa?.Nama?.toString().toLowerCase() || '';
+    const facultyName = asp.Fakultas?.Nama?.toString().toLowerCase() || asp.Mahasiswa?.Fakultas?.Nama?.toString().toLowerCase() || '';
+    const ticketId = asp.ID?.toString() || '';
+
+    return title.includes(normalizedSearch) ||
+      studentName.includes(normalizedSearch) ||
+      facultyName.includes(normalizedSearch) ||
+      ticketId.includes(searchTerm);
+  });
 
   return (
     <div className="p-4 md:p-8 space-y-8">
@@ -166,11 +209,11 @@ const AspirationControl = () => {
                             </div>
                         </td>
                     </tr>
-                ) : filteredAspirations.map((asp) => (
-                    <tr key={asp.ID} className="hover:bg-slate-50/50 transition-all select-text group">
+                ) : filteredAspirations.map((asp, index) => (
+                    <tr key={asp.ID || `aspiration-${index}`} className="hover:bg-slate-50/50 transition-all select-text group">
                         <td className="px-10 py-6">
                             <div className="space-y-1">
-                                <p className="font-black text-slate-900 uppercase tracking-tighter text-sm font-headline group-hover:text-primary transition-colors">#ASP-{asp.ID.toString().padStart(4, '0')}</p>
+                                <p className="font-black text-slate-900 uppercase tracking-tighter text-sm font-headline group-hover:text-primary transition-colors">#ASP-{asp.ID?.toString().padStart(4, '0') || '----'}</p>
                                 <p className="text-[10px] text-slate-400 font-bold uppercase truncate max-w-[200px]">{asp.Subjek || asp.Judul || 'Tanpa Subjek'}</p>
                             </div>
                         </td>
@@ -232,7 +275,7 @@ const AspirationControl = () => {
                   </div>
                   <div>
                     <h2 className="text-xl font-black text-slate-900 uppercase tracking-tighter">Aspiration Audit Detail</h2>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Ticket ID: #ASP-{selectedAsp.ID.toString().padStart(4, '0')}</p>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Ticket ID: #ASP-{selectedAsp.ID?.toString().padStart(4, '0') || '----'}</p>
                   </div>
                 </div>
                 <button 

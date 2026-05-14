@@ -6,10 +6,10 @@ import (
 	"siakad-backend/config"
 	"siakad-backend/models"
 	"siakad-backend/pkg/notifikasi"
+	"strings"
 
 	"github.com/gofiber/fiber/v2"
 )
-
 
 // GetStats returns count summary for student voice
 func GetStats(c *fiber.Ctx) error {
@@ -23,18 +23,26 @@ func GetStats(c *fiber.Ctx) error {
 		return c.Status(404).JSON(fiber.Map{"success": false, "message": "Mahasiswa tidak ditemukan"})
 	}
 
-	var total, diProses, selesai int64
+	var total, diFakultas, diUniversitas, diProses, selesai int64
 
 	config.DB.Model(&models.Aspirasi{}).Where("mahasiswa_id = ?", student.ID).Count(&total)
+	config.DB.Model(&models.Aspirasi{}).
+		Where("mahasiswa_id = ? AND status != ? AND (tujuan IS NULL OR TRIM(tujuan) = '' OR LOWER(TRIM(tujuan)) = ?)", student.ID, "Selesai", "fakultas").
+		Count(&diFakultas)
+	config.DB.Model(&models.Aspirasi{}).
+		Where("mahasiswa_id = ? AND status != ? AND LOWER(TRIM(tujuan)) = ?", student.ID, "Selesai", "universitas").
+		Count(&diUniversitas)
 	config.DB.Model(&models.Aspirasi{}).Where("mahasiswa_id = ? AND status = ?", student.ID, "Diproses").Count(&diProses)
 	config.DB.Model(&models.Aspirasi{}).Where("mahasiswa_id = ? AND status = ?", student.ID, "Selesai").Count(&selesai)
 
 	return c.JSON(fiber.Map{
 		"success": true,
 		"data": fiber.Map{
-			"total":     total,
-			"di_proses": diProses,
-			"selesai":   selesai,
+			"total":          total,
+			"di_fakultas":    diFakultas,
+			"di_universitas": diUniversitas,
+			"di_proses":      diProses,
+			"selesai":        selesai,
 		},
 	})
 }
@@ -50,14 +58,26 @@ func CreateAspirasi(c *fiber.Ctx) error {
 		return c.Status(404).JSON(fiber.Map{"success": false, "message": "Mahasiswa tidak ditemukan"})
 	}
 
-	judul := c.FormValue("judul")
-	kategori := c.FormValue("kategori")
-	isi := c.FormValue("isi")
-	tujuan := c.FormValue("tujuan") // Fakultas / Universitas
-	isAnonim := c.FormValue("is_anonim") == "true"
+	var input struct {
+		Judul    string `json:"judul"`
+		Kategori string `json:"kategori"`
+		Isi      string `json:"isi"`
+		Tujuan   string `json:"tujuan"`
+		IsAnonim bool   `json:"is_anonim"`
+	}
+	_ = c.BodyParser(&input)
+
+	judul := firstNonEmpty(c.FormValue("judul"), input.Judul)
+	kategori := firstNonEmpty(c.FormValue("kategori"), input.Kategori)
+	isi := firstNonEmpty(c.FormValue("isi"), input.Isi)
+	tujuan := strings.TrimSpace(firstNonEmpty(c.FormValue("tujuan"), input.Tujuan)) // Fakultas / Universitas
+	isAnonim := c.FormValue("is_anonim") == "true" || input.IsAnonim
 
 	if judul == "" || kategori == "" || isi == "" {
 		return c.Status(400).JSON(fiber.Map{"success": false, "message": "Judul, kategori, dan isi wajib diisi"})
+	}
+	if tujuan == "" {
+		tujuan = "Fakultas"
 	}
 
 	tiket := models.Aspirasi{

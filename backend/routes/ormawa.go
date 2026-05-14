@@ -1,9 +1,9 @@
 package routes
 
 import (
+	"github.com/gofiber/fiber/v2"
 	"siakad-backend/controllers/ormawa"
 	"siakad-backend/middleware"
-	"github.com/gofiber/fiber/v2"
 )
 
 func SetupOrmawaRoutes(app *fiber.App) {
@@ -48,6 +48,7 @@ func SetupOrmawaRoutes(app *fiber.App) {
 	// ROLES
 	api.Get("/roles", ormawa.GetOrmawaRoles)
 	api.Post("/roles", ormawa.CreateOrmawaRole)
+	api.Put("/roles/:id", ormawa.UpdateOrmawaRole)
 	api.Delete("/roles/:id", ormawa.DeleteOrmawaRole)
 
 	// MEMBERS
@@ -88,6 +89,8 @@ func SetupOrmawaRoutes(app *fiber.App) {
 	// PKKMB / KENCANA
 	api.Get("/kencana/ringkasan", ormawa.AmbilRingkasanPkkmb)
 	api.Get("/kencana/peserta", ormawa.AmbilDaftarKelulusanMaba)
+	api.Get("/kencana/banding", ormawa.AmbilDaftarBandingPkkmb)
+	api.Post("/kencana/banding/:id/review", ormawa.ReviewBandingPkkmb)
 	api.Get("/kencana/kegiatan", ormawa.AmbilDaftarKegiatanPkkmb)
 	api.Post("/kencana/kegiatan", ormawa.TambahKegiatanPkkmb)
 	api.Put("/kencana/kegiatan/:id", ormawa.UpdateKegiatanPkkmb)
