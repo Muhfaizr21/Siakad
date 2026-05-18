@@ -1,8 +1,13 @@
 import React from 'react'
 import { Slot } from '@radix-ui/react-slot'
-import { ChevronRight, MoreHorizontal } from 'lucide-react'
+
 
 import { cn } from '@/lib/utils'
+
+// Auto-injected Material Symbol fallbacks for removed Lucide icons
+const MoreHorizontal = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>more_horiz</span>;
+
+
 
 function Breadcrumb(props) {
   return <nav aria-label="breadcrumb" data-slot="breadcrumb" {...props} />
@@ -65,7 +70,7 @@ function BreadcrumbSeparator({ children, className, ...props }) {
       className={cn('[&>svg]:size-3.5', className)}
       {...props}
     >
-      {children ?? <ChevronRight />}
+      {children ?? <span className="material-symbols-outlined " >chevron_right</span>}
     </li>
   )
 }

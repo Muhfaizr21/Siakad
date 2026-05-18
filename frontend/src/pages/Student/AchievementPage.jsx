@@ -8,17 +8,7 @@ import {
   useDeleteAchievementMutation,
 } from '../../queries/useAchievementQuery';
 import { useOrganisasiListQuery } from '../../queries/useOrganisasiQuery';
-import {
-  Trophy,
-  CheckCircle2,
-  Clock,
-  Plus,
-  Search,
-  Eye,
-  Trash2,
-  X,
-  UploadCloud,
-} from 'lucide-react';
+
 import {
   flexRender,
   getCoreRowModel,
@@ -30,6 +20,11 @@ import { toast } from 'react-hot-toast';
 import { TableSkeleton } from '../../components/ui/SkeletonGroups';
 import EmptyState from '../../components/ui/EmptyState';
 import { API_BASE_URL } from '../../services/api';
+
+// Auto-injected Material Symbol fallbacks for removed Lucide icons
+const Trophy = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>emoji_events</span>;
+
+
 
 // Format Date Utility
 function formatDate(dateStr) {
@@ -206,7 +201,7 @@ export default function AchievementPage() {
                 className="p-1.5 text-[#00236F] bg-[#eef4ff] rounded hover:bg-[#dbe7ff] transition-colors"
                 title="Detail"
               >
-                <Eye size={16} />
+                <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >visibility</span>
               </button>
               {status === 'Menunggu' && (
                 <button
@@ -214,7 +209,7 @@ export default function AchievementPage() {
                   className="p-1.5 text-[#dc2626] bg-[#fef2f2] rounded hover:bg-[#fee2e2] transition-colors"
                   title="Hapus"
                 >
-                  <Trash2 size={16} />
+                  <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >delete</span>
                 </button>
               )}
             </div>
@@ -253,7 +248,7 @@ export default function AchievementPage() {
           onClick={() => setIsModalOpen(true)}
           className="bg-[#00236F] text-white px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 hover:bg-[#0B4FAE] transition-colors shadow-sm shadow-[#00236F]/20"
         >
-          <Plus size={16} />
+          <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >add</span>
           Lapor Prestasi Baru
         </button>
       </div>
@@ -271,7 +266,7 @@ export default function AchievementPage() {
         </div>
         <div className="bg-white p-4 rounded-2xl border border-[#e5e5e5] shadow-sm flex items-center gap-3">
           <div className="w-10 h-10 bg-[#f0fdf4] rounded-xl flex justify-center items-center text-[#16a34a]">
-            <CheckCircle2 size={18} />
+            <span className="material-symbols-outlined" style={{ fontSize: '18px' }} >check_circle</span>
           </div>
           <div>
             <p className="text-xs text-[#a3a3a3] font-semibold tracking-wide">DIVERIFIKASI</p>
@@ -280,7 +275,7 @@ export default function AchievementPage() {
         </div>
         <div className="bg-white p-4 rounded-2xl border border-[#e5e5e5] shadow-sm flex items-center gap-3">
           <div className="w-10 h-10 bg-[#eef4ff] rounded-xl flex justify-center items-center text-[#00236F]">
-            <Clock size={18} />
+            <span className="material-symbols-outlined" style={{ fontSize: '18px' }} >schedule</span>
           </div>
           <div>
             <p className="text-xs text-[#a3a3a3] font-semibold tracking-wide">MENUNGGU VALIDASI</p>
@@ -297,7 +292,7 @@ export default function AchievementPage() {
             <p className="text-xs text-[#737373] mt-0.5">Gunakan pencarian untuk menemukan kompetisi tertentu dengan cepat.</p>
           </div>
           <div className="relative w-full sm:w-64">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[#a3a3a3]" size={18} />
+            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#a3a3a3]" style={{ fontSize: '18px' }} >search</span>
             <input
               type="text"
               placeholder="Cari nama lomba..."
@@ -390,7 +385,7 @@ export default function AchievementPage() {
             <div className="flex justify-between items-center p-6 border-b border-[#e5e5e5]">
               <h2 className="text-xl font-bold font-headline">Lapor Prestasi Baru</h2>
               <button onClick={() => setIsModalOpen(false)} className="text-[#a3a3a3] hover:text-[#171717]">
-                <X size={24} />
+                <span className="material-symbols-outlined" style={{ fontSize: '24px' }} >close</span>
               </button>
             </div>
             
@@ -471,7 +466,7 @@ export default function AchievementPage() {
                 <div className="border-2 border-dashed border-[#e5e5e5] rounded-xl p-6 text-center hover:bg-[#fafafa] transition-colors relative">
                   <input type="file" accept=".pdf,.png,.jpg,.jpeg" {...register('sertifikat')} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
                   <div className="pointer-events-none flex flex-col items-center">
-                    <UploadCloud size={32} className="text-[#a3a3a3] mb-2" />
+                    <span className="material-symbols-outlined text-[#a3a3a3] mb-2" style={{ fontSize: '32px' }} Cloud >upload</span>
                     <p className="text-sm font-semibold text-[#00236F]">Klik untuk Upload File</p>
                     <p className="text-xs text-[#a3a3a3] mt-1">Format: PDF, JPG, PNG (Max. 5MB)</p>
                     {fileValue && fileValue.length > 0 && (
@@ -502,7 +497,7 @@ export default function AchievementPage() {
             <div className="flex justify-between items-center p-6 border-b border-[#e5e5e5]">
               <h2 className="text-xl font-bold font-headline">Detail Prestasi</h2>
               <button onClick={() => setSelectedDetail(null)} className="text-[#a3a3a3] hover:text-[#171717]">
-                <X size={24} />
+                <span className="material-symbols-outlined" style={{ fontSize: '24px' }} >close</span>
               </button>
             </div>
             <div className="p-6">

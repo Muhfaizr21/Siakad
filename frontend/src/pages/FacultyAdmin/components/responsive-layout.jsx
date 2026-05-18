@@ -1,6 +1,9 @@
 import React from 'react'
 import { cn } from "@/lib/utils"
 
+// Auto-injected Material Symbol fallbacks for removed Lucide icons
+const Icon = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>info</span>;
+
 /**
  * PageContainer - Pembungkus utama halaman yang menjamin padding konsisten
  */
@@ -13,12 +16,12 @@ export const PageContainer = ({ children, className }) => (
 /**
  * PageHeader - Header halaman yang responsif dengan icon dan teks
  */
-export const PageHeader = ({ icon: Icon, title, description, children }) => (
+export const PageHeader = ({ icon: CustomIcon, title, description, children }) => (
   <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
     <div className="flex items-center gap-4">
-      {Icon && (
+      {CustomIcon && (
         <div className="p-3 bg-primary/10 rounded-2xl text-primary shadow-sm shadow-primary/5">
-          <Icon className="size-6 md:size-7" />
+          <CustomIcon className="size-6 md:size-7" />
         </div>
       )}
       <div>

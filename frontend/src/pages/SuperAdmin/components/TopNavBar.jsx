@@ -1,10 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { 
-  Bell, Search, User, LogOut, Settings, 
-  ChevronRight, UserCircle2, LayoutGrid,
-  Menu, Command, Calendar, ChevronDown, Lock,
-  UserCircle, FileText, Megaphone, Award, HelpCircle
-} from 'lucide-react';
+
 import { useLocation, useNavigate, Link } from 'react-router-dom';
 import useAuthStore from '../../../store/useAuthStore';
 import { cn } from '@/lib/utils';
@@ -31,21 +26,21 @@ const TopNavBar = ({ setIsOpen }) => {
   const logout = useAuthStore(state => state.logout);
 
   const pages = [
-    { name: 'Dashboard Monitoring', path: '/admin', icon: LayoutGrid },
-    { name: 'Log Audit Sistem', path: '/admin/audit', icon: Lock },
-    { name: 'Data Master Fakultas', path: '/admin/faculties', icon: LayoutGrid },
-    { name: 'Program Studi Global', path: '/admin/prodi', icon: LayoutGrid },
-    { name: 'Basis Data Mahasiswa', path: '/admin/students', icon: User },
-    { name: 'Basis Data Dosen', path: '/admin/lecturers', icon: UserCircle2 },
-    { name: 'Proposal Universitas', path: '/admin/proposals', icon: FileText },
-    { name: 'Manajemen Organisasi', path: '/admin/organizations', icon: LayoutGrid },
-    { name: 'Katalog Beasiswa', path: '/admin/scholarships', icon: Award },
-    { name: 'Pusat Aspirasi', path: '/admin/aspirations', icon: Megaphone },
-    { name: 'Manajemen Konseling', path: '/admin/counseling', icon: HelpCircle },
-    { name: 'Konfigurasi RBAC', path: '/admin/rbac', icon: Lock },
-    { name: 'Performa Sistem', path: '/admin/performance', icon: FileText },
-    { name: 'Kelola Berita/News', path: '/admin/announcements', icon: Megaphone },
-    { name: 'Pengaturan Sistem', path: '/admin/config', icon: Settings },
+    { name: 'Dashboard Monitoring', path: '/admin', icon: 'grid_view' },
+    { name: 'Log Audit Sistem', path: '/admin/audit', icon: 'lock' },
+    { name: 'Data Master Fakultas', path: '/admin/faculties', icon: 'grid_view' },
+    { name: 'Program Studi Global', path: '/admin/prodi', icon: 'grid_view' },
+    { name: 'Basis Data Mahasiswa', path: '/admin/students', icon: 'person' },
+    { name: 'Basis Data Dosen', path: '/admin/lecturers', icon: 'account_circle' },
+    { name: 'Proposal Universitas', path: '/admin/proposals', icon: 'description' },
+    { name: 'Manajemen Organisasi', path: '/admin/organizations', icon: 'grid_view' },
+    { name: 'Katalog Beasiswa', path: '/admin/scholarships', icon: 'emoji_events' },
+    { name: 'Pusat Aspirasi', path: '/admin/aspirations', icon: 'campaign' },
+    { name: 'Manajemen Konseling', path: '/admin/counseling', icon: 'help' },
+    { name: 'Konfigurasi RBAC', path: '/admin/rbac', icon: 'lock' },
+    { name: 'Performa Sistem', path: '/admin/performance', icon: 'description' },
+    { name: 'Kelola Berita/News', path: '/admin/announcements', icon: 'campaign' },
+    { name: 'Pengaturan Sistem', path: '/admin/config', icon: 'settings' },
   ];
 
   const [stats, setStats] = useState({ aspirasi_aktif: 0, antrean_proposal: 0, total_mahasiswa: 0 });
@@ -113,29 +108,29 @@ const TopNavBar = ({ setIsOpen }) => {
   };
 
   return (
-    <header className="fixed top-0 right-0 left-0 lg:left-72 z-[50] h-20 bg-white/70 backdrop-blur-xl border-b border-slate-200/50 flex items-center justify-between px-6 lg:px-10 font-sans transition-all duration-300">
+    <header className="fixed top-0 right-0 left-0 lg:left-72 z-[50] h-16 bg-white border-b border-[#e5e5e5] flex items-center justify-between px-6 lg:px-10 font-body transition-all duration-300">
       <div className="flex items-center gap-6 flex-1">
         {/* Mobile Toggle */}
         <button
           onClick={() => setIsOpen?.(true)}
           className="lg:hidden p-2.5 rounded-xl bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 transition-all shadow-sm active:scale-95"
         >
-          <Menu className="size-5" />
+          <span className="material-symbols-outlined size-5" >menu</span>
         </button>
 
         {/* Dynamic Breadcrumbs */}
         <nav className="hidden md:flex items-center gap-2 overflow-hidden">
           <div className="p-2 rounded-lg bg-[#00236f]/5 text-[#00236f]">
-            <LayoutGrid className="size-4" />
+            <span className="material-symbols-outlined size-4" >grid_view</span>
           </div>
-          <div className="flex items-center text-[10px] font-black tracking-tight uppercase font-headline">
+          <div className="flex items-center text-[11px] font-bold tracking-tight text-[#171717] font-headline">
             {pathnames.map((value, index) => {
               const last = index === pathnames.length - 1;
               const to = `/${pathnames.slice(0, index + 1).join('/')}`;
 
               return (
                 <React.Fragment key={to}>
-                  <ChevronRight className="size-3 mx-1 text-slate-300 first:hidden" />
+                  <span className="material-symbols-outlined size-3 mx-1 text-slate-300 first:hidden" >chevron_right</span>
                   {last ? (
                     <span className="text-slate-900 truncate max-w-[150px]">
                       {getBreadcrumbLabel(value)}
@@ -157,9 +152,9 @@ const TopNavBar = ({ setIsOpen }) => {
         {/* Global Search Interface */}
         <div ref={searchRef} className="relative w-full max-w-sm hidden xl:flex flex-col items-center group ml-4">
           <div className="relative w-full flex items-center">
-            <Search className="absolute left-4 size-4 text-slate-400 stroke-[2.5px]" />
+            <span className="material-symbols-outlined absolute left-4 size-4 text-slate-400 stroke-[2.5px]" >search</span>
             <input
-              className="w-full h-11 pl-12 pr-12 bg-slate-50 border-transparent border focus:border-[#00236f]/20 focus:bg-white rounded-2xl text-[12px] font-bold text-slate-700 placeholder:text-slate-400 focus:ring-4 focus:ring-[#00236f]/5 transition-all outline-none"
+              className="w-full h-11 pl-12 pr-12 bg-[#fafafa] border-transparent border focus:border-primary/20 focus:bg-white rounded-xl text-[12px] font-semibold text-[#171717] placeholder:text-[#a3a3a3] transition-all outline-none"
               placeholder="Cari fitur atau data..."
               type="text"
               value={searchQuery}
@@ -171,7 +166,7 @@ const TopNavBar = ({ setIsOpen }) => {
             />
             <div className="absolute right-4 flex items-center gap-1 opacity-40 group-focus-within:opacity-100 transition-opacity">
               <div className="px-1.5 py-0.5 rounded-md bg-white border border-slate-200 text-[9px] font-bold text-slate-500 shadow-sm flex items-center gap-1">
-                <Command className="size-2.5" />
+                <span className="material-symbols-outlined size-2.5">keyboard_command_key</span>
                 <span>/</span>
               </div>
             </div>
@@ -192,7 +187,7 @@ const TopNavBar = ({ setIsOpen }) => {
                       className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 cursor-pointer transition-all group"
                     >
                       <div className="p-2 rounded-lg bg-[#00236f]/5 text-[#00236f] group-hover:bg-[#00236f] group-hover:text-white transition-colors">
-                        <page.icon className="size-4" />
+                        <span className="material-symbols-outlined size-4">{page.icon}</span>
                       </div>
                       <span className="text-sm font-bold text-slate-700">{page.name}</span>
                     </div>
@@ -212,7 +207,7 @@ const TopNavBar = ({ setIsOpen }) => {
         {/* Quick Notification Tray (Updated like FacultyAdmin) */}
         <div className="flex items-center gap-1 bg-slate-50 p-1 rounded-2xl border border-slate-100/50">
           <div className="relative p-2.5 rounded-xl hover:bg-white text-slate-500 hover:text-[#00236f] transition-all hover:shadow-sm group cursor-pointer">
-            <Bell className="size-5 active:scale-95 transition-transform" />
+            <span className="material-symbols-outlined size-5 active:scale-95 transition-transform" >notifications</span>
             {(stats.aspirasi_aktif + stats.antrean_proposal) > 0 && (
               <span className="absolute top-1 right-1 w-4 h-4 bg-rose-500 text-white text-[8px] font-black flex items-center justify-center rounded-full border-2 border-white ring-2 ring-rose-500/20 animate-pulse">
                 {(stats.aspirasi_aktif + stats.antrean_proposal)}
@@ -232,7 +227,7 @@ const TopNavBar = ({ setIsOpen }) => {
               <div className="space-y-4">
                 <div className="flex gap-4 items-center p-3 rounded-2xl hover:bg-slate-50 transition-colors cursor-pointer group/item" onClick={() => navigate('/admin/proposals')}>
                   <div className="p-2.5 rounded-xl bg-orange-50 text-orange-600 group-hover/item:bg-orange-100 transition-colors">
-                    <FileText className="size-4" />
+                    <span className="material-symbols-outlined size-4" >description</span>
                   </div>
                   <div className="flex flex-col overflow-hidden">
                     <p className="text-[11px] font-black text-slate-900 leading-none uppercase tracking-tighter">Antrean Proposal</p>
@@ -242,7 +237,7 @@ const TopNavBar = ({ setIsOpen }) => {
 
                 <div className="flex gap-4 items-center p-3 rounded-2xl hover:bg-slate-50 transition-colors cursor-pointer group/item" onClick={() => navigate('/admin/aspirations')}>
                   <div className="p-2.5 rounded-xl bg-blue-50 text-blue-600 group-hover/item:bg-blue-100 transition-colors">
-                    <Megaphone className="size-4" />
+                    <span className="material-symbols-outlined size-4" >campaign</span>
                   </div>
                   <div className="flex flex-col overflow-hidden">
                     <p className="text-[11px] font-black text-slate-900 leading-none uppercase tracking-tighter">Pusat Aspirasi</p>
@@ -252,7 +247,7 @@ const TopNavBar = ({ setIsOpen }) => {
 
                 <div className="flex gap-4 items-center p-3 rounded-2xl hover:bg-slate-50 transition-colors cursor-pointer group/item" onClick={() => navigate('/admin/audit')}>
                   <div className="p-2.5 rounded-xl bg-slate-100 text-slate-600 group-hover/item:bg-slate-900 group-hover/item:text-white transition-all">
-                    <Lock className="size-4" />
+                    <span className="material-symbols-outlined size-4" >lock</span>
                   </div>
                   <div className="flex flex-col overflow-hidden">
                     <p className="text-[11px] font-black text-slate-900 leading-none uppercase tracking-tighter">System Audit</p>
@@ -268,7 +263,7 @@ const TopNavBar = ({ setIsOpen }) => {
           </div>
 
           <button onClick={() => navigate('/admin/audit')} className="hidden sm:flex p-2.5 rounded-xl hover:bg-white text-slate-500 hover:text-[#00236f] transition-all hover:shadow-sm active:scale-90">
-            <Calendar className="size-5" />
+            <span className="material-symbols-outlined size-5" >calendar_month</span>
           </button>
         </div>
 
@@ -277,10 +272,10 @@ const TopNavBar = ({ setIsOpen }) => {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <div className="flex items-center gap-2 cursor-pointer group hover:bg-slate-50 p-1 rounded-full transition-all outline-none">
-              <div className="h-9 w-9 rounded-full bg-slate-900 text-white flex items-center justify-center font-bold text-xs">
+              <div className="h-9 w-9 rounded-full bg-[#eef4ff] border border-[#c9d8ff] text-primary flex items-center justify-center font-bold text-xs">
                  {user?.Email?.[0]?.toUpperCase() || 'A'}
               </div>
-              <ChevronDown className="size-3 text-slate-400 group-hover:text-slate-900 transition-colors" />
+              <span className="material-symbols-outlined size-3 text-slate-400 group-hover:text-slate-900 transition-colors" >expand_more</span>
             </div>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56 mt-2 rounded-2xl p-1.5 shadow-xl border border-slate-100 bg-white">
@@ -290,12 +285,12 @@ const TopNavBar = ({ setIsOpen }) => {
             </div>
             
             <DropdownMenuItem onClick={() => navigate('/admin/profile')} className="rounded-xl p-2.5 focus:bg-slate-50 group cursor-pointer transition-all">
-              <UserCircle className="mr-2 size-4 text-slate-400 group-hover:text-slate-900 transition-colors" />
+              <span className="material-symbols-outlined mr-2 size-4 text-slate-400 group-hover:text-slate-900 transition-colors">account_circle</span>
               <span className="text-xs font-medium text-slate-600 group-hover:text-slate-900 transition-colors">Profil Admin</span>
             </DropdownMenuItem>
 
             <DropdownMenuItem onClick={() => navigate('/admin/config')} className="rounded-xl p-2.5 focus:bg-slate-50 group cursor-pointer transition-all">
-              <Settings className="mr-2 size-4 text-slate-400 group-hover:text-slate-900 transition-colors" />
+              <span className="material-symbols-outlined mr-2 size-4 text-slate-400 group-hover:text-slate-900 transition-colors" >settings</span>
               <span className="text-xs font-medium text-slate-600 group-hover:text-slate-900 transition-colors">Konfigurasi</span>
             </DropdownMenuItem>
 
@@ -308,7 +303,7 @@ const TopNavBar = ({ setIsOpen }) => {
               }} 
               className="rounded-xl p-2.5 focus:bg-rose-50 group cursor-pointer transition-all"
             >
-              <LogOut className="mr-2 size-4 text-rose-400 group-hover:text-rose-600 transition-colors" />
+              <span className="material-symbols-outlined mr-2 size-4 text-rose-400 group-hover:text-rose-600 transition-colors" >logout</span>
               <span className="text-xs font-bold text-rose-500 group-hover:text-rose-600 transition-colors">Sign Out</span>
             </DropdownMenuItem>
           </DropdownMenuContent>

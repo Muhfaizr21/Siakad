@@ -1,26 +1,32 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import Sidebar from './components/Sidebar';
 import TopNavBar from './components/TopNavBar';
-import {
-  AlertCircle,
-  Briefcase,
-  CheckCircle2,
-  Clock,
-  DollarSign,
-  Globe,
-  Key,
-  Languages,
-  Loader2,
-  Lock,
-  Mail,
-  MapPin,
-  Phone,
-  Save,
-  Shield,
-  User,
-} from 'lucide-react';
+
 import { UI } from '../../constants/designSystem';
 import { psychologistService } from '../../services/api';
+
+// Auto-injected Material Symbol fallbacks for removed Lucide icons
+const Lock = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>lock</span>;
+
+
+
+// Auto-injected Material Symbol fallbacks for removed Lucide icons
+const User = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>person</span>;
+const Mail = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>mail</span>;
+const Phone = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>phone</span>;
+
+
+
+// Auto-injected Material Symbol fallbacks for removed Lucide icons
+const Shield = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>security</span>;
+const Briefcase = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>work</span>;
+const MapPin = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>location_on</span>;
+const Languages = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>language</span>;
+const DollarSign = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>attach_money</span>;
+const Globe = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>public</span>;
+const Key = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>vpn_key</span>;
+
+
 
 const EMPTY_PROFILE = {
   nama: '',
@@ -136,14 +142,14 @@ export default function PsychologistSettings() {
 
           {message && (
             <div className="flex items-center gap-3 rounded-3xl border border-emerald-100 bg-emerald-50 px-5 py-4 text-emerald-700">
-              <CheckCircle2 size={18} />
+              <span className="material-symbols-outlined" style={{ fontSize: '18px' }} >check_circle</span>
               <p className="text-sm font-semibold">{message}</p>
             </div>
           )}
 
           {error && (
             <div className="flex items-start gap-3 rounded-3xl border border-rose-100 bg-rose-50 px-5 py-4 text-rose-700">
-              <AlertCircle size={18} className="mt-0.5 shrink-0" />
+              <span className="material-symbols-outlined mt-0.5 shrink-0" style={{ fontSize: '18px' }} >error</span>
               <p className="text-sm font-semibold">{error}</p>
             </div>
           )}
@@ -169,7 +175,7 @@ export default function PsychologistSettings() {
               <div className="overflow-hidden rounded-[2rem] border border-slate-100 bg-white shadow-sm">
                 {loading ? (
                   <div className="flex min-h-96 items-center justify-center">
-                    <Loader2 size={28} className="animate-spin text-primary" />
+                    <span className="material-symbols-outlined animate-spin text-primary" style={{ fontSize: '28px' }} >sync</span>
                   </div>
                 ) : (
                   <>
@@ -276,7 +282,7 @@ export default function PsychologistSettings() {
                       <div className="grid grid-cols-1 gap-6 p-6 lg:grid-cols-2 lg:p-8">
                         <div className="space-y-4">
                           <h2 className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-primary">
-                            <Clock size={17} />
+                            <span className="material-symbols-outlined" style={{ fontSize: '17px' }} >schedule</span>
                             Jadwal Dari Database
                           </h2>
                           <div className="space-y-3">
@@ -334,7 +340,7 @@ export default function PsychologistSettings() {
                           disabled={saving === 'password'}
                           className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-7 py-3 text-[10px] font-black uppercase tracking-widest text-white shadow-lg shadow-primary/20 transition hover:bg-primary/90 disabled:cursor-wait disabled:opacity-70"
                         >
-                          {saving === 'password' ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
+                          {saving === 'password' ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '16px' }} >sync</span> : <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >save</span>}
                           Simpan Password
                         </button>
                       ) : (
@@ -344,7 +350,7 @@ export default function PsychologistSettings() {
                           disabled={saving === 'profile'}
                           className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-7 py-3 text-[10px] font-black uppercase tracking-widest text-white shadow-lg shadow-primary/20 transition hover:bg-primary/90 disabled:cursor-wait disabled:opacity-70"
                         >
-                          {saving === 'profile' ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
+                          {saving === 'profile' ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '16px' }} >sync</span> : <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >save</span>}
                           Simpan Profil
                         </button>
                       )}

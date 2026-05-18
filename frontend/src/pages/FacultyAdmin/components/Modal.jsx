@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react'
-import { X } from 'lucide-react'
+
 import { cn } from '@/lib/utils'
 
 /**
@@ -61,7 +61,7 @@ export function Modal({ open, onClose, title, subtitle, icon, children, maxWidth
             onClick={onClose}
             className="text-[#a3a3a3] hover:text-[#171717] transition-colors p-1 rounded-lg hover:bg-[#f5f5f5]"
           >
-            <X size={20} />
+            <span className="material-symbols-outlined" style={{ fontSize: '20px' }} >close</span>
           </button>
         </div>
 

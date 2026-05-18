@@ -2,15 +2,19 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import Sidebar from './components/Sidebar';
 import TopNavBar from './components/TopNavBar';
-import { 
-  ArrowLeft, Calendar, Clock, User, 
-  FileText, Plus, ShieldCheck, Activity,
-  Download, MessageSquare, ClipboardCheck,
-  TrendingUp, Search, MoreHorizontal,
-  Bookmark, AlertCircle, X, Save
-} from 'lucide-react';
+
 import { UI } from '../../constants/designSystem';
 import { psychologistService } from '../../services/api';
+
+// Auto-injected Material Symbol fallbacks for removed Lucide icons
+const ArrowLeft = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>arrow_back</span>;
+
+
+
+// Auto-injected Material Symbol fallbacks for removed Lucide icons
+const Download = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>download</span>;
+
+
 
 export default function PatientMedicalRecord() {
   const { id } = useParams();
@@ -84,7 +88,7 @@ export default function PatientMedicalRecord() {
                   onClick={() => setIsModalOpen(true)}
                   className="bg-primary text-white px-6 py-2.5 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-primary/20 flex items-center gap-2 hover:scale-105 active:scale-95 transition-all"
                 >
-                   <Plus size={16} /> Tambah Sesi
+                   <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >add</span> Tambah Sesi
                 </button>
              </div>
           </div>
@@ -96,7 +100,7 @@ export default function PatientMedicalRecord() {
                <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-8">
                   <div className="flex items-center justify-between mb-10">
                      <h3 className="text-sm font-black text-primary uppercase tracking-tight font-headline flex items-center gap-3">
-                        <FileText size={20} /> Riwayat Sesi Konseling
+                        <span className="material-symbols-outlined" style={{ fontSize: '20px' }} >description</span> Riwayat Sesi Konseling
                      </h3>
                      <div className="text-[9px] font-black text-slate-300 uppercase tracking-widest">Total: {patient.totalSessions} Sesi</div>
                   </div>
@@ -105,7 +109,7 @@ export default function PatientMedicalRecord() {
                      {records.map((record, index) => (
                        <div key={record.id} className="relative pl-12 group">
                           <div className={`absolute left-0 top-1.5 size-10 rounded-xl border-4 border-white shadow-md flex items-center justify-center z-10 transition-transform group-hover:scale-110 ${index === 0 ? 'bg-primary text-white' : 'bg-slate-100 text-slate-400'}`}>
-                             <Calendar size={16} />
+                             <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >calendar_month</span>
                           </div>
 
                           <div className="bg-slate-50/50 rounded-3xl border border-slate-100 p-6 space-y-4 hover:bg-white hover:shadow-xl hover:shadow-slate-200/50 transition-all duration-500">
@@ -129,7 +133,7 @@ export default function PatientMedicalRecord() {
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-slate-100">
                                    <div>
                                       <h4 className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-1.5">
-                                         <Activity size={12} /> Observasi Klinis
+                                         <span className="material-symbols-outlined" style={{ fontSize: '12px' }} >show_chart</span> Observasi Klinis
                                       </h4>
                                       <p className="text-[11px] font-medium text-slate-600 leading-relaxed italic">
                                          "{record.observation}"
@@ -137,7 +141,7 @@ export default function PatientMedicalRecord() {
                                    </div>
                                    <div>
                                       <h4 className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-1.5">
-                                         <ShieldCheck size={12} /> Rekomendasi
+                                         <span className="material-symbols-outlined" style={{ fontSize: '12px' }} Check >security</span> Rekomendasi
                                       </h4>
                                       <p className="text-[11px] font-medium text-slate-600 leading-relaxed">
                                          {record.recommendation}
@@ -157,7 +161,7 @@ export default function PatientMedicalRecord() {
                <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
                   <div className="h-20 bg-primary relative">
                      <div className="absolute inset-0 bg-gradient-to-br from-primary via-primary/80 to-indigo-600"></div>
-                     <Activity className="absolute -right-4 -bottom-4 size-24 text-white/10" />
+                     <span className="material-symbols-outlined absolute -right-4 -bottom-4 size-24 text-white/10" >show_chart</span>
                   </div>
                   <div className="px-6 pb-6 -mt-8 relative z-10">
                      <div className={`size-16 rounded-2xl ${patient.color} border-4 border-white shadow-lg flex items-center justify-center text-white text-xl font-black mb-4 mx-auto md:mx-0`}>
@@ -181,7 +185,7 @@ export default function PatientMedicalRecord() {
 
                <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 space-y-6">
                   <h3 className="text-[10px] font-black text-primary uppercase tracking-widest flex items-center gap-2">
-                     <TrendingUp size={16} /> Analitik Kesehatan
+                     <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >trending_up</span> Analitik Kesehatan
                   </h3>
                   <div className="space-y-4">
                      <div>
@@ -195,7 +199,7 @@ export default function PatientMedicalRecord() {
                      </div>
                      <div className="p-4 bg-primary/5 rounded-2xl border border-primary/10">
                         <div className="flex items-center gap-2 mb-2 text-primary">
-                           <AlertCircle size={14} />
+                           <span className="material-symbols-outlined" style={{ fontSize: '14px' }} >error</span>
                            <span className="text-[9px] font-black uppercase tracking-widest">Catatan Penting</span>
                         </div>
                         <p className="text-[10px] font-medium text-slate-600 leading-relaxed uppercase">
@@ -209,7 +213,7 @@ export default function PatientMedicalRecord() {
                   <div className="relative z-10">
                      <div className="flex items-center gap-3 mb-4">
                         <div className="p-2 bg-emerald-500/20 rounded-lg text-emerald-400">
-                           <ShieldCheck size={20} />
+                           <span className="material-symbols-outlined" style={{ fontSize: '20px' }} Check >security</span>
                         </div>
                         <h4 className="text-white text-[10px] font-black uppercase tracking-widest">Data Terenkripsi</h4>
                      </div>
@@ -217,7 +221,7 @@ export default function PatientMedicalRecord() {
                         Seluruh catatan rekam medis ini dilindungi oleh standar privasi data kesehatan (HIPAA-compliant).
                      </p>
                   </div>
-                  <ShieldCheck size={120} className="absolute -right-8 -bottom-8 text-white/5 group-hover:text-white/10 transition-colors" />
+                  <span className="material-symbols-outlined absolute -right-8 -bottom-8 text-white/5 group-hover:text-white/10 transition-colors" style={{ fontSize: '120px' }} Check >security</span>
                </div>
             </div>
           </div>
@@ -235,7 +239,7 @@ export default function PatientMedicalRecord() {
                     <p className="text-[10px] text-white/70 font-bold uppercase tracking-widest mt-0.5">{bookingId ? `Terhubung ke booking #${bookingId}` : 'Lengkapi detail konseling hari ini'}</p>
                   </div>
                   <button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-white/10 rounded-xl transition-colors">
-                    <X size={20} />
+                    <span className="material-symbols-outlined" style={{ fontSize: '20px' }} >close</span>
                   </button>
                </div>
 
@@ -291,7 +295,7 @@ export default function PatientMedicalRecord() {
                   <div className="pt-4 flex gap-3">
                      <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 py-4 bg-slate-50 text-slate-400 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-100 transition-all">Batal</button>
                      <button type="submit" className="flex-2 bg-primary text-white px-10 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-primary/20 flex items-center justify-center gap-2 hover:bg-primary/90 transition-all">
-                        <Save size={16} /> Simpan Sesi
+                        <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >save</span> Simpan Sesi
                      </button>
                   </div>
                </form>

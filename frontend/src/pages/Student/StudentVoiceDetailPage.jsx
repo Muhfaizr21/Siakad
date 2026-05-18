@@ -1,27 +1,22 @@
 import React from 'react';
-import { 
-  ChevronLeft, 
-  MessageSquare, 
-  Clock, 
-  CheckCircle2, 
-  ShieldAlert, 
-  FileText, 
-  Download, 
-  Info, 
-  ArrowUpRight,
-  ShieldCheck,
-  Building,
-  School,
-  Ban,
-  Calendar,
-  Layers,
-  Activity
-} from 'lucide-react';
+
 import { motion } from 'framer-motion';
 import { useParams, Link, NavLink } from 'react-router-dom';
 import { useVoiceDetailQuery } from '../../queries/useStudentVoiceQuery';
 import { Skeleton } from '../../components/ui/Skeleton';
 import { API_BASE_URL } from '../../services/api';
+
+// Auto-injected Material Symbol fallbacks for removed Lucide icons
+const Ban = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>block</span>;
+
+
+
+// Auto-injected Material Symbol fallbacks for removed Lucide icons
+const Layers = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>layers</span>;
+const Building = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>business</span>;
+const School = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>school</span>;
+
+
 
 export default function StudentVoiceDetailPage() {
   const { id } = useParams();
@@ -37,9 +32,9 @@ export default function StudentVoiceDetailPage() {
         <div className="mb-8">
           <div className="flex items-center gap-2 text-sm font-medium text-[#6b7280] mb-6">
             <NavLink to="/student/dashboard" className="hover:text-[#00236F] cursor-pointer transition-colors">Dashboard</NavLink>
-            <ChevronLeft size={14} className="opacity-50" />
+            <span className="material-symbols-outlined opacity-50" style={{ fontSize: 14 }}>chevron_left</span>
             <NavLink to="/student/voice" className="hover:text-[#00236F] cursor-pointer transition-colors">Suara Mahasiswa</NavLink>
-            <ChevronLeft size={14} className="opacity-50" />
+            <span className="material-symbols-outlined opacity-50" style={{ fontSize: 14 }}>chevron_left</span>
             <span className="text-[#171717] font-semibold">Detail Tiket</span>
           </div>
 
@@ -49,7 +44,7 @@ export default function StudentVoiceDetailPage() {
                 to="/student/voice"
                 className="w-10 h-10 bg-white border border-gray-200 rounded-xl flex items-center justify-center text-gray-500 hover:text-[#00236F] hover:border-[#00236F] transition-all shadow-sm shrink-0 hover:-translate-x-0.5"
               >
-                <ChevronLeft size={20} />
+                <span className="material-symbols-outlined" style={{ fontSize: 20 }}>chevron_left</span>
               </Link>
               <div>
                 <div className="flex items-center gap-2 mb-1">
@@ -93,7 +88,7 @@ export default function StudentVoiceDetailPage() {
                 <div className="flex flex-col gap-4 mb-6">
                   {ticket.is_anonim && (
                     <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-lg shrink-0 self-start">
-                      <ShieldCheck size={16} className="text-gray-500" />
+                      <span className="material-symbols-outlined text-gray-500" style={{ fontSize: '16px' }} Check >security</span>
                       <span className="text-xs font-semibold text-gray-600">Dikirim secara Anonim</span>
                     </div>
                   )}
@@ -124,12 +119,12 @@ export default function StudentVoiceDetailPage() {
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                       <div className="flex items-center gap-4">
                         <div className="w-12 h-12 bg-white rounded-lg border border-gray-200 flex items-center justify-center text-gray-400 group-hover/file:text-[#00236F] transition-colors shadow-sm">
-                          <FileText size={24} />
+                          <span className="material-symbols-outlined" style={{ fontSize: '24px' }} >description</span>
                         </div>
                         <div>
                           <p className="text-sm font-semibold text-[#171717]">Lampiran Pendukung</p>
                           <p className="text-xs font-medium text-gray-500 flex items-center gap-1.5 mt-0.5">
-                             <Download size={14} className="text-[#00236F]" /> File Attachment
+                             <span className="material-symbols-outlined text-[#00236F]" style={{ fontSize: 14 }}>download</span> File Attachment
                           </p>
                         </div>
                       </div>
@@ -139,7 +134,7 @@ export default function StudentVoiceDetailPage() {
                         rel="noopener noreferrer"
                         className="flex items-center justify-center gap-2 px-6 py-2.5 bg-[#00236F] text-white font-medium rounded-xl hover:bg-[#0B4FAE] transition-colors text-sm"
                       >
-                        Download <Download size={16} />
+                        Download <span className="material-symbols-outlined" style={{ fontSize: 16 }}>download</span>
                       </a>
                     </div>
                   </div>
@@ -151,7 +146,7 @@ export default function StudentVoiceDetailPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="p-6 bg-blue-50 border border-blue-100 rounded-2xl flex flex-col gap-3">
                 <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-blue-600 shadow-sm border border-blue-100">
-                  <Info size={20} />
+                  <span className="material-symbols-outlined" style={{ fontSize: 20 }}>info</span>
                 </div>
                 <h4 className="text-sm font-bold text-blue-800">Proses Penyelesaian</h4>
                 <p className="text-xs text-blue-700/80 leading-relaxed">
@@ -160,7 +155,7 @@ export default function StudentVoiceDetailPage() {
               </div>
               <div className="p-6 bg-[#00236F] border border-[#00236F] rounded-2xl flex flex-col gap-3">
                 <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center text-white border border-white/20">
-                  <ShieldCheck size={20} />
+                  <span className="material-symbols-outlined" style={{ fontSize: '20px' }} Check >security</span>
                 </div>
                 <h4 className="text-sm font-bold text-white">Kerahasiaan Data</h4>
                 <p className="text-xs text-white/80 leading-relaxed">
@@ -212,7 +207,7 @@ export default function StudentVoiceDetailPage() {
                 {ticket.status !== 'selesai' && (
                   <div className="relative flex items-center gap-4 opacity-50 grayscale hover:opacity-100 hover:grayscale-0 transition-opacity">
                     <div className="absolute left-[-39px] w-8 h-8 rounded-full bg-white border-[3px] border-gray-200 flex items-center justify-center z-20">
-                      <CheckCircle2 size={14} className="text-gray-300" />
+                      <span className="material-symbols-outlined text-gray-300" style={{ fontSize: '14px' }} >check_circle</span>
                     </div>
                     <div>
                       <h5 className="text-xs font-bold text-gray-500">
@@ -255,12 +250,12 @@ function TimelineEvent({ event, isLatest, idx }) {
               {config.label}
             </span>
             <span className="text-[10px] font-medium text-gray-500 flex items-center gap-1">
-              <Clock size={12} className="text-[#00236F]" /> 
+              <span className="material-symbols-outlined text-[#00236F]" style={{ fontSize: '12px' }} >schedule</span> 
               {new Date(event.created_at).toLocaleTimeString('id-id', { hour: '2-digit', minute: '2-digit' })}
             </span>
           </div>
           <div className="flex items-center gap-1.5">
-             <Calendar size={12} className="text-gray-400" />
+             <span className="material-symbols-outlined text-gray-400" style={{ fontSize: '12px' }} >calendar_month</span>
              <p className="text-[11px] font-medium text-[#171717]">
                {new Date(event.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
              </p>
@@ -275,7 +270,7 @@ function TimelineEvent({ event, isLatest, idx }) {
 
         <div className="mt-3 pt-3 border-t border-dashed border-gray-200 flex items-center justify-between">
            <div className="flex items-center gap-1.5">
-              {event.level === 'sistem' ? <Building size={12} className="text-gray-400"/> : <ShieldAlert size={12} className="text-gray-400"/>}
+              {event.level === 'sistem' ? <Building size={12} className="text-gray-400"/> : <span className="material-symbols-outlined text-gray-400" style={{ fontSize: '12px' }} Alert >security</span>}
               <span className="text-[10px] font-medium text-gray-500">
                 Oleh {event.level === 'sistem' ? 'Sistem' : `Admin ${event.level.charAt(0).toUpperCase() + event.level.slice(1)}`}
               </span>
@@ -292,7 +287,7 @@ function getEventConfig(type) {
     case 'dikirim':
       return { 
         label: 'Terkirim', 
-        icon: <ArrowUpRight />, 
+        icon: <span className="material-symbols-outlined" >call_made</span>, 
         circleColor: 'bg-[#00236F]', 
         badgeStyle: 'bg-blue-50 text-blue-600 border-blue-100',
         msgStyle: 'bg-gray-50 text-gray-600 border-gray-100'
@@ -308,7 +303,7 @@ function getEventConfig(type) {
     case 'respons_fakultas':
       return { 
         label: 'Feedback Fakultas', 
-        icon: <MessageSquare />, 
+        icon: <span className="material-symbols-outlined" >chat</span>, 
         circleColor: 'bg-blue-500', 
         badgeStyle: 'bg-blue-100 text-blue-700 border-blue-200',
         msgStyle: 'bg-blue-50 border-blue-100 text-blue-800'
@@ -324,7 +319,7 @@ function getEventConfig(type) {
     case 'respons_universitas':
       return { 
         label: 'Feedback Universitas', 
-        icon: <MessageSquare />, 
+        icon: <span className="material-symbols-outlined" >chat</span>, 
         circleColor: 'bg-indigo-600', 
         badgeStyle: 'bg-indigo-100 text-indigo-700 border-indigo-200',
         msgStyle: 'bg-indigo-50 border-indigo-100 text-indigo-800'
@@ -332,7 +327,7 @@ function getEventConfig(type) {
     case 'selesai':
       return { 
         label: 'Selesai', 
-        icon: <CheckCircle2 />, 
+        icon: <span className="material-symbols-outlined" >check_circle</span>, 
         circleColor: 'bg-green-500', 
         badgeStyle: 'bg-green-50 text-green-600 border-green-100',
         msgStyle: 'bg-green-50 border-green-100 text-green-800'
@@ -346,7 +341,7 @@ function getEventConfig(type) {
         msgStyle: 'bg-red-50 border-red-100 text-red-800'
       };
     default:
-      return { label: 'Status', icon: <Clock />, circleColor: 'bg-gray-400', badgeStyle: 'bg-gray-50 text-gray-500 border-gray-100' };
+      return { label: 'Status', icon: <span className="material-symbols-outlined" >schedule</span>, circleColor: 'bg-gray-400', badgeStyle: 'bg-gray-50 text-gray-500 border-gray-100' };
   }
 }
 
@@ -417,7 +412,7 @@ function ErrorView({ error }) {
   return (
     <div className="min-h-screen bg-[#f8f8f6] flex flex-col items-center justify-center p-6 text-center font-body">
        <div className="w-24 h-24 bg-white rounded-2xl flex items-center justify-center mb-6 shadow-sm border border-gray-100">
-          <MessageSquare size={32} className="text-gray-400" />
+          <span className="material-symbols-outlined text-gray-400" style={{ fontSize: '32px' }} >chat</span>
        </div>
        <h2 className="text-xl md:text-2xl font-bold font-headline text-[#171717] mb-3">
           {error?.status === 500 ? "Kesalahan Sistem" : "Data Tidak Ditemukan"}

@@ -1,15 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import Sidebar from './components/Sidebar';
 import TopNavBar from './components/TopNavBar';
-import { 
-  FileText, Download, Search, Filter,
-  FileDown, FileSpreadsheet, FilePlus,
-  Calendar, CheckCircle2, Clock, 
-  MoreVertical, ChevronRight, Share2,
-  AlertCircle
-} from 'lucide-react';
+
 import { UI } from '../../constants/designSystem';
 import { psychologistService } from '../../services/api';
+
+// Auto-injected Material Symbol fallbacks for removed Lucide icons
+const FilePlus = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>note_add</span>;
+const Share2 = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>share</span>;
+const FileDown = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>download</span>;
+
+
 
 export default function ClinicalReports() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -62,7 +63,7 @@ export default function ClinicalReports() {
                 {/* Filters & Search */}
                 <div className="flex flex-col sm:flex-row gap-4">
                    <div className="flex-1 relative group">
-                      <Search className="absolute left-4 top-1/2 -translate-y-1/2 size-4 text-slate-400 group-focus-within:text-primary transition-colors" />
+                      <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 size-4 text-slate-400 group-focus-within:text-primary transition-colors" >search</span>
                       <input 
                         type="text" 
                         placeholder="Cari nama laporan..."
@@ -72,7 +73,7 @@ export default function ClinicalReports() {
                       />
                    </div>
                    <button className="px-6 py-3 bg-white border border-slate-100 rounded-2xl text-[10px] font-black uppercase tracking-widest text-slate-500 flex items-center gap-2 hover:bg-slate-50 transition-all shadow-sm">
-                      <Filter size={16} /> Filter
+                      <span className="material-symbols-outlined" style={{ fontSize: 16 }}>filter_alt</span> Filter
                    </button>
                 </div>
 
@@ -93,7 +94,7 @@ export default function ClinicalReports() {
                               <td className="px-8 py-5">
                                  <div className="flex items-center gap-4">
                                      <div className={`size-10 rounded-xl ${report.type === 'PDF' ? 'bg-rose-50 text-rose-500' : 'bg-emerald-50 text-emerald-500'} flex items-center justify-center shadow-sm`}>
-                                       {report.type === 'PDF' ? <FileText size={18} /> : <FileSpreadsheet size={18} />}
+                                       {report.type === 'PDF' ? <span className="material-symbols-outlined" style={{ fontSize: '18px' }} >description</span> : <span className="material-symbols-outlined" style={{ fontSize: 18 }}>table_view</span>}
                                     </div>
                                     <div>
                                        <h5 className="text-xs font-bold text-slate-900 leading-tight">{report.title}</h5>
@@ -118,7 +119,7 @@ export default function ClinicalReports() {
                               <td className="px-8 py-5 text-right">
                                  <div className="flex items-center justify-end gap-2">
                                     <button className="p-2 text-slate-300 hover:text-primary transition-all rounded-lg hover:bg-primary/5">
-                                       <Download size={18} />
+                                       <span className="material-symbols-outlined" style={{ fontSize: 18 }}>download</span>
                                     </button>
                                     <button className="p-2 text-slate-300 hover:text-slate-600 transition-all rounded-lg hover:bg-slate-100">
                                        <Share2 size={18} />
@@ -147,13 +148,13 @@ export default function ClinicalReports() {
 
                 <div className="bg-white p-6 rounded-[2.5rem] border border-slate-100 shadow-sm space-y-6">
                    <h3 className="text-[10px] font-black text-primary uppercase tracking-widest flex items-center gap-2">
-                      <Clock size={16} /> Jadwal Laporan
+                      <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >schedule</span> Jadwal Laporan
                    </h3>
                    <div className="space-y-4">
                       <div className="p-3 bg-slate-50 rounded-2xl border border-slate-100">
                          <p className="text-[9px] font-black text-slate-700 uppercase tracking-tight">Laporan Semesteran</p>
                          <p className="text-[8px] text-rose-500 font-black uppercase mt-1 flex items-center gap-1">
-                            <AlertCircle size={10} /> 3 Hari Lagi
+                            <span className="material-symbols-outlined" style={{ fontSize: '10px' }} >error</span> 3 Hari Lagi
                          </p>
                       </div>
                       <div className="p-3 bg-slate-50 rounded-2xl border border-slate-100 opacity-60">

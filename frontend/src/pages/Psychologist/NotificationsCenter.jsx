@@ -1,26 +1,20 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import Sidebar from './components/Sidebar';
 import TopNavBar from './components/TopNavBar';
-import {
-  AlertCircle,
-  Bell,
-  Calendar,
-  Check,
-  CheckCircle2,
-  ClipboardList,
-  Clock,
-  Loader2,
-  RefreshCw,
-  Trash2,
-} from 'lucide-react';
+
 import { UI } from '../../constants/designSystem';
 import { psychologistService } from '../../services/api';
 
+// Auto-injected Material Symbol fallbacks for removed Lucide icons
+const Bell = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>notifications</span>;
+
+
+
 const iconByType = {
-  booking: Calendar,
-  assessment: ClipboardList,
-  alert: AlertCircle,
-  report: CheckCircle2,
+  booking: 'calendar_month',
+  assessment: 'assignment',
+  alert: 'error',
+  report: 'check_circle',
 };
 
 const colorByType = {
@@ -119,7 +113,7 @@ export default function NotificationsCenter() {
             <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
               <div>
                 <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-primary/10 bg-primary/5 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-primary">
-                  <Bell size={14} />
+                  <span className="material-symbols-outlined" style={{ fontSize: '14px' }} >notifications</span>
                   {unreadCount} Belum Dibaca
                 </div>
                 <h1 className="font-headline text-2xl font-black uppercase tracking-tight text-primary">Pusat Notifikasi</h1>
@@ -135,7 +129,7 @@ export default function NotificationsCenter() {
                   disabled={loading}
                   className="inline-flex h-11 items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 text-[10px] font-black uppercase tracking-widest text-slate-500 shadow-sm transition hover:text-primary disabled:cursor-wait disabled:opacity-60"
                 >
-                  {loading ? <Loader2 size={16} className="animate-spin" /> : <RefreshCw size={16} />}
+                  {loading ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '16px' }} >sync</span> : <span className="material-symbols-outlined" style={{ fontSize: 16 }}>sync</span>}
                   Muat Ulang
                 </button>
                 <button
@@ -144,7 +138,7 @@ export default function NotificationsCenter() {
                   disabled={!unreadCount || busyId === 'read-all'}
                   className="inline-flex h-11 items-center gap-2 rounded-2xl bg-primary px-4 text-[10px] font-black uppercase tracking-widest text-white shadow-lg shadow-primary/20 transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:shadow-none"
                 >
-                  {busyId === 'read-all' ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />}
+                  {busyId === 'read-all' ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '16px' }} >sync</span> : <span className="material-symbols-outlined" style={{ fontSize: 16 }}>check</span>}
                   Tandai Semua Dibaca
                 </button>
               </div>
@@ -153,7 +147,7 @@ export default function NotificationsCenter() {
 
           {error && (
             <div className="flex items-start gap-3 rounded-3xl border border-rose-100 bg-rose-50 px-5 py-4 text-rose-700">
-              <AlertCircle size={18} className="mt-0.5 shrink-0" />
+              <span className="material-symbols-outlined mt-0.5 shrink-0" style={{ fontSize: '18px' }} >error</span>
               <p className="text-sm font-semibold">{error}</p>
             </div>
           )}
@@ -178,14 +172,14 @@ export default function NotificationsCenter() {
                       {noti.unread && <span className="absolute left-3 top-1/2 size-2 -translate-y-1/2 rounded-full bg-primary shadow-lg shadow-primary/40" />}
 
                       <div className={`flex size-14 shrink-0 items-center justify-center rounded-3xl ${colorByType[noti.type] || 'bg-primary'} text-white shadow-sm`}>
-                        <Icon size={23} />
+                        <span className="material-symbols-outlined" style={{ fontSize: 23 }}>{Icon}</span>
                       </div>
 
                       <div className="min-w-0 flex-1">
                         <div className="mb-1 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
                           <h2 className="truncate text-sm font-black uppercase tracking-tight text-slate-950">{noti.title}</h2>
                           <span className="inline-flex shrink-0 items-center gap-1 text-[9px] font-black uppercase tracking-widest text-slate-400">
-                            <Clock size={11} />
+                            <span className="material-symbols-outlined" style={{ fontSize: '11px' }} >schedule</span>
                             {noti.time}
                           </span>
                         </div>
@@ -201,7 +195,7 @@ export default function NotificationsCenter() {
                             className="rounded-xl p-2 text-slate-300 transition hover:bg-primary/5 hover:text-primary disabled:cursor-wait"
                             aria-label="Tandai dibaca"
                           >
-                            {busyId === `read-${noti.id}` ? <Loader2 size={18} className="animate-spin" /> : <Check size={18} />}
+                            {busyId === `read-${noti.id}` ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '18px' }} >sync</span> : <span className="material-symbols-outlined" style={{ fontSize: 18 }}>check</span>}
                           </button>
                         )}
                         <button
@@ -211,7 +205,7 @@ export default function NotificationsCenter() {
                           className="rounded-xl p-2 text-slate-300 transition hover:bg-rose-50 hover:text-rose-500 disabled:cursor-wait"
                           aria-label="Hapus notifikasi"
                         >
-                          {busyId === `delete-${noti.id}` ? <Loader2 size={18} className="animate-spin" /> : <Trash2 size={18} />}
+                          {busyId === `delete-${noti.id}` ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '18px' }} >sync</span> : <span className="material-symbols-outlined" style={{ fontSize: '18px' }} >delete</span>}
                         </button>
                       </div>
                     </article>
@@ -220,7 +214,7 @@ export default function NotificationsCenter() {
 
             {!loading && notifications.length === 0 && (
               <div className="rounded-[2rem] border border-dashed border-slate-200 bg-white p-10 text-center shadow-sm">
-                <Bell size={34} className="mx-auto mb-3 text-slate-300" />
+                <span className="material-symbols-outlined mx-auto mb-3 text-slate-300" style={{ fontSize: '34px' }} >notifications</span>
                 <p className="text-sm font-black uppercase tracking-widest text-slate-500">Belum ada notifikasi</p>
                 <p className="mt-1 text-xs font-semibold text-slate-400">Notifikasi baru akan muncul dari tabel `psikolog.notifications`.</p>
               </div>

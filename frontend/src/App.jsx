@@ -11,6 +11,7 @@ import AdminDashboard from './pages/SuperAdmin/AdminDashboard'
 import FacultyLayout from './pages/FacultyAdmin/components/FacultyLayout'
 import FacultyDashboard from './pages/FacultyAdmin/FacultyDashboard'
 import OrmawaDashboard from './pages/OrmawaAdmin/OrmawaDashboard'
+import OrmawaLayout from './pages/OrmawaAdmin/components/OrmawaLayout'
 import PsychologistDashboard from './pages/Psychologist/PsychologistDashboard'
 import BookingManagement from './pages/Psychologist/BookingManagement'
 import BookingDetail from './pages/Psychologist/BookingDetail'
@@ -104,7 +105,6 @@ import AcademicPortal from './pages/SuperAdmin/AcademicPortal'
 import AspirationControl from './pages/SuperAdmin/AspirationControl'
 import ProposalPipeline from './pages/SuperAdmin/ProposalPipeline'
 import AuditLog from './pages/SuperAdmin/AuditLog'
-import CounselingAchievement from './pages/SuperAdmin/CounselingAchievement'
 import ContentManagement from './pages/SuperAdmin/ContentManagement'
 import ReportsGenerator from './pages/SuperAdmin/ReportsGenerator'
 import StudentDirectory from './pages/SuperAdmin/StudentDirectory'
@@ -116,6 +116,8 @@ import PsychologistDirectory from './pages/SuperAdmin/PsychologistDirectory'
 import KelolaFakultas from './pages/SuperAdmin/KelolaFakultas'
 import KelolaProdi from './pages/SuperAdmin/KelolaProdi'
 import KelolaBeasiswa from './pages/SuperAdmin/KelolaBeasiswa'
+import ScholarshipApplicationDetail from './pages/SuperAdmin/ScholarshipApplicationDetail'
+import AspirationDetail from './pages/SuperAdmin/AspirationDetail'
 import KelolaOrganisasi from './pages/SuperAdmin/KelolaOrganisasi'
 import SuperAdminLayout from './pages/SuperAdmin/components/SuperAdminLayout'
 import NotFound from './pages/NotFound/NotFound'
@@ -188,7 +190,6 @@ function App() {
                     <Route path="aspirations" element={<AspirationControl />} />
                     <Route path="proposals" element={<ProposalPipeline />} />
                     <Route path="audit" element={<AuditLog />} />
-                    <Route path="counseling" element={<CounselingAchievement />} />
                     <Route path="announcements" element={<ContentManagement />} />
                     <Route path="broadcast" element={<ContentManagement />} />
                     <Route path="reports" element={<ReportsGenerator />} />
@@ -201,6 +202,8 @@ function App() {
                     <Route path="faculties" element={<KelolaFakultas />} />
                     <Route path="prodi" element={<KelolaProdi />} />
                     <Route path="scholarships" element={<KelolaBeasiswa />} />
+                    <Route path="scholarships/applications/:id" element={<ScholarshipApplicationDetail />} />
+                    <Route path="aspirations/:id" element={<AspirationDetail />} />
                     <Route path="organizations" element={<KelolaOrganisasi />} />
                     <Route path="ormawa" element={<ProposalPipeline />} />
                     <Route path="treasury" element={<ReportsGenerator />} />
@@ -257,27 +260,29 @@ function App() {
             <Route path="/ormawa/*" element={
               <ProtectedRoute allowedRoles={['ormawa_admin', 'mahasiswa', 'ormawa']}>
                 <Routes>
-                  <Route index element={<OrmawaDashboard />} />
-                  <Route path="anggota" element={<AnggotaManagement />} />
-                  <Route path="proposal" element={<ProposalManagement />} />
-                  <Route path="jadwal" element={<JadwalKegiatan />} />
-                  <Route path="absensi" element={<AbsensiKegiatan />} />
-                  <Route path="keuangan" element={<KeuanganKas />} />
-                  <Route path="lpj" element={<LpjManagement />} />
-                  <Route path="pengumuman" element={<Pengumuman />} />
-                  <Route path="struktur" element={<StrukturOrganisasi />} />
-                  <Route path="staff" element={<StaffManagement />} />
-                  <Route path="rbac" element={<RoleBasedAccess />} />
-                  <Route path="notifikasi" element={<Notifikasi />} />
-                  <Route path="pengaturan" element={<Settings />} />
-                  <Route path="aspirasi" element={<AspirationManagement />} />
-                  <Route path="pkkmb" element={<PkkmbManagement />} />
+                  <Route element={<OrmawaLayout />}>
+                    <Route index element={<OrmawaDashboard />} />
+                    <Route path="anggota" element={<AnggotaManagement />} />
+                    <Route path="proposal" element={<ProposalManagement />} />
+                    <Route path="jadwal" element={<JadwalKegiatan />} />
+                    <Route path="absensi" element={<AbsensiKegiatan />} />
+                    <Route path="keuangan" element={<KeuanganKas />} />
+                    <Route path="lpj" element={<LpjManagement />} />
+                    <Route path="pengumuman" element={<Pengumuman />} />
+                    <Route path="struktur" element={<StrukturOrganisasi />} />
+                    <Route path="staff" element={<StaffManagement />} />
+                    <Route path="rbac" element={<RoleBasedAccess />} />
+                    <Route path="notifikasi" element={<Notifikasi />} />
+                    <Route path="pengaturan" element={<Settings />} />
+                    <Route path="aspirasi" element={<AspirationManagement />} />
+                    <Route path="pkkmb" element={<PkkmbManagement />} />
+                  </Route>
                 </Routes>
               </ProtectedRoute>
             } />
             {/* Psychologist Portal Routes */}
             <Route path="/psychologist/*" element={
-              <ProtectedRoute allowedRoles={['dosen', 'psikolog']}>
+              <ProtectedRoute allowedRoles={['psikolog']}>
                 <Routes>
                   <Route index element={<PsychologistDashboard />} />
                   {/* Sub-routes can be added here later */}
@@ -296,7 +301,11 @@ function App() {
             } />
 
             {/* Student Portal (BKU Student Hub) */}
-            <Route path="/student" element={<AppLayout />}>
+            <Route path="/student/*" element={
+              <ProtectedRoute allowedRoles={['mahasiswa']}>
+                <AppLayout />
+              </ProtectedRoute>
+            }>
               <Route index element={<Navigate to="dashboard" replace />} />
               <Route path="dashboard" element={<BkuDashboard />} />
               <Route path="kencana" element={<KencanaPage />} />

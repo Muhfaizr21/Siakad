@@ -21,20 +21,20 @@ import { Label } from "./components/label"
 import { cn } from "@/lib/utils"
 import { Modal, ModalBody, ModalFooter, ModalBtn } from "./components/Modal"
 
-import {
-  Megaphone,
-  Clock,
-  FileText,
-  Calendar,
-  Save,
-  Loader2,
-  Plus,
-  Pencil,
-  Trash2,
-  Eye
-} from "lucide-react"
+
 import { PageContainer, PageHeader, ResponsiveGrid, ResponsiveCard } from "./components/responsive-layout"
 import { API_BASE_URL } from "../../services/api"
+
+// Auto-injected Material Symbol fallbacks for removed Lucide icons
+const Eye = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>visibility</span>;
+
+
+
+// Auto-injected Material Symbol fallbacks for removed Lucide icons
+const Megaphone = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>campaign</span>;
+const Clock = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>schedule</span>;
+
+
 
 const API = `${API_BASE_URL}/faculty`
 
@@ -206,21 +206,21 @@ export default function KontenPage() {
             value="pengumuman" 
             className="rounded-2xl px-6 py-2.5 data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-primary/25 text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-bold text-[13px] gap-3 transition-all duration-300"
           >
-            <Megaphone className="size-[18px]" />
+            <span className="material-symbols-outlined size-[18px]" >campaign</span>
             Pengumuman
           </TabsTrigger>
           <TabsTrigger 
             value="kalender" 
             className="rounded-2xl px-6 py-2.5 data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-primary/25 text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-bold text-[13px] gap-3 transition-all duration-300"
           >
-            <Calendar className="size-[18px]" />
+            <span className="material-symbols-outlined size-[18px]" >calendar_month</span>
             Kalender Akademik
           </TabsTrigger>
           <TabsTrigger 
             value="template" 
             className="rounded-2xl px-6 py-2.5 data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-primary/25 text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-bold text-[13px] gap-3 transition-all duration-300"
           >
-            <FileText className="size-[18px]" />
+            <span className="material-symbols-outlined size-[18px]" >description</span>
             Template Dokumen
           </TabsTrigger>
         </TabsList>
@@ -251,10 +251,10 @@ export default function KontenPage() {
                   actions={(row) => (
                     <div className="flex items-center justify-end gap-2 pr-2">
                       <Button onClick={() => handleOpenEdit(row)} variant="ghost" size="icon" className="h-9 w-9 hover:text-amber-600 rounded-xl hover:bg-amber-50 transition-all">
-                        <Pencil className="size-4" />
+                        <span className="material-symbols-outlined size-4" >edit</span>
                       </Button>
                       <Button onClick={() => { setSelectedArticleId(row.id); setIsDelOpen(true); }} variant="ghost" size="icon" className="h-9 w-9 hover:text-rose-600 rounded-xl hover:bg-rose-50 transition-all text-slate-400">
-                        <Trash2 className="size-4" />
+                        <span className="material-symbols-outlined size-4" >delete</span>
                       </Button>
                     </div>
                   )}
@@ -267,7 +267,7 @@ export default function KontenPage() {
               <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent" />
               <div className="space-y-6 relative z-10">
                  <div className="size-20 rounded-[2rem] bg-primary/5 flex items-center justify-center mx-auto border border-primary/10 group-hover:scale-110 transition-transform duration-500 shadow-xl shadow-primary/5">
-                    <Calendar className="size-10 text-primary/40" />
+                    <span className="material-symbols-outlined size-10 text-primary/40" >calendar_month</span>
                  </div>
                  <div className="space-y-2">
                     <p className="text-[11px] font-black uppercase tracking-[0.3em] text-primary">Coming Soon</p>
@@ -282,7 +282,7 @@ export default function KontenPage() {
               <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-transparent" />
               <div className="space-y-6 relative z-10">
                  <div className="size-20 rounded-[2rem] bg-indigo-50/50 flex items-center justify-center mx-auto border border-indigo-100 group-hover:scale-110 transition-transform duration-500 shadow-xl shadow-indigo-500/5">
-                    <FileText className="size-10 text-indigo-400/40" />
+                    <span className="material-symbols-outlined size-10 text-indigo-400/40" >description</span>
                  </div>
                  <div className="space-y-2">
                     <p className="text-[11px] font-black uppercase tracking-[0.3em] text-indigo-500">Repository</p>
@@ -300,7 +300,7 @@ export default function KontenPage() {
         onClose={() => setIsModalOpen(false)}
         title={isEditMode ? 'Edit Informasi' : 'Publikasi Baru'}
         subtitle="Manajemen distribusi informasi dan publikasi artikel resmi fakultas."
-        icon={isEditMode ? <Pencil size={18} /> : <Plus size={18} />}
+        icon={isEditMode ? <span className="material-symbols-outlined" style={{ fontSize: '18px' }} >edit</span> : <span className="material-symbols-outlined" style={{ fontSize: '18px' }} >add</span>}
         maxWidth="max-w-xl"
       >
         <form onSubmit={handleSubmit}>
@@ -352,7 +352,7 @@ export default function KontenPage() {
                 <Label className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] ml-0.5 font-headline">Thumbnail URL</Label>
                 <div className="relative group">
                   <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-primary transition-colors">
-                    <FileText className="size-3.5" />
+                    <span className="material-symbols-outlined size-3.5" >description</span>
                   </div>
                   <Input
                     value={formData.thumbnail}
@@ -382,9 +382,9 @@ export default function KontenPage() {
             </ModalBtn>
             <ModalBtn type="submit" disabled={isSubmitting}>
               {isSubmitting ? (
-                <Loader2 className="animate-spin size-4" />
+                <span className="material-symbols-outlined animate-spin size-4" >sync</span>
               ) : (
-                <Save size={14} className="stroke-[3px]" />
+                <span className="material-symbols-outlined stroke-[3px]" style={{ fontSize: '14px' }} >save</span>
               )}
               <span className="uppercase tracking-[0.1em]">{isEditMode ? "Update Changes" : "Publish Content"}</span>
             </ModalBtn>

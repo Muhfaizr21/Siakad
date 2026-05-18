@@ -95,7 +95,7 @@ export default function Header({ onMenuClick }) {
           className="lg:hidden text-[#525252] hover:text-[#00236F] transition"
           aria-label="Buka menu"
         >
-          <Menu size={20} />
+          <span className="material-symbols-outlined " size={20}>menu</span>
         </button>
         
         {/* Breadcrumb dummy */}
@@ -150,7 +150,7 @@ export default function Header({ onMenuClick }) {
                           <item.icon size={16} />
                         </div>
                         {item.name}
-                        <ChevronRight size={14} className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity" />
+                        <span className="material-symbols-outlined ml-auto opacity-0 group-hover:opacity-100 transition-opacity" size={14}>chevron_right</span>
                       </button>
                     ))}
                   </div>
@@ -236,7 +236,7 @@ export default function Header({ onMenuClick }) {
                       onClick={() => setIsProfileOpen(false)}
                       className="flex items-center gap-3 px-4 py-3 rounded-2xl hover:bg-white hover:shadow-md text-sm font-bold text-[#525252] hover:text-[#00236F] transition-all group"
                     >
-                      <User size={18} className="group-hover:scale-110 transition-transform" />
+                      <span className="material-symbols-outlined group-hover:scale-110 transition-transform" size={18}>person</span>
                       Data Diri
                     </NavLink>
                     <NavLink 
@@ -244,7 +244,7 @@ export default function Header({ onMenuClick }) {
                       onClick={() => setIsProfileOpen(false)}
                       className="flex items-center gap-3 px-4 py-3 rounded-2xl hover:bg-white hover:shadow-md text-sm font-bold text-[#525252] hover:text-[#00236F] transition-all group"
                     >
-                      <Settings size={18} className="group-hover:scale-110 transition-transform" />
+                      <span className="material-symbols-outlined group-hover:scale-110 transition-transform" size={18}>settings</span>
                       Pengaturan
                     </NavLink>
                   </div>
@@ -254,7 +254,7 @@ export default function Header({ onMenuClick }) {
                       onClick={handleLogout}
                       className="flex items-center gap-3 w-full px-4 py-3 rounded-2xl hover:bg-red-50 text-sm font-bold text-[#dc2626] transition-all group"
                     >
-                      <LogOut size={18} className="group-hover:translate-x-1 transition-transform" />
+                      <span className="material-symbols-outlined group-hover:translate-x-1 transition-transform" size={18}>logout</span>
                       Keluar Sesi
                     </button>
                   </div>

@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { useDashboardQuery } from '../../../queries/useDashboardQuery';
 import useAuthStore from '../../../store/useAuthStore';
-import { Bell, Map, FileCheck, CheckSquare, CalendarDays, Library, AlertCircle, FileText } from 'lucide-react';
+
 import { StatCard, JadwalCard, TagihanCard, NotifItem, QuickLink } from './DashboardComponents';
 import { Skeleton } from '../../../components/ui/Skeleton';
 
@@ -29,7 +29,7 @@ export default function StudentDashboard() {
   if (isError) {
     return (
       <div className="p-6 md:p-10 min-h-screen bg-neutral-50 flex flex-col items-center justify-center font-inter">
-        <AlertCircle size={64} className="text-red-400 mb-4" />
+        <span className="material-symbols-outlined text-red-400 mb-4" style={{ fontSize: '64px' }} >error</span>
         <h2 className="text-2xl font-bold font-jakarta text-neutral-900 mb-2">Gagal Memuat Data</h2>
         <p className="text-neutral-500 mb-6 max-w-md text-center">
           Terjadi kesalahan saat mengambil data dari server. Silakan periksa koneksi internet Anda atau coba lagi.
@@ -106,12 +106,12 @@ export default function StudentDashboard() {
 
         {/* Quick Links */}
         <section className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-          <QuickLink icon={Map} label="Kencana" href="/student/kencana" />
-          <QuickLink icon={FileCheck} label="Nilai & Transkrip" href="/akademik/nilai" />
-          <QuickLink icon={CheckSquare} label="Absensi" href="/akademik/absensi" />
-          <QuickLink icon={CalendarDays} label="Jadwal Ujian" href="/akademik/ujian" />
-          <QuickLink icon={Library} label="Perpustakaan" href="/layanan/perpus" />
-          <QuickLink icon={FileText} label="Pengajuan Surat" href="/layanan/surat" />
+          <QuickLink icon="map" label="Kencana" href="/student/kencana" />
+          <QuickLink icon="fact_check" label="Nilai & Transkrip" href="/akademik/nilai" />
+          <QuickLink icon="rule" label="Absensi" href="/akademik/absensi" />
+          <QuickLink icon="event" label="Jadwal Ujian" href="/akademik/ujian" />
+          <QuickLink icon="local_library" label="Perpustakaan" href="/layanan/perpus" />
+          <QuickLink icon="description" label="Pengajuan Surat" href="/layanan/surat" />
         </section>
 
         {/* Academic Stats Grid */}
@@ -158,7 +158,7 @@ export default function StudentDashboard() {
             <div className="bg-white rounded-xl border border-neutral-200 shadow-sm flex flex-col overflow-hidden max-h-[400px]">
               <div className="p-4 border-b border-neutral-100 flex justify-between items-center bg-neutral-50/50">
                 <h3 className="font-bold font-jakarta text-neutral-900 flex items-center gap-2">
-                  <Bell size={18} className="text-neutral-500" />
+                  <span className="material-symbols-outlined text-neutral-500" style={{ fontSize: '18px' }} >notifications</span>
                   Notifikasi
                 </h3>
                 <a href="/notifikasi" className="text-xs font-semibold text-orange-600 hover:text-orange-700">Semua</a>

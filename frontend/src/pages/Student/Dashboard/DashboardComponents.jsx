@@ -1,6 +1,11 @@
 import React from 'react';
-import { BookOpen, MapPin, Clock, CalendarX2, ArrowUpRight, ArrowDownRight, FileText, CheckCircle2, Bookmark, LayoutDashboard } from 'lucide-react';
+
 import { Skeleton } from '../../../components/ui/Skeleton';
+
+// Auto-injected Material Symbol fallbacks for removed Lucide icons
+const ArrowDownRight = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>arrow_downward</span>;
+
+
 
 // --- STAT CARD ---
 export function StatCard({ title, value, maxOrSub, trend, type, isLoading }) {
@@ -25,7 +30,7 @@ export function StatCard({ title, value, maxOrSub, trend, type, isLoading }) {
       {/* Trend or Progress Element */}
       {trend && (
         <div className={`flex items-center text-xs font-medium ${trend.isUp ? 'text-green-600' : 'text-neutral-500'}`}>
-          {trend.isUp ? <ArrowUpRight size={14} className="mr-1" /> : <ArrowDownRight size={14} className="mr-1" />}
+          {trend.isUp ? <span className="material-symbols-outlined mr-1" style={{ fontSize: '14px' }} >call_made</span> : <ArrowDownRight size={14} className="mr-1" />}
           <span>{trend.label}</span>
         </div>
       )}
@@ -69,7 +74,7 @@ export function JadwalCard({ jadwal, isLoading }) {
     <div className="bg-white p-6 rounded-xl border border-neutral-200 shadow-sm col-span-full lg:col-span-2 flex flex-col">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-lg font-bold font-jakarta text-neutral-900 flex items-center gap-2">
-          <BookOpen className="text-orange-500" size={20} />
+          <span className="material-symbols-outlined text-orange-500" style={{ fontSize: 20 }}>menu_book</span>
           Jadwal Hari Ini
         </h2>
         <a href="/jadwal" className="text-sm font-medium text-orange-600 hover:text-orange-700 transition-colors">Lihat Semua</a>
@@ -87,8 +92,8 @@ export function JadwalCard({ jadwal, isLoading }) {
                 <div className="flex-1">
                   <h4 className="font-bold font-jakarta text-neutral-900 mb-1">{item.nama_mk}</h4>
                   <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-neutral-500">
-                    <span className="flex items-center gap-1.5"><MapPin size={14} />{item.ruang}</span>
-                    <span className="flex items-center gap-1.5"><Clock size={14} />{item.nama_dosen}</span>
+                    <span className="flex items-center gap-1.5"><span className="material-symbols-outlined" style={{ fontSize: '14px' }} >location_on</span>{item.ruang}</span>
+                    <span className="flex items-center gap-1.5"><span className="material-symbols-outlined" style={{ fontSize: '14px' }} >schedule</span>{item.nama_dosen}</span>
                   </div>
                 </div>
               </div>
@@ -96,7 +101,7 @@ export function JadwalCard({ jadwal, isLoading }) {
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center text-center h-full py-8 text-neutral-400">
-            <CalendarX2 size={48} strokeWidth={1} className="mb-3 text-neutral-300" />
+            <span className="material-symbols-outlined mb-3 text-neutral-300" style={{ fontSize: '48px' }} X2  strokeWidth={1}>calendar_month</span>
             <p className="font-medium text-neutral-600">Tidak ada jadwal hari ini</p>
             <p className="text-sm mt-1">Waktunya istirahat atau nugas mandiri!</p>
           </div>
@@ -138,7 +143,7 @@ export function TagihanCard({ invoice, isLoading }) {
         
         {isPaid ? (
           <div className="flex flex-col items-center justify-center h-full py-2">
-            <CheckCircle2 size={40} className="text-green-500 mb-2" />
+            <span className="material-symbols-outlined text-green-500 mb-2" style={{ fontSize: '40px' }} >check_circle</span>
             <p className="font-medium text-green-800">Semua tagihan lunas!</p>
           </div>
         ) : (
@@ -149,7 +154,7 @@ export function TagihanCard({ invoice, isLoading }) {
             </div>
             
             <div className="flex items-center gap-2 text-sm font-medium">
-              <Clock size={16} className={isWarning || isOverdue ? 'text-red-500' : 'text-neutral-400'} />
+              <span className="material-symbols-outlined" style={{ fontSize: '16px' }}  className={isWarning || isOverdue ? 'text-red-500' : 'text-neutral-400'}>schedule</span>
               <span className={isWarning || isOverdue ? 'text-red-600' : 'text-neutral-500'}>
                 {isOverdue ? `Terlewat ${Math.abs(daysLeft)} hari` : `Jatuh tempo dlm ${daysLeft} hari`}
               </span>
@@ -189,11 +194,11 @@ export function NotifItem({ notif }) {
 }
 
 // --- QUICK LINK ---
-export function QuickLink({ icon: Icon, label, href }) {
+export function QuickLink({ icon, label, href }) {
   return (
     <a href={href} className="flex flex-col items-center justify-center p-4 rounded-xl border border-neutral-200 bg-white hover:border-orange-200 hover:shadow-md hover:bg-orange-50/30 transition-all group">
       <div className="w-12 h-12 rounded-full bg-orange-50 text-orange-600 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-        <Icon size={24} />
+        <span className="material-symbols-outlined" style={{ fontSize: 24 }}>{icon}</span>
       </div>
       <span className="text-sm font-medium text-neutral-700 font-jakarta group-hover:text-orange-600 text-center leading-tight">
         {label}

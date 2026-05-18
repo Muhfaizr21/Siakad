@@ -1,54 +1,101 @@
 "use client"
 
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, useMemo } from "react"
 import api from "../../lib/axios"
-import { DataTable } from "./components/data-table"
-import { Badge } from "./components/badge"
-import { Button } from "./components/button"
-import { Avatar, AvatarFallback } from "./components/avatar"
-import { Modal, ModalBody, ModalFooter, ModalBtn } from "./components/Modal"
 import { pddiktiService } from "../../services/api"
 
-
-import { Card, CardContent } from "./components/card"
-import { Eye, Mail, GraduationCap, MapPin, Phone, User, BookOpen, Heart, FileText, Users } from "lucide-react"
 import { toast, Toaster } from "react-hot-toast"
 import { cn } from "@/lib/utils"
-import { PageContainer, PageHeader, ResponsiveGrid, ResponsiveCard } from "./components/responsive-layout"
+
+// Auto-injected Material Symbol fallbacks for removed Lucide icons
+const RefreshCw = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>sync</span>;
+const Icon = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>info</span>;
+
+
+
+// Auto-injected Material Symbol fallbacks for removed Lucide icons
+const Layers = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>layers</span>;
+
+
+
+// Auto-injected Material Symbol fallbacks for removed Lucide icons
+const Phone = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>phone</span>;
+const Mail = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>mail</span>;
+
+
+
+// Auto-injected Material Symbol fallbacks for removed Lucide icons
+const Users = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>group</span>;
+const UserCheck = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>how_to_reg</span>;
+const GraduationCap = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>school</span>;
+const Calendar = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>calendar_today</span>;
+const BookOpen = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>menu_book</span>;
+const Building2 = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>business</span>;
+const Award = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>emoji_events</span>;
+const FileText = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>description</span>;
+const MapPin = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>location_on</span>;
+const Heart = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>favorite</span>;
+
+
+
+const STATUS_STYLES = {
+  'Aktif':     { cls: 'bg-emerald-50 text-emerald-700 border-emerald-200', dot: 'bg-emerald-500' },
+  'active':    { cls: 'bg-emerald-50 text-emerald-700 border-emerald-200', dot: 'bg-emerald-500' },
+  'Lulus':     { cls: 'bg-sky-50 text-sky-700 border-sky-200',             dot: 'bg-sky-500' },
+  'Cuti':      { cls: 'bg-amber-50 text-amber-700 border-amber-200',       dot: 'bg-amber-500' },
+  'leave':     { cls: 'bg-amber-50 text-amber-700 border-amber-200',       dot: 'bg-amber-500' },
+  'Non-Aktif': { cls: 'bg-rose-50 text-rose-700 border-rose-200',          dot: 'bg-rose-500' },
+}
+
+const AVATAR_COLORS = [
+  'from-blue-400 to-indigo-500',
+  'from-emerald-400 to-teal-500',
+  'from-amber-400 to-orange-500',
+  'from-rose-400 to-pink-500',
+  'from-violet-400 to-purple-500',
+  'from-cyan-400 to-sky-500',
+]
+
+const getInitials = (name = '') =>
+  name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() || '?'
+
+const formatDate = (d) => {
+  if (!d) return '—'
+  try { return new Date(d).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) }
+  catch { return d }
+}
 
 export default function MahasiswaPage() {
-  const [selectedMahasiswa, setSelectedMahasiswa] = useState(null)
-  const [isDetailOpen, setIsDetailOpen] = useState(false)
   const [studentData, setStudentData] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [isSyncing, setIsSyncing] = useState(false)
+  const [loading, setLoading]         = useState(true)
+  const [isSyncing, setIsSyncing]     = useState(false)
+  const [selected, setSelected]       = useState(null)
+  const [search, setSearch]           = useState('')
+  const [filterStatus, setFilterStatus] = useState('all')
 
-  const mapStudent = (m) => {
+  const mapStudent = (m, i) => {
     const statusAkun = m.StatusAkun || 'Aktif'
     const isLulus = String(statusAkun).toLowerCase() === 'lulus'
     return {
-      ID: m.ID,
-      NIM: m.NIM,
-      Nama: m.Nama,
-      ProgramStudi: { Nama: m.ProgramStudi?.Nama || '-' },
-      SemesterSekarang: isLulus ? 0 : (Number.isInteger(m.SemesterSekarang) && m.SemesterSekarang > 0 ? m.SemesterSekarang : 1),
+      ID: m.ID, NIM: m.NIM, Nama: m.Nama,
+      ProgramStudi: m.ProgramStudi?.Nama || '—',
+      SemesterSekarang: isLulus ? null : (m.SemesterSekarang > 0 ? m.SemesterSekarang : 1),
       StatusAkun: statusAkun,
-      StatusAkademik: m.StatusAkademik || '-',
-      TahunMasuk: m.TahunMasuk ? String(m.TahunMasuk) : (m.NIM ? `20${m.NIM.substring(0, 2)}` : '2023'),
-      NoHP: m.NoHP || '-',
-      JalurMasuk: m.JalurMasuk || 'PDDIKTI SYNC',
-      DosenPA: m.DosenPA,
-      TempatLahir: m.TempatLahir,
+      StatusAkademik: m.StatusAkademik || '—',
+      TahunMasuk: m.TahunMasuk ? String(m.TahunMasuk) : (m.NIM ? `20${m.NIM.substring(0,2)}` : '—'),
+      NoHP: m.NoHP || '—',
+      JalurMasuk: m.JalurMasuk || 'PDDIKTI Sync',
+      DosenPA: m.DosenPA?.Nama || 'Belum Ditentukan',
+      TempatLahir: m.TempatLahir || '—',
       TanggalLahir: m.TanggalLahir,
-      NIK: m.NIK,
-      EmailKampus: m.EmailKampus,
-      Pengguna: m.Pengguna,
-      Alamat: m.Alamat,
-      NamaAyah: m.NamaAyah,
-      NamaIbuKandung: m.NamaIbuKandung,
-      PekerjaanAyah: m.PekerjaanAyah,
-      PekerjaanIbu: m.PekerjaanIbu,
-      PenghasilanOrtu: m.PenghasilanOrtu
+      NIK: m.NIK || '—',
+      Email: m.EmailKampus || m.Pengguna?.Email || '—',
+      Alamat: m.Alamat || '—',
+      NamaAyah: m.NamaAyah || '—',
+      NamaIbu: m.NamaIbuKandung || '—',
+      PekerjaanOrtu: m.PekerjaanAyah || m.PekerjaanIbu || '—',
+      PenghasilanOrtu: m.PenghasilanOrtu,
+      colorIdx: i % AVATAR_COLORS.length,
     }
   }
 
@@ -56,14 +103,9 @@ export default function MahasiswaPage() {
     setLoading(true)
     try {
       const res = await api.get('/faculty/students')
-      const mhsList = res?.data?.data || []
-      setStudentData(mhsList.map(mapStudent))
-    } catch (err) {
-      toast.error("Gagal memuat data mahasiswa")
-      console.error(err)
-    } finally {
-      setLoading(false)
-    }
+      setStudentData((res?.data?.data || []).map(mapStudent))
+    } catch { toast.error("Gagal memuat data mahasiswa") }
+    finally { setLoading(false) }
   }
 
   const handleSync = async () => {
@@ -72,196 +114,338 @@ export default function MahasiswaPage() {
       await pddiktiService.fetchData('Universitas Bhakti Kencana', 'mhs')
       await fetchStudents()
       toast.success('Sinkronisasi selesai')
-    } catch (err) {
-      toast.error('Gagal sinkronisasi data dari PDDIKTI')
-      console.error(err)
-    } finally {
-      setIsSyncing(false)
-    }
+    } catch { toast.error('Gagal sinkronisasi dari PDDIKTI') }
+    finally { setIsSyncing(false) }
   }
 
-  useEffect(() => {
-    fetchStudents()
-  }, [])
+  useEffect(() => { fetchStudents() }, [])
 
-  const handleView = (mahasiswa) => {
-    setSelectedMahasiswa(mahasiswa)
-    setIsDetailOpen(true)
+  const statusList = [...new Set(studentData.map(d => d.StatusAkun).filter(Boolean))]
+
+  const filtered = useMemo(() =>
+    studentData.filter(d => {
+      const q = search.toLowerCase()
+      const matchQ = !q || d.Nama?.toLowerCase().includes(q) || d.NIM?.includes(q) || d.ProgramStudi?.toLowerCase().includes(q)
+      const matchS = filterStatus === 'all' || d.StatusAkun === filterStatus
+      return matchQ && matchS
+    })
+  , [studentData, search, filterStatus])
+
+  const stats = {
+    total:   studentData.length,
+    aktif:   studentData.filter(d => d.StatusAkun === 'Aktif' || d.StatusAkun === 'active').length,
+    lulus:   studentData.filter(d => d.StatusAkun === 'Lulus').length,
+    cuti:    studentData.filter(d => d.StatusAkun === 'Cuti' || d.StatusAkun === 'leave').length,
   }
-
-  const columns = [
-    {
-      key: "NIM",
-      label: "NIM",
-      className: "w-[120px]",
-      render: (value) => <span className="font-bold text-slate-500 text-[11px] tracking-tight">{value}</span>
-    },
-    {
-      key: "Nama",
-      label: "Mahasiswa",
-      className: "w-auto min-w-[250px]",
-      render: (value, row) => (
-        <div className="flex items-center gap-3">
-          <Avatar className="h-9 w-9 rounded-xl border border-slate-200 bg-white shadow-sm">
-            <AvatarFallback className="bg-slate-50 text-slate-600 text-[10px] font-black uppercase">
-              {value?.split(" ").map(n => n[0]).join("").substring(0, 2) || '?'}
-            </AvatarFallback>
-          </Avatar>
-          <div className="flex flex-col">
-            <span className="font-black text-slate-900 text-[13px] tracking-tight uppercase">{value}</span>
-            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{row.ProgramStudi?.Nama || '-'}</span>
-          </div>
-        </div>
-      )
-    },
-    {
-      key: "SemesterSekarang",
-      label: "Smt",
-      className: "w-[80px] text-center",
-      cellClassName: "text-center",
-      render: (value, row) => <span className="font-black text-slate-700 text-xs">{row.StatusAkun === 'Lulus' ? '-' : (value || 1)}</span>
-    },
-    {
-      key: "StatusAkun",
-      label: "Status",
-      className: "w-[120px] text-center",
-      cellClassName: "text-center",
-      render: (val) => (
-        <Badge
-          className={cn(
-            "capitalize font-bold text-[9px] px-3 py-1 border shadow-none uppercase tracking-widest",
-            (val === 'active' || val === 'Aktif') ? "bg-emerald-50 text-emerald-600 border-emerald-100" :
-              (val === 'leave' || val === 'Cuti') ? "bg-amber-50 text-amber-600 border-amber-100" :
-                (val === 'Lulus') ? "bg-sky-50 text-sky-600 border-sky-100" :
-                  (val === 'Non-Aktif') ? "bg-rose-50 text-rose-600 border-rose-100" :
-                    "bg-slate-50 text-slate-600 border-slate-200"
-          )}
-        >
-          {val || 'Aktif'}
-        </Badge>
-      )
-    }
-  ]
 
   return (
-    <PageContainer>
+    <div className="min-h-screen bg-[#f8fafc] font-body">
       <Toaster position="top-right" />
+      <div className="max-w-[1600px] mx-auto px-4 py-8 md:px-8 xl:px-12 space-y-6">
 
-      <PageHeader
-        icon={Users}
-        title="Database Mahasiswa"
-        description="Manajemen data dan arsip akademik mahasiswa fakultas"
-      >
-        <div className="hidden md:flex items-center gap-2">
-          <Badge variant="outline" className="bg-white border-slate-200 text-slate-500 font-bold px-3 py-1.5 rounded-xl">
-            TOTAL: {studentData.length} MHS
-          </Badge>
-        </div>
-      </PageHeader>
+        {/* ── Page Header ── */}
+        <section className="relative overflow-hidden rounded-3xl h-auto md:h-48 flex flex-col md:flex-row items-center group shadow-sm p-6 md:p-8 border border-slate-200/80 bg-white">
+          <div className="absolute inset-0 bg-gradient-to-br from-white via-slate-50/50 to-slate-100/50" />
+          <div className="absolute inset-0 opacity-[0.03]"
+            style={{
+              backgroundImage: `radial-gradient(circle at 20% 50%, black 1px, transparent 1px), radial-gradient(circle at 80% 20%, black 1px, transparent 1px)`,
+              backgroundSize: '60px 60px'
+            }}
+          />
+          <div className="absolute -top-20 -right-20 w-72 h-72 bg-primary/5 rounded-full blur-3xl animate-pulse" />
+          <div className="absolute -bottom-10 right-40 w-48 h-48 bg-blue-400/5 rounded-full blur-2xl" />
 
-      <ResponsiveCard noPadding>
-        <DataTable
-          columns={columns}
-          data={studentData}
-          loading={loading || isSyncing}
-          searchPlaceholder="Cari NIM atau Nama..."
-          onSync={handleSync}
-          actions={(row) => (
-            <Button
-              onClick={() => handleView(row)}
-              variant="outline"
-              size="sm"
-              className="h-9 px-4 rounded-xl border-slate-200 hover:border-primary hover:bg-primary/5 hover:text-primary transition-all font-bold text-[10px] uppercase tracking-widest flex items-center gap-2 group shadow-sm bg-white"
+          <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center w-full gap-6">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="h-4 w-1.5 bg-primary rounded-full" />
+                <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#a3a3a3]">Data Akademik</span>
+              </div>
+              <h1 className="text-3xl font-extrabold text-slate-900 font-headline tracking-tight leading-tight">
+                Database <span className="text-primary">Mahasiswa</span>
+              </h1>
+              <p className="text-slate-500 font-medium text-sm max-w-xl leading-relaxed">
+                Manajemen data dan arsip akademik seluruh mahasiswa di lingkungan fakultas.
+              </p>
+            </div>
+            <button
+              onClick={handleSync}
+              disabled={isSyncing}
+              className="h-11 px-6 rounded-xl border border-[#e5e5e5] bg-white text-xs font-bold uppercase tracking-widest text-[#525252] hover:bg-[#fafafa] gap-2 flex items-center transition-all active:scale-95 shadow-sm disabled:opacity-60"
             >
-              <Eye className="size-4 transition-transform group-hover:scale-110" />
-              Detail
-            </Button>
-          )}
-        />
-      </ResponsiveCard>
-      {/* Detail Modal */}
-      <Modal
-        open={isDetailOpen}
-        onClose={() => setIsDetailOpen(false)}
-        title={selectedMahasiswa?.Nama || 'Mahasiswa'}
-        subtitle={selectedMahasiswa?.NIM || '-'}
-        icon={<User size={18} />}
-        maxWidth="max-w-2xl"
-      >
-        {selectedMahasiswa && (
-          <div className="flex flex-col font-headline">
-            <ModalBody>
-              <div className="space-y-8">
-                {/* SEKSI: AKADEMIK */}
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2 text-slate-900">
-                    <BookOpen className="size-4 opacity-40" />
-                    <h4 className="text-[11px] font-black uppercase tracking-[0.1em] font-headline">Informasi Akademik</h4>
-                  </div>
-                  <div className="grid grid-cols-2 gap-x-12 gap-y-4 border-l-2 border-slate-100 pl-4 py-1">
-                    <DataField label="Program Studi" value={selectedMahasiswa.ProgramStudi?.Nama} />
-                    <DataField label="Semester / Angkatan" value={`${selectedMahasiswa.StatusAkun === 'Lulus' ? '-' : (selectedMahasiswa.SemesterSekarang || 1)} / ${selectedMahasiswa.TahunMasuk || '-'}`} />
-                    <DataField label="Status Akademik PDDIKTI" value={selectedMahasiswa.StatusAkademik || '-'} />
-                    <DataField label="Dosen Wali (DPA)" value={selectedMahasiswa.DosenPA?.Nama || 'Belum Ditentukan'} isPrimary />
-                    <DataField label="Jalur Masuk" value={selectedMahasiswa.JalurMasuk || 'Mandiri'} />
-                  </div>
-                </div>
+              {isSyncing ? <span className="material-symbols-outlined animate-spin text-primary" style={{ fontSize: '14px' }} >sync</span> : <RefreshCw size={14} className="text-primary" />}
+              {isSyncing ? 'Syncing...' : 'PDDIKTI Sync'}
+            </button>
+          </div>
+        </section>
 
-                {/* SEKSI: ORANG TUA */}
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2 text-slate-900">
-                    <Heart className="size-4 opacity-40" />
-                    <h4 className="text-[11px] font-black uppercase tracking-[0.1em] font-headline">Data Orang Tua</h4>
-                  </div>
-                  <div className="grid grid-cols-2 gap-x-12 gap-y-4 border-l-2 border-slate-100 pl-4 py-1">
-                    <DataField label="Nama Ayah" value={selectedMahasiswa.NamaAyah} />
-                    <DataField label="Nama Ibu" value={selectedMahasiswa.NamaIbuKandung} />
-                    <DataField label="Pekerjaan Ortu" value={selectedMahasiswa.PekerjaanAyah || selectedMahasiswa.PekerjaanIbu} />
-                    <DataField label="Penghasilan" value={selectedMahasiswa.PenghasilanOrtu ? `Rp ${selectedMahasiswa.PenghasilanOrtu.toLocaleString('id-ID')}` : '-'} />
-                  </div>
+        {/* ── Stat Cards ── */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          {[
+            { label: 'Total Mahasiswa', value: stats.total,  icon: Users,       bg: 'bg-[#eef4ff]', color: 'text-[#00236F]', desc: 'Terdaftar di sistem' },
+            { label: 'Aktif',           value: stats.aktif,  icon: UserCheck,   bg: 'bg-emerald-50', color: 'text-emerald-600', desc: 'Sedang aktif kuliah' },
+            { label: 'Lulus',           value: stats.lulus,  icon: GraduationCap, bg: 'bg-sky-50', color: 'text-sky-600', desc: 'Telah menyelesaikan studi' },
+            { label: 'Cuti',            value: stats.cuti,   icon: Calendar,    bg: 'bg-amber-50', color: 'text-amber-600', desc: 'Sedang dalam masa cuti' },
+          ].map(s => (
+            <div key={s.label} className="bg-surface-container-lowest border border-outline-variant/10 rounded-3xl p-5 shadow-sm">
+              <div className="flex items-center gap-3 mb-3">
+                <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0', s.bg, s.color)}>
+                  <s.icon size={18} />
                 </div>
+                <span className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-widest">{s.label}</span>
+              </div>
+              <p className="text-2xl font-extrabold text-[#171717] leading-none tabular-nums">
+                {loading ? <span className="material-symbols-outlined animate-spin text-slate-300" style={{ fontSize: '18px' }} >sync</span> : s.value}
+              </p>
+              <p className="text-xs text-[#a3a3a3] font-medium mt-1">{s.desc}</p>
+            </div>
+          ))}
+        </div>
 
-                {/* SEKSI: BIODATA & KONTAK */}
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2 text-slate-900">
-                    <FileText className="size-4 opacity-40" />
-                    <h4 className="text-[11px] font-black uppercase tracking-[0.1em] font-headline">Biodata & Kontak</h4>
-                  </div>
-                  <div className="grid grid-cols-2 gap-x-12 gap-y-4 border-l-2 border-slate-100 pl-4 py-1">
-                    <DataField label="Tempat, Tgl Lahir" value={`${selectedMahasiswa.TempatLahir || '-'}, ${selectedMahasiswa.TanggalLahir ? new Date(selectedMahasiswa.TanggalLahir).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : '-'}`} />
-                    <DataField label="Nomor WhatsApp" value={selectedMahasiswa.NoHP} isPrimary />
-                    <DataField label="NIK" value={selectedMahasiswa.NIK} />
-                    <DataField label="Email Institusi" value={selectedMahasiswa.EmailKampus || selectedMahasiswa.Pengguna?.Email} />
-                  </div>
-                  <div className="border-l-2 border-slate-100 pl-4 py-1 mt-2">
-                    <DataField label="Alamat Lengkap" value={selectedMahasiswa.Alamat} isFull />
-                  </div>
+        {/* ── Table Card ── */}
+        <div className="bg-surface-container-lowest border border-outline-variant/10 rounded-3xl shadow-sm overflow-hidden">
+          {/* Toolbar */}
+          <div className="px-5 py-4 border-b border-[#f0f0f0] flex flex-col sm:flex-row items-start sm:items-center gap-3">
+            <div className="flex-1">
+              <h2 className="font-bold text-base text-[#171717]">Daftar Mahasiswa</h2>
+              <p className="text-xs text-[#737373] mt-0.5">
+                Menampilkan <span className="font-bold text-[#171717]">{filtered.length}</span> dari <span className="font-bold text-primary">{studentData.length}</span> mahasiswa
+              </p>
+            </div>
+            <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+              <div className="relative">
+                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#a3a3a3]" style={{ fontSize: '14px' }} >search</span>
+                <input
+                  type="text"
+                  placeholder="Cari NIM, nama, prodi..."
+                  value={search}
+                  onChange={e => setSearch(e.target.value)}
+                  className="pl-9 pr-4 h-9 w-56 rounded-xl border border-[#e5e5e5] focus:outline-none focus:border-primary text-sm bg-white"
+                />
+              </div>
+              <select
+                value={filterStatus}
+                onChange={e => setFilterStatus(e.target.value)}
+                className="h-9 pl-3 pr-8 rounded-xl border border-[#e5e5e5] text-xs font-medium bg-white text-[#525252] focus:outline-none focus:border-primary appearance-none cursor-pointer"
+              >
+                <option value="all">Semua Status</option>
+                {statusList.map(s => <option key={s} value={s}>{s}</option>)}
+              </select>
+              {(search || filterStatus !== 'all') && (
+                <button onClick={() => { setSearch(''); setFilterStatus('all') }}
+                  className="h-9 px-3 text-xs font-semibold text-rose-600 bg-rose-50 rounded-xl border border-rose-200 hover:bg-rose-100 transition-colors">
+                  Reset
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Table */}
+          <div className="overflow-x-auto">
+            <table className="w-full text-left">
+              <thead>
+                <tr className="border-b border-[#e5e5e5]">
+                  {['#', 'NIM', 'Identitas Mahasiswa', 'Program Studi', 'Smt', 'Status', 'Aksi'].map(h => (
+                    <th key={h} className={cn(
+                      'px-5 py-3.5 text-xs font-bold text-[#a3a3a3] uppercase tracking-wider',
+                      (h === 'Smt' || h === 'Aksi') && 'text-center'
+                    )}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {loading ? (
+                  Array.from({ length: 6 }).map((_, i) => (
+                    <tr key={i} className="border-b border-[#f0f0f0]">
+                      {[...Array(7)].map((__, j) => (
+                        <td key={j} className="px-5 py-4"><div className="h-4 bg-[#f5f5f5] rounded animate-pulse" /></td>
+                      ))}
+                    </tr>
+                  ))
+                ) : filtered.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className="px-5 py-16 text-center">
+                      <div className="flex flex-col items-center gap-3">
+                        <div className="w-12 h-12 bg-[#eef4ff] rounded-2xl flex items-center justify-center text-primary">
+                          <span className="material-symbols-outlined" style={{ fontSize: '22px' }} >group</span>
+                        </div>
+                        <p className="font-bold text-sm text-[#171717]">Tidak Ada Data</p>
+                        <p className="text-xs text-[#a3a3a3]">Coba ubah filter atau kata kunci pencarian.</p>
+                      </div>
+                    </td>
+                  </tr>
+                ) : filtered.map((row, i) => {
+                  const st = STATUS_STYLES[row.StatusAkun] || STATUS_STYLES['Non-Aktif']
+                  return (
+                    <tr key={row.ID || i} className="border-b border-[#f5f5f5] hover:bg-[#fafbff] transition-colors">
+                      <td className="px-5 py-3.5 text-sm text-[#a3a3a3] font-medium">{i + 1}</td>
+                      <td className="px-5 py-3.5">
+                        <code className="text-[11px] font-bold text-primary tracking-wide bg-[#eff6ff] px-2 py-1 rounded-lg border border-[#dbeafe]">
+                          {row.NIM || '—'}
+                        </code>
+                      </td>
+                      <td className="px-5 py-3.5">
+                        <div className="flex items-center gap-3">
+                          <div className={cn('w-9 h-9 rounded-xl bg-gradient-to-br flex items-center justify-center text-white text-[11px] font-black flex-shrink-0 shadow-sm', AVATAR_COLORS[row.colorIdx])}>
+                            {getInitials(row.Nama)}
+                          </div>
+                          <div>
+                            <p className="font-bold text-sm text-[#171717] leading-snug">{row.Nama}</p>
+                            <p className="text-[10px] text-[#a3a3a3] font-medium">{row.TahunMasuk} · {row.JalurMasuk}</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-5 py-3.5">
+                        <p className="text-sm text-[#525252] font-medium">{row.ProgramStudi}</p>
+                      </td>
+                      <td className="px-5 py-3.5 text-center">
+                        <span className="text-sm font-black text-[#171717] tabular-nums">
+                          {row.SemesterSekarang ?? '—'}
+                        </span>
+                      </td>
+                      <td className="px-5 py-3.5">
+                        <span className={cn('inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold border uppercase tracking-wider', st.cls)}>
+                          <span className={cn('w-1.5 h-1.5 rounded-full', st.dot)} />
+                          {row.StatusAkun}
+                        </span>
+                      </td>
+                      <td className="px-5 py-3.5 text-center">
+                        <button
+                          onClick={() => setSelected(row)}
+                          className="p-1.5 text-[#a3a3a3] hover:text-primary hover:bg-[#eef4ff] rounded-lg transition-colors"
+                          title="Lihat Detail"
+                        >
+                          <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >visibility</span>
+                        </button>
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Detail Modal ── */}
+      {selected && (
+        <div
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4"
+          onClick={() => setSelected(null)}
+        >
+          <div
+            className="relative w-full max-w-xl bg-white rounded-3xl shadow-2xl z-[101] flex flex-col overflow-hidden max-h-[90vh]"
+            onClick={e => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="relative bg-gradient-to-br from-[#00236F] via-[#00308F] to-[#003db5] pt-6 pb-7 px-6 overflow-hidden flex-shrink-0">
+              <div className="absolute -top-10 -right-10 w-44 h-44 bg-white/5 rounded-full pointer-events-none" />
+              <div className="absolute -bottom-6 right-16 w-28 h-28 bg-white/5 rounded-full pointer-events-none" />
+              <button onClick={() => setSelected(null)}
+                className="absolute top-4 right-4 w-8 h-8 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center transition-colors">
+                <span className="material-symbols-outlined" style={{ fontSize: '15px' }} >close</span>
+              </button>
+              <div className="relative z-10 flex items-center gap-4 mb-5">
+                <div className={cn('w-14 h-14 rounded-2xl bg-gradient-to-br flex-shrink-0 flex items-center justify-center text-white text-base font-black shadow-xl ring-2 ring-white/20', AVATAR_COLORS[selected.colorIdx])}>
+                  {getInitials(selected.Nama)}
+                </div>
+                <div className="min-w-0">
+                  <p className="text-[9px] font-bold text-white/50 uppercase tracking-[0.25em] mb-1">Profil Mahasiswa</p>
+                  <h2 className="text-lg font-extrabold text-white leading-tight truncate">{selected.Nama}</h2>
+                  <p className="text-xs text-blue-200 font-medium mt-0.5">{selected.ProgramStudi}</p>
                 </div>
               </div>
-            </ModalBody>
+              <div className="relative z-10 flex flex-wrap gap-2">
+                <span className="flex items-center gap-1.5 bg-white/10 border border-white/20 px-3 py-1.5 rounded-xl text-[10px] font-bold text-white font-mono tracking-wider">
+                  NIM {selected.NIM}
+                </span>
+                <span className="flex items-center gap-1.5 bg-white/10 border border-white/20 px-3 py-1.5 rounded-xl text-[10px] font-bold text-white uppercase tracking-wider">
+                  <Award size={10} /> Angkatan {selected.TahunMasuk}
+                </span>
+                <span className={cn(
+                  'flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-wider',
+                  selected.StatusAkun === 'Lulus' ? 'bg-sky-400/20 border border-sky-300/30 text-sky-200' :
+                  selected.StatusAkun === 'Cuti'  ? 'bg-amber-400/20 border border-amber-300/30 text-amber-200' :
+                  'bg-emerald-400/20 border border-emerald-300/30 text-emerald-200'
+                )}>
+                  <span className="w-1.5 h-1.5 rounded-full bg-current animate-pulse" />
+                  {selected.StatusAkun}
+                </span>
+              </div>
+            </div>
 
-            <ModalFooter>
-              <ModalBtn onClick={() => setIsDetailOpen(false)}>
-                Tutup Detail
-              </ModalBtn>
-            </ModalFooter>
+            {/* Body */}
+            <div className="flex-1 overflow-y-auto">
+              {/* Akademik */}
+              <SectionBlock icon={BookOpen} title="Informasi Akademik">
+                <InfoCard icon={Building2}  label="Program Studi"    value={selected.ProgramStudi}    accent="border-l-blue-400" />
+                <InfoCard icon={Layers}     label="Semester"          value={selected.SemesterSekarang ? `Semester ${selected.SemesterSekarang}` : '—'} accent="border-l-indigo-400" />
+                <InfoCard icon={UserCheck}  label="Dosen PA / Wali"  value={selected.DosenPA}          accent="border-l-violet-400" />
+                <InfoCard icon={Award}      label="Jalur Masuk"       value={selected.JalurMasuk}       accent="border-l-amber-400" />
+              </SectionBlock>
+
+              {/* Biodata */}
+              <SectionBlock icon={FileText} title="Biodata & Kontak">
+                <InfoCard icon={Calendar}  label="Tempat, Tgl Lahir" value={`${selected.TempatLahir}, ${formatDate(selected.TanggalLahir)}`} accent="border-l-rose-400" />
+                <InfoCard icon={Phone}     label="No. HP / WhatsApp" value={selected.NoHP}    accent="border-l-emerald-400" />
+                <InfoCard icon={Mail}      label="Email Institusi"    value={selected.Email}   accent="border-l-sky-400" mono />
+                <InfoCard icon={MapPin}    label="Alamat"             value={selected.Alamat}  accent="border-l-slate-400" />
+              </SectionBlock>
+
+              {/* Orang Tua */}
+              <SectionBlock icon={Heart} title="Data Orang Tua" last>
+                <InfoCard icon={Users}  label="Nama Ayah"   value={selected.NamaAyah}    accent="border-l-blue-400" />
+                <InfoCard icon={Users}  label="Nama Ibu"    value={selected.NamaIbu}     accent="border-l-pink-400" />
+                <InfoCard icon={Award}  label="Pekerjaan"   value={selected.PekerjaanOrtu} accent="border-l-amber-400" />
+                <InfoCard icon={FileText} label="Penghasilan" value={selected.PenghasilanOrtu ? `Rp ${Number(selected.PenghasilanOrtu).toLocaleString('id-ID')}` : '—'} accent="border-l-emerald-400" />
+              </SectionBlock>
+            </div>
+
+            {/* Footer */}
+            <div className="px-5 py-4 border-t border-[#f0f0f0] bg-[#fafafa] flex gap-3 flex-shrink-0">
+              <button onClick={() => setSelected(null)}
+                className="flex-1 h-11 rounded-xl border border-[#e5e5e5] bg-white text-xs font-bold text-[#525252] uppercase tracking-widest hover:bg-[#f5f5f5] transition-all active:scale-95">
+                Tutup
+              </button>
+              <button
+                className="flex-1 h-11 rounded-xl bg-[#00236F] hover:bg-[#001a52] text-white text-xs font-bold uppercase tracking-widest transition-all active:scale-95 shadow-lg shadow-[#00236F]/20">
+                Edit Profil
+              </button>
+            </div>
           </div>
-        )}
-      </Modal>
-    </PageContainer>
+        </div>
+      )}
+    </div>
   )
 }
 
-function DataField({ label, value, isPrimary = false, isFull = false }) {
+function SectionBlock({ icon: Icon, title, children, last = false }) {
   return (
-    <div className={cn("flex flex-col gap-0.5", isFull ? "col-span-2" : "")}>
-      <span className="text-[10px] font-medium text-slate-400 uppercase tracking-tighter">{label}</span>
-      <span className={cn(
-        "text-[12px] font-bold tracking-tight",
-        isPrimary ? "text-primary italic" : "text-slate-700"
-      )}>
-        {value || '—'}
-      </span>
+    <div className={cn('p-5', !last && 'border-b border-[#f0f0f0]')}>
+      <div className="flex items-center gap-2 mb-3">
+        <div className="w-5 h-5 rounded-md bg-[#eef4ff] flex items-center justify-center">
+          <Icon size={11} className="text-[#00236F]" />
+        </div>
+        <h3 className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-[0.18em]">{title}</h3>
+      </div>
+      <div className="space-y-1">{children}</div>
+    </div>
+  )
+}
+
+function InfoCard({ icon: Icon, label, value, accent = 'border-l-slate-300', mono = false }) {
+  const empty = !value || value === '—'
+  return (
+    <div className={cn('flex items-center gap-3 p-3 rounded-xl bg-[#fafafa] border border-[#f0f0f0] border-l-4 hover:bg-white hover:border-[#e5e5e5] transition-all', accent)}>
+      <div className="w-7 h-7 bg-white rounded-lg flex items-center justify-center text-[#00236F] shadow-sm border border-[#f0f0f0] flex-shrink-0">
+        <Icon size={13} />
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-[9px] font-bold text-[#a3a3a3] uppercase tracking-[0.15em] mb-0.5">{label}</p>
+        <p className={cn('text-sm font-semibold text-[#171717] truncate', mono && 'font-mono text-xs', empty && 'text-[#c4c4c4] italic text-xs')}>
+          {empty ? 'Belum diisi' : value}
+        </p>
+      </div>
     </div>
   )
 }

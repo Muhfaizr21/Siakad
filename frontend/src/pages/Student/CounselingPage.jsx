@@ -1,21 +1,5 @@
 import React, { useState } from 'react';
-import { 
-  HeartHandshake, 
-  BookOpen, 
-  Briefcase, 
-  Heart, 
-  ShieldCheck, 
-  Calendar, 
-  MapPin, 
-  Clock, 
-  X, 
-  CheckCircle2, 
-  ChevronRight,
-  Sparkles,
-  ArrowRight,
-  FileText,
-  Activity
-} from 'lucide-react';
+
 import { 
   useCounselingJadwalQuery, 
   useCounselingRiwayatQuery, 
@@ -25,6 +9,25 @@ import { CardGridSkeleton } from '../../components/ui/SkeletonGroups';
 import EmptyState from '../../components/ui/EmptyState';
 import { toast } from 'react-hot-toast';
 import { NavLink } from 'react-router-dom';
+
+// Auto-injected Material Symbol fallbacks for removed Lucide icons
+const HeartHandshake = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>volunteer_activism</span>;
+
+
+
+// Auto-injected Material Symbol fallbacks for removed Lucide icons
+const ChevronRight = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>chevron_right</span>;
+const Icon = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>info</span>;
+const Sparkles = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>auto_awesome</span>;
+
+
+
+// Auto-injected Material Symbol fallbacks for removed Lucide icons
+const BookOpen = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>menu_book</span>;
+const Briefcase = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>work</span>;
+const Heart = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>favorite</span>;
+
+
 
 const formatLongDate = (dateStr) => {
   if (!dateStr) return '-';
@@ -97,7 +100,7 @@ export default function CounselingPage() {
 
           <div className="relative z-10 max-w-2xl">
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 border border-white/15 text-white/80 text-xs font-semibold mb-5">
-              <ShieldCheck size={12} /> Privasi Terjamin 100%
+              <span className="material-symbols-outlined" style={{ fontSize: '12px' }} Check >security</span> Privasi Terjamin 100%
             </span>
             <h1 className="text-2xl md:text-[2rem] font-extrabold text-white leading-tight mb-3 font-headline">
               Layanan Konseling<br />Mahasiswa BKU
@@ -209,9 +212,9 @@ export default function CounselingPage() {
                         )}
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1.5 text-sm text-neutral-500">
-                          <span className="flex items-center gap-2"><Calendar size={14} className="text-neutral-300 shrink-0" />{formatLongDate(slot.Tanggal)}</span>
-                          <span className="flex items-center gap-2"><Clock size={14} className="text-neutral-300 shrink-0" />{slot.JamMulai} – {slot.JamSelesai} WIB</span>
-                          <span className="flex items-center gap-2 sm:col-span-2"><MapPin size={14} className="text-neutral-300 shrink-0" />{slot.Lokasi}</span>
+                          <span className="flex items-center gap-2"><span className="material-symbols-outlined text-neutral-300 shrink-0" style={{ fontSize: '14px' }} >calendar_month</span>{formatLongDate(slot.Tanggal)}</span>
+                          <span className="flex items-center gap-2"><span className="material-symbols-outlined text-neutral-300 shrink-0" style={{ fontSize: '14px' }} >schedule</span>{slot.JamMulai} – {slot.JamSelesai} WIB</span>
+                          <span className="flex items-center gap-2 sm:col-span-2"><span className="material-symbols-outlined text-neutral-300 shrink-0" style={{ fontSize: '14px' }} >location_on</span>{slot.Lokasi}</span>
                         </div>
                       </div>
 
@@ -224,7 +227,7 @@ export default function CounselingPage() {
                           disabled={isFull}
                           className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all border-2 border-[#00236F] text-[#00236F] hover:bg-[#00236F] hover:text-white disabled:opacity-40 disabled:cursor-not-allowed disabled:border-neutral-200 disabled:text-neutral-400"
                         >
-                          Booking <ArrowRight size={14} />
+                          Booking <span className="material-symbols-outlined" style={{ fontSize: '14px' }} >arrow_forward</span>
                         </button>
                       </div>
                     </div>
@@ -248,7 +251,7 @@ export default function CounselingPage() {
             <div className="overflow-hidden rounded-2xl border border-neutral-100 bg-white shadow-sm">
               <div className="bg-[#00236F] p-5 text-white">
                 <div className="flex items-center gap-2 text-white/70">
-                  <FileText size={16} />
+                  <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >description</span>
                   <span className="text-[10px] font-bold uppercase tracking-widest">Riwayat Konseling</span>
                 </div>
                 <h2 className="mt-2 text-xl font-extrabold font-headline">Pantau Sesi & Rekam Medis</h2>
@@ -283,7 +286,7 @@ export default function CounselingPage() {
 
                 <div className="mt-4 rounded-2xl border border-blue-100 bg-blue-50 p-4">
                   <div className="flex items-start gap-3">
-                    <Activity size={18} className="mt-0.5 shrink-0 text-blue-600" />
+                    <span className="material-symbols-outlined mt-0.5 shrink-0 text-blue-600" style={{ fontSize: '18px' }} >show_chart</span>
                     <p className="text-xs font-semibold leading-relaxed text-blue-900">
                       Rekam medis hanya muncul setelah psikolog menyimpan catatan sesi pada halaman pasien.
                     </p>
@@ -302,7 +305,7 @@ export default function CounselingPage() {
               {/* Modal Header */}
               <div className="bg-[#00236F] px-7 py-6 relative">
                 <button onClick={() => setSelectedSlot(null)} className="absolute top-5 right-5 text-white/40 hover:text-white transition-colors">
-                  <X size={22} />
+                  <span className="material-symbols-outlined" style={{ fontSize: '22px' }} >close</span>
                 </button>
                 <div className="flex items-center gap-2 mb-1">
                   <Sparkles size={14} className="text-white/60" />
@@ -310,7 +313,7 @@ export default function CounselingPage() {
                 </div>
                 <h2 className="text-xl font-extrabold text-white font-headline">{selectedSlot.NamaKonselor}</h2>
                 <p className="text-white/50 text-sm mt-0.5 flex items-center gap-1.5">
-                  <ShieldCheck size={13} /> Sesi dilindungi protokol kerahasiaan
+                  <span className="material-symbols-outlined" style={{ fontSize: '13px' }} Check >security</span> Sesi dilindungi protokol kerahasiaan
                 </p>
               </div>
 
@@ -374,7 +377,7 @@ export default function CounselingPage() {
                     disabled={bookingMutation.isPending}
                     className="flex-1 py-3 rounded-2xl bg-[#00236F] text-white text-sm font-bold hover:bg-[#0B4FAE] disabled:opacity-50 transition-all flex items-center justify-center gap-2 shadow-lg shadow-blue-900/20"
                   >
-                    {bookingMutation.isPending ? 'Memproses...' : <><CheckCircle2 size={16} /> Konfirmasi</>}
+                    {bookingMutation.isPending ? 'Memproses...' : <><span className="material-symbols-outlined" style={{ fontSize: '16px' }} >check_circle</span> Konfirmasi</>}
                   </button>
                 </div>
               </div>

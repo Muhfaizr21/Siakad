@@ -184,6 +184,7 @@ func GetDashboard(c *fiber.Ctx) error {
 	})
 }
 
+
 func GetKegiatan(c *fiber.Ctx) error {
 	PenggunaID, ok := c.Locals("user_id").(uint)
 	if !ok || PenggunaID == 0 {

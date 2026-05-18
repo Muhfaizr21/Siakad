@@ -11,7 +11,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "./alert-dialog"
-import { Trash2, Loader2 } from 'lucide-react'
+
 
 export function DeleteConfirmModal({ 
   isOpen, 
@@ -26,7 +26,7 @@ export function DeleteConfirmModal({
       <AlertDialogContent className="rounded-[3rem] p-10 border-none shadow-2xl bg-white/95 backdrop-blur-xl max-w-md mx-auto">
         <AlertDialogHeader>
           <div className="size-20 rounded-[2rem] bg-rose-50 text-rose-600 flex items-center justify-center mb-6 mx-auto shadow-inner">
-            <Trash2 className="size-10" />
+            <span className="material-symbols-outlined size-10" >delete</span>
           </div>
           <AlertDialogTitle className="text-3xl font-black font-headline uppercase leading-none text-center tracking-tighter text-slate-900">
             {title}
@@ -47,7 +47,7 @@ export function DeleteConfirmModal({
             disabled={loading}
             className="h-14 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] flex-1 bg-rose-600 hover:bg-rose-700 text-white border-none shadow-2xl shadow-rose-600/20 active:scale-95 transition-all font-headline flex items-center justify-center gap-2"
           >
-            {loading ? <Loader2 className="size-4 animate-spin" /> : null}
+            {loading ? <span className="material-symbols-outlined size-4 animate-spin" >sync</span> : null}
             {loading ? 'Processing...' : 'Hapus Sekarang'}
           </AlertDialogAction>
         </AlertDialogFooter>

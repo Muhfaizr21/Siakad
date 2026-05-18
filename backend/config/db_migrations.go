@@ -133,8 +133,20 @@ func migrateModels(db *gorm.DB) error {
 func InitialSyncFakultas(db *gorm.DB) {
 	log.Println("[Initial Sync] Memulai sinkronisasi data ke fakultas...")
 
-	// contoh nanti:
-	// db.Exec("INSERT INTO fakultas.fakultas SELECT * FROM public.fakultas")
+	var count int64
+	db.Table("fakultas.fakultas").Count(&count)
+	if count == 0 {
+		log.Println("[Initial Sync] Tabel fakultas kosong. Melakukan seeding data awal...")
+		seeds := []models.Fakultas{
+			{Nama: "School of Computing", Kode: "SOC", Email: "soc@bku.ac.id"},
+			{Nama: "School of Nursing", Kode: "SON", Email: "son@bku.ac.id"},
+			{Nama: "School of Pharmacy", Kode: "SOP", Email: "sop@bku.ac.id"},
+		}
+		for _, s := range seeds {
+			db.Create(&s)
+		}
+		log.Println("[Initial Sync] Seeding selesai.")
+	}
 
-	log.Println("[Initial Sync] Sinkronisasi selesai.")
+	log.Println("[Initial Sync] Sinkronisasi data selesai.")
 }

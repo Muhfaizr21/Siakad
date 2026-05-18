@@ -1,23 +1,5 @@
 import React, { useState } from 'react';
-import { 
-  Plus, 
-  MessageSquare, 
-  Search, 
-  Filter, 
-  ChevronRight, 
-  CheckCircle2, 
-  Clock, 
-  ShieldAlert, 
-  MoreVertical,
-  X,
-  Upload,
-  User,
-  Eye,
-  AlertCircle,
-  HelpCircle,
-  ArrowRight,
-  Trash2
-} from 'lucide-react';
+
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   useVoiceStatsQuery, 
@@ -28,6 +10,17 @@ import {
 import { Skeleton } from '../../components/ui/Skeleton';
 import toast from 'react-hot-toast';
 import { Link, NavLink } from 'react-router-dom';
+
+// Auto-injected Material Symbol fallbacks for removed Lucide icons
+const HelpCircle = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>help</span>;
+
+
+
+// Auto-injected Material Symbol fallbacks for removed Lucide icons
+const Filter = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>filter_alt</span>;
+const User = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>person</span>;
+
+
 
 const categories = [
   { id: 'Akademik', label: 'Akademik', color: 'bg-[#EAF1FF] text-[#0B4FAE] border-[#C9D8FF]' },
@@ -60,7 +53,7 @@ export default function StudentVoicePage() {
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 text-sm font-medium text-[#a3a3a3] mb-6">
         <NavLink to="/student/dashboard" className="hover:text-[#00236F] cursor-pointer transition-colors">Dashboard</NavLink>
-        <ChevronRight size={16} />
+        <span className="material-symbols-outlined" style={{ fontSize: 16 }}>chevron_right</span>
         <span className="text-[#171717]">Suara Mahasiswa</span>
       </div>
 
@@ -70,7 +63,7 @@ export default function StudentVoicePage() {
           <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
             <h1 className="text-2xl md:text-3xl font-black font-headline tracking-tight mb-2 flex items-center gap-3">
               <div className="bg-[#00236F] p-2 rounded-xl text-white shadow-md shadow-[#00236F]/20">
-                <MessageSquare size={20} strokeWidth={2.5} />
+                <span className="material-symbols-outlined" style={{ fontSize: '20px' }}  strokeWidth={2.5}>chat</span>
               </div>
               Suara Mahasiswa
             </h1>
@@ -85,7 +78,7 @@ export default function StudentVoicePage() {
             onClick={() => setIsModalOpen(true)}
             className="flex items-center justify-center gap-2 px-5 py-3 bg-[#00236F] text-white font-bold rounded-xl hover:bg-[#0B4FAE] transition-all shadow-md shadow-[#00236F]/20 text-sm group"
           >
-            <Plus size={18} strokeWidth={2.8} className="group-hover:rotate-90 transition-transform duration-300" />
+            <span className="material-symbols-outlined group-hover:rotate-90 transition-transform duration-300" style={{ fontSize: '18px' }}  strokeWidth={2.8}>add</span>
             Sampaikan Aspirasi Baru
           </motion.button>
         </div>
@@ -96,10 +89,10 @@ export default function StudentVoicePage() {
             [...Array(4)].map((_, i) => <Skeleton key={i} className="h-24 rounded-2xl" />)
           ) : (
             <>
-              <StatCard label="Total Diajukan" value={stats?.total || 0} color="border-[#D5E2FF]" icon={<MessageSquare size={18} className="text-[#00236F]" />} bg="bg-white" />
-              <StatCard label="Di Fakultas" value={stats?.di_fakultas || 0} color="border-[#C9D8FF]" icon={<Clock size={18} className="text-[#0B4FAE]" />} bg="bg-[#EAF1FF]" />
-              <StatCard label="Di Universitas" value={stats?.di_universitas || 0} color="border-[#D3E1FF]" icon={<ShieldAlert size={18} className="text-[#1D4E9E]" />} bg="bg-[#EEF4FF]" />
-              <StatCard label="Selesai" value={stats?.selesai || 0} color="border-[#16a34a]" icon={<CheckCircle2 size={20} className="text-[#16a34a]" />} bg="bg-[#f0fdf4]" />
+              <StatCard label="Total Diajukan" value={stats?.total || 0} color="border-[#D5E2FF]" icon={<span className="material-symbols-outlined text-[#00236F]" style={{ fontSize: '18px' }} >chat</span>} bg="bg-white" />
+              <StatCard label="Di Fakultas" value={stats?.di_fakultas || 0} color="border-[#C9D8FF]" icon={<span className="material-symbols-outlined text-[#0B4FAE]" style={{ fontSize: '18px' }} >schedule</span>} bg="bg-[#EAF1FF]" />
+              <StatCard label="Di Universitas" value={stats?.di_universitas || 0} color="border-[#D3E1FF]" icon={<span className="material-symbols-outlined text-[#1D4E9E]" style={{ fontSize: '18px' }} Alert >security</span>} bg="bg-[#EEF4FF]" />
+              <StatCard label="Selesai" value={stats?.selesai || 0} color="border-[#16a34a]" icon={<span className="material-symbols-outlined text-[#16a34a]" style={{ fontSize: '20px' }} >check_circle</span>} bg="bg-[#f0fdf4]" />
             </>
           )}
         </div>
@@ -110,7 +103,7 @@ export default function StudentVoicePage() {
             <h2 className="text-xl md:text-2xl font-black font-headline tracking-tight">Riwayat Aspirasi Kamu</h2>
             <div className="flex items-center gap-4">
               <div className="relative group">
-                <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#a3a3a3] group-focus-within:text-[#00236F] transition-colors" />
+                <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[#a3a3a3] group-focus-within:text-[#00236F] transition-colors" style={{ fontSize: '18px' }} >search</span>
                 <input 
                   type="text" 
                   placeholder="Cari nomor tiket / judul..." 
@@ -155,7 +148,7 @@ export default function StudentVoicePage() {
                           </span>
                           {ticket.is_anonim && (
                             <span className="flex items-center gap-1 text-[8px] font-black text-[#a3a3a3] uppercase tracking-widest bg-gray-100 px-2 py-0.5 rounded-md">
-                              <Eye size={10} className="opacity-40" strokeWidth={3} /> Anonim
+                              <span className="material-symbols-outlined opacity-40" style={{ fontSize: '10px' }}   strokeWidth={3}>visibility</span> Anonim
                             </span>
                           )}
                         </div>
@@ -175,14 +168,14 @@ export default function StudentVoicePage() {
                             className="w-9 h-9 rounded-xl bg-red-50 text-red-500 border border-red-100 flex items-center justify-center hover:bg-red-500 hover:text-white transition-all shadow-sm"
                               title="Batalkan Aspirasi"
                             >
-                              <Trash2 size={18} />
+                              <span className="material-symbols-outlined" style={{ fontSize: '18px' }} >delete</span>
                             </button>
                           )}
                           <Link 
                             to={`/student/voice/tiket/${ticket.id}`}
                             className="w-9 h-9 rounded-xl bg-white border border-[#e5e5e5] flex items-center justify-center text-[#00236F] hover:bg-[#00236F] hover:text-white transition-all shadow-sm"
                           >
-                            <ArrowRight size={16} />
+                            <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >arrow_forward</span>
                           </Link>
                         </div>
                       </td>
@@ -333,7 +326,7 @@ function CreateAspirasiModal({ onClose }) {
             <h3 className="text-xl md:text-2xl font-black font-headline tracking-tight">Sampaikan Aspirasimu</h3>
             <p className="text-sm font-bold text-[#a3a3a3] uppercase mt-1">Gunakan kata-kata yang bijak & membangun</p>
           </div>
-          <button onClick={onClose} className="p-2.5 bg-[#fafafa] border border-[#e5e5e5] rounded-xl text-[#a3a3a3] hover:text-[#00236F]"><X size={20}/></button>
+          <button onClick={onClose} className="p-2.5 bg-[#fafafa] border border-[#e5e5e5] rounded-xl text-[#a3a3a3] hover:text-[#00236F]"><span className="material-symbols-outlined" style={{ fontSize: '20px' }} >close</span></button>
         </div>
 
         <form onSubmit={handleSubmit} className="p-5 md:p-6 overflow-y-auto custom-scrollbar space-y-6">
@@ -410,7 +403,7 @@ function CreateAspirasiModal({ onClose }) {
                     <span className="text-sm font-bold text-[#a3a3a3] truncate">
                       {formData.lampiran ? formData.lampiran.name : 'Pilih File (Max 5MB)'}
                     </span>
-                    <Upload size={18} className="text-[#a3a3a3] group-hover/upload:text-[#00236F]" />
+                    <span className="material-symbols-outlined text-[#a3a3a3] group-hover/upload:text-[#00236F]" style={{ fontSize: '18px' }} >upload</span>
                   </div>
                 </div>
               </div>
@@ -442,7 +435,7 @@ function CreateAspirasiModal({ onClose }) {
                 initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }}
                 className="p-4 bg-[#EAF1FF] border border-[#C9D8FF] rounded-xl flex gap-3"
               >
-                <ShieldAlert size={18} className="text-[#0B4FAE] shrink-0" />
+                <span className="material-symbols-outlined text-[#0B4FAE] shrink-0" style={{ fontSize: '18px' }} Alert >security</span>
                 <p className="text-[10px] font-bold text-[#0B4FAE] leading-relaxed uppercase">
                   Data pengirim akan disembunyikan dari pihak Admin Fakultas/Universitas, namun tetap tercatat secara internal demi keamanan sistem. Tindak lanjut yang memerlukan konfirmasi langsung mungkin tidak dapat diproses jika Anda anonim.
                 </p>
@@ -466,7 +459,7 @@ function CreateAspirasiModal({ onClose }) {
               {createMutation.isPending ? (
                 <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
               ) : (
-                <>Kirim Aspirasi <CheckCircle2 size={20} /></>
+                <>Kirim Aspirasi <span className="material-symbols-outlined" style={{ fontSize: '20px' }} >check_circle</span></>
               )}
             </button>
           </div>

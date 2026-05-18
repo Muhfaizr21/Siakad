@@ -1,10 +1,15 @@
 'use client'
 
 import * as React from 'react'
-import { GripVerticalIcon } from 'lucide-react'
+
 import * as ResizablePrimitive from 'react-resizable-panels'
 
 import { cn } from '@/lib/utils'
+
+// Auto-injected Material Symbol fallbacks for removed Lucide icons
+const GripVerticalIcon = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>drag_indicator</span>;
+
+
 
 function ResizablePanelGroup({ className, ...props }) {
   return (

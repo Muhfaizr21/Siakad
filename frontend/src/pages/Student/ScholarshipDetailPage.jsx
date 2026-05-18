@@ -1,12 +1,20 @@
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { usePengajuanDetailQuery } from '../../queries/useScholarshipQuery';
-import { 
-  ArrowLeft, CheckCircle2, Clock, XCircle, FileText, 
-  Info, Download, Calendar, ExternalLink, ShieldCheck, 
-  ChevronRight, Sparkles, Loader2, Award, Zap
-} from 'lucide-react';
+
 import { motion, AnimatePresence } from 'framer-motion';
+
+// Auto-injected Material Symbol fallbacks for removed Lucide icons
+const ArrowLeft = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>arrow_back</span>;
+
+
+
+// Auto-injected Material Symbol fallbacks for removed Lucide icons
+const Zap = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>bolt</span>;
+const Sparkles = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>auto_awesome</span>;
+const ExternalLink = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>open_in_new</span>;
+
+
 
 const STAGES = [
   { key: 'dikirim', label: 'Pengajuan Dikirim', desc: 'Data pendaftaran pertama kali diterima oleh sistem.' },
@@ -26,7 +34,7 @@ export default function ScholarshipDetailPage() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#fafafa]">
         <div className="text-center">
-          <Loader2 className="animate-spin text-[#00236F] mx-auto mb-4" size={48} />
+          <span className="material-symbols-outlined animate-spin text-[#00236F] mx-auto mb-4" style={{ fontSize: '48px' }} >sync</span>
           <p className="text-sm font-black text-[#a3a3a3] uppercase tracking-widest">Memuat Progress...</p>
         </div>
       </div>
@@ -92,7 +100,7 @@ export default function ScholarshipDetailPage() {
                     <span className="text-xs font-black text-[#525252]">{pengajuan.nomor_referensi}</span>
                   </div>
                   <div className="px-4 py-2 bg-[#fafafa] rounded-2xl border border-[#e5e5e5] flex items-center gap-2">
-                    <Calendar size={14} className="text-[#a3a3a3]" />
+                    <span className="material-symbols-outlined text-[#a3a3a3]" style={{ fontSize: '14px' }} >calendar_month</span>
                     <span className="text-xs font-bold text-[#525252]">Terdaftar: {new Date(pengajuan.CreatedAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
                   </div>
                 </div>
@@ -160,7 +168,7 @@ export default function ScholarshipDetailPage() {
                            isActive ? (isRejected ? 'bg-red-500 border-red-100 text-white' : 'bg-[#00236F] border-[#dbe7ff] text-white shadow-md shadow-[#00236F]/20 scale-110') :
                            'bg-white border-[#f5f5f5] text-[#d4d4d4]'
                           }`}>
-                           {isCompleted ? <CheckCircle2 size={24} /> : (isRejected ? <XCircle size={24} /> : (idx + 1))}
+                           {isCompleted ? <span className="material-symbols-outlined" style={{ fontSize: '24px' }} >check_circle</span> : (isRejected ? <span className="material-symbols-outlined" style={{ fontSize: '24px' }} Circle >close</span> : (idx + 1))}
                          </div>
 
                          <div className={`flex-1 transition-opacity ${!isCompleted && !isActive ? 'opacity-40' : 'opacity-100'}`}>
@@ -183,7 +191,7 @@ export default function ScholarshipDetailPage() {
                                 className="mt-4 p-5 bg-[#fafafa] rounded-[24px] border border-[#f5f5f5] flex gap-4"
                               >
                                  <div className="p-2.5 bg-white rounded-xl shadow-sm border border-[#f5f5f5] text-[#00236F] shrink-0 h-fit">
-                                   <Info size={20} />
+                                   <span className="material-symbols-outlined" style={{ fontSize: 20 }}>info</span>
                                  </div>
                                 <div>
                                    <p className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-widest mb-1">Catatan Verifikator</p>
@@ -222,13 +230,13 @@ export default function ScholarshipDetailPage() {
 
           {/* Files List */}
           <div className="bg-white p-6 rounded-2xl border border-[#e5e5e5] shadow-sm">
-             <h4 className="text-[10px] font-black uppercase tracking-[0.4em] text-[#a3a3a3] mb-5 flex items-center gap-2"><FileText size={16} className="text-[#00236F]" /> Dokumen Pendaftaran</h4>
+             <h4 className="text-[10px] font-black uppercase tracking-[0.4em] text-[#a3a3a3] mb-5 flex items-center gap-2"><span className="material-symbols-outlined text-[#00236F]" style={{ fontSize: '16px' }} >description</span> Dokumen Pendaftaran</h4>
              <div className="space-y-3">
                 {berkas?.length > 0 ? berkas.map(file => (
                   <div key={file.id} className="group p-4 bg-[#fafafa] rounded-xl border border-[#f5f5f5] flex items-center justify-between hover:border-[#c9d8ff] transition-all">
                     <div className="flex items-center gap-3">
                        <div className="w-10 h-10 bg-white rounded-xl border border-[#e5e5e5] group-hover:border-[#c9d8ff] flex items-center justify-center text-[#a3a3a3] group-hover:text-[#00236F]">
-                         <Download size={18} />
+                         <span className="material-symbols-outlined" style={{ fontSize: 18 }}>download</span>
                        </div>
                        <div>
                          <p className="text-[10px] font-black uppercase tracking-widest text-[#171717]">{file.tipe_berkas}</p>
@@ -253,7 +261,7 @@ export default function ScholarshipDetailPage() {
           {/* Verified Badge Header */}
           <div className="bg-[#eef4ff] p-6 rounded-2xl border border-[#c9d8ff] flex flex-col items-center text-center">
              <div className="w-16 h-16 bg-white rounded-[24px] flex items-center justify-center text-[#16a34a] shadow-xl shadow-green-100 mb-4">
-                <ShieldCheck size={32} />
+                <span className="material-symbols-outlined" style={{ fontSize: '32px' }} Check >security</span>
              </div>
              <p className="text-sm font-black text-[#00236F] tracking-tight mb-1 uppercase">Sistem BKU Student Hub</p>
              <p className="text-[10px] font-bold text-[#1E3A8A] opacity-80 uppercase tracking-widest">End-to-End Encryption & Verified Data</p>

@@ -1,31 +1,22 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import Sidebar from './components/Sidebar';
 import TopNavBar from './components/TopNavBar';
-import {
-  Activity,
-  AlertCircle,
-  BarChart3,
-  Brain,
-  CalendarDays,
-  CheckCircle2,
-  Clock,
-  Database,
-  Loader2,
-  MessageSquare,
-  RefreshCw,
-  TrendingUp,
-  Users,
-} from 'lucide-react';
+
 import { UI } from '../../constants/designSystem';
 import { psychologistService } from '../../services/api';
+
+// Auto-injected Material Symbol fallbacks for removed Lucide icons
+const Activity = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>show_chart</span>;
+
+
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
 
 const STAT_SKINS = [
-  { icon: Users, color: 'text-primary', bg: 'bg-primary/10', ring: 'ring-primary/10' },
-  { icon: CheckCircle2, color: 'text-emerald-600', bg: 'bg-emerald-50', ring: 'ring-emerald-100' },
-  { icon: AlertCircle, color: 'text-rose-600', bg: 'bg-rose-50', ring: 'ring-rose-100' },
-  { icon: Activity, color: 'text-amber-600', bg: 'bg-amber-50', ring: 'ring-amber-100' },
+  { icon: 'group', color: 'text-primary', bg: 'bg-primary/10', ring: 'ring-primary/10' },
+  { icon: 'check_circle', color: 'text-emerald-600', bg: 'bg-emerald-50', ring: 'ring-emerald-100' },
+  { icon: 'error', color: 'text-rose-600', bg: 'bg-rose-50', ring: 'ring-rose-100' },
+  { icon: 'show_chart', color: 'text-amber-600', bg: 'bg-amber-50', ring: 'ring-amber-100' },
 ];
 
 const SOURCE_TABLES = [
@@ -120,7 +111,7 @@ export default function AnalyticsTrends() {
             <div className="grid gap-6 p-6 lg:grid-cols-[1fr_auto] lg:items-center lg:p-8">
               <div className="space-y-4">
                 <div className="inline-flex items-center gap-2 rounded-full border border-primary/10 bg-primary/5 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-primary">
-                  <Database size={14} />
+                  <span className="material-symbols-outlined" style={{ fontSize: 14 }}>database</span>
                   Schema psikolog
                 </div>
                 <div>
@@ -139,7 +130,7 @@ export default function AnalyticsTrends() {
                 disabled={loading}
                 className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 text-[10px] font-black uppercase tracking-widest text-slate-600 shadow-sm transition hover:border-primary/30 hover:text-primary disabled:cursor-wait disabled:opacity-60"
               >
-                {loading ? <Loader2 size={16} className="animate-spin" /> : <RefreshCw size={16} />}
+                {loading ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '16px' }} >sync</span> : <span className="material-symbols-outlined" style={{ fontSize: 16 }}>sync</span>}
                 Muat Ulang
               </button>
             </div>
@@ -147,7 +138,7 @@ export default function AnalyticsTrends() {
 
           {error && (
             <div className="flex items-start gap-3 rounded-3xl border border-rose-100 bg-rose-50 px-5 py-4 text-rose-700">
-              <AlertCircle size={18} className="mt-0.5 shrink-0" />
+              <span className="material-symbols-outlined mt-0.5 shrink-0" style={{ fontSize: '18px' }} >error</span>
               <div>
                 <p className="text-xs font-black uppercase tracking-widest">Data belum bisa dimuat</p>
                 <p className="mt-1 text-sm font-medium">{error}</p>
@@ -173,7 +164,7 @@ export default function AnalyticsTrends() {
                     >
                       <div className="mb-5 flex items-center justify-between">
                         <div className={`flex size-12 items-center justify-center rounded-2xl ${stat.bg} ${stat.color} ring-1 ${stat.ring}`}>
-                          <Icon size={23} />
+                          <span className="material-symbols-outlined" style={{ fontSize: 23 }}>{Icon}</span>
                         </div>
                         <span className="rounded-full border border-slate-100 bg-slate-50 px-2.5 py-1 text-[9px] font-black uppercase tracking-widest text-slate-400">
                           Live
@@ -192,7 +183,7 @@ export default function AnalyticsTrends() {
                 <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                   <div>
                     <h2 className="flex items-center gap-2 text-sm font-black uppercase tracking-widest text-primary">
-                      <BarChart3 size={18} />
+                      <span className="material-symbols-outlined" style={{ fontSize: 18 }}>bar_chart</span>
                       Tren Sesi Bulanan
                     </h2>
                     <p className="mt-1 text-[10px] font-bold uppercase tracking-widest text-slate-400">
@@ -200,7 +191,7 @@ export default function AnalyticsTrends() {
                     </p>
                   </div>
                   <div className="inline-flex items-center gap-2 rounded-full border border-slate-100 bg-slate-50 px-3 py-1.5 text-[9px] font-black uppercase tracking-widest text-slate-500">
-                    <CalendarDays size={13} />
+                    <span className="material-symbols-outlined" style={{ fontSize: '13px' }} Days >calendar_month</span>
                     Jan-Des
                   </div>
                 </div>
@@ -244,7 +235,7 @@ export default function AnalyticsTrends() {
                       <h3 className="text-xs font-black uppercase tracking-widest text-white">Isu Dominan</h3>
                       <p className="mt-1 text-[10px] font-bold uppercase tracking-widest text-white/40">Dihitung dari topik booking</p>
                     </div>
-                    <Brain size={26} className="text-white/30" />
+                    <span className="material-symbols-outlined text-white/30" style={{ fontSize: 26 }}>psychology</span>
                   </div>
 
                   <div className="space-y-5">
@@ -292,7 +283,7 @@ export default function AnalyticsTrends() {
             <aside className="space-y-6 xl:col-span-4">
               <div className="rounded-[2rem] border border-slate-100 bg-white p-6 shadow-sm">
                 <h3 className="mb-5 flex items-center gap-2 text-xs font-black uppercase tracking-widest text-primary">
-                  <Database size={17} />
+                  <span className="material-symbols-outlined" style={{ fontSize: 17 }}>database</span>
                   Sumber Data
                 </h3>
                 <div className="space-y-3">
@@ -307,7 +298,7 @@ export default function AnalyticsTrends() {
 
               <div className="rounded-[2rem] border border-slate-100 bg-white p-6 shadow-sm">
                 <h3 className="mb-5 flex items-center gap-2 text-xs font-black uppercase tracking-widest text-primary">
-                  <TrendingUp size={17} />
+                  <span className="material-symbols-outlined" style={{ fontSize: '17px' }} >trending_up</span>
                   Rekomendasi
                 </h3>
                 <div className="space-y-3">
@@ -320,7 +311,7 @@ export default function AnalyticsTrends() {
                           className={`rounded-2xl border px-4 py-3 ${positive ? 'border-emerald-100 bg-emerald-50' : 'border-amber-100 bg-amber-50'}`}
                         >
                           <div className="mb-2 flex items-center gap-2">
-                            {positive ? <CheckCircle2 size={15} className="text-emerald-600" /> : <AlertCircle size={15} className="text-amber-600" />}
+                            {positive ? <span className="material-symbols-outlined text-emerald-600" style={{ fontSize: '15px' }} >check_circle</span> : <span className="material-symbols-outlined text-amber-600" style={{ fontSize: '15px' }} >error</span>}
                             <p className={`text-[10px] font-black uppercase tracking-widest ${positive ? 'text-emerald-700' : 'text-amber-700'}`}>
                               {rec.title}
                             </p>
@@ -339,7 +330,7 @@ export default function AnalyticsTrends() {
 
               <div className="rounded-[2rem] border border-slate-100 bg-white p-6 shadow-sm">
                 <h3 className="mb-5 flex items-center gap-2 text-xs font-black uppercase tracking-widest text-primary">
-                  <Clock size={17} />
+                  <span className="material-symbols-outlined" style={{ fontSize: '17px' }} >schedule</span>
                   Aktivitas Terakhir
                 </h3>
                 <div className="space-y-4">
@@ -347,7 +338,7 @@ export default function AnalyticsTrends() {
                     activities.map((activity, index) => (
                       <div key={`${activity.title}-${index}`} className="flex gap-3">
                         <div className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-primary/5 text-primary">
-                          <MessageSquare size={17} />
+                          <span className="material-symbols-outlined" style={{ fontSize: '17px' }} >chat</span>
                         </div>
                         <div className="min-w-0">
                           <p className="truncate text-xs font-black uppercase tracking-wide text-slate-950">{activity.title}</p>

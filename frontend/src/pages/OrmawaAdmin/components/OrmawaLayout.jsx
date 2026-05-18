@@ -3,11 +3,11 @@ import Sidebar from './Sidebar';
 import TopNavBar from './TopNavBar';
 import { Outlet } from 'react-router-dom';
 
-const SuperAdminLayout = ({ children }) => {
+const OrmawaLayout = ({ children }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   return (
-    <div className="bg-[#fafafa] h-screen flex font-body overflow-x-hidden">
+    <div className="bg-[#F8FAFC] text-slate-900 h-screen font-body overflow-x-hidden">
       {/* Sidebar Overlay for Mobile */}
       {isSidebarOpen && (
         <div 
@@ -18,10 +18,10 @@ const SuperAdminLayout = ({ children }) => {
 
       <Sidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
       
-      <main className="flex-1 flex flex-col h-full w-full lg:pl-72 transition-all duration-300 overflow-x-hidden">
+      <main className="lg:ml-64 h-full flex flex-col transition-all duration-300 overflow-x-hidden">
         <TopNavBar setIsOpen={setIsSidebarOpen} />
         
-        <div className="flex-1 overflow-y-auto overflow-x-hidden pt-16 w-full">
+        <div className="flex-1 overflow-y-auto overflow-x-hidden pt-20 w-full relative">
           {children || <Outlet />}
         </div>
       </main>
@@ -29,4 +29,4 @@ const SuperAdminLayout = ({ children }) => {
   );
 };
 
-export default SuperAdminLayout;
+export default OrmawaLayout;

@@ -1,21 +1,20 @@
 import React, { useMemo, useState } from 'react';
-import {
-  Users,
-  ChevronRight,
-  CheckCircle2,
-  Clock,
-  Calendar,
-  Award,
-  Trophy,
-  Eye,
-  X,
-  ClipboardList,
-  Shield,
-} from 'lucide-react';
+
 import { useOrganisasiListQuery } from '../../queries/useOrganisasiQuery';
 import { CardGridSkeleton } from '../../components/ui/SkeletonGroups';
 import EmptyState from '../../components/ui/EmptyState';
 import { NavLink } from 'react-router-dom';
+
+// Auto-injected Material Symbol fallbacks for removed Lucide icons
+const Award = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>emoji_events</span>;
+
+
+
+// Auto-injected Material Symbol fallbacks for removed Lucide icons
+const ClipboardList = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>assignment</span>;
+const Shield = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>security</span>;
+
+
 
 const TIPE_COLORS = {
   UKM:            { bg: 'bg-[#EAF1FF]', text: 'text-[#0B4FAE]' },
@@ -41,7 +40,7 @@ export default function OrganisasiPage() {
          {/* Breadcrumb */}
          <div className="flex items-center gap-2 text-sm font-medium text-[#a3a3a3] mb-6">
            <NavLink to="/student/dashboard" className="hover:text-[#00236F] cursor-pointer transition-colors">Dashboard</NavLink>
-           <ChevronRight size={16} />
+           <span className="material-symbols-outlined" style={{ fontSize: 16 }}>chevron_right</span>
            <span className="text-[#171717]">Organisasi</span>
          </div>
 
@@ -50,7 +49,7 @@ export default function OrganisasiPage() {
           <div>
             <h1 className="text-2xl md:text-3xl font-extrabold font-headline mb-1.5 flex items-center gap-3">
               <div className="bg-[#00236F] p-2 rounded-xl text-white shadow-md shadow-[#00236F]/20">
-                <Users size={20} />
+                <span className="material-symbols-outlined" style={{ fontSize: '20px' }} >group</span>
               </div>
               Portfolio Keorganisasian
             </h1>
@@ -89,11 +88,11 @@ export default function OrganisasiPage() {
                       
                       {isPending ? (
                         <span className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold shrink-0 text-[#a3a3a3] bg-[#fafafa] border border-[#e5e5e5]">
-                          <Clock size={12} /> Menunggu Verifikasi
+                          <span className="material-symbols-outlined" style={{ fontSize: '12px' }} >schedule</span> Menunggu Verifikasi
                         </span>
                       ) : (
                         <span className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold shrink-0 text-[#16a34a] bg-[#f0fdf4] border border-[#bbf7d0]">
-                          <CheckCircle2 size={12} /> Terverifikasi
+                          <span className="material-symbols-outlined" style={{ fontSize: '12px' }} >check_circle</span> Terverifikasi
                         </span>
                       )}
                     </div>
@@ -110,7 +109,7 @@ export default function OrganisasiPage() {
                     <div className="grid grid-cols-1 gap-2 pt-3 border-t border-[#f5f5f5]">
                       <div className="flex text-sm">
                         <span className="w-32 shrink-0 text-[#a3a3a3] flex items-center gap-1.5">
-                          <Calendar size={14} /> Periode:
+                          <span className="material-symbols-outlined" style={{ fontSize: '14px' }} >calendar_month</span> Periode:
                         </span>
                         <span className="font-medium text-[#171717]">
                           {item.PeriodeMulai} — {item.PeriodeSelesai ? item.PeriodeSelesai : 'Sekarang'}
@@ -119,7 +118,7 @@ export default function OrganisasiPage() {
 
                       <div className="flex text-sm">
                         <span className="w-32 shrink-0 text-[#a3a3a3] flex items-start gap-1.5 mt-0.5">
-                           <Users size={14} /> Deskripsi:
+                           <span className="material-symbols-outlined" style={{ fontSize: '14px' }} >group</span> Deskripsi:
                         </span>
                         <span className="text-[#525252] leading-relaxed line-clamp-3">
                            {item.DeskripsiKegiatan || '-'}
@@ -139,7 +138,7 @@ export default function OrganisasiPage() {
                     {/* Achievements Section */}
                     {item.Prestasi && item.Prestasi.length > 0 && (
                       <div className="pt-3 border-t border-[#f5f5f5]">
-                        <p className="text-xs font-bold text-[#a3a3a3] mb-2 uppercase tracking-wider flex items-center gap-1.5"><Trophy size={14} className="text-amber-500"/> Prestasi Terkait:</p>
+                        <p className="text-xs font-bold text-[#a3a3a3] mb-2 uppercase tracking-wider flex items-center gap-1.5"><span className="material-symbols-outlined text-amber-500" style={{ fontSize: 14 }}>emoji_events</span> Prestasi Terkait:</p>
                         <div className="flex flex-col gap-2">
                           {item.Prestasi.map(p => (
                             <div key={p.ID} className="flex flex-col bg-[#fffbeb] border border-[#fde68a] p-2.5 rounded-xl">
@@ -156,7 +155,7 @@ export default function OrganisasiPage() {
                         onClick={() => { setSelectedOrg(item); setActiveTab('ringkasan'); }}
                         className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#00236F] text-white text-xs font-bold hover:bg-[#0B4FAE] transition-colors"
                       >
-                        <Eye size={14} /> Lihat Detail
+                        <span className="material-symbols-outlined" style={{ fontSize: '14px' }} >visibility</span> Lihat Detail
                       </button>
                     </div>
                   </div>
@@ -188,14 +187,14 @@ export default function OrganisasiPage() {
                 onClick={() => setSelectedOrg(null)}
                 className="p-2 rounded-xl bg-white/10 hover:bg-white/20 transition-colors"
               >
-                <X size={18} />
+                <span className="material-symbols-outlined" style={{ fontSize: '18px' }} >close</span>
               </button>
             </div>
 
             <div className="px-6 pt-4 border-b border-[#f0f0f0] flex gap-2 overflow-x-auto">
               {[
                 { key: 'ringkasan', label: 'Ringkasan', icon: ClipboardList },
-                { key: 'prestasi', label: 'Prestasi', icon: Trophy },
+                { key: 'prestasi', label: 'Prestasi', icon: 'emoji_events' },
                 { key: 'verifikasi', label: 'Status & Verifikasi', icon: Shield },
               ].map((tab) => {
                 const Icon = tab.icon;
@@ -236,7 +235,7 @@ export default function OrganisasiPage() {
                   )) : (
                     <EmptyState
                       size="sm"
-                      icon="Trophy"
+                      icon="emoji_events"
                       title="Belum Ada Prestasi"
                       description="Prestasi yang terkait organisasi ini belum tersedia."
                       iconBgClass="bg-[#fff7ed]"

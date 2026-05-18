@@ -1,58 +1,52 @@
 import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { 
-  LayoutDashboard, ShieldAlert, Building2, Database,
-  GraduationCap, Briefcase, ClipboardList, Users,
-  CreditCard, MessageSquare, BrainCircuit,
-  ShieldCheck, Activity, Newspaper, Settings, LogOut
-} from 'lucide-react';
+
 import useAuthStore from '../../../store/useAuthStore';
 
 const menuGroups = [
   {
     title: "Menu Utama",
     items: [
-      { name: "Dashboard", icon: LayoutDashboard, path: "/admin", exact: true },
-      { name: "Log Aktivitas", icon: ShieldAlert, path: "/admin/audit" },
+      { name: "Dashboard", icon: 'dashboard', path: "/admin", exact: true },
+      { name: "Log Aktivitas", icon: 'warning', path: "/admin/audit" },
     ]
   },
   {
     title: "Manajemen Data",
     items: [
-      { name: "Data Fakultas", icon: Building2, path: "/admin/faculties" },
-      { name: "Data Prodi", icon: Database, path: "/admin/prodi" },
-      { name: "Data Mahasiswa", icon: GraduationCap, path: "/admin/students" },
-      { name: "Data Dosen", icon: Briefcase, path: "/admin/lecturers" },
-      { name: "Data Psikolog", icon: BrainCircuit, path: "/admin/psychologists" },
+      { name: "Data Fakultas", icon: 'apartment', path: "/admin/faculties" },
+      { name: "Data Prodi", icon: 'database', path: "/admin/prodi" },
+      { name: "Data Mahasiswa", icon: 'school', path: "/admin/students" },
+      { name: "Data Dosen", icon: 'work', path: "/admin/lecturers" },
+      { name: "Data Psikolog", icon: 'psychology', path: "/admin/psychologists" },
     ]
   },
   {
     title: "Kegiatan & Ormawa",
     items: [
-      { name: "Global Proposals", icon: ClipboardList, path: "/admin/proposals" },
-      { name: "Kelola Ormawa", icon: Users, path: "/admin/organizations" },
+      { name: "Global Proposals", icon: 'assignment', path: "/admin/proposals" },
+      { name: "Kelola Ormawa", icon: 'group', path: "/admin/organizations" },
     ]
   },
   {
     title: "Layanan & Bantuan",
     items: [
-      { name: "Beasiswa", icon: CreditCard, path: "/admin/scholarships" },
-      { name: "Aspirasi", icon: MessageSquare, path: "/admin/aspirations" },
-      { name: "Konseling", icon: BrainCircuit, path: "/admin/counseling" },
+      { name: "Beasiswa", icon: 'payment', path: "/admin/scholarships" },
+      { name: "Aspirasi", icon: 'chat', path: "/admin/aspirations" },
     ]
   },
   {
     title: "Keamanan & Akses",
     items: [
-      { name: "Kelola Akses (RBAC)", icon: ShieldCheck, path: "/admin/rbac" },
-      { name: "Performa Admin", icon: Activity, path: "/admin/performance" },
+      { name: "Kelola Akses (RBAC)", icon: 'security', path: "/admin/rbac" },
+      { name: "Performa Admin", icon: 'show_chart', path: "/admin/performance" },
     ]
   },
   {
     title: "Sistem & Informasi",
     items: [
-      { name: "Kelola Berita", icon: Newspaper, path: "/admin/announcements" },
-      { name: "Pengaturan Sistem", icon: Settings, path: "/admin/config" },
+      { name: "Kelola Berita", icon: 'newspaper', path: "/admin/announcements" },
+      { name: "Pengaturan Sistem", icon: 'settings', path: "/admin/config" },
     ]
   }
 ];
@@ -67,7 +61,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
   };
 
   return (
-    <aside className={`h-screen w-72 fixed left-0 top-0 flex flex-col bg-[#f6f3f2] border-r border-slate-200/50 z-50 select-none transition-transform duration-300 lg:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+    <aside className={`h-screen w-72 fixed left-0 top-0 flex flex-col bg-white border-r border-[#e5e5e5] z-50 select-none transition-transform duration-300 lg:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
       <div className="flex flex-col h-full overflow-hidden">
 
         {/* Brand Header */}
@@ -80,10 +74,10 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
               <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 rounded-full border-2 border-white shadow-sm"></div>
             </div>
             <div className="flex flex-col leading-tight">
-              <span className="text-sm font-black text-slate-900 uppercase tracking-wider">
+              <span className="text-[15px] font-black text-[#171717] font-headline tracking-tight">
                 MASTER HUB
               </span>
-              <span className="text-[10px] font-bold text-[#00236f] uppercase tracking-widest opacity-80">Super Admin Panel</span>
+              <span className="text-[10px] font-bold text-[#00236f] uppercase tracking-widest opacity-80 font-jakarta">Super Admin Panel</span>
             </div>
           </div>
         </div>
@@ -106,8 +100,8 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                       : 'sa-nav-item sa-nav-inactive'
                   }
                 >
-                  <item.icon size={18} strokeWidth={2} className="shrink-0" />
-                  <span className="text-[12px] tracking-tight">{item.name}</span>
+                  <span className="material-symbols-outlined shrink-0" style={{ fontSize: '18px' }}>{item.icon}</span>
+                  <span className="text-[13px] font-semibold tracking-tight font-headline">{item.name}</span>
                 </NavLink>
               ))}
             </div>
@@ -120,7 +114,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
             onClick={handleLogout}
             className="w-full flex items-center justify-center gap-3 py-3 rounded-2xl bg-rose-50 text-rose-600 font-black text-[10px] uppercase tracking-[0.2em] shadow-sm hover:bg-rose-600 hover:text-white transition-all active:scale-95 shadow-rose-100/50"
           >
-            <LogOut size={16} />
+            <span className="material-symbols-outlined " size={16}>logout</span>
             Keluar Sistem
           </button>
         </div>
@@ -130,29 +124,24 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
         .sa-nav-item {
           display: flex;
           align-items: center;
-          gap: 14px;
-          padding: 11px 16px;
-          border-radius: 14px;
-          margin-bottom: 2px;
-          font-weight: 700;
-          text-transform: uppercase;
-          text-decoration: none;
-          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          gap: 12px;
+          padding: 10px 16px;
+          border-radius: 12px;
+          margin-bottom: 4px;
+          transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
         .sa-nav-active {
-          background: #00236f !important;
-          color: #ffffff !important;
-          box-shadow: 0 10px 15px -3px rgba(0, 35, 111, 0.25);
-          transform: translateX(4px);
+          background: #eef4ff !important;
+          color: #00236f !important;
+          border: 1px solid #c9d8ff;
         }
         .sa-nav-inactive {
-          color: #64748b;
+          color: #525252;
           background: transparent;
         }
         .sa-nav-inactive:hover {
-          background: #eae7e7;
-          color: #00236f;
-          transform: translateX(2px);
+          background: #f7faff;
+          color: #171717;
         }
         .no-scrollbar::-webkit-scrollbar {
           display: none;

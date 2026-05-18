@@ -440,7 +440,10 @@ func RejectProposalUniv(c *fiber.Ctx) error {
 // GetAllFakultas master data
 func GetAllFakultas(c *fiber.Ctx) error {
 	var faks []models.Fakultas
-	config.DB.Preload("ProgramStudi").Find(&faks)
+	if err := config.DB.Preload("ProgramStudi").Find(&faks).Error; err != nil {
+		fmt.Printf("[ERROR] GetAllFakultas: %v\n", err)
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal mengambil data Fakultas: " + err.Error()})
+	}
 
 	type FacultyWithCount struct {
 		models.Fakultas
@@ -664,17 +667,21 @@ func DeleteStudent(c *fiber.Ctx) error {
 
 func GetAllProgramStudi(c *fiber.Ctx) error {
 	var prodis []models.ProgramStudi
-	config.DB.Preload("Fakultas").Find(&prodis)
+	if err := config.DB.Preload("Fakultas").Find(&prodis).Error; err != nil {
+		fmt.Printf("[ERROR] GetAllProgramStudi: %v\n", err)
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal mengambil data Prodi: " + err.Error()})
+	}
 	return c.JSON(fiber.Map{"status": "success", "data": prodis})
 }
 
 func CreateProgramStudi(c *fiber.Ctx) error {
 	var prodi models.ProgramStudi
 	if err := c.BodyParser(&prodi); err != nil {
-		return c.Status(400).JSON(fiber.Map{"status": "error", "message": err.Error()})
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Gagal memproses body request: " + err.Error()})
 	}
 	if err := config.DB.Create(&prodi).Error; err != nil {
-		return c.Status(500).JSON(fiber.Map{"status": "error", "message": err.Error()})
+		fmt.Printf("[ERROR] CreateProgramStudi: %v\n", err)
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal menyimpan Prodi: " + err.Error()})
 	}
 	return c.JSON(fiber.Map{"status": "success", "data": prodi})
 }

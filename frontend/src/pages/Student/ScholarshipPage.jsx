@@ -5,16 +5,28 @@ import {
   useScholarshipRiwayatQuery, 
   useDaftarBeasiswaMutation 
 } from '../../queries/useScholarshipQuery';
-import { 
-  GraduationCap, Search, Filter, Calendar, Users, Wallet, 
-  Info, CheckCircle2, Clock, X, FileText, UploadCloud, 
-  ArrowRight, AlertCircle, ChevronRight, Trophy, Sparkles, 
-  History, LayoutGrid, Check, Loader2, Upload, FileCheck, ArrowLeft
-} from 'lucide-react';
+
 import { motion, AnimatePresence } from 'framer-motion';
 import { CardGridSkeleton, TableSkeleton } from '../../components/ui/SkeletonGroups';
 import EmptyState from '../../components/ui/EmptyState';
 import { toast } from 'react-hot-toast';
+
+// Auto-injected Material Symbol fallbacks for removed Lucide icons
+const ArrowLeft = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>arrow_back</span>;
+const Wallet = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>account_balance_wallet</span>;
+
+
+
+// Auto-injected Material Symbol fallbacks for removed Lucide icons
+const Sparkles = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>auto_awesome</span>;
+const Filter = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>filter_alt</span>;
+
+
+
+// Auto-injected Material Symbol fallbacks for removed Lucide icons
+const LayoutGrid = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>grid_view</span>;
+
+
 
 // ======================== UTILITIES ========================
 const formatRupiah = (number) => {
@@ -104,7 +116,7 @@ function ApplyWizard({ scholarship, onClose, onSuccess }) {
             <p className="text-sm font-bold text-[#a3a3a3] uppercase tracking-wider">{scholarship.Nama}</p>
           </div>
           <button onClick={onClose} className="p-2 hover:bg-white rounded-full transition-colors border border-transparent hover:border-[#e5e5e5]">
-            <X size={24} className="text-[#a3a3a3]" />
+            <span className="material-symbols-outlined text-[#a3a3a3]" style={{ fontSize: '24px' }} >close</span>
           </button>
         </div>
 
@@ -161,13 +173,13 @@ function ApplyWizard({ scholarship, onClose, onSuccess }) {
                     }`}
                   >
                     <div className={`p-2 rounded-xl ${files[key] ? 'bg-green-600 text-white' : 'bg-white text-[#a3a3a3]'}`}>
-                      {files[key] ? <FileCheck size={20} /> : <Upload size={20} />}
+                      {files[key] ? <span className="material-symbols-outlined" style={{ fontSize: '20px' }} >assignment_turned_in</span> : <span className="material-symbols-outlined" style={{ fontSize: '20px' }} >upload</span>}
                     </div>
                     <div className="flex-1 overflow-hidden">
                       <p className="text-sm font-bold truncate">{files[key] ? files[key].name : `Pilih Berkas ${key}`}</p>
                       <p className="text-[10px] text-[#a3a3a3] font-medium uppercase tracking-tighter">PDF/JPG (Max. 5MB)</p>
                     </div>
-                    {files[key] && <Check size={16} className="text-[#16a34a]" />}
+                    {files[key] && <span className="material-symbols-outlined text-[#16a34a]" style={{ fontSize: 16 }}>check</span>}
                   </div>
                   <input 
                     type="file" 
@@ -235,7 +247,7 @@ function ApplyWizard({ scholarship, onClose, onSuccess }) {
               onClick={() => setStep(s => s + 1)}
               className="flex items-center gap-2 px-8 py-3.5 rounded-2xl font-black bg-[#00236F] text-white hover:bg-[#0B4FAE] transition-all shadow-xl shadow-[#00236F]/20 disabled:opacity-30"
             >
-              Lanjutkan <ArrowRight size={18} />
+              Lanjutkan <span className="material-symbols-outlined" style={{ fontSize: '18px' }} >arrow_forward</span>
             </button>
           ) : (
             <button 
@@ -243,7 +255,7 @@ function ApplyWizard({ scholarship, onClose, onSuccess }) {
               onClick={handleSubmit}
               className="flex items-center gap-2 px-10 py-3.5 rounded-2xl font-black bg-[#00236F] text-white hover:bg-[#0B4FAE] transition-all shadow-xl shadow-[#00236F]/20 disabled:opacity-50"
             >
-              {daftarMutation.isPending ? <><Loader2 size={18} className="animate-spin" /> Mengirim...</> : <><Check size={18} /> Kirim Pengajuan</>}
+              {daftarMutation.isPending ? <><span className="material-symbols-outlined animate-spin" style={{ fontSize: '18px' }} >sync</span> Mengirim...</> : <><span className="material-symbols-outlined" style={{ fontSize: 18 }}>check</span> Kirim Pengajuan</>}
             </button>
           )}
         </div>
@@ -278,7 +290,7 @@ export default function ScholarshipPage() {
         <div>
           <h1 className="text-2xl md:text-3xl font-black font-headline tracking-tight flex items-center gap-2.5">
             <div className="w-10 h-10 bg-[#00236F] rounded-xl flex items-center justify-center shadow-md shadow-[#00236F]/20">
-              <GraduationCap className="text-white" size={20} />
+              <span className="material-symbols-outlined text-white" style={{ fontSize: '20px' }} >school</span>
             </div>
             Scholarship hub
           </h1>
@@ -375,7 +387,7 @@ export default function ScholarshipPage() {
                         </span>
                         {isUrgent && (
                            <div className="flex items-center gap-1 text-[#dc2626] bg-red-50 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter">
-                              <Clock size={12} /> Sisa {daysLeft} Hari
+                              <span className="material-symbols-outlined" style={{ fontSize: '12px' }} >schedule</span> Sisa {daysLeft} Hari
                            </div>
                         )}
                       </div>
@@ -399,7 +411,7 @@ export default function ScholarshipPage() {
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-3">
                             <div className="w-9 h-9 bg-[#eef4ff] text-[#00236F] rounded-xl flex items-center justify-center">
-                              <Users size={18} />
+                              <span className="material-symbols-outlined" style={{ fontSize: '18px' }} >group</span>
                             </div>
                             <div>
                                <p className="text-[9px] font-black text-[#a3a3a3] uppercase tracking-widest">Kuota</p>
@@ -415,7 +427,7 @@ export default function ScholarshipPage() {
                         onClick={() => setSelectedSch(beasiswa)}
                         className="w-full bg-[#00236F] text-white py-2.5 rounded-xl font-black text-sm flex items-center justify-center gap-2 transition-colors hover:bg-[#0B4FAE]"
                       >
-                        Detail & Daftar <ArrowRight size={18} />
+                        Detail & Daftar <span className="material-symbols-outlined" style={{ fontSize: '18px' }} >arrow_forward</span>
                       </button>
                     </div>
                   </motion.div>
@@ -440,10 +452,10 @@ export default function ScholarshipPage() {
           {/* Stats Bar */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {[
-              { label: 'Total Diajukan', val: stats.total, color: 'text-[#171717]', bg: 'bg-white', icon: FileText },
-               { label: 'Sedang Proses', val: stats.proses, color: 'text-[#00236F]', bg: 'bg-[#eef4ff]', icon: Clock },
-              { label: 'Lulus Seleksi', val: stats.diterima, color: 'text-[#16a34a]', bg: 'bg-[#f0fdf4]', icon: Trophy },
-              { label: 'Ditolak', val: stats.ditolak, color: 'text-[#dc2626]', bg: 'bg-[#fef2f2]', icon: X }
+              { label: 'Total Diajukan', val: stats.total, color: 'text-[#171717]', bg: 'bg-white', icon: 'description' },
+               { label: 'Sedang Proses', val: stats.proses, color: 'text-[#00236F]', bg: 'bg-[#eef4ff]', icon: 'schedule' },
+              { label: 'Lulus Seleksi', val: stats.diterima, color: 'text-[#16a34a]', bg: 'bg-[#f0fdf4]', icon: 'emoji_events' },
+              { label: 'Ditolak', val: stats.ditolak, color: 'text-[#dc2626]', bg: 'bg-[#fef2f2]', icon: 'close' }
             ].map(s => (
               <div key={s.label} className={`${s.bg} p-4 rounded-2xl border border-[#e5e5e5] shadow-sm`}>
                 <div className="flex items-center gap-3 mb-2">
@@ -508,7 +520,7 @@ export default function ScholarshipPage() {
                               }}
                               className="px-4 py-2 rounded-xl bg-white border border-[#e5e5e5] text-xs font-black hover:border-[#00236F] hover:text-[#00236F] transition-all flex items-center justify-center gap-2 mx-auto"
                              >
-                               Lihat Progress <ChevronRight size={14} />
+                               Lihat Progress <span className="material-symbols-outlined" style={{ fontSize: 14 }}>chevron_right</span>
                              </button>
                           </td>
                         </tr>
@@ -550,7 +562,7 @@ export default function ScholarshipPage() {
             >
               <div className="relative h-24 bg-gradient-to-r from-[#00236F] to-[#0B4FAE] p-5 flex items-center">
                  <button onClick={() => setSelectedSch(null)} className="absolute top-6 right-6 text-white/50 hover:text-white transition-colors">
-                   <X size={24} />
+                   <span className="material-symbols-outlined" style={{ fontSize: '24px' }} >close</span>
                  </button>
                  <div>
                     <h2 className="text-2xl font-black text-white pr-10">{selectedSch.Nama}</h2>
@@ -580,12 +592,12 @@ export default function ScholarshipPage() {
 
                 <div className="space-y-6">
                   <div>
-                    <h4 className="flex items-center gap-2 text-sm font-black uppercase tracking-widest mb-3"><Info size={16} className="text-[#00236F]" /> Deskripsi Program</h4>
+                    <h4 className="flex items-center gap-2 text-sm font-black uppercase tracking-widest mb-3"><span className="material-symbols-outlined text-[#00236F]" style={{ fontSize: 16 }}>info</span> Deskripsi Program</h4>
                     <p className="text-sm text-[#525252] font-medium leading-relaxed">{selectedSch.Deskripsi}</p>
                   </div>
 
                   <div>
-                    <h4 className="flex items-center gap-2 text-sm font-black uppercase tracking-widest mb-3"><FileText size={16} className="text-[#00236F]" /> Persyaratan</h4>
+                    <h4 className="flex items-center gap-2 text-sm font-black uppercase tracking-widest mb-3"><span className="material-symbols-outlined text-[#00236F]" style={{ fontSize: '16px' }} >description</span> Persyaratan</h4>
                     <div className="bg-[#fafafa] p-6 rounded-[24px] border border-[#e5e5e5]">
                        <pre className="text-sm text-[#525252] font-medium whitespace-pre-line font-body leading-relaxed">
                          {selectedSch.Deskripsi}

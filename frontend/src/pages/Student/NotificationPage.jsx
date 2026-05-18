@@ -2,23 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../../lib/axios';
 import { NavLink } from 'react-router-dom';
-import { 
-  Bell, 
-  Trophy, 
-  BookOpen, 
-  HeartHandshake, 
-  MessageSquare, 
-  GraduationCap, 
-  Check, 
-  Trash2, 
-  Search,
-  Filter,
-  CheckCircle2,
-  X,
-  MoreVertical,
-  ChevronRight,
-  Clock
-} from 'lucide-react';
+
 import { format, isToday, isYesterday, isThisWeek, parseISO } from 'date-fns';
 import { id } from 'date-fns/locale';
 import { toast } from 'react-hot-toast';
@@ -34,12 +18,12 @@ import {
 } from '../../components/ui/Select';
 
 const CATEGORY_ICONS = {
-  achievement: <Trophy size={18} className="text-[#00236F]" />,
-  beasiswa: <GraduationCap size={18} className="text-[#00236F]" />,
-  konseling: <HeartHandshake size={18} className="text-[#00236F]" />,
-  student_voice: <MessageSquare size={18} className="text-[#00236F]" />,
-  kencana: <BookOpen size={18} className="text-[#00236F]" />,
-  sistem: <Bell size={18} className="text-[#00236F]" />,
+  achievement: <span className="material-symbols-outlined text-[#00236F]" style={{ fontSize: '18px' }}>emoji_events</span>,
+  beasiswa: <span className="material-symbols-outlined text-[#00236F]" style={{ fontSize: '18px' }} >school</span>,
+  konseling: <span className="material-symbols-outlined text-[#00236F]" style={{ fontSize: '18px' }}>handshake</span>,
+  student_voice: <span className="material-symbols-outlined text-[#00236F]" style={{ fontSize: '18px' }} >chat</span>,
+  kencana: <span className="material-symbols-outlined text-[#00236F]" style={{ fontSize: '18px' }}>menu_book</span>,
+  sistem: <span className="material-symbols-outlined text-[#00236F]" style={{ fontSize: '18px' }} >notifications</span>,
 };
 
 const CATEGORIES = [
@@ -170,7 +154,7 @@ export default function NotificationPage() {
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 text-sm font-medium text-[#a3a3a3] mb-8">
         <NavLink to="/student/dashboard" className="hover:text-[#00236F] cursor-pointer transition-colors">Dashboard</NavLink>
-        <ChevronRight size={16} />
+        <span className="material-symbols-outlined" style={{ fontSize: 16 }}>chevron_right</span>
         <span className="text-[#171717]">Notifikasi</span>
       </div>
 
@@ -188,14 +172,14 @@ export default function NotificationPage() {
             disabled={!hasUnread}
             className="px-5 py-2.5 bg-[#EAF1FF] text-[#00236F] rounded-xl text-sm font-bold border border-[#C9D8FF] hover:bg-[#D5E2FF] transition-all disabled:opacity-50 flex items-center gap-2"
           >
-            <CheckCircle2 size={16} />
+            <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >check_circle</span>
             Tandai Semua Dibaca
           </button>
           <button 
             onClick={() => deleteReadAllMutation.mutate()}
             className="px-5 py-2.5 bg-white text-[#737373] rounded-xl text-sm font-bold border border-[#e5e5e5] hover:bg-[#fafafa] transition-all flex items-center gap-2"
           >
-            <Trash2 size={16} />
+            <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >delete</span>
             Hapus yang Sudah Dibaca
           </button>
         </div>
@@ -252,13 +236,13 @@ export default function NotificationPage() {
                 onClick={() => bulkReadMutation.mutate(selectedIds)}
                 className="text-sm font-bold hover:text-[#00236F] transition-colors flex items-center gap-2"
               >
-                <Check size={16} /> Tandai Dibaca
+                <span className="material-symbols-outlined" style={{ fontSize: 16 }}>check</span> Tandai Dibaca
               </button>
               <button 
                 onClick={() => bulkDeleteMutation.mutate(selectedIds)}
                 className="text-sm font-bold text-[#fca5a5] hover:text-[#ef4444] transition-colors flex items-center gap-2"
               >
-                <Trash2 size={16} /> Hapus
+                <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >delete</span> Hapus
               </button>
               <button 
                 onClick={() => setSelectedIds([])}
@@ -305,7 +289,7 @@ export default function NotificationPage() {
                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center border transition-transform duration-300 group-hover:scale-110 ${
                          !notif.is_read ? 'bg-[#EAF1FF] border-[#C9D8FF]' : 'bg-[#fafafa] border-[#e5e5e5]'
                        }`}>
-                          {CATEGORY_ICONS[notif.type] || <Bell size={20} />}
+                          {CATEGORY_ICONS[notif.type] || <span className="material-symbols-outlined" style={{ fontSize: '20px' }} >notifications</span>}
                        </div>
                     </div>
 
@@ -316,7 +300,7 @@ export default function NotificationPage() {
                             {notif.title}
                           </h3>
                            <span className="text-[11px] font-bold text-[#a3a3a3] flex items-center gap-1">
-                              <Clock size={12} />
+                              <span className="material-symbols-outlined" style={{ fontSize: '12px' }} >schedule</span>
                               {(() => {
                                 try {
                                   return format(new Date(notif.created_at), 'HH:mm');
@@ -335,7 +319,7 @@ export default function NotificationPage() {
                             href={notif.link}
                             className="inline-flex items-center gap-2 text-xs font-black text-[#00236F] uppercase tracking-widest hover:underline"
                           >
-                            Lihat Detail <ChevronRight size={14} />
+                            Lihat Detail <span className="material-symbols-outlined" style={{ fontSize: 14 }}>chevron_right</span>
                           </a>
                        )}
                     </div>
@@ -348,7 +332,7 @@ export default function NotificationPage() {
                             className="w-8 h-8 flex items-center justify-center bg-[#f0fdf4] text-[#16a34a] rounded-lg border border-[#dcfce7] hover:shadow-sm"
                             title="Tandai dibaca"
                           >
-                            <Check size={14} />
+                            <span className="material-symbols-outlined" style={{ fontSize: 14 }}>check</span>
                           </button>
                        )}
                        <button 
@@ -356,7 +340,7 @@ export default function NotificationPage() {
                          className="w-8 h-8 flex items-center justify-center bg-[#fef2f2] text-[#ef4444] rounded-lg border border-[#fecaca] hover:shadow-sm"
                          title="Hapus"
                        >
-                         <Trash2 size={14} />
+                         <span className="material-symbols-outlined" style={{ fontSize: '14px' }} >delete</span>
                        </button>
                     </div>
 
@@ -370,7 +354,7 @@ export default function NotificationPage() {
           ))
         ) : (
           <EmptyState 
-            icon="Bell" 
+            icon="notifications" 
             title="Semua Sudah Beres!" 
             description="Belum ada notifikasi baru untuk filter ini. Kamu sudah update dengan semua informasi terbaru." 
           />

@@ -1,19 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import Sidebar from './components/Sidebar';
 import TopNavBar from './components/TopNavBar';
-import {
-  Calendar,
-  Clock,
-  Coffee,
-  Loader2,
-  Moon,
-  Plus,
-  RotateCcw,
-  Save,
-  Sparkles,
-  Sun,
-  Trash2,
-} from 'lucide-react';
+
 import { UI } from '../../constants/designSystem';
 import { psychologistService } from '../../services/api';
 import { toast } from 'react-hot-toast';
@@ -31,8 +19,8 @@ const defaultSchedule = [
 const scheduleTypes = ['Personal', 'Akademik', 'Karir'];
 
 const dayIcons = {
-  Senin: Sun,
-  Jumat: Coffee,
+  Senin: 'light_mode',
+  Jumat: 'coffee',
 };
 
 const normalizeSchedule = (items) => {
@@ -89,7 +77,7 @@ export default function ScheduleManagement() {
   }, []);
 
   const currentDayData = schedule.find((item) => item.day === selectedDay) || { day: selectedDay, enabled: false, slots: [] };
-  const currentDayIcon = dayIcons[selectedDay] || Clock;
+  const currentDayIcon = dayIcons[selectedDay] || 'schedule';
   const hasUnsavedChanges = savedSnapshot !== JSON.stringify(schedule);
 
   const summary = useMemo(() => {
@@ -168,18 +156,23 @@ export default function ScheduleManagement() {
   };
 
   return (
-    <div className="bg-surface text-on-surface min-h-screen">
+    <div className="bg-[#F8FAFC] text-slate-900 h-screen font-body overflow-hidden">
       <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
 
-      <main className={UI.layout.main}>
+      <main className="lg:ml-64 h-full flex flex-col transition-all duration-300 overflow-hidden">
         <TopNavBar setIsOpen={setSidebarOpen} />
 
-        <div className={UI.layout.canvas}>
-          <section className="rounded-3xl border border-slate-100 bg-white p-6 shadow-sm">
-            <div className="flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
+        <div className="flex-1 overflow-y-auto overflow-x-hidden pt-24 px-6 lg:px-10 pb-12 w-full relative space-y-8 scroll-smooth">
+          {/* Welcome Banner Card (Non-Dashboard -> White Gradient) */}
+          <section className="relative overflow-hidden rounded-[2.5rem] bg-gradient-to-r from-white via-slate-50/50 to-blue-50/20 border border-slate-100 p-8 shadow-sm flex flex-col gap-6 group">
+            {/* Soft decorative blur nodes */}
+            <div className="absolute -top-24 -right-24 w-72 h-72 bg-blue-500/5 rounded-full blur-3xl pointer-events-none"></div>
+            <div className="absolute -bottom-24 -left-24 w-72 h-72 bg-indigo-500/5 rounded-full blur-3xl pointer-events-none"></div>
+            
+            <div className="relative z-10 flex flex-col gap-6 xl:flex-row xl:items-center xl:justify-between w-full">
               <div>
                 <div className="inline-flex items-center gap-2 rounded-full bg-primary/5 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-primary">
-                  <Sparkles className="size-3.5" />
+                  <span className="material-symbols-outlined size-3.5">stars</span>
                   Ketersediaan Konseling
                 </div>
                 <h1 className="mt-3 text-2xl font-black text-primary uppercase tracking-tight font-headline">Manajemen Jadwal</h1>
@@ -188,14 +181,14 @@ export default function ScheduleManagement() {
                 </p>
               </div>
 
-              <div className="flex flex-col gap-3 sm:flex-row">
+              <div className="flex flex-col gap-3 sm:flex-row shrink-0 relative z-20">
                 <button
                   type="button"
                   onClick={resetChanges}
                   disabled={!hasUnsavedChanges || saving}
-                  className="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-200 px-5 py-3 text-[10px] font-black uppercase tracking-widest text-slate-500 transition-all hover:border-primary/30 hover:text-primary disabled:cursor-not-allowed disabled:opacity-40"
+                  className="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-5 py-3 text-[10px] font-black uppercase tracking-widest text-slate-500 transition-all hover:border-primary/30 hover:text-primary disabled:cursor-not-allowed disabled:opacity-40"
                 >
-                  <RotateCcw className="size-4" />
+                  <span className="material-symbols-outlined size-4">history</span>
                   Reset
                 </button>
                 <button
@@ -204,40 +197,88 @@ export default function ScheduleManagement() {
                   disabled={saving || loading}
                   className="inline-flex items-center justify-center gap-2 rounded-2xl bg-primary px-6 py-3 text-[10px] font-black uppercase tracking-widest text-white shadow-lg shadow-primary/20 transition-all hover:bg-primary/90 hover:shadow-primary/30 disabled:cursor-wait disabled:opacity-70"
                 >
-                  {saving ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />}
+                  {saving ? <span className="material-symbols-outlined size-4 animate-spin" >sync</span> : <span className="material-symbols-outlined size-4" >save</span>}
                   {saving ? 'Menyimpan...' : 'Simpan Perubahan'}
                 </button>
               </div>
             </div>
-
-            <div className="mt-6 grid grid-cols-1 gap-3 md:grid-cols-3">
-              <div className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
-                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Hari Aktif</p>
-                <p className="mt-1 text-2xl font-black text-slate-900">{summary.activeDays}</p>
-              </div>
-              <div className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
-                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Total Slot</p>
-                <p className="mt-1 text-2xl font-black text-slate-900">{summary.totalSlots}</p>
-              </div>
-              <div className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
-                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Kuota Mingguan</p>
-                <p className="mt-1 text-2xl font-black text-slate-900">{summary.totalQuota}</p>
-              </div>
-            </div>
           </section>
 
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+          {/* Bento Grid Stats Card (Diluar dan dibawah banner utama) */}
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3 w-full">
+            {/* Card 1 */}
+            <div className="group relative overflow-hidden rounded-[2rem] border border-slate-100 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
+              {/* Soft decorative glow background */}
+              <div className="absolute -right-8 -top-8 w-24 h-24 bg-primary/5 rounded-full blur-xl pointer-events-none" />
+              
+              <div className="flex items-center justify-between">
+                <div className="w-12 h-12 bg-primary/5 text-primary rounded-[1.25rem] flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shrink-0">
+                  <span className="material-symbols-outlined text-xl">calendar_today</span>
+                </div>
+                <div className="flex items-center gap-1 rounded-full bg-emerald-50/80 border border-emerald-100 px-2.5 py-0.5 text-[9px] font-black text-emerald-600 uppercase tracking-widest">
+                  <span className="w-1 h-1 rounded-full bg-emerald-500 animate-pulse" />
+                  AKTIF
+                </div>
+              </div>
+              
+              <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mt-5">Hari Aktif</p>
+              <p className="mt-1 text-4xl font-extrabold text-slate-900 tracking-tight leading-none">{summary.activeDays}</p>
+              <p className="text-[11px] text-slate-400 font-bold uppercase tracking-wide mt-1.5">hari pelayanan aktif</p>
+            </div>
+            
+            {/* Card 2 */}
+            <div className="group relative overflow-hidden rounded-[2rem] border border-slate-100 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
+              {/* Soft decorative glow background */}
+              <div className="absolute -right-8 -top-8 w-24 h-24 bg-emerald-500/5 rounded-full blur-xl pointer-events-none" />
+              
+              <div className="flex items-center justify-between">
+                <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-[1.25rem] flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shrink-0">
+                  <span className="material-symbols-outlined text-xl">schedule</span>
+                </div>
+                <div className="flex items-center gap-1 rounded-full bg-emerald-50/80 border border-emerald-100 px-2.5 py-0.5 text-[9px] font-black text-emerald-600 uppercase tracking-widest">
+                  <span className="w-1 h-1 rounded-full bg-emerald-500 animate-pulse" />
+                  LIVE
+                </div>
+              </div>
+              
+              <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mt-5">Total Slot</p>
+              <p className="mt-1 text-4xl font-extrabold text-slate-900 tracking-tight leading-none">{summary.totalSlots}</p>
+              <p className="text-[11px] text-slate-400 font-bold uppercase tracking-wide mt-1.5">slot konseling tersedia</p>
+            </div>
+
+            {/* Card 3 */}
+            <div className="group relative overflow-hidden rounded-[2rem] border border-slate-100 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
+              {/* Soft decorative glow background */}
+              <div className="absolute -right-8 -top-8 w-24 h-24 bg-amber-500/5 rounded-full blur-xl pointer-events-none" />
+              
+              <div className="flex items-center justify-between">
+                <div className="w-12 h-12 bg-amber-50 text-amber-600 rounded-[1.25rem] flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shrink-0">
+                  <span className="material-symbols-outlined text-xl">group</span>
+                </div>
+                <div className="flex items-center gap-1 rounded-full bg-emerald-50/80 border border-emerald-100 px-2.5 py-0.5 text-[9px] font-black text-emerald-600 uppercase tracking-widest">
+                  <span className="w-1 h-1 rounded-full bg-emerald-500 animate-pulse" />
+                  KUOTA
+                </div>
+              </div>
+              
+              <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mt-5">Kuota Mingguan</p>
+              <p className="mt-1 text-4xl font-extrabold text-slate-900 tracking-tight leading-none">{summary.totalQuota}</p>
+              <p className="text-[11px] text-slate-400 font-bold uppercase tracking-wide mt-1.5">maksimal kuota pasien</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-12 w-full">
             <aside className="lg:col-span-4 xl:col-span-3">
               <div className="rounded-3xl border border-slate-100 bg-white p-4 shadow-sm">
                 <div className="mb-4 flex items-center justify-between px-2">
                   <h2 className="text-[10px] font-black uppercase tracking-widest text-slate-400">Pilih Hari</h2>
-                  {loading && <Loader2 className="size-4 animate-spin text-primary/60" />}
+                  {loading && <span className="material-symbols-outlined size-4 animate-spin text-primary/60" >sync</span>}
                 </div>
 
                 <div className="space-y-2">
                   {schedule.map((item) => {
                     const isSelected = selectedDay === item.day;
-                    const Icon = dayIcons[item.day] || Calendar;
+                    const Icon = dayIcons[item.day] || 'calendar_month';
 
                     return (
                       <button
@@ -245,15 +286,18 @@ export default function ScheduleManagement() {
                         type="button"
                         onClick={() => setSelectedDay(item.day)}
                         className={`
-                          w-full rounded-2xl border p-4 text-left transition-all
+                          w-full rounded-2xl border p-4 text-left transition-all duration-300 relative overflow-hidden group/day
                           ${isSelected
-                            ? 'border-primary bg-primary text-white shadow-lg shadow-primary/20'
-                            : 'border-transparent bg-slate-50 text-slate-600 hover:border-primary/20 hover:bg-white'}
+                            ? 'border-primary bg-primary text-white shadow-lg shadow-primary/25 translate-x-1'
+                            : 'border-slate-100 bg-slate-50/50 text-slate-600 hover:border-primary/20 hover:bg-white hover:-translate-y-0.5'}
                         `}
                       >
+                        {isSelected && (
+                          <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-8 bg-white rounded-r-full" />
+                        )}
                         <div className="flex items-center justify-between gap-3">
                           <div className="flex items-center gap-3">
-                            <Icon className={`size-4 ${isSelected ? 'text-white' : 'text-primary'}`} />
+                            <span className={`material-symbols-outlined size-4 ${isSelected ? 'text-white' : 'text-primary'}`}>{Icon}</span>
                             <span className="text-sm font-black">{item.day}</span>
                           </div>
                           <span className={`size-2.5 rounded-full ${item.enabled ? (isSelected ? 'bg-white' : 'bg-emerald-500') : 'bg-slate-300'}`} />
@@ -269,12 +313,12 @@ export default function ScheduleManagement() {
             </aside>
 
             <section className="lg:col-span-8 xl:col-span-9">
-              <div className="overflow-hidden rounded-3xl border border-slate-100 bg-white shadow-sm">
-                <div className={`border-b border-slate-100 p-5 ${currentDayData.enabled ? 'bg-slate-50/70' : 'bg-rose-50/60'}`}>
+              <div className="overflow-hidden rounded-3xl border border-slate-100 bg-white shadow-sm transition-all duration-300">
+                <div className={`border-b border-slate-100 p-6 ${currentDayData.enabled ? 'bg-slate-50/50' : 'bg-rose-50/30'}`}>
                   <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <div className="flex items-center gap-4">
                       <div className={`flex size-12 items-center justify-center rounded-2xl shadow-sm ${currentDayData.enabled ? 'bg-primary text-white' : 'border border-slate-100 bg-white text-slate-300'}`}>
-                        {React.createElement(currentDayIcon, { size: 24 })}
+                        <span className="material-symbols-outlined" style={{ fontSize: 24 }}>{currentDayIcon}</span>
                       </div>
                       <div>
                         <h2 className="text-lg font-black uppercase tracking-tight text-slate-900">{selectedDay}</h2>
@@ -287,7 +331,7 @@ export default function ScheduleManagement() {
                     <button
                       type="button"
                       onClick={() => toggleDay(selectedDay)}
-                      className={`rounded-2xl px-5 py-3 text-[10px] font-black uppercase tracking-widest transition-all ${currentDayData.enabled ? 'bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white' : 'bg-primary text-white shadow-lg shadow-primary/20'}`}
+                      className={`rounded-2xl px-5 py-3 text-[10px] font-black uppercase tracking-widest transition-all duration-300 ${currentDayData.enabled ? 'bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white' : 'bg-primary text-white shadow-lg shadow-primary/20 hover:bg-primary/95'}`}
                     >
                       {currentDayData.enabled ? 'Nonaktifkan Hari' : 'Aktifkan Hari'}
                     </button>
@@ -300,7 +344,7 @@ export default function ScheduleManagement() {
                       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                         <div>
                           <h3 className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-primary">
-                            <Clock className="size-4" />
+                            <span className="material-symbols-outlined size-4" >schedule</span>
                             Slot Waktu
                           </h3>
                           <p className="mt-1 text-[11px] font-semibold text-slate-500">Setiap slot bisa punya jenis layanan, lokasi, dan kuota berbeda.</p>
@@ -309,22 +353,22 @@ export default function ScheduleManagement() {
                         <button
                           type="button"
                           onClick={() => addSlot(selectedDay)}
-                          className="inline-flex items-center justify-center gap-2 rounded-2xl border border-primary/20 bg-primary/5 px-4 py-2.5 text-[10px] font-black uppercase tracking-widest text-primary transition-all hover:bg-primary hover:text-white"
+                          className="inline-flex items-center justify-center gap-2 rounded-2xl border border-primary/20 bg-primary/5 px-4 py-2.5 text-[10px] font-black uppercase tracking-widest text-primary transition-all duration-300 hover:bg-primary hover:text-white"
                         >
-                          <Plus className="size-4" />
+                          <span className="material-symbols-outlined size-4">add</span>
                           Tambah Slot
                         </button>
                       </div>
 
                       {currentDayData.slots.length === 0 ? (
                         <div className="flex min-h-[260px] flex-col items-center justify-center rounded-3xl border-2 border-dashed border-slate-200 bg-slate-50/70 px-6 text-center">
-                          <Clock className="size-9 text-slate-300" />
+                          <span className="material-symbols-outlined size-9 text-slate-300" >schedule</span>
                           <h4 className="mt-4 text-sm font-black uppercase tracking-tight text-slate-900">Belum Ada Slot</h4>
                           <p className="mt-1 text-xs font-semibold text-slate-500">Tambahkan slot agar mahasiswa bisa memilih jadwal konseling.</p>
                           <button
                             type="button"
                             onClick={() => addSlot(selectedDay)}
-                            className="mt-5 rounded-2xl bg-primary px-5 py-2.5 text-[10px] font-black uppercase tracking-widest text-white shadow-sm"
+                            className="mt-5 rounded-2xl bg-primary px-5 py-2.5 text-[10px] font-black uppercase tracking-widest text-white shadow-sm hover:bg-primary/95 transition-all duration-300"
                           >
                             Tambah Slot Pertama
                           </button>
@@ -335,7 +379,7 @@ export default function ScheduleManagement() {
                             const invalidTime = toMinutes(slot.end) <= toMinutes(slot.start);
 
                             return (
-                              <div key={`${selectedDay}-${index}`} className={`rounded-2xl border p-4 transition-all ${invalidTime ? 'border-amber-200 bg-amber-50/60' : 'border-slate-100 bg-slate-50/80 hover:bg-white hover:shadow-sm'}`}>
+                              <div key={`${selectedDay}-${index}`} className={`rounded-2xl border p-5 transition-all duration-300 ${invalidTime ? 'border-amber-200 bg-amber-50/40' : 'border-slate-100 bg-slate-50/40 hover:border-primary/20 hover:bg-white hover:shadow-md'}`}>
                                 <div className="flex flex-col gap-4 xl:flex-row xl:items-center">
                                   <div className="grid flex-1 grid-cols-2 gap-3">
                                     <label className="space-y-2">
@@ -396,9 +440,9 @@ export default function ScheduleManagement() {
                                     type="button"
                                     onClick={() => removeSlot(selectedDay, index)}
                                     aria-label={`Hapus slot ${selectedDay} ${index + 1}`}
-                                    className="inline-flex size-11 shrink-0 items-center justify-center rounded-xl bg-white text-slate-300 transition-all hover:bg-rose-50 hover:text-rose-600"
+                                    className="inline-flex size-11 shrink-0 items-center justify-center rounded-xl bg-white text-slate-300 transition-all hover:bg-rose-50 hover:text-rose-600 active:scale-95 duration-300"
                                   >
-                                    <Trash2 className="size-4" />
+                                    <span className="material-symbols-outlined size-4" >delete</span>
                                   </button>
                                 </div>
 
@@ -414,7 +458,7 @@ export default function ScheduleManagement() {
                   ) : (
                     <div className="flex min-h-[340px] flex-col items-center justify-center px-6 text-center">
                       <div className="flex size-20 items-center justify-center rounded-3xl bg-rose-50 text-rose-300">
-                        <Moon className="size-10" />
+                        <span className="material-symbols-outlined size-10">dark_mode</span>
                       </div>
                       <h3 className="mt-5 text-sm font-black uppercase tracking-tight text-slate-900">Hari Tidak Aktif</h3>
                       <p className="mt-1 max-w-md text-xs font-semibold leading-5 text-slate-500">
@@ -423,7 +467,7 @@ export default function ScheduleManagement() {
                       <button
                         type="button"
                         onClick={() => toggleDay(selectedDay)}
-                        className="mt-5 rounded-2xl bg-primary px-5 py-2.5 text-[10px] font-black uppercase tracking-widest text-white shadow-sm"
+                        className="mt-5 rounded-2xl bg-primary px-5 py-2.5 text-[10px] font-black uppercase tracking-widest text-white shadow-sm transition-all duration-300 hover:bg-primary/95"
                       >
                         Aktifkan {selectedDay}
                       </button>
