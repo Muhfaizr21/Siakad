@@ -76,6 +76,7 @@ export default function FacultyDashboard() {
     'Cuti': '#eab308',
     'Lulus': '#3b82f6',
     'DO': '#ef4444',
+    'NON-AKTIF': '#94a3b8',
   };
 
   const allStatusNames = [...new Set(['Aktif', 'Cuti', 'Lulus', 'DO', ...(summaryData.statusCounts?.map(s => s.status) || [])])];
@@ -128,12 +129,12 @@ export default function FacultyDashboard() {
   ];
 
   const quickActions = [
-    { label: 'Validasi Prestasi', icon: Trophy, path: '/faculty/prestasi', color: 'bg-emerald-500', shadow: 'shadow-emerald-500/20' },
-    { label: 'Monitor PKKMB', icon: CheckCircle2, path: '/faculty/pkkmb', color: 'bg-indigo-500', shadow: 'shadow-indigo-500/20' },
-    { label: 'Screening Kesehatan', icon: HeartPulse, path: '/faculty/kesehatan', color: 'bg-amber-500', shadow: 'shadow-amber-500/20' },
-    { label: 'Aspirasi Mahasiswa', icon: MessageSquare, path: '/faculty/aspirasi', color: 'bg-rose-500', shadow: 'shadow-rose-500/20' },
-    { label: 'Proposal ORMAWA', icon: FileText, path: '/faculty/ormawa/proposals', color: 'bg-blue-500', shadow: 'shadow-blue-500/20' },
-    { label: 'Jadwal Konseling', icon: Calendar, path: '/faculty/konseling', color: 'bg-teal-500', shadow: 'shadow-teal-500/20' },
+    { label: 'Validasi Prestasi', icon: Trophy, path: '/faculty/prestasi', iconBg: 'bg-emerald-50 text-emerald-600 border border-emerald-100/50', hoverShadow: 'hover:shadow-emerald-500/5 hover:border-emerald-200/50' },
+    { label: 'Monitor PKKMB', icon: CheckCircle2, path: '/faculty/pkkmb', iconBg: 'bg-indigo-50 text-indigo-600 border border-indigo-100/50', hoverShadow: 'hover:shadow-indigo-500/5 hover:border-indigo-200/50' },
+    { label: 'Screening Kesehatan', icon: HeartPulse, path: '/faculty/kesehatan', iconBg: 'bg-amber-50 text-amber-600 border border-amber-100/50', hoverShadow: 'hover:shadow-amber-500/5 hover:border-amber-200/50' },
+    { label: 'Aspirasi Mahasiswa', icon: MessageSquare, path: '/faculty/aspirasi', iconBg: 'bg-rose-50 text-rose-600 border border-rose-100/50', hoverShadow: 'hover:shadow-rose-500/5 hover:border-rose-200/50' },
+    { label: 'Proposal ORMAWA', icon: FileText, path: '/faculty/ormawa/proposals', iconBg: 'bg-blue-50 text-blue-600 border border-blue-100/50', hoverShadow: 'hover:shadow-blue-500/5 hover:border-blue-200/50' },
+    { label: 'Jadwal Konseling', icon: Calendar, path: '/faculty/konseling', iconBg: 'bg-teal-50 text-teal-600 border border-teal-100/50', hoverShadow: 'hover:shadow-teal-500/5 hover:border-teal-200/50' },
   ];
 
   return (
@@ -248,9 +249,13 @@ export default function FacultyDashboard() {
                 <ResponsiveContainer width="99%" height={240} debounce={50}>
                   <BarChart data={summaryData.prodiDistribution} layout="vertical" margin={{ left: 20, right: 20 }}>
                     <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="#f1f5f9" />
-                    <span className="material-symbols-outlined" Axis type="number" hide>close</span>
-                    <YAxis dataKey="name" type="category" width={120}
-                      tick={{ fontSize: 9, fontWeight: 700, fill: '#64748b' }}
+                    <XAxis type="number" hide domain={[0, 'dataMax']} />
+                    <YAxis dataKey="name" type="category" width={240}
+                      tick={({ y, payload }) => (
+                        <text x={0} y={y} dy={4} textAnchor="start" fill="#475569" fontSize={9.5} fontWeight={700}>
+                          {payload.value}
+                        </text>
+                      )}
                       axisLine={false} tickLine={false}
                     />
                     <Tooltip cursor={{ fill: '#f8fafc' }}
@@ -278,11 +283,11 @@ export default function FacultyDashboard() {
               {isMounted && (
                 <ResponsiveContainer width="99%" height={180} debounce={50}>
                   <PieChart>
-                    <Pie data={dynamicStatusData} cx="50%" cy="50%"
+                    <Pie data={dynamicStatusData.filter(d => d.value > 0)} cx="50%" cy="50%"
                       innerRadius={55} outerRadius={80}
                       paddingAngle={6} dataKey="value" stroke="none"
                     >
-                      {dynamicStatusData.map((entry, index) => (
+                      {dynamicStatusData.filter(d => d.value > 0).map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={entry.color} />
                       ))}
                     </Pie>
@@ -291,8 +296,14 @@ export default function FacultyDashboard() {
                 </ResponsiveContainer>
               )}
               <div className="grid grid-cols-2 gap-2 mt-2">
-                {dynamicStatusData.map((item) => (
-                  <div key={item.name} className="flex items-center gap-2 p-2 rounded-xl bg-[#fafafa] border border-[#f0f0f0]">
+                {dynamicStatusData.map((item, idx) => (
+                  <div 
+                    key={item.name} 
+                    className={cn(
+                      "flex items-center gap-2 p-2 rounded-xl bg-[#fafafa] border border-[#f0f0f0]",
+                      dynamicStatusData.length % 2 !== 0 && idx === dynamicStatusData.length - 1 && "col-span-2"
+                    )}
+                  >
                     <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: item.color }} />
                     <div className="min-w-0">
                       <p className="text-[9px] font-black text-[#a3a3a3] uppercase tracking-widest truncate">{item.name}</p>
@@ -324,7 +335,7 @@ export default function FacultyDashboard() {
                 <ResponsiveContainer width="99%" height={230} debounce={50}>
                   <LineChart data={summaryData.trendData}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                    <span className="material-symbols-outlined" Axis dataKey="tahun" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 700 }}>close</span>
+                    <XAxis dataKey="tahun" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 700 }} />
                     <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 700 }} />
                     <Tooltip contentStyle={{ backgroundColor: "#fff", border: "none", borderRadius: "16px", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)", fontSize: "11px", fontWeight: "bold" }} />
                     <Legend iconType="circle" wrapperStyle={{ paddingTop: '16px', fontSize: '10px', fontWeight: '900', textTransform: 'uppercase' }} />
@@ -381,21 +392,20 @@ export default function FacultyDashboard() {
             <h2 className="font-black text-[#171717] text-base tracking-tight">Aksi Cepat</h2>
             <span className="text-[10px] font-bold text-[#a3a3a3] uppercase tracking-widest ml-auto">Pintasan Menu</span>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
             {quickActions.map((item, i) => (
               <button
                 key={i}
                 onClick={() => navigate(item.path)}
                 className={cn(
-                  "group flex flex-col items-center justify-center p-4 rounded-2xl text-white transition-all duration-300 hover:scale-[1.04] active:scale-95 shadow-lg",
-                  item.color,
-                  item.shadow
+                  "group flex flex-col items-center justify-center p-5 rounded-2xl bg-white border border-[#f0f0f0] transition-all duration-300 hover:-translate-y-1 active:scale-95 shadow-sm hover:shadow-md",
+                  item.hoverShadow
                 )}
               >
-                <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center mb-3 group-hover:bg-white/30 transition-colors">
-                  <item.icon size={18} />
+                <div className={cn("w-12 h-12 rounded-2xl flex items-center justify-center mb-4 transition-all duration-300 group-hover:scale-110", item.iconBg)}>
+                  <item.icon size={20} className="transition-transform duration-300 group-hover:rotate-6" />
                 </div>
-                <span className="text-[10px] font-black uppercase tracking-wider text-center leading-tight">{item.label}</span>
+                <span className="text-[10.5px] font-black uppercase tracking-wider text-center leading-snug text-[#334155] group-hover:text-primary transition-colors">{item.label}</span>
               </button>
             ))}
           </div>

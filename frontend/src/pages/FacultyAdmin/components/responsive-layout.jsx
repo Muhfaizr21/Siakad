@@ -8,7 +8,7 @@ const Icon = ({ size, className, ...props }) => <span className={`material-symbo
  * PageContainer - Pembungkus utama halaman yang menjamin padding konsisten
  */
 export const PageContainer = ({ children, className }) => (
-  <div className={cn("space-y-6 md:space-y-8 animate-in fade-in duration-500 pb-12", className)}>
+  <div className={cn("px-6 lg:px-10 py-6 md:py-8 space-y-6 md:space-y-8 animate-in fade-in duration-500 pb-12", className)}>
     {children}
   </div>
 )

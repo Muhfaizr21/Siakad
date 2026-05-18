@@ -66,7 +66,7 @@ func AmbilRingkasanDashboard(c *fiber.Ctx) error {
 
 	sqlProdi := `
 		SELECT 
-			ps.nama as name,
+			ps.nama || ' (' || ps.jenjang || ')' as name,
 			ps.akreditasi as akreditasi,
 			COUNT(m.id) as jumlah,
 			SUM(CASE WHEN m.status_akun = 'Aktif' THEN 1 ELSE 0 END) as active,
@@ -80,7 +80,7 @@ func AmbilRingkasanDashboard(c *fiber.Ctx) error {
 		sqlProdi += fmt.Sprintf(" AND ps.fakultas_id = %d ", fid)
 	}
 
-	sqlProdi += " GROUP BY ps.id, ps.nama, ps.akreditasi"
+	sqlProdi += " GROUP BY ps.id, ps.nama, ps.jenjang, ps.akreditasi"
 	config.DB.Raw(sqlProdi).Scan(&prodiDist)
 
 	// Per Angkatan (Trend)
@@ -316,7 +316,7 @@ func AmbilRingkasanLaporan(c *fiber.Ctx) error {
 
 	sqlProdiDist := `
 		SELECT 
-			ps.nama as nama_prodi,
+			ps.nama || ' (' || ps.jenjang || ')' as nama_prodi,
 			COUNT(m.id) as value,
 			SUM(CASE WHEN m.status_akun = 'Aktif' THEN 1 ELSE 0 END) as active,
 			SUM(CASE WHEN m.status_akun = 'Cuti' THEN 1 ELSE 0 END) as leave,
@@ -329,7 +329,7 @@ func AmbilRingkasanLaporan(c *fiber.Ctx) error {
 	if role == "faculty_admin" {
 		sqlProdiDist += fmt.Sprintf(" AND ps.fakultas_id = %d ", fid)
 	}
-	sqlProdiDist += " GROUP BY ps.id, ps.nama"
+	sqlProdiDist += " GROUP BY ps.id, ps.nama, ps.jenjang"
 
 	config.DB.Raw(sqlProdiDist).Scan(&perProdi)
 

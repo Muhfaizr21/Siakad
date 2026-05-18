@@ -144,15 +144,15 @@ export default function KontenPage() {
       label: "Publikasi",
       render: (value, row) => (
         <div className="flex flex-col text-left">
-          <span className="font-black text-slate-900 font-headline uppercase text-[12px] tracking-tight leading-none truncate max-w-[200px]">{value}</span>
-          <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-1 leading-none">{row.author || "Admin"} — {new Date(row.CreatedAt).toLocaleDateString()}</span>
+          <span className="font-bold text-slate-800 font-jakarta text-[14px] leading-tight truncate max-w-[200px]">{value}</span>
+          <span className="text-[10px] font-medium text-slate-400 font-inter mt-1 leading-none">{row.author || "Admin"} — {new Date(row.CreatedAt).toLocaleDateString()}</span>
         </div>
       )
     },
     {
       key: "category",
       label: "Klasifikasi",
-      render: (value) => <Badge variant="secondary" className="text-[9px] font-black uppercase tracking-widest bg-slate-50 text-slate-500 border-none shadow-none font-headline px-2 py-0.5">{value}</Badge>
+      render: (value) => <Badge variant="secondary" className="text-[10px] font-semibold uppercase tracking-wider bg-slate-50 text-slate-500 border-none shadow-none font-inter px-2 py-0.5">{value}</Badge>
     },
     {
       key: "status",
@@ -160,7 +160,7 @@ export default function KontenPage() {
       render: (val) => (
         <Badge 
           className={cn(
-            "capitalize font-black text-[9px] px-2 py-0.5 border-none shadow-sm font-headline uppercase tracking-widest",
+            "capitalize font-semibold text-[9px] px-2 py-0.5 border-none shadow-sm font-inter uppercase tracking-wider",
             val === 'Published' ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"
           )}
         >
@@ -192,9 +192,9 @@ export default function KontenPage() {
             <div className={`p-3 rounded-xl ${stat.bg} ${stat.color}`}>
               <stat.icon className="size-5" />
             </div>
-            <div className="flex flex-col font-headline leading-tight">
-              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">{stat.label}</span>
-              <span className="text-xl font-black text-slate-900 tracking-tighter uppercase">{loading ? '...' : stat.value}</span>
+            <div className="flex flex-col leading-tight">
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 font-inter">{stat.label}</span>
+              <span className="text-xl font-bold text-slate-900 font-jakarta tracking-tight">{loading ? '...' : stat.value}</span>
             </div>
           </ResponsiveCard>
         ))}
@@ -204,21 +204,21 @@ export default function KontenPage() {
         <TabsList className="bg-white border-slate-200/60 border rounded-2xl p-1.5 h-auto gap-1.5 shadow-sm mt-6">
           <TabsTrigger 
             value="pengumuman" 
-            className="rounded-2xl px-6 py-2.5 data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-primary/25 text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-bold text-[13px] gap-3 transition-all duration-300"
+            className="rounded-2xl px-6 py-2.5 data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-primary/25 text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-bold text-[13px] gap-3 transition-all duration-300 font-inter"
           >
             <span className="material-symbols-outlined size-[18px]" >campaign</span>
             Pengumuman
           </TabsTrigger>
           <TabsTrigger 
             value="kalender" 
-            className="rounded-2xl px-6 py-2.5 data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-primary/25 text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-bold text-[13px] gap-3 transition-all duration-300"
+            className="rounded-2xl px-6 py-2.5 data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-primary/25 text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-bold text-[13px] gap-3 transition-all duration-300 font-inter"
           >
             <span className="material-symbols-outlined size-[18px]" >calendar_month</span>
             Kalender Akademik
           </TabsTrigger>
           <TabsTrigger 
             value="template" 
-            className="rounded-2xl px-6 py-2.5 data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-primary/25 text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-bold text-[13px] gap-3 transition-all duration-300"
+            className="rounded-2xl px-6 py-2.5 data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-primary/25 text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-bold text-[13px] gap-3 transition-all duration-300 font-inter"
           >
             <span className="material-symbols-outlined size-[18px]" >description</span>
             Template Dokumen
@@ -263,15 +263,15 @@ export default function KontenPage() {
         </TabsContent>
 
         <TabsContent value="kalender">
-           <ResponsiveCard className="min-h-[400px] flex items-center justify-center text-center bg-white/50 backdrop-blur-md relative overflow-hidden group font-headline">
+           <ResponsiveCard className="min-h-[400px] flex items-center justify-center text-center bg-white/50 backdrop-blur-md relative overflow-hidden group">
               <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent" />
               <div className="space-y-6 relative z-10">
                  <div className="size-20 rounded-[2rem] bg-primary/5 flex items-center justify-center mx-auto border border-primary/10 group-hover:scale-110 transition-transform duration-500 shadow-xl shadow-primary/5">
                     <span className="material-symbols-outlined size-10 text-primary/40" >calendar_month</span>
                  </div>
                  <div className="space-y-2">
-                    <p className="text-[11px] font-black uppercase tracking-[0.3em] text-primary">Coming Soon</p>
-                    <p className="text-sm font-bold text-slate-400 uppercase tracking-widest max-w-[200px] mx-auto leading-relaxed">Fitur Kalender Akademik Terintegrasi</p>
+                    <p className="text-[11px] font-bold uppercase tracking-wider text-primary font-inter">Coming Soon</p>
+                    <p className="text-[13px] font-bold text-slate-400 uppercase tracking-wider max-w-[200px] mx-auto leading-relaxed font-inter">Fitur Kalender Akademik Terintegrasi</p>
                  </div>
               </div>
            </ResponsiveCard>
@@ -307,49 +307,49 @@ export default function KontenPage() {
           <ModalBody>
             <div className="space-y-4">
               <div className="grid grid-cols-1 gap-4">
-                <div className="space-y-1.5 font-headline">
-                  <Label className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] ml-0.5 font-headline">Judul Utama Konten</Label>
+                <div className="space-y-1.5">
+                  <Label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider ml-0.5 font-inter">Judul Utama Konten</Label>
                   <Input
                     value={formData.title}
                     onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                     placeholder="Masukkan judul artikel yang deskriptif..."
                     required
-                    className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white transition-all font-bold text-sm font-headline uppercase tracking-tight"
+                    className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white transition-all font-semibold text-sm font-inter tracking-tight"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5 font-headline">
-                  <Label className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] ml-0.5 font-headline">Kategori</Label>
+                <div className="space-y-1.5">
+                  <Label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider ml-0.5 font-inter">Kategori</Label>
                   <Select value={formData.category} onValueChange={(val) => setFormData({ ...formData, category: val })}>
-                    <SelectTrigger className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 font-bold font-headline text-[11px] px-4">
+                    <SelectTrigger className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 font-semibold font-inter text-[13px] px-4">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent className="rounded-2xl shadow-2xl p-1 font-headline overflow-hidden">
-                      <SelectItem value="Akademik" className="text-[10px] font-bold uppercase rounded-lg mb-0.5 focus:bg-primary/5 font-headline">Akademik</SelectItem>
-                      <SelectItem value="Wisuda" className="text-[10px] font-bold uppercase rounded-lg mb-0.5 focus:bg-primary/5 font-headline">Wisuda</SelectItem>
-                      <SelectItem value="Kegiatan" className="text-[10px] font-bold uppercase rounded-lg mb-0.5 focus:bg-primary/5 font-headline">Kegiatan</SelectItem>
-                      <SelectItem value="Umum" className="text-[10px] font-bold uppercase rounded-lg focus:bg-primary/5 font-headline">Umum</SelectItem>
+                    <SelectContent className="rounded-2xl shadow-2xl p-1 font-inter overflow-hidden">
+                      <SelectItem value="Akademik" className="text-[11px] font-bold uppercase rounded-lg mb-0.5 focus:bg-primary/5">Akademik</SelectItem>
+                      <SelectItem value="Wisuda" className="text-[11px] font-bold uppercase rounded-lg mb-0.5 focus:bg-primary/5">Wisuda</SelectItem>
+                      <SelectItem value="Kegiatan" className="text-[11px] font-bold uppercase rounded-lg mb-0.5 focus:bg-primary/5">Kegiatan</SelectItem>
+                      <SelectItem value="Umum" className="text-[11px] font-bold uppercase rounded-lg focus:bg-primary/5">Umum</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="space-y-1.5 font-headline">
-                  <Label className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] ml-0.5 font-headline">Status Publikasi</Label>
+                <div className="space-y-1.5">
+                  <Label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider ml-0.5 font-inter">Status Publikasi</Label>
                   <Select value={formData.status} onValueChange={(val) => setFormData({ ...formData, status: val })}>
-                    <SelectTrigger className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 font-bold font-headline text-[11px] px-4">
+                    <SelectTrigger className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 font-semibold font-inter text-[13px] px-4">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent className="rounded-2xl shadow-2xl p-1 font-headline overflow-hidden">
-                      <SelectItem value="Published" className="text-[10px] font-black uppercase rounded-lg mb-0.5 focus:bg-emerald-50 text-emerald-600 font-headline">Published</SelectItem>
-                      <SelectItem value="Draft" className="text-[10px] font-black uppercase rounded-lg focus:bg-slate-50 text-slate-500 font-headline">Draft</SelectItem>
+                    <SelectContent className="rounded-2xl shadow-2xl p-1 font-inter overflow-hidden">
+                      <SelectItem value="Published" className="text-[11px] font-bold uppercase rounded-lg mb-0.5 focus:bg-emerald-50 text-emerald-600">Published</SelectItem>
+                      <SelectItem value="Draft" className="text-[11px] font-bold uppercase rounded-lg focus:bg-slate-50 text-slate-500">Draft</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
               </div>
 
-              <div className="space-y-1.5 font-headline">
-                <Label className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] ml-0.5 font-headline">Thumbnail URL</Label>
+              <div className="space-y-1.5">
+                <Label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider ml-0.5 font-inter">Thumbnail URL</Label>
                 <div className="relative group">
                   <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-primary transition-colors">
                     <span className="material-symbols-outlined size-3.5" >description</span>
@@ -358,17 +358,17 @@ export default function KontenPage() {
                     value={formData.thumbnail}
                     onChange={(e) => setFormData({ ...formData, thumbnail: e.target.value })}
                     placeholder="https://images.unsplash.com/..."
-                    className="pl-11 h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white transition-all font-bold text-[11px] font-headline"
+                    className="pl-11 h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white transition-all font-semibold text-[12px] font-inter"
                   />
                 </div>
               </div>
 
-              <div className="space-y-1.5 font-headline">
-                <Label className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] ml-0.5 font-headline">Narasi Konten Lengkap</Label>
+              <div className="space-y-1.5">
+                <Label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider ml-0.5 font-inter">Narasi Konten Lengkap</Label>
                 <Textarea
                   value={formData.content}
                   onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-                  className="min-h-[140px] rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white transition-all font-black text-[10px] p-4 leading-relaxed focus:ring-4 focus:ring-primary/5 placeholder:text-slate-300 font-headline uppercase"
+                  className="min-h-[140px] rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white transition-all font-semibold text-[13px] p-4 leading-relaxed focus:ring-4 focus:ring-primary/5 placeholder:text-slate-300 font-inter"
                   placeholder="Tuliskan isi pengumuman secara lengkap..."
                   required
                 />
