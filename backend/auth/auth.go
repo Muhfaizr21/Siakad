@@ -111,7 +111,7 @@ func Login(c *fiber.Ctx) error {
 
 	// 1. Try to find student by NIM first
 	var student models.Mahasiswa
-	err := config.DB.Preload("Pengguna").Where("nim = ?", identifier).First(&student).Error
+	err := config.DB.Preload("Pengguna").Preload("ProgramStudi").Preload("Fakultas").Where("nim = ?", identifier).First(&student).Error
 	if err == nil {
 		user = student.Pengguna
 		nim = student.NIM
@@ -127,7 +127,7 @@ func Login(c *fiber.Ctx) error {
 		roleName = user.Role
 
 		if roleName == "mahasiswa" || roleName == "student" {
-			_ = config.DB.Where("pengguna_id = ?", user.ID).First(&student).Error
+			_ = config.DB.Preload("ProgramStudi").Preload("Fakultas").Where("pengguna_id = ?", user.ID).First(&student).Error
 			if student.ID != 0 {
 				nim = student.NIM
 			}

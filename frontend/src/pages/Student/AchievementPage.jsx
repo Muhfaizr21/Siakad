@@ -139,38 +139,51 @@ export default function AchievementPage() {
         cell: (info) => info.row.index + 1,
       },
       {
-        accessorKey: 'NamaKegiatan',
+        accessorKey: 'nama_kegiatan',
         header: 'Nama Lomba & Kategori',
-        cell: (info) => (
-          <div>
-            <p className="font-bold text-[#171717]">{info.getValue()}</p>
-            <p className="text-xs text-[#a3a3a3]">{info.row.original.Kategori}</p>
-          </div>
-        ),
+        cell: (info) => {
+          const name = info.row.original.nama_kegiatan || info.row.original.NamaKegiatan || '';
+          const category = info.row.original.kategori || info.row.original.Kategori || '';
+          return (
+            <div>
+              <p className="font-bold text-[#171717]">{name}</p>
+              <p className="text-xs text-[#a3a3a3]">{category}</p>
+            </div>
+          );
+        },
       },
       {
-        accessorKey: 'Tingkat',
+        accessorKey: 'tingkat',
         header: 'Tingkat',
-        cell: (info) => <span className="text-[#525252]">{info.getValue()}</span>,
+        cell: (info) => {
+          const val = info.row.original.tingkat || info.row.original.Tingkat || '';
+          return <span className="text-[#525252]">{val}</span>;
+        },
       },
       {
-        accessorKey: 'Peringkat',
+        accessorKey: 'peringkat',
         header: 'Peringkat',
-        cell: (info) => <span className="font-semibold text-[#00236F]">{info.getValue()}</span>,
+        cell: (info) => {
+          const val = info.row.original.peringkat || info.row.original.Peringkat || '';
+          return <span className="font-semibold text-[#00236F]">{val}</span>;
+        },
       },
       {
-        accessorKey: 'CreatedAt',
+        accessorKey: 'created_at',
         header: 'Tanggal',
-        cell: (info) => <span className="text-[#525252] text-sm">{formatDate(info.getValue())}</span>,
+        cell: (info) => {
+          const val = info.row.original.created_at || info.row.original.CreatedAt || '';
+          return <span className="text-[#525252] text-sm">{formatDate(val)}</span>;
+        },
       },
       {
-        accessorKey: 'Status',
+        accessorKey: 'status',
         header: 'Status',
         cell: (info) => {
-          const val = info.getValue();
+          const val = info.row.original.status || info.row.original.Status || 'Menunggu';
           let style = 'bg-[#f5f5f5] text-[#525252] border-[#e5e5e5]';
-          if (val === 'Diverifikasi') style = 'bg-[#f0fdf4] text-[#16a34a] border-[#bbf7d0]';
-          if (val === 'Menunggu') style = 'bg-[#eef4ff] text-[#00236F] border-[#c9d8ff]';
+          if (val === 'Diverifikasi' || val === 'Valid') style = 'bg-[#f0fdf4] text-[#16a34a] border-[#bbf7d0]';
+          if (val === 'Menunggu' || val === 'Pending') style = 'bg-[#eef4ff] text-[#00236F] border-[#c9d8ff]';
           if (val === 'Ditolak') style = 'bg-[#fef2f2] text-[#dc2626] border-[#fecaca]';
 
           return (
@@ -183,26 +196,30 @@ export default function AchievementPage() {
       {
         id: 'actions',
         header: 'Aksi',
-        cell: (info) => (
-          <div className="flex gap-2">
-            <button
-              onClick={() => setSelectedDetail(info.row.original)}
-              className="p-1.5 text-[#00236F] bg-[#eef4ff] rounded hover:bg-[#dbe7ff] transition-colors"
-              title="Detail"
-            >
-              <Eye size={16} />
-            </button>
-            {info.row.original.Status === 'Menunggu' && (
+        cell: (info) => {
+          const status = info.row.original.status || info.row.original.Status || 'Menunggu';
+          const id = info.row.original.id || info.row.original.ID;
+          return (
+            <div className="flex gap-2">
               <button
-                onClick={() => handleDelete(info.row.original.ID)}
-                className="p-1.5 text-[#dc2626] bg-[#fef2f2] rounded hover:bg-[#fee2e2] transition-colors"
-                title="Hapus"
+                onClick={() => setSelectedDetail(info.row.original)}
+                className="p-1.5 text-[#00236F] bg-[#eef4ff] rounded hover:bg-[#dbe7ff] transition-colors"
+                title="Detail"
               >
-                <Trash2 size={16} />
+                <Eye size={16} />
               </button>
-            )}
-          </div>
-        ),
+              {status === 'Menunggu' && (
+                <button
+                  onClick={() => handleDelete(id)}
+                  className="p-1.5 text-[#dc2626] bg-[#fef2f2] rounded hover:bg-[#fee2e2] transition-colors"
+                  title="Hapus"
+                >
+                  <Trash2 size={16} />
+                </button>
+              )}
+            </div>
+          );
+        },
       },
     ],
     []
@@ -490,27 +507,27 @@ export default function AchievementPage() {
             </div>
             <div className="p-6">
               
-              {selectedDetail.Status === 'Ditolak' && (
+              {(selectedDetail.status === 'Ditolak' || selectedDetail.Status === 'Ditolak') && (
                  <div className="bg-[#fef2f2] border border-[#fecaca] p-4 rounded-xl mb-6">
                    <p className="font-bold text-[#dc2626] text-sm">Alasan Ditolak:</p>
-                   <p className="text-[#991b1b] text-sm mt-1">{selectedDetail.CatatanVerifikator || 'Tidak ada catatan.'}</p>
+                   <p className="text-[#991b1b] text-sm mt-1">{selectedDetail.catatan_verifikator || selectedDetail.CatatanVerifikator || 'Tidak ada catatan.'}</p>
                  </div>
               )}
 
               <table className="w-full text-sm">
                 <tbody>
-                  <tr className="border-b border-[#f5f5f5]"><td className="py-2.5 font-semibold text-[#a3a3a3] w-1/3">Nama Lomba</td><td className="py-2 font-bold text-[#171717]">{selectedDetail.NamaKegiatan}</td></tr>
-                  <tr className="border-b border-[#f5f5f5]"><td className="py-2.5 font-semibold text-[#a3a3a3]">Kategori / Tingkat</td><td className="py-2 font-bold text-[#171717]">{selectedDetail.Kategori} - {selectedDetail.Tingkat}</td></tr>
-                  <tr className="border-b border-[#f5f5f5]"><td className="py-2.5 font-semibold text-[#a3a3a3]">Penyelenggara</td><td className="py-2 font-bold text-[#171717]">{selectedDetail.Penyelenggara}</td></tr>
-                  <tr className="border-b border-[#f5f5f5]"><td className="py-2.5 font-semibold text-[#a3a3a3]">Peringkat</td><td className="py-2 font-bold text-[#00236F]">{selectedDetail.Peringkat}</td></tr>
-                  <tr className="border-b border-[#f5f5f5]"><td className="py-2.5 font-semibold text-[#a3a3a3]">Status</td><td className="py-2 font-bold text-[#171717]">{selectedDetail.Status}</td></tr>
+                  <tr className="border-b border-[#f5f5f5]"><td className="py-2.5 font-semibold text-[#a3a3a3] w-1/3">Nama Lomba</td><td className="py-2 font-bold text-[#171717]">{selectedDetail.nama_kegiatan || selectedDetail.NamaKegiatan}</td></tr>
+                  <tr className="border-b border-[#f5f5f5]"><td className="py-2.5 font-semibold text-[#a3a3a3]">Kategori / Tingkat</td><td className="py-2 font-bold text-[#171717]">{selectedDetail.kategori || selectedDetail.Kategori} - {selectedDetail.tingkat || selectedDetail.Tingkat}</td></tr>
+                  <tr className="border-b border-[#f5f5f5]"><td className="py-2.5 font-semibold text-[#a3a3a3]">Penyelenggara</td><td className="py-2 font-bold text-[#171717]">{selectedDetail.penyelenggara || selectedDetail.Penyelenggara}</td></tr>
+                  <tr className="border-b border-[#f5f5f5]"><td className="py-2.5 font-semibold text-[#a3a3a3]">Peringkat</td><td className="py-2 font-bold text-[#00236F]">{selectedDetail.peringkat || selectedDetail.Peringkat}</td></tr>
+                  <tr className="border-b border-[#f5f5f5]"><td className="py-2.5 font-semibold text-[#a3a3a3]">Status</td><td className="py-2 font-bold text-[#171717]">{selectedDetail.status || selectedDetail.Status}</td></tr>
                 </tbody>
               </table>
 
               <div className="mt-6">
                 <p className="font-semibold text-sm mb-2 text-[#a3a3a3]">Bukti Sertifikat</p>
-                {selectedDetail.BuktiURL ? (
-                  <a href={`${API_BASE_URL.replace('/api', '')}${selectedDetail.BuktiURL}`} target="_blank" rel="noreferrer" className="flex items-center justify-center p-3 border border-[#e5e5e5] rounded-xl hover:bg-[#eef4ff] hover:border-[#00236F] transition-colors text-sm font-bold text-[#00236F]">
+                {(selectedDetail.bukti_url || selectedDetail.BuktiURL) ? (
+                  <a href={`${API_BASE_URL.replace('/api', '')}${selectedDetail.bukti_url || selectedDetail.BuktiURL}`} target="_blank" rel="noreferrer" className="flex items-center justify-center p-3 border border-[#e5e5e5] rounded-xl hover:bg-[#eef4ff] hover:border-[#00236F] transition-colors text-sm font-bold text-[#00236F]">
                     Lihat Dokumen Sertifikat
                   </a>
                 ) : (

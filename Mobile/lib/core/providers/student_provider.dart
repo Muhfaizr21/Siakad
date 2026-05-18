@@ -6,7 +6,9 @@ import 'package:bkuhub_mobile/features/mahasiswa/domain/entities/mission.dart';
 import 'package:bkuhub_mobile/features/mahasiswa/domain/entities/counseling_session.dart';
 import 'package:bkuhub_mobile/features/mahasiswa/domain/entities/aspiration.dart';
 import 'package:bkuhub_mobile/features/mahasiswa/domain/entities/health_record.dart';
+import 'package:bkuhub_mobile/features/mahasiswa/domain/entities/organization_history.dart';
 import 'package:bkuhub_mobile/features/mahasiswa/domain/repositories/student_repository.dart';
+import 'package:bkuhub_mobile/core/services/auth_service.dart';
 
 class StudentProvider extends ChangeNotifier {
   final StudentRepository? _repository;
@@ -36,6 +38,7 @@ class StudentProvider extends ChangeNotifier {
   List<CounselingSession> _counselingSessions = [];
   List<Aspiration> _aspirations = [];
   List<HealthRecord> _healthRecords = [];
+  List<OrganizationHistory> _organizationHistory = [];
   
   final List<Psychologist> _availablePsychologists = [
     const Psychologist(
@@ -70,6 +73,7 @@ class StudentProvider extends ChangeNotifier {
   List<CounselingSession> get counselingSessions => _counselingSessions;
   List<Aspiration> get aspirations => _aspirations;
   List<HealthRecord> get healthRecords => _healthRecords;
+  List<OrganizationHistory> get organizationHistory => _organizationHistory;
   List<Psychologist> get availablePsychologists => _availablePsychologists;
   List<Map<String, dynamic>> get schedules => _schedules;
 
@@ -103,12 +107,47 @@ class StudentProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
+      // Dynamic profile sync from session
+      final userData = AuthService().userData;
+      if (userData != null) {
+        final m = userData['mahasiswa'] ?? userData['data']?['mahasiswa'] ?? userData;
+        name = m['nama']?.toString() ?? m['Nama']?.toString() ?? name;
+        nim = m['nim']?.toString() ?? m['NIM']?.toString() ?? nim;
+        
+        final prodiObj = m['ProgramStudi'] ?? m['program_studi'];
+        if (prodiObj != null) {
+          prodi = "${prodiObj['jenjang'] ?? prodiObj['Jenjang'] ?? ''} ${prodiObj['nama'] ?? prodiObj['Nama'] ?? ''}".trim();
+        } else {
+          prodi = m['prodi']?.toString() ?? prodi;
+        }
+
+        final fakObj = m['Fakultas'] ?? m['fakultas'];
+        if (fakObj != null) {
+          fakultas = fakObj['nama']?.toString() ?? fakObj['Nama']?.toString() ?? fakultas;
+        } else {
+          fakultas = m['fakultas']?.toString() ?? fakultas;
+        }
+
+        email = m['email_kampus']?.toString() ?? m['EmailKampus']?.toString() ?? m['email']?.toString() ?? email;
+        phone = m['no_hp']?.toString() ?? m['NoHP']?.toString() ?? phone;
+        address = m['alamat']?.toString() ?? m['Alamat']?.toString() ?? address;
+        gender = m['jenis_kelamin']?.toString() ?? m['JenisKelamin']?.toString() ?? gender;
+        intakeYear = (m['tahun_masuk'] ?? m['TahunMasuk'] ?? intakeYear).toString();
+        
+        final tempatLahir = m['tempat_lahir']?.toString() ?? m['TempatLahir'] ?? '';
+        final tanggalLahir = m['tanggal_lahir']?.toString() ?? m['TanggalLahir'] ?? '';
+        if (tempatLahir.isNotEmpty) {
+          birthPlaceDate = "$tempatLahir, ${tanggalLahir.split('T').first}";
+        }
+      }
+
       _missions = await _repository.getMissions();
       _achievements = await _repository.getAchievements();
       _scholarships = await _repository.getScholarships();
       _counselingSessions = await _repository.getCounselingSessions();
       _aspirations = await _repository.getAspirations();
       _healthRecords = await _repository.getHealthRecords();
+      _organizationHistory = await _repository.getOrganizationHistory();
     } catch (e) {
       debugPrint('Error loading student data: $e');
     } finally {
@@ -118,9 +157,21 @@ class StudentProvider extends ChangeNotifier {
   }
 
   // Actions
-  void addHealthRecord(HealthRecord record) {
-    _healthRecords.insert(0, record);
+  Future<void> addHealthRecord(HealthRecord record) async {
+    _isLoading = true;
     notifyListeners();
+    try {
+      if (_repository != null) {
+        await _repository.addHealthRecord(record);
+      }
+      _healthRecords.insert(0, record);
+    } catch (e) {
+      debugPrint('Error adding health record: $e');
+      rethrow;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
   }
 
   void toggleMission(String? id) {
@@ -132,9 +183,21 @@ class StudentProvider extends ChangeNotifier {
     }
   }
 
-  void addAchievement(Achievement achievement) {
-    _achievements.insert(0, achievement);
+  Future<void> addAchievement(Achievement achievement) async {
+    _isLoading = true;
     notifyListeners();
+    try {
+      if (_repository != null) {
+        await _repository.addAchievement(achievement);
+      }
+      _achievements.insert(0, achievement);
+    } catch (e) {
+      debugPrint('Error adding achievement: $e');
+      rethrow;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
   }
 
   Future<void> applyForScholarship(String id) async {
@@ -169,13 +232,54 @@ class StudentProvider extends ChangeNotifier {
     }
   }
 
-  void addAspiration(Aspiration aspiration) {
-    _aspirations.insert(0, aspiration);
+  Future<void> addAspiration(Aspiration aspiration) async {
+    _isLoading = true;
     notifyListeners();
+    try {
+      if (_repository != null) {
+        await _repository.submitAspiration(aspiration);
+      }
+      _aspirations.insert(0, aspiration);
+    } catch (e) {
+      debugPrint('Error adding aspiration: $e');
+      rethrow;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
   }
 
-  void bookCounseling(CounselingSession session) {
-    _counselingSessions.insert(0, session);
+  Future<void> bookCounseling(CounselingSession session) async {
+    _isLoading = true;
     notifyListeners();
+    try {
+      if (_repository != null) {
+        await _repository.bookCounseling(session);
+      }
+      _counselingSessions.insert(0, session);
+    } catch (e) {
+      debugPrint('Error booking counseling: $e');
+      rethrow;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> addOrganizationHistory(OrganizationHistory org) async {
+    _isLoading = true;
+    notifyListeners();
+    try {
+      if (_repository != null) {
+        await _repository.addOrganizationHistory(org);
+      }
+      _organizationHistory.insert(0, org);
+    } catch (e) {
+      debugPrint('Error adding organization history: $e');
+      rethrow;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
   }
 }

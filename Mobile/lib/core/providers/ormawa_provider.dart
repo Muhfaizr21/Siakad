@@ -29,17 +29,6 @@ class OrmawaProvider extends ChangeNotifier {
   final String _academicYear = "2025/2026";
 
   // Stats
-<<<<<<< Updated upstream
-  final int _totalMembers = 124;
-  final double _balance = 2400000; // 2.4M
-  int _activeProposalsCount = 3;
-  final int _upcomingAgendasCount = 2;
-
-  // PKKMB Stats
-  final int _totalPKKMBParticipants = 10160;
-  final int _passedPKKMBCount = 8450;
-  final int _inProgressPKKMBCount = 1710;
-=======
   int _totalMembers = 0;
   double _balance = 0;
   int _activeProposalsCount = 0;
@@ -69,7 +58,6 @@ class OrmawaProvider extends ChangeNotifier {
   int get unreadNotificationsCount => _notifications.where((n) => !n.isRead).length;
 
   bool _isLoading = false;
->>>>>>> Stashed changes
 
   // Getters
   String get orgName => (_authService.userData?['user']?['nama'] ?? _authService.userData?['nama']) ?? _orgName;
@@ -78,12 +66,6 @@ class OrmawaProvider extends ChangeNotifier {
   double get balance => _balance;
   int get activeProposalsCount => _activeProposalsCount;
   int get upcomingAgendasCount => _upcomingAgendasCount;
-<<<<<<< Updated upstream
-
-  List<OrmawaProposal> get proposals => _repository.getProposals();
-  List<OrmawaAgenda> get agendas => _repository.getAgendas();
-=======
-  
   List<OrmawaProposal> get proposals => _proposals;
   List<OrmawaAgenda> get agendas => _agendas;
   List<OrmawaMember> get members => _members;
@@ -105,7 +87,6 @@ class OrmawaProvider extends ChangeNotifier {
   int get totalPKKMBParticipants => _pkkmbSummary?.totalMaba ?? 0;
   int get passedPKKMBCount => _pkkmbSummary?.totalLulus ?? 0;
   int get inProgressPKKMBCount => _pkkmbSummary?.totalProses ?? 0;
->>>>>>> Stashed changes
 
   bool get isLoading => _isLoading;
   

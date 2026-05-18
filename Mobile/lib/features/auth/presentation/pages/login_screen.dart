@@ -7,6 +7,8 @@ import 'package:go_router/go_router.dart';
 import 'package:bkuhub_mobile/core/routes/app_routes.dart';
 
 import 'package:bkuhub_mobile/core/services/auth_service.dart';
+import 'package:provider/provider.dart';
+import 'package:bkuhub_mobile/core/providers/student_provider.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -50,6 +52,10 @@ class _LoginScreenState extends State<LoginScreen> {
       setState(() => _isLoading = false);
 
       if (success) {
+        if (_authService.currentRole == UserRole.student) {
+          Provider.of<StudentProvider>(context, listen: false).loadAllData();
+        }
+        
         if (_authService.currentRole == UserRole.ormawa) {
           context.go(AppRoutes.ormawaMain);
         } else if (_authService.currentRole == UserRole.psychologist) {

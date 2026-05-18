@@ -5,6 +5,7 @@ import '../../domain/entities/mission.dart';
 import '../../domain/entities/counseling_session.dart';
 import '../../domain/entities/aspiration.dart';
 import '../../domain/entities/health_record.dart';
+import '../../domain/entities/organization_history.dart';
 import '../../domain/repositories/student_repository.dart';
 import '../../data/models/achievement_model.dart';
 import '../../data/models/scholarship_model.dart';
@@ -12,6 +13,7 @@ import '../../data/models/mission_model.dart';
 import '../../data/models/counseling_session_model.dart';
 import '../../data/models/aspiration_model.dart';
 import '../../data/models/health_record_model.dart';
+import '../../data/models/organization_history_model.dart';
 import 'package:bkuhub_mobile/core/network/api_client.dart';
 import 'dart:developer';
 
@@ -24,8 +26,9 @@ class StudentRepositoryImpl implements StudentRepository {
   Future<List<Achievement>> getAchievements() async {
     try {
       final response = await apiClient.client.get('/achievement/');
-      final List data = response.data['data'] ?? [];
-      return data.map((json) => AchievementModel.fromJson(json)).toList();
+      final rawData = response.data['data'];
+      final List list = (rawData is Map ? rawData['list'] : rawData) ?? [];
+      return list.map((json) => AchievementModel.fromJson(json)).toList();
     } catch (e) {
       log('Error getting achievements: $e');
       throw Exception('Gagal memuat data prestasi');
@@ -73,8 +76,9 @@ class StudentRepositoryImpl implements StudentRepository {
   Future<List<Aspiration>> getAspirations() async {
     try {
       final response = await apiClient.client.get('/student-voice/');
-      final List data = response.data['data'] ?? [];
-      return data.map((json) => AspirationModel.fromJson(json)).toList();
+      final rawData = response.data['data'];
+      final List list = (rawData is Map ? rawData['list'] : rawData) ?? [];
+      return list.map((json) => AspirationModel.fromJson(json)).toList();
     } catch (e) {
       log('Error getting aspirations: $e');
       throw Exception('Gagal memuat aspirasi');
@@ -138,6 +142,72 @@ class StudentRepositoryImpl implements StudentRepository {
     } catch (e) {
       log('Error submitting aspiration: $e');
       throw Exception('Gagal mengirim aspirasi');
+    }
+  }
+
+  @override
+  Future<void> addHealthRecord(HealthRecord record) async {
+    try {
+      final model = HealthRecordModel(
+        id: record.id,
+        height: record.height,
+        weight: record.weight,
+        bloodPressure: record.bloodPressure,
+        heartRate: record.heartRate,
+        temperature: record.temperature,
+        date: record.date,
+      );
+      await apiClient.client.post('/student-health/record', data: model.toJson());
+    } catch (e) {
+      log('Error adding health record: $e');
+      throw Exception('Gagal menambah data kesehatan');
+    }
+  }
+
+  @override
+  Future<void> bookCounseling(CounselingSession session) async {
+    try {
+      await apiClient.client.post('/counseling/request', data: {
+        'topik': session.topic,
+        'tanggal': session.date.toIso8601String(),
+      });
+    } catch (e) {
+      log('Error booking counseling: $e');
+      throw Exception('Gagal mengajukan konseling');
+    }
+  }
+
+  @override
+  Future<List<OrganizationHistory>> getOrganizationHistory() async {
+    try {
+      final response = await apiClient.client.get('/organisasi/');
+      final List data = response.data['data'] ?? [];
+      return data.map((json) => OrganizationHistoryModel.fromJson(json)).toList();
+    } catch (e) {
+      log('Error getting organization history: $e');
+      return [];
+    }
+  }
+
+  @override
+  Future<void> addOrganizationHistory(OrganizationHistory org) async {
+    try {
+      final model = OrganizationHistoryModel(
+        id: org.id,
+        namaOrganisasi: org.namaOrganisasi,
+        tipe: org.tipe,
+        jabatan: org.jabatan,
+        periodeMulai: org.periodeMulai,
+        periodeSelesai: org.periodeSelesai,
+        deskripsiKegiatan: org.deskripsiKegiatan,
+        apresiasi: org.apresiasi,
+        statusVerifikasi: org.statusVerifikasi,
+        achievements: org.achievements,
+      );
+      await apiClient.client.post('/organisasi/', data: model.toJson());
+    } catch (e) {
+      log('Error adding organization history: $e');
+      throw Exception('Gagal menambah riwayat organisasi');
     }
   }
 }

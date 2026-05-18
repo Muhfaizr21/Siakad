@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:dio/dio.dart';
 import '../network/api_client.dart';
 
 enum UserRole { student, ormawa, psychologist, guest }
@@ -49,6 +50,9 @@ class AuthService {
         return true;
       }
       return false;
+    } on DioException catch (e) {
+      debugPrint('Login DioException: $e');
+      rethrow;
     } catch (e) {
       debugPrint('Login Error: $e');
       return false;

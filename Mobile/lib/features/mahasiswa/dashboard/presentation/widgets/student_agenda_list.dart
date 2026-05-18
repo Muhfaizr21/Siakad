@@ -234,34 +234,52 @@ class _AgendaCardState extends State<_AgendaCard> {
                     ),
                   ),
                   const SizedBox(height: 6),
-                  Row(
+                  Wrap(
+                    spacing: 12,
+                    runSpacing: 4,
+                    crossAxisAlignment: WrapCrossAlignment.center,
                     children: [
-                      const Icon(
-                        Icons.location_on_rounded,
-                        color: AppColors.outline,
-                        size: 12,
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.location_on_rounded,
+                            color: AppColors.outline,
+                            size: 12,
+                          ),
+                          const SizedBox(width: 4),
+                          Flexible(
+                            child: Text(
+                              widget.location,
+                              style: AppTextStyles.labelSm.copyWith(
+                                color: AppColors.outline,
+                                fontSize: 11,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(width: 4),
-                      Text(
-                        widget.location,
-                        style: AppTextStyles.labelSm.copyWith(
-                          color: AppColors.outline,
-                          fontSize: 11,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      const Icon(
-                        Icons.access_time_filled_rounded,
-                        color: AppColors.outline,
-                        size: 12,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        widget.time,
-                        style: AppTextStyles.labelSm.copyWith(
-                          color: AppColors.outline,
-                          fontSize: 11,
-                        ),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.access_time_filled_rounded,
+                            color: AppColors.outline,
+                            size: 12,
+                          ),
+                          const SizedBox(width: 4),
+                          Flexible(
+                            child: Text(
+                              widget.time,
+                              style: AppTextStyles.labelSm.copyWith(
+                                color: AppColors.outline,
+                                fontSize: 11,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),

@@ -1,10 +1,205 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:bkuhub_mobile/core/theme/app_colors.dart';
 import 'package:bkuhub_mobile/core/theme/app_text_styles.dart';
 import 'package:bkuhub_mobile/core/widgets/fade_in_animation.dart';
+import 'package:bkuhub_mobile/core/providers/student_provider.dart';
+import 'package:bkuhub_mobile/features/mahasiswa/domain/entities/organization_history.dart';
 
 class OrganisasiScreen extends StatelessWidget {
   const OrganisasiScreen({super.key});
+
+  void _showAddOrgBottomSheet(BuildContext context) {
+    final formKey = GlobalKey<FormState>();
+    final nameController = TextEditingController();
+    final typeController = TextEditingController();
+    final roleController = TextEditingController();
+    final startYearController = TextEditingController();
+    final endYearController = TextEditingController();
+    final descController = TextEditingController();
+    final achievementsController = TextEditingController();
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Padding(
+        padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+        child: Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+          ),
+          padding: const EdgeInsets.all(24),
+          child: Form(
+            key: formKey,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[300],
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  Text(
+                    'Tambah Riwayat Organisasi',
+                    style: AppTextStyles.titleLg.copyWith(color: AppColors.primary, fontWeight: FontWeight.w900),
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: nameController,
+                    decoration: InputDecoration(
+                      labelText: 'Nama Organisasi',
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+                      prefixIcon: const Icon(Icons.business_rounded),
+                    ),
+                    validator: (v) => v == null || v.isEmpty ? 'Nama organisasi wajib diisi' : null,
+                  ),
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    controller: typeController,
+                    decoration: InputDecoration(
+                      labelText: 'Tipe Organisasi (e.g. BEM, HIMA, UKM)',
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+                      prefixIcon: const Icon(Icons.category_rounded),
+                    ),
+                    validator: (v) => v == null || v.isEmpty ? 'Tipe organisasi wajib diisi' : null,
+                  ),
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    controller: roleController,
+                    decoration: InputDecoration(
+                      labelText: 'Jabatan (Peran)',
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+                      prefixIcon: const Icon(Icons.person_rounded),
+                    ),
+                    validator: (v) => v == null || v.isEmpty ? 'Jabatan wajib diisi' : null,
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextFormField(
+                          controller: startYearController,
+                          keyboardType: TextInputType.number,
+                          decoration: InputDecoration(
+                            labelText: 'Tahun Mulai',
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+                          ),
+                          validator: (v) => v == null || v.isEmpty ? 'Wajib' : null,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: TextFormField(
+                          controller: endYearController,
+                          keyboardType: TextInputType.number,
+                          decoration: InputDecoration(
+                            labelText: 'Tahun Selesai (Opsional)',
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    controller: descController,
+                    maxLines: 2,
+                    decoration: InputDecoration(
+                      labelText: 'Deskripsi Kegiatan',
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+                      prefixIcon: const Icon(Icons.description_rounded),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    controller: achievementsController,
+                    decoration: InputDecoration(
+                      labelText: 'Pencapaian Utama (pisahkan dengan koma)',
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+                      prefixIcon: const Icon(Icons.star_rounded),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 54,
+                    child: ElevatedButton(
+                      onPressed: () async {
+                        if (formKey.currentState!.validate()) {
+                          final studentProvider = Provider.of<StudentProvider>(context, listen: false);
+                          final achievementsList = achievementsController.text.isNotEmpty
+                              ? achievementsController.text.split(',').map((s) => s.trim()).toList()
+                              : <String>[];
+                          final startYear = int.tryParse(startYearController.text) ?? 2023;
+                          final endYear = int.tryParse(endYearController.text);
+
+                          final org = OrganizationHistory(
+                            id: '',
+                            namaOrganisasi: nameController.text,
+                            tipe: typeController.text,
+                            jabatan: roleController.text,
+                            periodeMulai: startYear,
+                            periodeSelesai: endYear,
+                            deskripsiKegiatan: descController.text,
+                            apresiasi: achievementsList.isNotEmpty ? achievementsList.first : 'Partisipasi aktif',
+                            statusVerifikasi: 'Menunggu',
+                            achievements: achievementsList.isNotEmpty ? achievementsList : ['Anggota aktif kepengurusan'],
+                          );
+
+                          try {
+                            await studentProvider.addOrganizationHistory(org);
+                            if (context.mounted) {
+                              Navigator.pop(context);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: const Text('Riwayat organisasi berhasil ditambahkan!'),
+                                  backgroundColor: AppColors.primary,
+                                  behavior: SnackBarBehavior.floating,
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                ),
+                              );
+                            }
+                          } catch (e) {
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('Gagal menambah riwayat organisasi: $e'),
+                                  backgroundColor: Colors.red,
+                                  behavior: SnackBarBehavior.floating,
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                ),
+                              );
+                            }
+                          }
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        elevation: 0,
+                      ),
+                      child: const Text('Simpan Riwayat', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -33,33 +228,58 @@ class OrganisasiScreen extends StatelessWidget {
                       child: Text('Riwayat Organisasi', style: AppTextStyles.titleLg.copyWith(fontSize: 18, fontWeight: FontWeight.w900, color: AppColors.primary)),
                     ),
                     const SizedBox(height: 16),
-                    FadeInAnimation(
-                      delay: 0.5,
-                      child: _buildOrgCard(
-                        'BEM KBM Bhakti Kencana',
-                        'Badan Eksekutif Mahasiswa',
-                        'Anggota Aktif',
-                        '2022 - 2023',
-                        ['Ketua Pelaksana Seminar Nasional', 'Inisiator Program Desa Binaan'],
-                        Icons.groups_rounded,
-                        const Color(0xFF2563EB),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    FadeInAnimation(
-                      delay: 0.6,
-                      child: _buildOrgCard(
-                        'HIMA Keperawatan',
-                        'Himpunan Mahasiswa Prodi',
-                        'Ketua Divisi PSDM',
-                        '2021 - 2022',
-                        ['Penyelenggara LDK Mahasiswa', 'Koordinator Kaderisasi'],
-                        Icons.diversity_3_rounded,
-                        const Color(0xFF9333EA),
-                      ),
+                    Consumer<StudentProvider>(
+                      builder: (context, provider, child) {
+                        final orgList = provider.organizationHistory;
+                        if (orgList.isEmpty) {
+                          return Center(
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 32),
+                              child: Column(
+                                children: [
+                                  Icon(Icons.groups_outlined, size: 64, color: AppColors.outline.withAlpha(80)),
+                                  const SizedBox(height: 16),
+                                  Text(
+                                    'Belum ada riwayat organisasi',
+                                    style: AppTextStyles.bodyMd.copyWith(color: AppColors.outline, fontWeight: FontWeight.bold),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    'Daftarkan riwayat organisasi Anda di bawah ini.',
+                                    style: AppTextStyles.labelSm.copyWith(color: AppColors.outline),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        }
+                        return ListView.separated(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: orgList.length,
+                          separatorBuilder: (context, index) => const SizedBox(height: 16),
+                          itemBuilder: (context, index) {
+                            final org = orgList[index];
+                            final isBEM = org.tipe.toLowerCase().contains('bem');
+                            return FadeInAnimation(
+                              delay: 0.3 + (index * 0.1),
+                              child: _buildOrgCard(
+                                org.namaOrganisasi,
+                                org.tipe,
+                                org.jabatan,
+                                "${org.periodeMulai} - ${org.periodeSelesai ?? 'Sekarang'}",
+                                org.achievements,
+                                isBEM ? Icons.groups_rounded : Icons.diversity_3_rounded,
+                                isBEM ? const Color(0xFF2563EB) : const Color(0xFF9333EA),
+                              ),
+                            );
+                          },
+                        );
+                      },
                     ),
                     const SizedBox(height: 24),
-                    FadeInAnimation(delay: 0.7, child: _buildAddButton()),
+                    FadeInAnimation(delay: 0.7, child: _buildAddButton(context)),
                     const SizedBox(height: 32),
                     FadeInAnimation(
                       delay: 0.8,
@@ -205,7 +425,7 @@ class OrganisasiScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildAddButton() {
+  Widget _buildAddButton(BuildContext context) {
     return Container(
       width: double.infinity,
       height: 60,
@@ -214,7 +434,7 @@ class OrganisasiScreen extends StatelessWidget {
         boxShadow: [BoxShadow(color: AppColors.primary.withAlpha(30), blurRadius: 15, offset: const Offset(0, 8))],
       ),
       child: ElevatedButton.icon(
-        onPressed: () {},
+        onPressed: () => _showAddOrgBottomSheet(context),
         icon: const Icon(Icons.add_circle_outline_rounded, size: 20),
         label: Text('Tambah Riwayat Organisasi', style: AppTextStyles.titleLg.copyWith(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w900)),
         style: ElevatedButton.styleFrom(
@@ -258,40 +478,6 @@ class OrganisasiScreen extends StatelessWidget {
           child: Text('Kegiatan ${index + 1}', style: AppTextStyles.labelSm.copyWith(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 11)),
         ),
       )),
-    );
-  }
-}
-
-class _OrganizationBanner extends StatelessWidget {
-  const _OrganizationBanner();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [AppColors.primary, AppColors.primaryContainer],
-        ),
-        borderRadius: BorderRadius.circular(28),
-        boxShadow: [BoxShadow(color: AppColors.primary.withAlpha(50), blurRadius: 20, offset: const Offset(0, 8))],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-            decoration: BoxDecoration(color: Colors.white.withAlpha(40), borderRadius: BorderRadius.circular(8)),
-            child: Text('LEADERSHIP PORTFOLIO', style: AppTextStyles.labelSm.copyWith(color: Colors.white, fontSize: 9, fontWeight: FontWeight.w900, letterSpacing: 0.5)),
-          ),
-          const SizedBox(height: 16),
-          Text('Jejak Kontribusi\n& Kepemimpinan', style: AppTextStyles.headlineMd.copyWith(color: Colors.white, fontSize: 22, height: 1.2, fontWeight: FontWeight.w900)),
-          const SizedBox(height: 8),
-          Text('Catat setiap pengalaman organisasimu untuk masa depan.', style: AppTextStyles.labelSm.copyWith(color: Colors.white70, fontWeight: FontWeight.w500)),
-        ],
-      ),
     );
   }
 }
