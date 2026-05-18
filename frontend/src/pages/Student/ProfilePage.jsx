@@ -1,16 +1,7 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import api from '../../lib/axios';
-import { 
-  User, 
-  ShieldCheck, 
-  BellRing, 
-  Camera, 
-  Loader2, 
-  UserCircle2, 
-  Info,
-  ChevronRight
-} from 'lucide-react';
+
 import { NavLink } from 'react-router-dom';
 
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../../components/ui/Tabs';
@@ -18,6 +9,17 @@ import DataDiriTab from './tabs/DataDiriTab';
 import KeamananTab from './tabs/KeamananTab';
 import PreferensiTab from './tabs/PreferensiTab';
 import AvatarUploadModal from './components/AvatarUploadModal';
+
+// Auto-injected Material Symbol fallbacks for removed Lucide icons
+const UserCircle2 = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>account_circle</span>;
+const Camera = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>photo_camera</span>;
+
+
+
+// Auto-injected Material Symbol fallbacks for removed Lucide icons
+const User = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>person</span>;
+
+
 
 export default function ProfilePage() {
   const [isAvatarModalOpen, setIsAvatarModalOpen] = useState(false);
@@ -33,7 +35,7 @@ export default function ProfilePage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="w-10 h-10 text-[#00236F] animate-spin" />
+        <span className="material-symbols-outlined w-10 h-10 text-[#00236F] animate-spin" >sync</span>
       </div>
     );
   }
@@ -59,7 +61,7 @@ export default function ProfilePage() {
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 text-sm font-medium text-[#a3a3a3] mb-6">
         <NavLink to="/student/dashboard" className="hover:text-[#00236F] cursor-pointer transition-colors">Dashboard</NavLink>
-        <ChevronRight size={16} />
+        <span className="material-symbols-outlined" style={{ fontSize: 16 }}>chevron_right</span>
         <span className="text-[#171717]">Student Profile</span>
       </div>
 
@@ -125,7 +127,7 @@ export default function ProfilePage() {
           </div>
           
           <div className="mt-6 pt-5 border-t border-[#f5f5f5] flex items-center gap-2 text-xs font-bold text-[#a3a3a3] italic">
-            <Info size={14} className="text-[#d4d4d4]" />
+            <span className="material-symbols-outlined text-[#d4d4d4]" style={{ fontSize: 14 }}>info</span>
             Data di atas bersumber dari sistem Student Hub dan bersifat read-only (tidak dapat diubah).
           </div>
 
@@ -139,10 +141,10 @@ export default function ProfilePage() {
               <User size={16} /> Data Diri
             </TabsTrigger>
             <TabsTrigger value="keamanan" className="gap-2">
-              <ShieldCheck size={16} /> Keamanan Akun
+              <span className="material-symbols-outlined" style={{ fontSize: '16px' }} Check >security</span> Keamanan Akun
             </TabsTrigger>
             <TabsTrigger value="preferensi" className="gap-2">
-              <BellRing size={16} /> Preferensi Notif
+              <span className="material-symbols-outlined" style={{ fontSize: '16px' }} Ring >notifications</span> Preferensi Notif
             </TabsTrigger>
           </TabsList>
 

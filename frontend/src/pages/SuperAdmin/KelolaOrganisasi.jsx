@@ -10,10 +10,19 @@ import { Card, CardContent } from './components/ui/card'
 import { Input } from './components/ui/input'
 import { Label } from './components/ui/label'
 import { Textarea } from './components/ui/textarea'
-import { Eye, Pencil, Trash2, Loader2, Plus, Save, Building } from 'lucide-react'
+
 import { toast, Toaster } from 'react-hot-toast'
 import { cn } from '@/lib/utils'
 import { adminService } from '../../services/api'
+
+// Auto-injected Material Symbol fallbacks for removed Lucide icons
+const Building = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>business</span>;
+const Layers = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>layers</span>;
+const Zap = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>bolt</span>;
+const Phone = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>phone</span>;
+const Target = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>track_changes</span>;
+
+
 
 export default function KelolaOrganisasi() {
   const [data, setData] = useState([])
@@ -31,86 +40,252 @@ export default function KelolaOrganisasi() {
     try {
       const res = await adminService.getAllOrmawa()
       if (res.status === 'success') setData(res.data || [])
-      else toast.error('Gagal memuat data')
-    } catch { toast.error('Koneksi gagal') } finally { setLoading(false) }
+      else toast.error('Gagal memuat data organisasi')
+    } catch { toast.error('Koneksi sistem terputus') } finally { setLoading(false) }
   }
   useEffect(() => { fetchData() }, [])
 
   const handleOpenAdd = () => { setIsEditMode(false); setForm({ Nama: '', Singkatan: '', Deskripsi: '', Visi: '', Misi: '', Email: '', LogoURL: '', Phone: '' }); setIsCrudOpen(true) }
-  const handleOpenEdit = (row) => { setIsEditMode(true); setForm({ ID: row.ID, Nama: row.Nama || '', Singkatan: row.Singkatan || '', Deskripsi: row.Deskripsi || '', Visi: row.Visi || '', Misi: row.Misi || '', Email: row.Email || '', LogoURL: row.LogoURL || '', Phone: row.Phone || '' }); setIsCrudOpen(true) }
+  const handleOpenEdit = (row) => { 
+    setIsEditMode(true)
+    setForm({ 
+      ID: row.ID, 
+      Nama: row.Nama || '', 
+      Singkatan: row.Singkatan || '', 
+      Deskripsi: row.Deskripsi || '', 
+      Visi: row.Visi || '', 
+      Misi: row.Misi || '', 
+      Email: row.Email || '', 
+      LogoURL: row.LogoURL || '', 
+      Phone: row.Phone || '' 
+    })
+    setIsCrudOpen(true) 
+  }
 
   const handleSave = async (e) => {
-    e.preventDefault(); setIsSubmitting(true)
+    if (e) e.preventDefault()
+    setIsSubmitting(true)
     try {
       const res = form.ID ? await adminService.updateOrmawa(form.ID, form) : await adminService.createOrmawa(form)
-      if (res.status === 'success') { toast.success(form.ID ? 'Ormawa diperbarui' : 'Ormawa ditambahkan'); setIsCrudOpen(false); fetchData() }
-      else toast.error(res.message || 'Gagal menyimpan')
-    } catch { toast.error('Terjadi kesalahan') } finally { setIsSubmitting(false) }
+      if (res.status === 'success') { 
+        toast.success(form.ID ? 'Organisasi diperbarui' : 'Organisasi berhasil didaftarkan')
+        setIsCrudOpen(false)
+        fetchData() 
+      } else {
+        toast.error(res.message || 'Gagal menyimpan data')
+      }
+    } catch { toast.error('Terjadi kesalahan sistem') } finally { setIsSubmitting(false) }
   }
+
   const handleDelete = async () => {
     setIsSubmitting(true)
     try {
       await adminService.deleteOrmawa(selected.ID)
-      toast.success('Ormawa dihapus'); setIsDelOpen(false); fetchData()
-    } catch { toast.error('Gagal menghapus') } finally { setIsSubmitting(false) }
+      toast.success('Organisasi berhasil dihapus')
+      setIsDelOpen(false)
+      fetchData()
+    } catch { toast.error('Gagal menghapus data') } finally { setIsSubmitting(false) }
   }
 
   const columns = [
-    { key: 'Singkatan', label: 'Kode', className: 'w-[100px]', render: v => <span className="font-bold text-slate-400 font-headline uppercase text-[10px] tracking-widest">{v || '—'}</span> },
-    { key: 'Nama', label: 'Nama Ormawa', className: 'min-w-[260px]', render: v => <span className="font-bold text-slate-900 font-headline tracking-tighter text-[13px]">{v || '—'}</span> },
-    { key: 'Email', label: 'Kontak', className: 'w-[220px]', render: v => <span className="text-[11px] font-bold text-slate-500">{v || '—'}</span> },
-    { key: 'JumlahAnggota', label: 'Anggota', className: 'w-[100px] text-center', cellClassName: 'text-center', render: (v, row) => <span className="font-black text-primary text-sm font-headline">{v || row.jumlah_anggota || 0}</span> }
+    { 
+      key: 'Singkatan', 
+      label: 'Kode Unit', 
+      className: 'w-[120px]', 
+      render: v => (
+        <Badge className="bg-amber-50 text-amber-700 border-amber-100 px-2 py-0.5 rounded-md font-black text-[10px] tracking-widest uppercase shadow-none">
+          {v || 'UNIT'}
+        </Badge>
+      )
+    },
+    { 
+      key: 'Nama', 
+      label: 'Nama Organisasi Mahasiswa', 
+      className: 'w-[450px]', 
+      render: (v, row) => (
+        <div className="flex flex-col gap-1 py-3 group/item">
+          <span className="font-bold text-neutral-900 font-jakarta tracking-tight text-[14px] leading-tight uppercase group-hover/item:text-amber-600 transition-colors">{v || '—'}</span>
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest">{row.Singkatan || 'Unit Kegiatan'}</span>
+            <div className="size-1 rounded-full bg-neutral-200" />
+            <span className="text-[10px] text-amber-500 font-bold uppercase tracking-widest">Active Community</span>
+          </div>
+        </div>
+      )
+    },
+    { 
+      key: 'Email', 
+      label: 'Kontak Resmi', 
+      className: 'w-[250px]', 
+      render: v => (
+        <div className="flex items-center gap-2 text-neutral-500">
+          <span className="material-symbols-outlined text-neutral-300" style={{ fontSize: '12px' }} >mail</span>
+          <span className="text-[12px] font-medium font-inter">{v || '—'}</span>
+        </div>
+      )
+    },
+    { 
+      key: 'LogoURL', 
+      label: 'Identitas Visual', 
+      className: 'w-[140px] text-center', 
+      cellClassName: 'text-center',
+      render: v => <Badge className="bg-neutral-50 text-neutral-400 border-neutral-100 px-3 py-1 rounded-lg text-[9px] font-bold uppercase tracking-widest">{v ? 'TERSEDIA' : 'KOSONG'}</Badge> 
+    }
   ]
 
   return (
-    <div className="p-4 md:p-8 space-y-6">
-          <Toaster position="top-right" />
-          <div className="flex flex-col gap-1.5">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-primary/10 rounded-xl text-primary"><Building className="size-6" /></div>
-              <h1 className="text-2xl font-black text-slate-900 font-headline tracking-tighter uppercase">Kelola Organisasi Mahasiswa</h1>
+    <div className="px-4 py-8 md:px-8 xl:px-12 min-h-screen bg-[#fafafa] font-body">
+      <Toaster position="top-right" />
+      
+      <div className="max-w-[1600px] mx-auto space-y-10">
+        
+        {/* ── Page Header ─────────────────────────────────────────── */}
+        <section className="bg-white border border-neutral-200 rounded-2xl p-8 relative overflow-hidden shadow-sm">
+          <div className="absolute top-0 right-0 w-1/4 h-full bg-gradient-to-l from-amber-50/50 to-transparent pointer-events-none" />
+          <div className="absolute -bottom-12 -right-12 text-amber-500/5 rotate-12 pointer-events-none"><Building size={280} /></div>
+          
+          <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2.5 mb-2">
+                <div className="h-4 w-2 bg-amber-500 rounded-full shadow-lg shadow-amber-200" />
+                <span className="text-[10px] font-black uppercase tracking-[0.25em] text-neutral-400 font-jakarta">Student Community</span>
+              </div>
+              <h1 className="text-3xl font-extrabold text-neutral-900 font-jakarta tracking-tight leading-none">
+                Kelola <span className="text-amber-600 italic">Organisasi</span>
+              </h1>
+              <p className="text-neutral-500 font-medium text-sm max-w-2xl leading-relaxed mt-2">
+                Pusat pendaftaran, monitoring, dan manajemen legalitas unit kegiatan mahasiswa di lingkungan Universitas.
+              </p>
             </div>
-            <div className="flex items-center gap-2">
-              <div className="h-1 w-10 bg-primary rounded-full shadow-sm shadow-primary/30" />
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Registri & Manajemen Seluruh Ormawa Universitas</p>
+            
+            <div className="flex items-center gap-3">
+              <Button 
+                onClick={handleOpenAdd}
+                className="h-12 px-6 rounded-xl bg-amber-600 text-white hover:bg-amber-700 shadow-xl shadow-amber-200 gap-2.5 transition-all active:scale-95 border-none group"
+              >
+                <span className="material-symbols-outlined group-hover:rotate-90 transition-transform duration-300" style={{ fontSize: '18px' }}  strokeWidth={3}>add</span>
+                <span className="text-xs font-black uppercase tracking-widest">Daftar Ormawa</span>
+              </Button>
             </div>
           </div>
-          <Card className="border-none shadow-sm overflow-hidden bg-white/50 backdrop-blur-md">
-            <CardContent className="p-0">
-              <DataTable
-                columns={columns} data={data} loading={loading}
-                searchPlaceholder="Cari nama atau singkatan ormawa..."
-                onAdd={handleOpenAdd} addLabel="Tambah Ormawa"
-                actions={(row) => (
-                  <div className="flex items-center gap-2">
-                    <Button onClick={() => { setSelected(row); setIsDetailOpen(true) }} variant="ghost" size="icon" className="h-8 w-8 hover:text-primary hover:bg-primary/10 rounded-xl"><Eye className="size-4" /></Button>
-                    <Button onClick={() => handleOpenEdit(row)} variant="ghost" size="icon" className="h-8 w-8 hover:text-amber-600 hover:bg-amber-50 rounded-xl"><Pencil className="size-4" /></Button>
-                    <Button onClick={() => { setSelected(row); setIsDelOpen(true) }} variant="ghost" size="icon" className="h-8 w-8 hover:text-rose-600 hover:bg-rose-50 rounded-xl"><Trash2 className="size-4" /></Button>
-                  </div>
-                )}
-              />
-            </CardContent>
-          </Card>
+        </section>
 
-      {/* Detail */}
-      <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
-        <DialogContent className="max-w-xl p-0 overflow-hidden border-none shadow-2xl rounded-[2.5rem] bg-white/95 backdrop-blur-xl">
-          {selected && (
-            <div>
-              <div className="p-8 bg-gradient-to-br from-slate-900 to-slate-800 relative overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-br from-primary/30 to-transparent" />
-                <div className="relative z-10">
-                  <Badge className="font-black text-[9px] px-2.5 py-0.5 bg-white/10 text-white border-none mb-3 uppercase tracking-widest">{selected.Singkatan}</Badge>
-                  <h2 className="text-xl font-black text-white font-headline tracking-tighter">{selected.Nama}</h2>
-                  <p className="text-[10px] text-slate-400 font-bold mt-1">{selected.Email || '—'}</p>
-                </div>
+        {/* ── Stats Grid ──────────────────────────────────────────── */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+           <div className="bg-white p-4 rounded-2xl border border-[#e5e5e5] shadow-sm">
+              <div className="flex items-center gap-3 mb-3">
+                 <div className="w-10 h-10 bg-amber-50 rounded-xl flex justify-center items-center text-amber-600 flex-shrink-0">
+                    <Layers size={18} />
+                 </div>
+                 <span className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-widest">Total Ormawa</span>
               </div>
-              <div className="p-8 space-y-4">
-                {selected.Visi && <div><p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 font-headline">Visi</p><p className="text-sm text-slate-600 leading-relaxed">{selected.Visi}</p></div>}
-                {selected.Misi && <div><p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 font-headline">Misi</p><p className="text-sm text-slate-600 leading-relaxed">{selected.Misi}</p></div>}
-                <div className="flex justify-end gap-3">
-                  <Button variant="ghost" onClick={() => setIsDetailOpen(false)} className="text-[10px] font-black uppercase text-slate-400 px-8 h-10 rounded-2xl">Tutup</Button>
-                  <Button onClick={() => { setIsDetailOpen(false); handleOpenEdit(selected) }} className="h-10 px-8 rounded-2xl bg-primary text-white font-black text-[10px] uppercase">Edit</Button>
+              <p className="text-2xl font-extrabold text-[#171717] font-jakarta leading-none tabular-nums">{data.length}</p>
+              <p className="text-xs text-[#a3a3a3] font-medium mt-1">Unit terdaftar resmi</p>
+           </div>
+
+           <div className="bg-white p-4 rounded-2xl border border-[#e5e5e5] shadow-sm">
+              <div className="flex items-center gap-3 mb-3">
+                 <div className="w-10 h-10 bg-blue-50 rounded-xl flex justify-center items-center text-blue-600 flex-shrink-0">
+                    <span className="material-symbols-outlined" style={{ fontSize: '18px' }} >group</span>
+                 </div>
+                 <span className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-widest">Member Aktif</span>
+              </div>
+              <p className="text-2xl font-extrabold text-[#171717] font-jakarta leading-none tabular-nums">420+</p>
+              <p className="text-xs text-[#a3a3a3] font-medium mt-1">Estimasi partisipan</p>
+           </div>
+
+           <div className="bg-white p-4 rounded-2xl border border-[#e5e5e5] shadow-sm">
+              <div className="flex items-center gap-3 mb-3">
+                 <div className="w-10 h-10 bg-emerald-50 rounded-xl flex justify-center items-center text-emerald-600 flex-shrink-0">
+                    <span className="material-symbols-outlined" style={{ fontSize: '18px' }} Check >security</span>
+                 </div>
+                 <span className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-widest">Legalitas</span>
+              </div>
+              <p className="text-2xl font-extrabold text-[#171717] font-jakarta leading-none tabular-nums">Valid</p>
+              <p className="text-xs text-[#a3a3a3] font-medium mt-1">Sertifikasi kemahasiswaan</p>
+           </div>
+
+           <div className="bg-white p-4 rounded-2xl border border-[#e5e5e5] shadow-sm">
+              <div className="flex items-center gap-3 mb-3">
+                 <div className="w-10 h-10 bg-rose-50 rounded-xl flex justify-center items-center text-rose-600 flex-shrink-0">
+                    <Zap size={18} />
+                 </div>
+                 <span className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-widest">Aktivitas</span>
+              </div>
+              <p className="text-2xl font-extrabold text-[#171717] font-jakarta leading-none tabular-nums">Tinggi</p>
+              <p className="text-xs text-[#a3a3a3] font-medium mt-1">Indeks gerakan mahasiswa</p>
+           </div>
+        </div>
+
+        {/* ── Table Section ────────────────────────────────────────── */}
+        <Card className="border-neutral-200 shadow-sm rounded-xl bg-white overflow-hidden">
+          <CardContent className="p-0">
+            <DataTable
+              columns={columns} 
+              data={data} 
+              loading={loading}
+              searchPlaceholder="Cari Nama atau Singkatan..."
+              actions={(row) => (
+                <div className="flex items-center gap-1.5">
+                  <Button onClick={() => { setSelected(row); setIsDetailOpen(true) }} variant="ghost" size="icon" className="h-8 w-8 text-neutral-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"><span className="material-symbols-outlined" style={{ fontSize: '18px' }} >visibility</span></Button>
+                  <Button onClick={() => handleOpenEdit(row)} variant="ghost" size="icon" className="h-8 w-8 text-neutral-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"><span className="material-symbols-outlined" style={{ fontSize: '16px' }} >edit</span></Button>
+                  <Button onClick={() => { setSelected(row); setIsDelOpen(true) }} variant="ghost" size="icon" className="h-8 w-8 text-neutral-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"><span className="material-symbols-outlined" style={{ fontSize: '16px' }} >delete</span></Button>
+                </div>
+              )}
+            />
+          </CardContent>
+        </Card>
+
+      </div>
+
+      {/* ── Detail Modal ─────────────────────────────────────────── */}
+      <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
+        <DialogContent className="max-w-2xl p-0 overflow-hidden border-none shadow-2xl rounded-2xl bg-white">
+          {selected && (
+            <div className="flex flex-col">
+              <div className="p-10 bg-neutral-900 relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-primary/40 to-transparent pointer-events-none" />
+                <div className="relative z-10 space-y-4">
+                  <Badge className="font-bold text-[10px] px-3 py-1 bg-white/10 text-white border-white/20 uppercase tracking-widest">{selected.Singkatan}</Badge>
+                  <h2 className="text-3xl font-bold text-white font-jakarta tracking-tight leading-tight uppercase">{selected.Nama}</h2>
+                  <div className="flex items-center gap-6 pt-2">
+                    <div className="flex items-center gap-2 text-white/60">
+                      <span className="material-symbols-outlined text-primary" style={{ fontSize: '14px' }} >mail</span>
+                      <span className="text-xs font-medium font-inter">{selected.Email || 'No official email'}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-white/60">
+                      <Phone size={14} className="text-primary" />
+                      <span className="text-xs font-medium font-inter">{selected.Phone || 'No contact'}</span>
+                    </div>
+                  </div>
+                </div>
+                <Building size={120} className="absolute -bottom-8 -right-8 text-white/5 rotate-12 pointer-events-none" />
+              </div>
+              
+              <div className="p-10 space-y-8 max-h-[60vh] overflow-y-auto custom-scrollbar">
+                <div className="space-y-4">
+                   <div className="flex items-center gap-2">
+                      <Target size={16} className="text-primary" />
+                      <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest font-jakarta">Visi Organisasi</span>
+                   </div>
+                   <p className="text-sm font-medium text-neutral-600 leading-relaxed font-inter bg-neutral-50 p-5 rounded-xl border border-neutral-100 italic">
+                      "{selected.Visi || 'Visi belum dikonfigurasi.'}"
+                   </p>
+                </div>
+
+                <div className="space-y-4">
+                   <div className="flex items-center gap-2">
+                      <span className="material-symbols-outlined text-primary" style={{ fontSize: '16px' }} >show_chart</span>
+                      <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest font-jakarta">Misi & Strategi</span>
+                   </div>
+                   <p className="text-sm font-medium text-neutral-600 leading-relaxed font-inter pl-6 border-l-2 border-primary/20">
+                      {selected.Misi || 'Misi belum dikonfigurasi.'}
+                   </p>
+                </div>
+
+                <div className="pt-6 flex justify-end gap-3 border-t border-neutral-100">
+                  <Button variant="ghost" onClick={() => setIsDetailOpen(false)} className="h-11 px-8 rounded-xl text-xs font-bold uppercase tracking-widest text-neutral-400 hover:text-neutral-900 transition-all">Tutup</Button>
+                  <Button onClick={() => { setIsDetailOpen(false); handleOpenEdit(selected) }} className="h-11 px-8 rounded-xl bg-neutral-900 text-white font-bold text-xs uppercase tracking-widest hover:bg-primary transition-all active:scale-95">Edit Unit</Button>
                 </div>
               </div>
             </div>
@@ -118,46 +293,83 @@ export default function KelolaOrganisasi() {
         </DialogContent>
       </Dialog>
 
-      {/* CRUD */}
+      {/* ── CRUD Modal ───────────────────────────────────────────── */}
       <Dialog open={isCrudOpen} onOpenChange={setIsCrudOpen}>
-        <DialogContent className="max-w-xl p-0 overflow-hidden border-none shadow-2xl rounded-[2rem] bg-white/95 backdrop-blur-xl">
-          <DialogHeader className="p-8 pb-6 bg-gradient-to-br from-slate-50 to-white border-b border-slate-100 relative overflow-hidden">
-            <div className="absolute top-0 right-0 p-8 opacity-5"><Building className="size-24 rotate-12" /></div>
-            <div className="relative z-10">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="size-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary">{isEditMode ? <Pencil className="size-4" /> : <Plus className="size-4 stroke-[3px]" />}</div>
-                <Badge className="text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 bg-primary/5 text-primary border-none">Ormawa Registry</Badge>
+        <DialogContent className="max-w-xl p-0 overflow-hidden border-none shadow-2xl rounded-2xl bg-white">
+          <DialogHeader className="p-8 pb-6 border-b border-neutral-100 relative overflow-hidden">
+            <div className="absolute top-0 right-0 p-8 opacity-5 text-primary"><Building size={100} /></div>
+            <div className="relative z-10 space-y-1">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="size-6 rounded bg-primary/10 flex items-center justify-center text-primary">
+                  {isEditMode ? <span className="material-symbols-outlined" style={{ fontSize: '12px' }} >edit</span> : <span className="material-symbols-outlined" style={{ fontSize: '12px' }}  strokeWidth={3}>add</span>}
+                </div>
+                <span className="text-[10px] font-bold uppercase tracking-widest text-primary">Institutional Registry</span>
               </div>
-              <DialogTitle className="text-2xl font-black font-headline tracking-tighter text-slate-900 uppercase">{isEditMode ? 'Edit Ormawa' : 'Daftarkan Ormawa Baru'}</DialogTitle>
-              <DialogDescription className="sr-only">Formulir pendaftaran dan pembaruan data organisasi mahasiswa.</DialogDescription>
+              <DialogTitle className="text-2xl font-bold font-jakarta tracking-tight text-neutral-900 uppercase">
+                {isEditMode ? 'Update Ormawa' : 'Registrasi Ormawa'}
+              </DialogTitle>
+              <DialogDescription className="text-sm font-medium text-neutral-400">Pendaftaran entitas organisasi mahasiswa tingkat universitas.</DialogDescription>
             </div>
           </DialogHeader>
-          <form onSubmit={handleSave} className="p-8 pt-6 space-y-4 max-h-[65vh] overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200">
-            <div className="grid grid-cols-3 gap-4">
-              <div className="space-y-2 col-span-2"><Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Nama Organisasi</Label><Input required value={form.Nama} onChange={e => setForm({ ...form, Nama: e.target.value })} placeholder="Nama lengkap..." className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white font-bold text-sm font-headline" /></div>
-              <div className="space-y-2"><Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Kode / Singkatan</Label><Input required value={form.Singkatan} onChange={e => setForm({ ...form, Singkatan: e.target.value })} placeholder="CTR, HMP, etc" className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white font-bold text-sm font-headline" /></div>
-            </div>
-            <div className="space-y-2"><Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Kontak / HP</Label><Input value={form.Phone} onChange={e => { const val = e.target.value.replace(/\D/g, ''); setForm({ ...form, Phone: val }); }} placeholder="08xxx..." className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white font-bold text-sm font-headline" /></div>
 
-            <div className="space-y-2"><Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Email Resmi</Label><Input type="email" value={form.Email} onChange={e => setForm({ ...form, Email: e.target.value })} placeholder="email@ormawa.bku.ac.id" className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white font-bold text-sm" /></div>
-            <div className="space-y-2"><Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Deskripsi Organisasi</Label><Textarea value={form.Deskripsi} onChange={e => setForm({ ...form, Deskripsi: e.target.value })} placeholder="Singkatan atau deskripsi singkat..." className="min-h-[60px] rounded-[1.5rem] border-slate-200 bg-slate-50/50 focus:bg-white p-4 text-sm font-medium font-headline" /></div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2"><Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Visi</Label><Textarea value={form.Visi} onChange={e => setForm({ ...form, Visi: e.target.value })} placeholder="Visi organisasi..." className="min-h-[80px] rounded-[1.5rem] border-slate-200 bg-slate-50/50 focus:bg-white p-4 text-sm font-medium font-headline" /></div>
-              <div className="space-y-2"><Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Misi</Label><Textarea value={form.Misi} onChange={e => setForm({ ...form, Misi: e.target.value })} placeholder="Misi organisasi..." className="min-h-[80px] rounded-[1.5rem] border-slate-200 bg-slate-50/50 focus:bg-white p-4 text-sm font-medium font-headline" /></div>
+          <form onSubmit={handleSave} className="p-8 pt-6 space-y-5 max-h-[70vh] overflow-y-auto custom-scrollbar">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="md:col-span-2 space-y-2">
+                <Label className="text-xs font-bold text-neutral-500 font-jakarta ml-1">Nama Organisasi</Label>
+                <Input required value={form.Nama} onChange={e => setForm({ ...form, Nama: e.target.value })} placeholder="Nama lengkap..." className="h-11 rounded-lg border-neutral-200 bg-neutral-50/30 focus:bg-white font-medium text-sm font-jakarta uppercase" />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs font-bold text-neutral-500 font-jakarta ml-1">Kode Unit</Label>
+                <Input required value={form.Singkatan} onChange={e => setForm({ ...form, Singkatan: e.target.value })} placeholder="BEM, HIMA..." className="h-11 rounded-lg border-neutral-200 bg-neutral-50/30 focus:bg-white font-medium text-sm font-jakarta uppercase" />
+              </div>
             </div>
-            <DialogFooter className="pt-4 flex flex-row gap-3 border-t border-slate-100 -mx-8 px-8 bg-slate-50/30">
-              <Button type="button" variant="ghost" onClick={() => setIsCrudOpen(false)} className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-8 h-12 rounded-2xl">Batalkan</Button>
-              <Button type="submit" disabled={isSubmitting} className="h-12 px-10 rounded-2xl bg-primary text-white hover:bg-primary/90 shadow-xl shadow-primary/20 transition-all hover:scale-[1.02] active:scale-95">
-                {isSubmitting ? <Loader2 className="animate-spin size-4 mr-2" /> : <Save className="size-4 mr-2 stroke-[3px]" />}
-                <span className="text-[10px] font-black uppercase tracking-[0.2em]">{isEditMode ? 'Update Record' : 'Create Record'}</span>
-              </Button>
-            </DialogFooter>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+               <div className="space-y-2">
+                 <Label className="text-xs font-bold text-neutral-500 font-jakarta ml-1">Email Resmi</Label>
+                 <Input type="email" value={form.Email} onChange={e => setForm({ ...form, Email: e.target.value })} placeholder="ormawa@bku.ac.id" className="h-11 rounded-lg border-neutral-200 bg-neutral-50/30 focus:bg-white font-medium text-sm font-jakarta" />
+               </div>
+               <div className="space-y-2">
+                 <Label className="text-xs font-bold text-neutral-500 font-jakarta ml-1">Kontak Person</Label>
+                 <Input value={form.Phone} onChange={e => setForm({ ...form, Phone: e.target.value })} placeholder="08xxx..." className="h-11 rounded-lg border-neutral-200 bg-neutral-50/30 focus:bg-white font-medium text-sm font-jakarta" />
+               </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-xs font-bold text-neutral-500 font-jakarta ml-1">Deskripsi Singkat</Label>
+              <Textarea value={form.Deskripsi} onChange={e => setForm({ ...form, Deskripsi: e.target.value })} placeholder="Ringkasan tentang organisasi..." className="min-h-[60px] rounded-xl border-neutral-200 bg-neutral-50/30 focus:bg-white p-4 font-medium text-sm font-jakarta" />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-xs font-bold text-neutral-500 font-jakarta ml-1">Visi</Label>
+                <Textarea value={form.Visi} onChange={e => setForm({ ...form, Visi: e.target.value })} placeholder="Target masa depan..." className="min-h-[100px] rounded-xl border-neutral-200 bg-neutral-50/30 focus:bg-white p-4 font-medium text-sm font-jakarta" />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs font-bold text-neutral-500 font-jakarta ml-1">Misi</Label>
+                <Textarea value={form.Misi} onChange={e => setForm({ ...form, Misi: e.target.value })} placeholder="Langkah strategis..." className="min-h-[100px] rounded-xl border-neutral-200 bg-neutral-50/30 focus:bg-white p-4 font-medium text-sm font-jakarta" />
+              </div>
+            </div>
+
+            <div className="pt-6 flex flex-row gap-3 border-t border-neutral-100">
+               <Button type="button" variant="ghost" onClick={() => setIsCrudOpen(false)} className="flex-1 h-12 rounded-xl text-xs font-bold uppercase tracking-widest text-neutral-400">Batal</Button>
+               <Button type="submit" disabled={isSubmitting} className="flex-1 h-12 rounded-xl bg-neutral-900 text-white hover:bg-primary shadow-md transition-all active:scale-95">
+                  {isSubmitting ? <span className="material-symbols-outlined animate-spin mr-2" style={{ fontSize: '14px' }} >sync</span> : <span className="material-symbols-outlined mr-2" style={{ fontSize: '14px' }} >save</span>}
+                  <span className="text-xs font-bold uppercase tracking-widest">Simpan Unit</span>
+               </Button>
+            </div>
           </form>
         </DialogContent>
       </Dialog>
 
-      <DeleteConfirmModal isOpen={isDelOpen} onClose={() => setIsDelOpen(false)} onConfirm={handleDelete}
-        title="Hapus Organisasi?" description="Data organisasi mahasiswa ini akan dihapus permanen dari sistem." loading={isSubmitting} />
+      <DeleteConfirmModal 
+        isOpen={isDelOpen} 
+        onClose={() => setIsDelOpen(false)} 
+        onConfirm={handleDelete}
+        title="Hapus Unit Organisasi?" 
+        description="Data organisasi, riwayat anggota, dan visi misi akan dihapus permanen dari sistem." 
+        loading={isSubmitting} 
+      />
     </div>
   )
 }

@@ -6,16 +6,29 @@ import {
   useBandingQuery,
   useAjukanBandingMutation,
 } from '../../queries/useKencanaQuery';
-import {
-  GraduationCap, CheckCircle2, FileText, PlayCircle, Award, XCircle,
-  Download, AlertCircle, ChevronRight, Clock, Trophy, BookOpen,
-  Upload, X, Info, Loader2, AlertTriangle, CheckCheck
-} from 'lucide-react';
+
 import { motion, AnimatePresence } from 'framer-motion';
 import { CardGridSkeleton } from '../../components/ui/SkeletonGroups';
 import EmptyState from '../../components/ui/EmptyState';
 import useAuthStore from '../../store/useAuthStore';
 import { toast } from 'react-hot-toast';
+
+// Auto-injected Material Symbol fallbacks for removed Lucide icons
+const PlayCircle = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>play_circle</span>;
+
+
+
+// Auto-injected Material Symbol fallbacks for removed Lucide icons
+const Info = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>info</span>;
+
+
+
+// Auto-injected Material Symbol fallbacks for removed Lucide icons
+const ChevronRight = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>chevron_right</span>;
+const Download = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>download</span>;
+const Award = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>emoji_events</span>;
+
+
 
 // Native date formatter (no date-fns needed)
 const formatTanggal = (dateStr, opts = {}) => {
@@ -98,7 +111,7 @@ function BandingModal({ onClose, progressData }) {
             <p className="text-sm text-neutral-400 mt-0.5">Batas pengajuan: 72 jam setelah kuis dikerjakan</p>
           </div>
           <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-xl bg-white/10 hover:bg-white/20 transition-colors">
-            <X size={16} />
+            <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >close</span>
           </button>
         </div>
 
@@ -152,10 +165,10 @@ function BandingModal({ onClose, progressData }) {
             </label>
             {file ? (
               <div className="flex items-center gap-3 p-3 bg-[#eef4ff] rounded-xl border border-[#c9d8ff]">
-                <FileText size={20} className="text-[#00236F] shrink-0" />
+                <span className="material-symbols-outlined text-[#00236F] shrink-0" style={{ fontSize: '20px' }} >description</span>
                 <span className="text-sm font-medium truncate flex-1">{file.name}</span>
                 <button type="button" onClick={() => setFile(null)} className="text-[#a3a3a3] hover:text-[#dc2626]">
-                  <X size={16} />
+                  <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >close</span>
                 </button>
               </div>
             ) : (
@@ -164,7 +177,7 @@ function BandingModal({ onClose, progressData }) {
                 onClick={() => fileInputRef.current?.click()}
                 className="w-full flex items-center justify-center gap-2 p-4 border-2 border-dashed border-[#e5e5e5] rounded-xl text-sm font-bold text-[#a3a3a3] hover:border-[#00236F] hover:text-[#00236F] transition-colors"
               >
-                <Upload size={18} /> Pilih File (JPG, PNG, PDF)
+                <span className="material-symbols-outlined" style={{ fontSize: '18px' }} >upload</span> Pilih File (JPG, PNG, PDF)
               </button>
             )}
             <input ref={fileInputRef} type="file" accept=".jpg,.jpeg,.png,.pdf" className="hidden"
@@ -187,7 +200,7 @@ function BandingModal({ onClose, progressData }) {
             </button>
             <button type="submit" disabled={ajukanBanding.isPending || !agreed || alasan.length < 50 || !selectedKuisId}
               className="flex-1 py-3 rounded-2xl bg-[#00236F] text-white font-bold hover:bg-[#0B4FAE] transition-colors disabled:opacity-50 flex items-center justify-center gap-2">
-              {ajukanBanding.isPending ? <><Loader2 size={16} className="animate-spin" /> Mengirim...</> : 'Kirim Banding'}
+              {ajukanBanding.isPending ? <><span className="material-symbols-outlined animate-spin" style={{ fontSize: '16px' }} >sync</span> Mengirim...</> : 'Kirim Banding'}
             </button>
           </div>
         </form>
@@ -274,7 +287,7 @@ export default function KencanaPage() {
       >
         <div className="bg-gradient-to-r from-[#00236F] to-[#0B4FAE] p-4 md:p-5 text-white">
           <div className="flex items-center gap-2.5 mb-1">
-            <GraduationCap size={20} />
+            <span className="material-symbols-outlined" style={{ fontSize: '20px' }} >school</span>
             <h1 className="text-lg md:text-xl font-black font-headline tracking-wide uppercase">KENCANA — Program Pengenalan Kampus</h1>
           </div>
           <p className="text-[#dbe7ff] text-xs md:text-sm">Portal orientasi mahasiswa baru untuk memahami kampus, layanan, dan budaya akademik BKU.</p>
@@ -324,7 +337,7 @@ export default function KencanaPage() {
                 disabled={generateCertMutation.isPending}
                 className="flex items-center justify-center gap-2 bg-[#00236F] hover:bg-[#0B4FAE] text-white px-5 py-2.5 rounded-xl text-sm font-bold transition-colors disabled:opacity-70"
               >
-                {generateCertMutation.isPending ? <Loader2 size={18} className="animate-spin" /> : <Download size={18} />}
+                {generateCertMutation.isPending ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '18px' }} >sync</span> : <Download size={18} />}
                 {hasSertifikat ? 'Unduh Sertifikat' : 'Generate Sertifikat'}
               </button>
             ) : (
@@ -337,7 +350,7 @@ export default function KencanaPage() {
                 onClick={() => setShowBandingModal(true)}
                 className="flex items-center justify-center gap-2 bg-white border-2 border-[#e5e5e5] text-[#525252] hover:border-[#00236F] hover:text-[#00236F] px-5 py-2.5 rounded-xl text-sm font-bold transition-colors"
               >
-                <AlertCircle size={18} /> Ajukan Banding
+                <span className="material-symbols-outlined" style={{ fontSize: '18px' }} >error</span> Ajukan Banding
               </button>
             )}
           </div>
@@ -367,7 +380,7 @@ export default function KencanaPage() {
                   <h3 className="font-black text-[#171717] mb-1">{tahap.label}</h3>
                   {tahap.tanggal_mulai && (
                     <p className="text-xs text-[#a3a3a3] font-medium flex items-center gap-1 mb-3">
-                      <Clock size={11} />
+                      <span className="material-symbols-outlined" style={{ fontSize: '11px' }} >schedule</span>
                       {formatTanggal(tahap.tanggal_mulai, { day: 'numeric', month: 'short' })} — {formatTanggal(tahap.tanggal_selesai)}
                     </p>
                   )}
@@ -438,7 +451,7 @@ export default function KencanaPage() {
                               <span className={`flex items-center gap-1 text-xs font-bold px-2 py-1 rounded-lg ${
                                 materi.tipe === 'PDF' ? 'bg-red-50 text-red-600 border border-red-200' : 'bg-blue-50 text-blue-600 border border-blue-200'
                               }`}>
-                                {materi.tipe === 'PDF' ? <FileText size={12} /> : <PlayCircle size={12} />}
+                                {materi.tipe === 'PDF' ? <span className="material-symbols-outlined" style={{ fontSize: '12px' }} >description</span> : <PlayCircle size={12} />}
                                 {materi.tipe}
                               </span>
                             </div>
@@ -452,7 +465,7 @@ export default function KencanaPage() {
                               rel="noopener noreferrer"
                               className="inline-flex items-center gap-1.5 text-xs font-bold text-[#00236F] hover:underline"
                             >
-                              {materi.tipe === 'PDF' ? <FileText size={12} /> : <PlayCircle size={12} />}
+                              {materi.tipe === 'PDF' ? <span className="material-symbols-outlined" style={{ fontSize: '12px' }} >description</span> : <PlayCircle size={12} />}
                               Buka Materi
                             </a>
                           </div>
@@ -482,7 +495,7 @@ export default function KencanaPage() {
                               ) : kuis.status === 'lulus' ? (
                                 <div className="space-y-2">
                                   <div className="flex items-center gap-2 text-sm font-bold text-[#16a34a]">
-                                    <CheckCircle2 size={16} /> Lulus (Nilai: {kuis.nilai_terbaik.toFixed(0)})
+                                    <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >check_circle</span> Lulus (Nilai: {kuis.nilai_terbaik.toFixed(0)})
                                   </div>
                                   <button
                                     onClick={() => navigate(`/student/kencana/kuis/${kuis.kuis_id}`)}
@@ -495,7 +508,7 @@ export default function KencanaPage() {
                               ) : (
                                 <div className="space-y-2">
                                   <div className="flex items-center gap-2 text-sm font-bold text-[#dc2626]">
-                                    <XCircle size={16} /> Tidak Lulus (Nilai: {kuis.nilai_terbaik.toFixed(0)})
+                                    <span className="material-symbols-outlined" style={{ fontSize: '16px' }} Circle >close</span> Tidak Lulus (Nilai: {kuis.nilai_terbaik.toFixed(0)})
                                   </div>
                                   <button
                                     onClick={() => navigate(`/student/kencana/kuis/${kuis.kuis_id}`)}
@@ -535,7 +548,7 @@ export default function KencanaPage() {
         >
           <div className="flex items-start gap-4">
             <div className="w-10 h-10 rounded-xl bg-[#eef4ff] flex items-center justify-center shrink-0">
-              <AlertCircle size={18} className="text-[#00236F]" />
+              <span className="material-symbols-outlined text-[#00236F]" style={{ fontSize: '18px' }} >error</span>
             </div>
             <div className="flex-1">
               <h3 className="font-black text-[#171717] text-base md:text-lg mb-1">Pengajuan Banding</h3>
@@ -546,7 +559,7 @@ export default function KencanaPage() {
                 onClick={() => setShowBandingModal(true)}
                 className="inline-flex items-center gap-2 bg-[#00236F] hover:bg-[#0B4FAE] text-white px-4 py-2 rounded-xl font-bold text-sm transition-colors"
               >
-                <AlertCircle size={16} /> Ajukan Banding
+                <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >error</span> Ajukan Banding
               </button>
             </div>
           </div>
@@ -581,7 +594,7 @@ export default function KencanaPage() {
                 )}
                 {banding.status === 'diterima' && (
                   <div className="mt-3 p-3 bg-[#f0fdf4] rounded-xl border border-[#bbf7d0] text-sm text-[#16a34a] font-medium flex items-center gap-2">
-                    <CheckCheck size={16} /> Nilai kuis telah diperbarui. Nilai kumulatif ikut ter-update.
+                    <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >done_all</span> Nilai kuis telah diperbarui. Nilai kumulatif ikut ter-update.
                   </div>
                 )}
               </div>

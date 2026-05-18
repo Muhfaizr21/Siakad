@@ -1,56 +1,62 @@
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { useAuth } from '../../../context/AuthContext';
-import { ChevronRight, LogOut, LayoutDashboard, Users, UserPlus, UserCheck, CheckCircle2, HeartPulse, MessageSquare, Award, GraduationCap, CalendarDays, Inbox, FileSpreadsheet, Building2, School, Settings, BarChart3, Boxes, FileText } from 'lucide-react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import useAuthStore from '../../../store/useAuthStore';
+
 
 const menuSections = [
   {
     label: 'Overview',
     items: [
-      { name: 'Dashboard', path: '/faculty', icon: LayoutDashboard },
+      { name: 'Dashboard', path: '/faculty', icon: 'dashboard' },
     ]
   },
   {
     label: 'Academic Management',
     items: [
-      { name: 'Data Dosen', path: '/faculty/dosen', icon: UserCheck },
-      { name: 'Data Mahasiswa', path: '/faculty/mahasiswa', icon: Users },
-      { name: 'Mahasiswa Baru', path: '/faculty/mahasiswa/baru', icon: UserPlus },
-      { name: 'Monitor PKKMB', path: '/faculty/pkkmb', icon: CheckCircle2 },
-      { name: 'Pantau Kesehatan', path: '/faculty/kesehatan', icon: HeartPulse },
+      { name: 'Data Dosen', path: '/faculty/dosen', icon: 'how_to_reg' },
+      { name: 'Data Mahasiswa', path: '/faculty/mahasiswa', icon: 'group' },
+      { name: 'Mahasiswa Baru', path: '/faculty/mahasiswa/baru', icon: 'person_add' },
+      { name: 'Monitor PKKMB', path: '/faculty/pkkmb', icon: 'check_circle' },
+      { name: 'Pantau Kesehatan', path: '/faculty/kesehatan', icon: 'favorite' },
     ]
   },
   {
     label: 'Student Services',
     items: [
-      { name: 'Student Voice', path: '/faculty/aspirasi', icon: MessageSquare },
-      { name: 'Validasi Prestasi', path: '/faculty/prestasi', icon: Award },
-      { name: 'Beasiswa Internal', path: '/faculty/beasiswa', icon: GraduationCap },
-      { name: 'Jadwal Konseling', path: '/faculty/konseling', icon: CalendarDays },
-      { name: 'E-Persuratan', path: '/faculty/persuratan', icon: Inbox },
+      { name: 'Student Voice', path: '/faculty/aspirasi', icon: 'chat' },
+      { name: 'Validasi Prestasi', path: '/faculty/prestasi', icon: 'emoji_events' },
+      { name: 'Beasiswa Internal', path: '/faculty/beasiswa', icon: 'school' },
+      { name: 'Jadwal Konseling', path: '/faculty/konseling', icon: 'calendar_month' },
+      { name: 'E-Persuratan', path: '/faculty/persuratan', icon: 'inbox' },
     ]
   },
   {
     label: 'Community & Content',
     items: [
-      { name: 'Program Studi', path: '/faculty/prodi', icon: School },
-      { name: 'Proposal ORMAWA', path: '/faculty/ormawa/proposals', icon: FileSpreadsheet },
-      { name: 'Organisasi Fakultas', path: '/faculty/organisasi', icon: Building2 },
+      { name: 'Program Studi', path: '/faculty/prodi', icon: 'school' },
+      { name: 'Proposal ORMAWA', path: '/faculty/ormawa/proposals', icon: 'note' },
+      { name: 'Organisasi Fakultas', path: '/faculty/organisasi', icon: 'apartment' },
     ]
   },
   {
     label: 'System & Reports',
     items: [
-      { name: 'Periode Akademik', path: '/faculty/jadwal', icon: CalendarDays },
-      { name: 'Laporan Fakultas', path: '/faculty/laporan', icon: BarChart3 },
-      { name: 'Pengaturan', path: '/faculty/pengaturan', icon: Settings },
+      { name: 'Periode Akademik', path: '/faculty/jadwal', icon: 'calendar_month' },
+      { name: 'Laporan Fakultas', path: '/faculty/laporan', icon: 'bar_chart' },
+      { name: 'Pengaturan', path: '/faculty/pengaturan', icon: 'settings' },
     ]
   },
 ];
 
 const Sidebar = ({ isOpen, setIsOpen }) => {
   const location = useLocation();
-  const { logout } = useAuth();
+  const navigate = useNavigate();
+  const { logout } = useAuthStore();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
 
   // Find all items that match the current path
   const allItems = menuSections.flatMap(section => section.items);
@@ -120,7 +126,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
             onClick={() => setIsOpen(false)}
             className="lg:hidden w-9 h-9 rounded-xl bg-slate-50 hover:bg-slate-100 flex items-center justify-center text-slate-400 transition-colors"
           >
-            <ChevronRight className="size-4 rotate-180" />
+            <span className="material-symbols-outlined size-4 rotate-180" >chevron_right</span>
           </button>
         </div>
 
@@ -151,14 +157,14 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                         <div className="absolute left-[-1rem] w-1.5 h-6 bg-primary rounded-r-full" />
                       )}
                       
-                      <Icon className={`size-[18px] transition-all duration-300 ${active ? 'scale-110' : 'group-hover:scale-110 opacity-70 group-hover:opacity-100'}`} />
+                      <span className={`material-symbols-outlined size-[18px] transition-all duration-300 ${active ? 'scale-110' : 'group-hover:scale-110 opacity-70 group-hover:opacity-100'}`}>{item.icon}</span>
                       
                       <span className="text-[13px] tracking-tight flex-1">{item.name}</span>
                       
                       {active ? (
-                        <ChevronRight className="size-3 text-white/50" />
+                        <span className="material-symbols-outlined size-3 text-white/50" >chevron_right</span>
                       ) : (
-                        <ChevronRight className="size-3 text-slate-300 opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all duration-300" />
+                        <span className="material-symbols-outlined size-3 text-slate-300 opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all duration-300" >chevron_right</span>
                       )}
                     </Link>
                   );
@@ -171,10 +177,10 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
         {/* Improved Logout Section */}
         <div className="p-4 bg-white/80 backdrop-blur-xl border-t border-slate-100">
           <button
-            onClick={logout}
+            onClick={handleLogout}
             className="w-full h-12 flex items-center justify-center gap-3 rounded-2xl bg-rose-50 hover:bg-rose-600 group transition-all duration-300 active:scale-95 border border-rose-100/50"
           >
-            <LogOut className="size-4 text-rose-600 group-hover:text-white transition-colors" />
+            <span className="material-symbols-outlined size-4 text-rose-600 group-hover:text-white transition-colors" >logout</span>
             <span className="text-[11px] font-black text-rose-600 group-hover:text-white uppercase tracking-widest transition-colors">KELUAR</span>
           </button>
         </div>

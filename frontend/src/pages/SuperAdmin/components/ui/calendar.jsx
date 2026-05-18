@@ -1,15 +1,17 @@
 'use client'
 
 import React from 'react'
-import {
-  ChevronDownIcon,
-  ChevronLeftIcon,
-  ChevronRightIcon,
-} from 'lucide-react'
+
 import { DayButton, DayPicker, getDefaultClassNames } from 'react-day-picker'
 
 import { cn } from '@/lib/utils'
 import { Button, buttonVariants } from './button'
+
+// Auto-injected Material Symbol fallbacks for removed Lucide icons
+const ChevronLeftIcon = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>chevron_left</span>;
+const ChevronRightIcon = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>chevron_right</span>;
+
+
 
 function Calendar({
   className,
@@ -144,7 +146,7 @@ function Calendar({
           }
 
           return (
-            <ChevronDownIcon className={cn('size-4', className)} {...props} />
+            <span className="material-symbols-outlined" Icon className={cn('size-4', className)} {...props}>expand_more</span>
           )
         },
         DayButton: CalendarDayButton,

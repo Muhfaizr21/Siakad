@@ -5,22 +5,27 @@ import * as z from 'zod';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../../../lib/axios';
 import { toast } from 'react-hot-toast';
-import { 
-  ShieldCheck, 
-  KeyRound, 
-  Smartphone, 
-  History, 
-  LogOut, 
-  Eye, 
-  EyeOff, 
-  Monitor, 
-  Globe,
-  Loader2,
-  AlertCircle
-} from 'lucide-react';
+
 
 import { Input } from '../../../components/ui/Input';
 import { Label } from '../../../components/ui/Label';
+
+// Auto-injected Material Symbol fallbacks for removed Lucide icons
+const Smartphone = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>smartphone</span>;
+const LogOut = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>logout</span>;
+
+
+
+// Auto-injected Material Symbol fallbacks for removed Lucide icons
+const Monitor = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>desktop_windows</span>;
+
+
+
+// Auto-injected Material Symbol fallbacks for removed Lucide icons
+const KeyRound = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>vpn_key</span>;
+const History = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>history</span>;
+
+
 
 const passwordSchema = z.object({
   old_password: z.string().min(1, 'Password saat ini wajib diisi'),
@@ -113,7 +118,7 @@ export default function KeamananTab() {
                     {...register('old_password')} 
                   />
                   <button type="button" onClick={() => setShowOld(!showOld)} className="absolute right-4 top-1/2 -translate-y-1/2 text-[#a3a3a3]">
-                    {showOld ? <EyeOff size={18} /> : <Eye size={18} />}
+                    {showOld ? <span className="material-symbols-outlined" style={{ fontSize: '18px' }} Off >visibility</span> : <span className="material-symbols-outlined" style={{ fontSize: '18px' }} >visibility</span>}
                   </button>
                </div>
                {errors.old_password && <p className="text-xs font-bold text-[#0B4FAE]">{errors.old_password.message}</p>}
@@ -128,7 +133,7 @@ export default function KeamananTab() {
                     {...register('new_password')} 
                   />
                   <button type="button" onClick={() => setShowNew(!showNew)} className="absolute right-4 top-1/2 -translate-y-1/2 text-[#a3a3a3]">
-                    {showNew ? <EyeOff size={18} /> : <Eye size={18} />}
+                    {showNew ? <span className="material-symbols-outlined" style={{ fontSize: '18px' }} Off >visibility</span> : <span className="material-symbols-outlined" style={{ fontSize: '18px' }} >visibility</span>}
                   </button>
                </div>
                <div className="h-1.5 w-full bg-[#f5f5f5] rounded-full overflow-hidden mt-2">
@@ -155,7 +160,7 @@ export default function KeamananTab() {
                 disabled={passwordMutation.isPending}
                 className="bg-[#00236F] text-white py-3 px-8 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-[#0B4FAE] transition-all disabled:opacity-50"
                >
-                 {passwordMutation.isPending && <Loader2 className="animate-spin" size={18} />}
+                 {passwordMutation.isPending && <span className="material-symbols-outlined animate-spin" style={{ fontSize: '18px' }} >sync</span>}
                  Perbarui Password
                </button>
             </div>
@@ -187,7 +192,7 @@ export default function KeamananTab() {
                <div key={`session-${s.id ?? idx}-${s.device ?? 'unknown'}-${s.last_active ?? ''}`} className="flex items-center justify-between p-4 rounded-2xl border border-[#f5f5f5] hover:bg-[#fafafa] transition-all group">
                   <div className="flex items-center gap-4">
                      <div className="w-12 h-12 rounded-xl bg-white border border-[#e5e5e5] shadow-sm flex items-center justify-center text-[#525252]">
-                        {s.device.includes('iPhone') || s.device.includes('Android') ? <Smartphone size={24} /> : <Globe size={24} />}
+                        {s.device.includes('iPhone') || s.device.includes('Android') ? <Smartphone size={24} /> : <span className="material-symbols-outlined" style={{ fontSize: '24px' }} >language</span>}
                      </div>
                      <div>
                         <div className="flex items-center gap-2">

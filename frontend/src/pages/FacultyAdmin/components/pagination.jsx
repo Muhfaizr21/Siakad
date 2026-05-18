@@ -1,12 +1,15 @@
 import * as React from 'react'
-import {
-  ChevronLeftIcon,
-  ChevronRightIcon,
-  MoreHorizontalIcon,
-} from 'lucide-react'
+
 
 import { cn } from '@/lib/utils'
 import { Button, buttonVariants } from './button'
+
+// Auto-injected Material Symbol fallbacks for removed Lucide icons
+const ChevronLeftIcon = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>chevron_left</span>;
+const ChevronRightIcon = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>chevron_right</span>;
+const MoreHorizontalIcon = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>more_horiz</span>;
+
+
 
 function Pagination({ className, ...props }) {
   return (

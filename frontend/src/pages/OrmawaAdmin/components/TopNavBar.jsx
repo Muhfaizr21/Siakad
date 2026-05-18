@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { 
   Bell, Search, User, LogOut, Settings, 
   ChevronRight, Users, LayoutGrid,
-  Menu, Command, Calendar, ChevronDown, 
+  Menu, Calendar, ChevronDown, 
   FileText, Megaphone, HelpCircle, 
   ShieldCheck, Wallet, QrCode, ClipboardList
 } from 'lucide-react';
@@ -125,7 +125,7 @@ const TopNavBar = ({ setIsOpen }) => {
   };
 
   return (
-    <header className="fixed top-0 right-0 left-0 lg:left-72 z-[50] h-20 bg-white/70 backdrop-blur-xl border-b border-slate-200/50 flex items-center justify-between px-6 lg:px-10 font-sans transition-all duration-300">
+    <header className="fixed top-0 right-0 left-0 lg:left-64 z-[50] h-20 bg-white/70 backdrop-blur-xl border-b border-slate-100 flex items-center justify-between px-6 lg:px-10 font-sans transition-all duration-300">
       <div className="flex items-center gap-6 flex-1">
         {/* Mobile Toggle */}
         <button
@@ -137,7 +137,7 @@ const TopNavBar = ({ setIsOpen }) => {
 
         {/* Dynamic Breadcrumbs */}
         <nav className="hidden md:flex items-center gap-2 overflow-hidden">
-          <div className="p-2 rounded-lg bg-rose-50 text-rose-600">
+          <div className="p-2 rounded-lg bg-blue-50 text-primary border border-blue-100/50">
             <LayoutGrid className="size-4" />
           </div>
           <div className="flex items-center text-[10px] font-black tracking-tight uppercase font-headline">
@@ -155,7 +155,7 @@ const TopNavBar = ({ setIsOpen }) => {
                   ) : (
                     <Link
                       to={to}
-                      className="text-slate-400 hover:text-rose-600 transition-colors truncate max-w-[150px]"
+                      className="text-slate-400 hover:text-primary transition-colors truncate max-w-[150px]"
                     >
                       {getBreadcrumbLabel(value)}
                     </Link>
@@ -171,7 +171,7 @@ const TopNavBar = ({ setIsOpen }) => {
           <div className="relative w-full flex items-center">
             <Search className="absolute left-4 size-4 text-slate-400 stroke-[2.5px]" />
             <input
-              className="w-full h-11 pl-12 pr-12 bg-slate-50 border-transparent border focus:border-rose-200 focus:bg-white rounded-2xl text-[12px] font-bold text-slate-700 placeholder:text-slate-400 focus:ring-4 focus:ring-rose-50 transition-all outline-none"
+              className="w-full h-11 pl-12 pr-12 bg-slate-50/80 border border-slate-100 focus:border-blue-200 focus:bg-white rounded-2xl text-[12px] font-bold text-slate-700 placeholder:text-slate-400 focus:ring-4 focus:ring-blue-50/50 transition-all outline-none"
               placeholder="Cari menu ormawa..."
               type="text"
               value={searchQuery}
@@ -183,7 +183,10 @@ const TopNavBar = ({ setIsOpen }) => {
             />
             <div className="absolute right-4 flex items-center gap-1 opacity-40 group-focus-within:opacity-100 transition-opacity">
               <div className="px-1.5 py-0.5 rounded-md bg-white border border-slate-200 text-[9px] font-bold text-slate-500 shadow-sm flex items-center gap-1">
-                <Command className="size-2.5" />
+                {/* SVG alternative to avoid lucide Command clash */}
+                <svg className="size-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 9l6 6m0-6l-6 6" />
+                </svg>
                 <span>/</span>
               </div>
             </div>
@@ -203,7 +206,7 @@ const TopNavBar = ({ setIsOpen }) => {
                       onClick={() => handleNavigate(page.path)}
                       className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 cursor-pointer transition-all group"
                     >
-                      <div className="p-2 rounded-lg bg-rose-50 text-rose-600 group-hover:bg-rose-600 group-hover:text-white transition-colors">
+                      <div className="p-2 rounded-lg bg-blue-50 text-primary group-hover:bg-primary group-hover:text-white transition-colors border border-blue-100/50">
                         <page.icon className="size-4" />
                       </div>
                       <span className="text-sm font-bold text-slate-700">{page.name}</span>
@@ -223,10 +226,10 @@ const TopNavBar = ({ setIsOpen }) => {
       <div className="flex items-center gap-3 lg:gap-5">
         {/* Quick Notification Tray */}
         <div className="flex items-center gap-1 bg-slate-50 p-1 rounded-2xl border border-slate-100/50">
-          <div className="relative p-2.5 rounded-xl hover:bg-white text-slate-500 hover:text-rose-600 transition-all hover:shadow-sm group cursor-pointer">
+          <div className="relative p-2.5 rounded-xl hover:bg-white text-slate-500 hover:text-primary transition-all hover:shadow-sm group cursor-pointer">
             <Bell className="size-5 active:scale-95 transition-transform" />
             {stats.unreadNotifications > 0 && (
-              <span className="absolute top-1 right-1 w-4 h-4 bg-rose-500 text-white text-[8px] font-black flex items-center justify-center rounded-full border-2 border-white ring-2 ring-rose-500/20 animate-pulse">
+              <span className="absolute top-1 right-1 w-4 h-4 bg-primary text-white text-[8px] font-black flex items-center justify-center rounded-full border-2 border-white ring-2 ring-blue-500/20 animate-pulse">
                 {stats.unreadNotifications}
               </span>
             )}
@@ -236,7 +239,7 @@ const TopNavBar = ({ setIsOpen }) => {
               <div className="flex justify-between items-center mb-5">
                 <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Pemberitahuan</h4>
                 {stats.unreadNotifications > 0 && (
-                  <Badge className="bg-rose-50 text-rose-600 border-none font-black text-[9px] px-2 py-0.5">
+                  <Badge className="bg-blue-50 text-primary border-none font-black text-[9px] px-2 py-0.5">
                     {stats.unreadNotifications} BARU
                   </Badge>
                 )}
@@ -253,7 +256,7 @@ const TopNavBar = ({ setIsOpen }) => {
                 </div>
 
                 <div className="flex gap-4 items-center p-3 rounded-2xl hover:bg-slate-50 transition-colors cursor-pointer group/item" onClick={() => navigate('/ormawa/aspirasi')}>
-                  <div className="p-2.5 rounded-xl bg-blue-50 text-blue-600 group-hover/item:bg-blue-100 transition-colors">
+                  <div className="p-2.5 rounded-xl bg-blue-50 text-primary group-hover/item:bg-blue-100 transition-colors">
                     <Megaphone className="size-4" />
                   </div>
                   <div className="flex flex-col overflow-hidden">
@@ -263,7 +266,7 @@ const TopNavBar = ({ setIsOpen }) => {
                 </div>
               </div>
 
-              <Button onClick={() => navigate('/ormawa/notifikasi')} variant="ghost" className="w-full mt-6 h-11 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-all">
+              <Button onClick={() => navigate('/ormawa/notifikasi')} variant="ghost" className="w-full mt-6 h-11 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-primary hover:bg-blue-50/50 transition-all">
                 Pusat Informasi Lengkap
               </Button>
             </div>
@@ -276,12 +279,12 @@ const TopNavBar = ({ setIsOpen }) => {
         <div className="flex items-center gap-3 lg:gap-4 pl-2 border-l border-slate-100">
           <div className="hidden sm:flex flex-col items-end">
             <div className="flex items-center gap-2">
-              <span className="text-[9px] font-black bg-rose-50 text-rose-600 px-2 py-0.5 rounded-full uppercase tracking-widest">
+              <span className="text-[9px] font-black bg-blue-50 text-primary px-2 py-0.5 rounded-full uppercase tracking-widest border border-blue-100/50">
                 {ormawaInfo?.Singkatan || ormawaInfo?.Kategori || "ORMAWA"}
               </span>
               <p className="text-[12px] font-black text-slate-900 leading-none">{user?.Email?.split('@')[0] || "Admin"}</p>
             </div>
-            <p className="text-[10px] font-bold text-rose-600 mt-1 leading-none uppercase tracking-tighter">
+            <p className="text-[10px] font-bold text-primary mt-1 leading-none uppercase tracking-tighter">
               {ormawaInfo?.Nama || "Administrator"}
             </p>
           </div>
@@ -289,7 +292,7 @@ const TopNavBar = ({ setIsOpen }) => {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <div className="flex items-center gap-2 cursor-pointer group hover:bg-slate-50 p-1 rounded-full transition-all outline-none">
-                <div className="h-10 w-10 rounded-2xl bg-slate-900 text-white flex items-center justify-center font-bold shadow-lg shadow-slate-900/10 group-hover:scale-105 transition-transform">
+                <div className="h-10 w-10 rounded-2xl bg-primary text-white flex items-center justify-center font-bold shadow-lg shadow-blue-900/10 group-hover:scale-105 transition-transform">
                   {ormawaInfo?.Singkatan?.[0] || user?.Email?.[0]?.toUpperCase() || 'O'}
                 </div>
                 <ChevronDown className="size-3 text-slate-400 group-hover:text-slate-900 transition-colors" />
@@ -299,7 +302,7 @@ const TopNavBar = ({ setIsOpen }) => {
               <DropdownMenuLabel className="p-2 mb-2">
                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Organization Profile</p>
                 <div className="flex items-center gap-3">
-                   <div className="p-2 rounded-xl bg-rose-50 text-rose-600">
+                   <div className="p-2 rounded-xl bg-blue-50 text-primary">
                       <Users className="size-4" />
                    </div>
                    <div className="flex flex-col overflow-hidden">
@@ -312,7 +315,7 @@ const TopNavBar = ({ setIsOpen }) => {
               <DropdownMenuSeparator className="my-2 bg-slate-50" />
               
               <DropdownMenuItem onClick={() => navigate('/ormawa/pengaturan')} className="rounded-2xl p-3 focus:bg-slate-50 group cursor-pointer transition-all">
-                <Settings className="mr-3 size-4 text-slate-400 group-hover:text-rose-600 transition-colors" />
+                <Settings className="mr-3 size-4 text-slate-400 group-hover:text-primary transition-colors" />
                 <span className="text-[12px] font-black text-slate-600 group-hover:text-slate-900 transition-colors">Pengaturan Profil</span>
               </DropdownMenuItem>
 

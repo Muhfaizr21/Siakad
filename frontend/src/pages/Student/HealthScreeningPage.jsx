@@ -1,26 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import {
-  Stethoscope,
-  ChevronRight,
-  Activity,
-  Droplets,
-  Heart,
-  User,
-  Clock,
-  X,
-  Info,
-  FileText,
-  ShieldCheck,
-  TrendingUp,
-  Scale,
-  ArrowRight,
-  Plus,
-  Calendar,
-  AlertCircle,
-  CheckCircle2,
-  Bookmark,
-  Thermometer,
-} from 'lucide-react';
+
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   AreaChart,
@@ -42,6 +21,27 @@ import { Skeleton } from '../../components/ui/Skeleton';
 import toast from 'react-hot-toast';
 import { NavLink } from 'react-router-dom';
 import HealthCharacter from '../../components/health/HealthCharacter';
+
+// Auto-injected Material Symbol fallbacks for removed Lucide icons
+const Scale = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>scale</span>;
+const Droplets = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>water_drop</span>;
+const Thermometer = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>thermometer</span>;
+const Bookmark = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>bookmark</span>;
+
+
+
+// Auto-injected Material Symbol fallbacks for removed Lucide icons
+const Info = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>info</span>;
+
+
+
+// Auto-injected Material Symbol fallbacks for removed Lucide icons
+const ChevronRight = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>chevron_right</span>;
+const Stethoscope = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>medical_services</span>;
+const Heart = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>favorite</span>;
+const User = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>person</span>;
+
+
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 const getBMICategory = (bmi) => {
@@ -207,7 +207,7 @@ export default function HealthScreeningPage() {
             onClick={() => setIsInputOpen(true)}
             className="flex items-center gap-2 px-4 py-2.5 bg-[#00236F] text-white font-semibold rounded-xl hover:bg-[#0B4FAE] transition-all text-sm shadow-md shadow-[#00236F]/20"
           >
-            <Plus size={16} strokeWidth={2.5} /> Input Data Mandiri
+            <span className="material-symbols-outlined" style={{ fontSize: '16px' }}  strokeWidth={2.5}>add</span> Input Data Mandiri
           </button>
         </div>
 
@@ -222,7 +222,7 @@ export default function HealthScreeningPage() {
               <div className="px-5 py-4 border-b border-neutral-100 flex items-center justify-between bg-white bg-opacity-50">
                 <div className="flex items-center gap-3">
                   <div className={`flex items-center justify-center p-2 rounded-xl text-white shadow-md ${statusInfo.iconBg}`}>
-                    <Clock size={16} />
+                    <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >schedule</span>
                   </div>
                   <div>
                     <h3 className="text-sm font-bold text-[#171717] tracking-tight">Kondisi Terakhir</h3>
@@ -232,15 +232,15 @@ export default function HealthScreeningPage() {
                   </div>
                 </div>
                 <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 border border-emerald-100 text-emerald-600 shadow-sm">
-                  <ShieldCheck size={14} />
+                  <span className="material-symbols-outlined" style={{ fontSize: '14px' }} Check >security</span>
                   <span className="text-[10px] font-bold uppercase tracking-wider">Tervalidasi BKU</span>
                 </div>
               </div>
 
               <div className="p-5 grid grid-cols-2 md:grid-cols-4 gap-4 bg-neutral-50/50">
-                <StatItem label="Tinggi" value={terbaru.tinggi_badan} unit="cm" icon={<TrendingUp size={16} />} colorClass="text-blue-600" bgClass="bg-blue-100" />
+                <StatItem label="Tinggi" value={terbaru.tinggi_badan} unit="cm" icon={<span className="material-symbols-outlined" style={{ fontSize: '16px' }} >trending_up</span>} colorClass="text-blue-600" bgClass="bg-blue-100" />
                 <StatItem label="Berat" value={terbaru.berat_badan} unit="kg" icon={<Scale size={16} />} colorClass="text-emerald-600" bgClass="bg-emerald-100" />
-                <StatItem label="Tensi" value={`${terbaru.sistolik}/${terbaru.diastolik}`} unit="mmHg" icon={<Activity size={16} />} colorClass="text-rose-600" bgClass="bg-rose-100" />
+                <StatItem label="Tensi" value={`${terbaru.sistolik}/${terbaru.diastolik}`} unit="mmHg" icon={<span className="material-symbols-outlined" style={{ fontSize: '16px' }} >show_chart</span>} colorClass="text-rose-600" bgClass="bg-rose-100" />
                 <StatItem label="Gol. Darah" value={terbaru.golongan_darah || '–'} unit="Tipe" icon={<Droplets size={16} />} colorClass="text-red-600" bgClass="bg-red-100" />
               </div>
 
@@ -292,7 +292,7 @@ export default function HealthScreeningPage() {
                   <span className="text-sm font-semibold text-neutral-400">BMI</span>
                 </div>
                 <span className={`inline-flex items-center gap-1.5 text-sm font-bold ${bmiCat.color}`}>
-                  {bmiCat.label} <ArrowRight size={14} />
+                  {bmiCat.label} <span className="material-symbols-outlined" style={{ fontSize: '14px' }} >arrow_forward</span>
                 </span>
               </div>
 
@@ -347,7 +347,7 @@ export default function HealthScreeningPage() {
                   <p className="text-sm font-bold text-[#00236F]">{terbaru?.berat_badan || '--'} kg</p>
                 </div>
                 <div className="p-2 bg-blue-50 rounded-xl text-[#00236F] border border-blue-100">
-                  <TrendingUp size={16} />
+                  <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >trending_up</span>
                 </div>
               </div>
             </div>
@@ -362,7 +362,7 @@ export default function HealthScreeningPage() {
                       </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="4 4" vertical={false} stroke="#f1f1f1" />
-                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 600, fill: '#a3a3a3' }} dy={10} />
+                    <span className="material-symbols-outlined" Axis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 600, fill: '#a3a3a3' }} dy={10}>close</span>
                     <YAxis hide domain={['dataMin - 5', 'dataMax + 5']} />
                     <Tooltip
                       cursor={{ stroke: '#0B4FAE', strokeWidth: 1, strokeDasharray: '4 4' }}
@@ -385,7 +385,7 @@ export default function HealthScreeningPage() {
             <div className="relative z-10">
               <div className="flex items-center gap-3 mb-5">
                 <div className="w-8 h-8 rounded-xl bg-white/10 flex items-center justify-center border border-white/10">
-                  <Activity size={16} className="text-blue-200" />
+                  <span className="material-symbols-outlined text-blue-200" style={{ fontSize: '16px' }} >show_chart</span>
                 </div>
                 <h3 className="text-sm font-bold tracking-wide">Tensi Referensi</h3>
               </div>
@@ -497,7 +497,7 @@ export default function HealthScreeningPage() {
                             <div className="flex items-center gap-1">
                               {rec.sumber === 'mandiri'
                                 ? <User size={11} className="text-neutral-400" />
-                                : <ShieldCheck size={11} className="text-[#00236F]" />
+                                : <span className="material-symbols-outlined text-[#00236F]" style={{ fontSize: '11px' }} Check >security</span>
                               }
                               <span className="text-[10px] font-bold text-[#171717] uppercase">{rec.sumber.replace(/_/g, ' ')}</span>
                             </div>
@@ -550,10 +550,10 @@ export default function HealthScreeningPage() {
                 <span className="bg-white/10 px-3 py-1.5 rounded-lg text-[11px] font-semibold border border-white/10">0812-BKU-MEDIC</span>
               </div>
               <button className="flex items-center gap-2 px-4 py-2.5 bg-white text-[#00236F] text-sm font-bold rounded-xl hover:bg-blue-50 transition-all">
-                Reservasi Konsul <ArrowRight size={16} />
+                Reservasi Konsul <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >arrow_forward</span>
               </button>
             </div>
-            <Activity size={240} className="absolute right-[-80px] bottom-[-80px] text-white opacity-[0.04] pointer-events-none" />
+            <span className="material-symbols-outlined absolute right-[-80px] bottom-[-80px] text-white opacity-[0.04] pointer-events-none" style={{ fontSize: '240px' }} >show_chart</span>
           </div>
 
           {/* Privacy Info */}
@@ -561,7 +561,7 @@ export default function HealthScreeningPage() {
             <div>
               <div className="flex items-center gap-3 mb-4">
                 <div className="p-2 bg-blue-50 rounded-xl text-[#00236F] border border-blue-100">
-                  <ShieldCheck size={18} />
+                  <span className="material-symbols-outlined" style={{ fontSize: '18px' }} Check >security</span>
                 </div>
                 <h4 className="text-base font-bold tracking-tight">Kerahasiaan Rekam Medis</h4>
               </div>
@@ -569,7 +569,7 @@ export default function HealthScreeningPage() {
                 BKU Student Hub menjaga 100% privasi data kesehatan Anda. Riwayat medis hanya dapat diakses oleh Anda dan tenaga medis universitas bersertifikasi untuk keperluan klinis resmi.
               </p>
               <div className="p-3 bg-neutral-50 rounded-xl border border-neutral-100 flex items-start gap-2">
-                <AlertCircle size={14} className="text-[#0B4FAE] shrink-0 mt-0.5" />
+                <span className="material-symbols-outlined text-[#0B4FAE] shrink-0 mt-0.5" style={{ fontSize: '14px' }} >error</span>
                 <p className="text-[11px] text-neutral-400 leading-relaxed">
                   Data mandiri digunakan sebagai referensi awal, bukan hasil diagnosis medis final.
                 </p>
@@ -577,7 +577,7 @@ export default function HealthScreeningPage() {
             </div>
             <div className="mt-4 pt-4 border-t border-neutral-50 flex items-center justify-between text-neutral-300">
               <div className="flex items-center gap-2">
-                <Clock size={14} />
+                <span className="material-symbols-outlined" style={{ fontSize: '14px' }} >schedule</span>
                 <span className="text-[11px] font-semibold uppercase tracking-wider">Verified System 2026</span>
               </div>
               <div className="w-8 h-1 bg-neutral-100 rounded-full" />
@@ -661,7 +661,7 @@ function EmptyHealthState({ onOpen }) {
         onClick={onOpen}
         className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#00236F] text-white text-sm font-bold rounded-xl hover:bg-[#0B4FAE] transition-all"
       >
-        <Plus size={16} strokeWidth={2.5} /> Input Sekarang
+        <span className="material-symbols-outlined" style={{ fontSize: '16px' }}  strokeWidth={2.5}>add</span> Input Sekarang
       </button>
     </motion.div>
   );
@@ -701,7 +701,7 @@ function InputModal({ onClose, onSubmit, isLoading }) {
           <div>
             <div className="flex items-center gap-2 mb-6">
               <div className="w-8 h-8 rounded-xl bg-white/15 flex items-center justify-center">
-                <Activity size={16} />
+                <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >show_chart</span>
               </div>
               <h2 className="text-sm font-bold uppercase tracking-wider">Live Analytics</h2>
             </div>
@@ -761,23 +761,23 @@ function InputModal({ onClose, onSubmit, isLoading }) {
               onClick={onClose}
               className="w-8 h-8 rounded-xl bg-neutral-50 border border-neutral-200 flex items-center justify-center text-neutral-400 hover:text-[#00236F] hover:border-[#00236F] transition-all"
             >
-              <X size={16} />
+              <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >close</span>
             </button>
           </div>
 
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
-              <InputField label="Tinggi Badan" unit="cm"   value={formData.tinggi_badan} onChange={v => setFormData(p => ({ ...p, tinggi_badan: v }))} icon={<TrendingUp size={13}/>} placeholder="170" />
+              <InputField label="Tinggi Badan" unit="cm"   value={formData.tinggi_badan} onChange={v => setFormData(p => ({ ...p, tinggi_badan: v }))} icon={<span className="material-symbols-outlined" style={{ fontSize: '13px' }} >trending_up</span>} placeholder="170" />
               <InputField label="Berat Badan"  unit="kg"   value={formData.berat_badan}  onChange={v => setFormData(p => ({ ...p, berat_badan:  v }))} icon={<Scale size={13}/>}      placeholder="65"  />
             </div>
             <div className="grid grid-cols-2 gap-4">
-              <InputField label="Tensi Sistolik"  unit="mmHg" value={formData.sistolik}  onChange={v => setFormData(p => ({ ...p, sistolik:  v }))} icon={<Activity size={13}/>} placeholder="120" />
-              <InputField label="Tensi Diastolik" unit="mmHg" value={formData.diastolik} onChange={v => setFormData(p => ({ ...p, diastolik: v }))} icon={<Activity size={13}/>} placeholder="80"  />
+              <InputField label="Tensi Sistolik"  unit="mmHg" value={formData.sistolik}  onChange={v => setFormData(p => ({ ...p, sistolik:  v }))} icon={<span className="material-symbols-outlined" style={{ fontSize: '13px' }} >show_chart</span>} placeholder="120" />
+              <InputField label="Tensi Diastolik" unit="mmHg" value={formData.diastolik} onChange={v => setFormData(p => ({ ...p, diastolik: v }))} icon={<span className="material-symbols-outlined" style={{ fontSize: '13px' }} >show_chart</span>} placeholder="80"  />
             </div>
 
             <div>
               <label className="text-[10px] font-bold text-[#171717] uppercase tracking-wider flex items-center gap-1.5 mb-1.5">
-                <Calendar size={12} className="text-[#00236F]" /> Tanggal Pengukuran
+                <span className="material-symbols-outlined text-[#00236F]" style={{ fontSize: '12px' }} >calendar_month</span> Tanggal Pengukuran
               </label>
               <input
                 type="date"
@@ -789,7 +789,7 @@ function InputModal({ onClose, onSubmit, isLoading }) {
 
             <div>
               <label className="text-[10px] font-bold text-[#171717] uppercase tracking-wider flex items-center gap-1.5 mb-1.5">
-                <FileText size={12} className="text-[#00236F]" /> Keluhan / Catatan (Opsional)
+                <span className="material-symbols-outlined text-[#00236F]" style={{ fontSize: '12px' }} >description</span> Keluhan / Catatan (Opsional)
               </label>
               <textarea
                 rows={3}
@@ -822,7 +822,7 @@ function InputModal({ onClose, onSubmit, isLoading }) {
             >
               {isLoading
                 ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                : <><CheckCircle2 size={16} /> Simpan Rekam Medis</>
+                : <><span className="material-symbols-outlined" style={{ fontSize: '16px' }} >check_circle</span> Simpan Rekam Medis</>
               }
             </button>
           </div>
@@ -868,7 +868,7 @@ function DetailModal({ record, isLoading, onClose }) {
               onClick={onClose}
               className="w-8 h-8 rounded-xl bg-neutral-50 border border-neutral-200 flex items-center justify-center text-neutral-400 hover:text-[#00236F] transition-all"
             >
-              <X size={16} />
+              <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >close</span>
             </button>
           </div>
           <div className="space-y-3">
@@ -904,12 +904,12 @@ function DetailModal({ record, isLoading, onClose }) {
               onClick={onClose}
               className="w-8 h-8 rounded-xl bg-white/70 flex items-center justify-center text-neutral-400 hover:text-[#00236F] transition-all"
             >
-              <X size={16} />
+              <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >close</span>
             </button>
           </div>
           <h2 className="text-lg font-bold text-[#171717]">Rekam Medis</h2>
           <p className="text-xs text-neutral-500 flex items-center gap-1.5 mt-0.5">
-            <Calendar size={12} className="text-[#00236F]" />
+            <span className="material-symbols-outlined text-[#00236F]" style={{ fontSize: '12px' }} >calendar_month</span>
             {fmt(record.tanggal_periksa, { day: 'numeric', month: 'long', year: 'numeric' })}
           </p>
         </div>
@@ -943,7 +943,7 @@ function DetailModal({ record, isLoading, onClose }) {
             {record.catatan_medis && (
               <div className="p-3.5 bg-blue-50 rounded-xl border border-blue-100">
                 <p className="text-[10px] font-bold text-blue-500 uppercase tracking-wider flex items-center gap-1.5 mb-2">
-                  <AlertCircle size={11} /> Analisis & Saran Medis
+                  <span className="material-symbols-outlined" style={{ fontSize: '11px' }} >error</span> Analisis & Saran Medis
                 </p>
                 <p className="text-sm font-semibold text-blue-800 leading-relaxed">{record.catatan_medis}</p>
               </div>

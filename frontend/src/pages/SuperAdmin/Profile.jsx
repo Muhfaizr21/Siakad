@@ -1,296 +1,360 @@
-import React, { useState, useEffect } from 'react';
-import { 
-    User, Mail, KeyRound, Save, Loader2, 
-    ShieldCheck, Bell, Activity, Clock, ShieldAlert,
-    ChevronRight, Camera, UserCircle2
-} from 'lucide-react';
-import api from '../../lib/axios';
-import { toast, Toaster } from 'react-hot-toast';
-import useAuthStore from '../../store/useAuthStore';
+"use client"
+
+import React, { useState, useEffect } from 'react'
+
+import api from '../../lib/axios'
+import { toast, Toaster } from 'react-hot-toast'
+import useAuthStore from '../../store/useAuthStore'
+import { cn } from '@/lib/utils'
+import { Card, CardContent } from './components/ui/card'
+import { Button } from './components/ui/button'
+import { Input } from './components/ui/input'
+import { Label } from './components/ui/label'
+import { Avatar, AvatarFallback } from './components/ui/avatar'
+
+// Auto-injected Material Symbol fallbacks for removed Lucide icons
+const Camera = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>photo_camera</span>;
+const Badge = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>verified</span>;
+const Smartphone = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>smartphone</span>;
+
+
+
+// Auto-injected Material Symbol fallbacks for removed Lucide icons
+const ChevronRight = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>chevron_right</span>;
+const User = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>person</span>;
+const Lock = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>lock</span>;
+const KeyRound = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>vpn_key</span>;
+const Zap = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>bolt</span>;
+
+
+
+// Auto-injected Material Symbol fallbacks for removed Lucide icons
+const Activity = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>show_chart</span>;
+const Bell = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>notifications</span>;
+
+
 
 const AdminProfile = () => {
-    const { user: authUser } = useAuthStore();
-    const [loading, setLoading] = useState(true);
-    const [submitting, setSubmitting] = useState(false);
-    const [profile, setProfile] = useState({ Email: '' });
+    const { user: authUser } = useAuthStore()
+    const [loading, setLoading] = useState(true)
+    const [submitting, setSubmitting] = useState(false)
+    const [profile, setProfile] = useState({ Email: '' })
     const [passwords, setPasswords] = useState({
         OldPassword: '',
         NewPassword: '',
         ConfirmPassword: ''
-    });
+    })
 
     useEffect(() => {
         const fetchProfile = async () => {
             try {
-                const res = await api.get('/admin/profile');
+                const res = await api.get('/admin/profile')
                 if (res.data.status === 'success') {
-                    setProfile(res.data.data);
+                    setProfile(res.data.data)
                 }
             } catch (err) {
-                toast.error('Gagal memuat profil admin');
+                toast.error('Gagal memuat profil administratif')
             } finally {
-                setLoading(false);
+                setLoading(false)
             }
-        };
-        fetchProfile();
-    }, []);
+        }
+        fetchProfile()
+    }, [])
 
     const handleUpdateProfile = async (e) => {
-        e.preventDefault();
-        setSubmitting(true);
+        if (e) e.preventDefault()
+        setSubmitting(true)
         try {
-            const res = await api.put('/admin/profile', { Email: profile.Email });
+            const res = await api.put('/admin/profile', { Email: profile.Email })
             if (res.data.status === 'success') {
-                toast.success('Profil berhasil diperbarui');
+                toast.success('Profil administratif berhasil diperbarui')
             }
         } catch (err) {
-            toast.error(err.response?.data?.message || 'Gagal memperbarui profil');
+            toast.error(err.response?.data?.message || 'Gagal memperbarui profil')
         } finally {
-            setSubmitting(false);
+            setSubmitting(false)
         }
-    };
+    }
 
     const handleChangePassword = async (e) => {
-        e.preventDefault();
+        if (e) e.preventDefault()
         if (passwords.NewPassword !== passwords.ConfirmPassword) {
-            toast.error('Konfirmasi password baru tidak cocok');
-            return;
+            toast.error('Konfirmasi password baru tidak sesuai')
+            return
         }
-        setSubmitting(true);
+        setSubmitting(true)
         try {
             const res = await api.put('/admin/profile', {
                 OldPassword: passwords.OldPassword,
                 NewPassword: passwords.NewPassword
-            });
+            })
             if (res.data.status === 'success') {
-                toast.success('Password berhasil diperbarui');
-                setPasswords({ OldPassword: '', NewPassword: '', ConfirmPassword: '' });
+                toast.success('Kredensial keamanan berhasil diperbarui')
+                setPasswords({ OldPassword: '', NewPassword: '', ConfirmPassword: '' })
             }
         } catch (err) {
-            toast.error(err.response?.data?.message || 'Gagal memperbarui password');
+            toast.error(err.response?.data?.message || 'Gagal memperbarui kredensial')
         } finally {
-            setSubmitting(false);
+            setSubmitting(false)
         }
-    };
+    }
 
     if (loading) {
         return (
-            <div className="flex items-center justify-center min-h-screen bg-slate-50">
-                <Loader2 className="size-10 text-[#00236f] animate-spin" />
+            <div className="flex items-center justify-center min-h-screen bg-[#fafafa]">
+                <div className="flex flex-col items-center gap-4">
+                    <span className="material-symbols-outlined size-10 text-primary animate-spin" >sync</span>
+                    <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest">Loading Personal Node...</span>
+                </div>
             </div>
-        );
+        )
     }
 
     return (
-        <div className="p-4 md:p-8 lg:p-12 space-y-10 max-w-6xl mx-auto w-full">
-                    {/* Breadcrumbs */}
-                    <div className="flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-slate-400">
-                        <span className="hover:text-[#00236f] transition-colors cursor-pointer">Super Admin Hub</span>
-                        <ChevronRight className="size-3" />
-                        <span className="text-slate-900">Administrator Profile</span>
+        <div className="px-4 py-8 md:px-8 xl:px-12 min-h-screen bg-[#fafafa] font-body">
+            <Toaster position="top-right" />
+            
+            <div className="max-w-[1400px] mx-auto space-y-10">
+                
+                {/* ── Breadcrumbs & Navigation ─────────────────────────── */}
+                <nav className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-400 font-jakarta">
+                    <span className="hover:text-primary transition-colors cursor-pointer">Super Admin Hub</span>
+                    <ChevronRight size={10} className="text-neutral-300" />
+                    <span className="text-neutral-900">Administrator Profile</span>
+                </nav>
+
+                {/* ── Profile Header ──────────────────────────────────────── */}
+                <Card className="bg-neutral-900 border-none shadow-2xl rounded-xl overflow-hidden relative group">
+                    <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-transparent pointer-events-none" />
+                    <div className="absolute top-0 right-0 p-12 opacity-5 text-white group-hover:rotate-12 transition-transform duration-700 pointer-events-none">
+                        <span className="material-symbols-outlined" style={{ fontSize: '200px' }} Check >security</span>
                     </div>
 
-                    {/* Header Card */}
-                    <div className="bg-slate-900 rounded-[3rem] p-10 text-white relative overflow-hidden shadow-2xl shadow-slate-900/20">
-                        <div className="absolute top-0 right-0 p-12 opacity-10 rotate-12 transition-transform duration-700 hover:rotate-0">
-                            <ShieldCheck className="size-48" />
+                    <CardContent className="p-8 md:p-12 relative z-10 flex flex-col md:flex-row gap-10 items-center md:items-start text-center md:text-left">
+                        <div className="relative group/avatar">
+                            <Avatar className="size-32 rounded-2xl border-4 border-white/10 shadow-2xl bg-gradient-to-br from-primary to-indigo-700 flex items-center justify-center text-white text-5xl font-bold font-jakarta">
+                                {profile.Email?.[0]?.toUpperCase() || <User size={40} />}
+                            </Avatar>
+                            <Button size="icon" className="absolute -bottom-2 -right-2 h-10 w-10 bg-white text-neutral-900 rounded-xl shadow-lg hover:bg-primary hover:text-white transition-all opacity-0 group-hover/avatar:opacity-100 translate-y-2 group-hover/avatar:translate-y-0 border-none">
+                                <Camera size={18} />
+                            </Button>
                         </div>
-                        
-                        <div className="relative z-10 flex flex-col md:flex-row gap-8 items-center md:items-start text-center md:text-left">
-                            <div className="relative group">
-                                <div className="size-28 rounded-[2rem] bg-gradient-to-br from-indigo-500 to-[#00236f] flex items-center justify-center text-4xl font-black shadow-2xl border-4 border-white/10 group-hover:scale-105 transition-all duration-500">
-                                    {profile.Email?.[0]?.toUpperCase() || <UserCircle2 className="size-12" />}
+
+                        <div className="space-y-6 pt-2">
+                            <div className="space-y-2">
+                                <div className="flex flex-col md:flex-row items-center md:items-start gap-3">
+                                    <h1 className="text-4xl font-bold text-white font-jakarta tracking-tighter uppercase leading-none">
+                                        {profile.Email?.split('@')[0] || 'Super Administrator'}
+                                    </h1>
+                                    <Badge className="px-3 py-1 bg-primary/20 text-primary border-primary/20 text-[9px] font-bold uppercase tracking-widest rounded-lg">Root Authority</Badge>
                                 </div>
-                                <button className="absolute -bottom-2 -right-2 p-2 bg-white text-[#00236f] rounded-xl shadow-lg hover:bg-slate-50 transition-all opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 duration-300">
-                                    <Camera className="size-4" />
-                                </button>
-                            </div>
-                            
-                            <div className="space-y-4 pt-2">
-                                <div className="space-y-1">
-                                    <div className="flex items-center justify-center md:justify-start gap-3 flex-wrap">
-                                        <h1 className="text-3xl font-black font-headline tracking-tighter uppercase">{profile.Email?.split('@')[0] || 'Super Administrator'}</h1>
-                                        <span className="px-3 py-1 bg-white/10 rounded-full text-[9px] font-black uppercase tracking-[0.2em] border border-white/20 backdrop-blur-sm">Root Authority</span>
+                                <div className="flex items-center justify-center md:justify-start gap-4 text-neutral-400">
+                                    <div className="flex items-center gap-1.5">
+                                        <span className="material-symbols-outlined text-neutral-500" style={{ fontSize: '14px' }} >mail</span>
+                                        <span className="text-sm font-medium font-inter">{profile.Email}</span>
                                     </div>
-                                    <p className="text-slate-400 text-sm font-medium tracking-tight flex items-center justify-center md:justify-start gap-2">
-                                        <Mail className="size-4 opacity-50" /> {profile.Email}
-                                    </p>
-                                </div>
-                                
-                                <div className="flex items-center justify-center md:justify-start gap-6 border-t border-white/10 pt-4 mt-2 flex-wrap">
-                                    <div className="flex items-center gap-2">
-                                        <div className="size-2 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_10px_rgba(16,185,129,0.5)]" />
-                                        <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Session Active</span>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <Clock className="size-3 text-slate-400" />
-                                        <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Registered {new Date(profile.CreatedAt).getFullYear()}</span>
+                                    <div className="size-1 rounded-full bg-neutral-700" />
+                                    <div className="flex items-center gap-1.5">
+                                        <Smartphone size={14} className="text-neutral-500" />
+                                        <span className="text-[10px] font-bold uppercase tracking-widest tabular-nums">Secured Device</span>
                                     </div>
                                 </div>
                             </div>
+
+                            <div className="flex items-center justify-center md:justify-start gap-8 pt-6 border-t border-white/5">
+                                <div className="flex items-center gap-2">
+                                    <div className="size-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_10px_rgba(16,185,129,0.5)]" />
+                                    <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest">Session Active</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <span className="material-symbols-outlined text-neutral-500" style={{ fontSize: '12px' }} >schedule</span>
+                                    <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest">Joined {new Date(profile.CreatedAt).getFullYear()}</span>
+                                </div>
+                            </div>
                         </div>
+                    </CardContent>
+                </Card>
+
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                    
+                    {/* ── Identity & Security Forms ─────────────────────────── */}
+                    <div className="lg:col-span-8 space-y-8">
+                        <Card className="bg-white border-neutral-200 shadow-sm rounded-xl overflow-hidden">
+                            <form onSubmit={handleUpdateProfile} className="p-8 md:p-10 space-y-8">
+                                <div className="flex items-center justify-between border-b border-neutral-100 pb-6">
+                                    <div className="flex items-center gap-4">
+                                        <div className="size-10 rounded-xl bg-primary/5 flex items-center justify-center text-primary">
+                                            <User size={20} />
+                                        </div>
+                                        <div>
+                                            <h3 className="text-sm font-bold text-neutral-900 font-jakarta uppercase tracking-tight">Identity Configuration</h3>
+                                            <p className="text-[10px] font-medium text-neutral-400 uppercase tracking-widest mt-0.5">Informasi Dasar Akun Administratif</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-6">
+                                    <div className="space-y-3">
+                                        <Label className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest ml-1 font-jakarta">Administrative Access Email</Label>
+                                        <div className="relative group/input">
+                                            <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 size-4 text-neutral-400 group-focus-within/input:text-primary transition-colors" >mail</span>
+                                            <Input 
+                                                type="email" 
+                                                value={profile.Email}
+                                                onChange={(e) => setProfile({...profile, Email: e.target.value})}
+                                                className="h-12 pl-12 rounded-xl border-neutral-200 bg-neutral-50/30 focus:bg-white font-bold text-sm font-jakarta"
+                                                required
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="pt-4">
+                                    <Button 
+                                        type="submit"
+                                        disabled={submitting}
+                                        className="w-full h-12 bg-neutral-900 text-white rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-primary shadow-xl shadow-primary/10 transition-all active:scale-95 border-none"
+                                    >
+                                        {submitting ? <span className="material-symbols-outlined animate-spin mr-2" style={{ fontSize: '16px' }} >sync</span> : <span className="material-symbols-outlined mr-2" style={{ fontSize: '16px' }} >save</span>}
+                                        Update Identity Node
+                                    </Button>
+                                </div>
+                            </form>
+                        </Card>
+
+                        <Card className="bg-white border-neutral-200 shadow-sm rounded-xl overflow-hidden">
+                            <form onSubmit={handleChangePassword} className="p-8 md:p-10 space-y-8">
+                                <div className="flex items-center justify-between border-b border-neutral-100 pb-6">
+                                    <div className="flex items-center gap-4">
+                                        <div className="size-10 rounded-xl bg-rose-50 flex items-center justify-center text-rose-600 border border-rose-100">
+                                            <span className="material-symbols-outlined" style={{ fontSize: '20px' }} Alert >security</span>
+                                        </div>
+                                        <div>
+                                            <h3 className="text-sm font-bold text-neutral-900 font-jakarta uppercase tracking-tight">Security Protocol Override</h3>
+                                            <p className="text-[10px] font-medium text-neutral-400 uppercase tracking-widest mt-0.5">Pembaruan Kredensial Akses Root</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div className="md:col-span-2 space-y-3">
+                                        <Label className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest ml-1">Current Access Key</Label>
+                                        <div className="relative group/input">
+                                            <Lock className="absolute left-4 top-1/2 -translate-y-1/2 size-4 text-neutral-400 group-focus-within/input:text-rose-500 transition-colors" />
+                                            <Input 
+                                                type="password" 
+                                                value={passwords.OldPassword}
+                                                onChange={(e) => setPasswords({...passwords, OldPassword: e.target.value})}
+                                                placeholder="Current credential..."
+                                                className="h-12 pl-12 rounded-xl border-neutral-200 bg-neutral-50/30 focus:bg-white font-bold text-sm font-jakarta"
+                                                required
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="space-y-3">
+                                        <Label className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest ml-1 text-rose-500">New Access Key</Label>
+                                        <div className="relative group/input">
+                                            <KeyRound className="absolute left-4 top-1/2 -translate-y-1/2 size-4 text-rose-400/50 group-focus-within/input:text-rose-500 transition-colors" />
+                                            <Input 
+                                                type="password" 
+                                                value={passwords.NewPassword}
+                                                onChange={(e) => setPasswords({...passwords, NewPassword: e.target.value})}
+                                                placeholder="New strong key..."
+                                                className="h-12 pl-12 rounded-xl border-rose-100 bg-rose-50/30 focus:bg-white font-bold text-sm font-jakarta"
+                                                required
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="space-y-3">
+                                        <Label className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest ml-1">Confirm New Key</Label>
+                                        <div className="relative group/input">
+                                            <KeyRound className="absolute left-4 top-1/2 -translate-y-1/2 size-4 text-neutral-400 group-focus-within/input:text-rose-500 transition-colors" />
+                                            <Input 
+                                                type="password" 
+                                                value={passwords.ConfirmPassword}
+                                                onChange={(e) => setPasswords({...passwords, ConfirmPassword: e.target.value})}
+                                                placeholder="Repeat new key..."
+                                                className="h-12 pl-12 rounded-xl border-neutral-200 bg-neutral-50/30 focus:bg-white font-bold text-sm font-jakarta"
+                                                required
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="pt-4">
+                                    <Button 
+                                        type="submit"
+                                        disabled={submitting}
+                                        className="w-full h-12 bg-rose-600 text-white rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-rose-700 shadow-xl shadow-rose-900/10 transition-all active:scale-95 border-none"
+                                    >
+                                        {submitting ? <span className="material-symbols-outlined animate-spin mr-2" style={{ fontSize: '16px' }} >sync</span> : <span className="material-symbols-outlined mr-2" style={{ fontSize: '16px' }} Check >security</span>}
+                                        Update Security Credential
+                                    </Button>
+                                </div>
+                            </form>
+                        </Card>
                     </div>
 
-                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
-                        {/* Left Column: Forms */}
-                        <div className="lg:col-span-8 space-y-10">
-                            {/* General Settings */}
-                            <section className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden group">
-                                <form onSubmit={handleUpdateProfile} className="p-10 space-y-8">
-                                    <div className="flex items-center justify-between border-b border-slate-50 pb-6">
-                                        <div className="flex items-center gap-3">
-                                            <div className="p-2.5 bg-primary/5 rounded-xl text-primary"><User className="size-5" /></div>
-                                            <div>
-                                                <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest font-headline">Identity Configuration</h3>
-                                                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">Pengaturan Informasi Dasar Akun Admin</p>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div className="space-y-6">
-                                        <div className="space-y-2.5">
-                                            <label className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Administrative Email</label>
-                                            <div className="relative flex items-center">
-                                                <Mail className="absolute left-5 size-4 text-slate-300" />
-                                                <input 
-                                                    type="email" 
-                                                    value={profile.Email}
-                                                    onChange={(e) => setProfile({...profile, Email: e.target.value})}
-                                                    className="w-full h-14 pl-14 pr-6 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold text-slate-900 focus:bg-white focus:ring-4 focus:ring-primary/5 focus:border-primary/20 transition-all outline-none"
-                                                    required
-                                                />
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div className="pt-4">
-                                        <button 
-                                            disabled={submitting}
-                                            className="w-full h-14 bg-slate-900 text-white rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] shadow-xl shadow-slate-900/10 hover:bg-primary hover:shadow-primary/30 active:scale-95 transition-all flex items-center justify-center gap-3"
-                                        >
-                                            {submitting ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />}
-                                            Simpan Perubahan Identitas
-                                        </button>
-                                    </div>
-                                </form>
-                            </section>
-
-                            {/* Security Settings */}
-                            <section className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden group">
-                                <form onSubmit={handleChangePassword} className="p-10 space-y-8">
-                                    <div className="flex items-center justify-between border-b border-slate-50 pb-6">
-                                        <div className="flex items-center gap-3">
-                                            <div className="p-2.5 bg-rose-50 rounded-xl text-rose-600"><ShieldAlert className="size-5" /></div>
-                                            <div>
-                                                <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest font-headline">Security Protocol Override</h3>
-                                                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">Perbarui Kredensial Akses Root</p>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                        <div className="md:col-span-2 space-y-2.5">
-                                            <label className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Current Access Key</label>
-                                            <div className="relative flex items-center">
-                                                <KeyRound className="absolute left-5 size-4 text-slate-300" />
-                                                <input 
-                                                    type="password" 
-                                                    value={passwords.OldPassword}
-                                                    onChange={(e) => setPasswords({...passwords, OldPassword: e.target.value})}
-                                                    placeholder="Input current password"
-                                                    className="w-full h-14 pl-14 pr-6 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold text-slate-900 focus:bg-white transition-all outline-none"
-                                                    required
-                                                />
-                                            </div>
-                                        </div>
-                                        <div className="space-y-2.5">
-                                            <label className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 text-primary">New Access Key</label>
-                                            <div className="relative flex items-center">
-                                                <KeyRound className="absolute left-5 size-4 text-primary opacity-30" />
-                                                <input 
-                                                    type="password" 
-                                                    value={passwords.NewPassword}
-                                                    onChange={(e) => setPasswords({...passwords, NewPassword: e.target.value})}
-                                                    placeholder="Strong security expected"
-                                                    className="w-full h-14 pl-14 pr-6 bg-primary/5 border border-primary/10 rounded-2xl text-sm font-bold text-slate-900 focus:bg-white transition-all outline-none"
-                                                    required
-                                                />
-                                            </div>
-                                        </div>
-                                        <div className="space-y-2.5">
-                                            <label className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Confirm Access Key</label>
-                                            <div className="relative flex items-center">
-                                                <KeyRound className="absolute left-5 size-4 text-slate-300" />
-                                                <input 
-                                                    type="password" 
-                                                    value={passwords.ConfirmPassword}
-                                                    onChange={(e) => setPasswords({...passwords, ConfirmPassword: e.target.value})}
-                                                    placeholder="Confirm new key"
-                                                    className="w-full h-14 pl-14 pr-6 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-bold text-slate-900 focus:bg-white transition-all outline-none"
-                                                    required
-                                                />
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div className="pt-4">
-                                        <button 
-                                            disabled={submitting}
-                                            className="w-full h-14 bg-rose-600 text-white rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] shadow-xl shadow-rose-600/20 hover:bg-rose-500 hover:shadow-rose-600/30 active:scale-95 transition-all flex items-center justify-center gap-3"
-                                        >
-                                            {submitting ? <Loader2 className="size-4 animate-spin" /> : <KeyRound className="size-4" />}
-                                            Update Security Credential
-                                        </button>
-                                    </div>
-                                </form>
-                            </section>
-                        </div>
-
-                        {/* Right Column: Mini Stats */}
-                        <div className="lg:col-span-4 space-y-8">
-                            <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm space-y-6">
-                                <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] font-headline border-b border-slate-50 pb-4">Audit Transparency</h4>
+                    {/* ── Sidebar Stats ────────────────────────────────────── */}
+                    <aside className="lg:col-span-4 space-y-8">
+                        <Card className="bg-white border-neutral-200 shadow-sm rounded-xl overflow-hidden group">
+                            <CardContent className="p-8 space-y-8">
+                                <div className="space-y-1 border-l-2 border-primary pl-4">
+                                    <h4 className="text-xs font-bold text-neutral-900 uppercase tracking-widest font-jakarta">Audit Activity</h4>
+                                    <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest">Recent Logs</p>
+                                </div>
                                 
                                 <div className="space-y-6">
-                                    <div className="flex gap-4">
-                                        <div className="size-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center shrink-0"><Activity className="size-5" /></div>
-                                        <div>
-                                            <p className="text-[10px] font-black text-slate-900 uppercase">Recent Activity</p>
-                                            <p className="text-[9px] font-medium text-slate-400 mt-1 uppercase tracking-tight leading-none italic">Updated Global RBAC</p>
-                                            <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mt-2">{new Date().toLocaleDateString()}</p>
+                                    {[
+                                        { label: "Recent Event", val: "Updated Global RBAC", icon: Activity, color: "text-blue-600", bg: "bg-blue-50" },
+                                        { label: "Security Status", val: "0 Unguarded Nodes", icon: Bell, color: "text-amber-600", bg: "bg-amber-50" }
+                                    ].map((stat, i) => (
+                                        <div key={i} className="flex gap-5 group/stat">
+                                            <div className={cn("size-10 rounded-xl flex items-center justify-center shrink-0 border border-transparent transition-all group-hover/stat:scale-110 shadow-sm", stat.bg, stat.color)}>
+                                                <stat.icon size={18} />
+                                            </div>
+                                            <div className="space-y-1">
+                                                <p className="text-[10px] font-bold text-neutral-900 uppercase tracking-widest">{stat.label}</p>
+                                                <p className="text-[11px] font-medium text-neutral-400 uppercase font-inter italic line-clamp-1">"{stat.val}"</p>
+                                                <p className="text-[9px] font-bold text-neutral-300 uppercase tracking-tighter tabular-nums mt-1">{new Date().toLocaleDateString()}</p>
+                                            </div>
                                         </div>
-                                    </div>
-                                    <div className="flex gap-4">
-                                        <div className="size-10 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center shrink-0"><Bell className="size-5" /></div>
-                                        <div>
-                                            <p className="text-[10px] font-black text-slate-900 uppercase">System Alerts</p>
-                                            <p className="text-[9px] font-medium text-slate-400 mt-1 uppercase tracking-tight leading-none italic">0 Unguarded Nodes</p>
-                                            <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mt-2">Status: Optimal</p>
-                                        </div>
-                                    </div>
+                                    ))}
                                 </div>
+                            </CardContent>
+                        </Card>
+
+                        <Card className="bg-neutral-900 text-white border-none shadow-xl rounded-xl overflow-hidden relative group">
+                            <div className="absolute inset-0 bg-primary/10 pointer-events-none" />
+                            <div className="absolute -bottom-10 -right-10 p-12 opacity-10 group-hover:scale-110 transition-transform duration-700 pointer-events-none">
+                                <span className="material-symbols-outlined" style={{ fontSize: '150px' }} Check >security</span>
                             </div>
 
-                            <div className="bg-gradient-to-br from-[#00236f] to-indigo-700 p-8 rounded-[2.5rem] shadow-xl shadow-indigo-500/20 text-white overflow-hidden relative group">
-                                <div className="absolute -bottom-8 -right-8 p-10 opacity-10 group-hover:scale-110 transition-transform duration-700">
-                                    <ShieldCheck className="size-32" />
-                                </div>
-                                <h4 className="text-[10px] font-black uppercase tracking-[0.3em] font-headline mb-4">Node Security</h4>
-                                <div className="space-y-4 relative z-10">
-                                    <div className="flex justify-between items-end">
-                                        <span className="text-[10px] font-black uppercase text-white/70">Master Cryptography</span>
-                                        <span className="text-xs font-black">256-bit AES</span>
+                            <CardContent className="p-8 space-y-6 relative z-10">
+                                <h4 className="text-[10px] font-bold uppercase tracking-[0.4em] text-neutral-500 font-jakarta">Node Security Status</h4>
+                                <div className="space-y-5">
+                                    <div className="space-y-2">
+                                        <div className="flex justify-between items-end">
+                                            <span className="text-[10px] font-bold uppercase text-neutral-400 tracking-widest">Master Encryption</span>
+                                            <span className="text-xs font-bold text-white uppercase font-jakarta">256-bit AES</span>
+                                        </div>
+                                        <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
+                                            <div className="w-[95%] h-full bg-emerald-500 rounded-full shadow-[0_0_15px_rgba(16,185,129,0.5)]" />
+                                        </div>
                                     </div>
-                                    <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
-                                        <div className="w-[95%] h-full bg-emerald-400 rounded-full shadow-[0_0_10px_rgba(52,211,153,0.5)]" />
+                                    <div className="p-3 bg-white/5 rounded-lg border border-white/5 flex items-center gap-3">
+                                       <Zap size={14} className="text-primary animate-pulse" />
+                                       <span className="text-[9px] font-bold text-neutral-500 uppercase tracking-widest leading-none">Last verified by System Core @ 15:44 UTC</span>
                                     </div>
-                                    <p className="text-[9px] font-medium text-white/50 italic">Last verified by System Core @ 15:44 UTC</p>
                                 </div>
-                            </div>
-                        </div>
-                    </div>
+                            </CardContent>
+                        </Card>
+                    </aside>
+                </div>
+
+            </div>
         </div>
-    );
-};
+    )
+}
 
-export default AdminProfile;
+export default AdminProfile

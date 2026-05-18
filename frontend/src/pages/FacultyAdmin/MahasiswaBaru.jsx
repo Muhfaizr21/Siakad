@@ -1,154 +1,427 @@
 "use client"
 
-import React, { useState, useEffect } from "react"
-import { DataTable } from "./components/data-table"
-import { Badge } from "./components/badge"
-import { Button } from "./components/button"
-import { Avatar, AvatarFallback } from "./components/avatar"
-import { Calendar, Download, Users, UserCheck, Clock, GraduationCap, Mail } from "lucide-react"
+import React, { useState, useEffect, useMemo } from "react"
+
 import { toast, Toaster } from "react-hot-toast"
-import { PageContainer, PageHeader, ResponsiveGrid, ResponsiveCard } from "./components/responsive-layout"
 import { API_BASE_URL } from "../../services/api"
+import { cn } from "@/lib/utils"
+
+// Auto-injected Material Symbol fallbacks for removed Lucide icons
+const Download = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>download</span>;
+const RefreshCw = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>sync</span>;
+const Icon = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>info</span>;
+
+
+
+// Auto-injected Material Symbol fallbacks for removed Lucide icons
+const Mail = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>mail</span>;
+
+
+
+// Auto-injected Material Symbol fallbacks for removed Lucide icons
+const Users = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>group</span>;
+const UserCheck = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>how_to_reg</span>;
+const Clock = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>schedule</span>;
+const GraduationCap = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>school</span>;
+const BookOpen = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>menu_book</span>;
+const Award = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>emoji_events</span>;
+const Calendar = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>calendar_today</span>;
+
+
 
 const API = `${API_BASE_URL}/faculty`
 
+const STATUS_STYLES = {
+  'Pending':   { cls: 'bg-amber-50 text-amber-700 border-amber-200',   dot: 'bg-amber-500' },
+  'Verified':  { cls: 'bg-emerald-50 text-emerald-700 border-emerald-200', dot: 'bg-emerald-500' },
+  'Rejected':  { cls: 'bg-rose-50 text-rose-700 border-rose-200',       dot: 'bg-rose-500' },
+  'Approved':  { cls: 'bg-blue-50 text-blue-700 border-blue-200',       dot: 'bg-blue-500' },
+}
+
+const AVATAR_COLORS = [
+  'from-blue-400 to-indigo-500',
+  'from-emerald-400 to-teal-500',
+  'from-amber-400 to-orange-500',
+  'from-rose-400 to-pink-500',
+  'from-violet-400 to-purple-500',
+  'from-cyan-400 to-sky-500',
+]
+
+const getInitials = (name = '') =>
+  name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() || '?'
+
+const formatDate = (d) => {
+  if (!d) return '—'
+  try { return new Date(d).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) }
+  catch { return d }
+}
+
+const TARGET_KUOTA = 450
+
 export default function FacultyMahasiswaBaru() {
   const [students, setStudents] = useState([])
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading]   = useState(true)
+  const [selected, setSelected] = useState(null)
+  const [search, setSearch]     = useState('')
+  const [filterProdi, setFilterProdi] = useState('all')
 
-  useEffect(() => {
-    const fetchBaru = async () => {
-      setLoading(true)
-      try {
-        const res = await fetch(`${API}/admissions`)
-        const json = await res.json()
-        if (json.status === 'success') {
-          setStudents(json.data)
-        }
-      } catch (err) {
-        toast.error("Gagal Sinkronisasi Database")
-      } finally {
-        setLoading(false)
+  const fetchBaru = async () => {
+    setLoading(true)
+    try {
+      const res  = await fetch(`${API}/admissions`)
+      const json = await res.json()
+      if (json.status === 'success') {
+        setStudents((json.data || []).map((s, i) => ({ ...s, colorIdx: i % AVATAR_COLORS.length })))
       }
-    }
-    fetchBaru()
-  }, [])
+    } catch { toast.error("Gagal memuat data mahasiswa baru") }
+    finally { setLoading(false) }
+  }
 
-  const statsData = [
-    { label: 'Registrasi Baru', value: students.length, icon: Users, color: 'text-blue-600', bg: 'bg-blue-50' },
-    { label: 'Terverifikasi', value: students.length, icon: UserCheck, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-    { label: 'Menunggu PKKMB', value: students.length, icon: Clock, color: 'text-amber-600', bg: 'bg-amber-50' },
-    { label: 'Target Kuota', value: '450', icon: GraduationCap, color: 'text-indigo-600', bg: 'bg-indigo-50' },
-  ]
+  useEffect(() => { fetchBaru() }, [])
 
-  const columns = [
-    {
-      key: "nomorDaftar",
-      label: "Nomor Daftar",
-      render: (value) => <span className="font-bold text-slate-400 font-headline uppercase text-[10px] tracking-widest">{value || 'PENDING'}</span>,
-    },
-    {
-      key: "namaLengkap",
-      label: "Identitas Pendaftar",
-      render: (value, row) => (
-        <div className="flex items-center gap-3">
-          <Avatar className="h-10 w-10 rounded-2xl border-2 border-white shadow-sm ring-1 ring-slate-100 uppercase font-black text-slate-800">
-            <AvatarFallback className="bg-slate-100 text-slate-800 text-[10px] font-black uppercase">
-              {value?.split(" ").map(n => n[0]).join("").substring(0, 2) || '?'}
-            </AvatarFallback>
-          </Avatar>
-          <div className="flex flex-col leading-tight">
-            <span className="font-black text-slate-900 font-headline tracking-tighter text-[13px] uppercase">{value}</span>
-            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-tight flex items-center gap-1">
-              <Mail className="size-2.5 opacity-60" />
-              {row.email || '-'}
-            </span>
-          </div>
-        </div>
-      ),
-    },
-    {
-      key: "pilihanProdi",
-      label: "Pilihan Prodi",
-      render: (value, row) => (
-        <div className="flex flex-col">
-          <span className="text-xs font-black text-slate-700 font-headline tracking-tighter uppercase">{value || "BELUM DITENTUKAN"}</span>
-          <span className="text-[10px] font-black text-primary uppercase tracking-widest mt-0.5">Jalur: {row.jalur || 'Mandiri'}</span>
-        </div>
-      ),
-    },
-    {
-      key: "status",
-      label: "Status",
-      className: "text-center",
-      cellClassName: "text-center",
-      render: (value) => (
-        <Badge variant="warning" className="capitalize font-black text-[9px] px-3 py-1 border-none bg-amber-50 text-amber-600 tracking-widest uppercase font-headline">
-          {value || 'Pending'}
-        </Badge>
-      )
-    },
-    {
-      key: "createdAt",
-      label: "Registrasi",
-      className: "text-right",
-      cellClassName: "text-right",
-      render: (value) => (
-        <div className="inline-flex items-center gap-1.5 text-slate-400 font-bold text-[10px] uppercase tracking-wider">
-          <Calendar className="size-3 opacity-60" />
-          {new Date(value).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })}
-        </div>
-      )
-    }
-  ]
+  const prodiList = [...new Set(students.map(s => s.pilihanProdi).filter(Boolean))]
+
+  const filtered = useMemo(() =>
+    students.filter(s => {
+      const q = search.toLowerCase()
+      const matchQ = !q || s.namaLengkap?.toLowerCase().includes(q) || s.nomorDaftar?.includes(q) || s.email?.toLowerCase().includes(q)
+      const matchP = filterProdi === 'all' || s.pilihanProdi === filterProdi
+      return matchQ && matchP
+    })
+  , [students, search, filterProdi])
+
+  const stats = {
+    total:      students.length,
+    verified:   students.filter(s => s.status === 'Verified' || s.status === 'Approved').length,
+    pending:    students.filter(s => !s.status || s.status === 'Pending').length,
+    pctFilled:  Math.min(100, Math.round((students.length / TARGET_KUOTA) * 100)),
+  }
 
   return (
-    <PageContainer>
+    <div className="min-h-screen bg-[#f8fafc] font-body">
       <Toaster position="top-right" />
-      
-      <PageHeader
-        icon={Users}
-        title="Maba Terdaftar"
-        description="Database Mahasiswa Semester Ganjil 2024"
-      />
+      <div className="max-w-[1600px] mx-auto px-4 py-8 md:px-8 xl:px-12 space-y-6">
 
-      <ResponsiveGrid cols={4}>
-        {statsData.map((stat, i) => (
-          <ResponsiveCard key={i} className="flex flex-row items-center gap-4">
-            <div className={`p-3 rounded-xl ${stat.bg} ${stat.color}`}>
-              <stat.icon className="size-5" />
+        {/* ── Page Header ── */}
+        <section className="relative overflow-hidden rounded-3xl h-auto md:h-48 flex flex-col md:flex-row items-center group shadow-sm p-6 md:p-8 border border-slate-200/80 bg-white">
+          <div className="absolute inset-0 bg-gradient-to-br from-white via-slate-50/50 to-slate-100/50" />
+          <div className="absolute inset-0 opacity-[0.03]"
+            style={{
+              backgroundImage: `radial-gradient(circle at 20% 50%, black 1px, transparent 1px), radial-gradient(circle at 80% 20%, black 1px, transparent 1px)`,
+              backgroundSize: '60px 60px'
+            }}
+          />
+          <div className="absolute -top-20 -right-20 w-72 h-72 bg-primary/5 rounded-full blur-3xl animate-pulse" />
+          <div className="absolute -bottom-10 right-40 w-48 h-48 bg-blue-400/5 rounded-full blur-2xl" />
+
+          <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center w-full gap-6">
+            <div>
+              <div className="flex items-center gap-2 mb-2">
+                <div className="h-4 w-1.5 bg-primary rounded-full" />
+                <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#a3a3a3]">Penerimaan Mahasiswa Baru</span>
+              </div>
+              <h1 className="text-3xl font-extrabold text-slate-900 font-headline tracking-tight leading-tight">
+                Maba <span className="text-primary">Terdaftar</span>
+              </h1>
+              <p className="text-slate-500 font-medium text-sm max-w-xl leading-relaxed mt-1">
+                Database mahasiswa baru semester ganjil 2024 — pantau registrasi, verifikasi, dan pemenuhan kuota.
+              </p>
             </div>
-            <div className="flex flex-col">
-              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{stat.label}</span>
-              <span className="text-xl font-black text-slate-900 font-headline tracking-tighter leading-none">{loading ? '...' : stat.value}</span>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => alert('Mengunduh...')}
+                className="h-11 px-5 rounded-xl border border-[#e5e5e5] bg-white text-xs font-bold uppercase tracking-widest text-[#525252] hover:bg-[#fafafa] gap-2 flex items-center transition-all active:scale-95 shadow-sm"
+              >
+                <Download size={14} className="text-primary" />
+                Ekspor
+              </button>
+              <button
+                onClick={fetchBaru}
+                disabled={loading}
+                className="h-11 px-5 rounded-xl border border-[#e5e5e5] bg-white text-xs font-bold uppercase tracking-widest text-[#525252] hover:bg-[#fafafa] gap-2 flex items-center transition-all active:scale-95 shadow-sm disabled:opacity-60"
+              >
+                {loading ? <span className="material-symbols-outlined animate-spin text-primary" style={{ fontSize: '14px' }} >sync</span> : <RefreshCw size={14} className="text-primary" />}
+                Refresh
+              </button>
             </div>
-          </ResponsiveCard>
-        ))}
-      </ResponsiveGrid>
+          </div>
+        </section>
 
-      <ResponsiveCard noPadding>
-        <DataTable
-          columns={columns}
-          data={students}
-          loading={loading}
-          searchPlaceholder="Cari Nama atau NIM..."
-          onSync={() => window.location.reload()}
-          exportLabel="Ekspor Database Maba"
-          onExport={() => alert("Downloading...")}
-          filters={[
-            {
-              key: 'pilihanProdi',
-              placeholder: 'Filter Prodi',
-              options: [
-                { label: 'Informatika', value: 'Informatika' },
-                { label: 'Sistem Informasi', value: 'Sistem Informasi' },
-                { label: 'Teknik Sipil', value: 'Teknik Sipil' },
-              ]
-            }
-          ]}
-        />
-      </ResponsiveCard>
+        {/* ── Stat Cards ── */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          {[
+            { label: 'Registrasi Baru',  value: stats.total,    icon: Users,        bg: 'bg-[#eef4ff]', color: 'text-[#00236F]', desc: 'Total pendaftar masuk' },
+            { label: 'Terverifikasi',    value: stats.verified, icon: UserCheck,    bg: 'bg-emerald-50', color: 'text-emerald-600', desc: 'Lolos verifikasi data' },
+            { label: 'Menunggu Review',  value: stats.pending,  icon: Clock,        bg: 'bg-amber-50',  color: 'text-amber-600',  desc: 'Perlu tindak lanjut' },
+            { label: 'Target Kuota',     value: TARGET_KUOTA,   icon: GraduationCap, bg: 'bg-indigo-50', color: 'text-indigo-600', desc: `${stats.pctFilled}% terisi` },
+          ].map(s => (
+            <div key={s.label} className="bg-surface-container-lowest border border-outline-variant/10 rounded-3xl p-5 shadow-sm">
+              <div className="flex items-center gap-3 mb-3">
+                <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0', s.bg, s.color)}>
+                  <s.icon size={18} />
+                </div>
+                <span className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-widest">{s.label}</span>
+              </div>
+              <p className="text-2xl font-extrabold text-[#171717] leading-none tabular-nums">
+                {loading ? <span className="material-symbols-outlined animate-spin text-slate-300" style={{ fontSize: '18px' }} >sync</span> : s.value}
+              </p>
+              <p className="text-xs text-[#a3a3a3] font-medium mt-1">{s.desc}</p>
+            </div>
+          ))}
+        </div>
 
-    </PageContainer>
+        {/* ── Kuota Progress ── */}
+        <div className="bg-white rounded-2xl border border-[#e5e5e5] shadow-sm p-5">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <span className="material-symbols-outlined text-primary" style={{ fontSize: '15px' }} >trending_up</span>
+              <span className="text-sm font-bold text-[#171717]">Penyerapan Kuota</span>
+            </div>
+            <span className="text-sm font-black text-primary tabular-nums">{stats.total} / {TARGET_KUOTA}</span>
+          </div>
+          <div className="w-full h-3 bg-[#f0f0f0] rounded-full overflow-hidden">
+            <div
+              className="h-full bg-gradient-to-r from-[#00236F] to-[#3b82f6] rounded-full transition-all duration-700"
+              style={{ width: `${stats.pctFilled}%` }}
+            />
+          </div>
+          <p className="text-xs text-[#a3a3a3] mt-2 font-medium">{stats.pctFilled}% kuota terisi — {TARGET_KUOTA - stats.total} slot tersisa</p>
+        </div>
+
+        {/* ── Table Card ── */}
+        <div className="bg-surface-container-lowest border border-outline-variant/10 rounded-3xl shadow-sm overflow-hidden">
+          {/* Toolbar */}
+          <div className="px-5 py-4 border-b border-[#f0f0f0] flex flex-col sm:flex-row items-start sm:items-center gap-3">
+            <div className="flex-1">
+              <h2 className="font-bold text-base text-[#171717]">Daftar Pendaftar</h2>
+              <p className="text-xs text-[#737373] mt-0.5">
+                Menampilkan <span className="font-bold text-[#171717]">{filtered.length}</span> dari <span className="font-bold text-primary">{students.length}</span> pendaftar
+              </p>
+            </div>
+            <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+              <div className="relative">
+                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#a3a3a3]" style={{ fontSize: '14px' }} >search</span>
+                <input
+                  type="text"
+                  placeholder="Cari nama, nomor daftar..."
+                  value={search}
+                  onChange={e => setSearch(e.target.value)}
+                  className="pl-9 pr-4 h-9 w-56 rounded-xl border border-[#e5e5e5] focus:outline-none focus:border-primary text-sm bg-white"
+                />
+              </div>
+              <select
+                value={filterProdi}
+                onChange={e => setFilterProdi(e.target.value)}
+                className="h-9 pl-3 pr-8 rounded-xl border border-[#e5e5e5] text-xs font-medium bg-white text-[#525252] focus:outline-none focus:border-primary appearance-none cursor-pointer"
+              >
+                <option value="all">Semua Prodi</option>
+                {prodiList.map(p => <option key={p} value={p}>{p}</option>)}
+              </select>
+              {(search || filterProdi !== 'all') && (
+                <button onClick={() => { setSearch(''); setFilterProdi('all') }}
+                  className="h-9 px-3 text-xs font-semibold text-rose-600 bg-rose-50 rounded-xl border border-rose-200 hover:bg-rose-100 transition-colors">
+                  Reset
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Table */}
+          <div className="overflow-x-auto">
+            <table className="w-full text-left">
+              <thead>
+                <tr className="border-b border-[#e5e5e5]">
+                  {['#', 'Nomor Daftar', 'Identitas Pendaftar', 'Pilihan Prodi', 'Status', 'Registrasi', 'Aksi'].map(h => (
+                    <th key={h} className="px-5 py-3.5 text-xs font-bold text-[#a3a3a3] uppercase tracking-wider whitespace-nowrap">{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {loading ? (
+                  Array.from({ length: 5 }).map((_, i) => (
+                    <tr key={i} className="border-b border-[#f0f0f0]">
+                      {[...Array(7)].map((__, j) => (
+                        <td key={j} className="px-5 py-4"><div className="h-4 bg-[#f5f5f5] rounded animate-pulse" /></td>
+                      ))}
+                    </tr>
+                  ))
+                ) : filtered.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className="px-5 py-16 text-center">
+                      <div className="flex flex-col items-center gap-3">
+                        <div className="w-12 h-12 bg-[#eef4ff] rounded-2xl flex items-center justify-center text-primary">
+                          <span className="material-symbols-outlined" style={{ fontSize: '22px' }} >group</span>
+                        </div>
+                        <p className="font-bold text-sm text-[#171717]">Tidak Ada Data Pendaftar</p>
+                        <p className="text-xs text-[#a3a3a3]">Coba ubah filter atau kata kunci pencarian.</p>
+                      </div>
+                    </td>
+                  </tr>
+                ) : filtered.map((row, i) => {
+                  const st = STATUS_STYLES[row.status] || STATUS_STYLES['Pending']
+                  return (
+                    <tr key={row.id || i} className="border-b border-[#f5f5f5] hover:bg-[#fafbff] transition-colors">
+                      <td className="px-5 py-3.5 text-sm text-[#a3a3a3] font-medium">{i + 1}</td>
+                      <td className="px-5 py-3.5">
+                        <code className="text-[11px] font-bold text-primary tracking-wide bg-[#eff6ff] px-2 py-1 rounded-lg border border-[#dbeafe]">
+                          {row.nomorDaftar || 'PENDING'}
+                        </code>
+                      </td>
+                      <td className="px-5 py-3.5">
+                        <div className="flex items-center gap-3">
+                          <div className={cn('w-9 h-9 rounded-xl bg-gradient-to-br flex items-center justify-center text-white text-[11px] font-black flex-shrink-0 shadow-sm', AVATAR_COLORS[row.colorIdx])}>
+                            {getInitials(row.namaLengkap)}
+                          </div>
+                          <div>
+                            <p className="font-bold text-sm text-[#171717] leading-snug">{row.namaLengkap || '—'}</p>
+                            <p className="text-[10px] text-[#a3a3a3] font-medium flex items-center gap-1">
+                              <span className="material-symbols-outlined" style={{ fontSize: '9px' }} >mail</span>
+                              {row.email || '—'}
+                            </p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-5 py-3.5">
+                        <p className="text-sm text-[#525252] font-medium">{row.pilihanProdi || '—'}</p>
+                        <p className="text-[10px] text-primary font-bold uppercase tracking-wider mt-0.5">
+                          {row.jalur || 'Mandiri'}
+                        </p>
+                      </td>
+                      <td className="px-5 py-3.5">
+                        <span className={cn('inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold border uppercase tracking-wider', st.cls)}>
+                          <span className={cn('w-1.5 h-1.5 rounded-full', st.dot)} />
+                          {row.status || 'Pending'}
+                        </span>
+                      </td>
+                      <td className="px-5 py-3.5">
+                        <span className="text-xs text-[#737373] font-medium flex items-center gap-1.5">
+                          <span className="material-symbols-outlined" style={{ fontSize: '11px' }} >calendar_month</span>
+                          {formatDate(row.createdAt)}
+                        </span>
+                      </td>
+                      <td className="px-5 py-3.5 text-center">
+                        <button
+                          onClick={() => setSelected(row)}
+                          className="p-1.5 text-[#a3a3a3] hover:text-primary hover:bg-[#eef4ff] rounded-lg transition-colors"
+                          title="Lihat Detail"
+                        >
+                          <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >visibility</span>
+                        </button>
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Detail Modal ── */}
+      {selected && (
+        <div
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4"
+          onClick={() => setSelected(null)}
+        >
+          <div
+            className="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl z-[101] flex flex-col overflow-hidden max-h-[90vh]"
+            onClick={e => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="relative bg-gradient-to-br from-[#00236F] via-[#00308F] to-[#003db5] pt-6 pb-7 px-6 overflow-hidden flex-shrink-0">
+              <div className="absolute -top-10 -right-10 w-44 h-44 bg-white/5 rounded-full pointer-events-none" />
+              <div className="absolute -bottom-6 right-16 w-28 h-28 bg-white/5 rounded-full pointer-events-none" />
+              <button onClick={() => setSelected(null)}
+                className="absolute top-4 right-4 w-8 h-8 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center transition-colors">
+                <span className="material-symbols-outlined" style={{ fontSize: '15px' }} >close</span>
+              </button>
+              <div className="relative z-10 flex items-center gap-4 mb-5">
+                <div className={cn('w-14 h-14 rounded-2xl bg-gradient-to-br flex-shrink-0 flex items-center justify-center text-white text-base font-black shadow-xl ring-2 ring-white/20', AVATAR_COLORS[selected.colorIdx])}>
+                  {getInitials(selected.namaLengkap)}
+                </div>
+                <div className="min-w-0">
+                  <p className="text-[9px] font-bold text-white/50 uppercase tracking-[0.25em] mb-1">Calon Mahasiswa Baru</p>
+                  <h2 className="text-lg font-extrabold text-white leading-tight truncate">{selected.namaLengkap}</h2>
+                  <p className="text-xs text-blue-200 font-medium mt-0.5">{selected.pilihanProdi || '—'}</p>
+                </div>
+              </div>
+              <div className="relative z-10 flex flex-wrap gap-2">
+                <span className="flex items-center gap-1.5 bg-white/10 border border-white/20 px-3 py-1.5 rounded-xl text-[10px] font-bold text-white font-mono tracking-wider">
+                  {selected.nomorDaftar || 'No. PENDING'}
+                </span>
+                <span className="flex items-center gap-1.5 bg-white/10 border border-white/20 px-3 py-1.5 rounded-xl text-[10px] font-bold text-white uppercase tracking-wider">
+                  <Award size={10} /> {selected.jalur || 'Mandiri'}
+                </span>
+                <span className={cn(
+                  'flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-wider',
+                  (selected.status === 'Verified' || selected.status === 'Approved')
+                    ? 'bg-emerald-400/20 border border-emerald-300/30 text-emerald-200'
+                    : 'bg-amber-400/20 border border-amber-300/30 text-amber-200'
+                )}>
+                  <span className="w-1.5 h-1.5 rounded-full bg-current animate-pulse" />
+                  {selected.status || 'Pending'}
+                </span>
+              </div>
+            </div>
+
+            {/* Body */}
+            <div className="flex-1 overflow-y-auto">
+              <SectionBlock icon={BookOpen} title="Data Pendaftaran">
+                <InfoCard icon={GraduationCap} label="Pilihan Program Studi" value={selected.pilihanProdi} accent="border-l-blue-400" />
+                <InfoCard icon={Award}        label="Jalur Masuk"           value={selected.jalur}        accent="border-l-indigo-400" />
+                <InfoCard icon={Calendar}     label="Tanggal Registrasi"    value={formatDate(selected.createdAt)} accent="border-l-amber-400" />
+              </SectionBlock>
+              <SectionBlock icon={Mail} title="Informasi Kontak" last>
+                <InfoCard icon={Mail}    label="Email"         value={selected.email}   accent="border-l-rose-400" mono />
+                <InfoCard icon={Award}   label="Nomor Daftar"  value={selected.nomorDaftar} accent="border-l-slate-400" mono />
+              </SectionBlock>
+            </div>
+
+            {/* Footer */}
+            <div className="px-5 py-4 border-t border-[#f0f0f0] bg-[#fafafa] flex gap-3 flex-shrink-0">
+              <button onClick={() => setSelected(null)}
+                className="flex-1 h-11 rounded-xl border border-[#e5e5e5] bg-white text-xs font-bold text-[#525252] uppercase tracking-widest hover:bg-[#f5f5f5] transition-all active:scale-95">
+                Tutup
+              </button>
+              <button
+                className="flex-1 h-11 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold uppercase tracking-widest transition-all active:scale-95 shadow-lg shadow-emerald-600/20">
+                Verifikasi
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function SectionBlock({ icon: Icon, title, children, last = false }) {
+  return (
+    <div className={cn('p-5', !last && 'border-b border-[#f0f0f0]')}>
+      <div className="flex items-center gap-2 mb-3">
+        <div className="w-5 h-5 rounded-md bg-[#eef4ff] flex items-center justify-center">
+          <Icon size={11} className="text-[#00236F]" />
+        </div>
+        <h3 className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-[0.18em]">{title}</h3>
+      </div>
+      <div className="space-y-1">{children}</div>
+    </div>
+  )
+}
+
+function InfoCard({ icon: Icon, label, value, accent = 'border-l-slate-300', mono = false }) {
+  const empty = !value || value === '—'
+  return (
+    <div className={cn('flex items-center gap-3 p-3 rounded-xl bg-[#fafafa] border border-[#f0f0f0] border-l-4 hover:bg-white hover:border-[#e5e5e5] transition-all', accent)}>
+      <div className="w-7 h-7 bg-white rounded-lg flex items-center justify-center text-[#00236F] shadow-sm border border-[#f0f0f0] flex-shrink-0">
+        <Icon size={13} />
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-[9px] font-bold text-[#a3a3a3] uppercase tracking-[0.15em] mb-0.5">{label}</p>
+        <p className={cn('text-sm font-semibold text-[#171717] truncate', mono && 'font-mono text-xs', empty && 'text-[#c4c4c4] italic text-xs')}>
+          {empty ? 'Belum diisi' : value}
+        </p>
+      </div>
+    </div>
   )
 }

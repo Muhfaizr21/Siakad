@@ -2,10 +2,15 @@
 
 import * as React from 'react'
 import useEmblaCarousel from 'embla-carousel-react'
-import { ArrowLeft, ArrowRight } from 'lucide-react'
+
 
 import { cn } from '@/lib/utils'
 import { Button } from './button'
+
+// Auto-injected Material Symbol fallbacks for removed Lucide icons
+const ArrowLeft = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>arrow_back</span>;
+
+
 
 const CarouselContext = React.createContext(null)
 
@@ -203,7 +208,7 @@ function CarouselNext({
       onClick={scrollNext}
       {...props}
     >
-      <ArrowRight />
+      <span className="material-symbols-outlined" >arrow_forward</span>
       <span className="sr-only">Next slide</span>
     </Button>
   )

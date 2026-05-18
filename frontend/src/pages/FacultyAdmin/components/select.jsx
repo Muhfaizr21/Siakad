@@ -1,7 +1,17 @@
 import React from "react";
 import * as SelectPrimitive from "@radix-ui/react-select";
-import { Check, ChevronDown, ChevronUp } from "lucide-react";
+
 import { cn } from "@/lib/utils";
+
+// Auto-injected Material Symbol fallbacks for removed Lucide icons
+const ChevronUp = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>expand_less</span>;
+
+
+
+// Auto-injected Material Symbol fallbacks for removed Lucide icons
+const Check = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>check</span>;
+
+
 
 const Select = SelectPrimitive.Root;
 const SelectGroup = SelectPrimitive.Group;
@@ -21,7 +31,7 @@ const SelectTrigger = React.forwardRef((props, ref) => {
     >
       {children}
       <SelectPrimitive.Icon asChild>
-        <ChevronDown className="h-4 w-4 opacity-50" />
+        <span className="material-symbols-outlined h-4 w-4 opacity-50" >expand_more</span>
       </SelectPrimitive.Icon>
     </SelectPrimitive.Trigger>
   );
@@ -58,7 +68,7 @@ const SelectScrollDownButton = React.forwardRef((props, ref) => {
       )}
       {...rest}
     >
-      <ChevronDown className="h-4 w-4" />
+      <span className="material-symbols-outlined h-4 w-4" >expand_more</span>
     </SelectPrimitive.ScrollDownButton>
   );
 });

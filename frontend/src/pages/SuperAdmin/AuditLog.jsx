@@ -1,28 +1,35 @@
-
+"use client"
 
 import React, { useState, useEffect } from 'react'
 import { DataTable } from './components/ui/data-table'
 import { Badge } from './components/ui/badge'
 import { Button } from './components/ui/button'
 import { Card, CardContent } from './components/ui/card'
-import { ShieldCheck, Download } from 'lucide-react'
+
 import { toast, Toaster } from 'react-hot-toast'
 import { cn } from '@/lib/utils'
 import { adminService } from '../../services/api'
 
-const ACTION_COLORS = {
-  LOGIN: 'bg-blue-100 text-blue-700',
-  LOGOUT: 'bg-slate-100 text-slate-600',
-  CREATE: 'bg-emerald-100 text-emerald-700',
-  UPDATE: 'bg-amber-100 text-amber-700',
-  DELETE: 'bg-rose-100 text-rose-700',
-  APPROVE: 'bg-indigo-100 text-indigo-700',
-  REJECT: 'bg-rose-100 text-rose-700',
+// Auto-injected Material Symbol fallbacks for removed Lucide icons
+const Terminal = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>terminal</span>;
+const Download = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>download</span>;
+
+
+
+const ACTION_STYLES = {
+  LOGIN: 'bg-emerald-50 text-emerald-700 border-emerald-100',
+  LOGOUT: 'bg-neutral-50 text-neutral-500 border-neutral-100',
+  CREATE: 'bg-blue-50 text-blue-700 border-blue-100',
+  UPDATE: 'bg-amber-50 text-amber-700 border-amber-100',
+  DELETE: 'bg-rose-50 text-rose-700 border-rose-100',
+  APPROVE: 'bg-violet-50 text-violet-700 border-violet-100',
+  REJECT: 'bg-rose-50 text-rose-700 border-rose-100',
+  DEFAULT: 'bg-neutral-50 text-neutral-500 border-neutral-100'
 }
 
-const getActionColor = (action = '') => {
-  const k = Object.keys(ACTION_COLORS).find(k => action.toUpperCase().includes(k))
-  return ACTION_COLORS[k] || 'bg-slate-100 text-slate-600'
+const getActionStyle = (action = '') => {
+  const k = Object.keys(ACTION_STYLES).find(k => action.toUpperCase().includes(k))
+  return ACTION_STYLES[k] || ACTION_STYLES.DEFAULT
 }
 
 export default function AuditLog() {
@@ -34,65 +41,138 @@ export default function AuditLog() {
     try {
       const res = await adminService.getAuditLogs()
       if (res.status === 'success') setLogs(res.data || [])
-      else toast.error('Gagal memuat audit log')
-    } catch { toast.error('Koneksi gagal') } finally { setLoading(false) }
+      else toast.error('Gagal memuat log sistem')
+    } catch { toast.error('Koneksi sistem terputus') } finally { setLoading(false) }
   }
   useEffect(() => { fetchData() }, [])
 
   const columns = [
-    { key: 'Aktivitas', label: 'Aktivitas', className: 'min-w-[220px]',
+    { 
+      key: 'Aktivitas', 
+      label: 'Tindakan', 
+      className: 'w-[180px]',
       render: v => (
-        <Badge className={cn('font-black text-[10px] px-3 py-1 border-none shadow-sm uppercase', getActionColor(v))}>
+        <Badge className={cn('px-3 py-1 rounded-lg border text-[10px] font-bold uppercase tracking-widest', getActionStyle(v))}>
           {(v || '—').replace(/_/g, ' ')}
         </Badge>
       )
     },
-    { key: 'Deskripsi', label: 'Deskripsi', className: 'min-w-[300px]',
-      render: v => <span className="font-bold text-slate-700 text-[12px] font-headline">{v || '—'}</span>
+    { 
+      key: 'Deskripsi', 
+      label: 'Detail Aktivitas', 
+      className: 'min-w-[350px]',
+      render: v => <span className="font-medium text-neutral-900 text-[13px] font-inter leading-relaxed">{v || '—'}</span>
     },
-    { key: 'AdminNama', label: 'Operator', className: 'w-[200px]',
+    { 
+      key: 'AdminNama', 
+      label: 'Operator / Alamat IP', 
+      className: 'w-[250px]',
       render: (v, row) => (
-        <div className="flex flex-col leading-tight">
-          <span className="font-bold text-slate-900 text-[12px] font-headline tracking-tighter">{v || row.AdminEmail || '—'}</span>
-          <span className="text-[9px] text-slate-400 font-bold uppercase tracking-widest">{row.IPAddress || '—'}</span>
+        <div className="flex flex-col">
+          <span className="font-bold text-neutral-900 text-[13px] font-jakarta tracking-tight leading-tight">{v || row.AdminEmail || '—'}</span>
+          <div className="flex items-center gap-1.5 mt-0.5">
+            <Terminal size={10} className="text-neutral-300" />
+            <span className="text-[10px] text-neutral-400 font-bold tabular-nums tracking-widest uppercase">{row.IPAddress || '0.0.0.0'}</span>
+          </div>
         </div>
       )
     },
-    { key: 'CreatedAt', label: 'Waktu', className: 'w-[200px]',
+    { 
+      key: 'CreatedAt', 
+      label: 'Timestamp', 
+      className: 'w-[180px]',
       render: v => (
-        <span className="font-bold text-slate-400 text-[11px] font-headline">
-          {v ? new Date(v).toLocaleString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—'}
-        </span>
+        <div className="flex flex-col">
+          <span className="font-bold text-neutral-900 text-[11px] font-jakarta">
+            {v ? new Date(v).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
+          </span>
+          <span className="text-[10px] font-medium text-neutral-400 tabular-nums uppercase">
+             {v ? new Date(v).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '—'} WIB
+          </span>
+        </div>
       )
     }
   ]
 
   return (
-    <div className="p-4 md:p-8 space-y-6">
-          <Toaster position="top-right" />
-          <div className="flex flex-col gap-1.5">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-primary/10 rounded-xl text-primary"><ShieldCheck className="size-6" /></div>
-                <h1 className="text-2xl font-black text-slate-900 font-headline tracking-tighter uppercase">Audit Log Absolut</h1>
+    <div className="px-4 py-8 md:px-8 xl:px-12 min-h-screen bg-[#fafafa] font-body">
+      <Toaster position="top-right" />
+      
+      <div className="max-w-[1600px] mx-auto space-y-10">
+        
+        {/* ── Page Header ─────────────────────────────────────────── */}
+        <section className="bg-white border border-neutral-200 rounded-xl p-6 md:p-8 relative overflow-hidden shadow-sm">
+          <div className="absolute top-0 right-0 w-1/4 h-full bg-gradient-to-l from-neutral-50/50 to-transparent pointer-events-none" />
+          
+          <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="h-4 w-1.5 bg-primary rounded-full" />
+                <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-400 font-jakarta">Security Forensics</span>
               </div>
-              <Button onClick={() => alert('Ekspor log forensik...')} variant="outline" className="h-10 px-6 rounded-2xl border-slate-200 text-[10px] font-black uppercase tracking-widest text-slate-600 hover:bg-slate-100 gap-2">
-                <Download className="size-4" /> Ekspor Forensik
+              <h1 className="text-3xl font-bold text-neutral-900 font-jakarta tracking-tight leading-tight">
+                Audit <span className="text-primary">Log</span>
+              </h1>
+              <p className="text-neutral-500 font-medium text-sm max-w-2xl leading-relaxed">
+                Rekaman jejak operasional sistem, perubahan data, dan aktivitas otentikasi secara transparan.
+              </p>
+            </div>
+            
+            <div className="flex items-center gap-3">
+              <Button 
+                onClick={() => toast.success('Memulai ekspor log forensik...')} 
+                variant="outline"
+                className="h-11 px-5 rounded-xl border-neutral-200 text-xs font-bold uppercase tracking-widest text-neutral-600 hover:bg-neutral-50 gap-2 transition-all active:scale-95"
+              >
+                <Download size={14} className="text-primary" />
+                Ekspor Forensik
               </Button>
             </div>
-            <div className="flex items-center gap-2">
-              <div className="h-1 w-10 bg-primary rounded-full shadow-sm shadow-primary/30" />
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Rekaman Jejak Tindakan Administratif — Immutable Log</p>
+          </div>
+        </section>
+
+        {/* ── Table Section ────────────────────────────────────────── */}
+        <Card className="border-neutral-200 shadow-sm rounded-xl bg-white overflow-hidden">
+          <CardContent className="p-0">
+            <DataTable
+              columns={columns} 
+              data={logs} 
+              loading={loading}
+              searchPlaceholder="Cari operator, aktivitas, atau alamat IP..."
+              searchWidth="max-w-md"
+            />
+          </CardContent>
+        </Card>
+
+        {/* ── Security Status Banner ────────────────────────────────── */}
+        <div className="bg-neutral-900 rounded-xl p-6 flex flex-col md:flex-row items-center justify-between gap-6 border border-neutral-800 shadow-xl overflow-hidden relative">
+          <div className="absolute top-0 right-0 w-64 h-full bg-white/[0.02] -skew-x-12 translate-x-32 pointer-events-none" />
+          
+          <div className="flex items-center gap-5 relative z-10">
+            <div className="size-12 rounded-xl bg-white/10 flex items-center justify-center text-emerald-400 border border-white/10 shadow-inner">
+              <span className="material-symbols-outlined" style={{ fontSize: '24px' }} Check >security</span>
+            </div>
+            <div>
+              <p className="text-white font-bold font-jakarta text-sm leading-tight">Protokol Keamanan Aktif</p>
+              <p className="text-neutral-500 text-[11px] font-medium uppercase tracking-widest mt-1">Immutable Log Records • Read-Only Integrity Verified</p>
             </div>
           </div>
-          <Card className="border-none shadow-sm overflow-hidden bg-white/50 backdrop-blur-md">
-            <CardContent className="p-0">
-              <DataTable
-                columns={columns} data={logs} loading={loading}
-                searchPlaceholder="Cari aktivitas, operator, atau IP..."
-              />
-            </CardContent>
-          </Card>
+          
+          <div className="flex items-center gap-4 relative z-10">
+             <div className="flex -space-x-2">
+                {[1,2,3].map(i => (
+                   <div key={i} className="size-8 rounded-full border-2 border-neutral-900 bg-neutral-800 flex items-center justify-center text-[10px] font-bold text-neutral-400">
+                      {i}
+                   </div>
+                ))}
+             </div>
+             <div className="px-4 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-lg">
+                <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest">Status: Secured</span>
+             </div>
+          </div>
         </div>
+
+      </div>
+    </div>
   )
 }

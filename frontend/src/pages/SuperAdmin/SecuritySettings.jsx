@@ -1,124 +1,194 @@
-import React from 'react';
-import { ShieldCheck, Lock, Globe, KeyRound, Clock, UserX, Plus, Settings } from 'lucide-react';
+"use client"
+
+import React from 'react'
+
+import { Card, CardContent } from './components/ui/card'
+import { Button } from './components/ui/button'
+import { Badge } from './components/ui/badge'
+import { Input } from './components/ui/input'
+import { Label } from './components/ui/label'
+import { cn } from '@/lib/utils'
+
+// Auto-injected Material Symbol fallbacks for removed Lucide icons
+const RefreshCcw = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>sync</span>;
+const Monitor = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>desktop_windows</span>;
+const UserX = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>person_off</span>;
+
+
+
+// Auto-injected Material Symbol fallbacks for removed Lucide icons
+const Lock = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>lock</span>;
+const Zap = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>bolt</span>;
+const KeyRound = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>vpn_key</span>;
+
+
 
 const SecuritySettings = () => {
     return (
-        <div className="p-4 md:p-8 space-y-8">
-                    <div className="flex flex-col gap-1.5">
-                        <div className="flex items-center gap-3">
-                            <div className="p-2 bg-primary/10 rounded-xl text-primary"><ShieldCheck className="size-6" /></div>
-                            <h1 className="text-2xl font-black text-slate-900 font-headline tracking-tighter uppercase">Security Node & Protocol</h1>
+        <div className="px-4 py-8 md:px-8 xl:px-12 min-h-screen bg-[#fafafa] font-body">
+            
+            <div className="max-w-[1600px] mx-auto space-y-10">
+                
+                {/* ── Page Header ─────────────────────────────────────────── */}
+                <section className="bg-white border border-neutral-200 rounded-xl p-6 md:p-8 relative overflow-hidden shadow-sm">
+                    <div className="absolute top-0 right-0 w-1/4 h-full bg-gradient-to-l from-rose-50/50 to-transparent pointer-events-none" />
+                    
+                    <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                        <div className="space-y-1">
+                            <div className="flex items-center gap-2 mb-2">
+                                <div className="h-4 w-1.5 bg-rose-500 rounded-full" />
+                                <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-400 font-jakarta">Security Hub</span>
+                            </div>
+                            <h1 className="text-3xl font-bold text-neutral-900 font-jakarta tracking-tight leading-tight">
+                                Security <span className="text-rose-500 italic">Protocols</span>
+                            </h1>
+                            <p className="text-neutral-500 font-medium text-sm max-w-2xl leading-relaxed">
+                                Konfigurasi tingkat tinggi untuk keamanan institusional, manajemen akses IP, dan otorisasi sesi administratif global.
+                            </p>
                         </div>
-                        <div className="flex items-center gap-2">
-                            <div className="h-1 w-10 bg-primary rounded-full shadow-sm shadow-primary/30" />
-                            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Konfigurasi Keamanan Institusional & Manajemen Sesi Global</p>
+                        
+                        <div className="flex items-center gap-3">
+                            <Button 
+                                className="h-11 px-6 rounded-xl bg-neutral-900 text-white hover:bg-rose-600 shadow-xl shadow-rose-900/10 gap-2 transition-all active:scale-95 border-none"
+                            >
+                                <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >save</span>
+                                <span className="text-xs font-bold uppercase tracking-widest">Save Protocols</span>
+                            </Button>
                         </div>
                     </div>
+                </section>
 
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-                        {/* IP Whitelist */}
-                        <section className="bg-white p-10 rounded-[3rem] border border-slate-100 space-y-8 shadow-sm relative overflow-hidden group">
-                            <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:rotate-12 transition-transform duration-700">
-                                <Lock className="size-36 text-primary" />
-                            </div>
-                            <div className="relative z-10 space-y-6">
-                                <div>
-                                    <div className="flex items-center gap-3 mb-1">
-                                        <Globe className="size-5 text-primary" />
-                                        <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest font-headline">Global Identity Protocol</h3>
-                                    </div>
-                                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1 ml-8">Konfigurasi IP Whitelist & Session Policy</p>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+                    
+                    {/* ── Identity & Access Control ────────────────────────── */}
+                    <Card className="bg-white border-neutral-200 shadow-sm rounded-xl overflow-hidden group">
+                        <CardContent className="p-8 md:p-10 space-y-8 relative">
+                            <div className="absolute top-0 right-0 p-10 opacity-5 group-hover:scale-110 transition-transform"><Lock size={120} /></div>
+                            
+                            <div className="space-y-1 relative z-10">
+                                <div className="flex items-center gap-2 mb-2">
+                                    <span className="material-symbols-outlined text-primary" style={{ fontSize: '14px' }} >language</span>
+                                    <span className="text-[10px] font-bold text-primary uppercase tracking-widest">Access Policy</span>
                                 </div>
+                                <h3 className="text-lg font-bold text-neutral-900 font-jakarta tracking-tight">Identity Guard</h3>
+                                <p className="text-xs font-medium text-neutral-400">Konfigurasi IP Whitelist & Session Lifecycle</p>
+                            </div>
 
-                                <div className="flex flex-col gap-3">
-                                    <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest px-1">Authorized IP Whitelist</label>
-                                    <div className="p-6 bg-slate-50 border border-slate-100 rounded-[2rem] space-y-4">
-                                        <div className="flex flex-wrap gap-3 items-center">
-                                            <span className="px-4 py-2 bg-slate-900 text-white rounded-xl text-[10px] font-black tracking-widest uppercase shadow-sm">103.212.xx (Home)</span>
-                                            <span className="px-4 py-2 bg-slate-900 text-white rounded-xl text-[10px] font-black tracking-widest uppercase shadow-sm">127.0.0.1 (Local)</span>
-                                            <button className="p-2 bg-white border border-slate-200 rounded-xl text-slate-400 hover:text-primary hover:border-primary transition-all">
-                                                <Plus className="size-4" />
-                                            </button>
+                            <div className="space-y-6 relative z-10">
+                                <div className="space-y-3">
+                                    <Label className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest ml-1">Authorized IP Whitelist</Label>
+                                    <div className="p-6 bg-neutral-50 rounded-xl border border-neutral-100 space-y-4">
+                                        <div className="flex flex-wrap gap-2 items-center">
+                                            {['103.212.xx (HOME)', '127.0.0.1 (LOCAL)'].map((ip, idx) => (
+                                                <Badge key={idx} className="px-3 py-1.5 bg-neutral-900 text-white border-none rounded-lg text-[10px] font-bold uppercase tracking-widest shadow-sm">
+                                                    {ip}
+                                                </Badge>
+                                            ))}
+                                            <Button variant="outline" className="h-9 w-9 rounded-lg border-neutral-200 text-neutral-400 hover:text-primary hover:border-primary transition-all p-0">
+                                                <span className="material-symbols-outlined" style={{ fontSize: '16px' }}  strokeWidth={3}>add</span>
+                                            </Button>
                                         </div>
-                                        <p className="text-xs text-slate-400 font-medium leading-relaxed border-t border-slate-100 pt-4">
-                                            Akses ke panel Super Admin diblokir dari IP yang tidak terdaftar.
+                                        <p className="text-[11px] font-medium text-neutral-400 leading-relaxed italic border-t border-neutral-200/50 pt-4">
+                                            Peringatan: Akses ke panel Super Admin akan diblokir total dari alamat IP yang tidak terdaftar di atas.
                                         </p>
                                     </div>
                                 </div>
 
-                                <div className="flex flex-col gap-2">
-                                    <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest px-1">Global Session Timeout</label>
-                                    <div className="relative">
-                                        <Clock className="absolute left-4 top-1/2 -translate-y-1/2 size-4 text-slate-300" />
-                                        <select className="w-full bg-slate-50 border border-slate-200 pl-10 pr-6 py-4 rounded-2xl text-xs font-black text-slate-900 uppercase tracking-widest focus:ring-2 ring-primary/10 transition-all outline-none appearance-none">
-                                            <option>30 Menit (Direkomendasikan)</option>
-                                            <option>1 Jam</option>
+                                <div className="space-y-3">
+                                    <Label className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest ml-1">Session Expiration Lifecycle</Label>
+                                    <div className="relative group/select">
+                                        <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 size-4 text-neutral-400 group-focus-within/select:text-primary transition-colors" >schedule</span>
+                                        <select className="w-full h-12 bg-neutral-50 border border-neutral-200 pl-11 pr-6 rounded-xl text-xs font-bold text-neutral-900 uppercase tracking-widest focus:ring-2 ring-primary/10 transition-all outline-none appearance-none cursor-pointer">
+                                            <option>30 Menit (STANDAR KEAMANAN)</option>
+                                            <option>1 Jam (MODERAT)</option>
                                             <option>Revoke Instan saat Idle</option>
                                         </select>
+                                        <RefreshCcw size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-neutral-400 pointer-events-none" />
                                     </div>
                                 </div>
-
-                                <button className="w-full py-4 bg-slate-900 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-primary transition-all shadow-xl shadow-slate-900/10 flex items-center justify-center gap-2">
-                                    <Settings className="size-4" /> Simpan Konfigurasi
-                                </button>
                             </div>
-                        </section>
 
-                        {/* Active Sessions */}
-                        <section className="bg-slate-900 text-white p-10 rounded-[3rem] border border-slate-800 space-y-8 shadow-xl shadow-slate-900/20 relative overflow-hidden">
-                            <div className="absolute top-0 right-0 p-8 opacity-10">
-                                <KeyRound className="size-36 text-white" />
+                            <div className="pt-4 relative z-10">
+                               <Button className="w-full h-12 rounded-xl bg-neutral-900 text-white font-bold text-xs uppercase tracking-widest hover:bg-primary shadow-xl shadow-primary/10 transition-all active:scale-95">
+                                  Simpan Konfigurasi <Zap size={14} className="ml-2" />
+                               </Button>
                             </div>
-                            <div className="relative z-10 space-y-6">
-                                <div>
-                                    <div className="flex items-center gap-3 mb-1">
-                                        <KeyRound className="size-5 text-primary" />
-                                        <h3 className="text-sm font-black text-white uppercase tracking-widest font-headline">Active Administrative Sessions</h3>
-                                    </div>
-                                    <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1 ml-8">Sesi admin yang sedang aktif secara real-time</p>
+                        </CardContent>
+                    </Card>
+
+                    {/* ── Active Sessions Monitoring ───────────────────────── */}
+                    <Card className="bg-neutral-900 text-white border-neutral-800 shadow-2xl rounded-xl overflow-hidden relative group">
+                        <CardContent className="p-8 md:p-10 space-y-8 relative">
+                            <div className="absolute top-0 right-0 p-10 opacity-5 group-hover:scale-110 transition-transform"><KeyRound size={120} /></div>
+                            
+                            <div className="space-y-1 relative z-10">
+                                <div className="flex items-center gap-2 mb-2">
+                                    <Monitor size={14} className="text-primary" />
+                                    <span className="text-[10px] font-bold text-primary uppercase tracking-widest">Live Monitoring</span>
                                 </div>
+                                <h3 className="text-lg font-bold text-white font-jakarta tracking-tight">Active Administrative Sessions</h3>
+                                <p className="text-xs font-medium text-neutral-500">Sesi operasional yang sedang aktif secara real-time.</p>
+                            </div>
 
-                                <div className="space-y-4">
-                                    {[
-                                        { user: "Super Admin (Self)", ip: "127.0.0.1", device: "Chrome · macOS", status: "Active Now", active: true },
-                                        { user: "Siti (Faculty Admin)", ip: "103.xxx.xxx.xxx", device: "Firefox · Windows", status: "2 menit lalu", active: false },
-                                    ].map((session, i) => (
-                                        <div key={i} className="p-6 bg-white/5 border border-white/10 rounded-[2rem] flex items-center justify-between group hover:bg-white/10 transition-all">
-                                            <div className="flex items-center gap-4">
-                                                <div className="size-11 bg-primary/20 rounded-2xl flex items-center justify-center text-primary font-black text-xs border border-primary/30">
-                                                    {session.user[0]}
-                                                </div>
-                                                <div>
-                                                    <div className="flex items-center gap-2">
-                                                        {session.active && <div className="size-2 bg-emerald-500 rounded-full animate-pulse" />}
-                                                        <p className="font-black text-white text-sm tracking-tight">{session.user}</p>
-                                                    </div>
-                                                    <p className="text-[10px] font-black uppercase text-slate-500 tracking-widest">{session.device} · {session.ip}</p>
-                                                </div>
+                            <div className="space-y-4 relative z-10">
+                                {[
+                                    { user: "Super Admin (Self)", ip: "127.0.0.1", device: "Chrome · macOS", status: "Active Now", active: true },
+                                    { user: "Siti (Faculty Admin)", ip: "103.xxx.xxx.xxx", device: "Firefox · Windows", status: "2 menit lalu", active: false },
+                                ].map((session, i) => (
+                                    <div key={i} className="p-5 bg-white/[0.03] border border-white/5 rounded-xl flex items-center justify-between group/session hover:bg-white/[0.06] transition-all">
+                                        <div className="flex items-center gap-4">
+                                            <div className="size-11 bg-primary/20 rounded-xl flex items-center justify-center text-primary font-bold text-sm border border-primary/20 shadow-lg">
+                                                {session.user[0]}
                                             </div>
-                                            <div className="flex flex-col items-end gap-2">
-                                                <button className="flex items-center gap-1.5 text-rose-400 hover:text-rose-300 text-[10px] font-black uppercase tracking-widest transition-all">
-                                                    <UserX className="size-3.5" /> Terminate
-                                                </button>
-                                                <span className="text-[9px] text-slate-600 font-black tracking-widest uppercase">{session.status}</span>
+                                            <div className="space-y-0.5">
+                                                <div className="flex items-center gap-2">
+                                                    {session.active && <div className="size-1.5 bg-emerald-500 rounded-full animate-pulse" />}
+                                                    <p className="font-bold text-white text-[13px] tracking-tight uppercase font-jakarta">{session.user}</p>
+                                                </div>
+                                                <p className="text-[10px] font-bold uppercase text-neutral-500 tracking-widest">{session.device} · {session.ip}</p>
                                             </div>
                                         </div>
-                                    ))}
-                                </div>
+                                        <div className="flex flex-col items-end gap-1.5">
+                                            <Button variant="ghost" className="h-8 px-3 rounded-lg text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 text-[9px] font-bold uppercase tracking-widest transition-all gap-1.5">
+                                                <UserX size={12} /> Terminate
+                                            </Button>
+                                            <span className="text-[9px] text-neutral-600 font-bold tracking-widest uppercase">{session.status}</span>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
 
-                                {/* Emergency Lockdown */}
-                                <div className="p-6 bg-rose-500/10 border border-rose-500/20 rounded-[2rem]">
-                                    <p className="text-xs font-black text-rose-400 uppercase tracking-widest font-headline mb-1">⚡ Global Emergency Lockdown</p>
-                                    <p className="text-[10px] text-rose-400/70 font-medium mb-4">Matikan seluruh sesi fakultas dan mahasiswa secara instan.</p>
-                                    <button className="px-6 py-3 bg-rose-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl shadow-rose-600/20 hover:bg-rose-500 transition-all">
-                                        Eksekusi Lockdown
-                                    </button>
+                            {/* Emergency Shutdown Section */}
+                            <div className="pt-6 relative z-10">
+                                <div className="p-6 bg-rose-500/5 border border-rose-500/20 rounded-xl space-y-4 group/emergency">
+                                    <div className="flex items-center gap-3">
+                                       <div className="p-2 bg-rose-500/10 rounded-lg text-rose-500">
+                                          <span className="material-symbols-outlined group-hover/emergency:animate-bounce" style={{ fontSize: '18px' }} Alert >security</span>
+                                       </div>
+                                       <div className="space-y-0.5">
+                                          <p className="text-xs font-bold text-rose-400 uppercase tracking-widest font-jakarta">Global Emergency Lockdown</p>
+                                          <p className="text-[10px] text-rose-500/50 font-medium">Matikan seluruh sesi administratif secara instan.</p>
+                                       </div>
+                                    </div>
+                                    <Button className="w-full h-11 bg-rose-600 text-white rounded-xl text-[10px] font-bold uppercase tracking-widest shadow-xl shadow-rose-900/40 hover:bg-rose-500 transition-all border-none">
+                                        Execute Lockdown ⚡
+                                    </Button>
                                 </div>
                             </div>
-                        </section>
-                    </div>
-        </div>
-    );
-};
+                        </CardContent>
+                    </Card>
 
-export default SecuritySettings;
+                </div>
+
+                {/* ── Security Status Footer ────────────────────────────── */}
+                <div className="flex items-center justify-center gap-3 py-6 grayscale opacity-40">
+                   <span className="material-symbols-outlined text-neutral-400" style={{ fontSize: '20px' }} Check >security</span>
+                   <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-[0.4em]">Military Grade Encryption Active</span>
+                </div>
+
+            </div>
+        </div>
+    )
+}
+
+export default SecuritySettings

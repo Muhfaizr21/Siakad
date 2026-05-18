@@ -1,393 +1,269 @@
 "use client"
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import axios from 'axios'
-import { Button } from "./components/button"
-import { Badge } from "./components/badge"
-import { DataTable } from "./components/data-table"
-import { DeleteConfirmModal } from "./components/DeleteConfirmModal"
-import { Plus, Users2, Pencil, Trash2, CheckCircle2, ShieldCheck, Loader2, Save } from 'lucide-react'
 import { toast, Toaster } from 'react-hot-toast'
-import { Modal, ModalBody, ModalFooter, ModalBtn } from "./components/Modal"
 
-import { Input } from "./components/input"
-import { Label } from "./components/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./components/select"
-import { cn } from "@/lib/utils"
-import { PageContainer, PageHeader, ResponsiveGrid, ResponsiveCard } from "./components/responsive-layout"
-import { API_BASE_URL } from "../../services/api"
+import { cn } from '@/lib/utils'
+import { API_BASE_URL } from '../../services/api'
+
+// Auto-injected Material Symbol fallbacks for removed Lucide icons
+const Users2 = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>groups</span>;
+
+
+
+// Auto-injected Material Symbol fallbacks for removed Lucide icons
+const CheckCircle2 = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>check_circle</span>;
+const ShieldCheck = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>verified_user</span>;
+
+
 
 const API = `${API_BASE_URL}/faculty`
+const EMPTY_FORM = { kode_org:'', nama_org:'', ketua_nama:'', jumlah_anggota:0, status:'Aktif', kategori:'Himpunan', email:'', password:'', phone:'' }
 
 export default function FacultyOrganisasi() {
-  const [organizations, setOrganizations] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [showModal, setShowModal] = useState(false)
-  const [editingOrg, setEditingOrg] = useState(null)
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [isDelOpen, setIsDelOpen] = useState(false)
-  const [selectedOrgId, setSelectedOrgId] = useState(null)
+  const [organizations, setOrgs] = useState([])
+  const [loading, setLoading]   = useState(true)
+  const [showModal, setModal]   = useState(false)
+  const [editingOrg, setEdit]   = useState(null)
+  const [isSubmitting, setIsSub]= useState(false)
+  const [delTarget, setDelTarget]= useState(null)
+  const [search, setSearch]     = useState('')
+  const [formData, setFormData] = useState(EMPTY_FORM)
 
-  const [formData, setFormData] = useState({
-    kode_org: '',
-    nama_org: '',
-    ketua_nama: '',
-    jumlah_anggota: 0,
-    status: 'Aktif',
-    kategori: 'Himpunan',
-    email: '',
-    password: '',
-    phone: ''
-  })
-
-  // 🔥 FIX MAPPING API → UI
   const fetchData = async () => {
+    setLoading(true)
     try {
-      setLoading(true)
-      const res = await fetch(`${API}/organizations`)
+      const res  = await fetch(`${API}/organizations`)
       const data = await res.json()
-      // Go backend returns PascalCase fields
-      const mapped = Array.isArray(data.data)
-        ? data.data.map((item) => ({
-          id: item.ID,
-          nama: item.Nama,
-          kode: item.Singkatan || item.Kode || '',
-          status: item.Status || 'Aktif',
-          kategori: item.Kategori || '',
-          jumlah_anggota: item.JumlahAnggota || 0,
-          deskripsi: item.Deskripsi || '',
-          email: item.Email || '',
-          phone: item.Phone || ''
-        }))
-        : []
-      setOrganizations(mapped)
-    } catch (err) {
-      console.error("❌ ERROR:", err)
-      toast.error("Gagal mengambil data organisasi")
-    } finally {
-      setLoading(false)
-    }
+      const mapped = Array.isArray(data.data) ? data.data.map(item=>({
+        id: item.ID, nama: item.Nama, kode: item.Singkatan||item.Kode||'',
+        status: item.Status||'Aktif', kategori: item.Kategori||'',
+        jumlah_anggota: item.JumlahAnggota||0, deskripsi: item.Deskripsi||'',
+        email: item.Email||'', phone: item.Phone||''
+      })) : []
+      setOrgs(mapped)
+    } catch { toast.error('Gagal mengambil data organisasi') }
+    finally { setLoading(false) }
   }
 
-  useEffect(() => {
-    fetchData()
-  }, [])
-
   const handleSubmit = async (e) => {
-    if (e) e.preventDefault()
-    setIsSubmitting(true)
-
-    // Fiber BodyParser maps lowercase keys to Go PascalCase struct fields
-    const payload = {
-      Nama: formData.nama_org,
-      Singkatan: formData.kode_org,
-      Status: formData.status,
-      Kategori: formData.kategori,
-      JumlahAnggota: formData.jumlah_anggota,
-      Deskripsi: formData.ketua_nama,
-      Email: formData.email,
-      Password: formData.password,
-      Phone: formData.phone
-    }
-
+    e.preventDefault(); setIsSub(true)
+    const payload = { Nama:formData.nama_org, Singkatan:formData.kode_org, Status:formData.status, Kategori:formData.kategori, JumlahAnggota:formData.jumlah_anggota, Deskripsi:formData.ketua_nama, Email:formData.email, Password:formData.password, Phone:formData.phone }
     try {
-      if (editingOrg) {
-        await axios.put(`${API}/organizations/${editingOrg.id}`, payload)
-        toast.success("Organisasi diperbarui")
-      } else {
-        await axios.post(`${API}/organizations`, payload)
-        toast.success("Organisasi ditambahkan")
-      }
-      setShowModal(false)
-      fetchData()
-    } catch (error) {
-      toast.error(`Gagal menyimpan: ${error.response?.data?.message || 'Database error'}`)
-    } finally {
-      setIsSubmitting(false)
-    }
+      if (editingOrg) { await axios.put(`${API}/organizations/${editingOrg.id}`, payload); toast.success('Organisasi diperbarui') }
+      else { await axios.post(`${API}/organizations`, payload); toast.success('Organisasi ditambahkan') }
+      setModal(false); fetchData()
+    } catch (e) { toast.error(`Gagal menyimpan: ${e.response?.data?.message||'Error'}`) }
+    finally { setIsSub(false) }
   }
 
   const handleDelete = async () => {
-    if (!selectedOrgId) return
-    setIsSubmitting(true)
+    if (!delTarget) return; setIsSub(true)
     try {
-      const res = await axios.delete(`${API}/organizations/${selectedOrgId}`)
-      if (res.data.status === 'success') {
-        toast.success("Organisasi dihapus")
-        setIsDelOpen(false)
-        fetchData()
-      } else {
-        toast.error(`Gagal hapus: ${res.data.message || 'Error response'}`)
-      }
-    } catch (error) {
-      toast.error(`Gagal menghapus: ${error.response?.data?.message || 'Server sibuk'}`)
-    } finally {
-      setIsSubmitting(false)
-    }
+      const res = await axios.delete(`${API}/organizations/${delTarget.id}`)
+      if (res.data.status==='success') { toast.success('Organisasi dihapus'); setDelTarget(null); fetchData() }
+      else toast.error(res.data.message||'Gagal hapus')
+    } catch (e) { toast.error(e.response?.data?.message||'Gagal menghapus') }
+    finally { setIsSub(false) }
   }
 
-  const openEdit = (org) => {
-    setEditingOrg(org)
-    setFormData({
-      kode_org: org.kode || '',
-      nama_org: org.nama || '',
-      ketua_nama: org.deskripsi || '',
-      jumlah_anggota: org.jumlah_anggota || 0,
-      status: org.status || 'Aktif',
-      kategori: org.kategori || 'Himpunan',
-      email: org.email || '',
-      password: '',
-      phone: org.phone || ''
-    })
-    setShowModal(true)
-  }
+  const openEdit = (org) => { setEdit(org); setFormData({ kode_org:org.kode, nama_org:org.nama, ketua_nama:org.deskripsi, jumlah_anggota:org.jumlah_anggota, status:org.status, kategori:org.kategori, email:org.email, password:'', phone:org.phone }); setModal(true) }
+  const set = (k,v) => setFormData(p=>({...p,[k]:v}))
 
-  const columns = [
-    {
-      key: "kode",
-      label: "Kode",
-      render: (val) => (
-        <Badge variant="outline" className="font-black text-[10px] border-slate-200 bg-slate-50 text-slate-500 rounded-lg px-2 py-0.5 tracking-tighter uppercase font-headline">
-          {val || '-'}
-        </Badge>
-      )
-    },
-    {
-      key: "nama",
-      label: "Nama Organisasi",
-      render: (val) => (
-        <div className="flex flex-col text-left">
-          <span className="font-black text-slate-900 font-headline uppercase text-[12px] tracking-tight leading-none">{val}</span>
-        </div>
-      )
-    },
-    {
-      key: "deskripsi",
-      label: "Pic / Ketua",
-      render: (val) => <span className="text-[11px] font-bold text-slate-600 uppercase font-headline">{val || '-'}</span>
-    },
-    {
-      key: "jumlah_anggota",
-      label: "Anggota",
-      render: (val) => (
-        <div className="flex items-center gap-1.5 text-slate-600">
-            <Users2 className="size-3" />
-            <span className="text-[11px] font-black font-headline">{val || 0}</span>
-        </div>
-      )
-    },
-    {
-      key: "status",
-      label: "Status",
-      render: (val) => (
-        <Badge className={cn(
-          "text-[9px] font-black px-2 py-0.5 rounded-md border-none uppercase font-headline tracking-widest",
-          val === 'Aktif' ? "bg-emerald-100 text-emerald-600" : "bg-rose-100 text-rose-600"
-        )}>
-          {val || 'Aktif'}
-        </Badge>
-      )
-    }
-  ]
+  useEffect(()=>{ fetchData() },[])
 
-  const statsData = [
-    { label: 'Total ORMAWA', value: organizations.length, icon: Users2, color: 'text-blue-600', bg: 'bg-blue-50' },
-    { label: 'Organisasi Aktif', value: organizations.filter(o => o.status === 'Aktif').length, icon: CheckCircle2, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-    { label: 'Reach Anggota', value: organizations.reduce((acc, o) => acc + (o.jumlah_anggota || 0), 0), icon: ShieldCheck, color: 'text-indigo-600', bg: 'bg-indigo-50' },
-  ]
+  const filtered = useMemo(()=>organizations.filter(o=>{
+    const q=search.toLowerCase()
+    return !q||o.nama?.toLowerCase().includes(q)||o.kode?.toLowerCase().includes(q)
+  }),[organizations,search])
+
+  const stats = { total:organizations.length, aktif:organizations.filter(o=>o.status==='Aktif').length, anggota:organizations.reduce((a,o)=>a+(o.jumlah_anggota||0),0) }
 
   return (
-    <PageContainer>
-      <Toaster position="top-right" />
+    <div className="min-h-screen bg-[#f8fafc] font-body">
+      <Toaster position="top-right"/>
+      <div className="max-w-[1600px] mx-auto px-4 py-8 md:px-8 xl:px-12 space-y-6">
+        {/* Header */}
+        <section className="relative overflow-hidden rounded-3xl h-auto md:h-48 flex flex-col md:flex-row items-center group shadow-sm p-6 md:p-8 border border-slate-200/80 bg-white">
+          <div className="absolute inset-0 bg-gradient-to-br from-white via-slate-50/50 to-slate-100/50" />
+          <div className="absolute inset-0 opacity-[0.03]"
+            style={{
+              backgroundImage: `radial-gradient(circle at 20% 50%, black 1px, transparent 1px), radial-gradient(circle at 80% 20%, black 1px, transparent 1px)`,
+              backgroundSize: '60px 60px'
+            }}
+          />
+          <div className="absolute -top-20 -right-20 w-72 h-72 bg-primary/5 rounded-full blur-3xl animate-pulse" />
+          <div className="absolute -bottom-10 right-40 w-48 h-48 bg-blue-400/5 rounded-full blur-2xl" />
 
-      <PageHeader
-        icon={Users2}
-        title="Organisasi Fakultas"
-        description="Master Data & Legalitas ORMAWA"
-      />
-
-      <ResponsiveGrid cols={3}>
-        {statsData.map((stat, i) => (
-          <ResponsiveCard key={i} className="flex flex-row items-center gap-4">
-            <div className={`p-3 rounded-xl ${stat.bg} ${stat.color}`}>
-              <stat.icon className="size-5" />
+          <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center w-full gap-6">
+            <div>
+              <div className="flex items-center gap-2 mb-2">
+                <div className="h-4 w-1.5 bg-primary rounded-full" />
+                <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#a3a3a3]">Master Data ORMAWA</span>
+              </div>
+              <h1 className="text-3xl font-extrabold text-slate-900 font-headline tracking-tight leading-tight">
+                Organisasi <span className="text-primary">Fakultas</span>
+              </h1>
+              <p className="text-slate-500 font-medium text-sm max-w-xl leading-relaxed mt-1">
+                Kelola data legalitas dan identitas organisasi mahasiswa di lingkungan fakultas.
+              </p>
             </div>
-            <div className="flex flex-col font-headline leading-tight">
-              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">{stat.label}</span>
-              <span className="text-xl font-black text-slate-900 tracking-tighter uppercase">{loading ? '...' : stat.value}</span>
+            <button onClick={()=>{ setEdit(null); setFormData(EMPTY_FORM); setModal(true) }}
+              className="h-11 px-5 rounded-xl bg-[#00236F] hover:bg-[#001a52] text-white text-xs font-bold uppercase tracking-widest gap-2 flex items-center transition-all active:scale-95 shadow-lg shadow-[#00236F]/20 shrink-0">
+              <span className="material-symbols-outlined" style={{ fontSize: '15px' }} >add</span> Tambah ORMAWA
+            </button>
+          </div>
+        </section>
+
+        {/* Stats */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {[
+            {label:'Total ORMAWA',    value:stats.total,   icon:Users2,      bg:'bg-[#eef4ff]',  color:'text-[#00236F]',   desc:'Organisasi terdaftar'},
+            {label:'Organisasi Aktif',value:stats.aktif,   icon:CheckCircle2, bg:'bg-emerald-50', color:'text-emerald-600', desc:'Status aktif beroperasi'},
+            {label:'Total Anggota',   value:stats.anggota, icon:ShieldCheck, bg:'bg-indigo-50',  color:'text-indigo-600',  desc:'Jangkauan anggota'},
+          ].map(s=>(
+            <div key={s.label} className="bg-surface-container-lowest border border-outline-variant/10 rounded-3xl p-5 shadow-sm">
+              <div className="flex items-center gap-3 mb-3">
+                <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center',s.bg,s.color)}><s.icon size={18}/></div>
+                <span className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-widest">{s.label}</span>
+              </div>
+              <p className="text-2xl font-extrabold text-[#171717] leading-none tabular-nums">{loading?<span className="material-symbols-outlined animate-spin text-slate-300" style={{ fontSize: '18px' }} >sync</span>:s.value}</p>
+              <p className="text-xs text-[#a3a3a3] font-medium mt-1">{s.desc}</p>
             </div>
-          </ResponsiveCard>
-        ))}
-      </ResponsiveGrid>
+          ))}
+        </div>
 
-      <ResponsiveCard noPadding className="mt-6">
-        <DataTable
-          columns={columns}
-          data={organizations}
-          loading={loading}
-          searchPlaceholder="Cari Nama atau Kode..."
-          onAdd={() => { setEditingOrg(null); setFormData({ kode_org: '', nama_org: '', ketua_nama: '', jumlah_anggota: 0, status: 'Aktif', kategori: 'Himpunan', email: '', password: '', phone: '' }); setShowModal(true); }}
-          addLabel="Tambah ORMAWA"
-          actions={(row) => (
-            <div className="flex items-center justify-end gap-2 pr-2">
-              <Button onClick={() => openEdit(row)} variant="ghost" size="icon" className="h-9 w-9 hover:text-amber-600 rounded-xl hover:bg-amber-50 transition-all">
-                <Pencil className="size-4" />
-              </Button>
-              <Button onClick={() => { setSelectedOrgId(row.id); setIsDelOpen(true); }} variant="ghost" size="icon" className="h-9 w-9 hover:text-rose-600 rounded-xl hover:bg-rose-50 transition-all text-slate-400">
-                <Trash2 className="size-4" />
-              </Button>
+        {/* Table */}
+        <div className="bg-surface-container-lowest border border-outline-variant/10 rounded-3xl shadow-sm overflow-hidden">
+          <div className="px-5 py-4 border-b border-[#f0f0f0] flex flex-col sm:flex-row items-start sm:items-center gap-3">
+            <div className="flex-1">
+              <h2 className="font-bold text-base text-[#171717]">Daftar Organisasi Mahasiswa</h2>
+              <p className="text-xs text-[#737373] mt-0.5">Menampilkan <span className="font-bold text-[#171717]">{filtered.length}</span> dari <span className="font-bold text-primary">{organizations.length}</span> organisasi</p>
             </div>
-          )}
-        />
-      </ResponsiveCard>
+            <div className="relative">
+              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#a3a3a3]" style={{ fontSize: '14px' }} >search</span>
+              <input type="text" placeholder="Cari nama atau kode..." value={search} onChange={e=>setSearch(e.target.value)}
+                className="pl-9 pr-4 h-9 w-52 rounded-xl border border-[#e5e5e5] focus:outline-none focus:border-primary text-sm bg-white"/>
+            </div>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left">
+              <thead>
+                <tr className="border-b border-[#e5e5e5]">
+                  {['Kode','Nama Organisasi','Ketua','Kategori','Anggota','Status','Aksi'].map(h=>(
+                    <th key={h} className="px-5 py-3.5 text-xs font-bold text-[#a3a3a3] uppercase tracking-wider whitespace-nowrap">{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {loading?Array.from({length:4}).map((_,i)=>(
+                  <tr key={i} className="border-b border-[#f0f0f0]">{[...Array(7)].map((__,j)=><td key={j} className="px-5 py-4"><div className="h-4 bg-[#f5f5f5] rounded animate-pulse"/></td>)}</tr>
+                )):filtered.length===0?(
+                  <tr><td colSpan={7} className="px-5 py-16 text-center">
+                    <div className="flex flex-col items-center gap-3">
+                      <div className="w-12 h-12 bg-[#eef4ff] rounded-2xl flex items-center justify-center text-primary"><span className="material-symbols-outlined" style={{ fontSize: '22px' }}>group</span></div>
+                      <p className="font-bold text-sm text-[#171717]">Belum Ada Organisasi</p>
+                    </div>
+                  </td></tr>
+                ):filtered.map((row,i)=>(
+                  <tr key={row.id||i} className="border-b border-[#f5f5f5] hover:bg-[#fafbff] transition-colors">
+                    <td className="px-5 py-3.5"><span className="text-[10px] font-black text-[#525252] bg-slate-50 border border-slate-200 px-2 py-1 rounded-lg uppercase tracking-wider">{row.kode||'—'}</span></td>
+                    <td className="px-5 py-3.5"><p className="font-bold text-sm text-[#171717]">{row.nama}</p></td>
+                    <td className="px-5 py-3.5 text-sm text-[#525252] font-medium">{row.deskripsi||'—'}</td>
+                    <td className="px-5 py-3.5"><span className="text-[10px] font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 px-2.5 py-1 rounded-lg">{row.kategori||'—'}</span></td>
+                    <td className="px-5 py-3.5"><div className="flex items-center gap-1.5 text-sm font-black text-[#171717]"><span className="material-symbols-outlined text-[#a3a3a3]" style={{ fontSize: '12px' }}>group</span>{row.jumlah_anggota||0}</div></td>
+                    <td className="px-5 py-3.5">
+                      <span className={cn('inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold border uppercase',
+                        row.status==='Aktif'?'bg-emerald-50 text-emerald-700 border-emerald-200':'bg-rose-50 text-rose-700 border-rose-200')}>
+                        <span className={cn('w-1.5 h-1.5 rounded-full',row.status==='Aktif'?'bg-emerald-500':'bg-rose-500')}/>{row.status}
+                      </span>
+                    </td>
+                    <td className="px-5 py-3.5">
+                      <div className="flex items-center gap-1.5">
+                        <button onClick={()=>openEdit(row)} className="p-1.5 text-[#a3a3a3] hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"><span className="material-symbols-outlined" style={{ fontSize: '15px' }} >edit</span></button>
+                        <button onClick={()=>setDelTarget(row)} className="p-1.5 text-[#a3a3a3] hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"><span className="material-symbols-outlined" style={{ fontSize: '15px' }} >delete</span></button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
 
-      {/* Modal Dialog */}
-      <Modal
-        open={showModal}
-        onClose={() => setShowModal(false)}
-        title={editingOrg ? 'Update Organisasi' : 'Registrasi Baru'}
-        subtitle="Manajemen identitas & legalitas organisasi mahasiswa fakultas."
-        icon={<Users2 size={18} />}
-        maxWidth="max-w-xl"
-      >
-        <form onSubmit={handleSubmit}>
-          <ModalBody>
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Kode Akronim</Label>
-                  <Input
-                    value={formData.kode_org}
-                    onChange={(e) => setFormData({ ...formData, kode_org: e.target.value.toUpperCase() })}
-                    placeholder="E.G. BEM-FT"
-                    className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white transition-all font-black text-sm font-headline uppercase tracking-widest"
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Kategori / Tipe</Label>
-                  <Select value={formData.kategori} onValueChange={(val) => setFormData({ ...formData, kategori: val })}>
-                    <SelectTrigger className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 font-black font-headline text-[11px] px-4">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="rounded-2xl shadow-2xl p-1 font-headline overflow-hidden">
-                      <SelectItem value="BEM" className="rounded-xl font-bold text-[11px] p-3 focus:bg-primary/5 text-primary uppercase font-headline">BEM (Badan Eksekutif)</SelectItem>
-                      <SelectItem value="Himpunan" className="rounded-xl font-bold text-[11px] p-3 focus:bg-blue-50 text-blue-600 uppercase font-headline">Himpunan Mahasiswa</SelectItem>
-                      <SelectItem value="UKM" className="rounded-xl font-bold text-[11px] p-3 focus:bg-indigo-50 text-indigo-600 uppercase font-headline">UKM (Unit Kegiatan)</SelectItem>
-                      <SelectItem value="Komunitas" className="rounded-xl font-bold text-[11px] p-3 focus:bg-violet-50 text-violet-600 uppercase font-headline">Komunitas</SelectItem>
-                      <SelectItem value="Lainnya" className="rounded-xl font-bold text-[11px] p-3 focus:bg-slate-50 text-slate-600 uppercase font-headline">Lainnya</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Status Operasional</Label>
-                  <Select value={formData.status} onValueChange={(val) => setFormData({ ...formData, status: val })}>
-                    <SelectTrigger className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 font-black font-headline text-[11px] px-4">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="rounded-2xl shadow-2xl p-1 font-headline overflow-hidden">
-                      <SelectItem value="Aktif" className="rounded-xl font-bold text-[11px] p-3 focus:bg-emerald-50 text-emerald-600 uppercase font-headline">Aktif (Active)</SelectItem>
-                      <SelectItem value="Nonaktif" className="rounded-xl font-bold text-[11px] p-3 focus:bg-amber-50 text-amber-600 uppercase font-headline">Nonaktif (Inactive)</SelectItem>
-                      <SelectItem value="Pembekuan" className="rounded-xl font-bold text-[11px] p-3 focus:bg-rose-50 text-rose-600 uppercase font-headline">Pembekuan (Frozen)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Jumlah Anggota</Label>
-                  <Input
-                    type="number"
-                    value={formData.jumlah_anggota}
-                    onChange={(e) => setFormData({ ...formData, jumlah_anggota: parseInt(e.target.value) || 0 })}
-                    className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white text-sm font-black font-headline text-center"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Nama Panjang Organisasi</Label>
-                <Input
-                  value={formData.nama_org}
-                  onChange={(e) => setFormData({ ...formData, nama_org: e.target.value })}
-                  placeholder="Masukkan nama resmi organisasi secara lengkap..."
-                  className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white transition-all font-bold text-sm font-headline uppercase italic"
-                  required
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Nama Ketua Umum</Label>
-                  <Input
-                    value={formData.ketua_nama}
-                    onChange={(e) => setFormData({ ...formData, ketua_nama: e.target.value })}
-                    placeholder="Entry Nama Ketua..."
-                    className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white transition-all font-bold text-sm font-headline uppercase"
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Email Resmi</Label>
-                  <Input
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    placeholder="E.G. info@hmp-it.com"
-                    className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white transition-all font-bold text-sm font-headline"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Password Akun Admin</Label>
-                <Input
-                  type="password"
-                  value={formData.password}
-                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  placeholder={editingOrg ? 'Biarkan kosong jika tidak ingin mengubah password' : 'Password untuk login Admin Ormawa...'}
-                  className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white transition-all font-bold text-sm"
-                  required={!editingOrg}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">No HP Kontak</Label>
-                <Input
-                  value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  placeholder="E.G. 08123xxx"
-                  className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white text-sm font-bold font-headline"
-                />
+      {/* Form Modal */}
+      {showModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4" onClick={()=>setModal(false)}>
+          <div className="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl z-[101] flex flex-col overflow-hidden max-h-[90vh]" onClick={e=>e.stopPropagation()}>
+            <div className="relative bg-gradient-to-br from-[#00236F] to-[#003db5] pt-6 pb-7 px-6 overflow-hidden flex-shrink-0">
+              <div className="absolute -top-10 -right-10 w-44 h-44 bg-white/5 rounded-full pointer-events-none"/>
+              <button onClick={()=>setModal(false)} className="absolute top-4 right-4 w-8 h-8 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center transition-colors"><span className="material-symbols-outlined" style={{ fontSize: '15px' }} >close</span></button>
+              <div className="relative z-10">
+                <p className="text-[9px] font-bold text-white/50 uppercase tracking-[0.25em] mb-1">{editingOrg?'Edit Organisasi':'Registrasi Baru'}</p>
+                <h2 className="text-xl font-extrabold text-white">{editingOrg?'Update Data ORMAWA':'Tambah Organisasi'}</h2>
               </div>
             </div>
-          </ModalBody>
+            <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
+              <div className="flex-1 overflow-y-auto p-5 space-y-3">
+                <div className="grid grid-cols-2 gap-3">
+                  <div><label className="block text-[10px] font-black text-[#a3a3a3] uppercase tracking-[0.18em] mb-1.5">Kode Akronim</label>
+                    <input value={formData.kode_org} onChange={e=>set('kode_org',e.target.value.toUpperCase())} placeholder="BEM-FT" required className="w-full h-11 px-4 rounded-xl border border-[#e5e5e5] bg-[#fafafa] text-sm font-black uppercase text-[#171717] focus:outline-none focus:border-primary focus:bg-white transition-all"/></div>
+                  <div><label className="block text-[10px] font-black text-[#a3a3a3] uppercase tracking-[0.18em] mb-1.5">Kategori</label>
+                    <select value={formData.kategori} onChange={e=>set('kategori',e.target.value)} className="w-full h-11 px-4 rounded-xl border border-[#e5e5e5] bg-[#fafafa] text-sm font-medium text-[#171717] focus:outline-none focus:border-primary appearance-none">
+                      {['BEM','Himpunan','UKM','Komunitas','Lainnya'].map(v=><option key={v} value={v}>{v}</option>)}
+                    </select></div>
+                </div>
+                <div><label className="block text-[10px] font-black text-[#a3a3a3] uppercase tracking-[0.18em] mb-1.5">Nama Panjang Organisasi</label>
+                  <input value={formData.nama_org} onChange={e=>set('nama_org',e.target.value)} placeholder="Nama resmi organisasi..." required className="w-full h-11 px-4 rounded-xl border border-[#e5e5e5] bg-[#fafafa] text-sm font-medium text-[#171717] focus:outline-none focus:border-primary focus:bg-white transition-all"/></div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div><label className="block text-[10px] font-black text-[#a3a3a3] uppercase tracking-[0.18em] mb-1.5">Nama Ketua Umum</label>
+                    <input value={formData.ketua_nama} onChange={e=>set('ketua_nama',e.target.value)} placeholder="Nama Ketua..." required className="w-full h-11 px-4 rounded-xl border border-[#e5e5e5] bg-[#fafafa] text-sm font-medium text-[#171717] focus:outline-none focus:border-primary focus:bg-white transition-all"/></div>
+                  <div><label className="block text-[10px] font-black text-[#a3a3a3] uppercase tracking-[0.18em] mb-1.5">Jumlah Anggota</label>
+                    <input type="number" value={formData.jumlah_anggota} onChange={e=>set('jumlah_anggota',parseInt(e.target.value)||0)} className="w-full h-11 px-4 rounded-xl border border-[#e5e5e5] bg-[#fafafa] text-sm font-black text-center text-[#171717] focus:outline-none focus:border-primary focus:bg-white transition-all"/></div>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div><label className="block text-[10px] font-black text-[#a3a3a3] uppercase tracking-[0.18em] mb-1.5">Status</label>
+                    <select value={formData.status} onChange={e=>set('status',e.target.value)} className="w-full h-11 px-4 rounded-xl border border-[#e5e5e5] bg-[#fafafa] text-sm font-medium text-[#171717] focus:outline-none focus:border-primary appearance-none">
+                      {['Aktif','Nonaktif','Pembekuan'].map(v=><option key={v} value={v}>{v}</option>)}
+                    </select></div>
+                  <div><label className="block text-[10px] font-black text-[#a3a3a3] uppercase tracking-[0.18em] mb-1.5">Email Resmi</label>
+                    <input type="email" value={formData.email} onChange={e=>set('email',e.target.value)} placeholder="info@ormawa.com" className="w-full h-11 px-4 rounded-xl border border-[#e5e5e5] bg-[#fafafa] text-sm font-medium text-[#171717] focus:outline-none focus:border-primary focus:bg-white transition-all"/></div>
+                </div>
+                <div><label className="block text-[10px] font-black text-[#a3a3a3] uppercase tracking-[0.18em] mb-1.5">{editingOrg?'Password (kosongkan jika tidak diubah)':'Password Akun Admin'}</label>
+                  <input type="password" value={formData.password} onChange={e=>set('password',e.target.value)} placeholder="Password login admin ormawa..." required={!editingOrg} className="w-full h-11 px-4 rounded-xl border border-[#e5e5e5] bg-[#fafafa] text-sm font-medium text-[#171717] focus:outline-none focus:border-primary focus:bg-white transition-all"/></div>
+              </div>
+              <div className="px-5 py-4 border-t border-[#f0f0f0] bg-[#fafafa] flex gap-3 flex-shrink-0">
+                <button type="button" onClick={()=>setModal(false)} className="flex-1 h-11 rounded-xl border border-[#e5e5e5] bg-white text-xs font-bold text-[#525252] uppercase tracking-widest hover:bg-[#f5f5f5] transition-all">Batal</button>
+                <button type="submit" disabled={isSubmitting} className="flex-1 h-11 rounded-xl bg-[#00236F] hover:bg-[#001a52] text-white text-xs font-bold uppercase tracking-widest transition-all active:scale-95 shadow-lg shadow-[#00236F]/20 disabled:opacity-60 flex items-center justify-center gap-2">
+                  {isSubmitting?<span className="material-symbols-outlined animate-spin" style={{ fontSize: '14px' }} >sync</span>:<span className="material-symbols-outlined" style={{ fontSize: '14px' }} >save</span>} {editingOrg?'Update Data':'Simpan Data'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
-          <ModalFooter>
-            <ModalBtn variant="ghost" type="button" onClick={() => setShowModal(false)}>
-              Batalkan
-            </ModalBtn>
-            <ModalBtn type="submit" disabled={isSubmitting}>
-              {isSubmitting ? (
-                <Loader2 className="animate-spin size-4" />
-              ) : (
-                <Save size={14} className="stroke-[3px]" />
-              )}
-              <span className="uppercase tracking-[0.1em]">{editingOrg ? 'Update Data' : 'Submit Data'}</span>
-            </ModalBtn>
-          </ModalFooter>
-        </form>
-      </Modal>
-
-      <DeleteConfirmModal
-        isOpen={isDelOpen}
-        onClose={() => setIsDelOpen(false)}
-        onConfirm={handleDelete}
-        title="Hapus Data ORMAWA?"
-        description="Eksistensi organisasi ini akan dihapus dari record resmi fakultas. Pastikan seluruh laporan pertanggungjawaban telah diarsipkan."
-        loading={isSubmitting}
-      />
-    </PageContainer>
+      {/* Delete Confirm */}
+      {delTarget && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4" onClick={()=>setDelTarget(null)}>
+          <div className="relative w-full max-w-sm bg-white rounded-3xl shadow-2xl z-[101] overflow-hidden" onClick={e=>e.stopPropagation()}>
+            <div className="p-6 text-center">
+              <div className="w-14 h-14 bg-rose-50 rounded-2xl flex items-center justify-center text-rose-500 mx-auto mb-4"><span className="material-symbols-outlined" style={{ fontSize: '24px' }} >delete</span></div>
+              <h3 className="text-lg font-extrabold text-[#171717] mb-2">Hapus Organisasi?</h3>
+              <p className="text-sm text-[#737373] mb-1">Anda akan menghapus <span className="font-bold text-[#171717]">"{delTarget.nama}"</span>.</p>
+              <p className="text-xs text-[#a3a3a3] mb-6">Tindakan ini tidak dapat dibatalkan.</p>
+              <div className="flex gap-3">
+                <button onClick={()=>setDelTarget(null)} className="flex-1 h-11 rounded-xl border border-[#e5e5e5] bg-white text-xs font-bold text-[#525252] uppercase tracking-widest hover:bg-[#f5f5f5] transition-all">Batal</button>
+                <button onClick={handleDelete} disabled={isSubmitting} className="flex-1 h-11 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold uppercase tracking-widest transition-all active:scale-95 shadow-lg shadow-rose-600/20 disabled:opacity-60 flex items-center justify-center gap-2">
+                  {isSubmitting?<span className="material-symbols-outlined animate-spin" style={{ fontSize: '14px' }} >sync</span>:<span className="material-symbols-outlined" style={{ fontSize: '13px' }} >delete</span>} Ya, Hapus
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
   )
 }

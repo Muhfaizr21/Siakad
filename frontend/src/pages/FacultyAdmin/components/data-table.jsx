@@ -11,18 +11,7 @@ import {
 } from "./table"
 import { Input } from "./input"
 import { Button } from "./button"
-import {
-  ChevronLeft,
-  ChevronRight,
-  Search,
-  Plus,
-  Download,
-  Filter,
-  MoreVertical,
-  ChevronsUpDown,
-  ChevronUp,
-  ChevronDown
-} from "lucide-react"
+
 import {
   Select,
   SelectContent,
@@ -31,6 +20,19 @@ import {
   SelectValue,
 } from "./select"
 import { cn } from "@/lib/utils"
+
+// Auto-injected Material Symbol fallbacks for removed Lucide icons
+const ChevronUp = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>expand_less</span>;
+const ChevronsUpDown = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>unfold_more</span>;
+
+
+
+// Auto-injected Material Symbol fallbacks for removed Lucide icons
+const Filter = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>filter_alt</span>;
+const Download = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>download</span>;
+const ChevronLeft = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>chevron_left</span>;
+
+
 
 export function DataTable({
   columns,
@@ -115,7 +117,7 @@ export function DataTable({
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex flex-1 flex-wrap items-center gap-3">
             <div className="relative flex-1 max-w-md group">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 size-4 text-slate-300 group-focus-within:text-primary transition-colors" />
+              <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 size-4 text-slate-300 group-focus-within:text-primary transition-colors" >search</span>
               <Input
                 placeholder={searchPlaceholder}
                 value={searchTerm}
@@ -157,7 +159,7 @@ export function DataTable({
 
             {onAdd && (
               <Button onClick={onAdd} className="h-11 px-6 rounded-2xl font-black bg-primary text-white hover:bg-primary/90 shadow-xl shadow-primary/20 gap-2.5 transition-all hover:scale-[1.02] active:scale-95 border-none">
-                <Plus className="size-4 stroke-[4px]" />
+                <span className="material-symbols-outlined size-4 stroke-[4px]" >add</span>
                 <span className="text-[10px] uppercase tracking-[0.2em]">{addLabel || "Tambah"}</span>
               </Button>
             )}
@@ -181,7 +183,7 @@ export function DataTable({
                       sortConfig.key === col.key ? (
                         sortConfig.direction === 'asc'
                           ? <ChevronUp className="size-3.5 text-primary" />
-                          : <ChevronDown className="size-3.5 text-primary" />
+                          : <span className="material-symbols-outlined size-3.5 text-primary" >expand_more</span>
                       ) : (
                         <ChevronsUpDown className="size-3.5 text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity" />
                       )
@@ -234,7 +236,7 @@ export function DataTable({
                 >
                   <div className="flex flex-col items-center justify-center gap-4 animate-in fade-in zoom-in duration-500">
                     <div className="size-16 rounded-[2rem] bg-slate-50 flex items-center justify-center text-slate-300 border border-slate-100">
-                      <Search className="size-8 stroke-[1.5px]" />
+                      <span className="material-symbols-outlined size-8 stroke-[1.5px]" >search</span>
                     </div>
                     <div className="space-y-1">
                       <p className="font-black text-[11px] uppercase tracking-widest text-slate-900 font-headline">Data Tidak Ditemukan</p>
@@ -321,7 +323,7 @@ export function DataTable({
             className="h-10 px-5 rounded-2xl border-slate-200 bg-white text-slate-600 font-black text-[9px] uppercase tracking-[0.2em] shadow-sm disabled:opacity-40 hover:bg-slate-50 transition-all hover:translate-x-0.5"
           >
             Next
-            <ChevronRight className="size-3.5 ml-2 text-primary" />
+            <span className="material-symbols-outlined size-3.5 ml-2 text-primary" >chevron_right</span>
           </Button>
         </div>
       </div>

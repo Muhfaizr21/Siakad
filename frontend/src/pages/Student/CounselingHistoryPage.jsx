@@ -1,15 +1,5 @@
 import React from 'react';
-import {
-  Activity,
-  ArrowLeft,
-  Calendar,
-  Clock,
-  FileText,
-  MessageSquare,
-  ShieldCheck,
-  Trash2,
-  User,
-} from 'lucide-react';
+
 import { NavLink } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import {
@@ -19,6 +9,16 @@ import {
 } from '../../queries/useCounselingQuery';
 import { NotifListSkeleton } from '../../components/ui/SkeletonGroups';
 import EmptyState from '../../components/ui/EmptyState';
+
+// Auto-injected Material Symbol fallbacks for removed Lucide icons
+const ArrowLeft = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>arrow_back</span>;
+
+
+
+// Auto-injected Material Symbol fallbacks for removed Lucide icons
+const User = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>person</span>;
+
+
 
 const formatLongDate = (dateStr) => {
   if (!dateStr) return '-';
@@ -94,7 +94,7 @@ export default function CounselingHistoryPage() {
           <div className="overflow-hidden rounded-3xl border border-neutral-100 bg-white shadow-sm">
             <div className="border-b border-neutral-100 px-5 py-4">
               <div className="flex items-center gap-2">
-                <Calendar size={18} className="text-[#00236F]" />
+                <span className="material-symbols-outlined text-[#00236F]" style={{ fontSize: '18px' }} >calendar_month</span>
                 <h2 className="text-sm font-extrabold uppercase tracking-tight text-[#00236F]">Daftar Booking</h2>
               </div>
               <p className="mt-1 text-xs font-semibold text-neutral-400">Status booking konseling kamu dari yang terbaru.</p>
@@ -128,14 +128,14 @@ export default function CounselingHistoryPage() {
                           <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-[160px_1fr]">
                             <div className="rounded-xl border border-neutral-100 bg-neutral-50 p-3">
                               <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wide text-neutral-400">
-                                <Clock size={12} />
+                                <span className="material-symbols-outlined" style={{ fontSize: '12px' }} >schedule</span>
                                 Waktu
                               </p>
                               <p className="mt-1 text-xs font-extrabold text-neutral-800">{item.jam_mulai}{item.jam_selesai ? ` - ${item.jam_selesai}` : ''}</p>
                             </div>
                             <div className="rounded-xl border border-neutral-100 bg-neutral-50 p-3">
                               <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wide text-neutral-400">
-                                <MessageSquare size={12} />
+                                <span className="material-symbols-outlined" style={{ fontSize: '12px' }} >chat</span>
                                 Topik Mahasiswa
                               </p>
                               <p className="mt-1 text-xs font-medium leading-relaxed text-neutral-700">{item.keluhan || 'Tidak ada topik tambahan.'}</p>
@@ -152,7 +152,7 @@ export default function CounselingHistoryPage() {
                                 onClick={() => handleCancel(item.id)}
                                 className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-bold text-rose-500 transition-all hover:bg-rose-50"
                               >
-                                <Trash2 size={13} />
+                                <span className="material-symbols-outlined" style={{ fontSize: '13px' }} >delete</span>
                                 Batalkan
                               </button>
                             )}
@@ -181,7 +181,7 @@ export default function CounselingHistoryPage() {
           <div className="rounded-3xl border border-neutral-100 bg-white shadow-sm">
             <div className="border-b border-neutral-100 px-5 py-4">
               <div className="flex items-center gap-2">
-                <FileText size={18} className="text-[#00236F]" />
+                <span className="material-symbols-outlined text-[#00236F]" style={{ fontSize: '18px' }} >description</span>
                 <h2 className="text-sm font-extrabold uppercase tracking-tight text-[#00236F]">Rekam Medis</h2>
               </div>
               <p className="mt-1 text-xs font-semibold text-neutral-400">Catatan sesi yang sudah disimpan oleh psikolog.</p>
@@ -208,7 +208,7 @@ export default function CounselingHistoryPage() {
                       <div className="flex items-start justify-between gap-3">
                         <div>
                           <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wide text-neutral-400">
-                            <Calendar size={12} />
+                            <span className="material-symbols-outlined" style={{ fontSize: '12px' }} >calendar_month</span>
                             {record.display_date} • {record.time}
                           </p>
                           <h3 className="mt-1 text-sm font-extrabold text-neutral-900">{record.type}</h3>
@@ -226,14 +226,14 @@ export default function CounselingHistoryPage() {
                         </div>
                         <div className="rounded-xl border border-blue-100 bg-blue-50 p-3">
                           <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wide text-blue-500">
-                            <Activity size={12} />
+                            <span className="material-symbols-outlined" style={{ fontSize: '12px' }} >show_chart</span>
                             Observasi
                           </p>
                           <p className="mt-1 text-xs leading-relaxed text-blue-900">{record.observation}</p>
                         </div>
                         <div className="rounded-xl border border-emerald-100 bg-emerald-50 p-3">
                           <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wide text-emerald-600">
-                            <ShieldCheck size={12} />
+                            <span className="material-symbols-outlined" style={{ fontSize: '12px' }} Check >security</span>
                             Rekomendasi
                           </p>
                           <p className="mt-1 text-xs leading-relaxed text-emerald-900">{record.recommendation}</p>

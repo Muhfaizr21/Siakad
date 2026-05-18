@@ -4,15 +4,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../../../lib/axios';
 import getCroppedImg from '../../../lib/cropImage';
 import { toast } from 'react-hot-toast';
-import { 
-  X, 
-  Upload, 
-  Check, 
-  Loader2, 
-  Image as ImageIcon,
-  Minus,
-  Plus
-} from 'lucide-react';
+
 
 import { 
   Dialog, 
@@ -22,6 +14,11 @@ import {
   DialogDescription,
   DialogClose
 } from '../../../components/ui/Dialog';
+
+// Auto-injected Material Symbol fallbacks for removed Lucide icons
+const Minus = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>remove</span>;
+
+
 
 export default function AvatarUploadModal({ isOpen, onClose, currentPhoto }) {
   const queryClient = useQueryClient();
@@ -96,7 +93,7 @@ export default function AvatarUploadModal({ isOpen, onClose, currentPhoto }) {
                 className="absolute inset-0 opacity-0 cursor-pointer"
                />
                <div className="w-14 h-14 bg-white rounded-2xl shadow-sm flex items-center justify-center text-[#00236F] group-hover:scale-110 transition-transform">
-                  <Upload size={32} />
+                  <span className="material-symbols-outlined" style={{ fontSize: '32px' }} >upload</span>
                </div>
                <div className="text-center">
                   <p className="font-bold text-[#171717]">Pilih File Foto</p>
@@ -130,7 +127,7 @@ export default function AvatarUploadModal({ isOpen, onClose, currentPhoto }) {
                     onChange={(e) => setZoom(e.target.value)}
                      className="flex-1 accent-[#00236F] h-1.5 bg-[#f5f5f5] rounded-full appearance-none cursor-pointer"
                    />
-                  <Plus size={16} className="text-[#a3a3a3]" />
+                  <span className="material-symbols-outlined text-[#a3a3a3]" style={{ fontSize: '16px' }} >add</span>
                </div>
 
                <div className="flex gap-3">
@@ -145,7 +142,7 @@ export default function AvatarUploadModal({ isOpen, onClose, currentPhoto }) {
                      disabled={mutation.isPending}
                      className="flex-[2] py-3 px-4 rounded-2xl bg-[#00236F] text-white font-bold text-sm hover:bg-[#0B4FAE] transition-all shadow-md shadow-[#00236F]/20 flex items-center justify-center gap-2 disabled:opacity-50"
                    >
-                    {mutation.isPending ? <Loader2 className="animate-spin" size={18} /> : <Check size={18} />}
+                    {mutation.isPending ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '18px' }} >sync</span> : <span className="material-symbols-outlined" style={{ fontSize: 18 }}>check</span>}
                     Simpan Foto
                   </button>
                </div>

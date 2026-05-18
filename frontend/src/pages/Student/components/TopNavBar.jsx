@@ -1,7 +1,7 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import api from '../../../lib/axios';
-import { UserCircle2, LogOut, UserCircle, Settings, ChevronDown, Sparkles } from 'lucide-react';
+
 import useAuthStore from '../../../store/useAuthStore';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -13,6 +13,11 @@ import {
   DropdownMenuTrigger,
 } from './dropdown-menu';
 import { API_BASE_URL } from '../../../services/api';
+
+// Auto-injected Material Symbol fallbacks for removed Lucide icons
+const UserCircle = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>account_circle</span>;
+
+
 const TopNavBar = () => {
   const navigate = useNavigate();
   const logout = useAuthStore(state => state.logout);
@@ -61,10 +66,10 @@ const TopNavBar = () => {
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <UserCircle2 className="text-slate-300 w-7 h-7" />
+                  <span className="material-symbols-outlined text-slate-300 w-7 h-7" >account_circle</span>
                 )}
               </div>
-              <ChevronDown className="size-3 text-slate-400 group-hover:text-blue-900 transition-colors" />
+              <span className="material-symbols-outlined size-3 text-slate-400 group-hover:text-blue-900 transition-colors" >expand_more</span>
             </div>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56 mt-2 rounded-2xl p-1.5 shadow-xl border border-slate-100 bg-white">
@@ -79,7 +84,7 @@ const TopNavBar = () => {
             </DropdownMenuItem>
 
             <DropdownMenuItem onClick={() => navigate('/student/profile')} className="rounded-xl p-2.5 focus:bg-blue-50/50 group cursor-pointer transition-all">
-              <Settings className="mr-2 size-4 text-slate-400 group-hover:text-blue-600 transition-colors" />
+              <span className="material-symbols-outlined mr-2 size-4 text-slate-400 group-hover:text-blue-600 transition-colors" >settings</span>
               <span className="text-xs font-medium text-slate-600 group-hover:text-blue-900 transition-colors">Pengaturan</span>
             </DropdownMenuItem>
 
@@ -92,7 +97,7 @@ const TopNavBar = () => {
               }} 
               className="rounded-xl p-2.5 focus:bg-rose-50 group cursor-pointer transition-all"
             >
-              <LogOut className="mr-2 size-4 text-rose-400 group-hover:text-rose-600 transition-colors" />
+              <span className="material-symbols-outlined mr-2 size-4 text-rose-400 group-hover:text-rose-600 transition-colors" >logout</span>
               <span className="text-xs font-bold text-rose-500 group-hover:text-rose-600 transition-colors">Keluar</span>
             </DropdownMenuItem>
           </DropdownMenuContent>

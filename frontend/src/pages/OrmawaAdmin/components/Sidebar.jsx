@@ -1,40 +1,53 @@
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import useAuthStore from '../../../store/useAuthStore';
 import { ormawaService, API_BASE_URL } from '../../../services/api';
 
-const menuItems = [
-  { name: 'Dashboard', path: '/ormawa', icon: 'dashboard', permission: 'dashboard' },
-  { name: 'KENCANA (PKKMB)', path: '/ormawa/pkkmb', icon: 'school', permission: 'dashboard' },
-  { name: 'Manajemen Anggota', path: '/ormawa/anggota', icon: 'group', permission: 'anggota' },
-  { name: 'Manajemen Staf', path: '/ormawa/staff', icon: 'groups', permission: 'anggota' },
-  { name: 'Proposal & Kegiatan', path: '/ormawa/proposal', icon: 'edit_note', permission: 'proposal' },
-  { name: 'Jadwal Kalender', path: '/ormawa/jadwal', icon: 'calendar_today', permission: 'jadwal' },
-  { name: 'Sistem Absensi (QR)', path: '/ormawa/absensi', icon: 'qr_code_scanner', permission: 'absensi' },
-  { name: 'Buku Kas & Keuangan', path: '/ormawa/keuangan', icon: 'account_balance_wallet', permission: 'keuangan' },
-  { name: 'Laporan & LPJ', path: '/ormawa/lpj', icon: 'folder_open', permission: 'lpj' },
-  { name: 'Aspirasi Organisasi', path: '/ormawa/aspirasi', icon: 'light_mode', permission: 'aspirasi' },
-  { name: 'Siaran & Pengumuman', path: '/ormawa/pengumuman', icon: 'campaign', permission: 'pengumuman' },
-  { name: 'Struktur Pengurus', path: '/ormawa/struktur', icon: 'account_tree', permission: 'struktur' },
-  { name: 'Role & Hak Akses', path: '/ormawa/rbac', icon: 'admin_panel_settings', permission: 'rbac' },
-  { name: 'Pusat Notifikasi', path: '/ormawa/notifikasi', icon: 'notifications', permission: 'dashboard' },
-  { name: 'Pengaturan Sistem', path: '/ormawa/pengaturan', icon: 'settings', permission: 'dashboard' },
+const menuGroups = [
+  {
+    title: 'MANAJEMEN UTAMA',
+    items: [
+      { name: 'Dashboard', path: '/ormawa', icon: 'dashboard', exact: true },
+      { name: 'KENCANA (PKKMB)', path: '/ormawa/pkkmb', icon: 'edit_document' },
+      { name: 'Anggota Aktif', path: '/ormawa/anggota', icon: 'group' },
+      { name: 'Manajemen Staf', path: '/ormawa/staff', icon: 'manage_accounts' },
+      { name: 'Struktur Pengurus', path: '/ormawa/struktur', icon: 'account_tree' },
+    ]
+  },
+  {
+    title: 'OPERASIONAL & KEGIATAN',
+    items: [
+      { name: 'Proposal & Kegiatan', path: '/ormawa/proposal', icon: 'description' },
+      { name: 'Jadwal Kalender', path: '/ormawa/jadwal', icon: 'calendar_month' },
+      { name: 'Sistem Absensi (QR)', path: '/ormawa/absensi', icon: 'qr_code' },
+    ]
+  },
+  {
+    title: 'ADMINISTRASI & KEUANGAN',
+    items: [
+      { name: 'Buku Kas & Keuangan', path: '/ormawa/keuangan', icon: 'account_balance_wallet' },
+      { name: 'Laporan & LPJ', path: '/ormawa/lpj', icon: 'assignment' },
+    ]
+  },
+  {
+    title: 'KOMUNIKASI & SISTEM',
+    items: [
+      { name: 'Aspirasi Masuk', path: '/ormawa/aspirasi', icon: 'campaign' },
+      { name: 'Pusat Notifikasi', path: '/ormawa/notifikasi', icon: 'notifications' },
+      { name: 'Siaran Pengumuman', path: '/ormawa/pengumuman', icon: 'campaign' },
+      { name: 'Role & Akses', path: '/ormawa/rbac', icon: 'security' },
+      { name: 'Pengaturan Sistem', path: '/ormawa/pengaturan', icon: 'settings' },
+    ]
+  }
 ];
 
 const Sidebar = ({ isOpen, setIsOpen }) => {
   const location = useLocation();
+  const navigate = useNavigate();
   const logout = useAuthStore(state => state.logout);
-  const user = useAuthStore(state => state.user);
   const mahasiswa = useAuthStore(state => state.mahasiswa);
   const ormawaId = mahasiswa?.ormawaId || mahasiswa?.OrmawaID || 1;
-  const hasPermission = (perm, action) => true; // Temporary mapping or fetch from user roles
   const [identity, setIdentity] = React.useState({ name: 'STUDENT HUB', alias: 'ORMAWA PORTAL' });
-
-  // Filter menu based on permissions
-  const filteredMenu = menuItems.filter(item => {
-    if (item.permission === 'dashboard') return true;
-    return hasPermission(item.permission, 'view');
-  });
 
   const fetchIdentity = async () => {
     try {
@@ -48,7 +61,6 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
   const getFullLogoUrl = (url) => {
     if (!url) return null;
     if (url.startsWith('http')) return url;
-    // Derive base domain from API_BASE_URL (remove /api)
     const baseDomain = API_BASE_URL ? API_BASE_URL.replace('/api', '') : '';
     const cleanPath = url.replace(/^\.\//, '/').replace(/^uploads/, '/uploads');
     return `${baseDomain}${cleanPath.startsWith('/') ? cleanPath : '/' + cleanPath}`;
@@ -60,36 +72,58 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
     }
   }, [ormawaId]);
 
-  // Listen for global settings updates (sent from Settings.jsx)
   React.useEffect(() => {
     const handleUpdate = () => fetchIdentity();
     window.addEventListener('ormawa_settings_updated', handleUpdate);
     return () => window.removeEventListener('ormawa_settings_updated', handleUpdate);
   }, [ormawaId]);
 
+  const allItems = menuGroups.flatMap(group => group.items);
+
+  const isActive = (itemPath) => {
+    const currentPath = location.pathname;
+    if (currentPath === itemPath) return true;
+    if (itemPath === '/ormawa') return currentPath === '/ormawa';
+    
+    if (currentPath.startsWith(itemPath)) {
+      const moreSpecificMatch = allItems.find(item => 
+        item.path !== itemPath && 
+        item.path.length > itemPath.length && 
+        currentPath.startsWith(item.path)
+      );
+      return !moreSpecificMatch;
+    }
+    return false;
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
+
   return (
     <>
       {/* Mobile Overlay */}
       {isOpen && (
         <div
-          className="lg:hidden fixed inset-0 z-[60] bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300"
+          className="lg:hidden fixed inset-0 z-[60] bg-slate-900/40 backdrop-blur-md animate-in fade-in duration-500"
           onClick={() => setIsOpen(false)}
         />
       )}
 
       {/* Main Sidebar Container */}
       <aside className={`
-        fixed left-0 top-0 h-full z-[70]
-        bg-white border-r border-slate-100
-        transition-all duration-500 ease-in-out font-headline
-        w-64 lg:w-60
-        ${isOpen ? 'translate-x-0 shadow-[0_0_50px_-12px_rgba(0,0,0,0.25)]' : '-translate-x-full lg:translate-x-0'}
+        fixed left-0 top-0 h-[100dvh] z-[70]
+        bg-white border-r border-slate-200/60
+        transition-all duration-500 ease-in-out font-body
+        flex flex-col overscroll-contain
+        ${isOpen ? 'translate-x-0 w-72 shadow-2xl shadow-primary/10' : '-translate-x-full lg:translate-x-0 w-64'}
       `}>
         {/* Logo Section */}
         <div className="px-6 py-8 flex items-center justify-between shrink-0">
           <Link to="/ormawa" className="flex items-center gap-3.5 group">
             <div className="relative">
-              <div className="w-11 h-11 bg-white border border-slate-200 rounded-2xl flex items-center justify-center shadow-xl shadow-slate-200/50 group-hover:scale-105 transition-transform duration-300 p-1.5 overflow-hidden shrink-0">
+              <div className="w-11 h-11 bg-white border border-slate-200 rounded-2xl flex items-center justify-center shadow-xl shadow-slate-200/50 group-hover:scale-105 transition-transform duration-300 p-1.5 overflow-hidden">
                 {identity.logoUrl ? (
                   <img src={getFullLogoUrl(identity.logoUrl)} alt="Logo" className="w-full h-full object-contain" />
                 ) : (
@@ -98,58 +132,75 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
               </div>
               <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 rounded-full border-2 border-white shadow-sm"></div>
             </div>
-            <div className="flex flex-col leading-tight overflow-hidden max-w-[120px]">
+            <div className="flex flex-col leading-tight overflow-hidden max-w-[140px]">
               <span className="text-sm font-black text-slate-900 uppercase tracking-wider truncate">
                 {identity.alias || identity.name}
               </span>
               <span className="text-[10px] font-bold text-primary/60 uppercase tracking-widest">Portal Ormawa</span>
             </div>
           </Link>
-          {/* Close for mobile */}
           <button
             onClick={() => setIsOpen(false)}
             className="lg:hidden w-9 h-9 rounded-xl bg-slate-50 hover:bg-slate-100 flex items-center justify-center text-slate-400 transition-colors"
           >
-            <span className="material-symbols-outlined text-xs">close</span>
+            <span className="material-symbols-outlined size-4 rotate-180">chevron_right</span>
           </button>
         </div>
 
         {/* Navigation Items */}
-        <nav className="px-3 py-2 space-y-1 h-[calc(100vh-180px)] overflow-y-auto no-scrollbar scroll-smooth">
-          {filteredMenu.map((item) => {
-            const isActive = location.pathname === item.path;
-            return (
-              <Link
-                key={item.path}
-                to={item.path}
-                onClick={() => setIsOpen(false)}
-                className={`
-                  flex items-center gap-3 px-4 py-3 rounded-2xl font-black transition-all duration-300 group relative overflow-hidden
-                  ${isActive
-                    ? 'bg-primary text-white shadow-lg shadow-primary/30 translate-x-1'
-                    : 'text-slate-500 hover:bg-slate-50 hover:text-primary text-sm'}
-                `}
-              >
-                {isActive && (
-                  <div className="absolute left-0 top-0 bottom-0 w-1 bg-white/30 rounded-full" />
-                )}
-                <span className={`material-symbols-outlined transition-transform duration-300 ${isActive ? 'scale-110 !text-white' : 'group-hover:scale-110 text-[20px] text-slate-400 group-hover:text-primary'}`}>
-                  {item.icon}
-                </span>
-                <span className="text-[11px] tracking-tight uppercase tracking-widest">{item.name}</span>
-              </Link>
-            );
-          })}
+        <nav className="flex-1 px-4 overflow-y-auto no-scrollbar scroll-smooth pb-10 overscroll-contain">
+          {menuGroups.map((group, sIdx) => (
+            <div key={sIdx} className="mb-8 last:mb-0">
+              <h3 className="px-4 mb-3 text-[10px] font-black text-slate-400/80 uppercase tracking-[0.25em]">
+                {group.title}
+              </h3>
+
+              <div className="space-y-1">
+                {group.items.map((item) => {
+                  const active = isActive(item.path);
+                  
+                  return (
+                    <Link
+                      key={item.path}
+                      to={item.path}
+                      className={`
+                        relative flex items-center gap-3.5 px-4 py-2.5 rounded-2xl font-bold transition-all duration-300 group
+                        ${active
+                          ? 'bg-primary text-white shadow-xl shadow-primary/25 translate-x-1 hover:bg-primary/90'
+                          : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900 hover:translate-x-1'}
+                      `}
+                    >
+                      {active && (
+                        <div className="absolute left-[-1rem] w-1.5 h-6 bg-primary rounded-r-full" />
+                      )}
+                      
+                      <span className={`material-symbols-outlined size-[18px] transition-all duration-300 ${active ? 'scale-110' : 'group-hover:scale-110 opacity-70 group-hover:opacity-100'}`}>
+                        {item.icon}
+                      </span>
+                      
+                      <span className="text-[13px] tracking-tight flex-1">{item.name}</span>
+                      
+                      {active ? (
+                        <span className="material-symbols-outlined size-3 text-white/50">chevron_right</span>
+                      ) : (
+                        <span className="material-symbols-outlined size-3 text-slate-300 opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all duration-300">chevron_right</span>
+                      )}
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
         </nav>
 
-        {/* User / Logout Section (Always bottom) */}
-        <div className="absolute bottom-0 left-0 right-0 p-5 bg-white/80 backdrop-blur-md border-t border-slate-50">
+        {/* Improved Logout Section */}
+        <div className="p-4 bg-white/80 backdrop-blur-xl border-t border-slate-100 shrink-0">
           <button
-            onClick={logout}
-            className="w-full py-3 flex items-center justify-center gap-3 rounded-2xl bg-rose-50 text-rose-600 font-black text-[10px] uppercase tracking-[0.2em] shadow-sm hover:bg-rose-600 hover:text-white transition-all active:scale-95"
+            onClick={handleLogout}
+            className="w-full h-12 flex items-center justify-center gap-3 rounded-2xl bg-rose-50 hover:bg-rose-600 group transition-all duration-300 active:scale-95 border border-rose-100/50"
           >
-            <span className="material-symbols-outlined text-[16px]">logout</span>
-            KELUAR
+            <span className="material-symbols-outlined size-4 text-rose-600 group-hover:text-white transition-colors">logout</span>
+            <span className="text-[11px] font-black text-rose-600 group-hover:text-white uppercase tracking-widest transition-colors">KELUAR</span>
           </button>
         </div>
       </aside>

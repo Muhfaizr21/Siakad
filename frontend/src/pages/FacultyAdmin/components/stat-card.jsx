@@ -1,6 +1,12 @@
 import React from "react"
 import { Card, CardContent } from "./card"
-import { TrendingUp, TrendingDown } from "lucide-react"
+
+// Auto-injected Material Symbol fallbacks for removed Lucide icons
+const TrendingUp = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>trending_up</span>;
+const TrendingDown = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>trending_down</span>;
+
+
+
 
 export function StatCard({
   title,
@@ -40,7 +46,7 @@ export function StatCard({
           )}
         </div>
         <div className={`${bg} ${color} p-2.5 rounded-xl shadow-sm group-hover:scale-110 transition-transform duration-500 shrink-0`}>
-          {Icon && <Icon className="size-4" />}
+          {Icon && <span className={`material-symbols-outlined ${"size-4"}`}>{item.icon}</span>}
         </div>
       </CardContent>
     </Card>

@@ -1,6 +1,4 @@
 import React from 'react';
-import Sidebar from './components/Sidebar';
-import TopNavBar from './components/TopNavBar';
 import { useQuery } from '@tanstack/react-query';
 import api from '../../lib/axios';
 
@@ -14,27 +12,11 @@ const StudentDashboard = () => {
   });
 
   return (
-    <div className="bg-surface text-on-surface min-h-screen">
-      {/* TopNavBar */}
-      <TopNavBar />
-
-      {/* SideNavBar */}
-      <Sidebar />
-
-
-      {/* Main Content Canvas */}
-      <main className="md:ml-64 pt-20 px-6 pb-12">
+    <div className="bg-surface text-on-surface min-h-screen px-4 py-8 md:px-8 xl:px-12 font-inter">
+      <div className="max-w-7xl mx-auto">
         {/* Personalized Welcome Banner */}
-        <section className="relative overflow-hidden rounded-3xl mb-8 group h-64 flex items-center">
-          <div className="absolute inset-0 bg-primary-container z-0">
-            <img 
-              alt="University Campus Banner" 
-              className="w-full h-full object-cover opacity-30 mix-blend-overlay group-hover:scale-105 transition-transform duration-700" 
-              src="https://lh3.googleusercontent.com/aida-public/AB6AXuBHAROtt4y_unsM6PwetGzvJHcKdd0q-PcrrzEl134_ooCuVYawiWIdNLavxuKfGbNVS4RGW_qPj9D0i-PDCtuNHOXuCln4tO-AHo8HqF-BfYBSwMgVN5DcmNJmYvpT0lQUf_5B6EbryoYol-E5XUawxybe146AYXKkB6BdNgLWfh5R1ODj-IXOsrHVRB_QYSRUDmoZozivae-c2MoIOOF_8bLIxD81y-E1-YrWDxmT1o_FpfYRQeI_grAGaWsW2SggARoLW1JFA0LG" 
-            />
-            <div className="absolute inset-0 bg-gradient-to-r from-primary-container via-primary-container/80 to-transparent"></div>
-          </div>
-          <div className="relative z-10 px-10">
+        <section className="relative overflow-hidden rounded-3xl mb-8 group min-h-[220px] flex items-center bg-primary-container z-0 shadow-sm">
+          <div className="relative z-10 px-8 md:px-10 py-8">
             <h1 className="text-4xl font-extrabold text-white font-headline mb-3 tracking-tight">
               Welcome back, {profile?.Nama?.split(' ')[0] || 'Student'}!
             </h1>
@@ -262,7 +244,7 @@ const StudentDashboard = () => {
             Schedule a Meeting
           </button>
         </div>
-      </main>
+      </div>
 
       {/* Mobile Bottom NavBar */}
       <nav className="md:hidden fixed bottom-0 left-0 w-full bg-white/90 backdrop-blur-md border-t border-slate-100 flex justify-around items-center h-16 px-4 z-50">

@@ -1,80 +1,123 @@
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import useAuthStore from '../../../store/useAuthStore';
-import { LayoutDashboard, Calendar, Users, ClipboardCheck, BarChart3, FileText, Clock, Settings, Bell, LogOut } from 'lucide-react';
 
 const menuItems = [
-  { name: 'Dashboard', path: '/psychologist', icon: LayoutDashboard },
-  { name: 'Janji Temu', path: '/psychologist/bookings', icon: Clock },
-  { name: 'Jadwal Praktek', path: '/psychologist/schedule', icon: Calendar },
-  { name: 'Rekam Medis', path: '/psychologist/patients', icon: Users },
-  { name: 'Manajemen Asesmen', path: '/psychologist/assessments', icon: ClipboardCheck },
-  { name: 'Analitik & Tren', path: '/psychologist/analytics', icon: BarChart3 },
-  { name: 'Laporan Klinis', path: '/psychologist/reports', icon: FileText },
-  { name: 'Pusat Notifikasi', path: '/psychologist/notifications', icon: Bell },
-  { name: 'Pengaturan', path: '/psychologist/settings', icon: Settings },
+  { name: 'Dashboard', path: '/psychologist', icon: 'dashboard' },
+  { name: 'Janji Temu', path: '/psychologist/bookings', icon: 'schedule' },
+  { name: 'Jadwal Praktek', path: '/psychologist/schedule', icon: 'calendar_month' },
+  { name: 'Rekam Medis', path: '/psychologist/patients', icon: 'group' },
+  { name: 'Manajemen Asesmen', path: '/psychologist/assessments', icon: 'assignment_turned_in' },
+  { name: 'Analitik & Tren', path: '/psychologist/analytics', icon: 'bar_chart' },
+  { name: 'Laporan Klinis', path: '/psychologist/reports', icon: 'description' },
+  { name: 'Pusat Notifikasi', path: '/psychologist/notifications', icon: 'notifications' },
+  { name: 'Pengaturan', path: '/psychologist/settings', icon: 'settings' },
 ];
 
 const Sidebar = ({ isOpen, setIsOpen }) => {
   const location = useLocation();
+  const navigate = useNavigate();
   const logout = useAuthStore(state => state.logout);
+
+  const isActive = (itemPath) => {
+    const currentPath = location.pathname;
+    if (currentPath === itemPath) return true;
+    if (itemPath === '/psychologist') return currentPath === '/psychologist';
+    return currentPath.startsWith(itemPath);
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
 
   return (
     <>
       {/* Mobile Overlay */}
       {isOpen && (
         <div
-          className="lg:hidden fixed inset-0 z-[60] bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300"
+          className="lg:hidden fixed inset-0 z-[60] bg-slate-900/40 backdrop-blur-md animate-in fade-in duration-500"
           onClick={() => setIsOpen(false)}
         />
       )}
 
       {/* Main Sidebar Container */}
       <aside className={`
-        fixed left-0 top-0 h-full z-[70]
-        bg-[#fcf9f8] border-r border-slate-100
-        transition-all duration-500 ease-in-out
-        w-64
-        ${isOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full lg:translate-x-0'}
+        fixed left-0 top-0 h-[100dvh] z-[70]
+        bg-white border-r border-slate-200/60
+        transition-all duration-500 ease-in-out font-body
+        flex flex-col overscroll-contain
+        ${isOpen ? 'translate-x-0 w-72 shadow-2xl shadow-primary/10' : '-translate-x-full lg:translate-x-0 w-64'}
       `}>
-        {/* Logo Section (Mirroring Student) */}
-        <div className="px-8 pt-10 pb-8 flex flex-col gap-1 shrink-0">
-          <h2 className="text-xl font-black text-blue-900 font-headline">Portal Psikolog</h2>
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">BKUhub Academic Portal</p>
+        {/* Logo Section */}
+        <div className="px-6 py-8 flex items-center justify-between shrink-0">
+          <Link to="/psychologist" className="flex items-center gap-3.5 group">
+            <div className="relative">
+              <div className="w-11 h-11 bg-white border border-slate-200 rounded-2xl flex items-center justify-center shadow-xl shadow-slate-200/50 group-hover:scale-105 transition-transform duration-300 p-1.5 overflow-hidden">
+                <img src="/images/bku logo.png" alt="BKU Logo" className="w-full h-full object-contain" />
+              </div>
+              <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 rounded-full border-2 border-white shadow-sm"></div>
+            </div>
+            <div className="flex flex-col leading-tight">
+              <span className="text-sm font-black text-slate-900 uppercase tracking-wider">
+                STUDENT HUB
+              </span>
+              <span className="text-[10px] font-bold text-primary/60 uppercase tracking-widest">Portal Psikolog</span>
+            </div>
+          </Link>
+          <button
+            onClick={() => setIsOpen(false)}
+            className="lg:hidden w-9 h-9 rounded-xl bg-slate-50 hover:bg-slate-100 flex items-center justify-center text-slate-400 transition-colors"
+          >
+            <span className="material-symbols-outlined size-4 rotate-180">chevron_right</span>
+          </button>
         </div>
 
         {/* Navigation Items */}
-        <nav className="px-4 py-2 space-y-1 h-[calc(100vh-250px)] overflow-y-auto no-scrollbar">
+        <nav className="flex-1 px-4 overflow-y-auto no-scrollbar scroll-smooth pb-10 overscroll-contain space-y-1">
           {menuItems.map((item) => {
-            const isActive = location.pathname === item.path;
-            const Icon = item.icon;
+            const active = isActive(item.path);
+            
             return (
               <Link
                 key={item.path}
                 to={item.path}
                 onClick={() => setIsOpen(false)}
                 className={`
-                  flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group
-                  ${isActive
-                    ? 'bg-blue-50 text-blue-900 font-bold'
-                    : 'text-slate-500 hover:text-blue-800 hover:translate-x-1'}
+                  relative flex items-center gap-3.5 px-4 py-2.5 rounded-2xl font-bold transition-all duration-300 group
+                  ${active
+                    ? 'bg-primary text-white shadow-xl shadow-primary/25 translate-x-1 hover:bg-primary/90'
+                    : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900 hover:translate-x-1'}
                 `}
               >
-                <Icon className={`size-5 ${isActive ? 'text-blue-900' : 'text-slate-400 group-hover:text-blue-800'}`} />
-                <span className="text-sm tracking-wide font-medium">{item.name}</span>
+                {active && (
+                  <div className="absolute left-[-1rem] w-1.5 h-6 bg-primary rounded-r-full" />
+                )}
+                
+                <span className={`material-symbols-outlined size-[18px] transition-all duration-300 ${active ? 'scale-110' : 'group-hover:scale-110 opacity-70 group-hover:opacity-100'}`}>
+                  {item.icon}
+                </span>
+                
+                <span className="text-[13px] tracking-tight flex-1">{item.name}</span>
+                
+                {active ? (
+                  <span className="material-symbols-outlined size-3 text-white/50">chevron_right</span>
+                ) : (
+                  <span className="material-symbols-outlined size-3 text-slate-300 opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all duration-300">chevron_right</span>
+                )}
               </Link>
             );
           })}
         </nav>
 
-        {/* Logout Section */}
-        <div className="absolute bottom-0 left-0 right-0 p-6 border-t border-slate-100 bg-[#fcf9f8]">
+        {/* Improved Logout Section */}
+        <div className="p-4 bg-white/80 backdrop-blur-xl border-t border-slate-100 shrink-0">
           <button
-            onClick={logout}
-            className="w-full flex items-center gap-3 text-slate-500 px-4 py-2 hover:text-rose-600 transition-all text-sm font-medium"
+            onClick={handleLogout}
+            className="w-full h-12 flex items-center justify-center gap-3 rounded-2xl bg-rose-50 hover:bg-rose-600 group transition-all duration-300 active:scale-95 border border-rose-100/50"
           >
-            <LogOut className="size-5" />
-            <span>Logout</span>
+            <span className="material-symbols-outlined size-4 text-rose-600 group-hover:text-white transition-colors">logout</span>
+            <span className="text-[11px] font-black text-rose-600 group-hover:text-white uppercase tracking-widest transition-colors">KELUAR</span>
           </button>
         </div>
       </aside>

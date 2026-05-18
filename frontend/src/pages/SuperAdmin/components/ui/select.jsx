@@ -1,7 +1,17 @@
 import React from "react";
 import * as SelectPrimitive from "@radix-ui/react-select";
-import { Check, ChevronDown, ChevronUp } from "lucide-react";
+
 import { cn } from "@/lib/utils";
+
+// Auto-injected Material Symbol fallbacks for removed Lucide icons
+const ChevronUp = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>expand_less</span>;
+
+
+
+// Auto-injected Material Symbol fallbacks for removed Lucide icons
+const Check = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>check</span>;
+
+
 
 const Select = SelectPrimitive.Root;
 const SelectGroup = SelectPrimitive.Group;
@@ -14,14 +24,14 @@ const SelectTrigger = React.forwardRef((props, ref) => {
     <SelectPrimitive.Trigger
       ref={ref}
       className={cn(
-        "flex h-12 w-full items-center justify-between rounded-xl border border-[#e5e5e5] bg-white px-4 py-2 text-sm font-medium ring-offset-white placeholder:text-[#a3a3a3] focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-all [&>span]:line-clamp-1",
+        "relative flex w-full items-center justify-center px-3 rounded-xl border border-[#e5e5e5] bg-white text-sm font-medium placeholder:text-[#a3a3a3] focus:outline-none focus:border-primary/50 focus:bg-white disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1 [&>span]:text-center",
         className
       )}
       {...rest}
     >
       {children}
       <SelectPrimitive.Icon asChild>
-        <ChevronDown className="h-4 w-4 opacity-50" />
+        <span className="material-symbols-outlined h-4 w-4 opacity-50 absolute right-3 top-1/2 -translate-y-1/2 shrink-0" >expand_more</span>
       </SelectPrimitive.Icon>
     </SelectPrimitive.Trigger>
   );
@@ -58,7 +68,7 @@ const SelectScrollDownButton = React.forwardRef((props, ref) => {
       )}
       {...rest}
     >
-      <ChevronDown className="h-4 w-4" />
+      <span className="material-symbols-outlined h-4 w-4" >expand_more</span>
     </SelectPrimitive.ScrollDownButton>
   );
 });
@@ -132,7 +142,9 @@ const SelectItem = React.forwardRef((props, ref) => {
       </span>
 
       <SelectPrimitive.ItemText>
-        {children}
+        <div className="flex-1 text-center">
+          {children}
+        </div>
       </SelectPrimitive.ItemText>
     </SelectPrimitive.Item>
   );

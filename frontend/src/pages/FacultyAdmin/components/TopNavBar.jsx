@@ -2,35 +2,7 @@
 import React, { useState, useRef, useEffect } from 'react'
 import useAuthStore from '../../../store/useAuthStore'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import {
-  Search,
-  Bell,
-  Calendar,
-  Menu,
-  User,
-  ChevronRight,
-  LayoutGrid,
-  CheckCircle2,
-  AlertCircle,
-  Users,
-  UserCheck,
-  Stethoscope,
-  Award,
-  BookOpen,
-  FileText,
-  Settings,
-  PieChart,
-  Megaphone,
-  PlusCircle,
-  Database,
-  Headphones,
-  Command,
-  Mail,
-  LogOut,
-  UserCircle,
-  ChevronDown,
-  ShieldCheck
-} from 'lucide-react'
+
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -42,6 +14,12 @@ import {
 import { Button } from './button'
 import { Badge } from './badge'
 import { API_BASE_URL } from '../../../services/api'
+
+// Auto-injected Material Symbol fallbacks for removed Lucide icons
+const Command = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>keyboard_command_key</span>;
+const UserCircle = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>account_circle</span>;
+
+
 
 const API = `${API_BASE_URL}/faculty`
 
@@ -56,23 +34,23 @@ const TopNavBar = ({ setIsOpen }) => {
   const pathnames = location.pathname.split('/').filter((x) => x);
 
   const pages = [
-    { name: 'Dashboard Utama', path: '/faculty', icon: LayoutGrid },
-    { name: 'Data Mahasiswa', path: '/faculty/mahasiswa', icon: Users },
-    { name: 'Mahasiswa Baru', path: '/faculty/mahasiswa/baru', icon: PlusCircle },
-    { name: 'Monitor PKKMB', path: '/faculty/pkkmb', icon: Database },
-    { name: 'Manajemen Dosen', path: '/faculty/dosen', icon: UserCheck },
-    { name: 'Status Kesehatan', path: '/faculty/kesehatan', icon: Stethoscope },
-    { name: 'Student Voice', path: '/faculty/aspirasi', icon: Megaphone },
-    { name: 'Validasi Prestasi', path: '/faculty/prestasi', icon: Award },
-    { name: 'Beasiswa Internal', path: '/faculty/beasiswa', icon: Award },
-    { name: 'Jadwal Konseling', path: '/faculty/konseling', icon: Headphones },
-    { name: 'E-Persuratan', path: '/faculty/persuratan', icon: FileText },
-    { name: 'ORMAWA Hub', path: '/faculty/ormawa/proposals', icon: FileText },
-    { name: 'Organisasi Fakultas', path: '/faculty/organisasi', icon: Users },
-    { name: 'Program Studi', path: '/faculty/prodi', icon: BookOpen },
-    { name: 'Manajemen Konten', path: '/faculty/konten', icon: Megaphone },
-    { name: 'Analisis Laporan', path: '/faculty/laporan', icon: PieChart },
-    { name: 'Sistem & Pengaturan', path: '/faculty/pengaturan', icon: Settings },
+    { name: 'Dashboard Utama', path: '/faculty', icon: 'grid_view' },
+    { name: 'Data Mahasiswa', path: '/faculty/mahasiswa', icon: 'group' },
+    { name: 'Mahasiswa Baru', path: '/faculty/mahasiswa/baru', icon: 'add_circle' },
+    { name: 'Monitor PKKMB', path: '/faculty/pkkmb', icon: 'database' },
+    { name: 'Manajemen Dosen', path: '/faculty/dosen', icon: 'how_to_reg' },
+    { name: 'Status Kesehatan', path: '/faculty/kesehatan', icon: 'medical_services' },
+    { name: 'Student Voice', path: '/faculty/aspirasi', icon: 'campaign' },
+    { name: 'Validasi Prestasi', path: '/faculty/prestasi', icon: 'emoji_events' },
+    { name: 'Beasiswa Internal', path: '/faculty/beasiswa', icon: 'emoji_events' },
+    { name: 'Jadwal Konseling', path: '/faculty/konseling', icon: 'headphones' },
+    { name: 'E-Persuratan', path: '/faculty/persuratan', icon: 'description' },
+    { name: 'ORMAWA Hub', path: '/faculty/ormawa/proposals', icon: 'description' },
+    { name: 'Organisasi Fakultas', path: '/faculty/organisasi', icon: 'group' },
+    { name: 'Program Studi', path: '/faculty/prodi', icon: 'menu_book' },
+    { name: 'Manajemen Konten', path: '/faculty/konten', icon: 'campaign' },
+    { name: 'Analisis Laporan', path: '/faculty/laporan', icon: 'pie_chart' },
+    { name: 'Sistem & Pengaturan', path: '/faculty/pengaturan', icon: 'settings' },
   ];
 
   const [notifications, setNotifications] = useState({ aspirasi: 0, surat: 0, prestasi: 0, total: 0 });
@@ -170,13 +148,13 @@ const TopNavBar = ({ setIsOpen }) => {
           onClick={() => setIsOpen(true)}
           className="lg:hidden p-2 rounded-lg bg-slate-50 text-slate-600 hover:bg-slate-100 transition-all border border-slate-200"
         >
-          <Menu className="size-5" />
+          <span className="material-symbols-outlined size-5" >menu</span>
         </button>
 
         {/* Dynamic Breadcrumbs */}
         <nav className="hidden md:flex items-center gap-2 overflow-hidden">
           <div className="p-2 rounded-lg bg-primary/5 text-primary">
-            <LayoutGrid className="size-4" />
+            <span className="material-symbols-outlined size-4" >grid_view</span>
           </div>
           <div className="flex items-center text-[11px] font-bold tracking-tight uppercase">
             {pathnames.map((value, index) => {
@@ -185,7 +163,7 @@ const TopNavBar = ({ setIsOpen }) => {
 
               return (
                 <React.Fragment key={to}>
-                  <ChevronRight className="size-3 mx-1 text-slate-300 first:hidden" />
+                  <span className="material-symbols-outlined size-3 mx-1 text-slate-300 first:hidden" >chevron_right</span>
                   {last ? (
                     <span className="text-slate-900 truncate max-w-[150px]">
                       {getBreadcrumbLabel(value)}
@@ -208,7 +186,7 @@ const TopNavBar = ({ setIsOpen }) => {
         <div ref={searchRef} className="relative w-full max-w-sm hidden xl:flex flex-col items-center group ml-4">
           <div className="relative w-full flex items-center">
             <div className="absolute left-4 p-0.5 rounded transition-colors group-focus-within:text-primary text-slate-400">
-              <Search className="size-4 stroke-[2.5px]" />
+              <span className="material-symbols-outlined size-4 stroke-[2.5px]" >search</span>
             </div>
             <input
               className="w-full h-11 pl-12 pr-12 bg-gray-100/50 border-transparent border focus:border-primary/20 focus:bg-white rounded-2xl text-[13px] font-semibold text-slate-700 placeholder:text-slate-400 focus:ring-4 focus:ring-primary/5 transition-all outline-none shadow-inner"
@@ -244,7 +222,7 @@ const TopNavBar = ({ setIsOpen }) => {
                       className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 cursor-pointer transition-all group"
                     >
                       <div className="p-2 rounded-lg bg-primary/5 text-primary group-hover:bg-primary group-hover:text-white transition-colors">
-                        <page.icon className="size-4" />
+                        <span className="material-symbols-outlined size-4">{page.icon}</span>
                       </div>
                       <span className="text-sm font-bold text-slate-700">{page.name}</span>
                     </div>
@@ -264,7 +242,7 @@ const TopNavBar = ({ setIsOpen }) => {
         {/* Quick Notification Tray */}
         <div className="flex items-center gap-1 bg-slate-50 p-1 rounded-2xl border border-slate-100/50">
           <div className="relative p-2.5 rounded-xl hover:bg-white text-slate-500 hover:text-primary transition-all hover:shadow-sm group cursor-pointer">
-            <Bell className="size-5 active:scale-90 transition-transform" />
+            <span className="material-symbols-outlined size-5 active:scale-90 transition-transform" >notifications</span>
             {notifications.total > 0 && (
               <span className="absolute top-1 right-1 w-4 h-4 bg-rose-500 text-white text-[8px] font-black flex items-center justify-center rounded-full border-2 border-white ring-2 ring-rose-500/20 animate-pulse">
                 {notifications.total > 9 ? '9+' : notifications.total}
@@ -284,7 +262,7 @@ const TopNavBar = ({ setIsOpen }) => {
               <div className="space-y-4">
                 <div className="flex gap-4 items-center p-3 rounded-2xl hover:bg-slate-50 transition-colors cursor-pointer group/item" onClick={() => navigate('/faculty/ormawa/proposals')}>
                   <div className="p-2.5 rounded-xl bg-indigo-50 text-indigo-600 group-hover/item:bg-indigo-100 transition-colors">
-                    <FileText className="size-4" />
+                    <span className="material-symbols-outlined size-4" >description</span>
                   </div>
                   <div className="flex flex-col">
                     <p className="text-[11px] font-black text-slate-900 leading-none uppercase tracking-tighter">Proposal ORMAWA</p>
@@ -294,7 +272,7 @@ const TopNavBar = ({ setIsOpen }) => {
 
                 <div className="flex gap-4 items-center p-3 rounded-2xl hover:bg-slate-50 transition-colors cursor-pointer group/item" onClick={() => navigate('/faculty/persuratan')}>
                   <div className="p-2.5 rounded-xl bg-amber-50 text-amber-600 group-hover/item:bg-amber-100 transition-colors">
-                    <Mail className="size-4" />
+                    <span className="material-symbols-outlined size-4" >mail</span>
                   </div>
                   <div className="flex flex-col">
                     <p className="text-[11px] font-black text-slate-900 leading-none uppercase tracking-tighter">E-Persuratan</p>
@@ -304,7 +282,7 @@ const TopNavBar = ({ setIsOpen }) => {
 
                 <div className="flex gap-4 items-center p-3 rounded-2xl hover:bg-slate-50 transition-colors cursor-pointer group/item" onClick={() => navigate('/faculty/aspirasi')}>
                   <div className="p-2.5 rounded-xl bg-primary/5 text-primary group-hover/item:bg-primary transition-colors group-hover/item:text-white">
-                    <Megaphone className="size-4" />
+                    <span className="material-symbols-outlined size-4" >campaign</span>
                   </div>
                   <div className="flex flex-col">
                     <p className="text-[11px] font-black text-slate-900 leading-none uppercase tracking-tighter">Student Voice</p>
@@ -314,7 +292,7 @@ const TopNavBar = ({ setIsOpen }) => {
 
                 <div className="flex gap-4 items-center p-3 rounded-2xl hover:bg-slate-50 transition-colors cursor-pointer group/item" onClick={() => navigate('/faculty/prestasi')}>
                   <div className="p-2.5 rounded-xl bg-emerald-50 text-emerald-600 group-hover/item:bg-emerald-100 transition-colors">
-                    <Award className="size-4" />
+                    <span className="material-symbols-outlined size-4" >emoji_events</span>
                   </div>
                   <div className="flex flex-col">
                     <p className="text-[11px] font-black text-slate-900 leading-none uppercase tracking-tighter">Validasi Prestasi</p>
@@ -330,7 +308,7 @@ const TopNavBar = ({ setIsOpen }) => {
           </div>
 
           <button className="hidden sm:flex p-2.5 rounded-xl hover:bg-white text-slate-500 hover:text-primary transition-all hover:shadow-sm active:scale-90">
-            <Calendar className="size-5" />
+            <span className="material-symbols-outlined size-5" >calendar_month</span>
           </button>
         </div>
 
@@ -369,7 +347,7 @@ const TopNavBar = ({ setIsOpen }) => {
                 <span className="text-xs font-bold text-slate-700 leading-none truncate max-w-[100px]">{user?.Email?.split('@')[0]}</span>
                 <span className="text-[10px] text-slate-400 mt-1">Admin</span>
               </div>
-              <ChevronDown className="size-3.5 text-slate-400 group-hover:text-slate-600 transition-colors" />
+              <span className="material-symbols-outlined size-3.5 text-slate-400 group-hover:text-slate-600 transition-colors" >expand_more</span>
             </div>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56 mt-2 rounded-2xl p-1.5 shadow-xl border border-slate-100 bg-white">
@@ -384,7 +362,7 @@ const TopNavBar = ({ setIsOpen }) => {
             </DropdownMenuItem>
 
             <DropdownMenuItem onClick={() => navigate('/faculty/pengaturan')} className="rounded-xl p-2.5 focus:bg-slate-50 group cursor-pointer">
-              <Settings className="mr-2 size-4 text-slate-400 group-hover:text-primary transition-colors" />
+              <span className="material-symbols-outlined mr-2 size-4 text-slate-400 group-hover:text-primary transition-colors" >settings</span>
               <span className="text-xs font-medium text-slate-600 group-hover:text-slate-900 transition-colors">Pengaturan</span>
             </DropdownMenuItem>
 
@@ -397,7 +375,7 @@ const TopNavBar = ({ setIsOpen }) => {
               }} 
               className="rounded-xl p-2.5 focus:bg-rose-50 group cursor-pointer"
             >
-              <LogOut className="mr-2 size-4 text-rose-400 group-hover:text-rose-600 transition-colors" />
+              <span className="material-symbols-outlined mr-2 size-4 text-rose-400 group-hover:text-rose-600 transition-colors" >logout</span>
               <span className="text-xs font-bold text-rose-500 group-hover:text-rose-600 transition-colors">Keluar</span>
             </DropdownMenuItem>
           </DropdownMenuContent>

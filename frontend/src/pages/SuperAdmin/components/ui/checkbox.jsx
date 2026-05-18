@@ -2,9 +2,14 @@
 
 import * as React from 'react'
 import * as CheckboxPrimitive from '@radix-ui/react-checkbox'
-import { CheckIcon } from 'lucide-react'
+
 
 import { cn } from '@/lib/utils'
+
+// Auto-injected Material Symbol fallbacks for removed Lucide icons
+const CheckIcon = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>check</span>;
+
+
 
 function Checkbox({
   className,

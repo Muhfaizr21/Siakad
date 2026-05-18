@@ -2,15 +2,21 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Sidebar from './components/Sidebar';
 import TopNavBar from './components/TopNavBar';
-import { 
-  ArrowLeft, Calendar, Clock, User, 
-  Mail, Phone, BookOpen, AlertCircle,
-  CheckCircle2, XCircle, FileText,
-  MessageSquare, ShieldCheck,
-  Activity, ExternalLink
-} from 'lucide-react';
+
 import { UI } from '../../constants/designSystem';
 import { psychologistService } from '../../services/api';
+
+// Auto-injected Material Symbol fallbacks for removed Lucide icons
+const Mail = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>mail</span>;
+const Phone = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>phone</span>;
+
+
+
+// Auto-injected Material Symbol fallbacks for removed Lucide icons
+const MessageSquare = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>chat</span>;
+const Clock = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>schedule</span>;
+
+
 
 export default function BookingDetail() {
   const { id } = useParams();
@@ -51,7 +57,7 @@ export default function BookingDetail() {
             onClick={() => navigate(-1)}
             className="flex items-center gap-2 text-slate-400 hover:text-primary transition-all mb-4 group"
           >
-            <ArrowLeft className="size-4 group-hover:-translate-x-1 transition-transform" />
+            <span className="material-symbols-outlined size-4 group-hover:-translate-x-1 transition-transform">arrow_back</span>
             <span className="text-[10px] font-black uppercase tracking-widest">Kembali</span>
           </button>
 
@@ -84,7 +90,7 @@ export default function BookingDetail() {
                     {[
                       { label: 'Email', value: booking.email, icon: Mail },
                       { label: 'WhatsApp', value: booking.phone, icon: Phone },
-                      { label: 'Akademik', value: `Smt ${booking.semester}`, icon: BookOpen },
+                      { label: 'Akademik', value: `Smt ${booking.semester}`, icon: 'menu_book' },
                     ].map((item, i) => (
                       <div key={i} className="flex items-center gap-3 p-3 rounded-xl bg-slate-50/50">
                          <item.icon className="size-3.5 text-slate-400" />
@@ -103,14 +109,14 @@ export default function BookingDetail() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                    <div className="space-y-3">
                       <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 flex items-center gap-4">
-                         <Calendar className="size-4 text-primary" />
+                         <span className="material-symbols-outlined size-4 text-primary" >calendar_month</span>
                          <div>
                             <p className="text-[8px] font-black uppercase text-slate-400">Tanggal</p>
                             <p className="text-xs font-bold text-slate-900">{booking.date}</p>
                          </div>
                       </div>
                       <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 flex items-center gap-4">
-                         <Clock className="size-4 text-primary" />
+                         <span className="material-symbols-outlined size-4 text-primary" >schedule</span>
                          <div>
                             <p className="text-[8px] font-black uppercase text-slate-400">Waktu</p>
                             <p className="text-xs font-bold text-slate-900">{booking.time}</p>
@@ -118,7 +124,7 @@ export default function BookingDetail() {
                       </div>
                    </div>
                    <div className="p-6 rounded-2xl bg-primary text-white space-y-2 relative overflow-hidden">
-                      <Activity className="absolute -right-4 -bottom-4 size-24 text-white/10" />
+                      <span className="material-symbols-outlined absolute -right-4 -bottom-4 size-24 text-white/10" >show_chart</span>
                       <p className="text-[9px] font-black uppercase tracking-widest text-white/60">Isu Utama</p>
                       <p className="text-xl font-black uppercase tracking-tight">{booking.issue}</p>
                    </div>
@@ -161,7 +167,7 @@ export default function BookingDetail() {
                     onClick={() => navigate(`/psychologist/patients/${booking.mahasiswa_id}/medical-record?bookingId=${booking.id}`)}
                     className="w-full py-3 border border-slate-100 text-slate-400 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:border-primary/30 hover:text-primary transition-all"
                  >
-                    <FileText size={14} /> Rekam Medis
+                    <span className="material-symbols-outlined" style={{ fontSize: '14px' }} >description</span> Rekam Medis
                  </button>
               </div>
 

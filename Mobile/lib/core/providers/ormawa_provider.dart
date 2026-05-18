@@ -32,7 +32,7 @@ class OrmawaProvider extends ChangeNotifier {
 <<<<<<< Updated upstream
   final int _totalMembers = 124;
   final double _balance = 2400000; // 2.4M
-  int _activeProposalsCount = 3;
+  final int _activeProposalsCount = 3;
   final int _upcomingAgendasCount = 2;
 
   // PKKMB Stats

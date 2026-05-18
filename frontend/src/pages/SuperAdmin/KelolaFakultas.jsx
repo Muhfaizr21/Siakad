@@ -9,11 +9,18 @@ import { DeleteConfirmModal } from './components/ui/DeleteConfirmModal'
 import { Card, CardContent } from './components/ui/card'
 import { Input } from './components/ui/input'
 import { Label } from './components/ui/label'
-import { Textarea } from './components/ui/textarea'
-import { Pencil, Trash2, Loader2, Plus, Save, Building2 } from 'lucide-react'
+
 import { toast, Toaster } from 'react-hot-toast'
 import { cn } from '@/lib/utils'
 import { adminService } from '../../services/api'
+
+// Auto-injected Material Symbol fallbacks for removed Lucide icons
+const Phone = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>phone</span>;
+const RefreshCw = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>sync</span>;
+const Building2 = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>business</span>;
+const LayoutGrid = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>grid_view</span>;
+
+
 
 export default function KelolaFakultas() {
   const [data, setData] = useState([])
@@ -31,13 +38,14 @@ export default function KelolaFakultas() {
     try {
       if (syncFromPddikti) {
         await adminService.syncPddikti('Universitas Bhakti Kencana', 'all')
-        if (showSyncToast) toast.success('Sinkronisasi Fakultas dari PDDIKTI selesai')
+        if (showSyncToast) toast.success('Sinkronisasi Data Fakultas Berhasil')
       }
       const res = await adminService.getAllFaculties()
       if (res.status === 'success') setData(res.data || [])
-      else toast.error('Gagal memuat data')
-    } catch { toast.error('Koneksi gagal') } finally { setLoading(false) }
+      else toast.error('Gagal memuat sinkronisasi data')
+    } catch { toast.error('Koneksi node terputus') } finally { setLoading(false) }
   }
+  
   useEffect(() => { fetchData() }, [])
 
   const handleSyncPddikti = async () => {
@@ -51,101 +59,243 @@ export default function KelolaFakultas() {
 
   const handleOpenAdd = () => { setIsEditMode(false); setForm({ Nama: '', Kode: '', Email: '', NoHP: '', Dekan: '' }); setIsCrudOpen(true) }
   const handleOpenEdit = (row) => { setIsEditMode(true); setForm({ ID: row.ID, Nama: row.Nama || '', Kode: row.Kode || '', Email: row.Email || '', NoHP: row.NoHP || '', Dekan: row.Dekan || '' }); setIsCrudOpen(true) }
+  
   const handleSave = async (e) => {
-    e.preventDefault(); setIsSubmitting(true)
+    if (e) e.preventDefault()
+    setIsSubmitting(true)
     try {
       const res = form.ID ? await adminService.updateFaculty(form.ID, form) : await adminService.createFaculty(form)
-      if (res.status === 'success') { toast.success(form.ID ? 'Fakultas diperbarui' : 'Fakultas ditambahkan'); setIsCrudOpen(false); fetchData() }
-      else toast.error(res.message || 'Gagal menyimpan')
-    } catch { toast.error('Terjadi kesalahan') } finally { setIsSubmitting(false) }
+      if (res.status === 'success') { 
+        toast.success(form.ID ? 'Data fakultas berhasil diperbarui' : 'Registrasi fakultas baru berhasil')
+        setIsCrudOpen(false)
+        fetchData() 
+      } else {
+        toast.error(res.message || 'Gagal menyimpan konfigurasi')
+      }
+    } catch { toast.error('Terjadi kegagalan operasional internal') } finally { setIsSubmitting(false) }
   }
+
   const handleDelete = async () => {
     setIsSubmitting(true)
     try {
       await adminService.deleteFaculty(selected.ID)
-      toast.success('Fakultas dihapus'); setIsDelOpen(false); fetchData()
-    } catch { toast.error('Gagal menghapus') } finally { setIsSubmitting(false) }
+      toast.success('Entitas fakultas berhasil dihapus')
+      setIsDelOpen(false)
+      fetchData()
+    } catch { toast.error('Gagal menghapus entitas data') } finally { setIsSubmitting(false) }
   }
 
   const columns = [
-    { key: 'Kode', label: 'Kode', className: 'w-[120px]', render: v => <span className="font-bold text-slate-400 font-headline uppercase text-[10px] tracking-widest">{v || '—'}</span> },
-    { key: 'Nama', label: 'Nama Fakultas', className: 'min-w-[260px]', render: v => <span className="font-bold text-slate-900 font-headline tracking-tighter text-[13px]">{v || '—'}</span> },
-    { key: 'Dekan', label: 'Dekan', className: 'w-[220px]', render: v => <span className="text-[12px] font-bold text-slate-600 font-headline">{v || '—'}</span> },
-    { key: 'Email', label: 'Hubungi', className: 'w-[200px]', render: (v, row) => (
-      <div className="flex flex-col leading-tight">
-        <span className="text-[11px] font-bold text-slate-900 truncate">{v || '—'}</span>
-        <span className="text-[9px] font-medium text-slate-400 uppercase tracking-wider">{row.NoHP || ''}</span>
-      </div>
-    )},
-    { key: 'JumlahProdi', label: 'Total Prodi', className: 'w-[120px] text-center', cellClassName: 'text-center', render: (v, row) => <span className="font-black text-primary text-sm font-headline">{v || row.jumlah_prodi || 0}</span> }
+    { 
+      key: 'Kode', 
+      label: 'Kode Unit', 
+      className: 'w-[120px]', 
+      render: v => <Badge variant="outline" className="font-bold text-neutral-400 font-jakarta uppercase text-[9px] tracking-[0.2em] border-neutral-100 bg-neutral-50 px-2.5 py-1 rounded-lg">{v || '—'}</Badge> 
+    },
+    { 
+      key: 'Nama', 
+      label: 'Nama Fakultas', 
+      className: 'min-w-[260px]', 
+      render: v => <span className="font-bold text-neutral-900 font-jakarta tracking-tight text-[14px]">{v || '—'}</span> 
+    },
+    { 
+      key: 'Dekan', 
+      label: 'Pimpinan / Dekan', 
+      className: 'w-[220px]', 
+      render: v => <span className="text-[12px] font-bold text-neutral-600 font-inter tracking-tight">{v || '—'}</span> 
+    },
+    { 
+      key: 'Email', 
+      label: 'Kontak Resmi', 
+      className: 'w-[200px]', 
+      render: (v, row) => (
+        <div className="flex flex-col leading-tight gap-1.5">
+          <div className="flex items-center gap-2 text-neutral-900">
+             <div className="size-4 rounded bg-primary/5 flex items-center justify-center text-primary"><span className="material-symbols-outlined" style={{ fontSize: '10px' }} >mail</span></div>
+             <span className="text-[11px] font-bold font-inter lowercase">{v || '—'}</span>
+          </div>
+          <div className="flex items-center gap-2 text-neutral-400">
+             <div className="size-4 rounded bg-neutral-50 flex items-center justify-center"><Phone size={10} /></div>
+             <span className="text-[10px] font-bold tracking-widest">{row.NoHP || '—'}</span>
+          </div>
+        </div>
+      )
+    },
+    { 
+      key: 'JumlahProdi', 
+      label: 'Total Prodi', 
+      className: 'w-[120px] text-center', 
+      cellClassName: 'text-center', 
+      render: (v, row) => (
+        <div className="flex flex-col items-center gap-1">
+           <span className="font-bold text-primary text-[15px] font-jakarta leading-none tabular-nums">{v || row.jumlah_prodi || 0}</span>
+           <span className="text-[8px] font-bold text-neutral-300 uppercase tracking-widest">Programs</span>
+        </div>
+      )
+    }
   ]
 
+  const totalProdi = data.reduce((acc, curr) => acc + (curr.JumlahProdi || curr.jumlah_prodi || 0), 0)
+
   return (
-    <div className="p-4 md:p-8 space-y-6">
-          <Toaster position="top-right" />
-          <div className="flex flex-col gap-1.5">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-primary/10 rounded-xl text-primary"><Building2 className="size-6" /></div>
-              <h1 className="text-2xl font-black text-slate-900 font-headline tracking-tighter uppercase">Kelola Fakultas</h1>
+    <div className="px-4 py-8 md:px-8 xl:px-12 min-h-screen bg-[#fafafa] font-body">
+      <Toaster position="top-right" />
+      
+      <div className="max-w-[1600px] mx-auto space-y-10">
+        
+        {/* ── Page Header ─────────────────────────────────────────── */}
+        <section className="bg-white border border-neutral-200 rounded-xl p-6 md:p-8 relative overflow-hidden shadow-sm">
+          <div className="absolute top-0 right-0 w-1/4 h-full bg-gradient-to-l from-indigo-50/50 to-transparent pointer-events-none" />
+          
+          <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="h-4 w-1.5 bg-primary rounded-full" />
+                <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-400 font-jakarta">Administrative Hierarchy</span>
+              </div>
+              <h1 className="text-3xl font-bold text-neutral-900 font-jakarta tracking-tight leading-tight">
+                Kelola <span className="text-primary">Fakultas</span>
+              </h1>
+              <p className="text-neutral-500 font-medium text-sm max-w-2xl leading-relaxed">
+                Manajemen struktur unit kerja dan sinkronisasi data fakultas di lingkungan Universitas Bhakti Kencana.
+              </p>
             </div>
-            <div className="flex items-center gap-2">
-              <div className="h-1 w-10 bg-primary rounded-full shadow-sm shadow-primary/30" />
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Manajemen Data Institusi & Fakultas Universitas</p>
+            
+            <div className="flex items-center gap-4">
+              <Button 
+                onClick={handleSyncPddikti} 
+                variant="outline" 
+                disabled={isSyncing}
+                className="h-11 px-6 rounded-xl border-neutral-200 text-xs font-bold uppercase tracking-widest text-neutral-600 hover:bg-neutral-50 gap-2 transition-all active:scale-95 shadow-sm"
+              >
+                {isSyncing ? <span className="material-symbols-outlined animate-spin text-primary" style={{ fontSize: '14px' }} >sync</span> : <RefreshCw size={14} className="text-primary" />}
+                {isSyncing ? 'Syncing...' : 'PDDIKTI Sync'}
+              </Button>
+              
+              <Button 
+                onClick={handleOpenAdd}
+                className="h-11 px-8 rounded-xl bg-neutral-900 text-white hover:bg-primary shadow-xl shadow-neutral-900/10 gap-3 transition-all active:scale-95 border-none group"
+              >
+                <div className="size-5 rounded-lg bg-white/10 flex items-center justify-center group-hover:bg-white/20 transition-colors">
+                  <span className="material-symbols-outlined" style={{ fontSize: '14px' }}  strokeWidth={3}>add</span>
+                </div>
+                <span className="text-xs font-bold uppercase tracking-[0.2em]">Registrasi Unit</span>
+              </Button>
             </div>
           </div>
-          <Card className="border-none shadow-sm overflow-hidden bg-white/50 backdrop-blur-md">
-            <CardContent className="p-0">
-              <DataTable
-                columns={columns} data={data} loading={loading}
-                searchPlaceholder="Cari nama atau kode fakultas..."
-                onAdd={handleOpenAdd} addLabel="Tambah Fakultas"
-                onExport={handleSyncPddikti} exportLabel={isSyncing ? 'Menyinkronkan...' : 'Sync PDDIKTI'}
-                actions={(row) => (
-                  <div className="flex items-center gap-2">
-                    <Button onClick={() => handleOpenEdit(row)} variant="ghost" size="icon" className="h-8 w-8 hover:text-amber-600 hover:bg-amber-50 rounded-xl"><Pencil className="size-4" /></Button>
-                    <Button onClick={() => { setSelected(row); setIsDelOpen(true) }} variant="ghost" size="icon" className="h-8 w-8 hover:text-rose-600 hover:bg-rose-50 rounded-xl"><Trash2 className="size-4" /></Button>
-                  </div>
-                )}
-              />
-            </CardContent>
-          </Card>
+        </section>
 
-      <Dialog open={isCrudOpen} onOpenChange={setIsCrudOpen}>
-        <DialogContent className="max-w-lg p-0 overflow-hidden border-none shadow-2xl rounded-[2rem] bg-white/95 backdrop-blur-xl">
-          <DialogHeader className="p-8 pb-6 bg-gradient-to-br from-slate-50 to-white border-b border-slate-100 relative overflow-hidden">
-            <div className="absolute top-0 right-0 p-8 opacity-5"><Building2 className="size-24 rotate-12" /></div>
-            <div className="relative z-10">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="size-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary">{isEditMode ? <Pencil className="size-4" /> : <Plus className="size-4 stroke-[3px]" />}</div>
-                <Badge className="text-[9px] font-black uppercase tracking-widest px-2.5 py-0.5 bg-primary/5 text-primary border-none">Faculty Registry</Badge>
+        {/* ── Stats Grid ──────────────────────────────────────────── */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+           <div className="bg-white p-4 rounded-2xl border border-[#e5e5e5] shadow-sm">
+              <div className="flex items-center gap-3 mb-3">
+                 <div className="w-10 h-10 bg-[#eef4ff] rounded-xl flex justify-center items-center text-[#00236F] flex-shrink-0">
+                    <Building2 size={18} />
+                 </div>
+                 <span className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-widest">Total Fakultas</span>
               </div>
-              <DialogTitle className="text-2xl font-black font-headline tracking-tighter text-slate-900 uppercase">{isEditMode ? 'Edit Fakultas' : 'Tambah Fakultas Baru'}</DialogTitle>
-              <DialogDescription className="sr-only">Formulir pendaftaran dan pembaruan data fakultas dalam sistem.</DialogDescription>
+              <p className="text-2xl font-extrabold text-[#171717] font-jakarta leading-none tabular-nums">{data.length}</p>
+              <p className="text-xs text-[#a3a3a3] font-medium mt-1">Unit akademik aktif Universitas</p>
+           </div>
+
+           <div className="bg-white p-4 rounded-2xl border border-[#e5e5e5] shadow-sm">
+              <div className="flex items-center gap-3 mb-3">
+                 <div className="w-10 h-10 bg-indigo-50 rounded-xl flex justify-center items-center text-indigo-600 flex-shrink-0">
+                    <LayoutGrid size={18} />
+                 </div>
+                 <span className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-widest">Total Prodi</span>
+              </div>
+              <p className="text-2xl font-extrabold text-[#171717] font-jakarta leading-none tabular-nums">{totalProdi}</p>
+              <p className="text-xs text-[#a3a3a3] font-medium mt-1">Program studi terdaftar</p>
+           </div>
+        </div>
+
+        {/* ── Table Section ────────────────────────────────────────── */}
+        <Card className="border-neutral-200 shadow-sm rounded-xl bg-white overflow-hidden">
+          <CardContent className="p-0">
+            <DataTable
+              columns={columns} 
+              data={data} 
+              loading={loading}
+              searchPlaceholder="Cari nama fakultas atau kode unit..."
+              actions={(row) => (
+                <div className="flex items-center gap-1.5">
+                  <Button onClick={() => handleOpenEdit(row)} variant="ghost" size="icon" className="h-8 w-8 text-neutral-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors shadow-none"><span className="material-symbols-outlined" style={{ fontSize: '15px' }} >edit</span></Button>
+                  <Button onClick={() => { setSelected(row); setIsDelOpen(true) }} variant="ghost" size="icon" className="h-8 w-8 text-neutral-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors shadow-none"><span className="material-symbols-outlined" style={{ fontSize: '15px' }} >delete</span></Button>
+                </div>
+              )}
+            />
+          </CardContent>
+        </Card>
+
+      </div>
+
+      {/* ── CRUD Modal ───────────────────────────────────────────── */}
+      <Dialog open={isCrudOpen} onOpenChange={setIsCrudOpen}>
+        <DialogContent className="max-w-lg p-0 overflow-hidden border-none shadow-2xl rounded-2xl bg-white">
+          <DialogHeader className="p-8 pb-6 border-b border-neutral-100 relative overflow-hidden">
+            <div className="absolute top-0 right-0 p-8 opacity-[0.03] text-primary"><Building2 size={120} /></div>
+            <div className="relative z-10 space-y-1">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="size-6 rounded bg-primary/10 flex items-center justify-center text-primary">
+                  {isEditMode ? <span className="material-symbols-outlined" style={{ fontSize: '12px' }} >edit</span> : <span className="material-symbols-outlined" style={{ fontSize: '12px' }}  strokeWidth={3}>add</span>}
+                </div>
+                <span className="text-[10px] font-bold uppercase tracking-widest text-primary/60">Unit Configuration</span>
+              </div>
+              <DialogTitle className="text-2xl font-bold font-jakarta tracking-tight text-neutral-900">
+                {isEditMode ? 'Update Fakultas' : 'Registrasi Unit'}
+              </DialogTitle>
+              <DialogDescription className="text-sm font-medium text-neutral-400 italic">Modifikasi identitas dan pimpinan unit fakultas.</DialogDescription>
             </div>
           </DialogHeader>
-          <form onSubmit={handleSave} className="p-8 pt-6 space-y-4 max-h-[65vh] overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2"><Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Nama Fakultas</Label><Input required value={form.Nama} onChange={e => setForm({ ...form, Nama: e.target.value })} placeholder="Nama resmi..." className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white font-bold text-sm font-headline" /></div>
-              <div className="space-y-2"><Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Kode Fakultas</Label><Input required value={form.Kode} onChange={e => setForm({ ...form, Kode: e.target.value })} placeholder="Misal: FSK, FT..." className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white font-bold text-sm font-headline uppercase" /></div>
+
+          <form onSubmit={handleSave} className="p-8 pt-6 space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <Label className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest ml-1 font-jakarta">Nama Lengkap Fakultas</Label>
+                <Input required value={form.Nama} onChange={e => setForm({ ...form, Nama: e.target.value })} placeholder="Fakultas..." className="h-12 rounded-xl border-neutral-200 bg-neutral-50/30 focus:bg-white font-bold text-sm font-jakarta" />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest ml-1 font-jakarta">Kode Unit</Label>
+                <Input required value={form.Kode} onChange={e => setForm({ ...form, Kode: e.target.value })} placeholder="Ex: FSK" className="h-12 rounded-xl border-neutral-200 bg-neutral-50/30 focus:bg-white font-bold text-sm font-jakarta uppercase" />
+              </div>
             </div>
-            <div className="space-y-2"><Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Nama Dekan</Label><Input value={form.Dekan} onChange={e => setForm({ ...form, Dekan: e.target.value })} placeholder="Dr. Nama Dekan, M.Si." className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white font-bold text-sm font-headline" /></div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2"><Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Email Resmi</Label><Input type="email" value={form.Email} onChange={e => setForm({ ...form, Email: e.target.value })} placeholder="fakultas@univ.ac.id" className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white font-bold text-sm font-headline" /></div>
-              <div className="space-y-2"><Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">No. Telepon / WhatsApp</Label><Input value={form.NoHP} onChange={e => { const val = e.target.value.replace(/\D/g, ''); setForm({ ...form, NoHP: val }); }} placeholder="08..." className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white font-bold text-sm font-headline" /></div>
+
+            <div className="space-y-2">
+              <Label className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest ml-1 font-jakarta">Pimpinan Unit (Dekan)</Label>
+              <Input value={form.Dekan} onChange={e => setForm({ ...form, Dekan: e.target.value })} placeholder="Lengkap dengan gelar akademik..." className="h-12 rounded-xl border-neutral-200 bg-neutral-50/30 focus:bg-white font-bold text-sm font-jakarta" />
             </div>
-            <DialogFooter className="pt-4 flex flex-row gap-3 border-t border-slate-100 -mx-8 px-8 bg-slate-50/30">
-              <Button type="button" variant="ghost" onClick={() => setIsCrudOpen(false)} className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-8 h-12 rounded-2xl">Batalkan</Button>
-              <Button type="submit" disabled={isSubmitting} className="h-12 px-10 rounded-2xl bg-primary text-white hover:bg-primary/90 shadow-xl shadow-primary/20 transition-all hover:scale-[1.02] active:scale-95">
-                {isSubmitting ? <Loader2 className="animate-spin size-4 mr-2" /> : <Save className="size-4 mr-2 stroke-[3px]" />}
-                <span className="text-[10px] font-black uppercase tracking-[0.2em]">{isEditMode ? 'Update' : 'Simpan'}</span>
-              </Button>
-            </DialogFooter>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <Label className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest ml-1 font-jakarta">Email Korespondensi</Label>
+                <Input type="email" value={form.Email} onChange={e => setForm({ ...form, Email: e.target.value })} placeholder="fakultas@bku.ac.id" className="h-12 rounded-xl border-neutral-200 bg-neutral-50/30 focus:bg-white font-bold text-sm font-jakarta" />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest ml-1 font-jakarta">Hotline / Telepon</Label>
+                <Input value={form.NoHP} onChange={e => setForm({ ...form, NoHP: e.target.value.replace(/\D/g, '') })} placeholder="08..." className="h-12 rounded-xl border-neutral-200 bg-neutral-50/30 focus:bg-white font-bold text-sm font-jakarta" />
+              </div>
+            </div>
+
+            <div className="pt-8 flex flex-col md:flex-row gap-4 border-t border-neutral-100">
+               <Button type="button" variant="ghost" onClick={() => setIsCrudOpen(false)} className="flex-1 h-14 rounded-xl text-[10px] font-bold uppercase tracking-widest text-neutral-400 hover:bg-neutral-50 transition-all">Abort</Button>
+               <Button type="submit" disabled={isSubmitting} className="flex-[2] h-14 rounded-xl bg-neutral-900 text-white hover:bg-primary shadow-xl shadow-neutral-900/10 transition-all active:scale-95 border-none flex items-center justify-center gap-3">
+                  {isSubmitting ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '16px' }} >sync</span> : <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >save</span>}
+                  <span className="text-[10px] font-bold uppercase tracking-widest">Commit Database</span>
+               </Button>
+            </div>
           </form>
         </DialogContent>
       </Dialog>
 
-      <DeleteConfirmModal isOpen={isDelOpen} onClose={() => setIsDelOpen(false)} onConfirm={handleDelete}
-        title="Hapus Fakultas?" description="Data fakultas beserta semua program studi terkait akan dihapus permanen." loading={isSubmitting} />
+      <DeleteConfirmModal 
+        isOpen={isDelOpen} 
+        onClose={() => setIsDelOpen(false)} 
+        onConfirm={handleDelete}
+        title="Destroy Faculty Entity?" 
+        description="Aksi ini akan menghapus permanen entitas fakultas dan seluruh relasi program studi di bawahnya. Prosedur ini tidak dapat dibatalkan." 
+        loading={isSubmitting} 
+      />
     </div>
   )
 }

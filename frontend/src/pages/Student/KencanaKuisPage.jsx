@@ -1,9 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useSoalKuisQuery, useSubmitKuisMutation } from '../../queries/useKencanaQuery';
-import { GraduationCap, ArrowLeft, ArrowRight, CheckCircle2, XCircle, Clock, Trophy, Star } from 'lucide-react';
+
 import { motion, AnimatePresence } from 'framer-motion';
 import { Skeleton } from '../../components/ui/Skeleton';
+
+// Auto-injected Material Symbol fallbacks for removed Lucide icons
+const ArrowLeft = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>arrow_back</span>;
+
+
+
+// Auto-injected Material Symbol fallbacks for removed Lucide icons
+const Trophy = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>emoji_events</span>;
+const Star = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>star</span>;
+
+
 
 // Simple confetti particle
 function ConfettiParticle({ delay, color }) {
@@ -105,7 +116,7 @@ export default function KencanaKuisPage() {
   if (isError || !soalList || soalList.length === 0) {
     return (
       <div className="p-6 md:p-10 text-center bg-[#fafafa] min-h-screen flex flex-col items-center justify-center">
-        <XCircle size={56} className="text-red-400 mx-auto mb-4" />
+        <span className="material-symbols-outlined text-red-400 mx-auto mb-4" style={{ fontSize: '56px' }} Circle >close</span>
         <h2 className="text-xl font-bold font-headline text-[#171717] mb-2">Kuis Tidak Tersedia</h2>
         <p className="text-[#737373] mb-6">Gagal memuat soal atau kuis belum tersedia. Coba lagi nanti.</p>
         <button onClick={() => navigate('/student/kencana')}
@@ -134,11 +145,11 @@ export default function KencanaKuisPage() {
               transition={{ duration: 0.6, delay: 0.3 }}
               className="w-24 h-24 bg-[#f0fdf4] text-[#16a34a] rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg shadow-green-100"
             >
-              <CheckCircle2 size={48} />
+              <span className="material-symbols-outlined" style={{ fontSize: '48px' }} >check_circle</span>
             </motion.div>
           ) : (
             <div className="w-24 h-24 bg-[#fef2f2] text-[#dc2626] rounded-full flex items-center justify-center mx-auto mb-6">
-              <XCircle size={48} />
+              <span className="material-symbols-outlined" style={{ fontSize: '48px' }} Circle >close</span>
             </div>
           )}
 
@@ -241,11 +252,11 @@ export default function KencanaKuisPage() {
               <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-sm font-bold ${
                 timeLeft < 60 ? 'bg-red-50 border-red-200 text-red-600' : 'bg-[#fafafa] border-[#e5e5e5] text-[#525252]'
               }`}>
-                <Clock size={14} /> {formatTime(timeLeft)}
+                <span className="material-symbols-outlined" style={{ fontSize: '14px' }} >schedule</span> {formatTime(timeLeft)}
               </div>
             )}
             <div className="bg-white px-4 py-1.5 rounded-full border border-[#e5e5e5] text-sm font-bold text-[#00236F] flex items-center gap-2 shadow-sm">
-              <GraduationCap size={16} />
+              <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >school</span>
               Soal {currentIndex + 1} dari {soalList.length}
             </div>
           </div>
@@ -342,7 +353,7 @@ export default function KencanaKuisPage() {
             className="flex items-center gap-2 px-5 py-3 rounded-xl font-bold bg-[#00236F] text-white hover:bg-[#0B4FAE] disabled:opacity-30 transition-colors"
           >
             {currentIndex === soalList.length - 1 ? 'Selesai & Kumpulkan' : 'Selanjutnya'}
-            {currentIndex !== soalList.length - 1 && <ArrowRight size={18} />}
+            {currentIndex !== soalList.length - 1 && <span className="material-symbols-outlined" style={{ fontSize: '18px' }} >arrow_forward</span>}
           </button>
         </div>
 

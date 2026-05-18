@@ -60,7 +60,7 @@ export default function Sidebar({ onNavigate }) {
           onClick={handleLogout}
           className="flex items-center gap-3 w-full px-3 py-2.5 text-sm font-semibold text-[#dc2626] hover:bg-[#fef2f2] rounded-xl transition"
         >
-          <LogOut size={18} />
+          <span className="material-symbols-outlined " size={18}>logout</span>
           Logout
         </button>
       </div>
