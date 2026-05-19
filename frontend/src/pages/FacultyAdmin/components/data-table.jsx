@@ -216,7 +216,7 @@ export function DataTable({
                 >
                   {columns.map((col) => (
                     <TableCell key={col.key} className={cn("px-8 py-5 font-headline", col.cellClassName)}>
-                      {col.render ? col.render(row[col.key], row) : <span className="text-[13px] font-bold text-slate-600">{row[col.key] || "-"}</span>}
+                      {col.render ? col.render(row[col.key], row, (currentPage - 1) * pageSize + i) : <span className="text-[13px] font-bold text-slate-600">{row[col.key] || "-"}</span>}
                     </TableCell>
                   ))}
                   {actions && (

@@ -1,31 +1,28 @@
 "use client"
 
 import React, { useState, useEffect } from "react"
-
 import { toast, Toaster } from "react-hot-toast"
 import { cn } from "@/lib/utils"
 import { pddiktiService, API_BASE_URL } from "../../services/api"
+import { PageContainer, PageHeader, ResponsiveGrid, ResponsiveCard } from "./components/responsive-layout"
+import { DataTable } from "./components/data-table"
+import { Badge } from "./components/badge"
 
 // Auto-injected Material Symbol fallbacks for removed Lucide icons
 const RefreshCw = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>sync</span>;
-
-
-
-// Auto-injected Material Symbol fallbacks for removed Lucide icons
 const GraduationCap = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>school</span>;
 const CheckCircle2 = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>check_circle</span>;
 const Users = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>group</span>;
-
-
+const BookOpen = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>menu_book</span>;
 
 const API = `${API_BASE_URL}/faculty`
 
 const AKRED_STYLES = {
-  'Unggul':     { cls: 'bg-emerald-50 text-emerald-700 border-emerald-200', dot: 'bg-emerald-500' },
-  'Baik Sekali':{ cls: 'bg-blue-50 text-blue-700 border-blue-200',         dot: 'bg-blue-500' },
-  'Baik':       { cls: 'bg-slate-50 text-slate-600 border-slate-200',       dot: 'bg-slate-400' },
-  'A':          { cls: 'bg-emerald-50 text-emerald-700 border-emerald-200', dot: 'bg-emerald-500' },
-  'B':          { cls: 'bg-blue-50 text-blue-700 border-blue-200',         dot: 'bg-blue-500' },
+  'Unggul':     { cls: 'bg-emerald-50 text-emerald-700 border-emerald-200/60', dot: 'bg-emerald-500' },
+  'Baik Sekali':{ cls: 'bg-blue-50 text-blue-700 border-blue-200/60',         dot: 'bg-blue-500' },
+  'Baik':       { cls: 'bg-slate-50 text-slate-600 border-slate-200/60',       dot: 'bg-slate-400' },
+  'A':          { cls: 'bg-emerald-50 text-emerald-700 border-emerald-200/60', dot: 'bg-emerald-500' },
+  'B':          { cls: 'bg-blue-50 text-blue-700 border-blue-200/60',         dot: 'bg-blue-500' },
 }
 
 const JENJANG_COLORS = {
@@ -40,7 +37,6 @@ export default function ProdiPage() {
   const [majors, setMajors]         = useState([])
   const [faculties, setFaculties]   = useState([])
   const [loading, setLoading]       = useState(true)
-  const [search, setSearch]         = useState('')
   const [isModalOpen, setIsModal]   = useState(false)
   const [isEditMode, setIsEdit]     = useState(false)
   const [isSubmitting, setIsSub]    = useState(false)
@@ -112,212 +108,201 @@ export default function ProdiPage() {
 
   const set = (k, v) => setFormData(prev => ({ ...prev, [k]: v }))
 
-  const filtered = majors.filter(m => {
-    const q = search.toLowerCase()
-    return !q || m.Nama?.toLowerCase().includes(q) || m.Jenjang?.toLowerCase().includes(q)
-  })
-
   const stats = {
     total:    majors.length,
     unggul:   majors.filter(m => m.Akreditasi === 'Unggul' || m.Akreditasi === 'A').length,
     kapasitas: majors.reduce((a, m) => a + (m.Kapasitas || 0), 0),
   }
 
-  return (
-    <div className="min-h-screen bg-[#f8fafc] font-body">
-      <Toaster position="top-right" />
-      <div className="max-w-[1600px] mx-auto px-4 py-8 md:px-8 xl:px-12 space-y-6">
-
-        {/* ── Header ── */}
-        <section className="relative overflow-hidden rounded-3xl h-auto md:h-48 flex flex-col md:flex-row items-center group shadow-sm p-6 md:p-8 border border-slate-200/80 bg-white">
-          <div className="absolute inset-0 bg-gradient-to-br from-white via-slate-50/50 to-slate-100/50" />
-          <div className="absolute inset-0 opacity-[0.03]"
-            style={{
-              backgroundImage: `radial-gradient(circle at 20% 50%, black 1px, transparent 1px), radial-gradient(circle at 80% 20%, black 1px, transparent 1px)`,
-              backgroundSize: '60px 60px'
-            }}
-          />
-          <div className="absolute -top-20 -right-20 w-72 h-72 bg-primary/5 rounded-full blur-3xl animate-pulse" />
-          <div className="absolute -bottom-10 right-40 w-48 h-48 bg-blue-400/5 rounded-full blur-2xl" />
-
-          <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center w-full gap-6">
-            <div>
-              <div className="flex items-center gap-2 mb-2">
-                <div className="h-4 w-1.5 bg-primary rounded-full" />
-                <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#a3a3a3]">Data Master Akademik</span>
-              </div>
-              <h1 className="text-3xl font-extrabold text-slate-900 font-headline tracking-tight leading-tight">
-                Program <span className="text-primary">Studi</span>
-              </h1>
-              <p className="text-slate-500 font-medium text-sm max-w-xl leading-relaxed mt-1">
-                Kelola program studi, jenjang pendidikan, akreditasi, dan kapasitas penerimaan mahasiswa.
-              </p>
-            </div>
-            <div className="flex items-center gap-3">
-              <button onClick={fetchMajors} disabled={loading}
-                className="h-11 px-5 rounded-xl border border-[#e5e5e5] bg-white text-xs font-bold uppercase tracking-widest text-[#525252] hover:bg-[#fafafa] gap-2 flex items-center transition-all active:scale-95 shadow-sm disabled:opacity-60">
-                {loading ? <span className="material-symbols-outlined animate-spin text-primary" style={{ fontSize: '14px' }} >sync</span> : <RefreshCw size={14} className="text-primary" />}
-                Refresh
-              </button>
-              <button onClick={openAdd}
-                className="h-11 px-5 rounded-xl bg-[#00236F] hover:bg-[#001a52] text-white text-xs font-bold uppercase tracking-widest gap-2 flex items-center transition-all active:scale-95 shadow-lg shadow-[#00236F]/20">
-                <span className="material-symbols-outlined" style={{ fontSize: '15px' }} >add</span>
-                Tambah Prodi
-              </button>
-            </div>
-          </div>
-        </section>
-
-        {/* ── Stats ── */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          {[
-            { label: 'Total Program Studi', value: stats.total,    icon: GraduationCap, bg: 'bg-[#eef4ff]', color: 'text-[#00236F]', desc: 'Prodi terdaftar' },
-            { label: 'Akreditasi Unggul',   value: stats.unggul,   icon: CheckCircle2,  bg: 'bg-emerald-50', color: 'text-emerald-600', desc: 'Prodi Unggul / A' },
-            { label: 'Total Kapasitas',     value: stats.kapasitas, icon: Users,        bg: 'bg-indigo-50',  color: 'text-indigo-600', desc: 'Slot mahasiswa tersedia' },
-          ].map(s => (
-            <div key={s.label} className="bg-surface-container-lowest border border-outline-variant/10 rounded-3xl p-5 shadow-sm">
-              <div className="flex items-center gap-3 mb-3">
-                <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center', s.bg, s.color)}>
-                  <s.icon size={18} />
-                </div>
-                <span className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-widest">{s.label}</span>
-              </div>
-              <p className="text-2xl font-extrabold text-[#171717] leading-none tabular-nums">
-                {loading ? <span className="material-symbols-outlined animate-spin text-slate-300" style={{ fontSize: '18px' }} >sync</span> : s.value}
-              </p>
-              <p className="text-xs text-[#a3a3a3] font-medium mt-1">{s.desc}</p>
-            </div>
-          ))}
+  const prodiColumns = [
+    {
+      key: "index",
+      label: "#",
+      disableSort: true,
+      className: "w-12 text-center",
+      cellClassName: "text-center font-bold text-slate-400",
+      render: (val, row, index) => index + 1
+    },
+    {
+      key: "Nama",
+      label: "Program Studi",
+      render: (val, row) => (
+        <div className="flex flex-col">
+          <span className="font-bold text-slate-800 font-jakarta text-[13px] tracking-tight">{val}</span>
+          <span className="text-[10px] text-slate-400 font-medium font-inter mt-0.5">{row.Fakultas?.Nama || "Univ. Bhakti Kencana"}</span>
         </div>
-
-        {/* ── Table ── */}
-        <div className="bg-surface-container-lowest border border-outline-variant/10 rounded-3xl shadow-sm overflow-hidden">
-          {/* Toolbar */}
-          <div className="px-5 py-4 border-b border-[#f0f0f0] flex flex-col sm:flex-row items-start sm:items-center gap-3">
+      )
+    },
+    {
+      key: "Jenjang",
+      label: "Jenjang",
+      className: "text-center",
+      cellClassName: "text-center",
+      render: (val) => {
+        const jk = JENJANG_COLORS[val] || 'bg-slate-50 text-slate-600';
+        return (
+          <Badge className={cn('font-bold text-[9px] px-2.5 py-0.5 border-none font-inter uppercase tracking-wider shadow-none', jk)}>
+            {val || 'S1'}
+          </Badge>
+        )
+      }
+    },
+    {
+      key: "Akreditasi",
+      label: "Akreditasi",
+      className: "text-center",
+      cellClassName: "text-center",
+      render: (val) => {
+        const ak = AKRED_STYLES[val] || AKRED_STYLES['Baik'];
+        return (
+          <Badge className={cn('inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg text-[9px] font-bold border uppercase tracking-wider shadow-none', ak.cls)}>
+            <span className={cn('w-1 h-1 rounded-full animate-pulse', ak.dot)} />
+            {val}
+          </Badge>
+        )
+      }
+    },
+    {
+      key: "Kapasitas",
+      label: "Kapasitas & Mahasiswa",
+      render: (val, row) => {
+        const pct = Math.min(100, Math.round(((row.CurrentMahasiswa || 0) / (row.Kapasitas || 1)) * 100));
+        return (
+          <div className="flex items-center gap-4 min-w-[120px]">
             <div className="flex-1">
-              <h2 className="font-bold text-base text-[#171717]">Daftar Program Studi</h2>
-              <p className="text-xs text-[#737373] mt-0.5">
-                Menampilkan <span className="font-bold text-[#171717]">{filtered.length}</span> dari <span className="font-bold text-primary">{majors.length}</span> program studi
-              </p>
-            </div>
-            <div className="relative">
-              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#a3a3a3]" style={{ fontSize: '14px' }} >search</span>
-              <input type="text" placeholder="Cari nama atau jenjang..."
-                value={search} onChange={e => setSearch(e.target.value)}
-                className="pl-9 pr-4 h-9 w-56 rounded-xl border border-[#e5e5e5] focus:outline-none focus:border-primary text-sm bg-white" />
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-[10px] text-slate-400 font-bold font-inter">{row.CurrentMahasiswa || 0} / {row.Kapasitas || 120} Mhs</span>
+                <span className="text-[10px] font-black text-primary font-inter">{pct}%</span>
+              </div>
+              <div className="w-full h-1.5 bg-slate-100/80 rounded-full overflow-hidden">
+                <div className={cn("h-full rounded-full transition-all duration-500", pct > 90 ? "bg-rose-500" : "bg-gradient-to-r from-primary to-blue-400")}
+                  style={{ width: `${pct}%` }} />
+              </div>
             </div>
           </div>
+        )
+      }
+    }
+  ]
 
-          <div className="overflow-x-auto">
-            <table className="w-full text-left">
-              <thead>
-                <tr className="border-b border-[#e5e5e5]">
-                  {['#', 'Program Studi', 'Jenjang', 'Akreditasi', 'Kapasitas & Mahasiswa', 'Aksi'].map(h => (
-                    <th key={h} className="px-5 py-3.5 text-xs font-bold text-[#a3a3a3] uppercase tracking-wider whitespace-nowrap">{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {loading ? Array.from({ length: 4 }).map((_, i) => (
-                  <tr key={i} className="border-b border-[#f0f0f0]">
-                    {[...Array(6)].map((__, j) => <td key={j} className="px-5 py-4"><div className="h-4 bg-[#f5f5f5] rounded animate-pulse" /></td>)}
-                  </tr>
-                )) : filtered.length === 0 ? (
-                  <tr><td colSpan={6} className="px-5 py-16 text-center">
-                    <div className="flex flex-col items-center gap-3">
-                      <div className="w-12 h-12 bg-[#eef4ff] rounded-2xl flex items-center justify-center text-primary"><span className="material-symbols-outlined" style={{ fontSize: '22px' }} >school</span></div>
-                      <p className="font-bold text-sm text-[#171717]">Tidak Ada Program Studi</p>
-                      <p className="text-xs text-[#a3a3a3]">Klik "Tambah Prodi" untuk mendaftarkan program studi baru.</p>
-                    </div>
-                  </td></tr>
-                ) : filtered.map((row, i) => {
-                  const ak = AKRED_STYLES[row.Akreditasi] || AKRED_STYLES['Baik']
-                  const jk = JENJANG_COLORS[row.Jenjang] || 'bg-slate-50 text-slate-600'
-                  const pct = Math.min(100, Math.round(((row.CurrentMahasiswa || 0) / (row.Kapasitas || 1)) * 100))
-                  return (
-                    <tr key={row.ID || i} className="border-b border-[#f5f5f5] hover:bg-[#fafbff] transition-colors">
-                      <td className="px-5 py-4 text-sm text-[#a3a3a3] font-medium">{i + 1}</td>
-                      <td className="px-5 py-4">
-                        <p className="font-bold text-sm text-[#171717]">{row.Nama}</p>
-                        <p className="text-[10px] text-[#a3a3a3] font-medium mt-0.5">{row.Fakultas?.Nama}</p>
-                      </td>
-                      <td className="px-5 py-4">
-                        <span className={cn('px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider', jk)}>
-                          {row.Jenjang || 'S1'}
-                        </span>
-                      </td>
-                      <td className="px-5 py-4">
-                        <span className={cn('inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold border uppercase tracking-wider', ak.cls)}>
-                          <span className={cn('w-1.5 h-1.5 rounded-full', ak.dot)} />
-                          {row.Akreditasi}
-                        </span>
-                      </td>
-                      <td className="px-5 py-4">
-                        <div className="flex items-center gap-2">
-                          <div className="flex-1 min-w-[80px]">
-                            <div className="flex items-center justify-between mb-1">
-                              <span className="text-[10px] text-[#a3a3a3] font-medium">{row.CurrentMahasiswa || 0} / {row.Kapasitas}</span>
-                              <span className="text-[10px] font-bold text-primary">{pct}%</span>
-                            </div>
-                            <div className="w-full h-1.5 bg-[#f0f0f0] rounded-full overflow-hidden">
-                              <div className={cn("h-full rounded-full", pct > 90 ? "bg-rose-500" : "bg-gradient-to-r from-[#00236F] to-[#3b82f6]")}
-                                style={{ width: `${pct}%` }} />
-                            </div>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-5 py-4">
-                        <div className="flex items-center gap-1.5">
-                          <button onClick={() => openEdit(row)}
-                            className="p-1.5 text-[#a3a3a3] hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Edit">
-                            <span className="material-symbols-outlined" style={{ fontSize: '15px' }} >edit</span>
-                          </button>
-                          <button onClick={() => setDelTarget(row)}
-                            className="p-1.5 text-[#a3a3a3] hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors" title="Hapus">
-                            <span className="material-symbols-outlined" style={{ fontSize: '15px' }} >delete</span>
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
-          </div>
+  const renderActions = (row) => (
+    <div className="flex items-center justify-end gap-1.5">
+      <button onClick={() => openEdit(row)}
+        className="p-2 text-slate-400 hover:text-primary hover:bg-primary/5 rounded-xl transition-all duration-300" title="Edit">
+        <span className="material-symbols-outlined size-4" style={{ fontSize: '16px' }} >edit</span>
+      </button>
+      <button onClick={() => setDelTarget(row)}
+        className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all duration-300" title="Hapus">
+        <span className="material-symbols-outlined size-4" style={{ fontSize: '16px' }} >delete</span>
+      </button>
+    </div>
+  )
+
+  return (
+    <PageContainer>
+      <Toaster position="top-right" />
+      
+      {/* Page Header */}
+      <PageHeader
+        icon={BookOpen}
+        title="Program Studi"
+        description="Kelola kurikulum, jenjang pendidikan, akreditasi, dan kapasitas penerimaan fakultas."
+      >
+        <div className="flex items-center gap-3">
+          <button
+            onClick={fetchMajors}
+            disabled={loading}
+            className="h-11 px-5 rounded-2xl border border-slate-200 bg-white text-[10px] font-black uppercase tracking-widest text-slate-600 hover:bg-slate-50 gap-2.5 flex items-center transition-all active:scale-95 shadow-sm disabled:opacity-60"
+          >
+            <RefreshCw size={14} className={cn("text-primary", loading && "animate-spin")} />
+            <span>Refresh</span>
+          </button>
+          
+          <button
+            onClick={openAdd}
+            className="h-11 px-6 rounded-2xl bg-primary text-white text-[10px] font-black uppercase tracking-widest gap-2.5 flex items-center transition-all hover:scale-[1.02] active:scale-95 shadow-xl shadow-primary/20 border-none"
+          >
+            <span className="material-symbols-outlined size-4 stroke-[4px]" style={{ fontSize: '16px' }} >add</span>
+            <span>Tambah Prodi</span>
+          </button>
         </div>
+      </PageHeader>
+
+      {/* Stats Section */}
+      <ResponsiveGrid cols={3}>
+        {[
+          { label: 'Total Program Studi', value: stats.total, icon: GraduationCap, bg: 'bg-primary/10', color: 'text-primary', accent: 'from-primary/10', desc: 'Prodi terdaftar' },
+          { label: 'Akreditasi Unggul', value: stats.unggul, icon: CheckCircle2, bg: 'bg-emerald-50 text-emerald-600', color: 'text-emerald-600', accent: 'from-emerald-500/10', desc: 'Prodi Unggul / A' },
+          { label: 'Total Kapasitas', value: stats.kapasitas, icon: Users, bg: 'bg-indigo-50 text-indigo-600', color: 'text-indigo-600', accent: 'from-indigo-500/10', desc: 'Slot mahasiswa tersedia' },
+        ].map(s => (
+          <ResponsiveCard key={s.label} className="relative group overflow-hidden border border-slate-200/60 shadow-sm hover:shadow-md transition-all duration-300 rounded-3xl p-0">
+            <div className={`absolute inset-0 bg-gradient-to-br ${s.accent} opacity-10`} />
+            <div className="p-6 relative flex items-center gap-4">
+              <div className={cn('p-4 rounded-2xl shadow-sm shrink-0 group-hover:scale-110 transition-transform duration-500', s.bg)}>
+                <s.icon className="size-6" />
+              </div>
+              <div className="flex-1 min-w-0 space-y-1">
+                <p className="text-[10px] font-black uppercase tracking-wider text-slate-400 font-headline truncate">{s.label}</p>
+                <h3 className="text-2xl font-black text-slate-900 font-jakarta tracking-tight leading-none">
+                  {loading ? "..." : s.value.toLocaleString()}
+                </h3>
+                <p className="text-[10px] font-bold text-slate-400 truncate uppercase tracking-widest leading-none pt-0.5">{s.desc}</p>
+              </div>
+            </div>
+          </ResponsiveCard>
+        ))}
+      </ResponsiveGrid>
+
+      {/* Main Data Table */}
+      <div className="pt-2">
+        <DataTable
+          columns={prodiColumns}
+          data={majors}
+          loading={loading}
+          searchPlaceholder="Cari program studi..."
+          actions={renderActions}
+        />
       </div>
 
-      {/* ── CRUD Modal ── */}
+      {/* CRUD Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4"
-          onClick={() => setIsModal(false)}>
-          <div className="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl z-[101] flex flex-col overflow-hidden max-h-[90vh]"
-            onClick={e => e.stopPropagation()}>
-            {/* Header */}
-            <div className="relative bg-gradient-to-br from-[#00236F] via-[#00308F] to-[#003db5] pt-6 pb-7 px-6 overflow-hidden flex-shrink-0">
+        <div 
+          className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-[100] flex items-center justify-center p-4 animate-in fade-in duration-200"
+          onClick={() => setIsModal(false)}
+        >
+          <div 
+            className="relative w-full max-w-lg bg-white rounded-[2.5rem] shadow-2xl z-[101] flex flex-col overflow-hidden max-h-[90vh] border border-slate-100 animate-in zoom-in-95 duration-300"
+            onClick={e => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="relative bg-gradient-to-br from-primary via-primary to-blue-700 pt-8 pb-9 px-8 overflow-hidden flex-shrink-0">
               <div className="absolute -top-10 -right-10 w-44 h-44 bg-white/5 rounded-full pointer-events-none" />
-              <button onClick={() => setIsModal(false)}
-                className="absolute top-4 right-4 w-8 h-8 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center transition-colors">
-                <span className="material-symbols-outlined" style={{ fontSize: '15px' }} >close</span>
+              <button 
+                onClick={() => setIsModal(false)}
+                className="absolute top-6 right-6 w-8 h-8 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center transition-colors text-white border-none"
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >close</span>
               </button>
               <div className="relative z-10">
-                <p className="text-[9px] font-bold text-white/50 uppercase tracking-[0.25em] mb-1">
+                <p className="text-[9px] font-black text-white/50 uppercase tracking-[0.25em] mb-1">
                   {isEditMode ? 'Edit Program Studi' : 'Tambah Program Studi'}
                 </p>
-                <h2 className="text-xl font-extrabold text-white">{isEditMode ? 'Update Data Prodi' : 'Registrasi Prodi Baru'}</h2>
-                <p className="text-xs text-blue-200 mt-1">Isi semua data dengan benar sebelum menyimpan.</p>
+                <h2 className="text-2xl font-black text-white font-headline leading-none">{isEditMode ? 'Update Data Prodi' : 'Registrasi Prodi Baru'}</h2>
+                <p className="text-xs text-blue-200 font-medium mt-1.5 leading-relaxed">Isi semua formulir administrasi di bawah ini dengan lengkap.</p>
               </div>
             </div>
 
-            {/* Form Body */}
+            {/* Modal Form Body */}
             <form onSubmit={handleSave} className="flex flex-col flex-1 overflow-hidden">
-              <div className="flex-1 overflow-y-auto p-6 space-y-4">
-
+              <div className="flex-1 overflow-y-auto p-8 space-y-5">
                 {/* Fakultas */}
                 <div>
-                  <label className="block text-[10px] font-black text-[#a3a3a3] uppercase tracking-[0.18em] mb-1.5">Fakultas Naungan</label>
-                  <select value={formData.FakultasID} onChange={e => set('FakultasID', e.target.value)}
-                    className="w-full h-11 px-4 rounded-xl border border-[#e5e5e5] bg-[#fafafa] text-sm font-medium text-[#171717] focus:outline-none focus:border-primary focus:bg-white transition-all appearance-none">
+                  <label className="block text-[10px] font-black text-[#a3a3a3] uppercase tracking-[0.18em] mb-2 ml-1">Fakultas Naungan</label>
+                  <select 
+                    value={formData.FakultasID} 
+                    onChange={e => set('FakultasID', e.target.value)}
+                    className="w-full h-12 px-4 rounded-2xl border border-slate-200 bg-slate-50 text-xs font-bold text-slate-700 focus:outline-none focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/10 transition-all appearance-none cursor-pointer"
+                  >
                     <option value="">Pilih Fakultas...</option>
                     {faculties.map(f => f.ID != null && <option key={f.ID} value={String(f.ID)}>{f.Nama}</option>)}
                   </select>
@@ -325,15 +310,22 @@ export default function ProdiPage() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-[10px] font-black text-[#a3a3a3] uppercase tracking-[0.18em] mb-1.5">Kode / Akronim</label>
-                    <input value={formData.Kode} onChange={e => set('Kode', e.target.value.toUpperCase())}
-                      placeholder="TI, SI, MN..." required
-                      className="w-full h-11 px-4 rounded-xl border border-[#e5e5e5] bg-[#fafafa] text-sm font-bold text-[#171717] focus:outline-none focus:border-primary focus:bg-white transition-all uppercase" />
+                    <label className="block text-[10px] font-black text-[#a3a3a3] uppercase tracking-[0.18em] mb-2 ml-1">Kode / Akronim</label>
+                    <input 
+                      value={formData.Kode} 
+                      onChange={e => set('Kode', e.target.value.toUpperCase())}
+                      placeholder="TI, SI, MN..." 
+                      required
+                      className="w-full h-12 px-4 rounded-2xl border border-slate-200 bg-slate-50 text-xs font-bold text-slate-700 focus:outline-none focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/10 transition-all uppercase" 
+                    />
                   </div>
                   <div>
-                    <label className="block text-[10px] font-black text-[#a3a3a3] uppercase tracking-[0.18em] mb-1.5">Jenjang</label>
-                    <select value={formData.Jenjang} onChange={e => set('Jenjang', e.target.value)}
-                      className="w-full h-11 px-4 rounded-xl border border-[#e5e5e5] bg-[#fafafa] text-sm font-medium text-[#171717] focus:outline-none focus:border-primary focus:bg-white transition-all appearance-none">
+                    <label className="block text-[10px] font-black text-[#a3a3a3] uppercase tracking-[0.18em] mb-2 ml-1">Jenjang</label>
+                    <select 
+                      value={formData.Jenjang} 
+                      onChange={e => set('Jenjang', e.target.value)}
+                      className="w-full h-12 px-4 rounded-2xl border border-slate-200 bg-slate-50 text-xs font-bold text-slate-700 focus:outline-none focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/10 transition-all appearance-none cursor-pointer"
+                    >
                       <option value="S1">S1 - Sarjana</option>
                       <option value="D3">D3 - Diploma</option>
                       <option value="S2">S2 - Magister</option>
@@ -342,40 +334,58 @@ export default function ProdiPage() {
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-black text-[#a3a3a3] uppercase tracking-[0.18em] mb-1.5">Nama Lengkap Program Studi</label>
-                  <input value={formData.Nama} onChange={e => set('Nama', e.target.value)}
-                    placeholder="Nama resmi prodi..." required
-                    className="w-full h-11 px-4 rounded-xl border border-[#e5e5e5] bg-[#fafafa] text-sm font-medium text-[#171717] focus:outline-none focus:border-primary focus:bg-white transition-all" />
+                  <label className="block text-[10px] font-black text-[#a3a3a3] uppercase tracking-[0.18em] mb-2 ml-1">Nama Lengkap Program Studi</label>
+                  <input 
+                    value={formData.Nama} 
+                    onChange={e => set('Nama', e.target.value)}
+                    placeholder="Nama resmi prodi..." 
+                    required
+                    className="w-full h-12 px-4 rounded-2xl border border-slate-200 bg-slate-50 text-xs font-bold text-slate-700 focus:outline-none focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/10 transition-all" 
+                  />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-[10px] font-black text-[#a3a3a3] uppercase tracking-[0.18em] mb-1.5">Akreditasi</label>
-                    <select value={formData.Akreditasi} onChange={e => set('Akreditasi', e.target.value)}
-                      className="w-full h-11 px-4 rounded-xl border border-[#e5e5e5] bg-[#fafafa] text-sm font-medium text-[#171717] focus:outline-none focus:border-primary focus:bg-white transition-all appearance-none">
+                    <label className="block text-[10px] font-black text-[#a3a3a3] uppercase tracking-[0.18em] mb-2 ml-1">Akreditasi</label>
+                    <select 
+                      value={formData.Akreditasi} 
+                      onChange={e => set('Akreditasi', e.target.value)}
+                      className="w-full h-12 px-4 rounded-2xl border border-slate-200 bg-slate-50 text-xs font-bold text-slate-700 focus:outline-none focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/10 transition-all appearance-none cursor-pointer"
+                    >
                       <option value="Unggul">Unggul</option>
                       <option value="Baik Sekali">Baik Sekali</option>
                       <option value="Baik">Baik</option>
                     </select>
                   </div>
                   <div>
-                    <label className="block text-[10px] font-black text-[#a3a3a3] uppercase tracking-[0.18em] mb-1.5">Kapasitas (MHS)</label>
-                    <input type="number" value={formData.Kapasitas} onChange={e => set('Kapasitas', e.target.value)} min={1}
-                      className="w-full h-11 px-4 rounded-xl border border-[#e5e5e5] bg-[#fafafa] text-sm font-black text-center text-[#171717] focus:outline-none focus:border-primary focus:bg-white transition-all" />
+                    <label className="block text-[10px] font-black text-[#a3a3a3] uppercase tracking-[0.18em] mb-2 ml-1">Kapasitas (MHS)</label>
+                    <input 
+                      type="number" 
+                      value={formData.Kapasitas} 
+                      onChange={e => set('Kapasitas', e.target.value)} 
+                      min={1}
+                      className="w-full h-12 px-4 rounded-2xl border border-slate-200 bg-slate-50 text-xs font-black text-center text-slate-700 focus:outline-none focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/10 transition-all" 
+                    />
                   </div>
                 </div>
               </div>
 
-              {/* Footer */}
-              <div className="px-6 py-4 border-t border-[#f0f0f0] bg-[#fafafa] flex gap-3 flex-shrink-0">
-                <button type="button" onClick={() => setIsModal(false)}
-                  className="flex-1 h-11 rounded-xl border border-[#e5e5e5] bg-white text-xs font-bold text-[#525252] uppercase tracking-widest hover:bg-[#f5f5f5] transition-all">
+              {/* Modal Footer */}
+              <div className="px-8 py-5 border-t border-slate-100 bg-slate-50/50 flex gap-3 flex-shrink-0">
+                <button 
+                  type="button" 
+                  onClick={() => setIsModal(false)}
+                  className="flex-1 h-12 rounded-2xl border border-slate-200 bg-white text-[10px] font-black text-slate-500 uppercase tracking-widest hover:bg-slate-50 transition-all"
+                >
                   Batal
                 </button>
-                <button type="submit" disabled={isSubmitting}
-                  className="flex-1 h-11 rounded-xl bg-[#00236F] hover:bg-[#001a52] text-white text-xs font-bold uppercase tracking-widest transition-all active:scale-95 shadow-lg shadow-[#00236F]/20 disabled:opacity-60 flex items-center justify-center gap-2">
+                <button 
+                  type="submit" 
+                  disabled={isSubmitting}
+                  className="flex-1 h-12 rounded-2xl bg-primary hover:bg-primary/95 text-white text-[10px] font-black uppercase tracking-widest transition-all hover:scale-[1.02] active:scale-95 shadow-xl shadow-primary/15 disabled:opacity-60 flex items-center justify-center gap-2 border-none"
+                >
                   {isSubmitting ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '15px' }} >sync</span> : <span className="material-symbols-outlined" style={{ fontSize: '14px' }} >save</span>}
-                  {isEditMode ? 'Update Prodi' : 'Simpan Prodi'}
+                  <span>{isEditMode ? 'Update Prodi' : 'Simpan Prodi'}</span>
                 </button>
               </div>
             </form>
@@ -383,36 +393,49 @@ export default function ProdiPage() {
         </div>
       )}
 
-      {/* ── Delete Confirm ── */}
+      {/* Delete Confirmation Modal */}
       {deleteTarget && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4"
-          onClick={() => setDelTarget(null)}>
-          <div className="relative w-full max-w-sm bg-white rounded-3xl shadow-2xl z-[101] overflow-hidden"
-            onClick={e => e.stopPropagation()}>
-            <div className="p-6 text-center">
-              <div className="w-14 h-14 bg-rose-50 rounded-2xl flex items-center justify-center text-rose-500 mx-auto mb-4">
-                <span className="material-symbols-outlined" style={{ fontSize: '24px' }} >delete</span>
+        <div 
+          className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-[100] flex items-center justify-center p-4 animate-in fade-in duration-200"
+          onClick={() => setDelTarget(null)}
+        >
+          <div 
+            className="relative w-full max-w-md bg-white rounded-[2.5rem] shadow-2xl z-[101] overflow-hidden border border-slate-100 p-8 animate-in zoom-in-95 duration-300"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="text-center">
+              <div className="w-16 h-16 bg-rose-50 rounded-[1.25rem] flex items-center justify-center text-rose-500 mx-auto mb-5 shadow-sm shadow-rose-500/5">
+                <span className="material-symbols-outlined size-6" style={{ fontSize: '24px' }} >delete</span>
               </div>
-              <h3 className="text-lg font-extrabold text-[#171717] mb-2">Hapus Program Studi?</h3>
-              <p className="text-sm text-[#737373] leading-relaxed mb-1">
-                Anda akan menghapus <span className="font-bold text-[#171717]">"{deleteTarget.Nama}"</span>.
+              <h3 className="text-xl font-black text-slate-900 font-headline tracking-tight mb-2">Hapus Program Studi?</h3>
+              <p className="text-sm text-slate-500 leading-relaxed mb-1">
+                Anda akan menghapus secara permanen program studi:
               </p>
-              <p className="text-xs text-[#a3a3a3] mb-6">Tindakan ini tidak dapat dibatalkan dan berdampak pada data mahasiswa terkait.</p>
+              <p className="text-sm font-black text-slate-800 uppercase tracking-tight bg-slate-50 p-3.5 rounded-2xl border border-slate-100 mb-2">
+                "{deleteTarget.Nama}"
+              </p>
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-6">Tindakan ini permanen & berdampak pada data mahasiswa terkait.</p>
+              
               <div className="flex gap-3">
-                <button onClick={() => setDelTarget(null)}
-                  className="flex-1 h-11 rounded-xl border border-[#e5e5e5] bg-white text-xs font-bold text-[#525252] uppercase tracking-widest hover:bg-[#f5f5f5] transition-all">
+                <button 
+                  onClick={() => setDelTarget(null)}
+                  className="flex-1 h-12 rounded-2xl border border-slate-200 bg-white text-[10px] font-black text-slate-500 uppercase tracking-widest hover:bg-slate-50 transition-all"
+                >
                   Batal
                 </button>
-                <button onClick={handleDelete} disabled={isSubmitting}
-                  className="flex-1 h-11 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold uppercase tracking-widest transition-all active:scale-95 shadow-lg shadow-rose-600/20 disabled:opacity-60 flex items-center justify-center gap-2">
+                <button 
+                  onClick={handleDelete} 
+                  disabled={isSubmitting}
+                  className="flex-1 h-12 rounded-2xl bg-rose-600 hover:bg-rose-700 text-white text-[10px] font-black uppercase tracking-widest transition-all hover:scale-[1.02] active:scale-95 shadow-xl shadow-rose-600/15 disabled:opacity-60 flex items-center justify-center gap-2 border-none"
+                >
                   {isSubmitting ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '14px' }} >sync</span> : <span className="material-symbols-outlined" style={{ fontSize: '13px' }} >delete</span>}
-                  Ya, Hapus
+                  <span>Ya, Hapus</span>
                 </button>
               </div>
             </div>
           </div>
         </div>
       )}
-    </div>
+    </PageContainer>
   )
 }

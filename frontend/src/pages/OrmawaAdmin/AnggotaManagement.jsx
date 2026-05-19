@@ -253,7 +253,7 @@ export default function AnggotaManagement() {
  })()
  : '-- Pilih Mahasiswa --'}
  </span>
- <span className="material-symbols-outlined" className={`size-4 text-slate-400 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`}>expand_more</span>
+ <span className={`material-symbols-outlined size-4 text-slate-400 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`}>expand_more</span>
  </div>
  
  {isDropdownOpen && (
