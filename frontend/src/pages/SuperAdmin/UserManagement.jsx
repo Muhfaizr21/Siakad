@@ -456,6 +456,51 @@ export default function UserManagement() {
               </Select>
             </div>
 
+            {form.Role !== 'super_admin' && form.Role !== 'psikolog' && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in duration-300">
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest ml-1 font-jakarta">Fakultas</Label>
+                  <Select 
+                    value={form.FakultasID ? String(form.FakultasID) : undefined} 
+                    onValueChange={v => setForm({ ...form, FakultasID: v, ProgramStudiID: '' })}
+                  >
+                    <SelectTrigger className="h-12 rounded-xl border-neutral-200 bg-neutral-50/30 font-bold text-xs uppercase tracking-[0.1em]">
+                      <SelectValue placeholder="PILIH FAKULTAS" />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl shadow-2xl border-neutral-100 max-h-[200px] overflow-y-auto">
+                      {faculties.map(f => (
+                        <SelectItem key={f.ID || f.id} value={String(f.ID || f.id)} className="text-[10px] font-bold uppercase tracking-widest">
+                          {f.Nama || f.nama}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest ml-1 font-jakarta">Program Studi</Label>
+                  <Select 
+                    disabled={!form.FakultasID}
+                    value={form.ProgramStudiID ? String(form.ProgramStudiID) : undefined} 
+                    onValueChange={v => setForm({ ...form, ProgramStudiID: v })}
+                  >
+                    <SelectTrigger className="h-12 rounded-xl border-neutral-200 bg-neutral-50/30 font-bold text-xs uppercase tracking-[0.1em]">
+                      <SelectValue placeholder={form.FakultasID ? "PILIH PRODI" : "PILIH FAKULTAS DULU"} />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl shadow-2xl border-neutral-100 max-h-[200px] overflow-y-auto">
+                      {allProdi
+                        .filter(p => String(p.FakultasID || p.fakultas_id) === String(form.FakultasID))
+                        .map(p => (
+                          <SelectItem key={p.ID || p.id} value={String(p.ID || p.id)} className="text-[10px] font-bold uppercase tracking-widest">
+                            {p.Nama || p.nama}
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            )}
+
             <footer className="pt-8 flex flex-col md:flex-row gap-4 border-t border-neutral-100">
                <Button type="button" variant="ghost" onClick={() => setIsCrudOpen(false)} className="flex-1 h-14 rounded-xl text-[10px] font-bold uppercase tracking-widest text-neutral-400 hover:bg-neutral-50 transition-all">Abort</Button>
                <Button type="submit" disabled={isSubmitting} className="flex-[2] h-14 rounded-xl bg-neutral-900 text-white hover:bg-primary shadow-xl shadow-neutral-900/10 transition-all active:scale-95 border-none flex items-center justify-center gap-3">
