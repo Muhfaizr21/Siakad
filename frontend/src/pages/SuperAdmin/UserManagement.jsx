@@ -92,6 +92,42 @@ export default function UserManagement() {
     OrmawaAssign: ''
   })
 
+  const handleEmailChange = (emailVal) => {
+    setForm(prev => {
+      let updatedPassword = prev.Password;
+      if (prev.Role === 'mahasiswa') {
+        const parts = emailVal.split('@');
+        const nim = parts[0].trim();
+        if (nim) {
+          updatedPassword = `pass${nim}`;
+        }
+      }
+      return {
+        ...prev,
+        Email: emailVal,
+        Password: updatedPassword
+      };
+    });
+  };
+
+  const handleRoleChange = (roleVal) => {
+    setForm(prev => {
+      let updatedPassword = prev.Password;
+      if (roleVal === 'mahasiswa') {
+        const parts = prev.Email.split('@');
+        const nim = parts[0].trim();
+        if (nim) {
+          updatedPassword = `pass${nim}`;
+        }
+      }
+      return {
+        ...prev,
+        Role: roleVal,
+        Password: updatedPassword
+      };
+    });
+  };
+
   const fetchData = async () => {
     setLoading(true)
     try {
@@ -392,7 +428,7 @@ export default function UserManagement() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                <div className="space-y-2">
                  <Label className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest ml-1 font-jakarta">Identity Handle (Email)</Label>
-                 <Input required type="email" value={form.Email} onChange={e => setForm({ ...form, Email: e.target.value })} placeholder="email@bku.ac.id" className="h-12 rounded-xl border-neutral-200 bg-neutral-50/30 focus:bg-white font-bold text-sm font-jakarta" />
+                 <Input required type="email" value={form.Email} onChange={e => handleEmailChange(e.target.value)} placeholder="email@bku.ac.id" className="h-12 rounded-xl border-neutral-200 bg-neutral-50/30 focus:bg-white font-bold text-sm font-jakarta" />
                </div>
                <div className="space-y-2">
                  <Label className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest ml-1 font-jakarta">Default Authentication</Label>
@@ -407,7 +443,7 @@ export default function UserManagement() {
 
             <div className="space-y-2">
               <Label className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest ml-1 font-jakarta">Authorization Level</Label>
-              <Select value={form.Role} onValueChange={v => setForm({ ...form, Role: v })}>
+              <Select value={form.Role} onValueChange={handleRoleChange}>
                 <SelectTrigger className="h-12 rounded-xl border-neutral-200 bg-neutral-50/30 font-bold text-xs uppercase tracking-[0.1em]"><SelectValue /></SelectTrigger>
                 <SelectContent className="rounded-xl shadow-2xl border-neutral-100">
                   {ROLES.map(r => <SelectItem key={r} value={r} className="text-[10px] font-bold uppercase tracking-widest">{ROLE_DETAILS[r]?.label || r}</SelectItem>)}

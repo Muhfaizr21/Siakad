@@ -604,9 +604,20 @@ func CreateStudent(c *fiber.Ctx) error {
 			email = fmt.Sprintf("%s@bku.ac.id", mhs.NIM)
 		}
 
+		defaultPassword := "password123"
+		if mhs.NIM != "" {
+			defaultPassword = "pass" + mhs.NIM
+		}
+
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(defaultPassword), bcrypt.DefaultCost)
+		if err != nil {
+			fmt.Printf("[DEBUG] Password hashing failed: %v\n", err)
+			return err
+		}
+
 		user := models.User{
 			Email:    email,
-			Password: "password123",
+			Password: string(hashedPassword),
 			Role:     "mahasiswa",
 		}
 		// 1. Create User first
