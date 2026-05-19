@@ -433,6 +433,11 @@ export default function UserManagement() {
                <div className="space-y-2">
                  <Label className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest ml-1 font-jakarta">Default Authentication</Label>
                  <Input required type="password" value={form.Password} onChange={e => setForm({ ...form, Password: e.target.value })} placeholder="••••••••" className="h-12 rounded-xl border-neutral-200 bg-neutral-50/30 focus:bg-white font-bold text-sm font-jakarta" />
+                 {form.Role === 'mahasiswa' && (
+                   <span className="text-[9px] font-bold text-emerald-600 block mt-1 pl-1">
+                     💡 Auto-generate: pass(NIM)
+                   </span>
+                 )}
                </div>
             </div>
 
