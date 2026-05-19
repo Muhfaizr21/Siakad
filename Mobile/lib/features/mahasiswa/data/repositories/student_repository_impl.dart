@@ -6,7 +6,9 @@ import '../../domain/entities/counseling_session.dart';
 import '../../domain/entities/aspiration.dart';
 import '../../domain/entities/health_record.dart';
 import '../../domain/entities/organization_history.dart';
+import '../../domain/entities/campus_news.dart';
 import '../../domain/repositories/student_repository.dart';
+import '../../../ormawa/domain/entities/ormawa_pkkmb.dart';
 import '../../data/models/achievement_model.dart';
 import '../../data/models/scholarship_model.dart';
 import '../../data/models/mission_model.dart';
@@ -15,6 +17,7 @@ import '../../data/models/aspiration_model.dart';
 import '../../data/models/health_record_model.dart';
 import '../../data/models/organization_history_model.dart';
 import 'package:bkuhub_mobile/core/network/api_client.dart';
+import 'package:dio/dio.dart';
 import 'dart:developer';
 
 class StudentRepositoryImpl implements StudentRepository {
@@ -50,12 +53,75 @@ class StudentRepositoryImpl implements StudentRepository {
   @override
   Future<List<Mission>> getMissions() async {
     try {
-      // PKKMB/Kencana missions
       final response = await apiClient.client.get('/kencana/progress');
-      // For now, returning mock or mapping if backend provides mission list
-      return []; 
+      if (response.data != null && response.data['success'] == true) {
+        final data = response.data['data'];
+        if (data != null && data['tahaps'] != null) {
+          final List<Mission> missionsList = [];
+          final tahaps = data['tahaps'] as List;
+          for (var t in tahaps) {
+            final label = t['label']?.toString() ?? '';
+            final materis = t['materis'] as List?;
+            if (materis != null) {
+              for (var m in materis) {
+                // Add material module
+                missionsList.add(Mission(
+                  id: m['materi_id']?.toString() ?? '',
+                  title: m['judul']?.toString() ?? '',
+                  desc: m['deskripsi']?.toString() ?? 'Baca & Pelajari Modul',
+                  stage: label,
+                  type: 'Module',
+                  isCompleted: true, // Materials seeded are initially set as completed
+                ));
+
+                // Add quiz if present
+                final kuis = m['kuis'];
+                if (kuis != null) {
+                  final kuisStatus = kuis['status']?.toString() ?? 'belum_dikerjakan';
+                  final double kuisScore = double.tryParse((kuis['nilai_terbaik'] ?? '0').toString()) ?? 0.0;
+                  missionsList.add(Mission(
+                    id: kuis['kuis_id']?.toString() ?? '',
+                    title: kuis['judul_kuis']?.toString() ?? 'Kuis Evaluasi',
+                    desc: 'Selesaikan kuis untuk menguji pemahaman.',
+                    stage: label,
+                    type: 'Quiz',
+                    score: kuisScore.toInt(),
+                    isCompleted: kuisStatus == 'lulus',
+                  ));
+                }
+              }
+            }
+          }
+          return missionsList;
+        }
+      }
+      return [];
     } catch (e) {
       log('Error getting missions: $e');
+      return [];
+    }
+  }
+
+  @override
+  Future<List<PkkmbEvent>> getPkkmbEvents() async {
+    try {
+      final response = await apiClient.client.get('/kencana/kegiatan');
+      final List data = response.data['data'] ?? [];
+      return data.map((json) => PkkmbEvent.fromJson(json)).toList();
+    } catch (e) {
+      log('Error getting pkkmb events: $e');
+      return [];
+    }
+  }
+
+  @override
+  Future<List<CampusNews>> getCampusNews() async {
+    try {
+      final response = await apiClient.client.get('/mahasiswa/dashboard');
+      final List data = response.data['data']?['pengumuman'] ?? [];
+      return data.map((json) => CampusNews.fromJson(json)).toList();
+    } catch (e) {
+      log('Error getting campus news: $e');
       return [];
     }
   }
@@ -118,11 +184,68 @@ class StudentRepositoryImpl implements StudentRepository {
   }
 
   @override
+  Future<void> deleteAchievement(String id) async {
+    try {
+      await apiClient.client.delete('/achievement/$id');
+    } catch (e) {
+      log('Error deleting achievement: $e');
+      if (e is DioException && e.response != null && e.response?.data != null) {
+        final data = e.response?.data;
+        if (data is Map) {
+          final msg = data['message'] ?? data['error'];
+          if (msg != null) {
+            throw Exception(msg.toString());
+          }
+        }
+      }
+      throw Exception('Gagal menghapus prestasi');
+    }
+  }
+
+  @override
+  Future<void> updateAchievement(String id, Achievement achievement) async {
+    try {
+      final model = AchievementModel(
+        id: achievement.id,
+        title: achievement.title,
+        organizer: achievement.organizer,
+        level: achievement.level,
+        rank: achievement.rank,
+        date: achievement.date,
+        status: achievement.status,
+        certificateUrl: achievement.certificateUrl,
+      );
+      await apiClient.client.put('/achievement/$id', data: model.toJson());
+    } catch (e) {
+      log('Error updating achievement: $e');
+      if (e is DioException && e.response != null && e.response?.data != null) {
+        final data = e.response?.data;
+        if (data is Map) {
+          final msg = data['message'] ?? data['error'];
+          if (msg != null) {
+            throw Exception(msg.toString());
+          }
+        }
+      }
+      throw Exception('Gagal memperbarui prestasi');
+    }
+  }
+
+  @override
   Future<void> applyForScholarship(String scholarshipId) async {
     try {
       await apiClient.client.post('/scholarship/$scholarshipId/daftar');
     } catch (e) {
       log('Error applying for scholarship: $e');
+      if (e is DioException && e.response != null && e.response?.data != null) {
+        final data = e.response?.data;
+        if (data is Map) {
+          final msg = data['message'] ?? data['error'];
+          if (msg != null) {
+            throw Exception(msg.toString());
+          }
+        }
+      }
       throw Exception('Gagal mendaftar beasiswa');
     }
   }
@@ -208,6 +331,18 @@ class StudentRepositoryImpl implements StudentRepository {
     } catch (e) {
       log('Error adding organization history: $e');
       throw Exception('Gagal menambah riwayat organisasi');
+    }
+  }
+
+  @override
+  Future<void> submitAppeal(String alasan) async {
+    try {
+      await apiClient.client.post('/kencana/banding', data: {
+        'alasan': alasan,
+      });
+    } catch (e) {
+      log('Error submitting appeal: $e');
+      throw Exception('Gagal mengajukan banding');
     }
   }
 }

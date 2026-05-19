@@ -7,8 +7,21 @@ import 'package:bkuhub_mobile/core/widgets/fade_in_animation.dart';
 import 'package:bkuhub_mobile/features/mahasiswa/achievement/presentation/pages/report_achievement_screen.dart';
 import 'package:bkuhub_mobile/core/widgets/bku_app_bar.dart';
 
-class AchievementScreen extends StatelessWidget {
+class AchievementScreen extends StatefulWidget {
   const AchievementScreen({super.key});
+
+  @override
+  State<AchievementScreen> createState() => _AchievementScreenState();
+}
+
+class _AchievementScreenState extends State<AchievementScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<StudentProvider>().loadAllData();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -16,56 +29,60 @@ class AchievementScreen extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: Colors.white,
-      body: CustomScrollView(
-        physics: const BouncingScrollPhysics(),
-        slivers: [
-          BkuAppBar(
-            title: 'PRESTASI MAHASISWA',
-            subtitle: 'RIWAYAT & PENGHARGAAN',
-            variant: AppBarVariant.student,
-            expandedHeight: 160,
-            showBackButton: true,
-            isExpandable: false,
-          ),
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: 24),
-                  const FadeInAnimation(
-                    delay: 0.2,
-                    child: _RecapSection(),
-                  ),
-                  const SizedBox(height: 32),
-                  FadeInAnimation(
-                    delay: 0.4,
-                    child: Text(
-                      'Riwayat Prestasi',
-                      style: AppTextStyles.titleLg.copyWith(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w900,
-                        color: AppColors.primary,
+      body: RefreshIndicator(
+        onRefresh: () => student.loadAllData(),
+        color: AppColors.primary,
+        child: CustomScrollView(
+          physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+          slivers: [
+            BkuAppBar(
+              title: 'PRESTASI MAHASISWA',
+              subtitle: 'RIWAYAT & PENGHARGAAN',
+              variant: AppBarVariant.student,
+              expandedHeight: 160,
+              showBackButton: true,
+              isExpandable: false,
+            ),
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 24),
+                    const FadeInAnimation(
+                      delay: 0.2,
+                      child: _RecapSection(),
+                    ),
+                    const SizedBox(height: 32),
+                    FadeInAnimation(
+                      delay: 0.4,
+                      child: Text(
+                        'Riwayat Prestasi',
+                        style: AppTextStyles.titleLg.copyWith(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w900,
+                          color: AppColors.primary,
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 16),
-                  if (student.achievements.isEmpty)
-                    const FadeInAnimation(delay: 0.6, child: _EmptyState())
-                  else
-                    ...List.generate(student.achievements.length, (index) {
-                      return FadeInAnimation(
-                        delay: 0.6 + (index * 0.1),
-                        child: _AchievementCard(achievement: student.achievements[index]),
-                      );
-                    }),
-                  const SizedBox(height: 160),
-                ],
+                    const SizedBox(height: 16),
+                    if (student.achievements.isEmpty)
+                      const FadeInAnimation(delay: 0.6, child: _EmptyState())
+                    else
+                      ...List.generate(student.achievements.length, (index) {
+                        return FadeInAnimation(
+                          delay: 0.6 + (index * 0.1),
+                          child: _AchievementCard(achievement: student.achievements[index]),
+                        );
+                      }),
+                    const SizedBox(height: 160),
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
       floatingActionButton: FadeInAnimation(
         delay: 1.0,
@@ -113,7 +130,7 @@ class _RecapSection extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text('Indeks Prestasi Kumulatif', style: AppTextStyles.labelSm.copyWith(color: Colors.white70, fontWeight: FontWeight.bold)),
-                  Text('3.85', style: AppTextStyles.display.copyWith(color: Colors.white, fontSize: 32, fontWeight: FontWeight.w900)),
+                  Text(student.ipk.toStringAsFixed(2), style: AppTextStyles.display.copyWith(color: Colors.white, fontSize: 32, fontWeight: FontWeight.w900)),
                 ],
               ),
               Container(
@@ -167,10 +184,12 @@ class _AchievementCard extends StatelessWidget {
     
     switch (achievement.status) {
       case 'Validated':
+      case 'Diverifikasi':
         statusColor = Colors.green;
         statusIcon = Icons.check_circle_rounded;
         break;
       case 'Rejected':
+      case 'Ditolak':
         statusColor = Colors.red;
         statusIcon = Icons.cancel_rounded;
         break;
@@ -286,11 +305,13 @@ class _AchievementCard extends StatelessWidget {
     
     switch (achievement.status) {
       case 'Validated':
+      case 'Diverifikasi':
         statusColor = Colors.green;
         statusIcon = Icons.verified_rounded;
         statusDesc = 'Prestasi telah divalidasi oleh Kemahasiswaan.';
         break;
       case 'Rejected':
+      case 'Ditolak':
         statusColor = Colors.red;
         statusIcon = Icons.error_outline_rounded;
         statusDesc = 'Prestasi ditolak. Silakan cek kembali berkas Anda.';
@@ -446,22 +467,128 @@ class _AchievementCard extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 24),
-            SizedBox(
-              width: double.infinity,
-              height: 56,
-              child: OutlinedButton.icon(
-                onPressed: () => Navigator.pop(context),
-                icon: const Icon(Icons.close_rounded),
-                label: const Text('Tutup', style: TextStyle(fontWeight: FontWeight.bold)),
-                style: OutlinedButton.styleFrom(
-                  side: const BorderSide(color: AppColors.surfaceVariant, width: 2),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                  foregroundColor: AppColors.primary,
+            if (achievement.status == 'Pending' || achievement.status == 'Menunggu') ...[
+              Row(
+                children: [
+                  Expanded(
+                    child: SizedBox(
+                      height: 54,
+                      child: ElevatedButton.icon(
+                        onPressed: () {
+                          Navigator.pop(context); // Close detail modal
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => ReportAchievementScreen(achievement: achievement),
+                            ),
+                          );
+                        },
+                        icon: const Icon(Icons.edit_rounded, color: Colors.white, size: 18),
+                        label: const Text('Edit Laporan', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primary,
+                          elevation: 2,
+                          shadowColor: AppColors.primary.withAlpha(80),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: SizedBox(
+                      height: 54,
+                      child: OutlinedButton.icon(
+                        onPressed: () => _confirmDelete(context, achievement.id),
+                        icon: const Icon(Icons.delete_outline_rounded, color: AppColors.error, size: 18),
+                        label: const Text('Hapus', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.error)),
+                        style: OutlinedButton.styleFrom(
+                          side: const BorderSide(color: AppColors.error, width: 1.5),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                          foregroundColor: AppColors.error,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                height: 54,
+                child: OutlinedButton.icon(
+                  onPressed: () => Navigator.pop(context),
+                  icon: const Icon(Icons.close_rounded, size: 18),
+                  label: const Text('Tutup', style: TextStyle(fontWeight: FontWeight.bold)),
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: AppColors.surfaceVariant, width: 1.5),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    foregroundColor: AppColors.onSurfaceVariant,
+                  ),
                 ),
               ),
-            ),
+            ] else ...[
+              SizedBox(
+                width: double.infinity,
+                height: 54,
+                child: ElevatedButton.icon(
+                  onPressed: () => Navigator.pop(context),
+                  icon: const Icon(Icons.close_rounded, color: Colors.white, size: 18),
+                  label: const Text('Tutup', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  ),
+                ),
+              ),
+            ],
           ],
         ),
+      ),
+    );
+  }
+
+  void _confirmDelete(BuildContext context, String id) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text('Hapus Laporan', style: TextStyle(fontWeight: FontWeight.bold)),
+        content: const Text('Apakah Anda yakin ingin menghapus laporan prestasi ini? Tindakan ini tidak dapat dibatalkan.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Batal', style: TextStyle(color: AppColors.outline, fontWeight: FontWeight.bold)),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              final scaffoldMessenger = ScaffoldMessenger.of(context);
+              Navigator.pop(dialogContext); // Close dialog
+              Navigator.pop(context); // Close detail modal
+              
+              try {
+                await context.read<StudentProvider>().deleteAchievement(id);
+                scaffoldMessenger.showSnackBar(
+                  const SnackBar(content: Text('Laporan prestasi berhasil dihapus'), behavior: SnackBarBehavior.floating),
+                );
+              } catch (e) {
+                scaffoldMessenger.showSnackBar(
+                  SnackBar(
+                    content: Text(e.toString().replaceAll('Exception: ', '')), 
+                    behavior: SnackBarBehavior.floating, 
+                    backgroundColor: AppColors.error
+                  ),
+                );
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.error, 
+              foregroundColor: Colors.white, 
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))
+            ),
+            child: const Text('Ya, Hapus', style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+        ],
       ),
     );
   }
@@ -497,14 +624,19 @@ class _EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        const SizedBox(height: 40),
-        Icon(Icons.emoji_events_outlined, size: 80, color: AppColors.outline.withAlpha(50)),
-        const SizedBox(height: 16),
-        Text('Belum ada prestasi', style: AppTextStyles.titleLg.copyWith(color: AppColors.outline, fontWeight: FontWeight.bold)),
-        Text('Yuk, mulai lapor prestasi mandiri kamu!', style: AppTextStyles.labelSm.copyWith(color: AppColors.outline)),
-      ],
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          const SizedBox(height: 40),
+          Icon(Icons.emoji_events_outlined, size: 80, color: AppColors.outline.withAlpha(50)),
+          const SizedBox(height: 16),
+          Text('Belum ada prestasi', style: AppTextStyles.titleLg.copyWith(color: AppColors.outline, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 4),
+          Text('Yuk, mulai lapor prestasi mandiri kamu!', style: AppTextStyles.labelSm.copyWith(color: AppColors.outline)),
+        ],
+      ),
     );
   }
 }

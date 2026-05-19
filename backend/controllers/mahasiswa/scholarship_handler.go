@@ -41,9 +41,46 @@ func GetKatalogBeasiswa(c *fiber.Ctx) error {
 
 	query.Find(&beasiswaList)
 
+	// Fetch student's applications to inject dynamic status and application_status
+	student, err := getStudent(c)
+	appliedMap := make(map[uint]models.BeasiswaPendaftaran)
+	if err == nil && student != nil {
+		var riwayat []models.BeasiswaPendaftaran
+		config.DB.Where("mahasiswa_id = ?", student.ID).Find(&riwayat)
+		for _, r := range riwayat {
+			appliedMap[r.BeasiswaID] = r
+		}
+	}
+
+	var responseList []fiber.Map
+	for _, b := range beasiswaList {
+		status := "Open"
+		var appStatus interface{} = nil
+		if app, exists := appliedMap[b.ID]; exists {
+			status = "Applied"
+			appStatus = app.Status
+		}
+		responseList = append(responseList, fiber.Map{
+			"id":                 b.ID,
+			"created_at":         b.CreatedAt,
+			"updated_at":         b.UpdatedAt,
+			"nama":               b.Nama,
+			"penyelenggara":      b.Penyelenggara,
+			"deskripsi":          b.Deskripsi,
+			"deadline":           b.Deadline,
+			"kuota":              b.Kuota,
+			"ipk_min":            b.IPKMin,
+			"kategori":           b.Kategori,
+			"nilai_bantuan":      b.NilaiBantuan,
+			"anggaran":           b.Anggaran,
+			"status":             status,
+			"application_status": appStatus,
+		})
+	}
+
 	return c.JSON(fiber.Map{
 		"success": true,
-		"data":    beasiswaList,
+		"data":    responseList,
 	})
 }
 
@@ -56,9 +93,35 @@ func GetBeasiswaDetail(c *fiber.Ctx) error {
 		return c.Status(404).JSON(fiber.Map{"success": false, "message": "Beasiswa tidak ditemukan"})
 	}
 
+	student, err := getStudent(c)
+	status := "Open"
+	var appStatus interface{} = nil
+	if err == nil && student != nil {
+		var app models.BeasiswaPendaftaran
+		if err := config.DB.Where("mahasiswa_id = ? AND beasiswa_id = ?", student.ID, beasiswa.ID).First(&app).Error; err == nil {
+			status = "Applied"
+			appStatus = app.Status
+		}
+	}
+
 	return c.JSON(fiber.Map{
 		"success": true,
-		"data":    beasiswa,
+		"data": fiber.Map{
+			"id":                 beasiswa.ID,
+			"created_at":         beasiswa.CreatedAt,
+			"updated_at":         beasiswa.UpdatedAt,
+			"nama":               beasiswa.Nama,
+			"penyelenggara":      beasiswa.Penyelenggara,
+			"deskripsi":          beasiswa.Deskripsi,
+			"deadline":           beasiswa.Deadline,
+			"kuota":              beasiswa.Kuota,
+			"ipk_min":            beasiswa.IPKMin,
+			"kategori":           beasiswa.Kategori,
+			"nilai_bantuan":      beasiswa.NilaiBantuan,
+			"anggaran":           beasiswa.Anggaran,
+			"status":             status,
+			"application_status": appStatus,
+		},
 	})
 }
 

@@ -8,13 +8,13 @@ class ApiGate {
     }
     try {
       if (Platform.isAndroid) {
-        // Menggunakan IP lokal PC Host agar HP Fisik (Infinix) dan Emulator bisa terhubung ke backend
-        return 'http://192.168.18.69:8000/api';
+        // Menggunakan 10.0.2.2 untuk Emulator Android agar terhubung ke localhost PC secara aman & cepat
+        return 'http://10.0.2.2:8000/api';
       }
     } catch (_) {
       // Handle platforms where Platform is not supported (like web)
     }
-    return 'http://192.168.18.69:8000/api';
+    return 'http://10.0.2.2:8000/api';
   }
 
   static const String environment = 'development';

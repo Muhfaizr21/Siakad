@@ -1,11 +1,26 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:bkuhub_mobile/core/theme/app_colors.dart';
 import 'package:bkuhub_mobile/core/theme/app_text_styles.dart';
+import 'package:bkuhub_mobile/core/providers/student_provider.dart';
+import 'package:bkuhub_mobile/features/ormawa/domain/entities/ormawa_pkkmb.dart';
 
 class TodayScheduleCard extends StatelessWidget {
   const TodayScheduleCard({super.key});
 
-  void _showWeeklySchedule(BuildContext context) {
+  String _formatDate(DateTime dt) {
+    final days = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
+    final months = [
+      'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+      'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+    ];
+    String dayName = days[dt.weekday - 1];
+    String monthName = months[dt.month - 1];
+    String dayNum = dt.day.toString().padLeft(2, '0');
+    return '$dayName, $dayNum $monthName';
+  }
+
+  void _showWeeklySchedule(BuildContext context, List<PkkmbEvent> events) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -32,7 +47,7 @@ class TodayScheduleCard extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Jadwal Kuliah',
+                  'Jadwal Kegiatan PKKMB',
                   style: AppTextStyles.titleLg.copyWith(color: AppColors.primary, fontWeight: FontWeight.w900),
                 ),
                 IconButton(
@@ -43,22 +58,71 @@ class TodayScheduleCard extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Expanded(
-              child: ListView(
-                children: [
-                  _buildDaySchedule('Senin', [
-                    {'matkul': 'Algoritma & Pemrograman', 'time': '08:00 - 10:30', 'room': 'Lab Komputer 1'},
-                    {'matkul': 'Matematika Diskrit', 'time': '13:00 - 15:30', 'room': 'Ruang 302'},
-                  ]),
-                  _buildDaySchedule('Selasa', [
-                    {'matkul': 'Basis Data', 'time': '10:00 - 12:30', 'room': 'Lab Komputer 2'},
-                  ]),
-                  _buildDaySchedule('Rabu', []),
-                  _buildDaySchedule('Kamis', [
-                    {'matkul': 'Jaringan Komputer', 'time': '08:00 - 10:30', 'room': 'Lab Komputer 3'},
-                    {'matkul': 'Bahasa Inggris', 'time': '11:00 - 12:30', 'room': 'Ruang 101'},
-                  ]),
-                ],
-              ),
+              child: events.isEmpty
+                  ? Center(
+                      child: Text(
+                        'Belum ada agenda PKKMB terdaftar',
+                        style: AppTextStyles.labelMd.copyWith(color: AppColors.outline),
+                      ),
+                    )
+                  : ListView.builder(
+                      itemCount: events.length,
+                      itemBuilder: (context, index) {
+                        final event = events[index];
+                        return Container(
+                          margin: const EdgeInsets.only(bottom: 16),
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: AppColors.surfaceVariant.withAlpha(30),
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Icon(Icons.event_note_rounded, color: AppColors.primary, size: 24),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      event.judul,
+                                      style: AppTextStyles.labelMd.copyWith(fontWeight: FontWeight.bold),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      event.deskripsi,
+                                      style: AppTextStyles.labelSm.copyWith(color: AppColors.outline),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Row(
+                                      children: [
+                                        const Icon(Icons.access_time_filled_rounded, size: 14, color: AppColors.outline),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          _formatDate(event.tanggal),
+                                          style: AppTextStyles.labelSm.copyWith(color: AppColors.outline),
+                                        ),
+                                        const SizedBox(width: 12),
+                                        const Icon(Icons.location_on_rounded, size: 14, color: AppColors.outline),
+                                        const SizedBox(width: 4),
+                                        Expanded(
+                                          child: Text(
+                                            event.lokasi,
+                                            style: AppTextStyles.labelSm.copyWith(color: AppColors.outline),
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
             ),
           ],
         ),
@@ -66,53 +130,20 @@ class TodayScheduleCard extends StatelessWidget {
     );
   }
 
-  Widget _buildDaySchedule(String day, List<Map<String, String>> classes) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          child: Text(
-            day,
-            style: AppTextStyles.bodyMd.copyWith(fontWeight: FontWeight.bold, color: AppColors.primary),
-          ),
-        ),
-        if (classes.isEmpty)
-          Padding(
-            padding: const EdgeInsets.only(left: 12, bottom: 12),
-            child: Text('Tidak ada jadwal', style: AppTextStyles.labelSm.copyWith(color: AppColors.outline)),
-          )
-        else
-          ...classes.map((c) => Container(
-                margin: const EdgeInsets.only(left: 12, bottom: 12),
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: AppColors.surfaceVariant.withAlpha(30),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.book_rounded, color: AppColors.primary, size: 20),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(c['matkul']!, style: AppTextStyles.labelMd.copyWith(fontWeight: FontWeight.bold)),
-                          const SizedBox(height: 4),
-                          Text('${c['time']} • ${c['room']}', style: AppTextStyles.labelSm.copyWith(color: AppColors.outline)),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              )),
-      ],
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
+    final student = context.watch<StudentProvider>();
+    final events = student.pkkmbEvents;
+    
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    
+    // Filter events for today or future
+    final upcomingEvents = events.where((e) {
+      final evDate = DateTime(e.tanggal.year, e.tanggal.month, e.tanggal.day);
+      return evDate.isAfter(today) || evDate.isAtSameMomentAs(today);
+    }).toList();
+
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
@@ -138,7 +169,7 @@ class TodayScheduleCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Jadwal Hari Ini',
+                      'Agenda PKKMB',
                       style: AppTextStyles.labelSm.copyWith(
                         color: AppColors.outline,
                         fontSize: 12,
@@ -146,7 +177,7 @@ class TodayScheduleCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Rabu, 06 Mei',
+                      _formatDate(now),
                       style: AppTextStyles.labelMd.copyWith(
                         color: Colors.black87,
                         fontWeight: FontWeight.w800,
@@ -156,7 +187,7 @@ class TodayScheduleCard extends StatelessWidget {
                   ],
                 ),
                 GestureDetector(
-                  onTap: () => _showWeeklySchedule(context),
+                  onTap: () => _showWeeklySchedule(context, events),
                   child: Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 14,
@@ -190,31 +221,46 @@ class TodayScheduleCard extends StatelessWidget {
           ),
           Divider(color: Colors.grey.withAlpha(30), height: 1),
           const SizedBox(height: 16),
-          _buildScheduleItem(context,
-            time: '08:00 - 10:30',
-            subject: 'Algoritma & Pemrograman',
-            room: 'Lab Komputer 1',
-            isOngoing: false,
-          ),
-          _buildScheduleItem(context,
-            time: '13:00 - 15:30',
-            subject: 'Matematika Diskrit',
-            room: 'Gedung B - Ruang 302',
-            isOngoing: true,
-          ),
+          if (upcomingEvents.isEmpty) ...[
+            Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                children: [
+                  Icon(Icons.event_available_rounded, size: 48, color: AppColors.outline.withAlpha(100)),
+                  const SizedBox(height: 12),
+                  Text(
+                    'Tidak ada kegiatan PKKMB terdekat',
+                    style: AppTextStyles.labelMd.copyWith(color: AppColors.outline, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Semua agenda saat ini sudah terlaksana dengan baik.',
+                    style: AppTextStyles.labelSm.copyWith(color: AppColors.outline.withAlpha(180)),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            ),
+          ] else ...[
+            ...upcomingEvents.take(2).map((event) {
+              final isToday = event.tanggal.year == now.year && event.tanggal.month == now.month && event.tanggal.day == now.day;
+              return _buildScheduleItem(context, event, isOngoing: isToday);
+            }),
+          ],
           const SizedBox(height: 12),
         ],
       ),
     );
   }
 
-  Widget _buildScheduleItem(BuildContext context, {
-    required String time,
-    required String subject,
-    required String room,
+  Widget _buildScheduleItem(BuildContext context, PkkmbEvent event, {
     bool isOngoing = false,
   }) {
     final statusColor = isOngoing ? const Color(0xFF10B981) : AppColors.outline;
+    String timeStr = '${event.tanggal.hour.toString().padLeft(2, '0')}:${event.tanggal.minute.toString().padLeft(2, '0')}';
+    if (timeStr == '00:00') {
+      timeStr = 'Full Day';
+    }
     
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
@@ -234,7 +280,7 @@ class TodayScheduleCard extends StatelessWidget {
         ] : null,
       ),
       child: InkWell(
-        onTap: () => _showSubjectDetail(context, subject, room, time, isOngoing),
+        onTap: () => _showEventDetail(context, event),
         borderRadius: BorderRadius.circular(20),
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -256,7 +302,7 @@ class TodayScheduleCard extends StatelessWidget {
                     Row(
                       children: [
                         Text(
-                          time,
+                          isOngoing ? 'HARI INI • $timeStr' : _formatDate(event.tanggal),
                           style: AppTextStyles.labelSm.copyWith(
                             color: isOngoing ? statusColor : AppColors.outline,
                             fontWeight: FontWeight.bold,
@@ -285,7 +331,7 @@ class TodayScheduleCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      subject,
+                      event.judul,
                       style: AppTextStyles.labelMd.copyWith(
                         color: AppColors.primary,
                         fontWeight: FontWeight.w900,
@@ -301,11 +347,14 @@ class TodayScheduleCard extends StatelessWidget {
                           color: AppColors.outline.withAlpha(150),
                         ),
                         const SizedBox(width: 4),
-                        Text(
-                          room,
-                          style: AppTextStyles.labelSm.copyWith(
-                            color: AppColors.outline,
-                            fontSize: 11,
+                        Expanded(
+                          child: Text(
+                            event.lokasi,
+                            style: AppTextStyles.labelSm.copyWith(
+                              color: AppColors.outline,
+                              fontSize: 11,
+                            ),
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                       ],
@@ -325,13 +374,13 @@ class TodayScheduleCard extends StatelessWidget {
     );
   }
 
-  void _showSubjectDetail(BuildContext context, String subject, String room, String time, bool isOngoing) {
+  void _showEventDetail(BuildContext context, PkkmbEvent event) {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
       builder: (context) => Container(
-        height: MediaQuery.of(context).size.height * 0.5,
+        height: MediaQuery.of(context).size.height * 0.55,
         decoration: const BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
@@ -359,7 +408,7 @@ class TodayScheduleCard extends StatelessWidget {
                     color: AppColors.primary.withAlpha(10),
                     borderRadius: BorderRadius.circular(16),
                   ),
-                  child: const Icon(Icons.book_rounded, color: AppColors.primary),
+                  child: const Icon(Icons.event_note_rounded, color: AppColors.primary),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
@@ -367,11 +416,11 @@ class TodayScheduleCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Detail Mata Kuliah',
+                        'Detail Kegiatan PKKMB',
                         style: AppTextStyles.labelSm.copyWith(color: AppColors.outline),
                       ),
                       Text(
-                        subject,
+                        event.judul,
                         style: AppTextStyles.titleLg.copyWith(
                           fontWeight: FontWeight.w900,
                           color: AppColors.primary,
@@ -383,11 +432,10 @@ class TodayScheduleCard extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 32),
-            _buildDetailInfo(Icons.person_rounded, 'Dosen Pengampu', 'Dr. Ir. H. Ahmad Fauzi, M.T.'),
-            _buildDetailInfo(Icons.timer_rounded, 'Waktu & Durasi', '$time (150 Menit)'),
-            _buildDetailInfo(Icons.location_on_rounded, 'Ruangan', room),
-            _buildDetailInfo(Icons.layers_rounded, 'Bobot SKS', '3 SKS (Teori & Praktikum)'),
+            const SizedBox(height: 24),
+            _buildDetailInfo(Icons.description_rounded, 'Deskripsi Kegiatan', event.deskripsi),
+            _buildDetailInfo(Icons.timer_rounded, 'Waktu Pelaksanaan', _formatDate(event.tanggal)),
+            _buildDetailInfo(Icons.location_on_rounded, 'Lokasi / Ruangan', event.lokasi),
             const Spacer(),
             SizedBox(
               width: double.infinity,
@@ -411,23 +459,27 @@ class TodayScheduleCard extends StatelessWidget {
 
   Widget _buildDetailInfo(IconData icon, String label, String value) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 20),
+      padding: const EdgeInsets.only(bottom: 16),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Icon(icon, size: 20, color: AppColors.outline.withAlpha(150)),
           const SizedBox(width: 16),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                label,
-                style: AppTextStyles.labelSm.copyWith(color: AppColors.outline, fontSize: 10),
-              ),
-              Text(
-                value,
-                style: AppTextStyles.labelMd.copyWith(fontWeight: FontWeight.bold, color: Colors.black87),
-              ),
-            ],
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: AppTextStyles.labelSm.copyWith(color: AppColors.outline, fontSize: 10),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  value,
+                  style: AppTextStyles.labelMd.copyWith(fontWeight: FontWeight.bold, color: Colors.black87),
+                ),
+              ],
+            ),
           ),
         ],
       ),

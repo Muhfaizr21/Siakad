@@ -252,7 +252,7 @@ class ProfileScreen extends StatelessWidget {
               bottom: 5,
               left: 0,
               right: 0,
-              child: _buildAcademicStats(),
+              child: _buildAcademicStats(student),
             ),
             ],
           ),
@@ -261,7 +261,7 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildAcademicStats() {
+  Widget _buildAcademicStats(StudentProvider student) {
     return FadeInAnimation(
       delay: 0.1,
       child: Container(
@@ -281,11 +281,11 @@ class ProfileScreen extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            _buildStatItem('3.85', 'IPK TOTAL'),
+            _buildStatItem(student.ipk.toStringAsFixed(2), 'IPK TOTAL'),
             Container(width: 1, height: 35, color: const Color(0xFFF1F5F9)),
-            _buildStatItem('112', 'SKS LULUS'),
+            _buildStatItem(student.totalSks.toString(), 'SKS LULUS'),
             Container(width: 1, height: 35, color: const Color(0xFFF1F5F9)),
-            _buildStatItem('6', 'SEMESTER'),
+            _buildStatItem(student.semester.toString(), 'SEMESTER'),
           ],
         ),
       ),

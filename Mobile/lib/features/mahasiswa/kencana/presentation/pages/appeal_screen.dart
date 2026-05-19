@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:bkuhub_mobile/core/theme/app_colors.dart';
 import 'package:bkuhub_mobile/core/theme/app_text_styles.dart';
+import 'package:bkuhub_mobile/core/providers/student_provider.dart';
 import 'package:bkuhub_mobile/core/widgets/fade_in_animation.dart';
 
 class AppealScreen extends StatefulWidget {
@@ -13,6 +15,7 @@ class AppealScreen extends StatefulWidget {
 class _AppealScreenState extends State<AppealScreen> {
   final TextEditingController _descController = TextEditingController();
   String _selectedCategory = 'Kendala Teknis';
+  bool _isSubmitting = false;
 
   @override
   Widget build(BuildContext context) {
@@ -166,16 +169,50 @@ class _AppealScreenState extends State<AppealScreen> {
       width: double.infinity,
       height: 60,
       child: ElevatedButton(
-        onPressed: () {
-          _showSuccessBottomSheet();
-        },
+        onPressed: _isSubmitting
+            ? null
+            : () async {
+                final desc = _descController.text.trim();
+                if (desc.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Detail penjelasan tidak boleh kosong')),
+                  );
+                  return;
+                }
+
+                setState(() => _isSubmitting = true);
+                try {
+                  final alasan = "[$_selectedCategory] $desc";
+                  await context.read<StudentProvider>().submitAppeal(alasan);
+                  if (mounted) {
+                    _showSuccessBottomSheet();
+                  }
+                } catch (e) {
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Gagal mengirim banding: ${e.toString().replaceAll('Exception: ', '')}')),
+                    );
+                  }
+                } finally {
+                  if (mounted) {
+                    setState(() => _isSubmitting = false);
+                  }
+                }
+              },
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primary,
           foregroundColor: Colors.white,
+          disabledBackgroundColor: AppColors.primary.withAlpha(100),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           elevation: 0,
         ),
-        child: Text('Kirim Pengajuan Banding', style: AppTextStyles.labelMd.copyWith(fontWeight: FontWeight.w900, color: Colors.white)),
+        child: _isSubmitting
+            ? const SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+              )
+            : Text('Kirim Pengajuan Banding', style: AppTextStyles.labelMd.copyWith(fontWeight: FontWeight.w900, color: Colors.white)),
       ),
     );
   }

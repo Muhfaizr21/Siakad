@@ -3,6 +3,7 @@ package auth
 import (
 	"errors"
 	"fmt"
+	"log"
 	"strings"
 	"time"
 
@@ -754,6 +755,10 @@ func EnsureBootstrapData() error {
 		return err
 	}
 
+	if err := ensurePkkmbBootstrap(); err != nil {
+		return err
+	}
+
 	fmt.Println("✅ [SEEDER] Bootstrap completed successfully.")
 	fmt.Println("   super_admin   : superadmin@bku.ac.id / superadmin123")
 	fmt.Println("   faculty_admin : admin.<KODE_FAK>@bku.ac.id / adminfak123")
@@ -961,3 +966,173 @@ func ensureUser(email, plainPassword, role string, fakultasID *uint, ormawaID *u
 
 	return user, nil
 }
+
+func ensurePkkmbBootstrap() error {
+	var count int64
+	config.DB.Model(&models.PkkmbTahap{}).Count(&count)
+	if count > 0 {
+		return nil
+	}
+
+	log.Println("[PKKMB Seeder] Seeding PKKMB stages, materials, and quizzes...")
+
+	now := time.Now()
+
+	// 1. Tahap 1: Pra-PKKMB
+	tahap1 := models.PkkmbTahap{
+		Label:          "Pra-PKKMB",
+		Status:         "berlangsung",
+		TanggalMulai:   now,
+		TanggalSelesai: now.AddDate(0, 0, 7),
+		Order:          1,
+	}
+	if err := config.DB.Create(&tahap1).Error; err != nil {
+		return err
+	}
+
+	materi1 := models.PkkmbMateri{
+		TahapID:   tahap1.ID,
+		Judul:     "Tata Tertib & Pengenalan Umum",
+		Tipe:      "PDF",
+		FileURL:   "/uploads/materi/tata-tertib.pdf",
+		Deskripsi: "Materi ini berisi petunjuk teknis, tata tertib, dan panduan umum pelaksanaan PKKMB Kencana 2026.",
+		Order:     1,
+	}
+	if err := config.DB.Create(&materi1).Error; err != nil {
+		return err
+	}
+
+	quiz1 := models.PkkmbQuiz{
+		MateriID:  materi1.ID,
+		Judul:     "Kuis Tata Tertib & Aturan",
+		Deskripsi: "Evaluasi pemahaman mengenai tata tertib dan peraturan PKKMB.",
+		Durasi:    15,
+		IsActive:  true,
+		Bobot:     30,
+	}
+	if err := config.DB.Create(&quiz1).Error; err != nil {
+		return err
+	}
+
+	q1 := models.PkkmbQuizQuestion{
+		QuizID:     quiz1.ID,
+		Pertanyaan: "Apa warna atribut pita yang harus dikenakan peserta PKKMB Kencana?",
+		Tipe:       "multiple_choice",
+		Point:      50,
+	}
+	config.DB.Create(&q1)
+	config.DB.Create(&models.PkkmbQuizOption{QuestionID: q1.ID, Opsi: "Pita Biru", IsBenar: true})
+	config.DB.Create(&models.PkkmbQuizOption{QuestionID: q1.ID, Opsi: "Pita Merah", IsBenar: false})
+	config.DB.Create(&models.PkkmbQuizOption{QuestionID: q1.ID, Opsi: "Pita Hijau", IsBenar: false})
+
+	q2 := models.PkkmbQuizQuestion{
+		QuizID:     quiz1.ID,
+		Pertanyaan: "Berapa batas keterlambatan maksimal toleransi kehadiran PKKMB?",
+		Tipe:       "multiple_choice",
+		Point:      50,
+	}
+	config.DB.Create(&q2)
+	config.DB.Create(&models.PkkmbQuizOption{QuestionID: q2.ID, Opsi: "15 Menit", IsBenar: true})
+	config.DB.Create(&models.PkkmbQuizOption{QuestionID: q2.ID, Opsi: "30 Menit", IsBenar: false})
+	config.DB.Create(&models.PkkmbQuizOption{QuestionID: q2.ID, Opsi: "Tanpa Toleransi", IsBenar: false})
+
+
+	// 2. Tahap 2: Pelaksanaan Inti
+	tahap2 := models.PkkmbTahap{
+		Label:          "Pelaksanaan Inti",
+		Status:         "akan_datang",
+		TanggalMulai:   now.AddDate(0, 0, 7),
+		TanggalSelesai: now.AddDate(0, 0, 14),
+		Order:          2,
+	}
+	if err := config.DB.Create(&tahap2).Error; err != nil {
+		return err
+	}
+
+	materi2 := models.PkkmbMateri{
+		TahapID:   tahap2.ID,
+		Judul:     "Materi Pengenalan Universitas",
+		Tipe:      "PDF",
+		FileURL:   "/uploads/materi/materi-univ.pdf",
+		Deskripsi: "Materi pengenalan jajaran pimpinan universitas, struktur kurikulum, dan fasilitas kampus.",
+		Order:     1,
+	}
+	if err := config.DB.Create(&materi2).Error; err != nil {
+		return err
+	}
+
+	quiz2 := models.PkkmbQuiz{
+		MateriID:  materi2.ID,
+		Judul:     "Kuis Pengenalan Universitas",
+		Deskripsi: "Uji wawasan akademik dan tata pamong universitas.",
+		Durasi:    20,
+		IsActive:  true,
+		Bobot:     40,
+	}
+	if err := config.DB.Create(&quiz2).Error; err != nil {
+		return err
+	}
+
+	q3 := models.PkkmbQuizQuestion{
+		QuizID:     quiz2.ID,
+		Pertanyaan: "Siapa Rektor Universitas Bhakti Kencana saat ini?",
+		Tipe:       "multiple_choice",
+		Point:      100,
+	}
+	config.DB.Create(&q3)
+	config.DB.Create(&models.PkkmbQuizOption{QuestionID: q3.ID, Opsi: "Dr. apt. Entris Sutrisno, MH.Kes.", IsBenar: true})
+	config.DB.Create(&models.PkkmbQuizOption{QuestionID: q3.ID, Opsi: "Dr. Sarah Amalia", IsBenar: false})
+	config.DB.Create(&models.PkkmbQuizOption{QuestionID: q3.ID, Opsi: "Prof. Ahmad Yani", IsBenar: false})
+
+
+	// 3. Tahap 3: Pasca-PKKMB
+	tahap3 := models.PkkmbTahap{
+		Label:          "Pasca-PKKMB",
+		Status:         "akan_datang",
+		TanggalMulai:   now.AddDate(0, 0, 14),
+		TanggalSelesai: now.AddDate(0, 0, 21),
+		Order:          3,
+	}
+	if err := config.DB.Create(&tahap3).Error; err != nil {
+		return err
+	}
+
+	materi3 := models.PkkmbMateri{
+		TahapID:   tahap3.ID,
+		Judul:     "Materi Keormawaan & Lembaga",
+		Tipe:      "PDF",
+		FileURL:   "/uploads/materi/materi-prodi.pdf",
+		Deskripsi: "Pengenalan organisasi mahasiswa, UKM, program studi, dan evaluasi kelulusan.",
+		Order:     1,
+	}
+	if err := config.DB.Create(&materi3).Error; err != nil {
+		return err
+	}
+
+	quiz3 := models.PkkmbQuiz{
+		MateriID:  materi3.ID,
+		Judul:     "Kuis Keormawaan & Prodi",
+		Deskripsi: "Kuis akhir seputar UKM, BEM, DPM, serta program studi masing-masing.",
+		Durasi:    15,
+		IsActive:  true,
+		Bobot:     30,
+	}
+	if err := config.DB.Create(&quiz3).Error; err != nil {
+		return err
+	}
+
+	q4 := models.PkkmbQuizQuestion{
+		QuizID:     quiz3.ID,
+		Pertanyaan: "Apa kepanjangan dari BEM di lingkungan kampus?",
+		Tipe:       "multiple_choice",
+		Point:      100,
+	}
+	config.DB.Create(&q4)
+	config.DB.Create(&models.PkkmbQuizOption{QuestionID: q4.ID, Opsi: "Badan Eksekutif Mahasiswa", IsBenar: true})
+	config.DB.Create(&models.PkkmbQuizOption{QuestionID: q4.ID, Opsi: "Badan Evaluasi Mandiri", IsBenar: false})
+	config.DB.Create(&models.PkkmbQuizOption{QuestionID: q4.ID, Opsi: "Barisan Edukasi Mahasiswa", IsBenar: false})
+
+	log.Println("[PKKMB Seeder] Seeding PKKMB stages completed successfully!")
+	return nil
+}
+

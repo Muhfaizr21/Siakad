@@ -6,7 +6,8 @@ import 'package:bkuhub_mobile/core/providers/student_provider.dart';
 import 'package:bkuhub_mobile/features/mahasiswa/domain/entities/achievement.dart';
 
 class ReportAchievementScreen extends StatefulWidget {
-  const ReportAchievementScreen({super.key});
+  final Achievement? achievement;
+  const ReportAchievementScreen({super.key, this.achievement});
 
   @override
   State<ReportAchievementScreen> createState() => _ReportAchievementScreenState();
@@ -21,6 +22,27 @@ class _ReportAchievementScreenState extends State<ReportAchievementScreen> {
   DateTime _selectedDate = DateTime.now();
 
   @override
+  void initState() {
+    super.initState();
+    if (widget.achievement != null) {
+      _titleController.text = widget.achievement!.title;
+      _organizerController.text = widget.achievement!.organizer;
+      
+      final lv = widget.achievement!.level;
+      if (['Internasional', 'Nasional', 'Provinsi', 'Kampus'].contains(lv)) {
+        _selectedLevel = lv;
+      }
+      
+      final rk = widget.achievement!.rank;
+      if (['Juara 1', 'Juara 2', 'Juara 3', 'Harapan', 'Finalis', 'Peserta'].contains(rk)) {
+        _selectedRank = rk;
+      }
+      
+      _selectedDate = widget.achievement!.date;
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -31,7 +53,7 @@ class _ReportAchievementScreenState extends State<ReportAchievementScreen> {
           icon: const Icon(Icons.close_rounded, color: AppColors.primary),
           onPressed: () => Navigator.pop(context),
         ),
-        title: Text('Lapor Prestasi Baru', style: AppTextStyles.titleLg.copyWith(color: AppColors.primary)),
+        title: Text(widget.achievement != null ? 'Edit Laporan Prestasi' : 'Lapor Prestasi Baru', style: AppTextStyles.titleLg.copyWith(color: AppColors.primary)),
         centerTitle: true,
       ),
       body: SingleChildScrollView(
@@ -182,24 +204,42 @@ class _ReportAchievementScreenState extends State<ReportAchievementScreen> {
   }
 
   Widget _buildSubmitButton() {
+    final isEditing = widget.achievement != null;
     return SizedBox(
       width: double.infinity,
       height: 58,
       child: ElevatedButton(
-        onPressed: () {
+        onPressed: () async {
           if (_formKey.currentState!.validate()) {
+            final scaffoldMessenger = ScaffoldMessenger.of(context);
             final newAchievement = Achievement(
-              id: 'A${DateTime.now().millisecondsSinceEpoch}',
+              id: isEditing ? widget.achievement!.id : 'A${DateTime.now().millisecondsSinceEpoch}',
               title: _titleController.text,
               organizer: _organizerController.text,
               level: _selectedLevel,
               rank: _selectedRank,
               date: _selectedDate,
-              status: 'Pending',
-              isSynced: false,
+              status: isEditing ? widget.achievement!.status : 'Pending',
+              isSynced: isEditing ? widget.achievement!.isSynced : false,
+              certificateUrl: isEditing ? widget.achievement!.certificateUrl : null,
             );
-            context.read<StudentProvider>().addAchievement(newAchievement);
-            _showSuccessDialog();
+            
+            try {
+              if (isEditing) {
+                await context.read<StudentProvider>().updateAchievement(widget.achievement!.id, newAchievement);
+              } else {
+                await context.read<StudentProvider>().addAchievement(newAchievement);
+              }
+              _showSuccessDialog(isEditing);
+            } catch (e) {
+              scaffoldMessenger.showSnackBar(
+                SnackBar(
+                  content: Text(e.toString().replaceAll('Exception: ', '')),
+                  behavior: SnackBarBehavior.floating,
+                  backgroundColor: AppColors.error,
+                ),
+              );
+            }
           }
         },
         style: ElevatedButton.styleFrom(
@@ -208,12 +248,12 @@ class _ReportAchievementScreenState extends State<ReportAchievementScreen> {
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
           elevation: 0,
         ),
-        child: Text('Kirim Laporan Prestasi', style: AppTextStyles.labelMd.copyWith(fontWeight: FontWeight.bold, color: Colors.white)),
+        child: Text(isEditing ? 'Simpan Perubahan' : 'Kirim Laporan Prestasi', style: AppTextStyles.labelMd.copyWith(fontWeight: FontWeight.bold, color: Colors.white)),
       ),
     );
   }
 
-  void _showSuccessDialog() {
+  void _showSuccessDialog(bool isEditing) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -224,10 +264,12 @@ class _ReportAchievementScreenState extends State<ReportAchievementScreen> {
             const SizedBox(height: 16),
             const Icon(Icons.check_circle_rounded, color: Colors.green, size: 80),
             const SizedBox(height: 24),
-            Text('Laporan Terkirim!', style: AppTextStyles.titleLg),
+            Text(isEditing ? 'Perubahan Disimpan!' : 'Laporan Terkirim!', style: AppTextStyles.titleLg),
             const SizedBox(height: 12),
             Text(
-              'Laporan prestasi kamu telah masuk antrean validasi Admin. Kamu akan menerima notifikasi jika status berubah.',
+              isEditing 
+                  ? 'Perubahan data laporan prestasi kamu berhasil disimpan dan diperbarui di sistem.'
+                  : 'Laporan prestasi kamu telah masuk antrean validasi Admin. Kamu akan menerima notifikasi jika status berubah.',
               textAlign: TextAlign.center,
               style: AppTextStyles.labelMd.copyWith(color: AppColors.onSurfaceVariant),
             ),
@@ -242,9 +284,10 @@ class _ReportAchievementScreenState extends State<ReportAchievementScreen> {
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                 ),
-                child: const Text('Kembali ke Portofolio'),
+                child: const Text('Kembali ke Portofolio', style: TextStyle(fontWeight: FontWeight.bold)),
               ),
             ),
           ],

@@ -9,6 +9,8 @@ import 'package:bkuhub_mobile/features/mahasiswa/domain/entities/health_record.d
 import 'package:bkuhub_mobile/features/mahasiswa/domain/entities/organization_history.dart';
 import 'package:bkuhub_mobile/features/mahasiswa/domain/repositories/student_repository.dart';
 import 'package:bkuhub_mobile/core/services/auth_service.dart';
+import 'package:bkuhub_mobile/features/ormawa/domain/entities/ormawa_pkkmb.dart';
+import 'package:bkuhub_mobile/features/mahasiswa/domain/entities/campus_news.dart';
 
 class StudentProvider extends ChangeNotifier {
   final StudentRepository? _repository;
@@ -30,6 +32,9 @@ class StudentProvider extends ChangeNotifier {
   String gender = "Laki-laki";
   String address = "Jl. Soekarno Hatta No. 123, Bandung";
   String intakeYear = "2022";
+  int semester = 1;
+  double ipk = 3.85;
+  int totalSks = 112;
 
   // Data Lists
   List<Mission> _missions = [];
@@ -39,6 +44,8 @@ class StudentProvider extends ChangeNotifier {
   List<Aspiration> _aspirations = [];
   List<HealthRecord> _healthRecords = [];
   List<OrganizationHistory> _organizationHistory = [];
+  List<PkkmbEvent> _pkkmbEvents = [];
+  List<CampusNews> _campusNews = [];
   
   final List<Psychologist> _availablePsychologists = [
     const Psychologist(
@@ -75,6 +82,8 @@ class StudentProvider extends ChangeNotifier {
   List<HealthRecord> get healthRecords => _healthRecords;
   List<OrganizationHistory> get organizationHistory => _organizationHistory;
   List<Psychologist> get availablePsychologists => _availablePsychologists;
+  List<PkkmbEvent> get pkkmbEvents => _pkkmbEvents;
+  List<CampusNews> get campusNews => _campusNews;
   List<Map<String, dynamic>> get schedules => _schedules;
 
   HealthRecord? get latestHealthRecord => _healthRecords.isNotEmpty ? _healthRecords.first : null;
@@ -92,9 +101,9 @@ class StudentProvider extends ChangeNotifier {
   int get completedMissionsCount => _missions.where((m) => m.isCompleted).length;
   double get missionProgress => _missions.isEmpty ? 0 : completedMissionsCount / _missions.length;
   int get totalAchievements => _achievements.length;
-  int get validatedAchievements => _achievements.where((a) => a.status == 'Validated').length;
-  int get pendingAchievements => _achievements.where((a) => a.status == 'Pending').length;
-  int get syncedAchievements => _achievements.where((a) => a.isSynced).length;
+  int get validatedAchievements => _achievements.where((a) => a.status == 'Validated' || a.status == 'Diverifikasi').length;
+  int get pendingAchievements => _achievements.where((a) => a.status == 'Pending' || a.status == 'Menunggu').length;
+  int get syncedAchievements => _achievements.where((a) => a.isSynced || a.status == 'Diverifikasi').length;
   int get totalAspirations => _aspirations.length;
   int get pendingAspirations => _aspirations.where((a) => a.status == 'Pending' || a.status == 'In Progress').length;
   int get resolvedAspirations => _aspirations.where((a) => a.status == 'Resolved').length;
@@ -133,6 +142,9 @@ class StudentProvider extends ChangeNotifier {
         address = m['alamat']?.toString() ?? m['Alamat']?.toString() ?? address;
         gender = m['jenis_kelamin']?.toString() ?? m['JenisKelamin']?.toString() ?? gender;
         intakeYear = (m['tahun_masuk'] ?? m['TahunMasuk'] ?? intakeYear).toString();
+        semester = int.tryParse((m['semester_sekarang'] ?? m['SemesterSekarang'] ?? '').toString()) ?? semester;
+        ipk = double.tryParse((m['ipk'] ?? m['IPK'] ?? '3.85').toString()) ?? 3.85;
+        totalSks = int.tryParse((m['total_sks'] ?? m['TotalSKS'] ?? '112').toString()) ?? 112;
         
         final tempatLahir = m['tempat_lahir']?.toString() ?? m['TempatLahir'] ?? '';
         final tanggalLahir = m['tanggal_lahir']?.toString() ?? m['TanggalLahir'] ?? '';
@@ -148,6 +160,8 @@ class StudentProvider extends ChangeNotifier {
       _aspirations = await _repository.getAspirations();
       _healthRecords = await _repository.getHealthRecords();
       _organizationHistory = await _repository.getOrganizationHistory();
+      _pkkmbEvents = await _repository.getPkkmbEvents();
+      _campusNews = await _repository.getCampusNews();
     } catch (e) {
       debugPrint('Error loading student data: $e');
     } finally {
@@ -183,6 +197,22 @@ class StudentProvider extends ChangeNotifier {
     }
   }
 
+  Future<void> submitAppeal(String alasan) async {
+    _isLoading = true;
+    notifyListeners();
+    try {
+      if (_repository != null) {
+        await _repository.submitAppeal(alasan);
+      }
+    } catch (e) {
+      debugPrint('Error submitting appeal: $e');
+      rethrow;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
   Future<void> addAchievement(Achievement achievement) async {
     _isLoading = true;
     notifyListeners();
@@ -193,6 +223,43 @@ class StudentProvider extends ChangeNotifier {
       _achievements.insert(0, achievement);
     } catch (e) {
       debugPrint('Error adding achievement: $e');
+      rethrow;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> deleteAchievement(String id) async {
+    _isLoading = true;
+    notifyListeners();
+    try {
+      if (_repository != null) {
+        await _repository.deleteAchievement(id);
+      }
+      _achievements.removeWhere((a) => a.id == id);
+    } catch (e) {
+      debugPrint('Error deleting achievement: $e');
+      rethrow;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> updateAchievement(String id, Achievement achievement) async {
+    _isLoading = true;
+    notifyListeners();
+    try {
+      if (_repository != null) {
+        await _repository.updateAchievement(id, achievement);
+      }
+      final index = _achievements.indexWhere((a) => a.id == id);
+      if (index != -1) {
+        _achievements[index] = achievement;
+      }
+    } catch (e) {
+      debugPrint('Error updating achievement: $e');
       rethrow;
     } finally {
       _isLoading = false;

@@ -29,7 +29,7 @@ class _ApplyScholarshipScreenState extends State<ApplyScholarshipScreen> {
     final student = context.read<StudentProvider>();
     _nameController = TextEditingController(text: student.name);
     _nimController = TextEditingController(text: student.nim);
-    _ipkController = TextEditingController(text: '3.85');
+    _ipkController = TextEditingController(text: student.ipk.toString());
     
     // Jika statusnya sudah Applied, kita isi datanya (simulasi Edit)
     if (widget.scholarship.status == 'Applied') {
@@ -283,10 +283,41 @@ class _ApplyScholarshipScreenState extends State<ApplyScholarshipScreen> {
     );
   }
 
-  void _submitForm() {
+  Future<void> _submitForm() async {
     if (_formKey.currentState!.validate()) {
-      context.read<StudentProvider>().applyForScholarship(widget.scholarship.id);
-      _showSuccessDialog();
+      // Tampilkan loading overlay
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const Center(
+          child: CircularProgressIndicator(color: AppColors.primary),
+        ),
+      );
+
+      try {
+        await context.read<StudentProvider>().applyForScholarship(widget.scholarship.id);
+        
+        // Tutup loading overlay
+        if (mounted) Navigator.pop(context);
+        
+        // Tampilkan dialog sukses
+        _showSuccessDialog();
+      } catch (e) {
+        // Tutup loading overlay
+        if (mounted) Navigator.pop(context);
+        
+        // Tampilkan pesan error
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Gagal: ${e.toString().replaceAll('Exception: ', '')}'),
+              backgroundColor: AppColors.error,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            ),
+          );
+        }
+      }
     }
   }
 

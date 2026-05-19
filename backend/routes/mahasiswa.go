@@ -19,6 +19,7 @@ func SetupMahasiswaRoutes(app *fiber.App) {
 	// PKKMB (Kencana)
 	kencanaGroup := api.Group("/kencana")
 	kencanaGroup.Get("/progress", mahasiswa.GetProgress)
+	kencanaGroup.Get("/kegiatan", mahasiswa.GetPkkmbKegiatan)
 	kencanaGroup.Post("/check-in/:id", mahasiswa.CheckIn)
 	kencanaGroup.Get("/sertifikat", mahasiswa.GetSertifikat)
 	kencanaGroup.Post("/sertifikat/generate", mahasiswa.GenerateSertifikat)
@@ -32,6 +33,7 @@ func SetupMahasiswaRoutes(app *fiber.App) {
 	achievementGroup.Get("/", mahasiswa.GetAchievements)
 	achievementGroup.Post("/", mahasiswa.CreateAchievement)
 	achievementGroup.Get("/:id", mahasiswa.GetAchievementDetail)
+	achievementGroup.Put("/:id", mahasiswa.UpdateAchievement)
 	achievementGroup.Delete("/:id", mahasiswa.DeleteAchievement)
 
 	// Organisasi

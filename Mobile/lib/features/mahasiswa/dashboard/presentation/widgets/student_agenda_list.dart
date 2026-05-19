@@ -1,297 +1,283 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:bkuhub_mobile/core/theme/app_colors.dart';
 import 'package:bkuhub_mobile/core/theme/app_text_styles.dart';
+import 'package:bkuhub_mobile/core/providers/student_provider.dart';
+import 'package:bkuhub_mobile/features/mahasiswa/domain/entities/campus_news.dart';
+
+String _formatDate(DateTime dt) {
+  final days = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
+  final months = [
+    'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+    'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+  ];
+  String dayName = days[dt.weekday - 1];
+  String monthName = months[dt.month - 1];
+  String dayNum = dt.day.toString().padLeft(2, '0');
+  return '$dayName, $dayNum $monthName ${dt.year}';
+}
 
 class StudentAgendaList extends StatelessWidget {
   const StudentAgendaList({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final student = context.watch<StudentProvider>();
+    final newsList = student.campusNews;
+
+    if (newsList.isEmpty) {
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: AppColors.surfaceVariant),
+        ),
+        child: Column(
+          children: [
+            Icon(Icons.newspaper_rounded, size: 48, color: AppColors.outline.withAlpha(100)),
+            const SizedBox(height: 12),
+            Text(
+              'Belum ada berita kampus',
+              style: AppTextStyles.labelMd.copyWith(color: AppColors.outline, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Berita terbaru dari kampus akan tampil di sini.',
+              style: AppTextStyles.labelSm.copyWith(color: AppColors.outline.withAlpha(180)),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      );
+    }
+
     return Column(
-      children: [
-        _AgendaCard(
-          title: 'Ujian Tengah Semester',
-          day: '13',
-          month: 'Mei',
-          location: 'Gedung Serba Guna',
-          time: '08:00 - 10:00',
-          color: Colors.blue,
-          description: 'Pelaksanaan UTS Semester Genap TA 2025/2026. Jangan lupa bawa kartu ujian dan alat tulis lengkap.',
-        ),
-        const SizedBox(height: 16),
-        _AgendaCard(
-          title: 'Workshop PKM Nasional',
-          day: '18',
-          month: 'Mei',
-          location: 'Auditorium Utama',
-          time: '13:00 - Selesai',
-          color: Colors.orange,
-          description: 'Sesi kupas tuntas pembuatan proposal PKM yang lolos PIMNAS bersama mentor nasional.',
-        ),
-      ],
+      children: newsList.map((news) => _NewsCard(news: news)).toList(),
     );
   }
 }
 
-class _AgendaCard extends StatefulWidget {
-  final String title;
-  final String day;
-  final String month;
-  final String location;
-  final String time;
-  final Color color;
-  final String description;
+class _NewsCard extends StatelessWidget {
+  final CampusNews news;
 
-  const _AgendaCard({
-    required this.title,
-    required this.day,
-    required this.month,
-    required this.location,
-    required this.time,
-    required this.color,
-    required this.description,
-  });
+  const _NewsCard({required this.news});
 
-  @override
-  State<_AgendaCard> createState() => _AgendaCardState();
-}
-
-class _AgendaCardState extends State<_AgendaCard> {
-  bool _isNotified = false;
-
-  void _showAgendaDetail(BuildContext context) {
+  void _showNewsDetail(BuildContext context) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => Container(
-        padding: const EdgeInsets.all(24),
+        height: MediaQuery.of(context).size.height * 0.85,
         decoration: const BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
         ),
         child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Center(
-              child: Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: Colors.grey[300],
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-            ),
-            const SizedBox(height: 24),
-            Row(
+            Stack(
               children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: widget.color.withAlpha(20),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    'Agenda Kampus',
-                    style: TextStyle(color: widget.color, fontSize: 10, fontWeight: FontWeight.bold),
-                  ),
+                ClipRRect(
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+                  child: news.gambarUrl.isNotEmpty
+                      ? Image.network(
+                          news.gambarUrl,
+                          width: double.infinity,
+                          height: 240,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) => _buildPlaceholderImage(),
+                        )
+                      : _buildPlaceholderImage(),
                 ),
-                const Spacer(),
-                IconButton(
-                  onPressed: () => Navigator.pop(context),
-                  icon: const Icon(Icons.close_rounded),
+                Positioned(
+                  top: 20,
+                  right: 20,
+                  child: CircleAvatar(
+                    backgroundColor: Colors.black.withAlpha(100),
+                    child: IconButton(
+                      onPressed: () => Navigator.pop(context),
+                      icon: const Icon(Icons.close_rounded, color: Colors.white),
+                    ),
+                  ),
                 ),
               ],
             ),
-            const SizedBox(height: 16),
-            Text(
-              widget.title,
-              style: AppTextStyles.titleLg.copyWith(color: AppColors.primary, fontWeight: FontWeight.w900),
-            ),
-            const SizedBox(height: 16),
-            _buildDetailInfo(Icons.calendar_today_rounded, '${widget.day} ${widget.month} 2026'),
-            const SizedBox(height: 8),
-            _buildDetailInfo(Icons.access_time_rounded, widget.time),
-            const SizedBox(height: 8),
-            _buildDetailInfo(Icons.location_on_rounded, widget.location),
-            const SizedBox(height: 24),
-            Text(
-              'Deskripsi',
-              style: AppTextStyles.bodyMd.copyWith(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              widget.description,
-              style: AppTextStyles.bodyMd.copyWith(color: AppColors.outline, height: 1.6),
-            ),
-            const SizedBox(height: 32),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: () {
-                  Navigator.pop(context);
-                  setState(() => _isNotified = !_isNotified);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(_isNotified ? 'Pengingat berhasil dipasang!' : 'Pengingat dibatalkan'),
-                      backgroundColor: AppColors.primary,
-                      behavior: SnackBarBehavior.floating,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(28),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withAlpha(20),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        'BERITA KAMPUS',
+                        style: AppTextStyles.labelSm.copyWith(
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 10,
+                        ),
+                      ),
                     ),
-                  );
-                },
-                icon: Icon(_isNotified ? Icons.notifications_off_rounded : Icons.notifications_active_rounded),
-                label: Text(_isNotified ? 'Batalkan Pengingat' : 'Ingatkan Saya'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: _isNotified ? Colors.grey[200] : AppColors.primary,
-                  foregroundColor: _isNotified ? Colors.grey[700] : Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                  elevation: 0,
+                    const SizedBox(height: 16),
+                    Text(
+                      news.judul,
+                      style: AppTextStyles.titleLg.copyWith(
+                        color: AppColors.primary,
+                        fontWeight: FontWeight.w900,
+                        fontSize: 22,
+                        height: 1.3,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        const Icon(Icons.calendar_today_rounded, size: 14, color: AppColors.outline),
+                        const SizedBox(width: 8),
+                        Text(
+                          _formatDate(news.tanggalPublish),
+                          style: AppTextStyles.labelSm.copyWith(color: AppColors.outline),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 24),
+                    Divider(color: Colors.grey.withAlpha(50)),
+                    const SizedBox(height: 16),
+                    Text(
+                      news.isi,
+                      style: AppTextStyles.bodyMd.copyWith(
+                        color: Colors.black87,
+                        height: 1.7,
+                        fontSize: 15,
+                      ),
+                    ),
+                    const SizedBox(height: 40),
+                  ],
                 ),
               ),
             ),
-            const SizedBox(height: 16),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildDetailInfo(IconData icon, String text) {
-    return Row(
-      children: [
-        Icon(icon, size: 16, color: AppColors.outline),
-        const SizedBox(width: 12),
-        Text(text, style: AppTextStyles.bodyMd.copyWith(color: AppColors.outline)),
-      ],
+  Widget _buildPlaceholderImage() {
+    return Container(
+      width: double.infinity,
+      height: 240,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [AppColors.primary.withAlpha(150), AppColors.primary],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+      ),
+      child: const Center(
+        child: Icon(Icons.newspaper_rounded, size: 64, color: Colors.white),
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () => _showAgendaDetail(context),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: AppColors.surfaceVariant),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withAlpha(3),
-              blurRadius: 15,
-              offset: const Offset(0, 5),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 60,
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              decoration: BoxDecoration(
-                color: widget.color.withAlpha(15),
-                borderRadius: BorderRadius.circular(18),
-                border: Border.all(color: widget.color.withAlpha(30)),
-              ),
-              child: Column(
-                children: [
-                  Text(
-                    widget.day,
-                    style: TextStyle(
-                      color: widget.color,
-                      fontSize: 20,
-                      fontWeight: FontWeight.w900,
-                    ),
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: AppColors.surfaceVariant),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withAlpha(3),
+            blurRadius: 15,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(24),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: () => _showNewsDetail(context),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (news.gambarUrl.isNotEmpty)
+                  Image.network(
+                    news.gambarUrl,
+                    width: double.infinity,
+                    height: 160,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) => const SizedBox.shrink(),
                   ),
-                  Text(
-                    widget.month,
-                    style: TextStyle(
-                      color: widget.color,
-                      fontSize: 10,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 1,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 18),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    widget.title,
-                    style: AppTextStyles.labelMd.copyWith(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                      color: AppColors.primary,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Wrap(
-                    spacing: 12,
-                    runSpacing: 4,
-                    crossAxisAlignment: WrapCrossAlignment.center,
+                Padding(
+                  padding: const EdgeInsets.all(18),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(
-                        mainAxisSize: MainAxisSize.min,
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Icon(
-                            Icons.location_on_rounded,
-                            color: AppColors.outline,
-                            size: 12,
+                          Text(
+                            _formatDate(news.tanggalPublish),
+                            style: AppTextStyles.labelSm.copyWith(
+                              color: AppColors.outline,
+                              fontSize: 11,
+                            ),
                           ),
-                          const SizedBox(width: 4),
-                          Flexible(
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: AppColors.primary.withAlpha(10),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
                             child: Text(
-                              widget.location,
+                              'Info Terbaru',
                               style: AppTextStyles.labelSm.copyWith(
-                                color: AppColors.outline,
-                                fontSize: 11,
+                                color: AppColors.primary,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 9,
                               ),
-                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
                         ],
                       ),
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(
-                            Icons.access_time_filled_rounded,
-                            color: AppColors.outline,
-                            size: 12,
-                          ),
-                          const SizedBox(width: 4),
-                          Flexible(
-                            child: Text(
-                              widget.time,
-                              style: AppTextStyles.labelSm.copyWith(
-                                color: AppColors.outline,
-                                fontSize: 11,
-                              ),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ],
+                      const SizedBox(height: 10),
+                      Text(
+                        news.judul,
+                        style: AppTextStyles.labelMd.copyWith(
+                          fontWeight: FontWeight.w900,
+                          fontSize: 15,
+                          color: AppColors.primary,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        news.isi,
+                        style: AppTextStyles.labelSm.copyWith(
+                          color: AppColors.outline,
+                          fontSize: 12,
+                          height: 1.4,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ],
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-            Icon(
-              _isNotified ? Icons.notifications_active_rounded : Icons.notifications_none_rounded,
-              color: _isNotified ? widget.color : AppColors.outline.withAlpha(100),
-              size: 22,
-            ),
-          ],
+          ),
         ),
       ),
     );

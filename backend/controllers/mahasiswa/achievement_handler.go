@@ -206,3 +206,87 @@ func DeleteAchievement(c *fiber.Ctx) error {
 		"message": "Prestasi berhasil dihapus",
 	})
 }
+
+// UpdateAchievement updates an achievement ONLY if its status is Menunggu
+func UpdateAchievement(c *fiber.Ctx) error {
+	id := c.Params("id")
+	PenggunaID, err := getUserID(c)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"success": false, "message": "User tidak terautentikasi"})
+	}
+
+	var student models.Mahasiswa
+	if err := config.DB.First(&student, "pengguna_id = ?", PenggunaID).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{"success": false, "message": "Mahasiswa tidak ditemukan"})
+	}
+
+	var achievement models.Prestasi
+	if err := config.DB.Where("id = ? AND mahasiswa_id = ?", id, student.ID).First(&achievement).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{"success": false, "message": "Data tidak ditemukan"})
+	}
+
+	if achievement.Status != "Menunggu" {
+		return c.Status(400).JSON(fiber.Map{"success": false, "message": "Hanya prestasi dengan status Menunggu yang dapat diedit"})
+	}
+
+	var input struct {
+		NamaKegiatan string `json:"nama_kegiatan"`
+		Kategori     string `json:"kategori"`
+		Tingkat      string `json:"tingkat"`
+		Peringkat    string `json:"peringkat"`
+		BuktiURL     string `json:"bukti_url"`
+	}
+	_ = c.BodyParser(&input)
+
+	namaKegiatan := firstNonEmpty(c.FormValue("nama_kegiatan"), input.NamaKegiatan)
+	kategori := firstNonEmpty(c.FormValue("kategori"), input.Kategori)
+	tingkat := firstNonEmpty(c.FormValue("tingkat"), input.Tingkat)
+	peringkat := firstNonEmpty(c.FormValue("peringkat"), input.Peringkat)
+
+	if namaKegiatan == "" || tingkat == "" {
+		return c.Status(400).JSON(fiber.Map{"success": false, "message": "Field nama kegiatan dan tingkat wajib diisi"})
+	}
+
+	// Handle File Upload if there's any
+	buktiURL := strings.TrimSpace(input.BuktiURL)
+	file, err := c.FormFile("bukti")
+	if err == nil {
+		if file.Size > 5*1024*1024 {
+			return c.Status(400).JSON(fiber.Map{"success": false, "message": "Ukuran file melebihi 5MB"})
+		}
+
+		ext := strings.ToLower(filepath.Ext(file.Filename))
+		if ext != ".pdf" && ext != ".jpg" && ext != ".jpeg" && ext != ".png" {
+			return c.Status(400).JSON(fiber.Map{"success": false, "message": "Format file hanya boleh PDF, JPG, atau PNG"})
+		}
+
+		uploadDir := "./uploads/achievements"
+		_ = os.MkdirAll(uploadDir, os.ModePerm)
+
+		fileId := uuid.New().String()
+		fileOutputName := fmt.Sprintf("%s%s", fileId, ext)
+		savePath := filepath.Join(uploadDir, fileOutputName)
+
+		if err := c.SaveFile(file, savePath); err != nil {
+			return c.Status(500).JSON(fiber.Map{"success": false, "message": "Gagal menyimpan file"})
+		}
+
+		buktiURL = "/uploads/achievements/" + fileOutputName
+	}
+
+	achievement.NamaKegiatan = namaKegiatan
+	achievement.Kategori = kategori
+	achievement.Tingkat = tingkat
+	achievement.Peringkat = peringkat
+	if buktiURL != "" {
+		achievement.BuktiURL = buktiURL
+	}
+
+	config.DB.Save(&achievement)
+
+	return c.JSON(fiber.Map{
+		"success": true,
+		"message": "Prestasi berhasil diperbarui",
+		"data":    achievement,
+	})
+}

@@ -60,7 +60,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             BkuAppBar(
               title: name,
               subtitle: 'SELAMAT DATANG KEMBALI',
-              info: '${student.nim} • SEMESTER 6',
+              info: '${student.nim} • SEMESTER ${student.semester}',
               variant: AppBarVariant.student,
               expandedHeight: 180,
               showProfileOnCollapse: true,
@@ -98,7 +98,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       latestHealth: latestHealth,
                     ),
                     const SizedBox(height: 32),
-                    _buildSectionTitle('Agenda Kampus'),
+                    _buildSectionTitle('Berita Kampus'),
                     const SizedBox(height: 16),
                     const StudentAgendaList(),
                     const SizedBox(height: 120),

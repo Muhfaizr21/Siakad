@@ -19,6 +19,15 @@ class KencanaScreen extends StatefulWidget {
 
 class _KencanaScreenState extends State<KencanaScreen> {
   @override
+  void initState() {
+    super.initState();
+    // Load fresh data when entering the Kencana screen
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<StudentProvider>().loadAllData();
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     final student = context.watch<StudentProvider>();
     final missions = student.missions;
@@ -42,9 +51,12 @@ class _KencanaScreenState extends State<KencanaScreen> {
 
     return Scaffold(
       backgroundColor: Colors.white,
-      body: CustomScrollView(
-        physics: const BouncingScrollPhysics(),
-        slivers: [
+      body: RefreshIndicator(
+        onRefresh: () => student.loadAllData(),
+        color: AppColors.primary,
+        child: CustomScrollView(
+          physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+          slivers: [
           BkuAppBar(
             title: 'PKKMB KENCANA',
             subtitle: 'JOURNEY & SERTIFIKASI',
@@ -116,6 +128,7 @@ class _KencanaScreenState extends State<KencanaScreen> {
             ),
           ),
         ],
+        ),
       ),
       floatingActionButton: Padding(
         padding: const EdgeInsets.only(bottom: 90), // Lift it above BottomNav
@@ -204,11 +217,25 @@ class _KencanaScreenState extends State<KencanaScreen> {
                       width: 1.5,
                     ),
                   ),
-                  child: Column(
-                    children: [
-                      ...stageMissions.map((m) => _buildMissionItem(context, m, isUnlocked)),
-                    ],
-                  ),
+                  child: stageMissions.isEmpty
+                      ? Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          child: Row(
+                            children: [
+                              Icon(Icons.info_outline_rounded, color: Colors.grey[400], size: 20),
+                              const SizedBox(width: 12),
+                              Text(
+                                'Belum ada materi atau kuis',
+                                style: AppTextStyles.bodyMd.copyWith(color: Colors.grey[400], fontSize: 13, fontWeight: FontWeight.bold),
+                              ),
+                            ],
+                          ),
+                        )
+                      : Column(
+                          children: [
+                            ...stageMissions.map((m) => _buildMissionItem(context, m, isUnlocked)),
+                          ],
+                        ),
                 ),
               ],
             ),
@@ -437,9 +464,9 @@ class _KencanaScreenState extends State<KencanaScreen> {
             Text('Deskripsi Misi', style: AppTextStyles.labelMd.copyWith(fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
             Text(
-              isQuiz 
+              mission.desc ?? (isQuiz 
                 ? 'Selesaikan kuis ini untuk menguji pemahaman kamu mengenai materi pada tahap ini. Skor minimal kelulusan adalah 75.'
-                : 'Silakan baca atau tonton materi yang telah disediakan. Materi ini akan menjadi bahan kuis pada tahap selanjutnya.',
+                : 'Silakan baca atau tonton materi yang telah disediakan. Materi ini akan menjadi bahan kuis pada tahap selanjutnya.'),
               style: AppTextStyles.bodyMd.copyWith(color: AppColors.outline, height: 1.5),
             ),
             const Spacer(),

@@ -34,12 +34,51 @@ class _ScholarshipScreenState extends State<ScholarshipScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      await context.read<StudentProvider>().loadAllData();
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadData();
     });
+  }
+
+  Future<void> _loadData() async {
+    if (!mounted) return;
+    setState(() => _isLoading = true);
+    try {
+      await context.read<StudentProvider>().loadAllData();
+    } catch (_) {}
+    if (mounted) {
+      setState(() => _isLoading = false);
+    }
+  }
+
+  String _formatDeadline(String deadlineRaw) {
+    if (deadlineRaw.isEmpty) return '—';
+    try {
+      final parsed = DateTime.parse(deadlineRaw);
+      final months = [
+        'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+        'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+      ];
+      return "${parsed.day} ${months[parsed.month - 1]} ${parsed.year}";
+    } catch (_) {
+      if (deadlineRaw.contains('T')) {
+        return deadlineRaw.split('T').first;
+      }
+      return deadlineRaw;
+    }
+  }
+
+  String _formatCurrency(String amountStr) {
+    try {
+      final amount = double.tryParse(amountStr) ?? 0.0;
+      if (amount == 0.0) return 'Bantuan Biaya';
+      final formatted = amount.toStringAsFixed(0).replaceAllMapped(
+        RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+        (Match m) => '${m[1]}.'
+      );
+      return "Rp $formatted";
+    } catch (_) {
+      return amountStr;
+    }
   }
 
   @override
@@ -52,9 +91,12 @@ class _ScholarshipScreenState extends State<ScholarshipScreen> {
 
     return Scaffold(
       backgroundColor: Colors.white,
-      body: CustomScrollView(
-        physics: const BouncingScrollPhysics(),
-        slivers: [
+      body: RefreshIndicator(
+        onRefresh: _loadData,
+        color: AppColors.primary,
+        child: CustomScrollView(
+          physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+          slivers: [
           BkuAppBar(
             title: 'BEASISWA & BANTUAN',
             subtitle: 'PROGRAM KAMPUS',
@@ -127,6 +169,7 @@ class _ScholarshipScreenState extends State<ScholarshipScreen> {
           ),
         ],
       ),
+     ),
     );
   }
 
@@ -269,6 +312,11 @@ class _ScholarshipScreenState extends State<ScholarshipScreen> {
   }
 
   int _getStageIndex(String status) {
+    if (status == 'Menunggu') return 0;
+    if (status == 'Proses') return 2;
+    if (status == 'Diterima' || status == 'Ditolak') return 3;
+    
+    // Fallbacks untuk string kustom
     if (status.contains('Berkas')) return 0;
     if (status.contains('Wawancara')) return 1;
     if (status.contains('Evaluasi')) return 2;
@@ -315,7 +363,7 @@ class _ScholarshipScreenState extends State<ScholarshipScreen> {
                             scholarship.category.toUpperCase(),
                             style: AppTextStyles.labelSm.copyWith(color: _getCategoryColor(scholarship.category), fontWeight: FontWeight.w900, fontSize: 9, letterSpacing: 0.8),
                           ),
-                          Text(scholarship.coverAmount, style: AppTextStyles.labelSm.copyWith(color: AppColors.primary, fontWeight: FontWeight.w900)),
+                          Text(_formatCurrency(scholarship.coverAmount), style: AppTextStyles.labelSm.copyWith(color: AppColors.primary, fontWeight: FontWeight.w900)),
                         ],
                       ),
                       const SizedBox(height: 8),
@@ -325,13 +373,23 @@ class _ScholarshipScreenState extends State<ScholarshipScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Row(
-                            children: [
-                              const Icon(Icons.timer_outlined, size: 14, color: AppColors.error),
-                              const SizedBox(width: 4),
-                              Text(_formatDeadline(scholarship.deadline), style: AppTextStyles.labelSm.copyWith(color: AppColors.error, fontSize: 11, fontWeight: FontWeight.bold)),
-                            ],
+                          Expanded(
+                            child: Row(
+                              children: [
+                                const Icon(Icons.timer_outlined, size: 14, color: AppColors.error),
+                                const SizedBox(width: 4),
+                                Expanded(
+                                  child: Text(
+                                    _formatDeadline(scholarship.deadline),
+                                    style: AppTextStyles.labelSm.copyWith(color: AppColors.error, fontSize: 11, fontWeight: FontWeight.bold),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
+                          const SizedBox(width: 16),
                           SizedBox(
                             height: 36,
                             child: ElevatedButton(
@@ -422,7 +480,7 @@ class _ScholarshipScreenState extends State<ScholarshipScreen> {
                                 decoration: BoxDecoration(color: _getCategoryColor(scholarship.category).withAlpha(15), borderRadius: BorderRadius.circular(12)),
                                 child: Text(scholarship.category.toUpperCase(), style: AppTextStyles.labelSm.copyWith(color: _getCategoryColor(scholarship.category), fontWeight: FontWeight.w900)),
                               ),
-                              Text(scholarship.coverAmount, style: AppTextStyles.titleLg.copyWith(color: AppColors.primary, fontSize: 18, fontWeight: FontWeight.w900)),
+                              Text(_formatCurrency(scholarship.coverAmount), style: AppTextStyles.titleLg.copyWith(color: AppColors.primary, fontSize: 18, fontWeight: FontWeight.w900)),
                             ],
                           ),
                           const SizedBox(height: 24),
@@ -458,7 +516,7 @@ class _ScholarshipScreenState extends State<ScholarshipScreen> {
                                 const Icon(Icons.stars_rounded, color: Colors.amber, size: 24),
                                 const SizedBox(width: 16),
                                 Expanded(
-                                  child: Text(scholarship.coverAmount, style: AppTextStyles.labelMd.copyWith(color: AppColors.primary, fontWeight: FontWeight.bold)),
+                                  child: Text(_formatCurrency(scholarship.coverAmount), style: AppTextStyles.labelMd.copyWith(color: AppColors.primary, fontWeight: FontWeight.bold)),
                                 ),
                               ],
                             ),
@@ -642,6 +700,10 @@ class _QuickStatsRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final student = context.watch<StudentProvider>();
+    final appliedCount = student.scholarships.where((s) => s.status == 'Applied').length;
+    final availableCount = student.scholarships.where((s) => s.status == 'Open').length;
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -654,7 +716,7 @@ class _QuickStatsRow extends StatelessWidget {
         children: [
           _buildStat(appliedCount.toString(), 'Pendaftaran Aktif'),
           Container(width: 1, height: 30, color: AppColors.primary.withAlpha(30)),
-          _buildStat(openCount.toString(), 'Peluang Terbuka'),
+          _buildStat(availableCount.toString(), 'Peluang Terbuka'),
         ],
       ),
     );

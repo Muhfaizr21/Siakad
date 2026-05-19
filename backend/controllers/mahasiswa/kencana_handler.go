@@ -73,6 +73,7 @@ func GetProgress(c *fiber.Ctx) error {
 		Judul     string    `json:"judul"`
 		Tipe      string    `json:"tipe"`
 		FileURL   string    `json:"file_url"`
+		Deskripsi string    `json:"deskripsi"`
 		Kuis      *QuizInfo `json:"kuis"`
 	}
 
@@ -125,6 +126,7 @@ func GetProgress(c *fiber.Ctx) error {
 				Judul:    m.Judul,
 				Tipe:     m.Tipe,
 				FileURL:  m.FileURL,
+				Deskripsi: m.Deskripsi,
 				Kuis:     qInfo,
 			})
 		}
@@ -157,6 +159,10 @@ func GetProgress(c *fiber.Ctx) error {
 		statusKeseluruhan = "berlangsung"
 	}
 
+	// Check if certificate exists
+	var countSertif int64
+	config.DB.Model(&models.PkkmbSertifikat{}).Where("mahasiswa_id = ?", student.ID).Count(&countSertif)
+
 	return c.JSON(fiber.Map{
 		"success": true,
 		"data": fiber.Map{
@@ -165,7 +171,7 @@ func GetProgress(c *fiber.Ctx) error {
 			"total_kuis":          totalKuis,
 			"kuis_selesai":        kuisSelesai,
 			"tahaps":              stages,
-			"has_sertifikat":      false, // Logic for sertifikat can be added
+			"has_sertifikat":      countSertif > 0,
 			"eligible_sertifikat": statusKeseluruhan == "lulus",
 		},
 	})
@@ -318,4 +324,12 @@ func SubmitKuis(c *fiber.Ctx) error {
 			"eligible_sertifikat":     false,
 		},
 	})
+}
+
+func GetPkkmbKegiatan(c *fiber.Ctx) error {
+	var k []models.PkkmbKegiatan
+	if err := config.DB.Order("tanggal asc").Find(&k).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"success": false, "message": "Gagal mengambil data kegiatan PKKMB"})
+	}
+	return c.JSON(fiber.Map{"success": true, "data": k})
 }

@@ -481,3 +481,37 @@ class OrganisasiScreen extends StatelessWidget {
     );
   }
 }
+
+class _OrganizationBanner extends StatelessWidget {
+  const _OrganizationBanner();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [AppColors.primary, AppColors.primaryContainer],
+        ),
+        borderRadius: BorderRadius.circular(28),
+        boxShadow: [BoxShadow(color: AppColors.primary.withAlpha(50), blurRadius: 20, offset: const Offset(0, 8))],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            decoration: BoxDecoration(color: Colors.white.withAlpha(40), borderRadius: BorderRadius.circular(8)),
+            child: Text('LEADERSHIP PORTFOLIO', style: AppTextStyles.labelSm.copyWith(color: Colors.white, fontSize: 9, fontWeight: FontWeight.w900, letterSpacing: 0.5)),
+          ),
+          const SizedBox(height: 16),
+          Text('Jejak Kontribusi\n& Kepemimpinan', style: AppTextStyles.headlineMd.copyWith(color: Colors.white, fontSize: 22, height: 1.2, fontWeight: FontWeight.w900)),
+          const SizedBox(height: 8),
+          Text('Catat setiap pengalaman organisasimu untuk masa depan.', style: AppTextStyles.labelSm.copyWith(color: Colors.white70, fontWeight: FontWeight.w500)),
+        ],
+      ),
+    );
+  }
+}
