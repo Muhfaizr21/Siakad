@@ -92,6 +92,42 @@ export default function UserManagement() {
     OrmawaAssign: ''
   })
 
+  const handleEmailChange = (emailVal) => {
+    setForm(prev => {
+      let updatedPassword = prev.Password;
+      if (prev.Role === 'mahasiswa') {
+        const parts = emailVal.split('@');
+        const nim = parts[0].trim();
+        if (nim) {
+          updatedPassword = `pass${nim}`;
+        }
+      }
+      return {
+        ...prev,
+        Email: emailVal,
+        Password: updatedPassword
+      };
+    });
+  };
+
+  const handleRoleChange = (roleVal) => {
+    setForm(prev => {
+      let updatedPassword = prev.Password;
+      if (roleVal === 'mahasiswa') {
+        const parts = prev.Email.split('@');
+        const nim = parts[0].trim();
+        if (nim) {
+          updatedPassword = `pass${nim}`;
+        }
+      }
+      return {
+        ...prev,
+        Role: roleVal,
+        Password: updatedPassword
+      };
+    });
+  };
+
   const fetchData = async () => {
     setLoading(true)
     try {
@@ -392,11 +428,16 @@ export default function UserManagement() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                <div className="space-y-2">
                  <Label className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest ml-1 font-jakarta">Identity Handle (Email)</Label>
-                 <Input required type="email" value={form.Email} onChange={e => setForm({ ...form, Email: e.target.value })} placeholder="email@bku.ac.id" className="h-12 rounded-xl border-neutral-200 bg-neutral-50/30 focus:bg-white font-bold text-sm font-jakarta" />
+                 <Input required type="email" value={form.Email} onChange={e => handleEmailChange(e.target.value)} placeholder="email@bku.ac.id" className="h-12 rounded-xl border-neutral-200 bg-neutral-50/30 focus:bg-white font-bold text-sm font-jakarta" />
                </div>
                <div className="space-y-2">
                  <Label className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest ml-1 font-jakarta">Default Authentication</Label>
                  <Input required type="password" value={form.Password} onChange={e => setForm({ ...form, Password: e.target.value })} placeholder="••••••••" className="h-12 rounded-xl border-neutral-200 bg-neutral-50/30 focus:bg-white font-bold text-sm font-jakarta" />
+                 {form.Role === 'mahasiswa' && (
+                   <span className="text-[9px] font-bold text-emerald-600 block mt-1 pl-1">
+                     💡 Auto-generate: pass(NIM)
+                   </span>
+                 )}
                </div>
             </div>
 
@@ -407,13 +448,58 @@ export default function UserManagement() {
 
             <div className="space-y-2">
               <Label className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest ml-1 font-jakarta">Authorization Level</Label>
-              <Select value={form.Role} onValueChange={v => setForm({ ...form, Role: v })}>
+              <Select value={form.Role} onValueChange={handleRoleChange}>
                 <SelectTrigger className="h-12 rounded-xl border-neutral-200 bg-neutral-50/30 font-bold text-xs uppercase tracking-[0.1em]"><SelectValue /></SelectTrigger>
                 <SelectContent className="rounded-xl shadow-2xl border-neutral-100">
                   {ROLES.map(r => <SelectItem key={r} value={r} className="text-[10px] font-bold uppercase tracking-widest">{ROLE_DETAILS[r]?.label || r}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
+
+            {form.Role !== 'super_admin' && form.Role !== 'psikolog' && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in duration-300">
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest ml-1 font-jakarta">Fakultas</Label>
+                  <Select 
+                    value={form.FakultasID ? String(form.FakultasID) : undefined} 
+                    onValueChange={v => setForm({ ...form, FakultasID: v, ProgramStudiID: '' })}
+                  >
+                    <SelectTrigger className="h-12 rounded-xl border-neutral-200 bg-neutral-50/30 font-bold text-xs uppercase tracking-[0.1em]">
+                      <SelectValue placeholder="PILIH FAKULTAS" />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl shadow-2xl border-neutral-100 max-h-[200px] overflow-y-auto">
+                      {faculties.map(f => (
+                        <SelectItem key={f.ID || f.id} value={String(f.ID || f.id)} className="text-[10px] font-bold uppercase tracking-widest">
+                          {f.Nama || f.nama}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest ml-1 font-jakarta">Program Studi</Label>
+                  <Select 
+                    disabled={!form.FakultasID}
+                    value={form.ProgramStudiID ? String(form.ProgramStudiID) : undefined} 
+                    onValueChange={v => setForm({ ...form, ProgramStudiID: v })}
+                  >
+                    <SelectTrigger className="h-12 rounded-xl border-neutral-200 bg-neutral-50/30 font-bold text-xs uppercase tracking-[0.1em]">
+                      <SelectValue placeholder={form.FakultasID ? "PILIH PRODI" : "PILIH FAKULTAS DULU"} />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl shadow-2xl border-neutral-100 max-h-[200px] overflow-y-auto">
+                      {allProdi
+                        .filter(p => String(p.FakultasID || p.fakultas_id) === String(form.FakultasID))
+                        .map(p => (
+                          <SelectItem key={p.ID || p.id} value={String(p.ID || p.id)} className="text-[10px] font-bold uppercase tracking-widest">
+                            {p.Nama || p.nama}
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            )}
 
             <footer className="pt-8 flex flex-col md:flex-row gap-4 border-t border-neutral-100">
                <Button type="button" variant="ghost" onClick={() => setIsCrudOpen(false)} className="flex-1 h-14 rounded-xl text-[10px] font-bold uppercase tracking-widest text-neutral-400 hover:bg-neutral-50 transition-all">Abort</Button>
