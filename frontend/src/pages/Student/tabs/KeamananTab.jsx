@@ -69,7 +69,7 @@ export default function KeamananTab() {
 
   const passwordMutation = useMutation({
     mutationFn: async (data) => {
-      const { data: res } = await api.put('/profil/ganti-password', data);
+      const { data: res } = await api.put('/profil/change-password', data);
       return res;
     },
     onSuccess: () => {
