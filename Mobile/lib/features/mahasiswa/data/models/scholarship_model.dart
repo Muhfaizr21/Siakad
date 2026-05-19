@@ -11,6 +11,10 @@ class ScholarshipModel extends Scholarship {
     required String description,
     String status = 'Open',
     String? applicationStatus,
+    String? motivasi,
+    String? ktmKtpUrl,
+    String? sertifikatUrl,
+    String? transkripUrl,
   }) : super(
           id: id,
           title: title,
@@ -21,6 +25,10 @@ class ScholarshipModel extends Scholarship {
           description: description,
           status: status,
           applicationStatus: applicationStatus,
+          motivasi: motivasi,
+          ktmKtpUrl: ktmKtpUrl,
+          sertifikatUrl: sertifikatUrl,
+          transkripUrl: transkripUrl,
         );
 
   factory ScholarshipModel.fromJson(Map<String, dynamic> json) {
@@ -34,6 +42,10 @@ class ScholarshipModel extends Scholarship {
       description: json['deskripsi'] ?? '',
       status: json['status'] ?? 'Open',
       applicationStatus: json['application_status'],
+      motivasi: json['motivasi'] ?? json['motivasi_kamu'],
+      ktmKtpUrl: json['ktm_ktp_url'],
+      sertifikatUrl: json['sertifikat_url'],
+      transkripUrl: json['transkrip_url'],
     );
   }
 

@@ -116,6 +116,7 @@ import PsychologistDirectory from './pages/SuperAdmin/PsychologistDirectory'
 import KelolaFakultas from './pages/SuperAdmin/KelolaFakultas'
 import KelolaProdi from './pages/SuperAdmin/KelolaProdi'
 import KelolaBeasiswa from './pages/SuperAdmin/KelolaBeasiswa'
+import KelolaPrestasi from './pages/SuperAdmin/KelolaPrestasi'
 import ScholarshipApplicationDetail from './pages/SuperAdmin/ScholarshipApplicationDetail'
 import AspirationDetail from './pages/SuperAdmin/AspirationDetail'
 import KelolaOrganisasi from './pages/SuperAdmin/KelolaOrganisasi'
@@ -202,6 +203,7 @@ function App() {
                     <Route path="faculties" element={<KelolaFakultas />} />
                     <Route path="prodi" element={<KelolaProdi />} />
                     <Route path="scholarships" element={<KelolaBeasiswa />} />
+                    <Route path="achievements" element={<KelolaPrestasi />} />
                     <Route path="scholarships/applications/:id" element={<ScholarshipApplicationDetail />} />
                     <Route path="aspirations/:id" element={<AspirationDetail />} />
                     <Route path="organizations" element={<KelolaOrganisasi />} />

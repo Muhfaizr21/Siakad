@@ -1166,7 +1166,7 @@ func UpdateAcademicSettings(c *fiber.Ctx) error {
 // GetAllScholarshipApplications returns all scholarship applications
 func GetAllScholarshipApplications(c *fiber.Ctx) error {
 	var applications []models.BeasiswaPendaftaran
-	err := config.DB.Preload("Mahasiswa").Preload("Beasiswa").Order("created_at desc").Find(&applications).Error
+	err := config.DB.Preload("Mahasiswa").Preload("Mahasiswa.Fakultas").Preload("Mahasiswa.ProgramStudi").Preload("Mahasiswa.Pengguna").Preload("Beasiswa").Order("created_at desc").Find(&applications).Error
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"status": "error", "message": err.Error()})
 	}

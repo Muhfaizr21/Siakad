@@ -2,6 +2,7 @@ package routes
 
 import (
 	"siakad-backend/controllers"
+	fakultas "siakad-backend/controllers/fakultas"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -60,6 +61,11 @@ func SetupSuperAdminRoutes(r fiber.Router) {
 	r.Delete("/scholarships/:id", controllers.DeleteScholarship)
 	r.Get("/scholarship-applications", controllers.GetAllScholarshipApplications)
 	r.Put("/scholarship-applications/:id/status", controllers.UpdateScholarshipApplicationStatus)
+
+	// Achievements (Prestasi Mahasiswa)
+	r.Get("/achievements", fakultas.AmbilDaftarPrestasi)
+	r.Put("/achievements/:id/verify", fakultas.VerifikasiPrestasi)
+	r.Delete("/achievements/:id", fakultas.HapusPrestasi)
 
 	// Counseling
 	r.Get("/counseling-records", controllers.GetAllCounseling)

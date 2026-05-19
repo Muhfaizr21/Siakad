@@ -164,7 +164,7 @@ class _CounselingScreenState extends State<CounselingScreen> {
               const SizedBox(height: 24),
               const Divider(height: 1),
               const SizedBox(height: 24),
-              _buildFacultyMapping(),
+              _buildFacultyMapping(student),
             ],
           ),
         ),
@@ -187,17 +187,39 @@ class _CounselingScreenState extends State<CounselingScreen> {
     );
   }
 
-  Widget _buildFacultyMapping() {
+  Widget _buildFacultyMapping(StudentProvider student) {
+    final list = student.facultyProgress;
+    if (list.isEmpty) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Progres Sesi per Fakultas (Top 3)', style: AppTextStyles.labelSm.copyWith(fontWeight: FontWeight.w900, fontSize: 10)),
+          const SizedBox(height: 16),
+          _buildFacultyBar('Fakultas Farmasi', 0.85, '452 Mhs'),
+          const SizedBox(height: 12),
+          _buildFacultyBar('Fakultas Keperawatan', 0.65, '312 Mhs'),
+          const SizedBox(height: 12),
+          _buildFacultyBar('Fakultas Kesehatan', 0.45, '220 Mhs'),
+        ],
+      );
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text('Progres Sesi per Fakultas (Top 3)', style: AppTextStyles.labelSm.copyWith(fontWeight: FontWeight.w900, fontSize: 10)),
         const SizedBox(height: 16),
-        _buildFacultyBar('Fakultas Farmasi', 0.85, '452 Mhs'),
-        const SizedBox(height: 12),
-        _buildFacultyBar('Fakultas Keperawatan', 0.65, '312 Mhs'),
-        const SizedBox(height: 12),
-        _buildFacultyBar('Fakultas Kesehatan', 0.45, '220 Mhs'),
+        ...List.generate(list.length, (index) {
+          final item = list[index];
+          return Padding(
+            padding: EdgeInsets.only(bottom: index == list.length - 1 ? 0 : 12),
+            child: _buildFacultyBar(
+              item.name,
+              item.ratio,
+              '${item.count} Sesi',
+            ),
+          );
+        }),
       ],
     );
   }

@@ -6,13 +6,18 @@ import '../entities/aspiration.dart';
 import '../entities/health_record.dart';
 import '../entities/organization_history.dart';
 import '../entities/campus_news.dart';
+import '../entities/faculty_progress.dart';
 import '../../../ormawa/domain/entities/ormawa_pkkmb.dart';
+import 'package:bkuhub_mobile/features/counseling/domain/entities/psychologist.dart';
 
 abstract class StudentRepository {
+  Future<List<FacultyProgress>> getFacultyStatistics();
   Future<List<Achievement>> getAchievements();
   Future<List<Scholarship>> getScholarships();
   Future<List<Mission>> getMissions();
   Future<List<CounselingSession>> getCounselingSessions();
+  Future<List<Psychologist>> getPsychologists();
+  Future<List<Map<String, dynamic>>> getPsychologistSchedules(String psychologistId);
   Future<List<Aspiration>> getAspirations();
   Future<List<HealthRecord>> getHealthRecords();
   Future<List<OrganizationHistory>> getOrganizationHistory();
@@ -22,11 +27,18 @@ abstract class StudentRepository {
   Future<void> addAchievement(Achievement achievement);
   Future<void> updateAchievement(String id, Achievement achievement);
   Future<void> deleteAchievement(String id);
-  Future<void> applyForScholarship(String scholarshipId);
+  Future<void> applyForScholarship(
+    String scholarshipId, 
+    String motivasi, {
+    String? ktmKtpPath,
+    String? sertifikatPath,
+    String? transkripPath,
+  });
   Future<void> submitAspiration(Aspiration aspiration);
   Future<void> addHealthRecord(HealthRecord record);
   Future<void> bookCounseling(CounselingSession session);
   Future<void> addOrganizationHistory(OrganizationHistory org);
   Future<void> submitAppeal(String alasan);
 }
+
 

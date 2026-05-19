@@ -41,9 +41,55 @@ export default function ScholarshipDetailPage() {
     );
   }
 
-  const { pengajuan, logs, berkas } = data || {};
+  const { pengajuan, logs } = data || {};
   
   if (!pengajuan) return null;
+
+  // Safe mapping of properties with casing fallbacks
+  const pengajuanId = pengajuan.id || pengajuan.ID;
+  const pengajuanCreatedAt = pengajuan.created_at || pengajuan.CreatedAt;
+  const pengajuanStatus = pengajuan.Status || pengajuan.status || '';
+  const pengajuanMotivasi = pengajuan.motivasi || pengajuan.Motivasi || '';
+  const pengajuanKtmKtpUrl = pengajuan.ktm_ktp_url || pengajuan.KtmKtpURL || '';
+  const pengajuanSertifikatUrl = pengajuan.sertifikat_url || pengajuan.SertifikatURL || '';
+  const pengajuanTranskripUrl = pengajuan.transkrip_url || pengajuan.TranskripURL || '';
+
+  const beasiswaObj = pengajuan.Beasiswa || pengajuan.beasiswa || {};
+  const beasiswaNama = beasiswaObj.nama || beasiswaObj.Nama || '';
+  const beasiswaPenyelenggara = beasiswaObj.penyelenggara || beasiswaObj.Penyelenggara || '';
+  const beasiswaNilaiBantuan = beasiswaObj.nilai_bantuan || beasiswaObj.NilaiBantuan || 0;
+  const beasiswaIpkMin = beasiswaObj.ipk_min || beasiswaObj.IPKMin || beasiswaObj.syarat_ipk_min || 0;
+  const beasiswaKategori = beasiswaObj.kategori || beasiswaObj.Kategori || 'Internal';
+
+  // Construct docs list
+  const berkas = [];
+  if (pengajuanKtmKtpUrl) {
+    berkas.push({
+      id: 'ktm_ktp',
+      tipe_berkas: 'KTM & KTP',
+      file_url: pengajuanKtmKtpUrl.startsWith('http') 
+        ? pengajuanKtmKtpUrl 
+        : `http://localhost:8000${pengajuanKtmKtpUrl}`
+    });
+  }
+  if (pengajuanSertifikatUrl) {
+    berkas.push({
+      id: 'sertifikat',
+      tipe_berkas: 'Sertifikat Pendukung',
+      file_url: pengajuanSertifikatUrl.startsWith('http') 
+        ? pengajuanSertifikatUrl 
+        : `http://localhost:8000${pengajuanSertifikatUrl}`
+    });
+  }
+  if (pengajuanTranskripUrl) {
+    berkas.push({
+      id: 'transkrip',
+      tipe_berkas: 'Transkrip Nilai Akademik',
+      file_url: pengajuanTranskripUrl.startsWith('http') 
+        ? pengajuanTranskripUrl 
+        : `http://localhost:8000${pengajuanTranskripUrl}`
+    });
+  }
 
   // Find current stage index
   const statusToStage = {
@@ -53,10 +99,12 @@ export default function ScholarshipDetailPage() {
     review: 3,
     penetapan: 4,
     diterima: 5,
-    ditolak: 5
+    ditolak: 5,
+    proses: 1,
+    diajukan: 0
   };
-  const currentStageIdx = statusToStage[pengajuan.Status] || 0;
-  const isFinal = pengajuan.Status === 'diterima' || pengajuan.Status === 'ditolak';
+  const currentStageIdx = statusToStage[pengajuanStatus.toLowerCase()] || 0;
+  const isFinal = pengajuanStatus.toLowerCase() === 'diterima' || pengajuanStatus.toLowerCase() === 'ditolak';
 
   return (
     <div className="px-4 py-5 md:px-6 md:py-6 lg:px-8 lg:py-8 font-body text-[#171717] min-h-screen bg-[#fafafa]">
@@ -91,17 +139,17 @@ export default function ScholarshipDetailPage() {
                     <div className="w-2 h-2 rounded-full bg-[#00236F] animate-pulse" />
                    <span className="text-[10px] font-black text-[#00236F] uppercase tracking-widest leading-none">Tracking Real-time</span>
                 </div>
-                <h1 className="text-2xl md:text-3xl font-black font-headline tracking-tighter mb-1">{pengajuan.beasiswa?.nama}</h1>
-                <p className="text-[11px] font-bold text-[#a3a3a3] uppercase tracking-[0.2em]">{pengajuan.beasiswa?.penyelenggara}</p>
+                <h1 className="text-2xl md:text-3xl font-black font-headline tracking-tighter mb-1">{beasiswaNama}</h1>
+                <p className="text-[11px] font-bold text-[#a3a3a3] uppercase tracking-[0.2em]">{beasiswaPenyelenggara}</p>
                 
                 <div className="flex flex-wrap items-center gap-4 mt-6">
                   <div className="px-4 py-2 bg-[#fafafa] rounded-2xl border border-[#e5e5e5] flex items-center gap-2">
                     <Zap size={14} className="text-[#00236F]" />
-                    <span className="text-xs font-black text-[#525252]">{pengajuan.nomor_referensi}</span>
+                    <span className="text-xs font-black text-[#525252]">{pengajuan.nomor_referensi || pengajuanId}</span>
                   </div>
                   <div className="px-4 py-2 bg-[#fafafa] rounded-2xl border border-[#e5e5e5] flex items-center gap-2">
                     <span className="material-symbols-outlined text-[#a3a3a3]" style={{ fontSize: '14px' }} >calendar_month</span>
-                    <span className="text-xs font-bold text-[#525252]">Terdaftar: {new Date(pengajuan.CreatedAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+                    <span className="text-xs font-bold text-[#525252]">Terdaftar: {new Date(pengajuanCreatedAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
                   </div>
                 </div>
 
@@ -110,32 +158,32 @@ export default function ScholarshipDetailPage() {
                   <div className="p-4 bg-[#fafafa] rounded-2xl border border-[#e5e5e5]">
                     <p className="text-[9px] font-black text-[#a3a3a3] uppercase tracking-widest mb-1">Nilai Bantuan</p>
                     <p className="text-sm font-black text-[#00236F]">
-                      {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(pengajuan?.beasiswa?.nilai_bantuan || 0)}
+                      {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(beasiswaNilaiBantuan)}
                     </p>
                   </div>
                   <div className="p-4 bg-[#fafafa] rounded-2xl border border-[#e5e5e5]">
                     <p className="text-[9px] font-black text-[#a3a3a3] uppercase tracking-widest mb-1">Min. IPK</p>
-                    <p className="text-sm font-black text-[#171717]">{pengajuan?.beasiswa?.syarat_ipk_min?.toFixed(2) || '0.00'}</p>
+                    <p className="text-sm font-black text-[#171717]">{beasiswaIpkMin?.toFixed(2) || '0.00'}</p>
                   </div>
                   <div className="p-4 bg-[#fafafa] rounded-2xl border border-[#e5e5e5]">
                     <p className="text-[9px] font-black text-[#a3a3a3] uppercase tracking-widest mb-1">Status Ekonomi</p>
-                    <p className="text-sm font-black text-[#171717]">{pengajuan?.beasiswa?.is_berbasis_ekonomi ? 'Wajib SKTM' : 'Umum'}</p>
+                    <p className="text-sm font-black text-[#171717]">{beasiswaKategori?.toLowerCase()?.includes('sktm') || beasiswaKategori === 'Ekonomi' ? 'Wajib SKTM' : 'Umum'}</p>
                   </div>
                   <div className="p-4 bg-[#fafafa] rounded-2xl border border-[#e5e5e5]">
                     <p className="text-[9px] font-black text-[#a3a3a3] uppercase tracking-widest mb-1">Kategori</p>
-                    <p className="text-sm font-black text-[#171717]">{pengajuan?.beasiswa?.kategori || '-'}</p>
+                    <p className="text-sm font-black text-[#171717]">{beasiswaKategori || '-'}</p>
                   </div>
                 </div>
               </div>
 
               <div className="flex flex-col items-center md:items-end justify-center">
                 <div className={`px-8 py-4 rounded-[28px] border-2 ${
-                  pengajuan.Status === 'diterima' ? 'bg-green-50 border-green-200 text-green-600' : 
-                  pengajuan.Status === 'ditolak' ? 'bg-red-50 border-red-200 text-red-600' :
+                  pengajuanStatus.toLowerCase() === 'diterima' ? 'bg-green-50 border-green-200 text-green-600' : 
+                  pengajuanStatus.toLowerCase() === 'ditolak' ? 'bg-red-50 border-red-200 text-red-600' :
                    'bg-[#eef4ff] border-[#c9d8ff] text-[#00236F]'
                 }`}>
                   <p className="text-[9px] font-black uppercase tracking-[0.3em] text-center opacity-70 mb-1">Status Final</p>
-                  <p className="text-xl font-black uppercase tracking-widest text-center">{pengajuan.Status.replace('_', ' ')}</p>
+                  <p className="text-xl font-black uppercase tracking-widest text-center">{pengajuanStatus.replace('_', ' ')}</p>
                 </div>
               </div>
             </div>
@@ -158,7 +206,7 @@ export default function ScholarshipDetailPage() {
                   {STAGES.map((s, idx) => {
                     const isCompleted = idx < currentStageIdx;
                     const isActive = idx === currentStageIdx;
-                    const isRejected = s.key === 'hasil' && pengajuan.Status === 'ditolak';
+                    const isRejected = s.key === 'hasil' && pengajuanStatus.toLowerCase() === 'ditolak';
 
                     return (
                       <div key={s.key} className="flex gap-10 relative items-start group">
@@ -168,7 +216,7 @@ export default function ScholarshipDetailPage() {
                            isActive ? (isRejected ? 'bg-red-500 border-red-100 text-white' : 'bg-[#00236F] border-[#dbe7ff] text-white shadow-md shadow-[#00236F]/20 scale-110') :
                            'bg-white border-[#f5f5f5] text-[#d4d4d4]'
                           }`}>
-                           {isCompleted ? <span className="material-symbols-outlined" style={{ fontSize: '24px' }} >check_circle</span> : (isRejected ? <span className="material-symbols-outlined" style={{ fontSize: '24px' }} Circle >close</span> : (idx + 1))}
+                            {isCompleted ? <span className="material-symbols-outlined" style={{ fontSize: '24px' }} >check_circle</span> : (isRejected ? <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>close</span> : (idx + 1))}
                          </div>
 
                          <div className={`flex-1 transition-opacity ${!isCompleted && !isActive ? 'opacity-40' : 'opacity-100'}`}>
@@ -224,7 +272,7 @@ export default function ScholarshipDetailPage() {
              </div>
              <h4 className="text-[10px] font-black uppercase tracking-[0.4em] text-white/60 mb-5 flex items-center gap-2"><Sparkles size={14} className="text-[#dbe7ff]" /> Snapshot Motivasi</h4>
              <p className="text-sm font-medium leading-relaxed italic opacity-80 line-clamp-[10]">
-               "{pengajuan.motivasi}"
+               "{pengajuanMotivasi || 'tidak ada motivasi'}"
              </p>
           </motion.div>
 
@@ -261,7 +309,7 @@ export default function ScholarshipDetailPage() {
           {/* Verified Badge Header */}
           <div className="bg-[#eef4ff] p-6 rounded-2xl border border-[#c9d8ff] flex flex-col items-center text-center">
              <div className="w-16 h-16 bg-white rounded-[24px] flex items-center justify-center text-[#16a34a] shadow-xl shadow-green-100 mb-4">
-                <span className="material-symbols-outlined" style={{ fontSize: '32px' }} Check >security</span>
+                <span className="material-symbols-outlined" style={{ fontSize: '32px' }}>security</span>
              </div>
              <p className="text-sm font-black text-[#00236F] tracking-tight mb-1 uppercase">Sistem BKU Student Hub</p>
              <p className="text-[10px] font-bold text-[#1E3A8A] opacity-80 uppercase tracking-widest">End-to-End Encryption & Verified Data</p>

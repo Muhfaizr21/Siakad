@@ -188,11 +188,14 @@ export default function KelolaBeasiswa() {
       render: (v, row) => <span className="text-[12px] font-medium text-neutral-600 font-inter">{row.Beasiswa?.Nama || '—'}</span> 
     },
     { 
-      key: 'CreatedAt', 
+      key: 'created_at', 
       label: 'Tgl Submit', 
       className: 'w-[140px] text-center', 
       cellClassName: 'text-center',
-      render: v => <span className="text-[11px] font-medium text-neutral-400 tabular-nums">{v ? new Date(v).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' }) : '—'}</span>
+      render: (v, row) => {
+        const val = row?.created_at || row?.CreatedAt || v;
+        return <span className="text-[11px] font-medium text-neutral-400 tabular-nums">{val ? new Date(val).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' }) : '—'}</span>
+      }
     },
     { 
       key: 'Status', 
@@ -331,7 +334,7 @@ export default function KelolaBeasiswa() {
                   searchPlaceholder="Cari mahasiswa atau program..."
                   actions={(row) => (
                     <div className="flex items-center gap-1.5">
-                      <Button onClick={() => navigate(`/admin/scholarships/applications/${row.ID}`)} variant="ghost" size="icon" className="h-8 w-8 text-neutral-400 hover:text-primary hover:bg-primary/5 rounded-lg transition-colors"><span className="material-symbols-outlined" style={{ fontSize: '18px' }} >visibility</span></Button>
+                      <Button onClick={() => navigate(`/admin/scholarships/applications/${row.id || row.ID}`)} variant="ghost" size="icon" className="h-8 w-8 text-neutral-400 hover:text-primary hover:bg-primary/5 rounded-lg transition-colors"><span className="material-symbols-outlined" style={{ fontSize: '18px' }} >visibility</span></Button>
                     </div>
                   )}
                 />

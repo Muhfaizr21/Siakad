@@ -1,7 +1,9 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:bkuhub_mobile/core/theme/app_colors.dart';
 import 'package:bkuhub_mobile/core/theme/app_text_styles.dart';
 import 'package:bkuhub_mobile/core/widgets/bku_shimmer.dart';
+import 'package:bkuhub_mobile/features/mahasiswa/domain/entities/health_record.dart';
 
 // Screens
 import 'package:bkuhub_mobile/features/mahasiswa/health/presentation/pages/health_screen.dart';
@@ -29,6 +31,69 @@ class StudentStatusGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    IconData healthIcon = Icons.favorite_rounded;
+    Color healthColor = Colors.redAccent;
+    String healthStatus = 'Normal';
+    String healthSub = 'Ketuk untuk skrining';
+
+    if (latestHealth != null && latestHealth is HealthRecord) {
+      final HealthRecord record = latestHealth;
+      final bmi = record.bmi;
+      final bmiStatus = record.bmiStatus;
+
+      // Default values based on BMI
+      healthStatus = bmiStatus;
+      healthSub = 'Skor BMI: ${bmi.toStringAsFixed(1)}';
+
+      if (bmiStatus == 'Underweight') {
+        healthIcon = Icons.health_and_safety_rounded;
+        healthColor = Colors.blue;
+      } else if (bmiStatus == 'Normal') {
+        healthIcon = Icons.spa_rounded;
+        healthColor = Colors.green;
+      } else if (bmiStatus == 'Overweight') {
+        healthIcon = Icons.directions_run_rounded;
+        healthColor = Colors.orange;
+      } else {
+        healthIcon = Icons.warning_amber_rounded;
+        healthColor = Colors.red;
+      }
+
+      // Check for realistic screening JSON notes
+      if (record.notes.isNotEmpty) {
+        try {
+          if (record.notes.startsWith('{') && record.notes.endsWith('}')) {
+            final data = jsonDecode(record.notes) as Map<String, dynamic>;
+            if (data['is_screening_realistis'] == true) {
+              final stres = data['tingkat_stres'] ?? 3;
+              final mood = data['mood'] ?? 'Baik';
+              final keluhan = data['daftar_keluhan'] as List?;
+              final hasKeluhan = keluhan != null && keluhan.isNotEmpty;
+
+              if (stres >= 8 || record.bmiStatus == 'Obese' || hasKeluhan) {
+                healthStatus = 'Perlu Perhatian';
+                healthSub = hasKeluhan ? keluhan.first.toString() : 'Stres: $stres/10';
+                healthIcon = Icons.warning_amber_rounded;
+                healthColor = Colors.red;
+              } else if (stres >= 5 || record.bmiStatus == 'Overweight') {
+                healthStatus = 'Waspada';
+                healthSub = 'Stres: $stres/10 • Mood: $mood';
+                healthIcon = Icons.monitor_heart_rounded;
+                healthColor = Colors.orange;
+              } else {
+                healthStatus = 'Sangat Fit';
+                healthSub = 'Tidur Cukup • Mood: $mood';
+                healthIcon = Icons.spa_rounded;
+                healthColor = Colors.teal;
+              }
+            }
+          }
+        } catch (_) {
+          // Not JSON, fallback to BMI defaults
+        }
+      }
+    }
+
     return GridView.count(
       shrinkWrap: true,
       padding: EdgeInsets.zero,
@@ -86,10 +151,10 @@ class StudentStatusGrid extends StatelessWidget {
           ),
           _StatusItem(
             label: 'Kesehatan',
-            value: latestHealth?.bmiStatus ?? 'Normal',
-            subValue: 'Skor BMI: ${latestHealth?.bmi.toStringAsFixed(1) ?? "0.0"}',
-            icon: Icons.favorite_rounded,
-            color: Colors.redAccent,
+            value: healthStatus,
+            subValue: healthSub,
+            icon: healthIcon,
+            color: healthColor,
             target: const HealthScreen(),
           ),
         ],

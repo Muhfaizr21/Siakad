@@ -818,6 +818,73 @@ func ensurePsychologistBootstrap(user models.User) error {
 		}
 	}
 
+	// Seed Dr. Sarah Amalia
+	sarahUser, err := ensureUser("sarah@bku.ac.id", "sarah123", "psikolog", nil, nil)
+	if err == nil {
+		var sarah models.Psikolog
+		if err := config.DB.Where("user_id = ?", sarahUser.ID).First(&sarah).Error; err != nil {
+			sarah = models.Psikolog{
+				UserID:       sarahUser.ID,
+				Nama:         "Dr. Sarah Amalia, M.Psi",
+				Email:        sarahUser.Email,
+				NoHP:         "+62 812 3456 7891",
+				Spesialisasi: "Psikologi Klinis & Pendidikan",
+				Bio:          "Ahli dalam diagnosis klinis, konsultasi akademik, dan penanganan trauma emosional.",
+				FotoURL:      "https://images.unsplash.com/photo-1594824813573-246434de83fb?q=80&w=200&auto=format&fit=crop",
+				Lokasi:       "Ruang Konseling Student Hub A",
+				Bahasa:       "Indonesia, Inggris",
+				Tarif:        180000,
+				IsAktif:      true,
+			}
+			if err := config.DB.Create(&sarah).Error; err == nil {
+				sarahSlots := []models.PsikologScheduleSlot{
+					{PsikologID: sarah.ID, Hari: "Senin", JamMulai: "09:00", JamSelesai: "10:00", Lokasi: "Ruang Konseling Student Hub A", Kuota: 3, IsAktif: true},
+					{PsikologID: sarah.ID, Hari: "Rabu", JamMulai: "10:00", JamSelesai: "11:00", Lokasi: "Ruang Konseling Student Hub A", Kuota: 3, IsAktif: true},
+					{PsikologID: sarah.ID, Hari: "Jumat", JamMulai: "13:00", JamSelesai: "14:00", Lokasi: "Ruang Konseling Student Hub A", Kuota: 3, IsAktif: true},
+				}
+				for _, slot := range sarahSlots {
+					var existing models.PsikologScheduleSlot
+					if err := config.DB.Where("psikolog_id = ? AND hari = ? AND jam_mulai = ?", sarah.ID, slot.Hari, slot.JamMulai).First(&existing).Error; err != nil {
+						config.DB.Create(&slot)
+					}
+				}
+			}
+		}
+	}
+
+	// Seed Rian Hidayat
+	rianUser, err := ensureUser("rian@bku.ac.id", "rian123", "psikolog", nil, nil)
+	if err == nil {
+		var rian models.Psikolog
+		if err := config.DB.Where("user_id = ?", rianUser.ID).First(&rian).Error; err != nil {
+			rian = models.Psikolog{
+				UserID:       rianUser.ID,
+				Nama:         "Rian Hidayat, S.Psi",
+				Email:        rianUser.Email,
+				NoHP:         "+62 812 3456 7892",
+				Spesialisasi: "Konseling Karir & Pengembangan Diri",
+				Bio:          "Membantu mahasiswa merencanakan karir, mengatasi demotivasi belajar, dan melatih resiliensi diri.",
+				FotoURL:      "https://images.unsplash.com/photo-1559839734-2b71f1536783?q=80&w=200&auto=format&fit=crop",
+				Lokasi:       "Ruang Konseling Student Hub B",
+				Bahasa:       "Indonesia",
+				Tarif:        120000,
+				IsAktif:      true,
+			}
+			if err := config.DB.Create(&rian).Error; err == nil {
+				rianSlots := []models.PsikologScheduleSlot{
+					{PsikologID: rian.ID, Hari: "Selasa", JamMulai: "10:00", JamSelesai: "11:00", Lokasi: "Ruang Konseling Student Hub B", Kuota: 4, IsAktif: true},
+					{PsikologID: rian.ID, Hari: "Kamis", JamMulai: "14:00", JamSelesai: "15:00", Lokasi: "Ruang Konseling Student Hub B", Kuota: 4, IsAktif: true},
+				}
+				for _, slot := range rianSlots {
+					var existing models.PsikologScheduleSlot
+					if err := config.DB.Where("psikolog_id = ? AND hari = ? AND jam_mulai = ?", rian.ID, slot.Hari, slot.JamMulai).First(&existing).Error; err != nil {
+						config.DB.Create(&slot)
+					}
+				}
+			}
+		}
+	}
+
 	students := []models.Mahasiswa{}
 	if err := config.DB.Preload("Fakultas").Preload("ProgramStudi").Limit(4).Find(&students).Error; err != nil {
 		return err

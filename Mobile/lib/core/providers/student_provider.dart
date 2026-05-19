@@ -11,6 +11,8 @@ import 'package:bkuhub_mobile/features/mahasiswa/domain/repositories/student_rep
 import 'package:bkuhub_mobile/core/services/auth_service.dart';
 import 'package:bkuhub_mobile/features/ormawa/domain/entities/ormawa_pkkmb.dart';
 import 'package:bkuhub_mobile/features/mahasiswa/domain/entities/campus_news.dart';
+import 'package:bkuhub_mobile/features/mahasiswa/domain/entities/faculty_progress.dart';
+import 'package:bkuhub_mobile/features/mahasiswa/data/models/scholarship_model.dart';
 
 class StudentProvider extends ChangeNotifier {
   final StudentRepository? _repository;
@@ -46,8 +48,9 @@ class StudentProvider extends ChangeNotifier {
   List<OrganizationHistory> _organizationHistory = [];
   List<PkkmbEvent> _pkkmbEvents = [];
   List<CampusNews> _campusNews = [];
+  List<FacultyProgress> _facultyProgress = [];
   
-  final List<Psychologist> _availablePsychologists = [
+  List<Psychologist> _availablePsychologists = [
     const Psychologist(
       id: 'P1',
       name: 'Dr. Sarah Amalia, M.Psi',
@@ -84,6 +87,7 @@ class StudentProvider extends ChangeNotifier {
   List<Psychologist> get availablePsychologists => _availablePsychologists;
   List<PkkmbEvent> get pkkmbEvents => _pkkmbEvents;
   List<CampusNews> get campusNews => _campusNews;
+  List<FacultyProgress> get facultyProgress => _facultyProgress;
   List<Map<String, dynamic>> get schedules => _schedules;
 
   HealthRecord? get latestHealthRecord => _healthRecords.isNotEmpty ? _healthRecords.first : null;
@@ -155,8 +159,21 @@ class StudentProvider extends ChangeNotifier {
 
       _missions = await _repository.getMissions();
       _achievements = await _repository.getAchievements();
-      _scholarships = await _repository.getScholarships();
+      _scholarships = List<Scholarship>.from(await _repository.getScholarships());
       _counselingSessions = await _repository.getCounselingSessions();
+      try {
+        final psychologistsList = await _repository.getPsychologists();
+        if (psychologistsList.isNotEmpty) {
+          _availablePsychologists = psychologistsList;
+        }
+      } catch (e) {
+        debugPrint('Error loading psychologists: $e');
+      }
+      try {
+        _facultyProgress = await _repository.getFacultyStatistics();
+      } catch (e) {
+        debugPrint('Error loading faculty statistics: $e');
+      }
       _aspirations = await _repository.getAspirations();
       _healthRecords = await _repository.getHealthRecords();
       _organizationHistory = await _repository.getOrganizationHistory();
@@ -267,25 +284,51 @@ class StudentProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> applyForScholarship(String id) async {
+  Future<void> applyForScholarship(
+    String id, 
+    String motivasi, {
+    String? ktmKtpPath,
+    String? sertifikatPath,
+    String? transkripPath,
+  }) async {
     final index = _scholarships.indexWhere((s) => s.id == id);
     if (index != -1) {
-      if (_repository != null) {
-        await _repository.applyForScholarship(id);
-      }
-      
       final s = _scholarships[index];
-      _scholarships[index] = Scholarship(
-        id: s.id, 
-        title: s.title, 
-        provider: s.provider, 
-        category: s.category, 
-        deadline: s.deadline, 
-        coverAmount: s.coverAmount, 
-        description: s.description, 
-        status: 'Applied', 
-        applicationStatus: 'Review Berkas'
-      );
+      
+      // Differentiate between keep existing, new file, or deleted ("")
+      final cleanKtm = (ktmKtpPath == null && s.ktmKtpUrl != null && s.ktmKtpUrl!.isNotEmpty) ? "" : ktmKtpPath;
+      final cleanSertifikat = (sertifikatPath == null && s.sertifikatUrl != null && s.sertifikatUrl!.isNotEmpty) ? "" : sertifikatPath;
+      final cleanTranskrip = (transkripPath == null && s.transkripUrl != null && s.transkripUrl!.isNotEmpty) ? "" : transkripPath;
+
+      if (_repository != null) {
+        await _repository.applyForScholarship(
+          id, 
+          motivasi,
+          ktmKtpPath: cleanKtm,
+          sertifikatPath: cleanSertifikat,
+          transkripPath: cleanTranskrip,
+        );
+        
+        // Refresh the scholarships list from the server to get the actual server-side file paths
+        final freshScholarships = await _repository.getScholarships();
+        _scholarships = List<Scholarship>.from(freshScholarships);
+      } else {
+        _scholarships[index] = ScholarshipModel(
+          id: s.id, 
+          title: s.title, 
+          provider: s.provider, 
+          category: s.category, 
+          deadline: s.deadline, 
+          coverAmount: s.coverAmount, 
+          description: s.description, 
+          status: 'Applied', 
+          applicationStatus: 'Review Berkas',
+          motivasi: motivasi,
+          ktmKtpUrl: ktmKtpPath,
+          sertifikatUrl: sertifikatPath,
+          transkripUrl: transkripPath,
+        );
+      }
       notifyListeners();
     }
   }
@@ -294,7 +337,17 @@ class StudentProvider extends ChangeNotifier {
     final index = _scholarships.indexWhere((s) => s.id == id);
     if (index != -1) {
       final s = _scholarships[index];
-      _scholarships[index] = Scholarship(id: s.id, title: s.title, provider: s.provider, category: s.category, deadline: s.deadline, coverAmount: s.coverAmount, description: s.description, status: 'Open', applicationStatus: null);
+      _scholarships[index] = ScholarshipModel(
+        id: s.id, 
+        title: s.title, 
+        provider: s.provider, 
+        category: s.category, 
+        deadline: s.deadline, 
+        coverAmount: s.coverAmount, 
+        description: s.description, 
+        status: 'Open', 
+        applicationStatus: null
+      );
       notifyListeners();
     }
   }
@@ -330,6 +383,18 @@ class StudentProvider extends ChangeNotifier {
     } finally {
       _isLoading = false;
       notifyListeners();
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> getPsychologistSchedules(String psychologistId) async {
+    try {
+      if (_repository != null) {
+        return await _repository.getPsychologistSchedules(psychologistId);
+      }
+      return [];
+    } catch (e) {
+      debugPrint('Error getting psychologist schedules: $e');
+      return [];
     }
   }
 

@@ -275,9 +275,13 @@ type BeasiswaPendaftaran struct {
 	Mahasiswa Mahasiswa
 	Beasiswa  Beasiswa
 
-	Status   string
-	Catatan  string
-	BuktiURL string
+	Status        string
+	Catatan       string
+	BuktiURL      string
+	Motivasi      string `json:"motivasi"`
+	KtmKtpURL     string `json:"ktm_ktp_url"`
+	SertifikatURL string `json:"sertifikat_url"`
+	TranskripURL  string `json:"transkrip_url"`
 }
 
 func (BeasiswaPendaftaran) TableName() string {

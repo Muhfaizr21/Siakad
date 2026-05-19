@@ -56,9 +56,14 @@ func GetKatalogBeasiswa(c *fiber.Ctx) error {
 	for _, b := range beasiswaList {
 		status := "Open"
 		var appStatus interface{} = nil
+		var motivasi, ktmKtpURL, sertifikatURL, transkripURL interface{} = nil, nil, nil, nil
 		if app, exists := appliedMap[b.ID]; exists {
 			status = "Applied"
 			appStatus = app.Status
+			motivasi = app.Motivasi
+			ktmKtpURL = app.KtmKtpURL
+			sertifikatURL = app.SertifikatURL
+			transkripURL = app.TranskripURL
 		}
 		responseList = append(responseList, fiber.Map{
 			"id":                 b.ID,
@@ -75,6 +80,10 @@ func GetKatalogBeasiswa(c *fiber.Ctx) error {
 			"anggaran":           b.Anggaran,
 			"status":             status,
 			"application_status": appStatus,
+			"motivasi":           motivasi,
+			"ktm_ktp_url":        ktmKtpURL,
+			"sertifikat_url":     sertifikatURL,
+			"transkrip_url":      transkripURL,
 		})
 	}
 
@@ -96,11 +105,16 @@ func GetBeasiswaDetail(c *fiber.Ctx) error {
 	student, err := getStudent(c)
 	status := "Open"
 	var appStatus interface{} = nil
+	var motivasi, ktmKtpURL, sertifikatURL, transkripURL interface{} = nil, nil, nil, nil
 	if err == nil && student != nil {
 		var app models.BeasiswaPendaftaran
 		if err := config.DB.Where("mahasiswa_id = ? AND beasiswa_id = ?", student.ID, beasiswa.ID).First(&app).Error; err == nil {
 			status = "Applied"
 			appStatus = app.Status
+			motivasi = app.Motivasi
+			ktmKtpURL = app.KtmKtpURL
+			sertifikatURL = app.SertifikatURL
+			transkripURL = app.TranskripURL
 		}
 	}
 
@@ -121,6 +135,10 @@ func GetBeasiswaDetail(c *fiber.Ctx) error {
 			"anggaran":           beasiswa.Anggaran,
 			"status":             status,
 			"application_status": appStatus,
+			"motivasi":           motivasi,
+			"ktm_ktp_url":        ktmKtpURL,
+			"sertifikat_url":     sertifikatURL,
+			"transkrip_url":      transkripURL,
 		},
 	})
 }
@@ -148,12 +166,6 @@ func DaftarBeasiswa(c *fiber.Ctx) error {
 		return c.Status(400).JSON(fiber.Map{"success": false, "message": "Pendaftaran beasiswa ini sudah ditutup"})
 	}
 
-	var existing models.BeasiswaPendaftaran
-	config.DB.Where("mahasiswa_id = ? AND beasiswa_id = ?", student.ID, beasiswa.ID).First(&existing)
-	if existing.ID != 0 {
-		return c.Status(400).JSON(fiber.Map{"success": false, "message": "Kamu sudah pernah mendaftar beasiswa ini"})
-	}
-
 	// HANDLE FILE UPLOAD (Bukti URL)
 	var buktiURL string
 	file, err := c.FormFile("berkas_utama") // Generic main file
@@ -166,13 +178,86 @@ func DaftarBeasiswa(c *fiber.Ctx) error {
 		}
 	}
 
+	// HANDLE SUPPORTING FILES UPLOAD
+	var ktmKtpURL string
+	if file, err := c.FormFile("ktm_ktp"); err == nil {
+		ext := strings.ToLower(filepath.Ext(file.Filename))
+		filename := fmt.Sprintf("ktm_ktp_%d_%s%s", student.ID, uuid.New().String()[:8], ext)
+		savePath := "./uploads/scholarship/" + filename
+		if err := c.SaveFile(file, savePath); err == nil {
+			ktmKtpURL = "/uploads/scholarship/" + filename
+		}
+	}
+
+	var sertifikatURL string
+	if file, err := c.FormFile("sertifikat"); err == nil {
+		ext := strings.ToLower(filepath.Ext(file.Filename))
+		filename := fmt.Sprintf("sertifikat_%d_%s%s", student.ID, uuid.New().String()[:8], ext)
+		savePath := "./uploads/scholarship/" + filename
+		if err := c.SaveFile(file, savePath); err == nil {
+			sertifikatURL = "/uploads/scholarship/" + filename
+		}
+	}
+
+	var transkripURL string
+	if file, err := c.FormFile("transkrip"); err == nil {
+		ext := strings.ToLower(filepath.Ext(file.Filename))
+		filename := fmt.Sprintf("transkrip_%d_%s%s", student.ID, uuid.New().String()[:8], ext)
+		savePath := "./uploads/scholarship/" + filename
+		if err := c.SaveFile(file, savePath); err == nil {
+			transkripURL = "/uploads/scholarship/" + filename
+		}
+	}
+
+	var existing models.BeasiswaPendaftaran
+	config.DB.Where("mahasiswa_id = ? AND beasiswa_id = ?", student.ID, beasiswa.ID).First(&existing)
+	if existing.ID != 0 {
+		if buktiURL != "" {
+			existing.BuktiURL = buktiURL
+		}
+		
+		if c.FormValue("delete_ktm_ktp") == "true" {
+			existing.KtmKtpURL = ""
+		} else if ktmKtpURL != "" {
+			existing.KtmKtpURL = ktmKtpURL
+		}
+
+		if c.FormValue("delete_sertifikat") == "true" {
+			existing.SertifikatURL = ""
+		} else if sertifikatURL != "" {
+			existing.SertifikatURL = sertifikatURL
+		}
+
+		if c.FormValue("delete_transkrip") == "true" {
+			existing.TranskripURL = ""
+		} else if transkripURL != "" {
+			existing.TranskripURL = transkripURL
+		}
+
+		existing.Motivasi = c.FormValue("motivasi")
+		// Update status back to StatusMenunggu if edited
+		existing.Status = StatusMenunggu
+		if err := config.DB.Save(&existing).Error; err != nil {
+			return c.Status(500).JSON(fiber.Map{"success": false, "message": "Gagal memperbarui pendaftaran"})
+		}
+		return c.Status(200).JSON(fiber.Map{
+			"success": true,
+			"message": "Pendaftaran berhasil diperbarui",
+			"data":    existing,
+		})
+	}
+
 	// CREATE PENGAJUAN
 	pengajuan := models.BeasiswaPendaftaran{
-		MahasiswaID: student.ID,
-		BeasiswaID:  beasiswa.ID,
-		Status:      StatusMenunggu,
-		Catatan:     c.FormValue("catatan"),
-		BuktiURL:    buktiURL,
+		MahasiswaID:   student.ID,
+		BeasiswaID:    beasiswa.ID,
+		Status:        StatusMenunggu,
+		Catatan:       c.FormValue("catatan"),
+		BuktiURL:      buktiURL,
+		Motivasi:      c.FormValue("motivasi"),
+		KtmKtpURL:     ktmKtpURL,
+		SertifikatURL: sertifikatURL,
+		TranskripURL:  transkripURL,
 	}
 
 	if err := config.DB.Create(&pengajuan).Error; err != nil {

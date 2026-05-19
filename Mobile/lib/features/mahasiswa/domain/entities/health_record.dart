@@ -8,8 +8,22 @@ class HealthRecord {
   final int heartRate;
   final double temperature;
   final DateTime date;
+  final String bloodType;
+  final String notes;
+  final int? gulaDarah;
 
-  HealthRecord({required this.id, required this.height, required this.weight, required this.bloodPressure, required this.heartRate, required this.temperature, required this.date});
+  HealthRecord({
+    required this.id,
+    required this.height,
+    required this.weight,
+    required this.bloodPressure,
+    required this.heartRate,
+    required this.temperature,
+    required this.date,
+    this.bloodType = '-',
+    this.notes = '',
+    this.gulaDarah,
+  });
 
   double get bmi => weight / ((height / 100) * (height / 100));
   

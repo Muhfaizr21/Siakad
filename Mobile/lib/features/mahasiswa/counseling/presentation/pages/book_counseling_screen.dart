@@ -24,6 +24,47 @@ class _BookCounselingScreenState extends State<BookCounselingScreen> {
   DateTime? _selectedDate;
   String _selectedTime = '10:00 - 11:00';
 
+  List<Map<String, dynamic>> _loadedSlots = [];
+  bool _isLoadingSlots = false;
+  Map<String, dynamic>? _selectedSlot;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.psychologist != null) {
+      _loadSlots();
+    }
+  }
+
+  Future<void> _loadSlots() async {
+    setState(() {
+      _isLoadingSlots = true;
+    });
+    try {
+      final slots = await context.read<StudentProvider>().getPsychologistSchedules(widget.psychologist!.id);
+      if (mounted) {
+        setState(() {
+          _loadedSlots = slots;
+          if (slots.isNotEmpty) {
+            _selectedSlot = slots.first;
+            _selectedTime = "${slots.first['start']} - ${slots.first['end']}";
+            if (slots.first['next_date'] != null) {
+              _selectedDate = DateTime.parse(slots.first['next_date']);
+            }
+          }
+        });
+      }
+    } catch (e) {
+      debugPrint('Error loading dynamic slots: $e');
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoadingSlots = false;
+        });
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -230,6 +271,89 @@ class _BookCounselingScreenState extends State<BookCounselingScreen> {
   }
 
   Widget _buildTimeSelector() {
+    if (_isLoadingSlots) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.all(8.0),
+          child: SizedBox(
+            width: 24,
+            height: 24,
+            child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary),
+          ),
+        ),
+      );
+    }
+
+    if (_loadedSlots.isNotEmpty) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: _loadedSlots.map((slot) {
+              final slotTime = "${slot['start']} - ${slot['end']}";
+              final slotDisplay = slot['display'] ?? slotTime;
+              final isSelected = _selectedSlot?['id'] == slot['id'];
+              return InkWell(
+                onTap: () {
+                  setState(() {
+                    _selectedSlot = slot;
+                    _selectedTime = slotTime;
+                    if (slot['next_date'] != null) {
+                      _selectedDate = DateTime.parse(slot['next_date']);
+                    }
+                  });
+                },
+                borderRadius: BorderRadius.circular(12),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: isSelected ? AppColors.primary : Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: isSelected ? AppColors.primary : AppColors.surfaceVariant),
+                  ),
+                  child: Text(
+                    slotDisplay,
+                    style: AppTextStyles.labelSm.copyWith(
+                      color: isSelected ? Colors.white : AppColors.onSurfaceVariant,
+                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                    ),
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+          if (_selectedSlot != null && _selectedSlot!['location'] != null) ...[
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withAlpha(8),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppColors.primary.withAlpha(15)),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.location_on_rounded, color: AppColors.primary, size: 16),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Lokasi Sesi: ${_selectedSlot!['location']}',
+                      style: AppTextStyles.labelSm.copyWith(
+                        color: AppColors.primary,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ],
+      );
+    }
+
     final times = ['09:00 - 10:00', '10:00 - 11:00', '13:00 - 14:00', '14:00 - 15:00'];
     return Wrap(
       spacing: 8,
@@ -278,15 +402,20 @@ class _BookCounselingScreenState extends State<BookCounselingScreen> {
 
   void _submitForm() {
     if (_formKey.currentState!.validate() && _selectedDate != null) {
+      final packedId = widget.psychologist != null
+          ? "${widget.psychologist!.id}:${_selectedSlot != null ? _selectedSlot!['id'] : ''}"
+          : 'UNASSIGNED';
+
       final newSession = CounselingSession(
         id: 'C${DateTime.now().millisecondsSinceEpoch}',
-        psychologistId: widget.psychologist?.id ?? 'UNASSIGNED',
+        psychologistId: packedId,
         psychologistName: widget.psychologist?.name ?? 'Psikolog Pilihan (Menunggu Konfirmasi)',
         topic: widget.topic,
         date: _selectedDate!,
         time: _selectedTime,
-        location: 'Gedung Rektorat Lt. 2 (Ruang Konseling)',
+        location: _selectedSlot != null ? _selectedSlot!['location'] : 'Gedung Rektorat Lt. 2 (Ruang Konseling)',
         status: 'Scheduled',
+        notes: _descriptionController.text,
       );
       context.read<StudentProvider>().bookCounseling(newSession);
       _showSuccessDialog();

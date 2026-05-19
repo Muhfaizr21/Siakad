@@ -48,17 +48,18 @@ export default function ScholarshipApplicationDetail() {
       // For now, let's assume we fetch all and filter, or a specific endpoint
       const res = await adminService.getAllScholarshipApplications()
       if (res.status === 'success') {
-        const detail = res.data.find(item => String(item.ID) === id)
+        const detail = res.data.find(item => String(item.id || item.ID) === id)
         if (detail) {
           setData(detail)
           setForm({ status: detail.Status, catatan: detail.Catatan || '' })
         } else {
-          toast.error('Data pendaftar tidak ditemukan')
-          navigate('/admin/scholarships')
+          const availableIds = res.data.map(i => i.id || i.ID).join(', ')
+          toast.error(`Tidak ditemukan ID: ${id}. Tersedia: ${availableIds}`)
+          setTimeout(() => navigate('/admin/scholarships'), 3000)
         }
       }
     } catch (err) {
-      toast.error('Gagal memuat detail pendaftar')
+      toast.error('Gagal memuat detail pendaftar: ' + err.message)
     } finally {
       setLoading(false)
     }
@@ -154,7 +155,7 @@ export default function ScholarshipApplicationDetail() {
                 </div>
                 <div className="text-right hidden md:block">
                    <p className="text-[10px] font-black text-neutral-400 uppercase tracking-widest mb-1">IPK Terakhir</p>
-                   <p className="text-2xl font-black text-primary font-jakarta tabular-nums leading-none">3.85</p>
+                   <p className="text-2xl font-black text-primary font-jakarta tabular-nums leading-none">{data.Mahasiswa?.IPK?.toFixed(2) || '0.00'}</p>
                 </div>
               </div>
               <CardContent className="p-8">
@@ -183,12 +184,23 @@ export default function ScholarshipApplicationDetail() {
                       <div className="grid grid-cols-2 gap-4">
                         <div className="p-4 rounded-xl bg-neutral-50/50 border border-neutral-100 space-y-1">
                           <p className="text-[9px] font-bold text-neutral-400 uppercase tracking-wider">Email</p>
-                          <p className="text-xs font-bold text-neutral-700 truncate">{data.Mahasiswa?.User?.Email || '-'}</p>
+                          <p className="text-xs font-bold text-neutral-700 truncate">{data.Mahasiswa?.EmailKampus || data.Mahasiswa?.EmailPersonal || data.Mahasiswa?.Pengguna?.email || '-'}</p>
                         </div>
                         <div className="p-4 rounded-xl bg-neutral-50/50 border border-neutral-100 space-y-1">
                           <p className="text-[9px] font-bold text-neutral-400 uppercase tracking-wider">WhatsApp</p>
-                          <p className="text-xs font-bold text-neutral-700">{data.Mahasiswa?.Phone || '-'}</p>
+                          <p className="text-xs font-bold text-neutral-700">{data.Mahasiswa?.NoHP || '-'}</p>
                         </div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-4">
+                      <h4 className="text-[11px] font-black text-neutral-900 uppercase tracking-[0.15em] flex items-center gap-2">
+                        <span className="material-symbols-outlined text-primary" style={{ fontSize: '16px' }} >chat_bubble</span> Motivasi & Alasan
+                      </h4>
+                      <div className="p-4 rounded-xl bg-neutral-50/50 border border-neutral-100">
+                        <p className="text-xs text-neutral-600 leading-relaxed italic whitespace-pre-line">
+                          "{data.motivasi || data.Motivasi || 'Tidak ada motivasi yang dicantumkan.'}"
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -201,16 +213,16 @@ export default function ScholarshipApplicationDetail() {
                       <div className="p-6 rounded-2xl bg-emerald-50/50 border border-emerald-100 space-y-4">
                         <div className="space-y-1">
                           <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest">Nama Program</p>
-                          <p className="text-lg font-bold text-neutral-900 font-jakarta leading-tight">{data.Beasiswa?.Nama}</p>
+                          <p className="text-lg font-bold text-neutral-900 font-jakarta leading-tight">{data.Beasiswa?.nama || '-'}</p>
                         </div>
                         <div className="grid grid-cols-2 gap-4">
                            <div className="space-y-1">
                               <p className="text-[9px] font-bold text-neutral-400 uppercase tracking-wider">IPK Minimal</p>
-                              <p className="text-sm font-bold text-neutral-700">{data.Beasiswa?.IPKMin?.toFixed(2)}</p>
+                              <p className="text-sm font-bold text-neutral-700">{data.Beasiswa?.ipk_min?.toFixed(2) || '-'}</p>
                            </div>
                            <div className="space-y-1">
                               <p className="text-[9px] font-bold text-neutral-400 uppercase tracking-wider">Batas Akhir</p>
-                              <p className="text-sm font-bold text-neutral-700">{data.Beasiswa?.Deadline ? new Date(data.Beasiswa.Deadline).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) : '-'}</p>
+                              <p className="text-sm font-bold text-neutral-700">{data.Beasiswa?.deadline ? new Date(data.Beasiswa.deadline).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) : '-'}</p>
                            </div>
                         </div>
                       </div>
@@ -225,7 +237,7 @@ export default function ScholarshipApplicationDetail() {
                             <span className="material-symbols-outlined text-neutral-400" style={{ fontSize: '16px' }} >calendar_month</span>
                             <div className="flex flex-col">
                                <p className="text-[9px] font-bold text-neutral-400 uppercase">Waktu Submit</p>
-                               <p className="text-xs font-bold text-neutral-700">{new Date(data.CreatedAt).toLocaleString('id-ID', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
+                               <p className="text-xs font-bold text-neutral-700">{(data.created_at || data.CreatedAt) ? new Date(data.created_at || data.CreatedAt).toLocaleString('id-ID', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '-'}</p>
                             </div>
                          </div>
                       </div>
@@ -242,34 +254,42 @@ export default function ScholarshipApplicationDetail() {
                     <span className="material-symbols-outlined text-primary" style={{ fontSize: '16px' }} >description</span> Validasi Dokumen Pendukung
                   </h4>
                </div>
-               <CardContent className="p-8">
-                  {data.BuktiURL ? (
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-6 items-center">
-                       <div className="md:col-span-3 flex items-center gap-5 p-5 rounded-2xl bg-neutral-50 border border-neutral-200 shadow-sm group">
-                          <div className="size-14 rounded-xl bg-white border border-neutral-200 flex items-center justify-center text-primary shadow-sm group-hover:scale-105 transition-transform"><span className="material-symbols-outlined" style={{ fontSize: '28px' }}  strokeWidth={1.5}>description</span></div>
-                          <div className="flex flex-col gap-1 flex-1 min-w-0">
-                             <p className="text-sm font-bold text-neutral-900 font-jakarta truncate">Berkas_Pendaftaran_Beasiswa.pdf</p>
-                             <p className="text-[11px] font-medium text-neutral-400">Pastikan untuk memeriksa seluruh halaman dokumen secara teliti.</p>
-                          </div>
-                       </div>
-                       <a 
-                          href={`${API_BASE_URL.replace('/api', '')}${data.BuktiURL}`} 
-                          target="_blank" 
-                          rel="noreferrer"
-                          className="h-14 flex items-center justify-center gap-2 rounded-2xl bg-neutral-900 text-white hover:bg-primary transition-all font-bold text-xs uppercase tracking-widest shadow-xl shadow-neutral-200 active:scale-95"
-                       >
-                          <ExternalLink size={16} /> Buka Berkas
-                       </a>
+               <CardContent className="p-8 space-y-6">
+                  {[
+                    { label: 'KTM & KTP', url: data.ktm_ktp_url || data.KtmKtpURL, filename: 'KTM_dan_KTP.pdf' },
+                    { label: 'Sertifikat Prestasi', url: data.sertifikat_url || data.SertifikatURL, filename: 'Sertifikat_Prestasi.pdf' },
+                    { label: 'Transkrip Nilai', url: data.transkrip_url || data.TranskripURL, filename: 'Transkrip_Nilai.pdf' },
+                  ].map((doc, idx) => (
+                    <div key={idx} className="border-b border-neutral-100 last:border-0 pb-6 last:pb-0">
+                      <p className="text-[11px] font-black text-neutral-900 uppercase tracking-widest mb-3">{doc.label}</p>
+                      {doc.url ? (
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 items-center">
+                           <div className="md:col-span-3 flex items-center gap-5 p-5 rounded-2xl bg-neutral-50 border border-neutral-200 shadow-sm group">
+                              <div className="size-14 rounded-xl bg-white border border-neutral-200 flex items-center justify-center text-primary shadow-sm group-hover:scale-105 transition-transform"><span className="material-symbols-outlined" style={{ fontSize: '28px' }}  strokeWidth={1.5}>description</span></div>
+                              <div className="flex flex-col gap-1 flex-1 min-w-0">
+                                 <p className="text-sm font-bold text-neutral-900 font-jakarta truncate">{doc.url.split('/').pop() || doc.filename}</p>
+                                 <p className="text-[11px] font-medium text-neutral-400">Pastikan untuk memeriksa seluruh halaman dokumen secara teliti.</p>
+                              </div>
+                           </div>
+                           <a 
+                              href={`${API_BASE_URL.replace('/api', '')}${doc.url}`} 
+                              target="_blank" 
+                              rel="noreferrer"
+                              className="h-14 flex items-center justify-center gap-2 rounded-2xl bg-neutral-900 text-white hover:bg-primary transition-all font-bold text-xs uppercase tracking-widest shadow-xl shadow-neutral-200 active:scale-95 text-center"
+                           >
+                              <ExternalLink size={16} /> Buka Berkas
+                           </a>
+                        </div>
+                      ) : (
+                        <div className="p-6 rounded-2xl border border-dashed border-neutral-200 flex flex-col items-center justify-center gap-2 text-neutral-300 bg-neutral-50/20">
+                           <div className="text-center space-y-1">
+                              <p className="text-xs font-bold uppercase tracking-[0.2em] text-neutral-400">Belum Diunggah</p>
+                              <p className="text-[10px] font-medium text-neutral-400">Mahasiswa belum mengunggah dokumen ini.</p>
+                           </div>
+                        </div>
+                      )}
                     </div>
-                  ) : (
-                    <div className="p-12 rounded-2xl border-2 border-dashed border-neutral-100 flex flex-col items-center justify-center gap-4 text-neutral-300">
-                       <div className="size-20 rounded-full bg-neutral-50 flex items-center justify-center opacity-40"><span className="material-symbols-outlined" style={{ fontSize: '40px' }}  strokeWidth={1}>description</span></div>
-                       <div className="text-center space-y-1">
-                          <p className="text-sm font-bold uppercase tracking-[0.2em]">Dokumen Kosong</p>
-                          <p className="text-[11px] font-medium">Mahasiswa belum mengunggah berkas persyaratan.</p>
-                       </div>
-                    </div>
-                  )}
+                  ))}
                </CardContent>
             </Card>
           </div>

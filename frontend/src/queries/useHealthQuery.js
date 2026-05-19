@@ -38,6 +38,7 @@ const normalizeHealthRecord = (item = {}) => {
     berat_badan: Number(beratVal) || 0,
     sistolik: Number(sistolikVal) || 0,
     diastolik: Number(diastolikVal) || 0,
+    gula_darah: item.gula_darah ?? item.GulaDarah ?? 0,
     bmi: Number(bmiVal) || 0,
     golongan_darah: item.golongan_darah || item.GolonganDarah || '-',
     sumber: item.sumber || item.Sumber || 'mandiri',

@@ -32,6 +32,7 @@ const menuGroups = [
     title: "Layanan & Bantuan",
     items: [
       { name: "Beasiswa", icon: 'payment', path: "/admin/scholarships" },
+      { name: "Prestasi Mahasiswa", icon: 'emoji_events', path: "/admin/achievements" },
       { name: "Aspirasi", icon: 'chat', path: "/admin/aspirations" },
     ]
   },

@@ -28,6 +28,18 @@ Perbaikan yang sudah dilakukan:
 - Menambahkan handler banding PKKMB ormawa.
 - Membuat create prestasi dan create aspirasi mahasiswa menerima JSON dan `form-data`.
 - Menyatukan endpoint mobile dan web, sehingga tidak ada namespace `/api/mobile`.
+- **Penyelarasan Menu & Navigasi Layanan Mahasiswa**:
+  - Menghapus modal bottom sheet "Lainnya" yang berisi menu placeholder statis (Keuangan, Perpustakaan, Akademik, dsb.).
+  - Mengubah menu "Lainnya" langsung menjadi menu **Profil** (`ProfileScreen()`) dengan ikon `Icons.person_rounded` untuk mempermudah akses informasi pengguna.
+- **Kustomisasi & Optimalisasi Form Kesehatan**:
+  - Mengubah parameter `Gula Darah` pada model dan endpoint backend (`/api/student-health/record`) menjadi **opsional**.
+  - Menyesuaikan input di Mobile Flutter dan Web React sehingga mahasiswa yang tidak memiliki/memakai alat tes gula darah dapat melewati inputan tersebut tanpa hambatan validasi.
+- **Integrasi Dokumen Pendaftaran Beasiswa**:
+  - Menambahkan field baru pada skema `BeasiswaPendaftaran` di database GORM dan API backend: `Motivasi`, `KtmKtpURL`, `SertifikatURL`, dan `TranskripURL`.
+  - Memperbarui halaman detail beasiswa di Web React dan form pendaftaran beasiswa di Mobile Flutter agar mendukung unggah berkas PDF/Gambar dokumen pelengkap dan input teks motivasi secara interaktif.
+- **Penyempurnaan Kelola Pengguna di Super Admin**:
+  - Menambahkan field Fakultas dan Program Studi dinamis pada proses pendaftaran akun baru oleh Super Admin.
+  - Menyertakan petunjuk/visual indicator pembuatan kata sandi otomatis demi kenyamanan operasional.
 
 ## 2. Auth
 

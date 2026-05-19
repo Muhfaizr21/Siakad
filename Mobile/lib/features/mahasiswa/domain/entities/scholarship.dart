@@ -8,6 +8,10 @@ class Scholarship {
   final String description;
   final String status;
   final String? applicationStatus;
+  final String? motivasi;
+  final String? ktmKtpUrl;
+  final String? sertifikatUrl;
+  final String? transkripUrl;
 
   Scholarship({
     required this.id, 
@@ -18,6 +22,10 @@ class Scholarship {
     required this.coverAmount, 
     required this.description, 
     this.status = 'Open', 
-    this.applicationStatus
+    this.applicationStatus,
+    this.motivasi,
+    this.ktmKtpUrl,
+    this.sertifikatUrl,
+    this.transkripUrl,
   });
 }

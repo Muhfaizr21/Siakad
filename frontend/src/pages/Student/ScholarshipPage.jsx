@@ -65,6 +65,9 @@ function ApplyWizard({ scholarship, onClose, onSuccess }) {
   const fileInputRefs = useRef({});
   const daftarMutation = useDaftarBeasiswaMutation();
 
+  const scholarshipNama = scholarship?.nama || scholarship?.Nama || '';
+  const scholarshipIpkMin = scholarship?.ipk_min || scholarship?.IPKMin || 0;
+
   const handleFileChange = (key, file) => {
     if (file && file.size > 5 * 1024 * 1024) {
       toast.error('Ukuran file maksimal 5MB');
@@ -75,21 +78,23 @@ function ApplyWizard({ scholarship, onClose, onSuccess }) {
 
   const isStep1Valid = motivasi.length >= 150;
   
-  const requiredFiles = ['foto', 'ktm', 'kk'];
-  if (false) requiredFiles.push('sktm');
-  if (scholarship.IPKMin > 0) requiredFiles.push('transkrip');
+  const requiredKeys = ['ktm_ktp'];
+  if (scholarshipIpkMin > 0) {
+    requiredKeys.push('transkrip');
+  }
   
-  const isStep2Valid = requiredFiles.every(key => !!files[key]);
+  const isStep2Valid = requiredKeys.every(key => !!files[key]);
 
   const handleSubmit = () => {
     const formData = new FormData();
     formData.append('motivasi', motivasi);
-    formData.append('prestasi', prestasi);
     Object.entries(files).forEach(([key, file]) => {
-      formData.append(key, file);
+      if (file) {
+        formData.append(key, file);
+      }
     });
 
-    daftarMutation.mutate({ id: scholarship.ID, formData }, {
+    daftarMutation.mutate({ id: scholarship.id || scholarship.ID, formData }, {
       onSuccess: () => {
         onSuccess();
       },
@@ -114,7 +119,7 @@ function ApplyWizard({ scholarship, onClose, onSuccess }) {
               <span className="bg-[#00236F] text-white text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest">Langkah {step} dari 3</span>
               <h2 className="text-2xl font-black font-headline">Pendaftaran Beasiswa</h2>
             </div>
-            <p className="text-sm font-bold text-[#a3a3a3] uppercase tracking-wider">{scholarship.Nama}</p>
+            <p className="text-sm font-bold text-[#a3a3a3] uppercase tracking-wider">{scholarshipNama}</p>
           </div>
           <button onClick={onClose} className="p-2 hover:bg-white rounded-full transition-colors border border-transparent hover:border-[#e5e5e5]">
             <span className="material-symbols-outlined text-[#a3a3a3]" style={{ fontSize: '24px' }} >close</span>
@@ -146,47 +151,41 @@ function ApplyWizard({ scholarship, onClose, onSuccess }) {
                   </p>
                 </div>
               </div>
-
-              <div>
-                <label className="block text-xs font-black text-[#a3a3a3] uppercase tracking-widest mb-2">Prestasi & Organisasi (Opsional)</label>
-                <textarea 
-                  value={prestasi}
-                  onChange={(e) => setPrestasi(e.target.value)}
-                  placeholder="Sebutkan prestasi akademik/non-akademik atau pengalaman organisasi yang relevan..."
-                  className="w-full h-32 p-5 rounded-2xl border border-[#e5e5e5] focus:border-[#00236F] outline-none text-sm leading-relaxed resize-none shadow-inner bg-[#fafafa] transition-all"
-                />
-              </div>
             </motion.div>
           )}
 
           {/* STEP 2: UPLOAD BERKAS */}
           {step === 2 && (
             <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {requiredFiles.map(key => (
-                <div key={key} className="relative">
+              {[
+                { key: 'ktm_ktp', label: 'Kartu Tanda Mahasiswa & KTP', required: true },
+                { key: 'transkrip', label: 'Transkrip Nilai Akademik', required: scholarshipIpkMin > 0 },
+                { key: 'sertifikat', label: 'Sertifikat Pendukung (Opsional)', required: false }
+              ].map(item => (
+                <div key={item.key} className="relative">
                   <label className="block text-[10px] font-black text-[#a3a3a3] uppercase tracking-widest mb-2">
-                    {key.replace('_', ' ')} {key !== 'lainnya' && '*'}
+                    {item.label} {item.required && <span className="text-red-500">*</span>}
                   </label>
                   <div 
-                    onClick={() => fileInputRefs.current[key].click()}
+                    onClick={() => fileInputRefs.current[item.key].click()}
                     className={`p-4 rounded-2xl border-2 border-dashed cursor-pointer transition-all flex items-center gap-4 ${
-                      files[key] ? 'border-[#16a34a] bg-green-50' : 'border-[#e5e5e5] hover:border-[#00236F] bg-[#fafafa]'
+                      files[item.key] ? 'border-[#16a34a] bg-green-50' : 'border-[#e5e5e5] hover:border-[#00236F] bg-[#fafafa]'
                     }`}
                   >
-                    <div className={`p-2 rounded-xl ${files[key] ? 'bg-green-600 text-white' : 'bg-white text-[#a3a3a3]'}`}>
-                      {files[key] ? <span className="material-symbols-outlined" style={{ fontSize: '20px' }} >assignment_turned_in</span> : <span className="material-symbols-outlined" style={{ fontSize: '20px' }} >upload</span>}
+                    <div className={`p-2 rounded-xl ${files[item.key] ? 'bg-green-600 text-white' : 'bg-white text-[#a3a3a3]'}`}>
+                      {files[item.key] ? <span className="material-symbols-outlined" style={{ fontSize: '20px' }} >assignment_turned_in</span> : <span className="material-symbols-outlined" style={{ fontSize: '20px' }} >upload</span>}
                     </div>
                     <div className="flex-1 overflow-hidden">
-                      <p className="text-sm font-bold truncate">{files[key] ? files[key].name : `Pilih Berkas ${key}`}</p>
+                      <p className="text-sm font-bold truncate">{files[item.key] ? files[item.key].name : `Pilih Berkas`}</p>
                       <p className="text-[10px] text-[#a3a3a3] font-medium uppercase tracking-tighter">PDF/JPG (Max. 5MB)</p>
                     </div>
-                    {files[key] && <span className="material-symbols-outlined text-[#16a34a]" style={{ fontSize: 16 }}>check</span>}
+                    {files[item.key] && <span className="material-symbols-outlined text-[#16a34a]" style={{ fontSize: 16 }}>check</span>}
                   </div>
                   <input 
                     type="file" 
                     className="hidden" 
-                    ref={el => fileInputRefs.current[key] = el}
-                    onChange={(e) => handleFileChange(key, e.target.files[0])}
+                    ref={el => fileInputRefs.current[item.key] = el}
+                    onChange={(e) => handleFileChange(item.key, e.target.files[0])}
                   />
                 </div>
               ))}
@@ -201,11 +200,16 @@ function ApplyWizard({ scholarship, onClose, onSuccess }) {
                 <div className="space-y-3">
                   <div className="flex justify-between text-sm">
                     <span className="text-[#a3a3a3] font-bold">Beasiswa</span>
-                    <span className="font-black text-[#171717]">{scholarship.Nama}</span>
+                    <span className="font-black text-[#171717]">{scholarshipNama}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-[#a3a3a3] font-bold">Berkas Terunggah</span>
-                    <span className="font-black text-[#16a34a]">{Object.keys(files).length} Berkas</span>
+                    <div className="flex flex-col items-end gap-1">
+                      {files['ktm_ktp'] && <span className="text-xs font-black text-green-600">✓ KTM & KTP</span>}
+                      {files['transkrip'] && <span className="text-xs font-black text-green-600">✓ Transkrip Nilai</span>}
+                      {files['sertifikat'] && <span className="text-xs font-black text-green-600">✓ Sertifikat</span>}
+                      {!files['ktm_ktp'] && !files['transkrip'] && !files['sertifikat'] && <span className="text-xs font-bold text-red-500">Belum ada berkas</span>}
+                    </div>
                   </div>
                   <div className="pt-3 border-t border-[#c9d8ff]">
                     <p className="text-[10px] font-black text-[#00236F] uppercase tracking-widest mb-1">Motivasi Preview</p>
@@ -366,12 +370,29 @@ export default function ScholarshipPage() {
               <CardGridSkeleton count={6} />
             ) : katalog?.length > 0 ? (
               katalog.map((beasiswa, idx) => {
-                const daysLeft = getDaysLeft(beasiswa.Deadline);
+                const beasiswaId = beasiswa.id || beasiswa.ID;
+                const beasiswaNama = beasiswa.nama || beasiswa.Nama || '';
+                const beasiswaPenyelenggara = beasiswa.penyelenggara || beasiswa.Penyelenggara || '';
+                const beasiswaDeskripsi = beasiswa.deskripsi || beasiswa.Deskripsi || '';
+                const beasiswaKategori = beasiswa.kategori || beasiswa.Kategori || 'Internal';
+                const beasiswaNilaiBantuan = beasiswa.nilai_bantuan || beasiswa.NilaiBantuan || 5000000;
+                const beasiswaKuota = beasiswa.kuota || beasiswa.Kuota || '-';
+                const beasiswaDeadline = beasiswa.deadline || beasiswa.Deadline;
+
+                const daysLeft = getDaysLeft(beasiswaDeadline);
                 const isUrgent = daysLeft < 14;
+
+                const riwayatItem = riwayatList.find(r => 
+                  r.BeasiswaID === beasiswaId || 
+                  r.beasiswa_id === beasiswaId || 
+                  r.Beasiswa?.ID === beasiswaId || 
+                  r.Beasiswa?.id === beasiswaId
+                );
+                const isRegistered = !!riwayatItem;
 
                 return (
                   <motion.div 
-                    key={`katalog-${beasiswa.ID || idx}-${beasiswa.Nama || ''}`}
+                    key={`katalog-${beasiswaId || idx}-${beasiswaNama || ''}`}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: idx * 0.05 }}
@@ -380,22 +401,26 @@ export default function ScholarshipPage() {
                     <div className="p-4 md:p-5 pb-3 flex-1">
                       <div className="flex justify-between items-start mb-4">
                         <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border ${
-                          (beasiswa.Kategori || 'Internal') === 'Internal' ? 'bg-[#eef4ff] text-[#00236F] border-[#c9d8ff]' :
-                          (beasiswa.Kategori || 'Internal') === 'Alumni' ? 'bg-[#eff6ff] text-[#3b82f6] border-[#dbeafe]' :
+                          beasiswaKategori === 'Internal' ? 'bg-[#eef4ff] text-[#00236F] border-[#c9d8ff]' :
+                          beasiswaKategori === 'Alumni' ? 'bg-[#eff6ff] text-[#3b82f6] border-[#dbeafe]' :
                           'bg-[#f0fdf4] text-[#16a34a] border-[#bbf7d0]'
                         }`}>
-                          {(beasiswa.Kategori || 'Internal')}
+                          {beasiswaKategori}
                         </span>
-                        {isUrgent && (
+                        {isRegistered ? (
+                          <div className="flex items-center gap-1 text-[#16a34a] bg-green-50 border border-green-200 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest shadow-sm">
+                             <span className="material-symbols-outlined" style={{ fontSize: '12px' }} >check_circle</span> Terdaftar
+                          </div>
+                        ) : isUrgent ? (
                            <div className="flex items-center gap-1 text-[#dc2626] bg-red-50 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter">
                               <span className="material-symbols-outlined" style={{ fontSize: '12px' }} >schedule</span> Sisa {daysLeft} Hari
                            </div>
-                        )}
+                        ) : null}
                       </div>
                       
-                      <h3 className="text-base md:text-lg font-black mb-1 leading-tight group-hover:text-[#00236F] transition-colors">{beasiswa.Nama}</h3>
-                      <p className="text-[11px] text-[#a3a3a3] font-bold uppercase tracking-wider mb-6">{beasiswa.Penyelenggara}</p>
-                      <p className="text-xs text-[#737373] leading-relaxed mb-4 line-clamp-2">{beasiswa.Deskripsi}</p>
+                      <h3 className="text-base md:text-lg font-black mb-1 leading-tight group-hover:text-[#00236F] transition-colors">{beasiswaNama}</h3>
+                      <p className="text-[11px] text-[#a3a3a3] font-bold uppercase tracking-wider mb-6">{beasiswaPenyelenggara}</p>
+                      <p className="text-xs text-[#737373] leading-relaxed mb-4 line-clamp-2">{beasiswaDeskripsi}</p>
 
                       <div className="space-y-3 pt-3 border-t border-[#f5f5f5]">
                         <div className="flex items-center justify-between">
@@ -405,7 +430,7 @@ export default function ScholarshipPage() {
                             </div>
                             <div>
                                <p className="text-[9px] font-black text-[#a3a3a3] uppercase tracking-widest">Nilai Bantuan</p>
-                               <p className="text-sm font-black text-[#171717]">{formatRupiah((beasiswa.NilaiBantuan || 5000000))}</p>
+                               <p className="text-sm font-black text-[#171717]">{formatRupiah(beasiswaNilaiBantuan)}</p>
                             </div>
                           </div>
                         </div>
@@ -416,7 +441,7 @@ export default function ScholarshipPage() {
                             </div>
                             <div>
                                <p className="text-[9px] font-black text-[#a3a3a3] uppercase tracking-widest">Kuota</p>
-                               <p className="text-sm font-black text-[#171717]">{(beasiswa.Kuota || '-')} <span className="text-[#a3a3a3] font-bold">/ {(beasiswa.Kuota || '-')}</span></p>
+                               <p className="text-sm font-black text-[#171717]">{beasiswaKuota} <span className="text-[#a3a3a3] font-bold">/ {beasiswaKuota}</span></p>
                             </div>
                           </div>
                         </div>
@@ -424,12 +449,21 @@ export default function ScholarshipPage() {
                     </div>
                     
                     <div className="p-4 md:p-5 pt-0">
-                      <button 
-                        onClick={() => setSelectedSch(beasiswa)}
-                        className="w-full bg-[#00236F] text-white py-2.5 rounded-xl font-black text-sm flex items-center justify-center gap-2 transition-colors hover:bg-[#0B4FAE]"
-                      >
-                        Detail & Daftar <span className="material-symbols-outlined" style={{ fontSize: '18px' }} >arrow_forward</span>
-                      </button>
+                      {isRegistered ? (
+                        <button 
+                          onClick={() => navigate(`/student/scholarship/pengajuan/${riwayatItem.id || riwayatItem.ID}`)}
+                          className="w-full bg-[#f0fdf4] hover:bg-[#dcfce7] text-[#16a34a] border border-[#bbf7d0] py-2.5 rounded-xl font-black text-sm flex items-center justify-center gap-2 transition-all hover:scale-[1.02] shadow-sm animate-fade-in"
+                        >
+                          Lihat Progress <span className="material-symbols-outlined" style={{ fontSize: '18px' }} >chevron_right</span>
+                        </button>
+                      ) : (
+                        <button 
+                          onClick={() => setSelectedSch(beasiswa)}
+                          className="w-full bg-[#00236F] text-white py-2.5 rounded-xl font-black text-sm flex items-center justify-center gap-2 transition-colors hover:bg-[#0B4FAE]"
+                        >
+                          Detail & Daftar <span className="material-symbols-outlined" style={{ fontSize: '18px' }} >arrow_forward</span>
+                        </button>
+                      )}
                     </div>
                   </motion.div>
                 );
@@ -487,22 +521,24 @@ export default function ScholarshipPage() {
                   {isRiwayatLoading ? (
                     <tr><td colSpan="5" className="p-8"><TableSkeleton rows={5} cols={5} /></td></tr>
                   ) : riwayatList.length > 0 ? (
-                    riwayatList.map(item => {
+                    riwayatList.map((item, idx) => {
                       const badge = STATUS_BADGE[item.Status] || STATUS_BADGE.dikirim;
+                      const itemId = item.id || item.ID;
+                      const createdAt = item.created_at || item.CreatedAt;
                       return (
-                        <tr key={`riwayat-${item.ID || idx}`} className="hover:bg-[#f7faff] transition-colors group">
+                        <tr key={`riwayat-${itemId || idx}`} className="hover:bg-[#f7faff] transition-colors group">
                           <td className="px-4 md:px-6 py-3.5">
                             <div className="flex flex-col">
-                               <p className="font-black text-[#171717]">{item.Beasiswa?.Nama}</p>
-                               <p className="text-[10px] text-[#a3a3a3] font-bold uppercase tracking-wide">{(item.Beasiswa?.Kategori || 'Internal')} Beasiswa</p>
+                               <p className="font-black text-[#171717]">{item.Beasiswa?.nama || item.Beasiswa?.Nama}</p>
+                               <p className="text-[10px] text-[#a3a3a3] font-bold uppercase tracking-wide">{(item.Beasiswa?.kategori || item.Beasiswa?.Kategori || 'Internal')} Beasiswa</p>
                             </div>
                           </td>
                           <td className="px-4 md:px-6 py-3.5">
-                             <code className="text-[10px] font-bold bg-[#f5f5f5] px-2 py-1 rounded-lg text-[#525252]">{item.ID}</code>
+                             <code className="text-[10px] font-bold bg-[#f5f5f5] px-2 py-1 rounded-lg text-[#525252]">{itemId}</code>
                           </td>
                           <td className="px-4 md:px-6 py-3.5 text-center">
                             <span className="text-sm font-bold text-[#525252]">
-                              {new Date(item.CreatedAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
+                              {createdAt ? new Date(createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '-'}
                             </span>
                           </td>
                           <td className="px-4 md:px-6 py-3.5 text-center">
@@ -513,8 +549,8 @@ export default function ScholarshipPage() {
                           <td className="px-4 md:px-6 py-3.5 text-center">
                              <button 
                               onClick={() => {
-                                if (item.ID) {
-                                  navigate(`/student/scholarship/pengajuan/${item.ID}`);
+                                if (itemId) {
+                                  navigate(`/student/scholarship/pengajuan/${itemId}`);
                                 } else {
                                   toast.error('ID Pengajuan tidak ditemukan');
                                 }
@@ -553,58 +589,67 @@ export default function ScholarshipPage() {
 
       {/* DETAIL MODAL (Quick View) */}
       <AnimatePresence>
-        {selectedSch && (
-          <div className="fixed inset-0 z-50 bg-[#171717]/60 backdrop-blur-sm flex items-center justify-center p-4">
-            <motion.div 
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-white w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
-            >
-              <div className="relative h-24 bg-gradient-to-r from-[#00236F] to-[#0B4FAE] p-5 flex items-center">
-                 <button onClick={() => setSelectedSch(null)} className="absolute top-6 right-6 text-white/50 hover:text-white transition-colors">
-                   <span className="material-symbols-outlined" style={{ fontSize: '24px' }} >close</span>
-                 </button>
-                 <div>
-                    <h2 className="text-2xl font-black text-white pr-10">{selectedSch.Nama}</h2>
-                    <p className="text-[10px] text-white/50 font-black uppercase tracking-[0.3em] mt-1">{selectedSch.Penyelenggara}</p>
-                 </div>
-              </div>
-              
-              <div className="p-8 overflow-y-auto flex-1 custom-scrollbar">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-                  <div className="p-3.5 bg-[#fafafa] rounded-xl border border-[#e5e5e5]">
-                    <p className="text-[9px] font-black text-[#a3a3a3] uppercase tracking-widest mb-1">Nilai Bantuan</p>
-                    <p className="text-sm font-black text-[#00236F]">{formatRupiah((selectedSch.NilaiBantuan || 5000000))}</p>
-                  </div>
-                  <div className="p-3.5 bg-[#fafafa] rounded-xl border border-[#e5e5e5]">
-                    <p className="text-[9px] font-black text-[#a3a3a3] uppercase tracking-widest mb-1">Kuota Sisa</p>
-                    <p className="text-sm font-black text-[#171717]">{(selectedSch.Kuota || '-')} <span className="text-[10px] text-[#a3a3a3]">Org</span></p>
-                  </div>
-                  <div className="p-3.5 bg-[#fafafa] rounded-xl border border-[#e5e5e5]">
-                    <p className="text-[9px] font-black text-[#a3a3a3] uppercase tracking-widest mb-1">Min. IPK</p>
-                    <p className="text-sm font-black text-[#171717]">{selectedSch?.IPKMin?.toFixed(2) || '0.00'}</p>
-                  </div>
-                  <div className={`p-3.5 rounded-xl border ${getDaysLeft(selectedSch.Deadline) < 7 ? 'bg-red-50 border-red-200' : 'bg-[#fafafa] border-[#e5e5e5]'}`}>
-                    <p className={`text-[9px] font-black uppercase tracking-widest mb-1 ${getDaysLeft(selectedSch.Deadline) < 7 ? 'text-red-500' : 'text-[#a3a3a3]'}`}>Deadline</p>
-                    <p className={`text-sm font-black ${getDaysLeft(selectedSch.Deadline) < 7 ? 'text-red-600' : 'text-[#171717]'}`}>{new Date(selectedSch.Deadline).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}</p>
-                  </div>
+        {selectedSch && (() => {
+          const schName = selectedSch.nama || selectedSch.Nama || '';
+          const schOrg = selectedSch.penyelenggara || selectedSch.Penyelenggara || '';
+          const schVal = selectedSch.nilai_bantuan || selectedSch.NilaiBantuan || 5000000;
+          const schQuota = selectedSch.kuota || selectedSch.Kuota || '-';
+          const schIpk = selectedSch.ipk_min || selectedSch.IPKMin || 0;
+          const schDeadline = selectedSch.deadline || selectedSch.Deadline;
+          const schDesc = selectedSch.deskripsi || selectedSch.Deskripsi || '';
+          
+          return (
+            <div className="fixed inset-0 z-50 bg-[#171717]/60 backdrop-blur-sm flex items-center justify-center p-4">
+              <motion.div 
+                initial={{ scale: 0.95, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.95, opacity: 0 }}
+                className="bg-white w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
+              >
+                <div className="relative h-24 bg-gradient-to-r from-[#00236F] to-[#0B4FAE] p-5 flex items-center">
+                   <button onClick={() => setSelectedSch(null)} className="absolute top-6 right-6 text-white/50 hover:text-white transition-colors">
+                     <span className="material-symbols-outlined" style={{ fontSize: '24px' }} >close</span>
+                   </button>
+                   <div>
+                      <h2 className="text-2xl font-black text-white pr-10">{schName}</h2>
+                      <p className="text-[10px] text-white/50 font-black uppercase tracking-[0.3em] mt-1">{schOrg}</p>
+                   </div>
                 </div>
-
-                <div className="space-y-6">
-                  <div>
-                    <h4 className="flex items-center gap-2 text-sm font-black uppercase tracking-widest mb-3"><span className="material-symbols-outlined text-[#00236F]" style={{ fontSize: 16 }}>info</span> Deskripsi Program</h4>
-                    <p className="text-sm text-[#525252] font-medium leading-relaxed">{selectedSch.Deskripsi}</p>
-                  </div>
-
-                  <div>
-                    <h4 className="flex items-center gap-2 text-sm font-black uppercase tracking-widest mb-3"><span className="material-symbols-outlined text-[#00236F]" style={{ fontSize: '16px' }} >description</span> Persyaratan</h4>
-                    <div className="bg-[#fafafa] p-6 rounded-[24px] border border-[#e5e5e5]">
-                       <pre className="text-sm text-[#525252] font-medium whitespace-pre-line font-body leading-relaxed">
-                         {selectedSch.Deskripsi}
-                       </pre>
+                
+                <div className="p-8 overflow-y-auto flex-1 custom-scrollbar">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                    <div className="p-3.5 bg-[#fafafa] rounded-xl border border-[#e5e5e5]">
+                      <p className="text-[9px] font-black text-[#a3a3a3] uppercase tracking-widest mb-1">Nilai Bantuan</p>
+                      <p className="text-sm font-black text-[#00236F]">{formatRupiah(schVal)}</p>
+                    </div>
+                    <div className="p-3.5 bg-[#fafafa] rounded-xl border border-[#e5e5e5]">
+                      <p className="text-[9px] font-black text-[#a3a3a3] uppercase tracking-widest mb-1">Kuota Sisa</p>
+                      <p className="text-sm font-black text-[#171717]">{schQuota} <span className="text-[10px] text-[#a3a3a3]">Org</span></p>
+                    </div>
+                    <div className="p-3.5 bg-[#fafafa] rounded-xl border border-[#e5e5e5]">
+                      <p className="text-[9px] font-black text-[#a3a3a3] uppercase tracking-widest mb-1">Min. IPK</p>
+                      <p className="text-sm font-black text-[#171717]">{schIpk.toFixed(2)}</p>
+                    </div>
+                    <div className={`p-3.5 rounded-xl border ${getDaysLeft(schDeadline) < 7 ? 'bg-red-50 border-red-200' : 'bg-[#fafafa] border-[#e5e5e5]'}`}>
+                      <p className={`text-[9px] font-black uppercase tracking-widest mb-1 ${getDaysLeft(schDeadline) < 7 ? 'text-red-500' : 'text-[#a3a3a3]'}`}>Deadline</p>
+                      <p className={`text-sm font-black ${getDaysLeft(schDeadline) < 7 ? 'text-red-600' : 'text-[#171717]'}`}>{new Date(schDeadline).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}</p>
                     </div>
                   </div>
+
+                  <div className="space-y-6">
+                    <div>
+                      <h4 className="flex items-center gap-2 text-sm font-black uppercase tracking-widest mb-3"><span className="material-symbols-outlined text-[#00236F]" style={{ fontSize: 16 }}>info</span> Deskripsi Program</h4>
+                      <p className="text-sm text-[#525252] font-medium leading-relaxed">{schDesc}</p>
+                    </div>
+
+                    <div>
+                      <h4 className="flex items-center gap-2 text-sm font-black uppercase tracking-widest mb-3"><span className="material-symbols-outlined text-[#00236F]" style={{ fontSize: '16px' }} >description</span> Persyaratan</h4>
+                      <div className="bg-[#fafafa] p-6 rounded-[24px] border border-[#e5e5e5]">
+                         <pre className="text-sm text-[#525252] font-medium whitespace-pre-line font-body leading-relaxed">
+                           {schDesc}
+                         </pre>
+                      </div>
+                    </div>
 
                   <div>
                      <h4 className="flex items-center gap-2 text-sm font-black uppercase tracking-widest mb-3"><Sparkles size={16} className="text-[#00236F]" /> Tahapan Seleksi</h4>
@@ -636,7 +681,8 @@ export default function ScholarshipPage() {
               </div>
             </motion.div>
           </div>
-        )}
+          );
+        })()}
       </AnimatePresence>
 
       {/* APPLICATION WIZARD */}

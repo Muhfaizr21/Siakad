@@ -85,6 +85,7 @@ func CreateHealthRecord(c *fiber.Ctx) error {
 		Sistolik         int     `json:"sistolik"`
 		Diastolik        int     `json:"diastolik"`
 		GolonganDarah    string  `json:"golongan_darah"`
+		GulaDarah        int     `json:"gula_darah"`
 	}
 
 	var input Input
@@ -135,6 +136,7 @@ func CreateHealthRecord(c *fiber.Ctx) error {
 		BeratBadan:       input.BeratBadan,
 		Sistole:          input.Sistolik,
 		Diastole:         input.Diastolik,
+		GulaDarah:        input.GulaDarah,
 		GolonganDarah:    golonganDarah,
 		StatusKesehatan:  statusKesehatan,
 	}

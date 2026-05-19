@@ -7,8 +7,10 @@ import '../../domain/entities/aspiration.dart';
 import '../../domain/entities/health_record.dart';
 import '../../domain/entities/organization_history.dart';
 import '../../domain/entities/campus_news.dart';
+import '../../domain/entities/faculty_progress.dart';
 import '../../domain/repositories/student_repository.dart';
 import '../../../ormawa/domain/entities/ormawa_pkkmb.dart';
+import 'package:bkuhub_mobile/features/counseling/domain/entities/psychologist.dart';
 import '../../data/models/achievement_model.dart';
 import '../../data/models/scholarship_model.dart';
 import '../../data/models/mission_model.dart';
@@ -139,6 +141,43 @@ class StudentRepositoryImpl implements StudentRepository {
   }
 
   @override
+  Future<List<FacultyProgress>> getFacultyStatistics() async {
+    try {
+      final response = await apiClient.client.get('/counseling/faculty-statistics');
+      final List data = response.data['data'] ?? [];
+      return data.map((json) => FacultyProgress.fromJson(json)).toList();
+    } catch (e) {
+      log('Error getting faculty statistics from backend: $e');
+      return [];
+    }
+  }
+
+  @override
+  Future<List<Psychologist>> getPsychologists() async {
+    try {
+      final response = await apiClient.client.get('/counseling/psychologists');
+      final List data = response.data['data'] ?? [];
+      return data.map((json) => Psychologist.fromJson(json)).toList();
+    } catch (e) {
+      log('Error getting psychologists from backend: $e');
+      return [];
+    }
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> getPsychologistSchedules(String psychologistId) async {
+    try {
+      final response = await apiClient.client.get('/counseling/psychologists/$psychologistId/schedules');
+      final raw = response.data['data'];
+      final List list = (raw is Map ? raw['slots'] : []) ?? [];
+      return List<Map<String, dynamic>>.from(list);
+    } catch (e) {
+      log('Error getting psychologist schedules from backend: $e');
+      return [];
+    }
+  }
+
+  @override
   Future<List<Aspiration>> getAspirations() async {
     try {
       final response = await apiClient.client.get('/student-voice/');
@@ -232,9 +271,44 @@ class StudentRepositoryImpl implements StudentRepository {
   }
 
   @override
-  Future<void> applyForScholarship(String scholarshipId) async {
+  Future<void> applyForScholarship(
+    String scholarshipId, 
+    String motivasi, {
+    String? ktmKtpPath,
+    String? sertifikatPath,
+    String? transkripPath,
+  }) async {
     try {
-      await apiClient.client.post('/scholarship/$scholarshipId/daftar');
+      final map = <String, dynamic>{
+        'motivasi': motivasi,
+      };
+      if (ktmKtpPath == "") {
+        map['delete_ktm_ktp'] = 'true';
+      } else if (ktmKtpPath != null && ktmKtpPath.isNotEmpty && !ktmKtpPath.startsWith('/uploads')) {
+        map['ktm_ktp'] = await MultipartFile.fromFile(
+          ktmKtpPath,
+          filename: ktmKtpPath.replaceAll('\\', '/').split('/').last,
+        );
+      }
+      if (sertifikatPath == "") {
+        map['delete_sertifikat'] = 'true';
+      } else if (sertifikatPath != null && sertifikatPath.isNotEmpty && !sertifikatPath.startsWith('/uploads')) {
+        map['sertifikat'] = await MultipartFile.fromFile(
+          sertifikatPath,
+          filename: sertifikatPath.replaceAll('\\', '/').split('/').last,
+        );
+      }
+      if (transkripPath == "") {
+        map['delete_transkrip'] = 'true';
+      } else if (transkripPath != null && transkripPath.isNotEmpty && !transkripPath.startsWith('/uploads')) {
+        map['transkrip'] = await MultipartFile.fromFile(
+          transkripPath,
+          filename: transkripPath.replaceAll('\\', '/').split('/').last,
+        );
+      }
+      
+      final formData = FormData.fromMap(map);
+      await apiClient.client.post('/scholarship/$scholarshipId/daftar', data: formData);
     } catch (e) {
       log('Error applying for scholarship: $e');
       if (e is DioException && e.response != null && e.response?.data != null) {
@@ -279,6 +353,9 @@ class StudentRepositoryImpl implements StudentRepository {
         heartRate: record.heartRate,
         temperature: record.temperature,
         date: record.date,
+        bloodType: record.bloodType,
+        notes: record.notes,
+        gulaDarah: record.gulaDarah,
       );
       await apiClient.client.post('/student-health/record', data: model.toJson());
     } catch (e) {
@@ -290,10 +367,35 @@ class StudentRepositoryImpl implements StudentRepository {
   @override
   Future<void> bookCounseling(CounselingSession session) async {
     try {
-      await apiClient.client.post('/counseling/request', data: {
-        'topik': session.topic,
-        'tanggal': session.date.toIso8601String(),
-      });
+      final isSpecificPsychologist = session.psychologistId != 'UNASSIGNED';
+      if (isSpecificPsychologist) {
+        final idParts = session.psychologistId.split(':');
+        final psychologistId = int.tryParse(idParts.first);
+        final slotId = idParts.length > 1 ? int.tryParse(idParts[1]) : null;
+        
+        final timeParts = session.time.split('-');
+        final start = timeParts.isNotEmpty ? timeParts.first.trim() : '09:00';
+        final end = timeParts.length > 1 ? timeParts[1].trim() : '10:00';
+        
+        final Map<String, dynamic> requestData = {
+          'psikolog_id': psychologistId,
+          'date': session.date.toIso8601String().split('T').first,
+          'start': start,
+          'end': end,
+          'topic': session.topic,
+          'complaint': session.notes ?? 'Konseling',
+        };
+        if (slotId != null) {
+          requestData['slot_id'] = slotId;
+        }
+        
+        await apiClient.client.post('/counseling/psychologist-bookings', data: requestData);
+      } else {
+        await apiClient.client.post('/counseling/request', data: {
+          'topik': session.topic,
+          'tanggal': session.date.toIso8601String(),
+        });
+      }
     } catch (e) {
       log('Error booking counseling: $e');
       throw Exception('Gagal mengajukan konseling');

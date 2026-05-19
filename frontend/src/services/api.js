@@ -481,6 +481,12 @@ export const adminService = {
   deleteFaculty: (id) => fetchWithAuth(`${API_BASE_URL}/admin/fakultas/${id}`, {
     method: 'DELETE'
   }),
+  getAllAchievements: () => fetchWithAuth(`${API_BASE_URL}/admin/achievements`),
+  verifyAchievement: (id, data) => fetchWithAuth(`${API_BASE_URL}/admin/achievements/${id}/verify`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  }),
 };
 
 export const pddiktiService = {

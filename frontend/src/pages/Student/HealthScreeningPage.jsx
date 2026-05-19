@@ -21,6 +21,12 @@ import { Skeleton } from '../../components/ui/Skeleton';
 import toast from 'react-hot-toast';
 import { NavLink } from 'react-router-dom';
 import HealthCharacter from '../../components/health/HealthCharacter';
+import {
+  normalizeRecord,
+  calculateHealthScore,
+  calculateStreak,
+  getInterpretationDelta
+} from '../../utils/healthAnalytics';
 
 // Auto-injected Material Symbol fallbacks for removed Lucide icons
 const Scale = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>scale</span>;
@@ -152,6 +158,8 @@ export default function HealthScreeningPage() {
   const [isInputOpen,   setIsInputOpen]   = useState(false);
   const [selectedDetailId, setSelectedDetailId] = useState(null);
   const [filterSumber,  setFilterSumber]  = useState('Semua');
+  const [successModalData, setSuccessModalData] = useState(null);
+  const [activeChartTab, setActiveChartTab] = useState('berat');
 
   const { data: terbaru, isLoading: isTerbaruLoading } = useHealthRingkasanQuery();
   const { data: riwayat, isLoading: isRiwayatLoading } = useHealthRiwayatQuery({ sumber: filterSumber });
@@ -167,6 +175,8 @@ export default function HealthScreeningPage() {
       .map(item => ({
         name:  fmt(item.tanggal_periksa, { day: 'numeric', month: 'short' }),
         berat: item.berat_badan,
+        bmi: item.bmi,
+        skor: calculateHealthScore(item),
       }));
   }, [riwayat]);
 
@@ -174,9 +184,30 @@ export default function HealthScreeningPage() {
   const bpStat = getBPStatus(terbaru?.sistolik, terbaru?.diastolik);
   const statusInfo = getStatusInfo(terbaru?.status_kesehatan, terbaru?.bmi, terbaru?.sistolik, terbaru?.diastolik);
 
+  const lifestyleData = useMemo(() => {
+    if (!terbaru?.keluhan) return null;
+    try {
+      if (terbaru.keluhan.startsWith('{') && terbaru.keluhan.endsWith('}')) {
+        return JSON.parse(terbaru.keluhan);
+      }
+    } catch (_) {}
+    return null;
+  }, [terbaru]);
+
+  const jamTidur = lifestyleData?.jam_tidur ?? 8;
+  const olahraga = lifestyleData?.olahraga ?? 2;
+  const air = lifestyleData?.konsumsi_air ?? 2.0;
+  const stres = lifestyleData?.tingkat_stres ?? 5;
+
   const handleInputSubmit = (formData) => {
     mandiriMutation.mutate(formData, {
-      onSuccess: () => { toast.success('Data kesehatan berhasil diperbarui!'); setIsInputOpen(false); },
+      onSuccess: (res) => {
+        toast.success('Data kesehatan berhasil diperbarui!');
+        setIsInputOpen(false);
+        const prev = riwayat && riwayat.length > 0 ? normalizeRecord(riwayat[0]) : null;
+        const newRecord = normalizeRecord(res?.data || res || formData);
+        setSuccessModalData({ current: newRecord, previous: prev });
+      },
       onError:   (err) => toast.error(err.response?.data?.message || 'Gagal menyimpan data.'),
     });
   };
@@ -237,11 +268,13 @@ export default function HealthScreeningPage() {
                 </div>
               </div>
 
-              <div className="p-5 grid grid-cols-2 md:grid-cols-4 gap-4 bg-neutral-50/50">
-                <StatItem label="Tinggi" value={terbaru.tinggi_badan} unit="cm" icon={<span className="material-symbols-outlined" style={{ fontSize: '16px' }} >trending_up</span>} colorClass="text-blue-600" bgClass="bg-blue-100" />
-                <StatItem label="Berat" value={terbaru.berat_badan} unit="kg" icon={<Scale size={16} />} colorClass="text-emerald-600" bgClass="bg-emerald-100" />
-                <StatItem label="Tensi" value={`${terbaru.sistolik}/${terbaru.diastolik}`} unit="mmHg" icon={<span className="material-symbols-outlined" style={{ fontSize: '16px' }} >show_chart</span>} colorClass="text-rose-600" bgClass="bg-rose-100" />
-                <StatItem label="Gol. Darah" value={terbaru.golongan_darah || '–'} unit="Tipe" icon={<Droplets size={16} />} colorClass="text-red-600" bgClass="bg-red-100" />
+              <div className="p-5 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 bg-neutral-50/50">
+                <StatItem label="Tinggi" value={terbaru.tinggi_badan} unit="cm" icon={<span className="material-symbols-outlined font-bold" style={{ fontSize: '16px' }} >straighten</span>} colorClass="text-blue-600" bgClass="bg-blue-50" />
+                <StatItem label="Berat" value={terbaru.berat_badan} unit="kg" icon={<Scale size={16} />} colorClass="text-emerald-600" bgClass="bg-emerald-50" />
+                <StatItem label="Tidur" value={jamTidur} unit="Jam" icon={<span className="material-symbols-outlined font-bold" style={{ fontSize: '16px' }} >bedtime</span>} colorClass="text-teal-600" bgClass="bg-teal-50" />
+                <StatItem label="Olahraga" value={olahraga} unit="x/Mgg" icon={<span className="material-symbols-outlined font-bold" style={{ fontSize: '16px' }} >fitness_center</span>} colorClass="text-amber-600" bgClass="bg-amber-50" />
+                <StatItem label="Air Minum" value={air} unit="L/Hari" icon={<Droplets size={16} />} colorClass="text-sky-600" bgClass="bg-sky-50" />
+                <StatItem label="Stres" value={stres} unit="/10" icon={<span className="material-symbols-outlined font-bold" style={{ fontSize: '16px' }} >psychology</span>} colorClass="text-purple-600" bgClass="bg-purple-50" />
               </div>
 
               <div className="p-6 bg-white border-t border-neutral-100 flex flex-col sm:flex-row items-center justify-between gap-6 relative overflow-hidden">
@@ -262,6 +295,41 @@ export default function HealthScreeningPage() {
                       {statusInfo.desc}
                     </p>
                   </div>
+                  
+                  {/* Circular Health Score gauge right inside status block */}
+                  {(() => {
+                    const score = calculateHealthScore(terbaru);
+                    const ringColor = score >= 85 ? "#10b981" : score >= 70 ? "#f59e0b" : "#f43f5e";
+                    const scoreLabel = score >= 85 ? "Sangat Sehat 👍" : score >= 70 ? "Cukup Sehat 👍" : "Perlu Atensi ⚠️";
+                    return (
+                      <div className="flex items-center gap-3 bg-neutral-50 px-4 py-2.5 rounded-2xl border border-neutral-100 shrink-0">
+                        <div className="relative w-12 h-12 flex items-center justify-center shrink-0">
+                          <svg className="w-full h-full transform -rotate-90">
+                            <circle cx="24" cy="24" r="20" stroke="#e5e7eb" strokeWidth="3.5" fill="transparent" />
+                            <circle 
+                              cx="24" 
+                              cy="24" 
+                              r="20" 
+                              stroke={ringColor} 
+                              strokeWidth="3.5" 
+                              fill="transparent" 
+                              strokeDasharray={2 * Math.PI * 20}
+                              strokeDashoffset={2 * Math.PI * 20 * (1 - score / 100)}
+                              strokeLinecap="round"
+                            />
+                          </svg>
+                          <div className="absolute flex flex-col items-center">
+                            <span className="text-[13px] font-black text-[#171717]">{score}</span>
+                            <span className="text-[6px] text-neutral-400 font-bold uppercase tracking-wider leading-none">Skor</span>
+                          </div>
+                        </div>
+                        <div className="hidden xs:block">
+                          <p className="text-[8px] font-bold text-neutral-400 uppercase tracking-wider">Wellness Score</p>
+                          <p className="text-[11px] font-bold text-[#171717] mt-0.5">{scoreLabel}</p>
+                        </div>
+                      </div>
+                    );
+                  })()}
                 </div>
 
                 <div className="flex flex-col sm:items-end gap-2 w-full sm:w-auto relative z-10 shrink-0">
@@ -336,19 +404,29 @@ export default function HealthScreeningPage() {
 
           {/* Weight Trend */}
           <div className="lg:col-span-2 bg-white rounded-2xl border border-neutral-100 shadow-sm p-5">
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
               <div>
-                <h3 className="text-base font-bold font-headline">Tren Berat Badan</h3>
+                <h3 className="text-base font-bold font-headline">Tren & Perkembangan Tubuh</h3>
                 <p className="text-[11px] text-neutral-400 mt-0.5">6 Pemeriksaan Terakhir</p>
               </div>
-              <div className="flex items-center gap-3">
-                <div className="text-right">
-                  <p className="text-[10px] font-semibold text-neutral-400">Terakhir</p>
-                  <p className="text-sm font-bold text-[#00236F]">{terbaru?.berat_badan || '--'} kg</p>
-                </div>
-                <div className="p-2 bg-blue-50 rounded-xl text-[#00236F] border border-blue-100">
-                  <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >trending_up</span>
-                </div>
+              <div className="flex bg-neutral-100 p-1 rounded-xl gap-1 shrink-0 border border-neutral-200/50">
+                {[
+                  { id: 'berat', label: 'Berat' },
+                  { id: 'bmi', label: 'IMT/BMI' },
+                  { id: 'skor', label: 'Wellness Score' },
+                ].map(tab => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveChartTab(tab.id)}
+                    className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all ${
+                      activeChartTab === tab.id
+                        ? 'bg-white text-[#00236F] shadow-sm'
+                        : 'text-neutral-500 hover:text-neutral-700'
+                    }`}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
               </div>
             </div>
             <div className="w-full" style={{ minHeight: '200px' }}>
@@ -356,20 +434,40 @@ export default function HealthScreeningPage() {
                 <ResponsiveContainer width="100%" height={200} debounce={50}>
                   <AreaChart data={chartData}>
                     <defs>
-                      <linearGradient id="colorBerat" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%"  stopColor="#0B4FAE" stopOpacity={0.12} />
-                        <stop offset="95%" stopColor="#0B4FAE" stopOpacity={0}    />
+                      <linearGradient id="dynamicColor" x1="0" y1="0" x2="0" y2="1">
+                        <stop 
+                          offset="5%"  
+                          stopColor={activeChartTab === 'skor' ? '#f59e0b' : activeChartTab === 'bmi' ? '#10b981' : '#0B4FAE'} 
+                          stopOpacity={0.15} 
+                        />
+                        <stop 
+                          offset="95%" 
+                          stopColor={activeChartTab === 'skor' ? '#f59e0b' : activeChartTab === 'bmi' ? '#10b981' : '#0B4FAE'} 
+                          stopOpacity={0}    
+                        />
                       </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="4 4" vertical={false} stroke="#f1f1f1" />
-                    <span className="material-symbols-outlined" Axis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 600, fill: '#a3a3a3' }} dy={10}>close</span>
-                    <YAxis hide domain={['dataMin - 5', 'dataMax + 5']} />
+                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 600, fill: '#a3a3a3' }} dy={10} />
+                    <YAxis hide domain={activeChartTab === 'skor' ? [0, 100] : activeChartTab === 'bmi' ? [10, 40] : ['dataMin - 3', 'dataMax + 3']} />
                     <Tooltip
-                      cursor={{ stroke: '#0B4FAE', strokeWidth: 1, strokeDasharray: '4 4' }}
-                      contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.1)', fontSize: '12px', fontWeight: 700, padding: '8px 14px' }}
-                      itemStyle={{ color: '#0B4FAE' }}
+                      cursor={{ 
+                        stroke: activeChartTab === 'skor' ? '#f59e0b' : activeChartTab === 'bmi' ? '#10b981' : '#0B4FAE', 
+                        strokeWidth: 1, 
+                        strokeDasharray: '4 4' 
+                      }}
+                      contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.06)', fontSize: '12px', fontWeight: 700, padding: '8px 14px' }}
+                      itemStyle={{ color: activeChartTab === 'skor' ? '#d97706' : activeChartTab === 'bmi' ? '#059669' : '#0B4FAE' }}
                     />
-                    <Area type="monotone" dataKey="berat" stroke="#0B4FAE" strokeWidth={2.5} fillOpacity={1} fill="url(#colorBerat)" animationDuration={1500} />
+                    <Area 
+                      type="monotone" 
+                      dataKey={activeChartTab} 
+                      stroke={activeChartTab === 'skor' ? '#f59e0b' : activeChartTab === 'bmi' ? '#10b981' : '#0B4FAE'} 
+                      strokeWidth={2.5} 
+                      fillOpacity={1} 
+                      fill="url(#dynamicColor)" 
+                      animationDuration={1000} 
+                    />
                   </AreaChart>
                 </ResponsiveContainer>
               ) : (
@@ -603,6 +701,12 @@ export default function HealthScreeningPage() {
             onClose={() => setSelectedDetailId(null)}
           />
         )}
+        {successModalData && (
+          <SuccessFeedbackModal
+            data={successModalData}
+            onClose={() => setSuccessModalData(null)}
+          />
+        )}
       </AnimatePresence>
     </div>
   );
@@ -671,6 +775,13 @@ function InputModal({ onClose, onSubmit, isLoading }) {
   const [formData, setFormData] = useState({
     tinggi_badan: '', berat_badan: '',
     sistolik: '', diastolik: '',
+    gula_darah: '', golongan_darah: 'A',
+    jam_tidur: '8', olahraga: '2',
+    konsumsi_air: '2.0', merokok: 'Tidak',
+    tingkat_stres: 5, mood: 'Biasa Saja',
+    motivasi_belajar: 'Biasa Saja',
+    sakit_kepala: false, pusing: false,
+    lelah: false, nyeri_sendi: false,
     keluhan: '',
     tanggal: new Date().toISOString().split('T')[0],
   });
@@ -686,7 +797,7 @@ function InputModal({ onClose, onSubmit, isLoading }) {
   const bpStat  = getBPStatus(formData.sistolik, formData.diastolik);
 
   return (
-    <div className="fixed inset-0 z-100 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
         onClick={onClose} className="absolute inset-0 bg-[#00236F]/50 backdrop-blur-sm" />
 
@@ -694,16 +805,16 @@ function InputModal({ onClose, onSubmit, isLoading }) {
         initial={{ opacity: 0, scale: 0.96, y: 20 }}
         animate={{ opacity: 1, scale: 1,    y: 0  }}
         exit={{   opacity: 0, scale: 0.94,  y: 20 }}
-        className="relative bg-white w-full max-w-3xl rounded-2xl shadow-2xl overflow-hidden flex flex-col md:flex-row max-h-[90vh]"
+        className="relative bg-white w-full max-w-4xl rounded-3xl shadow-2xl overflow-hidden flex flex-col md:flex-row max-h-[90vh]"
       >
         {/* Sidebar */}
-        <div className="w-full md:w-64 bg-[#00236F] p-5 flex flex-col justify-between text-white shrink-0">
+        <div className="w-full md:w-64 bg-[#00236F] p-6 flex flex-col justify-between text-white shrink-0">
           <div>
             <div className="flex items-center gap-2 mb-6">
               <div className="w-8 h-8 rounded-xl bg-white/15 flex items-center justify-center">
-                <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >show_chart</span>
+                <span className="material-symbols-outlined animate-pulse" style={{ fontSize: '16px' }} >show_chart</span>
               </div>
-              <h2 className="text-sm font-bold uppercase tracking-wider">Live Analytics</h2>
+              <h2 className="text-xs font-bold uppercase tracking-wider">Live Analytics</h2>
             </div>
 
             <div className="space-y-6">
@@ -736,89 +847,291 @@ function InputModal({ onClose, onSubmit, isLoading }) {
                 <div className="text-2xl font-black tracking-tight mb-1">
                   {formData.sistolik || '–'}<span className="text-white/20">/</span>{formData.diastolik || '–'}
                 </div>
-                <span className={`text-[10px] font-bold uppercase ${bpStat.label === 'Pending' ? 'text-white/30' : bpStat.color}`}>
-                  {bpStat.label === 'Pending' ? 'Menunggu input' : `Status: ${bpStat.label}`}
+                <span className={`text-[10px] font-bold uppercase ${bpStat.label === 'Belum Ada Data' ? 'text-white/30' : bpStat.color}`}>
+                  {bpStat.label === 'Belum Ada Data' ? 'Menunggu input' : `Status: ${bpStat.label}`}
                 </span>
               </div>
             </div>
           </div>
 
-          <div className="mt-5 p-3 bg-white/5 rounded-xl border border-white/10">
-            <p className="text-[10px] text-white/40 leading-relaxed">
+          <div className="mt-5 p-4 bg-white/5 rounded-2xl border border-white/10">
+            <p className="text-[10px] text-white/40 leading-relaxed font-semibold">
               Indikator dihitung otomatis berdasarkan data yang kamu masukkan.
             </p>
           </div>
         </div>
 
         {/* Form */}
-        <div className="flex-1 p-5 overflow-y-auto bg-white">
-          <div className="flex items-center justify-between mb-5">
-            <div>
-              <h3 className="text-base font-bold text-[#171717]">Perbarui Biometrik</h3>
-              <p className="text-[10px] text-neutral-400 mt-0.5 uppercase tracking-wider">Laporan Kesehatan Mandiri</p>
+        <div className="flex-1 p-6 overflow-y-auto bg-white flex flex-col justify-between max-h-[90vh]">
+          <div>
+            <div className="flex items-center justify-between mb-5 border-b border-neutral-100 pb-3">
+              <div>
+                <h3 className="text-base font-extrabold text-[#171717]">Perbarui Biometrik</h3>
+                <p className="text-[10px] text-neutral-400 mt-0.5 uppercase tracking-wider font-bold">Laporan Kesehatan Mandiri</p>
+              </div>
+              <button
+                onClick={onClose}
+                className="w-8 h-8 rounded-xl bg-neutral-50 border border-neutral-200 flex items-center justify-center text-neutral-400 hover:text-[#00236F] hover:border-[#00236F] transition-all"
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >close</span>
+              </button>
             </div>
-            <button
-              onClick={onClose}
-              className="w-8 h-8 rounded-xl bg-neutral-50 border border-neutral-200 flex items-center justify-center text-neutral-400 hover:text-[#00236F] hover:border-[#00236F] transition-all"
-            >
-              <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >close</span>
-            </button>
+
+            <div className="space-y-6">
+              {/* 1. Kategori Fisik */}
+              <div className="border border-neutral-100 rounded-2xl p-4 bg-neutral-50/50 space-y-4">
+                <div className="flex items-center gap-2 pb-2 border-b border-neutral-100">
+                  <span className="material-symbols-outlined text-blue-600 font-bold" style={{ fontSize: '18px' }}>accessibility_new</span>
+                  <span className="text-[10px] font-black text-[#00236F] uppercase tracking-wider">1. Kategori Fisik</span>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <InputField label="Tinggi Badan" unit="cm" value={formData.tinggi_badan} onChange={v => setFormData(p => ({ ...p, tinggi_badan: v }))} icon={<span className="material-symbols-outlined text-blue-500 font-bold" style={{ fontSize: '14px' }}>straighten</span>} placeholder="170" />
+                  <InputField label="Berat Badan" unit="kg" value={formData.berat_badan} onChange={v => setFormData(p => ({ ...p, berat_badan: v }))} icon={<span className="material-symbols-outlined text-blue-500 font-bold" style={{ fontSize: '14px' }}>scale</span>} placeholder="65" />
+                </div>
+              </div>
+
+              {/* 2. Gaya Hidup */}
+              <div className="border border-neutral-100 rounded-2xl p-4 bg-neutral-50/50 space-y-4">
+                <div className="flex items-center gap-2 pb-2 border-b border-neutral-100">
+                  <span className="material-symbols-outlined text-teal-600 font-bold" style={{ fontSize: '18px' }}>sports_gymnastics</span>
+                  <span className="text-[10px] font-black text-[#00236F] uppercase tracking-wider">2. Gaya Hidup (Self-report)</span>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-[10px] font-bold text-[#171717] uppercase tracking-wider flex items-center gap-1.5 mb-1.5">
+                      <span className="material-symbols-outlined text-teal-500 font-bold" style={{ fontSize: '14px' }}>bedtime</span> Jam Tidur / Hari
+                    </label>
+                    <select 
+                      className="w-full px-3 py-2 bg-white border border-neutral-200 rounded-xl text-xs font-bold focus:outline-none focus:border-[#00236F] transition-all text-[#171717] h-[40px]"
+                      value={formData.jam_tidur}
+                      onChange={e => setFormData(p => ({ ...p, jam_tidur: e.target.value }))}
+                    >
+                      {['4', '5', '6', '7', '8', '9'].map(v => <option key={v} value={v}>{v} Jam</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-[#171717] uppercase tracking-wider flex items-center gap-1.5 mb-1.5">
+                      <span className="material-symbols-outlined text-teal-500 font-bold" style={{ fontSize: '14px' }}>fitness_center</span> Olahraga / Minggu
+                    </label>
+                    <select 
+                      className="w-full px-3 py-2 bg-white border border-neutral-200 rounded-xl text-xs font-bold focus:outline-none focus:border-[#00236F] transition-all text-[#171717] h-[40px]"
+                      value={formData.olahraga}
+                      onChange={e => setFormData(p => ({ ...p, olahraga: e.target.value }))}
+                    >
+                      {['0', '1', '2', '3', '4'].map(v => <option key={v} value={v}>{v} Kali</option>)}
+                    </select>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-[10px] font-bold text-[#171717] uppercase tracking-wider flex items-center gap-1.5 mb-1.5">
+                      <span className="material-symbols-outlined text-teal-500 font-bold" style={{ fontSize: '14px' }}>local_drink</span> Air Minum (L)
+                    </label>
+                    <select 
+                      className="w-full px-3 py-2 bg-white border border-neutral-200 rounded-xl text-xs font-bold focus:outline-none focus:border-[#00236F] transition-all text-[#171717] h-[40px]"
+                      value={formData.konsumsi_air}
+                      onChange={e => setFormData(p => ({ ...p, konsumsi_air: e.target.value }))}
+                    >
+                      {['1.0', '1.5', '2.0', '2.5', '3.0'].map(v => <option key={v} value={v}>{v} Liter</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-[#171717] uppercase tracking-wider flex items-center gap-1.5 mb-1.5">
+                      <span className="material-symbols-outlined text-teal-500 font-bold" style={{ fontSize: '14px' }}>smoke_free</span> Apakah Merokok?
+                    </label>
+                    <select 
+                      className="w-full px-3 py-2 bg-white border border-neutral-200 rounded-xl text-xs font-bold focus:outline-none focus:border-[#00236F] transition-all text-[#171717] h-[40px]"
+                      value={formData.merokok}
+                      onChange={e => setFormData(p => ({ ...p, merokok: e.target.value }))}
+                    >
+                      {['Tidak', 'Ya'].map(v => <option key={v} value={v}>{v}</option>)}
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              {/* 3. Mental */}
+              <div className="border border-neutral-100 rounded-2xl p-4 bg-neutral-50/50 space-y-4">
+                <div className="flex items-center gap-2 pb-2 border-b border-neutral-100">
+                  <span className="material-symbols-outlined text-purple-600 font-bold" style={{ fontSize: '18px' }}>psychology</span>
+                  <span className="text-[10px] font-black text-[#00236F] uppercase tracking-wider">3. Kategori Mental (Self-report)</span>
+                </div>
+                <div className="space-y-1">
+                  <div className="flex justify-between items-center mb-1">
+                    <label className="text-[10px] font-bold text-[#171717] uppercase tracking-wider flex items-center gap-1.5">
+                      Tingkat Stres (1-10)
+                    </label>
+                    <span className="px-2 py-0.5 text-xs font-extrabold bg-purple-100 text-purple-700 rounded-lg">{formData.tingkat_stres}</span>
+                  </div>
+                  <input 
+                    type="range" 
+                    min="1" 
+                    max="10" 
+                    className="w-full accent-purple-600 bg-neutral-200 h-1.5 rounded-lg appearance-none cursor-pointer"
+                    value={formData.tingkat_stres} 
+                    onChange={e => setFormData(p => ({ ...p, tingkat_stres: e.target.value }))}
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-[10px] font-bold text-[#171717] uppercase tracking-wider flex items-center gap-1.5 mb-1.5">
+                      <span className="material-symbols-outlined text-purple-500 font-bold" style={{ fontSize: '14px' }}>mood</span> Mood Minggu Ini
+                    </label>
+                    <select 
+                      className="w-full px-3 py-2 bg-white border border-neutral-200 rounded-xl text-xs font-bold focus:outline-none focus:border-[#00236F] transition-all text-[#171717] h-[40px]"
+                      value={formData.mood}
+                      onChange={e => setFormData(p => ({ ...p, mood: e.target.value }))}
+                    >
+                      {['Sangat Baik', 'Baik', 'Biasa Saja', 'Buruk', 'Sangat Buruk'].map(v => <option key={v} value={v}>{v}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-[#171717] uppercase tracking-wider flex items-center gap-1.5 mb-1.5">
+                      <span className="material-symbols-outlined text-purple-500 font-bold" style={{ fontSize: '14px' }}>auto_stories</span> Motivasi Belajar
+                    </label>
+                    <select 
+                      className="w-full px-3 py-2 bg-white border border-neutral-200 rounded-xl text-xs font-bold focus:outline-none focus:border-[#00236F] transition-all text-[#171717] h-[40px]"
+                      value={formData.motivasi_belajar}
+                      onChange={e => setFormData(p => ({ ...p, motivasi_belajar: e.target.value }))}
+                    >
+                      {['Sangat Tinggi', 'Tinggi', 'Biasa Saja', 'Rendah', 'Sangat Rendah'].map(v => <option key={v} value={v}>{v}</option>)}
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              {/* 4. Keluhan */}
+              <div className="border border-neutral-100 rounded-2xl p-4 bg-neutral-50/50 space-y-3">
+                <div className="flex items-center gap-2 pb-2 border-b border-neutral-100">
+                  <span className="material-symbols-outlined text-red-600 font-bold" style={{ fontSize: '18px' }}>healing</span>
+                  <span className="text-[10px] font-black text-[#00236F] uppercase tracking-wider">4. Kategori Keluhan (Bila Ada)</span>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  {[
+                    { key: 'sakit_kepala', label: 'Sakit Kepala' },
+                    { key: 'pusing', label: 'Pusing' },
+                    { key: 'lelah', label: 'Lelah / Lemas' },
+                    { key: 'nyeri_sendi', label: 'Nyeri Sendi' },
+                  ].map(item => (
+                    <button
+                      key={item.key}
+                      type="button"
+                      onClick={() => setFormData(p => ({ ...p, [item.key]: !p[item.key] }))}
+                      className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border text-left text-xs font-bold transition-all ${
+                        formData[item.key]
+                          ? 'bg-rose-50 border-rose-200 text-rose-600 shadow-sm'
+                          : 'bg-white border-neutral-200 text-neutral-600 hover:bg-neutral-50'
+                      }`}
+                    >
+                      <span className="material-symbols-outlined font-bold" style={{ fontSize: '15px' }}>
+                        {formData[item.key] ? 'check_circle' : 'add_circle'}
+                      </span>
+                      {item.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* 5. Kategori Opsional (Alat/Klinik) */}
+              <div className="border border-neutral-100 rounded-2xl p-4 bg-neutral-50/50 space-y-4">
+                <div className="flex items-center gap-2 pb-2 border-b border-neutral-100">
+                  <span className="material-symbols-outlined text-blue-900 font-bold" style={{ fontSize: '18px' }}>query_stats</span>
+                  <span className="text-[10px] font-black text-[#00236F] uppercase tracking-wider">5. Kategori Opsional (Alat/Klinik)</span>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <InputField label="Tensi Sistolik" unit="mmHg" value={formData.sistolik} onChange={v => setFormData(p => ({ ...p, sistolik: v }))} icon={<span className="material-symbols-outlined text-blue-500 font-bold" style={{ fontSize: '14px' }}>arrow_upward</span>} placeholder="120" isOptional={true} />
+                  <InputField label="Tensi Diastolik" unit="mmHg" value={formData.diastolik} onChange={v => setFormData(p => ({ ...p, diastolik: v }))} icon={<span className="material-symbols-outlined text-blue-500 font-bold" style={{ fontSize: '14px' }}>arrow_downward</span>} placeholder="80" isOptional={true} />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <InputField label="Gula Darah" unit="mg/dL" value={formData.gula_darah} onChange={v => setFormData(p => ({ ...p, gula_darah: v }))} icon={<span className="material-symbols-outlined text-blue-500 font-bold" style={{ fontSize: '14px' }}>water_drop</span>} placeholder="90" isOptional={true} />
+                  <div>
+                    <label className="text-[10px] font-bold text-[#171717] uppercase tracking-wider flex items-center gap-1.5 mb-1.5 justify-between">
+                      <span className="flex items-center gap-1.5">
+                        <span className="material-symbols-outlined text-blue-500 font-bold" style={{ fontSize: '14px' }}>bloodtype</span> Golongan Darah
+                      </span>
+                      <span className="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-neutral-100 text-neutral-400 border border-neutral-200/50 normal-case tracking-normal">Opsional</span>
+                    </label>
+                    <select 
+                      className="w-full px-3 py-2 bg-white border border-neutral-200 rounded-xl text-xs font-bold focus:outline-none focus:border-[#00236F] transition-all text-[#171717] h-[40px]"
+                      value={formData.golongan_darah}
+                      onChange={e => setFormData(p => ({ ...p, golongan_darah: e.target.value }))}
+                    >
+                      {['A', 'B', 'AB', 'O', '-'].map(g => <option key={g} value={g}>{g}</option>)}
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              {/* 6. Catatan */}
+              <div>
+                <label className="text-[10px] font-bold text-[#171717] uppercase tracking-wider flex items-center gap-1.5 mb-1.5">
+                  <span className="material-symbols-outlined text-[#00236F]" style={{ fontSize: '12px' }}>description</span> Catatan Tambahan (Opsional)
+                </label>
+                <textarea
+                  rows={2}
+                  placeholder="Ceritakan kondisi kesehatanmu atau keluhan yang dirasakan..."
+                  className="w-full px-4 py-2.5 bg-neutral-50 border border-neutral-200 rounded-xl text-xs focus:outline-none focus:border-[#00236F] transition-all resize-none font-bold"
+                  value={formData.keluhan}
+                  onChange={e => setFormData(p => ({ ...p, keluhan: e.target.value }))}
+                />
+              </div>
+
+              {/* 7. Tanggal */}
+              <div>
+                <label className="text-[10px] font-bold text-[#171717] uppercase tracking-wider flex items-center gap-1.5 mb-1.5">
+                  <span className="material-symbols-outlined text-[#00236F]" style={{ fontSize: '12px' }}>calendar_month</span> Tanggal Pengukuran
+                </label>
+                <input
+                  type="date"
+                  className="w-full px-4 py-2.5 bg-neutral-50 border border-neutral-200 rounded-xl text-xs font-bold focus:outline-none focus:border-[#00236F] transition-all"
+                  value={formData.tanggal}
+                  onChange={e => setFormData(p => ({ ...p, tanggal: e.target.value }))}
+                />
+              </div>
+            </div>
           </div>
 
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <InputField label="Tinggi Badan" unit="cm"   value={formData.tinggi_badan} onChange={v => setFormData(p => ({ ...p, tinggi_badan: v }))} icon={<span className="material-symbols-outlined" style={{ fontSize: '13px' }} >trending_up</span>} placeholder="170" />
-              <InputField label="Berat Badan"  unit="kg"   value={formData.berat_badan}  onChange={v => setFormData(p => ({ ...p, berat_badan:  v }))} icon={<Scale size={13}/>}      placeholder="65"  />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <InputField label="Tensi Sistolik"  unit="mmHg" value={formData.sistolik}  onChange={v => setFormData(p => ({ ...p, sistolik:  v }))} icon={<span className="material-symbols-outlined" style={{ fontSize: '13px' }} >show_chart</span>} placeholder="120" />
-              <InputField label="Tensi Diastolik" unit="mmHg" value={formData.diastolik} onChange={v => setFormData(p => ({ ...p, diastolik: v }))} icon={<span className="material-symbols-outlined" style={{ fontSize: '13px' }} >show_chart</span>} placeholder="80"  />
-            </div>
-
-            <div>
-              <label className="text-[10px] font-bold text-[#171717] uppercase tracking-wider flex items-center gap-1.5 mb-1.5">
-                <span className="material-symbols-outlined text-[#00236F]" style={{ fontSize: '12px' }} >calendar_month</span> Tanggal Pengukuran
-              </label>
-              <input
-                type="date"
-                className="w-full px-4 py-2.5 bg-neutral-50 border border-neutral-200 rounded-xl text-sm font-semibold focus:outline-none focus:border-[#00236F] transition-all"
-                value={formData.tanggal}
-                onChange={e => setFormData(p => ({ ...p, tanggal: e.target.value }))}
-              />
-            </div>
-
-            <div>
-              <label className="text-[10px] font-bold text-[#171717] uppercase tracking-wider flex items-center gap-1.5 mb-1.5">
-                <span className="material-symbols-outlined text-[#00236F]" style={{ fontSize: '12px' }} >description</span> Keluhan / Catatan (Opsional)
-              </label>
-              <textarea
-                rows={3}
-                placeholder="Ceritakan kondisi kesehatanmu atau keluhan yang dirasakan..."
-                className="w-full px-4 py-2.5 bg-neutral-50 border border-neutral-200 rounded-xl text-sm focus:outline-none focus:border-[#00236F] transition-all resize-none"
-                value={formData.keluhan}
-                onChange={e => setFormData(p => ({ ...p, keluhan: e.target.value }))}
-              />
-            </div>
-          </div>
-
-          <div className="mt-4 flex gap-3">
+          <div className="mt-6 flex gap-3 border-t border-neutral-100 pt-4 shrink-0 bg-white">
             <button
               onClick={onClose}
-              className="flex-1 py-2.5 bg-white border border-neutral-200 text-neutral-500 text-sm font-bold rounded-xl hover:bg-neutral-50 transition-all"
+              className="flex-1 py-3 bg-white border border-neutral-200 text-neutral-500 text-xs font-black rounded-xl hover:bg-neutral-50 transition-all uppercase tracking-wider"
             >
               Batal
             </button>
             <button
               disabled={isLoading || !formData.tinggi_badan || !formData.berat_badan}
-              onClick={() => onSubmit({
-                ...formData,
-                tinggi_badan: parseFloat(formData.tinggi_badan),
-                berat_badan:  parseFloat(formData.berat_badan),
-                sistolik:     parseInt(formData.sistolik)  || 0,
-                diastolik:    parseInt(formData.diastolik) || 0,
-                tanggal:      new Date(formData.tanggal).toISOString(),
-              })}
-              className="flex-2 py-2.5 bg-[#00236F] text-white text-sm font-bold rounded-xl hover:bg-[#0B4FAE] transition-all flex items-center justify-center gap-2 disabled:opacity-50 shadow-md shadow-[#00236F]/20"
+              onClick={() => {
+                const notesPayload = {
+                  is_screening_realistis: true,
+                  jam_tidur: parseInt(formData.jam_tidur) || 8,
+                  olahraga: parseInt(formData.olahraga) || 0,
+                  konsumsi_air: parseFloat(formData.konsumsi_air) || 2.0,
+                  merokok: formData.merokok,
+                  tingkat_stres: parseInt(formData.tingkat_stres) || 5,
+                  mood: formData.mood,
+                  motivasi_belajar: formData.motivasi_belajar,
+                  daftar_keluhan: [
+                    ...(formData.sakit_kepala ? ['Sakit Kepala'] : []),
+                    ...(formData.pusing ? ['Pusing'] : []),
+                    ...(formData.lelah ? ['Lelah / Lemas'] : []),
+                    ...(formData.nyeri_sendi ? ['Nyeri Sendi'] : []),
+                  ],
+                  catatan_tambahan: formData.keluhan,
+                };
+                const notesStr = JSON.stringify(notesPayload);
+                onSubmit({
+                  tinggi_badan: parseFloat(formData.tinggi_badan),
+                  berat_badan:  parseFloat(formData.berat_badan),
+                  sistolik:     parseInt(formData.sistolik)  || 120,
+                  diastolik:    parseInt(formData.diastolik) || 80,
+                  gula_darah:   parseInt(formData.gula_darah) || 0,
+                  golongan_darah: formData.golongan_darah,
+                  catatan:      notesStr,
+                  keluhan:      notesStr,
+                  tanggal:      new Date(formData.tanggal).toISOString(),
+                });
+              }}
+              className="flex-1 py-3 bg-[#00236F] text-white text-xs font-black rounded-xl hover:bg-[#0B4FAE] transition-all flex items-center justify-center gap-2 disabled:opacity-50 shadow-md shadow-[#00236F]/20 uppercase tracking-wider"
             >
               {isLoading
                 ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -832,11 +1145,16 @@ function InputModal({ onClose, onSubmit, isLoading }) {
   );
 }
 
-function InputField({ label, unit, value, onChange, icon, placeholder }) {
+function InputField({ label, unit, value, onChange, icon, placeholder, isOptional }) {
   return (
     <div>
-      <label className="text-[10px] font-bold text-[#171717] uppercase tracking-wider flex items-center gap-1.5 mb-1.5">
-        {icon} {label} <span className="text-neutral-300 font-normal normal-case tracking-normal">({unit})</span>
+      <label className="text-[10px] font-bold text-[#171717] uppercase tracking-wider flex items-center gap-1.5 mb-1.5 justify-between">
+        <span className="flex items-center gap-1.5">
+          {icon} {label} <span className="text-neutral-300 font-normal normal-case tracking-normal">({unit})</span>
+        </span>
+        {isOptional && (
+          <span className="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-neutral-100 text-neutral-400 border border-neutral-200/50 normal-case tracking-normal">Opsional</span>
+        )}
       </label>
       <input
         type="number"
@@ -883,6 +1201,17 @@ function DetailModal({ record, isLoading, onClose }) {
 
   const bmiCat = getBMICategory(record.bmi);
 
+  let parsedNotes = null;
+  if (record.keluhan) {
+    try {
+      if (record.keluhan.trim().startsWith('{')) {
+        parsedNotes = JSON.parse(record.keluhan);
+      }
+    } catch (e) {
+      // standard string
+    }
+  }
+
   return (
     <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
@@ -892,10 +1221,10 @@ function DetailModal({ record, isLoading, onClose }) {
         initial={{ opacity: 0, scale: 0.96, y: 20 }}
         animate={{ opacity: 1, scale: 1,    y: 0  }}
         exit={{   opacity: 0, scale: 0.94,  y: 20 }}
-        className="relative bg-white w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden"
+        className="relative bg-white w-full max-w-xl rounded-3xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col"
       >
         {/* Header */}
-        <div className={`px-5 py-4 ${bmiCat.bg} border-b ${bmiCat.border}`}>
+        <div className={`px-6 py-4 ${bmiCat.bg} border-b ${bmiCat.border} shrink-0`}>
           <div className="flex items-center justify-between mb-3">
             <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase bg-white border shadow-sm ${bmiCat.color}`}>
               BMI: {bmiCat.label}
@@ -907,72 +1236,375 @@ function DetailModal({ record, isLoading, onClose }) {
               <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >close</span>
             </button>
           </div>
-          <h2 className="text-lg font-bold text-[#171717]">Rekam Medis</h2>
-          <p className="text-xs text-neutral-500 flex items-center gap-1.5 mt-0.5">
-            <span className="material-symbols-outlined text-[#00236F]" style={{ fontSize: '12px' }} >calendar_month</span>
+          <h2 className="text-lg font-black text-[#171717] tracking-tight">Laporan Rekam Medis</h2>
+          <p className="text-xs text-neutral-500 flex items-center gap-1.5 mt-0.5 font-semibold">
+            <span className="material-symbols-outlined text-[#00236F] font-bold" style={{ fontSize: '12px' }} >calendar_month</span>
             {fmt(record.tanggal_periksa, { day: 'numeric', month: 'long', year: 'numeric' })}
           </p>
         </div>
 
         {/* Body */}
-        <div className="p-5">
-          <div className="grid grid-cols-4 gap-3 mb-5">
-            {[
-              { label: 'Tinggi', value: record.tinggi_badan, unit: 'cm' },
-              { label: 'Berat',  value: record.berat_badan,  unit: 'kg' },
-              { label: 'BMI',    value: record.bmi,          unit: 'pt' },
-              { label: 'Tensi',  value: `${record.sistolik}/${record.diastolik}`, unit: 'mmHg' },
-            ].map(({ label, value, unit }) => (
-              <div key={label} className="bg-neutral-50 rounded-xl p-3 border border-neutral-100">
-                <p className="text-[9px] font-semibold text-neutral-400 uppercase tracking-wide mb-1">{label}</p>
-                <p className="text-base font-black text-[#171717] leading-none">{value}</p>
-                <p className="text-[9px] text-neutral-300 font-semibold mt-0.5">{unit}</p>
-              </div>
-            ))}
-          </div>
-
-          <div className="space-y-3">
-            {record.keluhan && (
-              <div className="p-3.5 bg-neutral-50 rounded-xl border border-neutral-100">
-                <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider flex items-center gap-1.5 mb-2">
-                  <Bookmark size={11} className="text-[#00236F]" /> Keluhan
-                </p>
-                <p className="text-sm text-neutral-600 leading-relaxed italic">"{record.keluhan}"</p>
-              </div>
-            )}
-            {record.catatan_medis && (
-              <div className="p-3.5 bg-blue-50 rounded-xl border border-blue-100">
-                <p className="text-[10px] font-bold text-blue-500 uppercase tracking-wider flex items-center gap-1.5 mb-2">
-                  <span className="material-symbols-outlined" style={{ fontSize: '11px' }} >error</span> Analisis & Saran Medis
-                </p>
-                <p className="text-sm font-semibold text-blue-800 leading-relaxed">{record.catatan_medis}</p>
-              </div>
-            )}
-
-            <div className="flex items-center justify-between p-3.5 bg-[#00236F] rounded-xl text-white">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center">
-                  <User size={16} className="text-blue-200" />
+        <div className="p-6 overflow-y-auto space-y-5">
+          {/* Physical Metrics Grid */}
+          <div>
+            <h4 className="text-[10px] font-black text-neutral-400 uppercase tracking-wider mb-2.5">Indikator Utama</h4>
+            <div className="grid grid-cols-4 gap-2.5">
+              {[
+                { label: 'Tinggi', value: record.tinggi_badan, unit: 'cm', color: 'text-blue-600' },
+                { label: 'Berat',  value: record.berat_badan,  unit: 'kg', color: 'text-blue-600' },
+                { label: 'BMI',    value: record.bmi,          unit: 'pts', color: bmiCat.color },
+                { label: 'Tensi',  value: `${record.sistolik}/${record.diastolik}`, unit: 'mmHg', color: 'text-[#00236F]' },
+              ].map(({ label, value, unit, color }) => (
+                <div key={label} className="bg-neutral-50 rounded-2xl p-3 border border-neutral-100/70 text-center">
+                  <p className="text-[9px] font-extrabold text-neutral-400 uppercase tracking-wide mb-1">{label}</p>
+                  <p className={`text-sm font-black leading-none ${color}`}>{value}</p>
+                  <p className="text-[9px] text-neutral-300 font-semibold mt-1">{unit}</p>
                 </div>
-                <div>
-                  <p className="text-[10px] text-white/40 uppercase tracking-wider">Sumber</p>
-                  <p className="text-sm font-bold capitalize">{record.sumber.replace(/_/g, ' ')}</p>
-                </div>
-              </div>
-              <div className="text-right">
-                <p className="text-[10px] text-white/40 uppercase tracking-wider mb-0.5">Status</p>
-                <p className={`text-xs font-bold uppercase ${record.status_kesehatan === 'sehat' ? 'text-emerald-400' : 'text-blue-300'}`}>
-                  {record.status_kesehatan.replace('_', ' ')}
-                </p>
-              </div>
+              ))}
             </div>
           </div>
 
+          {/* Gula Darah & Golongan Darah */}
+          {(record.gula_darah > 0 || record.golongan_darah) && (
+            <div className="grid grid-cols-2 gap-3">
+              {record.gula_darah > 0 && (
+                <div className="bg-neutral-50 rounded-2xl p-3.5 border border-neutral-100 flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-xl bg-red-50 text-red-500 flex items-center justify-center shrink-0">
+                    <span className="material-symbols-outlined font-bold" style={{ fontSize: '16px' }}>water_drop</span>
+                  </div>
+                  <div>
+                    <p className="text-[9px] font-extrabold text-neutral-400 uppercase tracking-wider">Gula Darah</p>
+                    <p className="text-sm font-black text-[#171717]">{record.gula_darah} <span className="text-[10px] text-neutral-400 font-semibold">mg/dL</span></p>
+                  </div>
+                </div>
+              )}
+              {record.golongan_darah && record.golongan_darah !== '-' && (
+                <div className="bg-neutral-50 rounded-2xl p-3.5 border border-neutral-100 flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-500 flex items-center justify-center shrink-0">
+                    <span className="material-symbols-outlined font-bold" style={{ fontSize: '16px' }}>bloodtype</span>
+                  </div>
+                  <div>
+                    <p className="text-[9px] font-extrabold text-neutral-400 uppercase tracking-wider">Golongan Darah</p>
+                    <p className="text-sm font-black text-[#171717]">{record.golongan_darah}</p>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Advanced Lifestyle & Mental Insights */}
+          {parsedNotes && (
+            <>
+              {/* Lifestyle Category */}
+              <div className="bg-teal-50/20 border border-teal-100/50 rounded-2xl p-4 space-y-3">
+                <p className="text-[10px] font-black text-teal-700 uppercase tracking-wider flex items-center gap-1.5 pb-1.5 border-b border-teal-100/30">
+                  <span className="material-symbols-outlined font-bold" style={{ fontSize: '14px' }}>sports_gymnastics</span> Gaya Hidup (Self-report)
+                </p>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="flex flex-col">
+                    <span className="text-[9px] text-neutral-400 font-extrabold uppercase">Jam Tidur</span>
+                    <span className="text-xs font-bold text-neutral-700">{parsedNotes.jam_tidur} Jam / Hari</span>
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-[9px] text-neutral-400 font-extrabold uppercase">Olahraga</span>
+                    <span className="text-xs font-bold text-neutral-700">{parsedNotes.olahraga} Kali / Minggu</span>
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-[9px] text-neutral-400 font-extrabold uppercase">Konsumsi Air</span>
+                    <span className="text-xs font-bold text-neutral-700">{parsedNotes.konsumsi_air} Liter</span>
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-[9px] text-neutral-400 font-extrabold uppercase">Apakah Merokok</span>
+                    <span className="text-xs font-bold text-neutral-700">{parsedNotes.merokok}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Mental Category */}
+              <div className="bg-purple-50/20 border border-purple-100/50 rounded-2xl p-4 space-y-3">
+                <p className="text-[10px] font-black text-purple-700 uppercase tracking-wider flex items-center gap-1.5 pb-1.5 border-b border-purple-100/30">
+                  <span className="material-symbols-outlined font-bold" style={{ fontSize: '14px' }}>psychology</span> Kondisi Mental (Self-report)
+                </p>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="flex flex-col">
+                    <span className="text-[9px] text-neutral-400 font-extrabold uppercase">Tingkat Stres</span>
+                    <span className="text-xs font-bold text-purple-700">{parsedNotes.tingkat_stres || 0} / 10</span>
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-[9px] text-neutral-400 font-extrabold uppercase">Mood</span>
+                    <span className="text-xs font-bold text-neutral-700">{parsedNotes.mood || '-'}</span>
+                  </div>
+                  <div className="flex flex-col col-span-2">
+                    <span className="text-[9px] text-neutral-400 font-extrabold uppercase">Motivasi Belajar</span>
+                    <span className="text-xs font-bold text-neutral-700">{parsedNotes.motivasi_belajar || '-'}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Symptoms Category */}
+              {parsedNotes.daftar_keluhan && parsedNotes.daftar_keluhan.length > 0 && (
+                <div className="bg-rose-50/20 border border-rose-100/50 rounded-2xl p-4 space-y-2.5">
+                  <p className="text-[10px] font-black text-rose-700 uppercase tracking-wider flex items-center gap-1.5">
+                    <span className="material-symbols-outlined font-bold" style={{ fontSize: '14px' }}>healing</span> Keluhan Fisik
+                  </p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {parsedNotes.daftar_keluhan.map((kel, idx) => (
+                      <span key={idx} className="px-2.5 py-1 bg-rose-50 border border-rose-100 text-rose-600 rounded-xl text-[10px] font-bold">
+                        {kel}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+
+          {/* Standard notes if standard text */}
+          {!parsedNotes && record.keluhan && (
+            <div className="p-3.5 bg-neutral-50 rounded-2xl border border-neutral-100">
+              <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider flex items-center gap-1.5 mb-2">
+                <span className="material-symbols-outlined font-bold text-[#00236F]" style={{ fontSize: '14px' }}>bookmark</span> Keluhan
+              </p>
+              <p className="text-xs text-neutral-600 leading-relaxed italic">"{record.keluhan}"</p>
+            </div>
+          )}
+
+          {parsedNotes && parsedNotes.catatan_tambahan && (
+            <div className="p-3.5 bg-neutral-50 rounded-2xl border border-neutral-100">
+              <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider flex items-center gap-1.5 mb-2">
+                <span className="material-symbols-outlined font-bold text-[#00236F]" style={{ fontSize: '14px' }}>bookmark</span> Catatan Tambahan
+              </p>
+              <p className="text-xs text-neutral-600 leading-relaxed italic">"{parsedNotes.catatan_tambahan}"</p>
+            </div>
+          )}
+
+          {record.catatan_medis && (
+            <div className="p-3.5 bg-blue-50 rounded-2xl border border-blue-100">
+              <p className="text-[10px] font-bold text-blue-500 uppercase tracking-wider flex items-center gap-1.5 mb-2">
+                <span className="material-symbols-outlined font-bold text-blue-500" style={{ fontSize: '14px' }} >error</span> Analisis & Saran Medis
+              </p>
+              <p className="text-xs font-semibold text-blue-800 leading-relaxed">{record.catatan_medis}</p>
+            </div>
+          )}
+
+          {/* Source and status banner */}
+          <div className="flex items-center justify-between p-4 bg-[#00236F] rounded-2xl text-white">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center">
+                <span className="material-symbols-outlined text-blue-200" style={{ fontSize: '16px' }}>admin_panel_settings</span>
+              </div>
+              <div>
+                <p className="text-[10px] text-white/40 uppercase tracking-wider">Sumber Data</p>
+                <p className="text-xs font-bold capitalize">{record.sumber.replace(/_/g, ' ')}</p>
+              </div>
+            </div>
+            <div className="text-right">
+              <p className="text-[10px] text-white/40 uppercase tracking-wider mb-0.5">Status</p>
+              <p className={`text-xs font-bold uppercase ${record.status_kesehatan === 'sehat' ? 'text-emerald-400' : 'text-blue-300'}`}>
+                {record.status_kesehatan.replace('_', ' ')}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="p-6 border-t border-neutral-100 shrink-0 bg-white">
           <button
             onClick={onClose}
-            className="w-full mt-4 py-2.5 bg-neutral-50 border border-neutral-200 text-neutral-500 text-sm font-bold rounded-xl hover:bg-neutral-100 transition-all"
+            className="w-full py-3 bg-neutral-50 border border-neutral-200 text-neutral-500 text-xs font-black rounded-xl hover:bg-neutral-100 transition-all uppercase tracking-wider"
           >
             Tutup
+          </button>
+        </div>
+      </motion.div>
+    </div>
+  );
+}
+
+function SuccessFeedbackModal({ data, onClose }) {
+  const currentRecord = data.current;
+  const previousRecord = data.previous;
+  
+  const score = calculateHealthScore(currentRecord);
+  const delta = getInterpretationDelta(currentRecord, previousRecord);
+  const streak = calculateStreak([currentRecord, ...(previousRecord ? [previousRecord] : [])]);
+  
+  // Calculate stress level if present
+  let stressLevel = 0;
+  if (currentRecord.keluhan && currentRecord.keluhan.startsWith('{')) {
+    try {
+      const parsed = JSON.parse(currentRecord.keluhan);
+      stressLevel = parseInt(parsed.tingkat_stres) || 0;
+    } catch (_) {}
+  }
+  
+  // Custom suggestion based on score
+  let badgeColor = "bg-emerald-50 text-emerald-600 border-emerald-100";
+  let scoreColor = "text-emerald-500";
+  let ringColor = "#10b981";
+  
+  if (score < 70) {
+    badgeColor = "bg-rose-50 text-rose-600 border-rose-100";
+    scoreColor = "text-rose-500";
+    ringColor = "#f43f5e";
+  } else if (score < 85) {
+    badgeColor = "bg-amber-50 text-amber-600 border-amber-100";
+    scoreColor = "text-amber-500";
+    ringColor = "#f59e0b";
+  }
+
+  // Check if student needs counselor or clinic
+  const needsCounseling = stressLevel >= 7 || currentRecord.bmi >= 30;
+
+  return (
+    <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
+      <motion.div 
+        initial={{ opacity: 0 }} 
+        animate={{ opacity: 1 }} 
+        exit={{ opacity: 0 }}
+        onClick={onClose} 
+        className="absolute inset-0 bg-[#00236F]/60 backdrop-blur-md" 
+      />
+
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95, y: 30 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.92, y: 30 }}
+        className="relative bg-white w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden border border-neutral-100 flex flex-col max-h-[90vh]"
+      >
+        {/* Top Header Card */}
+        <div className="bg-[#00236F] p-6 text-white text-center relative overflow-hidden shrink-0">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute bottom-0 left-0 w-24 h-24 bg-blue-500/20 rounded-full blur-2xl pointer-events-none" />
+          
+          <div className="relative z-10 flex flex-col items-center">
+            
+            
+            <h2 className="text-xl font-extrabold font-headline leading-tight">Data Kesehatan Disimpan!</h2>
+            <p className="text-xs text-blue-200 mt-1 max-w-xs leading-relaxed">
+              Hasil analisis otomatis parameter kebugaran dan gaya hidup kamu.
+            </p>
+          </div>
+        </div>
+
+        {/* Modal Scrollable Body */}
+        <div className="p-6 overflow-y-auto space-y-5 flex-1 scrollbar-thin">
+          {/* Radial Score Gauge & Interpretation Card */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center bg-neutral-50 p-4 rounded-2xl border border-neutral-100">
+            {/* SVG Radial Score */}
+            <div className="flex flex-col items-center justify-center p-2 bg-white rounded-xl shadow-sm border border-neutral-100">
+              <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider mb-2">Skor Kesehatan</span>
+              <div className="relative w-24 h-24 flex items-center justify-center">
+                <svg className="w-full h-full transform -rotate-90">
+                  <circle cx="48" cy="48" r="40" stroke="#f3f4f6" strokeWidth="8" fill="transparent" strokeDasharray="" />
+                  <circle 
+                    cx="48" 
+                    cy="48" 
+                    r="40" 
+                    stroke={ringColor} 
+                    strokeWidth="8" 
+                    fill="transparent" 
+                    strokeDasharray={2 * Math.PI * 40}
+                    strokeDashoffset={2 * Math.PI * 40 * (1 - score / 100)}
+                    strokeLinecap="round"
+                    className="transition-all duration-1000 ease-out"
+                  />
+                </svg>
+                <div className="absolute flex flex-col items-center">
+                  <span className={`text-2xl font-black ${scoreColor}`}>{score}</span>
+                  <span className="text-[9px] text-neutral-400 font-bold uppercase tracking-wider">Poin</span>
+                </div>
+              </div>
+            </div>
+
+            {/* General evaluation text */}
+            <div className="space-y-2">
+              <div className="flex items-center gap-1.5">
+                <span className="material-symbols-outlined text-[#00236F]" style={{ fontSize: '15px' }}>psychology</span>
+                <span className="text-xs font-bold text-neutral-500 uppercase tracking-wider">Interpretasi</span>
+              </div>
+              <p className="text-xs text-neutral-600 font-medium leading-relaxed">
+                {score >= 85 
+                  ? "Sangat Baik! Tubuh dan gaya hidup kamu menunjukkan konsistensi prima. Teruskan habit ini!" 
+                  : score >= 70 
+                    ? "Cukup Baik! Ada beberapa hal kecil yang bisa ditingkatkan agar kesehatanmu lebih optimal." 
+                    : "Perlu Perhatian! Disarankan untuk menyeimbangkan pola makan, istirahat, dan kelola stres."
+                }
+              </p>
+            </div>
+          </div>
+
+          {/* Inline Personal Comments Delta */}
+          {delta && (
+            <div className={`p-4 rounded-2xl border ${
+              delta.type === 'success' ? 'bg-emerald-50/50 border-emerald-100 text-emerald-900' :
+              delta.type === 'warning' ? 'bg-rose-50/50 border-rose-100 text-rose-900' :
+              'bg-blue-50/50 border-blue-100 text-blue-900'
+            }`}>
+              <div className="flex items-start gap-2.5">
+                <span className="material-symbols-outlined shrink-0 mt-0.5" style={{ fontSize: '18px' }}>
+                  {delta.type === 'success' ? 'check_circle' : delta.type === 'warning' ? 'warning' : 'info'}
+                </span>
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-wider mb-1">Perbandingan Kesehatan</p>
+                  <p className="text-xs font-semibold leading-relaxed leading-normal">{delta.message}</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Grid Stats Comparison (Current vs Previous) */}
+          <div className="space-y-2.5">
+            <div className="flex items-center gap-1.5">
+              <span className="material-symbols-outlined text-[#00236F]" style={{ fontSize: '15px' }}>monitoring</span>
+              <span className="text-xs font-bold text-neutral-500 uppercase tracking-wider">Ringkasan Metrik</span>
+            </div>
+            
+            <div className="grid grid-cols-3 gap-3">
+              {[
+                { label: 'Berat Badan', val: `${currentRecord.berat_badan} kg`, prevVal: previousRecord ? `${previousRecord.berat_badan} kg` : '-' },
+                { label: 'IMT (BMI)', val: currentRecord.bmi, prevVal: previousRecord ? previousRecord.bmi : '-' },
+                { label: 'Tensi Darah', val: `${currentRecord.sistolik}/${currentRecord.diastolik}`, prevVal: previousRecord ? `${previousRecord.sistolik}/${previousRecord.diastolik}` : '-' },
+              ].map(({ label, val, prevVal }) => (
+                <div key={label} className="bg-neutral-50 p-3 rounded-2xl border border-neutral-100 flex flex-col justify-between">
+                  <span className="text-[9px] font-bold text-neutral-400 uppercase tracking-wider mb-2">{label}</span>
+                  <div>
+                    <p className="text-sm font-black text-[#171717]">{val}</p>
+                    <p className="text-[9px] text-neutral-300 font-semibold mt-0.5">Lalu: {prevVal}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Follow-up Recommending Psychologists or Clinic */}
+          {needsCounseling && (
+            <div className="bg-blue-50 border border-blue-100 p-4 rounded-2xl flex items-start gap-3">
+              <div className="bg-[#00236F] p-2 rounded-xl text-white shrink-0">
+                <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>support_agent</span>
+              </div>
+              <div className="space-y-2 flex-1">
+                <p className="text-xs font-bold text-blue-900">Rekomendasi Tindak Lanjut</p>
+                <p className="text-[11px] text-blue-700 leading-relaxed font-semibold">
+                  Tingkat stresmu atau BMI terdeteksi memerlukan panduan ahli. Kamu bisa berkonsultasi gratis dengan psikolog profesional di unit konseling universitas secara rahasia.
+                </p>
+                <a 
+                  href="/student/counseling"
+                  className="inline-flex items-center gap-1 text-[11px] font-black text-[#00236F] hover:underline"
+                >
+                  Jadwalkan Konseling Sekarang <span className="material-symbols-outlined" style={{ fontSize: '12px' }}>arrow_forward</span>
+                </a>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Footer Actions */}
+        <div className="p-5 border-t border-neutral-100 bg-neutral-50/50 shrink-0 flex gap-3">
+          <button
+            onClick={onClose}
+            className="w-full py-3 bg-[#00236F] text-white text-xs font-bold rounded-xl hover:bg-[#0B4FAE] transition-all shadow-md shadow-[#00236F]/10 flex items-center justify-center gap-1.5"
+          >
+            <span className="material-symbols-outlined text-sm font-bold">check</span> Paham, Tutup
           </button>
         </div>
       </motion.div>
