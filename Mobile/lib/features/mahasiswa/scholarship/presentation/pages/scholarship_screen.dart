@@ -9,6 +9,17 @@ import 'package:bkuhub_mobile/features/mahasiswa/scholarship/presentation/pages/
 import 'package:bkuhub_mobile/core/widgets/bku_app_bar.dart';
 import 'package:bkuhub_mobile/core/widgets/bku_shimmer.dart';
 
+String _formatDeadline(String rawDeadline) {
+  try {
+    final parsed = DateTime.tryParse(rawDeadline);
+    if (parsed == null) return rawDeadline;
+    final months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+    return '${parsed.day} ${months[parsed.month - 1]} ${parsed.year}';
+  } catch (_) {
+    return rawDeadline;
+  }
+}
+
 class ScholarshipScreen extends StatefulWidget {
   const ScholarshipScreen({super.key});
 
@@ -23,14 +34,12 @@ class _ScholarshipScreenState extends State<ScholarshipScreen> {
   @override
   void initState() {
     super.initState();
-    _simulateLoading();
-  }
-
-  Future<void> _simulateLoading() async {
-    await Future.delayed(const Duration(milliseconds: 1500));
-    if (mounted) {
-      setState(() => _isLoading = false);
-    }
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await context.read<StudentProvider>().loadAllData();
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    });
   }
 
   @override
@@ -61,7 +70,13 @@ class _ScholarshipScreenState extends State<ScholarshipScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const SizedBox(height: 24),
-                  const FadeInAnimation(delay: 0.2, child: _QuickStatsRow()),
+                  FadeInAnimation(
+                    delay: 0.2, 
+                    child: _QuickStatsRow(
+                      appliedCount: appliedScholarships.length,
+                      openCount: availableScholarships.length,
+                    ),
+                  ),
                   const SizedBox(height: 32),
                   
                   if (_isLoading) ...[
@@ -314,7 +329,7 @@ class _ScholarshipScreenState extends State<ScholarshipScreen> {
                             children: [
                               const Icon(Icons.timer_outlined, size: 14, color: AppColors.error),
                               const SizedBox(width: 4),
-                              Text(scholarship.deadline, style: AppTextStyles.labelSm.copyWith(color: AppColors.error, fontSize: 11, fontWeight: FontWeight.bold)),
+                              Text(_formatDeadline(scholarship.deadline), style: AppTextStyles.labelSm.copyWith(color: AppColors.error, fontSize: 11, fontWeight: FontWeight.bold)),
                             ],
                           ),
                           SizedBox(
@@ -415,7 +430,7 @@ class _ScholarshipScreenState extends State<ScholarshipScreen> {
                           const SizedBox(height: 8),
                           Text(scholarship.provider, style: AppTextStyles.titleLg.copyWith(color: AppColors.outline, fontSize: 16, fontWeight: FontWeight.bold)),
                           const SizedBox(height: 32),
-                          _buildDetailInfoTile(Icons.calendar_month_rounded, 'Batas Pendaftaran', scholarship.deadline, color: AppColors.error),
+                          _buildDetailInfoTile(Icons.calendar_month_rounded, 'Batas Pendaftaran', _formatDeadline(scholarship.deadline), color: AppColors.error),
                           const SizedBox(height: 32),
                           const Divider(),
                           const SizedBox(height: 32),
@@ -617,7 +632,13 @@ class _ScholarshipScreenState extends State<ScholarshipScreen> {
 }
 
 class _QuickStatsRow extends StatelessWidget {
-  const _QuickStatsRow();
+  final int appliedCount;
+  final int openCount;
+
+  const _QuickStatsRow({
+    required this.appliedCount,
+    required this.openCount,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -631,9 +652,9 @@ class _QuickStatsRow extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          _buildStat('1', 'Pendaftaran Aktif'),
+          _buildStat(appliedCount.toString(), 'Pendaftaran Aktif'),
           Container(width: 1, height: 30, color: AppColors.primary.withAlpha(30)),
-          _buildStat('12', 'Peluang Terbuka'),
+          _buildStat(openCount.toString(), 'Peluang Terbuka'),
         ],
       ),
     );

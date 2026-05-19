@@ -14,6 +14,21 @@ class OrganizationHistoryModel extends OrganizationHistory {
     required super.achievements,
   });
 
+  static int _parseInt(dynamic val, int defaultVal) {
+    if (val == null) return defaultVal;
+    if (val is int) return val;
+    if (val is double) return val.toInt();
+    final parsed = int.tryParse(val.toString());
+    return parsed ?? defaultVal;
+  }
+
+  static int? _parseNullableInt(dynamic val) {
+    if (val == null) return null;
+    if (val is int) return val;
+    if (val is double) return val.toInt();
+    return int.tryParse(val.toString());
+  }
+
   factory OrganizationHistoryModel.fromJson(Map<String, dynamic> json) {
     final List<String> parsedAchievements = [];
     if (json['Prestasi'] != null) {
@@ -36,8 +51,8 @@ class OrganizationHistoryModel extends OrganizationHistory {
       namaOrganisasi: json['NamaOrganisasi'] ?? json['nama_organisasi'] ?? '',
       tipe: json['Tipe'] ?? json['tipe'] ?? '',
       jabatan: json['Jabatan'] ?? json['jabatan'] ?? '',
-      periodeMulai: json['PeriodeMulai'] ?? json['periode_mulai'] ?? 2023,
-      periodeSelesai: json['PeriodeSelesai'] ?? json['periode_selesai'],
+      periodeMulai: _parseInt(json['PeriodeMulai'] ?? json['periode_mulai'], 2023),
+      periodeSelesai: _parseNullableInt(json['PeriodeSelesai'] ?? json['periode_selesai']),
       deskripsiKegiatan: json['DeskripsiKegiatan'] ?? json['deskripsi_kegiatan'] ?? '',
       apresiasi: json['Apresiasi'] ?? json['apresiasi'] ?? '',
       statusVerifikasi: json['StatusVerifikasi'] ?? json['status_verifikasi'] ?? json['status'] ?? 'Menunggu',

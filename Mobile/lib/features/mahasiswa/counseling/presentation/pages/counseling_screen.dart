@@ -10,8 +10,21 @@ import 'package:bkuhub_mobile/features/mahasiswa/counseling/presentation/pages/p
 import 'package:bkuhub_mobile/core/widgets/bku_app_bar.dart';
 import 'package:bkuhub_mobile/features/counseling/domain/entities/psychologist.dart';
 
-class CounselingScreen extends StatelessWidget {
+class CounselingScreen extends StatefulWidget {
   const CounselingScreen({super.key});
+
+  @override
+  State<CounselingScreen> createState() => _CounselingScreenState();
+}
+
+class _CounselingScreenState extends State<CounselingScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<StudentProvider>().loadAllData();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -60,7 +73,7 @@ class CounselingScreen extends StatelessWidget {
                             children: [
                               Text('Psikolog Aktif', style: AppTextStyles.titleLg.copyWith(fontSize: 18, fontWeight: FontWeight.w900, color: AppColors.primary)),
                               TextButton(
-                                onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const PsychologistListScreen())), 
+                                  onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const PsychologistListScreen())), 
                                 child: Text('Lihat Semua', style: AppTextStyles.labelSm.copyWith(color: AppColors.primary, fontWeight: FontWeight.bold)),
                               ),
                             ],
@@ -83,14 +96,24 @@ class CounselingScreen extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 32),
-                    FadeInAnimation(delay: 0.5, child: _buildDashboardSection()),
+                    FadeInAnimation(
+                      delay: 0.5, 
+                      child: student.isLoading 
+                        ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
+                        : _buildDashboardSection(student),
+                    ),
                     const SizedBox(height: 32),
                     FadeInAnimation(
                       delay: 0.6,
                       child: Text('Jadwal & Riwayat', style: AppTextStyles.titleLg.copyWith(fontSize: 18, fontWeight: FontWeight.w900, color: AppColors.primary)),
                     ),
                     const SizedBox(height: 16),
-                    if (student.counselingSessions.isEmpty)
+                    if (student.isLoading)
+                      const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 40),
+                        child: Center(child: CircularProgressIndicator(color: AppColors.primary)),
+                      )
+                    else if (student.counselingSessions.isEmpty)
                       FadeInAnimation(delay: 0.7, child: _buildEmptyState())
                     else
                       ...List.generate(student.counselingSessions.length, (index) => 
@@ -110,7 +133,11 @@ class CounselingScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildDashboardSection() {
+  Widget _buildDashboardSection(StudentProvider student) {
+    final total = student.counselingSessions.length.toString();
+    final pending = student.counselingSessions.where((s) => s.status.toLowerCase() != 'completed').length.toString();
+    final completed = student.counselingSessions.where((s) => s.status.toLowerCase() == 'completed').length.toString();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -129,9 +156,9 @@ class CounselingScreen extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
-                  _buildMiniStat('Total Terbantu', '1.2k', Icons.people_rounded, Colors.blue),
-                  _buildMiniStat('Kepuasan', '4.9', Icons.star_rounded, Colors.amber),
-                  _buildMiniStat('Selesai', '856', Icons.check_circle_rounded, Colors.green),
+                  _buildMiniStat('TOTAL SESI', total, Icons.history_rounded, Colors.blue),
+                  _buildMiniStat('MENUNGGU', pending, Icons.pending_actions_rounded, Colors.orange),
+                  _buildMiniStat('SELESAI', completed, Icons.check_circle_rounded, Colors.green),
                 ],
               ),
               const SizedBox(height: 24),

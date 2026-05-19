@@ -1,14 +1,33 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:bkuhub_mobile/core/theme/app_colors.dart';
 import 'package:bkuhub_mobile/core/theme/app_text_styles.dart';
 import 'package:bkuhub_mobile/core/widgets/fade_in_animation.dart';
 import 'package:bkuhub_mobile/core/widgets/bku_app_bar.dart';
+import 'package:bkuhub_mobile/core/providers/student_provider.dart';
+import 'package:bkuhub_mobile/features/mahasiswa/domain/entities/organization_history.dart';
 
-class OrganisasiScreen extends StatelessWidget {
+class OrganisasiScreen extends StatefulWidget {
   const OrganisasiScreen({super.key});
 
   @override
+  State<OrganisasiScreen> createState() => _OrganisasiScreenState();
+}
+
+class _OrganisasiScreenState extends State<OrganisasiScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<StudentProvider>().loadAllData();
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final student = context.watch<StudentProvider>();
+    final orgHistory = student.organizationHistory;
+
     return Scaffold(
       backgroundColor: Colors.white,
       floatingActionButton: FloatingActionButton.extended(
@@ -37,7 +56,10 @@ class OrganisasiScreen extends StatelessWidget {
                   const SizedBox(height: 24),
                   const FadeInAnimation(delay: 0.2, child: _OrganizationBanner()),
                   const SizedBox(height: 24),
-                  FadeInAnimation(delay: 0.3, child: _buildPortfolioStats()),
+                  FadeInAnimation(
+                    delay: 0.3,
+                    child: _buildPortfolioStats(orgHistory),
+                  ),
                   const SizedBox(height: 32),
                   FadeInAnimation(
                     delay: 0.4,
@@ -50,35 +72,56 @@ class OrganisasiScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  FadeInAnimation(
-                    delay: 0.5,
-                    child: _buildOrgCard(
-                      context,
-                      'BEM KBM Bhakti Kencana',
-                      'Badan Eksekutif Mahasiswa',
-                      'Anggota Aktif',
-                      '2022 - 2023',
-                      ['Ketua Pelaksana Seminar Nasional', 'Inisiator Program Desa Binaan'],
-                      Icons.groups_rounded,
-                      const Color(0xFF2563EB),
-                      true,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  FadeInAnimation(
-                    delay: 0.6,
-                    child: _buildOrgCard(
-                      context,
-                      'HIMA Keperawatan',
-                      'Himanpro',
-                      'Ketua Divisi PSDM',
-                      '2021 - 2022',
-                      ['Penyelenggara LDK Mahasiswa', 'Koordinator Kaderisasi'],
-                      Icons.diversity_3_rounded,
-                      const Color(0xFF9333EA),
-                      false,
-                    ),
-                  ),
+                  if (student.isLoading)
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 40),
+                      child: Center(child: CircularProgressIndicator(color: AppColors.primary)),
+                    )
+                  else if (orgHistory.isEmpty)
+                    FadeInAnimation(
+                      delay: 0.5,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 20),
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withAlpha(5),
+                          borderRadius: BorderRadius.circular(24),
+                          border: Border.all(color: AppColors.surfaceVariant),
+                        ),
+                        alignment: Alignment.center,
+                        child: Text(
+                          'Belum ada riwayat organisasi yang sinkron.',
+                          style: AppTextStyles.labelMd.copyWith(color: AppColors.outline),
+                        ),
+                      ),
+                    )
+                  else
+                    ...orgHistory.asMap().entries.map((entry) {
+                      final index = entry.key;
+                      final org = entry.value;
+                      final period = org.periodeSelesai != null 
+                          ? '${org.periodeMulai} - ${org.periodeSelesai}' 
+                          : '${org.periodeMulai} - Sekarang';
+                      
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 16),
+                        child: FadeInAnimation(
+                          delay: 0.5 + (index * 0.1),
+                          child: _buildOrgCard(
+                            context,
+                            org.namaOrganisasi,
+                            org.tipe,
+                            org.jabatan,
+                            period,
+                            org.achievements,
+                            index % 2 == 0 ? Icons.groups_rounded : Icons.diversity_3_rounded,
+                            index % 2 == 0 ? const Color(0xFF2563EB) : const Color(0xFF9333EA),
+                            org.statusVerifikasi,
+                            org.deskripsiKegiatan,
+                          ),
+                        ),
+                      );
+                    }),
                   const SizedBox(height: 24),
                   FadeInAnimation(delay: 0.7, child: _buildAddButton()),
                   const SizedBox(height: 32),
@@ -103,7 +146,35 @@ class OrganisasiScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildOrgCard(BuildContext context, String name, String type, String role, String period, List<String> achievements, IconData icon, Color iconColor, bool isActive) {
+  Widget _buildOrgCard(
+    BuildContext context, 
+    String name, 
+    String type, 
+    String role, 
+    String period, 
+    List<String> achievements, 
+    IconData icon, 
+    Color iconColor, 
+    String statusVerifikasi,
+    String description,
+  ) {
+    final isVerified = statusVerifikasi.toLowerCase() == 'terverifikasi';
+    final isPending = statusVerifikasi.toLowerCase() == 'pending';
+    
+    Color statusBgColor = Colors.grey.withAlpha(20);
+    Color statusTextColor = AppColors.outline;
+    
+    if (isVerified) {
+      statusBgColor = Colors.green.withAlpha(20);
+      statusTextColor = Colors.green;
+    } else if (isPending) {
+      statusBgColor = Colors.orange.withAlpha(20);
+      statusTextColor = Colors.orange;
+    } else if (statusVerifikasi.toLowerCase() == 'ditolak') {
+      statusBgColor = Colors.red.withAlpha(20);
+      statusTextColor = Colors.red;
+    }
+
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -118,127 +189,133 @@ class OrganisasiScreen extends StatelessWidget {
         ],
       ),
       child: InkWell(
-        onTap: () => _showOrgDetail(context, name, type, role, period, achievements, icon, iconColor, isActive),
+        onTap: () => _showOrgDetail(context, name, type, role, period, achievements, icon, iconColor, statusVerifikasi, description),
         borderRadius: BorderRadius.circular(28),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-          Padding(
-            padding: const EdgeInsets.all(20),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: iconColor.withAlpha(10), 
-                    borderRadius: BorderRadius.circular(18),
+            Padding(
+              padding: const EdgeInsets.all(20),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: iconColor.withAlpha(10), 
+                      borderRadius: BorderRadius.circular(18),
+                    ),
+                    child: Icon(icon, color: iconColor, size: 30),
                   ),
-                  child: Icon(icon, color: iconColor, size: 30),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(name, style: AppTextStyles.titleLg.copyWith(fontSize: 16, fontWeight: FontWeight.w900, color: AppColors.primary)),
-                      const SizedBox(height: 2),
-                      Text(type, style: AppTextStyles.labelMd.copyWith(color: AppColors.onSurfaceVariant, fontWeight: FontWeight.bold, fontSize: 11)),
-                    ],
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                  decoration: BoxDecoration(
-                    color: isActive ? Colors.green.withAlpha(20) : AppColors.outline.withAlpha(20),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Text(
-                    isActive ? 'AKTIF' : 'ALUMNI', 
-                    style: AppTextStyles.labelSm.copyWith(
-                      color: isActive ? Colors.green : AppColors.outline, 
-                      fontSize: 8, 
-                      fontWeight: FontWeight.w900,
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(name, style: AppTextStyles.titleLg.copyWith(fontSize: 16, fontWeight: FontWeight.w900, color: AppColors.primary)),
+                        const SizedBox(height: 2),
+                        Text(type, style: AppTextStyles.labelMd.copyWith(color: AppColors.onSurfaceVariant, fontWeight: FontWeight.bold, fontSize: 11)),
+                      ],
                     ),
                   ),
-                ),
-              ],
-            ),
-          ),
-          Container(
-            margin: const EdgeInsets.symmetric(horizontal: 20),
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: AppColors.primary.withAlpha(5),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: AppColors.primary.withAlpha(8)),
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('JABATAN', style: AppTextStyles.labelSm.copyWith(color: AppColors.outline, fontSize: 8, fontWeight: FontWeight.w900, letterSpacing: 0.5)),
-                      const SizedBox(height: 2),
-                      Text(role, style: AppTextStyles.labelMd.copyWith(fontWeight: FontWeight.w900, color: AppColors.primary, fontSize: 13)),
-                    ],
-                  ),
-                ),
-                Container(width: 1.5, height: 25, color: AppColors.primary.withAlpha(15)),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('PERIODE', style: AppTextStyles.labelSm.copyWith(color: AppColors.outline, fontSize: 8, fontWeight: FontWeight.w900, letterSpacing: 0.5)),
-                      const SizedBox(height: 2),
-                      Text(period, style: AppTextStyles.labelMd.copyWith(fontWeight: FontWeight.w900, fontSize: 13)),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 20),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Pencapaian Utama:', style: AppTextStyles.labelMd.copyWith(fontWeight: FontWeight.w900, fontSize: 12, color: AppColors.primary)),
-                const SizedBox(height: 12),
-                ...achievements.map((a) => Padding(
-                  padding: const EdgeInsets.only(bottom: 10),
-                  child: Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(2),
-                        decoration: BoxDecoration(color: iconColor.withAlpha(15), shape: BoxShape.circle),
-                        child: Icon(Icons.check_rounded, size: 10, color: iconColor),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    decoration: BoxDecoration(
+                      color: statusBgColor,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Text(
+                      statusVerifikasi.toUpperCase(), 
+                      style: AppTextStyles.labelSm.copyWith(
+                        color: statusTextColor, 
+                        fontSize: 8, 
+                        fontWeight: FontWeight.w900,
                       ),
-                      const SizedBox(width: 12),
-                      Expanded(child: Text(a, style: AppTextStyles.labelMd.copyWith(color: AppColors.onSurfaceVariant, fontSize: 12, fontWeight: FontWeight.w600))),
-                    ],
+                    ),
                   ),
-                )),
-              ],
+                ],
+              ),
             ),
-          ),
-          const SizedBox(height: 20),
-        ],
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 20),
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withAlpha(5),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: AppColors.primary.withAlpha(8)),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('JABATAN', style: AppTextStyles.labelSm.copyWith(color: AppColors.outline, fontSize: 8, fontWeight: FontWeight.w900, letterSpacing: 0.5)),
+                        const SizedBox(height: 2),
+                        Text(role, style: AppTextStyles.labelMd.copyWith(fontWeight: FontWeight.w900, color: AppColors.primary, fontSize: 13)),
+                      ],
+                    ),
+                  ),
+                  Container(width: 1.5, height: 25, color: AppColors.primary.withAlpha(15)),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('PERIODE', style: AppTextStyles.labelSm.copyWith(color: AppColors.outline, fontSize: 8, fontWeight: FontWeight.w900, letterSpacing: 0.5)),
+                        const SizedBox(height: 2),
+                        Text(period, style: AppTextStyles.labelMd.copyWith(fontWeight: FontWeight.w900, fontSize: 13)),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (achievements.isNotEmpty) ...[
+              const SizedBox(height: 20),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Pencapaian Utama:', style: AppTextStyles.labelMd.copyWith(fontWeight: FontWeight.w900, fontSize: 12, color: AppColors.primary)),
+                    const SizedBox(height: 12),
+                    ...achievements.map((a) => Padding(
+                      padding: const EdgeInsets.only(bottom: 10),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(2),
+                            decoration: BoxDecoration(color: iconColor.withAlpha(15), shape: BoxShape.circle),
+                            child: Icon(Icons.check_rounded, size: 10, color: iconColor),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(child: Text(a, style: AppTextStyles.labelMd.copyWith(color: AppColors.onSurfaceVariant, fontSize: 12, fontWeight: FontWeight.w600))),
+                        ],
+                      ),
+                    )),
+                  ],
+                ),
+              ),
+            ],
+            const SizedBox(height: 20),
+          ],
+        ),
       ),
-    ),
-  );
-}
+    );
+  }
 
-  Widget _buildPortfolioStats() {
+  Widget _buildPortfolioStats(List<OrganizationHistory> orgHistory) {
+    final totalOrg = orgHistory.length.toString();
+    final verifiedOrg = orgHistory.where((org) => org.statusVerifikasi.toLowerCase() == 'terverifikasi').length.toString();
+    final totalAchievements = orgHistory.fold<int>(0, (sum, org) => sum + org.achievements.length).toString();
+
     return Row(
       children: [
-        _buildStatItem('2', 'Organisasi Aktif', Icons.bolt_rounded, Colors.orange),
+        _buildStatItem(totalOrg, 'Total Organisasi', Icons.bolt_rounded, Colors.orange),
         const SizedBox(width: 12),
-        _buildStatItem('12', 'Kegiatan Diikuti', Icons.event_available_rounded, Colors.blue),
+        _buildStatItem(verifiedOrg, 'Terverifikasi', Icons.verified_user_rounded, Colors.blue),
         const SizedBox(width: 12),
-        _buildStatItem('4', 'Pencapaian', Icons.emoji_events_rounded, Colors.green),
+        _buildStatItem(totalAchievements, 'Pencapaian', Icons.emoji_events_rounded, Colors.green),
       ],
     );
   }
@@ -341,7 +418,7 @@ class OrganisasiScreen extends StatelessWidget {
           border: Border.all(
             color: AppColors.primary.withAlpha(30),
             width: 2,
-            style: BorderStyle.solid, // Flutter doesn't have native dashed, but we can simulate with custom painter if needed. For now, let's use a cleaner style.
+            style: BorderStyle.solid,
           ),
         ),
         child: Column(
@@ -409,7 +486,18 @@ class OrganisasiScreen extends StatelessWidget {
     );
   }
 
-  void _showOrgDetail(BuildContext context, String name, String type, String role, String period, List<String> achievements, IconData icon, Color iconColor, bool isActive) {
+  void _showOrgDetail(
+    BuildContext context, 
+    String name, 
+    String type, 
+    String role, 
+    String period, 
+    List<String> achievements, 
+    IconData icon, 
+    Color iconColor, 
+    String statusVerifikasi,
+    String description,
+  ) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -451,34 +539,36 @@ class OrganisasiScreen extends StatelessWidget {
                   _buildDetailSection('Detail Posisi', [
                     _buildDetailRow(Icons.badge_rounded, 'Jabatan', role),
                     _buildDetailRow(Icons.calendar_today_rounded, 'Periode', period),
-                    _buildDetailRow(Icons.info_outline_rounded, 'Status', isActive ? 'Aktif Menjabat' : 'Alumni / Selesai'),
+                    _buildDetailRow(Icons.info_outline_rounded, 'Status Verifikasi', statusVerifikasi),
                   ]),
                   const SizedBox(height: 32),
                   Text('Deskripsi Kontribusi', style: AppTextStyles.titleLg.copyWith(fontSize: 16, fontWeight: FontWeight.w900, color: AppColors.primary)),
                   const SizedBox(height: 12),
                   Text(
-                    'Bertanggung jawab dalam mengelola koordinasi antar divisi serta memastikan program kerja berjalan sesuai dengan timeline yang telah ditetapkan oleh organisasi.',
+                    description.isNotEmpty ? description : 'Tidak ada deskripsi kontribusi.',
                     style: AppTextStyles.labelMd.copyWith(color: AppColors.onSurfaceVariant, height: 1.5),
                   ),
-                  const SizedBox(height: 32),
-                  Text('Pencapaian & Impact', style: AppTextStyles.titleLg.copyWith(fontSize: 16, fontWeight: FontWeight.w900, color: AppColors.primary)),
-                  const SizedBox(height: 16),
-                  ...achievements.map((a) => Container(
-                    margin: const EdgeInsets.only(bottom: 12),
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: AppColors.surfaceVariant.withAlpha(30),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: AppColors.surfaceVariant.withAlpha(50)),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(Icons.stars_rounded, color: Colors.orange, size: 20),
-                        const SizedBox(width: 12),
-                        Expanded(child: Text(a, style: AppTextStyles.labelMd.copyWith(fontWeight: FontWeight.bold, fontSize: 13))),
-                      ],
-                    ),
-                  )),
+                  if (achievements.isNotEmpty) ...[
+                    const SizedBox(height: 32),
+                    Text('Pencapaian & Impact', style: AppTextStyles.titleLg.copyWith(fontSize: 16, fontWeight: FontWeight.w900, color: AppColors.primary)),
+                    const SizedBox(height: 16),
+                    ...achievements.map((a) => Container(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: AppColors.surfaceVariant.withAlpha(30),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: AppColors.surfaceVariant.withAlpha(50)),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(Icons.stars_rounded, color: Colors.orange, size: 20),
+                          const SizedBox(width: 12),
+                          Expanded(child: Text(a, style: AppTextStyles.labelMd.copyWith(fontWeight: FontWeight.bold, fontSize: 13))),
+                        ],
+                      ),
+                    )),
+                  ],
                   const SizedBox(height: 32),
                   Text('Dokumentasi', style: AppTextStyles.titleLg.copyWith(fontSize: 16, fontWeight: FontWeight.w900, color: AppColors.primary)),
                   const SizedBox(height: 16),

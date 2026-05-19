@@ -25,6 +25,7 @@ const Filter = ({ size, className, ...props }) => <span className={`material-sym
 
 // Auto-injected Material Symbol fallbacks for removed Lucide icons
 const LayoutGrid = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>grid_view</span>;
+const History = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>history</span>;
 
 
 
@@ -370,7 +371,7 @@ export default function ScholarshipPage() {
 
                 return (
                   <motion.div 
-                    key={beasiswa.ID}
+                    key={`katalog-${beasiswa.ID || idx}-${beasiswa.Nama || ''}`}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: idx * 0.05 }}
@@ -459,8 +460,8 @@ export default function ScholarshipPage() {
             ].map(s => (
               <div key={s.label} className={`${s.bg} p-4 rounded-2xl border border-[#e5e5e5] shadow-sm`}>
                 <div className="flex items-center gap-3 mb-2">
-                  <div className={`p-2 rounded-lg ${s.bg === 'bg-white' ? 'bg-[#fafafa]' : 'bg-white'} ${s.color}`}>
-                    <s.icon size={18} />
+                  <div className={`p-2 rounded-lg ${s.bg === 'bg-white' ? 'bg-[#fafafa]' : 'bg-white'} ${s.color} flex items-center justify-center`}>
+                    <span className="material-symbols-outlined" style={{ fontSize: 18 }}>{s.icon}</span>
                   </div>
                   <span className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-widest">{s.label}</span>
                 </div>
@@ -489,7 +490,7 @@ export default function ScholarshipPage() {
                     riwayatList.map(item => {
                       const badge = STATUS_BADGE[item.Status] || STATUS_BADGE.dikirim;
                       return (
-                        <tr key={item.ID} className="hover:bg-[#f7faff] transition-colors group">
+                        <tr key={`riwayat-${item.ID || idx}`} className="hover:bg-[#f7faff] transition-colors group">
                           <td className="px-4 md:px-6 py-3.5">
                             <div className="flex flex-col">
                                <p className="font-black text-[#171717]">{item.Beasiswa?.Nama}</p>
