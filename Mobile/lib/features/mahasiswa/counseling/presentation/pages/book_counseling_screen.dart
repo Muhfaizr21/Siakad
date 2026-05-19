@@ -88,7 +88,20 @@ class _BookCounselingScreenState extends State<BookCounselingScreen> {
             ),
             child: Row(
               children: [
-                CircleAvatar(radius: 28, backgroundImage: NetworkImage(widget.psychologist!.profileImageUrl)),
+                SizedBox(
+                  width: 56,
+                  height: 56,
+                  child: ClipOval(
+                    child: Image.network(
+                      widget.psychologist!.profileImageUrl,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) => Container(
+                        color: AppColors.primary.withAlpha(20),
+                        child: const Icon(Icons.person_rounded, color: AppColors.primary, size: 28),
+                      ),
+                    ),
+                  ),
+                ),
                 const SizedBox(width: 16),
                 Expanded(
                   child: Column(

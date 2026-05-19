@@ -457,9 +457,19 @@ class _CounselingScreenState extends State<CounselingScreen> {
                           colors: [AppColors.primary, AppColors.primary.withAlpha(50)],
                         ),
                       ),
-                      child: CircleAvatar(
-                        radius: 34,
-                        backgroundImage: NetworkImage(psy.profileImageUrl),
+                      child: SizedBox(
+                        width: 68,
+                        height: 68,
+                        child: ClipOval(
+                          child: Image.network(
+                            psy.profileImageUrl,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) => Container(
+                              color: AppColors.primary.withAlpha(20),
+                              child: const Icon(Icons.person_rounded, color: AppColors.primary, size: 34),
+                            ),
+                          ),
+                        ),
                       ),
                     ),
                     Positioned(
@@ -555,7 +565,20 @@ class _CounselingScreenState extends State<CounselingScreen> {
             if (selectedPsy != null) ...[
               Row(
                 children: [
-                  CircleAvatar(radius: 24, backgroundImage: NetworkImage(selectedPsy.profileImageUrl)),
+                  SizedBox(
+                    width: 48,
+                    height: 48,
+                    child: ClipOval(
+                      child: Image.network(
+                        selectedPsy.profileImageUrl,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) => Container(
+                          color: AppColors.primary.withAlpha(20),
+                          child: const Icon(Icons.person_rounded, color: AppColors.primary, size: 24),
+                        ),
+                      ),
+                    ),
+                  ),
                   const SizedBox(width: 16),
                   Expanded(
                     child: Column(

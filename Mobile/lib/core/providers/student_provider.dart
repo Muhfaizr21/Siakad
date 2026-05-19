@@ -53,7 +53,7 @@ class StudentProvider extends ChangeNotifier {
       name: 'Dr. Sarah Amalia, M.Psi',
       nidn: '0412038801',
       specialization: 'Psikologi Klinis & Pendidikan',
-      profileImageUrl: 'https://images.unsplash.com/photo-1559839734-2b71f1536783?q=80&w=200&auto=format&fit=crop',
+      profileImageUrl: 'https://images.unsplash.com/photo-1594824813573-246434de83fb?q=80&w=200&auto=format&fit=crop',
     ),
     const Psychologist(
       id: 'P2',
