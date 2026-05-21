@@ -15,7 +15,6 @@ import 'package:bkuhub_mobile/features/ormawa/domain/entities/ormawa_pkkmb.dart'
 import 'package:bkuhub_mobile/features/ormawa/domain/entities/ormawa_role.dart';
 import 'package:bkuhub_mobile/features/ormawa/domain/entities/ormawa_division.dart';
 import 'package:bkuhub_mobile/features/ormawa/domain/repositories/ormawa_repository.dart';
-import 'package:bkuhub_mobile/features/ormawa/data/models/ormawa_member_model.dart';
 import 'package:bkuhub_mobile/features/ormawa/data/models/ormawa_role_model.dart';
 
 class OrmawaProvider extends ChangeNotifier {

@@ -96,45 +96,7 @@ class _OrmawaAbsensiScreenState extends State<OrmawaAbsensiScreen> {
     );
   }
 
-  Widget _buildStatsRow() {
-    return Row(
-      children: [
-        _buildStatCard('Total Agenda', '12', Icons.assignment_rounded, Colors.blue),
-        const SizedBox(width: 12),
-        _buildStatCard('Hari Ini', '2', Icons.today_rounded, Colors.orange),
-      ],
-    );
-  }
-
-  Widget _buildStatCard(String label, String value, IconData icon, Color color) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: const Color(0xFFF1F5F9)),
-          boxShadow: [
-            BoxShadow(color: Colors.black.withAlpha(2), blurRadius: 10, offset: const Offset(0, 4)),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(color: color.withAlpha(10), shape: BoxShape.circle),
-              child: Icon(icon, color: color, size: 20),
-            ),
-            const SizedBox(height: 16),
-            Text(value, style: AppTextStyles.titleLg.copyWith(fontSize: 24, fontWeight: FontWeight.w900)),
-            Text(label, style: AppTextStyles.labelSm.copyWith(color: const Color(0xFF94A3B8))),
-          ],
-        ),
-      ),
-    );
-  }
-
+  // ignore: unused_element
   Widget _buildSearchField() {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16),

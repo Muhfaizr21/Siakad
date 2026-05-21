@@ -9,16 +9,6 @@ import 'package:bkuhub_mobile/features/mahasiswa/scholarship/presentation/pages/
 import 'package:bkuhub_mobile/core/widgets/bku_app_bar.dart';
 import 'package:bkuhub_mobile/core/widgets/bku_shimmer.dart';
 
-String _formatDeadline(String rawDeadline) {
-  try {
-    final parsed = DateTime.tryParse(rawDeadline);
-    if (parsed == null) return rawDeadline;
-    final months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
-    return '${parsed.day} ${months[parsed.month - 1]} ${parsed.year}';
-  } catch (_) {
-    return rawDeadline;
-  }
-}
 
 class ScholarshipScreen extends StatefulWidget {
   const ScholarshipScreen({super.key});
