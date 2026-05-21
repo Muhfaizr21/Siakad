@@ -5,6 +5,8 @@ import { toast, Toaster } from 'react-hot-toast'
 
 import { cn } from '@/lib/utils'
 import { API_BASE_URL } from '../../services/api'
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "./components/select"
+import { Button } from "./components/button"
 
 // Auto-injected Material Symbol fallbacks for removed Lucide icons
 const RefreshCw = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>sync</span>;
@@ -50,6 +52,17 @@ export default function FacultyPkkmb() {
   const [search, setSearch]     = useState('')
   const [filterStatus, setFilter]= useState('all')
   const [selected, setSelected] = useState(null)
+  
+  // Pagination & Sorting states
+  const [currentPage, setCurrentPage]   = useState(1)
+  const [pageSize, setPageSize]         = useState(10)
+  const [sortConfig, setSortConfig]     = useState({ key: null, direction: 'asc' })
+
+  // Reset pagination when active tab changes
+  useEffect(() => {
+    setCurrentPage(1)
+    setSortConfig(activeTab === 'prodi' ? { key: 'prodi', direction: 'asc' } : { key: 'mahasiswa', direction: 'asc' })
+  }, [activeTab])
 
   const fetchSummary = async () => {
     try {
@@ -82,6 +95,73 @@ export default function FacultyPkkmb() {
     const q = search.toLowerCase()
     return !q || p.prodi?.toLowerCase().includes(q)
   }), [data, search])
+
+  const sortedProdi = useMemo(() => {
+    let items = [...filteredProdi]
+    if (sortConfig.key !== null && activeTab === 'prodi') {
+      items.sort((a, b) => {
+        let aVal = a[sortConfig.key]
+        let bVal = b[sortConfig.key]
+
+        if (typeof aVal === 'string') aVal = aVal.toLowerCase()
+        if (typeof bVal === 'string') bVal = bVal.toLowerCase()
+
+        if (aVal < bVal) return sortConfig.direction === 'asc' ? -1 : 1
+        if (aVal > bVal) return sortConfig.direction === 'asc' ? 1 : -1
+        return 0
+      })
+    }
+    return items
+  }, [filteredProdi, sortConfig, activeTab])
+
+  const sortedStudents = useMemo(() => {
+    let items = [...filteredStudents]
+    if (sortConfig.key !== null && activeTab === 'students') {
+      items.sort((a, b) => {
+        let aVal, bVal;
+        if (sortConfig.key === 'mahasiswa') {
+          aVal = a.Mahasiswa?.Nama || ''
+          bVal = b.Mahasiswa?.Nama || ''
+        } else if (sortConfig.key === 'prodi') {
+          aVal = a.Mahasiswa?.ProgramStudi?.Nama || ''
+          bVal = b.Mahasiswa?.ProgramStudi?.Nama || ''
+        } else {
+          aVal = a[sortConfig.key]
+          bVal = b[sortConfig.key]
+        }
+
+        if (typeof aVal === 'string') aVal = aVal.toLowerCase()
+        if (typeof bVal === 'string') bVal = bVal.toLowerCase()
+
+        if (aVal < bVal) return sortConfig.direction === 'asc' ? -1 : 1
+        if (aVal > bVal) return sortConfig.direction === 'asc' ? 1 : -1
+        return 0
+      })
+    }
+    return items
+  }, [filteredStudents, sortConfig, activeTab])
+
+  const paginatedProdi = useMemo(() => {
+    const start = (currentPage - 1) * pageSize
+    return sortedProdi.slice(start, start + pageSize)
+  }, [sortedProdi, currentPage, pageSize])
+
+  const paginatedStudents = useMemo(() => {
+    const start = (currentPage - 1) * pageSize
+    return sortedStudents.slice(start, start + pageSize)
+  }, [sortedStudents, currentPage, pageSize])
+
+  const totalItems = activeTab === 'prodi' ? filteredProdi.length : filteredStudents.length
+  const totalPages = Math.ceil(totalItems / pageSize)
+
+  const handleSort = (key) => {
+    let direction = 'asc'
+    if (sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc'
+    }
+    setSortConfig({ key, direction })
+    setCurrentPage(1)
+  }
 
   return (
     <div className="min-h-screen bg-[#f8fafc] font-body">
@@ -170,17 +250,54 @@ export default function FacultyPkkmb() {
           <div className="overflow-x-auto">
             {activeTab === 'prodi' ? (
               <table className="w-full text-left">
-                <thead><tr className="border-b border-[#e5e5e5]">
-                  {['#','Program Studi','Partisipasi','Rata-rata Nilai','Status'].map(h=>(
-                    <th key={h} className="px-5 py-3.5 text-xs font-bold text-[#a3a3a3] uppercase tracking-wider whitespace-nowrap">{h}</th>
-                  ))}
-                </tr></thead>
+                <thead>
+                  <tr className="border-b border-[#e5e5e5]">
+                    {[
+                      { label: '#', key: null, sortable: false },
+                      { label: 'Program Studi', key: 'prodi', sortable: true },
+                      { label: 'Partisipasi', key: 'partisipasi', sortable: true },
+                      { label: 'Rata-rata Nilai', key: 'nilai', sortable: true },
+                      { label: 'Status', key: 'status', sortable: true },
+                    ].map(h => (
+                      <th
+                        key={h.label}
+                        onClick={() => h.sortable && handleSort(h.key)}
+                        className={cn(
+                          'px-5 py-3.5 text-xs font-bold text-[#a3a3a3] uppercase tracking-wider whitespace-nowrap select-none',
+                          h.sortable && 'cursor-pointer hover:text-slate-900 group'
+                        )}
+                      >
+                        <div className="flex items-center gap-1.5">
+                          {h.label}
+                          {h.sortable && (
+                            sortConfig.key === h.key ? (
+                              sortConfig.direction === 'asc' ? (
+                                <span className="material-symbols-outlined size-3.5 text-primary" style={{ fontSize: '14px' }}>expand_less</span>
+                              ) : (
+                                <span className="material-symbols-outlined size-3.5 text-primary" style={{ fontSize: '14px' }}>expand_more</span>
+                              )
+                            ) : (
+                              <span className="material-symbols-outlined size-3.5 text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity" style={{ fontSize: '14px' }}>unfold_more</span>
+                            )
+                          )}
+                        </div>
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
                 <tbody>
-                  {loading?Array.from({length:4}).map((_,i)=>(
+                  {loading?Array.from({length: pageSize}).map((_, i)=>(
                     <tr key={i} className="border-b border-[#f0f0f0]">{[...Array(5)].map((__,j)=><td key={j} className="px-5 py-4"><div className="h-4 bg-[#f5f5f5] rounded animate-pulse"/></td>)}</tr>
-                  )):filteredProdi.map((row,i)=>(
+                  )):paginatedProdi.length===0?(
+                    <tr><td colSpan={5} className="px-5 py-16 text-center">
+                      <div className="flex flex-col items-center gap-3">
+                        <div className="w-12 h-12 bg-[#eef4ff] rounded-2xl flex items-center justify-center text-primary"><span className="material-symbols-outlined" style={{ fontSize: '22px' }} >school</span></div>
+                        <p className="font-bold text-sm text-[#171717]">Tidak Ada Prodi</p>
+                      </div>
+                    </td></tr>
+                  ):paginatedProdi.map((row,i)=>(
                     <tr key={i} className="border-b border-[#f5f5f5] hover:bg-[#fafbff] transition-colors">
-                      <td className="px-5 py-3.5 text-sm text-[#a3a3a3] font-medium">{i+1}</td>
+                      <td className="px-5 py-3.5 text-sm text-[#a3a3a3] font-medium">{(currentPage - 1) * pageSize + i + 1}</td>
                       <td className="px-5 py-3.5">
                         <p className="font-bold text-sm text-[#171717]">{row.prodi}</p>
                         <p className="text-[10px] text-[#a3a3a3] font-medium">Sertifikasi Internal</p>
@@ -204,26 +321,58 @@ export default function FacultyPkkmb() {
               </table>
             ) : (
               <table className="w-full text-left">
-                <thead><tr className="border-b border-[#e5e5e5]">
-                  {['#','Mahasiswa','Program Studi','Kehadiran','Nilai','Status','Aksi'].map(h=>(
-                    <th key={h} className="px-5 py-3.5 text-xs font-bold text-[#a3a3a3] uppercase tracking-wider whitespace-nowrap">{h}</th>
-                  ))}
-                </tr></thead>
+                <thead>
+                  <tr className="border-b border-[#e5e5e5]">
+                    {[
+                      { label: '#', key: null, sortable: false },
+                      { label: 'Mahasiswa', key: 'mahasiswa', sortable: true },
+                      { label: 'Program Studi', key: 'prodi', sortable: true },
+                      { label: 'Kehadiran', key: 'attendanceRate', sortable: true },
+                      { label: 'Nilai', key: 'Nilai', sortable: true },
+                      { label: 'Status', key: 'StatusKelulusan', sortable: true },
+                      { label: 'Aksi', key: null, sortable: false },
+                    ].map(h => (
+                      <th
+                        key={h.label}
+                        onClick={() => h.sortable && handleSort(h.key)}
+                        className={cn(
+                          'px-5 py-3.5 text-xs font-bold text-[#a3a3a3] uppercase tracking-wider whitespace-nowrap select-none',
+                          h.sortable && 'cursor-pointer hover:text-slate-900 group'
+                        )}
+                      >
+                        <div className="flex items-center gap-1.5">
+                          {h.label}
+                          {h.sortable && (
+                            sortConfig.key === h.key ? (
+                              sortConfig.direction === 'asc' ? (
+                                <span className="material-symbols-outlined size-3.5 text-primary" style={{ fontSize: '14px' }}>expand_less</span>
+                              ) : (
+                                <span className="material-symbols-outlined size-3.5 text-primary" style={{ fontSize: '14px' }}>expand_more</span>
+                              )
+                            ) : (
+                              <span className="material-symbols-outlined size-3.5 text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity" style={{ fontSize: '14px' }}>unfold_more</span>
+                            )
+                          )}
+                        </div>
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
                 <tbody>
-                  {loading?Array.from({length:5}).map((_,i)=>(
+                  {loading?Array.from({length: pageSize}).map((_, i)=>(
                     <tr key={i} className="border-b border-[#f0f0f0]">{[...Array(7)].map((__,j)=><td key={j} className="px-5 py-4"><div className="h-4 bg-[#f5f5f5] rounded animate-pulse"/></td>)}</tr>
-                  )):filteredStudents.length===0?(
+                  )):paginatedStudents.length===0?(
                     <tr><td colSpan={7} className="px-5 py-16 text-center">
                       <div className="flex flex-col items-center gap-3">
                         <div className="w-12 h-12 bg-[#eef4ff] rounded-2xl flex items-center justify-center text-primary"><span className="material-symbols-outlined" style={{ fontSize: '22px' }} >group</span></div>
                         <p className="font-bold text-sm text-[#171717]">Tidak Ada Peserta</p>
                       </div>
                     </td></tr>
-                  ):filteredStudents.map((row,i)=>{
+                  ):paginatedStudents.map((row,i)=>{
                     const st = getLulus(row.StatusKelulusan)
                     return (
                       <tr key={row.ID||i} className="border-b border-[#f5f5f5] hover:bg-[#fafbff] transition-colors">
-                        <td className="px-5 py-3.5 text-sm text-[#a3a3a3] font-medium">{i+1}</td>
+                        <td className="px-5 py-3.5 text-sm text-[#a3a3a3] font-medium">{(currentPage - 1) * pageSize + i + 1}</td>
                         <td className="px-5 py-3.5">
                           <div className="flex items-center gap-3">
                             <div className={cn('w-9 h-9 rounded-xl bg-gradient-to-br flex items-center justify-center text-white text-[11px] font-black flex-shrink-0 shadow-sm',AVATAR_COLORS[row.colorIdx])}>{getInitials(row.Mahasiswa?.Nama)}</div>
@@ -247,6 +396,80 @@ export default function FacultyPkkmb() {
                 </tbody>
               </table>
             )}
+          </div>
+
+          {/* Modern Pagination Footer */}
+          <div className="px-6 py-4 bg-slate-50/50 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
+              <p className="text-xs text-slate-500 font-medium text-center sm:text-left">
+                Menampilkan <span className="font-semibold text-slate-800">{totalItems > 0 ? (currentPage - 1) * pageSize + 1 : 0}</span> sampai <span className="font-semibold text-slate-800">{Math.min(currentPage * pageSize, totalItems)}</span> dari <span className="font-semibold text-slate-800">{totalItems}</span> entri
+              </p>
+              
+              <div className="hidden sm:block h-5 w-px bg-slate-200" />
+
+              <div className="flex items-center gap-2.5">
+                <span className="text-xs text-slate-400 font-medium whitespace-nowrap">Baris per halaman:</span>
+                <Select value={String(pageSize)} onValueChange={(val) => { setPageSize(Number(val)); setCurrentPage(1); }}>
+                  <SelectTrigger className="h-8 w-24 rounded-lg border-slate-200 bg-white font-semibold text-xs shadow-sm focus:ring-primary/20 px-2.5 py-1">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl border-slate-200 shadow-xl p-1 font-body">
+                    {[5, 10, 15, 25, 50].map((size) => (
+                      <SelectItem key={size} value={String(size)} className="rounded-lg text-xs py-1.5 focus:bg-primary/5 focus:text-primary">
+                        {size} Baris
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                disabled={currentPage === 1 || loading}
+                className="h-8 px-3 rounded-lg border-slate-200 bg-white text-slate-600 font-semibold text-xs shadow-sm disabled:opacity-40 hover:bg-slate-50 transition-all active:scale-95"
+              >
+                <span className="material-symbols-outlined mr-1" style={{ fontSize: '15px' }}>chevron_left</span>
+                Sebelumnya
+              </Button>
+              
+              <div className="flex items-center gap-1">
+                {Array.from({ length: Math.min(5, totalPages) }).map((_, i) => {
+                  let pageNum = i + 1;
+                  if (totalPages > 5 && currentPage > 3) pageNum = currentPage - 3 + i;
+                  if (pageNum > totalPages) return null;
+
+                  return (
+                    <button
+                      key={pageNum}
+                      onClick={() => setCurrentPage(pageNum)}
+                      className={cn(
+                        "w-8 h-8 rounded-lg font-semibold text-xs transition-all duration-200",
+                        currentPage === pageNum 
+                          ? "bg-primary text-white shadow-md shadow-primary/20 scale-105" 
+                          : "text-slate-500 hover:bg-slate-100 hover:text-slate-900"
+                      )}
+                    >
+                      {pageNum}
+                    </button>
+                  )
+                })}
+              </div>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages || loading || totalPages === 0}
+                className="h-8 px-3 rounded-lg border-slate-200 bg-white text-slate-600 font-semibold text-xs shadow-sm disabled:opacity-40 hover:bg-slate-50 transition-all active:scale-95"
+              >
+                Berikutnya
+                <span className="material-symbols-outlined ml-1" style={{ fontSize: '15px' }}>chevron_right</span>
+              </Button>
+            </div>
           </div>
         </div>
       </div>

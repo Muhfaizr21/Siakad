@@ -5,6 +5,8 @@ import api from '../../lib/axios'
 import { toast, Toaster } from 'react-hot-toast'
 
 import { cn } from '@/lib/utils'
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "./components/select"
+import { Button } from "./components/button"
 
 // Auto-injected Material Symbol fallbacks for removed Lucide icons
 const Droplet = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>opacity</span>;
@@ -49,6 +51,9 @@ export default function FacultyKesehatan() {
   const [selected, setSelected]             = useState(null)
   const [search, setSearch]                 = useState('')
   const [filterStatus, setFilterStatus]     = useState('all')
+  const [currentPage, setCurrentPage]   = useState(1)
+  const [pageSize, setPageSize]         = useState(10)
+  const [sortConfig, setSortConfig]     = useState({ key: 'Tanggal', direction: 'desc' })
 
   const fetchData = async () => {
     setLoading(true)
@@ -73,6 +78,49 @@ export default function FacultyKesehatan() {
     const matchS = filterStatus === 'all' || (r.StatusKesehatan||'').toLowerCase() === filterStatus
     return matchQ && matchS
   }), [healthRecords, search, filterStatus])
+
+  const sorted = useMemo(() => {
+    let items = [...filtered]
+    if (sortConfig.key !== null) {
+      items.sort((a, b) => {
+        let aVal = a[sortConfig.key]
+        let bVal = b[sortConfig.key]
+
+        if (sortConfig.key === 'Mahasiswa.Nama') {
+          aVal = a.Mahasiswa?.Nama || ''
+          bVal = b.Mahasiswa?.Nama || ''
+        } else if (sortConfig.key === 'Mahasiswa.ProgramStudi.Nama') {
+          aVal = a.Mahasiswa?.ProgramStudi?.Nama || ''
+          bVal = b.Mahasiswa?.ProgramStudi?.Nama || ''
+        }
+
+        if (typeof aVal === 'string') aVal = aVal.toLowerCase()
+        if (typeof bVal === 'string') bVal = bVal.toLowerCase()
+
+        if (aVal < bVal) return sortConfig.direction === 'asc' ? -1 : 1
+        if (aVal > bVal) return sortConfig.direction === 'asc' ? 1 : -1
+        return 0
+      })
+    }
+    return items
+  }, [filtered, sortConfig])
+
+  const paginated = useMemo(() => {
+    const start = (currentPage - 1) * pageSize
+    return sorted.slice(start, start + pageSize)
+  }, [sorted, currentPage, pageSize])
+
+  const totalItems = filtered.length
+  const totalPages = Math.ceil(totalItems / pageSize)
+
+  const handleSort = (key) => {
+    let direction = 'asc'
+    if (sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc'
+    }
+    setSortConfig({ key, direction })
+    setCurrentPage(1)
+  }
 
   const bmi = (r) => {
     if (!r.TinggiBadan || r.TinggiBadan <= 0) return null
@@ -178,17 +226,48 @@ export default function FacultyKesehatan() {
             <table className="w-full text-left">
               <thead>
                 <tr className="border-b border-[#e5e5e5]">
-                  {['#','Mahasiswa','Program Studi','Gol. Darah','Status Kesehatan','Tgl Periksa','Aksi'].map(h=>(
-                    <th key={h} className="px-5 py-3.5 text-xs font-bold text-[#a3a3a3] uppercase tracking-wider whitespace-nowrap">{h}</th>
+                  {[
+                    { label: '#', key: null, sortable: false },
+                    { label: 'Mahasiswa', key: 'Mahasiswa.Nama', sortable: true },
+                    { label: 'Program Studi', key: 'Mahasiswa.ProgramStudi.Nama', sortable: true },
+                    { label: 'Gol. Darah', key: 'GolonganDarah', sortable: true },
+                    { label: 'Status Kesehatan', key: 'StatusKesehatan', sortable: true },
+                    { label: 'Tgl Periksa', key: 'Tanggal', sortable: true },
+                    { label: 'Aksi', key: null, sortable: false },
+                  ].map(h => (
+                    <th
+                      key={h.label}
+                      onClick={() => h.sortable && handleSort(h.key)}
+                      className={cn(
+                        'px-5 py-3.5 text-xs font-bold text-[#a3a3a3] uppercase tracking-wider whitespace-nowrap select-none',
+                        h.sortable && 'cursor-pointer hover:text-slate-900 group',
+                        h.className
+                      )}
+                    >
+                      <div className="flex items-center gap-1.5">
+                        {h.label}
+                        {h.sortable && (
+                          sortConfig.key === h.key ? (
+                            sortConfig.direction === 'asc' ? (
+                              <span className="material-symbols-outlined size-3.5 text-primary" style={{ fontSize: '14px' }}>expand_less</span>
+                            ) : (
+                              <span className="material-symbols-outlined size-3.5 text-primary" style={{ fontSize: '14px' }}>expand_more</span>
+                            )
+                          ) : (
+                            <span className="material-symbols-outlined size-3.5 text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity" style={{ fontSize: '14px' }}>unfold_more</span>
+                          )
+                        )}
+                      </div>
+                    </th>
                   ))}
                 </tr>
               </thead>
               <tbody>
-                {loading ? Array.from({length:5}).map((_,i)=>(
+                {loading ? Array.from({length: pageSize}).map((_,i)=>(
                   <tr key={i} className="border-b border-[#f0f0f0]">
                     {[...Array(7)].map((__,j)=><td key={j} className="px-5 py-4"><div className="h-4 bg-[#f5f5f5] rounded animate-pulse"/></td>)}
                   </tr>
-                )) : filtered.length===0 ? (
+                )) : paginated.length===0 ? (
                   <tr><td colSpan={7} className="px-5 py-16 text-center">
                     <div className="flex flex-col items-center gap-3">
                       <div className="w-12 h-12 bg-[#eef4ff] rounded-2xl flex items-center justify-center text-primary"><HeartPulse size={22}/></div>
@@ -196,11 +275,11 @@ export default function FacultyKesehatan() {
                       <p className="text-xs text-[#a3a3a3]">Belum ada rekam medis tersimpan.</p>
                     </div>
                   </td></tr>
-                ) : filtered.map((row,i)=>{
+                ) : paginated.map((row,i)=>{
                   const hs = getHealth(row.StatusKesehatan)
                   return (
                     <tr key={row.ID||i} className="border-b border-[#f5f5f5] hover:bg-[#fafbff] transition-colors">
-                      <td className="px-5 py-3.5 text-sm text-[#a3a3a3] font-medium">{i+1}</td>
+                      <td className="px-5 py-3.5 text-sm text-[#a3a3a3] font-medium">{(currentPage - 1) * pageSize + i + 1}</td>
                       <td className="px-5 py-3.5">
                         <div className="flex items-center gap-3">
                           <div className={cn('w-9 h-9 rounded-xl bg-gradient-to-br flex items-center justify-center text-white text-[11px] font-black flex-shrink-0 shadow-sm', AVATAR_COLORS[row.colorIdx])}>
@@ -235,6 +314,80 @@ export default function FacultyKesehatan() {
                 })}
               </tbody>
             </table>
+          </div>
+
+          {/* Modern Pagination Footer */}
+          <div className="px-6 py-4 bg-slate-50/50 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
+              <p className="text-xs text-slate-500 font-medium text-center sm:text-left">
+                Menampilkan <span className="font-semibold text-slate-800">{totalItems > 0 ? (currentPage - 1) * pageSize + 1 : 0}</span> sampai <span className="font-semibold text-slate-800">{Math.min(currentPage * pageSize, totalItems)}</span> dari <span className="font-semibold text-slate-800">{totalItems}</span> entri
+              </p>
+              
+              <div className="hidden sm:block h-5 w-px bg-slate-200" />
+
+              <div className="flex items-center gap-2.5">
+                <span className="text-xs text-slate-400 font-medium whitespace-nowrap">Baris per halaman:</span>
+                <Select value={String(pageSize)} onValueChange={(val) => { setPageSize(Number(val)); setCurrentPage(1); }}>
+                  <SelectTrigger className="h-8 w-24 rounded-lg border-slate-200 bg-white font-semibold text-xs shadow-sm focus:ring-primary/20 px-2.5 py-1">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl border-slate-200 shadow-xl p-1 font-body">
+                    {[5, 10, 15, 25, 50].map((size) => (
+                      <SelectItem key={size} value={String(size)} className="rounded-lg text-xs py-1.5 focus:bg-primary/5 focus:text-primary">
+                        {size} Baris
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                disabled={currentPage === 1 || loading}
+                className="h-8 px-3 rounded-lg border-slate-200 bg-white text-slate-600 font-semibold text-xs shadow-sm disabled:opacity-40 hover:bg-slate-50 transition-all active:scale-95"
+              >
+                <span className="material-symbols-outlined mr-1" style={{ fontSize: '15px' }}>chevron_left</span>
+                Sebelumnya
+              </Button>
+              
+              <div className="flex items-center gap-1">
+                {Array.from({ length: Math.min(5, totalPages) }).map((_, i) => {
+                  let pageNum = i + 1;
+                  if (totalPages > 5 && currentPage > 3) pageNum = currentPage - 3 + i;
+                  if (pageNum > totalPages) return null;
+
+                  return (
+                    <button
+                      key={pageNum}
+                      onClick={() => setCurrentPage(pageNum)}
+                      className={cn(
+                        "w-8 h-8 rounded-lg font-semibold text-xs transition-all duration-200",
+                        currentPage === pageNum 
+                          ? "bg-primary text-white shadow-md shadow-primary/20 scale-105" 
+                          : "text-slate-500 hover:bg-slate-100 hover:text-slate-900"
+                      )}
+                    >
+                      {pageNum}
+                    </button>
+                  )
+                })}
+              </div>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages || loading || totalPages === 0}
+                className="h-8 px-3 rounded-lg border-slate-200 bg-white text-slate-600 font-semibold text-xs shadow-sm disabled:opacity-40 hover:bg-slate-50 transition-all active:scale-95"
+              >
+                Berikutnya
+                <span className="material-symbols-outlined ml-1" style={{ fontSize: '15px' }}>chevron_right</span>
+              </Button>
+            </div>
           </div>
         </div>
       </div>
