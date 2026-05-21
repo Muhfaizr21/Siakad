@@ -15,6 +15,8 @@ class HealthRecordModel extends HealthRecord {
   });
 
   factory HealthRecordModel.fromJson(Map<String, dynamic> json) {
+    // Backend returns: sistole/diastole (NOT sistolik/diastolik)
+    // Backend Kesehatan struct has no heart_rate or temperature fields
     final sys = json['sistole'] ?? json['sistolik'] ?? 0;
     final dia = json['diastole'] ?? json['diastolik'] ?? 0;
     return HealthRecordModel(
@@ -22,29 +24,26 @@ class HealthRecordModel extends HealthRecord {
       height: (json['tinggi_badan'] ?? 0).toDouble(),
       weight: (json['berat_badan'] ?? 0).toDouble(),
       bloodPressure: "$sys/$dia",
-      heartRate: json['heart_rate'] ?? json['detak_jantung'] ?? 0,
-      temperature: (json['temperature'] ?? json['suhu'] ?? 0.0).toDouble(),
-      date: json['tanggal'] != null ? DateTime.parse(json['tanggal']) : DateTime.now(),
+      heartRate: 0, // backend Kesehatan model tidak punya heart_rate
+      temperature: 0.0, // backend Kesehatan model tidak punya temperature
+      date: json['tanggal'] != null ? DateTime.tryParse(json['tanggal'].toString()) ?? DateTime.now() : DateTime.now(),
       bloodType: json['golongan_darah'] ?? '-',
-      notes: json['catatan'] ?? json['keluhan'] ?? '',
+      notes: json['catatan'] ?? '',
       gulaDarah: json['gula_darah'] != null ? (json['gula_darah'] as num).toInt() : null,
     );
   }
 
   Map<String, dynamic> toJson() {
     final bpParts = bloodPressure.split('/');
-    final sys = bpParts.isNotEmpty ? (int.tryParse(bpParts.first) ?? 0) : 0;
-    final dia = bpParts.length > 1 ? (int.tryParse(bpParts.last) ?? 0) : 0;
+    final sys = bpParts.isNotEmpty ? (int.tryParse(bpParts.first.trim()) ?? 0) : 0;
+    final dia = bpParts.length > 1 ? (int.tryParse(bpParts.last.trim()) ?? 0) : 0;
     return {
       'tinggi_badan': height,
       'berat_badan': weight,
       'sistolik': sys,
       'diastolik': dia,
-      'sistole': sys,
-      'diastole': dia,
       'golongan_darah': bloodType,
       'catatan': notes,
-      'keluhan': notes,
       'gula_darah': gulaDarah,
       'tanggal': date.toIso8601String(),
       'tanggal_periksa': date.toIso8601String(),

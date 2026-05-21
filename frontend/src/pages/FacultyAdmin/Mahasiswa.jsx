@@ -90,7 +90,6 @@ export default function MahasiswaPage() {
       TahunMasuk: m.TahunMasuk ? String(m.TahunMasuk) : (m.NIM ? `20${m.NIM.substring(0,2)}` : '—'),
       NoHP: m.NoHP || '—',
       JalurMasuk: m.JalurMasuk || 'PDDIKTI Sync',
-      DosenPA: m.DosenPA?.Nama || 'Belum Ditentukan',
       TempatLahir: m.TempatLahir || '—',
       TanggalLahir: m.TanggalLahir,
       NIK: m.NIK || '—',
@@ -522,7 +521,6 @@ export default function MahasiswaPage() {
               <SectionBlock icon={BookOpen} title="Informasi Akademik">
                 <InfoCard icon={Building2}  label="Program Studi"    value={selected.ProgramStudi}    accent="border-l-blue-400" />
                 <InfoCard icon={Layers}     label="Semester"          value={selected.SemesterSekarang ? `Semester ${selected.SemesterSekarang}` : '—'} accent="border-l-indigo-400" />
-                <InfoCard icon={UserCheck}  label="Dosen PA / Wali"  value={selected.DosenPA}          accent="border-l-violet-400" />
                 <InfoCard icon={Award}      label="Jalur Masuk"       value={selected.JalurMasuk}       accent="border-l-amber-400" />
               </SectionBlock>
 

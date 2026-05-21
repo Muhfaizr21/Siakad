@@ -17,6 +17,7 @@ class _SubmitAspirationScreenState extends State<SubmitAspirationScreen> {
   final _titleController = TextEditingController();
   final _descController = TextEditingController();
   String _selectedCategory = 'Fasilitas';
+  bool _isSubmitting = false;
 
   @override
   Widget build(BuildContext context) {
@@ -172,7 +173,7 @@ class _SubmitAspirationScreenState extends State<SubmitAspirationScreen> {
       width: double.infinity,
       height: 58,
       child: ElevatedButton(
-        onPressed: () => _submitForm(),
+        onPressed: _isSubmitting ? null : () => _submitForm(),
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primary,
           foregroundColor: Colors.white,
@@ -182,17 +183,32 @@ class _SubmitAspirationScreenState extends State<SubmitAspirationScreen> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.send_rounded, size: 20, color: Colors.white),
-            const SizedBox(width: 12),
-            Text('Kirim Aspirasi', style: AppTextStyles.labelMd.copyWith(fontWeight: FontWeight.bold, color: Colors.white)),
+            if (_isSubmitting)
+              const SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                ),
+              )
+            else ...[
+              const Icon(Icons.send_rounded, size: 20, color: Colors.white),
+              const SizedBox(width: 12),
+              Text('Kirim Aspirasi', style: AppTextStyles.labelMd.copyWith(fontWeight: FontWeight.bold, color: Colors.white)),
+            ],
           ],
         ),
       ),
     );
   }
 
-  void _submitForm() {
-    if (_formKey.currentState!.validate()) {
+  Future<void> _submitForm() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() => _isSubmitting = true);
+
+    try {
       final newAsp = Aspiration(
         id: 'ASP${DateTime.now().millisecondsSinceEpoch}',
         category: _selectedCategory,
@@ -201,8 +217,21 @@ class _SubmitAspirationScreenState extends State<SubmitAspirationScreen> {
         date: DateTime.now(),
         status: 'Pending',
       );
-      context.read<StudentProvider>().addAspiration(newAsp);
+      await context.read<StudentProvider>().addAspiration(newAsp);
+      if (!mounted) return;
       _showSuccessDialog();
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.toString().replaceAll('Exception: ', '')),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isSubmitting = false);
+      }
     }
   }
 

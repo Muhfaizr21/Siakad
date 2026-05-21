@@ -520,11 +520,7 @@ func GetAllStudents(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"status": "success", "data": mhs})
 }
 
-func GetAllLecturers(c *fiber.Ctx) error {
-	var lecturers []models.Dosen
-	config.DB.Preload("Fakultas").Preload("ProgramStudi").Order("nama asc").Find(&lecturers)
-	return c.JSON(fiber.Map{"status": "success", "data": lecturers})
-}
+
 
 func GetAllPsychologists(c *fiber.Ctx) error {
 	var psychologists []models.Psikolog
@@ -940,65 +936,7 @@ func DeleteOrmawa(c *fiber.Ctx) error {
 	}
 	return c.JSON(fiber.Map{"status": "success", "message": "Ormawa deleted"})
 }
-func CreateLecturer(c *fiber.Ctx) error {
-	var lec models.Dosen
-	if err := c.BodyParser(&lec); err != nil {
-		return c.Status(400).JSON(fiber.Map{"status": "error", "message": err.Error()})
-	}
 
-	err := config.DB.Transaction(func(tx *gorm.DB) error {
-		user := models.User{
-			Email:    lec.Email,
-			Password: "password123",
-			Role:     "dosen",
-		}
-
-		if user.Email == "" {
-			user.Email = fmt.Sprintf("%s@dosen.siakad.com", lec.NIDN)
-		}
-
-		if err := tx.Create(&user).Error; err != nil {
-			return err
-		}
-
-		if user.ID == 0 {
-			return fmt.Errorf("failed to generate user ID for lecturer")
-		}
-
-		lec.PenggunaID = user.ID
-		if err := tx.Create(&lec).Error; err != nil {
-			return err
-		}
-		return nil
-	})
-
-	if err != nil {
-		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal integrasi akun dosen: " + err.Error()})
-	}
-
-	return c.JSON(fiber.Map{"status": "success", "data": lec})
-}
-
-func UpdateLecturer(c *fiber.Ctx) error {
-	id := c.Params("id")
-	var lec models.Dosen
-	if err := config.DB.First(&lec, id).Error; err != nil {
-		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Dosen not found"})
-	}
-	if err := c.BodyParser(&lec); err != nil {
-		return c.Status(400).JSON(fiber.Map{"status": "error", "message": err.Error()})
-	}
-	config.DB.Save(&lec)
-	return c.JSON(fiber.Map{"status": "success", "data": lec})
-}
-
-func DeleteLecturer(c *fiber.Ctx) error {
-	id := c.Params("id")
-	if err := config.DB.Delete(&models.Dosen{}, id).Error; err != nil {
-		return c.Status(500).JSON(fiber.Map{"status": "error", "message": err.Error()})
-	}
-	return c.JSON(fiber.Map{"status": "success", "message": "Dosen deleted"})
-}
 
 // News Handlers
 func GetAllNews(c *fiber.Ctx) error {

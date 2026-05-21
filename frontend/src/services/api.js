@@ -338,20 +338,7 @@ export const adminService = {
   deleteProdi: (id) => fetchWithAuth(`${API_BASE_URL}/admin/prodi/${id}`, {
     method: 'DELETE'
   }),
-  getAllLecturers: () => fetchWithAuth(`${API_BASE_URL}/admin/lecturers`),
-  createLecturer: (data) => fetchWithAuth(`${API_BASE_URL}/admin/lecturers`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data)
-  }),
-  updateLecturer: (id, data) => fetchWithAuth(`${API_BASE_URL}/admin/lecturers/${id}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data)
-  }),
-  deleteLecturer: (id) => fetchWithAuth(`${API_BASE_URL}/admin/lecturers/${id}`, {
-    method: 'DELETE'
-  }),
+
   getAllPsychologists: () => fetchWithAuth(`${API_BASE_URL}/admin/psychologists`),
   updatePsychologist: (id, data) => fetchWithAuth(`${API_BASE_URL}/admin/psychologists/${id}`, {
     method: 'PUT',

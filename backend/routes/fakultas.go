@@ -11,12 +11,7 @@ import (
 func InisialisasiRuteFakultas(aplikasi *fiber.App) {
 	api := aplikasi.Group("/api/faculty", middleware.AuthProtected) // prefix kembali ke English sesuai frontend
 
-	// Akademik & Dosen
-	api.Get("/lecturers", fakultas.AmbilDaftarDosen)
-	api.Get("/lecturers/:id", fakultas.AmbilDosenBerdasarID)
-	// api.Post("/lecturers", fakultas.TambahDosenBaru)
-	// api.Put("/lecturers/:id", fakultas.PerbaruiDataDosen)
-	// api.Delete("/lecturers/:id", fakultas.HapusDataDosen)
+
 
 	// Mahasiswa
 	api.Get("/students", fakultas.AmbilDaftarMahasiswa)

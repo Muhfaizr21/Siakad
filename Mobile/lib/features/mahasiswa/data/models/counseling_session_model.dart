@@ -14,51 +14,56 @@ class CounselingSessionModel extends CounselingSession {
   });
 
   factory CounselingSessionModel.fromJson(Map<String, dynamic> json) {
-    // Helper to format/extract time if not directly provided
-    String timeStr = json['time']?.toString() ?? '';
-    if (timeStr.isEmpty) {
-      final dateRaw = json['Tanggal'] ?? json['tanggal'] ?? json['date'];
-      if (dateRaw != null) {
-        try {
-          final parsed = DateTime.parse(dateRaw.toString());
-          final hour = parsed.hour.toString().padLeft(2, '0');
-          final minute = parsed.minute.toString().padLeft(2, '0');
-          timeStr = '$hour:$minute';
-        } catch (_) {
-          timeStr = '08:00 - 10:00';
-        }
-      } else {
+    // Backend Konseling struct tidak punya json tags → GORM return PascalCase
+    // Fields: ID, DosenID, MahasiswaID, Tanggal, Topik, Status, Catatan, Dosen
+
+    // Parse waktu
+    String timeStr = '';
+    final dateRaw = json['Tanggal'] ?? json['tanggal'] ?? json['date'];
+    DateTime parsedDate = DateTime.now();
+    if (dateRaw != null) {
+      try {
+        parsedDate = DateTime.parse(dateRaw.toString());
+        final hour = parsedDate.hour.toString().padLeft(2, '0');
+        final minute = parsedDate.minute.toString().padLeft(2, '0');
+        timeStr = '$hour:$minute - ${(parsedDate.hour + 1).toString().padLeft(2, '0')}:$minute';
+      } catch (_) {
         timeStr = '08:00 - 10:00';
       }
+    } else {
+      timeStr = '08:00 - 10:00';
     }
 
-    // Extract psychologist name
-    String psyName = json['psychologistName']?.toString() ?? '';
-    if (psyName.isEmpty) {
-      final dosen = json['Dosen'] ?? json['dosen'];
-      if (dosen is Map) {
-        psyName = dosen['Nama']?.toString() ?? dosen['nama']?.toString() ?? 'Dosen Konseling';
-      } else {
-        psyName = 'Dosen Konseling';
-      }
+    // Extract nama dosen/psikolog dari relasi Dosen
+    String psyName = '';
+    final dosenRaw = json['Dosen'] ?? json['dosen'];
+    if (dosenRaw is Map) {
+      psyName = dosenRaw['Nama']?.toString() ??
+                dosenRaw['nama']?.toString() ??
+                'Konselor';
     }
+    if (psyName.isEmpty) {
+      psyName = json['psychologistName']?.toString() ?? 'Konselor';
+    }
+
+    // Extract psychologistId dari DosenID
+    final dosenId = json['DosenID'] ?? json['dosen_id'] ?? json['psychologistId'] ?? '';
+
+    // Extract topik/catatan
+    final topik = json['Topik'] ?? json['topik'] ?? json['topic'] ?? '';
+    final catatan = json['Catatan'] ?? json['catatan'] ?? json['notes'] ?? '';
+    final status = json['Status'] ?? json['status'] ?? '';
 
     return CounselingSessionModel(
-      id: json['id']?.toString() ?? json['ID']?.toString() ?? '',
-      psychologistId: json['psychologistId']?.toString() ?? json['dosen_id']?.toString() ?? json['DosenID']?.toString() ?? '',
+      id: (json['ID'] ?? json['id'])?.toString() ?? '',
+      psychologistId: dosenId.toString(),
       psychologistName: psyName,
-      topic: json['topic']?.toString() ?? json['Topik']?.toString() ?? json['topik']?.toString() ?? '',
-      date: json['date'] != null 
-          ? DateTime.parse(json['date'].toString()) 
-          : (json['Tanggal'] != null 
-              ? DateTime.parse(json['Tanggal'].toString()) 
-              : (json['tanggal'] != null 
-                  ? DateTime.parse(json['tanggal'].toString()) 
-                  : DateTime.now())),
+      topic: topik.toString(),
+      date: parsedDate,
       time: timeStr,
-      location: json['location']?.toString() ?? 'Ruang Konseling',
-      status: json['status']?.toString() ?? json['Status']?.toString() ?? '',
-      notes: json['notes']?.toString() ?? json['Catatan']?.toString() ?? json['catatan']?.toString(),
+      location: json['location']?.toString() ?? json['Lokasi']?.toString() ?? 'Ruang Konseling',
+      status: status.toString(),
+      notes: catatan.toString(),
     );
   }
 

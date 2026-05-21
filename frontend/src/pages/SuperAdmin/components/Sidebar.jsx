@@ -17,7 +17,6 @@ const menuGroups = [
       { name: "Data Fakultas", icon: 'apartment', path: "/admin/faculties" },
       { name: "Data Prodi", icon: 'database', path: "/admin/prodi" },
       { name: "Data Mahasiswa", icon: 'school', path: "/admin/students" },
-      { name: "Data Dosen", icon: 'work', path: "/admin/lecturers" },
       { name: "Data Psikolog", icon: 'psychology', path: "/admin/psychologists" },
     ]
   },

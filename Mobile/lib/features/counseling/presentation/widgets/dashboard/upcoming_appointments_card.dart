@@ -5,10 +5,14 @@ import 'package:bkuhub_mobile/core/theme/app_colors.dart';
 import 'package:bkuhub_mobile/core/theme/app_text_styles.dart';
 
 class UpcomingAppointmentsCard extends StatelessWidget {
-  const UpcomingAppointmentsCard({super.key});
+  final List<Map<String, dynamic>> bookings;
+
+  const UpcomingAppointmentsCard({super.key, this.bookings = const []});
 
   @override
   Widget build(BuildContext context) {
+    final displayBookings = bookings.length > 5 ? bookings.sublist(0, 5) : bookings;
+
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -23,7 +27,6 @@ class UpcomingAppointmentsCard extends StatelessWidget {
       ),
       child: Column(
         children: [
-          // Header Card
           Padding(
             padding: const EdgeInsets.all(20),
             child: Row(
@@ -39,7 +42,7 @@ class UpcomingAppointmentsCard extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      'Jumat, 08 Mei',
+                      _todayDate(),
                       style: AppTextStyles.titleMd.copyWith(
                         color: AppColors.primary,
                         fontWeight: FontWeight.w900,
@@ -50,21 +53,14 @@ class UpcomingAppointmentsCard extends StatelessWidget {
                 GestureDetector(
                   onTap: () => context.push(AppRoutes.scheduleManagement),
                   child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 8,
-                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     decoration: BoxDecoration(
                       color: const Color(0xFFF1F5F9),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Row(
                       children: [
-                        const Icon(
-                          Icons.calendar_month_rounded,
-                          size: 16,
-                          color: AppColors.primary,
-                        ),
+                        const Icon(Icons.calendar_month_rounded, size: 16, color: AppColors.primary),
                         const SizedBox(width: 8),
                         Text(
                           'Lihat Semua',
@@ -81,25 +77,43 @@ class UpcomingAppointmentsCard extends StatelessWidget {
             ),
           ),
           const Divider(height: 1, indent: 20, endIndent: 20),
-          const _AppointmentItem(
-            name: 'Andi Wijaya',
-            id: '20220101',
-            time: '10:00 - 11:00',
-            reason: 'Kecemasan Akademik',
-            isActive: true,
-            isLast: false,
-          ),
-          const _AppointmentItem(
-            name: 'Siti Aminah',
-            id: '20220512',
-            time: '13:30 - 14:30',
-            reason: 'Masalah Keluarga',
-            isActive: false,
-            isLast: true,
-          ),
+          if (displayBookings.isEmpty)
+            Padding(
+              padding: const EdgeInsets.all(32),
+              child: Center(
+                child: Column(
+                  children: [
+                    Icon(Icons.event_busy_rounded, size: 40, color: Colors.grey[300]),
+                    const SizedBox(height: 8),
+                    Text('Tidak ada jadwal hari ini', style: AppTextStyles.labelMd.copyWith(color: Colors.grey)),
+                  ],
+                ),
+              ),
+            )
+          else
+            ...displayBookings.asMap().entries.map((entry) {
+              final i = entry.key;
+              final booking = entry.value;
+              final isLast = i == displayBookings.length - 1;
+              return _AppointmentItem(
+                name: booking['name'] ?? '-',
+                id: booking['nim'] ?? '',
+                time: booking['time'] ?? '-',
+                reason: booking['issue'] ?? '-',
+                isActive: booking['status'] == 'Dikonfirmasi',
+                isLast: isLast,
+              );
+            }),
         ],
       ),
     );
+  }
+
+  String _todayDate() {
+    final now = DateTime.now();
+    final days = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
+    final months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+    return '${days[now.weekday - 1]}, ${now.day} ${months[now.month - 1]}';
   }
 }
 
@@ -183,9 +197,7 @@ class _AppointmentItem extends StatelessWidget {
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 elevation: 0,
                 padding: const EdgeInsets.symmetric(horizontal: 16),
               ),

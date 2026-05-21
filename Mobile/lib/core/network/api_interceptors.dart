@@ -34,6 +34,8 @@ class ApiInterceptor extends Interceptor {
   void onError(DioException err, ErrorInterceptorHandler handler) async {
     log('<-- Error ${err.response?.statusCode} ${err.requestOptions.uri}');
     log('Message: ${err.message}');
+    log('Response body: ${err.response?.data}');
+    log('Type: ${err.type}');
 
     // Handle global 401 Unauthorized
     if (err.response?.statusCode == 401) {

@@ -97,16 +97,6 @@ export default function FacultyDashboard() {
       path: "/faculty/mahasiswa"
     },
     {
-      label: "Tenaga Pendidik",
-      icon: GraduationCap,
-      value: summaryData.totalLecturers || 0,
-      desc: "dosen aktif",
-      color: "text-emerald-600",
-      bg: "bg-emerald-50",
-      accent: "from-emerald-500/10",
-      path: "/faculty/dosen"
-    },
-    {
       label: "Prestasi Baru",
       icon: Award,
       value: summaryData.totalPrestasi || 0,
@@ -190,7 +180,6 @@ export default function FacultyDashboard() {
           <div className="hidden lg:flex absolute right-10 top-1/2 -translate-y-1/2 gap-4">
             {[
               { label: 'Mahasiswa', value: loading ? '—' : (summaryData.totalStudents || 0).toLocaleString() },
-              { label: 'Dosen', value: loading ? '—' : (summaryData.totalLecturers || 0).toLocaleString() },
               { label: 'Prodi', value: loading ? '—' : (summaryData.totalProdi || 0).toLocaleString() },
             ].map(item => (
               <div key={item.label} className="text-center bg-white/10 backdrop-blur-md rounded-2xl px-5 py-4 border border-white/10">
@@ -202,7 +191,7 @@ export default function FacultyDashboard() {
         </section>
 
         {/* ── Stat Cards ─────────────────────────────────────────────── */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {statCards.map((s) => (
             <button
               key={s.label}

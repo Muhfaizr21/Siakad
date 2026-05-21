@@ -336,7 +336,7 @@ class StudentRepositoryImpl implements StudentRepository {
       await apiClient.client.post('/student-voice/create', data: model.toJson());
     } catch (e) {
       log('Error submitting aspiration: $e');
-      throw Exception('Gagal mengirim aspirasi');
+      throw _parseError(e, 'Gagal mengirim aspirasi');
     }
   }
 
@@ -358,7 +358,7 @@ class StudentRepositoryImpl implements StudentRepository {
       await apiClient.client.post('/student-health/record', data: model.toJson());
     } catch (e) {
       log('Error adding health record: $e');
-      throw Exception('Gagal menambah data kesehatan');
+      throw _parseError(e, 'Gagal menambah data kesehatan');
     }
   }
 
@@ -396,7 +396,7 @@ class StudentRepositoryImpl implements StudentRepository {
       }
     } catch (e) {
       log('Error booking counseling: $e');
-      throw Exception('Gagal mengajukan konseling');
+      throw _parseError(e, 'Gagal mengajukan konseling');
     }
   }
 
@@ -444,6 +444,36 @@ class StudentRepositoryImpl implements StudentRepository {
       log('Error submitting appeal: $e');
       throw Exception('Gagal mengajukan banding');
     }
+  }
+
+  Exception _parseError(dynamic e, String defaultMsg) {
+    if (e is DioException) {
+      log('DioException type: ${e.type}');
+      log('DioException status: ${e.response?.statusCode}');
+      log('DioException data: ${e.response?.data}');
+
+      final data = e.response?.data;
+      if (data is Map) {
+        final msg = data['message'] ?? data['error'];
+        if (msg != null) {
+          return Exception(msg.toString());
+        }
+      }
+      if (data is String && data.isNotEmpty) {
+        return Exception(data);
+      }
+      // No response body — likely a connection/timeout issue
+      if (e.type == DioExceptionType.connectionTimeout ||
+          e.type == DioExceptionType.receiveTimeout ||
+          e.type == DioExceptionType.sendTimeout) {
+        return Exception('Koneksi ke server timeout. Pastikan jaringan kamu stabil.');
+      }
+      if (e.type == DioExceptionType.connectionError) {
+        return Exception('Tidak dapat terhubung ke server. Pastikan jaringan kamu aktif.');
+      }
+    }
+    log('Non-Dio error: $e (${e.runtimeType})');
+    return Exception(defaultMsg);
   }
 }
 

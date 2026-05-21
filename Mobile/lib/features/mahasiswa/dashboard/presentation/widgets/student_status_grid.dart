@@ -101,7 +101,7 @@ class StudentStatusGrid extends StatelessWidget {
       crossAxisCount: 2,
       mainAxisSpacing: 12,
       crossAxisSpacing: 12,
-      childAspectRatio: 1.8,
+      childAspectRatio: 1.4,
       children: [
         if (isLoading) ...[
           BkuShimmer(
@@ -188,7 +188,7 @@ class _StatusItem extends StatelessWidget {
         MaterialPageRoute(builder: (context) => target),
       ),
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(24),
@@ -204,14 +204,14 @@ class _StatusItem extends StatelessWidget {
         child: Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(10),
+              padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
                 color: color.withAlpha(15),
                 borderRadius: BorderRadius.circular(16),
               ),
-              child: Icon(icon, color: color, size: 22),
+              child: Icon(icon, color: color, size: 20),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 8),
             Expanded(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -224,14 +224,17 @@ class _StatusItem extends StatelessWidget {
                       fontSize: 9,
                       fontWeight: FontWeight.bold,
                     ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 2),
                   Text(
                     value,
                     style: AppTextStyles.labelMd.copyWith(
                       fontWeight: FontWeight.w900,
-                      fontSize: 13,
+                      fontSize: 12,
                     ),
+                    maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 2),
@@ -241,6 +244,8 @@ class _StatusItem extends StatelessWidget {
                       color: AppColors.outline,
                       fontSize: 8,
                     ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ],
               ),

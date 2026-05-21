@@ -68,14 +68,11 @@ import PkkmbManagement from './pages/OrmawaAdmin/PkkmbManagement'
 import FacultyAspirationManagement from './pages/FacultyAdmin/Aspirasi'
 import FacultyPmb from './pages/FacultyAdmin/MahasiswaBaru'
 import FacultyProdi from './pages/FacultyAdmin/Prodi'
-import FacultyDosen from './pages/FacultyAdmin/Dosen'
 import FacultyMahasiswa from './pages/FacultyAdmin/Mahasiswa'
 import FacultyMahasiswaImport from './pages/FacultyAdmin/Mahasiswa'
 import FacultyMahasiswaStatus from './pages/FacultyAdmin/Mahasiswa'
 import FacultyMahasiswaTambah from './pages/FacultyAdmin/Mahasiswa'
 import FacultyMahasiswaEdit from './pages/FacultyAdmin/Mahasiswa'
-import FacultyDosenTambah from './pages/FacultyAdmin/Dosen'
-import FacultyDosenEdit from './pages/FacultyAdmin/Dosen'
 import FacultyProdiTambah from './pages/FacultyAdmin/Prodi'
 import FacultyProdiEdit from './pages/FacultyAdmin/Prodi'
 import FacultyProdiKurikulum from './pages/FacultyAdmin/Prodi'
@@ -111,7 +108,7 @@ import StudentDirectory from './pages/SuperAdmin/StudentDirectory'
 import AdminPerformance from './pages/SuperAdmin/AdminPerformance'
 import AdminProfile from './pages/SuperAdmin/Profile'
 import SecuritySettings from './pages/SuperAdmin/SecuritySettings'
-import LecturerDirectory from './pages/SuperAdmin/LecturerDirectory'
+
 import PsychologistDirectory from './pages/SuperAdmin/PsychologistDirectory'
 import KelolaFakultas from './pages/SuperAdmin/KelolaFakultas'
 import KelolaProdi from './pages/SuperAdmin/KelolaProdi'
@@ -197,7 +194,7 @@ function App() {
                     <Route path="students" element={<StudentDirectory />} />
                     <Route path="performance" element={<AdminPerformance />} />
                     <Route path="security" element={<SecuritySettings />} />
-                    <Route path="lecturers" element={<LecturerDirectory />} />
+
                     <Route path="psychologists" element={<PsychologistDirectory />} />
                     <Route path="config" element={<AcademicPortal />} />
                     <Route path="faculties" element={<KelolaFakultas />} />
@@ -216,7 +213,7 @@ function App() {
             } />
 
             <Route path="/faculty/*" element={
-              <ProtectedRoute allowedRoles={['faculty_admin', 'dosen']}>
+              <ProtectedRoute allowedRoles={['faculty_admin']}>
                 <Routes>
                   <Route element={<FacultyLayout />}>
                     <Route index element={<Navigate to="dashboard" replace />} />
@@ -229,14 +226,11 @@ function App() {
                     <Route path="prodi/edit/:id" element={<FacultyProdiEdit />} />
                     <Route path="prodi/kurikulum" element={<FacultyProdiKurikulum />} />
                     <Route path="prodi/matakuliah" element={<FacultyProdiMatakuliah />} />
-                    <Route path="dosen" element={<FacultyDosen />} />
                     <Route path="mahasiswa" element={<FacultyMahasiswa />} />
                     <Route path="mahasiswa/import" element={<FacultyMahasiswaImport />} />
                     <Route path="mahasiswa/status" element={<FacultyMahasiswaStatus />} />
                     <Route path="mahasiswa/tambah" element={<FacultyMahasiswaTambah />} />
                     <Route path="mahasiswa/edit/:id" element={<FacultyMahasiswaEdit />} />
-                    <Route path="dosen/tambah" element={<FacultyDosenTambah />} />
-                    <Route path="dosen/edit/:id" element={<FacultyDosenEdit />} />
                     <Route path="jadwal" element={<FacultyJadwal />} />
                     <Route path="krs" element={<FacultyKrs />} />
                     <Route path="nilai" element={<FacultyNilai />} />

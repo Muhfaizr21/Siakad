@@ -22,7 +22,7 @@ const KeyRound = ({ size, className, ...props }) => <span className={`material-s
 
 
 
-const ROLES = ['super_admin', 'faculty_admin', 'ormawa_admin', 'ormawa', 'dosen', 'mahasiswa', 'psikolog']
+const ROLES = ['super_admin', 'faculty_admin', 'ormawa_admin', 'ormawa', 'mahasiswa', 'psikolog']
 
 const ROLE_DETAILS = {
   super_admin: {
@@ -50,12 +50,7 @@ const ROLE_DETAILS = {
     desc: 'Anggota aktif pengurus ormawa dengan akses operasional internal organisasi.',
     perms: ['Proposal Access', 'Event Management', 'Attendance Tracking', 'Member View']
   },
-  dosen: {
-    label: 'Dosen',
-    cls: 'bg-amber-500 text-white shadow-amber-200',
-    desc: 'Akses modul bimbingan akademik, konseling, dan validasi kurikulum.',
-    perms: ['Academic Advising', 'Counseling Hub', 'Grade Validation', 'Attendance Control']
-  },
+
   mahasiswa: {
     label: 'Mahasiswa',
     cls: 'bg-emerald-500 text-white shadow-emerald-200',
@@ -246,9 +241,6 @@ export default function UserManagement() {
         } else if (role === 'mahasiswa') {
           context = row.prodi_nama || '-'
           subContext = v || ''
-        } else if (role === 'dosen') {
-          context = v || '-'
-          subContext = row.prodi_nama || ''
         } else if (role === 'psikolog') {
           context = 'Psychological Wing'
           subContext = 'BKU Clinical Unit'

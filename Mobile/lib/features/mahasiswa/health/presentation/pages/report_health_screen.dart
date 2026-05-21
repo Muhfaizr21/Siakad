@@ -48,6 +48,8 @@ class _ReportHealthScreenState extends State<ReportHealthScreen> {
   bool _keluhanLelah = false;
   bool _keluhanNyeri = false;
 
+  bool _isSubmitting = false;
+
   @override
   void initState() {
     super.initState();
@@ -558,25 +560,42 @@ class _ReportHealthScreenState extends State<ReportHealthScreen> {
       height: 60,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(20),
-        gradient: const LinearGradient(colors: [AppColors.primary, Color(0xFF1E40AF)]),
-        boxShadow: [
+        gradient: LinearGradient(
+          colors: _isSubmitting
+              ? [Colors.grey, Colors.grey.shade600]
+              : [AppColors.primary, const Color(0xFF1E40AF)],
+        ),
+        boxShadow: _isSubmitting ? [] : [
           BoxShadow(color: AppColors.primary.withAlpha(100), blurRadius: 15, offset: const Offset(0, 8)),
         ],
       ),
       child: ElevatedButton(
-        onPressed: () => _submitForm(),
+        onPressed: _isSubmitting ? null : () => _submitForm(),
         style: ElevatedButton.styleFrom(
           backgroundColor: Colors.transparent,
           shadowColor: Colors.transparent,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         ),
-        child: Text('Simpan Data Kesehatan', style: AppTextStyles.labelMd.copyWith(fontWeight: FontWeight.w900, color: Colors.white, fontSize: 16)),
+        child: _isSubmitting
+            ? const SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2.5,
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                ),
+              )
+            : Text('Simpan Data Kesehatan', style: AppTextStyles.labelMd.copyWith(fontWeight: FontWeight.w900, color: Colors.white, fontSize: 16)),
       ),
     );
   }
 
-  void _submitForm() {
-    if (_formKey.currentState!.validate()) {
+  Future<void> _submitForm() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() => _isSubmitting = true);
+
+    try {
       final Map<String, dynamic> notesPayload = {
         'is_screening_realistis': true,
         'jam_tidur': int.tryParse(_selectedSleepHours) ?? 8,
@@ -612,8 +631,21 @@ class _ReportHealthScreenState extends State<ReportHealthScreen> {
         gulaDarah: _sugarController.text.isNotEmpty ? int.tryParse(_sugarController.text) : null,
       );
 
-      context.read<StudentProvider>().addHealthRecord(record);
+      await context.read<StudentProvider>().addHealthRecord(record);
+      if (!mounted) return;
       _showSuccessDialog();
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.toString().replaceAll('Exception: ', '')),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isSubmitting = false);
+      }
     }
   }
 

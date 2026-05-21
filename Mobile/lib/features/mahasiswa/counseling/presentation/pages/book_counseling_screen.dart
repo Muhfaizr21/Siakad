@@ -27,6 +27,7 @@ class _BookCounselingScreenState extends State<BookCounselingScreen> {
   List<Map<String, dynamic>> _loadedSlots = [];
   bool _isLoadingSlots = false;
   Map<String, dynamic>? _selectedSlot;
+  bool _isSubmitting = false;
 
   @override
   void initState() {
@@ -388,37 +389,69 @@ class _BookCounselingScreenState extends State<BookCounselingScreen> {
       width: double.infinity,
       height: 58,
       child: ElevatedButton(
-        onPressed: () => _submitForm(),
+        onPressed: _isSubmitting ? null : () => _submitForm(),
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primary,
           foregroundColor: Colors.white,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
           elevation: 4,
         ),
-        child: Text('Kirim Pendaftaran Sesi', style: AppTextStyles.labelMd.copyWith(fontWeight: FontWeight.bold, color: Colors.white)),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            if (_isSubmitting)
+              const SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                ),
+              )
+            else ...[
+              Text('Kirim Pendaftaran Sesi', style: AppTextStyles.labelMd.copyWith(fontWeight: FontWeight.bold, color: Colors.white)),
+            ],
+          ],
+        ),
       ),
     );
   }
 
-  void _submitForm() {
+  Future<void> _submitForm() async {
     if (_formKey.currentState!.validate() && _selectedDate != null) {
-      final packedId = widget.psychologist != null
-          ? "${widget.psychologist!.id}:${_selectedSlot != null ? _selectedSlot!['id'] : ''}"
-          : 'UNASSIGNED';
+      setState(() => _isSubmitting = true);
+      try {
+        final packedId = widget.psychologist != null
+            ? "${widget.psychologist!.id}:${_selectedSlot != null ? _selectedSlot!['id'] : ''}"
+            : 'UNASSIGNED';
 
-      final newSession = CounselingSession(
-        id: 'C${DateTime.now().millisecondsSinceEpoch}',
-        psychologistId: packedId,
-        psychologistName: widget.psychologist?.name ?? 'Psikolog Pilihan (Menunggu Konfirmasi)',
-        topic: widget.topic,
-        date: _selectedDate!,
-        time: _selectedTime,
-        location: _selectedSlot != null ? _selectedSlot!['location'] : 'Gedung Rektorat Lt. 2 (Ruang Konseling)',
-        status: 'Scheduled',
-        notes: _descriptionController.text,
-      );
-      context.read<StudentProvider>().bookCounseling(newSession);
-      _showSuccessDialog();
+        final newSession = CounselingSession(
+          id: 'C${DateTime.now().millisecondsSinceEpoch}',
+          psychologistId: packedId,
+          psychologistName: widget.psychologist?.name ?? 'Psikolog Pilihan (Menunggu Konfirmasi)',
+          topic: widget.topic,
+          date: _selectedDate!,
+          time: _selectedTime,
+          location: _selectedSlot != null ? _selectedSlot!['location'] : 'Gedung Rektorat Lt. 2 (Ruang Konseling)',
+          status: 'Scheduled',
+          notes: _descriptionController.text,
+        );
+        await context.read<StudentProvider>().bookCounseling(newSession);
+        if (!mounted) return;
+        _showSuccessDialog();
+      } catch (e) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.toString().replaceAll('Exception: ', '')),
+            backgroundColor: Colors.red,
+          ),
+        );
+      } finally {
+        if (mounted) {
+          setState(() => _isSubmitting = false);
+        }
+      }
     } else if (_selectedDate == null) {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Mohon pilih tanggal sesi terlebih dahulu')));
     }

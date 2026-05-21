@@ -15,23 +15,19 @@ func AmbilRingkasanDashboard(c *fiber.Ctx) error {
 	fid := c.Locals("fakultas_id").(uint)
 
 	var totalMhs int64
-	var totalDosen int64
 	var totalProdi int64
 
 	qMhs := config.DB.Model(&models.Mahasiswa{})
-	qDosen := config.DB.Model(&models.Dosen{})
 	qPrestasi := config.DB.Model(&models.Prestasi{})
 	qProdi := config.DB.Model(&models.ProgramStudi{})
 
 	if role == "faculty_admin" {
 		qMhs = qMhs.Where("fakultas_id = ?", fid)
-		qDosen = qDosen.Where("fakultas_id = ?", fid)
 		qPrestasi = qPrestasi.Joins("Mahasiswa").Where("\"Mahasiswa\".fakultas_id = ?", fid)
 		qProdi = qProdi.Where("fakultas_id = ?", fid)
 	}
 
 	qMhs.Count(&totalMhs)
-	qDosen.Count(&totalDosen)
 	qProdi.Count(&totalProdi)
 
 	var totalPrestasiPending int64
@@ -147,7 +143,7 @@ func AmbilRingkasanDashboard(c *fiber.Ctx) error {
 		"status": "success",
 		"data": fiber.Map{
 			"totalStudents":     totalMhs,
-			"totalLecturers":    totalDosen,
+			"totalLecturers":    0,
 			"totalProdi":        totalProdi,
 			"totalPrestasi":     totalPrestasiPending,
 			"statusCounts":      statusCounts,
@@ -255,7 +251,7 @@ func PerbaruiStatusPendaftarMB(c *fiber.Ctx) error {
 
 func AmbilDaftarPeran(c *fiber.Ctx) error {
 	// Model Peran tidak ada di model.go, peran adalah string di model User
-	return c.JSON(fiber.Map{"status": "success", "data": []string{"admin_fakultas", "dosen", "mahasiswa"}})
+	return c.JSON(fiber.Map{"status": "success", "data": []string{"admin_fakultas", "mahasiswa"}})
 }
 
 // --- LAPORAN & STATISTIK ---

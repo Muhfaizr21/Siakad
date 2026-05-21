@@ -3,8 +3,6 @@ import 'package:provider/provider.dart';
 import 'package:bkuhub_mobile/core/theme/app_colors.dart';
 import 'package:bkuhub_mobile/core/theme/app_text_styles.dart';
 import 'package:bkuhub_mobile/core/widgets/bku_app_bar.dart';
-
-// Modular Widgets
 import 'package:bkuhub_mobile/features/counseling/presentation/widgets/dashboard/availability_toggle.dart';
 import 'package:bkuhub_mobile/features/counseling/presentation/widgets/dashboard/quick_stats_card.dart';
 import 'package:bkuhub_mobile/features/counseling/presentation/widgets/dashboard/psychologist_service_grid.dart';
@@ -13,8 +11,21 @@ import 'package:bkuhub_mobile/features/counseling/presentation/widgets/dashboard
 import 'package:bkuhub_mobile/features/counseling/presentation/widgets/dashboard/psychologist_security_card.dart';
 import 'package:bkuhub_mobile/features/counseling/presentation/providers/psychologist_dashboard_provider.dart';
 
-class PsychologistDashboardScreen extends StatelessWidget {
+class PsychologistDashboardScreen extends StatefulWidget {
   const PsychologistDashboardScreen({super.key});
+
+  @override
+  State<PsychologistDashboardScreen> createState() => _PsychologistDashboardScreenState();
+}
+
+class _PsychologistDashboardScreenState extends State<PsychologistDashboardScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<PsychologistDashboardProvider>().loadDashboardData();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -33,12 +44,12 @@ class PsychologistDashboardScreen extends StatelessWidget {
                     children: [
                       _buildSectionHeader('Ringkasan Hari Ini'),
                       const SizedBox(height: 16),
-                      const QuickStatsCard(
-                        totalAppointments: 8,
-                        finished: '4',
-                        waiting: '3',
-                        newAppointments: '1',
-                        rating: '92%',
+                      QuickStatsCard(
+                        totalAppointments: provider.upcomingBookings.length,
+                        finished: provider.stats.length > 1 ? '${provider.stats[1]['value'] ?? 0}' : '0',
+                        waiting: '${provider.waitingCount}',
+                        newAppointments: '${provider.waitingCount}',
+                        rating: '${provider.confirmedCount > 0 ? 92 : 0}%',
                       ),
                       const SizedBox(height: 24),
                       _buildSectionHeader('Layanan Utama'),
@@ -47,7 +58,9 @@ class PsychologistDashboardScreen extends StatelessWidget {
                       const SizedBox(height: 24),
                       _buildSectionHeader('Jadwal Mendatang'),
                       const SizedBox(height: 16),
-                      const UpcomingAppointmentsCard(),
+                      UpcomingAppointmentsCard(
+                        bookings: provider.upcomingBookings,
+                      ),
                       const SizedBox(height: 24),
                       _buildSectionHeader('Analitik & Tren'),
                       const SizedBox(height: 16),
@@ -56,7 +69,7 @@ class PsychologistDashboardScreen extends StatelessWidget {
                       _buildSectionHeader('Keamanan & Sistem'),
                       const SizedBox(height: 16),
                       const PsychologistSecurityCard(),
-                      const SizedBox(height: 80), // Space for bottom nav
+                      const SizedBox(height: 80),
                     ],
                   ),
                 ),
@@ -72,12 +85,12 @@ class PsychologistDashboardScreen extends StatelessWidget {
     return BkuAppBar(
       title: provider.profile?.name ?? 'DR. SARAH SP.PSI',
       subtitle: 'SELAMAT DATANG',
-      info: 'NIDN: ${provider.profile?.nidn ?? '0421039201'} • ${provider.profile?.specialization ?? 'PSIKOLOG KLINIS'}',
+      info: 'NIDN: ${provider.profile?.nidn ?? '-'} • ${provider.profile?.specialization ?? 'PSIKOLOG'}',
       variant: AppBarVariant.psychologist,
       expandedHeight: 210,
       showProfileOnCollapse: true,
       profileImage: Image.network(
-        provider.profile?.profileImageUrl ?? 'https://ui-avatars.com/api/?name=Sarah+Psychologist&background=003399&color=fff&size=128',
+        provider.profile?.profileImageUrl ?? 'https://ui-avatars.com/api/?name=P&background=003399&color=fff&size=128',
         fit: BoxFit.cover,
       ),
       child: AvailabilityToggle(

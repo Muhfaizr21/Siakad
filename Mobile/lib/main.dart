@@ -14,6 +14,7 @@ import 'package:bkuhub_mobile/features/counseling/presentation/providers/psychol
 import 'package:bkuhub_mobile/core/network/api_client.dart';
 import 'package:bkuhub_mobile/features/mahasiswa/data/repositories/student_repository_impl.dart';
 import 'package:bkuhub_mobile/features/ormawa/data/repositories/ormawa_repository_impl.dart';
+import 'package:bkuhub_mobile/features/counseling/data/repositories/counseling_repository_impl.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -23,6 +24,7 @@ void main() async {
   final apiClient = ApiClient();
   final studentRepository = StudentRepositoryImpl(apiClient: apiClient);
   final ormawaRepository = OrmawaRepositoryImpl();
+  final counselingRepository = CounselingRepositoryImpl(apiClient: apiClient);
 
   // Initialize Global Notification Navigation using GoRouter
   BkuAppBar.defaultOnNotificationTap = (context, variant) {
@@ -40,7 +42,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => StudentProvider(repository: studentRepository)),
         ChangeNotifierProvider(create: (_) => ScholarshipProvider()),
         ChangeNotifierProvider(create: (_) => AchievementProvider()),
-        ChangeNotifierProvider(create: (_) => PsychologistDashboardProvider()),
+        ChangeNotifierProvider(create: (_) => PsychologistDashboardProvider(repository: counselingRepository)),
         ChangeNotifierProvider(create: (_) => OrmawaProvider(ormawaRepository)),
       ],
       child: const MyApp(),

@@ -32,17 +32,29 @@ class ScholarshipModel extends Scholarship {
         );
 
   factory ScholarshipModel.fromJson(Map<String, dynamic> json) {
+    // deadline dari backend adalah time.Time → ISO string, e.g. "2025-12-01T00:00:00Z"
+    // kita format jadi "YYYY-MM-DD" agar UI bisa tampilkan
+    String deadlineStr = '';
+    if (json['deadline'] != null) {
+      try {
+        final dt = DateTime.parse(json['deadline'].toString());
+        deadlineStr = '${dt.year}-${dt.month.toString().padLeft(2, '0')}-${dt.day.toString().padLeft(2, '0')}';
+      } catch (_) {
+        deadlineStr = json['deadline'].toString();
+      }
+    }
+
     return ScholarshipModel(
       id: json['id']?.toString() ?? '',
       title: json['nama'] ?? '',
       provider: json['penyelenggara'] ?? '',
       category: json['kategori'] ?? '',
-      deadline: json['deadline'] ?? '',
+      deadline: deadlineStr,
       coverAmount: (json['nilai_bantuan'] ?? 0).toString(),
       description: json['deskripsi'] ?? '',
       status: json['status'] ?? 'Open',
-      applicationStatus: json['application_status'],
-      motivasi: json['motivasi'] ?? json['motivasi_kamu'],
+      applicationStatus: json['application_status']?.toString(),
+      motivasi: json['motivasi'],
       ktmKtpUrl: json['ktm_ktp_url'],
       sertifikatUrl: json['sertifikat_url'],
       transkripUrl: json['transkrip_url'],
