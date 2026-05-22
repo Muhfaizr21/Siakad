@@ -26,8 +26,8 @@ class OrmawaAspiration {
       judul: json['Judul'] ?? json['judul'] ?? '',
       isi: json['Isi'] ?? json['isi'] ?? '',
       status: json['Status'] ?? json['status'] ?? 'pending',
-      tanggapan: json['Tanggapan'] ?? json['tanggapan'] as String?,
-      tangtangan: json['Tanggapan'] ?? json['tanggapan'] as String?,
+      tanggapan: (json['Tanggapan'] ?? json['tanggapan']) as String?,
+      tangtangan: (json['Tanggapan'] ?? json['tanggapan']) as String?,
       mahasiswaName: mName,
       createdAt: DateTime.tryParse(json['CreatedAt'] ?? json['createdAt'] ?? json['created_at'] ?? ''),
     );

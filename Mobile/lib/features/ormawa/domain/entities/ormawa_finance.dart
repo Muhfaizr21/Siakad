@@ -19,7 +19,7 @@ class OrmawaFinance {
     return OrmawaFinance(
       id: (json['ID'] ?? json['id'] ?? '').toString(),
       type: json['Tipe'] ?? json['type'] ?? '',
-      nominal: (json['Nominal'] ?? json['nominal'] ?? 0.0) as double,
+      nominal: ((json['Nominal'] ?? json['nominal'] ?? 0.0) as num).toDouble(),
       category: json['Kategori'] ?? json['category'] ?? '',
       description: json['Deskripsi'] ?? json['description'] ?? '',
       date: DateTime.tryParse(json['Tanggal'] ?? json['tanggal'] ?? '') ?? DateTime.now(),

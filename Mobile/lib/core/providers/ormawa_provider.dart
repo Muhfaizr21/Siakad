@@ -25,7 +25,7 @@ class OrmawaProvider extends ChangeNotifier {
 
   // Organization Info
   String _orgName = "BEM KBM BHAKTI KENCANA";
-  final String _academicYear = "2025/2026";
+  String _academicYear = "2025/2026";
 
   // Stats
   int _totalMembers = 0;
@@ -128,6 +128,11 @@ class OrmawaProvider extends ChangeNotifier {
       _balance = (stats['totalKas'] as num?)?.toDouble() ?? 0;
       _activeProposalsCount = (stats['totalProposals'] as num?)?.toInt() ?? 0;
       _upcomingAgendasCount = (stats['totalEvents'] as num?)?.toInt() ?? 0;
+
+      final activeYear = await _repository.getActiveAcademicYear();
+      if (activeYear != null && activeYear.isNotEmpty) {
+        _academicYear = activeYear;
+      }
 
       _proposals = await _repository.getProposals(ormawaId);
       _agendas = await _repository.getAgendas(ormawaId);

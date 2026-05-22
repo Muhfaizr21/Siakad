@@ -616,4 +616,18 @@ class OrmawaRepositoryImpl implements OrmawaRepository {
   Future<void> deleteNotification(String id) async {
     await _apiClient.client.delete('/ormawa/notifications/$id');
   }
+
+  @override
+  Future<String?> getActiveAcademicYear() async {
+    try {
+      final response = await _apiClient.client.get('/faculty/academic-periods');
+      if (response.data['status'] == 'success' && response.data['data'] != null) {
+        return response.data['data']['activeYear']?.toString();
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Error getting active academic year in repo: $e');
+      return null;
+    }
+  }
 }

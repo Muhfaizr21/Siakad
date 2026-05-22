@@ -42,8 +42,8 @@ class ProdiStat {
   factory ProdiStat.fromJson(Map<String, dynamic> json) {
     return ProdiStat(
       prodi: json['prodi'] ?? json['Prodi'] ?? '',
-      partisipasi: (json['partisipasi'] ?? json['Partisipasi'] ?? 0.0) as double,
-      nilai: (json['nilai'] ?? json['Nilai'] ?? 0.0) as double,
+      partisipasi: ((json['partisipasi'] ?? json['Partisipasi'] ?? 0.0) as num).toDouble(),
+      nilai: ((json['nilai'] ?? json['Nilai'] ?? 0.0) as num).toDouble(),
       status: json['status'] ?? json['Status'] ?? '',
     );
   }
@@ -72,7 +72,7 @@ class PkkmbParticipant {
       name: json['Nama'] ?? json['nama'] ?? json['Name'] ?? json['name'] ?? '',
       nim: json['NIM'] ?? json['nim'] ?? '',
       prodi: json['Prodi'] ?? json['prodi'] ?? json['ProgramStudi'] ?? json['program_studi'] ?? '',
-      nilai: (json['Nilai'] ?? json['nilai'] ?? 0.0) as double,
+      nilai: ((json['Nilai'] ?? json['nilai'] ?? 0.0) as num).toDouble(),
       status: json['Status'] ?? json['status'] ?? '',
     );
   }

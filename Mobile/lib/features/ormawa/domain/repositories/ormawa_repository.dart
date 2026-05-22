@@ -86,4 +86,5 @@ abstract class OrmawaRepository {
   Future<void> markNotificationAsRead(String id);
   Future<void> markAllNotificationsAsRead(String ormawaId);
   Future<void> deleteNotification(String id);
+  Future<String?> getActiveAcademicYear();
 }
