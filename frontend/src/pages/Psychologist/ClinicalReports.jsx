@@ -15,6 +15,17 @@ const FileDown = ({ size, className, ...props }) => <span className={`material-s
 export default function ClinicalReports() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [filterType, setFilterType] = useState('Semua Tipe');
+  const [filterStatus, setFilterStatus] = useState('Semua Status');
+  const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+
+  const handleSort = (key) => {
+    let direction = 'asc';
+    if (sortConfig.key === key && sortConfig.direction === 'asc') direction = 'desc';
+    setSortConfig({ key, direction });
+  };
 
   const [reports, setReports] = useState([]);
 
@@ -33,7 +44,32 @@ export default function ClinicalReports() {
     await loadReports();
   };
 
-  const filteredReports = reports.filter((report) => report.title.toLowerCase().includes(searchQuery.toLowerCase()));
+  const filteredAndSortedReports = React.useMemo(() => {
+    let result = [...reports];
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter(r => r.title.toLowerCase().includes(query));
+    }
+    if (filterType !== 'Semua Tipe') {
+      result = result.filter(r => r.type === filterType);
+    }
+    if (filterStatus !== 'Semua Status') {
+      result = result.filter(r => r.status === filterStatus);
+    }
+    if (sortConfig.key) {
+      result.sort((a, b) => {
+        let valA = a[sortConfig.key];
+        let valB = b[sortConfig.key];
+        if (valA < valB) return sortConfig.direction === 'asc' ? -1 : 1;
+        if (valA > valB) return sortConfig.direction === 'asc' ? 1 : -1;
+        return 0;
+      });
+    }
+    return result;
+  }, [reports, searchQuery, filterType, filterStatus, sortConfig]);
+
+  const totalPages = Math.ceil(filteredAndSortedReports.length / pageSize);
+  const paginatedReports = filteredAndSortedReports.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
   return (
     <div className="bg-surface text-on-surface min-h-screen">
@@ -72,24 +108,41 @@ export default function ClinicalReports() {
                         className="w-full pl-12 pr-4 py-3 bg-white border border-slate-100 rounded-2xl text-xs font-bold focus:ring-4 focus:ring-primary/5 outline-none transition-all shadow-sm"
                       />
                    </div>
-                   <button className="px-6 py-3 bg-white border border-slate-100 rounded-2xl text-[10px] font-black uppercase tracking-widest text-slate-500 flex items-center gap-2 hover:bg-slate-50 transition-all shadow-sm">
-                      <span className="material-symbols-outlined" style={{ fontSize: 16 }}>filter_alt</span> Filter
-                   </button>
+                   <div className="flex items-center gap-2">
+                     <select
+                       value={filterType}
+                       onChange={(e) => { setFilterType(e.target.value); setCurrentPage(1); }}
+                       className="px-4 py-3 bg-white border border-slate-100 rounded-2xl text-xs font-bold text-slate-500 outline-none transition-all focus:border-primary shadow-sm appearance-none pr-8 cursor-pointer"
+                     >
+                       <option value="Semua Tipe">Semua Tipe</option>
+                       <option value="PDF">PDF</option>
+                       <option value="Excel">Excel</option>
+                     </select>
+                     <select
+                       value={filterStatus}
+                       onChange={(e) => { setFilterStatus(e.target.value); setCurrentPage(1); }}
+                       className="px-4 py-3 bg-white border border-slate-100 rounded-2xl text-xs font-bold text-slate-500 outline-none transition-all focus:border-primary shadow-sm appearance-none pr-8 cursor-pointer"
+                     >
+                       <option value="Semua Status">Semua Status</option>
+                       <option value="Selesai">Selesai</option>
+                       <option value="Proses">Proses</option>
+                     </select>
+                   </div>
                 </div>
 
                 <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden">
                    <table className="w-full text-left">
                       <thead>
                          <tr className="border-b border-slate-50">
-                            <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">Laporan</th>
-                            <th className="px-6 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">Tipe</th>
-                            <th className="px-6 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">Tanggal</th>
-                            <th className="px-6 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">Status</th>
+                            <th onClick={() => handleSort('title')} className="cursor-pointer hover:text-primary px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest"><div className="flex items-center gap-1">Laporan <span className="text-[10px] opacity-50">{sortConfig.key === 'title' ? (sortConfig.direction === 'asc' ? '↑' : '↓') : '↕'}</span></div></th>
+                            <th onClick={() => handleSort('type')} className="cursor-pointer hover:text-primary px-6 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest"><div className="flex items-center gap-1">Tipe <span className="text-[10px] opacity-50">{sortConfig.key === 'type' ? (sortConfig.direction === 'asc' ? '↑' : '↓') : '↕'}</span></div></th>
+                            <th onClick={() => handleSort('date')} className="cursor-pointer hover:text-primary px-6 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest"><div className="flex items-center gap-1">Tanggal <span className="text-[10px] opacity-50">{sortConfig.key === 'date' ? (sortConfig.direction === 'asc' ? '↑' : '↓') : '↕'}</span></div></th>
+                            <th onClick={() => handleSort('status')} className="cursor-pointer hover:text-primary px-6 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest"><div className="flex items-center gap-1">Status <span className="text-[10px] opacity-50">{sortConfig.key === 'status' ? (sortConfig.direction === 'asc' ? '↑' : '↓') : '↕'}</span></div></th>
                             <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Aksi</th>
                          </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-50">
-                          {filteredReports.map((report) => (
+                          {paginatedReports.map((report) => (
                            <tr key={report.id} className="group hover:bg-slate-50/50 transition-colors">
                               <td className="px-8 py-5">
                                  <div className="flex items-center gap-4">
@@ -130,6 +183,25 @@ export default function ClinicalReports() {
                          ))}
                       </tbody>
                    </table>
+                </div>
+                <div className="px-6 py-4 bg-slate-50/50 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4 rounded-b-[2.5rem]">
+                  <div className="flex items-center gap-4 text-xs font-bold text-slate-500">
+                    <div className="flex items-center gap-2">
+                      <span>Tampilkan:</span>
+                      <select value={pageSize} onChange={(e) => { setPageSize(Number(e.target.value)); setCurrentPage(1); }} className="p-1.5 rounded-lg bg-white border border-slate-200 outline-none">
+                        <option value={5}>5 Data</option>
+                        <option value={10}>10 Data</option>
+                        <option value={20}>20 Data</option>
+                      </select>
+                    </div>
+                    <span className="hidden sm:inline-block w-px h-4 bg-slate-300"></span>
+                    <span>Total: {filteredAndSortedReports.length} Data</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button disabled={currentPage === 1} onClick={() => setCurrentPage(p => p - 1)} className="px-3 py-1.5 text-[10px] uppercase tracking-widest font-black rounded-lg bg-white border border-slate-200 text-slate-600 disabled:opacity-50 hover:bg-slate-50 transition-all">Prev</button>
+                    <span className="text-xs font-bold text-slate-600 px-2">Hal {currentPage} / {totalPages || 1}</span>
+                    <button disabled={currentPage === totalPages || totalPages === 0} onClick={() => setCurrentPage(p => p + 1)} className="px-3 py-1.5 text-[10px] uppercase tracking-widest font-black rounded-lg bg-white border border-slate-200 text-slate-600 disabled:opacity-50 hover:bg-slate-50 transition-all">Next</button>
+                  </div>
                 </div>
              </div>
 

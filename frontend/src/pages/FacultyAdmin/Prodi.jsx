@@ -27,7 +27,7 @@ const AKRED_STYLES = {
 }
 
 const JENJANG_COLORS = {
-  'S1': 'bg-[#eef4ff] text-[#00236F]',
+  'S1': 'bg-[#eef4ff] text-primary',
   'S2': 'bg-purple-50 text-purple-700',
   'D3': 'bg-amber-50 text-amber-700',
 }
@@ -416,7 +416,7 @@ export default function ProdiPage() {
               <div className="flex-1 overflow-y-auto p-8 space-y-5">
                 {/* Fakultas Naungan (Auto-Generated, Read-Only) */}
                 <div>
-                  <label className="block text-[10px] font-black text-[#a3a3a3] uppercase tracking-[0.18em] mb-2 ml-1">Fakultas Naungan</label>
+                  <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.18em] mb-2 ml-1">Fakultas Naungan</label>
                   <div className="relative group">
                     <div className="absolute left-4 top-1/2 -translate-y-1/2 text-primary">
                       <span className="material-symbols-outlined size-4" style={{ fontSize: '18px' }}>school</span>
@@ -439,7 +439,7 @@ export default function ProdiPage() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-[10px] font-black text-[#a3a3a3] uppercase tracking-[0.18em] mb-2 ml-1">Kode / Akronim</label>
+                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.18em] mb-2 ml-1">Kode / Akronim</label>
                     <input
                       value={formData.Kode}
                       onChange={e => set('Kode', e.target.value.toUpperCase())}
@@ -449,7 +449,7 @@ export default function ProdiPage() {
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] font-black text-[#a3a3a3] uppercase tracking-[0.18em] mb-2 ml-1">Jenjang</label>
+                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.18em] mb-2 ml-1">Jenjang</label>
                     <select
                       value={formData.Jenjang}
                       onChange={e => set('Jenjang', e.target.value)}
@@ -463,7 +463,7 @@ export default function ProdiPage() {
                 </div>
 
                 <div>
-                  <label className="block text-[10px] font-black text-[#a3a3a3] uppercase tracking-[0.18em] mb-2 ml-1">Nama Lengkap Program Studi</label>
+                  <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.18em] mb-2 ml-1">Nama Lengkap Program Studi</label>
                   <input
                     value={formData.Nama}
                     onChange={e => set('Nama', e.target.value)}
@@ -475,7 +475,7 @@ export default function ProdiPage() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-[10px] font-black text-[#a3a3a3] uppercase tracking-[0.18em] mb-2 ml-1">Akreditasi</label>
+                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.18em] mb-2 ml-1">Akreditasi</label>
                     <select
                       value={formData.Akreditasi}
                       onChange={e => set('Akreditasi', e.target.value)}
@@ -487,7 +487,7 @@ export default function ProdiPage() {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-[10px] font-black text-[#a3a3a3] uppercase tracking-[0.18em] mb-2 ml-1">Kapasitas (MHS)</label>
+                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.18em] mb-2 ml-1">Kapasitas (MHS)</label>
                     <input
                       type="number"
                       value={formData.Kapasitas}

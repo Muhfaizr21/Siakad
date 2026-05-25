@@ -170,7 +170,7 @@ export default function PsikologPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] font-body">
+    <div className="min-h-screen bg-[#F8FAFC] font-body">
       <Toaster position="top-right" />
       <div className="max-w-[1600px] mx-auto px-4 py-8 md:px-8 xl:px-12 space-y-6">
 
@@ -190,7 +190,7 @@ export default function PsikologPage() {
             <div className="space-y-1">
               <div className="flex items-center gap-2 mb-2">
                 <div className="h-4 w-1.5 bg-primary rounded-full" />
-                <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#a3a3a3]">Student Wellness</span>
+                <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">Student Wellness</span>
               </div>
               <h1 className="text-3xl font-extrabold text-slate-900 font-headline tracking-tight leading-tight">
                 Direktori <span className="text-primary">Psikolog</span>
@@ -203,7 +203,7 @@ export default function PsikologPage() {
               <button
                 onClick={fetchPsychologists}
                 disabled={loading}
-                className="h-11 px-6 rounded-xl border border-[#e5e5e5] bg-white text-xs font-bold uppercase tracking-widest text-[#525252] hover:bg-[#fafafa] gap-2 flex items-center transition-all active:scale-95 shadow-sm disabled:opacity-60"
+                className="h-11 px-6 rounded-xl border border-slate-200/60 bg-white text-xs font-bold uppercase tracking-widest text-slate-600 hover:bg-slate-50/50 gap-2 flex items-center transition-all active:scale-95 shadow-sm disabled:opacity-60"
               >
                 <RefreshCw size={14} className={cn("text-primary", loading && "animate-spin")} />
                 Refresh Data
@@ -215,54 +215,54 @@ export default function PsikologPage() {
         {/* ── Stat Cards ─────────────────────────────────────────── */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {[
-            { label: 'Total Psikolog', value: stats.total, icon: Users, bg: 'bg-[#eef4ff]', color: 'text-[#00236F]', desc: 'Konselor terdaftar' },
+            { label: 'Total Psikolog', value: stats.total, icon: Users, bg: 'bg-[#eef4ff]', color: 'text-primary', desc: 'Konselor terdaftar' },
             { label: 'Spesialisasi Klinis', value: stats.klinis, icon: Briefcase, bg: 'bg-rose-50', color: 'text-rose-600', desc: 'Psikolog Klinis' },
             { label: 'Spesialisasi Umum', value: stats.umum, icon: Award, bg: 'bg-indigo-50', color: 'text-indigo-600', desc: 'Konselor Umum' },
             { label: 'Psikolog Aktif', value: stats.aktif, icon: UserCheck, bg: 'bg-emerald-50', color: 'text-emerald-600', desc: 'Tersedia untuk bimbingan' },
           ].map(s => (
-            <div key={s.label} className="bg-surface-container-lowest border border-outline-variant/10 rounded-3xl p-5 shadow-sm">
+            <div key={s.label} className="bg-white border border-slate-100/50 rounded-3xl p-5 shadow-sm">
               <div className="flex items-center gap-3 mb-3">
                 <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0', s.bg, s.color)}>
                   <s.icon size={18} />
                 </div>
-                <span className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-widest">{s.label}</span>
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{s.label}</span>
               </div>
-              <p className="text-2xl font-extrabold text-[#171717] leading-none tabular-nums">
+              <p className="text-2xl font-extrabold text-slate-900 leading-none tabular-nums">
                 {loading ? <span className="material-symbols-outlined animate-spin text-slate-300" style={{ fontSize: '18px' }} >sync</span> : s.value}
               </p>
-              <p className="text-xs text-[#a3a3a3] font-medium mt-1">{s.desc}</p>
+              <p className="text-xs text-slate-400 font-medium mt-1">{s.desc}</p>
             </div>
           ))}
         </div>
 
         {/* ── Table Card ─────────────────────────────────────────── */}
-        <div className="bg-surface-container-lowest border border-outline-variant/10 rounded-3xl shadow-sm overflow-hidden">
+        <div className="bg-white border border-slate-100/50 rounded-3xl shadow-sm overflow-hidden">
 
           {/* Toolbar */}
-          <div className="px-5 py-4 border-b border-[#f0f0f0] flex flex-col sm:flex-row items-start sm:items-center gap-3">
+          <div className="px-5 py-4 border-b border-slate-100 flex flex-col sm:flex-row items-start sm:items-center gap-3">
             <div className="flex-1">
-              <h2 className="font-bold text-base text-[#171717]">Daftar Praktisi & Psikolog</h2>
-              <p className="text-xs text-[#737373] mt-0.5">
-                Menampilkan <span className="font-bold text-[#171717]">{filtered.length}</span> dari <span className="font-bold text-[#00236F]">{psychologists.length}</span> psikolog
+              <h2 className="font-bold text-base text-slate-900">Daftar Praktisi & Psikolog</h2>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Menampilkan <span className="font-bold text-slate-900">{filtered.length}</span> dari <span className="font-bold text-primary">{psychologists.length}</span> psikolog
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
               {/* Search */}
               <div className="relative">
-                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#a3a3a3]" style={{ fontSize: '14px' }} >search</span>
+                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" style={{ fontSize: '14px' }} >search</span>
                 <input
                   type="text"
                   placeholder="Cari nama, spesialisasi, email..."
                   value={search}
                   onChange={e => setSearch(e.target.value)}
-                  className="pl-9 pr-4 h-9 w-56 rounded-xl border border-[#e5e5e5] focus:outline-none focus:border-[#00236F] text-sm bg-white"
+                  className="pl-9 pr-4 h-9 w-56 rounded-xl border border-slate-200/60 focus:outline-none focus:border-primary text-sm bg-white"
                 />
               </div>
               {/* Filter Spesialisasi */}
               <select
                 value={filterSpesialisasi}
                 onChange={e => setFilterSpesialisasi(e.target.value)}
-                className="h-9 pl-3 pr-8 rounded-xl border border-[#e5e5e5] text-xs font-medium bg-white text-[#525252] focus:outline-none focus:border-[#00236F] appearance-none cursor-pointer"
+                className="h-9 pl-3 pr-8 rounded-xl border border-slate-200/60 text-xs font-medium bg-white text-slate-600 focus:outline-none focus:border-primary appearance-none cursor-pointer"
               >
                 <option value="all">Semua Spesialisasi</option>
                 {spesialisasiList.map(s => <option key={s} value={s}>{s}</option>)}
@@ -283,7 +283,7 @@ export default function PsikologPage() {
           <div className="overflow-x-auto">
             <table className="w-full table-fixed min-w-[900px] text-left border-collapse">
               <thead>
-                <tr className="bg-white border-b border-[#e5e5e5]">
+                <tr className="bg-white border-b border-slate-200/60">
                   {[
                     { label: 'No', key: null, sortable: false, className: 'w-[50px]' },
                     { label: 'Identitas Psikolog', key: 'Nama', sortable: true },
@@ -296,7 +296,7 @@ export default function PsikologPage() {
                       key={h.label}
                       onClick={() => h.sortable && handleSort(h.key)}
                       className={cn(
-                        'px-5 py-3.5 text-xs font-bold text-[#a3a3a3] uppercase tracking-wider select-none',
+                        'px-5 py-3.5 text-xs font-bold text-slate-400 uppercase tracking-wider select-none',
                         h.sortable && 'cursor-pointer hover:text-slate-900 group',
                         h.className
                       )}
@@ -322,10 +322,10 @@ export default function PsikologPage() {
               <tbody>
                 {loading ? (
                   Array.from({ length: pageSize }).map((_, i) => (
-                    <tr key={i} className="border-b border-[#f0f0f0]">
+                    <tr key={i} className="border-b border-slate-100">
                       {[...Array(6)].map((__, j) => (
                         <td key={j} className="px-5 py-4">
-                          <div className="h-4 bg-[#f5f5f5] rounded animate-pulse" />
+                          <div className="h-4 bg-slate-50 rounded animate-pulse" />
                         </td>
                       ))}
                     </tr>
@@ -334,11 +334,11 @@ export default function PsikologPage() {
                   <tr>
                     <td colSpan={6} className="px-5 py-16 text-center">
                       <div className="flex flex-col items-center gap-3">
-                        <div className="w-12 h-12 bg-[#eef4ff] rounded-2xl flex items-center justify-center text-[#00236F]">
+                        <div className="w-12 h-12 bg-[#eef4ff] rounded-2xl flex items-center justify-center text-primary">
                           <span className="material-symbols-outlined" style={{ fontSize: '22px' }} >psychology</span>
                         </div>
-                        <p className="font-bold text-sm text-[#171717]">Tidak Ada Data Psikolog</p>
-                        <p className="text-xs text-[#a3a3a3]">Coba ubah filter atau kata kunci pencarian.</p>
+                        <p className="font-bold text-sm text-slate-900">Tidak Ada Data Psikolog</p>
+                        <p className="text-xs text-slate-400">Coba ubah filter atau kata kunci pencarian.</p>
                       </div>
                     </td>
                   </tr>
@@ -348,19 +348,19 @@ export default function PsikologPage() {
                       const spStyle = SPESIALISASI_STYLES[row.Spesialisasi] || SPESIALISASI_STYLES['Umum']
                       return (
                         <tr key={row.ID || i} className="border-b border-[#f5f5f5] hover:bg-[#fafbff] transition-colors group">
-                          <td className="px-5 py-3.5 text-sm text-[#a3a3a3] font-medium">{(currentPage - 1) * pageSize + i + 1}</td>
+                          <td className="px-5 py-3.5 text-sm text-slate-400 font-medium">{(currentPage - 1) * pageSize + i + 1}</td>
                           <td className="px-5 py-3.5">
                             <div className="flex items-center gap-3.5">
                               <PsikologAvatar src={row.Foto} name={row.Nama} className="w-10 h-10 rounded-full" />
                               <div>
-                                <p className="font-bold text-sm text-[#171717] leading-snug">{row.Nama || '—'}</p>
-                                <p className="text-[11px] text-[#737373] font-medium">{row.Email}</p>
+                                <p className="font-bold text-sm text-slate-900 leading-snug">{row.Nama || '—'}</p>
+                                <p className="text-[11px] text-slate-500 font-medium">{row.Email}</p>
                               </div>
                             </div>
                           </td>
                           <td className="px-5 py-3.5">
-                            <p className="text-sm text-[#525252] font-medium leading-snug">{row.Lokasi || 'Online & Tatap Muka'}</p>
-                            <p className="text-[10px] text-[#a3a3a3] font-medium mt-0.5">Bahasa: {row.Bahasa}</p>
+                            <p className="text-sm text-slate-600 font-medium leading-snug">{row.Lokasi || 'Online & Tatap Muka'}</p>
+                            <p className="text-[10px] text-slate-400 font-medium mt-0.5">Bahasa: {row.Bahasa}</p>
                           </td>
                           <td className="px-5 py-3.5 text-center">
                             <span className={cn(
@@ -375,12 +375,12 @@ export default function PsikologPage() {
                             <span className="text-sm font-semibold text-slate-700">
                               {formatIDR(row.Tarif)}
                             </span>
-                            <span className="text-[10px] text-[#a3a3a3] block">per Sesi</span>
+                            <span className="text-[10px] text-slate-400 block">per Sesi</span>
                           </td>
                           <td className="px-5 py-3.5 text-right">
                             <button
                               onClick={() => setSelected(row)}
-                              className="p-1.5 text-[#a3a3a3] hover:text-[#00236F] hover:bg-[#eef4ff] rounded-lg transition-colors"
+                              className="p-1.5 text-slate-400 hover:text-primary hover:bg-[#eef4ff] rounded-lg transition-colors"
                               title="Lihat Detail"
                             >
                               <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >visibility</span>
@@ -539,25 +539,25 @@ export default function PsikologPage() {
               <div className="flex-1 overflow-y-auto">
 
                 {/* Bio Section */}
-                <div className="p-5 border-b border-[#f0f0f0]">
+                <div className="p-5 border-b border-slate-100">
                   <div className="flex items-center gap-2 mb-3">
                     <div className="w-5 h-5 rounded-md bg-[#eef4ff] flex items-center justify-center">
-                      <span className="material-symbols-outlined text-[#00236F]" style={{ fontSize: '11px' }} >description</span>
+                      <span className="material-symbols-outlined text-primary" style={{ fontSize: '11px' }} >description</span>
                     </div>
-                    <h3 className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-[0.18em]">Profil & Biografi</h3>
+                    <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.18em]">Profil & Biografi</h3>
                   </div>
-                  <p className="text-sm text-slate-600 leading-relaxed italic bg-[#fafafa] border border-[#f0f0f0] rounded-xl p-4">
+                  <p className="text-sm text-slate-600 leading-relaxed italic bg-slate-50/50 border border-slate-100 rounded-xl p-4">
                     "{selectedPsikolog.Bio}"
                   </p>
                 </div>
 
                 {/* Penugasan Konselor */}
-                <div className="p-5 border-b border-[#f0f0f0]">
+                <div className="p-5 border-b border-slate-100">
                   <div className="flex items-center gap-2 mb-4">
                     <div className="w-5 h-5 rounded-md bg-[#eef4ff] flex items-center justify-center">
-                      <Layers size={11} className="text-[#00236F]" />
+                      <Layers size={11} className="text-primary" />
                     </div>
-                    <h3 className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-[0.18em]">Detail Praktik</h3>
+                    <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.18em]">Detail Praktik</h3>
                   </div>
                   <div className="space-y-1">
                     <InfoCard
@@ -582,12 +582,12 @@ export default function PsikologPage() {
                 </div>
 
                 {/* Informasi Kontak */}
-                <div className="p-5 border-b border-[#f0f0f0]">
+                <div className="p-5 border-b border-slate-100">
                   <div className="flex items-center gap-2 mb-4">
                     <div className="w-5 h-5 rounded-md bg-[#eef4ff] flex items-center justify-center">
-                      <span className="material-symbols-outlined text-[#00236F]" style={{ fontSize: '11px' }} >mail</span>
+                      <span className="material-symbols-outlined text-primary" style={{ fontSize: '11px' }} >mail</span>
                     </div>
-                    <h3 className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-[0.18em]">Informasi Kontak</h3>
+                    <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.18em]">Informasi Kontak</h3>
                   </div>
                   <div className="space-y-1">
                     <InfoCard
@@ -608,10 +608,10 @@ export default function PsikologPage() {
               </div>
 
               {/* ── Footer ── */}
-              <div className="px-5 py-4 border-t border-[#f0f0f0] bg-[#fafafa] flex gap-3 flex-shrink-0">
+              <div className="px-5 py-4 border-t border-slate-100 bg-slate-50/50 flex gap-3 flex-shrink-0">
                 <button
                   onClick={() => setSelected(null)}
-                  className="w-full h-11 rounded-xl border border-[#e5e5e5] bg-white text-xs font-bold text-[#525252] uppercase tracking-widest hover:bg-[#f5f5f5] transition-all active:scale-95"
+                  className="w-full h-11 rounded-xl border border-slate-200/60 bg-white text-xs font-bold text-slate-600 uppercase tracking-widest hover:bg-slate-50 transition-all active:scale-95"
                 >
                   Tutup Detail
                 </button>
@@ -627,16 +627,16 @@ export default function PsikologPage() {
 function InfoCard({ icon: Icon, label, value, accent = 'border-l-slate-300', mono = false }) {
   return (
     <div className={cn(
-      'flex items-center gap-3 p-3 rounded-xl bg-[#fafafa] border border-[#f0f0f0] border-l-4 hover:bg-white hover:border-[#e5e5e5] transition-all',
+      'flex items-center gap-3 p-3 rounded-xl bg-slate-50/50 border border-slate-100 border-l-4 hover:bg-white hover:border-slate-200/60 transition-all',
       accent
     )}>
-      <div className="w-7 h-7 bg-white rounded-lg flex items-center justify-center text-[#00236F] shadow-sm border border-[#f0f0f0] flex-shrink-0">
+      <div className="w-7 h-7 bg-white rounded-lg flex items-center justify-center text-primary shadow-sm border border-slate-100 flex-shrink-0">
         <Icon size={13} />
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-[9px] font-bold text-[#a3a3a3] uppercase tracking-[0.15em] mb-0.5">{label}</p>
+        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.15em] mb-0.5">{label}</p>
         <p className={cn(
-          'text-sm font-semibold text-[#171717] truncate',
+          'text-sm font-semibold text-slate-900 truncate',
           mono && 'font-mono text-xs tracking-tight',
           (!value || value === '—') && 'text-[#c4c4c4] italic text-xs'
         )}>

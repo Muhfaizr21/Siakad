@@ -197,7 +197,7 @@ export default function FacultyPkkmb() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] font-body">
+    <div className="min-h-screen bg-[#F8FAFC] font-body">
       <Toaster position="top-right"/>
       <div className="max-w-[1600px] mx-auto px-4 py-8 md:px-8 xl:px-12 space-y-6">
 
@@ -215,12 +215,12 @@ export default function FacultyPkkmb() {
 
           <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center w-full gap-6">
             <div>
-              <div className="flex items-center gap-2 mb-2"><div className="h-4 w-1.5 bg-primary rounded-full"/><span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#a3a3a3]">Portal Orientasi Mahasiswa Baru</span></div>
+              <div className="flex items-center gap-2 mb-2"><div className="h-4 w-1.5 bg-primary rounded-full"/><span className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">Portal Orientasi Mahasiswa Baru</span></div>
               <h1 className="text-3xl font-extrabold text-slate-900 font-headline tracking-tight">Monitoring <span className="text-primary">PKKMB</span></h1>
               <p className="text-slate-500 font-medium text-sm max-w-xl leading-relaxed mt-1">Monitor kehadiran, nilai, dan status kelulusan peserta PKKMB per prodi dan per individu.</p>
             </div>
             <button onClick={()=>{ fetchSummary(); fetchStudents() }} disabled={loading}
-              className="h-11 px-5 rounded-xl border border-[#e5e5e5] bg-white text-xs font-bold uppercase tracking-widest text-[#525252] hover:bg-[#fafafa] gap-2 flex items-center transition-all active:scale-95 shadow-sm disabled:opacity-60">
+              className="h-11 px-5 rounded-xl border border-slate-200/60 bg-white text-xs font-bold uppercase tracking-widest text-slate-600 hover:bg-slate-50/50 gap-2 flex items-center transition-all active:scale-95 shadow-sm disabled:opacity-60">
               {loading?<span className="material-symbols-outlined animate-spin text-primary" style={{ fontSize: '14px' }} >sync</span>:<RefreshCw size={14} className="text-primary"/>} Refresh
             </button>
           </div>
@@ -229,48 +229,48 @@ export default function FacultyPkkmb() {
         {/* Stats */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {[
-            {label:'Registrasi Maba',    value:summary.totalMaba,   icon:Users,        bg:'bg-[#eef4ff]',  color:'text-[#00236F]',   desc:'Total mahasiswa baru'},
+            {label:'Registrasi Maba',    value:summary.totalMaba,   icon:Users,        bg:'bg-[#eef4ff]',  color:'text-primary',   desc:'Total mahasiswa baru'},
             {label:'Sertifikasi Lulus',  value:summary.totalLulus,  icon:CheckCircle,  bg:'bg-emerald-50', color:'text-emerald-600', desc:'Dinyatakan lulus PKKMB'},
             {label:'Dalam Proses',       value:summary.totalProses, icon:Clock,        bg:'bg-amber-50',   color:'text-amber-600',   desc:'Masih dalam penilaian'},
           ].map(s=>(
-            <div key={s.label} className="bg-surface-container-lowest border border-outline-variant/10 rounded-3xl p-5 shadow-sm">
+            <div key={s.label} className="bg-white border border-slate-100/50 rounded-3xl p-5 shadow-sm">
               <div className="flex items-center gap-3 mb-3">
                 <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center',s.bg,s.color)}><s.icon size={18}/></div>
-                <span className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-widest">{s.label}</span>
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{s.label}</span>
               </div>
-              <p className="text-2xl font-extrabold text-[#171717] leading-none tabular-nums">{loading?<span className="material-symbols-outlined animate-spin text-slate-300" style={{ fontSize: '18px' }} >sync</span>:s.value}</p>
-              <p className="text-xs text-[#a3a3a3] font-medium mt-1">{s.desc}</p>
+              <p className="text-2xl font-extrabold text-slate-900 leading-none tabular-nums">{loading?<span className="material-symbols-outlined animate-spin text-slate-300" style={{ fontSize: '18px' }} >sync</span>:s.value}</p>
+              <p className="text-xs text-slate-400 font-medium mt-1">{s.desc}</p>
             </div>
           ))}
         </div>
 
         {/* Tabs */}
-        <div className="flex items-center gap-1 bg-white border border-[#e5e5e5] rounded-2xl p-1.5 w-fit shadow-sm">
+        <div className="flex items-center gap-1 bg-white border border-slate-200/60 rounded-2xl p-1.5 w-fit shadow-sm">
           {TABS.map(t=>(
             <button key={t.key} onClick={()=>{setTab(t.key);setSearch('');setFilter('all')}}
               className={cn('flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest transition-all',
-                activeTab===t.key?'bg-[#00236F] text-white shadow-lg shadow-[#00236F]/25':'text-[#737373] hover:bg-[#f5f5f5]')}>
+                activeTab===t.key?'bg-primary text-white shadow-lg shadow-[#00236F]/25':'text-slate-500 hover:bg-slate-50')}>
               <t.icon size={14}/>{t.label}
             </button>
           ))}
         </div>
 
         {/* Table */}
-        <div className="bg-surface-container-lowest border border-outline-variant/10 rounded-3xl shadow-sm overflow-hidden">
-          <div className="px-5 py-4 border-b border-[#f0f0f0] flex flex-col sm:flex-row items-start sm:items-center gap-3">
+        <div className="bg-white border border-slate-100/50 rounded-3xl shadow-sm overflow-hidden">
+          <div className="px-5 py-4 border-b border-slate-100 flex flex-col sm:flex-row items-start sm:items-center gap-3">
             <div className="flex-1">
-              <h2 className="font-bold text-base text-[#171717]">{activeTab==='prodi'?'Breakdown per Program Studi':'Daftar Peserta PKKMB'}</h2>
-              <p className="text-xs text-[#737373] mt-0.5">Menampilkan <span className="font-bold text-[#171717]">{activeTab==='prodi'?filteredProdi.length:filteredStudents.length}</span> data</p>
+              <h2 className="font-bold text-base text-slate-900">{activeTab==='prodi'?'Breakdown per Program Studi':'Daftar Peserta PKKMB'}</h2>
+              <p className="text-xs text-slate-500 mt-0.5">Menampilkan <span className="font-bold text-slate-900">{activeTab==='prodi'?filteredProdi.length:filteredStudents.length}</span> data</p>
             </div>
             <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
               <div className="relative">
-                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#a3a3a3]" style={{ fontSize: '14px' }} >search</span>
+                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" style={{ fontSize: '14px' }} >search</span>
                 <input type="text" placeholder={activeTab==='prodi'?'Cari prodi...':'Cari nama atau NIM...'} value={search} onChange={e=>setSearch(e.target.value)}
-                  className="pl-9 pr-4 h-9 w-48 rounded-xl border border-[#e5e5e5] focus:outline-none focus:border-primary text-sm bg-white"/>
+                  className="pl-9 pr-4 h-9 w-48 rounded-xl border border-slate-200/60 focus:outline-none focus:border-primary text-sm bg-white"/>
               </div>
               {activeTab==='students' && (
                 <select value={filterStatus} onChange={e=>setFilter(e.target.value)}
-                  className="h-9 pl-3 pr-8 rounded-xl border border-[#e5e5e5] text-xs font-medium bg-white text-[#525252] focus:outline-none focus:border-primary appearance-none cursor-pointer">
+                  className="h-9 pl-3 pr-8 rounded-xl border border-slate-200/60 text-xs font-medium bg-white text-slate-600 focus:outline-none focus:border-primary appearance-none cursor-pointer">
                   <option value="all">Semua Status</option>
                   <option value="Lulus">Lulus</option>
                   <option value="Proses">Proses</option>
@@ -284,7 +284,7 @@ export default function FacultyPkkmb() {
             {activeTab === 'prodi' ? (
               <table className="w-full text-left">
                 <thead>
-                  <tr className="border-b border-[#e5e5e5]">
+                  <tr className="border-b border-slate-200/60">
                     {[
                       { label: 'No', key: null, sortable: false },
                       { label: 'Program Studi', key: 'prodi', sortable: true },
@@ -296,7 +296,7 @@ export default function FacultyPkkmb() {
                         key={h.label}
                         onClick={() => h.sortable && handleSort(h.key)}
                         className={cn(
-                          'px-5 py-3.5 text-xs font-bold text-[#a3a3a3] uppercase tracking-wider whitespace-nowrap select-none',
+                          'px-5 py-3.5 text-xs font-bold text-slate-400 uppercase tracking-wider whitespace-nowrap select-none',
                           h.sortable && 'cursor-pointer hover:text-slate-900 group'
                         )}
                       >
@@ -320,28 +320,28 @@ export default function FacultyPkkmb() {
                 </thead>
                 <tbody>
                   {loading?Array.from({length: pageSize}).map((_, i)=>(
-                    <tr key={i} className="border-b border-[#f0f0f0]">{[...Array(5)].map((__,j)=><td key={j} className="px-5 py-4"><div className="h-4 bg-[#f5f5f5] rounded animate-pulse"/></td>)}</tr>
+                    <tr key={i} className="border-b border-slate-100">{[...Array(5)].map((__,j)=><td key={j} className="px-5 py-4"><div className="h-4 bg-slate-50 rounded animate-pulse"/></td>)}</tr>
                   )):paginatedProdi.length===0?(
                     <tr><td colSpan={5} className="px-5 py-16 text-center">
                       <div className="flex flex-col items-center gap-3">
                         <div className="w-12 h-12 bg-[#eef4ff] rounded-2xl flex items-center justify-center text-primary"><span className="material-symbols-outlined" style={{ fontSize: '22px' }} >school</span></div>
-                        <p className="font-bold text-sm text-[#171717]">Tidak Ada Prodi</p>
+                        <p className="font-bold text-sm text-slate-900">Tidak Ada Prodi</p>
                       </div>
                     </td></tr>
                   ):paginatedProdi.map((row,i)=>(
                     <tr key={i} className="border-b border-[#f5f5f5] hover:bg-[#fafbff] transition-colors">
-                      <td className="px-5 py-3.5 text-sm text-[#a3a3a3] font-medium">{(currentPage - 1) * pageSize + i + 1}</td>
+                      <td className="px-5 py-3.5 text-sm text-slate-400 font-medium">{(currentPage - 1) * pageSize + i + 1}</td>
                       <td className="px-5 py-3.5">
-                        <p className="font-bold text-sm text-[#171717]">{row.prodi}</p>
-                        <p className="text-[10px] text-[#a3a3a3] font-medium">Sertifikasi Internal</p>
+                        <p className="font-bold text-sm text-slate-900">{row.prodi}</p>
+                        <p className="text-[10px] text-slate-400 font-medium">Sertifikasi Internal</p>
                       </td>
                       <td className="px-5 py-3.5">
                         <div className="flex items-center gap-2">
                           <div className="w-20 h-1.5 bg-[#f0f0f0] rounded-full overflow-hidden"><div className="h-full bg-primary rounded-full" style={{width:`${row.partisipasi}%`}}/></div>
-                          <span className="text-xs font-black text-[#171717] tabular-nums">{Math.round(row.partisipasi)}%</span>
+                          <span className="text-xs font-black text-slate-900 tabular-nums">{Math.round(row.partisipasi)}%</span>
                         </div>
                       </td>
-                      <td className="px-5 py-3.5 font-black text-sm text-[#171717] tabular-nums">{row.nilai?.toFixed(1)||'0.0'}</td>
+                      <td className="px-5 py-3.5 font-black text-sm text-slate-900 tabular-nums">{row.nilai?.toFixed(1)||'0.0'}</td>
                       <td className="px-5 py-3.5">
                         <span className={cn('inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold border uppercase tracking-wider',
                           row.status==='Optimal'?'bg-emerald-50 text-emerald-700 border-emerald-200':'bg-amber-50 text-amber-700 border-amber-200')}>
@@ -355,7 +355,7 @@ export default function FacultyPkkmb() {
             ) : (
               <table className="w-full text-left">
                 <thead>
-                  <tr className="border-b border-[#e5e5e5]">
+                  <tr className="border-b border-slate-200/60">
                     {[
                       { label: 'No', key: null, sortable: false },
                       { label: 'Mahasiswa', key: 'mahasiswa', sortable: true },
@@ -369,7 +369,7 @@ export default function FacultyPkkmb() {
                         key={h.label}
                         onClick={() => h.sortable && handleSort(h.key)}
                         className={cn(
-                          'px-5 py-3.5 text-xs font-bold text-[#a3a3a3] uppercase tracking-wider whitespace-nowrap select-none',
+                          'px-5 py-3.5 text-xs font-bold text-slate-400 uppercase tracking-wider whitespace-nowrap select-none',
                           h.sortable && 'cursor-pointer hover:text-slate-900 group'
                         )}
                       >
@@ -393,27 +393,27 @@ export default function FacultyPkkmb() {
                 </thead>
                 <tbody>
                   {loading?Array.from({length: pageSize}).map((_, i)=>(
-                    <tr key={i} className="border-b border-[#f0f0f0]">{[...Array(7)].map((__,j)=><td key={j} className="px-5 py-4"><div className="h-4 bg-[#f5f5f5] rounded animate-pulse"/></td>)}</tr>
+                    <tr key={i} className="border-b border-slate-100">{[...Array(7)].map((__,j)=><td key={j} className="px-5 py-4"><div className="h-4 bg-slate-50 rounded animate-pulse"/></td>)}</tr>
                   )):paginatedStudents.length===0?(
                     <tr><td colSpan={7} className="px-5 py-16 text-center">
                       <div className="flex flex-col items-center gap-3">
                         <div className="w-12 h-12 bg-[#eef4ff] rounded-2xl flex items-center justify-center text-primary"><span className="material-symbols-outlined" style={{ fontSize: '22px' }} >group</span></div>
-                        <p className="font-bold text-sm text-[#171717]">Tidak Ada Peserta</p>
+                        <p className="font-bold text-sm text-slate-900">Tidak Ada Peserta</p>
                       </div>
                     </td></tr>
                   ):paginatedStudents.map((row,i)=>{
                     const st = getLulus(row.StatusKelulusan)
                     return (
                       <tr key={row.ID||i} className="border-b border-[#f5f5f5] hover:bg-[#fafbff] transition-colors">
-                        <td className="px-5 py-3.5 text-sm text-[#a3a3a3] font-medium">{(currentPage - 1) * pageSize + i + 1}</td>
+                        <td className="px-5 py-3.5 text-sm text-slate-400 font-medium">{(currentPage - 1) * pageSize + i + 1}</td>
                         <td className="px-5 py-3.5">
                           <div className="flex items-center gap-3">
                             <StudentAvatar src={getFullUrl(row.Mahasiswa?.FotoURL || row.Mahasiswa?.foto_url || row.Mahasiswa?.Foto || row.Mahasiswa?.Pengguna?.Foto)} name={row.Mahasiswa?.Nama} className="w-9 h-9 rounded-xl" />
-                            <div><p className="font-bold text-sm text-[#171717]">{row.Mahasiswa?.Nama||'—'}</p><p className="text-[10px] text-[#a3a3a3] font-medium">{row.Mahasiswa?.NIM||'—'}</p></div>
+                            <div><p className="font-bold text-sm text-slate-900">{row.Mahasiswa?.Nama||'—'}</p><p className="text-[10px] text-slate-400 font-medium">{row.Mahasiswa?.NIM||'—'}</p></div>
                           </div>
                         </td>
-                        <td className="px-5 py-3.5 text-sm text-[#525252] font-medium">{row.Mahasiswa?.ProgramStudi?.Nama||'—'}</td>
-                        <td className="px-5 py-3.5 font-black text-sm text-[#171717] tabular-nums">{row.attendanceRate||0}%</td>
+                        <td className="px-5 py-3.5 text-sm text-slate-600 font-medium">{row.Mahasiswa?.ProgramStudi?.Nama||'—'}</td>
+                        <td className="px-5 py-3.5 font-black text-sm text-slate-900 tabular-nums">{row.attendanceRate||0}%</td>
                         <td className="px-5 py-3.5 font-black text-sm text-primary tabular-nums">{row.Nilai||0}</td>
                         <td className="px-5 py-3.5">
                           <span className={cn('inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold border uppercase tracking-wider',st.cls)}>
@@ -421,7 +421,7 @@ export default function FacultyPkkmb() {
                           </span>
                         </td>
                         <td className="px-5 py-3.5">
-                          <button onClick={()=>setSelected(row)} className="p-1.5 text-[#a3a3a3] hover:text-primary hover:bg-[#eef4ff] rounded-lg transition-colors"><span className="material-symbols-outlined" style={{ fontSize: '15px' }} >visibility</span></button>
+                          <button onClick={()=>setSelected(row)} className="p-1.5 text-slate-400 hover:text-primary hover:bg-[#eef4ff] rounded-lg transition-colors"><span className="material-symbols-outlined" style={{ fontSize: '15px' }} >visibility</span></button>
                         </td>
                       </tr>
                     )
@@ -529,17 +529,17 @@ export default function FacultyPkkmb() {
                 {icon:GraduationCap, label:'Nilai Akhir',     value: selected.Nilai||0},
                 {icon:CheckCircle,   label:'Status Kelulusan',value: selected.StatusKelulusan||'Proses'},
               ].map(r=>(
-                <div key={r.label} className="flex items-center gap-3 p-3 rounded-xl bg-[#fafafa] border border-[#f0f0f0] hover:bg-white transition-all">
-                  <div className="w-7 h-7 bg-white rounded-lg flex items-center justify-center text-[#00236F] shadow-sm border border-[#f0f0f0] flex-shrink-0"><r.icon size={13}/></div>
+                <div key={r.label} className="flex items-center gap-3 p-3 rounded-xl bg-slate-50/50 border border-slate-100 hover:bg-white transition-all">
+                  <div className="w-7 h-7 bg-white rounded-lg flex items-center justify-center text-primary shadow-sm border border-slate-100 flex-shrink-0"><r.icon size={13}/></div>
                   <div className="flex-1">
-                    <p className="text-[9px] font-bold text-[#a3a3a3] uppercase tracking-[0.15em]">{r.label}</p>
-                    <p className="text-sm font-semibold text-[#171717]">{r.value}</p>
+                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.15em]">{r.label}</p>
+                    <p className="text-sm font-semibold text-slate-900">{r.value}</p>
                   </div>
                 </div>
               ))}
             </div>
-            <div className="px-5 py-4 border-t border-[#f0f0f0] bg-[#fafafa] flex-shrink-0">
-              <button onClick={()=>setSelected(null)} className="w-full h-11 rounded-xl bg-[#00236F] hover:bg-[#001a52] text-white text-xs font-bold uppercase tracking-widest transition-all active:scale-95">Tutup</button>
+            <div className="px-5 py-4 border-t border-slate-100 bg-slate-50/50 flex-shrink-0">
+              <button onClick={()=>setSelected(null)} className="w-full h-11 rounded-xl bg-primary hover:bg-[#001a52] text-white text-xs font-bold uppercase tracking-widest transition-all active:scale-95">Tutup</button>
             </div>
           </div>
         </div>

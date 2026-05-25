@@ -182,8 +182,12 @@ export default function PsychologistSettings() {
                     {activeTab === 'profil' && (
                       <div className="space-y-6 p-6 lg:p-8">
                         <div className="flex flex-col gap-6 border-b border-slate-100 pb-6 md:flex-row md:items-center">
-                          <div className="flex size-28 items-center justify-center rounded-[2rem] bg-primary text-3xl font-black text-white shadow-lg shadow-primary/20">
-                            {(profile.nama || 'P').slice(0, 1).toUpperCase()}
+                          <div className="flex size-28 items-center justify-center rounded-[2rem] bg-primary text-3xl font-black text-white shadow-lg shadow-primary/20 overflow-hidden relative">
+                            {profile.foto_url || profile.foto ? (
+                              <img src={profile.foto_url || profile.foto} alt={profile.nama} className="w-full h-full object-cover" />
+                            ) : (
+                              <span className="material-symbols-outlined text-white/80" style={{ fontSize: '64px' }}>person</span>
+                            )}
                           </div>
                           <div>
                             <h2 className="text-sm font-black uppercase tracking-widest text-slate-950">Identitas Profesional</h2>

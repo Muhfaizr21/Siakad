@@ -217,7 +217,7 @@ const FacultyAspirationManagement = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] font-body">
+    <div className="min-h-screen bg-[#F8FAFC] font-body">
       <Toaster position="top-right" />
       <div className="max-w-[1600px] mx-auto px-4 py-8 md:px-8 xl:px-12 space-y-6">
 
@@ -237,7 +237,7 @@ const FacultyAspirationManagement = () => {
             <div>
               <div className="flex items-center gap-2 mb-2">
                 <div className="h-4 w-1.5 bg-primary rounded-full" />
-                <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#a3a3a3]">Student Voice</span>
+                <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">Student Voice</span>
               </div>
               <h1 className="text-3xl font-extrabold text-slate-900 font-headline tracking-tight leading-tight">
                 Manajemen <span className="text-primary">Aspirasi</span>
@@ -247,7 +247,7 @@ const FacultyAspirationManagement = () => {
               </p>
             </div>
             <button onClick={fetchAspirations} disabled={loading}
-              className="h-11 px-5 rounded-xl border border-slate-200 bg-white text-xs font-bold uppercase tracking-widest text-[#525252] hover:bg-slate-50 hover:text-slate-900 gap-2 flex items-center transition-all active:scale-95 shadow-sm disabled:opacity-60 shrink-0">
+              className="h-11 px-5 rounded-xl border border-slate-200 bg-white text-xs font-bold uppercase tracking-widest text-slate-600 hover:bg-slate-50 hover:text-slate-900 gap-2 flex items-center transition-all active:scale-95 shadow-sm disabled:opacity-60 shrink-0">
               {loading ? <span className="material-symbols-outlined animate-spin text-primary" style={{ fontSize: '14px' }} >sync</span> : <span className="material-symbols-outlined text-primary" style={{ fontSize: '14px' }}>sync</span>} Refresh
             </button>
           </div>
@@ -256,43 +256,43 @@ const FacultyAspirationManagement = () => {
         {/* Stats */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {[
-            { label:'Total Masuk',   value:stats.total,       icon:MessageSquare, bg:'bg-[#eef4ff]',  color:'text-[#00236F]',   desc:'Semua aspirasi' },
+            { label:'Total Masuk',   value:stats.total,       icon:MessageSquare, bg:'bg-[#eef4ff]',  color:'text-primary',   desc:'Semua aspirasi' },
             { label:'Disetujui / Selesai', value:stats.selesai, icon:CheckCircle2,  bg:'bg-emerald-50', color:'text-emerald-600', desc:'Disetujui fakultas / selesai' },
             { label:'Dalam Proses',  value:stats.proses,      icon:Clock,         bg:'bg-blue-50',    color:'text-blue-600',    desc:'Sedang ditangani' },
             { label:'Klarifikasi',   value:stats.klarifikasi, icon:AlertCircle,   bg:'bg-amber-50',   color:'text-amber-600',   desc:'Butuh klarifikasi' },
           ].map(s => (
-            <div key={s.label} className="bg-white border border-[#e5e5e5] rounded-3xl p-5 shadow-sm">
+            <div key={s.label} className="bg-white border border-slate-200/60 rounded-3xl p-5 shadow-sm">
               <div className="flex items-center gap-3 mb-3">
                 <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center', s.bg, s.color)}>
                   <s.icon size={18} />
                 </div>
-                <span className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-widest">{s.label}</span>
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{s.label}</span>
               </div>
-              <p className="text-2xl font-extrabold text-[#171717] leading-none tabular-nums">
+              <p className="text-2xl font-extrabold text-slate-900 leading-none tabular-nums">
                 {loading ? <span className="material-symbols-outlined animate-spin text-slate-300" style={{ fontSize: '18px' }} >sync</span> : s.value}
               </p>
-              <p className="text-xs text-[#a3a3a3] font-medium mt-1">{s.desc}</p>
+              <p className="text-xs text-slate-400 font-medium mt-1">{s.desc}</p>
             </div>
           ))}
         </div>
 
         {/* Table */}
-        <div className="bg-white border border-[#e5e5e5] rounded-3xl shadow-sm overflow-hidden">
-          <div className="px-5 py-4 border-b border-[#f0f0f0] flex flex-col sm:flex-row items-start sm:items-center gap-3">
+        <div className="bg-white border border-slate-200/60 rounded-3xl shadow-sm overflow-hidden">
+          <div className="px-5 py-4 border-b border-slate-100 flex flex-col sm:flex-row items-start sm:items-center gap-3">
             <div className="flex-1">
-              <h2 className="font-bold text-base text-[#171717]">Daftar Aspirasi Mahasiswa</h2>
-              <p className="text-xs text-[#737373] mt-0.5">
-                Menampilkan <span className="font-bold text-[#171717]">{filtered.length}</span> dari <span className="font-bold text-primary">{aspirations.length}</span> aspirasi
+              <h2 className="font-bold text-base text-slate-900">Daftar Aspirasi Mahasiswa</h2>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Menampilkan <span className="font-bold text-slate-900">{filtered.length}</span> dari <span className="font-bold text-primary">{aspirations.length}</span> aspirasi
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
               <div className="relative">
-                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#a3a3a3]" style={{ fontSize: '14px' }} >search</span>
+                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" style={{ fontSize: '14px' }} >search</span>
                 <input type="text" placeholder="Cari pengirim..." value={search} onChange={e=>setSearch(e.target.value)}
-                  className="pl-9 pr-4 h-9 w-52 rounded-xl border border-[#e5e5e5] focus:outline-none focus:border-primary text-sm bg-white" />
+                  className="pl-9 pr-4 h-9 w-52 rounded-xl border border-slate-200/60 focus:outline-none focus:border-primary text-sm bg-white" />
               </div>
               <select value={filterStatus} onChange={e=>setFilterStatus(e.target.value)}
-                className="h-9 pl-3 pr-8 rounded-xl border border-[#e5e5e5] text-xs font-medium bg-white text-[#525252] focus:outline-none focus:border-primary appearance-none cursor-pointer">
+                className="h-9 pl-3 pr-8 rounded-xl border border-slate-200/60 text-xs font-medium bg-white text-slate-600 focus:outline-none focus:border-primary appearance-none cursor-pointer">
                 <option value="all">Semua Status</option>
                 <option value="terbuka">Terbuka</option>
                 <option value="proses">Proses</option>
@@ -311,7 +311,7 @@ const FacultyAspirationManagement = () => {
           <div className="overflow-x-auto">
             <table className="w-full text-left">
               <thead>
-                <tr className="border-b border-[#e5e5e5] bg-slate-50/50">
+                <tr className="border-b border-slate-200/60 bg-slate-50/50">
                   {[
                     { label: 'No', key: null, sortable: false },
                     { label: 'Mahasiswa', key: 'Mahasiswa.Nama', sortable: true },
@@ -325,7 +325,7 @@ const FacultyAspirationManagement = () => {
                       key={h.label}
                       onClick={() => h.sortable && handleSort(h.key)}
                       className={cn(
-                        'px-5 py-3.5 text-xs font-bold text-[#a3a3a3] uppercase tracking-wider whitespace-nowrap select-none',
+                        'px-5 py-3.5 text-xs font-bold text-slate-400 uppercase tracking-wider whitespace-nowrap select-none',
                         h.sortable && 'cursor-pointer hover:text-slate-900 group'
                       )}
                     >
@@ -349,49 +349,49 @@ const FacultyAspirationManagement = () => {
               </thead>
               <tbody>
                 {loading ? Array.from({length: pageSize}).map((_,i)=>(
-                  <tr key={i} className="border-b border-[#f0f0f0]">
-                    {[...Array(7)].map((__,j)=><td key={j} className="px-5 py-4"><div className="h-4 bg-[#f5f5f5] rounded animate-pulse"/></td>)}
+                  <tr key={i} className="border-b border-slate-100">
+                    {[...Array(7)].map((__,j)=><td key={j} className="px-5 py-4"><div className="h-4 bg-slate-50 rounded animate-pulse"/></td>)}
                   </tr>
                 )) : paginated.length===0 ? (
                   <tr><td colSpan={7} className="px-5 py-16 text-center">
                     <div className="flex flex-col items-center gap-3">
                       <div className="w-12 h-12 bg-[#eef4ff] rounded-2xl flex items-center justify-center text-primary"><span className="material-symbols-outlined" style={{ fontSize: '22px' }} >chat</span></div>
-                      <p className="font-bold text-sm text-[#171717]">Tidak Ada Aspirasi</p>
-                      <p className="text-xs text-[#a3a3a3]">Belum ada mahasiswa yang mengirimkan aspirasi.</p>
+                      <p className="font-bold text-sm text-slate-900">Tidak Ada Aspirasi</p>
+                      <p className="text-xs text-slate-400">Belum ada mahasiswa yang mengirimkan aspirasi.</p>
                     </div>
                   </td></tr>
                 ) : paginated.map((row,i)=>{
                   const st = getStatus(row.Status)
                   return (
                     <tr key={row.ID||i} className="border-b border-[#f5f5f5] hover:bg-[#fafbff] transition-colors">
-                      <td className="px-5 py-3.5 text-sm text-[#a3a3a3] font-medium">{(currentPage - 1) * pageSize + i + 1}</td>
+                      <td className="px-5 py-3.5 text-sm text-slate-400 font-medium">{(currentPage - 1) * pageSize + i + 1}</td>
                       <td className="px-5 py-3.5">
                         <div className="flex items-center gap-3">
                           <StudentAvatar src={row.Mahasiswa?.Foto} name={row.Mahasiswa?.Nama} className="w-9 h-9 rounded-xl" />
                           <div>
-                            <p className="font-bold text-sm text-[#171717]">{row.Mahasiswa?.Nama||'Anonim'}</p>
-                            <p className="text-[10px] text-[#a3a3a3] font-medium">{row.Mahasiswa?.NIM||'—'}</p>
+                            <p className="font-bold text-sm text-slate-900">{row.Mahasiswa?.Nama||'Anonim'}</p>
+                            <p className="text-[10px] text-slate-400 font-medium">{row.Mahasiswa?.NIM||'—'}</p>
                           </div>
                         </div>
                       </td>
                       <td className="px-5 py-3.5">
-                        <p className="font-bold text-sm text-[#171717] max-w-[200px] truncate leading-snug">{row.Judul||'—'}</p>
+                        <p className="font-bold text-sm text-slate-900 max-w-[200px] truncate leading-snug">{row.Judul||'—'}</p>
                         <span className="inline-block mt-0.5 text-[10px] font-bold text-primary bg-[#eef4ff] px-2 py-0.5 rounded-md">{row.Kategori||'Umum'}</span>
                       </td>
                       <td className="px-5 py-3.5 max-w-[200px]">
-                        <p className="text-xs text-[#737373] italic line-clamp-2">"{row.Isi}"</p>
+                        <p className="text-xs text-slate-500 italic line-clamp-2">"{row.Isi}"</p>
                       </td>
                       <td className="px-5 py-3.5">
                         <span className={cn('inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold border uppercase tracking-wider', st.cls)}>
                           <span className={cn('w-1.5 h-1.5 rounded-full', st.dot)}/>{(row.Status||'Terbuka')}
                         </span>
                       </td>
-                      <td className="px-5 py-3.5 text-xs text-[#737373] font-medium whitespace-nowrap">
+                      <td className="px-5 py-3.5 text-xs text-slate-500 font-medium whitespace-nowrap">
                         {formatDate(row.CreatedAt)}
                       </td>
                       <td className="px-5 py-3.5">
                         <button onClick={()=>handleOpenAudit(row)}
-                          className="p-1.5 text-[#a3a3a3] hover:text-primary hover:bg-[#eef4ff] rounded-lg transition-colors" title="Balas">
+                          className="p-1.5 text-slate-400 hover:text-primary hover:bg-[#eef4ff] rounded-lg transition-colors" title="Balas">
                           <Reply size={15}/>
                         </button>
                       </td>
@@ -528,7 +528,7 @@ const FacultyAspirationManagement = () => {
               <div className="lg:col-span-3 space-y-6">
                 
                 {/* Reporter Profile Block */}
-                <div className="p-6 rounded-2xl bg-[#fafafa] border border-slate-100 shadow-sm flex flex-col md:flex-row gap-5 items-start">
+                <div className="p-6 rounded-2xl bg-slate-50/50 border border-slate-100 shadow-sm flex flex-col md:flex-row gap-5 items-start">
                   <StudentAvatar src={selected.Mahasiswa?.Foto} name={selected.Mahasiswa?.Nama} className="w-16 h-16 rounded-2xl shadow-md ring-4 ring-neutral-100 shrink-0" />
                   
                   <div className="flex-1 space-y-3 w-full">
@@ -562,7 +562,7 @@ const FacultyAspirationManagement = () => {
                   <h4 className="text-[11px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
                     <span className="material-symbols-outlined text-primary text-[16px]">chat</span> Substansi Aspirasi
                   </h4>
-                  <div className="p-6 rounded-2xl bg-[#fafafa] border border-slate-100 relative overflow-hidden group">
+                  <div className="p-6 rounded-2xl bg-slate-50/50 border border-slate-100 relative overflow-hidden group">
                     <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
                       <span className="material-symbols-outlined text-[80px]" >chat</span>
                     </div>
@@ -619,7 +619,7 @@ const FacultyAspirationManagement = () => {
               <div className="lg:col-span-2 space-y-6">
                 
                 {/* Governance Card */}
-                <div className="p-6 rounded-2xl bg-[#fafafa] border border-slate-200 shadow-sm space-y-6">
+                <div className="p-6 rounded-2xl bg-slate-50/50 border border-slate-200 shadow-sm space-y-6">
                   
                   {/* Status Selection Buttons */}
                   <div className="space-y-3">
@@ -676,7 +676,7 @@ const FacultyAspirationManagement = () => {
             </div>
 
             {/* Modal Footer */}
-            <div className="px-8 py-5 border-t border-slate-100 bg-[#fafafa] flex items-center justify-end gap-3 flex-shrink-0">
+            <div className="px-8 py-5 border-t border-slate-100 bg-slate-50/50 flex items-center justify-end gap-3 flex-shrink-0">
               <Button 
                 variant="outline"
                 onClick={() => setSelected(null)}
@@ -687,7 +687,7 @@ const FacultyAspirationManagement = () => {
               <Button 
                 onClick={() => handleUpdateStatus(form.status)}
                 disabled={isSubmitting || !form.status}
-                className="h-11 px-6 rounded-xl bg-[#00236F] hover:bg-[#001a52] text-white font-black text-[10px] uppercase tracking-widest shadow-lg shadow-[#00236F]/20 active:scale-95 transition-all gap-1.5"
+                className="h-11 px-6 rounded-xl bg-primary hover:bg-[#001a52] text-white font-black text-[10px] uppercase tracking-widest shadow-lg shadow-[#00236F]/20 active:scale-95 transition-all gap-1.5"
               >
                 {isSubmitting ? (
                   <span className="material-symbols-outlined animate-spin" style={{ fontSize: '15px' }} >sync</span>

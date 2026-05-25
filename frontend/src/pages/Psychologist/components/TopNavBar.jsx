@@ -54,8 +54,12 @@ const TopNavBar = ({ setIsOpen }) => {
             title="Keluar dari Portal"
             className="flex items-center gap-2 cursor-pointer hover:bg-rose-50 p-1.5 rounded-full transition-all group border border-transparent hover:border-rose-100"
           >
-            <div className="h-10 w-10 rounded-2xl bg-primary text-white flex items-center justify-center font-bold shadow-lg shadow-primary/20 group-hover:bg-rose-600 transition-colors">
-              {user?.Email?.[0]?.toUpperCase() || 'P'}
+            <div className="h-10 w-10 rounded-2xl bg-primary text-white flex items-center justify-center font-bold shadow-lg shadow-primary/20 group-hover:bg-rose-600 transition-colors overflow-hidden relative">
+              {user?.FotoURL || user?.ProfilePicture ? (
+                <img src={user.FotoURL || user.ProfilePicture} alt="Profile" className="w-full h-full object-cover" />
+              ) : (
+                <span className="material-symbols-outlined text-white/80" style={{ fontSize: '24px' }}>person</span>
+              )}
             </div>
             <span className="material-symbols-outlined size-3.5 text-slate-400 group-hover:text-rose-600 transition-colors">logout</span>
           </div>

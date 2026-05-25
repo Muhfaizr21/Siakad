@@ -18,6 +18,8 @@ export default function ReferralManagement() {
   const [error, setError] = useState(null);
   const [selectedStatus, setSelectedStatus] = useState('Semua');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showDropdown, setShowDropdown] = useState(false);
   const [newReferral, setNewReferral] = useState({
     mahasiswa_id: '',
     tipe: 'Medis',
@@ -117,6 +119,7 @@ export default function ReferralManagement() {
         pihak_tujuan: '',
         email_tujuan: '',
       });
+      setSearchQuery('');
       setIsModalOpen(false);
       alert('Surat rujukan berhasil dibuat');
     } catch (err) {
@@ -159,13 +162,13 @@ export default function ReferralManagement() {
   };
 
   return (
-    <div className="bg-[#F8FAFC] text-slate-900 h-screen font-body overflow-hidden">
+    <div className="min-h-screen bg-[#F8FAFC] text-slate-900 font-body">
       <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
       
-      <main className="lg:ml-64 h-full flex flex-col transition-all duration-300 overflow-hidden">
+      <main className="lg:ml-64 transition-all duration-300">
         <TopNavBar setIsOpen={setSidebarOpen} />
         
-        <div className="flex-1 overflow-y-auto overflow-x-hidden pt-24 px-6 lg:px-10 pb-12 w-full relative space-y-8 scroll-smooth">
+        <div className="pt-24 px-6 lg:px-10 pb-12 w-full relative space-y-8 scroll-smooth">
           
           {/* Welcome Banner */}
           <section className="relative overflow-hidden rounded-[2.5rem] bg-gradient-to-r from-white via-slate-50/50 to-blue-50/20 border border-slate-100 p-8 shadow-sm flex flex-col gap-6 group">
@@ -185,7 +188,17 @@ export default function ReferralManagement() {
               </div>
 
               <button 
-                onClick={() => setIsModalOpen(true)}
+                onClick={() => {
+                  setNewReferral({
+                    mahasiswa_id: '',
+                    tipe: 'Medis',
+                    alasan: '',
+                    pihak_tujuan: '',
+                    email_tujuan: '',
+                  });
+                  setSearchQuery('');
+                  setIsModalOpen(true);
+                }}
                 className="bg-primary hover:bg-blue-900 text-white px-6 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-primary/10 hover:shadow-primary/20 transition-all flex items-center gap-2 w-fit shrink-0 relative z-20"
               >
                 <span className="material-symbols-outlined text-base">add</span> Buat Rujukan Baru
@@ -249,8 +262,12 @@ export default function ReferralManagement() {
                       key={referral.id} 
                       className={`flex items-center gap-4 p-4 rounded-2xl border ${colors.bg} ${colors.border} hover:shadow-md hover:border-slate-200/50 transition-all duration-300 group`}
                     >
-                      <div className={`w-11 h-11 rounded-[1.25rem] ${colors.badge} text-slate-900 flex items-center justify-center font-black text-xs group-hover:scale-105 transition-transform duration-300 shrink-0 shadow-sm`}>
-                        {referral.mahasiswa_name.split(' ').slice(0, 2).map(n => n[0]).join('').toUpperCase()}
+                      <div className={`w-11 h-11 rounded-[1.25rem] ${colors.badge} text-slate-900 flex items-center justify-center font-black text-xs group-hover:scale-105 transition-transform duration-300 shrink-0 shadow-sm overflow-hidden relative`}>
+                        {referral.foto_url || referral.foto ? (
+                          <img src={referral.foto_url || referral.foto} alt={referral.mahasiswa_name} className="w-full h-full object-cover" />
+                        ) : (
+                          <span className="material-symbols-outlined text-slate-400" style={{ fontSize: '24px' }}>person</span>
+                        )}
                       </div>
                       
                       <div className="flex-1 min-w-0">
@@ -330,21 +347,55 @@ export default function ReferralManagement() {
 
               <form onSubmit={handleCreateReferral} className="p-8 space-y-6">
                 <div className="space-y-4">
-                  <div>
+                  <div className="relative">
                     <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-2 block">Pilih Pasien</label>
-                    <select 
-                      required
-                      value={newReferral.mahasiswa_id}
-                      onChange={(e) => setNewReferral({ ...newReferral, mahasiswa_id: e.target.value })}
-                      className="w-full bg-slate-50 border border-slate-200/60 rounded-2xl px-5 py-3.5 text-xs font-bold text-slate-800 focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none cursor-pointer"
-                    >
-                      <option value="">-- Pilih Pasien --</option>
-                      {mahasiswaList.map((maba) => (
-                        <option key={maba.id} value={maba.id}>
-                          {maba.nama || maba.name} ({maba.nim || maba.id})
-                        </option>
-                      ))}
-                    </select>
+                    <div className="relative">
+                      <input 
+                        type="text"
+                        value={searchQuery}
+                        onChange={(e) => {
+                          setSearchQuery(e.target.value);
+                          setShowDropdown(true);
+                          if(e.target.value === '') {
+                             setNewReferral({ ...newReferral, mahasiswa_id: '' });
+                          }
+                        }}
+                        onFocus={() => setShowDropdown(true)}
+                        onBlur={() => setTimeout(() => setShowDropdown(false), 200)}
+                        placeholder="Cari nama pasien atau NIM..."
+                        className="w-full bg-slate-50 border border-slate-200/60 rounded-2xl px-5 py-3.5 text-xs font-bold text-slate-800 focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none"
+                      />
+                      <span className="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" style={{ fontSize: '18px' }}>search</span>
+                    </div>
+
+                    {showDropdown && (
+                      <div className="absolute z-20 w-full mt-2 bg-white border border-slate-100 rounded-xl shadow-xl max-h-56 overflow-y-auto">
+                        {mahasiswaList.filter(m => {
+                          const str = `${m.nama || m.name} ${m.nim || m.id}`.toLowerCase();
+                          return str.includes(searchQuery.toLowerCase());
+                        }).map((maba) => (
+                          <div 
+                            key={maba.id} 
+                            onClick={() => {
+                              setNewReferral({ ...newReferral, mahasiswa_id: maba.id });
+                              setSearchQuery(`${maba.nama || maba.name} (${maba.nim || maba.id})`);
+                              setShowDropdown(false);
+                            }}
+                            className={`px-4 py-3 cursor-pointer text-xs transition-colors hover:bg-slate-50 ${newReferral.mahasiswa_id === maba.id ? 'bg-primary/5 text-primary font-bold' : 'text-slate-600 font-medium'} border-b border-slate-50 last:border-0`}
+                          >
+                            {maba.nama || maba.name} <span className="text-[10px] text-slate-400 ml-1">({maba.nim || maba.id})</span>
+                          </div>
+                        ))}
+                        {mahasiswaList.filter(m => {
+                          const str = `${m.nama || m.name} ${m.nim || m.id}`.toLowerCase();
+                          return str.includes(searchQuery.toLowerCase());
+                        }).length === 0 && (
+                          <div className="px-4 py-4 text-center text-xs text-slate-400 italic">
+                            Pasien tidak ditemukan
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
 
                   <div>

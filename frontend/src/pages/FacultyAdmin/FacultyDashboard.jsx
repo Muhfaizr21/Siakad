@@ -128,13 +128,13 @@ export default function FacultyDashboard() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] font-body">
+    <div className="min-h-screen bg-[#F8FAFC] font-body">
       <div className="max-w-[1600px] mx-auto px-4 py-8 md:px-8 xl:px-12 space-y-8">
 
         {/* ── Welcome Banner ─────────────────────────────────────────── */}
         <section className="relative overflow-hidden rounded-3xl h-52 flex items-center group">
           {/* Background */}
-          <div className="absolute inset-0 bg-primary-container" />
+          <div className="absolute inset-0 bg-gradient-to-br from-[#00236f] via-[#0b338f] to-[#003B95]" />
           {/* Pattern overlay */}
           <div className="absolute inset-0 opacity-10"
             style={{
@@ -163,7 +163,7 @@ export default function FacultyDashboard() {
             <div className="mt-5 flex gap-3">
               <button
                 onClick={() => navigate('/faculty/mahasiswa')}
-                className="bg-white text-[#00236F] px-5 py-2.5 rounded-xl font-bold text-xs shadow-lg hover:shadow-xl transition-all hover:-translate-y-0.5 active:scale-95"
+                className="bg-white text-primary px-5 py-2.5 rounded-xl font-bold text-xs shadow-lg hover:shadow-xl transition-all hover:-translate-y-0.5 active:scale-95"
               >
                 Lihat Data Mahasiswa
               </button>
@@ -196,7 +196,7 @@ export default function FacultyDashboard() {
             <button
               key={s.label}
               onClick={() => navigate(s.path)}
-              className="group bg-white rounded-2xl border border-[#e5e5e5] shadow-sm p-5 text-left hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 relative overflow-hidden"
+              className="group bg-white rounded-2xl border border-slate-200/60 shadow-sm p-5 text-left hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 relative overflow-hidden"
             >
               <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl ${s.accent} to-transparent rounded-bl-full opacity-40`} />
               <div className="relative">
@@ -209,11 +209,11 @@ export default function FacultyDashboard() {
                     Live
                   </div>
                 </div>
-                <p className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-[0.15em] mb-1">{s.label}</p>
-                <p className="text-3xl font-black text-[#171717] leading-none tabular-nums">
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] mb-1">{s.label}</p>
+                <p className="text-3xl font-black text-slate-900 leading-none tabular-nums">
                   {loading ? <span className="material-symbols-outlined animate-spin text-slate-300" style={{ fontSize: '20px' }} >sync</span> : s.value.toLocaleString()}
                 </p>
-                <p className="text-[10px] text-[#a3a3a3] font-medium mt-1">{s.desc}</p>
+                <p className="text-[10px] text-slate-400 font-medium mt-1">{s.desc}</p>
               </div>
             </button>
           ))}
@@ -223,11 +223,11 @@ export default function FacultyDashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
           {/* Chart: Mahasiswa per Prodi — col-8 */}
-          <div className="lg:col-span-8 bg-surface-container-lowest border border-outline-variant/10 rounded-3xl shadow-sm overflow-hidden">
-            <div className="px-6 py-5 border-b border-[#f0f0f0] flex items-center justify-between">
+          <div className="lg:col-span-8 bg-white border border-slate-100/50 rounded-3xl shadow-sm overflow-hidden">
+            <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
               <div>
-                <h2 className="font-black text-[#171717] text-base tracking-tight">Distribusi Mahasiswa per Prodi</h2>
-                <p className="text-[11px] text-[#a3a3a3] font-medium mt-0.5">Jumlah mahasiswa aktif berdasarkan program studi</p>
+                <h2 className="font-black text-slate-900 text-base tracking-tight">Distribusi Mahasiswa per Prodi</h2>
+                <p className="text-[11px] text-slate-400 font-medium mt-0.5">Jumlah mahasiswa aktif berdasarkan program studi</p>
               </div>
               <div className="w-9 h-9 bg-blue-50 rounded-xl flex items-center justify-center text-blue-500">
                 <BarChart3 size={16} />
@@ -258,11 +258,11 @@ export default function FacultyDashboard() {
           </div>
 
           {/* Status Mahasiswa — col-4 */}
-          <div className="lg:col-span-4 bg-surface-container-lowest border border-outline-variant/10 rounded-3xl shadow-sm overflow-hidden">
-            <div className="px-6 py-5 border-b border-[#f0f0f0] flex items-center justify-between">
+          <div className="lg:col-span-4 bg-white border border-slate-100/50 rounded-3xl shadow-sm overflow-hidden">
+            <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
               <div>
-                <h2 className="font-black text-[#171717] text-base tracking-tight">Status Akademik</h2>
-                <p className="text-[11px] text-[#a3a3a3] font-medium mt-0.5">Kondisi mahasiswa saat ini</p>
+                <h2 className="font-black text-slate-900 text-base tracking-tight">Status Akademik</h2>
+                <p className="text-[11px] text-slate-400 font-medium mt-0.5">Kondisi mahasiswa saat ini</p>
               </div>
               <div className="w-9 h-9 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-500">
                 <UserCheck size={16} />
@@ -286,17 +286,17 @@ export default function FacultyDashboard() {
               )}
               <div className="grid grid-cols-2 gap-2 mt-2">
                 {dynamicStatusData.map((item, idx) => (
-                  <div 
-                    key={item.name} 
+                  <div
+                    key={item.name}
                     className={cn(
-                      "flex items-center gap-2 p-2 rounded-xl bg-[#fafafa] border border-[#f0f0f0]",
+                      "flex items-center gap-2 p-2 rounded-xl bg-slate-50/50 border border-slate-100",
                       dynamicStatusData.length % 2 !== 0 && idx === dynamicStatusData.length - 1 && "col-span-2"
                     )}
                   >
                     <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: item.color }} />
                     <div className="min-w-0">
-                      <p className="text-[9px] font-black text-[#a3a3a3] uppercase tracking-widest truncate">{item.name}</p>
-                      <p className="text-sm font-black text-[#171717] leading-none tabular-nums">{item.value.toLocaleString()}</p>
+                      <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest truncate">{item.name}</p>
+                      <p className="text-sm font-black text-slate-900 leading-none tabular-nums">{item.value.toLocaleString()}</p>
                     </div>
                   </div>
                 ))}
@@ -309,11 +309,11 @@ export default function FacultyDashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
           {/* Trend Pendaftaran — col-8 */}
-          <div className="lg:col-span-8 bg-surface-container-lowest border border-outline-variant/10 rounded-3xl shadow-sm overflow-hidden">
-            <div className="px-6 py-5 border-b border-[#f0f0f0] flex items-center justify-between">
+          <div className="lg:col-span-8 bg-white border border-slate-100/50 rounded-3xl shadow-sm overflow-hidden">
+            <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
               <div>
-                <h2 className="font-black text-[#171717] text-base tracking-tight">Tren Penerimaan Mahasiswa Baru</h2>
-                <p className="text-[11px] text-[#a3a3a3] font-medium mt-0.5">Perbandingan pendaftar vs. diterima per tahun</p>
+                <h2 className="font-black text-slate-900 text-base tracking-tight">Tren Penerimaan Mahasiswa Baru</h2>
+                <p className="text-[11px] text-slate-400 font-medium mt-0.5">Perbandingan pendaftar vs. diterima per tahun</p>
               </div>
               <div className="flex items-center gap-1.5 text-[10px] font-black text-emerald-500 bg-emerald-50 px-3 py-1.5 rounded-xl uppercase tracking-widest">
                 <span className="material-symbols-outlined" style={{ fontSize: '11px' }} >trending_up</span> Trend
@@ -337,11 +337,11 @@ export default function FacultyDashboard() {
           </div>
 
           {/* Aktivitas Terbaru — col-4 */}
-          <div className="lg:col-span-4 bg-surface-container-lowest border border-outline-variant/10 rounded-3xl shadow-sm overflow-hidden">
-            <div className="px-6 py-5 border-b border-[#f0f0f0] flex items-center justify-between">
+          <div className="lg:col-span-4 bg-white border border-slate-100/50 rounded-3xl shadow-sm overflow-hidden">
+            <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
               <div>
-                <h2 className="font-black text-[#171717] text-base tracking-tight">Aktivitas Terbaru</h2>
-                <p className="text-[11px] text-[#a3a3a3] font-medium mt-0.5">Log aktivitas sistem</p>
+                <h2 className="font-black text-slate-900 text-base tracking-tight">Aktivitas Terbaru</h2>
+                <p className="text-[11px] text-slate-400 font-medium mt-0.5">Log aktivitas sistem</p>
               </div>
               <div className="w-9 h-9 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400">
                 <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >schedule</span>
@@ -350,23 +350,23 @@ export default function FacultyDashboard() {
             <div className="p-4 space-y-3 max-h-[260px] overflow-y-auto">
               {summaryData.recentActivity?.length > 0
                 ? summaryData.recentActivity.map((activity, idx) => (
-                  <div key={idx} className="flex items-start gap-3 p-3 rounded-xl bg-[#fafafa] border border-[#f0f0f0] group hover:border-[#e5e5e5] hover:bg-white transition-all">
+                  <div key={idx} className="flex items-start gap-3 p-3 rounded-xl bg-slate-50/50 border border-slate-100 group hover:border-slate-200/60 hover:bg-white transition-all">
                     <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary font-black text-[10px] flex-shrink-0">
                       {activity.avatar || '—'}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-[11px] font-bold text-[#171717] truncate">{activity.user}</p>
-                      <p className="text-[10px] text-[#737373] leading-relaxed">{activity.action}</p>
+                      <p className="text-[11px] font-bold text-slate-900 truncate">{activity.user}</p>
+                      <p className="text-[10px] text-slate-500 leading-relaxed">{activity.action}</p>
                     </div>
-                    <span className="text-[9px] font-bold text-[#a3a3a3] uppercase whitespace-nowrap">{activity.time}</span>
+                    <span className="text-[9px] font-bold text-slate-400 uppercase whitespace-nowrap">{activity.time}</span>
                   </div>
                 ))
                 : (
                   <div className="py-16 text-center">
-                    <div className="w-12 h-12 bg-[#f5f5f5] rounded-2xl flex items-center justify-center text-[#a3a3a3] mx-auto mb-3">
+                    <div className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-400 mx-auto mb-3">
                       <span className="material-symbols-outlined" style={{ fontSize: '20px' }} >notifications</span>
                     </div>
-                    <p className="text-[11px] font-black text-[#a3a3a3] uppercase tracking-widest">Belum ada aktivitas</p>
+                    <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Belum ada aktivitas</p>
                   </div>
                 )
               }
@@ -375,11 +375,11 @@ export default function FacultyDashboard() {
         </div>
 
         {/* ── Quick Actions ─────────────────────────────────────────── */}
-        <div className="bg-white rounded-2xl border border-[#e5e5e5] shadow-sm p-6">
+        <div className="bg-white rounded-2xl border border-slate-200/60 shadow-sm p-6">
           <div className="flex items-center gap-2 mb-5">
             <div className="h-4 w-1.5 bg-primary rounded-full" />
-            <h2 className="font-black text-[#171717] text-base tracking-tight">Aksi Cepat</h2>
-            <span className="text-[10px] font-bold text-[#a3a3a3] uppercase tracking-widest ml-auto">Pintasan Menu</span>
+            <h2 className="font-black text-slate-900 text-base tracking-tight">Aksi Cepat</h2>
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-auto">Pintasan Menu</span>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
             {quickActions.map((item, i) => (
@@ -387,7 +387,7 @@ export default function FacultyDashboard() {
                 key={i}
                 onClick={() => navigate(item.path)}
                 className={cn(
-                  "group flex flex-col items-center justify-center p-5 rounded-2xl bg-white border border-[#f0f0f0] transition-all duration-300 hover:-translate-y-1 active:scale-95 shadow-sm hover:shadow-md",
+                  "group flex flex-col items-center justify-center p-5 rounded-2xl bg-white border border-slate-100 transition-all duration-300 hover:-translate-y-1 active:scale-95 shadow-sm hover:shadow-md",
                   item.hoverShadow
                 )}
               >

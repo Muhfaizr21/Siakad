@@ -121,7 +121,7 @@ export default function FacultyOrganisasi() {
   const stats = { total:organizations.length, aktif:organizations.filter(o=>o.status==='Aktif').length, anggota:organizations.reduce((a,o)=>a+(o.jumlah_anggota||0),0) }
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] font-body">
+    <div className="min-h-screen bg-[#F8FAFC] font-body">
       <Toaster position="top-right"/>
       <div className="max-w-[1600px] mx-auto px-4 py-8 md:px-8 xl:px-12 space-y-6">
         {/* Header */}
@@ -140,7 +140,7 @@ export default function FacultyOrganisasi() {
             <div>
               <div className="flex items-center gap-2 mb-2">
                 <div className="h-4 w-1.5 bg-primary rounded-full" />
-                <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#a3a3a3]">Master Data ORMAWA</span>
+                <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">Master Data ORMAWA</span>
               </div>
               <h1 className="text-3xl font-extrabold text-slate-900 font-headline tracking-tight leading-tight">
                 Organisasi <span className="text-primary">Fakultas</span>
@@ -150,7 +150,7 @@ export default function FacultyOrganisasi() {
               </p>
             </div>
             <button onClick={()=>{ setEdit(null); setFormData(EMPTY_FORM); setModal(true) }}
-              className="h-11 px-5 rounded-xl bg-[#00236F] hover:bg-[#001a52] text-white text-xs font-bold uppercase tracking-widest gap-2 flex items-center transition-all active:scale-95 shadow-lg shadow-[#00236F]/20 shrink-0">
+              className="h-11 px-5 rounded-xl bg-primary hover:bg-[#001a52] text-white text-xs font-bold uppercase tracking-widest gap-2 flex items-center transition-all active:scale-95 shadow-lg shadow-[#00236F]/20 shrink-0">
               <span className="material-symbols-outlined" style={{ fontSize: '15px' }} >add</span> Tambah ORMAWA
             </button>
           </div>
@@ -159,38 +159,38 @@ export default function FacultyOrganisasi() {
         {/* Stats */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {[
-            {label:'Total ORMAWA',    value:stats.total,   icon:Users2,      bg:'bg-[#eef4ff]',  color:'text-[#00236F]',   desc:'Organisasi terdaftar'},
+            {label:'Total ORMAWA',    value:stats.total,   icon:Users2,      bg:'bg-[#eef4ff]',  color:'text-primary',   desc:'Organisasi terdaftar'},
             {label:'Organisasi Aktif',value:stats.aktif,   icon:CheckCircle2, bg:'bg-emerald-50', color:'text-emerald-600', desc:'Status aktif beroperasi'},
             {label:'Total Anggota',   value:stats.anggota, icon:ShieldCheck, bg:'bg-indigo-50',  color:'text-indigo-600',  desc:'Jangkauan anggota'},
           ].map(s=>(
-            <div key={s.label} className="bg-surface-container-lowest border border-outline-variant/10 rounded-3xl p-5 shadow-sm">
+            <div key={s.label} className="bg-white border border-slate-100/50 rounded-3xl p-5 shadow-sm">
               <div className="flex items-center gap-3 mb-3">
                 <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center',s.bg,s.color)}><s.icon size={18}/></div>
-                <span className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-widest">{s.label}</span>
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{s.label}</span>
               </div>
-              <p className="text-2xl font-extrabold text-[#171717] leading-none tabular-nums">{loading?<span className="material-symbols-outlined animate-spin text-slate-300" style={{ fontSize: '18px' }} >sync</span>:s.value}</p>
-              <p className="text-xs text-[#a3a3a3] font-medium mt-1">{s.desc}</p>
+              <p className="text-2xl font-extrabold text-slate-900 leading-none tabular-nums">{loading?<span className="material-symbols-outlined animate-spin text-slate-300" style={{ fontSize: '18px' }} >sync</span>:s.value}</p>
+              <p className="text-xs text-slate-400 font-medium mt-1">{s.desc}</p>
             </div>
           ))}
         </div>
 
         {/* Table */}
-        <div className="bg-surface-container-lowest border border-outline-variant/10 rounded-3xl shadow-sm overflow-hidden">
-          <div className="px-5 py-4 border-b border-[#f0f0f0] flex flex-col sm:flex-row items-start sm:items-center gap-3">
+        <div className="bg-white border border-slate-100/50 rounded-3xl shadow-sm overflow-hidden">
+          <div className="px-5 py-4 border-b border-slate-100 flex flex-col sm:flex-row items-start sm:items-center gap-3">
             <div className="flex-1">
-              <h2 className="font-bold text-base text-[#171717]">Daftar Organisasi Mahasiswa</h2>
-              <p className="text-xs text-[#737373] mt-0.5">Menampilkan <span className="font-bold text-[#171717]">{filtered.length}</span> dari <span className="font-bold text-primary">{organizations.length}</span> organisasi</p>
+              <h2 className="font-bold text-base text-slate-900">Daftar Organisasi Mahasiswa</h2>
+              <p className="text-xs text-slate-500 mt-0.5">Menampilkan <span className="font-bold text-slate-900">{filtered.length}</span> dari <span className="font-bold text-primary">{organizations.length}</span> organisasi</p>
             </div>
             <div className="relative">
-              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#a3a3a3]" style={{ fontSize: '14px' }} >search</span>
+              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" style={{ fontSize: '14px' }} >search</span>
               <input type="text" placeholder="Cari nama atau kode..." value={search} onChange={e=>setSearch(e.target.value)}
-                className="pl-9 pr-4 h-9 w-52 rounded-xl border border-[#e5e5e5] focus:outline-none focus:border-primary text-sm bg-white"/>
+                className="pl-9 pr-4 h-9 w-52 rounded-xl border border-slate-200/60 focus:outline-none focus:border-primary text-sm bg-white"/>
             </div>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-left">
               <thead>
-                <tr className="border-b border-[#e5e5e5]">
+                <tr className="border-b border-slate-200/60">
                   {[
                     { label: 'Kode', key: 'kode', sortable: true },
                     { label: 'Nama Organisasi', key: 'nama', sortable: true },
@@ -204,7 +204,7 @@ export default function FacultyOrganisasi() {
                       key={h.label}
                       onClick={() => h.sortable && handleSort(h.key)}
                       className={cn(
-                        'px-5 py-3.5 text-xs font-bold text-[#a3a3a3] uppercase tracking-wider whitespace-nowrap select-none',
+                        'px-5 py-3.5 text-xs font-bold text-slate-400 uppercase tracking-wider whitespace-nowrap select-none',
                         h.sortable && 'cursor-pointer hover:text-slate-900 group',
                         h.className
                       )}
@@ -229,21 +229,21 @@ export default function FacultyOrganisasi() {
               </thead>
               <tbody>
                 {loading?Array.from({length: pageSize}).map((_,i)=>(
-                  <tr key={i} className="border-b border-[#f0f0f0]">{[...Array(7)].map((__,j)=><td key={j} className="px-5 py-4"><div className="h-4 bg-[#f5f5f5] rounded animate-pulse"/></td>)}</tr>
+                  <tr key={i} className="border-b border-slate-100">{[...Array(7)].map((__,j)=><td key={j} className="px-5 py-4"><div className="h-4 bg-slate-50 rounded animate-pulse"/></td>)}</tr>
                 )):paginated.length===0?(
                   <tr><td colSpan={7} className="px-5 py-16 text-center">
                     <div className="flex flex-col items-center gap-3">
                       <div className="w-12 h-12 bg-[#eef4ff] rounded-2xl flex items-center justify-center text-primary"><span className="material-symbols-outlined" style={{ fontSize: '22px' }}>group</span></div>
-                      <p className="font-bold text-sm text-[#171717]">Belum Ada Organisasi</p>
+                      <p className="font-bold text-sm text-slate-900">Belum Ada Organisasi</p>
                     </div>
                   </td></tr>
                 ):paginated.map((row,i)=>(
                   <tr key={row.id||i} className="border-b border-[#f5f5f5] hover:bg-[#fafbff] transition-colors">
-                    <td className="px-5 py-3.5"><span className="text-[10px] font-black text-[#525252] bg-slate-50 border border-slate-200 px-2 py-1 rounded-lg uppercase tracking-wider">{row.kode||'—'}</span></td>
-                    <td className="px-5 py-3.5"><p className="font-bold text-sm text-[#171717]">{row.nama}</p></td>
-                    <td className="px-5 py-3.5 text-sm text-[#525252] font-medium">{row.deskripsi||'—'}</td>
+                    <td className="px-5 py-3.5"><span className="text-[10px] font-black text-slate-600 bg-slate-50 border border-slate-200 px-2 py-1 rounded-lg uppercase tracking-wider">{row.kode||'—'}</span></td>
+                    <td className="px-5 py-3.5"><p className="font-bold text-sm text-slate-900">{row.nama}</p></td>
+                    <td className="px-5 py-3.5 text-sm text-slate-600 font-medium">{row.deskripsi||'—'}</td>
                     <td className="px-5 py-3.5"><span className="text-[10px] font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 px-2.5 py-1 rounded-lg">{row.kategori||'—'}</span></td>
-                    <td className="px-5 py-3.5"><div className="flex items-center gap-1.5 text-sm font-black text-[#171717]"><span className="material-symbols-outlined text-[#a3a3a3]" style={{ fontSize: '12px' }}>group</span>{row.jumlah_anggota||0}</div></td>
+                    <td className="px-5 py-3.5"><div className="flex items-center gap-1.5 text-sm font-black text-slate-900"><span className="material-symbols-outlined text-slate-400" style={{ fontSize: '12px' }}>group</span>{row.jumlah_anggota||0}</div></td>
                     <td className="px-5 py-3.5">
                       <span className={cn('inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold border uppercase',
                         row.status==='Aktif'?'bg-emerald-50 text-emerald-700 border-emerald-200':'bg-rose-50 text-rose-700 border-rose-200')}>
@@ -252,8 +252,8 @@ export default function FacultyOrganisasi() {
                     </td>
                     <td className="px-5 py-3.5">
                       <div className="flex items-center gap-1.5">
-                        <button onClick={()=>openEdit(row)} className="p-1.5 text-[#a3a3a3] hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"><span className="material-symbols-outlined" style={{ fontSize: '15px' }} >edit</span></button>
-                        <button onClick={()=>setDelTarget(row)} className="p-1.5 text-[#a3a3a3] hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"><span className="material-symbols-outlined" style={{ fontSize: '15px' }} >delete</span></button>
+                        <button onClick={()=>openEdit(row)} className="p-1.5 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"><span className="material-symbols-outlined" style={{ fontSize: '15px' }} >edit</span></button>
+                        <button onClick={()=>setDelTarget(row)} className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"><span className="material-symbols-outlined" style={{ fontSize: '15px' }} >delete</span></button>
                       </div>
                     </td>
                   </tr>
@@ -353,35 +353,35 @@ export default function FacultyOrganisasi() {
             <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
               <div className="flex-1 overflow-y-auto p-5 space-y-3">
                 <div className="grid grid-cols-2 gap-3">
-                  <div><label className="block text-[10px] font-black text-[#a3a3a3] uppercase tracking-[0.18em] mb-1.5">Kode Akronim</label>
-                    <input value={formData.kode_org} onChange={e=>set('kode_org',e.target.value.toUpperCase())} placeholder="BEM-FT" required className="w-full h-11 px-4 rounded-xl border border-[#e5e5e5] bg-[#fafafa] text-sm font-black uppercase text-[#171717] focus:outline-none focus:border-primary focus:bg-white transition-all"/></div>
-                  <div><label className="block text-[10px] font-black text-[#a3a3a3] uppercase tracking-[0.18em] mb-1.5">Kategori</label>
-                    <select value={formData.kategori} onChange={e=>set('kategori',e.target.value)} className="w-full h-11 px-4 rounded-xl border border-[#e5e5e5] bg-[#fafafa] text-sm font-medium text-[#171717] focus:outline-none focus:border-primary appearance-none">
+                  <div><label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.18em] mb-1.5">Kode Akronim</label>
+                    <input value={formData.kode_org} onChange={e=>set('kode_org',e.target.value.toUpperCase())} placeholder="BEM-FT" required className="w-full h-11 px-4 rounded-xl border border-slate-200/60 bg-slate-50/50 text-sm font-black uppercase text-slate-900 focus:outline-none focus:border-primary focus:bg-white transition-all"/></div>
+                  <div><label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.18em] mb-1.5">Kategori</label>
+                    <select value={formData.kategori} onChange={e=>set('kategori',e.target.value)} className="w-full h-11 px-4 rounded-xl border border-slate-200/60 bg-slate-50/50 text-sm font-medium text-slate-900 focus:outline-none focus:border-primary appearance-none">
                       {['BEM','Himpunan','UKM','Komunitas','Lainnya'].map(v=><option key={v} value={v}>{v}</option>)}
                     </select></div>
                 </div>
-                <div><label className="block text-[10px] font-black text-[#a3a3a3] uppercase tracking-[0.18em] mb-1.5">Nama Panjang Organisasi</label>
-                  <input value={formData.nama_org} onChange={e=>set('nama_org',e.target.value)} placeholder="Nama resmi organisasi..." required className="w-full h-11 px-4 rounded-xl border border-[#e5e5e5] bg-[#fafafa] text-sm font-medium text-[#171717] focus:outline-none focus:border-primary focus:bg-white transition-all"/></div>
+                <div><label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.18em] mb-1.5">Nama Panjang Organisasi</label>
+                  <input value={formData.nama_org} onChange={e=>set('nama_org',e.target.value)} placeholder="Nama resmi organisasi..." required className="w-full h-11 px-4 rounded-xl border border-slate-200/60 bg-slate-50/50 text-sm font-medium text-slate-900 focus:outline-none focus:border-primary focus:bg-white transition-all"/></div>
                 <div className="grid grid-cols-2 gap-3">
-                  <div><label className="block text-[10px] font-black text-[#a3a3a3] uppercase tracking-[0.18em] mb-1.5">Nama Ketua Umum</label>
-                    <input value={formData.ketua_nama} onChange={e=>set('ketua_nama',e.target.value)} placeholder="Nama Ketua..." required className="w-full h-11 px-4 rounded-xl border border-[#e5e5e5] bg-[#fafafa] text-sm font-medium text-[#171717] focus:outline-none focus:border-primary focus:bg-white transition-all"/></div>
-                  <div><label className="block text-[10px] font-black text-[#a3a3a3] uppercase tracking-[0.18em] mb-1.5">Jumlah Anggota</label>
-                    <input type="number" value={formData.jumlah_anggota} onChange={e=>set('jumlah_anggota',parseInt(e.target.value)||0)} className="w-full h-11 px-4 rounded-xl border border-[#e5e5e5] bg-[#fafafa] text-sm font-black text-center text-[#171717] focus:outline-none focus:border-primary focus:bg-white transition-all"/></div>
+                  <div><label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.18em] mb-1.5">Nama Ketua Umum</label>
+                    <input value={formData.ketua_nama} onChange={e=>set('ketua_nama',e.target.value)} placeholder="Nama Ketua..." required className="w-full h-11 px-4 rounded-xl border border-slate-200/60 bg-slate-50/50 text-sm font-medium text-slate-900 focus:outline-none focus:border-primary focus:bg-white transition-all"/></div>
+                  <div><label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.18em] mb-1.5">Jumlah Anggota</label>
+                    <input type="number" value={formData.jumlah_anggota} onChange={e=>set('jumlah_anggota',parseInt(e.target.value)||0)} className="w-full h-11 px-4 rounded-xl border border-slate-200/60 bg-slate-50/50 text-sm font-black text-center text-slate-900 focus:outline-none focus:border-primary focus:bg-white transition-all"/></div>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
-                  <div><label className="block text-[10px] font-black text-[#a3a3a3] uppercase tracking-[0.18em] mb-1.5">Status</label>
-                    <select value={formData.status} onChange={e=>set('status',e.target.value)} className="w-full h-11 px-4 rounded-xl border border-[#e5e5e5] bg-[#fafafa] text-sm font-medium text-[#171717] focus:outline-none focus:border-primary appearance-none">
+                  <div><label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.18em] mb-1.5">Status</label>
+                    <select value={formData.status} onChange={e=>set('status',e.target.value)} className="w-full h-11 px-4 rounded-xl border border-slate-200/60 bg-slate-50/50 text-sm font-medium text-slate-900 focus:outline-none focus:border-primary appearance-none">
                       {['Aktif','Nonaktif','Pembekuan'].map(v=><option key={v} value={v}>{v}</option>)}
                     </select></div>
-                  <div><label className="block text-[10px] font-black text-[#a3a3a3] uppercase tracking-[0.18em] mb-1.5">Email Resmi</label>
-                    <input type="email" value={formData.email} onChange={e=>set('email',e.target.value)} placeholder="info@ormawa.com" className="w-full h-11 px-4 rounded-xl border border-[#e5e5e5] bg-[#fafafa] text-sm font-medium text-[#171717] focus:outline-none focus:border-primary focus:bg-white transition-all"/></div>
+                  <div><label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.18em] mb-1.5">Email Resmi</label>
+                    <input type="email" value={formData.email} onChange={e=>set('email',e.target.value)} placeholder="info@ormawa.com" className="w-full h-11 px-4 rounded-xl border border-slate-200/60 bg-slate-50/50 text-sm font-medium text-slate-900 focus:outline-none focus:border-primary focus:bg-white transition-all"/></div>
                 </div>
-                <div><label className="block text-[10px] font-black text-[#a3a3a3] uppercase tracking-[0.18em] mb-1.5">{editingOrg?'Password (kosongkan jika tidak diubah)':'Password Akun Admin'}</label>
-                  <input type="password" value={formData.password} onChange={e=>set('password',e.target.value)} placeholder="Password login admin ormawa..." required={!editingOrg} className="w-full h-11 px-4 rounded-xl border border-[#e5e5e5] bg-[#fafafa] text-sm font-medium text-[#171717] focus:outline-none focus:border-primary focus:bg-white transition-all"/></div>
+                <div><label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.18em] mb-1.5">{editingOrg?'Password (kosongkan jika tidak diubah)':'Password Akun Admin'}</label>
+                  <input type="password" value={formData.password} onChange={e=>set('password',e.target.value)} placeholder="Password login admin ormawa..." required={!editingOrg} className="w-full h-11 px-4 rounded-xl border border-slate-200/60 bg-slate-50/50 text-sm font-medium text-slate-900 focus:outline-none focus:border-primary focus:bg-white transition-all"/></div>
               </div>
-              <div className="px-5 py-4 border-t border-[#f0f0f0] bg-[#fafafa] flex gap-3 flex-shrink-0">
-                <button type="button" onClick={()=>setModal(false)} className="flex-1 h-11 rounded-xl border border-[#e5e5e5] bg-white text-xs font-bold text-[#525252] uppercase tracking-widest hover:bg-[#f5f5f5] transition-all">Batal</button>
-                <button type="submit" disabled={isSubmitting} className="flex-1 h-11 rounded-xl bg-[#00236F] hover:bg-[#001a52] text-white text-xs font-bold uppercase tracking-widest transition-all active:scale-95 shadow-lg shadow-[#00236F]/20 disabled:opacity-60 flex items-center justify-center gap-2">
+              <div className="px-5 py-4 border-t border-slate-100 bg-slate-50/50 flex gap-3 flex-shrink-0">
+                <button type="button" onClick={()=>setModal(false)} className="flex-1 h-11 rounded-xl border border-slate-200/60 bg-white text-xs font-bold text-slate-600 uppercase tracking-widest hover:bg-slate-50 transition-all">Batal</button>
+                <button type="submit" disabled={isSubmitting} className="flex-1 h-11 rounded-xl bg-primary hover:bg-[#001a52] text-white text-xs font-bold uppercase tracking-widest transition-all active:scale-95 shadow-lg shadow-[#00236F]/20 disabled:opacity-60 flex items-center justify-center gap-2">
                   {isSubmitting?<span className="material-symbols-outlined animate-spin" style={{ fontSize: '14px' }} >sync</span>:<span className="material-symbols-outlined" style={{ fontSize: '14px' }} >save</span>} {editingOrg?'Update Data':'Simpan Data'}
                 </button>
               </div>

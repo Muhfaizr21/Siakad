@@ -323,7 +323,7 @@ export default function FacultyPrestasi() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] font-body">
+    <div className="min-h-screen bg-[#F8FAFC] font-body">
       <Toaster position="top-right" />
       <div className="max-w-[1600px] mx-auto px-4 py-8 md:px-8 xl:px-12 space-y-6">
 
@@ -343,7 +343,7 @@ export default function FacultyPrestasi() {
             <div>
               <div className="flex items-center gap-2 mb-2">
                 <div className="h-4 w-1.5 bg-primary rounded-full" />
-                <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#a3a3a3]">Student Achievement</span>
+                <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">Student Achievement</span>
               </div>
               <h1 className="text-3xl font-extrabold text-slate-900 font-headline tracking-tight leading-tight">
                 Validasi <span className="text-primary">Prestasi</span>
@@ -354,11 +354,11 @@ export default function FacultyPrestasi() {
             </div>
             <div className="flex items-center gap-3">
               <button onClick={exportAchievementsPDF} disabled={loading || achievements.length === 0}
-                className="h-11 px-5 rounded-xl border border-[#e5e5e5] bg-white text-xs font-bold uppercase tracking-widest text-[#525252] hover:bg-[#fafafa] gap-2 flex items-center transition-all active:scale-95 shadow-sm disabled:opacity-50">
+                className="h-11 px-5 rounded-xl border border-slate-200/60 bg-white text-xs font-bold uppercase tracking-widest text-slate-600 hover:bg-slate-50/50 gap-2 flex items-center transition-all active:scale-95 shadow-sm disabled:opacity-50">
                 <Download size={14} className="text-primary" /> Ekspor PDF
               </button>
               <button onClick={fetchData} disabled={loading}
-                className="h-11 px-5 rounded-xl border border-[#e5e5e5] bg-white text-xs font-bold uppercase tracking-widest text-[#525252] hover:bg-[#fafafa] gap-2 flex items-center transition-all active:scale-95 shadow-sm disabled:opacity-60">
+                className="h-11 px-5 rounded-xl border border-slate-200/60 bg-white text-xs font-bold uppercase tracking-widest text-slate-600 hover:bg-slate-50/50 gap-2 flex items-center transition-all active:scale-95 shadow-sm disabled:opacity-60">
                 {loading ? <span className="material-symbols-outlined animate-spin text-primary" style={{ fontSize: '14px' }} >sync</span> : <RefreshCw size={14} className="text-primary" />}
                 Refresh
               </button>
@@ -369,44 +369,44 @@ export default function FacultyPrestasi() {
         {/* Stats */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {[
-            { label:'Total Pengajuan', value:stats.total,    icon:Trophy,       bg:'bg-[#eef4ff]',  color:'text-[#00236F]',   desc:'Prestasi masuk' },
+            { label:'Total Pengajuan', value:stats.total,    icon:Trophy,       bg:'bg-[#eef4ff]',  color:'text-primary',   desc:'Prestasi masuk' },
             { label:'Tervalidasi',     value:stats.verified, icon:CheckCircle2, bg:'bg-emerald-50', color:'text-emerald-600', desc:'Sudah diverifikasi' },
             { label:'Menunggu Review', value:stats.pending,  icon:Clock,        bg:'bg-amber-50',   color:'text-amber-600',   desc:'Perlu tindak lanjut' },
           ].map(s => (
-            <div key={s.label} className="bg-surface-container-lowest border border-outline-variant/10 rounded-3xl p-5 shadow-sm">
+            <div key={s.label} className="bg-white border border-slate-100/50 rounded-3xl p-5 shadow-sm">
               <div className="flex items-center gap-3 mb-3">
                 <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center', s.bg, s.color)}>
                   <s.icon size={18} />
                 </div>
-                <span className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-widest">{s.label}</span>
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{s.label}</span>
               </div>
-              <p className="text-2xl font-extrabold text-[#171717] leading-none tabular-nums">
+              <p className="text-2xl font-extrabold text-slate-900 leading-none tabular-nums">
                 {loading ? <span className="material-symbols-outlined animate-spin text-slate-300" style={{ fontSize: '18px' }} >sync</span> : s.value}
               </p>
-              <p className="text-xs text-[#a3a3a3] font-medium mt-1">{s.desc}</p>
+              <p className="text-xs text-slate-400 font-medium mt-1">{s.desc}</p>
             </div>
           ))}
         </div>
 
         {/* Table */}
-        <div className="bg-surface-container-lowest border border-outline-variant/10 rounded-3xl shadow-sm overflow-hidden">
+        <div className="bg-white border border-slate-100/50 rounded-3xl shadow-sm overflow-hidden">
           {/* Toolbar */}
-          <div className="px-5 py-4 border-b border-[#f0f0f0] flex flex-col sm:flex-row items-start sm:items-center gap-3">
+          <div className="px-5 py-4 border-b border-slate-100 flex flex-col sm:flex-row items-start sm:items-center gap-3">
             <div className="flex-1">
-              <h2 className="font-bold text-base text-[#171717]">Daftar Pengajuan Prestasi</h2>
-              <p className="text-xs text-[#737373] mt-0.5">
-                Menampilkan <span className="font-bold text-[#171717]">{filtered.length}</span> dari <span className="font-bold text-primary">{achievements.length}</span> pengajuan
+              <h2 className="font-bold text-base text-slate-900">Daftar Pengajuan Prestasi</h2>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Menampilkan <span className="font-bold text-slate-900">{filtered.length}</span> dari <span className="font-bold text-primary">{achievements.length}</span> pengajuan
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
               <div className="relative">
-                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#a3a3a3]" style={{ fontSize: '14px' }} >search</span>
+                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" style={{ fontSize: '14px' }} >search</span>
                 <input type="text" placeholder="Cari nama atau prestasi..."
                   value={search} onChange={e => setSearch(e.target.value)}
-                  className="pl-9 pr-4 h-9 w-52 rounded-xl border border-[#e5e5e5] focus:outline-none focus:border-primary text-sm bg-white" />
+                  className="pl-9 pr-4 h-9 w-52 rounded-xl border border-slate-200/60 focus:outline-none focus:border-primary text-sm bg-white" />
               </div>
               <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)}
-                className="h-9 pl-3 pr-8 rounded-xl border border-[#e5e5e5] text-xs font-medium bg-white text-[#525252] focus:outline-none focus:border-primary appearance-none cursor-pointer">
+                className="h-9 pl-3 pr-8 rounded-xl border border-slate-200/60 text-xs font-medium bg-white text-slate-600 focus:outline-none focus:border-primary appearance-none cursor-pointer">
                 <option value="all">Semua Status</option>
                 <option value="verified">Terverifikasi</option>
                 <option value="pending">Menunggu</option>
@@ -422,7 +422,7 @@ export default function FacultyPrestasi() {
           <div className="overflow-x-auto">
             <table className="w-full text-left">
               <thead>
-                <tr className="border-b border-[#e5e5e5]">
+                <tr className="border-b border-slate-200/60">
                   {[
                     { label: 'No', key: null, sortable: false },
                     { label: 'Mahasiswa', key: 'mahasiswa', sortable: true },
@@ -436,7 +436,7 @@ export default function FacultyPrestasi() {
                       key={h.label}
                       onClick={() => h.sortable && handleSort(h.key)}
                       className={cn(
-                        'px-5 py-3.5 text-xs font-bold text-[#a3a3a3] uppercase tracking-wider whitespace-nowrap select-none',
+                        'px-5 py-3.5 text-xs font-bold text-slate-400 uppercase tracking-wider whitespace-nowrap select-none',
                         h.sortable && 'cursor-pointer hover:text-slate-900 group',
                         h.className
                       )}
@@ -461,15 +461,15 @@ export default function FacultyPrestasi() {
               </thead>
               <tbody>
                 {loading ? Array.from({length: pageSize}).map((_,i) => (
-                  <tr key={i} className="border-b border-[#f0f0f0]">
-                    {[...Array(7)].map((__,j) => <td key={j} className="px-5 py-4"><div className="h-4 bg-[#f5f5f5] rounded animate-pulse"/></td>)}
+                  <tr key={i} className="border-b border-slate-100">
+                    {[...Array(7)].map((__,j) => <td key={j} className="px-5 py-4"><div className="h-4 bg-slate-50 rounded animate-pulse"/></td>)}
                   </tr>
                 )) : paginated.length === 0 ? (
                   <tr><td colSpan={7} className="px-5 py-16 text-center">
                     <div className="flex flex-col items-center gap-3">
                       <div className="w-12 h-12 bg-[#eef4ff] rounded-2xl flex items-center justify-center text-primary"><Trophy size={22}/></div>
-                      <p className="font-bold text-sm text-[#171717]">Tidak Ada Pengajuan</p>
-                      <p className="text-xs text-[#a3a3a3]">Belum ada mahasiswa yang mengajukan prestasi.</p>
+                      <p className="font-bold text-sm text-slate-900">Tidak Ada Pengajuan</p>
+                      <p className="text-xs text-slate-400">Belum ada mahasiswa yang mengajukan prestasi.</p>
                     </div>
                   </td></tr>
                 ) : paginated.map((row, i) => {
@@ -477,18 +477,18 @@ export default function FacultyPrestasi() {
                   const tingkatCls = TINGKAT_STYLES[(row.Tingkat||'').toLowerCase()] || 'bg-slate-50 text-slate-600 border-slate-200'
                   return (
                     <tr key={row.ID||i} className="border-b border-[#f5f5f5] hover:bg-[#fafbff] transition-colors">
-                      <td className="px-5 py-3.5 text-sm text-[#a3a3a3] font-medium">{(currentPage - 1) * pageSize + i + 1}</td>
+                      <td className="px-5 py-3.5 text-sm text-slate-400 font-medium">{(currentPage - 1) * pageSize + i + 1}</td>
                       <td className="px-5 py-3.5">
                         <div className="flex items-center gap-3">
                           <StudentAvatar src={getFullUrl(row.Mahasiswa?.FotoURL || row.Mahasiswa?.foto_url || row.Mahasiswa?.Foto || row.Mahasiswa?.Pengguna?.Foto)} name={row.Mahasiswa?.Nama} className="w-9 h-9 rounded-xl" />
                           <div>
-                            <p className="font-bold text-sm text-[#171717] leading-snug">{row.Mahasiswa?.Nama||'—'}</p>
-                            <p className="text-[10px] text-[#a3a3a3] font-medium">{row.Mahasiswa?.NIM||'—'}</p>
+                            <p className="font-bold text-sm text-slate-900 leading-snug">{row.Mahasiswa?.Nama||'—'}</p>
+                            <p className="text-[10px] text-slate-400 font-medium">{row.Mahasiswa?.NIM||'—'}</p>
                           </div>
                         </div>
                       </td>
                       <td className="px-5 py-3.5">
-                        <p className="font-bold text-sm text-[#171717] leading-snug max-w-[200px] truncate">{row.NamaKegiatan||'—'}</p>
+                        <p className="font-bold text-sm text-slate-900 leading-snug max-w-[200px] truncate">{row.NamaKegiatan||'—'}</p>
                         <span className="inline-block mt-0.5 text-[10px] font-bold text-primary bg-[#eef4ff] px-2 py-0.5 rounded-md">{row.Kategori||'Umum'}</span>
                       </td>
                       <td className="px-5 py-3.5">
@@ -501,21 +501,21 @@ export default function FacultyPrestasi() {
                           <span className={cn('w-1.5 h-1.5 rounded-full', st.dot)}/>{st.label}
                         </span>
                       </td>
-                      <td className="px-5 py-3.5 text-xs text-[#737373] font-medium whitespace-nowrap">
+                      <td className="px-5 py-3.5 text-xs text-slate-500 font-medium whitespace-nowrap">
                         {row.CreatedAt ? new Date(row.CreatedAt).getFullYear() : '—'}
                       </td>
                       <td className="px-5 py-3.5">
                         <div className="flex items-center gap-1.5">
                           <button onClick={() => setSelected(row)}
-                            className="p-1.5 text-[#a3a3a3] hover:text-primary hover:bg-[#eef4ff] rounded-lg transition-colors" title="Detail">
+                            className="p-1.5 text-slate-400 hover:text-primary hover:bg-[#eef4ff] rounded-lg transition-colors" title="Detail">
                             <span className="material-symbols-outlined" style={{ fontSize: '15px' }} >visibility</span>
                           </button>
                           <button onClick={() => handleValidation(row.ID, 'verified')} disabled={isSubmitting}
-                            className="p-1.5 text-[#a3a3a3] hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors" title="Setujui">
+                            className="p-1.5 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors" title="Setujui">
                             <span className="material-symbols-outlined" style={{ fontSize: '15px' }} >check_circle</span>
                           </button>
                           <button onClick={() => handleValidation(row.ID, 'rejected')} disabled={isSubmitting}
-                            className="p-1.5 text-[#a3a3a3] hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors" title="Tolak">
+                            className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors" title="Tolak">
                             <span className="material-symbols-outlined" style={{ fontSize: '15px' }} >close</span>
                           </button>
                         </div>
@@ -663,13 +663,13 @@ export default function FacultyPrestasi() {
                   { icon:Calendar,     label:'Tanggal',        value: formatDate(selected.CreatedAt) },
                   { icon:CheckCircle2, label:'Poin Didapat',   value: selected.Poin != null ? `${selected.Poin} Poin` : '—' },
                 ].map(r => (
-                  <div key={r.label} className="flex items-center gap-3 p-3 rounded-xl bg-[#fafafa] border border-[#f0f0f0] hover:bg-white transition-all">
-                    <div className="w-7 h-7 bg-white rounded-lg flex items-center justify-center text-[#00236F] shadow-sm border border-[#f0f0f0] flex-shrink-0">
+                  <div key={r.label} className="flex items-center gap-3 p-3 rounded-xl bg-slate-50/50 border border-slate-100 hover:bg-white transition-all">
+                    <div className="w-7 h-7 bg-white rounded-lg flex items-center justify-center text-primary shadow-sm border border-slate-100 flex-shrink-0">
                       <r.icon size={13}/>
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-[9px] font-bold text-[#a3a3a3] uppercase tracking-[0.15em]">{r.label}</p>
-                      <p className="text-sm font-semibold text-[#171717] truncate">{r.value||'—'}</p>
+                      <p className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.15em]">{r.label}</p>
+                      <p className="text-sm font-semibold text-slate-900 truncate">{r.value||'—'}</p>
                     </div>
                   </div>
                 ))}
@@ -677,20 +677,20 @@ export default function FacultyPrestasi() {
 
               {/* Bukti */}
               <div>
-                <p className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-[0.18em] mb-2">Bukti / Sertifikat</p>
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.18em] mb-2">Bukti / Sertifikat</p>
                 {selected.BuktiURL ? (
                   <a href={`${API_BASE_URL.replace('/api','')}${selected.BuktiURL}`} target="_blank" rel="noreferrer"
-                    className="flex items-center gap-3 p-3 rounded-xl border border-[#e5e5e5] hover:bg-[#eef4ff] hover:border-primary transition-all">
+                    className="flex items-center gap-3 p-3 rounded-xl border border-slate-200/60 hover:bg-[#eef4ff] hover:border-primary transition-all">
                     <div className="w-9 h-9 bg-[#eef4ff] rounded-xl flex items-center justify-center text-primary flex-shrink-0"><span className="material-symbols-outlined" style={{ fontSize: '16px' }} >description</span></div>
                     <div className="flex-1 min-w-0">
                       <p className="font-bold text-primary text-sm">Lihat Dokumen Sertifikat</p>
-                      <p className="text-xs text-[#a3a3a3] truncate">{selected.BuktiURL}</p>
+                      <p className="text-xs text-slate-400 truncate">{selected.BuktiURL}</p>
                     </div>
                     <ExternalLink size={14} className="text-primary/40 flex-shrink-0"/>
                   </a>
                 ) : (
-                  <div className="flex items-center gap-3 p-3 rounded-xl border border-[#f0f0f0] bg-[#fafafa]">
-                    <div className="w-9 h-9 bg-[#f5f5f5] rounded-xl flex items-center justify-center text-[#c4c4c4] flex-shrink-0"><span className="material-symbols-outlined" style={{ fontSize: '16px' }} >description</span></div>
+                  <div className="flex items-center gap-3 p-3 rounded-xl border border-slate-100 bg-slate-50/50">
+                    <div className="w-9 h-9 bg-slate-50 rounded-xl flex items-center justify-center text-[#c4c4c4] flex-shrink-0"><span className="material-symbols-outlined" style={{ fontSize: '16px' }} >description</span></div>
                     <p className="text-sm text-[#c4c4c4] font-medium italic">Belum ada lampiran diunggah.</p>
                   </div>
                 )}
@@ -698,9 +698,9 @@ export default function FacultyPrestasi() {
             </div>
 
             {/* Footer */}
-            <div className="px-5 py-4 border-t border-[#f0f0f0] bg-[#fafafa] flex gap-3 flex-shrink-0">
+            <div className="px-5 py-4 border-t border-slate-100 bg-slate-50/50 flex gap-3 flex-shrink-0">
               <button onClick={() => setSelected(null)}
-                className="flex-1 h-11 rounded-xl border border-[#e5e5e5] bg-white text-xs font-bold text-[#525252] uppercase tracking-widest hover:bg-[#f5f5f5] transition-all">
+                className="flex-1 h-11 rounded-xl border border-slate-200/60 bg-white text-xs font-bold text-slate-600 uppercase tracking-widest hover:bg-slate-50 transition-all">
                 Tutup
               </button>
               <button onClick={() => handleValidation(selected.ID, 'rejected')} disabled={isSubmitting}

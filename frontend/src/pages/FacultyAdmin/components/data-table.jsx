@@ -113,24 +113,24 @@ export function DataTable({
   }
 
   return (
-    <div className="flex flex-col h-full bg-surface-container-lowest border border-outline-variant/10 rounded-3xl shadow-sm overflow-hidden transition-all duration-500">
+    <div className="flex flex-col h-full bg-white border border-slate-100/50 rounded-3xl shadow-sm overflow-hidden transition-all duration-500">
       {/* Premium Toolbar */}
-      <div className="px-5 py-4 bg-white flex flex-col sm:flex-row items-start sm:items-center gap-3 border-b border-[#f0f0f0]">
+      <div className="px-5 py-4 bg-white flex flex-col sm:flex-row items-start sm:items-center gap-3 border-b border-slate-100">
         <div className="flex-1">
-          <h2 className="font-bold text-base text-[#171717]">{title}</h2>
-          <p className="text-xs text-[#737373] mt-0.5">
-            Menampilkan <span className="font-bold text-[#171717]">{totalItems > 0 ? (currentPage - 1) * pageSize + 1 : 0}</span> sampai <span className="font-bold text-[#171717]">{Math.min(currentPage * pageSize, totalItems)}</span> dari <span className="font-bold text-[#00236F]">{totalItems}</span> {itemLabel}
+          <h2 className="font-bold text-base text-slate-900">{title}</h2>
+          <p className="text-xs text-slate-500 mt-0.5">
+            Menampilkan <span className="font-bold text-slate-900">{totalItems > 0 ? (currentPage - 1) * pageSize + 1 : 0}</span> sampai <span className="font-bold text-slate-900">{Math.min(currentPage * pageSize, totalItems)}</span> dari <span className="font-bold text-primary">{totalItems}</span> {itemLabel}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
           {/* Search */}
           <div className="relative group">
-            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#a3a3a3] transition-colors" style={{ fontSize: "14px" }}>search</span>
+            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 transition-colors" style={{ fontSize: "14px" }}>search</span>
             <Input
               placeholder={searchPlaceholder}
               value={searchTerm}
               onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
-              className="pl-9 pr-4 h-9 rounded-xl border-[#e5e5e5] bg-white focus:outline-none focus:border-primary text-sm font-medium transition-all w-52"
+              className="pl-9 pr-4 h-9 rounded-xl border-slate-200/60 bg-white focus:outline-none focus:border-primary text-sm font-medium transition-all w-52"
             />
           </div>
           
@@ -139,13 +139,13 @@ export function DataTable({
               key={filter.key}
               onValueChange={(val) => handleFilterChange(filter.key, val)}
             >
-              <SelectTrigger className="h-9 w-[160px] rounded-xl border-[#e5e5e5] bg-white shadow-none font-medium text-xs text-[#525252] focus:ring-primary/20">
+              <SelectTrigger className="h-9 w-[160px] rounded-xl border-slate-200/60 bg-white shadow-none font-medium text-xs text-slate-600 focus:ring-primary/20">
                 <div className="flex items-center gap-2">
                   <Filter className="size-3.5 text-primary/60" />
                   <SelectValue placeholder={filter.placeholder} />
                 </div>
               </SelectTrigger>
-              <SelectContent className="rounded-xl border-[#e5e5e5] shadow-xl p-1 font-body">
+              <SelectContent className="rounded-xl border-slate-200/60 shadow-xl p-1 font-body">
                 <SelectItem value="all" className="rounded-lg font-bold text-xs p-2.5 uppercase opacity-50">Semua Data</SelectItem>
                 {filter.options.map((opt) => (
                   <SelectItem key={opt.value} value={opt.value} className="rounded-lg font-bold text-xs p-2.5 uppercase focus:bg-primary/5 focus:text-primary">
@@ -166,7 +166,7 @@ export function DataTable({
           )}
 
           {onExport && (
-            <Button onClick={onExport} variant="outline" className="h-9 px-4 rounded-xl font-bold text-xs bg-white text-slate-700 border-[#e5e5e5] hover:bg-slate-50 shadow-sm gap-2 transition-all hover:scale-[1.02] active:scale-95 group">
+            <Button onClick={onExport} variant="outline" className="h-9 px-4 rounded-xl font-bold text-xs bg-white text-slate-700 border-slate-200/60 hover:bg-slate-50 shadow-sm gap-2 transition-all hover:scale-[1.02] active:scale-95 group">
               <Download className="size-3.5 text-primary group-hover:translate-y-0.5 transition-transform duration-300" />
               <span>{exportLabel || "Export"}</span>
             </Button>
@@ -184,12 +184,12 @@ export function DataTable({
       <div className="overflow-x-auto overflow-y-auto max-h-[600px] scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent">
         <Table className="w-full table-fixed min-w-[900px]">
           <TableHeader>
-            <TableRow className="bg-white border-b border-[#e5e5e5]">
+            <TableRow className="bg-white border-b border-slate-200/60">
               {columns.map((col) => (
                 <TableHead
                   key={col.key}
                   onClick={() => !col.disableSort && handleSort(col.key)}
-                  className={`px-5 py-3.5 font-bold text-xs text-[#a3a3a3] select-none uppercase tracking-wider ${!col.disableSort ? 'cursor-pointer hover:text-slate-900 group' : ''} ${col.className}`}
+                  className={`px-5 py-3.5 font-bold text-xs text-slate-400 select-none uppercase tracking-wider ${!col.disableSort ? 'cursor-pointer hover:text-slate-900 group' : ''} ${col.className}`}
                 >
                   <div className={`flex items-center gap-1.5 w-full ${col.className?.includes("text-center") ? "justify-center" : ""} ${col.className?.includes("text-right") ? "justify-end" : ""}`}>
                     {col.label}
@@ -205,21 +205,21 @@ export function DataTable({
                   </div>
                 </TableHead>
               ))}
-              {actions && <TableHead className="px-5 py-3.5 font-bold text-xs text-[#a3a3a3] text-right uppercase tracking-wider">Aksi</TableHead>}
+              {actions && <TableHead className="px-5 py-3.5 font-bold text-xs text-slate-400 text-right uppercase tracking-wider">Aksi</TableHead>}
             </TableRow>
           </TableHeader>
           <TableBody>
             {loading ? (
               Array.from({ length: pageSize }).map((_, i) => (
-                <TableRow key={i} className="border-b border-[#f0f0f0]">
+                <TableRow key={i} className="border-b border-slate-100">
                   {columns.map((col) => (
                     <TableCell key={col.key} className="px-5 py-3.5">
-                      <div className="h-4 bg-[#f5f5f5] rounded animate-pulse" />
+                      <div className="h-4 bg-slate-50 rounded animate-pulse" />
                     </TableCell>
                   ))}
                   {actions && (
                     <TableCell className="px-5 py-3.5 text-right">
-                      <div className="h-4 bg-[#f5f5f5] rounded w-8 ml-auto animate-pulse" />
+                      <div className="h-4 bg-slate-50 rounded w-8 ml-auto animate-pulse" />
                     </TableCell>
                   )}
                 </TableRow>
@@ -233,7 +233,7 @@ export function DataTable({
                   >
                     {columns.map((col) => (
                       <TableCell key={col.key} className={cn("px-5 py-3.5 font-body", col.cellClassName)}>
-                        {col.render ? col.render(row[col.key], row, (currentPage - 1) * pageSize + i) : <span className="text-sm font-bold text-[#525252]">{row[col.key] || "-"}</span>}
+                        {col.render ? col.render(row[col.key], row, (currentPage - 1) * pageSize + i) : <span className="text-sm font-bold text-slate-600">{row[col.key] || "-"}</span>}
                       </TableCell>
                     ))}
                     {actions && (
@@ -267,8 +267,8 @@ export function DataTable({
                       <span className="material-symbols-outlined" style={{ fontSize: "22px" }} >search</span>
                     </div>
                     <div className="space-y-1">
-                      <p className="font-bold text-sm text-[#171717]">Data Tidak Ditemukan</p>
-                      <p className="text-xs text-[#a3a3a3]">Coba ubah kata kunci atau filter pencarian Anda</p>
+                      <p className="font-bold text-sm text-slate-900">Data Tidak Ditemukan</p>
+                      <p className="text-xs text-slate-400">Coba ubah kata kunci atau filter pencarian Anda</p>
                     </div>
                   </div>
                 </TableCell>

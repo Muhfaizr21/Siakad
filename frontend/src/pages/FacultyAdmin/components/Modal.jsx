@@ -45,21 +45,21 @@ export function Modal({ open, onClose, title, subtitle, icon, children, maxWidth
         )}
       >
         {/* Header */}
-        <div className="flex justify-between items-center px-6 py-5 border-b border-[#e5e5e5] shrink-0">
+        <div className="flex justify-between items-center px-6 py-5 border-b border-slate-200/60 shrink-0">
           <div className="flex items-center gap-3">
             {icon && (
-              <div className="w-10 h-10 bg-[#eef4ff] rounded-xl flex items-center justify-center text-[#00236F] shrink-0">
+              <div className="w-10 h-10 bg-[#eef4ff] rounded-xl flex items-center justify-center text-primary shrink-0">
                 {icon}
               </div>
             )}
             <div>
-              {title && <h2 className="text-lg font-extrabold text-[#171717]">{title}</h2>}
-              {subtitle && <p className="text-xs text-[#a3a3a3] font-medium mt-0.5">{subtitle}</p>}
+              {title && <h2 className="text-lg font-extrabold text-slate-900">{title}</h2>}
+              {subtitle && <p className="text-xs text-slate-400 font-medium mt-0.5">{subtitle}</p>}
             </div>
           </div>
           <button
             onClick={onClose}
-            className="text-[#a3a3a3] hover:text-[#171717] transition-colors p-1 rounded-lg hover:bg-[#f5f5f5]"
+            className="text-slate-400 hover:text-slate-900 transition-colors p-1 rounded-lg hover:bg-slate-50"
           >
             <span className="material-symbols-outlined" style={{ fontSize: '20px' }} >close</span>
           </button>
@@ -80,7 +80,7 @@ export function Modal({ open, onClose, title, subtitle, icon, children, maxWidth
 export function ModalFooter({ children, className }) {
   return (
     <div className={cn(
-      'px-6 py-4 border-t border-[#e5e5e5] flex items-center justify-end gap-3 bg-[#fafafa] rounded-b-2xl shrink-0',
+      'px-6 py-4 border-t border-slate-200/60 flex items-center justify-end gap-3 bg-slate-50/50 rounded-b-2xl shrink-0',
       className
     )}>
       {children}
@@ -105,10 +105,10 @@ export function ModalBody({ children, className }) {
 export function ModalBtn({ variant = 'default', children, className, ...props }) {
   const base = 'px-5 py-2 rounded-xl font-bold text-sm transition-colors disabled:opacity-50 flex items-center gap-1.5'
   const variants = {
-    default:   'bg-[#00236F] text-white hover:bg-[#0B4FAE]',
-    outline:   'border border-[#e5e5e5] text-[#525252] bg-white hover:bg-[#f5f5f5]',
+    default:   'bg-primary text-white hover:bg-[#0B4FAE]',
+    outline:   'border border-slate-200/60 text-slate-600 bg-white hover:bg-slate-50',
     danger:    'border border-[#fecaca] text-[#dc2626] bg-white hover:bg-[#fef2f2]',
-    ghost:     'text-[#525252] hover:bg-[#f5f5f5]',
+    ghost:     'text-slate-600 hover:bg-slate-50',
     success:   'bg-[#16a34a] text-white hover:bg-[#15803d]',
   }
   return (

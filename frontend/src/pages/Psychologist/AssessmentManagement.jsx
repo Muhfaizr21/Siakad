@@ -61,13 +61,13 @@ export default function AssessmentManagement() {
   });
 
   return (
-    <div className="bg-[#F8FAFC] text-slate-900 h-screen font-body overflow-hidden">
+    <div className="min-h-screen bg-[#F8FAFC] text-slate-900 font-body">
       <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
       
-      <main className="lg:ml-64 h-full flex flex-col transition-all duration-300 overflow-hidden">
+      <main className="lg:ml-64 transition-all duration-300">
         <TopNavBar setIsOpen={setSidebarOpen} />
         
-        <div className="flex-1 overflow-y-auto overflow-x-hidden pt-24 px-6 lg:px-10 pb-12 w-full relative space-y-8 scroll-smooth">
+        <div className="pt-24 px-6 lg:px-10 pb-12 w-full relative space-y-8 scroll-smooth">
           
           {/* Welcome Banner Card (White-to-Blue Gradient) */}
           <section className="relative overflow-hidden rounded-[2.5rem] bg-gradient-to-r from-white via-slate-50/50 to-blue-50/20 border border-slate-100 p-8 shadow-sm flex flex-col gap-6 group">
@@ -167,8 +167,12 @@ export default function AssessmentManagement() {
                    <div className="space-y-3.5">
                       {filteredSubmissions.length > 0 ? filteredSubmissions.map((sub) => (
                         <div key={sub.id} className="flex items-center gap-4 p-4 rounded-2xl bg-slate-50/50 border border-slate-100 hover:bg-white hover:shadow-md hover:border-slate-200/50 transition-all duration-300 group">
-                           <div className={`w-11 h-11 rounded-[1.25rem] ${sub.color || 'bg-primary'} text-white flex items-center justify-center font-black text-xs group-hover:scale-105 transition-transform duration-300 shrink-0 shadow-sm`}>
-                              {sub.name.split(' ').slice(0, 2).map(n => n[0]).join('').toUpperCase()}
+                           <div className={`w-11 h-11 rounded-[1.25rem] ${sub.color || 'bg-primary'} text-white flex items-center justify-center font-black text-xs group-hover:scale-105 transition-transform duration-300 shrink-0 shadow-sm overflow-hidden relative`}>
+                              {sub.foto_url || sub.foto ? (
+                                <img src={sub.foto_url || sub.foto} alt={sub.name} className="w-full h-full object-cover" />
+                              ) : (
+                                <span className="material-symbols-outlined text-white/80" style={{ fontSize: '24px' }}>person</span>
+                              )}
                            </div>
                            <div className="flex-1 min-w-0">
                               <h5 className="text-xs font-bold text-slate-900 truncate leading-snug">{sub.name}</h5>

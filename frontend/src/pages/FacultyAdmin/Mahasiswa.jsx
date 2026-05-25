@@ -346,7 +346,7 @@ export default function MahasiswaPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] font-body">
+    <div className="min-h-screen bg-[#F8FAFC] font-body">
       <Toaster position="top-right" />
       <div className="max-w-[1600px] mx-auto px-4 py-8 md:px-8 xl:px-12 space-y-6">
 
@@ -366,7 +366,7 @@ export default function MahasiswaPage() {
             <div className="space-y-1">
               <div className="flex items-center gap-2 mb-2">
                 <div className="h-4 w-1.5 bg-primary rounded-full" />
-                <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#a3a3a3]">Data Akademik</span>
+                <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">Data Akademik</span>
               </div>
               <h1 className="text-3xl font-extrabold text-slate-900 font-headline tracking-tight leading-tight">
                 Database <span className="text-primary">Mahasiswa</span>
@@ -379,7 +379,7 @@ export default function MahasiswaPage() {
               <button
                 onClick={exportStudentsPDF}
                 disabled={loading || studentData.length === 0}
-                className="h-11 px-5 rounded-xl border border-[#e5e5e5] bg-white text-xs font-bold uppercase tracking-widest text-[#525252] hover:bg-[#fafafa] gap-2 flex items-center transition-all active:scale-95 shadow-sm disabled:opacity-50"
+                className="h-11 px-5 rounded-xl border border-slate-200/60 bg-white text-xs font-bold uppercase tracking-widest text-slate-600 hover:bg-slate-50/50 gap-2 flex items-center transition-all active:scale-95 shadow-sm disabled:opacity-50"
               >
                 <FileText size={14} className="text-primary" />
                 Ekspor PDF
@@ -387,7 +387,7 @@ export default function MahasiswaPage() {
               <button
                 onClick={handleSync}
                 disabled={isSyncing}
-                className="h-11 px-6 rounded-xl border border-[#e5e5e5] bg-white text-xs font-bold uppercase tracking-widest text-[#525252] hover:bg-[#fafafa] gap-2 flex items-center transition-all active:scale-95 shadow-sm disabled:opacity-60"
+                className="h-11 px-6 rounded-xl border border-slate-200/60 bg-white text-xs font-bold uppercase tracking-widest text-slate-600 hover:bg-slate-50/50 gap-2 flex items-center transition-all active:scale-95 shadow-sm disabled:opacity-60"
               >
                 {isSyncing ? <span className="material-symbols-outlined animate-spin text-primary" style={{ fontSize: '14px' }} >sync</span> : <RefreshCw size={14} className="text-primary" />}
                 {isSyncing ? 'Syncing...' : 'PDDIKTI Sync'}
@@ -399,51 +399,51 @@ export default function MahasiswaPage() {
         {/* ── Stat Cards ── */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {[
-            { label: 'Total Mahasiswa', value: stats.total, icon: Users, bg: 'bg-[#eef4ff]', color: 'text-[#00236F]', desc: 'Terdaftar di sistem' },
+            { label: 'Total Mahasiswa', value: stats.total, icon: Users, bg: 'bg-[#eef4ff]', color: 'text-primary', desc: 'Terdaftar di sistem' },
             { label: 'Aktif', value: stats.aktif, icon: UserCheck, bg: 'bg-emerald-50', color: 'text-emerald-600', desc: 'Sedang aktif kuliah' },
             { label: 'Lulus', value: stats.lulus, icon: GraduationCap, bg: 'bg-sky-50', color: 'text-sky-600', desc: 'Telah menyelesaikan studi' },
             { label: 'Cuti', value: stats.cuti, icon: Calendar, bg: 'bg-amber-50', color: 'text-amber-600', desc: 'Sedang dalam masa cuti' },
           ].map(s => (
-            <div key={s.label} className="bg-surface-container-lowest border border-outline-variant/10 rounded-3xl p-5 shadow-sm">
+            <div key={s.label} className="bg-white border border-slate-100/50 rounded-3xl p-5 shadow-sm">
               <div className="flex items-center gap-3 mb-3">
                 <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0', s.bg, s.color)}>
                   <s.icon size={18} />
                 </div>
-                <span className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-widest">{s.label}</span>
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{s.label}</span>
               </div>
-              <p className="text-2xl font-extrabold text-[#171717] leading-none tabular-nums">
+              <p className="text-2xl font-extrabold text-slate-900 leading-none tabular-nums">
                 {loading ? <span className="material-symbols-outlined animate-spin text-slate-300" style={{ fontSize: '18px' }} >sync</span> : s.value}
               </p>
-              <p className="text-xs text-[#a3a3a3] font-medium mt-1">{s.desc}</p>
+              <p className="text-xs text-slate-400 font-medium mt-1">{s.desc}</p>
             </div>
           ))}
         </div>
 
         {/* ── Table Card ── */}
-        <div className="bg-surface-container-lowest border border-outline-variant/10 rounded-3xl shadow-sm overflow-hidden">
+        <div className="bg-white border border-slate-100/50 rounded-3xl shadow-sm overflow-hidden">
           {/* Toolbar */}
-          <div className="px-5 py-4 border-b border-[#f0f0f0] flex flex-col sm:flex-row items-start sm:items-center gap-3">
+          <div className="px-5 py-4 border-b border-slate-100 flex flex-col sm:flex-row items-start sm:items-center gap-3">
             <div className="flex-1">
-              <h2 className="font-bold text-base text-[#171717]">Daftar Mahasiswa</h2>
-              <p className="text-xs text-[#737373] mt-0.5">
-                Menampilkan <span className="font-bold text-[#171717]">{filtered.length}</span> dari <span className="font-bold text-primary">{studentData.length}</span> mahasiswa
+              <h2 className="font-bold text-base text-slate-900">Daftar Mahasiswa</h2>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Menampilkan <span className="font-bold text-slate-900">{filtered.length}</span> dari <span className="font-bold text-primary">{studentData.length}</span> mahasiswa
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
               <div className="relative">
-                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#a3a3a3]" style={{ fontSize: '14px' }} >search</span>
+                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" style={{ fontSize: '14px' }} >search</span>
                 <input
                   type="text"
                   placeholder="Cari NIM, nama, prodi..."
                   value={search}
                   onChange={e => setSearch(e.target.value)}
-                  className="pl-9 pr-4 h-9 w-56 rounded-xl border border-[#e5e5e5] focus:outline-none focus:border-primary text-sm bg-white"
+                  className="pl-9 pr-4 h-9 w-56 rounded-xl border border-slate-200/60 focus:outline-none focus:border-primary text-sm bg-white"
                 />
               </div>
               <select
                 value={filterStatus}
                 onChange={e => setFilterStatus(e.target.value)}
-                className="h-9 pl-3 pr-8 rounded-xl border border-[#e5e5e5] text-xs font-medium bg-white text-[#525252] focus:outline-none focus:border-primary appearance-none cursor-pointer"
+                className="h-9 pl-3 pr-8 rounded-xl border border-slate-200/60 text-xs font-medium bg-white text-slate-600 focus:outline-none focus:border-primary appearance-none cursor-pointer"
               >
                 <option value="all">Semua Status</option>
                 {statusList.map(s => <option key={s} value={s}>{s}</option>)}
@@ -461,7 +461,7 @@ export default function MahasiswaPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-left">
               <thead>
-                <tr className="border-b border-[#e5e5e5]">
+                <tr className="border-b border-slate-200/60">
                   {[
                     {label: 'No', key: null, sortable: false},
                     { label: 'NIM', key: 'NIM', sortable: true },
@@ -475,7 +475,7 @@ export default function MahasiswaPage() {
                       key={h.label}
                       onClick={() => h.sortable && handleSort(h.key)}
                       className={cn(
-                        'px-5 py-3.5 text-xs font-bold text-[#a3a3a3] uppercase tracking-wider select-none',
+                        'px-5 py-3.5 text-xs font-bold text-slate-400 uppercase tracking-wider select-none',
                         h.sortable && 'cursor-pointer hover:text-slate-900 group',
                         h.className
                       )}
@@ -501,9 +501,9 @@ export default function MahasiswaPage() {
               <tbody>
                 {loading ? (
                   Array.from({ length: pageSize }).map((_, i) => (
-                    <tr key={i} className="border-b border-[#f0f0f0]">
+                    <tr key={i} className="border-b border-slate-100">
                       {[...Array(7)].map((__, j) => (
-                        <td key={j} className="px-5 py-4"><div className="h-4 bg-[#f5f5f5] rounded animate-pulse" /></td>
+                        <td key={j} className="px-5 py-4"><div className="h-4 bg-slate-50 rounded animate-pulse" /></td>
                       ))}
                     </tr>
                   ))
@@ -514,8 +514,8 @@ export default function MahasiswaPage() {
                         <div className="w-12 h-12 bg-[#eef4ff] rounded-2xl flex items-center justify-center text-primary">
                           <span className="material-symbols-outlined" style={{ fontSize: '22px' }} >group</span>
                         </div>
-                        <p className="font-bold text-sm text-[#171717]">Tidak Ada Data</p>
-                        <p className="text-xs text-[#a3a3a3]">Coba ubah filter atau kata kunci pencarian.</p>
+                        <p className="font-bold text-sm text-slate-900">Tidak Ada Data</p>
+                        <p className="text-xs text-slate-400">Coba ubah filter atau kata kunci pencarian.</p>
                       </div>
                     </td>
                   </tr>
@@ -523,7 +523,7 @@ export default function MahasiswaPage() {
                   const st = STATUS_STYLES[row.StatusAkun] || STATUS_STYLES['Non-Aktif']
                   return (
                     <tr key={row.ID || i} className="border-b border-[#f5f5f5] hover:bg-[#fafbff] transition-colors">
-                      <td className="px-5 py-3.5 text-sm text-[#a3a3a3] font-medium">{(currentPage - 1) * pageSize + i + 1}</td>
+                      <td className="px-5 py-3.5 text-sm text-slate-400 font-medium">{(currentPage - 1) * pageSize + i + 1}</td>
                       <td className="px-5 py-3.5">
                         <code className="text-[11px] font-bold text-primary tracking-wide bg-[#eff6ff] px-2 py-1 rounded-lg border border-[#dbeafe]">
                           {row.NIM || '—'}
@@ -533,16 +533,16 @@ export default function MahasiswaPage() {
                         <div className="flex items-center gap-3">
                           <StudentAvatar src={row.Foto} name={row.Nama} className="w-9 h-9 rounded-xl" />
                           <div>
-                            <p className="font-bold text-sm text-[#171717] leading-snug">{row.Nama}</p>
-                            <p className="text-[10px] text-[#a3a3a3] font-medium">{row.TahunMasuk} · {row.JalurMasuk}</p>
+                            <p className="font-bold text-sm text-slate-900 leading-snug">{row.Nama}</p>
+                            <p className="text-[10px] text-slate-400 font-medium">{row.TahunMasuk} · {row.JalurMasuk}</p>
                           </div>
                         </div>
                       </td>
                       <td className="px-5 py-3.5">
-                        <p className="text-sm text-[#525252] font-medium">{row.ProgramStudi}</p>
+                        <p className="text-sm text-slate-600 font-medium">{row.ProgramStudi}</p>
                       </td>
                       <td className="px-5 py-3.5 text-center">
-                        <span className="text-sm font-black text-[#171717] tabular-nums">
+                        <span className="text-sm font-black text-slate-900 tabular-nums">
                           {row.SemesterSekarang ?? '—'}
                         </span>
                       </td>
@@ -555,7 +555,7 @@ export default function MahasiswaPage() {
                       <td className="px-5 py-3.5 text-center">
                         <button
                           onClick={() => setSelected(row)}
-                          className="p-1.5 text-[#a3a3a3] hover:text-primary hover:bg-[#eef4ff] rounded-lg transition-colors"
+                          className="p-1.5 text-slate-400 hover:text-primary hover:bg-[#eef4ff] rounded-lg transition-colors"
                           title="Lihat Detail"
                         >
                           <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >visibility</span>
@@ -717,9 +717,9 @@ export default function MahasiswaPage() {
             </div>
 
             {/* Footer */}
-            <div className="px-5 py-4 border-t border-[#f0f0f0] bg-[#fafafa] flex gap-3 flex-shrink-0">
+            <div className="px-5 py-4 border-t border-slate-100 bg-slate-50/50 flex gap-3 flex-shrink-0">
               <button onClick={() => setSelected(null)}
-                className="flex-1 h-11 rounded-xl border border-[#e5e5e5] bg-white text-xs font-bold text-[#525252] uppercase tracking-widest hover:bg-[#f5f5f5] transition-all active:scale-95">
+                className="flex-1 h-11 rounded-xl border border-slate-200/60 bg-white text-xs font-bold text-slate-600 uppercase tracking-widest hover:bg-slate-50 transition-all active:scale-95">
                 Tutup
               </button>
 
@@ -733,12 +733,12 @@ export default function MahasiswaPage() {
 
 function SectionBlock({ icon: Icon, title, children, last = false }) {
   return (
-    <div className={cn('p-5', !last && 'border-b border-[#f0f0f0]')}>
+    <div className={cn('p-5', !last && 'border-b border-slate-100')}>
       <div className="flex items-center gap-2 mb-3">
         <div className="w-5 h-5 rounded-md bg-[#eef4ff] flex items-center justify-center">
-          <Icon size={11} className="text-[#00236F]" />
+          <Icon size={11} className="text-primary" />
         </div>
-        <h3 className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-[0.18em]">{title}</h3>
+        <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.18em]">{title}</h3>
       </div>
       <div className="space-y-1">{children}</div>
     </div>
@@ -748,13 +748,13 @@ function SectionBlock({ icon: Icon, title, children, last = false }) {
 function InfoCard({ icon: Icon, label, value, accent = 'border-l-slate-300', mono = false }) {
   const empty = !value || value === '—'
   return (
-    <div className={cn('flex items-center gap-3 p-3 rounded-xl bg-[#fafafa] border border-[#f0f0f0] border-l-4 hover:bg-white hover:border-[#e5e5e5] transition-all', accent)}>
-      <div className="w-7 h-7 bg-white rounded-lg flex items-center justify-center text-[#00236F] shadow-sm border border-[#f0f0f0] flex-shrink-0">
+    <div className={cn('flex items-center gap-3 p-3 rounded-xl bg-slate-50/50 border border-slate-100 border-l-4 hover:bg-white hover:border-slate-200/60 transition-all', accent)}>
+      <div className="w-7 h-7 bg-white rounded-lg flex items-center justify-center text-primary shadow-sm border border-slate-100 flex-shrink-0">
         <Icon size={13} />
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-[9px] font-bold text-[#a3a3a3] uppercase tracking-[0.15em] mb-0.5">{label}</p>
-        <p className={cn('text-sm font-semibold text-[#171717] truncate', mono && 'font-mono text-xs', empty && 'text-[#c4c4c4] italic text-xs')}>
+        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.15em] mb-0.5">{label}</p>
+        <p className={cn('text-sm font-semibold text-slate-900 truncate', mono && 'font-mono text-xs', empty && 'text-[#c4c4c4] italic text-xs')}>
           {empty ? 'Belum diisi' : value}
         </p>
       </div>

@@ -91,7 +91,7 @@ export default function TahunAkademikPage() {
   const current = data[0]
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] font-body">
+    <div className="min-h-screen bg-[#F8FAFC] font-body">
       <Toaster position="top-right" />
       <div className="max-w-[1600px] mx-auto px-4 py-8 md:px-8 xl:px-12 space-y-6">
 
@@ -111,7 +111,7 @@ export default function TahunAkademikPage() {
             <div>
               <div className="flex items-center gap-2 mb-2">
                 <div className="h-4 w-1.5 bg-primary rounded-full" />
-                <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#a3a3a3]">Manajemen Kalender Hub</span>
+                <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">Manajemen Kalender Hub</span>
               </div>
               <h1 className="text-3xl font-extrabold text-slate-900 font-headline tracking-tight leading-tight">
                 Periode <span className="text-primary">Akademik</span>
@@ -122,7 +122,7 @@ export default function TahunAkademikPage() {
             </div>
             <div className="flex items-center gap-3">
               <button onClick={fetchData} disabled={loading}
-                className="h-11 px-5 rounded-xl border border-[#e5e5e5] bg-white text-xs font-bold uppercase tracking-widest text-[#525252] hover:bg-[#fafafa] gap-2 flex items-center transition-all active:scale-95 shadow-sm disabled:opacity-60">
+                className="h-11 px-5 rounded-xl border border-slate-200/60 bg-white text-xs font-bold uppercase tracking-widest text-slate-600 hover:bg-slate-50/50 gap-2 flex items-center transition-all active:scale-95 shadow-sm disabled:opacity-60">
                 {loading ? <span className="material-symbols-outlined animate-spin text-primary" style={{ fontSize: '14px' }} >sync</span> : <RefreshCw size={14} className="text-primary" />} Refresh
               </button>
             </div>
@@ -132,30 +132,30 @@ export default function TahunAkademikPage() {
         {/* Stats */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {[
-            { label: 'Siklus Aktif',  value: current?.activeYear || 'IDLE',     icon: CalendarDays, bg: 'bg-[#eef4ff]',  color: 'text-[#00236F]',   desc: 'Tahun akademik berjalan' },
+            { label: 'Siklus Aktif',  value: current?.activeYear || 'IDLE',     icon: CalendarDays, bg: 'bg-[#eef4ff]',  color: 'text-primary',   desc: 'Tahun akademik berjalan' },
             { label: 'Semester',      value: current?.activeSemester || '—',     icon: Clock,        bg: 'bg-emerald-50', color: 'text-emerald-600', desc: 'Periode semester saat ini' },
             { label: 'Portal Beasiswa', value: current?.isKrsOpen ? 'OPEN' : 'CLOSED', icon: Award, bg: current?.isKrsOpen ? 'bg-emerald-50' : 'bg-slate-50', color: current?.isKrsOpen ? 'text-emerald-600' : 'text-slate-500', desc: 'Akses pendaftaran beasiswa' },
           ].map(s => (
-            <div key={s.label} className="bg-surface-container-lowest border border-outline-variant/10 rounded-3xl p-5 shadow-sm">
+            <div key={s.label} className="bg-white border border-slate-100/50 rounded-3xl p-5 shadow-sm">
               <div className="flex items-center gap-3 mb-3">
                 <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center', s.bg, s.color)}><s.icon size={18} /></div>
-                <span className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-widest">{s.label}</span>
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{s.label}</span>
               </div>
-              <p className="text-xl font-extrabold text-[#171717] leading-none tabular-nums uppercase">
+              <p className="text-xl font-extrabold text-slate-900 leading-none tabular-nums uppercase">
                 {loading ? <span className="material-symbols-outlined animate-spin text-slate-300" style={{ fontSize: '18px' }} >sync</span> : s.value}
               </p>
-              <p className="text-xs text-[#a3a3a3] font-medium mt-1">{s.desc}</p>
+              <p className="text-xs text-slate-400 font-medium mt-1">{s.desc}</p>
             </div>
           ))}
         </div>
 
         {/* Current Period Card */}
         {current && !loading && (
-          <div className="bg-surface-container-lowest border border-outline-variant/10 rounded-3xl shadow-sm overflow-hidden">
-            <div className="px-5 py-4 border-b border-[#f0f0f0] flex items-center justify-between">
+          <div className="bg-white border border-slate-100/50 rounded-3xl shadow-sm overflow-hidden">
+            <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
               <div>
-                <h2 className="font-bold text-base text-[#171717]">Periode Aktif Saat Ini</h2>
-                <p className="text-xs text-[#737373] mt-0.5">Konfigurasi semester yang sedang berjalan (Read-Only)</p>
+                <h2 className="font-bold text-base text-slate-900">Periode Aktif Saat Ini</h2>
+                <p className="text-xs text-slate-500 mt-0.5">Konfigurasi semester yang sedang berjalan (Read-Only)</p>
               </div>
             </div>
             <div className="p-6 grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -165,11 +165,11 @@ export default function TahunAkademikPage() {
                 { label: 'Portal Beasiswa', value: current.isKrsOpen    ? 'TERBUKA' : 'TERTUTUP', ok: current.isKrsOpen },
                 { label: 'Layanan Aspirasi', value: current.isGradeInputOpen ? 'TERBUKA' : 'TERTUTUP', ok: current.isGradeInputOpen },
               ].map(item => (
-                <div key={item.label} className="bg-[#fafafa] border border-[#f0f0f0] rounded-xl p-4">
-                  <p className="text-[9px] font-bold text-[#a3a3a3] uppercase tracking-[0.15em] mb-1">{item.label}</p>
+                <div key={item.label} className="bg-slate-50/50 border border-slate-100 rounded-xl p-4">
+                  <p className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.15em] mb-1">{item.label}</p>
                   <p className={cn('text-sm font-extrabold uppercase',
                     item.ok === true  ? 'text-emerald-600' :
-                    item.ok === false ? 'text-rose-500'    : 'text-[#171717]')}>
+                    item.ok === false ? 'text-rose-500'    : 'text-slate-900')}>
                     {item.value || '—'}
                   </p>
                 </div>
@@ -180,11 +180,11 @@ export default function TahunAkademikPage() {
 
         {/* Empty state */}
         {!loading && data.length === 0 && (
-          <div className="bg-white rounded-2xl border border-[#e5e5e5] shadow-sm p-16 text-center">
+          <div className="bg-white rounded-2xl border border-slate-200/60 shadow-sm p-16 text-center">
             <div className="flex flex-col items-center gap-3">
               <div className="w-16 h-16 bg-[#eef4ff] rounded-2xl flex items-center justify-center text-primary"><span className="material-symbols-outlined" style={{ fontSize: '28px' }} >calendar_month</span></div>
-              <p className="font-bold text-lg text-[#171717]">Belum Ada Periode Akademik</p>
-              <p className="text-sm text-[#a3a3a3]">Silakan hubungi Super Admin untuk menginisialisasi periode semester aktif.</p>
+              <p className="font-bold text-lg text-slate-900">Belum Ada Periode Akademik</p>
+              <p className="text-sm text-slate-400">Silakan hubungi Super Admin untuk menginisialisasi periode semester aktif.</p>
             </div>
           </div>
         )}

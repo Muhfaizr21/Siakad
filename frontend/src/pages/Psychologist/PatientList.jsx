@@ -12,6 +12,16 @@ export default function PatientList() {
   const navigate = useNavigate();
 
   const [patients, setPatients] = useState([]);
+  const [filterStatus, setFilterStatus] = useState('Semua Status');
+  const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+
+  const handleSort = (key) => {
+    let direction = 'asc';
+    if (sortConfig.key === key && sortConfig.direction === 'asc') direction = 'desc';
+    setSortConfig({ key, direction });
+  };
 
   useEffect(() => {
     let ignore = false;
@@ -21,10 +31,30 @@ export default function PatientList() {
     return () => { ignore = true; };
   }, []);
 
-  const filteredPatients = useMemo(() => patients.filter((patient) => {
-    const query = searchQuery.toLowerCase();
-    return patient.name.toLowerCase().includes(query) || patient.nim.includes(searchQuery);
-  }), [patients, searchQuery]);
+  const filteredAndSortedPatients = useMemo(() => {
+    let result = [...patients];
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter(p => p.name.toLowerCase().includes(query) || p.nim.includes(searchQuery));
+    }
+    if (filterStatus !== 'Semua Status') {
+      result = result.filter(p => p.status === filterStatus);
+    }
+    if (sortConfig.key) {
+      result.sort((a, b) => {
+        let valA = a[sortConfig.key];
+        let valB = b[sortConfig.key];
+        if (sortConfig.key === 'sessions') { valA = Number(valA); valB = Number(valB); }
+        if (valA < valB) return sortConfig.direction === 'asc' ? -1 : 1;
+        if (valA > valB) return sortConfig.direction === 'asc' ? 1 : -1;
+        return 0;
+      });
+    }
+    return result;
+  }, [patients, searchQuery, filterStatus, sortConfig]);
+
+  const totalPages = Math.ceil(filteredAndSortedPatients.length / pageSize);
+  const paginatedPatients = filteredAndSortedPatients.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -36,13 +66,13 @@ export default function PatientList() {
   };
 
   return (
-    <div className="bg-[#F8FAFC] text-slate-900 h-screen font-body overflow-hidden">
+    <div className="min-h-screen bg-[#F8FAFC] text-slate-900 font-body">
       <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
       
-      <main className="lg:ml-64 h-full flex flex-col transition-all duration-300 overflow-hidden">
+      <main className="lg:ml-64 transition-all duration-300">
         <TopNavBar setIsOpen={setSidebarOpen} />
         
-        <div className="flex-1 overflow-y-auto overflow-x-hidden pt-24 px-6 lg:px-10 pb-12 w-full relative space-y-8 scroll-smooth">
+        <div className="pt-24 px-6 lg:px-10 pb-12 w-full relative space-y-8 scroll-smooth">
           
           {/* Welcome Banner Card (Non-Dashboard -> White Gradient) */}
           <section className="relative overflow-hidden rounded-[2.5rem] bg-gradient-to-r from-white via-slate-50/50 to-blue-50/20 border border-slate-100 p-8 shadow-sm flex flex-col gap-6 group">
@@ -73,6 +103,16 @@ export default function PatientList() {
                     className="pl-11 pr-4 py-3 bg-white border border-slate-200/80 rounded-2xl text-xs font-bold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/5 w-full sm:w-72 transition-all shadow-sm"
                   />
                 </div>
+                <select
+                  value={filterStatus}
+                  onChange={(e) => { setFilterStatus(e.target.value); setCurrentPage(1); }}
+                  className="px-4 py-3 bg-white border border-slate-200/80 rounded-2xl text-xs font-bold text-slate-700 outline-none transition-all focus:border-primary shadow-sm shrink-0 cursor-pointer appearance-none pr-8"
+                >
+                  <option value="Semua Status">Semua Status</option>
+                  <option value="Stabil">Stabil</option>
+                  <option value="Perlu Perhatian">Perlu Perhatian</option>
+                  <option value="Pemulihan">Pemulihan</option>
+                </select>
                 <button className="flex items-center justify-center p-3 bg-white border border-slate-200/80 rounded-2xl text-slate-500 hover:text-primary hover:border-primary hover:bg-primary/5 transition-all shadow-sm shrink-0">
                   <span className="material-symbols-outlined text-lg">download</span>
                 </button>
@@ -89,20 +129,24 @@ export default function PatientList() {
                   <table className="w-full text-left">
                     <thead>
                       <tr className="border-b border-slate-100 text-left">
-                        <th className="pb-4 px-4 text-[9px] font-black text-slate-400 uppercase tracking-widest">Mahasiswa</th>
-                        <th className="pb-4 px-4 text-[9px] font-black text-slate-400 uppercase tracking-widest">Sesi</th>
+                        <th onClick={() => handleSort('name')} className="cursor-pointer hover:text-primary pb-4 px-4 text-[9px] font-black text-slate-400 uppercase tracking-widest"><div className="flex items-center gap-1">Mahasiswa <span className="text-[10px] opacity-50">{sortConfig.key === 'name' ? (sortConfig.direction === 'asc' ? '↑' : '↓') : '↕'}</span></div></th>
+                        <th onClick={() => handleSort('sessions')} className="cursor-pointer hover:text-primary pb-4 px-4 text-[9px] font-black text-slate-400 uppercase tracking-widest"><div className="flex items-center gap-1">Sesi <span className="text-[10px] opacity-50">{sortConfig.key === 'sessions' ? (sortConfig.direction === 'asc' ? '↑' : '↓') : '↕'}</span></div></th>
                         <th className="pb-4 px-4 text-[9px] font-black text-slate-400 uppercase tracking-widest">Kunjungan Terakhir</th>
-                        <th className="pb-4 px-4 text-[9px] font-black text-slate-400 uppercase tracking-widest">Status</th>
+                        <th onClick={() => handleSort('status')} className="cursor-pointer hover:text-primary pb-4 px-4 text-[9px] font-black text-slate-400 uppercase tracking-widest"><div className="flex items-center gap-1">Status <span className="text-[10px] opacity-50">{sortConfig.key === 'status' ? (sortConfig.direction === 'asc' ? '↑' : '↓') : '↕'}</span></div></th>
                         <th className="pb-4 px-4 text-[9px] font-black text-slate-400 uppercase tracking-widest text-right">Aksi</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-50">
-                      {filteredPatients.map((patient) => (
+                      {paginatedPatients.map((patient) => (
                         <tr key={patient.id} className="group hover:bg-slate-50/40 transition-colors">
                           <td className="py-4 px-4">
                             <div className="flex items-center gap-3.5">
-                              <div className={`w-11 h-11 rounded-[1.25rem] ${patient.color || 'bg-primary'} text-white flex items-center justify-center font-black text-xs shadow-sm group-hover:scale-105 transition-transform duration-300 shrink-0`}>
-                                {patient.name.split(' ').slice(0, 2).map(n => n[0]).join('').toUpperCase()}
+                              <div className={`w-11 h-11 rounded-[1.25rem] ${patient.color || 'bg-primary'} text-white flex items-center justify-center font-black text-xs shadow-sm group-hover:scale-105 transition-transform duration-300 shrink-0 overflow-hidden relative`}>
+                                {patient.foto_url || patient.foto ? (
+                                  <img src={patient.foto_url || patient.foto} alt={patient.name} className="w-full h-full object-cover" />
+                                ) : (
+                                  <span className="material-symbols-outlined text-white/80" style={{ fontSize: '24px' }}>person</span>
+                                )}
                               </div>
                               <div>
                                 <p className="text-sm font-bold text-slate-900 leading-snug">{patient.name}</p>
@@ -144,6 +188,25 @@ export default function PatientList() {
                       ))}
                     </tbody>
                   </table>
+                </div>
+                <div className="px-6 py-4 bg-slate-50/50 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4 rounded-b-[2rem]">
+                  <div className="flex items-center gap-4 text-xs font-bold text-slate-500">
+                    <div className="flex items-center gap-2">
+                      <span>Tampilkan:</span>
+                      <select value={pageSize} onChange={(e) => { setPageSize(Number(e.target.value)); setCurrentPage(1); }} className="p-1.5 rounded-lg bg-white border border-slate-200 outline-none">
+                        <option value={5}>5 Data</option>
+                        <option value={10}>10 Data</option>
+                        <option value={20}>20 Data</option>
+                      </select>
+                    </div>
+                    <span className="hidden sm:inline-block w-px h-4 bg-slate-300"></span>
+                    <span>Total: {filteredAndSortedPatients.length} Data</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button disabled={currentPage === 1} onClick={() => setCurrentPage(p => p - 1)} className="px-3 py-1.5 text-[10px] uppercase tracking-widest font-black rounded-lg bg-white border border-slate-200 text-slate-600 disabled:opacity-50 hover:bg-slate-50 transition-all">Prev</button>
+                    <span className="text-xs font-bold text-slate-600 px-2">Hal {currentPage} / {totalPages || 1}</span>
+                    <button disabled={currentPage === totalPages || totalPages === 0} onClick={() => setCurrentPage(p => p + 1)} className="px-3 py-1.5 text-[10px] uppercase tracking-widest font-black rounded-lg bg-white border border-slate-200 text-slate-600 disabled:opacity-50 hover:bg-slate-50 transition-all">Next</button>
+                  </div>
                 </div>
               </div>
             </div>
