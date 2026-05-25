@@ -13,7 +13,7 @@ import { Avatar, AvatarImage, AvatarFallback } from './components/ui/avatar'
 
 import { toast, Toaster } from 'react-hot-toast'
 import { cn } from '@/lib/utils'
-import { adminService } from '../../services/api'
+import { adminService, API_BASE_URL } from '../../services/api'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './components/ui/select'
 
 // Auto-injected Material Symbol fallbacks for removed Lucide icons
@@ -27,6 +27,39 @@ const ClipboardCheck = ({ size, className, ...props }) => <span className={`mate
 const Heart = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>favorite</span>;
 
 
+
+const getCleanImageUrl = (url) => {
+  if (!url) return ''
+  if (url.startsWith('http')) return url
+  const baseUrl = API_BASE_URL.replace('/api', '')
+  return `${baseUrl}${url.startsWith('/') ? '' : '/'}${url}`
+}
+
+function StudentAvatar({ src, name, className = "w-9 h-9 rounded-xl" }) {
+  const [loaded, setLoaded] = useState(false);
+  const [error, setError] = useState(false);
+  
+  const hasNoImage = !src || src.trim() === "" || src.endsWith("/profiles/") || src.endsWith("/students/") || src.endsWith("localhost:8000") || src.endsWith("localhost:8000/");
+
+  return (
+    <div className={cn("relative bg-slate-50 flex items-center justify-center shrink-0 border border-slate-200/40 shadow-inner overflow-hidden", className)}>
+      {(!loaded || error || hasNoImage) && (
+        <span className="material-symbols-outlined text-slate-400/80 block select-none leading-none absolute animate-in fade-in" style={{ fontSize: className.includes('w-28') ? '56px' : className.includes('w-14') ? '28px' : '20px' }}>
+          person
+        </span>
+      )}
+      {!hasNoImage && !error && (
+        <img
+          src={src}
+          alt={name}
+          className={cn("absolute inset-0 w-full h-full object-cover transition-opacity duration-200", loaded ? "opacity-100" : "opacity-0")}
+          onLoad={() => setLoaded(true)}
+          onError={() => setError(true)}
+        />
+      )}
+    </div>
+  );
+}
 
 export default function PsychologistDirectory() {
   const [data, setData] = useState([])
@@ -102,17 +135,11 @@ export default function PsychologistDirectory() {
       className: 'w-[300px]',
       render: (v, row) => (
         <div className="flex items-center gap-4 py-2 group/avatar">
-          <Avatar className="h-11 w-11 rounded-xl border-2 border-white shadow-md transition-all group-hover/avatar:scale-110 overflow-hidden">
-            {row.Foto || row.Pengguna?.Foto || row.foto || row.pengguna?.foto ? (
-              <AvatarImage src={row.Foto || row.Pengguna?.Foto || row.foto || row.pengguna?.foto} className="object-cover size-full" />
-            ) : (
-              <AvatarFallback className="bg-slate-100 flex items-end justify-center overflow-hidden size-full rounded-none">
-                <svg className="w-9 h-9 text-slate-400 translate-y-0.5" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0 1 12.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 1 1-8 0 4 4 0 0 1 8 0z" />
-                </svg>
-              </AvatarFallback>
-            )}
-          </Avatar>
+          <StudentAvatar
+            src={getCleanImageUrl(row.Foto || row.Pengguna?.Foto || row.foto || row.pengguna?.foto)}
+            name={v}
+            className="w-11 h-11 rounded-xl border-2 border-white shadow-md transition-all group-hover/avatar:scale-110"
+          />
           <div className="flex flex-col">
             <span className="font-bold text-neutral-900 font-jakarta tracking-tight text-[14px] leading-tight">
               {v ? v.toLowerCase().replace(/\b\w/g, s => s.toUpperCase()) : '—'}

@@ -28,6 +28,7 @@ const menuSections = [
       { name: 'Validasi Prestasi', path: '/faculty/prestasi', icon: 'emoji_events' },
       { name: 'Beasiswa Internal', path: '/faculty/beasiswa', icon: 'school' },
       { name: 'Jadwal Konseling', path: '/faculty/konseling', icon: 'calendar_month' },
+      { name: 'E-Persuratan', path: '/faculty/persuratan', icon: 'inbox' },
     ]
   },
   {
@@ -180,19 +181,13 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
         </nav>
 
         {/* Improved Logout Section */}
-        <div className="p-4 bg-white/80 backdrop-blur-xl border-t border-slate-100 shrink-0">
+        <div className="p-4 bg-white/80 backdrop-blur-xl border-t border-slate-100">
           <button
             onClick={handleLogout}
-            className="w-full flex items-center gap-3.5 px-4 py-2.5 rounded-2xl font-bold text-rose-600 hover:bg-rose-50/80 transition-all duration-300 group active:scale-[0.98]"
+            className="w-full h-12 flex items-center justify-center gap-3 rounded-2xl bg-rose-50 hover:bg-rose-600 group transition-all duration-300 active:scale-95 border border-rose-100/50"
           >
-            <div className="w-6 h-6 flex items-center justify-center shrink-0">
-              <span className="material-symbols-outlined text-rose-500/80 group-hover:text-rose-600 transition-all duration-300 group-hover:scale-110" style={{ fontSize: '20px' }}>
-                logout
-              </span>
-            </div>
-            <span className="text-[13px] tracking-tight flex-1 text-left font-bold text-rose-600/90 group-hover:text-rose-600 transition-colors duration-300">
-              Keluar
-            </span>
+            <span className="material-symbols-outlined size-4 text-rose-600 group-hover:text-white transition-colors" >logout</span>
+            <span className="text-[11px] font-black text-rose-600 group-hover:text-white uppercase tracking-widest transition-colors">KELUAR</span>
           </button>
         </div>
       </aside>

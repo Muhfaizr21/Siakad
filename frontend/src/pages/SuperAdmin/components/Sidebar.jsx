@@ -38,7 +38,6 @@ const menuGroups = [
     title: "Keamanan & Akses",
     items: [
       { name: "Kelola Akses (RBAC)", icon: 'security', path: "/admin/rbac" },
-      { name: "Performa Admin", icon: 'show_chart', path: "/admin/performance" },
     ]
   },
   {
