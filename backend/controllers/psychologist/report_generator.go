@@ -374,3 +374,239 @@ func truncate(s string, max int) string {
 	}
 	return s[:max-2] + ".."
 }
+
+// ─────────────────────────────────────────────────────────────────────────
+// REFERRAL PDF GENERATOR
+// ─────────────────────────────────────────────────────────────────────────
+
+type ReferralData struct {
+	ID            string
+	Psikolog      models.Psikolog
+	Mahasiswa     models.Mahasiswa
+	Tipe          string // Medis/Akademik
+	Alasan        string
+	PihakTujuan   string
+	EmailTujuan   string
+	TanggalDibuat time.Time
+}
+
+// GenerateReferralPDF membuat PDF surat rujukan dan menyimpannya ke disk
+func GenerateReferralPDF(data ReferralData) (string, string, error) {
+	pdf := gofpdf.New("P", "mm", "A4", "")
+	pdf.SetMargins(20, 20, 20)
+	pdf.AliasNbPages("")
+
+	// Define Header and Footer
+	pdf.SetHeaderFunc(func() {
+		// Draw thin primary line at top
+		pdf.SetFillColor(15, 23, 42) // Slate 900
+		pdf.Rect(0, 0, 210, 5, "F")
+	})
+
+	pdf.SetFooterFunc(func() {
+		pdf.SetY(-20)
+		pdf.SetFont("Helvetica", "I", 8)
+		pdf.SetTextColor(148, 163, 184) // Slate 400
+		pdf.CellFormat(170, 6, "Dokumen Rahasia BKU Care - Surat Rujukan", "", 0, "L", false, 0, "")
+		
+		// Page number on the right
+		pdf.SetX(-40)
+		pdf.CellFormat(20, 6, fmt.Sprintf("Halaman %d dari {nb}", pdf.PageNo()), "", 0, "R", false, 0, "")
+	})
+
+	pdf.AddPage()
+
+	// ── Corporate Header Banner ────────────────────────────────────────────────
+	pdf.SetFillColor(30, 41, 59) // Slate 800
+	pdf.Rect(20, 15, 170, 25, "F")
+
+	pdf.SetTextColor(255, 255, 255)
+	pdf.SetFont("Helvetica", "B", 14)
+	pdf.SetXY(25, 19)
+	pdf.Cell(160, 6, "SURAT RUJUKAN")
+
+	pdf.SetFont("Helvetica", "", 9)
+	pdf.SetXY(25, 26)
+	pdf.Cell(160, 5, fmt.Sprintf("BKU Care • Rujukan %s • Nomor: %s", data.Tipe, data.ID))
+	
+	pdf.SetXY(25, 31)
+	pdf.Cell(160, 5, fmt.Sprintf("Dibuat pada: %s", data.TanggalDibuat.Format("02 January 2006 15:04")))
+
+	// ── Kepada ────────────────────────────────────────────────────────────────
+	pdf.SetTextColor(15, 23, 42) // Slate 900
+	pdf.SetXY(20, 48)
+	pdf.SetFont("Helvetica", "B", 11)
+	pdf.Cell(170, 6, "KEPADA YTH:")
+	pdf.Ln(8)
+
+	pdf.SetFont("Helvetica", "", 10)
+	pdf.SetFillColor(248, 250, 252) // Slate 50
+	pdf.Rect(20, pdf.GetY(), 170, 20, "F")
+
+	infoY := pdf.GetY() + 3
+	pdf.SetXY(24, infoY)
+	pdf.CellFormat(160, 5, data.PihakTujuan, "", 0, "L", false, 0, "")
+	pdf.SetXY(24, infoY+6)
+	pdf.CellFormat(160, 5, fmt.Sprintf("Email: %s", data.EmailTujuan), "", 0, "L", false, 0, "")
+
+	pdf.SetY(pdf.GetY() + 25)
+
+	// ── Isi Surat ──────────────────────────────────────────────────────────────
+	pdf.SetFont("Helvetica", "", 10)
+	pdf.SetTextColor(15, 23, 42)
+	pdf.MultiCell(170, 5, "Dengan hormat,\n\nKami dari BKU Care Universitas dengan ini merujuk seorang mahasiswa untuk mendapatkan penanganan lebih lanjut.", "", "L", false)
+	pdf.Ln(8)
+
+	// ── Data Mahasiswa ─────────────────────────────────────────────────────────
+	pdf.SetFont("Helvetica", "B", 11)
+	pdf.CellFormat(170, 6, "DATA MAHASISWA:", "", 1, "L", false, 0, "")
+	pdf.Ln(4)
+
+	pdf.SetFont("Helvetica", "B", 9)
+	pdf.SetFillColor(30, 41, 59)
+	pdf.SetTextColor(255, 255, 255)
+	pdf.SetDrawColor(226, 232, 240)
+	
+	pdf.CellFormat(85, 7, " Informasi", "1", 0, "L", true, 0, "")
+	pdf.CellFormat(85, 7, "Detail", "1", 1, "L", true, 0, "")
+
+	pdf.SetFont("Helvetica", "", 9)
+	pdf.SetTextColor(15, 23, 42)
+	
+	fields := []struct {
+		label string
+		value string
+	}{
+		{"Nama", data.Mahasiswa.Nama},
+		{"NIM", data.Mahasiswa.NIM},
+		{"Email", data.Mahasiswa.EmailKampus},
+		{"No. HP", data.Mahasiswa.NoHP},
+		{"Program Studi", data.Mahasiswa.ProgramStudi.Nama},
+		{"Fakultas", data.Mahasiswa.Fakultas.Nama},
+		{"Semester", fmt.Sprintf("%d", data.Mahasiswa.SemesterSekarang)},
+	}
+
+	for i, field := range fields {
+		if i%2 == 0 {
+			pdf.SetFillColor(248, 250, 252)
+		} else {
+			pdf.SetFillColor(255, 255, 255)
+		}
+		pdf.CellFormat(85, 6, " "+field.label, "1", 0, "L", true, 0, "")
+		pdf.CellFormat(85, 6, field.value, "1", 1, "L", true, 0, "")
+	}
+
+	pdf.Ln(8)
+
+	// ── Alasan Rujukan ─────────────────────────────────────────────────────────
+	pdf.SetFont("Helvetica", "B", 11)
+	pdf.Cell(170, 6, "ALASAN RUJUKAN:")
+	pdf.Ln(8)
+
+	pdf.SetFont("Helvetica", "", 10)
+	pdf.SetFillColor(248, 250, 252)
+	pdf.Rect(20, pdf.GetY(), 170, 30, "F")
+	pdf.SetXY(24, pdf.GetY()+3)
+	pdf.MultiCell(162, 5, data.Alasan, "", "L", false)
+
+	pdf.Ln(8)
+
+	// ── Tipe Rujukan ───────────────────────────────────────────────────────────
+	pdf.SetFont("Helvetica", "B", 11)
+	pdf.CellFormat(170, 6, "TIPE RUJUKAN:", "", 1, "L", false, 0, "")
+	pdf.Ln(2)
+
+	pdf.SetFont("Helvetica", "", 10)
+	pdf.SetFillColor(30, 41, 59)
+	pdf.SetTextColor(255, 255, 255)
+	pdf.Rect(20, pdf.GetY(), 170, 8, "F")
+	pdf.SetXY(20, pdf.GetY())
+	pdf.CellFormat(170, 8, " "+data.Tipe, "", 1, "L", false, 0, "")
+
+	pdf.Ln(8)
+
+	// ── Psikolog Pengirim ──────────────────────────────────────────────────────
+	pdf.SetTextColor(15, 23, 42)
+	pdf.SetFont("Helvetica", "B", 11)
+	pdf.CellFormat(170, 6, "PSIKOLOG PENGIRIM:", "", 1, "L", false, 0, "")
+	pdf.Ln(4)
+
+	pdf.SetFont("Helvetica", "B", 9)
+	pdf.SetFillColor(30, 41, 59)
+	pdf.SetTextColor(255, 255, 255)
+	pdf.SetDrawColor(226, 232, 240)
+	
+	pdf.CellFormat(85, 7, " Informasi", "1", 0, "L", true, 0, "")
+	pdf.CellFormat(85, 7, "Detail", "1", 1, "L", true, 0, "")
+
+	pdf.SetFont("Helvetica", "", 9)
+	pdf.SetTextColor(15, 23, 42)
+	
+	psikologFields := []struct {
+		label string
+		value string
+	}{
+		{"Nama", data.Psikolog.Nama},
+		{"Spesialisasi", data.Psikolog.Spesialisasi},
+		{"Email", data.Psikolog.Email},
+		{"Lokasi", data.Psikolog.Lokasi},
+	}
+
+	for i, field := range psikologFields {
+		if i%2 == 0 {
+			pdf.SetFillColor(248, 250, 252)
+		} else {
+			pdf.SetFillColor(255, 255, 255)
+		}
+		pdf.CellFormat(85, 6, " "+field.label, "1", 0, "L", true, 0, "")
+		pdf.CellFormat(85, 6, field.value, "1", 1, "L", true, 0, "")
+	}
+
+	pdf.Ln(12)
+
+	// ── Penutup ────────────────────────────────────────────────────────────────
+	pdf.SetFont("Helvetica", "", 10)
+	pdf.SetTextColor(15, 23, 42)
+	pdf.MultiCell(170, 5, "Demikian surat rujukan ini kami buat untuk dapat ditindaklanjuti sesuai dengan kebutuhan mahasiswa.\n\nAtas perhatian dan kerjasamanya, kami ucapkan terima kasih.", "", "L", false)
+
+	pdf.Ln(12)
+
+	// ── Signature Section ──────────────────────────────────────────────────────
+	pdf.SetFont("Helvetica", "", 9.5)
+	pdf.SetXY(20, pdf.GetY())
+	pdf.CellFormat(80, 5, "Hormat kami,", "", 1, "L", false, 0, "")
+	
+	pdf.Ln(20) // spacing for signature
+	
+	currentY := pdf.GetY()
+	pdf.SetDrawColor(148, 163, 184)
+	pdf.Line(20, currentY, 85, currentY) // signature line
+	
+	pdf.SetFont("Helvetica", "B", 9.5)
+	pdf.SetXY(20, currentY+2)
+	pdf.CellFormat(70, 5, data.Psikolog.Nama, "", 0, "L", false, 0, "")
+	
+	pdf.SetFont("Helvetica", "", 8.5)
+	pdf.SetTextColor(100, 116, 139) // Slate 500
+	pdf.SetXY(20, currentY+7)
+	pdf.CellFormat(70, 5, fmt.Sprintf("Spesialisasi: %s", data.Psikolog.Spesialisasi), "", 0, "L", false, 0, "")
+	pdf.SetXY(20, currentY+11)
+	pdf.CellFormat(70, 5, fmt.Sprintf("Email: %s", data.Psikolog.Email), "", 0, "L", false, 0, "")
+
+	// Simpan file
+	uploadsDir := "uploads/referrals"
+	if err := os.MkdirAll(uploadsDir, 0755); err != nil {
+		return "", "", err
+	}
+
+	fileName := fmt.Sprintf("referral_%s_%d.pdf",
+		strings.ReplaceAll(data.ID, "-", "_"),
+		time.Now().Unix())
+	filePath := filepath.Join(uploadsDir, fileName)
+
+	if err := pdf.OutputFileAndClose(filePath); err != nil {
+		return "", "", err
+	}
+
+	return filePath, fileName, nil
+}

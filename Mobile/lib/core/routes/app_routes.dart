@@ -5,7 +5,6 @@ import 'package:bkuhub_mobile/features/main/presentation/pages/main_screen.dart'
 import 'package:bkuhub_mobile/features/ormawa/main/presentation/pages/ormawa_main_screen.dart';
 import 'package:bkuhub_mobile/features/mahasiswa/organisasi/presentation/pages/organisasi_screen.dart';
 import 'package:bkuhub_mobile/features/counseling/presentation/pages/psychologist_main_screen.dart';
-import 'package:bkuhub_mobile/features/counseling/presentation/pages/assessment_screen.dart';
 import 'package:bkuhub_mobile/features/counseling/presentation/pages/student_counseling_screen.dart';
 import 'package:bkuhub_mobile/features/counseling/presentation/pages/session_note_screen.dart';
 import 'package:bkuhub_mobile/features/counseling/presentation/pages/counseling_booking_screen.dart';
@@ -14,7 +13,6 @@ import 'package:bkuhub_mobile/features/counseling/presentation/pages/add_schedul
 import 'package:bkuhub_mobile/features/counseling/presentation/pages/patient_list_screen.dart';
 import 'package:bkuhub_mobile/features/mahasiswa/notifications/presentation/pages/student_notifications_screen.dart';
 import 'package:bkuhub_mobile/features/ormawa/notifications/presentation/pages/ormawa_notifications_screen.dart';
-import 'package:bkuhub_mobile/features/counseling/presentation/pages/assessment_management_screen.dart';
 import 'package:bkuhub_mobile/features/counseling/presentation/pages/psychologist_analytics_screen.dart';
 import 'package:bkuhub_mobile/features/counseling/presentation/pages/psychologist_reports_screen.dart';
 import 'package:bkuhub_mobile/features/counseling/presentation/pages/create_psychologist_report_screen.dart';
@@ -22,6 +20,7 @@ import 'package:bkuhub_mobile/features/counseling/presentation/pages/psychologis
 import 'package:bkuhub_mobile/features/counseling/presentation/pages/psychologist_edit_profile_screen.dart';
 import 'package:bkuhub_mobile/features/counseling/presentation/pages/psychologist_notifications_screen.dart';
 import 'package:bkuhub_mobile/features/mahasiswa/health/presentation/pages/health_screen.dart';
+import 'package:bkuhub_mobile/features/counseling/presentation/pages/referral_management_screen.dart';
 
 class AppRoutes {
   static const String splash = '/';
@@ -33,8 +32,6 @@ class AppRoutes {
   static const String psychologistMain = '/psychologist';
   
   // Counseling Routes
-  static const String assessment = '/counseling/assessment';
-  static const String assessmentManagement = '/counseling/assessment-management';
   static const String psychologistAnalytics = '/counseling/analytics';
   static const String psychologistReports = '/counseling/reports';
   static const String createPsychologistReport = '/counseling/reports/create';
@@ -46,6 +43,7 @@ class AppRoutes {
   static const String addScheduleSlot = '/counseling/add-slot';
   static const String patientList = '/counseling/patients';
   static const String psychologistEditProfile = '/counseling/edit-profile';
+  static const String referralManagement = '/counseling/referrals';
   
   // Notification Routes
   static const String studentNotifications = '/notifications/student';
@@ -88,10 +86,6 @@ class AppRoutes {
         builder: (context, state) => const PsychologistMainScreen(),
       ),
       GoRoute(
-        path: assessment,
-        builder: (context, state) => const AssessmentScreen(),
-      ),
-      GoRoute(
         path: studentCounseling,
         builder: (context, state) => const StudentCounselingScreen(),
       ),
@@ -127,10 +121,6 @@ class AppRoutes {
         builder: (context, state) => const AddScheduleSlotScreen(),
       ),
       GoRoute(
-        path: assessmentManagement,
-        builder: (context, state) => const AssessmentManagementScreen(),
-      ),
-      GoRoute(
         path: psychologistAnalytics,
         builder: (context, state) => const PsychologistAnalyticsScreen(),
       ),
@@ -157,6 +147,10 @@ class AppRoutes {
       GoRoute(
         path: psychologistEditProfile,
         builder: (context, state) => const PsychologistEditProfileScreen(),
+      ),
+      GoRoute(
+        path: referralManagement,
+        builder: (context, state) => const ReferralManagementScreen(),
       ),
     ],
   );

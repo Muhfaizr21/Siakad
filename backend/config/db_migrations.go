@@ -80,6 +80,7 @@ func migrateModels(db *gorm.DB) error {
 		&models.PsikologAssessment{},
 		&models.PsikologReport{},
 		&models.PsikologNotification{},
+		&models.PsikologReferral{},
 	); err != nil {
 		return err
 	}

@@ -309,4 +309,71 @@ class CounselingRepositoryImpl implements CounselingRepository {
       rethrow;
     }
   }
+
+  // ─── Tindak Lanjut (Referral) ─────────────────────────────────────────────────
+
+  Future<List<Map<String, dynamic>>> getReferrals() async {
+    try {
+      final response = await apiClient.client.get('/psychologist/referrals');
+      final data = response.data['data'];
+      if (data is List) {
+        return data.cast<Map<String, dynamic>>();
+      }
+      return [];
+    } catch (e) {
+      log('Error getting referrals: $e');
+      rethrow;
+    }
+  }
+
+  Future<Map<String, dynamic>> createReferral({
+    required int mahasiswaId,
+    required String tipe,
+    required String alasan,
+    required String pihakTujuan,
+    required String emailTujuan,
+    int? bookingId,
+  }) async {
+    try {
+      final response = await apiClient.client.post(
+        '/psychologist/referrals',
+        data: {
+          'mahasiswa_id': mahasiswaId,
+          'tipe': tipe,
+          'alasan': alasan,
+          'pihak_tujuan': pihakTujuan,
+          'email_tujuan': emailTujuan,
+          if (bookingId != null) 'booking_id': bookingId,
+        },
+      );
+      return response.data['data'] ?? {};
+    } catch (e) {
+      log('Error creating referral: $e');
+      rethrow;
+    }
+  }
+
+  Future<Map<String, dynamic>> sendReferral(int referralId) async {
+    try {
+      final response = await apiClient.client.post(
+        '/psychologist/referrals/$referralId/send',
+      );
+      return response.data['data'] ?? {};
+    } catch (e) {
+      log('Error sending referral: $e');
+      rethrow;
+    }
+  }
+
+  Future<Map<String, dynamic>> confirmReferralReceived(int referralId) async {
+    try {
+      final response = await apiClient.client.post(
+        '/psychologist/referrals/$referralId/confirm-received',
+      );
+      return response.data['data'] ?? {};
+    } catch (e) {
+      log('Error confirming referral received: $e');
+      rethrow;
+    }
+  }
 }

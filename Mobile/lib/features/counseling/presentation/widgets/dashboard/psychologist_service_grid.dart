@@ -39,10 +39,10 @@ class PsychologistServiceGrid extends StatelessWidget {
             onTap: () => context.push(AppRoutes.patientList),
           ),
           _ServiceItem(
-            title: 'Asesmen',
-            icon: Icons.assignment_ind_rounded,
+            title: 'Tindak Lanjut',
+            icon: Icons.send_rounded,
             color: const Color(0xFF6366F1),
-            onTap: () => context.push(AppRoutes.assessmentManagement),
+            onTap: () => context.push(AppRoutes.referralManagement),
           ),
           _ServiceItem(
             title: 'Analitik',

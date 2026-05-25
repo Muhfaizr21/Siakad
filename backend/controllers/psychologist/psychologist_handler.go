@@ -1155,3 +1155,145 @@ func UpdatePatientStatus(c *fiber.Ctx) error {
 		"status":  body.Status,
 	})
 }
+
+// GenerateReferralReportHandler - Generate PDF laporan tindak lanjut (referral)
+func GenerateReferralReportHandler(c *fiber.Ctx) error {
+	psikolog, err := currentPsikolog(c)
+	if err != nil {
+		return err
+	}
+
+	var body struct {
+		StartDate string `json:"start_date"` // Format: "2006-01-02"
+		EndDate   string `json:"end_date"`   // Format: "2006-01-02"
+	}
+	if err := c.BodyParser(&body); err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, "Payload tidak valid")
+	}
+
+	// Parse dates
+	startDate, err := time.Parse("2006-01-02", body.StartDate)
+	if err != nil {
+		startDate = time.Now().AddDate(0, -1, 0) // Default: 1 bulan lalu
+	}
+
+	endDate, err := time.Parse("2006-01-02", body.EndDate)
+	if err != nil {
+		endDate = time.Now() // Default: hari ini
+	}
+
+	// Generate PDF
+	filePath, fileName, err := GenerateReferralReport(psikolog, startDate, endDate)
+	if err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, "Gagal generate laporan rujukan: "+err.Error())
+	}
+
+	// Hitung ukuran file
+	fileSize := "0 KB"
+	if info, err := os.Stat(filePath); err == nil {
+		kb := info.Size() / 1024
+		if kb < 1 {
+			fileSize = "< 1 KB"
+		} else {
+			fileSize = fmt.Sprintf("%d KB", kb)
+		}
+	}
+
+	// Simpan ke database
+	report := models.PsikologReport{
+		PsikologID: psikolog.ID,
+		Judul:      fmt.Sprintf("Laporan Tindak Lanjut - %s s/d %s", startDate.Format("02 Jan 2006"), endDate.Format("02 Jan 2006")),
+		Tipe:       "Rujukan",
+		Ukuran:     fileSize,
+		Status:     "Selesai",
+		FileURL:    "/uploads/reports/referrals/" + fileName,
+		Periode:    fmt.Sprintf("%s - %s", startDate.Format("02 Jan 2006"), endDate.Format("02 Jan 2006")),
+		Tanggal:    time.Now(),
+		Ringkasan:  "Laporan Tindak Lanjut Rujukan Medis & Akademik",
+	}
+	if err := config.DB.Create(&report).Error; err != nil {
+		return err
+	}
+
+	return jsonOK(c, fiber.Map{
+		"id":       report.ID,
+		"title":    report.Judul,
+		"type":     report.Tipe,
+		"size":     report.Ukuran,
+		"date":     formatDate(report.Tanggal),
+		"status":   report.Status,
+		"file_url": report.FileURL,
+		"periode":  report.Periode,
+	})
+}
+
+// GenerateClinicalReportHandler - Generate PDF laporan klinis (clinical report)
+func GenerateClinicalReportHandler(c *fiber.Ctx) error {
+	psikolog, err := currentPsikolog(c)
+	if err != nil {
+		return err
+	}
+
+	var body struct {
+		StartDate string `json:"start_date"` // Format: "2006-01-02"
+		EndDate   string `json:"end_date"`   // Format: "2006-01-02"
+	}
+	if err := c.BodyParser(&body); err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, "Payload tidak valid")
+	}
+
+	// Parse dates
+	startDate, err := time.Parse("2006-01-02", body.StartDate)
+	if err != nil {
+		startDate = time.Now().AddDate(0, -1, 0) // Default: 1 bulan lalu
+	}
+
+	endDate, err := time.Parse("2006-01-02", body.EndDate)
+	if err != nil {
+		endDate = time.Now() // Default: hari ini
+	}
+
+	// Generate PDF
+	filePath, fileName, err := GenerateClinicalReport(psikolog, startDate, endDate)
+	if err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, "Gagal generate laporan klinis: "+err.Error())
+	}
+
+	// Hitung ukuran file
+	fileSize := "0 KB"
+	if info, err := os.Stat(filePath); err == nil {
+		kb := info.Size() / 1024
+		if kb < 1 {
+			fileSize = "< 1 KB"
+		} else {
+			fileSize = fmt.Sprintf("%d KB", kb)
+		}
+	}
+
+	// Simpan ke database
+	report := models.PsikologReport{
+		PsikologID: psikolog.ID,
+		Judul:      fmt.Sprintf("Laporan Klinis - %s s/d %s", startDate.Format("02 Jan 2006"), endDate.Format("02 Jan 2006")),
+		Tipe:       "Klinis",
+		Ukuran:     fileSize,
+		Status:     "Selesai",
+		FileURL:    "/uploads/reports/clinical/" + fileName,
+		Periode:    fmt.Sprintf("%s - %s", startDate.Format("02 Jan 2006"), endDate.Format("02 Jan 2006")),
+		Tanggal:    time.Now(),
+		Ringkasan:  "Laporan Analisis Klinis & Risiko Kesehatan Mental",
+	}
+	if err := config.DB.Create(&report).Error; err != nil {
+		return err
+	}
+
+	return jsonOK(c, fiber.Map{
+		"id":       report.ID,
+		"title":    report.Judul,
+		"type":     report.Tipe,
+		"size":     report.Ukuran,
+		"date":     formatDate(report.Tanggal),
+		"status":   report.Status,
+		"file_url": report.FileURL,
+		"periode":  report.Periode,
+	})
+}

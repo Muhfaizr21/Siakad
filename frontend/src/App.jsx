@@ -18,8 +18,8 @@ import BookingDetail from './pages/Psychologist/BookingDetail'
 import ScheduleManagement from './pages/Psychologist/ScheduleManagement'
 import PatientList from './pages/Psychologist/PatientList'
 import PatientMedicalRecord from './pages/Psychologist/PatientMedicalRecord'
-import AssessmentManagement from './pages/Psychologist/AssessmentManagement'
 import AnalyticsTrends from './pages/Psychologist/AnalyticsTrends'
+import ReferralManagement from './pages/Psychologist/ReferralManagement'
 import ClinicalReports from './pages/Psychologist/ClinicalReports'
 import NotificationsCenter from './pages/Psychologist/NotificationsCenter'
 import PsychologistSettings from './pages/Psychologist/PsychologistSettings'
@@ -284,7 +284,7 @@ function App() {
                   <Route path="schedule" element={<ScheduleManagement />} />
                   <Route path="patients" element={<PatientList />} />
                   <Route path="patients/:id/medical-record" element={<PatientMedicalRecord />} />
-                  <Route path="assessments" element={<AssessmentManagement />} />
+                  <Route path="referrals" element={<ReferralManagement />} />
                   <Route path="analytics" element={<AnalyticsTrends />} />
                   <Route path="reports" element={<ClinicalReports />} />
                   <Route path="notifications" element={<NotificationsCenter />} />

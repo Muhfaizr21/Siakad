@@ -34,9 +34,18 @@ func SetupPsychologistRoutes(app *fiber.App) {
 	api.Get("/reports", psychologist.GetReports)
 	api.Post("/reports", psychologist.CreateReport)
 	api.Get("/reports/:id/download", psychologist.DownloadReport)
+	api.Post("/reports/referral/generate", psychologist.GenerateReferralReportHandler)
+	api.Post("/reports/clinical/generate", psychologist.GenerateClinicalReportHandler)
 
 	api.Get("/notifications", psychologist.GetNotifications)
 	api.Put("/notifications/read-all", psychologist.MarkAllNotificationsRead)
 	api.Put("/notifications/:id/read", psychologist.MarkNotificationRead)
 	api.Delete("/notifications/:id", psychologist.DeleteNotification)
+
+	// Tindak Lanjut (Referral)
+	api.Get("/referrals", psychologist.GetReferrals)
+	api.Post("/referrals", psychologist.CreateReferral)
+	api.Post("/referrals/:id/send", psychologist.SendReferral)
+	api.Post("/referrals/:id/confirm-received", psychologist.ConfirmReferralReceived)
+	api.Get("/referrals/:id/download", psychologist.DownloadReferralPDF)
 }
