@@ -105,6 +105,7 @@ func InisialisasiRuteFakultas(aplikasi *fiber.App) {
 	api.Post("/counseling", fakultas.TambahSesiKonseling)
 	api.Put("/counseling/:id", fakultas.UpdateSesiKonseling)
 	api.Delete("/counseling/:id", fakultas.HapusSesiKonseling)
+	api.Get("/psychologists", fakultas.AmbilDaftarPsikolog)
 
 	// Layanan Kesehatan (Health Screening)
 	api.Get("/health-screening", fakultas.AmbilDaftarKesehatan)

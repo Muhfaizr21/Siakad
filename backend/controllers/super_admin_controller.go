@@ -640,6 +640,19 @@ func CreateStudent(c *fiber.Ctx) error {
 			fmt.Printf("[DEBUG] Mahasiswa creation failed: %v\n", err)
 			return err
 		}
+
+		// Otomatis daftarkan ke PKKMB jika semester 1 atau maba
+		if mhs.SemesterSekarang == 1 {
+			pkkmb := models.PkkmbHasil{
+				MahasiswaID:     mhs.ID,
+				Nilai:           0.0,
+				StatusKelulusan: "Proses",
+			}
+			if err := tx.Create(&pkkmb).Error; err != nil {
+				fmt.Printf("[DEBUG] PKKMB creation failed: %v\n", err)
+				return err
+			}
+		}
 		return nil
 	})
 

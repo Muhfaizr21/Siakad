@@ -216,7 +216,7 @@ export default function FacultyProposalApproval() {
               <thead>
                 <tr className="border-b border-[#e5e5e5]">
                   {[
-                    { label: '#', key: null, sortable: false },
+                    { label: 'No', key: null, sortable: false },
                     { label: 'Program Kerja', key: 'Judul', sortable: true },
                     { label: 'Organisasi', key: 'ormawa', sortable: true },
                     { label: 'Anggaran', key: 'Anggaran', sortable: true },
@@ -372,7 +372,7 @@ export default function FacultyProposalApproval() {
           <div className="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl z-[101] flex flex-col overflow-hidden max-h-[90vh]" onClick={e=>e.stopPropagation()}>
             <div className="relative bg-gradient-to-br from-[#00236F] to-[#003db5] pt-6 pb-7 px-6 overflow-hidden flex-shrink-0">
               <div className="absolute -top-10 -right-10 w-44 h-44 bg-white/5 rounded-full pointer-events-none"/>
-              <button onClick={()=>setSelected(null)} className="absolute top-4 right-4 w-8 h-8 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center transition-colors"><span className="material-symbols-outlined" style={{ fontSize: '15px' }} >close</span></button>
+              <button onClick={()=>setSelected(null)} className="absolute z-50 top-4 right-4 w-8 h-8 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center transition-colors"><span className="material-symbols-outlined" style={{ fontSize: '15px' }} >close</span></button>
               <div className="relative z-10">
                 <p className="text-[9px] font-bold text-white/50 uppercase tracking-[0.25em] mb-1">{(selected.Ormawa||selected.ormawa||selected.Organisasi||{})?.Nama||'ORMAWA'}</p>
                 <h2 className="text-base font-extrabold text-white leading-tight line-clamp-2">{selected.Judul}</h2>

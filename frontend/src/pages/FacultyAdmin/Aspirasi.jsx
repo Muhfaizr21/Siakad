@@ -52,10 +52,36 @@ const getStatus = (v='') => STATUS_STYLES[(v||'terbuka').toLowerCase()] || STATU
 const formatDate = (d) => { try { return new Date(d).toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'}) } catch { return d } }
 
 const getFullUrl = (path) => {
-  if (!path) return null;
+  if (!path || path.trim() === "" || path === "/" || path.endsWith("/profiles/") || path.endsWith("/students/")) return null;
   if (path.startsWith('http')) return path;
   const baseUrl = API_BASE_URL.replace('/api', '');
   return `${baseUrl}${path}`;
+}
+
+function StudentAvatar({ src, name, className = "w-9 h-9 rounded-xl" }) {
+  const [loaded, setLoaded] = useState(false);
+  const [error, setError] = useState(false);
+  
+  const hasNoImage = !src || src.trim() === "" || src.endsWith("/profiles/") || src.endsWith("/students/") || src.endsWith("localhost:8000") || src.endsWith("localhost:8000/");
+
+  return (
+    <div className={cn("relative bg-slate-50 flex items-center justify-center shrink-0 border border-slate-200/40 shadow-inner overflow-hidden", className)}>
+      {(!loaded || error || hasNoImage) && (
+        <span className="material-symbols-outlined text-slate-400/80 block select-none leading-none absolute" style={{ fontSize: className.includes('w-14') ? '28px' : '20px' }}>
+          person
+        </span>
+      )}
+      {!hasNoImage && !error && (
+        <img
+          src={src}
+          alt={name}
+          className={cn("absolute inset-0 w-full h-full object-cover transition-opacity duration-200", loaded ? "opacity-100" : "opacity-0")}
+          onLoad={() => setLoaded(true)}
+          onError={() => setError(true)}
+        />
+      )}
+    </div>
+  );
 }
 
 const STATUS_ACTIONS = [
@@ -273,7 +299,7 @@ const FacultyAspirationManagement = () => {
               <thead>
                 <tr className="border-b border-[#e5e5e5]">
                   {[
-                    { label: '#', key: null, sortable: false },
+                    { label: 'No', key: null, sortable: false },
                     { label: 'Mahasiswa', key: 'Mahasiswa.Nama', sortable: true },
                     { label: 'Aspirasi & Keluhan', key: 'Judul', sortable: true },
                     { label: 'Isi Singkat', key: 'Isi', sortable: true },
@@ -328,20 +354,7 @@ const FacultyAspirationManagement = () => {
                       <td className="px-5 py-3.5 text-sm text-[#a3a3a3] font-medium">{(currentPage - 1) * pageSize + i + 1}</td>
                       <td className="px-5 py-3.5">
                         <div className="flex items-center gap-3">
-                          {row.Mahasiswa?.Foto ? (
-                            <img 
-                              src={row.Mahasiswa.Foto} 
-                              alt={row.Mahasiswa.Nama} 
-                              className="w-9 h-9 rounded-xl object-cover shrink-0 shadow-sm border border-slate-200" 
-                              onError={(e) => { e.target.src = ''; }}
-                            />
-                          ) : (
-                            <div className="w-9 h-9 rounded-xl bg-slate-100 flex items-end justify-center overflow-hidden shrink-0 border border-slate-200/60 shadow-sm">
-                              <svg className="w-7 h-7 text-slate-400 translate-y-0.5" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0 1 12.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 1 1-8 0 4 4 0 0 1 8 0z" />
-                              </svg>
-                            </div>
-                          )}
+                          <StudentAvatar src={row.Mahasiswa?.Foto} name={row.Mahasiswa?.Nama} className="w-9 h-9 rounded-xl" />
                           <div>
                             <p className="font-bold text-sm text-[#171717]">{row.Mahasiswa?.Nama||'Anonim'}</p>
                             <p className="text-[10px] text-[#a3a3a3] font-medium">{row.Mahasiswa?.NIM||'—'}</p>
@@ -462,24 +475,11 @@ const FacultyAspirationManagement = () => {
             <div className="relative bg-gradient-to-br from-[#00236F] via-[#00308F] to-[#003db5] pt-6 pb-7 px-6 overflow-hidden flex-shrink-0">
               <div className="absolute -top-10 -right-10 w-44 h-44 bg-white/5 rounded-full pointer-events-none"/>
               <button onClick={()=>setSelected(null)}
-                className="absolute top-4 right-4 w-8 h-8 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center transition-colors">
+                className="absolute z-50 top-4 right-4 w-8 h-8 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center transition-colors">
                 <span className="material-symbols-outlined" style={{ fontSize: '15px' }} >close</span>
               </button>
               <div className="relative z-10 flex items-center gap-4 mb-5">
-                {selected.Mahasiswa?.Foto ? (
-                  <img 
-                    src={selected.Mahasiswa.Foto} 
-                    alt={selected.Mahasiswa.Nama} 
-                    className="w-14 h-14 rounded-2xl object-cover shrink-0 shadow-xl ring-2 ring-white/20" 
-                    onError={(e) => { e.target.src = ''; }}
-                  />
-                ) : (
-                  <div className="w-14 h-14 rounded-2xl bg-slate-100/90 backdrop-blur flex items-end justify-center overflow-hidden shrink-0 shadow-xl ring-2 ring-white/20">
-                    <svg className="w-11 h-11 text-slate-400 translate-y-1.5" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0 1 12.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 1 1-8 0 4 4 0 0 1 8 0z" />
-                    </svg>
-                  </div>
-                )}
+                <StudentAvatar src={selected.Mahasiswa?.Foto} name={selected.Mahasiswa?.Nama} className="w-14 h-14 rounded-2xl shadow-xl ring-2 ring-white/20" />
                 <div className="min-w-0">
                   <p className="text-[9px] font-bold text-white/50 uppercase tracking-[0.25em] mb-1">Aspirasi Mahasiswa</p>
                   <h2 className="text-base font-extrabold text-white leading-tight line-clamp-2">{selected.Judul}</h2>

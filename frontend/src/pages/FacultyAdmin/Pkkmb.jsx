@@ -253,7 +253,7 @@ export default function FacultyPkkmb() {
                 <thead>
                   <tr className="border-b border-[#e5e5e5]">
                     {[
-                      { label: '#', key: null, sortable: false },
+                      { label: 'No', key: null, sortable: false },
                       { label: 'Program Studi', key: 'prodi', sortable: true },
                       { label: 'Partisipasi', key: 'partisipasi', sortable: true },
                       { label: 'Rata-rata Nilai', key: 'nilai', sortable: true },
@@ -324,7 +324,7 @@ export default function FacultyPkkmb() {
                 <thead>
                   <tr className="border-b border-[#e5e5e5]">
                     {[
-                      { label: '#', key: null, sortable: false },
+                      { label: 'No', key: null, sortable: false },
                       { label: 'Mahasiswa', key: 'mahasiswa', sortable: true },
                       { label: 'Program Studi', key: 'prodi', sortable: true },
                       { label: 'Kehadiran', key: 'attendanceRate', sortable: true },
@@ -480,7 +480,7 @@ export default function FacultyPkkmb() {
           <div className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl z-[101] flex flex-col overflow-hidden max-h-[90vh]" onClick={e=>e.stopPropagation()}>
             <div className="relative bg-gradient-to-br from-[#00236F] to-[#003db5] pt-6 pb-7 px-6 overflow-hidden flex-shrink-0">
               <div className="absolute -top-10 -right-10 w-44 h-44 bg-white/5 rounded-full pointer-events-none"/>
-              <button onClick={()=>setSelected(null)} className="absolute top-4 right-4 w-8 h-8 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center transition-colors"><span className="material-symbols-outlined" style={{ fontSize: '15px' }} >close</span></button>
+              <button onClick={()=>setSelected(null)} className="absolute z-50 top-4 right-4 w-8 h-8 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center transition-colors"><span className="material-symbols-outlined" style={{ fontSize: '15px' }} >close</span></button>
               <div className="relative z-10 flex items-center gap-4">
                 <div className={cn('w-14 h-14 rounded-2xl bg-gradient-to-br flex-shrink-0 flex items-center justify-center text-white text-base font-black shadow-xl ring-2 ring-white/20',AVATAR_COLORS[selected.colorIdx])}>{getInitials(selected.Mahasiswa?.Nama)}</div>
                 <div className="min-w-0">

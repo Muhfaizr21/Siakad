@@ -230,7 +230,7 @@ export default function ProdiPage() {
   const prodiColumns = [
     {
       key: "index",
-      label: "#",
+      label: "No",
       disableSort: true,
       className: "w-12 text-center",
       cellClassName: "text-center font-bold text-slate-400",

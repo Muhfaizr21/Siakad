@@ -14,6 +14,7 @@ const menuSections = [
     items: [
       { name: 'Data Mahasiswa', path: '/faculty/mahasiswa', icon: 'group' },
       { name: 'Mahasiswa Baru', path: '/faculty/mahasiswa/baru', icon: 'person_add' },
+      { name: 'Data Psikolog', path: '/faculty/psikolog', icon: 'psychology' },
       { name: 'Monitor PKKMB', path: '/faculty/pkkmb', icon: 'check_circle' },
       { name: 'Pantau Kesehatan', path: '/faculty/kesehatan', icon: 'favorite' },
     ]

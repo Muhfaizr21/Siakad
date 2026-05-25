@@ -17,18 +17,28 @@ func AmbilRingkasanPkkmb(c *fiber.Ctx) error {
 	var totalLulus int64
 	var totalProses int64
 
-	qMhs := config.DB.Model(&models.Mahasiswa{})
-	qHasil := config.DB.Model(&models.PkkmbHasil{})
-
 	if role == "faculty_admin" {
-		qMhs = qMhs.Where("fakultas_id = ?", fid)
-		qHasil = qHasil.Joins("JOIN mahasiswa.mahasiswa ON mahasiswa.mahasiswa.id = mahasiswa.pkkmb_hasil.mahasiswa_id").
-			Where("mahasiswa.mahasiswa.fakultas_id = ?", fid)
-	}
+		config.DB.Model(&models.PkkmbHasil{}).
+			Joins("JOIN mahasiswa.mahasiswa ON mahasiswa.mahasiswa.id = mahasiswa.pkkmb_hasil.mahasiswa_id").
+			Where("mahasiswa.mahasiswa.fakultas_id = ?", fid).
+			Count(&totalMaba)
 
-	qMhs.Count(&totalMaba)
-	qHasil.Where("status_kelulusan = ?", "Lulus").Count(&totalLulus)
-	qHasil.Where("status_kelulusan = ?", "Proses").Count(&totalProses)
+		config.DB.Model(&models.PkkmbHasil{}).
+			Joins("JOIN mahasiswa.mahasiswa ON mahasiswa.mahasiswa.id = mahasiswa.pkkmb_hasil.mahasiswa_id").
+			Where("mahasiswa.mahasiswa.fakultas_id = ?", fid).
+			Where("mahasiswa.pkkmb_hasil.status_kelulusan = ?", "Lulus").
+			Count(&totalLulus)
+
+		config.DB.Model(&models.PkkmbHasil{}).
+			Joins("JOIN mahasiswa.mahasiswa ON mahasiswa.mahasiswa.id = mahasiswa.pkkmb_hasil.mahasiswa_id").
+			Where("mahasiswa.mahasiswa.fakultas_id = ?", fid).
+			Where("mahasiswa.pkkmb_hasil.status_kelulusan = ?", "Proses").
+			Count(&totalProses)
+	} else {
+		config.DB.Model(&models.PkkmbHasil{}).Count(&totalMaba)
+		config.DB.Model(&models.PkkmbHasil{}).Where("status_kelulusan = ?", "Lulus").Count(&totalLulus)
+		config.DB.Model(&models.PkkmbHasil{}).Where("status_kelulusan = ?", "Proses").Count(&totalProses)
+	}
 
 	// Breakdown per Prodi
 	type ProdiStats struct {
@@ -49,7 +59,10 @@ func AmbilRingkasanPkkmb(c *fiber.Ctx) error {
 	var listStats []ProdiStats
 	for _, p := range prodis {
 		var mabaProdi int64
-		config.DB.Model(&models.Mahasiswa{}).Where("program_studi_id = ?", p.ID).Count(&mabaProdi)
+		config.DB.Model(&models.PkkmbHasil{}).
+			Joins("JOIN mahasiswa.mahasiswa ON mahasiswa.mahasiswa.id = mahasiswa.pkkmb_hasil.mahasiswa_id").
+			Where("mahasiswa.mahasiswa.program_studi_id = ?", p.ID).
+			Count(&mabaProdi)
 
 		var mabaLulus int64
 		config.DB.Model(&models.PkkmbHasil{}).

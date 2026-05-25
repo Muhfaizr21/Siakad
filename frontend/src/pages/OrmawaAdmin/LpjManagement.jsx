@@ -21,10 +21,10 @@ const API = `${API_BASE_URL}/ormawa`
 
 // Premium Rupiah Formatter
 const formatRp = (n) => {
-  return new Intl.NumberFormat('id-ID', { 
-    style: 'currency', 
-    currency: 'IDR', 
-    minimumFractionDigits: 0 
+  return new Intl.NumberFormat('id-ID', {
+    style: 'currency',
+    currency: 'IDR',
+    minimumFractionDigits: 0
   }).format(n || 0)
 }
 
@@ -47,17 +47,17 @@ export default function LpjManagement() {
   const [isEditMode, setIsEditMode] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [proposals, setProposals] = useState([])
-  
+
   const authState = useAuthStore((s) => s)
   const ormawaId = authState?.mahasiswa?.ormawaId || authState?.mahasiswa?.OrmawaID || authState?.user?.ormawaId || ''
-  
-  const [form, setForm] = useState({ 
-    Judul: '', 
-    RealisasiAnggaran: '', 
-    TotalAnggaran: '', 
-    Catatan: '', 
-    ProposalID: '', 
-    OrmawaID: ormawaId || '' 
+
+  const [form, setForm] = useState({
+    Judul: '',
+    RealisasiAnggaran: '',
+    TotalAnggaran: '',
+    Catatan: '',
+    ProposalID: '',
+    OrmawaID: ormawaId || ''
   })
 
   const buildOrmawaQuery = () => (ormawaId ? `?ormawaId=${ormawaId}` : '')
@@ -96,27 +96,27 @@ export default function LpjManagement() {
 
   const handleOpenAdd = () => {
     setIsEditMode(false)
-    setForm({ 
-      Judul: '', 
-      RealisasiAnggaran: '', 
-      TotalAnggaran: '', 
-      Catatan: '', 
-      ProposalID: '', 
-      OrmawaID: ormawaId || '' 
+    setForm({
+      Judul: '',
+      RealisasiAnggaran: '',
+      TotalAnggaran: '',
+      Catatan: '',
+      ProposalID: '',
+      OrmawaID: ormawaId || ''
     })
     setIsCrudOpen(true)
   }
 
   const handleOpenEdit = (row) => {
     setIsEditMode(true)
-    setForm({ 
-      ID: row.ID, 
-      Judul: row.Judul || '', 
-      RealisasiAnggaran: row.RealisasiAnggaran || '', 
-      TotalAnggaran: row.TotalAnggaran || '', 
-      Catatan: row.Catatan || '', 
-      ProposalID: String(row.ProposalID || ''), 
-      OrmawaID: ormawaId || '' 
+    setForm({
+      ID: row.ID,
+      Judul: row.Judul || '',
+      RealisasiAnggaran: row.RealisasiAnggaran || '',
+      TotalAnggaran: row.TotalAnggaran || '',
+      Catatan: row.Catatan || '',
+      ProposalID: String(row.ProposalID || ''),
+      OrmawaID: ormawaId || ''
     })
     setIsCrudOpen(true)
   }
@@ -124,31 +124,31 @@ export default function LpjManagement() {
   const handleSave = async (e) => {
     e.preventDefault()
     setIsSubmitting(true)
-    
+
     const url = isEditMode ? `${API}/lpjs/${form.ID}` : `${API}/lpjs`
     const method = isEditMode ? 'PUT' : 'POST'
-    
+
     const payload = isEditMode
-      ? { 
-          Status: form.Status, 
-          Catatan: form.Catatan, 
-          RealisasiAnggaran: Number(form.RealisasiAnggaran), 
-          TotalAnggaran: Number(form.TotalAnggaran) 
-        }
-      : { 
-          ProposalID: Number(form.ProposalID), 
-          Judul: form.Judul,
-          Catatan: form.Catatan, 
-          RealisasiAnggaran: Number(form.RealisasiAnggaran), 
-          TotalAnggaran: Number(form.TotalAnggaran), 
-          Status: 'draft' 
-        }
+      ? {
+        Status: form.Status,
+        Catatan: form.Catatan,
+        RealisasiAnggaran: Number(form.RealisasiAnggaran),
+        TotalAnggaran: Number(form.TotalAnggaran)
+      }
+      : {
+        ProposalID: Number(form.ProposalID),
+        Judul: form.Judul,
+        Catatan: form.Catatan,
+        RealisasiAnggaran: Number(form.RealisasiAnggaran),
+        TotalAnggaran: Number(form.TotalAnggaran),
+        Status: 'draft'
+      }
 
     try {
-      const res = await fetchWithAuth(url, { 
-        method, 
-        body: JSON.stringify(payload), 
-        headers: { 'Content-Type': 'application/json' } 
+      const res = await fetchWithAuth(url, {
+        method,
+        body: JSON.stringify(payload),
+        headers: { 'Content-Type': 'application/json' }
       })
       if (res.status === 'success') {
         toast.success(isEditMode ? 'LPJ berhasil diperbarui!' : 'Laporan Pertanggungjawaban berhasil diajukan!')
@@ -167,8 +167,8 @@ export default function LpjManagement() {
   const handleDelete = async () => {
     setIsSubmitting(true)
     try {
-      const res = await fetchWithAuth(`${API}/lpjs/${selected?.ID}`, { 
-        method: 'DELETE' 
+      const res = await fetchWithAuth(`${API}/lpjs/${selected?.ID}`, {
+        method: 'DELETE'
       })
       if (res.status === 'success') {
         toast.success('LPJ berhasil dihapus dari sistem')
@@ -202,8 +202,8 @@ export default function LpjManagement() {
 
   const columns = [
     {
-      key: 'Judul', 
-      label: 'Nama Kegiatan LPJ', 
+      key: 'Judul',
+      label: 'Nama Kegiatan LPJ',
       className: 'min-w-[280px]',
       render: (v, row) => (
         <div className="flex flex-col leading-tight">
@@ -215,21 +215,21 @@ export default function LpjManagement() {
       )
     },
     {
-      key: 'TotalAnggaran', 
-      label: 'Total Anggaran', 
+      key: 'TotalAnggaran',
+      label: 'Total Anggaran',
       className: 'w-[160px]',
       render: v => <span className="font-bold text-slate-600 text-[12px] font-headline">{formatRp(v)}</span>
     },
     {
-      key: 'RealisasiAnggaran', 
-      label: 'Realisasi Anggaran', 
+      key: 'RealisasiAnggaran',
+      label: 'Realisasi Anggaran',
       className: 'w-[160px]',
       render: v => <span className="font-black text-emerald-600 text-[12px] font-headline">{formatRp(v)}</span>
     },
     {
-      key: 'Status', 
-      label: 'Status LPJ', 
-      className: 'w-[150px] text-center', 
+      key: 'Status',
+      label: 'Status LPJ',
+      className: 'w-[150px] text-center',
       cellClassName: 'text-center',
       render: v => {
         const cfg = STATUS_CFG[v] || { label: v || 'Draft', cls: 'bg-slate-50 text-slate-600 border-slate-200' }
@@ -250,7 +250,7 @@ export default function LpjManagement() {
   return (
     <div className="max-w-[1600px] mx-auto px-4 py-8 md:px-8 xl:px-12 space-y-8 font-body">
       <Toaster position="top-right" />
-      
+
       {/* ── Welcome Banner ─────────────────────────────────────────── */}
       <section className="relative overflow-hidden rounded-[2rem] bg-gradient-to-r from-[#00236F] to-[#1e3a8a] text-white p-8 md:p-10 shadow-xl shadow-blue-900/10">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.08)_0%,transparent_60%)]" />
@@ -279,9 +279,9 @@ export default function LpjManagement() {
               </div>
             </div>
           </div>
-          
-          <Button 
-            onClick={handleOpenAdd} 
+
+          <Button
+            onClick={handleOpenAdd}
             className="h-12 px-6 rounded-2xl bg-white hover:bg-white/95 text-[#00236F] hover:text-[#00236F] border-none font-bold text-xs tracking-wider shadow-lg shadow-blue-900/10 transition-all active:scale-95 shrink-0 w-full md:w-auto flex items-center justify-center gap-2"
           >
             <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>add_task</span>
@@ -349,43 +349,43 @@ export default function LpjManagement() {
       <Card className="border border-slate-200/50 shadow-sm rounded-[2rem] overflow-hidden bg-white/70 backdrop-blur-md">
         <CardContent className="p-6">
           <DataTable
-            columns={columns} 
-            data={data} 
+            columns={columns}
+            data={data}
             loading={loading}
             searchPlaceholder="Cari berdasarkan nama kegiatan atau proposal..."
-            onAdd={handleOpenAdd} 
+            onAdd={handleOpenAdd}
             addLabel="Buat LPJ"
             filters={[
-              { 
-                key: 'Status', 
-                placeholder: 'Filter Status', 
-                options: Object.entries(STATUS_CFG).map(([v, { label }]) => ({ label, value: v })) 
+              {
+                key: 'Status',
+                placeholder: 'Filter Status',
+                options: Object.entries(STATUS_CFG).map(([v, { label }]) => ({ label, value: v }))
               }
             ]}
             actions={(row) => (
               <div className="flex items-center gap-1.5">
-                <Button 
-                  onClick={() => { setSelected(row); setIsDetailOpen(true) }} 
-                  variant="ghost" 
-                  size="icon" 
+                <Button
+                  onClick={() => { setSelected(row); setIsDetailOpen(true) }}
+                  variant="ghost"
+                  size="icon"
                   className="h-8 w-8 text-slate-400 hover:text-[#00236F] hover:bg-blue-50 rounded-xl active:scale-95 transition-all"
                   title="Lihat Detail LPJ"
                 >
                   <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>visibility</span>
                 </Button>
-                <Button 
-                  onClick={() => handleOpenEdit(row)} 
-                  variant="ghost" 
-                  size="icon" 
+                <Button
+                  onClick={() => handleOpenEdit(row)}
+                  variant="ghost"
+                  size="icon"
                   className="h-8 w-8 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-xl active:scale-95 transition-all"
                   title="Edit Laporan"
                 >
                   <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>edit_note</span>
                 </Button>
-                <Button 
-                  onClick={() => { setSelected(row); setIsDelOpen(true) }} 
-                  variant="ghost" 
-                  size="icon" 
+                <Button
+                  onClick={() => { setSelected(row); setIsDelOpen(true) }}
+                  variant="ghost"
+                  size="icon"
                   className="h-8 w-8 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl active:scale-95 transition-all"
                   title="Hapus LPJ"
                 >
@@ -417,7 +417,7 @@ export default function LpjManagement() {
                       {STATUS_CFG[selected.Status]?.label || selected.Status || 'Draft'}
                     </Badge>
                   </div>
-                  
+
                   <div className="grid grid-cols-2 gap-6 pt-4 border-t border-white/10">
                     <div>
                       <p className="text-[9px] font-black text-blue-200 tracking-wider uppercase font-headline">Total Anggaran Proposal</p>
@@ -430,7 +430,7 @@ export default function LpjManagement() {
                   </div>
                 </div>
               </div>
-              
+
               <div className="p-8 space-y-6">
                 {selected.Catatan ? (
                   <div className="space-y-2">
@@ -442,20 +442,20 @@ export default function LpjManagement() {
                 ) : (
                   <p className="text-xs font-semibold text-slate-400 italic text-center py-6">Tidak ada catatan tambahan untuk laporan ini.</p>
                 )}
-                
+
                 <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
-                  <Button 
-                    variant="ghost" 
-                    onClick={() => setIsDetailOpen(false)} 
+                  <Button
+                    variant="ghost"
+                    onClick={() => setIsDetailOpen(false)}
                     className="text-[10px] font-black tracking-widest text-slate-400 hover:text-slate-900 px-8 h-12 rounded-2xl active:scale-95 transition-all"
                   >
                     TUTUP
                   </Button>
-                  <Button 
-                    onClick={() => { 
+                  <Button
+                    onClick={() => {
                       setIsDetailOpen(false)
-                      handleOpenEdit(selected) 
-                    }} 
+                      handleOpenEdit(selected)
+                    }}
                     className="text-[10px] font-black h-12 px-8 rounded-2xl bg-primary text-white hover:bg-primary/95 shadow-lg active:scale-95 transition-all border-none"
                   >
                     EDIT LAPORAN
@@ -499,9 +499,9 @@ export default function LpjManagement() {
                   {proposals.find(p => String(p.ID) === String(form.ProposalID))?.Judul || 'Proposal Terpilih'}
                 </div>
               ) : (
-                <select 
-                  required 
-                  value={form.ProposalID} 
+                <select
+                  required
+                  value={form.ProposalID}
                   onChange={e => handleProposalChange(e.target.value)}
                   className="w-full h-12 rounded-2xl border border-slate-200 bg-slate-50/50 px-4 text-sm font-bold text-slate-700 focus:outline-none focus:bg-white focus:border-primary transition-all shadow-sm"
                 >
@@ -518,12 +518,12 @@ export default function LpjManagement() {
             {/* Judul Laporan */}
             <div className="space-y-2">
               <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 uppercase font-headline">Judul Laporan Pertanggungjawaban</Label>
-              <Input 
-                required 
-                value={form.Judul} 
-                onChange={e => setForm({ ...form, Judul: e.target.value })} 
+              <Input
+                required
+                value={form.Judul}
+                onChange={e => setForm({ ...form, Judul: e.target.value })}
                 placeholder="Misal: LPJ Seminar Kepemimpinan Mahasiswa 2026..."
-                className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white focus:ring-primary/20 shadow-none transition-all font-bold text-sm" 
+                className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white focus:ring-primary/20 shadow-none transition-all font-bold text-sm"
               />
             </div>
 
@@ -533,13 +533,13 @@ export default function LpjManagement() {
                 <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 uppercase font-headline">Total Anggaran Proposal</Label>
                 <div className="relative">
                   <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xs font-black text-slate-400">Rp</span>
-                  <Input 
-                    required 
-                    type="number" 
-                    value={form.TotalAnggaran} 
-                    onChange={e => setForm({ ...form, TotalAnggaran: e.target.value })} 
+                  <Input
+                    required
+                    type="number"
+                    value={form.TotalAnggaran}
+                    onChange={e => setForm({ ...form, TotalAnggaran: e.target.value })}
                     placeholder="0"
-                    className="h-12 pl-10 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white focus:ring-primary/20 shadow-none transition-all font-bold text-sm" 
+                    className="h-12 pl-10 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white focus:ring-primary/20 shadow-none transition-all font-bold text-sm"
                   />
                 </div>
                 {/* 🌟 Dynamic live points separator for budget */}
@@ -555,13 +555,13 @@ export default function LpjManagement() {
                 <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 uppercase font-headline">Realisasi Pengeluaran LPJ</Label>
                 <div className="relative">
                   <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xs font-black text-slate-400">Rp</span>
-                  <Input 
-                    required 
-                    type="number" 
-                    value={form.RealisasiAnggaran} 
-                    onChange={e => setForm({ ...form, RealisasiAnggaran: e.target.value })} 
+                  <Input
+                    required
+                    type="number"
+                    value={form.RealisasiAnggaran}
+                    onChange={e => setForm({ ...form, RealisasiAnggaran: e.target.value })}
                     placeholder="0"
-                    className="h-12 pl-10 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white focus:ring-primary/20 shadow-none transition-all font-bold text-sm" 
+                    className="h-12 pl-10 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white focus:ring-primary/20 shadow-none transition-all font-bold text-sm"
                   />
                 </div>
                 {/* 🌟 Dynamic live points separator for realisasi */}
@@ -577,28 +577,28 @@ export default function LpjManagement() {
             {/* Catatan & Evaluasi */}
             <div className="space-y-2">
               <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 uppercase font-headline">Catatan & Evaluasi Kegiatan</Label>
-              <Textarea 
-                required 
-                value={form.Catatan} 
-                onChange={e => setForm({ ...form, Catatan: e.target.value })} 
+              <Textarea
+                required
+                value={form.Catatan}
+                onChange={e => setForm({ ...form, Catatan: e.target.value })}
                 placeholder="Tuliskan catatan pelaksanaan kegiatan, evaluasi panitia, dan ringkasan penggunaan anggaran..."
-                className="min-h-[100px] rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white focus:ring-primary/20 shadow-none transition-all font-semibold text-xs leading-relaxed p-4" 
+                className="min-h-[100px] rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white focus:ring-primary/20 shadow-none transition-all font-semibold text-xs leading-relaxed p-4"
               />
             </div>
 
             {/* Dialog Footer Actions */}
             <DialogFooter className="mt-6 pt-6 flex flex-col md:flex-row items-center justify-end gap-3 border-t border-slate-100 -mx-8 px-8 bg-slate-50/30 pb-0">
-              <Button 
-                type="button" 
-                variant="ghost" 
-                onClick={() => setIsCrudOpen(false)} 
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => setIsCrudOpen(false)}
                 className="w-full md:w-auto text-[10px] font-black tracking-widest text-slate-400 hover:text-slate-900 px-8 h-12 rounded-2xl active:scale-95 transition-all"
               >
                 BATAL
               </Button>
-              <Button 
-                type="submit" 
-                disabled={isSubmitting} 
+              <Button
+                type="submit"
+                disabled={isSubmitting}
                 className="w-full md:w-auto h-12 px-8 rounded-2xl bg-primary text-white hover:bg-primary/90 shadow-xl shadow-primary/20 transition-all hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2 border-none"
               >
                 {isSubmitting ? (
@@ -616,13 +616,13 @@ export default function LpjManagement() {
       </Dialog>
 
       {/* Delete Confirmation Modal */}
-      <DeleteConfirmModal 
-        isOpen={isDelOpen} 
-        onClose={() => setIsDelOpen(false)} 
+      <DeleteConfirmModal
+        isOpen={isDelOpen}
+        onClose={() => setIsDelOpen(false)}
         onConfirm={handleDelete}
-        title="Hapus Laporan LPJ?" 
-        description="Apakah Anda yakin ingin menghapus data Laporan Pertanggungjawaban ini? Tindakan ini bersifat permanen." 
-        loading={isSubmitting} 
+        title="Hapus Laporan LPJ?"
+        description="Apakah Anda yakin ingin menghapus data Laporan Pertanggungjawaban ini? Tindakan ini bersifat permanen."
+        loading={isSubmitting}
       />
     </div>
   )

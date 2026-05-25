@@ -14,7 +14,7 @@ const menuSections = [
   {
     label: 'Academic Management',
     items: [
-      { name: 'Data Dosen', path: '/faculty/dosen', icon: 'how_to_reg' },
+      { name: 'Data Psikolog', path: '/faculty/psikolog', icon: 'how_to_reg' },
       { name: 'Data Mahasiswa', path: '/faculty/mahasiswa', icon: 'group' },
       { name: 'Mahasiswa Baru', path: '/faculty/mahasiswa/baru', icon: 'person_add' },
       { name: 'Monitor PKKMB', path: '/faculty/pkkmb', icon: 'check_circle' },

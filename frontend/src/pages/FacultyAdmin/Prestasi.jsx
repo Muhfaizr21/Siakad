@@ -68,6 +68,130 @@ export default function FacultyPrestasi() {
   const [pageSize, setPageSize]         = useState(10)
   const [sortConfig, setSortConfig]     = useState({ key: 'CreatedAt', direction: 'desc' })
 
+  const downloadPDF = (title, subtitle, contentHtml) => {
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) { toast.error('Gagal membuka jendela cetak. Pastikan pop-up tidak diblokir.'); return; }
+    const htmlContent = `<html><head><meta charset="utf-8"><title>${title}</title><style>
+      @page { size: A4 landscape; margin: 15mm; }
+      body { font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.5; color: #334155; background:#fff; margin:0; padding:0; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+      .letterhead-table { width:100%; border-collapse:collapse; border:none; margin-bottom:20px; }
+      .letterhead-table td { border:none; padding:0; }
+      .univ-title { font-size:12px; font-weight:700; color:#00236F; font-family:'Times New Roman',serif; }
+      .univ-main  { font-size:17px; font-weight:800; color:#00236F; font-family:'Times New Roman',serif; margin-top:2px; }
+      .univ-address { font-size:8px; color:#475569; margin-top:4px; }
+      .univ-contact { font-size:8px; color:#00236F; font-weight:600; margin-top:2px; }
+      .double-line { border:0; border-top:3px double #00236F; margin:10px 0 18px; }
+      h1 { color:#1e293b; text-align:center; font-size:14px; font-weight:800; margin:0 0 3px; text-transform:uppercase; }
+      h2 { color:#64748b; text-align:center; font-size:8px; font-weight:700; margin:0 0 20px; text-transform:uppercase; letter-spacing:1px; }
+      table.data-table { width:100%; border-collapse:collapse; margin-top:8px; }
+      table.data-table th { background:#00236F; color:#fff; font-weight:700; text-align:left; padding:7px 8px; border:1px solid #cbd5e1; font-size:8px; text-transform:uppercase; }
+      table.data-table td { padding:6px 8px; border:1px solid #cbd5e1; font-size:8px; color:#334155; }
+      table.data-table tr:nth-child(even) td { background:#f8fafc; }
+      .badge { display:inline-block; padding:2px 5px; font-size:7px; font-weight:700; border-radius:3px; text-transform:uppercase; }
+      .badge-success { background:#dcfce7; color:#15803d; border:1px solid #bbf7d0; }
+      .badge-warning { background:#fef9c3; color:#a16207; border:1px solid #fef08a; }
+      .badge-info    { background:#dbeafe; color:#1d4ed8; border:1px solid #bfdbfe; }
+      .footer { margin-top:30px; text-align:right; font-size:8px; color:#64748b; }
+      .sig-line { width:150px; border-top:1px solid #94a3b8; margin-top:40px; display:inline-block; }
+      @media print { .no-print { display:none; } }
+    </style></head><body>
+      <table class="letterhead-table"><tr>
+        <td style="width:12%;text-align:left;">
+          <img src="https://bku.ac.id/wp-content/uploads/2021/01/logo-bku-nav.png" alt="Logo" style="height:50px;width:auto;object-fit:contain;" onerror="this.src='https://bku.ac.id/wp-content/uploads/2021/01/logo-bku.png';this.onerror=null;"/>
+        </td>
+        <td style="width:88%;text-align:center;">
+          <div class="univ-title">YAYASAN ADHI GUNA KENCANA</div>
+          <div class="univ-main">UNIVERSITAS BHAKTI KENCANA</div>
+          <div class="univ-address">Jl. Soekarno Hatta No. 754, Cipadung Kidul, Panyileukan, Kota Bandung, Jawa Barat 40614</div>
+          <div class="univ-contact">Telp: (022) 7800570 | Email: info@bku.ac.id | Website: www.bku.ac.id</div>
+        </td>
+      </tr></table>
+      <hr class="double-line" />
+      <h1>${title}</h1>
+      <h2>${subtitle}</h2>
+      ${contentHtml}
+      <div class="footer">
+        <p>Dicetak secara otomatis oleh Portal Akademik Fakultas</p>
+        <p>Tanggal Cetak: ${new Date().toLocaleDateString('id-ID', { day:'numeric', month:'long', year:'numeric', hour:'2-digit', minute:'2-digit' })} WIB</p>
+        <br/><p>Mengetahui,</p>
+        <p style="font-weight:700;margin-top:4px;">Dekan Bidang Akademik</p>
+        <div class="sig-line"></div>
+      </div>
+      <script>window.onload=function(){setTimeout(function(){window.print();setTimeout(function(){window.close();},100);},300);};<\/script>
+    </body></html>`;
+    printWindow.document.open();
+    printWindow.document.write(htmlContent);
+    printWindow.document.close();
+  };
+
+  const exportAchievementsPDF = () => {
+    if (achievements.length === 0) { toast.error('Tidak ada data prestasi untuk diekspor'); return; }
+    const dataToExport = filtered.length > 0 && filtered.length < achievements.length ? filtered : achievements;
+    let tableRows = '';
+    dataToExport.forEach((item, idx) => {
+      const stLabel = ['verified','terverifikasi','disetujui'].includes((item.Status||'').toLowerCase())
+        ? '<span class="badge badge-success">Terverifikasi</span>'
+        : (item.Status||'').toLowerCase().includes('tolak') || (item.Status||'').toLowerCase() === 'rejected'
+        ? '<span class="badge badge-warning">Ditolak</span>'
+        : '<span class="badge badge-info">Menunggu</span>';
+      const tingkatCls = (item.Tingkat||'').toLowerCase() === 'internasional' ? 'color:#7c3aed;font-weight:700;'
+        : (item.Tingkat||'').toLowerCase() === 'nasional' ? 'color:#1d4ed8;font-weight:700;' : 'color:#0e7490;font-weight:700;';
+      tableRows += `<tr>
+        <td>${idx + 1}</td>
+        <td style="font-weight:700;">${item.Mahasiswa?.Nama||'—'}<br/><span style="font-size:7px;color:#64748b;">NIM: ${item.Mahasiswa?.NIM||'—'}</span></td>
+        <td>${item.NamaKegiatan||'—'}<br/><span style="font-size:7px;color:#1d4ed8;font-weight:700;">${item.Kategori||'Umum'}</span></td>
+        <td style="${tingkatCls}">${item.Tingkat||'Lokal'}</td>
+        <td>${item.Peringkat||'—'}</td>
+        <td style="font-weight:700;text-align:center;">${item.Poin||0}</td>
+        <td>${item.CreatedAt ? new Date(item.CreatedAt).getFullYear() : '—'}</td>
+        <td>${stLabel}</td>
+      </tr>`;
+    });
+    const totalVerified = dataToExport.filter(a => ['verified','terverifikasi','disetujui'].includes((a.Status||'').toLowerCase())).length;
+    const contentHtml = `
+      <table style="width:100%;border-collapse:collapse;border:none;margin-bottom:16px;">
+        <tr>
+          <td style="padding:0 6px 0 0;width:33%;">
+            <div style="background:#f8fafc;border:1px solid #e2e8f0;padding:10px 12px;border-radius:5px;">
+              <div style="font-size:7px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;">Total Data Diekspor</div>
+              <div style="font-size:14px;font-weight:700;color:#00236F;">${dataToExport.length} Capaian</div>
+            </div>
+          </td>
+          <td style="padding:0 6px;width:33%;">
+            <div style="background:#f8fafc;border:1px solid #e2e8f0;padding:10px 12px;border-radius:5px;">
+              <div style="font-size:7px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;">Tervalidasi Fakultas</div>
+              <div style="font-size:14px;font-weight:700;color:#15803d;">${totalVerified} Pengajuan</div>
+            </div>
+          </td>
+          <td style="padding:0 0 0 6px;width:34%;">
+            <div style="background:#f8fafc;border:1px solid #e2e8f0;padding:10px 12px;border-radius:5px;">
+              <div style="font-size:7px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;">Menunggu Review</div>
+              <div style="font-size:14px;font-weight:700;color:#d97706;">${dataToExport.length - totalVerified} Pengajuan</div>
+            </div>
+          </td>
+        </tr>
+      </table>
+      <table class="data-table">
+        <thead><tr>
+          <th style="width:4%;">No</th>
+          <th style="width:20%;">Mahasiswa</th>
+          <th style="width:28%;">Prestasi / Penghargaan</th>
+          <th style="width:10%;">Tingkat</th>
+          <th style="width:10%;">Peringkat</th>
+          <th style="width:6%;text-align:center;">Poin</th>
+          <th style="width:7%;">Tahun</th>
+          <th style="width:10%;">Status</th>
+        </tr></thead>
+        <tbody>${tableRows}</tbody>
+      </table>`;
+    downloadPDF(
+      'Laporan Prestasi & Capaian Mahasiswa',
+      `Dataset Rekapitulasi Kompetisi Dan Penghargaan — ${new Date().toLocaleDateString('id-ID', { month:'long', year:'numeric' })}`,
+      contentHtml
+    );
+    toast.success(`Berhasil mencetak ${dataToExport.length} data prestasi!`);
+  };
+
   const fetchData = async () => {
     setLoading(true)
     try {
@@ -183,9 +307,9 @@ export default function FacultyPrestasi() {
               </p>
             </div>
             <div className="flex items-center gap-3">
-              <button onClick={() => alert('Ekspor...')}
-                className="h-11 px-5 rounded-xl border border-[#e5e5e5] bg-white text-xs font-bold uppercase tracking-widest text-[#525252] hover:bg-[#fafafa] gap-2 flex items-center transition-all active:scale-95 shadow-sm">
-                <Download size={14} className="text-primary" /> Ekspor
+              <button onClick={exportAchievementsPDF} disabled={loading || achievements.length === 0}
+                className="h-11 px-5 rounded-xl border border-[#e5e5e5] bg-white text-xs font-bold uppercase tracking-widest text-[#525252] hover:bg-[#fafafa] gap-2 flex items-center transition-all active:scale-95 shadow-sm disabled:opacity-50">
+                <Download size={14} className="text-primary" /> Ekspor PDF
               </button>
               <button onClick={fetchData} disabled={loading}
                 className="h-11 px-5 rounded-xl border border-[#e5e5e5] bg-white text-xs font-bold uppercase tracking-widest text-[#525252] hover:bg-[#fafafa] gap-2 flex items-center transition-all active:scale-95 shadow-sm disabled:opacity-60">
@@ -254,7 +378,7 @@ export default function FacultyPrestasi() {
               <thead>
                 <tr className="border-b border-[#e5e5e5]">
                   {[
-                    { label: '#', key: null, sortable: false },
+                    { label: 'No', key: null, sortable: false },
                     { label: 'Mahasiswa', key: 'mahasiswa', sortable: true },
                     { label: 'Prestasi / Penghargaan', key: 'NamaKegiatan', sortable: true },
                     { label: 'Tingkat', key: 'Tingkat', sortable: true },
@@ -445,7 +569,7 @@ export default function FacultyPrestasi() {
             <div className="relative bg-gradient-to-br from-[#00236F] via-[#00308F] to-[#003db5] pt-6 pb-7 px-6 overflow-hidden flex-shrink-0">
               <div className="absolute -top-10 -right-10 w-44 h-44 bg-white/5 rounded-full pointer-events-none"/>
               <button onClick={() => setSelected(null)}
-                className="absolute top-4 right-4 w-8 h-8 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center transition-colors">
+                className="absolute z-50 top-4 right-4 w-8 h-8 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center transition-colors">
                 <span className="material-symbols-outlined" style={{ fontSize: '15px' }} >close</span>
               </button>
               <div className="relative z-10 flex items-center gap-4 mb-5">

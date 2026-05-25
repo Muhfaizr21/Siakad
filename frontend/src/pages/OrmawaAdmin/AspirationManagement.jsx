@@ -5,9 +5,7 @@ import { DataTable } from '../FacultyAdmin/components/data-table'
 import { Badge } from '../FacultyAdmin/components/badge'
 import { Button } from '../FacultyAdmin/components/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '../FacultyAdmin/components/dialog'
-import { DeleteConfirmModal } from '../FacultyAdmin/components/DeleteConfirmModal'
 import { Card, CardContent } from '../FacultyAdmin/components/card'
-import { Input } from '../FacultyAdmin/components/input'
 import { Label } from '../FacultyAdmin/components/label'
 import { Textarea } from '../FacultyAdmin/components/textarea'
 
@@ -20,162 +18,326 @@ import useAuthStore from '../../store/useAuthStore'
 const API = `${API_BASE_URL}/ormawa`
 
 export default function AspirationManagement() {
- const [sidebarOpen, setSidebarOpen] = useState(false)
- const [data, setData] = useState([])
- const [loading, setLoading] = useState(true)
- const [selected, setSelected] = useState(null)
- const [isDetailOpen, setIsDetailOpen] = useState(false)
- const [isSubmitting, setIsSubmitting] = useState(false)
- const [tanggapan, setTanggapan] = useState('')
- const ormawaId = useAuthStore.getState()?.mahasiswa?.ormawaId || useAuthStore.getState()?.mahasiswa?.ID || 1
+  const [data, setData] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [selected, setSelected] = useState(null)
+  const [isDetailOpen, setIsDetailOpen] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [tanggapan, setTanggapan] = useState('')
+  
+  const authState = useAuthStore((s) => s)
+  const ormawaId = authState?.mahasiswa?.ormawaId || authState?.mahasiswa?.OrmawaID || authState?.user?.ormawaId || 1
 
- const fetchData = async () => {
- setLoading(true)
- try {
- const data = await fetchWithAuth(`${API}/aspirations?ormawaId=${ormawaId}`)
- if (data.status === 'success') setData(data.data || [])
- else toast.error('Gagal memuat aspirasi')
- } catch { toast.error('Koneksi gagal') } finally { setLoading(false) }
- }
- useEffect(() => { fetchData() }, [])
+  const fetchData = async () => {
+    setLoading(true)
+    try {
+      const res = await fetchWithAuth(`${API}/aspirations?ormawaId=${ormawaId}`)
+      if (res.status === 'success') {
+        setData(res.data || [])
+      } else {
+        toast.error('Gagal memuat aspirasi')
+      }
+    } catch (err) {
+      toast.error('Koneksi ke database backend gagal')
+    } finally {
+      setLoading(false)
+    }
+  }
 
- const handleTanggapi = async () => {
- if (!tanggapan.trim()) { toast.error('Isi tanggapan terlebih dahulu'); return }
- setIsSubmitting(true)
- try {
- const data = await fetchWithAuth(`${API}/aspirations/${selected?.ID}`, {
- method: 'PUT',
- headers: { 'Content-Type': 'application/json' },
- body: JSON.stringify({ Tanggapan: tanggapan, Status: 'ditanggapi' })
- })
- if (data.status === 'success') { toast.success('Tanggapan berhasil dikirim'); setIsDetailOpen(false); setTanggapan(''); fetchData() }
- else toast.error(data.message || 'Gagal mengirim tanggapan')
- } catch { toast.error('Terjadi kesalahan') } finally { setIsSubmitting(false) }
- }
+  useEffect(() => {
+    fetchData()
+  }, [ormawaId])
 
- const columns = [
- { key: 'Judul', label: 'Topik Aspirasi', className: 'min-w-[280px]',
- render: (v, row) => (
- <div className="flex flex-col leading-tight">
- <span className="font-bold text-slate-900 text-[13px] font-headline tracking-tighter">{v || '—'}</span>
- <span className="text-[10px] text-slate-400 font-bold tracking-tight mt-0.5">{row.OrmawaNama || 'Ormawa'}</span>
- </div>
- )
- },
- { key: 'Status', label: 'Status', className: 'w-[150px] text-center', cellClassName: 'text-center',
- render: v => (
- <Badge className={cn('font-black text-[10px] px-3 py-1 border-none shadow-sm',
- v === 'ditanggapi' ? 'bg-emerald-100 text-emerald-700 ring-1 ring-emerald-500/20' :
- v === 'pending' || !v ? 'bg-amber-100 text-amber-700 ring-1 ring-amber-500/20' :
- 'bg-slate-100 text-slate-600')}>{v === 'ditanggapi' ? 'Ditanggapi' : v === 'pending' || !v ? 'Menunggu' : v}</Badge>
- )
- },
- { key: 'CreatedAt', label: 'Dikirim', className: 'w-[160px]',
- render: v => <span className="font-bold text-slate-400 text-[11px] font-headline">{v ? new Date(v).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}</span>
- }
- ]
+  const handleTanggapi = async () => {
+    if (!tanggapan.trim()) {
+      toast.error('Isi tanggapan terlebih dahulu')
+      return
+    }
+    setIsSubmitting(true)
+    try {
+      const res = await fetchWithAuth(`${API}/aspirations/${selected?.ID}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ Tanggapan: tanggapan, Status: 'ditanggapi' })
+      })
+      if (res.status === 'success') {
+        toast.success('Tanggapan resmi berhasil dikirim!')
+        setIsDetailOpen(false)
+        setTanggapan('')
+        fetchData()
+      } else {
+        toast.error(res.message || 'Gagal mengirim tanggapan')
+      }
+    } catch (err) {
+      toast.error('Koneksi ke backend gagal')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
 
- return (
- <div className="max-w-[1600px] mx-auto px-4 py-8 md:px-8 xl:px-12 space-y-8 font-body">
- <Toaster position="top-right" />
- 
- {/* ── Welcome Banner ─────────────────────────────────────────── */}
- <section className="relative overflow-hidden rounded-3xl h-auto md:h-48 flex flex-col md:flex-row items-center group shadow-sm p-8 md:p-0 border border-slate-200/80">
- <div className="absolute inset-0 bg-gradient-to-br from-white via-slate-50/50 to-slate-100/50" />
- <div className="absolute inset-0 opacity-[0.03]"
- style={{
- backgroundImage: `radial-gradient(circle at 20% 50%, black 1px, transparent 1px), radial-gradient(circle at 80% 20%, black 1px, transparent 1px)`,
- backgroundSize: '60px 60px'
- }}
- />
- <div className="absolute -top-20 -right-20 w-72 h-72 bg-primary/5 rounded-full blur-3xl" />
- <div className="absolute -bottom-10 right-40 w-48 h-48 bg-blue-400/5 rounded-full blur-2xl" />
+  const columns = [
+    {
+      key: 'Judul',
+      label: 'Topik Aspirasi',
+      className: 'min-w-[280px]',
+      render: (v, row) => (
+        <div className="flex flex-col leading-tight">
+          <span className="font-bold text-slate-900 text-[13px] font-headline tracking-tighter">{v || '—'}</span>
+          <span className="text-[10px] text-slate-400 font-bold tracking-tight mt-0.5">{row.OrmawaNama || 'Organisasi Mahasiswa'}</span>
+        </div>
+      )
+    },
+    {
+      key: 'Status',
+      label: 'Status',
+      className: 'w-[150px] text-center',
+      cellClassName: 'text-center',
+      render: v => {
+        const isDitanggapi = v === 'ditanggapi'
+        return (
+          <Badge className={cn(
+            'font-bold text-[10px] uppercase tracking-wider px-3.5 py-1 border rounded-full',
+            isDitanggapi 
+              ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
+              : 'bg-amber-50 text-amber-700 border-amber-200'
+          )}>
+            {isDitanggapi ? 'Ditanggapi' : 'Menunggu'}
+          </Badge>
+        )
+      }
+    },
+    {
+      key: 'CreatedAt',
+      label: 'Tanggal Dikirim',
+      className: 'w-[160px]',
+      render: v => (
+        <span className="font-bold text-slate-400 text-[11px] font-headline">
+          {v ? new Date(v).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
+        </span>
+      )
+    }
+  ]
 
- <div className="relative z-10 md:px-10 flex-1 flex flex-col justify-center items-start w-full gap-2">
- <div className="flex items-center gap-2 mb-3">
- <span className="h-1.5 w-6 bg-primary/40 rounded-full" />
- <span className="text-[10px] font-bold text-slate-400 tracking-[0.25em]">
- Ormawa Admin
- </span>
- </div>
- <div className="flex items-center gap-3 mb-2">
- <div className="p-2 bg-primary/10 backdrop-blur-md rounded-xl text-primary shadow-inner">
- <span className="material-symbols-outlined" style={{ fontSize: '24px' }} >chat</span>
- </div>
- <h1 className="text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight font-headline">
- Aspirasi Organisasi
- </h1>
- </div>
- <p className="text-slate-500 font-medium text-sm max-w-2xl leading-relaxed">
- Tampung dan berikan tanggapan resmi atas aspirasi dari mahasiswa.
- </p>
- </div>
- </section>
+  // Calculated Stats
+  const totalAspirasi = data.length
+  const answeredAspirasi = data.filter(x => x.Status === 'ditanggapi').length
+  const pendingAspirasi = data.filter(x => x.Status === 'pending' || !x.Status).length
+  const responseRatio = totalAspirasi > 0 ? Math.round((answeredAspirasi / totalAspirasi) * 100) : 0
 
- {/* ── Content Area ───────────────────────────────────────────── */}
- <Card className="border border-[#e5e5e5] shadow-sm overflow-hidden bg-white rounded-3xl">
- <CardContent className="p-0">
- <DataTable
- columns={columns} data={data} loading={loading}
- searchPlaceholder="Cari topik aspirasi..."
- filters={[{ key: 'Status', placeholder: 'Filter Status', options: [{ label: 'Menunggu', value: 'menunggu' }, { label: 'Ditanggapi', value: 'ditanggapi' }] }]}
- actions={(row) => (
- <Button onClick={() => { setSelected(row); setTanggapan(''); setIsDetailOpen(true) }} variant="ghost" size="icon" className="h-8 w-8 hover:text-primary hover:bg-primary/10 rounded-xl">
- <span className="material-symbols-outlined size-4" >visibility</span>
- </Button>
- )}
- />
- </CardContent>
- </Card>
+  return (
+    <div className="max-w-[1600px] mx-auto px-4 py-8 md:px-8 xl:px-12 space-y-8 font-body">
+      <Toaster position="top-right" />
+      
+      {/* ── Welcome Banner ─────────────────────────────────────────── */}
+      <section className="relative overflow-hidden rounded-[2rem] bg-gradient-to-r from-[#00236F] to-[#1e3a8a] text-white p-8 md:p-10 shadow-xl shadow-blue-900/10">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.08)_0%,transparent_60%)]" />
+        <div className="absolute inset-0 opacity-[0.03]"
+          style={{
+            backgroundImage: `radial-gradient(circle at 20% 50%, white 1px, transparent 1px), radial-gradient(circle at 80% 20%, white 1px, transparent 1px)`,
+            backgroundSize: '40px 40px'
+          }}
+        />
+        <div className="absolute -right-20 -top-20 w-80 h-80 bg-white/10 rounded-full blur-3xl" />
+        <div className="absolute -bottom-10 right-40 w-60 h-60 bg-blue-300/10 rounded-full blur-2xl" />
 
- <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
- <DialogContent className="max-w-2xl p-0 overflow-hidden border-none shadow-2xl rounded-[2.5rem] bg-white/95 backdrop-blur-xl ">
- {selected && (
- <div>
- <div className="p-6 md:p-8 bg-gradient-to-br from-slate-900 to-slate-800 relative overflow-hidden">
- <div className="absolute inset-0 bg-gradient-to-br from-primary/30 to-transparent" />
- <div className="relative z-10">
- <div className="flex items-start justify-between gap-4">
- <div>
- <p className="text-[10px] font-black text-slate-400 tracking-widest mb-1">Aspirasi #{selected.ID}</p>
- <h2 className="text-xl font-black text-white font-headline tracking-tighter">{selected.Judul}</h2>
- </div>
- <Badge className={cn('font-black text-[9px] px-3 py-1 border-none shrink-0',
- selected.Status === 'ditanggapi' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-400')}>
- {selected.Status === 'ditanggapi' ? 'Ditanggapi' : 'Menunggu'}
- </Badge>
- </div>
- </div>
- </div>
- <div className="p-6 md:p-8 space-y-4 md:space-y-6">
- <div>
- <p className="text-[9px] font-black text-slate-400 tracking-widest mb-2 font-headline">Isi Aspirasi</p>
- <p className="text-sm text-slate-600 font-medium leading-relaxed bg-slate-50 p-4 rounded-2xl border border-slate-100">{selected.Isi || selected.Konten || '—'}</p>
- </div>
- {selected.Tanggapan && (
- <div>
- <p className="text-[9px] font-black text-emerald-600 tracking-widest mb-2 font-headline flex items-center gap-1.5"><span className="material-symbols-outlined size-3" >check_circle</span> Tanggapan Ormawa</p>
- <p className="text-sm text-slate-600 font-medium leading-relaxed bg-emerald-50 p-4 rounded-2xl border border-emerald-100">{selected.Tanggapan}</p>
- </div>
- )}
- {selected.Status !== 'ditanggapi' && (
- <div className="space-y-3">
- <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] font-headline">Tulis Tanggapan</Label>
- <Textarea rows={3} value={tanggapan} onChange={e => setTanggapan(e.target.value)}
- placeholder="Tulis balasan/tanggapan resmi ormawa..."
- className="rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white p-4 font-medium text-sm leading-relaxed resize-none" />
- <Button disabled={isSubmitting} onClick={handleTanggapi} className="w-full h-12 rounded-2xl bg-primary text-white font-black text-[10px] tracking-widest shadow-xl shadow-primary/20">
- {isSubmitting ? <span className="material-symbols-outlined size-4 animate-spin mr-2" >sync</span> : <span className="material-symbols-outlined size-4 mr-2" >check_circle</span>}
- Kirim Tanggapan
- </Button>
- </div>
- )}
- <Button variant="ghost" onClick={() => setIsDetailOpen(false)} className="w-full text-[10px] font-black tracking-widest text-slate-400 h-10 rounded-2xl">Tutup</Button>
- </div>
- </div>
- )}
- </DialogContent>
- </Dialog>
- </div>
- )
+        <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+          <div className="space-y-3">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/15">
+              <span className="h-1.5 w-1.5 bg-amber-400 rounded-full animate-ping" />
+              <span className="text-[10px] font-bold tracking-[0.2em] text-white/80 uppercase">Layanan Aspirasi</span>
+            </div>
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 shadow-inner">
+                <span className="material-symbols-outlined text-white" style={{ fontSize: '32px' }}>forum</span>
+              </div>
+              <div>
+                <h1 className="text-3xl md:text-4xl font-black tracking-tight font-headline">Aspirasi Organisasi</h1>
+                <p className="text-blue-100/80 text-sm font-medium mt-1">Tampung gagasan, kritik, dan berikan tanggapan resmi atas aspirasi dari mahasiswa.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Statistics Summary Cards ────────────────────────────────── */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        {/* Total Aspirasi */}
+        <Card className="border border-slate-100 shadow-sm rounded-3xl overflow-hidden bg-white hover:shadow-md transition-all duration-300">
+          <CardContent className="p-6 flex items-center gap-4.5">
+            <div className="w-12 h-12 rounded-2xl bg-[#00236F]/5 flex items-center justify-center text-[#00236F]">
+              <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>question_answer</span>
+            </div>
+            <div className="space-y-0.5">
+              <p className="text-[10px] font-black text-slate-400 tracking-wider uppercase font-headline">Total Aspirasi Masuk</p>
+              <p className="text-2xl font-black text-slate-900 tracking-tight font-headline">{totalAspirasi}</p>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Ditanggapi */}
+        <Card className="border border-slate-100 shadow-sm rounded-3xl overflow-hidden bg-white hover:shadow-md transition-all duration-300">
+          <CardContent className="p-6 flex items-center gap-4.5">
+            <div className="w-12 h-12 rounded-2xl bg-emerald-50 flex items-center justify-center text-emerald-600">
+              <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>mark_chat_read</span>
+            </div>
+            <div className="space-y-0.5">
+              <p className="text-[10px] font-black text-slate-400 tracking-wider uppercase font-headline">Sudah Ditanggapi</p>
+              <p className="text-2xl font-black text-slate-900 tracking-tight font-headline">{answeredAspirasi}</p>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Menunggu */}
+        <Card className="border border-slate-100 shadow-sm rounded-3xl overflow-hidden bg-white hover:shadow-md transition-all duration-300">
+          <CardContent className="p-6 flex items-center gap-4.5">
+            <div className="w-12 h-12 rounded-2xl bg-amber-50 flex items-center justify-center text-amber-600">
+              <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>quickreply</span>
+            </div>
+            <div className="space-y-0.5">
+              <p className="text-[10px] font-black text-slate-400 tracking-wider uppercase font-headline">Menunggu Tanggapan</p>
+              <p className="text-2xl font-black text-slate-900 tracking-tight font-headline">{pendingAspirasi}</p>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Rasio Respon */}
+        <Card className="border border-slate-100 shadow-sm rounded-3xl overflow-hidden bg-white hover:shadow-md transition-all duration-300">
+          <CardContent className="p-6 flex items-center gap-4.5">
+            <div className="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-600">
+              <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>trending_up</span>
+            </div>
+            <div className="space-y-0.5">
+              <p className="text-[10px] font-black text-slate-400 tracking-wider uppercase font-headline">Rasio Respon</p>
+              <p className="text-2xl font-black text-slate-900 tracking-tight font-headline">{responseRatio}%</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* ── DataTable Container ──────────────────────────────────────── */}
+      <Card className="border border-slate-200/50 shadow-sm rounded-[2rem] overflow-hidden bg-white/70 backdrop-blur-md">
+        <CardContent className="p-6">
+          <DataTable
+            columns={columns} 
+            data={data} 
+            loading={loading}
+            searchPlaceholder="Cari topik atau konten aspirasi..."
+            filters={[
+              { 
+                key: 'Status', 
+                placeholder: 'Filter Status', 
+                options: [
+                  { label: 'Menunggu', value: 'pending' }, 
+                  { label: 'Ditanggapi', value: 'ditanggapi' }
+                ] 
+              }
+            ]}
+            actions={(row) => (
+              <Button 
+                onClick={() => { setSelected(row); setTanggapan(''); setIsDetailOpen(true) }} 
+                variant="ghost" 
+                size="icon" 
+                className="h-8 w-8 text-slate-400 hover:text-[#00236F] hover:bg-blue-50 rounded-xl active:scale-95 transition-all"
+                title="Lihat Detail & Tanggapi"
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>visibility</span>
+              </Button>
+            )}
+          />
+        </CardContent>
+      </Card>
+
+      {/* ── Detail View Dialog (Clean & Consistent Layout) ────────────── */}
+      <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
+        <DialogContent className="max-w-2xl p-0 overflow-hidden border-none shadow-2xl rounded-[2.5rem] bg-white animate-in zoom-in-95 duration-200">
+          {selected && (
+            <div>
+              {/* Header Gradient */}
+              <div className="p-8 bg-gradient-to-r from-[#00236F] to-[#1e3a8a] text-white relative overflow-hidden">
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.06)_0%,transparent_50%)]" />
+                <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none">
+                  <span className="material-symbols-outlined size-24 text-white">chat</span>
+                </div>
+                <div className="relative z-10 space-y-4">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="space-y-0.5">
+                      <p className="text-[10px] font-black text-blue-200 tracking-[0.2em] uppercase font-headline">Aspirasi ID: ASP-{selected.ID}</p>
+                      <h2 className="text-xl font-black font-headline tracking-tighter leading-tight">{selected.Judul}</h2>
+                    </div>
+                    <Badge className={cn(
+                      'font-bold text-[10px] uppercase tracking-wider px-3.5 py-1 border shrink-0 rounded-full',
+                      selected.Status === 'ditanggapi' 
+                        ? 'bg-emerald-500/20 text-emerald-300 border-emerald-400/30' 
+                        : 'bg-amber-500/20 text-amber-300 border-amber-400/30'
+                    )}>
+                      {selected.Status === 'ditanggapi' ? 'Ditanggapi' : 'Menunggu'}
+                    </Badge>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Dialog Content Grid */}
+              <div className="p-8 space-y-5">
+                {/* Content Box */}
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 uppercase font-headline">Konten & Uraian Aspirasi</Label>
+                  <div className="text-sm font-medium text-slate-600 leading-relaxed bg-slate-50 p-5 rounded-2xl border border-slate-100">
+                    {selected.Isi || selected.Konten || '—'}
+                  </div>
+                </div>
+
+                {/* Response / Tanggapan Box */}
+                {selected.Tanggapan ? (
+                  <div className="space-y-2 animate-in fade-in duration-200">
+                    <Label className="text-[10px] font-black text-emerald-600 tracking-[0.2em] ml-1 uppercase font-headline flex items-center gap-1.5">
+                      <span className="material-symbols-outlined" style={{ fontSize: '13px' }}>check_circle</span>
+                      Tanggapan Resmi Pengurus
+                    </Label>
+                    <div className="text-sm font-medium text-slate-600 leading-relaxed bg-emerald-50/50 p-5 rounded-2xl border border-emerald-100">
+                      {selected.Tanggapan}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-3.5 pt-2">
+                    <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 uppercase font-headline">Berikan Balasan / Tanggapan Resmi</Label>
+                    <Textarea 
+                      rows={3} 
+                      value={tanggapan} 
+                      onChange={e => setTanggapan(e.target.value)}
+                      placeholder="Ketik tanggapan atau resolusi resmi dari pengurus organisasi..."
+                      className="min-h-[100px] rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white focus:ring-primary/20 shadow-none transition-all font-semibold text-xs leading-relaxed p-4" 
+                    />
+                    
+                    <Button 
+                      disabled={isSubmitting} 
+                      onClick={handleTanggapi} 
+                      className="w-full h-12 rounded-2xl bg-primary text-white hover:bg-primary/95 shadow-xl shadow-primary/20 transition-all active:scale-95 flex items-center justify-center gap-2 border-none"
+                    >
+                      {isSubmitting ? (
+                        <span className="material-symbols-outlined animate-spin size-4" style={{ fontSize: '16px' }}>sync</span>
+                      ) : (
+                        <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>send</span>
+                      )}
+                      <span className="text-[10px] font-black tracking-widest uppercase">KIRIM TANGGAPAN RESMI</span>
+                    </Button>
+                  </div>
+                )}
+
+                {/* Footer close button */}
+                <div className="flex justify-end pt-4 border-t border-slate-100">
+                  <Button 
+                    variant="ghost" 
+                    onClick={() => setIsDetailOpen(false)} 
+                    className="text-[10px] font-black tracking-widest text-slate-400 hover:text-slate-900 px-8 h-12 rounded-2xl active:scale-95 transition-all"
+                  >
+                    TUTUP DIALOG
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+    </div>
+  )
 }

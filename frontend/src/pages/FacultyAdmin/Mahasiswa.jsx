@@ -68,11 +68,38 @@ const formatDate = (d) => {
 }
 
 const getFullUrl = (path) => {
-  if (!path) return null;
+  if (!path || path.trim() === "" || path === "/" || path.endsWith("/profiles/") || path.endsWith("/students/")) return null;
   if (path.startsWith('http')) return path;
   const baseUrl = API_BASE_URL.replace('/api', '');
   return `${baseUrl}${path}`;
 }
+
+function StudentAvatar({ src, name, className = "w-9 h-9 rounded-xl" }) {
+  const [loaded, setLoaded] = useState(false);
+  const [error, setError] = useState(false);
+  
+  const hasNoImage = !src || src.trim() === "" || src.endsWith("/profiles/") || src.endsWith("/students/") || src.endsWith("localhost:8000") || src.endsWith("localhost:8000/");
+
+  return (
+    <div className={cn("relative bg-slate-50 flex items-center justify-center shrink-0 border border-slate-200/40 shadow-inner overflow-hidden", className)}>
+      {(!loaded || error || hasNoImage) && (
+        <span className="material-symbols-outlined text-slate-400/80 block select-none leading-none absolute" style={{ fontSize: className.includes('w-14') ? '28px' : '20px' }}>
+          person
+        </span>
+      )}
+      {!hasNoImage && !error && (
+        <img
+          src={src}
+          alt={name}
+          className={cn("absolute inset-0 w-full h-full object-cover transition-opacity duration-200", loaded ? "opacity-100" : "opacity-0")}
+          onLoad={() => setLoaded(true)}
+          onError={() => setError(true)}
+        />
+      )}
+    </div>
+  );
+}
+
 
 export default function MahasiswaPage() {
   const [studentData, setStudentData] = useState([])
@@ -129,6 +156,139 @@ export default function MahasiswaPage() {
     } catch { toast.error('Gagal sinkronisasi dari PDDIKTI') }
     finally { setIsSyncing(false) }
   }
+
+  const downloadPDF = (title, subtitle, contentHtml) => {
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) { toast.error('Gagal membuka jendela cetak. Pastikan pop-up tidak diblokir.'); return; }
+    const htmlContent = `<html><head><meta charset="utf-8"><title>${title}</title><style>
+      @page { size: A4 landscape; margin: 15mm; }
+      body { font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.5; color: #334155; background:#fff; margin:0; padding:0; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+      .letterhead-table { width:100%; border-collapse:collapse; border:none; margin-bottom:20px; }
+      .letterhead-table td { border:none; padding:0; }
+      .univ-title { font-size:12px; font-weight:700; color:#00236F; font-family:'Times New Roman',serif; }
+      .univ-main  { font-size:17px; font-weight:800; color:#00236F; font-family:'Times New Roman',serif; margin-top:2px; }
+      .univ-address { font-size:8px; color:#475569; margin-top:4px; }
+      .univ-contact { font-size:8px; color:#00236F; font-weight:600; margin-top:2px; }
+      .double-line { border:0; border-top:3px double #00236F; margin:10px 0 18px; }
+      h1 { color:#1e293b; text-align:center; font-size:14px; font-weight:800; margin:0 0 3px; text-transform:uppercase; }
+      h2 { color:#64748b; text-align:center; font-size:8px; font-weight:700; margin:0 0 20px; text-transform:uppercase; letter-spacing:1px; }
+      table.data-table { width:100%; border-collapse:collapse; margin-top:8px; }
+      table.data-table th { background:#00236F; color:#fff; font-weight:700; text-align:left; padding:7px 8px; border:1px solid #cbd5e1; font-size:8px; text-transform:uppercase; }
+      table.data-table td { padding:6px 8px; border:1px solid #cbd5e1; font-size:8px; color:#334155; }
+      table.data-table tr:nth-child(even) td { background:#f8fafc; }
+      .badge { display:inline-block; padding:2px 5px; font-size:7px; font-weight:700; border-radius:3px; text-transform:uppercase; }
+      .badge-aktif   { background:#dcfce7; color:#15803d; border:1px solid #bbf7d0; }
+      .badge-lulus   { background:#e0f2fe; color:#0284c7; border:1px solid #bae6fd; }
+      .badge-cuti    { background:#fef9c3; color:#a16207; border:1px solid #fef08a; }
+      .badge-nonaktif{ background:#fee2e2; color:#b91c1c; border:1px solid #fecaca; }
+      .footer { margin-top:30px; text-align:right; font-size:8px; color:#64748b; }
+      .sig-line { width:150px; border-top:1px solid #94a3b8; margin-top:40px; display:inline-block; }
+      @media print { .no-print { display:none; } }
+    </style></head><body>
+      <table class="letterhead-table"><tr>
+        <td style="width:12%;text-align:left;">
+          <img src="https://bku.ac.id/wp-content/uploads/2021/01/logo-bku-nav.png" alt="Logo" style="height:50px;width:auto;object-fit:contain;" onerror="this.src='https://bku.ac.id/wp-content/uploads/2021/01/logo-bku.png';this.onerror=null;"/>
+        </td>
+        <td style="width:88%;text-align:center;">
+          <div class="univ-title">YAYASAN ADHI GUNA KENCANA</div>
+          <div class="univ-main">UNIVERSITAS BHAKTI KENCANA</div>
+          <div class="univ-address">Jl. Soekarno Hatta No. 754, Cipadung Kidul, Panyileukan, Kota Bandung, Jawa Barat 40614</div>
+          <div class="univ-contact">Telp: (022) 7800570 | Email: info@bku.ac.id | Website: www.bku.ac.id</div>
+        </td>
+      </tr></table>
+      <hr class="double-line" />
+      <h1>${title}</h1>
+      <h2>${subtitle}</h2>
+      ${contentHtml}
+      <div class="footer">
+        <p>Dicetak secara otomatis oleh Portal Akademik Fakultas</p>
+        <p>Tanggal Cetak: ${new Date().toLocaleDateString('id-ID', { day:'numeric', month:'long', year:'numeric', hour:'2-digit', minute:'2-digit' })} WIB</p>
+        <br/><p>Mengetahui,</p>
+        <p style="font-weight:700;margin-top:4px;">Dekan Bidang Akademik</p>
+        <div class="sig-line"></div>
+      </div>
+      <script>window.onload=function(){setTimeout(function(){window.print();setTimeout(function(){window.close();},100);},300);};<\/script>
+    </body></html>`;
+    printWindow.document.open();
+    printWindow.document.write(htmlContent);
+    printWindow.document.close();
+  };
+
+  const exportStudentsPDF = () => {
+    if (studentData.length === 0) { toast.error('Tidak ada data mahasiswa untuk diekspor'); return; }
+    const dataToExport = filtered.length > 0 && filtered.length < studentData.length ? filtered : studentData;
+    const statusBadge = (s) => {
+      const key = (s||'').toLowerCase();
+      if (key === 'aktif' || key === 'active') return '<span class="badge badge-aktif">Aktif</span>';
+      if (key === 'lulus') return '<span class="badge badge-lulus">Lulus</span>';
+      if (key === 'cuti' || key === 'leave') return '<span class="badge badge-cuti">Cuti</span>';
+      return '<span class="badge badge-nonaktif">Non-Aktif</span>';
+    };
+    let tableRows = '';
+    dataToExport.forEach((item, idx) => {
+      tableRows += `<tr>
+        <td>${idx + 1}</td>
+        <td style="font-family:monospace;font-weight:700;color:#00236F;font-size:7.5px;">${item.NIM||'—'}</td>
+        <td style="font-weight:700;">${item.Nama||'—'}</td>
+        <td>${item.ProgramStudi||'—'}</td>
+        <td style="text-align:center;font-weight:700;">${item.SemesterSekarang||'—'}</td>
+        <td>${item.TahunMasuk||'—'}</td>
+        <td>${item.JalurMasuk||'—'}</td>
+        <td>${statusBadge(item.StatusAkun)}</td>
+      </tr>`;
+    });
+    const aktif  = dataToExport.filter(d => d.StatusAkun === 'Aktif' || d.StatusAkun === 'active').length;
+    const lulus  = dataToExport.filter(d => d.StatusAkun === 'Lulus').length;
+    const cuti   = dataToExport.filter(d => d.StatusAkun === 'Cuti'  || d.StatusAkun === 'leave').length;
+    const contentHtml = `
+      <table style="width:100%;border-collapse:collapse;border:none;margin-bottom:16px;">
+        <tr>
+          <td style="padding:0 5px 0 0;width:25%;">
+            <div style="background:#f8fafc;border:1px solid #e2e8f0;padding:10px 12px;border-radius:5px;">
+              <div style="font-size:7px;font-weight:700;color:#64748b;text-transform:uppercase;">Total Mahasiswa</div>
+              <div style="font-size:14px;font-weight:700;color:#00236F;">${dataToExport.length} Orang</div>
+            </div>
+          </td>
+          <td style="padding:0 5px;width:25%;">
+            <div style="background:#f8fafc;border:1px solid #e2e8f0;padding:10px 12px;border-radius:5px;">
+              <div style="font-size:7px;font-weight:700;color:#64748b;text-transform:uppercase;">Aktif</div>
+              <div style="font-size:14px;font-weight:700;color:#15803d;">${aktif} Orang</div>
+            </div>
+          </td>
+          <td style="padding:0 5px;width:25%;">
+            <div style="background:#f8fafc;border:1px solid #e2e8f0;padding:10px 12px;border-radius:5px;">
+              <div style="font-size:7px;font-weight:700;color:#64748b;text-transform:uppercase;">Lulus</div>
+              <div style="font-size:14px;font-weight:700;color:#0284c7;">${lulus} Orang</div>
+            </div>
+          </td>
+          <td style="padding:0 0 0 5px;width:25%;">
+            <div style="background:#f8fafc;border:1px solid #e2e8f0;padding:10px 12px;border-radius:5px;">
+              <div style="font-size:7px;font-weight:700;color:#64748b;text-transform:uppercase;">Cuti</div>
+              <div style="font-size:14px;font-weight:700;color:#d97706;">${cuti} Orang</div>
+            </div>
+          </td>
+        </tr>
+      </table>
+      <table class="data-table">
+        <thead><tr>
+          <th style="width:4%;">No</th>
+          <th style="width:12%;">NIM</th>
+          <th style="width:22%;">Nama Mahasiswa</th>
+          <th style="width:22%;">Program Studi</th>
+          <th style="width:6%;text-align:center;">Smt</th>
+          <th style="width:8%;">Angkatan</th>
+          <th style="width:14%;">Jalur Masuk</th>
+          <th style="width:9%;">Status</th>
+        </tr></thead>
+        <tbody>${tableRows}</tbody>
+      </table>`;
+    downloadPDF(
+      'Daftar Database Mahasiswa Fakultas',
+      `Rekap Data Akademik Mahasiswa — ${new Date().toLocaleDateString('id-ID', { month:'long', year:'numeric' })}`,
+      contentHtml
+    );
+    toast.success(`Berhasil mencetak ${dataToExport.length} data mahasiswa!`);
+  };
 
   useEffect(() => { fetchStudents() }, [])
 
@@ -215,14 +375,24 @@ export default function MahasiswaPage() {
                 Manajemen data dan arsip akademik seluruh mahasiswa di lingkungan fakultas.
               </p>
             </div>
-            <button
-              onClick={handleSync}
-              disabled={isSyncing}
-              className="h-11 px-6 rounded-xl border border-[#e5e5e5] bg-white text-xs font-bold uppercase tracking-widest text-[#525252] hover:bg-[#fafafa] gap-2 flex items-center transition-all active:scale-95 shadow-sm disabled:opacity-60"
-            >
-              {isSyncing ? <span className="material-symbols-outlined animate-spin text-primary" style={{ fontSize: '14px' }} >sync</span> : <RefreshCw size={14} className="text-primary" />}
-              {isSyncing ? 'Syncing...' : 'PDDIKTI Sync'}
-            </button>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={exportStudentsPDF}
+                disabled={loading || studentData.length === 0}
+                className="h-11 px-5 rounded-xl border border-[#e5e5e5] bg-white text-xs font-bold uppercase tracking-widest text-[#525252] hover:bg-[#fafafa] gap-2 flex items-center transition-all active:scale-95 shadow-sm disabled:opacity-50"
+              >
+                <FileText size={14} className="text-primary" />
+                Ekspor PDF
+              </button>
+              <button
+                onClick={handleSync}
+                disabled={isSyncing}
+                className="h-11 px-6 rounded-xl border border-[#e5e5e5] bg-white text-xs font-bold uppercase tracking-widest text-[#525252] hover:bg-[#fafafa] gap-2 flex items-center transition-all active:scale-95 shadow-sm disabled:opacity-60"
+              >
+                {isSyncing ? <span className="material-symbols-outlined animate-spin text-primary" style={{ fontSize: '14px' }} >sync</span> : <RefreshCw size={14} className="text-primary" />}
+                {isSyncing ? 'Syncing...' : 'PDDIKTI Sync'}
+              </button>
+            </div>
           </div>
         </section>
 
@@ -293,7 +463,7 @@ export default function MahasiswaPage() {
               <thead>
                 <tr className="border-b border-[#e5e5e5]">
                   {[
-                    { label: '#', key: null, sortable: false },
+                    {label: 'No', key: null, sortable: false},
                     { label: 'NIM', key: 'NIM', sortable: true },
                     { label: 'Identitas Mahasiswa', key: 'Nama', sortable: true },
                     { label: 'Program Studi', key: 'ProgramStudi', sortable: true },
@@ -361,20 +531,7 @@ export default function MahasiswaPage() {
                       </td>
                       <td className="px-5 py-3.5">
                         <div className="flex items-center gap-3">
-                          {row.Foto ? (
-                            <img
-                              src={row.Foto}
-                              alt={row.Nama}
-                              className="w-9 h-9 rounded-xl object-cover shrink-0 shadow-sm border border-slate-200"
-                              onError={(e) => { e.target.src = ''; }}
-                            />
-                          ) : (
-                            <div className="w-9 h-9 rounded-xl bg-slate-100 flex items-end justify-center overflow-hidden shrink-0 border border-slate-200/60 shadow-sm">
-                              <svg className="w-7 h-7 text-slate-400 translate-y-0.5" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0 1 12.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 1 1-8 0 4 4 0 0 1 8 0z" />
-                              </svg>
-                            </div>
-                          )}
+                          <StudentAvatar src={row.Foto} name={row.Nama} className="w-9 h-9 rounded-xl" />
                           <div>
                             <p className="font-bold text-sm text-[#171717] leading-snug">{row.Nama}</p>
                             <p className="text-[10px] text-[#a3a3a3] font-medium">{row.TahunMasuk} · {row.JalurMasuk}</p>
@@ -502,24 +659,11 @@ export default function MahasiswaPage() {
               <div className="absolute -top-10 -right-10 w-44 h-44 bg-white/5 rounded-full pointer-events-none" />
               <div className="absolute -bottom-6 right-16 w-28 h-28 bg-white/5 rounded-full pointer-events-none" />
               <button onClick={() => setSelected(null)}
-                className="absolute top-4 right-4 w-8 h-8 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center transition-colors">
+                className="absolute z-50 top-4 right-4 w-8 h-8 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center transition-colors">
                 <span className="material-symbols-outlined" style={{ fontSize: '15px' }} >close</span>
               </button>
               <div className="relative z-10 flex items-center gap-4 mb-5">
-                {selected.Foto ? (
-                  <img
-                    src={selected.Foto}
-                    alt={selected.Nama}
-                    className="w-14 h-14 rounded-2xl object-cover shrink-0 shadow-xl ring-2 ring-white/20"
-                    onError={(e) => { e.target.src = ''; }}
-                  />
-                ) : (
-                  <div className="w-14 h-14 rounded-2xl bg-slate-100/90 backdrop-blur flex items-end justify-center overflow-hidden shrink-0 shadow-xl ring-2 ring-white/20">
-                    <svg className="w-11 h-11 text-slate-400 translate-y-1.5" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0 1 12.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 1 1-8 0 4 4 0 0 1 8 0z" />
-                    </svg>
-                  </div>
-                )}
+                <StudentAvatar src={selected.Foto} name={selected.Nama} className="w-14 h-14 rounded-2xl shadow-xl ring-2 ring-white/20" />
                 <div className="min-w-0">
                   <p className="text-[9px] font-bold text-white/50 uppercase tracking-[0.25em] mb-1">Profil Mahasiswa</p>
                   <h2 className="text-lg font-extrabold text-white leading-tight truncate">{selected.Nama}</h2>

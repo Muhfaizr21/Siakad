@@ -182,7 +182,7 @@ export function DataTable({
       </div>
 
       <div className="overflow-x-auto overflow-y-auto max-h-[600px] scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent">
-        <Table className="w-full table-auto">
+        <Table className="w-full table-fixed min-w-[900px]">
           <TableHeader>
             <TableRow className="bg-white border-b border-[#e5e5e5]">
               {columns.map((col) => (
@@ -225,25 +225,37 @@ export function DataTable({
                 </TableRow>
               ))
             ) : paginatedData.length > 0 ? (
-              paginatedData.map((row, i) => (
-                <TableRow
-                  key={row.id || row.ID || i}
-                  className="hover:bg-[#fafbff] border-b border-[#f5f5f5] transition-colors group cursor-default"
-                >
-                  {columns.map((col) => (
-                    <TableCell key={col.key} className={cn("px-5 py-3.5 font-body", col.cellClassName)}>
-                      {col.render ? col.render(row[col.key], row, (currentPage - 1) * pageSize + i) : <span className="text-sm font-bold text-[#525252]">{row[col.key] || "-"}</span>}
-                    </TableCell>
-                  ))}
-                  {actions && (
-                    <TableCell className="px-5 py-3.5 text-right">
-                      <div className="flex justify-end items-center transition-all">
-                        {actions(row)}
-                      </div>
-                    </TableCell>
-                  )}
-                </TableRow>
-              ))
+              <>
+                {paginatedData.map((row, i) => (
+                  <TableRow
+                    key={row.id || row.ID || i}
+                    className="hover:bg-[#fafbff] border-b border-[#f5f5f5] transition-colors group cursor-default"
+                  >
+                    {columns.map((col) => (
+                      <TableCell key={col.key} className={cn("px-5 py-3.5 font-body", col.cellClassName)}>
+                        {col.render ? col.render(row[col.key], row, (currentPage - 1) * pageSize + i) : <span className="text-sm font-bold text-[#525252]">{row[col.key] || "-"}</span>}
+                      </TableCell>
+                    ))}
+                    {actions && (
+                      <TableCell className="px-5 py-3.5 text-right">
+                        <div className="flex justify-end items-center transition-all">
+                          {actions(row)}
+                        </div>
+                      </TableCell>
+                    )}
+                  </TableRow>
+                ))}
+                {paginatedData.length < pageSize && Array.from({ length: pageSize - paginatedData.length }).map((_, idx) => (
+                  <TableRow key={`filler-${idx}`} className="border-b border-[#f5f5f5]/30 hover:bg-transparent pointer-events-none select-none">
+                    {columns.map((col) => (
+                      <TableCell key={`filler-cell-${col.key}`} className="px-5 py-3.5 opacity-0">
+                        <div className="h-5" />
+                      </TableCell>
+                    ))}
+                    {actions && <TableCell className="px-5 py-3.5 opacity-0"><div className="h-5" /></TableCell>}
+                  </TableRow>
+                ))}
+              </>
             ) : (
               <TableRow>
                 <TableCell

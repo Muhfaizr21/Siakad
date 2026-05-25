@@ -30,7 +30,7 @@ const TopNavBar = ({ setIsOpen }) => {
     { name: 'Data Mahasiswa', path: '/faculty/mahasiswa', icon: 'group' },
     { name: 'Mahasiswa Baru', path: '/faculty/mahasiswa/baru', icon: PlusCircle },
     { name: 'Monitor PKKMB', path: '/faculty/pkkmb', icon: 'database' },
-    { name: 'Manajemen Dosen', path: '/faculty/dosen', icon: UserCheck },
+    { name: 'Manajemen Psikolog', path: '/faculty/psikolog', icon: UserCheck },
     { name: 'Status Kesehatan', path: '/faculty/kesehatan', icon: Stethoscope },
     { name: 'Student Voice', path: '/faculty/aspirasi', icon: 'campaign' },
     { name: 'Validasi Prestasi', path: '/faculty/prestasi', icon: 'emoji_events' },

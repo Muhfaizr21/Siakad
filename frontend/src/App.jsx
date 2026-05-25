@@ -68,14 +68,14 @@ import PkkmbManagement from './pages/OrmawaAdmin/PkkmbManagement'
 import FacultyAspirationManagement from './pages/FacultyAdmin/Aspirasi'
 import FacultyPmb from './pages/FacultyAdmin/MahasiswaBaru'
 import FacultyProdi from './pages/FacultyAdmin/Prodi'
-import FacultyDosen from './pages/FacultyAdmin/Dosen'
+import FacultyDosen from './pages/FacultyAdmin/Psikolog'
 const FacultyMahasiswa = React.lazy(() => import('./pages/FacultyAdmin/Mahasiswa'))
 const FacultyMahasiswaImport = FacultyMahasiswa
 const FacultyMahasiswaStatus = FacultyMahasiswa
 const FacultyMahasiswaTambah = FacultyMahasiswa
 const FacultyMahasiswaEdit = FacultyMahasiswa
-import FacultyDosenTambah from './pages/FacultyAdmin/Dosen'
-import FacultyDosenEdit from './pages/FacultyAdmin/Dosen'
+import FacultyDosenTambah from './pages/FacultyAdmin/Psikolog'
+import FacultyDosenEdit from './pages/FacultyAdmin/Psikolog'
 import FacultyProdiTambah from './pages/FacultyAdmin/Prodi'
 import FacultyProdiEdit from './pages/FacultyAdmin/Prodi'
 import FacultyProdiKurikulum from './pages/FacultyAdmin/Prodi'
@@ -221,6 +221,8 @@ function App() {
                     <Route path="dashboard" element={<FacultyDashboard />} />
                     <Route path="aspirasi" element={<FacultyAspirationManagement />} />
                     <Route path="pmb" element={<FacultyPmb />} />
+                    <Route path="dosen" element={<Navigate to="../psikolog" replace />} />
+                    <Route path="psikolog" element={<FacultyDosen />} />
 
                     <Route path="prodi" element={<FacultyProdi />} />
                     <Route path="prodi/tambah" element={<FacultyProdiTambah />} />

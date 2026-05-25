@@ -70,7 +70,7 @@ class _StudentCounselingScreenState extends State<StudentCounselingScreen> {
       ),
     );
   }
-
+  
   Widget _buildGreeting() {
     final name = context.watch<StudentProvider>().name;
     final firstName = name.split(' ').first;

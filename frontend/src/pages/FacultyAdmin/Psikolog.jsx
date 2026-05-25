@@ -3,46 +3,64 @@
 import React, { useState, useEffect, useMemo } from "react"
 import api from "../../lib/axios"
 import { Avatar, AvatarFallback } from "./components/avatar"
-import { pddiktiService } from "../../services/api"
-
 import { toast, Toaster } from "react-hot-toast"
 import { cn } from "@/lib/utils"
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "./components/select"
 import { Button } from "./components/button"
 
+import { API_BASE_URL } from "../../services/api"
+
 // Auto-injected Material Symbol fallbacks for removed Lucide icons
 const RefreshCw = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>sync</span>;
 const Layers = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>layers</span>;
-const Icon = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>info</span>;
-
-
-
-// Auto-injected Material Symbol fallbacks for removed Lucide icons
 const Mail = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>mail</span>;
 const Phone = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>phone</span>;
-
-
-
-// Auto-injected Material Symbol fallbacks for removed Lucide icons
 const Users = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>group</span>;
-const GraduationCap = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>school</span>;
 const Briefcase = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>work</span>;
 const UserCheck = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>how_to_reg</span>;
 const Building2 = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>business</span>;
-const BookOpen = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>menu_book</span>;
 const Award = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>emoji_events</span>;
 
-
-
-const JABATAN_STYLES = {
-  'Profesor': { cls: 'bg-amber-50 text-amber-700 border-amber-200', dot: 'bg-amber-500' },
-  'Lektor Kepala': { cls: 'bg-indigo-50 text-indigo-700 border-indigo-200', dot: 'bg-indigo-500' },
-  'Lektor': { cls: 'bg-blue-50 text-blue-700 border-blue-200', dot: 'bg-blue-500' },
-  'Asisten': { cls: 'bg-slate-50 text-slate-600 border-slate-200', dot: 'bg-slate-400' },
+const getFullUrl = (path) => {
+  if (!path || path.trim() === "" || path === "/" || path.endsWith("/profiles/") || path.endsWith("/psychologists/")) return null;
+  if (path.startsWith('http')) return path;
+  const baseUrl = API_BASE_URL.replace('/api', '');
+  return `${baseUrl}${path}`;
 }
 
-const getInitials = (name = '') =>
-  name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() || '?'
+function PsikologAvatar({ src, name, className = "w-10 h-10 rounded-full" }) {
+  const [loaded, setLoaded] = useState(false);
+  const [error, setError] = useState(false);
+
+  const hasNoImage = !src || src.trim() === "" || src.endsWith("/profiles/") || src.endsWith("/psychologists/") || src.endsWith("localhost:8000") || src.endsWith("localhost:8000/");
+
+  return (
+    <div className={cn("relative bg-slate-50 flex items-center justify-center shrink-0 border border-slate-200/40 shadow-inner overflow-hidden", className)}>
+      {(!loaded || error || hasNoImage) && (
+        <span className="material-symbols-outlined text-slate-400/80 block select-none leading-none absolute" style={{ fontSize: className.includes('w-[60px]') ? '30px' : '22px' }}>
+          person
+        </span>
+      )}
+      {!hasNoImage && !error && (
+        <img
+          src={src}
+          alt={name}
+          className={cn("absolute inset-0 w-full h-full object-cover transition-opacity duration-200", loaded ? "opacity-100" : "opacity-0")}
+          onLoad={() => setLoaded(true)}
+          onError={() => setError(true)}
+        />
+      )}
+    </div>
+  );
+}
+
+
+const SPESIALISASI_STYLES = {
+  'Klinis': { cls: 'bg-rose-50 text-rose-700 border-rose-200', dot: 'bg-rose-500' },
+  'Umum': { cls: 'bg-blue-50 text-blue-700 border-blue-200', dot: 'bg-blue-500' },
+  'Pendidikan': { cls: 'bg-amber-50 text-amber-700 border-amber-200', dot: 'bg-amber-500' },
+  'Perkembangan': { cls: 'bg-emerald-50 text-emerald-700 border-emerald-200', dot: 'bg-emerald-500' },
+}
 
 const AVATAR_COLORS = [
   'from-blue-400 to-indigo-500',
@@ -53,66 +71,61 @@ const AVATAR_COLORS = [
   'from-cyan-400 to-sky-500',
 ]
 
-export default function DosenPage() {
-  const [lecturers, setLecturers] = useState([])
+const formatIDR = (num) => {
+  if (num === undefined || num === null) return '—'
+  return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(num)
+}
+
+export default function PsikologPage() {
+  const [psychologists, setPsychologists] = useState([])
   const [loading, setLoading] = useState(true)
-  const [isSyncing, setIsSyncing] = useState(false)
-  const [selectedDosen, setSelected] = useState(null)
+  const [selectedPsikolog, setSelected] = useState(null)
   const [search, setSearch] = useState('')
-  const [filterJabatan, setFilterJab] = useState('all')
+  const [filterSpesialisasi, setFilterSpesialisasi] = useState('all')
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
   const [sortConfig, setSortConfig] = useState({ key: 'Nama', direction: 'asc' })
 
-  const fetchLecturers = async () => {
+  const fetchPsychologists = async () => {
     setLoading(true)
     try {
-      const res = await api.get('/faculty/lecturers')
+      const res = await api.get('/faculty/psychologists')
       const list = res?.data?.data || []
-      setLecturers(list.map((d, i) => ({
-        ID: d.ID,
-        NIDN: d.NIDN,
-        Nama: d.Nama,
-        Jabatan: d.Jabatan || 'Dosen',
-        ProgramStudi: d.ProgramStudi?.Nama || '—',
-        Fakultas: d.Fakultas?.Nama || '—',
-        Email: d.Pengguna?.Email || '—',
-        NoHP: d.NoHP || '—',
+      setPsychologists(list.map((p, i) => ({
+        ID: p.id || p.ID,
+        Nama: p.nama || p.Nama || '—',
+        Email: p.email || p.Email || '—',
+        NoHP: p.no_hp || p.NoHP || '—',
+        Spesialisasi: p.spesialisasi || p.Spesialisasi || 'Umum',
+        Bio: p.bio || p.Bio || 'Tidak ada bio.',
+        Foto: getFullUrl(p.foto_url || p.FotoURL || null),
+        Lokasi: p.lokasi || p.Lokasi || '—',
+        Bahasa: p.bahasa || p.Bahasa || 'Indonesia',
+        Tarif: p.tarif || p.Tarif || 0,
+        IsAktif: p.is_aktif !== false,
         colorIdx: i % AVATAR_COLORS.length,
-        Foto: d.Foto || d.Pengguna?.Foto || null,
       })))
     } catch {
-      toast.error("Gagal memuat data dosen")
+      toast.error("Gagal memuat data psikolog")
     } finally {
       setLoading(false)
     }
   }
 
-  const handleSync = async () => {
-    setIsSyncing(true)
-    try {
-      await pddiktiService.fetchData('Universitas Bhakti Kencana', 'dosen')
-      await fetchLecturers()
-      toast.success('Sinkronisasi dosen selesai')
-    } catch {
-      toast.error('Gagal sinkronisasi dari PDDIKTI')
-    } finally {
-      setIsSyncing(false)
-    }
-  }
+  useEffect(() => {
+    fetchPsychologists()
+  }, [])
 
-  useEffect(() => { fetchLecturers() }, [])
-
-  const jabatanList = [...new Set(lecturers.map(d => d.Jabatan).filter(Boolean))]
+  const spesialisasiList = [...new Set(psychologists.map(p => p.Spesialisasi).filter(Boolean))]
 
   const filtered = useMemo(() =>
-    lecturers.filter(d => {
+    psychologists.filter(p => {
       const q = search.toLowerCase()
-      const matchQ = !q || d.Nama?.toLowerCase().includes(q) || d.NIDN?.includes(q) || d.ProgramStudi?.toLowerCase().includes(q)
-      const matchJ = filterJabatan === 'all' || d.Jabatan === filterJabatan
-      return matchQ && matchJ
+      const matchQ = !q || p.Nama?.toLowerCase().includes(q) || p.Email?.toLowerCase().includes(q) || p.Spesialisasi?.toLowerCase().includes(q)
+      const matchS = filterSpesialisasi === 'all' || p.Spesialisasi === filterSpesialisasi
+      return matchQ && matchS
     })
-    , [lecturers, search, filterJabatan])
+    , [psychologists, search, filterSpesialisasi])
 
   const sorted = useMemo(() => {
     let items = [...filtered]
@@ -150,10 +163,10 @@ export default function DosenPage() {
   }
 
   const stats = {
-    total: lecturers.length,
-    profesor: lecturers.filter(d => d.Jabatan === 'Profesor').length,
-    lektor: lecturers.filter(d => d.Jabatan === 'Lektor' || d.Jabatan === 'Lektor Kepala').length,
-    asisten: lecturers.filter(d => d.Jabatan === 'Asisten').length,
+    total: psychologists.length,
+    klinis: psychologists.filter(p => p.Spesialisasi?.toLowerCase().includes('klinis')).length,
+    umum: psychologists.filter(p => p.Spesialisasi?.toLowerCase().includes('umum')).length,
+    aktif: psychologists.filter(p => p.IsAktif).length,
   }
 
   return (
@@ -177,23 +190,23 @@ export default function DosenPage() {
             <div className="space-y-1">
               <div className="flex items-center gap-2 mb-2">
                 <div className="h-4 w-1.5 bg-primary rounded-full" />
-                <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#a3a3a3]">Human Capital</span>
+                <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#a3a3a3]">Student Wellness</span>
               </div>
               <h1 className="text-3xl font-extrabold text-slate-900 font-headline tracking-tight leading-tight">
-                Direktori <span className="text-primary">Dosen</span>
+                Direktori <span className="text-primary">Psikolog</span>
               </h1>
               <p className="text-slate-500 font-medium text-sm max-w-xl leading-relaxed">
-                Database tenaga pengajar, jabatan fungsional, dan penugasan akademik seluruh dosen di lingkungan fakultas.
+                Database tenaga konselor profesional, spesialisasi, tarif layanan, dan jadwal aktif penugasan bimbingan psikologi.
               </p>
             </div>
             <div className="flex items-center gap-3">
               <button
-                onClick={handleSync}
-                disabled={isSyncing}
+                onClick={fetchPsychologists}
+                disabled={loading}
                 className="h-11 px-6 rounded-xl border border-[#e5e5e5] bg-white text-xs font-bold uppercase tracking-widest text-[#525252] hover:bg-[#fafafa] gap-2 flex items-center transition-all active:scale-95 shadow-sm disabled:opacity-60"
               >
-                {isSyncing ? <span className="material-symbols-outlined animate-spin text-primary" style={{ fontSize: '14px' }} >sync</span> : <RefreshCw size={14} className="text-primary" />}
-                {isSyncing ? 'Syncing...' : 'PDDIKTI Sync'}
+                <RefreshCw size={14} className={cn("text-primary", loading && "animate-spin")} />
+                Refresh Data
               </button>
             </div>
           </div>
@@ -202,10 +215,10 @@ export default function DosenPage() {
         {/* ── Stat Cards ─────────────────────────────────────────── */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {[
-            { label: 'Total Dosen', value: stats.total, icon: Users, bg: 'bg-[#eef4ff]', color: 'text-[#00236F]', desc: 'Tenaga pengajar terdaftar' },
-            { label: 'Profesor', value: stats.profesor, icon: GraduationCap, bg: 'bg-amber-50', color: 'text-amber-600', desc: 'Guru Besar / Profesor' },
-            { label: 'Lektor', value: stats.lektor, icon: Briefcase, bg: 'bg-indigo-50', color: 'text-indigo-600', desc: 'Lektor & Lektor Kepala' },
-            { label: 'Asisten', value: stats.asisten, icon: UserCheck, bg: 'bg-slate-50', color: 'text-slate-500', desc: 'Asisten Ahli terdaftar' },
+            { label: 'Total Psikolog', value: stats.total, icon: Users, bg: 'bg-[#eef4ff]', color: 'text-[#00236F]', desc: 'Konselor terdaftar' },
+            { label: 'Spesialisasi Klinis', value: stats.klinis, icon: Briefcase, bg: 'bg-rose-50', color: 'text-rose-600', desc: 'Psikolog Klinis' },
+            { label: 'Spesialisasi Umum', value: stats.umum, icon: Award, bg: 'bg-indigo-50', color: 'text-indigo-600', desc: 'Konselor Umum' },
+            { label: 'Psikolog Aktif', value: stats.aktif, icon: UserCheck, bg: 'bg-emerald-50', color: 'text-emerald-600', desc: 'Tersedia untuk bimbingan' },
           ].map(s => (
             <div key={s.label} className="bg-surface-container-lowest border border-outline-variant/10 rounded-3xl p-5 shadow-sm">
               <div className="flex items-center gap-3 mb-3">
@@ -228,9 +241,9 @@ export default function DosenPage() {
           {/* Toolbar */}
           <div className="px-5 py-4 border-b border-[#f0f0f0] flex flex-col sm:flex-row items-start sm:items-center gap-3">
             <div className="flex-1">
-              <h2 className="font-bold text-base text-[#171717]">Daftar Tenaga Pengajar</h2>
+              <h2 className="font-bold text-base text-[#171717]">Daftar Praktisi & Psikolog</h2>
               <p className="text-xs text-[#737373] mt-0.5">
-                Menampilkan <span className="font-bold text-[#171717]">{filtered.length}</span> dari <span className="font-bold text-[#00236F]">{lecturers.length}</span> dosen
+                Menampilkan <span className="font-bold text-[#171717]">{filtered.length}</span> dari <span className="font-bold text-[#00236F]">{psychologists.length}</span> psikolog
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
@@ -239,25 +252,25 @@ export default function DosenPage() {
                 <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#a3a3a3]" style={{ fontSize: '14px' }} >search</span>
                 <input
                   type="text"
-                  placeholder="Cari nama, NIDN, prodi..."
+                  placeholder="Cari nama, spesialisasi, email..."
                   value={search}
                   onChange={e => setSearch(e.target.value)}
                   className="pl-9 pr-4 h-9 w-56 rounded-xl border border-[#e5e5e5] focus:outline-none focus:border-[#00236F] text-sm bg-white"
                 />
               </div>
-              {/* Filter Jabatan */}
+              {/* Filter Spesialisasi */}
               <select
-                value={filterJabatan}
-                onChange={e => setFilterJab(e.target.value)}
+                value={filterSpesialisasi}
+                onChange={e => setFilterSpesialisasi(e.target.value)}
                 className="h-9 pl-3 pr-8 rounded-xl border border-[#e5e5e5] text-xs font-medium bg-white text-[#525252] focus:outline-none focus:border-[#00236F] appearance-none cursor-pointer"
               >
-                <option value="all">Semua Jabatan</option>
-                {jabatanList.map(j => <option key={j} value={j}>{j}</option>)}
+                <option value="all">Semua Spesialisasi</option>
+                {spesialisasiList.map(s => <option key={s} value={s}>{s}</option>)}
               </select>
               {/* Reset */}
-              {(search || filterJabatan !== 'all') && (
+              {(search || filterSpesialisasi !== 'all') && (
                 <button
-                  onClick={() => { setSearch(''); setFilterJab('all') }}
+                  onClick={() => { setSearch(''); setFilterSpesialisasi('all') }}
                   className="h-9 px-3 text-xs font-semibold text-rose-600 bg-rose-50 rounded-xl border border-rose-200 hover:bg-rose-100 transition-colors"
                 >
                   Reset
@@ -268,15 +281,15 @@ export default function DosenPage() {
 
           {/* Table */}
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
+            <table className="w-full table-fixed min-w-[900px] text-left border-collapse">
               <thead>
                 <tr className="bg-white border-b border-[#e5e5e5]">
                   {[
-                    { label: '#', key: null, sortable: false, className: 'w-[50px]' },
-                    { label: 'NIDN', key: 'NIDN', sortable: true, className: 'w-[130px]' },
-                    { label: 'Identitas Dosen', key: 'Nama', sortable: true },
-                    { label: 'Program Studi', key: 'ProgramStudi', sortable: true },
-                    { label: 'Jabatan', key: 'Jabatan', sortable: true, className: 'w-[160px] text-center' },
+                    { label: 'No', key: null, sortable: false, className: 'w-[50px]' },
+                    { label: 'Identitas Psikolog', key: 'Nama', sortable: true },
+                    { label: 'Lokasi & Bahasa', key: 'Lokasi', sortable: true },
+                    { label: 'Spesialisasi', key: 'Spesialisasi', sortable: true, className: 'w-[180px] text-center' },
+                    { label: 'Tarif Sesi', key: 'Tarif', sortable: true, className: 'w-[150px]' },
                     { label: 'Aksi', key: null, sortable: false, className: 'text-right w-[100px]' },
                   ].map(h => (
                     <th
@@ -322,73 +335,71 @@ export default function DosenPage() {
                     <td colSpan={6} className="px-5 py-16 text-center">
                       <div className="flex flex-col items-center gap-3">
                         <div className="w-12 h-12 bg-[#eef4ff] rounded-2xl flex items-center justify-center text-[#00236F]">
-                          <span className="material-symbols-outlined" style={{ fontSize: '22px' }} >school</span>
+                          <span className="material-symbols-outlined" style={{ fontSize: '22px' }} >psychology</span>
                         </div>
-                        <p className="font-bold text-sm text-[#171717]">Tidak Ada Data Dosen</p>
+                        <p className="font-bold text-sm text-[#171717]">Tidak Ada Data Psikolog</p>
                         <p className="text-xs text-[#a3a3a3]">Coba ubah filter atau kata kunci pencarian.</p>
                       </div>
                     </td>
                   </tr>
                 ) : (
-                  paginated.map((row, i) => {
-                    const jabStyle = JABATAN_STYLES[row.Jabatan] || JABATAN_STYLES['Asisten']
-                    return (
-                      <tr key={row.ID || i} className="border-b border-[#f5f5f5] hover:bg-[#fafbff] transition-colors group">
-                        <td className="px-5 py-3.5 text-sm text-[#a3a3a3] font-medium">{(currentPage - 1) * pageSize + i + 1}</td>
-                        <td className="px-5 py-3.5">
-                          <code className="text-[12px] font-bold text-[#3b82f6] tracking-[0.08em] bg-[#eff6ff] px-2 py-1 rounded-lg border border-[#dbeafe]">
-                            {row.NIDN || '—'}
-                          </code>
-                        </td>
-                        <td className="px-5 py-3.5">
-                          <div className="flex items-center gap-3.5">
-                            {row.Foto ? (
-                              <img
-                                src={row.Foto}
-                                alt={row.Nama}
-                                className="w-10 h-10 rounded-2xl object-cover shrink-0 shadow-sm border border-slate-200"
-                                onError={(e) => { e.target.src = ''; }}
-                              />
-                            ) : (
-                              <div className="w-10 h-10 rounded-2xl bg-slate-100 flex items-end justify-center overflow-hidden shrink-0 border border-slate-200/60 shadow-sm">
-                                <svg className="w-8 h-8 text-slate-400 translate-y-0.5" fill="currentColor" viewBox="0 0 24 24">
-                                  <path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0 1 12.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 1 1-8 0 4 4 0 0 1 8 0z" />
-                                </svg>
+                  <>
+                    {paginated.map((row, i) => {
+                      const spStyle = SPESIALISASI_STYLES[row.Spesialisasi] || SPESIALISASI_STYLES['Umum']
+                      return (
+                        <tr key={row.ID || i} className="border-b border-[#f5f5f5] hover:bg-[#fafbff] transition-colors group">
+                          <td className="px-5 py-3.5 text-sm text-[#a3a3a3] font-medium">{(currentPage - 1) * pageSize + i + 1}</td>
+                          <td className="px-5 py-3.5">
+                            <div className="flex items-center gap-3.5">
+                              <PsikologAvatar src={row.Foto} name={row.Nama} className="w-10 h-10 rounded-full" />
+                              <div>
+                                <p className="font-bold text-sm text-[#171717] leading-snug">{row.Nama || '—'}</p>
+                                <p className="text-[11px] text-[#737373] font-medium">{row.Email}</p>
                               </div>
-                            )}
-                            <div>
-                              <p className="font-bold text-sm text-[#171717] leading-snug">{row.Nama || '—'}</p>
-                              <p className="text-[11px] text-[#737373] font-medium">{row.Email}</p>
                             </div>
-                          </div>
-                        </td>
-                        <td className="px-5 py-3.5">
-                          <p className="text-sm text-[#525252] font-medium leading-snug">{row.ProgramStudi}</p>
-                          {row.Fakultas && row.Fakultas !== '—' && (
-                            <p className="text-[10px] text-[#a3a3a3] font-medium mt-0.5">{row.Fakultas}</p>
-                          )}
-                        </td>
-                        <td className="px-5 py-3.5 text-center">
-                          <span className={cn(
-                            'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold border uppercase tracking-wider',
-                            jabStyle.cls
-                          )}>
-                            <span className={cn('w-1.5 h-1.5 rounded-full', jabStyle.dot)} />
-                            {row.Jabatan}
-                          </span>
-                        </td>
-                        <td className="px-5 py-3.5 text-right">
-                          <button
-                            onClick={() => setSelected(row)}
-                            className="p-1.5 text-[#a3a3a3] hover:text-[#00236F] hover:bg-[#eef4ff] rounded-lg transition-colors"
-                            title="Lihat Detail"
-                          >
-                            <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >visibility</span>
-                          </button>
-                        </td>
+                          </td>
+                          <td className="px-5 py-3.5">
+                            <p className="text-sm text-[#525252] font-medium leading-snug">{row.Lokasi || 'Online & Tatap Muka'}</p>
+                            <p className="text-[10px] text-[#a3a3a3] font-medium mt-0.5">Bahasa: {row.Bahasa}</p>
+                          </td>
+                          <td className="px-5 py-3.5 text-center">
+                            <span className={cn(
+                              'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold border uppercase tracking-wider',
+                              spStyle.cls
+                            )}>
+                              <span className={cn('w-1.5 h-1.5 rounded-full', spStyle.dot)} />
+                              {row.Spesialisasi}
+                            </span>
+                          </td>
+                          <td className="px-5 py-3.5">
+                            <span className="text-sm font-semibold text-slate-700">
+                              {formatIDR(row.Tarif)}
+                            </span>
+                            <span className="text-[10px] text-[#a3a3a3] block">per Sesi</span>
+                          </td>
+                          <td className="px-5 py-3.5 text-right">
+                            <button
+                              onClick={() => setSelected(row)}
+                              className="p-1.5 text-[#a3a3a3] hover:text-[#00236F] hover:bg-[#eef4ff] rounded-lg transition-colors"
+                              title="Lihat Detail"
+                            >
+                              <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >visibility</span>
+                            </button>
+                          </td>
+                        </tr>
+                      )
+                    })}
+                    {paginated.length < pageSize && Array.from({ length: pageSize - paginated.length }).map((_, idx) => (
+                      <tr key={`filler-${idx}`} className="border-b border-[#f5f5f5]/30 hover:bg-transparent pointer-events-none select-none">
+                        <td className="px-5 py-3.5 opacity-0"><div className="h-10" /></td>
+                        <td className="px-5 py-3.5 opacity-0" />
+                        <td className="px-5 py-3.5 opacity-0" />
+                        <td className="px-5 py-3.5 opacity-0" />
+                        <td className="px-5 py-3.5 opacity-0" />
+                        <td className="px-5 py-3.5 opacity-0" />
                       </tr>
-                    )
-                  })
+                    ))}
+                  </>
                 )}
               </tbody>
             </table>
@@ -471,14 +482,14 @@ export default function DosenPage() {
       </div>
 
       {/* ── Detail Modal ──────────────────────────────────────────── */}
-      {selectedDosen && (
+      {selectedPsikolog && (
         <>
           {/* Backdrop */}
           <div
             className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4"
             onClick={() => setSelected(null)}
           >
-            {/* Modal box — stop propagation so clicks inside don't close */}
+            {/* Modal box */}
             <div
               className="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl z-[101] flex flex-col overflow-hidden max-h-[90vh]"
               onClick={e => e.stopPropagation()}
@@ -493,31 +504,18 @@ export default function DosenPage() {
                 {/* Close */}
                 <button
                   onClick={() => setSelected(null)}
-                  className="absolute top-4 right-4 w-8 h-8 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center transition-colors"
+                  className="absolute z-50 top-4 right-4 w-8 h-8 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center transition-colors"
                 >
-                  <span className="material-symbols-outlined" style={{ fontSize: '15px' }} >close</span>
+                  <span className="material-symbols-outlined text-white" style={{ fontSize: '15px' }} >close</span>
                 </button>
 
                 {/* Avatar + name */}
                 <div className="relative z-10 flex items-center gap-4 mb-5">
-                  {selectedDosen.Foto ? (
-                    <img
-                      src={selectedDosen.Foto}
-                      alt={selectedDosen.Nama}
-                      className="w-[60px] h-[60px] rounded-2xl object-cover shrink-0 shadow-xl ring-2 ring-white/20"
-                      onError={(e) => { e.target.src = ''; }}
-                    />
-                  ) : (
-                    <div className="w-[60px] h-[60px] rounded-2xl bg-slate-100/90 backdrop-blur flex items-end justify-center overflow-hidden shrink-0 shadow-xl ring-2 ring-white/20">
-                      <svg className="w-[46px] h-[46px] text-slate-400 translate-y-1.5" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0 1 12.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 1 1-8 0 4 4 0 0 1 8 0z" />
-                      </svg>
-                    </div>
-                  )}
+                  <PsikologAvatar src={selectedPsikolog.Foto} name={selectedPsikolog.Nama} className="w-[60px] h-[60px] rounded-2xl shadow-xl ring-2 ring-white/20" />
                   <div className="min-w-0">
-                    <p className="text-[9px] font-bold text-white/50 uppercase tracking-[0.25em] mb-1">Tenaga Pengajar</p>
-                    <h2 className="text-lg font-extrabold text-white leading-tight truncate">{selectedDosen.Nama}</h2>
-                    <p className="text-xs text-blue-200 font-medium mt-0.5">{selectedDosen.ProgramStudi}</p>
+                    <p className="text-[9px] font-bold text-white/50 uppercase tracking-[0.25em] mb-1">Praktisi Wellness</p>
+                    <h2 className="text-lg font-extrabold text-white leading-tight truncate">{selectedPsikolog.Nama}</h2>
+                    <p className="text-xs text-blue-200 font-medium mt-0.5">{selectedPsikolog.Spesialisasi} Specialist</p>
                   </div>
                 </div>
 
@@ -525,14 +523,14 @@ export default function DosenPage() {
                 <div className="relative z-10 flex flex-wrap gap-2">
                   <span className="flex items-center gap-1.5 bg-white/10 border border-white/20 px-3 py-1.5 rounded-xl text-[10px] font-bold text-white uppercase tracking-wider">
                     <Award size={11} />
-                    {selectedDosen.Jabatan || 'Dosen'}
+                    {selectedPsikolog.Spesialisasi || 'Umum'}
                   </span>
-                  <span className="flex items-center gap-1.5 bg-white/10 border border-white/20 px-3 py-1.5 rounded-xl text-[10px] font-bold text-white/80 tracking-wider font-mono">
-                    NIDN {selectedDosen.NIDN || '—'}
+                  <span className="flex items-center gap-1.5 bg-white/10 border border-white/20 px-3 py-1.5 rounded-xl text-[10px] font-bold text-white/80 tracking-wider">
+                    Tarif: {formatIDR(selectedPsikolog.Tarif)}
                   </span>
                   <span className="flex items-center gap-1.5 bg-emerald-400/20 border border-emerald-300/30 px-3 py-1.5 rounded-xl text-[10px] font-bold text-emerald-200 uppercase tracking-wider">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                    Aktif
+                    {selectedPsikolog.IsAktif ? 'Aktif' : 'Nonaktif'}
                   </span>
                 </div>
               </div>
@@ -540,31 +538,44 @@ export default function DosenPage() {
               {/* ── Body ── */}
               <div className="flex-1 overflow-y-auto">
 
-                {/* Penugasan Akademik */}
+                {/* Bio Section */}
+                <div className="p-5 border-b border-[#f0f0f0]">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="w-5 h-5 rounded-md bg-[#eef4ff] flex items-center justify-center">
+                      <span className="material-symbols-outlined text-[#00236F]" style={{ fontSize: '11px' }} >description</span>
+                    </div>
+                    <h3 className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-[0.18em]">Profil & Biografi</h3>
+                  </div>
+                  <p className="text-sm text-slate-600 leading-relaxed italic bg-[#fafafa] border border-[#f0f0f0] rounded-xl p-4">
+                    "{selectedPsikolog.Bio}"
+                  </p>
+                </div>
+
+                {/* Penugasan Konselor */}
                 <div className="p-5 border-b border-[#f0f0f0]">
                   <div className="flex items-center gap-2 mb-4">
                     <div className="w-5 h-5 rounded-md bg-[#eef4ff] flex items-center justify-center">
                       <Layers size={11} className="text-[#00236F]" />
                     </div>
-                    <h3 className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-[0.18em]">Penugasan Akademik</h3>
+                    <h3 className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-[0.18em]">Detail Praktik</h3>
                   </div>
                   <div className="space-y-1">
                     <InfoCard
                       icon={Building2}
-                      label="Fakultas"
-                      value={selectedDosen.Fakultas}
+                      label="Lokasi Praktik"
+                      value={selectedPsikolog.Lokasi}
                       accent="border-l-blue-400"
                     />
                     <InfoCard
-                      icon={BookOpen}
-                      label="Program Studi"
-                      value={selectedDosen.ProgramStudi}
+                      icon={Briefcase}
+                      label="Bahasa yang Dikuasai"
+                      value={selectedPsikolog.Bahasa}
                       accent="border-l-indigo-400"
                     />
                     <InfoCard
                       icon={Award}
-                      label="Jabatan Fungsional"
-                      value={selectedDosen.Jabatan}
+                      label="Tarif Konsultasi"
+                      value={`${formatIDR(selectedPsikolog.Tarif)} per Sesi`}
                       accent="border-l-amber-400"
                     />
                   </div>
@@ -581,39 +592,17 @@ export default function DosenPage() {
                   <div className="space-y-1">
                     <InfoCard
                       icon={Mail}
-                      label="Email Institusi"
-                      value={selectedDosen.Email}
+                      label="Email Resmi"
+                      value={selectedPsikolog.Email}
                       accent="border-l-rose-400"
                       mono
                     />
                     <InfoCard
                       icon={Phone}
-                      label="No. HP / WhatsApp"
-                      value={selectedDosen.NoHP}
+                      label="No. Handphone"
+                      value={selectedPsikolog.NoHP}
                       accent="border-l-emerald-400"
                     />
-                  </div>
-                </div>
-
-                {/* Status */}
-                <div className="p-5">
-                  <div className="flex items-center gap-2 mb-4">
-                    <div className="w-5 h-5 rounded-md bg-[#eef4ff] flex items-center justify-center">
-                      <span className="material-symbols-outlined text-[#00236F]" style={{ fontSize: '11px' }} Check >security</span>
-                    </div>
-                    <h3 className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-[0.18em]">Status Kepegawaian</h3>
-                  </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-4 text-center">
-                      <span className="block w-2 h-2 rounded-full bg-emerald-500 animate-pulse mx-auto mb-2" />
-                      <p className="text-xs font-black text-emerald-700 uppercase tracking-widest">Aktif</p>
-                      <p className="text-[10px] text-emerald-500/70 font-medium mt-0.5">Status Akademik</p>
-                    </div>
-                    <div className="bg-[#f8faff] border border-[#e8efff] rounded-2xl p-4 text-center">
-                      <span className="material-symbols-outlined text-[#00236F] mx-auto mb-2" style={{ fontSize: '16px' }} >school</span>
-                      <p className="text-xs font-black text-[#00236F] uppercase tracking-widest">Dosen Tetap</p>
-                      <p className="text-[10px] text-[#a3a3a3] font-medium mt-0.5">Jenis Kepegawaian</p>
-                    </div>
                   </div>
                 </div>
               </div>
@@ -622,14 +611,9 @@ export default function DosenPage() {
               <div className="px-5 py-4 border-t border-[#f0f0f0] bg-[#fafafa] flex gap-3 flex-shrink-0">
                 <button
                   onClick={() => setSelected(null)}
-                  className="flex-1 h-11 rounded-xl border border-[#e5e5e5] bg-white text-xs font-bold text-[#525252] uppercase tracking-widest hover:bg-[#f5f5f5] transition-all active:scale-95"
+                  className="w-full h-11 rounded-xl border border-[#e5e5e5] bg-white text-xs font-bold text-[#525252] uppercase tracking-widest hover:bg-[#f5f5f5] transition-all active:scale-95"
                 >
-                  Tutup
-                </button>
-                <button
-                  className="flex-1 h-11 rounded-xl bg-[#00236F] hover:bg-[#001a52] text-white text-xs font-bold uppercase tracking-widest transition-all active:scale-95 shadow-lg shadow-[#00236F]/20"
-                >
-                  Edit Profil
+                  Tutup Detail
                 </button>
               </div>
             </div>

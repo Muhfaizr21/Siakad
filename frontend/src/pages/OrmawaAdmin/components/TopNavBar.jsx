@@ -51,11 +51,24 @@ const TopNavBar = ({ setIsOpen }) => {
     { name: 'Notifikasi Sistem', path: '/ormawa/notifikasi', icon: Bell },
   ];
 
+  const getLogoPath = (path) => {
+    if (!path) return null;
+    if (path.startsWith('http')) return path;
+    const baseDomain = 'http://localhost:8000';
+    return `${baseDomain}${path.startsWith('/') ? '' : '/'}${path}`;
+  };
+
   const fetchProfile = async () => {
     try {
       const res = await api.get('/ormawa/profile');
       if (res.data.status === 'success') {
-        setOrmawaInfo(res.data.data);
+        const d = res.data.data;
+        setOrmawaInfo({
+          Nama: d?.Nama || d?.nama || '',
+          Singkatan: d?.Singkatan || d?.singkatan || '',
+          Kategori: d?.Kategori || d?.kategori || '',
+          LogoURL: d?.LogoURL || d?.logo_url || d?.logoUrl || ''
+        });
       }
     } catch (err) {
       console.error("Failed to fetch ormawa profile");
@@ -83,8 +96,18 @@ const TopNavBar = ({ setIsOpen }) => {
   useEffect(() => {
     fetchProfile();
     fetchStats();
+    
+    // Listen for setting changes to live reload the navbar profile & logo
+    const handleSettingsUpdate = () => {
+      fetchProfile();
+    };
+    window.addEventListener('ormawa_settings_updated', handleSettingsUpdate);
+
     const interval = setInterval(fetchStats, 60000);
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('ormawa_settings_updated', handleSettingsUpdate);
+    };
   }, []);
 
   const filteredResults = pages.filter(page =>
@@ -183,7 +206,6 @@ const TopNavBar = ({ setIsOpen }) => {
             />
             <div className="absolute right-4 flex items-center gap-1 opacity-40 group-focus-within:opacity-100 transition-opacity">
               <div className="px-1.5 py-0.5 rounded-md bg-white border border-slate-200 text-[9px] font-bold text-slate-500 shadow-sm flex items-center gap-1">
-                {/* SVG alternative to avoid lucide Command clash */}
                 <svg className="size-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M9 9l6 6m0-6l-6 6" />
                 </svg>
@@ -292,8 +314,16 @@ const TopNavBar = ({ setIsOpen }) => {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <div className="flex items-center gap-2 cursor-pointer group hover:bg-slate-50 p-1 rounded-full transition-all outline-none">
-                <div className="h-10 w-10 rounded-2xl bg-primary text-white flex items-center justify-center font-bold shadow-lg shadow-blue-900/10 group-hover:scale-105 transition-transform">
-                  {ormawaInfo?.Singkatan?.[0] || user?.Email?.[0]?.toUpperCase() || 'O'}
+                <div className="h-10 w-10 rounded-2xl bg-primary text-white flex items-center justify-center font-bold shadow-lg shadow-blue-900/10 group-hover:scale-105 transition-transform overflow-hidden">
+                  {ormawaInfo?.LogoURL ? (
+                    <img 
+                      src={getLogoPath(ormawaInfo.LogoURL)} 
+                      alt="Logo Ormawa" 
+                      className="w-full h-full object-contain p-1.5 bg-white" 
+                    />
+                  ) : (
+                    ormawaInfo?.Singkatan?.[0] || user?.Email?.[0]?.toUpperCase() || 'O'
+                  )}
                 </div>
                 <ChevronDown className="size-3 text-slate-400 group-hover:text-slate-900 transition-colors" />
               </div>

@@ -475,6 +475,14 @@ func AmbilDaftarKonseling(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"status": "success", "data": daftar})
 }
 
+func AmbilDaftarPsikolog(c *fiber.Ctx) error {
+	var daftar []models.Psikolog
+	if err := config.DB.Order("nama asc").Find(&daftar).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": err.Error()})
+	}
+	return c.JSON(fiber.Map{"status": "success", "data": daftar})
+}
+
 func TambahSesiKonseling(c *fiber.Ctx) error {
 	return c.Status(403).JSON(fiber.Map{"status": "error", "message": "Pembuatan sesi konseling hanya dapat dilakukan oleh unit konseling"})
 }
