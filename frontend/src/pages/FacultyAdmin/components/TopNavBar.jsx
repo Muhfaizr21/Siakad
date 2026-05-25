@@ -34,10 +34,12 @@ const TopNavBar = ({ setIsOpen }) => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isNotifOpen, setIsNotifOpen] = useState(false);
   const logout = useAuthStore((state) => state.logout);
   const user = useAuthStore((state) => state.user);
   const searchRef = useRef(null);
   const searchInputRef = useRef(null);
+  const notifRef = useRef(null);
   const pathnames = location.pathname.split('/').filter((x) => x);
 
   const pages = [
@@ -83,6 +85,23 @@ const TopNavBar = ({ setIsOpen }) => {
     const interval = setInterval(fetchNotifStats, 30000);
     return () => clearInterval(interval);
   }, []);
+
+  // Close notif popover when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (notifRef.current && !notifRef.current.contains(e.target)) {
+        setIsNotifOpen(false);
+      }
+    };
+    if (isNotifOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('touchstart', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
+  }, [isNotifOpen]);
 
   // Hotkey handler (Ctrl+K or Command+K or /)
   useEffect(() => {
@@ -237,63 +256,75 @@ const TopNavBar = ({ setIsOpen }) => {
               <span className="hidden sm:inline text-[10px] font-extrabold tracking-wider text-slate-400 uppercase mr-1">CARI (Ctrl+K)</span>
             </button>
 
-            {/* Notification Bell */}
-            <div className="relative w-10 h-10 flex items-center justify-center shrink-0 rounded-2xl bg-slate-50 border border-slate-200/60 hover:bg-slate-100 hover:border-slate-300 text-slate-500 hover:text-primary transition-all cursor-pointer group active:scale-95 shadow-sm">
-              <span className="material-symbols-outlined transition-transform duration-300 group-hover:rotate-12" style={{ fontSize: '20px' }}>notifications</span>
-              {notifications.total > 0 && (
-                <span className="absolute top-1 right-1 w-4 h-4 bg-rose-500 text-white text-[8px] font-black flex items-center justify-center rounded-full border-2 border-white ring-2 ring-rose-500/20 animate-pulse">
-                  {notifications.total > 9 ? '9+' : notifications.total}
-                </span>
+            {/* Notification Bell — click-toggle (works on mobile too) */}
+            <div ref={notifRef} className="relative">
+              <button
+                onClick={() => setIsNotifOpen(prev => !prev)}
+                className={`w-10 h-10 flex items-center justify-center shrink-0 rounded-2xl border transition-all active:scale-95 shadow-sm ${
+                  isNotifOpen
+                    ? 'bg-primary/10 border-primary/20 text-primary'
+                    : 'bg-slate-50 border-slate-200/60 hover:bg-slate-100 hover:border-slate-300 text-slate-500 hover:text-primary'
+                }`}
+              >
+                <span className={`material-symbols-outlined transition-transform duration-300 ${isNotifOpen ? 'rotate-12' : ''}`} style={{ fontSize: '20px' }}>notifications</span>
+                {notifications.total > 0 && (
+                  <span className="absolute top-1 right-1 w-4 h-4 bg-rose-500 text-white text-[8px] font-black flex items-center justify-center rounded-full border-2 border-white ring-2 ring-rose-500/20 animate-pulse">
+                    {notifications.total > 9 ? '9+' : notifications.total}
+                  </span>
+                )}
+              </button>
+
+              {/* Popover — shown via state, works on touch */}
+              {isNotifOpen && (
+                <div
+                  className="fixed top-20 right-6 lg:right-10 w-80 bg-white rounded-3xl shadow-2xl border border-slate-100 p-6 z-[300] animate-in fade-in zoom-in-95 duration-200 cursor-default"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div className="flex justify-between items-center mb-5">
+                    <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline">Inbox Antrean</h4>
+                    {notifications.total > 0 && (
+                      <Badge variant="secondary" className="bg-rose-50 text-rose-600 border-none font-black text-[9px] px-2 py-0.5 rounded-lg">
+                        {notifications.total} BARU
+                      </Badge>
+                    )}
+                  </div>
+                  <div className="space-y-3">
+                    <div className="flex gap-4 items-center p-2.5 rounded-2xl hover:bg-slate-50 transition-colors cursor-pointer group/item" onClick={() => { navigate('/faculty/ormawa/proposals'); setIsNotifOpen(false); }}>
+                      <div className="p-2 rounded-xl bg-indigo-50 text-indigo-600 group-hover/item:bg-indigo-600 group-hover/item:text-white transition-colors flex items-center justify-center w-9 h-9 shrink-0">
+                        <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>description</span>
+                      </div>
+                      <div className="flex flex-col">
+                        <p className="text-[11px] font-black text-slate-900 leading-none uppercase tracking-tight font-headline">Proposal ORMAWA</p>
+                        <p className="text-[10px] font-bold text-slate-400 mt-1">{notifications.proposal || 0} pengajuan baru</p>
+                      </div>
+                    </div>
+
+                    <div className="flex gap-4 items-center p-2.5 rounded-2xl hover:bg-slate-50 transition-colors cursor-pointer group/item" onClick={() => { navigate('/faculty/aspirasi'); setIsNotifOpen(false); }}>
+                      <div className="p-2 rounded-xl bg-primary/5 text-primary group-hover/item:bg-primary group-hover/item:text-white transition-colors flex items-center justify-center w-9 h-9 shrink-0">
+                        <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>campaign</span>
+                      </div>
+                      <div className="flex flex-col">
+                        <p className="text-[11px] font-black text-slate-900 leading-none uppercase tracking-tight font-headline">Student Voice</p>
+                        <p className="text-[10px] font-bold text-slate-400 mt-1">{notifications.aspirasi || 0} aspirasi baru</p>
+                      </div>
+                    </div>
+
+                    <div className="flex gap-4 items-center p-2.5 rounded-2xl hover:bg-slate-50 transition-colors cursor-pointer group/item" onClick={() => { navigate('/faculty/prestasi'); setIsNotifOpen(false); }}>
+                      <div className="p-2 rounded-xl bg-emerald-50 text-emerald-600 group-hover/item:bg-emerald-600 group-hover/item:text-white transition-colors flex items-center justify-center w-9 h-9 shrink-0">
+                        <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>emoji_events</span>
+                      </div>
+                      <div className="flex flex-col">
+                        <p className="text-[11px] font-black text-slate-900 leading-none uppercase tracking-tight font-headline">Validasi Prestasi</p>
+                        <p className="text-[10px] font-bold text-slate-400 mt-1">{notifications.prestasi || 0} klaim menunggu</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <Button onClick={() => { navigate('/faculty'); setIsNotifOpen(false); }} variant="ghost" className="w-full mt-4 h-11 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-primary hover:bg-primary/5">
+                    Dashboard Utama
+                  </Button>
+                </div>
               )}
-
-              {/* Popover Preview (Real Data) */}
-              <div className="absolute top-full right-0 mt-4 w-80 bg-white rounded-3xl shadow-2xl border border-slate-100 p-6 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 translate-y-2 group-hover:translate-y-0 z-[100] cursor-default" onClick={(e) => e.stopPropagation()}>
-                <div className="flex justify-between items-center mb-5">
-                  <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline">Inbox Antrean</h4>
-                  {notifications.total > 0 && (
-                    <Badge variant="secondary" className="bg-rose-50 text-rose-600 border-none font-black text-[9px] px-2 py-0.5 rounded-lg">
-                      {notifications.total} BARU
-                    </Badge>
-                  )}
-                </div>
-                <div className="space-y-3">
-                  <div className="flex gap-4 items-center p-2.5 rounded-2xl hover:bg-slate-50 transition-colors cursor-pointer group/item" onClick={() => navigate('/faculty/ormawa/proposals')}>
-                    <div className="p-2 rounded-xl bg-indigo-50 text-indigo-600 group-hover/item:bg-indigo-600 group-hover/item:text-white transition-colors flex items-center justify-center w-9 h-9 shrink-0">
-                      <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>description</span>
-                    </div>
-                    <div className="flex flex-col">
-                      <p className="text-[11px] font-black text-slate-900 leading-none uppercase tracking-tight font-headline">Proposal ORMAWA</p>
-                      <p className="text-[10px] font-bold text-slate-400 mt-1">{notifications.proposal || 0} pengajuan baru</p>
-                    </div>
-                  </div>
-
-
-
-                  <div className="flex gap-4 items-center p-2.5 rounded-2xl hover:bg-slate-50 transition-colors cursor-pointer group/item" onClick={() => navigate('/faculty/aspirasi')}>
-                    <div className="p-2 rounded-xl bg-primary/5 text-primary group-hover/item:bg-primary group-hover/item:text-white transition-colors flex items-center justify-center w-9 h-9 shrink-0">
-                      <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>campaign</span>
-                    </div>
-                    <div className="flex flex-col">
-                      <p className="text-[11px] font-black text-slate-900 leading-none uppercase tracking-tight font-headline">Student Voice</p>
-                      <p className="text-[10px] font-bold text-slate-400 mt-1">{notifications.aspirasi || 0} aspirasi baru</p>
-                    </div>
-                  </div>
-
-                  <div className="flex gap-4 items-center p-2.5 rounded-2xl hover:bg-slate-50 transition-colors cursor-pointer group/item" onClick={() => navigate('/faculty/prestasi')}>
-                    <div className="p-2 rounded-xl bg-emerald-50 text-emerald-600 group-hover/item:bg-emerald-600 group-hover/item:text-white transition-colors flex items-center justify-center w-9 h-9 shrink-0">
-                      <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>emoji_events</span>
-                    </div>
-                    <div className="flex flex-col">
-                      <p className="text-[11px] font-black text-slate-900 leading-none uppercase tracking-tight font-headline">Validasi Prestasi</p>
-                      <p className="text-[10px] font-bold text-slate-400 mt-1">{notifications.prestasi || 0} klaim menunggu</p>
-                    </div>
-                  </div>
-                </div>
-
-                <Button onClick={() => navigate('/faculty')} variant="ghost" className="w-full mt-4 h-11 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-primary hover:bg-primary/5">
-                  Dashboard Utama
-                </Button>
-              </div>
             </div>
 
             {/* Calendar Button */}

@@ -63,8 +63,8 @@ export default function FacultyProposalApproval() {
     if (!selected) return
     setIsSub(true)
     try {
-      const res = await axios.put(`${API}/ormawa/proposals/${selected.ID}`, { Status: status, catatan_admin: catatan })
-      if (res.data.status === 'success') { toast.success(`Proposal berhasil di-${status}`); setSelected(null); fetchData() }
+      const res = await axios.put(`${API}/ormawa/proposals/${selected.id || selected.ID}`, { status: status, catatan_admin: catatan })
+      if (res.data.status === 'success') { toast.success(`Proposal berhasil ${status === 'disetujui_fakultas' ? 'disetujui dan diteruskan ke Universitas' : status}`); setSelected(null); fetchData() }
       else toast.error(res.data.message||'Gagal update')
     } catch (e) { toast.error(e.response?.data?.message||'Server sibuk') }
     finally { setIsSub(false) }
@@ -207,6 +207,7 @@ export default function FacultyProposalApproval() {
                 <option value="pending">Diajukan</option>
                 <option value="revisi">Revisi</option>
                 <option value="disetujui_fakultas">ACC Fakultas</option>
+                <option value="disetujui_univ">Disyahkan Univ</option>
                 <option value="ditolak">Ditolak</option>
               </select>
             </div>
@@ -278,7 +279,7 @@ export default function FacultyProposalApproval() {
                         </span>
                       </td>
                       <td className="px-5 py-3.5">
-                        <button onClick={()=>{setSelected(row);setCatatan(row.catatan_admin||'')}}
+                        <button onClick={()=>{setSelected(row);setCatatan(row.catatan_admin||row.Catatan||'')}}
                           className="flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold text-primary bg-[#eef4ff] border border-[#c9d8ff] rounded-lg hover:bg-primary hover:text-white transition-all active:scale-95">
                           <span className="material-symbols-outlined" style={{ fontSize: '12px' }} >security</span> Verifikasi
                         </button>

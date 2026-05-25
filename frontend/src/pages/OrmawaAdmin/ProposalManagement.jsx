@@ -526,7 +526,7 @@ export default function ProposalManagement() {
 
               </div>
 
-              {/* Right Column: Controls */}
+              {/* Right Column: Status Info — read only, no action buttons */}
               <div className="space-y-5 lg:border-l lg:border-slate-100 lg:pl-6">
                 <div className="space-y-2">
                   <Label className="text-[10px] font-black text-slate-400 tracking-[0.15em] uppercase font-headline">Status Saat Ini</Label>
@@ -535,40 +535,37 @@ export default function ProposalManagement() {
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label className="text-[10px] font-black text-slate-400 tracking-[0.15em] uppercase font-headline">Catatan / Feedback</Label>
-                  <Textarea
-                    rows={4}
-                    placeholder="Berikan catatan revisi atau alasan penolakan..."
-                    className="rounded-2xl border-slate-200 bg-slate-50/50 text-[12px] font-medium resize-none p-3.5 focus:bg-white transition-all shadow-inner"
-                    value={komentar}
-                    onChange={(e) => setKomentar(e.target.value)}
-                  />
+                {/* Alur approval info box */}
+                <div className="bg-slate-50 border border-slate-200/60 rounded-2xl p-4 space-y-2">
+                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Alur Persetujuan</p>
+                  <p className="text-[11px] text-slate-500 font-medium leading-relaxed">
+                    Proposal diteruskan secara otomatis setelah disetujui masing-masing tingkat:
+                  </p>
+                  {[{s:'disetujui_dosen', label:'Dosen Pembimbing'},{s:'disetujui_fakultas', label:'Admin Fakultas'},{s:'disetujui_univ', label:'SuperAdmin Universitas'}].map((step, i) => {
+                    const statuses = ['disetujui_dosen','disetujui_fakultas','disetujui_univ','selesai']
+                    const done = statuses.indexOf(selected.Status) >= i
+                    return (
+                      <div key={step.s} className={`flex items-center gap-2.5 p-2.5 rounded-xl border ${
+                        done ? 'bg-emerald-50 border-emerald-100' : 'bg-slate-50 border-slate-100 opacity-50'
+                      }`}>
+                        <span className={`material-symbols-outlined text-[16px] ${done ? 'text-emerald-600' : 'text-slate-300'}`}>
+                          {done ? 'check_circle' : 'radio_button_unchecked'}
+                        </span>
+                        <span className={`text-[10px] font-bold uppercase tracking-widest ${done ? 'text-emerald-700' : 'text-slate-400'}`}>
+                          {step.label}
+                        </span>
+                      </div>
+                    )
+                  })}
                 </div>
 
-                <div className="space-y-2.5 pt-2">
-                  {selected.Status === 'diajukan' && (
-                    <Button disabled={isSubmitting} onClick={() => handleAction('disetujui_dosen')} className="w-full h-11 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-black text-[10px] tracking-widest shadow-md">
-                      {isSubmitting ? <span className="material-symbols-outlined size-3 animate-spin">sync</span> : 'ACC TAHAP 1 (DOSEN)'}
-                    </Button>
-                  )}
-                  {selected.Status === 'disetujui_dosen' && (
-                    <Button disabled={isSubmitting} onClick={() => handleAction('disetujui_fakultas')} className="w-full h-11 rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-black text-[10px] tracking-widest shadow-md">
-                      {isSubmitting ? <span className="material-symbols-outlined size-3 animate-spin">sync</span> : 'ACC TAHAP 2 (FAKULTAS)'}
-                    </Button>
-                  )}
-                  {selected.Status === 'disetujui_fakultas' && (
-                    <Button disabled={isSubmitting} onClick={() => handleAction('disetujui_univ')} className="w-full h-11 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-[10px] tracking-widest shadow-md">
-                      {isSubmitting ? <span className="material-symbols-outlined size-3 animate-spin">sync</span> : 'ACC FINAL (UNIVERSITAS)'}
-                    </Button>
-                  )}
-                  <Button onClick={() => handleAction('revisi')} variant="outline" className="w-full h-11 rounded-xl border-amber-200 bg-amber-50 text-amber-800 hover:bg-amber-100 font-black text-[10px] tracking-widest transition-colors duration-150">
-                    MINTA REVISI
-                  </Button>
-                  <Button onClick={() => handleAction('ditolak')} variant="outline" className="w-full h-11 rounded-xl border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100 font-black text-[10px] tracking-widest transition-colors duration-150">
-                    TOLAK PERMANEN
-                  </Button>
-                </div>
+                {/* Catatan dari reviewer */}
+                {selected.Catatan && (
+                  <div className="bg-amber-50 border border-amber-100 rounded-2xl p-4 space-y-1.5">
+                    <p className="text-[9px] font-black text-amber-600 uppercase tracking-widest">Catatan Reviewer</p>
+                    <p className="text-[11px] text-amber-800 font-medium leading-relaxed">{selected.Catatan}</p>
+                  </div>
+                )}
               </div>
 
             </div>
