@@ -240,7 +240,7 @@ export default function StudentDirectory() {
       render: (v, row) => (
         <div className="flex items-center gap-4 py-2 group/avatar">
           <StudentAvatar
-            src={getCleanImageUrl(row.Foto || row.Pengguna?.Foto)}
+            src={getCleanImageUrl(row.FotoURL || row.foto_url || row.Foto || row.Pengguna?.Foto || row.foto || row.pengguna?.foto)}
             name={v}
             className="w-11 h-11 rounded-xl border-2 border-white shadow-md transition-all group-hover/avatar:scale-110"
           />
@@ -433,7 +433,7 @@ export default function StudentDirectory() {
                 <div className="px-10 pb-10 relative">
                   <div className="relative -mt-12 mb-8 flex items-end gap-6">
                     <StudentAvatar
-                      src={getCleanImageUrl(selected.Foto || selected.Pengguna?.Foto)}
+                      src={getCleanImageUrl(selected.FotoURL || selected.foto_url || selected.Foto || selected.Pengguna?.Foto || selected.foto || selected.pengguna?.foto)}
                       name={selected.Nama}
                       className="w-28 h-28 rounded-2xl border-[6px] border-white shadow-2xl bg-white"
                     />
