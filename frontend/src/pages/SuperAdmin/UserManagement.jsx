@@ -250,7 +250,7 @@ export default function UserManagement() {
         return (
           <div className="flex items-center gap-4 py-2 group/avatar">
             <StudentAvatar
-              src={getCleanImageUrl(row.Foto || row.Pengguna?.Foto || row.foto || row.pengguna?.foto)}
+              src={getCleanImageUrl(row.foto_url || row.FotoURL || row.Foto || row.Pengguna?.Foto || row.foto || row.pengguna?.foto)}
               name={linkedName}
               className="w-11 h-11 rounded-xl border-2 border-white shadow-md transition-all group-hover/avatar:scale-110"
             />

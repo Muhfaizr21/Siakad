@@ -20,6 +20,7 @@ func GetUsers(c *fiber.Ctx) error {
 		IdentityCode string `json:"identity_code"`
 		ProdiNama    string `json:"prodi_nama"`
 		OrmawaNama   string `json:"ormawa_nama"`
+		FotoURL      string `json:"foto_url"`
 	}
 
 	var results []UserWithContext
@@ -31,6 +32,7 @@ func GetUsers(c *fiber.Ctx) error {
 			COALESCE(m.nama, d.nama, ps.nama) as identity_name,
 			COALESCE(m.nim, d.n_id_n) as identity_code,
 			p.nama as prodi_nama,
+			COALESCE(m.foto_url, '') as foto_url,
 			(SELECT orm.nama FROM ormawa.ormawa_anggota oa 
 			 JOIN ormawa.ormawa orm ON orm.id = oa.ormawa_id 
 			 WHERE oa.mahasiswa_id = m.id LIMIT 1) as ormawa_nama
