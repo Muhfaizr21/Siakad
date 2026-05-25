@@ -795,3 +795,26 @@ type OrmawaNotifikasi struct {
 func (OrmawaNotifikasi) TableName() string {
 	return "ormawa.ormawa_notifikasi"
 }
+
+// ========================
+// PMB (PENDAFTARAN MAHASISWA BARU)
+// ========================
+
+type PendaftaranMahasiswaBaru struct {
+	ID            uint       `gorm:"primaryKey;column:id" json:"id"`
+	NomorDaftar   string     `gorm:"column:nomor_daftar;uniqueIndex;size:50" json:"nomorDaftar"`
+	NamaLengkap   string     `gorm:"column:nama_lengkap;size:150;not null" json:"namaLengkap"`
+	Email         string     `gorm:"column:email;size:100" json:"email"`
+	PilihanProdi  string     `gorm:"column:pilihan_prodi;size:100" json:"pilihanProdi"`
+	Status        string     `gorm:"column:status;size:20;default:'Pending'" json:"status"`
+	NoHP          string     `gorm:"column:no_hp;size:20" json:"noHP"`
+	Jalur         string     `gorm:"column:jalur;size:30" json:"jalur"`
+	NilaiRapor    float64    `gorm:"column:nilai_rapor" json:"nilaiRapor"`
+	TanggalDaftar *time.Time `gorm:"column:tanggal_daftar" json:"tanggalDaftar"`
+	CreatedAt     time.Time  `gorm:"column:dibuat_pada;autoCreateTime" json:"createdAt"`
+	UpdatedAt     time.Time  `gorm:"column:diupdate_pada;autoUpdateTime" json:"updatedAt"`
+}
+
+func (PendaftaranMahasiswaBaru) TableName() string {
+	return "public.pendaftaran_mahasiswa_baru"
+}

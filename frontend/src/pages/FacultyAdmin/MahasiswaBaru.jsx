@@ -1,9 +1,9 @@
 "use client"
 
 import React, { useState, useEffect, useMemo } from "react"
-
 import { toast, Toaster } from "react-hot-toast"
 import { API_BASE_URL } from "../../services/api"
+import api from "../../lib/axios"
 import { cn } from "@/lib/utils"
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "./components/select"
 import { Button } from "./components/button"
@@ -58,6 +58,13 @@ const formatDate = (d) => {
   catch { return d }
 }
 
+const getFullUrl = (path) => {
+  if (!path) return null;
+  if (path.startsWith('http')) return path;
+  const baseUrl = API_BASE_URL.replace('/api', '');
+  return `${baseUrl}${path}`;
+}
+
 const TARGET_KUOTA = 450
 
 export default function FacultyMahasiswaBaru() {
@@ -70,19 +77,60 @@ export default function FacultyMahasiswaBaru() {
   const [pageSize, setPageSize]         = useState(10)
   const [sortConfig, setSortConfig]     = useState({ key: 'createdAt', direction: 'desc' })
 
+  const [isVerifying, setIsVerifying] = useState(false)
+  const [activePeriod, setActivePeriod] = useState({ year: '2024', semester: 'Ganjil' })
+
+  const fetchActivePeriod = async () => {
+    try {
+      const res = await api.get('/faculty/academic-periods')
+      if (res.data?.status === 'success' && res.data.data) {
+        setActivePeriod({
+          year: res.data.data.activeYear || '2024',
+          semester: res.data.data.activeSemester || 'Ganjil'
+        })
+      }
+    } catch (e) {
+      console.error("Gagal memuat periode akademik aktif", e)
+    }
+  }
+
   const fetchBaru = async () => {
     setLoading(true)
     try {
-      const res  = await fetch(`${API}/admissions`)
-      const json = await res.json()
-      if (json.status === 'success') {
-        setStudents((json.data || []).map((s, i) => ({ ...s, colorIdx: i % AVATAR_COLORS.length })))
+      const res = await api.get('/faculty/admissions')
+      if (res.data?.status === 'success') {
+        setStudents((res.data.data || []).map((s, i) => ({ 
+          ...s, 
+          colorIdx: i % AVATAR_COLORS.length,
+          Foto: getFullUrl(s.FotoURL || s.foto_url || s.Foto || s.foto || s.Pengguna?.Foto || s.pengguna?.foto || null)
+        })))
       }
     } catch { toast.error("Gagal memuat data mahasiswa baru") }
     finally { setLoading(false) }
   }
 
-  useEffect(() => { fetchBaru() }, [])
+  const handleVerify = async (studentId, status = "Verified") => {
+    setIsVerifying(true)
+    try {
+      const res = await api.put(`/faculty/admissions/${studentId}/status`, { status })
+      if (res.data?.status === 'success') {
+        toast.success(status === "Verified" ? "Calon mahasiswa berhasil diverifikasi" : "Status pendaftaran diperbarui")
+        setSelected(null)
+        fetchBaru()
+      } else {
+        toast.error("Gagal memperbarui status")
+      }
+    } catch {
+      toast.error("Terjadi kesalahan sistem")
+    } finally {
+      setIsVerifying(false)
+    }
+  }
+
+  useEffect(() => { 
+    fetchBaru() 
+    fetchActivePeriod()
+  }, [])
 
   const prodiList = [...new Set(students.map(s => s.pilihanProdi).filter(Boolean))]
 
@@ -164,7 +212,7 @@ export default function FacultyMahasiswaBaru() {
                 Maba <span className="text-primary">Terdaftar</span>
               </h1>
               <p className="text-slate-500 font-medium text-sm max-w-xl leading-relaxed mt-1">
-                Database mahasiswa baru semester ganjil 2024 — pantau registrasi, verifikasi, dan pemenuhan kuota.
+                Database mahasiswa baru semester {activePeriod.semester.toLowerCase()} {activePeriod.year} — pantau registrasi, verifikasi, dan pemenuhan kuota.
               </p>
             </div>
             <div className="flex items-center gap-3">
@@ -340,9 +388,20 @@ export default function FacultyMahasiswaBaru() {
                       </td>
                       <td className="px-5 py-3.5">
                         <div className="flex items-center gap-3">
-                          <div className={cn('w-9 h-9 rounded-xl bg-gradient-to-br flex items-center justify-center text-white text-[11px] font-black flex-shrink-0 shadow-sm', AVATAR_COLORS[row.colorIdx])}>
-                            {getInitials(row.namaLengkap)}
-                          </div>
+                          {row.Foto ? (
+                            <img 
+                              src={row.Foto} 
+                              alt={row.namaLengkap} 
+                              className="w-9 h-9 rounded-xl object-cover shrink-0 shadow-sm border border-slate-200" 
+                              onError={(e) => { e.target.src = ''; }}
+                            />
+                          ) : (
+                            <div className="w-9 h-9 rounded-xl bg-slate-100 flex items-end justify-center overflow-hidden shrink-0 border border-slate-200/60 shadow-sm">
+                              <svg className="w-7 h-7 text-slate-400 translate-y-0.5" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0 1 12.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 1 1-8 0 4 4 0 0 1 8 0z" />
+                              </svg>
+                            </div>
+                          )}
                           <div>
                             <p className="font-bold text-sm text-[#171717] leading-snug">{row.namaLengkap || '—'}</p>
                             <p className="text-[10px] text-[#a3a3a3] font-medium flex items-center gap-1">
@@ -481,9 +540,20 @@ export default function FacultyMahasiswaBaru() {
                 <span className="material-symbols-outlined" style={{ fontSize: '15px' }} >close</span>
               </button>
               <div className="relative z-10 flex items-center gap-4 mb-5">
-                <div className={cn('w-14 h-14 rounded-2xl bg-gradient-to-br flex-shrink-0 flex items-center justify-center text-white text-base font-black shadow-xl ring-2 ring-white/20', AVATAR_COLORS[selected.colorIdx])}>
-                  {getInitials(selected.namaLengkap)}
-                </div>
+                {selected.Foto ? (
+                  <img 
+                    src={selected.Foto} 
+                    alt={selected.namaLengkap} 
+                    className="w-14 h-14 rounded-2xl object-cover shrink-0 shadow-xl ring-2 ring-white/20" 
+                    onError={(e) => { e.target.src = ''; }}
+                  />
+                ) : (
+                  <div className="w-14 h-14 rounded-2xl bg-slate-100/90 backdrop-blur flex items-end justify-center overflow-hidden shrink-0 shadow-xl ring-2 ring-white/20">
+                    <svg className="w-11 h-11 text-slate-400 translate-y-1.5" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0 1 12.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 1 1-8 0 4 4 0 0 1 8 0z" />
+                    </svg>
+                  </div>
+                )}
                 <div className="min-w-0">
                   <p className="text-[9px] font-bold text-white/50 uppercase tracking-[0.25em] mb-1">Calon Mahasiswa Baru</p>
                   <h2 className="text-lg font-extrabold text-white leading-tight truncate">{selected.namaLengkap}</h2>
@@ -523,15 +593,47 @@ export default function FacultyMahasiswaBaru() {
             </div>
 
             {/* Footer */}
-            <div className="px-5 py-4 border-t border-[#f0f0f0] bg-[#fafafa] flex gap-3 flex-shrink-0">
+            <div className="px-5 py-4 border-t border-[#f0f0f0] bg-[#fafafa] flex flex-col sm:flex-row gap-3 flex-shrink-0 items-stretch sm:items-center justify-between">
               <button onClick={() => setSelected(null)}
-                className="flex-1 h-11 rounded-xl border border-[#e5e5e5] bg-white text-xs font-bold text-[#525252] uppercase tracking-widest hover:bg-[#f5f5f5] transition-all active:scale-95">
+                className="h-11 px-5 rounded-xl border border-[#e5e5e5] bg-white text-xs font-bold text-[#525252] uppercase tracking-widest hover:bg-[#f5f5f5] transition-all active:scale-95 cursor-pointer">
                 Tutup
               </button>
-              <button
-                className="flex-1 h-11 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold uppercase tracking-widest transition-all active:scale-95 shadow-lg shadow-emerald-600/20">
-                Verifikasi
-              </button>
+              
+              <div className="flex gap-2 justify-end">
+                <button
+                  onClick={() => handleVerify(selected.id, "Pending")}
+                  disabled={isVerifying || selected.status === "Pending"}
+                  className={cn(
+                    "h-11 px-4 rounded-xl text-xs font-bold uppercase tracking-widest transition-all active:scale-95 flex items-center justify-center gap-1.5 border cursor-pointer select-none",
+                    selected.status === "Pending"
+                      ? "bg-slate-100 border-slate-200 text-slate-400 cursor-not-allowed"
+                      : "bg-white border-[#e5e5e5] text-slate-500 hover:bg-[#fafafa]"
+                  )}>
+                  Pending
+                </button>
+                <button
+                  onClick={() => handleVerify(selected.id, "Rejected")}
+                  disabled={isVerifying || selected.status === "Rejected"}
+                  className={cn(
+                    "h-11 px-4 rounded-xl text-xs font-bold uppercase tracking-widest transition-all active:scale-95 flex items-center justify-center gap-1.5 border cursor-pointer select-none",
+                    selected.status === "Rejected"
+                      ? "bg-slate-100 border-slate-200 text-slate-400 cursor-not-allowed"
+                      : "bg-rose-50 border-rose-200 text-rose-600 hover:bg-rose-100/70"
+                  )}>
+                  Tolak
+                </button>
+                <button
+                  onClick={() => handleVerify(selected.id, "Verified")}
+                  disabled={isVerifying || selected.status === "Verified"}
+                  className={cn(
+                    "h-11 px-4 rounded-xl text-xs font-bold uppercase tracking-widest transition-all active:scale-95 flex items-center justify-center gap-1.5 border cursor-pointer select-none",
+                    selected.status === "Verified"
+                      ? "bg-slate-100 border-slate-200 text-slate-400 cursor-not-allowed"
+                      : "bg-emerald-600 border-none text-white hover:bg-emerald-700 shadow-md shadow-emerald-600/10"
+                  )}>
+                  {isVerifying ? "Processing..." : "Verifikasi"}
+                </button>
+              </div>
             </div>
           </div>
         </div>

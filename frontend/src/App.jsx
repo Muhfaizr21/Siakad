@@ -68,18 +68,29 @@ import PkkmbManagement from './pages/OrmawaAdmin/PkkmbManagement'
 import FacultyAspirationManagement from './pages/FacultyAdmin/Aspirasi'
 import FacultyPmb from './pages/FacultyAdmin/MahasiswaBaru'
 import FacultyProdi from './pages/FacultyAdmin/Prodi'
+<<<<<<< Updated upstream
 import FacultyMahasiswa from './pages/FacultyAdmin/Mahasiswa'
 import FacultyMahasiswaImport from './pages/FacultyAdmin/Mahasiswa'
 import FacultyMahasiswaStatus from './pages/FacultyAdmin/Mahasiswa'
 import FacultyMahasiswaTambah from './pages/FacultyAdmin/Mahasiswa'
 import FacultyMahasiswaEdit from './pages/FacultyAdmin/Mahasiswa'
+=======
+import FacultyDosen from './pages/FacultyAdmin/Dosen'
+const FacultyMahasiswa = React.lazy(() => import('./pages/FacultyAdmin/Mahasiswa'))
+const FacultyMahasiswaImport = FacultyMahasiswa
+const FacultyMahasiswaStatus = FacultyMahasiswa
+const FacultyMahasiswaTambah = FacultyMahasiswa
+const FacultyMahasiswaEdit = FacultyMahasiswa
+import FacultyDosenTambah from './pages/FacultyAdmin/Dosen'
+import FacultyDosenEdit from './pages/FacultyAdmin/Dosen'
+>>>>>>> Stashed changes
 import FacultyProdiTambah from './pages/FacultyAdmin/Prodi'
 import FacultyProdiEdit from './pages/FacultyAdmin/Prodi'
 import FacultyProdiKurikulum from './pages/FacultyAdmin/Prodi'
 import FacultyProdiMatakuliah from './pages/FacultyAdmin/Prodi'
 import FacultyJadwal from './pages/FacultyAdmin/TahunAkademik'
-import FacultyKrs from './pages/FacultyAdmin/Mahasiswa'
-import FacultyNilai from './pages/FacultyAdmin/Mahasiswa'
+const FacultyKrs = FacultyMahasiswa
+const FacultyNilai = FacultyMahasiswa
 import FacultyLaporan from './pages/FacultyAdmin/Laporan'
 import FacultyKonten from './pages/FacultyAdmin/Konten'
 import FacultyPengaturan from './pages/FacultyAdmin/Settings'
@@ -104,7 +115,7 @@ import ProposalPipeline from './pages/SuperAdmin/ProposalPipeline'
 import AuditLog from './pages/SuperAdmin/AuditLog'
 import ContentManagement from './pages/SuperAdmin/ContentManagement'
 import ReportsGenerator from './pages/SuperAdmin/ReportsGenerator'
-import StudentDirectory from './pages/SuperAdmin/StudentDirectory'
+const StudentDirectory = React.lazy(() => import('./pages/SuperAdmin/StudentDirectory'))
 import AdminPerformance from './pages/SuperAdmin/AdminPerformance'
 import AdminProfile from './pages/SuperAdmin/Profile'
 import SecuritySettings from './pages/SuperAdmin/SecuritySettings'
@@ -162,7 +173,8 @@ function App() {
     <ErrorBoundary>
       <AuthProvider>
         <Router>
-          <Routes>
+          <React.Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-slate-50"><Loader2 className="animate-spin text-primary size-10" /></div>}>
+            <Routes>
             <Route path="/" element={<Navigate to="/login" replace />} />
             <Route path="/about" element={<About />} />
             <Route path="/academic" element={<Academic />} />
@@ -324,6 +336,7 @@ function App() {
             {/* Fallback */}
             <Route path="*" element={<NotFound />} />
           </Routes>
+          </React.Suspense>
         </Router>
       </AuthProvider>
     </ErrorBoundary>

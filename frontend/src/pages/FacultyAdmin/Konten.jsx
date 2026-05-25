@@ -236,6 +236,8 @@ export default function KontenPage() {
                   syncLabel="Refresh Data"
                   onAdd={handleOpenAdd}
                   addLabel="Publikasi Baru"
+                  title="Daftar Konten Informasi"
+                  itemLabel="artikel / berita"
                   filters={[
                     {
                       key: 'category',

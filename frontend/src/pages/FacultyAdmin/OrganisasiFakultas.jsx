@@ -392,17 +392,36 @@ export default function FacultyOrganisasi() {
 
       {/* Delete Confirm */}
       {delTarget && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4" onClick={()=>setDelTarget(null)}>
-          <div className="relative w-full max-w-sm bg-white rounded-3xl shadow-2xl z-[101] overflow-hidden" onClick={e=>e.stopPropagation()}>
-            <div className="p-6 text-center">
-              <div className="w-14 h-14 bg-rose-50 rounded-2xl flex items-center justify-center text-rose-500 mx-auto mb-4"><span className="material-symbols-outlined" style={{ fontSize: '24px' }} >delete</span></div>
-              <h3 className="text-lg font-extrabold text-[#171717] mb-2">Hapus Organisasi?</h3>
-              <p className="text-sm text-[#737373] mb-1">Anda akan menghapus <span className="font-bold text-[#171717]">"{delTarget.nama}"</span>.</p>
-              <p className="text-xs text-[#a3a3a3] mb-6">Tindakan ini tidak dapat dibatalkan.</p>
-              <div className="flex gap-3">
-                <button onClick={()=>setDelTarget(null)} className="flex-1 h-11 rounded-xl border border-[#e5e5e5] bg-white text-xs font-bold text-[#525252] uppercase tracking-widest hover:bg-[#f5f5f5] transition-all">Batal</button>
-                <button onClick={handleDelete} disabled={isSubmitting} className="flex-1 h-11 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold uppercase tracking-widest transition-all active:scale-95 shadow-lg shadow-rose-600/20 disabled:opacity-60 flex items-center justify-center gap-2">
-                  {isSubmitting?<span className="material-symbols-outlined animate-spin" style={{ fontSize: '14px' }} >sync</span>:<span className="material-symbols-outlined" style={{ fontSize: '13px' }} >delete</span>} Ya, Hapus
+        <div
+          className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-[100] flex items-center justify-center p-4 animate-in fade-in duration-200"
+          onClick={() => setDelTarget(null)}
+        >
+          <div
+            className="relative w-full max-w-md bg-white rounded-[24px] shadow-2xl z-[101] overflow-hidden border border-slate-100 p-8 animate-in zoom-in-95 duration-300"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="text-left">
+              <h3 className="text-[20px] font-bold text-[#0f172a] mb-2 leading-tight">Hapus Organisasi?</h3>
+              <p className="text-[13px] text-[#64748b] leading-relaxed mb-8">
+                Tindakan ini tidak dapat dibatalkan. Pastikan tidak ada data kepengurusan, berkas proposal, atau laporan aktif yang masih terkait dengan organisasi <strong>"{delTarget.nama}"</strong> ini.
+              </p>
+
+              <div className="flex justify-end gap-3">
+                <button
+                  onClick={() => setDelTarget(null)}
+                  className="h-10 px-6 rounded-xl border border-[#cbd5e1] bg-white text-[11px] font-bold text-[#334155] uppercase tracking-wider hover:bg-slate-50 transition-all cursor-pointer"
+                >
+                  Batal
+                </button>
+                <button
+                  onClick={handleDelete}
+                  disabled={isSubmitting}
+                  className="h-10 px-6 rounded-xl bg-[#ef4444] hover:bg-[#dc2626] text-white text-[11px] font-bold uppercase tracking-wider transition-all disabled:opacity-60 flex items-center justify-center gap-2 cursor-pointer border-none shadow-sm"
+                >
+                  {isSubmitting ? (
+                    <span className="material-symbols-outlined animate-spin text-[12px]">sync</span>
+                  ) : null}
+                  <span>{isSubmitting ? "Processing..." : "YA, HAPUS"}</span>
                 </button>
               </div>
             </div>

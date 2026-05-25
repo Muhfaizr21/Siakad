@@ -9,7 +9,7 @@ import { DeleteConfirmModal } from './components/ui/DeleteConfirmModal'
 import { Card, CardContent } from './components/ui/card'
 import { Input } from './components/ui/input'
 import { Label } from './components/ui/label'
-import { Avatar, AvatarFallback } from './components/ui/avatar'
+import { Avatar, AvatarImage, AvatarFallback } from './components/ui/avatar'
 
 import { toast, Toaster } from 'react-hot-toast'
 import { cn } from '@/lib/utils'
@@ -102,10 +102,16 @@ export default function PsychologistDirectory() {
       className: 'w-[300px]',
       render: (v, row) => (
         <div className="flex items-center gap-4 py-2 group/avatar">
-          <Avatar className="h-11 w-11 rounded-xl border-2 border-white shadow-md transition-all group-hover/avatar:scale-110">
-            <AvatarFallback className="bg-gradient-to-br from-teal-50 to-teal-100 text-teal-700 text-xs font-bold font-jakarta uppercase">
-              {v?.split(' ').map(n => n[0]).join('').substring(0, 2) || '?'}
-            </AvatarFallback>
+          <Avatar className="h-11 w-11 rounded-xl border-2 border-white shadow-md transition-all group-hover/avatar:scale-110 overflow-hidden">
+            {row.Foto || row.Pengguna?.Foto || row.foto || row.pengguna?.foto ? (
+              <AvatarImage src={row.Foto || row.Pengguna?.Foto || row.foto || row.pengguna?.foto} className="object-cover size-full" />
+            ) : (
+              <AvatarFallback className="bg-slate-100 flex items-end justify-center overflow-hidden size-full rounded-none">
+                <svg className="w-9 h-9 text-slate-400 translate-y-0.5" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0 1 12.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 1 1-8 0 4 4 0 0 1 8 0z" />
+                </svg>
+              </AvatarFallback>
+            )}
           </Avatar>
           <div className="flex flex-col">
             <span className="font-bold text-neutral-900 font-jakarta tracking-tight text-[14px] leading-tight">

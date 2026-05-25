@@ -35,10 +35,10 @@ const Award = ({ size, className, ...props }) => <span className={`material-symb
 
 
 const JABATAN_STYLES = {
-  'Profesor':     { cls: 'bg-amber-50 text-amber-700 border-amber-200',   dot: 'bg-amber-500' },
-  'Lektor Kepala':{ cls: 'bg-indigo-50 text-indigo-700 border-indigo-200', dot: 'bg-indigo-500' },
-  'Lektor':       { cls: 'bg-blue-50 text-blue-700 border-blue-200',       dot: 'bg-blue-500' },
-  'Asisten':      { cls: 'bg-slate-50 text-slate-600 border-slate-200',    dot: 'bg-slate-400' },
+  'Profesor': { cls: 'bg-amber-50 text-amber-700 border-amber-200', dot: 'bg-amber-500' },
+  'Lektor Kepala': { cls: 'bg-indigo-50 text-indigo-700 border-indigo-200', dot: 'bg-indigo-500' },
+  'Lektor': { cls: 'bg-blue-50 text-blue-700 border-blue-200', dot: 'bg-blue-500' },
+  'Asisten': { cls: 'bg-slate-50 text-slate-600 border-slate-200', dot: 'bg-slate-400' },
 }
 
 const getInitials = (name = '') =>
@@ -54,11 +54,11 @@ const AVATAR_COLORS = [
 ]
 
 export default function DosenPage() {
-  const [lecturers, setLecturers]     = useState([])
-  const [loading, setLoading]         = useState(true)
-  const [isSyncing, setIsSyncing]     = useState(false)
-  const [selectedDosen, setSelected]  = useState(null)
-  const [search, setSearch]           = useState('')
+  const [lecturers, setLecturers] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [isSyncing, setIsSyncing] = useState(false)
+  const [selectedDosen, setSelected] = useState(null)
+  const [search, setSearch] = useState('')
   const [filterJabatan, setFilterJab] = useState('all')
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
@@ -79,6 +79,7 @@ export default function DosenPage() {
         Email: d.Pengguna?.Email || '—',
         NoHP: d.NoHP || '—',
         colorIdx: i % AVATAR_COLORS.length,
+        Foto: d.Foto || d.Pengguna?.Foto || null,
       })))
     } catch {
       toast.error("Gagal memuat data dosen")
@@ -111,7 +112,7 @@ export default function DosenPage() {
       const matchJ = filterJabatan === 'all' || d.Jabatan === filterJabatan
       return matchQ && matchJ
     })
-  , [lecturers, search, filterJabatan])
+    , [lecturers, search, filterJabatan])
 
   const sorted = useMemo(() => {
     let items = [...filtered]
@@ -201,10 +202,10 @@ export default function DosenPage() {
         {/* ── Stat Cards ─────────────────────────────────────────── */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {[
-            { label: 'Total Dosen', value: stats.total,    icon: Users,       bg: 'bg-[#eef4ff]', color: 'text-[#00236F]', desc: 'Tenaga pengajar terdaftar' },
-            { label: 'Profesor',    value: stats.profesor, icon: GraduationCap, bg: 'bg-amber-50', color: 'text-amber-600', desc: 'Guru Besar / Profesor' },
-            { label: 'Lektor',      value: stats.lektor,   icon: Briefcase,    bg: 'bg-indigo-50', color: 'text-indigo-600', desc: 'Lektor & Lektor Kepala' },
-            { label: 'Asisten',     value: stats.asisten,  icon: UserCheck,    bg: 'bg-slate-50',  color: 'text-slate-500', desc: 'Asisten Ahli terdaftar' },
+            { label: 'Total Dosen', value: stats.total, icon: Users, bg: 'bg-[#eef4ff]', color: 'text-[#00236F]', desc: 'Tenaga pengajar terdaftar' },
+            { label: 'Profesor', value: stats.profesor, icon: GraduationCap, bg: 'bg-amber-50', color: 'text-amber-600', desc: 'Guru Besar / Profesor' },
+            { label: 'Lektor', value: stats.lektor, icon: Briefcase, bg: 'bg-indigo-50', color: 'text-indigo-600', desc: 'Lektor & Lektor Kepala' },
+            { label: 'Asisten', value: stats.asisten, icon: UserCheck, bg: 'bg-slate-50', color: 'text-slate-500', desc: 'Asisten Ahli terdaftar' },
           ].map(s => (
             <div key={s.label} className="bg-surface-container-lowest border border-outline-variant/10 rounded-3xl p-5 shadow-sm">
               <div className="flex items-center gap-3 mb-3">
@@ -341,12 +342,20 @@ export default function DosenPage() {
                         </td>
                         <td className="px-5 py-3.5">
                           <div className="flex items-center gap-3.5">
-                            <div className={cn(
-                              'w-10 h-10 rounded-2xl bg-gradient-to-br flex items-center justify-center text-white text-xs font-black flex-shrink-0 shadow-sm',
-                              AVATAR_COLORS[row.colorIdx]
-                            )}>
-                              {getInitials(row.Nama)}
-                            </div>
+                            {row.Foto ? (
+                              <img
+                                src={row.Foto}
+                                alt={row.Nama}
+                                className="w-10 h-10 rounded-2xl object-cover shrink-0 shadow-sm border border-slate-200"
+                                onError={(e) => { e.target.src = ''; }}
+                              />
+                            ) : (
+                              <div className="w-10 h-10 rounded-2xl bg-slate-100 flex items-end justify-center overflow-hidden shrink-0 border border-slate-200/60 shadow-sm">
+                                <svg className="w-8 h-8 text-slate-400 translate-y-0.5" fill="currentColor" viewBox="0 0 24 24">
+                                  <path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0 1 12.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 1 1-8 0 4 4 0 0 1 8 0z" />
+                                </svg>
+                              </div>
+                            )}
                             <div>
                               <p className="font-bold text-sm text-[#171717] leading-snug">{row.Nama || '—'}</p>
                               <p className="text-[11px] text-[#737373] font-medium">{row.Email}</p>
@@ -391,7 +400,7 @@ export default function DosenPage() {
               <p className="text-xs text-slate-500 font-medium text-center sm:text-left">
                 Menampilkan <span className="font-semibold text-slate-800">{totalItems > 0 ? (currentPage - 1) * pageSize + 1 : 0}</span> sampai <span className="font-semibold text-slate-800">{Math.min(currentPage * pageSize, totalItems)}</span> dari <span className="font-semibold text-slate-800">{totalItems}</span> entri
               </p>
-              
+
               <div className="hidden sm:block h-5 w-px bg-slate-200" />
 
               <div className="flex items-center gap-2.5">
@@ -422,7 +431,7 @@ export default function DosenPage() {
                 <span className="material-symbols-outlined mr-1" style={{ fontSize: '15px' }}>chevron_left</span>
                 Sebelumnya
               </Button>
-              
+
               <div className="flex items-center gap-1">
                 {Array.from({ length: Math.min(5, totalPages) }).map((_, i) => {
                   let pageNum = i + 1;
@@ -435,8 +444,8 @@ export default function DosenPage() {
                       onClick={() => setCurrentPage(pageNum)}
                       className={cn(
                         "w-8 h-8 rounded-lg font-semibold text-xs transition-all duration-200",
-                        currentPage === pageNum 
-                          ? "bg-primary text-white shadow-md shadow-primary/25 scale-105" 
+                        currentPage === pageNum
+                          ? "bg-primary text-white shadow-md shadow-primary/25 scale-105"
                           : "text-slate-500 hover:bg-slate-100 hover:text-slate-900"
                       )}
                     >
@@ -469,153 +478,161 @@ export default function DosenPage() {
             className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4"
             onClick={() => setSelected(null)}
           >
-          {/* Modal box — stop propagation so clicks inside don't close */}
-          <div
-            className="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl z-[101] flex flex-col overflow-hidden max-h-[90vh]"
-            onClick={e => e.stopPropagation()}
-          >
+            {/* Modal box — stop propagation so clicks inside don't close */}
+            <div
+              className="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl z-[101] flex flex-col overflow-hidden max-h-[90vh]"
+              onClick={e => e.stopPropagation()}
+            >
 
-            {/* ── Header ── */}
-            <div className="relative bg-gradient-to-br from-[#00236F] via-[#00308F] to-[#003db5] pt-6 pb-8 px-6 overflow-hidden flex-shrink-0">
-              {/* decorative circles */}
-              <div className="absolute -top-10 -right-10 w-44 h-44 bg-white/5 rounded-full pointer-events-none" />
-              <div className="absolute -bottom-6 right-16 w-28 h-28 bg-white/5 rounded-full pointer-events-none" />
+              {/* ── Header ── */}
+              <div className="relative bg-gradient-to-br from-[#00236F] via-[#00308F] to-[#003db5] pt-6 pb-8 px-6 overflow-hidden flex-shrink-0">
+                {/* decorative circles */}
+                <div className="absolute -top-10 -right-10 w-44 h-44 bg-white/5 rounded-full pointer-events-none" />
+                <div className="absolute -bottom-6 right-16 w-28 h-28 bg-white/5 rounded-full pointer-events-none" />
 
-              {/* Close */}
-              <button
-                onClick={() => setSelected(null)}
-                className="absolute top-4 right-4 w-8 h-8 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center transition-colors"
-              >
-                <span className="material-symbols-outlined" style={{ fontSize: '15px' }} >close</span>
-              </button>
+                {/* Close */}
+                <button
+                  onClick={() => setSelected(null)}
+                  className="absolute top-4 right-4 w-8 h-8 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center transition-colors"
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: '15px' }} >close</span>
+                </button>
 
-              {/* Avatar + name */}
-              <div className="relative z-10 flex items-center gap-4 mb-5">
-                <div className={cn(
-                  'w-[60px] h-[60px] rounded-2xl bg-gradient-to-br flex-shrink-0 flex items-center justify-center text-white text-lg font-black shadow-xl ring-2 ring-white/20',
-                  AVATAR_COLORS[selectedDosen.colorIdx]
-                )}>
-                  {getInitials(selectedDosen.Nama)}
+                {/* Avatar + name */}
+                <div className="relative z-10 flex items-center gap-4 mb-5">
+                  {selectedDosen.Foto ? (
+                    <img
+                      src={selectedDosen.Foto}
+                      alt={selectedDosen.Nama}
+                      className="w-[60px] h-[60px] rounded-2xl object-cover shrink-0 shadow-xl ring-2 ring-white/20"
+                      onError={(e) => { e.target.src = ''; }}
+                    />
+                  ) : (
+                    <div className="w-[60px] h-[60px] rounded-2xl bg-slate-100/90 backdrop-blur flex items-end justify-center overflow-hidden shrink-0 shadow-xl ring-2 ring-white/20">
+                      <svg className="w-[46px] h-[46px] text-slate-400 translate-y-1.5" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0 1 12.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 1 1-8 0 4 4 0 0 1 8 0z" />
+                      </svg>
+                    </div>
+                  )}
+                  <div className="min-w-0">
+                    <p className="text-[9px] font-bold text-white/50 uppercase tracking-[0.25em] mb-1">Tenaga Pengajar</p>
+                    <h2 className="text-lg font-extrabold text-white leading-tight truncate">{selectedDosen.Nama}</h2>
+                    <p className="text-xs text-blue-200 font-medium mt-0.5">{selectedDosen.ProgramStudi}</p>
+                  </div>
                 </div>
-                <div className="min-w-0">
-                  <p className="text-[9px] font-bold text-white/50 uppercase tracking-[0.25em] mb-1">Tenaga Pengajar</p>
-                  <h2 className="text-lg font-extrabold text-white leading-tight truncate">{selectedDosen.Nama}</h2>
-                  <p className="text-xs text-blue-200 font-medium mt-0.5">{selectedDosen.ProgramStudi}</p>
+
+                {/* Info pills row */}
+                <div className="relative z-10 flex flex-wrap gap-2">
+                  <span className="flex items-center gap-1.5 bg-white/10 border border-white/20 px-3 py-1.5 rounded-xl text-[10px] font-bold text-white uppercase tracking-wider">
+                    <Award size={11} />
+                    {selectedDosen.Jabatan || 'Dosen'}
+                  </span>
+                  <span className="flex items-center gap-1.5 bg-white/10 border border-white/20 px-3 py-1.5 rounded-xl text-[10px] font-bold text-white/80 tracking-wider font-mono">
+                    NIDN {selectedDosen.NIDN || '—'}
+                  </span>
+                  <span className="flex items-center gap-1.5 bg-emerald-400/20 border border-emerald-300/30 px-3 py-1.5 rounded-xl text-[10px] font-bold text-emerald-200 uppercase tracking-wider">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                    Aktif
+                  </span>
                 </div>
               </div>
 
-              {/* Info pills row */}
-              <div className="relative z-10 flex flex-wrap gap-2">
-                <span className="flex items-center gap-1.5 bg-white/10 border border-white/20 px-3 py-1.5 rounded-xl text-[10px] font-bold text-white uppercase tracking-wider">
-                  <Award size={11} />
-                  {selectedDosen.Jabatan || 'Dosen'}
-                </span>
-                <span className="flex items-center gap-1.5 bg-white/10 border border-white/20 px-3 py-1.5 rounded-xl text-[10px] font-bold text-white/80 tracking-wider font-mono">
-                  NIDN {selectedDosen.NIDN || '—'}
-                </span>
-                <span className="flex items-center gap-1.5 bg-emerald-400/20 border border-emerald-300/30 px-3 py-1.5 rounded-xl text-[10px] font-bold text-emerald-200 uppercase tracking-wider">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                  Aktif
-                </span>
+              {/* ── Body ── */}
+              <div className="flex-1 overflow-y-auto">
+
+                {/* Penugasan Akademik */}
+                <div className="p-5 border-b border-[#f0f0f0]">
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="w-5 h-5 rounded-md bg-[#eef4ff] flex items-center justify-center">
+                      <Layers size={11} className="text-[#00236F]" />
+                    </div>
+                    <h3 className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-[0.18em]">Penugasan Akademik</h3>
+                  </div>
+                  <div className="space-y-1">
+                    <InfoCard
+                      icon={Building2}
+                      label="Fakultas"
+                      value={selectedDosen.Fakultas}
+                      accent="border-l-blue-400"
+                    />
+                    <InfoCard
+                      icon={BookOpen}
+                      label="Program Studi"
+                      value={selectedDosen.ProgramStudi}
+                      accent="border-l-indigo-400"
+                    />
+                    <InfoCard
+                      icon={Award}
+                      label="Jabatan Fungsional"
+                      value={selectedDosen.Jabatan}
+                      accent="border-l-amber-400"
+                    />
+                  </div>
+                </div>
+
+                {/* Informasi Kontak */}
+                <div className="p-5 border-b border-[#f0f0f0]">
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="w-5 h-5 rounded-md bg-[#eef4ff] flex items-center justify-center">
+                      <span className="material-symbols-outlined text-[#00236F]" style={{ fontSize: '11px' }} >mail</span>
+                    </div>
+                    <h3 className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-[0.18em]">Informasi Kontak</h3>
+                  </div>
+                  <div className="space-y-1">
+                    <InfoCard
+                      icon={Mail}
+                      label="Email Institusi"
+                      value={selectedDosen.Email}
+                      accent="border-l-rose-400"
+                      mono
+                    />
+                    <InfoCard
+                      icon={Phone}
+                      label="No. HP / WhatsApp"
+                      value={selectedDosen.NoHP}
+                      accent="border-l-emerald-400"
+                    />
+                  </div>
+                </div>
+
+                {/* Status */}
+                <div className="p-5">
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="w-5 h-5 rounded-md bg-[#eef4ff] flex items-center justify-center">
+                      <span className="material-symbols-outlined text-[#00236F]" style={{ fontSize: '11px' }} Check >security</span>
+                    </div>
+                    <h3 className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-[0.18em]">Status Kepegawaian</h3>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-4 text-center">
+                      <span className="block w-2 h-2 rounded-full bg-emerald-500 animate-pulse mx-auto mb-2" />
+                      <p className="text-xs font-black text-emerald-700 uppercase tracking-widest">Aktif</p>
+                      <p className="text-[10px] text-emerald-500/70 font-medium mt-0.5">Status Akademik</p>
+                    </div>
+                    <div className="bg-[#f8faff] border border-[#e8efff] rounded-2xl p-4 text-center">
+                      <span className="material-symbols-outlined text-[#00236F] mx-auto mb-2" style={{ fontSize: '16px' }} >school</span>
+                      <p className="text-xs font-black text-[#00236F] uppercase tracking-widest">Dosen Tetap</p>
+                      <p className="text-[10px] text-[#a3a3a3] font-medium mt-0.5">Jenis Kepegawaian</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* ── Footer ── */}
+              <div className="px-5 py-4 border-t border-[#f0f0f0] bg-[#fafafa] flex gap-3 flex-shrink-0">
+                <button
+                  onClick={() => setSelected(null)}
+                  className="flex-1 h-11 rounded-xl border border-[#e5e5e5] bg-white text-xs font-bold text-[#525252] uppercase tracking-widest hover:bg-[#f5f5f5] transition-all active:scale-95"
+                >
+                  Tutup
+                </button>
+                <button
+                  className="flex-1 h-11 rounded-xl bg-[#00236F] hover:bg-[#001a52] text-white text-xs font-bold uppercase tracking-widest transition-all active:scale-95 shadow-lg shadow-[#00236F]/20"
+                >
+                  Edit Profil
+                </button>
               </div>
             </div>
-
-            {/* ── Body ── */}
-            <div className="flex-1 overflow-y-auto">
-
-              {/* Penugasan Akademik */}
-              <div className="p-5 border-b border-[#f0f0f0]">
-                <div className="flex items-center gap-2 mb-4">
-                  <div className="w-5 h-5 rounded-md bg-[#eef4ff] flex items-center justify-center">
-                    <Layers size={11} className="text-[#00236F]" />
-                  </div>
-                  <h3 className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-[0.18em]">Penugasan Akademik</h3>
-                </div>
-                <div className="space-y-1">
-                  <InfoCard
-                    icon={Building2}
-                    label="Fakultas"
-                    value={selectedDosen.Fakultas}
-                    accent="border-l-blue-400"
-                  />
-                  <InfoCard
-                    icon={BookOpen}
-                    label="Program Studi"
-                    value={selectedDosen.ProgramStudi}
-                    accent="border-l-indigo-400"
-                  />
-                  <InfoCard
-                    icon={Award}
-                    label="Jabatan Fungsional"
-                    value={selectedDosen.Jabatan}
-                    accent="border-l-amber-400"
-                  />
-                </div>
-              </div>
-
-              {/* Informasi Kontak */}
-              <div className="p-5 border-b border-[#f0f0f0]">
-                <div className="flex items-center gap-2 mb-4">
-                  <div className="w-5 h-5 rounded-md bg-[#eef4ff] flex items-center justify-center">
-                    <span className="material-symbols-outlined text-[#00236F]" style={{ fontSize: '11px' }} >mail</span>
-                  </div>
-                  <h3 className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-[0.18em]">Informasi Kontak</h3>
-                </div>
-                <div className="space-y-1">
-                  <InfoCard
-                    icon={Mail}
-                    label="Email Institusi"
-                    value={selectedDosen.Email}
-                    accent="border-l-rose-400"
-                    mono
-                  />
-                  <InfoCard
-                    icon={Phone}
-                    label="No. HP / WhatsApp"
-                    value={selectedDosen.NoHP}
-                    accent="border-l-emerald-400"
-                  />
-                </div>
-              </div>
-
-              {/* Status */}
-              <div className="p-5">
-                <div className="flex items-center gap-2 mb-4">
-                  <div className="w-5 h-5 rounded-md bg-[#eef4ff] flex items-center justify-center">
-                    <span className="material-symbols-outlined text-[#00236F]" style={{ fontSize: '11px' }} Check >security</span>
-                  </div>
-                  <h3 className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-[0.18em]">Status Kepegawaian</h3>
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-4 text-center">
-                    <span className="block w-2 h-2 rounded-full bg-emerald-500 animate-pulse mx-auto mb-2" />
-                    <p className="text-xs font-black text-emerald-700 uppercase tracking-widest">Aktif</p>
-                    <p className="text-[10px] text-emerald-500/70 font-medium mt-0.5">Status Akademik</p>
-                  </div>
-                  <div className="bg-[#f8faff] border border-[#e8efff] rounded-2xl p-4 text-center">
-                    <span className="material-symbols-outlined text-[#00236F] mx-auto mb-2" style={{ fontSize: '16px' }} >school</span>
-                    <p className="text-xs font-black text-[#00236F] uppercase tracking-widest">Dosen Tetap</p>
-                    <p className="text-[10px] text-[#a3a3a3] font-medium mt-0.5">Jenis Kepegawaian</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* ── Footer ── */}
-            <div className="px-5 py-4 border-t border-[#f0f0f0] bg-[#fafafa] flex gap-3 flex-shrink-0">
-              <button
-                onClick={() => setSelected(null)}
-                className="flex-1 h-11 rounded-xl border border-[#e5e5e5] bg-white text-xs font-bold text-[#525252] uppercase tracking-widest hover:bg-[#f5f5f5] transition-all active:scale-95"
-              >
-                Tutup
-              </button>
-              <button
-                className="flex-1 h-11 rounded-xl bg-[#00236F] hover:bg-[#001a52] text-white text-xs font-bold uppercase tracking-widest transition-all active:scale-95 shadow-lg shadow-[#00236F]/20"
-              >
-                Edit Profil
-              </button>
-            </div>
-          </div>
           </div>
         </>
       )}

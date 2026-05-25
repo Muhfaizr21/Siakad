@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState, useEffect, useMemo } from 'react'
-import axios from 'axios'
+import api from '../../lib/axios'
 import { toast, Toaster } from 'react-hot-toast'
 
 import { cn } from '@/lib/utils'
@@ -36,6 +36,13 @@ const AVATAR_COLORS = ['from-blue-400 to-indigo-500','from-emerald-400 to-teal-5
 const getInitials = (n='') => n.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase()||'?'
 const formatDate = (d) => { try { return new Date(d).toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'}) } catch { return d } }
 
+const getFullUrl = (path) => {
+  if (!path) return null;
+  if (path.startsWith('http')) return path;
+  const baseUrl = API_BASE_URL.replace('/api', '');
+  return `${baseUrl}${path}`;
+}
+
 const SURAT_STATUS = {
   diajukan:   {cls:'bg-amber-50 text-amber-700 border-amber-200',  dot:'bg-amber-500',  label:'Antrean'},
   diproses:   {cls:'bg-blue-50 text-blue-700 border-blue-200',     dot:'bg-blue-500',   label:'Diproses'},
@@ -57,11 +64,30 @@ export default function FacultyPersuratan() {
   const [pageSize, setPageSize]         = useState(10)
   const [sortConfig, setSortConfig]     = useState({ key: 'CreatedAt', direction: 'desc' })
 
+  const normalizeSurat = (r, i) => {
+    const m = r.mahasiswa || r.Mahasiswa || {};
+    return {
+      ...r,
+      ID: r.id || r.ID,
+      Jenis: r.jenis || r.Jenis || '—',
+      Catatan: r.catatan || r.Catatan || '—',
+      Status: r.status || r.Status || 'diajukan',
+      CreatedAt: r.created_at || r.CreatedAt,
+      FileURL: r.file_url || r.FileURL || null,
+      Mahasiswa: {
+        Nama: m.nama || m.Nama || '—',
+        NIM: m.nim || m.NIM || '—',
+        Foto: getFullUrl(m.foto_url || m.FotoURL || m.foto || m.Foto || null),
+      },
+      colorIdx: i % AVATAR_COLORS.length,
+    };
+  }
+
   const fetchRequests = async () => {
     setLoading(true)
     try {
-      const res = await axios.get(`${API}/surat`)
-      if (res.data.status === 'success') setRequests((res.data.data||[]).map((r,i)=>({...r, colorIdx: i % AVATAR_COLORS.length})))
+      const res = await api.get('/faculty/surat')
+      if (res.data.status === 'success') setRequests((res.data.data||[]).map(normalizeSurat))
     } catch { toast.error('Gagal mengambil data pengajuan surat') }
     finally { setLoading(false) }
   }
@@ -69,7 +95,7 @@ export default function FacultyPersuratan() {
   const handleUpdate = async (e) => {
     if (e) e.preventDefault(); setIsSub(true)
     try {
-      const res = await axios.put(`${API}/surat/${selected.ID}`, adminData)
+      const res = await api.put(`/faculty/surat/${selected.ID}`, adminData)
       if (res.data.status === 'success') { toast.success('Status surat diperbarui'); setSelected(null); fetchRequests() }
       else toast.error(res.data.message||'Gagal update')
     } catch (err) { toast.error(err.response?.data?.message||'Server sibuk') }
@@ -264,7 +290,13 @@ export default function FacultyPersuratan() {
                       <td className="px-5 py-3.5"><span className="font-mono text-primary font-black text-[11px] tracking-widest">#{row.ID}</span></td>
                       <td className="px-5 py-3.5">
                         <div className="flex items-center gap-3">
-                          <div className={cn('w-9 h-9 rounded-xl bg-gradient-to-br flex items-center justify-center text-white text-[11px] font-black flex-shrink-0 shadow-sm',AVATAR_COLORS[row.colorIdx])}>{getInitials(row.Mahasiswa?.Nama)}</div>
+                          {row.Mahasiswa?.Foto ? (
+                            <img src={row.Mahasiswa.Foto} alt={row.Mahasiswa.Nama} className="w-9 h-9 rounded-xl object-cover shrink-0 shadow-sm border border-slate-200" onError={(e) => { e.target.src = ''; }} />
+                          ) : (
+                            <div className="w-9 h-9 rounded-xl bg-slate-100 flex items-end justify-center overflow-hidden shrink-0 border border-slate-200/60 shadow-sm">
+                              <svg className="w-7 h-7 text-slate-400 translate-y-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0 1 12.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 1 1-8 0 4 4 0 0 1 8 0z" /></svg>
+                            </div>
+                          )}
                           <div><p className="font-bold text-sm text-[#171717]">{row.Mahasiswa?.Nama||'—'}</p><p className="text-[10px] text-[#a3a3a3] font-medium">{row.Mahasiswa?.NIM||'—'}</p></div>
                         </div>
                       </td>

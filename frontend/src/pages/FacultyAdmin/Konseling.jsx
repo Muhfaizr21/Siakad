@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState, useEffect, useMemo } from 'react'
-import axios from 'axios'
+import api from '../../lib/axios'
 import { toast, Toaster } from 'react-hot-toast'
 
 import { cn } from '@/lib/utils'
@@ -47,6 +47,13 @@ const getStatus = (v='') => STATUS_STYLES[(v||'pending').toLowerCase()] || STATU
 
 const formatDate = (d) => { try { return new Date(d).toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'}) } catch { return d } }
 
+const getFullUrl = (path) => {
+  if (!path) return null;
+  if (path.startsWith('http')) return path;
+  const baseUrl = API_BASE_URL.replace('/api', '');
+  return `${baseUrl}${path}`;
+}
+
 export default function FacultyKonseling() {
   const [sessions, setSessions]   = useState([])
   const [loading, setLoading]     = useState(true)
@@ -57,12 +64,33 @@ export default function FacultyKonseling() {
   const [pageSize, setPageSize]         = useState(10)
   const [sortConfig, setSortConfig]     = useState({ key: 'Tanggal', direction: 'desc' })
 
+  const normalizeSession = (s, i) => {
+    const m = s.mahasiswa || s.Mahasiswa || {};
+    return {
+      ...s,
+      ID: s.id || s.ID,
+      Topik: s.topik || s.Topik || 'Akademik',
+      Status: s.status || s.Status || 'pending',
+      Tanggal: s.tanggal || s.Tanggal || null,
+      jam: s.jam || s.Jam || null,
+      notes: s.notes || s.Notes || null,
+      counselor: s.counselor || s.Counselor || 'Dosen PA',
+      Mahasiswa: {
+        Nama: m.nama || m.Nama || '—',
+        NIM: m.nim || m.NIM || '—',
+        ProgramStudi: { Nama: m.program_studi?.nama || m.ProgramStudi?.Nama || '—' },
+        Foto: getFullUrl(m.foto_url || m.FotoURL || m.foto || m.Foto || null),
+      },
+      colorIdx: i % AVATAR_COLORS.length,
+    };
+  }
+
   const fetchData = async () => {
     setLoading(true)
     try {
-      const res = await axios.get(`${API}/counseling`)
+      const res = await api.get('/faculty/counseling')
       if (res.data.status === 'success')
-        setSessions((res.data.data||[]).map((s,i)=>({...s, colorIdx: i % AVATAR_COLORS.length})))
+        setSessions((res.data.data||[]).map(normalizeSession))
     } catch { toast.error('Gagal sinkronisasi data') }
     finally { setLoading(false) }
   }
@@ -270,9 +298,13 @@ export default function FacultyKonseling() {
                       <td className="px-5 py-3.5 text-sm text-[#a3a3a3] font-medium">{(currentPage - 1) * pageSize + i + 1}</td>
                       <td className="px-5 py-3.5">
                         <div className="flex items-center gap-3">
-                          <div className={cn('w-9 h-9 rounded-xl bg-gradient-to-br flex items-center justify-center text-white text-[11px] font-black flex-shrink-0 shadow-sm', AVATAR_COLORS[row.colorIdx])}>
-                            {getInitials(row.Mahasiswa?.Nama)}
-                          </div>
+                          {row.Mahasiswa?.Foto ? (
+                            <img src={row.Mahasiswa.Foto} alt={row.Mahasiswa.Nama} className="w-9 h-9 rounded-xl object-cover shrink-0 shadow-sm border border-slate-200" onError={(e) => { e.target.src = ''; }} />
+                          ) : (
+                            <div className="w-9 h-9 rounded-xl bg-slate-100 flex items-end justify-center overflow-hidden shrink-0 border border-slate-200/60 shadow-sm">
+                              <svg className="w-7 h-7 text-slate-400 translate-y-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0 1 12.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 1 1-8 0 4 4 0 0 1 8 0z" /></svg>
+                            </div>
+                          )}
                           <div>
                             <p className="font-bold text-sm text-[#171717]">{row.Mahasiswa?.Nama||'—'}</p>
                             <p className="text-[10px] text-[#a3a3a3] font-medium">{row.Mahasiswa?.NIM||'—'}</p>
@@ -401,9 +433,13 @@ export default function FacultyKonseling() {
                 <span className="material-symbols-outlined" style={{ fontSize: '15px' }} >close</span>
               </button>
               <div className="relative z-10 flex items-center gap-4 mb-5">
-                <div className={cn('w-14 h-14 rounded-2xl bg-gradient-to-br flex-shrink-0 flex items-center justify-center text-white text-base font-black shadow-xl ring-2 ring-white/20', AVATAR_COLORS[selected.colorIdx])}>
-                  {getInitials(selected.Mahasiswa?.Nama)}
-                </div>
+                {selected.Mahasiswa?.Foto ? (
+                  <img src={selected.Mahasiswa.Foto} alt={selected.Mahasiswa.Nama} className="w-14 h-14 rounded-2xl object-cover shrink-0 shadow-xl ring-2 ring-white/20" onError={(e) => { e.target.src = ''; }} />
+                ) : (
+                  <div className="w-14 h-14 rounded-2xl bg-slate-100/90 backdrop-blur flex items-end justify-center overflow-hidden shrink-0 shadow-xl ring-2 ring-white/20">
+                    <svg className="w-11 h-11 text-slate-400 translate-y-1.5" fill="currentColor" viewBox="0 0 24 24"><path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0 1 12.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 1 1-8 0 4 4 0 0 1 8 0z" /></svg>
+                  </div>
+                )}
                 <div className="min-w-0">
                   <p className="text-[9px] font-bold text-white/50 uppercase tracking-[0.25em] mb-1">Sesi Konseling</p>
                   <h2 className="text-base font-extrabold text-white leading-tight">{selected.Mahasiswa?.Nama}</h2>

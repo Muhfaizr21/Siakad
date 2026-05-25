@@ -239,12 +239,35 @@ func HapusBerita(c *fiber.Ctx) error {
 // --- PMB (PENDAFTARAN MAHASISWA BARU) ---
 
 func AmbilDaftarPendaftarMB(c *fiber.Ctx) error {
-	// Model Admission tidak ada di model.go
-	return c.JSON(fiber.Map{"status": "success", "data": []string{}})
+	var list []models.PendaftaranMahasiswaBaru
+	if err := config.DB.Order("id asc").Find(&list).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal mengambil data pendaftaran"})
+	}
+	return c.JSON(fiber.Map{"status": "success", "data": list})
 }
 
 func PerbaruiStatusPendaftarMB(c *fiber.Ctx) error {
-	return c.Status(501).JSON(fiber.Map{"status": "error", "message": "Fitur tidak tersedia"})
+	id := c.Params("id")
+
+	type StatusReq struct {
+		Status string `json:"status"`
+	}
+	var req StatusReq
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Format data tidak valid"})
+	}
+
+	var admission models.PendaftaranMahasiswaBaru
+	if err := config.DB.First(&admission, id).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Data pendaftaran tidak ditemukan"})
+	}
+
+	admission.Status = req.Status
+	if err := config.DB.Save(&admission).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal memperbarui status pendaftaran"})
+	}
+
+	return c.JSON(fiber.Map{"status": "success", "message": "Status pendaftaran berhasil diperbarui"})
 }
 
 // --- RBAC & PERAN ---
@@ -412,13 +435,13 @@ func AmbilNotifikasiAntrean(c *fiber.Ctx) error {
 	if role == "faculty_admin" {
 		qAsp = qAsp.Joins("JOIN mahasiswa.mahasiswa ON mahasiswa.mahasiswa.id = mahasiswa.aspirasi.mahasiswa_id").
 			Where("mahasiswa.mahasiswa.fakultas_id = ?", fid)
-		
+
 		qSurat = qSurat.Joins("JOIN mahasiswa.mahasiswa ON mahasiswa.mahasiswa.id = mahasiswa.pengajuan_surat.mahasiswa_id").
 			Where("mahasiswa.mahasiswa.fakultas_id = ?", fid)
-		
+
 		qPres = qPres.Joins("JOIN mahasiswa.mahasiswa ON mahasiswa.mahasiswa.id = mahasiswa.prestasi.mahasiswa_id").
 			Where("mahasiswa.mahasiswa.fakultas_id = ?", fid)
-		
+
 		qProp = qProp.Where("fakultas_id = ?", fid)
 	}
 

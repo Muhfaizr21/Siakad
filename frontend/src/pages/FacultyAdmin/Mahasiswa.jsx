@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo } from "react"
 import api from "../../lib/axios"
-import { pddiktiService } from "../../services/api"
+import { pddiktiService, API_BASE_URL } from "../../services/api"
 
 import { toast, Toaster } from "react-hot-toast"
 import { cn } from "@/lib/utils"
@@ -41,12 +41,12 @@ const Heart = ({ size, className, ...props }) => <span className={`material-symb
 
 
 const STATUS_STYLES = {
-  'Aktif':     { cls: 'bg-emerald-50 text-emerald-700 border-emerald-200', dot: 'bg-emerald-500' },
-  'active':    { cls: 'bg-emerald-50 text-emerald-700 border-emerald-200', dot: 'bg-emerald-500' },
-  'Lulus':     { cls: 'bg-sky-50 text-sky-700 border-sky-200',             dot: 'bg-sky-500' },
-  'Cuti':      { cls: 'bg-amber-50 text-amber-700 border-amber-200',       dot: 'bg-amber-500' },
-  'leave':     { cls: 'bg-amber-50 text-amber-700 border-amber-200',       dot: 'bg-amber-500' },
-  'Non-Aktif': { cls: 'bg-rose-50 text-rose-700 border-rose-200',          dot: 'bg-rose-500' },
+  'Aktif': { cls: 'bg-emerald-50 text-emerald-700 border-emerald-200', dot: 'bg-emerald-500' },
+  'active': { cls: 'bg-emerald-50 text-emerald-700 border-emerald-200', dot: 'bg-emerald-500' },
+  'Lulus': { cls: 'bg-sky-50 text-sky-700 border-sky-200', dot: 'bg-sky-500' },
+  'Cuti': { cls: 'bg-amber-50 text-amber-700 border-amber-200', dot: 'bg-amber-500' },
+  'leave': { cls: 'bg-amber-50 text-amber-700 border-amber-200', dot: 'bg-amber-500' },
+  'Non-Aktif': { cls: 'bg-rose-50 text-rose-700 border-rose-200', dot: 'bg-rose-500' },
 }
 
 const AVATAR_COLORS = [
@@ -67,12 +67,19 @@ const formatDate = (d) => {
   catch { return d }
 }
 
+const getFullUrl = (path) => {
+  if (!path) return null;
+  if (path.startsWith('http')) return path;
+  const baseUrl = API_BASE_URL.replace('/api', '');
+  return `${baseUrl}${path}`;
+}
+
 export default function MahasiswaPage() {
   const [studentData, setStudentData] = useState([])
-  const [loading, setLoading]         = useState(true)
-  const [isSyncing, setIsSyncing]     = useState(false)
-  const [selected, setSelected]       = useState(null)
-  const [search, setSearch]           = useState('')
+  const [loading, setLoading] = useState(true)
+  const [isSyncing, setIsSyncing] = useState(false)
+  const [selected, setSelected] = useState(null)
+  const [search, setSearch] = useState('')
   const [filterStatus, setFilterStatus] = useState('all')
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
@@ -87,7 +94,7 @@ export default function MahasiswaPage() {
       SemesterSekarang: isLulus ? null : (m.SemesterSekarang > 0 ? m.SemesterSekarang : 1),
       StatusAkun: statusAkun,
       StatusAkademik: m.StatusAkademik || '—',
-      TahunMasuk: m.TahunMasuk ? String(m.TahunMasuk) : (m.NIM ? `20${m.NIM.substring(0,2)}` : '—'),
+      TahunMasuk: m.TahunMasuk ? String(m.TahunMasuk) : (m.NIM ? `20${m.NIM.substring(0, 2)}` : '—'),
       NoHP: m.NoHP || '—',
       JalurMasuk: m.JalurMasuk || 'PDDIKTI Sync',
       TempatLahir: m.TempatLahir || '—',
@@ -100,6 +107,7 @@ export default function MahasiswaPage() {
       PekerjaanOrtu: m.PekerjaanAyah || m.PekerjaanIbu || '—',
       PenghasilanOrtu: m.PenghasilanOrtu,
       colorIdx: i % AVATAR_COLORS.length,
+      Foto: getFullUrl(m.FotoURL || m.foto_url || m.Foto || m.Pengguna?.Foto || null),
     }
   }
 
@@ -133,7 +141,7 @@ export default function MahasiswaPage() {
       const matchS = filterStatus === 'all' || d.StatusAkun === filterStatus
       return matchQ && matchS
     })
-  , [studentData, search, filterStatus])
+    , [studentData, search, filterStatus])
 
   const sorted = useMemo(() => {
     let items = [...filtered]
@@ -171,10 +179,10 @@ export default function MahasiswaPage() {
   }
 
   const stats = {
-    total:   studentData.length,
-    aktif:   studentData.filter(d => d.StatusAkun === 'Aktif' || d.StatusAkun === 'active').length,
-    lulus:   studentData.filter(d => d.StatusAkun === 'Lulus').length,
-    cuti:    studentData.filter(d => d.StatusAkun === 'Cuti' || d.StatusAkun === 'leave').length,
+    total: studentData.length,
+    aktif: studentData.filter(d => d.StatusAkun === 'Aktif' || d.StatusAkun === 'active').length,
+    lulus: studentData.filter(d => d.StatusAkun === 'Lulus').length,
+    cuti: studentData.filter(d => d.StatusAkun === 'Cuti' || d.StatusAkun === 'leave').length,
   }
 
   return (
@@ -221,10 +229,10 @@ export default function MahasiswaPage() {
         {/* ── Stat Cards ── */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {[
-            { label: 'Total Mahasiswa', value: stats.total,  icon: Users,       bg: 'bg-[#eef4ff]', color: 'text-[#00236F]', desc: 'Terdaftar di sistem' },
-            { label: 'Aktif',           value: stats.aktif,  icon: UserCheck,   bg: 'bg-emerald-50', color: 'text-emerald-600', desc: 'Sedang aktif kuliah' },
-            { label: 'Lulus',           value: stats.lulus,  icon: GraduationCap, bg: 'bg-sky-50', color: 'text-sky-600', desc: 'Telah menyelesaikan studi' },
-            { label: 'Cuti',            value: stats.cuti,   icon: Calendar,    bg: 'bg-amber-50', color: 'text-amber-600', desc: 'Sedang dalam masa cuti' },
+            { label: 'Total Mahasiswa', value: stats.total, icon: Users, bg: 'bg-[#eef4ff]', color: 'text-[#00236F]', desc: 'Terdaftar di sistem' },
+            { label: 'Aktif', value: stats.aktif, icon: UserCheck, bg: 'bg-emerald-50', color: 'text-emerald-600', desc: 'Sedang aktif kuliah' },
+            { label: 'Lulus', value: stats.lulus, icon: GraduationCap, bg: 'bg-sky-50', color: 'text-sky-600', desc: 'Telah menyelesaikan studi' },
+            { label: 'Cuti', value: stats.cuti, icon: Calendar, bg: 'bg-amber-50', color: 'text-amber-600', desc: 'Sedang dalam masa cuti' },
           ].map(s => (
             <div key={s.label} className="bg-surface-container-lowest border border-outline-variant/10 rounded-3xl p-5 shadow-sm">
               <div className="flex items-center gap-3 mb-3">
@@ -353,9 +361,20 @@ export default function MahasiswaPage() {
                       </td>
                       <td className="px-5 py-3.5">
                         <div className="flex items-center gap-3">
-                          <div className={cn('w-9 h-9 rounded-xl bg-gradient-to-br flex items-center justify-center text-white text-[11px] font-black flex-shrink-0 shadow-sm', AVATAR_COLORS[row.colorIdx])}>
-                            {getInitials(row.Nama)}
-                          </div>
+                          {row.Foto ? (
+                            <img
+                              src={row.Foto}
+                              alt={row.Nama}
+                              className="w-9 h-9 rounded-xl object-cover shrink-0 shadow-sm border border-slate-200"
+                              onError={(e) => { e.target.src = ''; }}
+                            />
+                          ) : (
+                            <div className="w-9 h-9 rounded-xl bg-slate-100 flex items-end justify-center overflow-hidden shrink-0 border border-slate-200/60 shadow-sm">
+                              <svg className="w-7 h-7 text-slate-400 translate-y-0.5" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0 1 12.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 1 1-8 0 4 4 0 0 1 8 0z" />
+                              </svg>
+                            </div>
+                          )}
                           <div>
                             <p className="font-bold text-sm text-[#171717] leading-snug">{row.Nama}</p>
                             <p className="text-[10px] text-[#a3a3a3] font-medium">{row.TahunMasuk} · {row.JalurMasuk}</p>
@@ -398,7 +417,7 @@ export default function MahasiswaPage() {
               <p className="text-xs text-slate-500 font-medium text-center sm:text-left">
                 Menampilkan <span className="font-semibold text-slate-800">{totalItems > 0 ? (currentPage - 1) * pageSize + 1 : 0}</span> sampai <span className="font-semibold text-slate-800">{Math.min(currentPage * pageSize, totalItems)}</span> dari <span className="font-semibold text-slate-800">{totalItems}</span> entri
               </p>
-              
+
               <div className="hidden sm:block h-5 w-px bg-slate-200" />
 
               <div className="flex items-center gap-2.5">
@@ -429,7 +448,7 @@ export default function MahasiswaPage() {
                 <span className="material-symbols-outlined mr-1" style={{ fontSize: '15px' }}>chevron_left</span>
                 Sebelumnya
               </Button>
-              
+
               <div className="flex items-center gap-1">
                 {Array.from({ length: Math.min(5, totalPages) }).map((_, i) => {
                   let pageNum = i + 1;
@@ -442,8 +461,8 @@ export default function MahasiswaPage() {
                       onClick={() => setCurrentPage(pageNum)}
                       className={cn(
                         "w-8 h-8 rounded-lg font-semibold text-xs transition-all duration-200",
-                        currentPage === pageNum 
-                          ? "bg-primary text-white shadow-md shadow-primary/20 scale-105" 
+                        currentPage === pageNum
+                          ? "bg-primary text-white shadow-md shadow-primary/20 scale-105"
                           : "text-slate-500 hover:bg-slate-100 hover:text-slate-900"
                       )}
                     >
@@ -487,9 +506,20 @@ export default function MahasiswaPage() {
                 <span className="material-symbols-outlined" style={{ fontSize: '15px' }} >close</span>
               </button>
               <div className="relative z-10 flex items-center gap-4 mb-5">
-                <div className={cn('w-14 h-14 rounded-2xl bg-gradient-to-br flex-shrink-0 flex items-center justify-center text-white text-base font-black shadow-xl ring-2 ring-white/20', AVATAR_COLORS[selected.colorIdx])}>
-                  {getInitials(selected.Nama)}
-                </div>
+                {selected.Foto ? (
+                  <img
+                    src={selected.Foto}
+                    alt={selected.Nama}
+                    className="w-14 h-14 rounded-2xl object-cover shrink-0 shadow-xl ring-2 ring-white/20"
+                    onError={(e) => { e.target.src = ''; }}
+                  />
+                ) : (
+                  <div className="w-14 h-14 rounded-2xl bg-slate-100/90 backdrop-blur flex items-end justify-center overflow-hidden shrink-0 shadow-xl ring-2 ring-white/20">
+                    <svg className="w-11 h-11 text-slate-400 translate-y-1.5" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0 1 12.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 1 1-8 0 4 4 0 0 1 8 0z" />
+                    </svg>
+                  </div>
+                )}
                 <div className="min-w-0">
                   <p className="text-[9px] font-bold text-white/50 uppercase tracking-[0.25em] mb-1">Profil Mahasiswa</p>
                   <h2 className="text-lg font-extrabold text-white leading-tight truncate">{selected.Nama}</h2>
@@ -506,8 +536,8 @@ export default function MahasiswaPage() {
                 <span className={cn(
                   'flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-wider',
                   selected.StatusAkun === 'Lulus' ? 'bg-sky-400/20 border border-sky-300/30 text-sky-200' :
-                  selected.StatusAkun === 'Cuti'  ? 'bg-amber-400/20 border border-amber-300/30 text-amber-200' :
-                  'bg-emerald-400/20 border border-emerald-300/30 text-emerald-200'
+                    selected.StatusAkun === 'Cuti' ? 'bg-amber-400/20 border border-amber-300/30 text-amber-200' :
+                      'bg-emerald-400/20 border border-emerald-300/30 text-emerald-200'
                 )}>
                   <span className="w-1.5 h-1.5 rounded-full bg-current animate-pulse" />
                   {selected.StatusAkun}
@@ -519,24 +549,25 @@ export default function MahasiswaPage() {
             <div className="flex-1 overflow-y-auto">
               {/* Akademik */}
               <SectionBlock icon={BookOpen} title="Informasi Akademik">
-                <InfoCard icon={Building2}  label="Program Studi"    value={selected.ProgramStudi}    accent="border-l-blue-400" />
-                <InfoCard icon={Layers}     label="Semester"          value={selected.SemesterSekarang ? `Semester ${selected.SemesterSekarang}` : '—'} accent="border-l-indigo-400" />
-                <InfoCard icon={Award}      label="Jalur Masuk"       value={selected.JalurMasuk}       accent="border-l-amber-400" />
+                <InfoCard icon={Building2} label="Program Studi" value={selected.ProgramStudi} accent="border-l-blue-400" />
+                <InfoCard icon={Layers} label="Semester" value={selected.SemesterSekarang ? `Semester ${selected.SemesterSekarang}` : '—'} accent="border-l-indigo-400" />
+                <InfoCard icon={UserCheck} label="Dosen PA / Wali" value={selected.DosenPA} accent="border-l-violet-400" />
+                <InfoCard icon={Award} label="Jalur Masuk" value={selected.JalurMasuk} accent="border-l-amber-400" />
               </SectionBlock>
 
               {/* Biodata */}
               <SectionBlock icon={FileText} title="Biodata & Kontak">
-                <InfoCard icon={Calendar}  label="Tempat, Tgl Lahir" value={`${selected.TempatLahir}, ${formatDate(selected.TanggalLahir)}`} accent="border-l-rose-400" />
-                <InfoCard icon={Phone}     label="No. HP / WhatsApp" value={selected.NoHP}    accent="border-l-emerald-400" />
-                <InfoCard icon={Mail}      label="Email Institusi"    value={selected.Email}   accent="border-l-sky-400" mono />
-                <InfoCard icon={MapPin}    label="Alamat"             value={selected.Alamat}  accent="border-l-slate-400" />
+                <InfoCard icon={Calendar} label="Tempat, Tgl Lahir" value={`${selected.TempatLahir}, ${formatDate(selected.TanggalLahir)}`} accent="border-l-rose-400" />
+                <InfoCard icon={Phone} label="No. HP / WhatsApp" value={selected.NoHP} accent="border-l-emerald-400" />
+                <InfoCard icon={Mail} label="Email Institusi" value={selected.Email} accent="border-l-sky-400" mono />
+                <InfoCard icon={MapPin} label="Alamat" value={selected.Alamat} accent="border-l-slate-400" />
               </SectionBlock>
 
               {/* Orang Tua */}
               <SectionBlock icon={Heart} title="Data Orang Tua" last>
-                <InfoCard icon={Users}  label="Nama Ayah"   value={selected.NamaAyah}    accent="border-l-blue-400" />
-                <InfoCard icon={Users}  label="Nama Ibu"    value={selected.NamaIbu}     accent="border-l-pink-400" />
-                <InfoCard icon={Award}  label="Pekerjaan"   value={selected.PekerjaanOrtu} accent="border-l-amber-400" />
+                <InfoCard icon={Users} label="Nama Ayah" value={selected.NamaAyah} accent="border-l-blue-400" />
+                <InfoCard icon={Users} label="Nama Ibu" value={selected.NamaIbu} accent="border-l-pink-400" />
+                <InfoCard icon={Award} label="Pekerjaan" value={selected.PekerjaanOrtu} accent="border-l-amber-400" />
                 <InfoCard icon={FileText} label="Penghasilan" value={selected.PenghasilanOrtu ? `Rp ${Number(selected.PenghasilanOrtu).toLocaleString('id-ID')}` : '—'} accent="border-l-emerald-400" />
               </SectionBlock>
             </div>

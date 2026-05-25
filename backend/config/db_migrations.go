@@ -64,6 +64,7 @@ func migrateModels(db *gorm.DB) error {
 		&models.LogAktivitas{},
 		&models.RiwayatOrganisasi{},
 		&models.Notifikasi{},
+		&models.PendaftaranMahasiswaBaru{},
 	); err != nil {
 		return err
 	}
@@ -146,6 +147,61 @@ func InitialSyncFakultas(db *gorm.DB) {
 			db.Create(&s)
 		}
 		log.Println("[Initial Sync] Seeding selesai.")
+	}
+
+	var admissionCount int64
+	db.Model(&models.PendaftaranMahasiswaBaru{}).Count(&admissionCount)
+	if admissionCount == 0 {
+		log.Println("[Initial Sync] Tabel pendaftaran_mahasiswa_baru kosong. Melakukan seeding 100 data calon mahasiswa baru...")
+		firstNames := []string{
+			"Aditya", "Bagas", "Cahyo", "Dimas", "Erlangga", "Fahri", "Galih", "Hafiz", "Ihsan", "Jatmiko",
+			"Kresna", "Lutfi", "Mahendra", "Naufal", "Okta", "Prabowo", "Raditya", "Satria", "Tegar", "Utomo",
+			"Wahyu", "Yuda", "Zaki", "Alya", "Bunga", "Clara", "Dina", "Elsa", "Farida", "Gisela",
+			"Hana", "Intan", "Jasmine", "Keyla", "Lia", "Mutiara", "Nadia", "Olga", "Putri", "Rania",
+			"Salsa", "Tiara", "Ulya", "Vina", "Winda", "Yasmine", "Zahra", "Aldo", "Bimo", "Daffa",
+		}
+		lastNames := []string{
+			"Saputra", "Pratama", "Wibowo", "Setiawan", "Hidayat", "Nugraha", "Kurnia", "Lestari", "Putri",
+			"Utami", "Rahmawati", "Wijaya", "Kusuma", "Anggraini", "Fitriani", "Indriani", "Permata", "Sari",
+			"Ramadhan", "Gunawan", "Susanto", "Budiman", "Hartono", "Siregar", "Nasution", "Pramono",
+		}
+		jalurList := []string{"SNBP", "SNBT", "Mandiri"}
+
+		randIndex := 0
+		for i := 1; i <= 100; i++ {
+			fn := firstNames[randIndex%len(firstNames)]
+			ln := lastNames[(randIndex+7)%len(lastNames)]
+			fullName := fn + " " + ln
+			emailName := fmt.Sprintf("%s.%s%d@gmail.com", fn, ln, i)
+
+			prodi := "Farmasi S1"
+			if i%3 == 0 {
+				prodi = "Farmasi D3"
+			}
+
+			jalur := jalurList[randIndex%len(jalurList)]
+
+			status := "Verified"
+			if i%5 == 0 {
+				status = "Pending"
+			} else if i%13 == 0 {
+				status = "Rejected"
+			}
+
+			db.Create(&models.PendaftaranMahasiswaBaru{
+				NomorDaftar:  fmt.Sprintf("PMB-2024-%03d", i),
+				NamaLengkap:  fullName,
+				Email:        emailName,
+				PilihanProdi: prodi,
+				Jalur:        jalur,
+				Status:       status,
+				NoHP:         fmt.Sprintf("08123456%03d", i),
+				NilaiRapor:   80.0 + float64(i%15),
+			})
+
+			randIndex += 13
+		}
+		log.Println("[Initial Sync] Seeding 100 data pendaftaran_mahasiswa_baru selesai.")
 	}
 
 	log.Println("[Initial Sync] Sinkronisasi data selesai.")

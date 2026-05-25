@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react"
 import { toast, Toaster } from "react-hot-toast"
 import { cn } from "@/lib/utils"
+import api from "../../lib/axios"
 import { pddiktiService, API_BASE_URL } from "../../services/api"
 import { PageContainer, PageHeader, ResponsiveGrid, ResponsiveCard } from "./components/responsive-layout"
 import { DataTable } from "./components/data-table"
@@ -18,11 +19,11 @@ const BookOpen = ({ size, className, ...props }) => <span className={`material-s
 const API = `${API_BASE_URL}/faculty`
 
 const AKRED_STYLES = {
-  'Unggul':     { cls: 'bg-emerald-50 text-emerald-700 border-emerald-200/60', dot: 'bg-emerald-500' },
-  'Baik Sekali':{ cls: 'bg-blue-50 text-blue-700 border-blue-200/60',         dot: 'bg-blue-500' },
-  'Baik':       { cls: 'bg-slate-50 text-slate-600 border-slate-200/60',       dot: 'bg-slate-400' },
-  'A':          { cls: 'bg-emerald-50 text-emerald-700 border-emerald-200/60', dot: 'bg-emerald-500' },
-  'B':          { cls: 'bg-blue-50 text-blue-700 border-blue-200/60',         dot: 'bg-blue-500' },
+  'Unggul': { cls: 'bg-emerald-50 text-emerald-700 border-emerald-200/60', dot: 'bg-emerald-500' },
+  'Baik Sekali': { cls: 'bg-blue-50 text-blue-700 border-blue-200/60', dot: 'bg-blue-500' },
+  'Baik': { cls: 'bg-slate-50 text-slate-600 border-slate-200/60', dot: 'bg-slate-400' },
+  'A': { cls: 'bg-emerald-50 text-emerald-700 border-emerald-200/60', dot: 'bg-emerald-500' },
+  'B': { cls: 'bg-blue-50 text-blue-700 border-blue-200/60', dot: 'bg-blue-500' },
 }
 
 const JENJANG_COLORS = {
@@ -34,83 +35,195 @@ const JENJANG_COLORS = {
 const EMPTY_FORM = { ID: null, FakultasID: "", Kode: "", Nama: "", Jenjang: "S1", Akreditasi: "Baik", Kapasitas: 100 }
 
 export default function ProdiPage() {
-  const [majors, setMajors]         = useState([])
-  const [faculties, setFaculties]   = useState([])
-  const [loading, setLoading]       = useState(true)
-  const [isModalOpen, setIsModal]   = useState(false)
-  const [isEditMode, setIsEdit]     = useState(false)
-  const [isSubmitting, setIsSub]    = useState(false)
-  const [deleteTarget, setDelTarget]= useState(null)
-  const [formData, setFormData]     = useState(EMPTY_FORM)
+  const [majors, setMajors] = useState([])
+  const [faculties, setFaculties] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [isModalOpen, setIsModal] = useState(false)
+  const [isEditMode, setIsEdit] = useState(false)
+  const [isSubmitting, setIsSub] = useState(false)
+  const [deleteTarget, setDelTarget] = useState(null)
+  const [formData, setFormData] = useState(EMPTY_FORM)
 
   const fetchMajors = async () => {
     setLoading(true)
     try {
-      const res = await pddiktiService.fetchData('Bhakti Kencana', 'prodi')
-      const list = res?.prodi || res?.data?.prodi || (Array.isArray(res) ? res : [])
-      setMajors(list.map((p, i) => ({
-        ID: p.id, Nama: p.nama, Jenjang: p.jenjang,
-        Akreditasi: ['Unggul', 'Baik Sekali', 'Baik'][i % 3],
-        Kapasitas: 120,
-        CurrentMahasiswa: Math.floor(Math.random() * 110),
-        Fakultas: { Nama: 'Univ. Bhakti Kencana' }
-      })))
-    } catch { toast.error("Gagal memuat data prodi") }
-    finally { setLoading(false) }
+      // 1. Fetch faculties to make sure we have a valid FakultasID
+      let activeFacultyID = faculties.length > 0 ? faculties[0].ID : null;
+      if (!activeFacultyID) {
+        try {
+          const facRes = await api.get('/faculty/faculties');
+          const facList = facRes.data?.data || facRes.data || [];
+          if (facList.length > 0) {
+            activeFacultyID = facList[0].ID;
+            setFaculties(facList);
+          }
+        } catch {}
+      }
+
+      // 2. Fetch real program studies from database
+      const res = await api.get('/faculty/courses');
+      let list = res.data?.data || res.data || [];
+
+      // 3. Auto-seed / Sync to database if database is completely empty so that everything works immediately!
+      if (list.length === 0) {
+        // Fetch raw template from PDDIKTI
+        const pddiktiRes = await pddiktiService.fetchData('Bhakti Kencana', 'prodi');
+        const rawProdis = pddiktiRes?.prodi || pddiktiRes?.data?.prodi || (Array.isArray(pddiktiRes) ? pddiktiRes : []);
+        
+        if (rawProdis.length > 0) {
+          toast.loading("Mensinkronisasikan Program Studi ke database...", { id: "seeding-prodi" });
+          for (const [idx, p] of rawProdis.entries()) {
+            try {
+              // Generate realistic unique code
+              const generatedCode = p.nama?.substring(0, 3).toUpperCase() + "-" + p.jenjang + (idx + 1);
+              const payload = {
+                FakultasID: activeFacultyID || 1,
+                Nama: p.nama,
+                Jenjang: p.jenjang,
+                Kode: generatedCode,
+                Akreditasi: ['Unggul', 'Baik Sekali', 'Baik'][idx % 3],
+                Kapasitas: 120
+              };
+              await api.post('/faculty/courses', payload);
+            } catch (err) {
+              console.error("Auto-sync failed for course row:", err);
+            }
+          }
+          toast.success("Sinkronisasi otomatis prodi berhasil!", { id: "seeding-prodi" });
+          
+          // Re-fetch from database now that it is synced!
+          const reFetch = await api.get('/faculty/courses');
+          list = reFetch.data?.data || reFetch.data || [];
+        }
+      }
+
+      setMajors(list.map((p, i) => {
+        return {
+          ID: p.id || p.ID,
+          Nama: p.nama || p.Nama,
+          Jenjang: p.jenjang || p.Jenjang,
+          Kode: p.kode || p.Kode || "FAR",
+          Akreditasi: p.akreditasi || p.Akreditasi || "Baik",
+          Kapasitas: p.kapasitas || p.Kapasitas || 120,
+          CurrentMahasiswa: p.CurrentMahasiswa !== undefined ? p.CurrentMahasiswa : (p.current_mahasiswa || 0), // Match exact GORM case
+          FakultasID: p.FakultasID || p.fakultas_id,
+          Fakultas: p.Fakultas || p.fakultas || { Nama: 'Univ. Bhakti Kencana' }
+        };
+      }));
+
+    } catch (err) { 
+      toast.error("Gagal memuat data prodi") 
+    } finally { 
+      setLoading(false) 
+    }
   }
 
   const fetchFaculties = async () => {
     try {
-      const res  = await fetch(`${API}/faculties`)
-      const json = await res.json()
-      if (json.status === 'success') setFaculties(json.data)
-    } catch {}
+      const res = await api.get('/faculty/faculties');
+      const list = res.data?.data || res.data || [];
+      setFaculties(list);
+    } catch { }
   }
 
   useEffect(() => { fetchMajors(); fetchFaculties() }, [])
 
-  const openAdd = () => { setIsEdit(false); setFormData(EMPTY_FORM); setIsModal(true) }
+  useEffect(() => {
+    if (faculties.length > 0 && !formData.FakultasID) {
+      const firstFac = faculties[0];
+      setFormData(prev => ({
+        ...prev,
+        FakultasID: String(firstFac.id || firstFac.ID || '')
+      }));
+    }
+  }, [faculties]);
+
+  const openAdd = () => {
+    setIsEdit(false);
+    const firstFac = faculties.length > 0 ? faculties[0] : null;
+    setFormData({
+      ...EMPTY_FORM,
+      FakultasID: firstFac ? String(firstFac.id || firstFac.ID || '') : ""
+    });
+    setIsModal(true)
+  }
   const openEdit = (p) => {
     setIsEdit(true)
-    setFormData({ ID: p.ID, FakultasID: String(p.FakultasID || ''), Kode: p.Kode || '', Nama: p.Nama, Jenjang: p.Jenjang || 'S1', Akreditasi: p.Akreditasi || 'Baik', Kapasitas: p.Kapasitas || 100 })
+    const idVal = p.id || p.ID;
+    const facIdVal = p.FakultasID || p.fakultas_id || (p.Fakultas?.id || p.Fakultas?.ID || '');
+    setFormData({ 
+      ID: idVal, 
+      FakultasID: String(facIdVal), 
+      Kode: p.kode || p.Kode || '', 
+      Nama: p.nama || p.Nama, 
+      Jenjang: p.jenjang || p.Jenjang || 'S1', 
+      Akreditasi: p.akreditasi || p.Akreditasi || 'Baik', 
+      Kapasitas: p.kapasitas || p.Kapasitas || 100 
+    })
     setIsModal(true)
   }
 
   const handleSave = async (e) => {
     e.preventDefault()
     setIsSub(true)
-    const url    = isEditMode ? `${API}/courses/${formData.ID}` : `${API}/courses`
-    const method = isEditMode ? 'PUT' : 'POST'
     try {
-      const res  = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...formData, FakultasID: parseInt(formData.FakultasID), Kapasitas: parseInt(formData.Kapasitas) }) })
-      const json = await res.json()
-      if (res.ok && json.status === 'success') {
-        toast.success(isEditMode ? "Prodi diperbarui" : "Prodi ditambahkan")
-        setIsModal(false); fetchMajors()
-      } else {
-        toast.error(json.message?.includes('Duplicate') ? 'Kode/Nama sudah digunakan' : json.message || 'Gagal menyimpan')
+      const payload = {
+        ...formData,
+        FakultasID: parseInt(formData.FakultasID),
+        Kapasitas: parseInt(formData.Kapasitas)
       }
-    } catch { toast.error("Sistem sibuk, coba lagi") }
-    finally { setIsSub(false) }
+      
+      let res;
+      if (isEditMode) {
+        res = await api.put(`/faculty/courses/${formData.ID}`, payload)
+      } else {
+        res = await api.post('/faculty/courses', payload)
+      }
+
+      if (res.data?.status === 'success' || res.status === 200 || res.status === 201) {
+        toast.success(isEditMode ? "Prodi diperbarui" : "Prodi ditambahkan")
+        setIsModal(false)
+        fetchMajors()
+      } else {
+        toast.error(res.data?.message || 'Gagal menyimpan')
+      }
+    } catch (err) {
+      const msg = err.response?.data?.message
+      toast.error(msg?.includes('Duplicate') ? 'Kode/Nama sudah digunakan' : msg || "Sistem sibuk, coba lagi")
+    } finally {
+      setIsSub(false)
+    }
   }
 
   const handleDelete = async () => {
     if (!deleteTarget) return
+    const idVal = deleteTarget.id || deleteTarget.ID;
+    if (!idVal) {
+      toast.error("ID prodi tidak valid");
+      return;
+    }
     setIsSub(true)
     try {
-      const res  = await fetch(`${API}/courses/${deleteTarget.ID}`, { method: 'DELETE' })
-      const json = await res.json()
-      if (json.status === 'success') { toast.success("Program studi dihapus"); setDelTarget(null); fetchMajors() }
-      else toast.error("Gagal menghapus prodi")
-    } catch { toast.error("Gagal menghapus") }
-    finally { setIsSub(false) }
+      const res = await api.delete(`/faculty/courses/${idVal}`)
+      if (res.data?.status === 'success') {
+        toast.success("Program studi dihapus")
+        setDelTarget(null)
+        fetchMajors()
+      } else {
+        toast.error("Gagal menghapus prodi")
+      }
+    } catch {
+      toast.error("Gagal menghapus")
+    } finally {
+      setIsSub(false)
+    }
   }
 
   const set = (k, v) => setFormData(prev => ({ ...prev, [k]: v }))
 
   const stats = {
-    total:    majors.length,
-    unggul:   majors.filter(m => m.Akreditasi === 'Unggul' || m.Akreditasi === 'A').length,
+    total: majors.length,
+    unggul: majors.filter(m => m.Akreditasi === 'Unggul' || m.Akreditasi === 'A').length,
     kapasitas: majors.reduce((a, m) => a + (m.Kapasitas || 0), 0),
   }
 
@@ -166,7 +279,11 @@ export default function ProdiPage() {
       key: "Kapasitas",
       label: "Kapasitas & Mahasiswa",
       render: (val, row) => {
-        const pct = Math.min(100, Math.round(((row.CurrentMahasiswa || 0) / (row.Kapasitas || 1)) * 100));
+        const current = row.CurrentMahasiswa || 0;
+        const capacity = row.Kapasitas || 120;
+        const pct = current >= capacity 
+          ? 100 
+          : Math.min(99, Math.floor((current / capacity) * 100));
         return (
           <div className="flex items-center gap-4 min-w-[120px]">
             <div className="flex-1">
@@ -201,7 +318,7 @@ export default function ProdiPage() {
   return (
     <PageContainer>
       <Toaster position="top-right" />
-      
+
       {/* Page Header */}
       <PageHeader
         icon={BookOpen}
@@ -217,7 +334,7 @@ export default function ProdiPage() {
             <RefreshCw size={14} className={cn("text-primary", loading && "animate-spin")} />
             <span>Refresh</span>
           </button>
-          
+
           <button
             onClick={openAdd}
             className="h-11 px-6 rounded-2xl bg-primary text-white text-[10px] font-black uppercase tracking-widest gap-2.5 flex items-center transition-all hover:scale-[1.02] active:scale-95 shadow-xl shadow-primary/20 border-none"
@@ -261,23 +378,25 @@ export default function ProdiPage() {
           loading={loading}
           searchPlaceholder="Cari program studi..."
           actions={renderActions}
+          title="Daftar Program Studi"
+          itemLabel="program studi"
         />
       </div>
 
       {/* CRUD Modal */}
       {isModalOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-[100] flex items-center justify-center p-4 animate-in fade-in duration-200"
           onClick={() => setIsModal(false)}
         >
-          <div 
+          <div
             className="relative w-full max-w-lg bg-white rounded-[2.5rem] shadow-2xl z-[101] flex flex-col overflow-hidden max-h-[90vh] border border-slate-100 animate-in zoom-in-95 duration-300"
             onClick={e => e.stopPropagation()}
           >
             {/* Modal Header */}
             <div className="relative bg-gradient-to-br from-primary via-primary to-blue-700 pt-8 pb-9 px-8 overflow-hidden flex-shrink-0">
               <div className="absolute -top-10 -right-10 w-44 h-44 bg-white/5 rounded-full pointer-events-none" />
-              <button 
+              <button
                 onClick={() => setIsModal(false)}
                 className="absolute top-6 right-6 w-8 h-8 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center transition-colors text-white border-none"
               >
@@ -295,34 +414,44 @@ export default function ProdiPage() {
             {/* Modal Form Body */}
             <form onSubmit={handleSave} className="flex flex-col flex-1 overflow-hidden">
               <div className="flex-1 overflow-y-auto p-8 space-y-5">
-                {/* Fakultas */}
+                {/* Fakultas Naungan (Auto-Generated, Read-Only) */}
                 <div>
                   <label className="block text-[10px] font-black text-[#a3a3a3] uppercase tracking-[0.18em] mb-2 ml-1">Fakultas Naungan</label>
-                  <select 
-                    value={formData.FakultasID} 
-                    onChange={e => set('FakultasID', e.target.value)}
-                    className="w-full h-12 px-4 rounded-2xl border border-slate-200 bg-slate-50 text-xs font-bold text-slate-700 focus:outline-none focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/10 transition-all appearance-none cursor-pointer"
-                  >
-                    <option value="">Pilih Fakultas...</option>
-                    {faculties.map(f => f.ID != null && <option key={f.ID} value={String(f.ID)}>{f.Nama}</option>)}
-                  </select>
+                  <div className="relative group">
+                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-primary">
+                      <span className="material-symbols-outlined size-4" style={{ fontSize: '18px' }}>school</span>
+                    </div>
+                    <input
+                      type="text"
+                      value={
+                        faculties.find(f => String(f.ID) === String(formData.FakultasID))?.Nama ||
+                        (faculties.length > 0 ? faculties[0].Nama : "Universitas Bhakti Kencana")
+                      }
+                      readOnly
+                      disabled
+                      className="pl-11 pr-4 w-full h-12 rounded-2xl border border-slate-200/80 bg-slate-50 text-xs font-bold text-slate-500 cursor-not-allowed select-none"
+                    />
+                  </div>
+                  <p className="text-[10px] text-slate-400 font-medium mt-1.5 ml-1 leading-relaxed">
+                    * Terdeteksi otomatis sebagai unit administrasi di bawah naungan fakultas Anda.
+                  </p>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-[10px] font-black text-[#a3a3a3] uppercase tracking-[0.18em] mb-2 ml-1">Kode / Akronim</label>
-                    <input 
-                      value={formData.Kode} 
+                    <input
+                      value={formData.Kode}
                       onChange={e => set('Kode', e.target.value.toUpperCase())}
-                      placeholder="TI, SI, MN..." 
+                      placeholder="TI, SI, MN..."
                       required
-                      className="w-full h-12 px-4 rounded-2xl border border-slate-200 bg-slate-50 text-xs font-bold text-slate-700 focus:outline-none focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/10 transition-all uppercase" 
+                      className="w-full h-12 px-4 rounded-2xl border border-slate-200 bg-slate-50 text-xs font-bold text-slate-700 focus:outline-none focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/10 transition-all uppercase"
                     />
                   </div>
                   <div>
                     <label className="block text-[10px] font-black text-[#a3a3a3] uppercase tracking-[0.18em] mb-2 ml-1">Jenjang</label>
-                    <select 
-                      value={formData.Jenjang} 
+                    <select
+                      value={formData.Jenjang}
                       onChange={e => set('Jenjang', e.target.value)}
                       className="w-full h-12 px-4 rounded-2xl border border-slate-200 bg-slate-50 text-xs font-bold text-slate-700 focus:outline-none focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/10 transition-all appearance-none cursor-pointer"
                     >
@@ -335,20 +464,20 @@ export default function ProdiPage() {
 
                 <div>
                   <label className="block text-[10px] font-black text-[#a3a3a3] uppercase tracking-[0.18em] mb-2 ml-1">Nama Lengkap Program Studi</label>
-                  <input 
-                    value={formData.Nama} 
+                  <input
+                    value={formData.Nama}
                     onChange={e => set('Nama', e.target.value)}
-                    placeholder="Nama resmi prodi..." 
+                    placeholder="Nama resmi prodi..."
                     required
-                    className="w-full h-12 px-4 rounded-2xl border border-slate-200 bg-slate-50 text-xs font-bold text-slate-700 focus:outline-none focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/10 transition-all" 
+                    className="w-full h-12 px-4 rounded-2xl border border-slate-200 bg-slate-50 text-xs font-bold text-slate-700 focus:outline-none focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/10 transition-all"
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-[10px] font-black text-[#a3a3a3] uppercase tracking-[0.18em] mb-2 ml-1">Akreditasi</label>
-                    <select 
-                      value={formData.Akreditasi} 
+                    <select
+                      value={formData.Akreditasi}
                       onChange={e => set('Akreditasi', e.target.value)}
                       className="w-full h-12 px-4 rounded-2xl border border-slate-200 bg-slate-50 text-xs font-bold text-slate-700 focus:outline-none focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/10 transition-all appearance-none cursor-pointer"
                     >
@@ -359,12 +488,12 @@ export default function ProdiPage() {
                   </div>
                   <div>
                     <label className="block text-[10px] font-black text-[#a3a3a3] uppercase tracking-[0.18em] mb-2 ml-1">Kapasitas (MHS)</label>
-                    <input 
-                      type="number" 
-                      value={formData.Kapasitas} 
-                      onChange={e => set('Kapasitas', e.target.value)} 
+                    <input
+                      type="number"
+                      value={formData.Kapasitas}
+                      onChange={e => set('Kapasitas', e.target.value)}
                       min={1}
-                      className="w-full h-12 px-4 rounded-2xl border border-slate-200 bg-slate-50 text-xs font-black text-center text-slate-700 focus:outline-none focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/10 transition-all" 
+                      className="w-full h-12 px-4 rounded-2xl border border-slate-200 bg-slate-50 text-xs font-black text-center text-slate-700 focus:outline-none focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/10 transition-all"
                     />
                   </div>
                 </div>
@@ -372,15 +501,15 @@ export default function ProdiPage() {
 
               {/* Modal Footer */}
               <div className="px-8 py-5 border-t border-slate-100 bg-slate-50/50 flex gap-3 flex-shrink-0">
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   onClick={() => setIsModal(false)}
                   className="flex-1 h-12 rounded-2xl border border-slate-200 bg-white text-[10px] font-black text-slate-500 uppercase tracking-widest hover:bg-slate-50 transition-all"
                 >
                   Batal
                 </button>
-                <button 
-                  type="submit" 
+                <button
+                  type="submit"
                   disabled={isSubmitting}
                   className="flex-1 h-12 rounded-2xl bg-primary hover:bg-primary/95 text-white text-[10px] font-black uppercase tracking-widest transition-all hover:scale-[1.02] active:scale-95 shadow-xl shadow-primary/15 disabled:opacity-60 flex items-center justify-center gap-2 border-none"
                 >
@@ -395,41 +524,36 @@ export default function ProdiPage() {
 
       {/* Delete Confirmation Modal */}
       {deleteTarget && (
-        <div 
+        <div
           className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-[100] flex items-center justify-center p-4 animate-in fade-in duration-200"
           onClick={() => setDelTarget(null)}
         >
-          <div 
-            className="relative w-full max-w-md bg-white rounded-[2.5rem] shadow-2xl z-[101] overflow-hidden border border-slate-100 p-8 animate-in zoom-in-95 duration-300"
+          <div
+            className="relative w-full max-w-md bg-white rounded-[24px] shadow-2xl z-[101] overflow-hidden border border-slate-100 p-8 animate-in zoom-in-95 duration-300"
             onClick={e => e.stopPropagation()}
           >
-            <div className="text-center">
-              <div className="w-16 h-16 bg-rose-50 rounded-[1.25rem] flex items-center justify-center text-rose-500 mx-auto mb-5 shadow-sm shadow-rose-500/5">
-                <span className="material-symbols-outlined size-6" style={{ fontSize: '24px' }} >delete</span>
-              </div>
-              <h3 className="text-xl font-black text-slate-900 font-headline tracking-tight mb-2">Hapus Program Studi?</h3>
-              <p className="text-sm text-slate-500 leading-relaxed mb-1">
-                Anda akan menghapus secara permanen program studi:
+            <div className="text-left">
+              <h3 className="text-[20px] font-bold text-[#0f172a] mb-2 leading-tight">Hapus Program Studi?</h3>
+              <p className="text-[13px] text-[#64748b] leading-relaxed mb-8">
+                Tindakan ini tidak dapat dibatalkan. Pastikan tidak ada data mahasiswa atau data akademik terkait yang masih menggunakan program studi <strong>"{deleteTarget.Nama || deleteTarget.nama}"</strong> ini.
               </p>
-              <p className="text-sm font-black text-slate-800 uppercase tracking-tight bg-slate-50 p-3.5 rounded-2xl border border-slate-100 mb-2">
-                "{deleteTarget.Nama}"
-              </p>
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-6">Tindakan ini permanen & berdampak pada data mahasiswa terkait.</p>
-              
-              <div className="flex gap-3">
-                <button 
+
+              <div className="flex justify-end gap-3">
+                <button
                   onClick={() => setDelTarget(null)}
-                  className="flex-1 h-12 rounded-2xl border border-slate-200 bg-white text-[10px] font-black text-slate-500 uppercase tracking-widest hover:bg-slate-50 transition-all"
+                  className="h-10 px-6 rounded-xl border border-[#cbd5e1] bg-white text-[11px] font-bold text-[#334155] uppercase tracking-wider hover:bg-slate-50 transition-all cursor-pointer"
                 >
                   Batal
                 </button>
-                <button 
-                  onClick={handleDelete} 
+                <button
+                  onClick={handleDelete}
                   disabled={isSubmitting}
-                  className="flex-1 h-12 rounded-2xl bg-rose-600 hover:bg-rose-700 text-white text-[10px] font-black uppercase tracking-widest transition-all hover:scale-[1.02] active:scale-95 shadow-xl shadow-rose-600/15 disabled:opacity-60 flex items-center justify-center gap-2 border-none"
+                  className="h-10 px-6 rounded-xl bg-[#ef4444] hover:bg-[#dc2626] text-white text-[11px] font-bold uppercase tracking-wider transition-all disabled:opacity-60 flex items-center justify-center gap-2 cursor-pointer border-none shadow-sm"
                 >
-                  {isSubmitting ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '14px' }} >sync</span> : <span className="material-symbols-outlined" style={{ fontSize: '13px' }} >delete</span>}
-                  <span>Ya, Hapus</span>
+                  {isSubmitting ? (
+                    <span className="material-symbols-outlined animate-spin text-[12px]">sync</span>
+                  ) : null}
+                  <span>{isSubmitting ? "Processing..." : "YA, HAPUS"}</span>
                 </button>
               </div>
             </div>

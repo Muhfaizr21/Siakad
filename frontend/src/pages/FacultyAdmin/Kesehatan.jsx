@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react'
 import api from '../../lib/axios'
+import { API_BASE_URL } from '../../services/api'
 import { toast, Toaster } from 'react-hot-toast'
 
 import { cn } from '@/lib/utils'
@@ -28,32 +29,39 @@ const ShieldCheck = ({ size, className, ...props }) => <span className={`materia
 
 
 const AVATAR_COLORS = [
-  'from-blue-400 to-indigo-500','from-emerald-400 to-teal-500',
-  'from-amber-400 to-orange-500','from-rose-400 to-pink-500',
-  'from-violet-400 to-purple-500','from-cyan-400 to-sky-500',
+  'from-blue-400 to-indigo-500', 'from-emerald-400 to-teal-500',
+  'from-amber-400 to-orange-500', 'from-rose-400 to-pink-500',
+  'from-violet-400 to-purple-500', 'from-cyan-400 to-sky-500',
 ]
-const getInitials = (n='') => n.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase()||'?'
+const getInitials = (n = '') => n.split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase() || '?'
 
 const HEALTH_STATUS = {
-  prima:    { cls:'bg-emerald-50 text-emerald-700 border-emerald-200', dot:'bg-emerald-500' },
-  stabil:   { cls:'bg-blue-50 text-blue-700 border-blue-200',         dot:'bg-blue-500' },
-  pantauan: { cls:'bg-amber-50 text-amber-700 border-amber-200',      dot:'bg-amber-500' },
-  kritis:   { cls:'bg-rose-50 text-rose-700 border-rose-200',         dot:'bg-rose-500' },
+  prima: { cls: 'bg-emerald-50 text-emerald-700 border-emerald-200', dot: 'bg-emerald-500' },
+  stabil: { cls: 'bg-blue-50 text-blue-700 border-blue-200', dot: 'bg-blue-500' },
+  pantauan: { cls: 'bg-amber-50 text-amber-700 border-amber-200', dot: 'bg-amber-500' },
+  kritis: { cls: 'bg-rose-50 text-rose-700 border-rose-200', dot: 'bg-rose-500' },
 }
-const getHealth = (v='') => HEALTH_STATUS[(v||'stabil').toLowerCase()] || HEALTH_STATUS.stabil
+const getHealth = (v = '') => HEALTH_STATUS[(v || 'stabil').toLowerCase()] || HEALTH_STATUS.stabil
 
-const formatDate = (d) => { try { return new Date(d).toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'}) } catch { return d } }
+const formatDate = (d) => { try { return new Date(d).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) } catch { return d } }
+
+const getFullUrl = (path) => {
+  if (!path) return null;
+  if (path.startsWith('http')) return path;
+  const baseUrl = API_BASE_URL.replace('/api', '');
+  return `${baseUrl}${path}`;
+};
 
 export default function FacultyKesehatan() {
-  const [loading, setLoading]               = useState(true)
-  const [healthRecords, setHealthRecords]   = useState([])
-  const [statsData, setStatsData]           = useState({ total:0, condition:{ prima:0, pantauan:0 } })
-  const [selected, setSelected]             = useState(null)
-  const [search, setSearch]                 = useState('')
-  const [filterStatus, setFilterStatus]     = useState('all')
-  const [currentPage, setCurrentPage]   = useState(1)
-  const [pageSize, setPageSize]         = useState(10)
-  const [sortConfig, setSortConfig]     = useState({ key: 'Tanggal', direction: 'desc' })
+  const [loading, setLoading] = useState(true)
+  const [healthRecords, setHealthRecords] = useState([])
+  const [statsData, setStatsData] = useState({ total: 0, condition: { prima: 0, pantauan: 0 } })
+  const [selected, setSelected] = useState(null)
+  const [search, setSearch] = useState('')
+  const [filterStatus, setFilterStatus] = useState('all')
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState(10)
+  const [sortConfig, setSortConfig] = useState({ key: 'Tanggal', direction: 'desc' })
 
   const fetchData = async () => {
     setLoading(true)
@@ -62,10 +70,24 @@ export default function FacultyKesehatan() {
         api.get('/faculty/health-screening'),
         api.get('/faculty/health-screening/summary')
       ])
-      if (progRes.data.status === 'success')
-        setHealthRecords((progRes.data.data||[]).map((r,i)=>({...r, colorIdx: i % AVATAR_COLORS.length})))
+      if (progRes.data.status === 'success') {
+        const normalized = (progRes.data.data || []).map((r, i) => ({
+          ...r,
+          Mahasiswa: r.mahasiswa,
+          GolonganDarah: r.golongan_darah,
+          StatusKesehatan: r.status_kesehatan,
+          Tanggal: r.tanggal,
+          TinggiBadan: r.tinggi_badan,
+          BeratBadan: r.berat_badan,
+          Sistole: r.sistole,
+          Diastole: r.diastole,
+          Catatan: r.catatan,
+          colorIdx: i % AVATAR_COLORS.length
+        }))
+        setHealthRecords(normalized)
+      }
       if (summaryRes.data.status === 'success')
-        setStatsData(summaryRes.data.data || { total:0, condition:{ prima:0, pantauan:0 } })
+        setStatsData(summaryRes.data.data || { total: 0, condition: { prima: 0, pantauan: 0 } })
     } catch { toast.error('Gagal sinkronisasi data kesehatan') }
     finally { setLoading(false) }
   }
@@ -75,7 +97,7 @@ export default function FacultyKesehatan() {
   const filtered = useMemo(() => healthRecords.filter(r => {
     const q = search.toLowerCase()
     const matchQ = !q || r.Mahasiswa?.Nama?.toLowerCase().includes(q) || r.Mahasiswa?.NIM?.includes(q)
-    const matchS = filterStatus === 'all' || (r.StatusKesehatan||'').toLowerCase() === filterStatus
+    const matchS = filterStatus === 'all' || (r.StatusKesehatan || '').toLowerCase() === filterStatus
     return matchQ && matchS
   }), [healthRecords, search, filterStatus])
 
@@ -124,7 +146,7 @@ export default function FacultyKesehatan() {
 
   const bmi = (r) => {
     if (!r.TinggiBadan || r.TinggiBadan <= 0) return null
-    return (r.BeratBadan / Math.pow(r.TinggiBadan/100, 2)).toFixed(1)
+    return (r.BeratBadan / Math.pow(r.TinggiBadan / 100, 2)).toFixed(1)
   }
 
   return (
@@ -174,9 +196,9 @@ export default function FacultyKesehatan() {
         {/* Stats */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {[
-            { label:'Total Skrining',   value: statsData.total,               icon:Activity,   bg:'bg-[#eef4ff]',  color:'text-[#00236F]',   desc:'Semua rekam medis' },
-            { label:'Kondisi Prima',    value: statsData.condition?.prima||0,  icon:HeartPulse, bg:'bg-emerald-50', color:'text-emerald-600', desc:'Status kesehatan prima' },
-            { label:'Dalam Pantauan',   value: statsData.condition?.pantauan||0, icon:AlertCircle, bg:'bg-amber-50', color:'text-amber-600',  desc:'Perlu perhatian khusus' },
+            { label: 'Total Skrining', value: statsData.total, icon: Activity, bg: 'bg-[#eef4ff]', color: 'text-[#00236F]', desc: 'Semua rekam medis' },
+            { label: 'Kondisi Prima', value: statsData.condition?.prima || 0, icon: HeartPulse, bg: 'bg-emerald-50', color: 'text-emerald-600', desc: 'Status kesehatan prima' },
+            { label: 'Dalam Pantauan', value: statsData.condition?.pantauan || 0, icon: AlertCircle, bg: 'bg-amber-50', color: 'text-amber-600', desc: 'Perlu perhatian khusus' },
           ].map(s => (
             <div key={s.label} className="bg-surface-container-lowest border border-outline-variant/10 rounded-3xl p-5 shadow-sm">
               <div className="flex items-center gap-3 mb-3">
@@ -205,18 +227,18 @@ export default function FacultyKesehatan() {
             <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
               <div className="relative">
                 <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#a3a3a3]" style={{ fontSize: '14px' }} >search</span>
-                <input type="text" placeholder="Cari nama atau NIM..." value={search} onChange={e=>setSearch(e.target.value)}
+                <input type="text" placeholder="Cari nama atau NIM..." value={search} onChange={e => setSearch(e.target.value)}
                   className="pl-9 pr-4 h-9 w-52 rounded-xl border border-[#e5e5e5] focus:outline-none focus:border-primary text-sm bg-white" />
               </div>
-              <select value={filterStatus} onChange={e=>setFilterStatus(e.target.value)}
+              <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)}
                 className="h-9 pl-3 pr-8 rounded-xl border border-[#e5e5e5] text-xs font-medium bg-white text-[#525252] focus:outline-none focus:border-primary appearance-none cursor-pointer">
                 <option value="all">Semua Status</option>
                 <option value="prima">Prima</option>
                 <option value="stabil">Stabil</option>
                 <option value="pantauan">Pantauan</option>
               </select>
-              {(search||filterStatus!=='all') && (
-                <button onClick={()=>{setSearch('');setFilterStatus('all')}}
+              {(search || filterStatus !== 'all') && (
+                <button onClick={() => { setSearch(''); setFilterStatus('all') }}
                   className="h-9 px-3 text-xs font-semibold text-rose-600 bg-rose-50 rounded-xl border border-rose-200 hover:bg-rose-100">Reset</button>
               )}
             </div>
@@ -263,48 +285,59 @@ export default function FacultyKesehatan() {
                 </tr>
               </thead>
               <tbody>
-                {loading ? Array.from({length: pageSize}).map((_,i)=>(
+                {loading ? Array.from({ length: pageSize }).map((_, i) => (
                   <tr key={i} className="border-b border-[#f0f0f0]">
-                    {[...Array(7)].map((__,j)=><td key={j} className="px-5 py-4"><div className="h-4 bg-[#f5f5f5] rounded animate-pulse"/></td>)}
+                    {[...Array(7)].map((__, j) => <td key={j} className="px-5 py-4"><div className="h-4 bg-[#f5f5f5] rounded animate-pulse" /></td>)}
                   </tr>
-                )) : paginated.length===0 ? (
+                )) : paginated.length === 0 ? (
                   <tr><td colSpan={7} className="px-5 py-16 text-center">
                     <div className="flex flex-col items-center gap-3">
-                      <div className="w-12 h-12 bg-[#eef4ff] rounded-2xl flex items-center justify-center text-primary"><HeartPulse size={22}/></div>
+                      <div className="w-12 h-12 bg-[#eef4ff] rounded-2xl flex items-center justify-center text-primary"><HeartPulse size={22} /></div>
                       <p className="font-bold text-sm text-[#171717]">Tidak Ada Data Kesehatan</p>
                       <p className="text-xs text-[#a3a3a3]">Belum ada rekam medis tersimpan.</p>
                     </div>
                   </td></tr>
-                ) : paginated.map((row,i)=>{
+                ) : paginated.map((row, i) => {
                   const hs = getHealth(row.StatusKesehatan)
                   return (
-                    <tr key={row.ID||i} className="border-b border-[#f5f5f5] hover:bg-[#fafbff] transition-colors">
+                    <tr key={row.ID || i} className="border-b border-[#f5f5f5] hover:bg-[#fafbff] transition-colors">
                       <td className="px-5 py-3.5 text-sm text-[#a3a3a3] font-medium">{(currentPage - 1) * pageSize + i + 1}</td>
                       <td className="px-5 py-3.5">
                         <div className="flex items-center gap-3">
-                          <div className={cn('w-9 h-9 rounded-xl bg-gradient-to-br flex items-center justify-center text-white text-[11px] font-black flex-shrink-0 shadow-sm', AVATAR_COLORS[row.colorIdx])}>
-                            {getInitials(row.Mahasiswa?.Nama)}
-                          </div>
+                          {row.Mahasiswa?.FotoURL || row.Mahasiswa?.foto_url ? (
+                            <img 
+                              src={getFullUrl(row.Mahasiswa.FotoURL || row.Mahasiswa.foto_url)} 
+                              alt={row.Mahasiswa.Nama} 
+                              className="w-9 h-9 rounded-xl object-cover shrink-0 shadow-sm border border-slate-200" 
+                              onError={(e) => { e.target.src = ''; }}
+                            />
+                          ) : (
+                            <div className="w-9 h-9 rounded-xl bg-slate-100 flex items-end justify-center overflow-hidden shrink-0 border border-slate-200/60 shadow-sm">
+                              <svg className="w-7 h-7 text-slate-400 translate-y-0.5" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0 1 12.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 1 1-8 0 4 4 0 0 1 8 0z" />
+                              </svg>
+                            </div>
+                          )}
                           <div>
-                            <p className="font-bold text-sm text-[#171717]">{row.Mahasiswa?.Nama||'—'}</p>
-                            <p className="text-[10px] text-[#a3a3a3] font-medium">{row.Mahasiswa?.NIM||'—'}</p>
+                            <p className="font-bold text-sm text-[#171717]">{row.Mahasiswa?.Nama || '—'}</p>
+                            <p className="text-[10px] text-[#a3a3a3] font-medium">{row.Mahasiswa?.NIM || '—'}</p>
                           </div>
                         </div>
                       </td>
-                      <td className="px-5 py-3.5 text-sm text-[#525252] font-medium">{row.Mahasiswa?.ProgramStudi?.Nama||'—'}</td>
+                      <td className="px-5 py-3.5 text-sm text-[#525252] font-medium">{row.Mahasiswa?.ProgramStudi?.Nama || '—'}</td>
                       <td className="px-5 py-3.5">
                         <span className="inline-flex items-center justify-center w-9 h-9 rounded-xl bg-rose-50 border border-rose-200 text-rose-600 text-xs font-black">
-                          {row.GolonganDarah||'?'}
+                          {row.GolonganDarah || '?'}
                         </span>
                       </td>
                       <td className="px-5 py-3.5">
                         <span className={cn('inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold border uppercase tracking-wider', hs.cls)}>
-                          <span className={cn('w-1.5 h-1.5 rounded-full', hs.dot)}/>{row.StatusKesehatan||'—'}
+                          <span className={cn('w-1.5 h-1.5 rounded-full', hs.dot)} />{row.StatusKesehatan || '—'}
                         </span>
                       </td>
                       <td className="px-5 py-3.5 text-xs text-[#737373] font-medium whitespace-nowrap">{formatDate(row.Tanggal)}</td>
                       <td className="px-5 py-3.5">
-                        <button onClick={()=>setSelected(row)}
+                        <button onClick={() => setSelected(row)}
                           className="p-1.5 text-[#a3a3a3] hover:text-primary hover:bg-[#eef4ff] rounded-lg transition-colors" title="Detail">
                           <span className="material-symbols-outlined" style={{ fontSize: '15px' }} >visibility</span>
                         </button>
@@ -322,7 +355,7 @@ export default function FacultyKesehatan() {
               <p className="text-xs text-slate-500 font-medium text-center sm:text-left">
                 Menampilkan <span className="font-semibold text-slate-800">{totalItems > 0 ? (currentPage - 1) * pageSize + 1 : 0}</span> sampai <span className="font-semibold text-slate-800">{Math.min(currentPage * pageSize, totalItems)}</span> dari <span className="font-semibold text-slate-800">{totalItems}</span> entri
               </p>
-              
+
               <div className="hidden sm:block h-5 w-px bg-slate-200" />
 
               <div className="flex items-center gap-2.5">
@@ -353,7 +386,7 @@ export default function FacultyKesehatan() {
                 <span className="material-symbols-outlined mr-1" style={{ fontSize: '15px' }}>chevron_left</span>
                 Sebelumnya
               </Button>
-              
+
               <div className="flex items-center gap-1">
                 {Array.from({ length: Math.min(5, totalPages) }).map((_, i) => {
                   let pageNum = i + 1;
@@ -366,8 +399,8 @@ export default function FacultyKesehatan() {
                       onClick={() => setCurrentPage(pageNum)}
                       className={cn(
                         "w-8 h-8 rounded-lg font-semibold text-xs transition-all duration-200",
-                        currentPage === pageNum 
-                          ? "bg-primary text-white shadow-md shadow-primary/20 scale-105" 
+                        currentPage === pageNum
+                          ? "bg-primary text-white shadow-md shadow-primary/20 scale-105"
                           : "text-slate-500 hover:bg-slate-100 hover:text-slate-900"
                       )}
                     >
@@ -395,36 +428,47 @@ export default function FacultyKesehatan() {
       {/* Detail Modal */}
       {selected && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4"
-          onClick={()=>setSelected(null)}>
+          onClick={() => setSelected(null)}>
           <div className="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl z-[101] flex flex-col overflow-hidden max-h-[90vh]"
-            onClick={e=>e.stopPropagation()}>
+            onClick={e => e.stopPropagation()}>
             {/* Header */}
             <div className="relative bg-gradient-to-br from-[#00236F] via-[#00308F] to-[#003db5] pt-6 pb-7 px-6 overflow-hidden flex-shrink-0">
-              <div className="absolute -top-10 -right-10 w-44 h-44 bg-white/5 rounded-full pointer-events-none"/>
-              <button onClick={()=>setSelected(null)}
+              <div className="absolute -top-10 -right-10 w-44 h-44 bg-white/5 rounded-full pointer-events-none" />
+              <button onClick={() => setSelected(null)}
                 className="absolute top-4 right-4 w-8 h-8 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center transition-colors">
                 <span className="material-symbols-outlined" style={{ fontSize: '15px' }} >close</span>
               </button>
               <div className="relative z-10 flex items-center gap-4 mb-5">
-                <div className={cn('w-14 h-14 rounded-2xl bg-gradient-to-br flex-shrink-0 flex items-center justify-center text-white text-base font-black shadow-xl ring-2 ring-white/20', AVATAR_COLORS[selected.colorIdx])}>
-                  {getInitials(selected.Mahasiswa?.Nama)}
-                </div>
+                {selected.Mahasiswa?.FotoURL || selected.Mahasiswa?.foto_url ? (
+                  <img 
+                    src={getFullUrl(selected.Mahasiswa.FotoURL || selected.Mahasiswa.foto_url)} 
+                    alt={selected.Mahasiswa.Nama} 
+                    className="w-14 h-14 rounded-2xl object-cover shrink-0 shadow-xl ring-2 ring-white/20" 
+                    onError={(e) => { e.target.src = ''; }}
+                  />
+                ) : (
+                  <div className="w-14 h-14 rounded-2xl bg-slate-100/90 backdrop-blur flex items-end justify-center overflow-hidden shrink-0 shadow-xl ring-2 ring-white/20">
+                    <svg className="w-11 h-11 text-slate-400 translate-y-1.5" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0 1 12.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 1 1-8 0 4 4 0 0 1 8 0z" />
+                    </svg>
+                  </div>
+                )}
                 <div className="min-w-0">
                   <p className="text-[9px] font-bold text-white/50 uppercase tracking-[0.25em] mb-1">Rekam Medis Mahasiswa</p>
                   <h2 className="text-base font-extrabold text-white leading-tight">{selected.Mahasiswa?.Nama}</h2>
-                  <p className="text-xs text-blue-200 font-medium mt-0.5">{selected.Mahasiswa?.NIM} · {selected.Mahasiswa?.ProgramStudi?.Nama||'—'}</p>
+                  <p className="text-xs text-blue-200 font-medium mt-0.5">{selected.Mahasiswa?.NIM} · {selected.Mahasiswa?.ProgramStudi?.Nama || '—'}</p>
                 </div>
               </div>
               <div className="relative z-10 flex flex-wrap gap-2">
                 <span className="flex items-center gap-1.5 bg-white/10 border border-white/20 px-3 py-1.5 rounded-xl text-[10px] font-bold text-white font-mono tracking-wider">
-                  <Droplet size={10}/> Gol. {selected.GolonganDarah||'?'}
+                  <Droplet size={10} /> Gol. {selected.GolonganDarah || '?'}
                 </span>
                 <span className={cn('flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-wider',
-                  selected.StatusKesehatan==='prima'    ? 'bg-emerald-400/20 border border-emerald-300/30 text-emerald-200'
-                  : selected.StatusKesehatan==='pantauan' ? 'bg-amber-400/20 border border-amber-300/30 text-amber-200'
-                  : 'bg-blue-400/20 border border-blue-300/30 text-blue-200')}>
-                  <span className="w-1.5 h-1.5 rounded-full bg-current animate-pulse"/>
-                  {selected.StatusKesehatan||'Stabil'}
+                  selected.StatusKesehatan === 'prima' ? 'bg-emerald-400/20 border border-emerald-300/30 text-emerald-200'
+                    : selected.StatusKesehatan === 'pantauan' ? 'bg-amber-400/20 border border-amber-300/30 text-amber-200'
+                      : 'bg-blue-400/20 border border-blue-300/30 text-blue-200')}>
+                  <span className="w-1.5 h-1.5 rounded-full bg-current animate-pulse" />
+                  {selected.StatusKesehatan || 'Stabil'}
                 </span>
               </div>
             </div>
@@ -439,11 +483,11 @@ export default function FacultyKesehatan() {
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   {[
-                    { label:'Tinggi Badan', value: selected.TinggiBadan ? `${parseFloat(selected.TinggiBadan).toFixed(1)} cm` : '—' },
-                    { label:'Berat Badan',  value: selected.BeratBadan  ? `${parseFloat(selected.BeratBadan).toFixed(1)} kg`  : '—' },
-                    { label:'BMI',          value: bmi(selected) || '—', highlight: bmi(selected) >= 25 },
-                    { label:'Tekanan Darah', value: (selected.Sistole||selected.Diastole) ? `${selected.Sistole||0}/${selected.Diastole||0} mmHg` : '—' },
-                  ].map(item=>(
+                    { label: 'Tinggi Badan', value: selected.TinggiBadan ? `${parseFloat(selected.TinggiBadan).toFixed(1)} cm` : '—' },
+                    { label: 'Berat Badan', value: selected.BeratBadan ? `${parseFloat(selected.BeratBadan).toFixed(1)} kg` : '—' },
+                    { label: 'BMI', value: bmi(selected) || '—', highlight: bmi(selected) >= 25 },
+                    { label: 'Tekanan Darah', value: (selected.Sistole || selected.Diastole) ? `${selected.Sistole || 0}/${selected.Diastole || 0} mmHg` : '—' },
+                  ].map(item => (
                     <div key={item.label} className="bg-[#fafafa] border border-[#f0f0f0] rounded-xl p-3">
                       <p className="text-[9px] font-bold text-[#a3a3a3] uppercase tracking-[0.15em] mb-1">{item.label}</p>
                       <p className={cn('text-lg font-extrabold', item.highlight ? 'text-rose-600' : 'text-[#171717]')}>
@@ -462,17 +506,17 @@ export default function FacultyKesehatan() {
                 </div>
                 <div className="space-y-1">
                   {[
-                    { icon:Calendar,       label:'Tanggal Periksa', value: formatDate(selected.Tanggal) },
-                    { icon:GraduationCap,  label:'Program Studi',   value: selected.Mahasiswa?.ProgramStudi?.Nama },
-                    { icon:ShieldCheck,    label:'Status',          value: selected.StatusKesehatan || 'Stabil' },
-                  ].map(r=>(
+                    { icon: Calendar, label: 'Tanggal Periksa', value: formatDate(selected.Tanggal) },
+                    { icon: GraduationCap, label: 'Program Studi', value: selected.Mahasiswa?.ProgramStudi?.Nama },
+                    { icon: ShieldCheck, label: 'Status', value: selected.StatusKesehatan || 'Stabil' },
+                  ].map(r => (
                     <div key={r.label} className="flex items-center gap-3 p-3 rounded-xl bg-[#fafafa] border border-[#f0f0f0] hover:bg-white transition-all">
                       <div className="w-7 h-7 bg-white rounded-lg flex items-center justify-center text-[#00236F] shadow-sm border border-[#f0f0f0] flex-shrink-0">
-                        <r.icon size={13}/>
+                        <r.icon size={13} />
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-[9px] font-bold text-[#a3a3a3] uppercase tracking-[0.15em]">{r.label}</p>
-                        <p className="text-sm font-semibold text-[#171717]">{r.value||'—'}</p>
+                        <p className="text-sm font-semibold text-[#171717]">{r.value || '—'}</p>
                       </div>
                     </div>
                   ))}
@@ -490,11 +534,11 @@ export default function FacultyKesehatan() {
 
             {/* Footer */}
             <div className="px-5 py-4 border-t border-[#f0f0f0] bg-[#fafafa] flex gap-3 flex-shrink-0">
-              <button onClick={()=>window.print()}
+              <button onClick={() => window.print()}
                 className="flex-1 h-11 rounded-xl border border-[#e5e5e5] bg-white text-xs font-bold text-[#525252] uppercase tracking-widest hover:bg-[#f5f5f5] transition-all">
                 Cetak
               </button>
-              <button onClick={()=>setSelected(null)}
+              <button onClick={() => setSelected(null)}
                 className="flex-1 h-11 rounded-xl bg-[#00236F] hover:bg-[#001a52] text-white text-xs font-bold uppercase tracking-widest transition-all active:scale-95 shadow-lg shadow-[#00236F]/20">
                 Tutup
               </button>

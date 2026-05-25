@@ -1,8 +1,7 @@
 "use client"
 
 import React, { useState, useEffect, useMemo } from 'react'
-import axios from 'axios'
-
+import api from '../../lib/axios'
 import { toast, Toaster } from 'react-hot-toast'
 import { cn } from '@/lib/utils'
 import { API_BASE_URL } from '../../services/api'
@@ -41,6 +40,13 @@ const getAppStatus = (v='') => APP_STATUS[(v||'proses').toLowerCase()] || APP_ST
 
 const formatDate = (d) => { try { return new Date(d).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}) } catch { return d } }
 
+const getFullUrl = (path) => {
+  if (!path) return null;
+  if (path.startsWith('http')) return path;
+  const baseUrl = API_BASE_URL.replace('/api', '');
+  return `${baseUrl}${path}`;
+}
+
 export default function FacultyScholarship() {
   const [activeTab, setActiveTab]       = useState('programs')
   const [scholarships, setScholarships] = useState([])
@@ -64,15 +70,47 @@ export default function FacultyScholarship() {
     return path.split('.').reduce((acc, part) => acc && acc[part], obj)
   }
 
+  const normalizeProgram = (s) => ({
+    ...s,
+    ID: s.id || s.ID,
+    Nama: s.nama || s.Nama || '—',
+    Penyelenggara: s.penyelenggara || s.Penyelenggara || '—',
+    Kuota: s.kuota ?? s.Kuota ?? 0,
+    Deadline: s.deadline || s.Deadline,
+    MinIPK: s.ipk_min ?? s.MinIPK ?? s.IPKMin ?? '3.00',
+    acceptedCount: s.accepted_count ?? s.acceptedCount ?? 0,
+  })
+
+  const normalizeApp = (a, i) => {
+    const m = a.Mahasiswa || a.mahasiswa || {};
+    const b = a.Beasiswa || a.beasiswa || {};
+    return {
+      ...a,
+      ID: a.id || a.ID,
+      Status: a.status || a.Status || 'proses',
+      Catatan: a.catatan || a.Catatan || '',
+      FileURL: a.bukti_url || a.BuktiURL || a.file_url || a.FileURL || null,
+      Mahasiswa: {
+        Nama: m.nama || m.Nama || '—',
+        NIM: m.nim || m.NIM || '—',
+        Foto: getFullUrl(m.foto_url || m.FotoURL || m.foto || m.Foto || null),
+      },
+      Beasiswa: {
+        Nama: b.nama || b.Nama || '—',
+      },
+      colorIdx: i % AVATAR_COLORS.length,
+    };
+  }
+
   const fetchData = async () => {
     setLoading(true)
     try {
       if (activeTab === 'programs') {
-        const res = await axios.get(`${API}/scholarships`)
-        setScholarships(res.data.data || [])
+        const res = await api.get('/faculty/scholarships')
+        setScholarships((res.data.data || []).map(normalizeProgram))
       } else {
-        const res = await axios.get(`${API}/scholarships/applications`)
-        setApplications((res.data.data||[]).map((a,i)=>({...a, colorIdx: i % AVATAR_COLORS.length})))
+        const res = await api.get('/faculty/scholarships/applications')
+        setApplications((res.data.data||[]).map(normalizeApp))
       }
     } catch { toast.error('Gagal mengambil data') }
     finally { setLoading(false) }
@@ -82,7 +120,7 @@ export default function FacultyScholarship() {
     if (!selectedApp?.ID) return
     setIsSubmitting(true)
     try {
-      await axios.put(`${API}/scholarships/applications/${selectedApp.ID}`, appForm)
+      await api.put(`/faculty/scholarships/applications/${selectedApp.ID}`, appForm)
       toast.success('Status diperbarui')
       setSelectedApp(null); fetchData()
     } catch (e) { toast.error(e.response?.data?.message || 'Gagal memperbarui status') }
@@ -419,9 +457,20 @@ export default function FacultyScholarship() {
                         <td className="px-5 py-3.5 text-sm text-[#a3a3a3] font-medium">{(currentPage - 1) * pageSize + i + 1}</td>
                         <td className="px-5 py-3.5">
                           <div className="flex items-center gap-3">
-                            <div className={cn('w-9 h-9 rounded-xl bg-gradient-to-br flex items-center justify-center text-white text-[11px] font-black flex-shrink-0 shadow-sm', AVATAR_COLORS[row.colorIdx])}>
-                              {getInitials(row.Mahasiswa?.Nama)}
-                            </div>
+                            {row.Mahasiswa?.Foto ? (
+                              <img 
+                                src={row.Mahasiswa.Foto} 
+                                alt={row.Mahasiswa.Nama} 
+                                className="w-9 h-9 rounded-xl object-cover shrink-0 shadow-sm border border-slate-200" 
+                                onError={(e) => { e.target.src = ''; }}
+                              />
+                            ) : (
+                              <div className="w-9 h-9 rounded-xl bg-slate-100 flex items-end justify-center overflow-hidden shrink-0 border border-slate-200/60 shadow-sm">
+                                <svg className="w-7 h-7 text-slate-400 translate-y-0.5" fill="currentColor" viewBox="0 0 24 24">
+                                  <path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0 1 12.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 1 1-8 0 4 4 0 0 1 8 0z" />
+                                </svg>
+                              </div>
+                            )}
                             <div>
                               <p className="font-bold text-sm text-[#171717]">{row.Mahasiswa?.Nama||'—'}</p>
                               <p className="text-[10px] text-[#a3a3a3] font-medium">{row.Mahasiswa?.NIM||'—'}</p>
@@ -548,9 +597,20 @@ export default function FacultyScholarship() {
                 <span className="material-symbols-outlined" style={{ fontSize: '15px' }} >close</span>
               </button>
               <div className="relative z-10 flex items-center gap-4 mb-4">
-                <div className={cn('w-14 h-14 rounded-2xl bg-gradient-to-br flex-shrink-0 flex items-center justify-center text-white text-base font-black shadow-xl ring-2 ring-white/20', AVATAR_COLORS[selectedApp.colorIdx])}>
-                  {getInitials(selectedApp.Mahasiswa?.Nama)}
-                </div>
+                {selectedApp.Mahasiswa?.Foto ? (
+                  <img 
+                    src={selectedApp.Mahasiswa.Foto} 
+                    alt={selectedApp.Mahasiswa.Nama} 
+                    className="w-14 h-14 rounded-2xl object-cover shrink-0 shadow-xl ring-2 ring-white/20" 
+                    onError={(e) => { e.target.src = ''; }}
+                  />
+                ) : (
+                  <div className="w-14 h-14 rounded-2xl bg-slate-100/90 backdrop-blur flex items-end justify-center overflow-hidden shrink-0 shadow-xl ring-2 ring-white/20">
+                    <svg className="w-11 h-11 text-slate-400 translate-y-1.5" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0 1 12.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 1 1-8 0 4 4 0 0 1 8 0z" />
+                    </svg>
+                  </div>
+                )}
                 <div className="min-w-0">
                   <p className="text-[9px] font-bold text-white/50 uppercase tracking-[0.25em] mb-1">Validasi Seleksi</p>
                   <h2 className="text-base font-extrabold text-white leading-tight">{selectedApp.Mahasiswa?.Nama}</h2>
