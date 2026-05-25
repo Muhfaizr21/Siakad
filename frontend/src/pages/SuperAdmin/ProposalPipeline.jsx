@@ -68,7 +68,7 @@ export default function ProposalPipeline() {
   const handleReject = async () => {
     setIsSubmitting(true)
     try {
-      await adminService.rejectProposal(selected.ID, rejectNote)
+      await adminService.rejectProposal(selected.id || selected.ID, rejectNote)
       toast.success('Proposal ditolak dengan catatan')
       setIsRejectOpen(false)
       setRejectNote('')
@@ -85,10 +85,10 @@ export default function ProposalPipeline() {
       key: 'ID', 
       label: 'ID Track', 
       className: 'w-[140px]', 
-      render: v => (
+      render: (v, row) => (
         <div className="flex items-center gap-2">
           <div className="size-1.5 rounded-full bg-primary/40 animate-pulse" />
-          <span className="font-bold text-neutral-400 font-jakarta uppercase text-[10px] tracking-widest">#PRP-{v}</span>
+          <span className="font-bold text-neutral-400 font-jakarta uppercase text-[10px] tracking-widest">#PRP-{row.id || row.ID || v}</span>
         </div>
       )
     },
@@ -219,7 +219,7 @@ export default function ProposalPipeline() {
                   {row.Status === 'disetujui_fakultas' && (
                     <>
                        <div className="h-4 w-px bg-neutral-100 mx-1" />
-                       <Button onClick={() => handleApprove(row.ID)} disabled={isSubmitting} variant="ghost" size="icon" className="h-8 w-8 text-neutral-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"><span className="material-symbols-outlined" style={{ fontSize: '16px' }} >check_circle</span></Button>
+                       <Button onClick={() => handleApprove(row.id || row.ID)} disabled={isSubmitting} variant="ghost" size="icon" className="h-8 w-8 text-neutral-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"><span className="material-symbols-outlined" style={{ fontSize: '16px' }} >check_circle</span></Button>
                        <Button onClick={() => { setSelected(row); setIsRejectOpen(true) }} variant="ghost" size="icon" className="h-8 w-8 text-neutral-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"><span className="material-symbols-outlined" style={{ fontSize: '16px' }} Circle >close</span></Button>
                     </>
                   )}
@@ -240,7 +240,7 @@ export default function ProposalPipeline() {
                 <div className="absolute inset-0 bg-gradient-to-br from-primary/40 to-transparent pointer-events-none" />
                 <div className="relative z-10 space-y-4">
                   <div className="flex items-center gap-3">
-                    <Badge className="font-bold text-[10px] px-3 py-1 bg-white/10 text-white border-white/10 uppercase tracking-widest">#PRP-{selected.ID}</Badge>
+                    <Badge className="font-bold text-[10px] px-3 py-1 bg-white/10 text-white border-white/10 uppercase tracking-widest">#PRP-{selected.id || selected.ID}</Badge>
                     <div className="size-1 rounded-full bg-white/20" />
                     <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest">{selected.Fakultas?.Nama || 'Institusi'}</span>
                   </div>
@@ -291,7 +291,7 @@ export default function ProposalPipeline() {
                     {selected.Status === 'disetujui_fakultas' && (
                       <>
                         <Button onClick={() => setIsRejectOpen(true)} className="h-11 px-6 rounded-xl bg-white text-rose-500 border border-rose-200 font-bold text-xs uppercase tracking-widest hover:bg-rose-50 transition-all">Kembalikan</Button>
-                        <Button onClick={() => handleApprove(selected.ID)} disabled={isSubmitting} className="h-11 px-8 rounded-xl bg-neutral-900 text-white font-bold text-xs uppercase tracking-widest hover:bg-primary shadow-xl shadow-primary/20 transition-all active:scale-95 group">
+                        <Button onClick={() => handleApprove(selected.id || selected.ID)} disabled={isSubmitting} className="h-11 px-8 rounded-xl bg-neutral-900 text-white font-bold text-xs uppercase tracking-widest hover:bg-primary shadow-xl shadow-primary/20 transition-all active:scale-95 group">
                           {isSubmitting ? <span className="material-symbols-outlined animate-spin mr-2" style={{ fontSize: '14px' }} >sync</span> : <span className="material-symbols-outlined mr-2" style={{ fontSize: '14px' }} Check >security</span>} Sahkan Proposal
                         </Button>
                       </>

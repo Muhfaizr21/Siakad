@@ -199,7 +199,7 @@ export default function KelolaBeasiswa() {
   const handleOpenEdit = (row) => {
     setIsEditMode(true)
     setForm({ 
-      ID: row.ID, 
+      ID: row.id || row.ID, 
       Nama: row.Nama || '', 
       Penyelenggara: row.Penyelenggara || '', 
       Deskripsi: row.Deskripsi || '', 
@@ -222,9 +222,10 @@ export default function KelolaBeasiswa() {
       Deadline: form.Deadline ? new Date(form.Deadline).toISOString() : null 
     }
     try {
-      const res = form.ID ? await adminService.updateScholarship(form.ID, payload) : await adminService.createScholarship(payload)
+      const targetId = form.ID || form.id
+      const res = targetId ? await adminService.updateScholarship(targetId, payload) : await adminService.createScholarship(payload)
       if (res.status === 'success') { 
-        toast.success(form.ID ? 'Beasiswa diperbarui' : 'Beasiswa berhasil ditambahkan')
+        toast.success(targetId ? 'Beasiswa diperbarui' : 'Beasiswa berhasil ditambahkan')
         setIsCrudOpen(false)
         fetchData() 
       } else {
@@ -236,7 +237,7 @@ export default function KelolaBeasiswa() {
   const handleDelete = async () => {
     setIsSubmitting(true)
     try {
-      await adminService.deleteScholarship(selected.ID)
+      await adminService.deleteScholarship(selected.id || selected.ID)
       toast.success('Beasiswa berhasil dihapus')
       setIsDelOpen(false)
       fetchData()
@@ -303,7 +304,7 @@ export default function KelolaBeasiswa() {
       label: 'Kapasitas & Penerima',
       className: 'w-[180px]',
       render: (v, row) => {
-        const current = appsData.filter(a => (a.BeasiswaID === row.ID || a.Beasiswa?.ID === row.ID) && (a.Status === 'Diterima' || a.Status === 'Disetujui')).length;
+        const current = appsData.filter(a => (a.BeasiswaID === (row.id || row.ID) || a.Beasiswa?.id === (row.id || row.ID) || a.Beasiswa?.ID === (row.id || row.ID)) && (a.Status === 'Diterima' || a.Status === 'Disetujui')).length;
         const capacity = row.Kuota || 0;
         const pct = capacity <= 0 
           ? 0 
@@ -617,7 +618,7 @@ export default function KelolaBeasiswa() {
 
       {/* View Program Modal */}
       {selectedProgram && (() => {
-        const programApps = appsData.filter(a => a.BeasiswaID === selectedProgram.ID || a.Beasiswa?.ID === selectedProgram.ID);
+        const programApps = appsData.filter(a => (a.BeasiswaID === (selectedProgram.id || selectedProgram.ID) || a.Beasiswa?.id === (selectedProgram.id || selectedProgram.ID) || a.Beasiswa?.ID === (selectedProgram.id || selectedProgram.ID)));
         const acceptedApps = programApps.filter(a => a.Status === 'Diterima' || a.Status === 'Disetujui');
         const current = acceptedApps.length;
         const capacity = selectedProgram.Kuota || 1;

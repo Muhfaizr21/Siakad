@@ -58,15 +58,16 @@ export default function KelolaFakultas() {
   }
 
   const handleOpenAdd = () => { setIsEditMode(false); setForm({ Nama: '', Kode: '', Email: '', NoHP: '', Dekan: '' }); setIsCrudOpen(true) }
-  const handleOpenEdit = (row) => { setIsEditMode(true); setForm({ ID: row.ID, Nama: row.Nama || '', Kode: row.Kode || '', Email: row.Email || '', NoHP: row.NoHP || '', Dekan: row.Dekan || '' }); setIsCrudOpen(true) }
+  const handleOpenEdit = (row) => { setIsEditMode(true); setForm({ ID: row.id || row.ID, Nama: row.Nama || '', Kode: row.Kode || '', Email: row.Email || '', NoHP: row.NoHP || '', Dekan: row.Dekan || '' }); setIsCrudOpen(true) }
   
   const handleSave = async (e) => {
     if (e) e.preventDefault()
     setIsSubmitting(true)
     try {
-      const res = form.ID ? await adminService.updateFaculty(form.ID, form) : await adminService.createFaculty(form)
+      const targetId = form.ID || form.id
+      const res = targetId ? await adminService.updateFaculty(targetId, form) : await adminService.createFaculty(form)
       if (res.status === 'success') { 
-        toast.success(form.ID ? 'Data fakultas berhasil diperbarui' : 'Registrasi fakultas baru berhasil')
+        toast.success(targetId ? 'Data fakultas berhasil diperbarui' : 'Registrasi fakultas baru berhasil')
         setIsCrudOpen(false)
         fetchData() 
       } else {
@@ -78,7 +79,7 @@ export default function KelolaFakultas() {
   const handleDelete = async () => {
     setIsSubmitting(true)
     try {
-      await adminService.deleteFaculty(selected.ID)
+      await adminService.deleteFaculty(selected.id || selected.ID)
       toast.success('Entitas fakultas berhasil dihapus')
       setIsDelOpen(false)
       fetchData()

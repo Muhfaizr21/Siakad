@@ -49,7 +49,7 @@ export default function KelolaOrganisasi() {
   const handleOpenEdit = (row) => { 
     setIsEditMode(true)
     setForm({ 
-      ID: row.ID, 
+      ID: row.id || row.ID, 
       Nama: row.Nama || '', 
       Singkatan: row.Singkatan || '', 
       Deskripsi: row.Deskripsi || '', 
@@ -66,9 +66,10 @@ export default function KelolaOrganisasi() {
     if (e) e.preventDefault()
     setIsSubmitting(true)
     try {
-      const res = form.ID ? await adminService.updateOrmawa(form.ID, form) : await adminService.createOrmawa(form)
+      const targetId = form.ID || form.id
+      const res = targetId ? await adminService.updateOrmawa(targetId, form) : await adminService.createOrmawa(form)
       if (res.status === 'success') { 
-        toast.success(form.ID ? 'Organisasi diperbarui' : 'Organisasi berhasil didaftarkan')
+        toast.success(targetId ? 'Organisasi diperbarui' : 'Organisasi berhasil didaftarkan')
         setIsCrudOpen(false)
         fetchData() 
       } else {
@@ -80,7 +81,7 @@ export default function KelolaOrganisasi() {
   const handleDelete = async () => {
     setIsSubmitting(true)
     try {
-      await adminService.deleteOrmawa(selected.ID)
+      await adminService.deleteOrmawa(selected.id || selected.ID)
       toast.success('Organisasi berhasil dihapus')
       setIsDelOpen(false)
       fetchData()

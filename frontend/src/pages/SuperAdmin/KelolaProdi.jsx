@@ -94,7 +94,7 @@ export default function KelolaProdi() {
     setIsEditMode(true)
     setSelected(row)
     setForm({ 
-      ID: row.ID, 
+      ID: row.id || row.ID, 
       Nama: row.Nama || '', 
       Kode: row.Kode || '', 
       Jenjang: row.Jenjang || 'S1', 
@@ -108,9 +108,10 @@ export default function KelolaProdi() {
     setIsSubmitting(true)
     const payload = { ...form, FakultasID: parseInt(form.FakultasID) || 0 }
     try {
-      const res = form.ID ? await adminService.updateProdi(form.ID, payload) : await adminService.createProdi(payload)
+      const targetId = form.ID || form.id
+      const res = targetId ? await adminService.updateProdi(targetId, payload) : await adminService.createProdi(payload)
       if (res.status === 'success') { 
-        toast.success(form.ID ? 'Konfigurasi prodi berhasil dimodifikasi' : 'Registrasi prodi baru berhasil')
+        toast.success(targetId ? 'Konfigurasi prodi berhasil dimodifikasi' : 'Registrasi prodi baru berhasil')
         setIsCrudOpen(false)
         fetchData() 
       } else {
@@ -122,7 +123,7 @@ export default function KelolaProdi() {
   const handleDelete = async () => {
     setIsSubmitting(true)
     try {
-      await adminService.deleteProdi(selected.ID)
+      await adminService.deleteProdi(selected.id || selected.ID)
       toast.success('Entitas program studi dihapus')
       setIsDelOpen(false)
       fetchData()

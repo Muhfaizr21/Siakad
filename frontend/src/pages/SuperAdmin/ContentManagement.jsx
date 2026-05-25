@@ -64,8 +64,9 @@ export default function ContentManagement() {
         if (e) e.preventDefault()
         setIsSubmitting(true)
         try {
+            const targetId = selected?.id || selected?.ID
             const res = isEditMode
-                ? await adminService.updateNews(selected.ID, form)
+                ? await adminService.updateNews(targetId, form)
                 : await adminService.createNews(form)
             if (res.status === 'success') {
                 toast.success(isEditMode ? 'Konten diperbarui' : 'Berita berhasil diterbitkan')
@@ -84,7 +85,7 @@ export default function ContentManagement() {
     const handleDelete = async () => {
         setIsSubmitting(true)
         try {
-            await adminService.deleteNews(selected.ID)
+            await adminService.deleteNews(selected?.id || selected?.ID)
             toast.success('Konten berhasil dihapus')
             setIsDelOpen(false)
             fetchNews()

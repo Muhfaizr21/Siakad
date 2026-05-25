@@ -160,7 +160,7 @@ export default function StudentDirectory() {
   const handleOpenEdit = (row) => {
     setIsEditMode(true)
     setForm({ 
-      ID: row.ID, 
+      ID: row.id || row.ID, 
       NIM: row.NIM || '', 
       Nama: row.Nama || '', 
       EmailKampus: row.EmailKampus || row.Pengguna?.Email || '', 
@@ -185,9 +185,10 @@ export default function StudentDirectory() {
       TahunMasuk: parseInt(form.TahunMasuk) || new Date().getFullYear() 
     }
     try {
-      const res = form.ID ? await adminService.updateStudent(form.ID, payload) : await adminService.createStudent(payload)
+      const targetId = form.ID || form.id
+      const res = targetId ? await adminService.updateStudent(targetId, payload) : await adminService.createStudent(payload)
       if (res.status === 'success') {
-        toast.success(form.ID ? 'Profil mahasiswa berhasil diperbarui' : 'Registrasi mahasiswa baru berhasil')
+        toast.success(targetId ? 'Profil mahasiswa berhasil diperbarui' : 'Registrasi mahasiswa baru berhasil')
         setIsCrudOpen(false)
         fetchData()
       } else {
@@ -203,7 +204,7 @@ export default function StudentDirectory() {
   const handleDelete = async () => {
     setIsSubmitting(true)
     try {
-      await adminService.deleteStudent(selected.ID)
+      await adminService.deleteStudent(selected.id || selected.ID)
       toast.success('Entitas mahasiswa berhasil dihapus')
       setIsDelOpen(false)
       fetchData()
@@ -542,7 +543,7 @@ export default function StudentDirectory() {
                   <Select value={String(form.FakultasID)} onValueChange={v => setForm({ ...form, FakultasID: v, ProgramStudiID: '' })}>
                     <SelectTrigger className="h-12 rounded-xl border-neutral-200 bg-neutral-50/30 font-bold text-xs uppercase tracking-widest"><SelectValue placeholder="SELECT FACULTY" /></SelectTrigger>
                     <SelectContent className="rounded-xl shadow-2xl border-neutral-100">
-                      {faculties.map(f => <SelectItem key={f.ID} value={String(f.ID)} className="text-[10px] font-bold uppercase tracking-widest">{f.Nama}</SelectItem>)}
+                      {faculties.map(f => <SelectItem key={f.id || f.ID} value={String(f.id || f.ID)} className="text-[10px] font-bold uppercase tracking-widest">{f.Nama}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 </div>
@@ -551,8 +552,8 @@ export default function StudentDirectory() {
                   <Select value={String(form.ProgramStudiID)} onValueChange={v => setForm({ ...form, ProgramStudiID: v })}>
                     <SelectTrigger className="h-12 rounded-xl border-neutral-200 bg-neutral-50/30 font-bold text-xs uppercase tracking-widest"><SelectValue placeholder="SELECT PRODI" /></SelectTrigger>
                     <SelectContent className="rounded-xl shadow-2xl border-neutral-100">
-                      {prodi.filter(p => !form.FakultasID || p.FakultasID === parseInt(form.FakultasID)).map(p => (
-                        <SelectItem key={p.ID} value={String(p.ID)} className="text-[10px] font-bold uppercase tracking-widest">{p.Nama}</SelectItem>
+                      {prodi.filter(p => !form.FakultasID || parseInt(p.FakultasID) === parseInt(form.FakultasID)).map(p => (
+                        <SelectItem key={p.id || p.ID} value={String(p.id || p.ID)} className="text-[10px] font-bold uppercase tracking-widest">{p.Nama}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>

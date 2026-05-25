@@ -86,7 +86,7 @@ export default function PsychologistDirectory() {
 
   const handleOpenEdit = (row) => {
     setForm({ 
-      ID: row.ID, 
+      ID: row.id || row.ID, 
       Nama: row.nama || '', 
       Spesialisasi: row.spesialisasi || 'Umum', 
       Lokasi: row.lokasi || '',
@@ -107,7 +107,8 @@ export default function PsychologistDirectory() {
         tarif: parseInt(form.Tarif) || 0,
         is_aktif: form.IsAktif 
       }
-      const res = await adminService.updatePsychologist(form.ID, payload)
+      const targetId = form.ID || form.id
+      const res = await adminService.updatePsychologist(targetId, payload)
       if (res.status === 'success') { 
         toast.success('Profil psikolog diperbarui')
         setIsEditOpen(false)
@@ -121,7 +122,7 @@ export default function PsychologistDirectory() {
   const handleDelete = async () => {
     setIsSubmitting(true)
     try {
-      await adminService.deletePsychologist(selected.ID)
+      await adminService.deletePsychologist(selected.id || selected.ID)
       toast.success('Psikolog berhasil dihapus')
       setIsDelOpen(false)
       fetchData()
