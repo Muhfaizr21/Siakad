@@ -187,26 +187,26 @@ export default function PsychologistDirectory() {
       <div className="max-w-[1600px] mx-auto space-y-10">
         
         {/* ── Page Header ─────────────────────────────────────────── */}
-        <section className="bg-white border border-neutral-200 rounded-xl p-6 md:p-8 relative overflow-hidden shadow-sm">
+        <section className="bg-white border border-neutral-200 rounded-xl p-5 md:p-8 relative overflow-hidden shadow-sm">
           <div className="absolute top-0 right-0 w-1/4 h-full bg-gradient-to-l from-teal-50/50 to-transparent pointer-events-none" />
           
-          <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-            <div className="space-y-1">
+          <div className="relative z-10 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
+            <div className="space-y-1 w-full lg:w-auto">
               <div className="flex items-center gap-2 mb-2">
                 <div className="h-4 w-1.5 bg-teal-500 rounded-full" />
                 <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-400 font-jakarta">Professional Health</span>
               </div>
-              <h1 className="text-3xl font-bold text-neutral-900 font-jakarta tracking-tight leading-tight">
+              <h1 className="text-2xl md:text-3xl font-bold text-neutral-900 font-jakarta tracking-tight leading-tight">
                 Direktori <span className="text-teal-600 italic">Psikolog</span>
               </h1>
-              <p className="text-neutral-500 font-medium text-sm max-w-2xl leading-relaxed">
+              <p className="text-neutral-500 font-medium text-xs md:text-sm max-w-2xl leading-relaxed">
                 Manajemen data tenaga ahli psikologi, jadwal praktek, dan lokasi pelayanan kesehatan mental mahasiswa.
               </p>
             </div>
             
-            <div className="flex items-center gap-3">
-              <div className="px-4 py-2 bg-teal-50 border border-teal-100 rounded-xl flex items-center gap-3">
-                 <span className="material-symbols-outlined text-teal-600" style={{ fontSize: '16px' }} Check >security</span>
+            <div className="flex items-center gap-3 w-full lg:w-auto">
+              <div className="px-4 py-2 bg-teal-50 border border-teal-100 rounded-xl flex items-center gap-3 w-full lg:w-auto justify-center">
+                 <span className="material-symbols-outlined text-teal-600" style={{ fontSize: '16px' }}>security</span>
                  <div className="flex flex-col leading-tight">
                     <span className="text-[10px] font-bold text-teal-400 uppercase tracking-widest">Verification Status</span>
                     <span className="text-[12px] font-bold text-teal-700 font-jakarta">Verified Practitioners</span>
@@ -217,49 +217,49 @@ export default function PsychologistDirectory() {
         </section>
 
         {/* ── Stats Grid ──────────────────────────────────────────── */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-           <div className="bg-white p-4 rounded-2xl border border-[#e5e5e5] shadow-sm">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+           <div className="bg-white p-5 rounded-2xl border border-[#e5e5e5] shadow-sm">
               <div className="flex items-center gap-3 mb-3">
                  <div className="w-10 h-10 bg-teal-50 rounded-xl flex justify-center items-center text-teal-600 flex-shrink-0">
                     <span className="material-symbols-outlined" style={{ fontSize: '18px' }} >group</span>
                  </div>
-                 <span className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-widest">Total Psikolog</span>
+                 <span className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-widest animate-in fade-in">Total Psikolog</span>
               </div>
-              <p className="text-2xl font-extrabold text-[#171717] font-jakarta leading-none tabular-nums">{data.length}</p>
+              <p className="text-3xl font-extrabold text-[#171717] font-jakarta leading-none tabular-nums">{data.length}</p>
               <p className="text-xs text-[#a3a3a3] font-medium mt-1">Tenaga ahli terdaftar</p>
            </div>
 
-           <div className="bg-white p-4 rounded-2xl border border-[#e5e5e5] shadow-sm">
+           <div className="bg-white p-5 rounded-2xl border border-[#e5e5e5] shadow-sm">
               <div className="flex items-center gap-3 mb-3">
                  <div className="w-10 h-10 bg-blue-50 rounded-xl flex justify-center items-center text-blue-600 flex-shrink-0">
                     <ClipboardCheck size={18} />
                  </div>
-                 <span className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-widest">Aktif Praktek</span>
+                 <span className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-widest animate-in fade-in">Aktif Praktek</span>
               </div>
-              <p className="text-2xl font-extrabold text-[#171717] font-jakarta leading-none tabular-nums">{data.filter(d => d.is_aktif).length}</p>
+              <p className="text-3xl font-extrabold text-[#171717] font-jakarta leading-none tabular-nums">{data.filter(d => d.is_aktif).length}</p>
               <p className="text-xs text-[#a3a3a3] font-medium mt-1">Psikolog tersedia hari ini</p>
            </div>
 
-           <div className="bg-white p-4 rounded-2xl border border-[#e5e5e5] shadow-sm">
+           <div className="bg-white p-5 rounded-2xl border border-[#e5e5e5] shadow-sm">
               <div className="flex items-center gap-3 mb-3">
                  <div className="w-10 h-10 bg-rose-50 rounded-xl flex justify-center items-center text-rose-600 flex-shrink-0">
                     <Heart size={18} />
                  </div>
-                 <span className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-widest">Layanan Mental</span>
+                 <span className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-widest animate-in fade-in">Layanan Mental</span>
               </div>
-              <p className="text-2xl font-extrabold text-[#171717] font-jakarta leading-none tabular-nums">24/7</p>
+              <p className="text-3xl font-extrabold text-[#171717] font-jakarta leading-none tabular-nums">24/7</p>
               <p className="text-xs text-[#a3a3a3] font-medium mt-1">Standar pelayanan universitas</p>
            </div>
 
-           <div className="bg-white p-4 rounded-2xl border border-[#e5e5e5] shadow-sm">
+           <div className="bg-white p-5 rounded-2xl border border-[#e5e5e5] shadow-sm">
               <div className="flex items-center gap-3 mb-3">
                  <div className="w-10 h-10 bg-neutral-50 rounded-xl flex justify-center items-center text-neutral-500 flex-shrink-0">
                     <span className="material-symbols-outlined" style={{ fontSize: '18px' }} >show_chart</span>
                  </div>
-                 <span className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-widest">Update Data</span>
+                 <span className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-widest animate-in fade-in">Update Data</span>
                  <Badge className="bg-neutral-100 text-neutral-500 border-none text-[8px] font-bold px-1.5 ml-auto">REALTIME</Badge>
               </div>
-              <p className="text-2xl font-extrabold text-[#171717] font-jakarta leading-none tabular-nums">100%</p>
+              <p className="text-3xl font-extrabold text-[#171717] font-jakarta leading-none tabular-nums">100%</p>
               <p className="text-xs text-[#a3a3a3] font-medium mt-1">Sinkronisasi database pusat</p>
            </div>
         </div>
@@ -289,8 +289,8 @@ export default function PsychologistDirectory() {
 
       {/* ── Edit Modal ───────────────────────────────────────────── */}
       <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-        <DialogContent className="max-w-xl p-0 overflow-hidden border-none shadow-2xl rounded-2xl bg-white">
-          <DialogHeader className="p-8 pb-6 border-b border-neutral-100 relative overflow-hidden">
+        <DialogContent className="w-[95vw] sm:w-[90vw] md:max-w-xl p-0 overflow-hidden border-none shadow-2xl rounded-2xl bg-white animate-in slide-in-from-bottom-4 duration-300">
+          <DialogHeader className="p-6 sm:p-8 pb-4 sm:pb-6 border-b border-neutral-100 relative overflow-hidden bg-neutral-50/50">
             <div className="absolute top-0 right-0 p-8 opacity-5 text-teal-600"><BrainCircuit size={100} /></div>
             <div className="relative z-10 space-y-1">
               <div className="flex items-center gap-2 mb-2">
@@ -299,15 +299,15 @@ export default function PsychologistDirectory() {
                 </div>
                 <span className="text-[10px] font-bold uppercase tracking-widest text-teal-600">Clinical Registry</span>
               </div>
-              <DialogTitle className="text-2xl font-bold font-jakarta tracking-tight text-neutral-900 uppercase">
+              <DialogTitle className="text-xl sm:text-2xl font-bold font-jakarta tracking-tight text-neutral-900 uppercase">
                 Edit Profil Psikolog
               </DialogTitle>
-              <DialogDescription className="text-sm font-medium text-neutral-400">Pembaruan kualifikasi dan pengaturan operasional tenaga ahli.</DialogDescription>
+              <DialogDescription className="text-xs sm:text-sm font-medium text-neutral-400">Pembaruan kualifikasi dan pengaturan operasional tenaga ahli.</DialogDescription>
             </div>
           </DialogHeader>
 
-          <form onSubmit={handleSave} className="p-8 pt-6 space-y-5">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <form onSubmit={handleSave} className="p-6 sm:p-8 pt-4 sm:pt-6 space-y-4 sm:space-y-5 max-h-[65vh] overflow-y-auto">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label className="text-xs font-bold text-neutral-500 font-jakarta ml-1">Nama Lengkap & Gelar</Label>
                 <Input required value={form.Nama} onChange={e => setForm({ ...form, Nama: e.target.value })} placeholder="Nama psikolog..." className="h-11 rounded-lg border-neutral-200 bg-neutral-50/30 focus:bg-white font-medium text-sm font-jakarta uppercase" />
@@ -323,7 +323,7 @@ export default function PsychologistDirectory() {
               <Input value={form.Lokasi} onChange={e => setForm({ ...form, Lokasi: e.target.value })} placeholder="Klinik / Ruang Konseling..." className="h-11 rounded-lg border-neutral-200 bg-neutral-50/30 focus:bg-white font-medium text-sm font-jakarta" />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label className="text-xs font-bold text-neutral-500 font-jakarta ml-1">Tarif Layanan (Rp)</Label>
                 <Input type="number" value={form.Tarif} onChange={e => setForm({ ...form, Tarif: e.target.value })} className="h-11 rounded-lg border-neutral-200 bg-neutral-50/30 focus:bg-white font-medium text-sm font-jakarta" />
@@ -340,9 +340,9 @@ export default function PsychologistDirectory() {
               </div>
             </div>
 
-            <div className="pt-6 flex flex-row gap-3 border-t border-neutral-100">
-               <Button type="button" variant="ghost" onClick={() => setIsEditOpen(false)} className="flex-1 h-12 rounded-xl text-xs font-bold uppercase tracking-widest text-neutral-400">Batal</Button>
-               <Button type="submit" disabled={isSubmitting} className="flex-1 h-12 rounded-xl bg-neutral-900 text-white hover:bg-teal-600 shadow-md transition-all active:scale-95">
+            <div className="pt-6 flex flex-col-reverse sm:flex-row gap-3 border-t border-neutral-100">
+               <Button type="button" variant="ghost" onClick={() => setIsEditOpen(false)} className="w-full sm:w-auto h-12 rounded-xl text-xs font-bold uppercase tracking-widest text-neutral-400">Batal</Button>
+               <Button type="submit" disabled={isSubmitting} className="w-full sm:flex-1 h-12 rounded-xl bg-neutral-900 text-white hover:bg-teal-600 shadow-md transition-all active:scale-95 flex items-center justify-center">
                   {isSubmitting ? <span className="material-symbols-outlined animate-spin mr-2" style={{ fontSize: '14px' }} >sync</span> : <span className="material-symbols-outlined mr-2" style={{ fontSize: '14px' }} >save</span>}
                   <span className="text-xs font-bold uppercase tracking-widest">Update Profil</span>
                </Button>

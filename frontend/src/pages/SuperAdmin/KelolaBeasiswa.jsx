@@ -397,28 +397,28 @@ export default function KelolaBeasiswa() {
       <div className="max-w-[1600px] mx-auto space-y-10">
         
         {/* ── Page Header ─────────────────────────────────────────── */}
-        <section className="bg-white border border-neutral-200 rounded-xl p-6 md:p-8 relative overflow-hidden shadow-sm">
+        <section className="bg-white border border-neutral-200 rounded-xl p-5 md:p-8 relative overflow-hidden shadow-sm">
           <div className="absolute top-0 right-0 w-1/4 h-full bg-gradient-to-l from-emerald-50/50 to-transparent pointer-events-none" />
           
-          <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-            <div className="space-y-1">
+          <div className="relative z-10 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
+            <div className="space-y-1 w-full lg:w-auto">
               <div className="flex items-center gap-2 mb-2">
                 <div className="h-4 w-1.5 bg-primary rounded-full" />
                 <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-400 font-jakarta">Student Welfare</span>
               </div>
-              <h1 className="text-3xl font-bold text-neutral-900 font-jakarta tracking-tight leading-tight">
+              <h1 className="text-2xl md:text-3xl font-bold text-neutral-900 font-jakarta tracking-tight leading-tight">
                 Manajemen <span className="text-primary">Beasiswa</span>
               </h1>
-              <p className="text-neutral-500 font-medium text-sm max-w-2xl leading-relaxed">
+              <p className="text-neutral-500 font-medium text-xs md:text-sm max-w-2xl leading-relaxed">
                 Kelola program bantuan dana pendidikan, beasiswa eksternal, dan verifikasi pendaftaran mahasiswa secara terintegrasi.
               </p>
             </div>
             
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 w-full lg:w-auto">
               {activeTab === 'programs' && (
                 <Button 
                   onClick={handleOpenAdd}
-                  className="h-11 px-6 rounded-xl bg-primary text-white hover:bg-primary/90 shadow-md gap-2 transition-all active:scale-95 border-none"
+                  className="h-11 px-6 w-full lg:w-auto rounded-xl bg-primary text-white hover:bg-primary/90 shadow-md gap-2 transition-all active:scale-95 border-none justify-center"
                 >
                   <span className="material-symbols-outlined" style={{ fontSize: '16px' }}  strokeWidth={3}>add</span>
                   <span className="text-xs font-bold uppercase tracking-widest">Tambah Program</span>
@@ -429,7 +429,7 @@ export default function KelolaBeasiswa() {
         </section>
 
         {/* ── Stats Grid ──────────────────────────────────────────── */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
            <StatCard 
             title="Total Program"
             value={stats.totalPrograms}
@@ -470,13 +470,13 @@ export default function KelolaBeasiswa() {
 
         {/* ── Tabbed Content Section ─────────────────────────────── */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full space-y-6">
-          <div className="flex justify-center md:justify-start">
-            <TabsList className="bg-white border border-neutral-200 p-1.5 rounded-xl h-auto shadow-sm">
-              <TabsTrigger value="programs" className="rounded-lg px-8 py-2.5 text-[10px] font-bold uppercase tracking-widest data-[state=active]:bg-primary data-[state=active]:text-white transition-all duration-300">
-                <Award size={14} className="mr-2" /> Program Beasiswa
+          <div className="flex justify-center md:justify-start overflow-x-auto pb-1">
+            <TabsList className="bg-white border border-neutral-200 p-1.5 rounded-xl h-auto shadow-sm flex-nowrap shrink-0">
+              <TabsTrigger value="programs" className="rounded-lg px-4 sm:px-8 py-2.5 text-[10px] font-bold uppercase tracking-widest data-[state=active]:bg-primary data-[state=active]:text-white transition-all duration-300">
+                <Award size={14} className="mr-2 inline" /> Program Beasiswa
               </TabsTrigger>
-              <TabsTrigger value="applications" className="rounded-lg px-8 py-2.5 text-[10px] font-bold uppercase tracking-widest data-[state=active]:bg-primary data-[state=active]:text-white transition-all duration-300">
-                <span className="material-symbols-outlined mr-2" style={{ fontSize: '14px' }} >group</span> Verifikasi Pendaftar
+              <TabsTrigger value="applications" className="rounded-lg px-4 sm:px-8 py-2.5 text-[10px] font-bold uppercase tracking-widest data-[state=active]:bg-primary data-[state=active]:text-white transition-all duration-300">
+                <span className="material-symbols-outlined mr-2 inline" style={{ fontSize: '14px' }} >group</span> Verifikasi Pendaftar
               </TabsTrigger>
             </TabsList>
           </div>
@@ -534,8 +534,8 @@ export default function KelolaBeasiswa() {
 
       {/* ── Scholarship CRUD Modal ─────────────────────────────────── */}
       <Dialog open={isCrudOpen} onOpenChange={setIsCrudOpen}>
-        <DialogContent className="max-w-2xl p-0 overflow-hidden border-none shadow-2xl rounded-2xl bg-white">
-          <DialogHeader className="p-8 pb-2 border-neutral-100 relative overflow-hidden">
+        <DialogContent className="w-[95vw] sm:w-[90vw] md:max-w-2xl p-0 overflow-hidden border-none shadow-2xl rounded-2xl bg-white animate-in slide-in-from-bottom-4 duration-300">
+          <DialogHeader className="p-6 sm:p-8 pb-2 border-neutral-100 relative overflow-hidden bg-neutral-50/50">
             <div className="absolute top-0 right-0 p-8 opacity-5 text-primary"><Award size={100} /></div>
             <div className="relative z-10 space-y-1">
               <div className="flex items-center gap-2 mb-2">
@@ -544,15 +544,15 @@ export default function KelolaBeasiswa() {
                 </div>
                 <span className="text-[10px] font-bold uppercase tracking-widest text-primary">Program Registry</span>
               </div>
-              <DialogTitle className="text-2xl font-bold font-jakarta tracking-tight text-neutral-900 uppercase">
+              <DialogTitle className="text-xl sm:text-2xl font-bold font-jakarta tracking-tight text-neutral-900 uppercase">
                 {isEditMode ? 'Update Beasiswa' : 'Tambah Beasiswa'}
               </DialogTitle>
-              <DialogDescription className="text-sm font-medium text-neutral-400">Pendaftaran program bantuan dana pendidikan baru.</DialogDescription>
+              <DialogDescription className="text-xs sm:text-sm font-medium text-neutral-400">Pendaftaran program bantuan dana pendidikan baru.</DialogDescription>
             </div>
           </DialogHeader>
 
-          <form onSubmit={handleSave} className="px-8 pt-4 pb-8 space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <form onSubmit={handleSave} className="p-6 sm:p-8 pt-4 pb-6 sm:pb-8 space-y-4 max-h-[65vh] overflow-y-auto">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label className="text-xs font-bold text-neutral-500 font-jakarta ml-1">Nama Program</Label>
                 <Input required value={form.Nama} onChange={e => setForm({ ...form, Nama: e.target.value })} placeholder="Nama beasiswa..." className="h-11 rounded-lg border-neutral-200 bg-neutral-50/30 focus:bg-white font-medium text-sm font-jakarta" />
@@ -563,7 +563,7 @@ export default function KelolaBeasiswa() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="space-y-2">
                 <Label className="text-xs font-bold text-neutral-500 font-jakarta ml-1 flex items-center gap-1.5">
                   IPK Minimal <span className="material-symbols-outlined text-primary" style={{ fontSize: '12px' }} >show_chart</span>
@@ -596,9 +596,9 @@ export default function KelolaBeasiswa() {
               <Textarea value={form.Deskripsi} onChange={e => setForm({ ...form, Deskripsi: e.target.value })} placeholder="Detail persyaratan beasiswa..." className="min-h-[80px] rounded-xl border-neutral-200 bg-neutral-50/30 focus:bg-white p-4 font-medium text-sm font-jakarta" />
             </div>
 
-            <div className="pt-6 flex flex-row gap-3 border-t border-neutral-100">
-               <Button type="button" variant="ghost" onClick={() => setIsCrudOpen(false)} className="flex-1 h-12 rounded-xl text-xs font-bold uppercase tracking-widest text-neutral-400">Batal</Button>
-               <Button type="submit" disabled={isSubmitting} className="flex-1 h-12 rounded-xl bg-neutral-900 text-white hover:bg-primary shadow-md transition-all active:scale-95">
+            <div className="pt-6 flex flex-col-reverse sm:flex-row gap-3 border-t border-neutral-100">
+               <Button type="button" variant="ghost" onClick={() => setIsCrudOpen(false)} className="w-full sm:w-auto h-12 rounded-xl text-xs font-bold uppercase tracking-widest text-neutral-400">Batal</Button>
+               <Button type="submit" disabled={isSubmitting} className="w-full sm:flex-1 h-12 rounded-xl bg-neutral-900 text-white hover:bg-primary shadow-md transition-all active:scale-95 flex items-center justify-center">
                   {isSubmitting ? <span className="material-symbols-outlined animate-spin mr-2" style={{ fontSize: '14px' }} >sync</span> : <span className="material-symbols-outlined mr-2" style={{ fontSize: '14px' }} >save</span>}
                   <span className="text-xs font-bold uppercase tracking-widest">Simpan Program</span>
                </Button>
@@ -628,7 +628,7 @@ export default function KelolaBeasiswa() {
         return (
           <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4"
             onClick={() => setSelectedProgram(null)}>
-            <div className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl z-[101] flex flex-col overflow-hidden max-h-[90vh]"
+            <div className="relative w-[95vw] sm:w-[90vw] md:max-w-md bg-white rounded-3xl shadow-2xl z-[101] flex flex-col overflow-hidden max-h-[90vh]"
               onClick={e => e.stopPropagation()}>
               {/* Header */}
               <div className="relative bg-gradient-to-br from-[#00236F] via-[#00308F] to-[#003db5] pt-6 pb-7 px-6 overflow-hidden flex-shrink-0">
@@ -798,7 +798,7 @@ export default function KelolaBeasiswa() {
         return (
           <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4"
             onClick={() => setSelectedApp(null)}>
-            <div className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl z-[101] flex flex-col overflow-hidden max-h-[90vh]"
+            <div className="relative w-[95vw] sm:w-[90vw] md:max-w-md bg-white rounded-3xl shadow-2xl z-[101] flex flex-col overflow-hidden max-h-[90vh]"
               onClick={e => e.stopPropagation()}>
               
               {/* Header */}
@@ -878,7 +878,7 @@ export default function KelolaBeasiswa() {
         return (
           <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4"
             onClick={() => setPreviewApp(null)}>
-            <div className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl z-[101] flex flex-col overflow-hidden max-h-[90vh]"
+            <div className="relative w-[95vw] sm:w-[90vw] md:max-w-md bg-white rounded-3xl shadow-2xl z-[101] flex flex-col overflow-hidden max-h-[90vh]"
               onClick={e => e.stopPropagation()}>
               
               {/* Header */}

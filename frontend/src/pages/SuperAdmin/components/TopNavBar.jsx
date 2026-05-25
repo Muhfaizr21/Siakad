@@ -219,7 +219,7 @@ const TopNavBar = ({ setIsOpen }) => {
               )}
 
               {/* Popover Preview (Super Admin Perspective) */}
-              <div className="absolute top-full right-0 mt-4 w-80 bg-white rounded-3xl shadow-2xl border border-slate-100 p-6 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 translate-y-2 group-hover:translate-y-0 z-[100] cursor-default" onClick={(e) => e.stopPropagation()}>
+              <div className="fixed sm:absolute top-20 sm:top-full left-4 right-4 sm:left-auto sm:right-0 mt-4 sm:w-80 w-auto bg-white rounded-3xl shadow-2xl border border-slate-100 p-6 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 translate-y-2 group-hover:translate-y-0 z-[100] cursor-default" onClick={(e) => e.stopPropagation()}>
                 <div className="flex justify-between items-center mb-5">
                   <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline">Global Watchlist</h4>
                   {totalNotifications > 0 && (

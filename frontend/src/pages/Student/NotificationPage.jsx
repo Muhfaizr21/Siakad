@@ -158,26 +158,26 @@ export default function NotificationPage() {
         <span className="text-[#171717]">Notifikasi</span>
       </div>
 
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
-        <div>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-10">
+        <div className="space-y-1">
           <h1 className="text-3xl font-black font-headline tracking-tight">Notifikasi</h1>
-          <p className="text-[#737373] font-bold text-sm mt-1">
+          <p className="text-[#737373] font-bold text-xs sm:text-sm">
             Kamu memiliki {notifData?.filter(n => !n.is_read).length || 0} pesan belum dibaca.
           </p>
         </div>
         
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
           <button 
             onClick={() => queryClient.invalidateQueries(['notifikasi'])}
             disabled={!hasUnread}
-            className="px-5 py-2.5 bg-[#EAF1FF] text-[#00236F] rounded-xl text-sm font-bold border border-[#C9D8FF] hover:bg-[#D5E2FF] transition-all disabled:opacity-50 flex items-center gap-2"
+            className="w-full sm:w-auto px-5 py-2.5 bg-[#EAF1FF] text-[#00236F] rounded-xl text-sm font-bold border border-[#C9D8FF] hover:bg-[#D5E2FF] transition-all disabled:opacity-50 flex items-center justify-center gap-2"
           >
             <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >check_circle</span>
             Tandai Semua Dibaca
           </button>
           <button 
             onClick={() => deleteReadAllMutation.mutate()}
-            className="px-5 py-2.5 bg-white text-[#737373] rounded-xl text-sm font-bold border border-[#e5e5e5] hover:bg-[#fafafa] transition-all flex items-center gap-2"
+            className="w-full sm:w-auto px-5 py-2.5 bg-white text-[#737373] rounded-xl text-sm font-bold border border-[#e5e5e5] hover:bg-[#fafafa] transition-all flex items-center justify-center gap-2"
           >
             <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >delete</span>
             Hapus yang Sudah Dibaca
@@ -187,13 +187,13 @@ export default function NotificationPage() {
 
       {/* Tabs & Filters */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-8">
-        <Tabs value={filterType} onValueChange={setFilterType} className="max-w-full overflow-x-auto">
-          <TabsList className="bg-transparent h-auto p-0 gap-2">
+        <Tabs value={filterType} onValueChange={setFilterType} className="w-full lg:max-w-none overflow-x-auto pb-1.5 scrollbar-thin">
+          <TabsList className="bg-transparent h-auto p-0 gap-2 flex flex-row flex-nowrap shrink-0">
             {CATEGORIES.map(cat => (
               <TabsTrigger 
                 key={cat.id} 
                 value={cat.id}
-                className={`px-4 py-2 rounded-xl text-sm font-bold border-2 transition-all overflow-hidden relative ${
+                className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold border-2 transition-all whitespace-nowrap ${
                   filterType === cat.id 
                     ? 'bg-[#171717] text-white border-[#171717]' 
                     : 'bg-white text-[#737373] border-[#e5e5e5] hover:border-[#00236F]'
@@ -205,8 +205,8 @@ export default function NotificationPage() {
           </TabsList>
         </Tabs>
 
-        <div className="flex items-center gap-3">
-           <span className="text-sm font-bold text-[#a3a3a3]">Filter Waktu:</span>
+        <div className="flex items-center justify-between sm:justify-start gap-3 w-full lg:w-auto">
+           <span className="text-sm font-bold text-[#a3a3a3] whitespace-nowrap">Filter Waktu:</span>
            <Select value={filterTime} onValueChange={setFilterTime}>
               <SelectTrigger className="w-[160px] h-10 rounded-xl bg-white border-[#e5e5e5] font-bold">
                 <SelectValue placeholder="Semua Waktu" />
@@ -223,30 +223,30 @@ export default function NotificationPage() {
 
       {/* Bulk Action Bar */}
       {selectedIds.length > 0 && (
-        <div className="fixed bottom-10 left-1/2 -translate-x-1/2 bg-[#171717] text-white px-6 py-4 rounded-2xl shadow-2xl z-50 flex items-center gap-6 animate-in slide-in-from-bottom-5 duration-300">
+        <div className="fixed bottom-4 sm:bottom-10 left-1/2 -translate-x-1/2 bg-[#171717] text-white px-5 py-4 rounded-2xl shadow-2xl z-50 flex flex-col sm:flex-row items-center gap-3 sm:gap-6 animate-in slide-in-from-bottom-5 duration-300 w-[92vw] sm:w-auto">
            <div className="flex items-center gap-3">
               <span className="w-6 h-6 bg-[#00236F] rounded-full flex items-center justify-center text-[10px] font-black">
                 {selectedIds.length}
               </span>
               <span className="text-sm font-bold">dipilih</span>
            </div>
-           <div className="h-6 w-px bg-white/20" />
-           <div className="flex items-center gap-4">
+           <div className="hidden sm:block h-6 w-px bg-white/20" />
+           <div className="flex flex-wrap items-center justify-center gap-4 w-full sm:w-auto">
               <button 
                 onClick={() => bulkReadMutation.mutate(selectedIds)}
-                className="text-sm font-bold hover:text-[#00236F] transition-colors flex items-center gap-2"
+                className="text-xs sm:text-sm font-bold hover:text-[#00236F] transition-colors flex items-center gap-2"
               >
                 <span className="material-symbols-outlined" style={{ fontSize: 16 }}>check</span> Tandai Dibaca
               </button>
               <button 
                 onClick={() => bulkDeleteMutation.mutate(selectedIds)}
-                className="text-sm font-bold text-[#fca5a5] hover:text-[#ef4444] transition-colors flex items-center gap-2"
+                className="text-xs sm:text-sm font-bold text-[#fca5a5] hover:text-[#ef4444] transition-colors flex items-center gap-2"
               >
                 <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >delete</span> Hapus
               </button>
               <button 
                 onClick={() => setSelectedIds([])}
-                className="text-sm font-bold opacity-50 hover:opacity-100 transition-opacity"
+                className="text-xs sm:text-sm font-bold opacity-50 hover:opacity-100 transition-opacity"
               >
                 Batal
               </button>
@@ -270,12 +270,12 @@ export default function NotificationPage() {
                 {items.map((notif) => (
                   <div 
                     key={notif.id}
-                    className={`group relative bg-white border rounded-2xl p-5 transition-all hover:shadow-md flex gap-5 items-start ${
+                    className={`group relative bg-white border rounded-2xl p-4 sm:p-5 transition-all hover:shadow-md flex flex-row gap-3 sm:gap-5 items-start ${
                       !notif.is_read ? 'border-[#00236F]/30 shadow-sm' : 'border-[#e5e5e5] grayscale-[0.5] opacity-80 hover:grayscale-0 hover:opacity-100'
                     }`}
                   >
                     {/* Checkbox */}
-                    <div className="pt-1.5">
+                    <div className="pt-1.5 shrink-0">
                        <input 
                          type="checkbox" 
                          checked={selectedIds.includes(notif.id)}
@@ -285,8 +285,8 @@ export default function NotificationPage() {
                     </div>
 
                     {/* Icon */}
-                    <div className="flex-shrink-0">
-                       <div className={`w-12 h-12 rounded-xl flex items-center justify-center border transition-transform duration-300 group-hover:scale-110 ${
+                    <div className="shrink-0 hidden xs:block">
+                       <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center border transition-transform duration-300 group-hover:scale-110 ${
                          !notif.is_read ? 'bg-[#EAF1FF] border-[#C9D8FF]' : 'bg-[#fafafa] border-[#e5e5e5]'
                        }`}>
                           {CATEGORY_ICONS[notif.type] || <span className="material-symbols-outlined" style={{ fontSize: '20px' }} >notifications</span>}
@@ -294,12 +294,12 @@ export default function NotificationPage() {
                     </div>
 
                     {/* Content */}
-                    <div className="flex-1 min-w-0">
-                       <div className="flex items-center justify-between gap-4 mb-1">
-                          <h3 className={`text-base tracking-tight ${!notif.is_read ? 'font-black text-[#171717]' : 'font-bold text-[#525252]'}`}>
+                    <div className="flex-1 min-w-0 pr-12 lg:pr-0">
+                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-4 mb-1">
+                          <h3 className={`text-sm sm:text-base tracking-tight truncate ${!notif.is_read ? 'font-black text-[#171717]' : 'font-bold text-[#525252]'}`}>
                             {notif.title}
                           </h3>
-                           <span className="text-[11px] font-bold text-[#a3a3a3] flex items-center gap-1">
+                           <span className="text-[10px] sm:text-[11px] font-bold text-[#a3a3a3] flex items-center gap-1">
                               <span className="material-symbols-outlined" style={{ fontSize: '12px' }} >schedule</span>
                               {(() => {
                                 try {
@@ -310,22 +310,22 @@ export default function NotificationPage() {
                               })()}
                            </span>
                        </div>
-                       <p className="text-sm font-medium text-[#737373] leading-relaxed mb-4">
+                       <p className="text-xs sm:text-sm font-medium text-[#737373] leading-relaxed mb-3 sm:mb-4">
                          {notif.content}
                        </p>
                        
                        {notif.link && (
                           <a 
                             href={notif.link}
-                            className="inline-flex items-center gap-2 text-xs font-black text-[#00236F] uppercase tracking-widest hover:underline"
+                            className="inline-flex items-center gap-2 text-[10px] sm:text-xs font-black text-[#00236F] uppercase tracking-widest hover:underline"
                           >
                             Lihat Detail <span className="material-symbols-outlined" style={{ fontSize: 14 }}>chevron_right</span>
                           </a>
                        )}
                     </div>
 
-                    {/* Actions Hover */}
-                    <div className="absolute top-4 right-4 flex opacity-0 group-hover:opacity-100 transition-opacity gap-1">
+                    {/* Actions Hover / Always visible on mobile */}
+                    <div className="absolute top-4 right-4 flex opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity gap-1">
                        {!notif.is_read && (
                           <button 
                             onClick={(e) => { e.stopPropagation(); markReadMutation.mutate(notif.id); }}

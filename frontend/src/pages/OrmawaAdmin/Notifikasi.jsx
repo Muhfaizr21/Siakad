@@ -136,14 +136,14 @@ export default function Notifikasi() {
         <div className="absolute -right-20 -top-20 w-80 h-80 bg-white/10 rounded-full blur-3xl" />
         <div className="absolute -bottom-10 right-40 w-60 h-60 bg-blue-300/10 rounded-full blur-2xl" />
 
-        <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-          <div className="space-y-3">
+        <div className="relative z-10 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
+          <div className="space-y-3 w-full lg:w-auto">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/15">
               <span className="h-1.5 w-1.5 bg-[#4338ca] bg-indigo-400 rounded-full animate-ping" />
               <span className="text-[10px] font-bold tracking-[0.2em] text-white/80 uppercase">Kotak Masuk Notifikasi</span>
             </div>
             <div className="flex items-center gap-4">
-              <div className="p-3 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 shadow-inner relative">
+              <div className="p-3 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 shadow-inner relative shrink-0">
                 <span className="material-symbols-outlined text-white" style={{ fontSize: '32px' }}>notifications</span>
                 {unreadCount > 0 && (
                   <span className="absolute -top-1.5 -right-1.5 size-5 bg-rose-500 text-white text-[9px] font-black rounded-full flex items-center justify-center animate-bounce border-2 border-[#00236F]">
@@ -151,9 +151,9 @@ export default function Notifikasi() {
                   </span>
                 )}
               </div>
-              <div>
-                <h1 className="text-3xl md:text-4xl font-black tracking-tight font-headline">Pusat Notifikasi</h1>
-                <p className="text-blue-100/80 text-sm font-medium mt-1">Pantau perkembangan proposal, perubahan jadwal, dan pembukuan keuangan ormawa.</p>
+              <div className="min-w-0">
+                <h1 className="text-2xl md:text-3xl lg:text-4xl font-black tracking-tight font-headline">Pusat Notifikasi</h1>
+                <p className="text-blue-100/80 text-xs md:text-sm font-medium mt-1 leading-normal">Pantau perkembangan proposal, perubahan jadwal, dan pembukuan keuangan ormawa.</p>
               </div>
             </div>
           </div>
@@ -161,7 +161,7 @@ export default function Notifikasi() {
           {unreadCount > 0 && (
             <Button 
               onClick={handleMarkAllRead} 
-              className="h-12 px-6 rounded-2xl bg-white hover:bg-white/95 text-[#00236F] hover:text-[#00236F] border-none font-bold text-xs tracking-wider shadow-lg shadow-blue-900/10 transition-all active:scale-95 shrink-0 w-full md:w-auto flex items-center justify-center gap-2"
+              className="h-12 px-6 rounded-2xl bg-white hover:bg-white/95 text-[#00236F] hover:text-[#00236F] border-none font-bold text-xs tracking-wider shadow-lg shadow-blue-900/10 transition-all active:scale-95 shrink-0 w-full lg:w-auto flex items-center justify-center gap-2"
             >
               <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>done_all</span>
               <span>TANDAI SEMUA DIBACA</span>
@@ -172,7 +172,7 @@ export default function Notifikasi() {
 
       {/* ── Content Area ───────────────────────────────────────────── */}
       <Card className="border border-slate-200/50 shadow-sm rounded-[2rem] overflow-hidden bg-white/70 backdrop-blur-md">
-        <CardContent className="p-6">
+        <CardContent className="p-4 sm:p-6">
           {loading ? (
             <div className="divide-y divide-slate-100">
               {Array.from({ length: 4 }).map((_, i) => (
@@ -206,40 +206,40 @@ export default function Notifikasi() {
                     key={notif.ID} 
                     onClick={() => handleMarkRead(notif.ID)}
                     className={cn(
-                      'py-5 first:pt-0 last:pb-0 flex items-start gap-4 transition-all duration-200 cursor-pointer group',
+                      'py-5 first:pt-0 last:pb-0 flex flex-row items-start gap-3 sm:gap-4 transition-all duration-200 cursor-pointer group',
                       notif.IsRead 
                         ? 'bg-transparent hover:bg-slate-50/50' 
                         : 'bg-blue-50/20 hover:bg-blue-50/40'
                     )}
                   >
                     {/* Icon Container */}
-                    <div className={cn('size-12 rounded-2xl flex items-center justify-center shrink-0 border shadow-sm transition-transform group-hover:scale-105 duration-200', iconColor)}>
-                      <Icon size={20} />
+                    <div className={cn('size-10 sm:size-12 rounded-2xl flex items-center justify-center shrink-0 border shadow-sm transition-transform group-hover:scale-105 duration-200', iconColor)}>
+                      <Icon size={18} className="sm:size-5" />
                     </div>
 
                     {/* Text Details */}
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="space-y-1">
+                      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 sm:gap-4">
+                        <div className="space-y-1 flex-1 min-w-0">
                           <p className={cn(
-                            'font-headline tracking-tight text-[13px] transition-colors',
+                            'font-headline tracking-tight text-[13px] transition-colors truncate',
                             notif.IsRead 
                               ? 'text-slate-600 font-bold' 
                               : 'text-slate-900 font-black'
                           )}>
                             {notif.Judul}
                           </p>
-                          <p className="text-xs font-semibold text-slate-500 leading-relaxed max-w-4xl">
+                          <p className="text-xs font-semibold text-slate-500 leading-relaxed max-w-4xl break-words">
                             {notif.Pesan}
                           </p>
                         </div>
 
                         {/* Status Pin & Time */}
-                        <div className="flex flex-col items-end gap-2 shrink-0">
+                        <div className="flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-2 shrink-0">
                           {!notif.IsRead && (
-                            <span className="h-2 w-2 rounded-full bg-[#00236F] shadow-lg shadow-blue-900/40 animate-pulse" />
+                            <span className="h-2 w-2 rounded-full bg-[#00236F] shadow-lg shadow-blue-900/40 animate-pulse shrink-0" />
                           )}
-                          <span className="text-[10px] font-bold text-slate-400 tracking-tight">
+                          <span className="text-[10px] font-bold text-slate-400 tracking-tight whitespace-nowrap">
                             {notif.CreatedAt ? new Date(notif.CreatedAt).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : '—'}
                           </span>
                         </div>

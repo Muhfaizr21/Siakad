@@ -181,12 +181,12 @@ export default function KelolaProdi() {
               </p>
             </div>
             
-            <div className="flex items-center gap-4">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
               <Button 
                 onClick={handleSyncPddikti} 
                 variant="outline" 
                 disabled={isSyncing}
-                className="h-11 px-6 rounded-xl border-neutral-200 text-xs font-bold uppercase tracking-widest text-neutral-600 hover:bg-neutral-50 gap-2 transition-all active:scale-95 shadow-sm"
+                className="h-11 px-6 rounded-xl border-neutral-200 text-xs font-bold uppercase tracking-widest text-neutral-600 hover:bg-neutral-50 gap-2 transition-all active:scale-95 shadow-sm w-full sm:w-auto flex items-center justify-center"
               >
                 {isSyncing ? <span className="material-symbols-outlined animate-spin text-primary" style={{ fontSize: '14px' }} >sync</span> : <RefreshCw size={14} className="text-primary" />}
                 {isSyncing ? 'Syncing...' : 'PDDIKTI Sync'}
@@ -194,7 +194,7 @@ export default function KelolaProdi() {
               
               <Button 
                 onClick={handleOpenAdd}
-                className="h-11 px-8 rounded-xl bg-neutral-900 text-white hover:bg-primary shadow-xl shadow-neutral-900/10 gap-3 transition-all active:scale-95 border-none group"
+                className="h-11 px-8 rounded-xl bg-neutral-900 text-white hover:bg-primary shadow-xl shadow-neutral-900/10 gap-3 transition-all active:scale-95 border-none group w-full sm:w-auto flex items-center justify-center"
               >
                 <div className="size-5 rounded-lg bg-white/10 flex items-center justify-center group-hover:bg-white/20 transition-colors">
                   <span className="material-symbols-outlined" style={{ fontSize: '14px' }}  strokeWidth={3}>add</span>
@@ -206,7 +206,7 @@ export default function KelolaProdi() {
         </section>
         
         {/* ── Stats Grid ──────────────────────────────────────────── */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
            <div className="bg-white p-4 rounded-2xl border border-[#e5e5e5] shadow-sm">
               <div className="flex items-center gap-3 mb-3">
                  <div className="w-10 h-10 bg-[#eef4ff] rounded-xl flex justify-center items-center text-[#00236F] flex-shrink-0">
@@ -257,26 +257,26 @@ export default function KelolaProdi() {
 
           {/* Table Toolbar */}
           <div className="p-4 md:p-5 border-b border-[#e5e5e5] bg-white">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div className="flex-1">
                 <h2 className="font-bold text-base text-[#171717]">Daftar Program Studi</h2>
                 <p className="text-xs text-[#737373] mt-0.5">Manajemen seluruh program studi yang terdaftar di universitas.</p>
               </div>
-              <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+              <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-2.5 w-full sm:w-auto mt-2 sm:mt-0">
                 {/* Search */}
-                <div className="relative">
+                <div className="relative w-full sm:w-auto">
                   <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#a3a3a3]" style={{ fontSize: '14px' }} >search</span>
                   <input
                     type="text"
                     placeholder="Cari nama atau kode prodi..."
                     value={searchTerm}
                     onChange={e => { setSearchTerm(e.target.value); setCurrentPage(1); }}
-                    className="pl-9 pr-4 h-9 w-56 rounded-xl border border-[#e5e5e5] focus:outline-none focus:border-[#00236F] text-sm bg-white"
+                    className="pl-9 pr-4 h-9 w-full sm:w-56 rounded-xl border border-[#e5e5e5] focus:outline-none focus:border-[#00236F] text-sm bg-white"
                   />
                 </div>
                 {/* Filter Jenjang */}
                 <Select value={filterJenjang} onValueChange={v => { setFilterJenjang(v); setCurrentPage(1); }}>
-                  <SelectTrigger className="h-9 w-36 rounded-xl border-[#e5e5e5] bg-white text-xs font-medium">
+                  <SelectTrigger className="h-9 w-full sm:w-36 rounded-xl border-[#e5e5e5] bg-white text-xs font-medium">
                     <SelectValue placeholder="Semua Jenjang" />
                   </SelectTrigger>
                   <SelectContent className="rounded-xl border-neutral-200 shadow-xl">
@@ -286,7 +286,7 @@ export default function KelolaProdi() {
                 </Select>
                 {/* Filter Fakultas */}
                 <Select value={filterFakultasID} onValueChange={v => { setFilterFakultasID(v); setCurrentPage(1); }}>
-                  <SelectTrigger className="h-9 w-44 rounded-xl border-[#e5e5e5] bg-white text-xs font-medium">
+                  <SelectTrigger className="h-9 w-full sm:w-44 rounded-xl border-[#e5e5e5] bg-white text-xs font-medium">
                     <SelectValue placeholder="Semua Fakultas" />
                   </SelectTrigger>
                   <SelectContent className="rounded-xl border-neutral-200 shadow-xl">
@@ -302,7 +302,7 @@ export default function KelolaProdi() {
                 {(searchTerm || filterJenjang !== 'all' || filterFakultasID !== 'all') && (
                   <button
                     onClick={() => { setSearchTerm(''); setFilterJenjang('all'); setFilterFakultasID('all'); setCurrentPage(1); }}
-                    className="h-9 px-3 text-xs font-semibold text-[#dc2626] bg-[#fef2f2] rounded-xl border border-[#fecaca] hover:bg-[#fee2e2] transition-colors"
+                    className="h-9 px-3 text-xs font-semibold text-[#dc2626] bg-[#fef2f2] rounded-xl border border-[#fecaca] hover:bg-[#fee2e2] transition-colors w-full sm:w-auto"
                   >
                     Reset
                   </button>
@@ -464,7 +464,7 @@ export default function KelolaProdi() {
       {/* ── CRUD Modal ───────────────────────────────────────────── */}
       <Dialog open={isCrudOpen} onOpenChange={setIsCrudOpen}>
         <DialogContent className="max-w-lg p-0 overflow-hidden border-none shadow-2xl rounded-2xl bg-white">
-          <DialogHeader className="px-7 pt-7 pb-5 border-b border-[#f0f0f0]">
+          <DialogHeader className="p-5 md:p-8 pb-5 border-b border-[#f0f0f0]">
             <div className="flex items-center gap-2 mb-3">
               <div className="w-7 h-7 rounded-lg bg-[#eef4ff] flex items-center justify-center text-[#00236F]">
                 {isEditMode ? <span className="material-symbols-outlined" style={{ fontSize: '13px' }} >edit</span> : <span className="material-symbols-outlined" style={{ fontSize: '13px' }}  strokeWidth={3}>add</span>}
@@ -481,8 +481,8 @@ export default function KelolaProdi() {
             </DialogDescription>
           </DialogHeader>
 
-          <form onSubmit={handleSave} className="px-7 py-6 space-y-5">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <form onSubmit={handleSave} className="p-5 md:p-8 space-y-5 md:space-y-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
               <div className="space-y-1.5">
                 <Label className="text-xs font-semibold text-[#525252] font-jakarta">Nama Program Studi</Label>
                 <Input
@@ -505,7 +505,7 @@ export default function KelolaProdi() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
               <div className="space-y-1.5">
                 <Label className="text-xs font-semibold text-[#525252] font-jakarta">Jenjang Pendidikan</Label>
                 <Select value={form.Jenjang} onValueChange={v => setForm(prev => ({ ...prev, Jenjang: v }))}>
@@ -544,19 +544,19 @@ export default function KelolaProdi() {
               </div>
             </div>
 
-            <div className="pt-5 flex flex-row gap-3 border-t border-[#f0f0f0]">
+            <div className="pt-5 flex flex-col-reverse sm:flex-row gap-3 border-t border-[#f0f0f0]">
               <Button
                 type="button"
                 variant="ghost"
                 onClick={() => setIsCrudOpen(false)}
-                className="flex-1 h-11 rounded-xl text-sm font-semibold text-[#737373] hover:bg-[#f5f5f5] hover:text-[#171717] border border-[#e5e5e5]"
+                className="flex-1 h-11 rounded-xl text-sm font-semibold text-[#737373] hover:bg-[#f5f5f5] hover:text-[#171717] border border-[#e5e5e5] w-full sm:w-auto"
               >
                 Batal
               </Button>
               <Button
                 type="submit"
                 disabled={isSubmitting}
-                className="flex-[2] h-11 rounded-xl bg-[#00236F] text-white hover:bg-[#003399] shadow-md transition-all active:scale-95 border-none gap-2"
+                className="flex-[2] h-11 rounded-xl bg-[#00236F] text-white hover:bg-[#003399] shadow-md transition-all active:scale-95 border-none gap-2 w-full sm:w-auto flex items-center justify-center"
               >
                 {isSubmitting ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '15px' }} >sync</span> : <span className="material-symbols-outlined" style={{ fontSize: '15px' }} >save</span>}
                 <span className="text-sm font-semibold">{isEditMode ? 'Perbarui Prodi' : 'Simpan Prodi'}</span>
