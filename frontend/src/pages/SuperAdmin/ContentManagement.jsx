@@ -23,13 +23,22 @@ const Newspaper = ({ size, className, ...props }) => <span className={`material-
 
 export default function ContentManagement() {
     const [news, setNews] = useState([])
+    const [faculties, setFaculties] = useState([])
+    const [ormawas, setOrmawas] = useState([])
     const [loading, setLoading] = useState(true)
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [isCrudOpen, setIsCrudOpen] = useState(false)
     const [isDelOpen, setIsDelOpen] = useState(false)
     const [isEditMode, setIsEditMode] = useState(false)
     const [selected, setSelected] = useState(null)
-    const [form, setForm] = useState({ Judul: '', Isi: '', Status: 'Published' })
+    const [form, setForm] = useState({ 
+        Judul: '', 
+        Isi: '', 
+        Status: 'Published',
+        target_audience: 'semua',
+        target_fakultas_id: '',
+        target_ormawa_id: ''
+    })
 
     const fetchNews = async () => {
         setLoading(true)
@@ -44,19 +53,49 @@ export default function ContentManagement() {
         }
     }
 
-    useEffect(() => { fetchNews() }, [])
+    const fetchMasterData = async () => {
+        try {
+            const [facRes, ormawaRes] = await Promise.all([
+                adminService.getAllFaculties(),
+                adminService.getAllOrmawa()
+            ])
+            if (facRes?.status === 'success') setFaculties(facRes.data || [])
+            if (ormawaRes?.status === 'success') setOrmawas(ormawaRes.data || [])
+        } catch (e) {
+            console.error("Gagal memuat data master untuk target berita", e)
+        }
+    }
+
+    useEffect(() => { 
+        fetchNews()
+        fetchMasterData()
+    }, [])
 
     const handleOpenAdd = () => {
         setIsEditMode(false)
         setSelected(null)
-        setForm({ Judul: '', Isi: '', Status: 'Published' })
+        setForm({ 
+            Judul: '', 
+            Isi: '', 
+            Status: 'Published',
+            target_audience: 'semua',
+            target_fakultas_id: '',
+            target_ormawa_id: ''
+        })
         setIsCrudOpen(true)
     }
 
     const handleOpenEdit = (row) => {
         setIsEditMode(true)
         setSelected(row)
-        setForm({ Judul: row.Judul || '', Isi: row.Isi || '', Status: row.Status || 'Published' })
+        setForm({ 
+            Judul: row.Judul || '', 
+            Isi: row.Isi || '', 
+            Status: row.Status || 'Published',
+            target_audience: row.target_audience || row.TargetAudience || 'semua',
+            target_fakultas_id: row.target_fakultas_id || row.TargetFakultasID || '',
+            target_ormawa_id: row.target_ormawa_id || row.TargetOrmawaID || ''
+        })
         setIsCrudOpen(true)
     }
 
@@ -65,9 +104,14 @@ export default function ContentManagement() {
         setIsSubmitting(true)
         try {
             const targetId = selected?.id || selected?.ID
+            const payload = {
+                ...form,
+                target_fakultas_id: form.target_fakultas_id ? Number(form.target_fakultas_id) : null,
+                target_ormawa_id: form.target_ormawa_id ? Number(form.target_ormawa_id) : null
+            }
             const res = isEditMode
-                ? await adminService.updateNews(targetId, form)
-                : await adminService.createNews(form)
+                ? await adminService.updateNews(targetId, payload)
+                : await adminService.createNews(payload)
             if (res.status === 'success') {
                 toast.success(isEditMode ? 'Konten diperbarui' : 'Berita berhasil diterbitkan')
                 setIsCrudOpen(false)
@@ -120,6 +164,46 @@ export default function ContentManagement() {
                     </span>
                 </div>
             )
+        },
+        {
+            key: 'target_audience', 
+            label: 'Target Penerima', 
+            className: 'w-[180px]',
+            render: (v, row) => {
+                const aud = v || row.TargetAudience || 'semua'
+                let label = 'Semua Sivitas'
+                let details = ''
+
+                if (aud === 'fakultas') {
+                    label = 'Fakultas'
+                    const facId = row.target_fakultas_id || row.TargetFakultasID
+                    const fac = faculties.find(f => (f.ID || f.id) === facId)
+                    details = fac ? fac.Nama || fac.nama : `Fakultas ID: ${facId}`
+                } else if (aud === 'ormawa') {
+                    label = 'Ormawa'
+                    const ormId = row.target_ormawa_id || row.TargetOrmawaID
+                    const orm = ormawas.find(o => (o.id || o.ID) === ormId)
+                    details = orm ? orm.Nama || orm.nama : `Ormawa ID: ${ormId}`
+                } else if (aud === 'mahasiswa') {
+                    label = 'Mahasiswa'
+                    const facId = row.target_fakultas_id || row.TargetFakultasID
+                    if (facId) {
+                        const fac = faculties.find(f => (f.ID || f.id) === facId)
+                        details = fac ? `Fakultas ${fac.Singkatan || fac.Nama || fac.nama}` : `Fakultas ID: ${facId}`
+                    } else {
+                        details = 'Global'
+                    }
+                }
+
+                return (
+                    <div className="flex flex-col gap-0.5">
+                        <Badge className="px-2 py-0.5 rounded-lg border bg-blue-50/50 text-[#00236F] border-blue-100/50 text-[9px] font-bold uppercase tracking-widest w-fit">
+                            {label}
+                        </Badge>
+                        {details && <span className="text-[10px] font-bold text-neutral-400 mt-1 max-w-[160px] truncate leading-tight">{details}</span>}
+                    </div>
+                )
+            }
         },
         {
             key: 'Status', 
@@ -233,25 +317,104 @@ export default function ContentManagement() {
                     </DialogHeader>
 
                     <form onSubmit={handleSave} className="p-8 pt-6 space-y-5">
-                        <div className="space-y-2">
-                            <Label className="text-xs font-bold text-neutral-500 font-jakarta ml-1">Judul Utama Berita</Label>
-                            <Input required value={form.Judul} onChange={e => setForm({ ...form, Judul: e.target.value })} placeholder="Tulis judul yang informatif..." className="h-11 rounded-lg border-neutral-200 bg-neutral-50/30 focus:bg-white font-medium text-sm font-jakarta" />
-                        </div>
+                        <div className="space-y-5 max-h-[50vh] overflow-y-auto pr-2 custom-scrollbar">
+                            <div className="space-y-2">
+                                <Label className="text-xs font-bold text-neutral-500 font-jakarta ml-1">Judul Utama Berita</Label>
+                                <Input required value={form.Judul} onChange={e => setForm({ ...form, Judul: e.target.value })} placeholder="Tulis judul yang informatif..." className="h-11 rounded-lg border-neutral-200 bg-neutral-50/30 focus:bg-white font-medium text-sm font-jakarta" />
+                            </div>
 
-                        <div className="space-y-2">
-                            <Label className="text-xs font-bold text-neutral-500 font-jakarta ml-1">Isi Konten & Informasi</Label>
-                            <Textarea required value={form.Isi} onChange={e => setForm({ ...form, Isi: e.target.value })} placeholder="Tulis narasi berita secara lengkap..." className="min-h-[200px] rounded-xl border-neutral-200 bg-neutral-50/30 focus:bg-white p-4 font-medium text-sm font-jakarta leading-relaxed" />
-                        </div>
+                            <div className="space-y-2">
+                                <Label className="text-xs font-bold text-neutral-500 font-jakarta ml-1">Isi Konten & Informasi</Label>
+                                <Textarea required value={form.Isi} onChange={e => setForm({ ...form, Isi: e.target.value })} placeholder="Tulis narasi berita secara lengkap..." className="min-h-[150px] rounded-xl border-neutral-200 bg-neutral-50/30 focus:bg-white p-4 font-medium text-sm font-jakarta leading-relaxed" />
+                            </div>
 
-                        <div className="space-y-2">
-                            <Label className="text-xs font-bold text-neutral-500 font-jakarta ml-1">Visibilitas Publikasi</Label>
-                            <Select value={form.Status} onValueChange={v => setForm({ ...form, Status: v })}>
-                                <SelectTrigger className="h-11 rounded-lg border-neutral-200 bg-neutral-50/30 font-medium text-sm"><SelectValue /></SelectTrigger>
-                                <SelectContent className="rounded-xl shadow-xl">
-                                    <SelectItem value="Published" className="text-xs font-medium uppercase text-emerald-600">Terbitkan Sekarang</SelectItem>
-                                    <SelectItem value="Draft" className="text-xs font-medium uppercase">Simpan Sebagai Draft</SelectItem>
-                                </SelectContent>
-                            </Select>
+                            <div className="space-y-2">
+                                <Label className="text-xs font-bold text-neutral-500 font-jakarta ml-1">Target Penerima Berita (Audience)</Label>
+                                <Select value={form.target_audience} onValueChange={v => setForm({ ...form, target_audience: v, target_fakultas_id: '', target_ormawa_id: '' })}>
+                                    <SelectTrigger className="h-11 rounded-lg border-neutral-200 bg-neutral-50/30 font-medium text-sm"><SelectValue /></SelectTrigger>
+                                    <SelectContent className="rounded-xl shadow-xl">
+                                        <SelectItem value="semua" className="text-xs font-medium uppercase">Semua Sivitas</SelectItem>
+                                        <SelectItem value="fakultas" className="text-xs font-medium uppercase">Spesifik Fakultas</SelectItem>
+                                        <SelectItem value="ormawa" className="text-xs font-medium uppercase">Spesifik Ormawa</SelectItem>
+                                        <SelectItem value="mahasiswa" className="text-xs font-medium uppercase">Mahasiswa (Global / Fakultas)</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+
+                            {form.target_audience === 'fakultas' && (
+                                <div className="space-y-2 animate-in fade-in duration-200">
+                                    <Label className="text-xs font-bold text-neutral-500 font-jakarta ml-1">Pilih Fakultas Penerima</Label>
+                                    <Select 
+                                        value={form.target_fakultas_id ? String(form.target_fakultas_id) : undefined} 
+                                        onValueChange={v => setForm({ ...form, target_fakultas_id: Number(v) })}
+                                    >
+                                        <SelectTrigger className="h-11 rounded-lg border-neutral-200 bg-neutral-50/30 font-medium text-sm">
+                                            <SelectValue placeholder="PILIH FAKULTAS" />
+                                        </SelectTrigger>
+                                        <SelectContent className="rounded-xl shadow-xl max-h-[200px] overflow-y-auto">
+                                            {faculties.map(f => (
+                                                <SelectItem key={f.ID || f.id} value={String(f.ID || f.id)} className="text-xs font-bold uppercase">
+                                                    {f.Nama || f.nama}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                            )}
+
+                            {form.target_audience === 'ormawa' && (
+                                <div className="space-y-2 animate-in fade-in duration-200">
+                                    <Label className="text-xs font-bold text-neutral-500 font-jakarta ml-1">Pilih Ormawa Penerima</Label>
+                                    <Select 
+                                        value={form.target_ormawa_id ? String(form.target_ormawa_id) : undefined} 
+                                        onValueChange={v => setForm({ ...form, target_ormawa_id: Number(v) })}
+                                    >
+                                        <SelectTrigger className="h-11 rounded-lg border-neutral-200 bg-neutral-50/30 font-medium text-sm">
+                                            <SelectValue placeholder="PILIH ORMAWA" />
+                                        </SelectTrigger>
+                                        <SelectContent className="rounded-xl shadow-xl max-h-[200px] overflow-y-auto">
+                                            {ormawas.map(o => (
+                                                <SelectItem key={o.id || o.ID} value={String(o.id || o.ID)} className="text-xs font-bold uppercase">
+                                                    {o.nama || o.Nama}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                            )}
+
+                            {form.target_audience === 'mahasiswa' && (
+                                <div className="space-y-2 animate-in fade-in duration-200">
+                                    <Label className="text-xs font-bold text-neutral-500 font-jakarta ml-1">Fakultas Mahasiswa (Opsional)</Label>
+                                    <Select 
+                                        value={form.target_fakultas_id ? String(form.target_fakultas_id) : 'all'} 
+                                        onValueChange={v => setForm({ ...form, target_fakultas_id: v === 'all' ? '' : Number(v) })}
+                                    >
+                                        <SelectTrigger className="h-11 rounded-lg border-neutral-200 bg-neutral-50/30 font-medium text-sm">
+                                            <SelectValue placeholder="Semua Mahasiswa" />
+                                        </SelectTrigger>
+                                        <SelectContent className="rounded-xl shadow-xl max-h-[200px] overflow-y-auto">
+                                            <SelectItem value="all" className="text-xs font-medium uppercase opacity-55 text-neutral-400">Semua Mahasiswa (Global)</SelectItem>
+                                            {faculties.map(f => (
+                                                <SelectItem key={f.ID || f.id} value={String(f.ID || f.id)} className="text-xs font-bold uppercase">
+                                                    {f.Nama || f.nama}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                            )}
+
+                            <div className="space-y-2">
+                                <Label className="text-xs font-bold text-neutral-500 font-jakarta ml-1">Visibilitas Publikasi</Label>
+                                <Select value={form.Status} onValueChange={v => setForm({ ...form, Status: v })}>
+                                    <SelectTrigger className="h-11 rounded-lg border-neutral-200 bg-neutral-50/30 font-medium text-sm"><SelectValue /></SelectTrigger>
+                                    <SelectContent className="rounded-xl shadow-xl">
+                                        <SelectItem value="Published" className="text-xs font-medium uppercase text-emerald-600">Terbitkan Sekarang</SelectItem>
+                                        <SelectItem value="Draft" className="text-xs font-medium uppercase">Simpan Sebagai Draft</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
                         </div>
 
                         <div className="pt-6 flex flex-row gap-3 border-t border-neutral-100">

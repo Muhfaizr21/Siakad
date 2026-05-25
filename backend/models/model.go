@@ -760,6 +760,11 @@ type Berita struct {
 
 	Status         string
 	TanggalPublish time.Time
+
+	TargetAudience   string `gorm:"size:50;default:'semua'" json:"target_audience"`
+	TargetFakultasID *uint  `gorm:"index" json:"target_fakultas_id"`
+	TargetOrmawaID   *uint  `gorm:"index" json:"target_ormawa_id"`
+	Notified         bool   `gorm:"default:false" json:"notified"`
 }
 
 func (Berita) TableName() string {

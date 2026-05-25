@@ -960,6 +960,82 @@ func GetAllNews(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"status": "success", "data": list})
 }
 
+func broadcastNewsNotifications(db *gorm.DB, b *models.Berita) {
+	if b.Status != "Published" || b.Notified {
+		return
+	}
+
+	var targetUserIDs []uint
+
+	switch b.TargetAudience {
+	case "fakultas":
+		if b.TargetFakultasID != nil && *b.TargetFakultasID > 0 {
+			// Get faculty admins
+			var adminIDs []uint
+			db.Model(&models.User{}).Where("role = ? AND fakultas_id = ?", "faculty_admin", *b.TargetFakultasID).Pluck("id", &adminIDs)
+			targetUserIDs = append(targetUserIDs, adminIDs...)
+
+			// Get students
+			var studentUserIDs []uint
+			db.Table("mahasiswa.mahasiswa").Where("fakultas_id = ?", *b.TargetFakultasID).Pluck("pengguna_id", &studentUserIDs)
+			targetUserIDs = append(targetUserIDs, studentUserIDs...)
+		}
+
+	case "ormawa":
+		if b.TargetOrmawaID != nil && *b.TargetOrmawaID > 0 {
+			// Get ormawa admins and members
+			var ormawaUserIDs []uint
+			db.Model(&models.User{}).Where("ormawa_id = ?", *b.TargetOrmawaID).Pluck("id", &ormawaUserIDs)
+			targetUserIDs = append(targetUserIDs, ormawaUserIDs...)
+		}
+
+	case "mahasiswa":
+		if b.TargetFakultasID != nil && *b.TargetFakultasID > 0 {
+			// Get students in specific faculty
+			var studentUserIDs []uint
+			db.Table("mahasiswa.mahasiswa").Where("fakultas_id = ?", *b.TargetFakultasID).Pluck("pengguna_id", &studentUserIDs)
+			targetUserIDs = append(targetUserIDs, studentUserIDs...)
+		} else {
+			// Get all students
+			var studentUserIDs []uint
+			db.Table("mahasiswa.mahasiswa").Pluck("pengguna_id", &studentUserIDs)
+			targetUserIDs = append(targetUserIDs, studentUserIDs...)
+		}
+
+	default: // "semua" or empty
+		// Get all users
+		db.Model(&models.User{}).Pluck("id", &targetUserIDs)
+	}
+
+	// Remove duplicates (just in case)
+	uniqueIDs := make(map[uint]bool)
+	var finalIDs []uint
+	for _, id := range targetUserIDs {
+		if id > 0 && !uniqueIDs[id] {
+			uniqueIDs[id] = true
+			finalIDs = append(finalIDs, id)
+		}
+	}
+
+	if len(finalIDs) > 0 {
+		notifications := make([]models.Notifikasi, len(finalIDs))
+		for i, uID := range finalIDs {
+			notifications[i] = models.Notifikasi{
+				UserID:    uID,
+				Tipe:      "sistem",
+				Judul:     b.Judul,
+				Deskripsi: b.Isi,
+				IsRead:    false,
+			}
+		}
+		// Bulk insert notifications in batches of 100 to optimize performance
+		db.CreateInBatches(notifications, 100)
+	}
+
+	// Update notified status to prevent resending
+	db.Model(b).Update("notified", true)
+}
+
 func CreateNews(c *fiber.Ctx) error {
 	var b models.Berita
 	if err := c.BodyParser(&b); err != nil {
@@ -977,6 +1053,12 @@ func CreateNews(c *fiber.Ctx) error {
 	if err := config.DB.Create(&b).Error; err != nil {
 		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal menyimpan berita: " + err.Error()})
 	}
+
+	// Broadcast notifications if published
+	if b.Status == "Published" {
+		broadcastNewsNotifications(config.DB, &b)
+	}
+
 	return c.JSON(fiber.Map{"status": "success", "data": b})
 }
 
@@ -990,6 +1072,12 @@ func UpdateNews(c *fiber.Ctx) error {
 		return c.Status(400).JSON(fiber.Map{"status": "error", "message": err.Error()})
 	}
 	config.DB.Save(&b)
+
+	// Broadcast notifications if published and not yet notified
+	if b.Status == "Published" && !b.Notified {
+		broadcastNewsNotifications(config.DB, &b)
+	}
+
 	return c.JSON(fiber.Map{"status": "success", "data": b})
 }
 
