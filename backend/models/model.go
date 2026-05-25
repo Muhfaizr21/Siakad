@@ -597,6 +597,7 @@ type Proposal struct {
 	Jenis           string
 	Status          string
 	Catatan         string
+	FileURL         string    `json:"file_url"`
 
 	ApprovedDosenID    *uint `gorm:"index"`
 	ApprovedFakultasID *uint `gorm:"index"`

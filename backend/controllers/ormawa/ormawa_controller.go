@@ -200,6 +200,7 @@ func UpdateProposal(c *fiber.Ctx) error {
 		UserId   uint    `json:"UserId"`
 		Anggaran float64 `json:"Anggaran"`
 		Judul    string  `json:"Judul"`
+		FileURL  string  `json:"FileURL"`
 	}
 	if err := c.BodyParser(&payload); err != nil {
 		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Payload tidak valid"})
@@ -236,6 +237,9 @@ func UpdateProposal(c *fiber.Ctx) error {
 		}
 		if payload.Anggaran > 0 {
 			updates["anggaran"] = payload.Anggaran
+		}
+		if payload.FileURL != "" {
+			updates["file_url"] = payload.FileURL
 		}
 
 		if len(updates) > 0 {

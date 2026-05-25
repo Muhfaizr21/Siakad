@@ -253,15 +253,15 @@ const PkkmbManagement = () => {
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id)}
                         className={`relative px-5 py-2.5 rounded-xl font-bold text-[11px] tracking-widest transition-colors duration-300 whitespace-nowrap outline-none ${activeTab === tab.id
-                                ? 'text-primary z-10'
+                                ? 'text-primary'
                                 : 'text-[#737373] hover:text-[#171717]'
                             }`}
                     >
-                        {tab.label}
+                        <span className="relative z-10">{tab.label}</span>
                         {activeTab === tab.id && (
                             <motion.div
                                 layoutId="activeTabBackground"
-                                className="absolute inset-0 bg-[#eef4ff] rounded-xl -z-0"
+                                className="absolute inset-0 bg-[#eef4ff] rounded-xl z-0"
                                 transition={{ type: 'spring', stiffness: 380, damping: 30 }}
                             />
                         )}

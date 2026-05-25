@@ -184,15 +184,15 @@ export function DataTable({
  >
  <div className={`flex items-center gap-2 w-full ${col.className?.includes("text-center") ?"justify-center" : ""} ${col.className?.includes("text-right") ?"justify-end" : ""}`}>
  {col.label}
- {!col.disableSort && (
- sortConfig.key === col.key ? (
- sortConfig.direction === 'asc'
- ? <ChevronUp className="size-3.5 text-primary" />
- : <ChevronDown className="size-3.5 text-primary" />
- ) : (
- <ChevronsUpDown className="size-3.5 text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity" />
- )
- )}
+                  {!col.disableSort && (
+                    sortConfig.key === col.key ? (
+                      sortConfig.direction === 'asc'
+                        ? <span className="material-symbols-outlined normal-case text-primary shrink-0 select-none animate-none" style={{ fontSize: "14px" }}>expand_less</span>
+                        : <span className="material-symbols-outlined normal-case text-primary shrink-0 select-none animate-none" style={{ fontSize: "14px" }}>expand_more</span>
+                    ) : (
+                      <span className="material-symbols-outlined normal-case text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity shrink-0 select-none" style={{ fontSize: "14px" }}>unfold_more</span>
+                    )
+                  )}
  </div>
  </TableHead>
  ))}

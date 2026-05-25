@@ -125,7 +125,7 @@ const TopNavBar = ({ setIsOpen }) => {
   };
 
   return (
-    <header className="fixed top-0 right-0 left-0 lg:left-64 z-[50] h-20 bg-white/70 backdrop-blur-xl border-b border-slate-100 flex items-center justify-between px-6 lg:px-10 font-sans transition-all duration-300">
+    <header className="fixed top-0 right-0 left-0 lg:left-64 z-[50] h-20 bg-white/70 backdrop-blur-xl border-b border-slate-100 flex items-center justify-between px-6 lg:px-10 font-body transition-all duration-300">
       <div className="flex items-center gap-6 flex-1">
         {/* Mobile Toggle */}
         <button
@@ -298,37 +298,22 @@ const TopNavBar = ({ setIsOpen }) => {
                 <ChevronDown className="size-3 text-slate-400 group-hover:text-slate-900 transition-colors" />
               </div>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-64 mt-2 rounded-[2rem] p-4 shadow-2xl border border-slate-100 bg-white translate-x-2">
-              <DropdownMenuLabel className="p-2 mb-2">
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Organization Profile</p>
-                <div className="flex items-center gap-3">
-                   <div className="p-2 rounded-xl bg-blue-50 text-primary">
-                      <Users className="size-4" />
-                   </div>
-                   <div className="flex flex-col overflow-hidden">
-                      <p className="text-xs font-black text-slate-900 truncate leading-none mb-1">{ormawaInfo?.Nama || 'Admin'}</p>
-                      <p className="text-[10px] font-bold text-slate-400 truncate">{user?.Email}</p>
-                   </div>
-                </div>
-              </DropdownMenuLabel>
-              
-              <DropdownMenuSeparator className="my-2 bg-slate-50" />
-              
-              <DropdownMenuItem onClick={() => navigate('/ormawa/pengaturan')} className="rounded-2xl p-3 focus:bg-slate-50 group cursor-pointer transition-all">
-                <Settings className="mr-3 size-4 text-slate-400 group-hover:text-primary transition-colors" />
+            <DropdownMenuContent align="end" className="w-56 mt-2 rounded-2xl p-1.5 shadow-xl border border-slate-100 bg-white translate-x-2 font-body">
+              <DropdownMenuItem onClick={() => navigate('/ormawa/pengaturan')} className="rounded-xl p-2.5 focus:bg-slate-50 group cursor-pointer transition-all">
+                <Settings className="mr-2.5 size-4 text-slate-400 group-hover:text-primary transition-colors" />
                 <span className="text-[12px] font-black text-slate-600 group-hover:text-slate-900 transition-colors">Pengaturan Profil</span>
               </DropdownMenuItem>
 
-              <DropdownMenuSeparator className="my-2 bg-slate-50" />
+              <DropdownMenuSeparator className="my-1 bg-slate-50" />
               
               <DropdownMenuItem 
                 onClick={() => {
                   logout();
                   navigate('/login');
                 }} 
-                className="rounded-2xl p-3 focus:bg-rose-50 group cursor-pointer transition-all"
+                className="rounded-xl p-2.5 focus:bg-rose-50 group cursor-pointer transition-all"
               >
-                <LogOut className="mr-3 size-4 text-rose-400 group-hover:text-rose-600 transition-colors" />
+                <LogOut className="mr-2.5 size-4 text-rose-400 group-hover:text-rose-600 transition-colors" />
                 <span className="text-[12px] font-black text-rose-500 group-hover:text-rose-600 transition-colors">Sign Out</span>
               </DropdownMenuItem>
             </DropdownMenuContent>

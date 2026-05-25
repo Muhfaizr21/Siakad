@@ -68,13 +68,6 @@ import PkkmbManagement from './pages/OrmawaAdmin/PkkmbManagement'
 import FacultyAspirationManagement from './pages/FacultyAdmin/Aspirasi'
 import FacultyPmb from './pages/FacultyAdmin/MahasiswaBaru'
 import FacultyProdi from './pages/FacultyAdmin/Prodi'
-<<<<<<< Updated upstream
-import FacultyMahasiswa from './pages/FacultyAdmin/Mahasiswa'
-import FacultyMahasiswaImport from './pages/FacultyAdmin/Mahasiswa'
-import FacultyMahasiswaStatus from './pages/FacultyAdmin/Mahasiswa'
-import FacultyMahasiswaTambah from './pages/FacultyAdmin/Mahasiswa'
-import FacultyMahasiswaEdit from './pages/FacultyAdmin/Mahasiswa'
-=======
 import FacultyDosen from './pages/FacultyAdmin/Dosen'
 const FacultyMahasiswa = React.lazy(() => import('./pages/FacultyAdmin/Mahasiswa'))
 const FacultyMahasiswaImport = FacultyMahasiswa
@@ -83,7 +76,6 @@ const FacultyMahasiswaTambah = FacultyMahasiswa
 const FacultyMahasiswaEdit = FacultyMahasiswa
 import FacultyDosenTambah from './pages/FacultyAdmin/Dosen'
 import FacultyDosenEdit from './pages/FacultyAdmin/Dosen'
->>>>>>> Stashed changes
 import FacultyProdiTambah from './pages/FacultyAdmin/Prodi'
 import FacultyProdiEdit from './pages/FacultyAdmin/Prodi'
 import FacultyProdiKurikulum from './pages/FacultyAdmin/Prodi'
@@ -104,9 +96,6 @@ import FacultyProposalApproval from './pages/FacultyAdmin/OrmawaProposals'
 import FacultyOrganisasi from './pages/FacultyAdmin/OrganisasiFakultas'
 import FacultyPkkmb from './pages/FacultyAdmin/Pkkmb'
 import FacultyHealth from './pages/FacultyAdmin/Kesehatan'
-// import FacultyRoleManagement from './pages/FacultyAdmin/RoleManagement'
-
-// Super Admin Modules (from danzz)
 import StudentDashboard from './pages/Student/StudentDashboard'
 import UserManagement from './pages/SuperAdmin/UserManagement'
 import AcademicPortal from './pages/SuperAdmin/AcademicPortal'

@@ -196,10 +196,10 @@ export function DataTable({
                     {!col.disableSort && (
                       sortConfig.key === col.key ? (
                         sortConfig.direction === 'asc'
-                          ? <ChevronUp className="size-3.5 text-primary" />
-                          : <span className="material-symbols-outlined size-3.5 text-primary" style={{ fontSize: "14px" }}>expand_more</span>
+                          ? <span className="material-symbols-outlined normal-case text-primary shrink-0 select-none" style={{ fontSize: "14px" }}>expand_less</span>
+                          : <span className="material-symbols-outlined normal-case text-primary shrink-0 select-none" style={{ fontSize: "14px" }}>expand_more</span>
                       ) : (
-                        <ChevronsUpDown className="size-3.5 text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity" style={{ fontSize: "14px" }} />
+                        <span className="material-symbols-outlined normal-case text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity shrink-0 select-none" style={{ fontSize: "14px" }}>unfold_more</span>
                       )
                     )}
                   </div>
