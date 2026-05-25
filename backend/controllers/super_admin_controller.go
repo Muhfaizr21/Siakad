@@ -983,10 +983,28 @@ func broadcastNewsNotifications(db *gorm.DB, b *models.Berita) {
 
 	case "ormawa":
 		if b.TargetOrmawaID != nil && *b.TargetOrmawaID > 0 {
-			// Get ormawa admins and members
-			var ormawaUserIDs []uint
-			db.Model(&models.User{}).Where("ormawa_id = ?", *b.TargetOrmawaID).Pluck("id", &ormawaUserIDs)
-			targetUserIDs = append(targetUserIDs, ormawaUserIDs...)
+			// 1. Get ormawa admins (users with ormawa_id directly set)
+			var adminIDs []uint
+			db.Model(&models.User{}).Where("ormawa_id = ?", *b.TargetOrmawaID).Pluck("id", &adminIDs)
+			targetUserIDs = append(targetUserIDs, adminIDs...)
+
+			// 2. Get ormawa members from ormawa.ormawa_anggota -> mahasiswa -> pengguna_id
+			var memberUserIDs []uint
+			db.Table("ormawa.ormawa_anggota").
+				Select("mahasiswa.pengguna_id").
+				Joins("join mahasiswa.mahasiswa on mahasiswa.id = ormawa_anggota.mahasiswa_id").
+				Where("ormawa_anggota.ormawa_id = ? AND ormawa_anggota.deleted_at IS NULL", *b.TargetOrmawaID).
+				Pluck("pengguna_id", &memberUserIDs)
+			targetUserIDs = append(targetUserIDs, memberUserIDs...)
+
+			// 3. Create a record in OrmawaNotifikasi so it shows up inside the specific Ormawa portal notification list
+			db.Create(&models.OrmawaNotifikasi{
+				OrmawaID: *b.TargetOrmawaID,
+				Tipe:     "sistem",
+				Judul:    b.Judul,
+				Pesan:    b.Isi,
+				IsRead:   false,
+			})
 		}
 
 	case "mahasiswa":
