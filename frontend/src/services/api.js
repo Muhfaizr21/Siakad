@@ -94,7 +94,21 @@ export const psychologistService = {
   getNotifications: () => fetchWithAuth(`${API_BASE_URL}/psychologist/notifications`),
   markNotificationRead: (id) => fetchWithAuth(`${API_BASE_URL}/psychologist/notifications/${id}/read`, { method: 'PUT' }),
   markAllNotificationsRead: () => fetchWithAuth(`${API_BASE_URL}/psychologist/notifications/read-all`, { method: 'PUT' }),
-  deleteNotification: (id) => fetchWithAuth(`${API_BASE_URL}/psychologist/notifications/${id}`, { method: 'DELETE' })
+  deleteNotification: (id) => fetchWithAuth(`${API_BASE_URL}/psychologist/notifications/${id}`, { method: 'DELETE' }),
+  
+  // Tindak Lanjut (Referral)
+  getReferrals: () => fetchWithAuth(`${API_BASE_URL}/psychologist/referrals`),
+  createReferral: (data) => fetchWithAuth(`${API_BASE_URL}/psychologist/referrals`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  }),
+  sendReferral: (id) => fetchWithAuth(`${API_BASE_URL}/psychologist/referrals/${id}/send`, {
+    method: 'POST'
+  }),
+  confirmReferralReceived: (id) => fetchWithAuth(`${API_BASE_URL}/psychologist/referrals/${id}/confirm-received`, {
+    method: 'POST'
+  })
 };
 
 export const ormawaService = {

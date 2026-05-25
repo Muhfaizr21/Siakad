@@ -7,7 +7,7 @@ const menuItems = [
   { name: 'Janji Temu', path: '/psychologist/bookings', icon: 'schedule' },
   { name: 'Jadwal Praktek', path: '/psychologist/schedule', icon: 'calendar_month' },
   { name: 'Rekam Medis', path: '/psychologist/patients', icon: 'group' },
-  { name: 'Manajemen Asesmen', path: '/psychologist/assessments', icon: 'assignment_turned_in' },
+  { name: 'Tindak Lanjut', path: '/psychologist/referrals', icon: 'send' },
   { name: 'Analitik & Tren', path: '/psychologist/analytics', icon: 'bar_chart' },
   { name: 'Laporan Klinis', path: '/psychologist/reports', icon: 'description' },
   { name: 'Pusat Notifikasi', path: '/psychologist/notifications', icon: 'notifications' },

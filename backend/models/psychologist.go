@@ -144,3 +144,31 @@ type PsikologNotification struct {
 func (PsikologNotification) TableName() string {
 	return "psikolog.notifications"
 }
+
+// ─── Tindak Lanjut (Referral) ─────────────────────────────────────────────────
+
+type PsikologReferral struct {
+	BaseModel
+	PsikologID  uint             `gorm:"index" json:"psikolog_id"`
+	Psikolog    Psikolog         `gorm:"foreignKey:PsikologID" json:"psikolog,omitempty"`
+	MahasiswaID uint             `gorm:"index" json:"mahasiswa_id"`
+	Mahasiswa   Mahasiswa        `gorm:"foreignKey:MahasiswaID" json:"mahasiswa,omitempty"`
+	BookingID   *uint            `gorm:"index" json:"booking_id"`
+	Booking     *PsikologBooking `gorm:"foreignKey:BookingID" json:"booking,omitempty"`
+
+	Tipe              string    `gorm:"index" json:"tipe"`                    // "Medis" atau "Akademik"
+	Alasan            string    `json:"alasan"`
+	FilePendukungURL  string    `json:"file_pendukung_url"`
+	SuratRujiukanURL  string    `json:"surat_rujukan_url"`                    // PDF yang di-generate
+	DigitalSignature  string    `json:"digital_signature"`                    // Signature psikolog
+	Status            string    `gorm:"index;default:'Pending'" json:"status"` // "Pending", "Sent", "Received"
+	PihakTujuan       string    `json:"pihak_tujuan"`                         // Nama klinik/psikolog tujuan
+	EmailTujuan       string    `json:"email_tujuan"`
+	TanggalDibuat     time.Time `json:"tanggal_dibuat"`
+	TanggalDikirim    *time.Time `json:"tanggal_dikirim"`
+	TanggalDiterima   *time.Time `json:"tanggal_diterima"`
+}
+
+func (PsikologReferral) TableName() string {
+	return "psikolog.referrals"
+}

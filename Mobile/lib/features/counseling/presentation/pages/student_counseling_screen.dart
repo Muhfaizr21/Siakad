@@ -133,7 +133,6 @@ class _StudentCounselingScreenState extends State<StudentCounselingScreen> {
       childAspectRatio: 1.2,
       children: [
         _buildServiceCard(context, 'Booking Sesi', Icons.event_available_rounded, Colors.blue, AppRoutes.counselingBooking),
-        _buildServiceCard(context, 'Tes Mental', Icons.quiz_rounded, Colors.purple, AppRoutes.assessment),
         _buildServiceCard(context, 'Riwayat Saya', Icons.history_rounded, Colors.orange, null, onTap: () => _showMyBookings(context)),
         _buildServiceCard(context, 'Rekam Medis', Icons.medical_information_rounded, Colors.teal, null, onTap: () => _showMedicalRecord(context)),
       ],

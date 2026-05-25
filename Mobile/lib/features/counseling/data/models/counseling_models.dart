@@ -67,3 +67,80 @@ class TimeSlot {
     this.isBooked = false,
   });
 }
+
+
+// ─── Tindak Lanjut (Referral) ─────────────────────────────────────────────────
+
+class Referral {
+  final int id;
+  final int mahasiswaId;
+  final String mahasiswaNama;
+  final String tipe; // "Medis" atau "Akademik"
+  final String alasan;
+  final String status; // "Pending", "Sent", "Received"
+  final String pihakTujuan;
+  final String emailTujuan;
+  final String? filePendukungUrl;
+  final String? suratRujiukanUrl;
+  final DateTime tanggalDibuat;
+  final DateTime? tanggalDikirim;
+  final DateTime? tanggalDiterima;
+
+  Referral({
+    required this.id,
+    required this.mahasiswaId,
+    required this.mahasiswaNama,
+    required this.tipe,
+    required this.alasan,
+    required this.status,
+    required this.pihakTujuan,
+    required this.emailTujuan,
+    this.filePendukungUrl,
+    this.suratRujiukanUrl,
+    required this.tanggalDibuat,
+    this.tanggalDikirim,
+    this.tanggalDiterima,
+  });
+
+  factory Referral.fromJson(Map<String, dynamic> json) {
+    return Referral(
+      id: json['id'] as int? ?? 0,
+      mahasiswaId: json['mahasiswa_id'] as int? ?? 0,
+      mahasiswaNama: json['mahasiswa_name'] as String? ?? '',
+      tipe: json['tipe'] as String? ?? '',
+      alasan: json['alasan'] as String? ?? '',
+      status: json['status'] as String? ?? 'Pending',
+      pihakTujuan: json['pihak_tujuan'] as String? ?? '',
+      emailTujuan: json['email_tujuan'] as String? ?? '',
+      filePendukungUrl: json['file_pendukung_url'] as String?,
+      suratRujiukanUrl: json['surat_rujukan_url'] as String?,
+      tanggalDibuat: json['tanggal_dibuat'] != null
+          ? DateTime.parse(json['tanggal_dibuat'] as String)
+          : DateTime.now(),
+      tanggalDikirim: json['tanggal_dikirim'] != null
+          ? DateTime.parse(json['tanggal_dikirim'] as String)
+          : null,
+      tanggalDiterima: json['tanggal_diterima'] != null
+          ? DateTime.parse(json['tanggal_diterima'] as String)
+          : null,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'mahasiswa_id': mahasiswaId,
+      'mahasiswa_name': mahasiswaNama,
+      'tipe': tipe,
+      'alasan': alasan,
+      'status': status,
+      'pihak_tujuan': pihakTujuan,
+      'email_tujuan': emailTujuan,
+      'file_pendukung_url': filePendukungUrl,
+      'surat_rujukan_url': suratRujiukanUrl,
+      'tanggal_dibuat': tanggalDibuat.toIso8601String(),
+      'tanggal_dikirim': tanggalDikirim?.toIso8601String(),
+      'tanggal_diterima': tanggalDiterima?.toIso8601String(),
+    };
+  }
+}
