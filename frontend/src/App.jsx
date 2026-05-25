@@ -59,7 +59,6 @@ import LpjManagement from './pages/OrmawaAdmin/LpjManagement'
 import Pengumuman from './pages/OrmawaAdmin/Pengumuman'
 import StrukturOrganisasi from './pages/OrmawaAdmin/StrukturOrganisasi'
 import RoleBasedAccess from './pages/OrmawaAdmin/RoleBasedAccess'
-import StaffManagement from './pages/OrmawaAdmin/StaffManagement'
 import Notifikasi from './pages/OrmawaAdmin/Notifikasi'
 import Settings from './pages/OrmawaAdmin/Settings'
 import AspirationManagement from './pages/OrmawaAdmin/AspirationManagement'
@@ -269,7 +268,6 @@ function App() {
                     <Route path="lpj" element={<LpjManagement />} />
                     <Route path="pengumuman" element={<Pengumuman />} />
                     <Route path="struktur" element={<StrukturOrganisasi />} />
-                    <Route path="staff" element={<StaffManagement />} />
                     <Route path="rbac" element={<RoleBasedAccess />} />
                     <Route path="notifikasi" element={<Notifikasi />} />
                     <Route path="pengaturan" element={<Settings />} />

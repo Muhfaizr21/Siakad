@@ -41,7 +41,6 @@ const TopNavBar = ({ setIsOpen }) => {
   const pages = [
     { name: 'Dashboard Performa', path: '/ormawa', icon: LayoutGrid },
     { name: 'Manajemen Anggota', path: '/ormawa/anggota', icon: Users },
-    { name: 'Manajemen Staff', path: '/ormawa/staff', icon: ShieldCheck },
     { name: 'Proposal & Kegiatan', path: '/ormawa/proposal', icon: FileText },
     { name: 'Jadwal Kalender', path: '/ormawa/jadwal', icon: Calendar },
     { name: 'Sistem Absensi', path: '/ormawa/absensi', icon: QrCode },
@@ -134,7 +133,6 @@ const TopNavBar = ({ setIsOpen }) => {
     const labels = {
       'ormawa': 'Main Dashboard',
       'anggota': 'Anggota',
-      'staff': 'Staf & Ahli',
       'proposal': 'Plan & Proposal',
       'jadwal': 'Kalender Kerja',
       'absensi': 'Presensi Digital',

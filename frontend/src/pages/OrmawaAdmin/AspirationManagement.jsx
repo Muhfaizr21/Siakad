@@ -55,7 +55,7 @@ export default function AspirationManagement() {
     }
     setIsSubmitting(true)
     try {
-      const res = await fetchWithAuth(`${API}/aspirations/${selected?.ID}`, {
+      const res = await fetchWithAuth(`${API}/aspirations/${selected?.id || selected?.ID}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ Tanggapan: tanggapan, Status: 'ditanggapi' })
@@ -261,7 +261,7 @@ export default function AspirationManagement() {
                 <div className="relative z-10 space-y-4">
                   <div className="flex items-start justify-between gap-4">
                     <div className="space-y-0.5">
-                      <p className="text-[10px] font-black text-blue-200 tracking-[0.2em] uppercase font-headline">Aspirasi ID: ASP-{selected.ID}</p>
+                      <p className="text-[10px] font-black text-blue-200 tracking-[0.2em] uppercase font-headline">Aspirasi ID: ASP-{selected.id || selected.ID}</p>
                       <h2 className="text-xl font-black font-headline tracking-tighter leading-tight">{selected.Judul}</h2>
                     </div>
                     <Badge className={cn(

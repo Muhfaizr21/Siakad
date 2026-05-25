@@ -64,7 +64,7 @@ export default function JadwalKegiatan() {
   const handleOpenEdit = (row) => {
     setIsEditMode(true)
     setForm({ 
-      ID: row.ID, 
+      ID: row.id || row.ID, 
       Judul: row.Judul || row.judul || '', 
       Deskripsi: row.Deskripsi || row.deskripsi || '', 
       Lokasi: row.Lokasi || row.lokasi || '', 
@@ -85,7 +85,7 @@ export default function JadwalKegiatan() {
     }
 
     setIsSubmitting(true)
-    const url = isEditMode ? `${API}/events/${form.ID}` : `${API}/events`
+    const url = isEditMode ? `${API}/events/${form.ID || form.id}` : `${API}/events`
     const method = isEditMode ? 'PUT' : 'POST'
     const payload = { 
       ...form, 
@@ -112,7 +112,7 @@ export default function JadwalKegiatan() {
   const handleDelete = async () => {
     setIsSubmitting(true)
     try {
-      const data = await fetchWithAuth(`${API}/events/${selected.ID}`, { method: 'DELETE' })
+      const data = await fetchWithAuth(`${API}/events/${selected.id || selected.ID}`, { method: 'DELETE' })
       if (data.status === 'success') { 
         toast.success('Kegiatan dibatalkan')
         setIsDelOpen(false)

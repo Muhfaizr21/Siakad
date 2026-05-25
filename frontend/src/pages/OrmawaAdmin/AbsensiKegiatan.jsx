@@ -76,11 +76,11 @@ export default function AbsensiKegiatan() {
     if (isSubmitting) return
     setIsSubmitting(true)
     try {
-      const data = await fetchWithAuth(`${API}/absensi`, {
+      const data = await fetchWithAuth(`${API}/attendance`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
-          KegiatanID: selectedEvent.ID, 
+          KegiatanID: selectedEvent.id || selectedEvent.ID, 
           MahasiswaID: studentId, 
           Status: status, 
           OrmawaID: ormawaId 
@@ -423,7 +423,7 @@ export default function AbsensiKegiatan() {
                           <div className="flex items-center gap-2 shrink-0">
                             {/* Attended Check Button */}
                             <button 
-                              onClick={() => handleRecordAttendance(att.StudentID || att.MahasiswaID, 'hadir')}
+                              onClick={() => handleRecordAttendance(att.StudentID || att.MahasiswaID || att.id || att.ID, 'hadir')}
                               disabled={isSubmitting}
                               className={cn(
                                 'h-9 w-9 rounded-xl flex items-center justify-center transition-all border border-transparent active:scale-90', 
@@ -438,7 +438,7 @@ export default function AbsensiKegiatan() {
                             
                             {/* Absent Alpa Button */}
                             <button 
-                              onClick={() => handleRecordAttendance(att.StudentID || att.MahasiswaID, 'tidak_hadir')}
+                              onClick={() => handleRecordAttendance(att.StudentID || att.MahasiswaID || att.id || att.ID, 'tidak_hadir')}
                               disabled={isSubmitting}
                               className={cn(
                                 'h-9 w-9 rounded-xl flex items-center justify-center transition-all border border-transparent active:scale-90', 

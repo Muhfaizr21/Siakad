@@ -399,7 +399,7 @@ export default function LpjManagement() {
 
       {/* ── Detail View Dialog ──────────────────────────────────────── */}
       <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
-        <DialogContent className="max-w-xl p-0 overflow-hidden border-none shadow-2xl rounded-[2.5rem] bg-white animate-in zoom-in-95 duration-200">
+        <DialogContent className="max-w-xl p-0 max-h-[90vh] overflow-y-auto border-none shadow-2xl rounded-[2.5rem] bg-white animate-in zoom-in-95 duration-200">
           {selected && (
             <div>
               <div className="p-8 bg-gradient-to-r from-[#00236F] to-[#1e3a8a] text-white relative overflow-hidden">
@@ -469,7 +469,7 @@ export default function LpjManagement() {
 
       {/* ── CRUD Dialog Form ────────────────────────────────────────── */}
       <Dialog open={isCrudOpen} onOpenChange={setIsCrudOpen}>
-        <DialogContent className="max-w-xl p-0 overflow-hidden border-none shadow-2xl rounded-[2.5rem] bg-white/95 backdrop-blur-xl animate-in zoom-in-95 duration-200">
+        <DialogContent className="max-w-xl p-0 max-h-[90vh] overflow-y-auto border-none shadow-2xl rounded-[2.5rem] bg-white/95 backdrop-blur-xl animate-in zoom-in-95 duration-200">
           <DialogHeader className="p-8 pb-6 bg-gradient-to-br from-slate-50 to-white border-b border-slate-100 relative overflow-hidden">
             <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none">
               <span className="material-symbols-outlined size-24 rotate-12 text-[#00236F]">description</span>

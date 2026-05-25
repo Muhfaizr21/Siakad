@@ -44,6 +44,7 @@ export default function AnggotaManagement() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [members, setMembers] = useState([])
   const [students, setStudents] = useState([])
+  const [divisions, setDivisions] = useState([])
   const [loading, setLoading] = useState(true)
   const [selected, setSelected] = useState(null)
   const [isDetailOpen, setIsDetailOpen] = useState(false)
@@ -57,7 +58,11 @@ export default function AnggotaManagement() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const dropdownRef = useRef(null)
   const ormawaId = useAuthStore.getState()?.mahasiswa?.ormawaId || useAuthStore.getState()?.mahasiswa?.ID || 1
-  const [form, setForm] = useState({ MahasiswaID: '', Role: 'Anggota', Divisi: '', OrmawaID: ormawaId })
+  const [form, setForm] = useState({ MahasiswaID: '', Role: 'Anggota', Divisi: '', Email: '', NoHP: '', OrmawaID: ormawaId })
+
+  const [isAddingNewDiv, setIsAddingNewDiv] = useState(false)
+  const [newDivName, setNewDivName] = useState('')
+  const [isSavingDiv, setIsSavingDiv] = useState(false)
 
   const fetchMembers = async () => {
     setLoading(true)
@@ -70,8 +75,36 @@ export default function AnggotaManagement() {
   const fetchStudents = async () => {
     try { const data = await fetchWithAuth(`${API}/students`); if (data.status === 'success') setStudents(data.data || []) } catch { }
   }
+  const fetchDivisions = async () => {
+    try { const data = await fetchWithAuth(`${API}/divisions?ormawaId=${ormawaId}`); if (data.status === 'success') setDivisions(data.data || []) } catch { }
+  }
 
-  useEffect(() => { fetchMembers(); fetchStudents() }, [])
+  const handleCreateDivInline = async () => {
+    if (!newDivName.trim()) return
+    setIsSavingDiv(true)
+    try {
+      const data = await fetchWithAuth(`${API}/divisions`, {
+        method: 'POST',
+        body: JSON.stringify({ Nama: newDivName.trim(), OrmawaID: Number(ormawaId) }),
+        headers: { 'Content-Type': 'application/json' }
+      })
+      if (data.status === 'success') {
+        toast.success('Divisi baru dibuat')
+        setForm(prev => ({ ...prev, Divisi: newDivName.trim() }))
+        setNewDivName('')
+        setIsAddingNewDiv(false)
+        await fetchDivisions()
+      } else {
+        toast.error(data.message || 'Gagal membuat divisi')
+      }
+    } catch {
+      toast.error('Koneksi gagal')
+    } finally {
+      setIsSavingDiv(false)
+    }
+  }
+
+  useEffect(() => { fetchMembers(); fetchStudents(); fetchDivisions() }, [])
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -90,11 +123,23 @@ export default function AnggotaManagement() {
     setIsEditMode(true); setForm({ id: row.id || row.ID, MahasiswaID: String(row.MahasiswaID || ''), Role: row.Role || 'Anggota', Divisi: row.Divisi || '', OrmawaID: ormawaId }); setSearchQuery(row.Mahasiswa ? `${row.Mahasiswa.Nama} (${row.Mahasiswa.NIM})` : ''); setIsSearching(false); setIsCrudOpen(true)
   }
   const handleSave = async (e) => {
-    e.preventDefault(); setIsSubmitting(true)
+    e.preventDefault()
+    if (!form.MahasiswaID || form.MahasiswaID === '0' || form.MahasiswaID === '') {
+      toast.error('Wajib mencari dan memilih mahasiswa terlebih dahulu!')
+      return
+    }
+    setIsSubmitting(true)
     const formId = form.id || form.ID
     const url = isEditMode ? `${API}/members/${formId}` : `${API}/members`
     const method = isEditMode ? 'PUT' : 'POST'
-    const payload = { ...form, MahasiswaID: Number(form.MahasiswaID), OrmawaID: Number(form.OrmawaID) }
+    const payload = { 
+      Role: form.Role, 
+      Divisi: form.Divisi,
+      MahasiswaID: Number(form.MahasiswaID), 
+      OrmawaID: Number(form.OrmawaID),
+      EmailKampus: form.Email,
+      NoHP: form.NoHP
+    }
     try {
       const data = await fetchWithAuth(url, { method, body: JSON.stringify(payload), headers: { 'Content-Type': 'application/json' } })
       if (data.status === 'success') { toast.success(isEditMode ? 'Data diperbarui' : 'Anggota ditambahkan'); setIsCrudOpen(false); fetchMembers() }
@@ -239,9 +284,9 @@ export default function AnggotaManagement() {
           return (
             <div>
               <ModalBody className="p-0 overflow-hidden">
-                <div className="h-32 bg-gradient-to-br from-[#00236F] to-[#00174A] relative overflow-hidden">
-                  <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none">
-                    <span className="material-symbols-outlined size-24 rotate-12 text-white">fingerprint</span>
+                <div className="h-32 bg-gradient-to-br from-[#00236F] to-[#00174A] relative">
+                  <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none overflow-hidden inset-0">
+                    <span className="material-symbols-outlined size-24 rotate-12 text-white absolute -right-4 -top-4">fingerprint</span>
                   </div>
                   <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.08),transparent)]" />
                   <div className="absolute -bottom-8 left-6 z-20 p-1 bg-white rounded-[1.2rem] shadow-xl">
@@ -401,9 +446,51 @@ export default function AnggotaManagement() {
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-[9px] md:text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 font-headline">Divisi</Label>
-                  <Input value={form.Divisi} onChange={e => setForm({ ...form, Divisi: e.target.value })} placeholder="Misal: Humas, IT, dll."
-                    className="h-12 rounded-2xl border-slate-200 bg-slate-50 focus:border-[#00236F] focus:ring-2 focus:ring-[#00236F]/10 transition-all font-bold text-xs md:text-sm font-headline" />
+                  <div className="flex items-center justify-between ml-1">
+                    <Label className="text-[9px] md:text-[10px] font-black text-slate-400 tracking-[0.2em] font-headline">Divisi</Label>
+                    <button 
+                      type="button" 
+                      onClick={() => setIsAddingNewDiv(!isAddingNewDiv)} 
+                      className="text-[9px] font-black text-[#00236F] hover:text-[#0B4FAE] tracking-wider uppercase font-headline flex items-center gap-0.5"
+                    >
+                      <span className="material-symbols-outlined text-[10px] block font-black">add</span>
+                      {isAddingNewDiv ? 'Pilih Divisi' : 'Buat Baru'}
+                    </button>
+                  </div>
+                  {isAddingNewDiv ? (
+                    <div className="flex gap-2">
+                      <Input 
+                        value={newDivName} 
+                        onChange={e => setNewDivName(e.target.value)} 
+                        placeholder="Nama Divisi Baru..." 
+                        className="h-12 rounded-2xl border-slate-200 bg-slate-50 font-bold text-xs md:text-sm"
+                      />
+                      <Button 
+                        type="button" 
+                        onClick={handleCreateDivInline} 
+                        disabled={isSavingDiv || !newDivName.trim()} 
+                        className="h-12 px-4 rounded-2xl bg-[#00236F] hover:bg-[#0B4FAE] text-white flex items-center justify-center text-xs font-bold shrink-0"
+                      >
+                        {isSavingDiv ? '...' : 'OK'}
+                      </Button>
+                    </div>
+                  ) : (
+                    <Select value={form.Divisi || 'Umum'} onValueChange={(val) => setForm({ ...form, Divisi: val === 'Umum' ? '' : val })}>
+                      <SelectTrigger className="w-full h-12 rounded-2xl border border-slate-200 bg-slate-50 px-4 text-xs md:text-sm font-bold text-slate-700 focus:border-[#00236F] focus:ring-2 focus:ring-[#00236F]/10 transition-all cursor-pointer">
+                        <SelectValue placeholder="Pilih Divisi" />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-xl border-slate-200 shadow-xl p-1 bg-white font-body">
+                        <SelectItem value="Umum" className="rounded-lg text-xs py-1.5 focus:bg-blue-50 focus:text-blue-700 cursor-pointer font-bold text-slate-400">
+                          Umum
+                        </SelectItem>
+                        {divisions.map((d) => (
+                          <SelectItem key={d.id || d.ID} value={d.Nama} className="rounded-lg text-xs py-1.5 focus:bg-blue-50 focus:text-blue-700 cursor-pointer font-bold text-slate-700">
+                            {d.Nama}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
                 </div>
               </div>
             </div>

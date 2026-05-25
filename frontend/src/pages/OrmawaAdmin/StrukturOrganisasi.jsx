@@ -31,7 +31,8 @@ const getRoleBadge = (role = '') => {
   const r = role.toLowerCase();
   if (r.includes('ketua') && !r.includes('wakil')) return 'text-primary bg-primary/5 border border-primary/10'
   if (r.includes('wakil')) return 'text-violet-600 bg-violet-50 border border-violet-100'
-  if (r.includes('sekretaris')) return 'text-blue-600 bg-blue-50 border border-blue-100'
+  if (r.includes('pembina') || r.includes('penanggung jawab')) return 'text-purple-600 bg-purple-50 border border-purple-100'
+  if (r.includes('sekretaris') || r.includes('eksekutif')) return 'text-blue-600 bg-blue-50 border border-blue-100'
   if (r.includes('bendahara')) return 'text-emerald-600 bg-emerald-50 border border-emerald-100'
   if (r.includes('koordinator') || r.includes('staf khusus') || r.includes('spesial')) return 'text-amber-600 bg-amber-50 border border-amber-100'
   return 'text-slate-500 bg-slate-50 border border-slate-200/65'

@@ -10,7 +10,6 @@ const menuGroups = [
       { name: 'Dashboard', path: '/ormawa', icon: 'dashboard', exact: true },
       { name: 'KENCANA (PKKMB)', path: '/ormawa/pkkmb', icon: 'edit_document' },
       { name: 'Anggota Aktif', path: '/ormawa/anggota', icon: 'group' },
-      { name: 'Manajemen Staf', path: '/ormawa/staff', icon: 'manage_accounts' },
       { name: 'Struktur Pengurus', path: '/ormawa/struktur', icon: 'account_tree' },
     ]
   },

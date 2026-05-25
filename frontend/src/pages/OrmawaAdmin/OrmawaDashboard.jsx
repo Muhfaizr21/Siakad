@@ -179,10 +179,10 @@ export default function OrmawaDashboard() {
  )) : proposals.length === 0 ? (
  <div className="p-8 text-center"><p className="text-[10px] font-black text-[#a3a3a3] tracking-widest">Belum ada proposal</p></div>
  ) : proposals.map((p) => (
- <div key={p.ID} className="p-5 flex items-center gap-4 hover:bg-slate-50 transition-colors cursor-pointer" onClick={() => navigate('/ormawa/proposal')}>
+ <div key={p.id || p.ID} className="p-5 flex items-center gap-4 hover:bg-slate-50 transition-colors cursor-pointer" onClick={() => navigate('/ormawa/proposal')}>
  <div className="flex-1 min-w-0">
  <p className="font-bold text-[#171717] text-[13px] font-headline truncate">{p.Judul}</p>
- <p className="text-[10px] text-[#a3a3a3] font-bold mt-0.5">PROP-{p.ID}</p>
+ <p className="text-[10px] text-[#a3a3a3] font-bold mt-0.5">PROP-{p.id || p.ID}</p>
  </div>
  <Badge className={cn('font-black text-[9px] px-2.5 py-0.5 border-none shrink-0 tracking-widest', STATUS_PROPOSAL[p.Status] || 'bg-slate-100 text-slate-600')}>
  {p.Status || 'draft'}
@@ -216,7 +216,7 @@ export default function OrmawaDashboard() {
  ) : events.map((ev) => {
  const d = ev.TanggalMulai ? new Date(ev.TanggalMulai) : null
  return (
- <div key={ev.ID} className="p-5 flex items-center gap-4 hover:bg-slate-50 transition-colors cursor-pointer" onClick={() => navigate('/ormawa/jadwal')}>
+ <div key={ev.id || ev.ID} className="p-5 flex items-center gap-4 hover:bg-slate-50 transition-colors cursor-pointer" onClick={() => navigate('/ormawa/jadwal')}>
  {d ? (
  <div className="size-10 shrink-0 rounded-2xl bg-indigo-50 flex flex-col items-center justify-center border border-indigo-100/50">
  <span className="text-[11px] font-black text-indigo-600 leading-none">{d.toLocaleDateString('id-ID', { day: '2-digit' })}</span>
@@ -256,7 +256,7 @@ export default function OrmawaDashboard() {
  {isLoading ? Array.from({ length: 6 }).map((_, i) => <div key={i} className="h-12 w-12 bg-slate-100 rounded-2xl animate-pulse" />) :
  members.length === 0 ? <p className="text-[10px] font-black text-[#a3a3a3] tracking-widest">Belum ada anggota terdaftar</p> :
  members.map((m) => (
- <div key={m.ID} className="flex flex-col items-center gap-2 group cursor-pointer" onClick={() => navigate('/ormawa/anggota')}>
+ <div key={m.id || m.ID} className="flex flex-col items-center gap-2 group cursor-pointer" onClick={() => navigate('/ormawa/anggota')}>
  <div className="w-12 h-12 rounded-2xl bg-slate-100 text-[#525252] flex items-center justify-center text-[13px] font-black font-headline group-hover:bg-primary group-hover:text-white transition-all shadow-sm">
  {m.Mahasiswa?.Nama?.split(' ').map(n => n[0]).join('').substring(0, 2) || '?'}
  </div>

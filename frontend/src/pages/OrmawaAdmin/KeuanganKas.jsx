@@ -103,7 +103,7 @@ export default function KeuanganKas() {
   const handleDelete = async () => {
     setIsSubmitting(true)
     try {
-      const data = await fetchWithAuth(`${API}/kas/${selected?.ID}`, { 
+      const data = await fetchWithAuth(`${API}/kas/${selected?.id || selected?.ID}`, { 
         method: 'DELETE' 
       })
       if (data.status === 'success') {

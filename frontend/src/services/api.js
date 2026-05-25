@@ -182,7 +182,7 @@ export const ormawaService = {
 
   // Attendance
   getAttendance: (eventId) => fetchWithAuth(`${API_BASE_URL}/ormawa/attendance/${eventId}`),
-  recordAttendance: (data) => fetchWithAuth(`${API_BASE_URL}/ormawa/absensi`, {
+  recordAttendance: (data) => fetchWithAuth(`${API_BASE_URL}/ormawa/attendance`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data)

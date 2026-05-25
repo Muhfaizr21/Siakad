@@ -70,7 +70,7 @@ export default function Pengumuman() {
   const handleOpenEdit = (row) => {
     setIsEditMode(true)
     setForm({ 
-      ID: row.ID, 
+      ID: row.id || row.ID, 
       Judul: row.Judul || row.judul || '', 
       Isi: row.Isi || row.isi || '', 
       Kategori: row.Kategori || row.kategori || row.Target || 'umum', 
@@ -82,7 +82,7 @@ export default function Pengumuman() {
   const handleSave = async (e) => {
     e.preventDefault()
     setIsSubmitting(true)
-    const url = isEditMode ? `${API}/announcements/${form.ID}` : `${API}/announcements`
+    const url = isEditMode ? `${API}/announcements/${form.ID || form.id}` : `${API}/announcements`
     const method = isEditMode ? 'PUT' : 'POST'
     try {
       const res = await fetchWithAuth(url, { 
@@ -107,7 +107,7 @@ export default function Pengumuman() {
   const handleDelete = async () => {
     setIsSubmitting(true)
     try {
-      const res = await fetchWithAuth(`${API}/announcements/${selected?.ID}`, { 
+      const res = await fetchWithAuth(`${API}/announcements/${selected?.id || selected?.ID}`, { 
         method: 'DELETE' 
       })
       if (res.status === 'success') {
@@ -278,7 +278,7 @@ export default function Pengumuman() {
                     <Badge className={cn('font-bold text-[10px] uppercase tracking-wider px-3.5 py-1 border shrink-0 rounded-full', KATEGORI_CFG[selected.Kategori || selected.kategori || selected.Target || 'umum']?.cls || 'bg-slate-50 text-slate-600 border-slate-200')}>
                       {KATEGORI_CFG[selected.Kategori || selected.kategori || selected.Target || 'umum']?.label || selected.Kategori || selected.kategori || selected.Target || 'Umum'}
                     </Badge>
-                    <span className="text-[10px] text-blue-200 font-bold tracking-[0.2em] uppercase font-headline">SIARAN ANN-{selected.ID}</span>
+                    <span className="text-[10px] text-blue-200 font-bold tracking-[0.2em] uppercase font-headline">SIARAN ANN-{selected.id || selected.ID}</span>
                   </div>
                   <h2 className="text-2xl font-black font-headline tracking-tighter leading-tight">{selected.Judul || selected.judul || '—'}</h2>
                   <div className="flex items-center gap-2 text-[10px] text-blue-200 font-bold pt-1">

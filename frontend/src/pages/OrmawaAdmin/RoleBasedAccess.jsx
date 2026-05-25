@@ -151,7 +151,7 @@ export default function RoleBasedAccess() {
   const handleSave = async (e) => {
     e.preventDefault()
     setIsSubmitting(true)
-    const url = isEditMode ? `${API}/roles/${form.ID}` : `${API}/roles`
+    const url = isEditMode ? `${API}/roles/${form.ID || form.id}` : `${API}/roles`
     const method = isEditMode ? 'PUT' : 'POST'
     try {
       const json = await fetchWithAuth(url, { 
@@ -180,7 +180,7 @@ export default function RoleBasedAccess() {
   const handleDelete = async () => {
     setIsSubmitting(true)
     try {
-      const json = await fetchWithAuth(`${API}/roles/${selected?.ID}`, { method: 'DELETE' })
+      const json = await fetchWithAuth(`${API}/roles/${selected?.id || selected?.ID}`, { method: 'DELETE' })
       if (json.status === 'success') { 
         toast.success('Role berhasil dihapus')
         setIsDelOpen(false)

@@ -184,6 +184,14 @@ func CreateProposal(c *fiber.Ctx) error {
 		Catatan:    "Proposal baru dibuat oleh sistem",
 	})
 
+	// Buat notifikasi ormawa
+	config.DB.Create(&models.OrmawaNotifikasi{
+		OrmawaID: payload.OrmawaID,
+		Tipe:     "proposal",
+		Judul:    "Proposal Baru Diajukan",
+		Pesan:    fmt.Sprintf("Proposal '%s' telah diajukan dengan anggaran Rp %.0f.", payload.Judul, payload.Anggaran),
+	})
+
 	return c.Status(201).JSON(fiber.Map{"status": "success", "data": payload})
 }
 
@@ -373,6 +381,13 @@ func CreateCashMutation(c *fiber.Ctx) error {
 		if err := tx.Create(&mutation).Error; err != nil {
 			return err
 		}
+		// Buat notifikasi ormawa
+		tx.Create(&models.OrmawaNotifikasi{
+			OrmawaID: mutation.OrmawaID,
+			Tipe:     "keuangan",
+			Judul:    "Transaksi Kas Baru",
+			Pesan:    fmt.Sprintf("Transaksi kas baru dicatat: %s sebesar Rp %.0f (%s).", mutation.Kategori, mutation.Nominal, mutation.Tipe),
+		})
 		return nil
 	})
 
@@ -417,6 +432,13 @@ func CreateEvent(c *fiber.Ctx) error {
 	if err := config.DB.Create(&payload).Error; err != nil {
 		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal menyimpan kegiatan"})
 	}
+	// Buat notifikasi ormawa
+	config.DB.Create(&models.OrmawaNotifikasi{
+		OrmawaID: payload.OrmawaID,
+		Tipe:     "kegiatan",
+		Judul:    "Agenda Baru Ditambahkan",
+		Pesan:    fmt.Sprintf("Kegiatan baru '%s' telah dijadwalkan pada %s.", payload.Judul, payload.TanggalMulai.Format("02 Jan 2006")),
+	})
 	return c.JSON(fiber.Map{"status": "success", "data": payload})
 }
 
@@ -511,6 +533,13 @@ func CreateAnnouncement(c *fiber.Ctx) error {
 		return c.Status(400).JSON(fiber.Map{"status": "error", "message": err.Error()})
 	}
 	config.DB.Create(&payload)
+	// Buat notifikasi ormawa
+	config.DB.Create(&models.OrmawaNotifikasi{
+		OrmawaID: payload.OrmawaID,
+		Tipe:     "pengumuman",
+		Judul:    "Pengumuman Baru",
+		Pesan:    fmt.Sprintf("Pengumuman baru dirilis: '%s'.", payload.Judul),
+	})
 	return c.JSON(fiber.Map{"status": "success", "data": payload})
 }
 
@@ -637,6 +666,15 @@ func CreateMember(c *fiber.Ctx) error {
 	})
 
 	config.DB.Preload("Mahasiswa").First(&member, member.ID)
+
+	// Buat notifikasi ormawa
+	config.DB.Create(&models.OrmawaNotifikasi{
+		OrmawaID: member.OrmawaID,
+		Tipe:     "anggota",
+		Judul:    "Anggota Baru Bergabung",
+		Pesan:    fmt.Sprintf("Mahasiswa %s telah bergabung dengan organisasi sebagai %s.", member.Mahasiswa.Nama, member.Role),
+	})
+
 	return c.JSON(fiber.Map{"status": "success", "data": member})
 }
 
@@ -799,6 +837,14 @@ func CreateLPJ(c *fiber.Ctx) error {
 		return c.JSON(fiber.Map{"status": "success", "data": lpj})
 	}
 
+	// Buat notifikasi ormawa
+	config.DB.Create(&models.OrmawaNotifikasi{
+		OrmawaID: lpj.Proposal.OrmawaID,
+		Tipe:     "lpj",
+		Judul:    "LPJ Baru Diajukan",
+		Pesan:    fmt.Sprintf("Laporan Pertanggungjawaban untuk proposal '%s' telah diajukan.", lpj.Proposal.Judul),
+	})
+
 	return c.JSON(fiber.Map{"status": "success", "data": fiber.Map{
 		"ID":                lpj.ID,
 		"ProposalID":        lpj.ProposalID,
@@ -862,6 +908,15 @@ func UpdateLPJ(c *fiber.Ctx) error {
 		})
 	}
 
+	if payload.Status != "" && payload.Status != oldStatus {
+		config.DB.Create(&models.OrmawaNotifikasi{
+			OrmawaID: lpj.Proposal.OrmawaID,
+			Tipe:     "lpj",
+			Judul:    "Status LPJ Berubah",
+			Pesan:    fmt.Sprintf("Status LPJ '%s' berubah menjadi '%s'.", lpj.Proposal.Judul, lpj.Status),
+		})
+	}
+
 	return c.JSON(fiber.Map{"status": "success", "data": lpj})
 }
 
@@ -917,6 +972,13 @@ func CreateAspiration(c *fiber.Ctx) error {
 	if err := config.DB.Create(&payload).Error; err != nil {
 		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal menyimpan aspirasi"})
 	}
+	// Buat notifikasi ormawa
+	config.DB.Create(&models.OrmawaNotifikasi{
+		OrmawaID: payload.OrmawaID,
+		Tipe:     "aspirasi",
+		Judul:    "Aspirasi Baru Masuk",
+		Pesan:    fmt.Sprintf("Aspirasi baru diterima dari mahasiswa: '%s'.", payload.Judul),
+	})
 	return c.Status(201).JSON(fiber.Map{"status": "success", "data": payload})
 }
 
@@ -941,6 +1003,15 @@ func UpdateAspiration(c *fiber.Ctx) error {
 	}
 
 	config.DB.Save(&aspiration)
+
+	// Buat notifikasi ormawa
+	config.DB.Create(&models.OrmawaNotifikasi{
+		OrmawaID: aspiration.OrmawaID,
+		Tipe:     "aspirasi",
+		Judul:    "Aspirasi Ditanggapi",
+		Pesan:    fmt.Sprintf("Aspirasi dengan judul '%s' telah ditanggapi oleh pengurus.", aspiration.Judul),
+	})
+
 	return c.JSON(fiber.Map{"status": "success", "data": aspiration})
 }
 

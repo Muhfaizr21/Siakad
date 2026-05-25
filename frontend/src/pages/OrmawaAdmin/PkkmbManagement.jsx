@@ -129,8 +129,8 @@ const PkkmbManagement = () => {
         const localISOTime = (new Date(d - tzOffset)).toISOString().slice(0, 16);
 
         setFormData({
-            id: item.ID,
-            judul: item.Judul,
+            id: item.id || item.ID,
+            judul: item.Judul || item.judul,
             deskripsi: item.Deskripsi,
             tanggal: localISOTime,
             lokasi: item.Lokasi
@@ -158,7 +158,7 @@ const PkkmbManagement = () => {
 
     const openEditQuiz = (q) => {
         setQuizFormData({
-            id: q.ID,
+            id: q.id || q.ID,
             judul: q.judul,
             deskripsi: q.deskripsi,
             durasi: q.durasi,
@@ -348,7 +348,7 @@ const PkkmbManagement = () => {
                                         </div>
                                     )}
                                     {kegiatans.map(k => (
-                                        <div key={k.ID} className="group border border-[#e5e5e5] p-5 rounded-2xl bg-white hover:border-primary/30 hover:shadow-md transition-all relative overflow-hidden">
+                                        <div key={k.id || k.ID} className="group border border-[#e5e5e5] p-5 rounded-2xl bg-white hover:border-primary/30 hover:shadow-md transition-all relative overflow-hidden">
                                             <div className="flex justify-between items-start mb-4">
                                                 <span className="bg-primary/10 text-primary px-3 py-1 rounded-xl text-[10px] font-black tracking-widest">
                                                     {new Date(k.Tanggal).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' })}
@@ -357,7 +357,7 @@ const PkkmbManagement = () => {
                                                     <button onClick={() => openEditModal(k)} className="p-1.5 bg-white border border-[#e5e5e5] text-[#171717] rounded-lg shadow-sm hover:text-primary hover:border-primary">
                                                         <span className="material-symbols-outlined" style={{ fontSize: '14px' }} >edit</span>
                                                     </button>
-                                                    <button onClick={() => handleDeleteKegiatan(k.ID)} className="p-1.5 bg-white border border-[#e5e5e5] text-[#dc2626] rounded-lg shadow-sm hover:border-[#dc2626] hover:bg-rose-50">
+                                                    <button onClick={() => handleDeleteKegiatan(k.id || k.ID)} className="p-1.5 bg-white border border-[#e5e5e5] text-[#dc2626] rounded-lg shadow-sm hover:border-[#dc2626] hover:bg-rose-50">
                                                         <span className="material-symbols-outlined" style={{ fontSize: '14px' }} >delete</span>
                                                     </button>
                                                 </div>
@@ -404,7 +404,7 @@ const PkkmbManagement = () => {
                                         </div>
                                     )}
                                     {quizzes.map(q => (
-                                        <div key={q.ID} className="group border border-[#e5e5e5] p-5 rounded-2xl bg-white hover:border-primary/30 hover:shadow-md transition-all relative overflow-hidden">
+                                        <div key={q.id || q.ID} className="group border border-[#e5e5e5] p-5 rounded-2xl bg-white hover:border-primary/30 hover:shadow-md transition-all relative overflow-hidden">
                                             <div className="flex justify-between items-start mb-4">
                                                 <span className={`px-3 py-1 rounded-xl text-[10px] font-black tracking-widest ${q.is_active ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-600'}`}>
                                                     {q.is_active ? 'Aktif' : 'Non-Aktif'}
@@ -413,7 +413,7 @@ const PkkmbManagement = () => {
                                                     <button onClick={() => openEditQuiz(q)} className="p-1.5 bg-white border border-[#e5e5e5] text-[#171717] rounded-lg shadow-sm hover:text-primary hover:border-primary">
                                                         <span className="material-symbols-outlined" style={{ fontSize: '14px' }} >edit</span>
                                                     </button>
-                                                    <button onClick={() => handleDeleteQuiz(q.ID)} className="p-1.5 bg-white border border-[#e5e5e5] text-[#dc2626] rounded-lg shadow-sm hover:border-[#dc2626] hover:bg-rose-50">
+                                                    <button onClick={() => handleDeleteQuiz(q.id || q.ID)} className="p-1.5 bg-white border border-[#e5e5e5] text-[#dc2626] rounded-lg shadow-sm hover:border-[#dc2626] hover:bg-rose-50">
                                                         <span className="material-symbols-outlined" style={{ fontSize: '14px' }} >delete</span>
                                                     </button>
                                                 </div>
@@ -467,7 +467,7 @@ const PkkmbManagement = () => {
                                                 <tr><td colSpan="4" className="p-8 text-center text-[11px] font-bold text-[#a3a3a3] tracking-widest">Belum ada peserta</td></tr>
                                             ) : (
                                                 students.map((s) => (
-                                                    <tr key={s.ID} className="hover:bg-[#fafafa] transition-colors">
+                                                    <tr key={s.id || s.ID} className="hover:bg-[#fafafa] transition-colors">
                                                         <td className="px-6 py-4">
                                                             <div className="flex flex-col">
                                                                 <span className="font-bold text-[#171717] text-[13px]">{s.Mahasiswa?.Nama}</span>
