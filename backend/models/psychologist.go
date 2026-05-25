@@ -38,7 +38,7 @@ type PsikologScheduleSlot struct {
 	JamSelesai string `json:"jam_selesai"`
 	Lokasi     string `json:"lokasi"`
 	Kuota      int    `json:"kuota"`
-	IsAktif    bool   `gorm:"default:true" json:"is_aktif"`
+	IsAktif    *bool  `gorm:"default:true" json:"is_aktif"`
 }
 
 func (PsikologScheduleSlot) TableName() string {
@@ -59,6 +59,8 @@ type PsikologBooking struct {
 	Keluhan      string    `json:"keluhan"`
 	Status       string    `gorm:"index" json:"status"`
 	CatatanAdmin string    `json:"catatan_admin"`
+	Mode         string    `gorm:"default:'Tatap Muka'" json:"mode"`         // "Tatap Muka" atau "Online"
+	LinkMeeting  string    `json:"link_meeting"`                              // diisi psikolog saat konfirmasi Online
 }
 
 func (PsikologBooking) TableName() string {

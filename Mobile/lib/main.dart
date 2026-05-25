@@ -11,6 +11,8 @@ import 'package:bkuhub_mobile/core/widgets/bku_app_bar.dart';
 import 'package:bkuhub_mobile/core/providers/navigation_provider.dart';
 import 'package:bkuhub_mobile/core/providers/ormawa_provider.dart';
 import 'package:bkuhub_mobile/features/counseling/presentation/providers/psychologist_dashboard_provider.dart';
+import 'package:bkuhub_mobile/features/counseling/presentation/providers/counseling_provider.dart';
+import 'package:bkuhub_mobile/features/counseling/presentation/providers/student_counseling_provider.dart';
 import 'package:bkuhub_mobile/core/network/api_client.dart';
 import 'package:bkuhub_mobile/features/mahasiswa/data/repositories/student_repository_impl.dart';
 import 'package:bkuhub_mobile/features/ormawa/data/repositories/ormawa_repository_impl.dart';
@@ -30,6 +32,8 @@ void main() async {
   BkuAppBar.defaultOnNotificationTap = (context, variant) {
     if (variant == AppBarVariant.ormawa) {
       context.push(AppRoutes.ormawaNotifications);
+    } else if (variant == AppBarVariant.psychologist) {
+      context.push(AppRoutes.psychologistNotifications);
     } else {
       context.push(AppRoutes.studentNotifications);
     }
@@ -43,6 +47,8 @@ void main() async {
         ChangeNotifierProvider(create: (_) => ScholarshipProvider()),
         ChangeNotifierProvider(create: (_) => AchievementProvider()),
         ChangeNotifierProvider(create: (_) => PsychologistDashboardProvider(repository: counselingRepository)),
+        ChangeNotifierProvider(create: (_) => CounselingProvider(repository: counselingRepository)),
+        ChangeNotifierProvider(create: (_) => StudentCounselingProvider(apiClient: apiClient)),
         ChangeNotifierProvider(create: (_) => OrmawaProvider(ormawaRepository)),
       ],
       child: const MyApp(),

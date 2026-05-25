@@ -321,73 +321,83 @@ class BkuAppBar extends StatelessWidget {
                         child: GestureDetector(
                           onTap: onProfileTap,
                           behavior: HitTestBehavior.opaque,
-                          child: Row(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              if (profileImage != null) ...[
-                                Container(
-                                  width: 60,
-                                  height: 60,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    border: Border.all(color: Colors.white.withAlpha(100), width: 2),
-                                    boxShadow: [
-                                      BoxShadow(color: Colors.black.withAlpha(40), blurRadius: 12, offset: const Offset(0, 4)),
-                                    ],
-                                  ),
-                                  child: ClipRRect(
-                                    borderRadius: BorderRadius.circular(30),
-                                    child: profileImage!,
-                                  ),
-                                ),
-                                const SizedBox(width: 16),
-                              ],
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    if (subtitle != null)
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                                        margin: const EdgeInsets.only(bottom: 4),
-                                        decoration: BoxDecoration(
-                                          color: Colors.white.withAlpha(40),
-                                          borderRadius: BorderRadius.circular(8),
-                                        ),
-                                        child: Text(
-                                          subtitle!.toUpperCase(),
-                                          style: AppTextStyles.labelSm.copyWith(
-                                            color: Colors.white,
-                                            fontSize: 9,
-                                            fontWeight: FontWeight.w900,
-                                            letterSpacing: 0.5,
-                                          ),
-                                        ),
+                              Row(
+                                children: [
+                                  if (profileImage != null) ...[
+                                    Container(
+                                      width: 60,
+                                      height: 60,
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        border: Border.all(color: Colors.white.withAlpha(100), width: 2),
+                                        boxShadow: [
+                                          BoxShadow(color: Colors.black.withAlpha(40), blurRadius: 12, offset: const Offset(0, 4)),
+                                        ],
                                       ),
-                                    Text(
-                                      title.toUpperCase(),
-                                      style: AppTextStyles.titleLg.copyWith(
-                                        color: Colors.white,
-                                        fontSize: 22,
-                                        fontWeight: FontWeight.w900,
-                                        letterSpacing: -0.5,
+                                      child: ClipRRect(
+                                        borderRadius: BorderRadius.circular(30),
+                                        child: profileImage!,
                                       ),
                                     ),
-                                    if (info != null) ...[
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        info!,
-                                        style: AppTextStyles.labelSm.copyWith(
-                                          color: Colors.white.withAlpha(180),
-                                          fontSize: 11,
-                                          fontWeight: FontWeight.w600,
-                                          letterSpacing: 0.5,
-                                        ),
-                                      ),
-                                    ],
+                                    const SizedBox(width: 16),
                                   ],
-                                ),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        if (subtitle != null)
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                            margin: const EdgeInsets.only(bottom: 4),
+                                            decoration: BoxDecoration(
+                                              color: Colors.white.withAlpha(40),
+                                              borderRadius: BorderRadius.circular(8),
+                                            ),
+                                            child: Text(
+                                              subtitle!.toUpperCase(),
+                                              style: AppTextStyles.labelSm.copyWith(
+                                                color: Colors.white,
+                                                fontSize: 9,
+                                                fontWeight: FontWeight.w900,
+                                                letterSpacing: 0.5,
+                                              ),
+                                            ),
+                                          ),
+                                        Text(
+                                          title.toUpperCase(),
+                                          style: AppTextStyles.titleLg.copyWith(
+                                            color: Colors.white,
+                                            fontSize: 22,
+                                            fontWeight: FontWeight.w900,
+                                            letterSpacing: -0.5,
+                                          ),
+                                        ),
+                                        if (info != null) ...[
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            info!,
+                                            style: AppTextStyles.labelSm.copyWith(
+                                              color: Colors.white.withAlpha(180),
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.w600,
+                                              letterSpacing: 0.5,
+                                            ),
+                                          ),
+                                        ],
+                                      ],
+                                    ),
+                                  ),
+                                ],
                               ),
+                              // ── child widget (e.g. AvailabilityToggle) ──
+                              if (child != null) ...[
+                                const SizedBox(height: 16),
+                                child!,
+                              ],
                             ],
                           ),
                         ),

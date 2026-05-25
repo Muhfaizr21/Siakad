@@ -1,4 +1,4 @@
-export const API_BASE_URL = import.meta.env.VITE_API_URL;
+export const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
 import useAuthStore from '../store/useAuthStore';
 
 export const handleResponse = async (res) => {

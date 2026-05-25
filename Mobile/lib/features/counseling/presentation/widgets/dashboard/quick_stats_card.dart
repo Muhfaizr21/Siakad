@@ -3,19 +3,32 @@ import 'package:bkuhub_mobile/core/theme/app_text_styles.dart';
 
 class QuickStatsCard extends StatelessWidget {
   final int totalAppointments;
-  final String finished;
+  final String finishedToday;
   final String waiting;
   final String newAppointments;
-  final String rating;
+  final String finishedMonth;
 
   const QuickStatsCard({
     super.key,
     required this.totalAppointments,
-    required this.finished,
+    required this.finishedToday,
     required this.waiting,
     required this.newAppointments,
-    required this.rating,
+    required this.finishedMonth,
   });
+
+  String _todayLabel() {
+    try {
+      final now = DateTime.now();
+      const dayNames = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
+      const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+      final day = dayNames[now.weekday - 1];
+      final month = monthNames[now.month - 1];
+      return '$day, ${now.day} $month ${now.year}'.toUpperCase();
+    } catch (_) {
+      return DateTime.now().toString().substring(0, 10).toUpperCase();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -45,7 +58,7 @@ class QuickStatsCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Jumat, 08 Mei 2026'.toUpperCase(),
+                    _todayLabel(),
                     style: AppTextStyles.labelSm.copyWith(
                       color: Colors.white.withAlpha(120),
                       fontWeight: FontWeight.w900,
@@ -55,7 +68,7 @@ class QuickStatsCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    'Janji Temu Hari Ini',
+                    'Janji Temu Hari Ini & Mendatang',
                     style: AppTextStyles.labelMd.copyWith(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
@@ -74,7 +87,7 @@ class QuickStatsCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'sesi konseling terjadwal untuk hari ini',
+                    'sesi konseling hari ini dan yang akan datang',
                     style: AppTextStyles.labelSm.copyWith(
                       color: Colors.white.withAlpha(150),
                       fontSize: 10,
@@ -106,10 +119,30 @@ class QuickStatsCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _buildSummaryItem(Icons.task_alt_rounded, finished, 'Selesai', const Color(0xFF10B981)),
-              _buildSummaryItem(Icons.pending_actions_rounded, waiting, 'Menunggu', Colors.amber),
-              _buildSummaryItem(Icons.notification_important_rounded, newAppointments, 'Baru', const Color(0xFFF43F5E)),
-              _buildSummaryItem(Icons.star_rounded, rating, 'Rating', Colors.orangeAccent),
+              _buildSummaryItem(
+                Icons.task_alt_rounded,
+                finishedToday,
+                'Selesai\nHari Ini',
+                const Color(0xFF10B981),
+              ),
+              _buildSummaryItem(
+                Icons.pending_actions_rounded,
+                waiting,
+                'Menunggu',
+                Colors.amber,
+              ),
+              _buildSummaryItem(
+                Icons.notification_important_rounded,
+                newAppointments,
+                'Baru\nHari Ini',
+                const Color(0xFFF43F5E),
+              ),
+              _buildSummaryItem(
+                Icons.calendar_month_rounded,
+                finishedMonth,
+                'Selesai\nBulan Ini',
+                const Color(0xFF60A5FA),
+              ),
             ],
           ),
         ],
@@ -117,7 +150,12 @@ class QuickStatsCard extends StatelessWidget {
     );
   }
 
-  Widget _buildSummaryItem(IconData icon, String value, String label, Color iconColor) {
+  Widget _buildSummaryItem(
+    IconData icon,
+    String value,
+    String label,
+    Color iconColor,
+  ) {
     return Expanded(
       child: Column(
         children: [
@@ -129,13 +167,13 @@ class QuickStatsCard extends StatelessWidget {
             ),
             child: Icon(icon, color: iconColor, size: 20),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
           Text(
             value,
             style: AppTextStyles.titleMd.copyWith(
               color: Colors.white,
               fontWeight: FontWeight.w900,
-              fontSize: 14,
+              fontSize: 16,
             ),
           ),
           const SizedBox(height: 4),
@@ -146,6 +184,7 @@ class QuickStatsCard extends StatelessWidget {
               fontSize: 9,
               fontWeight: FontWeight.w600,
             ),
+            textAlign: TextAlign.center,
           ),
         ],
       ),

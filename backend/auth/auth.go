@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"os"
 	"strings"
 	"time"
 
@@ -803,11 +804,11 @@ func ensurePsychologistBootstrap(user models.User) error {
 	}
 
 	scheduleSeeds := []models.PsikologScheduleSlot{
-		{PsikologID: psikolog.ID, Hari: "Senin", JamMulai: "09:00", JamSelesai: "12:00", Lokasi: "Ruang Konseling A", Kuota: 3, IsAktif: true},
-		{PsikologID: psikolog.ID, Hari: "Senin", JamMulai: "13:00", JamSelesai: "16:00", Lokasi: "Ruang Konseling A", Kuota: 3, IsAktif: true},
-		{PsikologID: psikolog.ID, Hari: "Selasa", JamMulai: "10:00", JamSelesai: "15:00", Lokasi: "Ruang Konseling A", Kuota: 4, IsAktif: true},
-		{PsikologID: psikolog.ID, Hari: "Rabu", JamMulai: "09:00", JamSelesai: "12:00", Lokasi: "Ruang Konseling B", Kuota: 3, IsAktif: true},
-		{PsikologID: psikolog.ID, Hari: "Jumat", JamMulai: "08:00", JamSelesai: "11:00", Lokasi: "Ruang Konseling A", Kuota: 2, IsAktif: true},
+		{PsikologID: psikolog.ID, Hari: "Senin", JamMulai: "09:00", JamSelesai: "12:00", Lokasi: "Ruang Konseling A", Kuota: 3, IsAktif: ptrBool(true)},
+		{PsikologID: psikolog.ID, Hari: "Senin", JamMulai: "13:00", JamSelesai: "16:00", Lokasi: "Ruang Konseling A", Kuota: 3, IsAktif: ptrBool(true)},
+		{PsikologID: psikolog.ID, Hari: "Selasa", JamMulai: "10:00", JamSelesai: "15:00", Lokasi: "Ruang Konseling A", Kuota: 4, IsAktif: ptrBool(true)},
+		{PsikologID: psikolog.ID, Hari: "Rabu", JamMulai: "09:00", JamSelesai: "12:00", Lokasi: "Ruang Konseling B", Kuota: 3, IsAktif: ptrBool(true)},
+		{PsikologID: psikolog.ID, Hari: "Jumat", JamMulai: "08:00", JamSelesai: "11:00", Lokasi: "Ruang Konseling A", Kuota: 2, IsAktif: ptrBool(true)},
 	}
 	for _, seed := range scheduleSeeds {
 		var existing models.PsikologScheduleSlot
@@ -838,9 +839,9 @@ func ensurePsychologistBootstrap(user models.User) error {
 			}
 			if err := config.DB.Create(&sarah).Error; err == nil {
 				sarahSlots := []models.PsikologScheduleSlot{
-					{PsikologID: sarah.ID, Hari: "Senin", JamMulai: "09:00", JamSelesai: "10:00", Lokasi: "Ruang Konseling Student Hub A", Kuota: 3, IsAktif: true},
-					{PsikologID: sarah.ID, Hari: "Rabu", JamMulai: "10:00", JamSelesai: "11:00", Lokasi: "Ruang Konseling Student Hub A", Kuota: 3, IsAktif: true},
-					{PsikologID: sarah.ID, Hari: "Jumat", JamMulai: "13:00", JamSelesai: "14:00", Lokasi: "Ruang Konseling Student Hub A", Kuota: 3, IsAktif: true},
+					{PsikologID: sarah.ID, Hari: "Senin", JamMulai: "09:00", JamSelesai: "10:00", Lokasi: "Ruang Konseling Student Hub A", Kuota: 3, IsAktif: ptrBool(true)},
+					{PsikologID: sarah.ID, Hari: "Rabu", JamMulai: "10:00", JamSelesai: "11:00", Lokasi: "Ruang Konseling Student Hub A", Kuota: 3, IsAktif: ptrBool(true)},
+					{PsikologID: sarah.ID, Hari: "Jumat", JamMulai: "13:00", JamSelesai: "14:00", Lokasi: "Ruang Konseling Student Hub A", Kuota: 3, IsAktif: ptrBool(true)},
 				}
 				for _, slot := range sarahSlots {
 					var existing models.PsikologScheduleSlot
@@ -872,8 +873,8 @@ func ensurePsychologistBootstrap(user models.User) error {
 			}
 			if err := config.DB.Create(&rian).Error; err == nil {
 				rianSlots := []models.PsikologScheduleSlot{
-					{PsikologID: rian.ID, Hari: "Selasa", JamMulai: "10:00", JamSelesai: "11:00", Lokasi: "Ruang Konseling Student Hub B", Kuota: 4, IsAktif: true},
-					{PsikologID: rian.ID, Hari: "Kamis", JamMulai: "14:00", JamSelesai: "15:00", Lokasi: "Ruang Konseling Student Hub B", Kuota: 4, IsAktif: true},
+					{PsikologID: rian.ID, Hari: "Selasa", JamMulai: "10:00", JamSelesai: "11:00", Lokasi: "Ruang Konseling Student Hub B", Kuota: 4, IsAktif: ptrBool(true)},
+					{PsikologID: rian.ID, Hari: "Kamis", JamMulai: "14:00", JamSelesai: "15:00", Lokasi: "Ruang Konseling Student Hub B", Kuota: 4, IsAktif: ptrBool(true)},
 				}
 				for _, slot := range rianSlots {
 					var existing models.PsikologScheduleSlot
@@ -890,6 +891,12 @@ func ensurePsychologistBootstrap(user models.User) error {
 		return err
 	}
 	if len(students) == 0 {
+		return nil
+	}
+
+	// Hanya seed data transaksi (booking, notes, assessments, reports, notif)
+	// jika RUN_SEED=true di .env — supaya tidak overwrite data real
+	if os.Getenv("RUN_SEED") != "true" {
 		return nil
 	}
 
@@ -983,6 +990,10 @@ func ptrTime(value time.Time) *time.Time {
 	return &value
 }
 
+func ptrBool(v bool) *bool {
+	return &v
+}
+
 func ensureUser(email, plainPassword, role string, fakultasID *uint, ormawaID *uint) (models.User, error) {
 	var user models.User
 	if err := config.DB.Where("LOWER(email) = ?", strings.ToLower(email)).First(&user).Error; err == nil {
@@ -997,9 +1008,7 @@ func ensureUser(email, plainPassword, role string, fakultasID *uint, ormawaID *u
 			updates["ormawa_id"] = *ormawaID
 		}
 
-		// Force reset password hash to match seeder
-		hash, _ := bcrypt.GenerateFromPassword([]byte(plainPassword), bcrypt.DefaultCost)
-		updates["password"] = string(hash)
+		// DO NOT reset password — respect user's ChangePassword
 
 		if len(updates) > 0 {
 			if err := config.DB.Model(&user).Updates(updates).Error; err != nil {

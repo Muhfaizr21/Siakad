@@ -27,8 +27,14 @@ class PsychologistServiceGrid extends StatelessWidget {
             onTap: () => context.push(AppRoutes.scheduleManagement),
           ),
           _ServiceItem(
-            title: 'Rekam Medis',
-            icon: Icons.description_rounded,
+            title: 'Booking',
+            icon: Icons.event_note_rounded,
+            color: const Color(0xFF06B6D4),
+            onTap: () => context.push(AppRoutes.psychologistBookings),
+          ),
+          _ServiceItem(
+            title: 'Pasien',
+            icon: Icons.people_rounded,
             color: const Color(0xFF10B981),
             onTap: () => context.push(AppRoutes.patientList),
           ),
@@ -49,12 +55,6 @@ class PsychologistServiceGrid extends StatelessWidget {
             icon: Icons.summarize_rounded,
             color: const Color(0xFFEF4444),
             onTap: () => context.push(AppRoutes.psychologistReports),
-          ),
-          _ServiceItem(
-            title: 'Booking',
-            icon: Icons.event_note_rounded,
-            color: const Color(0xFF06B6D4),
-            onTap: () => context.push(AppRoutes.psychologistBookings),
           ),
           _ServiceItem(
             title: 'Lainnya',

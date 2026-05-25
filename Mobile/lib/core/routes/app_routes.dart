@@ -19,6 +19,8 @@ import 'package:bkuhub_mobile/features/counseling/presentation/pages/psychologis
 import 'package:bkuhub_mobile/features/counseling/presentation/pages/psychologist_reports_screen.dart';
 import 'package:bkuhub_mobile/features/counseling/presentation/pages/create_psychologist_report_screen.dart';
 import 'package:bkuhub_mobile/features/counseling/presentation/pages/psychologist_bookings_screen.dart';
+import 'package:bkuhub_mobile/features/counseling/presentation/pages/psychologist_edit_profile_screen.dart';
+import 'package:bkuhub_mobile/features/counseling/presentation/pages/psychologist_notifications_screen.dart';
 import 'package:bkuhub_mobile/features/mahasiswa/health/presentation/pages/health_screen.dart';
 
 class AppRoutes {
@@ -43,10 +45,12 @@ class AppRoutes {
   static const String scheduleManagement = '/counseling/schedule-management';
   static const String addScheduleSlot = '/counseling/add-slot';
   static const String patientList = '/counseling/patients';
+  static const String psychologistEditProfile = '/counseling/edit-profile';
   
   // Notification Routes
   static const String studentNotifications = '/notifications/student';
   static const String ormawaNotifications = '/notifications/ormawa';
+  static const String psychologistNotifications = '/notifications/psychologist';
 
   // Compatibility aliases
   static const String main = studentMain;
@@ -93,7 +97,10 @@ class AppRoutes {
       ),
       GoRoute(
         path: counselingBooking,
-        builder: (context, state) => const CounselingBookingScreen(),
+        builder: (context, state) {
+          final psikologId = state.uri.queryParameters['psikolog_id'];
+          return CounselingBookingScreen(psikologId: psikologId);
+        },
       ),
       GoRoute(
         path: studentNotifications,
@@ -102,6 +109,10 @@ class AppRoutes {
       GoRoute(
         path: ormawaNotifications,
         builder: (context, state) => const OrmawaNotificationsScreen(),
+      ),
+      GoRoute(
+        path: psychologistNotifications,
+        builder: (context, state) => const PsychologistNotificationsScreen(),
       ),
       GoRoute(
         path: scheduleManagement,
@@ -142,6 +153,10 @@ class AppRoutes {
           final studentId = state.uri.queryParameters['id'] ?? '000000';
           return SessionNoteScreen(studentName: studentName, studentId: studentId);
         },
+      ),
+      GoRoute(
+        path: psychologistEditProfile,
+        builder: (context, state) => const PsychologistEditProfileScreen(),
       ),
     ],
   );

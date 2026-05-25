@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
-import 'package:bkuhub_mobile/core/routes/app_routes.dart';
 import 'package:bkuhub_mobile/core/theme/app_colors.dart';
 import 'package:bkuhub_mobile/core/theme/app_text_styles.dart';
 
@@ -29,48 +27,20 @@ class UpcomingAppointmentsCard extends StatelessWidget {
         children: [
           Padding(
             padding: const EdgeInsets.all(20),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Jadwal Hari Ini',
-                      style: AppTextStyles.labelMd.copyWith(
-                        color: AppColors.outline,
-                      ),
-                    ),
-                    Text(
-                      _todayDate(),
-                      style: AppTextStyles.titleMd.copyWith(
-                        color: AppColors.primary,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                  ],
+                Text(
+                  'Jadwal Hari Ini',
+                  style: AppTextStyles.labelMd.copyWith(
+                    color: AppColors.outline,
+                  ),
                 ),
-                GestureDetector(
-                  onTap: () => context.push(AppRoutes.scheduleManagement),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF1F5F9),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.calendar_month_rounded, size: 16, color: AppColors.primary),
-                        const SizedBox(width: 8),
-                        Text(
-                          'Lihat Semua',
-                          style: AppTextStyles.labelSm.copyWith(
-                            color: AppColors.primary,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
+                Text(
+                  _todayDate(),
+                  style: AppTextStyles.titleMd.copyWith(
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.w900,
                   ),
                 ),
               ],
@@ -186,25 +156,37 @@ class _AppointmentItem extends StatelessWidget {
             ),
           ),
           if (isActive)
-            ElevatedButton(
-              onPressed: () {
-                final uri = Uri(
-                  path: AppRoutes.sessionNote,
-                  queryParameters: {'name': name, 'id': id},
-                );
-                context.push(uri.toString());
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                elevation: 0,
-                padding: const EdgeInsets.symmetric(horizontal: 16),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withAlpha(20),
+                borderRadius: BorderRadius.circular(12),
               ),
-              child: const Text('Mulai'),
+              child: Text(
+                'Aktif',
+                style: TextStyle(
+                  color: AppColors.primary,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             )
           else
-            const Icon(Icons.chevron_right_rounded, color: AppColors.outline),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: BoxDecoration(
+                color: Colors.grey.withAlpha(20),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                'Menunggu',
+                style: TextStyle(
+                  color: Colors.grey[600],
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
         ],
       ),
     );

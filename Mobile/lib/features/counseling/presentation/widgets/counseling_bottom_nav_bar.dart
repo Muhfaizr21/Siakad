@@ -85,9 +85,10 @@ class _CounselingBottomNavBarState extends State<CounselingBottomNavBar> with Si
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  _buildNavItem(0, Icons.dashboard_rounded, 'Dashboard'),
-                  _buildNavItem(1, Icons.people_alt_rounded, 'Pasien'),
-                  _buildNavItem(2, Icons.settings_rounded, 'Settings'),
+                  _buildNavItem(0, Icons.dashboard_rounded, 'Home'),
+                  _buildNavItem(1, Icons.event_note_rounded, 'Booking'),
+                  _buildNavItem(2, Icons.people_alt_rounded, 'Pasien'),
+                  _buildNavItem(3, Icons.settings_rounded, 'Settings'),
                 ],
               ),
             ),
@@ -104,7 +105,7 @@ class _CounselingBottomNavBarState extends State<CounselingBottomNavBar> with Si
       onTap: () => widget.onTap(index),
       behavior: HitTestBehavior.opaque,
       child: SizedBox(
-        width: MediaQuery.of(context).size.width / 3.5,
+        width: MediaQuery.of(context).size.width / 4,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.end,
@@ -123,17 +124,18 @@ class _CounselingBottomNavBarState extends State<CounselingBottomNavBar> with Si
                     )
                   else
                     _buildIconBox(icon, isSelected),
-                  
                   if (isSelected)
                     Padding(
-                      padding: const EdgeInsets.only(top: 6),
+                      padding: const EdgeInsets.only(top: 4),
                       child: Text(
                         label,
                         style: TextStyle(
-                          fontSize: 10,
+                          fontSize: 9,
                           fontWeight: FontWeight.bold,
                           color: primaryColor,
                         ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
                 ],

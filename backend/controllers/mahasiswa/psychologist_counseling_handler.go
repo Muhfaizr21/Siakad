@@ -73,6 +73,8 @@ func psychologistBookingResponse(booking models.PsikologBooking) fiber.Map {
 		"complaint":       booking.Keluhan,
 		"status":          booking.Status,
 		"admin_note":      booking.CatatanAdmin,
+		"mode":            booking.Mode,
+		"link_meeting":    booking.LinkMeeting,
 	}
 }
 
@@ -137,6 +139,12 @@ func GetPsychologistSchedules(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusNotFound, "Psikolog tidak ditemukan")
 	}
 
+	// Ambil student ID untuk cek booking aktif mahasiswa ini
+	var studentID uint
+	if student, err := getStudent(c); err == nil {
+		studentID = student.ID
+	}
+
 	var slots []models.PsikologScheduleSlot
 	if err := config.DB.Where("psikolog_id = ? AND is_aktif = ?", psikolog.ID, true).Order("hari asc, jam_mulai asc").Find(&slots).Error; err != nil {
 		return err
@@ -156,18 +164,55 @@ func GetPsychologistSchedules(c *fiber.Ctx) error {
 
 	items := make([]fiber.Map, 0, len(slots))
 	for _, slot := range slots {
+		nextDate := nextDateForIndonesianDay(slot.Hari).Truncate(24 * time.Hour)
+
+		// Hitung booking aktif HANYA untuk tanggal occurrence berikutnya dari slot ini
+		// Ini memastikan booking dari minggu lalu tidak ikut terhitung
+		var activeBookings int64
+		config.DB.Model(&models.PsikologBooking{}).
+			Where("psikolog_id = ? AND jam_mulai = ? AND DATE(tanggal) = DATE(?) AND status IN ?",
+				psikolog.ID, slot.JamMulai, nextDate, []string{"Menunggu", "Dikonfirmasi"}).
+			Count(&activeBookings)
+
+		remaining := slot.Kuota - int(activeBookings)
+		if remaining < 0 {
+			remaining = 0
+		}
+
+		// Cek apakah mahasiswa INI sudah booking slot ini untuk tanggal berikutnya
+		alreadyBooked := false
+		if studentID > 0 {
+			var studentBooking int64
+			config.DB.Model(&models.PsikologBooking{}).
+				Where("psikolog_id = ? AND mahasiswa_id = ? AND jam_mulai = ? AND DATE(tanggal) = DATE(?) AND status IN ?",
+					psikolog.ID, studentID, slot.JamMulai, nextDate, []string{"Menunggu", "Dikonfirmasi"}).
+				Count(&studentBooking)
+			alreadyBooked = studentBooking > 0
+		}
+
 		items = append(items, fiber.Map{
-			"id":          slot.ID,
-			"day":         slot.Hari,
-			"category":    firstNonEmpty(slot.Kategori, counselingCategoryFromSpecialization(psikolog.Spesialisasi)),
-			"start":       slot.JamMulai,
-			"end":         slot.JamSelesai,
-			"location":    slot.Lokasi,
-			"quota":       slot.Kuota,
-			"is_active":   slot.IsAktif,
-			"next_date":   nextDateForIndonesianDay(slot.Hari).Format("2006-01-02"),
-			"display":     fmt.Sprintf("%s, %s - %s", slot.Hari, slot.JamMulai, slot.JamSelesai),
-			"psikolog_id": psikolog.ID,
+			"id":             slot.ID,
+			"day":            slot.Hari,
+			"hari":           slot.Hari,
+			"category":       firstNonEmpty(slot.Kategori, counselingCategoryFromSpecialization(psikolog.Spesialisasi)),
+			"kategori":       firstNonEmpty(slot.Kategori, counselingCategoryFromSpecialization(psikolog.Spesialisasi)),
+			"start":          slot.JamMulai,
+			"jam_mulai":      slot.JamMulai,
+			"end":            slot.JamSelesai,
+			"jam_selesai":    slot.JamSelesai,
+			"location":       slot.Lokasi,
+			"lokasi":         slot.Lokasi,
+			"quota":          slot.Kuota,
+			"kuota":          slot.Kuota,
+			"sisa_kuota":     remaining,
+			"active_bookings": activeBookings,
+			"already_booked": alreadyBooked,
+			"is_active":      slot.IsAktif,
+			"next_date":      nextDate.Format("2006-01-02"),
+			"tanggal":        nextDate.Format("2006-01-02"),
+			"display_date":   nextDate.Format("02 Jan 2006"),
+			"display":        fmt.Sprintf("%s, %s - %s", slot.Hari, slot.JamMulai, slot.JamSelesai),
+			"psikolog_id":    psikolog.ID,
 		})
 	}
 
@@ -176,6 +221,12 @@ func GetPsychologistSchedules(c *fiber.Ctx) error {
 
 // GetAvailablePsychologistSchedules returns every active psychologist slot that students can book.
 func GetAvailablePsychologistSchedules(c *fiber.Ctx) error {
+	// Ambil student ID untuk cek booking aktif mahasiswa ini
+	var studentID uint
+	if student, err := getStudent(c); err == nil {
+		studentID = student.ID
+	}
+
 	var slots []models.PsikologScheduleSlot
 	if err := config.DB.
 		Preload("Psikolog").
@@ -188,16 +239,31 @@ func GetAvailablePsychologistSchedules(c *fiber.Ctx) error {
 
 	items := make([]fiber.Map, 0, len(slots))
 	for _, slot := range slots {
-		nextDate, _ := time.Parse("2006-01-02", nextDateForIndonesianDay(slot.Hari).Format("2006-01-02"))
+		nextDate := nextDateForIndonesianDay(slot.Hari).Truncate(24 * time.Hour)
+
+		// Hitung booking aktif HANYA untuk tanggal occurrence berikutnya
 		var activeBookings int64
 		config.DB.Model(&models.PsikologBooking{}).
-			Where("psikolog_id = ? AND tanggal = ? AND jam_mulai = ? AND status IN ?", slot.PsikologID, nextDate, slot.JamMulai, []string{"Menunggu", "Dikonfirmasi"}).
+			Where("psikolog_id = ? AND jam_mulai = ? AND DATE(tanggal) = DATE(?) AND status IN ?",
+				slot.PsikologID, slot.JamMulai, nextDate, []string{"Menunggu", "Dikonfirmasi"}).
 			Count(&activeBookings)
 
 		remaining := slot.Kuota - int(activeBookings)
 		if remaining < 0 {
 			remaining = 0
 		}
+
+		// Cek apakah mahasiswa INI sudah booking slot ini untuk tanggal berikutnya
+		alreadyBooked := false
+		if studentID > 0 {
+			var studentBooking int64
+			config.DB.Model(&models.PsikologBooking{}).
+				Where("psikolog_id = ? AND mahasiswa_id = ? AND jam_mulai = ? AND DATE(tanggal) = DATE(?) AND status IN ?",
+					slot.PsikologID, studentID, slot.JamMulai, nextDate, []string{"Menunggu", "Dikonfirmasi"}).
+				Count(&studentBooking)
+			alreadyBooked = studentBooking > 0
+		}
+
 		category := firstNonEmpty(slot.Kategori, counselingCategoryFromSpecialization(slot.Psikolog.Spesialisasi))
 
 		items = append(items, fiber.Map{
@@ -218,6 +284,7 @@ func GetAvailablePsychologistSchedules(c *fiber.Ctx) error {
 			"kuota":           slot.Kuota,
 			"sisa_kuota":      remaining,
 			"active_bookings": activeBookings,
+			"already_booked":  alreadyBooked,
 			"is_active":       slot.IsAktif,
 		})
 	}
@@ -329,6 +396,7 @@ func CreateStudentPsychologistBooking(c *fiber.Ctx) error {
 		End        string `json:"end"`
 		Topic      string `json:"topic"`
 		Complaint  string `json:"complaint"`
+		Mode       string `json:"mode"` // "Tatap Muka" atau "Online"
 	}
 	if err := c.BodyParser(&body); err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, "Payload booking tidak valid")
@@ -368,13 +436,18 @@ func CreateStudentPsychologistBooking(c *fiber.Ctx) error {
 		body.Topic = "Konseling"
 	}
 
+	// Cek booking aktif untuk slot ini — hanya untuk tanggal yang sama persis
 	var existing int64
 	config.DB.Model(&models.PsikologBooking{}).
-		Where("psikolog_id = ? AND tanggal = ? AND jam_mulai = ? AND status IN ?", psikolog.ID, date, body.Start, []string{"Menunggu", "Dikonfirmasi"}).
+		Where("psikolog_id = ? AND jam_mulai = ? AND DATE(tanggal) = DATE(?) AND status IN ?",
+			psikolog.ID, body.Start, date, []string{"Menunggu", "Dikonfirmasi"}).
 		Count(&existing)
+
+	// Cek apakah mahasiswa ini sudah booking slot yang sama pada tanggal yang sama
 	var studentExisting int64
 	config.DB.Model(&models.PsikologBooking{}).
-		Where("psikolog_id = ? AND mahasiswa_id = ? AND tanggal = ? AND jam_mulai = ? AND status IN ?", psikolog.ID, student.ID, date, body.Start, []string{"Menunggu", "Dikonfirmasi"}).
+		Where("psikolog_id = ? AND mahasiswa_id = ? AND jam_mulai = ? AND DATE(tanggal) = DATE(?) AND status IN ?",
+			psikolog.ID, student.ID, body.Start, date, []string{"Menunggu", "Dikonfirmasi"}).
 		Count(&studentExisting)
 	if studentExisting > 0 {
 		return fiber.NewError(fiber.StatusConflict, "Kamu sudah memiliki booking aktif pada slot ini")
@@ -388,6 +461,11 @@ func CreateStudentPsychologistBooking(c *fiber.Ctx) error {
 		return fiber.NewError(fiber.StatusConflict, "Slot ini sudah memiliki booking aktif")
 	}
 
+	mode := body.Mode
+	if mode != "Online" {
+		mode = "Tatap Muka"
+	}
+
 	booking := models.PsikologBooking{
 		PsikologID:  psikolog.ID,
 		MahasiswaID: student.ID,
@@ -397,6 +475,7 @@ func CreateStudentPsychologistBooking(c *fiber.Ctx) error {
 		Topik:       body.Topic,
 		Keluhan:     body.Complaint,
 		Status:      "Menunggu",
+		Mode:        mode,
 	}
 	if err := config.DB.Create(&booking).Error; err != nil {
 		return err
@@ -406,7 +485,7 @@ func CreateStudentPsychologistBooking(c *fiber.Ctx) error {
 		PsikologID: psikolog.ID,
 		UserID:     psikolog.UserID,
 		Judul:      "Booking Konseling Baru",
-		Deskripsi:  fmt.Sprintf("%s mengajukan booking konseling %s pukul %s.", student.Nama, date.Format("02 Jan 2006"), booking.JamMulai),
+		Deskripsi:  fmt.Sprintf("%s mengajukan booking konseling %s (%s) pukul %s.", student.Nama, date.Format("02 Jan 2006"), mode, booking.JamMulai),
 		Tipe:       "booking",
 		IsRead:     false,
 	}

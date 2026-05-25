@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:bkuhub_mobile/core/theme/app_colors.dart';
 import 'package:bkuhub_mobile/core/theme/app_text_styles.dart';
 import 'package:bkuhub_mobile/core/widgets/bku_app_bar.dart';
+import 'package:bkuhub_mobile/features/counseling/presentation/providers/counseling_provider.dart';
 
 class AddScheduleSlotScreen extends StatefulWidget {
   const AddScheduleSlotScreen({super.key});
@@ -14,6 +16,7 @@ class _AddScheduleSlotScreenState extends State<AddScheduleSlotScreen> {
   TimeOfDay startTime = const TimeOfDay(hour: 8, minute: 0);
   TimeOfDay endTime = const TimeOfDay(hour: 9, minute: 0);
   String selectedDay = 'Senin';
+  int selectedKuota = 1;
   final TextEditingController roomController = TextEditingController(text: 'Ruang Konseling A');
   bool isRecurring = false;
   
@@ -78,6 +81,9 @@ class _AddScheduleSlotScreenState extends State<AddScheduleSlotScreen> {
                       const SizedBox(height: 20),
                       _buildLabel('Lokasi / Ruangan'),
                       _buildRoomTextField(),
+                      const SizedBox(height: 20),
+                      _buildLabel('Kuota (maks mahasiswa per slot)'),
+                      _buildKuotaSelector(),
                     ],
                   ),
                   const SizedBox(height: 32),
@@ -274,6 +280,47 @@ class _AddScheduleSlotScreenState extends State<AddScheduleSlotScreen> {
   }
 
 
+  Widget _buildKuotaSelector() {
+    return Row(
+      children: [
+        GestureDetector(
+          onTap: () { if (selectedKuota > 1) setState(() => selectedKuota--); },
+          child: Container(
+            width: 40, height: 40,
+            decoration: BoxDecoration(
+              color: selectedKuota > 1 ? AppColors.primary.withAlpha(15) : Colors.grey.withAlpha(10),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(Icons.remove_rounded,
+                color: selectedKuota > 1 ? AppColors.primary : Colors.grey, size: 20),
+          ),
+        ),
+        const SizedBox(width: 16),
+        Text('$selectedKuota mahasiswa',
+            style: AppTextStyles.bodyLg.copyWith(fontWeight: FontWeight.w900)),
+        const SizedBox(width: 16),
+        GestureDetector(
+          onTap: () { if (selectedKuota < 10) setState(() => selectedKuota++); },
+          child: Container(
+            width: 40, height: 40,
+            decoration: BoxDecoration(
+              color: AppColors.primary.withAlpha(15),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: const Icon(Icons.add_rounded, color: AppColors.primary, size: 20),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Text(
+            selectedKuota == 1 ? '(1 slot = 1 mahasiswa)' : '(maks $selectedKuota mahasiswa)',
+            style: AppTextStyles.labelSm.copyWith(color: const Color(0xFF94A3B8)),
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildBottomAction() {
     return Container(
       padding: const EdgeInsets.all(24),
@@ -286,7 +333,7 @@ class _AddScheduleSlotScreenState extends State<AddScheduleSlotScreen> {
       ),
       child: SafeArea(
         child: ElevatedButton(
-          onPressed: () => Navigator.pop(context),
+          onPressed: () => _saveSlot(context),
           style: ElevatedButton.styleFrom(
             backgroundColor: AppColors.primary,
             foregroundColor: Colors.white,
@@ -301,6 +348,92 @@ class _AddScheduleSlotScreenState extends State<AddScheduleSlotScreen> {
         ),
       ),
     );
+  }
+
+  Future<void> _saveSlot(BuildContext context) async {
+    // Validasi waktu
+    final startMinutes = startTime.hour * 60 + startTime.minute;
+    final endMinutes = endTime.hour * 60 + endTime.minute;
+    if (endMinutes <= startMinutes) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Jam selesai harus lebih dari jam mulai'),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
+    final provider = context.read<CounselingProvider>();
+
+    // Format waktu ke HH:mm (24-jam) — bukan format(context) yang bisa return AM/PM
+    String formatTime(TimeOfDay t) =>
+        '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
+
+    // Ambil jadwal terkini dari provider (sudah di-load)
+    final currentSchedules = provider.schedules
+        .map((d) => Map<String, dynamic>.from(d))
+        .toList();
+
+    final newSlot = {
+      'kategori': '',
+      'start': formatTime(startTime),
+      'end': formatTime(endTime),
+      'lokasi': roomController.text.trim(),
+      'kuota': selectedKuota,
+    };
+
+    // Cek duplikat slot di hari yang sama
+    final dayIdx = currentSchedules.indexWhere((d) => d['day'] == selectedDay);
+    if (dayIdx != -1) {
+      final existingSlots = (currentSchedules[dayIdx]['slots'] as List? ?? [])
+          .cast<Map<String, dynamic>>();
+      final isDuplicate = existingSlots.any((s) =>
+          s['start'] == newSlot['start'] && s['end'] == newSlot['end']);
+      if (isDuplicate) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Slot dengan jam yang sama sudah ada di hari ini'),
+              backgroundColor: Colors.orange,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+        return;
+      }
+      final slots = List<Map<String, dynamic>>.from(existingSlots);
+      slots.add(newSlot);
+      // Sort by start time
+      slots.sort((a, b) => (a['start'] as String).compareTo(b['start'] as String));
+      currentSchedules[dayIdx] = {
+        ...currentSchedules[dayIdx],
+        'enabled': true,
+        'slots': slots,
+      };
+    } else {
+      currentSchedules.add({
+        'day': selectedDay,
+        'enabled': true,
+        'slots': [newSlot],
+      });
+    }
+
+    final success = await provider.saveSchedules(currentSchedules);
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(success
+              ? 'Slot jadwal berhasil ditambahkan!'
+              : 'Gagal menyimpan slot. Coba lagi.'),
+          backgroundColor: success ? AppColors.primary : Colors.red,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
+      );
+      if (success) Navigator.pop(context);
+    }
   }
 
 

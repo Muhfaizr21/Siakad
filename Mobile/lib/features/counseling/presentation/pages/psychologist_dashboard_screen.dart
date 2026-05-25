@@ -10,6 +10,7 @@ import 'package:bkuhub_mobile/features/counseling/presentation/widgets/dashboard
 import 'package:bkuhub_mobile/features/counseling/presentation/widgets/dashboard/psychologist_analytics_card.dart';
 import 'package:bkuhub_mobile/features/counseling/presentation/widgets/dashboard/psychologist_security_card.dart';
 import 'package:bkuhub_mobile/features/counseling/presentation/providers/psychologist_dashboard_provider.dart';
+import 'package:bkuhub_mobile/features/counseling/presentation/providers/counseling_provider.dart';
 
 class PsychologistDashboardScreen extends StatefulWidget {
   const PsychologistDashboardScreen({super.key});
@@ -24,6 +25,10 @@ class _PsychologistDashboardScreenState extends State<PsychologistDashboardScree
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<PsychologistDashboardProvider>().loadDashboardData();
+      // Load notifikasi untuk badge count
+      context.read<CounselingProvider>().loadNotifications();
+      // Load analytics untuk card tren
+      context.read<CounselingProvider>().loadAnalytics();
     });
   }
 
@@ -45,11 +50,11 @@ class _PsychologistDashboardScreenState extends State<PsychologistDashboardScree
                       _buildSectionHeader('Ringkasan Hari Ini'),
                       const SizedBox(height: 16),
                       QuickStatsCard(
-                        totalAppointments: provider.upcomingBookings.length,
-                        finished: provider.stats.length > 1 ? '${provider.stats[1]['value'] ?? 0}' : '0',
+                        totalAppointments: provider.upcomingAppointments,
+                        finishedToday: '${provider.completedToday}',
                         waiting: '${provider.waitingCount}',
-                        newAppointments: '${provider.waitingCount}',
-                        rating: '${provider.confirmedCount > 0 ? 92 : 0}%',
+                        newAppointments: '${provider.newToday}',
+                        finishedMonth: '${provider.completedThisMonth}',
                       ),
                       const SizedBox(height: 24),
                       _buildSectionHeader('Layanan Utama'),
@@ -82,20 +87,48 @@ class _PsychologistDashboardScreenState extends State<PsychologistDashboardScree
   }
 
   Widget _buildAppBar(BuildContext context, PsychologistDashboardProvider provider) {
+    final name = provider.profile?.name ?? 'Psikolog';
+    final imageUrl = provider.profile?.profileImageUrl ?? '';
+    final initials = name.trim().isEmpty ? 'P' : name.trim().split(' ').take(2).map((w) => w[0].toUpperCase()).join();
+    final unreadCount = context.watch<CounselingProvider>().unreadCount;
+
     return BkuAppBar(
-      title: provider.profile?.name ?? 'DR. SARAH SP.PSI',
+      title: name,
       subtitle: 'SELAMAT DATANG',
       info: 'NIDN: ${provider.profile?.nidn ?? '-'} • ${provider.profile?.specialization ?? 'PSIKOLOG'}',
       variant: AppBarVariant.psychologist,
       expandedHeight: 210,
       showProfileOnCollapse: true,
-      profileImage: Image.network(
-        provider.profile?.profileImageUrl ?? 'https://ui-avatars.com/api/?name=P&background=003399&color=fff&size=128',
-        fit: BoxFit.cover,
-      ),
+      notificationCount: unreadCount,
+      profileImage: imageUrl.isNotEmpty
+          ? Image.network(
+              imageUrl,
+              fit: BoxFit.cover,
+              errorBuilder: (_, __, ___) => _buildInitialsAvatar(initials),
+              loadingBuilder: (_, child, progress) =>
+                  progress == null ? child : _buildInitialsAvatar(initials),
+            )
+          : _buildInitialsAvatar(initials),
       child: AvailabilityToggle(
         isAvailable: provider.isAvailable,
         onToggle: (value) => provider.toggleAvailability(),
+      ),
+    );
+  }
+
+  Widget _buildInitialsAvatar(String initials) {
+    return Container(
+      color: const Color(0xFF001A4D),
+      child: Center(
+        child: Text(
+          initials,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 28,
+            fontWeight: FontWeight.w900,
+            letterSpacing: 1,
+          ),
+        ),
       ),
     );
   }

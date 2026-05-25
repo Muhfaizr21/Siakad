@@ -1,8 +1,7 @@
 import 'package:bkuhub_mobile/features/counseling/domain/entities/psychologist.dart';
-import 'package:bkuhub_mobile/features/counseling/domain/entities/counseling_session.dart';
 import 'package:bkuhub_mobile/features/counseling/domain/repositories/counseling_repository.dart';
 import 'package:bkuhub_mobile/core/network/api_client.dart';
-import 'package:dio/dio.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:developer';
 
 class CounselingRepositoryImpl implements CounselingRepository {
@@ -87,11 +86,12 @@ class CounselingRepositoryImpl implements CounselingRepository {
   }
 
   @override
-  Future<void> updateBookingStatus(String id, String status, {String? note}) async {
+  Future<void> updateBookingStatus(String id, String status, {String? note, String? linkMeeting}) async {
     try {
       await apiClient.client.put('/psychologist/bookings/$id/status', data: {
         'status': status,
         if (note != null) 'note': note,
+        if (linkMeeting != null && linkMeeting.isNotEmpty) 'link_meeting': linkMeeting,
       });
     } catch (e) {
       log('Error updating booking status: $e');
@@ -166,6 +166,20 @@ class CounselingRepositoryImpl implements CounselingRepository {
   }
 
   @override
+  Future<void> updatePatientStatus(String patientId, String status, {String? notes}) async {
+    try {
+      final data = {
+        'status': status,
+        if (notes != null && notes.isNotEmpty) 'notes': notes,
+      };
+      await apiClient.client.put('/psychologist/patients/$patientId/status', data: data);
+    } catch (e) {
+      log('Error updating patient status: $e');
+      rethrow;
+    }
+  }
+
+  @override
   Future<Map<String, dynamic>> getAssessments() async {
     try {
       final response = await apiClient.client.get('/psychologist/assessments');
@@ -182,6 +196,18 @@ class CounselingRepositoryImpl implements CounselingRepository {
       await apiClient.client.post('/psychologist/assessments', data: data);
     } catch (e) {
       log('Error creating assessment: $e');
+      rethrow;
+    }
+  }
+
+  @override
+  Future<void> submitAssessmentResult(Map<String, dynamic> data) async {
+    try {
+      // Mahasiswa submit hasil asesmen ke endpoint psikolog
+      // Backend akan update PsikologAssessment dengan mahasiswa_id, skor, status=Selesai
+      await apiClient.client.post('/psychologist/assessments', data: data);
+    } catch (e) {
+      log('Error submitting assessment result: $e');
       rethrow;
     }
   }
@@ -213,11 +239,28 @@ class CounselingRepositoryImpl implements CounselingRepository {
   }
 
   @override
-  Future<void> createReport() async {
+  Future<Map<String, dynamic>> createReport({required String tipe, required String periode}) async {
     try {
-      await apiClient.client.post('/psychologist/reports');
+      final response = await apiClient.client.post('/psychologist/reports', data: {
+        'tipe': tipe,
+        'periode': periode,
+      });
+      return response.data['data'] ?? {};
     } catch (e) {
       log('Error creating report: $e');
+      rethrow;
+    }
+  }
+
+  @override
+  Future<String> downloadReport(String reportId) async {
+    try {
+      final baseUrl = apiClient.client.options.baseUrl;
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('access_token') ?? '';
+      return '$baseUrl/psychologist/reports/$reportId/download?token=$token';
+    } catch (e) {
+      log('Error getting download URL: $e');
       rethrow;
     }
   }

@@ -10,17 +10,21 @@ import (
 )
 
 func AuthProtected(c *fiber.Ctx) error {
+	var tokenString string
 	authHeader := c.Get("Authorization")
 	if authHeader == "" {
-		return c.Status(401).JSON(fiber.Map{"status": "error", "message": "Missing Authorization header"})
+		tokenString = c.Query("token")
+		if tokenString == "" {
+			return c.Status(401).JSON(fiber.Map{"status": "error", "message": "Missing Authorization header"})
+		}
+	} else {
+		parts := strings.Split(authHeader, " ")
+		if len(parts) != 2 || parts[0] != "Bearer" {
+			return c.Status(401).JSON(fiber.Map{"status": "error", "message": "Invalid Authorization header format"})
+		}
+		tokenString = parts[1]
 	}
 
-	parts := strings.Split(authHeader, " ")
-	if len(parts) != 2 || parts[0] != "Bearer" {
-		return c.Status(401).JSON(fiber.Map{"status": "error", "message": "Invalid Authorization header format"})
-	}
-
-	tokenString := parts[1]
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		return config.GetJWTSecret(), nil
 	})

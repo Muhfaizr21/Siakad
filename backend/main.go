@@ -43,20 +43,10 @@ func main() {
 	app.Use(recover.New())
 	app.Use(logger.New())
 
-	frontendURL := os.Getenv("FRONTEND_URL")
-	if frontendURL == "" {
-		frontendURL = "http://localhost:5173" // fallback
-	}
-
-	allowOrigins := frontendURL
-	if frontendURL != "http://localhost:5173" {
-		allowOrigins = frontendURL + ", http://localhost:5173, http://127.0.0.1:5173"
-	} else {
-		allowOrigins = "http://localhost:5173, http://127.0.0.1:5173"
-	}
-
 	app.Use(cors.New(cors.Config{
-		AllowOrigins:     allowOrigins,
+		AllowOriginsFunc: func(origin string) bool {
+			return true
+		},
 		AllowHeaders:     "Origin, Content-Type, Accept, Authorization, X-Requested-With",
 		AllowMethods:     "GET, POST, PUT, DELETE, OPTIONS",
 		AllowCredentials: true,

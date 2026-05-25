@@ -1,16 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:bkuhub_mobile/core/theme/app_colors.dart';
 import 'package:bkuhub_mobile/core/theme/app_text_styles.dart';
 import 'package:bkuhub_mobile/core/widgets/bku_app_bar.dart';
+import 'package:bkuhub_mobile/features/counseling/presentation/providers/counseling_provider.dart';
 
 class SessionNoteScreen extends StatefulWidget {
   final String studentName;
   final String studentId;
+  final String? bookingId;
+  final int? sessionNumber;
 
   const SessionNoteScreen({
     super.key,
     required this.studentName,
     required this.studentId,
+    this.bookingId,
+    this.sessionNumber,
   });
 
   @override
@@ -18,9 +24,25 @@ class SessionNoteScreen extends StatefulWidget {
 }
 
 class _SessionNoteScreenState extends State<SessionNoteScreen> {
-  final TextEditingController _notesController = TextEditingController();
-  final TextEditingController _planController = TextEditingController();
+  final _complaintCtrl = TextEditingController();
+  final _observationCtrl = TextEditingController();
+  final _recommendationCtrl = TextEditingController();
+  String _selectedMood = 'Netral';
+  String _selectedType = 'Konseling Baru';
+  String _selectedStatus = 'Aktif';
   bool _isSaving = false;
+
+  final List<String> _moods = ['Baik', 'Netral', 'Cemas', 'Sedih', 'Stres', 'Marah'];
+  final List<String> _types = ['Konseling Baru', 'Konseling Lanjutan', 'Krisis', 'Evaluasi'];
+  final List<String> _statuses = ['Aktif', 'Stabil', 'Pemulihan', 'Membaik', 'Perlu Perhatian'];
+
+  @override
+  void dispose() {
+    _complaintCtrl.dispose();
+    _observationCtrl.dispose();
+    _recommendationCtrl.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -28,7 +50,7 @@ class _SessionNoteScreenState extends State<SessionNoteScreen> {
       backgroundColor: Colors.white,
       body: CustomScrollView(
         slivers: [
-          BkuAppBar(
+          const BkuAppBar(
             title: 'CATATAN SESI',
             subtitle: 'ELECTRONIC HEALTH RECORD',
             variant: AppBarVariant.psychologist,
@@ -45,20 +67,18 @@ class _SessionNoteScreenState extends State<SessionNoteScreen> {
                   _buildConfidentialBanner(),
                   const SizedBox(height: 24),
                   _buildStudentInfo(),
-                  const SizedBox(height: 32),
-                  _buildInputSection(
-                    'Ringkasan Sesi & Observasi',
-                    'Tuliskan poin-poin utama dari sesi hari ini...',
-                    _notesController,
-                    10,
-                  ),
                   const SizedBox(height: 24),
-                  _buildInputSection(
-                    'Rencana Tindak Lanjut',
-                    'Apa langkah selanjutnya untuk mahasiswa ini?',
-                    _planController,
-                    5,
-                  ),
+                  _buildInputSection('Keluhan Utama', 'Tuliskan keluhan yang disampaikan mahasiswa...', _complaintCtrl, 4),
+                  const SizedBox(height: 20),
+                  _buildInputSection('Observasi & Catatan Sesi', 'Tuliskan observasi dan poin-poin utama sesi...', _observationCtrl, 6),
+                  const SizedBox(height: 20),
+                  _buildInputSection('Rekomendasi & Tindak Lanjut', 'Apa langkah selanjutnya untuk mahasiswa ini?', _recommendationCtrl, 4),
+                  const SizedBox(height: 24),
+                  _buildDropdownSection('Mood Mahasiswa', _moods, _selectedMood, (v) => setState(() => _selectedMood = v!)),
+                  const SizedBox(height: 16),
+                  _buildDropdownSection('Jenis Sesi', _types, _selectedType, (v) => setState(() => _selectedType = v!)),
+                  const SizedBox(height: 16),
+                  _buildDropdownSection('Status Pasien', _statuses, _selectedStatus, (v) => setState(() => _selectedStatus = v!)),
                   const SizedBox(height: 40),
                   _buildSaveButton(),
                   const SizedBox(height: 100),
@@ -85,11 +105,8 @@ class _SessionNoteScreenState extends State<SessionNoteScreen> {
           const SizedBox(width: 12),
           Expanded(
             child: Text(
-              'DOKUMEN RAHASIA: Catatan ini terenkripsi end-to-end dan hanya dapat diakses oleh Psikolog yang berwenang.',
-              style: AppTextStyles.labelSm.copyWith(
-                color: Colors.red[800],
-                fontWeight: FontWeight.bold,
-              ),
+              'DOKUMEN RAHASIA: Catatan ini hanya dapat diakses oleh Psikolog yang berwenang.',
+              style: AppTextStyles.labelSm.copyWith(color: Colors.red[800], fontWeight: FontWeight.bold),
             ),
           ),
         ],
@@ -98,6 +115,11 @@ class _SessionNoteScreenState extends State<SessionNoteScreen> {
   }
 
   Widget _buildStudentInfo() {
+    final sessionNum = widget.sessionNumber ?? '?';
+    final today = DateTime.now();
+    final dateStr = '${today.day.toString().padLeft(2, '0')} '
+        '${_monthName(today.month)} ${today.year}';
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -112,31 +134,25 @@ class _SessionNoteScreenState extends State<SessionNoteScreen> {
             child: Icon(Icons.person_rounded, color: Colors.white),
           ),
           const SizedBox(width: 16),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                widget.studentName,
-                style: AppTextStyles.bodyLg.copyWith(fontWeight: FontWeight.bold),
-              ),
-              Text(
-                'NIM: ${widget.studentId}',
-                style: AppTextStyles.labelMd.copyWith(color: AppColors.outline),
-              ),
-            ],
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(widget.studentName,
+                    style: AppTextStyles.bodyLg.copyWith(fontWeight: FontWeight.bold)),
+                Text('NIM: ${widget.studentId}',
+                    style: AppTextStyles.labelMd.copyWith(color: AppColors.outline)),
+              ],
+            ),
           ),
-          const Spacer(),
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Text(
-                'Sesi #4',
-                style: AppTextStyles.labelSm.copyWith(color: AppColors.primary, fontWeight: FontWeight.bold),
-              ),
-              Text(
-                '07 Mei 2024',
-                style: AppTextStyles.labelSm.copyWith(color: AppColors.outline),
-              ),
+              Text('Sesi #$sessionNum',
+                  style: AppTextStyles.labelSm.copyWith(
+                      color: AppColors.primary, fontWeight: FontWeight.bold)),
+              Text(dateStr,
+                  style: AppTextStyles.labelSm.copyWith(color: AppColors.outline)),
             ],
           ),
         ],
@@ -144,20 +160,16 @@ class _SessionNoteScreenState extends State<SessionNoteScreen> {
     );
   }
 
-  Widget _buildInputSection(String label, String hint, TextEditingController controller, int lines) {
+  Widget _buildInputSection(String label, String hint, TextEditingController ctrl, int lines) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: AppTextStyles.bodyMd.copyWith(
-            fontWeight: FontWeight.bold,
-            color: AppColors.primary,
-          ),
-        ),
+        Text(label,
+            style: AppTextStyles.bodyMd.copyWith(
+                fontWeight: FontWeight.bold, color: AppColors.primary)),
         const SizedBox(height: 12),
         TextField(
-          controller: controller,
+          controller: ctrl,
           maxLines: lines,
           style: AppTextStyles.bodyMd,
           decoration: InputDecoration(
@@ -176,25 +188,40 @@ class _SessionNoteScreenState extends State<SessionNoteScreen> {
     );
   }
 
+  Widget _buildDropdownSection(String label, List<String> items, String value, ValueChanged<String?> onChanged) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label,
+            style: AppTextStyles.bodyMd.copyWith(
+                fontWeight: FontWeight.bold, color: AppColors.primary)),
+        const SizedBox(height: 8),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF8FAFC),
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<String>(
+              value: value,
+              isExpanded: true,
+              icon: const Icon(Icons.keyboard_arrow_down_rounded, color: AppColors.primary),
+              items: items.map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
+              onChanged: onChanged,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildSaveButton() {
     return SizedBox(
       width: double.infinity,
       height: 60,
       child: ElevatedButton(
-        onPressed: _isSaving ? null : () async {
-          setState(() => _isSaving = true);
-          await Future.delayed(const Duration(seconds: 2)); // Simulating encryption
-          if (mounted) {
-            setState(() => _isSaving = false);
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Catatan Sesi Berhasil Dienkripsi & Disimpan'),
-                backgroundColor: AppColors.primary,
-              ),
-            );
-            Navigator.pop(context);
-          }
-        },
+        onPressed: _isSaving ? null : _submit,
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primary,
           foregroundColor: Colors.white,
@@ -203,25 +230,64 @@ class _SessionNoteScreenState extends State<SessionNoteScreen> {
         ),
         child: _isSaving
             ? const SizedBox(
-                height: 24,
-                width: 24,
-                child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-              )
+                height: 24, width: 24,
+                child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
             : Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   const Icon(Icons.enhanced_encryption_rounded),
                   const SizedBox(width: 12),
-                  Text(
-                    'Simpan & Enkripsi Catatan',
-                    style: AppTextStyles.bodyLg.copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+                  Text('Simpan & Enkripsi Catatan',
+                      style: AppTextStyles.bodyLg.copyWith(
+                          color: Colors.white, fontWeight: FontWeight.bold)),
                 ],
               ),
       ),
     );
+  }
+
+  Future<void> _submit() async {
+    if (_complaintCtrl.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Keluhan utama wajib diisi'), backgroundColor: Colors.red),
+      );
+      return;
+    }
+    setState(() => _isSaving = true);
+    final provider = context.read<CounselingProvider>();
+    final data = {
+      'complaint': _complaintCtrl.text.trim(),
+      'observation': _observationCtrl.text.trim(),
+      'recommendation': _recommendationCtrl.text.trim(),
+      'mood': _selectedMood,
+      'type': _selectedType,
+      'status': _selectedStatus,
+      if (widget.bookingId != null && widget.bookingId!.isNotEmpty)
+        'booking_id': int.tryParse(widget.bookingId!) ?? 0,
+    };
+    final success = await provider.createSessionNote(widget.studentId, data);
+    if (mounted) {
+      setState(() => _isSaving = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(success
+              ? 'Catatan sesi berhasil disimpan!'
+              : 'Gagal menyimpan catatan. Coba lagi.'),
+          backgroundColor: success ? AppColors.primary : Colors.red,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
+      );
+      if (success) {
+        // Reload medical record
+        provider.loadMedicalRecord(widget.studentId);
+        Navigator.pop(context);
+      }
+    }
+  }
+
+  String _monthName(int month) {
+    const months = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+    return months[month - 1];
   }
 }

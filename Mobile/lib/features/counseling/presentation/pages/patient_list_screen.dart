@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:bkuhub_mobile/core/theme/app_colors.dart';
 import 'package:bkuhub_mobile/core/theme/app_text_styles.dart';
 import 'package:bkuhub_mobile/core/widgets/bku_app_bar.dart';
+import 'package:bkuhub_mobile/features/counseling/presentation/providers/counseling_provider.dart';
+import 'package:bkuhub_mobile/features/counseling/presentation/pages/session_note_screen.dart';
 
 class PatientListScreen extends StatefulWidget {
   final bool showBackButton;
@@ -15,120 +18,127 @@ class _PatientListScreenState extends State<PatientListScreen> {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
   String _selectedFilter = 'Semua';
-
   final List<String> _filters = ['Semua', 'Aktif', 'Selesai', 'Baru'];
 
-  final List<Map<String, dynamic>> _patients = [
-    {
-      'name': 'Andi Wijaya',
-      'nim': '20220101',
-      'faculty': 'Fakultas Teknik',
-      'lastVisit': '07 Mei 2024',
-      'sessions': 4,
-      'status': 'Aktif',
-      'tags': ['Kecemasan', 'Akademik'],
-      'color': Colors.orange,
-    },
-    {
-      'name': 'Siti Aminah',
-      'nim': '20220512',
-      'faculty': 'Fakultas Ekonomi',
-      'lastVisit': '02 Mei 2024',
-      'sessions': 2,
-      'status': 'Selesai',
-      'tags': ['Keluarga'],
-      'color': Colors.blue,
-    },
-    {
-      'name': 'Budi Santoso',
-      'nim': '20220988',
-      'faculty': 'Fakultas Farmasi',
-      'lastVisit': '28 April 2024',
-      'sessions': 1,
-      'status': 'Baru',
-      'tags': ['Stres'],
-      'color': Colors.purple,
-    },
-    {
-      'name': 'Dewi Rahayu',
-      'nim': '20221345',
-      'faculty': 'Fakultas Hukum',
-      'lastVisit': '20 April 2024',
-      'sessions': 6,
-      'status': 'Aktif',
-      'tags': ['Karir', 'Kecemasan'],
-      'color': Colors.teal,
-    },
-  ];
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<CounselingProvider>().loadPatients();
+    });
+  }
 
-  List<Map<String, dynamic>> get _filteredPatients {
-    var list = _patients.where((p) {
-      final matchQuery = p['name'].toLowerCase().contains(_searchQuery.toLowerCase()) ||
-          p['nim'].contains(_searchQuery);
-      final matchFilter = _selectedFilter == 'Semua' || p['status'] == _selectedFilter;
+  List<Map<String, dynamic>> _filteredPatients(
+      List<Map<String, dynamic>> patients) {
+    return patients.where((p) {
+      final name = p['name']?.toString().toLowerCase() ?? '';
+      final nim = p['nim']?.toString() ?? '';
+      final status = p['status']?.toString() ?? '';
+      final matchQuery = name.contains(_searchQuery.toLowerCase()) ||
+          nim.contains(_searchQuery);
+      final matchFilter =
+          _selectedFilter == 'Semua' || status == _selectedFilter;
       return matchQuery && matchFilter;
     }).toList();
-    return list;
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
-      body: CustomScrollView(
-        physics: const BouncingScrollPhysics(),
-        slivers: [
-          BkuAppBar(
-            title: 'Daftar Pasien',
-            info: 'Rekam medis & riwayat konseling mahasiswa',
-            variant: AppBarVariant.psychologist,
-            showBackButton: widget.showBackButton,
-            isExpandable: false,
-            showNotification: true,
-          ),
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: 24),
-                  _buildInlineSearchBar(),
-                  const SizedBox(height: 24),
-                  _buildSummaryCard(),
-                  const SizedBox(height: 32),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      _buildSectionTitle('Daftar Mahasiswa'),
-                      _buildFilterAction(),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  _buildFilterChips(),
-                  const SizedBox(height: 20),
-                  _buildPatientList(),
-                  const SizedBox(height: 120),
-                ],
+    return Consumer<CounselingProvider>(
+      builder: (context, provider, _) {
+        final patients = provider.patients;
+        final filtered = _filteredPatients(patients);
+
+        return Scaffold(
+          backgroundColor: const Color(0xFFF8FAFC),
+          body: CustomScrollView(
+            physics: const BouncingScrollPhysics(),
+            slivers: [
+              BkuAppBar(
+                title: 'Daftar Pasien',
+                info: 'Rekam medis & riwayat konseling mahasiswa',
+                variant: AppBarVariant.psychologist,
+                showBackButton: widget.showBackButton,
+                isExpandable: false,
+                showNotification: true,
               ),
-            ),
+              SliverToBoxAdapter(
+                child: provider.patientsLoading
+                    ? const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 80),
+                        child: Center(child: CircularProgressIndicator()),
+                      )
+                    : provider.patientsError != null
+                        ? _buildError(provider.patientsError!, provider)
+                        : Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 24),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const SizedBox(height: 24),
+                                _buildSearchBar(),
+                                const SizedBox(height: 24),
+                                _buildSummaryCard(patients),
+                                const SizedBox(height: 32),
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    _buildSectionTitle('Daftar Mahasiswa'),
+                                    _buildFilterAction(),
+                                  ],
+                                ),
+                                const SizedBox(height: 16),
+                                _buildFilterChips(),
+                                const SizedBox(height: 20),
+                                _buildPatientList(filtered, provider),
+                                const SizedBox(height: 120),
+                              ],
+                            ),
+                          ),
+              ),
+            ],
           ),
-        ],
+        );
+      },
+    );
+  }
+
+  Widget _buildError(String message, CounselingProvider provider) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 60, horizontal: 24),
+      child: Center(
+        child: Column(
+          children: [
+            Icon(Icons.error_outline_rounded, size: 64, color: Colors.red[300]),
+            const SizedBox(height: 16),
+            Text(message,
+                style: AppTextStyles.bodyMd
+                    .copyWith(color: const Color(0xFF94A3B8))),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: provider.loadPatients,
+              style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.white),
+              child: const Text('Coba Lagi'),
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildInlineSearchBar() {
+  Widget _buildSearchBar() {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withAlpha(5),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
+              color: Colors.black.withAlpha(5),
+              blurRadius: 10,
+              offset: const Offset(0, 4)),
         ],
       ),
       child: TextField(
@@ -136,21 +146,23 @@ class _PatientListScreenState extends State<PatientListScreen> {
         onChanged: (v) => setState(() => _searchQuery = v),
         decoration: InputDecoration(
           hintText: 'Cari nama atau NIM mahasiswa...',
-          hintStyle: AppTextStyles.labelMd.copyWith(color: const Color(0xFF94A3B8)),
-          prefixIcon: const Icon(Icons.search_rounded, color: AppColors.primary, size: 20),
-          suffixIcon: _searchQuery.isNotEmpty 
-            ? IconButton(
-                icon: const Icon(Icons.cancel_rounded, size: 18, color: Color(0xFF94A3B8)),
-                onPressed: () {
-                  _searchController.clear();
-                  setState(() => _searchQuery = '');
-                },
-              )
-            : null,
+          hintStyle:
+              AppTextStyles.labelMd.copyWith(color: const Color(0xFF94A3B8)),
+          prefixIcon:
+              const Icon(Icons.search_rounded, color: AppColors.primary, size: 20),
+          suffixIcon: _searchQuery.isNotEmpty
+              ? IconButton(
+                  icon: const Icon(Icons.cancel_rounded,
+                      size: 18, color: Color(0xFF94A3B8)),
+                  onPressed: () {
+                    _searchController.clear();
+                    setState(() => _searchQuery = '');
+                  },
+                )
+              : null,
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(16),
-            borderSide: BorderSide.none,
-          ),
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide.none),
           filled: true,
           fillColor: Colors.white,
           contentPadding: const EdgeInsets.symmetric(vertical: 16),
@@ -159,10 +171,12 @@ class _PatientListScreenState extends State<PatientListScreen> {
     );
   }
 
-  Widget _buildSummaryCard() {
-    final total = _patients.length;
-    final aktif = _patients.where((p) => p['status'] == 'Aktif').length;
-    
+  Widget _buildSummaryCard(List<Map<String, dynamic>> patients) {
+    final total = patients.length;
+    final aktif = patients.where((p) => p['status'] == 'Aktif').length;
+    final baru = patients.where((p) => p['status'] == 'Baru').length;
+    final selesai = patients.where((p) => p['status'] == 'Selesai').length;
+
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
@@ -174,10 +188,9 @@ class _PatientListScreenState extends State<PatientListScreen> {
         borderRadius: BorderRadius.circular(28),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF003399).withAlpha(60),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
-          ),
+              color: const Color(0xFF003399).withAlpha(60),
+              blurRadius: 20,
+              offset: const Offset(0, 10)),
         ],
       ),
       child: Stack(
@@ -185,7 +198,8 @@ class _PatientListScreenState extends State<PatientListScreen> {
           Positioned(
             right: -20,
             top: -20,
-            child: Icon(Icons.folder_shared_rounded, size: 140, color: Colors.white.withAlpha(15)),
+            child: Icon(Icons.folder_shared_rounded,
+                size: 140, color: Colors.white.withAlpha(15)),
           ),
           Padding(
             padding: const EdgeInsets.all(24),
@@ -198,24 +212,25 @@ class _PatientListScreenState extends State<PatientListScreen> {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          'Ringkasan Data',
-                          style: AppTextStyles.labelSm.copyWith(color: Colors.white70, fontWeight: FontWeight.bold),
-                        ),
+                        Text('Ringkasan Data',
+                            style: AppTextStyles.labelSm.copyWith(
+                                color: Colors.white70,
+                                fontWeight: FontWeight.bold)),
                         const SizedBox(height: 4),
-                        Text(
-                          '$total Pasien',
-                          style: AppTextStyles.titleLg.copyWith(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 32),
-                        ),
+                        Text('$total Pasien',
+                            style: AppTextStyles.titleLg.copyWith(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w900,
+                                fontSize: 32)),
                       ],
                     ),
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: Colors.white.withAlpha(30),
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: const Icon(Icons.analytics_rounded, color: Colors.white, size: 24),
+                          color: Colors.white.withAlpha(30),
+                          borderRadius: BorderRadius.circular(16)),
+                      child: const Icon(Icons.analytics_rounded,
+                          color: Colors.white, size: 24),
                     ),
                   ],
                 ),
@@ -223,17 +238,16 @@ class _PatientListScreenState extends State<PatientListScreen> {
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: Colors.black.withAlpha(40),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
+                      color: Colors.black.withAlpha(40),
+                      borderRadius: BorderRadius.circular(20)),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
                       _buildSummaryItem('Aktif', '$aktif', Colors.green),
                       Container(width: 1, height: 30, color: Colors.white24),
-                      _buildSummaryItem('Baru', '${_patients.where((p) => p['status'] == 'Baru').length}', Colors.orange),
+                      _buildSummaryItem('Baru', '$baru', Colors.orange),
                       Container(width: 1, height: 30, color: Colors.white24),
-                      _buildSummaryItem('Selesai', '${_patients.where((p) => p['status'] == 'Selesai').length}', Colors.teal),
+                      _buildSummaryItem('Selesai', '$selesai', Colors.teal),
                     ],
                   ),
                 ),
@@ -248,14 +262,12 @@ class _PatientListScreenState extends State<PatientListScreen> {
   Widget _buildSummaryItem(String label, String value, Color color) {
     return Column(
       children: [
-        Text(
-          value,
-          style: AppTextStyles.titleMd.copyWith(color: Colors.white, fontWeight: FontWeight.w900),
-        ),
-        Text(
-          label,
-          style: AppTextStyles.labelSm.copyWith(color: Colors.white60, fontSize: 10),
-        ),
+        Text(value,
+            style: AppTextStyles.titleMd
+                .copyWith(color: Colors.white, fontWeight: FontWeight.w900)),
+        Text(label,
+            style: AppTextStyles.labelSm
+                .copyWith(color: Colors.white60, fontSize: 10)),
       ],
     );
   }
@@ -279,19 +291,26 @@ class _PatientListScreenState extends State<PatientListScreen> {
               decoration: BoxDecoration(
                 color: isSelected ? AppColors.primary : Colors.white,
                 borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: isSelected ? Colors.transparent : Colors.grey.withAlpha(30)),
-                boxShadow: isSelected ? [
-                  BoxShadow(color: AppColors.primary.withAlpha(40), blurRadius: 10, offset: const Offset(0, 4))
-                ] : null,
+                border: Border.all(
+                    color: isSelected
+                        ? Colors.transparent
+                        : Colors.grey.withAlpha(30)),
+                boxShadow: isSelected
+                    ? [
+                        BoxShadow(
+                            color: AppColors.primary.withAlpha(40),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4))
+                      ]
+                    : null,
               ),
               child: Center(
-                child: Text(
-                  filter,
-                  style: AppTextStyles.labelSm.copyWith(
-                    color: isSelected ? Colors.white : const Color(0xFF64748B),
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
+                child: Text(filter,
+                    style: AppTextStyles.labelSm.copyWith(
+                        color: isSelected
+                            ? Colors.white
+                            : const Color(0xFF64748B),
+                        fontWeight: FontWeight.bold)),
               ),
             ),
           );
@@ -300,17 +319,20 @@ class _PatientListScreenState extends State<PatientListScreen> {
     );
   }
 
-  Widget _buildPatientList() {
-    final list = _filteredPatients;
+  Widget _buildPatientList(
+      List<Map<String, dynamic>> list, CounselingProvider provider) {
     if (list.isEmpty) {
       return Center(
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 60),
           child: Column(
             children: [
-              Icon(Icons.search_off_rounded, size: 64, color: Colors.grey.withAlpha(50)),
+              Icon(Icons.search_off_rounded,
+                  size: 64, color: Colors.grey.withAlpha(50)),
               const SizedBox(height: 16),
-              Text('Mahasiswa tidak ditemukan', style: AppTextStyles.bodyMd.copyWith(color: const Color(0xFF94A3B8))),
+              Text('Mahasiswa tidak ditemukan',
+                  style: AppTextStyles.bodyMd
+                      .copyWith(color: const Color(0xFF94A3B8))),
             ],
           ),
         ),
@@ -320,19 +342,43 @@ class _PatientListScreenState extends State<PatientListScreen> {
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       itemCount: list.length,
-      itemBuilder: (context, index) => _buildPatientCard(list[index]),
+      itemBuilder: (context, index) =>
+          _buildPatientCard(list[index], provider),
     );
   }
 
-  Widget _buildPatientCard(Map<String, dynamic> p) {
-    final statusColor = p['status'] == 'Aktif'
+  Widget _buildPatientCard(
+      Map<String, dynamic> p, CounselingProvider provider) {
+    final status = p['status']?.toString() ?? 'Baru';
+    final statusColor = status == 'Aktif'
         ? Colors.green
-        : p['status'] == 'Baru'
+        : status == 'Baru'
             ? Colors.orange
-            : const Color(0xFF64748B);
+            : status == 'Selesai'
+                ? Colors.teal
+                : status == 'Perlu Perhatian'
+                    ? Colors.red
+                    : const Color(0xFF64748B);
+
+    final name = p['name']?.toString() ?? '-';
+    final nim = p['nim']?.toString() ?? '-';
+    final faculty = p['faculty']?.toString() ?? '';
+    final sessions = p['sessions']?.toString() ?? '0';
+    final lastVisit = p['lastVisit']?.toString() ?? '-';
+    final id = p['id']?.toString() ?? '';
+
+    // Color from name hash
+    const colors = [
+      Colors.orange,
+      Colors.blue,
+      Colors.purple,
+      Colors.teal,
+      Colors.red,
+    ];
+    final color = colors[name.length % colors.length];
 
     return GestureDetector(
-      onTap: () => _showPatientDetails(p),
+      onTap: () => _showPatientDetails(p, provider, id),
       child: Container(
         margin: const EdgeInsets.only(bottom: 16),
         padding: const EdgeInsets.all(16),
@@ -341,10 +387,9 @@ class _PatientListScreenState extends State<PatientListScreen> {
           borderRadius: BorderRadius.circular(24),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withAlpha(5),
-              blurRadius: 12,
-              offset: const Offset(0, 6),
-            ),
+                color: Colors.black.withAlpha(5),
+                blurRadius: 12,
+                offset: const Offset(0, 6)),
           ],
         ),
         child: Row(
@@ -353,10 +398,10 @@ class _PatientListScreenState extends State<PatientListScreen> {
               width: 56,
               height: 56,
               decoration: BoxDecoration(
-                color: (p['color'] as Color).withAlpha(15),
+                color: color.withAlpha(15),
                 borderRadius: BorderRadius.circular(18),
               ),
-              child: Icon(Icons.person_rounded, color: p['color'] as Color, size: 28),
+              child: Icon(Icons.person_rounded, color: color, size: 28),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -366,79 +411,183 @@ class _PatientListScreenState extends State<PatientListScreen> {
                   Row(
                     children: [
                       Expanded(
-                        child: Text(
-                          p['name'],
-                          style: AppTextStyles.bodyLg.copyWith(fontWeight: FontWeight.w900, color: const Color(0xFF1E293B)),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
+                        child: Text(name,
+                            style: AppTextStyles.bodyLg.copyWith(
+                                fontWeight: FontWeight.w900,
+                                color: const Color(0xFF1E293B)),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis),
                       ),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(
-                          color: statusColor.withAlpha(15),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          p['status'],
-                          style: TextStyle(color: statusColor, fontSize: 10, fontWeight: FontWeight.w900),
-                        ),
+                            color: statusColor.withAlpha(15),
+                            borderRadius: BorderRadius.circular(8)),
+                        child: Text(status,
+                            style: TextStyle(
+                                color: statusColor,
+                                fontSize: 10,
+                                fontWeight: FontWeight.w900)),
                       ),
                     ],
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    'NIM: ${p['nim']} • ${p['faculty']}',
-                    style: AppTextStyles.labelSm.copyWith(color: const Color(0xFF64748B)),
+                    'NIM: $nim${faculty.isNotEmpty ? ' • $faculty' : ''}',
+                    style: AppTextStyles.labelSm
+                        .copyWith(color: const Color(0xFF64748B)),
                   ),
-                  const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 6,
-                    children: (p['tags'] as List<String>).map((tag) => Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF1F5F9),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Text(tag, style: AppTextStyles.labelSm.copyWith(color: const Color(0xFF475569), fontSize: 9, fontWeight: FontWeight.bold)),
-                    )).toList(),
+                  const SizedBox(height: 6),
+                  Row(
+                    children: [
+                      _buildMiniChip('$sessions sesi', Colors.blue),
+                      const SizedBox(width: 8),
+                      _buildMiniChip(lastVisit, Colors.grey),
+                    ],
                   ),
                 ],
               ),
             ),
             const SizedBox(width: 12),
-            Icon(Icons.chevron_right_rounded, color: Colors.grey.withAlpha(100)),
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (status != 'Selesai')
+                  GestureDetector(
+                    onTap: () {
+                      // Quick mark as done from list
+                      _quickMarkDone(p, provider);
+                    },
+                    child: Container(
+                      width: 36,
+                      height: 36,
+                      decoration: BoxDecoration(
+                        color: Colors.green.withAlpha(15),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: Colors.green.withAlpha(40)),
+                      ),
+                      child: const Icon(Icons.check_rounded,
+                          color: Colors.green, size: 18),
+                    ),
+                  )
+                else
+                  Container(
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      color: Colors.teal.withAlpha(15),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(Icons.verified_rounded,
+                        color: Colors.teal, size: 18),
+                  ),
+                const SizedBox(height: 6),
+                Icon(Icons.chevron_right_rounded,
+                    color: Colors.grey.withAlpha(100), size: 18),
+              ],
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildSectionTitle(String title) {
-    return Text(
-      title,
-      style: AppTextStyles.titleMd.copyWith(fontWeight: FontWeight.w900, color: const Color(0xFF0F172A)),
+  Widget _buildMiniChip(String label, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+          color: const Color(0xFFF1F5F9),
+          borderRadius: BorderRadius.circular(6)),
+      child: Text(label,
+          style: AppTextStyles.labelSm.copyWith(
+              color: const Color(0xFF475569),
+              fontSize: 9,
+              fontWeight: FontWeight.bold)),
     );
+  }
+
+  Widget _buildSectionTitle(String title) {
+    return Text(title,
+        style: AppTextStyles.titleMd
+            .copyWith(fontWeight: FontWeight.w900, color: const Color(0xFF0F172A)));
   }
 
   Widget _buildFilterAction() {
     return Container(
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: Colors.grey.withAlpha(30)),
-      ),
-      child: const Icon(Icons.tune_rounded, size: 18, color: Color(0xFF64748B)),
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: Colors.grey.withAlpha(30))),
+      child: const Icon(Icons.tune_rounded,
+          size: 18, color: Color(0xFF64748B)),
     );
   }
 
-  void _showPatientDetails(Map<String, dynamic> p) {
+  void _showPatientDetails(
+      Map<String, dynamic> p, CounselingProvider provider, String id) {
+    // Load medical record when opening details
+    provider.loadMedicalRecord(id);
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => _PatientDetailsSheet(patient: p),
+      builder: (context) =>
+          _PatientDetailsSheet(patient: p, provider: provider),
+    );
+  }
+
+  void _quickMarkDone(Map<String, dynamic> p, CounselingProvider provider) {
+    final name = p['name']?.toString() ?? '-';
+    final id = p['id']?.toString() ?? '';
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Row(
+          children: [
+            Icon(Icons.check_circle_rounded, color: Colors.green),
+            SizedBox(width: 12),
+            Text('Tandai Selesai'),
+          ],
+        ),
+        content: Text(
+          'Tandai $name sebagai pasien yang sudah selesai penanganan?',
+          style: AppTextStyles.bodyMd,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Batal'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.pop(ctx);
+              final success = await provider.updatePatientStatus(id, 'Selesai');
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(success
+                        ? '$name berhasil ditandai selesai!'
+                        : 'Gagal mengupdate status'),
+                    backgroundColor: success ? Colors.green : Colors.red,
+                    behavior: SnackBarBehavior.floating,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
+                  ),
+                );
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.green,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Ya, Selesai'),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -447,8 +596,10 @@ class _PatientListScreenState extends State<PatientListScreen> {
 
 class _PatientDetailsSheet extends StatelessWidget {
   final Map<String, dynamic> patient;
+  final CounselingProvider provider;
 
-  const _PatientDetailsSheet({required this.patient});
+  const _PatientDetailsSheet(
+      {required this.patient, required this.provider});
 
   @override
   Widget build(BuildContext context) {
@@ -465,21 +616,33 @@ class _PatientDetailsSheet extends StatelessWidget {
             width: 48,
             height: 5,
             decoration: BoxDecoration(
-              color: Colors.grey.withAlpha(50),
-              borderRadius: BorderRadius.circular(10),
-            ),
+                color: Colors.grey.withAlpha(50),
+                borderRadius: BorderRadius.circular(10)),
           ),
           Expanded(
-            child: ListView(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
-              physics: const BouncingScrollPhysics(),
-              children: [
-                _buildHeader(),
-                const SizedBox(height: 32),
-                _buildInfoGrid(),
-                const SizedBox(height: 32),
-                _buildTimelineSection(),
-              ],
+            child: Consumer<CounselingProvider>(
+              builder: (context, prov, _) {
+                final record = prov.medicalRecord;
+                final records = record['records'];
+                final List<Map<String, dynamic>> visits = records is List
+                    ? records.cast<Map<String, dynamic>>()
+                    : [];
+
+                return ListView(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 24, vertical: 24),
+                  physics: const BouncingScrollPhysics(),
+                  children: [
+                    _buildHeader(),
+                    const SizedBox(height: 32),
+                    _buildInfoGrid(),
+                    const SizedBox(height: 32),
+                    prov.medicalRecordLoading
+                        ? const Center(child: CircularProgressIndicator())
+                        : _buildTimelineSection(visits),
+                  ],
+                );
+              },
             ),
           ),
           _buildBottomActions(context),
@@ -489,47 +652,36 @@ class _PatientDetailsSheet extends StatelessWidget {
   }
 
   Widget _buildHeader() {
+    final name = patient['name']?.toString() ?? '-';
+    final faculty = patient['faculty']?.toString() ?? '';
+    final prodi = patient['program_studi']?.toString() ?? '';
+    const colors = [Colors.orange, Colors.blue, Colors.purple, Colors.teal];
+    final color = colors[name.length % colors.length];
+
     return Row(
       children: [
         Container(
           width: 80,
           height: 80,
           decoration: BoxDecoration(
-            color: (patient['color'] as Color).withAlpha(15),
-            borderRadius: BorderRadius.circular(24),
-          ),
-          child: Icon(Icons.person_rounded, color: patient['color'] as Color, size: 40),
+              color: color.withAlpha(15),
+              borderRadius: BorderRadius.circular(24)),
+          child: Icon(Icons.person_rounded, color: color, size: 40),
         ),
         const SizedBox(width: 20),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                patient['name'],
-                style: AppTextStyles.titleLg.copyWith(fontWeight: FontWeight.w900, color: const Color(0xFF0F172A)),
-              ),
+              Text(name,
+                  style: AppTextStyles.titleLg.copyWith(
+                      fontWeight: FontWeight.w900,
+                      color: const Color(0xFF0F172A))),
               const SizedBox(height: 4),
               Text(
-                patient['faculty'],
-                style: AppTextStyles.bodyMd.copyWith(color: const Color(0xFF64748B)),
-              ),
-              const SizedBox(height: 12),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: (patient['tags'] as List<String>).map((tag) => Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: AppColors.primary.withAlpha(10),
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: AppColors.primary.withAlpha(20)),
-                  ),
-                  child: Text(
-                    tag,
-                    style: AppTextStyles.labelSm.copyWith(color: AppColors.primary, fontWeight: FontWeight.bold),
-                  ),
-                )).toList(),
+                [faculty, prodi].where((s) => s.isNotEmpty).join(' • '),
+                style: AppTextStyles.bodyMd
+                    .copyWith(color: const Color(0xFF64748B)),
               ),
             ],
           ),
@@ -539,6 +691,11 @@ class _PatientDetailsSheet extends StatelessWidget {
   }
 
   Widget _buildInfoGrid() {
+    final nim = patient['nim']?.toString() ?? '-';
+    final sessions = patient['sessions']?.toString() ?? '0';
+    final status = patient['status']?.toString() ?? '-';
+    final lastVisit = patient['lastVisit']?.toString() ?? '-';
+
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -546,10 +703,9 @@ class _PatientDetailsSheet extends StatelessWidget {
         borderRadius: BorderRadius.circular(28),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withAlpha(4),
-            blurRadius: 15,
-            offset: const Offset(0, 8),
-          ),
+              color: Colors.black.withAlpha(4),
+              blurRadius: 15,
+              offset: const Offset(0, 8))
         ],
       ),
       child: Column(
@@ -557,8 +713,8 @@ class _PatientDetailsSheet extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _buildInfoCell('NIM', patient['nim'], Icons.badge_rounded),
-              _buildInfoCell('Sesi', '${patient['sessions']}x', Icons.history_edu_rounded),
+              _buildInfoCell('NIM', nim, Icons.badge_rounded),
+              _buildInfoCell('Sesi', '${sessions}x', Icons.history_edu_rounded),
             ],
           ),
           const SizedBox(height: 20),
@@ -567,8 +723,9 @@ class _PatientDetailsSheet extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _buildInfoCell('Status', patient['status'], Icons.verified_user_rounded),
-              _buildInfoCell('Kunjungan', patient['lastVisit'].toString(), Icons.event_available_rounded),
+              _buildInfoCell('Status', status, Icons.verified_user_rounded),
+              _buildInfoCell(
+                  'Kunjungan', lastVisit, Icons.event_available_rounded),
             ],
           ),
         ],
@@ -582,53 +739,55 @@ class _PatientDetailsSheet extends StatelessWidget {
         children: [
           Icon(icon, color: AppColors.primary.withAlpha(80), size: 18),
           const SizedBox(height: 8),
-          Text(
-            value,
-            style: AppTextStyles.bodyLg.copyWith(fontWeight: FontWeight.w900, color: const Color(0xFF1E293B)),
-          ),
-          Text(
-            label,
-            style: AppTextStyles.labelSm.copyWith(color: const Color(0xFF94A3B8), fontSize: 10, fontWeight: FontWeight.bold),
-          ),
+          Text(value,
+              style: AppTextStyles.bodyLg.copyWith(
+                  fontWeight: FontWeight.w900,
+                  color: const Color(0xFF1E293B))),
+          Text(label,
+              style: AppTextStyles.labelSm.copyWith(
+                  color: const Color(0xFF94A3B8),
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold)),
         ],
       ),
     );
   }
 
-  Widget _buildTimelineSection() {
-    final visits = [
-      {'date': '07 Mei 2024', 'type': 'Sesi Konseling #4', 'note': 'Kemajuan signifikan dalam mengelola stres.', 'icon': Icons.check_circle_rounded, 'color': Colors.green},
-      {'date': '25 April 2024', 'type': 'Sesi Konseling #3', 'note': 'Pembahasan manajemen waktu & prioritas tugas.', 'icon': Icons.pending_actions_rounded, 'color': AppColors.primary},
-      {'date': '10 April 2024', 'type': 'Asesmen Pre-Screening', 'note': 'Skor DASS-21: Kecemasan Tinggi, Depresi Ringan.', 'icon': Icons.assessment_rounded, 'color': Colors.orange},
-      {'date': '01 April 2024', 'type': 'Registrasi Awal', 'note': 'Menyetujui aturan kerahasiaan sesi.', 'icon': Icons.assignment_ind_rounded, 'color': Colors.blue},
-    ];
-
+  Widget _buildTimelineSection(List<Map<String, dynamic>> visits) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              'Riwayat Kunjungan',
-              style: AppTextStyles.titleMd.copyWith(fontWeight: FontWeight.w900, color: const Color(0xFF0F172A)),
-            ),
-            TextButton.icon(
-              onPressed: () {},
-              icon: const Icon(Icons.download_rounded, size: 16),
-              label: const Text('Export PDF', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
-              style: TextButton.styleFrom(foregroundColor: AppColors.primary),
-            ),
-          ],
-        ),
+        Text('Riwayat Kunjungan',
+            style: AppTextStyles.titleMd.copyWith(
+                fontWeight: FontWeight.w900,
+                color: const Color(0xFF0F172A))),
         const SizedBox(height: 20),
-        ...visits.map((v) => _buildTimelineItem(v, visits.indexOf(v) == visits.length - 1)).toList(),
+        if (visits.isEmpty)
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 24),
+              child: Text('Belum ada catatan sesi',
+                  style: AppTextStyles.bodyMd
+                      .copyWith(color: const Color(0xFF94A3B8))),
+            ),
+          )
+        else
+          ...visits.asMap().entries.map((entry) {
+            final v = entry.value;
+            final isLast = entry.key == visits.length - 1;
+            return _buildTimelineItem(v, isLast);
+          }),
       ],
     );
   }
 
   Widget _buildTimelineItem(Map<String, dynamic> v, bool isLast) {
-    final color = v['color'] as Color;
+    final date = v['date']?.toString() ?? '-';
+    final type = v['type']?.toString() ?? 'Sesi Konseling';
+    final complaint = v['complaint']?.toString() ?? '';
+    final mood = v['mood']?.toString() ?? '';
+    final note = complaint.isNotEmpty ? complaint : mood;
+
     return IntrinsicHeight(
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -639,11 +798,12 @@ class _PatientDetailsSheet extends StatelessWidget {
                 width: 32,
                 height: 32,
                 decoration: BoxDecoration(
-                  color: color.withAlpha(15),
-                  shape: BoxShape.circle,
-                  border: Border.all(color: color.withAlpha(30)),
-                ),
-                child: Icon(v['icon'] as IconData, color: color, size: 16),
+                    color: AppColors.primary.withAlpha(15),
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                        color: AppColors.primary.withAlpha(30))),
+                child: const Icon(Icons.psychology_rounded,
+                    color: AppColors.primary, size: 16),
               ),
               if (!isLast)
                 Expanded(
@@ -651,9 +811,8 @@ class _PatientDetailsSheet extends StatelessWidget {
                     width: 2,
                     margin: const EdgeInsets.symmetric(vertical: 4),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFE2E8F0),
-                      borderRadius: BorderRadius.circular(1),
-                    ),
+                        color: const Color(0xFFE2E8F0),
+                        borderRadius: BorderRadius.circular(1)),
                   ),
                 ),
             ],
@@ -665,20 +824,21 @@ class _PatientDetailsSheet extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    v['date'] as String,
-                    style: AppTextStyles.labelSm.copyWith(color: const Color(0xFF94A3B8), fontWeight: FontWeight.bold),
-                  ),
+                  Text(date,
+                      style: AppTextStyles.labelSm.copyWith(
+                          color: const Color(0xFF94A3B8),
+                          fontWeight: FontWeight.bold)),
                   const SizedBox(height: 4),
-                  Text(
-                    v['type'] as String,
-                    style: AppTextStyles.bodyLg.copyWith(fontWeight: FontWeight.w900, color: const Color(0xFF1E293B)),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    v['note'] as String,
-                    style: AppTextStyles.bodyMd.copyWith(color: const Color(0xFF64748B), height: 1.5),
-                  ),
+                  Text(type,
+                      style: AppTextStyles.bodyLg.copyWith(
+                          fontWeight: FontWeight.w900,
+                          color: const Color(0xFF1E293B))),
+                  if (note.isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    Text(note,
+                        style: AppTextStyles.bodyMd.copyWith(
+                            color: const Color(0xFF64748B), height: 1.5)),
+                  ],
                 ],
               ),
             ),
@@ -689,48 +849,320 @@ class _PatientDetailsSheet extends StatelessWidget {
   }
 
   Widget _buildBottomActions(BuildContext context) {
+    final name = patient['name']?.toString() ?? '-';
+    final id = patient['id']?.toString() ?? '';
+    final sessions = int.tryParse(patient['sessions']?.toString() ?? '0') ?? 0;
+    final status = patient['status']?.toString() ?? 'Baru';
+
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: const BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
         boxShadow: [
-          BoxShadow(color: Colors.black12, blurRadius: 20, offset: Offset(0, -5)),
+          BoxShadow(
+              color: Colors.black12, blurRadius: 20, offset: Offset(0, -5))
         ],
       ),
       child: SafeArea(
-        child: Row(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Expanded(
-              child: OutlinedButton(
-                onPressed: () => Navigator.pop(context),
-                style: OutlinedButton.styleFrom(
-                  minimumSize: const Size(0, 56),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                  side: const BorderSide(color: Color(0xFFE2E8F0)),
-                ),
-                child: Text('Tutup', style: AppTextStyles.bodyLg.copyWith(fontWeight: FontWeight.bold, color: const Color(0xFF64748B))),
+            // Status Actions Row
+            if (status != 'Selesai') ...[
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: () => _showStatusDialog(context, id, 'Selesai'),
+                      icon: const Icon(Icons.check_circle_outline_rounded, size: 18),
+                      label: const Text('Tandai Selesai'),
+                      style: OutlinedButton.styleFrom(
+                        minimumSize: const Size(0, 48),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
+                        side: const BorderSide(color: Colors.green),
+                        foregroundColor: Colors.green,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: () => _showStatusDialog(context, id, 'Perlu Perhatian'),
+                      icon: const Icon(Icons.warning_amber_rounded, size: 18),
+                      label: const Text('Perlu Perhatian'),
+                      style: OutlinedButton.styleFrom(
+                        minimumSize: const Size(0, 48),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
+                        side: const BorderSide(color: Colors.orange),
+                        foregroundColor: Colors.orange,
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              flex: 2,
-              child: ElevatedButton(
-                onPressed: () {},
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: Colors.white,
-                  minimumSize: const Size(0, 56),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                  elevation: 0,
+              const SizedBox(height: 16),
+            ],
+            // Main Actions Row
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () => Navigator.pop(context),
+                    style: OutlinedButton.styleFrom(
+                      minimumSize: const Size(0, 56),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16)),
+                      side: const BorderSide(color: Color(0xFFE2E8F0)),
+                    ),
+                    child: Text('Tutup',
+                        style: AppTextStyles.bodyLg.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: const Color(0xFF64748B))),
+                  ),
                 ),
-                child: const Text('Buat Catatan Sesi', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
-              ),
+                const SizedBox(width: 16),
+                Expanded(
+                  flex: 2,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => SessionNoteScreen(
+                            studentName: name,
+                            studentId: id,
+                            sessionNumber: sessions + 1,
+                          ),
+                        ),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: Colors.white,
+                      minimumSize: const Size(0, 56),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16)),
+                      elevation: 0,
+                    ),
+                    child: const Text('Buat Catatan Sesi',
+                        style: TextStyle(
+                            fontWeight: FontWeight.w900, fontSize: 16)),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
       ),
     );
   }
-}
 
+  void _showStatusDialog(BuildContext context, String patientId, String newStatus) {
+    final TextEditingController notesController = TextEditingController();
+    final isSelesai = newStatus == 'Selesai';
+    final accentColor = isSelesai ? Colors.green : Colors.orange;
+    final iconData = isSelesai ? Icons.check_circle_rounded : Icons.warning_amber_rounded;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Padding(
+        padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom),
+        child: Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+          ),
+          padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Handle bar
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.withAlpha(60),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              // Header
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: accentColor.withAlpha(20),
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: Icon(iconData, color: accentColor, size: 24),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          isSelesai ? 'Tandai Selesai' : 'Perlu Perhatian',
+                          style: const TextStyle(
+                            fontSize: 17,
+                            fontWeight: FontWeight.w900,
+                            color: Color(0xFF1E293B),
+                          ),
+                        ),
+                        Text(
+                          'Update status pasien menjadi "$newStatus"',
+                          style: const TextStyle(fontSize: 12, color: Color(0xFF94A3B8)),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+
+              // Info banner
+              Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: accentColor.withAlpha(12),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: accentColor.withAlpha(40)),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.info_outline_rounded, color: accentColor, size: 18),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        isSelesai
+                            ? 'Pasien akan ditandai sebagai selesai penanganan. Anda masih bisa membuat catatan sesi baru jika diperlukan.'
+                            : 'Pasien akan ditandai memerlukan perhatian khusus dan tindak lanjut segera.',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: accentColor.withAlpha(200),
+                          height: 1.4,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              // Notes field
+              Text(
+                'Catatan (opsional)',
+                style: AppTextStyles.bodyMd.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.primary,
+                ),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: notesController,
+                maxLines: 3,
+                style: const TextStyle(fontSize: 14, color: Color(0xFF1E293B)),
+                decoration: InputDecoration(
+                  hintText: 'Tambahkan catatan untuk perubahan status ini...',
+                  hintStyle: const TextStyle(fontSize: 13, color: Color(0xFF94A3B8)),
+                  filled: true,
+                  fillColor: const Color(0xFFF8FAFC),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: BorderSide(color: Colors.grey.withAlpha(40)),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: BorderSide(color: Colors.grey.withAlpha(40)),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: BorderSide(color: accentColor, width: 1.5),
+                  ),
+                  contentPadding: const EdgeInsets.all(16),
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              // Action buttons
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => Navigator.pop(ctx),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14)),
+                        side: BorderSide(color: Colors.grey.withAlpha(60)),
+                      ),
+                      child: const Text('Batal',
+                          style: TextStyle(fontWeight: FontWeight.bold)),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    flex: 2,
+                    child: ElevatedButton.icon(
+                      onPressed: () async {
+                        Navigator.pop(ctx);
+                        final success = await provider.updatePatientStatus(
+                          patientId,
+                          newStatus,
+                          notes: notesController.text.trim(),
+                        );
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(success
+                                  ? 'Status pasien berhasil diupdate!'
+                                  : 'Gagal mengupdate status pasien'),
+                              backgroundColor: success ? accentColor : Colors.red,
+                              behavior: SnackBarBehavior.floating,
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12)),
+                            ),
+                          );
+                          if (success) {
+                            provider.loadPatients();
+                            provider.loadMedicalRecord(patientId);
+                            Navigator.pop(context); // tutup bottom sheet detail
+                          }
+                        }
+                      },
+                      icon: Icon(iconData, size: 18),
+                      label: Text(
+                        isSelesai ? 'Tandai Selesai' : 'Tandai Perhatian',
+                        style: const TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 15),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: accentColor,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14)),
+                        elevation: 0,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}

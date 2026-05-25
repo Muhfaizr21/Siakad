@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:bkuhub_mobile/features/counseling/presentation/pages/psychologist_dashboard_screen.dart';
 import 'package:bkuhub_mobile/features/counseling/presentation/widgets/counseling_bottom_nav_bar.dart';
 import 'package:bkuhub_mobile/features/counseling/presentation/pages/patient_list_screen.dart';
+import 'package:bkuhub_mobile/features/counseling/presentation/pages/psychologist_bookings_screen.dart';
 import 'package:bkuhub_mobile/features/counseling/presentation/pages/psychologist_settings_screen.dart';
 import 'package:bkuhub_mobile/features/counseling/presentation/providers/psychologist_dashboard_provider.dart';
 
@@ -18,6 +19,7 @@ class _PsychologistMainScreenState extends State<PsychologistMainScreen> {
 
   final List<Widget> _pages = [
     const PsychologistDashboardScreen(),
+    const PsychologistBookingsScreen(),
     const PatientListScreen(showBackButton: false),
     const PsychologistSettingsScreen(showBackButton: false),
   ];
@@ -25,7 +27,6 @@ class _PsychologistMainScreenState extends State<PsychologistMainScreen> {
   @override
   void initState() {
     super.initState();
-    // Load dashboard data after first frame
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<PsychologistDashboardProvider>().loadDashboardData();
     });

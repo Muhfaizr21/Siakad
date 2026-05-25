@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:bkuhub_mobile/core/routes/app_routes.dart';
 import 'package:bkuhub_mobile/core/theme/app_colors.dart';
 import 'package:bkuhub_mobile/core/theme/app_text_styles.dart';
 import 'package:bkuhub_mobile/core/providers/student_provider.dart';
 import 'package:bkuhub_mobile/features/mahasiswa/domain/entities/counseling_session.dart';
 import 'package:bkuhub_mobile/core/widgets/fade_in_animation.dart';
-import 'package:bkuhub_mobile/features/mahasiswa/counseling/presentation/pages/book_counseling_screen.dart';
 import 'package:bkuhub_mobile/features/mahasiswa/counseling/presentation/pages/psychologist_list_screen.dart';
 import 'package:bkuhub_mobile/core/widgets/bku_app_bar.dart';
-import 'package:bkuhub_mobile/features/counseling/domain/entities/psychologist.dart';
+import 'package:bkuhub_mobile/features/counseling/presentation/providers/student_counseling_provider.dart';
 
 class CounselingScreen extends StatefulWidget {
   const CounselingScreen({super.key});
@@ -23,6 +24,7 @@ class _CounselingScreenState extends State<CounselingScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<StudentProvider>().loadAllData();
+      context.read<StudentCounselingProvider>().loadPsychologists();
     });
   }
 
@@ -79,18 +81,38 @@ class _CounselingScreenState extends State<CounselingScreen> {
                             ],
                           ),
                           const SizedBox(height: 12),
-                          SizedBox(
-                            height: 220,
-                            child: ListView.builder(
-                              scrollDirection: Axis.horizontal,
-                              padding: const EdgeInsets.only(bottom: 12),
-                              physics: const BouncingScrollPhysics(),
-                              itemCount: student.availablePsychologists.length,
-                              itemBuilder: (context, index) => FadeInAnimation(
-                                delay: 0.4 + (index * 0.1),
-                                child: _buildPsychologistCard(context, student.availablePsychologists[index]),
-                              ),
-                            ),
+                          Consumer<StudentCounselingProvider>(
+                            builder: (context, counselingProvider, _) {
+                              if (counselingProvider.psychologistsLoading) {
+                                return const SizedBox(
+                                  height: 220,
+                                  child: Center(child: CircularProgressIndicator()),
+                                );
+                              }
+                              final psychologists = counselingProvider.psychologists;
+                              if (psychologists.isEmpty) {
+                                return const SizedBox(
+                                  height: 80,
+                                  child: Center(
+                                    child: Text('Belum ada psikolog tersedia',
+                                        style: TextStyle(color: Color(0xFF94A3B8))),
+                                  ),
+                                );
+                              }
+                              return SizedBox(
+                                height: 220,
+                                child: ListView.builder(
+                                  scrollDirection: Axis.horizontal,
+                                  padding: const EdgeInsets.only(bottom: 12),
+                                  physics: const BouncingScrollPhysics(),
+                                  itemCount: psychologists.length,
+                                  itemBuilder: (context, index) => FadeInAnimation(
+                                    delay: 0.4 + (index * 0.1),
+                                    child: _buildPsychologistCardFromMap(context, psychologists[index]),
+                                  ),
+                                ),
+                              );
+                            },
                           ),
                         ],
                       ),
@@ -442,7 +464,14 @@ class _CounselingScreenState extends State<CounselingScreen> {
     );
   }
 
-  Widget _buildPsychologistCard(BuildContext context, Psychologist psy) {
+  Widget _buildPsychologistCardFromMap(BuildContext context, Map<String, dynamic> p) {
+    final name = p['name']?.toString() ?? '-';
+    final spec = p['specialization']?.toString() ?? '-';
+    final id = p['id']?.toString() ?? '';
+    final isActive = p['is_active'] == true;
+    final initials = name.trim().isEmpty ? 'P'
+        : name.trim().split(' ').take(2).map((w) => w[0].toUpperCase()).join();
+
     return Container(
       width: 150,
       margin: const EdgeInsets.only(right: 16),
@@ -451,17 +480,13 @@ class _CounselingScreenState extends State<CounselingScreen> {
         borderRadius: BorderRadius.circular(28),
         border: Border.all(color: AppColors.primary.withAlpha(8), width: 1.5),
         boxShadow: [
-          BoxShadow(
-            color: AppColors.primary.withAlpha(5),
-            blurRadius: 15,
-            offset: const Offset(0, 8),
-          ),
+          BoxShadow(color: AppColors.primary.withAlpha(5), blurRadius: 15, offset: const Offset(0, 8)),
         ],
       ),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          onTap: () => _showBookingDialog(context, psy),
+          onTap: isActive ? () => context.push('${AppRoutes.counselingBooking}?psikolog_id=$id') : null,
           borderRadius: BorderRadius.circular(28),
           child: Padding(
             padding: const EdgeInsets.all(16),
@@ -472,26 +497,19 @@ class _CounselingScreenState extends State<CounselingScreen> {
                   alignment: Alignment.center,
                   children: [
                     Container(
-                      padding: const EdgeInsets.all(3),
+                      width: 68,
+                      height: 68,
                       decoration: BoxDecoration(
-                        shape: BoxShape.circle,
                         gradient: LinearGradient(
-                          colors: [AppColors.primary, AppColors.primary.withAlpha(50)],
+                          colors: isActive
+                              ? [AppColors.primary, const Color(0xFF0044BB)]
+                              : [Colors.grey, Colors.grey.shade400],
                         ),
+                        shape: BoxShape.circle,
                       ),
-                      child: SizedBox(
-                        width: 68,
-                        height: 68,
-                        child: ClipOval(
-                          child: Image.network(
-                            psy.profileImageUrl,
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) => Container(
-                              color: AppColors.primary.withAlpha(20),
-                              child: const Icon(Icons.person_rounded, color: AppColors.primary, size: 34),
-                            ),
-                          ),
-                        ),
+                      child: Center(
+                        child: Text(initials,
+                            style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.w900)),
                       ),
                     ),
                     Positioned(
@@ -501,7 +519,7 @@ class _CounselingScreenState extends State<CounselingScreen> {
                         width: 14,
                         height: 14,
                         decoration: BoxDecoration(
-                          color: Colors.green,
+                          color: isActive ? Colors.green : Colors.grey,
                           shape: BoxShape.circle,
                           border: Border.all(color: Colors.white, width: 2.5),
                         ),
@@ -511,26 +529,21 @@ class _CounselingScreenState extends State<CounselingScreen> {
                 ),
                 const SizedBox(height: 14),
                 Text(
-                  psy.name.split(',')[0],
+                  name.split(',')[0],
                   textAlign: TextAlign.center,
                   style: AppTextStyles.labelMd.copyWith(
                     fontWeight: FontWeight.w900,
                     color: AppColors.primary,
-                    fontSize: 14,
-                    letterSpacing: -0.2,
+                    fontSize: 13,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  psy.specialization.split('&')[0].trim(),
+                  spec.split('&')[0].trim(),
                   textAlign: TextAlign.center,
-                  style: AppTextStyles.labelSm.copyWith(
-                    color: AppColors.outline,
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: AppTextStyles.labelSm.copyWith(color: AppColors.outline, fontSize: 10, fontWeight: FontWeight.bold),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -540,120 +553,22 @@ class _CounselingScreenState extends State<CounselingScreen> {
                   padding: const EdgeInsets.symmetric(vertical: 8),
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
-                      colors: [AppColors.primary, AppColors.primary.withAlpha(180)],
+                      colors: isActive
+                          ? [AppColors.primary, AppColors.primary.withAlpha(180)]
+                          : [Colors.grey, Colors.grey.withAlpha(180)],
                     ),
                     borderRadius: BorderRadius.circular(12),
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.primary.withAlpha(30),
-                        blurRadius: 8,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
                   ),
                   child: Center(
                     child: Text(
-                      'Booking',
-                      style: AppTextStyles.labelSm.copyWith(
-                        color: Colors.white,
-                        fontSize: 10,
-                        fontWeight: FontWeight.w900,
-                      ),
+                      isActive ? 'Booking' : 'Tidak Aktif',
+                      style: AppTextStyles.labelSm.copyWith(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w900),
                     ),
                   ),
                 ),
               ],
             ),
           ),
-        ),
-      ),
-    );
-  }
-
-  void _showBookingDialog(BuildContext context, Psychologist? selectedPsy) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(24),
-        decoration: const BoxDecoration(color: Colors.white, borderRadius: BorderRadius.vertical(top: Radius.circular(32))),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(child: Container(width: 40, height: 4, decoration: BoxDecoration(color: AppColors.surfaceVariant, borderRadius: BorderRadius.circular(2)))),
-            const SizedBox(height: 24),
-            if (selectedPsy != null) ...[
-              Row(
-                children: [
-                  SizedBox(
-                    width: 48,
-                    height: 48,
-                    child: ClipOval(
-                      child: Image.network(
-                        selectedPsy.profileImageUrl,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) => Container(
-                          color: AppColors.primary.withAlpha(20),
-                          child: const Icon(Icons.person_rounded, color: AppColors.primary, size: 24),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Konseling dengan', style: AppTextStyles.labelSm.copyWith(color: AppColors.outline)),
-                        Text(selectedPsy.name, style: AppTextStyles.labelMd.copyWith(fontWeight: FontWeight.bold, color: AppColors.primary)),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 24),
-              const Divider(),
-              const SizedBox(height: 24),
-            ],
-            Text('Pilih Topik Konseling', style: AppTextStyles.titleLg.copyWith(fontWeight: FontWeight.w900, color: AppColors.primary)),
-            const SizedBox(height: 8),
-            Text('Apa yang ingin kamu bahas hari ini?', style: AppTextStyles.labelSm.copyWith(color: AppColors.outline, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 32),
-            _buildTopicOption(context, 'Masalah Akademik', Icons.school_rounded, selectedPsy),
-            _buildTopicOption(context, 'Kesehatan Mental & Stres', Icons.psychology_rounded, selectedPsy),
-            _buildTopicOption(context, 'Masalah Keluarga/Pribadi', Icons.family_restroom_rounded, selectedPsy),
-            _buildTopicOption(context, 'Karir & Masa Depan', Icons.work_rounded, selectedPsy),
-            const SizedBox(height: 32),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTopicOption(BuildContext context, String title, IconData icon, Psychologist? selectedPsy) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: AppColors.surfaceVariant, width: 1.5),
-        ),
-        child: ListTile(
-          onTap: () {
-            Navigator.pop(context);
-            Navigator.push(context, MaterialPageRoute(builder: (context) => BookCounselingScreen(topic: title, psychologist: selectedPsy)));
-          },
-          leading: Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(color: AppColors.primary.withAlpha(10), borderRadius: BorderRadius.circular(12)),
-            child: Icon(icon, color: AppColors.primary, size: 22),
-          ),
-          title: Text(title, style: AppTextStyles.labelMd.copyWith(fontWeight: FontWeight.w900, color: AppColors.primary)),
-          trailing: const Icon(Icons.chevron_right_rounded, color: AppColors.outline),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
         ),
       ),
     );
