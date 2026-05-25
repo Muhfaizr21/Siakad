@@ -88,7 +88,7 @@ export default function StudentVoiceDetailPage() {
                 <div className="flex flex-col gap-4 mb-6">
                   {ticket.is_anonim && (
                     <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-lg shrink-0 self-start">
-                      <span className="material-symbols-outlined text-gray-500" style={{ fontSize: '16px' }} Check >security</span>
+                      <span className="material-symbols-outlined text-gray-500" style={{ fontSize: '16px' }}>security</span>
                       <span className="text-xs font-semibold text-gray-600">Dikirim secara Anonim</span>
                     </div>
                   )}
@@ -115,15 +115,15 @@ export default function StudentVoiceDetailPage() {
                 )}
 
                 {ticket.lampiran_url && (
-                  <div className="p-4 bg-gray-50 rounded-xl border border-gray-200 group/file">
+                  <div className="p-5 bg-gray-50 rounded-2xl border border-gray-200 group/file space-y-4">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                       <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 bg-white rounded-lg border border-gray-200 flex items-center justify-center text-gray-400 group-hover/file:text-[#00236F] transition-colors shadow-sm">
+                        <div className="w-12 h-12 bg-white rounded-xl border border-gray-200 flex items-center justify-center text-gray-400 group-hover/file:text-[#00236F] transition-colors shadow-sm">
                           <span className="material-symbols-outlined" style={{ fontSize: '24px' }} >description</span>
                         </div>
                         <div>
-                          <p className="text-sm font-semibold text-[#171717]">Lampiran Pendukung</p>
-                          <p className="text-xs font-medium text-gray-500 flex items-center gap-1.5 mt-0.5">
+                          <p className="text-sm font-bold text-[#171717]">Lampiran Pendukung</p>
+                          <p className="text-xs font-semibold text-gray-500 flex items-center gap-1.5 mt-0.5">
                              <span className="material-symbols-outlined text-[#00236F]" style={{ fontSize: 14 }}>download</span> File Attachment
                           </p>
                         </div>
@@ -132,11 +132,22 @@ export default function StudentVoiceDetailPage() {
                         href={`${API_BASE_URL.replace('/api', '')}${ticket.lampiran_url}`} 
                         target="_blank" 
                         rel="noopener noreferrer"
-                        className="flex items-center justify-center gap-2 px-6 py-2.5 bg-[#00236F] text-white font-medium rounded-xl hover:bg-[#0B4FAE] transition-colors text-sm"
+                        className="flex items-center justify-center gap-2 px-6 py-2.5 bg-[#00236F] text-white font-bold rounded-xl hover:bg-[#0B4FAE] transition-colors text-xs uppercase tracking-wider"
                       >
                         Download <span className="material-symbols-outlined" style={{ fontSize: 16 }}>download</span>
                       </a>
                     </div>
+
+                    {/* Visual Image Preview */}
+                    {/\.(jpg|jpeg|png|webp|gif)$/i.test(ticket.lampiran_url) && (
+                      <div className="relative aspect-video max-w-md rounded-xl overflow-hidden border border-gray-200 shadow-sm mt-2 bg-white">
+                        <img 
+                          src={`${API_BASE_URL.replace('/api', '')}${ticket.lampiran_url}`} 
+                          alt="Lampiran Visual" 
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -155,7 +166,7 @@ export default function StudentVoiceDetailPage() {
               </div>
               <div className="p-6 bg-[#00236F] border border-[#00236F] rounded-2xl flex flex-col gap-3">
                 <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center text-white border border-white/20">
-                  <span className="material-symbols-outlined" style={{ fontSize: '20px' }} Check >security</span>
+                  <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>security</span>
                 </div>
                 <h4 className="text-sm font-bold text-white">Kerahasiaan Data</h4>
                 <p className="text-xs text-white/80 leading-relaxed">
@@ -270,7 +281,7 @@ function TimelineEvent({ event, isLatest, idx }) {
 
         <div className="mt-3 pt-3 border-t border-dashed border-gray-200 flex items-center justify-between">
            <div className="flex items-center gap-1.5">
-              {event.level === 'sistem' ? <Building size={12} className="text-gray-400"/> : <span className="material-symbols-outlined text-gray-400" style={{ fontSize: '12px' }} Alert >security</span>}
+              {event.level === 'sistem' ? <Building size={12} className="text-gray-400"/> : <span className="material-symbols-outlined text-gray-400" style={{ fontSize: '12px' }}>security</span>}
               <span className="text-[10px] font-medium text-gray-500">
                 Oleh {event.level === 'sistem' ? 'Sistem' : `Admin ${event.level.charAt(0).toUpperCase() + event.level.slice(1)}`}
               </span>
@@ -360,13 +371,19 @@ function LevelBadge({ level }) {
 
 function StatusBadge({ status }) {
   const styles = {
-    menunggu: 'bg-gray-50 text-gray-600 border-gray-200',
-    diproses: 'bg-yellow-50 text-yellow-700 border-yellow-200',
-    ditindaklanjuti: 'bg-blue-50 text-blue-700 border-blue-200',
-    selesai: 'bg-green-50 text-green-700 border-green-200'
+    'menunggu': 'bg-gray-50 text-gray-600 border-gray-200',
+    'diproses': 'bg-yellow-50 text-yellow-700 border-yellow-200',
+    'ditindaklanjuti': 'bg-blue-50 text-blue-700 border-blue-200',
+    'disetujui fakultas': 'bg-blue-50 text-blue-700 border-blue-200',
+    'ditolak fakultas': 'bg-rose-50 text-rose-700 border-rose-200',
+    'ditolak': 'bg-rose-50 text-rose-700 border-rose-200',
+    'proses': 'bg-blue-50 text-blue-700 border-blue-200',
+    'ditinjau': 'bg-amber-50 text-amber-700 border-amber-200',
+    'selesai': 'bg-green-50 text-green-700 border-green-200'
   };
+  const key = (status || 'menunggu').toLowerCase();
   return (
-    <span className={`px-3 py-1 rounded-lg text-xs font-bold border shadow-sm capitalize ${styles[status] || styles.menunggu}`}>
+    <span className={`px-3 py-1 rounded-lg text-xs font-bold border shadow-sm capitalize ${styles[key] || styles.menunggu}`}>
       {status}
     </span>
   );

@@ -98,9 +98,9 @@ export default function FacultyKonseling() {
       Topik: s.topik || s.Topik || 'Akademik',
       Status: s.status || s.Status || 'pending',
       Tanggal: s.tanggal || s.Tanggal || null,
-      jam: s.jam || s.Jam || null,
-      notes: s.notes || s.Notes || null,
-      counselor: s.counselor || s.Counselor || 'Dosen PA',
+      jam: s.jam_mulai && s.jam_selesai ? `${s.jam_mulai} - ${s.jam_selesai}` : (s.jam || s.Jam || null),
+      notes: s.catatan_admin || s.CatatanAdmin || s.keluhan || s.Keluhan || s.notes || s.Notes || null,
+      counselor: s.Psikolog?.nama || s.psikolog?.nama || s.counselor || s.Counselor || 'Psikolog BKU',
       Mahasiswa: {
         Nama: m.nama || m.Nama || '—',
         NIM: m.nim || m.NIM || '—',
@@ -508,13 +508,10 @@ export default function FacultyKonseling() {
             </div>
 
             {/* Footer */}
-            <div className="px-5 py-4 border-t border-[#f0f0f0] bg-[#fafafa] flex gap-3 flex-shrink-0">
+            <div className="px-5 py-4 border-t border-[#f0f0f0] bg-[#fafafa] flex-shrink-0">
               <button onClick={()=>setSelected(null)}
-                className="flex-1 h-11 rounded-xl border border-[#e5e5e5] bg-white text-xs font-bold text-[#525252] uppercase tracking-widest hover:bg-[#f5f5f5] transition-all">
+                className="w-full h-11 rounded-xl border border-[#e5e5e5] bg-white text-xs font-bold text-[#525252] uppercase tracking-widest hover:bg-[#f5f5f5] transition-all active:scale-95 flex items-center justify-center">
                 Tutup
-              </button>
-              <button className="flex-1 h-11 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold uppercase tracking-widest transition-all active:scale-95 shadow-lg shadow-emerald-600/20 flex items-center justify-center gap-2">
-                <span className="material-symbols-outlined" style={{ fontSize: '14px' }} >check_circle</span> Tandai Selesai
               </button>
             </div>
           </div>

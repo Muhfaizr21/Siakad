@@ -91,7 +91,7 @@ export default function StudentVoicePage() {
             <>
               <StatCard label="Total Diajukan" value={stats?.total || 0} color="border-[#D5E2FF]" icon={<span className="material-symbols-outlined text-[#00236F]" style={{ fontSize: '18px' }} >chat</span>} bg="bg-white" />
               <StatCard label="Di Fakultas" value={stats?.di_fakultas || 0} color="border-[#C9D8FF]" icon={<span className="material-symbols-outlined text-[#0B4FAE]" style={{ fontSize: '18px' }} >schedule</span>} bg="bg-[#EAF1FF]" />
-              <StatCard label="Di Universitas" value={stats?.di_universitas || 0} color="border-[#D3E1FF]" icon={<span className="material-symbols-outlined text-[#1D4E9E]" style={{ fontSize: '18px' }} Alert >security</span>} bg="bg-[#EEF4FF]" />
+              <StatCard label="Di Universitas" value={stats?.di_universitas || 0} color="border-[#D3E1FF]" icon={<span className="material-symbols-outlined text-[#1D4E9E]" style={{ fontSize: '18px' }}>security</span>} bg="bg-[#EEF4FF]" />
               <StatCard label="Selesai" value={stats?.selesai || 0} color="border-[#16a34a]" icon={<span className="material-symbols-outlined text-[#16a34a]" style={{ fontSize: '20px' }} >check_circle</span>} bg="bg-[#f0fdf4]" />
             </>
           )}
@@ -257,13 +257,19 @@ function LevelBadge({ level }) {
 
 function StatusBadge({ status }) {
   const styles = {
-    menunggu: 'bg-gray-100 text-gray-500 border-gray-200',
-    diproses: 'bg-[#EEF4FF] text-[#1D4E9E] border-[#D5E2FF]',
-    ditindaklanjuti: 'bg-[#EAF1FF] text-[#0B4FAE] border-[#C9D8FF]',
-    selesai: 'bg-green-50 text-green-600 border-green-100'
+    'menunggu': 'bg-gray-100 text-gray-500 border-gray-200',
+    'diproses': 'bg-[#EEF4FF] text-[#1D4E9E] border-[#D5E2FF]',
+    'ditindaklanjuti': 'bg-[#EAF1FF] text-[#0B4FAE] border-[#C9D8FF]',
+    'disetujui fakultas': 'bg-[#EAF1FF] text-[#0B4FAE] border-[#C9D8FF]',
+    'ditolak fakultas': 'bg-rose-50 text-rose-600 border-rose-200',
+    'ditolak': 'bg-rose-50 text-rose-600 border-rose-200',
+    'proses': 'bg-blue-50 text-blue-600 border-blue-200',
+    'ditinjau': 'bg-amber-50 text-amber-600 border-amber-200',
+    'selesai': 'bg-green-50 text-green-600 border-green-100'
   };
+  const key = (status || 'menunggu').toLowerCase();
   return (
-    <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wide border ${styles[status] || styles.menunggu}`}>
+    <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wide border ${styles[key] || styles.menunggu}`}>
       {status}
     </span>
   );
@@ -435,7 +441,7 @@ function CreateAspirasiModal({ onClose }) {
                 initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }}
                 className="p-4 bg-[#EAF1FF] border border-[#C9D8FF] rounded-xl flex gap-3"
               >
-                <span className="material-symbols-outlined text-[#0B4FAE] shrink-0" style={{ fontSize: '18px' }} Alert >security</span>
+                <span className="material-symbols-outlined text-[#0B4FAE] shrink-0" style={{ fontSize: '18px' }}>security</span>
                 <p className="text-[10px] font-bold text-[#0B4FAE] leading-relaxed uppercase">
                   Data pengirim akan disembunyikan dari pihak Admin Fakultas/Universitas, namun tetap tercatat secara internal demi keamanan sistem. Tindak lanjut yang memerlukan konfirmasi langsung mungkin tidak dapat diproses jika Anda anonim.
                 </p>

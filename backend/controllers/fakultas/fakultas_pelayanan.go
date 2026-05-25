@@ -140,56 +140,6 @@ func VerifikasiPrestasi(c *fiber.Ctx) error {
 func HapusPrestasi(c *fiber.Ctx) error {
 	return c.Status(403).JSON(fiber.Map{"status": "error", "message": "Admin fakultas tidak diizinkan menghapus data prestasi"})
 }
-
-// --- SURAT MAHASISWA ---
-
-func AmbilDaftarSurat(c *fiber.Ctx) error {
-	role := c.Locals("role").(string)
-	fid := c.Locals("fakultas_id").(uint)
-
-	var daftar = []models.PengajuanSurat{}
-	query := config.DB.Preload("Mahasiswa.ProgramStudi").Preload("Mahasiswa.Pengguna").Order("created_at desc")
-
-	if role == "faculty_admin" {
-		query = query.Joins("JOIN mahasiswa.mahasiswa ON mahasiswa.mahasiswa.id = mahasiswa.pengajuan_surat.mahasiswa_id").
-			Where("mahasiswa.mahasiswa.fakultas_id = ?", fid)
-	}
-
-	query.Find(&daftar)
-	return c.JSON(fiber.Map{"status": "success", "data": daftar})
-}
-
-func PerbaruiStatusSurat(c *fiber.Ctx) error {
-	role := c.Locals("role").(string)
-	fid := c.Locals("fakultas_id").(uint)
-
-	id := c.Params("id")
-	var req models.PengajuanSurat
-	if err := c.BodyParser(&req); err != nil {
-		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Payload salah"})
-	}
-
-	query := config.DB.Model(&models.PengajuanSurat{})
-	if role == "faculty_admin" {
-		query = query.Joins("Mahasiswa").Where("\"Mahasiswa\".fakultas_id = ?", fid)
-	}
-
-	if err := query.Where("mahasiswa.pengajuan_surat.id = ?", id).Updates(models.PengajuanSurat{
-		Status:  req.Status,
-		Catatan: req.Catatan,
-		FileURL: req.FileURL,
-	}).Error; err != nil {
-		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Surat tidak ditemukan atau Anda tidak memiliki akses"})
-	}
-
-	return c.JSON(fiber.Map{"status": "success", "message": "Surat diperbarui"})
-}
-
-// HapusSurat — Tidak diizinkan. Admin fakultas hanya approve internal, tidak generate/hapus surat resmi
-func HapusSurat(c *fiber.Ctx) error {
-	return c.Status(403).JSON(fiber.Map{"status": "error", "message": "Admin fakultas tidak diizinkan menghapus pengajuan surat"})
-}
-
 // --- MBKM ---
 
 func AmbilDaftarMBKM(c *fiber.Ctx) error {
@@ -257,16 +207,20 @@ func VerifikasiBeasiswa(c *fiber.Ctx) error {
 		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Payload salah"})
 	}
 
-	query := config.DB.Model(&models.BeasiswaPendaftaran{})
-	if role == "faculty_admin" {
-		query = query.Joins("Mahasiswa").Where("\"Mahasiswa\".fakultas_id = ?", fid)
+	var application models.BeasiswaPendaftaran
+	if err := config.DB.Preload("Mahasiswa").First(&application, id).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Pendaftaran tidak ditemukan"})
 	}
 
-	if err := query.Where("mahasiswa.beasiswa_pendaftaran.id = ?", id).Updates(models.BeasiswaPendaftaran{
-		Status:  req.Status,
-		Catatan: req.Catatan,
+	if role == "faculty_admin" && application.Mahasiswa.FakultasID != fid {
+		return c.Status(403).JSON(fiber.Map{"status": "error", "message": "Anda tidak memiliki akses ke pendaftar dari fakultas lain"})
+	}
+
+	if err := config.DB.Model(&models.BeasiswaPendaftaran{}).Where("id = ?", id).Updates(map[string]interface{}{
+		"status":  req.Status,
+		"catatan": req.Catatan,
 	}).Error; err != nil {
-		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Pendaftaran tidak ditemukan atau Anda tidak memiliki akses"})
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": err.Error()})
 	}
 
 	return c.JSON(fiber.Map{"status": "success", "message": "Status verifikasi beasiswa disimpan"})
@@ -277,17 +231,18 @@ func HapusPendaftarBeasiswa(c *fiber.Ctx) error {
 	fid := c.Locals("fakultas_id").(uint)
 
 	id := c.Params("id")
-	query := config.DB.Model(&models.BeasiswaPendaftaran{})
-	if role == "faculty_admin" {
-		query = query.Joins("Mahasiswa").Where("\"Mahasiswa\".fakultas_id = ?", fid)
-	}
-
 	var p models.BeasiswaPendaftaran
-	if err := query.Where("mahasiswa.beasiswa_pendaftaran.id = ?", id).First(&p).Error; err != nil {
-		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Pendaftaran tidak ditemukan atau Anda tidak memiliki akses"})
+	if err := config.DB.Preload("Mahasiswa").First(&p, id).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Pendaftaran tidak ditemukan"})
 	}
 
-	config.DB.Delete(&p)
+	if role == "faculty_admin" && p.Mahasiswa.FakultasID != fid {
+		return c.Status(403).JSON(fiber.Map{"status": "error", "message": "Anda tidak memiliki akses ke pendaftar dari fakultas lain"})
+	}
+
+	if err := config.DB.Delete(&p).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": err.Error()})
+	}
 	return c.JSON(fiber.Map{"status": "success", "message": "Pendaftar beasiswa dihapus"})
 }
 
@@ -463,15 +418,17 @@ func AmbilDaftarKonseling(c *fiber.Ctx) error {
 	role := c.Locals("role").(string)
 	fid := c.Locals("fakultas_id").(uint)
 
-	var daftar = []models.Konseling{}
-	query := config.DB.Order("created_at desc").Preload("Mahasiswa.ProgramStudi")
+	var daftar = []models.PsikologBooking{}
+	query := config.DB.Order("created_at desc").Preload("Mahasiswa.ProgramStudi").Preload("Psikolog")
 
 	if role == "faculty_admin" {
-		query = query.Joins("JOIN mahasiswa.mahasiswa ON mahasiswa.mahasiswa.id = mahasiswa.konseling.mahasiswa_id").
+		query = query.Joins("JOIN mahasiswa.mahasiswa ON mahasiswa.mahasiswa.id = psikolog.bookings.mahasiswa_id").
 			Where("mahasiswa.mahasiswa.fakultas_id = ?", fid)
 	}
 
-	query.Find(&daftar)
+	if err := query.Find(&daftar).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": err.Error()})
+	}
 	return c.JSON(fiber.Map{"status": "success", "data": daftar})
 }
 

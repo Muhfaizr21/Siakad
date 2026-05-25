@@ -3,12 +3,15 @@ package mahasiswa
 import (
 	"fmt"
 	"math"
+	"os"
+	"path/filepath"
 	"siakad-backend/config"
 	"siakad-backend/models"
 	"siakad-backend/pkg/notifikasi"
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
 )
 
 // GetStats returns count summary for student voice
@@ -80,6 +83,36 @@ func CreateAspirasi(c *fiber.Ctx) error {
 		tujuan = "Fakultas"
 	}
 
+	// Handle File Upload (Lampiran)
+	var lampiranURL string
+	file, err := c.FormFile("lampiran")
+	if err == nil {
+		// Validate File Size (Max 5MB)
+		if file.Size > 5*1024*1024 {
+			return c.Status(400).JSON(fiber.Map{"success": false, "message": "Ukuran file melebihi 5MB"})
+		}
+
+		// Validate Extension
+		ext := strings.ToLower(filepath.Ext(file.Filename))
+		if ext != ".pdf" && ext != ".jpg" && ext != ".jpeg" && ext != ".png" {
+			return c.Status(400).JSON(fiber.Map{"success": false, "message": "Format file hanya boleh PDF, JPG, atau PNG"})
+		}
+
+		// Create upload directory
+		uploadDir := "./uploads/aspirasi"
+		_ = os.MkdirAll(uploadDir, os.ModePerm)
+
+		fileId := uuid.New().String()
+		fileOutputName := fmt.Sprintf("%s%s", fileId, ext)
+		savePath := filepath.Join(uploadDir, fileOutputName)
+
+		if err := c.SaveFile(file, savePath); err != nil {
+			return c.Status(500).JSON(fiber.Map{"success": false, "message": "Gagal menyimpan file lampiran"})
+		}
+
+		lampiranURL = "/uploads/aspirasi/" + fileOutputName
+	}
+
 	tiket := models.Aspirasi{
 		MahasiswaID: student.ID,
 		Kategori:    kategori,
@@ -88,6 +121,7 @@ func CreateAspirasi(c *fiber.Ctx) error {
 		Tujuan:      tujuan,
 		IsAnonim:    isAnonim,
 		Status:      "Menunggu",
+		LampiranURL: lampiranURL,
 	}
 
 	if err := config.DB.Create(&tiket).Error; err != nil {

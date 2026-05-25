@@ -88,7 +88,6 @@ import FacultyPengaturan from './pages/FacultyAdmin/Settings'
 import FacultyKonseling from './pages/FacultyAdmin/Konseling'
 import FacultyPrestasi from './pages/FacultyAdmin/Prestasi'
 
-import FacultyPersuratan from './pages/FacultyAdmin/Persuratan'
 import FacultyBeasiswa from './pages/FacultyAdmin/Beasiswa'
 import FacultyMahasiswaBaru from './pages/FacultyAdmin/MahasiswaBaru'
 import FacultyProposalApproval from './pages/FacultyAdmin/OrmawaProposals'
@@ -113,7 +112,6 @@ import KelolaFakultas from './pages/SuperAdmin/KelolaFakultas'
 import KelolaProdi from './pages/SuperAdmin/KelolaProdi'
 import KelolaBeasiswa from './pages/SuperAdmin/KelolaBeasiswa'
 import KelolaPrestasi from './pages/SuperAdmin/KelolaPrestasi'
-import ScholarshipApplicationDetail from './pages/SuperAdmin/ScholarshipApplicationDetail'
 import AspirationDetail from './pages/SuperAdmin/AspirationDetail'
 import KelolaOrganisasi from './pages/SuperAdmin/KelolaOrganisasi'
 import SuperAdminLayout from './pages/SuperAdmin/components/SuperAdminLayout'
@@ -201,7 +199,6 @@ function App() {
                     <Route path="prodi" element={<KelolaProdi />} />
                     <Route path="scholarships" element={<KelolaBeasiswa />} />
                     <Route path="achievements" element={<KelolaPrestasi />} />
-                    <Route path="scholarships/applications/:id" element={<ScholarshipApplicationDetail />} />
                     <Route path="aspirations/:id" element={<AspirationDetail />} />
                     <Route path="organizations" element={<KelolaOrganisasi />} />
                     <Route path="ormawa" element={<ProposalPipeline />} />
@@ -242,7 +239,6 @@ function App() {
                     <Route path="pengaturan" element={<FacultyPengaturan />} />
                     <Route path="konseling" element={<FacultyKonseling />} />
                     <Route path="prestasi" element={<FacultyPrestasi />} />
-                    <Route path="persuratan" element={<FacultyPersuratan />} />
                     <Route path="beasiswa" element={<FacultyBeasiswa />} />
                     <Route path="mahasiswa/baru" element={<FacultyMahasiswaBaru />} />
                     <Route path="pkkmb" element={<FacultyPkkmb />} />

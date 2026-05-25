@@ -300,8 +300,9 @@ type Aspirasi struct {
 	Status    string     `json:"status"`
 	Prioritas string     `json:"prioritas"` // LOW, MEDIUM, HIGH, CRITICAL
 	Deadline  *time.Time `json:"deadline,omitempty"`
-	IsAnonim  bool       `json:"is_anonim"`
-	Respon    string     `json:"respon"`
+	IsAnonim    bool       `json:"is_anonim"`
+	Respon      string     `json:"respon"`
+	LampiranURL string     `json:"lampiran_url"`
 }
 
 func (Aspirasi) TableName() string {

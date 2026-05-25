@@ -53,12 +53,6 @@ func InisialisasiRuteFakultas(aplikasi *fiber.App) {
 	api.Delete("/achievements/:id", fakultas.HapusPrestasi)
 	api.Delete("/prestasi/:id", fakultas.HapusPrestasi) // ALIAS
 
-	api.Get("/letters", fakultas.AmbilDaftarSurat)
-	api.Get("/surat", fakultas.AmbilDaftarSurat) // ALIAS
-	api.Put("/letters/:id", fakultas.PerbaruiStatusSurat)
-	api.Put("/surat/:id", fakultas.PerbaruiStatusSurat) // ALIAS
-	api.Delete("/letters/:id", fakultas.HapusSurat)
-
 	// MBKM & Beasiswa
 	api.Get("/mbkm", fakultas.AmbilDaftarMBKM)
 	api.Put("/mbkm/:id", fakultas.PerbaruiStatusMBKM)

@@ -36,7 +36,6 @@ const TopNavBar = ({ setIsOpen }) => {
     { name: 'Validasi Prestasi', path: '/faculty/prestasi', icon: 'emoji_events' },
     { name: 'Beasiswa Internal', path: '/faculty/beasiswa', icon: 'emoji_events' },
     { name: 'Jadwal Konseling', path: '/faculty/konseling', icon: Headphones },
-    { name: 'E-Persuratan', path: '/faculty/persuratan', icon: 'description' },
     { name: 'ORMAWA Hub', path: '/faculty/ormawa/proposals', icon: 'description' },
     { name: 'Organisasi Fakultas', path: '/faculty/organisasi', icon: 'group' },
     { name: 'Program Studi', path: '/faculty/prodi', icon: BookOpen },
@@ -98,7 +97,6 @@ const TopNavBar = ({ setIsOpen }) => {
       'prestasi': 'Validasi Prestasi',
       'beasiswa': 'Beasiswa Internal',
       'konseling': 'Jadwal Konseling',
-      'persuratan': 'E-Persuratan',
       'ormawa': 'ORMAWA Hub',
       'proposals': 'Proposal & Anggaran',
       'organisasi': 'Organisasi Fakultas',
@@ -230,15 +228,7 @@ const TopNavBar = ({ setIsOpen }) => {
                 )}
               </div>
               <div className="space-y-4">
-                <div className="flex gap-4 items-center p-3 rounded-2xl hover:bg-slate-50 transition-colors cursor-pointer group/item" onClick={() => navigate('/faculty/persuratan')}>
-                  <div className="p-2.5 rounded-xl bg-amber-50 text-amber-600 group-hover/item:bg-amber-100 transition-colors">
-                    <span className="material-symbols-outlined size-4" >description</span>
-                  </div>
-                  <div className="flex flex-col">
-                    <p className="text-[11px] font-black text-slate-900 leading-none uppercase tracking-tighter">E-Persuratan</p>
-                    <p className="text-[10px] font-bold text-slate-400 mt-1">{notifications.surat} berkas menunggu verifikasi</p>
-                  </div>
-                </div>
+
 
                 <div className="flex gap-4 items-center p-3 rounded-2xl hover:bg-slate-50 transition-colors cursor-pointer group/item" onClick={() => navigate('/faculty/aspirasi')}>
                   <div className="p-2.5 rounded-xl bg-primary/5 text-primary group-hover/item:bg-primary transition-colors group-hover/item:text-white">

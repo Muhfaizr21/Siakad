@@ -45,10 +45,14 @@ export function DataTable({
   exportLabel = "Export",
   actions,
   filters = [],
-  searchWidth = "max-w-md"
+  searchWidth = "max-w-md",
+  externalFilters,
+  onExternalFilterChange
 }) {
   const [searchTerm, setSearchTerm] = useState("")
-  const [activeFilters, setActiveFilters] = useState({})
+  const [internalFilters, setInternalFilters] = useState({})
+  const activeFilters = externalFilters || internalFilters
+  const setActiveFilters = onExternalFilterChange || setInternalFilters
   const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' })
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
