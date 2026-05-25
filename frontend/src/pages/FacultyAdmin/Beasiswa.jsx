@@ -79,6 +79,39 @@ function StudentAvatar({ src, name, className = "w-9 h-9 rounded-xl" }) {
   );
 }
 
+const renderAttachment = (url, label) => {
+  if (!url) return null;
+  const fullUrl = getFullUrl(url);
+  if (!fullUrl) return null;
+  
+  const isImage = fullUrl.match(/\.(jpeg|jpg|gif|png)$/i) != null;
+  return (
+    <div className="bg-slate-50 p-3 rounded-2xl border border-slate-100 flex flex-col gap-2 shadow-sm mb-2">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2.5">
+          <span className="material-symbols-outlined text-rose-500" style={{ fontSize: 20 }}>
+             {isImage ? 'image' : 'description'}
+          </span>
+          <div className="text-left">
+            <p className="text-xs font-bold text-slate-700 truncate max-w-[200px]">
+              {label}
+            </p>
+            <p className="text-[9px] text-slate-400">Klik untuk melihat file</p>
+          </div>
+        </div>
+        <a href={fullUrl} target="_blank" rel="noreferrer" className="text-primary hover:bg-blue-50 p-1.5 rounded-lg transition-colors">
+          <span className="material-symbols-outlined" style={{ fontSize: 16 }}>open_in_new</span>
+        </a>
+      </div>
+      {isImage && (
+        <a href={fullUrl} target="_blank" rel="noreferrer" className="mt-1 block rounded-xl overflow-hidden border border-slate-200 hover:opacity-90 transition-opacity">
+          <img src={fullUrl} alt={label} className="w-full h-auto object-cover max-h-48" />
+        </a>
+      )}
+    </div>
+  );
+};
+
 export default function FacultyScholarship() {
   const [activeTab, setActiveTab] = useState('programs')
   const [scholarships, setScholarships] = useState([])
@@ -258,7 +291,11 @@ export default function FacultyScholarship() {
       ID: a.id || a.ID,
       Status: a.status || a.Status || 'proses',
       Catatan: a.catatan || a.Catatan || '',
+      Motivasi: a.motivasi || a.Motivasi || '',
       FileURL: a.bukti_url || a.BuktiURL || a.file_url || a.FileURL || null,
+      KtmKtpURL: a.ktm_ktp_url || a.KtmKtpURL || null,
+      SertifikatURL: a.sertifikat_url || a.SertifikatURL || null,
+      TranskripURL: a.transkrip_url || a.TranskripURL || null,
       Mahasiswa: {
         Nama: m.nama || m.Nama || '—',
         NIM: m.nim || m.NIM || '—',
@@ -719,11 +756,11 @@ export default function FacultyScholarship() {
                           <p className="text-sm text-[#525252] font-medium">{row.Beasiswa?.Nama || '—'}</p>
                         </td>
                         <td className="px-5 py-3.5">
-                          {row.FileURL ? (
-                            <a href={row.FileURL} target="_blank" rel="noreferrer"
+                          {(row.FileURL || row.KtmKtpURL || row.TranskripURL || row.SertifikatURL) ? (
+                            <button onClick={() => setPreviewApp(row)}
                               className="inline-flex items-center gap-1.5 text-xs font-bold text-primary hover:underline">
-                              <span className="material-symbols-outlined" style={{ fontSize: '13px' }} >description</span> Lihat Berkas
-                            </a>
+                              <span className="material-symbols-outlined" style={{ fontSize: '13px' }} >attachment</span> Lihat Berkas
+                            </button>
                           ) : <span className="text-xs text-[#c4c4c4] italic">Tidak ada</span>}
                         </td>
                         <td className="px-5 py-3.5">
@@ -854,18 +891,23 @@ export default function FacultyScholarship() {
                   <p className="text-xs text-blue-200 font-medium mt-0.5">{selectedApp.Beasiswa?.Nama || '—'}</p>
                 </div>
               </div>
-              {selectedApp.FileURL && (
-                <div className="relative z-10">
-                  <a href={selectedApp.FileURL} target="_blank" rel="noreferrer"
-                    className="inline-flex items-center gap-2 bg-white/10 border border-white/20 px-3 py-1.5 rounded-xl text-[10px] font-bold text-white hover:bg-white/20 transition-colors">
-                    <span className="material-symbols-outlined" style={{ fontSize: '11px' }} >description</span> Lihat Berkas Pendaftaran <span className="material-symbols-outlined" style={{ fontSize: 10 }}>open_in_new</span>
-                  </a>
-                </div>
-              )}
             </div>
 
             {/* Body */}
             <div className="flex-1 overflow-y-auto p-5 space-y-4">
+              {/* Berkas Lampiran */}
+              {(selectedApp.FileURL || selectedApp.KtmKtpURL || selectedApp.TranskripURL || selectedApp.SertifikatURL) && (
+                <div>
+                  <label className="block text-[10px] font-black text-[#a3a3a3] uppercase tracking-[0.18em] mb-2">Berkas Lampiran</label>
+                  <div className="flex flex-col gap-1">
+                    {renderAttachment(selectedApp.FileURL, "Berkas Utama")}
+                    {renderAttachment(selectedApp.KtmKtpURL, "KTM / KTP")}
+                    {renderAttachment(selectedApp.TranskripURL, "Transkrip Nilai")}
+                    {renderAttachment(selectedApp.SertifikatURL, "Sertifikat Pendukung")}
+                  </div>
+                </div>
+              )}
+
               {/* Keputusan */}
               <div>
                 <label className="block text-[10px] font-black text-[#a3a3a3] uppercase tracking-[0.18em] mb-2">Keputusan Seleksi</label>
@@ -977,23 +1019,33 @@ export default function FacultyScholarship() {
                 {/* Submitted Files */}
                 <div className="space-y-1.5">
                   <span className="block text-[8px] font-bold text-slate-400 uppercase tracking-wider">BERKAS PENDAFTARAN</span>
-                  {previewApp.FileURL ? (
-                    <a href={previewApp.FileURL} target="_blank" rel="noreferrer"
-                      className="flex items-center justify-between p-3.5 bg-slate-50 hover:bg-slate-100/80 rounded-2xl border border-slate-100 transition-colors">
-                      <div className="flex items-center gap-2.5">
-                        <span className="material-symbols-outlined text-rose-500" style={{ fontSize: 20 }}>picture_as_pdf</span>
-                        <div className="text-left">
-                          <p className="text-xs font-bold text-slate-700">Bukti Berkas Pendaftaran.pdf</p>
-                          <p className="text-[9px] text-slate-400">Klik untuk melihat atau mengunduh</p>
-                        </div>
-                      </div>
-                      <span className="material-symbols-outlined text-slate-400" style={{ fontSize: 16 }}>open_in_new</span>
-                    </a>
-                  ) : (
+                  {!previewApp.FileURL && !previewApp.KtmKtpURL && !previewApp.TranskripURL && !previewApp.SertifikatURL ? (
                     <div className="bg-slate-50/50 p-4 rounded-2xl border border-dashed border-slate-200 text-center">
                       <p className="text-xs text-slate-400 italic">Tidak ada berkas yang dilampirkan</p>
                     </div>
+                  ) : (
+                    <div className="flex flex-col gap-1">
+                      {renderAttachment(previewApp.FileURL, "Berkas Utama")}
+                      {renderAttachment(previewApp.KtmKtpURL, "KTM / KTP")}
+                      {renderAttachment(previewApp.TranskripURL, "Transkrip Nilai")}
+                      {renderAttachment(previewApp.SertifikatURL, "Sertifikat Pendukung")}
+                    </div>
                   )}
+                </div>
+
+                {/* Motivasi */}
+                <div className="space-y-1.5">
+                  <span className="block text-[8px] font-bold text-slate-400 uppercase tracking-wider">MOTIVASI / MOTIVATION LETTER</span>
+                  <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100/50">
+                    {previewApp.Motivasi ? (
+                      <div 
+                        className="text-xs text-slate-700 leading-relaxed prose prose-sm max-w-none"
+                        dangerouslySetInnerHTML={{ __html: previewApp.Motivasi }}
+                      />
+                    ) : (
+                      <p className="text-xs text-slate-400 italic">Tidak ada motivasi yang diinputkan</p>
+                    )}
+                  </div>
                 </div>
 
                 {/* Reviewer Notes */}

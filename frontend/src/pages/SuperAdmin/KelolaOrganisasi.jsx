@@ -94,7 +94,7 @@ export default function KelolaOrganisasi() {
       label: 'Kode Unit', 
       className: 'w-[120px]', 
       render: v => (
-        <Badge className="bg-amber-50 text-amber-700 border-amber-100 px-2 py-0.5 rounded-md font-black text-[10px] tracking-widest uppercase shadow-none">
+        <Badge className="bg-blue-50 text-blue-700 border-blue-100 px-2 py-0.5 rounded-md font-black text-[10px] tracking-widest uppercase shadow-none">
           {v || 'UNIT'}
         </Badge>
       )
@@ -105,11 +105,11 @@ export default function KelolaOrganisasi() {
       className: 'w-[450px]', 
       render: (v, row) => (
         <div className="flex flex-col gap-1 py-3 group/item">
-          <span className="font-bold text-neutral-900 font-jakarta tracking-tight text-[14px] leading-tight uppercase group-hover/item:text-amber-600 transition-colors">{v || '—'}</span>
+          <span className="font-bold text-neutral-900 font-jakarta tracking-tight text-[14px] leading-tight uppercase group-hover/item:text-primary transition-colors">{v || '—'}</span>
           <div className="flex items-center gap-2">
             <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest">{row.Singkatan || 'Unit Kegiatan'}</span>
             <div className="size-1 rounded-full bg-neutral-200" />
-            <span className="text-[10px] text-amber-500 font-bold uppercase tracking-widest">Active Community</span>
+            <span className="text-[10px] text-primary font-bold uppercase tracking-widest">Active Community</span>
           </div>
         </div>
       )
@@ -134,6 +134,11 @@ export default function KelolaOrganisasi() {
     }
   ]
 
+  const totalOrmawa = data.length;
+  const activeMembers = data.reduce((acc, curr) => acc + (curr.jumlah_anggota || curr.JumlahAnggota || 0), 0);
+  const legalValid = data.filter(r => (r.Status || r.status || 'Aktif').toLowerCase() === 'aktif').length;
+  const activityIndex = activeMembers > 50 ? 'Tinggi' : activeMembers > 0 ? 'Sedang' : 'Rendah';
+
   return (
     <div className="px-4 py-8 md:px-8 xl:px-12 min-h-screen bg-[#fafafa] font-body">
       <Toaster position="top-right" />
@@ -142,17 +147,17 @@ export default function KelolaOrganisasi() {
         
         {/* ── Page Header ─────────────────────────────────────────── */}
         <section className="bg-white border border-neutral-200 rounded-2xl p-8 relative overflow-hidden shadow-sm">
-          <div className="absolute top-0 right-0 w-1/4 h-full bg-gradient-to-l from-amber-50/50 to-transparent pointer-events-none" />
-          <div className="absolute -bottom-12 -right-12 text-amber-500/5 rotate-12 pointer-events-none"><Building size={280} /></div>
+          <div className="absolute top-0 right-0 w-1/4 h-full bg-gradient-to-l from-blue-50/50 to-transparent pointer-events-none" />
+          <div className="absolute -bottom-12 -right-12 text-primary/5 rotate-12 pointer-events-none"><Building size={280} /></div>
           
           <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
             <div className="space-y-1">
               <div className="flex items-center gap-2.5 mb-2">
-                <div className="h-4 w-2 bg-amber-500 rounded-full shadow-lg shadow-amber-200" />
+                <div className="h-4 w-2 bg-primary rounded-full shadow-lg shadow-blue-200" />
                 <span className="text-[10px] font-black uppercase tracking-[0.25em] text-neutral-400 font-jakarta">Student Community</span>
               </div>
               <h1 className="text-3xl font-extrabold text-neutral-900 font-jakarta tracking-tight leading-none">
-                Kelola <span className="text-amber-600 italic">Organisasi</span>
+                Kelola <span className="text-primary">Organisasi</span>
               </h1>
               <p className="text-neutral-500 font-medium text-sm max-w-2xl leading-relaxed mt-2">
                 Pusat pendaftaran, monitoring, dan manajemen legalitas unit kegiatan mahasiswa di lingkungan Universitas.
@@ -162,7 +167,7 @@ export default function KelolaOrganisasi() {
             <div className="flex items-center gap-3">
               <Button 
                 onClick={handleOpenAdd}
-                className="h-12 px-6 rounded-xl bg-amber-600 text-white hover:bg-amber-700 shadow-xl shadow-amber-200 gap-2.5 transition-all active:scale-95 border-none group"
+                className="h-12 px-6 rounded-xl bg-primary text-white hover:bg-primary/90 shadow-xl shadow-primary/20 gap-2.5 transition-all active:scale-95 border-none group"
               >
                 <span className="material-symbols-outlined group-hover:rotate-90 transition-transform duration-300" style={{ fontSize: '18px' }}  strokeWidth={3}>add</span>
                 <span className="text-xs font-black uppercase tracking-widest">Daftar Ormawa</span>
@@ -175,12 +180,12 @@ export default function KelolaOrganisasi() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
            <div className="bg-white p-4 rounded-2xl border border-[#e5e5e5] shadow-sm">
               <div className="flex items-center gap-3 mb-3">
-                 <div className="w-10 h-10 bg-amber-50 rounded-xl flex justify-center items-center text-amber-600 flex-shrink-0">
+                 <div className="w-10 h-10 bg-primary/10 rounded-xl flex justify-center items-center text-primary flex-shrink-0">
                     <Layers size={18} />
                  </div>
                  <span className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-widest">Total Ormawa</span>
               </div>
-              <p className="text-2xl font-extrabold text-[#171717] font-jakarta leading-none tabular-nums">{data.length}</p>
+              <p className="text-2xl font-extrabold text-[#171717] font-jakarta leading-none tabular-nums">{totalOrmawa}</p>
               <p className="text-xs text-[#a3a3a3] font-medium mt-1">Unit terdaftar resmi</p>
            </div>
 
@@ -191,18 +196,18 @@ export default function KelolaOrganisasi() {
                  </div>
                  <span className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-widest">Member Aktif</span>
               </div>
-              <p className="text-2xl font-extrabold text-[#171717] font-jakarta leading-none tabular-nums">420+</p>
+              <p className="text-2xl font-extrabold text-[#171717] font-jakarta leading-none tabular-nums">{activeMembers}</p>
               <p className="text-xs text-[#a3a3a3] font-medium mt-1">Estimasi partisipan</p>
            </div>
 
            <div className="bg-white p-4 rounded-2xl border border-[#e5e5e5] shadow-sm">
               <div className="flex items-center gap-3 mb-3">
                  <div className="w-10 h-10 bg-emerald-50 rounded-xl flex justify-center items-center text-emerald-600 flex-shrink-0">
-                    <span className="material-symbols-outlined" style={{ fontSize: '18px' }} Check >security</span>
+                    <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>security</span>
                  </div>
                  <span className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-widest">Legalitas</span>
               </div>
-              <p className="text-2xl font-extrabold text-[#171717] font-jakarta leading-none tabular-nums">Valid</p>
+              <p className="text-2xl font-extrabold text-[#171717] font-jakarta leading-none tabular-nums">{legalValid}</p>
               <p className="text-xs text-[#a3a3a3] font-medium mt-1">Sertifikasi kemahasiswaan</p>
            </div>
 
@@ -213,7 +218,7 @@ export default function KelolaOrganisasi() {
                  </div>
                  <span className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-widest">Aktivitas</span>
               </div>
-              <p className="text-2xl font-extrabold text-[#171717] font-jakarta leading-none tabular-nums">Tinggi</p>
+              <p className="text-2xl font-extrabold text-[#171717] font-jakarta leading-none tabular-nums">{activityIndex}</p>
               <p className="text-xs text-[#a3a3a3] font-medium mt-1">Indeks gerakan mahasiswa</p>
            </div>
         </div>
@@ -228,8 +233,8 @@ export default function KelolaOrganisasi() {
               searchPlaceholder="Cari Nama atau Singkatan..."
               actions={(row) => (
                 <div className="flex items-center gap-1.5">
-                  <Button onClick={() => { setSelected(row); setIsDetailOpen(true) }} variant="ghost" size="icon" className="h-8 w-8 text-neutral-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"><span className="material-symbols-outlined" style={{ fontSize: '18px' }} >visibility</span></Button>
-                  <Button onClick={() => handleOpenEdit(row)} variant="ghost" size="icon" className="h-8 w-8 text-neutral-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"><span className="material-symbols-outlined" style={{ fontSize: '16px' }} >edit</span></Button>
+                  <Button onClick={() => { setSelected(row); setIsDetailOpen(true) }} variant="ghost" size="icon" className="h-8 w-8 text-neutral-400 hover:text-primary hover:bg-blue-50 rounded-lg transition-colors"><span className="material-symbols-outlined" style={{ fontSize: '18px' }} >visibility</span></Button>
+                  <Button onClick={() => handleOpenEdit(row)} variant="ghost" size="icon" className="h-8 w-8 text-neutral-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"><span className="material-symbols-outlined" style={{ fontSize: '16px' }} >edit</span></Button>
                   <Button onClick={() => { setSelected(row); setIsDelOpen(true) }} variant="ghost" size="icon" className="h-8 w-8 text-neutral-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"><span className="material-symbols-outlined" style={{ fontSize: '16px' }} >delete</span></Button>
                 </div>
               )}

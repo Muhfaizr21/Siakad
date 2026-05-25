@@ -722,10 +722,7 @@ export default function MahasiswaPage() {
                 className="flex-1 h-11 rounded-xl border border-[#e5e5e5] bg-white text-xs font-bold text-[#525252] uppercase tracking-widest hover:bg-[#f5f5f5] transition-all active:scale-95">
                 Tutup
               </button>
-              <button
-                className="flex-1 h-11 rounded-xl bg-[#00236F] hover:bg-[#001a52] text-white text-xs font-bold uppercase tracking-widest transition-all active:scale-95 shadow-lg shadow-[#00236F]/20">
-                Edit Profil
-              </button>
+
             </div>
           </div>
         </div>

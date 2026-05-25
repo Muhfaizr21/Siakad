@@ -16,7 +16,7 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '.
 
 import { toast, Toaster } from 'react-hot-toast'
 import { cn } from '@/lib/utils'
-import { adminService } from '../../services/api'
+import { adminService, API_BASE_URL } from '../../services/api'
 import { StatCard } from './components/ui/stat-card'
 
 // Auto-injected Material Symbol fallbacks for removed Lucide icons
@@ -70,7 +70,45 @@ const getAppStatus = (v = '') => {
   return APP_STATUS.proses;
 }
 
+const getFullUrl = (path) => {
+  if (!path || path.trim() === "" || path === "/" || path.endsWith("/profiles/") || path.endsWith("/students/")) return null;
+  if (path.startsWith('http')) return path;
+  const baseUrl = API_BASE_URL.replace('/api', '');
+  return `${baseUrl}${path}`;
+}
 
+const renderAttachment = (url, label) => {
+  if (!url) return null;
+  const fullUrl = getFullUrl(url);
+  if (!fullUrl) return null;
+  
+  const isImage = fullUrl.match(/\.(jpeg|jpg|gif|png)$/i) != null;
+  return (
+    <div className="bg-slate-50 p-3 rounded-2xl border border-slate-100 flex flex-col gap-2 shadow-sm mb-2">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2.5">
+          <span className="material-symbols-outlined text-rose-500" style={{ fontSize: 20 }}>
+             {isImage ? 'image' : 'description'}
+          </span>
+          <div className="text-left">
+            <p className="text-xs font-bold text-slate-700 truncate max-w-[200px]">
+              {label}
+            </p>
+            <p className="text-[9px] text-slate-400">Klik untuk melihat file</p>
+          </div>
+        </div>
+        <a href={fullUrl} target="_blank" rel="noreferrer" className="text-primary hover:bg-blue-50 p-1.5 rounded-lg transition-colors">
+          <span className="material-symbols-outlined" style={{ fontSize: 16 }}>open_in_new</span>
+        </a>
+      </div>
+      {isImage && (
+        <a href={fullUrl} target="_blank" rel="noreferrer" className="mt-1 block rounded-xl overflow-hidden border border-slate-200 hover:opacity-90 transition-opacity">
+          <img src={fullUrl} alt={label} className="w-full h-auto object-cover max-h-48" />
+        </a>
+      )}
+    </div>
+  );
+};
 
 export default function KelolaBeasiswa() {
   const navigate = useNavigate()
@@ -173,6 +211,11 @@ export default function KelolaBeasiswa() {
             BeasiswaNama: bNama,
             Status: getStandardDbStatus(a.Status || a.status),
             Catatan: a.Catatan || a.catatan || '',
+            Motivasi: a.motivasi || a.Motivasi || '',
+            FileURL: a.bukti_url || a.BuktiURL || a.file_url || a.FileURL || null,
+            KtmKtpURL: a.ktm_ktp_url || a.KtmKtpURL || null,
+            SertifikatURL: a.sertifikat_url || a.SertifikatURL || null,
+            TranskripURL: a.transkrip_url || a.TranskripURL || null,
           }
         })
 
@@ -828,6 +871,19 @@ export default function KelolaBeasiswa() {
                   </p>
                 </div>
 
+                {/* Berkas Lampiran */}
+                {(selectedApp.FileURL || selectedApp.KtmKtpURL || selectedApp.TranskripURL || selectedApp.SertifikatURL) && (
+                  <div>
+                    <label className="block text-[8px] font-bold text-slate-400 uppercase tracking-wider mb-2">BERKAS PENDAFTARAN</label>
+                    <div className="flex flex-col gap-1">
+                      {renderAttachment(selectedApp.FileURL, "Berkas Utama")}
+                      {renderAttachment(selectedApp.KtmKtpURL, "KTM / KTP")}
+                      {renderAttachment(selectedApp.TranskripURL, "Transkrip Nilai")}
+                      {renderAttachment(selectedApp.SertifikatURL, "Sertifikat Pendukung")}
+                    </div>
+                  </div>
+                )}
+
                 {/* Status Options */}
                 <div className="space-y-2">
                   <span className="block text-[8px] font-bold text-slate-400 uppercase tracking-wider">KEPUTUSAN SELEKSI</span>
@@ -941,23 +997,33 @@ export default function KelolaBeasiswa() {
                 {/* Submitted Files */}
                 <div className="space-y-1.5">
                   <span className="block text-[8px] font-bold text-slate-400 uppercase tracking-wider">BERKAS PENDAFTARAN</span>
-                  {previewApp.FileURL || previewApp.bukti_url || previewApp.file_url ? (
-                    <a href={previewApp.FileURL || previewApp.bukti_url || previewApp.file_url} target="_blank" rel="noreferrer"
-                      className="flex items-center justify-between p-3.5 bg-slate-50 hover:bg-slate-100/80 rounded-2xl border border-slate-100 transition-colors">
-                      <div className="flex items-center gap-2.5">
-                        <span className="material-symbols-outlined text-rose-500" style={{ fontSize: 20 }}>picture_as_pdf</span>
-                        <div className="text-left">
-                          <p className="text-xs font-bold text-slate-700">Bukti Berkas Pendaftaran.pdf</p>
-                          <p className="text-[9px] text-slate-400">Klik untuk melihat atau mengunduh</p>
-                        </div>
-                      </div>
-                      <span className="material-symbols-outlined text-slate-400" style={{ fontSize: 16 }}>open_in_new</span>
-                    </a>
-                  ) : (
+                  {!previewApp.FileURL && !previewApp.KtmKtpURL && !previewApp.TranskripURL && !previewApp.SertifikatURL ? (
                     <div className="bg-slate-50/50 p-4 rounded-2xl border border-dashed border-slate-200 text-center">
                       <p className="text-xs text-slate-400 italic">Tidak ada berkas yang dilampirkan</p>
                     </div>
+                  ) : (
+                    <div className="flex flex-col gap-1">
+                      {renderAttachment(previewApp.FileURL, "Berkas Utama")}
+                      {renderAttachment(previewApp.KtmKtpURL, "KTM / KTP")}
+                      {renderAttachment(previewApp.TranskripURL, "Transkrip Nilai")}
+                      {renderAttachment(previewApp.SertifikatURL, "Sertifikat Pendukung")}
+                    </div>
                   )}
+                </div>
+
+                {/* Motivasi */}
+                <div className="space-y-1.5">
+                  <span className="block text-[8px] font-bold text-slate-400 uppercase tracking-wider">MOTIVASI / MOTIVATION LETTER</span>
+                  <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100/50">
+                    {previewApp.Motivasi ? (
+                      <div 
+                        className="text-xs text-slate-700 leading-relaxed prose prose-sm max-w-none"
+                        dangerouslySetInnerHTML={{ __html: previewApp.Motivasi }}
+                      />
+                    ) : (
+                      <p className="text-xs text-slate-400 italic">Tidak ada motivasi yang diinputkan</p>
+                    )}
+                  </div>
                 </div>
 
                 {/* Reviewer Notes */}

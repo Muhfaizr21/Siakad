@@ -27,6 +27,7 @@ func main() {
 	authSvc.EnsureBootstrapData()
 
 	app := fiber.New(fiber.Config{
+		BodyLimit: 50 * 1024 * 1024, // 50 MB limit for file uploads
 		ErrorHandler: func(c *fiber.Ctx, err error) error {
 			code := fiber.StatusInternalServerError
 			if e, ok := err.(*fiber.Error); ok {

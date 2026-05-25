@@ -57,6 +57,39 @@ const TINGKAT_STYLES = {
 
 const formatDate = (d) => { try { return new Date(d).toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'}) } catch{return d} }
 
+const getFullUrl = (path) => {
+  if (!path || path.trim() === "" || path === "/" || path.endsWith("/profiles/") || path.endsWith("/students/")) return null;
+  if (path.startsWith('http')) return path;
+  const baseUrl = API_BASE_URL.replace('/api', '');
+  return `${baseUrl}${path}`;
+}
+
+function StudentAvatar({ src, name, className = "w-9 h-9 rounded-xl" }) {
+  const [loaded, setLoaded] = useState(false);
+  const [error, setError] = useState(false);
+  
+  const hasNoImage = !src || src.trim() === "" || src.endsWith("/profiles/") || src.endsWith("/students/") || src.endsWith("localhost:8000") || src.endsWith("localhost:8000/");
+
+  return (
+    <div className={cn("relative bg-slate-50 flex items-center justify-center shrink-0 border border-slate-200/40 shadow-inner overflow-hidden", className)}>
+      {(!loaded || error || hasNoImage) && (
+        <span className="material-symbols-outlined text-slate-400/80 block select-none leading-none absolute" style={{ fontSize: className.includes('w-14') ? '28px' : '20px' }}>
+          person
+        </span>
+      )}
+      {!hasNoImage && !error && (
+        <img
+          src={src}
+          alt={name}
+          className={cn("absolute inset-0 w-full h-full object-cover transition-opacity duration-200", loaded ? "opacity-100" : "opacity-0")}
+          onLoad={() => setLoaded(true)}
+          onError={() => setError(true)}
+        />
+      )}
+    </div>
+  );
+}
+
 export default function FacultyPrestasi() {
   const [achievements, setAchievements] = useState([])
   const [loading, setLoading]           = useState(true)
@@ -198,7 +231,20 @@ export default function FacultyPrestasi() {
       const res  = await fetch(`${API}/prestasi`)
       const json = await res.json()
       if (json.status === 'success')
-        setAchievements((json.data||[]).map((a,i)=>({...a, colorIdx: i % AVATAR_COLORS.length})))
+        setAchievements((json.data||[]).map((a,i)=>({
+          ...a,
+          Mahasiswa: a.mahasiswa || a.Mahasiswa,
+          NamaKegiatan: a.nama_kegiatan || a.NamaKegiatan,
+          Kategori: a.kategori || a.Kategori,
+          Tingkat: a.tingkat || a.Tingkat,
+          Peringkat: a.peringkat || a.Peringkat,
+          Status: a.status || a.Status,
+          Poin: a.poin || a.Poin,
+          BuktiURL: a.bukti_url || a.BuktiURL,
+          CreatedAt: a.created_at || a.CreatedAt,
+          ID: a.id || a.ID,
+          colorIdx: i % AVATAR_COLORS.length
+        })))
     } catch { toast.error('Gagal memuat data prestasi') }
     finally { setLoading(false) }
   }
@@ -434,9 +480,7 @@ export default function FacultyPrestasi() {
                       <td className="px-5 py-3.5 text-sm text-[#a3a3a3] font-medium">{(currentPage - 1) * pageSize + i + 1}</td>
                       <td className="px-5 py-3.5">
                         <div className="flex items-center gap-3">
-                          <div className={cn('w-9 h-9 rounded-xl bg-gradient-to-br flex items-center justify-center text-white text-[11px] font-black flex-shrink-0 shadow-sm', AVATAR_COLORS[row.colorIdx])}>
-                            {getInitials(row.Mahasiswa?.Nama)}
-                          </div>
+                          <StudentAvatar src={getFullUrl(row.Mahasiswa?.FotoURL || row.Mahasiswa?.foto_url || row.Mahasiswa?.Foto || row.Mahasiswa?.Pengguna?.Foto)} name={row.Mahasiswa?.Nama} className="w-9 h-9 rounded-xl" />
                           <div>
                             <p className="font-bold text-sm text-[#171717] leading-snug">{row.Mahasiswa?.Nama||'—'}</p>
                             <p className="text-[10px] text-[#a3a3a3] font-medium">{row.Mahasiswa?.NIM||'—'}</p>
@@ -573,9 +617,7 @@ export default function FacultyPrestasi() {
                 <span className="material-symbols-outlined" style={{ fontSize: '15px' }} >close</span>
               </button>
               <div className="relative z-10 flex items-center gap-4 mb-5">
-                <div className={cn('w-14 h-14 rounded-2xl bg-gradient-to-br flex-shrink-0 flex items-center justify-center text-white text-base font-black shadow-xl ring-2 ring-white/20', AVATAR_COLORS[selected.colorIdx])}>
-                  {getInitials(selected.Mahasiswa?.Nama)}
-                </div>
+                <StudentAvatar src={getFullUrl(selected.Mahasiswa?.FotoURL || selected.Mahasiswa?.foto_url || selected.Mahasiswa?.Foto || selected.Mahasiswa?.Pengguna?.Foto)} name={selected.Mahasiswa?.Nama} className="w-14 h-14 rounded-2xl shadow-xl ring-2 ring-white/20" />
                 <div className="min-w-0">
                   <p className="text-[9px] font-bold text-white/50 uppercase tracking-[0.25em] mb-1">Pengajuan Prestasi</p>
                   <h2 className="text-base font-extrabold text-white leading-tight line-clamp-2">{selected.NamaKegiatan}</h2>
