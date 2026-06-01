@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { adminService } from '../../services/api'
 import { toast, Toaster } from 'react-hot-toast'
 
@@ -25,6 +25,7 @@ export default function ContentManagement() {
     const [news, setNews] = useState([])
     const [faculties, setFaculties] = useState([])
     const [ormawas, setOrmawas] = useState([])
+    const [students, setStudents] = useState([])
     const [loading, setLoading] = useState(true)
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [isCrudOpen, setIsCrudOpen] = useState(false)
@@ -37,8 +38,33 @@ export default function ContentManagement() {
         Status: 'Published',
         target_audience: 'semua',
         target_fakultas_id: '',
-        target_ormawa_id: ''
+        target_ormawa_id: '',
+        target_mahasiswa_ids: '',
+        target_ormawa_ids: ''
     })
+
+    // Detailed Checklist states
+    const [studentSearch, setStudentSearch] = useState('')
+    const [ormawaSearch, setOrmawaSearch] = useState('')
+    const [mahasiswaSubtype, setMahasiswaSubtype] = useState('global') // 'global', 'fakultas', 'spesifik'
+    const [ormawaSubtype, setOrmawaSubtype] = useState('all') // 'all', 'spesifik'
+
+    const filteredStudents = useMemo(() => {
+        if (!studentSearch) return students
+        const term = studentSearch.toLowerCase()
+        return students.filter(s =>
+            (s.Nama || s.nama || '').toLowerCase().includes(term) ||
+            (s.NIM || s.nim || '').toLowerCase().includes(term)
+        )
+    }, [students, studentSearch])
+
+    const filteredOrmawas = useMemo(() => {
+        if (!ormawaSearch) return ormawas
+        const term = ormawaSearch.toLowerCase()
+        return ormawas.filter(o =>
+            (o.Nama || o.nama || '').toLowerCase().includes(term)
+        )
+    }, [ormawas, ormawaSearch])
 
     const fetchNews = async () => {
         setLoading(true)
@@ -55,12 +81,14 @@ export default function ContentManagement() {
 
     const fetchMasterData = async () => {
         try {
-            const [facRes, ormawaRes] = await Promise.all([
+            const [facRes, ormawaRes, studentRes] = await Promise.all([
                 adminService.getAllFaculties(),
-                adminService.getAllOrmawa()
+                adminService.getAllOrmawa(),
+                adminService.getAllStudents()
             ])
             if (facRes?.status === 'success') setFaculties(facRes.data || [])
             if (ormawaRes?.status === 'success') setOrmawas(ormawaRes.data || [])
+            if (studentRes?.status === 'success') setStudents(studentRes.data || [])
         } catch (e) {
             console.error("Gagal memuat data master untuk target berita", e)
         }
@@ -80,23 +108,73 @@ export default function ContentManagement() {
             Status: 'Published',
             target_audience: 'semua',
             target_fakultas_id: '',
-            target_ormawa_id: ''
+            target_ormawa_id: '',
+            target_mahasiswa_ids: '',
+            target_ormawa_ids: ''
         })
+        setMahasiswaSubtype('global')
+        setOrmawaSubtype('all')
+        setStudentSearch('')
+        setOrmawaSearch('')
         setIsCrudOpen(true)
     }
 
     const handleOpenEdit = (row) => {
         setIsEditMode(true)
         setSelected(row)
+        const mhsIds = row.target_mahasiswa_ids || row.TargetMahasiswaIDs || ''
+        const ormIds = row.target_ormawa_ids || row.TargetOrmawaIDs || ''
         setForm({ 
             Judul: row.Judul || '', 
             Isi: row.Isi || '', 
             Status: row.Status || 'Published',
             target_audience: row.target_audience || row.TargetAudience || 'semua',
             target_fakultas_id: row.target_fakultas_id || row.TargetFakultasID || '',
-            target_ormawa_id: row.target_ormawa_id || row.TargetOrmawaID || ''
+            target_ormawa_id: row.target_ormawa_id || row.TargetOrmawaID || '',
+            target_mahasiswa_ids: mhsIds,
+            target_ormawa_ids: ormIds
         })
+        
+        const mSub = mhsIds ? 'spesifik' : (row.target_fakultas_id || row.TargetFakultasID ? 'fakultas' : 'global')
+        setMahasiswaSubtype(mSub)
+
+        const oSub = ormIds ? 'spesifik' : 'all'
+        setOrmawaSubtype(oSub)
+
+        setStudentSearch('')
+        setOrmawaSearch('')
         setIsCrudOpen(true)
+    }
+
+    const handleAudienceChange = (aud) => {
+        setForm(prev => ({
+            ...prev,
+            target_audience: aud,
+            target_fakultas_id: '',
+            target_ormawa_id: '',
+            target_mahasiswa_ids: '',
+            target_ormawa_ids: ''
+        }))
+        setMahasiswaSubtype('global')
+        setOrmawaSubtype('all')
+    }
+
+    const handleMahasiswaSubtypeChange = (subtype) => {
+        setMahasiswaSubtype(subtype)
+        setForm(prev => ({
+            ...prev,
+            target_fakultas_id: '',
+            target_mahasiswa_ids: ''
+        }))
+    }
+
+    const handleOrmawaSubtypeChange = (subtype) => {
+        setOrmawaSubtype(subtype)
+        setForm(prev => ({
+            ...prev,
+            target_ormawa_id: '',
+            target_ormawa_ids: ''
+        }))
     }
 
     const handleSave = async (e) => {
@@ -107,7 +185,9 @@ export default function ContentManagement() {
             const payload = {
                 ...form,
                 target_fakultas_id: form.target_fakultas_id ? Number(form.target_fakultas_id) : null,
-                target_ormawa_id: form.target_ormawa_id ? Number(form.target_ormawa_id) : null
+                target_ormawa_id: form.target_ormawa_id ? Number(form.target_ormawa_id) : null,
+                target_mahasiswa_ids: form.target_mahasiswa_ids || "",
+                target_ormawa_ids: form.target_ormawa_ids || ""
             }
             const res = isEditMode
                 ? await adminService.updateNews(targetId, payload)
@@ -181,17 +261,33 @@ export default function ContentManagement() {
                     details = fac ? fac.Nama || fac.nama : `Fakultas ID: ${facId}`
                 } else if (aud === 'ormawa') {
                     label = 'Ormawa'
-                    const ormId = row.target_ormawa_id || row.TargetOrmawaID
-                    const orm = ormawas.find(o => (o.id || o.ID) === ormId)
-                    details = orm ? orm.Nama || orm.nama : `Ormawa ID: ${ormId}`
+                    const ormIdsStr = row.target_ormawa_ids || row.TargetOrmawaIDs || ''
+                    if (ormIdsStr) {
+                        const count = ormIdsStr.split(',').filter(Boolean).length
+                        details = `${count} Ormawa Terpilih`
+                    } else {
+                        const ormId = row.target_ormawa_id || row.TargetOrmawaID
+                        if (ormId) {
+                            const orm = ormawas.find(o => (o.id || o.ID) === ormId)
+                            details = orm ? orm.Nama || orm.nama : `Ormawa ID: ${ormId}`
+                        } else {
+                            details = 'Semua Ormawa'
+                        }
+                    }
                 } else if (aud === 'mahasiswa') {
                     label = 'Mahasiswa'
-                    const facId = row.target_fakultas_id || row.TargetFakultasID
-                    if (facId) {
-                        const fac = faculties.find(f => (f.ID || f.id) === facId)
-                        details = fac ? `Fakultas ${fac.Singkatan || fac.Nama || fac.nama}` : `Fakultas ID: ${facId}`
+                    const mhsIdsStr = row.target_mahasiswa_ids || row.TargetMahasiswaIDs || ''
+                    if (mhsIdsStr) {
+                        const count = mhsIdsStr.split(',').filter(Boolean).length
+                        details = `${count} Mahasiswa Terpilih`
                     } else {
-                        details = 'Global'
+                        const facId = row.target_fakultas_id || row.TargetFakultasID
+                        if (facId) {
+                            const fac = faculties.find(f => (f.ID || f.id) === facId)
+                            details = fac ? `Fakultas ${fac.Singkatan || fac.Nama || fac.nama}` : `Fakultas ID: ${facId}`
+                        } else {
+                            details = 'Global'
+                        }
                     }
                 }
 
@@ -330,7 +426,7 @@ export default function ContentManagement() {
 
                             <div className="space-y-2">
                                 <Label className="text-xs font-bold text-neutral-500 font-jakarta ml-1">Target Penerima Berita (Audience)</Label>
-                                <Select value={form.target_audience} onValueChange={v => setForm({ ...form, target_audience: v, target_fakultas_id: '', target_ormawa_id: '' })}>
+                                <Select value={form.target_audience} onValueChange={handleAudienceChange}>
                                     <SelectTrigger className="h-11 rounded-lg border-neutral-200 bg-neutral-50/30 font-medium text-sm"><SelectValue /></SelectTrigger>
                                     <SelectContent className="rounded-xl shadow-xl">
                                         <SelectItem value="semua" className="text-xs font-medium uppercase">Semua Sivitas</SelectItem>
@@ -363,45 +459,220 @@ export default function ContentManagement() {
                             )}
 
                             {form.target_audience === 'ormawa' && (
-                                <div className="space-y-2 animate-in fade-in duration-200">
-                                    <Label className="text-xs font-bold text-neutral-500 font-jakarta ml-1">Pilih Ormawa Penerima</Label>
-                                    <Select 
-                                        value={form.target_ormawa_id ? String(form.target_ormawa_id) : undefined} 
-                                        onValueChange={v => setForm({ ...form, target_ormawa_id: Number(v) })}
-                                    >
-                                        <SelectTrigger className="h-11 rounded-lg border-neutral-200 bg-neutral-50/30 font-medium text-sm">
-                                            <SelectValue placeholder="PILIH ORMAWA" />
-                                        </SelectTrigger>
-                                        <SelectContent className="rounded-xl shadow-xl max-h-[200px] overflow-y-auto">
-                                            {ormawas.map(o => (
-                                                <SelectItem key={o.id || o.ID} value={String(o.id || o.ID)} className="text-xs font-bold uppercase">
-                                                    {o.nama || o.Nama}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
+                                <div className="space-y-3 animate-in fade-in duration-200">
+                                    <div className="space-y-2">
+                                        <Label className="text-xs font-bold text-neutral-500 font-jakarta ml-1">Tipe Pengiriman Ormawa</Label>
+                                        <Select value={ormawaSubtype} onValueChange={handleOrmawaSubtypeChange}>
+                                            <SelectTrigger className="h-11 rounded-lg border-neutral-200 bg-neutral-50/30 font-medium text-sm"><SelectValue /></SelectTrigger>
+                                            <SelectContent className="rounded-xl shadow-xl">
+                                                <SelectItem value="all" className="text-xs font-medium uppercase">Kirim ke Satu Ormawa Tertentu</SelectItem>
+                                                <SelectItem value="spesifik" className="text-xs font-medium uppercase text-primary">Kirim ke Beberapa Ormawa (Pilih/Ceklis)</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+
+                                    {ormawaSubtype === 'all' && (
+                                        <div className="space-y-2 animate-in fade-in duration-200">
+                                            <Label className="text-xs font-bold text-neutral-500 font-jakarta ml-1">Pilih Ormawa Penerima</Label>
+                                            <Select 
+                                                value={form.target_ormawa_id ? String(form.target_ormawa_id) : undefined} 
+                                                onValueChange={v => setForm({ ...form, target_ormawa_id: Number(v) })}
+                                            >
+                                                <SelectTrigger className="h-11 rounded-lg border-neutral-200 bg-neutral-50/30 font-medium text-sm">
+                                                    <SelectValue placeholder="PILIH ORMAWA" />
+                                                </SelectTrigger>
+                                                <SelectContent className="rounded-xl shadow-xl max-h-[200px] overflow-y-auto">
+                                                    {ormawas.map(o => (
+                                                        <SelectItem key={o.id || o.ID} value={String(o.id || o.ID)} className="text-xs font-bold uppercase">
+                                                            {o.nama || o.Nama}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                    )}
+
+                                    {ormawaSubtype === 'spesifik' && (
+                                        <div className="space-y-2 animate-in fade-in duration-200">
+                                            <div className="flex items-center justify-between text-xs font-bold text-neutral-500 font-jakarta ml-1">
+                                                <span>Pilih Daftar Ormawa (Ceklis)</span>
+                                                <Badge className="bg-primary/10 text-primary hover:bg-primary/20 border-none font-bold text-[10px]">
+                                                    {(form.target_ormawa_ids || '').split(',').filter(Boolean).length} Terpilih
+                                                </Badge>
+                                            </div>
+                                            <Input
+                                                placeholder="Cari nama ormawa..."
+                                                value={ormawaSearch}
+                                                onChange={e => setOrmawaSearch(e.target.value)}
+                                                className="h-10 rounded-lg border-neutral-200 bg-neutral-50/30 font-medium text-sm font-jakarta"
+                                            />
+                                            <div className="border border-neutral-200 rounded-xl p-3 bg-neutral-50/50 space-y-2 max-h-48 overflow-y-auto custom-scrollbar">
+                                                <div className="flex items-center gap-2 pb-2 border-b border-neutral-200">
+                                                    <input
+                                                        type="checkbox"
+                                                        id="select-all-ormawas"
+                                                        checked={filteredOrmawas.length > 0 && filteredOrmawas.every(o => (form.target_ormawa_ids || '').split(',').includes(String(o.id || o.ID)))}
+                                                        onChange={e => {
+                                                            const checked = e.target.checked
+                                                            const currentIds = (form.target_ormawa_ids || '').split(',').filter(Boolean)
+                                                            let nextIds
+                                                            if (checked) {
+                                                                nextIds = Array.from(new Set([...currentIds, ...filteredOrmawas.map(o => String(o.id || o.ID))]))
+                                                            } else {
+                                                                const filteredSet = new Set(filteredOrmawas.map(o => String(o.id || o.ID)))
+                                                                nextIds = currentIds.filter(id => !filteredSet.has(id))
+                                                            }
+                                                            setForm({ ...form, target_ormawa_ids: nextIds.join(',') })
+                                                        }}
+                                                        className="rounded border-neutral-300 text-primary focus:ring-primary size-4"
+                                                    />
+                                                    <Label htmlFor="select-all-ormawas" className="text-xs font-bold text-neutral-600 cursor-pointer">Pilih Semua Hasil Pencarian</Label>
+                                                </div>
+
+                                                {filteredOrmawas.length === 0 ? (
+                                                    <p className="text-xs text-neutral-400 italic text-center py-4">Ormawa tidak ditemukan.</p>
+                                                ) : (
+                                                    filteredOrmawas.map(o => {
+                                                        const oid = String(o.id || o.ID)
+                                                        const selectedIds = (form.target_ormawa_ids || '').split(',').filter(Boolean)
+                                                        const isChecked = selectedIds.includes(oid)
+                                                        return (
+                                                            <div key={oid} className="flex items-center gap-2 py-0.5">
+                                                                <input
+                                                                    type="checkbox"
+                                                                    id={`orm-chk-${oid}`}
+                                                                    checked={isChecked}
+                                                                    onChange={() => {
+                                                                        let nextIds
+                                                                        if (isChecked) {
+                                                                            nextIds = selectedIds.filter(id => id !== oid)
+                                                                        } else {
+                                                                            nextIds = [...selectedIds, oid]
+                                                                        }
+                                                                        setForm({ ...form, target_ormawa_ids: nextIds.join(',') })
+                                                                    }}
+                                                                    className="rounded border-neutral-300 text-primary focus:ring-primary size-4"
+                                                                />
+                                                                <Label htmlFor={`orm-chk-${oid}`} className="text-xs font-medium text-neutral-700 cursor-pointer flex flex-1 justify-between items-center">
+                                                                    <span>{o.nama || o.Nama}</span>
+                                                                </Label>
+                                                            </div>
+                                                        )
+                                                    })
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             )}
 
                             {form.target_audience === 'mahasiswa' && (
-                                <div className="space-y-2 animate-in fade-in duration-200">
-                                    <Label className="text-xs font-bold text-neutral-500 font-jakarta ml-1">Fakultas Mahasiswa (Opsional)</Label>
-                                    <Select 
-                                        value={form.target_fakultas_id ? String(form.target_fakultas_id) : 'all'} 
-                                        onValueChange={v => setForm({ ...form, target_fakultas_id: v === 'all' ? '' : Number(v) })}
-                                    >
-                                        <SelectTrigger className="h-11 rounded-lg border-neutral-200 bg-neutral-50/30 font-medium text-sm">
-                                            <SelectValue placeholder="Semua Mahasiswa" />
-                                        </SelectTrigger>
-                                        <SelectContent className="rounded-xl shadow-xl max-h-[200px] overflow-y-auto">
-                                            <SelectItem value="all" className="text-xs font-medium uppercase opacity-55 text-neutral-400">Semua Mahasiswa (Global)</SelectItem>
-                                            {faculties.map(f => (
-                                                <SelectItem key={f.ID || f.id} value={String(f.ID || f.id)} className="text-xs font-bold uppercase">
-                                                    {f.Nama || f.nama}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
+                                <div className="space-y-3 animate-in fade-in duration-200">
+                                    <div className="space-y-2">
+                                        <Label className="text-xs font-bold text-neutral-500 font-jakarta ml-1">Tipe Pengiriman Mahasiswa</Label>
+                                        <Select value={mahasiswaSubtype} onValueChange={handleMahasiswaSubtypeChange}>
+                                            <SelectTrigger className="h-11 rounded-lg border-neutral-200 bg-neutral-50/30 font-medium text-sm"><SelectValue /></SelectTrigger>
+                                            <SelectContent className="rounded-xl shadow-xl">
+                                                <SelectItem value="global" className="text-xs font-medium uppercase">Kirim ke Semua Mahasiswa (Global)</SelectItem>
+                                                <SelectItem value="fakultas" className="text-xs font-medium uppercase">Kirim ke Mahasiswa Fakultas Tertentu</SelectItem>
+                                                <SelectItem value="spesifik" className="text-xs font-medium uppercase text-primary">Kirim ke Mahasiswa Spesifik (Pilih/Ceklis)</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+
+                                    {mahasiswaSubtype === 'fakultas' && (
+                                        <div className="space-y-2 animate-in fade-in duration-200">
+                                            <Label className="text-xs font-bold text-neutral-500 font-jakarta ml-1">Pilih Fakultas Mahasiswa</Label>
+                                            <Select 
+                                                value={form.target_fakultas_id ? String(form.target_fakultas_id) : undefined} 
+                                                onValueChange={v => setForm({ ...form, target_fakultas_id: Number(v) })}
+                                            >
+                                                <SelectTrigger className="h-11 rounded-lg border-neutral-200 bg-neutral-50/30 font-medium text-sm">
+                                                    <SelectValue placeholder="PILIH FAKULTAS" />
+                                                </SelectTrigger>
+                                                <SelectContent className="rounded-xl shadow-xl max-h-[200px] overflow-y-auto">
+                                                    {faculties.map(f => (
+                                                        <SelectItem key={f.ID || f.id} value={String(f.ID || f.id)} className="text-xs font-bold uppercase">
+                                                            {f.Nama || f.nama}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                    )}
+
+                                    {mahasiswaSubtype === 'spesifik' && (
+                                        <div className="space-y-2 animate-in fade-in duration-200">
+                                            <div className="flex items-center justify-between text-xs font-bold text-neutral-500 font-jakarta ml-1">
+                                                <span>Pilih Daftar Mahasiswa (Ceklis)</span>
+                                                <Badge className="bg-primary/10 text-primary hover:bg-primary/20 border-none font-bold text-[10px]">
+                                                    {(form.target_mahasiswa_ids || '').split(',').filter(Boolean).length} Terpilih
+                                                </Badge>
+                                            </div>
+                                            <Input
+                                                placeholder="Cari nama atau NIM mahasiswa..."
+                                                value={studentSearch}
+                                                onChange={e => setStudentSearch(e.target.value)}
+                                                className="h-10 rounded-lg border-neutral-200 bg-neutral-50/30 font-medium text-sm font-jakarta"
+                                            />
+                                            <div className="border border-neutral-200 rounded-xl p-3 bg-neutral-50/50 space-y-2 max-h-48 overflow-y-auto custom-scrollbar">
+                                                <div className="flex items-center gap-2 pb-2 border-b border-neutral-200">
+                                                    <input
+                                                        type="checkbox"
+                                                        id="select-all-students"
+                                                        checked={filteredStudents.length > 0 && filteredStudents.every(s => (form.target_mahasiswa_ids || '').split(',').includes(String(s.ID || s.id)))}
+                                                        onChange={e => {
+                                                            const checked = e.target.checked
+                                                            const currentIds = (form.target_mahasiswa_ids || '').split(',').filter(Boolean)
+                                                            let nextIds
+                                                            if (checked) {
+                                                                nextIds = Array.from(new Set([...currentIds, ...filteredStudents.map(s => String(s.ID || s.id))]))
+                                                            } else {
+                                                                const filteredSet = new Set(filteredStudents.map(s => String(s.ID || s.id)))
+                                                                nextIds = currentIds.filter(id => !filteredSet.has(id))
+                                                            }
+                                                            setForm({ ...form, target_mahasiswa_ids: nextIds.join(',') })
+                                                        }}
+                                                        className="rounded border-neutral-300 text-primary focus:ring-primary size-4"
+                                                    />
+                                                    <Label htmlFor="select-all-students" className="text-xs font-bold text-neutral-600 cursor-pointer">Pilih Semua Hasil Pencarian</Label>
+                                                </div>
+
+                                                {filteredStudents.length === 0 ? (
+                                                    <p className="text-xs text-neutral-400 italic text-center py-4">Mahasiswa tidak ditemukan.</p>
+                                                ) : (
+                                                    filteredStudents.map(s => {
+                                                        const sid = String(s.ID || s.id)
+                                                        const selectedIds = (form.target_mahasiswa_ids || '').split(',').filter(Boolean)
+                                                        const isChecked = selectedIds.includes(sid)
+                                                        return (
+                                                            <div key={sid} className="flex items-center gap-2 py-0.5">
+                                                                <input
+                                                                    type="checkbox"
+                                                                    id={`mhs-chk-${sid}`}
+                                                                    checked={isChecked}
+                                                                    onChange={() => {
+                                                                        let nextIds
+                                                                        if (isChecked) {
+                                                                            nextIds = selectedIds.filter(id => id !== sid)
+                                                                        } else {
+                                                                            nextIds = [...selectedIds, sid]
+                                                                        }
+                                                                        setForm({ ...form, target_mahasiswa_ids: nextIds.join(',') })
+                                                                    }}
+                                                                    className="rounded border-neutral-300 text-primary focus:ring-primary size-4"
+                                                                />
+                                                                <Label htmlFor={`mhs-chk-${sid}`} className="text-xs font-medium text-neutral-700 cursor-pointer flex flex-1 justify-between items-center">
+                                                                    <span>{s.Nama || s.nama}</span>
+                                                                    <span className="text-[10px] text-neutral-400 font-mono">NIM: {s.NIM || s.nim}</span>
+                                                                </Label>
+                                                            </div>
+                                                        )
+                                                    })
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             )}
 

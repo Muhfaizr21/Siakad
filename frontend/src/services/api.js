@@ -318,7 +318,16 @@ export const fakultasService = {
 };
 
 export const adminService = {
-  getStats: () => fetchWithAuth(`${API_BASE_URL}/admin/stats`),
+  getStats: (params = {}) => {
+    const q = new URLSearchParams()
+    if (params.period_id) q.append('period_id', params.period_id)
+    if (params.start_date) q.append('start_date', params.start_date)
+    if (params.end_date) q.append('end_date', params.end_date)
+    if (params.tahun_masuk) q.append('tahun_masuk', params.tahun_masuk)
+    if (params.fakultas_id) q.append('fakultas_id', params.fakultas_id)
+    if (params.program_studi_id) q.append('program_studi_id', params.program_studi_id)
+    return fetchWithAuth(`${API_BASE_URL}/admin/stats?${q.toString()}`)
+  },
   // Trigger PDDikti sync for the whole university (Super Admin only, no faculty filter)
   syncPddikti: (keyword = 'Universitas Bhakti Kencana', type = 'all') =>
     fetchWithAuth(`${API_BASE_URL}/pddikti/proxy?keyword=${encodeURIComponent(keyword)}&type=${type}&sync=true`),
@@ -362,6 +371,15 @@ export const adminService = {
   deletePsychologist: (id) => fetchWithAuth(`${API_BASE_URL}/admin/psychologists/${id}`, {
     method: 'DELETE'
   }),
+  getPsychologistSchedules: (id) => fetchWithAuth(`${API_BASE_URL}/admin/psychologists/${id}/schedules`),
+  savePsychologistSchedules: (id, data) => fetchWithAuth(`${API_BASE_URL}/admin/psychologists/${id}/schedules`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  }),
+  getPsychologistBookings: () => fetchWithAuth(`${API_BASE_URL}/admin/psychologists/bookings`),
+  getPsychologistMedicalRecords: () => fetchWithAuth(`${API_BASE_URL}/admin/psychologists/medical-records`),
+  getPsychologistReferrals: () => fetchWithAuth(`${API_BASE_URL}/admin/psychologists/referrals`),
   getAllOrmawa: () => fetchWithAuth(`${API_BASE_URL}/admin/ormawa`),
   createOrmawa: (data) => fetchWithAuth(`${API_BASE_URL}/admin/ormawa`, {
     method: 'POST',

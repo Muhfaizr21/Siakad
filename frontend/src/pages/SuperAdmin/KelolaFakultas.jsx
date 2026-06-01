@@ -22,6 +22,16 @@ const LayoutGrid = ({ size, className, ...props }) => <span className={`material
 
 
 
+const JENJANG_STYLES = {
+  S1: 'bg-blue-500 text-white',
+  S2: 'bg-indigo-500 text-white',
+  S3: 'bg-neutral-900 text-white',
+  D3: 'bg-emerald-500 text-white',
+  D4: 'bg-teal-500 text-white',
+  Profesi: 'bg-rose-500 text-white',
+  DEFAULT: 'bg-neutral-100 text-neutral-500'
+}
+
 export default function KelolaFakultas() {
   const [data, setData] = useState([])
   const [loading, setLoading] = useState(true)
@@ -32,6 +42,11 @@ export default function KelolaFakultas() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [selected, setSelected] = useState(null)
   const [form, setForm] = useState({ Nama: '', Kode: '', Email: '', NoHP: '', Dekan: '' })
+
+  const [selectedFacultyDetails, setSelectedFacultyDetails] = useState(null)
+  const [isFacultyDetailsOpen, setIsFacultyDetailsOpen] = useState(false)
+  const [isAllFacultiesOpen, setIsAllFacultiesOpen] = useState(false)
+  const [isAllProdiOpen, setIsAllProdiOpen] = useState(false)
 
   const fetchData = async ({ syncFromPddikti = false, showSyncToast = false } = {}) => {
     setLoading(true)
@@ -188,26 +203,32 @@ export default function KelolaFakultas() {
 
         {/* ── Stats Grid ──────────────────────────────────────────── */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-           <div className="bg-white p-4 rounded-2xl border border-[#e5e5e5] shadow-sm">
+           <div 
+             onClick={() => setIsAllFacultiesOpen(true)}
+             className="bg-white p-4 rounded-2xl border border-[#e5e5e5] shadow-sm cursor-pointer hover:bg-neutral-50/50 hover:shadow-md hover:border-neutral-300 transition-all group"
+           >
               <div className="flex items-center gap-3 mb-3">
-                 <div className="w-10 h-10 bg-[#eef4ff] rounded-xl flex justify-center items-center text-[#00236F] flex-shrink-0">
+                 <div className="w-10 h-10 bg-[#eef4ff] rounded-xl flex justify-center items-center text-[#00236F] flex-shrink-0 group-hover:bg-[#00236F] group-hover:text-white transition-all">
                     <Building2 size={18} />
                  </div>
-                 <span className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-widest">Total Fakultas</span>
+                 <span className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-widest group-hover:text-primary transition-all">Total Fakultas</span>
               </div>
               <p className="text-2xl font-extrabold text-[#171717] font-jakarta leading-none tabular-nums">{data.length}</p>
-              <p className="text-xs text-[#a3a3a3] font-medium mt-1">Unit akademik aktif Universitas</p>
+              <p className="text-xs text-[#a3a3a3] font-medium mt-1">Klik untuk melihat rincian unit akademik aktif</p>
            </div>
 
-           <div className="bg-white p-4 rounded-2xl border border-[#e5e5e5] shadow-sm">
+           <div 
+             onClick={() => setIsAllProdiOpen(true)}
+             className="bg-white p-4 rounded-2xl border border-[#e5e5e5] shadow-sm cursor-pointer hover:bg-neutral-50/50 hover:shadow-md hover:border-neutral-300 transition-all group"
+           >
               <div className="flex items-center gap-3 mb-3">
-                 <div className="w-10 h-10 bg-indigo-50 rounded-xl flex justify-center items-center text-indigo-600 flex-shrink-0">
+                 <div className="w-10 h-10 bg-indigo-50 rounded-xl flex justify-center items-center text-indigo-600 flex-shrink-0 group-hover:bg-indigo-600 group-hover:text-white transition-all">
                     <LayoutGrid size={18} />
                  </div>
-                 <span className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-widest">Total Prodi</span>
+                 <span className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-widest group-hover:text-indigo-600 transition-all">Total Prodi</span>
               </div>
               <p className="text-2xl font-extrabold text-[#171717] font-jakarta leading-none tabular-nums">{totalProdi}</p>
-              <p className="text-xs text-[#a3a3a3] font-medium mt-1">Program studi terdaftar</p>
+              <p className="text-xs text-[#a3a3a3] font-medium mt-1">Klik untuk melihat rincian program studi terdaftar</p>
            </div>
         </div>
 
@@ -221,6 +242,18 @@ export default function KelolaFakultas() {
               searchPlaceholder="Cari nama fakultas atau kode unit..."
               actions={(row) => (
                 <div className="flex items-center gap-1.5">
+                  <Button 
+                    onClick={() => {
+                      setSelectedFacultyDetails(row)
+                      setIsFacultyDetailsOpen(true)
+                    }} 
+                    variant="ghost" 
+                    size="icon" 
+                    className="h-8 w-8 text-neutral-400 hover:text-primary hover:bg-indigo-50 rounded-lg transition-colors shadow-none"
+                    title="Lihat Detail Program Studi"
+                  >
+                    <span className="material-symbols-outlined" style={{ fontSize: '15px' }} >visibility</span>
+                  </Button>
                   <Button onClick={() => handleOpenEdit(row)} variant="ghost" size="icon" className="h-8 w-8 text-neutral-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors shadow-none"><span className="material-symbols-outlined" style={{ fontSize: '15px' }} >edit</span></Button>
                   <Button onClick={() => { setSelected(row); setIsDelOpen(true) }} variant="ghost" size="icon" className="h-8 w-8 text-neutral-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors shadow-none"><span className="material-symbols-outlined" style={{ fontSize: '15px' }} >delete</span></Button>
                 </div>
@@ -297,6 +330,208 @@ export default function KelolaFakultas() {
         description="Aksi ini akan menghapus permanen entitas fakultas dan seluruh relasi program studi di bawahnya. Prosedur ini tidak dapat dibatalkan." 
         loading={isSubmitting} 
       />
+
+      {/* ── Faculty Program Studi Details Modal ────────────────────── */}
+      <Dialog open={isFacultyDetailsOpen} onOpenChange={setIsFacultyDetailsOpen}>
+        <DialogContent className="max-w-3xl p-0 overflow-hidden border-none shadow-2xl rounded-2xl bg-white">
+          <DialogHeader className="p-6 md:p-8 pb-6 border-b border-neutral-100 relative overflow-hidden bg-white">
+            <div className="absolute top-0 right-0 p-8 opacity-[0.03] text-primary"><span className="material-symbols-outlined" style={{ fontSize: '120px' }}>school</span></div>
+            <div className="relative z-10 space-y-1">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="h-4 w-1 bg-primary rounded-full" />
+                <span className="text-[10px] font-black text-primary uppercase tracking-[0.2em]">Fakultas {selectedFacultyDetails?.Kode || selectedFacultyDetails?.kode || ''}</span>
+              </div>
+              <DialogTitle className="text-xl font-bold font-jakarta tracking-tight text-neutral-900">
+                {selectedFacultyDetails?.Nama || selectedFacultyDetails?.nama || 'Detail Fakultas'}
+              </DialogTitle>
+              <DialogDescription className="text-xs font-semibold text-neutral-400 italic">
+                Daftar Program Studi di bawah naungan Fakultas ini.
+              </DialogDescription>
+            </div>
+          </DialogHeader>
+
+          <div className="p-6 md:p-8 max-h-[50vh] overflow-y-auto space-y-4">
+            {selectedFacultyDetails?.ProgramStudi?.length > 0 || selectedFacultyDetails?.program_studi?.length > 0 ? (
+              <div className="border border-neutral-200 rounded-xl overflow-x-auto shadow-sm bg-white">
+                <table className="w-full min-w-[650px] text-left border-collapse text-xs">
+                  <thead>
+                    <tr className="bg-neutral-50 border-b border-neutral-200">
+                      <th className="px-5 py-3.5 font-bold text-neutral-400 uppercase tracking-wider w-[60px] whitespace-nowrap">#</th>
+                      <th className="px-5 py-3.5 font-bold text-neutral-400 uppercase tracking-wider w-[120px] whitespace-nowrap">Kode</th>
+                      <th className="px-5 py-3.5 font-bold text-neutral-400 uppercase tracking-wider w-[100px] text-center whitespace-nowrap">Jenjang</th>
+                      <th className="px-5 py-3.5 font-bold text-neutral-400 uppercase tracking-wider whitespace-nowrap">Nama Program Studi</th>
+                      <th className="px-5 py-3.5 font-bold text-neutral-400 uppercase tracking-wider whitespace-nowrap">Pimpinan / Kaprodi</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {(selectedFacultyDetails?.ProgramStudi || selectedFacultyDetails?.program_studi || []).map((prodi, idx) => {
+                      const jenjangStyle = JENJANG_STYLES[prodi.Jenjang || prodi.jenjang] || JENJANG_STYLES.DEFAULT
+                      return (
+                        <tr key={prodi.id || prodi.ID || idx} className="border-b border-neutral-100 hover:bg-[#f7faff] transition-colors">
+                          <td className="px-5 py-4 text-neutral-400 font-semibold whitespace-nowrap">{idx + 1}</td>
+                          <td className="px-5 py-4 whitespace-nowrap">
+                            <code className="text-[11px] font-bold text-[#3b82f6] tracking-wider bg-blue-50 px-2 py-1 rounded">
+                              {prodi.Kode || prodi.kode || '—'}
+                            </code>
+                          </td>
+                          <td className="px-5 py-4 text-center whitespace-nowrap">
+                            <span className={cn("inline-flex items-center px-2.5 py-0.5 rounded-lg text-[9px] font-bold uppercase tracking-wider shadow-sm", jenjangStyle)}>
+                              {prodi.Jenjang || prodi.jenjang || '—'}
+                            </span>
+                          </td>
+                          <td className="px-5 py-4 font-bold text-neutral-800 text-sm leading-snug whitespace-nowrap">{prodi.Nama || prodi.nama || '—'}</td>
+                          <td className="px-5 py-4 font-semibold text-neutral-500 whitespace-nowrap">{prodi.KepalaProdi || prodi.kepala_prodi || '—'}</td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="py-12 text-center flex flex-col items-center gap-3">
+                <div className="w-12 h-12 bg-neutral-50 rounded-2xl flex items-center justify-center text-neutral-400 border border-neutral-100 animate-pulse">
+                  <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>info</span>
+                </div>
+                <p className="font-bold text-sm text-neutral-700">Belum Ada Program Studi</p>
+                <p className="text-xs text-neutral-400">Fakultas ini belum menaungi program studi apa pun saat ini.</p>
+              </div>
+            )}
+          </div>
+
+          <div className="p-6 border-t border-neutral-100 bg-neutral-50/50 flex justify-end">
+            <Button onClick={() => setIsFacultyDetailsOpen(false)} className="h-10 px-6 rounded-xl bg-neutral-900 text-white text-xs font-bold uppercase tracking-wider hover:bg-primary transition-all active:scale-95 border-none">Tutup</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── All Faculties Dialog ─────────────────────────────────── */}
+      <Dialog open={isAllFacultiesOpen} onOpenChange={setIsAllFacultiesOpen}>
+        <DialogContent className="max-w-4xl p-0 overflow-hidden border-none shadow-2xl rounded-2xl bg-white">
+          <DialogHeader className="p-6 md:p-8 pb-6 border-b border-neutral-100 relative overflow-hidden bg-white">
+            <div className="absolute top-0 right-0 p-8 opacity-[0.03] text-primary"><span className="material-symbols-outlined" style={{ fontSize: '120px' }}>business</span></div>
+            <div className="relative z-10 space-y-1">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="h-4 w-1 bg-[#00236F] rounded-full" />
+                <span className="text-[10px] font-black text-[#00236F] uppercase tracking-[0.2em]">Daftar Unit Kerja</span>
+              </div>
+              <DialogTitle className="text-xl font-bold font-jakarta tracking-tight text-neutral-900">
+                Seluruh Fakultas Universitas Bhakti Kencana
+              </DialogTitle>
+              <DialogDescription className="text-xs font-semibold text-neutral-400 italic">
+                Daftar semua fakultas yang terdaftar dalam sistem akademik.
+              </DialogDescription>
+            </div>
+          </DialogHeader>
+
+          <div className="p-6 md:p-8 max-h-[50vh] overflow-y-auto space-y-4">
+            <div className="border border-neutral-200 rounded-xl overflow-x-auto shadow-sm bg-white">
+              <table className="w-full min-w-[700px] text-left border-collapse text-xs">
+                <thead>
+                  <tr className="bg-neutral-50 border-b border-neutral-200">
+                    <th className="px-5 py-3.5 font-bold text-neutral-400 uppercase tracking-wider w-[60px] whitespace-nowrap">#</th>
+                    <th className="px-5 py-3.5 font-bold text-neutral-400 uppercase tracking-wider w-[140px] whitespace-nowrap">Kode Fakultas</th>
+                    <th className="px-5 py-3.5 font-bold text-neutral-400 uppercase tracking-wider whitespace-nowrap">Nama Fakultas</th>
+                    <th className="px-5 py-3.5 font-bold text-neutral-400 uppercase tracking-wider whitespace-nowrap">Pimpinan / Dekan</th>
+                    <th className="px-5 py-3.5 font-bold text-neutral-400 uppercase tracking-wider w-[140px] text-center whitespace-nowrap">Jumlah Prodi</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {data.map((fac, idx) => (
+                    <tr key={fac.id || fac.ID || idx} className="border-b border-neutral-100 hover:bg-[#f7faff] transition-colors">
+                      <td className="px-5 py-4 text-neutral-400 font-semibold whitespace-nowrap">{idx + 1}</td>
+                      <td className="px-5 py-4 whitespace-nowrap">
+                        <code className="text-[11px] font-bold text-[#00236F] tracking-widest bg-[#eef4ff] px-2.5 py-1 rounded">
+                          {fac.Kode || fac.kode || '—'}
+                        </code>
+                      </td>
+                      <td className="px-5 py-4 font-bold text-neutral-800 text-sm leading-snug whitespace-nowrap">{fac.Nama || fac.nama || '—'}</td>
+                      <td className="px-5 py-4 font-semibold text-neutral-500 whitespace-nowrap">{fac.Dekan || fac.dekan || '—'}</td>
+                      <td className="px-5 py-4 text-center whitespace-nowrap">
+                        <span className="inline-flex px-3 py-1 rounded-full bg-primary/5 text-primary font-bold text-xs">
+                          {fac.JumlahProdi || fac.jumlah_prodi || fac.ProgramStudi?.length || fac.program_studi?.length || 0}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div className="p-6 border-t border-neutral-100 bg-neutral-50/50 flex justify-end">
+            <Button onClick={() => setIsAllFacultiesOpen(false)} className="h-10 px-6 rounded-xl bg-neutral-900 text-white text-xs font-bold uppercase tracking-wider hover:bg-primary transition-all active:scale-95 border-none">Tutup</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── All Program Studies Dialog ───────────────────────────── */}
+      <Dialog open={isAllProdiOpen} onOpenChange={setIsAllProdiOpen}>
+        <DialogContent className="max-w-3xl p-0 overflow-hidden border-none shadow-2xl rounded-2xl bg-white">
+          <DialogHeader className="p-6 md:p-8 pb-6 border-b border-neutral-100 relative overflow-hidden bg-white">
+            <div className="absolute top-0 right-0 p-8 opacity-[0.03] text-primary"><span className="material-symbols-outlined" style={{ fontSize: '120px' }}>grid_view</span></div>
+            <div className="relative z-10 space-y-1">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="h-4 w-1 bg-indigo-600 rounded-full" />
+                <span className="text-[10px] font-black text-indigo-600 uppercase tracking-[0.2em]">Daftar Program Studi</span>
+              </div>
+              <DialogTitle className="text-xl font-bold font-jakarta tracking-tight text-neutral-900">
+                Seluruh Program Studi Universitas Bhakti Kencana
+              </DialogTitle>
+              <DialogDescription className="text-xs font-semibold text-neutral-400 italic">
+                Daftar lengkap program studi lintas fakultas dalam satu tampilan.
+              </DialogDescription>
+            </div>
+          </DialogHeader>
+
+          <div className="p-6 md:p-8 max-h-[50vh] overflow-y-auto space-y-4">
+            <div className="border border-neutral-200 rounded-xl overflow-x-auto shadow-sm bg-white">
+              <table className="w-full min-w-[650px] text-left border-collapse text-xs">
+                <thead>
+                  <tr className="bg-neutral-50 border-b border-neutral-200">
+                    <th className="px-5 py-3.5 font-bold text-neutral-400 uppercase tracking-wider w-[50px] whitespace-nowrap">#</th>
+                    <th className="px-5 py-3.5 font-bold text-neutral-400 uppercase tracking-wider w-[120px] whitespace-nowrap">Kode Prodi</th>
+                    <th className="px-5 py-3.5 font-bold text-neutral-400 uppercase tracking-wider w-[100px] text-center whitespace-nowrap">Jenjang</th>
+                    <th className="px-5 py-3.5 font-bold text-neutral-400 uppercase tracking-wider whitespace-nowrap">Nama Program Studi</th>
+                    <th className="px-5 py-3.5 font-bold text-neutral-400 uppercase tracking-wider whitespace-nowrap">Pimpinan / Kaprodi</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {data.flatMap(fac => 
+                    (fac.ProgramStudi || fac.program_studi || []).map(prodi => ({
+                      ...prodi,
+                      FakultasNama: fac.Nama || fac.nama,
+                      FakultasKode: fac.Kode || fac.kode
+                    }))
+                  ).map((prodi, idx) => {
+                    const jenjangStyle = JENJANG_STYLES[prodi.Jenjang || prodi.jenjang] || JENJANG_STYLES.DEFAULT
+                    return (
+                      <tr key={prodi.id || prodi.ID || idx} className="border-b border-neutral-100 hover:bg-[#f7faff] transition-colors">
+                        <td className="px-5 py-4 text-neutral-400 font-semibold whitespace-nowrap">{idx + 1}</td>
+                        <td className="px-5 py-4 whitespace-nowrap">
+                          <code className="text-[11px] font-bold text-[#3b82f6] tracking-wider bg-blue-50 px-2 py-1 rounded">
+                            {prodi.Kode || prodi.kode || '—'}
+                          </code>
+                        </td>
+                        <td className="px-5 py-4 text-center whitespace-nowrap">
+                          <span className={cn("inline-flex items-center px-2.5 py-0.5 rounded-lg text-[9px] font-bold uppercase tracking-wider shadow-sm", jenjangStyle)}>
+                            {prodi.Jenjang || prodi.jenjang || '—'}
+                          </span>
+                        </td>
+                        <td className="px-5 py-4 font-bold text-neutral-850 text-sm leading-snug whitespace-nowrap">{prodi.Nama || prodi.nama || '—'}</td>
+                        <td className="px-5 py-4 font-semibold text-neutral-500 whitespace-nowrap">{prodi.KepalaProdi || prodi.kepala_prodi || '—'}</td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div className="p-6 border-t border-neutral-100 bg-neutral-50/50 flex justify-end">
+            <Button onClick={() => setIsAllProdiOpen(false)} className="h-10 px-6 rounded-xl bg-neutral-900 text-white text-xs font-bold uppercase tracking-wider hover:bg-primary transition-all active:scale-95 border-none">Tutup</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

@@ -63,7 +63,6 @@ export default function KelolaPrestasi() {
 
   // Verification Form State
   const [verifyStatus, setVerifyStatus] = useState("verified")
-  const [verifyPoin, setVerifyPoin] = useState(5)
   const [verifyCatatan, setVerifyCatatan] = useState("")
 
   const fetchData = async () => {
@@ -71,10 +70,20 @@ export default function KelolaPrestasi() {
     try {
       const res = await adminService.getAllAchievements()
       if (res.status === "success") {
-        setData((res.data || []).map((item, i) => ({
-          ...item,
-          colorIdx: i % AVATAR_COLORS.length
-        })))
+        setData((res.data || []).map((item, i) => {
+          const mhs = item.mahasiswa || {}
+          const prodi = mhs.program_studi || mhs.ProgramStudi || {}
+          const fakultas = prodi.fakultas || prodi.Fakultas || mhs.fakultas || mhs.Fakultas || {}
+          return {
+            ...item,
+            colorIdx: i % AVATAR_COLORS.length,
+            fakultas_id: String(fakultas.id || fakultas.ID || ''),
+            fakultas_nama: String(fakultas.nama || fakultas.Nama || ''),
+            prodi_id: String(prodi.id || prodi.ID || ''),
+            prodi_nama: String(prodi.nama || prodi.Nama || ''),
+            kategori_filter: String(item.kategori || '')
+          }
+        }))
       } else {
         toast.error("Gagal memuat data prestasi")
       }
@@ -92,7 +101,6 @@ export default function KelolaPrestasi() {
   const handleOpenVerify = (row, status) => {
     setSelected(row)
     setVerifyStatus(status)
-    setVerifyPoin(status === "verified" ? 5 : 0)
     setVerifyCatatan(status === "verified" ? "Prestasi tervalidasi oleh Super Admin." : "Berkas tidak sesuai kriteria.")
     setIsVerifyOpen(true)
   }
@@ -103,7 +111,7 @@ export default function KelolaPrestasi() {
     try {
       const payload = {
         Status: verifyStatus,
-        Poin: parseInt(verifyPoin) || 0,
+        Poin: 0,
         Catatan: verifyCatatan
       }
       const res = await adminService.verifyAchievement(selected.id || selected.ID, payload)
@@ -127,8 +135,49 @@ export default function KelolaPrestasi() {
     const total = data.length
     const pending = data.filter(item => (item.status || "").toLowerCase() === "menunggu").length
     const verified = data.filter(item => ["verified", "terverifikasi", "disetujui"].includes((item.status || "").toLowerCase())).length
-    const totalPoin = data.reduce((acc, item) => acc + (item.poin || 0), 0)
-    return { total, pending, verified, totalPoin }
+    const rejected = data.filter(item => ["rejected", "ditolak"].includes((item.status || "").toLowerCase())).length
+    return { total, pending, verified, rejected }
+  }, [data])
+
+  const fakultasOptions = useMemo(() => {
+    const list = []
+    const ids = new Set()
+    data.forEach(item => {
+      const fid = item.fakultas_id
+      const fnama = item.fakultas_nama
+      if (fid && fnama && !ids.has(fid)) {
+        ids.add(fid)
+        list.push({ label: fnama.toUpperCase(), value: fid })
+      }
+    })
+    return list
+  }, [data])
+
+  const prodiOptions = useMemo(() => {
+    const list = []
+    const ids = new Set()
+    data.forEach(item => {
+      const pid = item.prodi_id
+      const pnama = item.prodi_nama
+      if (pid && pnama && !ids.has(pid)) {
+        ids.add(pid)
+        list.push({ label: pnama.toUpperCase(), value: pid })
+      }
+    })
+    return list
+  }, [data])
+
+  const kategoriOptions = useMemo(() => {
+    const list = []
+    const cats = new Set()
+    data.forEach(item => {
+      const cat = item.kategori
+      if (cat && !cats.has(cat)) {
+        cats.add(cat)
+        list.push({ label: cat.toUpperCase(), value: cat })
+      }
+    })
+    return list
   }, [data])
 
   const columns = [
@@ -218,13 +267,6 @@ export default function KelolaPrestasi() {
           </Badge>
         )
       }
-    },
-    {
-      key: "poin",
-      label: "Poin",
-      className: "w-[90px] text-center",
-      cellClassName: "text-center",
-      render: (v) => <span className="font-bold text-neutral-900 text-[13px] font-jakarta">{v != null ? `${v} Pts` : "—"}</span>
     }
   ]
 
@@ -256,7 +298,7 @@ export default function KelolaPrestasi() {
                 Kelola <span className="text-blue-400">Prestasi Mahasiswa</span>
               </h1>
               <p className="text-slate-400 font-medium text-xs max-w-xl leading-relaxed mt-1.5">
-                Audit, verifikasi, dan validasi seluruh portofolio prestasi akademik/non-akademik mahasiswa serta berikan poin apresiasi secara dinamis.
+                Audit, verifikasi, dan validasi seluruh portofolio prestasi akademik/non-akademik mahasiswa secara terintegrasi.
               </p>
             </div>
             
@@ -299,12 +341,12 @@ export default function KelolaPrestasi() {
             loading={loading}
           />
           <StatCard
-            title="Apresiasi Poin"
-            value={`${stats.totalPoin} Pts`}
-            description="Total poin mahasiswa"
-            icon={Award}
-            color="text-violet-600"
-            bg="bg-violet-50"
+            title="Total Ditolak"
+            value={stats.rejected}
+            description="Pengajuan tidak sesuai kriteria"
+            icon={CloseIcon}
+            color="text-rose-600"
+            bg="bg-rose-50"
             loading={loading}
           />
         </div>
@@ -336,6 +378,21 @@ export default function KelolaPrestasi() {
                     { label: "Regional", value: "regional" },
                     { label: "Lokal", value: "lokal" },
                   ]
+                },
+                {
+                  key: "kategori_filter",
+                  placeholder: "Kategori",
+                  options: kategoriOptions
+                },
+                {
+                  key: "fakultas_id",
+                  placeholder: "Fakultas",
+                  options: fakultasOptions
+                },
+                {
+                  key: "prodi_id",
+                  placeholder: "Program Studi",
+                  options: prodiOptions
                 }
               ]}
               actions={(row) => (
@@ -444,7 +501,6 @@ export default function KelolaPrestasi() {
                   { icon: Apartment, label: "Fakultas", value: selected.mahasiswa?.Fakultas?.Nama || selected.mahasiswa?.fakultas?.nama },
                   { icon: Award, label: "Peringkat", value: selected.peringkat || "—" },
                   { icon: Calendar, label: "Diajukan Pada", value: formatDate(selected.created_at || selected.CreatedAt) },
-                  { icon: CheckCircle2, label: "Poin Apresiasi", value: selected.poin != null ? `${selected.poin} Poin` : "—" },
                 ].map((item, idx) => (
                   <div key={idx} className="flex items-center gap-3 p-3 rounded-xl bg-neutral-50 border border-neutral-100 hover:bg-neutral-100/30 transition-all">
                     <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center text-primary shadow-sm border border-neutral-100 flex-shrink-0">
@@ -527,28 +583,13 @@ export default function KelolaPrestasi() {
               </DialogTitle>
               <DialogDescription className="text-xs text-neutral-400 font-medium">
                 {verifyStatus === "verified" 
-                  ? "Tentukan poin apresiasi dan berikan catatan verifikasi kelayakan untuk mahasiswa."
+                  ? "Berikan catatan verifikasi kelayakan untuk mahasiswa."
                   : "Berikan alasan penolakan berkas agar mahasiswa dapat memperbaiki pengajuannya."
                 }
               </DialogDescription>
             </DialogHeader>
 
             <form onSubmit={handleVerifySubmit} className="space-y-5 mt-4">
-              {verifyStatus === "verified" && (
-                <div className="space-y-1.5">
-                  <Label htmlFor="verify_poin" className="text-xs font-bold uppercase tracking-widest text-neutral-400">Poin Apresiasi</Label>
-                  <Input
-                    id="verify_poin"
-                    type="number"
-                    min="0"
-                    max="100"
-                    value={verifyPoin}
-                    onChange={(e) => setVerifyPoin(e.target.value)}
-                    className="h-10 rounded-xl border-neutral-200 focus:border-primary shadow-none text-xs font-bold bg-neutral-50/50 focus:bg-white"
-                    required
-                  />
-                </div>
-              )}
 
               <div className="space-y-1.5">
                 <Label htmlFor="verify_catatan" className="text-xs font-bold uppercase tracking-widest text-neutral-400">Catatan Verifikator</Label>

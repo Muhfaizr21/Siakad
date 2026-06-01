@@ -299,8 +299,84 @@ func DeleteUser(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"status": "success", "message": "User deleted"})
 }
 
-// GetDashboardStats returns high-level metrics for University oversight
+// GetDashboardStats returns high-level metrics for University oversight with optional filters
 func GetDashboardStats(c *fiber.Ctx) error {
+	periodID := c.QueryInt("period_id", 0)
+	tahunMasuk := c.QueryInt("tahun_masuk", 0)
+	fakultasID := c.QueryInt("fakultas_id", 0)
+	prodiID := c.QueryInt("program_studi_id", 0)
+	startDateStr := c.Query("start_date")
+	endDateStr := c.Query("end_date")
+
+	var filterStartYear, filterEndYear int
+	var hasDateFilter bool
+	var filterStartDate, filterEndDate time.Time
+
+	if startDateStr != "" && endDateStr != "" {
+		sDate, err1 := time.Parse("2006-01-02", startDateStr)
+		eDate, err2 := time.Parse("2006-01-02", endDateStr)
+		if err1 == nil && err2 == nil {
+			hasDateFilter = true
+			filterStartDate = sDate
+			filterEndDate = time.Date(eDate.Year(), eDate.Month(), eDate.Day(), 23, 59, 59, 999999999, eDate.Location())
+			filterStartYear = sDate.Year()
+			filterEndYear = eDate.Year()
+		}
+	}
+
+	// If period_id is provided, resolve the academic year
+	if periodID > 0 {
+		var selectedPeriod models.AcademicPeriod
+		if err := config.DB.First(&selectedPeriod, periodID).Error; err == nil {
+			var year int
+			fmt.Sscanf(selectedPeriod.AcademicYear, "%d", &year)
+			if year > 0 {
+				tahunMasuk = year
+			}
+		}
+	}
+
+	// Base queries
+	dbMhs := config.DB.Model(&models.Mahasiswa{})
+	dbAsp := config.DB.Model(&models.Aspirasi{})
+	dbProp := config.DB.Model(&models.Proposal{})
+	dbAnggota := config.DB.Model(&models.OrmawaAnggota{})
+
+	// Joins and Filters
+	needMhsJoin := (tahunMasuk > 0) || (fakultasID > 0) || (prodiID > 0) || hasDateFilter
+
+	if needMhsJoin {
+		dbAsp = dbAsp.Joins("JOIN mahasiswa.mahasiswa ON mahasiswa.mahasiswa.id = mahasiswa.aspirasi.mahasiswa_id")
+		dbProp = dbProp.Joins("JOIN mahasiswa.mahasiswa ON mahasiswa.mahasiswa.id = ormawa.proposal.mahasiswa_id")
+		dbAnggota = dbAnggota.Joins("JOIN mahasiswa.mahasiswa ON mahasiswa.mahasiswa.id = ormawa.ormawa_anggota.mahasiswa_id")
+	}
+
+	if hasDateFilter {
+		dbMhs = dbMhs.Where("mahasiswa.mahasiswa.tahun_masuk BETWEEN ? AND ?", filterStartYear, filterEndYear)
+		dbAsp = dbAsp.Where("mahasiswa.aspirasi.created_at BETWEEN ? AND ?", filterStartDate, filterEndDate)
+		dbProp = dbProp.Where("ormawa.proposal.created_at BETWEEN ? AND ?", filterStartDate, filterEndDate)
+		dbAnggota = dbAnggota.Where("mahasiswa.mahasiswa.tahun_masuk BETWEEN ? AND ?", filterStartYear, filterEndYear)
+	} else if tahunMasuk > 0 {
+		dbMhs = dbMhs.Where("mahasiswa.mahasiswa.tahun_masuk = ?", tahunMasuk)
+		dbAsp = dbAsp.Where("mahasiswa.mahasiswa.tahun_masuk = ?", tahunMasuk)
+		dbProp = dbProp.Where("mahasiswa.mahasiswa.tahun_masuk = ?", tahunMasuk)
+		dbAnggota = dbAnggota.Where("mahasiswa.mahasiswa.tahun_masuk = ?", tahunMasuk)
+	}
+
+	if fakultasID > 0 {
+		dbMhs = dbMhs.Where("mahasiswa.mahasiswa.fakultas_id = ?", fakultasID)
+		dbAsp = dbAsp.Where("mahasiswa.mahasiswa.fakultas_id = ?", fakultasID)
+		dbProp = dbProp.Where("ormawa.proposal.fakultas_id = ?", fakultasID)
+		dbAnggota = dbAnggota.Where("mahasiswa.mahasiswa.fakultas_id = ?", fakultasID)
+	}
+
+	if prodiID > 0 {
+		dbMhs = dbMhs.Where("mahasiswa.mahasiswa.program_studi_id = ?", prodiID)
+		dbAsp = dbAsp.Where("mahasiswa.mahasiswa.program_studi_id = ?", prodiID)
+		dbProp = dbProp.Where("mahasiswa.mahasiswa.program_studi_id = ?", prodiID)
+		dbAnggota = dbAnggota.Where("mahasiswa.mahasiswa.program_studi_id = ?", prodiID)
+	}
+
 	var totalMhs int64
 	var aspirasiAktif int64
 	var slaOverdue int64
@@ -311,12 +387,30 @@ func GetDashboardStats(c *fiber.Ctx) error {
 	now := time.Now()
 	todayStart := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
 
-	config.DB.Model(&models.Mahasiswa{}).Count(&totalMhs)
-	config.DB.Model(&models.Aspirasi{}).Where("status != ?", "Selesai").Count(&aspirasiAktif)
-	config.DB.Model(&models.Aspirasi{}).Where("status != ? AND deadline < ?", "Selesai", now).Count(&slaOverdue)
-	config.DB.Model(&models.Aspirasi{}).Where("status = ? AND updated_at >= ?", "Selesai", todayStart).Count(&resolvedToday)
-	config.DB.Model(&models.Proposal{}).Where("status = ?", "disetujui_fakultas").Count(&antreanProposal)
-	config.DB.Model(&models.OrmawaAnggota{}).Count(&totalAnggotaOrmawa)
+	dbMhs.Session(&gorm.Session{}).Count(&totalMhs)
+	dbAsp.Session(&gorm.Session{}).Where("mahasiswa.aspirasi.status != ?", "Selesai").Count(&aspirasiAktif)
+	dbAsp.Session(&gorm.Session{}).Where("mahasiswa.aspirasi.status != ? AND mahasiswa.aspirasi.deadline < ?", "Selesai", now).Count(&slaOverdue)
+	dbAsp.Session(&gorm.Session{}).Where("mahasiswa.aspirasi.status = ? AND mahasiswa.aspirasi.updated_at >= ?", "Selesai", todayStart).Count(&resolvedToday)
+	dbProp.Session(&gorm.Session{}).Where("ormawa.proposal.status = ?", "disetujui_fakultas").Count(&antreanProposal)
+	dbAnggota.Session(&gorm.Session{}).Count(&totalAnggotaOrmawa)
+
+	// Fetch dynamic list of available Tahun Masuk for the filter dropdown
+	var tahunMasukList []int
+	config.DB.Model(&models.Mahasiswa{}).Distinct("tahun_masuk").Order("tahun_masuk desc").Pluck("tahun_masuk", &tahunMasukList)
+
+	// Fetch all Academic Periods
+	var periods []models.AcademicPeriod
+	config.DB.Order("id desc").Find(&periods)
+
+	// Fetch detailed listings for drill down
+	var detailMhs []models.Mahasiswa
+	dbMhs.Session(&gorm.Session{}).Preload("Fakultas").Preload("ProgramStudi").Limit(100).Find(&detailMhs)
+
+	var detailAsp []models.Aspirasi
+	dbAsp.Session(&gorm.Session{}).Preload("Mahasiswa.Fakultas").Preload("Mahasiswa.ProgramStudi").Limit(100).Find(&detailAsp)
+
+	var detailProp []models.Proposal
+	dbProp.Session(&gorm.Session{}).Preload("Mahasiswa.Fakultas").Preload("Mahasiswa.ProgramStudi").Preload("Ormawa").Limit(100).Find(&detailProp)
 
 	return c.JSON(fiber.Map{
 		"status": "success",
@@ -327,6 +421,11 @@ func GetDashboardStats(c *fiber.Ctx) error {
 			"resolved_today":       resolvedToday,
 			"antrean_proposal":     antreanProposal,
 			"total_anggota_ormawa": totalAnggotaOrmawa,
+			"tahun_masuk_list":     tahunMasukList,
+			"periods":              periods,
+			"detail_mahasiswa":     detailMhs,
+			"detail_aspirasi":      detailAsp,
+			"detail_proposal":      detailProp,
 		},
 	})
 }
@@ -563,6 +662,160 @@ func DeletePsychologist(c *fiber.Ctx) error {
 		return c.Status(500).JSON(fiber.Map{"status": "error", "message": err.Error()})
 	}
 	return c.JSON(fiber.Map{"status": "success", "message": "Psikolog deleted"})
+}
+
+func GetPsychologistSchedulesAdmin(c *fiber.Ctx) error {
+	id := c.Params("id")
+	var psikolog models.Psikolog
+	if err := config.DB.First(&psikolog, id).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Psikolog not found"})
+	}
+
+	days := []string{"Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu"}
+	var slots []models.PsikologScheduleSlot
+	if err := config.DB.Where("psikolog_id = ?", psikolog.ID).Order("id asc").Find(&slots).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": err.Error()})
+	}
+
+	grouped := make([]fiber.Map, 0, len(days))
+	for _, day := range days {
+		daySlots := []fiber.Map{}
+		enabled := false
+		for _, slot := range slots {
+			if slot.Hari == day {
+				if slot.IsAktif != nil && *slot.IsAktif {
+					enabled = true
+				}
+				daySlots = append(daySlots, fiber.Map{
+					"id":           slot.ID,
+					"kategori":     firstNonEmptyLocal(slot.Kategori, "Personal"),
+					"start":        slot.JamMulai,
+					"end":          slot.JamSelesai,
+					"lokasi":       slot.Lokasi,
+					"kuota":        slot.Kuota,
+					"is_available": slot.IsAktif != nil && *slot.IsAktif,
+				})
+			}
+		}
+		grouped = append(grouped, fiber.Map{"day": day, "enabled": enabled, "slots": daySlots})
+	}
+	return c.JSON(fiber.Map{"status": "success", "data": grouped})
+}
+
+func SavePsychologistSchedulesAdmin(c *fiber.Ctx) error {
+	id := c.Params("id")
+	var psikolog models.Psikolog
+	if err := config.DB.First(&psikolog, id).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Psikolog not found"})
+	}
+
+	var body []struct {
+		Day     string `json:"day"`
+		Enabled bool   `json:"enabled"`
+		Slots   []struct {
+			Kategori    string `json:"kategori"`
+			Start       string `json:"start"`
+			End         string `json:"end"`
+			Lokasi      string `json:"lokasi"`
+			Kuota       int    `json:"kuota"`
+			IsAvailable *bool  `json:"is_available"`
+		} `json:"slots"`
+	}
+	if err := c.BodyParser(&body); err != nil {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Payload jadwal tidak valid"})
+	}
+
+	err := config.DB.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Where("psikolog_id = ?", psikolog.ID).Delete(&models.PsikologScheduleSlot{}).Error; err != nil {
+			return err
+		}
+		for _, day := range body {
+			for _, slot := range day.Slots {
+				kuota := slot.Kuota
+				if kuota <= 0 {
+					kuota = 1
+				}
+				kategori := normalizeScheduleCategoryLocal(slot.Kategori)
+
+				isAktif := day.Enabled
+				if slot.IsAvailable != nil {
+					isAktif = *slot.IsAvailable
+				}
+
+				isAktifVal := isAktif
+				record := models.PsikologScheduleSlot{
+					PsikologID: psikolog.ID,
+					Hari:       day.Day,
+					Kategori:   kategori,
+					JamMulai:   slot.Start,
+					JamSelesai: slot.End,
+					Lokasi:     slot.Lokasi,
+					Kuota:      kuota,
+					IsAktif:    &isAktifVal,
+				}
+				if err := tx.Create(&record).Error; err != nil {
+					return err
+				}
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": err.Error()})
+	}
+
+	// Re-fetch using local logic
+	days := []string{"Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu"}
+	var slots []models.PsikologScheduleSlot
+	if err := config.DB.Where("psikolog_id = ?", psikolog.ID).Order("id asc").Find(&slots).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": err.Error()})
+	}
+
+	grouped := make([]fiber.Map, 0, len(days))
+	for _, day := range days {
+		daySlots := []fiber.Map{}
+		enabled := false
+		for _, slot := range slots {
+			if slot.Hari == day {
+				if slot.IsAktif != nil && *slot.IsAktif {
+					enabled = true
+				}
+				daySlots = append(daySlots, fiber.Map{
+					"id":           slot.ID,
+					"kategori":     firstNonEmptyLocal(slot.Kategori, "Personal"),
+					"start":        slot.JamMulai,
+					"end":          slot.JamSelesai,
+					"lokasi":       slot.Lokasi,
+					"kuota":        slot.Kuota,
+					"is_available": slot.IsAktif != nil && *slot.IsAktif,
+				})
+			}
+		}
+		grouped = append(grouped, fiber.Map{"day": day, "enabled": enabled, "slots": daySlots})
+	}
+	return c.JSON(fiber.Map{"status": "success", "data": grouped})
+}
+
+func firstNonEmptyLocal(values ...string) string {
+	for _, value := range values {
+		if trimmed := strings.TrimSpace(value); trimmed != "" {
+			return trimmed
+		}
+	}
+	return ""
+}
+
+func normalizeScheduleCategoryLocal(value string) string {
+	switch strings.ToLower(strings.TrimSpace(value)) {
+	case "akademik":
+		return "Akademik"
+	case "karir":
+		return "Karir"
+	case "personal":
+		return "Personal"
+	default:
+		return "Personal"
+	}
 }
 
 
@@ -996,10 +1249,24 @@ func broadcastNewsNotifications(db *gorm.DB, b *models.Berita) {
 		}
 
 	case "ormawa":
-		if b.TargetOrmawaID != nil && *b.TargetOrmawaID > 0 {
+		var ormawaIDs []uint
+		if b.TargetOrmawaIDs != "" {
+			parts := strings.Split(b.TargetOrmawaIDs, ",")
+			for _, p := range parts {
+				p = strings.TrimSpace(p)
+				var id uint
+				if _, err := fmt.Sscanf(p, "%d", &id); err == nil && id > 0 {
+					ormawaIDs = append(ormawaIDs, id)
+				}
+			}
+		} else if b.TargetOrmawaID != nil && *b.TargetOrmawaID > 0 {
+			ormawaIDs = []uint{*b.TargetOrmawaID}
+		}
+
+		for _, oID := range ormawaIDs {
 			// 1. Get ormawa admins (users with ormawa_id directly set)
 			var adminIDs []uint
-			db.Model(&models.User{}).Where("ormawa_id = ?", *b.TargetOrmawaID).Pluck("id", &adminIDs)
+			db.Model(&models.User{}).Where("ormawa_id = ?", oID).Pluck("id", &adminIDs)
 			targetUserIDs = append(targetUserIDs, adminIDs...)
 
 			// 2. Get ormawa members from ormawa.ormawa_anggota -> mahasiswa -> pengguna_id
@@ -1007,13 +1274,13 @@ func broadcastNewsNotifications(db *gorm.DB, b *models.Berita) {
 			db.Table("ormawa.ormawa_anggota").
 				Select("mahasiswa.pengguna_id").
 				Joins("join mahasiswa.mahasiswa on mahasiswa.id = ormawa_anggota.mahasiswa_id").
-				Where("ormawa_anggota.ormawa_id = ? AND ormawa_anggota.deleted_at IS NULL", *b.TargetOrmawaID).
+				Where("ormawa_anggota.ormawa_id = ? AND ormawa_anggota.deleted_at IS NULL", oID).
 				Pluck("pengguna_id", &memberUserIDs)
 			targetUserIDs = append(targetUserIDs, memberUserIDs...)
 
 			// 3. Create a record in OrmawaNotifikasi so it shows up inside the specific Ormawa portal notification list
 			db.Create(&models.OrmawaNotifikasi{
-				OrmawaID: *b.TargetOrmawaID,
+				OrmawaID: oID,
 				Tipe:     "sistem",
 				Judul:    b.Judul,
 				Pesan:    b.Isi,
@@ -1022,7 +1289,22 @@ func broadcastNewsNotifications(db *gorm.DB, b *models.Berita) {
 		}
 
 	case "mahasiswa":
-		if b.TargetFakultasID != nil && *b.TargetFakultasID > 0 {
+		if b.TargetMahasiswaIDs != "" {
+			parts := strings.Split(b.TargetMahasiswaIDs, ",")
+			var mhsIDs []uint
+			for _, p := range parts {
+				p = strings.TrimSpace(p)
+				var id uint
+				if _, err := fmt.Sscanf(p, "%d", &id); err == nil && id > 0 {
+					mhsIDs = append(mhsIDs, id)
+				}
+			}
+			if len(mhsIDs) > 0 {
+				var studentUserIDs []uint
+				db.Table("mahasiswa.mahasiswa").Where("id IN ?", mhsIDs).Pluck("pengguna_id", &studentUserIDs)
+				targetUserIDs = append(targetUserIDs, studentUserIDs...)
+			}
+		} else if b.TargetFakultasID != nil && *b.TargetFakultasID > 0 {
 			// Get students in specific faculty
 			var studentUserIDs []uint
 			db.Table("mahasiswa.mahasiswa").Where("fakultas_id = ?", *b.TargetFakultasID).Pluck("pengguna_id", &studentUserIDs)
@@ -1276,3 +1558,57 @@ func UpdateScholarshipApplicationStatus(c *fiber.Ctx) error {
 		"data":    application,
 	})
 }
+
+// GetPsychologistBookingsAdmin returns all bookings in the psychologist module for superadmin review
+func GetPsychologistBookingsAdmin(c *fiber.Ctx) error {
+	var bookings []models.PsikologBooking
+	err := config.DB.
+		Preload("Psikolog").
+		Preload("Mahasiswa").
+		Preload("Mahasiswa.Fakultas").
+		Preload("Mahasiswa.ProgramStudi").
+		Order("tanggal desc, jam_mulai desc").
+		Find(&bookings).Error
+
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": err.Error()})
+	}
+	return c.JSON(fiber.Map{"status": "success", "data": bookings})
+}
+
+// GetPsychologistMedicalRecordsAdmin returns all medical records (session notes) in the psychologist module
+func GetPsychologistMedicalRecordsAdmin(c *fiber.Ctx) error {
+	var records []models.PsikologSessionNote
+	err := config.DB.
+		Preload("Psikolog").
+		Preload("Mahasiswa").
+		Preload("Mahasiswa.Fakultas").
+		Preload("Mahasiswa.ProgramStudi").
+		Preload("Booking").
+		Order("tanggal desc").
+		Find(&records).Error
+
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": err.Error()})
+	}
+	return c.JSON(fiber.Map{"status": "success", "data": records})
+}
+
+// GetPsychologistReferralsAdmin returns all referrals (tindak lanjut) in the psychologist module
+func GetPsychologistReferralsAdmin(c *fiber.Ctx) error {
+	var referrals []models.PsikologReferral
+	err := config.DB.
+		Preload("Psikolog").
+		Preload("Mahasiswa").
+		Preload("Mahasiswa.Fakultas").
+		Preload("Mahasiswa.ProgramStudi").
+		Preload("Booking").
+		Order("tanggal_dibuat desc").
+		Find(&referrals).Error
+
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": err.Error()})
+	}
+	return c.JSON(fiber.Map{"status": "success", "data": referrals})
+}
+

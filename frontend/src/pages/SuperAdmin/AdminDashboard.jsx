@@ -101,6 +101,22 @@ export default function AdminDashboard() {
   const navigate = useNavigate()
   const user = useAuthStore(state => state.user)
 
+  // Filter States
+  const [selectedPeriodID, setSelectedPeriodID] = useState("")
+  const [startDate, setStartDate] = useState("")
+  const [endDate, setEndDate] = useState("")
+  const [selectedFakultasID, setSelectedFakultasID] = useState("")
+  const [selectedProdiID, setSelectedProdiID] = useState("")
+  const [facultiesList, setFacultiesList] = useState([])
+  const [prodiList, setProdiList] = useState([])
+  const [periodsList, setPeriodsList] = useState([])
+
+  // Drill-down List States
+  const [detailMhs, setDetailMhs] = useState([])
+  const [detailAsp, setDetailAsp] = useState([])
+  const [detailProp, setDetailProp] = useState([])
+  const [activeDetailTab, setActiveDetailTab] = useState("mahasiswa")
+
   const [stats, setStats] = useState({
     total_mahasiswa: 0,
     aspirasi_aktif: 0,
@@ -118,15 +134,86 @@ export default function AdminDashboard() {
   const greeting = hour < 11 ? 'Selamat Pagi' : hour < 15 ? 'Selamat Siang' : hour < 18 ? 'Selamat Sore' : 'Selamat Malam'
   const dateStr = now.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
 
-  const fetchData = async (showRefresh = false) => {
+  // Load faculties list
+  useEffect(() => {
+    const loadFaculties = async () => {
+      try {
+        const res = await adminService.getAllFaculties()
+        if (res.status === 'success') {
+          setFacultiesList(res.data || [])
+        }
+      } catch (err) {
+        console.error('Gagal memuat daftar fakultas', err)
+      }
+    }
+    loadFaculties()
+  }, [])
+
+  // Handle Faculty change
+  const handleFakultasChange = (e) => {
+    const facId = e.target.value
+    setSelectedFakultasID(facId)
+    setSelectedProdiID("") // Reset prodi when faculty changes
+    if (facId === "") {
+      setProdiList([])
+    } else {
+      const facObj = facultiesList.find(f => f.id === parseInt(facId))
+      setProdiList(facObj?.ProgramStudi || facObj?.program_studi || [])
+    }
+  }
+
+  const handlePeriodChange = (val) => {
+    setSelectedPeriodID(val)
+    if (val !== "") {
+      setStartDate("")
+      setEndDate("")
+    }
+  }
+
+  const handleDateChange = (type, val) => {
+    if (type === 'start') {
+      setStartDate(val)
+    } else {
+      setEndDate(val)
+    }
+    setSelectedPeriodID("")
+  }
+
+  const handleResetFilters = () => {
+    setSelectedPeriodID("")
+    setStartDate("")
+    setEndDate("")
+    setSelectedFakultasID("")
+    setSelectedProdiID("")
+    setProdiList([])
+  }
+
+  const fetchData = async (showRefresh = false, useFilters = true) => {
     if (showRefresh) setRefreshing(true)
     else setLoading(true)
     try {
+      const params = useFilters ? {
+        period_id: selectedPeriodID,
+        start_date: startDate,
+        end_date: endDate,
+        fakultas_id: selectedFakultasID,
+        program_studi_id: selectedProdiID
+      } : {}
+
       const [statsRes, logsRes] = await Promise.all([
-        adminService.getStats(),
+        adminService.getStats(params),
         adminService.getAuditLogs()
       ])
-      if (statsRes.status === 'success') setStats(statsRes.data)
+
+      if (statsRes.status === 'success') {
+        setStats(statsRes.data)
+        if (statsRes.data.periods) {
+          setPeriodsList(statsRes.data.periods)
+        }
+        setDetailMhs(statsRes.data.detail_mahasiswa || [])
+        setDetailAsp(statsRes.data.detail_aspirasi || [])
+        setDetailProp(statsRes.data.detail_proposal || [])
+      }
       if (logsRes.status === 'success') setLogs(logsRes.data?.slice(0, 8) || [])
     } catch {
       toast.error('Gagal memuat data dashboard')
@@ -136,7 +223,10 @@ export default function AdminDashboard() {
     }
   }
 
-  useEffect(() => { fetchData() }, [])
+  // Re-fetch stats when filters change
+  useEffect(() => {
+    fetchData()
+  }, [selectedPeriodID, startDate, endDate, selectedFakultasID, selectedProdiID])
 
   // ── Data ──────────────────────────────────────────────────────────
   const statCards = [
@@ -207,6 +297,92 @@ export default function AdminDashboard() {
               <p className="text-[9px] font-black text-primary uppercase tracking-[0.3em]">Master Console</p>
             </div>
           </div>
+        </section>
+
+        {/* ── Filters Section ──────────────────────────────────────── */}
+        <section className="bg-white border border-neutral-200 rounded-xl p-5 shadow-sm space-y-4">
+          <div className="flex items-center gap-2">
+            <span className="material-symbols-outlined text-primary font-bold" style={{ fontSize: '20px' }}>filter_alt</span>
+            <h3 className="text-xs font-bold text-neutral-900 uppercase tracking-widest font-jakarta">Filter Data Dashboard</h3>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            {/* Periode Akademik */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-neutral-500 uppercase tracking-wider">Periode Akademik</label>
+              <select
+                value={selectedPeriodID}
+                onChange={(e) => handlePeriodChange(e.target.value)}
+                className="w-full px-4 py-2.5 bg-neutral-50 border border-neutral-200 rounded-lg text-sm font-medium focus:border-primary focus:bg-white transition-all outline-none"
+              >
+                <option value="">Semua Periode</option>
+                {periodsList.map((p) => (
+                  <option key={p.id} value={p.id}>{p.Name || p.nama_periode || `${p.AcademicYear || p.tahun_ajaran} - ${p.Semester || p.semester}`}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Rentang Tanggal */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-neutral-500 uppercase tracking-wider">Rentang Tanggal</label>
+              <div className="flex items-center gap-1.5 w-full">
+                <input
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => handleDateChange('start', e.target.value)}
+                  className="w-1/2 px-2.5 py-2 bg-neutral-50 border border-neutral-200 rounded-lg text-xs font-semibold focus:border-primary focus:bg-white transition-all outline-none cursor-pointer"
+                />
+                <span className="text-neutral-400 text-xs font-bold">—</span>
+                <input
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => handleDateChange('end', e.target.value)}
+                  className="w-1/2 px-2.5 py-2 bg-neutral-50 border border-neutral-200 rounded-lg text-xs font-semibold focus:border-primary focus:bg-white transition-all outline-none cursor-pointer"
+                />
+              </div>
+            </div>
+
+            {/* Fakultas */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-neutral-500 uppercase tracking-wider">Fakultas</label>
+              <select
+                value={selectedFakultasID}
+                onChange={handleFakultasChange}
+                className="w-full px-4 py-2.5 bg-neutral-50 border border-neutral-200 rounded-lg text-sm font-medium focus:border-primary focus:bg-white transition-all outline-none"
+              >
+                <option value="">Semua Fakultas</option>
+                {facultiesList.map((fac) => (
+                  <option key={fac.id} value={fac.id}>{fac.Nama || fac.nama}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Program Studi */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-neutral-500 uppercase tracking-wider">Program Studi</label>
+              <select
+                value={selectedProdiID}
+                onChange={(e) => setSelectedProdiID(e.target.value)}
+                disabled={!selectedFakultasID}
+                className="w-full px-4 py-2.5 bg-neutral-50 border border-neutral-200 rounded-lg text-sm font-medium focus:border-primary focus:bg-white transition-all outline-none disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                <option value="">Semua Program Studi</option>
+                {prodiList.map((prodi) => (
+                  <option key={prodi.id} value={prodi.id}>{prodi.Nama || prodi.nama} ({prodi.Jenjang || prodi.jenjang || '—'})</option>
+                ))}
+              </select>
+            </div>
+          </div>
+          {(selectedPeriodID || startDate || endDate || selectedFakultasID || selectedProdiID) && (
+            <div className="flex justify-end pt-1">
+              <button
+                onClick={handleResetFilters}
+                className="text-xs font-bold text-rose-600 hover:text-rose-700 transition-colors uppercase tracking-widest flex items-center gap-1.5"
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>clear_all</span>
+                Reset Filter
+              </button>
+            </div>
+          )}
         </section>
 
         {/* ── Quick Links ───────────────────────────────────────────── */}
@@ -348,6 +524,183 @@ export default function AdminDashboard() {
             </div>
           </div>
         </div>
+
+        {/* ── Drill-down Details Section ────────────────────────────── */}
+        <section className="bg-white rounded-xl border border-neutral-200 shadow-sm overflow-hidden flex flex-col p-6 space-y-6">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-neutral-100 pb-4">
+            <div className="flex items-center gap-3">
+              <span className="material-symbols-outlined text-primary" style={{ fontSize: '24px' }}>analytics</span>
+              <div className="space-y-0.5">
+                <h2 className="text-lg font-bold text-neutral-900 font-jakarta tracking-tight">Rincian Data Detail</h2>
+                <p className="text-xs text-neutral-400 font-medium">Berdasarkan filter yang sedang diterapkan</p>
+              </div>
+            </div>
+            
+            {/* Tabs */}
+            <div className="flex items-center gap-1 bg-neutral-100 p-1 rounded-lg shrink-0">
+              <button
+                onClick={() => setActiveDetailTab("mahasiswa")}
+                className={cn(
+                  "px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-md transition-all",
+                  activeDetailTab === "mahasiswa" ? "bg-white text-[#00236f] shadow-sm" : "text-neutral-500 hover:text-neutral-950"
+                )}
+              >
+                Mahasiswa ({detailMhs.length})
+              </button>
+              <button
+                onClick={() => setActiveDetailTab("aspirasi")}
+                className={cn(
+                  "px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-md transition-all",
+                  activeDetailTab === "aspirasi" ? "bg-white text-[#00236f] shadow-sm" : "text-neutral-500 hover:text-neutral-950"
+                )}
+              >
+                Aspirasi ({detailAsp.length})
+              </button>
+              <button
+                onClick={() => setActiveDetailTab("proposal")}
+                className={cn(
+                  "px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-md transition-all",
+                  activeDetailTab === "proposal" ? "bg-white text-[#00236f] shadow-sm" : "text-neutral-500 hover:text-neutral-950"
+                )}
+              >
+                Proposal ({detailProp.length})
+              </button>
+            </div>
+          </div>
+
+          <div className="overflow-x-auto">
+            {activeDetailTab === "mahasiswa" && (
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="border-b border-neutral-150">
+                    <th className="pb-3 text-xs font-bold text-neutral-400 uppercase tracking-widest">Mahasiswa</th>
+                    <th className="pb-3 text-xs font-bold text-neutral-400 uppercase tracking-widest">NIM</th>
+                    <th className="pb-3 text-xs font-bold text-neutral-400 uppercase tracking-widest">Fakultas</th>
+                    <th className="pb-3 text-xs font-bold text-neutral-400 uppercase tracking-widest">Prodi</th>
+                    <th className="pb-3 text-xs font-bold text-neutral-400 uppercase tracking-widest">Angkatan</th>
+                    <th className="pb-3 text-xs font-bold text-neutral-400 uppercase tracking-widest">Status</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-neutral-100">
+                  {detailMhs.length === 0 ? (
+                    <tr>
+                      <td colSpan="6" className="py-8 text-center text-sm font-medium text-neutral-400">Tidak ada data mahasiswa cocok</td>
+                    </tr>
+                  ) : (
+                    detailMhs.map((m) => (
+                      <tr key={m.id} className="hover:bg-neutral-50/50 transition-colors">
+                        <td className="py-4 text-sm font-bold text-neutral-800">{m.Nama || m.nama}</td>
+                        <td className="py-4 text-sm font-medium text-neutral-500 font-mono">{m.NIM || m.nim}</td>
+                        <td className="py-4 text-sm font-medium text-neutral-600">{m.Fakultas?.Nama || m.Fakultas?.nama || '-'}</td>
+                        <td className="py-4 text-sm font-medium text-neutral-600">{m.ProgramStudi?.Nama || m.ProgramStudi?.nama || '-'}</td>
+                        <td className="py-4 text-sm font-medium text-neutral-600">{m.TahunMasuk || m.tahun_masuk}</td>
+                        <td className="py-4 text-sm">
+                          <span className={cn(
+                            "px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide border",
+                            m.StatusAkademik === "Aktif" || m.status_akademik === "Aktif" ? "bg-emerald-50 text-emerald-700 border-emerald-100" : "bg-neutral-50 text-neutral-500 border-neutral-100"
+                          )}>
+                            {m.StatusAkademik || m.status_akademik || '-'}
+                          </span>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            )}
+
+            {activeDetailTab === "aspirasi" && (
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="border-b border-neutral-150">
+                    <th className="pb-3 text-xs font-bold text-neutral-400 uppercase tracking-widest">Judul</th>
+                    <th className="pb-3 text-xs font-bold text-neutral-400 uppercase tracking-widest">Kategori</th>
+                    <th className="pb-3 text-xs font-bold text-neutral-400 uppercase tracking-widest">Pengirim</th>
+                    <th className="pb-3 text-xs font-bold text-neutral-400 uppercase tracking-widest">Prioritas</th>
+                    <th className="pb-3 text-xs font-bold text-neutral-400 uppercase tracking-widest">Status</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-neutral-100">
+                  {detailAsp.length === 0 ? (
+                    <tr>
+                      <td colSpan="5" className="py-8 text-center text-sm font-medium text-neutral-400">Tidak ada data aspirasi cocok</td>
+                    </tr>
+                  ) : (
+                    detailAsp.map((a) => (
+                      <tr key={a.id} className="hover:bg-neutral-50/50 transition-colors">
+                        <td className="py-4 text-sm font-bold text-neutral-800">{a.judul}</td>
+                        <td className="py-4 text-sm font-medium text-neutral-600">{a.kategori}</td>
+                        <td className="py-4 text-sm font-medium text-neutral-500">
+                          {a.is_anonim ? 'Anonim' : (a.mahasiswa?.Nama || a.mahasiswa?.nama || 'Umum')}
+                        </td>
+                        <td className="py-4 text-sm">
+                          <span className={cn(
+                            "px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide border",
+                            a.prioritas === "CRITICAL" ? "bg-rose-50 text-rose-700 border-rose-100" :
+                            a.prioritas === "HIGH" ? "bg-amber-50 text-amber-700 border-amber-100" :
+                            "bg-blue-50 text-blue-700 border-blue-100"
+                          )}>
+                            {a.prioritas}
+                          </span>
+                        </td>
+                        <td className="py-4 text-sm">
+                          <span className={cn(
+                            "px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide border",
+                            a.status === "Selesai" ? "bg-emerald-50 text-emerald-700 border-emerald-100" :
+                            a.status === "Proses" ? "bg-blue-50 text-blue-700 border-blue-100" :
+                            "bg-neutral-50 text-neutral-500 border-neutral-100"
+                          )}>
+                            {a.status}
+                          </span>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            )}
+
+            {activeDetailTab === "proposal" && (
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="border-b border-neutral-150">
+                    <th className="pb-3 text-xs font-bold text-neutral-400 uppercase tracking-widest">Proposal Kegiatan</th>
+                    <th className="pb-3 text-xs font-bold text-neutral-400 uppercase tracking-widest">Ormawa</th>
+                    <th className="pb-3 text-xs font-bold text-neutral-400 uppercase tracking-widest">Anggaran</th>
+                    <th className="pb-3 text-xs font-bold text-neutral-400 uppercase tracking-widest">Status</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-neutral-100">
+                  {detailProp.length === 0 ? (
+                    <tr>
+                      <td colSpan="4" className="py-8 text-center text-sm font-medium text-neutral-400">Tidak ada data proposal cocok</td>
+                    </tr>
+                  ) : (
+                    detailProp.map((p) => (
+                      <tr key={p.id} className="hover:bg-neutral-50/50 transition-colors">
+                        <td className="py-4 text-sm font-bold text-neutral-800">{p.Judul || p.judul}</td>
+                        <td className="py-4 text-sm font-medium text-neutral-600">{p.Ormawa?.Nama || p.Ormawa?.nama || '-'}</td>
+                        <td className="py-4 text-sm font-medium text-neutral-700 font-mono">
+                          Rp {(p.Anggaran || p.anggaran || 0).toLocaleString('id-ID')}
+                        </td>
+                        <td className="py-4 text-sm">
+                          <span className={cn(
+                            "px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide border",
+                            p.Status === "disetujui_univ" || p.status === "disetujui_univ" ? "bg-emerald-50 text-emerald-700 border-emerald-100" :
+                            p.Status === "disetujui_fakultas" || p.status === "disetujui_fakultas" ? "bg-blue-50 text-blue-700 border-blue-100" :
+                            "bg-amber-50 text-amber-700 border-amber-100"
+                          )}>
+                            {p.Status || p.status}
+                          </span>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            )}
+          </div>
+        </section>
 
       </div>
     </div>
