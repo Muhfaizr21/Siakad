@@ -63,13 +63,21 @@ export default function AnggotaManagement() {
   const [isAddingNewDiv, setIsAddingNewDiv] = useState(false)
   const [newDivName, setNewDivName] = useState('')
   const [isSavingDiv, setIsSavingDiv] = useState(false)
+  const [periods, setPeriods] = useState([])
+  const [selectedPeriod, setSelectedPeriod] = useState('aktif')
 
   const fetchMembers = async () => {
     setLoading(true)
     try {
-      const data = await fetchWithAuth(`${API}/members?ormawaId=${ormawaId}`)
-      if (data.status === 'success') setMembers(data.data || [])
-      else toast.error('Gagal memuat anggota')
+      const data = await fetchWithAuth(`${API}/members?ormawaId=${ormawaId}&periode=${selectedPeriod}`)
+      if (data.status === 'success') {
+        setMembers(data.data || [])
+        if (data.periods) {
+          setPeriods(data.periods)
+        }
+      } else {
+        toast.error('Gagal memuat anggota')
+      }
     } catch { toast.error('Koneksi gagal') } finally { setLoading(false) }
   }
   const fetchStudents = async () => {
@@ -104,7 +112,14 @@ export default function AnggotaManagement() {
     }
   }
 
-  useEffect(() => { fetchMembers(); fetchStudents(); fetchDivisions() }, [])
+  useEffect(() => {
+    fetchStudents()
+    fetchDivisions()
+  }, [])
+
+  useEffect(() => {
+    fetchMembers()
+  }, [selectedPeriod])
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -249,6 +264,26 @@ export default function AnggotaManagement() {
           </p>
         </div>
       </section>
+
+      {/* ── Period Filter Bar ────────────────────────────────────────── */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-slate-50 p-5 rounded-3xl border border-slate-200/60 shadow-sm">
+        <div className="space-y-1">
+          <h3 className="text-sm font-black text-slate-800 uppercase tracking-tight font-headline">Periode Kepengurusan</h3>
+          <p className="text-xs font-semibold text-slate-400">Tampilkan daftar pengurus berdasarkan tahun periode aktif.</p>
+        </div>
+        <div className="w-full sm:w-72">
+          <select
+            value={selectedPeriod}
+            onChange={(e) => setSelectedPeriod(e.target.value)}
+            className="w-full h-12 rounded-2xl border border-slate-200 bg-white px-4 text-xs font-bold text-slate-700 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all shadow-sm cursor-pointer font-headline"
+          >
+            <option value="aktif">Aktif Sekarang (Terbaru)</option>
+            {periods.map(p => (
+              <option key={p} value={p}>Periode {p} (Demisioner/Alumni)</option>
+            ))}
+          </select>
+        </div>
+      </div>
 
       {/* ── Content Area ───────────────────────────────────────────── */}
       <Card className="border border-[#e5e5e5] shadow-sm overflow-hidden bg-white rounded-3xl">

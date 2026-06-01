@@ -333,6 +333,16 @@ func UpdateMember(c *fiber.Ctx) error {
 	member.Divisi = payload.Divisi
 	config.DB.Save(&member)
 
+	// Sinkronisasi RiwayatOrganisasi
+	year := time.Now().Year()
+	periodeStr := fmt.Sprintf("%d/%d", year, year+1)
+	config.DB.Model(&models.RiwayatOrganisasi{}).
+		Where("mahasiswa_id = ? AND ormawa_id = ? AND periode = ?", member.MahasiswaID, member.OrmawaID, periodeStr).
+		Updates(map[string]interface{}{
+			"jabatan": payload.Role,
+			"status":  "Aktif",
+		})
+
 	// Update data mahasiswa (Sinkronisasi Kontak)
 	if member.MahasiswaID != 0 {
 		config.DB.Model(&models.Mahasiswa{}).Where("id = ?", member.MahasiswaID).Updates(map[string]interface{}{
@@ -650,13 +660,73 @@ func DeleteOrmawaRole(c *fiber.Ctx) error {
 
 func GetMembers(c *fiber.Ctx) error {
 	ormawaId := c.Query("ormawaId")
-	var members []models.OrmawaAnggota
-	query := config.DB.Preload("Mahasiswa")
-	if ormawaId != "" {
-		query = query.Where("ormawa_id = ?", ormawaId)
+	periode := c.Query("periode") // "aktif" or specific like "2023/2024"
+
+	if ormawaId == "" {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "ormawaId is required"})
 	}
-	query.Find(&members)
-	return c.JSON(fiber.Map{"status": "success", "data": members})
+
+	type UnifiedMember struct {
+		ID        uint             `json:"ID"`
+		Role      string           `json:"Role"`
+		Divisi    string           `json:"Divisi"`
+		Status    string           `json:"Status"`
+		Periode   string           `json:"Periode"`
+		Mahasiswa models.Mahasiswa `json:"Mahasiswa"`
+	}
+
+	var result []UnifiedMember
+
+	// Get all available past periods
+	var availablePeriods []string
+	config.DB.Model(&models.RiwayatOrganisasi{}).
+		Where("ormawa_id = ?", ormawaId).
+		Where("periode IS NOT NULL AND periode != ''").
+		Order("periode desc").
+		Distinct().
+		Pluck("periode", &availablePeriods)
+
+	if periode == "" || periode == "aktif" {
+		var members []models.OrmawaAnggota
+		config.DB.Preload("Mahasiswa").Where("ormawa_id = ?", ormawaId).Find(&members)
+
+		for _, m := range members {
+			year := m.JoinedAt.Year()
+			if year < 2000 {
+				year = time.Now().Year()
+			}
+			pStr := fmt.Sprintf("%d/%d", year, year+1)
+
+			result = append(result, UnifiedMember{
+				ID:        m.ID,
+				Role:      m.Role,
+				Divisi:    m.Divisi,
+				Status:    m.Status,
+				Periode:   pStr,
+				Mahasiswa: m.Mahasiswa,
+			})
+		}
+	} else {
+		var history []models.RiwayatOrganisasi
+		config.DB.Preload("Mahasiswa").Where("ormawa_id = ? AND periode = ?", ormawaId, periode).Find(&history)
+
+		for _, h := range history {
+			result = append(result, UnifiedMember{
+				ID:        h.ID,
+				Role:      h.Jabatan,
+				Divisi:    "",
+				Status:    h.Status,
+				Periode:   h.Periode,
+				Mahasiswa: h.Mahasiswa,
+			})
+		}
+	}
+
+	return c.JSON(fiber.Map{
+		"status":  "success",
+		"data":    result,
+		"periods": availablePeriods,
+	})
 }
 
 func CreateMember(c *fiber.Ctx) error {
@@ -685,6 +755,36 @@ func CreateMember(c *fiber.Ctx) error {
 		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal menambah anggota"})
 	}
 
+	// Sinkronisasi RiwayatOrganisasi Portfolio
+	var ormawa models.Ormawa
+	if err := config.DB.First(&ormawa, payload.OrmawaID).Error; err == nil {
+		year := time.Now().Year()
+		periodeStr := fmt.Sprintf("%d/%d", year, year+1)
+		
+		var riwayat models.RiwayatOrganisasi
+		errSync := config.DB.Where("mahasiswa_id = ? AND ormawa_id = ? AND periode = ?", payload.MahasiswaID, payload.OrmawaID, periodeStr).First(&riwayat).Error
+		if errSync != nil {
+			newRiwayat := models.RiwayatOrganisasi{
+				MahasiswaID:       payload.MahasiswaID,
+				OrmawaID:          payload.OrmawaID,
+				NamaOrganisasi:    ormawa.Nama,
+				Tipe:              ormawa.Kategori,
+				Jabatan:           payload.Role,
+				PeriodeMulai:      year,
+				PeriodeSelesai:    &[]int{year + 1}[0],
+				Periode:           periodeStr,
+				Status:            "Aktif",
+				DeskripsiKegiatan: "Aktif sebagai anggota pengurus organisasi mahasiswa.",
+				StatusVerifikasi:  "Terverifikasi",
+			}
+			config.DB.Create(&newRiwayat)
+		} else {
+			riwayat.Jabatan = payload.Role
+			riwayat.Status = "Aktif"
+			config.DB.Save(&riwayat)
+		}
+	}
+
 	// Sinkronisasi Kontak Mahasiswa
 	config.DB.Model(&models.Mahasiswa{}).Where("id = ?", member.MahasiswaID).Updates(map[string]interface{}{
 		"email_kampus": payload.EmailKampus,
@@ -706,7 +806,16 @@ func CreateMember(c *fiber.Ctx) error {
 
 func DeleteMember(c *fiber.Ctx) error {
 	id := c.Params("id")
-	config.DB.Delete(&models.OrmawaAnggota{}, id)
+	var member models.OrmawaAnggota
+	if err := config.DB.First(&member, id).Error; err == nil {
+		year := time.Now().Year()
+		periodeStr := fmt.Sprintf("%d/%d", year, year+1)
+		config.DB.Model(&models.RiwayatOrganisasi{}).
+			Where("mahasiswa_id = ? AND ormawa_id = ? AND periode = ?", member.MahasiswaID, member.OrmawaID, periodeStr).
+			Update("status", "Demisioner")
+		
+		config.DB.Delete(&member)
+	}
 	return c.JSON(fiber.Map{"status": "success", "message": "Deleted"})
 }
 
