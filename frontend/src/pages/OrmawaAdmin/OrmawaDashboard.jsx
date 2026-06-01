@@ -60,7 +60,7 @@ export default function OrmawaDashboard() {
  const statCards = [
  { label: 'Total Proposal', value: stats.totalProposals || proposals.length, icon: FileText, color: 'text-blue-600', bg: 'bg-blue-50', accent: 'from-blue-500/10', route: '/ormawa/proposal' },
  { label: 'Total Anggota', value: stats.totalMembers || members.length, icon: Users, color: 'text-violet-600', bg: 'bg-violet-50', accent: 'from-violet-500/10', route: '/ormawa/anggota' },
- { label: 'Saldo Kas', value: formatRp(stats.totalKas), icon: DollarSign, color: 'text-emerald-600', bg: 'bg-emerald-50', accent: 'from-emerald-500/10', route: '/ormawa/keuangan' },
+ { label: 'PAGU', value: formatRp(stats.totalKas), icon: DollarSign, color: 'text-emerald-600', bg: 'bg-emerald-50', accent: 'from-emerald-500/10', route: '/ormawa/keuangan' },
  { label: 'Kegiatan Aktif', value: stats.totalEvents || events.length, icon: Calendar, color: 'text-amber-600', bg: 'bg-amber-50', accent: 'from-amber-500/10', route: '/ormawa/jadwal' },
  ]
 

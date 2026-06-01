@@ -8,7 +8,6 @@ const menuGroups = [
     title: 'MANAJEMEN UTAMA',
     items: [
       { name: 'Dashboard', path: '/ormawa', icon: 'dashboard', exact: true },
-      { name: 'KENCANA (PKKMB)', path: '/ormawa/pkkmb', icon: 'edit_document' },
       { name: 'Anggota Aktif', path: '/ormawa/anggota', icon: 'group' },
       { name: 'Struktur Pengurus', path: '/ormawa/struktur', icon: 'account_tree' },
     ]

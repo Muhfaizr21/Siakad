@@ -156,15 +156,36 @@ export default function StrukturOrganisasi() {
     }
   }
 
-  const ketua = members.find(m => m.Role?.toLowerCase().includes('ketua') && !m.ParentID) || members[0]
-  const wakil = members.find(m => m.Role?.toLowerCase().includes('wakil')) || null
+  const pembina = members.filter(m => {
+    const r = m.Role?.toLowerCase() || ''
+    return r.includes('pembina') || r.includes('penanggung jawab') || r.includes('penasihat')
+  })
+  
+  const pembinaIds = pembina.map(m => getMemberId(m))
+
+  const ketua = members.find(m => {
+    const r = m.Role?.toLowerCase() || ''
+    const mId = getMemberId(m)
+    return r.includes('ketua') && !r.includes('wakil') && !pembinaIds.includes(mId)
+  }) || members.find(m => !pembinaIds.includes(getMemberId(m))) || members[0]
+
+  const wakil = members.find(m => {
+    const r = m.Role?.toLowerCase() || ''
+    const mId = getMemberId(m)
+    return r.includes('wakil') && !pembinaIds.includes(mId)
+  }) || null
   
   const ketuaId = getMemberId(ketua)
   const wakilId = getMemberId(wakil)
   
   const pengurusInti = members.filter(m => {
     const mId = getMemberId(m)
-    return mId !== ketuaId && mId !== wakilId && (!m.Divisi || m.Divisi === '' || m.Divisi === 'INTI')
+    return (
+      mId !== ketuaId && 
+      mId !== wakilId && 
+      !pembinaIds.includes(mId) && 
+      (!m.Divisi || m.Divisi === '' || m.Divisi === 'INTI')
+    )
   })
 
   const getDivisionMembers = (divName) => members.filter(m => m.Divisi === divName)
@@ -223,14 +244,30 @@ export default function StrukturOrganisasi() {
         </div>
       ) : (
         <div className="space-y-8">
+          {/* Pembina / Penasihat */}
+          {pembina.length > 0 && (
+            <div className="flex flex-col items-center gap-2.5">
+              <div className="flex items-center gap-2">
+                <span className="h-1.5 w-1.5 bg-purple-500 rounded-full animate-pulse" />
+                <p className="text-[9px] font-black text-purple-600 tracking-[0.3em] font-headline uppercase">Pembina / Penasihat</p>
+              </div>
+              <div className="flex flex-wrap gap-4 justify-center">
+                {pembina.map(m => (
+                  <OrgCard key={getMemberId(m)} member={m} size="md" />
+                ))}
+              </div>
+              <div className="h-8 w-px border-l-2 border-dashed border-slate-300 my-1" />
+            </div>
+          )}
+
           {/* Root: Ketua */}
           <div className="flex flex-col items-center gap-4">
             {ketua && (
-              <OrgCard member={ketua} color="bg-primary/10" textColor="text-primary" size="lg" />
+              <OrgCard member={ketua} size="lg" />
             )}
             {/* Connector */}
             {wakil && <div className="h-8 w-px bg-slate-200" />}
-            {wakil && <OrgCard member={wakil} color="bg-violet-100" textColor="text-violet-600" size="md" />}
+            {wakil && <OrgCard member={wakil} size="md" />}
           </div>
 
           {/* Pengurus Inti */}
@@ -243,7 +280,7 @@ export default function StrukturOrganisasi() {
               </div>
               <div className="flex flex-wrap gap-3 justify-center">
                 {pengurusInti.map(m => (
-                  <OrgCard key={getMemberId(m)} member={m} color="bg-blue-50" textColor="text-blue-600" size="sm" />
+                  <OrgCard key={getMemberId(m)} member={m} size="sm" />
                 ))}
               </div>
             </div>

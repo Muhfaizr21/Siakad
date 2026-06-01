@@ -67,7 +67,27 @@ export default function LpjManagement() {
     try {
       const res = await fetchWithAuth(`${API}/lpjs${buildOrmawaQuery()}`)
       if (res.status === 'success') {
-        setData(res.data || [])
+        const mapped = (res.data || []).map(item => {
+          const total = item.TotalAnggaran || 0
+          const real = item.RealisasiAnggaran || 0
+          
+          let katAnggaran = 'besar'
+          if (total < 1000000) katAnggaran = 'mikro'
+          else if (total <= 5000000) katAnggaran = 'kecil'
+          else if (total <= 10000000) katAnggaran = 'menengah'
+
+          let kinerja = 'pas'
+          if (real < total) kinerja = 'hemat'
+          else if (real > total) kinerja = 'over'
+
+          return {
+            ...item,
+            KategoriAnggaran: katAnggaran,
+            KinerjaRealisasi: kinerja,
+            Efisiensi: total - real
+          }
+        })
+        setData(mapped)
       } else {
         toast.error('Gagal memuat daftar LPJ')
       }
@@ -217,19 +237,50 @@ export default function LpjManagement() {
     {
       key: 'TotalAnggaran',
       label: 'Total Anggaran',
-      className: 'w-[160px]',
+      className: 'w-[150px]',
       render: v => <span className="font-bold text-slate-600 text-[12px] font-headline">{formatRp(v)}</span>
     },
     {
       key: 'RealisasiAnggaran',
       label: 'Realisasi Anggaran',
-      className: 'w-[160px]',
-      render: v => <span className="font-black text-emerald-600 text-[12px] font-headline">{formatRp(v)}</span>
+      className: 'w-[150px]',
+      render: v => <span className="font-black text-slate-900 text-[12px] font-headline">{formatRp(v)}</span>
+    },
+    {
+      key: 'Efisiensi',
+      label: 'Efisiensi / Status',
+      className: 'w-[180px]',
+      render: (v, row) => {
+        const diff = (row.TotalAnggaran || 0) - (row.RealisasiAnggaran || 0)
+        const pct = row.TotalAnggaran ? Math.round((diff / row.TotalAnggaran) * 100) : 0
+        if (diff > 0) {
+          return (
+            <div className="flex flex-col gap-0.5">
+              <span className="font-bold text-emerald-600 text-[12px] font-headline">+{formatRp(diff)}</span>
+              <span className="text-[9px] font-black text-emerald-500 uppercase tracking-wider">💡 HEMAT {pct}%</span>
+            </div>
+          )
+        } else if (diff < 0) {
+          return (
+            <div className="flex flex-col gap-0.5">
+              <span className="font-bold text-rose-600 text-[12px] font-headline">-{formatRp(Math.abs(diff))}</span>
+              <span className="text-[9px] font-black text-rose-500 uppercase tracking-wider">⚠️ OVER {Math.abs(pct)}%</span>
+            </div>
+          )
+        } else {
+          return (
+            <div className="flex flex-col gap-0.5">
+              <span className="font-bold text-slate-500 text-[12px] font-headline">Rp0</span>
+              <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider">🎯 100% EFISIEN</span>
+            </div>
+          )
+        }
+      }
     },
     {
       key: 'Status',
       label: 'Status LPJ',
-      className: 'w-[150px] text-center',
+      className: 'w-[140px] text-center',
       cellClassName: 'text-center',
       render: v => {
         const cfg = STATUS_CFG[v] || { label: v || 'Draft', cls: 'bg-slate-50 text-slate-600 border-slate-200' }
@@ -246,6 +297,10 @@ export default function LpjManagement() {
   const approvedLpjCount = data.filter(x => x.Status === 'disetujui' || x.Status === 'selesai').length
   const pendingLpjCount = data.filter(x => x.Status === 'diajukan' || x.Status === 'revisi').length
   const totalRealisasi = data.reduce((acc, curr) => acc + (curr.RealisasiAnggaran || 0), 0)
+  const totalSavings = data.reduce((acc, curr) => {
+    const diff = (curr.TotalAnggaran || 0) - (curr.RealisasiAnggaran || 0)
+    return diff > 0 ? acc + diff : acc
+  }, 0)
 
   return (
     <div className="max-w-[1600px] mx-auto px-4 py-8 md:px-8 xl:px-12 space-y-8 font-body">
@@ -291,7 +346,7 @@ export default function LpjManagement() {
       </section>
 
       {/* ── Statistics Summary Cards ────────────────────────────────── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5">
         {/* Total LPJ */}
         <Card className="border border-slate-100 shadow-sm rounded-3xl overflow-hidden bg-white hover:shadow-md transition-all duration-300">
           <CardContent className="p-6 flex items-center gap-4.5">
@@ -338,8 +393,21 @@ export default function LpjManagement() {
               <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>payments</span>
             </div>
             <div className="space-y-0.5">
-              <p className="text-[10px] font-black text-slate-400 tracking-wider uppercase font-headline">Total Realisasi Dana</p>
+              <p className="text-[10px] font-black text-slate-400 tracking-wider uppercase font-headline">Realisasi Anggaran</p>
               <p className="text-xl font-black text-slate-900 tracking-tight font-headline">{formatRp(totalRealisasi)}</p>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Efisiensi Tabungan */}
+        <Card className="border border-slate-100 shadow-sm rounded-3xl overflow-hidden bg-white hover:shadow-md transition-all duration-300">
+          <CardContent className="p-6 flex items-center gap-4.5">
+            <div className="w-12 h-12 rounded-2xl bg-teal-50 flex items-center justify-center text-teal-600">
+              <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>savings</span>
+            </div>
+            <div className="space-y-0.5">
+              <p className="text-[10px] font-black text-slate-400 tracking-wider uppercase font-headline">Sisa Saldo Efisiensi</p>
+              <p className="text-xl font-black text-slate-900 tracking-tight font-headline">{formatRp(totalSavings)}</p>
             </div>
           </CardContent>
         </Card>
@@ -358,8 +426,27 @@ export default function LpjManagement() {
             filters={[
               {
                 key: 'Status',
-                placeholder: 'Filter Status',
+                placeholder: 'Status LPJ',
                 options: Object.entries(STATUS_CFG).map(([v, { label }]) => ({ label, value: v }))
+              },
+              {
+                key: 'KategoriAnggaran',
+                placeholder: 'Skala Anggaran',
+                options: [
+                  { label: 'Mikro (< Rp 1jt)', value: 'mikro' },
+                  { label: 'Kecil (Rp 1jt - 5jt)', value: 'kecil' },
+                  { label: 'Menengah (Rp 5jt - 10jt)', value: 'menengah' },
+                  { label: 'Besar (> Rp 10jt)', value: 'besar' }
+                ]
+              },
+              {
+                key: 'KinerjaRealisasi',
+                placeholder: 'Kinerja Realisasi',
+                options: [
+                  { label: 'Hemat (Efisien)', value: 'hemat' },
+                  { label: 'Pas Pagu (100%)', value: 'pas' },
+                  { label: 'Over Budget', value: 'over' }
+                ]
               }
             ]}
             actions={(row) => (
@@ -432,6 +519,33 @@ export default function LpjManagement() {
               </div>
 
               <div className="p-8 space-y-6">
+                {/* 🌟 Advanced Budget Utilization Progress Bar Analysis */}
+                <div className="bg-slate-50 p-5 rounded-2xl border border-slate-100 space-y-3.5">
+                  <p className="text-[10px] font-black text-slate-400 tracking-wider uppercase font-headline">Analisis Efisiensi Anggaran</p>
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-xs font-bold text-slate-700">
+                      <span>Penyerapan Anggaran</span>
+                      <span>{selected.TotalAnggaran ? Math.round((selected.RealisasiAnggaran / selected.TotalAnggaran) * 100) : 0}%</span>
+                    </div>
+                    <div className="w-full bg-slate-200 rounded-full h-2.5 overflow-hidden">
+                      <div 
+                        className={cn(
+                          "h-full rounded-full transition-all duration-500",
+                          selected.RealisasiAnggaran > selected.TotalAnggaran ? "bg-rose-500" : "bg-emerald-500"
+                        )}
+                        style={{ width: `${selected.TotalAnggaran ? Math.min(100, (selected.RealisasiAnggaran / selected.TotalAnggaran) * 100) : 0}%` }}
+                      />
+                    </div>
+                    <div className="flex justify-between text-[9.5px] font-bold mt-1">
+                      {selected.RealisasiAnggaran > selected.TotalAnggaran ? (
+                        <span className="text-rose-600 flex items-center gap-1"><span className="material-symbols-outlined text-[14px]">warning</span> BENGKAK {Math.round((selected.RealisasiAnggaran / selected.TotalAnggaran) * 100) - 100}% DARI PAGU</span>
+                      ) : (
+                        <span className="text-emerald-600 flex items-center gap-1"><span className="material-symbols-outlined text-[14px]">lightbulb</span> EFISIEN / SISA: {formatRp(selected.TotalAnggaran - selected.RealisasiAnggaran)} ({100 - Math.round((selected.RealisasiAnggaran / selected.TotalAnggaran) * 100)}% Hemat)</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
                 {selected.Catatan ? (
                   <div className="space-y-2">
                     <p className="text-[10px] font-black text-slate-400 tracking-wider uppercase font-headline">Catatan & Evaluasi Pengurus</p>

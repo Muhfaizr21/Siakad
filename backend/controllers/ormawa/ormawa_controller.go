@@ -184,6 +184,14 @@ func CreateProposal(c *fiber.Ctx) error {
 		Catatan:    "Proposal baru dibuat oleh sistem",
 	})
 
+	// Auto-create draft LPJ
+	config.DB.Create(&models.LaporanPertanggungjawaban{
+		ProposalID:        payload.ID,
+		RealisasiAnggaran: 0,
+		Status:            "draft",
+		Catatan:           "LPJ otomatis di-draft setelah proposal diajukan.",
+	})
+
 	// Buat notifikasi ormawa
 	config.DB.Create(&models.OrmawaNotifikasi{
 		OrmawaID: payload.OrmawaID,
@@ -563,13 +571,19 @@ func DeleteAnnouncement(c *fiber.Ctx) error {
 // --- ROLES ---
 
 func GetOrmawaRoles(c *fiber.Ctx) error {
+	ormawaId := c.Query("ormawaId")
 	var roles []models.OrmawaRole
-	config.DB.Find(&roles)
+	query := config.DB.Model(&models.OrmawaRole{})
+	if ormawaId != "" {
+		query = query.Where("ormawa_id = ?", ormawaId)
+	}
+	query.Find(&roles)
 	return c.JSON(fiber.Map{"status": "success", "data": roles})
 }
 
 func CreateOrmawaRole(c *fiber.Ctx) error {
 	var data struct {
+		OrmawaID  uint     `json:"OrmawaID"`
 		Nama      string   `json:"Nama"`
 		Deskripsi string   `json:"Deskripsi"`
 		Hak       []string `json:"Hak"`
@@ -578,9 +592,17 @@ func CreateOrmawaRole(c *fiber.Ctx) error {
 		return c.Status(400).JSON(fiber.Map{"status": "error", "message": err.Error()})
 	}
 
-	// Convert array to JSON
+	if data.OrmawaID == 0 {
+		if localId := c.Locals("ormawa_id"); localId != nil {
+			if uid, ok := localId.(uint); ok {
+				data.OrmawaID = uid
+			}
+		}
+	}
+
 	perms, _ := json.Marshal(data.Hak)
 	role := models.OrmawaRole{
+		OrmawaID:    data.OrmawaID,
 		Nama:        data.Nama,
 		Deskripsi:   data.Deskripsi,
 		Permissions: datatypes.JSON(perms),
@@ -599,6 +621,7 @@ func UpdateOrmawaRole(c *fiber.Ctx) error {
 	}
 
 	var data struct {
+		OrmawaID  uint     `json:"OrmawaID"`
 		Nama      string   `json:"Nama"`
 		Deskripsi string   `json:"Deskripsi"`
 		Hak       []string `json:"Hak"`
@@ -606,6 +629,9 @@ func UpdateOrmawaRole(c *fiber.Ctx) error {
 	c.BodyParser(&data)
 
 	perms, _ := json.Marshal(data.Hak)
+	if data.OrmawaID != 0 {
+		role.OrmawaID = data.OrmawaID
+	}
 	role.Nama = data.Nama
 	role.Deskripsi = data.Deskripsi
 	role.Permissions = datatypes.JSON(perms)
@@ -905,6 +931,7 @@ func UpdateLPJ(c *fiber.Ctx) error {
 			Deskripsi:  "Realisasi Dana LPJ: " + lpj.Proposal.Judul,
 			Tanggal:    time.Now(),
 			ProposalID: &lpj.ProposalID,
+			Sumber:     "kampus",
 		})
 	}
 
@@ -946,7 +973,7 @@ func UploadLPJDocument(c *fiber.Ctx) error {
 }
 
 func DeleteLPJDocument(c *fiber.Ctx) error {
-	id := c.Params("id")
+	id := c.Params("docId")
 	config.DB.Model(&models.LaporanPertanggungjawaban{}).Where("id = ?", id).Update("file_url", "")
 	return c.JSON(fiber.Map{"status": "success", "message": "Dokumen dihapus"})
 }

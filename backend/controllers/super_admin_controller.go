@@ -384,6 +384,20 @@ func ApproveProposalUniv(c *fiber.Ctx) error {
 			Pesan:    fmt.Sprintf("Proposal '%s' telah disetujui Universitas. Anggaran %v telah dicairkan ke kas organisasi.", proposal.Judul, proposal.Anggaran),
 		})
 
+		// 4. Ensure draft LPJ exists
+		var lpjCount int64
+		if err := tx.Model(&models.LaporanPertanggungjawaban{}).Where("proposal_id = ?", proposal.ID).Count(&lpjCount).Error; err == nil && lpjCount == 0 {
+			lpj := models.LaporanPertanggungjawaban{
+				ProposalID:        proposal.ID,
+				RealisasiAnggaran: 0,
+				Status:            "draft",
+				Catatan:           "LPJ otomatis di-draft setelah proposal disetujui Universitas.",
+			}
+			if err := tx.Create(&lpj).Error; err != nil {
+				return err
+			}
+		}
+
 		return nil
 	})
 

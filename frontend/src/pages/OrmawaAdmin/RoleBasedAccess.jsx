@@ -19,43 +19,209 @@ import useAuthStore from '../../store/useAuthStore'
 const API = `${API_BASE_URL}/ormawa`
 
 const PERMISSIONS = [
-  'view_dashboard', 'manage_kencana', 'manage_members', 'manage_staff', 
-  'manage_proposals', 'manage_calendar', 'manage_attendance', 'manage_finance', 
-  'manage_lpj', 'manage_aspirations', 'manage_announcements', 'manage_structure', 
-  'manage_rbac', 'view_notifications', 'manage_settings'
+  // Dashboard & Notif
+  'view_dashboard', 'view_notifications',
+  // Anggota
+  'view_members', 'create_members', 'edit_members', 'delete_members',
+  // Staff & Struktur
+  'view_staff', 'manage_staff', 'view_structure', 'manage_structure',
+  // Proposal & LPJ
+  'view_proposal', 'create_proposal', 'edit_proposal', 'delete_proposal',
+  'view_lpj', 'create_lpj', 'edit_lpj', 'upload_lpj_doc', 'delete_lpj',
+  // Kegiatan & Absensi
+  'view_calendar', 'create_calendar', 'edit_calendar', 'delete_calendar',
+  'view_attendance', 'submit_attendance', 'edit_attendance',
+  // Keuangan
+  'view_finance', 'create_finance', 'delete_finance',
+  // Aspirasi & Pengumuman
+  'view_aspirations', 'respond_aspirations',
+  'view_announcements', 'create_announcements', 'edit_announcements', 'delete_announcements',
+  // RBAC & Settings
+  'view_rbac', 'manage_rbac', 'view_settings', 'manage_settings'
 ]
 
 const PERM_LABELS = {
-  view_dashboard: 'Akses Dashboard & Statistik',
-  manage_kencana: 'KENCANA (PKKMB)',
-  manage_members: 'Manajemen Anggota',
-  manage_staff: 'Manajemen Staff',
-  manage_proposals: 'Proposal & Kegiatan',
-  manage_calendar: 'Jadwal Kalender',
-  manage_attendance: 'Sistem Absensi (QR)',
-  manage_finance: 'Buku Kas & Keuangan',
-  manage_lpj: 'Laporan & LPJ',
-  manage_aspirations: 'Aspirasi Organisasi',
-  manage_announcements: 'Siaran & Pengumuman',
-  manage_structure: 'Struktur Pengurus',
-  manage_rbac: 'Role & Hak Akses',
-  view_notifications: 'Pusat Notifikasi',
-  manage_settings: 'Pengaturan Sistem'
+  view_dashboard: 'Dashboard: Lihat Statistik',
+  view_notifications: 'Notifikasi: Baca Pusat Info',
+  
+  view_members: 'Anggota: Lihat Daftar',
+  create_members: 'Anggota: Tambah Baru',
+  edit_members: 'Anggota: Edit Jabatan & Divisi',
+  delete_members: 'Anggota: Keluarkan/Hapus',
+  
+  view_staff: 'Struktur: Lihat Pengurus',
+  manage_staff: 'Struktur: Kelola Fungsional',
+  view_structure: 'Struktur: Lihat Bagan',
+  manage_structure: 'Struktur: Edit Hierarki Bagan',
+  
+  view_proposal: 'Proposal: Lihat Pengajuan',
+  create_proposal: 'Proposal: Buat Baru',
+  edit_proposal: 'Proposal: Edit & Revisi Anggaran',
+  delete_proposal: 'Proposal: Hapus Pengajuan',
+  
+  view_lpj: 'LPJ: Lihat Laporan',
+  create_lpj: 'LPJ: Buat & Ajukan Baru',
+  edit_lpj: 'LPJ: Edit Realisasi Anggaran',
+  upload_lpj_doc: 'LPJ: Unggah File Bukti Fisik',
+  delete_lpj: 'LPJ: Hapus Laporan',
+  
+  view_calendar: 'Kalender: Lihat Jadwal',
+  create_calendar: 'Kalender: Buat Agenda Baru',
+  edit_calendar: 'Kalender: Edit Detail Acara',
+  delete_calendar: 'Kalender: Hapus Agenda',
+  
+  view_attendance: 'Absensi: Lihat Rekapitulasi',
+  submit_attendance: 'Absensi: Scan QR & Hadir',
+  edit_attendance: 'Absensi: Edit Status Anggota',
+  
+  view_finance: 'Buku Kas: Lihat Arus Saldo',
+  create_finance: 'Buku Kas: Catat Pemasukan/Pengeluaran',
+  delete_finance: 'Buku Kas: Hapus Riwayat Mutasi',
+  
+  view_aspirations: 'Aspirasi: Baca Masukan',
+  respond_aspirations: 'Aspirasi: Kirim Tanggapan Resmi',
+  
+  view_announcements: 'Pengumuman: Lihat Siaran',
+  create_announcements: 'Pengumuman: Buat Siaran Baru',
+  edit_announcements: 'Pengumuman: Edit Isi Siaran',
+  delete_announcements: 'Pengumuman: Hapus Siaran',
+  
+  view_rbac: 'RBAC: Lihat Role Akses',
+  manage_rbac: 'RBAC: Buat, Edit & Hapus Role',
+  
+  view_settings: 'Pengaturan: Lihat Profil Ormawa',
+  manage_settings: 'Pengaturan: Edit Profil, Logo & Rekening'
+}
+
+const PERM_DESCS = {
+  view_dashboard: 'Mampu memantau performa, jumlah anggota, kegiatan aktif, proposal terbaru, dan live saldo kas.',
+  view_notifications: 'Mampu melihat notifikasi masuk terkait persetujuan proposal, mutasi kas, atau info anggota.',
+  
+  view_members: 'Mampu melihat list lengkap seluruh anggota organisasi yang terdaftar.',
+  create_members: 'Mampu mendaftarkan anggota baru ke dalam sistem kepengurusan.',
+  edit_members: 'Mampu merubah nama divisi, memperbarui jabatan, serta mengedit profil anggota.',
+  delete_members: 'Mampu melakukan pemecatan atau menghapus data anggota secara permanen dari ormawa.',
+  
+  view_staff: 'Mampu melihat data fungsional pengurus inti.',
+  manage_staff: 'Mampu memetakan susunan pengurus dan menyinkronkan email/nomor kontak.',
+  view_structure: 'Mampu melihat data fungsional pengurus inti.',
+  manage_structure: 'Mampu merancang, menambah divisi fungsional, dan mendesain bagan organisasi.',
+  
+  view_proposal: 'Mampu mengakses dan melihat seluruh berkas proposal kegiatan yang diajukan.',
+  create_proposal: 'Mampu mengisi formulir dan mengirimkan proposal kegiatan baru ke fakultas.',
+  edit_proposal: 'Mampu mengubah isi deskripsi, menaikkan/menurunkan anggaran dana kegiatan, dan merevisi proposal.',
+  delete_proposal: 'Mampu menghapus/membatalkan proposal kegiatan yang sudah dikirim.',
+  
+  view_lpj: 'Mampu membuka dan mengunduh berkas Laporan Pertanggungjawaban (LPJ) kegiatan.',
+  create_lpj: 'Mampu mengisi form realisasi dana dan mengajukan LPJ setelah kegiatan selesai.',
+  edit_lpj: 'Mampu menyesuaikan angka nominal realisasi penggunaan dana jika ada kekeliruan.',
+  upload_lpj_doc: 'Mampu mengunggah file bukti fisik/berkas PDF dokumen LPJ ke server.',
+  delete_lpj: 'Mampu menghapus draf atau laporan LPJ kegiatan.',
+  
+  view_calendar: 'Mampu melihat rincian jadwal rapat, program kerja, atau agenda acara mendatang.',
+  create_calendar: 'Mampu menyusun agenda kerja baru dan menambahkannya ke kalender.',
+  edit_calendar: 'Mampu menggeser jadwal, mengganti lokasi, dan merinci waktu acara.',
+  delete_calendar: 'Mampu membatalkan agenda dan menghapusnya dari kalender ormawa.',
+  
+  view_attendance: 'Mampu mengekspor dan melihat data statistik kehadiran anggota pada agenda kerja.',
+  submit_attendance: 'Mampu melakukan absensi mandiri menggunakan pemindai QR Code.',
+  edit_attendance: 'Mampu merubah status kehadiran anggota (Hadir, Sakit, Izin, Alpa) secara manual.',
+  
+  view_finance: 'Mampu memantau mutasi buku kas ormawa, rincian nominal pemasukan, dan nominal pengeluaran.',
+  create_finance: 'Mampu menuliskan catatan transaksi keuangan baru (iuran masuk, sewa dana keluar, dll.).',
+  delete_finance: 'Mampu menghapus catatan transaksi keuangan jika terjadi salah ketik/input.',
+  
+  view_aspirations: 'Mampu melihat keluhan, kritik, atau saran yang dikirimkan oleh mahasiswa umum.',
+  respond_aspirations: 'Mampu merumuskan tanggapan resmi dari pihak pengurus ormawa untuk membalas mahasiswa.',
+  
+  view_announcements: 'Mampu melihat daftar pengumuman penting internal organisasi.',
+  create_announcements: 'Mampu memublikasikan pengumuman penting ke seluruh mahasiswa.',
+  edit_announcements: 'Mampu mengedit teks, lampiran, atau periode terbit pengumuman.',
+  delete_announcements: 'Mampu menarik kembali/menghapus pengumuman yang sudah kedaluwarsa.',
+  
+  view_rbac: 'Mampu melihat jenis-jenis role kepengurusan beserta hak otoritasnya.',
+  manage_rbac: 'Mampu mengonfigurasi pembagian hak istimewa (Create/Read/Update/Delete) pengurus, membuat role baru, serta menghapus role.',
+  
+  view_settings: 'Mampu melihat data profil resmi, website, dan rekening bank ormawa.',
+  manage_settings: 'Mampu mengunggah logo baru, visi/misi, link sosial media, dan rekening bank penerimaan dana kegiatan.'
 }
 
 // Visual color categories mapping to permissions for gorgeous badges
 const getPermBadgeClass = (h) => {
-  if (['manage_rbac', 'manage_settings'].includes(h)) {
+  if (h.startsWith('delete_') || ['manage_rbac', 'manage_settings'].some(x => h.includes(x))) {
     return 'bg-rose-50 text-rose-700 border-rose-200'
   }
-  if (['manage_finance', 'manage_lpj', 'manage_proposals'].includes(h)) {
-    return 'bg-amber-50 text-amber-700 border-amber-200'
+  if (h.startsWith('create_') || h.startsWith('submit_') || h.startsWith('upload_')) {
+    return 'bg-emerald-50 text-emerald-700 border-emerald-200'
   }
-  if (['manage_members', 'manage_staff', 'manage_structure'].includes(h)) {
-    return 'bg-violet-50 text-violet-700 border-violet-200'
+  if (h.startsWith('edit_') || h.startsWith('respond_') || h.startsWith('manage_')) {
+    return 'bg-amber-50 text-amber-700 border-amber-200'
   }
   return 'bg-blue-50 text-blue-700 border-blue-200'
 }
+
+const PERM_GROUPS = [
+  {
+    title: 'Dashboard & Notifikasi',
+    icon: 'dashboard',
+    permissions: ['view_dashboard', 'view_notifications']
+  },
+  {
+    title: 'Manajemen Anggota & Pengurus',
+    icon: 'group',
+    permissions: ['view_members', 'create_members', 'edit_members', 'delete_members']
+  },
+  {
+    title: 'Struktur Organisasi',
+    icon: 'account_tree',
+    permissions: ['view_staff', 'manage_staff', 'view_structure', 'manage_structure']
+  },
+  {
+    title: 'Proposal Kegiatan',
+    icon: 'description',
+    permissions: ['view_proposal', 'create_proposal', 'edit_proposal', 'delete_proposal']
+  },
+  {
+    title: 'Laporan Pertanggungjawaban (LPJ)',
+    icon: 'assignment',
+    permissions: ['view_lpj', 'create_lpj', 'edit_lpj', 'upload_lpj_doc', 'delete_lpj']
+  },
+  {
+    title: 'Kalender & Jadwal Kerja',
+    icon: 'calendar_month',
+    permissions: ['view_calendar', 'create_calendar', 'edit_calendar', 'delete_calendar']
+  },
+  {
+    title: 'Sistem Absensi (QR)',
+    icon: 'qr_code',
+    permissions: ['view_attendance', 'submit_attendance', 'edit_attendance']
+  },
+  {
+    title: 'Buku Kas & Keuangan',
+    icon: 'account_balance_wallet',
+    permissions: ['view_finance', 'create_finance', 'delete_finance']
+  },
+  {
+    title: 'Aspirasi Mahasiswa',
+    icon: 'campaign',
+    permissions: ['view_aspirations', 'respond_aspirations']
+  },
+  {
+    title: 'Siaran Pengumuman',
+    icon: 'campaign',
+    permissions: ['view_announcements', 'create_announcements', 'edit_announcements', 'delete_announcements']
+  },
+  {
+    title: 'Role & Keamanan (RBAC)',
+    icon: 'security',
+    permissions: ['view_rbac', 'manage_rbac']
+  },
+  {
+    title: 'Pengaturan Sistem',
+    icon: 'settings',
+    permissions: ['view_settings', 'manage_settings']
+  }
+]
 
 export default function RoleBasedAccess() {
   const [roles, setRoles] = useState([])
@@ -70,6 +236,14 @@ export default function RoleBasedAccess() {
   const ormawaId = authState?.mahasiswa?.ormawaId || authState?.mahasiswa?.ID || authState?.user?.ormawaId || 1
   
   const [form, setForm] = useState({ Nama: '', Deskripsi: '', Hak: [], OrmawaID: ormawaId })
+  const [expandedGroups, setExpandedGroups] = useState({})
+
+  const toggleGroup = (index) => {
+    setExpandedGroups(prev => ({
+      ...prev,
+      [index]: !prev[index]
+    }))
+  }
 
   const parsePermissions = (rawHak) => {
     if (!rawHak) return []
@@ -157,6 +331,7 @@ export default function RoleBasedAccess() {
       const json = await fetchWithAuth(url, { 
         method, 
         body: JSON.stringify({ 
+          OrmawaID: Number(ormawaId),
           Nama: form.Nama, 
           Deskripsi: form.Deskripsi, 
           Hak: form.Hak 
@@ -368,42 +543,96 @@ export default function RoleBasedAccess() {
                 </div>
               </div>
 
-              {/* Custom Interactive Toggle Cards Grid for Permissions */}
-              <div className="space-y-2.5">
-                <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 uppercase font-headline block">Otorisasi Modul (Pilih Semua yang Diizinkan)</Label>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 max-h-[220px] overflow-y-auto pr-1.5 scrollbar-none">
-                  {PERMISSIONS.map(p => {
-                    const isSelected = (form.Hak || []).includes(p)
+              {/* Collapsible Feature Accordions for Granular Permissions */}
+              <div className="space-y-3">
+                <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 uppercase font-headline block">
+                  Matriks Izin Otorisasi (Pilih & Rincikan Berdasarkan Fitur)
+                </Label>
+                <div className="space-y-2 max-h-[350px] overflow-y-auto pr-1.5 scrollbar-thin scrollbar-thumb-slate-200">
+                  {PERM_GROUPS.map((group, gIdx) => {
+                    const isExpanded = !!expandedGroups[gIdx]
+                    const selectedCount = group.permissions.filter(p => (form.Hak || []).includes(p)).length
+                    
                     return (
-                      <button
-                        key={p}
-                        type="button"
-                        onClick={() => toggleHak(p)}
-                        className={cn(
-                          'flex items-start gap-2.5 p-3 rounded-2xl border text-left cursor-pointer transition-all duration-200 active:scale-95',
-                          isSelected 
-                            ? 'border-[#00236F] bg-blue-50/40 shadow-sm shadow-blue-900/5' 
-                            : 'border-slate-100 bg-slate-50/50 hover:border-slate-200 hover:bg-slate-50'
+                      <div key={gIdx} className="border border-slate-100 rounded-2xl overflow-hidden bg-white shadow-sm">
+                        {/* Accordion Trigger Button */}
+                        <button
+                          type="button"
+                          onClick={() => toggleGroup(gIdx)}
+                          className={cn(
+                            "w-full flex items-center justify-between p-4 text-left font-bold transition-all duration-200",
+                            isExpanded ? "bg-slate-50/50 border-b border-slate-100" : "hover:bg-slate-50/30"
+                          )}
+                        >
+                          <div className="flex items-center gap-3">
+                            <span className="material-symbols-outlined text-[#00236F]" style={{ fontSize: '20px' }}>
+                              {group.icon}
+                            </span>
+                            <div>
+                              <h4 className="text-[12px] font-black text-slate-800 font-headline leading-none">
+                                {group.title}
+                              </h4>
+                              <p className="text-[9px] text-slate-400 font-semibold mt-1">
+                                {group.permissions.length} Hak Otoritas Terkait
+                              </p>
+                            </div>
+                          </div>
+                          
+                          <div className="flex items-center gap-3">
+                            {selectedCount > 0 && (
+                              <Badge className="bg-[#00236F]/5 border-none text-[#00236F] font-bold text-[8.5px] px-2.5 py-0.5 rounded-full shrink-0">
+                                {selectedCount} TERPILIH
+                              </Badge>
+                            )}
+                            <span className={cn(
+                              "material-symbols-outlined text-slate-400 transition-transform duration-300",
+                              isExpanded ? "rotate-180" : ""
+                            )} style={{ fontSize: '18px' }}>
+                              expand_more
+                            </span>
+                          </div>
+                        </button>
+                        
+                        {/* Collapsible Content */}
+                        {isExpanded && (
+                          <div className="p-4 bg-slate-50/10 grid grid-cols-1 sm:grid-cols-2 gap-3 animate-in slide-in-from-top-1.5 duration-200">
+                            {group.permissions.map(p => {
+                              const isSelected = (form.Hak || []).includes(p)
+                              return (
+                                <button
+                                  key={p}
+                                  type="button"
+                                  onClick={() => toggleHak(p)}
+                                  className={cn(
+                                    'flex items-start gap-3 p-3.5 rounded-2xl border text-left cursor-pointer transition-all duration-200 active:scale-[0.98]',
+                                    isSelected 
+                                      ? 'border-[#00236F] bg-blue-50/40 shadow-sm shadow-blue-900/5' 
+                                      : 'border-slate-100 bg-white hover:border-slate-200 shadow-sm shadow-slate-100/30'
+                                  )}
+                                >
+                                  <span className={cn(
+                                    'material-symbols-outlined shrink-0 transition-all duration-200 mt-0.5',
+                                    isSelected ? 'text-[#00236F] font-bold' : 'text-slate-300'
+                                  )} style={{ fontSize: '16px' }}>
+                                    {isSelected ? 'check_box' : 'check_box_outline_blank'}
+                                  </span>
+                                  <div className="space-y-1">
+                                    <p className={cn(
+                                      'text-[11px] font-black leading-tight tracking-tight font-headline',
+                                      isSelected ? 'text-[#00236F]' : 'text-slate-700'
+                                    )}>
+                                      {PERM_LABELS[p].split(': ')[1] || PERM_LABELS[p]}
+                                    </p>
+                                    <p className="text-[9px] text-slate-400 font-medium leading-snug mt-0.5">
+                                      {PERM_DESCS[p]}
+                                    </p>
+                                  </div>
+                                </button>
+                              )
+                            })}
+                          </div>
                         )}
-                      >
-                        <span className={cn(
-                          'material-symbols-outlined shrink-0 transition-all duration-200',
-                          isSelected ? 'text-[#00236F] font-bold' : 'text-slate-300'
-                        )} style={{ fontSize: '16px' }}>
-                          {isSelected ? 'check_box' : 'check_box_outline_blank'}
-                        </span>
-                        <div className="space-y-0.5">
-                          <p className={cn(
-                            'text-[10px] font-bold leading-none tracking-tight font-headline',
-                            isSelected ? 'text-[#00236F]' : 'text-slate-700'
-                          )}>
-                            {PERM_LABELS[p]}
-                          </p>
-                          <p className="text-[8px] text-slate-400 font-medium leading-none mt-0.5">
-                            Akses {PERM_LABELS[p].toLowerCase()}
-                          </p>
-                        </div>
-                      </button>
+                      </div>
                     )
                   })}
                 </div>

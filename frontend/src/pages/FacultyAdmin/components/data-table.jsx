@@ -58,13 +58,23 @@ export function DataTable({
   const filteredData = useMemo(() => {
     const safeData = data || []
     return safeData.filter((item) => {
-      const matchesSearch = Object.values(item || {}).some(
-        (val) => val && String(val).toLowerCase().includes(searchTerm.toLowerCase())
-      )
+      const matchesSearch = !searchTerm 
+        ? true 
+        : Object.values(item || {}).some(
+            (val) => val && typeof val !== 'object' && String(val).toLowerCase().includes(searchTerm.toLowerCase())
+          )
 
       const matchesFilters = Object.entries(activeFilters).every(([key, value]) => {
         if (!value || value === "all") return true
-        return String(item[key]) === String(value)
+        
+        // Find property case-insensitively in case JSON properties differ (e.g. status vs Status)
+        const itemKey = Object.keys(item || {}).find(k => k.toLowerCase() === key.toLowerCase()) || key
+        const itemVal = item[itemKey]
+        
+        if (itemVal === undefined || itemVal === null) return false
+        
+        // Case-insensitive exact value comparison to handle casing mismatches (e.g. "Draft" vs "draft")
+        return String(itemVal).toLowerCase().trim() === String(value).toLowerCase().trim()
       })
 
       return matchesSearch && matchesFilters

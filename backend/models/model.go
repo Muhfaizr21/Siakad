@@ -450,6 +450,7 @@ type Ormawa struct {
 	Phone     string
 	Instagram string
 	Website   string
+	Rekening  string `gorm:"size:255" json:"rekening"`
 
 	Anggota    []OrmawaAnggota     `gorm:"foreignKey:OrmawaID"`
 	Kegiatan   []OrmawaKegiatan    `gorm:"foreignKey:OrmawaID"`
@@ -499,6 +500,7 @@ func (OrmawaDivisi) TableName() string {
 
 type OrmawaRole struct {
 	BaseModel
+	OrmawaID    uint `gorm:"index" json:"ormawa_id"`
 	Nama        string
 	Deskripsi   string
 	Permissions datatypes.JSON
@@ -572,6 +574,7 @@ type OrmawaMutasiSaldo struct {
 	Kategori  string
 	Deskripsi string
 	Tanggal   time.Time
+	Sumber    string `gorm:"size:30;default:'organisasi'" json:"sumber"`
 }
 
 func (OrmawaMutasiSaldo) TableName() string {

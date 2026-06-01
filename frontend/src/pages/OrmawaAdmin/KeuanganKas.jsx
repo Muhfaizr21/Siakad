@@ -41,13 +41,23 @@ export default function KeuanganKas() {
     Nominal: '', 
     Tipe: 'pemasukan', 
     Tanggal: '', 
-    OrmawaID: ormawaId 
+    OrmawaID: ormawaId,
+    Sumber: 'organisasi' 
   })
 
   // Calculate totals
   const saldo = transactions.reduce((acc, t) => t.Tipe === 'pemasukan' ? acc + (t.Nominal || 0) : acc - (t.Nominal || 0), 0)
   const totalIn = transactions.filter(t => t.Tipe === 'pemasukan').reduce((a, t) => a + (t.Nominal || 0), 0)
   const totalOut = transactions.filter(t => t.Tipe === 'pengeluaran').reduce((a, t) => a + (t.Nominal || 0), 0)
+
+  // Isolated Campus vs Organisasi calculations (PAGU Duit Kampus)
+  const campusIn = transactions.filter(t => t.Tipe === 'pemasukan' && (t.Sumber === 'kampus' || t.sumber === 'kampus')).reduce((a, t) => a + (t.Nominal || 0), 0)
+  const campusOut = transactions.filter(t => t.Tipe === 'pengeluaran' && (t.Sumber === 'kampus' || t.sumber === 'kampus')).reduce((a, t) => a + (t.Nominal || 0), 0)
+  const campusSaldo = campusIn - campusOut
+
+  const orgIn = transactions.filter(t => t.Tipe === 'pemasukan' && (t.Sumber === 'organisasi' || t.sumber === 'organisasi' || !t.sumber)).reduce((a, t) => a + (t.Nominal || 0), 0)
+  const orgOut = transactions.filter(t => t.Tipe === 'pengeluaran' && (t.Sumber === 'organisasi' || t.sumber === 'organisasi' || !t.sumber)).reduce((a, t) => a + (t.Nominal || 0), 0)
+  const orgSaldo = orgIn - orgOut
 
   const fetchData = async () => {
     setLoading(true)
@@ -77,6 +87,7 @@ export default function KeuanganKas() {
       ...form, 
       Nominal: Number(form.Nominal), 
       OrmawaID: Number(form.OrmawaID), 
+      Sumber: form.Sumber || 'organisasi',
       Tanggal: form.Tanggal ? new Date(form.Tanggal).toISOString() : new Date().toISOString() 
     }
 
@@ -135,11 +146,26 @@ export default function KeuanganKas() {
       key: 'Deskripsi', 
       label: 'Keterangan Transaksi', 
       className: 'min-w-[280px]',
-      render: v => (
-        <span className="font-bold text-slate-900 text-[13px] font-headline leading-tight">
-          {v || '—'}
-        </span>
-      )
+      render: (v, row) => {
+        const isCampus = row.Sumber === 'kampus' || row.sumber === 'kampus'
+        return (
+          <div className="flex flex-col gap-1.5 py-1">
+            <span className="font-bold text-slate-900 text-[13px] font-headline leading-tight">
+              {v || '—'}
+            </span>
+            <div className="flex items-center">
+              <span className={cn(
+                "text-[8.5px] font-black tracking-widest px-2.5 py-0.5 rounded-md border",
+                isCampus 
+                  ? "bg-blue-50 text-blue-600 border-blue-100/50" 
+                  : "bg-slate-50 text-slate-500 border-slate-200/60"
+              )}>
+                {isCampus ? "🏛️ PAGU KAMPUS" : "💼 KAS MANDIRI"}
+              </span>
+            </div>
+          </div>
+        )
+      }
     },
     {
       key: 'Tipe', 
@@ -214,7 +240,7 @@ export default function KeuanganKas() {
           
           <Button 
             onClick={() => { 
-              setForm({ Deskripsi: '', Nominal: '', Tipe: 'pemasukan', Tanggal: '', OrmawaID: ormawaId })
+              setForm({ Deskripsi: '', Nominal: '', Tipe: 'pemasukan', Tanggal: '', OrmawaID: ormawaId, Sumber: 'organisasi' })
               setIsCrudOpen(true) 
             }} 
             className="h-12 px-6 rounded-2xl bg-white hover:bg-white/95 text-[#00236F] hover:text-[#00236F] border-none font-bold text-xs tracking-wider shadow-lg shadow-blue-900/10 transition-all active:scale-95 shrink-0 w-full md:w-auto flex items-center justify-center gap-2"
@@ -227,47 +253,50 @@ export default function KeuanganKas() {
 
       {/* ── Financial Summary Cards ─────────────────────────────────── */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-        {/* Saldo Kas (Navy tailored) */}
+        {/* Saldo Gabungan (Navy tailored) */}
         <Card className="border border-slate-100 shadow-sm rounded-3xl overflow-hidden bg-white hover:shadow-md transition-all duration-300">
           <CardContent className="p-6 flex items-center gap-5">
             <div className="w-14 h-14 rounded-2xl bg-blue-50 flex items-center justify-center text-[#00236F] shrink-0">
-              <span className="material-symbols-outlined" style={{ fontSize: '28px' }}>monetization_on</span>
+              <span className="material-symbols-outlined" style={{ fontSize: '28px' }}>account_balance</span>
             </div>
             <div className="space-y-1">
-              <p className="text-[10px] font-black text-slate-400 tracking-wider uppercase font-headline">Saldo Kas Aktif</p>
+              <p className="text-[10px] font-black text-slate-400 tracking-wider uppercase font-headline">Saldo Kas Gabungan</p>
               <p className="text-2xl lg:text-3xl font-black text-[#00236F] tracking-tight font-headline">
                 {formatRp(saldo)}
               </p>
+              <p className="text-[9px] font-bold text-slate-400">Pemasukan: {formatRp(totalIn)} | Pengeluaran: {formatRp(totalOut)}</p>
             </div>
           </CardContent>
         </Card>
 
-        {/* Total Pemasukan (Green tailored) */}
+        {/* Saldo Pagu Kampus (🏛️ Duit Kampus) */}
+        <Card className="border border-slate-100 shadow-sm rounded-3xl overflow-hidden bg-white hover:shadow-md transition-all duration-300">
+          <CardContent className="p-6 flex items-center gap-5">
+            <div className="w-14 h-14 rounded-2xl bg-sky-50 flex items-center justify-center text-sky-600 shrink-0">
+              <span className="material-symbols-outlined" style={{ fontSize: '28px' }}>assured_workload</span>
+            </div>
+            <div className="space-y-1">
+              <p className="text-[10px] font-black text-slate-400 tracking-wider uppercase font-headline">Sisa Pagu (Duit Kampus)</p>
+              <p className="text-2xl lg:text-3xl font-black text-sky-600 tracking-tight font-headline">
+                {formatRp(campusSaldo)}
+              </p>
+              <p className="text-[9px] font-bold text-sky-500">Hibah Masuk: {formatRp(campusIn)} | Penggunaan LPJ: {formatRp(campusOut)}</p>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Saldo Kas Organisasi (💼 Kas Mandiri) */}
         <Card className="border border-slate-100 shadow-sm rounded-3xl overflow-hidden bg-white hover:shadow-md transition-all duration-300">
           <CardContent className="p-6 flex items-center gap-5">
             <div className="w-14 h-14 rounded-2xl bg-emerald-50 flex items-center justify-center text-emerald-600 shrink-0">
-              <span className="material-symbols-outlined" style={{ fontSize: '28px' }}>trending_up</span>
+              <span className="material-symbols-outlined" style={{ fontSize: '28px' }}>payments</span>
             </div>
             <div className="space-y-1">
-              <p className="text-[10px] font-black text-slate-400 tracking-wider uppercase font-headline">Total Pemasukan</p>
+              <p className="text-[10px] font-black text-slate-400 tracking-wider uppercase font-headline">Kas Mandiri Organisasi</p>
               <p className="text-2xl lg:text-3xl font-black text-emerald-600 tracking-tight font-headline">
-                {formatRp(totalIn)}
+                {formatRp(orgSaldo)}
               </p>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Total Pengeluaran (Rose tailored) */}
-        <Card className="border border-slate-100 shadow-sm rounded-3xl overflow-hidden bg-white hover:shadow-md transition-all duration-300">
-          <CardContent className="p-6 flex items-center gap-5">
-            <div className="w-14 h-14 rounded-2xl bg-rose-50 flex items-center justify-center text-rose-600 shrink-0">
-              <span className="material-symbols-outlined" style={{ fontSize: '28px' }}>trending_down</span>
-            </div>
-            <div className="space-y-1">
-              <p className="text-[10px] font-black text-slate-400 tracking-wider uppercase font-headline">Total Pengeluaran</p>
-              <p className="text-2xl lg:text-3xl font-black text-rose-600 tracking-tight font-headline">
-                {formatRp(totalOut)}
-              </p>
+              <p className="text-[9px] font-bold text-emerald-500">Iuran/Sponsor: {formatRp(orgIn)} | Pengeluaran Mandiri: {formatRp(orgOut)}</p>
             </div>
           </CardContent>
         </Card>
@@ -282,7 +311,7 @@ export default function KeuanganKas() {
             loading={loading}
             searchPlaceholder="Cari berdasarkan keterangan transaksi..."
             onAdd={() => { 
-              setForm({ Deskripsi: '', Nominal: '', Tipe: 'pemasukan', Tanggal: '', OrmawaID: ormawaId })
+              setForm({ Deskripsi: '', Nominal: '', Tipe: 'pemasukan', Tanggal: '', OrmawaID: ormawaId, Sumber: 'organisasi' })
               setIsCrudOpen(true) 
             }}
             addLabel="Catat Transaksi"
@@ -342,13 +371,13 @@ export default function KeuanganKas() {
               <Input 
                 required 
                 value={form.Deskripsi} 
-                onChange={e => setForm({ ...form, Deskripsi: e.target.value })} 
-                placeholder="Misal: Pembayaran konsumsi rapat kerja..."
+                onChange={e => setForm({ ...form, Deskripsi: e.target.value })}
+                placeholder="Misal: Pembelian ATK / Sponsor Kegiatan"
                 className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white focus:ring-primary/20 shadow-none transition-all font-bold text-sm" 
               />
             </div>
 
-            {/* Tipe & Nominal Grid */}
+            {/* Tipe & Sumber Dana Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 uppercase font-headline">Jenis Mutasi</Label>
@@ -363,6 +392,21 @@ export default function KeuanganKas() {
               </div>
               
               <div className="space-y-2">
+                <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 uppercase font-headline">Sumber Dana</Label>
+                <select 
+                  value={form.Sumber} 
+                  onChange={e => setForm({ ...form, Sumber: e.target.value })}
+                  className="w-full h-12 rounded-2xl border border-slate-200 bg-slate-50/50 px-4 text-sm font-bold text-slate-700 focus:outline-none focus:bg-white focus:border-primary transition-all shadow-sm"
+                >
+                  <option value="organisasi">💼 Kas Mandiri Organisasi</option>
+                  <option value="kampus">🏛️ Pagu Kampus (Duit Kampus)</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Nominal & Tanggal Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
                 <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 uppercase font-headline">Jumlah Nominal</Label>
                 <div className="relative">
                   <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xs font-black text-slate-400">Rp</span>
@@ -376,7 +420,6 @@ export default function KeuanganKas() {
                   />
                 </div>
                 
-                {/* 🌟 Dynamic dots and separator helper preview for large zeros! */}
                 {form.Nominal && (
                   <p className="text-[11px] font-bold text-emerald-600 mt-1.5 flex items-center gap-1.5 animate-in fade-in slide-in-from-top-1 duration-200">
                     <span className="material-symbols-outlined text-emerald-500" style={{ fontSize: '14px' }}>payments</span>
@@ -384,18 +427,17 @@ export default function KeuanganKas() {
                   </p>
                 )}
               </div>
-            </div>
 
-            {/* Tanggal Transaksi */}
-            <div className="space-y-2">
-              <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 uppercase font-headline">Tanggal Transaksi</Label>
-              <Input 
-                required 
-                type="date" 
-                value={form.Tanggal} 
-                onChange={e => setForm({ ...form, Tanggal: e.target.value })}
-                className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white focus:ring-primary/20 shadow-none transition-all font-bold text-sm" 
-              />
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 uppercase font-headline">Tanggal Transaksi</Label>
+                <Input 
+                  required 
+                  type="date" 
+                  value={form.Tanggal} 
+                  onChange={e => setForm({ ...form, Tanggal: e.target.value })}
+                  className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white focus:ring-primary/20 shadow-none transition-all font-bold text-sm" 
+                />
+              </div>
             </div>
 
             {/* Dialog Footer Actions */}

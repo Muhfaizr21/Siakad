@@ -62,7 +62,6 @@ import RoleBasedAccess from './pages/OrmawaAdmin/RoleBasedAccess'
 import Notifikasi from './pages/OrmawaAdmin/Notifikasi'
 import Settings from './pages/OrmawaAdmin/Settings'
 import AspirationManagement from './pages/OrmawaAdmin/AspirationManagement'
-import PkkmbManagement from './pages/OrmawaAdmin/PkkmbManagement'
 // Faculty Admin Modules (from danzz)
 import FacultyAspirationManagement from './pages/FacultyAdmin/Aspirasi'
 import FacultyPmb from './pages/FacultyAdmin/MahasiswaBaru'
@@ -268,7 +267,6 @@ function App() {
                     <Route path="notifikasi" element={<Notifikasi />} />
                     <Route path="pengaturan" element={<Settings />} />
                     <Route path="aspirasi" element={<AspirationManagement />} />
-                    <Route path="pkkmb" element={<PkkmbManagement />} />
                   </Route>
                 </Routes>
               </ProtectedRoute>

@@ -37,7 +37,8 @@ export default function Settings() {
     Email: '', 
     Phone: '', 
     Instagram: '', 
-    Website: '' 
+    Website: '',
+    Rekening: ''
   })
   
   const ormawaId = useAuthStore.getState()?.mahasiswa?.ormawaId || useAuthStore.getState()?.mahasiswa?.ID || useAuthStore.getState()?.user?.ormawaId || 1
@@ -55,7 +56,8 @@ export default function Settings() {
           Email: data.data?.Email || data.data?.email || '',
           Phone: data.data?.Phone || data.data?.phone || '',
           Instagram: data.data?.Instagram || data.data?.instagram || '',
-          Website: data.data?.Website || data.data?.website || ''
+          Website: data.data?.Website || data.data?.website || '',
+          Rekening: data.data?.Rekening || data.data?.rekening || ''
         })
       }
     } catch {}
@@ -359,6 +361,27 @@ export default function Settings() {
                         onChange={e => setConfig({ ...config, Website: e.target.value })} 
                         placeholder="misal: https://bem.bku.ac.id"
                         className="h-11 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white focus:ring-primary/20 shadow-none transition-all font-bold text-xs" 
+                      />
+                    </FieldGroup>
+                  </div>
+                </div>
+
+                {/* Section: Rekening Penerimaan Dana */}
+                <div className="space-y-5">
+                  <div className="flex items-center gap-2 pb-3 border-b border-slate-100">
+                    <div className="size-6 rounded-lg bg-[#00236F]/10 flex items-center justify-center text-[#00236F]">
+                      <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>account_balance</span>
+                    </div>
+                    <h2 className="text-[11px] font-black tracking-widest text-[#00236F] uppercase font-headline">REKENING PENERIMAAN DANA KEGIATAN</h2>
+                  </div>
+
+                  <div className="space-y-4">
+                    <FieldGroup label="Informasi Rekening Bank" icon="credit_card">
+                      <Input 
+                        value={config.Rekening} 
+                        onChange={e => setConfig({ ...config, Rekening: e.target.value })} 
+                        placeholder="misal: Bank Mandiri - 1234567890 a.n. BEM BKU"
+                        className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white focus:ring-primary/20 shadow-none transition-all font-bold text-xs" 
                       />
                     </FieldGroup>
                   </div>
