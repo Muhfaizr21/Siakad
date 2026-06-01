@@ -72,13 +72,21 @@ export default function Notifikasi() {
     try {
       const res = await fetchWithAuth(`${API}/notifications?ormawaId=${ormawaId}`)
       if (res.status === 'success') {
-        setNotifications(res.data || [])
+        const mapped = (res.data || []).map(n => ({
+          id: n.id ?? n.ID,
+          tipe: n.tipe ?? n.Tipe,
+          judul: n.judul ?? n.Judul,
+          pesan: n.pesan ?? n.Pesan,
+          is_read: n.is_read ?? n.IsRead ?? false,
+          created_at: n.created_at ?? n.CreatedAt,
+        }))
+        setNotifications(mapped)
       } else {
         // Fallback demo notifications for design preview
         setNotifications([
-          { ID: 1, Judul: 'Proposal diajukan', Pesan: 'Proposal "Webinar Nasional" telah diajukan ke dosen pembina.', Tipe: 'proposal', IsRead: false, CreatedAt: new Date().toISOString() },
-          { ID: 2, Judul: 'Kegiatan baru dijadwalkan', Pesan: 'Latihan rutin telah ditambahkan ke jadwal minggu ini.', Tipe: 'kegiatan', IsRead: true, CreatedAt: new Date(Date.now() - 86400000).toISOString() },
-          { ID: 3, Judul: 'Anggota baru bergabung', Pesan: '3 mahasiswa baru telah bergabung sebagai anggota aktif.', Tipe: 'anggota', IsRead: false, CreatedAt: new Date(Date.now() - 172800000).toISOString() },
+          { id: 1, judul: 'Proposal diajukan', pesan: 'Proposal "Webinar Nasional" telah diajukan ke dosen pembina.', tipe: 'proposal', is_read: false, created_at: new Date().toISOString() },
+          { id: 2, judul: 'Kegiatan baru dijadwalkan', pesan: 'Latihan rutin telah ditambahkan ke jadwal minggu ini.', tipe: 'kegiatan', is_read: true, created_at: new Date(Date.now() - 86400000).toISOString() },
+          { id: 3, judul: 'Anggota baru bergabung', pesan: '3 mahasiswa baru telah bergabung sebagai anggota aktif.', tipe: 'anggota', is_read: false, created_at: new Date(Date.now() - 172800000).toISOString() },
         ])
       }
     } catch {
@@ -96,8 +104,9 @@ export default function Notifikasi() {
         headers: { 'Content-Type': 'application/json' }
       })
       if (res.status === 'success') {
-        setNotifications(n => n.map(item => ({ ...item, IsRead: true })))
+        setNotifications(n => n.map(item => ({ ...item, is_read: true })))
         toast.success('Semua notifikasi ditandai telah dibaca')
+        window.dispatchEvent(new Event('ormawa_notifications_updated'))
       }
     } catch (err) {
       toast.error('Gagal memperbarui status notifikasi')
@@ -105,9 +114,11 @@ export default function Notifikasi() {
   }
 
   const handleMarkRead = async (id) => {
+    if (!id) return
     try {
       await fetchWithAuth(`${API}/notifications/${id}/read`, { method: 'PUT' })
-      setNotifications(n => n.map(item => item.ID === id ? { ...item, IsRead: true } : item))
+      setNotifications(n => n.map(item => item.id === id ? { ...item, is_read: true } : item))
+      window.dispatchEvent(new Event('ormawa_notifications_updated'))
     } catch {}
   }
 
@@ -115,10 +126,10 @@ export default function Notifikasi() {
     fetchData()
   }, [ormawaId])
 
-  const unreadCount = notifications.filter(n => !n.IsRead).length
+  const unreadCount = notifications.filter(n => !n.is_read).length
   const totalCount = notifications.length
-  const proposalCount = notifications.filter(n => n.Tipe === 'proposal').length
-  const infoCount = notifications.filter(n => n.Tipe !== 'proposal').length
+  const proposalCount = notifications.filter(n => n.tipe === 'proposal').length
+  const infoCount = notifications.filter(n => n.tipe !== 'proposal').length
 
   return (
     <div className="max-w-[1600px] mx-auto px-4 py-8 md:px-8 xl:px-12 space-y-8 font-body">
@@ -198,16 +209,16 @@ export default function Notifikasi() {
           ) : (
             <div className="divide-y divide-slate-100">
               {notifications.map((notif) => {
-                const Icon = ICON_MAP[notif.Tipe] || Bell
-                const iconColor = TIPE_COLORS[notif.Tipe] || 'bg-slate-50 text-slate-500 border-slate-100'
+                const Icon = ICON_MAP[notif.tipe] || Bell
+                const iconColor = TIPE_COLORS[notif.tipe] || 'bg-slate-50 text-slate-500 border-slate-100'
                 
                 return (
                   <div 
-                    key={notif.ID} 
-                    onClick={() => handleMarkRead(notif.ID)}
+                    key={notif.id} 
+                    onClick={() => handleMarkRead(notif.id)}
                     className={cn(
                       'py-5 first:pt-0 last:pb-0 flex flex-row items-start gap-3 sm:gap-4 transition-all duration-200 cursor-pointer group',
-                      notif.IsRead 
+                      notif.is_read 
                         ? 'bg-transparent hover:bg-slate-50/50' 
                         : 'bg-blue-50/20 hover:bg-blue-50/40'
                     )}
@@ -223,24 +234,24 @@ export default function Notifikasi() {
                         <div className="space-y-1 flex-1 min-w-0">
                           <p className={cn(
                             'font-headline tracking-tight text-[13px] transition-colors truncate',
-                            notif.IsRead 
+                            notif.is_read 
                               ? 'text-slate-600 font-bold' 
                               : 'text-slate-900 font-black'
                           )}>
-                            {notif.Judul}
+                            {notif.judul}
                           </p>
                           <p className="text-xs font-semibold text-slate-500 leading-relaxed max-w-4xl break-words">
-                            {notif.Pesan}
+                            {notif.pesan}
                           </p>
                         </div>
 
                         {/* Status Pin & Time */}
                         <div className="flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-2 shrink-0">
-                          {!notif.IsRead && (
+                          {!notif.is_read && (
                             <span className="h-2 w-2 rounded-full bg-[#00236F] shadow-lg shadow-blue-900/40 animate-pulse shrink-0" />
                           )}
                           <span className="text-[10px] font-bold text-slate-400 tracking-tight whitespace-nowrap">
-                            {notif.CreatedAt ? new Date(notif.CreatedAt).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : '—'}
+                            {notif.created_at ? new Date(notif.created_at).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : '—'}
                           </span>
                         </div>
                       </div>

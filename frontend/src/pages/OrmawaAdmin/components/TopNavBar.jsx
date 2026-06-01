@@ -76,7 +76,7 @@ const TopNavBar = ({ setIsOpen }) => {
 
   const fetchStats = async () => {
     try {
-      const ormawaId = user?.ormawa_id || 1;
+      const ormawaId = user?.ormawa_id || user?.OrmawaID || user?.ormawaId || 1;
       const res = await api.get(`/ormawa/stats?ormawaId=${ormawaId}`);
       if (res.data.status === 'success') {
         setStats(prev => ({ ...prev, ...res.data.data }));
@@ -84,7 +84,10 @@ const TopNavBar = ({ setIsOpen }) => {
       
       const notifRes = await api.get(`/ormawa/notifications?ormawaId=${ormawaId}`);
       if (notifRes.data.status === 'success') {
-        const unread = notifRes.data.data.filter(n => !n.IsRead).length;
+        const unread = (notifRes.data.data || []).filter(n => {
+          const isRead = n.is_read ?? n.IsRead ?? false;
+          return !isRead;
+        }).length;
         setStats(prev => ({ ...prev, unreadNotifications: unread }));
       }
     } catch (err) {
@@ -96,18 +99,23 @@ const TopNavBar = ({ setIsOpen }) => {
     fetchProfile();
     fetchStats();
     
-    // Listen for setting changes to live reload the navbar profile & logo
+    // Listen for setting and notification changes to live reload
     const handleSettingsUpdate = () => {
       fetchProfile();
     };
+    const handleNotifsUpdate = () => {
+      fetchStats();
+    };
     window.addEventListener('ormawa_settings_updated', handleSettingsUpdate);
+    window.addEventListener('ormawa_notifications_updated', handleNotifsUpdate);
 
     const interval = setInterval(fetchStats, 60000);
     return () => {
       clearInterval(interval);
       window.removeEventListener('ormawa_settings_updated', handleSettingsUpdate);
+      window.removeEventListener('ormawa_notifications_updated', handleNotifsUpdate);
     };
-  }, []);
+  }, [user]);
 
   const filteredResults = pages.filter(page =>
     page.name.toLowerCase().includes(searchQuery.toLowerCase())
