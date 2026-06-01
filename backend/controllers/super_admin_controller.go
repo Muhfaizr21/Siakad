@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"fmt"
+	"log"
 	"siakad-backend/config"
 	"siakad-backend/models"
 	"strings"
@@ -666,16 +667,21 @@ func DeletePsychologist(c *fiber.Ctx) error {
 
 func GetPsychologistSchedulesAdmin(c *fiber.Ctx) error {
 	id := c.Params("id")
+	log.Printf("[SCHEDULE-ADMIN] GetPsychologistSchedulesAdmin called for ID: %s", id)
+
 	var psikolog models.Psikolog
 	if err := config.DB.First(&psikolog, id).Error; err != nil {
+		log.Printf("[SCHEDULE-ADMIN] Psikolog not found for ID: %s", id)
 		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Psikolog not found"})
 	}
 
 	days := []string{"Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu"}
 	var slots []models.PsikologScheduleSlot
 	if err := config.DB.Where("psikolog_id = ?", psikolog.ID).Order("id asc").Find(&slots).Error; err != nil {
+		log.Printf("[SCHEDULE-ADMIN] Failed to fetch slots: %v", err)
 		return c.Status(500).JSON(fiber.Map{"status": "error", "message": err.Error()})
 	}
+	log.Printf("[SCHEDULE-ADMIN] Found %d slots for psikolog_id=%d", len(slots), psikolog.ID)
 
 	grouped := make([]fiber.Map, 0, len(days))
 	for _, day := range days {
@@ -704,10 +710,17 @@ func GetPsychologistSchedulesAdmin(c *fiber.Ctx) error {
 
 func SavePsychologistSchedulesAdmin(c *fiber.Ctx) error {
 	id := c.Params("id")
+	log.Printf("[SCHEDULE-ADMIN] SavePsychologistSchedulesAdmin called for ID: %s", id)
+
 	var psikolog models.Psikolog
 	if err := config.DB.First(&psikolog, id).Error; err != nil {
+		log.Printf("[SCHEDULE-ADMIN] Psikolog not found for ID: %s", id)
 		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Psikolog not found"})
 	}
+
+	// Parse the raw body for debugging
+	rawBody := string(c.Body())
+	log.Printf("[SCHEDULE-ADMIN] Raw body (first 500 chars): %.500s", rawBody)
 
 	var body []struct {
 		Day     string `json:"day"`
@@ -722,13 +735,23 @@ func SavePsychologistSchedulesAdmin(c *fiber.Ctx) error {
 		} `json:"slots"`
 	}
 	if err := c.BodyParser(&body); err != nil {
-		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Payload jadwal tidak valid"})
+		log.Printf("[SCHEDULE-ADMIN] BodyParser error: %v", err)
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Payload jadwal tidak valid: " + err.Error()})
+	}
+
+	log.Printf("[SCHEDULE-ADMIN] Parsed %d days from body", len(body))
+	for _, d := range body {
+		log.Printf("[SCHEDULE-ADMIN]   Day=%s Enabled=%v Slots=%d", d.Day, d.Enabled, len(d.Slots))
 	}
 
 	err := config.DB.Transaction(func(tx *gorm.DB) error {
-		if err := tx.Where("psikolog_id = ?", psikolog.ID).Delete(&models.PsikologScheduleSlot{}).Error; err != nil {
+		// HARD DELETE old slots (Unscoped to bypass soft-delete)
+		if err := tx.Unscoped().Where("psikolog_id = ?", psikolog.ID).Delete(&models.PsikologScheduleSlot{}).Error; err != nil {
+			log.Printf("[SCHEDULE-ADMIN] Failed to delete old slots: %v", err)
 			return err
 		}
+		log.Printf("[SCHEDULE-ADMIN] Old slots deleted for psikolog_id=%d", psikolog.ID)
+
 		for _, day := range body {
 			for _, slot := range day.Slots {
 				kuota := slot.Kuota
@@ -737,6 +760,7 @@ func SavePsychologistSchedulesAdmin(c *fiber.Ctx) error {
 				}
 				kategori := normalizeScheduleCategoryLocal(slot.Kategori)
 
+				// is_aktif: if slot-level is_available was sent, use it; otherwise fall back to day.Enabled
 				isAktif := day.Enabled
 				if slot.IsAvailable != nil {
 					isAktif = *slot.IsAvailable
@@ -754,22 +778,27 @@ func SavePsychologistSchedulesAdmin(c *fiber.Ctx) error {
 					IsAktif:    &isAktifVal,
 				}
 				if err := tx.Create(&record).Error; err != nil {
+					log.Printf("[SCHEDULE-ADMIN] Failed to create slot for %s: %v", day.Day, err)
 					return err
 				}
 			}
 		}
+		log.Printf("[SCHEDULE-ADMIN] All new slots created successfully")
 		return nil
 	})
 	if err != nil {
+		log.Printf("[SCHEDULE-ADMIN] Transaction error: %v", err)
 		return c.Status(500).JSON(fiber.Map{"status": "error", "message": err.Error()})
 	}
 
-	// Re-fetch using local logic
+	// Re-fetch and return updated data
 	days := []string{"Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu"}
 	var slots []models.PsikologScheduleSlot
 	if err := config.DB.Where("psikolog_id = ?", psikolog.ID).Order("id asc").Find(&slots).Error; err != nil {
 		return c.Status(500).JSON(fiber.Map{"status": "error", "message": err.Error()})
 	}
+
+	log.Printf("[SCHEDULE-ADMIN] Re-fetched %d slots after save", len(slots))
 
 	grouped := make([]fiber.Map, 0, len(days))
 	for _, day := range days {
@@ -793,6 +822,7 @@ func SavePsychologistSchedulesAdmin(c *fiber.Ctx) error {
 		}
 		grouped = append(grouped, fiber.Map{"day": day, "enabled": enabled, "slots": daySlots})
 	}
+	log.Printf("[SCHEDULE-ADMIN] Returning %d grouped days", len(grouped))
 	return c.JSON(fiber.Map{"status": "success", "data": grouped})
 }
 

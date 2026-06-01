@@ -104,6 +104,8 @@ export default function PsychologistDirectory() {
   const [loading, setLoading] = useState(true)
   const [selected, setSelected] = useState(null)
   const [isEditOpen, setIsEditOpen] = useState(false)
+  const [isAddOpen, setIsAddOpen] = useState(false)
+  const [addForm, setAddForm] = useState({ Nama: '', Email: '', Password: '' })
   const [isDelOpen, setIsDelOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -157,6 +159,18 @@ export default function PsychologistDirectory() {
     }
   }
 
+  const getTodayBookingsCount = () => {
+    return bookings.filter(b => {
+      const d = b.tanggal || b.Tanggal
+      if (!d) return false
+      const bd = new Date(d)
+      const today = new Date()
+      return bd.getFullYear() === today.getFullYear() &&
+             bd.getMonth() === today.getMonth() &&
+             bd.getDate() === today.getDate()
+    }).length
+  }
+
   useEffect(() => { fetchData() }, [])
 
   const handleOpenEdit = (row) => {
@@ -204,6 +218,32 @@ export default function PsychologistDirectory() {
     } catch { toast.error('Terjadi kesalahan sistem') } finally { setIsSubmitting(false) }
   }
 
+  const handleAdd = async (e) => {
+    if (e) e.preventDefault()
+    setIsSubmitting(true)
+    try {
+      const payload = {
+        Role: 'psikolog',
+        Nama: addForm.Nama,
+        Email: addForm.Email,
+        Password: addForm.Password
+      }
+      const res = await adminService.createUser(payload)
+      if (res.status === 'success') {
+        toast.success('Psikolog baru berhasil didaftarkan')
+        setIsAddOpen(false)
+        setAddForm({ Nama: '', Email: '', Password: '' })
+        fetchData()
+      } else {
+        toast.error(res.message || 'Gagal mendaftarkan psikolog')
+      }
+    } catch (err) {
+      toast.error(err?.message || 'Terjadi kesalahan sistem')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
   const handleDelete = async () => {
     setIsSubmitting(true)
     try {
@@ -248,15 +288,15 @@ export default function PsychologistDirectory() {
         ...item,
         enabled: nextEnabled,
         slots: nextEnabled && (!item.slots || item.slots.length === 0)
-          ? [{ kategori: 'Personal', start: '09:00', end: '12:00', lokasi: 'Ruang Konseling A', kuota: 1 }]
-          : item.slots || []
+          ? [{ kategori: 'Personal', start: '09:00', end: '12:00', lokasi: 'Ruang Konseling A', kuota: 1, is_available: true }]
+          : (item.slots || []).map((s) => ({ ...s, is_available: nextEnabled }))
       }
     }))
   }
 
   const addSlot = (day) => {
     setScheduleData((prev) => prev.map((item) => item.day === day
-      ? { ...item, enabled: true, slots: [...(item.slots || []), { kategori: 'Personal', start: '09:00', end: '10:00', lokasi: 'Ruang Konseling A', kuota: 1 }] }
+      ? { ...item, enabled: true, slots: [...(item.slots || []), { kategori: 'Personal', start: '09:00', end: '10:00', lokasi: 'Ruang Konseling A', kuota: 1, is_available: true }] }
       : item))
   }
 
@@ -299,7 +339,7 @@ export default function PsychologistDirectory() {
           end: slot.end,
           lokasi: slot.lokasi,
           kuota: slot.kuota,
-          is_available: slot.is_available
+          is_available: item.enabled ? (slot.is_available ?? true) : false
         }))
       }))
       const targetId = selected.id || selected.ID
@@ -650,12 +690,12 @@ export default function PsychologistDirectory() {
                     <span className="material-symbols-outlined" style={{ fontSize: '18px' }} >calendar_month</span>
                  </div>
                  <span className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-widest">Booking Hari Ini</span>
-                 {bookings.filter(b => (b.tanggal || b.Tanggal || '').startsWith(new Date().toLocaleDateString('en-CA'))).length > 0 && (
+                 {getTodayBookingsCount() > 0 && (
                    <span className="bg-rose-500 text-white text-[8px] font-extrabold px-1.5 py-0.5 rounded-full animate-pulse ml-auto">LIVE</span>
                  )}
               </div>
               <p className="text-3xl font-extrabold text-[#171717] font-jakarta leading-none tabular-nums">
-                {bookings.filter(b => (b.tanggal || b.Tanggal || '').startsWith(new Date().toLocaleDateString('en-CA'))).length}
+                {getTodayBookingsCount()}
               </p>
               <p className="text-xs text-[#a3a3a3] font-medium mt-1">Mahasiswa booking hari ini</p>
            </div>
@@ -691,7 +731,7 @@ export default function PsychologistDirectory() {
               id: 'bookings', 
               label: 'Booking Konseling', 
               icon: 'calendar_month', 
-              count: bookings.filter(b => (b.tanggal || b.Tanggal || '').startsWith(new Date().toLocaleDateString('en-CA'))).length 
+              count: getTodayBookingsCount()
             },
             { id: 'medical_records', label: 'Rekam Medis', icon: 'medical_services' },
             { id: 'referrals', label: 'Tindak Lanjut (Rujukan)', icon: 'forward_to_inbox' }
@@ -729,6 +769,11 @@ export default function PsychologistDirectory() {
                 data={data} 
                 loading={loading}
                 searchPlaceholder="Cari Nama atau Spesialisasi..."
+                onAdd={() => {
+                  setAddForm({ Nama: '', Email: '', Password: '' })
+                  setIsAddOpen(true)
+                }}
+                addLabel="Tambah Psikolog"
                 filters={[
                   { key: 'Spesialisasi', placeholder: 'FILTER BIDANG', options: [{ label: 'PSIKOLOG UMUM', value: 'Umum' }, { label: 'KLINIS', value: 'Klinis' }, { label: 'PENDIDIKAN', value: 'Pendidikan' }] }
                 ]}
@@ -883,6 +928,52 @@ export default function PsychologistDirectory() {
                <Button type="submit" disabled={isSubmitting} className="w-full sm:flex-1 h-12 rounded-xl bg-neutral-900 text-white hover:bg-teal-600 shadow-md transition-all active:scale-95 flex items-center justify-center">
                   {isSubmitting ? <span className="material-symbols-outlined animate-spin mr-2" style={{ fontSize: '14px' }} >sync</span> : <span className="material-symbols-outlined mr-2" style={{ fontSize: '14px' }} >save</span>}
                   <span className="text-xs font-bold uppercase tracking-widest">Update Profil</span>
+               </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── Add Modal ───────────────────────────────────────────── */}
+      <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
+        <DialogContent className="w-[95vw] sm:w-[90vw] md:max-w-md p-0 overflow-hidden border-none shadow-2xl rounded-2xl bg-white animate-in slide-in-from-bottom-4 duration-300">
+          <DialogHeader className="p-6 sm:p-8 pb-4 sm:pb-6 border-b border-neutral-100 relative overflow-hidden bg-neutral-50/50">
+            <div className="absolute top-0 right-0 p-8 opacity-5 text-teal-600"><BrainCircuit size={100} /></div>
+            <div className="relative z-10 space-y-1">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="size-6 rounded bg-indigo-50 flex items-center justify-center text-indigo-600">
+                  <span className="material-symbols-outlined" style={{ fontSize: '12px' }} >add_circle</span>
+                </div>
+                <span className="text-[10px] font-bold uppercase tracking-widest text-indigo-600">Registry System</span>
+              </div>
+              <DialogTitle className="text-xl sm:text-2xl font-bold font-jakarta tracking-tight text-neutral-900 uppercase">
+                Tambah Psikolog Baru
+              </DialogTitle>
+              <DialogDescription className="text-xs sm:text-sm font-medium text-neutral-400">Registrasi akun baru untuk psikolog.</DialogDescription>
+            </div>
+          </DialogHeader>
+
+          <form onSubmit={handleAdd} className="p-6 sm:p-8 pt-4 sm:pt-6 space-y-4">
+            <div className="space-y-2">
+              <Label className="text-xs font-bold text-neutral-500 font-jakarta ml-1">Nama Lengkap & Gelar</Label>
+              <Input required value={addForm.Nama} onChange={e => setAddForm({ ...addForm, Nama: e.target.value })} placeholder="Contoh: Budi Santoso, M.Psi." className="h-11 rounded-lg border-neutral-200 bg-neutral-50/30 focus:bg-white font-medium text-sm font-jakarta uppercase" />
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-xs font-bold text-neutral-500 font-jakarta ml-1">Email</Label>
+              <Input type="email" required value={addForm.Email} onChange={e => setAddForm({ ...addForm, Email: e.target.value })} placeholder="Contoh: psikolog.budi@bku.ac.id" className="h-11 rounded-lg border-neutral-200 bg-neutral-50/30 focus:bg-white font-medium text-sm font-jakarta" />
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-xs font-bold text-neutral-500 font-jakarta ml-1">Password</Label>
+              <Input type="password" required value={addForm.Password} onChange={e => setAddForm({ ...addForm, Password: e.target.value })} placeholder="Password..." className="h-11 rounded-lg border-neutral-200 bg-neutral-50/30 focus:bg-white font-medium text-sm font-jakarta" />
+            </div>
+
+            <div className="pt-6 flex flex-col-reverse sm:flex-row gap-3 border-t border-neutral-100">
+               <Button type="button" variant="ghost" onClick={() => setIsAddOpen(false)} className="w-full sm:w-auto h-12 rounded-xl text-xs font-bold uppercase tracking-widest text-neutral-400">Batal</Button>
+               <Button type="submit" disabled={isSubmitting} className="w-full sm:flex-1 h-12 rounded-xl bg-indigo-600 text-white hover:bg-indigo-700 shadow-md transition-all active:scale-95 flex items-center justify-center border-none">
+                  {isSubmitting ? <span className="material-symbols-outlined animate-spin mr-2" style={{ fontSize: '14px' }} >sync</span> : <span className="material-symbols-outlined mr-2" style={{ fontSize: '14px' }} >save</span>}
+                  <span className="text-xs font-bold uppercase tracking-widest">Daftarkan Akun</span>
                </Button>
             </div>
           </form>
