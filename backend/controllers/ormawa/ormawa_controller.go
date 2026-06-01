@@ -713,34 +713,80 @@ func DeleteMember(c *fiber.Ctx) error {
 // --- NOTIFICATIONS ---
 
 func GetOrmawaNotifications(c *fiber.Ctx) error {
-	ormawaId := c.Query("ormawaId")
-	var list []models.OrmawaNotifikasi
-	query := config.DB.Model(&models.OrmawaNotifikasi{})
-	if ormawaId != "" {
-		query = query.Where("ormawa_id = ?", ormawaId)
+	ctxOrmawaId, ok := c.Locals("ormawa_id").(uint)
+	var targetOrmawaId uint
+	if ok && ctxOrmawaId > 0 {
+		targetOrmawaId = ctxOrmawaId
+	} else {
+		if qId := c.Query("ormawaId"); qId != "" {
+			var parsed uint
+			if _, err := fmt.Sscanf(qId, "%d", &parsed); err == nil {
+				targetOrmawaId = parsed
+			}
+		}
 	}
-	query.Order("created_at desc").Find(&list)
+
+	if targetOrmawaId == 0 {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "ormawaId required"})
+	}
+
+	var list []models.OrmawaNotifikasi
+	config.DB.Model(&models.OrmawaNotifikasi{}).
+		Where("ormawa_id = ?", targetOrmawaId).
+		Order("created_at desc").
+		Find(&list)
 	return c.JSON(fiber.Map{"status": "success", "data": list})
 }
 
 func MarkNotificationRead(c *fiber.Ctx) error {
 	id := c.Params("id")
-	config.DB.Model(&models.OrmawaNotifikasi{}).Where("id = ?", id).Update("is_read", true)
+	ctxOrmawaId, ok := c.Locals("ormawa_id").(uint)
+	
+	query := config.DB.Model(&models.OrmawaNotifikasi{}).Where("id = ?", id)
+	if ok && ctxOrmawaId > 0 {
+		query = query.Where("ormawa_id = ?", ctxOrmawaId)
+	}
+	
+	if err := query.Update("is_read", true).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": err.Error()})
+	}
 	return c.JSON(fiber.Map{"status": "success", "message": "Read"})
 }
 
 func MarkAllNotificationsRead(c *fiber.Ctx) error {
-	ormawaId := c.Query("ormawaId")
-	if ormawaId == "" {
+	ctxOrmawaId, ok := c.Locals("ormawa_id").(uint)
+	var targetOrmawaId uint
+	if ok && ctxOrmawaId > 0 {
+		targetOrmawaId = ctxOrmawaId
+	} else {
+		if qId := c.Query("ormawaId"); qId != "" {
+			var parsed uint
+			if _, err := fmt.Sscanf(qId, "%d", &parsed); err == nil {
+				targetOrmawaId = parsed
+			}
+		}
+	}
+
+	if targetOrmawaId == 0 {
 		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "ormawaId required"})
 	}
-	config.DB.Model(&models.OrmawaNotifikasi{}).Where("ormawa_id = ?", ormawaId).Update("is_read", true)
+
+	config.DB.Model(&models.OrmawaNotifikasi{}).Where("ormawa_id = ?", targetOrmawaId).Update("is_read", true)
 	return c.JSON(fiber.Map{"status": "success"})
 }
 
 func DeleteNotification(c *fiber.Ctx) error {
 	id := c.Params("id")
-	config.DB.Delete(&models.OrmawaNotifikasi{}, id)
+	ctxOrmawaId, ok := c.Locals("ormawa_id").(uint)
+	
+	query := config.DB.Where("id = ?", id)
+	if ok && ctxOrmawaId > 0 {
+		query = query.Where("ormawa_id = ?", ctxOrmawaId)
+	}
+	
+	if err := query.Delete(&models.OrmawaNotifikasi{}).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": err.Error()})
+	}
 	return c.JSON(fiber.Map{"status": "success"})
 }
 
