@@ -86,6 +86,35 @@ export default function PsikologPage() {
   const [pageSize, setPageSize] = useState(10)
   const [sortConfig, setSortConfig] = useState({ key: 'Nama', direction: 'asc' })
 
+  const [activeTab, setActiveTab] = useState('profile')
+  const [bookings, setBookings] = useState([])
+  const [loadingBookings, setLoadingBookings] = useState(false)
+
+  const fetchBookingsForPsikolog = async (psikologId) => {
+    setLoadingBookings(true)
+    try {
+      const res = await api.get('/faculty/counseling')
+      const allBookings = res?.data?.data || []
+      const filteredBookings = allBookings.filter(b => b.psikolog_id === psikologId)
+      setBookings(filteredBookings)
+    } catch (err) {
+      console.error(err)
+      toast.error("Gagal memuat riwayat konseling")
+    } finally {
+      setLoadingBookings(false)
+    }
+  }
+
+  const handleSelectPsikolog = (psikolog) => {
+    setSelected(psikolog)
+    setActiveTab('profile')
+    if (psikolog) {
+      fetchBookingsForPsikolog(psikolog.ID)
+    } else {
+      setBookings([])
+    }
+  }
+
   const fetchPsychologists = async () => {
     setLoading(true)
     try {
@@ -379,7 +408,7 @@ export default function PsikologPage() {
                           </td>
                           <td className="px-5 py-3.5 text-right">
                             <button
-                              onClick={() => setSelected(row)}
+                              onClick={() => handleSelectPsikolog(row)}
                               className="p-1.5 text-slate-400 hover:text-primary hover:bg-[#eef4ff] rounded-lg transition-colors"
                               title="Lihat Detail"
                             >
@@ -487,30 +516,30 @@ export default function PsikologPage() {
           {/* Backdrop */}
           <div
             className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4"
-            onClick={() => setSelected(null)}
+            onClick={() => handleSelectPsikolog(null)}
           >
             {/* Modal box */}
             <div
-              className="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl z-[101] flex flex-col overflow-hidden max-h-[90vh]"
+              className="relative w-full max-w-2xl bg-white rounded-3xl shadow-2xl z-[101] flex flex-col overflow-hidden max-h-[90vh]"
               onClick={e => e.stopPropagation()}
             >
 
               {/* ── Header ── */}
-              <div className="relative bg-gradient-to-br from-[#00236F] via-[#00308F] to-[#003db5] pt-6 pb-8 px-6 overflow-hidden flex-shrink-0">
+              <div className="relative bg-gradient-to-br from-[#00236F] via-[#00308F] to-[#003db5] pt-6 pb-6 px-6 overflow-hidden flex-shrink-0">
                 {/* decorative circles */}
                 <div className="absolute -top-10 -right-10 w-44 h-44 bg-white/5 rounded-full pointer-events-none" />
                 <div className="absolute -bottom-6 right-16 w-28 h-28 bg-white/5 rounded-full pointer-events-none" />
 
                 {/* Close */}
                 <button
-                  onClick={() => setSelected(null)}
+                  onClick={() => handleSelectPsikolog(null)}
                   className="absolute z-50 top-4 right-4 w-8 h-8 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center transition-colors"
                 >
                   <span className="material-symbols-outlined text-white" style={{ fontSize: '15px' }} >close</span>
                 </button>
 
                 {/* Avatar + name */}
-                <div className="relative z-10 flex items-center gap-4 mb-5">
+                <div className="relative z-10 flex items-center gap-4 mb-4">
                   <PsikologAvatar src={selectedPsikolog.Foto} name={selectedPsikolog.Nama} className="w-[60px] h-[60px] rounded-2xl shadow-xl ring-2 ring-white/20" />
                   <div className="min-w-0">
                     <p className="text-[9px] font-bold text-white/50 uppercase tracking-[0.25em] mb-1">Praktisi Wellness</p>
@@ -535,82 +564,210 @@ export default function PsikologPage() {
                 </div>
               </div>
 
+              {/* Tab Navigation */}
+              <div className="flex border-b border-slate-100 bg-slate-50/50 px-6 pt-2 flex-shrink-0">
+                <button
+                  onClick={() => setActiveTab('profile')}
+                  className={cn(
+                    "pb-3 pt-2 text-xs font-bold uppercase tracking-wider border-b-2 mr-6 transition-all",
+                    activeTab === 'profile'
+                      ? "border-primary text-primary"
+                      : "border-transparent text-slate-400 hover:text-slate-600"
+                  )}
+                >
+                  Profil Psikolog
+                </button>
+                <button
+                  onClick={() => setActiveTab('history')}
+                  className={cn(
+                    "pb-3 pt-2 text-xs font-bold uppercase tracking-wider border-b-2 transition-all flex items-center gap-1.5",
+                    activeTab === 'history'
+                      ? "border-primary text-primary"
+                      : "border-transparent text-slate-400 hover:text-slate-600"
+                  )}
+                >
+                  <span className="material-symbols-outlined text-[14px]">history</span>
+                  Riwayat Mahasiswa Fakultas
+                  {bookings.length > 0 && (
+                    <span className="bg-primary/10 text-primary px-1.5 py-0.5 rounded-full text-[10px] font-black">
+                      {bookings.length}
+                    </span>
+                  )}
+                </button>
+              </div>
+
               {/* ── Body ── */}
               <div className="flex-1 overflow-y-auto">
-
-                {/* Bio Section */}
-                <div className="p-5 border-b border-slate-100">
-                  <div className="flex items-center gap-2 mb-3">
-                    <div className="w-5 h-5 rounded-md bg-[#eef4ff] flex items-center justify-center">
-                      <span className="material-symbols-outlined text-primary" style={{ fontSize: '11px' }} >description</span>
+                {activeTab === 'profile' ? (
+                  <>
+                    {/* Bio Section */}
+                    <div className="p-5 border-b border-slate-100">
+                      <div className="flex items-center gap-2 mb-3">
+                        <div className="w-5 h-5 rounded-md bg-[#eef4ff] flex items-center justify-center">
+                          <span className="material-symbols-outlined text-primary" style={{ fontSize: '11px' }} >description</span>
+                        </div>
+                        <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.18em]">Profil & Biografi</h3>
+                      </div>
+                      <p className="text-sm text-slate-600 leading-relaxed italic bg-slate-50/50 border border-slate-100 rounded-xl p-4">
+                        "{selectedPsikolog.Bio}"
+                      </p>
                     </div>
-                    <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.18em]">Profil & Biografi</h3>
-                  </div>
-                  <p className="text-sm text-slate-600 leading-relaxed italic bg-slate-50/50 border border-slate-100 rounded-xl p-4">
-                    "{selectedPsikolog.Bio}"
-                  </p>
-                </div>
 
-                {/* Penugasan Konselor */}
-                <div className="p-5 border-b border-slate-100">
-                  <div className="flex items-center gap-2 mb-4">
-                    <div className="w-5 h-5 rounded-md bg-[#eef4ff] flex items-center justify-center">
-                      <Layers size={11} className="text-primary" />
+                    {/* Penugasan Konselor */}
+                    <div className="p-5 border-b border-slate-100">
+                      <div className="flex items-center gap-2 mb-4">
+                        <div className="w-5 h-5 rounded-md bg-[#eef4ff] flex items-center justify-center">
+                          <Layers size={11} className="text-primary" />
+                        </div>
+                        <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.18em]">Detail Praktik</h3>
+                      </div>
+                      <div className="space-y-1">
+                        <InfoCard
+                          icon={Building2}
+                          label="Lokasi Praktik"
+                          value={selectedPsikolog.Lokasi}
+                          accent="border-l-blue-400"
+                        />
+                        <InfoCard
+                          icon={Briefcase}
+                          label="Bahasa yang Dikuasai"
+                          value={selectedPsikolog.Bahasa}
+                          accent="border-l-indigo-400"
+                        />
+                        <InfoCard
+                          icon={Award}
+                          label="Tarif Konsultasi"
+                          value={`${formatIDR(selectedPsikolog.Tarif)} per Sesi`}
+                          accent="border-l-amber-400"
+                        />
+                      </div>
                     </div>
-                    <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.18em]">Detail Praktik</h3>
-                  </div>
-                  <div className="space-y-1">
-                    <InfoCard
-                      icon={Building2}
-                      label="Lokasi Praktik"
-                      value={selectedPsikolog.Lokasi}
-                      accent="border-l-blue-400"
-                    />
-                    <InfoCard
-                      icon={Briefcase}
-                      label="Bahasa yang Dikuasai"
-                      value={selectedPsikolog.Bahasa}
-                      accent="border-l-indigo-400"
-                    />
-                    <InfoCard
-                      icon={Award}
-                      label="Tarif Konsultasi"
-                      value={`${formatIDR(selectedPsikolog.Tarif)} per Sesi`}
-                      accent="border-l-amber-400"
-                    />
-                  </div>
-                </div>
 
-                {/* Informasi Kontak */}
-                <div className="p-5 border-b border-slate-100">
-                  <div className="flex items-center gap-2 mb-4">
-                    <div className="w-5 h-5 rounded-md bg-[#eef4ff] flex items-center justify-center">
-                      <span className="material-symbols-outlined text-primary" style={{ fontSize: '11px' }} >mail</span>
+                    {/* Informasi Kontak */}
+                    <div className="p-5 border-b border-slate-100">
+                      <div className="flex items-center gap-2 mb-4">
+                        <div className="w-5 h-5 rounded-md bg-[#eef4ff] flex items-center justify-center">
+                          <span className="material-symbols-outlined text-primary" style={{ fontSize: '11px' }} >mail</span>
+                        </div>
+                        <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.18em]">Informasi Kontak</h3>
+                      </div>
+                      <div className="space-y-1">
+                        <InfoCard
+                          icon={Mail}
+                          label="Email Resmi"
+                          value={selectedPsikolog.Email}
+                          accent="border-l-rose-400"
+                          mono
+                        />
+                        <InfoCard
+                          icon={Phone}
+                          label="No. Handphone"
+                          value={selectedPsikolog.NoHP}
+                          accent="border-l-emerald-400"
+                        />
+                      </div>
                     </div>
-                    <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.18em]">Informasi Kontak</h3>
+                  </>
+                ) : (
+                  <div className="p-6 space-y-4">
+                    <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                      <div>
+                        <h3 className="text-sm font-black text-slate-800">
+                          Catatan Konseling Mahasiswa
+                        </h3>
+                        <p className="text-xs text-slate-400 mt-0.5">
+                          Daftar riwayat bimbingan mahasiswa fakultas Anda dengan {selectedPsikolog.Nama}
+                        </p>
+                      </div>
+                    </div>
+
+                    {loadingBookings ? (
+                      <div className="py-12 flex flex-col items-center justify-center gap-2">
+                        <span className="material-symbols-outlined animate-spin text-slate-300" style={{ fontSize: '32px' }} >sync</span>
+                        <p className="text-xs text-slate-400 font-semibold">Memuat riwayat...</p>
+                      </div>
+                    ) : bookings.length === 0 ? (
+                      <div className="py-12 flex flex-col items-center justify-center text-center gap-3">
+                        <div className="w-12 h-12 bg-slate-50 border border-slate-100 rounded-2xl flex items-center justify-center text-slate-400">
+                          <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>history</span>
+                        </div>
+                        <div>
+                          <p className="font-bold text-sm text-slate-800">Belum Ada Riwayat Konseling</p>
+                          <p className="text-xs text-slate-400 max-w-sm mt-0.5">
+                            Tidak ditemukan data riwayat bimbingan untuk mahasiswa dari fakultas Anda dengan psikolog ini.
+                          </p>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        {bookings.map((b) => {
+                          const statusCls = 
+                            b.status === 'Selesai' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' :
+                            b.status === 'Disetujui' || b.status === 'Dikonfirmasi' ? 'bg-blue-50 text-blue-700 border-blue-100' :
+                            b.status === 'Menunggu' ? 'bg-amber-50 text-amber-700 border-amber-100' :
+                            'bg-rose-50 text-rose-700 border-rose-100';
+
+                          return (
+                            <div key={b.id} className="p-4 bg-slate-50/50 border border-slate-100 rounded-2xl hover:bg-white hover:border-slate-200/60 transition-all space-y-3">
+                              {/* Student Info & Status Row */}
+                              <div className="flex items-start justify-between gap-3">
+                                <div>
+                                  <p className="font-bold text-sm text-slate-900 leading-tight">
+                                    {b.mahasiswa?.nama || '—'}
+                                  </p>
+                                  <p className="text-xs font-semibold text-slate-400 mt-0.5">
+                                    {b.mahasiswa?.program_studi?.Nama || b.mahasiswa?.program_studi?.nama || '—'}
+                                  </p>
+                                </div>
+                                <span className={cn(
+                                  "px-2.5 py-1 rounded-lg text-[10px] font-bold border uppercase tracking-wider",
+                                  statusCls
+                                )}>
+                                  {b.status}
+                                </span>
+                              </div>
+
+                              {/* Date, Time & Mode */}
+                              <div className="flex flex-wrap gap-x-4 gap-y-2 text-xs font-medium text-slate-500 bg-slate-100/50 p-2.5 rounded-xl border border-slate-200/30">
+                                <div className="flex items-center gap-1.5">
+                                  <span className="material-symbols-outlined text-[15px] text-slate-400">calendar_today</span>
+                                  {new Date(b.tanggal).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
+                                </div>
+                                <div className="flex items-center gap-1.5">
+                                  <span className="material-symbols-outlined text-[15px] text-slate-400">schedule</span>
+                                  {b.jam_mulai} - {b.jam_selesai} WIB
+                                </div>
+                                <div className="flex items-center gap-1.5 ml-auto">
+                                  <span className="material-symbols-outlined text-[15px] text-slate-400">
+                                    {b.mode === 'Online' ? 'videocam' : 'location_on'}
+                                  </span>
+                                  {b.mode || 'Tatap Muka'}
+                                </div>
+                              </div>
+
+                              {/* Complaint Section */}
+                              <div className="space-y-1 bg-white border border-slate-100 p-3 rounded-xl shadow-sm">
+                                <div className="flex items-center gap-1.5 text-slate-400">
+                                  <span className="material-symbols-outlined text-[15px] text-primary">psychology</span>
+                                  <span className="text-[10px] font-black uppercase tracking-wider">Topik: {b.topik || 'Umum'}</span>
+                                </div>
+                                <p className="text-xs font-semibold text-slate-700 mt-1 leading-relaxed">
+                                  {b.keluhan || 'Tidak ada catatan keluhan.'}
+                                </p>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
-                  <div className="space-y-1">
-                    <InfoCard
-                      icon={Mail}
-                      label="Email Resmi"
-                      value={selectedPsikolog.Email}
-                      accent="border-l-rose-400"
-                      mono
-                    />
-                    <InfoCard
-                      icon={Phone}
-                      label="No. Handphone"
-                      value={selectedPsikolog.NoHP}
-                      accent="border-l-emerald-400"
-                    />
-                  </div>
-                </div>
+                )}
               </div>
 
               {/* ── Footer ── */}
               <div className="px-5 py-4 border-t border-slate-100 bg-slate-50/50 flex gap-3 flex-shrink-0">
                 <button
-                  onClick={() => setSelected(null)}
+                  onClick={() => handleSelectPsikolog(null)}
                   className="w-full h-11 rounded-xl border border-slate-200/60 bg-white text-xs font-bold text-slate-600 uppercase tracking-widest hover:bg-slate-50 transition-all active:scale-95"
                 >
                   Tutup Detail

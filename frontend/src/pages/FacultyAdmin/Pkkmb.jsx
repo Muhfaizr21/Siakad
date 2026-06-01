@@ -23,6 +23,7 @@ const GraduationCap = ({ size, className, ...props }) => <span className={`mater
 const Users = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>group</span>;
 const Clock = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>schedule</span>;
 const Activity = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>show_chart</span>;
+const Award = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>emoji_events</span>;
 
 
 
@@ -81,11 +82,37 @@ export default function FacultyPkkmb() {
   const [loading, setLoading]   = useState(true)
   const [data, setData]         = useState([])
   const [students, setStudents] = useState([])
-  const [summary, setSummary]   = useState({ totalMaba:0, totalLulus:0, totalProses:0 })
+  const [summary, setSummary]   = useState({ totalMaba:0, totalLulus:0, totalProses:0, totalSertifikat:0 })
   const [search, setSearch]     = useState('')
   const [filterStatus, setFilter]= useState('all')
   const [selected, setSelected] = useState(null)
   
+  const [statsDetail, setStatsDetail] = useState(null)
+  const [statsSearch, setStatsSearch] = useState('')
+
+  const handleOpenStatsDetail = (key, label) => {
+    let list = []
+    if (key === 'totalMaba') {
+      list = students
+    } else if (key === 'totalLulus') {
+      list = students.filter(s => s.StatusKelulusan === 'Lulus')
+    } else if (key === 'totalSertifikat') {
+      list = students.filter(s => s.Mahasiswa?.PkkmbSertifikat !== null && s.Mahasiswa?.PkkmbSertifikat !== undefined)
+    } else if (key === 'totalProses') {
+      list = students.filter(s => s.StatusKelulusan === 'Proses')
+    }
+    setStatsDetail({ label, key, list })
+    setStatsSearch('')
+  }
+
+  const filteredStatsDetailList = useMemo(() => {
+    if (!statsDetail) return []
+    const q = statsSearch.toLowerCase()
+    return statsDetail.list.filter(s => 
+      !q || s.Mahasiswa?.Nama?.toLowerCase().includes(q) || s.Mahasiswa?.NIM?.includes(q) || s.Mahasiswa?.ProgramStudi?.Nama?.toLowerCase().includes(q)
+    )
+  }, [statsDetail, statsSearch])
+
   // Pagination & Sorting states
   const [currentPage, setCurrentPage]   = useState(1)
   const [pageSize, setPageSize]         = useState(10)
@@ -101,7 +128,7 @@ export default function FacultyPkkmb() {
     try {
       const res = await fetch(`${API}/ringkasan`)
       const json = await res.json()
-      if (json.status === 'success') { setData(json.prodiBreakdown||[]); setSummary(json.stats||{totalMaba:0,totalLulus:0,totalProses:0}) }
+      if (json.status === 'success') { setData(json.prodiBreakdown||[]); setSummary(json.stats||{totalMaba:0,totalLulus:0,totalProses:0,totalSertifikat:0}) }
     } catch {}
   }
 
@@ -227,19 +254,37 @@ export default function FacultyPkkmb() {
         </section>
 
         {/* Stats */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {[
-            {label:'Registrasi Maba',    value:summary.totalMaba,   icon:Users,        bg:'bg-[#eef4ff]',  color:'text-primary',   desc:'Total mahasiswa baru'},
-            {label:'Sertifikasi Lulus',  value:summary.totalLulus,  icon:CheckCircle,  bg:'bg-emerald-50', color:'text-emerald-600', desc:'Dinyatakan lulus PKKMB'},
-            {label:'Dalam Proses',       value:summary.totalProses, icon:Clock,        bg:'bg-amber-50',   color:'text-amber-600',   desc:'Masih dalam penilaian'},
+            {key:'totalMaba',       label:'Registrasi Maba',    value:summary.totalMaba,       icon:Users,        bg:'bg-[#eef4ff]',  color:'text-primary',       desc:'Total mahasiswa baru'},
+            {key:'totalLulus',      label:'Sertifikasi Lulus',  value:summary.totalLulus,      icon:CheckCircle,  bg:'bg-emerald-50', color:'text-emerald-600',   desc:'Dinyatakan lulus PKKMB'},
+            {key:'totalSertifikat', label:'Sertifikat Terbit',  value:summary.totalSertifikat, icon:Award,        bg:'bg-indigo-50',  color:'text-indigo-600',    desc:'Sertifikat telah di-generate'},
+            {key:'totalProses',     label:'Dalam Proses',       value:summary.totalProses,     icon:Clock,        bg:'bg-amber-50',   color:'text-amber-600',     desc:'Masih dalam penilaian'},
           ].map(s=>(
-            <div key={s.label} className="bg-white border border-slate-100/50 rounded-3xl p-5 shadow-sm">
-              <div className="flex items-center gap-3 mb-3">
-                <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center',s.bg,s.color)}><s.icon size={18}/></div>
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{s.label}</span>
+            <div
+              key={s.label}
+              onClick={() => handleOpenStatsDetail(s.key, s.label)}
+              className="bg-white border border-slate-100/50 rounded-3xl p-5 shadow-sm hover:shadow-md hover:border-slate-200 cursor-pointer transition-all hover:scale-[1.01] duration-200 group flex flex-col justify-between"
+            >
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-3">
+                    <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110', s.bg, s.color)}>
+                      <s.icon size={18}/>
+                    </div>
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{s.label}</span>
+                  </div>
+                  <span className="material-symbols-outlined text-slate-300 group-hover:text-primary transition-colors" style={{ fontSize: '16px' }}>arrow_forward</span>
+                </div>
+                <p className="text-2xl font-extrabold text-slate-900 leading-none tabular-nums">
+                  {loading ? (
+                    <span className="material-symbols-outlined animate-spin text-slate-300" style={{ fontSize: '18px' }} >sync</span>
+                  ) : (
+                    s.value
+                  )}
+                </p>
               </div>
-              <p className="text-2xl font-extrabold text-slate-900 leading-none tabular-nums">{loading?<span className="material-symbols-outlined animate-spin text-slate-300" style={{ fontSize: '18px' }} >sync</span>:s.value}</p>
-              <p className="text-xs text-slate-400 font-medium mt-1">{s.desc}</p>
+              <p className="text-xs text-slate-400 font-medium mt-3">{s.desc}</p>
             </div>
           ))}
         </div>
@@ -540,6 +585,76 @@ export default function FacultyPkkmb() {
             </div>
             <div className="px-5 py-4 border-t border-slate-100 bg-slate-50/50 flex-shrink-0">
               <button onClick={()=>setSelected(null)} className="w-full h-11 rounded-xl bg-primary hover:bg-[#001a52] text-white text-xs font-bold uppercase tracking-widest transition-all active:scale-95">Tutup</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Stats Detail Modal */}
+      {statsDetail && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4" onClick={()=>setStatsDetail(null)}>
+          <div className="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl z-[101] flex flex-col overflow-hidden max-h-[85vh]" onClick={e=>e.stopPropagation()}>
+            <div className="relative bg-gradient-to-br from-[#00236F] to-[#003db5] pt-6 pb-6 px-6 overflow-hidden flex-shrink-0">
+              <div className="absolute -top-10 -right-10 w-44 h-44 bg-white/5 rounded-full pointer-events-none"/>
+              <button onClick={()=>setStatsDetail(null)} className="absolute z-50 top-4 right-4 w-8 h-8 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center transition-colors"><span className="material-symbols-outlined text-white" style={{ fontSize: '15px' }} >close</span></button>
+              <div className="relative z-10">
+                <p className="text-[9px] font-bold text-white/50 uppercase tracking-[0.25em] mb-1">Rincian Data</p>
+                <h2 className="text-lg font-extrabold text-white leading-tight">{statsDetail.label}</h2>
+                <p className="text-xs text-blue-200 font-medium mt-1">Menampilkan {filteredStatsDetailList.length} mahasiswa dari total {statsDetail.list.length} entri</p>
+              </div>
+            </div>
+            <div className="p-4 border-b border-slate-100 bg-slate-50/50 flex-shrink-0">
+              <div className="relative">
+                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" style={{ fontSize: '15px' }} >search</span>
+                <input type="text" placeholder="Cari nama, NIM, atau prodi..." value={statsSearch} onChange={e=>setStatsSearch(e.target.value)}
+                  className="pl-9 pr-4 h-10 w-full rounded-xl border border-slate-200/60 focus:outline-none focus:border-primary text-sm bg-white placeholder-slate-400 font-semibold"/>
+              </div>
+            </div>
+            <div className="flex-1 overflow-y-auto p-4 space-y-2">
+              {filteredStatsDetailList.length === 0 ? (
+                <div className="py-12 flex flex-col items-center justify-center text-center gap-3">
+                  <div className="w-12 h-12 bg-slate-50 border border-slate-100 rounded-2xl flex items-center justify-center text-slate-400"><span className="material-symbols-outlined" style={{ fontSize: '22px' }} >group</span></div>
+                  <div>
+                    <p className="font-bold text-sm text-slate-800">Tidak ada hasil cocok</p>
+                    <p className="text-xs text-slate-400 max-w-xs mt-0.5">Coba kata kunci pencarian lain atau data sedang kosong.</p>
+                  </div>
+                </div>
+              ) : (
+                filteredStatsDetailList.map((row, i) => (
+                  <div key={row.ID||i} className="p-3 bg-slate-50/50 border border-slate-100/70 rounded-2xl hover:bg-white hover:border-slate-200 transition-all flex items-center justify-between gap-3 shadow-sm">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <StudentAvatar src={getFullUrl(row.Mahasiswa?.FotoURL || row.Mahasiswa?.foto_url || row.Mahasiswa?.Foto || row.Mahasiswa?.Pengguna?.Foto)} name={row.Mahasiswa?.Nama} className="w-9 h-9 rounded-xl" />
+                      <div className="min-w-0">
+                        <p className="font-bold text-sm text-slate-900 leading-tight truncate">{row.Mahasiswa?.Nama||'—'}</p>
+                        <p className="text-[10px] text-slate-400 font-semibold mt-0.5">{row.Mahasiswa?.NIM||'—'} · {row.Mahasiswa?.ProgramStudi?.Nama||'—'}</p>
+                      </div>
+                    </div>
+                    <div className="text-right flex-shrink-0">
+                      {statsDetail.key === 'totalSertifikat' && row.Mahasiswa?.PkkmbSertifikat ? (
+                        <div className="flex flex-col items-end">
+                          <span className="inline-flex items-center gap-1 bg-emerald-50 border border-emerald-100 text-emerald-700 font-bold px-2 py-0.5 rounded-lg text-[9px] uppercase tracking-wider">
+                            <span className="material-symbols-outlined" style={{ fontSize: '10px' }} >check_circle</span>
+                            Tersedia
+                          </span>
+                          {row.Mahasiswa?.PkkmbSertifikat?.FileURL && (
+                            <a href={getFullUrl(row.Mahasiswa.PkkmbSertifikat.FileURL)} target="_blank" rel="noreferrer" className="text-[10px] text-primary font-bold hover:underline mt-1 flex items-center gap-0.5">
+                              <span className="material-symbols-outlined" style={{ fontSize: '10px' }} >download</span> Download
+                            </a>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="flex flex-col items-end">
+                          <span className="text-xs font-black text-slate-800 tabular-nums">Nilai: {row.Nilai||0}</span>
+                          <span className="text-[9px] font-bold text-slate-400 mt-0.5">Hadir: {row.attendanceRate||0}%</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+            <div className="px-5 py-4 border-t border-slate-100 bg-slate-50/50 flex-shrink-0">
+              <button onClick={()=>setStatsDetail(null)} className="w-full h-11 rounded-xl bg-primary hover:bg-[#001a52] text-white text-xs font-bold uppercase tracking-widest transition-all active:scale-95 shadow-sm">Tutup</button>
             </div>
           </div>
         </div>

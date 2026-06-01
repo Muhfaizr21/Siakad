@@ -78,9 +78,9 @@ func InisialisasiRuteFakultas(aplikasi *fiber.App) {
 		api.Delete("/news/:id", fakultas.HapusBerita) // ALIAS
 	*/
 
-	// Pendaftaran Mahasiswa Baru (PMB)
-	api.Get("/admissions", fakultas.AmbilDaftarPendaftarMB)
-	api.Put("/admissions/:id/status", fakultas.PerbaruiStatusPendaftarMB)
+	// Pendaftaran Mahasiswa Baru (PMB) — DISABLED BY USER REQUEST
+	// api.Get("/admissions", fakultas.AmbilDaftarPendaftarMB)
+	// api.Put("/admissions/:id/status", fakultas.PerbaruiStatusPendaftarMB)
 
 	// Organisasi & Proposal
 	api.Get("/organizations", fakultas.AmbilDaftarOrganisasi)
@@ -95,6 +95,7 @@ func InisialisasiRuteFakultas(aplikasi *fiber.App) {
 	// api.Get("/internal/proposals", fakultas.AmbilDaftarProposalFakultas)
 	// api.Put("/internal/proposals/:id", fakultas.ValidasiProposalFakultas)
 
+	// Jadwal Konseling — Re-enabled for Data Konseling
 	api.Get("/counseling", fakultas.AmbilDaftarKonseling)
 	api.Post("/counseling", fakultas.TambahSesiKonseling)
 	api.Put("/counseling/:id", fakultas.UpdateSesiKonseling)

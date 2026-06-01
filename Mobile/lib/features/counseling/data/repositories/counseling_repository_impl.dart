@@ -376,4 +376,17 @@ class CounselingRepositoryImpl implements CounselingRepository {
       rethrow;
     }
   }
+
+  Future<String> downloadReferral(int referralId) async {
+    try {
+      final baseUrl = apiClient.client.options.baseUrl;
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('access_token') ?? '';
+      return '$baseUrl/psychologist/referrals/$referralId/download?token=$token';
+    } catch (e) {
+      log('Error getting referral download URL: $e');
+      rethrow;
+    }
+  }
 }
+

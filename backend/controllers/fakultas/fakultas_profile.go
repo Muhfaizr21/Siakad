@@ -30,9 +30,20 @@ func AmbilProfilAdminFakultas(c *fiber.Ctx) error {
 		return c.Status(404).JSON(fiber.Map{"success": false, "message": "Profil admin tidak ditemukan"})
 	}
 
+	var fakultas models.Fakultas
+	if user.FakultasID != nil && *user.FakultasID != 0 {
+		config.DB.First(&fakultas, *user.FakultasID)
+	}
+
 	return c.JSON(fiber.Map{
 		"success": true,
-		"data":    user,
+		"data": fiber.Map{
+			"id":          user.ID,
+			"email":       user.Email,
+			"role":        user.Role,
+			"fakultas_id": user.FakultasID,
+			"fakultas":    fakultas,
+		},
 	})
 }
 

@@ -17,6 +17,7 @@ const RefreshCw = ({ size, className, ...props }) => <span className={`material-
 
 // Auto-injected Material Symbol fallbacks for removed Lucide icons
 const HeartPulse = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>monitor_heart</span>;
+const Psychology = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>psychology</span>;
 
 
 
@@ -27,13 +28,14 @@ const Globe = ({ size, className, ...props }) => <span className={`material-symb
 
 
 
-const API = `${API_BASE_URL}/faculty`
+const API = "/faculty"
 const CHART_COLORS = ["#3b82f6","#10b981","#f59e0b","#6366f1","#ec4899"]
 
 export default function LaporanFakultasPage() {
   const [data, setData] = useState({ summary:{ total:0, active:0, graduated:0, avgIPK:0, totalPrestasi:0, totalBeasiswa:0, totalKonseling:0 }, perAngkatan:[], perProdi:[], ipkDist:[] })
   const [loading, setLoading]   = useState(true)
   const [isMounted, setMounted] = useState(false)
+  const [facultyInfo, setFacultyInfo] = useState(null)
 
   const fetchData = async () => {
     setLoading(true)
@@ -43,16 +45,37 @@ export default function LaporanFakultasPage() {
         headers: { Authorization: `Bearer ${token}` }
       })
       if (res.data.status === "success") setData(res.data.data || data)
+
+      const profileRes = await axios.get(`${API}/profile`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      if (profileRes.data.success && profileRes.data.data?.fakultas) {
+        setFacultyInfo(profileRes.data.data.fakultas)
+      }
     } catch { toast.error("Gagal memuat data laporan") }
     finally { setLoading(false) }
   }
 
-  const downloadPDF = (title, subtitle, contentHtml) => {
-    const printWindow = window.open('', '_blank');
+  const getKopImage = (facName) => {
+    const name = (facName || "").toLowerCase();
+    if (name.includes("farmasi")) return "kop_farmasi.jpg";
+    if (name.includes("kesehatan") || name.includes("fikes")) return "kop_ilmu_kesehatan.jpg";
+    if (name.includes("keperawatan") || name.includes("fkep")) return "kop_keperawatan.jpg";
+    if (name.includes("sosial") || name.includes("social") || name.includes("sosiologi") || name.includes("fis")) return "kop_ilmu_sosial.jpg";
+    return "kop_farmasi.jpg";
+  };
+
+  const downloadPDF = (title, subtitle, contentHtml, existingWindow = null) => {
+    const printWindow = existingWindow || window.open('', '_blank');
     if (!printWindow) {
       toast.error("Gagal membuka jendela cetak. Pastikan pop-up browser tidak diblokir.");
       return;
     }
+
+    const facName = facultyInfo?.Nama || facultyInfo?.nama || "Fakultas Farmasi";
+    const facDekan = facultyInfo?.Dekan || facultyInfo?.dekan || "Dekan Bidang Akademik";
+    const kopImage = getKopImage(facName);
+    const kopImageUrl = `${window.location.origin}/images/${kopImage}`;
 
     const htmlContent = `<html>
 <head>
@@ -61,69 +84,28 @@ export default function LaporanFakultasPage() {
 <style>
   @page {
     size: A4 portrait;
-    margin: 20mm;
+    margin: 0;
   }
   body {
     font-family: 'Segoe UI', Arial, sans-serif;
     line-height: 1.5;
     color: #334155;
-    background-color: #ffffff;
+    background-image: url('${kopImageUrl}');
+    background-size: 210mm 297mm;
+    background-repeat: no-repeat;
+    background-position: top center;
     margin: 0;
-    padding: 0;
+    padding: 38mm 18mm 20mm 18mm;
+    box-sizing: border-box;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
-  }
-  .letterhead {
-    width: 100%;
-    margin-bottom: 20px;
-  }
-  .letterhead-table {
-    width: 100%;
-    border-collapse: collapse;
-    border: none;
-  }
-  .letterhead-table td {
-    border: none;
-    padding: 0;
-  }
-  .univ-title {
-    font-size: 13px;
-    font-weight: 700;
-    color: #00236F;
-    font-family: 'Times New Roman', Times, serif;
-    letter-spacing: 0.5px;
-  }
-  .univ-main {
-    font-size: 18px;
-    font-weight: 800;
-    color: #00236F;
-    font-family: 'Times New Roman', Times, serif;
-    margin-top: 2px;
-  }
-  .univ-address {
-    font-size: 9px;
-    color: #475569;
-    margin-top: 5px;
-    font-weight: 500;
-  }
-  .univ-contact {
-    font-size: 9px;
-    color: #00236F;
-    margin-top: 2px;
-    font-weight: 600;
-  }
-  .double-line {
-    border: 0;
-    border-top: 3px double #00236F;
-    margin-top: 10px;
-    margin-bottom: 20px;
   }
   h1 {
     color: #1e293b;
     text-align: center;
-    font-size: 15px;
+    font-size: 14px;
     font-weight: 800;
-    margin-top: 10px;
+    margin-top: 0;
     margin-bottom: 3px;
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -139,12 +121,12 @@ export default function LaporanFakultasPage() {
     letter-spacing: 1px;
   }
   h3 {
-    color: #00236F;
-    font-size: 12px;
+    color: #df9526;
+    font-size: 11px;
     font-weight: 700;
     margin-top: 20px;
-    margin-bottom: 10px;
-    border-left: 3px solid #00236F;
+    margin-bottom: 8px;
+    border-left: 3px solid #df9526;
     padding-left: 8px;
     text-transform: uppercase;
   }
@@ -162,7 +144,7 @@ export default function LaporanFakultasPage() {
   .meta-box {
     background-color: #f8fafc;
     border: 1px solid #e2e8f0;
-    padding: 12px 15px;
+    padding: 10px 12px;
     border-radius: 6px;
   }
   .meta-title {
@@ -174,9 +156,9 @@ export default function LaporanFakultasPage() {
     letter-spacing: 0.5px;
   }
   .meta-value {
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 700;
-    color: #00236F;
+    color: #1e293b;
   }
   table.data-table {
     width: 100%;
@@ -185,7 +167,7 @@ export default function LaporanFakultasPage() {
     margin-bottom: 20px;
   }
   table.data-table th {
-    background-color: #00236F;
+    background-color: #df9526;
     color: #ffffff;
     font-weight: 700;
     text-align: left;
@@ -227,21 +209,23 @@ export default function LaporanFakultasPage() {
     color: #a16207;
     border: 1px solid #fef08a;
   }
-  .footer {
-    margin-top: 40px;
+  .signature-section {
+    margin-top: 30px;
     text-align: right;
     font-size: 9px;
-    color: #64748b;
-  }
-  .sig-line {
-    width: 160px;
-    border-top: 1px solid #94a3b8;
-    margin-top: 45px;
-    display: inline-block;
+    color: #334155;
+    float: right;
+    width: 250px;
   }
   @media print {
     body {
-      background-color: #ffffff;
+      background-image: url('${kopImageUrl}') !important;
+      background-size: 210mm 297mm !important;
+      background-repeat: no-repeat !important;
+      background-position: top center !important;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+      padding: 38mm 18mm 20mm 18mm !important;
     }
     .no-print {
       display: none;
@@ -250,35 +234,21 @@ export default function LaporanFakultasPage() {
 </style>
 </head>
 <body>
-  <div class="letterhead">
-    <table class="letterhead-table">
-      <tr>
-        <td style="width: 15%; text-align: left;">
-          <img src="https://bku.ac.id/wp-content/uploads/2021/01/logo-bku-nav.png" alt="Logo BKU" style="height: 55px; width: auto; object-fit: contain;" onerror="this.src='https://bku.ac.id/wp-content/uploads/2021/01/logo-bku.png'; this.onerror=null;"/>
-        </td>
-        <td style="width: 85%; text-align: center;">
-          <div class="univ-title">YAYASAN ADHI GUNA KENCANA</div>
-          <div class="univ-main">UNIVERSITAS BHAKTI KENCANA</div>
-          <div class="univ-address">Jl. Soekarno Hatta No. 754, Cipadung Kidul, Panyileukan, Kota Bandung, Jawa Barat 40614</div>
-          <div class="univ-contact">Telp: (022) 7800570 | Email: info@bku.ac.id | Website: www.bku.ac.id</div>
-        </td>
-      </tr>
-    </table>
-    <hr class="double-line" />
-  </div>
-
   <h1>${title}</h1>
   <h2>${subtitle}</h2>
 
   ${contentHtml}
 
-  <div class="footer">
-    <p>Dicetak secara otomatis oleh Portal Akademik Fakultas</p>
-    <p>Tanggal Cetak: ${new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })} WIB</p>
-    <br/>
-    <p>Mengetahui,</p>
-    <p style="font-weight: 700; margin-top: 5px;">Dekan Bidang Akademik</p>
-    <div class="sig-line"></div>
+  <!-- Footer Signature Section -->
+  <div style="width: 100%; display: inline-block; margin-top: 15px;">
+    <div class="signature-section">
+      <p>Dicetak secara otomatis oleh Portal Akademik ${facName}</p>
+      <p style="margin-top: 2px;">Tanggal Cetak: ${new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })} WIB</p>
+      <br/>
+      <p>Mengetahui,</p>
+      <p style="font-weight: 700; margin-top: 5px;">Dekan ${facName}</p>
+      <div style="margin-top: 45px; font-weight: 700; text-decoration: underline;">${facDekan}</div>
+    </div>
   </div>
 
   <script>
@@ -360,6 +330,13 @@ export default function LaporanFakultasPage() {
   };
 
   const downloadPrestasiPDF = async () => {
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+      toast.error("Gagal membuka jendela cetak. Pastikan pop-up browser tidak diblokir.");
+      return;
+    }
+    printWindow.document.write("<html><body><p style='font-family:sans-serif; text-align:center; margin-top:20%; color:#64748b;'>Menyiapkan dokumen Laporan Prestasi...</p></body></html>");
+
     try {
       toast.loading("Menyiapkan dokumen Laporan Prestasi...", { id: "prestasi-dl" });
       const token = useAuthStore.getState().accessToken;
@@ -367,8 +344,21 @@ export default function LaporanFakultasPage() {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (res.data.status === "success") {
-        const list = res.data.data || [];
+        const list = (res.data.data || []).map(a => {
+          const m = a.mahasiswa || a.Mahasiswa || {};
+          return {
+            ...a,
+            Mahasiswa: { ...m, Nama: m.nama || m.Nama, NIM: m.nim || m.NIM },
+            NamaKegiatan: a.nama_kegiatan || a.NamaKegiatan,
+            Kategori: a.kategori || a.Kategori,
+            Tingkat: a.tingkat || a.Tingkat,
+            Peringkat: a.peringkat || a.Peringkat,
+            Status: a.status || a.Status,
+            Poin: a.poin !== undefined ? a.poin : a.Poin,
+          };
+        });
         if (list.length === 0) {
+          printWindow.close();
           toast.dismiss("prestasi-dl");
           toast.error("Belum ada data prestasi untuk diekspor");
           return;
@@ -378,7 +368,7 @@ export default function LaporanFakultasPage() {
         list.forEach((item, idx) => {
           const statusLabel = item.Status === "verified" || item.Status === "terverifikasi" || item.Status === "disetujui" 
             ? '<span class="badge badge-success">Terverifikasi</span>' 
-            : item.Status?.toLowerCase().includes("tolak") || item.Status === "rejected"
+            : (item.Status || "").toLowerCase().includes("tolak") || item.Status === "rejected"
             ? '<span class="badge badge-warning">Ditolak</span>'
             : '<span class="badge badge-info">Menunggu</span>';
 
@@ -407,7 +397,7 @@ export default function LaporanFakultasPage() {
               <td style="padding-right: 0;">
                 <div class="meta-box">
                   <div class="meta-title">Tervalidasi Fakultas</div>
-                  <div class="meta-value">${list.filter(a => ["verified", "terverifikasi", "disetujui"].includes((a.Status || "").toLowerCase())).length} Pengajuan</div>
+                  <div class="meta-value">${list.filter(a => ["verified","terverifikasi","disetujui"].includes((a.Status||"").toLowerCase())).length} Pengajuan</div>
                 </div>
               </td>
             </tr>
@@ -435,21 +425,31 @@ export default function LaporanFakultasPage() {
         downloadPDF(
           "Laporan Prestasi & Capaian Mahasiswa",
           "Dataset Rekapitulasi Kompetisi Dan Penghargaan Mahasiswa Fakultas",
-          contentHtml
+          contentHtml,
+          printWindow
         );
         toast.dismiss("prestasi-dl");
         toast.success("Berhasil mencetak Laporan Prestasi!");
       } else {
+        printWindow.close();
         toast.dismiss("prestasi-dl");
         toast.error("Gagal memuat data prestasi");
       }
     } catch (err) {
+      printWindow.close();
       toast.dismiss("prestasi-dl");
       toast.error("Terjadi kesalahan sistem saat memproses PDF");
     }
   };
 
   const downloadBeasiswaPDF = async () => {
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+      toast.error("Gagal membuka jendela cetak. Pastikan pop-up browser tidak diblokir.");
+      return;
+    }
+    printWindow.document.write("<html><body><p style='font-family:sans-serif; text-align:center; margin-top:20%; color:#64748b;'>Menyiapkan dokumen Laporan Beasiswa...</p></body></html>");
+
     try {
       toast.loading("Menyiapkan dokumen Laporan Beasiswa...", { id: "beasiswa-dl" });
       const token = useAuthStore.getState().accessToken;
@@ -457,8 +457,16 @@ export default function LaporanFakultasPage() {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (res.data.status === "success") {
-        const list = res.data.data || [];
+        const list = (res.data.data || []).map(b => ({
+          ...b,
+          Nama: b.nama || b.Nama,
+          Penyelenggara: b.penyelenggara || b.Penyelenggara,
+          Kuota: b.kuota !== undefined ? b.kuota : b.Kuota,
+          Deskripsi: b.deskripsi || b.Deskripsi,
+          IsActive: b.is_active !== undefined ? b.is_active : b.IsActive,
+        }));
         if (list.length === 0) {
+          printWindow.close();
           toast.dismiss("beasiswa-dl");
           toast.error("Belum ada data beasiswa untuk diekspor");
           return;
@@ -499,21 +507,31 @@ export default function LaporanFakultasPage() {
         downloadPDF(
           "Laporan Program Beasiswa Mahasiswa",
           "Dataset Penyelenggaraan Bantuan Finansial Dan Beasiswa Internal",
-          contentHtml
+          contentHtml,
+          printWindow
         );
         toast.dismiss("beasiswa-dl");
         toast.success("Berhasil mencetak Laporan Beasiswa!");
       } else {
+        printWindow.close();
         toast.dismiss("beasiswa-dl");
         toast.error("Gagal memuat data beasiswa");
       }
     } catch (err) {
+      printWindow.close();
       toast.dismiss("beasiswa-dl");
       toast.error("Terjadi kesalahan sistem saat memproses PDF");
     }
   };
 
   const downloadKonselingPDF = async () => {
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+      toast.error("Gagal membuka jendela cetak. Pastikan pop-up browser tidak diblokir.");
+      return;
+    }
+    printWindow.document.write("<html><body><p style='font-family:sans-serif; text-align:center; margin-top:20%; color:#64748b;'>Menyiapkan dokumen Laporan Konseling...</p></body></html>");
+
     try {
       toast.loading("Menyiapkan dokumen Laporan Konseling...", { id: "konseling-dl" });
       const token = useAuthStore.getState().accessToken;
@@ -521,8 +539,20 @@ export default function LaporanFakultasPage() {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (res.data.status === "success") {
-        const list = res.data.data || [];
+        const list = (res.data.data || []).map(item => {
+          const m = item.mahasiswa || item.Mahasiswa || {};
+          const p = item.psikolog  || item.Psikolog  || {};
+          return {
+            ...item,
+            Mahasiswa: { ...m, Nama: m.nama || m.Nama, NIM: m.nim || m.NIM },
+            Psikolog:  { ...p, Nama: p.nama || p.Nama },
+            Tanggal: item.tanggal || item.Tanggal,
+            Keluhan: item.keluhan || item.Keluhan,
+            Status:  item.status  || item.Status,
+          };
+        });
         if (list.length === 0) {
+          printWindow.close();
           toast.dismiss("konseling-dl");
           toast.error("Belum ada sesi konseling untuk diekspor");
           return;
@@ -534,21 +564,21 @@ export default function LaporanFakultasPage() {
             <tr>
               <td>${idx + 1}</td>
               <td style="font-weight: 700;">${item.Mahasiswa?.Nama || "—"}<br/><span style="font-size: 8px; color: #64748b;">NIM: ${item.Mahasiswa?.NIM || "—"}</span></td>
-              <td>${item.DosenKonselor || "—"}</td>
-              <td>${item.TanggalSesi ? new Date(item.TanggalSesi).toLocaleDateString('id-ID') : "—"}</td>
+              <td>${item.Psikolog?.Nama || "—"}</td>
+              <td>${item.Tanggal ? new Date(item.Tanggal).toLocaleDateString('id-ID') : "—"}</td>
               <td>${item.Keluhan || "—"}</td>
               <td style="font-weight: 700; color: #00236F;">${item.Status || "—"}</td>
             </tr>`;
         });
 
         const contentHtml = `
-          <h3>Rekapitulasi Layanan Sesi Konseling & Bimbingan</h3>
+          <h3>Rekapitulasi Layanan Sesi Konseling &amp; Bimbingan</h3>
           <table class="data-table">
             <thead>
               <tr>
                 <th style="width: 5%;">No</th>
                 <th style="width: 25%;">Mahasiswa</th>
-                <th style="width: 20%;">Dosen Konselor</th>
+                <th style="width: 20%;">Psikolog / Konselor</th>
                 <th style="width: 15%;">Tanggal</th>
                 <th style="width: 25%;">Masalah / Keluhan</th>
                 <th style="width: 10%;">Status Sesi</th>
@@ -562,16 +592,19 @@ export default function LaporanFakultasPage() {
 
         downloadPDF(
           "Laporan Layanan Konseling & Pendampingan",
-          "Dataset Sesi Bimbingan, Konseling, Dan Masalah Kesehatan Mahasiswa Fakultas",
-          contentHtml
+          "Dataset Sesi Bimbingan, Konseling, Dan Layanan Psikologis Mahasiswa Fakultas",
+          contentHtml,
+          printWindow
         );
         toast.dismiss("konseling-dl");
         toast.success("Berhasil mencetak Laporan Konseling!");
       } else {
+        printWindow.close();
         toast.dismiss("konseling-dl");
         toast.error("Gagal memuat data konseling");
       }
     } catch (err) {
+      printWindow.close();
       toast.dismiss("konseling-dl");
       toast.error("Terjadi kesalahan sistem saat memproses PDF");
     }
@@ -616,12 +649,13 @@ export default function LaporanFakultasPage() {
         </section>
 
         {/* Stats */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
           {[
-            {label:'Total Mahasiswa',    value:data.summary.total,          icon:Users,     bg:'bg-[#eef4ff]',  color:'text-primary',   desc:'Terdaftar aktif'},
-            {label:'Capaian Prestasi',   value:data.summary.totalPrestasi,  icon:Award,     bg:'bg-emerald-50', color:'text-emerald-600', desc:'Kompetisi & penghargaan'},
-            {label:'Penerima Beasiswa',  value:data.summary.totalBeasiswa,  icon:Globe,     bg:'bg-indigo-50',  color:'text-indigo-600',  desc:'Bantuan finansial'},
-            {label:'Layanan Konseling',  value:data.summary.totalKonseling, icon:HeartPulse,bg:'bg-rose-50',    color:'text-rose-600',    desc:'Sesi bimbingan'},
+            {label:'Total Mahasiswa',    value:data.summary.total,                      icon:Users,      bg:'bg-[#eef4ff]',  color:'text-primary',    desc:'Terdaftar aktif'},
+            {label:'Capaian Prestasi',   value:data.summary.totalPrestasi,              icon:Award,      bg:'bg-emerald-50', color:'text-emerald-600', desc:'Kompetisi & penghargaan'},
+            {label:'Penerima Beasiswa',  value:data.summary.totalBeasiswa,              icon:Globe,      bg:'bg-indigo-50',  color:'text-indigo-600',  desc:'Bantuan finansial'},
+            {label:'Layanan Konseling',  value:data.summary.totalKonseling || 0,        icon:Psychology, bg:'bg-amber-50',   color:'text-amber-600',   desc:'Sesi konseling terdaftar'},
+            {label:'Rata-rata IPK',      value:data.summary.avgIPK ? data.summary.avgIPK.toFixed(2) : "0.00", icon:HeartPulse, bg:'bg-rose-50', color:'text-rose-600', desc:'IPK Rata-rata Fakultas'},
           ].map(s=>(
             <div key={s.label} className="bg-white border border-slate-100/50 rounded-3xl p-5 shadow-sm">
               <div className="flex items-center gap-3 mb-3">
@@ -688,9 +722,9 @@ export default function LaporanFakultasPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {[
-            {label:'Laporan Prestasi',  icon:Award,     bg:'bg-emerald-600', light:'bg-emerald-50', stat:`${data.summary.totalPrestasi} Capaian`,  desc:'Dataset kompetisi & penghargaan mahasiswa.', handler: downloadPrestasiPDF},
-            {label:'Laporan Beasiswa',  icon:Globe,     bg:'bg-indigo-600',  light:'bg-indigo-50',  stat:`${data.summary.totalBeasiswa} Penerima`, desc:'Transkrip penerima bantuan finansial.', handler: downloadBeasiswaPDF},
-            {label:'Laporan Konseling', icon:HeartPulse,bg:'bg-rose-600',    light:'bg-rose-50',    stat:`${data.summary.totalKonseling} Sesi`,     desc:'Monitoring layanan bimbingan & kesehatan.', handler: downloadKonselingPDF},
+            {label:'Laporan Prestasi',  icon:Award,      bg:'bg-emerald-600', light:'bg-emerald-50', stat:`${data.summary.totalPrestasi} Capaian`,        desc:'Dataset kompetisi & penghargaan mahasiswa.',        handler: downloadPrestasiPDF},
+            {label:'Laporan Beasiswa',  icon:Globe,      bg:'bg-indigo-600',  light:'bg-indigo-50',  stat:`${data.summary.totalBeasiswa} Penerima`,         desc:'Transkrip penerima bantuan finansial.',             handler: downloadBeasiswaPDF},
+            {label:'Laporan Konseling', icon:Psychology, bg:'bg-rose-600',    light:'bg-rose-50',    stat:`${data.summary.totalKonseling || 0} Sesi`,        desc:'Monitoring layanan bimbingan & kesehatan psikologis.', handler: downloadKonselingPDF},
           ].map((item,i)=>(
             <div key={i} className="bg-white border border-slate-200/60 rounded-2xl p-5 shadow-sm hover:shadow-lg transition-shadow">
               <div className="flex items-start justify-between mb-5">

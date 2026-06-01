@@ -36,7 +36,7 @@ const Clock = ({ size, className, ...props }) => <span className={`material-symb
 
 
 
-const API = `${API_BASE_URL}/faculty`
+const API = "/faculty"
 
 export default function KontenPage() {
   const [loading, setLoading] = useState(true)

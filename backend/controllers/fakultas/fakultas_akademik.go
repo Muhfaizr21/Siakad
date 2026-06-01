@@ -29,6 +29,21 @@ func AmbilDaftarMahasiswa(c *fiber.Ctx) error {
 		query = query.Where("tahun_masuk = ?", angkatan)
 	}
 
+	prodiID := c.Query("program_studi_id")
+	if prodiID != "" {
+		query = query.Where("program_studi_id = ?", prodiID)
+	}
+
+	semester := c.Query("semester")
+	if semester != "" {
+		query = query.Where("semester_sekarang = ?", semester)
+	}
+
+	status := c.Query("status")
+	if status != "" {
+		query = query.Where("status_akun = ?", status)
+	}
+
 	if err := query.Find(&mhs).Error; err != nil {
 		return c.Status(500).JSON(fiber.Map{"status": "error", "message": err.Error()})
 	}

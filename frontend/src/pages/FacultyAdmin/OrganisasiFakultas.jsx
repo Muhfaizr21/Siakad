@@ -20,7 +20,7 @@ const ShieldCheck = ({ size, className, ...props }) => <span className={`materia
 
 
 
-const API = `${API_BASE_URL}/faculty`
+const API = "/faculty"
 const EMPTY_FORM = { kode_org:'', nama_org:'', ketua_nama:'', jumlah_anggota:0, status:'Aktif', kategori:'Himpunan', email:'', password:'', phone:'' }
 
 export default function FacultyOrganisasi() {
@@ -39,8 +39,8 @@ export default function FacultyOrganisasi() {
   const fetchData = async () => {
     setLoading(true)
     try {
-      const res  = await fetch(`${API}/organizations`)
-      const data = await res.json()
+      const res  = await axios.get(`${API}/organizations`)
+      const data = res.data
       const mapped = Array.isArray(data.data) ? data.data.map(item=>({
         id: item.ID, nama: item.Nama, kode: item.Singkatan||item.Kode||'',
         status: item.Status||'Aktif', kategori: item.Kategori||'',

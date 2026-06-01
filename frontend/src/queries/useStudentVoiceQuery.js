@@ -11,11 +11,13 @@ const toValidDateISO = (value) => {
 const normalizeStatus = (status) => {
   const s = String(status || '').toLowerCase();
   if (s === 'menunggu') return 'menunggu';
-  if (s === 'diproses') return 'diproses';
+  if (s === 'diproses' || s === 'proses') return 'diproses';
   if (s === 'ditindaklanjuti') return 'ditindaklanjuti';
   if (s === 'dibatalkan') return 'dibatalkan';
   if (s === 'selesai') return 'selesai';
-  return 'menunggu';
+  if (s === 'disetujui fakultas') return 'disetujui fakultas';
+  if (s === 'ditolak fakultas') return 'ditolak fakultas';
+  return s || 'menunggu';
 };
 
 const normalizeLevel = (tujuan, status) => {
@@ -43,7 +45,13 @@ const buildVoiceTimeline = (item = {}) => {
     });
   }
 
-  if (status === 'diproses' || status === 'ditindaklanjuti' || status === 'selesai') {
+  if (
+    status === 'diproses' ||
+    status === 'ditindaklanjuti' ||
+    status === 'selesai' ||
+    status === 'disetujui fakultas' ||
+    status === 'ditolak fakultas'
+  ) {
     events.push({
       id: `evt-${item.id || item.ID || 'x'}-accepted`,
       tipe_event: 'diterima_fakultas',

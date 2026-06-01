@@ -25,7 +25,7 @@ const XCircle = ({ size, className, ...props }) => <span className={`material-sy
 
 
 
-const API = `${API_BASE_URL}/faculty`
+const API = "/faculty"
 const formatIDR = (n) => new Intl.NumberFormat('id-ID',{style:'currency',currency:'IDR',minimumFractionDigits:0}).format(n||0)
 const formatDate = (d) => { try { return new Date(d).toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'}) } catch { return d } }
 

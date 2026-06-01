@@ -58,9 +58,6 @@ const AVATAR_COLORS = [
   'from-cyan-400 to-sky-500',
 ]
 
-const getInitials = (name = '') =>
-  name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() || '?'
-
 const formatDate = (d) => {
   if (!d) return '—'
   try { return new Date(d).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) }
@@ -72,6 +69,32 @@ const getFullUrl = (path) => {
   if (path.startsWith('http')) return path;
   const baseUrl = API_BASE_URL.replace('/api', '');
   return `${baseUrl}${path}`;
+}
+
+const mapStudent = (m, i) => {
+  const statusAkun = m.StatusAkun || 'Aktif'
+  const isLulus = String(statusAkun).toLowerCase() === 'lulus'
+  return {
+    ID: m.ID, NIM: m.NIM, Nama: m.Nama,
+    ProgramStudi: m.ProgramStudi?.Nama || '—',
+    SemesterSekarang: isLulus ? null : (m.SemesterSekarang > 0 ? m.SemesterSekarang : 1),
+    StatusAkun: statusAkun,
+    StatusAkademik: m.StatusAkademik || '—',
+    TahunMasuk: m.TahunMasuk ? String(m.TahunMasuk) : (m.NIM ? `20${m.NIM.substring(0, 2)}` : '—'),
+    NoHP: m.NoHP || '—',
+    JalurMasuk: m.JalurMasuk || 'PDDIKTI Sync',
+    TempatLahir: m.TempatLahir || '—',
+    TanggalLahir: m.TanggalLahir,
+    NIK: m.NIK || '—',
+    Email: m.EmailKampus || m.Pengguna?.Email || '—',
+    Alamat: m.Alamat || '—',
+    NamaAyah: m.NamaAyah || '—',
+    NamaIbu: m.NamaIbuKandung || '—',
+    PekerjaanOrtu: m.PekerjaanAyah || m.PekerjaanIbu || '—',
+    PenghasilanOrtu: m.PenghasilanOrtu,
+    colorIdx: i % AVATAR_COLORS.length,
+    Foto: getFullUrl(m.FotoURL || m.foto_url || m.Foto || m.Pengguna?.Foto || null),
+  }
 }
 
 function StudentAvatar({ src, name, className = "w-9 h-9 rounded-xl" }) {
@@ -108,44 +131,23 @@ export default function MahasiswaPage() {
   const [selected, setSelected] = useState(null)
   const [search, setSearch] = useState('')
   const [filterStatus, setFilterStatus] = useState('all')
+  const [filterSemester, setFilterSemester] = useState('all')
+  const [filterProdi, setFilterProdi] = useState('all')
+  const [filterAngkatan, setFilterAngkatan] = useState('all')
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
   const [sortConfig, setSortConfig] = useState({ key: 'Nama', direction: 'asc' })
 
-  const mapStudent = (m, i) => {
-    const statusAkun = m.StatusAkun || 'Aktif'
-    const isLulus = String(statusAkun).toLowerCase() === 'lulus'
-    return {
-      ID: m.ID, NIM: m.NIM, Nama: m.Nama,
-      ProgramStudi: m.ProgramStudi?.Nama || '—',
-      SemesterSekarang: isLulus ? null : (m.SemesterSekarang > 0 ? m.SemesterSekarang : 1),
-      StatusAkun: statusAkun,
-      StatusAkademik: m.StatusAkademik || '—',
-      TahunMasuk: m.TahunMasuk ? String(m.TahunMasuk) : (m.NIM ? `20${m.NIM.substring(0, 2)}` : '—'),
-      NoHP: m.NoHP || '—',
-      JalurMasuk: m.JalurMasuk || 'PDDIKTI Sync',
-      TempatLahir: m.TempatLahir || '—',
-      TanggalLahir: m.TanggalLahir,
-      NIK: m.NIK || '—',
-      Email: m.EmailKampus || m.Pengguna?.Email || '—',
-      Alamat: m.Alamat || '—',
-      NamaAyah: m.NamaAyah || '—',
-      NamaIbu: m.NamaIbuKandung || '—',
-      PekerjaanOrtu: m.PekerjaanAyah || m.PekerjaanIbu || '—',
-      PenghasilanOrtu: m.PenghasilanOrtu,
-      colorIdx: i % AVATAR_COLORS.length,
-      Foto: getFullUrl(m.FotoURL || m.foto_url || m.Foto || m.Pengguna?.Foto || null),
-    }
-  }
-
-  const fetchStudents = async () => {
-    setLoading(true)
+  const fetchStudents = React.useCallback(async () => {
+    Promise.resolve().then(() => setLoading(true))
     try {
       const res = await api.get('/faculty/students')
       setStudentData((res?.data?.data || []).map(mapStudent))
     } catch { toast.error("Gagal memuat data mahasiswa") }
-    finally { setLoading(false) }
-  }
+    finally {
+      Promise.resolve().then(() => setLoading(false))
+    }
+  }, [])
 
   const handleSync = async () => {
     setIsSyncing(true)
@@ -207,7 +209,7 @@ export default function MahasiswaPage() {
         <p style="font-weight:700;margin-top:4px;">Dekan Bidang Akademik</p>
         <div class="sig-line"></div>
       </div>
-      <script>window.onload=function(){setTimeout(function(){window.print();setTimeout(function(){window.close();},100);},300);};<\/script>
+      <script>window.onload=function(){setTimeout(function(){window.print();setTimeout(function(){window.close();},100);},300);};</script>
     </body></html>`;
     printWindow.document.open();
     printWindow.document.write(htmlContent);
@@ -290,18 +292,39 @@ export default function MahasiswaPage() {
     toast.success(`Berhasil mencetak ${dataToExport.length} data mahasiswa!`);
   };
 
-  useEffect(() => { fetchStudents() }, [])
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchStudents()
+  }, [fetchStudents])
 
-  const statusList = [...new Set(studentData.map(d => d.StatusAkun).filter(Boolean))]
+  const statusList = useMemo(() => {
+    return [...new Set(studentData.map(d => d.StatusAkun).filter(Boolean))]
+  }, [studentData])
 
+  const semesterList = useMemo(() => {
+    return [...new Set(studentData.map(d => d.SemesterSekarang).filter(s => s !== null && s !== undefined && s > 0))].sort((a, b) => a - b)
+  }, [studentData])
+
+  const prodiList = useMemo(() => {
+    return [...new Set(studentData.map(d => d.ProgramStudi).filter(s => s && s !== '—'))].sort()
+  }, [studentData])
+
+  const angkatanList = useMemo(() => {
+    return [...new Set(studentData.map(d => d.TahunMasuk).filter(s => s && s !== '—'))].sort()
+  }, [studentData])
+
+  // eslint-disable-next-line react-hooks/preserve-manual-memoization
   const filtered = useMemo(() =>
     studentData.filter(d => {
       const q = search.toLowerCase()
       const matchQ = !q || d.Nama?.toLowerCase().includes(q) || d.NIM?.includes(q) || d.ProgramStudi?.toLowerCase().includes(q)
       const matchS = filterStatus === 'all' || d.StatusAkun === filterStatus
-      return matchQ && matchS
+      const matchSem = filterSemester === 'all' || String(d.SemesterSekarang) === filterSemester
+      const matchPr = filterProdi === 'all' || d.ProgramStudi === filterProdi
+      const matchAng = filterAngkatan === 'all' || d.TahunMasuk === filterAngkatan
+      return matchQ && matchS && matchSem && matchPr && matchAng
     })
-    , [studentData, search, filterStatus])
+    , [studentData, search, filterStatus, filterSemester, filterProdi, filterAngkatan])
 
   const sorted = useMemo(() => {
     let items = [...filtered]
@@ -436,21 +459,81 @@ export default function MahasiswaPage() {
                   type="text"
                   placeholder="Cari NIM, nama, prodi..."
                   value={search}
-                  onChange={e => setSearch(e.target.value)}
+                  onChange={e => { setSearch(e.target.value); setCurrentPage(1); }}
                   className="pl-9 pr-4 h-9 w-56 rounded-xl border border-slate-200/60 focus:outline-none focus:border-primary text-sm bg-white"
                 />
               </div>
-              <select
-                value={filterStatus}
-                onChange={e => setFilterStatus(e.target.value)}
-                className="h-9 pl-3 pr-8 rounded-xl border border-slate-200/60 text-xs font-medium bg-white text-slate-600 focus:outline-none focus:border-primary appearance-none cursor-pointer"
-              >
-                <option value="all">Semua Status</option>
-                {statusList.map(s => <option key={s} value={s}>{s}</option>)}
-              </select>
-              {(search || filterStatus !== 'all') && (
-                <button onClick={() => { setSearch(''); setFilterStatus('all') }}
-                  className="h-9 px-3 text-xs font-semibold text-rose-600 bg-rose-50 rounded-xl border border-rose-200 hover:bg-rose-100 transition-colors">
+
+              {/* Program Studi Filter */}
+              <div className="relative">
+                <select
+                  value={filterProdi}
+                  onChange={e => { setFilterProdi(e.target.value); setCurrentPage(1); }}
+                  className="h-9 pl-3 pr-8 rounded-xl border border-slate-200/60 text-xs font-medium bg-white text-slate-600 focus:outline-none focus:border-primary appearance-none cursor-pointer max-w-[180px] truncate"
+                >
+                  <option value="all">Semua Program Studi</option>
+                  {prodiList.map(pr => (
+                    <option key={pr} value={pr}>{pr}</option>
+                  ))}
+                </select>
+                <span className="material-symbols-outlined pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400" style={{ fontSize: '16px' }}>expand_more</span>
+              </div>
+
+              {/* Semester Filter */}
+              <div className="relative">
+                <select
+                  value={filterSemester}
+                  onChange={e => { setFilterSemester(e.target.value); setCurrentPage(1); }}
+                  className="h-9 pl-3 pr-8 rounded-xl border border-slate-200/60 text-xs font-medium bg-white text-slate-600 focus:outline-none focus:border-primary appearance-none cursor-pointer"
+                >
+                  <option value="all">Semua Semester</option>
+                  {semesterList.map(sem => (
+                    <option key={sem} value={String(sem)}>Semester {sem}</option>
+                  ))}
+                </select>
+                <span className="material-symbols-outlined pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400" style={{ fontSize: '16px' }}>expand_more</span>
+              </div>
+
+              {/* Angkatan Filter */}
+              <div className="relative">
+                <select
+                  value={filterAngkatan}
+                  onChange={e => { setFilterAngkatan(e.target.value); setCurrentPage(1); }}
+                  className="h-9 pl-3 pr-8 rounded-xl border border-slate-200/60 text-xs font-medium bg-white text-slate-600 focus:outline-none focus:border-primary appearance-none cursor-pointer"
+                >
+                  <option value="all">Semua Angkatan</option>
+                  {angkatanList.map(ang => (
+                    <option key={ang} value={String(ang)}>Angkatan {ang}</option>
+                  ))}
+                </select>
+                <span className="material-symbols-outlined pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400" style={{ fontSize: '16px' }}>expand_more</span>
+              </div>
+
+              {/* Status Filter */}
+              <div className="relative">
+                <select
+                  value={filterStatus}
+                  onChange={e => { setFilterStatus(e.target.value); setCurrentPage(1); }}
+                  className="h-9 pl-3 pr-8 rounded-xl border border-slate-200/60 text-xs font-medium bg-white text-slate-600 focus:outline-none focus:border-primary appearance-none cursor-pointer"
+                >
+                  <option value="all">Semua Status</option>
+                  {statusList.map(s => <option key={s} value={s}>{s}</option>)}
+                </select>
+                <span className="material-symbols-outlined pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400" style={{ fontSize: '16px' }}>expand_more</span>
+              </div>
+
+              {(search || filterStatus !== 'all' || filterSemester !== 'all' || filterProdi !== 'all' || filterAngkatan !== 'all') && (
+                <button
+                  onClick={() => {
+                    setSearch('')
+                    setFilterStatus('all')
+                    setFilterSemester('all')
+                    setFilterProdi('all')
+                    setFilterAngkatan('all')
+                    setCurrentPage(1)
+                  }}
+                  className="h-9 px-3 text-xs font-semibold text-rose-600 bg-rose-50 rounded-xl border border-rose-200 hover:bg-rose-100 transition-colors cursor-pointer"
+                >
                   Reset
                 </button>
               )}
@@ -731,12 +814,13 @@ export default function MahasiswaPage() {
   )
 }
 
-function SectionBlock({ icon: Icon, title, children, last = false }) {
+function SectionBlock({ icon, title, children, last = false }) {
+  const IconComponent = icon
   return (
     <div className={cn('p-5', !last && 'border-b border-slate-100')}>
       <div className="flex items-center gap-2 mb-3">
         <div className="w-5 h-5 rounded-md bg-[#eef4ff] flex items-center justify-center">
-          <Icon size={11} className="text-primary" />
+          <IconComponent size={11} className="text-primary" />
         </div>
         <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.18em]">{title}</h3>
       </div>
@@ -745,12 +829,13 @@ function SectionBlock({ icon: Icon, title, children, last = false }) {
   )
 }
 
-function InfoCard({ icon: Icon, label, value, accent = 'border-l-slate-300', mono = false }) {
+function InfoCard({ icon, label, value, accent = 'border-l-slate-300', mono = false }) {
+  const IconComponent = icon
   const empty = !value || value === '—'
   return (
     <div className={cn('flex items-center gap-3 p-3 rounded-xl bg-slate-50/50 border border-slate-100 border-l-4 hover:bg-white hover:border-slate-200/60 transition-all', accent)}>
       <div className="w-7 h-7 bg-white rounded-lg flex items-center justify-center text-primary shadow-sm border border-slate-100 flex-shrink-0">
-        <Icon size={13} />
+        <IconComponent size={13} />
       </div>
       <div className="flex-1 min-w-0">
         <p className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.15em] mb-0.5">{label}</p>

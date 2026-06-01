@@ -13,9 +13,9 @@ const menuSections = [
     label: 'Academic Management',
     items: [
       { name: 'Data Mahasiswa', path: '/faculty/mahasiswa', icon: 'group' },
-      { name: 'Mahasiswa Baru', path: '/faculty/mahasiswa/baru', icon: 'person_add' },
-      { name: 'Data Psikolog', path: '/faculty/psikolog', icon: 'psychology' },
-      { name: 'Monitor PKKMB', path: '/faculty/pkkmb', icon: 'check_circle' },
+
+      { name: 'Data Konseling', path: '/faculty/psikolog', icon: 'psychology' },
+      { name: 'Monitor Kencana', path: '/faculty/pkkmb', icon: 'check_circle' },
       { name: 'Pantau Kesehatan', path: '/faculty/kesehatan', icon: 'favorite' },
     ]
   },
@@ -25,7 +25,7 @@ const menuSections = [
       { name: 'Student Voice', path: '/faculty/aspirasi', icon: 'chat' },
       { name: 'Validasi Prestasi', path: '/faculty/prestasi', icon: 'emoji_events' },
       { name: 'Beasiswa Internal', path: '/faculty/beasiswa', icon: 'school' },
-      { name: 'Jadwal Konseling', path: '/faculty/konseling', icon: 'calendar_month' },
+
     ]
   },
   {
@@ -53,29 +53,29 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
 
   // Find all items that match the current path
   const allItems = menuSections.flatMap(section => section.items);
-  
+
   const isActive = (itemPath) => {
     const currentPath = location.pathname;
-    
+
     // 1. Check for exact match
     if (currentPath === itemPath) return true;
-    
+
     // 2. Dashboard is always active if path is /faculty or /faculty/dashboard
     if (itemPath === '/faculty') return currentPath === '/faculty' || currentPath === '/faculty/dashboard';
-    
+
     // 3. For sub-paths (like /faculty/mahasiswa/baru vs /faculty/mahasiswa)
     // We check if current path starts with itemPath
     if (currentPath.startsWith(itemPath)) {
-      const moreSpecificMatch = allItems.find(item => 
-        item.path !== itemPath && 
-        item.path.length > itemPath.length && 
+      const moreSpecificMatch = allItems.find(item =>
+        item.path !== itemPath &&
+        item.path.length > itemPath.length &&
         currentPath.startsWith(item.path)
       );
-      
+
       // If no other menu item matches the current path better, then this one is the winner
       return !moreSpecificMatch;
     }
-    
+
     return false;
   };
 
@@ -150,15 +150,15 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                           : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'}
                       `}
                     >
-                      
+
                       <div className="w-6 h-6 flex items-center justify-center shrink-0">
                         <span className={`material-symbols-outlined transition-all duration-300 ${active ? 'scale-110' : 'group-hover:scale-110 opacity-70 group-hover:opacity-100'}`} style={{ fontSize: '20px' }}>
                           {item.icon}
                         </span>
                       </div>
-                      
+
                       <span className="text-[13px] tracking-tight flex-1">{item.name}</span>
-                      
+
                       {active ? (
                         <div className="w-5 h-5 flex items-center justify-center shrink-0">
                           <span className="material-symbols-outlined text-white/50" style={{ fontSize: '16px' }}>chevron_right</span>

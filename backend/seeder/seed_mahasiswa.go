@@ -50,69 +50,73 @@ func main() {
 	hash, _ := bcrypt.GenerateFromPassword([]byte("12345678"), bcrypt.DefaultCost)
 	hashedPassword := string(hash)
 
-	// 3. Generate 1000 Mahasiswa
-	totalMahasiswa := 1000
-	fmt.Printf("Generating %d Mahasiswa...\n", totalMahasiswa)
-
-	var users []models.User
+	// 3. Generate 1000 Mahasiswa if none exist
 	var mahasiswas []models.Mahasiswa
+	config.DB.Find(&mahasiswas)
+	if len(mahasiswas) == 0 {
+		totalMahasiswa := 1000
+		fmt.Printf("Generating %d Mahasiswa...\n", totalMahasiswa)
 
-	for i := 0; i < totalMahasiswa; i++ {
-		nim := fmt.Sprintf("23%04d", i+1)
-		email := nim + "@student.bku.ac.id"
-		
-		prodi := prodiList[rand.Intn(len(prodiList))]
-		fakultasID := prodi.FakultasID
+		var users []models.User
+		for i := 0; i < totalMahasiswa; i++ {
+			nim := fmt.Sprintf("23%04d", i+1)
+			email := nim + "@student.bku.ac.id"
+			
+			prodi := prodiList[rand.Intn(len(prodiList))]
+			fakultasID := prodi.FakultasID
 
-		user := models.User{
-			Email:    email,
-			Password: hashedPassword,
-			Role:     "mahasiswa",
+			user := models.User{
+				Email:    email,
+				Password: hashedPassword,
+				Role:     "mahasiswa",
+			}
+			users = append(users, user)
+
+			mhs := models.Mahasiswa{
+				NIM:              nim,
+				Nama:             gofakeit.Name(),
+				FakultasID:       fakultasID,
+				ProgramStudiID:   prodi.ID,
+				SemesterSekarang: rand.Intn(8) + 1,
+				StatusAkun:       "Aktif",
+				StatusAkademik:   "Aktif",
+				IPK:              float64(rand.Intn(200)+200) / 100.0, // 2.00 to 4.00
+				TotalSKS:         rand.Intn(100) + 20,
+				CreditLimit:      24,
+				TahunMasuk:       2023,
+				JalurMasuk:       []string{"SNMPTN", "SBMPTN", "Mandiri"}[rand.Intn(3)],
+				NIK:              gofakeit.Regex("^[0-9]{16}$"),
+				NISN:             gofakeit.Regex("^[0-9]{10}$"),
+				TempatLahir:      gofakeit.City(),
+				TanggalLahir:     gofakeit.DateRange(time.Now().AddDate(-25, 0, 0), time.Now().AddDate(-18, 0, 0)),
+				JenisKelamin:     []string{"Laki-laki", "Perempuan"}[rand.Intn(2)],
+				Agama:            []string{"Islam", "Kristen", "Katolik", "Hindu", "Buddha"}[rand.Intn(5)],
+				EmailKampus:      email,
+				EmailPersonal:    gofakeit.Email(),
+				NoHP:             gofakeit.Phone(),
+				Alamat:           gofakeit.Address().Address,
+				Kota:             gofakeit.City(),
+				KodePos:          gofakeit.Zip(),
+				NamaAyah:         gofakeit.Name(),
+				NamaIbuKandung:   gofakeit.Name(),
+				AsalSekolah:      "SMA Negeri " + fmt.Sprintf("%d ", rand.Intn(10)+1) + gofakeit.City(),
+				GolonganDarah:    []string{"A", "B", "AB", "O"}[rand.Intn(4)],
+			}
+			mahasiswas = append(mahasiswas, mhs)
 		}
-		users = append(users, user)
 
-		mhs := models.Mahasiswa{
-			NIM:              nim,
-			Nama:             gofakeit.Name(),
-			FakultasID:       fakultasID,
-			ProgramStudiID:   prodi.ID,
-			SemesterSekarang: rand.Intn(8) + 1,
-			StatusAkun:       "Aktif",
-			StatusAkademik:   "Aktif",
-			IPK:              float64(rand.Intn(200)+200) / 100.0, // 2.00 to 4.00
-			TotalSKS:         rand.Intn(100) + 20,
-			CreditLimit:      24,
-			TahunMasuk:       2023,
-			JalurMasuk:       []string{"SNMPTN", "SBMPTN", "Mandiri"}[rand.Intn(3)],
-			NIK:              gofakeit.Regex("^[0-9]{16}$"),
-			NISN:             gofakeit.Regex("^[0-9]{10}$"),
-			TempatLahir:      gofakeit.City(),
-			TanggalLahir:     gofakeit.DateRange(time.Now().AddDate(-25, 0, 0), time.Now().AddDate(-18, 0, 0)),
-			JenisKelamin:     []string{"Laki-laki", "Perempuan"}[rand.Intn(2)],
-			Agama:            []string{"Islam", "Kristen", "Katolik", "Hindu", "Buddha"}[rand.Intn(5)],
-			EmailKampus:      email,
-			EmailPersonal:    gofakeit.Email(),
-			NoHP:             gofakeit.Phone(),
-			Alamat:           gofakeit.Address().Address,
-			Kota:             gofakeit.City(),
-			KodePos:          gofakeit.Zip(),
-			NamaAyah:         gofakeit.Name(),
-			NamaIbuKandung:   gofakeit.Name(),
-			AsalSekolah:      "SMA Negeri " + fmt.Sprintf("%d ", rand.Intn(10)+1) + gofakeit.City(),
-			GolonganDarah:    []string{"A", "B", "AB", "O"}[rand.Intn(4)],
+		fmt.Println("Inserting Users...")
+		config.DB.CreateInBatches(&users, 100)
+
+		for i := range mahasiswas {
+			mahasiswas[i].PenggunaID = users[i].ID
 		}
-		mahasiswas = append(mahasiswas, mhs)
+
+		fmt.Println("Inserting Mahasiswa...")
+		config.DB.CreateInBatches(&mahasiswas, 100)
+	} else {
+		fmt.Printf("Using %d existing Mahasiswa records.\n", len(mahasiswas))
 	}
-
-	fmt.Println("Inserting Users...")
-	config.DB.CreateInBatches(&users, 100)
-
-	for i := range mahasiswas {
-		mahasiswas[i].PenggunaID = users[i].ID
-	}
-
-	fmt.Println("Inserting Mahasiswa...")
-	config.DB.CreateInBatches(&mahasiswas, 100)
 
 	// 4. Generate Psikolog
 	var psikologs []models.Psikolog
@@ -169,6 +173,14 @@ func main() {
 	}
 
 	// 6. Generate Related Data
+	fmt.Println("Clearing previous related data...")
+	config.DB.Exec("DELETE FROM mahasiswa.pkkmb_progress")
+	config.DB.Exec("DELETE FROM mahasiswa.pkkmb_hasil")
+	config.DB.Exec("DELETE FROM mahasiswa.pkkmb_sertifikat")
+	config.DB.Exec("DELETE FROM mahasiswa.kesehatan")
+	config.DB.Exec("DELETE FROM mahasiswa.konseling")
+	config.DB.Exec("DELETE FROM mahasiswa.psikolog_booking")
+
 	fmt.Println("Generating Related Data (PKKMB, Kesehatan, Konseling)...")
 	
 	kegiatanPkkmb := models.PkkmbKegiatan{
@@ -181,6 +193,7 @@ func main() {
 
 	var pkkmbProgress []models.PkkmbProgress
 	var pkkmbHasil []models.PkkmbHasil
+	var pkkmbSertifikat []models.PkkmbSertifikat
 	var kesehatan []models.Kesehatan
 	var konseling []models.Konseling
 	var bookings []models.PsikologBooking
@@ -194,24 +207,67 @@ func main() {
 			Status:      "Hadir",
 		})
 		
+		statusKelulusan := "Lulus"
+		if i >= 300 && i < 450 {
+			statusKelulusan = "Proses"
+		} else if i >= 450 {
+			statusKelulusan = "Gagal"
+		}
+
 		pkkmbHasil = append(pkkmbHasil, models.PkkmbHasil{
 			MahasiswaID:     mID,
 			Nilai:           float64(rand.Intn(40) + 60),
-			StatusKelulusan: "Lulus",
+			StatusKelulusan: statusKelulusan,
 		})
 
+		if statusKelulusan == "Lulus" && i < 150 {
+			pkkmbSertifikat = append(pkkmbSertifikat, models.PkkmbSertifikat{
+				MahasiswaID:   mID,
+				FileURL:       "/uploads/sertifikat/sample.pdf",
+				TanggalTerbit: time.Now().AddDate(0, 0, -i),
+			})
+		}
+
 		if i < 300 {
+			statusKesehatan := []string{"prima", "stabil", "pantauan", "kritis"}[rand.Intn(4)]
+			butaWarna := []string{"Normal", "Parsial", "Total"}[rand.Intn(3)]
+			if rand.Float32() > 0.15 {
+				butaWarna = "Normal" // 85% normal
+			}
+			
+			riwayatPenyakit := ""
+			if rand.Float32() < 0.25 {
+				riwayatPenyakit = []string{"Asma", "Alergi Debu", "Gastritis/Maag", "Migrain", "Hipertensi"}[rand.Intn(5)]
+			}
+
+			catatan := "Hasil pemeriksaan secara umum baik."
+			if statusKesehatan == "pantauan" {
+				catatan = "Perlu dipantau kembali tekanan darah atau kadar gula darahnya secara berkala."
+			} else if statusKesehatan == "kritis" {
+				catatan = "Kondisi membutuhkan rujukan dan penanganan medis secepatnya dari tim dokter universitas."
+			}
+
+			fileURL := ""
+			if rand.Float32() < 0.5 {
+				fileURL = "/uploads/kesehatan/screening_sample.pdf"
+			}
+
 			kesehatan = append(kesehatan, models.Kesehatan{
 				MahasiswaID:      mID,
 				Tanggal:          time.Now().AddDate(0, -rand.Intn(6), -rand.Intn(30)),
-				JenisPemeriksaan: "Screening Kesehatan Awal",
-				Hasil:            []string{"Sehat", "Perlu Pantauan"}[rand.Intn(2)],
+				JenisPemeriksaan: []string{"Screening Kesehatan Awal", "Skrining Berkala", "Cek Up Khusus"}[rand.Intn(3)],
+				Hasil:            []string{"Sehat", "Perlu Pantauan", "Butuh Penanganan"}[rand.Intn(3)],
 				TinggiBadan:      float64(rand.Intn(30) + 150),
 				BeratBadan:       float64(rand.Intn(40) + 45),
 				Sistole:          rand.Intn(40) + 100,
 				Diastole:         rand.Intn(30) + 60,
+				GulaDarah:        rand.Intn(80) + 70,
+				ButaWarna:        butaWarna,
+				RiwayatPenyakit:  riwayatPenyakit,
 				GolonganDarah:    mahasiswas[i].GolonganDarah,
-				StatusKesehatan:  "prima",
+				StatusKesehatan:  statusKesehatan,
+				Catatan:          catatan,
+				FileURL:          fileURL,
 			})
 		}
 
@@ -242,6 +298,11 @@ func main() {
 	fmt.Println("Inserting PKKMB...")
 	config.DB.CreateInBatches(&pkkmbProgress, 100)
 	config.DB.CreateInBatches(&pkkmbHasil, 100)
+
+	if len(pkkmbSertifikat) > 0 {
+		fmt.Println("Inserting PKKMB Sertifikat...")
+		config.DB.CreateInBatches(&pkkmbSertifikat, 100)
+	}
 
 	fmt.Println("Inserting Kesehatan...")
 	config.DB.CreateInBatches(&kesehatan, 100)

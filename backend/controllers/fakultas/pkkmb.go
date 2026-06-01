@@ -16,6 +16,7 @@ func AmbilRingkasanPkkmb(c *fiber.Ctx) error {
 	var totalMaba int64
 	var totalLulus int64
 	var totalProses int64
+	var totalSertifikat int64
 
 	if role == "faculty_admin" {
 		config.DB.Model(&models.PkkmbHasil{}).
@@ -29,6 +30,11 @@ func AmbilRingkasanPkkmb(c *fiber.Ctx) error {
 			Where("mahasiswa.pkkmb_hasil.status_kelulusan = ?", "Lulus").
 			Count(&totalLulus)
 
+		config.DB.Model(&models.PkkmbSertifikat{}).
+			Joins("JOIN mahasiswa.mahasiswa ON mahasiswa.mahasiswa.id = mahasiswa.pkkmb_sertifikat.mahasiswa_id").
+			Where("mahasiswa.mahasiswa.fakultas_id = ?", fid).
+			Count(&totalSertifikat)
+
 		config.DB.Model(&models.PkkmbHasil{}).
 			Joins("JOIN mahasiswa.mahasiswa ON mahasiswa.mahasiswa.id = mahasiswa.pkkmb_hasil.mahasiswa_id").
 			Where("mahasiswa.mahasiswa.fakultas_id = ?", fid).
@@ -37,6 +43,7 @@ func AmbilRingkasanPkkmb(c *fiber.Ctx) error {
 	} else {
 		config.DB.Model(&models.PkkmbHasil{}).Count(&totalMaba)
 		config.DB.Model(&models.PkkmbHasil{}).Where("status_kelulusan = ?", "Lulus").Count(&totalLulus)
+		config.DB.Model(&models.PkkmbSertifikat{}).Count(&totalSertifikat)
 		config.DB.Model(&models.PkkmbHasil{}).Where("status_kelulusan = ?", "Proses").Count(&totalProses)
 	}
 
@@ -100,9 +107,10 @@ func AmbilRingkasanPkkmb(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{
 		"status": "success",
 		"stats": fiber.Map{
-			"totalMaba":   totalMaba,
-			"totalLulus":  totalLulus,
-			"totalProses": totalProses,
+			"totalMaba":       totalMaba,
+			"totalLulus":      totalLulus,
+			"totalProses":     totalProses,
+			"totalSertifikat": totalSertifikat,
 		},
 		"prodiBreakdown": listStats,
 	})
@@ -156,7 +164,7 @@ func AmbilDaftarKelulusanMaba(c *fiber.Ctx) error {
 	fid := c.Locals("fakultas_id").(uint)
 
 	var list []models.PkkmbHasil
-	query := config.DB.Preload("Mahasiswa.ProgramStudi").Preload("Mahasiswa.Pengguna")
+	query := config.DB.Preload("Mahasiswa.ProgramStudi").Preload("Mahasiswa.Pengguna").Preload("Mahasiswa.PkkmbSertifikat")
 	
 	if role == "faculty_admin" {
 		query = query.Joins("JOIN mahasiswa.mahasiswa ON mahasiswa.mahasiswa.id = mahasiswa.pkkmb_hasil.mahasiswa_id").

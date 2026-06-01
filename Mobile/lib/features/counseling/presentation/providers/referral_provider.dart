@@ -115,4 +115,14 @@ class ReferralProvider extends ChangeNotifier {
       return false;
     }
   }
+
+  Future<String?> downloadReferral(int referralId) async {
+    try {
+      return await repository.downloadReferral(referralId);
+    } catch (e) {
+      log('Error getting referral download URL: $e');
+      return null;
+    }
+  }
 }
+

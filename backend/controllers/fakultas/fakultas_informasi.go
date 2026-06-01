@@ -7,8 +7,6 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
-	"golang.org/x/crypto/bcrypt"
-	"gorm.io/gorm"
 )
 
 // --- DASHBOARD ---
@@ -16,25 +14,65 @@ import (
 func AmbilRingkasanDashboard(c *fiber.Ctx) error {
 	role := c.Locals("role").(string)
 	fid := c.Locals("fakultas_id").(uint)
+	periodIDStr := c.Query("period_id")
+	startDateStr := c.Query("start_date")
+	endDateStr := c.Query("end_date")
 
 	var totalMhs int64
 	var totalProdi int64
 
 	qMhs := config.DB.Model(&models.Mahasiswa{})
-	qPrestasi := config.DB.Model(&models.Prestasi{})
+	qPrestasi := config.DB.Model(&models.Prestasi{}).Joins("Mahasiswa")
 	qProdi := config.DB.Model(&models.ProgramStudi{})
 
 	if role == "faculty_admin" {
 		qMhs = qMhs.Where("fakultas_id = ?", fid)
-		qPrestasi = qPrestasi.Joins("Mahasiswa").Where("\"Mahasiswa\".fakultas_id = ?", fid)
+		qPrestasi = qPrestasi.Where("\"Mahasiswa\".fakultas_id = ?", fid)
 		qProdi = qProdi.Where("fakultas_id = ?", fid)
+	}
+
+	var hasFilter bool
+	var filterCond string
+	var filterVal interface{}
+	var filterVal2 interface{}
+
+	if startDateStr != "" && endDateStr != "" {
+		startDate, err1 := time.Parse("2006-01-02", startDateStr)
+		endDate, err2 := time.Parse("2006-01-02", endDateStr)
+		if err1 == nil && err2 == nil {
+			hasFilter = true
+			filterCond = "between_years"
+			filterVal = startDate.Year()
+			filterVal2 = endDate.Year()
+		}
+	} else if periodIDStr != "" && periodIDStr != "all" {
+		var selectedPeriod models.AcademicPeriod
+		if err := config.DB.First(&selectedPeriod, periodIDStr).Error; err == nil {
+			var year int
+			fmt.Sscanf(selectedPeriod.AcademicYear, "%d", &year)
+			if year > 0 {
+				hasFilter = true
+				filterCond = "academic_year"
+				filterVal = year
+			}
+		}
+	}
+
+	if hasFilter {
+		if filterCond == "between_years" {
+			qMhs = qMhs.Where("tahun_masuk BETWEEN ? AND ?", filterVal, filterVal2)
+			qPrestasi = qPrestasi.Where("\"Mahasiswa\".tahun_masuk BETWEEN ? AND ?", filterVal, filterVal2)
+		} else if filterCond == "academic_year" {
+			qMhs = qMhs.Where("tahun_masuk <= ?", filterVal)
+			qPrestasi = qPrestasi.Where("\"Mahasiswa\".tahun_masuk <= ?", filterVal)
+		}
 	}
 
 	qMhs.Count(&totalMhs)
 	qProdi.Count(&totalProdi)
 
 	var totalPrestasiPending int64
-	qPrestasi.Where("status = ?", "Menunggu").Count(&totalPrestasiPending)
+	qPrestasi.Where("mahasiswa.prestasi.status = ?", "Menunggu").Count(&totalPrestasiPending)
 
 	// Status counts (Aktif, Cuti, Lulus, DO, etc.)
 	type StatusCount struct {
@@ -44,13 +82,19 @@ func AmbilRingkasanDashboard(c *fiber.Ctx) error {
 	var statusCounts = []StatusCount{}
 	qStatus := config.DB.Table("mahasiswa.mahasiswa").
 		Select("status_akun as status, count(*) as count").
-		Where("deleted_at IS NULL").
-		Group("status_akun")
+		Where("deleted_at IS NULL")
 
 	if role == "faculty_admin" {
 		qStatus = qStatus.Where("fakultas_id = ?", fid)
 	}
-	qStatus.Scan(&statusCounts)
+	if hasFilter {
+		if filterCond == "between_years" {
+			qStatus = qStatus.Where("tahun_masuk BETWEEN ? AND ?", filterVal, filterVal2)
+		} else if filterCond == "academic_year" {
+			qStatus = qStatus.Where("tahun_masuk <= ?", filterVal)
+		}
+	}
+	qStatus.Group("status_akun").Scan(&statusCounts)
 
 	// Prodi Distribution with Accreditation & Avg IPK
 	type ProdiDist struct {
@@ -63,7 +107,16 @@ func AmbilRingkasanDashboard(c *fiber.Ctx) error {
 	}
 	var prodiDist = []ProdiDist{}
 
-	sqlProdi := `
+	joinCondition := "m.program_studi_id = ps.id AND m.deleted_at IS NULL"
+	if hasFilter {
+		if filterCond == "between_years" {
+			joinCondition += fmt.Sprintf(" AND m.tahun_masuk BETWEEN %d AND %d", filterVal, filterVal2)
+		} else if filterCond == "academic_year" {
+			joinCondition += fmt.Sprintf(" AND m.tahun_masuk <= %d", filterVal)
+		}
+	}
+
+	sqlProdi := fmt.Sprintf(`
 		SELECT 
 			ps.nama || ' (' || ps.jenjang || ')' as name,
 			ps.akreditasi as akreditasi,
@@ -72,8 +125,8 @@ func AmbilRingkasanDashboard(c *fiber.Ctx) error {
 			SUM(CASE WHEN m.status_akun = 'Lulus' THEN 1 ELSE 0 END) as graduated,
 			COALESCE(AVG(m.ip_k), 0) as avg_gpa
 		FROM fakultas.program_studi ps
-		LEFT JOIN mahasiswa.mahasiswa m ON m.program_studi_id = ps.id AND m.deleted_at IS NULL
-		WHERE ps.deleted_at IS NULL `
+		LEFT JOIN mahasiswa.mahasiswa m ON %s
+		WHERE ps.deleted_at IS NULL `, joinCondition)
 
 	if role == "faculty_admin" {
 		sqlProdi += fmt.Sprintf(" AND ps.fakultas_id = %d ", fid)
@@ -91,14 +144,19 @@ func AmbilRingkasanDashboard(c *fiber.Ctx) error {
 	var trendData = []AngkatanDist{}
 	qTrend := config.DB.Table("mahasiswa.mahasiswa").
 		Select("tahun_masuk as tahun, count(*) as diterima, count(*) + 5 as pendaftar").
-		Where("tahun_masuk > 0 AND deleted_at IS NULL").
-		Group("tahun_masuk").
-		Order("tahun_masuk asc")
+		Where("tahun_masuk > 0 AND deleted_at IS NULL")
 
 	if role == "faculty_admin" {
 		qTrend = qTrend.Where("fakultas_id = ?", fid)
 	}
-	qTrend.Scan(&trendData)
+	if hasFilter {
+		if filterCond == "between_years" {
+			qTrend = qTrend.Where("tahun_masuk BETWEEN ? AND ?", filterVal, filterVal2)
+		} else if filterCond == "academic_year" {
+			qTrend = qTrend.Where("tahun_masuk <= ?", filterVal)
+		}
+	}
+	qTrend.Group("tahun_masuk").Order("tahun_masuk asc").Scan(&trendData)
 
 	// Aktivitas Terbaru
 	type ActivityItem struct {
@@ -109,9 +167,16 @@ func AmbilRingkasanDashboard(c *fiber.Ctx) error {
 	}
 	var logs = []ActivityItem{}
 
-	qPList := config.DB.Preload("Mahasiswa").Order("id desc").Limit(3)
+	qPList := config.DB.Model(&models.Prestasi{}).Preload("Mahasiswa").Joins("Mahasiswa").Order("id desc").Limit(3)
 	if role == "faculty_admin" {
-		qPList = qPList.Joins("Mahasiswa").Where("\"Mahasiswa\".fakultas_id = ?", fid)
+		qPList = qPList.Where("\"Mahasiswa\".fakultas_id = ?", fid)
+	}
+	if hasFilter {
+		if filterCond == "between_years" {
+			qPList = qPList.Where("\"Mahasiswa\".tahun_masuk BETWEEN ? AND ?", filterVal, filterVal2)
+		} else if filterCond == "academic_year" {
+			qPList = qPList.Where("\"Mahasiswa\".tahun_masuk <= ?", filterVal)
+		}
 	}
 	var pList []models.Prestasi
 	qPList.Find(&pList)
@@ -128,6 +193,13 @@ func AmbilRingkasanDashboard(c *fiber.Ctx) error {
 	if role == "faculty_admin" {
 		qMList = qMList.Where("fakultas_id = ?", fid)
 	}
+	if hasFilter {
+		if filterCond == "between_years" {
+			qMList = qMList.Where("tahun_masuk BETWEEN ? AND ?", filterVal, filterVal2)
+		} else if filterCond == "academic_year" {
+			qMList = qMList.Where("tahun_masuk <= ?", filterVal)
+		}
+	}
 	var mList []models.Mahasiswa
 	qMList.Find(&mList)
 	for _, m := range mList {
@@ -142,6 +214,9 @@ func AmbilRingkasanDashboard(c *fiber.Ctx) error {
 	var activePeriod models.AcademicPeriod
 	config.DB.Where("is_aktif = ?", true).First(&activePeriod)
 
+	var periods []models.AcademicPeriod
+	config.DB.Order("id desc").Find(&periods)
+
 	return c.JSON(fiber.Map{
 		"status": "success",
 		"data": fiber.Map{
@@ -154,108 +229,12 @@ func AmbilRingkasanDashboard(c *fiber.Ctx) error {
 			"trendData":         trendData,
 			"recentActivity":    logs,
 			"activePeriod":      activePeriod.Name,
+			"periods":           periods,
 		},
 	})
 }
 
-// --- PMB (PENDAFTARAN MAHASISWA BARU) ---
 
-func AmbilDaftarPendaftarMB(c *fiber.Ctx) error {
-	var list []models.PendaftaranMahasiswaBaru
-	if err := config.DB.Order("id asc").Find(&list).Error; err != nil {
-		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal mengambil data pendaftaran"})
-	}
-	return c.JSON(fiber.Map{"status": "success", "data": list})
-}
-
-func PerbaruiStatusPendaftarMB(c *fiber.Ctx) error {
-	id := c.Params("id")
-
-	type StatusReq struct {
-		Status string `json:"status"`
-	}
-	var req StatusReq
-	if err := c.BodyParser(&req); err != nil {
-		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Format data tidak valid"})
-	}
-
-	var admission models.PendaftaranMahasiswaBaru
-	if err := config.DB.First(&admission, id).Error; err != nil {
-		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Data pendaftaran tidak ditemukan"})
-	}
-
-	oldStatus := admission.Status
-	admission.Status = req.Status
-	if err := config.DB.Save(&admission).Error; err != nil {
-		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal memperbarui status pendaftaran"})
-	}
-
-	// Jika pendaftaran disetujui / diverifikasi, otomatis daftarkan sebagai Mahasiswa Aktif dan Peserta PKKMB
-	if (req.Status == "Verified" || req.Status == "Approved") && (oldStatus != "Verified" && oldStatus != "Approved") {
-		var countMhs int64
-		config.DB.Model(&models.Mahasiswa{}).Where("nama = ? OR email_personal = ?", admission.NamaLengkap, admission.Email).Count(&countMhs)
-		if countMhs == 0 {
-			var prodi models.ProgramStudi
-			if err := config.DB.Where("nama ILIKE ?", "%"+admission.PilihanProdi+"%").First(&prodi).Error; err != nil {
-				config.DB.First(&prodi) // Default
-			}
-
-			// Generate NIM
-			nim := fmt.Sprintf("261%s%03d", prodi.Kode, admission.ID)
-
-			err := config.DB.Transaction(func(tx *gorm.DB) error {
-				defaultPassword := "pass" + nim
-				hashedPassword, err := bcrypt.GenerateFromPassword([]byte(defaultPassword), bcrypt.DefaultCost)
-				if err != nil {
-					return err
-				}
-
-				user := models.User{
-					Email:    admission.Email,
-					Password: string(hashedPassword),
-					Role:     "mahasiswa",
-				}
-				if err := tx.Create(&user).Error; err != nil {
-					return err
-				}
-
-				mhs := models.Mahasiswa{
-					PenggunaID:       user.ID,
-					Nama:             admission.NamaLengkap,
-					NIM:              nim,
-					FakultasID:       prodi.FakultasID,
-					ProgramStudiID:   prodi.ID,
-					StatusAkun:       "Aktif",
-					StatusAkademik:   "Aktif",
-					SemesterSekarang: 1,
-					TahunMasuk:       time.Now().Year(),
-					EmailPersonal:    admission.Email,
-					NoHP:             admission.NoHP,
-					JalurMasuk:       admission.Jalur,
-				}
-				if err := tx.Omit("Pengguna").Create(&mhs).Error; err != nil {
-					return err
-				}
-
-				pkkmb := models.PkkmbHasil{
-					MahasiswaID:     mhs.ID,
-					Nilai:           0.0,
-					StatusKelulusan: "Proses",
-				}
-				if err := tx.Create(&pkkmb).Error; err != nil {
-					return err
-				}
-
-				return nil
-			})
-			if err != nil {
-				return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal meregistrasikan mahasiswa aktif baru: " + err.Error()})
-			}
-		}
-	}
-
-	return c.JSON(fiber.Map{"status": "success", "message": "Status pendaftaran berhasil diperbarui"})
-}
 
 // --- RBAC & PERAN ---
 

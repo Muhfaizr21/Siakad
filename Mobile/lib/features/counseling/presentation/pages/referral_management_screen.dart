@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:bkuhub_mobile/core/theme/app_colors.dart';
 import 'package:bkuhub_mobile/core/theme/app_text_styles.dart';
 import 'package:bkuhub_mobile/core/widgets/bku_app_bar.dart';
@@ -40,8 +41,9 @@ class _ReferralManagementScreenState extends State<ReferralManagementScreen> {
             const BkuAppBar(
               title: 'Tindak Lanjut',
               info: 'Kelola surat rujukan untuk pasien',
+              variant: AppBarVariant.psychologist,
+              showBackButton: true,
               isExpandable: false,
-              backgroundColor: Color(0xFF002D6F), // Primary blue color
             ),
             SliverToBoxAdapter(
               child: Padding(
@@ -318,31 +320,32 @@ class _ReferralCard extends StatelessWidget {
                     Expanded(
                       child: ElevatedButton.icon(
                         onPressed: () async {
-                          try {
-                            // Download PDF
-                            final apiClient = GetIt.instance<ApiClient>();
-                            final response = await apiClient.get(
-                              '/psychologist/referrals/${referral.id}/download',
-                            );
-                            
-                            if (response.statusCode == 200) {
-                              // Save file to device
-                              final bytes = response.bodyBytes;
-                              final fileName = 'surat_rujukan_${referral.mahasiswaNama.replaceAll(' ', '_')}.pdf';
-                              
-                              // TODO: Implement file save and open with platform channel
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text('PDF berhasil diunduh: $fileName')),
-                              );
+                          final provider = Provider.of<ReferralProvider>(context, listen: false);
+                          final url = await provider.downloadReferral(referral.id);
+
+                          if (url != null && context.mounted) {
+                            final uri = Uri.parse(url);
+                            if (await canLaunchUrl(uri)) {
+                              await launchUrl(uri, mode: LaunchMode.platformDefault);
                             } else {
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Gagal membuka link download'),
+                                    backgroundColor: Colors.red,
+                                  ),
+                                );
+                              }
+                            }
+                          } else {
+                            if (context.mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Gagal mengunduh PDF')),
+                                const SnackBar(
+                                  content: Text('Gagal mengunduh PDF'),
+                                  backgroundColor: Colors.red,
+                                ),
                               );
                             }
-                          } catch (e) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Error: $e')),
-                            );
                           }
                         },
                         icon: const Icon(Icons.download_rounded, size: 16),
@@ -354,6 +357,7 @@ class _ReferralCard extends StatelessWidget {
                         ),
                       ),
                     ),
+
                 ],
               );
             },

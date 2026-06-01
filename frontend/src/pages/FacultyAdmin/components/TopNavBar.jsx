@@ -45,13 +45,13 @@ const TopNavBar = ({ setIsOpen }) => {
   const pages = [
     { name: 'Dashboard Utama', path: '/faculty', icon: 'grid_view' },
     { name: 'Data Mahasiswa', path: '/faculty/mahasiswa', icon: 'group' },
-    { name: 'Mahasiswa Baru', path: '/faculty/mahasiswa/baru', icon: 'add_circle' },
+
     { name: 'Monitor PKKMB', path: '/faculty/pkkmb', icon: 'database' },
     { name: 'Status Kesehatan', path: '/faculty/kesehatan', icon: 'medical_services' },
     { name: 'Student Voice', path: '/faculty/aspirasi', icon: 'campaign' },
     { name: 'Validasi Prestasi', path: '/faculty/prestasi', icon: 'emoji_events' },
     { name: 'Beasiswa Internal', path: '/faculty/beasiswa', icon: 'emoji_events' },
-    { name: 'Jadwal Konseling', path: '/faculty/konseling', icon: 'headphones' },
+
     { name: 'ORMAWA Hub', path: '/faculty/ormawa/proposals', icon: 'description' },
     { name: 'Organisasi Fakultas', path: '/faculty/organisasi', icon: 'group' },
     { name: 'Program Studi', path: '/faculty/prodi', icon: 'menu_book' },
@@ -150,13 +150,13 @@ const TopNavBar = ({ setIsOpen }) => {
     const labels = {
       'faculty': 'Portal Fakultas',
       'mahasiswa': 'Data Mahasiswa',
-      'baru': 'Mahasiswa Baru',
+
       'pkkmb': 'Monitor PKKMB',
       'kesehatan': 'Status Kesehatan',
       'aspirasi': 'Student Voice',
       'prestasi': 'Validasi Prestasi',
       'beasiswa': 'Beasiswa Internal',
-      'konseling': 'Jadwal Konseling',
+
       'ormawa': 'ORMAWA Hub',
       'proposals': 'Proposal & Anggaran',
       'organisasi': 'Organisasi Fakultas',

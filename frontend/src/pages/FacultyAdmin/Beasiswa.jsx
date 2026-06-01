@@ -117,13 +117,10 @@ export default function FacultyScholarship() {
   const [scholarships, setScholarships] = useState([])
   const [applications, setApplications] = useState([])
   const [loading, setLoading] = useState(true)
-  const [selectedApp, setSelectedApp] = useState(null)
   const [selectedProgram, setSelectedProgram] = useState(null)
   const [previewApp, setPreviewApp] = useState(null)
-  const [isSubmitting, setIsSubmitting] = useState(false)
   const [search, setSearch] = useState('')
   const [selectedScholarshipFilter, setSelectedScholarshipFilter] = useState('Semua')
-  const [appForm, setAppForm] = useState({ Status: 'proses', Catatan: '' })
 
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
@@ -280,6 +277,7 @@ export default function FacultyScholarship() {
     Deadline: s.deadline || s.Deadline,
     MinIPK: s.ipk_min ?? s.MinIPK ?? s.IPKMin ?? '3.00',
     acceptedCount: s.accepted_count ?? s.acceptedCount ?? 0,
+    Kategori: s.kategori || s.Kategori || '',
     CreatedAt: s.created_at || s.CreatedAt || s.Created || '',
   })
 
@@ -303,6 +301,7 @@ export default function FacultyScholarship() {
       },
       Beasiswa: {
         Nama: b.nama || b.Nama || '—',
+        Kategori: b.kategori || b.Kategori || '',
       },
       colorIdx: i % AVATAR_COLORS.length,
     };
@@ -321,26 +320,6 @@ export default function FacultyScholarship() {
     finally { setLoading(false) }
   }
 
-  const handleAppUpdate = async () => {
-    if (!selectedApp?.ID) return
-    setIsSubmitting(true)
-    try {
-      let finalStatus = appForm.Status;
-      if (appForm.Status === 'diterima') finalStatus = 'Disetujui Fakultas';
-      else if (appForm.Status === 'ditolak') finalStatus = 'Ditolak Fakultas';
-      
-      const payload = {
-        status: finalStatus,
-        catatan: appForm.Catatan,
-        Status: finalStatus,
-        Catatan: appForm.Catatan
-      }
-      await api.put(`/faculty/scholarships/applications/${selectedApp.ID}`, payload)
-      toast.success('Status diperbarui')
-      setSelectedApp(null); fetchData()
-    } catch (e) { toast.error(e.response?.data?.message || 'Gagal memperbarui status') }
-    finally { setIsSubmitting(false) }
-  }
 
   useEffect(() => { fetchData() }, [activeTab])
 
@@ -774,16 +753,6 @@ export default function FacultyScholarship() {
                               className="p-1.5 text-slate-400 hover:text-primary hover:bg-[#eef4ff] rounded-lg transition-colors" title="Lihat Pendaftaran">
                               <span className="material-symbols-outlined" style={{ fontSize: 16 }}>visibility</span>
                             </button>
-                            <button onClick={() => { 
-                              setSelectedApp(row); 
-                              const s = (row.Status || '').toLowerCase();
-                              const mappedStatus = s === 'disetujui fakultas' || s === 'diterima' ? 'diterima' : 
-                                                   s === 'ditolak fakultas' || s === 'ditolak' ? 'ditolak' : 'proses';
-                              setAppForm({ Status: mappedStatus, Catatan: row.Catatan || '' }); 
-                            }}
-                              className="p-1.5 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors" title="Review/Edit">
-                              <span className="material-symbols-outlined" style={{ fontSize: 16 }}>edit</span>
-                            </button>
                           </div>
                         </td>
                       </tr>
@@ -870,86 +839,7 @@ export default function FacultyScholarship() {
         </div>
       </div>
 
-      {/* Review Application Modal */}
-      {selectedApp && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4"
-          onClick={() => setSelectedApp(null)}>
-          <div className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl z-[101] flex flex-col overflow-hidden max-h-[90vh]"
-            onClick={e => e.stopPropagation()}>
-            {/* Header */}
-            <div className="relative bg-gradient-to-br from-[#00236F] via-[#00308F] to-[#003db5] pt-6 pb-7 px-6 overflow-hidden flex-shrink-0">
-              <div className="absolute -top-10 -right-10 w-44 h-44 bg-white/5 rounded-full pointer-events-none" />
-              <button onClick={() => setSelectedApp(null)}
-                className="absolute z-50 top-4 right-4 w-8 h-8 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center transition-colors">
-                <span className="material-symbols-outlined" style={{ fontSize: '15px' }} >close</span>
-              </button>
-              <div className="relative z-10 flex items-center gap-4 mb-4">
-                <StudentAvatar src={selectedApp.Mahasiswa?.Foto} name={selectedApp.Mahasiswa?.Nama} className="w-14 h-14 rounded-2xl shadow-xl ring-2 ring-white/20" />
-                <div className="min-w-0">
-                  <p className="text-[9px] font-bold text-white/50 uppercase tracking-[0.25em] mb-1">Validasi Seleksi</p>
-                  <h2 className="text-base font-extrabold text-white leading-tight">{selectedApp.Mahasiswa?.Nama}</h2>
-                  <p className="text-xs text-blue-200 font-medium mt-0.5">{selectedApp.Beasiswa?.Nama || '—'}</p>
-                </div>
-              </div>
-            </div>
 
-            {/* Body */}
-            <div className="flex-1 overflow-y-auto p-5 space-y-4">
-              {/* Berkas Lampiran */}
-              {(selectedApp.FileURL || selectedApp.KtmKtpURL || selectedApp.TranskripURL || selectedApp.SertifikatURL) && (
-                <div>
-                  <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.18em] mb-2">Berkas Lampiran</label>
-                  <div className="flex flex-col gap-1">
-                    {renderAttachment(selectedApp.FileURL, "Berkas Utama")}
-                    {renderAttachment(selectedApp.KtmKtpURL, "KTM / KTP")}
-                    {renderAttachment(selectedApp.TranskripURL, "Transkrip Nilai")}
-                    {renderAttachment(selectedApp.SertifikatURL, "Sertifikat Pendukung")}
-                  </div>
-                </div>
-              )}
-
-              {/* Keputusan */}
-              <div>
-                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.18em] mb-2">Keputusan Seleksi</label>
-                <div className="grid grid-cols-3 gap-2">
-                  {[
-                    { v: 'proses', label: 'Proses', cls: 'border-amber-300 bg-amber-50 text-amber-700' },
-                    { v: 'diterima', label: 'Diterima', cls: 'border-emerald-300 bg-emerald-50 text-emerald-700' },
-                    { v: 'ditolak', label: 'Ditolak', cls: 'border-rose-300 bg-rose-50 text-rose-700' },
-                  ].map(opt => (
-                    <button key={opt.v} onClick={() => setAppForm(f => ({ ...f, Status: opt.v }))}
-                      className={cn('h-11 rounded-xl border-2 text-xs font-bold uppercase tracking-wider transition-all',
-                        appForm.Status === opt.v ? opt.cls + ' scale-[1.02] shadow-sm' : 'border-slate-200/60 bg-white text-slate-400 hover:border-[#c5c5c5]')}>
-                      {opt.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Catatan */}
-              <div>
-                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.18em] mb-2">Catatan Reviewer</label>
-                <textarea value={appForm.Catatan} onChange={e => setAppForm(f => ({ ...f, Catatan: e.target.value }))} rows={4}
-                  placeholder="Berikan alasan keputusan atau catatan perbaikan..."
-                  className="w-full px-4 py-3 rounded-xl border border-slate-200/60 bg-slate-50/50 focus:outline-none focus:border-primary focus:bg-white text-sm text-slate-900 transition-all resize-none" />
-              </div>
-            </div>
-
-            {/* Footer */}
-            <div className="px-5 py-4 border-t border-slate-100 bg-slate-50/50 flex gap-3 flex-shrink-0">
-              <button onClick={() => setSelectedApp(null)}
-                className="flex-1 h-11 rounded-xl border border-slate-200/60 bg-white text-xs font-bold text-slate-600 uppercase tracking-widest hover:bg-slate-50 transition-all">
-                Batal
-              </button>
-              <button onClick={handleAppUpdate} disabled={isSubmitting}
-                className="flex-1 h-11 rounded-xl bg-primary hover:bg-[#001a52] text-white text-xs font-bold uppercase tracking-widest transition-all active:scale-95 shadow-lg shadow-[#00236F]/20 disabled:opacity-60 flex items-center justify-center gap-2">
-                {isSubmitting ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '14px' }} >sync</span> : <span className="material-symbols-outlined" style={{ fontSize: '14px' }} >save</span>}
-                Simpan Keputusan
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Read-Only Preview Application Modal */}
       {previewApp && (() => {

@@ -40,6 +40,9 @@ export default function FacultyDashboard() {
   const { user } = useAuthStore();
   const [loading, setLoading] = useState(true);
   const [isMounted, setIsMounted] = useState(false);
+  const [filterPeriod, setFilterPeriod] = useState('all');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
   const [summaryData, setSummaryData] = useState({
     totalStudents: 0,
     totalLecturers: 0,
@@ -49,27 +52,69 @@ export default function FacultyDashboard() {
     prodiDistribution: [],
     trendData: [],
     recentActivity: [],
-    activePeriod: null
+    activePeriod: null,
+    periods: []
   });
 
   const firstName = user?.name?.split(' ')[0] || user?.email?.split('@')[0] || 'Admin';
 
-  useEffect(() => {
-    setIsMounted(true);
-    const fetchDashboardData = async () => {
-      try {
-        const result = await fetchWithAuth(`${API_BASE_URL}/faculty/summary`);
-        if (result.status === 'success') {
-          setSummaryData(result.data);
-        }
-      } catch (error) {
-        console.error("Error fetching dashboard statistics:", error);
-      } finally {
-        setLoading(false);
+  const fetchDashboardData = React.useCallback(async (periodId, start, end) => {
+    Promise.resolve().then(() => setLoading(true));
+    try {
+      let url = `${API_BASE_URL}/faculty/summary`;
+      const params = [];
+      if (start && end) {
+        params.push(`start_date=${start}`);
+        params.push(`end_date=${end}`);
+      } else if (periodId && periodId !== 'all') {
+        params.push(`period_id=${periodId}`);
       }
-    };
-    fetchDashboardData();
+      if (params.length > 0) {
+        url += `?${params.join('&')}`;
+      }
+      const result = await fetchWithAuth(url);
+      if (result.status === 'success') {
+        setSummaryData(result.data);
+      }
+    } catch (error) {
+      console.error("Error fetching dashboard statistics:", error);
+    } finally {
+      Promise.resolve().then(() => setLoading(false));
+    }
   }, []);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setIsMounted(true);
+  }, []);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchDashboardData(filterPeriod, startDate, endDate);
+  }, [filterPeriod, startDate, endDate, fetchDashboardData]);
+
+  const handlePeriodChange = (val) => {
+    setFilterPeriod(val);
+    if (val !== 'all') {
+      setStartDate('');
+      setEndDate('');
+    }
+  };
+
+  const handleDateChange = (type, val) => {
+    if (type === 'start') {
+      setStartDate(val);
+    } else {
+      setEndDate(val);
+    }
+    setFilterPeriod('all');
+  };
+
+  const handleResetFilters = () => {
+    setStartDate('');
+    setEndDate('');
+    setFilterPeriod('all');
+  };
 
   const statusColors = {
     'Aktif': '#22c55e',
@@ -107,7 +152,7 @@ export default function FacultyDashboard() {
       path: "/faculty/prestasi"
     },
     {
-      label: "Unit Akademik",
+      label: "Program Studi",
       icon: Layers,
       value: summaryData.totalProdi || 0,
       desc: "program studi aktif",
@@ -130,6 +175,70 @@ export default function FacultyDashboard() {
   return (
     <div className="min-h-screen bg-[#F8FAFC] font-body">
       <div className="max-w-[1600px] mx-auto px-4 py-8 md:px-8 xl:px-12 space-y-8">
+
+        {/* Header Section */}
+        <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-black text-slate-900 tracking-tight">Dashboard Utama</h1>
+            <p className="text-xs font-semibold text-slate-400">Ikhtisar data akademik dan statistik fakultas</p>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-4 bg-white border border-slate-200/50 p-3 rounded-2xl shadow-sm">
+            {/* Period Dropdown */}
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Periode:</span>
+              <div className="relative min-w-[170px]">
+                <select
+                  value={filterPeriod}
+                  onChange={(e) => handlePeriodChange(e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-200/80 text-slate-800 text-xs font-bold py-2 pl-3 pr-8 rounded-lg appearance-none focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all cursor-pointer"
+                >
+                  <option value="all">Pilih Semua</option>
+                  {summaryData.periods?.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.Name || p.nama_periode}
+                    </option>
+                  ))}
+                </select>
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2.5 text-slate-400">
+                  <span className="material-symbols-outlined text-[16px]">expand_more</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Divider line for desktop */}
+            <span className="hidden md:inline-block h-6 w-[1px] bg-slate-200" />
+
+            {/* Custom Date Range Picker */}
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Rentang Tanggal:</span>
+              <div className="flex items-center gap-1.5">
+                <input
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => handleDateChange('start', e.target.value)}
+                  className="bg-slate-50 border border-slate-200/80 text-slate-800 text-xs font-bold py-1.5 px-2.5 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all cursor-pointer"
+                />
+                <span className="text-slate-400 text-xs font-bold">—</span>
+                <input
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => handleDateChange('end', e.target.value)}
+                  className="bg-slate-50 border border-slate-200/80 text-slate-800 text-xs font-bold py-1.5 px-2.5 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all cursor-pointer"
+                />
+                {(startDate || endDate) && (
+                  <button
+                    onClick={handleResetFilters}
+                    className="p-1.5 text-rose-500 hover:bg-rose-50 rounded-lg transition-colors flex items-center justify-center"
+                    title="Reset filter tanggal"
+                  >
+                    <span className="material-symbols-outlined text-[16px]">close</span>
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
 
         {/* ── Welcome Banner ─────────────────────────────────────────── */}
         <section className="relative overflow-hidden rounded-3xl h-52 flex items-center group">
@@ -305,62 +414,37 @@ export default function FacultyDashboard() {
           </div>
         </div>
 
-        {/* ── Trend + Activity ─────────────────────────────────────────── */}
+        {/* ── Activity Grid ─────────────────────────────────────────── */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-
-          {/* Trend Pendaftaran — col-8 */}
-          <div className="lg:col-span-8 bg-white border border-slate-100/50 rounded-3xl shadow-sm overflow-hidden">
-            <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
-              <div>
-                <h2 className="font-black text-slate-900 text-base tracking-tight">Tren Penerimaan Mahasiswa Baru</h2>
-                <p className="text-[11px] text-slate-400 font-medium mt-0.5">Perbandingan pendaftar vs. diterima per tahun</p>
-              </div>
-              <div className="flex items-center gap-1.5 text-[10px] font-black text-emerald-500 bg-emerald-50 px-3 py-1.5 rounded-xl uppercase tracking-widest">
-                <span className="material-symbols-outlined" style={{ fontSize: '11px' }} >trending_up</span> Trend
-              </div>
-            </div>
-            <div className="p-6 h-[260px]">
-              {isMounted && (
-                <ResponsiveContainer width="99%" height={230} debounce={50}>
-                  <LineChart data={summaryData.trendData}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                    <XAxis dataKey="tahun" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 700 }} />
-                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 700 }} />
-                    <Tooltip contentStyle={{ backgroundColor: "#fff", border: "none", borderRadius: "16px", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)", fontSize: "11px", fontWeight: "bold" }} />
-                    <Legend iconType="circle" wrapperStyle={{ paddingTop: '16px', fontSize: '10px', fontWeight: '900', textTransform: 'uppercase' }} />
-                    <Line type="monotone" dataKey="pendaftar" stroke="#3b82f6" strokeWidth={3} dot={{ r: 5, fill: '#3b82f6', strokeWidth: 2, stroke: '#fff' }} activeDot={{ r: 7 }} name="Pendaftar" />
-                    <Line type="monotone" dataKey="diterima" stroke="#10b981" strokeWidth={3} dot={{ r: 5, fill: '#10b981', strokeWidth: 2, stroke: '#fff' }} activeDot={{ r: 7 }} name="Diterima" />
-                  </LineChart>
-                </ResponsiveContainer>
-              )}
-            </div>
-          </div>
-
-          {/* Aktivitas Terbaru — col-4 */}
-          <div className="lg:col-span-4 bg-white border border-slate-100/50 rounded-3xl shadow-sm overflow-hidden">
+          {/* Aktivitas Terbaru — col-12 */}
+          <div className="lg:col-span-12 bg-white border border-slate-100/50 rounded-3xl shadow-sm overflow-hidden">
             <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
               <div>
                 <h2 className="font-black text-slate-900 text-base tracking-tight">Aktivitas Terbaru</h2>
-                <p className="text-[11px] text-slate-400 font-medium mt-0.5">Log aktivitas sistem</p>
+                <p className="text-[11px] text-slate-400 font-medium mt-0.5">Log aktivitas sistem terbaru di tingkat fakultas</p>
               </div>
               <div className="w-9 h-9 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400">
                 <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >schedule</span>
               </div>
             </div>
-            <div className="p-4 space-y-3 max-h-[260px] overflow-y-auto">
+            <div className="p-6">
               {summaryData.recentActivity?.length > 0
-                ? summaryData.recentActivity.map((activity, idx) => (
-                  <div key={idx} className="flex items-start gap-3 p-3 rounded-xl bg-slate-50/50 border border-slate-100 group hover:border-slate-200/60 hover:bg-white transition-all">
-                    <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary font-black text-[10px] flex-shrink-0">
-                      {activity.avatar || '—'}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-[11px] font-bold text-slate-900 truncate">{activity.user}</p>
-                      <p className="text-[10px] text-slate-500 leading-relaxed">{activity.action}</p>
-                    </div>
-                    <span className="text-[9px] font-bold text-slate-400 uppercase whitespace-nowrap">{activity.time}</span>
+                ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {summaryData.recentActivity.map((activity, idx) => (
+                      <div key={idx} className="flex items-start gap-3.5 p-4 rounded-2xl bg-slate-50/50 border border-slate-100 group hover:border-slate-200/60 hover:bg-white transition-all shadow-sm hover:shadow">
+                        <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center text-primary font-black text-xs flex-shrink-0">
+                          {activity.avatar || '—'}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-bold text-slate-900 truncate">{activity.user}</p>
+                          <p className="text-[11px] text-slate-500 leading-relaxed mt-0.5">{activity.action}</p>
+                        </div>
+                        <span className="text-[10px] font-bold text-slate-400 uppercase whitespace-nowrap self-start">{activity.time}</span>
+                      </div>
+                    ))}
                   </div>
-                ))
+                )
                 : (
                   <div className="py-16 text-center">
                     <div className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-400 mx-auto mb-3">

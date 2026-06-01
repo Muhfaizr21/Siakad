@@ -81,10 +81,56 @@ function StudentAvatar({ src, name, className = "w-9 h-9 rounded-xl" }) {
 export default function FacultyKesehatan() {
   const [loading, setLoading] = useState(true)
   const [healthRecords, setHealthRecords] = useState([])
-  const [statsData, setStatsData] = useState({ total: 0, condition: { prima: 0, pantauan: 0 } })
+  const [statsData, setStatsData] = useState({ total: 0, condition: { prima: 0, stabil: 0, pantauan: 0, kritis: 0 } })
   const [selected, setSelected] = useState(null)
   const [search, setSearch] = useState('')
   const [filterStatus, setFilterStatus] = useState('all')
+  const [filterProdi, setFilterProdi] = useState('all')
+  const [filterBlood, setFilterBlood] = useState('all')
+  const [filterJenis, setFilterJenis] = useState('all')
+
+  const [statsDetail, setStatsDetail] = useState(null)
+  const [statsSearch, setStatsSearch] = useState('')
+
+  const uniqueProdis = useMemo(() => {
+    const prodis = new Set();
+    healthRecords.forEach(r => {
+      if (r.Mahasiswa?.ProgramStudi?.Nama) {
+        prodis.add(r.Mahasiswa.ProgramStudi.Nama);
+      }
+    });
+    return Array.from(prodis);
+  }, [healthRecords]);
+
+  const uniqueJenis = useMemo(() => {
+    const js = new Set();
+    healthRecords.forEach(r => {
+      if (r.JenisPemeriksaan) {
+        js.add(r.JenisPemeriksaan);
+      }
+    });
+    return Array.from(js);
+  }, [healthRecords]);
+
+  const handleOpenStatsDetail = (key, label) => {
+    let list = []
+    if (key === 'total') {
+      list = healthRecords
+    } else {
+      list = healthRecords.filter(r => (r.StatusKesehatan || '').toLowerCase() === key)
+    }
+    setStatsDetail({ label, key, list })
+    setStatsSearch('')
+  }
+
+  const filteredStatsDetailList = useMemo(() => {
+    if (!statsDetail) return []
+    const q = statsSearch.toLowerCase()
+    return statsDetail.list.filter(r => 
+      !q || r.Mahasiswa?.Nama?.toLowerCase().includes(q) || r.Mahasiswa?.NIM?.includes(q) || r.Mahasiswa?.ProgramStudi?.Nama?.toLowerCase().includes(q)
+    )
+  }, [statsDetail, statsSearch])
+
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
   const [sortConfig, setSortConfig] = useState({ key: 'Tanggal', direction: 'desc' })
@@ -107,13 +153,19 @@ export default function FacultyKesehatan() {
           BeratBadan: r.berat_badan,
           Sistole: r.sistole,
           Diastole: r.diastole,
+          GulaDarah: r.gula_darah,
+          ButaWarna: r.buta_warna,
+          RiwayatPenyakit: r.riwayat_penyakit,
+          FileURL: r.file_url,
+          JenisPemeriksaan: r.jenis_pemeriksaan,
+          Hasil: r.hasil,
           Catatan: r.catatan,
           colorIdx: i % AVATAR_COLORS.length
         }))
         setHealthRecords(normalized)
       }
       if (summaryRes.data.status === 'success')
-        setStatsData(summaryRes.data.data || { total: 0, condition: { prima: 0, pantauan: 0 } })
+        setStatsData(summaryRes.data.data || { total: 0, condition: { prima: 0, stabil: 0, pantauan: 0, kritis: 0 } })
     } catch { toast.error('Gagal sinkronisasi data kesehatan') }
     finally { setLoading(false) }
   }
@@ -241,8 +293,11 @@ export default function FacultyKesehatan() {
     const q = search.toLowerCase()
     const matchQ = !q || r.Mahasiswa?.Nama?.toLowerCase().includes(q) || r.Mahasiswa?.NIM?.includes(q)
     const matchS = filterStatus === 'all' || (r.StatusKesehatan || '').toLowerCase() === filterStatus
-    return matchQ && matchS
-  }), [healthRecords, search, filterStatus])
+    const matchProdi = filterProdi === 'all' || r.Mahasiswa?.ProgramStudi?.Nama === filterProdi
+    const matchBlood = filterBlood === 'all' || (r.GolonganDarah || '').toUpperCase() === filterBlood.toUpperCase()
+    const matchJenis = filterJenis === 'all' || r.JenisPemeriksaan === filterJenis
+    return matchQ && matchS && matchProdi && matchBlood && matchJenis
+  }), [healthRecords, search, filterStatus, filterProdi, filterBlood, filterJenis])
 
   const sorted = useMemo(() => {
     let items = [...filtered]
@@ -337,23 +392,38 @@ export default function FacultyKesehatan() {
         </section>
 
         {/* Stats */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
           {[
-            { label: 'Total Skrining', value: statsData.total, icon: Activity, bg: 'bg-[#eef4ff]', color: 'text-primary', desc: 'Semua rekam medis' },
-            { label: 'Kondisi Prima', value: statsData.condition?.prima || 0, icon: HeartPulse, bg: 'bg-emerald-50', color: 'text-emerald-600', desc: 'Status kesehatan prima' },
-            { label: 'Dalam Pantauan', value: statsData.condition?.pantauan || 0, icon: AlertCircle, bg: 'bg-amber-50', color: 'text-amber-600', desc: 'Perlu perhatian khusus' },
+            { key: 'total',    label: 'Total Skrining',  value: statsData.total,              icon: Activity,    bg: 'bg-[#eef4ff]', color: 'text-primary',     desc: 'Semua rekam medis' },
+            { key: 'prima',    label: 'Kondisi Prima',   value: statsData.condition?.prima || 0, icon: HeartPulse,  bg: 'bg-emerald-50', color: 'text-emerald-600', desc: 'Status sangat sehat' },
+            { key: 'stabil',   label: 'Status Stabil',   value: statsData.condition?.stabil || 0, icon: ShieldCheck, bg: 'bg-blue-50',    color: 'text-blue-600',    desc: 'Kondisi normal' },
+            { key: 'pantauan', label: 'Dalam Pantauan',  value: statsData.condition?.pantauan || 0, icon: AlertCircle,  bg: 'bg-amber-50',   color: 'text-amber-600',   desc: 'Butuh pemantauan' },
+            { key: 'kritis',   label: 'Kondisi Kritis',  value: statsData.condition?.kritis || 0, icon: AlertCircle,  bg: 'bg-rose-50',    color: 'text-rose-600',    desc: 'Penanganan segera' },
           ].map(s => (
-            <div key={s.label} className="bg-white border border-slate-100/50 rounded-3xl p-5 shadow-sm">
-              <div className="flex items-center gap-3 mb-3">
-                <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center', s.bg, s.color)}>
-                  <s.icon size={18} />
+            <div
+              key={s.label}
+              onClick={() => handleOpenStatsDetail(s.key, s.label)}
+              className="bg-white border border-slate-100/50 rounded-3xl p-5 shadow-sm hover:shadow-md hover:border-slate-200 cursor-pointer transition-all hover:scale-[1.01] duration-200 group flex flex-col justify-between"
+            >
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-3">
+                    <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110', s.bg, s.color)}>
+                      <s.icon size={18} />
+                    </div>
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{s.label}</span>
+                  </div>
+                  <span className="material-symbols-outlined text-slate-300 group-hover:text-primary transition-colors" style={{ fontSize: '16px' }}>arrow_forward</span>
                 </div>
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{s.label}</span>
+                <p className="text-2xl font-extrabold text-slate-900 leading-none tabular-nums">
+                  {loading ? (
+                    <span className="material-symbols-outlined animate-spin text-slate-300" style={{ fontSize: '18px' }} >sync</span>
+                  ) : (
+                    s.value
+                  )}
+                </p>
               </div>
-              <p className="text-2xl font-extrabold text-slate-900 leading-none tabular-nums">
-                {loading ? <span className="material-symbols-outlined animate-spin text-slate-300" style={{ fontSize: '18px' }} >sync</span> : s.value}
-              </p>
-              <p className="text-xs text-slate-400 font-medium mt-1">{s.desc}</p>
+              <p className="text-xs text-slate-400 font-medium mt-3">{s.desc}</p>
             </div>
           ))}
         </div>
@@ -371,7 +441,7 @@ export default function FacultyKesehatan() {
               <div className="relative">
                 <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" style={{ fontSize: '14px' }} >search</span>
                 <input type="text" placeholder="Cari nama atau NIM..." value={search} onChange={e => setSearch(e.target.value)}
-                  className="pl-9 pr-4 h-9 w-52 rounded-xl border border-slate-200/60 focus:outline-none focus:border-primary text-sm bg-white" />
+                  className="pl-9 pr-4 h-9 w-44 rounded-xl border border-slate-200/60 focus:outline-none focus:border-primary text-sm bg-white" />
               </div>
               <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)}
                 className="h-9 pl-3 pr-8 rounded-xl border border-slate-200/60 text-xs font-medium bg-white text-slate-600 focus:outline-none focus:border-primary appearance-none cursor-pointer">
@@ -379,9 +449,28 @@ export default function FacultyKesehatan() {
                 <option value="prima">Prima</option>
                 <option value="stabil">Stabil</option>
                 <option value="pantauan">Pantauan</option>
+                <option value="kritis">Kritis</option>
               </select>
-              {(search || filterStatus !== 'all') && (
-                <button onClick={() => { setSearch(''); setFilterStatus('all') }}
+              <select value={filterProdi} onChange={e => setFilterProdi(e.target.value)}
+                className="h-9 pl-3 pr-8 rounded-xl border border-slate-200/60 text-xs font-medium bg-white text-slate-600 focus:outline-none focus:border-primary appearance-none cursor-pointer max-w-[150px]">
+                <option value="all">Semua Prodi</option>
+                {uniqueProdis.map(p => <option key={p} value={p}>{p}</option>)}
+              </select>
+              <select value={filterBlood} onChange={e => setFilterBlood(e.target.value)}
+                className="h-9 pl-3 pr-8 rounded-xl border border-slate-200/60 text-xs font-medium bg-white text-slate-600 focus:outline-none focus:border-primary appearance-none cursor-pointer">
+                <option value="all">Semua Gol. Darah</option>
+                <option value="A">Gol. Darah A</option>
+                <option value="B">Gol. Darah B</option>
+                <option value="AB">Gol. Darah AB</option>
+                <option value="O">Gol. Darah O</option>
+              </select>
+              <select value={filterJenis} onChange={e => setFilterJenis(e.target.value)}
+                className="h-9 pl-3 pr-8 rounded-xl border border-slate-200/60 text-xs font-medium bg-white text-slate-600 focus:outline-none focus:border-primary appearance-none cursor-pointer max-w-[150px]">
+                <option value="all">Semua Jenis Periksa</option>
+                {uniqueJenis.map(j => <option key={j} value={j}>{j}</option>)}
+              </select>
+              {(search || filterStatus !== 'all' || filterProdi !== 'all' || filterBlood !== 'all' || filterJenis !== 'all') && (
+                <button onClick={() => { setSearch(''); setFilterStatus('all'); setFilterProdi('all'); setFilterBlood('all'); setFilterJenis('all'); }}
                   className="h-9 px-3 text-xs font-semibold text-rose-600 bg-rose-50 rounded-xl border border-rose-200 hover:bg-rose-100">Reset</button>
               )}
             </div>
@@ -555,6 +644,93 @@ export default function FacultyKesehatan() {
         </div>
       </div>
 
+      {/* Stats Detail Modal (Pop-up rincian dari card stats) */}
+      {statsDetail && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4"
+          onClick={() => setStatsDetail(null)}>
+          <div className="relative w-full max-w-4xl bg-white rounded-3xl shadow-2xl z-[101] flex flex-col overflow-hidden max-h-[85vh]"
+            onClick={e => e.stopPropagation()}>
+            
+            {/* Header */}
+            <div className="bg-gradient-to-br from-[#00236F] via-[#00308F] to-[#003db5] pt-6 pb-5 px-6 relative flex-shrink-0">
+              <button onClick={() => setStatsDetail(null)}
+                className="absolute top-4 right-4 w-8 h-8 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center transition-colors text-white">
+                <span className="material-symbols-outlined" style={{ fontSize: '18px' }} >close</span>
+              </button>
+              <h3 className="text-lg font-extrabold text-white tracking-tight leading-tight">{statsDetail.label}</h3>
+              <p className="text-xs text-blue-200 mt-1">Daftar mahasiswa baru dengan status kesehatan tersebut</p>
+            </div>
+
+            {/* Toolbar */}
+            <div className="p-4 border-b border-slate-100 bg-slate-50/50 flex flex-col sm:flex-row items-center justify-between gap-3 flex-shrink-0">
+              <div className="relative w-full sm:w-72">
+                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" style={{ fontSize: '15px' }} >search</span>
+                <input
+                  type="text"
+                  placeholder="Cari nama, NIM, prodi..."
+                  value={statsSearch}
+                  onChange={e => setStatsSearch(e.target.value)}
+                  className="pl-9 pr-4 h-9 w-full rounded-xl border border-slate-200/60 focus:outline-none focus:border-primary text-xs bg-white"
+                />
+              </div>
+              <p className="text-xs text-slate-500 font-semibold">
+                Menampilkan <span className="text-primary">{filteredStatsDetailList.length}</span> data
+              </p>
+            </div>
+
+            {/* List Body */}
+            <div className="flex-1 overflow-y-auto p-4">
+              {filteredStatsDetailList.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-16 text-center">
+                  <div className="w-12 h-12 bg-slate-100 rounded-2xl flex items-center justify-center text-slate-400 mb-2"><HeartPulse size={20} /></div>
+                  <p className="font-bold text-sm text-slate-800">Tidak ada mahasiswa ditemukan</p>
+                  <p className="text-xs text-slate-400">Kata kunci tidak cocok dengan data mana pun.</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {filteredStatsDetailList.map((row) => {
+                    const hs = getHealth(row.StatusKesehatan)
+                    return (
+                      <div key={row.ID} className="flex items-center gap-3 p-3 rounded-2xl border border-slate-100 bg-white hover:border-primary/20 hover:shadow-sm transition-all group">
+                        <StudentAvatar src={getFullUrl(row.Mahasiswa?.FotoURL || row.Mahasiswa?.foto_url)} name={row.Mahasiswa?.Nama} className="w-11 h-11 rounded-xl" />
+                        <div className="min-w-0 flex-1">
+                          <p className="font-bold text-xs text-slate-900 group-hover:text-primary transition-colors truncate">{row.Mahasiswa?.Nama || '—'}</p>
+                          <p className="text-[10px] text-slate-400 font-semibold">{row.Mahasiswa?.NIM || '—'} · {row.Mahasiswa?.ProgramStudi?.Nama || '—'}</p>
+                          <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
+                            <span className="inline-flex items-center justify-center px-1.5 py-0.5 rounded-md bg-rose-50 border border-rose-100 text-rose-600 text-[9px] font-black font-mono">
+                              Gol. {row.GolonganDarah || '?'}
+                            </span>
+                            <span className={cn('inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[9px] font-bold border uppercase tracking-wider', hs.cls)}>
+                              <span className={cn('w-1 h-1 rounded-full', hs.dot)} />{row.StatusKesehatan || '—'}
+                            </span>
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => { setSelected(row); setStatsDetail(null); }}
+                          className="w-8 h-8 rounded-xl bg-slate-50 hover:bg-[#eef4ff] text-slate-400 hover:text-primary flex items-center justify-center transition-colors shadow-inner"
+                          title="Detail Rekam Medis"
+                        >
+                          <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>visibility</span>
+                        </button>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Footer */}
+            <div className="px-5 py-4 border-t border-slate-100 bg-slate-50/50 flex justify-end flex-shrink-0">
+              <button onClick={() => setStatsDetail(null)}
+                className="h-10 px-6 rounded-xl bg-primary hover:bg-[#001a52] text-white text-xs font-bold uppercase tracking-widest transition-all active:scale-95 shadow-lg shadow-[#00236F]/20">
+                Tutup
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
+
       {/* Detail Modal */}
       {selected && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4"
@@ -582,8 +758,9 @@ export default function FacultyKesehatan() {
                 </span>
                 <span className={cn('flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-wider',
                   selected.StatusKesehatan === 'prima' ? 'bg-emerald-400/20 border border-emerald-300/30 text-emerald-200'
+                    : selected.StatusKesehatan === 'stabil' ? 'bg-blue-400/20 border border-blue-300/30 text-blue-200'
                     : selected.StatusKesehatan === 'pantauan' ? 'bg-amber-400/20 border border-amber-300/30 text-amber-200'
-                      : 'bg-blue-400/20 border border-blue-300/30 text-blue-200')}>
+                    : 'bg-rose-400/20 border border-rose-300/30 text-rose-200')}>
                   <span className="w-1.5 h-1.5 rounded-full bg-current animate-pulse" />
                   {selected.StatusKesehatan || 'Stabil'}
                 </span>
@@ -604,16 +781,50 @@ export default function FacultyKesehatan() {
                     { label: 'Berat Badan', value: selected.BeratBadan ? `${parseFloat(selected.BeratBadan).toFixed(1)} kg` : '—' },
                     { label: 'BMI', value: bmi(selected) || '—', highlight: bmi(selected) >= 25 },
                     { label: 'Tekanan Darah', value: (selected.Sistole || selected.Diastole) ? `${selected.Sistole || 0}/${selected.Diastole || 0} mmHg` : '—' },
+                    { label: 'Gula Darah', value: selected.GulaDarah ? `${selected.GulaDarah} mg/dL` : '—' },
+                    { label: 'Buta Warna', value: selected.ButaWarna || '—' },
+                    { label: 'Jenis Pemeriksaan', value: selected.JenisPemeriksaan || '—' },
+                    { label: 'Hasil Medis', value: selected.Hasil || '—' },
                   ].map(item => (
                     <div key={item.label} className="bg-slate-50/50 border border-slate-100 rounded-xl p-3">
                       <p className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.15em] mb-1">{item.label}</p>
-                      <p className={cn('text-lg font-extrabold', item.highlight ? 'text-rose-600' : 'text-slate-900')}>
+                      <p className={cn('text-sm font-extrabold', item.highlight ? 'text-rose-600' : 'text-slate-900')}>
                         {item.value}
                       </p>
                     </div>
                   ))}
                 </div>
               </div>
+
+              {/* Riwayat Penyakit */}
+              {selected.RiwayatPenyakit && (
+                <div className="bg-slate-50 border border-slate-200/50 rounded-2xl p-4">
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.18em] mb-1.5">Riwayat Penyakit</p>
+                  <p className="text-xs text-slate-700 leading-relaxed">{selected.RiwayatPenyakit}</p>
+                </div>
+              )}
+
+              {/* Catatan */}
+              {selected.Catatan && (
+                <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4">
+                  <p className="text-[10px] font-black text-amber-700 uppercase tracking-[0.18em] mb-1.5">Catatan Medis</p>
+                  <p className="text-xs text-amber-800 leading-relaxed">{selected.Catatan}</p>
+                </div>
+              )}
+
+              {/* File Dokumen / Lampiran */}
+              {selected.FileURL && (
+                <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4 flex items-center justify-between gap-3">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[10px] font-black text-blue-700 uppercase tracking-[0.18em] mb-0.5">Berkas Hasil Medis</p>
+                    <p className="text-[10px] text-blue-500 font-medium truncate">Dokumen hasil pemeriksaan resmi (.pdf/.jpg)</p>
+                  </div>
+                  <a href={getFullUrl(selected.FileURL)} target="_blank" rel="noreferrer"
+                    className="h-8 px-3 rounded-lg bg-primary hover:bg-[#001a52] text-white text-xs font-bold uppercase tracking-widest flex items-center gap-1 transition-all shadow-sm shrink-0">
+                    <span className="material-symbols-outlined" style={{ fontSize: '13px' }}>visibility</span> Lihat
+                  </a>
+                </div>
+              )}
 
               {/* Info Tambahan */}
               <div>
@@ -639,14 +850,6 @@ export default function FacultyKesehatan() {
                   ))}
                 </div>
               </div>
-
-              {/* Catatan */}
-              {selected.Catatan && (
-                <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4">
-                  <p className="text-[10px] font-black text-amber-700 uppercase tracking-[0.18em] mb-1.5">Catatan Medis</p>
-                  <p className="text-sm text-amber-800 leading-relaxed">{selected.Catatan}</p>
-                </div>
-              )}
             </div>
 
             {/* Footer */}

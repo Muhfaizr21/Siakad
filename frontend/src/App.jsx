@@ -65,7 +65,7 @@ import Settings from './pages/OrmawaAdmin/Settings'
 import AspirationManagement from './pages/OrmawaAdmin/AspirationManagement'
 // Faculty Admin Modules (from danzz)
 import FacultyAspirationManagement from './pages/FacultyAdmin/Aspirasi'
-import FacultyPmb from './pages/FacultyAdmin/MahasiswaBaru'
+
 import FacultyProdi from './pages/FacultyAdmin/Prodi'
 import FacultyDosen from './pages/FacultyAdmin/Psikolog'
 const FacultyMahasiswa = React.lazy(() => import('./pages/FacultyAdmin/Mahasiswa'))
@@ -85,11 +85,11 @@ const FacultyNilai = FacultyMahasiswa
 import FacultyLaporan from './pages/FacultyAdmin/Laporan'
 import FacultyKonten from './pages/FacultyAdmin/Konten'
 import FacultyPengaturan from './pages/FacultyAdmin/Settings'
-import FacultyKonseling from './pages/FacultyAdmin/Konseling'
+
 import FacultyPrestasi from './pages/FacultyAdmin/Prestasi'
 
 import FacultyBeasiswa from './pages/FacultyAdmin/Beasiswa'
-import FacultyMahasiswaBaru from './pages/FacultyAdmin/MahasiswaBaru'
+
 import FacultyProposalApproval from './pages/FacultyAdmin/OrmawaProposals'
 import FacultyOrganisasi from './pages/FacultyAdmin/OrganisasiFakultas'
 import FacultyPkkmb from './pages/FacultyAdmin/Pkkmb'
@@ -216,7 +216,7 @@ function App() {
                     <Route index element={<Navigate to="dashboard" replace />} />
                     <Route path="dashboard" element={<FacultyDashboard />} />
                     <Route path="aspirasi" element={<FacultyAspirationManagement />} />
-                    <Route path="pmb" element={<FacultyPmb />} />
+
                     <Route path="dosen" element={<Navigate to="../psikolog" replace />} />
                     <Route path="psikolog" element={<FacultyDosen />} />
 
@@ -237,10 +237,10 @@ function App() {
                     <Route path="laporan/mahasiswa" element={<FacultyLaporan />} />
                     {/* <Route path="konten" element={<FacultyKonten />} /> */}
                     <Route path="pengaturan" element={<FacultyPengaturan />} />
-                    <Route path="konseling" element={<FacultyKonseling />} />
+
                     <Route path="prestasi" element={<FacultyPrestasi />} />
                     <Route path="beasiswa" element={<FacultyBeasiswa />} />
-                    <Route path="mahasiswa/baru" element={<FacultyMahasiswaBaru />} />
+
                     <Route path="pkkmb" element={<FacultyPkkmb />} />
                     <Route path="kesehatan" element={<FacultyHealth />} />
                     <Route path="ormawa/proposals" element={<FacultyProposalApproval />} />
