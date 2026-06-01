@@ -48,6 +48,7 @@ import StudentVoiceDetailPage from './pages/Student/StudentVoiceDetailPage'
 import OrganisasiPage from './pages/Student/OrganisasiPage'
 import ProfilePage from './pages/Student/ProfilePage'
 import NotificationPage from './pages/Student/NotificationPage'
+import PresensiPage from './pages/Student/PresensiPage'
 
 // Ormawa Admin Modules (from danzz)
 import AnggotaManagement from './pages/OrmawaAdmin/AnggotaManagement'
@@ -312,6 +313,7 @@ function App() {
               <Route path="organisasi" element={<OrganisasiPage />} />
               <Route path="profile" element={<ProfilePage />} />
               <Route path="notifikasi" element={<NotificationPage />} />
+              <Route path="presensi" element={<PresensiPage />} />
             </Route>
 
             <Route path="/dashboard" element={<Navigate to="/student/dashboard" replace />} />

@@ -62,12 +62,7 @@ export default function AbsensiKegiatan() {
 
   const handleSelectEvent = (event) => {
     setSelectedEvent(event)
-    const data = JSON.stringify({ 
-      type: 'absensi', 
-      event_id: event.ID, 
-      ormawa_id: ormawaId, 
-      timestamp: Date.now() 
-    })
+    const data = `${window.location.origin}/student/presensi?eventId=${event.ID}`
     setQrUrl(`https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(data)}`)
     fetchAttendance(event.ID)
   }
