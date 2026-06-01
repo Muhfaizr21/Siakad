@@ -16,12 +16,13 @@ import (
 func GetUsers(c *fiber.Ctx) error {
 	type UserWithContext struct {
 		models.User
-		FakultasNama string `json:"fakultas_nama"`
-		IdentityName string `json:"identity_name"`
-		IdentityCode string `json:"identity_code"`
-		ProdiNama    string `json:"prodi_nama"`
-		OrmawaNama   string `json:"ormawa_nama"`
-		FotoURL      string `json:"foto_url"`
+		FakultasNama     string `json:"fakultas_nama"`
+		IdentityName     string `json:"identity_name"`
+		IdentityCode     string `json:"identity_code"`
+		ProdiNama        string `json:"prodi_nama"`
+		OrmawaNama       string `json:"ormawa_nama"`
+		FotoURL          string `json:"foto_url"`
+		KencanaScopeType string `json:"kencana_scope_type"`
 	}
 
 	var results []UserWithContext
@@ -30,9 +31,10 @@ func GetUsers(c *fiber.Ctx) error {
 		Select(`
 			"public"."users".*, 
 			f.nama as fakultas_nama,
-			COALESCE(m.nama, d.nama, ps.nama) as identity_name,
+			COALESCE(m.nama, d.nama, ps.nama, km.name) as identity_name,
 			COALESCE(m.nim, d.n_id_n) as identity_code,
 			p.nama as prodi_nama,
+			km.scope_type as kencana_scope_type,
 			COALESCE(m.foto_url, '') as foto_url,
 			(SELECT orm.nama FROM ormawa.ormawa_anggota oa 
 			 JOIN ormawa.ormawa orm ON orm.id = oa.ormawa_id 
@@ -43,6 +45,7 @@ func GetUsers(c *fiber.Ctx) error {
 		Joins(`LEFT JOIN "fakultas"."program_studi" p ON p.id = m.program_studi_id`).
 		Joins(`LEFT JOIN "fakultas"."dosen" d ON d.pengguna_id = "public"."users".id`).
 		Joins(`LEFT JOIN "psikolog"."profiles" ps ON ps.user_id = "public"."users".id`).
+		Joins(`LEFT JOIN "mahasiswa"."kencana_mentors" km ON km.user_id = "public"."users".id`).
 		Where(`"public"."users".deleted_at IS NULL`).
 		Order(`"public"."users".created_at desc`).
 		Scan(&results).Error
@@ -57,13 +60,31 @@ func GetUsers(c *fiber.Ctx) error {
 	})
 }
 
+func isAllowedRBACRole(role string) bool {
+	switch role {
+	case "super_admin", "faculty_admin", "ormawa_admin", "ormawa", "mahasiswa", "psikolog", "PSIKOLOG", "dosen", "DOSEN", "kencana_admin", "kencana_fakultas", "kencana_mentor":
+		return true
+	default:
+		return false
+	}
+}
+
+func normalizeKencanaScope(scope string) string {
+	if strings.TrimSpace(scope) == "university" {
+		return "university"
+	}
+	return "faculty"
+}
+
 // UpdateUserRole handles role assignment and logs the event in log_aktivitas
 func UpdateUserRole(c *fiber.Ctx) error {
 	type UpdateRequest struct {
-		UserID       uint   `json:"userId"`
-		Role         string `json:"role"`
-		OrmawaID     uint   `json:"ormawaId"`
-		OrmawaAssign string `json:"ormawaAssign"`
+		UserID           uint   `json:"userId"`
+		Role             string `json:"role"`
+		OrmawaID         uint   `json:"ormawaId"`
+		OrmawaAssign     string `json:"ormawaAssign"`
+		FakultasID       uint   `json:"fakultasId"`
+		KencanaScopeType string `json:"kencanaScopeType"`
 	}
 
 	var req UpdateRequest
@@ -79,12 +100,50 @@ func UpdateUserRole(c *fiber.Ctx) error {
 		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "User not found"})
 	}
 
+	req.Role = strings.TrimSpace(req.Role)
+	req.KencanaScopeType = normalizeKencanaScope(req.KencanaScopeType)
+	if !isAllowedRBACRole(req.Role) {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Role tidak valid"})
+	}
+	if req.Role == "kencana_fakultas" && req.FakultasID == 0 {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Fakultas wajib dipilih untuk Admin Kencana Fakultas"})
+	}
+	if req.Role == "kencana_mentor" && req.KencanaScopeType == "faculty" && req.FakultasID == 0 {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Fakultas wajib dipilih untuk Mentor Kencana scope fakultas"})
+	}
+
 	// 2. Execution with User Update
 	err := config.DB.Transaction(func(tx *gorm.DB) error {
+		var fakultasPtr *uint
+		if req.FakultasID != 0 {
+			fakultasPtr = &req.FakultasID
+		}
 
 		// Update user role via raw SQL to bypass any GORM association issues
-		if err := tx.Exec("UPDATE public.users SET role = ?, ormawa_assign = ?, updated_at = ? WHERE id = ?", req.Role, req.OrmawaAssign, time.Now(), user.ID).Error; err != nil {
+		if err := tx.Exec("UPDATE public.users SET role = ?, ormawa_assign = ?, fakultas_id = ?, updated_at = ? WHERE id = ?", req.Role, req.OrmawaAssign, fakultasPtr, time.Now(), user.ID).Error; err != nil {
 			return err
+		}
+
+		if req.Role == "kencana_mentor" {
+			mentor := models.KencanaMentor{UserID: user.ID, Name: strings.Split(user.Email, "@")[0], Email: user.Email, ScopeType: req.KencanaScopeType, FakultasID: fakultasPtr, Status: "active"}
+			var existing models.KencanaMentor
+			if err := tx.Where("user_id = ?", user.ID).First(&existing).Error; err == nil {
+				existing.ScopeType = req.KencanaScopeType
+				existing.FakultasID = fakultasPtr
+				existing.Status = "active"
+				if existing.Name == "" {
+					existing.Name = mentor.Name
+				}
+				if err := tx.Save(&existing).Error; err != nil {
+					return err
+				}
+			} else if err == gorm.ErrRecordNotFound {
+				if err := tx.Create(&mentor).Error; err != nil {
+					return err
+				}
+			} else {
+				return err
+			}
 		}
 
 		// Handle Ormawa Assignment for ormawa_admin
@@ -147,14 +206,16 @@ func GetAuditLogs(c *fiber.Ctx) error {
 
 func CreateUser(c *fiber.Ctx) error {
 	type CreateRequest struct {
-		Email          string `json:"Email"`
-		Password       string `json:"Password"`
-		Role           string `json:"Role"`
-		Nama           string `json:"Nama"`
-		FakultasID     uint   `json:"FakultasID"`
-		ProgramStudiID uint   `json:"ProgramStudiID"`
-		OrmawaID       uint   `json:"OrmawaID"`
-		OrmawaAssign   string `json:"OrmawaAssign"`
+		Email            string `json:"Email"`
+		Password         string `json:"Password"`
+		Role             string `json:"Role"`
+		Nama             string `json:"Nama"`
+		FakultasID       uint   `json:"FakultasID"`
+		ProgramStudiID   uint   `json:"ProgramStudiID"`
+		OrmawaID         uint   `json:"OrmawaID"`
+		OrmawaAssign     string `json:"OrmawaAssign"`
+		KencanaScopeType string `json:"KencanaScopeType"`
+		Phone            string `json:"Phone"`
 	}
 
 	var req CreateRequest
@@ -169,9 +230,25 @@ func CreateUser(c *fiber.Ctx) error {
 	req.Email = strings.TrimSpace(strings.ToLower(req.Email))
 	req.Role = strings.TrimSpace(req.Role)
 	req.Nama = strings.TrimSpace(req.Nama)
+	req.KencanaScopeType = normalizeKencanaScope(req.KencanaScopeType)
 
-	if req.Role != "super_admin" && req.Role != "psikolog" && req.Role != "PSIKOLOG" && req.FakultasID == 0 {
+	if !isAllowedRBACRole(req.Role) {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Role tidak valid"})
+	}
+
+	requiresFakultas := true
+	if req.Role == "super_admin" || req.Role == "psikolog" || req.Role == "PSIKOLOG" || req.Role == "kencana_admin" || (req.Role == "kencana_mentor" && req.KencanaScopeType == "university") {
+		requiresFakultas = false
+	}
+	if req.Role == "kencana_fakultas" {
+		requiresFakultas = false // Handled separately below
+	}
+
+	if requiresFakultas && req.FakultasID == 0 {
 		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Fakultas wajib dipilih"})
+	}
+	if req.Role == "kencana_fakultas" && req.FakultasID == 0 {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Fakultas wajib dipilih untuk Admin Kencana Fakultas"})
 	}
 
 	if req.Role == "ormawa_admin" && req.ProgramStudiID != 0 {
@@ -275,6 +352,21 @@ func CreateUser(c *fiber.Ctx) error {
 				IsAktif:      true,
 			}
 			if err := tx.Create(&psikolog).Error; err != nil {
+				return err
+			}
+		case "kencana_mentor":
+			mentor := models.KencanaMentor{
+				UserID:    user.ID,
+				Name:      req.Nama,
+				Email:     req.Email,
+				Phone:     req.Phone,
+				ScopeType: req.KencanaScopeType,
+				Status:    "active",
+			}
+			if req.KencanaScopeType == "faculty" && req.FakultasID != 0 {
+				mentor.FakultasID = &req.FakultasID
+			}
+			if err := tx.Create(&mentor).Error; err != nil {
 				return err
 			}
 		}
@@ -636,8 +728,6 @@ func GetAllStudents(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"status": "success", "data": mhs})
 }
 
-
-
 func GetAllPsychologists(c *fiber.Ctx) error {
 	var psychologists []models.Psikolog
 	config.DB.Order("nama asc").Find(&psychologists)
@@ -847,8 +937,6 @@ func normalizeScheduleCategoryLocal(value string) string {
 		return "Personal"
 	}
 }
-
-
 
 func GetGlobalAspirations(c *fiber.Ctx) error {
 	var asps []models.Aspirasi
@@ -1249,7 +1337,6 @@ func DeleteOrmawa(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"status": "success", "message": "Ormawa deleted"})
 }
 
-
 // News Handlers
 func GetAllNews(c *fiber.Ctx) error {
 	var list []models.Berita
@@ -1641,4 +1728,3 @@ func GetPsychologistReferralsAdmin(c *fiber.Ctx) error {
 	}
 	return c.JSON(fiber.Map{"status": "success", "data": referrals})
 }
-

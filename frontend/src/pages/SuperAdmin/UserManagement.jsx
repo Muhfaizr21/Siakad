@@ -22,7 +22,7 @@ const KeyRound = ({ size, className, ...props }) => <span className={`material-s
 
 
 
-const ROLES = ['super_admin', 'faculty_admin', 'ormawa_admin', 'ormawa', 'mahasiswa', 'psikolog']
+const ROLES = ['super_admin', 'faculty_admin', 'ormawa_admin', 'ormawa', 'mahasiswa', 'psikolog', 'kencana_admin', 'kencana_fakultas', 'kencana_mentor']
 
 const ROLE_DETAILS = {
   super_admin: {
@@ -62,6 +62,24 @@ const ROLE_DETAILS = {
     cls: 'bg-teal-500 text-white shadow-teal-200',
     desc: 'Otoritas klinis pengelolaan layanan kesehatan mental mahasiswa.',
     perms: ['Clinical Counseling', 'Psychological Assessment', 'Case Reports', 'Booking System']
+  },
+  kencana_admin: {
+    label: 'Admin Kencana',
+    cls: 'bg-amber-600 text-white shadow-amber-200',
+    desc: 'Otoritas pusat untuk periode, materi, quiz, remedial, mentor, dan sertifikat Kencana.',
+    perms: ['Kencana Config', 'Timeline Builder', 'Mentor Override', 'Certificate Gate']
+  },
+  kencana_fakultas: {
+    label: 'Admin Kencana Fakultas',
+    cls: 'bg-cyan-700 text-white shadow-cyan-200',
+    desc: 'Mengelola kegiatan Kencana yang dibatasi pada mahasiswa dan sesi fakultas terkait.',
+    perms: ['Faculty Kencana', 'Scoped Participants', 'Attendance Review', 'Handbook Review']
+  },
+  kencana_mentor: {
+    label: 'Dewan Pembimbing',
+    cls: 'bg-stone-800 text-white shadow-stone-200',
+    desc: 'Akun khusus pembimbing Kencana dengan scope universitas atau fakultas.',
+    perms: ['Mentor Dashboard', 'Student Invite', 'Progress Notes', 'Affective Score']
   }
 }
 
@@ -112,6 +130,8 @@ export default function UserManagement() {
   const [newRole, setNewRole] = useState('')
   const [newOrmawaId, setNewOrmawaId] = useState('')
   const [newOrmawaAssign, setNewOrmawaAssign] = useState('')
+  const [newFakultasId, setNewFakultasId] = useState('')
+  const [newKencanaScopeType, setNewKencanaScopeType] = useState('faculty')
   const [ormawas, setOrmawas] = useState([])
   const [form, setForm] = useState({ 
     Email: '', 
@@ -121,7 +141,9 @@ export default function UserManagement() {
     FakultasID: '',
     ProgramStudiID: '',
     OrmawaAssign: '',
-    OrmawaID: ''
+    OrmawaID: '',
+    KencanaScopeType: 'faculty',
+    Phone: ''
   })
 
   const handleEmailChange = (emailVal) => {
@@ -194,6 +216,8 @@ export default function UserManagement() {
         ProgramStudiID: Number(form.ProgramStudiID) || 0,
         OrmawaAssign: String(form.OrmawaAssign || '').trim(),
         OrmawaID: Number(form.OrmawaID) || 0,
+        KencanaScopeType: String(form.KencanaScopeType || 'faculty').trim(),
+        Phone: String(form.Phone || '').trim(),
       }
       const res = await adminService.createUser(payload)
       if (res.status === 'success') { 
@@ -214,7 +238,9 @@ export default function UserManagement() {
         userId: selected?.id || selected?.ID, 
         role: newRole,
         ormawaId: Number(newOrmawaId) || 0,
-        ormawaAssign: String(newOrmawaAssign || '').trim()
+        ormawaAssign: String(newOrmawaAssign || '').trim(),
+        fakultasId: Number(newFakultasId) || 0,
+        kencanaScopeType: String(newKencanaScopeType || 'faculty').trim()
       })
       if (res.status === 'success') { 
         toast.success('Level otorisasi berhasil diperbarui')
@@ -285,6 +311,15 @@ export default function UserManagement() {
         } else if (role === 'psikolog') {
           context = 'Psychological Wing'
           subContext = 'BKU Clinical Unit'
+        } else if (role === 'kencana_admin') {
+          context = 'Kencana University'
+          subContext = 'Global LMS Operations'
+        } else if (role === 'kencana_fakultas') {
+          context = v || 'Kencana Fakultas'
+          subContext = 'Scoped faculty operations'
+        } else if (role === 'kencana_mentor') {
+          context = row.kencana_scope_type === 'university' ? 'Mentor Universitas' : (v || 'Mentor Fakultas')
+          subContext = row.kencana_scope_type === 'university' ? 'All faculties' : 'Faculty scoped'
         }
         
         return (
@@ -377,7 +412,7 @@ export default function UserManagement() {
               data={users} 
               loading={loading}
               searchPlaceholder="Search by identity handle, email, or authorization level..."
-              onAdd={() => { setForm({ Email: '', Password: '', Role: 'mahasiswa', Nama: '', FakultasID: '', ProgramStudiID: '', OrmawaAssign: '', OrmawaID: '' }); setIsCrudOpen(true) }} 
+              onAdd={() => { setForm({ Email: '', Password: '', Role: 'mahasiswa', Nama: '', FakultasID: '', ProgramStudiID: '', OrmawaAssign: '', OrmawaID: '', KencanaScopeType: 'faculty', Phone: '' }); setIsCrudOpen(true) }} 
               addLabel="New Identity"
               filters={[{ key: 'role', placeholder: 'FILTER BY LEVEL', options: ROLES.map(r => ({ label: ROLE_DETAILS[r]?.label || r, value: r })) }]}
               searchWidth="max-w-md"
@@ -389,6 +424,8 @@ export default function UserManagement() {
                       setNewRole(row.role || row.Role || ''); 
                       setNewOrmawaId(row.ormawa_id || row.OrmawaID || '');
                       setNewOrmawaAssign(row.ormawa_assign || row.OrmawaAssign || '');
+                      setNewFakultasId(row.fakultas_id || row.FakultasID || '');
+                      setNewKencanaScopeType(row.kencana_scope_type || row.KencanaScopeType || 'faculty');
                       setIsRoleOpen(true) 
                     }} 
                     variant="ghost" 
@@ -496,7 +533,7 @@ export default function UserManagement() {
                 </Select>
               </div>
 
-              {form.Role !== 'super_admin' && form.Role !== 'psikolog' && (
+              {form.Role !== 'super_admin' && form.Role !== 'psikolog' && form.Role !== 'kencana_admin' && !(form.Role === 'kencana_mentor' && form.KencanaScopeType === 'university') && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in duration-300">
                   <div className="space-y-2">
                     <Label className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest ml-1 font-jakarta">Fakultas</Label>
@@ -537,6 +574,25 @@ export default function UserManagement() {
                           ))}
                       </SelectContent>
                     </Select>
+                  </div>
+                </div>
+              )}
+
+              {form.Role === 'kencana_mentor' && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in duration-300">
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest ml-1 font-jakarta">Kencana Scope</Label>
+                    <Select value={form.KencanaScopeType} onValueChange={v => setForm({ ...form, KencanaScopeType: v, FakultasID: v === 'university' ? '' : form.FakultasID })}>
+                      <SelectTrigger className="h-12 rounded-xl border-neutral-200 bg-neutral-50/30 font-bold text-xs uppercase tracking-[0.1em]"><SelectValue /></SelectTrigger>
+                      <SelectContent className="rounded-xl shadow-2xl border-neutral-100">
+                        <SelectItem value="faculty" className="text-[10px] font-bold uppercase tracking-widest">Fakultas</SelectItem>
+                        <SelectItem value="university" className="text-[10px] font-bold uppercase tracking-widest">Universitas</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest ml-1 font-jakarta">Phone</Label>
+                    <Input value={form.Phone} onChange={e => setForm({ ...form, Phone: e.target.value })} placeholder="Nomor kontak mentor" className="h-12 rounded-xl border-neutral-200 bg-neutral-50/30 focus:bg-white font-bold text-sm font-jakarta" />
                   </div>
                 </div>
               )}
@@ -631,6 +687,37 @@ export default function UserManagement() {
                             {o.nama || o.Nama}
                           </SelectItem>
                         ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+
+                {(newRole === 'kencana_fakultas' || (newRole === 'kencana_mentor' && newKencanaScopeType === 'faculty')) && (
+                  <div className="space-y-2 animate-in fade-in duration-300">
+                    <Label className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest ml-1 font-jakarta">Fakultas Kencana</Label>
+                    <Select value={newFakultasId ? String(newFakultasId) : undefined} onValueChange={setNewFakultasId}>
+                      <SelectTrigger className="h-12 rounded-xl border-neutral-200 bg-neutral-50/30 font-bold text-[10px] uppercase tracking-widest text-neutral-600">
+                        <SelectValue placeholder="PILIH FAKULTAS" />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-xl shadow-2xl border-neutral-100 max-h-[200px] overflow-y-auto">
+                        {faculties.map(f => (
+                          <SelectItem key={f.ID || f.id} value={String(f.ID || f.id)} className="text-[10px] font-bold uppercase tracking-widest">
+                            {f.Nama || f.nama}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+
+                {newRole === 'kencana_mentor' && (
+                  <div className="space-y-2 animate-in fade-in duration-300">
+                    <Label className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest ml-1 font-jakarta">Mentor Scope</Label>
+                    <Select value={newKencanaScopeType} onValueChange={v => { setNewKencanaScopeType(v); if (v === 'university') setNewFakultasId('') }}>
+                      <SelectTrigger className="h-12 rounded-xl border-neutral-200 bg-neutral-50/30 font-bold text-[10px] uppercase tracking-widest text-neutral-600"><SelectValue /></SelectTrigger>
+                      <SelectContent className="rounded-xl shadow-2xl border-neutral-100">
+                        <SelectItem value="faculty" className="text-[10px] font-bold uppercase tracking-widest">Fakultas</SelectItem>
+                        <SelectItem value="university" className="text-[10px] font-bold uppercase tracking-widest">Universitas</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>

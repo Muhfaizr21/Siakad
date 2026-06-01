@@ -29,10 +29,12 @@ const getRoleFromToken = (token) => {
 const getRouteByRole = (role) => {
   const r = String(role || '').toLowerCase().trim();
   if (r === 'super_admin') return '/admin';
-  if (r === 'faculty_admin') return '/faculty';
+  if (r === 'kencana_admin') return '/kencana-admin';
+  if (r === 'kencana_fakultas') return '/kencana-fakultas';
+  if (r === 'kencana_mentor') return '/kencana-mentor';
+  if (r === 'faculty_admin' || r === 'dosen') return '/faculty';
   if (r === 'ormawa_admin') return '/ormawa';
   if (r === 'ormawa') return '/ormawa';
-  if (r === 'dosen') return '/faculty';
   if (r === 'psikolog') return '/psychologist';
   return '/student/dashboard';
 };

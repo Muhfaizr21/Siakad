@@ -125,6 +125,34 @@ func migrateModels(db *gorm.DB) error {
 		return err
 	}
 
+	// ========================
+	// KENCANA ORIENTASI MAHASISWA
+	// ========================
+	if err := db.AutoMigrate(
+		&models.KencanaPeriod{},
+		&models.KencanaStage{},
+		&models.KencanaSession{},
+		&models.KencanaMaterial{},
+		&models.KencanaMaterialProgress{},
+		&models.KencanaQuiz{},
+		&models.KencanaQuestion{},
+		&models.KencanaQuestionOption{},
+		&models.KencanaQuizAttempt{},
+		&models.KencanaQuizAnswer{},
+		&models.KencanaAssignment{},
+		&models.KencanaAssignmentSubmission{},
+		&models.KencanaHandbook{},
+		&models.KencanaAttendance{},
+		&models.KencanaScore{},
+		&models.KencanaScoreItem{},
+		&models.KencanaMentor{},
+		&models.KencanaMentorAssignment{},
+		&models.KencanaRemedial{},
+		&models.KencanaCertificate{},
+	); err != nil {
+		return err
+	}
+
 	return nil
 }
 

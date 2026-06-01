@@ -115,6 +115,42 @@ import KelolaPrestasi from './pages/SuperAdmin/KelolaPrestasi'
 import AspirationDetail from './pages/SuperAdmin/AspirationDetail'
 import KelolaOrganisasi from './pages/SuperAdmin/KelolaOrganisasi'
 import SuperAdminLayout from './pages/SuperAdmin/components/SuperAdminLayout'
+
+// Kencana Portals
+import KencanaLayout from './pages/Kencana/components/KencanaLayout'
+import KencanaAdminDashboard from './pages/Kencana/Admin/Dashboard'
+import KencanaAdminPeriods from './pages/Kencana/Admin/Periods'
+import KencanaAdminStages from './pages/Kencana/Admin/Stages'
+import QuizBuilder from './pages/Kencana/Admin/QuizBuilder'
+import KencanaAdminParticipants from './pages/Kencana/Admin/Participants'
+import KencanaAdminScores from './pages/Kencana/Admin/Scores'
+import KencanaAdminRemedials from './pages/Kencana/Admin/Remedials'
+import KencanaAdminCertificates from './pages/Kencana/Admin/Certificates'
+import KencanaAdminMentors from './pages/Kencana/Admin/Mentors'
+
+import KencanaFakultasDashboard from './pages/Kencana/Fakultas/Dashboard'
+import KencanaFakultasParticipants from './pages/Kencana/Fakultas/Participants'
+import KencanaFakultasScores from './pages/Kencana/Fakultas/Scores'
+import KencanaFakultasStages from './pages/Kencana/Fakultas/Stages'
+
+// Student Kencana Sub-Pages
+import KencanaTimelinePage from './pages/Student/Kencana/KencanaTimelinePage'
+import KencanaStagePage from './pages/Student/Kencana/KencanaStagePage'
+import KencanaSessionPage from './pages/Student/Kencana/KencanaSessionPage'
+import KencanaHandbookPage from './pages/Student/Kencana/KencanaHandbookPage'
+import KencanaMentorInvitationsPage from './pages/Student/Kencana/KencanaMentorInvitationsPage'
+import KencanaAttendancePage from './pages/Student/Kencana/KencanaAttendancePage'
+import KencanaAssignmentPage from './pages/Student/Kencana/KencanaAssignmentPage'
+import KencanaScorePage from './pages/Student/Kencana/KencanaScorePage'
+import KencanaRemedialPage from './pages/Student/Kencana/KencanaRemedialPage'
+import KencanaCertificatePage from './pages/Student/Kencana/KencanaCertificatePage'
+
+import KencanaMentorDashboard from './pages/Kencana/Mentor/Dashboard'
+import KencanaMentorStudents from './pages/Kencana/Mentor/Students'
+import KencanaMentorAvailable from './pages/Kencana/Mentor/AvailableStudents'
+import KencanaMentorStudentDetail from './pages/Kencana/Mentor/StudentDetail'
+import KencanaMentorSettings from './pages/Kencana/Mentor/Settings'
+
 import NotFound from './pages/NotFound/NotFound'
 import { AuthProvider } from './context/AuthContext'
 import ProtectedRoute from './components/ProtectedRoute'
@@ -206,6 +242,55 @@ function App() {
                     <Route path="infrastructure" element={<AcademicPortal />} />
                   </Routes>
                 </SuperAdminLayout>
+              </ProtectedRoute>
+            } />
+
+            {/* Portal Admin Kencana */}
+            <Route path="/kencana-admin/*" element={
+              <ProtectedRoute allowedRoles={['kencana_admin']}>
+                <KencanaLayout portalType="admin">
+                  <Routes>
+                    <Route index element={<KencanaAdminDashboard />} />
+                    <Route path="periods" element={<KencanaAdminPeriods />} />
+                    <Route path="stages" element={<KencanaAdminStages />} />
+                    <Route path="quiz/:id/builder" element={<QuizBuilder />} />
+                    <Route path="participants" element={<KencanaAdminParticipants />} />
+                    <Route path="scores" element={<KencanaAdminScores />} />
+                    <Route path="remedials" element={<KencanaAdminRemedials />} />
+                    <Route path="certificates" element={<KencanaAdminCertificates />} />
+                    <Route path="mentors" element={<KencanaAdminMentors />} />
+                  </Routes>
+                </KencanaLayout>
+              </ProtectedRoute>
+            } />
+
+            {/* Portal Kencana Fakultas */}
+            <Route path="/kencana-fakultas/*" element={
+              <ProtectedRoute allowedRoles={['kencana_fakultas']}>
+                <KencanaLayout portalType="fakultas">
+                  <Routes>
+                    <Route index element={<KencanaFakultasDashboard />} />
+                    <Route path="participants" element={<KencanaFakultasParticipants />} />
+                    <Route path="scores" element={<KencanaFakultasScores />} />
+                    <Route path="stages" element={<KencanaFakultasStages />} />
+                    <Route path="mentors" element={<KencanaAdminMentors portal="fakultas" />} />
+                  </Routes>
+                </KencanaLayout>
+              </ProtectedRoute>
+            } />
+
+            {/* Portal Kencana Mentor */}
+            <Route path="/kencana-mentor/*" element={
+              <ProtectedRoute allowedRoles={['kencana_mentor']}>
+                <KencanaLayout portalType="mentor">
+                  <Routes>
+                    <Route index element={<KencanaMentorDashboard />} />
+                    <Route path="students" element={<KencanaMentorStudents />} />
+                    <Route path="students/:id" element={<KencanaMentorStudentDetail />} />
+                    <Route path="available" element={<KencanaMentorAvailable />} />
+                    <Route path="settings" element={<KencanaMentorSettings />} />
+                  </Routes>
+                </KencanaLayout>
               </ProtectedRoute>
             } />
 
@@ -302,6 +387,19 @@ function App() {
               <Route path="dashboard" element={<BkuDashboard />} />
               <Route path="kencana" element={<KencanaPage />} />
               <Route path="kencana/kuis/:kuisId" element={<KencanaKuisPage />} />
+              <Route path="kencana/timeline" element={<KencanaTimelinePage />} />
+              <Route path="kencana/stage/:stageId" element={<KencanaStagePage />} />
+              <Route path="kencana/session/:sessionId" element={<KencanaSessionPage />} />
+              <Route path="kencana/handbook" element={<KencanaHandbookPage />} />
+              <Route path="kencana/mentors" element={<KencanaMentorInvitationsPage />} />
+              <Route path="kencana/invitations" element={<KencanaMentorInvitationsPage />} />
+              <Route path="kencana/attendance" element={<KencanaAttendancePage />} />
+              <Route path="kencana/assignment/:assignmentId" element={<KencanaAssignmentPage />} />
+              <Route path="kencana/assignments/:assignmentId" element={<KencanaAssignmentPage />} />
+              <Route path="kencana/score" element={<KencanaScorePage />} />
+              <Route path="kencana/scores" element={<KencanaScorePage />} />
+              <Route path="kencana/remedial" element={<KencanaRemedialPage />} />
+              <Route path="kencana/certificate" element={<KencanaCertificatePage />} />
               <Route path="achievement" element={<AchievementPage />} />
               <Route path="scholarship" element={<ScholarshipPage />} />
               <Route path="scholarship/pengajuan/:id" element={<ScholarshipDetailPage />} />

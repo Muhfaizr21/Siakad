@@ -13,7 +13,7 @@ const ProtectedRoute = ({ children, allowedRoles = [] }) => {
 
   // If roles are specified, check if user has one of them
   if (allowedRoles.length > 0 && user) {
-    const userRole = String(user.role || '').toLowerCase();
+    const userRole = String(user.role || user.Role || '').toLowerCase();
     const isAllowed = allowedRoles.some(role => role.toLowerCase() === userRole);
     
     if (!isAllowed) {

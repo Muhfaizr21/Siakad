@@ -81,6 +81,7 @@ func main() {
 
 	// Modular Routes
 	routes.SetupMahasiswaRoutes(app)
+	routes.SetupKencanaRoutes(app)
 	routes.InisialisasiRuteFakultas(app)
 	routes.SetupOrmawaRoutes(app)
 	routes.SetupPsychologistRoutes(app)

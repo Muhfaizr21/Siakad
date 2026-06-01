@@ -88,6 +88,62 @@ func AdminCheck(c *fiber.Ctx) error {
 	return c.Next()
 }
 
+func MahasiswaCheck(c *fiber.Ctx) error {
+	role, ok := c.Locals("role").(string)
+	if !ok || strings.ToLower(role) != "mahasiswa" {
+		return c.Status(403).JSON(fiber.Map{
+			"status":  "error",
+			"message": "Akses ditolak. Fitur ini hanya untuk Mahasiswa.",
+		})
+	}
+	return c.Next()
+}
+
+func KencanaAdminCheck(c *fiber.Ctx) error {
+	role, ok := c.Locals("role").(string)
+	if !ok {
+		return c.Status(403).JSON(fiber.Map{"status": "error", "message": "Akses ditolak."})
+	}
+	r := strings.ToLower(role)
+	if r != "super_admin" && r != "kencana_admin" && r != "kencana_fakultas" {
+		return c.Status(403).JSON(fiber.Map{
+			"status":  "error",
+			"message": "Akses ditolak. Fitur ini hanya untuk Admin Kencana.",
+		})
+	}
+	return c.Next()
+}
+
+func KencanaFakultasCheck(c *fiber.Ctx) error {
+	role, ok := c.Locals("role").(string)
+	if !ok {
+		return c.Status(403).JSON(fiber.Map{"status": "error", "message": "Akses ditolak."})
+	}
+	r := strings.ToLower(role)
+	if r != "super_admin" && r != "kencana_admin" && r != "kencana_fakultas" {
+		return c.Status(403).JSON(fiber.Map{
+			"status":  "error",
+			"message": "Akses ditolak. Fitur ini hanya untuk Admin Kencana Fakultas.",
+		})
+	}
+	return c.Next()
+}
+
+func KencanaMentorCheck(c *fiber.Ctx) error {
+	role, ok := c.Locals("role").(string)
+	if !ok {
+		return c.Status(403).JSON(fiber.Map{"status": "error", "message": "Akses ditolak."})
+	}
+	r := strings.ToLower(role)
+	if r != "super_admin" && r != "kencana_admin" && r != "kencana_mentor" {
+		return c.Status(403).JSON(fiber.Map{
+			"status":  "error",
+			"message": "Akses ditolak. Fitur ini hanya untuk Dewan Pembimbing Kencana.",
+		})
+	}
+	return c.Next()
+}
+
 func OrmawaCheck(c *fiber.Ctx) error {
 	role, ok := c.Locals("role").(string)
 	if !ok {
