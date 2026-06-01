@@ -38,7 +38,6 @@ func SetupOrmawaRoutes(app *fiber.App) {
 	// ATTENDANCE
 	api.Get("/attendance/:eventId", ormawa.GetAttendance)
 	api.Post("/attendance", ormawa.SubmitAttendance)
-	api.Post("/absensi", ormawa.SubmitAttendance)
 
 	// ANNOUNCEMENTS
 	api.Get("/announcements", ormawa.GetAnnouncements)

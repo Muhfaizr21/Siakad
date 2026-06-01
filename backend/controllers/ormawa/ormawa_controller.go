@@ -114,11 +114,11 @@ func CreateProposal(c *fiber.Ctx) error {
 	// Blokir jika ada LPJ yang belum selesai (Mandatory Workflow)
 	var unfinishedLpjCount int64
 	config.DB.Model(&models.Proposal{}).
-		Joins("LEFT JOIN ormawa.laporan_pertanggungjawaban ON ormawa.laporan_pertanggungjawaban.proposal_id = ormawa.proposal.id").
+		Joins("LEFT JOIN ormawa.laporan_pertanggungjawaban lpj ON lpj.proposal_id = ormawa.proposal.id").
 		Where("ormawa.proposal.ormawa_id = ?", payload.OrmawaID).
 		Where("ormawa.proposal.status = ?", "disetujui_univ").
 		Where("ormawa.proposal.tanggal_kegiatan < ?", time.Now()).
-		Where("(ormawa.laporan_pertanggungjawaban.id IS NULL OR ormawa.laporan_pertanggungjawaban.status != ?)", "disetujui").
+		Where("(lpj.id IS NULL OR lpj.status != ?)", "disetujui").
 		Count(&unfinishedLpjCount)
 
 	if unfinishedLpjCount > 0 {
@@ -205,6 +205,10 @@ func CreateProposal(c *fiber.Ctx) error {
 
 func UpdateProposal(c *fiber.Ctx) error {
 	id := c.Params("id")
+	role, _ := c.Locals("role").(string)
+	isOrmawaAdmin := role == "ormawa_admin" || role == "ormawa"
+	isFacultyAdmin := role == "fakultas_admin" || role == "dosen"
+
 	var proposal models.Proposal
 	if err := config.DB.First(&proposal, id).Error; err != nil {
 		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Proposal tidak ditemukan"})
@@ -223,9 +227,23 @@ func UpdateProposal(c *fiber.Ctx) error {
 	}
 
 	err := config.DB.Transaction(func(tx *gorm.DB) error {
-		if payload.Status != "" && payload.Status != "diajukan" {
-			// This logic might need refinement based on roles, but kept as is from original
-			// return fmt.Errorf("anda tidak memiliki otoritas untuk menetapkan status '%s'", payload.Status)
+		// Status transition guards
+		if payload.Status != "" && payload.Status != proposal.Status {
+			// Ormawa admin: can NOT change status directly
+			if isOrmawaAdmin {
+				return fmt.Errorf("anda tidak memiliki otoritas untuk mengubah status proposal")
+			}
+			// Faculty admin: only allowed transitions from "diajukan"
+			if isFacultyAdmin {
+				if proposal.Status != "diajukan" {
+					return fmt.Errorf("proposal sudah diproses oleh fakultas, tidak bisa diubah lagi")
+				}
+				if payload.Status != "disetujui_fakultas" && payload.Status != "revisi" {
+					return fmt.Errorf("status '%s' tidak diizinkan untuk fakultas", payload.Status)
+				}
+			}
+			// super_admin can do any transition — but this handler is ormawa-gated
+			// so super_admin goes through super_admin_controller instead
 		}
 
 		if payload.Status != "" || payload.Catatan != "" {
@@ -285,7 +303,7 @@ func UpdateProposal(c *fiber.Ctx) error {
 	})
 
 	if err != nil {
-		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal sinkronisasi data"})
+		return c.Status(403).JSON(fiber.Map{"status": "error", "message": err.Error()})
 	}
 
 	return c.JSON(fiber.Map{"status": "success", "message": "Proposal updated & integrated"})
@@ -942,8 +960,8 @@ func GetLPJs(c *fiber.Ctx) error {
 	var list []models.LaporanPertanggungjawaban
 	query := config.DB.Preload("Proposal")
 	if ormawaId != "" {
-		query = query.Joins("JOIN ormawa.proposal ON ormawa.proposal.id = ormawa.laporan_pertanggungjawaban.proposal_id").
-			Where("ormawa.proposal.ormawa_id = ?", ormawaId)
+		query = query.Joins("JOIN ormawa.proposal p ON p.id = ormawa.laporan_pertanggungjawaban.proposal_id").
+			Where("p.ormawa_id = ?", ormawaId)
 	}
 	query.Order("ormawa.laporan_pertanggungjawaban.created_at desc").Find(&list)
 

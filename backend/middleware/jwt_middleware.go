@@ -3,6 +3,7 @@ package middleware
 import (
 	"log"
 	"siakad-backend/config"
+	"strconv"
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
@@ -93,13 +94,54 @@ func OrmawaCheck(c *fiber.Ctx) error {
 	}
 	r := strings.ToLower(role)
 	if r != "ormawa" && r != "mahasiswa" && r != "ormawa_admin" {
-		// Mahasiswa allowed because Ormawa leads are Mahasiswa
 		return c.Status(403).JSON(fiber.Map{
 			"status":  "error",
 			"message": "Akses ditolak. Fitur ini hanya untuk pengurus Ormawa.",
 		})
 	}
+
+	// Ownership check: verify user belongs to ormawa being accessed
+	// super_admin bypasses via AdminCheck, so only ormawa/mahasiswa/mahasiswa roles here
+	tokenOrmawaID, hasTokenOrmawaID := c.Locals("ormawa_id").(uint)
+	queryOrmawaID := c.Query("ormawaId")
+
+	// If user has ormawa_id in token (ormawa_admin), must match query param
+	if hasTokenOrmawaID && queryOrmawaID != "" {
+		if uint(parseUint(queryOrmawaID)) != tokenOrmawaID {
+			return c.Status(403).JSON(fiber.Map{
+				"status":  "error",
+				"message": "Akses ditolak. Anda tidak memiliki izin untuk organisasi ini.",
+			})
+		}
+	}
+
+	// For mahasiswa without ormawa_id in token — check ormawa_assign (multi-org)
+	if r == "mahasiswa" && !hasTokenOrmawaID {
+		assignStr, _ := c.Locals("ormawa_assign").(string)
+		if assignStr != "" && queryOrmawaID != "" {
+			// ormawa_assign is a comma-separated list of IDs
+			allowed := false
+			for _, id := range strings.Split(assignStr, ",") {
+				if strings.TrimSpace(id) == queryOrmawaID {
+					allowed = true
+					break
+				}
+			}
+			if !allowed {
+				return c.Status(403).JSON(fiber.Map{
+					"status":  "error",
+					"message": "Akses ditolak. Anda tidak terdaftar di organisasi ini.",
+				})
+			}
+		}
+	}
+
 	return c.Next()
+}
+
+func parseUint(s string) uint64 {
+	v, _ := strconv.ParseUint(s, 10, 64)
+	return v
 }
 
 func PsikologCheck(c *fiber.Ctx) error {
