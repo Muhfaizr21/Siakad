@@ -3,6 +3,7 @@ package middleware
 import (
 	"log"
 	"siakad-backend/config"
+	"siakad-backend/models"
 	"strconv"
 	"strings"
 
@@ -100,38 +101,59 @@ func OrmawaCheck(c *fiber.Ctx) error {
 		})
 	}
 
-	// Ownership check: verify user belongs to ormawa being accessed
-	// super_admin bypasses via AdminCheck, so only ormawa/mahasiswa/mahasiswa roles here
 	tokenOrmawaID, hasTokenOrmawaID := c.Locals("ormawa_id").(uint)
 	queryOrmawaID := c.Query("ormawaId")
 
-	// If user has ormawa_id in token (ormawa_admin), must match query param
-	if hasTokenOrmawaID && queryOrmawaID != "" {
-		if uint(parseUint(queryOrmawaID)) != tokenOrmawaID {
-			return c.Status(403).JSON(fiber.Map{
-				"status":  "error",
-				"message": "Akses ditolak. Anda tidak memiliki izin untuk organisasi ini.",
-			})
-		}
+	// If user is a dedicated ormawa account (has tokenOrmawaID > 0), enforce & override query param
+	if hasTokenOrmawaID && tokenOrmawaID != 0 {
+		c.Request().URI().QueryArgs().Set("ormawaId", strconv.FormatUint(uint64(tokenOrmawaID), 10))
+		return c.Next()
 	}
 
-	// For mahasiswa without ormawa_id in token — check ormawa_assign (multi-org)
+	// For student users who act as Ormawa admins/members
 	if r == "mahasiswa" && !hasTokenOrmawaID {
-		assignStr, _ := c.Locals("ormawa_assign").(string)
-		if assignStr != "" && queryOrmawaID != "" {
-			// ormawa_assign is a comma-separated list of IDs
-			allowed := false
-			for _, id := range strings.Split(assignStr, ",") {
-				if strings.TrimSpace(id) == queryOrmawaID {
-					allowed = true
-					break
-				}
+		studentID, hasStudentID := c.Locals("student_id").(uint)
+		if !hasStudentID || studentID == 0 {
+			return c.Status(403).JSON(fiber.Map{
+				"status":  "error",
+				"message": "Akses ditolak. Profil mahasiswa tidak ditemukan.",
+			})
+		}
+
+		if queryOrmawaID == "" || queryOrmawaID == "1" || queryOrmawaID == "undefined" {
+			// Find their first active ormawa membership
+			var membership models.OrmawaAnggota
+			err := config.DB.Where("mahasiswa_id = ? AND status = ?", studentID, "Aktif").Order("created_at asc").First(&membership).Error
+			if err == nil {
+				c.Request().URI().QueryArgs().Set("ormawaId", strconv.FormatUint(uint64(membership.OrmawaID), 10))
+				queryOrmawaID = strconv.FormatUint(uint64(membership.OrmawaID), 10)
 			}
-			if !allowed {
-				return c.Status(403).JSON(fiber.Map{
-					"status":  "error",
-					"message": "Akses ditolak. Anda tidak terdaftar di organisasi ini.",
-				})
+		}
+
+		// Enforce ownership check for students
+		if queryOrmawaID != "" && queryOrmawaID != "undefined" {
+			var count int64
+			config.DB.Model(&models.OrmawaAnggota{}).
+				Where("mahasiswa_id = ? AND ormawa_id = ? AND status = ?", studentID, parseUint(queryOrmawaID), "Aktif").
+				Count(&count)
+			if count == 0 {
+				// Fallback to manual assign claim in token if DB record isn't added yet
+				assignStr, _ := c.Locals("ormawa_assign").(string)
+				allowed := false
+				if assignStr != "" {
+					for _, id := range strings.Split(assignStr, ",") {
+						if strings.TrimSpace(id) == queryOrmawaID {
+							allowed = true
+							break
+						}
+					}
+				}
+				if !allowed {
+					return c.Status(403).JSON(fiber.Map{
+						"status":  "error",
+						"message": "Akses ditolak. Anda tidak memiliki izin aktif untuk organisasi ini.",
+					})
+				}
 			}
 		}
 	}
