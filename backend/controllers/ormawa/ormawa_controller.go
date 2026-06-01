@@ -508,9 +508,45 @@ func DeleteEvent(c *fiber.Ctx) error {
 
 func GetAttendance(c *fiber.Ctx) error {
 	eventId := c.Params("eventId")
+	
+	var kegiatan models.OrmawaKegiatan
+	if err := config.DB.First(&kegiatan, eventId).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Kegiatan tidak ditemukan"})
+	}
+
+	// 1. Fetch all active members of this ormawa
+	var members []models.OrmawaAnggota
+	config.DB.Preload("Mahasiswa").Where("ormawa_id = ? AND status = ?", kegiatan.OrmawaID, "Aktif").Find(&members)
+
+	// 2. Fetch all existing attendance records
 	var attendance []models.OrmawaKehadiran
 	config.DB.Preload("Mahasiswa").Where("kegiatan_id = ?", eventId).Find(&attendance)
-	return c.JSON(fiber.Map{"status": "success", "data": attendance})
+
+	// 3. Map existing attendance by MahasiswaID
+	attMap := make(map[uint]models.OrmawaKehadiran)
+	for _, a := range attendance {
+		attMap[a.MahasiswaID] = a
+	}
+
+	// 4. Merge: for each active member, check if they have attendance. If not, create virtual
+	var result []models.OrmawaKehadiran
+	for _, m := range members {
+		if m.Mahasiswa.ID == 0 {
+			continue // skip if student record is invalid
+		}
+		if att, exists := attMap[m.MahasiswaID]; exists {
+			result = append(result, att)
+		} else {
+			result = append(result, models.OrmawaKehadiran{
+				KegiatanID:  kegiatan.ID,
+				MahasiswaID: m.MahasiswaID,
+				Mahasiswa:   m.Mahasiswa,
+				Status:      "belum_absen",
+			})
+		}
+	}
+
+	return c.JSON(fiber.Map{"status": "success", "data": result})
 }
 
 func SubmitAttendance(c *fiber.Ctx) error {

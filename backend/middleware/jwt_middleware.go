@@ -155,6 +155,9 @@ func OrmawaCheck(c *fiber.Ctx) error {
 					})
 				}
 			}
+			
+			// Set c.Locals("ormawa_id") for controllers
+			c.Locals("ormawa_id", uint(parseUint(queryOrmawaID)))
 		}
 	}
 
