@@ -136,6 +136,7 @@ const KencanaSidebar = ({ isOpen, setIsOpen, portalType = 'admin' }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const logout = useAuthStore(state => state.logout);
+  const user = useAuthStore(state => state.user);
   const config = portalConfig[portalType] || portalConfig.admin;
   const accent = accentStyles[config.accentColor] || accentStyles.emerald;
 
@@ -255,6 +256,24 @@ const KencanaSidebar = ({ isOpen, setIsOpen, portalType = 'admin' }) => {
             </div>
           ))}
         </nav>
+
+        {user?.role === 'super_admin' && (
+          <div className="p-4 bg-white/80 backdrop-blur-xl border-t border-slate-100 shrink-0">
+            <Link
+              to="/admin"
+              className="w-full flex items-center gap-3.5 px-4 py-2.5 rounded-2xl font-bold text-amber-600 hover:bg-amber-50/80 transition-all duration-300 group active:scale-[0.98]"
+            >
+              <div className="w-6 h-6 flex items-center justify-center shrink-0">
+                <span className="material-symbols-outlined text-amber-500/80 group-hover:text-amber-600 transition-all duration-300 group-hover:scale-110" style={{ fontSize: '20px' }}>
+                  arrow_back
+                </span>
+              </div>
+              <span className="text-[13px] tracking-tight flex-1 text-left font-bold text-amber-600/90 group-hover:text-amber-600 transition-colors duration-300">
+                Master Hub
+              </span>
+            </Link>
+          </div>
+        )}
 
         {/* Logout Section */}
         <div className="p-4 bg-white/80 backdrop-blur-xl border-t border-slate-100 shrink-0">

@@ -24,11 +24,11 @@ type BaseModel struct {
 
 type User struct {
 	BaseModel
-	Email      string `gorm:"uniqueIndex;not null" json:"email"`
-	Password   string `gorm:"column:password" json:"-"`
-	Role       string `gorm:"index" json:"role"`
-	FakultasID *uint  `gorm:"index" json:"fakultas_id"`
-	OrmawaID   *uint  `gorm:"index" json:"ormawa_id"`
+	Email        string `gorm:"uniqueIndex;not null" json:"email"`
+	Password     string `gorm:"column:password" json:"-"`
+	Role         string `gorm:"index" json:"role"`
+	FakultasID   *uint  `gorm:"index" json:"fakultas_id"`
+	OrmawaID     *uint  `gorm:"index" json:"ormawa_id"`
 	OrmawaAssign string `gorm:"size:100" json:"ormawa_assign"`
 
 	Dosen *Dosen `gorm:"foreignKey:PenggunaID" json:"dosen,omitempty"`
@@ -37,6 +37,18 @@ type User struct {
 func (User) TableName() string {
 	return "public.users"
 }
+
+type RBACRole struct {
+	BaseModel
+	Key         string         `gorm:"uniqueIndex;size:80;not null" json:"key"`
+	Label       string         `gorm:"size:120;not null" json:"label"`
+	Description string         `gorm:"type:text" json:"description"`
+	Permissions datatypes.JSON `gorm:"type:jsonb" json:"permissions"`
+	IsSystem    bool           `gorm:"default:false" json:"is_system"`
+	Status      string         `gorm:"size:40;default:'active';index" json:"status"`
+}
+
+func (RBACRole) TableName() string { return "public.rbac_roles" }
 
 // ========================
 // MASTER DATA
@@ -293,13 +305,13 @@ type Aspirasi struct {
 	MahasiswaID uint      `gorm:"index" json:"mahasiswa_id"`
 	Mahasiswa   Mahasiswa `json:"mahasiswa,omitempty"`
 
-	Judul     string     `json:"judul"`
-	Isi       string     `json:"isi"`
-	Kategori  string     `json:"kategori"`
-	Tujuan    string     `json:"tujuan"`
-	Status    string     `json:"status"`
-	Prioritas string     `json:"prioritas"` // LOW, MEDIUM, HIGH, CRITICAL
-	Deadline  *time.Time `json:"deadline,omitempty"`
+	Judul       string     `json:"judul"`
+	Isi         string     `json:"isi"`
+	Kategori    string     `json:"kategori"`
+	Tujuan      string     `json:"tujuan"`
+	Status      string     `json:"status"`
+	Prioritas   string     `json:"prioritas"` // LOW, MEDIUM, HIGH, CRITICAL
+	Deadline    *time.Time `json:"deadline,omitempty"`
 	IsAnonim    bool       `json:"is_anonim"`
 	Respon      string     `json:"respon"`
 	LampiranURL string     `json:"lampiran_url"`
@@ -432,9 +444,9 @@ func (Notifikasi) TableName() string {
 
 type Ormawa struct {
 	BaseModel
-	Nama      string
-	Singkatan string `gorm:"size:20"`
-	Deskripsi string
+	Nama       string
+	Singkatan  string `gorm:"size:20"`
+	Deskripsi  string
 	FakultasID uint `gorm:"index"`
 	Fakultas   Fakultas
 
@@ -601,7 +613,7 @@ type Proposal struct {
 	Jenis           string
 	Status          string
 	Catatan         string
-	FileURL         string    `json:"file_url"`
+	FileURL         string `json:"file_url"`
 
 	ApprovedDosenID    *uint `gorm:"index"`
 	ApprovedFakultasID *uint `gorm:"index"`

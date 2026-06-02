@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
@@ -24,12 +25,13 @@ type loginRequest struct {
 }
 
 type userResponse struct {
-	ID       uint   `json:"id"`
-	Email    string `json:"email"`
-	Role     string `json:"role"`
-	NIM      string `json:"nim,omitempty"`
-	Nama     string `json:"nama,omitempty"`
-	OrmawaID *uint  `json:"ormawa_id,omitempty"`
+	ID          uint     `json:"id"`
+	Email       string   `json:"email"`
+	Role        string   `json:"role"`
+	NIM         string   `json:"nim,omitempty"`
+	Nama        string   `json:"nama,omitempty"`
+	OrmawaID    *uint    `json:"ormawa_id,omitempty"`
+	Permissions []string `json:"permissions,omitempty"`
 }
 
 func jwtSecret() []byte {
@@ -152,6 +154,12 @@ func Login(c *fiber.Ctx) error {
 		})
 	}
 
+	var rbacRole models.RBACRole
+	var permissions []string
+	if err := config.DB.Where("key = ?", roleName).First(&rbacRole).Error; err == nil {
+		json.Unmarshal(rbacRole.Permissions, &permissions)
+	}
+
 	return c.JSON(fiber.Map{
 		"success": true,
 		"status":  "success",
@@ -160,12 +168,13 @@ func Login(c *fiber.Ctx) error {
 			"access_token": token,
 			"mahasiswa":    student, // although for admin it might be empty
 			"user": userResponse{
-				ID:       user.ID,
-				Email:    user.Email,
-				Role:     roleName,
-				NIM:      student.NIM,
-				Nama:     student.Nama,
-				OrmawaID: user.OrmawaID,
+				ID:          user.ID,
+				Email:       user.Email,
+				Role:        roleName,
+				NIM:         student.NIM,
+				Nama:        student.Nama,
+				OrmawaID:    user.OrmawaID,
+				Permissions: permissions,
 			},
 		},
 	})
@@ -199,16 +208,23 @@ func Me(c *fiber.Ctx) error {
 	var student models.Mahasiswa
 	_ = config.DB.Where("pengguna_id = ?", user.ID).First(&student).Error
 
+	var rbacRole models.RBACRole
+	var permissions []string
+	if err := config.DB.Where("key = ?", user.Role).First(&rbacRole).Error; err == nil {
+		json.Unmarshal(rbacRole.Permissions, &permissions)
+	}
+
 	return c.JSON(fiber.Map{
 		"status": "success",
 		"data": fiber.Map{
 			"user": userResponse{
-				ID:       user.ID,
-				Email:    user.Email,
-				Role:     user.Role,
-				NIM:      student.NIM,
-				Nama:     student.Nama,
-				OrmawaID: user.OrmawaID,
+				ID:          user.ID,
+				Email:       user.Email,
+				Role:        user.Role,
+				NIM:         student.NIM,
+				Nama:        student.Nama,
+				OrmawaID:    user.OrmawaID,
+				Permissions: permissions,
 			},
 		},
 	})

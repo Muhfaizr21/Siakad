@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"siakad-backend/config"
@@ -12,6 +13,44 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
+
+var rbacPermissionCatalog = []fiber.Map{
+	{"module": "Core Security", "items": []string{"admin.dashboard.view", "admin.audit.view", "admin.profile.update", "rbac.users.view", "rbac.users.create", "rbac.users.update_role", "rbac.users.delete", "rbac.roles.view", "rbac.roles.create", "rbac.roles.update", "rbac.permissions.assign"}},
+	{"module": "Master Data Akademik", "items": []string{"faculty.view", "faculty.create", "faculty.update", "faculty.delete", "program_studi.view", "program_studi.create", "program_studi.update", "program_studi.delete", "students.view", "students.create", "students.update", "students.delete"}},
+	{"module": "Ormawa", "items": []string{"ormawa.view", "ormawa.create", "ormawa.update", "ormawa.delete", "ormawa.members.manage", "ormawa.events.manage", "ormawa.finance.manage", "ormawa.proposals.manage", "ormawa.lpj.manage", "ormawa.announcements.manage", "ormawa.aspirations.manage"}},
+	{"module": "Layanan Mahasiswa", "items": []string{"student.dashboard.view", "student.profile.update", "achievement.view", "achievement.verify", "scholarship.view", "scholarship.manage", "aspiration.view", "aspiration.update_status", "letters.manage", "health.view"}},
+	{"module": "Konseling Psikolog", "items": []string{"psychologist.view", "psychologist.manage", "psychologist.bookings.view", "psychologist.bookings.update", "psychologist.medical_records.view", "psychologist.referrals.manage", "psychologist.schedules.manage", "psychologist.reports.manage"}},
+	{"module": "Kencana Mahasiswa", "items": []string{"kencana.student.dashboard", "kencana.student.timeline", "kencana.student.session", "kencana.student.quiz", "kencana.student.assignment", "kencana.student.handbook", "kencana.student.attendance", "kencana.student.score", "kencana.student.remedial", "kencana.student.certificate", "kencana.student.mentor_invitations"}},
+	{"module": "Kencana Admin Universitas", "items": []string{"kencana.period.view", "kencana.period.create", "kencana.period.update", "kencana.stage.view", "kencana.stage.create", "kencana.stage.update", "kencana.session.view", "kencana.session.create", "kencana.session.update", "kencana.material.create", "kencana.quiz.create", "kencana.quiz.update", "kencana.question.create", "kencana.question.update", "kencana.assignment.create", "kencana.participants.view", "kencana.scores.view", "kencana.remedial.create", "kencana.certificate.generate", "kencana.mentor.university.manage", "kencana.mentor.assignment.override"}},
+	{"module": "Kencana Admin Fakultas", "items": []string{"kencana.faculty.dashboard", "kencana.faculty.participants.view", "kencana.faculty.scores.view", "kencana.faculty.stages.view", "kencana.faculty.mentor.manage", "kencana.faculty.attendance.review", "kencana.faculty.handbook.review"}},
+	{"module": "Dewan Pembimbing Kencana", "items": []string{"kencana.mentor.dashboard", "kencana.mentor.available_students", "kencana.mentor.invite", "kencana.mentor.students.view", "kencana.mentor.student_progress", "kencana.mentor.student_score", "kencana.mentor.student_attendance", "kencana.mentor.student_handbook", "kencana.mentor.notes.create", "kencana.mentor.score_items.create", "kencana.mentor.profile.update"}},
+}
+
+var defaultRBACRoles = []models.RBACRole{
+	{Key: "super_admin", Label: "Super Admin", Description: "Otoritas penuh untuk seluruh modul dan pengaturan sistem.", IsSystem: true, Status: "active", Permissions: mustJSON([]string{"*"})},
+	{Key: "faculty_admin", Label: "Admin Fakultas", Description: "Mengelola data akademik dan mahasiswa dalam scope fakultas.", IsSystem: true, Status: "active", Permissions: mustJSON([]string{"faculty.view", "program_studi.view", "students.view", "students.create", "students.update", "achievement.verify"})},
+	{Key: "ormawa_admin", Label: "Admin Ormawa", Description: "Mengelola organisasi mahasiswa dan proposal kegiatan.", IsSystem: true, Status: "active", Permissions: mustJSON([]string{"ormawa.view", "ormawa.members.manage", "ormawa.events.manage", "ormawa.proposals.manage", "ormawa.lpj.manage"})},
+	{Key: "ormawa", Label: "Pengurus Ormawa", Description: "Akses operasional internal organisasi mahasiswa.", IsSystem: true, Status: "active", Permissions: mustJSON([]string{"ormawa.events.manage", "ormawa.proposals.manage", "ormawa.announcements.manage"})},
+	{Key: "mahasiswa", Label: "Mahasiswa", Description: "Akses layanan mandiri mahasiswa termasuk Kencana mahasiswa.", IsSystem: true, Status: "active", Permissions: mustJSON([]string{"student.dashboard.view", "student.profile.update", "kencana.student.dashboard", "kencana.student.timeline", "kencana.student.session", "kencana.student.quiz", "kencana.student.assignment", "kencana.student.handbook", "kencana.student.attendance", "kencana.student.score", "kencana.student.remedial", "kencana.student.certificate", "kencana.student.mentor_invitations"})},
+	{Key: "psikolog", Label: "Psikolog", Description: "Mengelola layanan konseling dan rekam interaksi psikologis.", IsSystem: true, Status: "active", Permissions: mustJSON([]string{"psychologist.bookings.view", "psychologist.bookings.update", "psychologist.medical_records.view", "psychologist.referrals.manage", "psychologist.schedules.manage", "psychologist.reports.manage"})},
+	{Key: "kencana_admin", Label: "Admin Kencana Universitas", Description: "Mengelola Kencana level universitas, periode, timeline, quiz, mentor universitas, remedial, dan sertifikat.", IsSystem: true, Status: "active", Permissions: mustJSON([]string{"kencana.period.view", "kencana.period.create", "kencana.period.update", "kencana.stage.view", "kencana.stage.create", "kencana.stage.update", "kencana.session.view", "kencana.session.create", "kencana.session.update", "kencana.material.create", "kencana.quiz.create", "kencana.quiz.update", "kencana.question.create", "kencana.question.update", "kencana.assignment.create", "kencana.participants.view", "kencana.scores.view", "kencana.remedial.create", "kencana.certificate.generate", "kencana.mentor.university.manage", "kencana.mentor.assignment.override"})},
+	{Key: "kencana_fakultas", Label: "Admin Kencana Fakultas", Description: "Mengelola Kencana dalam scope fakultas.", IsSystem: true, Status: "active", Permissions: mustJSON([]string{"kencana.faculty.dashboard", "kencana.faculty.participants.view", "kencana.faculty.scores.view", "kencana.faculty.stages.view", "kencana.faculty.mentor.manage", "kencana.faculty.attendance.review", "kencana.faculty.handbook.review"})},
+	{Key: "kencana_mentor", Label: "Dewan Pembimbing Kencana", Description: "Mendampingi mahasiswa Kencana, mengundang mahasiswa, mencatat progress, dan memberi nilai afektif/psikomotor.", IsSystem: true, Status: "active", Permissions: mustJSON([]string{"kencana.mentor.dashboard", "kencana.mentor.available_students", "kencana.mentor.invite", "kencana.mentor.students.view", "kencana.mentor.student_progress", "kencana.mentor.student_score", "kencana.mentor.student_attendance", "kencana.mentor.student_handbook", "kencana.mentor.notes.create", "kencana.mentor.score_items.create", "kencana.mentor.profile.update"})},
+}
+
+func mustJSON(v any) []byte {
+	b, _ := json.Marshal(v)
+	return b
+}
+
+func ensureDefaultRBACRoles(db *gorm.DB) {
+	for _, role := range defaultRBACRoles {
+		var existing models.RBACRole
+		if err := db.Where("key = ?", role.Key).First(&existing).Error; err == gorm.ErrRecordNotFound {
+			db.Create(&role)
+		}
+	}
+}
 
 func GetUsers(c *fiber.Ctx) error {
 	type UserWithContext struct {
@@ -61,12 +100,79 @@ func GetUsers(c *fiber.Ctx) error {
 }
 
 func isAllowedRBACRole(role string) bool {
+	ensureDefaultRBACRoles(config.DB)
+	var count int64
+	config.DB.Model(&models.RBACRole{}).Where("key = ? AND status = ?", role, "active").Count(&count)
+	if count > 0 {
+		return true
+	}
 	switch role {
 	case "super_admin", "faculty_admin", "ormawa_admin", "ormawa", "mahasiswa", "psikolog", "PSIKOLOG", "dosen", "DOSEN", "kencana_admin", "kencana_fakultas", "kencana_mentor":
 		return true
 	default:
 		return false
 	}
+}
+
+func GetRBACRoles(c *fiber.Ctx) error {
+	ensureDefaultRBACRoles(config.DB)
+	var roles []models.RBACRole
+	if err := config.DB.Order("is_system desc, key asc").Find(&roles).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal memuat role RBAC"})
+	}
+	return c.JSON(fiber.Map{"status": "success", "data": fiber.Map{"roles": roles, "catalog": rbacPermissionCatalog}})
+}
+
+func CreateRBACRole(c *fiber.Ctx) error {
+	type reqBody struct {
+		Key         string   `json:"key"`
+		Label       string   `json:"label"`
+		Description string   `json:"description"`
+		Permissions []string `json:"permissions"`
+	}
+	var req reqBody
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Payload role tidak valid"})
+	}
+	req.Key = strings.ToLower(strings.TrimSpace(req.Key))
+	req.Label = strings.TrimSpace(req.Label)
+	if req.Key == "" || req.Label == "" {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Role key dan label wajib diisi"})
+	}
+	role := models.RBACRole{Key: req.Key, Label: req.Label, Description: req.Description, Permissions: mustJSON(req.Permissions), Status: "active", IsSystem: false}
+	if err := config.DB.Create(&role).Error; err != nil {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Gagal membuat role: " + err.Error()})
+	}
+	return c.JSON(fiber.Map{"status": "success", "message": "Role RBAC berhasil dibuat", "data": role})
+}
+
+func UpdateRBACRole(c *fiber.Ctx) error {
+	type reqBody struct {
+		Label       string   `json:"label"`
+		Description string   `json:"description"`
+		Permissions []string `json:"permissions"`
+		Status      string   `json:"status"`
+	}
+	var req reqBody
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Payload role tidak valid"})
+	}
+	var role models.RBACRole
+	if err := config.DB.First(&role, c.Params("id")).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Role tidak ditemukan"})
+	}
+	if strings.TrimSpace(req.Label) != "" {
+		role.Label = strings.TrimSpace(req.Label)
+	}
+	role.Description = req.Description
+	role.Permissions = mustJSON(req.Permissions)
+	if req.Status == "inactive" || req.Status == "active" {
+		role.Status = req.Status
+	}
+	if err := config.DB.Save(&role).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal menyimpan role"})
+	}
+	return c.JSON(fiber.Map{"status": "success", "message": "Permission role berhasil disimpan", "data": role})
 }
 
 func normalizeKencanaScope(scope string) string {

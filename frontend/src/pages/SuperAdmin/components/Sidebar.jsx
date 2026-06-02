@@ -35,6 +35,13 @@ const menuGroups = [
     ]
   },
   {
+    title: "Kencana (PKKMB)",
+    items: [
+      { name: "Kencana Universitas", icon: 'account_balance', path: "/kencana-admin" },
+      { name: "Kencana Fakultas", icon: 'school', path: "/kencana-fakultas" },
+    ]
+  },
+  {
     title: "Keamanan & Akses",
     items: [
       { name: "Kelola Akses (RBAC)", icon: 'security', path: "/admin/rbac" },

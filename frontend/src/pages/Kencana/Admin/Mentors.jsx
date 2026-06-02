@@ -19,6 +19,13 @@ const Mentors = ({ portal = 'admin' }) => {
     fakultas_id: isFakultasPortal ? Number(facultyId) || 0 : Number(form.fakultas_id) || 0,
   }), [facultyId, form, isFakultasPortal]);
 
+  const r = String(user?.role || '').toLowerCase();
+  const hasPermission = r === 'super_admin' || user?.permissions?.includes('*') ||
+    (isFakultasPortal ? user?.permissions?.includes('kencana.faculty.mentor.manage')
+                      : user?.permissions?.includes('kencana.mentor.university.manage'));
+
+  console.log("Mentors DEBUG: ", { role: user?.role, permissions: user?.permissions, hasPermission, portal, isFakultasPortal });
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setMessage('');
@@ -42,38 +49,48 @@ const Mentors = ({ portal = 'admin' }) => {
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          <Field label="Nama">
-            <input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="input" placeholder="Nama pembimbing" />
-          </Field>
-          <Field label="Email">
-            <input required type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="input" placeholder="mentor@bku.ac.id" />
-          </Field>
-          <Field label="Password">
-            <input required type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} className="input" placeholder="Minimal 6 karakter" />
-          </Field>
-          <Field label="Telepon">
-            <input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} className="input" placeholder="Opsional" />
-          </Field>
-          {!isFakultasPortal && (
-            <Field label="Scope Mentor">
-              <input disabled value="Universitas" className="input bg-slate-100 text-slate-500" />
+      {hasPermission ? (
+        <form onSubmit={handleSubmit} className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            <Field label="Nama">
+              <input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="input" placeholder="Nama pembimbing" />
             </Field>
-          )}
-          {isFakultasPortal && (
-            <Field label="Scope Fakultas">
-              <input disabled value={facultyId ? `Fakultas ID ${facultyId}` : 'Fakultas akun belum tersedia'} className="input bg-slate-100 text-slate-500" />
+            <Field label="Email">
+              <input required type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="input" placeholder="mentor@bku.ac.id" />
             </Field>
-          )}
+            <Field label="Password">
+              <input required type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} className="input" placeholder="Minimal 6 karakter" />
+            </Field>
+            <Field label="Telepon">
+              <input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} className="input" placeholder="Opsional" />
+            </Field>
+            {!isFakultasPortal && (
+              <Field label="Scope Mentor">
+                <input disabled value="Universitas" className="input bg-slate-100 text-slate-500" />
+              </Field>
+            )}
+            {isFakultasPortal && (
+              <Field label="Scope Fakultas">
+                <input disabled value={facultyId ? `Fakultas ID ${facultyId}` : 'Fakultas akun belum tersedia'} className="input bg-slate-100 text-slate-500" />
+              </Field>
+            )}
+          </div>
+          <div className="mt-5 flex flex-wrap items-center gap-3">
+            <button disabled={createMentor.isPending || (isFakultasPortal && !facultyId)} className="rounded-xl bg-slate-900 px-5 py-3 text-sm font-black text-white disabled:cursor-not-allowed disabled:bg-slate-300">
+              {createMentor.isPending ? 'Membuat...' : 'Buat Akun Mentor'}
+            </button>
+            {message && <p className="text-sm font-bold text-slate-600">{message}</p>}
+          </div>
+        </form>
+      ) : (
+        <div className="rounded-2xl border border-amber-200 bg-amber-50 p-6 shadow-sm">
+          <h2 className="text-lg font-bold text-amber-800 mb-2">Akses Dibatasi (Hanya Lihat)</h2>
+          <p className="text-sm text-amber-700">
+            Anda tidak memiliki izin (permission) untuk membuat atau mengelola mentor baru. Anda hanya dapat melihat daftar mentor yang sudah ada. 
+            Jika Anda memerlukan akses ini, silakan hubungi Super Admin untuk mengaktifkannya di panel RBAC.
+          </p>
         </div>
-        <div className="mt-5 flex flex-wrap items-center gap-3">
-          <button disabled={createMentor.isPending || (isFakultasPortal && !facultyId)} className="rounded-xl bg-slate-900 px-5 py-3 text-sm font-black text-white disabled:cursor-not-allowed disabled:bg-slate-300">
-            {createMentor.isPending ? 'Membuat...' : 'Buat Akun Mentor'}
-          </button>
-          {message && <p className="text-sm font-bold text-slate-600">{message}</p>}
-        </div>
-      </form>
+      )}
 
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
         {isLoading ? (

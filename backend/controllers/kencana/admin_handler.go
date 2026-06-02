@@ -1,6 +1,7 @@
 package kencana
 
 import (
+	"encoding/json"
 	"siakad-backend/config"
 	"siakad-backend/models"
 	"strings"
@@ -301,6 +302,23 @@ func CreateMentor(c *fiber.Ctx) error {
 		req.ScopeType = "faculty"
 	}
 	role, adminFakultasID := kencanaAdminScope(c)
+
+	var rbacRole models.RBACRole
+	if err := config.DB.Where("key = ?", role).First(&rbacRole).Error; err == nil {
+		var perms []string
+		json.Unmarshal(rbacRole.Permissions, &perms)
+		
+		hasPerm := false
+		for _, p := range perms {
+			if p == "*" || (role == "kencana_fakultas" && p == "kencana.faculty.mentor.manage") || (role == "kencana_admin" && p == "kencana.mentor.university.manage") {
+				hasPerm = true
+				break
+			}
+		}
+		if !hasPerm && role != "super_admin" {
+			return c.Status(403).JSON(fiber.Map{"success": false, "message": "Anda tidak memiliki izin (permission) untuk membuat mentor"})
+		}
+	}
 	if role == "kencana_fakultas" {
 		if adminFakultasID == 0 {
 			return c.Status(400).JSON(fiber.Map{"success": false, "message": "Admin Kencana Fakultas belum memiliki scope fakultas"})

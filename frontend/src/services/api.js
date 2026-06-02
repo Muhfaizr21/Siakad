@@ -471,6 +471,17 @@ export const adminService = {
   deleteUser: (id) => fetchWithAuth(`${API_BASE_URL}/admin/users/${id}`, {
     method: 'DELETE'
   }),
+  getRBACRoles: () => fetchWithAuth(`${API_BASE_URL}/admin/rbac/roles`),
+  createRBACRole: (data) => fetchWithAuth(`${API_BASE_URL}/admin/rbac/roles`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  }),
+  updateRBACRole: (id, data) => fetchWithAuth(`${API_BASE_URL}/admin/rbac/roles/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  }),
   getAllNews: () => fetchWithAuth(`${API_BASE_URL}/admin/news`),
   createNews: (data) => fetchWithAuth(`${API_BASE_URL}/admin/news`, {
     method: 'POST',

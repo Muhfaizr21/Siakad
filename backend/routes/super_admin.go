@@ -1,9 +1,9 @@
 package routes
 
 import (
+	"github.com/gofiber/fiber/v2"
 	"siakad-backend/controllers"
 	fakultas "siakad-backend/controllers/fakultas"
-	"github.com/gofiber/fiber/v2"
 )
 
 func SetupSuperAdminRoutes(r fiber.Router) {
@@ -13,6 +13,9 @@ func SetupSuperAdminRoutes(r fiber.Router) {
 	r.Post("/users", controllers.CreateUser)
 	r.Put("/users/role", controllers.UpdateUserRole)
 	r.Delete("/users/:id", controllers.DeleteUser)
+	r.Get("/rbac/roles", controllers.GetRBACRoles)
+	r.Post("/rbac/roles", controllers.CreateRBACRole)
+	r.Put("/rbac/roles/:id", controllers.UpdateRBACRole)
 	r.Get("/audit-logs", controllers.GetAuditLogs)
 	r.Get("/profile", controllers.GetAdminProfile)
 	r.Put("/profile", controllers.UpdateAdminProfile)
@@ -42,8 +45,6 @@ func SetupSuperAdminRoutes(r fiber.Router) {
 	r.Post("/prodi", controllers.CreateProgramStudi)
 	r.Put("/prodi/:id", controllers.UpdateProgramStudi)
 	r.Delete("/prodi/:id", controllers.DeleteProgramStudi)
-
-
 
 	r.Get("/psychologists", controllers.GetAllPsychologists)
 	r.Put("/psychologists/:id", controllers.UpdatePsychologist)

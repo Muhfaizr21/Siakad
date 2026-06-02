@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { DataTable } from './components/ui/data-table'
 import { Badge } from './components/ui/badge'
 import { Button } from './components/ui/button'
@@ -23,6 +23,14 @@ const KeyRound = ({ size, className, ...props }) => <span className={`material-s
 
 
 const ROLES = ['super_admin', 'faculty_admin', 'ormawa_admin', 'ormawa', 'mahasiswa', 'psikolog', 'kencana_admin', 'kencana_fakultas', 'kencana_mentor']
+
+const TABS = [
+  { key: 'identities', label: 'Identities', icon: 'manage_accounts' },
+  { key: 'roles', label: 'Roles', icon: 'badge' },
+  { key: 'permissions', label: 'Permission Matrix', icon: 'security' }
+]
+
+const emptyRoleForm = { key: '', label: '', description: '', permissions: [] }
 
 const ROLE_DETAILS = {
   super_admin: {
@@ -117,15 +125,18 @@ function StudentAvatar({ src, name, className = "w-9 h-9 rounded-xl" }) {
 }
 
 export default function UserManagement() {
+  const [activeTab, setActiveTab] = useState('identities')
   const [users, setUsers] = useState([])
+  const [rbacRoles, setRbacRoles] = useState([])
+  const [permissionCatalog, setPermissionCatalog] = useState([])
   const [faculties, setFaculties] = useState([])
   const [allProdi, setAllProdi] = useState([])
   const [loading, setLoading] = useState(true)
   const [selected, setSelected] = useState(null)
   const [isCrudOpen, setIsCrudOpen] = useState(false)
   const [isRoleOpen, setIsRoleOpen] = useState(false)
+  const [isCreateRoleOpen, setIsCreateRoleOpen] = useState(false)
   const [isDelOpen, setIsDelOpen] = useState(false)
-  const [isPermsOpen, setIsPermsOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [newRole, setNewRole] = useState('')
   const [newOrmawaId, setNewOrmawaId] = useState('')
@@ -133,6 +144,9 @@ export default function UserManagement() {
   const [newFakultasId, setNewFakultasId] = useState('')
   const [newKencanaScopeType, setNewKencanaScopeType] = useState('faculty')
   const [ormawas, setOrmawas] = useState([])
+  const [roleForm, setRoleForm] = useState(emptyRoleForm)
+  const [selectedRoleKey, setSelectedRoleKey] = useState('super_admin')
+  const [permissionDraft, setPermissionDraft] = useState([])
   const [form, setForm] = useState({ 
     Email: '', 
     Password: '', 
@@ -145,6 +159,34 @@ export default function UserManagement() {
     KencanaScopeType: 'faculty',
     Phone: ''
   })
+
+  const roleOptions = useMemo(() => {
+    const fromApi = rbacRoles.map(role => ({
+      value: role.key,
+      label: role.label || ROLE_DETAILS[role.key]?.label || role.key,
+      description: role.description || ROLE_DETAILS[role.key]?.desc || '',
+      permissions: Array.isArray(role.permissions) ? role.permissions : [],
+      status: role.status || 'active',
+      isSystem: Boolean(role.is_system)
+    }))
+    const seen = new Set(fromApi.map(role => role.value))
+    const fallback = ROLES.filter(role => !seen.has(role)).map(role => ({
+      value: role,
+      label: ROLE_DETAILS[role]?.label || role,
+      description: ROLE_DETAILS[role]?.desc || '',
+      permissions: [],
+      status: 'active',
+      isSystem: true
+    }))
+    return [...fromApi, ...fallback]
+  }, [rbacRoles])
+
+  const selectedRBACRole = useMemo(
+    () => roleOptions.find(role => role.value === selectedRoleKey) || roleOptions[0] || null,
+    [roleOptions, selectedRoleKey]
+  )
+
+  const permissionSet = useMemo(() => new Set(permissionDraft), [permissionDraft])
 
   const handleEmailChange = (emailVal) => {
     setForm(prev => {
@@ -185,23 +227,92 @@ export default function UserManagement() {
   const fetchData = async () => {
     setLoading(true)
     try {
-      const [userRes, facRes, prodiRes, ormawaRes] = await Promise.all([
+      const [userRes, facRes, prodiRes, ormawaRes, roleRes] = await Promise.all([
         adminService.getAllUsers(),
         adminService.getAllFaculties(),
         adminService.getAllProdi(),
-        adminService.getAllOrmawa()
+        adminService.getAllOrmawa(),
+        adminService.getRBACRoles()
       ])
 
       if (userRes?.status === 'success') setUsers(userRes.data || [])
       if (facRes?.status === 'success') setFaculties(facRes.data || [])
       if (prodiRes?.status === 'success') setAllProdi(prodiRes.data || [])
       if (ormawaRes?.status === 'success') setOrmawas(ormawaRes.data || [])
+      if (roleRes?.status === 'success') {
+        const rolePayload = roleRes.data || {}
+        setRbacRoles(rolePayload.roles || [])
+        setPermissionCatalog(rolePayload.catalog || [])
+        const firstRole = rolePayload.roles?.[0]?.key
+        if (firstRole && !selectedRoleKey) setSelectedRoleKey(firstRole)
+      }
     } catch (err) { 
       toast.error('Gagal sinkronisasi data master-node') 
     } finally { setLoading(false) }
   }
 
   useEffect(() => { fetchData() }, [])
+
+  useEffect(() => {
+    if (!selectedRBACRole) return
+    setPermissionDraft(Array.isArray(selectedRBACRole.permissions) ? selectedRBACRole.permissions : [])
+  }, [selectedRBACRole?.value])
+
+  const togglePermission = (permission) => {
+    setPermissionDraft(prev => prev.includes(permission) ? prev.filter(item => item !== permission) : [...prev, permission])
+  }
+
+  const handleCreateRole = async (e) => {
+    e.preventDefault()
+    setIsSubmitting(true)
+    try {
+      const payload = {
+        ...roleForm,
+        key: String(roleForm.key || '').trim().toLowerCase().replace(/[^a-z0-9_]/g, '_'),
+        label: String(roleForm.label || '').trim(),
+        description: String(roleForm.description || '').trim(),
+        permissions: roleForm.permissions || []
+      }
+      const res = await adminService.createRBACRole(payload)
+      if (res.status === 'success') {
+        toast.success('Role RBAC berhasil dibuat')
+        setIsCreateRoleOpen(false)
+        setRoleForm(emptyRoleForm)
+        setSelectedRoleKey(res.data?.key || payload.key)
+        fetchData()
+      } else {
+        toast.error(res.message || 'Gagal membuat role RBAC')
+      }
+    } catch (err) {
+      toast.error(err?.message || 'Gagal membuat role RBAC')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const handleSavePermissions = async () => {
+    const role = rbacRoles.find(item => item.key === selectedRoleKey)
+    if (!role) { toast.error('Role belum tersinkron dari server'); return }
+    setIsSubmitting(true)
+    try {
+      const res = await adminService.updateRBACRole(role.id || role.ID, {
+        label: role.label,
+        description: role.description,
+        permissions: permissionDraft,
+        status: role.status || 'active'
+      })
+      if (res.status === 'success') {
+        toast.success('Permission role berhasil disimpan')
+        fetchData()
+      } else {
+        toast.error(res.message || 'Gagal menyimpan permission')
+      }
+    } catch (err) {
+      toast.error(err?.message || 'Gagal menyimpan permission')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
 
   const handleCreate = async (e) => {
     e.preventDefault(); setIsSubmitting(true)
@@ -334,7 +445,8 @@ export default function UserManagement() {
       key: 'role', label: 'Authorization', className: 'w-[160px]',
       render: (v, row) => {
         const r = v || row.role || ''
-        const cfg = ROLE_DETAILS[r] || { label: r, cls: 'bg-neutral-100 text-neutral-500 shadow-none' }
+        const roleOption = roleOptions.find(role => role.value === r)
+        const cfg = ROLE_DETAILS[r] || { label: roleOption?.label || r, cls: 'bg-neutral-100 text-neutral-500 shadow-none' }
         return (
           <Badge className={cn('font-bold text-[9px] px-3 py-1 border-none shadow-sm uppercase tracking-[0.15em] rounded-lg', cfg.cls)}>
             {cfg.label}
@@ -393,19 +505,43 @@ export default function UserManagement() {
               </div>
 
               <Button 
-                onClick={() => setIsPermsOpen(true)}
+                onClick={() => setActiveTab('permissions')}
                 variant="outline"
                 className="h-11 px-6 rounded-xl border-neutral-200 text-xs font-bold uppercase tracking-widest text-neutral-600 hover:bg-neutral-50 gap-2 transition-all active:scale-95 shadow-sm"
               >
                 <span className="material-symbols-outlined text-primary" style={{ fontSize: '14px' }} >security</span>
-                Access Matrix
+                Permission Matrix
+              </Button>
+              <Button 
+                onClick={() => { setRoleForm(emptyRoleForm); setIsCreateRoleOpen(true) }}
+                className="h-11 px-6 rounded-xl bg-neutral-900 text-white text-xs font-bold uppercase tracking-widest hover:bg-primary gap-2 transition-all active:scale-95 shadow-sm border-none"
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: '14px' }} >add</span>
+                Create Role
               </Button>
             </div>
           </div>
         </section>
 
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          {TABS.map(tab => (
+            <button
+              key={tab.key}
+              type="button"
+              onClick={() => setActiveTab(tab.key)}
+              className={cn(
+                'h-14 rounded-xl border px-5 flex items-center justify-between text-left transition-all',
+                activeTab === tab.key ? 'bg-neutral-900 text-white border-neutral-900 shadow-xl shadow-neutral-900/10' : 'bg-white text-neutral-500 border-neutral-200 hover:border-primary/30 hover:text-neutral-900'
+              )}
+            >
+              <span className="text-[10px] font-bold uppercase tracking-[0.2em] font-jakarta">{tab.label}</span>
+              <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>{tab.icon}</span>
+            </button>
+          ))}
+        </div>
+
         {/* ── Table Section ────────────────────────────────────────── */}
-        <Card className="border-neutral-200 shadow-sm rounded-xl bg-white overflow-hidden">
+        {activeTab === 'identities' && <Card className="border-neutral-200 shadow-sm rounded-xl bg-white overflow-hidden">
           <CardContent className="p-0">
             <DataTable
               columns={columns} 
@@ -414,7 +550,7 @@ export default function UserManagement() {
               searchPlaceholder="Search by identity handle, email, or authorization level..."
               onAdd={() => { setForm({ Email: '', Password: '', Role: 'mahasiswa', Nama: '', FakultasID: '', ProgramStudiID: '', OrmawaAssign: '', OrmawaID: '', KencanaScopeType: 'faculty', Phone: '' }); setIsCrudOpen(true) }} 
               addLabel="New Identity"
-              filters={[{ key: 'role', placeholder: 'FILTER BY LEVEL', options: ROLES.map(r => ({ label: ROLE_DETAILS[r]?.label || r, value: r })) }]}
+              filters={[{ key: 'role', placeholder: 'FILTER BY LEVEL', options: roleOptions.map(r => ({ label: r.label, value: r.value })) }]}
               searchWidth="max-w-md"
               actions={(row) => (
                 <div className="flex items-center gap-2">
@@ -438,48 +574,140 @@ export default function UserManagement() {
               )}
             />
           </CardContent>
-        </Card>
+        </Card>}
+
+        {activeTab === 'roles' && (
+          <section className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+            {roleOptions.map(role => {
+              const cfg = ROLE_DETAILS[role.value] || { cls: 'bg-neutral-100 text-neutral-600 shadow-none' }
+              return (
+                <Card key={role.value} className="border-neutral-200 shadow-sm rounded-xl bg-white overflow-hidden hover:border-primary/20 transition-all">
+                  <CardContent className="p-6 space-y-5">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="space-y-2 flex-1 min-w-0">
+                        <Badge className={cn('font-bold text-[9px] px-3 py-1 border-none shadow-sm uppercase tracking-[0.15em] rounded-lg break-words whitespace-normal leading-relaxed text-left', cfg.cls)}>{role.label}</Badge>
+                        <h3 className="text-lg font-bold text-neutral-900 font-jakarta tracking-tight break-all">{role.value}</h3>
+                      </div>
+                      <span className={cn('text-[9px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-lg shrink-0', role.status === 'active' ? 'bg-emerald-50 text-emerald-600' : 'bg-neutral-100 text-neutral-400')}>{role.status}</span>
+                    </div>
+                    <p className="text-[12px] font-medium text-neutral-500 leading-relaxed min-h-[48px]">{role.description || 'Custom access role without special identity linkage.'}</p>
+                    <div className="flex items-center justify-between border-t border-neutral-100 pt-4">
+                      <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest">{role.permissions?.includes('*') ? 'Full access' : `${role.permissions?.length || 0} permissions`}</span>
+                      <Button onClick={() => { setSelectedRoleKey(role.value); setActiveTab('permissions') }} variant="ghost" className="h-9 px-4 rounded-lg text-[9px] font-bold uppercase tracking-widest text-primary hover:bg-primary/5">Configure</Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              )
+            })}
+          </section>
+        )}
+
+        {activeTab === 'permissions' && (
+          <section className="grid grid-cols-1 xl:grid-cols-[360px_1fr] gap-6">
+            <Card className="border-neutral-200 shadow-sm rounded-xl bg-white h-fit">
+              <CardContent className="p-6 space-y-5">
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-400 font-jakarta">Role Target</p>
+                  <h2 className="text-2xl font-bold text-neutral-900 font-jakarta tracking-tight mt-1">Permission Matrix</h2>
+                </div>
+                <Select value={selectedRoleKey} onValueChange={setSelectedRoleKey}>
+                  <SelectTrigger className="h-12 rounded-xl border-neutral-200 bg-neutral-50/30 font-bold text-xs uppercase tracking-[0.1em]"><SelectValue /></SelectTrigger>
+                  <SelectContent className="rounded-xl shadow-2xl border-neutral-100 max-h-[260px] overflow-y-auto">
+                    {roleOptions.map(role => <SelectItem key={role.value} value={role.value} className="text-[10px] font-bold uppercase tracking-widest">{role.label}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+                <div className="p-5 rounded-2xl bg-neutral-50 border border-neutral-100 space-y-2">
+                  <p className="text-[9px] font-bold text-neutral-400 uppercase tracking-[0.2em]">Selected Role</p>
+                  <p className="text-sm font-bold text-neutral-900 font-jakarta">{selectedRBACRole?.label || 'No role selected'}</p>
+                  <p className="text-[11px] font-medium text-neutral-500 leading-relaxed">{selectedRBACRole?.description || 'Atur permission per modul untuk role ini.'}</p>
+                </div>
+                <Button onClick={handleSavePermissions} disabled={isSubmitting || selectedRBACRole?.permissions?.includes('*')} className="w-full h-12 rounded-xl bg-neutral-900 text-white font-bold text-[10px] uppercase tracking-widest hover:bg-primary border-none">
+                  {selectedRBACRole?.permissions?.includes('*') ? 'Full Access Locked' : 'Save Permission Matrix'}
+                </Button>
+              </CardContent>
+            </Card>
+
+            <div className="space-y-4">
+              {permissionCatalog.map(group => (
+                <Card key={group.module} className="border-neutral-200 shadow-sm rounded-xl bg-white overflow-hidden">
+                  <CardContent className="p-6 space-y-4">
+                    <div className="flex items-center justify-between gap-4">
+                      <div>
+                        <h3 className="font-bold text-neutral-900 font-jakarta tracking-tight">{group.module}</h3>
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-neutral-400 mt-1">{group.items?.length || 0} permission nodes</p>
+                      </div>
+                      <span className="material-symbols-outlined text-primary/40" style={{ fontSize: '24px' }}>hub</span>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+                      {(group.items || []).map(permission => {
+                        const checked = selectedRBACRole?.permissions?.includes('*') || permissionSet.has(permission)
+                        return (
+                          <button
+                            key={permission}
+                            type="button"
+                            disabled={selectedRBACRole?.permissions?.includes('*')}
+                            onClick={() => togglePermission(permission)}
+                            className={cn(
+                              'p-3 rounded-xl border text-left flex items-center gap-3 transition-all',
+                              checked ? 'border-primary/30 bg-primary/5 text-neutral-900' : 'border-neutral-100 bg-neutral-50/50 text-neutral-500 hover:border-neutral-200',
+                              selectedRBACRole?.permissions?.includes('*') && 'opacity-70 cursor-not-allowed'
+                            )}
+                          >
+                            <span className={cn('size-6 rounded-lg flex items-center justify-center shrink-0', checked ? 'bg-primary text-white' : 'bg-white text-neutral-300 border border-neutral-100')}>
+                              <span className="material-symbols-outlined" style={{ fontSize: '13px' }}>{checked ? 'check' : 'remove'}</span>
+                            </span>
+                            <span className="text-xs font-semibold tracking-tight text-neutral-700 break-all">{permission}</span>
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </section>
+        )}
 
       </div>
 
-      {/* ── Access Matrix Modal ──────────────────────────────────── */}
-      <Dialog open={isPermsOpen} onOpenChange={setIsPermsOpen}>
-        <DialogContent className="max-w-3xl p-0 overflow-hidden border-none shadow-2xl rounded-3xl bg-white animate-in zoom-in-95 duration-300">
-          <DialogTitle className="sr-only">Matriks Hak Akses</DialogTitle>
-          <DialogDescription className="sr-only">Panduan detail mengenai level otorisasi sistem</DialogDescription>
-          
-          <div className="p-10 bg-neutral-900 text-white relative overflow-hidden shrink-0">
-            <div className="absolute inset-0 bg-gradient-to-br from-primary/30 to-transparent" />
-            <div className="absolute top-0 right-0 p-10 opacity-[0.05] text-white"><span className="material-symbols-outlined" style={{ fontSize: '160px' }} >security</span></div>
-            <div className="relative z-10 space-y-2">
-              <span className="text-[10px] font-bold text-primary uppercase tracking-[0.4em]">Protocol Documentation</span>
-              <h2 className="text-3xl font-bold font-jakarta tracking-tight leading-none">RBAC Governance Matrix</h2>
-              <p className="text-neutral-400 text-[13px] max-w-md font-medium leading-relaxed mt-2 italic">Standard Operasional Prosedur untuk delegasi otoritas dan batasan operasional cluster pengguna.</p>
-            </div>
-          </div>
-          
-          <div className="p-10 space-y-6 max-h-[55vh] overflow-y-auto custom-scrollbar">
-            {ROLES.map(role => (
-              <div key={role} className="p-6 rounded-2xl border border-neutral-100 bg-neutral-50/40 flex flex-col md:flex-row gap-8 items-start group hover:border-primary/20 transition-all">
-                <div className="w-full md:w-52 shrink-0 space-y-3">
-                  <Badge className={cn("font-bold text-[9px] px-3 py-1 border-none shadow-sm uppercase tracking-[0.2em] rounded-lg", ROLE_DETAILS[role].cls)}>{ROLE_DETAILS[role].label}</Badge>
-                  <p className="text-[11px] font-bold text-neutral-500 leading-relaxed uppercase tracking-tight italic">{ROLE_DETAILS[role].desc}</p>
-                </div>
-                <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-3 w-full">
-                  {ROLE_DETAILS[role].perms.map(p => (
-                    <div key={p} className="flex items-center gap-3 p-3 bg-white rounded-xl border border-neutral-100 group-hover:shadow-sm transition-all">
-                      <div className="size-6 rounded-lg bg-primary/5 flex items-center justify-center text-primary/40"><span className="material-symbols-outlined" style={{ fontSize: '12px' }} Check >security</span></div>
-                      <span className="text-[10px] font-bold text-neutral-700 uppercase tracking-widest">{p}</span>
-                    </div>
-                  ))}
-                </div>
+      {/* ── Create Role Modal ────────────────────────────────────── */}
+      <Dialog open={isCreateRoleOpen} onOpenChange={setIsCreateRoleOpen}>
+        <DialogContent className="max-w-lg p-0 overflow-hidden border-none shadow-2xl rounded-3xl bg-white animate-in zoom-in-95 duration-300">
+          <DialogHeader className="p-8 pb-6 border-b border-neutral-100 bg-neutral-50/50">
+            <div className="flex items-center gap-4">
+              <div className="size-12 rounded-2xl bg-neutral-900 text-white flex items-center justify-center shadow-xl shadow-neutral-900/20"><span className="material-symbols-outlined" style={{ fontSize: '22px' }}>badge</span></div>
+              <div>
+                <DialogTitle className="text-xl font-bold font-jakarta tracking-tight text-neutral-900 leading-none">Create RBAC Role</DialogTitle>
+                <DialogDescription className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest mt-1.5">Role baru terpisah dari provisioning identitas.</DialogDescription>
               </div>
-            ))}
-          </div>
-          
-          <footer className="p-8 border-t border-neutral-100 flex justify-end bg-neutral-50/50">
-             <Button onClick={() => setIsPermsOpen(false)} className="px-10 h-12 rounded-xl bg-neutral-900 text-white font-bold text-[10px] uppercase tracking-[0.2em] hover:bg-primary transition-all border-none">Dismiss Matrix</Button>
-          </footer>
+            </div>
+          </DialogHeader>
+          <form onSubmit={handleCreateRole} className="p-8 space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div className="space-y-2">
+                <Label className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest ml-1 font-jakarta">Role Key</Label>
+                <Input required value={roleForm.key} onChange={e => setRoleForm({ ...roleForm, key: e.target.value })} placeholder="kencana_reviewer" className="h-12 rounded-xl border-neutral-200 bg-neutral-50/30 focus:bg-white font-bold text-sm font-jakarta" />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest ml-1 font-jakarta">Display Label</Label>
+                <Input required value={roleForm.label} onChange={e => setRoleForm({ ...roleForm, label: e.target.value })} placeholder="Kencana Reviewer" className="h-12 rounded-xl border-neutral-200 bg-neutral-50/30 focus:bg-white font-bold text-sm font-jakarta" />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest ml-1 font-jakarta">Description</Label>
+              <Input value={roleForm.description} onChange={e => setRoleForm({ ...roleForm, description: e.target.value })} placeholder="Jelaskan batas otoritas role ini..." className="h-12 rounded-xl border-neutral-200 bg-neutral-50/30 focus:bg-white font-bold text-sm font-jakarta" />
+            </div>
+            <div className="p-4 rounded-2xl bg-amber-50 border border-amber-100 text-[11px] font-bold text-amber-700 leading-relaxed">
+              Setelah role dibuat, buka tab Permission Matrix untuk mengaktifkan permission per modul. Role custom akan tersedia di pilihan otorisasi akun, tetapi tidak membuat profil khusus seperti mahasiswa atau mentor Kencana.
+            </div>
+            <footer className="flex gap-4 pt-2 border-t border-neutral-100">
+              <Button type="button" variant="ghost" onClick={() => setIsCreateRoleOpen(false)} className="flex-1 h-12 rounded-xl text-[10px] font-bold uppercase tracking-widest text-neutral-400">Abort</Button>
+              <Button type="submit" disabled={isSubmitting} className="flex-[2] h-12 rounded-xl bg-neutral-900 text-white font-bold text-[10px] uppercase tracking-widest shadow-xl shadow-neutral-900/10 active:scale-[0.98] transition-all border-none flex items-center justify-center gap-2">
+                {isSubmitting ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '14px' }}>sync</span> : <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>save</span>}
+                Commit Role
+              </Button>
+            </footer>
+          </form>
         </DialogContent>
       </Dialog>
 
@@ -528,7 +756,7 @@ export default function UserManagement() {
                 <Select value={form.Role} onValueChange={handleRoleChange}>
                   <SelectTrigger className="h-12 rounded-xl border-neutral-200 bg-neutral-50/30 font-bold text-xs uppercase tracking-[0.1em]"><SelectValue /></SelectTrigger>
                   <SelectContent className="rounded-xl shadow-2xl border-neutral-100">
-                    {ROLES.map(r => <SelectItem key={r} value={r} className="text-[10px] font-bold uppercase tracking-widest">{ROLE_DETAILS[r]?.label || r}</SelectItem>)}
+                    {roleOptions.map(r => <SelectItem key={r.value} value={r.value} className="text-[10px] font-bold uppercase tracking-widest">{r.label}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
@@ -662,7 +890,7 @@ export default function UserManagement() {
                   <Select value={newRole} onValueChange={setNewRole}>
                     <SelectTrigger className="h-12 rounded-xl border-neutral-200 bg-neutral-50/30 font-bold text-[10px] uppercase tracking-widest text-neutral-600"><SelectValue /></SelectTrigger>
                     <SelectContent className="rounded-xl shadow-2xl border-neutral-100">
-                      {ROLES.map(r => <SelectItem key={r} value={r} className="text-[10px] font-bold uppercase tracking-widest">{ROLE_DETAILS[r]?.label || r}</SelectItem>)}
+                      {roleOptions.map(r => <SelectItem key={r.value} value={r.value} className="text-[10px] font-bold uppercase tracking-widest">{r.label}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 </div>

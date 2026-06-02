@@ -247,7 +247,7 @@ function App() {
 
             {/* Portal Admin Kencana */}
             <Route path="/kencana-admin/*" element={
-              <ProtectedRoute allowedRoles={['kencana_admin']}>
+              <ProtectedRoute allowedRoles={['kencana_admin', 'super_admin']}>
                 <KencanaLayout portalType="admin">
                   <Routes>
                     <Route index element={<KencanaAdminDashboard />} />
@@ -266,7 +266,7 @@ function App() {
 
             {/* Portal Kencana Fakultas */}
             <Route path="/kencana-fakultas/*" element={
-              <ProtectedRoute allowedRoles={['kencana_fakultas']}>
+              <ProtectedRoute allowedRoles={['kencana_fakultas', 'super_admin']}>
                 <KencanaLayout portalType="fakultas">
                   <Routes>
                     <Route index element={<KencanaFakultasDashboard />} />

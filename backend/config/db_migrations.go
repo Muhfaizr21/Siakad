@@ -24,6 +24,7 @@ func migrateModels(db *gorm.DB) error {
 	// ========================
 	if err := db.AutoMigrate(
 		&models.User{},
+		&models.RBACRole{},
 	); err != nil {
 		return err
 	}
