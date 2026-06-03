@@ -27,7 +27,12 @@ const XCircle = ({ size, className, ...props }) => <span className={`material-sy
 
 const API = "/faculty"
 const formatIDR = (n) => new Intl.NumberFormat('id-ID',{style:'currency',currency:'IDR',minimumFractionDigits:0}).format(n||0)
-const formatDate = (d) => { try { return new Date(d).toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'}) } catch { return d } }
+const formatDate = (d) => {
+  if (!d) return '—'
+  const date = new Date(d)
+  if (isNaN(date.getTime())) return d
+  return date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })
+}
 
 const PROPOSAL_STATUS = {
   disetujui_fakultas: {cls:'bg-indigo-50 text-indigo-700 border-indigo-200',   dot:'bg-indigo-500',  label:'ACC Fakultas'},
@@ -269,7 +274,7 @@ export default function FacultyProposalApproval() {
                       <td className="px-5 py-3.5 text-sm text-slate-400 font-medium">{(currentPage - 1) * pageSize + i + 1}</td>
                       <td className="px-5 py-3.5">
                         <p className="font-bold text-sm text-slate-900 max-w-[200px] truncate">{row.Judul}</p>
-                        <p className="text-[10px] text-slate-400 font-medium mt-0.5">{formatDate(row.CreatedAt)}</p>
+                        <p className="text-[10px] text-slate-400 font-medium mt-0.5">{formatDate(row.created_at || row.CreatedAt)}</p>
                       </td>
                       <td className="px-5 py-3.5"><span className="text-[10px] font-bold text-slate-600 bg-slate-50 border border-slate-200 px-2.5 py-1 rounded-lg">{org?.Nama||org?.nama||org?.NamaOrg||'—'}</span></td>
                       <td className="px-5 py-3.5 font-black text-sm text-emerald-600 tabular-nums">{formatIDR(row.Anggaran)}</td>
@@ -367,51 +372,182 @@ export default function FacultyProposalApproval() {
         </div>
       </div>
 
-      {/* Verification Modal */}
+      {/* Verification Modal / Side-by-Side Review Panel */}
       {selected && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4" onClick={()=>setSelected(null)}>
-          <div className="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl z-[101] flex flex-col overflow-hidden max-h-[90vh]" onClick={e=>e.stopPropagation()}>
-            <div className="relative bg-gradient-to-br from-[#00236F] to-[#003db5] pt-6 pb-7 px-6 overflow-hidden flex-shrink-0">
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[100] flex items-center justify-center p-4" onClick={()=>setSelected(null)}>
+          <div className="relative w-full max-w-7xl bg-white rounded-3xl shadow-2xl z-[101] flex flex-col overflow-hidden h-[90vh]" onClick={e=>e.stopPropagation()}>
+            
+            {/* Header */}
+            <div className="relative bg-gradient-to-br from-[#00236F] to-[#003db5] py-4 px-6 overflow-hidden flex-shrink-0 flex items-center justify-between">
               <div className="absolute -top-10 -right-10 w-44 h-44 bg-white/5 rounded-full pointer-events-none"/>
-              <button onClick={()=>setSelected(null)} className="absolute z-50 top-4 right-4 w-8 h-8 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center transition-colors"><span className="material-symbols-outlined" style={{ fontSize: '15px' }} >close</span></button>
               <div className="relative z-10">
-                <p className="text-[9px] font-bold text-white/50 uppercase tracking-[0.25em] mb-1">{(selected.Ormawa||selected.ormawa||selected.Organisasi||{})?.Nama||'ORMAWA'}</p>
-                <h2 className="text-base font-extrabold text-white leading-tight line-clamp-2">{selected.Judul}</h2>
-                <div className="flex items-center gap-3 mt-3">
-                  <span className="text-xl font-black text-emerald-300 tabular-nums">{formatIDR(selected.Anggaran)}</span>
-                  {selected.FileURL && <a href={selected.FileURL} target="_blank" rel="noreferrer"
-                    className="flex items-center gap-1.5 bg-white/10 border border-white/20 px-2.5 py-1.5 rounded-xl text-[10px] font-bold text-white hover:bg-white/20 transition-colors">
-                    <span className="material-symbols-outlined" style={{ fontSize: '11px' }} >description</span> PDF <ExternalLink size={9}/>
-                  </a>}
+                <span className="text-[9px] font-black text-white/60 uppercase tracking-[0.25em]">Detail Review Proposal ORMAWA</span>
+                <h2 className="text-base font-extrabold text-white leading-tight line-clamp-1 mt-0.5">{selected.Judul}</h2>
+              </div>
+              <button onClick={()=>setSelected(null)} className="relative z-50 w-8 h-8 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center text-white transition-colors">
+                <span className="material-symbols-outlined text-[16px]">close</span>
+              </button>
+            </div>
+
+            {/* Split Screen Workspace */}
+            <div className="flex-1 flex flex-col lg:flex-row overflow-hidden min-h-0 bg-slate-50">
+              
+              {/* Left Pane (60%): Document Viewer */}
+              <div className="flex-1 lg:w-3/5 border-r border-slate-200/80 flex flex-col bg-slate-800">
+                <div className="px-4 py-2.5 bg-slate-900 text-slate-400 text-[10px] font-black uppercase tracking-wider flex items-center justify-between shrink-0">
+                  <span className="flex items-center gap-1.5"><span className="material-symbols-outlined text-[14px]">description</span> Naskah Proposal PDF</span>
+                  {selected.FileURL && (
+                    <a href={selected.FileURL} target="_blank" rel="noreferrer" className="text-primary-foreground hover:text-white flex items-center gap-1 font-bold">
+                      Buka Tab Baru <span className="material-symbols-outlined text-[10px]">open_in_new</span>
+                    </a>
+                  )}
+                </div>
+                <div className="flex-1 relative bg-slate-700">
+                  {selected.FileURL ? (
+                    <iframe
+                      src={`${selected.FileURL}#toolbar=1`}
+                      className="w-full h-full border-0"
+                      title="Naskah Proposal"
+                    />
+                  ) : (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-400 p-8 text-center">
+                      <span className="material-symbols-outlined text-4xl mb-3 text-slate-500">warning</span>
+                      <p className="font-bold text-sm text-slate-300">Naskah Dokumen Tidak Dilampirkan</p>
+                      <p className="text-[11px] text-slate-400 mt-1 max-w-xs">ORMAWA belum mengunggah dokumen proposal untuk pengajuan ini.</p>
+                    </div>
+                  )}
                 </div>
               </div>
-            </div>
-            <div className="flex-1 overflow-y-auto p-5 space-y-4">
-              <div>
-                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.18em] mb-2">Catatan / Instruksi Revisi</label>
-                <textarea value={catatan} onChange={e=>setCatatan(e.target.value)} rows={4}
-                  placeholder="Tulis catatan atau instruksi perbaikan untuk ORMAWA..."
-                  className="w-full px-4 py-3 rounded-xl border border-slate-200/60 bg-slate-50/50 focus:outline-none focus:border-primary focus:bg-white text-sm text-slate-900 transition-all resize-none"/>
-              </div>
-              <div>
-                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.18em] mb-2">Pilih Keputusan</label>
-                <div className="grid grid-cols-3 gap-2">
-                  {[
-                    {s:'disetujui_fakultas',label:'ACC Fakultas',icon:CheckCircle2,cls:'bg-indigo-600 hover:bg-indigo-700 shadow-indigo-600/20'},
-                    {s:'revisi',            label:'Revisi',      icon:Clock,       cls:'bg-blue-600 hover:bg-blue-700 shadow-blue-600/20'},
-                    {s:'ditolak',           label:'Tolak',       icon:XCircle,     cls:'bg-rose-600 hover:bg-rose-700 shadow-rose-600/20'},
-                  ].map(opt=>(
-                    <button key={opt.s} onClick={()=>handleUpdateStatus(opt.s)} disabled={isSubmitting}
-                      className={cn('flex flex-col items-center justify-center gap-1.5 h-16 rounded-xl text-white text-[10px] font-bold uppercase tracking-wider transition-all active:scale-95 shadow-lg disabled:opacity-50',opt.cls)}>
-                      {isSubmitting?<span className="material-symbols-outlined animate-spin" style={{ fontSize: '14px' }} >sync</span>:<opt.icon size={16}/>} {opt.label}
-                    </button>
-                  ))}
+
+              {/* Right Pane (40%): Metadata, History, Action Forms */}
+              <div className="lg:w-2/5 flex flex-col overflow-y-auto bg-white min-h-0 divide-y divide-slate-100">
+                
+                {/* 1. Proposal & Proposer Details */}
+                <div className="p-5 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Identitas Pengaju</span>
+                    <span className="inline-flex items-center gap-1 text-[9px] font-black text-emerald-600 bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-md uppercase tracking-wider">
+                      {selected.Jenis || "Program Kerja"}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3.5">
+                    <div className="p-3 bg-slate-50 border border-slate-100 rounded-2xl">
+                      <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1.5">Organisasi</p>
+                      <p className="font-bold text-xs text-slate-900">{(selected.Ormawa||selected.ormawa||selected.Organisasi||{})?.Nama || "ORMAWA"}</p>
+                    </div>
+                    <div className="p-3 bg-slate-50 border border-slate-100 rounded-2xl">
+                      <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1.5">Anggaran Pengajuan</p>
+                      <p className="font-black text-xs text-emerald-600 tabular-nums">{formatIDR(selected.Anggaran)}</p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3.5">
+                    <div className="p-3 bg-slate-50 border border-slate-100 rounded-2xl">
+                      <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1.5">Tanggal Pelaksanaan</p>
+                      <p className="font-bold text-xs text-slate-900">{formatDate(selected.TanggalKegiatan || selected.tanggal_kegiatan)}</p>
+                    </div>
+                    <div className="p-3 bg-slate-50 border border-slate-100 rounded-2xl">
+                      <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1.5">Pengusul / Ketua</p>
+                      <p className="font-bold text-xs text-slate-900">{(selected.Mahasiswa?.Nama) || "Perwakilan ORMAWA"}</p>
+                    </div>
+                  </div>
+
+                  {/* Document & Budget Risk Warnings */}
+                  {(!selected.FileURL || selected.Anggaran > 50000000) && (
+                    <div className="p-3 bg-amber-50/60 border border-amber-100/60 rounded-2xl flex items-start gap-2.5">
+                      <span className="material-symbols-outlined text-amber-600 text-[18px] mt-0.5">warning</span>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[10px] font-bold text-amber-800 uppercase tracking-wider">Perhatian Khusus</p>
+                        <ul className="list-disc pl-4 text-[10.5px] text-amber-700/90 font-medium space-y-0.5 mt-1 leading-snug">
+                          {!selected.FileURL && <li>Dokumen proposal belum dilampirkan ormawa</li>}
+                          {selected.Anggaran > 50000000 && <li>Anggaran melebihi batas standar fakultas (&gt; Rp 50jt)</li>}
+                        </ul>
+                      </div>
+                    </div>
+                  )}
                 </div>
+
+                {/* 2. Review Decision Form */}
+                <div className="p-5 space-y-4 bg-slate-50/30">
+                  <div>
+                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.18em] mb-2">Catatan Verifikasi / Instruksi Revisi</label>
+                    <textarea
+                      value={catatan}
+                      onChange={e=>setCatatan(e.target.value)}
+                      rows={3}
+                      placeholder="Masukkan evaluasi detail atau arahan perbaikan berkas..."
+                      className="w-full px-4 py-3 rounded-2xl border border-slate-200/80 bg-white focus:outline-none focus:border-primary text-xs font-semibold text-slate-900 transition-all resize-none shadow-sm"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.18em] mb-2">Pilih Keputusan Akhir</label>
+                    <div className="grid grid-cols-3 gap-2.5">
+                      {[
+                        {s:'disetujui_fakultas', label:'Setujui', icon:CheckCircle2, cls:'bg-indigo-600 hover:bg-indigo-700 shadow-indigo-600/10'},
+                        {s:'revisi',            label:'Revisi',   icon:Clock,       cls:'bg-blue-600 hover:bg-blue-700 shadow-blue-600/10'},
+                        {s:'ditolak',           label:'Tolak',    icon:XCircle,     cls:'bg-rose-600 hover:bg-rose-700 shadow-rose-600/10'},
+                      ].map(opt=>(
+                        <button key={opt.s} onClick={()=>handleUpdateStatus(opt.s)} disabled={isSubmitting}
+                          className={cn('flex flex-col items-center justify-center gap-1.5 h-16 rounded-xl text-white text-[10px] font-bold uppercase tracking-wider transition-all active:scale-[0.97] shadow-lg disabled:opacity-50', opt.cls)}>
+                          {isSubmitting ? (
+                            <span className="material-symbols-outlined animate-spin" style={{ fontSize: '16px' }}>sync</span>
+                          ) : (
+                            <opt.icon size={16}/>
+                          )}
+                          {opt.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* 3. Review Timeline & Logs */}
+                <div className="p-5 space-y-4">
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Riwayat Aliran Status</span>
+                  
+                  {selected.Riwayat && selected.Riwayat.length > 0 ? (
+                    <div className="relative border-l border-slate-100 pl-4 ml-2 space-y-4.5">
+                      {selected.Riwayat.map((log, idx) => {
+                        const st = getStatus(log.Status)
+                        return (
+                          <div key={idx} className="relative">
+                            {/* Marker dot */}
+                            <div className="absolute -left-[21px] top-1.5 w-2.5 h-2.5 rounded-full border bg-white flex items-center justify-center">
+                              <div className={cn("w-1.5 h-1.5 rounded-full", st.dot)} />
+                            </div>
+                            
+                            {/* Log card */}
+                            <div className="bg-slate-50 border border-slate-100 rounded-2xl p-3 shadow-xs">
+                              <div className="flex items-center justify-between">
+                                <span className={cn('inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[8px] font-bold border uppercase tracking-wider', st.cls)}>
+                                  {st.label}
+                                </span>
+                                <span className="text-[9px] font-bold text-slate-400">{formatDate(log.created_at || log.CreatedAt)}</span>
+                              </div>
+                              {log.Catatan && (
+                                <p className="text-[10.5px] text-slate-600 font-medium mt-1.5 italic bg-white border border-slate-100 rounded-lg p-2 leading-relaxed">
+                                  &ldquo;{log.Catatan}&rdquo;
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  ) : (
+                    <div className="text-center py-4 bg-slate-50/50 border border-dashed border-slate-200 rounded-2xl">
+                      <span className="material-symbols-outlined text-slate-300 text-lg mb-1" style={{ fontSize: '20px' }}>info</span>
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Belum ada riwayat aktivitas</p>
+                    </div>
+                  )}
+                </div>
+
               </div>
+
             </div>
-            <div className="px-5 py-4 border-t border-slate-100 bg-slate-50/50 flex-shrink-0">
-              <button onClick={()=>setSelected(null)} className="w-full h-11 rounded-xl border border-slate-200/60 bg-white text-xs font-bold text-slate-600 uppercase tracking-widest hover:bg-slate-50 transition-all">Tutup</button>
-            </div>
+
           </div>
         </div>
       )}

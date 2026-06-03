@@ -318,8 +318,18 @@ func HapusOrganisasi(c *fiber.Ctx) error {
 }
 
 func AmbilDaftarProposalOrmawa(c *fiber.Ctx) error {
+	role := c.Locals("role").(string)
+	fid := c.Locals("fakultas_id").(uint)
+
 	var daftar = []models.Proposal{}
-	config.DB.Preload("Ormawa").Order("created_at desc").Find(&daftar)
+	query := config.DB.Preload("Ormawa").Preload("Mahasiswa.ProgramStudi").Preload("Mahasiswa.Pengguna").Preload("Riwayat").Order("created_at desc")
+
+	// Jika bukan Super Admin, filter proposal hanya untuk fakultas yang bersangkutan
+	if role != "super_admin" && role != "kencana_admin" {
+		query = query.Where("fakultas_id = ?", fid)
+	}
+
+	query.Find(&daftar)
 	return c.JSON(fiber.Map{"status": "success", "data": daftar})
 }
 

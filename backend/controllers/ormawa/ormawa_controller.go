@@ -11,6 +11,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
+	"strings"
 )
 
 // --- DASHBOARD ---
@@ -561,6 +562,30 @@ func SubmitAttendance(c *fiber.Ctx) error {
 
 	if data.KegiatanID == 0 || data.MahasiswaID == 0 {
 		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "KegiatanID dan MahasiswaID wajib diisi"})
+	}
+
+	// Expiration check only for self-presensi (student scanning for themselves)
+	studentID, _ := c.Locals("student_id").(uint)
+	role, _ := c.Locals("role").(string)
+	isSelfPresensi := strings.ToLower(role) == "mahasiswa" && studentID == data.MahasiswaID
+
+	if isSelfPresensi {
+		var kegiatan models.OrmawaKegiatan
+		if err := config.DB.First(&kegiatan, data.KegiatanID).Error; err != nil {
+			return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Kegiatan tidak ditemukan"})
+		}
+
+		if kegiatan.Status == "selesai" || kegiatan.Status == "dibatalkan" {
+			return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Presensi gagal: Kegiatan ini sudah selesai atau dibatalkan."})
+		}
+
+		if !kegiatan.TanggalSelesai.IsZero() && time.Now().After(kegiatan.TanggalSelesai) {
+			return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Presensi gagal: Sesi kegiatan ini sudah berakhir (Expired)."})
+		}
+
+		if kegiatan.TanggalSelesai.IsZero() && !kegiatan.TanggalMulai.IsZero() && time.Now().After(kegiatan.TanggalMulai.Add(24 * time.Hour)) {
+			return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Presensi gagal: Batas waktu presensi kegiatan ini sudah berakhir."})
+		}
 	}
 
 	var existing models.OrmawaKehadiran
