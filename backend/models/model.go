@@ -534,6 +534,18 @@ type OrmawaKegiatan struct {
 	Lokasi         string
 	Status         string
 
+	LandasanKegiatan      string  `json:"landasan_kegiatan"`
+	BentukKegiatan        string  `json:"bentuk_kegiatan"`
+	Mitra                 string  `json:"mitra"`
+	LatarBelakang         string  `json:"latar_belakang"`
+	TujuanKegiatan        string  `json:"tujuan_kegiatan"`
+	JadwalPelaksanaan     string  `json:"jadwal_pelaksanaan"`
+	SasaranKegiatan       string  `json:"sasaran_kegiatan"`
+	IndikatorKeberhasilan string  `json:"indikator_keberhasilan"`
+	SumberDana            string  `json:"sumber_dana"`
+	EstimasiDana          float64 `json:"estimasi_dana"`
+	PJKegiatan            string  `json:"pj_kegiatan"`
+
 	Kehadiran []OrmawaKehadiran `gorm:"foreignKey:KegiatanID"`
 }
 
@@ -614,6 +626,18 @@ type Proposal struct {
 	Status          string
 	Catatan         string
 	FileURL         string `json:"file_url"`
+
+	LandasanKegiatan      string `json:"landasan_kegiatan"`
+	Deskripsi             string `json:"deskripsi"`
+	BentukKegiatan        string `json:"bentuk_kegiatan"`
+	Mitra                 string `json:"mitra"`
+	LatarBelakang         string `json:"latar_belakang"`
+	TujuanKegiatan        string `json:"tujuan_kegiatan"`
+	JadwalPelaksanaan     string `json:"jadwal_pelaksanaan"`
+	SasaranKegiatan       string `json:"sasaran_kegiatan"`
+	IndikatorKeberhasilan string `json:"indikator_keberhasilan"`
+	SumberDana            string `json:"sumber_dana"`
+	PJKegiatan            string `json:"pj_kegiatan"`
 
 	ApprovedDosenID    *uint `gorm:"index"`
 	ApprovedFakultasID *uint `gorm:"index"`
