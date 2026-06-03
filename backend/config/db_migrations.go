@@ -79,7 +79,6 @@ func migrateModels(db *gorm.DB) error {
 		&models.PsikologBooking{},
 		&models.PsikologSessionNote{},
 		&models.PsikologAssessment{},
-		&models.PsikologReport{},
 		&models.PsikologNotification{},
 		&models.PsikologReferral{},
 	); err != nil {

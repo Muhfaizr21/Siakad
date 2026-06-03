@@ -9,7 +9,7 @@ const menuItems = [
   { name: 'Rekam Medis', path: '/psychologist/patients', icon: 'group' },
   { name: 'Tindak Lanjut', path: '/psychologist/referrals', icon: 'send' },
   { name: 'Analitik & Tren', path: '/psychologist/analytics', icon: 'bar_chart' },
-  { name: 'Laporan Klinis', path: '/psychologist/reports', icon: 'description' },
+
   { name: 'Pusat Notifikasi', path: '/psychologist/notifications', icon: 'notifications' },
   { name: 'Pengaturan', path: '/psychologist/settings', icon: 'settings' },
 ];

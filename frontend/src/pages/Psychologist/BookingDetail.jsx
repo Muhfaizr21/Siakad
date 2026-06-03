@@ -23,6 +23,8 @@ export default function BookingDetail() {
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [booking, setBooking] = useState(null);
+  const [showLinkModal, setShowLinkModal] = useState(false);
+  const [meetingLink, setMeetingLink] = useState('');
 
   useEffect(() => {
     let ignore = false;
@@ -32,9 +34,27 @@ export default function BookingDetail() {
     return () => { ignore = true; };
   }, [id]);
 
-  const handleStatus = async (status) => {
-    await psychologistService.updateBookingStatus(id, status);
-    setBooking((prev) => ({ ...prev, status }));
+  const handleStatus = async (status, link = '') => {
+    await psychologistService.updateBookingStatus(id, status, '', link);
+    setBooking((prev) => ({ ...prev, status, link_meeting: link }));
+  };
+
+  const handleConfirmClick = () => {
+    if (booking.mode === 'Online') {
+      setMeetingLink('');
+      setShowLinkModal(true);
+    } else {
+      handleStatus('Dikonfirmasi');
+    }
+  };
+
+  const submitConfirmWithLink = () => {
+    if (!meetingLink.trim()) {
+      alert('Harap masukkan link meeting Zoom/Google Meet');
+      return;
+    }
+    setShowLinkModal(false);
+    handleStatus('Dikonfirmasi', meetingLink);
   };
 
   if (!booking) {
@@ -106,36 +126,56 @@ export default function BookingDetail() {
 
               {/* Compact Details */}
               <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-8 space-y-8">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                   <div className="space-y-3">
-                      <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 flex items-center gap-4">
-                         <span className="material-symbols-outlined size-4 text-primary" >calendar_month</span>
-                         <div>
-                            <p className="text-[8px] font-black uppercase text-slate-400">Tanggal</p>
-                            <p className="text-xs font-bold text-slate-900">{booking.date}</p>
-                         </div>
-                      </div>
-                      <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 flex items-center gap-4">
-                         <span className="material-symbols-outlined size-4 text-primary" >schedule</span>
-                         <div>
-                            <p className="text-[8px] font-black uppercase text-slate-400">Waktu</p>
-                            <p className="text-xs font-bold text-slate-900">{booking.time}</p>
-                         </div>
-                      </div>
-                   </div>
-                   <div className="p-6 rounded-2xl bg-primary text-white space-y-2 relative overflow-hidden">
-                      <span className="material-symbols-outlined absolute -right-4 -bottom-4 size-24 text-white/10" >show_chart</span>
-                      <p className="text-[9px] font-black uppercase tracking-widest text-white/60">Isu Utama</p>
-                      <p className="text-xl font-black uppercase tracking-tight">{booking.issue}</p>
-                   </div>
-                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">                    <div className="space-y-3">
+                       <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 flex items-center gap-4">
+                          <span className="material-symbols-outlined size-4 text-primary" >calendar_month</span>
+                          <div>
+                             <p className="text-[8px] font-black uppercase text-slate-400">Tanggal</p>
+                             <p className="text-xs font-bold text-slate-900">{booking.date}</p>
+                          </div>
+                       </div>
+                       <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 flex items-center gap-4">
+                          <span className="material-symbols-outlined size-4 text-primary" >schedule</span>
+                          <div>
+                             <p className="text-[8px] font-black uppercase text-slate-400">Waktu</p>
+                             <p className="text-xs font-bold text-slate-900">{booking.time}</p>
+                          </div>
+                       </div>
+                       <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 flex items-center gap-4">
+                          <span className="material-symbols-outlined size-4 text-primary" >
+                            {booking.mode === 'Online' ? 'videocam' : 'groups'}
+                          </span>
+                          <div>
+                             <p className="text-[8px] font-black uppercase text-slate-400">Metode & Lokasi</p>
+                             <p className="text-xs font-bold text-slate-900">
+                               {booking.mode === 'Online' ? 'Online (Zoom)' : 'Tatap Muka'}
+                             </p>
+                             {booking.mode === 'Online' && booking.link_meeting && (
+                               <a 
+                                 href={booking.link_meeting.startsWith('http') ? booking.link_meeting : `https://${booking.link_meeting}`}
+                                 target="_blank"
+                                 rel="noopener noreferrer"
+                                 className="text-[10px] text-blue-600 font-bold underline block mt-0.5"
+                               >
+                                 Link: {booking.link_meeting}
+                               </a>
+                             )}
+                          </div>
+                       </div>
+                    </div>
+                    <div className="p-6 rounded-2xl bg-primary text-white space-y-2 relative overflow-hidden flex flex-col justify-center">
+                       <span className="material-symbols-outlined absolute -right-4 -bottom-4 size-24 text-white/10" >show_chart</span>
+                       <p className="text-[9px] font-black uppercase tracking-widest text-white/60">Isu Utama</p>
+                       <p className="text-xl font-black uppercase tracking-tight">{booking.issue}</p>
+                    </div>
+                 </div>
 
-                <div className="space-y-3">
-                   <h4 className="text-[9px] font-black text-primary uppercase tracking-widest">Catatan Mahasiswa</h4>
-                   <div className="p-6 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
-                      <p className="text-xs font-medium text-slate-600 italic">"{booking.note}"</p>
-                   </div>
-                </div>
+                 <div className="space-y-3">
+                    <h4 className="text-[9px] font-black text-primary uppercase tracking-widest">Catatan Mahasiswa</h4>
+                    <div className="p-6 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+                       <p className="text-xs font-medium text-slate-600 italic">"{booking.note}"</p>
+                    </div>
+                 </div>
               </div>
             </div>
 
@@ -144,7 +184,7 @@ export default function BookingDetail() {
                  <h3 className="text-[9px] font-black text-primary uppercase tracking-widest">Tindakan</h3>
                  <div className="space-y-2">
                      <button
-                       onClick={() => handleStatus('Dikonfirmasi')}
+                       onClick={handleConfirmClick}
                        disabled={isLocked}
                        className="w-full py-3 bg-primary text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-sm hover:shadow-md transition-all disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-400 disabled:shadow-none"
                      >
@@ -192,6 +232,46 @@ export default function BookingDetail() {
           </div>
         </div>
       </main>
+
+      {/* Zoom / Meeting Link Modal */}
+      {showLinkModal && (
+        <div className="fixed inset-0 z-[999] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white w-full max-w-md rounded-3xl shadow-xl overflow-hidden border border-slate-100 animate-in fade-in zoom-in-95 duration-200">
+            <div className="bg-primary px-6 py-5 text-white">
+              <h3 className="text-lg font-black uppercase tracking-tight font-headline">Konfirmasi Sesi Online</h3>
+              <p className="text-xs text-white/70 mt-1">Sesi ini diajukan secara Online. Harap masukkan link Zoom atau Google Meet untuk mahasiswa.</p>
+            </div>
+            <div className="p-6 space-y-4">
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Link Meeting</label>
+                <input
+                  type="text"
+                  placeholder="https://zoom.us/j/... atau https://meet.google.com/..."
+                  value={meetingLink}
+                  onChange={(e) => setMeetingLink(e.target.value)}
+                  className="h-11 w-full rounded-2xl border border-slate-200 px-4 text-xs font-bold text-slate-700 outline-none transition-all placeholder:text-slate-400 focus:border-primary focus:ring-4 focus:ring-primary/5"
+                />
+              </div>
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => { setShowLinkModal(false); }}
+                  className="flex-1 py-3 rounded-2xl border border-slate-200 text-slate-500 text-xs font-black uppercase tracking-widest hover:bg-slate-50 transition-colors"
+                >
+                  Batal
+                </button>
+                <button
+                  type="button"
+                  onClick={submitConfirmWithLink}
+                  className="flex-1 py-3 rounded-2xl bg-primary text-white text-xs font-black uppercase tracking-widest hover:bg-primary/95 transition-all shadow-sm"
+                >
+                  Konfirmasi
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

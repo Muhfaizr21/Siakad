@@ -1168,18 +1168,8 @@ func ensurePsychologistBootstrap(user models.User) error {
 		}
 	}
 
-	reportSeeds := []models.PsikologReport{
-		{PsikologID: psikolog.ID, Judul: "Laporan Bulanan Kesehatan Mental - Mei 2026", Tipe: "PDF", Ukuran: "2.4 MB", Status: "Selesai", Periode: "Mei 2026", Tanggal: time.Now().AddDate(0, 0, -2), Ringkasan: "Ringkasan layanan konseling bulanan."},
-		{PsikologID: psikolog.ID, Judul: "Statistik Penggunaan Layanan Konseling Q1", Tipe: "XLSX", Ukuran: "1.8 MB", Status: "Selesai", Periode: "Q1 2026", Tanggal: time.Now().AddDate(0, 0, -7), Ringkasan: "Statistik agregat penggunaan layanan."},
-	}
-	for _, seed := range reportSeeds {
-		var existing models.PsikologReport
-		if err := config.DB.Where("psikolog_id = ? AND judul = ?", psikolog.ID, seed.Judul).First(&existing).Error; err != nil {
-			if err := config.DB.Create(&seed).Error; err != nil {
-				return err
-			}
-		}
-	}
+
+
 
 	notificationSeeds := []models.PsikologNotification{
 		{PsikologID: psikolog.ID, UserID: user.ID, Judul: "Janji Temu Baru", Deskripsi: "Mahasiswa menjadwalkan sesi konseling baru untuk besok pagi.", Tipe: "booking", IsRead: false},

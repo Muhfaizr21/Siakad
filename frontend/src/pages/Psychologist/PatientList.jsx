@@ -17,6 +17,13 @@ export default function PatientList() {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
+  const [fakultasList, setFakultasList] = useState([]);
+  const [prodiList, setProdiList] = useState([]);
+  const [selectedFakultas, setSelectedFakultas] = useState('Semua Fakultas');
+  const [selectedProdi, setSelectedProdi] = useState('Semua Prodi');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+
   const handleSort = (key) => {
     let direction = 'asc';
     if (sortConfig.key === key && sortConfig.direction === 'asc') direction = 'desc';
@@ -28,8 +35,27 @@ export default function PatientList() {
     psychologistService.getPatients().then((res) => {
       if (!ignore) setPatients(res.data || []);
     });
+    psychologistService.getFakultasList().then((res) => {
+      if (!ignore) setFakultasList(res.data || []);
+    });
+    psychologistService.getProdiList().then((res) => {
+      if (!ignore) setProdiList(res.data || []);
+    });
     return () => { ignore = true; };
   }, []);
+
+  const filteredProdis = useMemo(() => {
+    if (selectedFakultas === 'Semua Fakultas') return [];
+    const selectedFak = fakultasList.find(f => f.nama === selectedFakultas);
+    if (!selectedFak) return [];
+    return prodiList.filter(p => p.fakultas_id === selectedFak.id);
+  }, [selectedFakultas, prodiList, fakultasList]);
+
+  const handleFakultasChange = (val) => {
+    setSelectedFakultas(val);
+    setSelectedProdi('Semua Prodi');
+    setCurrentPage(1);
+  };
 
   const filteredAndSortedPatients = useMemo(() => {
     let result = [...patients];
@@ -39,6 +65,18 @@ export default function PatientList() {
     }
     if (filterStatus !== 'Semua Status') {
       result = result.filter(p => p.status === filterStatus);
+    }
+    if (selectedFakultas !== 'Semua Fakultas') {
+      result = result.filter(p => p.faculty === selectedFakultas);
+    }
+    if (selectedProdi !== 'Semua Prodi') {
+      result = result.filter(p => p.program_studi === selectedProdi);
+    }
+    if (startDate) {
+      result = result.filter(p => p.raw_last_visit && p.raw_last_visit >= startDate);
+    }
+    if (endDate) {
+      result = result.filter(p => p.raw_last_visit && p.raw_last_visit <= endDate);
     }
     if (sortConfig.key) {
       result.sort((a, b) => {
@@ -51,7 +89,7 @@ export default function PatientList() {
       });
     }
     return result;
-  }, [patients, searchQuery, filterStatus, sortConfig]);
+  }, [patients, searchQuery, filterStatus, selectedFakultas, selectedProdi, startDate, endDate, sortConfig]);
 
   const totalPages = Math.ceil(filteredAndSortedPatients.length / pageSize);
   const paginatedPatients = filteredAndSortedPatients.slice((currentPage - 1) * pageSize, currentPage * pageSize);
@@ -93,29 +131,136 @@ export default function PatientList() {
               </div>
 
               <div className="flex items-center gap-3 shrink-0 relative z-20">
-                <div className="relative w-full sm:w-auto">
-                  <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-base" >search</span>
+                <button 
+                  onClick={async () => {
+                    try {
+                      await psychologistService.downloadRecapMedicalRecordPDF({
+                        fakultas: selectedFakultas,
+                        prodi: selectedProdi,
+                        status: filterStatus,
+                        start_date: startDate,
+                        end_date: endDate
+                      });
+                    } catch (err) {
+                      alert(err.message || 'Gagal mengunduh Rekap PDF');
+                    }
+                  }}
+                  className="flex items-center justify-center p-3 bg-white border border-slate-200/80 rounded-2xl text-slate-500 hover:text-primary hover:border-primary hover:bg-primary/5 transition-all shadow-sm shrink-0 hover:scale-105 active:scale-95"
+                  title="Download Rekap Rekam Medis PDF"
+                >
+                  <span className="material-symbols-outlined text-lg">download</span>
+                </button>
+              </div>
+            </div>
+          </section>
+
+          {/* Filter Bar Card */}
+          <section className="bg-white rounded-[2rem] border border-slate-100 p-6 shadow-sm space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-50 pb-3">
+              <div className="flex items-center gap-2">
+                <span className="material-symbols-outlined text-primary/60 text-lg">filter_alt</span>
+                <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wider">Filter Data</h3>
+              </div>
+              {(selectedFakultas !== 'Semua Fakultas' || selectedProdi !== 'Semua Prodi' || filterStatus !== 'Semua Status' || startDate || endDate || searchQuery) && (
+                <button
+                  onClick={() => {
+                    setSelectedFakultas('Semua Fakultas');
+                    setSelectedProdi('Semua Prodi');
+                    setFilterStatus('Semua Status');
+                    setStartDate('');
+                    setEndDate('');
+                    setSearchQuery('');
+                    setCurrentPage(1);
+                  }}
+                  className="text-[10px] font-black text-rose-500 hover:text-rose-600 uppercase tracking-wider flex items-center gap-1 transition-colors"
+                >
+                  <span className="material-symbols-outlined text-xs">restart_alt</span> Reset Filter
+                </button>
+              )}
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
+              {/* Search */}
+              <div className="flex flex-col gap-1">
+                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Pencarian</label>
+                <div className="relative">
+                  <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs">search</span>
                   <input 
                     type="text" 
-                    placeholder="Cari nama atau NIM..."
+                    placeholder="Nama atau NIM..."
                     value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-11 pr-4 py-3 bg-white border border-slate-200/80 rounded-2xl text-xs font-bold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/5 w-full sm:w-72 transition-all shadow-sm"
+                    onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
+                    className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-100 rounded-xl text-xs font-semibold text-slate-700 placeholder-slate-400 focus:outline-none focus:border-primary focus:bg-white transition-all"
                   />
                 </div>
+              </div>
+
+              {/* Status */}
+              <div className="flex flex-col gap-1">
+                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Status Klinis</label>
                 <select
                   value={filterStatus}
                   onChange={(e) => { setFilterStatus(e.target.value); setCurrentPage(1); }}
-                  className="px-4 py-3 bg-white border border-slate-200/80 rounded-2xl text-xs font-bold text-slate-700 outline-none transition-all focus:border-primary shadow-sm shrink-0 cursor-pointer appearance-none pr-8"
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-100 rounded-xl text-xs font-semibold text-slate-700 outline-none focus:border-primary focus:bg-white transition-all cursor-pointer"
                 >
                   <option value="Semua Status">Semua Status</option>
                   <option value="Stabil">Stabil</option>
                   <option value="Perlu Perhatian">Perlu Perhatian</option>
                   <option value="Pemulihan">Pemulihan</option>
                 </select>
-                <button className="flex items-center justify-center p-3 bg-white border border-slate-200/80 rounded-2xl text-slate-500 hover:text-primary hover:border-primary hover:bg-primary/5 transition-all shadow-sm shrink-0">
-                  <span className="material-symbols-outlined text-lg">download</span>
-                </button>
+              </div>
+
+              {/* Fakultas */}
+              <div className="flex flex-col gap-1">
+                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Fakultas</label>
+                <select
+                  value={selectedFakultas}
+                  onChange={(e) => handleFakultasChange(e.target.value)}
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-100 rounded-xl text-xs font-semibold text-slate-700 outline-none focus:border-primary focus:bg-white transition-all cursor-pointer"
+                >
+                  <option value="Semua Fakultas">Semua Fakultas</option>
+                  {fakultasList.map((f) => (
+                    <option key={f.id} value={f.nama}>{f.nama}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Prodi */}
+              <div className="flex flex-col gap-1">
+                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Program Studi</label>
+                <select
+                  value={selectedProdi}
+                  onChange={(e) => { setSelectedProdi(e.target.value); setCurrentPage(1); }}
+                  disabled={selectedFakultas === 'Semua Fakultas'}
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-100 rounded-xl text-xs font-semibold text-slate-700 outline-none focus:border-primary focus:bg-white transition-all cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                  <option value="Semua Prodi">Semua Prodi</option>
+                  {filteredProdis.map((p) => (
+                    <option key={p.id} value={p.nama}>{p.nama}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Dari Tanggal */}
+              <div className="flex flex-col gap-1">
+                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Dari Tanggal</label>
+                <input
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => { setStartDate(e.target.value); setCurrentPage(1); }}
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-100 rounded-xl text-xs font-semibold text-slate-700 outline-none focus:border-primary focus:bg-white transition-all"
+                />
+              </div>
+
+              {/* Sampai Tanggal */}
+              <div className="flex flex-col gap-1">
+                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Sampai Tanggal</label>
+                <input
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => { setEndDate(e.target.value); setCurrentPage(1); }}
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-100 rounded-xl text-xs font-semibold text-slate-700 outline-none focus:border-primary focus:bg-white transition-all"
+                />
               </div>
             </div>
           </section>

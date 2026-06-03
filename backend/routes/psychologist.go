@@ -23,6 +23,8 @@ func SetupPsychologistRoutes(app *fiber.App) {
 	api.Put("/schedules", psychologist.SaveSchedules)
 
 	api.Get("/patients", psychologist.GetPatients)
+	api.Get("/patients/export-pdf", psychologist.ExportPatientsRecapPDF)
+	api.Get("/session-notes/:id/export-pdf", psychologist.ExportSessionNotePDF)
 	api.Get("/patients/:id/medical-record", psychologist.GetMedicalRecord)
 	api.Post("/patients/:id/session-notes", psychologist.CreateSessionNote)
 	api.Put("/patients/:studentId/status", psychologist.UpdatePatientStatus)
@@ -31,11 +33,8 @@ func SetupPsychologistRoutes(app *fiber.App) {
 	api.Post("/assessments", psychologist.CreateAssessment)
 
 	api.Get("/analytics", psychologist.GetAnalytics)
-	api.Get("/reports", psychologist.GetReports)
-	api.Post("/reports", psychologist.CreateReport)
-	api.Get("/reports/:id/download", psychologist.DownloadReport)
-	api.Post("/reports/referral/generate", psychologist.GenerateReferralReportHandler)
-	api.Post("/reports/clinical/generate", psychologist.GenerateClinicalReportHandler)
+	api.Get("/prodi", psychologist.GetProdiList)
+	api.Get("/fakultas", psychologist.GetFakultasList)
 
 	api.Get("/notifications", psychologist.GetNotifications)
 	api.Put("/notifications/read-all", psychologist.MarkAllNotificationsRead)

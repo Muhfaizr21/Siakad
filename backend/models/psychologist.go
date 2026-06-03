@@ -83,6 +83,20 @@ type PsikologSessionNote struct {
 	Mood         string    `json:"mood"`
 	JenisSesi    string    `json:"jenis_sesi"`
 	StatusPasien string    `json:"status_pasien"`
+
+	TujuanPemeriksaan    string     `json:"tujuan_pemeriksaan"`
+	TanggalAsesmen       *time.Time `json:"tanggal_asesmen"`
+	RiwayatKeluhan       string     `json:"riwayat_keluhan"`
+	AspekKognitif        string     `json:"aspek_kognitif"`
+	AspekEmosional       string     `json:"aspek_emosional"`
+	AspekPerilaku        string     `json:"aspek_perilaku"`
+	RekomendasiMahasiswa string     `json:"rekomendasi_mahasiswa"`
+	RekomendasiProdi     string     `json:"rekomendasi_prodi"`
+	RekomendasiOrangTua  string     `json:"rekomendasi_orang_tua"`
+	TindakLanjutTuntas   bool       `json:"tindak_lanjut_tuntas"`
+	TindakLanjutLanjutan bool       `json:"tindak_lanjut_lanjutan"`
+	TindakLanjutRujuk    bool       `json:"tindak_lanjut_rujuk"`
+	Kesimpulan           string     `json:"kesimpulan"`
 }
 
 func (PsikologSessionNote) TableName() string {
@@ -109,24 +123,8 @@ func (PsikologAssessment) TableName() string {
 	return "psikolog.assessments"
 }
 
-type PsikologReport struct {
-	BaseModel
-	PsikologID uint     `gorm:"index" json:"psikolog_id"`
-	Psikolog   Psikolog `gorm:"foreignKey:PsikologID" json:"psikolog,omitempty"`
 
-	Judul     string    `json:"judul"`
-	Tipe      string    `json:"tipe"`
-	Ukuran    string    `json:"ukuran"`
-	Status    string    `gorm:"index" json:"status"`
-	FileURL   string    `json:"file_url"`
-	Periode   string    `json:"periode"`
-	Ringkasan string    `json:"ringkasan"`
-	Tanggal   time.Time `json:"tanggal"`
-}
 
-func (PsikologReport) TableName() string {
-	return "psikolog.reports"
-}
 
 type PsikologNotification struct {
 	BaseModel

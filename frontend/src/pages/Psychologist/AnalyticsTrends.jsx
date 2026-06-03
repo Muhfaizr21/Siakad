@@ -42,37 +42,45 @@ export default function AnalyticsTrends() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
+  // Filter state
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [selectedProdi, setSelectedProdi] = useState('');
+  const [selectedFakultas, setSelectedFakultas] = useState('');
+
+  // Lookup lists state
+  const [prodiList, setProdiList] = useState([]);
+  const [fakultasList, setFakultasList] = useState([]);
+
+  // Load lookup data
+  useEffect(() => {
+    psychologistService.getProdiList().then(res => setProdiList(res.data || res)).catch(console.error);
+    psychologistService.getFakultasList().then(res => setFakultasList(res.data || res)).catch(console.error);
+  }, []);
+
   const fetchAnalytics = useCallback(async () => {
     setLoading(true);
     setError('');
     try {
-      const res = await psychologistService.getAnalytics();
+      const params = {};
+      if (startDate) params.start_date = startDate;
+      if (endDate) params.end_date = endDate;
+      if (selectedProdi) params.prodi_id = selectedProdi;
+      if (selectedFakultas) params.fakultas_id = selectedFakultas;
+
+      const res = await psychologistService.getAnalytics(params);
       setAnalytics(res.data ?? res);
     } catch (err) {
       setError(err?.message || 'Gagal memuat data analitik.');
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [startDate, endDate, selectedProdi, selectedFakultas]);
 
+  // Load analytics when filters change
   useEffect(() => {
-    let mounted = true;
-    psychologistService
-      .getAnalytics()
-      .then((res) => {
-        if (mounted) setAnalytics(res.data ?? res);
-      })
-      .catch((err) => {
-        if (mounted) setError(err?.message || 'Gagal memuat data analitik.');
-      })
-      .finally(() => {
-        if (mounted) setLoading(false);
-      });
-
-    return () => {
-      mounted = false;
-    };
-  }, []);
+    fetchAnalytics();
+  }, [fetchAnalytics]);
 
   const stats = useMemo(() => {
     const rawStats = Array.isArray(analytics?.stats) ? analytics.stats : [];
@@ -98,6 +106,15 @@ export default function AnalyticsTrends() {
   const totalMonthlySessions = monthly.reduce((sum, item) => sum + item, 0);
   const stablePercentage = Math.max(0, Math.min(100, toNumber(analytics?.stable_percentage)));
   const hasAnalytics = Boolean(analytics) && !loading;
+
+  // New analytics values
+  const prodiPopularity = Array.isArray(analytics?.prodi_popularity) ? analytics.prodi_popularity : [];
+  const academicCount = analytics?.academic_count ?? 0;
+  const nonAcademicCount = analytics?.non_academic_count ?? 0;
+  const academicPercentage = analytics?.academic_percentage ?? 0;
+  const nonAcademicPercentage = analytics?.non_academic_percentage ?? 0;
+  const dailyTrends = Array.isArray(analytics?.daily_trends) ? analytics.daily_trends : [];
+  const maxDaily = Math.max(...dailyTrends.map(d => toNumber(d.count)), 1);
 
   return (
     <div className="min-h-screen bg-surface text-on-surface">
@@ -133,6 +150,81 @@ export default function AnalyticsTrends() {
                 {loading ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '16px' }} >sync</span> : <span className="material-symbols-outlined" style={{ fontSize: 16 }}>sync</span>}
                 Muat Ulang
               </button>
+            </div>
+          </section>
+
+          {/* Filters Bar */}
+          <section className="bg-white rounded-[2rem] border border-slate-100 shadow-sm p-6">
+            <div className="flex flex-col gap-4">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="material-symbols-outlined text-primary" style={{ fontSize: 18 }}>filter_alt</span>
+                <h3 className="text-xs font-black uppercase tracking-widest text-primary">Filter Data Analitik</h3>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div>
+                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-2 block">Tanggal Mulai</label>
+                  <input
+                    type="date"
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                    className="w-full bg-slate-50 border border-slate-200/60 rounded-2xl px-4 py-3 text-xs font-bold text-slate-800 focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-2 block">Tanggal Selesai</label>
+                  <input
+                    type="date"
+                    value={endDate}
+                    onChange={(e) => setEndDate(e.target.value)}
+                    className="w-full bg-slate-50 border border-slate-200/60 rounded-2xl px-4 py-3 text-xs font-bold text-slate-800 focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-2 block">Fakultas</label>
+                  <select
+                    value={selectedFakultas}
+                    onChange={(e) => {
+                      setSelectedFakultas(e.target.value);
+                      setSelectedProdi('');
+                    }}
+                    className="w-full bg-slate-50 border border-slate-200/60 rounded-2xl px-4 py-3 text-xs font-bold text-slate-800 focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none cursor-pointer"
+                  >
+                    <option value="">Semua Fakultas</option>
+                    {fakultasList.map((f) => (
+                      <option key={f.id} value={f.id}>{f.nama}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-2 block">Program Studi</label>
+                  <select
+                    value={selectedProdi}
+                    onChange={(e) => setSelectedProdi(e.target.value)}
+                    className="w-full bg-slate-50 border border-slate-200/60 rounded-2xl px-4 py-3 text-xs font-bold text-slate-800 focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none cursor-pointer"
+                  >
+                    <option value="">Semua Program Studi</option>
+                    {prodiList
+                      .filter((p) => !selectedFakultas || p.fakultas_id === Number(selectedFakultas))
+                      .map((p) => (
+                        <option key={p.id} value={p.id}>{p.nama}</option>
+                      ))}
+                  </select>
+                </div>
+              </div>
+              <div className="flex justify-end gap-2 mt-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setStartDate('');
+                    setEndDate('');
+                    setSelectedProdi('');
+                    setSelectedFakultas('');
+                  }}
+                  className="px-4 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest bg-slate-100 text-slate-500 hover:bg-slate-200 transition-all"
+                >
+                  Reset Filter
+                </button>
+              </div>
             </div>
           </section>
 
@@ -228,6 +320,53 @@ export default function AnalyticsTrends() {
                 </div>
               </div>
 
+              {/* Tren Harian Bulan Ini */}
+              <div className="rounded-[2rem] border border-slate-100 bg-white p-5 shadow-sm sm:p-6">
+                <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                  <div>
+                    <h2 className="flex items-center gap-2 text-sm font-black uppercase tracking-widest text-primary">
+                      <span className="material-symbols-outlined" style={{ fontSize: 18 }}>show_chart</span>
+                      Tren Konseling Bulan Ini (Harian)
+                    </h2>
+                    <p className="mt-1 text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                      Grafik harian aktivitas konseling pada bulan berjalan
+                    </p>
+                  </div>
+                  <div className="inline-flex items-center gap-2 rounded-full border border-slate-100 bg-slate-50 px-3 py-1.5 text-[9px] font-black uppercase tracking-widest text-slate-500">
+                    <span className="material-symbols-outlined" style={{ fontSize: '13px' }}>calendar_today</span>
+                    Harian
+                  </div>
+                </div>
+
+                <div className="h-64 overflow-x-auto pb-4 scrollbar-thin">
+                  {dailyTrends.length === 0 ? (
+                    <div className="flex h-full items-center justify-center rounded-3xl border border-dashed border-slate-200 bg-slate-50 text-center">
+                      <p className="text-xs font-semibold text-slate-400">Belum ada aktivitas harian pada bulan ini.</p>
+                    </div>
+                  ) : (
+                    <div className="h-full min-w-[700px] flex items-end gap-1.5 sm:gap-2 px-2">
+                      {dailyTrends.map((item, index) => {
+                        const height = item.count > 0 ? Math.max(8, Math.round((item.count / maxDaily) * 100)) : 2;
+                        return (
+                          <div key={`${item.date}-${index}`} className="group flex h-full flex-1 min-w-0 flex-col items-center justify-end gap-1">
+                            <div className="relative flex h-full w-full items-end rounded-full bg-slate-50">
+                              <div
+                                className="w-full rounded-full bg-emerald-500 transition-all duration-300 group-hover:bg-emerald-600"
+                                style={{ height: `${height}%` }}
+                              />
+                              <span className="pointer-events-none absolute -top-8 left-1/2 -translate-x-1/2 rounded-full bg-slate-950 px-2 py-1 text-[8px] font-black text-white opacity-0 transition group-hover:opacity-100 whitespace-nowrap z-10 shadow-lg">
+                                {item.count} Sesi
+                              </span>
+                            </div>
+                            <span className="text-[8px] font-black uppercase tracking-tight text-slate-400 mt-1 whitespace-nowrap rotate-45 origin-left">{item.date}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              </div>
+
               <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
                 <div className="rounded-[2rem] bg-slate-950 p-6 text-white shadow-sm">
                   <div className="mb-6 flex items-center justify-between gap-4">
@@ -276,6 +415,79 @@ export default function AnalyticsTrends() {
                   <p className="mx-auto mt-2 max-w-xs text-xs font-semibold leading-relaxed text-slate-400">
                     Persentase status Stabil, Pemulihan, atau Membaik dari `psikolog.session_notes`.
                   </p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+                {/* Jurusan/Prodi Terbanyak */}
+                <div className="rounded-[2rem] border border-slate-100 bg-white p-6 shadow-sm">
+                  <div className="mb-6 flex items-center justify-between gap-4">
+                    <div>
+                      <h3 className="text-xs font-black uppercase tracking-widest text-slate-950">Prodi Terbanyak</h3>
+                      <p className="mt-1 text-[10px] font-bold uppercase tracking-widest text-slate-400">Distribusi mahasiswa per prodi</p>
+                    </div>
+                    <span className="material-symbols-outlined text-primary/30" style={{ fontSize: 26 }}>domain</span>
+                  </div>
+
+                  <div className="space-y-4">
+                    {prodiPopularity.length > 0 ? (
+                      prodiPopularity.map((prodi, index) => (
+                        <div key={`${prodi.name}-${index}`}>
+                          <div className="mb-1.5 flex items-center justify-between gap-3">
+                            <span className="truncate text-[10px] font-black uppercase tracking-wider text-slate-700">{prodi.name}</span>
+                            <span className="text-[10px] font-black text-slate-900">{prodi.count} Sesi ({prodi.percentage}%)</span>
+                          </div>
+                          <div className="h-1.5 overflow-hidden rounded-full bg-slate-100">
+                            <div className="h-full rounded-full bg-primary" style={{ width: `${prodi.percentage}%` }} />
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="rounded-3xl border border-dashed border-slate-200 bg-slate-50 p-5 text-center">
+                        <p className="text-xs font-black uppercase tracking-widest text-slate-500">Belum ada data prodi</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Kategori Masalah: Akademik vs Non-Akademik */}
+                <div className="rounded-[2rem] border border-slate-100 bg-white p-6 shadow-sm flex flex-col justify-between">
+                  <div>
+                    <div className="mb-6 flex items-center justify-between gap-4">
+                      <div>
+                        <h3 className="text-xs font-black uppercase tracking-widest text-slate-950">Kategori Masalah</h3>
+                        <p className="mt-1 text-[10px] font-bold uppercase tracking-widest text-slate-400">Akademik vs Non-Akademik</p>
+                      </div>
+                      <span className="material-symbols-outlined text-primary/30" style={{ fontSize: 26 }}>category</span>
+                    </div>
+
+                    <div className="space-y-6">
+                      <div>
+                        <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-slate-600 mb-2">
+                          <span>Akademik</span>
+                          <span className="text-primary font-bold">{academicCount} Kasus ({academicPercentage}%)</span>
+                        </div>
+                        <div className="h-3 overflow-hidden rounded-full bg-slate-100">
+                          <div className="h-full rounded-full bg-primary" style={{ width: `${academicPercentage}%` }} />
+                        </div>
+                      </div>
+
+                      <div>
+                        <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-slate-600 mb-2">
+                          <span>Non-Akademik</span>
+                          <span className="text-amber-500 font-bold">{nonAcademicCount} Kasus ({nonAcademicPercentage}%)</span>
+                        </div>
+                        <div className="h-3 overflow-hidden rounded-full bg-slate-100">
+                          <div className="h-full rounded-full bg-amber-400" style={{ width: `${nonAcademicPercentage}%` }} />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-6 pt-4 border-t border-slate-50 flex items-center justify-between text-[9px] font-bold uppercase tracking-widest text-slate-400">
+                    <span>Total Kasus Terdata:</span>
+                    <span className="text-slate-950 font-black text-xs">{academicCount + nonAcademicCount}</span>
+                  </div>
                 </div>
               </div>
             </div>

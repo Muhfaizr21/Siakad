@@ -1223,7 +1223,7 @@ export default function ProposalManagement() {
                       <div className="content-title" style={{ marginTop: '10px' }}>
                         PROPOSAL KEGIATAN {ormawaAbbreviation.toUpperCase()}
                       </div>
-                      
+
                       <div className="grid-container">
                         <div className="col-left">
                           <div className="info-card">
@@ -1264,7 +1264,7 @@ export default function ProposalManagement() {
                           </div>
                         </div>
                       </div>
-                      
+
                       <div className="full-width-card">
                         <p class="info-label">Latar Belakang Kegiatan</p>
                         <div className="info-val">{printData.LatarBelakang || printData.latar_belakang || '—'}</div>
@@ -1276,14 +1276,14 @@ export default function ProposalManagement() {
                     </div>
                   </div>
                 </div>
-                
+
                 {/* Page 2: Lembar Pengesahan */}
                 <div className="page">
                   <img src="/images/format_kop_rektorat_landscape.jpg" className="page-bg" />
                   <div className="page-content">
                     <div>
                       <div className="pengesahan-title" style={{ marginTop: '10px' }}>Lembar Pengesahan Dokumen Proposal</div>
-                      
+
                       <table className="summary-table">
                         <tbody>
                           <tr>
@@ -1306,7 +1306,7 @@ export default function ProposalManagement() {
                           </tr>
                         </tbody>
                       </table>
-                      
+
                       {/* Signatures */}
                       {ormawaType === 'DPM Universitas' && (
                         <div className="signature-container">

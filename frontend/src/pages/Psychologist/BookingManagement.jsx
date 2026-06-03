@@ -39,9 +39,18 @@ export default function BookingManagement() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [updatingId, setUpdatingId] = useState(null);
+  const [showLinkModal, setShowLinkModal] = useState(false);
+  const [pendingConfirmId, setPendingConfirmId] = useState(null);
+  const [meetingLink, setMeetingLink] = useState('');
   const navigate = useNavigate();
 
   const [bookings, setBookings] = useState([]);
+  const [fakultasList, setFakultasList] = useState([]);
+  const [prodiList, setProdiList] = useState([]);
+  const [selectedFakultas, setSelectedFakultas] = useState('Semua Fakultas');
+  const [selectedProdi, setSelectedProdi] = useState('Semua Prodi');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
 
   useEffect(() => {
     let ignore = false;
@@ -57,8 +66,27 @@ export default function BookingManagement() {
         if (!ignore) setLoading(false);
       });
 
+    psychologistService.getFakultasList().then((res) => {
+      if (!ignore) setFakultasList(res.data || []);
+    });
+    psychologistService.getProdiList().then((res) => {
+      if (!ignore) setProdiList(res.data || []);
+    });
+
     return () => { ignore = true; };
   }, []);
+
+  const filteredProdis = useMemo(() => {
+    if (selectedFakultas === 'Semua Fakultas') return [];
+    const selectedFak = fakultasList.find(f => f.nama === selectedFakultas);
+    if (!selectedFak) return [];
+    return prodiList.filter(p => p.fakultas_id === selectedFak.id);
+  }, [selectedFakultas, prodiList, fakultasList]);
+
+  const handleFakultasChange = (val) => {
+    setSelectedFakultas(val);
+    setSelectedProdi('Semua Prodi');
+  };
 
   const issueOptions = useMemo(() => {
     const issues = bookings
@@ -79,7 +107,7 @@ export default function BookingManagement() {
   const filteredBookings = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
     const getScheduleTime = (booking) => {
-      const raw = `${booking.date || ''} ${booking.time || ''}`;
+      const raw = `${booking.raw_date || booking.date || ''} ${booking.time || ''}`;
       const parsed = Date.parse(raw);
       return Number.isNaN(parsed) ? raw : parsed;
     };
@@ -99,8 +127,14 @@ export default function BookingManagement() {
         const matchesTab = selectedTab === 'Semua' || status === selectedTab;
         const matchesIssue = issueFilter === 'Semua Topik' || booking.issue === issueFilter;
         const matchesSearch = !query || searchable.includes(query);
+        const matchesFakultas = selectedFakultas === 'Semua Fakultas' || booking.faculty === selectedFakultas;
+        const matchesProdi = selectedProdi === 'Semua Prodi' || booking.prodi === selectedProdi;
+        
+        const bookingRawDate = booking.raw_date || (booking.date ? new Date(booking.date).toISOString().split('T')[0] : '');
+        const matchesStartDate = !startDate || (bookingRawDate && bookingRawDate >= startDate);
+        const matchesEndDate = !endDate || (bookingRawDate && bookingRawDate <= endDate);
 
-        return matchesTab && matchesIssue && matchesSearch;
+        return matchesTab && matchesIssue && matchesSearch && matchesFakultas && matchesProdi && matchesStartDate && matchesEndDate;
       })
       .sort((a, b) => {
         const first = getScheduleTime(a);
@@ -112,25 +146,51 @@ export default function BookingManagement() {
           ? String(second).localeCompare(String(first))
           : String(first).localeCompare(String(second));
       });
-  }, [bookings, issueFilter, searchQuery, selectedTab, sortOrder]);
+  }, [bookings, issueFilter, searchQuery, selectedTab, sortOrder, selectedFakultas, selectedProdi, startDate, endDate]);
 
-  const hasActiveFilter = selectedTab !== 'Semua' || issueFilter !== 'Semua Topik' || searchQuery.trim();
+  const hasActiveFilter = selectedTab !== 'Semua' || issueFilter !== 'Semua Topik' || searchQuery.trim() || selectedFakultas !== 'Semua Fakultas' || selectedProdi !== 'Semua Prodi' || startDate || endDate;
 
   const resetFilters = () => {
     setSelectedTab('Semua');
     setIssueFilter('Semua Topik');
     setSearchQuery('');
+    setSelectedFakultas('Semua Fakultas');
+    setSelectedProdi('Semua Prodi');
+    setStartDate('');
+    setEndDate('');
     setSortOrder('Terbaru');
   };
 
-  const handleAction = async (id, newStatus) => {
+  const handleAction = async (id, newStatus, link = '') => {
     setUpdatingId(id);
     try {
-      await psychologistService.updateBookingStatus(id, newStatus);
-      setBookings(prev => prev.map(b => b.id === id ? { ...b, status: newStatus } : b));
+      await psychologistService.updateBookingStatus(id, newStatus, '', link);
+      setBookings(prev => prev.map(b => b.id === id ? { ...b, status: newStatus, link_meeting: link } : b));
+    } catch (err) {
+      alert(err.message || 'Gagal mengubah status booking.');
     } finally {
       setUpdatingId(null);
     }
+  };
+
+  const handleConfirmClick = (booking) => {
+    if (booking.mode === 'Online') {
+      setPendingConfirmId(booking.id);
+      setMeetingLink('');
+      setShowLinkModal(true);
+    } else {
+      handleAction(booking.id, 'Dikonfirmasi');
+    }
+  };
+
+  const submitConfirmWithLink = () => {
+    if (!meetingLink.trim()) {
+      alert('Harap masukkan link meeting Zoom/Google Meet');
+      return;
+    }
+    setShowLinkModal(false);
+    handleAction(pendingConfirmId, 'Dikonfirmasi', meetingLink);
+    setPendingConfirmId(null);
   };
 
   return (
@@ -177,14 +237,15 @@ export default function BookingManagement() {
           {/* Search & Filter Bento Card */}
           <section className="rounded-[2rem] border border-slate-100 bg-white p-6 shadow-sm">
             <div className="flex flex-col gap-5">
-              <div className="flex flex-col lg:flex-row lg:items-end gap-4">
-                <div className="flex-1 space-y-2">
+              {/* Row 1: Search, Topik, Urutan */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                <div className="space-y-2">
                   <label htmlFor="booking-search" className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400">
-                    <span className="material-symbols-outlined text-base" >search</span>
+                    <span className="material-symbols-outlined text-base">search</span>
                     Pencarian
                   </label>
                   <div className="relative">
-                    <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-base" >search</span>
+                    <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-base">search</span>
                     <input
                       id="booking-search"
                       type="text"
@@ -196,39 +257,101 @@ export default function BookingManagement() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:w-[430px] gap-4">
-                  <div className="space-y-2">
-                    <label htmlFor="issue-filter" className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400">
-                      <span className="material-symbols-outlined text-base">filter_alt</span>
-                      Topik
-                    </label>
-                    <select
-                      id="issue-filter"
-                      value={issueFilter}
-                      onChange={(e) => setIssueFilter(e.target.value)}
-                      className="h-12 w-full rounded-2xl border border-slate-100 bg-slate-50 px-4 text-xs font-bold text-slate-700 outline-none transition-all focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/5 cursor-pointer"
-                    >
-                      {issueOptions.map((issue) => (
-                        <option key={issue} value={issue}>{issue}</option>
-                      ))}
-                    </select>
-                  </div>
+                <div className="space-y-2">
+                  <label htmlFor="issue-filter" className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400">
+                    <span className="material-symbols-outlined text-base">filter_alt</span>
+                    Topik
+                  </label>
+                  <select
+                    id="issue-filter"
+                    value={issueFilter}
+                    onChange={(e) => setIssueFilter(e.target.value)}
+                    className="h-12 w-full rounded-2xl border border-slate-100 bg-slate-50 px-4 text-xs font-bold text-slate-700 outline-none transition-all focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/5 cursor-pointer"
+                  >
+                    {issueOptions.map((issue) => (
+                      <option key={issue} value={issue}>{issue}</option>
+                    ))}
+                  </select>
+                </div>
 
-                  <div className="space-y-2">
-                    <label htmlFor="sort-order" className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400">
-                      <SlidersHorizontal className="size-3.5" />
-                      Urutan
-                    </label>
-                    <select
-                      id="sort-order"
-                      value={sortOrder}
-                      onChange={(e) => setSortOrder(e.target.value)}
-                      className="h-12 w-full rounded-2xl border border-slate-100 bg-slate-50 px-4 text-xs font-bold text-slate-700 outline-none transition-all focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/5 cursor-pointer"
-                    >
-                      <option value="Terbaru">Jadwal terbaru</option>
-                      <option value="Terlama">Jadwal terlama</option>
-                    </select>
-                  </div>
+                <div className="space-y-2">
+                  <label htmlFor="sort-order" className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400">
+                    <span className="material-symbols-outlined text-base font-medium">tune</span>
+                    Urutan
+                  </label>
+                  <select
+                    id="sort-order"
+                    value={sortOrder}
+                    onChange={(e) => setSortOrder(e.target.value)}
+                    className="h-12 w-full rounded-2xl border border-slate-100 bg-slate-50 px-4 text-xs font-bold text-slate-700 outline-none transition-all focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/5 cursor-pointer"
+                  >
+                    <option value="Terbaru">Jadwal terbaru</option>
+                    <option value="Terlama">Jadwal terlama</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Row 2: Fakultas, Prodi, Range Tanggal */}
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 border-t border-slate-50 pt-4">
+                <div className="space-y-2">
+                  <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400">
+                    <span className="material-symbols-outlined text-base">domain</span>
+                    Fakultas
+                  </label>
+                  <select
+                    value={selectedFakultas}
+                    onChange={(e) => handleFakultasChange(e.target.value)}
+                    className="h-12 w-full rounded-2xl border border-slate-100 bg-slate-50 px-4 text-xs font-bold text-slate-700 outline-none transition-all focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/5 cursor-pointer"
+                  >
+                    <option value="Semua Fakultas">Semua Fakultas</option>
+                    {fakultasList.map((f) => (
+                      <option key={f.id} value={f.nama}>{f.nama}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400">
+                    <span className="material-symbols-outlined text-base">school</span>
+                    Program Studi
+                  </label>
+                  <select
+                    value={selectedProdi}
+                    onChange={(e) => setSelectedProdi(e.target.value)}
+                    disabled={selectedFakultas === 'Semua Fakultas'}
+                    className="h-12 w-full rounded-2xl border border-slate-100 bg-slate-50 px-4 text-xs font-bold text-slate-700 outline-none transition-all focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/5 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+                  >
+                    <option value="Semua Prodi">Semua Prodi</option>
+                    {filteredProdis.map((p) => (
+                      <option key={p.id} value={p.nama}>{p.nama}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400">
+                    <span className="material-symbols-outlined text-base">calendar_today</span>
+                    Dari Tanggal
+                  </label>
+                  <input
+                    type="date"
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                    className="h-12 w-full rounded-2xl border border-slate-100 bg-slate-50 px-4 text-xs font-bold text-slate-700 outline-none transition-all focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/5"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400">
+                    <span className="material-symbols-outlined text-base">calendar_today</span>
+                    Sampai Tanggal
+                  </label>
+                  <input
+                    type="date"
+                    value={endDate}
+                    onChange={(e) => setEndDate(e.target.value)}
+                    className="h-12 w-full rounded-2xl border border-slate-100 bg-slate-50 px-4 text-xs font-bold text-slate-700 outline-none transition-all focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/5"
+                  />
                 </div>
               </div>
 
@@ -333,7 +456,15 @@ export default function BookingManagement() {
                           <p className="mt-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">NIM {booking.nim || '-'}</p>
                         </div>
                         <div className="flex-1 min-w-0 px-4">
-                          <p className="text-xs font-black uppercase tracking-tight text-slate-700">{booking.issue || 'Belum ada topik'}</p>
+                          <div className="flex items-center gap-2">
+                            <p className="text-xs font-black uppercase tracking-tight text-slate-700">{booking.issue || 'Belum ada topik'}</p>
+                            <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[8px] font-black uppercase tracking-wider ${
+                              booking.mode === 'Online' ? 'bg-indigo-50 text-indigo-600 border border-indigo-100' : 'bg-slate-50 text-slate-600 border border-slate-200'
+                            }`}>
+                              <span className="material-symbols-outlined !text-[10px] shrink-0">{booking.mode === 'Online' ? 'videocam' : 'groups'}</span>
+                              {booking.mode || 'Tatap Muka'}
+                            </span>
+                          </div>
                           <p className="mt-1 line-clamp-1 text-xs font-medium text-slate-500 italic">"{booking.note || 'Tidak ada catatan tambahan.'}"</p>
                         </div>
                         <div className="px-4 shrink-0 w-[180px]">
@@ -370,7 +501,7 @@ export default function BookingManagement() {
                                 disabled={isUpdating}
                                 title="Konfirmasi booking"
                                 aria-label={`Konfirmasi booking ${booking.name || 'mahasiswa'}`}
-                                onClick={(e) => { e.stopPropagation(); handleAction(booking.id, 'Dikonfirmasi'); }}
+                                onClick={(e) => { e.stopPropagation(); handleConfirmClick(booking); }}
                                 className="inline-flex size-10 items-center justify-center rounded-xl bg-primary text-white shadow-sm transition-all hover:bg-primary/95 disabled:cursor-wait disabled:opacity-50"
                               >
                                 <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >check_circle</span>
@@ -419,7 +550,15 @@ export default function BookingManagement() {
                         </div>
 
                         <div className="mt-4 rounded-2xl bg-slate-50 p-3">
-                          <p className="text-xs font-black uppercase tracking-tight text-slate-700">{booking.issue || 'Belum ada topik'}</p>
+                          <div className="flex items-center justify-between gap-2">
+                            <p className="text-xs font-black uppercase tracking-tight text-slate-700">{booking.issue || 'Belum ada topik'}</p>
+                            <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[8px] font-black uppercase tracking-wider ${
+                              booking.mode === 'Online' ? 'bg-indigo-50 text-indigo-600 border border-indigo-100' : 'bg-slate-50 text-slate-600 border border-slate-200'
+                            }`}>
+                              <span className="material-symbols-outlined !text-[10px] shrink-0">{booking.mode === 'Online' ? 'videocam' : 'groups'}</span>
+                              {booking.mode || 'Tatap Muka'}
+                            </span>
+                          </div>
                           <p className="mt-1 line-clamp-2 text-xs font-medium leading-5 text-slate-500">{booking.note || 'Tidak ada catatan tambahan dari mahasiswa.'}</p>
                         </div>
 
@@ -444,7 +583,7 @@ export default function BookingManagement() {
                                 type="button"
                                 aria-label={`Konfirmasi booking ${booking.name || 'mahasiswa'}`}
                                 disabled={isUpdating}
-                                onClick={(e) => { e.stopPropagation(); handleAction(booking.id, 'Dikonfirmasi'); }}
+                                onClick={(e) => { e.stopPropagation(); handleConfirmClick(booking); }}
                                 className="inline-flex size-10 items-center justify-center rounded-xl bg-primary text-white transition-all active:scale-95 disabled:cursor-wait disabled:opacity-50"
                               >
                                 <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >check_circle</span>
@@ -464,6 +603,46 @@ export default function BookingManagement() {
 
         </div>
       </main>
+
+      {/* Zoom / Meeting Link Modal */}
+      {showLinkModal && (
+        <div className="fixed inset-0 z-[999] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white w-full max-w-md rounded-3xl shadow-xl overflow-hidden border border-slate-100 animate-in fade-in zoom-in-95 duration-200">
+            <div className="bg-primary px-6 py-5 text-white">
+              <h3 className="text-lg font-black uppercase tracking-tight font-headline">Konfirmasi Sesi Online</h3>
+              <p className="text-xs text-white/70 mt-1">Sesi ini diajukan secara Online. Harap masukkan link Zoom atau Google Meet untuk mahasiswa.</p>
+            </div>
+            <div className="p-6 space-y-4">
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Link Meeting</label>
+                <input
+                  type="text"
+                  placeholder="https://zoom.us/j/... atau https://meet.google.com/..."
+                  value={meetingLink}
+                  onChange={(e) => setMeetingLink(e.target.value)}
+                  className="h-11 w-full rounded-2xl border border-slate-200 px-4 text-xs font-bold text-slate-700 outline-none transition-all placeholder:text-slate-400 focus:border-primary focus:ring-4 focus:ring-primary/5"
+                />
+              </div>
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => { setShowLinkModal(false); setPendingConfirmId(null); }}
+                  className="flex-1 py-3 rounded-2xl border border-slate-200 text-slate-500 text-xs font-black uppercase tracking-widest hover:bg-slate-50 transition-colors"
+                >
+                  Batal
+                </button>
+                <button
+                  type="button"
+                  onClick={submitConfirmWithLink}
+                  className="flex-1 py-3 rounded-2xl bg-primary text-white text-xs font-black uppercase tracking-widest hover:bg-primary/95 transition-all shadow-sm"
+                >
+                  Konfirmasi
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

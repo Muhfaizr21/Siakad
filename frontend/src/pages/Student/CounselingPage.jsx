@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 import { 
   useCounselingJadwalQuery, 
@@ -47,6 +47,8 @@ const TIPE_CONFIG = {
 export default function CounselingPage() {
   const [selectedSlot, setSelectedSlot] = useState(null);
   const [keluhan, setKeluhan] = useState('');
+  const [mode, setMode] = useState('Tatap Muka');
+  const [topik, setTopik] = useState('Pribadi');
   const [privacyAgreed, setPrivacyAgreed] = useState(false);
   const [filterTipe, setFilterTipe] = useState('Semua');
 
@@ -59,6 +61,19 @@ export default function CounselingPage() {
   const totalMenunggu = riwayat?.filter(r => r.status === 'Menunggu').length ?? 0;
   const totalMedicalRecords = riwayat?.reduce((total, item) => total + Number(item.medical_record_count || 0), 0) ?? 0;
 
+  useEffect(() => {
+    if (selectedSlot) {
+      const defaultTopic = selectedSlot.Tipe || selectedSlot.Spesialisasi || 'Pribadi';
+      if (defaultTopic === 'Personal') {
+        setTopik('Pribadi');
+      } else if (['Akademik', 'Karir', 'Pribadi', 'Keluarga', 'Sosial', 'Lainnya'].includes(defaultTopic)) {
+        setTopik(defaultTopic);
+      } else {
+        setTopik('Pribadi');
+      }
+    }
+  }, [selectedSlot]);
+
   const handleBooking = () => {
     if (!privacyAgreed) return toast.error('Harap setujui pernyataan privasi');
     if (keluhan.length < 20) return toast.error('Ceritakan topik minimal 20 karakter');
@@ -68,10 +83,18 @@ export default function CounselingPage() {
       date: selectedSlot.Tanggal?.slice(0, 10),
       start: selectedSlot.JamMulai,
       end: selectedSlot.JamSelesai,
-      topic: selectedSlot.Tipe || selectedSlot.Spesialisasi || 'Konseling',
+      topic: topik,
       complaint: keluhan,
+      mode: mode,
     }, {
-      onSuccess: () => { toast.success('Booking berhasil diajukan!'); setSelectedSlot(null); setKeluhan(''); setPrivacyAgreed(false); },
+      onSuccess: () => { 
+        toast.success('Booking berhasil diajukan!'); 
+        setSelectedSlot(null); 
+        setKeluhan(''); 
+        setMode('Tatap Muka');
+        setTopik('Pribadi');
+        setPrivacyAgreed(false); 
+      },
       onError: (err) => toast.error(err.response?.data?.message || 'Gagal melakukan booking'),
     });
   };
@@ -337,6 +360,63 @@ export default function CounselingPage() {
 
               {/* Form */}
               <div className="px-7 py-5 space-y-5">
+                <div>
+                  <label className="block text-xs font-bold text-neutral-600 uppercase tracking-wider mb-2">
+                    Metode Konseling <span className="text-red-400">*</span>
+                  </label>
+                  <div className="grid grid-cols-2 gap-3 mb-4">
+                    {[
+                      { value: 'Tatap Muka', label: 'Tatap Muka (Offline)', desc: 'Konseling langsung di ruang BK', icon: 'groups' },
+                      { value: 'Online', label: 'Online (Zoom)', desc: 'Konseling daring via video call', icon: 'videocam' }
+                    ].map((opt) => (
+                      <button
+                        key={opt.value}
+                        type="button"
+                        onClick={() => setMode(opt.value)}
+                        className={`flex items-start gap-2.5 p-3 rounded-2xl border text-left transition-all ${
+                          mode === opt.value
+                            ? 'border-[#00236F] bg-blue-50/20 ring-2 ring-[#00236F]/5'
+                            : 'border-neutral-200 hover:border-neutral-300 bg-white'
+                        }`}
+                      >
+                        <span className={`material-symbols-outlined text-[18px] mt-0.5 shrink-0 ${mode === opt.value ? 'text-[#00236F]' : 'text-neutral-400'}`}>
+                          {opt.icon}
+                        </span>
+                        <div>
+                          <p className={`text-xs font-bold ${mode === opt.value ? 'text-[#00236F]' : 'text-neutral-700'}`}>
+                            {opt.label}
+                          </p>
+                          <p className="text-[9px] text-neutral-400 mt-0.5 leading-snug">
+                            {opt.desc}
+                          </p>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-neutral-600 uppercase tracking-wider mb-2">
+                    Kategori Masalah / Topik <span className="text-red-400">*</span>
+                  </label>
+                  <div className="flex flex-wrap gap-2 mb-2">
+                    {['Akademik', 'Karir', 'Pribadi', 'Keluarga', 'Sosial', 'Lainnya'].map((cat) => (
+                      <button
+                        key={cat}
+                        type="button"
+                        onClick={() => setTopik(cat)}
+                        className={`px-3 py-2 rounded-xl border text-xs font-bold transition-all ${
+                          topik === cat
+                            ? 'border-[#00236F] bg-blue-50/20 text-[#00236F] ring-2 ring-[#00236F]/5'
+                            : 'border-neutral-200 hover:border-neutral-300 bg-white text-neutral-600'
+                        }`}
+                      >
+                        {cat}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
                 <div>
                   <label className="block text-xs font-bold text-neutral-600 uppercase tracking-wider mb-2">
                     Topik Pembahasan <span className="text-red-400">*</span>

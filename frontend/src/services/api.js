@@ -64,10 +64,10 @@ export const psychologistService = {
   getDashboard: () => fetchWithAuth(`${API_BASE_URL}/psychologist/dashboard`),
   getBookings: () => fetchWithAuth(`${API_BASE_URL}/psychologist/bookings`),
   getBookingDetail: (id) => fetchWithAuth(`${API_BASE_URL}/psychologist/bookings/${id}`),
-  updateBookingStatus: (id, status, note = '') => fetchWithAuth(`${API_BASE_URL}/psychologist/bookings/${id}/status`, {
+  updateBookingStatus: (id, status, note = '', link_meeting = '') => fetchWithAuth(`${API_BASE_URL}/psychologist/bookings/${id}/status`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ status, note })
+    body: JSON.stringify({ status, note, link_meeting })
   }),
   getSchedules: () => fetchWithAuth(`${API_BASE_URL}/psychologist/schedules`),
   saveSchedules: (data) => fetchWithAuth(`${API_BASE_URL}/psychologist/schedules`, {
@@ -88,9 +88,12 @@ export const psychologistService = {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data)
   }),
-  getAnalytics: () => fetchWithAuth(`${API_BASE_URL}/psychologist/analytics`),
-  getReports: () => fetchWithAuth(`${API_BASE_URL}/psychologist/reports`),
-  createReport: () => fetchWithAuth(`${API_BASE_URL}/psychologist/reports`, { method: 'POST' }),
+  getAnalytics: (params = {}) => {
+    const query = new URLSearchParams(params).toString();
+    return fetchWithAuth(`${API_BASE_URL}/psychologist/analytics${query ? `?${query}` : ''}`);
+  },
+  getProdiList: () => fetchWithAuth(`${API_BASE_URL}/psychologist/prodi`),
+  getFakultasList: () => fetchWithAuth(`${API_BASE_URL}/psychologist/fakultas`),
   getNotifications: () => fetchWithAuth(`${API_BASE_URL}/psychologist/notifications`),
   markNotificationRead: (id) => fetchWithAuth(`${API_BASE_URL}/psychologist/notifications/${id}/read`, { method: 'PUT' }),
   markAllNotificationsRead: () => fetchWithAuth(`${API_BASE_URL}/psychologist/notifications/read-all`, { method: 'PUT' }),
@@ -108,7 +111,71 @@ export const psychologistService = {
   }),
   confirmReferralReceived: (id) => fetchWithAuth(`${API_BASE_URL}/psychologist/referrals/${id}/confirm-received`, {
     method: 'POST'
-  })
+  }),
+  downloadReferralPDF: async (id) => {
+    const token = getAuthToken();
+    const res = await fetch(`${API_BASE_URL}/psychologist/referrals/${id}/download`, {
+      headers: { ...(token ? { 'Authorization': `Bearer ${token}` } : {}) }
+    });
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({ message: 'Gagal download PDF' }));
+      throw new Error(errData.message || `Error ${res.status}`);
+    }
+    const blob = await res.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `surat_rujukan_${id}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(url);
+  },
+  downloadSessionNotePDF: async (id, studentName) => {
+    const token = getAuthToken();
+    const res = await fetch(`${API_BASE_URL}/psychologist/session-notes/${id}/export-pdf`, {
+      headers: { ...(token ? { 'Authorization': `Bearer ${token}` } : {}) }
+    });
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({ message: 'Gagal download PDF Sesi' }));
+      throw new Error(errData.message || `Error ${res.status}`);
+    }
+    const blob = await res.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `sesi_${id}_rekam_medis_${studentName.replace(/\s+/g, '_')}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(url);
+  },
+  downloadRecapMedicalRecordPDF: async (filters = {}) => {
+    const token = getAuthToken();
+    const cleanFilters = {};
+    Object.entries(filters).forEach(([k, v]) => {
+      if (v !== '' && v !== null && v !== undefined && v !== 'Semua Fakultas' && v !== 'Semua Prodi' && v !== 'Semua Status') {
+        cleanFilters[k] = v;
+      }
+    });
+    const query = new URLSearchParams(cleanFilters).toString();
+    const res = await fetch(`${API_BASE_URL}/psychologist/patients/export-pdf${query ? `?${query}` : ''}`, {
+      headers: { ...(token ? { 'Authorization': `Bearer ${token}` } : {}) }
+    });
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({ message: 'Gagal download PDF Rekap' }));
+      throw new Error(errData.message || `Error ${res.status}`);
+    }
+    const blob = await res.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `rekap_rekam_medis_${new Date().toISOString().split('T')[0]}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(url);
+  }
 };
 
 export const ormawaService = {
