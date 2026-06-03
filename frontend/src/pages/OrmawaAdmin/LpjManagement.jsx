@@ -49,7 +49,9 @@ export default function LpjManagement() {
   const [proposals, setProposals] = useState([])
 
   const authState = useAuthStore((s) => s)
-  const ormawaId = authState?.mahasiswa?.ormawaId || authState?.mahasiswa?.OrmawaID || authState?.user?.ormawaId || ''
+  const userObj = authState?.user
+  const mhsObj = authState?.mahasiswa
+  const ormawaId = userObj?.ormawa_id || userObj?.OrmawaID || userObj?.ormawaId || mhsObj?.ormawaId || mhsObj?.OrmawaID || 1
 
   const [form, setForm] = useState({
     Judul: '',
@@ -136,21 +138,29 @@ export default function LpjManagement() {
       TotalAnggaran: row.TotalAnggaran || '',
       Catatan: row.Catatan || '',
       ProposalID: String(row.ProposalID || ''),
-      OrmawaID: ormawaId || ''
+      OrmawaID: ormawaId || '',
+      Status: row.Status || row.status || 'draft'
     })
     setIsCrudOpen(true)
   }
 
-  const handleSave = async (e) => {
-    e.preventDefault()
+  const handleSave = async (e, statusOverride) => {
+    if (e && e.preventDefault) e.preventDefault()
     setIsSubmitting(true)
 
     const url = isEditMode ? `${API}/lpjs/${form.ID}` : `${API}/lpjs`
     const method = isEditMode ? 'PUT' : 'POST'
 
+    let targetStatus = 'draft'
+    if (statusOverride) {
+      targetStatus = statusOverride
+    } else if (isEditMode) {
+      targetStatus = form.Status || 'draft'
+    }
+
     const payload = isEditMode
       ? {
-        Status: form.Status,
+        Status: targetStatus,
         Catatan: form.Catatan,
         RealisasiAnggaran: Number(form.RealisasiAnggaran),
         TotalAnggaran: Number(form.TotalAnggaran)
@@ -161,7 +171,7 @@ export default function LpjManagement() {
         Catatan: form.Catatan,
         RealisasiAnggaran: Number(form.RealisasiAnggaran),
         TotalAnggaran: Number(form.TotalAnggaran),
-        Status: 'draft'
+        Status: targetStatus
       }
 
     try {
@@ -171,7 +181,7 @@ export default function LpjManagement() {
         headers: { 'Content-Type': 'application/json' }
       })
       if (res.status === 'success') {
-        toast.success(isEditMode ? 'LPJ berhasil diperbarui!' : 'Laporan Pertanggungjawaban berhasil diajukan!')
+        toast.success((isEditMode && targetStatus !== 'diajukan') ? 'LPJ berhasil diperbarui!' : 'Laporan Pertanggungjawaban berhasil diajukan!')
         setIsCrudOpen(false)
         fetchData()
       } else {
@@ -710,20 +720,49 @@ export default function LpjManagement() {
               >
                 BATAL
               </Button>
-              <Button
-                type="submit"
-                disabled={isSubmitting}
-                className="w-full md:w-auto h-12 px-8 rounded-2xl bg-primary text-white hover:bg-primary/90 shadow-xl shadow-primary/20 transition-all hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2 border-none"
-              >
-                {isSubmitting ? (
-                  <span className="material-symbols-outlined animate-spin size-4" style={{ fontSize: '16px' }}>sync</span>
-                ) : (
-                  <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>save</span>
-                )}
-                <span className="text-[10px] font-black tracking-widest uppercase">
-                  {isEditMode ? 'SIMPAN PERUBAHAN' : 'KIRIM LAPORAN'}
-                </span>
-              </Button>
+              {(!isEditMode || form.Status === 'draft' || form.Status === 'revisi') ? (
+                <>
+                  <Button
+                    type="button"
+                    disabled={isSubmitting}
+                    onClick={(e) => handleSave(e, 'draft')}
+                    className="w-full md:w-auto h-12 px-6 rounded-2xl bg-slate-100 hover:bg-slate-200/80 text-slate-700 hover:text-slate-900 active:scale-95 transition-all border-none font-bold text-[10px] tracking-widest"
+                  >
+                    SIMPAN DRAFT
+                  </Button>
+                  <Button
+                    type="button"
+                    disabled={isSubmitting}
+                    onClick={(e) => handleSave(e, 'diajukan')}
+                    className="w-full md:w-auto h-12 px-8 rounded-2xl bg-primary text-white hover:bg-primary/90 shadow-xl shadow-primary/20 transition-all hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2 border-none"
+                  >
+                    {isSubmitting ? (
+                      <span className="material-symbols-outlined animate-spin size-4" style={{ fontSize: '16px' }}>sync</span>
+                    ) : (
+                      <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>send</span>
+                    )}
+                    <span className="text-[10px] font-black tracking-widest uppercase">
+                      KIRIM LAPORAN
+                    </span>
+                  </Button>
+                </>
+              ) : (
+                <Button
+                  type="button"
+                  disabled={isSubmitting}
+                  onClick={(e) => handleSave(e, form.Status)}
+                  className="w-full md:w-auto h-12 px-8 rounded-2xl bg-primary text-white hover:bg-primary/90 shadow-xl shadow-primary/20 transition-all hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2 border-none"
+                >
+                  {isSubmitting ? (
+                    <span className="material-symbols-outlined animate-spin size-4" style={{ fontSize: '16px' }}>sync</span>
+                  ) : (
+                    <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>save</span>
+                  )}
+                  <span className="text-[10px] font-black tracking-widest uppercase">
+                    SIMPAN PERUBAHAN
+                  </span>
+                </Button>
+              )}
             </DialogFooter>
           </form>
         </DialogContent>

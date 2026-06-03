@@ -35,7 +35,9 @@ export default function KeuanganKas() {
   const [selected, setSelected] = useState(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   
-  const ormawaId = useAuthStore.getState()?.mahasiswa?.ormawaId || useAuthStore.getState()?.mahasiswa?.OrmawaID || 1
+  const userObj = useAuthStore.getState()?.user
+  const mhsObj = useAuthStore.getState()?.mahasiswa
+  const ormawaId = userObj?.ormawa_id || userObj?.OrmawaID || userObj?.ormawaId || mhsObj?.ormawaId || mhsObj?.OrmawaID || 1
   const [form, setForm] = useState({ 
     Deskripsi: '', 
     Nominal: '', 

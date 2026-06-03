@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { DataTable } from '../FacultyAdmin/components/data-table'
 import { Badge } from '../FacultyAdmin/components/badge'
 import { Button } from '../FacultyAdmin/components/button'
@@ -53,6 +54,17 @@ const formatRupiahInput = (value) => {
 }
 
 export default function ProposalManagement() {
+  const [printData, setPrintData] = useState(null)
+
+  useEffect(() => {
+    if (printData) {
+      const timer = setTimeout(() => {
+        window.print()
+        setPrintData(null)
+      }, 300)
+      return () => clearTimeout(timer)
+    }
+  }, [printData])
   const [proposals, setProposals] = useState([])
   const [loading, setLoading] = useState(true)
   const [selected, setSelected] = useState(null)
@@ -65,36 +77,80 @@ export default function ProposalManagement() {
   const [komentar, setKomentar] = useState('')
   const [dokumenList, setDokumenList] = useState([])
   const [existingFileList, setExistingFileList] = useState([])
-  const ormawaId = useAuthStore.getState()?.mahasiswa?.OrmawaID || useAuthStore.getState()?.mahasiswa?.ormawaId || useAuthStore.getState()?.mahasiswa?.ID || 1
-  const [formData, setFormData] = useState({ Judul: '', Catatan: '', TanggalKegiatan: '', Anggaran: '', OrmawaID: ormawaId })
+  const userObj = useAuthStore.getState()?.user
+  const mhsObj = useAuthStore.getState()?.mahasiswa
+  const ormawaId = userObj?.ormawa_id || userObj?.OrmawaID || userObj?.ormawaId || mhsObj?.ormawaId || mhsObj?.OrmawaID || 1
+  const mahasiswaId = mhsObj?.id || mhsObj?.ID || 0
+  const [formData, setFormData] = useState({
+    Judul: '',
+    Catatan: '',
+    TanggalKegiatan: '',
+    Anggaran: '',
+    OrmawaID: ormawaId,
+    MahasiswaID: mahasiswaId,
+    LandasanKegiatan: '',
+    Deskripsi: '',
+    BentukKegiatan: '',
+    Mitra: '',
+    LatarBelakang: '',
+    TujuanKegiatan: '',
+    JadwalPelaksanaan: '',
+    SasaranKegiatan: '',
+    IndikatorKeberhasilan: '',
+    SumberDana: '',
+    PJKegiatan: ''
+  })
+
 
   const fetchProposals = async () => {
     setLoading(true)
     try {
       const data = await fetchWithAuth(`${API}/proposals?ormawaId=${ormawaId}`)
-      if (data.status === 'success') setProposals(data.data || [])
+      if (data.status === 'success') {
+        setProposals(data.data || [])
+        return data.data || []
+      }
       else toast.error('Gagal memuat data proposal')
     } catch {
       toast.error('Koneksi ke server gagal')
     } finally {
       setLoading(false)
     }
+    return []
   }
 
   const fetchHistory = async (proposalId) => {
     try {
       const data = await fetchWithAuth(`${API}/proposals/${proposalId}/history`)
       if (data.status === 'success') setHistory(data.data || [])
-    } catch {}
+    } catch { }
   }
 
-  useEffect(() => { 
-    fetchProposals() 
+  useEffect(() => {
+    fetchProposals()
   }, [])
 
   const handleOpenAdd = () => {
     setIsEditMode(false)
-    setFormData({ Judul: '', Catatan: '', TanggalKegiatan: '', Anggaran: '', OrmawaID: ormawaId })
+    setFormData({
+      Judul: '',
+      Catatan: '',
+      TanggalKegiatan: '',
+      Anggaran: '',
+      OrmawaID: ormawaId,
+      MahasiswaID: mahasiswaId,
+      LandasanKegiatan: '',
+      Deskripsi: '',
+      BentukKegiatan: '',
+      Mitra: '',
+      LatarBelakang: '',
+      TujuanKegiatan: '',
+      JadwalPelaksanaan: '',
+      SasaranKegiatan: '',
+      IndikatorKeberhasilan: '',
+      SumberDana: '',
+      PJKegiatan: ''
+    })
     setDokumenList([])
     setExistingFileList([])
     setIsCrudOpen(true)
@@ -111,13 +167,25 @@ export default function ProposalManagement() {
     }
     setFormData({
       id: row.id || row.ID,
-      Judul: row.Judul || '',
-      Catatan: row.Catatan || '',
-      TanggalKegiatan: row.TanggalKegiatan ? row.TanggalKegiatan.split('T')[0] : '',
-      Anggaran: row.Anggaran || '',
-      OrmawaID: row.OrmawaID || ormawaId,
+      Judul: row.Judul || row.judul || '',
+      Catatan: row.Catatan || row.catatan || '',
+      TanggalKegiatan: row.TanggalKegiatan ? row.TanggalKegiatan.split('T')[0] : (row.tanggal_kegiatan ? row.tanggal_kegiatan.split('T')[0] : ''),
+      Anggaran: row.Anggaran || row.anggaran || '',
+      OrmawaID: row.OrmawaID || row.ormawa_id || ormawaId,
       file_url: row.file_url || row.FileURL || '',
       FileURL: row.file_url || row.FileURL || '',
+
+      LandasanKegiatan: row.LandasanKegiatan || row.landasan_kegiatan || '',
+      Deskripsi: row.Deskripsi || row.deskripsi || '',
+      BentukKegiatan: row.BentukKegiatan || row.bentuk_kegiatan || '',
+      Mitra: row.Mitra || row.mitra || '',
+      LatarBelakang: row.LatarBelakang || row.latar_belakang || '',
+      TujuanKegiatan: row.TujuanKegiatan || row.tujuan_kegiatan || '',
+      JadwalPelaksanaan: row.JadwalPelaksanaan || row.jadwal_pelaksanaan || '',
+      SasaranKegiatan: row.SasaranKegiatan || row.sasaran_kegiatan || '',
+      IndikatorKeberhasilan: row.IndikatorKeberhasilan || row.indikator_keberhasilan || '',
+      SumberDana: row.SumberDana || row.sumber_dana || '',
+      PJKegiatan: row.PJKegiatan || row.pj_kegiatan || '',
     })
     setDokumenList([])
     setExistingFileList(existingFiles)
@@ -158,7 +226,7 @@ export default function ProposalManagement() {
   const handleSave = async (e) => {
     e.preventDefault()
     setIsSubmitting(true)
-    
+
     // 1. Upload all new files in dokumenList
     const newUploadedUrls = []
     for (const file of dokumenList) {
@@ -191,24 +259,31 @@ export default function ProposalManagement() {
     const url = isEditMode ? `${API}/proposals/${formId}` : `${API}/proposals`
     const method = isEditMode ? 'PUT' : 'POST'
 
-    const payload = { 
-      ...formData, 
-      Anggaran: Number(formData.Anggaran), 
-      OrmawaID: Number(formData.OrmawaID), 
+    const payload = {
+      ...formData,
+      Anggaran: Number(formData.Anggaran),
+      OrmawaID: Number(formData.OrmawaID),
       TanggalKegiatan: formData.TanggalKegiatan ? new Date(formData.TanggalKegiatan).toISOString() : new Date().toISOString(),
       file_url: finalFileUrl,
       FileURL: finalFileUrl,
     }
     try {
-      const data = await fetchWithAuth(url, { 
-        method, 
+      const data = await fetchWithAuth(url, {
+        method,
         body: JSON.stringify(payload),
         headers: { 'Content-Type': 'application/json' }
       })
       if (data.status === 'success') {
         toast.success(isEditMode ? 'Proposal diperbarui' : 'Proposal berhasil diajukan')
         setIsCrudOpen(false)
-        fetchProposals()
+        const updatedList = await fetchProposals()
+        if (!isEditMode && data.data) {
+          const newId = data.data.id || data.data.ID
+          const newlyCreated = (updatedList || []).find(p => (p.id || p.ID) === newId)
+          if (newlyCreated) {
+            printProposalPDF(newlyCreated)
+          }
+        }
       } else {
         toast.error(data.message || 'Gagal menyimpan proposal')
       }
@@ -217,6 +292,10 @@ export default function ProposalManagement() {
     } finally {
       setIsSubmitting(false)
     }
+  }
+
+  const printProposalPDF = (proposal) => {
+    setPrintData(proposal)
   }
 
   const handleAction = async (status) => {
@@ -305,7 +384,8 @@ export default function ProposalManagement() {
   return (
     <div className="max-w-[1600px] mx-auto px-4 py-8 md:px-8 xl:px-12 space-y-8 font-body">
       <Toaster position="top-right" containerStyle={{ zIndex: 99999 }} />
-      
+      <img src="/images/format_kop_rektorat_landscape.jpg" style={{ display: 'none' }} alt="" />
+
       {/* ── Welcome Banner ─────────────────────────────────────────── */}
       <section className="relative overflow-hidden rounded-3xl h-48 flex items-center group shadow-sm border border-slate-200/80">
         <div className="absolute inset-0 bg-gradient-to-br from-white via-slate-50/50 to-slate-100/50" />
@@ -360,7 +440,8 @@ export default function ProposalManagement() {
             ]}
             actions={(row) => (
               <div className="flex items-center justify-end gap-1">
-                <button onClick={() => handleView(row)} className="p-1.5 text-slate-400 hover:text-bku-primary hover:bg-bku-primary/10 rounded-lg transition-colors duration-150" title="Detail"><span className="material-symbols-outlined block" style={{ fontSize: '18px' }} >visibility</span></button>
+                <button onClick={() => handleView(row)} className="p-1.5 text-slate-400 hover:text-[#00236F] hover:bg-[#00236F]/10 rounded-lg transition-colors duration-150" title="Detail"><span className="material-symbols-outlined block" style={{ fontSize: '18px' }} >visibility</span></button>
+                <button onClick={() => printProposalPDF(row)} className="p-1.5 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors duration-150" title="Cetak PDF"><span className="material-symbols-outlined block" style={{ fontSize: '18px' }} >print</span></button>
                 <button onClick={() => handleOpenEdit(row)} className="p-1.5 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors duration-150" title="Edit"><span className="material-symbols-outlined block" style={{ fontSize: '18px' }} >edit</span></button>
                 <button onClick={() => { setSelected(row); setIsDelOpen(true) }} className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors duration-150" title="Hapus"><span className="material-symbols-outlined block" style={{ fontSize: '18px' }} >delete</span></button>
               </div>
@@ -381,10 +462,10 @@ export default function ProposalManagement() {
         {selected && (
           <ModalBody className="p-6">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              
+
               {/* Left Column: Details */}
               <div className="lg:col-span-2 space-y-6">
-                
+
                 {/* Metrics Row */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="bg-slate-50 border border-slate-200/60 rounded-2xl p-4 flex items-center gap-3">
@@ -410,15 +491,60 @@ export default function ProposalManagement() {
                   </div>
                 </div>
 
-                {/* Deskripsi */}
-                {selected.Catatan && (
-                  <div className="space-y-2">
-                    <Label className="text-[10px] font-black text-slate-400 tracking-[0.15em] uppercase font-headline">Tujuan & Deskripsi</Label>
-                    <div className="text-[12px] font-medium text-slate-600 leading-relaxed bg-slate-50 p-4 rounded-2xl border border-slate-200/40">
-                      {selected.Catatan}
+                {/* Detail Fields Grid */}
+                <div className="bg-slate-50 border border-slate-200/60 rounded-3xl p-6 space-y-4">
+                  <h3 className="text-xs font-black text-slate-800 uppercase tracking-widest font-headline">Informasi Detail Proposal</h3>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-medium text-slate-700">
+                    <div className="bg-white p-3 rounded-xl border border-slate-100 space-y-1">
+                      <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Landasan Kegiatan</p>
+                      <p className="font-bold text-slate-900">{selected.LandasanKegiatan || selected.landasan_kegiatan || "—"}</p>
+                    </div>
+                    <div className="bg-white p-3 rounded-xl border border-slate-100 space-y-1">
+                      <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Bentuk Kegiatan</p>
+                      <p className="font-bold text-slate-900">{selected.BentukKegiatan || selected.bentuk_kegiatan || "—"}</p>
+                    </div>
+                    <div className="bg-white p-3 rounded-xl border border-slate-100 space-y-1">
+                      <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Mitra Kerja</p>
+                      <p className="font-bold text-slate-900">{selected.Mitra || selected.mitra || "—"}</p>
+                    </div>
+                    <div className="bg-white p-3 rounded-xl border border-slate-100 space-y-1">
+                      <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider">PJ Kegiatan</p>
+                      <p className="font-bold text-slate-900">{selected.PJKegiatan || selected.pj_kegiatan || "—"}</p>
+                    </div>
+                    <div className="bg-white p-3 rounded-xl border border-slate-100 space-y-1">
+                      <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Jadwal Pelaksanaan</p>
+                      <p className="font-bold text-slate-900">{selected.JadwalPelaksanaan || selected.jadwal_pelaksanaan || "—"}</p>
+                    </div>
+                    <div className="bg-white p-3 rounded-xl border border-slate-100 space-y-1">
+                      <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Sasaran Kegiatan</p>
+                      <p className="font-bold text-slate-900">{selected.SasaranKegiatan || selected.sasaran_kegiatan || "—"}</p>
+                    </div>
+                    <div className="bg-white p-3 rounded-xl border border-slate-100 space-y-1">
+                      <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Sumber Dana</p>
+                      <p className="font-bold text-slate-900">{selected.SumberDana || selected.sumber_dana || "—"}</p>
+                    </div>
+                    <div className="bg-white p-3 rounded-xl border border-slate-100 space-y-1">
+                      <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Indikator Keberhasilan</p>
+                      <p className="font-bold text-slate-900">{selected.IndikatorKeberhasilan || selected.indikator_keberhasilan || "—"}</p>
                     </div>
                   </div>
-                )}
+
+                  <div className="bg-white p-4 rounded-xl border border-slate-100 space-y-1.5 text-xs text-slate-700">
+                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Latar Belakang</p>
+                    <p className="font-medium leading-relaxed whitespace-pre-line">{selected.LatarBelakang || selected.latar_belakang || "—"}</p>
+                  </div>
+
+                  <div className="bg-white p-4 rounded-xl border border-slate-100 space-y-1.5 text-xs text-slate-700">
+                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Tujuan Kegiatan</p>
+                    <p className="font-medium leading-relaxed whitespace-pre-line">{selected.TujuanKegiatan || selected.tujuan_kegiatan || "—"}</p>
+                  </div>
+
+                  <div className="bg-white p-4 rounded-xl border border-slate-100 space-y-1.5 text-xs text-slate-700">
+                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Deskripsi Kegiatan</p>
+                    <p className="font-medium leading-relaxed whitespace-pre-line">{selected.Deskripsi || selected.deskripsi || "—"}</p>
+                  </div>
+                </div>
 
                 {/* Dokumen Proposal */}
                 {(() => {
@@ -541,13 +667,12 @@ export default function ProposalManagement() {
                   <p className="text-[11px] text-slate-500 font-medium leading-relaxed">
                     Proposal diteruskan secara otomatis setelah disetujui masing-masing tingkat:
                   </p>
-                  {[{s:'disetujui_dosen', label:'Dosen Pembimbing'},{s:'disetujui_fakultas', label:'Admin Fakultas'},{s:'disetujui_univ', label:'SuperAdmin Universitas'}].map((step, i) => {
-                    const statuses = ['disetujui_dosen','disetujui_fakultas','disetujui_univ','selesai']
+                  {[{ s: 'disetujui_dosen', label: 'Dosen Pembimbing' }, { s: 'disetujui_fakultas', label: 'Admin Fakultas' }, { s: 'disetujui_univ', label: 'Universitas' }].map((step, i) => {
+                    const statuses = ['disetujui_dosen', 'disetujui_fakultas', 'disetujui_univ', 'selesai']
                     const done = statuses.indexOf(selected.Status) >= i
                     return (
-                      <div key={step.s} className={`flex items-center gap-2.5 p-2.5 rounded-xl border ${
-                        done ? 'bg-emerald-50 border-emerald-100' : 'bg-slate-50 border-slate-100 opacity-50'
-                      }`}>
+                      <div key={step.s} className={`flex items-center gap-2.5 p-2.5 rounded-xl border ${done ? 'bg-emerald-50 border-emerald-100' : 'bg-slate-50 border-slate-100 opacity-50'
+                        }`}>
                         <span className={`material-symbols-outlined text-[16px] ${done ? 'text-emerald-600' : 'text-slate-300'}`}>
                           {done ? 'check_circle' : 'radio_button_unchecked'}
                         </span>
@@ -572,6 +697,12 @@ export default function ProposalManagement() {
           </ModalBody>
         )}
         <ModalFooter>
+          {selected && (
+            <Button onClick={() => printProposalPDF(selected)} className="bg-[#00236F] hover:bg-[#00236F]/90 text-white font-bold gap-2 flex items-center transition-all shadow-sm">
+              <span className="material-symbols-outlined text-[16px]">print</span>
+              Cetak Proposal (PDF)
+            </Button>
+          )}
           <ModalBtn variant="ghost" type="button" onClick={() => { setIsDetailOpen(false); setKomentar('') }}>
             Tutup Detail
           </ModalBtn>
@@ -585,34 +716,121 @@ export default function ProposalManagement() {
         title={isEditMode ? 'Edit Proposal' : 'Buat Proposal Baru'}
         subtitle="Isi data kegiatan dan anggaran yang dibutuhkan untuk pengajuan."
         icon={isEditMode ? <span className="material-symbols-outlined">edit</span> : <span className="material-symbols-outlined stroke-[3px]">add</span>}
-        maxWidth="max-w-xl"
+        maxWidth="max-w-4xl"
       >
         <form onSubmit={handleSave}>
           <ModalBody>
             <div className="space-y-4">
+
               <div className="space-y-2">
-                <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 font-headline uppercase">Judul / Nama Kegiatan</Label>
+                <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 font-headline uppercase font-bold">Nama Kegiatan</Label>
                 <Input
                   required
                   value={formData.Judul}
                   onChange={(e) => setFormData({ ...formData, Judul: e.target.value })}
                   placeholder="Contoh: Pekan Olahraga Fakultas..."
-                  className="h-12 rounded-2xl border-slate-200 bg-slate-50 focus:bg-white focus:border-bku-primary focus:ring-2 focus:ring-bku-primary/10 transition-all font-bold text-sm font-headline"
+                  className="h-12 rounded-2xl border-slate-200 bg-slate-50 focus:bg-white focus:border-[#00236F] focus:ring-2 focus:ring-[#00236F]/10 transition-all font-bold text-sm font-headline"
                 />
               </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 font-headline uppercase">Tanggal Kegiatan</Label>
+                  <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 font-headline uppercase font-bold">Landasan Kegiatan</Label>
+                  <Input
+                    required
+                    value={formData.LandasanKegiatan}
+                    onChange={(e) => setFormData({ ...formData, LandasanKegiatan: e.target.value })}
+                    placeholder="Contoh: Program Kerja Himpunan 2026..."
+                    className="h-11 rounded-2xl border-slate-200 bg-slate-50 focus:bg-white focus:border-[#00236F] focus:ring-2 focus:ring-[#00236F]/10 transition-all text-xs font-bold font-headline"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 font-headline uppercase font-bold">Bentuk Kegiatan</Label>
+                  <Input
+                    value={formData.BentukKegiatan}
+                    onChange={(e) => setFormData({ ...formData, BentukKegiatan: e.target.value })}
+                    placeholder="Contoh: Kompetisi & Seminar..."
+                    className="h-11 rounded-2xl border-slate-200 bg-slate-50 focus:bg-white focus:border-[#00236F] focus:ring-2 focus:ring-[#00236F]/10 transition-all text-xs font-bold font-headline"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 font-headline uppercase font-bold">Mitra</Label>
+                  <Input
+                    value={formData.Mitra}
+                    onChange={(e) => setFormData({ ...formData, Mitra: e.target.value })}
+                    placeholder="Contoh: Seluruh LK dan UKM KEMA UBK"
+                    className="h-11 rounded-2xl border-slate-200 bg-slate-50 focus:bg-white focus:border-[#00236F] focus:ring-2 focus:ring-[#00236F]/10 transition-all text-xs font-bold font-headline"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 font-headline uppercase font-bold">PJ Kegiatan</Label>
+                  <Input
+                    value={formData.PJKegiatan}
+                    onChange={(e) => setFormData({ ...formData, PJKegiatan: e.target.value })}
+                    placeholder="Contoh: Budi Santoso (Ketua Panitia)..."
+                    className="h-11 rounded-2xl border-slate-200 bg-slate-50 focus:bg-white focus:border-[#00236F] focus:ring-2 focus:ring-[#00236F]/10 transition-all text-xs font-bold font-headline"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 font-headline uppercase font-bold">Jadwal Pelaksanaan (Hari, Tanggal Bulan Tahun, Waktu)</Label>
+                  <Input
+                    value={formData.JadwalPelaksanaan}
+                    onChange={(e) => setFormData({ ...formData, JadwalPelaksanaan: e.target.value })}
+                    placeholder="Contoh: Senin, 15 Juli 2026, 09.00 - 15.00 WIB..."
+                    className="h-11 rounded-2xl border-slate-200 bg-slate-50 focus:bg-white focus:border-[#00236F] focus:ring-2 focus:ring-[#00236F]/10 transition-all text-xs font-bold font-headline"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 font-headline uppercase font-bold">Sasaran Kegiatan</Label>
+                  <Input
+                    value={formData.SasaranKegiatan}
+                    onChange={(e) => setFormData({ ...formData, SasaranKegiatan: e.target.value })}
+                    placeholder="Contoh: Seluruh Mahasiswa Fakultas Teknik..."
+                    className="h-11 rounded-2xl border-slate-200 bg-slate-50 focus:bg-white focus:border-[#00236F] focus:ring-2 focus:ring-[#00236F]/10 transition-all text-xs font-bold font-headline"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 font-headline uppercase font-bold">Sumber Dana</Label>
+                  <Input
+                    value={formData.SumberDana}
+                    onChange={(e) => setFormData({ ...formData, SumberDana: e.target.value })}
+                    placeholder="Contoh: Dana Kemahasiswaan & Sponsor..."
+                    className="h-11 rounded-2xl border-slate-200 bg-slate-50 focus:bg-white focus:border-[#00236F] focus:ring-2 focus:ring-[#00236F]/10 transition-all text-xs font-bold font-headline"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 font-headline uppercase font-bold">Indikator Keberhasilan</Label>
+                  <Input
+                    value={formData.IndikatorKeberhasilan}
+                    onChange={(e) => setFormData({ ...formData, IndikatorKeberhasilan: e.target.value })}
+                    placeholder="Contoh: Target 200 Peserta Hadir..."
+                    className="h-11 rounded-2xl border-slate-200 bg-slate-50 focus:bg-white focus:border-[#00236F] focus:ring-2 focus:ring-[#00236F]/10 transition-all text-xs font-bold font-headline"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 font-headline uppercase font-bold">Tanggal Pelaksanaan Utama</Label>
                   <Input
                     required
                     type="date"
                     value={formData.TanggalKegiatan}
                     onChange={(e) => setFormData({ ...formData, TanggalKegiatan: e.target.value })}
-                    className="h-12 rounded-2xl border-slate-200 bg-slate-50 focus:bg-white focus:border-bku-primary focus:ring-2 focus:ring-bku-primary/10 transition-all font-bold text-sm font-headline cursor-pointer"
+                    className="h-11 rounded-2xl border-slate-200 bg-slate-50 focus:bg-white focus:border-[#00236F] focus:ring-2 focus:ring-[#00236F]/10 transition-all text-xs font-bold font-headline cursor-pointer"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 font-headline uppercase">Anggaran (Rp)</Label>
+                  <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 font-headline uppercase font-bold">Estimasi Dana / Anggaran (Rp)</Label>
                   <Input
                     required
                     type="text"
@@ -622,23 +840,54 @@ export default function ProposalManagement() {
                       setFormData({ ...formData, Anggaran: rawVal })
                     }}
                     placeholder="Cth: 10.000.000"
-                    className="h-12 rounded-2xl border-slate-200 bg-slate-50 focus:bg-white focus:border-bku-primary focus:ring-2 focus:ring-bku-primary/10 transition-all font-bold text-sm font-headline"
+                    className="h-11 rounded-2xl border-slate-200 bg-slate-50 focus:bg-white focus:border-[#00236F] focus:ring-2 focus:ring-[#00236F]/10 transition-all text-xs font-bold font-headline"
                   />
                 </div>
               </div>
+
               <div className="space-y-2">
-                <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 font-headline uppercase">Tujuan / Deskripsi</Label>
+                <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 font-headline uppercase font-bold">Latar Belakang</Label>
+                <Textarea
+                  value={formData.LatarBelakang}
+                  onChange={(e) => setFormData({ ...formData, LatarBelakang: e.target.value })}
+                  placeholder="Deskripsikan latar belakang pengajuan kegiatan..."
+                  className="min-h-[80px] rounded-2xl border-slate-200 bg-slate-50 focus:bg-white p-4 text-xs font-medium leading-relaxed font-headline"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 font-headline uppercase font-bold">Tujuan Kegiatan</Label>
+                <Textarea
+                  value={formData.TujuanKegiatan}
+                  onChange={(e) => setFormData({ ...formData, TujuanKegiatan: e.target.value })}
+                  placeholder="Deskripsikan tujuan dari kegiatan..."
+                  className="min-h-[80px] rounded-2xl border-slate-200 bg-slate-50 focus:bg-white p-4 text-xs font-medium leading-relaxed font-headline"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 font-headline uppercase font-bold">Deskripsi Detail Kegiatan</Label>
+                <Textarea
+                  value={formData.Deskripsi}
+                  onChange={(e) => setFormData({ ...formData, Deskripsi: e.target.value })}
+                  placeholder="Deskripsikan rincian detail/mekanisme kegiatan..."
+                  className="min-h-[80px] rounded-2xl border-slate-200 bg-slate-50 focus:bg-white p-4 text-xs font-medium leading-relaxed font-headline"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 font-headline uppercase font-bold">Catatan Reviewer / Keterangan Lainnya</Label>
                 <Textarea
                   required
                   value={formData.Catatan}
                   onChange={(e) => setFormData({ ...formData, Catatan: e.target.value })}
-                  placeholder="Deskripsikan tujuan dan manfaat kegiatan..."
-                  className="min-h-[100px] rounded-2xl border-slate-200 bg-slate-50 focus:bg-white p-4 font-medium text-sm leading-relaxed font-headline"
+                  placeholder="Tambahkan catatan atau keterangan pelengkap..."
+                  className="min-h-[80px] rounded-2xl border-slate-200 bg-slate-50 focus:bg-white p-4 text-xs font-medium leading-relaxed font-headline"
                 />
               </div>
               <div className="space-y-2.5">
                 <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 font-headline uppercase">Upload Dokumen Proposal</Label>
-                <div className="border-2 border-dashed border-slate-200 hover:border-bku-primary/50 rounded-2xl p-6 text-center hover:bg-slate-50/50 transition-all duration-150 relative group">
+                <div className="border-2 border-dashed border-slate-200 hover:border-[#00236F]/50 rounded-2xl p-6 text-center hover:bg-slate-50/50 transition-all duration-150 relative group">
                   <input
                     type="file"
                     multiple
@@ -647,10 +896,10 @@ export default function ProposalManagement() {
                     className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                   />
                   <div className="pointer-events-none flex flex-col items-center">
-                    <div className="w-12 h-12 rounded-xl bg-slate-100 group-hover:bg-bku-primary/10 text-slate-400 group-hover:text-bku-primary flex items-center justify-center mb-3 transition-colors duration-150 border border-slate-200/50">
+                    <div className="w-12 h-12 rounded-xl bg-slate-100 group-hover:bg-[#00236F]/10 text-slate-400 group-hover:text-[#00236F] flex items-center justify-center mb-3 transition-colors duration-150 border border-slate-200/50">
                       <span className="material-symbols-outlined normal-case" style={{ fontSize: '24px' }}>upload_file</span>
                     </div>
-                    <p className="text-xs font-black text-bku-primary uppercase tracking-wider">Klik untuk Upload Dokumen</p>
+                    <p className="text-xs font-black text-[#00236F] uppercase tracking-wider">Klik untuk Upload Dokumen</p>
                     <p className="text-[10px] text-slate-400 font-semibold mt-1">Bisa pilih lebih dari 1 file (PDF, Word, Excel, Maks. 5MB per file)</p>
                   </div>
                 </div>
@@ -738,6 +987,549 @@ export default function ProposalManagement() {
         description="Proposal dan seluruh riwayat persetujuannya akan dihapus permanen dari sistem."
         loading={isSubmitting}
       />
-    </div>
+      {printData && createPortal(
+        <div className="print-only-container">
+          <style>{`
+            @media screen {
+              .print-only-container {
+                display: none !important;
+              }
+            }
+            @media print {
+              #root {
+                display: none !important;
+              }
+              .print-only-container {
+                display: block !important;
+                width: 297mm;
+                height: 210mm;
+                margin: 0;
+                padding: 0;
+                background-color: #ffffff;
+              }
+              @page {
+                size: landscape;
+                margin: 0;
+              }
+              body {
+                background-color: #ffffff !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+              }
+              .page {
+                width: 297mm;
+                height: 210mm;
+                position: relative;
+                page-break-after: always;
+                box-sizing: border-box;
+                overflow: hidden;
+                background-color: #ffffff;
+              }
+              .page:last-child {
+                page-break-after: avoid;
+              }
+              .page-bg {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 297mm;
+                height: 210mm;
+                z-index: 1;
+                pointer-events: none;
+              }
+              .page-content {
+                position: relative;
+                z-index: 2;
+                padding: 42mm 20mm 15mm 20mm;
+                height: 100%;
+                box-sizing: border-box;
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between;
+              }
+              .content-title {
+                text-align: center;
+                font-size: 14px;
+                font-weight: 800;
+                color: #0f172a;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+                margin-top: 5px;
+                margin-bottom: 15px;
+              }
+              .grid-container {
+                display: flex;
+                gap: 20px;
+                margin-bottom: 15px;
+              }
+              .col-left, .col-right {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+              }
+              .info-card {
+                background-color: #f8fafc;
+                border: 1px solid #f1f5f9;
+                border-radius: 8px;
+                padding: 8px 12px;
+              }
+              .info-label {
+                font-size: 8px;
+                font-weight: 700;
+                color: #94a3b8;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                margin: 0 0 2px 0;
+              }
+              .info-val {
+                font-size: 11px;
+                font-weight: 700;
+                color: #334155;
+                margin: 0;
+              }
+              .full-width-card {
+                background-color: #f8fafc;
+                border: 1px solid #f1f5f9;
+                border-radius: 10px;
+                padding: 10px 14px;
+                margin-bottom: 10px;
+                max-height: 85px;
+                overflow: hidden;
+              }
+              .full-width-card .info-val {
+                font-weight: 500;
+                font-size: 10px;
+                line-height: 1.4;
+                color: #475569;
+                display: -webkit-box;
+                -webkit-line-clamp: 3;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+              }
+              .pengesahan-title {
+                text-align: center;
+                font-size: 13px;
+                font-weight: 800;
+                color: #0f172a;
+                margin-top: 5px;
+                margin-bottom: 15px;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+              }
+              .summary-table {
+                width: 100%;
+                border-collapse: collapse;
+                margin-bottom: 15px;
+              }
+              .summary-table td {
+                padding: 5px 10px;
+                font-size: 10px;
+                border: 1px solid #e2e8f0;
+              }
+              .summary-table td.label-cell {
+                background-color: #f8fafc;
+                font-weight: bold;
+                color: #64748b;
+                width: 25%;
+                text-transform: uppercase;
+                font-size: 8px;
+                letter-spacing: 0.5px;
+              }
+              .summary-table td.val-cell {
+                font-weight: 600;
+                color: #1e293b;
+              }
+              .signature-container {
+                margin-top: 15px;
+                font-size: 9px;
+                color: #334155;
+                line-height: 1.4;
+              }
+              .sig-block {
+                text-align: center;
+                width: 38%;
+              }
+              .sig-block-three {
+                text-align: center;
+                width: 30%;
+              }
+              .sig-space {
+                height: 38px;
+              }
+              .sig-name {
+                font-weight: 700;
+                text-decoration: underline;
+                margin: 0;
+                font-size: 9.5px;
+              }
+              .sig-title {
+                margin: 1px 0 0 0;
+                color: #64748b;
+                font-size: 8.5px;
+                font-weight: 600;
+              }
+              .section-title {
+                font-weight: 700;
+                margin-bottom: 4px;
+                text-transform: uppercase;
+                font-size: 9px;
+                color: #0f172a;
+              }
+            }
+          `}</style>
+          {(() => {
+            const ormawa = printData?.Ormawa || {}
+            const ormawaName = ormawa.Nama || ormawa.nama || 'Organisasi Kemahasiswaan'
+            const ormawaAbbreviation = ormawa.Singkatan || ormawa.singkatan || ''
+            const ormawaKategori = (ormawa.Kategori || ormawa.kategori || '').toUpperCase()
+
+            let ormawaType = 'UKM'
+            const upperName = ormawaName.toUpperCase()
+            const upperAbbrev = ormawaAbbreviation.toUpperCase()
+
+            if (ormawaKategori === 'UKM' || upperName.includes('UKM') || upperAbbrev.includes('UKM') || upperName.includes('UNIT KEGIATAN')) {
+              ormawaType = 'UKM'
+            } else if (ormawaKategori === 'HIMPUNAN' || upperName.includes('HIMPUNAN') || upperName.includes('HIMA') || upperAbbrev.includes('HIMA')) {
+              ormawaType = 'HIMA'
+            } else if (upperAbbrev.includes('DPM') || upperName.includes('DEWAN PERWAKILAN')) {
+              if (upperName.includes('FAKULTAS') || upperName.includes('FARMASI') || upperName.includes('FIKES') || upperName.includes('KEPERAWATAN') || upperName.includes('SOSIAL')) {
+                ormawaType = 'DPM Fakultas'
+              } else {
+                ormawaType = 'DPM Universitas'
+              }
+            } else if (upperAbbrev.includes('BEM') || upperName.includes('BADAN EKSEKUTIF')) {
+              if (upperName.includes('FAKULTAS') || upperName.includes('FARMASI') || upperName.includes('FIKES') || upperName.includes('KEPERAWATAN') || upperName.includes('SOSIAL')) {
+                ormawaType = 'BEM Fakultas'
+              } else {
+                ormawaType = 'BEM Universitas'
+              }
+            } else {
+              if (ormawaKategori === 'BEM') ormawaType = 'BEM Universitas'
+              else if (ormawaKategori === 'DPM') ormawaType = 'DPM Universitas'
+              else if (ormawaKategori === 'HIMPUNAN') ormawaType = 'HIMA'
+              else ormawaType = 'UKM'
+            }
+
+            const pjKegiatan = printData.PJKegiatan || printData.pj_kegiatan || '____________________'
+
+            return (
+              <>
+                {/* Page 1: Proposal Details */}
+                <div className="page">
+                  <img src="/images/format_kop_rektorat_landscape.jpg" className="page-bg" />
+                  <div className="page-content">
+                    <div>
+                      <div className="content-title" style={{ marginTop: '10px' }}>
+                        PROPOSAL KEGIATAN {ormawaAbbreviation.toUpperCase()}
+                      </div>
+                      
+                      <div className="grid-container">
+                        <div className="col-left">
+                          <div className="info-card">
+                            <p className="info-label">Nama Kegiatan</p>
+                            <p className="info-val" style={{ fontSize: '11.5px', color: '#0f172a' }}>{printData.Judul || '—'}</p>
+                          </div>
+                          <div className="info-card">
+                            <p className="info-label">Organisasi Penyelenggara</p>
+                            <p className="info-val">{ormawaName} ({ormawaAbbreviation.toUpperCase()})</p>
+                          </div>
+                          <div className="info-card">
+                            <p className="info-label">PJ Kegiatan / Kontak</p>
+                            <p className="info-val">{printData.PJKegiatan || printData.pj_kegiatan || '—'}</p>
+                          </div>
+                          <div className="info-card">
+                            <p className="info-label">Mitra Kerja / Sponsor</p>
+                            <p className="info-val">{printData.Mitra || printData.mitra || '—'}</p>
+                          </div>
+                        </div>
+                        <div className="col-right">
+                          <div className="info-card">
+                            <p className="info-label">Rencana Anggaran</p>
+                            <p className="info-val" style={{ color: '#059669' }}>
+                              {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(printData.Anggaran || 0)}
+                            </p>
+                          </div>
+                          <div className="info-card">
+                            <p className="info-label">Sumber Dana</p>
+                            <p className="info-val">{printData.SumberDana || printData.sumber_dana || '—'}</p>
+                          </div>
+                          <div className="info-card">
+                            <p className="info-label">Waktu Pelaksanaan</p>
+                            <p className="info-val">{printData.JadwalPelaksanaan || printData.jadwal_pelaksanaan || '—'}</p>
+                          </div>
+                          <div className="info-card">
+                            <p className="info-label">Indikator Keberhasilan</p>
+                            <p className="info-val">{printData.IndikatorKeberhasilan || printData.indikator_keberhasilan || '—'}</p>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="full-width-card">
+                        <p class="info-label">Latar Belakang Kegiatan</p>
+                        <div className="info-val">{printData.LatarBelakang || printData.latar_belakang || '—'}</div>
+                      </div>
+                      <div className="full-width-card">
+                        <p class="info-label">Deskripsi & Bentuk Kegiatan</p>
+                        <div className="info-val">{printData.Deskripsi || printData.deskripsi || '—'}</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Page 2: Lembar Pengesahan */}
+                <div className="page">
+                  <img src="/images/format_kop_rektorat_landscape.jpg" className="page-bg" />
+                  <div className="page-content">
+                    <div>
+                      <div className="pengesahan-title" style={{ marginTop: '10px' }}>Lembar Pengesahan Dokumen Proposal</div>
+                      
+                      <table className="summary-table">
+                        <tbody>
+                          <tr>
+                            <td className="label-cell">Nama Kegiatan</td>
+                            <td className="val-cell" colSpan={3}>{printData.Judul || '—'}</td>
+                          </tr>
+                          <tr>
+                            <td className="label-cell">Organisasi</td>
+                            <td className="val-cell">{ormawaName} ({ormawaAbbreviation.toUpperCase()})</td>
+                            <td className="label-cell">Klasifikasi Ormawa</td>
+                            <td className="val-cell">{ormawaType}</td>
+                          </tr>
+                          <tr>
+                            <td className="label-cell">PJ Pelaksana</td>
+                            <td className="val-cell">{printData.PJKegiatan || printData.pj_kegiatan || '—'}</td>
+                            <td className="label-cell">Anggaran Diajukan</td>
+                            <td className="val-cell" style={{ color: '#059669', fontWeight: 800 }}>
+                              {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(printData.Anggaran || 0)}
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                      
+                      {/* Signatures */}
+                      {ormawaType === 'DPM Universitas' && (
+                        <div className="signature-container">
+                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '40px' }}>
+                            <div className="sig-block">
+                              <p>Ketua Pelaksana Kegiatan,</p>
+                              <div className="sig-space"></div>
+                              <p className="sig-name">{pjKegiatan}</p>
+                              <p className="sig-title">Ketua Pelaksana</p>
+                            </div>
+                            <div className="sig-block">
+                              <p>Ketua DPM UBK,</p>
+                              <div className="sig-space"></div>
+                              <p className="sig-name">____________________</p>
+                              <p className="sig-title">Ketua DPM UBK</p>
+                            </div>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'center', marginTop: '20px' }}>
+                            <div className="sig-block">
+                              <p className="section-title">Menyetujui:</p>
+                              <p>Ketua Divisi Pengembangan Prestasi, Beasiswa, Ormawa</p>
+                              <div className="sig-space"></div>
+                              <p className="sig-name">____________________</p>
+                              <p className="sig-title">Kepala Divisi</p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {ormawaType === 'BEM Universitas' && (
+                        <div className="signature-container">
+                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '40px' }}>
+                            <div className="sig-block">
+                              <p>Ketua Pelaksana Kegiatan,</p>
+                              <div className="sig-space"></div>
+                              <p className="sig-name">{pjKegiatan}</p>
+                              <p className="sig-title">Ketua Pelaksana</p>
+                            </div>
+                            <div className="sig-block">
+                              <p>Ketua BEM UBK,</p>
+                              <div className="sig-space"></div>
+                              <p className="sig-name">____________________</p>
+                              <p className="sig-title">Ketua BEM UBK</p>
+                            </div>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'center', marginTop: '20px' }}>
+                            <div className="sig-block">
+                              <p className="section-title">Menyetujui*:</p>
+                              <p>Ketua Divisi Pengembangan Prestasi, Beasiswa, Ormawa</p>
+                              <div className="sig-space"></div>
+                              <p className="sig-name">____________________</p>
+                              <p className="sig-title">Kepala Divisi</p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {ormawaType === 'UKM' && (
+                        <div className="signature-container">
+                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '30px' }}>
+                            <div className="sig-block-three">
+                              <p>Ketua Pelaksana Kegiatan,</p>
+                              <div className="sig-space"></div>
+                              <p className="sig-name">{pjKegiatan}</p>
+                              <p className="sig-title">Ketua Pelaksana</p>
+                            </div>
+                            <div className="sig-block-three">
+                              <p>Ketua UKM,</p>
+                              <div className="sig-space"></div>
+                              <p className="sig-name">____________________</p>
+                              <p className="sig-title">Ketua {ormawaAbbreviation || 'UKM'}</p>
+                            </div>
+                            <div className="sig-block-three">
+                              <p>Ketua BEM Universitas,</p>
+                              <div className="sig-space"></div>
+                              <p className="sig-name">____________________</p>
+                              <p className="sig-title">Ketua BEM UBK</p>
+                            </div>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '15px' }}>
+                            <div className="sig-block">
+                              <p className="section-title">Menyetujui:</p>
+                              <p>Pembina UKM,</p>
+                              <div className="sig-space"></div>
+                              <p className="sig-name">____________________</p>
+                              <p className="sig-title">Pembina</p>
+                            </div>
+                            <div className="sig-block">
+                              <p className="section-title">Menyetujui:</p>
+                              <p>Ketua Divisi Pengembangan Prestasi, Beasiswa, Ormawa</p>
+                              <div className="sig-space"></div>
+                              <p className="sig-name">____________________</p>
+                              <p className="sig-title">Kepala Divisi</p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {ormawaType === 'DPM Fakultas' && (
+                        <div className="signature-container">
+                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '30px' }}>
+                            <div className="sig-block">
+                              <p>Ketua Pelaksana Kegiatan,</p>
+                              <div className="sig-space"></div>
+                              <p className="sig-name">{pjKegiatan}</p>
+                              <p className="sig-title">Ketua Pelaksana</p>
+                            </div>
+                            <div className="sig-block">
+                              <p>Ketua DPM,</p>
+                              <div className="sig-space"></div>
+                              <p className="sig-name">____________________</p>
+                              <p className="sig-title">Ketua DPM</p>
+                            </div>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '15px' }}>
+                            <div className="sig-block">
+                              <p className="section-title">Menyetujui:</p>
+                              <p>PJ Ormawa Fakultas,</p>
+                              <div className="sig-space"></div>
+                              <p className="sig-name">____________________</p>
+                              <p className="sig-title">PJ Ormawa</p>
+                            </div>
+                            <div className="sig-block">
+                              <p className="section-title">Menyetujui:</p>
+                              <p>Wakil Dekan 1 Bidang Akademik, Penelitian, Pengmas, dan Kemahasiswaan</p>
+                              <div className="sig-space"></div>
+                              <p className="sig-name">____________________</p>
+                              <p className="sig-title">Wakil Dekan 1</p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {ormawaType === 'BEM Fakultas' && (
+                        <div className="signature-container">
+                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '30px' }}>
+                            <div className="sig-block">
+                              <p>Ketua Pelaksana Kegiatan,</p>
+                              <div className="sig-space"></div>
+                              <p className="sig-name">{pjKegiatan}</p>
+                              <p className="sig-title">Ketua Pelaksana</p>
+                            </div>
+                            <div className="sig-block">
+                              <p>Ketua BEM,</p>
+                              <div className="sig-space"></div>
+                              <p className="sig-name">____________________</p>
+                              <p className="sig-title">Ketua BEM</p>
+                            </div>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '15px' }}>
+                            <div className="sig-block">
+                              <p className="section-title">Menyetujui*:</p>
+                              <p>PJ Ormawa Fakultas,</p>
+                              <div className="sig-space"></div>
+                              <p className="sig-name">____________________</p>
+                              <p className="sig-title">PJ Ormawa</p>
+                            </div>
+                            <div className="sig-block">
+                              <p className="section-title">Menyetujui*:</p>
+                              <p>Wakil Dekan 1 Bidang Akademik, Penelitian, Pengmas, dan Kemahasiswaan</p>
+                              <div className="sig-space"></div>
+                              <p className="sig-name">____________________</p>
+                              <p className="sig-title">Wakil Dekan 1</p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {ormawaType === 'HIMA' && (
+                        <div className="signature-container">
+                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '25px' }}>
+                            <div className="sig-block-three">
+                              <p>Ketua Pelaksana Kegiatan,</p>
+                              <div className="sig-space"></div>
+                              <p className="sig-name">{pjKegiatan}</p>
+                              <p className="sig-title">Ketua Pelaksana</p>
+                            </div>
+                            <div className="sig-block-three">
+                              <p>Ketua HIMA,</p>
+                              <div className="sig-space"></div>
+                              <p className="sig-name">____________________</p>
+                              <p className="sig-title">Ketua HIMA</p>
+                            </div>
+                            <div className="sig-block-three">
+                              <p>Ketua BEM Fakultas,</p>
+                              <div className="sig-space"></div>
+                              <p className="sig-name">____________________</p>
+                              <p className="sig-title">Ketua BEM Fakultas</p>
+                            </div>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '10px' }}>
+                            <div className="sig-block-three">
+                              <p className="section-title">Menyetujui:</p>
+                              <p>Ketua Program Studi,</p>
+                              <div className="sig-space"></div>
+                              <p className="sig-name">____________________</p>
+                              <p className="sig-title">Ketua Prodi</p>
+                            </div>
+                            <div className="sig-block-three">
+                              <p className="section-title">Menyetujui:</p>
+                              <p>PJ Ormawa Fakultas,</p>
+                              <div className="sig-space"></div>
+                              <p className="sig-name">____________________</p>
+                              <p className="sig-title">PJ Ormawa</p>
+                            </div>
+                            <div className="sig-block-three">
+                              <p className="section-title">Menyetujui:</p>
+                              <p>Wakil Dekan 1 Bidang Akademik, Penelitian, Pengmas, dan Kemahasiswaan</p>
+                              <div className="sig-space"></div>
+                              <p className="sig-name">____________________</p>
+                              <p className="sig-title">Wakil Dekan 1</p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </>
+            )
+          })()}
+        </div>,
+        document.body
+      )}    </div>
   )
 }

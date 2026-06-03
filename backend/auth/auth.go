@@ -695,37 +695,233 @@ func EnsureBootstrapData() error {
 
 	// 11. Seed ORMAWA menus
 	if ormawa.ID != 0 && sampleMhs.ID != 0 {
-		var proposal models.Proposal
-		if err := config.DB.Where("ormawa_id = ? AND judul = ?", ormawa.ID, "Festival Mahasiswa UBK 2026").First(&proposal).Error; err != nil {
-			proposal = models.Proposal{
-				OrmawaID:        ormawa.ID,
-				MahasiswaID:     sampleMhs.ID,
-				FakultasID:      sampleMhs.FakultasID,
-				Judul:           "Festival Mahasiswa UBK 2026",
-				TanggalKegiatan: time.Now().AddDate(0, 1, 10),
-				Anggaran:        25000000,
-				Jenis:           "Kegiatan Mahasiswa",
-				Status:          "Diajukan",
-				Catatan:         "Proposal awal kegiatan lintas fakultas",
+		proposalsToSeed := []models.Proposal{
+			{
+				OrmawaID:              ormawa.ID,
+				MahasiswaID:           sampleMhs.ID,
+				FakultasID:            sampleMhs.FakultasID,
+				Judul:                 "Festival Mahasiswa UBK 2026",
+				TanggalKegiatan:       time.Now().AddDate(0, 1, 10),
+				Anggaran:              25000000,
+				Jenis:                 "Kegiatan Mahasiswa",
+				Status:                "diajukan",
+				Catatan:               "Proposal awal kegiatan lintas fakultas",
+				LandasanKegiatan:      "Program Kerja BEM KBM UBK 2026 Bidang Minat Bakat",
+				Deskripsi:             "Festival musik, seni, dan pameran wirausaha mahasiswa Bhakti Kencana.",
+				BentukKegiatan:        "Pameran, Lomba Seni, & Pentas Musik",
+				Mitra:                 "Sponsor Swasta & Koperasi Mahasiswa",
+				LatarBelakang:         "Meningkatkan sportivitas dan kreativitas seni mahasiswa.",
+				TujuanKegiatan:        "Mempererat silaturahmi antar fakultas dan mengasah minat bakat mahasiswa.",
+				JadwalPelaksanaan:      "Jumat-Sabtu, 14-15 Agustus 2026, 08:00 - 17:00 WIB",
+				SasaranKegiatan:        "Seluruh Mahasiswa Universitas Bhakti Kencana",
+				IndikatorKeberhasilan: "Diikuti oleh minimal 500 mahasiswa dan 20 stan wirausaha.",
+				SumberDana:            "Dana Kemahasiswaan & Kontribusi Tenant",
+				PJKegiatan:            "Ahmad Dahlan (BEM KBM)",
+			},
+			{
+				OrmawaID:              ormawa.ID,
+				MahasiswaID:           sampleMhs.ID,
+				FakultasID:            sampleMhs.FakultasID,
+				Judul:                 "Latihan Kepemimpinan Manajemen Mahasiswa (LKMM)",
+				TanggalKegiatan:       time.Now().AddDate(0, 1, 1),
+				Anggaran:              12500000,
+				Jenis:                 "Kaderisasi",
+				Status:                "disetujui_univ",
+				Catatan:               "Telah divalidasi oleh Warek Kemahasiswaan",
+				LandasanKegiatan:      "GBHP BEM KBM Bhakti Kencana 2026",
+				Deskripsi:             "Pelatihan kepemimpinan tingkat menengah untuk calon pengurus Ormawa.",
+				BentukKegiatan:        "Latihan Kepemimpinan & Outbound",
+				Mitra:                 "Ikatan Alumni BKU",
+				LatarBelakang:         "Kebutuhan regenerasi kepemimpinan organisasi kemahasiswaan.",
+				TujuanKegiatan:        "Membentuk karakter pemimpin yang adaptif, komunikatif, dan berintegritas.",
+				JadwalPelaksanaan:      "Sabtu-Minggu, 4-5 Juli 2026, 08:00 - 16:00 WIB",
+				SasaranKegiatan:        "Calon Pengurus Baru Ormawa se-UBK",
+				IndikatorKeberhasilan: "Meluluskan 50 peserta dengan nilai kepemimpinan minimal B.",
+				SumberDana:            "Dana Alokasi Ormawa & Kas Internal",
+				PJKegiatan:            "Rizki Amalia (Kepala PSDM)",
+			},
+			{
+				OrmawaID:              ormawa.ID,
+				MahasiswaID:           sampleMhs.ID,
+				FakultasID:            sampleMhs.FakultasID,
+				Judul:                 "Bakti Sosial Kesehatan Masyarakat",
+				TanggalKegiatan:       time.Now().AddDate(0, 0, 21),
+				Anggaran:              8000000,
+				Jenis:                 "Pengabdian Masyarakat",
+				Status:                "disetujui_fakultas",
+				Catatan:               "Disetujui Fakultas, lanjut review Universitas",
+				LandasanKegiatan:      "Tri Dharma Perguruan Tinggi (Pengabdian)",
+				Deskripsi:             "Pemeriksaan kesehatan gratis dan penyuluhan sanitasi di desa binaan.",
+				BentukKegiatan:        "Pemeriksaan Medis & Penyuluhan",
+				Mitra:                 "Puskesmas Kecamatan Cibiru",
+				LatarBelakang:         "Rendahnya tingkat kesadaran sanitasi masyarakat di daerah pinggiran kota.",
+				TujuanKegiatan:        "Meningkatkan kesehatan masyarakat dan melatih kepedulian sosial mahasiswa.",
+				JadwalPelaksanaan:      "Rabu, 24 Juni 2026, 09:00 - 15:00 WIB",
+				SasaranKegiatan:        "Warga Kelurahan Cibiru Wetan",
+				IndikatorKeberhasilan: "Melayani minimal 100 warga lansia dan anak-anak.",
+				SumberDana:            "Dana Pengabdian Universitas & Donasi Umum",
+				PJKegiatan:            "Dedi Setiadi (Departemen Sosial)",
+			},
+			{
+				OrmawaID:              ormawa.ID,
+				MahasiswaID:           sampleMhs.ID,
+				FakultasID:            sampleMhs.FakultasID,
+				Judul:                 "Seminar Nasional Entrepreneurship Muda",
+				TanggalKegiatan:       time.Now().AddDate(0, 0, 15),
+				Anggaran:              15000000,
+				Jenis:                 "Akademik",
+				Status:                "disetujui_dosen",
+				Catatan:               "Disetujui Dosen Pembimbing, menunggu approval Fakultas",
+				LandasanKegiatan:      "Rekomendasi Rektorat Bidang Kewirausahaan",
+				Deskripsi:             "Seminar kewirausahaan digital menghadirkan praktisi start-up nasional.",
+				BentukKegiatan:        "Seminar Interaktif & Talkshow",
+				Mitra:                 "Kadin Kota Bandung",
+				LatarBelakang:         "Pentingnya menumbuhkan jiwa wirausaha di kalangan mahasiswa.",
+				TujuanKegiatan:        "Memberikan wawasan bisnis praktis dan memotivasi mahasiswa berwirausaha.",
+				JadwalPelaksanaan:      "Kamis, 18 Juni 2026, 09:00 - 12:00 WIB",
+				SasaranKegiatan:        "Mahasiswa Umum & Publik",
+				IndikatorKeberhasilan: "Dihadiri 300 peserta online/offline.",
+				SumberDana:            "Dana Hibah Kewirausahaan & Tiket Peserta",
+				PJKegiatan:            "Indah Permata (Divisi Kewirausahaan)",
+			},
+			{
+				OrmawaID:              ormawa.ID,
+				MahasiswaID:           sampleMhs.ID,
+				FakultasID:            sampleMhs.FakultasID,
+				Judul:                 "Webinar Kebangsaan & Bela Negara",
+				TanggalKegiatan:       time.Now().AddDate(0, 0, 17),
+				Anggaran:              3000000,
+				Jenis:                 "Kebangsaan",
+				Status:                "revisi",
+				Catatan:               "Harap perbaiki rincian honor narasumber",
+				LandasanKegiatan:      "Instruksi Kemendikbudristek perihal Bela Negara",
+				Deskripsi:             "Webinar penguatan wawasan kebangsaan dan pencegahan radikalisme.",
+				BentukKegiatan:        "Webinar Online via Zoom",
+				Mitra:                 "Kodim setempat",
+				LatarBelakang:         "Maraknya disinformasi dan ancaman radikalisme di media sosial.",
+				TujuanKegiatan:        "Menanamkan nilai-nilai cinta tanah air pada mahasiswa.",
+				JadwalPelaksanaan:      "Sabtu, 20 Juni 2026, 13:00 - 15:30 WIB",
+				SasaranKegiatan:        "Seluruh Mahasiswa Baru UBK",
+				IndikatorKeberhasilan: "Kehadiran minimal 80% dari total mahasiswa baru.",
+				SumberDana:            "Dana Kemahasiswaan",
+				PJKegiatan:            "Yusuf Habibie (Departemen Humas)",
+			},
+		}
+
+		for _, pSeed := range proposalsToSeed {
+			var proposal models.Proposal
+			if err := config.DB.Where("ormawa_id = ? AND judul = ?", ormawa.ID, pSeed.Judul).First(&proposal).Error; err != nil {
+				proposal = pSeed
+				if err := config.DB.Create(&proposal).Error; err != nil {
+					return err
+				}
+			} else {
+				pSeed.ID = proposal.ID
+				config.DB.Save(&pSeed)
+				proposal = pSeed
 			}
-			if err := config.DB.Create(&proposal).Error; err != nil {
-				return err
+
+			var riwayat models.ProposalRiwayat
+			if err := config.DB.Where("proposal_id = ? AND status = ?", proposal.ID, proposal.Status).First(&riwayat).Error; err != nil {
+				riwayat = models.ProposalRiwayat{
+					ProposalID: proposal.ID,
+					Status:     proposal.Status,
+					Catatan:    proposal.Catatan,
+					CreatedBy:  ormawaUser.ID,
+				}
+				if err := config.DB.Create(&riwayat).Error; err != nil {
+					return err
+				}
+			}
+
+			if proposal.Status == "disetujui_univ" {
+				var lpj models.LaporanPertanggungjawaban
+				if err := config.DB.Where("proposal_id = ?", proposal.ID).First(&lpj).Error; err != nil {
+					lpj = models.LaporanPertanggungjawaban{
+						ProposalID:        proposal.ID,
+						RealisasiAnggaran: proposal.Anggaran,
+						Status:            "Draft",
+						Catatan:           "LPJ kegiatan BEM KBM",
+					}
+					if err := config.DB.Create(&lpj).Error; err != nil {
+						return err
+					}
+				}
 			}
 		}
 
-		var riwayat models.ProposalRiwayat
-		if err := config.DB.Where("proposal_id = ? AND status = ?", proposal.ID, "Diajukan").First(&riwayat).Error; err != nil {
-			riwayat = models.ProposalRiwayat{ProposalID: proposal.ID, Status: "Diajukan", Catatan: "Pengajuan awal", CreatedBy: ormawaUser.ID}
-			if err := config.DB.Create(&riwayat).Error; err != nil {
-				return err
-			}
+		eventsToSeed := []models.OrmawaKegiatan{
+			{
+				OrmawaID:              ormawa.ID,
+				Judul:                 "Grand Launching BEM KBM UBK 2026",
+				Deskripsi:             "Pemberitahuan resmi kepengurusan baru BEM KBM periode 2026.",
+				TanggalMulai:          time.Now().AddDate(0, 0, -2),
+				TanggalSelesai:        time.Now().AddDate(0, 0, -2).Add(8 * time.Hour),
+				Lokasi:                "Aula Utama Kampus A",
+				Status:                "Selesai",
+				LandasanKegiatan:      "SK Rektor No. 12/SK/2026",
+				BentukKegiatan:        "Seremoni & Orasi Visi Misi",
+				Mitra:                 "Humas Universitas",
+				LatarBelakang:         "Pentingnya pengenalan struktur organisasi baru kepada sivitas akademika.",
+				TujuanKegiatan:        "Mensosialisasikan program kerja setahun ke depan.",
+				JadwalPelaksanaan:      "Senin, 1 Juni 2026, 08:00 - 16:00 WIB",
+				SasaranKegiatan:        "Dosen, Staff, dan Mahasiswa UBK",
+				IndikatorKeberhasilan: "Dihadiri perwakilan seluruh UKM dan Himpunan.",
+				SumberDana:            "Dana Awal BEM",
+				EstimasiDana:          2500000,
+				PJKegiatan:            "Hendra Wijaya (Sekjen)",
+			},
+			{
+				OrmawaID:              ormawa.ID,
+				Judul:                 "Latihan Kepemimpinan Manajemen Mahasiswa (LKMM)",
+				Deskripsi:             "Pelatihan kepemimpinan tingkat menengah untuk calon pengurus Ormawa.",
+				TanggalMulai:          time.Now().AddDate(0, 1, 1),
+				TanggalSelesai:        time.Now().AddDate(0, 1, 2),
+				Lokasi:                "Wisma Caringin, Lembang",
+				Status:                "Terjadwal",
+				LandasanKegiatan:      "GBHP BEM KBM Bhakti Kencana 2026",
+				BentukKegiatan:        "Latihan Kepemimpinan & Outbound",
+				Mitra:                 "Ikatan Alumni BKU",
+				LatarBelakang:         "Kebutuhan regenerasi kepemimpinan organisasi kemahasiswaan.",
+				TujuanKegiatan:        "Membentuk karakter pemimpin yang adaptif, komunikatif, dan berintegritas.",
+				JadwalPelaksanaan:      "Sabtu-Minggu, 4-5 Juli 2026, 08:00 - 16:00 WIB",
+				SasaranKegiatan:        "Calon Pengurus Baru Ormawa se-UBK",
+				IndikatorKeberhasilan: "Meluluskan 50 peserta dengan nilai kepemimpinan minimal B.",
+				SumberDana:            "Dana Alokasi Ormawa & Kas Internal",
+				EstimasiDana:          12500000,
+				PJKegiatan:            "Rizki Amalia (Kepala PSDM)",
+			},
+			{
+				OrmawaID:              ormawa.ID,
+				Judul:                 "Bakti Sosial Kesehatan Masyarakat",
+				Deskripsi:             "Pemeriksaan kesehatan gratis dan penyuluhan sanitasi di desa binaan.",
+				TanggalMulai:          time.Now().AddDate(0, 0, 21),
+				TanggalSelesai:        time.Now().AddDate(0, 0, 21).Add(6 * time.Hour),
+				Lokasi:                "Balai Desa Cibiru Wetan",
+				Status:                "Terjadwal",
+				LandasanKegiatan:      "Tri Dharma Perguruan Tinggi (Pengabdian)",
+				BentukKegiatan:        "Pemeriksaan Medis & Penyuluhan",
+				Mitra:                 "Puskesmas Kecamatan Cibiru",
+				LatarBelakang:         "Rendahnya tingkat kesadaran sanitasi masyarakat di daerah pinggiran kota.",
+				TujuanKegiatan:        "Meningkatkan kesehatan masyarakat dan melatih kepedulian sosial mahasiswa.",
+				JadwalPelaksanaan:      "Rabu, 24 Juni 2026, 09:00 - 15:00 WIB",
+				SasaranKegiatan:        "Warga Kelurahan Cibiru Wetan",
+				IndikatorKeberhasilan: "Melayani minimal 100 warga lansia dan anak-anak.",
+				SumberDana:            "Dana Pengabdian Universitas & Donasi Umum",
+				EstimasiDana:          8000000,
+				PJKegiatan:            "Dedi Setiadi (Departemen Sosial)",
+			},
 		}
 
-		var lpj models.LaporanPertanggungjawaban
-		if err := config.DB.Where("proposal_id = ?", proposal.ID).First(&lpj).Error; err != nil {
-			lpj = models.LaporanPertanggungjawaban{ProposalID: proposal.ID, RealisasiAnggaran: 0, Status: "Draft", Catatan: "LPJ belum final"}
-			if err := config.DB.Create(&lpj).Error; err != nil {
-				return err
+		for _, eSeed := range eventsToSeed {
+			var event models.OrmawaKegiatan
+			if err := config.DB.Where("ormawa_id = ? AND judul = ?", ormawa.ID, eSeed.Judul).First(&event).Error; err != nil {
+				if err := config.DB.Create(&eSeed).Error; err != nil {
+					return err
+				}
+			} else {
+				eSeed.ID = event.ID
+				config.DB.Save(&eSeed)
 			}
 		}
 
@@ -759,7 +955,7 @@ func EnsureBootstrapData() error {
 	if err := config.DB.Where("user_id = ? AND aktivitas = ?", superAdminUser.ID, "SEEDER_BOOTSTRAP").First(&logAct).Error; err != nil {
 		logAct = models.LogAktivitas{UserID: superAdminUser.ID, Aktivitas: "SEEDER_BOOTSTRAP", Deskripsi: "Seeder default untuk semua role dan menu", IPAddress: "127.0.0.1"}
 		if err := config.DB.Create(&logAct).Error; err != nil {
-			return err
+			log.Printf("⚠️ [SEEDER] Warning: Failed to seed logAct (likely due to Mahasiswa FK constraint): %v\n", err)
 		}
 	}
 

@@ -104,6 +104,11 @@ func CreateProposal(c *fiber.Ctx) error {
 		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Format data tidak valid: " + err.Error()})
 	}
 
+	// Force OrmawaID from token/query context if present
+	if tokenOrmawaID, ok := c.Locals("ormawa_id").(uint); ok && tokenOrmawaID != 0 {
+		payload.OrmawaID = tokenOrmawaID
+	}
+
 	// Basic Validation
 	if payload.Judul == "" || payload.OrmawaID == 0 {
 		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Judul dan Organisasi wajib diisi"})
@@ -130,7 +135,13 @@ func CreateProposal(c *fiber.Ctx) error {
 	}
 
 	// Create Proposal
-	// FIX: Get valid Mahasiswa and Fakultas if missing to prevent FK violations
+	// FIX: Synchronize FakultasID with Ormawa's FakultasID to ensure faculty matching
+	var ormawa models.Ormawa
+	if err := config.DB.First(&ormawa, payload.OrmawaID).Error; err == nil {
+		payload.FakultasID = ormawa.FakultasID
+	}
+
+	// FIX: Get valid Mahasiswa if missing to prevent FK violations
 	if payload.MahasiswaID == 0 {
 		var mhs models.Mahasiswa
 		if err := config.DB.Order("id asc").First(&mhs).Error; err == nil {
@@ -138,16 +149,15 @@ func CreateProposal(c *fiber.Ctx) error {
 		}
 	}
 
+	// If FakultasID is still 0 (e.g. Ormawa load failed), fallback to Mahasiswa's faculty or database first faculty
 	if payload.FakultasID == 0 {
 		var fak models.Fakultas
-		// Try to match with Mahasiswa's faculty first
 		if payload.MahasiswaID != 0 {
 			var mhs models.Mahasiswa
 			if err := config.DB.First(&mhs, payload.MahasiswaID).Error; err == nil {
 				payload.FakultasID = mhs.FakultasID
 			}
 		}
-		// Fallback to first faculty
 		if payload.FakultasID == 0 {
 			config.DB.Order("id asc").First(&fak)
 			payload.FakultasID = fak.ID
@@ -222,6 +232,18 @@ func UpdateProposal(c *fiber.Ctx) error {
 		Anggaran float64 `json:"Anggaran"`
 		Judul    string  `json:"Judul"`
 		FileURL  string  `json:"FileURL"`
+
+		LandasanKegiatan      string `json:"LandasanKegiatan"`
+		Deskripsi             string `json:"Deskripsi"`
+		BentukKegiatan        string `json:"BentukKegiatan"`
+		Mitra                 string `json:"Mitra"`
+		LatarBelakang         string `json:"LatarBelakang"`
+		TujuanKegiatan        string `json:"TujuanKegiatan"`
+		JadwalPelaksanaan     string `json:"JadwalPelaksanaan"`
+		SasaranKegiatan       string `json:"SasaranKegiatan"`
+		IndikatorKeberhasilan string `json:"IndikatorKeberhasilan"`
+		SumberDana            string `json:"SumberDana"`
+		PJKegiatan            string `json:"PJKegiatan"`
 	}
 	if err := c.BodyParser(&payload); err != nil {
 		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Payload tidak valid"})
@@ -275,6 +297,39 @@ func UpdateProposal(c *fiber.Ctx) error {
 		}
 		if payload.FileURL != "" {
 			updates["file_url"] = payload.FileURL
+		}
+		if payload.LandasanKegiatan != "" {
+			updates["landasan_kegiatan"] = payload.LandasanKegiatan
+		}
+		if payload.Deskripsi != "" {
+			updates["deskripsi"] = payload.Deskripsi
+		}
+		if payload.BentukKegiatan != "" {
+			updates["bentuk_kegiatan"] = payload.BentukKegiatan
+		}
+		if payload.Mitra != "" {
+			updates["mitra"] = payload.Mitra
+		}
+		if payload.LatarBelakang != "" {
+			updates["latar_belakang"] = payload.LatarBelakang
+		}
+		if payload.TujuanKegiatan != "" {
+			updates["tujuan_kegiatan"] = payload.TujuanKegiatan
+		}
+		if payload.JadwalPelaksanaan != "" {
+			updates["jadwal_pelaksanaan"] = payload.JadwalPelaksanaan
+		}
+		if payload.SasaranKegiatan != "" {
+			updates["sasaran_kegiatan"] = payload.SasaranKegiatan
+		}
+		if payload.IndikatorKeberhasilan != "" {
+			updates["indikator_keberhasilan"] = payload.IndikatorKeberhasilan
+		}
+		if payload.SumberDana != "" {
+			updates["sumber_dana"] = payload.SumberDana
+		}
+		if payload.PJKegiatan != "" {
+			updates["pj_kegiatan"] = payload.PJKegiatan
 		}
 
 		if len(updates) > 0 {
@@ -411,6 +466,11 @@ func CreateCashMutation(c *fiber.Ctx) error {
 		return c.Status(422).JSON(fiber.Map{"status": "error", "message": "Input tidak valid"})
 	}
 
+	// Force OrmawaID from token/query context if present
+	if tokenOrmawaID, ok := c.Locals("ormawa_id").(uint); ok && tokenOrmawaID != 0 {
+		mutation.OrmawaID = tokenOrmawaID
+	}
+
 	err := config.DB.Transaction(func(tx *gorm.DB) error {
 		if mutation.Tanggal.IsZero() {
 			mutation.Tanggal = time.Now()
@@ -459,6 +519,11 @@ func CreateEvent(c *fiber.Ctx) error {
 	var payload models.OrmawaKegiatan
 	if err := c.BodyParser(&payload); err != nil {
 		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Format data tidak valid"})
+	}
+
+	// Force OrmawaID from token/query context if present
+	if tokenOrmawaID, ok := c.Locals("ormawa_id").(uint); ok && tokenOrmawaID != 0 {
+		payload.OrmawaID = tokenOrmawaID
 	}
 
 	// Validasi Rentang Tanggal
@@ -629,6 +694,12 @@ func CreateAnnouncement(c *fiber.Ctx) error {
 	if err := c.BodyParser(&payload); err != nil {
 		return c.Status(400).JSON(fiber.Map{"status": "error", "message": err.Error()})
 	}
+
+	// Force OrmawaID from token/query context if present
+	if tokenOrmawaID, ok := c.Locals("ormawa_id").(uint); ok && tokenOrmawaID != 0 {
+		payload.OrmawaID = tokenOrmawaID
+	}
+
 	config.DB.Create(&payload)
 	// Buat notifikasi ormawa
 	config.DB.Create(&models.OrmawaNotifikasi{
@@ -1019,10 +1090,12 @@ func DeleteDivision(c *fiber.Ctx) error {
 func GetLPJs(c *fiber.Ctx) error {
 	ormawaId := c.Query("ormawaId")
 	var list []models.LaporanPertanggungjawaban
-	query := config.DB.Preload("Proposal")
+	
+	query := config.DB.Preload("Proposal").
+		Joins("JOIN ormawa.proposal p ON p.id = ormawa.laporan_pertanggungjawaban.proposal_id AND p.deleted_at IS NULL")
+		
 	if ormawaId != "" {
-		query = query.Joins("JOIN ormawa.proposal p ON p.id = ormawa.laporan_pertanggungjawaban.proposal_id").
-			Where("p.ormawa_id = ?", ormawaId)
+		query = query.Where("p.ormawa_id = ?", ormawaId)
 	}
 	query.Order("ormawa.laporan_pertanggungjawaban.created_at desc").Find(&list)
 
