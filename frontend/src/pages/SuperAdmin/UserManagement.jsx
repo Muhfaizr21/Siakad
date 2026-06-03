@@ -742,9 +742,6 @@ export default function UserManagement() {
 
       </div>
 
-        </DialogContent>
-      </Dialog>
-
       {/* ── Create User Modal ───────────────────────────────────── */}
       <Dialog open={isCrudOpen} onOpenChange={setIsCrudOpen}>
         <DialogContent className="max-w-xl p-0 overflow-hidden border border-slate-200/60 shadow-2xl rounded-3xl bg-white/95 backdrop-blur-md animate-in slide-in-from-bottom-4 duration-300">
