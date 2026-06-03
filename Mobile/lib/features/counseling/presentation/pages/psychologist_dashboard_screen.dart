@@ -16,10 +16,12 @@ class PsychologistDashboardScreen extends StatefulWidget {
   const PsychologistDashboardScreen({super.key});
 
   @override
-  State<PsychologistDashboardScreen> createState() => _PsychologistDashboardScreenState();
+  State<PsychologistDashboardScreen> createState() =>
+      _PsychologistDashboardScreenState();
 }
 
-class _PsychologistDashboardScreenState extends State<PsychologistDashboardScreen> {
+class _PsychologistDashboardScreenState
+    extends State<PsychologistDashboardScreen> {
   @override
   void initState() {
     super.initState();
@@ -86,29 +88,45 @@ class _PsychologistDashboardScreenState extends State<PsychologistDashboardScree
     );
   }
 
-  Widget _buildAppBar(BuildContext context, PsychologistDashboardProvider provider) {
+  Widget _buildAppBar(
+    BuildContext context,
+    PsychologistDashboardProvider provider,
+  ) {
     final name = provider.profile?.name ?? 'Psikolog';
     final imageUrl = provider.profile?.profileImageUrl ?? '';
-    final initials = name.trim().isEmpty ? 'P' : name.trim().split(' ').take(2).map((w) => w[0].toUpperCase()).join();
+    final initials =
+        name.trim().isEmpty
+            ? 'P'
+            : name
+                .trim()
+                .split(' ')
+                .take(2)
+                .map((w) => w[0].toUpperCase())
+                .join();
     final unreadCount = context.watch<CounselingProvider>().unreadCount;
 
     return BkuAppBar(
       title: name,
       subtitle: 'SELAMAT DATANG',
-      info: 'NIDN: ${provider.profile?.nidn ?? '-'} • ${provider.profile?.specialization ?? 'PSIKOLOG'}',
+      info:
+          'NIDN: ${provider.profile?.nidn ?? '-'} • ${provider.profile?.specialization ?? 'PSIKOLOG'}',
       variant: AppBarVariant.psychologist,
       expandedHeight: 210,
       showProfileOnCollapse: true,
       notificationCount: unreadCount,
-      profileImage: imageUrl.isNotEmpty
-          ? Image.network(
-              imageUrl,
-              fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => _buildInitialsAvatar(initials),
-              loadingBuilder: (_, child, progress) =>
-                  progress == null ? child : _buildInitialsAvatar(initials),
-            )
-          : _buildInitialsAvatar(initials),
+      profileImage:
+          imageUrl.isNotEmpty
+              ? Image.network(
+                imageUrl,
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => _buildInitialsAvatar(initials),
+                loadingBuilder:
+                    (_, child, progress) =>
+                        progress == null
+                            ? child
+                            : _buildInitialsAvatar(initials),
+              )
+              : _buildInitialsAvatar(initials),
       child: AvailabilityToggle(
         isAvailable: provider.isAvailable,
         onToggle: (value) => provider.toggleAvailability(),

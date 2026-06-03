@@ -325,9 +325,9 @@ class _ReferralCard extends StatelessWidget {
 
                           if (url != null && context.mounted) {
                             final uri = Uri.parse(url);
-                            if (await canLaunchUrl(uri)) {
-                              await launchUrl(uri, mode: LaunchMode.platformDefault);
-                            } else {
+                            try {
+                              await launchUrl(uri, mode: LaunchMode.externalApplication);
+                            } catch (e) {
                               if (context.mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(

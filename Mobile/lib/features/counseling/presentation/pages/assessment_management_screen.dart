@@ -328,8 +328,9 @@ class _AssessmentManagementScreenState
 
     Color scoreColor = Colors.green;
     if (score == 'Sedang' || score == 'Netral') scoreColor = Colors.orange;
-    if (score == 'Tinggi' || score == 'Berat' || score == 'Mendesak')
+    if (score == 'Tinggi' || score == 'Berat' || score == 'Mendesak') {
       scoreColor = Colors.red;
+    }
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),

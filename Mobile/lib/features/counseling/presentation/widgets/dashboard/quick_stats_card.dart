@@ -54,46 +54,48 @@ class QuickStatsCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    _todayLabel(),
-                    style: AppTextStyles.labelSm.copyWith(
-                      color: Colors.white.withAlpha(120),
-                      fontWeight: FontWeight.w900,
-                      fontSize: 9,
-                      letterSpacing: 1.2,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      _todayLabel(),
+                      style: AppTextStyles.labelSm.copyWith(
+                        color: Colors.white.withAlpha(120),
+                        fontWeight: FontWeight.w900,
+                        fontSize: 9,
+                        letterSpacing: 1.2,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    'Janji Temu Hari Ini & Mendatang',
-                    style: AppTextStyles.labelMd.copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
+                    const SizedBox(height: 2),
+                    Text(
+                      'Janji Temu Hari Ini & Mendatang',
+                      style: AppTextStyles.labelMd.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    totalAppointments.toString(),
-                    style: AppTextStyles.titleLg.copyWith(
-                      color: Colors.white,
-                      fontSize: 56,
-                      fontWeight: FontWeight.w900,
-                      height: 1,
+                    const SizedBox(height: 8),
+                    Text(
+                      totalAppointments.toString(),
+                      style: AppTextStyles.titleLg.copyWith(
+                        color: Colors.white,
+                        fontSize: 56,
+                        fontWeight: FontWeight.w900,
+                        height: 1,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'sesi konseling hari ini dan yang akan datang',
-                    style: AppTextStyles.labelSm.copyWith(
-                      color: Colors.white.withAlpha(150),
-                      fontSize: 10,
+                    const SizedBox(height: 4),
+                    Text(
+                      'sesi konseling hari ini dan yang akan datang',
+                      style: AppTextStyles.labelSm.copyWith(
+                        color: Colors.white.withAlpha(150),
+                        fontSize: 10,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
               Container(
                 padding: const EdgeInsets.all(16),
@@ -118,6 +120,7 @@ class QuickStatsCard extends StatelessWidget {
           const SizedBox(height: 24),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _buildSummaryItem(
                 Icons.task_alt_rounded,

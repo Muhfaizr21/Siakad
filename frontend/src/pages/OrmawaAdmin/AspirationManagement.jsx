@@ -129,30 +129,30 @@ export default function AspirationManagement() {
       <Toaster position="top-right" />
       
       {/* ── Welcome Banner ─────────────────────────────────────────── */}
-      <section className="relative overflow-hidden rounded-[2rem] bg-gradient-to-r from-bku-primary to-[#1e3a8a] text-white p-8 md:p-10 shadow-xl shadow-blue-900/10">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.08)_0%,transparent_60%)]" />
-        <div className="absolute inset-0 opacity-[0.03]"
+      <section className="relative overflow-hidden rounded-[2rem] bg-white p-8 md:p-10 shadow-sm border border-slate-200">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(0,0,0,0.02)_0%,transparent_60%)]" />
+        <div className="absolute inset-0 opacity-[0.02]"
           style={{
-            backgroundImage: `radial-gradient(circle at 20% 50%, white 1px, transparent 1px), radial-gradient(circle at 80% 20%, white 1px, transparent 1px)`,
+            backgroundImage: `radial-gradient(circle at 20% 50%, var(--theme-primary) 1px, transparent 1px), radial-gradient(circle at 80% 20%, var(--theme-primary) 1px, transparent 1px)`,
             backgroundSize: '40px 40px'
           }}
         />
-        <div className="absolute -right-20 -top-20 w-80 h-80 bg-white/10 rounded-full blur-3xl" />
-        <div className="absolute -bottom-10 right-40 w-60 h-60 bg-blue-300/10 rounded-full blur-2xl" />
+        <div className="absolute -right-20 -top-20 w-80 h-80 rounded-full blur-3xl opacity-10" style={{ backgroundColor: 'var(--theme-secondary)' }} />
+        <div className="absolute -bottom-10 right-40 w-60 h-60 rounded-full blur-2xl opacity-10" style={{ backgroundColor: 'var(--theme-surface)' }} />
 
         <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
           <div className="space-y-3">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/15">
-              <span className="h-1.5 w-1.5 bg-amber-400 rounded-full animate-ping" />
-              <span className="text-[10px] font-bold tracking-[0.2em] text-white/80 uppercase">Layanan Aspirasi</span>
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-50 border border-slate-200 text-slate-500">
+              <span className="h-1.5 w-1.5 rounded-full animate-ping" style={{ backgroundColor: 'var(--theme-primary)' }} />
+              <span className="text-[10px] font-bold tracking-[0.2em] uppercase text-slate-600">Layanan Aspirasi</span>
             </div>
             <div className="flex items-center gap-4">
-              <div className="p-3 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 shadow-inner">
-                <span className="material-symbols-outlined text-white" style={{ fontSize: '32px' }}>forum</span>
+              <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200 shadow-inner" style={{ color: 'var(--theme-primary)' }}>
+                <span className="material-symbols-outlined" style={{ fontSize: '32px' }}>forum</span>
               </div>
               <div>
-                <h1 className="text-3xl md:text-4xl font-black tracking-tight font-headline">Aspirasi Organisasi</h1>
-                <p className="text-blue-100/80 text-sm font-medium mt-1">Tampung gagasan, kritik, dan berikan tanggapan resmi atas aspirasi dari mahasiswa.</p>
+                <h1 className="text-3xl md:text-4xl font-black tracking-tight font-headline text-slate-900">Aspirasi Organisasi</h1>
+                <p className="text-slate-500 text-sm font-medium mt-1">Tampung gagasan, kritik, dan berikan tanggapan resmi atas aspirasi dari mahasiswa.</p>
               </div>
             </div>
           </div>

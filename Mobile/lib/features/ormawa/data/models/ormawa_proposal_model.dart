@@ -54,12 +54,15 @@ class OrmawaProposalModel extends OrmawaProposal {
       'Catatan': description ?? '',
     };
 
-    if (ormawaId != null && ormawaId!.isNotEmpty)
+    if (ormawaId != null && ormawaId!.isNotEmpty) {
       data['OrmawaID'] = int.tryParse(ormawaId!);
-    if (mahasiswaId != null && mahasiswaId!.isNotEmpty)
+    }
+    if (mahasiswaId != null && mahasiswaId!.isNotEmpty) {
       data['MahasiswaID'] = int.tryParse(mahasiswaId!);
-    if (fakultasId != null && fakultasId!.isNotEmpty)
+    }
+    if (fakultasId != null && fakultasId!.isNotEmpty) {
       data['FakultasID'] = int.tryParse(fakultasId!);
+    }
 
     return data;
   }

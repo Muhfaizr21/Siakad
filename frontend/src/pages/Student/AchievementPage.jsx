@@ -456,7 +456,7 @@ export default function AchievementPage() {
                  <select {...register('riwayat_organisasi_id')} className="w-full border border-[#e5e5e5] rounded-xl px-4 py-2 focus:border-bku-primary outline-none text-[#171717]">
                     <option value="">(Tidak terkait organisasi)</option>
                     {orgList.map(org => (
-                       <option key={org.ID} value={org.ID}>{org.NamaOrganisasi} ({org.Jabatan})</option>
+                       <option key={org.id || org.ID} value={org.id || org.ID}>{org.NamaOrganisasi} ({org.Jabatan})</option>
                     ))}
                  </select>
               </div>

@@ -68,6 +68,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const logout = useAuthStore(state => state.logout);
+  const [isLogoutHovered, setIsLogoutHovered] = React.useState(false);
 
   const allItems = menuGroups.flatMap(group => group.items);
 
@@ -111,16 +112,16 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
       <aside className={`
         fixed left-0 top-0 h-[100dvh] z-[70]
         transition-all duration-500 ease-in-out font-inter
-        flex flex-col overscroll-contain shadow-xl border-r border-white/10
-        ${isOpen ? 'translate-x-0 w-72 shadow-2xl' : '-translate-x-full lg:translate-x-0 w-64'}
+        flex flex-col overscroll-contain border-r border-white/10 shadow-xl
+        ${isOpen ? 'translate-x-0 w-72 shadow-2xl shadow-white/5' : '-translate-x-full lg:translate-x-0 w-64'}
       `}
-      style={{
-        background: `linear-gradient(to bottom, var(--theme-sidebar-bg), color-mix(in srgb, var(--theme-sidebar-bg) 90%, var(--theme-primary)))`,
-        color: 'var(--theme-sidebar-text)'
-      }}
+        style={{
+          background: `linear-gradient(to bottom, var(--theme-sidebar-bg), color-mix(in srgb, var(--theme-sidebar-bg) 90%, var(--theme-primary)))`,
+          color: 'var(--theme-sidebar-text)'
+        }}
       >
         {/* Logo Section */}
-        <div className="px-6 py-6 flex items-center justify-between shrink-0 border-b border-white/10">
+        <div className="px-6 py-6 flex items-center justify-between border-b border-white/10 shrink-0">
           <Link to="/admin" className="flex items-center gap-3.5 group">
             <div className="relative">
               <div className="w-11 h-11 bg-white/10 border border-white/20 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform duration-300 p-1.5 overflow-hidden">
@@ -130,17 +131,16 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
             </div>
             <div className="flex flex-col leading-tight">
               <span className="text-sm font-extrabold uppercase tracking-wider font-headline" style={{ color: 'var(--theme-sidebar-text)' }}>
-                MASTER HUB
+                SIAKAD HUB
               </span>
-              <span className="text-[10px] font-bold uppercase tracking-widest font-headline" style={{ color: 'color-mix(in srgb, var(--theme-sidebar-text) 70%, var(--theme-secondary))' }}>Super Admin Panel</span>
+              <span className="text-[10px] font-bold uppercase tracking-widest font-headline" style={{ color: 'color-mix(in srgb, var(--theme-sidebar-text) 70%, var(--theme-secondary))' }}>Super Admin</span>
             </div>
           </Link>
           <button
             onClick={() => setIsOpen(false)}
-            className="lg:hidden w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors"
-            style={{ color: 'var(--theme-sidebar-text)' }}
+            className="lg:hidden w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center text-slate-400 hover:text-white transition-colors"
           >
-            <span className="material-symbols-outlined size-4 rotate-180" style={{ fontSize: '16px', color: 'var(--theme-sidebar-text)' }}>chevron_right</span>
+            <span className="material-symbols-outlined size-4 rotate-180" style={{ fontSize: '16px' }}>chevron_right</span>
           </button>
         </div>
 
@@ -156,7 +156,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
               <div className="space-y-1">
                 {group.items.map((item) => {
                   const active = isActive(item.path);
-
+                  
                   return (
                     <Link
                       key={item.path}
@@ -171,15 +171,16 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                         borderLeftColor: active ? 'var(--theme-secondary)' : 'transparent'
                       }}
                     >
+                      
                       <div className="w-5 h-5 flex items-center justify-center shrink-0">
                         <span className={`material-symbols-outlined transition-all duration-300 ${active ? 'scale-110' : 'group-hover:scale-110'}`}
                               style={{ fontSize: '18px', color: active ? 'var(--theme-secondary)' : 'color-mix(in srgb, var(--theme-sidebar-text) 60%, transparent)' }}>
                           {item.icon}
                         </span>
                       </div>
-
+                      
                       <span className="tracking-tight flex-1 font-medium">{item.name}</span>
-
+                      
                       {active ? (
                         <div className="w-4 h-4 flex items-center justify-center shrink-0">
                           <span className="material-symbols-outlined" style={{ fontSize: '14px', color: 'color-mix(in srgb, var(--theme-sidebar-text) 50%, transparent)' }}>chevron_right</span>
@@ -243,61 +244,52 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
               {/* Submenu Dropdown */}
               {isThemeSubmenuOpen && (
                 <div className="ml-4 mt-2 space-y-1 border-l border-white/10 pl-3">
-                  {themeSubmenu.map((item) => {
-                    const isActiveSub = location.pathname === item.path;
-
+                  {themeSubmenu.map((subItem) => {
+                    const subActive = location.pathname === subItem.path;
                     return (
                       <Link
-                        key={item.path}
-                        to={item.path}
+                        key={subItem.path}
+                        to={subItem.path}
                         onClick={() => setIsOpen && setIsOpen(false)}
                         className={`
-                          relative flex items-center gap-3 px-3 py-2 rounded-lg font-medium transition-all duration-200 group active:scale-[0.98] font-inter text-[11px]
-                          ${isActiveSub ? 'bg-white/15 text-white' : 'hover:bg-white/5'}
+                          flex items-center gap-3 px-3 py-2 rounded-xl font-medium transition-all duration-300 font-inter text-[11px]
+                          ${subActive ? 'bg-white/10' : 'hover:bg-white/5'}
                         `}
                         style={{
-                          color: isActiveSub ? 'var(--theme-sidebar-text)' : 'color-mix(in srgb, var(--theme-sidebar-text) 60%, transparent)'
+                          color: subActive ? 'var(--theme-sidebar-text)' : 'color-mix(in srgb, var(--theme-sidebar-text) 60%, transparent)'
                         }}
                       >
-                        <span className="material-symbols-outlined transition-transform duration-200"
-                              style={{ fontSize: '16px', color: isActiveSub ? 'var(--theme-secondary)' : 'color-mix(in srgb, var(--theme-sidebar-text) 50%, transparent)' }}>
-                          {item.icon}
+                        <span className="material-symbols-outlined" style={{ fontSize: '14px', color: subActive ? 'var(--theme-secondary)' : 'inherit' }}>
+                          {subItem.icon}
                         </span>
-                        <div className="flex-1 flex flex-col">
-                          <span>{item.name}</span>
-                        </div>
-                        {isActiveSub && (
-                          <span className="material-symbols-outlined" style={{ fontSize: '12px', color: 'var(--theme-secondary)' }}>
-                            arrow_forward
-                          </span>
-                        )}
+                        <span className="truncate">{subItem.name}</span>
                       </Link>
                     );
                   })}
                 </div>
               )}
 
-              {/* Menu items setelah dropdown */}
+              {/* Kelola Organisasi */}
               <Link
-                to="/admin/config"
+                to="/admin/organizations"
                 onClick={() => setIsOpen && setIsOpen(false)}
                 className={`
                   relative flex items-center gap-3.5 px-4 py-2 rounded-xl font-bold transition-all duration-300 group active:scale-[0.98] font-inter text-xs
-                  ${isActive('/admin/config') ? 'bg-white/10 border-l-4 shadow-md shadow-white/5' : 'hover:bg-white/5'}
+                  ${isActive('/admin/organizations') ? 'bg-white/10 border-l-4 shadow-md shadow-white/5' : 'hover:bg-white/5'}
                 `}
                 style={{
-                  color: isActive('/admin/config') ? 'var(--theme-sidebar-text)' : 'color-mix(in srgb, var(--theme-sidebar-text) 70%, transparent)',
-                  borderLeftColor: isActive('/admin/config') ? 'var(--theme-secondary)' : 'transparent'
+                  color: isActive('/admin/organizations') ? 'var(--theme-sidebar-text)' : 'color-mix(in srgb, var(--theme-sidebar-text) 70%, transparent)',
+                  borderLeftColor: isActive('/admin/organizations') ? 'var(--theme-secondary)' : 'transparent'
                 }}
               >
                 <div className="w-5 h-5 flex items-center justify-center shrink-0">
-                  <span className={`material-symbols-outlined transition-all duration-300 ${isActive('/admin/config') ? 'scale-110' : 'group-hover:scale-110'}`}
-                        style={{ fontSize: '18px', color: isActive('/admin/config') ? 'var(--theme-secondary)' : 'color-mix(in srgb, var(--theme-sidebar-text) 60%, transparent)' }}>
-                    settings
+                  <span className={`material-symbols-outlined transition-all duration-300 ${isActive('/admin/organizations') ? 'scale-110' : 'group-hover:scale-110'}`}
+                        style={{ fontSize: '18px', color: isActive('/admin/organizations') ? 'var(--theme-secondary)' : 'color-mix(in srgb, var(--theme-sidebar-text) 60%, transparent)' }}>
+                    group
                   </span>
                 </div>
 
-                <span className="tracking-tight flex-1 font-medium">Pengaturan Sistem</span>
+                <span className="tracking-tight flex-1 font-medium">Kelola Organisasi</span>
               </Link>
             </div>
           </div>
@@ -307,15 +299,26 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
         <div className="p-4 bg-transparent border-t border-white/10 shrink-0">
           <button
             onClick={handleLogout}
-            className="w-full flex items-center gap-3.5 px-4 py-2.5 rounded-xl font-bold transition-all duration-300 group active:scale-[0.98]"
-            style={{ color: '#f87171' }}
+            onMouseEnter={() => setIsLogoutHovered(true)}
+            onMouseLeave={() => setIsLogoutHovered(false)}
+            className="w-full flex items-center gap-3.5 px-4 py-2.5 rounded-xl font-bold transition-all duration-300 active:scale-[0.98] text-xs cursor-pointer shadow-sm hover:shadow-md border border-transparent"
+            style={{
+              backgroundColor: isLogoutHovered ? '#b91c1c' : '#dc2626',
+              color: '#ffffff'
+            }}
           >
             <div className="w-5 h-5 flex items-center justify-center shrink-0">
-              <span className="material-symbols-outlined transition-all duration-300 group-hover:scale-110" style={{ fontSize: '18px', color: '#f87171' }}>
+              <span 
+                className="material-symbols-outlined transition-all duration-300 group-hover:scale-110" 
+                style={{ 
+                  fontSize: '18px', 
+                  color: '#ffffff' 
+                }}
+              >
                 logout
               </span>
             </div>
-            <span className="text-xs tracking-tight flex-1 text-left font-semibold font-headline">
+            <span className="text-xs tracking-tight flex-1 text-left font-semibold font-headline text-white">
               Keluar
             </span>
           </button>

@@ -276,38 +276,42 @@ export default function JadwalKegiatan() {
       <Toaster position="top-right" />
 
       {/* ── Welcome Banner ─────────────────────────────────────────── */}
-      <section className="relative overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-[#00236F] to-[#1e3a8a] text-white p-8 md:p-10 shadow-xl shadow-blue-950/15 border border-[#00236F]/10">
-        <div className="absolute inset-0 opacity-[0.04]"
+      <section className="relative overflow-hidden rounded-[2.5rem] bg-white p-8 md:p-10 shadow-sm border border-slate-200">
+        <div className="absolute inset-0 opacity-[0.02]"
           style={{
-            backgroundImage: `radial-gradient(circle at 20% 50%, white 1px, transparent 1px), radial-gradient(circle at 80% 20%, white 1px, transparent 1px)`,
+            backgroundImage: `radial-gradient(circle at 20% 50%, var(--theme-primary) 1px, transparent 1px), radial-gradient(circle at 80% 20%, var(--theme-primary) 1px, transparent 1px)`,
             backgroundSize: '60px 60px'
           }}
         />
-        <div className="absolute -top-24 -right-24 w-80 h-80 bg-white/5 rounded-full blur-3xl" />
-        <div className="absolute -bottom-16 right-36 w-64 h-64 bg-cyan-400/10 rounded-full blur-2xl" />
+        <div className="absolute -top-24 -right-24 w-80 h-80 rounded-full blur-3xl opacity-10" style={{ backgroundColor: 'var(--theme-secondary)' }} />
+        <div className="absolute -bottom-16 right-36 w-64 h-64 rounded-full blur-2xl opacity-10" style={{ backgroundColor: 'var(--theme-surface)' }} />
 
         <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center w-full gap-6">
           <div>
             <div className="flex items-center gap-2 mb-3">
-              <span className="h-1.5 w-6 bg-cyan-400/40 rounded-full" />
-              <span className="text-[10px] font-black text-cyan-400 tracking-[0.25em] uppercase font-headline">
+              <span className="h-1.5 w-6 rounded-full" style={{ backgroundColor: 'var(--theme-secondary)' }} />
+              <span className="text-[10px] font-black tracking-[0.25em] uppercase font-headline" style={{ color: 'var(--theme-secondary)' }}>
                 Agenda & Kegiatan
               </span>
             </div>
             <div className="flex items-center gap-3 mb-2">
-              <div className="w-10 h-10 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center text-white border border-white/20 shadow-inner">
+              <div className="w-10 h-10 bg-slate-50 rounded-2xl flex items-center justify-center border border-slate-200 shadow-inner" style={{ color: 'var(--theme-primary)' }}>
                 <span className="material-symbols-outlined normal-case" style={{ fontSize: '22px' }}>calendar_month</span>
               </div>
-              <h1 className="text-3xl md:text-4xl font-black tracking-tight leading-none font-headline">
+              <h1 className="text-3xl md:text-4xl font-black tracking-tight leading-none font-headline text-slate-900">
                 Jadwal Kegiatan
               </h1>
             </div>
-            <p className="text-blue-100 font-medium text-xs md:text-sm max-w-2xl leading-relaxed mt-2.5 opacity-90">
+            <p className="text-slate-500 font-medium text-xs md:text-sm max-w-2xl leading-relaxed mt-2.5">
               Manajemen agenda operasional, sinkronisasi jadwal kegiatan, serta pemantauan jadwal program kerja rutin ormawa.
             </p>
           </div>
 
-          <Button onClick={handleOpenAdd} className="h-12 px-6 rounded-2xl bg-white text-[#00236F] hover:bg-slate-50 font-black text-[10px] tracking-widest shadow-lg shadow-black/10 gap-2 w-full md:w-auto shrink-0 border border-white/10 uppercase transition-all duration-150 active:scale-95">
+          <Button 
+            onClick={handleOpenAdd} 
+            className="h-12 px-6 rounded-2xl text-white hover:bg-opacity-90 font-black text-[10px] tracking-widest shadow-lg shadow-black/10 gap-2 w-full md:w-auto shrink-0 border border-transparent uppercase transition-all duration-150 active:scale-95"
+            style={{ backgroundColor: 'var(--theme-primary)' }}
+          >
             <span className="material-symbols-outlined normal-case text-[16px] stroke-[3px]">add</span> Tambah Kegiatan Baru
           </Button>
         </div>
@@ -384,18 +388,21 @@ export default function JadwalKegiatan() {
           {selected && (
             <div className="flex flex-col">
               {/* Header */}
-              <div className="p-8 bg-gradient-to-br from-[#00236F] to-[#1e3a8a] text-white relative overflow-hidden">
+              <div 
+                className="p-8 text-white relative overflow-hidden"
+                style={{ background: 'linear-gradient(160deg, var(--theme-primary) 0%, color-mix(in srgb, var(--theme-primary) 70%, var(--theme-secondary) 30%) 100%)' }}
+              >
                 <div className="absolute inset-0 opacity-[0.05]"
                   style={{
                     backgroundImage: `radial-gradient(circle at 10% 20%, white 1px, transparent 1px)`,
                     backgroundSize: '20px 20px'
                   }}
                 />
-                <div className="absolute -top-16 -right-16 w-48 h-48 bg-white/5 rounded-full blur-2xl" />
+                <div className="absolute -top-16 -right-16 w-48 h-48 rounded-full blur-2xl opacity-20" style={{ backgroundColor: 'var(--theme-secondary)' }} />
                 <div className="relative z-10">
                   <div className="flex items-start justify-between gap-4">
                     <div className="space-y-1">
-                      <span className="text-[9px] font-black text-cyan-400 tracking-[0.2em] uppercase font-headline">Detail Agenda</span>
+                      <span className="text-[9px] font-black tracking-[0.2em] uppercase font-headline" style={{ color: 'var(--theme-secondary)' }}>Detail Agenda</span>
                       <h2 className="text-xl md:text-2xl font-black text-white font-headline tracking-tight uppercase leading-snug">{selected.Judul}</h2>
                     </div>
                     <Badge className={cn('font-black text-[9px] tracking-wider uppercase px-2.5 py-1 border shrink-0 flex items-center gap-1 shadow-sm border-none', STATUS_CFG[selected.Status]?.cls || 'bg-slate-100 text-slate-600')}>

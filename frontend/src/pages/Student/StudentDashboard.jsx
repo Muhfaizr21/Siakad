@@ -15,17 +15,17 @@ const StudentDashboard = () => {
     <div className="bg-surface text-on-surface min-h-screen px-4 py-8 md:px-8 xl:px-12 font-inter">
       <div className="max-w-7xl mx-auto">
         {/* Personalized Welcome Banner */}
-        <section className="relative overflow-hidden rounded-3xl mb-8 group min-h-[220px] flex items-center bg-primary-container z-0 shadow-sm">
+        <section className="relative overflow-hidden rounded-3xl mb-8 group min-h-[220px] flex items-center shadow-sm" style={{ backgroundColor: 'var(--theme-primary)' }}>
           <div className="relative z-10 px-8 md:px-10 py-8">
             <h1 className="text-4xl font-extrabold text-white font-headline mb-3 tracking-tight">
               Welcome back, {profile?.Nama?.split(' ')[0] || 'Student'}!
             </h1>
-            <p className="text-on-primary-container text-lg font-medium max-w-md">You have 3 upcoming assignments and 1 class today. Stay focused!</p>
+            <p className="text-white/80 text-lg font-medium max-w-md">You have 3 upcoming assignments and 1 class today. Stay focused!</p>
             <div className="mt-6 flex gap-4">
-              <button className="bg-white text-primary px-6 py-2.5 rounded-xl font-bold text-sm shadow-sm hover:shadow-md transition-all">
+              <button className="bg-white px-6 py-2.5 rounded-xl font-bold text-sm shadow-sm hover:shadow-md transition-all" style={{ color: 'var(--theme-primary)' }}>
                 View Today's Tasks
               </button>
-              <button className="bg-primary/20 backdrop-blur-md text-white border border-white/20 px-6 py-2.5 rounded-xl font-bold text-sm hover:bg-primary/40 transition-all">
+              <button className="bg-white/20 backdrop-blur-md text-white border border-white/20 px-6 py-2.5 rounded-xl font-bold text-sm hover:bg-white/30 transition-all">
                 Library Access
               </button>
             </div>
@@ -36,44 +36,44 @@ const StudentDashboard = () => {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           {/* Quick Stats - Col 4 */}
           <div className="lg:col-span-4 space-y-6">
-            <div className="bg-surface-container-lowest p-6 rounded-3xl shadow-sm border border-outline-variant/10">
+            <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
               <h3 className="text-sm font-bold text-secondary uppercase tracking-widest mb-6 font-headline">Academic Progress</h3>
               <div className="space-y-8">
                 <div>
                   <div className="flex justify-between items-end mb-2">
-                    <span className="text-on-surface-variant font-medium">GPA</span>
+                    <span className="text-slate-500 font-medium">GPA</span>
                     <span className="text-2xl font-black text-primary font-headline">3.75</span>
                   </div>
-                  <div className="h-2 bg-surface-container rounded-full overflow-hidden">
+                  <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
                     <div className="h-full bg-primary w-[93%] rounded-full"></div>
                   </div>
                 </div>
                 <div>
                   <div className="flex justify-between items-end mb-2">
-                    <span className="text-on-surface-variant font-medium">Credits</span>
+                    <span className="text-slate-500 font-medium">Credits</span>
                     <span className="text-2xl font-black text-primary font-headline">96 / 144</span>
                   </div>
-                  <div className="h-2 bg-surface-container rounded-full overflow-hidden">
+                  <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
                     <div className="h-full bg-secondary w-[66%] rounded-full"></div>
                   </div>
                 </div>
                 <div>
                   <div className="flex justify-between items-end mb-2">
-                    <span className="text-on-surface-variant font-medium">Attendance</span>
+                    <span className="text-slate-500 font-medium">Attendance</span>
                     <span className="text-2xl font-black text-primary font-headline">95%</span>
                   </div>
-                  <div className="h-2 bg-surface-container rounded-full overflow-hidden">
-                    <div className="h-full bg-primary-fixed-variant w-[95%] rounded-full"></div>
+                  <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                    <div className="h-full bg-primary w-[95%] rounded-full"></div>
                   </div>
                 </div>
               </div>
             </div>
 
             {/* Today's Schedule Widget */}
-            <div className="bg-secondary-container/30 p-6 rounded-3xl border border-secondary-container">
+            <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100">
               <div className="flex justify-between items-center mb-6">
-                <h3 className="text-lg font-bold text-on-secondary-container font-headline">Today's Class</h3>
-                <span className="bg-white/50 px-3 py-1 rounded-full text-xs font-bold text-secondary">LIVE NOW</span>
+                <h3 className="text-lg font-bold text-slate-800 font-headline">Today's Class</h3>
+                <span className="bg-white px-3 py-1 rounded-full text-xs font-bold text-secondary">LIVE NOW</span>
               </div>
               <div className="flex gap-4 items-start">
                 <div className="bg-white p-3 rounded-2xl shadow-sm">
@@ -81,7 +81,7 @@ const StudentDashboard = () => {
                 </div>
                 <div>
                   <h4 className="font-bold text-primary text-lg">Modern Architecture II</h4>
-                  <p className="text-on-secondary-container text-sm font-medium">Prof. Julian Vane</p>
+                  <p className="text-slate-600 text-sm font-medium">Prof. Julian Vane</p>
                   <div className="mt-4 space-y-2">
                     <div className="flex items-center text-sm text-secondary gap-2">
                       <span className="material-symbols-outlined text-base">schedule</span>
@@ -94,7 +94,7 @@ const StudentDashboard = () => {
                   </div>
                 </div>
               </div>
-              <button className="w-full mt-6 bg-primary text-white py-3 rounded-xl font-bold hover:bg-primary-container transition-colors">
+              <button className="w-full mt-6 bg-primary text-white py-3 rounded-xl font-bold hover:opacity-90 transition-colors">
                 Join Online Session
               </button>
             </div>
@@ -104,19 +104,19 @@ const StudentDashboard = () => {
           <div className="lg:col-span-8 space-y-8">
             {/* Quick Access Grid */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-              <button className="group flex flex-col items-center justify-center p-6 bg-surface-container-low rounded-3xl hover:bg-primary hover:text-white transition-all duration-300">
+              <button className="group flex flex-col items-center justify-center p-6 bg-slate-50 rounded-3xl hover:bg-primary hover:text-white transition-all duration-300">
                 <span className="material-symbols-outlined text-3xl mb-2 group-hover:scale-110 transition-transform">local_library</span>
                 <span className="text-sm font-bold font-headline">Library</span>
               </button>
-              <button className="group flex flex-col items-center justify-center p-6 bg-surface-container-low rounded-3xl hover:bg-primary hover:text-white transition-all duration-300">
+              <button className="group flex flex-col items-center justify-center p-6 bg-slate-50 rounded-3xl hover:bg-primary hover:text-white transition-all duration-300">
                 <span className="material-symbols-outlined text-3xl mb-2 group-hover:scale-110 transition-transform">computer</span>
                 <span className="text-sm font-bold font-headline">E-Learning</span>
               </button>
-              <button className="group flex flex-col items-center justify-center p-6 bg-surface-container-low rounded-3xl hover:bg-primary hover:text-white transition-all duration-300">
+              <button className="group flex flex-col items-center justify-center p-6 bg-slate-50 rounded-3xl hover:bg-primary hover:text-white transition-all duration-300">
                 <span className="material-symbols-outlined text-3xl mb-2 group-hover:scale-110 transition-transform">support_agent</span>
                 <span className="text-sm font-bold font-headline">Services</span>
               </button>
-              <button className="group flex flex-col items-center justify-center p-6 bg-surface-container-low rounded-3xl hover:bg-primary hover:text-white transition-all duration-300">
+              <button className="group flex flex-col items-center justify-center p-6 bg-slate-50 rounded-3xl hover:bg-primary hover:text-white transition-all duration-300">
                 <span className="material-symbols-outlined text-3xl mb-2 group-hover:scale-110 transition-transform">account_balance_wallet</span>
                 <span className="text-sm font-bold font-headline">Finance</span>
               </button>
@@ -124,74 +124,74 @@ const StudentDashboard = () => {
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {/* Upcoming Deadlines */}
-              <div className="bg-surface-container-lowest p-6 rounded-3xl shadow-sm border border-outline-variant/10">
+              <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
                 <div className="flex justify-between items-center mb-6">
                   <h3 className="text-lg font-bold text-primary font-headline">Upcoming Deadlines</h3>
                   <button className="text-primary text-sm font-bold hover:underline">View All</button>
                 </div>
                 <div className="space-y-4">
-                  <div className="p-4 bg-surface-container-low rounded-2xl flex items-center gap-4 group hover:bg-white hover:shadow-md transition-all">
-                    <div className="bg-error/10 text-error p-2 rounded-lg">
+                  <div className="p-4 bg-slate-50 rounded-2xl flex items-center gap-4 group hover:bg-white hover:shadow-md border border-transparent hover:border-slate-100 transition-all">
+                    <div className="bg-red-50 text-red-500 p-2 rounded-lg">
                       <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>priority_high</span>
                     </div>
                     <div className="flex-1">
-                      <h5 className="font-bold text-sm text-on-surface">Final Dissertation Draft</h5>
-                      <p className="text-xs text-on-surface-variant">Architecture History</p>
+                      <h5 className="font-bold text-sm text-slate-800">Final Dissertation Draft</h5>
+                      <p className="text-xs text-slate-500">Architecture History</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-xs font-bold text-error">In 2 days</p>
-                      <p className="text-[10px] text-outline">Oct 24</p>
+                      <p className="text-xs font-bold text-red-500">In 2 days</p>
+                      <p className="text-[10px] text-slate-400">Oct 24</p>
                     </div>
                   </div>
-                  <div className="p-4 bg-surface-container-low rounded-2xl flex items-center gap-4 group hover:bg-white hover:shadow-md transition-all">
+                  <div className="p-4 bg-slate-50 rounded-2xl flex items-center gap-4 group hover:bg-white hover:shadow-md border border-transparent hover:border-slate-100 transition-all">
                     <div className="bg-secondary/10 text-secondary p-2 rounded-lg">
                       <span className="material-symbols-outlined">description</span>
                     </div>
                     <div className="flex-1">
-                      <h5 className="font-bold text-sm text-on-surface">Case Study Analysis</h5>
-                      <p className="text-xs text-on-surface-variant">Urban Design</p>
+                      <h5 className="font-bold text-sm text-slate-800">Case Study Analysis</h5>
+                      <p className="text-xs text-slate-500">Urban Design</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-xs font-bold text-on-surface">In 5 days</p>
-                      <p className="text-[10px] text-outline">Oct 27</p>
+                      <p className="text-xs font-bold text-slate-800">In 5 days</p>
+                      <p className="text-[10px] text-slate-400">Oct 27</p>
                     </div>
                   </div>
-                  <div className="p-4 bg-surface-container-low rounded-2xl flex items-center gap-4 group hover:bg-white hover:shadow-md transition-all">
+                  <div className="p-4 bg-slate-50 rounded-2xl flex items-center gap-4 group hover:bg-white hover:shadow-md border border-transparent hover:border-slate-100 transition-all">
                     <div className="bg-secondary/10 text-secondary p-2 rounded-lg">
                       <span className="material-symbols-outlined">quiz</span>
                     </div>
                     <div className="flex-1">
-                      <h5 className="font-bold text-sm text-on-surface">Mid-term Quiz</h5>
-                      <p className="text-xs text-on-surface-variant">Structural Engineering</p>
+                      <h5 className="font-bold text-sm text-slate-800">Mid-term Quiz</h5>
+                      <p className="text-xs text-slate-500">Structural Engineering</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-xs font-bold text-on-surface">In 1 week</p>
-                      <p className="text-[10px] text-outline">Oct 30</p>
+                      <p className="text-xs font-bold text-slate-800">In 1 week</p>
+                      <p className="text-[10px] text-slate-400">Oct 30</p>
                     </div>
                   </div>
                 </div>
               </div>
               
               {/* Recent Grades */}
-              <div className="bg-surface-container-lowest p-6 rounded-3xl shadow-sm border border-outline-variant/10">
+              <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
                 <div className="flex justify-between items-center mb-6">
                   <h3 className="text-lg font-bold text-primary font-headline">Recent Grades</h3>
                   <button className="text-primary text-sm font-bold hover:underline">Full Report</button>
                 </div>
                 <div className="space-y-5">
-                  <div className="flex items-center justify-between pb-4 border-b border-outline-variant/10">
+                  <div className="flex items-center justify-between pb-4 border-b border-slate-100">
                     <div>
-                      <h5 className="font-bold text-sm text-on-surface">Environmental Physics Quiz</h5>
-                      <p className="text-xs text-on-surface-variant">Physics for Architects</p>
+                      <h5 className="font-bold text-sm text-slate-800">Environmental Physics Quiz</h5>
+                      <p className="text-xs text-slate-500">Physics for Architects</p>
                     </div>
                     <div className="bg-primary/5 px-3 py-1 rounded-full">
                       <span className="text-sm font-black text-primary">A-</span>
                     </div>
                   </div>
-                  <div className="flex items-center justify-between pb-4 border-b border-outline-variant/10">
+                  <div className="flex items-center justify-between pb-4 border-b border-slate-100">
                     <div>
-                      <h5 className="font-bold text-sm text-on-surface">CAD Modelling Project</h5>
-                      <p className="text-xs text-on-surface-variant">Digital Design</p>
+                      <h5 className="font-bold text-sm text-slate-800">CAD Modelling Project</h5>
+                      <p className="text-xs text-slate-500">Digital Design</p>
                     </div>
                     <div className="bg-primary/5 px-3 py-1 rounded-full">
                       <span className="text-sm font-black text-primary">A+</span>
@@ -199,8 +199,8 @@ const StudentDashboard = () => {
                   </div>
                   <div className="flex items-center justify-between">
                     <div>
-                      <h5 className="font-bold text-sm text-on-surface">Sociology Essay</h5>
-                      <p className="text-xs text-on-surface-variant">Urban Sociology</p>
+                      <h5 className="font-bold text-sm text-slate-800">Sociology Essay</h5>
+                      <p className="text-xs text-slate-500">Urban Sociology</p>
                     </div>
                     <div className="bg-primary/5 px-3 py-1 rounded-full">
                       <span className="text-sm font-black text-primary">B+</span>
@@ -225,7 +225,7 @@ const StudentDashboard = () => {
         </div>
 
         {/* Academic Advisor Mini-Card */}
-        <div className="mt-12 p-8 bg-surface-container-high rounded-3xl flex flex-col md:flex-row items-center justify-between gap-6">
+        <div className="mt-12 p-8 bg-white border border-slate-200 rounded-3xl flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-6">
             <div className="relative">
               <img 
@@ -233,11 +233,11 @@ const StudentDashboard = () => {
                 className="w-16 h-16 rounded-full object-cover grayscale" 
                 src="https://lh3.googleusercontent.com/aida-public/AB6AXuAuSvaDQPSo1_7hV-u2sB0gXjwHuEQwUnqcoiqNNbok8CtrtQLsLlixmjbuhm46CxA_VYLQ9CjYl7QY9IeCeZFkIxMqJ3uUNyIO0EyQCDJ9dOdmx7Ed5F15td_Y-mCUH8ZWd8Oy746YcJDGWbqXLs9E_pPW4bDBTYleoZUiJl-2npU6TMaUdlCB9ChxIPKTC_40tpDl8qoWo6wax5L_ra3YsthP2wM1LrwAJou0ZtFBkm7SafjB6zXNB-x-7FAgEv2kYMndZmPJt2uM" 
               />
-              <div className="absolute bottom-0 right-0 w-4 h-4 bg-green-500 border-2 border-surface-container-high rounded-full"></div>
+              <div className="absolute bottom-0 right-0 w-4 h-4 bg-green-500 border-2 border-white rounded-full"></div>
             </div>
             <div>
               <h4 className="text-xl font-bold text-primary font-headline">Need guidance?</h4>
-              <p className="text-on-surface-variant">Your advisor, Dr. Sarah Mitchell, is currently online and available for quick chat.</p>
+              <p className="text-slate-500">Your advisor, Dr. Sarah Mitchell, is currently online and available for quick chat.</p>
             </div>
           </div>
           <button className="bg-primary text-white px-8 py-3 rounded-xl font-bold shadow-lg shadow-primary/20 hover:translate-y-[-2px] transition-all">

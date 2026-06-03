@@ -508,8 +508,17 @@ class _MyBookingsSheet extends StatelessWidget {
                               GestureDetector(
                                 onTap: () async {
                                   final uri = Uri.parse(linkMeeting);
-                                  if (await canLaunchUrl(uri)) {
+                                  try {
                                     await launchUrl(uri, mode: LaunchMode.externalApplication);
+                                  } catch (e) {
+                                    if (context.mounted) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(
+                                          content: Text('Gagal membuka link meeting'),
+                                          backgroundColor: Colors.red,
+                                        ),
+                                      );
+                                    }
                                   }
                                 },
                                 child: Container(

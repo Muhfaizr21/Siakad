@@ -1,0 +1,527 @@
+# 🎨 Super Admin Theme Customizer — Sistem Kustomisasi Tampilan
+
+Fitur baru yang memungkinkan **Super Admin** mengatur tampilan visual (warna, tipografi, logo, branding) secara **global** untuk **seluruh halaman** — Landing Page publik maupun portal internal (Mahasiswa, Dosen/Fakultas, Ormawa, Psikolog) — dari satu panel admin terpusat.
+
+---
+
+## ✅ Keputusan Desain (Terkunci)
+
+| Pertanyaan | Keputusan |
+|------------|-----------|
+| Per-portal atau global? | **Global** — 1 tema untuk semua portal, yang membedakan hanya isinya |
+| Logo & Favicon upload? | **Ya** — Admin bisa upload logo dan favicon |
+| Dark Mode? | **Tidak** — Tidak diterapkan untuk saat ini |
+| Preset Tema? | **Tidak** — Tidak diterapkan untuk saat ini |
+| Reset ke Default? | **Ya** — Tombol reset untuk mengembalikan ke tema awal |
+
+---
+
+## Proposed Changes
+
+Implementasi dibagi menjadi **4 fase** utama:
+
+---
+
+### Fase 1: Backend — Model, API, & File Upload
+
+---
+
+#### [NEW] [theme_settings.go](file:///d:/siakad/backend/models/theme_settings.go)
+
+Model GORM baru — **hanya 1 record** di database (singleton) karena tema bersifat global:
+
+```go
+type ThemeSettings struct {
+    BaseModel
+
+    // === WARNA UTAMA ===
+    ColorPrimary     string  // Warna Utama (default: #0D2B55 — Navy)
+    ColorSecondary   string  // Warna Kedua (default: #C89B3C — Gold)
+    ColorAccent      string  // Warna Aksen (default: #E8B84B — Gold terang)
+
+    // === WARNA BACKGROUND & SURFACE ===
+    ColorBackground  string  // Background body (default: #F9F6F0)
+    ColorSurface     string  // Card/surface background (default: #FFFFFF)
+
+    // === WARNA TEKS ===
+    ColorTextPrimary string  // Warna teks body (default: #1B1C1C)
+    ColorTextMuted   string  // Warna teks muted/subtitle (default: #64748B)
+
+    // === WARNA HEADING ===
+    ColorH1          string  // Warna Heading H1 (default: #0D2B55)
+    ColorH2          string  // Warna Heading H2 (default: #0D2B55)
+    ColorH3          string  // Warna Heading H3 (default: #1E3A5F)
+
+    // === TIPOGRAFI ===
+    FontHeadline     string  // Font heading (default: Plus Jakarta Sans)
+    FontBody         string  // Font body (default: Inter)
+
+    // === BRANDING / LOGO ===
+    LogoURL          string  // Path ke file logo yang diupload
+    FaviconURL       string  // Path ke file favicon yang diupload
+    SiteName         string  // Nama situs (default: Universitas Bhakti Kencana)
+
+    // === KOMPONEN UI ===
+    SidebarBgColor   string  // Warna dasar sidebar (default: #0D2B55)
+    SidebarTextColor string  // Warna teks sidebar (default: #E2E8F0)
+    ButtonRadius     string  // Border radius tombol (default: 0.75rem)
+
+    // Meta
+    UpdatedByID      *uint   // ID admin yang terakhir mengubah
+}
+```
+
+Tabel: `public.theme_settings` — hanya berisi **1 row** yang di-upsert.
+
+---
+
+#### [NEW] [theme_controller.go](file:///d:/siakad/backend/controllers/theme_controller.go)
+
+Controller dengan 4 endpoint:
+
+| Method | Route | Akses | Deskripsi |
+|--------|-------|-------|-----------|
+| `GET` | `/api/public/theme` | **Publik** (tanpa auth) | Ambil tema global aktif — dipakai frontend saat load |
+| `GET` | `/api/admin/theme` | Super Admin | Ambil tema untuk halaman editor admin |
+| `PUT` | `/api/admin/theme` | Super Admin | Update konfigurasi tema (upsert 1 record) |
+| `POST` | `/api/admin/theme/reset` | Super Admin | Reset semua value ke default awal |
+| `POST` | `/api/admin/theme/upload-logo` | Super Admin | Upload file logo (multipart/form-data) |
+| `POST` | `/api/admin/theme/upload-favicon` | Super Admin | Upload file favicon (multipart/form-data) |
+
+**Detail endpoint upload:**
+- Menerima file gambar (PNG/JPG/SVG/ICO) via multipart form
+- Menyimpan ke `d:\siakad\backend\uploads\branding\` 
+- Mengembalikan URL relatif yang disimpan di field `LogoURL` / `FaviconURL`
+- Validasi: max 2MB, hanya format gambar
+
+**Detail endpoint reset:**
+- Mengembalikan semua field ke nilai default hardcoded
+- Tidak menghapus file logo/favicon yang sudah diupload
+
+---
+
+#### [MODIFY] [super_admin.go](file:///d:/siakad/backend/routes/super_admin.go)
+
+Tambahkan route baru di dalam `SetupSuperAdminRoutes()`:
+
+```go
+// Theme Customizer
+r.Get("/theme", controllers.GetTheme)
+r.Put("/theme", controllers.UpdateTheme)
+r.Post("/theme/reset", controllers.ResetTheme)
+r.Post("/theme/upload-logo", controllers.UploadLogo)
+r.Post("/theme/upload-favicon", controllers.UploadFavicon)
+```
+
+Tambahkan juga route publik (di luar auth middleware) di [main.go](file:///d:/siakad/backend/main.go):
+
+```go
+app.Get("/api/public/theme", controllers.GetPublicTheme)
+```
+
+---
+
+#### [MODIFY] [model.go](file:///d:/siakad/backend/models/model.go)
+
+Tambahkan `&ThemeSettings{}` ke daftar auto-migrate di `database.go` / `main.go`.
+
+---
+
+#### [NEW] [theme_seeder.go](file:///d:/siakad/backend/seeder/theme_seeder.go)
+
+Seeder yang dijalankan saat startup — jika belum ada record `ThemeSettings`, insert 1 row dengan semua nilai default (Navy Gold Classic).
+
+---
+
+### Fase 2: Frontend — Infrastruktur Theming
+
+---
+
+#### [NEW] [useThemeStore.js](file:///d:/siakad/frontend/src/store/useThemeStore.js)
+
+Zustand store baru (tanpa persist, selalu fetch fresh dari API):
+
+```js
+import { create } from 'zustand';
+
+const useThemeStore = create((set, get) => ({
+  theme: null,          // Object tema dari API
+  isLoaded: false,      // Apakah sudah selesai fetch
+  error: null,
+
+  // Fetch tema global dari API publik
+  fetchTheme: async () => {
+    try {
+      const res = await fetch('/api/public/theme');
+      const data = await res.json();
+      if (data.status === 'success') {
+        set({ theme: data.data, isLoaded: true });
+        get().applyTheme(data.data);
+      }
+    } catch (err) {
+      set({ error: err.message, isLoaded: true });
+    }
+  },
+
+  // Inject CSS custom properties ke document root
+  applyTheme: (t) => {
+    const root = document.documentElement.style;
+    root.setProperty('--theme-primary', t.color_primary);
+    root.setProperty('--theme-secondary', t.color_secondary);
+    root.setProperty('--theme-accent', t.color_accent);
+    root.setProperty('--theme-bg', t.color_background);
+    root.setProperty('--theme-surface', t.color_surface);
+    root.setProperty('--theme-text', t.color_text_primary);
+    root.setProperty('--theme-text-muted', t.color_text_muted);
+    root.setProperty('--theme-h1', t.color_h1);
+    root.setProperty('--theme-h2', t.color_h2);
+    root.setProperty('--theme-h3', t.color_h3);
+    root.setProperty('--theme-sidebar-bg', t.sidebar_bg_color);
+    root.setProperty('--theme-sidebar-text', t.sidebar_text_color);
+    root.setProperty('--theme-btn-radius', t.button_radius);
+    // Font families
+    root.setProperty('--theme-font-headline', `'${t.font_headline}', sans-serif`);
+    root.setProperty('--theme-font-body', `'${t.font_body}', sans-serif`);
+    // Inject Google Fonts dynamically
+    injectGoogleFont(t.font_headline);
+    injectGoogleFont(t.font_body);
+  },
+
+  // Preview tema sementara (untuk live preview di admin editor)
+  previewTheme: (overrides) => {
+    const merged = { ...get().theme, ...overrides };
+    get().applyTheme(merged);
+  },
+
+  // Kembalikan ke tema yang tersimpan (batal preview)
+  revertPreview: () => {
+    if (get().theme) get().applyTheme(get().theme);
+  }
+}));
+```
+
+---
+
+#### [MODIFY] [index.css](file:///d:/siakad/frontend/src/index.css)
+
+Tambahkan CSS custom properties sebagai "bridge" di `:root`. Ini menjadi fallback value yang akan di-override oleh JavaScript saat tema di-load dari API:
+
+```css
+:root {
+  /* ═══ Theme Variables (di-override oleh useThemeStore) ═══ */
+  --theme-primary: #0D2B55;
+  --theme-secondary: #C89B3C;
+  --theme-accent: #E8B84B;
+  --theme-bg: #F9F6F0;
+  --theme-surface: #FFFFFF;
+  --theme-text: #1B1C1C;
+  --theme-text-muted: #64748B;
+  --theme-h1: #0D2B55;
+  --theme-h2: #0D2B55;
+  --theme-h3: #1E3A5F;
+  --theme-sidebar-bg: #0D2B55;
+  --theme-sidebar-text: #E2E8F0;
+  --theme-btn-radius: 0.75rem;
+  --theme-font-headline: 'Plus Jakarta Sans', sans-serif;
+  --theme-font-body: 'Inter', sans-serif;
+}
+```
+
+Update juga `@theme` block agar variabel Tailwind seperti `--color-bku-primary` mereferensi CSS variables:
+
+```css
+@theme {
+  --color-bku-primary: var(--theme-primary);
+  --color-bku-hover: var(--theme-primary);  /* akan dihitung lebih gelap via JS */
+  --font-headline: var(--theme-font-headline);
+  --font-body: var(--theme-font-body);
+  --font-inter: var(--theme-font-body);
+}
+```
+
+> [!IMPORTANT]
+> Dengan cara ini, **semua komponen yang sudah menggunakan `bg-bku-primary`, `text-bku-primary`, `font-headline`** akan otomatis ter-update tanpa perlu mengubah file mereka satu per satu. Ini adalah kunci agar migrasi minimal dan efisien.
+
+---
+
+#### [NEW] [ThemeProvider.jsx](file:///d:/siakad/frontend/src/components/ThemeProvider.jsx)
+
+Komponen wrapper tipis yang:
+1. Memanggil `useThemeStore.fetchTheme()` saat pertama kali mount
+2. Menampilkan loading state halus (tanpa white flash) selama fetch
+3. Update favicon secara dinamis jika ada custom favicon
+4. Update `<title>` tag jika `siteName` diubah
+
+```jsx
+export default function ThemeProvider({ children }) {
+  const { fetchTheme, isLoaded, theme } = useThemeStore();
+
+  useEffect(() => { fetchTheme(); }, []);
+
+  // Update favicon dinamis
+  useEffect(() => {
+    if (theme?.favicon_url) {
+      const link = document.querySelector("link[rel~='icon']");
+      if (link) link.href = theme.favicon_url;
+    }
+  }, [theme?.favicon_url]);
+
+  return children; // Tidak perlu loading gate, CSS fallback values sudah di :root
+}
+```
+
+Dipasang di [App.jsx](file:///d:/siakad/frontend/src/App.jsx) sebagai wrapper terluar:
+
+```jsx
+<ThemeProvider>
+  <Router>
+    <Routes>...</Routes>
+  </Router>
+</ThemeProvider>
+```
+
+---
+
+### Fase 3: Frontend — Halaman Admin "Pengaturan Tampilan"
+
+---
+
+#### [NEW] [ThemeCustomizer.jsx](file:///d:/siakad/frontend/src/pages/SuperAdmin/ThemeCustomizer.jsx)
+
+Halaman baru di panel Super Admin dengan desain premium. Layout menggunakan **2-kolom**: editor di kiri, live preview di kanan.
+
+**Struktur UI:**
+
+```
+┌──────────────────────────────────────────────────────────────────┐
+│  PAGE HEADER: "Pengaturan Tampilan"                              │
+│  Subtitle: Kustomisasi warna, tipografi, dan branding global     │
+│                                    [Reset ke Default] [Simpan]   │
+├──────────────────────────────┬───────────────────────────────────┤
+│  EDITOR PANEL (scrollable)   │  LIVE PREVIEW PANEL              │
+│                              │                                   │
+│  ┌─ Branding & Logo ──────┐ │  ┌─ Mini Landing Page Preview ─┐ │
+│  │ Logo Upload [dropzone]  │ │  │  (Hero + About Section mock)│ │
+│  │ Favicon Upload          │ │  │  Berubah real-time saat     │ │
+│  │ Nama Situs [input]     │ │  │  admin mengubah warna       │ │
+│  └─────────────────────────┘ │  └─────────────────────────────┘ │
+│                              │                                   │
+│  ┌─ Palet Warna ──────────┐ │  ┌─ Mini Portal Preview ──────┐ │
+│  │ Warna Utama  [picker]  │ │  │  (Sidebar + Card mock)      │ │
+│  │ Warna Kedua  [picker]  │ │  │                             │ │
+│  │ Warna Aksen  [picker]  │ │  └─────────────────────────────┘ │
+│  │ Background   [picker]  │ │                                   │
+│  │ Surface      [picker]  │ │  ┌─ Typography Preview ────────┐ │
+│  └─────────────────────────┘ │  │  H1: Heading Satu           │ │
+│                              │  │  H2: Heading Dua            │ │
+│  ┌─ Warna Teks & Heading ─┐ │  │  H3: Heading Tiga           │ │
+│  │ Heading H1   [picker]  │ │  │  Body text normal...        │ │
+│  │ Heading H2   [picker]  │ │  │  Muted text subtitle...     │ │
+│  │ Heading H3   [picker]  │ │  └─────────────────────────────┘ │
+│  │ Teks Normal  [picker]  │ │                                   │
+│  │ Teks Muted   [picker]  │ │                                   │
+│  └─────────────────────────┘ │                                   │
+│                              │                                   │
+│  ┌─ Tipografi ────────────┐ │                                   │
+│  │ Font Headline [select] │ │                                   │
+│  │ Font Body     [select] │ │                                   │
+│  └─────────────────────────┘ │                                   │
+│                              │                                   │
+│  ┌─ Komponen Portal ──────┐ │                                   │
+│  │ Sidebar BG    [picker] │ │                                   │
+│  │ Sidebar Text  [picker] │ │                                   │
+│  │ Button Radius [slider] │ │                                   │
+│  └─────────────────────────┘ │                                   │
+│                              │                                   │
+├──────────────────────────────┴───────────────────────────────────┤
+│  FOOTER: Status "Terakhir diubah: 31 Mei 2026, 21:30 WIB"       │
+└──────────────────────────────────────────────────────────────────┘
+```
+
+**Fitur Utama:**
+- **Color Picker:** Menggunakan native `<input type="color">` + text input hex untuk presisi — ringan, tanpa dependency tambahan
+- **Live Preview:** Panel kanan menampilkan mock komponen (heading, card, sidebar strip, button) yang berubah real-time via `useThemeStore.previewTheme()`
+- **Logo Upload:** Drag & drop zone atau klik untuk upload — langsung preview logo baru
+- **Font Selector:** Dropdown dengan daftar Google Fonts populer (Plus Jakarta Sans, Poppins, Outfit, Montserrat, Inter, Roboto, Open Sans, Lato, Nunito)
+- **Button Radius Slider:** Range 0px — 24px dengan preview tombol
+- **Reset ke Default:** Tombol konfirmasi → POST `/api/admin/theme/reset` → refetch → reapply
+- **Simpan:** PUT `/api/admin/theme` → toast sukses → tema langsung aktif global
+
+---
+
+#### [MODIFY] [Sidebar.jsx](file:///d:/siakad/frontend/src/pages/SuperAdmin/components/Sidebar.jsx)
+
+Tambahkan menu baru di grup **"Sistem & Informasi"**:
+
+```js
+{ name: "Pengaturan Tampilan", icon: 'palette', path: "/admin/theme" }
+```
+
+---
+
+#### [MODIFY] [App.jsx](file:///d:/siakad/frontend/src/App.jsx)
+
+Tambahkan route baru di dalam Super Admin routes:
+
+```jsx
+import ThemeCustomizer from './pages/SuperAdmin/ThemeCustomizer'
+// ...
+<Route path="theme" element={<ThemeCustomizer />} />
+```
+
+---
+
+#### [MODIFY] [api.js](file:///d:/siakad/frontend/src/services/api.js)
+
+Tambahkan di `adminService`:
+
+```js
+// Theme Customizer
+getTheme: () => fetchWithAuth(`${API_BASE_URL}/admin/theme`),
+updateTheme: (data) => fetchWithAuth(`${API_BASE_URL}/admin/theme`, {
+  method: 'PUT',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify(data)
+}),
+resetTheme: () => fetchWithAuth(`${API_BASE_URL}/admin/theme/reset`, {
+  method: 'POST'
+}),
+uploadLogo: (formData) => fetchWithAuth(`${API_BASE_URL}/admin/theme/upload-logo`, {
+  method: 'POST',
+  body: formData
+}),
+uploadFavicon: (formData) => fetchWithAuth(`${API_BASE_URL}/admin/theme/upload-favicon`, {
+  method: 'POST',
+  body: formData
+}),
+```
+
+---
+
+### Fase 4: Migrasi Komponen ke CSS Variables
+
+---
+
+> [!TIP]
+> **Strategi cerdas**: Karena banyak komponen portal sudah menggunakan class Tailwind `bg-bku-primary`, `text-bku-primary`, `font-headline`, kita cukup **mengubah definisi variabel di `@theme` block** di `index.css` agar mereferensi `var(--theme-*)`. Dengan cara ini, **puluhan komponen portal otomatis ikut berubah tanpa perlu edit file mereka**.
+
+#### Komponen yang Sudah Otomatis Ter-update (via `@theme` bridge)
+
+Semua komponen yang menggunakan class Tailwind berikut akan **otomatis** mengikuti tema baru tanpa edit:
+
+| Tailwind Class | CSS Variable Source |
+|----------------|-------------------|
+| `bg-bku-primary` | `var(--theme-primary)` |
+| `text-bku-primary` | `var(--theme-primary)` |
+| `bg-bku-hover` | computed darker variant |
+| `font-headline` | `var(--theme-font-headline)` |
+| `font-inter` / `font-body` | `var(--theme-font-body)` |
+
+**Komponen yang terpengaruh otomatis** (tidak perlu edit):
+- SuperAdmin Sidebar, TopNavBar, semua halaman admin
+- Student AppLayout, semua halaman student
+- Faculty Layout, semua halaman faculty
+- Ormawa Layout, semua halaman ormawa
+- Psychologist Layout
+
+#### Komponen yang PERLU Migrasi Manual (Hardcoded HEX)
+
+Komponen Landing Page yang menggunakan warna hardcoded langsung perlu diubah:
+
+| File | Perubahan |
+|------|-----------|
+| [HomeHero.jsx](file:///d:/siakad/frontend/src/pages/Home/components/HomeHero.jsx) | `bg-[#0D2B55]` → `bg-[var(--theme-primary)]`, `text-[#C89B3C]` → `text-[var(--theme-secondary)]`, `text-[#E8B84B]` → `text-[var(--theme-accent)]` |
+| [AboutSection.jsx](file:///d:/siakad/frontend/src/pages/Home/components/AboutSection.jsx) | Heading & accent colors → CSS vars |
+| [PublicNavbar.jsx](file:///d:/siakad/frontend/src/components/layout/PublicNavbar.jsx) | Brand colors → CSS vars |
+| [PublicFooter.jsx](file:///d:/siakad/frontend/src/components/layout/PublicFooter.jsx) | Brand colors → CSS vars |
+| [FacultySection.jsx](file:///d:/siakad/frontend/src/pages/Home/components/FacultySection.jsx) | Card accent colors → CSS vars |
+| [RegistrationCTA.jsx](file:///d:/siakad/frontend/src/pages/Home/components/RegistrationCTA.jsx) | CTA button colors → CSS vars |
+| [AboutHero.jsx](file:///d:/siakad/frontend/src/pages/About/components/AboutHero.jsx) | Hero gradient → CSS vars |
+| [MissionVision.jsx](file:///d:/siakad/frontend/src/pages/About/components/MissionVision.jsx) | Card & heading colors → CSS vars |
+| [LegalInfo.jsx](file:///d:/siakad/frontend/src/pages/About/components/LegalInfo.jsx) | Accent colors → CSS vars |
+| [Partnerships.jsx](file:///d:/siakad/frontend/src/pages/About/components/Partnerships.jsx) | Card colors → CSS vars |
+| [Leadership.jsx](file:///d:/siakad/frontend/src/pages/About/components/Leadership.jsx) | Accent colors → CSS vars |
+
+---
+
+## Diagram Arsitektur
+
+```mermaid
+graph TD
+    subgraph Database
+        DB["ThemeSettings<br/>(1 record global)"]
+    end
+
+    subgraph Backend
+        API_PUB["GET /api/public/theme<br/>(tanpa auth)"]
+        API_ADM["GET/PUT /api/admin/theme<br/>(Super Admin)"]
+        API_RST["POST /api/admin/theme/reset"]
+        API_UPL["POST /api/admin/theme/upload-*"]
+    end
+
+    subgraph Frontend
+        TP["ThemeProvider.jsx<br/>(mount → fetch)"]
+        TS["useThemeStore<br/>(Zustand)"]
+        CSS[":root CSS Variables"]
+        TC["ThemeCustomizer.jsx<br/>(Admin UI)"]
+
+        subgraph Komponen
+            LP["Landing Page<br/>(Hero, About, etc.)"]
+            PO["Portal Pages<br/>(Student, Faculty, etc.)"]
+            SB["Sidebars & Navbars"]
+        end
+    end
+
+    DB --> API_PUB
+    DB --> API_ADM
+    API_PUB --> TP
+    TP --> TS
+    TS -->|"applyTheme()"| CSS
+    CSS -->|"var(--theme-*)"| LP
+    CSS -->|"var(--theme-*)"| PO
+    CSS -->|"var(--theme-*)"| SB
+    TC -->|"PUT/POST"| API_ADM
+    TC -->|"previewTheme()"| TS
+    API_ADM --> DB
+    API_RST --> DB
+    API_UPL -->|"save file"| DB
+```
+
+---
+
+## Verification Plan
+
+### Build Test
+```bash
+cd d:\siakad\frontend && npm run build   # Harus 0 error
+cd d:\siakad\backend && go build .       # Harus 0 error
+```
+
+### Functional Tests
+1. **Backend API:**
+   - `GET /api/public/theme` → return JSON dengan semua default values
+   - `PUT /api/admin/theme` dengan body `{ "color_primary": "#FF0000" }` → update berhasil
+   - `POST /api/admin/theme/reset` → semua value kembali ke default
+   - `POST /api/admin/theme/upload-logo` → file tersimpan, URL dikembalikan
+
+2. **Frontend Integration:**
+   - Buka halaman Landing Page → warna sesuai dengan tema default
+   - Login Super Admin → buka **Pengaturan Tampilan** → ubah warna Primary → klik Simpan
+   - Buka tab baru → Landing Page → warna sudah berubah
+   - Kembali ke admin → klik **Reset ke Default** → warna kembali Navy Gold
+   - Upload logo baru → logo di Navbar dan Footer berubah
+
+3. **Cross-Portal Consistency:**
+   - Ubah warna Primary → verifikasi Sidebar di semua portal (Student, Faculty, Ormawa) berubah warnanya
+
+---
+
+## Estimasi Waktu Implementasi
+
+| Fase | Deskripsi | Estimasi |
+|------|-----------|----------|
+| Fase 1 | Backend: Model, Controller, Routes, Seeder, Upload | ~30 menit |
+| Fase 2 | Frontend: useThemeStore, CSS Variables, ThemeProvider | ~30 menit |
+| Fase 3 | Admin UI: ThemeCustomizer.jsx (Editor + Live Preview) | ~60 menit |
+| Fase 4 | Migrasi Komponen Landing Page + Portal ke CSS vars | ~60 menit |
+| **Total** | | **~3 jam** |

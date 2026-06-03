@@ -270,7 +270,7 @@ class _HealthScreenState extends State<HealthScreen> {
       crossAxisCount: 2,
       crossAxisSpacing: 16,
       mainAxisSpacing: 16,
-      childAspectRatio: 1.4,
+      childAspectRatio: 1.15,
       children: [
         _buildStatTile('Tinggi Badan', latest.height.toStringAsFixed(0), 'cm', Icons.straighten_rounded, Colors.blue),
         _buildStatTile('Berat Badan', latest.weight.toStringAsFixed(0), 'kg', Icons.monitor_weight_rounded, Colors.green),
@@ -787,7 +787,7 @@ class _HealthScreenState extends State<HealthScreen> {
           crossAxisCount: 2,
           crossAxisSpacing: 16,
           mainAxisSpacing: 16,
-          childAspectRatio: 1.4,
+          childAspectRatio: 1.15,
           children: [
             _buildEmptyStatTile('Tinggi Badan', 'cm', Icons.height_rounded, Colors.blue),
             _buildEmptyStatTile('Berat Badan', 'kg', Icons.monitor_weight_rounded, Colors.green),

@@ -70,7 +70,10 @@ export default function OrmawaDashboard() {
  <div className="max-w-[1600px] mx-auto px-4 py-8 md:px-8 xl:px-12 space-y-8 font-body">
 
  {/* ── Welcome Banner ─────────────────────────────────────────── */}
- <section className="relative overflow-hidden rounded-3xl h-52 flex items-center group shadow-sm bg-gradient-to-r from-bku-primary via-bku-hover to-indigo-900 p-8 lg:p-12">
+ <section 
+  className="relative overflow-hidden rounded-3xl h-52 flex items-center group shadow-sm p-8 lg:p-12"
+  style={{ background: 'linear-gradient(160deg, var(--theme-primary) 0%, color-mix(in srgb, var(--theme-primary) 70%, var(--theme-secondary) 30%) 100%)' }}
+ >
  {/* Pattern overlay */}
  <div className="absolute inset-0 opacity-10"
  style={{
@@ -79,8 +82,8 @@ export default function OrmawaDashboard() {
  }}
  />
  {/* Glowing orbs */}
- <div className="absolute -top-20 -right-20 w-72 h-72 bg-blue-400/20 rounded-full blur-3xl" />
- <div className="absolute -bottom-10 right-40 w-48 h-48 bg-indigo-300/20 rounded-full blur-2xl" />
+ <div className="absolute -top-20 -right-20 w-72 h-72 rounded-full blur-3xl opacity-20" style={{ backgroundColor: 'var(--theme-secondary)' }} />
+ <div className="absolute -bottom-10 right-40 w-48 h-48 rounded-full blur-2xl opacity-20" style={{ backgroundColor: 'var(--theme-surface)' }} />
 
  {/* Content */}
  <div className="relative z-10 px-10 flex-1">
@@ -91,15 +94,16 @@ export default function OrmawaDashboard() {
  </span>
  </div>
  <h1 className="text-3xl md:text-4xl font-extrabold text-white tracking-tight leading-tight mb-2 font-headline">
- Halo, <span className="text-blue-200">{firstName}!</span>
+ Halo, <span style={{ color: 'var(--theme-secondary)' }}>{firstName}!</span>
  </h1>
- <p className="text-blue-100/80 font-medium text-sm max-w-md leading-relaxed">
+ <p className="text-white/80 font-medium text-sm max-w-md leading-relaxed">
  Kelola kegiatan, ajukan proposal, kelola keuangan, dan pantau anggota organisasi dengan mudah dari satu tempat.
  </p>
  <div className="mt-5 flex gap-3">
  <button
  onClick={() => navigate('/ormawa/proposal')}
- className="bg-white text-bku-primary px-5 py-2.5 rounded-xl font-bold text-xs shadow-lg hover:shadow-xl transition-all hover:-translate-y-0.5 active:scale-95"
+ className="bg-white px-5 py-2.5 rounded-xl font-bold text-xs shadow-lg hover:shadow-xl transition-all hover:-translate-y-0.5 active:scale-95"
+ style={{ color: 'var(--theme-primary)' }}
  >
  Ajukan Proposal
  </button>

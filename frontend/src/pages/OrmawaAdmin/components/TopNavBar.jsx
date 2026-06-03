@@ -165,7 +165,10 @@ const TopNavBar = ({ setIsOpen }) => {
 
           {/* Unified BKU Grid icon & Breadcrumbs */}
           <nav className="hidden md:flex items-center gap-3 overflow-hidden">
-            <div className="p-2 rounded-xl bg-bku-primary/5 text-bku-primary flex items-center justify-center border border-bku-primary/10 shadow-sm shrink-0">
+            <div 
+              className="p-2 rounded-xl flex items-center justify-center border shadow-sm shrink-0"
+              style={{ backgroundColor: 'color-mix(in srgb, var(--theme-primary) 5%, transparent)', borderColor: 'color-mix(in srgb, var(--theme-primary) 10%, transparent)', color: 'var(--theme-primary)' }}
+            >
               <span className="material-symbols-outlined text-[18px]" style={{ fontSize: '18px' }}>grid_view</span>
             </div>
             <div className="flex items-center text-[10px] font-extrabold tracking-widest uppercase font-headline">
@@ -187,7 +190,8 @@ const TopNavBar = ({ setIsOpen }) => {
                     ) : (
                       <Link
                         to={to}
-                        className="text-slate-400 hover:text-bku-primary transition-all duration-200 truncate max-w-[150px]"
+                        className="text-slate-400 transition-all duration-200 truncate max-w-[150px]"
+                        style={{ ':hover': { color: 'var(--theme-primary)' } }}
                       >
                         {getBreadcrumbLabel(value)}
                       </Link>
@@ -199,8 +203,15 @@ const TopNavBar = ({ setIsOpen }) => {
           </nav>
 
           {/* Premium Context Badge Indicator */}
-          <div className="hidden md:flex items-center gap-2 px-3.5 py-1.5 bg-bku-primary/5 text-bku-primary rounded-2xl text-[10px] font-extrabold tracking-wider uppercase border border-bku-primary/10 shadow-sm shadow-bku-primary/5">
-            <span className="w-1.5 h-1.5 bg-bku-primary rounded-full animate-pulse" />
+          <div 
+            className="hidden md:flex items-center gap-2 px-3.5 py-1.5 rounded-2xl text-[10px] font-extrabold tracking-wider uppercase border shadow-sm"
+            style={{ 
+              backgroundColor: 'color-mix(in srgb, var(--theme-primary) 5%, transparent)', 
+              color: 'var(--theme-primary)',
+              borderColor: 'color-mix(in srgb, var(--theme-primary) 10%, transparent)'
+            }}
+          >
+            <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ backgroundColor: 'var(--theme-primary)' }} />
             {ormawaInfo?.Singkatan || ormawaInfo?.Kategori || "ORMAWA Hub"}
           </div>
         </div>

@@ -243,7 +243,10 @@ export default function FacultyDashboard() {
         {/* ── Welcome Banner ─────────────────────────────────────────── */}
         <section className="relative overflow-hidden rounded-3xl h-52 flex items-center group">
           {/* Background */}
-          <div className="absolute inset-0 bg-gradient-to-br from-bku-primary via-[#0b338f] to-[#003B95]" />
+          <div 
+            className="absolute inset-0" 
+            style={{ background: 'linear-gradient(160deg, var(--theme-primary) 0%, color-mix(in srgb, var(--theme-primary) 70%, var(--theme-secondary) 30%) 100%)' }}
+          />
           {/* Pattern overlay */}
           <div className="absolute inset-0 opacity-10"
             style={{
@@ -252,8 +255,8 @@ export default function FacultyDashboard() {
             }}
           />
           {/* Glowing orbs */}
-          <div className="absolute -top-20 -right-20 w-72 h-72 bg-blue-400/20 rounded-full blur-3xl" />
-          <div className="absolute -bottom-10 right-40 w-48 h-48 bg-indigo-300/20 rounded-full blur-2xl" />
+          <div className="absolute -top-20 -right-20 w-72 h-72 rounded-full blur-3xl opacity-20" style={{ backgroundColor: 'var(--theme-secondary)' }} />
+          <div className="absolute -bottom-10 right-40 w-48 h-48 rounded-full blur-2xl opacity-20" style={{ backgroundColor: 'var(--theme-surface)' }} />
 
           {/* Content */}
           <div className="relative z-10 px-10 flex-1">
@@ -264,15 +267,16 @@ export default function FacultyDashboard() {
               </span>
             </div>
             <h1 className="text-3xl md:text-4xl font-extrabold text-white tracking-tight leading-tight mb-2">
-              Selamat datang, <span className="text-blue-200">{firstName}!</span>
+              Selamat datang, <span style={{ color: 'var(--theme-secondary)' }}>{firstName}!</span>
             </h1>
-            <p className="text-blue-100/80 font-medium text-sm max-w-md leading-relaxed">
+            <p className="text-white/80 font-medium text-sm max-w-md leading-relaxed">
               Kelola data akademik, pantau kinerja mahasiswa, dan verifikasi layanan kampus dari satu panel terpusat.
             </p>
             <div className="mt-5 flex gap-3">
               <button
                 onClick={() => navigate('/faculty/mahasiswa')}
-                className="bg-white text-primary px-5 py-2.5 rounded-xl font-bold text-xs shadow-lg hover:shadow-xl transition-all hover:-translate-y-0.5 active:scale-95"
+                className="bg-white px-5 py-2.5 rounded-xl font-bold text-xs shadow-lg hover:shadow-xl transition-all hover:-translate-y-0.5 active:scale-95"
+                style={{ color: 'var(--theme-primary)' }}
               >
                 Lihat Data Mahasiswa
               </button>

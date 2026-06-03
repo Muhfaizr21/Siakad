@@ -62,7 +62,19 @@ class OrmawaProvider extends ChangeNotifier {
   String get orgName => (_authService.userData?['user']?['nama'] ?? _authService.userData?['nama']) ?? _orgName;
   String get academicYear => _academicYear;
   int get totalMembers => _totalMembers;
-  double get balance => _balance;
+  double get balance {
+    if (_financeList.isEmpty) return _balance;
+    double totalMasuk = 0;
+    double totalKeluar = 0;
+    for (var t in _financeList) {
+      if (t.type == 'pemasukan') {
+        totalMasuk += t.nominal;
+      } else {
+        totalKeluar += t.nominal;
+      }
+    }
+    return totalMasuk - totalKeluar;
+  }
   int get activeProposalsCount => _activeProposalsCount;
   int get upcomingAgendasCount => _upcomingAgendasCount;
   List<OrmawaProposal> get proposals => _proposals;

@@ -32,19 +32,19 @@ export default function QuickAccessGrid() {
           <NavLink 
             key={index} 
             to={item.path} 
-            className="group bg-white p-4 rounded-2xl border border-[#e5e5e5] hover:bg-[#eef4ff] hover:border-[#00236F]/30 hover:shadow-md transition-all duration-300 flex items-center justify-between cursor-pointer"
+            className="group bg-white p-4 rounded-2xl border border-[#e5e5e5] hover:bg-primary/10 hover:border-primary/30 hover:shadow-md transition-all duration-300 flex items-center justify-between cursor-pointer"
           >
             <div className="flex items-center gap-3.5 min-w-0">
-              <div className="w-10 h-10 rounded-xl bg-[#eef4ff] text-[#00236F] flex items-center justify-center shrink-0 shadow-sm shadow-[#00236F]/10 group-hover:scale-105 transition-transform">
+              <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0 shadow-sm shadow-primary/10 group-hover:scale-105 transition-transform">
                 <item.icon size={20} />
               </div>
               <div className="flex flex-col gap-0.5 min-w-0">
-                <h3 className="font-bold font-headline text-sm group-hover:text-[#00236F] transition-colors truncate">{item.name}</h3>
+                <h3 className="font-bold font-headline text-sm group-hover:text-primary transition-colors truncate">{item.name}</h3>
                 <p className="text-xs text-[#525252] font-medium leading-tight line-clamp-1">{item.desc}</p>
               </div>
             </div>
-            <div className="bg-[#fafafa] p-1.5 rounded-full group-hover:bg-[#00236F]/10 transition-colors shrink-0 ml-2">
-                <ChevronRight size={16} className="text-[#a3a3a3] group-hover:text-[#00236F] transition-all" />
+            <div className="bg-[#fafafa] p-1.5 rounded-full group-hover:bg-primary/10 transition-colors shrink-0 ml-2">
+                <ChevronRight size={16} className="text-[#a3a3a3] group-hover:text-primary transition-all" />
             </div>
           </NavLink>
         ))}

@@ -16,7 +16,7 @@ export default function HeroCard({ data }) {
 
   const statusColors = {
     aktif: 'bg-[#16a34a] text-white',
-    cuti: 'bg-[#00236F] text-white',
+    cuti: 'bg-primary text-white',
     alumni: 'bg-[#737373] text-white',
   };
 
@@ -30,7 +30,7 @@ export default function HeroCard({ data }) {
   };
 
   return (
-    <div className="bg-gradient-to-br from-[#eef4ff] to-[#e2ebff] border-l-4 border-[#00236F] rounded-2xl p-4 md:p-5 mb-2 shadow-sm relative overflow-hidden group">
+    <div className="bg-gradient-to-br from-primary/10 to-primary/20 border-l-4 border-primary rounded-2xl p-4 md:p-5 mb-2 shadow-sm relative overflow-hidden group">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 relative z-10">
         <div>
           <div className="flex items-center gap-2.5 mb-2.5">
@@ -53,7 +53,7 @@ export default function HeroCard({ data }) {
           {/* Contextual Message */}
           <NavLink 
             to={link_kontekstual || '#'} 
-            className="inline-flex items-center gap-2 px-3.5 py-2 bg-white rounded-xl border border-[#c9d8ff] text-xs font-bold text-[#00236F] hover:bg-[#00236F] hover:text-white transition-all shadow-sm group/btn"
+            className="inline-flex items-center gap-2 px-3.5 py-2 bg-white rounded-xl border border-[#c9d8ff] text-xs font-bold text-primary hover:bg-primary hover:text-white transition-all shadow-sm group/btn"
           >
             {pesan_kontekstual}
             <ChevronRight size={16} className="translate-x-0 group-hover/btn:translate-x-1 transition-transform" />
@@ -62,7 +62,7 @@ export default function HeroCard({ data }) {
  
         {/* Avatar */}
         <div className="hidden sm:block">
-          <div className="w-[68px] h-[68px] rounded-full bg-white border-2 border-[#00236F] shadow-md flex items-center justify-center overflow-hidden transition-transform group-hover:scale-105 duration-500">
+          <div className="w-[68px] h-[68px] rounded-full bg-white border-2 border-primary shadow-md flex items-center justify-center overflow-hidden transition-transform group-hover:scale-105 duration-500">
              {mahasiswa?.foto_url ? (
                <img src={getFullUrl(mahasiswa.foto_url)} alt="Profile" className="w-full h-full object-cover" />
              ) : (
@@ -73,7 +73,7 @@ export default function HeroCard({ data }) {
       </div>
       
       {/* Decorative BG pattern */}
-      <div className="absolute top-[-20px] right-[-20px] w-48 h-48 bg-[#00236F] opacity-[0.05] rounded-full pointer-events-none group-hover:scale-110 transition-transform duration-700"></div>
+      <div className="absolute top-[-20px] right-[-20px] w-48 h-48 bg-primary opacity-[0.05] rounded-full pointer-events-none group-hover:scale-110 transition-transform duration-700"></div>
     </div>
   );
 }

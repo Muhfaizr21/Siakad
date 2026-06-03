@@ -1,0 +1,468 @@
+import React, { useState, useEffect } from 'react';
+import useThemeStore from '../../../store/useThemeStore';
+import { adminService } from '../../../services/api';
+import ThemePreviewModal from './ThemePreviewModal';
+
+// Helper functions
+const normalizeHex = (color) => {
+  if (!color) return '#000000';
+  if (color.startsWith('#') && color.length === 4) {
+    return `#${color[1]}${color[1]}${color[2]}${color[2]}${color[3]}${color[3]}`;
+  }
+  return color;
+};
+
+const isValidHex = (color) => {
+  if (!color) return false;
+  return /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/.test(color);
+};
+
+const getContrastRatio = (fg, bg) => {
+  const hexToRgb = (hex) => {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return result ? {
+      r: parseInt(result[1], 16),
+      g: parseInt(result[2], 16),
+      b: parseInt(result[3], 16)
+    } : null;
+  };
+
+  const getLuminance = (rgb) => {
+    const [r, g, b] = [rgb.r, rgb.g, rgb.b].map(v => {
+      v /= 255;
+      return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+    });
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+  };
+
+  const rgb1 = hexToRgb(fg);
+  const rgb2 = hexToRgb(bg);
+  if (!rgb1 || !rgb2) return 0;
+
+  const l1 = getLuminance(rgb1);
+  const l2 = getLuminance(rgb2);
+  const lighter = Math.max(l1, l2);
+  const darker = Math.min(l1, l2);
+  return ((lighter + 0.05) / (darker + 0.05));
+};
+
+const getContrastRating = (ratio) => {
+  if (ratio >= 7) return { label: 'AAA', color: 'text-emerald-600', bg: 'bg-emerald-50' };
+  if (ratio >= 4.5) return { label: 'AA', color: 'text-blue-600', bg: 'bg-blue-50' };
+  if (ratio >= 3) return { label: 'AA Large', color: 'text-amber-600', bg: 'bg-amber-50' };
+  return { label: 'FAIL', color: 'text-red-600', bg: 'bg-red-50' };
+};
+
+// Sidebar Color Input Component
+const SidebarColorInput = ({ label, value, onChange, description }) => {
+  const sidebarBg = '#0D2B55'; // Default sidebar bg
+  const contrastRatio = getContrastRatio(value, sidebarBg);
+  const rating = getContrastRating(contrastRatio);
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-2">
+        <label className="text-xs font-semibold" style={{ color: 'var(--theme-text)' }}>{label}</label>
+        <div className="flex items-center gap-2">
+          <span className="text-xs px-2 py-0.5 rounded font-bold" style={{ backgroundColor: rating.bg, color: rating.color }}>
+            {contrastRatio.toFixed(1)}:1
+          </span>
+          <span className={`text-[10px] px-1.5 py-0.5 rounded font-bold ${rating.bg} ${rating.color}`}>
+            {rating.label}
+          </span>
+        </div>
+      </div>
+      <div className="flex gap-3">
+        <input
+          type="color"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className="w-12 h-12 rounded-lg cursor-pointer border-2"
+          style={{ borderColor: 'var(--theme-border)' }}
+        />
+        <input
+          type="text"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className="flex-1 px-3 rounded-lg text-sm font-mono"
+          style={{ backgroundColor: 'var(--theme-bg)', color: 'var(--theme-text)', border: '1px solid var(--theme-border)' }}
+        />
+      </div>
+      {description && (
+        <p className="text-[10px] mt-1" style={{ color: 'var(--theme-text-muted)' }}>{description}</p>
+      )}
+    </div>
+  );
+};
+
+// Sidebar Preview Component
+const SidebarPreview = ({ bgColor, textColor, mutedColor }) => {
+  return (
+    <div className="mt-4 p-4 rounded-xl" style={{ backgroundColor: bgColor }}>
+      <p className="text-[10px] font-semibold mb-3" style={{ color: 'rgba(255,255,255,0.5)' }}>PREVIEW SIDEBAR</p>
+
+      {/* Logo section */}
+      <div className="flex items-center gap-3 mb-4 pb-3 border-b" style={{ borderColor: 'rgba(255,255,255,0.1)' }}>
+        <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center">
+          <span style={{ color: 'white' }}>🎓</span>
+        </div>
+        <div>
+          <p className="text-sm font-bold" style={{ color: textColor }}>STUDENT HUB</p>
+          <p className="text-[10px]" style={{ color: mutedColor }}>Portal Mahasiswa</p>
+        </div>
+      </div>
+
+      {/* Menu items */}
+      <div className="space-y-1">
+        <div className="flex items-center gap-3 px-3 py-2 rounded-lg bg-white/10" style={{ borderLeft: '3px solid #C89B3C' }}>
+          <span style={{ color: '#C89B3C' }}>📊</span>
+          <span className="text-xs font-medium" style={{ color: textColor }}>Dashboard</span>
+        </div>
+        <div className="flex items-center gap-3 px-3 py-2 rounded-lg opacity-70 hover:opacity-100 cursor-pointer">
+          <span style={{ color: mutedColor }}>👤</span>
+          <span className="text-xs font-medium" style={{ color: mutedColor }}>Profile</span>
+        </div>
+        <div className="flex items-center gap-3 px-3 py-2 rounded-lg opacity-70 hover:opacity-100 cursor-pointer">
+          <span style={{ color: mutedColor }}>📋</span>
+          <span className="text-xs font-medium" style={{ color: mutedColor }}>Konseling</span>
+        </div>
+        <div className="flex items-center gap-3 px-3 py-2 rounded-lg opacity-70 hover:opacity-100 cursor-pointer">
+          <span style={{ color: mutedColor }}>🏆</span>
+          <span className="text-xs font-medium" style={{ color: mutedColor }}>Prestasi</span>
+        </div>
+      </div>
+
+      {/* Bottom - Logout */}
+      <div className="mt-4 pt-3 border-t" style={{ borderColor: 'rgba(255,255,255,0.1)' }}>
+        <div className="flex items-center gap-3 px-3 py-2 rounded-lg opacity-70 hover:opacity-100 cursor-pointer">
+          <span style={{ color: '#f87171' }}>🚪</span>
+          <span className="text-xs font-medium" style={{ color: '#f87171' }}>Keluar</span>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default function ThemeComponents() {
+  const { previewTheme, revertPreview, fetchTheme } = useThemeStore();
+  const [formData, setFormData] = useState(null);
+  const [loading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [toast, setToast] = useState(null);
+  const [showPreview, setShowPreview] = useState(false);
+
+  useEffect(() => {
+    loadTheme();
+    return () => revertPreview();
+  }, []);
+
+  const loadTheme = async () => {
+    setIsLoading(true);
+    try {
+      const data = await fetchTheme();
+      if (data) setFormData(data);
+    } catch {
+      showToast('error', 'Gagal memuat pengaturan tema');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const showToast = (type, message) => {
+    setToast({ type, message });
+    setTimeout(() => setToast(null), 4000);
+  };
+
+  const handleChange = (field, value) => {
+    const normalizedValue = normalizeHex(value);
+    const updated = { ...formData, [field]: normalizedValue };
+    setFormData(updated);
+    if (isValidHex(normalizedValue)) {
+      previewTheme({ [field]: normalizedValue });
+    }
+  };
+
+  const handleReset = async () => {
+    if (!window.confirm('Reset komponen ke default?')) return;
+    try {
+      const res = await adminService.resetTheme();
+      if (res.success) {
+        showToast('success', 'Komponen berhasil di-reset');
+        const data = await fetchTheme();
+        if (data) setFormData(data);
+      }
+    } catch {
+      showToast('error', 'Gagal mereset');
+    }
+  };
+
+  const handleSave = async () => {
+    setIsSaving(true);
+    try {
+      const res = await adminService.updateTheme(formData);
+      if (res.success) {
+        showToast('success', 'Pengaturan komponen berhasil disimpan');
+        await fetchTheme();
+      }
+    } catch (err) {
+      showToast('error', err.message || 'Gagal menyimpan');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  if (loading || !formData) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 border-4 border-[var(--theme-primary)] border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-sm" style={{ color: 'var(--theme-text-muted)' }}>Memuat...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Sidebar colors from formData - INDEPENDENT dari Portal/Landing colors
+  const sidebarBg = formData.sidebar_bg_color || '#0D2B55';
+  const sidebarText = formData.sidebar_text_color || '#E2E8F0';
+  const sidebarMuted = formData.sidebar_text_muted_color || '#94A3B8';
+  const buttonRadius = formData.button_radius || '12px';
+
+  return (
+    <div className="px-4 py-8 md:px-8 xl:px-12 min-h-screen bg-transparent font-inter">
+      <div className="max-w-[1600px] mx-auto space-y-6">
+
+        {/* Toast */}
+        {toast && (
+          <div className={`fixed top-6 right-6 z-50 flex items-center gap-3 px-5 py-3 rounded-xl shadow-lg animate-in fade-in slide-in-from-top-4 duration-300 ${
+            toast.type === 'success' ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'
+          }`}>
+            <span className="material-symbols-outlined">{toast.type === 'success' ? 'check_circle' : 'error'}</span>
+            <span className="text-sm font-semibold">{toast.message}</span>
+          </div>
+        )}
+
+        {/* Page Header */}
+        <section className="bg-white rounded-xl p-5 shadow-sm">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ backgroundColor: 'var(--theme-primary)', color: 'white' }}>
+                <span className="material-symbols-outlined text-xl">widgets</span>
+              </div>
+              <div>
+                <h1 className="text-xl font-bold" style={{ color: 'var(--theme-text)' }}>
+                  Pengaturan Komponen
+                </h1>
+                <p className="text-xs mt-0.5" style={{ color: 'var(--theme-text-muted)' }}>
+                  Sidebar, tombol, dan elemen UI lainnya
+                </p>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={handleReset}
+                className="px-4 py-2 rounded-lg text-xs font-semibold transition-all hover:bg-slate-50"
+                style={{ color: 'var(--theme-text-muted)' }}
+              >
+                Reset
+              </button>
+              <button
+                onClick={() => setShowPreview(true)}
+                className="px-4 py-2 rounded-lg text-xs font-semibold transition-all hover:bg-slate-50"
+                style={{ color: 'var(--theme-text-muted)' }}
+              >
+                <span className="material-symbols-outlined text-sm mr-1">visibility</span>
+                Preview
+              </button>
+              <button
+                onClick={handleSave}
+                disabled={isSaving}
+                className="px-5 py-2 rounded-lg text-xs font-bold text-white transition-all hover:opacity-90 flex items-center gap-2"
+                style={{ backgroundColor: 'var(--theme-primary)' }}
+              >
+                {isSaving ? (
+                  <span className="material-symbols-outlined text-sm animate-spin">sync</span>
+                ) : (
+                  <span className="material-symbols-outlined text-sm">save</span>
+                )}
+                Simpan
+              </button>
+            </div>
+          </div>
+        </section>
+
+        {/* Preview Modal */}
+        <ThemePreviewModal isOpen={showPreview} onClose={() => setShowPreview(false)} theme={formData} />
+
+        {/* Main Content Grid */}
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
+
+          {/* Section: Sidebar dengan Preview */}
+          <section className="bg-white rounded-xl p-5 shadow-sm">
+            <div className="flex items-center gap-3 mb-5">
+              <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ backgroundColor: sidebarBg, color: 'white' }}>
+                <span className="material-symbols-outlined text-base">view_sidebar</span>
+              </div>
+              <div>
+                <h2 className="text-sm font-bold" style={{ color: 'var(--theme-text)' }}>Sidebar</h2>
+                <p className="text-[11px]" style={{ color: 'var(--theme-text-muted)' }}>Warna panel navigasi kiri (hanya untuk portal pages)</p>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              {/* Background */}
+              <SidebarColorInput
+                label="Background Sidebar"
+                value={sidebarBg}
+                onChange={(v) => handleChange('sidebar_bg_color', v)}
+                description="Warna dasar sidebar - biasanya gelap"
+              />
+
+              {/* Text Color */}
+              <SidebarColorInput
+                label="Warna Teks Utama"
+                value={sidebarText}
+                onChange={(v) => handleChange('sidebar_text_color', v)}
+                description="Warna teks menu yang aktif/selected"
+              />
+
+              {/* Muted Text */}
+              <SidebarColorInput
+                label="Warna Teks Muted"
+                value={sidebarMuted}
+                onChange={(v) => handleChange('sidebar_text_muted_color', v)}
+                description="Warna teks menu yang tidak aktif"
+              />
+            </div>
+
+            {/* Sidebar Preview */}
+            <SidebarPreview
+              bgColor={sidebarBg}
+              textColor={sidebarText}
+              mutedColor={sidebarMuted}
+            />
+          </section>
+
+          {/* Section: Buttons */}
+          <section className="bg-white rounded-xl p-5 shadow-sm">
+            <div className="flex items-center gap-3 mb-5">
+              <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ backgroundColor: 'var(--theme-primary)', color: 'white' }}>
+                <span className="material-symbols-outlined text-base">smart_button</span>
+              </div>
+              <div>
+                <h2 className="text-sm font-bold" style={{ color: 'var(--theme-text)' }}>Tombol</h2>
+                <p className="text-[11px]" style={{ color: 'var(--theme-text-muted)' }}>Pengaturan border radius</p>
+              </div>
+            </div>
+
+            <div className="mb-4">
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-xs font-semibold" style={{ color: 'var(--theme-text)' }}>Border Radius</label>
+                <span className="text-xs font-mono font-bold" style={{ color: 'var(--theme-primary)' }}>{buttonRadius}</span>
+              </div>
+              <input
+                type="range"
+                min="0"
+                max="24"
+                step="2"
+                value={parseInt(buttonRadius) || 12}
+                onChange={(e) => handleChange('button_radius', `${e.target.value}px`)}
+                className="w-full h-2 rounded-lg appearance-none cursor-pointer"
+                style={{ backgroundColor: 'var(--theme-bg)' }}
+              />
+              <div className="flex justify-between text-[10px] mt-1" style={{ color: 'var(--theme-text-muted)' }}>
+                <span>0px</span>
+                <span>12px</span>
+                <span>24px</span>
+              </div>
+            </div>
+
+            {/* Button Preview */}
+            <div className="p-4 rounded-lg" style={{ backgroundColor: 'var(--theme-bg)' }}>
+              <p className="text-[10px] font-semibold mb-2" style={{ color: 'var(--theme-text-muted)' }}>PREVIEW TOMBOL</p>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  className="px-4 py-2 text-white text-xs font-bold"
+                  style={{ backgroundColor: 'var(--theme-primary)', borderRadius: buttonRadius }}
+                >
+                  Primary
+                </button>
+                <button
+                  className="px-4 py-2 text-xs font-bold border-2"
+                  style={{ borderColor: 'var(--theme-primary)', color: 'var(--theme-primary)', borderRadius: buttonRadius, backgroundColor: 'white' }}
+                >
+                  Outline
+                </button>
+                <button
+                  className="px-4 py-2 text-xs font-bold"
+                  style={{ backgroundColor: 'var(--theme-bg)', color: 'var(--theme-text)', borderRadius: buttonRadius }}
+                >
+                  Secondary
+                </button>
+              </div>
+            </div>
+          </section>
+
+          {/* Section: UI Components */}
+          <section className="bg-white rounded-xl p-5 shadow-sm xl:col-span-2">
+            <div className="flex items-center gap-3 mb-5">
+              <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ backgroundColor: 'var(--theme-primary)', color: 'white' }}>
+                <span className="material-symbols-outlined text-base">integration_instructions</span>
+              </div>
+              <div>
+                <h2 className="text-sm font-bold" style={{ color: 'var(--theme-text)' }}>Preview Elemen UI</h2>
+                <p className="text-[11px]" style={{ color: 'var(--theme-text-muted)' }}>Tampilan komponen dengan tema saat ini</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Badge */}
+              <div className="p-4 rounded-lg" style={{ backgroundColor: 'var(--theme-bg)' }}>
+                <p className="text-[10px] font-semibold mb-2" style={{ color: 'var(--theme-text-muted)' }}>BADGE</p>
+                <div className="flex flex-wrap gap-2">
+                  <span className="px-3 py-1 rounded-full text-xs font-bold" style={{ backgroundColor: '#dcfce7', color: '#166534' }}>Active</span>
+                  <span className="px-3 py-1 rounded-full text-xs font-bold" style={{ backgroundColor: '#fef3c7', color: '#92400e' }}>Pending</span>
+                  <span className="px-3 py-1 rounded-full text-xs font-bold" style={{ backgroundColor: '#fee2e2', color: '#991b1b' }}>Error</span>
+                </div>
+              </div>
+
+              {/* Input */}
+              <div className="p-4 rounded-lg" style={{ backgroundColor: 'var(--theme-bg)' }}>
+                <p className="text-[10px] font-semibold mb-2" style={{ color: 'var(--theme-text-muted)' }}>INPUT</p>
+                <input
+                  type="text"
+                  placeholder="Input field..."
+                  className="w-full px-3 py-2 rounded-lg text-sm"
+                  style={{ backgroundColor: 'white', color: 'var(--theme-text)' }}
+                />
+              </div>
+
+              {/* Card */}
+              <div className="p-4 rounded-lg" style={{ backgroundColor: 'var(--theme-bg)' }}>
+                <p className="text-[10px] font-semibold mb-2" style={{ color: 'var(--theme-text-muted)' }}>CARD</p>
+                <div className="p-3 rounded-lg" style={{ backgroundColor: 'white' }}>
+                  <p className="font-bold text-sm" style={{ color: 'var(--theme-text)' }}>Judul Card</p>
+                  <p className="text-xs mt-1" style={{ color: 'var(--theme-text-muted)' }}>Deskripsi card</p>
+                </div>
+              </div>
+
+              {/* Tabs */}
+              <div className="p-4 rounded-lg" style={{ backgroundColor: 'var(--theme-bg)' }}>
+                <p className="text-[10px] font-semibold mb-2" style={{ color: 'var(--theme-text-muted)' }}>TABS</p>
+                <div className="flex gap-1 p-1 rounded-lg" style={{ backgroundColor: 'white' }}>
+                  <button className="flex-1 px-3 py-1.5 rounded text-xs font-bold text-white" style={{ backgroundColor: 'var(--theme-primary)' }}>
+                    Tab 1
+                  </button>
+                  <button className="flex-1 px-3 py-1.5 rounded text-xs" style={{ color: 'var(--theme-text-muted)' }}>
+                    Tab 2
+                  </button>
+                </div>
+              </div>
+            </div>
+          </section>
+
+        </div>
+      </div>
+    </div>
+  );
+}

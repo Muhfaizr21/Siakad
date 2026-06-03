@@ -12,9 +12,9 @@ export default function StatusSummary({ kencana, beasiswa, voice, kesehatan, kes
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Card A: KENCANA */}
-        <div className="bg-white p-4 rounded-2xl border border-[#e5e5e5] shadow-sm hover:shadow-md transition-all border-b-2 border-b-[#00236F]/20 group">
+        <div className="bg-white p-4 rounded-2xl border border-[#e5e5e5] shadow-sm hover:shadow-md transition-all border-b-2 border-b-primary/20 group">
           <div className="flex items-center justify-between mb-3">
-            <div className="w-9 h-9 bg-[#eef4ff] text-[#00236F] rounded-xl flex items-center justify-center">
+            <div className="w-9 h-9 bg-primary/10 text-primary rounded-xl flex items-center justify-center">
               <GraduationCap size={18} />
             </div>
             {kencana?.status === 'Selesai ✓' ? (
@@ -43,13 +43,13 @@ export default function StatusSummary({ kencana, beasiswa, voice, kesehatan, kes
               {kencana?.modul_selesai} dari {kencana?.total_modul} modul selesai
             </p>
           </div>
-          <NavLink to="/student/kencana" className="flex items-center justify-between py-1.5 text-xs font-bold text-[#00236F] hover:underline">
+          <NavLink to="/student/kencana" className="flex items-center justify-between py-1.5 text-xs font-bold text-primary hover:underline">
             Lanjutkan <ChevronRight size={16} />
           </NavLink>
         </div>
 
         {/* Card B: Beasiswa */}
-        <div className="bg-white p-4 rounded-2xl border border-[#e5e5e5] shadow-sm hover:shadow-md transition-all border-b-2 border-b-[#00236F]/20 group">
+        <div className="bg-white p-4 rounded-2xl border border-[#e5e5e5] shadow-sm hover:shadow-md transition-all border-b-2 border-b-primary/20 group">
           <div className="flex items-center justify-between mb-3">
             <div className="w-9 h-9 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center">
               <BookOpen size={18} />
@@ -66,13 +66,13 @@ export default function StatusSummary({ kencana, beasiswa, voice, kesehatan, kes
             <span className="text-3xl font-black text-[#171717] leading-none">{beasiswa?.jumlah_proses || 0}</span>
             <span className="text-xs font-bold text-[#525252] mb-1 italic">Pengajuan Sedang Diproses</span>
           </div>
-          <NavLink to="/student/scholarship" className="flex items-center justify-between py-1.5 text-xs font-bold text-[#00236F] hover:underline">
+          <NavLink to="/student/scholarship" className="flex items-center justify-between py-1.5 text-xs font-bold text-primary hover:underline">
             Lihat Status <ChevronRight size={16} />
           </NavLink>
         </div>
 
         {/* Card C: Student Voice */}
-        <div className="bg-white p-4 rounded-2xl border border-[#e5e5e5] shadow-sm hover:shadow-md transition-all border-b-2 border-b-[#00236F]/20 group">
+        <div className="bg-white p-4 rounded-2xl border border-[#e5e5e5] shadow-sm hover:shadow-md transition-all border-b-2 border-b-primary/20 group">
           <div className="flex items-center justify-between mb-3">
             <div className="w-9 h-9 bg-violet-50 text-violet-600 rounded-xl flex items-center justify-center">
               <MessageSquare size={18} />
@@ -89,7 +89,7 @@ export default function StatusSummary({ kencana, beasiswa, voice, kesehatan, kes
             <span className="text-3xl font-black text-[#171717] leading-none">{voice?.jumlah_aktif || 0}</span>
             <span className="text-xs font-bold text-[#525252] mb-1 italic">Tiket Masih Terbuka</span>
           </div>
-          <NavLink to="/student/voice" className="flex items-center justify-between py-1.5 text-xs font-bold text-[#00236F] hover:underline">
+          <NavLink to="/student/voice" className="flex items-center justify-between py-1.5 text-xs font-bold text-primary hover:underline">
             Lihat Tiket <ChevronRight size={16} />
           </NavLink>
         </div>
@@ -150,7 +150,7 @@ export default function StatusSummary({ kencana, beasiswa, voice, kesehatan, kes
           const bmiDisplay = bmi ? bmi.toFixed(1) : null;
 
           return (
-            <div className="bg-white p-4 rounded-2xl border border-[#e5e5e5] shadow-sm hover:shadow-md transition-all border-b-2 border-b-[#00236F]/20 group">
+            <div className="bg-white p-4 rounded-2xl border border-[#e5e5e5] shadow-sm hover:shadow-md transition-all border-b-2 border-b-primary/20 group">
               <div className="flex items-center justify-between mb-3">
                 <div className={`w-9 h-9 ${iconBg} ${iconColor} rounded-xl flex items-center justify-center`}>
                   <Activity size={18} />
@@ -179,7 +179,7 @@ export default function StatusSummary({ kencana, beasiswa, voice, kesehatan, kes
                   </span>
                 </div>
               )}
-              <NavLink to="/student/health" className="flex items-center justify-between py-1.5 text-xs font-bold text-[#00236F] hover:underline">
+              <NavLink to="/student/health" className="flex items-center justify-between py-1.5 text-xs font-bold text-primary hover:underline">
                 Cek Riwayat <ChevronRight size={16} />
               </NavLink>
             </div>

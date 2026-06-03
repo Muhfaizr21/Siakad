@@ -28,19 +28,19 @@ const FieldGroup = ({ label, children, icon }) => (
 export default function Settings() {
   const [loading, setLoading] = useState(false)
   const [uploading, setUploading] = useState(false)
-  const [config, setConfig] = useState({ 
-    Nama: '', 
-    Deskripsi: '', 
-    Visi: '', 
-    Misi: '', 
-    LogoURL: '', 
-    Email: '', 
-    Phone: '', 
-    Instagram: '', 
+  const [config, setConfig] = useState({
+    Nama: '',
+    Deskripsi: '',
+    Visi: '',
+    Misi: '',
+    LogoURL: '',
+    Email: '',
+    Phone: '',
+    Instagram: '',
     Website: '',
     Rekening: ''
   })
-  
+
   const ormawaId = useAuthStore.getState()?.mahasiswa?.ormawaId || useAuthStore.getState()?.mahasiswa?.ID || useAuthStore.getState()?.user?.ormawaId || 1
 
   const fetchSettings = async () => {
@@ -60,17 +60,17 @@ export default function Settings() {
           Rekening: data.data?.Rekening || data.data?.rekening || ''
         })
       }
-    } catch {}
+    } catch { }
   }
 
-  useEffect(() => { 
-    fetchSettings() 
+  useEffect(() => {
+    fetchSettings()
   }, [ormawaId])
 
   const handleLogoUpload = async (e) => {
     const file = e.target.files[0]
     if (!file) return
-    
+
     // Check file constraints
     if (file.size > 2 * 1024 * 1024) {
       toast.error('File terlalu besar! Maksimal 2MB.')
@@ -82,7 +82,7 @@ export default function Settings() {
     fd.append('file', file)
     try {
       const json = await fetchWithAuth(`${API}/upload`, { method: 'POST', body: fd })
-      if (json.status === 'success') { 
+      if (json.status === 'success') {
         setConfig(c => ({ ...c, LogoURL: json.url }))
         toast.success('Logo berhasil diunggah!')
         // Dispatch custom event to notify Sidebar/Navbar to refresh settings
@@ -90,10 +90,10 @@ export default function Settings() {
       } else {
         toast.error('Gagal mengunggah logo')
       }
-    } catch { 
-      toast.error('Gagal mengunggah logo karena gangguan server') 
-    } finally { 
-      setUploading(false) 
+    } catch {
+      toast.error('Gagal mengunggah logo karena gangguan server')
+    } finally {
+      setUploading(false)
     }
   }
 
@@ -106,17 +106,17 @@ export default function Settings() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(config)
       })
-      if (json.status === 'success') { 
+      if (json.status === 'success') {
         toast.success('Pengaturan sistem berhasil disimpan!')
-        window.dispatchEvent(new Event('ormawa_settings_updated')) 
+        window.dispatchEvent(new Event('ormawa_settings_updated'))
         fetchSettings()
       } else {
         toast.error(json.message || 'Gagal menyimpan perubahan')
       }
-    } catch { 
-      toast.error('Terjadi kesalahan jaringan backend') 
-    } finally { 
-      setLoading(false) 
+    } catch {
+      toast.error('Terjadi kesalahan jaringan backend')
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -140,32 +140,32 @@ export default function Settings() {
   return (
     <div className="max-w-[1600px] mx-auto px-4 py-8 md:px-8 xl:px-12 space-y-8 font-body">
       <Toaster position="top-right" />
-      
+
       {/* ── Welcome Banner ─────────────────────────────────────────── */}
-      <section className="relative overflow-hidden rounded-[2rem] bg-gradient-to-r from-bku-primary to-[#1e3a8a] text-white p-8 md:p-10 shadow-xl shadow-blue-900/10">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.08)_0%,transparent_60%)]" />
-        <div className="absolute inset-0 opacity-[0.03]"
+      <section className="relative overflow-hidden rounded-[2rem] bg-white p-8 md:p-10 shadow-sm border border-slate-200">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(0,0,0,0.02)_0%,transparent_60%)]" />
+        <div className="absolute inset-0 opacity-[0.02]"
           style={{
-            backgroundImage: `radial-gradient(circle at 20% 50%, white 1px, transparent 1px), radial-gradient(circle at 80% 20%, white 1px, transparent 1px)`,
+            backgroundImage: `radial-gradient(circle at 20% 50%, var(--theme-primary) 1px, transparent 1px), radial-gradient(circle at 80% 20%, var(--theme-primary) 1px, transparent 1px)`,
             backgroundSize: '40px 40px'
           }}
         />
-        <div className="absolute -right-20 -top-20 w-80 h-80 bg-white/10 rounded-full blur-3xl" />
-        <div className="absolute -bottom-10 right-40 w-60 h-60 bg-blue-300/10 rounded-full blur-2xl" />
+        <div className="absolute -right-20 -top-20 w-80 h-80 rounded-full blur-3xl opacity-10" style={{ backgroundColor: 'var(--theme-secondary)' }} />
+        <div className="absolute -bottom-10 right-40 w-60 h-60 rounded-full blur-2xl opacity-10" style={{ backgroundColor: 'var(--theme-surface)' }} />
 
         <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
           <div className="space-y-3">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/15">
-              <span className="h-1.5 w-1.5 bg-emerald-400 rounded-full animate-pulse" />
-              <span className="text-[10px] font-bold tracking-[0.2em] text-white/80 uppercase">Konfigurasi Identitas</span>
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-50 border border-slate-200 text-slate-500">
+              <span className="h-1.5 w-1.5 rounded-full animate-pulse" style={{ backgroundColor: 'var(--theme-primary)' }} />
+              <span className="text-[10px] font-bold tracking-[0.2em] uppercase text-slate-600">Konfigurasi Identitas</span>
             </div>
             <div className="flex items-center gap-4">
-              <div className="p-3 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 shadow-inner">
-                <span className="material-symbols-outlined text-white" style={{ fontSize: '32px' }}>settings</span>
+              <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200 shadow-inner" style={{ color: 'var(--theme-primary)' }}>
+                <span className="material-symbols-outlined" style={{ fontSize: '32px' }}>settings</span>
               </div>
               <div>
-                <h1 className="text-3xl md:text-4xl font-black tracking-tight font-headline">Pengaturan Sistem</h1>
-                <p className="text-blue-100/80 text-sm font-medium mt-1">Kelola data resmi, profil kelembagaan, visi misi, serta informasi saluran komunikasi organisasi.</p>
+                <h1 className="text-3xl md:text-4xl font-black tracking-tight font-headline text-slate-900">Pengaturan Sistem</h1>
+                <p className="text-slate-500 text-sm font-medium mt-1">Kelola data resmi, profil kelembagaan, visi misi, serta informasi saluran komunikasi organisasi.</p>
               </div>
             </div>
           </div>
@@ -175,16 +175,16 @@ export default function Settings() {
       {/* ── Content Area ───────────────────────────────────────────── */}
       <form onSubmit={handleSave} className="space-y-6">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-          
+
           {/* LEFT SIDEBAR: Brand & Brand Identity */}
           <div className="space-y-6 lg:col-span-1">
             <Card className="border border-slate-200/50 shadow-sm overflow-hidden bg-white/70 backdrop-blur-md rounded-[2rem] transition-all hover:shadow-md">
               <CardContent className="p-8 flex flex-col items-center gap-6">
-                
+
                 <div className="relative group">
                   {/* Outer breathing accent */}
                   <div className="absolute inset-0 bg-bku-primary/5 rounded-[2.5rem] blur-xl scale-95 transition-all group-hover:scale-105 duration-300" />
-                  
+
                   {/* Logo Container */}
                   <div className="relative w-36 h-36 rounded-[2.5rem] border-4 border-white shadow-xl overflow-hidden bg-slate-50 flex items-center justify-center transition-all duration-300 group-hover:rotate-1 group-hover:scale-[1.03]">
                     {logoUrl ? (
@@ -237,8 +237,8 @@ export default function Settings() {
 
                 {/* Progress bar */}
                 <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
-                  <div 
-                    className="h-full bg-gradient-to-r from-bku-primary to-[#1e3a8a] rounded-full transition-all duration-500" 
+                  <div
+                    className="h-full bg-gradient-to-r from-bku-primary to-[#1e3a8a] rounded-full transition-all duration-500"
                     style={{ width: `${completeness}%` }}
                   />
                 </div>
@@ -254,7 +254,7 @@ export default function Settings() {
           <div className="lg:col-span-2 space-y-6">
             <Card className="border border-slate-200/50 shadow-sm overflow-hidden bg-white/70 backdrop-blur-md rounded-[2rem]">
               <CardContent className="p-6 md:p-8 space-y-8">
-                
+
                 {/* Section: Identitas Utama */}
                 <div className="space-y-5">
                   <div className="flex items-center gap-2 pb-3 border-b border-slate-100">
@@ -266,21 +266,21 @@ export default function Settings() {
 
                   <div className="space-y-4">
                     <FieldGroup label="Nama Resmi Ormawa" icon="badge">
-                      <Input 
-                        required 
-                        value={config.Nama} 
-                        onChange={e => setConfig({ ...config, Nama: e.target.value })} 
+                      <Input
+                        required
+                        value={config.Nama}
+                        onChange={e => setConfig({ ...config, Nama: e.target.value })}
                         placeholder="Masukkan nama resmi lembaga/organisasi..."
-                        className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white focus:ring-primary/20 shadow-none transition-all font-bold text-xs" 
+                        className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white focus:ring-primary/20 shadow-none transition-all font-bold text-xs"
                       />
                     </FieldGroup>
 
                     <FieldGroup label="Narasi Singkat Profil" icon="article">
-                      <Textarea 
-                        value={config.Deskripsi} 
-                        onChange={e => setConfig({ ...config, Deskripsi: e.target.value })} 
+                      <Textarea
+                        value={config.Deskripsi}
+                        onChange={e => setConfig({ ...config, Deskripsi: e.target.value })}
                         placeholder="Tuliskan narasi singkat yang merepresentasikan organisasi Anda..."
-                        className="min-h-[100px] rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white focus:ring-primary/20 shadow-none p-4 font-medium text-xs leading-relaxed" 
+                        className="min-h-[100px] rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white focus:ring-primary/20 shadow-none p-4 font-medium text-xs leading-relaxed"
                       />
                     </FieldGroup>
                   </div>
@@ -297,20 +297,20 @@ export default function Settings() {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FieldGroup label="Pernyataan Visi" icon="visibility">
-                      <Textarea 
-                        value={config.Visi} 
-                        onChange={e => setConfig({ ...config, Visi: e.target.value })} 
+                      <Textarea
+                        value={config.Visi}
+                        onChange={e => setConfig({ ...config, Visi: e.target.value })}
                         placeholder="Visi organisasi jangka panjang..."
-                        className="min-h-[120px] rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white focus:ring-primary/20 shadow-none p-4 font-medium text-xs leading-relaxed" 
+                        className="min-h-[120px] rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white focus:ring-primary/20 shadow-none p-4 font-medium text-xs leading-relaxed"
                       />
                     </FieldGroup>
 
                     <FieldGroup label="Rencana Strategis Misi" icon="task_alt">
-                      <Textarea 
-                        value={config.Misi} 
-                        onChange={e => setConfig({ ...config, Misi: e.target.value })} 
+                      <Textarea
+                        value={config.Misi}
+                        onChange={e => setConfig({ ...config, Misi: e.target.value })}
                         placeholder="Poin-poin misi utama organisasi (pisahkan dengan baris baru)..."
-                        className="min-h-[120px] rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white focus:ring-primary/20 shadow-none p-4 font-medium text-xs leading-relaxed" 
+                        className="min-h-[120px] rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white focus:ring-primary/20 shadow-none p-4 font-medium text-xs leading-relaxed"
                       />
                     </FieldGroup>
                   </div>
@@ -327,40 +327,40 @@ export default function Settings() {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FieldGroup label="Surel Resmi (Email)" icon="alternate_email">
-                      <Input 
-                        type="email" 
-                        value={config.Email} 
-                        onChange={e => setConfig({ ...config, Email: e.target.value })} 
+                      <Input
+                        type="email"
+                        value={config.Email}
+                        onChange={e => setConfig({ ...config, Email: e.target.value })}
                         placeholder="misal: bem@student.bku.ac.id"
-                        className="h-11 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white focus:ring-primary/20 shadow-none transition-all font-bold text-xs" 
+                        className="h-11 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white focus:ring-primary/20 shadow-none transition-all font-bold text-xs"
                       />
                     </FieldGroup>
 
                     <FieldGroup label="Nomor Telepon (WhatsApp)" icon="call">
-                      <Input 
-                        value={config.Phone} 
-                        onChange={e => setConfig({ ...config, Phone: e.target.value })} 
+                      <Input
+                        value={config.Phone}
+                        onChange={e => setConfig({ ...config, Phone: e.target.value })}
                         placeholder="misal: 0812-3456-7890"
-                        className="h-11 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white focus:ring-primary/20 shadow-none transition-all font-bold text-xs" 
+                        className="h-11 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white focus:ring-primary/20 shadow-none transition-all font-bold text-xs"
                       />
                     </FieldGroup>
 
                     <FieldGroup label="Akun Instagram" icon="photo_camera">
-                      <Input 
-                        value={config.Instagram} 
-                        onChange={e => setConfig({ ...config, Instagram: e.target.value })} 
+                      <Input
+                        value={config.Instagram}
+                        onChange={e => setConfig({ ...config, Instagram: e.target.value })}
                         placeholder="misal: @bem_bku"
-                        className="h-11 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white focus:ring-primary/20 shadow-none transition-all font-bold text-xs" 
+                        className="h-11 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white focus:ring-primary/20 shadow-none transition-all font-bold text-xs"
                       />
                     </FieldGroup>
 
                     <FieldGroup label="Alamat Situs Web" icon="language">
-                      <Input 
-                        type="url" 
-                        value={config.Website} 
-                        onChange={e => setConfig({ ...config, Website: e.target.value })} 
+                      <Input
+                        type="url"
+                        value={config.Website}
+                        onChange={e => setConfig({ ...config, Website: e.target.value })}
                         placeholder="misal: https://bem.bku.ac.id"
-                        className="h-11 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white focus:ring-primary/20 shadow-none transition-all font-bold text-xs" 
+                        className="h-11 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white focus:ring-primary/20 shadow-none transition-all font-bold text-xs"
                       />
                     </FieldGroup>
                   </div>
@@ -377,11 +377,11 @@ export default function Settings() {
 
                   <div className="space-y-4">
                     <FieldGroup label="Informasi Rekening Bank" icon="credit_card">
-                      <Input 
-                        value={config.Rekening} 
-                        onChange={e => setConfig({ ...config, Rekening: e.target.value })} 
+                      <Input
+                        value={config.Rekening}
+                        onChange={e => setConfig({ ...config, Rekening: e.target.value })}
                         placeholder="misal: Bank Mandiri - 1234567890 a.n. BEM BKU"
-                        className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white focus:ring-primary/20 shadow-none transition-all font-bold text-xs" 
+                        className="h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white focus:ring-primary/20 shadow-none transition-all font-bold text-xs"
                       />
                     </FieldGroup>
                   </div>
@@ -392,9 +392,9 @@ export default function Settings() {
 
             {/* Sticky Save Button Container */}
             <div className="flex justify-end pt-2">
-              <Button 
-                type="submit" 
-                disabled={loading} 
+              <Button
+                type="submit"
+                disabled={loading}
                 className="w-full md:w-auto h-13 md:h-14 px-10 rounded-2xl bg-gradient-to-r from-bku-primary to-[#1e3a8a] text-white shadow-xl shadow-blue-900/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2 border-none"
               >
                 {loading ? (

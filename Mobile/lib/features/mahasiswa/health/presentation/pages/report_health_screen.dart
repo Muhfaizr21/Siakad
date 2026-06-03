@@ -194,8 +194,9 @@ class _ReportHealthScreenState extends State<ReportHealthScreen> {
                           ['4', '5', '6', '7', '8', '9'],
                           _selectedSleepHours,
                           (val) {
-                            if (val != null)
+                            if (val != null) {
                               setState(() => _selectedSleepHours = val);
+                            }
                           },
                         ),
                       ),
@@ -207,8 +208,9 @@ class _ReportHealthScreenState extends State<ReportHealthScreen> {
                           ['0', '1', '2', '3', '4'],
                           _selectedExerciseFreq,
                           (val) {
-                            if (val != null)
+                            if (val != null) {
                               setState(() => _selectedExerciseFreq = val);
+                            }
                           },
                         ),
                       ),
@@ -224,8 +226,9 @@ class _ReportHealthScreenState extends State<ReportHealthScreen> {
                           ['1.0', '1.5', '2.0', '2.5', '3.0'],
                           _selectedWaterLitres,
                           (val) {
-                            if (val != null)
+                            if (val != null) {
                               setState(() => _selectedWaterLitres = val);
+                            }
                           },
                         ),
                       ),
@@ -237,8 +240,9 @@ class _ReportHealthScreenState extends State<ReportHealthScreen> {
                           ['Tidak', 'Ya'],
                           _selectedSmoking,
                           (val) {
-                            if (val != null)
+                            if (val != null) {
                               setState(() => _selectedSmoking = val);
+                            }
                           },
                         ),
                       ),
@@ -318,8 +322,9 @@ class _ReportHealthScreenState extends State<ReportHealthScreen> {
                           ],
                           _selectedMood,
                           (val) {
-                            if (val != null)
+                            if (val != null) {
                               setState(() => _selectedMood = val);
+                            }
                           },
                         ),
                       ),
@@ -337,8 +342,9 @@ class _ReportHealthScreenState extends State<ReportHealthScreen> {
                           ],
                           _selectedMotivation,
                           (val) {
-                            if (val != null)
+                            if (val != null) {
                               setState(() => _selectedMotivation = val);
+                            }
                           },
                         ),
                       ),
@@ -437,8 +443,9 @@ class _ReportHealthScreenState extends State<ReportHealthScreen> {
                           ['A', 'B', 'AB', 'O', '-'],
                           _selectedBloodType,
                           (val) {
-                            if (val != null)
+                            if (val != null) {
                               setState(() => _selectedBloodType = val);
+                            }
                           },
                         ),
                       ),

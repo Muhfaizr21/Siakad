@@ -9,6 +9,7 @@ export default function Sidebar({ onNavigate }) {
   const location = useLocation();
   const navigate = useNavigate();
   const logout = useAuthStore(state => state.logout);
+  const [isLogoutHovered, setIsLogoutHovered] = React.useState(false);
 
   const handleLogout = async () => {
     try {
@@ -121,15 +122,26 @@ export default function Sidebar({ onNavigate }) {
       <div className="p-4 bg-transparent border-t border-white/10 shrink-0">
         <button
           onClick={handleLogout}
-          className="w-full flex items-center gap-3.5 px-4 py-2.5 rounded-xl font-bold transition-all duration-300 group active:scale-[0.98]"
-          style={{ color: '#f87171' }}
+          onMouseEnter={() => setIsLogoutHovered(true)}
+          onMouseLeave={() => setIsLogoutHovered(false)}
+          className="w-full flex items-center gap-3.5 px-4 py-2.5 rounded-xl font-bold transition-all duration-300 active:scale-[0.98] text-xs cursor-pointer shadow-sm hover:shadow-md border border-transparent"
+          style={{
+            backgroundColor: isLogoutHovered ? '#b91c1c' : '#dc2626',
+            color: '#ffffff'
+          }}
         >
           <div className="w-5 h-5 flex items-center justify-center shrink-0">
-            <span className="material-symbols-outlined transition-all duration-300 group-hover:scale-110" style={{ fontSize: '18px', color: '#f87171' }}>
+            <span 
+              className="material-symbols-outlined transition-all duration-300 group-hover:scale-110" 
+              style={{ 
+                fontSize: '18px', 
+                color: '#ffffff' 
+              }}
+            >
               logout
             </span>
           </div>
-          <span className="text-xs tracking-tight flex-1 text-left font-semibold font-headline">
+          <span className="tracking-tight flex-1 text-left font-semibold font-headline text-white">
             Keluar
           </span>
         </button>
