@@ -8,10 +8,11 @@ import (
 	"siakad-backend/models"
 	"time"
 
+	"strings"
+
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
-	"strings"
 )
 
 // --- DASHBOARD ---
@@ -23,10 +24,10 @@ func GetOrmawaProfile(c *fiber.Ctx) error {
 	if ormawaId == nil || ormawaId == uint(0) {
 		if ormawaAssign != "" {
 			return c.JSON(fiber.Map{
-				"status": "success", 
+				"status": "success",
 				"data": models.Ormawa{
-					Nama: ormawaAssign,
-					Status: "Aktif",
+					Nama:     ormawaAssign,
+					Status:   "Aktif",
 					Kategori: "Manual Assign",
 				},
 			})
@@ -574,7 +575,7 @@ func DeleteEvent(c *fiber.Ctx) error {
 
 func GetAttendance(c *fiber.Ctx) error {
 	eventId := c.Params("eventId")
-	
+
 	var kegiatan models.OrmawaKegiatan
 	if err := config.DB.First(&kegiatan, eventId).Error; err != nil {
 		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Kegiatan tidak ditemukan"})
@@ -648,7 +649,7 @@ func SubmitAttendance(c *fiber.Ctx) error {
 			return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Presensi gagal: Sesi kegiatan ini sudah berakhir (Expired)."})
 		}
 
-		if kegiatan.TanggalSelesai.IsZero() && !kegiatan.TanggalMulai.IsZero() && time.Now().After(kegiatan.TanggalMulai.Add(24 * time.Hour)) {
+		if kegiatan.TanggalSelesai.IsZero() && !kegiatan.TanggalMulai.IsZero() && time.Now().After(kegiatan.TanggalMulai.Add(24*time.Hour)) {
 			return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Presensi gagal: Batas waktu presensi kegiatan ini sudah berakhir."})
 		}
 	}
@@ -910,7 +911,7 @@ func CreateMember(c *fiber.Ctx) error {
 	if err := config.DB.First(&ormawa, payload.OrmawaID).Error; err == nil {
 		year := time.Now().Year()
 		periodeStr := fmt.Sprintf("%d/%d", year, year+1)
-		
+
 		var riwayat models.RiwayatOrganisasi
 		errSync := config.DB.Where("mahasiswa_id = ? AND ormawa_id = ? AND periode = ?", payload.MahasiswaID, payload.OrmawaID, periodeStr).First(&riwayat).Error
 		if errSync != nil {
@@ -963,7 +964,7 @@ func DeleteMember(c *fiber.Ctx) error {
 		config.DB.Model(&models.RiwayatOrganisasi{}).
 			Where("mahasiswa_id = ? AND ormawa_id = ? AND periode = ?", member.MahasiswaID, member.OrmawaID, periodeStr).
 			Update("status", "Demisioner")
-		
+
 		config.DB.Delete(&member)
 	}
 	return c.JSON(fiber.Map{"status": "success", "message": "Deleted"})
@@ -1000,12 +1001,12 @@ func GetOrmawaNotifications(c *fiber.Ctx) error {
 func MarkNotificationRead(c *fiber.Ctx) error {
 	id := c.Params("id")
 	ctxOrmawaId, ok := c.Locals("ormawa_id").(uint)
-	
+
 	query := config.DB.Model(&models.OrmawaNotifikasi{}).Where("id = ?", id)
 	if ok && ctxOrmawaId > 0 {
 		query = query.Where("ormawa_id = ?", ctxOrmawaId)
 	}
-	
+
 	if err := query.Update("is_read", true).Error; err != nil {
 		return c.Status(500).JSON(fiber.Map{"status": "error", "message": err.Error()})
 	}
@@ -1037,12 +1038,12 @@ func MarkAllNotificationsRead(c *fiber.Ctx) error {
 func DeleteNotification(c *fiber.Ctx) error {
 	id := c.Params("id")
 	ctxOrmawaId, ok := c.Locals("ormawa_id").(uint)
-	
+
 	query := config.DB.Where("id = ?", id)
 	if ok && ctxOrmawaId > 0 {
 		query = query.Where("ormawa_id = ?", ctxOrmawaId)
 	}
-	
+
 	if err := query.Delete(&models.OrmawaNotifikasi{}).Error; err != nil {
 		return c.Status(500).JSON(fiber.Map{"status": "error", "message": err.Error()})
 	}
@@ -1090,10 +1091,10 @@ func DeleteDivision(c *fiber.Ctx) error {
 func GetLPJs(c *fiber.Ctx) error {
 	ormawaId := c.Query("ormawaId")
 	var list []models.LaporanPertanggungjawaban
-	
+
 	query := config.DB.Preload("Proposal").
 		Joins("JOIN ormawa.proposal p ON p.id = ormawa.laporan_pertanggungjawaban.proposal_id AND p.deleted_at IS NULL")
-		
+
 	if ormawaId != "" {
 		query = query.Where("p.ormawa_id = ?", ormawaId)
 	}

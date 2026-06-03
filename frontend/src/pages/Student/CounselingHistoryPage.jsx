@@ -125,7 +125,7 @@ export default function CounselingHistoryPage() {
                             </span>
                           </div>
 
-                          <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-[160px_1fr]">
+                          <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3">
                             <div className="rounded-xl border border-neutral-100 bg-neutral-50 p-3">
                               <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wide text-neutral-400">
                                 <span className="material-symbols-outlined" style={{ fontSize: '12px' }} >schedule</span>
@@ -134,6 +134,32 @@ export default function CounselingHistoryPage() {
                               <p className="mt-1 text-xs font-extrabold text-neutral-800">{item.jam_mulai}{item.jam_selesai ? ` - ${item.jam_selesai}` : ''}</p>
                             </div>
                             <div className="rounded-xl border border-neutral-100 bg-neutral-50 p-3">
+                              <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wide text-neutral-400">
+                                <span className="material-symbols-outlined" style={{ fontSize: '12px' }} >
+                                  {item.mode === 'Online' ? 'videocam' : 'groups'}
+                                </span>
+                                Metode & Lokasi
+                              </p>
+                              <p className="mt-1 text-xs font-extrabold text-neutral-800">
+                                {item.mode === 'Online' ? 'Online (Zoom)' : 'Tatap Muka'}
+                              </p>
+                              {item.mode === 'Online' && item.status === 'Dikonfirmasi' && item.link_meeting ? (
+                                <a
+                                  href={item.link_meeting.startsWith('http') ? item.link_meeting : `https://${item.link_meeting}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="mt-1 inline-flex items-center gap-1 text-[11px] font-bold text-blue-600 hover:text-blue-800 underline"
+                                >
+                                  <span className="material-symbols-outlined" style={{ fontSize: '12px' }}>link</span>
+                                  Gabung Meeting
+                                </a>
+                              ) : (
+                                <p className="text-[10px] text-neutral-400 mt-0.5 leading-snug">
+                                  {item.mode === 'Online' ? 'Link dikirim jika disetujui' : 'Ruang Konseling BKU'}
+                                </p>
+                              )}
+                            </div>
+                            <div className="rounded-xl border border-neutral-100 bg-neutral-50 p-3 sm:col-span-2 md:col-span-1">
                               <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wide text-neutral-400">
                                 <span className="material-symbols-outlined" style={{ fontSize: '12px' }} >chat</span>
                                 Topik Mahasiswa

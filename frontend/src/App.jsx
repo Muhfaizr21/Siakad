@@ -22,7 +22,7 @@ import PatientList from './pages/Psychologist/PatientList'
 import PatientMedicalRecord from './pages/Psychologist/PatientMedicalRecord'
 import AnalyticsTrends from './pages/Psychologist/AnalyticsTrends'
 import ReferralManagement from './pages/Psychologist/ReferralManagement'
-import ClinicalReports from './pages/Psychologist/ClinicalReports'
+
 import NotificationsCenter from './pages/Psychologist/NotificationsCenter'
 import PsychologistSettings from './pages/Psychologist/PsychologistSettings'
 
@@ -386,7 +386,7 @@ function App() {
                   <Route path="patients/:id/medical-record" element={<PatientMedicalRecord />} />
                   <Route path="referrals" element={<ReferralManagement />} />
                   <Route path="analytics" element={<AnalyticsTrends />} />
-                  <Route path="reports" element={<ClinicalReports />} />
+
                   <Route path="notifications" element={<NotificationsCenter />} />
                   <Route path="settings" element={<PsychologistSettings />} />
                 </Routes>

@@ -2,8 +2,6 @@ package psychologist
 
 import (
 	"fmt"
-	"os"
-	"path/filepath"
 	"sort"
 	"strconv"
 	"strings"
@@ -79,6 +77,7 @@ func bookingResponse(booking models.PsikologBooking) fiber.Map {
 		"faculty":      student.Fakultas.Nama,
 		"semester":     student.SemesterSekarang,
 		"date":         formatDate(booking.Tanggal),
+		"raw_date":     booking.Tanggal.Format("2006-01-02"),
 		"date_full":    booking.Tanggal.Format("Monday, 02 Jan 2006"),
 		"time":         strings.TrimSpace(booking.JamMulai + " - " + booking.JamSelesai),
 		"jam_mulai":    booking.JamMulai,
@@ -278,8 +277,6 @@ func GetDashboard(c *fiber.Ctx) error {
 		Where("psikolog_id = ? AND status = ?", psikolog.ID, "Selesai").
 		Count(&completedSessions)
 
-	var reports int64
-	config.DB.Model(&models.PsikologReport{}).Where("psikolog_id = ?", psikolog.ID).Count(&reports)
 	var assessments int64
 	config.DB.Model(&models.PsikologAssessment{}).Where("psikolog_id = ?", psikolog.ID).Count(&assessments)
 
@@ -338,7 +335,7 @@ func GetDashboard(c *fiber.Ctx) error {
 		"waiting_count":         waiting,
 		"new_today":             newToday,
 		"confirmed_count":       confirmed,
-		"reports_count":         reports,
+
 		"assessments_count":     assessments,
 		"bookings":              bookingItems,
 		"current_session":       currentSession,
@@ -605,16 +602,18 @@ func GetPatients(c *fiber.Ctx) error {
 
 		var latest models.PsikologSessionNote
 		lastVisit := "Belum ada"
+		rawLastVisit := ""
 		status := "Baru"
 		if err := config.DB.Where("psikolog_id = ? AND mahasiswa_id = ?", psikolog.ID, student.ID).Order("tanggal desc").First(&latest).Error; err == nil {
 			lastVisit = formatDate(latest.Tanggal)
+			rawLastVisit = latest.Tanggal.Format("2006-01-02")
 			status = latest.StatusPasien
 			if status == "" {
 				status = latest.Mood
 			}
 		}
 
-		items = append(items, fiber.Map{"id": student.ID, "name": student.Nama, "nim": student.NIM, "faculty": student.Fakultas.Nama, "program_studi": student.ProgramStudi.Nama, "semester": student.SemesterSekarang, "email": student.EmailKampus, "phone": student.NoHP, "sessions": sessions, "lastVisit": lastVisit, "status": status, "color": "bg-blue-500"})
+		items = append(items, fiber.Map{"id": student.ID, "name": student.Nama, "nim": student.NIM, "faculty": student.Fakultas.Nama, "program_studi": student.ProgramStudi.Nama, "semester": student.SemesterSekarang, "email": student.EmailKampus, "phone": student.NoHP, "sessions": sessions, "lastVisit": lastVisit, "raw_last_visit": rawLastVisit, "status": status, "color": "bg-blue-500"})
 	}
 	return jsonOK(c, items)
 }
@@ -626,7 +625,7 @@ func GetMedicalRecord(c *fiber.Ctx) error {
 	}
 
 	var student models.Mahasiswa
-	if err := config.DB.Preload("Fakultas").Preload("ProgramStudi").Where("id = ?", c.Params("id")).First(&student).Error; err != nil {
+	if err := config.DB.Preload("Fakultas").Preload("ProgramStudi").Preload("DosenPA").Where("id = ?", c.Params("id")).First(&student).Error; err != nil {
 		return err
 	}
 
@@ -641,11 +640,67 @@ func GetMedicalRecord(c *fiber.Ctx) error {
 		if status == "Baru" && record.StatusPasien != "" {
 			status = record.StatusPasien
 		}
-		items = append(items, fiber.Map{"id": record.ID, "date": formatDate(record.Tanggal), "time": record.Tanggal.Format("15:04"), "complaint": record.Keluhan, "observation": record.Observasi, "recommendation": record.Rekomendasi, "mood": record.Mood, "type": record.JenisSesi})
+		
+		tAsesmenStr := ""
+		if record.TanggalAsesmen != nil {
+			tAsesmenStr = record.TanggalAsesmen.Format("2006-01-02")
+		}
+
+		items = append(items, fiber.Map{
+			"id":                     record.ID,
+			"date":                   formatDate(record.Tanggal),
+			"time":                   record.Tanggal.Format("15:04"),
+			"complaint":              record.Keluhan,
+			"observation":            record.Observasi,
+			"recommendation":         record.Rekomendasi,
+			"mood":                   record.Mood,
+			"type":                   record.JenisSesi,
+			"tujuan_pemeriksaan":     record.TujuanPemeriksaan,
+			"tanggal_asesmen":        tAsesmenStr,
+			"riwayat_keluhan":        record.RiwayatKeluhan,
+			"aspek_kognitif":         record.AspekKognitif,
+			"aspek_emosional":        record.AspekEmosional,
+			"aspek_perilaku":         record.AspekPerilaku,
+			"rekomendasi_mahasiswa":  record.RekomendasiMahasiswa,
+			"rekomendasi_prodi":      record.RekomendasiProdi,
+			"rekomendasi_orang_tua":  record.RekomendasiOrangTua,
+			"tindak_lanjut_tuntas":   record.TindakLanjutTuntas,
+			"tindak_lanjut_lanjutan": record.TindakLanjutLanjutan,
+			"tindak_lanjut_rujuk":    record.TindakLanjutRujuk,
+			"kesimpulan":             record.Kesimpulan,
+		})
+	}
+
+	dosenPaName := "-"
+	if student.DosenPA != nil {
+		dosenPaName = student.DosenPA.Nama
+	}
+
+	tglLahirStr := "-"
+	if !student.TanggalLahir.IsZero() {
+		tglLahirStr = student.TanggalLahir.Format("2006-01-02")
 	}
 
 	return jsonOK(c, fiber.Map{
-		"patient": fiber.Map{"id": student.ID, "name": student.Nama, "nim": student.NIM, "faculty": student.Fakultas.Nama, "program_studi": student.ProgramStudi.Nama, "semester": student.SemesterSekarang, "email": student.EmailKampus, "phone": student.NoHP, "color": "bg-primary", "initials": initials(student.Nama), "status": status, "totalSessions": len(records)},
+		"patient": fiber.Map{
+			"id":             student.ID,
+			"name":           student.Nama,
+			"nim":            student.NIM,
+			"faculty":        student.Fakultas.Nama,
+			"program_studi":  student.ProgramStudi.Nama,
+			"semester":       student.SemesterSekarang,
+			"email":          student.EmailKampus,
+			"phone":          student.NoHP,
+			"color":          "bg-primary",
+			"initials":       initials(student.Nama),
+			"status":         status,
+			"totalSessions":  len(records),
+			"dosen_pa":       dosenPaName,
+			"ipk":            student.IPK,
+			"jenis_kelamin":  student.JenisKelamin,
+			"tempat_lahir":   student.TempatLahir,
+			"tanggal_lahir":  tglLahirStr,
+		},
 		"records": items,
 	})
 }
@@ -657,13 +712,26 @@ func CreateSessionNote(c *fiber.Ctx) error {
 	}
 
 	var body struct {
-		Complaint      string `json:"complaint"`
-		Observation    string `json:"observation"`
-		Recommendation string `json:"recommendation"`
-		Mood           string `json:"mood"`
-		Type           string `json:"type"`
-		Status         string `json:"status"`
-		BookingID      uint   `json:"booking_id"`
+		Complaint            string `json:"complaint"`
+		Observation          string `json:"observation"`
+		Recommendation       string `json:"recommendation"`
+		Mood                 string `json:"mood"`
+		Type                 string `json:"type"`
+		Status               string `json:"status"`
+		BookingID            uint   `json:"booking_id"`
+		TujuanPemeriksaan    string `json:"tujuan_pemeriksaan"`
+		TanggalAsesmen       string `json:"tanggal_asesmen"`
+		RiwayatKeluhan       string `json:"riwayat_keluhan"`
+		AspekKognitif        string `json:"aspek_kognitif"`
+		AspekEmosional       string `json:"aspek_emosional"`
+		AspekPerilaku        string `json:"aspek_perilaku"`
+		RekomendasiMahasiswa string `json:"rekomendasi_mahasiswa"`
+		RekomendasiProdi     string `json:"rekomendasi_prodi"`
+		RekomendasiOrangTua  string `json:"rekomendasi_orang_tua"`
+		TindakLanjutTuntas   bool   `json:"tindak_lanjut_tuntas"`
+		TindakLanjutLanjutan bool   `json:"tindak_lanjut_lanjutan"`
+		TindakLanjutRujuk    bool   `json:"tindak_lanjut_rujuk"`
+		Kesimpulan           string `json:"kesimpulan"`
 	}
 	if err := c.BodyParser(&body); err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, "Payload catatan sesi tidak valid")
@@ -683,11 +751,49 @@ func CreateSessionNote(c *fiber.Ctx) error {
 		bookingID = &body.BookingID
 	}
 
-	record := models.PsikologSessionNote{PsikologID: psikolog.ID, MahasiswaID: uint(studentID), BookingID: bookingID, Tanggal: time.Now(), Keluhan: body.Complaint, Observasi: body.Observation, Rekomendasi: body.Recommendation, Mood: body.Mood, JenisSesi: body.Type, StatusPasien: body.Status}
+	var tAsesmen *time.Time
+	if body.TanggalAsesmen != "" {
+		if parsedTime, err := time.Parse("2006-01-02", body.TanggalAsesmen); err == nil {
+			tAsesmen = &parsedTime
+		}
+	}
+	if tAsesmen == nil {
+		now := time.Now()
+		tAsesmen = &now
+	}
+
+	record := models.PsikologSessionNote{
+		PsikologID:           psikolog.ID,
+		MahasiswaID:          uint(studentID),
+		BookingID:            bookingID,
+		Tanggal:              time.Now(),
+		Keluhan:              body.Complaint,
+		Observasi:            body.Observation,
+		Rekomendasi:          body.Recommendation,
+		Mood:                 body.Mood,
+		JenisSesi:            body.Type,
+		StatusPasien:         body.Status,
+		TujuanPemeriksaan:    body.TujuanPemeriksaan,
+		TanggalAsesmen:       tAsesmen,
+		RiwayatKeluhan:       body.RiwayatKeluhan,
+		AspekKognitif:        body.AspekKognitif,
+		AspekEmosional:       body.AspekEmosional,
+		AspekPerilaku:        body.AspekPerilaku,
+		RekomendasiMahasiswa: body.RekomendasiMahasiswa,
+		RekomendasiProdi:      body.RekomendasiProdi,
+		RekomendasiOrangTua:  body.RekomendasiOrangTua,
+		TindakLanjutTuntas:   body.TindakLanjutTuntas,
+		TindakLanjutLanjutan: body.TindakLanjutLanjutan,
+		TindakLanjutRujuk:    body.TindakLanjutRujuk,
+		Kesimpulan:           body.Kesimpulan,
+	}
+
 	if record.JenisSesi == "" {
 		record.JenisSesi = "Konseling Baru"
 	}
-	if record.StatusPasien == "" {
+	if body.TindakLanjutTuntas {
+		record.StatusPasien = "Selesai"
+	} else if record.StatusPasien == "" {
 		record.StatusPasien = record.Mood
 	}
 	if err := config.DB.Create(&record).Error; err != nil {
@@ -778,29 +884,116 @@ func CreateAssessment(c *fiber.Ctx) error {
 	return jsonOK(c, record)
 }
 
+func getBookingQuery(psikologID uint, startDateStr, endDateStr, prodiIDStr, fakultasIDStr string) *gorm.DB {
+	q := config.DB.Model(&models.PsikologBooking{}).Where("psikolog_id = ?", psikologID)
+	if startDateStr != "" {
+		if t, err := time.Parse("2006-01-02", startDateStr); err == nil {
+			q = q.Where("tanggal >= ?", t)
+		}
+	}
+	if endDateStr != "" {
+		if t, err := time.Parse("2006-01-02", endDateStr); err == nil {
+			tEnd := time.Date(t.Year(), t.Month(), t.Day(), 23, 59, 59, 0, t.Location())
+			q = q.Where("tanggal <= ?", tEnd)
+		}
+	}
+	if prodiIDStr != "" || fakultasIDStr != "" {
+		q = q.Joins("JOIN mahasiswa.mahasiswa m ON m.id = mahasiswa_id")
+		if prodiIDStr != "" {
+			q = q.Where("m.program_studi_id = ?", prodiIDStr)
+		}
+		if fakultasIDStr != "" {
+			q = q.Where("m.fakultas_id = ?", fakultasIDStr)
+		}
+	}
+	return q
+}
+
+func getSessionQuery(psikologID uint, startDateStr, endDateStr, prodiIDStr, fakultasIDStr string) *gorm.DB {
+	q := config.DB.Model(&models.PsikologSessionNote{}).Where("psikolog_id = ?", psikologID)
+	if startDateStr != "" {
+		if t, err := time.Parse("2006-01-02", startDateStr); err == nil {
+			q = q.Where("tanggal >= ?", t)
+		}
+	}
+	if endDateStr != "" {
+		if t, err := time.Parse("2006-01-02", endDateStr); err == nil {
+			tEnd := time.Date(t.Year(), t.Month(), t.Day(), 23, 59, 59, 0, t.Location())
+			q = q.Where("tanggal <= ?", tEnd)
+		}
+	}
+	if prodiIDStr != "" || fakultasIDStr != "" {
+		q = q.Joins("JOIN mahasiswa.mahasiswa m ON m.id = mahasiswa_id")
+		if prodiIDStr != "" {
+			q = q.Where("m.program_studi_id = ?", prodiIDStr)
+		}
+		if fakultasIDStr != "" {
+			q = q.Where("m.fakultas_id = ?", fakultasIDStr)
+		}
+	}
+	return q
+}
+
 func GetAnalytics(c *fiber.Ctx) error {
 	psikolog, err := currentPsikolog(c)
 	if err != nil {
 		return err
 	}
 
-	now := time.Now()
+	startDateStr := c.Query("start_date")
+	endDateStr := c.Query("end_date")
+	prodiIDStr := c.Query("prodi_id")
+	fakultasIDStr := c.Query("fakultas_id")
 
+	// Calculate counts using clean queries
 	var patients int64
-	config.DB.Model(&models.PsikologBooking{}).Where("psikolog_id = ?", psikolog.ID).Distinct("mahasiswa_id").Count(&patients)
+	getBookingQuery(psikolog.ID, startDateStr, endDateStr, prodiIDStr, fakultasIDStr).Distinct("mahasiswa_id").Count(&patients)
 
-	// Sesi selesai = booking status Selesai
 	var sessions int64
-	config.DB.Model(&models.PsikologBooking{}).Where("psikolog_id = ? AND status = ?", psikolog.ID, "Selesai").Count(&sessions)
+	getBookingQuery(psikolog.ID, startDateStr, endDateStr, prodiIDStr, fakultasIDStr).Where("status = ?", "Selesai").Count(&sessions)
 
 	var urgent int64
-	config.DB.Model(&models.PsikologBooking{}).Where("psikolog_id = ? AND status NOT IN ?", psikolog.ID, []string{"Selesai", "Ditolak", "Dibatalkan"}).Count(&urgent)
+	getBookingQuery(psikolog.ID, startDateStr, endDateStr, prodiIDStr, fakultasIDStr).Where("status NOT IN ?", []string{"Selesai", "Ditolak", "Dibatalkan"}).Count(&urgent)
 
 	var stable int64
-	config.DB.Model(&models.PsikologSessionNote{}).Where("psikolog_id = ? AND status_pasien IN ?", psikolog.ID, []string{"Stabil", "Pemulihan", "Membaik"}).Count(&stable)
+	getSessionQuery(psikolog.ID, startDateStr, endDateStr, prodiIDStr, fakultasIDStr).Where("status_pasien IN ?", []string{"Stabil", "Pemulihan", "Membaik"}).Count(&stable)
 
+	var totalNotes int64
+	getSessionQuery(psikolog.ID, startDateStr, endDateStr, prodiIDStr, fakultasIDStr).Count(&totalNotes)
+
+	stablePercentage := 0
+	if totalNotes > 0 {
+		stablePercentage = int(float64(stable) / float64(totalNotes) * 100)
+	}
+
+	// Top Issues using filtered bookings
 	var bookings []models.PsikologBooking
-	_ = config.DB.Where("psikolog_id = ?", psikolog.ID).Find(&bookings).Error
+	qBookings := config.DB.Model(&models.PsikologBooking{}).
+		Where("psikolog_id = ?", psikolog.ID)
+	if startDateStr != "" {
+		if t, err := time.Parse("2006-01-02", startDateStr); err == nil {
+			qBookings = qBookings.Where("tanggal >= ?", t)
+		}
+	}
+	if endDateStr != "" {
+		if t, err := time.Parse("2006-01-02", endDateStr); err == nil {
+			tEnd := time.Date(t.Year(), t.Month(), t.Day(), 23, 59, 59, 0, t.Location())
+			qBookings = qBookings.Where("tanggal <= ?", tEnd)
+		}
+	}
+	if prodiIDStr != "" || fakultasIDStr != "" {
+		qBookings = qBookings.Joins("JOIN mahasiswa.mahasiswa m ON m.id = mahasiswa_id")
+		if prodiIDStr != "" {
+			qBookings = qBookings.Where("m.program_studi_id = ?", prodiIDStr)
+		}
+		if fakultasIDStr != "" {
+			qBookings = qBookings.Where("m.fakultas_id = ?", fakultasIDStr)
+		}
+	}
+	if err := qBookings.Find(&bookings).Error; err != nil {
+		fmt.Printf("Error querying bookings: %v\n", err)
+	}
+
 	issueCounts := map[string]int{}
 	for _, booking := range bookings {
 		if booking.Topik != "" {
@@ -814,15 +1007,44 @@ func GetAnalytics(c *fiber.Ctx) error {
 		if total > 0 {
 			percentage = int(float64(count) / float64(total) * 100)
 		}
-		topIssues = append(topIssues, fiber.Map{"name": issue, "percentage": percentage, "color": "bg-primary"})
+		topIssues = append(topIssues, fiber.Map{"name": issue, "percentage": percentage, "count": count, "color": "bg-primary"})
 	}
 	sort.Slice(topIssues, func(i, j int) bool { return topIssues[i]["percentage"].(int) > topIssues[j]["percentage"].(int) })
 
-	// Monthly: ngitung booking Selesai per bulan di tahun ini berdasarkan kapan selesai
+	// Academic & Non-Academic counts
+	var academicCount int64
+	var nonAcademicCount int64
+	for _, b := range bookings {
+		if b.Topik == "Akademik" {
+			academicCount++
+		} else if b.Topik != "" {
+			nonAcademicCount++
+		}
+	}
+	totalIssues := academicCount + nonAcademicCount
+	academicPercentage := 0
+	nonAcademicPercentage := 0
+	if totalIssues > 0 {
+		academicPercentage = int(float64(academicCount) / float64(totalIssues) * 100)
+		nonAcademicPercentage = 100 - academicPercentage
+	}
+
+	// Monthly Trends (Completed bookings per month in current year)
+	now := time.Now()
 	monthly := make([]int, 12)
+	qCompleted := config.DB.Model(&models.PsikologBooking{}).
+		Where("psikolog_id = ? AND status = ? AND EXTRACT(YEAR FROM updated_at) = ?", psikolog.ID, "Selesai", now.Year())
+	if prodiIDStr != "" || fakultasIDStr != "" {
+		qCompleted = qCompleted.Joins("JOIN mahasiswa.mahasiswa m ON m.id = mahasiswa_id")
+		if prodiIDStr != "" {
+			qCompleted = qCompleted.Where("m.program_studi_id = ?", prodiIDStr)
+		}
+		if fakultasIDStr != "" {
+			qCompleted = qCompleted.Where("m.fakultas_id = ?", fakultasIDStr)
+		}
+	}
 	var completedBookings []models.PsikologBooking
-	_ = config.DB.Where("psikolog_id = ? AND status = ? AND EXTRACT(YEAR FROM updated_at) = ?",
-		psikolog.ID, "Selesai", now.Year()).Find(&completedBookings).Error
+	_ = qCompleted.Find(&completedBookings).Error
 	for _, b := range completedBookings {
 		month := int(b.UpdatedAt.Month()) - 1
 		if month >= 0 && month < 12 {
@@ -830,11 +1052,126 @@ func GetAnalytics(c *fiber.Ctx) error {
 		}
 	}
 
+	// Dynamic Range Counseling Trend (Daily Trend)
+	var startRange, endRange time.Time
+	if startDateStr != "" {
+		if t, err := time.Parse("2006-01-02", startDateStr); err == nil {
+			startRange = t
+		}
+	}
+	if startRange.IsZero() {
+		startRange = time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, now.Location())
+	}
+
+	if endDateStr != "" {
+		if t, err := time.Parse("2006-01-02", endDateStr); err == nil {
+			endRange = time.Date(t.Year(), t.Month(), t.Day(), 23, 59, 59, 0, t.Location())
+		}
+	}
+	if endRange.IsZero() {
+		startOfNextMonth := time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, now.Location()).AddDate(0, 1, 0)
+		endRange = startOfNextMonth.Add(-time.Second)
+	}
+
+	var dailyCounts []struct {
+		DateVal time.Time `gorm:"column:date_val"`
+		Count   int64     `gorm:"column:count"`
+	}
+	qDaily := config.DB.Model(&models.PsikologBooking{}).
+		Select("DATE(tanggal) as date_val, count(id) as count").
+		Where("psikolog_id = ? AND tanggal BETWEEN ? AND ?", psikolog.ID, startRange, endRange)
+	if prodiIDStr != "" || fakultasIDStr != "" {
+		qDaily = qDaily.Joins("JOIN mahasiswa.mahasiswa m ON m.id = mahasiswa_id")
+		if prodiIDStr != "" {
+			qDaily = qDaily.Where("m.program_studi_id = ?", prodiIDStr)
+		}
+		if fakultasIDStr != "" {
+			qDaily = qDaily.Where("m.fakultas_id = ?", fakultasIDStr)
+		}
+	}
+	qDaily.Group("DATE(tanggal)").Order("date_val asc").Scan(&dailyCounts)
+
+	dailyTrendsMap := make(map[string]int64)
+	for _, dc := range dailyCounts {
+		dailyTrendsMap[dc.DateVal.Format("2006-01-02")] = dc.Count
+	}
+	dailyTrends := []fiber.Map{}
+	
+	// Limit loop to maximum of 45 days to prevent huge response payload
+	limitDays := 45
+	curr := startRange
+	for i := 0; i < limitDays && !curr.After(endRange); i++ {
+		dateKey := curr.Format("2006-01-02")
+		count := dailyTrendsMap[dateKey]
+		dailyTrends = append(dailyTrends, fiber.Map{
+			"date":  curr.Format("02 Jan"),
+			"count": count,
+		})
+		curr = curr.AddDate(0, 0, 1)
+	}
+
+	// Jurusan/Prodi Terbanyak
+	var prodiCounts []struct {
+		ProdiName string `json:"prodi_name"`
+		Count     int64  `json:"count"`
+	}
+	qProdi := config.DB.Model(&models.PsikologBooking{}).
+		Select("ps.nama as prodi_name, count(psikolog.bookings.id) as count").
+		Joins("JOIN mahasiswa.mahasiswa m ON m.id = mahasiswa_id").
+		Joins("JOIN fakultas.program_studi ps ON ps.id = m.program_studi_id").
+		Where("psikolog_id = ?", psikolog.ID)
+	if startDateStr != "" {
+		if t, err := time.Parse("2006-01-02", startDateStr); err == nil {
+			qProdi = qProdi.Where("tanggal >= ?", t)
+		}
+	}
+	if endDateStr != "" {
+		if t, err := time.Parse("2006-01-02", endDateStr); err == nil {
+			tEnd := time.Date(t.Year(), t.Month(), t.Day(), 23, 59, 59, 0, t.Location())
+			qProdi = qProdi.Where("tanggal <= ?", tEnd)
+		}
+	}
+	if prodiIDStr != "" {
+		qProdi = qProdi.Where("m.program_studi_id = ?", prodiIDStr)
+	}
+	if fakultasIDStr != "" {
+		qProdi = qProdi.Where("m.fakultas_id = ?", fakultasIDStr)
+	}
+	qProdi.Group("ps.nama").Order("count desc").Limit(5).Scan(&prodiCounts)
+
+	prodiPopularity := []fiber.Map{}
+	var totalProdiCount int64
+	for _, pc := range prodiCounts {
+		totalProdiCount += pc.Count
+	}
+	for _, pc := range prodiCounts {
+		percentage := 0
+		if totalProdiCount > 0 {
+			percentage = int(float64(pc.Count) / float64(totalProdiCount) * 100)
+		}
+		prodiPopularity = append(prodiPopularity, fiber.Map{
+			"name":       pc.ProdiName,
+			"count":      pc.Count,
+			"percentage": percentage,
+		})
+	}
+
 	// Tren topik minggu ini
 	weekStart := now.AddDate(0, 0, -int(now.Weekday()))
 	weekStart = time.Date(weekStart.Year(), weekStart.Month(), weekStart.Day(), 0, 0, 0, 0, now.Location())
 	var weekBookings []models.PsikologBooking
-	_ = config.DB.Where("psikolog_id = ? AND created_at >= ?", psikolog.ID, weekStart).Find(&weekBookings).Error
+	qWeek := config.DB.Model(&models.PsikologBooking{}).
+		Where("psikolog_id = ? AND created_at >= ?", psikolog.ID, weekStart)
+	if prodiIDStr != "" || fakultasIDStr != "" {
+		qWeek = qWeek.Joins("JOIN mahasiswa.mahasiswa m ON m.id = mahasiswa_id")
+		if prodiIDStr != "" {
+			qWeek = qWeek.Where("m.program_studi_id = ?", prodiIDStr)
+		}
+		if fakultasIDStr != "" {
+			qWeek = qWeek.Where("m.fakultas_id = ?", fakultasIDStr)
+		}
+	}
+	_ = qWeek.Find(&weekBookings).Error
 	weekIssueCounts := map[string]int{}
 	weekTotal := len(weekBookings)
 	for _, b := range weekBookings {
@@ -853,22 +1190,28 @@ func GetAnalytics(c *fiber.Ctx) error {
 	sort.Slice(weekTrends, func(i, j int) bool {
 		return weekTrends[i]["val"].(float64) > weekTrends[j]["val"].(float64)
 	})
-	// Ambil max 4 topik
 	if len(weekTrends) > 4 {
 		weekTrends = weekTrends[:4]
 	}
 
-	stablePercentage := 0
-	if sessions > 0 {
-		stablePercentage = int(float64(stable) / float64(sessions) * 100)
-	}
 	recommendations := []fiber.Map{
 		{"title": "Tindakan Diperlukan", "type": "warning", "description": fmt.Sprintf("%d sesi aktif membutuhkan tindak lanjut.", urgent)},
 		{"title": "Insight Positif", "type": "positive", "description": fmt.Sprintf("%d%% sesi menunjukkan status stabil atau pemulihan.", stablePercentage)},
 	}
 
 	var notes []models.PsikologSessionNote
-	_ = config.DB.Where("psikolog_id = ?", psikolog.ID).Order("tanggal desc").Limit(3).Find(&notes).Error
+	qNotes := config.DB.Model(&models.PsikologSessionNote{}).
+		Where("psikolog_id = ?", psikolog.ID)
+	if prodiIDStr != "" || fakultasIDStr != "" {
+		qNotes = qNotes.Joins("JOIN mahasiswa.mahasiswa m ON m.id = mahasiswa_id")
+		if prodiIDStr != "" {
+			qNotes = qNotes.Where("m.program_studi_id = ?", prodiIDStr)
+		}
+		if fakultasIDStr != "" {
+			qNotes = qNotes.Where("m.fakultas_id = ?", fakultasIDStr)
+		}
+	}
+	_ = qNotes.Order("sn.tanggal desc").Limit(3).Find(&notes).Error
 	activities := []fiber.Map{}
 	for _, note := range notes {
 		activities = append(activities, fiber.Map{"title": "Sesi Baru Selesai", "description": note.Keluhan, "time": formatDate(note.Tanggal)})
@@ -881,131 +1224,53 @@ func GetAnalytics(c *fiber.Ctx) error {
 			{"label": "Sesi Aktif", "value": urgent, "trend": "", "isPositive": false},
 			{"label": "Kepuasan Layanan", "value": "4.9", "trend": "", "isPositive": true},
 		},
-		"monthly":           monthly,
-		"top_issues":        topIssues,
-		"week_trends":       weekTrends,
-		"stable_percentage": stablePercentage,
-		"recommendations":   recommendations,
-		"activities":        activities,
+		"monthly":                monthly,
+		"top_issues":             topIssues,
+		"week_trends":            weekTrends,
+		"stable_percentage":      stablePercentage,
+		"recommendations":        recommendations,
+		"activities":             activities,
+		"academic_count":         academicCount,
+		"non_academic_count":     nonAcademicCount,
+		"academic_percentage":    academicPercentage,
+		"non_academic_percentage": nonAcademicPercentage,
+		"daily_trends":           dailyTrends,
+		"prodi_popularity":       prodiPopularity,
 	})
 }
 
-func GetReports(c *fiber.Ctx) error {
-	psikolog, err := currentPsikolog(c)
-	if err != nil {
+func GetProdiList(c *fiber.Ctx) error {
+	var prodis []models.ProgramStudi
+	if err := config.DB.Preload("Fakultas").Order("nama asc").Find(&prodis).Error; err != nil {
 		return err
 	}
-	var reports []models.PsikologReport
-	if err := config.DB.Where("psikolog_id = ?", psikolog.ID).Order("tanggal desc").Find(&reports).Error; err != nil {
-		return err
-	}
-	items := make([]fiber.Map, 0, len(reports))
-	for _, report := range reports {
-		items = append(items, fiber.Map{"id": report.ID, "title": report.Judul, "type": report.Tipe, "size": report.Ukuran, "date": formatDate(report.Tanggal), "status": report.Status, "file_url": report.FileURL})
+	items := make([]fiber.Map, 0, len(prodis))
+	for _, p := range prodis {
+		items = append(items, fiber.Map{
+			"id":          p.ID,
+			"nama":        p.Nama,
+			"fakultas_id": p.FakultasID,
+		})
 	}
 	return jsonOK(c, items)
 }
 
-func CreateReport(c *fiber.Ctx) error {
-	psikolog, err := currentPsikolog(c)
-	if err != nil {
+func GetFakultasList(c *fiber.Ctx) error {
+	var fakultas []models.Fakultas
+	if err := config.DB.Order("nama asc").Find(&fakultas).Error; err != nil {
 		return err
 	}
-
-	var body struct {
-		Tipe    string `json:"tipe"`    // "Bulanan" atau "Tahunan"
-		Periode string `json:"periode"` // "2026-05" atau "2026"
+	items := make([]fiber.Map, 0, len(fakultas))
+	for _, f := range fakultas {
+		items = append(items, fiber.Map{
+			"id":   f.ID,
+			"nama": f.Nama,
+		})
 	}
-	if err := c.BodyParser(&body); err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, "Payload tidak valid")
-	}
-	if body.Tipe == "" {
-		body.Tipe = "Bulanan"
-	}
-	if body.Periode == "" {
-		if body.Tipe == "Bulanan" {
-			body.Periode = time.Now().Format("2006-01")
-		} else {
-			body.Periode = time.Now().Format("2006")
-		}
-	}
-
-	// Generate PDF dengan data real
-	filePath, fileName, err := GenerateReport(psikolog, body.Tipe, body.Periode)
-	if err != nil {
-		return fiber.NewError(fiber.StatusInternalServerError, "Gagal generate laporan: "+err.Error())
-	}
-
-	// Hitung ukuran file
-	fileSize := "0 KB"
-	if info, err := os.Stat(filePath); err == nil {
-		kb := info.Size() / 1024
-		if kb < 1 {
-			fileSize = "< 1 KB"
-		} else {
-			fileSize = fmt.Sprintf("%d KB", kb)
-		}
-	}
-
-	// Format judul
-	judulPeriode := body.Periode
-	if body.Tipe == "Bulanan" {
-		if t, err := time.Parse("2006-01", body.Periode); err == nil {
-			judulPeriode = t.Format("January 2006")
-		}
-	}
-
-	report := models.PsikologReport{
-		PsikologID: psikolog.ID,
-		Judul:      fmt.Sprintf("Laporan %s - %s", body.Tipe, judulPeriode),
-		Tipe:       body.Tipe,
-		Ukuran:     fileSize,
-		Status:     "Selesai",
-		FileURL:    "/uploads/reports/" + fileName,
-		Periode:    judulPeriode,
-		Tanggal:    time.Now(),
-		Ringkasan:  fmt.Sprintf("Laporan %s periode %s", strings.ToLower(body.Tipe), judulPeriode),
-	}
-	if err := config.DB.Create(&report).Error; err != nil {
-		return err
-	}
-	return jsonOK(c, fiber.Map{
-		"id":       report.ID,
-		"title":    report.Judul,
-		"type":     report.Tipe,
-		"size":     report.Ukuran,
-		"date":     formatDate(report.Tanggal),
-		"status":   report.Status,
-		"file_url": report.FileURL,
-		"periode":  report.Periode,
-	})
+	return jsonOK(c, items)
 }
 
-func DownloadReport(c *fiber.Ctx) error {
-	psikolog, err := currentPsikolog(c)
-	if err != nil {
-		return err
-	}
 
-	var report models.PsikologReport
-	if err := config.DB.Where("id = ? AND psikolog_id = ?", c.Params("id"), psikolog.ID).First(&report).Error; err != nil {
-		return fiber.NewError(fiber.StatusNotFound, "Laporan tidak ditemukan")
-	}
-
-	if report.FileURL == "" {
-		return fiber.NewError(fiber.StatusNotFound, "File laporan belum tersedia")
-	}
-
-	// FileURL format: "/uploads/reports/filename.pdf"
-	filePath := strings.TrimPrefix(report.FileURL, "/")
-	if _, err := os.Stat(filePath); os.IsNotExist(err) {
-		return fiber.NewError(fiber.StatusNotFound, "File tidak ditemukan di server")
-	}
-
-	c.Set("Content-Disposition", fmt.Sprintf(`attachment; filename="%s"`, filepath.Base(filePath)))
-	c.Set("Content-Type", "application/pdf")
-	return c.SendFile(filePath)
-}
 
 func GetNotifications(c *fiber.Ctx) error {	psikolog, err := currentPsikolog(c)
 	if err != nil {
@@ -1156,144 +1421,4 @@ func UpdatePatientStatus(c *fiber.Ctx) error {
 	})
 }
 
-// GenerateReferralReportHandler - Generate PDF laporan tindak lanjut (referral)
-func GenerateReferralReportHandler(c *fiber.Ctx) error {
-	psikolog, err := currentPsikolog(c)
-	if err != nil {
-		return err
-	}
 
-	var body struct {
-		StartDate string `json:"start_date"` // Format: "2006-01-02"
-		EndDate   string `json:"end_date"`   // Format: "2006-01-02"
-	}
-	if err := c.BodyParser(&body); err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, "Payload tidak valid")
-	}
-
-	// Parse dates
-	startDate, err := time.Parse("2006-01-02", body.StartDate)
-	if err != nil {
-		startDate = time.Now().AddDate(0, -1, 0) // Default: 1 bulan lalu
-	}
-
-	endDate, err := time.Parse("2006-01-02", body.EndDate)
-	if err != nil {
-		endDate = time.Now() // Default: hari ini
-	}
-
-	// Generate PDF
-	filePath, fileName, err := GenerateReferralReport(psikolog, startDate, endDate)
-	if err != nil {
-		return fiber.NewError(fiber.StatusInternalServerError, "Gagal generate laporan rujukan: "+err.Error())
-	}
-
-	// Hitung ukuran file
-	fileSize := "0 KB"
-	if info, err := os.Stat(filePath); err == nil {
-		kb := info.Size() / 1024
-		if kb < 1 {
-			fileSize = "< 1 KB"
-		} else {
-			fileSize = fmt.Sprintf("%d KB", kb)
-		}
-	}
-
-	// Simpan ke database
-	report := models.PsikologReport{
-		PsikologID: psikolog.ID,
-		Judul:      fmt.Sprintf("Laporan Tindak Lanjut - %s s/d %s", startDate.Format("02 Jan 2006"), endDate.Format("02 Jan 2006")),
-		Tipe:       "Rujukan",
-		Ukuran:     fileSize,
-		Status:     "Selesai",
-		FileURL:    "/uploads/reports/referrals/" + fileName,
-		Periode:    fmt.Sprintf("%s - %s", startDate.Format("02 Jan 2006"), endDate.Format("02 Jan 2006")),
-		Tanggal:    time.Now(),
-		Ringkasan:  "Laporan Tindak Lanjut Rujukan Medis & Akademik",
-	}
-	if err := config.DB.Create(&report).Error; err != nil {
-		return err
-	}
-
-	return jsonOK(c, fiber.Map{
-		"id":       report.ID,
-		"title":    report.Judul,
-		"type":     report.Tipe,
-		"size":     report.Ukuran,
-		"date":     formatDate(report.Tanggal),
-		"status":   report.Status,
-		"file_url": report.FileURL,
-		"periode":  report.Periode,
-	})
-}
-
-// GenerateClinicalReportHandler - Generate PDF laporan klinis (clinical report)
-func GenerateClinicalReportHandler(c *fiber.Ctx) error {
-	psikolog, err := currentPsikolog(c)
-	if err != nil {
-		return err
-	}
-
-	var body struct {
-		StartDate string `json:"start_date"` // Format: "2006-01-02"
-		EndDate   string `json:"end_date"`   // Format: "2006-01-02"
-	}
-	if err := c.BodyParser(&body); err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, "Payload tidak valid")
-	}
-
-	// Parse dates
-	startDate, err := time.Parse("2006-01-02", body.StartDate)
-	if err != nil {
-		startDate = time.Now().AddDate(0, -1, 0) // Default: 1 bulan lalu
-	}
-
-	endDate, err := time.Parse("2006-01-02", body.EndDate)
-	if err != nil {
-		endDate = time.Now() // Default: hari ini
-	}
-
-	// Generate PDF
-	filePath, fileName, err := GenerateClinicalReport(psikolog, startDate, endDate)
-	if err != nil {
-		return fiber.NewError(fiber.StatusInternalServerError, "Gagal generate laporan klinis: "+err.Error())
-	}
-
-	// Hitung ukuran file
-	fileSize := "0 KB"
-	if info, err := os.Stat(filePath); err == nil {
-		kb := info.Size() / 1024
-		if kb < 1 {
-			fileSize = "< 1 KB"
-		} else {
-			fileSize = fmt.Sprintf("%d KB", kb)
-		}
-	}
-
-	// Simpan ke database
-	report := models.PsikologReport{
-		PsikologID: psikolog.ID,
-		Judul:      fmt.Sprintf("Laporan Klinis - %s s/d %s", startDate.Format("02 Jan 2006"), endDate.Format("02 Jan 2006")),
-		Tipe:       "Klinis",
-		Ukuran:     fileSize,
-		Status:     "Selesai",
-		FileURL:    "/uploads/reports/clinical/" + fileName,
-		Periode:    fmt.Sprintf("%s - %s", startDate.Format("02 Jan 2006"), endDate.Format("02 Jan 2006")),
-		Tanggal:    time.Now(),
-		Ringkasan:  "Laporan Analisis Klinis & Risiko Kesehatan Mental",
-	}
-	if err := config.DB.Create(&report).Error; err != nil {
-		return err
-	}
-
-	return jsonOK(c, fiber.Map{
-		"id":       report.ID,
-		"title":    report.Judul,
-		"type":     report.Tipe,
-		"size":     report.Ukuran,
-		"date":     formatDate(report.Tanggal),
-		"status":   report.Status,
-		"file_url": report.FileURL,
-		"periode":  report.Periode,
-	})
-}

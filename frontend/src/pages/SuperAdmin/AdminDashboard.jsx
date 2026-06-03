@@ -189,6 +189,179 @@ export default function AdminDashboard() {
   const [detailAsp, setDetailAsp] = useState([])
   const [detailProp, setDetailProp] = useState([])
   const [activeDetailTab, setActiveDetailTab] = useState("mahasiswa")
+
+  // Search & Pagination States for Drill-down Details
+  const [searchQuery, setSearchQuery] = useState("")
+  const [pageSize, setPageSize] = useState(10)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [detailFakultasFilter, setDetailFakultasFilter] = useState("")
+  const [detailProdiFilter, setDetailProdiFilter] = useState("")
+  const [detailSemesterFilter, setDetailSemesterFilter] = useState("")
+
+  useEffect(() => {
+    setSearchQuery("")
+    setDetailFakultasFilter("")
+    setDetailProdiFilter("")
+    setDetailSemesterFilter("")
+    setCurrentPage(1)
+  }, [activeDetailTab])
+
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [searchQuery, pageSize, detailFakultasFilter, detailProdiFilter, detailSemesterFilter])
+
+  // Get active dataset
+  const getActiveSourceData = React.useMemo(() => {
+    if (activeDetailTab === "mahasiswa") return detailMhs || []
+    if (activeDetailTab === "aspirasi") return detailAsp || []
+    return detailProp || []
+  }, [activeDetailTab, detailMhs, detailAsp, detailProp])
+
+  // Extract unique options for filter dropdowns based on the active source data
+  const detailFilterOptions = React.useMemo(() => {
+    const data = getActiveSourceData
+    
+    const faculties = new Set()
+    const prodis = new Set()
+    const semesters = new Set()
+
+    data.forEach(item => {
+      // Fakultas
+      let fac = ""
+      if (activeDetailTab === "mahasiswa") {
+        fac = item.Fakultas?.Nama || item.Fakultas?.nama || ""
+      } else if (activeDetailTab === "aspirasi") {
+        fac = item.mahasiswa?.Fakultas?.Nama || item.mahasiswa?.Fakultas?.nama || item.mahasiswa?.fakultas?.Nama || item.mahasiswa?.fakultas?.nama || ""
+      } else {
+        fac = item.Ormawa?.Fakultas?.Nama || item.Ormawa?.Fakultas?.nama || item.Ormawa?.fakultas?.Nama || item.Ormawa?.fakultas?.nama || ""
+      }
+      if (fac) faculties.add(fac)
+
+      // Prodi
+      let prd = ""
+      if (activeDetailTab === "mahasiswa") {
+        prd = item.ProgramStudi?.Nama || item.ProgramStudi?.nama || ""
+      } else if (activeDetailTab === "aspirasi") {
+        prd = item.mahasiswa?.ProgramStudi?.Nama || item.mahasiswa?.ProgramStudi?.nama || item.mahasiswa?.program_studi?.Nama || item.mahasiswa?.program_studi?.nama || ""
+      } else {
+        prd = item.Ormawa?.ProgramStudi?.Nama || item.Ormawa?.ProgramStudi?.nama || item.Ormawa?.program_studi?.Nama || item.Ormawa?.program_studi?.nama || ""
+      }
+      
+      if (prd) {
+        if (detailFakultasFilter) {
+          if (fac === detailFakultasFilter) {
+            prodis.add(prd)
+          }
+        } else {
+          prodis.add(prd)
+        }
+      }
+
+      // Semester
+      let sem = ""
+      if (activeDetailTab === "mahasiswa") {
+        sem = item.SemesterSekarang || item.semester_sekarang || ""
+      } else if (activeDetailTab === "aspirasi") {
+        sem = item.mahasiswa?.SemesterSekarang || item.mahasiswa?.semester_sekarang || ""
+      }
+      if (sem !== undefined && sem !== null && sem !== "") semesters.add(String(sem))
+    })
+
+    return {
+      faculties: [...faculties].sort(),
+      prodis: [...prodis].sort(),
+      semesters: [...semesters].sort((a, b) => Number(a) - Number(b))
+    }
+  }, [getActiveSourceData, activeDetailTab, detailFakultasFilter])
+
+  // Filter and Paginate helper
+  const getFilteredAndPaginatedData = () => {
+    const sourceData = getActiveSourceData
+
+    // Filter
+    const filtered = sourceData.filter(item => {
+      // 1. Search Query Filter
+      if (searchQuery) {
+        const q = searchQuery.toLowerCase()
+        let matchSearch = false
+        if (activeDetailTab === "mahasiswa") {
+          const name = (item.Nama || item.nama || "").toLowerCase()
+          const nim = (item.NIM || item.nim || "").toLowerCase()
+          const prodi = (item.ProgramStudi?.Nama || item.ProgramStudi?.nama || "").toLowerCase()
+          const fakultas = (item.Fakultas?.Nama || item.Fakultas?.nama || "").toLowerCase()
+          matchSearch = name.includes(q) || nim.includes(q) || prodi.includes(q) || fakultas.includes(q)
+        } else if (activeDetailTab === "aspirasi") {
+          const title = (item.judul || "").toLowerCase()
+          const category = (item.kategori || "").toLowerCase()
+          const sender = (item.mahasiswa?.Nama || item.mahasiswa?.nama || "umum").toLowerCase()
+          matchSearch = title.includes(q) || category.includes(q) || sender.includes(q)
+        } else {
+          const title = (item.Judul || item.judul || "").toLowerCase()
+          const ormawa = (item.Ormawa?.Nama || item.Ormawa?.nama || "").toLowerCase()
+          const status = (item.Status || item.status || "").toLowerCase()
+          matchSearch = title.includes(q) || ormawa.includes(q) || status.includes(q)
+        }
+        if (!matchSearch) return false
+      }
+
+      // 2. Fakultas Filter
+      if (detailFakultasFilter) {
+        let fac = ""
+        if (activeDetailTab === "mahasiswa") {
+          fac = item.Fakultas?.Nama || item.Fakultas?.nama || ""
+        } else if (activeDetailTab === "aspirasi") {
+          fac = item.mahasiswa?.Fakultas?.Nama || item.mahasiswa?.Fakultas?.nama || item.mahasiswa?.fakultas?.Nama || item.mahasiswa?.fakultas?.nama || ""
+        } else {
+          fac = item.Ormawa?.Fakultas?.Nama || item.Ormawa?.Fakultas?.nama || item.Ormawa?.fakultas?.Nama || item.Ormawa?.fakultas?.nama || ""
+        }
+        if (fac !== detailFakultasFilter) return false
+      }
+
+      // 3. Prodi Filter
+      if (detailProdiFilter) {
+        let prd = ""
+        if (activeDetailTab === "mahasiswa") {
+          prd = item.ProgramStudi?.Nama || item.ProgramStudi?.nama || ""
+        } else if (activeDetailTab === "aspirasi") {
+          prd = item.mahasiswa?.ProgramStudi?.Nama || item.mahasiswa?.ProgramStudi?.nama || item.mahasiswa?.program_studi?.Nama || item.mahasiswa?.program_studi?.nama || ""
+        } else {
+          prd = item.Ormawa?.ProgramStudi?.Nama || item.Ormawa?.ProgramStudi?.nama || item.Ormawa?.program_studi?.Nama || item.Ormawa?.program_studi?.nama || ""
+        }
+        if (prd !== detailProdiFilter) return false
+      }
+
+      // 4. Semester Filter
+      if (detailSemesterFilter) {
+        let sem = ""
+        if (activeDetailTab === "mahasiswa") {
+          sem = item.SemesterSekarang || item.semester_sekarang || ""
+        } else if (activeDetailTab === "aspirasi") {
+          sem = item.mahasiswa?.SemesterSekarang || item.mahasiswa?.semester_sekarang || ""
+        }
+        if (String(sem) !== detailSemesterFilter) return false
+      }
+
+      return true
+    })
+
+    // Paginate
+    const totalItems = filtered.length
+    const totalPages = Math.ceil(totalItems / pageSize) || 1
+    const startIndex = totalItems === 0 ? 0 : (currentPage - 1) * pageSize + 1
+    const endIndex = Math.min(currentPage * pageSize, totalItems)
+    const paginated = filtered.slice((currentPage - 1) * pageSize, currentPage * pageSize)
+
+    return {
+      data: paginated,
+      totalItems,
+      totalPages,
+      startIndex,
+      endIndex
+    }
+  }
+
+  const { data: displayData, totalItems, totalPages, startIndex, endIndex } = getFilteredAndPaginatedData()
+
   const [stats, setStats] = useState({
     total_mahasiswa: 0,
     aspirasi_aktif: 0,
@@ -908,6 +1081,112 @@ if (statsRes.status === 'success') {
             </div>
           </div>
 
+          {/* Search and Dropdown Filters */}
+          <div className="flex flex-col gap-4 bg-neutral-50 p-4 rounded-xl border border-neutral-200/60">
+            <div className="flex flex-col md:flex-row gap-4 justify-between items-stretch md:items-center">
+              {/* Search Input */}
+              <div className="relative flex-1 max-w-md">
+                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" style={{ fontSize: '18px' }}>search</span>
+                <input
+                  type="text"
+                  placeholder={
+                    activeDetailTab === "mahasiswa" ? "Cari nama, NIM, prodi, fakultas..." :
+                    activeDetailTab === "aspirasi" ? "Cari judul, kategori, pengirim..." :
+                    "Cari proposal, ormawa, status..."
+                  }
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 border border-neutral-200 rounded-lg text-xs font-semibold focus:border-primary focus:bg-white bg-white transition-all outline-none"
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery("")}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600 transition-colors"
+                  >
+                    <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>close</span>
+                  </button>
+                )}
+              </div>
+
+              {/* Limit Selector */}
+              <div className="flex items-center gap-3 self-end md:self-auto">
+                <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider">Tampilkan</span>
+                <select
+                  value={pageSize}
+                  onChange={(e) => setPageSize(parseInt(e.target.value))}
+                  className="px-3 py-1.5 bg-white border border-neutral-200 rounded-lg text-xs font-bold text-[#00236f] focus:border-primary outline-none cursor-pointer"
+                >
+                  <option value={10}>10 Baris</option>
+                  <option value={20}>20 Baris</option>
+                  <option value={30}>30 Baris</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Dropdown Filters (Fakultas, Prodi, Semester) */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 border-t border-neutral-200/50 pt-3">
+              {/* Fakultas Filter */}
+              <div className="flex flex-col gap-1">
+                <label className="text-[9px] font-black text-neutral-400 uppercase tracking-wider">Fakultas</label>
+                <select
+                  value={detailFakultasFilter}
+                  onChange={(e) => {
+                    setDetailFakultasFilter(e.target.value)
+                    setDetailProdiFilter("") // Reset prodi when faculty changes
+                  }}
+                  className="w-full px-3 py-2 bg-white border border-neutral-200 rounded-lg text-xs font-semibold text-neutral-700 outline-none focus:border-primary cursor-pointer"
+                >
+                  <option value="">Semua Fakultas</option>
+                  {detailFilterOptions.faculties.map(fac => (
+                    <option key={fac} value={fac}>{fac}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Prodi Filter */}
+              <div className="flex flex-col gap-1">
+                <label className="text-[9px] font-black text-neutral-400 uppercase tracking-wider">Program Studi</label>
+                <select
+                  value={detailProdiFilter}
+                  onChange={(e) => setDetailProdiFilter(e.target.value)}
+                  className="w-full px-3 py-2 bg-white border border-neutral-200 rounded-lg text-xs font-semibold text-neutral-700 outline-none focus:border-primary cursor-pointer"
+                >
+                  <option value="">Semua Program Studi</option>
+                  {detailFilterOptions.prodis.map(prd => (
+                    <option key={prd} value={prd}>{prd}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Semester Filter (Mahasiswa / Aspirasi only) */}
+              {activeDetailTab !== "proposal" ? (
+                <div className="flex flex-col gap-1">
+                  <label className="text-[9px] font-black text-neutral-400 uppercase tracking-wider">Semester</label>
+                  <select
+                    value={detailSemesterFilter}
+                    onChange={(e) => setDetailSemesterFilter(e.target.value)}
+                    className="w-full px-3 py-2 bg-white border border-neutral-200 rounded-lg text-xs font-semibold text-neutral-700 outline-none focus:border-primary cursor-pointer"
+                  >
+                    <option value="">Semua Semester</option>
+                    {detailFilterOptions.semesters.map(sem => (
+                      <option key={sem} value={sem}>Semester {sem}</option>
+                    ))}
+                  </select>
+                </div>
+              ) : (
+                <div className="flex flex-col gap-1 opacity-40 select-none cursor-not-allowed">
+                  <label className="text-[9px] font-black text-neutral-400 uppercase tracking-wider">Semester</label>
+                  <select
+                    disabled
+                    className="w-full px-3 py-2 bg-neutral-100 border border-neutral-200 rounded-lg text-xs font-semibold text-neutral-400 outline-none cursor-not-allowed"
+                  >
+                    <option value="">Tidak Tersedia</option>
+                  </select>
+                </div>
+              )}
+            </div>
+          </div>
+
           <div className="overflow-x-auto">
             {activeDetailTab === "mahasiswa" && (
               <table className="w-full text-left border-collapse">
@@ -922,12 +1201,12 @@ if (statsRes.status === 'success') {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-neutral-100">
-                  {detailMhs.length === 0 ? (
+                  {displayData.length === 0 ? (
                     <tr>
                       <td colSpan="6" className="py-8 text-center text-sm font-medium text-neutral-400">Tidak ada data mahasiswa cocok</td>
                     </tr>
                   ) : (
-                    detailMhs.map((m) => (
+                    displayData.map((m) => (
                       <tr key={m.id} className="hover:bg-neutral-50/50 transition-colors">
                         <td className="py-4 text-sm font-bold text-neutral-800">{m.Nama || m.nama}</td>
                         <td className="py-4 text-sm font-medium text-neutral-500 font-mono">{m.NIM || m.nim}</td>
@@ -961,12 +1240,12 @@ if (statsRes.status === 'success') {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-neutral-100">
-                  {detailAsp.length === 0 ? (
+                  {displayData.length === 0 ? (
                     <tr>
                       <td colSpan="5" className="py-8 text-center text-sm font-medium text-neutral-400">Tidak ada data aspirasi cocok</td>
                     </tr>
                   ) : (
-                    detailAsp.map((a) => (
+                    displayData.map((a) => (
                       <tr key={a.id} className="hover:bg-neutral-50/50 transition-colors">
                         <td className="py-4 text-sm font-bold text-neutral-800">{a.judul}</td>
                         <td className="py-4 text-sm font-medium text-neutral-600">{a.kategori}</td>
@@ -1011,12 +1290,12 @@ if (statsRes.status === 'success') {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-neutral-100">
-                  {detailProp.length === 0 ? (
+                  {displayData.length === 0 ? (
                     <tr>
                       <td colSpan="4" className="py-8 text-center text-sm font-medium text-neutral-400">Tidak ada data proposal cocok</td>
                     </tr>
                   ) : (
-                    detailProp.map((p) => (
+                    displayData.map((p) => (
                       <tr key={p.id} className="hover:bg-neutral-50/50 transition-colors">
                         <td className="py-4 text-sm font-bold text-neutral-800">{p.Judul || p.judul}</td>
                         <td className="py-4 text-sm font-medium text-neutral-600">{p.Ormawa?.Nama || p.Ormawa?.nama || '-'}</td>
@@ -1039,6 +1318,59 @@ if (statsRes.status === 'success') {
                 </tbody>
               </table>
             )}
+          </div>
+
+          {/* Pagination Controls */}
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-4 border-t border-neutral-100 pt-4">
+            <span className="text-xs font-medium text-neutral-500 font-jakarta">
+              Menampilkan <span className="font-bold text-neutral-800">{startIndex}</span> - <span className="font-bold text-neutral-800">{endIndex}</span> dari <span className="font-bold text-[#00236f]">{totalItems}</span> data
+            </span>
+
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+                className="flex items-center gap-1 px-3 py-1.5 border border-neutral-200 rounded-lg text-xs font-bold uppercase tracking-wider text-neutral-600 hover:bg-neutral-50 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>chevron_left</span>
+                Sebelumnya
+              </button>
+              
+              <div className="flex items-center gap-1">
+                {Array.from({ length: totalPages }).map((_, index) => {
+                  const pageNum = index + 1
+                  if (totalPages > 5 && pageNum !== 1 && pageNum !== totalPages && Math.abs(currentPage - pageNum) > 1) {
+                    if (pageNum === 2 || pageNum === totalPages - 1) {
+                      return <span key={pageNum} className="text-neutral-400 px-1 text-xs">...</span>
+                    }
+                    return null
+                  }
+                  return (
+                    <button
+                      key={pageNum}
+                      onClick={() => setCurrentPage(pageNum)}
+                      className={cn(
+                        "size-8 rounded-lg text-xs font-bold flex items-center justify-center transition-all",
+                        currentPage === pageNum
+                          ? "bg-[#00236f] text-white shadow-sm"
+                          : "text-neutral-600 hover:bg-neutral-100"
+                      )}
+                    >
+                      {pageNum}
+                    </button>
+                  )
+                })}
+              </div>
+
+              <button
+                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                disabled={currentPage === totalPages}
+                className="flex items-center gap-1 px-3 py-1.5 border border-neutral-200 rounded-lg text-xs font-bold uppercase tracking-wider text-neutral-600 hover:bg-neutral-50 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+              >
+                Selanjutnya
+                <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>chevron_right</span>
+              </button>
+            </div>
           </div>
         </section>
 

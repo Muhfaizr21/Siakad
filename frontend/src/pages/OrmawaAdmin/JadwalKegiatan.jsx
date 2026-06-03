@@ -27,10 +27,10 @@ const STATUS_CFG = {
 }
 
 const formatRp = (n) => {
-  return new Intl.NumberFormat('id-ID', { 
-    style: 'currency', 
-    currency: 'IDR', 
-    minimumFractionDigits: 0 
+  return new Intl.NumberFormat('id-ID', {
+    style: 'currency',
+    currency: 'IDR',
+    minimumFractionDigits: 0
   }).format(n || 0)
 }
 
@@ -96,18 +96,18 @@ export default function JadwalKegiatan() {
       const res = await fetchWithAuth(`${API}/events?ormawaId=${ormawaId}`)
       if (res.status === 'success') setData(res.data || [])
       else toast.error('Gagal memuat jadwal')
-    } catch { 
-      toast.error('Koneksi gagal') 
-    } finally { 
-      setLoading(false) 
+    } catch {
+      toast.error('Koneksi gagal')
+    } finally {
+      setLoading(false)
     }
   }
 
-  useEffect(() => { 
-    fetchEvents() 
+  useEffect(() => {
+    fetchEvents()
   }, [])
 
-  const handleOpenAdd = () => { 
+  const handleOpenAdd = () => {
     setIsEditMode(false)
     setForm({
       Judul: '',
@@ -129,19 +129,19 @@ export default function JadwalKegiatan() {
       EstimasiDana: '',
       PJKegiatan: ''
     })
-    setIsCrudOpen(true) 
+    setIsCrudOpen(true)
   }
 
   const handleOpenEdit = (row) => {
     setIsEditMode(true)
-    setForm({ 
-      ID: row.id || row.ID, 
-      Judul: row.Judul || row.judul || '', 
-      Deskripsi: row.Deskripsi || row.deskripsi || '', 
-      Lokasi: row.Lokasi || row.lokasi || '', 
-      TanggalMulai: row.TanggalMulai ? row.TanggalMulai.split('T')[0] : (row.tanggalMulai ? row.tanggalMulai.split('T')[0] : ''), 
-      TanggalSelesai: row.TanggalSelesai ? row.TanggalSelesai.split('T')[0] : (row.tanggalSelesai ? row.tanggalSelesai.split('T')[0] : ''), 
-      Status: row.Status || row.status || 'terjadwal', 
+    setForm({
+      ID: row.id || row.ID,
+      Judul: row.Judul || row.judul || '',
+      Deskripsi: row.Deskripsi || row.deskripsi || '',
+      Lokasi: row.Lokasi || row.lokasi || '',
+      TanggalMulai: row.TanggalMulai ? row.TanggalMulai.split('T')[0] : (row.tanggalMulai ? row.tanggalMulai.split('T')[0] : ''),
+      TanggalSelesai: row.TanggalSelesai ? row.TanggalSelesai.split('T')[0] : (row.tanggalSelesai ? row.tanggalSelesai.split('T')[0] : ''),
+      Status: row.Status || row.status || 'terjadwal',
       OrmawaID: ormawaId,
 
       LandasanKegiatan: row.LandasanKegiatan || row.landasan_kegiatan || '',
@@ -161,7 +161,7 @@ export default function JadwalKegiatan() {
 
   const handleSave = async (e) => {
     e.preventDefault()
-    
+
     if (form.TanggalSelesai && new Date(form.TanggalSelesai) < new Date(form.TanggalMulai)) {
       toast.error('Tanggal selesai tidak boleh sebelum tanggal mulai')
       return
@@ -170,26 +170,26 @@ export default function JadwalKegiatan() {
     setIsSubmitting(true)
     const url = isEditMode ? `${API}/events/${form.ID || form.id}` : `${API}/events`
     const method = isEditMode ? 'PUT' : 'POST'
-    const payload = { 
-      ...form, 
-      OrmawaID: Number(form.OrmawaID), 
+    const payload = {
+      ...form,
+      OrmawaID: Number(form.OrmawaID),
       EstimasiDana: Number(form.EstimasiDana || 0),
-      TanggalMulai: form.TanggalMulai ? new Date(form.TanggalMulai).toISOString() : null, 
-      TanggalSelesai: form.TanggalSelesai ? new Date(form.TanggalSelesai).toISOString() : null 
+      TanggalMulai: form.TanggalMulai ? new Date(form.TanggalMulai).toISOString() : null,
+      TanggalSelesai: form.TanggalSelesai ? new Date(form.TanggalSelesai).toISOString() : null
     }
     try {
       const data = await fetchWithAuth(url, { method, body: JSON.stringify(payload), headers: { 'Content-Type': 'application/json' } })
-      if (data.status === 'success') { 
+      if (data.status === 'success') {
         toast.success(isEditMode ? 'Kegiatan diperbarui' : 'Kegiatan dijadwalkan')
         setIsCrudOpen(false)
-        fetchEvents() 
+        fetchEvents()
       } else {
         toast.error(data.message || 'Gagal menyimpan')
       }
-    } catch { 
-      toast.error('Terjadi kesalahan') 
-    } finally { 
-      setIsSubmitting(false) 
+    } catch {
+      toast.error('Terjadi kesalahan')
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
@@ -197,17 +197,17 @@ export default function JadwalKegiatan() {
     setIsSubmitting(true)
     try {
       const data = await fetchWithAuth(`${API}/events/${selected.id || selected.ID}`, { method: 'DELETE' })
-      if (data.status === 'success') { 
+      if (data.status === 'success') {
         toast.success('Kegiatan dibatalkan')
         setIsDelOpen(false)
-        fetchEvents() 
+        fetchEvents()
       } else {
         toast.error('Gagal menghapus')
       }
-    } catch { 
-      toast.error('Terjadi kesalahan') 
-    } finally { 
-      setIsSubmitting(false) 
+    } catch {
+      toast.error('Terjadi kesalahan')
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
@@ -274,7 +274,7 @@ export default function JadwalKegiatan() {
   return (
     <div className="max-w-[1600px] mx-auto px-4 py-8 md:px-8 xl:px-12 space-y-8 font-body">
       <Toaster position="top-right" />
-      
+
       {/* ── Welcome Banner ─────────────────────────────────────────── */}
       <section className="relative overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-[#00236F] to-[#1e3a8a] text-white p-8 md:p-10 shadow-xl shadow-blue-950/15 border border-[#00236F]/10">
         <div className="absolute inset-0 opacity-[0.04]"
@@ -360,11 +360,11 @@ export default function JadwalKegiatan() {
       <Card className="border border-[#e5e5e5] shadow-sm overflow-hidden bg-white rounded-3xl">
         <CardContent className="p-0">
           <DataTable
-            columns={columns} 
-            data={data} 
+            columns={columns}
+            data={data}
             loading={loading}
             searchPlaceholder="Cari nama atau lokasi kegiatan..."
-            onAdd={handleOpenAdd} 
+            onAdd={handleOpenAdd}
             addLabel="Tambah Kegiatan"
             filters={[{ key: 'Status', placeholder: 'Filter Status', options: Object.entries(STATUS_CFG).map(([v, { label }]) => ({ label, value: v })) }]}
             actions={(row) => (
@@ -461,7 +461,7 @@ export default function JadwalKegiatan() {
                 {/* Detail Fields Grid */}
                 <div className="bg-slate-50 border border-slate-200/60 rounded-3xl p-6 space-y-4">
                   <h3 className="text-xs font-black text-slate-800 uppercase tracking-widest font-headline">Informasi Detail Kegiatan</h3>
-                  
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-medium text-slate-700">
                     <div className="bg-white p-3 rounded-xl border border-slate-100 space-y-1">
                       <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Landasan Kegiatan</p>
@@ -545,37 +545,37 @@ export default function JadwalKegiatan() {
               <DialogDescription className="text-[10px] md:text-xs font-medium text-slate-400 mt-1.5">Tambahkan agenda dan jadwal pelaksanaan kegiatan resmi organisasi.</DialogDescription>
             </div>
           </DialogHeader>
-          
+
           <form onSubmit={handleSave} className="p-8 pt-5 space-y-4 max-h-[70vh] overflow-y-auto custom-scrollbar">
             <div className="space-y-2">
               <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 font-headline uppercase">Nama Kegiatan</Label>
-              <Input 
-                required 
-                value={form.Judul} 
-                onChange={e => setForm({ ...form, Judul: e.target.value })} 
+              <Input
+                required
+                value={form.Judul}
+                onChange={e => setForm({ ...form, Judul: e.target.value })}
                 placeholder="Contoh: Pekan Olahraga Mahasiswa..."
-                className="h-12 rounded-2xl border-slate-200 bg-slate-50 focus:bg-white focus:border-[#00236F] focus:ring-4 focus:ring-[#00236F]/10 transition-all font-bold text-sm font-headline" 
+                className="h-12 rounded-2xl border-slate-200 bg-slate-50 focus:bg-white focus:border-[#00236F] focus:ring-4 focus:ring-[#00236F]/10 transition-all font-bold text-sm font-headline"
               />
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 font-headline uppercase font-bold">Landasan Kegiatan *</Label>
-                <Input 
-                  required 
-                  value={form.LandasanKegiatan} 
-                  onChange={e => setForm({ ...form, LandasanKegiatan: e.target.value })} 
+                <Input
+                  required
+                  value={form.LandasanKegiatan}
+                  onChange={e => setForm({ ...form, LandasanKegiatan: e.target.value })}
                   placeholder="Contoh: Program Kerja Himpunan 2026..."
-                  className="h-11 rounded-2xl border-slate-200 bg-slate-50 focus:bg-white focus:border-[#00236F] focus:ring-4 focus:ring-[#00236F]/10 transition-all font-bold text-xs font-headline" 
+                  className="h-11 rounded-2xl border-slate-200 bg-slate-50 focus:bg-white focus:border-[#00236F] focus:ring-4 focus:ring-[#00236F]/10 transition-all font-bold text-xs font-headline"
                 />
               </div>
               <div className="space-y-2">
                 <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 font-headline uppercase font-bold">Bentuk Kegiatan</Label>
-                <Input 
-                  value={form.BentukKegiatan} 
-                  onChange={e => setForm({ ...form, BentukKegiatan: e.target.value })} 
+                <Input
+                  value={form.BentukKegiatan}
+                  onChange={e => setForm({ ...form, BentukKegiatan: e.target.value })}
                   placeholder="Contoh: Kompetisi & Seminar..."
-                  className="h-11 rounded-2xl border-slate-200 bg-slate-50 focus:bg-white focus:border-[#00236F] focus:ring-4 focus:ring-[#00236F]/10 transition-all font-bold text-xs font-headline" 
+                  className="h-11 rounded-2xl border-slate-200 bg-slate-50 focus:bg-white focus:border-[#00236F] focus:ring-4 focus:ring-[#00236F]/10 transition-all font-bold text-xs font-headline"
                 />
               </div>
             </div>
@@ -583,20 +583,20 @@ export default function JadwalKegiatan() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 font-headline uppercase font-bold">Mitra **</Label>
-                <Input 
-                  value={form.Mitra} 
-                  onChange={e => setForm({ ...form, Mitra: e.target.value })} 
+                <Input
+                  value={form.Mitra}
+                  onChange={e => setForm({ ...form, Mitra: e.target.value })}
                   placeholder="Contoh: PT. Djarum, Pemda..."
-                  className="h-11 rounded-2xl border-slate-200 bg-slate-50 focus:bg-white focus:border-[#00236F] focus:ring-4 focus:ring-[#00236F]/10 transition-all font-bold text-xs font-headline" 
+                  className="h-11 rounded-2xl border-slate-200 bg-slate-50 focus:bg-white focus:border-[#00236F] focus:ring-4 focus:ring-[#00236F]/10 transition-all font-bold text-xs font-headline"
                 />
               </div>
               <div className="space-y-2">
                 <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 font-headline uppercase font-bold">PJ Kegiatan</Label>
-                <Input 
-                  value={form.PJKegiatan} 
-                  onChange={e => setForm({ ...form, PJKegiatan: e.target.value })} 
+                <Input
+                  value={form.PJKegiatan}
+                  onChange={e => setForm({ ...form, PJKegiatan: e.target.value })}
                   placeholder="Contoh: Budi Santoso (Ketua Panitia)..."
-                  className="h-11 rounded-2xl border-slate-200 bg-slate-50 focus:bg-white focus:border-[#00236F] focus:ring-4 focus:ring-[#00236F]/10 transition-all font-bold text-xs font-headline" 
+                  className="h-11 rounded-2xl border-slate-200 bg-slate-50 focus:bg-white focus:border-[#00236F] focus:ring-4 focus:ring-[#00236F]/10 transition-all font-bold text-xs font-headline"
                 />
               </div>
             </div>
@@ -604,20 +604,20 @@ export default function JadwalKegiatan() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 font-headline uppercase font-bold">Jadwal Pelaksanaan (Hari, Tanggal Bulan Tahun, Waktu)</Label>
-                <Input 
-                  value={form.JadwalPelaksanaan} 
-                  onChange={e => setForm({ ...form, JadwalPelaksanaan: e.target.value })} 
+                <Input
+                  value={form.JadwalPelaksanaan}
+                  onChange={e => setForm({ ...form, JadwalPelaksanaan: e.target.value })}
                   placeholder="Contoh: Senin, 15 Juli 2026, 09.00 - 15.00 WIB..."
-                  className="h-11 rounded-2xl border-slate-200 bg-slate-50 focus:bg-white focus:border-[#00236F] focus:ring-4 focus:ring-[#00236F]/10 transition-all font-bold text-xs font-headline" 
+                  className="h-11 rounded-2xl border-slate-200 bg-slate-50 focus:bg-white focus:border-[#00236F] focus:ring-4 focus:ring-[#00236F]/10 transition-all font-bold text-xs font-headline"
                 />
               </div>
               <div className="space-y-2">
                 <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 font-headline uppercase font-bold">Sasaran Kegiatan</Label>
-                <Input 
-                  value={form.SasaranKegiatan} 
-                  onChange={e => setForm({ ...form, SasaranKegiatan: e.target.value })} 
+                <Input
+                  value={form.SasaranKegiatan}
+                  onChange={e => setForm({ ...form, SasaranKegiatan: e.target.value })}
                   placeholder="Contoh: Seluruh Mahasiswa Fakultas Teknik..."
-                  className="h-11 rounded-2xl border-slate-200 bg-slate-50 focus:bg-white focus:border-[#00236F] focus:ring-4 focus:ring-[#00236F]/10 transition-all font-bold text-xs font-headline" 
+                  className="h-11 rounded-2xl border-slate-200 bg-slate-50 focus:bg-white focus:border-[#00236F] focus:ring-4 focus:ring-[#00236F]/10 transition-all font-bold text-xs font-headline"
                 />
               </div>
             </div>
@@ -625,43 +625,43 @@ export default function JadwalKegiatan() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 font-headline uppercase font-bold">Sumber Dana</Label>
-                <Input 
-                  value={form.SumberDana} 
-                  onChange={e => setForm({ ...form, SumberDana: e.target.value })} 
+                <Input
+                  value={form.SumberDana}
+                  onChange={e => setForm({ ...form, SumberDana: e.target.value })}
                   placeholder="Contoh: Dana Kemahasiswaan & Sponsor..."
-                  className="h-11 rounded-2xl border-slate-200 bg-slate-50 focus:bg-white focus:border-[#00236F] focus:ring-4 focus:ring-[#00236F]/10 transition-all font-bold text-xs font-headline" 
+                  className="h-11 rounded-2xl border-slate-200 bg-slate-50 focus:bg-white focus:border-[#00236F] focus:ring-4 focus:ring-[#00236F]/10 transition-all font-bold text-xs font-headline"
                 />
               </div>
               <div className="space-y-2">
                 <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 font-headline uppercase font-bold">Indikator Keberhasilan</Label>
-                <Input 
-                  value={form.IndikatorKeberhasilan} 
-                  onChange={e => setForm({ ...form, IndikatorKeberhasilan: e.target.value })} 
+                <Input
+                  value={form.IndikatorKeberhasilan}
+                  onChange={e => setForm({ ...form, IndikatorKeberhasilan: e.target.value })}
                   placeholder="Contoh: Target 200 Peserta Hadir..."
-                  className="h-11 rounded-2xl border-slate-200 bg-slate-50 focus:bg-white focus:border-[#00236F] focus:ring-4 focus:ring-[#00236F]/10 transition-all font-bold text-xs font-headline" 
+                  className="h-11 rounded-2xl border-slate-200 bg-slate-50 focus:bg-white focus:border-[#00236F] focus:ring-4 focus:ring-[#00236F]/10 transition-all font-bold text-xs font-headline"
                 />
               </div>
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 font-headline uppercase font-bold">Estimasi Dana (Rp)</Label>
-                <Input 
-                  required 
-                  type="text" 
-                  value={formatRupiahInput(form.EstimasiDana)} 
+                <Input
+                  required
+                  type="text"
+                  value={formatRupiahInput(form.EstimasiDana)}
                   onChange={e => {
                     const rawVal = parseRupiahInput(e.target.value)
                     setForm({ ...form, EstimasiDana: rawVal })
-                  }} 
+                  }}
                   placeholder="Cth: 10.000.000"
-                  className="h-11 rounded-2xl border-slate-200 bg-slate-50 focus:bg-white focus:border-[#00236F] focus:ring-4 focus:ring-[#00236F]/10 transition-all font-bold text-xs font-headline" 
+                  className="h-11 rounded-2xl border-slate-200 bg-slate-50 focus:bg-white focus:border-[#00236F] focus:ring-4 focus:ring-[#00236F]/10 transition-all font-bold text-xs font-headline"
                 />
               </div>
               <div className="space-y-2">
                 <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 font-headline uppercase font-bold">Status Agenda</Label>
-                <select 
-                  value={form.Status} 
+                <select
+                  value={form.Status}
                   onChange={e => setForm({ ...form, Status: e.target.value })}
                   className="w-full h-11 rounded-2xl border border-slate-200 bg-slate-50 px-4 text-xs font-bold text-slate-700 focus:outline-none focus:bg-white focus:border-[#00236F] focus:ring-4 focus:ring-[#00236F]/10 transition-all"
                 >
@@ -675,65 +675,65 @@ export default function JadwalKegiatan() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 font-headline uppercase font-bold">Tanggal Mulai</Label>
-                <Input 
-                  required 
-                  type="date" 
-                  value={form.TanggalMulai} 
+                <Input
+                  required
+                  type="date"
+                  value={form.TanggalMulai}
                   onChange={e => setForm({ ...form, TanggalMulai: e.target.value })}
-                  className="h-11 rounded-2xl border-slate-200 bg-slate-50 focus:bg-white focus:border-[#00236F] focus:ring-4 focus:ring-[#00236F]/10 transition-all font-bold text-xs font-headline cursor-pointer" 
+                  className="h-11 rounded-2xl border-slate-200 bg-slate-50 focus:bg-white focus:border-[#00236F] focus:ring-4 focus:ring-[#00236F]/10 transition-all font-bold text-xs font-headline cursor-pointer"
                 />
               </div>
               <div className="space-y-2">
                 <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 font-headline uppercase font-bold">Tanggal Selesai</Label>
-                <Input 
-                  type="date" 
-                  value={form.TanggalSelesai} 
+                <Input
+                  type="date"
+                  value={form.TanggalSelesai}
                   onChange={e => setForm({ ...form, TanggalSelesai: e.target.value })}
-                  className="h-11 rounded-2xl border-slate-200 bg-slate-50 focus:bg-white focus:border-[#00236F] focus:ring-4 focus:ring-[#00236F]/10 transition-all font-bold text-xs font-headline cursor-pointer" 
+                  className="h-11 rounded-2xl border-slate-200 bg-slate-50 focus:bg-white focus:border-[#00236F] focus:ring-4 focus:ring-[#00236F]/10 transition-all font-bold text-xs font-headline cursor-pointer"
                 />
               </div>
             </div>
 
             <div className="space-y-2">
               <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 font-headline uppercase font-bold">Lokasi Kegiatan</Label>
-              <Input 
-                value={form.Lokasi} 
-                onChange={e => setForm({ ...form, Lokasi: e.target.value })} 
+              <Input
+                value={form.Lokasi}
+                onChange={e => setForm({ ...form, Lokasi: e.target.value })}
                 placeholder="Contoh: Gedung Rektorat Lt. 3..."
-                className="h-11 rounded-2xl border-slate-200 bg-slate-50 focus:bg-white focus:border-[#00236F] focus:ring-4 focus:ring-[#00236F]/10 transition-all font-bold text-xs font-headline" 
+                className="h-11 rounded-2xl border-slate-200 bg-slate-50 focus:bg-white focus:border-[#00236F] focus:ring-4 focus:ring-[#00236F]/10 transition-all font-bold text-xs font-headline"
               />
             </div>
 
             <div className="space-y-2">
               <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 font-headline uppercase font-bold">Latar Belakang</Label>
-              <Textarea 
-                value={form.LatarBelakang} 
-                onChange={e => setForm({ ...form, LatarBelakang: e.target.value })} 
+              <Textarea
+                value={form.LatarBelakang}
+                onChange={e => setForm({ ...form, LatarBelakang: e.target.value })}
                 placeholder="Deskripsikan latar belakang pengajuan kegiatan..."
-                className="min-h-[80px] rounded-2xl border-slate-200 bg-slate-50 focus:bg-white p-4 font-medium text-xs leading-relaxed font-headline" 
+                className="min-h-[80px] rounded-2xl border-slate-200 bg-slate-50 focus:bg-white p-4 font-medium text-xs leading-relaxed font-headline"
               />
             </div>
 
             <div className="space-y-2">
               <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 font-headline uppercase font-bold">Tujuan Kegiatan</Label>
-              <Textarea 
-                value={form.TujuanKegiatan} 
-                onChange={e => setForm({ ...form, TujuanKegiatan: e.target.value })} 
+              <Textarea
+                value={form.TujuanKegiatan}
+                onChange={e => setForm({ ...form, TujuanKegiatan: e.target.value })}
                 placeholder="Deskripsikan tujuan dari kegiatan..."
-                className="min-h-[80px] rounded-2xl border-slate-200 bg-slate-50 focus:bg-white p-4 font-medium text-xs leading-relaxed font-headline" 
+                className="min-h-[80px] rounded-2xl border-slate-200 bg-slate-50 focus:bg-white p-4 font-medium text-xs leading-relaxed font-headline"
               />
             </div>
-            
+
             <div className="space-y-2">
               <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 font-headline uppercase font-bold">Deskripsi Detail Kegiatan</Label>
-              <Textarea 
-                value={form.Deskripsi} 
-                onChange={e => setForm({ ...form, Deskripsi: e.target.value })} 
+              <Textarea
+                value={form.Deskripsi}
+                onChange={e => setForm({ ...form, Deskripsi: e.target.value })}
                 placeholder="Deskripsikan rincian detail/mekanisme kegiatan..."
-                className="min-h-[80px] rounded-2xl border-slate-200 bg-slate-50 focus:bg-white p-4 font-medium text-xs leading-relaxed font-headline" 
+                className="min-h-[80px] rounded-2xl border-slate-200 bg-slate-50 focus:bg-white p-4 font-medium text-xs leading-relaxed font-headline"
               />
             </div>
-            
+
             <DialogFooter className="mt-6 pt-5 flex flex-col md:flex-row items-center justify-end gap-3 border-t border-slate-100 -mx-8 px-8 bg-slate-50/30">
               <Button type="button" variant="ghost" onClick={() => setIsCrudOpen(false)} className="w-full md:w-auto text-[10px] font-black tracking-widest text-slate-400 hover:text-slate-900 px-8 h-12 rounded-2xl uppercase transition-all duration-150">
                 Batalkan

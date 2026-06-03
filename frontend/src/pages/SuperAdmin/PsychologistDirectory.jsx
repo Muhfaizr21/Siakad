@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { DataTable } from './components/ui/data-table'
 import { Badge } from './components/ui/badge'
 import { Button } from './components/ui/button'
@@ -148,9 +148,19 @@ export default function PsychologistDirectory() {
       if (psRes.status === 'success') setData(psRes.data || [])
       else toast.error('Gagal memuat data psikolog')
 
-      if (bkRes.status === 'success') setBookings(bkRes.data || [])
-      if (mrRes.status === 'success') setMedicalRecords(mrRes.data || [])
-      if (rfRes.status === 'success') setReferrals(rfRes.data || [])
+      // Flatten nested mahasiswa.fakultas & semester for DataTable filter compatibility
+      const flattenMahasiswaFields = (items) => (items || []).map(item => {
+        const mhs = item.mahasiswa || item.Mahasiswa;
+        return {
+          ...item,
+          _fakultas: mhs?.fakultas?.Nama || mhs?.Fakultas?.Nama || mhs?.fakultas?.nama || mhs?.Fakultas?.nama || '',
+          _semester: mhs?.SemesterSekarang || mhs?.semester_sekarang || ''
+        };
+      })
+
+      if (bkRes.status === 'success') setBookings(flattenMahasiswaFields(bkRes.data))
+      if (mrRes.status === 'success') setMedicalRecords(flattenMahasiswaFields(mrRes.data))
+      if (rfRes.status === 'success') setReferrals(flattenMahasiswaFields(rfRes.data))
     } catch (err) {
       console.error(err)
       toast.error('Koneksi sistem terputus / Gagal memuat data')
@@ -172,6 +182,19 @@ export default function PsychologistDirectory() {
   }
 
   useEffect(() => { fetchData() }, [])
+
+  // Compute unique fakultas & semester options from all counseling data
+  const fakultasOptions = useMemo(() => {
+    const allItems = [...bookings, ...medicalRecords, ...referrals]
+    const unique = [...new Set(allItems.map(i => i._fakultas).filter(Boolean))].sort()
+    return unique.map(f => ({ label: f.toUpperCase(), value: f }))
+  }, [bookings, medicalRecords, referrals])
+
+  const semesterOptions = useMemo(() => {
+    const allItems = [...bookings, ...medicalRecords, ...referrals]
+    const unique = [...new Set(allItems.map(i => i._semester).filter(v => v !== '' && v !== undefined && v !== null))].sort((a, b) => Number(a) - Number(b))
+    return unique.map(s => ({ label: `SEMESTER ${s}`, value: String(s) }))
+  }, [bookings, medicalRecords, referrals])
 
   const handleOpenEdit = (row) => {
     setForm({ 
@@ -416,13 +439,20 @@ export default function PsychologistDirectory() {
       key: 'mahasiswa',
       label: 'Mahasiswa',
       className: 'w-[250px]',
-      render: (v, row) => (
-        <div className="flex flex-col py-1">
-          <span className="font-bold text-neutral-900 font-jakarta text-xs">{row.mahasiswa?.nama || '—'}</span>
-          <span className="text-[10px] text-neutral-400 font-bold">{row.mahasiswa?.nim || '—'}</span>
-          <span className="text-[9px] text-neutral-400 font-medium tracking-wide uppercase">{row.mahasiswa?.program_studi?.nama || '—'}</span>
-        </div>
-      )
+      render: (v, row) => {
+        const mhs = row.mahasiswa || row.Mahasiswa;
+        return (
+          <div className="flex flex-col py-1">
+            <span className="font-bold text-neutral-900 font-jakarta text-xs">{mhs?.Nama || mhs?.nama || '—'}</span>
+            <span className="text-[10px] text-neutral-400 font-bold">{mhs?.NIM || mhs?.nim || '—'}</span>
+            <span className="text-[9px] text-neutral-400 font-medium tracking-wide uppercase">{mhs?.program_studi?.nama || mhs?.ProgramStudi?.Nama || mhs?.program_studi?.Nama || '—'}</span>
+            <div className="flex items-center gap-2 mt-0.5">
+              {row._fakultas && <span className="text-[8px] text-teal-600 font-bold bg-teal-50 px-1.5 py-0.5 rounded">{row._fakultas}</span>}
+              {row._semester && <span className="text-[8px] text-blue-600 font-bold bg-blue-50 px-1.5 py-0.5 rounded">Sem {row._semester}</span>}
+            </div>
+          </div>
+        )
+      }
     },
     {
       key: 'psikolog',
@@ -501,13 +531,20 @@ export default function PsychologistDirectory() {
       key: 'mahasiswa',
       label: 'Mahasiswa',
       className: 'w-[250px]',
-      render: (v, row) => (
-        <div className="flex flex-col py-1">
-          <span className="font-bold text-neutral-900 font-jakarta text-xs">{row.mahasiswa?.nama || '—'}</span>
-          <span className="text-[10px] text-neutral-400 font-bold">{row.mahasiswa?.nim || '—'}</span>
-          <span className="text-[9px] text-neutral-400 font-medium tracking-wide uppercase">{row.mahasiswa?.program_studi?.nama || '—'}</span>
-        </div>
-      )
+      render: (v, row) => {
+        const mhs = row.mahasiswa || row.Mahasiswa;
+        return (
+          <div className="flex flex-col py-1">
+            <span className="font-bold text-neutral-900 font-jakarta text-xs">{mhs?.Nama || mhs?.nama || '—'}</span>
+            <span className="text-[10px] text-neutral-400 font-bold">{mhs?.NIM || mhs?.nim || '—'}</span>
+            <span className="text-[9px] text-neutral-400 font-medium tracking-wide uppercase">{mhs?.program_studi?.nama || mhs?.ProgramStudi?.Nama || mhs?.program_studi?.Nama || '—'}</span>
+            <div className="flex items-center gap-2 mt-0.5">
+              {row._fakultas && <span className="text-[8px] text-teal-600 font-bold bg-teal-50 px-1.5 py-0.5 rounded">{row._fakultas}</span>}
+              {row._semester && <span className="text-[8px] text-blue-600 font-bold bg-blue-50 px-1.5 py-0.5 rounded">Sem {row._semester}</span>}
+            </div>
+          </div>
+        )
+      }
     },
     {
       key: 'psikolog',
@@ -563,13 +600,20 @@ export default function PsychologistDirectory() {
       key: 'mahasiswa',
       label: 'Mahasiswa',
       className: 'w-[250px]',
-      render: (v, row) => (
-        <div className="flex flex-col py-1">
-          <span className="font-bold text-neutral-900 font-jakarta text-xs">{row.mahasiswa?.nama || '—'}</span>
-          <span className="text-[10px] text-neutral-400 font-bold">{row.mahasiswa?.nim || '—'}</span>
-          <span className="text-[9px] text-neutral-400 font-medium tracking-wide uppercase">{row.mahasiswa?.program_studi?.nama || '—'}</span>
-        </div>
-      )
+      render: (v, row) => {
+        const mhs = row.mahasiswa || row.Mahasiswa;
+        return (
+          <div className="flex flex-col py-1">
+            <span className="font-bold text-neutral-900 font-jakarta text-xs">{mhs?.Nama || mhs?.nama || '—'}</span>
+            <span className="text-[10px] text-neutral-400 font-bold">{mhs?.NIM || mhs?.nim || '—'}</span>
+            <span className="text-[9px] text-neutral-400 font-medium tracking-wide uppercase">{mhs?.program_studi?.nama || mhs?.ProgramStudi?.Nama || mhs?.program_studi?.Nama || '—'}</span>
+            <div className="flex items-center gap-2 mt-0.5">
+              {row._fakultas && <span className="text-[8px] text-teal-600 font-bold bg-teal-50 px-1.5 py-0.5 rounded">{row._fakultas}</span>}
+              {row._semester && <span className="text-[8px] text-blue-600 font-bold bg-blue-50 px-1.5 py-0.5 rounded">Sem {row._semester}</span>}
+            </div>
+          </div>
+        )
+      }
     },
     {
       key: 'psikolog',
@@ -794,6 +838,8 @@ export default function PsychologistDirectory() {
                 loading={loading}
                 searchPlaceholder="Cari Nama Mahasiswa, NIM, atau Topik..."
                 filters={[
+                  { key: '_fakultas', placeholder: 'FAKULTAS', options: fakultasOptions },
+                  { key: '_semester', placeholder: 'SEMESTER', options: semesterOptions },
                   { key: 'status', placeholder: 'STATUS', options: [{ label: 'MENUNGGU', value: 'menunggu' }, { label: 'DISETUJUI', value: 'disetujui' }, { label: 'SELESAI', value: 'selesai' }, { label: 'DIBATALKAN', value: 'dibatalkan' }] },
                   { key: 'mode', placeholder: 'MODE', options: [{ label: 'TATAP MUKA', value: 'Tatap Muka' }, { label: 'ONLINE', value: 'Online' }] }
                 ]}
@@ -812,6 +858,8 @@ export default function PsychologistDirectory() {
                 loading={loading}
                 searchPlaceholder="Cari Nama Mahasiswa, Keluhan, atau Observasi..."
                 filters={[
+                  { key: '_fakultas', placeholder: 'FAKULTAS', options: fakultasOptions },
+                  { key: '_semester', placeholder: 'SEMESTER', options: semesterOptions },
                   { key: 'status_pasien', placeholder: 'STATUS PASIEN', options: [{ label: 'SELESAI', value: 'selesai' }, { label: 'DIRUJUK', value: 'dirujuk' }, { label: 'KONSULTASI LANJUTAN', value: 'konsultasi lanjutan' }] }
                 ]}
                 actions={(row) => (
@@ -829,6 +877,8 @@ export default function PsychologistDirectory() {
                 loading={loading}
                 searchPlaceholder="Cari Nama Mahasiswa, Penerima, atau Alasan..."
                 filters={[
+                  { key: '_fakultas', placeholder: 'FAKULTAS', options: fakultasOptions },
+                  { key: '_semester', placeholder: 'SEMESTER', options: semesterOptions },
                   { key: 'status', placeholder: 'STATUS RUJUKAN', options: [{ label: 'DRAFT', value: 'draft' }, { label: 'DIKIRIM', value: 'dikirim' }, { label: 'DITERIMA', value: 'diterima' }] }
                 ]}
                 actions={(row) => (
@@ -1241,24 +1291,29 @@ export default function PsychologistDirectory() {
                 {/* Mahasiswa Info Section */}
                 <div className="bg-neutral-50 p-4 rounded-xl border border-neutral-100 space-y-3">
                   <h4 className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest">Identitas Mahasiswa</h4>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <span className="text-[10px] text-neutral-400 font-bold block">Nama Lengkap</span>
-                      <span className="text-sm font-bold text-neutral-800">{detailItem.mahasiswa?.nama || '—'}</span>
-                    </div>
-                    <div>
-                      <span className="text-[10px] text-neutral-400 font-bold block">NIM (Nomor Induk Mahasiswa)</span>
-                      <span className="text-sm font-bold text-neutral-800">{detailItem.mahasiswa?.nim || '—'}</span>
-                    </div>
-                    <div>
-                      <span className="text-[10px] text-neutral-400 font-bold block">Program Studi</span>
-                      <span className="text-xs font-semibold text-neutral-700">{detailItem.mahasiswa?.program_studi?.nama || '—'}</span>
-                    </div>
-                    <div>
-                      <span className="text-[10px] text-neutral-400 font-bold block">Fakultas</span>
-                      <span className="text-xs font-semibold text-neutral-700">{detailItem.mahasiswa?.program_studi?.fakultas?.nama || detailItem.mahasiswa?.fakultas?.nama || '—'}</span>
-                    </div>
-                  </div>
+                  {(() => {
+                    const mhs = detailItem.mahasiswa || detailItem.Mahasiswa;
+                    return (
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <span className="text-[10px] text-neutral-400 font-bold block">Nama Lengkap</span>
+                          <span className="text-sm font-bold text-neutral-800">{mhs?.Nama || mhs?.nama || '—'}</span>
+                        </div>
+                        <div>
+                          <span className="text-[10px] text-neutral-400 font-bold block">NIM (Nomor Induk Mahasiswa)</span>
+                          <span className="text-sm font-bold text-neutral-800">{mhs?.NIM || mhs?.nim || '—'}</span>
+                        </div>
+                        <div>
+                          <span className="text-[10px] text-neutral-400 font-bold block">Program Studi</span>
+                          <span className="text-xs font-semibold text-neutral-700">{mhs?.program_studi?.nama || mhs?.ProgramStudi?.Nama || mhs?.program_studi?.Nama || '—'}</span>
+                        </div>
+                        <div>
+                          <span className="text-[10px] text-neutral-400 font-bold block">Fakultas</span>
+                          <span className="text-xs font-semibold text-neutral-700">{mhs?.fakultas?.Nama || mhs?.Fakultas?.Nama || mhs?.fakultas?.nama || mhs?.Fakultas?.nama || '—'}</span>
+                        </div>
+                      </div>
+                    );
+                  })()}
                 </div>
 
                 {/* Psychologist Info Section */}

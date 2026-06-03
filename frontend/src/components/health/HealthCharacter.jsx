@@ -20,7 +20,7 @@ const CONDITION_CONFIG = {
   sehat: {
     emoji: '😊',
     animation: { animate: { y: [-3, 3, -3] }, transition: { duration: 2.5, repeat: Infinity, ease: 'easeInOut' } },
-    halo: 'bg-emerald-300/40',
+    halo: 'bg-emerald-300/40', 
   },
   kurus: {
     emoji: '😟',
@@ -28,7 +28,7 @@ const CONDITION_CONFIG = {
     halo: 'bg-blue-300/30',
   },
   gemuk: {
-    emoji: '😅',
+    emoji: '😹', 
     animation: { animate: { scaleY: [1, 0.97, 1], scaleX: [1, 1.02, 1] }, transition: { duration: 3, repeat: Infinity, ease: 'easeInOut' } },
     halo: 'bg-amber-300/35',
   },
@@ -74,9 +74,9 @@ export default function HealthCharacter({ bmi, sistolik, diastolik, statusKeseha
 
     // BMI
     if (!isNaN(vBmi)) {
-      if (vBmi >= 30)   return 'obesitas';
-      if (vBmi >= 25)   return 'gemuk';
-      if (vBmi < 18.5)  return 'kurus';
+      if (vBmi >= 30) return 'obesitas';
+      if (vBmi >= 25) return 'gemuk';
+      if (vBmi < 18.5) return 'kurus';
     }
 
     // Pre-hipertensi
@@ -84,7 +84,7 @@ export default function HealthCharacter({ bmi, sistolik, diastolik, statusKeseha
 
     // Prima: semua ideal
     const bmiIdeal = !isNaN(vBmi) && vBmi >= 18.5 && vBmi < 25;
-    const bpIdeal  = !isNaN(vSis) && vSis < 120 && !isNaN(vDia) && vDia < 80;
+    const bpIdeal = !isNaN(vSis) && vSis < 120 && !isNaN(vDia) && vDia < 80;
     if (bmiIdeal && bpIdeal) return 'prima';
 
     return 'sehat';

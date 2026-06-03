@@ -20,6 +20,8 @@ export default function ReferralManagement() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [showDropdown, setShowDropdown] = useState(false);
+  const [selectedPatientHistory, setSelectedPatientHistory] = useState([]);
+  const [loadingHistory, setLoadingHistory] = useState(false);
   const [newReferral, setNewReferral] = useState({
     mahasiswa_id: '',
     tipe: 'Medis',
@@ -120,6 +122,7 @@ export default function ReferralManagement() {
         email_tujuan: '',
       });
       setSearchQuery('');
+      setSelectedPatientHistory([]);
       setIsModalOpen(false);
       alert('Surat rujukan berhasil dibuat');
     } catch (err) {
@@ -197,6 +200,7 @@ export default function ReferralManagement() {
                     email_tujuan: '',
                   });
                   setSearchQuery('');
+                  setSelectedPatientHistory([]);
                   setIsModalOpen(true);
                 }}
                 className="bg-primary hover:bg-blue-900 text-white px-6 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-primary/10 hover:shadow-primary/20 transition-all flex items-center gap-2 w-fit shrink-0 relative z-20"
@@ -306,7 +310,13 @@ export default function ReferralManagement() {
                         )}
                         {referral.surat_rujukan_url && (
                           <button
-                            onClick={() => window.open(referral.surat_rujukan_url, '_blank')}
+                            onClick={async () => {
+                              try {
+                                await psychologistService.downloadReferralPDF(referral.id);
+                              } catch (err) {
+                                alert('Gagal download PDF: ' + err.message);
+                              }
+                            }}
                             className="w-9 h-9 rounded-lg bg-slate-200 text-slate-600 flex items-center justify-center hover:bg-slate-300 transition-all duration-300 shadow-sm hover:shadow-md"
                             title="Download PDF"
                           >
@@ -376,10 +386,20 @@ export default function ReferralManagement() {
                         }).map((maba) => (
                           <div 
                             key={maba.id} 
-                            onClick={() => {
-                              setNewReferral({ ...newReferral, mahasiswa_id: maba.id });
+                            onClick={async () => {
+                              setNewReferral({ ...newReferral, ...newReferral, mahasiswa_id: maba.id });
                               setSearchQuery(`${maba.nama || maba.name} (${maba.nim || maba.id})`);
                               setShowDropdown(false);
+                              setLoadingHistory(true);
+                              try {
+                                const res = await psychologistService.getMedicalRecord(maba.id);
+                                setSelectedPatientHistory(res.data?.records || []);
+                              } catch (err) {
+                                console.error('Error fetching medical record:', err);
+                                setSelectedPatientHistory([]);
+                              } finally {
+                                setLoadingHistory(false);
+                              }
                             }}
                             className={`px-4 py-3 cursor-pointer text-xs transition-colors hover:bg-slate-50 ${newReferral.mahasiswa_id === maba.id ? 'bg-primary/5 text-primary font-bold' : 'text-slate-600 font-medium'} border-b border-slate-50 last:border-0`}
                           >
@@ -392,6 +412,38 @@ export default function ReferralManagement() {
                         }).length === 0 && (
                           <div className="px-4 py-4 text-center text-xs text-slate-400 italic">
                             Pasien tidak ditemukan
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {newReferral.mahasiswa_id && (
+                      <div className="bg-slate-50 border border-slate-200/50 rounded-2xl p-4 mt-2 max-h-48 overflow-y-auto">
+                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2.5 flex items-center gap-1.5">
+                          <span className="material-symbols-outlined text-[11px] text-primary">history</span> Riwayat Sesi Konseling
+                        </p>
+                        {loadingHistory ? (
+                          <div className="flex items-center justify-center py-4">
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+                          </div>
+                        ) : selectedPatientHistory.length === 0 ? (
+                          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wide text-center py-2">Tidak ada riwayat konseling</p>
+                        ) : (
+                          <div className="space-y-3">
+                            {selectedPatientHistory.map((item, idx) => (
+                              <div key={item.id || idx} className="border-b border-slate-200/40 last:border-0 pb-2.5 last:pb-0">
+                                <div className="flex justify-between items-center mb-1">
+                                  <span className="text-[9px] font-black text-slate-700 uppercase tracking-wider">{item.date}</span>
+                                  <span className="px-2 py-0.5 rounded bg-primary/10 text-primary text-[8px] font-black uppercase tracking-widest">{item.type}</span>
+                                </div>
+                                <p className="text-[10px] text-slate-600 font-medium leading-relaxed">
+                                  <span className="font-bold text-slate-700">Keluhan:</span> {item.complaint || '-'}
+                                </p>
+                                <p className="text-[10px] text-slate-500 font-medium leading-relaxed mt-0.5">
+                                  <span className="font-bold text-slate-600">Rekomendasi:</span> {item.recommendation || '-'}
+                                </p>
+                              </div>
+                            ))}
                           </div>
                         )}
                       </div>

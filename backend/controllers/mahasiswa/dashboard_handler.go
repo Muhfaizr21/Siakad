@@ -118,7 +118,7 @@ func GetDashboard(c *fiber.Ctx) error {
 
 	// 7. Recent Activity (Last 5)
 	var activities []models.LogAktivitas
-	config.DB.Where("mahasiswa_id = ?", student.ID).Order("created_at desc").Limit(5).Find(&activities)
+	config.DB.Where("user_id = ?", PenggunaID).Order("created_at desc").Limit(5).Find(&activities)
 
 	// 8. Recent Berita
 	var recentNews []models.Berita
