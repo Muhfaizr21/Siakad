@@ -104,7 +104,14 @@
         root.setProperty('--theme-font-headline', "'" + (t.font_headline || 'Plus Jakarta Sans') + "', sans-serif");
         root.setProperty('--theme-font-body', "'" + (t.font_body || 'Inter') + "', sans-serif");
 
-        document.body.style.fontFamily = "'" + (t.font_body || 'Inter') + "', sans-serif";
+        var fBody = "'" + (t.font_body || 'Inter') + "', sans-serif";
+        if (document.body) {
+          document.body.style.fontFamily = fBody;
+        } else {
+          document.addEventListener('DOMContentLoaded', function() {
+            document.body.style.fontFamily = fBody;
+          });
+        }
 
         // Favicon
         if (t.favicon_url) {
