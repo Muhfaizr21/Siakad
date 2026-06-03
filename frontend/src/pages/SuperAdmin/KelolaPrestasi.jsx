@@ -297,8 +297,8 @@ export default function KelolaPrestasi() {
               <h1 className="text-3xl font-black font-headline tracking-tight leading-tight" style={{ color: 'var(--theme-h1)' }}>
                 Kelola <span className="text-blue-300">Prestasi Mahasiswa</span>
               </h1>
-<p className="text-slate-400 font-medium text-xs max-w-xl leading-relaxed mt-1.5">
-                Audit, verifikasi, dan validasi seluruh portofolio prestasi akademik/non-akademik mahasiswa secara terintegrasi.</p>
+              <p className="text-slate-400 font-medium text-xs max-w-xl leading-relaxed mt-1.5">
+                Audit, verifikasi, dan validasi seluruh portofolio prestasi akademik/non-akademik mahasiswa secara terintegrasi.
               </p>
             </div>
             
