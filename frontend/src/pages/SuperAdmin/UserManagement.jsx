@@ -258,7 +258,51 @@ export default function UserManagement() {
     Phone: ''
   })
 
+  const [newRoleForm, setNewRoleForm] = useState({ name: '', theme: 'indigo', desc: '' })
 
+  const roleDetails = useMemo(() => {
+    const details = { ...ROLE_DETAILS_DEFAULT }
+    rbacRoles.forEach(role => {
+      if (!details[role.key]) {
+        details[role.key] = {
+          label: role.label || role.key,
+          desc: role.description || '',
+          cls: THEME_PRESETS[role.theme]?.cls || 'bg-slate-50/70 text-slate-600 border border-slate-200/60 shadow-none font-bold'
+        }
+      }
+    })
+    return details
+  }, [rbacRoles])
+
+  const ROLE_DETAILS = roleDetails
+
+  const roleOptions = useMemo(() => {
+    const fromApi = rbacRoles.map(role => ({
+      value: role.key,
+      label: role.label || ROLE_DETAILS[role.key]?.label || role.key,
+      description: role.description || ROLE_DETAILS[role.key]?.desc || '',
+      permissions: Array.isArray(role.permissions) ? role.permissions : [],
+      status: role.status || 'active',
+      isSystem: Boolean(role.is_system)
+    }))
+    const seen = new Set(fromApi.map(role => role.value))
+    const fallback = ROLES.filter(role => !seen.has(role)).map(role => ({
+      value: role,
+      label: ROLE_DETAILS[role]?.label || role,
+      description: ROLE_DETAILS[role]?.desc || '',
+      permissions: [],
+      status: 'active',
+      isSystem: true
+    }))
+    return [...fromApi, ...fallback]
+  }, [rbacRoles, ROLE_DETAILS])
+
+  const selectedRBACRole = useMemo(
+    () => roleOptions.find(role => role.value === selectedRoleKey) || roleOptions[0] || null,
+    [roleOptions, selectedRoleKey]
+  )
+
+  const permissionSet = useMemo(() => new Set(permissionDraft), [permissionDraft])
 
   const handleEmailChange = (emailVal) => {
     setForm(prev => {
@@ -357,6 +401,33 @@ export default function UserManagement() {
       }
     } catch (err) {
       toast.error(err?.message || 'Gagal membuat role RBAC')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const handleCreateCustomRole = async (e) => {
+    e.preventDefault()
+    setIsSubmitting(true)
+    try {
+      const payload = {
+        key: String(newRoleForm.name || '').trim().toLowerCase().replace(/[^a-z0-9_]/g, '_'),
+        label: String(newRoleForm.name || '').trim(),
+        description: String(newRoleForm.desc || '').trim(),
+        theme: newRoleForm.theme,
+        permissions: []
+      }
+      const res = await adminService.createRBACRole(payload)
+      if (res.status === 'success') {
+        toast.success('Custom role berhasil dibuat')
+        setIsNewRoleOpen(false)
+        setNewRoleForm({ name: '', theme: 'indigo', desc: '' })
+        fetchData()
+      } else {
+        toast.error(res.message || 'Gagal membuat custom role')
+      }
+    } catch (err) {
+      toast.error(err?.message || 'Gagal membuat custom role')
     } finally {
       setIsSubmitting(false)
     }
@@ -785,6 +856,15 @@ export default function UserManagement() {
               <div className="space-y-2">
                 <Label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 font-headline">Authorization Level</Label>
                 <Select value={form.Role} onValueChange={handleRoleChange}>
+                  <SelectTrigger className="h-12 rounded-xl border-slate-200 bg-slate-50/70 focus:bg-white focus:border-bku-primary focus:ring-2 focus:ring-bku-primary/20 font-bold text-xs uppercase tracking-[0.08em] text-slate-700 transition-all">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl shadow-2xl border-slate-100/80 bg-white/95 backdrop-blur-md">
+                    {roleOptions.map(r => (
+                      <SelectItem key={r.value} value={r.value} className="text-[10px] font-black uppercase tracking-widest text-slate-600 focus:bg-slate-50 focus:text-bku-primary">
+                        {r.label}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -922,6 +1002,15 @@ export default function UserManagement() {
                 <div className="space-y-2">
                   <Label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 font-headline">Target Authorization Level</Label>
                   <Select value={newRole} onValueChange={setNewRole}>
+                    <SelectTrigger className="h-12 rounded-xl border-slate-200 bg-slate-50/70 focus:bg-white focus:border-bku-primary focus:ring-2 focus:ring-bku-primary/20 font-bold text-xs uppercase tracking-[0.08em] text-slate-700 transition-all">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl shadow-2xl border-slate-100/80 bg-white/95 backdrop-blur-md">
+                      {roleOptions.map(r => (
+                        <SelectItem key={r.value} value={r.value} className="text-[10px] font-black uppercase tracking-widest text-slate-600 focus:bg-slate-50 focus:text-bku-primary">
+                          {r.label}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>

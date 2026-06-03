@@ -762,8 +762,6 @@ export default function PsikologPage() {
                     )}
                   </div>
                 )}
-                  </div>
-                )}
               </div>
 
               {/* ── Footer ── */}
