@@ -127,7 +127,7 @@ export function DataTable({
       {/* Premium Toolbar */}
       <div className="px-5 py-4 bg-white flex flex-col sm:flex-row items-start sm:items-center gap-3 border-b border-slate-100">
         <div className="flex-1">
-          <h2 className="font-bold text-base text-slate-900">{title}</h2>
+          <h2 className="font-bold text-base font-headline" style={{ color: 'var(--theme-h2)' }}>{title}</h2>
           <p className="text-xs text-slate-500 mt-0.5">
             Menampilkan <span className="font-bold text-slate-900">{totalItems > 0 ? (currentPage - 1) * pageSize + 1 : 0}</span> sampai <span className="font-bold text-slate-900">{Math.min(currentPage * pageSize, totalItems)}</span> dari <span className="font-bold text-primary">{totalItems}</span> {itemLabel}
           </p>

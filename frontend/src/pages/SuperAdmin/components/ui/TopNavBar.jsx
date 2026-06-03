@@ -220,7 +220,7 @@ const TopNavBar = ({ setIsOpen }) => {
             {/* Popover Preview (Real Data) */}
             <div className="absolute top-full right-0 mt-4 w-72 bg-white rounded-[2rem] shadow-2xl border border-slate-100 p-6 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 translate-y-2 group-hover:translate-y-0 z-[100] cursor-default" onClick={(e) => e.stopPropagation()}>
               <div className="flex justify-between items-center mb-5">
-                <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Inbox Antrean</h4>
+                <h4 className="text-[10px] font-black font-headline uppercase tracking-widest" style={{ color: 'var(--theme-h4)' }}>Inbox Antrean</h4>
                 {notifications.total > 0 && (
                   <Badge variant="secondary" className="bg-rose-50 text-rose-600 border-none font-black text-[9px] px-2 py-0.5">
                     {notifications.total} NEW

@@ -19,6 +19,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 
 // Auto-injected Material Symbol fallbacks for removed Lucide icons
 const KeyRound = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>vpn_key</span>;
+const RefreshCw = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>sync</span>;
 
 
 
@@ -32,42 +33,41 @@ const TABS = [
 
 const emptyRoleForm = { key: '', label: '', description: '', permissions: [] }
 
-const ROLE_DETAILS = {
+const ROLE_DETAILS_DEFAULT = {
   super_admin: {
     label: 'Super Admin',
-    cls: 'bg-rose-500 text-white shadow-rose-200',
+    cls: 'bg-rose-50/70 text-rose-600 border border-rose-200/60 shadow-none font-bold',
     desc: 'Otoritas penuh infrastruktur, audit log, dan tata kelola keamanan sistem.',
     perms: ['Full Root Access', 'System Config', 'RBAC Management', 'Audit Forensics']
   },
-  SUPER_ADMIN: { label: 'Super Admin', cls: 'bg-rose-500 text-white shadow-rose-200', desc: 'Otoritas penuh', perms: ['Full Access'] },
+  SUPER_ADMIN: { label: 'Super Admin', cls: 'bg-rose-50/70 text-rose-600 border border-rose-200/60 shadow-none font-bold', desc: 'Otoritas penuh', perms: ['Full Access'] },
   faculty_admin: {
     label: 'Admin Fakultas',
-    cls: 'bg-indigo-500 text-white shadow-indigo-200',
+    cls: 'bg-indigo-50/70 text-indigo-600 border border-indigo-200/60 shadow-none font-bold',
     desc: 'Yurisdiksi data akademik, dosen, dan mahasiswa di level fakultas.',
     perms: ['Faculty Data', 'Student Mgmt', 'Lecturer Mgmt', 'Academic Mapping']
   },
   ormawa_admin: {
     label: 'Admin Ormawa',
-    cls: 'bg-blue-500 text-white shadow-blue-200',
+    cls: 'bg-bku-primary/10 text-bku-primary border border-bku-primary/20 shadow-none font-bold',
     desc: 'Manajemen organisasi kemahasiswaan, anggaran, dan alur proposal.',
     perms: ['Ormawa Engine', 'Proposal Review', 'Fiscal Tracking', 'Member Governance']
   },
   ormawa: {
     label: 'Pengurus Ormawa',
-    cls: 'bg-sky-500 text-white shadow-sky-200',
+    cls: 'bg-sky-50/70 text-sky-600 border border-sky-200/60 shadow-none font-bold',
     desc: 'Anggota aktif pengurus ormawa dengan akses operasional internal organisasi.',
     perms: ['Proposal Access', 'Event Management', 'Attendance Tracking', 'Member View']
   },
-
   mahasiswa: {
     label: 'Mahasiswa',
-    cls: 'bg-emerald-500 text-white shadow-emerald-200',
+    cls: 'bg-emerald-50/70 text-emerald-600 border border-emerald-200/60 shadow-none font-bold',
     desc: 'Akses layanan mandiri, pengajuan proposal, dan portal aspirasi.',
     perms: ['Self Service', 'Aspiration Engine', 'Proposal Cluster', 'Student Analytics']
   },
   psikolog: {
     label: 'Psikolog',
-    cls: 'bg-teal-500 text-white shadow-teal-200',
+    cls: 'bg-teal-50/70 text-teal-600 border border-teal-200/60 shadow-none font-bold',
     desc: 'Otoritas klinis pengelolaan layanan kesehatan mental mahasiswa.',
     perms: ['Clinical Counseling', 'Psychological Assessment', 'Case Reports', 'Booking System']
   },
@@ -88,6 +88,41 @@ const ROLE_DETAILS = {
     cls: 'bg-stone-800 text-white shadow-stone-200',
     desc: 'Akun khusus pembimbing Kencana dengan scope universitas atau fakultas.',
     perms: ['Mentor Dashboard', 'Student Invite', 'Progress Notes', 'Affective Score']
+  }
+}
+
+const THEME_PRESETS = {
+  indigo: {
+    label: 'Indigo Accent',
+    cls: 'bg-indigo-50/70 text-indigo-600 border border-indigo-200/60 shadow-none font-bold'
+  },
+  amber: {
+    label: 'Amber Gold',
+    cls: 'bg-amber-50/70 text-amber-600 border border-amber-200/60 shadow-none font-bold'
+  },
+  rose: {
+    label: 'Rose Crimson',
+    cls: 'bg-rose-50/70 text-rose-600 border border-rose-200/60 shadow-none font-bold'
+  },
+  emerald: {
+    label: 'Emerald Mint',
+    cls: 'bg-emerald-50/70 text-emerald-600 border border-emerald-200/60 shadow-none font-bold'
+  },
+  teal: {
+    label: 'Teal Spruce',
+    cls: 'bg-teal-50/70 text-teal-600 border border-teal-200/60 shadow-none font-bold'
+  },
+  sky: {
+    label: 'Sky Cyan',
+    cls: 'bg-sky-50/70 text-sky-600 border border-sky-200/60 shadow-none font-bold'
+  },
+  violet: {
+    label: 'Violet Royal',
+    cls: 'bg-violet-50/70 text-violet-600 border border-violet-200/60 shadow-none font-bold'
+  },
+  navy: {
+    label: 'BKU Navy',
+    cls: 'bg-bku-primary/10 text-bku-primary border border-bku-primary/20 shadow-none font-bold'
   }
 }
 
@@ -124,6 +159,67 @@ function StudentAvatar({ src, name, className = "w-9 h-9 rounded-xl" }) {
   );
 }
 
+const getAuthorityScore = (roleKey) => {
+  if (roleKey === 'super_admin') return 4
+  if (roleKey === 'faculty_admin') return 3
+  if (roleKey === 'ormawa_admin' || roleKey === 'psikolog' || roleKey.includes('counsel') || roleKey.includes('fasilitat')) return 2
+  return 1
+}
+
+const PERM_CATEGORIES = [
+  {
+    title: '🔐 Sistem & Keamanan',
+    items: [
+      { key: 'system_config',    label: 'Konfigurasi Sistem & SMTP',        desc: 'Pengaturan global sistem: Mail Server, bobot nilai, tahun ajaran, dan parameter infrastruktur.' },
+      { key: 'rbac_management',  label: 'Manajemen RBAC & Hak Akses',       desc: 'Membuat, mengubah, dan mencabut peran serta izin untuk setiap akun pengguna sistem.' },
+      { key: 'audit_log',        label: 'Audit Trails & Log Keamanan',      desc: 'Memantau dan mengunduh rekaman log aktivitas sistem beserta forensik keamanan server.' },
+      { key: 'user_management',  label: 'Manajemen Akun Pengguna',          desc: 'Membuat, mengedit, menangguhkan, atau menghapus akun pengguna di seluruh peran.' },
+      { key: 'security_settings',label: 'Pengaturan Keamanan & 2FA',        desc: 'Mengelola kebijakan password, sesi, dan autentikasi dua faktor akun sistem.' },
+    ]
+  },
+  {
+    title: '🏛️ Manajemen Data Akademik',
+    items: [
+      { key: 'faculty_data',     label: 'Data Fakultas & Program Studi',    desc: 'Menambah, mengubah, atau menghapus entitas Fakultas, Program Studi, dan Kurikulum.' },
+      { key: 'student_data',     label: 'Data & Direktori Mahasiswa',       desc: 'Mengakses, mengimpor, mengubah status, dan mengelola profil data mahasiswa.' },
+      { key: 'lecturer_data',    label: 'Data Dosen & Tenaga Pengajar',     desc: 'Mengelola profil, mata kuliah ampu, dan evaluasi kinerja dosen.' },
+      { key: 'krs_management',   label: 'KRS & Penjadwalan Kuliah',         desc: 'Memproses registrasi KRS, jadwal mata kuliah, dan distribusi kelas mahasiswa.' },
+      { key: 'nilai_grading',    label: 'Entri & Validasi Nilai',           desc: 'Mengisi, memvalidasi, dan menerbitkan nilai evaluasi mata kuliah per semester.' },
+      { key: 'laporan_akademik', label: 'Laporan & Rekap Akademik',         desc: 'Mengakses laporan akademik, transkip, dan rekap kelulusan mahasiswa.' },
+    ]
+  },
+  {
+    title: '🎓 Kemahasiswaan & Ormawa',
+    items: [
+      { key: 'ormawa_registry',  label: 'Registrasi & Kelola Ormawa',       desc: 'Mendaftarkan, mengubah, atau menonaktifkan entitas HIMA, BEM, dan UKM.' },
+      { key: 'ormawa_member',    label: 'Manajemen Anggota & Struktur',     desc: 'Mengelola keanggotaan, struktur organisasi, dan divisi internal Ormawa.' },
+      { key: 'proposal_kegiatan',label: 'Pengajuan & Persetujuan Proposal', desc: 'Mengunggah, mereview, menyetujui, atau menolak proposal kegiatan Ormawa.' },
+      { key: 'lpj_management',   label: 'Laporan Pertanggungjawaban (LPJ)', desc: 'Mengunggah, mengoreksi, dan mengelola dokumen LPJ pasca-kegiatan.' },
+      { key: 'fiscal_budget',    label: 'Anggaran & Keuangan Kas',          desc: 'Mengelola kas masuk/keluar, pagu anggaran, dan persetujuan pengeluaran Ormawa.' },
+      { key: 'absensi_kegiatan', label: 'Absensi & Jadwal Kegiatan',        desc: 'Mencatat kehadiran peserta dan mengelola kalender jadwal kegiatan Ormawa.' },
+    ]
+  },
+  {
+    title: '🩺 Layanan Kemahasiswaan',
+    items: [
+      { key: 'counseling',       label: 'Konseling & Psikologi',            desc: 'Memesan sesi konsultasi, mengakses rekam medis klien, dan mengelola jadwal psikolog.' },
+      { key: 'health_screening', label: 'Skrining Kesehatan Mahasiswa',     desc: 'Mengisi, melihat, dan mengarsipkan hasil skrining kesehatan mandiri mahasiswa.' },
+      { key: 'beasiswa',         label: 'Data & Pengajuan Beasiswa',        desc: 'Mendaftarkan, memvalidasi, dan memantau status pengajuan beasiswa mahasiswa.' },
+      { key: 'prestasi',         label: 'Pencatatan Prestasi Mahasiswa',    desc: 'Menambah dan memvalidasi capaian prestasi akademik maupun non-akademik mahasiswa.' },
+      { key: 'aspirasi',         label: 'Aspirasi & Student Voice',         desc: 'Mengajukan, membalas, dan mengeskalasi tiket aspirasi/pengaduan mahasiswa.' },
+      { key: 'pkkmb',            label: 'PKKMB & Orientasi Mahasiswa Baru', desc: 'Mengelola data peserta, jadwal, dan dokumentasi kegiatan PKKMB/orientasi.' },
+    ]
+  },
+  {
+    title: '📢 Konten & Komunikasi',
+    items: [
+      { key: 'announcement',     label: 'Berita & Pengumuman',              desc: 'Membuat, menerbitkan, dan mengarsipkan berita serta pengumuman resmi kampus.' },
+      { key: 'notification',     label: 'Broadcast & Notifikasi Push',      desc: 'Mengirim notifikasi massal atau pesan terpusat ke kelompok pengguna tertentu.' },
+      { key: 'reports_export',   label: 'Laporan & Ekspor Data',            desc: 'Mengekspor laporan keseluruhan sistem dalam format PDF/Excel untuk kebutuhan analitik.' },
+    ]
+  },
+]
+
 export default function UserManagement() {
   const [activeTab, setActiveTab] = useState('identities')
   const [users, setUsers] = useState([])
@@ -137,6 +233,8 @@ export default function UserManagement() {
   const [isRoleOpen, setIsRoleOpen] = useState(false)
   const [isCreateRoleOpen, setIsCreateRoleOpen] = useState(false)
   const [isDelOpen, setIsDelOpen] = useState(false)
+  const [isPermsOpen, setIsPermsOpen] = useState(false)
+  const [isNewRoleOpen, setIsNewRoleOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [newRole, setNewRole] = useState('')
   const [newOrmawaId, setNewOrmawaId] = useState('')
@@ -160,33 +258,7 @@ export default function UserManagement() {
     Phone: ''
   })
 
-  const roleOptions = useMemo(() => {
-    const fromApi = rbacRoles.map(role => ({
-      value: role.key,
-      label: role.label || ROLE_DETAILS[role.key]?.label || role.key,
-      description: role.description || ROLE_DETAILS[role.key]?.desc || '',
-      permissions: Array.isArray(role.permissions) ? role.permissions : [],
-      status: role.status || 'active',
-      isSystem: Boolean(role.is_system)
-    }))
-    const seen = new Set(fromApi.map(role => role.value))
-    const fallback = ROLES.filter(role => !seen.has(role)).map(role => ({
-      value: role,
-      label: ROLE_DETAILS[role]?.label || role,
-      description: ROLE_DETAILS[role]?.desc || '',
-      permissions: [],
-      status: 'active',
-      isSystem: true
-    }))
-    return [...fromApi, ...fallback]
-  }, [rbacRoles])
 
-  const selectedRBACRole = useMemo(
-    () => roleOptions.find(role => role.value === selectedRoleKey) || roleOptions[0] || null,
-    [roleOptions, selectedRoleKey]
-  )
-
-  const permissionSet = useMemo(() => new Set(permissionDraft), [permissionDraft])
 
   const handleEmailChange = (emailVal) => {
     setForm(prev => {
@@ -469,45 +541,45 @@ export default function UserManagement() {
   ]
 
   return (
-    <div className="px-4 py-8 md:px-8 xl:px-12 min-h-screen bg-[#fafafa] font-body">
+    <div className="px-1 py-4 md:px-2 xl:px-4 min-h-screen bg-transparent font-inter">
       <Toaster position="top-right" />
       
-      <div className="max-w-[1600px] mx-auto space-y-10">
+      <div className="max-w-[1600px] mx-auto space-y-8 select-none">
         
-        {/* ── Page Header ─────────────────────────────────────────── */}
-        <section className="bg-white border border-neutral-200 rounded-xl p-6 md:p-8 relative overflow-hidden shadow-sm">
-          <div className="absolute top-0 right-0 w-1/4 h-full bg-gradient-to-l from-rose-50/50 to-transparent pointer-events-none" />
+        {/* ── Page Header (Glassmorphic) ─────────────────────────── */}
+        <section className="glass-card rounded-2xl border border-slate-200/60 p-6 md:p-8 relative overflow-hidden shadow-none">
+          <div className="absolute top-0 right-0 w-1/4 h-full bg-gradient-to-l from-bku-primary/5 to-transparent pointer-events-none" />
           
           <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-            <div className="space-y-1">
+            <div className="space-y-2">
               <div className="flex items-center gap-2 mb-2">
-                <div className="h-4 w-1.5 bg-primary rounded-full" />
-                <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-400 font-jakarta">Security & OIDC Cluster</span>
+                <div className="h-4 w-1.5 bg-bku-primary rounded-full animate-pulse" />
+                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 font-headline leading-none">Security & OIDC Cluster</span>
               </div>
-              <h1 className="text-3xl font-bold text-neutral-900 font-jakarta tracking-tight leading-tight">
-                Identity <span className="text-primary">Governance</span>
+              <h1 className="text-2xl font-black font-headline tracking-tight leading-none" style={{ color: 'var(--theme-h1)' }}>
+                Identity <span className="text-bku-primary">Governance</span>
               </h1>
-              <p className="text-neutral-500 font-medium text-sm max-w-2xl leading-relaxed">
+              <p className="text-slate-400 font-medium text-[11px] max-w-2xl leading-relaxed">
                 Kendali akses terpusat berbasis RBAC untuk seluruh entitas sistem. Kelola hak istimewa, kaitan identitas, dan otorisasi infrastruktur.
               </p>
             </div>
             
-            <div className="flex items-center gap-4">
-              <div className="hidden lg:flex items-center gap-8 pr-8 border-r border-neutral-100">
+            <div className="flex items-center gap-4 shrink-0">
+              <div className="hidden lg:flex items-center gap-8 pr-8 border-r border-slate-200/40">
                 <div className="text-right">
-                  <p className="text-[9px] font-bold text-neutral-400 uppercase tracking-widest mb-1">Total Identity</p>
-                  <p className="text-2xl font-bold text-neutral-900 font-jakarta tabular-nums leading-none">{users.length}</p>
+                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 font-headline">Total Identity</p>
+                  <p className="text-xl font-black text-bku-primary font-headline tabular-nums leading-none">{users.length}</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-[9px] font-bold text-neutral-400 uppercase tracking-widest mb-1">Privileged Nodes</p>
-                  <p className="text-2xl font-bold text-rose-600 font-jakarta tabular-nums leading-none">{users.filter(u => u.role?.includes('admin')).length}</p>
+                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 font-headline">Privileged Nodes</p>
+                  <p className="text-xl font-black text-rose-600 font-headline tabular-nums leading-none">{users.filter(u => u.role?.includes('admin') || u.Role?.includes('admin')).length}</p>
                 </div>
               </div>
 
               <Button 
                 onClick={() => setActiveTab('permissions')}
                 variant="outline"
-                className="h-11 px-6 rounded-xl border-neutral-200 text-xs font-bold uppercase tracking-widest text-neutral-600 hover:bg-neutral-50 gap-2 transition-all active:scale-95 shadow-sm"
+                className="h-11 px-6 rounded-xl border-slate-200 text-[10px] font-black uppercase tracking-widest text-slate-600 hover:bg-slate-100 hover:text-bku-primary gap-2.5 transition-all active:scale-95 shadow-none cursor-pointer font-headline"
               >
                 <span className="material-symbols-outlined text-primary" style={{ fontSize: '14px' }} >security</span>
                 Permission Matrix
@@ -565,11 +637,11 @@ export default function UserManagement() {
                       setIsRoleOpen(true) 
                     }} 
                     variant="ghost" 
-                    className="h-8 px-4 gap-2 text-neutral-400 hover:text-primary hover:bg-primary/5 rounded-lg text-[9px] font-bold uppercase tracking-[0.2em] transition-all border-none shadow-none"
+                    className="h-8 px-3 gap-2 text-slate-400 hover:text-bku-primary hover:bg-bku-primary/5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all border-none shadow-none cursor-pointer"
                   >
-                    <KeyRound size={12} strokeWidth={2.5} /> Otoritas
+                    <KeyRound size={12} strokeWidth={2.5} className="text-slate-400 group-hover:text-bku-primary" /> Otoritas
                   </Button>
-                  <Button onClick={() => { setSelected(row); setIsDelOpen(true) }} variant="ghost" size="icon" className="h-8 w-8 text-neutral-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all shadow-none"><span className="material-symbols-outlined" style={{ fontSize: '15px' }} >delete</span></Button>
+                  <Button onClick={() => { setSelected(row); setIsDelOpen(true) }} variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all shadow-none cursor-pointer"><span className="material-symbols-outlined leading-none" style={{ fontSize: '15px' }} >delete</span></Button>
                 </div>
               )}
             />
@@ -670,93 +742,52 @@ export default function UserManagement() {
 
       </div>
 
-      {/* ── Create Role Modal ────────────────────────────────────── */}
-      <Dialog open={isCreateRoleOpen} onOpenChange={setIsCreateRoleOpen}>
-        <DialogContent className="max-w-lg p-0 overflow-hidden border-none shadow-2xl rounded-3xl bg-white animate-in zoom-in-95 duration-300">
-          <DialogHeader className="p-8 pb-6 border-b border-neutral-100 bg-neutral-50/50">
-            <div className="flex items-center gap-4">
-              <div className="size-12 rounded-2xl bg-neutral-900 text-white flex items-center justify-center shadow-xl shadow-neutral-900/20"><span className="material-symbols-outlined" style={{ fontSize: '22px' }}>badge</span></div>
-              <div>
-                <DialogTitle className="text-xl font-bold font-jakarta tracking-tight text-neutral-900 leading-none">Create RBAC Role</DialogTitle>
-                <DialogDescription className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest mt-1.5">Role baru terpisah dari provisioning identitas.</DialogDescription>
-              </div>
-            </div>
-          </DialogHeader>
-          <form onSubmit={handleCreateRole} className="p-8 space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              <div className="space-y-2">
-                <Label className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest ml-1 font-jakarta">Role Key</Label>
-                <Input required value={roleForm.key} onChange={e => setRoleForm({ ...roleForm, key: e.target.value })} placeholder="kencana_reviewer" className="h-12 rounded-xl border-neutral-200 bg-neutral-50/30 focus:bg-white font-bold text-sm font-jakarta" />
-              </div>
-              <div className="space-y-2">
-                <Label className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest ml-1 font-jakarta">Display Label</Label>
-                <Input required value={roleForm.label} onChange={e => setRoleForm({ ...roleForm, label: e.target.value })} placeholder="Kencana Reviewer" className="h-12 rounded-xl border-neutral-200 bg-neutral-50/30 focus:bg-white font-bold text-sm font-jakarta" />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest ml-1 font-jakarta">Description</Label>
-              <Input value={roleForm.description} onChange={e => setRoleForm({ ...roleForm, description: e.target.value })} placeholder="Jelaskan batas otoritas role ini..." className="h-12 rounded-xl border-neutral-200 bg-neutral-50/30 focus:bg-white font-bold text-sm font-jakarta" />
-            </div>
-            <div className="p-4 rounded-2xl bg-amber-50 border border-amber-100 text-[11px] font-bold text-amber-700 leading-relaxed">
-              Setelah role dibuat, buka tab Permission Matrix untuk mengaktifkan permission per modul. Role custom akan tersedia di pilihan otorisasi akun, tetapi tidak membuat profil khusus seperti mahasiswa atau mentor Kencana.
-            </div>
-            <footer className="flex gap-4 pt-2 border-t border-neutral-100">
-              <Button type="button" variant="ghost" onClick={() => setIsCreateRoleOpen(false)} className="flex-1 h-12 rounded-xl text-[10px] font-bold uppercase tracking-widest text-neutral-400">Abort</Button>
-              <Button type="submit" disabled={isSubmitting} className="flex-[2] h-12 rounded-xl bg-neutral-900 text-white font-bold text-[10px] uppercase tracking-widest shadow-xl shadow-neutral-900/10 active:scale-[0.98] transition-all border-none flex items-center justify-center gap-2">
-                {isSubmitting ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '14px' }}>sync</span> : <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>save</span>}
-                Commit Role
-              </Button>
-            </footer>
-          </form>
         </DialogContent>
       </Dialog>
 
       {/* ── Create User Modal ───────────────────────────────────── */}
       <Dialog open={isCrudOpen} onOpenChange={setIsCrudOpen}>
-        <DialogContent className="max-w-xl p-0 overflow-hidden border-none shadow-2xl rounded-3xl bg-white animate-in slide-in-from-bottom-4 duration-300">
-          <DialogHeader className="p-10 pb-8 border-b border-neutral-100 relative overflow-hidden bg-neutral-50/50">
-            <div className="absolute top-0 right-0 p-10 opacity-[0.03] text-primary"><span className="material-symbols-outlined" style={{ fontSize: '140px' }} >manage_accounts</span></div>
+        <DialogContent className="max-w-xl p-0 overflow-hidden border border-slate-200/60 shadow-2xl rounded-3xl bg-white/95 backdrop-blur-md animate-in slide-in-from-bottom-4 duration-300">
+          <DialogHeader className="p-10 pb-8 border-b border-slate-100 relative overflow-hidden bg-slate-50/40">
+            <div className="absolute top-0 right-0 p-10 opacity-[0.05] text-bku-primary"><span className="material-symbols-outlined" style={{ fontSize: '140px' }} >manage_accounts</span></div>
             <div className="relative z-10 space-y-1">
               <div className="flex items-center gap-2 mb-2">
-                <div className="size-6 rounded bg-primary/10 flex items-center justify-center text-primary">
-                  <span className="material-symbols-outlined" style={{ fontSize: '12px' }}  strokeWidth={4}>add</span>
+                <div className="size-6 rounded bg-bku-primary/10 flex items-center justify-center text-bku-primary">
+                  <span className="material-symbols-outlined font-black text-[12px]">add</span>
                 </div>
-                <span className="text-[10px] font-bold uppercase tracking-widest text-primary/60">Account Provisioning</span>
+                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-bku-primary/70 font-headline">Account Provisioning</span>
               </div>
-              <DialogTitle className="text-2xl font-bold font-jakarta tracking-tight text-neutral-900">Initialize New Identity</DialogTitle>
-              <DialogDescription className="text-sm font-medium text-neutral-400 italic">Daftarkan identitas digital baru dan tentukan level otoritas sistem.</DialogDescription>
+              <DialogTitle className="text-2xl font-black font-headline tracking-tight text-slate-800">Initialize New Identity</DialogTitle>
+              <DialogDescription className="text-xs font-semibold text-slate-400">Daftarkan identitas digital baru dan tentukan level otoritas sistem.</DialogDescription>
             </div>
           </DialogHeader>
 
           <form onSubmit={handleCreate} className="p-10 pt-8 space-y-6">
-            <div className="space-y-6 max-h-[50vh] overflow-y-auto pr-2 custom-scrollbar">
+            <div className="space-y-6 max-h-[50vh] overflow-y-auto pr-2 custom-scrollbar no-scrollbar">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                  <div className="space-y-2">
-                   <Label className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest ml-1 font-jakarta">Identity Handle (Email)</Label>
-                   <Input required type="email" value={form.Email} onChange={e => handleEmailChange(e.target.value)} placeholder="email@bku.ac.id" className="h-12 rounded-xl border-neutral-200 bg-neutral-50/30 focus:bg-white font-bold text-sm font-jakarta" />
+                   <Label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 font-headline">Identity Handle (Email)</Label>
+                   <Input required type="email" value={form.Email} onChange={e => handleEmailChange(e.target.value)} placeholder="email@bku.ac.id" className="h-12 rounded-xl border-slate-200 bg-slate-50/70 focus:bg-white focus:border-bku-primary focus:ring-2 focus:ring-bku-primary/20 font-bold text-xs text-slate-800 transition-all font-inter" />
                  </div>
                  <div className="space-y-2">
-                   <Label className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest ml-1 font-jakarta">Default Authentication</Label>
-                   <Input required type="password" value={form.Password} onChange={e => setForm({ ...form, Password: e.target.value })} placeholder="••••••••" className="h-12 rounded-xl border-neutral-200 bg-neutral-50/30 focus:bg-white font-bold text-sm font-jakarta" />
+                   <Label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 font-headline">Default Authentication</Label>
+                   <Input required type="password" value={form.Password} onChange={e => setForm({ ...form, Password: e.target.value })} placeholder="••••••••" className="h-12 rounded-xl border-slate-200 bg-slate-50/70 focus:bg-white focus:border-bku-primary focus:ring-2 focus:ring-bku-primary/20 font-bold text-xs text-slate-800 transition-all font-inter" />
                    {form.Role === 'mahasiswa' && (
-                     <span className="text-[9px] font-bold text-emerald-600 block mt-1 pl-1">
-                       💡 Auto-generate: pass(NIM)
+                     <span className="text-[9px] font-extrabold text-emerald-600 block mt-1.5 pl-1 tracking-wide animate-in fade-in duration-200">
+                       ⚡ Auto-generate: pass(NIM)
                      </span>
                    )}
                  </div>
               </div>
 
               <div className="space-y-2">
-                <Label className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest ml-1 font-jakarta">Full Legal Name</Label>
-                <Input required value={form.Nama} onChange={e => setForm({ ...form, Nama: e.target.value })} placeholder="Full name for ID mapping..." className="h-12 rounded-xl border-neutral-200 bg-neutral-50/30 focus:bg-white font-bold text-sm font-jakarta" />
+                <Label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 font-headline">Full Legal Name</Label>
+                <Input required value={form.Nama} onChange={e => setForm({ ...form, Nama: e.target.value })} placeholder="Full name for ID mapping..." className="h-12 rounded-xl border-slate-200 bg-slate-50/70 focus:bg-white focus:border-bku-primary focus:ring-2 focus:ring-bku-primary/20 font-bold text-xs text-slate-800 transition-all font-inter" />
               </div>
 
               <div className="space-y-2">
-                <Label className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest ml-1 font-jakarta">Authorization Level</Label>
+                <Label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 font-headline">Authorization Level</Label>
                 <Select value={form.Role} onValueChange={handleRoleChange}>
-                  <SelectTrigger className="h-12 rounded-xl border-neutral-200 bg-neutral-50/30 font-bold text-xs uppercase tracking-[0.1em]"><SelectValue /></SelectTrigger>
-                  <SelectContent className="rounded-xl shadow-2xl border-neutral-100">
-                    {roleOptions.map(r => <SelectItem key={r.value} value={r.value} className="text-[10px] font-bold uppercase tracking-widest">{r.label}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
@@ -764,17 +795,17 @@ export default function UserManagement() {
               {form.Role !== 'super_admin' && form.Role !== 'psikolog' && form.Role !== 'kencana_admin' && !(form.Role === 'kencana_mentor' && form.KencanaScopeType === 'university') && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in duration-300">
                   <div className="space-y-2">
-                    <Label className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest ml-1 font-jakarta">Fakultas</Label>
+                    <Label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 font-headline">Fakultas</Label>
                     <Select 
                       value={form.FakultasID ? String(form.FakultasID) : undefined} 
                       onValueChange={v => setForm({ ...form, FakultasID: v, ProgramStudiID: '' })}
                     >
-                      <SelectTrigger className="h-12 rounded-xl border-neutral-200 bg-neutral-50/30 font-bold text-xs uppercase tracking-[0.1em]">
+                      <SelectTrigger className="h-12 rounded-xl border-slate-200 bg-slate-50/70 focus:bg-white focus:border-bku-primary focus:ring-2 focus:ring-bku-primary/20 font-bold text-xs uppercase tracking-[0.08em] text-slate-700 transition-all">
                         <SelectValue placeholder="PILIH FAKULTAS" />
                       </SelectTrigger>
-                      <SelectContent className="rounded-xl shadow-2xl border-neutral-100 max-h-[200px] overflow-y-auto">
+                      <SelectContent className="rounded-xl shadow-2xl border-slate-100/80 bg-white/95 backdrop-blur-md max-h-[200px] overflow-y-auto">
                         {faculties.map(f => (
-                          <SelectItem key={f.ID || f.id} value={String(f.ID || f.id)} className="text-[10px] font-bold uppercase tracking-widest">
+                          <SelectItem key={f.ID || f.id} value={String(f.ID || f.id)} className="text-[10px] font-black uppercase tracking-widest text-slate-600 focus:bg-slate-50 focus:text-bku-primary">
                             {f.Nama || f.nama}
                           </SelectItem>
                         ))}
@@ -783,20 +814,20 @@ export default function UserManagement() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest ml-1 font-jakarta">Program Studi</Label>
+                    <Label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 font-headline">Program Studi</Label>
                     <Select 
                       disabled={!form.FakultasID}
                       value={form.ProgramStudiID ? String(form.ProgramStudiID) : undefined} 
                       onValueChange={v => setForm({ ...form, ProgramStudiID: v })}
                     >
-                      <SelectTrigger className="h-12 rounded-xl border-neutral-200 bg-neutral-50/30 font-bold text-xs uppercase tracking-[0.1em]">
+                      <SelectTrigger className="h-12 rounded-xl border-slate-200 bg-slate-50/70 focus:bg-white focus:border-bku-primary focus:ring-2 focus:ring-bku-primary/20 font-bold text-xs uppercase tracking-[0.08em] text-slate-700 transition-all disabled:opacity-50">
                         <SelectValue placeholder={form.FakultasID ? "PILIH PRODI" : "PILIH FAKULTAS DULU"} />
                       </SelectTrigger>
-                      <SelectContent className="rounded-xl shadow-2xl border-neutral-100 max-h-[200px] overflow-y-auto">
+                      <SelectContent className="rounded-xl shadow-2xl border-slate-100/80 bg-white/95 backdrop-blur-md max-h-[200px] overflow-y-auto">
                         {allProdi
                           .filter(p => String(p.FakultasID || p.fakultas_id) === String(form.FakultasID))
                           .map(p => (
-                            <SelectItem key={p.ID || p.id} value={String(p.ID || p.id)} className="text-[10px] font-bold uppercase tracking-widest">
+                            <SelectItem key={p.ID || p.id} value={String(p.ID || p.id)} className="text-[10px] font-black uppercase tracking-widest text-slate-600 focus:bg-slate-50 focus:text-bku-primary">
                               {p.Nama || p.nama}
                             </SelectItem>
                           ))}
@@ -827,7 +858,7 @@ export default function UserManagement() {
 
               {(form.Role === 'ormawa_admin' || form.Role === 'ormawa') && (
                 <div className="space-y-2 animate-in fade-in duration-300">
-                  <Label className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest ml-1 font-jakarta">Assign Ormawa</Label>
+                  <Label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 font-headline">Assign Ormawa</Label>
                   <Select 
                     value={form.OrmawaID ? String(form.OrmawaID) : undefined} 
                     onValueChange={v => {
@@ -835,12 +866,12 @@ export default function UserManagement() {
                       setForm({ ...form, OrmawaID: v, OrmawaAssign: selectedOrm ? selectedOrm.Nama || selectedOrm.nama : '' });
                     }}
                   >
-                    <SelectTrigger className="h-12 rounded-xl border-neutral-200 bg-neutral-50/30 font-bold text-xs uppercase tracking-[0.1em]">
+                    <SelectTrigger className="h-12 rounded-xl border-slate-200 bg-slate-50/70 focus:bg-white focus:border-bku-primary focus:ring-2 focus:ring-bku-primary/20 font-bold text-xs uppercase tracking-[0.08em] text-slate-700 transition-all">
                       <SelectValue placeholder="PILIH ORGANISASI MAHASISWA" />
                     </SelectTrigger>
-                    <SelectContent className="rounded-xl shadow-2xl border-neutral-100 max-h-[200px] overflow-y-auto">
+                    <SelectContent className="rounded-xl shadow-2xl border-slate-100/80 bg-white/95 backdrop-blur-md max-h-[200px] overflow-y-auto">
                       {ormawas.map(o => (
-                        <SelectItem key={o.id || o.ID} value={String(o.id || o.ID)} className="text-[10px] font-bold uppercase tracking-widest">
+                        <SelectItem key={o.id || o.ID} value={String(o.id || o.ID)} className="text-[10px] font-black uppercase tracking-widest text-slate-600 focus:bg-slate-50 focus:text-bku-primary">
                           {o.nama || o.Nama}
                         </SelectItem>
                       ))}
@@ -850,11 +881,15 @@ export default function UserManagement() {
               )}
             </div>
 
-            <footer className="pt-8 flex flex-col md:flex-row gap-4 border-t border-neutral-100">
-               <Button type="button" variant="ghost" onClick={() => setIsCrudOpen(false)} className="flex-1 h-14 rounded-xl text-[10px] font-bold uppercase tracking-widest text-neutral-400 hover:bg-neutral-50 transition-all">Abort</Button>
-               <Button type="submit" disabled={isSubmitting} className="flex-[2] h-14 rounded-xl bg-neutral-900 text-white hover:bg-primary shadow-xl shadow-neutral-900/10 transition-all active:scale-95 border-none flex items-center justify-center gap-3">
-                  {isSubmitting ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '16px' }} >sync</span> : <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >save</span>}
-                  <span className="text-[10px] font-bold uppercase tracking-widest">Commit New Account</span>
+            <footer className="pt-8 flex flex-col md:flex-row gap-4 border-t border-slate-100">
+               <Button type="button" variant="ghost" onClick={() => setIsCrudOpen(false)} className="flex-1 h-14 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-500 hover:bg-slate-100 hover:text-slate-700 transition-all font-headline shadow-none border-none cursor-pointer">Abort</Button>
+               <Button type="submit" disabled={isSubmitting} className="flex-[2] h-14 rounded-xl bg-bku-primary text-white hover:bg-bku-primary/90 shadow-lg shadow-bku-primary/15 transition-all active:scale-95 border-none flex items-center justify-center gap-3 font-headline cursor-pointer">
+                  {isSubmitting ? (
+                    <span className="material-symbols-outlined animate-spin" style={{ fontSize: '16px' }} >sync</span>
+                  ) : (
+                    <span className="material-symbols-outlined font-black" style={{ fontSize: '16px' }} >save</span>
+                  )}
+                  <span className="text-[10px] font-black uppercase tracking-widest">Commit New Account</span>
                </Button>
             </footer>
           </form>
@@ -863,41 +898,40 @@ export default function UserManagement() {
 
       {/* ── Update Role Modal ────────────────────────────────────── */}
       <Dialog open={isRoleOpen} onOpenChange={setIsRoleOpen}>
-        <DialogContent className="max-w-md p-0 overflow-hidden border-none shadow-2xl rounded-3xl bg-white animate-in zoom-in-95 duration-300">
-          <DialogHeader className="p-8 pb-6 border-b border-neutral-100 bg-neutral-50/50">
+        <DialogContent className="max-w-md p-0 overflow-hidden border border-slate-200/60 shadow-2xl rounded-3xl bg-white/95 backdrop-blur-md animate-in zoom-in-95 duration-300">
+          <DialogHeader className="p-8 pb-6 border-b border-slate-100 bg-slate-50/40">
             <div className="flex items-center gap-4">
-              <div className="size-12 rounded-2xl bg-primary text-white flex items-center justify-center shadow-xl shadow-primary/20"><KeyRound size={24} strokeWidth={2.5} /></div>
+              <div className="size-12 rounded-2xl bg-bku-primary text-white flex items-center justify-center shadow-xl shadow-bku-primary/20">
+                <KeyRound size={20} strokeWidth={2.5} />
+              </div>
               <div>
-                <h2 className="text-xl font-bold font-jakarta tracking-tight text-neutral-900 leading-none">Modify Otoritas</h2>
-                <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest mt-1.5">Override account privilege nodes.</p>
+                <h2 className="text-lg font-black font-headline tracking-tight leading-none" style={{ color: 'var(--theme-h2)' }}>Modify Otoritas</h2>
+                <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.15em] mt-1.5 font-headline">Override account privilege nodes.</p>
               </div>
             </div>
           </DialogHeader>
-          <div className="p-10 space-y-8">
-             <div className="space-y-6 max-h-[50vh] overflow-y-auto pr-2 custom-scrollbar">
-               <div className="p-5 rounded-2xl bg-neutral-50 border border-neutral-100 flex items-center justify-between group">
+          <div className="p-8 space-y-6">
+             <div className="space-y-6 max-h-[50vh] overflow-y-auto pr-2 custom-scrollbar no-scrollbar">
+               <div className="p-5 rounded-2xl bg-slate-50/60 border border-slate-200/50 flex items-center justify-between group">
                   <div className="space-y-1">
-                     <p className="text-[9px] font-bold text-neutral-400 uppercase tracking-[0.2em]">Target Identity</p>
-                     <p className="text-[13px] font-bold font-jakarta text-neutral-900 truncate max-w-[200px] lowercase">{selected?.Email || selected?.email}</p>
+                     <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] font-headline">Target Identity</p>
+                     <p className="text-xs font-bold font-inter text-slate-700 truncate max-w-[200px] lowercase">{selected?.Email || selected?.email}</p>
                   </div>
-                  <Badge className={cn("font-bold text-[8px] px-2.5 py-1 border-none shadow-sm uppercase rounded-lg group-hover:scale-105 transition-transform", ROLE_DETAILS[selected?.role]?.cls)}>
-                     {ROLE_DETAILS[selected?.role]?.label || selected?.role}
+                  <Badge className={cn("font-bold text-[8px] px-2.5 py-1 border-none shadow-sm uppercase rounded-lg group-hover:scale-105 transition-transform", roleDetails[selected?.role || selected?.Role]?.cls || "bg-neutral-100 text-slate-500")}>
+                     {roleDetails[selected?.role || selected?.Role]?.label || selected?.role || selected?.Role}
                   </Badge>
                </div>
 
                 <div className="space-y-2">
-                  <Label className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest ml-1 font-jakarta">Target Authorization Level</Label>
+                  <Label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 font-headline">Target Authorization Level</Label>
                   <Select value={newRole} onValueChange={setNewRole}>
-                    <SelectTrigger className="h-12 rounded-xl border-neutral-200 bg-neutral-50/30 font-bold text-[10px] uppercase tracking-widest text-neutral-600"><SelectValue /></SelectTrigger>
-                    <SelectContent className="rounded-xl shadow-2xl border-neutral-100">
-                      {roleOptions.map(r => <SelectItem key={r.value} value={r.value} className="text-[10px] font-bold uppercase tracking-widest">{r.label}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 </div>
 
                 {(newRole === 'ormawa_admin' || newRole === 'ormawa') && (
                   <div className="space-y-2 animate-in fade-in duration-300">
-                    <Label className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest ml-1 font-jakarta">Assign Ormawa</Label>
+                    <Label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 font-headline">Assign Ormawa</Label>
                     <Select 
                       value={newOrmawaId ? String(newOrmawaId) : undefined} 
                       onValueChange={v => {
@@ -906,12 +940,12 @@ export default function UserManagement() {
                         setNewOrmawaAssign(selectedOrm ? selectedOrm.Nama || selectedOrm.nama : '');
                       }}
                     >
-                      <SelectTrigger className="h-12 rounded-xl border-neutral-200 bg-neutral-50/30 font-bold text-[10px] uppercase tracking-widest text-neutral-600">
+                      <SelectTrigger className="h-12 rounded-xl border-slate-200 bg-slate-50/70 focus:bg-white focus:border-bku-primary focus:ring-2 focus:ring-bku-primary/20 font-bold text-xs uppercase tracking-[0.08em] text-slate-700 transition-all">
                         <SelectValue placeholder="PILIH ORGANISASI MAHASISWA" />
                       </SelectTrigger>
-                      <SelectContent className="rounded-xl shadow-2xl border-neutral-100 max-h-[200px] overflow-y-auto">
+                      <SelectContent className="rounded-xl shadow-2xl border-slate-100/80 bg-white/95 backdrop-blur-md max-h-[200px] overflow-y-auto">
                         {ormawas.map(o => (
-                          <SelectItem key={o.id || o.ID} value={String(o.id || o.ID)} className="text-[10px] font-bold uppercase tracking-widest">
+                          <SelectItem key={o.id || o.ID} value={String(o.id || o.ID)} className="text-[10px] font-black uppercase tracking-widest text-slate-600 focus:bg-slate-50 focus:text-bku-primary">
                             {o.nama || o.Nama}
                           </SelectItem>
                         ))}
@@ -952,10 +986,14 @@ export default function UserManagement() {
                 )}
              </div>
 
-             <footer className="flex gap-4 pt-4 border-t border-neutral-100">
-                <Button variant="ghost" onClick={() => setIsRoleOpen(false)} className="flex-1 h-12 rounded-xl text-[10px] font-bold uppercase tracking-widest text-neutral-400">Abort</Button>
-                <Button onClick={handleUpdateRole} disabled={isSubmitting} className="flex-[2] h-12 rounded-xl bg-neutral-900 text-white font-bold text-[10px] uppercase tracking-widest shadow-xl shadow-neutral-900/10 active:scale-[0.98] transition-all border-none flex items-center justify-center gap-2">
-                  {isSubmitting ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '14px' }} >sync</span> : <span className="material-symbols-outlined" style={{ fontSize: '14px' }} >security</span>} 
+             <footer className="flex gap-4 pt-4 border-t border-slate-100">
+                <Button variant="ghost" onClick={() => setIsRoleOpen(false)} className="flex-1 h-12 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-500 hover:bg-slate-100 hover:text-slate-700 transition-all font-headline shadow-none border-none cursor-pointer">Abort</Button>
+                <Button onClick={handleUpdateRole} disabled={isSubmitting} className="flex-[2] h-12 rounded-xl bg-bku-primary text-white hover:bg-bku-primary/90 shadow-lg shadow-bku-primary/15 transition-all active:scale-95 border-none flex items-center justify-center gap-2 font-headline cursor-pointer font-black text-[10px]">
+                  {isSubmitting ? (
+                    <span className="material-symbols-outlined animate-spin" style={{ fontSize: '14px' }} >sync</span>
+                  ) : (
+                    <span className="material-symbols-outlined font-black" style={{ fontSize: '14px' }} >security</span>
+                  )} 
                   Commit Authority
                 </Button>
              </footer>
@@ -971,6 +1009,75 @@ export default function UserManagement() {
         description="Aksi ini akan mencabut seluruh hak akses, identitas digital, dan kaitan entitas pengguna ini secara permanen. Prosedur ini tidak dapat dibatalkan." 
         loading={isSubmitting} 
       />
+
+      {/* ── Create Custom Role Modal ────────────────────────────── */}
+      <Dialog open={isNewRoleOpen} onOpenChange={setIsNewRoleOpen}>
+        <DialogContent className="max-w-md p-0 overflow-hidden border border-slate-200/60 shadow-2xl rounded-3xl bg-white/95 backdrop-blur-md animate-in zoom-in-95 duration-300 z-[9999]">
+          <DialogHeader className="p-8 pb-6 border-b border-slate-100 bg-slate-50/40">
+            <div className="flex items-center gap-3">
+              <div className="size-10 rounded-xl bg-amber-400 text-slate-900 flex items-center justify-center shadow-lg shadow-amber-400/20">
+                <span className="material-symbols-outlined font-black" style={{ fontSize: '20px' }}>shield_person</span>
+              </div>
+              <div>
+                <h3 className="text-lg font-black font-headline tracking-tight leading-none" style={{ color: 'var(--theme-h3)' }}>Create Custom Role</h3>
+                <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.15em] mt-1.5 font-headline">Release dynamic privilege identity node</p>
+              </div>
+            </div>
+          </DialogHeader>
+          
+          <form onSubmit={handleCreateCustomRole} className="p-8 space-y-6">
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 font-headline">Role Identity Name</Label>
+                <Input 
+                  required 
+                  value={newRoleForm.name} 
+                  onChange={e => setNewRoleForm({ ...newRoleForm, name: e.target.value })} 
+                  placeholder="e.g. Fasilitator, Kaprodi, Dekan..." 
+                  className="h-12 rounded-xl border-slate-200 bg-slate-50/70 focus:bg-white focus:border-bku-primary focus:ring-2 focus:ring-bku-primary/20 font-bold text-xs text-slate-800 transition-all font-inter" 
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 font-headline">Privilege Theme Color</Label>
+                <Select 
+                  value={newRoleForm.theme} 
+                  onValueChange={v => setNewRoleForm({ ...newRoleForm, theme: v })}
+                >
+                  <SelectTrigger className="h-12 rounded-xl border-slate-200 bg-slate-50/70 focus:bg-white focus:border-bku-primary focus:ring-2 focus:ring-bku-primary/20 font-bold text-xs uppercase tracking-[0.08em] text-slate-700 transition-all">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl shadow-2xl border-slate-100/80 bg-white/95 backdrop-blur-md">
+                    {Object.keys(THEME_PRESETS).map(key => (
+                      <SelectItem key={key} value={key} className="text-[10px] font-black uppercase tracking-widest text-slate-600 focus:bg-slate-50 focus:text-bku-primary">
+                        {THEME_PRESETS[key].label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 font-headline">Description / Yurisdiksi</Label>
+                <textarea 
+                  value={newRoleForm.desc} 
+                  onChange={e => setNewRoleForm({ ...newRoleForm, desc: e.target.value })} 
+                  placeholder="Explain authority level rules..." 
+                  className="w-full h-24 p-3 rounded-xl border border-slate-200 bg-slate-50/70 focus:bg-white focus:border-bku-primary focus:ring-2 focus:ring-bku-primary/20 font-bold text-xs text-slate-800 transition-all font-inter resize-none focus:outline-none"
+                />
+              </div>
+            </div>
+
+            <footer className="flex gap-4 pt-4 border-t border-slate-100">
+              <Button type="button" variant="ghost" onClick={() => setIsNewRoleOpen(false)} className="flex-1 h-12 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-500 hover:bg-slate-100 hover:text-slate-700 transition-all font-headline shadow-none border-none cursor-pointer">Abort</Button>
+              <Button type="submit" className="flex-[2] h-12 rounded-xl bg-bku-primary text-white hover:bg-bku-primary/90 shadow-lg shadow-bku-primary/15 transition-all active:scale-95 border-none flex items-center justify-center gap-2 font-headline cursor-pointer font-black text-[10px]">
+                <span className="material-symbols-outlined font-black" style={{ fontSize: '14px' }}>save</span>
+                Save Custom Role
+              </Button>
+            </footer>
+          </form>
+        </DialogContent>
+      </Dialog>
 
     </div>
   )

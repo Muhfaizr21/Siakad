@@ -136,7 +136,7 @@ export default function Notifikasi() {
       <Toaster position="top-right" />
       
       {/* ── Welcome Banner ─────────────────────────────────────────── */}
-      <section className="relative overflow-hidden rounded-[2rem] bg-gradient-to-r from-[#00236F] to-[#1e3a8a] text-white p-8 md:p-10 shadow-xl shadow-blue-900/10">
+      <section className="relative overflow-hidden rounded-[2rem] bg-gradient-to-r from-bku-primary to-[#1e3a8a] text-white p-8 md:p-10 shadow-xl shadow-blue-900/10">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.08)_0%,transparent_60%)]" />
         <div className="absolute inset-0 opacity-[0.03]"
           style={{
@@ -157,7 +157,7 @@ export default function Notifikasi() {
               <div className="p-3 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 shadow-inner relative shrink-0">
                 <span className="material-symbols-outlined text-white" style={{ fontSize: '32px' }}>notifications</span>
                 {unreadCount > 0 && (
-                  <span className="absolute -top-1.5 -right-1.5 size-5 bg-rose-500 text-white text-[9px] font-black rounded-full flex items-center justify-center animate-bounce border-2 border-[#00236F]">
+                  <span className="absolute -top-1.5 -right-1.5 size-5 bg-rose-500 text-white text-[9px] font-black rounded-full flex items-center justify-center animate-bounce border-2 border-bku-primary">
                     {unreadCount}
                   </span>
                 )}
@@ -172,7 +172,7 @@ export default function Notifikasi() {
           {unreadCount > 0 && (
             <Button 
               onClick={handleMarkAllRead} 
-              className="h-12 px-6 rounded-2xl bg-white hover:bg-white/95 text-[#00236F] hover:text-[#00236F] border-none font-bold text-xs tracking-wider shadow-lg shadow-blue-900/10 transition-all active:scale-95 shrink-0 w-full lg:w-auto flex items-center justify-center gap-2"
+              className="h-12 px-6 rounded-2xl bg-white hover:bg-white/95 text-bku-primary hover:text-bku-primary border-none font-bold text-xs tracking-wider shadow-lg shadow-blue-900/10 transition-all active:scale-95 shrink-0 w-full lg:w-auto flex items-center justify-center gap-2"
             >
               <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>done_all</span>
               <span>TANDAI SEMUA DIBACA</span>

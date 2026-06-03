@@ -229,7 +229,7 @@ export default function StrukturOrganisasi() {
 
           <button
             onClick={() => setIsAddDivOpen(true)}
-            className="flex items-center justify-center gap-2 h-12 px-6 rounded-2xl bg-[#00236F] text-white hover:bg-[#0B4FAE] font-black text-[10px] tracking-[0.15em] shadow-lg shadow-blue-950/10 hover:shadow-xl transition-all duration-200 active:scale-95 w-full md:w-auto shrink-0 uppercase"
+            className="flex items-center justify-center gap-2 h-12 px-6 rounded-2xl bg-bku-primary text-white hover:bg-[#0B4FAE] font-black text-[10px] tracking-[0.15em] shadow-lg shadow-blue-950/10 hover:shadow-xl transition-all duration-200 active:scale-95 w-full md:w-auto shrink-0 uppercase"
           >
             <span className="material-symbols-outlined block" style={{ fontSize: '18px' }}>add</span>
             <span>Tambah Divisi</span>
@@ -240,7 +240,7 @@ export default function StrukturOrganisasi() {
       {/* ── Content Area ───────────────────────────────────────────── */}
       {loading ? (
         <div className="flex items-center justify-center h-64">
-          <div className="size-8 border-4 border-[#00236F]/30 border-t-[#00236F] rounded-full animate-spin" />
+          <div className="size-8 border-4 border-bku-primary/30 border-t-[#00236F] rounded-full animate-spin" />
         </div>
       ) : (
         <div className="space-y-8">
@@ -303,7 +303,7 @@ export default function StrukturOrganisasi() {
                       <CardContent className="p-5">
                         <div className="flex items-center justify-between mb-4">
                           <div>
-                            <h3 className="font-black text-slate-900 font-headline tracking-tighter text-sm ">{div.Nama}</h3>
+                            <h3 className="font-black font-headline tracking-tighter text-sm" style={{ color: 'var(--theme-h3)' }}>{div.Nama}</h3>
                             <p className="text-[9px] font-bold text-slate-400 tracking-widest uppercase">{divMembers.length} anggota</p>
                           </div>
                           <button 
@@ -377,7 +377,7 @@ export default function StrukturOrganisasi() {
                 value={divName} 
                 onChange={e => setDivName(e.target.value)} 
                 placeholder="Misal: Humas, Akademik, IT..."
-                className="h-12 rounded-2xl border-slate-200 bg-slate-50 focus:bg-white focus:border-[#00236F] focus:ring-2 focus:ring-[#00236F]/10 transition-all font-bold text-sm font-headline" 
+                className="h-12 rounded-2xl border-slate-200 bg-slate-50 focus:bg-white focus:border-bku-primary focus:ring-2 focus:ring-bku-primary/10 transition-all font-bold text-sm font-headline" 
               />
             </div>
           </ModalBody>

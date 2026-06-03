@@ -434,25 +434,25 @@ export default function KelolaBeasiswa() {
   ]
 
   return (
-    <div className="px-4 py-8 md:px-8 xl:px-12 min-h-screen bg-[#fafafa] font-body">
+    <div className="px-4 py-8 md:px-8 xl:px-12 min-h-screen bg-transparent font-inter">
       <Toaster position="top-right" />
       
       <div className="max-w-[1600px] mx-auto space-y-10">
         
         {/* ── Page Header ─────────────────────────────────────────── */}
-        <section className="bg-white border border-neutral-200 rounded-xl p-5 md:p-8 relative overflow-hidden shadow-sm">
+        <section className="glass-card rounded-xl p-5 md:p-8 relative overflow-hidden shadow-sm border-none">
           <div className="absolute top-0 right-0 w-1/4 h-full bg-gradient-to-l from-emerald-50/50 to-transparent pointer-events-none" />
           
           <div className="relative z-10 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
             <div className="space-y-1 w-full lg:w-auto">
               <div className="flex items-center gap-2 mb-2">
-                <div className="h-4 w-1.5 bg-primary rounded-full" />
-                <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-400 font-jakarta">Student Welfare</span>
+                <div className="h-4 w-1.5 bg-bku-primary rounded-full" />
+                <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 font-headline">Student Welfare</span>
               </div>
-              <h1 className="text-2xl md:text-3xl font-bold text-neutral-900 font-jakarta tracking-tight leading-tight">
-                Manajemen <span className="text-primary">Beasiswa</span>
+              <h1 className="text-2xl md:text-3xl font-black font-headline tracking-tight leading-tight" style={{ color: 'var(--theme-h1)' }}>
+                Manajemen <span className="text-bku-primary">Beasiswa</span>
               </h1>
-              <p className="text-neutral-500 font-medium text-xs md:text-sm max-w-2xl leading-relaxed">
+              <p className="text-slate-500 font-medium text-xs md:text-sm max-w-2xl leading-relaxed">
                 Kelola program bantuan dana pendidikan, beasiswa eksternal, dan verifikasi pendaftaran mahasiswa secara terintegrasi.
               </p>
             </div>
@@ -461,7 +461,7 @@ export default function KelolaBeasiswa() {
               {activeTab === 'programs' && (
                 <Button 
                   onClick={handleOpenAdd}
-                  className="h-11 px-6 w-full lg:w-auto rounded-xl bg-primary text-white hover:bg-primary/90 shadow-md gap-2 transition-all active:scale-95 border-none justify-center"
+                  className="h-11 px-6 w-full lg:w-auto rounded-xl bg-bku-primary text-white hover:bg-bku-primary/90 shadow-md gap-2 transition-all active:scale-95 border-none justify-center font-headline"
                 >
                   <span className="material-symbols-outlined" style={{ fontSize: '16px' }}  strokeWidth={3}>add</span>
                   <span className="text-xs font-bold uppercase tracking-widest">Tambah Program</span>
@@ -478,8 +478,8 @@ export default function KelolaBeasiswa() {
             value={stats.totalPrograms}
             description="Program beasiswa aktif"
             icon={Award}
-            color="text-primary"
-            bg="bg-primary/5"
+            color="text-bku-primary"
+            bg="bg-blue-50"
             loading={loading}
            />
            <StatCard 
@@ -514,11 +514,11 @@ export default function KelolaBeasiswa() {
         {/* ── Tabbed Content Section ─────────────────────────────── */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full space-y-6">
           <div className="flex justify-center md:justify-start overflow-x-auto pb-1">
-            <TabsList className="bg-white border border-neutral-200 p-1.5 rounded-xl h-auto shadow-sm flex-nowrap shrink-0">
-              <TabsTrigger value="programs" className="rounded-lg px-4 sm:px-8 py-2.5 text-[10px] font-bold uppercase tracking-widest data-[state=active]:bg-primary data-[state=active]:text-white transition-all duration-300">
+            <TabsList className="glass-card p-1.5 rounded-xl h-auto shadow-sm flex-nowrap shrink-0 border border-slate-100">
+              <TabsTrigger value="programs" className="rounded-lg px-4 sm:px-8 py-2.5 text-[10px] font-bold uppercase tracking-widest data-[state=active]:bg-bku-primary data-[state=active]:text-white transition-all duration-300">
                 <Award size={14} className="mr-2 inline" /> Program Beasiswa
               </TabsTrigger>
-              <TabsTrigger value="applications" className="rounded-lg px-4 sm:px-8 py-2.5 text-[10px] font-bold uppercase tracking-widest data-[state=active]:bg-primary data-[state=active]:text-white transition-all duration-300">
+              <TabsTrigger value="applications" className="rounded-lg px-4 sm:px-8 py-2.5 text-[10px] font-bold uppercase tracking-widest data-[state=active]:bg-bku-primary data-[state=active]:text-white transition-all duration-300">
                 <span className="material-symbols-outlined mr-2 inline" style={{ fontSize: '14px' }} >group</span> Verifikasi Pendaftar
               </TabsTrigger>
             </TabsList>
@@ -534,7 +534,7 @@ export default function KelolaBeasiswa() {
                   searchPlaceholder="Cari nama program atau instansi..."
                   actions={(row) => (
                     <div className="flex items-center gap-1.5">
-                      <Button onClick={() => setSelectedProgram(row)} variant="ghost" size="icon" className="h-8 w-8 text-neutral-400 hover:text-primary hover:bg-[#eef4ff] rounded-lg transition-colors" title="Lihat Detail"><span className="material-symbols-outlined" style={{ fontSize: '16px' }} >visibility</span></Button>
+                      <Button onClick={() => setSelectedProgram(row)} variant="ghost" size="icon" className="h-8 w-8 text-neutral-400 hover:text-bku-primary hover:bg-[#eef4ff] rounded-lg transition-colors" title="Lihat Detail"><span className="material-symbols-outlined" style={{ fontSize: '16px' }} >visibility</span></Button>
                       <Button onClick={() => handleOpenEdit(row)} variant="ghost" size="icon" className="h-8 w-8 text-neutral-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors" title="Edit"><span className="material-symbols-outlined" style={{ fontSize: '16px' }} >edit</span></Button>
                       <Button onClick={() => { setSelected(row); setIsDelOpen(true) }} variant="ghost" size="icon" className="h-8 w-8 text-neutral-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors" title="Hapus"><span className="material-symbols-outlined" style={{ fontSize: '16px' }} >delete</span></Button>
                     </div>
@@ -563,7 +563,7 @@ export default function KelolaBeasiswa() {
                   ]}
                   actions={(row) => (
                     <div className="flex items-center gap-1.5">
-                      <Button onClick={() => setPreviewApp(row)} variant="ghost" size="icon" className="h-8 w-8 text-neutral-400 hover:text-primary hover:bg-blue-50 rounded-lg transition-colors" title="Lihat Detail Pendaftaran"><span className="material-symbols-outlined" style={{ fontSize: '18px' }} >visibility</span></Button>
+                      <Button onClick={() => setPreviewApp(row)} variant="ghost" size="icon" className="h-8 w-8 text-neutral-400 hover:text-bku-primary hover:bg-blue-50 rounded-lg transition-colors" title="Lihat Detail Pendaftaran"><span className="material-symbols-outlined" style={{ fontSize: '18px' }} >visibility</span></Button>
                       <Button onClick={() => { setSelectedApp(row); setAppForm({ Status: row.Status === 'Disetujui Fakultas' ? 'Proses' : (row.Status || 'Proses'), Catatan: row.Catatan || '' }) }} variant="ghost" size="icon" className="h-8 w-8 text-neutral-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors" title="Review Pendaftaran"><span className="material-symbols-outlined" style={{ fontSize: '18px' }} >edit_note</span></Button>
                     </div>
                   )}
@@ -578,19 +578,19 @@ export default function KelolaBeasiswa() {
       {/* ── Scholarship CRUD Modal ─────────────────────────────────── */}
       <Dialog open={isCrudOpen} onOpenChange={setIsCrudOpen}>
         <DialogContent className="w-[95vw] sm:w-[90vw] md:max-w-2xl p-0 overflow-hidden border-none shadow-2xl rounded-2xl bg-white animate-in slide-in-from-bottom-4 duration-300">
-          <DialogHeader className="p-6 sm:p-8 pb-2 border-neutral-100 relative overflow-hidden bg-neutral-50/50">
-            <div className="absolute top-0 right-0 p-8 opacity-5 text-primary"><Award size={100} /></div>
+          <DialogHeader className="p-6 sm:p-8 pb-2 border-neutral-100 relative overflow-hidden bg-slate-50/50">
+            <div className="absolute top-0 right-0 p-8 opacity-5 text-bku-primary"><Award size={100} /></div>
             <div className="relative z-10 space-y-1">
               <div className="flex items-center gap-2 mb-2">
-                <div className="size-6 rounded bg-primary/10 flex items-center justify-center text-primary">
+                <div className="size-6 rounded bg-bku-primary/10 flex items-center justify-center text-bku-primary">
                   {isEditMode ? <span className="material-symbols-outlined" style={{ fontSize: '12px' }} >edit</span> : <span className="material-symbols-outlined" style={{ fontSize: '12px' }}  strokeWidth={3}>add</span>}
                 </div>
-                <span className="text-[10px] font-bold uppercase tracking-widest text-primary">Program Registry</span>
+                <span className="text-[10px] font-bold uppercase tracking-widest text-bku-primary font-headline">Program Registry</span>
               </div>
-              <DialogTitle className="text-xl sm:text-2xl font-bold font-jakarta tracking-tight text-neutral-900 uppercase">
+              <DialogTitle className="text-xl sm:text-2xl font-black font-headline tracking-tight text-slate-900 uppercase">
                 {isEditMode ? 'Update Beasiswa' : 'Tambah Beasiswa'}
               </DialogTitle>
-              <DialogDescription className="text-xs sm:text-sm font-medium text-neutral-400">Pendaftaran program bantuan dana pendidikan baru.</DialogDescription>
+              <DialogDescription className="text-xs sm:text-sm font-medium text-slate-400">Pendaftaran program bantuan dana pendidikan baru.</DialogDescription>
             </div>
           </DialogHeader>
 
@@ -639,9 +639,9 @@ export default function KelolaBeasiswa() {
               <Textarea value={form.Deskripsi} onChange={e => setForm({ ...form, Deskripsi: e.target.value })} placeholder="Detail persyaratan beasiswa..." className="min-h-[80px] rounded-xl border-neutral-200 bg-neutral-50/30 focus:bg-white p-4 font-medium text-sm font-jakarta" />
             </div>
 
-            <div className="pt-6 flex flex-col-reverse sm:flex-row gap-3 border-t border-neutral-100">
-               <Button type="button" variant="ghost" onClick={() => setIsCrudOpen(false)} className="w-full sm:w-auto h-12 rounded-xl text-xs font-bold uppercase tracking-widest text-neutral-400">Batal</Button>
-               <Button type="submit" disabled={isSubmitting} className="w-full sm:flex-1 h-12 rounded-xl bg-neutral-900 text-white hover:bg-primary shadow-md transition-all active:scale-95 flex items-center justify-center">
+            <div className="pt-6 flex flex-col-reverse sm:flex-row gap-3 border-t border-slate-100">
+               <Button type="button" variant="ghost" onClick={() => setIsCrudOpen(false)} className="w-full sm:w-auto h-12 rounded-xl text-xs font-bold uppercase tracking-widest text-slate-400 font-headline">Batal</Button>
+               <Button type="submit" disabled={isSubmitting} className="w-full sm:flex-1 h-12 rounded-xl bg-slate-900 text-white hover:bg-bku-primary shadow-md transition-all active:scale-95 flex items-center justify-center font-headline">
                   {isSubmitting ? <span className="material-symbols-outlined animate-spin mr-2" style={{ fontSize: '14px' }} >sync</span> : <span className="material-symbols-outlined mr-2" style={{ fontSize: '14px' }} >save</span>}
                   <span className="text-xs font-bold uppercase tracking-widest">Simpan Program</span>
                </Button>
@@ -674,7 +674,7 @@ export default function KelolaBeasiswa() {
             <div className="relative w-[95vw] sm:w-[90vw] md:max-w-md bg-white rounded-3xl shadow-2xl z-[101] flex flex-col overflow-hidden max-h-[90vh]"
               onClick={e => e.stopPropagation()}>
               {/* Header */}
-              <div className="relative bg-gradient-to-br from-[#00236F] via-[#00308F] to-[#003db5] pt-6 pb-7 px-6 overflow-hidden flex-shrink-0">
+              <div className="relative bg-gradient-to-br from-blue-800 via-blue-700 to-blue-600 pt-6 pb-7 px-6 overflow-hidden flex-shrink-0">
                 <div className="absolute -top-10 -right-10 w-44 h-44 bg-white/5 rounded-full pointer-events-none" />
                 <button onClick={() => setSelectedProgram(null)}
                   className="absolute z-50 top-4 right-4 w-8 h-8 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center transition-colors">
@@ -683,7 +683,7 @@ export default function KelolaBeasiswa() {
                 <div className="flex items-center gap-3">
                   <div className="min-w-0">
                     <p className="text-[9px] font-bold text-white/50 uppercase tracking-[0.25em] mb-1">Detail Program Beasiswa</p>
-                    <h2 className="text-base font-extrabold text-white leading-tight">{selectedProgram.Nama}</h2>
+                    <h2 className="text-base font-extrabold font-headline leading-tight" style={{ color: 'var(--theme-h2)' }}>{selectedProgram.Nama}</h2>
                     <p className="text-xs text-blue-200 font-medium mt-0.5">{selectedProgram.Penyelenggara}</p>
                   </div>
                 </div>
@@ -774,7 +774,7 @@ export default function KelolaBeasiswa() {
 
                 {/* Applicants List */}
                 <div>
-                  <h3 className="text-xs font-black text-slate-800 uppercase tracking-wider mb-3 flex items-center justify-between">
+                  <h3 className="text-xs font-black font-headline uppercase tracking-wider mb-3 flex items-center justify-between" style={{ color: 'var(--theme-h3)' }}>
                     <span>Pendaftar Terkini</span>
                     <span className="text-[10px] text-slate-400 font-bold lowercase">({programApps.length} pendaftar)</span>
                   </h3>
@@ -814,7 +814,7 @@ export default function KelolaBeasiswa() {
                             setSelectedProgram(null);
                             setAppFilters({ BeasiswaNama: selectedProgram.Nama });
                           }}
-                          className="w-full py-2.5 border border-dashed border-[#00236F]/30 hover:border-[#00236F]/60 rounded-xl text-[10px] font-bold text-[#00236F] hover:bg-[#eef4ff] uppercase tracking-wider flex items-center justify-center gap-1 transition-all"
+                          className="w-full py-2.5 border border-dashed border-bku-primary/30 hover:border-bku-primary/60 rounded-xl text-[10px] font-bold text-bku-primary hover:bg-[#eef4ff] uppercase tracking-wider flex items-center justify-center gap-1 transition-all"
                         >
                           Lihat Selengkapnya <span className="material-symbols-outlined" style={{ fontSize: 13 }}>chevron_right</span>
                         </button>
@@ -827,7 +827,7 @@ export default function KelolaBeasiswa() {
               {/* Footer */}
               <div className="px-5 py-4 border-t border-[#f0f0f0] bg-[#fafafa] flex gap-3 flex-shrink-0">
                 <button onClick={() => setSelectedProgram(null)}
-                  className="flex-1 h-11 rounded-xl bg-[#00236F] hover:bg-[#001f5c] text-xs font-bold text-white uppercase tracking-widest flex items-center justify-center gap-2 transition-all shadow-md active:scale-95">
+                  className="flex-1 h-11 rounded-xl bg-bku-primary hover:bg-bku-hover text-xs font-bold text-white uppercase tracking-widest flex items-center justify-center gap-2 transition-all shadow-md active:scale-95">
                   Tutup Detail
                 </button>
               </div>
@@ -845,7 +845,7 @@ export default function KelolaBeasiswa() {
               onClick={e => e.stopPropagation()}>
               
               {/* Header */}
-              <div className="relative bg-gradient-to-br from-[#00236F] via-[#00308F] to-[#003db5] pt-6 pb-7 px-6 overflow-hidden flex-shrink-0">
+              <div className="relative bg-gradient-to-br from-blue-800 via-blue-700 to-blue-600 pt-6 pb-7 px-6 overflow-hidden flex-shrink-0">
                 <div className="absolute -top-10 -right-10 w-44 h-44 bg-white/5 rounded-full pointer-events-none" />
                 <button onClick={() => setSelectedApp(null)}
                   className="absolute z-50 top-4 right-4 w-8 h-8 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center transition-colors">
@@ -855,7 +855,7 @@ export default function KelolaBeasiswa() {
                   <StudentAvatar src={selectedApp.Mahasiswa?.Foto || selectedApp.Mahasiswa?.foto_url} name={selectedApp.MahasiswaNama} className="w-14 h-14 rounded-2xl shadow-xl ring-2 ring-white/20" />
                   <div className="min-w-0">
                     <p className="text-[9px] font-bold text-white/50 uppercase tracking-[0.25em] mb-1">Review Pendaftaran</p>
-                    <h2 className="text-base font-extrabold text-white leading-tight truncate">{selectedApp.MahasiswaNama}</h2>
+                    <h2 className="text-base font-extrabold font-headline leading-tight truncate" style={{ color: 'var(--theme-h2)' }}>{selectedApp.MahasiswaNama}</h2>
                     <p className="text-xs text-blue-200 font-medium mt-0.5">{selectedApp.MahasiswaNIM}</p>
                   </div>
                 </div>
@@ -918,7 +918,7 @@ export default function KelolaBeasiswa() {
                   Batal
                 </button>
                 <button onClick={handleAppUpdate} disabled={isSubmitting}
-                  className="flex-1 h-11 rounded-xl bg-[#00236F] hover:bg-[#001a52] text-white text-xs font-bold uppercase tracking-widest transition-all active:scale-95 shadow-lg shadow-[#00236F]/20 disabled:opacity-60 flex items-center justify-center gap-2">
+                  className="flex-1 h-11 rounded-xl bg-bku-primary hover:bg-bku-hover text-white text-xs font-bold uppercase tracking-widest transition-all active:scale-95 shadow-lg shadow-bku-primary/20 disabled:opacity-60 flex items-center justify-center gap-2">
                   {isSubmitting ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '14px' }} >sync</span> : <span className="material-symbols-outlined" style={{ fontSize: '14px' }} >save</span>}
                   Simpan Keputusan
                 </button>
@@ -938,7 +938,7 @@ export default function KelolaBeasiswa() {
               onClick={e => e.stopPropagation()}>
               
               {/* Header */}
-              <div className="relative bg-gradient-to-br from-[#00236F] via-[#00308F] to-[#003db5] pt-6 pb-7 px-6 overflow-hidden flex-shrink-0">
+              <div className="relative bg-gradient-to-br from-blue-800 via-blue-700 to-blue-600 pt-6 pb-7 px-6 overflow-hidden flex-shrink-0">
                 <div className="absolute -top-10 -right-10 w-44 h-44 bg-white/5 rounded-full pointer-events-none" />
                 <button onClick={() => setPreviewApp(null)}
                   className="absolute z-50 top-4 right-4 w-8 h-8 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center transition-colors">
@@ -948,7 +948,7 @@ export default function KelolaBeasiswa() {
                   <StudentAvatar src={previewApp.Mahasiswa?.Foto || previewApp.Mahasiswa?.foto_url} name={previewApp.MahasiswaNama} className="w-14 h-14 rounded-2xl shadow-xl ring-2 ring-white/20" />
                   <div className="min-w-0">
                     <p className="text-[9px] font-bold text-white/50 uppercase tracking-[0.25em] mb-1">Detail Pendaftaran</p>
-                    <h2 className="text-base font-extrabold text-white leading-tight truncate">{previewApp.MahasiswaNama}</h2>
+                    <h2 className="text-base font-extrabold font-headline leading-tight truncate" style={{ color: 'var(--theme-h2)' }}>{previewApp.MahasiswaNama}</h2>
                     <p className="text-xs text-blue-200 font-medium mt-0.5">{previewApp.MahasiswaNIM}</p>
                   </div>
                 </div>
@@ -1038,7 +1038,7 @@ export default function KelolaBeasiswa() {
               {/* Footer */}
               <div className="px-5 py-4 border-t border-[#f0f0f0] bg-[#fafafa] flex gap-3 flex-shrink-0">
                 <button onClick={() => setPreviewApp(null)}
-                  className="flex-1 h-11 rounded-xl bg-[#00236F] hover:bg-[#001f5c] text-xs font-bold text-white uppercase tracking-widest flex items-center justify-center gap-2 transition-all shadow-md active:scale-95">
+                  className="flex-1 h-11 rounded-xl bg-bku-primary hover:bg-bku-hover text-xs font-bold text-white uppercase tracking-widest flex items-center justify-center gap-2 transition-all shadow-md active:scale-95">
                   Tutup Detail
                 </button>
               </div>

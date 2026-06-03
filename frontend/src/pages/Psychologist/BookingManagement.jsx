@@ -292,7 +292,7 @@ export default function BookingManagement() {
                   <span className="material-symbols-outlined size-7" >error</span>
                 </div>
                 <div>
-                  <h3 className="text-sm font-black uppercase tracking-tight text-slate-900">Data belum bisa dimuat</h3>
+                  <h3 className="text-sm font-black uppercase tracking-tight font-headline" style={{ color: 'var(--theme-h3)' }}>Data belum bisa dimuat</h3>
                   <p className="mt-1 max-w-md text-xs font-semibold text-slate-500">{error}</p>
                 </div>
               </div>
@@ -302,7 +302,7 @@ export default function BookingManagement() {
                   <span className="material-symbols-outlined size-7">assignment</span>
                 </div>
                 <div>
-                  <h3 className="text-sm font-black uppercase tracking-tight text-slate-900">Tidak ada booking yang cocok</h3>
+                  <h3 className="text-sm font-black uppercase tracking-tight font-headline" style={{ color: 'var(--theme-h3)' }}>Tidak ada booking yang cocok</h3>
                   <p className="mt-1 max-w-md text-xs font-semibold text-slate-500">Coba ubah kata kunci, status, atau topik filter untuk menampilkan data lain.</p>
                 </div>
                 {hasActiveFilter && (
@@ -409,7 +409,7 @@ export default function BookingManagement() {
                             {booking.avatar || booking.name?.charAt(0) || 'M'}
                           </div>
                           <div className="min-w-0 flex-1">
-                            <h3 className="truncate text-sm font-black text-slate-900">{booking.name || 'Mahasiswa'}</h3>
+                            <h3 className="truncate text-sm font-black font-headline" style={{ color: 'var(--theme-h3)' }}>{booking.name || 'Mahasiswa'}</h3>
                             <p className="mt-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-400">NIM {booking.nim || '-'}</p>
                           </div>
                           <span className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1 text-[9px] font-black uppercase tracking-widest ${statusMeta[status]?.badge || 'border-slate-200 bg-slate-50 text-slate-600'}`}>

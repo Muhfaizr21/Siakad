@@ -232,7 +232,7 @@ class _LoginScreenState extends State<LoginScreen> {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [AppColors.primary, Color.fromRGBO(0, 51, 153, 1)],
+          colors: [AppColors.primary, AppColors.primaryContainer],
         ),
       ),
       child: Stack(

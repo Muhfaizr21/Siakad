@@ -190,7 +190,7 @@ export default function PsychologistSettings() {
                             )}
                           </div>
                           <div>
-                            <h2 className="text-sm font-black uppercase tracking-widest text-slate-950">Identitas Profesional</h2>
+                            <h2 className="text-sm font-black font-headline uppercase tracking-widest" style={{ color: 'var(--theme-h2)' }}>Identitas Profesional</h2>
                             <p className="mt-1 max-w-xl text-xs font-semibold leading-relaxed text-slate-400">
                               Data ini digunakan oleh portal booking mahasiswa dan dashboard psikolog.
                             </p>

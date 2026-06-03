@@ -147,7 +147,7 @@ class _ServiceIcon extends StatelessWidget {
             Text(
               title,
               style: AppTextStyles.labelSm.copyWith(
-                color: const Color(0xFF475569),
+                color: AppColors.neutral600,  // Muted gray — not competing with primary
                 fontWeight: FontWeight.bold,
                 fontSize: 10,
               ),

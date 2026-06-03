@@ -84,13 +84,13 @@ export default function CounselingPage() {
 
         {/* Breadcrumb */}
         <nav className="flex items-center gap-1.5 text-sm text-neutral-400 mb-7">
-          <NavLink to="/student/dashboard" className="hover:text-[#00236F] transition-colors font-medium">Dashboard</NavLink>
+          <NavLink to="/student/dashboard" className="hover:text-bku-primary transition-colors font-medium">Dashboard</NavLink>
           <ChevronRight size={14} className="text-neutral-300" />
           <span className="text-[#171717] font-semibold">Konseling & Wellness</span>
         </nav>
 
         {/* ── HERO ── */}
-        <div className="relative bg-[#00236F] rounded-3xl overflow-hidden mb-8 p-7 md:p-10">
+        <div className="relative bg-bku-primary rounded-3xl overflow-hidden mb-8 p-7 md:p-10">
           {/* Decorative rings */}
           <div className="absolute -right-16 -top-16 w-72 h-72 rounded-full border border-white/10" />
           <div className="absolute -right-8 -top-8 w-48 h-48 rounded-full border border-white/10" />
@@ -170,8 +170,8 @@ export default function CounselingPage() {
                       onClick={() => setFilterTipe(tipe)}
                       className={`flex-1 sm:flex-none px-4 py-2 rounded-xl text-xs font-bold border transition-all whitespace-nowrap ${
                         filterTipe === tipe
-                          ? 'bg-[#00236F] text-white border-[#00236F]'
-                          : 'bg-neutral-50 text-neutral-500 border-neutral-200 hover:border-[#00236F] hover:text-[#00236F]'
+                          ? 'bg-bku-primary text-white border-bku-primary'
+                          : 'bg-neutral-50 text-neutral-500 border-neutral-200 hover:border-bku-primary hover:text-bku-primary'
                       }`}
                     >
                       {tipe}
@@ -225,7 +225,7 @@ export default function CounselingPage() {
                         <button
                           onClick={() => !isFull && setSelectedSlot(slot)}
                           disabled={isFull}
-                          className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all border-2 border-[#00236F] text-[#00236F] hover:bg-[#00236F] hover:text-white disabled:opacity-40 disabled:cursor-not-allowed disabled:border-neutral-200 disabled:text-neutral-400"
+                          className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all border-2 border-bku-primary text-bku-primary hover:bg-bku-primary hover:text-white disabled:opacity-40 disabled:cursor-not-allowed disabled:border-neutral-200 disabled:text-neutral-400"
                         >
                           Booking <span className="material-symbols-outlined" style={{ fontSize: '14px' }} >arrow_forward</span>
                         </button>
@@ -236,7 +236,7 @@ export default function CounselingPage() {
               ) : (
                 <EmptyState
                   icon="HeartHandshake"
-                  iconColor="text-[#00236F]"
+                  iconColor="text-bku-primary"
                   iconBgClass="bg-[#eef4ff]"
                   iconBorderClass="border-[#c9d8ff]"
                   title="Tidak Ada Jadwal"
@@ -249,7 +249,7 @@ export default function CounselingPage() {
           {/* RIGHT — Riwayat Summary */}
           <div className="space-y-4 lg:sticky lg:top-6 h-fit">
             <div className="overflow-hidden rounded-2xl border border-neutral-100 bg-white shadow-sm">
-              <div className="bg-[#00236F] p-5 text-white">
+              <div className="bg-bku-primary p-5 text-white">
                 <div className="flex items-center gap-2 text-white/70">
                   <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >description</span>
                   <span className="text-[10px] font-bold uppercase tracking-widest">Riwayat Konseling</span>
@@ -278,7 +278,7 @@ export default function CounselingPage() {
 
                 <NavLink
                   to="/student/counseling/history"
-                  className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-[#00236F] px-4 py-3 text-sm font-bold text-white transition-all hover:bg-[#0B4FAE]"
+                  className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-bku-primary px-4 py-3 text-sm font-bold text-white transition-all hover:bg-[#0B4FAE]"
                 >
                   Buka Riwayat Konseling
                   <ChevronRight size={16} />
@@ -303,7 +303,7 @@ export default function CounselingPage() {
             <div className="bg-white w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden">
 
               {/* Modal Header */}
-              <div className="bg-[#00236F] px-7 py-6 relative">
+              <div className="bg-bku-primary px-7 py-6 relative">
                 <button onClick={() => setSelectedSlot(null)} className="absolute top-5 right-5 text-white/40 hover:text-white transition-colors">
                   <span className="material-symbols-outlined" style={{ fontSize: '22px' }} >close</span>
                 </button>
@@ -311,7 +311,7 @@ export default function CounselingPage() {
                   <Sparkles size={14} className="text-white/60" />
                   <span className="text-white/60 text-xs font-semibold uppercase tracking-wider">Konfirmasi Booking</span>
                 </div>
-                <h2 className="text-xl font-extrabold text-white font-headline">{selectedSlot.NamaKonselor}</h2>
+                <h2 className="text-xl font-extrabold font-headline" style={{ color: 'var(--theme-h2)' }}>{selectedSlot.NamaKonselor}</h2>
                 <p className="text-white/50 text-sm mt-0.5 flex items-center gap-1.5">
                   <span className="material-symbols-outlined" style={{ fontSize: '13px' }} Check >security</span> Sesi dilindungi protokol kerahasiaan
                 </p>
@@ -345,7 +345,7 @@ export default function CounselingPage() {
                     value={keluhan}
                     onChange={(e) => setKeluhan(e.target.value)}
                     rows={4}
-                    className="w-full bg-neutral-50 border border-neutral-200 rounded-2xl px-4 py-3 text-sm text-neutral-700 focus:outline-none focus:border-[#00236F] focus:bg-white transition-all resize-none placeholder:text-neutral-300"
+                    className="w-full bg-neutral-50 border border-neutral-200 rounded-2xl px-4 py-3 text-sm text-neutral-700 focus:outline-none focus:border-bku-primary focus:bg-white transition-all resize-none placeholder:text-neutral-300"
                     placeholder="Contoh: Saya merasa kesulitan mengatur waktu belajar dan merasa cemas menjelang ujian..."
                   />
                   <p className="text-[10px] text-neutral-400 font-medium mt-1">
@@ -358,7 +358,7 @@ export default function CounselingPage() {
                     type="checkbox"
                     checked={privacyAgreed}
                     onChange={(e) => setPrivacyAgreed(e.target.checked)}
-                    className="w-4 h-4 mt-0.5 rounded border-blue-200 text-[#00236F] focus:ring-[#00236F] shrink-0 cursor-pointer"
+                    className="w-4 h-4 mt-0.5 rounded border-blue-200 text-bku-primary focus:ring-bku-primary shrink-0 cursor-pointer"
                   />
                   <span className="text-xs font-semibold text-blue-800 leading-relaxed">
                     Saya memahami bahwa sesi ini bersifat rahasia, sukarela, dan data saya hanya dapat diakses oleh konselor terkait.
@@ -375,7 +375,7 @@ export default function CounselingPage() {
                   <button
                     onClick={handleBooking}
                     disabled={bookingMutation.isPending}
-                    className="flex-1 py-3 rounded-2xl bg-[#00236F] text-white text-sm font-bold hover:bg-[#0B4FAE] disabled:opacity-50 transition-all flex items-center justify-center gap-2 shadow-lg shadow-blue-900/20"
+                    className="flex-1 py-3 rounded-2xl bg-bku-primary text-white text-sm font-bold hover:bg-[#0B4FAE] disabled:opacity-50 transition-all flex items-center justify-center gap-2 shadow-lg shadow-blue-900/20"
                   >
                     {bookingMutation.isPending ? 'Memproses...' : <><span className="material-symbols-outlined" style={{ fontSize: '16px' }} >check_circle</span> Konfirmasi</>}
                   </button>

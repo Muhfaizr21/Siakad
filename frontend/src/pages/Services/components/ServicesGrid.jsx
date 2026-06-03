@@ -1,79 +1,180 @@
 import React from 'react';
+import { Building2, FlaskConical, BookOpen, Briefcase, CheckCircle2 } from 'lucide-react';
+import { motion } from 'framer-motion';
 
-const ServicesGrid = () => {
+export default function ServicesGrid() {
+  const facilities = [
+    {
+      title: 'Gedung Kampus Mandiri',
+      subtitle: 'Milik Sendiri & Strategis',
+      desc: 'Infrastruktur fisik modern milik sendiri di lokasi strategis yang sangat mudah diakses oleh transportasi umum, menjamin keamanan dan kenyamanan belajar.',
+      icon: Building2,
+      image: '/images/Kampus/bandung.jpg',
+      features: [
+        'Gedung Kampus Milik Sendiri (Bukan Sewa)',
+        'Ruang Kuliah Ber-AC & Nyaman',
+        'Koneksi Wi-Fi Terintegrasi di Seluruh Area',
+        'Lokasi Strategis Mudah Diakses'
+      ]
+    },
+    {
+      title: 'Laboratorium Terpadu Modern',
+      subtitle: 'Teknologi Sediaan & Klinis',
+      desc: 'Laboratorium canggih dengan standar industri medis dan kefarmasian untuk mendukung praktikum klinis serta penelitian berkualitas tinggi.',
+      icon: FlaskConical,
+      image: '/images/Kampus/jakarta.jpg',
+      features: [
+        'Laboratorium Steril Sediaan Obat & Kimia',
+        'Instrumen Analisis Modern (Spektrofotometer/KCKT)',
+        'Laboratorium Keperawatan Gawat Darurat/ICU',
+        'Laboratorium Kebidanan & Simulasi Klinis'
+      ]
+    },
+    {
+      title: 'Pusat Informasi & Riset',
+      subtitle: 'Perpustakaan Pusat & LPPM',
+      desc: 'Layanan literatur riset terlengkap yang terintegrasi dengan akses jurnal nasional/internasional serta lembaga penelitian kemitraan.',
+      icon: BookOpen,
+      image: '/images/Kampus/serang.jpg',
+      features: [
+        'Koleksi Buku Referensi & Literatur Fisik Lengkap',
+        'Akses E-Journal Internasional (Scopus/ScienceDirect)',
+        'LPPM Sebagai Sentral Penelitian Mahasiswa',
+        'Penyelenggara KKN Tematik Terpadu'
+      ]
+    },
+    {
+      title: 'Career Center (Pusat Karir)',
+      subtitle: 'Pendampingan & Penyaluran Kerja',
+      desc: 'Pusat pembinaan karir terpadu untuk mempersiapkan mahasiswa tingkat akhir menghadapi dunia industri melalui pelatihan dan penyaluran kerja.',
+      icon: Briefcase,
+      image: '/images/Kampus/tasik.jpg',
+      features: [
+        'Bimbingan Karir & Konseling Karakter Kerja',
+        'Pelatihan Soft Skill (Komunikasi & Kepemimpinan)',
+        'Program Magang & PKL di Industri Farmasi/RS Mitra',
+        'Pusat Penyaluran & Lowongan Kerja Eksklusif'
+      ]
+    }
+  ];
+
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1, transition: { staggerChildren: 0.15 } }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 30 },
+    visible: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 80, damping: 15 } }
+  };
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-12 gap-6 mb-16">
-        {/* Counseling Service (Featured) */}
-        <div
-            className="md:col-span-8 bg-surface-container-low rounded-xl p-8 relative overflow-hidden group hover:bg-surface-container transition-all duration-300">
-            <div className="relative z-10">
-                <div className="w-12 h-12 bg-primary rounded-lg flex items-center justify-center mb-6 text-on-primary">
-                    <span className="material-symbols-outlined">psychology</span>
-                </div>
-                <h3 className="text-2xl font-headline font-bold text-primary mb-3">Student Counseling</h3>
-                <p className="text-secondary mb-6 max-w-md">Confidential mental health support, workshops, and
-                    one-on-one sessions with licensed professionals.</p>
-                <button className="flex items-center gap-2 text-primary font-bold hover:gap-4 transition-all">
-                    <span>Book a session</span>
-                    <span className="material-symbols-outlined text-sm">arrow_forward</span>
-                </button>
-            </div>
-            <div
-                className="absolute -bottom-10 -right-10 w-64 h-64 bg-primary-fixed/20 rounded-full blur-3xl group-hover:scale-125 transition-transform">
-            </div>
-        </div>
-        {/* Library Access */}
-        <div
-            className="md:col-span-4 bg-primary-container rounded-xl p-8 text-on-primary flex flex-col justify-between">
-            <div>
-                <span className="material-symbols-outlined text-4xl mb-6">local_library</span>
-                <h3 className="text-xl font-headline font-bold mb-2">Digital Library</h3>
-                <p className="text-on-primary-container text-sm leading-relaxed">Access 2M+ digital journals, ebooks,
-                    and research databases anywhere in the world.</p>
-            </div>
-            <button
-                className="mt-8 bg-surface-container-lowest text-primary py-3 px-4 rounded-lg font-headline font-bold text-center hover:bg-on-primary-container transition-colors">
-                Access Portal
-            </button>
-        </div>
-        {/* IT Support */}
-        <div
-            className="md:col-span-4 bg-surface-container-low rounded-xl p-8 hover:bg-surface-container transition-all">
-            <span className="material-symbols-outlined text-primary text-3xl mb-4">support</span>
-            <h3 className="text-lg font-headline font-bold text-primary mb-2">IT &amp; Tech Support</h3>
-            <p className="text-secondary text-sm mb-6">VPN setup, software licensing, and hardware troubleshooting for
-                student devices.</p>
-            <div className="flex flex-col gap-2">
-                <div
-                    className="flex items-center gap-3 text-xs font-semibold text-primary py-2 px-3 bg-white rounded-lg">
-                    <span className="w-2 h-2 rounded-full bg-emerald-500"></span> Live Chat Online
-                </div>
-            </div>
-        </div>
-        {/* Career Center */}
-        <div
-            className="md:col-span-4 bg-white border border-outline-variant/15 rounded-xl p-8 hover:shadow-lg transition-all">
-            <span className="material-symbols-outlined text-primary text-3xl mb-4">work_history</span>
-            <h3 className="text-lg font-headline font-bold text-primary mb-2">Career Center</h3>
-            <p className="text-secondary text-sm mb-6">Internship placements, resume reviews, and networking events with
-                global industry leaders.</p>
-            <a className="text-primary text-sm font-bold underline decoration-2 underline-offset-4" href="#">Browse
-                Opportunities</a>
-        </div>
-        {/* Campus Facilities */}
-        <div className="md:col-span-4 bg-surface-container-highest rounded-xl p-8 relative overflow-hidden group">
-            <img className="absolute inset-0 w-full h-full object-cover opacity-20 grayscale group-hover:grayscale-0 transition-all duration-500"
-                alt="Modern university campus architecture with sleek glass buildings and sustainable green gardens at sunrise"
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuCvWLR3dW8jf8ZKqZ6IhaKe8q5Z1ed7rf7vdb5NlE8Ic3aWYsn40euOZDNgEFW56p0XRGk5qILRE61-ylr5WIbGh8d_PQohAIxF6j8i9QeCEf8BpDP4KPiVeJGgQkp57j1Mf7Y32wDAPH7n4U7Wbaj5_VY54-J_cFpotI_zKXWEGP263AGmhWjiU6T9SD7sZFbdL6mDh8JRBGWuzB3IdQG8uUQFxuTRcaKMeKF48KAyUXBReIF6iG82zq17LzHWRlG2Fou9g9Oa-zvP" />
-            <div className="relative z-10">
-                <span className="material-symbols-outlined text-primary text-3xl mb-4">apartment</span>
-                <h3 className="text-lg font-headline font-bold text-primary mb-2">Campus Facilities</h3>
-                <p className="text-secondary text-sm">Room bookings, gym memberships, and on-campus housing management.
-                </p>
-            </div>
-        </div>
-    </div>
-  );
-};
+    <section
+      className="py-24 sm:py-32 px-4 sm:px-6 lg:px-8 relative overflow-hidden"
+      style={{ backgroundColor: 'var(--theme-bg)' }}
+    >
+      {/* Decorative Blur */}
+      <div
+        className="absolute top-[10%] left-[-10%] w-[300px] h-[300px] rounded-full pointer-events-none"
+        style={{ background: 'color-mix(in srgb, var(--theme-secondary) 5%, transparent)', filter: 'blur(80px)' }}
+      />
 
-export default ServicesGrid;
+      <div className="max-w-7xl mx-auto w-full relative z-10">
+
+        {/* Sub-header */}
+        <div className="text-center max-w-2xl mx-auto mb-20 space-y-4">
+          <span className="text-xs font-bold uppercase tracking-widest font-headline block" style={{ color: 'var(--theme-secondary)' }}>
+            Ekosistem & Fasilitas UBK
+          </span>
+          <h2 className="text-3xl sm:text-4xl font-extrabold font-headline" style={{ color: 'var(--theme-text)' }}>
+            Prasarana Unggulan Untuk Menjamin Kualitas Pendidikan
+          </h2>
+          <p className="font-light text-sm sm:text-base leading-relaxed" style={{ color: 'var(--theme-text-muted)' }}>
+            Kami menginvestasikan sumber daya terbaik untuk menciptakan sarana pembelajaran modern yang aman, interaktif, dan sesuai dengan standar dunia kerja saat ini.
+          </p>
+        </div>
+
+        {/* 2x2 Grid of Detailed Cards */}
+        <motion.div
+          variants={containerVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: '-100px' }}
+          className="grid grid-cols-1 lg:grid-cols-2 gap-12"
+        >
+          {facilities.map((fac, i) => {
+            const IconComponent = fac.icon;
+            return (
+              <motion.div
+                key={i}
+                variants={itemVariants}
+                className="rounded-3xl overflow-hidden transition-all duration-300 flex flex-col group"
+                style={{ backgroundColor: 'var(--theme-surface)', border: '1px solid var(--theme-border)' }}
+              >
+                {/* Visual Gradient Header */}
+                <div
+                  className="h-32 sm:h-36 w-full relative overflow-hidden flex items-end p-6"
+                  style={{ background: 'linear-gradient(160deg, var(--theme-primary) 0%, color-mix(in srgb, var(--theme-primary) 60%, var(--theme-secondary) 100%)' }}
+                >
+                  {/* Decorative gold glow sphere */}
+                  <div
+                    className="absolute top-[-20%] right-[-10%] w-48 h-48 rounded-full pointer-events-none"
+                    style={{ background: 'color-mix(in srgb, var(--theme-secondary) 10%, transparent)', filter: 'blur(40px)' }}
+                  />
+
+                  {/* Grid pattern overlay */}
+                  <div
+                    className="absolute inset-0 opacity-[0.03]"
+                    style={{
+                      backgroundImage: `radial-gradient(circle, var(--theme-secondary) 1px, transparent 1px)`,
+                      backgroundSize: '24px 24px'
+                    }}
+                  />
+
+                  {/* Floating Icon Box & Titles */}
+                  <div className="flex items-center gap-3.5 z-10 relative">
+                    <div
+                      className="w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg"
+                      style={{
+                        backgroundColor: 'var(--theme-secondary)',
+                        color: 'var(--theme-primary)',
+                        border: '1px solid color-mix(in srgb, var(--theme-secondary) 30%, transparent)'
+                      }}
+                    >
+                      <IconComponent className="size-5" />
+                    </div>
+                    <div className="text-left leading-none">
+                      <span className="text-[10px] font-bold uppercase tracking-wider block mb-1" style={{ color: 'var(--theme-secondary)' }}>{fac.subtitle}</span>
+                      <h3 className="text-lg sm:text-xl font-extrabold font-headline leading-tight font-semibold" style={{ color: 'var(--theme-text-on-primary)' }}>{fac.title}</h3>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Card Content Body */}
+                <div className="p-8 flex-grow flex flex-col justify-between gap-6 text-left">
+                  <p className="font-light text-sm sm:text-base leading-relaxed" style={{ color: 'var(--theme-text-muted)' }}>
+                    {fac.desc}
+                  </p>
+
+                  {/* Bullet points of features */}
+                  <div className="space-y-3 pt-6 flex-grow" style={{ borderTop: '1px solid var(--theme-border)' }}>
+                    <h4 className="text-xs font-bold uppercase tracking-wider mb-4" style={{ color: 'var(--theme-text)' }}>Fitur & Keunggulan Layanan:</h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {fac.features.map((feat, idx) => (
+                        <div key={idx} className="flex gap-2 items-start text-xs sm:text-sm font-light leading-relaxed">
+                          <CheckCircle2 className="size-4 shrink-0 mt-0.5" style={{ color: 'var(--theme-secondary)' }} />
+                          <span style={{ color: 'var(--theme-text-muted)' }}>{feat}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            );
+          })}
+        </motion.div>
+
+      </div>
+    </section>
+  );
+}

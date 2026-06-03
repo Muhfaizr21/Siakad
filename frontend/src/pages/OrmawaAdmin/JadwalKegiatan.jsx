@@ -192,7 +192,7 @@ export default function JadwalKegiatan() {
       <Toaster position="top-right" />
       
       {/* ── Welcome Banner ─────────────────────────────────────────── */}
-      <section className="relative overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-[#00236F] to-[#1e3a8a] text-white p-8 md:p-10 shadow-xl shadow-blue-950/15 border border-[#00236F]/10">
+      <section className="relative overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-bku-primary to-[#1e3a8a] text-white p-8 md:p-10 shadow-xl shadow-blue-950/15 border border-bku-primary/10">
         <div className="absolute inset-0 opacity-[0.04]"
           style={{
             backgroundImage: `radial-gradient(circle at 20% 50%, white 1px, transparent 1px), radial-gradient(circle at 80% 20%, white 1px, transparent 1px)`,
@@ -223,7 +223,7 @@ export default function JadwalKegiatan() {
             </p>
           </div>
 
-          <Button onClick={handleOpenAdd} className="h-12 px-6 rounded-2xl bg-white text-[#00236F] hover:bg-slate-50 font-black text-[10px] tracking-widest shadow-lg shadow-black/10 gap-2 w-full md:w-auto shrink-0 border border-white/10 uppercase transition-all duration-150 active:scale-95">
+          <Button onClick={handleOpenAdd} className="h-12 px-6 rounded-2xl bg-white text-bku-primary hover:bg-slate-50 font-black text-[10px] tracking-widest shadow-lg shadow-black/10 gap-2 w-full md:w-auto shrink-0 border border-white/10 uppercase transition-all duration-150 active:scale-95">
             <span className="material-symbols-outlined normal-case text-[16px] stroke-[3px]">add</span> Tambah Kegiatan Baru
           </Button>
         </div>
@@ -237,7 +237,7 @@ export default function JadwalKegiatan() {
           </div>
           <div>
             <p className="text-[10px] font-black text-slate-400 tracking-wider uppercase font-headline">Total Kegiatan</p>
-            <h3 className="text-2xl font-black text-slate-900 font-headline mt-0.5 leading-none">{totalEvents}</h3>
+            <h3 className="text-2xl font-black font-headline mt-0.5 leading-none" style={{ color: 'var(--theme-h3)' }}>{totalEvents}</h3>
           </div>
         </div>
 
@@ -247,7 +247,7 @@ export default function JadwalKegiatan() {
           </div>
           <div>
             <p className="text-[10px] font-black text-slate-400 tracking-wider uppercase font-headline">Berlangsung</p>
-            <h3 className="text-2xl font-black text-slate-900 font-headline mt-0.5 leading-none">{activeEvents}</h3>
+            <h3 className="text-2xl font-black font-headline mt-0.5 leading-none" style={{ color: 'var(--theme-h3)' }}>{activeEvents}</h3>
           </div>
         </div>
 
@@ -257,7 +257,7 @@ export default function JadwalKegiatan() {
           </div>
           <div>
             <p className="text-[10px] font-black text-slate-400 tracking-wider uppercase font-headline">Terjadwal</p>
-            <h3 className="text-2xl font-black text-slate-900 font-headline mt-0.5 leading-none">{upcomingEvents}</h3>
+            <h3 className="text-2xl font-black font-headline mt-0.5 leading-none" style={{ color: 'var(--theme-h3)' }}>{upcomingEvents}</h3>
           </div>
         </div>
 
@@ -267,7 +267,7 @@ export default function JadwalKegiatan() {
           </div>
           <div>
             <p className="text-[10px] font-black text-slate-400 tracking-wider uppercase font-headline">Selesai</p>
-            <h3 className="text-2xl font-black text-slate-900 font-headline mt-0.5 leading-none">{completedEvents}</h3>
+            <h3 className="text-2xl font-black font-headline mt-0.5 leading-none" style={{ color: 'var(--theme-h3)' }}>{completedEvents}</h3>
           </div>
         </div>
       </div>
@@ -300,7 +300,7 @@ export default function JadwalKegiatan() {
           {selected && (
             <div className="flex flex-col">
               {/* Header */}
-              <div className="p-8 bg-gradient-to-br from-[#00236F] to-[#1e3a8a] text-white relative overflow-hidden">
+              <div className="p-8 bg-gradient-to-br from-bku-primary to-[#1e3a8a] text-white relative overflow-hidden">
                 <div className="absolute inset-0 opacity-[0.05]"
                   style={{
                     backgroundImage: `radial-gradient(circle at 10% 20%, white 1px, transparent 1px)`,
@@ -312,7 +312,7 @@ export default function JadwalKegiatan() {
                   <div className="flex items-start justify-between gap-4">
                     <div className="space-y-1">
                       <span className="text-[9px] font-black text-cyan-400 tracking-[0.2em] uppercase font-headline">Detail Agenda</span>
-                      <h2 className="text-xl md:text-2xl font-black text-white font-headline tracking-tight uppercase leading-snug">{selected.Judul}</h2>
+                      <h2 className="text-xl md:text-2xl font-black font-headline tracking-tight uppercase leading-snug" style={{ color: 'var(--theme-h2)' }}>{selected.Judul}</h2>
                     </div>
                     <Badge className={cn('font-black text-[9px] tracking-wider uppercase px-2.5 py-1 border shrink-0 flex items-center gap-1 shadow-sm border-none', STATUS_CFG[selected.Status]?.cls || 'bg-slate-100 text-slate-600')}>
                       <span className="material-symbols-outlined normal-case text-[10px]">{STATUS_CFG[selected.Status]?.icon || 'info'}</span>
@@ -377,7 +377,7 @@ export default function JadwalKegiatan() {
                   <Button variant="ghost" onClick={() => setIsDetailOpen(false)} className="text-[10px] font-black text-slate-400 tracking-[0.15em] px-6 h-11 rounded-2xl hover:bg-slate-100 uppercase transition-all duration-150">
                     Tutup
                   </Button>
-                  <Button onClick={() => { setIsDetailOpen(false); handleOpenEdit(selected) }} className="text-[10px] font-black tracking-[0.15em] h-11 px-8 rounded-2xl bg-[#00236F] hover:bg-[#001f60] text-white shadow-lg shadow-blue-900/10 uppercase transition-all duration-150 active:scale-95 flex items-center gap-1.5">
+                  <Button onClick={() => { setIsDetailOpen(false); handleOpenEdit(selected) }} className="text-[10px] font-black tracking-[0.15em] h-11 px-8 rounded-2xl bg-bku-primary hover:bg-[#001f60] text-white shadow-lg shadow-blue-900/10 uppercase transition-all duration-150 active:scale-95 flex items-center gap-1.5">
                     <span className="material-symbols-outlined normal-case text-[14px]">edit</span> Edit Agenda
                   </Button>
                 </div>
@@ -396,10 +396,10 @@ export default function JadwalKegiatan() {
             </div>
             <div className="relative z-10">
               <div className="flex items-center gap-3 mb-2">
-                <div className="size-9 rounded-2xl bg-[#00236F]/10 flex items-center justify-center text-[#00236F] shadow-inner">
+                <div className="size-9 rounded-2xl bg-bku-primary/10 flex items-center justify-center text-bku-primary shadow-inner">
                   {isEditMode ? <span className="material-symbols-outlined normal-case text-[18px]">edit</span> : <span className="material-symbols-outlined normal-case text-[18px] stroke-[2px]">add</span>}
                 </div>
-                <Badge className="text-[9px] font-black tracking-widest px-2.5 py-0.5 bg-[#00236F]/5 text-[#00236F] border-none uppercase">Event Registry</Badge>
+                <Badge className="text-[9px] font-black tracking-widest px-2.5 py-0.5 bg-bku-primary/5 text-bku-primary border-none uppercase">Event Registry</Badge>
               </div>
               <DialogTitle className="text-xl md:text-2xl font-black font-headline tracking-tight text-slate-900 leading-none">{isEditMode ? 'EDIT KEGIATAN' : 'JADWALKAN KEGIATAN'}</DialogTitle>
               <DialogDescription className="text-[10px] md:text-xs font-medium text-slate-400 mt-1.5">Tambahkan agenda dan jadwal pelaksanaan kegiatan resmi organisasi.</DialogDescription>
@@ -414,7 +414,7 @@ export default function JadwalKegiatan() {
                 value={form.Judul} 
                 onChange={e => setForm({ ...form, Judul: e.target.value })} 
                 placeholder="Contoh: Pekan Olahraga Mahasiswa..."
-                className="h-12 rounded-2xl border-slate-200 bg-slate-50 focus:bg-white focus:border-[#00236F] focus:ring-4 focus:ring-[#00236F]/10 transition-all font-bold text-sm font-headline" 
+                className="h-12 rounded-2xl border-slate-200 bg-slate-50 focus:bg-white focus:border-bku-primary focus:ring-4 focus:ring-bku-primary/10 transition-all font-bold text-sm font-headline" 
               />
             </div>
             
@@ -426,7 +426,7 @@ export default function JadwalKegiatan() {
                   type="date" 
                   value={form.TanggalMulai} 
                   onChange={e => setForm({ ...form, TanggalMulai: e.target.value })}
-                  className="h-12 rounded-2xl border-slate-200 bg-slate-50 focus:bg-white focus:border-[#00236F] focus:ring-4 focus:ring-[#00236F]/10 transition-all font-bold text-sm font-headline cursor-pointer" 
+                  className="h-12 rounded-2xl border-slate-200 bg-slate-50 focus:bg-white focus:border-bku-primary focus:ring-4 focus:ring-bku-primary/10 transition-all font-bold text-sm font-headline cursor-pointer" 
                 />
               </div>
               <div className="space-y-2">
@@ -435,7 +435,7 @@ export default function JadwalKegiatan() {
                   type="date" 
                   value={form.TanggalSelesai} 
                   onChange={e => setForm({ ...form, TanggalSelesai: e.target.value })}
-                  className="h-12 rounded-2xl border-slate-200 bg-slate-50 focus:bg-white focus:border-[#00236F] focus:ring-4 focus:ring-[#00236F]/10 transition-all font-bold text-sm font-headline cursor-pointer" 
+                  className="h-12 rounded-2xl border-slate-200 bg-slate-50 focus:bg-white focus:border-bku-primary focus:ring-4 focus:ring-bku-primary/10 transition-all font-bold text-sm font-headline cursor-pointer" 
                 />
               </div>
             </div>
@@ -447,7 +447,7 @@ export default function JadwalKegiatan() {
                   value={form.Lokasi} 
                   onChange={e => setForm({ ...form, Lokasi: e.target.value })} 
                   placeholder="Contoh: Gedung Rektorat Lt. 3..."
-                  className="h-12 rounded-2xl border-slate-200 bg-slate-50 focus:bg-white focus:border-[#00236F] focus:ring-4 focus:ring-[#00236F]/10 transition-all font-bold text-sm font-headline" 
+                  className="h-12 rounded-2xl border-slate-200 bg-slate-50 focus:bg-white focus:border-bku-primary focus:ring-4 focus:ring-bku-primary/10 transition-all font-bold text-sm font-headline" 
                 />
               </div>
               <div className="space-y-2">
@@ -455,7 +455,7 @@ export default function JadwalKegiatan() {
                 <select 
                   value={form.Status} 
                   onChange={e => setForm({ ...form, Status: e.target.value })}
-                  className="w-full h-12 rounded-2xl border border-slate-200 bg-slate-50 px-4 text-sm font-bold text-slate-700 focus:outline-none focus:bg-white focus:border-[#00236F] focus:ring-4 focus:ring-[#00236F]/10 transition-all"
+                  className="w-full h-12 rounded-2xl border border-slate-200 bg-slate-50 px-4 text-sm font-bold text-slate-700 focus:outline-none focus:bg-white focus:border-bku-primary focus:ring-4 focus:ring-bku-primary/10 transition-all"
                 >
                   {Object.entries(STATUS_CFG).map(([v, { label }]) => (
                     <option key={v} value={v}>{label}</option>
@@ -478,7 +478,7 @@ export default function JadwalKegiatan() {
               <Button type="button" variant="ghost" onClick={() => setIsCrudOpen(false)} className="w-full md:w-auto text-[10px] font-black tracking-widest text-slate-400 hover:text-slate-900 px-8 h-12 rounded-2xl uppercase transition-all duration-150">
                 Batalkan
               </Button>
-              <Button type="submit" disabled={isSubmitting} className="w-full md:w-auto h-12 px-10 rounded-2xl bg-[#00236F] text-white hover:bg-[#001f60] shadow-xl shadow-blue-900/10 transition-all hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-1.5">
+              <Button type="submit" disabled={isSubmitting} className="w-full md:w-auto h-12 px-10 rounded-2xl bg-bku-primary text-white hover:bg-[#001f60] shadow-xl shadow-blue-900/10 transition-all hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-1.5">
                 {isSubmitting ? (
                   <span className="material-symbols-outlined normal-case animate-spin text-[16px]">sync</span>
                 ) : (

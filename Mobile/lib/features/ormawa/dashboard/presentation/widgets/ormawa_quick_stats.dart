@@ -128,7 +128,7 @@ class _MiniStat extends StatelessWidget {
             children: [
               Text(
                 title,
-                style: AppTextStyles.labelSm.copyWith(color: Colors.white60, fontSize: 10),
+                style: AppTextStyles.labelSm.copyWith(color: Colors.white.withAlpha(180), fontSize: 10),
               ),
               Text(
                 value,

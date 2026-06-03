@@ -5,6 +5,7 @@ import (
 	"os"
 	authSvc "siakad-backend/auth"
 	"siakad-backend/config"
+	"siakad-backend/controllers"
 	"siakad-backend/middleware"
 	"siakad-backend/routes"
 
@@ -69,6 +70,7 @@ func main() {
 			"message": "Backend is online",
 		})
 	})
+	app.Get("/api/public/theme", controllers.GetPublicTheme)
 
 	// Auth Routes
 	authGroup := app.Group("/api/auth")

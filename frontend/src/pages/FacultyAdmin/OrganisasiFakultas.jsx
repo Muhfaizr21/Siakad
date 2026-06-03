@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils'
 import { API_BASE_URL } from '../../services/api'
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "./components/select"
 import { Button } from "./components/button"
+import { DeleteConfirmModal } from "./components/DeleteConfirmModal"
 
 // Auto-injected Material Symbol fallbacks for removed Lucide icons
 const Users2 = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>groups</span>;
@@ -121,11 +122,11 @@ export default function FacultyOrganisasi() {
   const stats = { total:organizations.length, aktif:organizations.filter(o=>o.status==='Aktif').length, anggota:organizations.reduce((a,o)=>a+(o.jumlah_anggota||0),0) }
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] font-body">
+    <div className="min-h-screen bg-transparent font-inter">
       <Toaster position="top-right"/>
       <div className="max-w-[1600px] mx-auto px-4 py-8 md:px-8 xl:px-12 space-y-6">
         {/* Header */}
-        <section className="relative overflow-hidden rounded-3xl h-auto md:h-48 flex flex-col md:flex-row items-center group shadow-sm p-6 md:p-8 border border-slate-200/80 bg-white">
+        <section className="relative overflow-hidden rounded-2xl h-auto md:h-48 flex flex-col md:flex-row items-center group shadow-none p-6 md:p-8 border border-slate-200/60 glass-card">
           <div className="absolute inset-0 bg-gradient-to-br from-white via-slate-50/50 to-slate-100/50" />
           <div className="absolute inset-0 opacity-[0.03]"
             style={{
@@ -150,7 +151,7 @@ export default function FacultyOrganisasi() {
               </p>
             </div>
             <button onClick={()=>{ setEdit(null); setFormData(EMPTY_FORM); setModal(true) }}
-              className="h-11 px-5 rounded-xl bg-primary hover:bg-[#001a52] text-white text-xs font-bold uppercase tracking-widest gap-2 flex items-center transition-all active:scale-95 shadow-lg shadow-[#00236F]/20 shrink-0">
+              className="h-11 px-5 rounded-xl bg-primary hover:bg-bku-hover text-white text-xs font-bold uppercase tracking-widest gap-2 flex items-center transition-all active:scale-95 shadow-lg shadow-bku-primary/20 shrink-0">
               <span className="material-symbols-outlined" style={{ fontSize: '15px' }} >add</span> Tambah ORMAWA
             </button>
           </div>
@@ -163,7 +164,7 @@ export default function FacultyOrganisasi() {
             {label:'Organisasi Aktif',value:stats.aktif,   icon:CheckCircle2, bg:'bg-emerald-50', color:'text-emerald-600', desc:'Status aktif beroperasi'},
             {label:'Total Anggota',   value:stats.anggota, icon:ShieldCheck, bg:'bg-indigo-50',  color:'text-indigo-600',  desc:'Jangkauan anggota'},
           ].map(s=>(
-            <div key={s.label} className="bg-white border border-slate-100/50 rounded-3xl p-5 shadow-sm">
+            <div key={s.label} className="glass-card border border-slate-200/60 rounded-2xl p-5 shadow-none">
               <div className="flex items-center gap-3 mb-3">
                 <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center',s.bg,s.color)}><s.icon size={18}/></div>
                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{s.label}</span>
@@ -175,16 +176,16 @@ export default function FacultyOrganisasi() {
         </div>
 
         {/* Table */}
-        <div className="bg-white border border-slate-100/50 rounded-3xl shadow-sm overflow-hidden">
+        <div className="glass-card border border-slate-200/60 rounded-2xl shadow-none overflow-hidden">
           <div className="px-5 py-4 border-b border-slate-100 flex flex-col sm:flex-row items-start sm:items-center gap-3">
             <div className="flex-1">
-              <h2 className="font-bold text-base text-slate-900">Daftar Organisasi Mahasiswa</h2>
+              <h2 className="font-black text-sm uppercase tracking-tight font-headline" style={{ color: 'var(--theme-h2)' }}>Daftar Organisasi Mahasiswa</h2>
               <p className="text-xs text-slate-500 mt-0.5">Menampilkan <span className="font-bold text-slate-900">{filtered.length}</span> dari <span className="font-bold text-primary">{organizations.length}</span> organisasi</p>
             </div>
             <div className="relative">
               <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" style={{ fontSize: '14px' }} >search</span>
               <input type="text" placeholder="Cari nama atau kode..." value={search} onChange={e=>setSearch(e.target.value)}
-                className="pl-9 pr-4 h-9 w-52 rounded-xl border border-slate-200/60 focus:outline-none focus:border-primary text-sm bg-white"/>
+                className="pl-9 pr-4 h-9 w-52 rounded-xl border border-slate-200/60 focus:outline-none focus:border-primary text-sm bg-transparent"/>
             </div>
           </div>
           <div className="overflow-x-auto">
@@ -263,7 +264,7 @@ export default function FacultyOrganisasi() {
           </div>
 
           {/* Modern Pagination Footer */}
-          <div className="px-6 py-4 bg-slate-50/50 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="px-6 py-4 bg-transparent border-t border-slate-200/60 flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
               <p className="text-xs text-slate-500 font-medium text-center sm:text-left">
                 Menampilkan <span className="font-semibold text-slate-800">{totalItems > 0 ? (currentPage - 1) * pageSize + 1 : 0}</span> sampai <span className="font-semibold text-slate-800">{Math.min(currentPage * pageSize, totalItems)}</span> dari <span className="font-semibold text-slate-800">{totalItems}</span> entri
@@ -341,13 +342,13 @@ export default function FacultyOrganisasi() {
       {/* Form Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4" onClick={()=>setModal(false)}>
-          <div className="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl z-[101] flex flex-col overflow-hidden max-h-[90vh]" onClick={e=>e.stopPropagation()}>
-            <div className="relative bg-gradient-to-br from-[#00236F] to-[#003db5] pt-6 pb-7 px-6 overflow-hidden flex-shrink-0">
+          <div className="relative w-full max-w-lg glass-card rounded-2xl shadow-none border border-slate-200/60 flex flex-col overflow-hidden max-h-[90vh]" onClick={e=>e.stopPropagation()}>
+            <div className="relative bg-gradient-to-br from-bku-primary to-[#003db5] pt-6 pb-7 px-6 overflow-hidden flex-shrink-0">
               <div className="absolute -top-10 -right-10 w-44 h-44 bg-white/5 rounded-full pointer-events-none"/>
               <button onClick={()=>setModal(false)} className="absolute z-50 top-4 right-4 w-8 h-8 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center transition-colors"><span className="material-symbols-outlined" style={{ fontSize: '15px' }} >close</span></button>
               <div className="relative z-10">
                 <p className="text-[9px] font-bold text-white/50 uppercase tracking-[0.25em] mb-1">{editingOrg?'Edit Organisasi':'Registrasi Baru'}</p>
-                <h2 className="text-xl font-extrabold text-white">{editingOrg?'Update Data ORMAWA':'Tambah Organisasi'}</h2>
+                <h2 className="text-xl font-extrabold font-headline" style={{ color: 'var(--theme-h2)' }}>{editingOrg?'Update Data ORMAWA':'Tambah Organisasi'}</h2>
               </div>
             </div>
             <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
@@ -379,9 +380,9 @@ export default function FacultyOrganisasi() {
                 <div><label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.18em] mb-1.5">{editingOrg?'Password (kosongkan jika tidak diubah)':'Password Akun Admin'}</label>
                   <input type="password" value={formData.password} onChange={e=>set('password',e.target.value)} placeholder="Password login admin ormawa..." required={!editingOrg} className="w-full h-11 px-4 rounded-xl border border-slate-200/60 bg-slate-50/50 text-sm font-medium text-slate-900 focus:outline-none focus:border-primary focus:bg-white transition-all"/></div>
               </div>
-              <div className="px-5 py-4 border-t border-slate-100 bg-slate-50/50 flex gap-3 flex-shrink-0">
+              <div className="px-5 py-4 border-t border-slate-200/60 bg-transparent flex gap-3 flex-shrink-0">
                 <button type="button" onClick={()=>setModal(false)} className="flex-1 h-11 rounded-xl border border-slate-200/60 bg-white text-xs font-bold text-slate-600 uppercase tracking-widest hover:bg-slate-50 transition-all">Batal</button>
-                <button type="submit" disabled={isSubmitting} className="flex-1 h-11 rounded-xl bg-primary hover:bg-[#001a52] text-white text-xs font-bold uppercase tracking-widest transition-all active:scale-95 shadow-lg shadow-[#00236F]/20 disabled:opacity-60 flex items-center justify-center gap-2">
+                <button type="submit" disabled={isSubmitting} className="flex-1 h-11 rounded-xl bg-primary hover:bg-bku-hover text-white text-xs font-bold uppercase tracking-widest transition-all active:scale-95 shadow-lg shadow-bku-primary/20 disabled:opacity-60 flex items-center justify-center gap-2">
                   {isSubmitting?<span className="material-symbols-outlined animate-spin" style={{ fontSize: '14px' }} >sync</span>:<span className="material-symbols-outlined" style={{ fontSize: '14px' }} >save</span>} {editingOrg?'Update Data':'Simpan Data'}
                 </button>
               </div>
@@ -391,43 +392,14 @@ export default function FacultyOrganisasi() {
       )}
 
       {/* Delete Confirm */}
-      {delTarget && (
-        <div
-          className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-[100] flex items-center justify-center p-4 animate-in fade-in duration-200"
-          onClick={() => setDelTarget(null)}
-        >
-          <div
-            className="relative w-full max-w-md bg-white rounded-[24px] shadow-2xl z-[101] overflow-hidden border border-slate-100 p-8 animate-in zoom-in-95 duration-300"
-            onClick={e => e.stopPropagation()}
-          >
-            <div className="text-left">
-              <h3 className="text-[20px] font-bold text-[#0f172a] mb-2 leading-tight">Hapus Organisasi?</h3>
-              <p className="text-[13px] text-[#64748b] leading-relaxed mb-8">
-                Tindakan ini tidak dapat dibatalkan. Pastikan tidak ada data kepengurusan, berkas proposal, atau laporan aktif yang masih terkait dengan organisasi <strong>"{delTarget.nama}"</strong> ini.
-              </p>
-
-              <div className="flex justify-end gap-3">
-                <button
-                  onClick={() => setDelTarget(null)}
-                  className="h-10 px-6 rounded-xl border border-[#cbd5e1] bg-white text-[11px] font-bold text-[#334155] uppercase tracking-wider hover:bg-slate-50 transition-all cursor-pointer"
-                >
-                  Batal
-                </button>
-                <button
-                  onClick={handleDelete}
-                  disabled={isSubmitting}
-                  className="h-10 px-6 rounded-xl bg-[#ef4444] hover:bg-[#dc2626] text-white text-[11px] font-bold uppercase tracking-wider transition-all disabled:opacity-60 flex items-center justify-center gap-2 cursor-pointer border-none shadow-sm"
-                >
-                  {isSubmitting ? (
-                    <span className="material-symbols-outlined animate-spin text-[12px]">sync</span>
-                  ) : null}
-                  <span>{isSubmitting ? "Processing..." : "YA, HAPUS"}</span>
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <DeleteConfirmModal
+        isOpen={!!delTarget}
+        onClose={() => setDelTarget(null)}
+        onConfirm={handleDelete}
+        isDeleting={isSubmitting}
+        title="Hapus Organisasi?"
+        message={`Tindakan ini tidak dapat dibatalkan. Pastikan tidak ada data kepengurusan, berkas proposal, atau laporan aktif yang masih terkait dengan organisasi "${delTarget?.nama}" ini.`}
+      />
     </div>
   )
 }

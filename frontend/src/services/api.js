@@ -517,6 +517,25 @@ export const adminService = {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data)
   }),
+
+  // Theme Customizer
+  getTheme: () => fetchWithAuth(`${API_BASE_URL}/admin/theme`),
+  updateTheme: (data) => fetchWithAuth(`${API_BASE_URL}/admin/theme`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  }),
+  resetTheme: () => fetchWithAuth(`${API_BASE_URL}/admin/theme/reset`, {
+    method: 'POST'
+  }),
+  uploadLogo: (formData) => fetchWithAuth(`${API_BASE_URL}/admin/theme/upload-logo`, {
+    method: 'POST',
+    body: formData
+  }),
+  uploadFavicon: (formData) => fetchWithAuth(`${API_BASE_URL}/admin/theme/upload-favicon`, {
+    method: 'POST',
+    body: formData
+  }),
 };
 
 export const pddiktiService = {

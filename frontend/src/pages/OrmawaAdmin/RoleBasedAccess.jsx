@@ -416,7 +416,7 @@ export default function RoleBasedAccess() {
       <Toaster position="top-right" />
       
       {/* ── Welcome Banner ─────────────────────────────────────────── */}
-      <section className="relative overflow-hidden rounded-[2rem] bg-gradient-to-r from-[#00236F] to-[#1e3a8a] text-white p-8 md:p-10 shadow-xl shadow-blue-900/10">
+      <section className="relative overflow-hidden rounded-[2rem] bg-gradient-to-r from-bku-primary to-[#1e3a8a] text-white p-8 md:p-10 shadow-xl shadow-blue-900/10">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.08)_0%,transparent_60%)]" />
         <div className="absolute inset-0 opacity-[0.03]"
           style={{
@@ -446,7 +446,7 @@ export default function RoleBasedAccess() {
           
           <Button 
             onClick={handleOpenAdd} 
-            className="h-12 px-6 rounded-2xl bg-white hover:bg-white/95 text-[#00236F] hover:text-[#00236F] border-none font-bold text-xs tracking-wider shadow-lg shadow-blue-900/10 transition-all active:scale-95 shrink-0 w-full md:w-auto flex items-center justify-center gap-2"
+            className="h-12 px-6 rounded-2xl bg-white hover:bg-white/95 text-bku-primary hover:text-bku-primary border-none font-bold text-xs tracking-wider shadow-lg shadow-blue-900/10 transition-all active:scale-95 shrink-0 w-full md:w-auto flex items-center justify-center gap-2"
           >
             <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>add</span>
             <span>BUAT ROLE BARU</span>
@@ -498,14 +498,14 @@ export default function RoleBasedAccess() {
         <DialogContent className="max-w-4xl p-0 overflow-hidden border-none shadow-2xl rounded-[2.5rem] bg-white animate-in zoom-in-95 duration-200 max-h-[90vh] flex flex-col">
           <DialogHeader className="p-6 pb-4 bg-gradient-to-br from-slate-50 to-white border-b border-slate-100 relative overflow-hidden shrink-0">
             <div className="absolute top-0 right-0 p-6 opacity-5 pointer-events-none">
-              <span className="material-symbols-outlined size-24 rotate-12 text-[#00236F]">security</span>
+              <span className="material-symbols-outlined size-24 rotate-12 text-bku-primary">security</span>
             </div>
             <div className="relative z-10">
               <div className="flex items-center gap-3 mb-1.5">
-                <div className="size-8 rounded-xl bg-[#00236F]/10 flex items-center justify-center text-[#00236F]">
+                <div className="size-8 rounded-xl bg-bku-primary/10 flex items-center justify-center text-bku-primary">
                   <span className="material-symbols-outlined stroke-[3px]" style={{ fontSize: '16px' }}>security</span>
                 </div>
-                <Badge className="text-[9px] font-black tracking-widest px-2.5 py-0.5 bg-[#00236F]/5 text-[#00236F] border-none rounded-md">RBAC SECURITY MATRIX</Badge>
+                <Badge className="text-[9px] font-black tracking-widest px-2.5 py-0.5 bg-bku-primary/5 text-bku-primary border-none rounded-md">RBAC SECURITY MATRIX</Badge>
               </div>
               <DialogTitle className="text-lg md:text-xl font-black font-headline tracking-tighter text-slate-900">
                 {isEditMode ? 'Konfigurasi Hak Akses Role' : 'Daftarkan Role Baru'}
@@ -577,7 +577,7 @@ export default function RoleBasedAccess() {
                               </p>
                             </div>
                           </div>
-                          
+
                           <div className="flex items-center gap-3">
                             {selectedCount > 0 && (
                               <Badge className="bg-[#00236F]/5 border-none text-[#00236F] font-bold text-[8.5px] px-2.5 py-0.5 rounded-full shrink-0">
@@ -592,7 +592,7 @@ export default function RoleBasedAccess() {
                             </span>
                           </div>
                         </button>
-                        
+
                         {/* Collapsible Content */}
                         {isExpanded && (
                           <div className="p-4 bg-slate-50/10 grid grid-cols-1 sm:grid-cols-2 gap-3 animate-in slide-in-from-top-1.5 duration-200">
@@ -605,8 +605,8 @@ export default function RoleBasedAccess() {
                                   onClick={() => toggleHak(p)}
                                   className={cn(
                                     'flex items-start gap-3 p-3.5 rounded-2xl border text-left cursor-pointer transition-all duration-200 active:scale-[0.98]',
-                                    isSelected 
-                                      ? 'border-[#00236F] bg-blue-50/40 shadow-sm shadow-blue-900/5' 
+                                    isSelected
+                                      ? 'border-[#00236F] bg-blue-50/40 shadow-sm shadow-blue-900/5'
                                       : 'border-slate-100 bg-white hover:border-slate-200 shadow-sm shadow-slate-100/30'
                                   )}
                                 >
@@ -652,7 +652,7 @@ export default function RoleBasedAccess() {
               <Button 
                 type="submit" 
                 disabled={isSubmitting} 
-                className="w-full md:w-auto h-11 px-8 rounded-2xl bg-[#00236F] hover:bg-[#00236F]/90 text-white shadow-xl shadow-blue-900/20 transition-all hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2 border-none"
+                className="w-full md:w-auto h-11 px-8 rounded-2xl bg-bku-primary hover:bg-bku-primary/90 text-white shadow-xl shadow-blue-900/20 transition-all hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2 border-none"
               >
                 {isSubmitting ? (
                   <span className="material-symbols-outlined animate-spin size-4" style={{ fontSize: '15px' }}>sync</span>

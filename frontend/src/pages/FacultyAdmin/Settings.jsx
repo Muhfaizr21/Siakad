@@ -82,7 +82,7 @@ export default function Settings() {
   }
 
   return (
-    <PageContainer>
+    <PageContainer className="min-h-screen bg-transparent font-inter">
       <Toaster position="top-right" />
 
       {/* Standard Header */}
@@ -114,7 +114,7 @@ export default function Settings() {
                   type="email"
                   value={profile.email}
                   onChange={(e) => setProfile({ ...profile, email: e.target.value })}
-                  className="h-12 rounded-2xl font-bold font-headline bg-slate-50/50 border-slate-200/80 focus:bg-white transition-all shadow-none"
+                  className="h-12 rounded-2xl font-bold font-headline bg-transparent border-slate-200/60 focus:bg-white transition-all shadow-none"
                   placeholder="Enter email address"
                   required
                 />
@@ -126,7 +126,7 @@ export default function Settings() {
                 <Input
                   type="text"
                   value={profile.email ? profile.email.split('@')[0] : 'admin'}
-                  className="h-12 rounded-2xl font-bold font-headline bg-slate-100 border-slate-200 text-slate-400 cursor-not-allowed shadow-none"
+                  className="h-12 rounded-2xl font-bold font-headline bg-slate-50 border-slate-200/60 text-slate-400 cursor-not-allowed shadow-none"
                   disabled
                 />
               </div>
@@ -170,7 +170,7 @@ export default function Settings() {
                   type="password"
                   value={passwordData.old_password}
                   onChange={(e) => setPasswordData({ ...passwordData, old_password: e.target.value })}
-                  className="h-12 rounded-2xl font-bold font-headline bg-slate-50/50 border-slate-200/80 focus:bg-white transition-all shadow-none placeholder:text-slate-300"
+                  className="h-12 rounded-2xl font-bold font-headline bg-transparent border-slate-200/60 focus:bg-white transition-all shadow-none placeholder:text-slate-300"
                   placeholder="Enter current password"
                   required
                 />
@@ -186,7 +186,7 @@ export default function Settings() {
                   type="password"
                   value={passwordData.new_password}
                   onChange={(e) => setPasswordData({ ...passwordData, new_password: e.target.value })}
-                  className="h-12 rounded-2xl font-bold font-headline bg-slate-50/50 border-slate-200/80 focus:bg-white transition-all shadow-none placeholder:text-slate-300"
+                  className="h-12 rounded-2xl font-bold font-headline bg-transparent border-slate-200/60 focus:bg-white transition-all shadow-none placeholder:text-slate-300"
                   placeholder="Enter new password"
                   required
                 />
@@ -199,7 +199,7 @@ export default function Settings() {
                   type="password"
                   value={passwordData.confirm_password}
                   onChange={(e) => setPasswordData({ ...passwordData, confirm_password: e.target.value })}
-                  className="h-12 rounded-2xl font-bold font-headline bg-slate-50/50 border-slate-200/80 focus:bg-white transition-all shadow-none placeholder:text-slate-300"
+                  className="h-12 rounded-2xl font-bold font-headline bg-transparent border-slate-200/60 focus:bg-white transition-all shadow-none placeholder:text-slate-300"
                   placeholder="Confirm new password"
                   required
                 />

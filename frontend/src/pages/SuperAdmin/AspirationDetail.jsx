@@ -133,8 +133,8 @@ export default function AspirationDetail() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#fafafa]">
-        <span className="material-symbols-outlined animate-spin text-primary size-10" >sync</span>
+      <div className="min-h-screen flex items-center justify-center bg-transparent">
+        <span className="material-symbols-outlined animate-spin text-bku-primary size-10" >sync</span>
       </div>
     )
   }
@@ -143,10 +143,10 @@ export default function AspirationDetail() {
 
   // Priority mapping for UI
   const priorityStyles = {
-    'CRITICAL': 'bg-rose-500 text-white shadow-lg shadow-rose-100',
-    'HIGH': 'bg-amber-500 text-white shadow-lg shadow-amber-100',
-    'NORMAL': 'bg-primary text-white shadow-lg shadow-primary/20',
-    'LOW': 'bg-emerald-500 text-white shadow-lg shadow-emerald-100'
+    'CRITICAL': 'bg-rose-500 text-white shadow-none border-none',
+    'HIGH': 'bg-amber-500 text-white shadow-none border-none',
+    'NORMAL': 'bg-bku-primary text-white shadow-none border-none',
+    'LOW': 'bg-emerald-500 text-white shadow-none border-none'
   }
 
   const getCleanImageUrl = (url) => {
@@ -157,10 +157,10 @@ export default function AspirationDetail() {
   }
 
   return (
-    <div className="px-4 py-8 md:px-8 xl:px-12 min-h-screen bg-[#fafafa] font-body">
+    <div className="px-1 py-4 md:px-2 xl:px-4 min-h-screen bg-transparent font-inter">
       <Toaster position="top-right" />
       
-      <div className="max-w-[1400px] mx-auto space-y-8">
+      <div className="max-w-[1400px] mx-auto space-y-8 select-none">
         
         {/* ── Breadcrumbs & Back ────────────────────────────────────── */}
         <div className="flex items-center justify-between">
@@ -168,27 +168,27 @@ export default function AspirationDetail() {
             <Button 
               variant="ghost" 
               onClick={() => navigate('/admin/aspirations')}
-              className="group h-10 w-10 p-0 rounded-xl hover:bg-white hover:shadow-sm transition-all"
+              className="group h-10 w-10 p-0 rounded-xl hover:bg-slate-100 shadow-none transition-all cursor-pointer"
             >
-              <ArrowLeft size={18} className="text-neutral-400 group-hover:text-primary transition-colors" />
+              <ArrowLeft size={18} className="text-slate-400 group-hover:text-bku-primary transition-colors" />
             </Button>
             <div className="flex flex-col">
-              <div className="flex items-center gap-2 text-[10px] font-bold text-neutral-400 uppercase tracking-widest font-jakarta">
-                <Link to="/admin" className="hover:text-primary">Dashboard</Link>
+              <div className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline">
+                <Link to="/admin" className="hover:text-bku-primary">Dashboard</Link>
                 <span>/</span>
-                <Link to="/admin/aspirations" className="hover:text-primary">Aspirasi</Link>
+                <Link to="/admin/aspirations" className="hover:text-bku-primary">Aspirasi</Link>
                 <span>/</span>
-                <span className="text-primary/60">Audit Detail</span>
+                <span className="text-bku-primary/60">Audit Detail</span>
               </div>
-              <h2 className="text-xl font-bold text-neutral-900 font-jakarta tracking-tight leading-tight">Detail Audit Aspirasi Mahasiswa</h2>
+              <h2 className="text-xl font-black font-headline tracking-tight leading-tight" style={{ color: 'var(--theme-h2)' }}>Detail Audit Aspirasi Mahasiswa</h2>
             </div>
           </div>
 
           <Badge className={cn(
-            'px-4 py-1.5 rounded-full border text-[10px] font-bold uppercase tracking-widest shadow-sm',
-            data.Status === 'Selesai' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' :
-            data.Status === 'Proses' ? 'bg-blue-50 text-blue-700 border-blue-100' :
-            'bg-amber-50 text-amber-700 border-amber-100'
+            'px-4 py-1.5 rounded-full border text-[10px] font-black uppercase tracking-widest shadow-none font-headline',
+            data.Status === 'Selesai' ? 'bg-emerald-50/50 text-emerald-700 border-emerald-200/60' :
+            data.Status === 'Proses' ? 'bg-blue-50/50 text-blue-700 border-blue-200/60' :
+            'bg-amber-50/50 text-amber-700 border-amber-200/60'
           )}>
             Status Tiket: {data.Status || 'OPEN'}
           </Badge>
@@ -201,59 +201,59 @@ export default function AspirationDetail() {
             
             {/* Header Status Bar */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-               <div className="p-4 rounded-2xl bg-white border border-neutral-200 shadow-sm flex flex-col gap-1">
-                  <span className="text-[9px] font-bold text-neutral-400 uppercase tracking-widest">ID Incident</span>
-                  <span className="text-sm font-black text-neutral-900 font-jakarta">#ASP-{data.ID?.toString().padStart(4, '0')}</span>
+               <div className="p-4 rounded-2xl glass-card border border-slate-200/60 shadow-none flex flex-col gap-1">
+                  <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest font-headline">ID Incident</span>
+                  <span className="text-sm font-black text-slate-800 font-headline">#ASP-{data.ID?.toString().padStart(4, '0')}</span>
                </div>
-               <div className="p-4 rounded-2xl bg-white border border-neutral-200 shadow-sm flex flex-col gap-1">
-                  <span className="text-[9px] font-bold text-neutral-400 uppercase tracking-widest">Priority Node</span>
-                  <Badge className={cn('w-fit h-5 px-2 text-[8px] border-none', priorityStyles[data.Priority || 'NORMAL'])}>{data.Priority || 'NORMAL'}</Badge>
+               <div className="p-4 rounded-2xl glass-card border border-slate-200/60 shadow-none flex flex-col gap-1">
+                  <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest font-headline">Priority Node</span>
+                  <Badge className={cn('w-fit h-5 px-2 text-[8px] border-none font-headline font-black', priorityStyles[data.Priority || 'NORMAL'])}>{data.Priority || 'NORMAL'}</Badge>
                </div>
-               <div className="p-4 rounded-2xl bg-white border border-neutral-200 shadow-sm flex flex-col gap-1">
-                  <span className="text-[9px] font-bold text-neutral-400 uppercase tracking-widest">Kategori</span>
-                  <span className="text-sm font-bold text-neutral-600 truncate">{data.Kategori || 'General'}</span>
+               <div className="p-4 rounded-2xl glass-card border border-slate-200/60 shadow-none flex flex-col gap-1">
+                  <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest font-headline">Kategori</span>
+                  <span className="text-sm font-bold text-slate-600 truncate font-headline">{data.Kategori || 'General'}</span>
                </div>
-               <div className="p-4 rounded-2xl bg-white border border-neutral-200 shadow-sm flex flex-col gap-1">
-                  <span className="text-[9px] font-bold text-neutral-400 uppercase tracking-widest">Waktu Masuk</span>
-                  <span className="text-sm font-bold text-neutral-600">{new Date(data.CreatedAt).toLocaleDateString('id-ID', {day:'2-digit', month:'short'})}</span>
+               <div className="p-4 rounded-2xl glass-card border border-slate-200/60 shadow-none flex flex-col gap-1">
+                  <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest font-headline">Waktu Masuk</span>
+                  <span className="text-sm font-bold text-slate-600 font-headline">{new Date(data.CreatedAt).toLocaleDateString('id-ID', {day:'2-digit', month:'short'})}</span>
                </div>
             </div>
 
             {/* Reporter Profile Card */}
-            <Card className="border-neutral-200 shadow-sm rounded-2xl bg-white overflow-hidden">
-               <div className="p-6 border-b border-neutral-100 bg-neutral-50/20 flex items-center justify-between">
-                  <h4 className="text-xs font-bold text-neutral-900 uppercase tracking-widest flex items-center gap-2">
-                    <User size={16} className="text-primary" /> Identitas Pelapor
+            <Card className="glass-card border border-slate-200/60 shadow-none rounded-2xl overflow-hidden">
+               <div className="p-6 border-b border-slate-200/40 bg-white/40 flex items-center justify-between">
+                  <h4 className="text-xs font-black font-headline uppercase tracking-widest flex items-center gap-2" style={{ color: 'var(--theme-h4)' }}>
+                    <User size={16} className="text-bku-primary" /> Identitas Pelapor
                   </h4>
-                  <Badge variant="outline" className="text-[9px] font-bold text-neutral-400 border-neutral-200">Verified Identity</Badge>
+                  <Badge variant="outline" className="text-[9px] font-black text-slate-400 border-slate-200/60 font-headline">Verified Identity</Badge>
                </div>
                <CardContent className="p-8 flex flex-col md:flex-row gap-8">
                   <div className="flex flex-col items-center gap-3">
-                     <div className="size-24 rounded-2xl bg-neutral-50 border-2 border-neutral-100 flex items-center justify-center text-primary text-3xl font-black shadow-inner">
+                     <div className="size-24 rounded-2xl bg-slate-50/50 border-2 border-slate-200/60 flex items-center justify-center text-bku-primary text-3xl font-black shadow-none font-headline">
                         {data.Mahasiswa?.Nama?.[0]}
                      </div>
                   </div>
                   <div className="flex-1 space-y-6">
                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-1">
-                           <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest">Nama Lengkap</p>
-                           <p className="text-base font-bold text-neutral-900 font-jakarta">{data.Mahasiswa?.Nama}</p>
+                           <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline">Nama Lengkap</p>
+                           <p className="text-base font-black text-slate-800 font-headline">{data.Mahasiswa?.Nama}</p>
                         </div>
                         <div className="space-y-1">
-                           <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest">NIM / Identifier</p>
-                           <p className="text-base font-bold text-neutral-900 font-jakarta">{data.Mahasiswa?.NIM}</p>
+                           <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline">NIM / Identifier</p>
+                           <p className="text-base font-black text-slate-800 font-headline">{data.Mahasiswa?.NIM}</p>
                         </div>
                         <div className="space-y-1">
-                           <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest">Fakultas / Node</p>
-                           <p className="text-sm font-bold text-neutral-600 flex items-center gap-2 uppercase">
-                              <Building2 size={14} className="text-primary/40" />
+                           <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline">Fakultas / Node</p>
+                           <p className="text-sm font-bold text-slate-600 flex items-center gap-2 uppercase font-headline">
+                              <Building2 size={14} className="text-bku-primary/60" />
                               {data.Mahasiswa?.Fakultas?.Nama || 'Institusional'}
                            </p>
                         </div>
                         <div className="space-y-1">
-                           <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest">Kontak Email</p>
-                           <p className="text-sm font-bold text-neutral-600 flex items-center gap-2">
-                              <span className="material-symbols-outlined text-primary/40" style={{ fontSize: '14px' }} >mail</span>
+                           <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline">Kontak Email</p>
+                           <p className="text-sm font-bold text-slate-600 flex items-center gap-2 font-headline">
+                              <span className="material-symbols-outlined text-bku-primary/60" style={{ fontSize: '14px' }} >mail</span>
                               {data.Mahasiswa?.User?.Email || '-'}
                            </p>
                         </div>
@@ -263,19 +263,19 @@ export default function AspirationDetail() {
             </Card>
 
             {/* Aspiration Content Card */}
-            <Card className="border-neutral-200 shadow-sm rounded-2xl bg-white overflow-hidden">
-               <div className="p-6 border-b border-neutral-100 flex items-center gap-3 bg-neutral-50/20">
-                  <span className="material-symbols-outlined text-primary" style={{ fontSize: '16px' }} >chat</span>
-                  <h4 className="text-xs font-bold text-neutral-900 uppercase tracking-widest">Substansi Aspirasi</h4>
+            <Card className="glass-card border border-slate-200/60 shadow-none rounded-2xl overflow-hidden">
+               <div className="p-6 border-b border-slate-200/40 bg-white/40 flex items-center gap-3">
+                  <span className="material-symbols-outlined text-bku-primary" style={{ fontSize: '16px' }} >chat</span>
+                  <h4 className="text-xs font-black font-headline uppercase tracking-widest" style={{ color: 'var(--theme-h4)' }}>Substansi Aspirasi</h4>
                </div>
                <CardContent className="p-8 space-y-8">
                   <div className="space-y-4">
-                     <h3 className="text-2xl font-bold text-neutral-900 font-jakarta tracking-tight leading-tight italic">
+                     <h3 className="text-2xl font-black font-headline tracking-tight leading-tight italic" style={{ color: 'var(--theme-h3)' }}>
                         "{data.Judul || data.Subjek}"
                      </h3>
-                     <div className="p-8 rounded-2xl bg-neutral-50 border border-neutral-100 shadow-inner relative overflow-hidden group">
-                        <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:scale-110 transition-transform"><span className="material-symbols-outlined" style={{ fontSize: '100px' }} >chat</span></div>
-                        <p className="text-base text-neutral-600 font-medium leading-relaxed font-inter relative z-10 whitespace-pre-wrap">
+                     <div className="p-8 rounded-2xl bg-white/60 border border-slate-200/60 shadow-none relative overflow-hidden group">
+                        <div className="absolute top-0 right-0 p-4 opacity-[0.03] group-hover:scale-110 transition-transform"><span className="material-symbols-outlined" style={{ fontSize: '100px' }} >chat</span></div>
+                        <p className="text-base text-slate-600 font-medium leading-relaxed font-inter relative z-10 whitespace-pre-wrap">
                            {data.Isi || 'Tidak ada deskripsi konten.'}
                         </p>
                      </div>
@@ -283,44 +283,44 @@ export default function AspirationDetail() {
 
                   {/* Attachment Section */}
                   <div className="space-y-4">
-                     <h4 className="text-[11px] font-black text-neutral-400 uppercase tracking-widest flex items-center gap-2">
-                        <ImageIcon size={14} className="text-primary" /> Bukti Lampiran Visual
+                     <h4 className="text-[11px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2 font-headline">
+                        <ImageIcon size={14} className="text-bku-primary" /> Bukti Lampiran Visual
                      </h4>
                      {data.BuktiURL ? (
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                           <div className="relative aspect-video rounded-2xl overflow-hidden border border-neutral-200 shadow-lg group">
+                           <div className="relative aspect-video rounded-2xl overflow-hidden border border-slate-200/60 shadow-none group">
                               <img 
                                  src={getCleanImageUrl(data.BuktiURL)} 
                                  alt="Bukti Aspirasi" 
                                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                               />
-                              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                              <div className="absolute inset-0 bg-slate-900/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                                  <a 
                                     href={getCleanImageUrl(data.BuktiURL)} 
                                     target="_blank" 
                                     rel="noreferrer"
-                                    className="px-6 py-3 bg-white text-neutral-900 rounded-xl font-bold text-xs uppercase tracking-widest shadow-2xl flex items-center gap-2 hover:bg-primary hover:text-white transition-all active:scale-95"
+                                    className="px-6 py-3 bg-white text-slate-800 rounded-xl font-black font-headline text-xs uppercase tracking-widest shadow-none flex items-center gap-2 hover:bg-slate-50 transition-all active:scale-95 cursor-pointer"
                                  >
                                     <ExternalLink size={14} /> Full View
                                  </a>
                               </div>
                            </div>
-                           <div className="p-6 rounded-2xl bg-neutral-50 border border-dashed border-neutral-200 flex flex-col justify-center gap-4">
+                           <div className="p-6 rounded-2xl bg-slate-50/50 border border-dashed border-slate-300 flex flex-col justify-center gap-4">
                               <div className="space-y-1">
-                                 <p className="text-sm font-bold text-neutral-900 font-jakarta">Informasi Berkas</p>
-                                 <p className="text-xs text-neutral-500 font-medium leading-relaxed">Mahasiswa telah menyertakan bukti visual untuk mendukung aspirasi mereka. Silakan periksa detail gambar untuk memvalidasi laporan.</p>
+                                 <p className="text-sm font-black text-slate-800 font-headline">Informasi Berkas</p>
+                                 <p className="text-xs text-slate-500 font-medium leading-relaxed font-inter">Mahasiswa telah menyertakan bukti visual untuk mendukung aspirasi mereka. Silakan periksa detail gambar untuk memvalidasi laporan.</p>
                               </div>
-                              <div className="flex items-center gap-3 text-[10px] font-bold text-neutral-400 uppercase">
+                              <div className="flex items-center gap-3 text-[10px] font-black font-headline text-slate-400 uppercase">
                                  <FileImage size={14} /> IMAGE_PROOF.JPG
                               </div>
                            </div>
                         </div>
                      ) : (
-                        <div className="p-16 rounded-2xl border-2 border-dashed border-neutral-100 flex flex-col items-center justify-center gap-4 text-neutral-300">
-                           <div className="size-20 rounded-full bg-neutral-50 flex items-center justify-center opacity-40"><ImageIcon size={40} strokeWidth={1} /></div>
+                        <div className="p-16 rounded-2xl border-2 border-dashed border-slate-200/60 flex flex-col items-center justify-center gap-4 text-slate-400">
+                           <div className="size-20 rounded-full bg-slate-50/50 flex items-center justify-center opacity-40"><ImageIcon size={40} strokeWidth={1} /></div>
                            <div className="text-center space-y-1">
-                              <p className="text-sm font-bold uppercase tracking-[0.2em]">Tidak Ada Lampiran</p>
-                              <p className="text-[11px] font-medium">Mahasiswa tidak menyertakan foto atau dokumen pendukung.</p>
+                              <p className="text-sm font-black font-headline uppercase tracking-[0.2em]">Tidak Ada Lampiran</p>
+                              <p className="text-[11px] font-medium font-inter">Mahasiswa tidak menyertakan foto atau dokumen pendukung.</p>
                            </div>
                         </div>
                      )}
@@ -331,27 +331,27 @@ export default function AspirationDetail() {
 
           {/* ── Right Column: Resolution Control Panel ───────────────── */}
           <div className="space-y-8 sticky top-8">
-            <Card className="border-neutral-200 shadow-sm rounded-2xl bg-white overflow-hidden border-none shadow-2xl">
-               <div className="p-6 border-b border-neutral-100 flex items-center gap-3 bg-neutral-900 text-white">
+            <Card className="glass-card border-none shadow-none rounded-2xl bg-slate-900 overflow-hidden">
+               <div className="p-6 border-b border-slate-800 flex items-center gap-3 bg-slate-900 text-white">
                   <div className="size-8 rounded-lg bg-white/10 flex items-center justify-center text-white"><span className="material-symbols-outlined" style={{ fontSize: '18px' }} Check >security</span></div>
-                  <h4 className="text-xs font-bold uppercase tracking-widest">Incident Governance</h4>
+                  <h4 className="text-xs font-black font-headline uppercase tracking-widest">Incident Governance</h4>
                </div>
                <CardContent className="p-8 space-y-8">
                   <div className="space-y-4">
-                     <Label className="text-[11px] font-black text-neutral-400 uppercase tracking-widest ml-1">Status Resolusi</Label>
+                     <Label className="text-[11px] font-black text-slate-400 font-headline uppercase tracking-widest ml-1">Status Resolusi</Label>
                      <div className="grid grid-cols-2 gap-3">
                         {[
-                           { val: 'proses', label: 'ON PROCESS', icon: Clock, color: 'hover:bg-blue-50 hover:text-blue-700', active: 'bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-100' },
-                           { val: 'Selesai', label: 'RESOLVED', icon: CheckCircle2, color: 'hover:bg-emerald-50 hover:text-emerald-700', active: 'bg-emerald-600 text-white border-emerald-600 shadow-lg shadow-emerald-100' },
-                           { val: 'Ditinjau', label: 'REVIEW', icon: Activity, color: 'hover:bg-amber-50 hover:text-amber-700', active: 'bg-amber-600 text-white border-amber-600 shadow-lg shadow-amber-100' },
-                           { val: 'Ditolak', label: 'REJECTED', icon: X, color: 'hover:bg-rose-50 hover:text-rose-700', active: 'bg-rose-600 text-white border-rose-600 shadow-lg shadow-rose-100' },
+                           { val: 'proses', label: 'ON PROCESS', icon: Clock, color: 'hover:bg-white/10 text-slate-400 hover:text-white', active: 'bg-blue-600/20 text-blue-400 border-blue-500/50' },
+                           { val: 'Selesai', label: 'RESOLVED', icon: CheckCircle2, color: 'hover:bg-white/10 text-slate-400 hover:text-white', active: 'bg-emerald-600/20 text-emerald-400 border-emerald-500/50' },
+                           { val: 'Ditinjau', label: 'REVIEW', icon: Activity, color: 'hover:bg-white/10 text-slate-400 hover:text-white', active: 'bg-amber-600/20 text-amber-400 border-amber-500/50' },
+                           { val: 'Ditolak', label: 'REJECTED', icon: X, color: 'hover:bg-white/10 text-slate-400 hover:text-white', active: 'bg-rose-600/20 text-rose-400 border-rose-500/50' },
                         ].map(s => (
                            <button 
                               key={s.val} 
                               type="button"
                               onClick={() => setForm({ ...form, status: s.val })}
                               className={cn(
-                                 'h-14 rounded-xl flex flex-col items-center justify-center gap-1 border border-neutral-100 transition-all duration-300 font-bold uppercase tracking-widest text-[9px]',
+                                 'h-14 rounded-xl flex flex-col items-center justify-center gap-1 border border-white/10 transition-all duration-300 font-black uppercase tracking-widest text-[9px] font-headline cursor-pointer',
                                  s.color,
                                  form.status === s.val && s.active
                               )}
@@ -364,12 +364,12 @@ export default function AspirationDetail() {
                   </div>
 
                   <div className="space-y-4">
-                     <Label className="text-[11px] font-black text-neutral-400 uppercase tracking-widest ml-1">Tanggapan Institusi</Label>
+                     <Label className="text-[11px] font-black text-slate-400 uppercase tracking-widest font-headline ml-1">Tanggapan Institusi</Label>
                      <textarea 
                         value={form.respon}
                         onChange={e => setForm({ ...form, respon: e.target.value })}
                         placeholder="Berikan jawaban atau solusi terkait aspirasi ini..."
-                        className="w-full min-h-[180px] rounded-2xl border-neutral-200 bg-neutral-50/50 focus:bg-white p-6 font-medium text-sm font-inter transition-all shadow-inner focus:ring-2 focus:ring-primary/10 outline-none"
+                        className="w-full min-h-[180px] rounded-2xl border border-white/10 bg-white/5 focus:bg-white/10 p-6 font-medium text-sm font-inter transition-all shadow-none focus:ring-2 focus:ring-bku-primary/50 outline-none text-white placeholder:text-slate-500"
                      />
                   </div>
 
@@ -377,7 +377,7 @@ export default function AspirationDetail() {
                      <Button 
                         onClick={handleSubmit}
                         disabled={isSubmitting}
-                        className="w-full h-14 rounded-2xl bg-neutral-900 text-white hover:bg-primary font-black text-[11px] uppercase tracking-[0.2em] shadow-xl shadow-neutral-900/10 active:scale-95 transition-all group"
+                        className="w-full h-14 rounded-2xl bg-bku-primary text-white hover:bg-bku-primary/90 font-black text-[11px] font-headline uppercase tracking-[0.2em] shadow-none active:scale-95 transition-all group cursor-pointer"
                      >
                         {isSubmitting ? <span className="material-symbols-outlined animate-spin mr-2" style={{ fontSize: '18px' }} >sync</span> : <span className="material-symbols-outlined mr-3 group-hover:rotate-12 transition-transform" style={{ fontSize: '18px' }} >save</span>} 
                         Commit Resolution
@@ -386,11 +386,11 @@ export default function AspirationDetail() {
                </CardContent>
             </Card>
 
-            <div className="p-6 rounded-2xl bg-amber-50 border border-amber-100 flex items-start gap-4">
-               <span className="material-symbols-outlined text-amber-600 shrink-0 mt-0.5" style={{ fontSize: '18px' }} >error</span>
+            <div className="p-6 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-start gap-4">
+               <span className="material-symbols-outlined text-amber-500 shrink-0 mt-0.5" style={{ fontSize: '18px' }} >error</span>
                <div className="space-y-1">
-                  <p className="text-[10px] font-black text-amber-700 uppercase tracking-widest">SLA Information</p>
-                  <p className="text-[11px] text-amber-600 font-medium leading-relaxed">
+                  <p className="text-[10px] font-black font-headline text-amber-500 uppercase tracking-widest">SLA Information</p>
+                  <p className="text-[11px] text-amber-500/80 font-medium leading-relaxed font-inter">
                      Aspirasi ini memiliki batas penanganan dalam 3x24 jam sejak tiket dibuat. Pastikan resolusi diberikan secara objektif.
                   </p>
                </div>

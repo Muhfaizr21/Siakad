@@ -271,40 +271,40 @@ export default function KelolaPrestasi() {
   ]
 
   return (
-    <div className="px-4 py-8 md:px-8 xl:px-12 min-h-screen bg-[#fafafa] font-body">
+    <div className="px-4 py-8 md:px-8 xl:px-12 min-h-screen bg-transparent font-inter">
       <Toaster position="top-right" />
 
       <div className="max-w-[1600px] mx-auto space-y-10">
         
         {/* ── Page Header ─────────────────────────────────────────── */}
-        <section className="relative overflow-hidden rounded-3xl p-8 border border-neutral-100 bg-gradient-to-br from-[#020617] via-[#0f172a] to-[#1e293b] shadow-xl">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(59,130,246,0.08),transparent_50%)]" />
+        <section className="relative overflow-hidden rounded-3xl p-8 border border-slate-100/50 bg-gradient-to-br from-slate-900 via-bku-primary to-slate-900 shadow-xl">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.08),transparent_50%)]" />
           <div className="absolute inset-0 opacity-[0.03]"
             style={{
               backgroundImage: `radial-gradient(circle at 20% 50%, white 1px, transparent 1px), radial-gradient(circle at 80% 20%, white 1px, transparent 1px)`,
               backgroundSize: "60px 60px"
             }}
           />
-          <div className="absolute -top-24 -right-24 w-80 h-80 bg-blue-500/10 rounded-full blur-3xl animate-pulse" />
-          <div className="absolute -bottom-20 right-48 w-64 h-64 bg-indigo-500/5 rounded-full blur-3xl" />
+          <div className="absolute -top-24 -right-24 w-80 h-80 bg-blue-400/20 rounded-full blur-3xl animate-pulse" />
+          <div className="absolute -bottom-20 right-48 w-64 h-64 bg-indigo-400/10 rounded-full blur-3xl" />
 
           <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center w-full gap-6">
             <div>
               <div className="flex items-center gap-2 mb-3">
-                <div className="h-4 w-1.5 bg-blue-500 rounded-full" />
-                <span className="text-[10px] font-black uppercase tracking-[0.25em] text-blue-400">Kemahasiswaan Portal</span>
+                <div className="h-4 w-1.5 bg-blue-400 rounded-full" />
+                <span className="text-[10px] font-black uppercase tracking-[0.25em] text-blue-300 font-headline">Kemahasiswaan Portal</span>
               </div>
-              <h1 className="text-3xl font-black text-white font-headline tracking-tight leading-tight">
-                Kelola <span className="text-blue-400">Prestasi Mahasiswa</span>
+              <h1 className="text-3xl font-black font-headline tracking-tight leading-tight" style={{ color: 'var(--theme-h1)' }}>
+                Kelola <span className="text-blue-300">Prestasi Mahasiswa</span>
               </h1>
-              <p className="text-slate-400 font-medium text-xs max-w-xl leading-relaxed mt-1.5">
-                Audit, verifikasi, dan validasi seluruh portofolio prestasi akademik/non-akademik mahasiswa secara terintegrasi.
+<p className="text-slate-400 font-medium text-xs max-w-xl leading-relaxed mt-1.5">
+                Audit, verifikasi, dan validasi seluruh portofolio prestasi akademik/non-akademik mahasiswa secara terintegrasi.</p>
               </p>
             </div>
             
             <div className="flex items-center gap-3 self-end md:self-auto">
-              <Button onClick={fetchData} disabled={loading} variant="outline" className="h-10 px-5 rounded-xl border-neutral-700 bg-slate-900 text-slate-300 hover:bg-slate-800 hover:text-white transition-all active:scale-95 text-xs font-bold uppercase tracking-widest gap-2">
-                <RefreshCw size={14} animate={loading} className="text-blue-400" />
+              <Button onClick={fetchData} disabled={loading} variant="outline" className="h-10 px-5 rounded-xl border-white/20 bg-white/10 text-white hover:bg-white/20 transition-all active:scale-95 text-xs font-bold uppercase tracking-widest gap-2 font-headline">
+                <RefreshCw size={14} animate={loading} className="text-blue-300" />
                 Refresh Data
               </Button>
             </div>
@@ -352,7 +352,7 @@ export default function KelolaPrestasi() {
         </div>
 
         {/* ── Data Table Section ───────────────────────────────────── */}
-        <Card className="border-neutral-200 shadow-sm rounded-2xl bg-white overflow-hidden">
+        <Card className="glass-card border-none shadow-sm rounded-2xl overflow-hidden">
           <CardContent className="p-0">
             <DataTable
               columns={columns}
@@ -401,7 +401,7 @@ export default function KelolaPrestasi() {
                     onClick={() => { setSelected(row); setIsDetailOpen(true) }}
                     variant="ghost"
                     size="icon"
-                    className="h-8 w-8 text-neutral-400 hover:text-primary hover:bg-primary/5 rounded-lg transition-colors"
+                    className="h-8 w-8 text-neutral-400 hover:text-bku-primary hover:bg-blue-50 rounded-lg transition-colors"
                     title="Lihat Detail"
                   >
                     <span className="material-symbols-outlined" style={{ fontSize: "18px" }}>visibility</span>
@@ -439,8 +439,8 @@ export default function KelolaPrestasi() {
       {/* ── Detail Modal ───────────────────────────────────────────── */}
       <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
         {selected && (
-          <DialogContent className="max-w-2xl p-0 overflow-hidden border-none shadow-2xl rounded-3xl bg-white">
-            <DialogHeader className="relative bg-gradient-to-br from-[#0f172a] to-[#1e293b] pt-8 pb-7 px-8 overflow-hidden flex-shrink-0 text-white">
+          <DialogContent className="max-w-2xl p-0 overflow-hidden border-none shadow-2xl rounded-3xl bg-white font-inter">
+            <DialogHeader className="relative bg-gradient-to-br from-slate-900 to-bku-primary pt-8 pb-7 px-8 overflow-hidden flex-shrink-0 text-white">
               <div className="absolute -top-12 -right-12 w-48 h-48 bg-white/5 rounded-full pointer-events-none" />
               
               <div className="relative z-10 flex items-center gap-4 mb-6">
@@ -502,9 +502,9 @@ export default function KelolaPrestasi() {
                   { icon: Award, label: "Peringkat", value: selected.peringkat || "—" },
                   { icon: Calendar, label: "Diajukan Pada", value: formatDate(selected.created_at || selected.CreatedAt) },
                 ].map((item, idx) => (
-                  <div key={idx} className="flex items-center gap-3 p-3 rounded-xl bg-neutral-50 border border-neutral-100 hover:bg-neutral-100/30 transition-all">
-                    <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center text-primary shadow-sm border border-neutral-100 flex-shrink-0">
-                      <item.icon size={14} className="text-blue-600" />
+                  <div key={idx} className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 border border-slate-100 hover:bg-slate-100 transition-all">
+                    <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center text-bku-primary shadow-sm border border-slate-100 flex-shrink-0">
+                      <item.icon size={14} className="text-bku-primary" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-[9px] font-black text-neutral-400 uppercase tracking-wider">{item.label}</p>

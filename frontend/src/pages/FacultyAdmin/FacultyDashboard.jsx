@@ -173,7 +173,7 @@ export default function FacultyDashboard() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] font-body">
+    <div className="min-h-screen bg-transparent font-inter">
       <div className="max-w-[1600px] mx-auto px-4 py-8 md:px-8 xl:px-12 space-y-8">
 
         {/* Header Section */}
@@ -243,7 +243,7 @@ export default function FacultyDashboard() {
         {/* ── Welcome Banner ─────────────────────────────────────────── */}
         <section className="relative overflow-hidden rounded-3xl h-52 flex items-center group">
           {/* Background */}
-          <div className="absolute inset-0 bg-gradient-to-br from-[#00236f] via-[#0b338f] to-[#003B95]" />
+          <div className="absolute inset-0 bg-gradient-to-br from-bku-primary via-[#0b338f] to-[#003B95]" />
           {/* Pattern overlay */}
           <div className="absolute inset-0 opacity-10"
             style={{
@@ -305,7 +305,7 @@ export default function FacultyDashboard() {
             <button
               key={s.label}
               onClick={() => navigate(s.path)}
-              className="group bg-white rounded-2xl border border-slate-200/60 shadow-sm p-5 text-left hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 relative overflow-hidden"
+              className="group glass-card rounded-2xl shadow-sm p-5 text-left hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 relative overflow-hidden"
             >
               <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl ${s.accent} to-transparent rounded-bl-full opacity-40`} />
               <div className="relative">
@@ -332,10 +332,10 @@ export default function FacultyDashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
           {/* Chart: Mahasiswa per Prodi — col-8 */}
-          <div className="lg:col-span-8 bg-white border border-slate-100/50 rounded-3xl shadow-sm overflow-hidden">
+          <div className="lg:col-span-8 glass-card border border-slate-200/60 rounded-2xl shadow-none overflow-hidden">
             <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
               <div>
-                <h2 className="font-black text-slate-900 text-base tracking-tight">Distribusi Mahasiswa per Prodi</h2>
+                <h2 className="font-black text-sm uppercase tracking-tight font-headline" style={{ color: 'var(--theme-h2)' }}>Distribusi Mahasiswa per Prodi</h2>
                 <p className="text-[11px] text-slate-400 font-medium mt-0.5">Jumlah mahasiswa aktif berdasarkan program studi</p>
               </div>
               <div className="w-9 h-9 bg-blue-50 rounded-xl flex items-center justify-center text-blue-500">
@@ -367,10 +367,10 @@ export default function FacultyDashboard() {
           </div>
 
           {/* Status Mahasiswa — col-4 */}
-          <div className="lg:col-span-4 bg-white border border-slate-100/50 rounded-3xl shadow-sm overflow-hidden">
-            <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
+          <div className="lg:col-span-4 glass-card border border-slate-200/60 rounded-2xl shadow-none overflow-hidden">
+            <div className="p-6 border-b border-slate-100/50 flex justify-between items-center bg-slate-50/30">
               <div>
-                <h2 className="font-black text-slate-900 text-base tracking-tight">Status Akademik</h2>
+                <h2 className="font-black text-sm uppercase tracking-tight font-headline" style={{ color: 'var(--theme-h2)' }}>Status Akademik</h2>
                 <p className="text-[11px] text-slate-400 font-medium mt-0.5">Kondisi mahasiswa saat ini</p>
               </div>
               <div className="w-9 h-9 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-500">
@@ -459,10 +459,10 @@ export default function FacultyDashboard() {
         </div>
 
         {/* ── Quick Actions ─────────────────────────────────────────── */}
-        <div className="bg-white rounded-2xl border border-slate-200/60 shadow-sm p-6">
-          <div className="flex items-center gap-2 mb-5">
+        <div className="glass-card border border-slate-200/60 rounded-2xl shadow-none p-6">
+          <div className="flex items-center justify-between mb-6">
             <div className="h-4 w-1.5 bg-primary rounded-full" />
-            <h2 className="font-black text-slate-900 text-base tracking-tight">Aksi Cepat</h2>
+            <h2 className="font-black text-sm uppercase tracking-tight font-headline" style={{ color: 'var(--theme-h2)' }}>Aksi Cepat</h2>
             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-auto">Pintasan Menu</span>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
@@ -471,7 +471,7 @@ export default function FacultyDashboard() {
                 key={i}
                 onClick={() => navigate(item.path)}
                 className={cn(
-                  "group flex flex-col items-center justify-center p-5 rounded-2xl bg-white border border-slate-100 transition-all duration-300 hover:-translate-y-1 active:scale-95 shadow-sm hover:shadow-md",
+                  "group flex flex-col items-center justify-center p-5 rounded-2xl glass-card border border-slate-200/60 transition-all duration-300 hover:-translate-y-1 active:scale-95 shadow-none hover:shadow-md",
                   item.hoverShadow
                 )}
               >

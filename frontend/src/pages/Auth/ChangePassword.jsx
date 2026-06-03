@@ -65,7 +65,7 @@ export default function ChangePassword() {
           <ShieldCheck size={24} />
         </div>
         <div>
-          <h2 className="text-xl font-bold font-jakarta text-neutral-900">Ganti Password</h2>
+          <h2 className="text-xl font-bold font-jakarta" style={{ color: 'var(--theme-h2)' }}>Ganti Password</h2>
           <p className="text-sm text-neutral-500">Perbarui password akun portal Anda</p>
         </div>
       </div>

@@ -45,17 +45,15 @@ const TopNavBar = ({ setIsOpen }) => {
   const pages = [
     { name: 'Dashboard Utama', path: '/faculty', icon: 'grid_view' },
     { name: 'Data Mahasiswa', path: '/faculty/mahasiswa', icon: 'group' },
-
-    { name: 'Monitor PKKMB', path: '/faculty/pkkmb', icon: 'database' },
+{ name: 'Monitor PKKMB', path: '/faculty/pkkmb', icon: 'database' },
     { name: 'Status Kesehatan', path: '/faculty/kesehatan', icon: 'medical_services' },
     { name: 'Student Voice', path: '/faculty/aspirasi', icon: 'campaign' },
     { name: 'Validasi Prestasi', path: '/faculty/prestasi', icon: 'emoji_events' },
     { name: 'Beasiswa Internal', path: '/faculty/beasiswa', icon: 'emoji_events' },
-
     { name: 'ORMAWA Hub', path: '/faculty/ormawa/proposals', icon: 'description' },
     { name: 'Organisasi Fakultas', path: '/faculty/organisasi', icon: 'group' },
     { name: 'Program Studi', path: '/faculty/prodi', icon: 'menu_book' },
-    { name: 'Manajemen Konten', path: '/faculty/konten', icon: 'campaign' },
+    { name: 'Data Konseling', path: '/faculty/psikolog', icon: 'psychology' },
     { name: 'Analisis Laporan', path: '/faculty/laporan', icon: 'pie_chart' },
     { name: 'Sistem & Pengaturan', path: '/faculty/pengaturan', icon: 'settings' },
   ];
@@ -190,7 +188,7 @@ const TopNavBar = ({ setIsOpen }) => {
 
   return (
     <>
-      <header className="fixed top-0 right-0 left-0 lg:left-64 z-[50] h-20 bg-white/80 backdrop-blur-xl border-b border-slate-200/50 flex items-center justify-between px-6 lg:px-10 font-body transition-all duration-300">
+      <header className="fixed top-0 right-0 left-0 lg:left-64 z-[50] h-20 glass-card border-b border-white/40 flex items-center justify-between px-6 lg:px-10 font-inter transition-all duration-300">
         <div className="flex items-center gap-6 flex-1">
           {/* Mobile Toggle */}
           <button
@@ -277,11 +275,11 @@ const TopNavBar = ({ setIsOpen }) => {
               {/* Popover — shown via state, works on touch */}
               {isNotifOpen && (
                 <div
-                  className="fixed top-20 right-6 lg:right-10 w-80 bg-white rounded-3xl shadow-2xl border border-slate-100 p-6 z-[300] animate-in fade-in zoom-in-95 duration-200 cursor-default"
+                  className="fixed top-20 right-6 lg:right-10 w-80 glass-card rounded-3xl shadow-2xl border border-white/40 p-6 z-[300] animate-in fade-in zoom-in-95 duration-200 cursor-default"
                   onClick={(e) => e.stopPropagation()}
                 >
-                  <div className="flex justify-between items-center mb-5">
-                    <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline">Inbox Antrean</h4>
+                  <div className="flex justify-between items-center mb-5 flex-row">
+                    <h4 className="text-[10px] font-black font-headline uppercase tracking-widest" style={{ color: 'var(--theme-h4)' }}>Inbox Antrean</h4>
                     {notifications.total > 0 && (
                       <Badge variant="secondary" className="bg-rose-50 text-rose-600 border-none font-black text-[9px] px-2 py-0.5 rounded-lg">
                         {notifications.total} BARU
@@ -354,7 +352,7 @@ const TopNavBar = ({ setIsOpen }) => {
                 <span className="material-symbols-outlined text-[16px] text-slate-400 group-hover:text-slate-600 transition-colors" style={{ fontSize: '16px' }}>expand_more</span>
               </div>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56 mt-2 rounded-2xl p-1.5 shadow-xl border border-slate-100 bg-white">
+            <DropdownMenuContent align="end" className="w-56 mt-2 rounded-2xl p-1.5 shadow-xl border border-white/40 glass-card">
               <div className="px-3 py-2 mb-1 border-b border-slate-50">
                 <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest font-headline">Akun Saya</p>
                 <p className="text-xs font-bold text-slate-900 truncate mt-0.5">{user?.Email}</p>

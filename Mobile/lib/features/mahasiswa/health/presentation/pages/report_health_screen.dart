@@ -26,7 +26,7 @@ class _ReportHealthScreenState extends State<ReportHealthScreen> {
 
   DateTime _selectedDate = DateTime.now();
   String _selectedBloodType = 'A';
-  
+
   double _currentBMI = 0;
   String _bmiStatus = '-';
   Color _bmiColor = AppColors.outline;
@@ -58,17 +58,27 @@ class _ReportHealthScreenState extends State<ReportHealthScreen> {
   }
 
   void _calculateBMI() {
-    if (_heightController.text.isNotEmpty && _weightController.text.isNotEmpty) {
+    if (_heightController.text.isNotEmpty &&
+        _weightController.text.isNotEmpty) {
       double h = double.tryParse(_heightController.text) ?? 0;
       double w = double.tryParse(_weightController.text) ?? 0;
       if (h > 0 && w > 0) {
         double bmi = w / ((h / 100) * (h / 100));
         setState(() {
           _currentBMI = bmi;
-          if (bmi < 18.5) { _bmiStatus = 'Underweight'; _bmiColor = Colors.blue; }
-          else if (bmi < 25) { _bmiStatus = 'Normal'; _bmiColor = Colors.green; }
-          else if (bmi < 30) { _bmiStatus = 'Overweight'; _bmiColor = Colors.orange; }
-          else { _bmiStatus = 'Obese'; _bmiColor = Colors.red; }
+          if (bmi < 18.5) {
+            _bmiStatus = 'Underweight';
+            _bmiColor = Colors.blue;
+          } else if (bmi < 25) {
+            _bmiStatus = 'Normal';
+            _bmiColor = Colors.green;
+          } else if (bmi < 30) {
+            _bmiStatus = 'Overweight';
+            _bmiColor = Colors.orange;
+          } else {
+            _bmiStatus = 'Obese';
+            _bmiColor = Colors.red;
+          }
         });
       }
     }
@@ -122,7 +132,10 @@ class _ReportHealthScreenState extends State<ReportHealthScreen> {
           icon: const Icon(Icons.close_rounded, color: AppColors.primary),
           onPressed: () => Navigator.pop(context),
         ),
-        title: Text('Input Data Kesehatan', style: AppTextStyles.titleLg.copyWith(color: AppColors.primary)),
+        title: Text(
+          'Input Data Kesehatan',
+          style: AppTextStyles.titleLg.copyWith(color: AppColors.primary),
+        ),
         centerTitle: true,
       ),
       body: SingleChildScrollView(
@@ -134,7 +147,7 @@ class _ReportHealthScreenState extends State<ReportHealthScreen> {
             children: [
               _buildBMIPreview(),
               const SizedBox(height: 32),
-              
+
               // 1. Fisik
               _buildInputCard(
                 '1. Kategori Fisik',
@@ -143,9 +156,23 @@ class _ReportHealthScreenState extends State<ReportHealthScreen> {
                 [
                   Row(
                     children: [
-                      Expanded(child: _buildInputField(_heightController, 'Tinggi (cm)', Icons.height_rounded, '170')),
+                      Expanded(
+                        child: _buildInputField(
+                          _heightController,
+                          'Tinggi (cm)',
+                          Icons.height_rounded,
+                          '170',
+                        ),
+                      ),
                       const SizedBox(width: 16),
-                      Expanded(child: _buildInputField(_weightController, 'Berat (kg)', Icons.monitor_weight_rounded, '65')),
+                      Expanded(
+                        child: _buildInputField(
+                          _weightController,
+                          'Berat (kg)',
+                          Icons.monitor_weight_rounded,
+                          '65',
+                        ),
+                      ),
                     ],
                   ),
                 ],
@@ -160,25 +187,61 @@ class _ReportHealthScreenState extends State<ReportHealthScreen> {
                 [
                   Row(
                     children: [
-                      Expanded(child: _buildDropdownField('Jam Tidur / Hari', Icons.bedtime_rounded, ['4', '5', '6', '7', '8', '9'], _selectedSleepHours, (val) {
-                        if (val != null) setState(() => _selectedSleepHours = val);
-                      })),
+                      Expanded(
+                        child: _buildDropdownField(
+                          'Jam Tidur / Hari',
+                          Icons.bedtime_rounded,
+                          ['4', '5', '6', '7', '8', '9'],
+                          _selectedSleepHours,
+                          (val) {
+                            if (val != null)
+                              setState(() => _selectedSleepHours = val);
+                          },
+                        ),
+                      ),
                       const SizedBox(width: 16),
-                      Expanded(child: _buildDropdownField('Olahraga / Minggu', Icons.fitness_center_rounded, ['0', '1', '2', '3', '4'], _selectedExerciseFreq, (val) {
-                        if (val != null) setState(() => _selectedExerciseFreq = val);
-                      })),
+                      Expanded(
+                        child: _buildDropdownField(
+                          'Olahraga / Minggu',
+                          Icons.fitness_center_rounded,
+                          ['0', '1', '2', '3', '4'],
+                          _selectedExerciseFreq,
+                          (val) {
+                            if (val != null)
+                              setState(() => _selectedExerciseFreq = val);
+                          },
+                        ),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 16),
                   Row(
                     children: [
-                      Expanded(child: _buildDropdownField('Konsumsi Air (L)', Icons.water_drop_rounded, ['1.0', '1.5', '2.0', '2.5', '3.0'], _selectedWaterLitres, (val) {
-                        if (val != null) setState(() => _selectedWaterLitres = val);
-                      })),
+                      Expanded(
+                        child: _buildDropdownField(
+                          'Konsumsi Air (L)',
+                          Icons.water_drop_rounded,
+                          ['1.0', '1.5', '2.0', '2.5', '3.0'],
+                          _selectedWaterLitres,
+                          (val) {
+                            if (val != null)
+                              setState(() => _selectedWaterLitres = val);
+                          },
+                        ),
+                      ),
                       const SizedBox(width: 16),
-                      Expanded(child: _buildDropdownField('Apakah Merokok?', Icons.smoke_free_rounded, ['Tidak', 'Ya'], _selectedSmoking, (val) {
-                        if (val != null) setState(() => _selectedSmoking = val);
-                      })),
+                      Expanded(
+                        child: _buildDropdownField(
+                          'Apakah Merokok?',
+                          Icons.smoke_free_rounded,
+                          ['Tidak', 'Ya'],
+                          _selectedSmoking,
+                          (val) {
+                            if (val != null)
+                              setState(() => _selectedSmoking = val);
+                          },
+                        ),
+                      ),
                     ],
                   ),
                 ],
@@ -191,7 +254,14 @@ class _ReportHealthScreenState extends State<ReportHealthScreen> {
                 Icons.psychology_rounded,
                 Colors.purple,
                 [
-                  Text('Tingkat Stres (1-10)', style: AppTextStyles.labelSm.copyWith(color: AppColors.outline, fontWeight: FontWeight.bold, fontSize: 11)),
+                  Text(
+                    'Tingkat Stres (1-10)',
+                    style: AppTextStyles.labelSm.copyWith(
+                      color: AppColors.outline,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 11,
+                    ),
+                  ),
                   Row(
                     children: [
                       Expanded(
@@ -207,16 +277,27 @@ class _ReportHealthScreenState extends State<ReportHealthScreen> {
                             min: 1.0,
                             max: 10.0,
                             divisions: 9,
-                            onChanged: (val) => setState(() => _selectedStressLevel = val),
+                            onChanged:
+                                (val) =>
+                                    setState(() => _selectedStressLevel = val),
                           ),
                         ),
                       ),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                        decoration: BoxDecoration(color: Colors.purple.withAlpha(30), borderRadius: BorderRadius.circular(10)),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.purple.withAlpha(30),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
                         child: Text(
                           '${_selectedStressLevel.toInt()}',
-                          style: AppTextStyles.labelMd.copyWith(color: Colors.purple, fontWeight: FontWeight.w900),
+                          style: AppTextStyles.labelMd.copyWith(
+                            color: Colors.purple,
+                            fontWeight: FontWeight.w900,
+                          ),
                         ),
                       ),
                     ],
@@ -224,13 +305,43 @@ class _ReportHealthScreenState extends State<ReportHealthScreen> {
                   const SizedBox(height: 16),
                   Row(
                     children: [
-                      Expanded(child: _buildDropdownField('Mood Minggu Ini', Icons.mood_rounded, ['Sangat Baik', 'Baik', 'Biasa Saja', 'Buruk', 'Sangat Buruk'], _selectedMood, (val) {
-                        if (val != null) setState(() => _selectedMood = val);
-                      })),
+                      Expanded(
+                        child: _buildDropdownField(
+                          'Mood Minggu Ini',
+                          Icons.mood_rounded,
+                          [
+                            'Sangat Baik',
+                            'Baik',
+                            'Biasa Saja',
+                            'Buruk',
+                            'Sangat Buruk',
+                          ],
+                          _selectedMood,
+                          (val) {
+                            if (val != null)
+                              setState(() => _selectedMood = val);
+                          },
+                        ),
+                      ),
                       const SizedBox(width: 16),
-                      Expanded(child: _buildDropdownField('Motivasi Belajar', Icons.auto_stories_rounded, ['Sangat Tinggi', 'Tinggi', 'Biasa Saja', 'Rendah', 'Sangat Rendah'], _selectedMotivation, (val) {
-                        if (val != null) setState(() => _selectedMotivation = val);
-                      })),
+                      Expanded(
+                        child: _buildDropdownField(
+                          'Motivasi Belajar',
+                          Icons.auto_stories_rounded,
+                          [
+                            'Sangat Tinggi',
+                            'Tinggi',
+                            'Biasa Saja',
+                            'Rendah',
+                            'Sangat Rendah',
+                          ],
+                          _selectedMotivation,
+                          (val) {
+                            if (val != null)
+                              setState(() => _selectedMotivation = val);
+                          },
+                        ),
+                      ),
                     ],
                   ),
                 ],
@@ -251,10 +362,26 @@ class _ReportHealthScreenState extends State<ReportHealthScreen> {
                     crossAxisSpacing: 10,
                     childAspectRatio: 2.6,
                     children: [
-                      _buildKeluhanChip('Sakit Kepala', _keluhanSakitKepala, (v) => setState(() => _keluhanSakitKepala = v)),
-                      _buildKeluhanChip('Pusing', _keluhanPusing, (v) => setState(() => _keluhanPusing = v)),
-                      _buildKeluhanChip('Lelah / Lemas', _keluhanLelah, (v) => setState(() => _keluhanLelah = v)),
-                      _buildKeluhanChip('Nyeri Sendi', _keluhanNyeri, (v) => setState(() => _keluhanNyeri = v)),
+                      _buildKeluhanChip(
+                        'Sakit Kepala',
+                        _keluhanSakitKepala,
+                        (v) => setState(() => _keluhanSakitKepala = v),
+                      ),
+                      _buildKeluhanChip(
+                        'Pusing',
+                        _keluhanPusing,
+                        (v) => setState(() => _keluhanPusing = v),
+                      ),
+                      _buildKeluhanChip(
+                        'Lelah / Lemas',
+                        _keluhanLelah,
+                        (v) => setState(() => _keluhanLelah = v),
+                      ),
+                      _buildKeluhanChip(
+                        'Nyeri Sendi',
+                        _keluhanNyeri,
+                        (v) => setState(() => _keluhanNyeri = v),
+                      ),
                     ],
                   ),
                 ],
@@ -269,23 +396,61 @@ class _ReportHealthScreenState extends State<ReportHealthScreen> {
                 [
                   Row(
                     children: [
-                      Expanded(child: _buildInputField(_sysController, 'Sistolik (mmHg)', Icons.arrow_upward_rounded, '120', isRequired: false)),
+                      Expanded(
+                        child: _buildInputField(
+                          _sysController,
+                          'Sistolik (mmHg)',
+                          Icons.arrow_upward_rounded,
+                          '120',
+                          isRequired: false,
+                        ),
+                      ),
                       const SizedBox(width: 16),
-                      Expanded(child: _buildInputField(_diaController, 'Diastolik (mmHg)', Icons.arrow_downward_rounded, '80', isRequired: false)),
+                      Expanded(
+                        child: _buildInputField(
+                          _diaController,
+                          'Diastolik (mmHg)',
+                          Icons.arrow_downward_rounded,
+                          '80',
+                          isRequired: false,
+                        ),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 16),
                   Row(
                     children: [
-                      Expanded(child: _buildInputField(_sugarController, 'Gula Darah (mg/dL)', Icons.water_drop_rounded, '90', isRequired: false)),
+                      Expanded(
+                        child: _buildInputField(
+                          _sugarController,
+                          'Gula Darah (mg/dL)',
+                          Icons.water_drop_rounded,
+                          '90',
+                          isRequired: false,
+                        ),
+                      ),
                       const SizedBox(width: 16),
-                      Expanded(child: _buildDropdownField('Golongan Darah', Icons.bloodtype_rounded, ['A', 'B', 'AB', 'O', '-'], _selectedBloodType, (val) {
-                        if (val != null) setState(() => _selectedBloodType = val);
-                      })),
+                      Expanded(
+                        child: _buildDropdownField(
+                          'Golongan Darah',
+                          Icons.bloodtype_rounded,
+                          ['A', 'B', 'AB', 'O', '-'],
+                          _selectedBloodType,
+                          (val) {
+                            if (val != null)
+                              setState(() => _selectedBloodType = val);
+                          },
+                        ),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 16),
-                  _buildDateField(context, 'Tanggal Pengukuran', Icons.calendar_today_rounded, _selectedDate),
+                  _buildDateField(
+                    context,
+                    'Tanggal Pengukuran',
+                    Icons.calendar_today_rounded,
+                    _selectedDate,
+                  ),
                 ],
               ),
               const SizedBox(height: 24),
@@ -296,7 +461,12 @@ class _ReportHealthScreenState extends State<ReportHealthScreen> {
                 Icons.sticky_note_2_rounded,
                 Colors.teal,
                 [
-                  _buildTextAreaField(_notesController, 'Keluhan / Catatan Lain (Opsional)', Icons.description_rounded, 'Ceritakan kondisi kesehatanmu atau keluhan yang dirasakan...'),
+                  _buildTextAreaField(
+                    _notesController,
+                    'Keluhan / Catatan Lain (Opsional)',
+                    Icons.description_rounded,
+                    'Ceritakan kondisi kesehatanmu atau keluhan yang dirasakan...',
+                  ),
                 ],
               ),
               const SizedBox(height: 48),
@@ -320,36 +490,64 @@ class _ReportHealthScreenState extends State<ReportHealthScreen> {
         ),
         borderRadius: BorderRadius.circular(28),
         boxShadow: [
-          BoxShadow(color: _bmiColor.withAlpha(80), blurRadius: 15, offset: const Offset(0, 8)),
+          BoxShadow(
+            color: _bmiColor.withAlpha(80),
+            blurRadius: 15,
+            offset: const Offset(0, 8),
+          ),
         ],
       ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(color: Colors.white.withAlpha(40), shape: BoxShape.circle),
-            child: const Icon(Icons.speed_rounded, color: Colors.white, size: 32),
+            decoration: BoxDecoration(
+              color: Colors.white.withAlpha(40),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.speed_rounded,
+              color: Colors.white,
+              size: 32,
+            ),
           ),
           const SizedBox(width: 20),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Prediksi BMI Kamu', style: AppTextStyles.labelSm.copyWith(color: Colors.white70, fontWeight: FontWeight.bold)),
+                Text(
+                  'Prediksi BMI Kamu',
+                  style: AppTextStyles.labelSm.copyWith(
+                    color: Colors.white70,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
                 const SizedBox(height: 2),
                 Text(
-                  _currentBMI > 0 ? _currentBMI.toStringAsFixed(1) : '--', 
-                  style: AppTextStyles.headlineMd.copyWith(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 28),
+                  _currentBMI > 0 ? _currentBMI.toStringAsFixed(1) : '--',
+                  style: AppTextStyles.headlineMd.copyWith(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w900,
+                    fontSize: 28,
+                  ),
                 ),
               ],
             ),
           ),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+            ),
             child: Text(
-              _bmiStatus, 
-              style: AppTextStyles.labelSm.copyWith(color: _bmiColor, fontWeight: FontWeight.w900, fontSize: 10),
+              _bmiStatus,
+              style: AppTextStyles.labelSm.copyWith(
+                color: _bmiColor,
+                fontWeight: FontWeight.w900,
+                fontSize: 10,
+              ),
             ),
           ),
         ],
@@ -357,7 +555,12 @@ class _ReportHealthScreenState extends State<ReportHealthScreen> {
     );
   }
 
-  Widget _buildInputCard(String title, IconData icon, Color color, List<Widget> children) {
+  Widget _buildInputCard(
+    String title,
+    IconData icon,
+    Color color,
+    List<Widget> children,
+  ) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -372,7 +575,13 @@ class _ReportHealthScreenState extends State<ReportHealthScreen> {
             children: [
               Icon(icon, color: color, size: 20),
               const SizedBox(width: 12),
-              Text(title, style: AppTextStyles.labelMd.copyWith(fontWeight: FontWeight.w900, color: AppColors.primary)),
+              Text(
+                title,
+                style: AppTextStyles.labelMd.copyWith(
+                  fontWeight: FontWeight.w900,
+                  color: AppColors.primary,
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 20),
@@ -382,14 +591,21 @@ class _ReportHealthScreenState extends State<ReportHealthScreen> {
     );
   }
 
-  Widget _buildKeluhanChip(String label, bool isSelected, ValueChanged<bool> onChanged) {
+  Widget _buildKeluhanChip(
+    String label,
+    bool isSelected,
+    ValueChanged<bool> onChanged,
+  ) {
     return InkWell(
       onTap: () => onChanged(!isSelected),
       borderRadius: BorderRadius.circular(16),
       child: Ink(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? Colors.red.withAlpha(25) : AppColors.background.withAlpha(150),
+          color:
+              isSelected
+                  ? Colors.red.withAlpha(25)
+                  : AppColors.background.withAlpha(150),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: isSelected ? Colors.red.withAlpha(120) : Colors.transparent,
@@ -400,7 +616,9 @@ class _ReportHealthScreenState extends State<ReportHealthScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              isSelected ? Icons.check_circle_rounded : Icons.add_circle_outline_rounded,
+              isSelected
+                  ? Icons.check_circle_rounded
+                  : Icons.add_circle_outline_rounded,
               size: 16,
               color: isSelected ? Colors.red : AppColors.outline,
             ),
@@ -422,11 +640,24 @@ class _ReportHealthScreenState extends State<ReportHealthScreen> {
     );
   }
 
-  Widget _buildInputField(TextEditingController controller, String label, IconData icon, String hint, {bool isRequired = true}) {
+  Widget _buildInputField(
+    TextEditingController controller,
+    String label,
+    IconData icon,
+    String hint, {
+    bool isRequired = true,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: AppTextStyles.labelSm.copyWith(color: AppColors.outline, fontWeight: FontWeight.bold, fontSize: 11)),
+        Text(
+          label,
+          style: AppTextStyles.labelSm.copyWith(
+            color: AppColors.outline,
+            fontWeight: FontWeight.bold,
+            fontSize: 11,
+          ),
+        ),
         const SizedBox(height: 8),
         TextFormField(
           controller: controller,
@@ -435,12 +666,25 @@ class _ReportHealthScreenState extends State<ReportHealthScreen> {
           decoration: InputDecoration(
             hintText: hint,
             hintStyle: TextStyle(color: AppColors.outline.withAlpha(100)),
-            prefixIcon: Icon(icon, size: 18, color: AppColors.primary.withAlpha(150)),
+            prefixIcon: Icon(
+              icon,
+              size: 18,
+              color: AppColors.primary.withAlpha(150),
+            ),
             filled: true,
             fillColor: AppColors.background.withAlpha(150),
             contentPadding: const EdgeInsets.all(16),
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
-            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: AppColors.primary, width: 1.5)),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide.none,
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: const BorderSide(
+                color: AppColors.primary,
+                width: 1.5,
+              ),
+            ),
           ),
           validator: (val) {
             if (isRequired && (val == null || val.isEmpty)) {
@@ -453,12 +697,25 @@ class _ReportHealthScreenState extends State<ReportHealthScreen> {
     );
   }
 
-  Widget _buildDateField(BuildContext context, String label, IconData icon, DateTime selectedDate) {
-    final formattedDate = "${selectedDate.month.toString().padLeft(2, '0')}/${selectedDate.day.toString().padLeft(2, '0')}/${selectedDate.year}";
+  Widget _buildDateField(
+    BuildContext context,
+    String label,
+    IconData icon,
+    DateTime selectedDate,
+  ) {
+    final formattedDate =
+        "${selectedDate.month.toString().padLeft(2, '0')}/${selectedDate.day.toString().padLeft(2, '0')}/${selectedDate.year}";
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: AppTextStyles.labelSm.copyWith(color: AppColors.outline, fontWeight: FontWeight.bold, fontSize: 11)),
+        Text(
+          label,
+          style: AppTextStyles.labelSm.copyWith(
+            color: AppColors.outline,
+            fontWeight: FontWeight.bold,
+            fontSize: 11,
+          ),
+        ),
         const SizedBox(height: 8),
         InkWell(
           onTap: () => _selectDate(context),
@@ -476,11 +733,17 @@ class _ReportHealthScreenState extends State<ReportHealthScreen> {
                 Expanded(
                   child: Text(
                     formattedDate,
-                    style: AppTextStyles.labelMd.copyWith(fontWeight: FontWeight.bold),
+                    style: AppTextStyles.labelMd.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                const Icon(Icons.calendar_today_rounded, size: 16, color: AppColors.primary),
+                const Icon(
+                  Icons.calendar_today_rounded,
+                  size: 16,
+                  color: AppColors.primary,
+                ),
               ],
             ),
           ),
@@ -489,48 +752,91 @@ class _ReportHealthScreenState extends State<ReportHealthScreen> {
     );
   }
 
-  Widget _buildDropdownField(String label, IconData icon, List<String> items, String value, ValueChanged<String?> onChanged) {
+  Widget _buildDropdownField(
+    String label,
+    IconData icon,
+    List<String> items,
+    String value,
+    ValueChanged<String?> onChanged,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: AppTextStyles.labelSm.copyWith(color: AppColors.outline, fontWeight: FontWeight.bold, fontSize: 11)),
+        Text(
+          label,
+          style: AppTextStyles.labelSm.copyWith(
+            color: AppColors.outline,
+            fontWeight: FontWeight.bold,
+            fontSize: 11,
+          ),
+        ),
         const SizedBox(height: 8),
         DropdownButtonFormField<String>(
           isExpanded: true,
-          value: value,
+          initialValue: value,
           onChanged: onChanged,
-          items: items.map((item) => DropdownMenuItem(
-            value: item,
-            child: Text(
-              item,
-              style: AppTextStyles.labelMd.copyWith(
-                fontWeight: FontWeight.bold,
-                fontSize: 12,
-              ),
-              overflow: TextOverflow.ellipsis,
-            ),
-          )).toList(),
+          items:
+              items
+                  .map(
+                    (item) => DropdownMenuItem(
+                      value: item,
+                      child: Text(
+                        item,
+                        style: AppTextStyles.labelMd.copyWith(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  )
+                  .toList(),
           decoration: InputDecoration(
             prefixIcon: Padding(
               padding: const EdgeInsets.only(left: 8, right: 6),
-              child: Icon(icon, size: 14, color: AppColors.primary.withAlpha(150)),
+              child: Icon(
+                icon,
+                size: 14,
+                color: AppColors.primary.withAlpha(150),
+              ),
             ),
-            prefixIconConstraints: const BoxConstraints(minWidth: 24, minHeight: 0),
+            prefixIconConstraints: const BoxConstraints(
+              minWidth: 24,
+              minHeight: 0,
+            ),
             filled: true,
             fillColor: AppColors.background.withAlpha(150),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 8,
+              vertical: 12,
+            ),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide.none,
+            ),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildTextAreaField(TextEditingController controller, String label, IconData icon, String hint) {
+  Widget _buildTextAreaField(
+    TextEditingController controller,
+    String label,
+    IconData icon,
+    String hint,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: AppTextStyles.labelSm.copyWith(color: AppColors.outline, fontWeight: FontWeight.bold, fontSize: 11)),
+        Text(
+          label,
+          style: AppTextStyles.labelSm.copyWith(
+            color: AppColors.outline,
+            fontWeight: FontWeight.bold,
+            fontSize: 11,
+          ),
+        ),
         const SizedBox(height: 8),
         TextFormField(
           controller: controller,
@@ -541,13 +847,26 @@ class _ReportHealthScreenState extends State<ReportHealthScreen> {
             hintStyle: TextStyle(color: AppColors.outline.withAlpha(100)),
             prefixIcon: Padding(
               padding: const EdgeInsets.only(bottom: 40.0),
-              child: Icon(icon, size: 18, color: AppColors.primary.withAlpha(150)),
+              child: Icon(
+                icon,
+                size: 18,
+                color: AppColors.primary.withAlpha(150),
+              ),
             ),
             filled: true,
             fillColor: AppColors.background.withAlpha(150),
             contentPadding: const EdgeInsets.all(16),
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
-            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: AppColors.primary, width: 1.5)),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide.none,
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: const BorderSide(
+                color: AppColors.primary,
+                width: 1.5,
+              ),
+            ),
           ),
         ),
       ],
@@ -561,31 +880,49 @@ class _ReportHealthScreenState extends State<ReportHealthScreen> {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(20),
         gradient: LinearGradient(
-          colors: _isSubmitting
-              ? [Colors.grey, Colors.grey.shade600]
-              : [AppColors.primary, const Color(0xFF1E40AF)],
+          colors:
+              _isSubmitting
+                  ? [Colors.grey, Colors.grey.shade600]
+                  : [AppColors.primary, const Color(0xFF1E40AF)],
         ),
-        boxShadow: _isSubmitting ? [] : [
-          BoxShadow(color: AppColors.primary.withAlpha(100), blurRadius: 15, offset: const Offset(0, 8)),
-        ],
+        boxShadow:
+            _isSubmitting
+                ? []
+                : [
+                  BoxShadow(
+                    color: AppColors.primary.withAlpha(100),
+                    blurRadius: 15,
+                    offset: const Offset(0, 8),
+                  ),
+                ],
       ),
       child: ElevatedButton(
         onPressed: _isSubmitting ? null : () => _submitForm(),
         style: ElevatedButton.styleFrom(
           backgroundColor: Colors.transparent,
           shadowColor: Colors.transparent,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
         ),
-        child: _isSubmitting
-            ? const SizedBox(
-                width: 24,
-                height: 24,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2.5,
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+        child:
+            _isSubmitting
+                ? const SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2.5,
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                  ),
+                )
+                : Text(
+                  'Simpan Data Kesehatan',
+                  style: AppTextStyles.labelMd.copyWith(
+                    fontWeight: FontWeight.w900,
+                    color: Colors.white,
+                    fontSize: 16,
+                  ),
                 ),
-              )
-            : Text('Simpan Data Kesehatan', style: AppTextStyles.labelMd.copyWith(fontWeight: FontWeight.w900, color: Colors.white, fontSize: 16)),
       ),
     );
   }
@@ -615,8 +952,10 @@ class _ReportHealthScreenState extends State<ReportHealthScreen> {
       };
 
       final jsonStr = jsonEncode(notesPayload);
-      final sysVal = _sysController.text.isNotEmpty ? _sysController.text : '120';
-      final diaVal = _diaController.text.isNotEmpty ? _diaController.text : '80';
+      final sysVal =
+          _sysController.text.isNotEmpty ? _sysController.text : '120';
+      final diaVal =
+          _diaController.text.isNotEmpty ? _diaController.text : '80';
 
       final record = HealthRecord(
         id: 'H${DateTime.now().millisecondsSinceEpoch}',
@@ -628,7 +967,10 @@ class _ReportHealthScreenState extends State<ReportHealthScreen> {
         date: _selectedDate,
         bloodType: _selectedBloodType,
         notes: jsonStr,
-        gulaDarah: _sugarController.text.isNotEmpty ? int.tryParse(_sugarController.text) : null,
+        gulaDarah:
+            _sugarController.text.isNotEmpty
+                ? int.tryParse(_sugarController.text)
+                : null,
       );
 
       await context.read<StudentProvider>().addHealthRecord(record);
@@ -651,7 +993,7 @@ class _ReportHealthScreenState extends State<ReportHealthScreen> {
 
   int _calculateScore(HealthRecord r) {
     double score = 100;
-    
+
     // BMI deductions
     double bmi = r.bmi;
     if (bmi >= 30) {
@@ -676,7 +1018,7 @@ class _ReportHealthScreenState extends State<ReportHealthScreen> {
     if (r.notes.startsWith('{')) {
       try {
         final data = jsonDecode(r.notes);
-        
+
         // sleep
         int sleep = data['jam_tidur'] ?? 8;
         if (sleep < 7) {
@@ -684,7 +1026,7 @@ class _ReportHealthScreenState extends State<ReportHealthScreen> {
         } else if (sleep > 9) {
           score -= (sleep - 9) * 4;
         }
-        
+
         // water
         double water = double.tryParse(data['konsumsi_air'].toString()) ?? 2.0;
         if (water < 2.0) {
@@ -722,53 +1064,61 @@ class _ReportHealthScreenState extends State<ReportHealthScreen> {
     return score.toInt();
   }
 
-
-
   Map<String, dynamic>? _getDelta(HealthRecord cur, HealthRecord? prev) {
     if (prev == null) {
       return {
         'type': 'info',
-        'message': 'Skrining pertamamu berhasil disimpan! Lakukan secara rutin setiap minggu untuk memantau perkembangan kesehatanmu.'
+        'message':
+            'Skrining pertamamu berhasil disimpan! Lakukan secara rutin setiap minggu untuk memantau perkembangan kesehatanmu.',
       };
     }
-    
+
     double wDiff = cur.weight - prev.weight;
     double curBmi = cur.bmi;
-    
-    if (curBmi >= 25) { // overweight
+
+    if (curBmi >= 25) {
+      // overweight
       if (wDiff < 0) {
         return {
           'type': 'success',
-          'message': 'Berat badanmu turun ${wDiff.abs().toStringAsFixed(1)} kg dari bulan lalu. Ini progres bagus untuk menuju berat badan ideal!'
+          'message':
+              'Berat badanmu turun ${wDiff.abs().toStringAsFixed(1)} kg dari bulan lalu. Ini progres bagus untuk menuju berat badan ideal!',
         };
       } else if (wDiff > 0) {
         return {
           'type': 'warning',
-          'message': 'Berat badanmu naik ${wDiff.toStringAsFixed(1)} kg. Disarankan untuk membatasi kalori harian dan meningkatkan latihan fisik kardio.'
+          'message':
+              'Berat badanmu naik ${wDiff.toStringAsFixed(1)} kg. Disarankan untuk membatasi kalori harian dan meningkatkan latihan fisik kardio.',
         };
       }
-    } else if (curBmi < 18.5) { // underweight
+    } else if (curBmi < 18.5) {
+      // underweight
       if (wDiff > 0) {
         return {
           'type': 'success',
-          'message': 'Berat badanmu naik ${wDiff.toStringAsFixed(1)} kg. Bagus! Tingkatkan konsumsi protein dan latihan angkat beban.'
+          'message':
+              'Berat badanmu naik ${wDiff.toStringAsFixed(1)} kg. Bagus! Tingkatkan konsumsi protein dan latihan angkat beban.',
         };
       } else if (wDiff < 0) {
         return {
           'type': 'warning',
-          'message': 'Berat badanmu menyusut ${wDiff.abs().toStringAsFixed(1)} kg. Pastikan kamu mendapat asupan kalori & nutrisi makro yang cukup.'
+          'message':
+              'Berat badanmu menyusut ${wDiff.abs().toStringAsFixed(1)} kg. Pastikan kamu mendapat asupan kalori & nutrisi makro yang cukup.',
         };
       }
-    } else { // normal
+    } else {
+      // normal
       if (wDiff.abs() <= 1.0) {
         return {
           'type': 'success',
-          'message': 'Berat badanmu sangat stabil (selisih ${wDiff.toStringAsFixed(1)} kg). Menjaga kestabilan tubuh adalah tanda metabolisme yang prima!'
+          'message':
+              'Berat badanmu sangat stabil (selisih ${wDiff.toStringAsFixed(1)} kg). Menjaga kestabilan tubuh adalah tanda metabolisme yang prima!',
         };
       } else {
         return {
           'type': 'info',
-          'message': 'Berat badanmu bergeser ${wDiff.toStringAsFixed(1)} kg. Masih dalam batas wajar, pastikan tetap aktif dan tidur cukup.'
+          'message':
+              'Berat badanmu bergeser ${wDiff.toStringAsFixed(1)} kg. Masih dalam batas wajar, pastikan tetap aktif dan tidur cukup.',
         };
       }
     }
@@ -778,15 +1128,15 @@ class _ReportHealthScreenState extends State<ReportHealthScreen> {
   void _showSuccessDialog() {
     final provider = context.read<StudentProvider>();
     final records = provider.healthRecords;
-    
+
     final currentRecord = records.isNotEmpty ? records.first : null;
     final previousRecord = records.length > 1 ? records[1] : null;
-    
+
     if (currentRecord == null) return;
-    
+
     final score = _calculateScore(currentRecord);
     final delta = _getDelta(currentRecord, previousRecord);
-    
+
     // Check if needs counseling (stressLevel >= 7 or BMI obese)
     int stressLevel = 0;
     if (currentRecord.notes.startsWith('{')) {
@@ -795,9 +1145,9 @@ class _ReportHealthScreenState extends State<ReportHealthScreen> {
         stressLevel = parsed['tingkat_stres'] ?? 0;
       } catch (_) {}
     }
-    
+
     final needsCounseling = stressLevel >= 7 || currentRecord.bmi >= 30;
-    
+
     Color ringColor = Colors.green;
     if (score < 70) {
       ringColor = Colors.red;
@@ -808,289 +1158,342 @@ class _ReportHealthScreenState extends State<ReportHealthScreen> {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
-        child: Container(
-          constraints: const BoxConstraints(maxWidth: 400),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [AppColors.primary, Color(0xFF1E40AF)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(28),
-                    topRight: Radius.circular(28),
-                  ),
-                ),
-                child: Column(
-                  children: [
-                    Text(
-                      'Data Kesehatan Disimpan!',
-                      style: AppTextStyles.titleLg.copyWith(color: Colors.white, fontWeight: FontWeight.bold),
+      builder:
+          (context) => Dialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(28),
+            ),
+            child: Container(
+              constraints: const BoxConstraints(maxWidth: 400),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 24,
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Hasil analisis kebugaran & gaya hidup',
-                      style: AppTextStyles.labelSm.copyWith(color: Colors.white70),
+                    decoration: const BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [AppColors.primary, Color(0xFF1E40AF)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(28),
+                        topRight: Radius.circular(28),
+                      ),
                     ),
-                  ],
-                ),
-              ),
-              // Scrollable Body
-              Flexible(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      // Circular Score Widget
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: AppColors.background.withAlpha(120),
-                          borderRadius: BorderRadius.circular(24),
+                    child: Column(
+                      children: [
+                        Text(
+                          'Data Kesehatan Disimpan!',
+                          style: AppTextStyles.titleLg.copyWith(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                        child: Row(
-                          children: [
-                            Stack(
-                              alignment: Alignment.center,
+                        const SizedBox(height: 4),
+                        Text(
+                          'Hasil analisis kebugaran & gaya hidup',
+                          style: AppTextStyles.labelSm.copyWith(
+                            color: Colors.white70,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  // Scrollable Body
+                  Flexible(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // Circular Score Widget
+                          Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: AppColors.background.withAlpha(120),
+                              borderRadius: BorderRadius.circular(24),
+                            ),
+                            child: Row(
                               children: [
-                                SizedBox(
-                                  width: 68,
-                                  height: 68,
-                                  child: CircularProgressIndicator(
-                                    value: score / 100.0,
-                                    strokeWidth: 6,
-                                    backgroundColor: Colors.grey.shade200,
-                                    valueColor: AlwaysStoppedAnimation<Color>(ringColor),
-                                  ),
-                                ),
-                                Column(
-                                  mainAxisSize: MainAxisSize.min,
+                                Stack(
+                                  alignment: Alignment.center,
                                   children: [
-                                    Text(
-                                      '$score',
-                                      style: TextStyle(
-                                        color: ringColor,
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.w900,
+                                    SizedBox(
+                                      width: 68,
+                                      height: 68,
+                                      child: CircularProgressIndicator(
+                                        value: score / 100.0,
+                                        strokeWidth: 6,
+                                        backgroundColor: Colors.grey.shade200,
+                                        valueColor:
+                                            AlwaysStoppedAnimation<Color>(
+                                              ringColor,
+                                            ),
                                       ),
                                     ),
-                                    const Text(
-                                      'SKOR',
-                                      style: TextStyle(
-                                        color: Colors.grey,
-                                        fontSize: 7,
-                                        fontWeight: FontWeight.bold,
-                                      ),
+                                    Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Text(
+                                          '$score',
+                                          style: TextStyle(
+                                            color: ringColor,
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.w900,
+                                          ),
+                                        ),
+                                        const Text(
+                                          'SKOR',
+                                          style: TextStyle(
+                                            color: Colors.grey,
+                                            fontSize: 7,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ],
+                                ),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Interpretasi Wellness',
+                                        style: AppTextStyles.labelSm.copyWith(
+                                          fontWeight: FontWeight.w900,
+                                          color: AppColors.primary,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        score >= 85
+                                            ? 'Metrik tubuh dan gaya hidup sangat prima!'
+                                            : score >= 70
+                                            ? 'Cukup Sehat, perbaiki gaya hidup agar lebih optimal.'
+                                            : 'Perlu Perhatian, seimbangkan nutrisi, tidur & kelola stres.',
+                                        style: const TextStyle(
+                                          fontSize: 11,
+                                          color: Colors.grey,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ],
                             ),
-                            const SizedBox(width: 16),
-                            Expanded(
+                          ),
+                          const SizedBox(height: 16),
+
+                          // Delta Card
+                          if (delta != null) ...[
+                            Container(
+                              padding: const EdgeInsets.all(14),
+                              decoration: BoxDecoration(
+                                color:
+                                    delta['type'] == 'success'
+                                        ? Colors.green.withAlpha(20)
+                                        : delta['type'] == 'warning'
+                                        ? Colors.red.withAlpha(20)
+                                        : Colors.blue.withAlpha(20),
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(
+                                  color:
+                                      delta['type'] == 'success'
+                                          ? Colors.green.withAlpha(50)
+                                          : delta['type'] == 'warning'
+                                          ? Colors.red.withAlpha(50)
+                                          : Colors.blue.withAlpha(50),
+                                ),
+                              ),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Icon(
+                                    delta['type'] == 'success'
+                                        ? Icons.check_circle_rounded
+                                        : delta['type'] == 'warning'
+                                        ? Icons.warning_amber_rounded
+                                        : Icons.info_outline_rounded,
+                                    color:
+                                        delta['type'] == 'success'
+                                            ? Colors.green
+                                            : delta['type'] == 'warning'
+                                            ? Colors.red
+                                            : Colors.blue,
+                                    size: 20,
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          'Perbandingan Kesehatan',
+                                          style: TextStyle(
+                                            color:
+                                                delta['type'] == 'success'
+                                                    ? Colors.green.shade900
+                                                    : delta['type'] == 'warning'
+                                                    ? Colors.red.shade900
+                                                    : Colors.blue.shade900,
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          delta['message'],
+                                          style: TextStyle(
+                                            color:
+                                                delta['type'] == 'success'
+                                                    ? Colors.green.shade800
+                                                    : delta['type'] == 'warning'
+                                                    ? Colors.red.shade800
+                                                    : Colors.blue.shade800,
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.bold,
+                                            height: 1.3,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                          ],
+
+                          // Counseling Recommendation
+                          if (needsCounseling) ...[
+                            Container(
+                              padding: const EdgeInsets.all(14),
+                              decoration: BoxDecoration(
+                                color: Colors.blue.shade50,
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(color: Colors.blue.shade100),
+                              ),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(
-                                    'Interpretasi Wellness',
-                                    style: AppTextStyles.labelSm.copyWith(fontWeight: FontWeight.w900, color: AppColors.primary),
+                                  Row(
+                                    children: [
+                                      Container(
+                                        padding: const EdgeInsets.all(6),
+                                        decoration: const BoxDecoration(
+                                          color: AppColors.primary,
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: const Icon(
+                                          Icons.support_agent_rounded,
+                                          color: Colors.white,
+                                          size: 14,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 10),
+                                      const Text(
+                                        'Rekomendasi Ahli',
+                                        style: TextStyle(
+                                          color: Colors.blue,
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    score >= 85
-                                        ? 'Metrik tubuh dan gaya hidup sangat prima!'
-                                        : score >= 70
-                                            ? 'Cukup Sehat, perbaiki gaya hidup agar lebih optimal.'
-                                            : 'Perlu Perhatian, seimbangkan nutrisi, tidur & kelola stres.',
-                                    style: const TextStyle(fontSize: 11, color: Colors.grey, fontWeight: FontWeight.w500),
+                                  const SizedBox(height: 8),
+                                  const Text(
+                                    'Tingkat stresmu atau BMI terdeteksi memerlukan perhatian khusus. Kamu bisa menjadwalkan konseling psikologis gratis & rahasia.',
+                                    style: TextStyle(
+                                      color: Colors.blueGrey,
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
+                                      height: 1.3,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 10),
+                                  InkWell(
+                                    onTap: () {
+                                      Navigator.pop(context); // close dialog
+                                      Navigator.pop(
+                                        context,
+                                      ); // close report screen
+                                      context.push(AppRoutes.studentCounseling);
+                                    },
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Text(
+                                          'Jadwalkan Konseling Sekarang',
+                                          style: TextStyle(
+                                            color: Colors.blue.shade900,
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.w900,
+                                            decoration:
+                                                TextDecoration.underline,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Icon(
+                                          Icons.arrow_forward_rounded,
+                                          size: 10,
+                                          color: Colors.blue.shade900,
+                                        ),
+                                      ],
+                                    ),
                                   ),
                                 ],
                               ),
                             ),
+                            const SizedBox(height: 16),
                           ],
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  // Action Buttons
+                  Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: SizedBox(
+                      width: double.infinity,
+                      height: 52,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                          Navigator.pop(context);
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primary,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          elevation: 0,
+                        ),
+                        child: const Text(
+                          'Paham, Kembali',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
-                      const SizedBox(height: 16),
-                      
-                      // Delta Card
-                      if (delta != null) ...[
-                        Container(
-                          padding: const EdgeInsets.all(14),
-                          decoration: BoxDecoration(
-                            color: delta['type'] == 'success'
-                                ? Colors.green.withAlpha(20)
-                                : delta['type'] == 'warning'
-                                    ? Colors.red.withAlpha(20)
-                                    : Colors.blue.withAlpha(20),
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(
-                              color: delta['type'] == 'success'
-                                  ? Colors.green.withAlpha(50)
-                                  : delta['type'] == 'warning'
-                                      ? Colors.red.withAlpha(50)
-                                      : Colors.blue.withAlpha(50),
-                            ),
-                          ),
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Icon(
-                                delta['type'] == 'success'
-                                    ? Icons.check_circle_rounded
-                                    : delta['type'] == 'warning'
-                                        ? Icons.warning_amber_rounded
-                                        : Icons.info_outline_rounded,
-                                color: delta['type'] == 'success'
-                                    ? Colors.green
-                                    : delta['type'] == 'warning'
-                                        ? Colors.red
-                                        : Colors.blue,
-                                size: 20,
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      'Perbandingan Kesehatan',
-                                      style: TextStyle(
-                                        color: delta['type'] == 'success'
-                                            ? Colors.green.shade900
-                                            : delta['type'] == 'warning'
-                                                ? Colors.red.shade900
-                                                : Colors.blue.shade900,
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      delta['message'],
-                                      style: TextStyle(
-                                        color: delta['type'] == 'success'
-                                            ? Colors.green.shade800
-                                            : delta['type'] == 'warning'
-                                                ? Colors.red.shade800
-                                                : Colors.blue.shade800,
-                                        fontSize: 10,
-                                        fontWeight: FontWeight.bold,
-                                        height: 1.3,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                      ],
-                      
-                      // Counseling Recommendation
-                      if (needsCounseling) ...[
-                        Container(
-                          padding: const EdgeInsets.all(14),
-                          decoration: BoxDecoration(
-                            color: Colors.blue.shade50,
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(color: Colors.blue.shade100),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  Container(
-                                    padding: const EdgeInsets.all(6),
-                                    decoration: const BoxDecoration(
-                                      color: AppColors.primary,
-                                      shape: BoxShape.circle,
-                                    ),
-                                    child: const Icon(Icons.support_agent_rounded, color: Colors.white, size: 14),
-                                  ),
-                                  const SizedBox(width: 10),
-                                  const Text(
-                                    'Rekomendasi Ahli',
-                                    style: TextStyle(color: Colors.blue, fontSize: 12, fontWeight: FontWeight.bold),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 8),
-                              const Text(
-                                'Tingkat stresmu atau BMI terdeteksi memerlukan perhatian khusus. Kamu bisa menjadwalkan konseling psikologis gratis & rahasia.',
-                                style: TextStyle(color: Colors.blueGrey, fontSize: 10, fontWeight: FontWeight.bold, height: 1.3),
-                              ),
-                              const SizedBox(height: 10),
-                              InkWell(
-                                onTap: () {
-                                  Navigator.pop(context); // close dialog
-                                  Navigator.pop(context); // close report screen
-                                  context.push(AppRoutes.studentCounseling);
-                                },
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Text(
-                                      'Jadwalkan Konseling Sekarang',
-                                      style: TextStyle(
-                                        color: Colors.blue.shade900,
-                                        fontSize: 10,
-                                        fontWeight: FontWeight.w900,
-                                        decoration: TextDecoration.underline,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 4),
-                                    Icon(Icons.arrow_forward_rounded, size: 10, color: Colors.blue.shade900),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                      ],
-                    ],
-                  ),
-                ),
-              ),
-              
-              // Action Buttons
-              Padding(
-                padding: const EdgeInsets.all(20),
-                child: SizedBox(
-                  width: double.infinity,
-                  height: 52,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                      Navigator.pop(context);
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                      elevation: 0,
-                    ),
-                    child: const Text(
-                      'Paham, Kembali',
-                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                     ),
                   ),
-                ),
+                ],
               ),
-            ],
+            ),
           ),
-        ),
-      ),
     );
   }
 }

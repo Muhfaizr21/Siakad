@@ -91,12 +91,12 @@ export default function TahunAkademikPage() {
   const current = data[0]
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] font-body">
+    <div className="min-h-screen bg-transparent font-inter">
       <Toaster position="top-right" />
       <div className="max-w-[1600px] mx-auto px-4 py-8 md:px-8 xl:px-12 space-y-6">
 
         {/* Header */}
-        <section className="relative overflow-hidden rounded-3xl h-auto md:h-48 flex flex-col md:flex-row items-center group shadow-sm p-6 md:p-8 border border-slate-200/80 bg-white">
+        <section className="relative overflow-hidden rounded-2xl h-auto md:h-48 flex flex-col md:flex-row items-center group shadow-none p-6 md:p-8 border border-slate-200/60 glass-card">
           <div className="absolute inset-0 bg-gradient-to-br from-white via-slate-50/50 to-slate-100/50" />
           <div className="absolute inset-0 opacity-[0.03]"
             style={{
@@ -122,7 +122,7 @@ export default function TahunAkademikPage() {
             </div>
             <div className="flex items-center gap-3">
               <button onClick={fetchData} disabled={loading}
-                className="h-11 px-5 rounded-xl border border-slate-200/60 bg-white text-xs font-bold uppercase tracking-widest text-slate-600 hover:bg-slate-50/50 gap-2 flex items-center transition-all active:scale-95 shadow-sm disabled:opacity-60">
+                className="h-11 px-5 rounded-xl border border-slate-200/60 bg-transparent text-xs font-bold uppercase tracking-widest text-slate-600 hover:bg-slate-50/50 gap-2 flex items-center transition-all active:scale-95 shadow-none disabled:opacity-60">
                 {loading ? <span className="material-symbols-outlined animate-spin text-primary" style={{ fontSize: '14px' }} >sync</span> : <RefreshCw size={14} className="text-primary" />} Refresh
               </button>
             </div>
@@ -136,7 +136,7 @@ export default function TahunAkademikPage() {
             { label: 'Semester',      value: current?.activeSemester || '—',     icon: Clock,        bg: 'bg-emerald-50', color: 'text-emerald-600', desc: 'Periode semester saat ini' },
             { label: 'Portal Beasiswa', value: current?.isKrsOpen ? 'OPEN' : 'CLOSED', icon: Award, bg: current?.isKrsOpen ? 'bg-emerald-50' : 'bg-slate-50', color: current?.isKrsOpen ? 'text-emerald-600' : 'text-slate-500', desc: 'Akses pendaftaran beasiswa' },
           ].map(s => (
-            <div key={s.label} className="bg-white border border-slate-100/50 rounded-3xl p-5 shadow-sm">
+            <div key={s.label} className="glass-card border border-slate-200/60 rounded-2xl p-5 shadow-none">
               <div className="flex items-center gap-3 mb-3">
                 <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center', s.bg, s.color)}><s.icon size={18} /></div>
                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{s.label}</span>
@@ -151,10 +151,10 @@ export default function TahunAkademikPage() {
 
         {/* Current Period Card */}
         {current && !loading && (
-          <div className="bg-white border border-slate-100/50 rounded-3xl shadow-sm overflow-hidden">
+          <div className="glass-card border border-slate-200/60 rounded-2xl shadow-none overflow-hidden">
             <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
               <div>
-                <h2 className="font-bold text-base text-slate-900">Periode Aktif Saat Ini</h2>
+                <h2 className="font-black text-sm uppercase tracking-tight font-headline" style={{ color: 'var(--theme-h2)' }}>Periode Aktif Saat Ini</h2>
                 <p className="text-xs text-slate-500 mt-0.5">Konfigurasi semester yang sedang berjalan (Read-Only)</p>
               </div>
             </div>
@@ -165,7 +165,7 @@ export default function TahunAkademikPage() {
                 { label: 'Portal Beasiswa', value: current.isKrsOpen    ? 'TERBUKA' : 'TERTUTUP', ok: current.isKrsOpen },
                 { label: 'Layanan Aspirasi', value: current.isGradeInputOpen ? 'TERBUKA' : 'TERTUTUP', ok: current.isGradeInputOpen },
               ].map(item => (
-                <div key={item.label} className="bg-slate-50/50 border border-slate-100 rounded-xl p-4">
+                <div key={item.label} className="bg-transparent/50 border border-slate-200/60 rounded-xl p-4">
                   <p className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.15em] mb-1">{item.label}</p>
                   <p className={cn('text-sm font-extrabold uppercase',
                     item.ok === true  ? 'text-emerald-600' :
@@ -180,7 +180,7 @@ export default function TahunAkademikPage() {
 
         {/* Empty state */}
         {!loading && data.length === 0 && (
-          <div className="bg-white rounded-2xl border border-slate-200/60 shadow-sm p-16 text-center">
+          <div className="glass-card rounded-2xl border border-slate-200/60 shadow-none p-16 text-center">
             <div className="flex flex-col items-center gap-3">
               <div className="w-16 h-16 bg-[#eef4ff] rounded-2xl flex items-center justify-center text-primary"><span className="material-symbols-outlined" style={{ fontSize: '28px' }} >calendar_month</span></div>
               <p className="font-bold text-lg text-slate-900">Belum Ada Periode Akademik</p>

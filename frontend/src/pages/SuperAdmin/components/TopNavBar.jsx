@@ -145,7 +145,7 @@ const TopNavBar = ({ setIsOpen }) => {
 
   return (
     <>
-      <header className="fixed top-0 right-0 left-0 lg:left-64 z-[50] h-20 bg-white/80 backdrop-blur-xl border-b border-slate-200/50 flex items-center justify-between px-6 lg:px-10 font-body transition-all duration-300">
+      <header className="fixed top-0 right-0 left-0 lg:left-64 z-[50] h-20 glass-card border-b border-white/40 flex items-center justify-between px-6 lg:px-10 font-inter transition-all duration-300">
         <div className="flex items-center gap-6 flex-1">
           {/* Mobile Toggle */}
           <button
@@ -157,7 +157,7 @@ const TopNavBar = ({ setIsOpen }) => {
 
           {/* Dynamic Breadcrumbs */}
           <nav className="hidden md:flex items-center gap-3 overflow-hidden">
-            <div className="p-2 rounded-xl bg-primary/5 text-primary flex items-center justify-center border border-primary/10">
+            <div className="p-2 rounded-xl bg-bku-primary/5 text-bku-primary flex items-center justify-center border border-bku-primary/10">
               <span className="material-symbols-outlined text-[18px]" style={{ fontSize: '18px' }}>grid_view</span>
             </div>
             <div className="flex items-center text-[10px] font-extrabold tracking-widest uppercase font-headline">
@@ -173,13 +173,13 @@ const TopNavBar = ({ setIsOpen }) => {
                       </span>
                     )}
                     {last ? (
-                      <span className="text-slate-800 bg-slate-100 px-3 py-1 rounded-xl truncate max-w-[160px] border border-slate-200/50 normal-case font-extrabold text-[11px] font-body">
+                      <span className="text-slate-800 bg-slate-100/50 px-3 py-1 rounded-xl truncate max-w-[160px] border border-slate-200/30 normal-case font-extrabold text-[11px] font-inter">
                         {getBreadcrumbLabel(value)}
                       </span>
                     ) : (
                       <Link
                         to={to}
-                        className="text-slate-400 hover:text-primary transition-all duration-200 truncate max-w-[150px]"
+                        className="text-slate-400 hover:text-bku-primary transition-all duration-200 truncate max-w-[150px]"
                       >
                         {getBreadcrumbLabel(value)}
                       </Link>
@@ -191,8 +191,8 @@ const TopNavBar = ({ setIsOpen }) => {
           </nav>
 
           {/* Premium Status Badge Indicator */}
-          <div className="hidden md:flex items-center gap-2 px-3.5 py-1.5 bg-primary/5 text-primary rounded-2xl text-[10px] font-extrabold tracking-wider uppercase border border-primary/10 shadow-sm shadow-primary/5">
-            <span className="w-1.5 h-1.5 bg-primary rounded-full animate-pulse" />
+          <div className="hidden md:flex items-center gap-2 px-3.5 py-1.5 bg-bku-primary/5 text-bku-primary rounded-2xl text-[10px] font-extrabold tracking-wider uppercase border border-bku-primary/10 shadow-sm shadow-bku-primary/5">
+            <span className="w-1.5 h-1.5 bg-bku-primary rounded-full animate-pulse" />
             Pusat Superadmin
           </div>
         </div>
@@ -203,14 +203,14 @@ const TopNavBar = ({ setIsOpen }) => {
             {/* Search Trigger Button */}
             <button 
               onClick={() => setIsSearchOpen(true)}
-              className="h-10 px-4 rounded-2xl bg-slate-50 border border-slate-200/60 hover:bg-slate-100 hover:border-slate-300 text-slate-500 hover:text-primary transition-all active:scale-95 shadow-sm flex items-center gap-2"
+              className="h-10 px-4 rounded-2xl bg-slate-50/70 border border-slate-200/60 hover:bg-slate-100 hover:border-slate-300 text-slate-500 hover:text-bku-primary transition-all active:scale-95 shadow-sm flex items-center gap-2"
             >
               <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>search</span>
               <span className="hidden sm:inline text-[10px] font-extrabold tracking-wider text-slate-400 uppercase mr-1">CARI (Ctrl+K)</span>
             </button>
 
             {/* Notification Bell */}
-            <div className="relative w-10 h-10 flex items-center justify-center shrink-0 rounded-2xl bg-slate-50 border border-slate-200/60 hover:bg-slate-100 hover:border-slate-300 text-slate-500 hover:text-primary transition-all cursor-pointer group active:scale-95 shadow-sm">
+            <div className="relative w-10 h-10 flex items-center justify-center shrink-0 rounded-2xl bg-slate-50/70 border border-slate-200/60 hover:bg-slate-100 hover:border-slate-300 text-slate-500 hover:text-bku-primary transition-all cursor-pointer group active:scale-95 shadow-sm">
               <span className="material-symbols-outlined transition-transform duration-300 group-hover:rotate-12" style={{ fontSize: '20px' }}>notifications</span>
               {totalNotifications > 0 && (
                 <span className="absolute top-1 right-1 w-4 h-4 bg-rose-500 text-white text-[8px] font-black flex items-center justify-center rounded-full border-2 border-white ring-2 ring-rose-500/20 animate-pulse">
@@ -219,11 +219,11 @@ const TopNavBar = ({ setIsOpen }) => {
               )}
 
               {/* Popover Preview (Super Admin Perspective) */}
-              <div className="fixed sm:absolute top-20 sm:top-full left-4 right-4 sm:left-auto sm:right-0 mt-4 sm:w-80 w-auto bg-white rounded-3xl shadow-2xl border border-slate-100 p-6 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 translate-y-2 group-hover:translate-y-0 z-[100] cursor-default" onClick={(e) => e.stopPropagation()}>
+              <div className="fixed sm:absolute top-20 sm:top-full left-4 right-4 sm:left-auto sm:right-0 mt-4 sm:w-80 w-auto glass-card rounded-3xl shadow-xl border border-slate-200/50 p-6 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 translate-y-2 group-hover:translate-y-0 z-[100] cursor-default font-inter" onClick={(e) => e.stopPropagation()}>
                 <div className="flex justify-between items-center mb-5">
-                  <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline">Global Watchlist</h4>
+                  <h4 className="text-[10px] font-bold font-headline uppercase tracking-widest" style={{ color: 'var(--theme-h4)' }}>Global Watchlist</h4>
                   {totalNotifications > 0 && (
-                    <Badge variant="secondary" className="bg-rose-50 text-rose-600 border-none font-black text-[9px] px-2 py-0.5 rounded-lg">
+                    <Badge variant="secondary" className="bg-rose-50 text-rose-600 border-none font-bold text-[9px] px-2 py-0.5 rounded-lg">
                       {totalNotifications} PENDING
                     </Badge>
                   )}
@@ -234,8 +234,8 @@ const TopNavBar = ({ setIsOpen }) => {
                       <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>description</span>
                     </div>
                     <div className="flex flex-col overflow-hidden">
-                      <p className="text-[11px] font-black text-slate-900 leading-none uppercase tracking-tight font-headline">Antrean Proposal</p>
-                      <p className="text-[10px] font-bold text-slate-400 mt-1 truncate">{stats.antrean_proposal || 0} pengajuan baru</p>
+                      <p className="text-[11px] font-bold text-slate-900 leading-none uppercase tracking-tight font-headline">Antrean Proposal</p>
+                      <p className="text-[10px] font-medium text-slate-400 mt-1 truncate">{stats.antrean_proposal || 0} pengajuan baru</p>
                     </div>
                   </div>
 
@@ -244,8 +244,8 @@ const TopNavBar = ({ setIsOpen }) => {
                       <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>campaign</span>
                     </div>
                     <div className="flex flex-col overflow-hidden">
-                      <p className="text-[11px] font-black text-slate-900 leading-none uppercase tracking-tight font-headline">Pusat Aspirasi</p>
-                      <p className="text-[10px] font-bold text-slate-400 mt-1 truncate">{stats.aspirasi_aktif || 0} aspirasi baru</p>
+                      <p className="text-[11px] font-bold text-slate-900 leading-none uppercase tracking-tight font-headline">Pusat Aspirasi</p>
+                      <p className="text-[10px] font-medium text-slate-400 mt-1 truncate">{stats.aspirasi_aktif || 0} aspirasi baru</p>
                     </div>
                   </div>
 
@@ -254,13 +254,13 @@ const TopNavBar = ({ setIsOpen }) => {
                       <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>lock</span>
                     </div>
                     <div className="flex flex-col overflow-hidden">
-                      <p className="text-[11px] font-black text-slate-900 leading-none uppercase tracking-tight font-headline">System Audit</p>
-                      <p className="text-[10px] font-bold text-slate-400 mt-1 truncate">Log aktivitas keamanan</p>
+                      <p className="text-[11px] font-bold text-slate-900 leading-none uppercase tracking-tight font-headline">System Audit</p>
+                      <p className="text-[10px] font-medium text-slate-400 mt-1 truncate font-inter">Log aktivitas keamanan</p>
                     </div>
                   </div>
                 </div>
 
-                <Button onClick={() => navigate('/admin')} variant="ghost" className="w-full mt-6 h-11 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-primary hover:bg-primary/5">
+                <Button onClick={() => navigate('/admin')} variant="ghost" className="w-full mt-6 h-11 rounded-xl text-[10px] font-bold uppercase tracking-widest text-slate-400 hover:text-bku-primary hover:bg-bku-primary/5 font-headline">
                   Monitoring Komprehensif
                 </Button>
               </div>
@@ -269,7 +269,7 @@ const TopNavBar = ({ setIsOpen }) => {
             {/* Audit Log / Calendar Button */}
             <button 
               onClick={() => navigate('/admin/audit')}
-              className="hidden sm:flex w-10 h-10 items-center justify-center shrink-0 rounded-2xl bg-slate-50 border border-slate-200/60 hover:bg-slate-100 hover:border-slate-300 text-slate-500 hover:text-primary transition-all active:scale-95 shadow-sm"
+              className="hidden sm:flex w-10 h-10 items-center justify-center shrink-0 rounded-2xl bg-slate-50/70 border border-slate-200/60 hover:bg-slate-100 hover:border-slate-300 text-slate-500 hover:text-bku-primary transition-all active:scale-95 shadow-sm"
             >
               <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>calendar_month</span>
             </button>
@@ -280,33 +280,33 @@ const TopNavBar = ({ setIsOpen }) => {
           {/* User Account Profile Dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <div className="flex items-center gap-2.5 cursor-pointer group hover:bg-slate-50 p-1 pr-3 rounded-full transition-all duration-300 outline-none border border-slate-200/60 bg-white shadow-sm hover:shadow-md">
-                <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-primary to-indigo-500 text-white flex items-center justify-center font-black text-sm ring-2 ring-white shadow-md shadow-primary/20 group-hover:scale-105 transition-all duration-300 shrink-0">
+              <div className="flex items-center gap-2.5 cursor-pointer group hover:bg-slate-50 p-1 pr-3 rounded-full transition-all duration-300 outline-none border border-slate-200/60 bg-white shadow-sm hover:shadow-md hover:text-bku-primary font-inter">
+                <div className="w-9 h-9 rounded-full bg-gradient-to-br from-bku-primary to-indigo-500 text-white flex items-center justify-center font-bold text-sm ring-2 ring-white shadow-md shadow-bku-primary/20 group-hover:scale-105 transition-all duration-300 shrink-0">
                    {user?.Email?.[0]?.toUpperCase() || 'A'}
                 </div>
                 <div className="flex flex-col leading-tight pr-1.5 shrink-0">
-                  <span className="text-[11px] font-extrabold text-slate-800 group-hover:text-primary transition-colors truncate max-w-[100px]">
+                  <span className="text-[11px] font-bold text-slate-800 group-hover:text-bku-primary transition-colors truncate max-w-[100px] font-headline">
                     {user?.Email?.split('@')[0]}
                   </span>
-                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mt-0.5">Super Admin</span>
+                  <span className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider mt-0.5">Super Admin</span>
                 </div>
                 <span className="material-symbols-outlined text-[16px] text-slate-400 group-hover:text-slate-600 transition-colors" style={{ fontSize: '16px' }}>expand_more</span>
               </div>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56 mt-2 rounded-2xl p-1.5 shadow-xl border border-slate-100 bg-white">
+            <DropdownMenuContent align="end" className="w-56 mt-2 rounded-2xl p-1.5 shadow-xl border border-slate-200/50 bg-white font-inter">
               <div className="px-3 py-2 border-b border-slate-50 mb-1">
                 <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest font-headline">Super Admin</p>
-                <p className="text-xs font-bold text-slate-900 truncate mt-0.5">{user?.Email}</p>
+                <p className="text-xs font-semibold text-slate-900 truncate mt-0.5 font-inter">{user?.Email}</p>
               </div>
               
               <DropdownMenuItem onClick={() => navigate('/admin/profile')} className="rounded-xl p-2 focus:bg-slate-50 group cursor-pointer transition-all">
-                <UserCircle className="mr-2 size-4 text-slate-400 group-hover:text-primary transition-colors" style={{ fontSize: '16px' }} />
-                <span className="text-xs font-medium text-slate-600 group-hover:text-slate-900 transition-colors">Profil Admin</span>
+                <UserCircle className="mr-2 size-4 text-slate-400 group-hover:text-bku-primary transition-colors" style={{ fontSize: '16px' }} />
+                <span className="text-xs font-semibold text-slate-600 group-hover:text-slate-900 transition-colors">Profil Admin</span>
               </DropdownMenuItem>
-
+              
               <DropdownMenuItem onClick={() => navigate('/admin/config')} className="rounded-xl p-2 focus:bg-slate-50 group cursor-pointer transition-all">
-                <span className="material-symbols-outlined mr-2 size-4 text-slate-400 group-hover:text-primary transition-colors" style={{ fontSize: '16px' }}>settings</span>
-                <span className="text-xs font-medium text-slate-600 group-hover:text-slate-900 transition-colors">Konfigurasi</span>
+                <span className="material-symbols-outlined mr-2 size-4 text-slate-400 group-hover:text-bku-primary transition-colors" style={{ fontSize: '16px' }}>settings</span>
+                <span className="text-xs font-semibold text-slate-600 group-hover:text-slate-900 transition-colors">Konfigurasi</span>
               </DropdownMenuItem>
 
               <DropdownMenuSeparator className="my-1 bg-slate-50" />
@@ -319,7 +319,7 @@ const TopNavBar = ({ setIsOpen }) => {
                 className="rounded-xl p-2 focus:bg-rose-50 group cursor-pointer transition-all"
               >
                 <span className="material-symbols-outlined mr-2 size-4 text-rose-400 group-hover:text-rose-600 transition-colors" style={{ fontSize: '16px' }}>logout</span>
-                <span className="text-xs font-bold text-rose-500 group-hover:text-rose-600 transition-colors">Sign Out</span>
+                <span className="text-xs font-bold text-rose-500 group-hover:text-rose-600 transition-colors font-headline">Sign Out</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -368,7 +368,7 @@ const TopNavBar = ({ setIsOpen }) => {
                     onClick={() => handleNavigate(page.path)}
                     className="flex items-center gap-3.5 p-3 rounded-2xl hover:bg-slate-50 cursor-pointer transition-all duration-200 group active:scale-[0.99]"
                   >
-                    <div className="w-9 h-9 rounded-xl bg-primary/5 text-primary flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-colors shrink-0">
+                    <div className="w-9 h-9 rounded-xl bg-bku-primary/5 text-bku-primary flex items-center justify-center group-hover:bg-bku-primary group-hover:text-white transition-colors shrink-0">
                       <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>{page.icon}</span>
                     </div>
                     <div className="flex flex-col flex-1 leading-tight">

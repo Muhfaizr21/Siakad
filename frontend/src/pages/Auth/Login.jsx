@@ -97,7 +97,7 @@ export default function Login() {
           className="absolute inset-0 bg-cover bg-center"
           style={{ backgroundImage: "url('/images/BG.jpg')" }}
         ></div>
-        <div className="absolute inset-0 bg-gradient-to-br from-[#00236F]/95 to-[#0B4FAE]/90 mix-blend-multiply"></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-bku-primary/95 to-[#0B4FAE]/90 mix-blend-multiply"></div>
         <div className="absolute inset-0 bg-[#00174B]/30 backdrop-blur-[3px]"></div>
         
         {/* Soft Glowing Orbs for Depth */}
@@ -144,23 +144,23 @@ export default function Login() {
             <div className="w-[84px] h-[84px] bg-white rounded-[1.25rem] flex items-center justify-center shadow-lg shadow-neutral-200/50 border border-neutral-100 p-2.5 mb-6">
               <img src="/images/bku logo.png" alt="Logo BKU" className="w-full h-full object-contain" />
             </div>
-            <h1 className="text-[26px] font-bold font-jakarta text-neutral-900 mb-1.5 tracking-tight">Portal Mahasiswa</h1>
+            <h1 className="text-[26px] font-bold font-jakarta mb-1.5 tracking-tight" style={{ color: 'var(--theme-h1)' }}>Portal Mahasiswa</h1>
             <p className="text-[14px] text-neutral-500 font-medium">Universitas Bhakti Kencana</p>
           </div>
 
           {/* Desktop Header */}
           <div className="hidden lg:block mb-10">
-            <h2 className="text-[2rem] font-bold font-jakarta text-neutral-900 mb-3 tracking-tight">Selamat Datang</h2>
+            <h2 className="text-[2rem] font-bold font-jakarta mb-3 tracking-tight" style={{ color: 'var(--theme-h2)' }}>Selamat Datang</h2>
             <p className="text-neutral-500 text-[15px] leading-relaxed font-medium">Silakan masuk menggunakan email atau NIM Anda yang telah terdaftar di sistem Student Hub.</p>
           </div>
           
           <div className="mb-8 lg:hidden text-center">
-            <h2 className="text-[22px] font-bold text-neutral-900 mb-2">Selamat Datang</h2>
+            <h2 className="text-[22px] font-bold mb-2" style={{ color: 'var(--theme-h2)' }}>Selamat Datang</h2>
             <p className="text-[14px] text-neutral-500 font-medium">Silakan login untuk melanjutkan.</p>
           </div>
 
           {errorMsg && (
-            <div className="bg-red-50/80 border border-red-100 text-red-600 px-4 py-3.5 rounded-2xl mb-8 text-[14px] flex items-start gap-3 animate-in fade-in slide-in-from-top-2">
+            <div className="bg-red-50 border border-red-100 text-red-600 px-4 py-3.5 rounded-2xl mb-8 text-[14px] flex items-start gap-3 animate-in fade-in slide-in-from-top-2">
               <svg className="w-5 h-5 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" /></svg>
               <span className="leading-relaxed font-semibold">{errorMsg}</span>
             </div>
@@ -172,7 +172,7 @@ export default function Login() {
               <input
                 id="identifier"
                 type="text"
-                className={`w-full px-5 py-4 rounded-[1rem] border-2 ${errors.identifier ? 'border-red-300 focus:border-red-400 focus:ring-red-100 bg-red-50/30' : 'border-neutral-100 focus:border-[#00236F] focus:ring-[#00236F]/10 bg-neutral-50/70 hover:bg-neutral-100/50'} focus:bg-white focus:outline-none focus:ring-4 transition-all duration-300 text-[15px] font-semibold text-neutral-900 placeholder:text-neutral-400 placeholder:font-medium`}
+                className={`w-full px-5 py-4 rounded-[1rem] border-2 ${errors.identifier ? 'border-red-300 focus:border-red-400 focus:ring-red-100 bg-red-50/30' : 'border-neutral-200 focus:border-blue-500 focus:ring-blue-500/10 bg-neutral-50/70 hover:bg-neutral-100/50'} focus:bg-white focus:outline-none focus:ring-4 transition-all duration-300 text-[15px] font-semibold text-neutral-900 placeholder:text-neutral-400 placeholder:font-medium`}
                 placeholder="Misal: student@bku.ac.id"
                 {...register('identifier')}
                 disabled={isSubmitting}
@@ -188,7 +188,7 @@ export default function Login() {
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <label className="block text-[14px] font-bold text-neutral-800" htmlFor="password">Password</label>
-                <Link to="/forgot-password" className="text-[13px] font-bold text-[#00236F] hover:text-[#0B4FAE] transition-colors hover:underline underline-offset-4">
+                <Link to="/forgot-password" className="text-[13px] font-bold text-bku-primary hover:text-[#0B4FAE] transition-colors hover:underline underline-offset-4">
                   Lupa sandi?
                 </Link>
               </div>
@@ -196,7 +196,7 @@ export default function Login() {
                 <input
                   id="password"
                   type={showPassword ? 'text' : 'password'}
-                  className={`w-full px-5 py-4 rounded-[1rem] border-2 ${errors.password ? 'border-red-300 focus:border-red-400 focus:ring-red-100 bg-red-50/30' : 'border-neutral-100 focus:border-[#00236F] focus:ring-[#00236F]/10 bg-neutral-50/70 hover:bg-neutral-100/50'} focus:bg-white focus:outline-none focus:ring-4 transition-all duration-300 pr-14 text-[15px] font-semibold text-neutral-900 placeholder:text-neutral-400 placeholder:font-medium`}
+                  className={`w-full px-5 py-4 rounded-[1rem] border-2 ${errors.password ? 'border-red-300 focus:border-red-400 focus:ring-red-100 bg-red-50/30' : 'border-neutral-200 focus:border-blue-500 focus:ring-blue-500/10 bg-neutral-50/70 hover:bg-neutral-100/50'} focus:bg-white focus:outline-none focus:ring-4 transition-all duration-300 pr-14 text-[15px] font-semibold text-neutral-900 placeholder:text-neutral-400 placeholder:font-medium`}
                   placeholder="Masukkan password Anda"
                   {...register('password')}
                   disabled={isSubmitting}
@@ -221,7 +221,7 @@ export default function Login() {
             <div className="pt-2">
               <label className="flex items-center gap-3.5 cursor-pointer group w-max">
                 <div className="relative flex items-center">
-                  <input type="checkbox" className="peer w-[22px] h-[22px] rounded-[6px] border-2 border-neutral-300 text-[#00236F] focus:ring-[#00236F] focus:ring-offset-2 transition-all cursor-pointer bg-neutral-50" />
+                  <input type="checkbox" className="peer w-[22px] h-[22px] rounded-[6px] border-2 border-neutral-300 text-bku-primary focus:ring-bku-primary focus:ring-offset-2 transition-all cursor-pointer bg-neutral-50" />
                 </div>
                 <span className="text-[14px] font-semibold text-neutral-600 group-hover:text-neutral-900 transition-colors select-none">Ingat saya di perangkat ini</span>
               </label>
@@ -230,7 +230,7 @@ export default function Login() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full bg-[#00236F] hover:bg-[#0B4FAE] text-white font-bold py-4.5 px-4 rounded-[1rem] transition-all duration-300 active:scale-[0.98] shadow-[0_8px_20px_rgba(0,35,111,0.25)] hover:shadow-[0_12px_28px_rgba(11,79,174,0.35)] disabled:opacity-75 disabled:cursor-not-allowed disabled:active:scale-100 disabled:hover:shadow-none flex items-center justify-center mt-8 group text-[16px] h-[56px]"
+              className="w-full bg-bku-primary hover:bg-[#0B4FAE] text-white font-bold py-4.5 px-4 rounded-[1rem] transition-all duration-300 active:scale-[0.98] shadow-[0_8px_20px_rgba(0,35,111,0.25)] hover:shadow-[0_12px_28px_rgba(11,79,174,0.35)] disabled:opacity-75 disabled:cursor-not-allowed disabled:active:scale-100 disabled:hover:shadow-none flex items-center justify-center mt-8 group text-[16px] h-[56px]"
             >
               {isSubmitting ? (
                 <>

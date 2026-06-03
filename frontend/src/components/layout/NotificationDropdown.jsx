@@ -20,12 +20,12 @@ import { id } from 'date-fns/locale';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const CATEGORY_ICONS = {
-  achievement: <Trophy size={16} className="text-[#00236F]" />,
-  beasiswa: <GraduationCap size={16} className="text-[#00236F]" />,
-  konseling: <HeartHandshake size={16} className="text-[#00236F]" />,
-  student_voice: <MessageSquare size={16} className="text-[#00236F]" />,
-  kencana: <BookOpen size={16} className="text-[#00236F]" />,
-  sistem: <Bell size={16} className="text-[#00236F]" />,
+  achievement: <Trophy size={16} className="text-blue-600" />,
+  beasiswa: <GraduationCap size={16} className="text-blue-600" />,
+  konseling: <HeartHandshake size={16} className="text-blue-600" />,
+  student_voice: <MessageSquare size={16} className="text-blue-600" />,
+  kencana: <BookOpen size={16} className="text-blue-600" />,
+  sistem: <Bell size={16} className="text-blue-600" />,
 };
 
 export default function NotificationDropdown() {
@@ -107,15 +107,15 @@ export default function NotificationDropdown() {
   return (
     <div className="relative" ref={dropdownRef}>
       {/* Bell Icon Trigger */}
-      <button 
+      <button
         onClick={() => setIsOpen(!isOpen)}
         className={`relative w-9 h-9 flex items-center justify-center rounded-full transition-all duration-300 ${
-          isOpen ? 'bg-[#EAF1FF] text-[#00236F]' : 'hover:bg-[#fafafa] text-[#525252]'
+          isOpen ? 'bg-blue-50 text-blue-600' : 'hover:bg-neutral-100 text-neutral-600'
         }`}
       >
         <Bell size={18} className={unreadCount > 0 ? 'animate-[ring_2s_ease-in-out_infinite]' : ''} />
         {unreadCount > 0 && (
-          <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 bg-[#dc2626] text-white text-[10px] font-black rounded-full flex items-center justify-center border-2 border-white shadow-sm">
+          <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 bg-red-500 text-white text-[10px] font-black rounded-full flex items-center justify-center border-2 border-white shadow-sm">
             {unreadCount > 99 ? '99+' : unreadCount}
           </span>
         )}
@@ -124,26 +124,26 @@ export default function NotificationDropdown() {
       {/* Dropdown Panel */}
       <AnimatePresence>
         {isOpen && (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 10, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 10, scale: 0.95 }}
             transition={{ duration: 0.2, ease: "easeOut" }}
-            className="absolute right-0 mt-3 w-[360px] md:w-[380px] bg-white rounded-3xl border border-[#e5e5e5] shadow-2xl z-50 overflow-hidden"
+            className="absolute right-0 mt-3 w-[360px] md:w-[380px] bg-white rounded-3xl border border-neutral-200 shadow-2xl z-50 overflow-hidden"
           >
             {/* Header */}
-            <div className="p-5 border-b border-[#f5f5f5] flex items-center justify-between">
+            <div className="p-5 border-b border-neutral-100 flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <h3 className="text-base font-bold text-[#171717]">Notifikasi</h3>
+                <h3 className="text-base font-bold text-neutral-900">Notifikasi</h3>
                 {unreadCount > 0 && (
-                   <span className="bg-[#EAF1FF] text-[#00236F] text-[10px] font-black px-2 py-0.5 rounded-lg border border-[#C9D8FF]">
+                   <span className="bg-blue-50 text-blue-600 text-[10px] font-black px-2 py-0.5 rounded-lg border border-blue-100">
                       {unreadCount} BARU
                    </span>
                 )}
               </div>
-              <button 
+              <button
                 onClick={() => markAllReadMutation.mutate()}
-                className="text-xs font-bold text-[#00236F] hover:underline disabled:opacity-50"
+                className="text-xs font-bold text-blue-600 hover:underline disabled:opacity-50"
                 disabled={unreadCount === 0}
               >
                 Tandai semua dibaca
@@ -154,31 +154,31 @@ export default function NotificationDropdown() {
             <div className="max-height-[400px] overflow-y-auto custom-scrollbar">
               {isLoading ? (
                  <div className="p-10 text-center">
-                    <div className="w-6 h-6 border-2 border-[#00236F] border-t-transparent rounded-full animate-spin mx-auto mb-2" />
-                    <p className="text-xs text-[#a3a3a3] font-bold">Memuat...</p>
+                    <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
+                    <p className="text-xs text-neutral-400 font-bold">Memuat...</p>
                  </div>
               ) : notifData?.length > 0 ? (
-                <div className="divide-y divide-[#f5f5f5]">
+                <div className="divide-y divide-neutral-100">
                   {notifData.map((notif) => (
-                    <div 
+                    <div
                       key={notif.id}
                       onClick={() => handleNotifClick(notif)}
-                      className={`p-4 flex gap-3 cursor-pointer transition-colors hover:bg-[#fafafa] relative ${
-                        !notif.is_read ? 'bg-[#EAF1FF]/50' : ''
+                      className={`p-4 flex gap-3 cursor-pointer transition-colors hover:bg-neutral-50 relative ${
+                        !notif.is_read ? 'bg-blue-50/50' : ''
                       }`}
                     >
                       <div className="flex-shrink-0 mt-1">
-                        <div className="w-8 h-8 rounded-full flex items-center justify-center border border-[#e5e5e5] bg-white">
+                        <div className="w-8 h-8 rounded-full flex items-center justify-center border border-neutral-200 bg-white">
                           {CATEGORY_ICONS[notif.type] || <Bell size={16} />}
                         </div>
                       </div>
-                      
+
                       <div className="flex-1 min-w-0">
                         <div className="flex justify-between items-start gap-2 mb-0.5">
-                          <h4 className={`text-xs truncate ${!notif.is_read ? 'font-bold text-[#171717]' : 'font-semibold text-[#525252]'}`}>
+                          <h4 className={`text-xs truncate ${!notif.is_read ? 'font-bold text-neutral-900' : 'font-medium text-neutral-600'}`}>
                             {notif.title}
                           </h4>
-                          <span className="text-[10px] font-bold text-[#a3a3a3] flex-shrink-0">
+                          <span className="text-[10px] font-medium text-neutral-400 flex-shrink-0">
                             {(() => {
                               if (!notif.created_at) return '';
                               try {
@@ -189,14 +189,14 @@ export default function NotificationDropdown() {
                             })()}
                           </span>
                         </div>
-                        <p className="text-xs text-[#737373] line-clamp-2 leading-relaxed">
+                        <p className="text-xs text-neutral-500 line-clamp-2 leading-relaxed">
                           {notif.content}
                         </p>
                       </div>
 
                       {!notif.is_read && (
                         <div className="flex-shrink-0 self-center">
-                          <div className="w-2 h-2 bg-[#00236F] rounded-full shadow-[0_0_8px_rgba(0,35,111,0.5)]" />
+                          <div className="w-2 h-2 bg-blue-600 rounded-full" />
                         </div>
                       )}
                     </div>
@@ -204,19 +204,19 @@ export default function NotificationDropdown() {
                 </div>
               ) : (
                 <div className="p-12 text-center">
-                  <div className="w-16 h-16 bg-[#fafafa] rounded-full flex items-center justify-center mx-auto mb-4 border border-[#f5f5f5]">
-                    <Bell size={28} className="text-[#d4d4d4]" />
+                  <div className="w-16 h-16 bg-neutral-100 rounded-full flex items-center justify-center mx-auto mb-4 border border-neutral-200">
+                    <Bell size={28} className="text-neutral-300" />
                   </div>
-                  <p className="text-sm font-bold text-[#171717]">Belum ada notifikasi</p>
-                  <p className="text-xs text-[#a3a3a3] mt-1">Event terbaru kamu akan muncul di sini.</p>
+                  <p className="text-sm font-bold text-neutral-900">Belum ada notifikasi</p>
+                  <p className="text-xs text-neutral-400 mt-1">Event terbaru kamu akan muncul di sini.</p>
                 </div>
               )}
             </div>
 
             {/* Footer */}
-            <button 
+            <button
               onClick={() => { setIsOpen(false); navigate('/student/notifikasi'); }}
-              className="w-full p-4 border-t border-[#f5f5f5] text-xs font-bold text-[#171717] hover:bg-[#fafafa] transition-colors flex items-center justify-center gap-2"
+              className="w-full p-4 border-t border-neutral-100 text-xs font-bold text-neutral-900 hover:bg-neutral-50 transition-colors flex items-center justify-center gap-2"
             >
               Lihat Semua Notifikasi
               <ChevronRight size={14} />

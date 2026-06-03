@@ -1,67 +1,161 @@
 import React from 'react';
+import { UserCheck, BookOpen, Coins, Users, CheckCircle2 } from 'lucide-react';
+import { motion } from 'framer-motion';
 
-const Leadership = () => {
+export default function Leadership() {
+  const leaders = [
+    {
+      name: 'Dr. Entris Sutrisno, MH.Kes., Apt.',
+      role: 'Rektor',
+      division: 'Pimpinan Utama Universitas',
+      icon: UserCheck,
+      desc: 'Memimpin penyelenggaraan pendidikan, arah strategis riset, serta tata pamong universitas demi mewujudkan visi institusi yang mandiri, unggul, dan berdaya saing global.',
+      features: ['Arah Kebijakan Strategis', 'Tata Pamong & Akuntabilitas', 'Hubungan Internasional']
+    },
+    {
+      name: 'Dr. Yani Mulyani, M.Si., Apt.',
+      role: 'Wakil Rector I',
+      division: 'Bidang Akademik',
+      icon: BookOpen,
+      desc: 'Mengawal pengelolaan sistem kurikulum MBKM, penjaminan mutu perkuliahan tingkat prodi/fakultas, serta koordinasi dewan dosen akademik di seluruh kampus PSDKU.',
+      features: ['Kurikulum MBKM & Evaluasi', 'Penjaminan Mutu Akademik', 'Standardisasi Akreditasi']
+    },
+    {
+      name: 'Rizki Muliani, S.Kep., Ners., M.M.',
+      role: 'Wakil Rector II',
+      division: 'Bidang Keuangan & SDM',
+      icon: Coins,
+      desc: 'Mengelola stabilitas anggaran, tata kelola keuangan yayasan, pembinaan kesejahteraan/karier SDM dosen, serta optimalisasi prasarana sarana fisik penunjang.',
+      features: ['Tata Kelola Anggaran & Keuangan', 'Pengembangan Karier SDM', 'Sarana Prasarana Fisik']
+    },
+    {
+      name: 'Sri Mulyati Rahayu, S.Kp., M.Kes.',
+      role: 'Wakil Rector III',
+      division: 'Bidang Kemahasiswaan & Alumni',
+      icon: Users,
+      desc: 'Mengoordinasikan pembinaan Unit Kegiatan Mahasiswa (UKM), program kesejahteraan/beasiswa, jejaring ikatan alumni, serta kompetisi prestasi non-akademik.',
+      features: ['Pembinaan Organisasi & UKM', 'Program Beasiswa & Layanan', 'Jejaring & Penyaluran Alumni']
+    }
+  ];
+
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1, transition: { staggerChildren: 0.15 } }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 30 },
+    visible: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 100, damping: 20 } }
+  };
+
   return (
-    <section className="py-32 px-8 max-w-7xl mx-auto">
-        <div className="flex flex-col md:flex-row justify-between items-end mb-20 gap-8">
-            <div className="max-w-xl">
-                <h2 className="text-5xl font-extrabold text-primary tracking-tighter mb-6">Our Leadership</h2>
-                <p className="text-xl text-secondary">Guided by visionary academics and seasoned administrators
-                    dedicated to the BKU legacy.</p>
-            </div>
-            <button
-                className="px-8 py-3 rounded-full border-2 border-primary text-primary font-bold hover:bg-primary hover:text-white transition-all">View
-                Full Board</button>
+    <section className="py-24 sm:py-32 px-4 sm:px-6 lg:px-8 relative overflow-hidden" style={{ backgroundColor: 'var(--theme-bg)' }}>
+      {/* Decorative Glow elements */}
+      <div
+        className="absolute top-[10%] left-[-10%] w-[300px] h-[300px] rounded-full pointer-events-none"
+        style={{ background: 'color-mix(in srgb, var(--theme-secondary) 5%, transparent)', filter: 'blur(80px)' }}
+      />
+      <div
+        className="absolute bottom-[10%] right-[-10%] w-[400px] h-[400px] rounded-full pointer-events-none"
+        style={{ background: 'color-mix(in srgb, var(--theme-primary) 5%, transparent)', filter: 'blur(100px)' }}
+      />
+
+      <div className="max-w-7xl mx-auto w-full relative z-10">
+
+        {/* Header Block */}
+        <div className="text-center max-w-3xl mx-auto mb-20 space-y-4">
+          <span className="text-xs font-bold uppercase tracking-widest font-headline block" style={{ color: 'var(--theme-secondary)' }}>
+            Jajaran Kepemimpinan
+          </span>
+          <h2 className="text-3xl sm:text-4xl font-extrabold leading-tight font-headline" style={{ color: 'var(--theme-text)' }}>
+            Struktur Pimpinan Rektorat
+          </h2>
+          <p className="font-light text-sm sm:text-base leading-relaxed" style={{ color: 'var(--theme-text-muted)' }}>
+            Universitas Bhakti Kencana dipimpin oleh jajaran akademisi profesional yang berdedikasi tinggi mengawal keunggulan kurikulum, tata pamong institusi yang kredibel, serta pembinaan prestasi kemahasiswaan.
+          </p>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
-            {/* Leader 1 */}
-            <div className="group cursor-pointer">
-                <div className="relative overflow-hidden rounded-xl aspect-[3/4] mb-6">
-                    <img className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                        alt="professional portrait of a middle-aged male university dean in a navy suit with library bookshelves in the background"
-                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuCHJvuh9jpIyQkwx__mKNFhEEnJlbMiJ7qdRlBDYtdyGgElru3ZXqinNt77YRXdzOzoB_ChT28ZlYLI8tS0da8Js6jTnVpAQwsjQy5DDCGo3RE2h2KHf01pAeYQ2Fyjoi67UF0PrexLP3pylbni6gSftRYzSK-Nu30JSo07AtYEW_EbVtaWMHw33RCAj_omhunBSLn7mMqJHkWpMx2gvp7PhDVNq1HrBBYuZbbT8tPttkBx9kgS59yk6SPF6Kvfoyt4fwxYtRDHfFO_" />
-                    <div
-                        className="absolute inset-0 bg-primary/20 opacity-0 group-hover:opacity-100 transition-opacity">
+
+        {/* Leadership Grid */}
+        <motion.div
+          variants={containerVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: '-100px' }}
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 text-left"
+        >
+          {leaders.map((ldr, i) => {
+            const IconComponent = ldr.icon;
+            return (
+              <motion.div
+                key={i}
+                variants={itemVariants}
+                className="rounded-3xl p-6 transition-all duration-300 flex flex-col justify-between group relative overflow-hidden"
+                style={{
+                  backgroundColor: 'var(--theme-surface)',
+                  border: '1px solid var(--theme-border)'
+                }}
+              >
+                {/* Decorative gold spotlight inside card */}
+                <div
+                  className="absolute top-0 right-0 w-24 h-24 rounded-full pointer-events-none"
+                  style={{ background: 'color-mix(in srgb, var(--theme-secondary) 5%, transparent)', filter: 'blur(40px)', transform: 'scale(1)', transition: 'transform 0.5s' }}
+                />
+
+                <div className="space-y-6 relative z-10">
+                  {/* Floating Icon Box */}
+                  <div
+                    className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 transition-transform duration-300"
+                    style={{
+                      backgroundColor: 'color-mix(in srgb, var(--theme-secondary) 10%, transparent)',
+                      color: 'var(--theme-secondary)',
+                      border: '1px solid color-mix(in srgb, var(--theme-secondary) 20%, transparent)'
+                    }}
+                  >
+                    <IconComponent className="size-5" />
+                  </div>
+
+                  {/* Header: Title & Division */}
+                  <div className="space-y-1">
+                    <div className="flex flex-col">
+                      <span className="font-bold text-[10px] uppercase tracking-wider block mb-1" style={{ color: 'var(--theme-secondary)' }}>
+                        {ldr.role} — {ldr.division}
+                      </span>
+                      <h3 className="text-sm sm:text-base font-extrabold font-headline leading-tight" style={{ color: 'var(--theme-text)' }}>
+                        {ldr.name}
+                      </h3>
                     </div>
+                  </div>
+
+                  {/* Description */}
+                  <p className="font-light text-xs sm:text-sm leading-relaxed" style={{ color: 'var(--theme-text-muted)' }}>
+                    {ldr.desc}
+                  </p>
+
+                  {/* Key focus list */}
+                  <div className="space-y-2.5 pt-4" style={{ borderTop: '1px solid var(--theme-border)' }}>
+                    {ldr.features.map((feat, idx) => (
+                      <div key={idx} className="flex gap-2 items-center text-[11px] font-light">
+                        <CheckCircle2 className="size-3.5 shrink-0" style={{ color: 'var(--theme-secondary)' }} />
+                        <span style={{ color: 'var(--theme-text-muted)' }}>{feat}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-                <h3 className="text-2xl font-bold text-primary group-hover:text-primary-container transition-colors">Dr.
-                    Arthur Sterling</h3>
-                <p className="text-secondary font-medium tracking-wide uppercase text-sm">President &amp;
-                    Vice-Chancellor</p>
-            </div>
-            {/* Leader 2 */}
-            <div className="group cursor-pointer">
-                <div className="relative overflow-hidden rounded-xl aspect-[3/4] mb-6">
-                    <img className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                        alt="professional portrait of a female university provost with glasses in a light grey blazer with modern architecture background"
-                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuB76ojQPdqB6ae8T-wnn0tazjnxygk-3EhcRukTW723syPZpIwBV9CXbPPYECUc72gb7OKd22z87ssxUu_Qk8yAUiuzfeoDdDLTmXpLNRjqZLKb6-SJEAq6pMiznUx_SDupSQVAId6wCaGtWPNTLTlDLsG09xb_h07WXeLlSa73zpb1potrOJXAfYKDLcPsf2JU5PZ6l-TMShh0Hy8UpAdEwfuVN8akzJ1UsXmmBtDo0CHTKdtFc38oS4x8ZMg7i4hX3wq84tmHnYj9" />
-                    <div
-                        className="absolute inset-0 bg-primary/20 opacity-0 group-hover:opacity-100 transition-opacity">
-                    </div>
+
+                {/* Footer brand info */}
+                <div
+                  className="pt-6 mt-6 flex items-center justify-between text-[9px] font-bold uppercase tracking-wider z-10 relative"
+                  style={{ color: 'var(--theme-text-muted)', borderTop: '1px solid var(--theme-border)' }}
+                >
+                  <span>Rektorat UBK</span>
+                  <span>Masa Bakti</span>
                 </div>
-                <h3 className="text-2xl font-bold text-primary group-hover:text-primary-container transition-colors">Dr.
-                    Elena Rodriguez</h3>
-                <p className="text-secondary font-medium tracking-wide uppercase text-sm">Provost &amp; VP of Academic
-                    Affairs</p>
-            </div>
-            {/* Leader 3 */}
-            <div className="group cursor-pointer">
-                <div className="relative overflow-hidden rounded-xl aspect-[3/4] mb-6">
-                    <img className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                        alt="professional portrait of a male university administrator with a friendly expression in a modern glass office setting"
-                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuBoF-dXLMoLV-dobDfM8Bzs447An0roeMIq1qeas6HrAycdenYghrl5WVn_-N573815l0peG1beTJFMWKsxUxaMCynnYCXgE3Jf43zGWMVDLU-hxqLt2BiuMQJw40MMHNsr4kuUCOjJ5dAz5uaUbo_Xs81BCnjkgvtH39HcqQJRgezAIYmAwFG-ZzY8A6nGx8J6L9rb3UdILfThLuFT_dvr9tF09ojOgdu7Hm1tDjyLH4qgXPA0t2RoKJJ7HbgxncobAZk_Dh1gWsM7" />
-                    <div
-                        className="absolute inset-0 bg-primary/20 opacity-0 group-hover:opacity-100 transition-opacity">
-                    </div>
-                </div>
-                <h3 className="text-2xl font-bold text-primary group-hover:text-primary-container transition-colors">
-                    Marcus Thorne</h3>
-                <p className="text-secondary font-medium tracking-wide uppercase text-sm">Dean of Student Hub Operations
-                </p>
-            </div>
-        </div>
+              </motion.div>
+            );
+          })}
+        </motion.div>
+
+      </div>
     </section>
   );
-};
-
-export default Leadership;
+}

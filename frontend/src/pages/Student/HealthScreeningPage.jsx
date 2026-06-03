@@ -218,7 +218,7 @@ export default function HealthScreeningPage() {
 
         {/* Breadcrumb */}
         <nav className="flex items-center gap-1.5 text-sm text-neutral-400 mb-6">
-          <NavLink to="/student/dashboard" className="hover:text-[#00236F] transition-colors font-medium">Dashboard</NavLink>
+          <NavLink to="/student/dashboard" className="hover:text-bku-primary transition-colors font-medium">Dashboard</NavLink>
           <ChevronRight size={14} className="text-neutral-300" />
           <span className="text-[#171717] font-semibold">Health Screening</span>
         </nav>
@@ -226,7 +226,7 @@ export default function HealthScreeningPage() {
         {/* Page Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
           <div className="flex items-center gap-3">
-            <div className="bg-[#00236F] p-2 rounded-xl text-white">
+            <div className="bg-bku-primary p-2 rounded-xl text-white">
               <Stethoscope size={18} />
             </div>
             <div>
@@ -236,7 +236,7 @@ export default function HealthScreeningPage() {
           </div>
           <button
             onClick={() => setIsInputOpen(true)}
-            className="flex items-center gap-2 px-4 py-2.5 bg-[#00236F] text-white font-semibold rounded-xl hover:bg-[#0B4FAE] transition-all text-sm shadow-md shadow-[#00236F]/20"
+            className="flex items-center gap-2 px-4 py-2.5 bg-bku-primary text-white font-semibold rounded-xl hover:bg-[#0B4FAE] transition-all text-sm shadow-md shadow-bku-primary/20"
           >
             <span className="material-symbols-outlined" style={{ fontSize: '16px' }}  strokeWidth={2.5}>add</span> Input Data Mandiri
           </button>
@@ -420,7 +420,7 @@ export default function HealthScreeningPage() {
                     onClick={() => setActiveChartTab(tab.id)}
                     className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all ${
                       activeChartTab === tab.id
-                        ? 'bg-white text-[#00236F] shadow-sm'
+                        ? 'bg-white text-bku-primary shadow-sm'
                         : 'text-neutral-500 hover:text-neutral-700'
                     }`}
                   >
@@ -479,7 +479,7 @@ export default function HealthScreeningPage() {
           </div>
 
           {/* BP Reference */}
-          <div className="bg-[#00236F] rounded-2xl p-5 text-white flex flex-col justify-between relative overflow-hidden">
+          <div className="bg-bku-primary rounded-2xl p-5 text-white flex flex-col justify-between relative overflow-hidden">
             <div className="relative z-10">
               <div className="flex items-center gap-3 mb-5">
                 <div className="w-8 h-8 rounded-xl bg-white/10 flex items-center justify-center border border-white/10">
@@ -521,8 +521,8 @@ export default function HealthScreeningPage() {
                   onClick={() => setFilterSumber(s)}
                   className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wide transition-all whitespace-nowrap ${
                     filterSumber === s
-                      ? 'bg-[#00236F] text-white shadow-sm'
-                      : 'bg-neutral-50 text-neutral-500 border border-neutral-200 hover:border-[#00236F] hover:text-[#00236F]'
+                      ? 'bg-bku-primary text-white shadow-sm'
+                      : 'bg-neutral-50 text-neutral-500 border border-neutral-200 hover:border-bku-primary hover:text-bku-primary'
                   }`}
                 >
                   {s === 'Semua' ? 'Semua' : s.replace(/_/g, ' ')}
@@ -555,7 +555,7 @@ export default function HealthScreeningPage() {
                         {/* Tanggal */}
                         <td className="px-5 py-4">
                           <div className="flex items-center gap-3">
-                            <div className="w-9 h-9 rounded-xl bg-white border border-neutral-100 shadow-sm flex flex-col items-center justify-center group-hover:border-[#00236F]/30 transition-colors shrink-0">
+                            <div className="w-9 h-9 rounded-xl bg-white border border-neutral-100 shadow-sm flex flex-col items-center justify-center group-hover:border-bku-primary/30 transition-colors shrink-0">
                               <span className="text-xs font-black text-[#171717] leading-none">{new Date(rec.tanggal_periksa).getDate()}</span>
                               <span className="text-[8px] font-bold text-neutral-400 uppercase">{fmt(rec.tanggal_periksa, { month: 'short' })}</span>
                             </div>
@@ -595,7 +595,7 @@ export default function HealthScreeningPage() {
                             <div className="flex items-center gap-1">
                               {rec.sumber === 'mandiri'
                                 ? <User size={11} className="text-neutral-400" />
-                                : <span className="material-symbols-outlined text-[#00236F]" style={{ fontSize: '11px' }} Check >security</span>
+                                : <span className="material-symbols-outlined text-bku-primary" style={{ fontSize: '11px' }} Check >security</span>
                               }
                               <span className="text-[10px] font-bold text-[#171717] uppercase">{rec.sumber.replace(/_/g, ' ')}</span>
                             </div>
@@ -606,7 +606,7 @@ export default function HealthScreeningPage() {
                         <td className="px-5 py-4 text-right">
                           <button
                             onClick={() => setSelectedDetailId(rec.id)}
-                            className="w-8 h-8 rounded-xl bg-white border border-neutral-200 flex items-center justify-center text-[#00236F] hover:bg-[#00236F] hover:text-white transition-all ml-auto shadow-sm"
+                            className="w-8 h-8 rounded-xl bg-white border border-neutral-200 flex items-center justify-center text-bku-primary hover:bg-bku-primary hover:text-white transition-all ml-auto shadow-sm"
                           >
                             <ChevronRight size={16} />
                           </button>
@@ -634,7 +634,7 @@ export default function HealthScreeningPage() {
         {/* ── CTA Panels ── */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Clinic CTA */}
-          <div className="bg-[#00236F] rounded-2xl p-5 text-white relative overflow-hidden">
+          <div className="bg-bku-primary rounded-2xl p-5 text-white relative overflow-hidden">
             <div className="relative z-10">
               <div className="bg-white/10 w-fit p-2 rounded-xl mb-4 border border-white/10">
                 <Heart size={20} className="text-blue-200" />
@@ -647,7 +647,7 @@ export default function HealthScreeningPage() {
                 <span className="bg-white/10 px-3 py-1.5 rounded-lg text-[11px] font-semibold border border-white/10">Gedung E – Lantai Dasar</span>
                 <span className="bg-white/10 px-3 py-1.5 rounded-lg text-[11px] font-semibold border border-white/10">0812-BKU-MEDIC</span>
               </div>
-              <button className="flex items-center gap-2 px-4 py-2.5 bg-white text-[#00236F] text-sm font-bold rounded-xl hover:bg-blue-50 transition-all">
+              <button className="flex items-center gap-2 px-4 py-2.5 bg-white text-bku-primary text-sm font-bold rounded-xl hover:bg-blue-50 transition-all">
                 Reservasi Konsul <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >arrow_forward</span>
               </button>
             </div>
@@ -658,7 +658,7 @@ export default function HealthScreeningPage() {
           <div className="bg-white rounded-2xl border border-neutral-100 shadow-sm p-5 flex flex-col justify-between">
             <div>
               <div className="flex items-center gap-3 mb-4">
-                <div className="p-2 bg-blue-50 rounded-xl text-[#00236F] border border-blue-100">
+                <div className="p-2 bg-blue-50 rounded-xl text-bku-primary border border-blue-100">
                   <span className="material-symbols-outlined" style={{ fontSize: '18px' }} Check >security</span>
                 </div>
                 <h4 className="text-base font-bold tracking-tight">Kerahasiaan Rekam Medis</h4>
@@ -714,7 +714,7 @@ export default function HealthScreeningPage() {
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 
-function StatItem({ label, value, unit, icon, colorClass = "text-[#00236F]", bgClass = "bg-[#00236F]/5" }) {
+function StatItem({ label, value, unit, icon, colorClass = "text-bku-primary", bgClass = "bg-bku-primary/5" }) {
   return (
     <div className="relative overflow-hidden bg-white border border-neutral-100 rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow group/stat flex flex-col justify-between">
       <div className="flex items-center justify-between mb-3">
@@ -763,7 +763,7 @@ function EmptyHealthState({ onOpen }) {
       </p>
       <button
         onClick={onOpen}
-        className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#00236F] text-white text-sm font-bold rounded-xl hover:bg-[#0B4FAE] transition-all"
+        className="inline-flex items-center gap-2 px-5 py-2.5 bg-bku-primary text-white text-sm font-bold rounded-xl hover:bg-[#0B4FAE] transition-all"
       >
         <span className="material-symbols-outlined" style={{ fontSize: '16px' }}  strokeWidth={2.5}>add</span> Input Sekarang
       </button>
@@ -799,7 +799,7 @@ function InputModal({ onClose, onSubmit, isLoading }) {
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-        onClick={onClose} className="absolute inset-0 bg-[#00236F]/50 backdrop-blur-sm" />
+        onClick={onClose} className="absolute inset-0 bg-bku-primary/50 backdrop-blur-sm" />
 
       <motion.div
         initial={{ opacity: 0, scale: 0.96, y: 20 }}
@@ -808,7 +808,7 @@ function InputModal({ onClose, onSubmit, isLoading }) {
         className="relative bg-white w-full max-w-4xl rounded-3xl shadow-2xl overflow-hidden flex flex-col md:flex-row max-h-[90vh]"
       >
         {/* Sidebar */}
-        <div className="w-full md:w-64 bg-[#00236F] p-6 flex flex-col justify-between text-white shrink-0">
+        <div className="w-full md:w-64 bg-bku-primary p-6 flex flex-col justify-between text-white shrink-0">
           <div>
             <div className="flex items-center gap-2 mb-6">
               <div className="w-8 h-8 rounded-xl bg-white/15 flex items-center justify-center">
@@ -871,7 +871,7 @@ function InputModal({ onClose, onSubmit, isLoading }) {
               </div>
               <button
                 onClick={onClose}
-                className="w-8 h-8 rounded-xl bg-neutral-50 border border-neutral-200 flex items-center justify-center text-neutral-400 hover:text-[#00236F] hover:border-[#00236F] transition-all"
+                className="w-8 h-8 rounded-xl bg-neutral-50 border border-neutral-200 flex items-center justify-center text-neutral-400 hover:text-bku-primary hover:border-bku-primary transition-all"
               >
                 <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >close</span>
               </button>
@@ -882,7 +882,7 @@ function InputModal({ onClose, onSubmit, isLoading }) {
               <div className="border border-neutral-100 rounded-2xl p-4 bg-neutral-50/50 space-y-4">
                 <div className="flex items-center gap-2 pb-2 border-b border-neutral-100">
                   <span className="material-symbols-outlined text-blue-600 font-bold" style={{ fontSize: '18px' }}>accessibility_new</span>
-                  <span className="text-[10px] font-black text-[#00236F] uppercase tracking-wider">1. Kategori Fisik</span>
+                  <span className="text-[10px] font-black text-bku-primary uppercase tracking-wider">1. Kategori Fisik</span>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <InputField label="Tinggi Badan" unit="cm" value={formData.tinggi_badan} onChange={v => setFormData(p => ({ ...p, tinggi_badan: v }))} icon={<span className="material-symbols-outlined text-blue-500 font-bold" style={{ fontSize: '14px' }}>straighten</span>} placeholder="170" />
@@ -894,7 +894,7 @@ function InputModal({ onClose, onSubmit, isLoading }) {
               <div className="border border-neutral-100 rounded-2xl p-4 bg-neutral-50/50 space-y-4">
                 <div className="flex items-center gap-2 pb-2 border-b border-neutral-100">
                   <span className="material-symbols-outlined text-teal-600 font-bold" style={{ fontSize: '18px' }}>sports_gymnastics</span>
-                  <span className="text-[10px] font-black text-[#00236F] uppercase tracking-wider">2. Gaya Hidup (Self-report)</span>
+                  <span className="text-[10px] font-black text-bku-primary uppercase tracking-wider">2. Gaya Hidup (Self-report)</span>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
@@ -902,7 +902,7 @@ function InputModal({ onClose, onSubmit, isLoading }) {
                       <span className="material-symbols-outlined text-teal-500 font-bold" style={{ fontSize: '14px' }}>bedtime</span> Jam Tidur / Hari
                     </label>
                     <select 
-                      className="w-full px-3 py-2 bg-white border border-neutral-200 rounded-xl text-xs font-bold focus:outline-none focus:border-[#00236F] transition-all text-[#171717] h-[40px]"
+                      className="w-full px-3 py-2 bg-white border border-neutral-200 rounded-xl text-xs font-bold focus:outline-none focus:border-bku-primary transition-all text-[#171717] h-[40px]"
                       value={formData.jam_tidur}
                       onChange={e => setFormData(p => ({ ...p, jam_tidur: e.target.value }))}
                     >
@@ -914,7 +914,7 @@ function InputModal({ onClose, onSubmit, isLoading }) {
                       <span className="material-symbols-outlined text-teal-500 font-bold" style={{ fontSize: '14px' }}>fitness_center</span> Olahraga / Minggu
                     </label>
                     <select 
-                      className="w-full px-3 py-2 bg-white border border-neutral-200 rounded-xl text-xs font-bold focus:outline-none focus:border-[#00236F] transition-all text-[#171717] h-[40px]"
+                      className="w-full px-3 py-2 bg-white border border-neutral-200 rounded-xl text-xs font-bold focus:outline-none focus:border-bku-primary transition-all text-[#171717] h-[40px]"
                       value={formData.olahraga}
                       onChange={e => setFormData(p => ({ ...p, olahraga: e.target.value }))}
                     >
@@ -928,7 +928,7 @@ function InputModal({ onClose, onSubmit, isLoading }) {
                       <span className="material-symbols-outlined text-teal-500 font-bold" style={{ fontSize: '14px' }}>local_drink</span> Air Minum (L)
                     </label>
                     <select 
-                      className="w-full px-3 py-2 bg-white border border-neutral-200 rounded-xl text-xs font-bold focus:outline-none focus:border-[#00236F] transition-all text-[#171717] h-[40px]"
+                      className="w-full px-3 py-2 bg-white border border-neutral-200 rounded-xl text-xs font-bold focus:outline-none focus:border-bku-primary transition-all text-[#171717] h-[40px]"
                       value={formData.konsumsi_air}
                       onChange={e => setFormData(p => ({ ...p, konsumsi_air: e.target.value }))}
                     >
@@ -940,7 +940,7 @@ function InputModal({ onClose, onSubmit, isLoading }) {
                       <span className="material-symbols-outlined text-teal-500 font-bold" style={{ fontSize: '14px' }}>smoke_free</span> Apakah Merokok?
                     </label>
                     <select 
-                      className="w-full px-3 py-2 bg-white border border-neutral-200 rounded-xl text-xs font-bold focus:outline-none focus:border-[#00236F] transition-all text-[#171717] h-[40px]"
+                      className="w-full px-3 py-2 bg-white border border-neutral-200 rounded-xl text-xs font-bold focus:outline-none focus:border-bku-primary transition-all text-[#171717] h-[40px]"
                       value={formData.merokok}
                       onChange={e => setFormData(p => ({ ...p, merokok: e.target.value }))}
                     >
@@ -954,7 +954,7 @@ function InputModal({ onClose, onSubmit, isLoading }) {
               <div className="border border-neutral-100 rounded-2xl p-4 bg-neutral-50/50 space-y-4">
                 <div className="flex items-center gap-2 pb-2 border-b border-neutral-100">
                   <span className="material-symbols-outlined text-purple-600 font-bold" style={{ fontSize: '18px' }}>psychology</span>
-                  <span className="text-[10px] font-black text-[#00236F] uppercase tracking-wider">3. Kategori Mental (Self-report)</span>
+                  <span className="text-[10px] font-black text-bku-primary uppercase tracking-wider">3. Kategori Mental (Self-report)</span>
                 </div>
                 <div className="space-y-1">
                   <div className="flex justify-between items-center mb-1">
@@ -978,7 +978,7 @@ function InputModal({ onClose, onSubmit, isLoading }) {
                       <span className="material-symbols-outlined text-purple-500 font-bold" style={{ fontSize: '14px' }}>mood</span> Mood Minggu Ini
                     </label>
                     <select 
-                      className="w-full px-3 py-2 bg-white border border-neutral-200 rounded-xl text-xs font-bold focus:outline-none focus:border-[#00236F] transition-all text-[#171717] h-[40px]"
+                      className="w-full px-3 py-2 bg-white border border-neutral-200 rounded-xl text-xs font-bold focus:outline-none focus:border-bku-primary transition-all text-[#171717] h-[40px]"
                       value={formData.mood}
                       onChange={e => setFormData(p => ({ ...p, mood: e.target.value }))}
                     >
@@ -990,7 +990,7 @@ function InputModal({ onClose, onSubmit, isLoading }) {
                       <span className="material-symbols-outlined text-purple-500 font-bold" style={{ fontSize: '14px' }}>auto_stories</span> Motivasi Belajar
                     </label>
                     <select 
-                      className="w-full px-3 py-2 bg-white border border-neutral-200 rounded-xl text-xs font-bold focus:outline-none focus:border-[#00236F] transition-all text-[#171717] h-[40px]"
+                      className="w-full px-3 py-2 bg-white border border-neutral-200 rounded-xl text-xs font-bold focus:outline-none focus:border-bku-primary transition-all text-[#171717] h-[40px]"
                       value={formData.motivasi_belajar}
                       onChange={e => setFormData(p => ({ ...p, motivasi_belajar: e.target.value }))}
                     >
@@ -1004,7 +1004,7 @@ function InputModal({ onClose, onSubmit, isLoading }) {
               <div className="border border-neutral-100 rounded-2xl p-4 bg-neutral-50/50 space-y-3">
                 <div className="flex items-center gap-2 pb-2 border-b border-neutral-100">
                   <span className="material-symbols-outlined text-red-600 font-bold" style={{ fontSize: '18px' }}>healing</span>
-                  <span className="text-[10px] font-black text-[#00236F] uppercase tracking-wider">4. Kategori Keluhan (Bila Ada)</span>
+                  <span className="text-[10px] font-black text-bku-primary uppercase tracking-wider">4. Kategori Keluhan (Bila Ada)</span>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   {[
@@ -1036,7 +1036,7 @@ function InputModal({ onClose, onSubmit, isLoading }) {
               <div className="border border-neutral-100 rounded-2xl p-4 bg-neutral-50/50 space-y-4">
                 <div className="flex items-center gap-2 pb-2 border-b border-neutral-100">
                   <span className="material-symbols-outlined text-blue-900 font-bold" style={{ fontSize: '18px' }}>query_stats</span>
-                  <span className="text-[10px] font-black text-[#00236F] uppercase tracking-wider">5. Kategori Opsional (Alat/Klinik)</span>
+                  <span className="text-[10px] font-black text-bku-primary uppercase tracking-wider">5. Kategori Opsional (Alat/Klinik)</span>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <InputField label="Tensi Sistolik" unit="mmHg" value={formData.sistolik} onChange={v => setFormData(p => ({ ...p, sistolik: v }))} icon={<span className="material-symbols-outlined text-blue-500 font-bold" style={{ fontSize: '14px' }}>arrow_upward</span>} placeholder="120" isOptional={true} />
@@ -1052,7 +1052,7 @@ function InputModal({ onClose, onSubmit, isLoading }) {
                       <span className="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-neutral-100 text-neutral-400 border border-neutral-200/50 normal-case tracking-normal">Opsional</span>
                     </label>
                     <select 
-                      className="w-full px-3 py-2 bg-white border border-neutral-200 rounded-xl text-xs font-bold focus:outline-none focus:border-[#00236F] transition-all text-[#171717] h-[40px]"
+                      className="w-full px-3 py-2 bg-white border border-neutral-200 rounded-xl text-xs font-bold focus:outline-none focus:border-bku-primary transition-all text-[#171717] h-[40px]"
                       value={formData.golongan_darah}
                       onChange={e => setFormData(p => ({ ...p, golongan_darah: e.target.value }))}
                     >
@@ -1065,12 +1065,12 @@ function InputModal({ onClose, onSubmit, isLoading }) {
               {/* 6. Catatan */}
               <div>
                 <label className="text-[10px] font-bold text-[#171717] uppercase tracking-wider flex items-center gap-1.5 mb-1.5">
-                  <span className="material-symbols-outlined text-[#00236F]" style={{ fontSize: '12px' }}>description</span> Catatan Tambahan (Opsional)
+                  <span className="material-symbols-outlined text-bku-primary" style={{ fontSize: '12px' }}>description</span> Catatan Tambahan (Opsional)
                 </label>
                 <textarea
                   rows={2}
                   placeholder="Ceritakan kondisi kesehatanmu atau keluhan yang dirasakan..."
-                  className="w-full px-4 py-2.5 bg-neutral-50 border border-neutral-200 rounded-xl text-xs focus:outline-none focus:border-[#00236F] transition-all resize-none font-bold"
+                  className="w-full px-4 py-2.5 bg-neutral-50 border border-neutral-200 rounded-xl text-xs focus:outline-none focus:border-bku-primary transition-all resize-none font-bold"
                   value={formData.keluhan}
                   onChange={e => setFormData(p => ({ ...p, keluhan: e.target.value }))}
                 />
@@ -1079,11 +1079,11 @@ function InputModal({ onClose, onSubmit, isLoading }) {
               {/* 7. Tanggal */}
               <div>
                 <label className="text-[10px] font-bold text-[#171717] uppercase tracking-wider flex items-center gap-1.5 mb-1.5">
-                  <span className="material-symbols-outlined text-[#00236F]" style={{ fontSize: '12px' }}>calendar_month</span> Tanggal Pengukuran
+                  <span className="material-symbols-outlined text-bku-primary" style={{ fontSize: '12px' }}>calendar_month</span> Tanggal Pengukuran
                 </label>
                 <input
                   type="date"
-                  className="w-full px-4 py-2.5 bg-neutral-50 border border-neutral-200 rounded-xl text-xs font-bold focus:outline-none focus:border-[#00236F] transition-all"
+                  className="w-full px-4 py-2.5 bg-neutral-50 border border-neutral-200 rounded-xl text-xs font-bold focus:outline-none focus:border-bku-primary transition-all"
                   value={formData.tanggal}
                   onChange={e => setFormData(p => ({ ...p, tanggal: e.target.value }))}
                 />
@@ -1131,7 +1131,7 @@ function InputModal({ onClose, onSubmit, isLoading }) {
                   tanggal:      new Date(formData.tanggal).toISOString(),
                 });
               }}
-              className="flex-1 py-3 bg-[#00236F] text-white text-xs font-black rounded-xl hover:bg-[#0B4FAE] transition-all flex items-center justify-center gap-2 disabled:opacity-50 shadow-md shadow-[#00236F]/20 uppercase tracking-wider"
+              className="flex-1 py-3 bg-bku-primary text-white text-xs font-black rounded-xl hover:bg-[#0B4FAE] transition-all flex items-center justify-center gap-2 disabled:opacity-50 shadow-md shadow-bku-primary/20 uppercase tracking-wider"
             >
               {isLoading
                 ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -1159,7 +1159,7 @@ function InputField({ label, unit, value, onChange, icon, placeholder, isOptiona
       <input
         type="number"
         placeholder={placeholder}
-        className="w-full px-4 py-2.5 bg-neutral-50 border border-neutral-200 rounded-xl text-sm font-semibold focus:outline-none focus:border-[#00236F] transition-all text-[#171717]"
+        className="w-full px-4 py-2.5 bg-neutral-50 border border-neutral-200 rounded-xl text-sm font-semibold focus:outline-none focus:border-bku-primary transition-all text-[#171717]"
         value={value}
         onChange={e => onChange(e.target.value)}
       />
@@ -1172,7 +1172,7 @@ function DetailModal({ record, isLoading, onClose }) {
     return (
       <div className="fixed inset-0 z-110 flex items-center justify-center p-4">
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-          onClick={onClose} className="absolute inset-0 bg-[#00236F]/50 backdrop-blur-sm" />
+          onClick={onClose} className="absolute inset-0 bg-bku-primary/50 backdrop-blur-sm" />
 
         <motion.div
           initial={{ opacity: 0, scale: 0.96, y: 20 }}
@@ -1184,7 +1184,7 @@ function DetailModal({ record, isLoading, onClose }) {
             <h2 className="text-base font-bold text-[#171717]">Memuat rekam medis...</h2>
             <button
               onClick={onClose}
-              className="w-8 h-8 rounded-xl bg-neutral-50 border border-neutral-200 flex items-center justify-center text-neutral-400 hover:text-[#00236F] transition-all"
+              className="w-8 h-8 rounded-xl bg-neutral-50 border border-neutral-200 flex items-center justify-center text-neutral-400 hover:text-bku-primary transition-all"
             >
               <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >close</span>
             </button>
@@ -1215,7 +1215,7 @@ function DetailModal({ record, isLoading, onClose }) {
   return (
     <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-        onClick={onClose} className="absolute inset-0 bg-[#00236F]/50 backdrop-blur-sm" />
+        onClick={onClose} className="absolute inset-0 bg-bku-primary/50 backdrop-blur-sm" />
 
       <motion.div
         initial={{ opacity: 0, scale: 0.96, y: 20 }}
@@ -1231,14 +1231,14 @@ function DetailModal({ record, isLoading, onClose }) {
             </span>
             <button
               onClick={onClose}
-              className="w-8 h-8 rounded-xl bg-white/70 flex items-center justify-center text-neutral-400 hover:text-[#00236F] transition-all"
+              className="w-8 h-8 rounded-xl bg-white/70 flex items-center justify-center text-neutral-400 hover:text-bku-primary transition-all"
             >
               <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >close</span>
             </button>
           </div>
           <h2 className="text-lg font-black text-[#171717] tracking-tight">Laporan Rekam Medis</h2>
           <p className="text-xs text-neutral-500 flex items-center gap-1.5 mt-0.5 font-semibold">
-            <span className="material-symbols-outlined text-[#00236F] font-bold" style={{ fontSize: '12px' }} >calendar_month</span>
+            <span className="material-symbols-outlined text-bku-primary font-bold" style={{ fontSize: '12px' }} >calendar_month</span>
             {fmt(record.tanggal_periksa, { day: 'numeric', month: 'long', year: 'numeric' })}
           </p>
         </div>
@@ -1247,13 +1247,13 @@ function DetailModal({ record, isLoading, onClose }) {
         <div className="p-6 overflow-y-auto space-y-5">
           {/* Physical Metrics Grid */}
           <div>
-            <h4 className="text-[10px] font-black text-neutral-400 uppercase tracking-wider mb-2.5">Indikator Utama</h4>
+            <h4 className="text-[10px] font-black font-headline uppercase tracking-wider mb-2.5" style={{ color: 'var(--theme-h4)' }}>Indikator Utama</h4>
             <div className="grid grid-cols-4 gap-2.5">
               {[
                 { label: 'Tinggi', value: record.tinggi_badan, unit: 'cm', color: 'text-blue-600' },
                 { label: 'Berat',  value: record.berat_badan,  unit: 'kg', color: 'text-blue-600' },
                 { label: 'BMI',    value: record.bmi,          unit: 'pts', color: bmiCat.color },
-                { label: 'Tensi',  value: `${record.sistolik}/${record.diastolik}`, unit: 'mmHg', color: 'text-[#00236F]' },
+                { label: 'Tensi',  value: `${record.sistolik}/${record.diastolik}`, unit: 'mmHg', color: 'text-bku-primary' },
               ].map(({ label, value, unit, color }) => (
                 <div key={label} className="bg-neutral-50 rounded-2xl p-3 border border-neutral-100/70 text-center">
                   <p className="text-[9px] font-extrabold text-neutral-400 uppercase tracking-wide mb-1">{label}</p>
@@ -1363,7 +1363,7 @@ function DetailModal({ record, isLoading, onClose }) {
           {!parsedNotes && record.keluhan && (
             <div className="p-3.5 bg-neutral-50 rounded-2xl border border-neutral-100">
               <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider flex items-center gap-1.5 mb-2">
-                <span className="material-symbols-outlined font-bold text-[#00236F]" style={{ fontSize: '14px' }}>bookmark</span> Keluhan
+                <span className="material-symbols-outlined font-bold text-bku-primary" style={{ fontSize: '14px' }}>bookmark</span> Keluhan
               </p>
               <p className="text-xs text-neutral-600 leading-relaxed italic">"{record.keluhan}"</p>
             </div>
@@ -1372,7 +1372,7 @@ function DetailModal({ record, isLoading, onClose }) {
           {parsedNotes && parsedNotes.catatan_tambahan && (
             <div className="p-3.5 bg-neutral-50 rounded-2xl border border-neutral-100">
               <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider flex items-center gap-1.5 mb-2">
-                <span className="material-symbols-outlined font-bold text-[#00236F]" style={{ fontSize: '14px' }}>bookmark</span> Catatan Tambahan
+                <span className="material-symbols-outlined font-bold text-bku-primary" style={{ fontSize: '14px' }}>bookmark</span> Catatan Tambahan
               </p>
               <p className="text-xs text-neutral-600 leading-relaxed italic">"{parsedNotes.catatan_tambahan}"</p>
             </div>
@@ -1388,7 +1388,7 @@ function DetailModal({ record, isLoading, onClose }) {
           )}
 
           {/* Source and status banner */}
-          <div className="flex items-center justify-between p-4 bg-[#00236F] rounded-2xl text-white">
+          <div className="flex items-center justify-between p-4 bg-bku-primary rounded-2xl text-white">
             <div className="flex items-center gap-3">
               <div className="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center">
                 <span className="material-symbols-outlined text-blue-200" style={{ fontSize: '16px' }}>admin_panel_settings</span>
@@ -1462,7 +1462,7 @@ function SuccessFeedbackModal({ data, onClose }) {
         animate={{ opacity: 1 }} 
         exit={{ opacity: 0 }}
         onClick={onClose} 
-        className="absolute inset-0 bg-[#00236F]/60 backdrop-blur-md" 
+        className="absolute inset-0 bg-bku-primary/60 backdrop-blur-md" 
       />
 
       <motion.div
@@ -1472,7 +1472,7 @@ function SuccessFeedbackModal({ data, onClose }) {
         className="relative bg-white w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden border border-neutral-100 flex flex-col max-h-[90vh]"
       >
         {/* Top Header Card */}
-        <div className="bg-[#00236F] p-6 text-white text-center relative overflow-hidden shrink-0">
+        <div className="bg-bku-primary p-6 text-white text-center relative overflow-hidden shrink-0">
           <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-3xl pointer-events-none" />
           <div className="absolute bottom-0 left-0 w-24 h-24 bg-blue-500/20 rounded-full blur-2xl pointer-events-none" />
           
@@ -1519,7 +1519,7 @@ function SuccessFeedbackModal({ data, onClose }) {
             {/* General evaluation text */}
             <div className="space-y-2">
               <div className="flex items-center gap-1.5">
-                <span className="material-symbols-outlined text-[#00236F]" style={{ fontSize: '15px' }}>psychology</span>
+                <span className="material-symbols-outlined text-bku-primary" style={{ fontSize: '15px' }}>psychology</span>
                 <span className="text-xs font-bold text-neutral-500 uppercase tracking-wider">Interpretasi</span>
               </div>
               <p className="text-xs text-neutral-600 font-medium leading-relaxed">
@@ -1555,7 +1555,7 @@ function SuccessFeedbackModal({ data, onClose }) {
           {/* Grid Stats Comparison (Current vs Previous) */}
           <div className="space-y-2.5">
             <div className="flex items-center gap-1.5">
-              <span className="material-symbols-outlined text-[#00236F]" style={{ fontSize: '15px' }}>monitoring</span>
+              <span className="material-symbols-outlined text-bku-primary" style={{ fontSize: '15px' }}>monitoring</span>
               <span className="text-xs font-bold text-neutral-500 uppercase tracking-wider">Ringkasan Metrik</span>
             </div>
             
@@ -1579,7 +1579,7 @@ function SuccessFeedbackModal({ data, onClose }) {
           {/* Follow-up Recommending Psychologists or Clinic */}
           {needsCounseling && (
             <div className="bg-blue-50 border border-blue-100 p-4 rounded-2xl flex items-start gap-3">
-              <div className="bg-[#00236F] p-2 rounded-xl text-white shrink-0">
+              <div className="bg-bku-primary p-2 rounded-xl text-white shrink-0">
                 <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>support_agent</span>
               </div>
               <div className="space-y-2 flex-1">
@@ -1589,7 +1589,7 @@ function SuccessFeedbackModal({ data, onClose }) {
                 </p>
                 <a 
                   href="/student/counseling"
-                  className="inline-flex items-center gap-1 text-[11px] font-black text-[#00236F] hover:underline"
+                  className="inline-flex items-center gap-1 text-[11px] font-black text-bku-primary hover:underline"
                 >
                   Jadwalkan Konseling Sekarang <span className="material-symbols-outlined" style={{ fontSize: '12px' }}>arrow_forward</span>
                 </a>
@@ -1602,7 +1602,7 @@ function SuccessFeedbackModal({ data, onClose }) {
         <div className="p-5 border-t border-neutral-100 bg-neutral-50/50 shrink-0 flex gap-3">
           <button
             onClick={onClose}
-            className="w-full py-3 bg-[#00236F] text-white text-xs font-bold rounded-xl hover:bg-[#0B4FAE] transition-all shadow-md shadow-[#00236F]/10 flex items-center justify-center gap-1.5"
+            className="w-full py-3 bg-bku-primary text-white text-xs font-bold rounded-xl hover:bg-[#0B4FAE] transition-all shadow-md shadow-bku-primary/10 flex items-center justify-center gap-1.5"
           >
             <span className="material-symbols-outlined text-sm font-bold">check</span> Paham, Tutup
           </button>

@@ -25,12 +25,12 @@ export default function LoginPage() {
             <nav className="fixed top-0 w-full z-50 bg-[#fcf9f8]/80 backdrop-blur-xl shadow-sm">
                 <div className="flex justify-between items-center px-8 h-16 w-full max-w-full">
                     <div className="flex items-center gap-8">
-                        <span className="text-xl font-bold text-[#00236f] font-headline">BKU Student Hub</span>
+                        <span className="text-xl font-bold text-bku-primary font-headline">BKU Student Hub</span>
                         <div className="hidden md:flex gap-6">
-                            <a className="text-slate-600 hover:text-[#00236f] font-headline font-medium tracking-tight transition-all duration-300 hover:opacity-80" href="#">Dashboard</a>
-                            <a className="text-slate-600 hover:text-[#00236f] font-headline font-medium tracking-tight transition-all duration-300 hover:opacity-80" href="#">Courses</a>
-                            <a className="text-slate-600 hover:text-[#00236f] font-headline font-medium tracking-tight transition-all duration-300 hover:opacity-80" href="#">Library</a>
-                            <a className="text-slate-600 hover:text-[#00236f] font-headline font-medium tracking-tight transition-all duration-300 hover:opacity-80" href="#">Services</a>
+                            <a className="text-slate-600 hover:text-bku-primary font-headline font-medium tracking-tight transition-all duration-300 hover:opacity-80" href="#">Dashboard</a>
+                            <a className="text-slate-600 hover:text-bku-primary font-headline font-medium tracking-tight transition-all duration-300 hover:opacity-80" href="#">Courses</a>
+                            <a className="text-slate-600 hover:text-bku-primary font-headline font-medium tracking-tight transition-all duration-300 hover:opacity-80" href="#">Library</a>
+                            <a className="text-slate-600 hover:text-bku-primary font-headline font-medium tracking-tight transition-all duration-300 hover:opacity-80" href="#">Services</a>
                         </div>
 
                     </div>
@@ -134,10 +134,10 @@ export default function LoginPage() {
             <footer className="w-full py-12 bg-[#fcf9f8] border-t border-slate-200/15 text-center">
                 <div className="max-w-7xl mx-auto px-8 flex flex-col items-center gap-6">
                     <div className="flex flex-wrap justify-center gap-8 text-sm font-headline">
-                        <a className="text-slate-500 hover:text-[#00236f] transition-colors" href="#">Privacy Policy</a>
-                        <a className="text-slate-500 hover:text-[#00236f] transition-colors" href="#">Terms of Service</a>
-                        <a className="text-slate-500 hover:text-[#00236f] transition-colors" href="#">Accessibility</a>
-                        <a className="text-slate-500 hover:text-[#00236f] transition-colors" href="#">Contact Support</a>
+                        <a className="text-slate-500 hover:text-bku-primary transition-colors" href="#">Privacy Policy</a>
+                        <a className="text-slate-500 hover:text-bku-primary transition-colors" href="#">Terms of Service</a>
+                        <a className="text-slate-500 hover:text-bku-primary transition-colors" href="#">Accessibility</a>
+                        <a className="text-slate-500 hover:text-bku-primary transition-colors" href="#">Contact Support</a>
                     </div>
                     <div className="flex items-center gap-4 py-4 justify-center w-full">
                         <div className="w-8 h-px bg-outline-variant/30"></div>

@@ -271,7 +271,7 @@ export default function ScheduleManagement() {
             <aside className="lg:col-span-4 xl:col-span-3">
               <div className="rounded-3xl border border-slate-100 bg-white p-4 shadow-sm">
                 <div className="mb-4 flex items-center justify-between px-2">
-                  <h2 className="text-[10px] font-black uppercase tracking-widest text-slate-400">Pilih Hari</h2>
+                  <h2 className="text-[10px] font-black font-headline uppercase tracking-widest" style={{ color: 'var(--theme-h2)' }}>Pilih Hari</h2>
                   {loading && <span className="material-symbols-outlined size-4 animate-spin text-primary/60" >sync</span>}
                 </div>
 
@@ -321,7 +321,7 @@ export default function ScheduleManagement() {
                         <span className="material-symbols-outlined" style={{ fontSize: 24 }}>{currentDayIcon}</span>
                       </div>
                       <div>
-                        <h2 className="text-lg font-black uppercase tracking-tight text-slate-900">{selectedDay}</h2>
+                        <h2 className="text-lg font-black font-headline uppercase tracking-tight" style={{ color: 'var(--theme-h2)' }}>{selectedDay}</h2>
                         <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">
                           {currentDayData.enabled ? 'Menerima booking' : 'Tidak menerima booking'}
                         </p>
@@ -363,7 +363,7 @@ export default function ScheduleManagement() {
                       {currentDayData.slots.length === 0 ? (
                         <div className="flex min-h-[260px] flex-col items-center justify-center rounded-3xl border-2 border-dashed border-slate-200 bg-slate-50/70 px-6 text-center">
                           <span className="material-symbols-outlined size-9 text-slate-300" >schedule</span>
-                          <h4 className="mt-4 text-sm font-black uppercase tracking-tight text-slate-900">Belum Ada Slot</h4>
+                          <h4 className="mt-4 text-sm font-black font-headline uppercase tracking-tight" style={{ color: 'var(--theme-h4)' }}>Belum Ada Slot</h4>
                           <p className="mt-1 text-xs font-semibold text-slate-500">Tambahkan slot agar mahasiswa bisa memilih jadwal konseling.</p>
                           <button
                             type="button"
@@ -460,7 +460,7 @@ export default function ScheduleManagement() {
                       <div className="flex size-20 items-center justify-center rounded-3xl bg-rose-50 text-rose-300">
                         <span className="material-symbols-outlined size-10">dark_mode</span>
                       </div>
-                      <h3 className="mt-5 text-sm font-black uppercase tracking-tight text-slate-900">Hari Tidak Aktif</h3>
+                      <h3 className="mt-5 text-sm font-black font-headline uppercase tracking-tight" style={{ color: 'var(--theme-h3)' }}>Hari Tidak Aktif</h3>
                       <p className="mt-1 max-w-md text-xs font-semibold leading-5 text-slate-500">
                         Mahasiswa tidak akan melihat slot booking untuk hari {selectedDay}. Aktifkan hari ini jika ingin membuka layanan.
                       </p>

@@ -227,8 +227,8 @@ export default function ContentManagement() {
             className: 'min-w-[350px]',
             render: (v, row) => (
                 <div className="flex flex-col gap-1 py-2">
-                    <span className="font-bold text-neutral-900 font-jakarta tracking-tight text-[14px] leading-tight uppercase">{v || '—'}</span>
-                    <span className="text-[11px] text-neutral-400 font-medium line-clamp-1 max-w-sm">{row.Isi || 'Tidak ada deskripsi konten.'}</span>
+                    <span className="font-bold text-slate-800 font-headline tracking-tight text-[14px] leading-tight uppercase">{v || '—'}</span>
+                    <span className="text-[11px] text-slate-500 font-medium line-clamp-1 max-w-sm">{row.Isi || 'Tidak ada deskripsi konten.'}</span>
                 </div>
             )
         },
@@ -237,9 +237,9 @@ export default function ContentManagement() {
             label: 'Tgl Publikasi', 
             className: 'w-[200px]',
             render: v => (
-                <div className="flex items-center gap-2 text-neutral-500">
-                    <span className="material-symbols-outlined text-primary" style={{ fontSize: '12px' }} >schedule</span>
-                    <span className="text-[11px] font-bold font-jakarta uppercase tabular-nums">
+                <div className="flex items-center gap-2 text-slate-500">
+                    <span className="material-symbols-outlined text-bku-primary" style={{ fontSize: '12px' }} >schedule</span>
+                    <span className="text-[11px] font-bold font-headline uppercase tabular-nums">
                         {v ? new Date(v).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
                     </span>
                 </div>
@@ -293,10 +293,10 @@ export default function ContentManagement() {
 
                 return (
                     <div className="flex flex-col gap-0.5">
-                        <Badge className="px-2 py-0.5 rounded-lg border bg-blue-50/50 text-[#00236F] border-blue-100/50 text-[9px] font-bold uppercase tracking-widest w-fit">
+                        <Badge className="px-2 py-0.5 rounded-lg border-none shadow-none bg-bku-primary/10 text-bku-primary text-[9px] font-black uppercase tracking-widest w-fit font-headline">
                             {label}
                         </Badge>
-                        {details && <span className="text-[10px] font-bold text-neutral-400 mt-1 max-w-[160px] truncate leading-tight">{details}</span>}
+                        {details && <span className="text-[10px] font-bold text-slate-400 mt-1 max-w-[160px] truncate leading-tight uppercase tracking-widest">{details}</span>}
                     </div>
                 )
             }
@@ -307,8 +307,8 @@ export default function ContentManagement() {
             className: 'w-[140px] text-center', 
             cellClassName: 'text-center',
             render: v => (
-                <Badge className={cn('px-3 py-0.5 rounded-lg border text-[9px] font-bold uppercase tracking-widest',
-                    v === 'Published' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-amber-50 text-amber-700 border-amber-100')}>
+                <Badge className={cn('px-3 py-0.5 rounded-lg border-none shadow-none text-[9px] font-black uppercase tracking-widest font-headline',
+                    v === 'Published' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700')}>
                     {v || 'Draft'}
                 </Badge>
             )
@@ -316,25 +316,25 @@ export default function ContentManagement() {
     ]
 
     return (
-        <div className="px-4 py-8 md:px-8 xl:px-12 min-h-screen bg-[#fafafa] font-body">
+        <div className="px-1 py-4 md:px-2 xl:px-4 min-h-screen bg-transparent font-inter">
             <Toaster position="top-right" />
             
-            <div className="max-w-[1600px] mx-auto space-y-10">
+            <div className="max-w-[1600px] mx-auto space-y-8 select-none">
                 
                 {/* ── Page Header ─────────────────────────────────────────── */}
-                <section className="bg-white border border-neutral-200 rounded-xl p-6 md:p-8 relative overflow-hidden shadow-sm">
-                    <div className="absolute top-0 right-0 w-1/4 h-full bg-gradient-to-l from-primary/5 to-transparent pointer-events-none" />
+                <section className="glass-card rounded-2xl border border-slate-200/60 p-6 md:p-8 relative overflow-hidden shadow-none">
+                    <div className="absolute top-0 right-0 w-1/4 h-full bg-gradient-to-l from-bku-primary/5 to-transparent pointer-events-none" />
                     
                     <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-                        <div className="space-y-1">
+                        <div className="space-y-2">
                             <div className="flex items-center gap-2 mb-2">
-                                <div className="h-4 w-1.5 bg-primary rounded-full" />
-                                <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-400 font-jakarta">Public Relations</span>
+                                <div className="h-4 w-1.5 bg-bku-primary rounded-full animate-pulse" />
+                                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 font-headline leading-none">Public Relations</span>
                             </div>
-                            <h1 className="text-3xl font-bold text-neutral-900 font-jakarta tracking-tight leading-tight">
-                                Kelola <span className="text-primary">Konten</span>
+                            <h1 className="text-2xl font-black font-headline tracking-tight leading-none" style={{ color: 'var(--theme-h1)' }}>
+                                Kelola <span className="text-bku-primary">Konten</span>
                             </h1>
-                            <p className="text-neutral-500 font-medium text-sm max-w-2xl leading-relaxed">
+                            <p className="text-slate-400 font-medium text-[11px] max-w-2xl leading-relaxed">
                                 Manajemen publikasi berita, pengumuman akademik, dan informasi resmi universitas untuk seluruh sivitas akademika.
                             </p>
                         </div>
@@ -342,17 +342,17 @@ export default function ContentManagement() {
                         <div className="flex items-center gap-3">
                             <Button 
                                 onClick={handleOpenAdd}
-                                className="h-11 px-6 rounded-xl bg-primary text-white hover:bg-primary/90 shadow-md gap-2 transition-all active:scale-95 border-none"
+                                className="h-11 px-6 rounded-xl bg-slate-800 text-white font-black font-headline text-[10px] uppercase tracking-widest gap-2 hover:bg-slate-900 transition-all active:scale-95 shadow-none border-none cursor-pointer"
                             >
                                 <span className="material-symbols-outlined" style={{ fontSize: '16px' }}  strokeWidth={3}>add</span>
-                                <span className="text-xs font-bold uppercase tracking-widest">Tulis Berita</span>
+                                Tulis Berita
                             </Button>
                         </div>
                     </div>
                 </section>
 
                 {/* ── Table Section ────────────────────────────────────────── */}
-                <Card className="border-neutral-200 shadow-sm rounded-xl bg-white overflow-hidden">
+                <Card className="glass-card border border-slate-200/60 shadow-none rounded-2xl overflow-hidden">
                     <CardContent className="p-0">
                         <DataTable
                             columns={columns} 
@@ -360,14 +360,14 @@ export default function ContentManagement() {
                             loading={loading}
                             searchPlaceholder="Cari judul atau topik berita..."
                             onAdd={handleOpenAdd} 
-                            addLabel="Tambah Unit"
+                            addLabel="Tambah Konten"
                             filters={[
                                 { key: 'Status', placeholder: 'Semua Status', options: [{ label: 'Published', value: 'Published' }, { label: 'Draft', value: 'Draft' }] }
                             ]}
                             actions={(row) => (
                                 <div className="flex items-center gap-1.5">
-                                    <Button onClick={() => handleOpenEdit(row)} variant="ghost" size="icon" className="h-8 w-8 text-neutral-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"><span className="material-symbols-outlined" style={{ fontSize: '16px' }} >edit</span></Button>
-                                    <Button onClick={() => { setSelected(row); setIsDelOpen(true) }} variant="ghost" size="icon" className="h-8 w-8 text-neutral-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"><span className="material-symbols-outlined" style={{ fontSize: '16px' }} >delete</span></Button>
+                                    <Button onClick={() => handleOpenEdit(row)} variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors cursor-pointer"><span className="material-symbols-outlined" style={{ fontSize: '16px' }} >edit</span></Button>
+                                    <Button onClick={() => { setSelected(row); setIsDelOpen(true) }} variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"><span className="material-symbols-outlined" style={{ fontSize: '16px' }} >delete</span></Button>
                                 </div>
                             )}
                         />
@@ -375,19 +375,19 @@ export default function ContentManagement() {
                 </Card>
 
                 {/* ── Editorial Banner ──────────────────────────────────────── */}
-                <div className="bg-white border border-neutral-200 rounded-xl p-6 flex flex-col md:flex-row items-center justify-between gap-6 shadow-sm">
+                <div className="glass-card border border-slate-200/60 rounded-2xl p-6 flex flex-col md:flex-row items-center justify-between gap-6 shadow-none">
                    <div className="flex items-center gap-5">
-                      <div className="size-12 rounded-xl bg-neutral-900 flex items-center justify-center text-white shadow-lg">
+                      <div className="size-12 rounded-xl bg-slate-800 flex items-center justify-center text-white shadow-none">
                          <span className="material-symbols-outlined" style={{ fontSize: '24px' }} >language</span>
                       </div>
                       <div>
-                         <p className="text-sm font-bold text-neutral-900 font-jakarta leading-tight">Live Public Broadcasting</p>
-                         <p className="text-[11px] font-medium text-neutral-400 uppercase tracking-widest mt-1">Konten yang diterbitkan akan langsung tampil di portal mahasiswa & dosen.</p>
+                         <p className="text-[12px] font-black text-slate-800 font-headline uppercase tracking-tight leading-tight">Live Public Broadcasting</p>
+                         <p className="text-[10px] font-medium text-slate-400 uppercase tracking-widest mt-1">Konten yang diterbitkan akan langsung tampil di portal mahasiswa & dosen.</p>
                       </div>
                    </div>
                    <div className="flex items-center gap-3">
-                      <div className="size-2 rounded-full bg-emerald-500 animate-pulse" />
-                      <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest">Broadcaster Status: Online</span>
+                      <div className="size-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_10px_rgba(16,185,129,0.5)]" />
+                      <span className="text-[10px] font-black font-headline text-slate-400 uppercase tracking-widest">Broadcaster Status: Online</span>
                    </div>
                 </div>
 
@@ -395,61 +395,61 @@ export default function ContentManagement() {
 
             {/* ── CRUD Dialog ───────────────────────────────────────────── */}
             <Dialog open={isCrudOpen} onOpenChange={setIsCrudOpen}>
-                <DialogContent className="max-w-2xl p-0 overflow-hidden border-none shadow-2xl rounded-2xl bg-white">
-                    <DialogHeader className="p-8 pb-6 border-b border-neutral-100 relative overflow-hidden">
-                        <div className="absolute top-0 right-0 p-8 opacity-5 text-primary"><Newspaper size={100} /></div>
+                <DialogContent className="max-w-2xl p-0 overflow-hidden border-none shadow-2xl rounded-3xl glass-card bg-white/95">
+                    <DialogHeader className="p-8 pb-6 border-b border-slate-200/40 relative overflow-hidden">
+                        <div className="absolute top-0 right-0 p-8 opacity-5 text-bku-primary"><Newspaper size={100} /></div>
                         <div className="relative z-10 space-y-1">
                             <div className="flex items-center gap-2 mb-2">
-                                <div className="size-6 rounded bg-primary/10 flex items-center justify-center text-primary">
+                                <div className="size-6 rounded-lg bg-bku-primary/10 flex items-center justify-center text-bku-primary">
                                     {isEditMode ? <span className="material-symbols-outlined" style={{ fontSize: '12px' }} >edit</span> : <span className="material-symbols-outlined" style={{ fontSize: '12px' }}  strokeWidth={3}>add</span>}
                                 </div>
-                                <span className="text-[10px] font-bold uppercase tracking-widest text-primary">Content Registry</span>
+                                <span className="text-[10px] font-black uppercase tracking-widest text-bku-primary font-headline">Content Registry</span>
                             </div>
-                            <DialogTitle className="text-2xl font-bold font-jakarta tracking-tight text-neutral-900 uppercase">
+                            <DialogTitle className="text-2xl font-black font-headline tracking-tight text-slate-800 uppercase">
                                 {isEditMode ? 'Update Konten' : 'Publikasi Baru'}
                             </DialogTitle>
-                            <DialogDescription className="text-sm font-medium text-neutral-400">Editor publikasi berita dan pengumuman resmi universitas.</DialogDescription>
+                            <DialogDescription className="text-[11px] font-medium text-slate-400 uppercase tracking-widest">Editor publikasi berita dan pengumuman resmi universitas.</DialogDescription>
                         </div>
                     </DialogHeader>
 
                     <form onSubmit={handleSave} className="p-8 pt-6 space-y-5">
                         <div className="space-y-5 max-h-[50vh] overflow-y-auto pr-2 custom-scrollbar">
                             <div className="space-y-2">
-                                <Label className="text-xs font-bold text-neutral-500 font-jakarta ml-1">Judul Utama Berita</Label>
-                                <Input required value={form.Judul} onChange={e => setForm({ ...form, Judul: e.target.value })} placeholder="Tulis judul yang informatif..." className="h-11 rounded-lg border-neutral-200 bg-neutral-50/30 focus:bg-white font-medium text-sm font-jakarta" />
+                                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 font-headline">Judul Utama Berita</Label>
+                                <Input required value={form.Judul} onChange={e => setForm({ ...form, Judul: e.target.value })} placeholder="Tulis judul yang informatif..." className="h-11 rounded-xl border-slate-200 bg-white/60 focus:bg-white font-bold text-sm font-headline focus:ring-bku-primary/20" />
                             </div>
 
                             <div className="space-y-2">
-                                <Label className="text-xs font-bold text-neutral-500 font-jakarta ml-1">Isi Konten & Informasi</Label>
-                                <Textarea required value={form.Isi} onChange={e => setForm({ ...form, Isi: e.target.value })} placeholder="Tulis narasi berita secara lengkap..." className="min-h-[150px] rounded-xl border-neutral-200 bg-neutral-50/30 focus:bg-white p-4 font-medium text-sm font-jakarta leading-relaxed" />
+                                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 font-headline">Isi Konten & Informasi</Label>
+                                <Textarea required value={form.Isi} onChange={e => setForm({ ...form, Isi: e.target.value })} placeholder="Tulis narasi berita secara lengkap..." className="min-h-[150px] rounded-2xl border-slate-200 bg-white/60 focus:bg-white p-4 font-medium text-sm font-inter leading-relaxed focus:ring-bku-primary/20" />
                             </div>
 
                             <div className="space-y-2">
-                                <Label className="text-xs font-bold text-neutral-500 font-jakarta ml-1">Target Penerima Berita (Audience)</Label>
+<Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 font-headline">Target Penerima Berita (Audience)</Label>
                                 <Select value={form.target_audience} onValueChange={handleAudienceChange}>
-                                    <SelectTrigger className="h-11 rounded-lg border-neutral-200 bg-neutral-50/30 font-medium text-sm"><SelectValue /></SelectTrigger>
-                                    <SelectContent className="rounded-xl shadow-xl">
-                                        <SelectItem value="semua" className="text-xs font-medium uppercase">Semua Sivitas</SelectItem>
-                                        <SelectItem value="fakultas" className="text-xs font-medium uppercase">Spesifik Fakultas</SelectItem>
-                                        <SelectItem value="ormawa" className="text-xs font-medium uppercase">Spesifik Ormawa</SelectItem>
-                                        <SelectItem value="mahasiswa" className="text-xs font-medium uppercase">Mahasiswa (Global / Fakultas)</SelectItem>
+                                    <SelectTrigger className="h-11 rounded-xl border-slate-200 bg-white/60 font-bold text-sm font-headline focus:ring-bku-primary/20"><SelectValue /></SelectTrigger>
+                                    <SelectContent className="rounded-xl shadow-xl border-slate-200">
+                                        <SelectItem value="semua" className="text-[11px] font-bold uppercase tracking-widest font-headline">Semua Sivitas</SelectItem>
+                                        <SelectItem value="fakultas" className="text-[11px] font-bold uppercase tracking-widest font-headline">Spesifik Fakultas</SelectItem>
+                                        <SelectItem value="ormawa" className="text-[11px] font-bold uppercase tracking-widest font-headline">Spesifik Ormawa</SelectItem>
+                                        <SelectItem value="mahasiswa" className="text-[11px] font-bold uppercase tracking-widest font-headline">Mahasiswa (Global / Fakultas)</SelectItem>
                                     </SelectContent>
                                 </Select>
                             </div>
 
                             {form.target_audience === 'fakultas' && (
                                 <div className="space-y-2 animate-in fade-in duration-200">
-                                    <Label className="text-xs font-bold text-neutral-500 font-jakarta ml-1">Pilih Fakultas Penerima</Label>
+                                    <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 font-headline">Pilih Fakultas Penerima</Label>
                                     <Select 
                                         value={form.target_fakultas_id ? String(form.target_fakultas_id) : undefined} 
                                         onValueChange={v => setForm({ ...form, target_fakultas_id: Number(v) })}
                                     >
-                                        <SelectTrigger className="h-11 rounded-lg border-neutral-200 bg-neutral-50/30 font-medium text-sm">
+                                        <SelectTrigger className="h-11 rounded-xl border-slate-200 bg-white/60 font-bold text-sm font-headline focus:ring-bku-primary/20">
                                             <SelectValue placeholder="PILIH FAKULTAS" />
                                         </SelectTrigger>
-                                        <SelectContent className="rounded-xl shadow-xl max-h-[200px] overflow-y-auto">
+                                        <SelectContent className="rounded-xl shadow-xl border-slate-200 max-h-[200px] overflow-y-auto">
                                             {faculties.map(f => (
-                                                <SelectItem key={f.ID || f.id} value={String(f.ID || f.id)} className="text-xs font-bold uppercase">
+                                                <SelectItem key={f.ID || f.id} value={String(f.ID || f.id)} className="text-[11px] font-bold uppercase tracking-widest font-headline">
                                                     {f.Nama || f.nama}
                                                 </SelectItem>
                                             ))}
@@ -474,8 +474,8 @@ export default function ContentManagement() {
                                     {ormawaSubtype === 'all' && (
                                         <div className="space-y-2 animate-in fade-in duration-200">
                                             <Label className="text-xs font-bold text-neutral-500 font-jakarta ml-1">Pilih Ormawa Penerima</Label>
-                                            <Select 
-                                                value={form.target_ormawa_id ? String(form.target_ormawa_id) : undefined} 
+                                            <Select
+                                                value={form.target_ormawa_id ? String(form.target_ormawa_id) : undefined}
                                                 onValueChange={v => setForm({ ...form, target_ormawa_id: Number(v) })}
                                             >
                                                 <SelectTrigger className="h-11 rounded-lg border-neutral-200 bg-neutral-50/30 font-medium text-sm">
@@ -583,8 +583,8 @@ export default function ContentManagement() {
                                     {mahasiswaSubtype === 'fakultas' && (
                                         <div className="space-y-2 animate-in fade-in duration-200">
                                             <Label className="text-xs font-bold text-neutral-500 font-jakarta ml-1">Pilih Fakultas Mahasiswa</Label>
-                                            <Select 
-                                                value={form.target_fakultas_id ? String(form.target_fakultas_id) : undefined} 
+                                            <Select
+                                                value={form.target_fakultas_id ? String(form.target_fakultas_id) : undefined}
                                                 onValueChange={v => setForm({ ...form, target_fakultas_id: Number(v) })}
                                             >
                                                 <SelectTrigger className="h-11 rounded-lg border-neutral-200 bg-neutral-50/30 font-medium text-sm">
@@ -677,22 +677,22 @@ export default function ContentManagement() {
                             )}
 
                             <div className="space-y-2">
-                                <Label className="text-xs font-bold text-neutral-500 font-jakarta ml-1">Visibilitas Publikasi</Label>
+                                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 font-headline">Visibilitas Publikasi</Label>
                                 <Select value={form.Status} onValueChange={v => setForm({ ...form, Status: v })}>
-                                    <SelectTrigger className="h-11 rounded-lg border-neutral-200 bg-neutral-50/30 font-medium text-sm"><SelectValue /></SelectTrigger>
-                                    <SelectContent className="rounded-xl shadow-xl">
-                                        <SelectItem value="Published" className="text-xs font-medium uppercase text-emerald-600">Terbitkan Sekarang</SelectItem>
-                                        <SelectItem value="Draft" className="text-xs font-medium uppercase">Simpan Sebagai Draft</SelectItem>
+                                    <SelectTrigger className="h-11 rounded-xl border-slate-200 bg-white/60 font-bold text-sm font-headline focus:ring-bku-primary/20"><SelectValue /></SelectTrigger>
+                                    <SelectContent className="rounded-xl shadow-xl border-slate-200">
+                                        <SelectItem value="Published" className="text-[11px] font-bold uppercase tracking-widest font-headline text-emerald-600">Terbitkan Sekarang</SelectItem>
+                                        <SelectItem value="Draft" className="text-[11px] font-bold uppercase tracking-widest font-headline">Simpan Sebagai Draft</SelectItem>
                                     </SelectContent>
                                 </Select>
                             </div>
                         </div>
 
-                        <div className="pt-6 flex flex-row gap-3 border-t border-neutral-100">
-                             <Button type="button" variant="ghost" onClick={() => setIsCrudOpen(false)} className="flex-1 h-12 rounded-xl text-xs font-bold uppercase tracking-widest text-neutral-400">Batal</Button>
-                             <Button type="submit" disabled={isSubmitting} className="flex-1 h-12 rounded-xl bg-neutral-900 text-white hover:bg-primary shadow-md transition-all active:scale-95">
+                        <div className="pt-6 flex flex-row gap-3 border-t border-slate-200/40">
+                             <Button type="button" variant="outline" onClick={() => setIsCrudOpen(false)} className="flex-1 h-12 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-500 border-slate-200 hover:bg-slate-100 font-headline cursor-pointer">Batal</Button>
+                             <Button type="submit" disabled={isSubmitting} className="flex-1 h-12 rounded-xl bg-slate-800 text-white hover:bg-slate-900 shadow-none transition-all active:scale-95 font-headline text-[10px] font-black uppercase tracking-widest cursor-pointer border-none">
                                 {isSubmitting ? <span className="material-symbols-outlined animate-spin mr-2" style={{ fontSize: '14px' }} >sync</span> : <span className="material-symbols-outlined mr-2" style={{ fontSize: '14px' }} >save</span>}
-                                <span className="text-xs font-bold uppercase tracking-widest">{isEditMode ? 'Update Konten' : 'Terbitkan Berita'}</span>
+                                {isEditMode ? 'Update Konten' : 'Terbitkan Berita'}
                              </Button>
                         </div>
                     </form>

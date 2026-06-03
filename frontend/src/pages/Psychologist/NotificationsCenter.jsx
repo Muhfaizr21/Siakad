@@ -177,7 +177,7 @@ export default function NotificationsCenter() {
 
                       <div className="min-w-0 flex-1">
                         <div className="mb-1 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-                          <h2 className="truncate text-sm font-black uppercase tracking-tight text-slate-950">{noti.title}</h2>
+                          <h2 className="truncate text-sm font-black uppercase tracking-tight font-headline" style={{ color: 'var(--theme-h2)' }}>{noti.title}</h2>
                           <span className="inline-flex shrink-0 items-center gap-1 text-[9px] font-black uppercase tracking-widest text-slate-400">
                             <span className="material-symbols-outlined" style={{ fontSize: '11px' }} >schedule</span>
                             {noti.time}

@@ -7,7 +7,7 @@ const OrmawaLayout = ({ children }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   return (
-    <div className="bg-[#F8FAFC] text-slate-900 h-screen font-body overflow-x-hidden">
+    <div className="bg-slate-50 bg-[radial-gradient(at_0%_0%,rgba(0,35,111,0.08)_0px,transparent_50%),radial-gradient(at_100%_100%,rgba(59,130,246,0.05)_0px,transparent_50%)] text-slate-900 h-screen font-inter overflow-x-hidden">
       {/* Sidebar Overlay for Mobile */}
       {isSidebarOpen && (
         <div 

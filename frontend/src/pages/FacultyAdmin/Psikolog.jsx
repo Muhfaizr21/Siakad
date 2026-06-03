@@ -199,12 +199,12 @@ export default function PsikologPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] font-body">
+    <div className="min-h-screen bg-transparent font-inter">
       <Toaster position="top-right" />
       <div className="max-w-[1600px] mx-auto px-4 py-8 md:px-8 xl:px-12 space-y-6">
 
         {/* ── Page Header ────────────────────────────────────────── */}
-        <section className="relative overflow-hidden rounded-3xl h-auto md:h-48 flex flex-col md:flex-row items-center group shadow-sm p-6 md:p-8 border border-slate-200/80 bg-white">
+        <section className="relative overflow-hidden rounded-2xl h-auto md:h-48 flex flex-col md:flex-row items-center group shadow-none p-6 md:p-8 border border-slate-200/60 glass-card">
           <div className="absolute inset-0 bg-gradient-to-br from-white via-slate-50/50 to-slate-100/50" />
           <div className="absolute inset-0 opacity-[0.03]"
             style={{
@@ -249,7 +249,7 @@ export default function PsikologPage() {
             { label: 'Spesialisasi Umum', value: stats.umum, icon: Award, bg: 'bg-indigo-50', color: 'text-indigo-600', desc: 'Konselor Umum' },
             { label: 'Psikolog Aktif', value: stats.aktif, icon: UserCheck, bg: 'bg-emerald-50', color: 'text-emerald-600', desc: 'Tersedia untuk bimbingan' },
           ].map(s => (
-            <div key={s.label} className="bg-white border border-slate-100/50 rounded-3xl p-5 shadow-sm">
+            <div key={s.label} className="glass-card border border-slate-200/60 rounded-2xl p-5 shadow-none">
               <div className="flex items-center gap-3 mb-3">
                 <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0', s.bg, s.color)}>
                   <s.icon size={18} />
@@ -265,12 +265,12 @@ export default function PsikologPage() {
         </div>
 
         {/* ── Table Card ─────────────────────────────────────────── */}
-        <div className="bg-white border border-slate-100/50 rounded-3xl shadow-sm overflow-hidden">
+        <div className="glass-card border border-slate-200/60 rounded-2xl shadow-none overflow-hidden">
 
           {/* Toolbar */}
           <div className="px-5 py-4 border-b border-slate-100 flex flex-col sm:flex-row items-start sm:items-center gap-3">
             <div className="flex-1">
-              <h2 className="font-bold text-base text-slate-900">Daftar Praktisi & Psikolog</h2>
+              <h2 className="font-black text-sm uppercase tracking-tight font-headline" style={{ color: 'var(--theme-h2)' }}>Daftar Praktisi & Psikolog</h2>
               <p className="text-xs text-slate-500 mt-0.5">
                 Menampilkan <span className="font-bold text-slate-900">{filtered.length}</span> dari <span className="font-bold text-primary">{psychologists.length}</span> psikolog
               </p>
@@ -435,7 +435,7 @@ export default function PsikologPage() {
           </div>
 
           {/* Modern Pagination Footer */}
-          <div className="px-6 py-4 bg-slate-50/50 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="px-6 py-4 bg-transparent border-t border-slate-200/60 flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
               <p className="text-xs text-slate-500 font-medium text-center sm:text-left">
                 Menampilkan <span className="font-semibold text-slate-800">{totalItems > 0 ? (currentPage - 1) * pageSize + 1 : 0}</span> sampai <span className="font-semibold text-slate-800">{Math.min(currentPage * pageSize, totalItems)}</span> dari <span className="font-semibold text-slate-800">{totalItems}</span> entri
@@ -543,7 +543,7 @@ export default function PsikologPage() {
                   <PsikologAvatar src={selectedPsikolog.Foto} name={selectedPsikolog.Nama} className="w-[60px] h-[60px] rounded-2xl shadow-xl ring-2 ring-white/20" />
                   <div className="min-w-0">
                     <p className="text-[9px] font-bold text-white/50 uppercase tracking-[0.25em] mb-1">Praktisi Wellness</p>
-                    <h2 className="text-lg font-extrabold text-white leading-tight truncate">{selectedPsikolog.Nama}</h2>
+                    <h2 className="text-lg font-extrabold font-headline leading-tight truncate" style={{ color: 'var(--theme-h2)' }}>{selectedPsikolog.Nama}</h2>
                     <p className="text-xs text-blue-200 font-medium mt-0.5">{selectedPsikolog.Spesialisasi} Specialist</p>
                   </div>
                 </div>
@@ -667,7 +667,7 @@ export default function PsikologPage() {
                         />
                       </div>
                     </div>
-                  </>
+</>
                 ) : (
                   <div className="p-6 space-y-4">
                     <div className="flex items-center justify-between pb-3 border-b border-slate-100">
@@ -701,7 +701,7 @@ export default function PsikologPage() {
                     ) : (
                       <div className="space-y-3">
                         {bookings.map((b) => {
-                          const statusCls = 
+                          const statusCls =
                             b.status === 'Selesai' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' :
                             b.status === 'Disetujui' || b.status === 'Dikonfirmasi' ? 'bg-blue-50 text-blue-700 border-blue-100' :
                             b.status === 'Menunggu' ? 'bg-amber-50 text-amber-700 border-amber-100' :
@@ -762,10 +762,12 @@ export default function PsikologPage() {
                     )}
                   </div>
                 )}
+                  </div>
+                )}
               </div>
 
               {/* ── Footer ── */}
-              <div className="px-5 py-4 border-t border-slate-100 bg-slate-50/50 flex gap-3 flex-shrink-0">
+              <div className="px-5 py-4 border-t border-slate-200/60 bg-transparent flex gap-3 flex-shrink-0">
                 <button
                   onClick={() => handleSelectPsikolog(null)}
                   className="w-full h-11 rounded-xl border border-slate-200/60 bg-white text-xs font-bold text-slate-600 uppercase tracking-widest hover:bg-slate-50 transition-all active:scale-95"

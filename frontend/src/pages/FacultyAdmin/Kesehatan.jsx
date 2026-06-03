@@ -348,12 +348,12 @@ export default function FacultyKesehatan() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] font-body">
+    <div className="min-h-screen bg-transparent font-inter">
       <Toaster position="top-right" />
       <div className="max-w-[1600px] mx-auto px-4 py-8 md:px-8 xl:px-12 space-y-6">
 
         {/* Header */}
-        <section className="relative overflow-hidden rounded-3xl h-auto md:h-48 flex flex-col md:flex-row items-center group shadow-sm p-6 md:p-8 border border-slate-200/80 bg-white">
+        <section className="relative overflow-hidden rounded-2xl h-auto md:h-48 flex flex-col md:flex-row items-center group shadow-none p-6 md:p-8 border border-slate-200/60 glass-card">
           <div className="absolute inset-0 bg-gradient-to-br from-white via-slate-50/50 to-slate-100/50" />
           <div className="absolute inset-0 opacity-[0.03]"
             style={{
@@ -429,10 +429,10 @@ export default function FacultyKesehatan() {
         </div>
 
         {/* Table */}
-        <div className="bg-white border border-slate-100/50 rounded-3xl shadow-sm overflow-hidden">
+        <div className="glass-card border border-slate-200/60 rounded-2xl shadow-none overflow-hidden">
           <div className="px-5 py-4 border-b border-slate-100 flex flex-col sm:flex-row items-start sm:items-center gap-3">
             <div className="flex-1">
-              <h2 className="font-bold text-base text-slate-900">Rekam Medis Mahasiswa</h2>
+              <h2 className="font-black text-sm uppercase tracking-tight font-headline" style={{ color: 'var(--theme-h2)' }}>Rekam Medis Mahasiswa</h2>
               <p className="text-xs text-slate-500 mt-0.5">
                 Menampilkan <span className="font-bold text-slate-900">{filtered.length}</span> dari <span className="font-bold text-primary">{healthRecords.length}</span> data
               </p>
@@ -569,7 +569,7 @@ export default function FacultyKesehatan() {
           </div>
 
           {/* Modern Pagination Footer */}
-          <div className="px-6 py-4 bg-slate-50/50 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="px-6 py-4 bg-transparent border-t border-slate-200/60 flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
               <p className="text-xs text-slate-500 font-medium text-center sm:text-left">
                 Menampilkan <span className="font-semibold text-slate-800">{totalItems > 0 ? (currentPage - 1) * pageSize + 1 : 0}</span> sampai <span className="font-semibold text-slate-800">{Math.min(currentPage * pageSize, totalItems)}</span> dari <span className="font-semibold text-slate-800">{totalItems}</span> entri
@@ -735,10 +735,10 @@ export default function FacultyKesehatan() {
       {selected && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4"
           onClick={() => setSelected(null)}>
-          <div className="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl z-[101] flex flex-col overflow-hidden max-h-[90vh]"
+          <div className="relative w-full max-w-lg glass-card rounded-2xl shadow-none border border-slate-200/60 flex flex-col overflow-hidden max-h-[90vh]"
             onClick={e => e.stopPropagation()}>
             {/* Header */}
-            <div className="relative bg-gradient-to-br from-[#00236F] via-[#00308F] to-[#003db5] pt-6 pb-7 px-6 overflow-hidden flex-shrink-0">
+            <div className="relative bg-gradient-to-br from-bku-primary via-[#00308F] to-[#003db5] pt-6 pb-7 px-6 overflow-hidden flex-shrink-0">
               <div className="absolute -top-10 -right-10 w-44 h-44 bg-white/5 rounded-full pointer-events-none" />
               <button onClick={() => setSelected(null)}
                 className="absolute z-50 top-4 right-4 w-8 h-8 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center transition-colors">
@@ -748,7 +748,7 @@ export default function FacultyKesehatan() {
                 <StudentAvatar src={getFullUrl(selected.Mahasiswa?.FotoURL || selected.Mahasiswa?.foto_url)} name={selected.Mahasiswa?.Nama} className="w-14 h-14 rounded-2xl shadow-xl ring-2 ring-white/20" />
                 <div className="min-w-0">
                   <p className="text-[9px] font-bold text-white/50 uppercase tracking-[0.25em] mb-1">Rekam Medis Mahasiswa</p>
-                  <h2 className="text-base font-extrabold text-white leading-tight">{selected.Mahasiswa?.Nama}</h2>
+                  <h2 className="text-base font-extrabold font-headline leading-tight" style={{ color: 'var(--theme-h2)' }}>{selected.Mahasiswa?.Nama}</h2>
                   <p className="text-xs text-blue-200 font-medium mt-0.5">{selected.Mahasiswa?.NIM} · {selected.Mahasiswa?.ProgramStudi?.Nama || '—'}</p>
                 </div>
               </div>
@@ -773,7 +773,7 @@ export default function FacultyKesehatan() {
               <div>
                 <div className="flex items-center gap-2 mb-3">
                   <div className="w-5 h-5 rounded-md bg-[#eef4ff] flex items-center justify-center"><span className="material-symbols-outlined text-primary" style={{ fontSize: '11px' }} >show_chart</span></div>
-                  <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.18em]">Data Fisik & Vital</h3>
+                  <h3 className="text-[10px] font-black font-headline uppercase tracking-[0.18em]" style={{ color: 'var(--theme-h3)' }}>Data Fisik & Vital</h3>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   {[
@@ -830,7 +830,7 @@ export default function FacultyKesehatan() {
               <div>
                 <div className="flex items-center gap-2 mb-3">
                   <div className="w-5 h-5 rounded-md bg-[#eef4ff] flex items-center justify-center"><span className="material-symbols-outlined text-primary" style={{ fontSize: '11px' }} >calendar_month</span></div>
-                  <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.18em]">Informasi Tambahan</h3>
+                  <h3 className="text-[10px] font-black font-headline uppercase tracking-[0.18em]" style={{ color: 'var(--theme-h3)' }}>Informasi Tambahan</h3>
                 </div>
                 <div className="space-y-1">
                   {[
@@ -853,13 +853,13 @@ export default function FacultyKesehatan() {
             </div>
 
             {/* Footer */}
-            <div className="px-5 py-4 border-t border-slate-100 bg-slate-50/50 flex gap-3 flex-shrink-0">
+            <div className="px-5 py-4 border-t border-slate-200/60 bg-transparent flex gap-3 flex-shrink-0">
               <button onClick={() => window.print()}
                 className="flex-1 h-11 rounded-xl border border-slate-200/60 bg-white text-xs font-bold text-slate-600 uppercase tracking-widest hover:bg-slate-50 transition-all">
                 Cetak
               </button>
               <button onClick={() => setSelected(null)}
-                className="flex-1 h-11 rounded-xl bg-primary hover:bg-[#001a52] text-white text-xs font-bold uppercase tracking-widest transition-all active:scale-95 shadow-lg shadow-[#00236F]/20">
+                className="flex-1 h-11 rounded-xl bg-primary hover:bg-bku-hover text-white text-xs font-bold uppercase tracking-widest transition-all active:scale-95 shadow-lg shadow-bku-primary/20">
                 Tutup
               </button>
             </div>

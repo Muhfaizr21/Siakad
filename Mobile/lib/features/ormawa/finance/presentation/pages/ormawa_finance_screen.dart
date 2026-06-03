@@ -35,15 +35,13 @@ class _OrmawaFinanceScreenState extends State<OrmawaFinanceScreen> {
             expandedHeight: 180.0,
             showBackButton: widget.showBackButton,
           ),
-          
+
           // Summary Cards
-          SliverToBoxAdapter(
-            child: _buildSummaryHeader(),
-          ),
+          SliverToBoxAdapter(child: _buildSummaryHeader()),
 
           // Transaction List
           _buildTransactionList(),
-          
+
           const SliverToBoxAdapter(child: SizedBox(height: 100)),
         ],
       ),
@@ -51,12 +49,17 @@ class _OrmawaFinanceScreenState extends State<OrmawaFinanceScreen> {
         onPressed: () {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => const CreateTransactionScreen()),
+            MaterialPageRoute(
+              builder: (context) => const CreateTransactionScreen(),
+            ),
           ).then((_) => context.read<OrmawaProvider>().getFinance());
         },
         backgroundColor: AppColors.primary,
         icon: const Icon(Icons.add, color: Colors.white),
-        label: const Text('TRANSAKSI BARU', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        label: const Text(
+          'TRANSAKSI BARU',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
       ),
     );
   }
@@ -67,12 +70,15 @@ class _OrmawaFinanceScreenState extends State<OrmawaFinanceScreen> {
         final transactions = provider.financeList;
         double totalMasuk = 0;
         double totalKeluar = 0;
-        
+
         for (var t in transactions) {
-          if (t.type == 'pemasukan') totalMasuk += t.nominal;
-          else totalKeluar += t.nominal;
+          if (t.type == 'pemasukan') {
+            totalMasuk += t.nominal;
+          } else {
+            totalKeluar += t.nominal;
+          }
         }
-        
+
         final balance = totalMasuk - totalKeluar;
 
         return Padding(
@@ -85,38 +91,67 @@ class _OrmawaFinanceScreenState extends State<OrmawaFinanceScreen> {
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [AppColors.primary, AppColors.primary.withAlpha(200)],
+                    colors: [
+                      AppColors.primary,
+                      AppColors.primary.withAlpha(200),
+                    ],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
                   borderRadius: BorderRadius.circular(24),
                   boxShadow: [
-                    BoxShadow(color: AppColors.primary.withAlpha(50), blurRadius: 20, offset: const Offset(0, 10)),
+                    BoxShadow(
+                      color: AppColors.primary.withAlpha(50),
+                      blurRadius: 20,
+                      offset: const Offset(0, 10),
+                    ),
                   ],
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('TOTAL SALDO KAS', style: AppTextStyles.labelSm.copyWith(color: Colors.white70, fontWeight: FontWeight.bold)),
+                    Text(
+                      'TOTAL SALDO KAS',
+                      style: AppTextStyles.labelSm.copyWith(
+                        color: Colors.white70,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                     const SizedBox(height: 8),
                     Text(
-                      NumberFormat.currency(locale: 'id', symbol: 'Rp ', decimalDigits: 0).format(balance),
-                      style: AppTextStyles.titleLg.copyWith(color: Colors.white, fontSize: 28, fontWeight: FontWeight.w900),
+                      NumberFormat.currency(
+                        locale: 'id',
+                        symbol: 'Rp ',
+                        decimalDigits: 0,
+                      ).format(balance),
+                      style: AppTextStyles.titleLg.copyWith(
+                        color: Colors.white,
+                        fontSize: 28,
+                        fontWeight: FontWeight.w900,
+                      ),
                     ),
                   ],
                 ),
               ),
               const SizedBox(height: 16),
-              
+
               // In/Out Mini Cards
               Row(
                 children: [
                   Expanded(
-                    child: _buildMiniStatCard('PEMASUKAN', totalMasuk, Colors.green),
+                    child: _buildMiniStatCard(
+                      'PEMASUKAN',
+                      totalMasuk,
+                      Colors.green,
+                    ),
                   ),
                   const SizedBox(width: 16),
                   Expanded(
-                    child: _buildMiniStatCard('PENGELUARAN', totalKeluar, Colors.red),
+                    child: _buildMiniStatCard(
+                      'PENGELUARAN',
+                      totalKeluar,
+                      Colors.red,
+                    ),
                   ),
                 ],
               ),
@@ -124,10 +159,20 @@ class _OrmawaFinanceScreenState extends State<OrmawaFinanceScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('RIWAYAT MUTASI', style: AppTextStyles.titleMd.copyWith(fontWeight: FontWeight.w900)),
+                  Text(
+                    'RIWAYAT MUTASI',
+                    style: AppTextStyles.titleMd.copyWith(
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
                   TextButton(
                     onPressed: () => provider.getFinance(),
-                    child: Text('Refresh', style: AppTextStyles.labelSm.copyWith(color: AppColors.primary)),
+                    child: Text(
+                      'Refresh',
+                      style: AppTextStyles.labelSm.copyWith(
+                        color: AppColors.primary,
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -149,11 +194,25 @@ class _OrmawaFinanceScreenState extends State<OrmawaFinanceScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: AppTextStyles.labelSm.copyWith(color: color, fontSize: 8, fontWeight: FontWeight.w900)),
+          Text(
+            label,
+            style: AppTextStyles.labelSm.copyWith(
+              color: color,
+              fontSize: 8,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
           const SizedBox(height: 4),
           Text(
-            NumberFormat.currency(locale: 'id', symbol: 'Rp', decimalDigits: 0).format(amount),
-            style: AppTextStyles.labelMd.copyWith(color: color, fontWeight: FontWeight.bold),
+            NumberFormat.currency(
+              locale: 'id',
+              symbol: 'Rp',
+              decimalDigits: 0,
+            ).format(amount),
+            style: AppTextStyles.labelMd.copyWith(
+              color: color,
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ],
       ),
@@ -164,7 +223,7 @@ class _OrmawaFinanceScreenState extends State<OrmawaFinanceScreen> {
     return Consumer<OrmawaProvider>(
       builder: (context, provider, child) {
         final transactions = provider.financeList;
-        
+
         if (transactions.isEmpty) {
           return const SliverToBoxAdapter(
             child: Padding(
@@ -177,56 +236,67 @@ class _OrmawaFinanceScreenState extends State<OrmawaFinanceScreen> {
         return SliverPadding(
           padding: const EdgeInsets.symmetric(horizontal: 20),
           sliver: SliverList(
-            delegate: SliverChildBuilderDelegate(
-              (context, index) {
-                final t = transactions[index];
-                final isIncome = t.type == 'pemasukan';
-                
-                return Container(
-                  margin: const EdgeInsets.only(bottom: 12),
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: const Color(0xFFF1F5F9)),
-                  ),
-                  child: Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: (isIncome ? Colors.green : Colors.red).withAlpha(10),
-                          shape: BoxShape.circle,
+            delegate: SliverChildBuilderDelegate((context, index) {
+              final t = transactions[index];
+              final isIncome = t.type == 'pemasukan';
+
+              return Container(
+                margin: const EdgeInsets.only(bottom: 12),
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: const Color(0xFFF1F5F9)),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: (isIncome ? Colors.green : Colors.red).withAlpha(
+                          10,
                         ),
-                        child: Icon(
-                          isIncome ? Icons.arrow_downward_rounded : Icons.arrow_upward_rounded,
-                          color: isIncome ? Colors.green : Colors.red,
-                          size: 20,
-                        ),
+                        shape: BoxShape.circle,
                       ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(t.description, style: AppTextStyles.labelMd.copyWith(fontWeight: FontWeight.bold)),
-                            Text('${t.category} • ${DateFormat('dd MMM yyyy').format(t.date)}', style: AppTextStyles.labelSm.copyWith(color: Colors.grey)),
-                          ],
-                        ),
+                      child: Icon(
+                        isIncome
+                            ? Icons.arrow_downward_rounded
+                            : Icons.arrow_upward_rounded,
+                        color: isIncome ? Colors.green : Colors.red,
+                        size: 20,
                       ),
-                      Text(
-                        '${isIncome ? '+' : '-'} ${NumberFormat.currency(locale: 'id', symbol: '', decimalDigits: 0).format(t.nominal)}',
-                        style: AppTextStyles.labelMd.copyWith(
-                          color: isIncome ? Colors.green : Colors.red,
-                          fontWeight: FontWeight.w900,
-                        ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            t.description,
+                            style: AppTextStyles.labelMd.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Text(
+                            '${t.category} • ${DateFormat('dd MMM yyyy').format(t.date)}',
+                            style: AppTextStyles.labelSm.copyWith(
+                              color: Colors.grey,
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                );
-              },
-              childCount: transactions.length,
-            ),
+                    ),
+                    Text(
+                      '${isIncome ? '+' : '-'} ${NumberFormat.currency(locale: 'id', symbol: '', decimalDigits: 0).format(t.nominal)}',
+                      style: AppTextStyles.labelMd.copyWith(
+                        color: isIncome ? Colors.green : Colors.red,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }, childCount: transactions.length),
           ),
         );
       },

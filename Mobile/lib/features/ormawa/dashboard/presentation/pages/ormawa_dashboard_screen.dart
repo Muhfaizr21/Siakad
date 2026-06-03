@@ -128,7 +128,7 @@ class _OrmawaDashboardScreenState extends State<OrmawaDashboardScreen> {
       style: AppTextStyles.titleLg.copyWith(
         fontSize: 18,
         fontWeight: FontWeight.w900,
-        color: const Color(0xFF1E293B),
+        color: AppColors.neutral700,  // Section header — bold, readable
       ),
     );
   }
@@ -141,7 +141,7 @@ class _OrmawaDashboardScreenState extends State<OrmawaDashboardScreen> {
           title,
           style: AppTextStyles.labelSm.copyWith(
             fontWeight: FontWeight.w900,
-            color: const Color(0xFF64748B),
+            color: AppColors.neutral500,  // Overline — muted, uppercase
             letterSpacing: 1.1,
           ),
         ),
@@ -173,19 +173,19 @@ class _OrmawaDashboardScreenState extends State<OrmawaDashboardScreen> {
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: const Color(0xFFF8FAFC),
+          color: AppColors.surfaceContainerLow,  // Light card — subtle contrast
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: const Color(0xFFE2E8F0)),
+          border: Border.all(color: AppColors.neutral200),
         ),
         child: Row(
           children: [
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: Colors.blue.withAlpha(10),
+                color: AppColors.primary.withAlpha(10),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.event_available_rounded, color: Colors.blue, size: 20),
+              child: Icon(Icons.event_available_rounded, color: AppColors.primary, size: 20),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -198,7 +198,7 @@ class _OrmawaDashboardScreenState extends State<OrmawaDashboardScreen> {
                   ),
                   Text(
                     '${DateFormat('dd MMM').format(agenda.date)} • ${DateFormat('HH:mm').format(agenda.date)} - ${DateFormat('HH:mm').format(agenda.endDate)}',
-                    style: AppTextStyles.labelSm.copyWith(color: AppColors.outline),
+                    style: AppTextStyles.labelMd.copyWith(color: AppColors.neutral600),
                   ),
                 ],
               ),
@@ -206,12 +206,12 @@ class _OrmawaDashboardScreenState extends State<OrmawaDashboardScreen> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
-                color: Colors.blue.withAlpha(20),
+                color: AppColors.primary.withAlpha(20),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
                 agenda.status,
-                style: AppTextStyles.labelSm.copyWith(color: Colors.blue, fontSize: 8, fontWeight: FontWeight.w900),
+                style: AppTextStyles.labelSm.copyWith(color: AppColors.primary, fontSize: 8, fontWeight: FontWeight.w900),
               ),
             ),
           ],
@@ -225,19 +225,19 @@ class _OrmawaDashboardScreenState extends State<OrmawaDashboardScreen> {
       width: double.infinity,
       padding: const EdgeInsets.all(32),
       decoration: BoxDecoration(
-        color: const Color(0xFFF8FAFC),
+        color: AppColors.surfaceContainerLow,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        border: Border.all(color: AppColors.neutral200),
       ),
       child: Column(
         children: [
-          Icon(Icons.event_note_rounded, color: AppColors.outline.withAlpha(50), size: 40),
+          Icon(Icons.event_note_rounded, color: AppColors.neutral400, size: 40),
           const SizedBox(height: 12),
           Text(
             message,
-            style: AppTextStyles.labelSm.copyWith(
-              color: AppColors.outline.withAlpha(150),
-              fontWeight: FontWeight.bold,
+            style: AppTextStyles.bodyMd.copyWith(
+              color: AppColors.neutral600,
+              fontWeight: FontWeight.w600,
             ),
           ),
         ],

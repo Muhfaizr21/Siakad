@@ -63,7 +63,7 @@ export const ResponsiveGrid = ({ children, cols = 3, className }) => {
  */
 export const ResponsiveCard = ({ children, className, noPadding = false }) => (
   <div className={cn(
-    "bg-white border border-slate-200 shadow-sm rounded-[1.5rem] md:rounded-[2rem] overflow-hidden transition-all duration-300 hover:shadow-xl hover:shadow-primary/5",
+    "glass-card border border-slate-200/60 shadow-none rounded-2xl overflow-hidden transition-all duration-300",
     className
   )}>
     <div className={cn(noPadding ? "" : "p-5 md:p-8")}>

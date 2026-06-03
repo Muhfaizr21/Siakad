@@ -52,7 +52,7 @@ export default function StudentVoicePage() {
     <div className="min-h-screen bg-[#fafafa] text-[#171717] font-body px-4 py-5 md:px-6 md:py-6 lg:px-8 lg:py-8 transition-all duration-300">
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 text-sm font-medium text-[#a3a3a3] mb-6">
-        <NavLink to="/student/dashboard" className="hover:text-[#00236F] cursor-pointer transition-colors">Dashboard</NavLink>
+        <NavLink to="/student/dashboard" className="hover:text-bku-primary cursor-pointer transition-colors">Dashboard</NavLink>
         <span className="material-symbols-outlined" style={{ fontSize: 16 }}>chevron_right</span>
         <span className="text-[#171717]">Suara Mahasiswa</span>
       </div>
@@ -62,7 +62,7 @@ export default function StudentVoicePage() {
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5 mb-8">
           <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
             <h1 className="text-2xl md:text-3xl font-black font-headline tracking-tight mb-2 flex items-center gap-3">
-              <div className="bg-[#00236F] p-2 rounded-xl text-white shadow-md shadow-[#00236F]/20">
+              <div className="bg-bku-primary p-2 rounded-xl text-white shadow-md shadow-bku-primary/20">
                 <span className="material-symbols-outlined" style={{ fontSize: '20px' }}  strokeWidth={2.5}>chat</span>
               </div>
               Suara Mahasiswa
@@ -76,7 +76,7 @@ export default function StudentVoicePage() {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => setIsModalOpen(true)}
-            className="flex items-center justify-center gap-2 px-5 py-3 bg-[#00236F] text-white font-bold rounded-xl hover:bg-[#0B4FAE] transition-all shadow-md shadow-[#00236F]/20 text-sm group"
+            className="flex items-center justify-center gap-2 px-5 py-3 bg-bku-primary text-white font-bold rounded-xl hover:bg-[#0B4FAE] transition-all shadow-md shadow-bku-primary/20 text-sm group"
           >
             <span className="material-symbols-outlined group-hover:rotate-90 transition-transform duration-300" style={{ fontSize: '18px' }}  strokeWidth={2.8}>add</span>
             Sampaikan Aspirasi Baru
@@ -89,7 +89,7 @@ export default function StudentVoicePage() {
             [...Array(4)].map((_, i) => <Skeleton key={i} className="h-24 rounded-2xl" />)
           ) : (
             <>
-              <StatCard label="Total Diajukan" value={stats?.total || 0} color="border-[#D5E2FF]" icon={<span className="material-symbols-outlined text-[#00236F]" style={{ fontSize: '18px' }} >chat</span>} bg="bg-white" />
+              <StatCard label="Total Diajukan" value={stats?.total || 0} color="border-[#D5E2FF]" icon={<span className="material-symbols-outlined text-bku-primary" style={{ fontSize: '18px' }} >chat</span>} bg="bg-white" />
               <StatCard label="Di Fakultas" value={stats?.di_fakultas || 0} color="border-[#C9D8FF]" icon={<span className="material-symbols-outlined text-[#0B4FAE]" style={{ fontSize: '18px' }} >schedule</span>} bg="bg-[#EAF1FF]" />
               <StatCard label="Di Universitas" value={stats?.di_universitas || 0} color="border-[#D3E1FF]" icon={<span className="material-symbols-outlined text-[#1D4E9E]" style={{ fontSize: '18px' }}>security</span>} bg="bg-[#EEF4FF]" />
               <StatCard label="Selesai" value={stats?.selesai || 0} color="border-[#16a34a]" icon={<span className="material-symbols-outlined text-[#16a34a]" style={{ fontSize: '20px' }} >check_circle</span>} bg="bg-[#f0fdf4]" />
@@ -103,14 +103,14 @@ export default function StudentVoicePage() {
             <h2 className="text-xl md:text-2xl font-black font-headline tracking-tight">Riwayat Aspirasi Kamu</h2>
             <div className="flex items-center gap-4">
               <div className="relative group">
-                <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[#a3a3a3] group-focus-within:text-[#00236F] transition-colors" style={{ fontSize: '18px' }} >search</span>
+                <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-[#a3a3a3] group-focus-within:text-bku-primary transition-colors" style={{ fontSize: '18px' }} >search</span>
                 <input 
                   type="text" 
                   placeholder="Cari nomor tiket / judul..." 
-                  className="pl-12 pr-4 py-2.5 bg-[#fafafa] border border-[#e5e5e5] rounded-xl text-sm font-semibold focus:outline-none focus:border-[#00236F] focus:ring-4 focus:ring-[#00236F]/10 transition-all w-full md:w-64"
+                  className="pl-12 pr-4 py-2.5 bg-[#fafafa] border border-[#e5e5e5] rounded-xl text-sm font-semibold focus:outline-none focus:border-bku-primary focus:ring-4 focus:ring-bku-primary/10 transition-all w-full md:w-64"
                 />
               </div>
-              <button className="p-2.5 bg-[#fafafa] border border-[#e5e5e5] rounded-xl text-[#a3a3a3] hover:text-[#00236F] transition-all">
+              <button className="p-2.5 bg-[#fafafa] border border-[#e5e5e5] rounded-xl text-[#a3a3a3] hover:text-bku-primary transition-all">
                 <Filter size={20} />
               </button>
             </div>
@@ -173,7 +173,7 @@ export default function StudentVoicePage() {
                           )}
                           <Link 
                             to={`/student/voice/tiket/${ticket.id}`}
-                            className="w-9 h-9 rounded-xl bg-white border border-[#e5e5e5] flex items-center justify-center text-[#00236F] hover:bg-[#00236F] hover:text-white transition-all shadow-sm"
+                            className="w-9 h-9 rounded-xl bg-white border border-[#e5e5e5] flex items-center justify-center text-bku-primary hover:bg-bku-primary hover:text-white transition-all shadow-sm"
                           >
                             <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >arrow_forward</span>
                           </Link>
@@ -207,7 +207,7 @@ export default function StudentVoicePage() {
                     key={i} 
                     onClick={() => setPage(i + 1)}
                     className={`w-9 h-9 rounded-xl text-xs font-black transition-all ${
-                      page === (i + 1) ? 'bg-[#00236F] text-white' : 'bg-[#fafafa] text-[#a3a3a3] hover:text-[#00236F]'
+                      page === (i + 1) ? 'bg-bku-primary text-white' : 'bg-[#fafafa] text-[#a3a3a3] hover:text-bku-primary'
                     }`}
                   >
                     {i + 1}
@@ -319,7 +319,7 @@ function CreateAspirasiModal({ onClose }) {
       <motion.div 
         initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
         onClick={onClose}
-        className="absolute inset-0 bg-[#00236F]/45 backdrop-blur-sm"
+        className="absolute inset-0 bg-bku-primary/45 backdrop-blur-sm"
       />
       <motion.div 
         initial={{ opacity: 0, scale: 0.9, y: 30 }}
@@ -332,7 +332,7 @@ function CreateAspirasiModal({ onClose }) {
             <h3 className="text-xl md:text-2xl font-black font-headline tracking-tight">Sampaikan Aspirasimu</h3>
             <p className="text-sm font-bold text-[#a3a3a3] uppercase mt-1">Gunakan kata-kata yang bijak & membangun</p>
           </div>
-          <button onClick={onClose} className="p-2.5 bg-[#fafafa] border border-[#e5e5e5] rounded-xl text-[#a3a3a3] hover:text-[#00236F]"><span className="material-symbols-outlined" style={{ fontSize: '20px' }} >close</span></button>
+          <button onClick={onClose} className="p-2.5 bg-[#fafafa] border border-[#e5e5e5] rounded-xl text-[#a3a3a3] hover:text-bku-primary"><span className="material-symbols-outlined" style={{ fontSize: '20px' }} >close</span></button>
         </div>
 
         <form onSubmit={handleSubmit} className="p-5 md:p-6 overflow-y-auto custom-scrollbar space-y-6">
@@ -347,8 +347,8 @@ function CreateAspirasiModal({ onClose }) {
                   onClick={() => setFormData({ ...formData, kategori: cat.id })}
                   className={`px-4 py-2 rounded-xl text-[11px] font-black uppercase tracking-wide transition-all border ${
                     formData.kategori === cat.id 
-                    ? 'border-[#00236F] bg-[#EAF1FF] text-[#00236F] shadow-sm' 
-                    : 'border-[#e5e5e5] text-[#a3a3a3] hover:border-[#00236F] hover:text-[#00236F]'
+                    ? 'border-bku-primary bg-[#EAF1FF] text-bku-primary shadow-sm' 
+                    : 'border-[#e5e5e5] text-[#a3a3a3] hover:border-bku-primary hover:text-bku-primary'
                   }`}
                 >
                   {cat.label}
@@ -369,7 +369,7 @@ function CreateAspirasiModal({ onClose }) {
                 <input 
                   type="text" 
                   placeholder="Tuliskan inti dari aspirasimu..."
-                  className="w-full px-4 py-3 bg-[#fafafa] border border-[#e5e5e5] rounded-xl font-bold text-base focus:outline-none focus:border-[#00236F] focus:ring-4 focus:ring-[#00236F]/10 transition-all"
+                  className="w-full px-4 py-3 bg-[#fafafa] border border-[#e5e5e5] rounded-xl font-bold text-base focus:outline-none focus:border-bku-primary focus:ring-4 focus:ring-bku-primary/10 transition-all"
                   value={formData.judul}
                 onChange={(e) => setFormData({ ...formData, judul: e.target.value })}
                 required
@@ -387,7 +387,7 @@ function CreateAspirasiModal({ onClose }) {
               <textarea 
                 rows={6}
                 placeholder="Ceritakan secara detail aspirasi, saran, atau keluhan kamu..."
-                className="w-full px-4 py-3 bg-[#fafafa] border border-[#e5e5e5] rounded-xl font-medium text-sm md:text-base focus:outline-none focus:border-[#00236F] focus:ring-4 focus:ring-[#00236F]/10 transition-all resize-none"
+                className="w-full px-4 py-3 bg-[#fafafa] border border-[#e5e5e5] rounded-xl font-medium text-sm md:text-base focus:outline-none focus:border-bku-primary focus:ring-4 focus:ring-bku-primary/10 transition-all resize-none"
                 value={formData.isi}
                 onChange={(e) => setFormData({ ...formData, isi: e.target.value })}
                 required
@@ -405,11 +405,11 @@ function CreateAspirasiModal({ onClose }) {
                     className="absolute inset-0 opacity-0 cursor-pointer z-10"
                     accept=".pdf,.jpg,.jpeg,.png"
                   />
-                  <div className="flex items-center justify-between px-4 py-3 bg-[#fafafa] border border-dashed border-[#e5e5e5] rounded-xl group-hover/upload:border-[#00236F] transition-all">
+                  <div className="flex items-center justify-between px-4 py-3 bg-[#fafafa] border border-dashed border-[#e5e5e5] rounded-xl group-hover/upload:border-bku-primary transition-all">
                     <span className="text-sm font-bold text-[#a3a3a3] truncate">
                       {formData.lampiran ? formData.lampiran.name : 'Pilih File (Max 5MB)'}
                     </span>
-                    <span className="material-symbols-outlined text-[#a3a3a3] group-hover/upload:text-[#00236F]" style={{ fontSize: '18px' }} >upload</span>
+                    <span className="material-symbols-outlined text-[#a3a3a3] group-hover/upload:text-bku-primary" style={{ fontSize: '18px' }} >upload</span>
                   </div>
                 </div>
               </div>
@@ -420,7 +420,7 @@ function CreateAspirasiModal({ onClose }) {
                   type="button"
                   onClick={() => setFormData({ ...formData, is_anonim: !formData.is_anonim })}
                   className={`flex items-center justify-between w-full px-4 py-3 rounded-xl border transition-all ${
-                    formData.is_anonim ? 'bg-[#00236F] border-[#00236F] text-white' : 'bg-[#fafafa] border-[#e5e5e5] text-[#171717]'
+                    formData.is_anonim ? 'bg-bku-primary border-bku-primary text-white' : 'bg-[#fafafa] border-[#e5e5e5] text-[#171717]'
                   }`}
                 >
                   <div className="flex items-center gap-3">
@@ -453,14 +453,14 @@ function CreateAspirasiModal({ onClose }) {
             <button 
               type="button" 
               onClick={onClose}
-              className="flex-1 py-3 bg-white border border-[#e5e5e5] text-[#a3a3a3] font-black rounded-xl hover:bg-[#fafafa] hover:text-[#00236F] hover:border-[#00236F] transition-all uppercase tracking-wide text-xs"
+              className="flex-1 py-3 bg-white border border-[#e5e5e5] text-[#a3a3a3] font-black rounded-xl hover:bg-[#fafafa] hover:text-bku-primary hover:border-bku-primary transition-all uppercase tracking-wide text-xs"
             >
               Batal
             </button>
             <button 
               type="submit"
               disabled={createMutation.isPending || formData.judul === '' || formData.isi.length < 50}
-              className="flex-[2] py-3 bg-[#00236F] text-white font-black rounded-xl hover:bg-[#0B4FAE] transition-all shadow-md shadow-[#00236F]/20 text-sm uppercase tracking-wide flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50"
+              className="flex-[2] py-3 bg-bku-primary text-white font-black rounded-xl hover:bg-[#0B4FAE] transition-all shadow-md shadow-bku-primary/20 text-sm uppercase tracking-wide flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50"
             >
               {createMutation.isPending ? (
                 <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />

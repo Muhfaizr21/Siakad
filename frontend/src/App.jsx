@@ -4,6 +4,8 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import About from './pages/About/About'
 import Academic from './pages/Academic/Academic'
 import Services from './pages/Services/Services'
+import Home from './pages/Home/Home'
+import PublicLayout from './components/layout/PublicLayout'
 import Login from './pages/Auth/Login'
 import ChangePassword from './pages/Auth/ChangePassword'
 import ForgotPassword from './pages/Auth/ForgotPassword'
@@ -26,6 +28,7 @@ import PsychologistSettings from './pages/Psychologist/PsychologistSettings'
 
 // Error Pages & Components
 import ErrorBoundary from './components/ErrorBoundary'
+import ThemeProvider from './components/ThemeProvider'
 import Error404 from './pages/Error/Error404'
 import Error403 from './pages/Error/Error403'
 import Error500 from './pages/Error/Error500'
@@ -106,6 +109,7 @@ const StudentDirectory = React.lazy(() => import('./pages/SuperAdmin/StudentDire
 import AdminPerformance from './pages/SuperAdmin/AdminPerformance'
 import AdminProfile from './pages/SuperAdmin/Profile'
 import SecuritySettings from './pages/SuperAdmin/SecuritySettings'
+import { ThemeCustomizer } from './pages/SuperAdmin/theme'
 
 import PsychologistDirectory from './pages/SuperAdmin/PsychologistDirectory'
 import KelolaFakultas from './pages/SuperAdmin/KelolaFakultas'
@@ -193,14 +197,18 @@ function App() {
 
   return (
     <ErrorBoundary>
-      <AuthProvider>
+      <ThemeProvider>
+        <AuthProvider>
         <Router>
           <React.Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-slate-50"><Loader2 className="animate-spin text-primary size-10" /></div>}>
             <Routes>
-            <Route path="/" element={<Navigate to="/login" replace />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/academic" element={<Academic />} />
-            <Route path="/services" element={<Services />} />
+            {/* Public Routes with Global Navbar & Footer */}
+            <Route element={<PublicLayout />}>
+              <Route path="/" element={<Home />} />
+              <Route path="/about" element={<About />} />
+              <Route path="/academic" element={<Academic />} />
+              <Route path="/services" element={<Services />} />
+            </Route>
             <Route path="/login" element={<Login />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/change-password" element={<ChangePassword />} />
@@ -228,6 +236,14 @@ function App() {
                     <Route path="students" element={<StudentDirectory />} />
                     <Route path="performance" element={<AdminPerformance />} />
                     <Route path="security" element={<SecuritySettings />} />
+
+                    {/* Theme Customizer - Redirect ke colors */}
+                    <Route path="theme" element={<Navigate to="theme/colors" replace />} />
+                    <Route path="theme/colors" element={<ThemeCustomizer section="colors" />} />
+                    <Route path="theme/typography" element={<ThemeCustomizer section="typography" />} />
+                    <Route path="theme/branding" element={<ThemeCustomizer section="branding" />} />
+                    <Route path="theme/components" element={<ThemeCustomizer section="components" />} />
+                    <Route path="theme/status" element={<ThemeCustomizer section="status" />} />
 
                     <Route path="psychologists" element={<PsychologistDirectory />} />
                     <Route path="config" element={<AcademicPortal />} />
@@ -421,7 +437,8 @@ function App() {
           </Routes>
           </React.Suspense>
         </Router>
-      </AuthProvider>
+        </AuthProvider>
+        </ThemeProvider>
     </ErrorBoundary>
   )
 }

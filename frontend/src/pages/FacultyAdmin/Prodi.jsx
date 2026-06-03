@@ -8,6 +8,7 @@ import { pddiktiService, API_BASE_URL } from "../../services/api"
 import { PageContainer, PageHeader, ResponsiveGrid, ResponsiveCard } from "./components/responsive-layout"
 import { DataTable } from "./components/data-table"
 import { Badge } from "./components/badge"
+import { DeleteConfirmModal } from "./components/DeleteConfirmModal"
 
 // Auto-injected Material Symbol fallbacks for removed Lucide icons
 const RefreshCw = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>sync</span>;
@@ -316,7 +317,7 @@ export default function ProdiPage() {
   )
 
   return (
-    <PageContainer>
+    <PageContainer className="min-h-screen bg-transparent font-inter">
       <Toaster position="top-right" />
 
       {/* Page Header */}
@@ -390,7 +391,7 @@ export default function ProdiPage() {
           onClick={() => setIsModal(false)}
         >
           <div
-            className="relative w-full max-w-lg bg-white rounded-[2.5rem] shadow-2xl z-[101] flex flex-col overflow-hidden max-h-[90vh] border border-slate-100 animate-in zoom-in-95 duration-300"
+            className="relative w-full max-w-lg glass-card border border-slate-200/60 rounded-2xl shadow-none z-[101] flex flex-col overflow-hidden max-h-[90vh] animate-in zoom-in-95 duration-300"
             onClick={e => e.stopPropagation()}
           >
             {/* Modal Header */}
@@ -406,7 +407,7 @@ export default function ProdiPage() {
                 <p className="text-[9px] font-black text-white/50 uppercase tracking-[0.25em] mb-1">
                   {isEditMode ? 'Edit Program Studi' : 'Tambah Program Studi'}
                 </p>
-                <h2 className="text-2xl font-black text-white font-headline leading-none">{isEditMode ? 'Update Data Prodi' : 'Registrasi Prodi Baru'}</h2>
+                <h2 className="text-2xl font-black font-headline leading-none" style={{ color: 'var(--theme-h2)' }}>{isEditMode ? 'Update Data Prodi' : 'Registrasi Prodi Baru'}</h2>
                 <p className="text-xs text-blue-200 font-medium mt-1.5 leading-relaxed">Isi semua formulir administrasi di bawah ini dengan lengkap.</p>
               </div>
             </div>
@@ -429,7 +430,7 @@ export default function ProdiPage() {
                       }
                       readOnly
                       disabled
-                      className="pl-11 pr-4 w-full h-12 rounded-2xl border border-slate-200/80 bg-slate-50 text-xs font-bold text-slate-500 cursor-not-allowed select-none"
+                      className="pl-11 pr-4 w-full h-12 rounded-2xl border border-slate-200/60 bg-transparent text-xs font-bold text-slate-500 cursor-not-allowed select-none"
                     />
                   </div>
                   <p className="text-[10px] text-slate-400 font-medium mt-1.5 ml-1 leading-relaxed">
@@ -445,7 +446,7 @@ export default function ProdiPage() {
                       onChange={e => set('Kode', e.target.value.toUpperCase())}
                       placeholder="TI, SI, MN..."
                       required
-                      className="w-full h-12 px-4 rounded-2xl border border-slate-200 bg-slate-50 text-xs font-bold text-slate-700 focus:outline-none focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/10 transition-all uppercase"
+                      className="w-full h-12 px-4 rounded-2xl border border-slate-200/60 bg-transparent/50 text-xs font-bold text-slate-700 focus:outline-none focus:border-primary focus:bg-transparent focus:ring-4 focus:ring-primary/10 transition-all uppercase"
                     />
                   </div>
                   <div>
@@ -453,7 +454,7 @@ export default function ProdiPage() {
                     <select
                       value={formData.Jenjang}
                       onChange={e => set('Jenjang', e.target.value)}
-                      className="w-full h-12 px-4 rounded-2xl border border-slate-200 bg-slate-50 text-xs font-bold text-slate-700 focus:outline-none focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/10 transition-all appearance-none cursor-pointer"
+                      className="w-full h-12 px-4 rounded-2xl border border-slate-200/60 bg-transparent/50 text-xs font-bold text-slate-700 focus:outline-none focus:border-primary focus:bg-transparent focus:ring-4 focus:ring-primary/10 transition-all appearance-none cursor-pointer"
                     >
                       <option value="S1">S1 - Sarjana</option>
                       <option value="D3">D3 - Diploma</option>
@@ -469,7 +470,7 @@ export default function ProdiPage() {
                     onChange={e => set('Nama', e.target.value)}
                     placeholder="Nama resmi prodi..."
                     required
-                    className="w-full h-12 px-4 rounded-2xl border border-slate-200 bg-slate-50 text-xs font-bold text-slate-700 focus:outline-none focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/10 transition-all"
+                    className="w-full h-12 px-4 rounded-2xl border border-slate-200/60 bg-transparent/50 text-xs font-bold text-slate-700 focus:outline-none focus:border-primary focus:bg-transparent focus:ring-4 focus:ring-primary/10 transition-all"
                   />
                 </div>
 
@@ -479,7 +480,7 @@ export default function ProdiPage() {
                     <select
                       value={formData.Akreditasi}
                       onChange={e => set('Akreditasi', e.target.value)}
-                      className="w-full h-12 px-4 rounded-2xl border border-slate-200 bg-slate-50 text-xs font-bold text-slate-700 focus:outline-none focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/10 transition-all appearance-none cursor-pointer"
+                      className="w-full h-12 px-4 rounded-2xl border border-slate-200/60 bg-transparent/50 text-xs font-bold text-slate-700 focus:outline-none focus:border-primary focus:bg-transparent focus:ring-4 focus:ring-primary/10 transition-all appearance-none cursor-pointer"
                     >
                       <option value="Unggul">Unggul</option>
                       <option value="Baik Sekali">Baik Sekali</option>
@@ -493,18 +494,17 @@ export default function ProdiPage() {
                       value={formData.Kapasitas}
                       onChange={e => set('Kapasitas', e.target.value)}
                       min={1}
-                      className="w-full h-12 px-4 rounded-2xl border border-slate-200 bg-slate-50 text-xs font-black text-center text-slate-700 focus:outline-none focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/10 transition-all"
+                      className="w-full h-12 px-4 rounded-2xl border border-slate-200/60 bg-transparent/50 text-xs font-black text-center text-slate-700 focus:outline-none focus:border-primary focus:bg-transparent focus:ring-4 focus:ring-primary/10 transition-all"
                     />
                   </div>
                 </div>
               </div>
 
-              {/* Modal Footer */}
-              <div className="px-8 py-5 border-t border-slate-100 bg-slate-50/50 flex gap-3 flex-shrink-0">
+              <div className="px-8 py-5 border-t border-slate-200/60 bg-transparent flex gap-3 flex-shrink-0">
                 <button
                   type="button"
                   onClick={() => setIsModal(false)}
-                  className="flex-1 h-12 rounded-2xl border border-slate-200 bg-white text-[10px] font-black text-slate-500 uppercase tracking-widest hover:bg-slate-50 transition-all"
+                  className="flex-1 h-12 rounded-2xl border border-slate-200/60 bg-transparent text-[10px] font-black text-slate-500 uppercase tracking-widest hover:bg-slate-50/50 transition-all"
                 >
                   Batal
                 </button>
@@ -522,44 +522,14 @@ export default function ProdiPage() {
         </div>
       )}
 
-      {/* Delete Confirmation Modal */}
-      {deleteTarget && (
-        <div
-          className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-[100] flex items-center justify-center p-4 animate-in fade-in duration-200"
-          onClick={() => setDelTarget(null)}
-        >
-          <div
-            className="relative w-full max-w-md bg-white rounded-[24px] shadow-2xl z-[101] overflow-hidden border border-slate-100 p-8 animate-in zoom-in-95 duration-300"
-            onClick={e => e.stopPropagation()}
-          >
-            <div className="text-left">
-              <h3 className="text-[20px] font-bold text-[#0f172a] mb-2 leading-tight">Hapus Program Studi?</h3>
-              <p className="text-[13px] text-[#64748b] leading-relaxed mb-8">
-                Tindakan ini tidak dapat dibatalkan. Pastikan tidak ada data mahasiswa atau data akademik terkait yang masih menggunakan program studi <strong>"{deleteTarget.Nama || deleteTarget.nama}"</strong> ini.
-              </p>
-
-              <div className="flex justify-end gap-3">
-                <button
-                  onClick={() => setDelTarget(null)}
-                  className="h-10 px-6 rounded-xl border border-[#cbd5e1] bg-white text-[11px] font-bold text-[#334155] uppercase tracking-wider hover:bg-slate-50 transition-all cursor-pointer"
-                >
-                  Batal
-                </button>
-                <button
-                  onClick={handleDelete}
-                  disabled={isSubmitting}
-                  className="h-10 px-6 rounded-xl bg-[#ef4444] hover:bg-[#dc2626] text-white text-[11px] font-bold uppercase tracking-wider transition-all disabled:opacity-60 flex items-center justify-center gap-2 cursor-pointer border-none shadow-sm"
-                >
-                  {isSubmitting ? (
-                    <span className="material-symbols-outlined animate-spin text-[12px]">sync</span>
-                  ) : null}
-                  <span>{isSubmitting ? "Processing..." : "YA, HAPUS"}</span>
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <DeleteConfirmModal
+        isOpen={!!deleteTarget}
+        onClose={() => setDelTarget(null)}
+        onConfirm={handleDelete}
+        isDeleting={isSubmitting}
+        title="Hapus Program Studi?"
+        message={`Tindakan ini tidak dapat dibatalkan. Pastikan tidak ada data mahasiswa atau data akademik terkait yang masih menggunakan program studi "${deleteTarget?.Nama || deleteTarget?.nama}" ini.`}
+      />
     </PageContainer>
   )
 }

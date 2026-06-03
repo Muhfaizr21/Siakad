@@ -232,7 +232,7 @@ export default function AnalyticsTrends() {
                 <div className="rounded-[2rem] bg-slate-950 p-6 text-white shadow-sm">
                   <div className="mb-6 flex items-center justify-between gap-4">
                     <div>
-                      <h3 className="text-xs font-black uppercase tracking-widest text-white">Isu Dominan</h3>
+                      <h3 className="text-xs font-black uppercase tracking-widest font-headline" style={{ color: 'var(--theme-h3)' }}>Isu Dominan</h3>
                       <p className="mt-1 text-[10px] font-bold uppercase tracking-widest text-white/40">Dihitung dari topik booking</p>
                     </div>
                     <span className="material-symbols-outlined text-white/30" style={{ fontSize: 26 }}>psychology</span>
@@ -272,7 +272,7 @@ export default function AnalyticsTrends() {
                       </div>
                     </div>
                   </div>
-                  <h3 className="text-xs font-black uppercase tracking-widest text-slate-950">Stabilitas Pasien</h3>
+                  <h3 className="text-xs font-black uppercase tracking-widest font-headline" style={{ color: 'var(--theme-h3)' }}>Stabilitas Pasien</h3>
                   <p className="mx-auto mt-2 max-w-xs text-xs font-semibold leading-relaxed text-slate-400">
                     Persentase status Stabil, Pemulihan, atau Membaik dari `psikolog.session_notes`.
                   </p>

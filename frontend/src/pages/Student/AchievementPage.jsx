@@ -160,7 +160,7 @@ export default function AchievementPage() {
         header: 'Peringkat',
         cell: (info) => {
           const val = info.row.original.peringkat || info.row.original.Peringkat || '';
-          return <span className="font-semibold text-[#00236F]">{val}</span>;
+          return <span className="font-semibold text-bku-primary">{val}</span>;
         },
       },
       {
@@ -178,7 +178,7 @@ export default function AchievementPage() {
           const val = info.row.original.status || info.row.original.Status || 'Menunggu';
           let style = 'bg-[#f5f5f5] text-[#525252] border-[#e5e5e5]';
           if (val === 'Diverifikasi' || val === 'Valid') style = 'bg-[#f0fdf4] text-[#16a34a] border-[#bbf7d0]';
-          if (val === 'Menunggu' || val === 'Pending') style = 'bg-[#eef4ff] text-[#00236F] border-[#c9d8ff]';
+          if (val === 'Menunggu' || val === 'Pending') style = 'bg-[#eef4ff] text-bku-primary border-[#c9d8ff]';
           if (val === 'Ditolak') style = 'bg-[#fef2f2] text-[#dc2626] border-[#fecaca]';
 
           return (
@@ -198,7 +198,7 @@ export default function AchievementPage() {
             <div className="flex gap-2">
               <button
                 onClick={() => setSelectedDetail(info.row.original)}
-                className="p-1.5 text-[#00236F] bg-[#eef4ff] rounded hover:bg-[#dbe7ff] transition-colors"
+                className="p-1.5 text-bku-primary bg-[#eef4ff] rounded hover:bg-[#dbe7ff] transition-colors"
                 title="Detail"
               >
                 <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >visibility</span>
@@ -239,14 +239,14 @@ export default function AchievementPage() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-3 mb-6">
         <div>
           <h1 className="text-2xl md:text-3xl font-extrabold font-headline flex items-center gap-2.5">
-            <Trophy className="text-[#00236F]" size={30} />
+            <Trophy className="text-bku-primary" size={30} />
             Achievement
           </h1>
           <p className="text-[#525252] mt-1 font-medium text-sm md:text-base">Lapor, pantau status verifikasi, dan kelola seluruh prestasi akademik/non-akademikmu.</p>
         </div>
         <button
           onClick={() => setIsModalOpen(true)}
-          className="bg-[#00236F] text-white px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 hover:bg-[#0B4FAE] transition-colors shadow-sm shadow-[#00236F]/20"
+          className="bg-bku-primary text-white px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 hover:bg-[#0B4FAE] transition-colors shadow-sm shadow-bku-primary/20"
         >
           <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >add</span>
           Lapor Prestasi Baru
@@ -256,7 +256,7 @@ export default function AchievementPage() {
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <div className="bg-white p-4 rounded-2xl border border-[#e5e5e5] shadow-sm flex items-center gap-3">
-          <div className="w-10 h-10 bg-[#eef4ff] rounded-xl flex justify-center items-center text-[#00236F]">
+          <div className="w-10 h-10 bg-[#eef4ff] rounded-xl flex justify-center items-center text-bku-primary">
             <Trophy size={18} />
           </div>
           <div>
@@ -274,7 +274,7 @@ export default function AchievementPage() {
           </div>
         </div>
         <div className="bg-white p-4 rounded-2xl border border-[#e5e5e5] shadow-sm flex items-center gap-3">
-          <div className="w-10 h-10 bg-[#eef4ff] rounded-xl flex justify-center items-center text-[#00236F]">
+          <div className="w-10 h-10 bg-[#eef4ff] rounded-xl flex justify-center items-center text-bku-primary">
             <span className="material-symbols-outlined" style={{ fontSize: '18px' }} >schedule</span>
           </div>
           <div>
@@ -298,7 +298,7 @@ export default function AchievementPage() {
               placeholder="Cari nama lomba..."
               value={globalFilter ?? ''}
               onChange={(e) => setGlobalFilter(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 rounded-xl border border-[#e5e5e5] focus:outline-none focus:border-[#00236F] text-sm"
+              className="w-full pl-10 pr-4 py-2 rounded-xl border border-[#e5e5e5] focus:outline-none focus:border-bku-primary text-sm"
             />
           </div>
         </div>
@@ -328,13 +328,13 @@ export default function AchievementPage() {
                   <td colSpan="7" className="p-12">
                     <EmptyState 
                       icon="Trophy" 
-                      iconColor="text-[#00236F]"
+                      iconColor="text-bku-primary"
                       iconBgClass="bg-[#eef4ff]"
                       iconBorderClass="border-[#c9d8ff]"
                       title="Belum Ada Prestasi" 
                       description="Lapor prestasi pertamamu sekarang dan dapatkan poin serta pengakuan resmi dari kampus!" 
                       actionLabel="Lapor Prestasi"
-                      actionClassName="bg-[#00236F] hover:bg-[#0B4FAE]"
+                      actionClassName="bg-bku-primary hover:bg-[#0B4FAE]"
                       onAction={() => setIsModalOpen(true)}
                     />
                   </td>
@@ -393,12 +393,12 @@ export default function AchievementPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div>
                   <label className="block text-sm font-semibold mb-1 text-[#525252]">Nama Lomba/Kompetisi <span className="text-red-500">*</span></label>
-                  <input {...register('nama_lomba')} className="w-full border border-[#e5e5e5] rounded-xl px-4 py-2 focus:border-[#00236F] outline-none" placeholder="Cth: Gemastik 2026" />
+                  <input {...register('nama_lomba')} className="w-full border border-[#e5e5e5] rounded-xl px-4 py-2 focus:border-bku-primary outline-none" placeholder="Cth: Gemastik 2026" />
                   {errors.nama_lomba && <p className="text-xs text-red-500 mt-1">{errors.nama_lomba.message}</p>}
                 </div>
                 <div>
                   <label className="block text-sm font-semibold mb-1 text-[#525252]">Kategori <span className="text-red-500">*</span></label>
-                  <select {...register('kategori')} className="w-full border border-[#e5e5e5] rounded-xl px-4 py-2 focus:border-[#00236F] outline-none text-[#171717]">
+                  <select {...register('kategori')} className="w-full border border-[#e5e5e5] rounded-xl px-4 py-2 focus:border-bku-primary outline-none text-[#171717]">
                     <option value="">Pilih Kategori</option>
                     <option value="Akademik">Akademik</option>
                     <option value="Non-Akademik">Non-Akademik</option>
@@ -413,7 +413,7 @@ export default function AchievementPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div>
                   <label className="block text-sm font-semibold mb-1 text-[#525252]">Tingkat <span className="text-red-500">*</span></label>
-                  <select {...register('tingkat')} className="w-full border border-[#e5e5e5] rounded-xl px-4 py-2 focus:border-[#00236F] outline-none text-[#171717]">
+                  <select {...register('tingkat')} className="w-full border border-[#e5e5e5] rounded-xl px-4 py-2 focus:border-bku-primary outline-none text-[#171717]">
                     <option value="">Pilih Tingkat</option>
                     <option value="Lokal">Lokal (Antar Prodi/Univ)</option>
                     <option value="Regional">Regional (Antar Kampus Jabar)</option>
@@ -424,7 +424,7 @@ export default function AchievementPage() {
                 </div>
                 <div>
                   <label className="block text-sm font-semibold mb-1 text-[#525252]">Penyelenggara <span className="text-red-500">*</span></label>
-                  <input {...register('penyelenggara')} className="w-full border border-[#e5e5e5] rounded-xl px-4 py-2 focus:border-[#00236F] outline-none" placeholder="Cth: Kemendikbud" />
+                  <input {...register('penyelenggara')} className="w-full border border-[#e5e5e5] rounded-xl px-4 py-2 focus:border-bku-primary outline-none" placeholder="Cth: Kemendikbud" />
                   {errors.penyelenggara && <p className="text-xs text-red-500 mt-1">{errors.penyelenggara.message}</p>}
                 </div>
               </div>
@@ -432,12 +432,12 @@ export default function AchievementPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div>
                   <label className="block text-sm font-semibold mb-1 text-[#525252]">Tanggal Pelaksanaan <span className="text-red-500">*</span></label>
-                  <input type="date" {...register('tanggal')} className="w-full border border-[#e5e5e5] rounded-xl px-4 py-2 focus:border-[#00236F] outline-none text-[#171717]" />
+                  <input type="date" {...register('tanggal')} className="w-full border border-[#e5e5e5] rounded-xl px-4 py-2 focus:border-bku-primary outline-none text-[#171717]" />
                   {errors.tanggal && <p className="text-xs text-red-500 mt-1">{errors.tanggal.message}</p>}
                 </div>
                 <div>
                   <label className="block text-sm font-semibold mb-1 text-[#525252]">Peringkat Diraih <span className="text-red-500">*</span></label>
-                  <select {...register('peringkat')} className="w-full border border-[#e5e5e5] rounded-xl px-4 py-2 focus:border-[#00236F] outline-none text-[#171717]">
+                  <select {...register('peringkat')} className="w-full border border-[#e5e5e5] rounded-xl px-4 py-2 focus:border-bku-primary outline-none text-[#171717]">
                     <option value="">Pilih Peringkat</option>
                     <option value="Juara 1">Juara 1 (Emas)</option>
                     <option value="Juara 2">Juara 2 (Perak)</option>
@@ -453,7 +453,7 @@ export default function AchievementPage() {
 
               <div>
                  <label className="block text-sm font-semibold mb-1 text-[#525252]">Pilih Organisasi Berafiliasi (Opsional)</label>
-                 <select {...register('riwayat_organisasi_id')} className="w-full border border-[#e5e5e5] rounded-xl px-4 py-2 focus:border-[#00236F] outline-none text-[#171717]">
+                 <select {...register('riwayat_organisasi_id')} className="w-full border border-[#e5e5e5] rounded-xl px-4 py-2 focus:border-bku-primary outline-none text-[#171717]">
                     <option value="">(Tidak terkait organisasi)</option>
                     {orgList.map(org => (
                        <option key={org.ID} value={org.ID}>{org.NamaOrganisasi} ({org.Jabatan})</option>
@@ -467,10 +467,10 @@ export default function AchievementPage() {
                   <input type="file" accept=".pdf,.png,.jpg,.jpeg" {...register('sertifikat')} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
                   <div className="pointer-events-none flex flex-col items-center">
                     <span className="material-symbols-outlined text-[#a3a3a3] mb-2" style={{ fontSize: '32px' }} Cloud >upload</span>
-                    <p className="text-sm font-semibold text-[#00236F]">Klik untuk Upload File</p>
+                    <p className="text-sm font-semibold text-bku-primary">Klik untuk Upload File</p>
                     <p className="text-xs text-[#a3a3a3] mt-1">Format: PDF, JPG, PNG (Max. 5MB)</p>
                     {fileValue && fileValue.length > 0 && (
-                      <div className="mt-3 px-3 py-1 bg-[#eef4ff] border border-[#c9d8ff] text-[#00236F] text-xs font-bold rounded-lg truncate w-full max-w-xs">
+                      <div className="mt-3 px-3 py-1 bg-[#eef4ff] border border-[#c9d8ff] text-bku-primary text-xs font-bold rounded-lg truncate w-full max-w-xs">
                         Terpilih: {fileValue[0].name}
                       </div>
                     )}
@@ -481,7 +481,7 @@ export default function AchievementPage() {
 
               <div className="pt-4 border-t border-[#e5e5e5] flex justify-end gap-3">
                 <button type="button" onClick={() => setIsModalOpen(false)} className="px-5 py-2.5 rounded-xl font-bold border border-[#e5e5e5] text-[#171717] hover:bg-[#f5f5f5]">Batal</button>
-                <button type="submit" disabled={createMutation.isLoading} className="px-5 py-2.5 rounded-xl font-bold bg-[#00236F] text-white hover:bg-[#0B4FAE] disabled:opacity-50">
+                <button type="submit" disabled={createMutation.isLoading} className="px-5 py-2.5 rounded-xl font-bold bg-bku-primary text-white hover:bg-[#0B4FAE] disabled:opacity-50">
                   {createMutation.isLoading ? 'Menyimpan...' : 'Simpan Prestasi'}
                 </button>
               </div>
@@ -514,7 +514,7 @@ export default function AchievementPage() {
                   <tr className="border-b border-[#f5f5f5]"><td className="py-2.5 font-semibold text-[#a3a3a3] w-1/3">Nama Lomba</td><td className="py-2 font-bold text-[#171717]">{selectedDetail.nama_kegiatan || selectedDetail.NamaKegiatan}</td></tr>
                   <tr className="border-b border-[#f5f5f5]"><td className="py-2.5 font-semibold text-[#a3a3a3]">Kategori / Tingkat</td><td className="py-2 font-bold text-[#171717]">{selectedDetail.kategori || selectedDetail.Kategori} - {selectedDetail.tingkat || selectedDetail.Tingkat}</td></tr>
                   <tr className="border-b border-[#f5f5f5]"><td className="py-2.5 font-semibold text-[#a3a3a3]">Penyelenggara</td><td className="py-2 font-bold text-[#171717]">{selectedDetail.penyelenggara || selectedDetail.Penyelenggara}</td></tr>
-                  <tr className="border-b border-[#f5f5f5]"><td className="py-2.5 font-semibold text-[#a3a3a3]">Peringkat</td><td className="py-2 font-bold text-[#00236F]">{selectedDetail.peringkat || selectedDetail.Peringkat}</td></tr>
+                  <tr className="border-b border-[#f5f5f5]"><td className="py-2.5 font-semibold text-[#a3a3a3]">Peringkat</td><td className="py-2 font-bold text-bku-primary">{selectedDetail.peringkat || selectedDetail.Peringkat}</td></tr>
                   <tr className="border-b border-[#f5f5f5]"><td className="py-2.5 font-semibold text-[#a3a3a3]">Status</td><td className="py-2 font-bold text-[#171717]">{selectedDetail.status || selectedDetail.Status}</td></tr>
                 </tbody>
               </table>
@@ -522,7 +522,7 @@ export default function AchievementPage() {
               <div className="mt-6">
                 <p className="font-semibold text-sm mb-2 text-[#a3a3a3]">Bukti Sertifikat</p>
                 {(selectedDetail.bukti_url || selectedDetail.BuktiURL) ? (
-                  <a href={`${API_BASE_URL.replace('/api', '')}${selectedDetail.bukti_url || selectedDetail.BuktiURL}`} target="_blank" rel="noreferrer" className="flex items-center justify-center p-3 border border-[#e5e5e5] rounded-xl hover:bg-[#eef4ff] hover:border-[#00236F] transition-colors text-sm font-bold text-[#00236F]">
+                  <a href={`${API_BASE_URL.replace('/api', '')}${selectedDetail.bukti_url || selectedDetail.BuktiURL}`} target="_blank" rel="noreferrer" className="flex items-center justify-center p-3 border border-[#e5e5e5] rounded-xl hover:bg-[#eef4ff] hover:border-bku-primary transition-colors text-sm font-bold text-bku-primary">
                     Lihat Dokumen Sertifikat
                   </a>
                 ) : (

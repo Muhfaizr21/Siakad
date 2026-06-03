@@ -307,7 +307,7 @@ export default function LpjManagement() {
       <Toaster position="top-right" />
 
       {/* ── Welcome Banner ─────────────────────────────────────────── */}
-      <section className="relative overflow-hidden rounded-[2rem] bg-gradient-to-r from-[#00236F] to-[#1e3a8a] text-white p-8 md:p-10 shadow-xl shadow-blue-900/10">
+      <section className="relative overflow-hidden rounded-[2rem] bg-gradient-to-r from-bku-primary to-[#1e3a8a] text-white p-8 md:p-10 shadow-xl shadow-blue-900/10">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.08)_0%,transparent_60%)]" />
         <div className="absolute inset-0 opacity-[0.03]"
           style={{
@@ -337,7 +337,7 @@ export default function LpjManagement() {
 
           <Button
             onClick={handleOpenAdd}
-            className="h-12 px-6 rounded-2xl bg-white hover:bg-white/95 text-[#00236F] hover:text-[#00236F] border-none font-bold text-xs tracking-wider shadow-lg shadow-blue-900/10 transition-all active:scale-95 shrink-0 w-full md:w-auto flex items-center justify-center gap-2"
+            className="h-12 px-6 rounded-2xl bg-white hover:bg-white/95 text-bku-primary hover:text-bku-primary border-none font-bold text-xs tracking-wider shadow-lg shadow-blue-900/10 transition-all active:scale-95 shrink-0 w-full md:w-auto flex items-center justify-center gap-2"
           >
             <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>add_task</span>
             <span>BUAT LPJ BARU</span>
@@ -350,7 +350,7 @@ export default function LpjManagement() {
         {/* Total LPJ */}
         <Card className="border border-slate-100 shadow-sm rounded-3xl overflow-hidden bg-white hover:shadow-md transition-all duration-300">
           <CardContent className="p-6 flex items-center gap-4.5">
-            <div className="w-12 h-12 rounded-2xl bg-[#00236F]/5 flex items-center justify-center text-[#00236F]">
+            <div className="w-12 h-12 rounded-2xl bg-bku-primary/5 flex items-center justify-center text-bku-primary">
               <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>assignment_turned_in</span>
             </div>
             <div className="space-y-0.5">
@@ -455,7 +455,7 @@ export default function LpjManagement() {
                   onClick={() => { setSelected(row); setIsDetailOpen(true) }}
                   variant="ghost"
                   size="icon"
-                  className="h-8 w-8 text-slate-400 hover:text-[#00236F] hover:bg-blue-50 rounded-xl active:scale-95 transition-all"
+                  className="h-8 w-8 text-slate-400 hover:text-bku-primary hover:bg-blue-50 rounded-xl active:scale-95 transition-all"
                   title="Lihat Detail LPJ"
                 >
                   <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>visibility</span>
@@ -489,7 +489,7 @@ export default function LpjManagement() {
         <DialogContent className="max-w-xl p-0 max-h-[90vh] overflow-y-auto border-none shadow-2xl rounded-[2.5rem] bg-white animate-in zoom-in-95 duration-200">
           {selected && (
             <div>
-              <div className="p-8 bg-gradient-to-r from-[#00236F] to-[#1e3a8a] text-white relative overflow-hidden">
+              <div className="p-8 bg-gradient-to-r from-bku-primary to-[#1e3a8a] text-white relative overflow-hidden">
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.06)_0%,transparent_50%)]" />
                 <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none">
                   <span className="material-symbols-outlined size-24 text-white">description</span>
@@ -586,14 +586,14 @@ export default function LpjManagement() {
         <DialogContent className="max-w-xl p-0 max-h-[90vh] overflow-y-auto border-none shadow-2xl rounded-[2.5rem] bg-white/95 backdrop-blur-xl animate-in zoom-in-95 duration-200">
           <DialogHeader className="p-8 pb-6 bg-gradient-to-br from-slate-50 to-white border-b border-slate-100 relative overflow-hidden">
             <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none">
-              <span className="material-symbols-outlined size-24 rotate-12 text-[#00236F]">description</span>
+              <span className="material-symbols-outlined size-24 rotate-12 text-bku-primary">description</span>
             </div>
             <div className="relative z-10">
               <div className="flex items-center gap-3 mb-2">
                 <div className="size-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
                   <span className="material-symbols-outlined stroke-[3px]" style={{ fontSize: '16px' }}>assignment_turned_in</span>
                 </div>
-                <Badge className="text-[9px] font-black tracking-widest px-2.5 py-0.5 bg-[#00236F]/5 text-[#00236F] border-none rounded-md">LPJ REGISTRY</Badge>
+                <Badge className="text-[9px] font-black tracking-widest px-2.5 py-0.5 bg-bku-primary/5 text-bku-primary border-none rounded-md">LPJ REGISTRY</Badge>
               </div>
               <DialogTitle className="text-xl font-black font-headline tracking-tighter text-slate-900">
                 {isEditMode ? 'Edit Laporan LPJ' : 'Buat Laporan LPJ Baru'}

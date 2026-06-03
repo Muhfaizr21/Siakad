@@ -177,7 +177,7 @@ export default function KontenPage() {
   ]
 
   return (
-    <PageContainer>
+    <PageContainer className="min-h-screen bg-transparent font-inter">
       <Toaster position="top-right" />
       
       <PageHeader
@@ -201,7 +201,7 @@ export default function KontenPage() {
       </ResponsiveGrid>
 
       <Tabs defaultValue="pengumuman" className="w-full">
-        <TabsList className="bg-white border-slate-200/60 border rounded-2xl p-1.5 h-auto gap-1.5 shadow-sm mt-6">
+        <TabsList className="glass-card border border-slate-200/60 rounded-2xl p-1.5 h-auto gap-1.5 shadow-none mt-6">
           <TabsTrigger 
             value="pengumuman" 
             className="rounded-2xl px-6 py-2.5 data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-primary/25 text-slate-500 hover:bg-slate-50 hover:text-slate-900 font-bold text-[13px] gap-3 transition-all duration-300 font-inter"
@@ -265,7 +265,7 @@ export default function KontenPage() {
         </TabsContent>
 
         <TabsContent value="kalender">
-           <ResponsiveCard className="min-h-[400px] flex items-center justify-center text-center bg-white/50 backdrop-blur-md relative overflow-hidden group">
+           <ResponsiveCard className="min-h-[400px] flex items-center justify-center text-center relative overflow-hidden group">
               <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent" />
               <div className="space-y-6 relative z-10">
                  <div className="size-20 rounded-[2rem] bg-primary/5 flex items-center justify-center mx-auto border border-primary/10 group-hover:scale-110 transition-transform duration-500 shadow-xl shadow-primary/5">
@@ -280,7 +280,7 @@ export default function KontenPage() {
         </TabsContent>
 
         <TabsContent value="template">
-           <ResponsiveCard className="min-h-[400px] flex items-center justify-center text-center bg-white/50 backdrop-blur-md relative overflow-hidden group font-headline">
+           <ResponsiveCard className="min-h-[400px] flex items-center justify-center text-center relative overflow-hidden group font-headline">
               <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-transparent" />
               <div className="space-y-6 relative z-10">
                  <div className="size-20 rounded-[2rem] bg-indigo-50/50 flex items-center justify-center mx-auto border border-indigo-100 group-hover:scale-110 transition-transform duration-500 shadow-xl shadow-indigo-500/5">

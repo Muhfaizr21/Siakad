@@ -154,25 +154,25 @@ export default function KelolaFakultas() {
   const totalProdi = data.reduce((acc, curr) => acc + (curr.JumlahProdi || curr.jumlah_prodi || 0), 0)
 
   return (
-    <div className="px-4 py-8 md:px-8 xl:px-12 min-h-screen bg-[#fafafa] font-body">
+    <div className="px-4 py-8 md:px-8 xl:px-12 min-h-screen bg-transparent font-inter">
       <Toaster position="top-right" />
       
       <div className="max-w-[1600px] mx-auto space-y-10">
         
         {/* ── Page Header ─────────────────────────────────────────── */}
-        <section className="bg-white border border-neutral-200 rounded-xl p-6 md:p-8 relative overflow-hidden shadow-sm">
+        <section className="glass-card rounded-xl p-6 md:p-8 relative overflow-hidden shadow-sm">
           <div className="absolute top-0 right-0 w-1/4 h-full bg-gradient-to-l from-indigo-50/50 to-transparent pointer-events-none" />
           
           <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
             <div className="space-y-1">
               <div className="flex items-center gap-2 mb-2">
-                <div className="h-4 w-1.5 bg-primary rounded-full" />
-                <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-400 font-jakarta">Administrative Hierarchy</span>
+                <div className="h-4 w-1.5 bg-bku-primary rounded-full" />
+                <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 font-headline">Administrative Hierarchy</span>
               </div>
-              <h1 className="text-3xl font-bold text-neutral-900 font-jakarta tracking-tight leading-tight">
-                Kelola <span className="text-primary">Fakultas</span>
+              <h1 className="text-3xl font-black font-headline tracking-tight leading-tight" style={{ color: 'var(--theme-h1)' }}>
+                Kelola <span className="text-bku-primary">Fakultas</span>
               </h1>
-              <p className="text-neutral-500 font-medium text-sm max-w-2xl leading-relaxed">
+              <p className="text-slate-500 font-medium text-sm max-w-2xl leading-relaxed">
                 Manajemen struktur unit kerja dan sinkronisasi data fakultas di lingkungan Universitas Bhakti Kencana.
               </p>
             </div>
@@ -182,15 +182,15 @@ export default function KelolaFakultas() {
                 onClick={handleSyncPddikti} 
                 variant="outline" 
                 disabled={isSyncing}
-                className="h-11 px-6 rounded-xl border-neutral-200 text-xs font-bold uppercase tracking-widest text-neutral-600 hover:bg-neutral-50 gap-2 transition-all active:scale-95 shadow-sm w-full sm:w-auto flex items-center justify-center"
+                className="h-11 px-6 rounded-xl border-slate-200 text-xs font-bold uppercase tracking-widest text-slate-600 hover:bg-slate-50 gap-2 transition-all active:scale-95 shadow-sm w-full sm:w-auto flex items-center justify-center font-headline"
               >
-                {isSyncing ? <span className="material-symbols-outlined animate-spin text-primary" style={{ fontSize: '14px' }} >sync</span> : <RefreshCw size={14} className="text-primary" />}
+                {isSyncing ? <span className="material-symbols-outlined animate-spin text-bku-primary" style={{ fontSize: '14px' }} >sync</span> : <RefreshCw size={14} className="text-bku-primary" />}
                 {isSyncing ? 'Syncing...' : 'PDDIKTI Sync'}
               </Button>
               
               <Button 
                 onClick={handleOpenAdd}
-                className="h-11 px-8 rounded-xl bg-neutral-900 text-white hover:bg-primary shadow-xl shadow-neutral-900/10 gap-3 transition-all active:scale-95 border-none group w-full sm:w-auto flex items-center justify-center"
+                className="h-11 px-8 rounded-xl bg-slate-900 text-white hover:bg-bku-primary shadow-xl shadow-slate-900/10 gap-3 transition-all active:scale-95 border-none group w-full sm:w-auto flex items-center justify-center font-headline"
               >
                 <div className="size-5 rounded-lg bg-white/10 flex items-center justify-center group-hover:bg-white/20 transition-colors">
                   <span className="material-symbols-outlined" style={{ fontSize: '14px' }}  strokeWidth={3}>add</span>
@@ -203,7 +203,7 @@ export default function KelolaFakultas() {
 
         {/* ── Stats Grid ──────────────────────────────────────────── */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-           <div 
+           <div
              onClick={() => setIsAllFacultiesOpen(true)}
              className="bg-white p-4 rounded-2xl border border-[#e5e5e5] shadow-sm cursor-pointer hover:bg-neutral-50/50 hover:shadow-md hover:border-neutral-300 transition-all group"
            >
@@ -217,7 +217,7 @@ export default function KelolaFakultas() {
               <p className="text-xs text-[#a3a3a3] font-medium mt-1">Klik untuk melihat rincian unit akademik aktif</p>
            </div>
 
-           <div 
+           <div
              onClick={() => setIsAllProdiOpen(true)}
              className="bg-white p-4 rounded-2xl border border-[#e5e5e5] shadow-sm cursor-pointer hover:bg-neutral-50/50 hover:shadow-md hover:border-neutral-300 transition-all group"
            >
@@ -233,7 +233,7 @@ export default function KelolaFakultas() {
         </div>
 
         {/* ── Table Section ────────────────────────────────────────── */}
-        <Card className="border-neutral-200 shadow-sm rounded-xl bg-white overflow-hidden">
+        <Card className="glass-card shadow-sm rounded-xl overflow-hidden">
           <CardContent className="p-0">
             <DataTable
               columns={columns} 

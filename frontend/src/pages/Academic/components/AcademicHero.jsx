@@ -1,28 +1,92 @@
 import React from 'react';
+import { motion } from 'framer-motion';
 
-const AcademicHero = () => {
+export default function AcademicHero() {
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: { staggerChildren: 0.15, delayChildren: 0.1 }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 30 },
+    visible: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 100, damping: 20 } }
+  };
+
   return (
-    <section className="relative h-[614px] flex flex-col overflow-hidden">
-        {/* Hero Background */}
-        <div className="absolute inset-0 z-0">
-            <img alt="BKU Campus" className="w-full h-full object-cover"
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuC9lX3EypKOCc3S8wPp4Llf2x10Ejr2WT-633nk1LFV_l9L0xd40ee1nTtGKGbkTfGo4Pw8oaMGAi2wcag-puotM4blcGNtDSB09gIAj5c0Y4uKjywyqdt1OTeRA1KWix5xnTkyN_XStfoIDoRziX4zpvZ8zovcTDCD-l3X6t0o_q3Ej6IbExReqm23doLIT-rzyLfKbdXrMwzoY8Tb4pRrYt39G9Z4u2gBLwwjR4beHMYi_yszwqTmVM51BotBznMEDXmjphhJzFDE" />
-            <div className="absolute inset-0 bg-primary/40 glass-effect"></div>
-        </div>
-        
-        <div className="relative z-10 flex-grow flex items-center max-w-7xl mx-auto px-8 w-full">
-            <div>
-                <h1 className="font-headline text-5xl md:text-7xl font-extrabold text-white tracking-tight mb-6">
-                    Excellence in <br /><span className="text-primary-fixed">Higher Learning.</span>
-                </h1>
-                <p className="text-white/90 text-lg md:text-xl max-w-2xl leading-relaxed font-body">
-                    Empowering the next generation of leaders through rigorous academic programs, world-class faculty,
-                    and pioneering research initiatives.
-                </p>
-            </div>
-        </div>
+    <section
+      className="relative min-h-[50vh] flex items-center overflow-hidden py-24 sm:py-32 px-4 sm:px-6 lg:px-8"
+      style={{ backgroundColor: 'var(--theme-primary)', color: 'var(--theme-text-on-primary)' }}
+    >
+      {/* Premium Overlays & Pattern */}
+      <div className="absolute inset-0 z-0">
+        <div
+          className="absolute inset-0"
+          style={{ background: 'linear-gradient(160deg, var(--theme-primary) 0%, color-mix(in srgb, var(--theme-primary) 70%, var(--theme-secondary) 30%) 100%)' }}
+        />
+
+        {/* Glow Spheres */}
+        <div
+          className="absolute top-[20%] left-[20%] w-[350px] sm:w-[500px] h-[350px] sm:h-[500px] rounded-full pointer-events-none"
+          style={{ background: 'color-mix(in srgb, var(--theme-secondary) 8%, transparent)', filter: 'blur(120px)' }}
+        />
+        <div
+          className="absolute bottom-[10%] right-[10%] w-[300px] sm:w-[400px] h-[300px] sm:h-[400px] rounded-full pointer-events-none"
+          style={{ background: 'color-mix(in srgb, var(--theme-primary) 40%, var(--theme-secondary) 60%)', filter: 'blur(100px)', opacity: 0.5 }}
+        />
+
+        {/* Grid pattern overlay */}
+        <div
+          className="absolute inset-0 opacity-[0.03]"
+          style={{
+            backgroundImage: `radial-gradient(circle, var(--theme-secondary) 1px, transparent 1px)`,
+            backgroundSize: '32px 32px'
+          }}
+        />
+      </div>
+
+      <div className="max-w-7xl mx-auto w-full relative z-10 text-center">
+        <motion.div
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+          className="max-w-3xl mx-auto space-y-6 sm:space-y-8"
+        >
+          {/* Animated Pill Badge */}
+          <motion.div
+            variants={itemVariants}
+            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wider mx-auto"
+            style={{
+              backgroundColor: 'color-mix(in srgb, var(--theme-secondary) 10%, transparent)',
+              border: '1px solid color-mix(in srgb, var(--theme-secondary) 30%, transparent)',
+              color: 'var(--theme-secondary)'
+            }}
+          >
+            Portal Akademik Universitas
+          </motion.div>
+
+          {/* Main Headline */}
+          <motion.h1
+            variants={itemVariants}
+            className="text-4xl sm:text-5xl lg:text-6xl font-extrabold font-headline leading-[1.1] tracking-tight"
+            style={{ color: 'var(--theme-text-on-primary)' }}
+          >
+            Membangun Karir <br />
+            <span style={{ color: 'var(--theme-secondary)' }}>Unggul & Berdaya Saing</span>
+          </motion.h1>
+
+          {/* Description Paragraph */}
+          <motion.p
+            variants={itemVariants}
+            className="text-base sm:text-lg max-w-2xl mx-auto font-light leading-relaxed"
+            style={{ color: 'var(--theme-muted-on-primary)' }}
+          >
+            Program studi unggulan Universitas Bhakti Kencana dirancang dengan kurikulum berbasis industri, fasilitas modern, serta pengukuran mutu berskala nasional dan internasional.
+          </motion.p>
+        </motion.div>
+      </div>
     </section>
   );
-};
-
-export default AcademicHero;
+}

@@ -21,7 +21,7 @@ export function StatCard({ title, value, maxOrSub, trend, type, isLoading }) {
 
   return (
     <div className="bg-white p-5 rounded-xl border border-neutral-200 shadow-sm hover:shadow-md transition-shadow">
-      <h3 className="text-sm font-medium text-neutral-500 font-inter mb-1.5">{title}</h3>
+      <h3 className="text-sm font-medium font-inter mb-1.5" style={{ color: 'var(--theme-text-muted)' }}>{title}</h3>
       <div className="flex items-end gap-2 mb-2">
         <span className="text-3xl font-bold font-jakarta text-neutral-900">{value}</span>
         {maxOrSub && <span className="text-sm text-neutral-400 font-medium pb-1">{maxOrSub}</span>}
@@ -90,7 +90,7 @@ export function JadwalCard({ jadwal, isLoading }) {
                   <span className="text-xs text-neutral-400">{item.jam_selesai}</span>
                 </div>
                 <div className="flex-1">
-                  <h4 className="font-bold font-jakarta text-neutral-900 mb-1">{item.nama_mk}</h4>
+                  <h4 className="font-bold font-jakarta mb-1" style={{ color: 'var(--theme-h4)' }}>{item.nama_mk}</h4>
                   <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-neutral-500">
                     <span className="flex items-center gap-1.5"><span className="material-symbols-outlined" style={{ fontSize: '14px' }} >location_on</span>{item.ruang}</span>
                     <span className="flex items-center gap-1.5"><span className="material-symbols-outlined" style={{ fontSize: '14px' }} >schedule</span>{item.nama_dosen}</span>
@@ -137,7 +137,7 @@ export function TagihanCard({ invoice, isLoading }) {
 
       <div className="relative z-10 flex-1">
         <div className="flex justify-between items-start mb-4">
-          <h2 className="text-lg font-bold font-jakarta text-neutral-900">Pembayaran UKT</h2>
+          <h2 className="text-lg font-bold font-jakarta" style={{ color: 'var(--theme-h2)' }}>Pembayaran UKT</h2>
           {isPaid && <span className="px-2.5 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full">Lunas</span>}
         </div>
         

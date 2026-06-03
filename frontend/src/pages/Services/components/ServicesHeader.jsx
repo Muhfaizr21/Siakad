@@ -1,15 +1,92 @@
 import React from 'react';
+import { motion } from 'framer-motion';
 
-const ServicesHeader = () => {
+export default function ServicesHeader() {
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: { staggerChildren: 0.15, delayChildren: 0.1 }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 30 },
+    visible: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 100, damping: 20 } }
+  };
+
   return (
-    <header className="mb-16">
-        <h1 className="text-5xl font-headline font-extrabold text-primary tracking-tight mb-4">Campus Services</h1>
-        <p className="text-lg text-secondary max-w-2xl leading-relaxed">
-            Empowering your academic journey with comprehensive support, world-class resources, and digital-first
-            infrastructure.
-        </p>
-    </header>
-  );
-};
+    <section
+      className="relative min-h-[45vh] flex items-center overflow-hidden py-24 px-4 sm:px-6 lg:px-8 w-full text-center"
+      style={{ backgroundColor: 'var(--theme-primary)', color: 'var(--theme-text-on-primary)' }}
+    >
+      {/* Premium Overlays & Pattern */}
+      <div className="absolute inset-0 z-0">
+        <div
+          className="absolute inset-0"
+          style={{ background: 'linear-gradient(160deg, var(--theme-primary) 0%, color-mix(in srgb, var(--theme-primary) 70%, var(--theme-secondary) 30%) 100%)' }}
+        />
 
-export default ServicesHeader;
+        {/* Glow Spheres */}
+        <div
+          className="absolute top-[20%] left-[20%] w-[300px] h-[300px] rounded-full pointer-events-none"
+          style={{ background: 'color-mix(in srgb, var(--theme-secondary) 8%, transparent)', filter: 'blur(100px)' }}
+        />
+        <div
+          className="absolute bottom-[10%] right-[10%] w-[250px] h-[250px] rounded-full pointer-events-none"
+          style={{ background: 'color-mix(in srgb, var(--theme-primary) 40%, var(--theme-secondary) 60%)', filter: 'blur(80px)', opacity: 0.5 }}
+        />
+
+        {/* Grid pattern overlay */}
+        <div
+          className="absolute inset-0 opacity-[0.03]"
+          style={{
+            backgroundImage: `radial-gradient(circle, var(--theme-secondary) 1px, transparent 1px)`,
+            backgroundSize: '32px 32px'
+          }}
+        />
+      </div>
+
+      <div className="max-w-7xl mx-auto w-full relative z-10 text-center">
+        <motion.div
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+          className="max-w-3xl mx-auto space-y-6"
+        >
+          {/* Animated Pill Badge */}
+          <motion.div
+            variants={itemVariants}
+            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wider mx-auto font-headline"
+            style={{
+              backgroundColor: 'color-mix(in srgb, var(--theme-secondary) 10%, transparent)',
+              border: '1px solid color-mix(in srgb, var(--theme-secondary) 30%, transparent)',
+              color: 'var(--theme-secondary)'
+            }}
+          >
+            Sarana & Infrastruktur Kampus
+          </motion.div>
+
+          {/* Main Headline */}
+          <motion.h1
+            variants={itemVariants}
+            className="text-4xl sm:text-5xl font-extrabold font-headline leading-[1.1] tracking-tight"
+            style={{ color: 'var(--theme-text-on-primary)' }}
+          >
+            Fasilitas & Ekosistem <br />
+            <span style={{ color: 'var(--theme-secondary)' }}>Belajar Mengajar Modern</span>
+          </motion.h1>
+
+          {/* Description Paragraph */}
+          <motion.p
+            variants={itemVariants}
+            className="text-base sm:text-lg max-w-2xl mx-auto font-light leading-relaxed"
+            style={{ color: 'var(--theme-muted-on-primary)' }}
+          >
+            Universitas Bhakti Kencana berkomitmen menyediakan fasilitas fisik mandiri terbaik, laboratorium teknologi tinggi, perpustakaan riset terintegrasi, dan career counseling untuk kesuksesan akademik Anda.
+          </motion.p>
+        </motion.div>
+      </div>
+    </section>
+  );
+}

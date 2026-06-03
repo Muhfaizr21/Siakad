@@ -37,18 +37,22 @@ export default function KencanaKuisPage() {
     });
   };
 
-  const handleSubmit = () => {
-    if (!attempt) return;
-    submitQuiz.mutate({ attemptId: attempt.id || attempt.ID, answers: flatAnswers }, {
-      onSuccess: setResult,
-      onError: (err) => toast.error(err.response?.data?.message || 'Gagal submit quiz'),
-    });
-  };
+fetchStats();
+  }, [user]);
+};
 
-  const fmt = (s) => `${String(Math.floor((s || 0) / 60)).padStart(2, '0')}:${String((s || 0) % 60).padStart(2, '0')}`;
+const handleSubmit = () => {
+  if (!attempt) return;
+  submitQuiz.mutate({ attemptId: attempt.id || attempt.ID, answers: flatAnswers }, {
+    onSuccess: setResult,
+    onError: (err) => toast.error(err.response?.data?.message || 'Gagal submit quiz'),
+  });
+};
 
-  if (isLoading) return <KencanaShell title="Quiz Kencana"><LoadingPanel /></KencanaShell>;
-  if (isError) return <KencanaShell title="Quiz Kencana"><ErrorPanel message="Quiz tidak ditemukan atau belum tersedia." /></KencanaShell>;
+const fmt = (s) => `${String(Math.floor((s || 0) / 60)).padStart(2, '0')}:${String((s || 0) % 60).padStart(2, '0')}`;
+
+if (isLoading) return <KencanaShell title="Quiz Kencana"><LoadingPanel /></KencanaShell>;
+if (isError) return <KencanaShell title="Quiz Kencana"><ErrorPanel message="Quiz tidak ditemukan atau belum tersedia." /></KencanaShell>;
 
   if (result) {
     return (

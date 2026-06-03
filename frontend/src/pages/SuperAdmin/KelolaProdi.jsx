@@ -158,25 +158,25 @@ export default function KelolaProdi() {
   }
 
   return (
-    <div className="px-4 py-8 md:px-8 xl:px-12 min-h-screen bg-[#fafafa] font-body">
+    <div className="px-4 py-8 md:px-8 xl:px-12 min-h-screen bg-transparent font-inter">
       <Toaster position="top-right" />
       
       <div className="max-w-[1600px] mx-auto space-y-10">
         
         {/* ── Page Header ─────────────────────────────────────────── */}
-        <section className="bg-white border border-neutral-200 rounded-xl p-6 md:p-8 relative overflow-hidden shadow-sm">
+        <section className="glass-card rounded-xl p-6 md:p-8 relative overflow-hidden shadow-sm">
           <div className="absolute top-0 right-0 w-1/4 h-full bg-gradient-to-l from-blue-50/50 to-transparent pointer-events-none" />
           
           <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
             <div className="space-y-1">
               <div className="flex items-center gap-2 mb-2">
-                <div className="h-4 w-1.5 bg-primary rounded-full" />
-                <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-400 font-jakarta">Academic Operations</span>
+                <div className="h-4 w-1.5 bg-bku-primary rounded-full" />
+                <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 font-headline">Academic Operations</span>
               </div>
-              <h1 className="text-3xl font-bold text-neutral-900 font-jakarta tracking-tight leading-tight">
-                Kelola <span className="text-primary">Program Studi</span>
+              <h1 className="text-3xl font-black font-headline tracking-tight leading-tight" style={{ color: 'var(--theme-h1)' }}>
+                Kelola <span className="text-bku-primary">Program Studi</span>
               </h1>
-              <p className="text-neutral-500 font-medium text-sm max-w-2xl leading-relaxed">
+              <p className="text-slate-500 font-medium text-sm max-w-2xl leading-relaxed">
                 Manajemen kurikulum, jenjang pendidikan, dan sinkronisasi struktur program studi lintas fakultas melalui master database PDDIKTI.
               </p>
             </div>
@@ -186,15 +186,15 @@ export default function KelolaProdi() {
                 onClick={handleSyncPddikti} 
                 variant="outline" 
                 disabled={isSyncing}
-                className="h-11 px-6 rounded-xl border-neutral-200 text-xs font-bold uppercase tracking-widest text-neutral-600 hover:bg-neutral-50 gap-2 transition-all active:scale-95 shadow-sm w-full sm:w-auto flex items-center justify-center"
+                className="h-11 px-6 rounded-xl border-slate-200 text-xs font-bold uppercase tracking-widest text-slate-600 hover:bg-slate-50 gap-2 transition-all active:scale-95 shadow-sm w-full sm:w-auto flex items-center justify-center font-headline"
               >
-                {isSyncing ? <span className="material-symbols-outlined animate-spin text-primary" style={{ fontSize: '14px' }} >sync</span> : <RefreshCw size={14} className="text-primary" />}
+                {isSyncing ? <span className="material-symbols-outlined animate-spin text-bku-primary" style={{ fontSize: '14px' }} >sync</span> : <RefreshCw size={14} className="text-bku-primary" />}
                 {isSyncing ? 'Syncing...' : 'PDDIKTI Sync'}
               </Button>
               
               <Button 
                 onClick={handleOpenAdd}
-                className="h-11 px-8 rounded-xl bg-neutral-900 text-white hover:bg-primary shadow-xl shadow-neutral-900/10 gap-3 transition-all active:scale-95 border-none group w-full sm:w-auto flex items-center justify-center"
+                className="h-11 px-8 rounded-xl bg-slate-900 text-white hover:bg-bku-primary shadow-xl shadow-slate-900/10 gap-3 transition-all active:scale-95 border-none group w-full sm:w-auto flex items-center justify-center font-headline"
               >
                 <div className="size-5 rounded-lg bg-white/10 flex items-center justify-center group-hover:bg-white/20 transition-colors">
                   <span className="material-symbols-outlined" style={{ fontSize: '14px' }}  strokeWidth={3}>add</span>
@@ -207,56 +207,56 @@ export default function KelolaProdi() {
         
         {/* ── Stats Grid ──────────────────────────────────────────── */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-           <div className="bg-white p-4 rounded-2xl border border-[#e5e5e5] shadow-sm">
+           <div className="glass-card p-4 rounded-2xl shadow-sm border border-slate-100">
               <div className="flex items-center gap-3 mb-3">
-                 <div className="w-10 h-10 bg-[#eef4ff] rounded-xl flex justify-center items-center text-[#00236F] flex-shrink-0">
+                 <div className="w-10 h-10 bg-blue-50 rounded-xl flex justify-center items-center text-bku-primary flex-shrink-0">
                     <span className="material-symbols-outlined" style={{ fontSize: '18px' }} >school</span>
                  </div>
                  <span className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-widest">Total Prodi</span>
               </div>
-              <p className="text-2xl font-extrabold text-[#171717] font-jakarta leading-none tabular-nums">{stats.total}</p>
+              <p className="text-2xl font-extrabold text-[#171717] font-headline leading-none tabular-nums">{stats.total}</p>
               <p className="text-xs text-[#a3a3a3] font-medium mt-1">Program studi terdaftar</p>
            </div>
 
-           <div className="bg-white p-4 rounded-2xl border border-[#e5e5e5] shadow-sm">
+           <div className="glass-card p-4 rounded-2xl shadow-sm border border-slate-100">
               <div className="flex items-center gap-3 mb-3">
                  <div className="w-10 h-10 bg-indigo-50 rounded-xl flex justify-center items-center text-indigo-600 flex-shrink-0">
                     <BookOpen size={18} />
                  </div>
                  <span className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-widest">Fakultas</span>
               </div>
-              <p className="text-2xl font-extrabold text-[#171717] font-jakarta leading-none tabular-nums">{stats.faculties}</p>
+              <p className="text-2xl font-extrabold text-[#171717] font-headline leading-none tabular-nums">{stats.faculties}</p>
               <p className="text-xs text-[#a3a3a3] font-medium mt-1">Unit akademik naungan</p>
            </div>
 
-           <div className="bg-white p-4 rounded-2xl border border-[#e5e5e5] shadow-sm">
+           <div className="glass-card p-4 rounded-2xl shadow-sm border border-slate-100">
               <div className="flex items-center gap-3 mb-3">
                  <div className="w-10 h-10 bg-amber-50 rounded-xl flex justify-center items-center text-amber-600 flex-shrink-0">
                     <Layers size={18} />
                  </div>
                  <span className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-widest">Jenjang S1</span>
               </div>
-              <p className="text-2xl font-extrabold text-[#171717] font-jakarta leading-none tabular-nums">{stats.s1}</p>
+              <p className="text-2xl font-extrabold text-[#171717] font-headline leading-none tabular-nums">{stats.s1}</p>
               <p className="text-xs text-[#a3a3a3] font-medium mt-1">Program sarjana strata 1</p>
            </div>
 
-           <div className="bg-white p-4 rounded-2xl border border-[#e5e5e5] shadow-sm">
+           <div className="glass-card p-4 rounded-2xl shadow-sm border border-slate-100">
               <div className="flex items-center gap-3 mb-3">
-                 <div className="w-10 h-10 bg-[#f0fdf4] rounded-xl flex justify-center items-center text-[#16a34a] flex-shrink-0">
+                 <div className="w-10 h-10 bg-emerald-50 rounded-xl flex justify-center items-center text-emerald-600 flex-shrink-0">
                     <BookOpen size={18} />
                  </div>
                  <span className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-widest">Jenjang D3</span>
               </div>
-              <p className="text-2xl font-extrabold text-[#171717] font-jakarta leading-none tabular-nums">{stats.d3}</p>
+              <p className="text-2xl font-extrabold text-[#171717] font-headline leading-none tabular-nums">{stats.d3}</p>
               <p className="text-xs text-[#a3a3a3] font-medium mt-1">Program diploma tiga</p>
            </div>
         </div>
 
         {/* ── Table Section ────────────────────────────────────────── */}
-        <div className="bg-surface-container-lowest border border-outline-variant/10 rounded-3xl shadow-sm overflow-hidden">
+        <div className="glass-card rounded-3xl shadow-sm overflow-hidden border-none">
 
           {/* Table Toolbar */}
-          <div className="p-4 md:p-5 border-b border-[#e5e5e5] bg-white">
+          <div className="p-4 md:p-5 border-b border-[#e5e5e5] bg-transparent">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div className="flex-1">
                 <h2 className="font-bold text-base text-[#171717]">Daftar Program Studi</h2>
@@ -271,7 +271,7 @@ export default function KelolaProdi() {
                     placeholder="Cari nama atau kode prodi..."
                     value={searchTerm}
                     onChange={e => { setSearchTerm(e.target.value); setCurrentPage(1); }}
-                    className="pl-9 pr-4 h-9 w-full sm:w-56 rounded-xl border border-[#e5e5e5] focus:outline-none focus:border-[#00236F] text-sm bg-white"
+                    className="pl-9 pr-4 h-9 w-full sm:w-56 rounded-xl border border-[#e5e5e5] focus:outline-none focus:border-bku-primary text-sm bg-white"
                   />
                 </div>
                 {/* Filter Jenjang */}
@@ -315,7 +315,7 @@ export default function KelolaProdi() {
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-white border-b border-[#e5e5e5]">
+                <tr className="bg-transparent border-b border-[#e5e5e5]">
                   <th className="px-5 py-3.5 text-xs font-bold text-[#a3a3a3] uppercase tracking-wider w-[50px]">#</th>
                   <th className="px-5 py-3.5 text-xs font-bold text-[#a3a3a3] uppercase tracking-wider w-[150px]">Kode</th>
                   <th className="px-5 py-3.5 text-xs font-bold text-[#a3a3a3] uppercase tracking-wider">Nama Program Studi</th>
@@ -339,7 +339,7 @@ export default function KelolaProdi() {
                   <tr>
                     <td colSpan={6} className="px-5 py-16 text-center">
                       <div className="flex flex-col items-center gap-3">
-                        <div className="w-12 h-12 bg-[#eef4ff] rounded-2xl flex items-center justify-center text-[#00236F]">
+                        <div className="w-12 h-12 bg-[#eef4ff] rounded-2xl flex items-center justify-center text-bku-primary">
                           <span className="material-symbols-outlined" style={{ fontSize: '22px' }} >school</span>
                         </div>
                         <p className="font-bold text-sm text-[#171717]">Belum Ada Program Studi</p>
@@ -402,7 +402,7 @@ export default function KelolaProdi() {
           <div className="p-4 border-t border-[#e5e5e5] flex flex-col sm:flex-row items-center justify-between gap-3 text-sm text-[#525252]">
             <div className="flex items-center gap-3">
               <span className="text-xs text-[#a3a3a3]">
-                Menampilkan <span className="font-bold text-[#171717]">{filteredData.length === 0 ? 0 : (currentPage - 1) * pageSize + 1}–{Math.min(currentPage * pageSize, filteredData.length)}</span> dari <span className="font-bold text-[#00236F]">{filteredData.length}</span> data
+                Menampilkan <span className="font-bold text-[#171717]">{filteredData.length === 0 ? 0 : (currentPage - 1) * pageSize + 1}–{Math.min(currentPage * pageSize, filteredData.length)}</span> dari <span className="font-bold text-bku-primary">{filteredData.length}</span> data
               </span>
               <div className="flex items-center gap-1.5">
                 <span className="text-xs text-[#a3a3a3]">Baris:</span>
@@ -438,7 +438,7 @@ export default function KelolaProdi() {
                       className={cn(
                         'w-8 h-8 rounded-lg text-xs font-bold transition-all',
                         currentPage === p
-                          ? 'bg-[#00236F] text-white shadow-sm'
+                          ? 'bg-bku-primary text-white shadow-sm'
                           : 'text-[#525252] hover:bg-[#eef4ff] border border-[#e5e5e5]'
                       )}
                     >
@@ -466,10 +466,10 @@ export default function KelolaProdi() {
         <DialogContent className="max-w-lg p-0 overflow-hidden border-none shadow-2xl rounded-2xl bg-white">
           <DialogHeader className="p-5 md:p-8 pb-5 border-b border-[#f0f0f0]">
             <div className="flex items-center gap-2 mb-3">
-              <div className="w-7 h-7 rounded-lg bg-[#eef4ff] flex items-center justify-center text-[#00236F]">
+              <div className="w-7 h-7 rounded-lg bg-[#eef4ff] flex items-center justify-center text-bku-primary">
                 {isEditMode ? <span className="material-symbols-outlined" style={{ fontSize: '13px' }} >edit</span> : <span className="material-symbols-outlined" style={{ fontSize: '13px' }}  strokeWidth={3}>add</span>}
               </div>
-              <span className="text-xs font-bold text-[#00236F] tracking-wide">
+              <span className="text-xs font-bold text-bku-primary tracking-wide">
                 {isEditMode ? 'Edit Program Studi' : 'Tambah Program Studi'}
               </span>
             </div>
@@ -556,7 +556,7 @@ export default function KelolaProdi() {
               <Button
                 type="submit"
                 disabled={isSubmitting}
-                className="flex-[2] h-11 rounded-xl bg-[#00236F] text-white hover:bg-[#003399] shadow-md transition-all active:scale-95 border-none gap-2 w-full sm:w-auto flex items-center justify-center"
+                className="flex-[2] h-11 rounded-xl bg-bku-primary text-white hover:bg-[#003399] shadow-md transition-all active:scale-95 border-none gap-2 w-full sm:w-auto flex items-center justify-center"
               >
                 {isSubmitting ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '15px' }} >sync</span> : <span className="material-symbols-outlined" style={{ fontSize: '15px' }} >save</span>}
                 <span className="text-sm font-semibold">{isEditMode ? 'Perbarui Prodi' : 'Simpan Prodi'}</span>

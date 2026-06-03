@@ -149,7 +149,7 @@ export default function AbsensiKegiatan() {
       `}</style>
 
       {/* ── Welcome Banner ─────────────────────────────────────────── */}
-      <section className="relative overflow-hidden rounded-[2rem] bg-gradient-to-r from-[#00236F] to-[#1e3a8a] text-white p-8 md:p-10 shadow-xl shadow-blue-900/10">
+      <section className="relative overflow-hidden rounded-[2rem] bg-gradient-to-r from-bku-primary to-[#1e3a8a] text-white p-8 md:p-10 shadow-xl shadow-blue-900/10">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.08)_0%,transparent_60%)]" />
         <div className="absolute inset-0 opacity-[0.03]"
           style={{
@@ -194,7 +194,7 @@ export default function AbsensiKegiatan() {
         {/* Total Kegiatan */}
         <Card className="border border-slate-100 shadow-sm rounded-3xl overflow-hidden bg-white hover:shadow-md transition-all duration-300">
           <CardContent className="p-6 flex items-center gap-4.5">
-            <div className="w-12 h-12 rounded-2xl bg-[#00236F]/5 flex items-center justify-center text-[#00236F]">
+            <div className="w-12 h-12 rounded-2xl bg-bku-primary/5 flex items-center justify-center text-bku-primary">
               <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>layers</span>
             </div>
             <div className="space-y-0.5">
@@ -257,10 +257,10 @@ export default function AbsensiKegiatan() {
           <div className="bg-white rounded-[2rem] border border-slate-200/50 shadow-sm overflow-hidden p-6 space-y-4">
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
-                <h2 className="font-black text-[15px] text-slate-900 uppercase tracking-wider font-headline">Daftar Kegiatan</h2>
+                <h2 className="font-black text-[15px] font-headline uppercase tracking-wider" style={{ color: 'var(--theme-h2)' }}>Daftar Kegiatan</h2>
                 <p className="text-[11px] text-slate-400 font-bold">Pilih salah satu sesi kegiatan di bawah ini</p>
               </div>
-              <Badge className="bg-[#00236F]/5 text-[#00236F] px-2.5 py-1 border-none font-bold text-[10px] rounded-lg">
+              <Badge className="bg-bku-primary/5 text-bku-primary px-2.5 py-1 border-none font-bold text-[10px] rounded-lg">
                 {events.length} Sesi
               </Badge>
             </div>
@@ -281,8 +281,8 @@ export default function AbsensiKegiatan() {
                       className={cn(
                         'h-8 px-4 rounded-xl text-[10px] font-bold border-none transition-all hover:scale-105 active:scale-95', 
                         isSelected 
-                          ? 'bg-[#00236F] text-white shadow-md shadow-blue-900/10' 
-                          : 'bg-[#00236F]/5 text-[#00236F] hover:bg-[#00236F]/10'
+                          ? 'bg-bku-primary text-white shadow-md shadow-blue-900/10' 
+                          : 'bg-bku-primary/5 text-bku-primary hover:bg-bku-primary/10'
                       )}
                     >
                       {isSelected ? 'Dipilih' : 'Pilih'}
@@ -301,7 +301,7 @@ export default function AbsensiKegiatan() {
               <div className="w-16 h-16 rounded-[2rem] bg-slate-100 flex items-center justify-center text-slate-400 mb-4 shadow-sm border border-white">
                 <span className="material-symbols-outlined" style={{ fontSize: '32px' }}>qr_code_scanner</span>
               </div>
-              <h3 className="font-black text-slate-900 text-sm tracking-wider uppercase font-headline">Belum Ada Kegiatan Terpilih</h3>
+              <h3 className="font-black text-sm font-headline tracking-wider uppercase" style={{ color: 'var(--theme-h3)' }}>Belum Ada Kegiatan Terpilih</h3>
               <p className="text-xs text-slate-400 max-w-sm mx-auto mt-2 leading-relaxed font-medium">
                 Pilih salah satu sesi kegiatan dari daftar sebelah kiri untuk memproses absensi QR Code dan memasukkan data absensi secara manual.
               </p>
@@ -309,10 +309,10 @@ export default function AbsensiKegiatan() {
           ) : (
             <div className="space-y-6">
               {/* Event Quick Info Banner */}
-              <div className="p-6 bg-gradient-to-r from-[#00236F]/5 via-[#00236F]/5 to-transparent rounded-[2rem] border border-blue-900/5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5">
+              <div className="p-6 bg-gradient-to-r from-bku-primary/5 via-bku-primary/5 to-transparent rounded-[2rem] border border-blue-900/5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5">
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
-                    <span className="text-[10px] font-black text-[#00236F] tracking-widest uppercase font-headline">Sesi Aktif</span>
+                    <span className="text-[10px] font-black text-bku-primary tracking-widest uppercase font-headline">Sesi Aktif</span>
                     <Badge className="bg-emerald-50 text-emerald-700 border border-emerald-100 px-2 py-0.5 text-[8px] font-black tracking-wider uppercase rounded-full">
                       Ready
                     </Badge>
@@ -334,8 +334,8 @@ export default function AbsensiKegiatan() {
                     title="Perbesar QR Code"
                   >
                     <img src={qrUrl} alt="Mini QR" className="size-11 object-contain" />
-                    <div className="absolute inset-0 bg-[#00236F]/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-xl">
-                      <span className="material-symbols-outlined text-[#00236F]" style={{ fontSize: '14px' }}>zoom_in</span>
+                    <div className="absolute inset-0 bg-bku-primary/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-xl">
+                      <span className="material-symbols-outlined text-bku-primary" style={{ fontSize: '14px' }}>zoom_in</span>
                     </div>
                   </div>
                   
@@ -353,7 +353,7 @@ export default function AbsensiKegiatan() {
               <div className="bg-white rounded-[2rem] border border-slate-200/50 shadow-sm overflow-hidden p-6 space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
-                    <h3 className="font-black text-slate-900 text-xs tracking-wider uppercase font-headline">Konfirmasi Kehadiran Anggota</h3>
+                    <h3 className="font-black text-xs font-headline tracking-wider uppercase" style={{ color: 'var(--theme-h3)' }}>Konfirmasi Kehadiran Anggota</h3>
                     <p className="text-[11px] text-slate-400 font-bold">Cek lis secara manual untuk memperbarui status</p>
                   </div>
                   
@@ -372,7 +372,7 @@ export default function AbsensiKegiatan() {
 
                 {loadingAtt ? (
                   <div className="flex flex-col items-center justify-center py-16 gap-3">
-                    <span className="material-symbols-outlined size-6 animate-spin text-[#00236F]" style={{ fontSize: '28px' }}>sync</span>
+                    <span className="material-symbols-outlined size-6 animate-spin text-bku-primary" style={{ fontSize: '28px' }}>sync</span>
                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest animate-pulse">Memuat absensi...</p>
                   </div>
                 ) : attendance.length === 0 ? (
@@ -462,7 +462,7 @@ export default function AbsensiKegiatan() {
         <DialogContent className="max-w-md p-0 overflow-hidden border-none shadow-2xl rounded-[2.5rem] bg-white animate-in zoom-in-95 duration-200">
           <div className="p-8 flex flex-col items-center gap-6 relative">
             <div className="text-center space-y-1.5">
-              <span className="text-[9px] font-black text-[#00236F] tracking-[0.25em] uppercase font-headline">PEMINDAI QR PRESENSI</span>
+              <span className="text-[9px] font-black text-bku-primary tracking-[0.25em] uppercase font-headline">PEMINDAI QR PRESENSI</span>
               <h3 className="text-xl font-black text-slate-900 font-headline tracking-tighter leading-tight">
                 {selectedEvent?.Judul}
               </h3>
@@ -474,20 +474,20 @@ export default function AbsensiKegiatan() {
               <img src={qrUrl} alt="QR Code Absensi" className="size-full object-contain relative z-10 transition-transform duration-500 group-hover:scale-105" />
               
               {/* Animated laser scan beam line */}
-              <div className="absolute left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-[#00236F] to-transparent shadow-[0_0_12px_#00236F] animate-scan top-0 z-20 pointer-events-none" />
+              <div className="absolute left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-bku-primary to-transparent shadow-[0_0_12px_#00236F] animate-scan top-0 z-20 pointer-events-none" />
               
               {/* Outer decorative scanner corners */}
-              <div className="absolute top-4 left-4 w-6 h-6 border-t-4 border-l-4 border-[#00236F] rounded-tl-xl" />
-              <div className="absolute top-4 right-4 w-6 h-6 border-t-4 border-r-4 border-[#00236F] rounded-tr-xl" />
-              <div className="absolute bottom-4 left-4 w-6 h-6 border-b-4 border-l-4 border-[#00236F] rounded-bl-xl" />
-              <div className="absolute bottom-4 right-4 w-6 h-6 border-b-4 border-r-4 border-[#00236F] rounded-br-xl" />
+              <div className="absolute top-4 left-4 w-6 h-6 border-t-4 border-l-4 border-bku-primary rounded-tl-xl" />
+              <div className="absolute top-4 right-4 w-6 h-6 border-t-4 border-r-4 border-bku-primary rounded-tr-xl" />
+              <div className="absolute bottom-4 left-4 w-6 h-6 border-b-4 border-l-4 border-bku-primary rounded-bl-xl" />
+              <div className="absolute bottom-4 right-4 w-6 h-6 border-b-4 border-r-4 border-bku-primary rounded-br-xl" />
             </div>
 
             <div className="w-full space-y-4">
               <div className="p-4 bg-blue-50/50 rounded-2xl border border-blue-900/5 text-center flex items-center justify-center gap-2.5">
-                <span className="material-symbols-outlined text-[#00236F] animate-pulse" style={{ fontSize: '18px' }}>verified_user</span>
+                <span className="material-symbols-outlined text-bku-primary animate-pulse" style={{ fontSize: '18px' }}>verified_user</span>
                 <div className="text-left space-y-0.5">
-                  <p className="text-[9px] font-black text-[#00236F] tracking-widest uppercase leading-none">Security Encryption Active</p>
+                  <p className="text-[9px] font-black text-bku-primary tracking-widest uppercase leading-none">Security Encryption Active</p>
                   <p className="text-[10px] font-bold text-slate-500 leading-none">Sistem memvalidasi NIM dan waktu secara real-time</p>
                 </div>
               </div>

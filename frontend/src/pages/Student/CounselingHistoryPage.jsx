@@ -64,11 +64,11 @@ export default function CounselingHistoryPage() {
     <div className="min-h-screen bg-[#fafafa] px-4 py-5 font-body text-[#171717] md:px-6 md:py-6 lg:px-8 lg:py-8">
       <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div>
-          <NavLink to="/student/counseling" className="mb-4 inline-flex items-center gap-2 text-sm font-semibold text-neutral-400 transition-colors hover:text-[#00236F]">
+          <NavLink to="/student/counseling" className="mb-4 inline-flex items-center gap-2 text-sm font-semibold text-neutral-400 transition-colors hover:text-bku-primary">
             <ArrowLeft size={16} />
             Kembali ke jadwal
           </NavLink>
-          <h1 className="text-2xl font-extrabold tracking-tight text-[#00236F] font-headline">Riwayat Konseling</h1>
+          <h1 className="text-2xl font-extrabold tracking-tight text-bku-primary font-headline">Riwayat Konseling</h1>
           <p className="mt-1 max-w-2xl text-sm font-medium text-neutral-500">
             Pantau booking konseling dan lihat rekam medis yang sudah dicatat psikolog setelah sesi.
           </p>
@@ -94,8 +94,8 @@ export default function CounselingHistoryPage() {
           <div className="overflow-hidden rounded-3xl border border-neutral-100 bg-white shadow-sm">
             <div className="border-b border-neutral-100 px-5 py-4">
               <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-[#00236F]" style={{ fontSize: '18px' }} >calendar_month</span>
-                <h2 className="text-sm font-extrabold uppercase tracking-tight text-[#00236F]">Daftar Booking</h2>
+                <span className="material-symbols-outlined text-bku-primary" style={{ fontSize: '18px' }} >calendar_month</span>
+                <h2 className="text-sm font-extrabold uppercase tracking-tight text-bku-primary">Daftar Booking</h2>
               </div>
               <p className="mt-1 text-xs font-semibold text-neutral-400">Status booking konseling kamu dari yang terbaru.</p>
             </div>
@@ -114,7 +114,7 @@ export default function CounselingHistoryPage() {
                           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                             <div>
                               <p className="text-[10px] font-bold uppercase tracking-wide text-neutral-400">{formatLongDate(item.tanggal)}</p>
-                              <h3 className="mt-1 text-sm font-extrabold text-neutral-900">{item.tipe}</h3>
+                              <h3 className="mt-1 text-sm font-extrabold font-headline" style={{ color: 'var(--theme-h3)' }}>{item.tipe}</h3>
                               <p className="mt-1 flex items-center gap-1.5 text-xs font-semibold text-neutral-500">
                                 <User size={13} className="text-neutral-300" />
                                 {item.nama_konselor}
@@ -166,7 +166,7 @@ export default function CounselingHistoryPage() {
                 <EmptyState
                   size="sm"
                   icon="Clock"
-                  iconColor="text-[#00236F]"
+                  iconColor="text-bku-primary"
                   iconBgClass="bg-[#eef4ff]"
                   iconBorderClass="border-[#c9d8ff]"
                   title="Belum Ada Riwayat"
@@ -181,8 +181,8 @@ export default function CounselingHistoryPage() {
           <div className="rounded-3xl border border-neutral-100 bg-white shadow-sm">
             <div className="border-b border-neutral-100 px-5 py-4">
               <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-[#00236F]" style={{ fontSize: '18px' }} >description</span>
-                <h2 className="text-sm font-extrabold uppercase tracking-tight text-[#00236F]">Rekam Medis</h2>
+                <span className="material-symbols-outlined text-bku-primary" style={{ fontSize: '18px' }} >description</span>
+                <h2 className="text-sm font-extrabold uppercase tracking-tight text-bku-primary">Rekam Medis</h2>
               </div>
               <p className="mt-1 text-xs font-semibold text-neutral-400">Catatan sesi yang sudah disimpan oleh psikolog.</p>
             </div>
@@ -191,7 +191,7 @@ export default function CounselingHistoryPage() {
               <div className="mb-4 grid grid-cols-2 gap-3">
                 <div className="rounded-2xl border border-neutral-100 bg-neutral-50 p-4">
                   <p className="text-[10px] font-bold uppercase tracking-wide text-neutral-400">Total Catatan</p>
-                  <p className="mt-1 text-2xl font-extrabold text-[#00236F]">{summary.total_records}</p>
+                  <p className="mt-1 text-2xl font-extrabold text-bku-primary">{summary.total_records}</p>
                 </div>
                 <div className="rounded-2xl border border-neutral-100 bg-neutral-50 p-4">
                   <p className="text-[10px] font-bold uppercase tracking-wide text-neutral-400">Status Terakhir</p>
@@ -211,7 +211,7 @@ export default function CounselingHistoryPage() {
                             <span className="material-symbols-outlined" style={{ fontSize: '12px' }} >calendar_month</span>
                             {record.display_date} • {record.time}
                           </p>
-                          <h3 className="mt-1 text-sm font-extrabold text-neutral-900">{record.type}</h3>
+                          <h3 className="mt-1 text-sm font-extrabold font-headline" style={{ color: 'var(--theme-h3)' }}>{record.type}</h3>
                           <p className="mt-0.5 text-xs font-semibold text-neutral-500">Psikolog: {record.psychologist}</p>
                         </div>
                         <span className="rounded-full border border-emerald-100 bg-emerald-50 px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-emerald-700">
@@ -246,7 +246,7 @@ export default function CounselingHistoryPage() {
                 <EmptyState
                   size="sm"
                   icon="FileText"
-                  iconColor="text-[#00236F]"
+                  iconColor="text-bku-primary"
                   iconBgClass="bg-[#eef4ff]"
                   iconBorderClass="border-[#c9d8ff]"
                   title="Belum Ada Rekam Medis"

@@ -70,9 +70,7 @@ export default function OrmawaDashboard() {
  <div className="max-w-[1600px] mx-auto px-4 py-8 md:px-8 xl:px-12 space-y-8 font-body">
 
  {/* ── Welcome Banner ─────────────────────────────────────────── */}
- <section className="relative overflow-hidden rounded-3xl h-52 flex items-center group shadow-sm">
- {/* Background */}
- <div className="absolute inset-0 bg-primary-container" />
+ <section className="relative overflow-hidden rounded-3xl h-52 flex items-center group shadow-sm bg-gradient-to-r from-bku-primary via-bku-hover to-indigo-900 p-8 lg:p-12">
  {/* Pattern overlay */}
  <div className="absolute inset-0 opacity-10"
  style={{
@@ -101,7 +99,7 @@ export default function OrmawaDashboard() {
  <div className="mt-5 flex gap-3">
  <button
  onClick={() => navigate('/ormawa/proposal')}
- className="bg-white text-[#00236F] px-5 py-2.5 rounded-xl font-bold text-xs shadow-lg hover:shadow-xl transition-all hover:-translate-y-0.5 active:scale-95"
+ className="bg-white text-bku-primary px-5 py-2.5 rounded-xl font-bold text-xs shadow-lg hover:shadow-xl transition-all hover:-translate-y-0.5 active:scale-95"
  >
  Ajukan Proposal
  </button>
@@ -135,7 +133,7 @@ export default function OrmawaDashboard() {
  <button
  key={s.label}
  onClick={() => navigate(s.route)}
- className="group bg-white rounded-2xl border border-[#e5e5e5] shadow-sm p-5 text-left hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 relative overflow-hidden"
+ className="group glass-card rounded-2xl shadow-sm p-5 text-left hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 relative overflow-hidden"
  >
  <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl ${s.accent} to-transparent rounded-bl-full opacity-40`} />
  <div className="relative">
@@ -160,7 +158,7 @@ export default function OrmawaDashboard() {
  {/* ── Main Bento Grid ─────────────────────────────────────────── */}
  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
  {/* Proposal Terbaru */}
- <Card className="bg-white rounded-2xl border border-[#e5e5e5] shadow-sm overflow-hidden">
+ <Card className="glass-card rounded-2xl shadow-sm overflow-hidden">
  <CardContent className="p-0">
  <div className="px-6 py-5 border-b border-[#f0f0f0] flex items-center justify-between">
  <div>
@@ -194,7 +192,7 @@ export default function OrmawaDashboard() {
  </Card>
 
  {/* Kegiatan Mendatang */}
- <Card className="bg-white rounded-2xl border border-[#e5e5e5] shadow-sm overflow-hidden">
+ <Card className="glass-card rounded-2xl shadow-sm overflow-hidden">
  <CardContent className="p-0">
  <div className="px-6 py-5 border-b border-[#f0f0f0] flex items-center justify-between">
  <div>
@@ -241,7 +239,7 @@ export default function OrmawaDashboard() {
  </div>
 
  {/* Anggota Terbaru */}
- <Card className="bg-white rounded-2xl border border-[#e5e5e5] shadow-sm overflow-hidden mb-8">
+ <Card className="glass-card rounded-2xl shadow-sm overflow-hidden mb-8">
  <CardContent className="p-0">
  <div className="px-6 py-5 border-b border-[#f0f0f0] flex items-center justify-between">
  <div>

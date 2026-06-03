@@ -95,25 +95,25 @@ export default function AuditLog() {
   ]
 
   return (
-    <div className="px-4 py-8 md:px-8 xl:px-12 min-h-screen bg-[#fafafa] font-body">
+    <div className="px-4 py-8 md:px-8 xl:px-12 min-h-screen bg-transparent font-inter">
       <Toaster position="top-right" />
       
       <div className="max-w-[1600px] mx-auto space-y-10">
         
         {/* ── Page Header ─────────────────────────────────────────── */}
-        <section className="bg-white border border-neutral-200 rounded-xl p-6 md:p-8 relative overflow-hidden shadow-sm">
+        <section className="glass-card rounded-xl p-6 md:p-8 relative overflow-hidden shadow-sm">
           <div className="absolute top-0 right-0 w-1/4 h-full bg-gradient-to-l from-neutral-50/50 to-transparent pointer-events-none" />
           
           <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
             <div className="space-y-1">
               <div className="flex items-center gap-2 mb-2">
-                <div className="h-4 w-1.5 bg-primary rounded-full" />
-                <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-400 font-jakarta">Security Forensics</span>
+                <div className="h-4 w-1.5 bg-bku-primary rounded-full" />
+                <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 font-headline">Security Forensics</span>
               </div>
-              <h1 className="text-3xl font-bold text-neutral-900 font-jakarta tracking-tight leading-tight">
-                Audit <span className="text-primary">Log</span>
+              <h1 className="text-3xl font-black font-headline tracking-tight leading-tight" style={{ color: 'var(--theme-h1)' }}>
+                Audit <span className="text-bku-primary">Log</span>
               </h1>
-              <p className="text-neutral-500 font-medium text-sm max-w-2xl leading-relaxed">
+              <p className="text-slate-500 font-medium text-sm max-w-2xl leading-relaxed">
                 Rekaman jejak operasional sistem, perubahan data, dan aktivitas otentikasi secara transparan.
               </p>
             </div>
@@ -122,9 +122,9 @@ export default function AuditLog() {
               <Button 
                 onClick={() => toast.success('Memulai ekspor log forensik...')} 
                 variant="outline"
-                className="h-11 px-5 rounded-xl border-neutral-200 text-xs font-bold uppercase tracking-widest text-neutral-600 hover:bg-neutral-50 gap-2 transition-all active:scale-95"
+                className="h-11 px-5 rounded-xl border-slate-200 text-xs font-bold uppercase tracking-widest text-slate-600 hover:bg-slate-50 gap-2 transition-all active:scale-95 font-headline"
               >
-                <Download size={14} className="text-primary" />
+                <Download size={14} className="text-bku-primary" />
                 Ekspor Forensik
               </Button>
             </div>
@@ -132,7 +132,7 @@ export default function AuditLog() {
         </section>
 
         {/* ── Table Section ────────────────────────────────────────── */}
-        <Card className="border-neutral-200 shadow-sm rounded-xl bg-white overflow-hidden">
+        <Card className="glass-card shadow-sm rounded-xl overflow-hidden">
           <CardContent className="p-0">
             <DataTable
               columns={columns} 
@@ -145,7 +145,7 @@ export default function AuditLog() {
         </Card>
 
         {/* ── Security Status Banner ────────────────────────────────── */}
-        <div className="bg-neutral-900 rounded-xl p-6 flex flex-col md:flex-row items-center justify-between gap-6 border border-neutral-800 shadow-xl overflow-hidden relative">
+        <div className="bg-gradient-to-br from-bku-primary to-indigo-900 rounded-xl p-6 flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl overflow-hidden relative">
           <div className="absolute top-0 right-0 w-64 h-full bg-white/[0.02] -skew-x-12 translate-x-32 pointer-events-none" />
           
           <div className="flex items-center gap-5 relative z-10">
@@ -153,15 +153,15 @@ export default function AuditLog() {
               <span className="material-symbols-outlined" style={{ fontSize: '24px' }} Check >security</span>
             </div>
             <div>
-              <p className="text-white font-bold font-jakarta text-sm leading-tight">Protokol Keamanan Aktif</p>
-              <p className="text-neutral-500 text-[11px] font-medium uppercase tracking-widest mt-1">Immutable Log Records • Read-Only Integrity Verified</p>
+              <p className="text-white font-bold font-headline text-sm leading-tight">Protokol Keamanan Aktif</p>
+              <p className="text-white/60 text-[11px] font-medium uppercase tracking-widest mt-1">Immutable Log Records • Read-Only Integrity Verified</p>
             </div>
           </div>
           
           <div className="flex items-center gap-4 relative z-10">
              <div className="flex -space-x-2">
                 {[1,2,3].map(i => (
-                   <div key={i} className="size-8 rounded-full border-2 border-neutral-900 bg-neutral-800 flex items-center justify-center text-[10px] font-bold text-neutral-400">
+                   <div key={i} className="size-8 rounded-full border-2 border-indigo-900 bg-bku-primary flex items-center justify-center text-[10px] font-bold text-white/80">
                       {i}
                    </div>
                 ))}

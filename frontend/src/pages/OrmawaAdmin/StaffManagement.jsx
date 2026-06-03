@@ -270,7 +270,7 @@ export default function StaffManagement() {
             addLabel="Tambah Staf"
             actions={(row) => (
               <div className="flex items-center justify-end gap-1">
-                <button onClick={() => { setSelected(row); setIsDetailOpen(true) }} className="p-1.5 text-slate-400 hover:text-[#00236F] hover:bg-[#00236F]/10 rounded-lg transition-colors duration-150" title="Detail"><span className="material-symbols-outlined block" style={{ fontSize: '18px' }} >visibility</span></button>
+                <button onClick={() => { setSelected(row); setIsDetailOpen(true) }} className="p-1.5 text-slate-400 hover:text-bku-primary hover:bg-bku-primary/10 rounded-lg transition-colors duration-150" title="Detail"><span className="material-symbols-outlined block" style={{ fontSize: '18px' }} >visibility</span></button>
                 <button onClick={() => handleOpenEdit(row)} className="p-1.5 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors duration-150" title="Edit"><span className="material-symbols-outlined block" style={{ fontSize: '18px' }} >edit</span></button>
                 <button onClick={() => { setSelected(row); setIsDelOpen(true) }} className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors duration-150" title="Hapus"><span className="material-symbols-outlined block" style={{ fontSize: '18px' }} >delete</span></button>
               </div>
@@ -292,7 +292,7 @@ export default function StaffManagement() {
           return (
             <div>
               <ModalBody className="p-0 overflow-hidden">
-                <div className="h-32 bg-gradient-to-br from-[#00236F] to-[#00174A] relative overflow-hidden">
+                <div className="h-32 bg-gradient-to-br from-bku-primary to-[#00174A] relative overflow-hidden">
                   <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none">
                     <span className="material-symbols-outlined size-24 rotate-12 text-white">fingerprint</span>
                   </div>
@@ -315,7 +315,7 @@ export default function StaffManagement() {
 
                 <div className="p-6 pt-10 space-y-6">
                   <div>
-                    <h2 className="text-xl font-black text-slate-800 font-headline tracking-tighter leading-none">{selected.Mahasiswa?.Nama}</h2>
+                    <h2 className="text-xl font-black font-headline tracking-tighter leading-none" style={{ color: 'var(--theme-h2)' }}>{selected.Mahasiswa?.Nama}</h2>
                     <div className="flex items-center gap-1.5 mt-2.5">
                       <span className="text-[9px] font-black tracking-widest px-2.5 py-0.5 bg-slate-100 text-slate-500 rounded-full font-headline">PENGURUS</span>
                       <span className="text-[10px] text-slate-400 font-bold font-mono">{selected.Mahasiswa?.NIM}</span>
@@ -358,7 +358,7 @@ export default function StaffManagement() {
                 </div>
               </ModalBody>
               <ModalFooter>
-                <ModalBtn variant="default" onClick={() => setIsDetailOpen(false)} className="w-full h-11 justify-center rounded-xl bg-[#00236F] hover:bg-[#003399]">Tutup Profil</ModalBtn>
+                <ModalBtn variant="default" onClick={() => setIsDetailOpen(false)} className="w-full h-11 justify-center rounded-xl bg-bku-primary hover:bg-[#003399]">Tutup Profil</ModalBtn>
               </ModalFooter>
             </div>
           );
@@ -401,7 +401,7 @@ export default function StaffManagement() {
                           setIsSearching(true);
                           if (form.MahasiswaID) setForm({ ...form, MahasiswaID: '' });
                         }}
-                        className="pl-11 pr-10 h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white focus:border-[#00236F] focus:ring-2 focus:ring-[#00236F]/10 transition-all font-bold text-sm"
+                        className="pl-11 pr-10 h-12 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white focus:border-bku-primary focus:ring-2 focus:ring-bku-primary/10 transition-all font-bold text-sm"
                       />
                       {form.MahasiswaID && (
                         <span className="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-emerald-500 font-bold" style={{ fontSize: '18px' }}>check_circle</span>
@@ -464,7 +464,7 @@ export default function StaffManagement() {
               <div className="space-y-2">
                 <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Jabatan</Label>
                 <Select value={form.Jabatan} onValueChange={(val) => setForm({ ...form, Jabatan: val })}>
-                  <SelectTrigger className="w-full h-12 rounded-2xl border border-slate-200 bg-slate-50 px-4 text-xs md:text-sm font-bold text-slate-700 focus:border-[#00236F] focus:ring-2 focus:ring-[#00236F]/10 transition-all cursor-pointer">
+                  <SelectTrigger className="w-full h-12 rounded-2xl border border-slate-200 bg-slate-50 px-4 text-xs md:text-sm font-bold text-slate-700 focus:border-bku-primary focus:ring-2 focus:ring-bku-primary/10 transition-all cursor-pointer">
                     <SelectValue placeholder="Pilih Jabatan" />
                   </SelectTrigger>
                   <SelectContent className="rounded-xl border-slate-200 shadow-xl p-1 bg-white font-body">
@@ -480,19 +480,19 @@ export default function StaffManagement() {
               <div className="space-y-2">
                 <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Divisi</Label>
                 <Input value={form.Divisi} onChange={e => setForm({ ...form, Divisi: e.target.value })} placeholder="Masukkan nama divisi..."
-                  className="h-12 rounded-2xl border-slate-200 bg-slate-50 focus:bg-white focus:border-[#00236F] focus:ring-2 focus:ring-[#00236F]/10 transition-all font-bold text-xs md:text-sm font-headline" />
+                  className="h-12 rounded-2xl border-slate-200 bg-slate-50 focus:bg-white focus:border-bku-primary focus:ring-2 focus:ring-bku-primary/10 transition-all font-bold text-xs md:text-sm font-headline" />
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">Email</Label>
                   <Input type="email" value={form.Email} onChange={e => setForm({ ...form, Email: e.target.value })} placeholder="email@bku.ac.id"
-                    className="h-12 rounded-2xl border-slate-200 bg-slate-50 focus:bg-white focus:border-[#00236F] focus:ring-2 focus:ring-[#00236F]/10 transition-all font-bold text-xs md:text-sm font-headline" />
+                    className="h-12 rounded-2xl border-slate-200 bg-slate-50 focus:bg-white focus:border-bku-primary focus:ring-2 focus:ring-bku-primary/10 transition-all font-bold text-xs md:text-sm font-headline" />
                 </div>
                 <div className="space-y-2">
                   <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 font-headline">No. HP</Label>
                   <Input value={form.NoHP} onChange={e => setForm({ ...form, NoHP: e.target.value })} placeholder="08xx-xxxx-xxxx"
-                    className="h-12 rounded-2xl border-slate-200 bg-slate-50 focus:bg-white focus:border-[#00236F] focus:ring-2 focus:ring-[#00236F]/10 transition-all font-bold text-xs md:text-sm font-headline" />
+                    className="h-12 rounded-2xl border-slate-200 bg-slate-50 focus:bg-white focus:border-bku-primary focus:ring-2 focus:ring-bku-primary/10 transition-all font-bold text-xs md:text-sm font-headline" />
                 </div>
               </div>
             </div>

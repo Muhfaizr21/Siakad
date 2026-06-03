@@ -136,12 +136,12 @@ export default function FacultyProposalApproval() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] font-body">
+    <div className="min-h-screen bg-transparent font-inter">
       <Toaster position="top-right"/>
       <div className="max-w-[1600px] mx-auto px-4 py-8 md:px-8 xl:px-12 space-y-6">
 
         {/* Header */}
-        <section className="relative overflow-hidden rounded-3xl h-auto md:h-48 flex flex-col md:flex-row items-center group shadow-sm p-6 md:p-8 border border-slate-200/80 bg-white">
+        <section className="relative overflow-hidden rounded-2xl h-auto md:h-48 flex flex-col md:flex-row items-center group shadow-none p-6 md:p-8 border border-slate-200/60 glass-card">
           <div className="absolute inset-0 bg-gradient-to-br from-white via-slate-50/50 to-slate-100/50" />
           <div className="absolute inset-0 opacity-[0.03]"
             style={{
@@ -180,7 +180,7 @@ export default function FacultyProposalApproval() {
             {label:'ACC Fakultas',    value:stats.accFakultas,     icon:CheckCircle2,bg:'bg-indigo-50',  color:'text-indigo-600',  desc:'Disetujui fakultas'},
             {label:'Disyahkan Univ',  value:stats.accUniv,         icon:ShieldCheck, bg:'bg-emerald-50', color:'text-emerald-600', desc:'Final disyahkan'},
           ].map(s=>(
-            <div key={s.label} className="bg-white border border-slate-100/50 rounded-3xl p-5 shadow-sm">
+            <div key={s.label} className="glass-card border border-slate-200/60 rounded-2xl p-5 shadow-none">
               <div className="flex items-center gap-3 mb-3">
                 <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center',s.bg,s.color)}><s.icon size={18}/></div>
                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{s.label}</span>
@@ -194,20 +194,20 @@ export default function FacultyProposalApproval() {
         </div>
 
         {/* Table */}
-        <div className="bg-white border border-slate-100/50 rounded-3xl shadow-sm overflow-hidden">
+        <div className="glass-card border border-slate-200/60 rounded-2xl shadow-none overflow-hidden">
           <div className="px-5 py-4 border-b border-slate-100 flex flex-col sm:flex-row items-start sm:items-center gap-3">
             <div className="flex-1">
-              <h2 className="font-bold text-base text-slate-900">Daftar Proposal Kegiatan</h2>
+              <h2 className="font-black text-sm uppercase tracking-tight font-headline" style={{ color: 'var(--theme-h2)' }}>Daftar Proposal Kegiatan</h2>
               <p className="text-xs text-slate-500 mt-0.5">Menampilkan <span className="font-bold text-slate-900">{filtered.length}</span> dari <span className="font-bold text-primary">{proposals.length}</span> proposal</p>
             </div>
             <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
               <div className="relative">
                 <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" style={{ fontSize: '14px' }} >search</span>
                 <input type="text" placeholder="Cari judul atau organisasi..." value={search} onChange={e=>setSearch(e.target.value)}
-                  className="pl-9 pr-4 h-9 w-52 rounded-xl border border-slate-200/60 focus:outline-none focus:border-primary text-sm bg-white"/>
+                  className="pl-9 pr-4 h-9 w-52 rounded-xl border border-slate-200/60 focus:outline-none focus:border-primary text-sm bg-transparent"/>
               </div>
               <select value={filterStatus} onChange={e=>setFilter(e.target.value)}
-                className="h-9 pl-3 pr-8 rounded-xl border border-slate-200/60 text-xs font-medium bg-white text-slate-600 focus:outline-none focus:border-primary appearance-none cursor-pointer">
+                className="h-9 pl-3 pr-8 rounded-xl border border-slate-200/60 text-xs font-medium bg-transparent text-slate-600 focus:outline-none focus:border-primary appearance-none cursor-pointer">
                 <option value="all">Semua Status</option>
                 <option value="pending">Diajukan</option>
                 <option value="revisi">Revisi</option>
@@ -297,7 +297,7 @@ export default function FacultyProposalApproval() {
           </div>
 
           {/* Modern Pagination Footer */}
-          <div className="px-6 py-4 bg-slate-50/50 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="px-6 py-4 bg-transparent border-t border-slate-200/60 flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
               <p className="text-xs text-slate-500 font-medium text-center sm:text-left">
                 Menampilkan <span className="font-semibold text-slate-800">{totalItems > 0 ? (currentPage - 1) * pageSize + 1 : 0}</span> sampai <span className="font-semibold text-slate-800">{Math.min(currentPage * pageSize, totalItems)}</span> dari <span className="font-semibold text-slate-800">{totalItems}</span> entri
@@ -376,7 +376,6 @@ export default function FacultyProposalApproval() {
       {selected && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[100] flex items-center justify-center p-4" onClick={()=>setSelected(null)}>
           <div className="relative w-full max-w-7xl bg-white rounded-3xl shadow-2xl z-[101] flex flex-col overflow-hidden h-[90vh]" onClick={e=>e.stopPropagation()}>
-            
             {/* Header */}
             <div className="relative bg-gradient-to-br from-[#00236F] to-[#003db5] py-4 px-6 overflow-hidden flex-shrink-0 flex items-center justify-between">
               <div className="absolute -top-10 -right-10 w-44 h-44 bg-white/5 rounded-full pointer-events-none"/>
@@ -391,7 +390,6 @@ export default function FacultyProposalApproval() {
 
             {/* Split Screen Workspace */}
             <div className="flex-1 flex flex-col lg:flex-row overflow-hidden min-h-0 bg-slate-50">
-              
               {/* Left Pane (60%): Document Viewer */}
               <div className="flex-1 lg:w-3/5 border-r border-slate-200/80 flex flex-col bg-slate-800">
                 <div className="px-4 py-2.5 bg-slate-900 text-slate-400 text-[10px] font-black uppercase tracking-wider flex items-center justify-between shrink-0">
@@ -421,7 +419,6 @@ export default function FacultyProposalApproval() {
 
               {/* Right Pane (40%): Metadata, History, Action Forms */}
               <div className="lg:w-2/5 flex flex-col overflow-y-auto bg-white min-h-0 divide-y divide-slate-100">
-                
                 {/* 1. Proposal & Proposer Details */}
                 <div className="p-5 space-y-4">
                   <div className="flex items-center justify-between">
@@ -506,7 +503,7 @@ export default function FacultyProposalApproval() {
                 {/* 3. Review Timeline & Logs */}
                 <div className="p-5 space-y-4">
                   <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block">Riwayat Aliran Status</span>
-                  
+
                   {selected.Riwayat && selected.Riwayat.length > 0 ? (
                     <div className="relative border-l border-slate-100 pl-4 ml-2 space-y-4.5">
                       {selected.Riwayat.map((log, idx) => {
@@ -517,7 +514,7 @@ export default function FacultyProposalApproval() {
                             <div className="absolute -left-[21px] top-1.5 w-2.5 h-2.5 rounded-full border bg-white flex items-center justify-center">
                               <div className={cn("w-1.5 h-1.5 rounded-full", st.dot)} />
                             </div>
-                            
+
                             {/* Log card */}
                             <div className="bg-slate-50 border border-slate-100 rounded-2xl p-3 shadow-xs">
                               <div className="flex items-center justify-between">

@@ -87,4 +87,11 @@ func SetupSuperAdminRoutes(r fiber.Router) {
 	r.Delete("/news/:id", controllers.DeleteNews)
 	r.Get("/academic-settings", controllers.GetAcademicSettings)
 	r.Put("/academic-settings", controllers.UpdateAcademicSettings)
+
+	// Theme Customizer
+	r.Get("/theme", controllers.GetTheme)
+	r.Put("/theme", controllers.UpdateTheme)
+	r.Post("/theme/reset", controllers.ResetTheme)
+	r.Post("/theme/upload-logo", controllers.UploadLogo)
+	r.Post("/theme/upload-favicon", controllers.UploadFavicon)
 }

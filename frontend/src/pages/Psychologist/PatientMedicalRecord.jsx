@@ -126,7 +126,7 @@ export default function PatientMedicalRecord() {
 
                              <div className="space-y-4">
                                 <div>
-                                   <h4 className="text-[9px] font-black text-slate-900 uppercase tracking-widest mb-1">Keluhan / Isu</h4>
+                                   <h4 className="text-[9px] font-black font-headline uppercase tracking-widest mb-1" style={{ color: 'var(--theme-h4)' }}>Keluhan / Isu</h4>
                                    <p className="text-xs font-bold text-slate-700 leading-relaxed">{record.complaint}</p>
                                 </div>
                                 
@@ -167,7 +167,7 @@ export default function PatientMedicalRecord() {
                      <div className={`size-16 rounded-2xl ${patient.color} border-4 border-white shadow-lg flex items-center justify-center text-white text-xl font-black mb-4 mx-auto md:mx-0`}>
                         {patient.initials}
                      </div>
-                     <h2 className="text-lg font-black text-slate-900 uppercase tracking-tight">{patient.name}</h2>
+                     <h2 className="text-lg font-black font-headline uppercase tracking-tight" style={{ color: 'var(--theme-h2)' }}>{patient.name}</h2>
                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">{patient.nim} • {patient.faculty}</p>
                      
                      <div className="grid grid-cols-2 gap-3 mt-6">
@@ -215,7 +215,7 @@ export default function PatientMedicalRecord() {
                         <div className="p-2 bg-emerald-500/20 rounded-lg text-emerald-400">
                            <span className="material-symbols-outlined" style={{ fontSize: '20px' }} Check >security</span>
                         </div>
-                        <h4 className="text-white text-[10px] font-black uppercase tracking-widest">Data Terenkripsi</h4>
+                        <h4 className="text-[10px] font-black font-headline uppercase tracking-widest" style={{ color: 'var(--theme-h4)' }}>Data Terenkripsi</h4>
                      </div>
                      <p className="text-slate-400 text-[9px] font-medium uppercase tracking-wide leading-relaxed">
                         Seluruh catatan rekam medis ini dilindungi oleh standar privasi data kesehatan (HIPAA-compliant).

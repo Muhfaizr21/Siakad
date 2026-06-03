@@ -615,12 +615,12 @@ export default function LaporanFakultasPage() {
   const prodiWithColors = (data.perProdi||[]).map((item,i)=>({...item, nama_prodi:item.nama_prodi||"Unknown", value:item.value||0, color:CHART_COLORS[i%CHART_COLORS.length]}))
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] font-body">
+    <div className="min-h-screen bg-transparent font-inter">
       <Toaster position="top-right"/>
       <div className="max-w-[1600px] mx-auto px-4 py-8 md:px-8 xl:px-12 space-y-6">
 
         {/* Header */}
-        <section className="relative overflow-hidden rounded-3xl h-auto md:h-48 flex flex-col md:flex-row items-center group shadow-sm p-6 md:p-8 border border-slate-200/80 bg-white">
+        <section className="relative overflow-hidden rounded-2xl h-auto md:h-48 flex flex-col md:flex-row items-center group shadow-none p-6 md:p-8 border border-slate-200/60 glass-card">
           <div className="absolute inset-0 bg-gradient-to-br from-white via-slate-50/50 to-slate-100/50" />
           <div className="absolute inset-0 opacity-[0.03]"
             style={{
@@ -634,7 +634,7 @@ export default function LaporanFakultasPage() {
           <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center w-full gap-6">
             <div>
               <div className="flex items-center gap-2 mb-2"><div className="h-4 w-1.5 bg-primary rounded-full"/><span className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">Monitoring Strategis</span></div>
-              <h1 className="text-3xl font-extrabold text-slate-900 font-headline tracking-tight">Laporan <span className="text-primary">Fakultas</span></h1>
+              <h1 className="text-3xl font-extrabold font-headline tracking-tight" style={{ color: 'var(--theme-h1)' }}>Laporan <span className="text-primary">Fakultas</span></h1>
               <p className="text-slate-500 font-medium text-sm max-w-xl leading-relaxed mt-1">Dashboard analitik performa akademik dan layanan kemahasiswaan.</p>
             </div>
             <div className="flex items-center gap-3">
@@ -657,7 +657,7 @@ export default function LaporanFakultasPage() {
             {label:'Layanan Konseling',  value:data.summary.totalKonseling || 0,        icon:Psychology, bg:'bg-amber-50',   color:'text-amber-600',   desc:'Sesi konseling terdaftar'},
             {label:'Rata-rata IPK',      value:data.summary.avgIPK ? data.summary.avgIPK.toFixed(2) : "0.00", icon:HeartPulse, bg:'bg-rose-50', color:'text-rose-600', desc:'IPK Rata-rata Fakultas'},
           ].map(s=>(
-            <div key={s.label} className="bg-white border border-slate-100/50 rounded-3xl p-5 shadow-sm">
+            <div key={s.label} className="glass-card border border-slate-200/60 rounded-2xl p-5 shadow-none">
               <div className="flex items-center gap-3 mb-3">
                 <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center',s.bg,s.color)}><s.icon size={18}/></div>
                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{s.label}</span>
@@ -670,8 +670,8 @@ export default function LaporanFakultasPage() {
 
         {/* Charts */}
         <div className="grid gap-6 lg:grid-cols-2">
-          <div className="bg-white border border-slate-200/60 rounded-2xl p-6 shadow-sm">
-            <h3 className="font-bold text-base text-slate-900 mb-1">Status per Angkatan</h3>
+          <div className="glass-card border border-slate-200/60 rounded-2xl p-6 shadow-none">
+            <h3 className="font-bold text-base font-headline mb-1" style={{ color: 'var(--theme-h3)' }}>Status per Angkatan</h3>
             <p className="text-xs text-slate-400 mb-5">Distribusi akademik tiap tahun angkatan</p>
             <div className="h-64">
               {isMounted && (
@@ -689,8 +689,8 @@ export default function LaporanFakultasPage() {
             </div>
           </div>
 
-          <div className="bg-white border border-slate-200/60 rounded-2xl p-6 shadow-sm">
-            <h3 className="font-bold text-base text-slate-900 mb-1">Distribusi Prodi</h3>
+          <div className="glass-card border border-slate-200/60 rounded-2xl p-6 shadow-none">
+            <h3 className="font-bold text-base font-headline mb-1" style={{ color: 'var(--theme-h3)' }}>Distribusi Prodi</h3>
             <p className="text-xs text-slate-400 mb-5">Persentase jumlah mahasiswa per program studi</p>
             <div className="flex flex-col sm:flex-row items-center gap-6">
               <div className="h-56 flex-1 min-w-0">
@@ -726,12 +726,12 @@ export default function LaporanFakultasPage() {
             {label:'Laporan Beasiswa',  icon:Globe,      bg:'bg-indigo-600',  light:'bg-indigo-50',  stat:`${data.summary.totalBeasiswa} Penerima`,         desc:'Transkrip penerima bantuan finansial.',             handler: downloadBeasiswaPDF},
             {label:'Laporan Konseling', icon:Psychology, bg:'bg-rose-600',    light:'bg-rose-50',    stat:`${data.summary.totalKonseling || 0} Sesi`,        desc:'Monitoring layanan bimbingan & kesehatan psikologis.', handler: downloadKonselingPDF},
           ].map((item,i)=>(
-            <div key={i} className="bg-white border border-slate-200/60 rounded-2xl p-5 shadow-sm hover:shadow-lg transition-shadow">
+            <div key={i} className="glass-card border border-slate-200/60 rounded-2xl p-5 shadow-none hover:shadow-lg transition-shadow">
               <div className="flex items-start justify-between mb-5">
                 <div className={cn('w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-lg',item.bg)}><item.icon size={20}/></div>
                 <span className="text-[9px] font-black text-slate-400 bg-slate-50 px-2.5 py-1 rounded-lg uppercase tracking-wider">SEM-II 2024</span>
               </div>
-              <h4 className="text-base font-extrabold text-slate-900 mb-1">{item.label}</h4>
+              <h4 className="text-base font-extrabold font-headline mb-1" style={{ color: 'var(--theme-h4)' }}>{item.label}</h4>
               <p className="text-xs text-slate-400 mb-5 leading-relaxed">{item.desc}</p>
               <div className="flex items-center justify-between pt-4 border-t border-slate-100">
                 <div>
@@ -745,9 +745,9 @@ export default function LaporanFakultasPage() {
         </div>
 
         {/* Per-Prodi Table */}
-        <div className="bg-white border border-slate-100/50 rounded-3xl shadow-sm overflow-hidden">
+        <div className="glass-card border border-slate-200/60 rounded-2xl shadow-none overflow-hidden">
           <div className="px-5 py-4 border-b border-slate-100">
-            <h2 className="font-bold text-base text-slate-900">Rekap Per Program Studi</h2>
+            <h2 className="font-black text-sm uppercase tracking-tight font-headline" style={{ color: 'var(--theme-h2)' }}>Rekap Per Program Studi</h2>
             <p className="text-xs text-slate-500 mt-0.5">Data akademik terbaru tiap prodi</p>
           </div>
           <div className="overflow-x-auto">

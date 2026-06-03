@@ -216,20 +216,20 @@ export default function StudentDirectory() {
   }
 
   const STATUS_STYLES = {
-    'Aktif': 'bg-[#ecfdf5] text-[#059669] border-[#d1fae5] shadow-none',
-    'Cuti': 'bg-[#fffbeb] text-[#d97706] border-[#fef3c7] shadow-none',
-    'Lulus': 'bg-[#eff6ff] text-[#2563eb] border-[#dbeafe] shadow-none',
-    'Non-Aktif': 'bg-[#fef2f2] text-[#dc2626] border-[#fee2e2] shadow-none',
+    'Aktif': 'bg-green-50 text-green-600 border-green-100 shadow-none',
+    'Cuti': 'bg-amber-50 text-amber-600 border-amber-100 shadow-none',
+    'Lulus': 'bg-blue-50 text-blue-600 border-blue-100 shadow-none',
+    'Non-Aktif': 'bg-red-50 text-red-600 border-red-100 shadow-none',
     'DEFAULT': 'bg-neutral-50 text-neutral-400 border-neutral-100'
   }
 
   const columns = [
-    { 
-      key: 'NIM', 
-      label: 'ID / NIM', 
-      className: 'w-[120px]', 
+    {
+      key: 'NIM',
+      label: 'ID / NIM',
+      className: 'w-[120px]',
       render: v => (
-        <code className="text-[12px] font-bold text-[#3b82f6] tracking-[0.1em] bg-[#eff6ff] px-2 py-1 rounded-lg border border-[#dbeafe]">
+        <code className="text-[12px] font-bold text-blue-600 tracking-[0.1em] bg-blue-50 px-2 py-1 rounded-lg border border-blue-100">
           {v || '—'}
         </code>
       )
@@ -246,12 +246,12 @@ export default function StudentDirectory() {
             className="w-11 h-11 rounded-xl border-2 border-white shadow-md transition-all group-hover/avatar:scale-110"
           />
           <div className="flex flex-col">
-            <span className="font-bold text-neutral-900 font-jakarta tracking-tight text-[14px] leading-tight">
+            <span className="font-black text-slate-800 font-headline tracking-tight text-[14px] leading-tight">
               {v ? v.toLowerCase().replace(/\b\w/g, s => s.toUpperCase()) : '—'}
             </span>
-            <div className="flex items-center gap-1.5 mt-1 text-neutral-400">
-               <span className="material-symbols-outlined text-primary/60" style={{ fontSize: '10px' }} >mail</span>
-               <span className="text-[10px] font-bold tracking-widest lowercase">{row.EmailKampus || row.Pengguna?.Email || '—'}</span>
+            <div className="flex items-center gap-1.5 mt-1 text-slate-400">
+               <span className="material-symbols-outlined text-bku-primary/60" style={{ fontSize: '10px' }} >mail</span>
+               <span className="text-[10px] font-black font-headline tracking-widest lowercase">{row.EmailKampus || row.Pengguna?.Email || '—'}</span>
             </div>
           </div>
         </div>
@@ -261,13 +261,13 @@ export default function StudentDirectory() {
       key: 'Fakultas', 
       label: 'Fakultas', 
       className: 'w-[180px]', 
-      render: v => <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-tight font-jakarta leading-snug block truncate" title={v?.Nama || v?.nama}>{v?.Nama || v?.nama || '—'}</span> 
+      render: v => <span className="text-[10px] font-black text-slate-400 uppercase tracking-tight font-headline leading-snug block truncate" title={v?.Nama || v?.nama}>{v?.Nama || v?.nama || '—'}</span> 
     },
     { 
       key: 'ProgramStudi', 
       label: 'Program Studi', 
       className: 'w-[200px]', 
-      render: v => <span className="text-[12px] font-extrabold text-neutral-700 font-jakarta tracking-tight leading-tight block truncate" title={v?.Nama || v?.nama}>{v?.Nama || v?.nama || '—'}</span> 
+      render: v => <span className="text-[12px] font-black text-slate-700 font-headline tracking-tight leading-tight block truncate" title={v?.Nama || v?.nama}>{v?.Nama || v?.nama || '—'}</span> 
     },
     { 
       key: 'SemesterSekarang', 
@@ -276,8 +276,8 @@ export default function StudentDirectory() {
       cellClassName: 'text-center', 
       render: (v, row) => (
         <div className="flex flex-col items-center">
-           <span className="font-bold text-neutral-900 font-jakarta text-sm tabular-nums leading-none">{row.StatusAkun === 'Lulus' ? '—' : (v || 1)}</span>
-           {row.StatusAkun !== 'Lulus' && <span className="text-[8px] font-bold text-neutral-300 uppercase tracking-widest mt-1">Active</span>}
+           <span className="font-black text-slate-800 font-headline text-sm tabular-nums leading-none">{row.StatusAkun === 'Lulus' ? '—' : (v || 1)}</span>
+           {row.StatusAkun !== 'Lulus' && <span className="text-[8px] font-black text-slate-300 font-headline uppercase tracking-widest mt-1">Active</span>}
         </div>
       )
     },
@@ -295,25 +295,25 @@ export default function StudentDirectory() {
   ]
 
   return (
-    <div className="px-4 py-8 md:px-8 xl:px-12 min-h-screen bg-[#fafafa] font-body">
+    <div className="px-1 py-4 md:px-2 xl:px-4 min-h-screen bg-transparent font-inter">
       <Toaster position="top-right" />
       
-      <div className="max-w-[1600px] mx-auto space-y-10">
+      <div className="max-w-[1600px] mx-auto space-y-8 select-none">
         
         {/* ── Page Header ─────────────────────────────────────────── */}
-        <section className="bg-white border border-neutral-200 rounded-xl p-5 md:p-8 relative overflow-hidden shadow-sm">
-          <div className="absolute top-0 right-0 w-1/4 h-full bg-gradient-to-l from-blue-50/50 to-transparent pointer-events-none" />
+        <section className="glass-card border border-slate-200/60 rounded-2xl p-5 md:p-8 relative overflow-hidden shadow-none">
+          <div className="absolute top-0 right-0 w-1/4 h-full bg-gradient-to-l from-bku-primary/10 to-transparent pointer-events-none" />
           
           <div className="relative z-10 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
-            <div className="space-y-1 w-full lg:w-auto">
+            <div className="space-y-2 w-full lg:w-auto">
               <div className="flex items-center gap-2 mb-2">
-                <div className="h-4 w-1.5 bg-primary rounded-full" />
-                <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-400 font-jakarta">Enrollment Governance</span>
+                <div className="h-4 w-1.5 bg-bku-primary rounded-full animate-pulse" />
+                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 font-headline leading-none">Enrollment Governance</span>
               </div>
-              <h1 className="text-2xl md:text-3xl font-bold text-neutral-900 font-jakarta tracking-tight leading-tight">
-                Direktori <span className="text-primary">Mahasiswa</span>
+              <h1 className="text-2xl md:text-3xl font-black font-headline tracking-tight leading-none" style={{ color: 'var(--theme-h1)' }}>
+                Direktori <span className="text-bku-primary">Mahasiswa</span>
               </h1>
-              <p className="text-neutral-500 font-medium text-xs md:text-sm max-w-2xl leading-relaxed">
+              <p className="text-slate-400 font-medium text-[11px] max-w-2xl leading-relaxed">
                 Database pusat manajemen akademik, sinkronisasi PDDikti cluster, dan verifikasi status aktif seluruh civitas akademika Universitas Bhakti Kencana.
               </p>
             </div>
@@ -323,18 +323,18 @@ export default function StudentDirectory() {
                 onClick={handleSyncPddikti} 
                 variant="outline" 
                 disabled={isSyncing}
-                className="h-11 px-6 w-full sm:w-auto rounded-xl border-neutral-200 text-xs font-bold uppercase tracking-widest text-neutral-600 hover:bg-neutral-50 gap-2 transition-all active:scale-95 shadow-sm justify-center"
+                className="h-11 px-6 w-full sm:w-auto rounded-xl border-slate-200 text-[10px] font-black font-headline uppercase tracking-widest text-slate-600 hover:bg-slate-50 gap-2 transition-all active:scale-95 shadow-none justify-center cursor-pointer"
               >
-                {isSyncing ? <span className="material-symbols-outlined animate-spin text-primary" style={{ fontSize: '14px' }} >sync</span> : <RefreshCw size={14} className="text-primary" />}
+                {isSyncing ? <span className="material-symbols-outlined animate-spin text-bku-primary" style={{ fontSize: '14px' }} >sync</span> : <RefreshCw size={14} className="text-bku-primary" />}
                 {isSyncing ? 'Syncing...' : 'PDDIKTI Sync'}
               </Button>
               
               <Button 
                 onClick={handleOpenAdd}
-                className="h-11 px-6 w-full sm:w-auto rounded-xl bg-neutral-900 text-white hover:bg-primary shadow-xl shadow-neutral-900/10 gap-2 transition-all active:scale-95 border-none justify-center"
+                className="h-11 px-6 w-full sm:w-auto rounded-xl bg-slate-800 text-white hover:bg-bku-primary shadow-none gap-2 transition-all active:scale-95 border-none justify-center cursor-pointer"
               >
                 <span className="material-symbols-outlined" style={{ fontSize: '16px' }}  strokeWidth={3}>add</span>
-                <span className="text-xs font-bold uppercase tracking-widest text-[10px]">New Registration</span>
+                <span className="text-[10px] font-black font-headline uppercase tracking-widest">New Registration</span>
               </Button>
             </div>
           </div>
@@ -342,53 +342,53 @@ export default function StudentDirectory() {
 
         {/* ── Stats Grid ──────────────────────────────────────────── */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-           <div className="bg-white p-5 rounded-2xl border border-[#e5e5e5] shadow-sm">
+           <div className="glass-card p-5 rounded-2xl border border-slate-200/60 shadow-none">
               <div className="flex items-center gap-3 mb-3">
-                 <div className="w-10 h-10 bg-[#eef4ff] rounded-xl flex justify-center items-center text-[#00236F] flex-shrink-0">
+                 <div className="w-10 h-10 bg-bku-primary/10 rounded-xl flex justify-center items-center text-bku-primary flex-shrink-0">
                     <span className="material-symbols-outlined" style={{ fontSize: '18px' }} >group</span>
                  </div>
-                 <span className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-widest animate-in fade-in">Total Mahasiswa</span>
+                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline animate-in fade-in">Total Mahasiswa</span>
               </div>
-              <p className="text-3xl font-extrabold text-[#171717] font-jakarta leading-none tabular-nums">{students.length}</p>
-              <p className="text-xs text-[#a3a3a3] font-medium mt-1">Seluruh mahasiswa terdaftar</p>
+              <p className="text-2xl font-black text-slate-800 font-headline leading-none tabular-nums">{students.length}</p>
+              <p className="text-[11px] text-slate-400 font-medium mt-1">Seluruh mahasiswa terdaftar</p>
            </div>
 
-           <div className="bg-white p-5 rounded-2xl border border-[#e5e5e5] shadow-sm">
+           <div className="glass-card p-5 rounded-2xl border border-slate-200/60 shadow-none">
               <div className="flex items-center gap-3 mb-3">
-                 <div className="w-10 h-10 bg-[#f0fdf4] rounded-xl flex justify-center items-center text-[#16a34a] flex-shrink-0">
+                 <div className="w-10 h-10 bg-emerald-500/10 rounded-xl flex justify-center items-center text-emerald-600 flex-shrink-0">
                     <span className="material-symbols-outlined" style={{ fontSize: '18px' }} >school</span>
                  </div>
-                 <span className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-widest animate-in fade-in">Mahasiswa Aktif</span>
+                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline animate-in fade-in">Mahasiswa Aktif</span>
               </div>
-              <p className="text-3xl font-extrabold text-[#171717] font-jakarta leading-none tabular-nums">{students.filter(s => s.StatusAkun === 'Aktif').length}</p>
-              <p className="text-xs text-[#a3a3a3] font-medium mt-1">Sedang menempuh studi</p>
+              <p className="text-2xl font-black text-slate-800 font-headline leading-none tabular-nums">{students.filter(s => s.StatusAkun === 'Aktif').length}</p>
+              <p className="text-[11px] text-slate-400 font-medium mt-1">Sedang menempuh studi</p>
            </div>
 
-           <div className="bg-white p-5 rounded-2xl border border-[#e5e5e5] shadow-sm">
+           <div className="glass-card p-5 rounded-2xl border border-slate-200/60 shadow-none">
               <div className="flex items-center gap-3 mb-3">
-                 <div className="w-10 h-10 bg-amber-50 rounded-xl flex justify-center items-center text-amber-600 flex-shrink-0">
+                 <div className="w-10 h-10 bg-blue-500/10 rounded-xl flex justify-center items-center text-blue-500 flex-shrink-0">
                     <span className="material-symbols-outlined" style={{ fontSize: '18px' }} >trending_up</span>
                  </div>
-                 <span className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-widest animate-in fade-in">Lulus</span>
+                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline animate-in fade-in">Lulus</span>
               </div>
-              <p className="text-3xl font-extrabold text-[#171717] font-jakarta leading-none tabular-nums">{students.filter(s => s.StatusAkun === 'Lulus').length}</p>
-              <p className="text-xs text-[#a3a3a3] font-medium mt-1">Telah menyelesaikan studi</p>
+              <p className="text-2xl font-black text-slate-800 font-headline leading-none tabular-nums">{students.filter(s => s.StatusAkun === 'Lulus').length}</p>
+              <p className="text-[11px] text-slate-400 font-medium mt-1">Telah menyelesaikan studi</p>
            </div>
 
-           <div className="bg-white p-5 rounded-2xl border border-[#e5e5e5] shadow-sm">
+           <div className="glass-card p-5 rounded-2xl border border-slate-200/60 shadow-none">
               <div className="flex items-center gap-3 mb-3">
-                 <div className="w-10 h-10 bg-rose-50 rounded-xl flex justify-center items-center text-rose-600 flex-shrink-0">
+                 <div className="w-10 h-10 bg-rose-500/10 rounded-xl flex justify-center items-center text-rose-500 flex-shrink-0">
                     <UserX size={18} />
                  </div>
-                 <span className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-widest animate-in fade-in">Non-Aktif</span>
+                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline animate-in fade-in">Non-Aktif</span>
               </div>
-              <p className="text-3xl font-extrabold text-[#171717] font-jakarta leading-none tabular-nums">{students.filter(s => s.StatusAkun !== 'Aktif' && s.StatusAkun !== 'Lulus').length}</p>
-              <p className="text-xs text-[#a3a3a3] font-medium mt-1">Cuti / Keluar / DO</p>
+              <p className="text-2xl font-black text-slate-800 font-headline leading-none tabular-nums">{students.filter(s => s.StatusAkun !== 'Aktif' && s.StatusAkun !== 'Lulus').length}</p>
+              <p className="text-[11px] text-slate-400 font-medium mt-1">Cuti / Keluar / DO</p>
            </div>
         </div>
 
         {/* ── Table Section ────────────────────────────────────────── */}
-        <Card className="border-neutral-200 shadow-sm rounded-xl bg-white overflow-hidden">
+        <Card className="glass-card border border-slate-200/60 shadow-none rounded-2xl bg-white overflow-hidden">
           <CardContent className="p-0">
             <DataTable
               columns={columns} 
@@ -403,9 +403,9 @@ export default function StudentDirectory() {
               ]}
               actions={(row) => (
                 <div className="flex items-center gap-1.5">
-                  <Button onClick={() => { setSelected(row); setIsDetailOpen(true) }} variant="ghost" size="icon" className="h-8 w-8 text-neutral-400 hover:text-primary hover:bg-primary/5 rounded-lg transition-colors shadow-none"><span className="material-symbols-outlined" style={{ fontSize: '15px' }} >visibility</span></Button>
-                  <Button onClick={() => handleOpenEdit(row)} variant="ghost" size="icon" className="h-8 w-8 text-neutral-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors shadow-none"><span className="material-symbols-outlined" style={{ fontSize: '15px' }} >edit</span></Button>
-                  <Button onClick={() => { setSelected(row); setIsDelOpen(true) }} variant="ghost" size="icon" className="h-8 w-8 text-neutral-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors shadow-none"><span className="material-symbols-outlined" style={{ fontSize: '15px' }} >delete</span></Button>
+                  <Button onClick={() => { setSelected(row); setIsDetailOpen(true) }} variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-bku-primary hover:bg-bku-primary/5 rounded-lg transition-colors shadow-none cursor-pointer"><span className="material-symbols-outlined" style={{ fontSize: '15px' }} >visibility</span></Button>
+                  <Button onClick={() => handleOpenEdit(row)} variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-bku-primary hover:bg-bku-primary/5 rounded-lg transition-colors shadow-none cursor-pointer"><span className="material-symbols-outlined" style={{ fontSize: '15px' }} >edit</span></Button>
+                  <Button onClick={() => { setSelected(row); setIsDelOpen(true) }} variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors shadow-none cursor-pointer"><span className="material-symbols-outlined" style={{ fontSize: '15px' }} >delete</span></Button>
                 </div>
               )}
             />
@@ -414,17 +414,17 @@ export default function StudentDirectory() {
 
         {/* ── Detail Profile Modal ─────────────────────────────────── */}
         <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
-          <DialogContent className="w-[95vw] sm:w-[90vw] md:max-w-2xl p-0 overflow-hidden border-none shadow-2xl rounded-2xl bg-white animate-in zoom-in-95 duration-300">
+          <DialogContent className="w-[95vw] sm:w-[90vw] md:max-w-2xl p-0 overflow-hidden border border-slate-200/60 shadow-2xl rounded-2xl bg-white/95 backdrop-blur-xl animate-in zoom-in-95 duration-300">
             <DialogTitle className="sr-only">Profil Mahasiswa</DialogTitle>
             <DialogDescription className="sr-only">Informasi lengkap biodata mahasiswa</DialogDescription>
             {selected && (
               <div className="flex flex-col">
                 {/* Profile Header Pattern */}
-                <div className="h-24 sm:h-32 bg-neutral-900 relative overflow-hidden shrink-0">
-                  <div className="absolute inset-0 bg-gradient-to-br from-primary/30 to-transparent" />
+                <div className="h-24 sm:h-32 bg-slate-900 relative overflow-hidden shrink-0">
+                  <div className="absolute inset-0 bg-gradient-to-br from-bku-primary/30 to-transparent" />
                   <div className="absolute top-0 right-0 p-8 opacity-[0.03] text-white"><span className="material-symbols-outlined rotate-12" style={{ fontSize: '140px' }} >school</span></div>
                   <div className="absolute bottom-3 right-4 sm:bottom-4 sm:right-6 flex items-center gap-2">
-                     <Badge className={cn("px-3 py-1 rounded-lg border-none text-[9px] font-bold uppercase tracking-widest", STATUS_STYLES[selected.StatusAkun] || STATUS_STYLES.DEFAULT)}>
+                     <Badge className={cn("px-3 py-1 rounded-lg border-none text-[9px] font-black uppercase tracking-widest font-headline", STATUS_STYLES[selected.StatusAkun] || STATUS_STYLES.DEFAULT)}>
                         {selected.StatusAkun}
                      </Badge>
                   </div>
@@ -439,11 +439,11 @@ export default function StudentDirectory() {
                       className="w-20 h-20 sm:w-28 sm:h-28 rounded-2xl border-[4px] sm:border-[6px] border-white shadow-2xl bg-white"
                     />
                     <div className="pb-1 sm:pb-2 space-y-1">
-                      <h2 className="text-xl sm:text-2xl font-bold text-neutral-900 font-jakarta tracking-tight leading-none">{selected.Nama}</h2>
-                      <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 text-neutral-400">
-                         <span className="text-[10px] sm:text-[11px] font-bold tracking-[0.2em] uppercase">{selected.NIM}</span>
-                         <div className="hidden sm:block size-1 bg-neutral-200 rounded-full" />
-                         <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-widest italic">{selected.ProgramStudi?.Nama}</span>
+                      <h2 className="text-xl sm:text-2xl font-black font-headline tracking-tight leading-none" style={{ color: 'var(--theme-h2)' }}>{selected.Nama}</h2>
+                      <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 text-slate-400">
+                         <span className="text-[10px] sm:text-[11px] font-black tracking-[0.2em] uppercase font-headline">{selected.NIM}</span>
+                         <div className="hidden sm:block size-1 bg-slate-200 rounded-full" />
+                         <span className="text-[10px] sm:text-[11px] font-black uppercase tracking-widest italic font-headline">{selected.ProgramStudi?.Nama}</span>
                       </div>
                     </div>
                   </div>
@@ -452,34 +452,34 @@ export default function StudentDirectory() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                     <div className="space-y-4">
                        <div className="group">
-                          <p className="text-[9px] font-bold text-neutral-400 uppercase tracking-[0.2em] mb-1">Institutional Location</p>
+                          <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1 font-headline">Institutional Location</p>
                           <div className="flex items-start gap-3">
-                             <div className="size-8 rounded-lg bg-neutral-50 flex items-center justify-center text-neutral-400 group-hover:text-primary transition-colors"><Building2 size={14} /></div>
-                             <p className="text-[13px] font-bold text-neutral-700 leading-snug">{selected.Fakultas?.Nama || '—'}</p>
+                             <div className="size-8 rounded-lg bg-slate-50 flex items-center justify-center text-slate-400 group-hover:text-bku-primary transition-colors"><Building2 size={14} /></div>
+                             <p className="text-[13px] font-black font-headline text-slate-700 leading-snug">{selected.Fakultas?.Nama || '—'}</p>
                           </div>
                        </div>
                        <div className="group">
-                          <p className="text-[9px] font-bold text-neutral-400 uppercase tracking-[0.2em] mb-1">Academic Cycle</p>
+                          <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1 font-headline">Academic Cycle</p>
                           <div className="flex items-start gap-3">
-                             <div className="size-8 rounded-lg bg-neutral-50 flex items-center justify-center text-neutral-400 group-hover:text-primary transition-colors"><span className="material-symbols-outlined" style={{ fontSize: '14px' }} >schedule</span></div>
-                             <p className="text-[13px] font-bold text-neutral-700 leading-snug">Semester {selected.StatusAkun === 'Lulus' ? 'Complete' : selected.SemesterSekarang} <span className="text-neutral-400 mx-1">•</span> Batch {selected.TahunMasuk}</p>
+                             <div className="size-8 rounded-lg bg-slate-50 flex items-center justify-center text-slate-400 group-hover:text-bku-primary transition-colors"><span className="material-symbols-outlined" style={{ fontSize: '14px' }} >schedule</span></div>
+                             <p className="text-[13px] font-black font-headline text-slate-700 leading-snug">Semester {selected.StatusAkun === 'Lulus' ? 'Complete' : selected.SemesterSekarang} <span className="text-slate-400 mx-1">•</span> Batch {selected.TahunMasuk}</p>
                           </div>
                        </div>
                     </div>
                     
                     <div className="space-y-4">
                        <div className="group">
-                          <p className="text-[9px] font-bold text-neutral-400 uppercase tracking-[0.2em] mb-1">Digital Identity</p>
+                          <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1 font-headline">Digital Identity</p>
                           <div className="flex items-start gap-3">
-                             <div className="size-8 rounded-lg bg-neutral-50 flex items-center justify-center text-neutral-400 group-hover:text-primary transition-colors"><span className="material-symbols-outlined" style={{ fontSize: '14px' }} >mail</span></div>
-                             <p className="text-[13px] font-bold text-neutral-700 leading-snug lowercase">{selected.EmailKampus || selected.Pengguna?.Email || '—'}</p>
+                             <div className="size-8 rounded-lg bg-slate-50 flex items-center justify-center text-slate-400 group-hover:text-bku-primary transition-colors"><span className="material-symbols-outlined" style={{ fontSize: '14px' }} >mail</span></div>
+                             <p className="text-[13px] font-black font-headline text-slate-700 leading-snug lowercase">{selected.EmailKampus || selected.Pengguna?.Email || '—'}</p>
                           </div>
                        </div>
                        <div className="group">
-                          <p className="text-[9px] font-bold text-neutral-400 uppercase tracking-[0.2em] mb-1">Residence</p>
+                          <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1 font-headline">Residence</p>
                           <div className="flex items-start gap-3">
-                             <div className="size-8 rounded-lg bg-neutral-50 flex items-center justify-center text-neutral-400 group-hover:text-primary transition-colors"><span className="material-symbols-outlined" style={{ fontSize: '14px' }} >location_on</span></div>
-                             <p className="text-[13px] font-bold text-neutral-700 leading-snug italic">{selected.Alamat || 'Residence unassigned'}</p>
+                             <div className="size-8 rounded-lg bg-slate-50 flex items-center justify-center text-slate-400 group-hover:text-bku-primary transition-colors"><span className="material-symbols-outlined" style={{ fontSize: '14px' }} >location_on</span></div>
+                             <p className="text-[13px] font-black font-headline text-slate-700 leading-snug italic">{selected.Alamat || 'Residence unassigned'}</p>
                           </div>
                        </div>
                     </div>
@@ -487,9 +487,9 @@ export default function StudentDirectory() {
                 </div>
 
                 {/* Footer Controls */}
-                <footer className="p-6 sm:p-8 border-t border-neutral-100 bg-neutral-50/50 flex flex-col-reverse sm:flex-row justify-end gap-3">
-                  <Button variant="ghost" onClick={() => setIsDetailOpen(false)} className="w-full sm:w-auto h-12 px-6 rounded-xl text-[10px] font-bold uppercase tracking-widest text-neutral-400 hover:bg-neutral-100 transition-all">Dismiss</Button>
-                  <Button onClick={() => { setIsDetailOpen(false); handleOpenEdit(selected) }} className="w-full sm:w-auto h-12 px-8 rounded-xl bg-neutral-900 text-white text-[10px] font-bold uppercase tracking-widest hover:bg-primary shadow-xl shadow-neutral-900/10 transition-all active:scale-95 border-none flex items-center justify-center gap-2">
+                <footer className="p-6 sm:p-8 border-t border-slate-200/40 bg-white/40 flex flex-col-reverse sm:flex-row justify-end gap-3">
+                  <Button variant="ghost" onClick={() => setIsDetailOpen(false)} className="w-full sm:w-auto h-12 px-6 rounded-xl text-[10px] font-black font-headline uppercase tracking-widest text-slate-400 hover:bg-slate-100 transition-all cursor-pointer">Dismiss</Button>
+                  <Button onClick={() => { setIsDetailOpen(false); handleOpenEdit(selected) }} className="w-full sm:w-auto h-12 px-8 rounded-xl bg-slate-800 text-white text-[10px] font-black font-headline uppercase tracking-widest hover:bg-bku-primary shadow-none transition-all active:scale-95 border-none flex items-center justify-center gap-2 cursor-pointer">
                      <span className="material-symbols-outlined" style={{ fontSize: '14px' }} >edit</span>
                      Modify Profile
                   </Button>
@@ -501,20 +501,20 @@ export default function StudentDirectory() {
 
         {/* ── CRUD Modal ───────────────────────────────────────────── */}
         <Dialog open={isCrudOpen} onOpenChange={setIsCrudOpen}>
-          <DialogContent className="w-[95vw] sm:w-[90vw] md:max-w-xl p-0 overflow-hidden border-none shadow-2xl rounded-2xl bg-white animate-in slide-in-from-bottom-4 duration-300">
-            <DialogHeader className="p-6 sm:p-8 pb-4 sm:pb-6 border-b border-neutral-100 relative overflow-hidden bg-neutral-50/50">
-              <div className="absolute top-0 right-0 p-8 opacity-[0.03] text-primary"><UserIcon size={140} /></div>
+          <DialogContent className="w-[95vw] sm:w-[90vw] md:max-w-xl p-0 overflow-hidden border border-slate-200/60 shadow-2xl rounded-2xl bg-white/95 backdrop-blur-xl animate-in slide-in-from-bottom-4 duration-300">
+            <DialogHeader className="p-6 sm:p-8 pb-4 sm:pb-6 border-b border-slate-200/40 relative overflow-hidden bg-white/40">
+              <div className="absolute top-0 right-0 p-8 opacity-[0.03] text-bku-primary"><UserIcon size={140} /></div>
               <div className="relative z-10 space-y-1">
                 <div className="flex items-center gap-2 mb-2">
-                  <div className="size-6 rounded bg-primary/10 flex items-center justify-center text-primary">
+                  <div className="size-6 rounded bg-bku-primary/10 flex items-center justify-center text-bku-primary">
                     {isEditMode ? <span className="material-symbols-outlined" style={{ fontSize: '12px' }} >edit</span> : <span className="material-symbols-outlined" style={{ fontSize: '12px' }}  strokeWidth={3}>add</span>}
                   </div>
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-primary/60">Registry Engine</span>
+                  <span className="text-[10px] font-black font-headline uppercase tracking-widest text-bku-primary/60">Registry Engine</span>
                 </div>
-                <DialogTitle className="text-xl sm:text-2xl font-bold font-jakarta tracking-tight text-neutral-900">
+                <DialogTitle className="text-xl sm:text-2xl font-black font-headline tracking-tight text-slate-800">
                   {isEditMode ? 'Update Identity' : 'Enroll Student'}
                 </DialogTitle>
-                <DialogDescription className="text-xs sm:text-sm font-medium text-neutral-400">
+                <DialogDescription className="text-xs sm:text-sm font-medium text-slate-500 font-inter">
                   Lengkapi parameter identitas akademik untuk sinkronisasi database.
                 </DialogDescription>
               </div>
@@ -523,37 +523,37 @@ export default function StudentDirectory() {
             <form onSubmit={handleSave} className="p-6 sm:p-10 pt-4 sm:pt-8 space-y-4 sm:space-y-6 max-h-[60vh] sm:max-h-[65vh] overflow-y-auto">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                 <div className="space-y-2">
-                  <Label className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest ml-1 font-jakarta">NIM / Student ID</Label>
-                  <Input required value={form.NIM} onChange={e => setForm({ ...form, NIM: e.target.value })} placeholder="BKU..." className="h-11 sm:h-12 rounded-xl border-neutral-200 bg-neutral-50/30 focus:bg-white font-bold text-sm font-jakarta tabular-nums" />
+                  <Label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 font-headline">NIM / Student ID</Label>
+                  <Input required value={form.NIM} onChange={e => setForm({ ...form, NIM: e.target.value })} placeholder="BKU..." className="h-11 sm:h-12 rounded-xl border-slate-200/60 bg-white/50 focus:bg-white font-black text-sm font-headline tabular-nums" />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest ml-1 font-jakarta">Full Legal Name</Label>
-                  <Input required value={form.Nama} onChange={e => setForm({ ...form, Nama: e.target.value })} placeholder="Full name..." className="h-11 sm:h-12 rounded-xl border-neutral-200 bg-neutral-50/30 focus:bg-white font-bold text-sm font-jakarta" />
+                  <Label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 font-headline">Full Legal Name</Label>
+                  <Input required value={form.Nama} onChange={e => setForm({ ...form, Nama: e.target.value })} placeholder="Full name..." className="h-11 sm:h-12 rounded-xl border-slate-200/60 bg-white/50 focus:bg-white font-black text-sm font-headline" />
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest ml-1 font-jakarta">Academic Email</Label>
-                <Input required type="email" value={form.EmailKampus} onChange={e => setForm({ ...form, EmailKampus: e.target.value })} placeholder="id@bku.ac.id" className="h-11 sm:h-12 rounded-xl border-neutral-200 bg-neutral-50/30 focus:bg-white font-bold text-sm font-jakarta" />
+                <Label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 font-headline">Academic Email</Label>
+                <Input required type="email" value={form.EmailKampus} onChange={e => setForm({ ...form, EmailKampus: e.target.value })} placeholder="id@bku.ac.id" className="h-11 sm:h-12 rounded-xl border-slate-200/60 bg-white/50 focus:bg-white font-black text-sm font-headline" />
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                 <div className="space-y-2">
-                  <Label className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest ml-1 font-jakarta">Faculty Branch</Label>
+                  <Label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 font-headline">Faculty Branch</Label>
                   <Select value={String(form.FakultasID)} onValueChange={v => setForm({ ...form, FakultasID: v, ProgramStudiID: '' })}>
-                    <SelectTrigger className="h-11 sm:h-12 rounded-xl border-neutral-200 bg-neutral-50/30 font-bold text-xs uppercase tracking-widest"><SelectValue placeholder="SELECT FACULTY" /></SelectTrigger>
-                    <SelectContent className="rounded-xl shadow-2xl border-neutral-100">
-                      {faculties.map(f => <SelectItem key={f.id || f.ID} value={String(f.id || f.ID)} className="text-[10px] font-bold uppercase tracking-widest">{f.Nama}</SelectItem>)}
+                    <SelectTrigger className="h-11 sm:h-12 rounded-xl border-slate-200/60 bg-white/50 font-black font-headline text-xs uppercase tracking-widest"><SelectValue placeholder="SELECT FACULTY" /></SelectTrigger>
+                    <SelectContent className="rounded-xl shadow-2xl border-slate-100">
+                      {faculties.map(f => <SelectItem key={f.id || f.ID} value={String(f.id || f.ID)} className="text-[10px] font-black font-headline uppercase tracking-widest">{f.Nama}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest ml-1 font-jakarta">Academic Program</Label>
+                  <Label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 font-headline">Academic Program</Label>
                   <Select value={String(form.ProgramStudiID)} onValueChange={v => setForm({ ...form, ProgramStudiID: v })}>
-                    <SelectTrigger className="h-11 sm:h-12 rounded-xl border-neutral-200 bg-neutral-50/30 font-bold text-xs uppercase tracking-widest"><SelectValue placeholder="SELECT PRODI" /></SelectTrigger>
-                    <SelectContent className="rounded-xl shadow-2xl border-neutral-100">
+                    <SelectTrigger className="h-11 sm:h-12 rounded-xl border-slate-200/60 bg-white/50 font-black font-headline text-xs uppercase tracking-widest"><SelectValue placeholder="SELECT PRODI" /></SelectTrigger>
+                    <SelectContent className="rounded-xl shadow-2xl border-slate-100">
                       {prodi.filter(p => !form.FakultasID || parseInt(p.FakultasID) === parseInt(form.FakultasID)).map(p => (
-                        <SelectItem key={p.id || p.ID} value={String(p.id || p.ID)} className="text-[10px] font-bold uppercase tracking-widest">{p.Nama}</SelectItem>
+                        <SelectItem key={p.id || p.ID} value={String(p.id || p.ID)} className="text-[10px] font-black font-headline uppercase tracking-widest">{p.Nama}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -562,31 +562,31 @@ export default function StudentDirectory() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                 <div className="space-y-2">
-                  <Label className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest ml-1 font-jakarta">Account Status</Label>
+                  <Label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 font-headline">Account Status</Label>
                   <Select value={form.StatusAkun} onValueChange={v => setForm({ ...form, StatusAkun: v })}>
-                    <SelectTrigger className="h-11 sm:h-12 rounded-xl border-neutral-200 bg-neutral-50/30 font-bold text-xs uppercase tracking-widest"><SelectValue /></SelectTrigger>
-                    <SelectContent className="rounded-xl shadow-2xl border-neutral-100">
-                      {['Aktif', 'Cuti', 'Lulus', 'Nonaktif'].map(s => <SelectItem key={s} value={s} className="text-[10px] font-bold uppercase tracking-widest">{s}</SelectItem>)}
+                    <SelectTrigger className="h-11 sm:h-12 rounded-xl border-slate-200/60 bg-white/50 font-black font-headline text-xs uppercase tracking-widest"><SelectValue /></SelectTrigger>
+                    <SelectContent className="rounded-xl shadow-2xl border-slate-100">
+                      {['Aktif', 'Cuti', 'Lulus', 'Nonaktif'].map(s => <SelectItem key={s} value={s} className="text-[10px] font-black font-headline uppercase tracking-widest">{s}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest ml-1 font-jakarta">Current Semester</Label>
-                  <Input type="number" min={1} max={14} value={form.SemesterSekarang} onChange={e => setForm({ ...form, SemesterSekarang: e.target.value })} className="h-11 sm:h-12 rounded-xl border-neutral-200 bg-neutral-50/30 font-bold text-sm tabular-nums" />
+                  <Label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 font-headline">Current Semester</Label>
+                  <Input type="number" min={1} max={14} value={form.SemesterSekarang} onChange={e => setForm({ ...form, SemesterSekarang: e.target.value })} className="h-11 sm:h-12 rounded-xl border-slate-200/60 bg-white/50 font-black font-headline text-sm tabular-nums" />
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest ml-1 font-jakarta">Admission Batch (Year)</Label>
-                <Input type="number" value={form.TahunMasuk} onChange={e => setForm({ ...form, TahunMasuk: e.target.value })} className="h-11 sm:h-12 rounded-xl border-neutral-200 bg-neutral-50/30 font-bold text-sm tabular-nums" />
+                <Label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 font-headline">Admission Batch (Year)</Label>
+                <Input type="number" value={form.TahunMasuk} onChange={e => setForm({ ...form, TahunMasuk: e.target.value })} className="h-11 sm:h-12 rounded-xl border-slate-200/60 bg-white/50 font-black font-headline text-sm tabular-nums" />
               </div>
             </form>
 
-            <footer className="p-6 sm:p-8 border-t border-neutral-100 bg-neutral-50/50 flex flex-col-reverse sm:flex-row gap-3 sm:gap-4">
-              <Button type="button" variant="ghost" onClick={() => setIsCrudOpen(false)} className="w-full sm:w-auto h-12 sm:h-14 rounded-xl text-[10px] font-bold uppercase tracking-widest text-neutral-400 hover:bg-neutral-100 transition-all">Abort</Button>
-              <Button onClick={handleSave} disabled={isSubmitting} className="w-full sm:flex-1 h-12 sm:h-14 rounded-xl bg-neutral-900 text-white hover:bg-primary shadow-xl shadow-neutral-900/10 transition-all active:scale-95 border-none flex items-center justify-center gap-3">
+            <footer className="p-6 sm:p-8 border-t border-slate-200/40 bg-white/40 flex flex-col-reverse sm:flex-row gap-3 sm:gap-4">
+              <Button type="button" variant="ghost" onClick={() => setIsCrudOpen(false)} className="w-full sm:w-auto h-12 sm:h-14 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-400 font-headline hover:bg-slate-100 transition-all cursor-pointer">Abort</Button>
+              <Button onClick={handleSave} disabled={isSubmitting} className="w-full sm:flex-1 h-12 sm:h-14 rounded-xl bg-slate-800 text-white hover:bg-bku-primary shadow-none transition-all active:scale-95 border-none flex items-center justify-center gap-3 cursor-pointer">
                 {isSubmitting ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '16px' }} >sync</span> : <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >save</span>}
-                <span className="text-[10px] font-bold uppercase tracking-widest">{isEditMode ? 'Commit Identity Update' : 'Initialize Enrollment'}</span>
+                <span className="text-[10px] font-black font-headline uppercase tracking-widest">{isEditMode ? 'Commit Identity Update' : 'Initialize Enrollment'}</span>
               </Button>
             </footer>
           </DialogContent>

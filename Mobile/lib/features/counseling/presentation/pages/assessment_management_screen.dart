@@ -16,7 +16,13 @@ class AssessmentManagementScreen extends StatefulWidget {
 class _AssessmentManagementScreenState
     extends State<AssessmentManagementScreen> {
   String _selectedCategory = 'Semua';
-  final List<String> _categories = ['Semua', 'Kesehatan Mental', 'Kepribadian', 'Minat Bakat', 'Lainnya'];
+  final List<String> _categories = [
+    'Semua',
+    'Kesehatan Mental',
+    'Kepribadian',
+    'Minat Bakat',
+    'Lainnya',
+  ];
 
   @override
   void initState() {
@@ -35,15 +41,21 @@ class _AssessmentManagementScreenState
         final categories = data['categories'] as List? ?? [];
         final mentalScore = data['mental_score'] as int? ?? 0;
 
-        final filtered = _selectedCategory == 'Semua'
-            ? submissions
-            : submissions.where((s) => (s as Map)['category'] == _selectedCategory).toList();
+        final filtered =
+            _selectedCategory == 'Semua'
+                ? submissions
+                : submissions
+                    .where((s) => (s as Map)['category'] == _selectedCategory)
+                    .toList();
 
         // Stats: total & urgent
-        final urgent = submissions.where((s) {
-          final score = (s as Map)['score']?.toString() ?? '';
-          return score == 'Tinggi' || score == 'Berat' || score == 'Mendesak';
-        }).length;
+        final urgent =
+            submissions.where((s) {
+              final score = (s as Map)['score']?.toString() ?? '';
+              return score == 'Tinggi' ||
+                  score == 'Berat' ||
+                  score == 'Mendesak';
+            }).length;
 
         return Scaffold(
           backgroundColor: const Color(0xFFF8FAFC),
@@ -51,8 +63,13 @@ class _AssessmentManagementScreenState
             onPressed: () => _showCreateAssessmentDialog(provider),
             backgroundColor: AppColors.primary,
             icon: const Icon(Icons.add_rounded, color: Colors.white),
-            label: const Text('Buat Asesmen',
-                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            label: const Text(
+              'Buat Asesmen',
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ),
           body: CustomScrollView(
             slivers: [
@@ -64,39 +81,49 @@ class _AssessmentManagementScreenState
                 showBackButton: true,
               ),
               SliverToBoxAdapter(
-                child: provider.assessmentsLoading
-                    ? const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 80),
-                        child: Center(child: CircularProgressIndicator()),
-                      )
-                    : Padding(
-                        padding: const EdgeInsets.all(24.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _buildStatsRow(submissions.length, urgent, mentalScore),
-                            const SizedBox(height: 32),
-                            _buildSectionHeader('Kategori Asesmen'),
-                            const SizedBox(height: 12),
-                            _buildCategoryCards(categories),
-                            const SizedBox(height: 32),
-                            _buildSectionHeader('Filter'),
-                            const SizedBox(height: 12),
-                            _buildCategoryFilter(),
-                            const SizedBox(height: 24),
-                            _buildSectionHeader('Hasil Asesmen'),
-                            const SizedBox(height: 16),
-                            filtered.isEmpty
-                                ? _buildEmpty()
-                                : Column(
-                                    children: filtered
-                                        .map((a) => _buildAssessmentCard(a as Map<String, dynamic>))
-                                        .toList(),
+                child:
+                    provider.assessmentsLoading
+                        ? const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 80),
+                          child: Center(child: CircularProgressIndicator()),
+                        )
+                        : Padding(
+                          padding: const EdgeInsets.all(24.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _buildStatsRow(
+                                submissions.length,
+                                urgent,
+                                mentalScore,
+                              ),
+                              const SizedBox(height: 32),
+                              _buildSectionHeader('Kategori Asesmen'),
+                              const SizedBox(height: 12),
+                              _buildCategoryCards(categories),
+                              const SizedBox(height: 32),
+                              _buildSectionHeader('Filter'),
+                              const SizedBox(height: 12),
+                              _buildCategoryFilter(),
+                              const SizedBox(height: 24),
+                              _buildSectionHeader('Hasil Asesmen'),
+                              const SizedBox(height: 16),
+                              filtered.isEmpty
+                                  ? _buildEmpty()
+                                  : Column(
+                                    children:
+                                        filtered
+                                            .map(
+                                              (a) => _buildAssessmentCard(
+                                                a as Map<String, dynamic>,
+                                              ),
+                                            )
+                                            .toList(),
                                   ),
-                            const SizedBox(height: 100),
-                          ],
+                              const SizedBox(height: 100),
+                            ],
+                          ),
                         ),
-                      ),
               ),
             ],
           ),
@@ -108,30 +135,74 @@ class _AssessmentManagementScreenState
   Widget _buildStatsRow(int total, int urgent, int mentalScore) {
     return Row(
       children: [
-        Expanded(child: _buildStatCard('Total Asesmen', '$total', Icons.assignment_rounded, AppColors.primary)),
+        Expanded(
+          child: _buildStatCard(
+            'Total Asesmen',
+            '$total',
+            Icons.assignment_rounded,
+            AppColors.primary,
+          ),
+        ),
         const SizedBox(width: 12),
-        Expanded(child: _buildStatCard('Butuh Atensi', '$urgent', Icons.warning_amber_rounded, Colors.red)),
+        Expanded(
+          child: _buildStatCard(
+            'Butuh Atensi',
+            '$urgent',
+            Icons.warning_amber_rounded,
+            Colors.red,
+          ),
+        ),
         const SizedBox(width: 12),
-        Expanded(child: _buildStatCard('Skor Mental', '$mentalScore%', Icons.psychology_rounded, Colors.green)),
+        Expanded(
+          child: _buildStatCard(
+            'Skor Mental',
+            '$mentalScore%',
+            Icons.psychology_rounded,
+            Colors.green,
+          ),
+        ),
       ],
     );
   }
 
-  Widget _buildStatCard(String label, String value, IconData icon, Color color) {
+  Widget _buildStatCard(
+    String label,
+    String value,
+    IconData icon,
+    Color color,
+  ) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
-        boxShadow: [BoxShadow(color: Colors.black.withAlpha(5), blurRadius: 10, offset: const Offset(0, 4))],
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withAlpha(5),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Icon(icon, color: color, size: 22),
           const SizedBox(height: 8),
-          Text(value, style: AppTextStyles.titleMd.copyWith(fontWeight: FontWeight.w900, color: const Color(0xFF1E293B))),
-          Text(label, style: AppTextStyles.labelSm.copyWith(color: const Color(0xFF64748B), fontSize: 10)),
+          Text(
+            value,
+            style: AppTextStyles.titleMd.copyWith(
+              fontWeight: FontWeight.w900,
+              color: const Color(0xFF1E293B),
+            ),
+          ),
+          Text(
+            label,
+            style: AppTextStyles.labelSm.copyWith(
+              color: const Color(0xFF64748B),
+              fontSize: 10,
+            ),
+          ),
         ],
       ),
     );
@@ -139,7 +210,12 @@ class _AssessmentManagementScreenState
 
   Widget _buildCategoryCards(List categories) {
     if (categories.isEmpty) return const SizedBox.shrink();
-    final colors = [AppColors.primary, Colors.purple, Colors.teal, Colors.orange];
+    final colors = [
+      AppColors.primary,
+      Colors.purple,
+      Colors.teal,
+      Colors.orange,
+    ];
     return SizedBox(
       height: 80,
       child: ListView.builder(
@@ -159,10 +235,21 @@ class _AssessmentManagementScreenState
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text('${cat['count'] ?? 0}',
-                    style: AppTextStyles.titleMd.copyWith(fontWeight: FontWeight.w900, color: color)),
-                Text(cat['name']?.toString() ?? '',
-                    style: AppTextStyles.labelSm.copyWith(color: color, fontSize: 10, fontWeight: FontWeight.bold)),
+                Text(
+                  '${cat['count'] ?? 0}',
+                  style: AppTextStyles.titleMd.copyWith(
+                    fontWeight: FontWeight.w900,
+                    color: color,
+                  ),
+                ),
+                Text(
+                  cat['name']?.toString() ?? '',
+                  style: AppTextStyles.labelSm.copyWith(
+                    color: color,
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ],
             ),
           );
@@ -188,13 +275,21 @@ class _AssessmentManagementScreenState
               decoration: BoxDecoration(
                 color: isSelected ? AppColors.primary : Colors.white,
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: isSelected ? AppColors.primary : Colors.grey.withAlpha(30)),
+                border: Border.all(
+                  color:
+                      isSelected
+                          ? AppColors.primary
+                          : Colors.grey.withAlpha(30),
+                ),
               ),
               child: Center(
-                child: Text(cat,
-                    style: AppTextStyles.labelSm.copyWith(
-                        color: isSelected ? Colors.white : const Color(0xFF64748B),
-                        fontWeight: FontWeight.bold)),
+                child: Text(
+                  cat,
+                  style: AppTextStyles.labelSm.copyWith(
+                    color: isSelected ? Colors.white : const Color(0xFF64748B),
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
             ),
           );
@@ -211,8 +306,12 @@ class _AssessmentManagementScreenState
           children: [
             Icon(Icons.assignment_outlined, size: 64, color: Colors.grey[300]),
             const SizedBox(height: 16),
-            Text('Belum ada asesmen',
-                style: AppTextStyles.bodyMd.copyWith(color: const Color(0xFF94A3B8))),
+            Text(
+              'Belum ada asesmen',
+              style: AppTextStyles.bodyMd.copyWith(
+                color: const Color(0xFF94A3B8),
+              ),
+            ),
           ],
         ),
       ),
@@ -229,7 +328,8 @@ class _AssessmentManagementScreenState
 
     Color scoreColor = Colors.green;
     if (score == 'Sedang' || score == 'Netral') scoreColor = Colors.orange;
-    if (score == 'Tinggi' || score == 'Berat' || score == 'Mendesak') scoreColor = Colors.red;
+    if (score == 'Tinggi' || score == 'Berat' || score == 'Mendesak')
+      scoreColor = Colors.red;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -237,7 +337,13 @@ class _AssessmentManagementScreenState
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
-        boxShadow: [BoxShadow(color: Colors.black.withAlpha(5), blurRadius: 12, offset: const Offset(0, 6))],
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withAlpha(5),
+            blurRadius: 12,
+            offset: const Offset(0, 6),
+          ),
+        ],
       ),
       child: Column(
         children: [
@@ -245,25 +351,48 @@ class _AssessmentManagementScreenState
             children: [
               CircleAvatar(
                 backgroundColor: AppColors.primary.withAlpha(10),
-                child: const Icon(Icons.person_outline_rounded, color: AppColors.primary),
+                child: const Icon(
+                  Icons.person_outline_rounded,
+                  color: AppColors.primary,
+                ),
               ),
               const SizedBox(width: 16),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(name, style: AppTextStyles.bodyLg.copyWith(fontWeight: FontWeight.w900)),
-                    Text('$assessment • $date',
-                        style: AppTextStyles.labelSm.copyWith(color: const Color(0xFF64748B))),
+                    Text(
+                      name,
+                      style: AppTextStyles.bodyLg.copyWith(
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    Text(
+                      '$assessment • $date',
+                      style: AppTextStyles.labelSm.copyWith(
+                        color: const Color(0xFF64748B),
+                      ),
+                    ),
                   ],
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
-                    color: scoreColor.withAlpha(15), borderRadius: BorderRadius.circular(8)),
-                child: Text(score,
-                    style: TextStyle(color: scoreColor, fontSize: 10, fontWeight: FontWeight.w900)),
+                  color: scoreColor.withAlpha(15),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  score,
+                  style: TextStyle(
+                    color: scoreColor,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
               ),
             ],
           ),
@@ -288,14 +417,22 @@ class _AssessmentManagementScreenState
       children: [
         Icon(icon, size: 13, color: Colors.grey[500]),
         const SizedBox(width: 4),
-        Text(label, style: AppTextStyles.labelSm.copyWith(color: Colors.grey[600])),
+        Text(
+          label,
+          style: AppTextStyles.labelSm.copyWith(color: Colors.grey[600]),
+        ),
       ],
     );
   }
 
   Widget _buildSectionHeader(String title) {
-    return Text(title,
-        style: AppTextStyles.titleMd.copyWith(fontWeight: FontWeight.w900, color: const Color(0xFF0F172A)));
+    return Text(
+      title,
+      style: AppTextStyles.titleMd.copyWith(
+        fontWeight: FontWeight.w900,
+        color: const Color(0xFF0F172A),
+      ),
+    );
   }
 
   void _showCreateAssessmentDialog(CounselingProvider provider) {
@@ -305,71 +442,109 @@ class _AssessmentManagementScreenState
 
     showDialog(
       context: context,
-      builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setDialogState) => AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-          title: const Text('Buat Asesmen Baru', style: TextStyle(fontWeight: FontWeight.bold)),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: nameCtrl,
-                decoration: InputDecoration(
-                  labelText: 'Nama Asesmen',
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                ),
-              ),
-              const SizedBox(height: 16),
-              DropdownButtonFormField<String>(
-                value: selectedCategory,
-                decoration: InputDecoration(
-                  labelText: 'Kategori',
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                ),
-                items: ['Kesehatan Mental', 'Kepribadian', 'Minat Bakat', 'Lainnya']
-                    .map((e) => DropdownMenuItem(value: e, child: Text(e)))
-                    .toList(),
-                onChanged: (v) => setDialogState(() => selectedCategory = v!),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: descCtrl,
-                maxLines: 3,
-                decoration: InputDecoration(
-                  labelText: 'Deskripsi',
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                ),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Batal')),
-            ElevatedButton(
-              onPressed: () async {
-                if (nameCtrl.text.trim().isEmpty) return;
-                Navigator.pop(ctx);
-                final success = await provider.createAssessment({
-                  'nama': nameCtrl.text.trim(),
-                  'kategori': selectedCategory,
-                  'deskripsi': descCtrl.text.trim(),
-                });
-                if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(success ? 'Asesmen berhasil dibuat!' : 'Gagal membuat asesmen.'),
-                      backgroundColor: success ? AppColors.primary : Colors.red,
-                      behavior: SnackBarBehavior.floating,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      builder:
+          (ctx) => StatefulBuilder(
+            builder:
+                (ctx, setDialogState) => AlertDialog(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(24),
+                  ),
+                  title: const Text(
+                    'Buat Asesmen Baru',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  content: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      TextField(
+                        controller: nameCtrl,
+                        decoration: InputDecoration(
+                          labelText: 'Nama Asesmen',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      DropdownButtonFormField<String>(
+                        initialValue: selectedCategory,
+                        decoration: InputDecoration(
+                          labelText: 'Kategori',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        items:
+                            [
+                                  'Kesehatan Mental',
+                                  'Kepribadian',
+                                  'Minat Bakat',
+                                  'Lainnya',
+                                ]
+                                .map(
+                                  (e) => DropdownMenuItem(
+                                    value: e,
+                                    child: Text(e),
+                                  ),
+                                )
+                                .toList(),
+                        onChanged:
+                            (v) => setDialogState(() => selectedCategory = v!),
+                      ),
+                      const SizedBox(height: 16),
+                      TextField(
+                        controller: descCtrl,
+                        maxLines: 3,
+                        decoration: InputDecoration(
+                          labelText: 'Deskripsi',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(ctx),
+                      child: const Text('Batal'),
                     ),
-                  );
-                }
-              },
-              style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white),
-              child: const Text('Simpan'),
-            ),
-          ],
-        ),
-      ),
+                    ElevatedButton(
+                      onPressed: () async {
+                        if (nameCtrl.text.trim().isEmpty) return;
+                        Navigator.pop(ctx);
+                        final success = await provider.createAssessment({
+                          'nama': nameCtrl.text.trim(),
+                          'kategori': selectedCategory,
+                          'deskripsi': descCtrl.text.trim(),
+                        });
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                success
+                                    ? 'Asesmen berhasil dibuat!'
+                                    : 'Gagal membuat asesmen.',
+                              ),
+                              backgroundColor:
+                                  success ? AppColors.primary : Colors.red,
+                              behavior: SnackBarBehavior.floating,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                          );
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        foregroundColor: Colors.white,
+                      ),
+                      child: const Text('Simpan'),
+                    ),
+                  ],
+                ),
+          ),
     );
   }
 }

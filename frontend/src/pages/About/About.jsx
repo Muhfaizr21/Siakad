@@ -1,20 +1,22 @@
 import React from 'react';
 import AboutHero from './components/AboutHero';
+import LegalInfo from './components/LegalInfo';
 import MissionVision from './components/MissionVision';
-import Values from './components/Values';
 import Leadership from './components/Leadership';
-import Milestones from './components/Milestones';
+import Partnerships from './components/Partnerships';
+import Values from './components/Values';
 
 const About = () => {
   return (
-    <div className="bg-background text-on-surface antialiased overflow-x-hidden">
-        <main>
-            <AboutHero />
-            <MissionVision />
-            <Values />
-            <Leadership />
-            <Milestones />
-        </main>
+    <div className="antialiased overflow-x-hidden w-full flex-grow flex flex-col" style={{ backgroundColor: 'var(--theme-bg)', color: 'var(--theme-text)' }}>
+      <main className="w-full flex-grow">
+        <AboutHero />
+        <LegalInfo />
+        <MissionVision />
+        <Leadership />
+        <Partnerships />
+        <Values />
+      </main>
     </div>
   );
 };

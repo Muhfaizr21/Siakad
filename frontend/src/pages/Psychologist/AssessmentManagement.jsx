@@ -200,7 +200,7 @@ export default function AssessmentManagement() {
              <div className="lg:col-span-4 space-y-6">
                 
                 {/* Average Mental Score Card */}
-                <div className="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-[#00236f] via-[#0b338f] to-[#003B95] p-8 text-white shadow-xl shadow-blue-900/10 border border-white/5">
+                <div className="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-bku-primary via-[#0b338f] to-[#003B95] p-8 text-white shadow-xl shadow-blue-900/10 border border-white/5">
                    <div className="absolute -right-8 -top-8 w-24 h-24 bg-white/5 rounded-full blur-xl pointer-events-none" />
                    
                    <div className="relative z-10">

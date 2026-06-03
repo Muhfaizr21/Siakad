@@ -8,7 +8,7 @@ import { Switch } from '../../../components/ui/Switch';
 import { Label } from '../../../components/ui/Label';
 
 const NOTIF_CATEGORIES = [
-  { id: 'EmailAchievement', label: 'Prestasi', desc: 'Update verifikasi dan penolakan laporan prestasi.', icon: 'emoji_events', color: 'text-[#00236F] bg-[#EAF1FF]' },
+  { id: 'EmailAchievement', label: 'Prestasi', desc: 'Update verifikasi dan penolakan laporan prestasi.', icon: 'emoji_events', color: 'text-bku-primary bg-[#EAF1FF]' },
   { id: 'EmailBeasiswa', label: 'Beasiswa', desc: 'Perubahan status pengajuan dan pengingat deadline beasiswa.', icon: 'menu_book', color: 'text-[#0B4FAE] bg-[#EEF4FF]' },
   { id: 'EmailCounseling', label: 'Konseling', desc: 'Konfirmasi booking dan pengingat sesi konseling.', icon: 'handshake', color: 'text-[#1D4E9E] bg-[#EDF3FF]' },
   { id: 'EmailVoice', label: 'Student Voice', desc: 'Notifikasi saat aspirasi atau pengaduanmu direspons admin.', icon: 'forum', color: 'text-[#113A80] bg-[#F3F7FF]' },
@@ -49,7 +49,7 @@ export default function PreferensiTab() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <span className="material-symbols-outlined animate-spin text-[#00236F]" style={{ fontSize: '32px' }} >sync</span>
+        <span className="material-symbols-outlined animate-spin text-bku-primary" style={{ fontSize: '32px' }} >sync</span>
       </div>
     );
   }
@@ -60,7 +60,7 @@ export default function PreferensiTab() {
       {/* Section: In-App Notifications (Locked) */}
       <div className="bg-white rounded-3xl border border-[#e5e5e5] p-6 md:p-8 shadow-sm">
          <div className="flex items-center gap-3 mb-6">
-            <div className="bg-[#EAF1FF] text-[#00236F] p-2.5 rounded-xl">
+            <div className="bg-[#EAF1FF] text-bku-primary p-2.5 rounded-xl">
                <span className="material-symbols-outlined" style={{ fontSize: '20px' }} Ring >notifications</span>
             </div>
             <h3 className="text-lg font-extrabold font-headline">Notifikasi Dalam Aplikasi</h3>
@@ -68,7 +68,7 @@ export default function PreferensiTab() {
          
           <div className="bg-[#fafafa] p-5 rounded-2xl border border-[#f5f5f5] flex items-center justify-between">
              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 bg-white rounded-xl shadow-sm flex items-center justify-center text-[#00236F]">
+                <div className="w-10 h-10 bg-white rounded-xl shadow-sm flex items-center justify-center text-bku-primary">
                    <span className="material-symbols-outlined" style={{ fontSize: '20px' }} >settings</span>
                 </div>
                <div>
@@ -87,7 +87,7 @@ export default function PreferensiTab() {
       <div className="bg-white rounded-3xl border border-[#e5e5e5] p-6 md:p-8 shadow-sm">
          <div className="flex items-center justify-between mb-8">
             <div className="flex items-center gap-3">
-                <div className="bg-[#EAF1FF] text-[#00236F] p-2.5 rounded-xl">
+                <div className="bg-[#EAF1FF] text-bku-primary p-2.5 rounded-xl">
                    <span className="material-symbols-outlined" style={{ fontSize: '20px' }} >mail</span>
                 </div>
                <div>
@@ -105,7 +105,7 @@ export default function PreferensiTab() {
                         <span className="material-symbols-outlined" style={{ fontSize: 20 }}>{cat.icon}</span>
                      </div>
                      <div className="flex flex-col gap-0.5">
-                        <Label htmlFor={cat.id} className="cursor-pointer font-bold text-sm group-hover:text-[#00236F] transition-colors">{cat.label}</Label>
+                        <Label htmlFor={cat.id} className="cursor-pointer font-bold text-sm group-hover:text-bku-primary transition-colors">{cat.label}</Label>
                         <p className="text-xs font-medium text-[#a3a3a3] leading-relaxed max-w-[240px]">{cat.desc}</p>
                      </div>
                   </div>

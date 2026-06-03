@@ -217,12 +217,12 @@ const FacultyAspirationManagement = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] font-body">
+    <div className="min-h-screen bg-transparent font-inter">
       <Toaster position="top-right" />
       <div className="max-w-[1600px] mx-auto px-4 py-8 md:px-8 xl:px-12 space-y-6">
 
         {/* Header */}
-        <section className="relative overflow-hidden rounded-3xl h-auto md:h-48 flex flex-col md:flex-row items-center group shadow-sm p-6 md:p-8 border border-slate-200/80 bg-white">
+        <section className="relative overflow-hidden rounded-2xl h-auto md:h-48 flex flex-col md:flex-row items-center group shadow-none p-6 md:p-8 border border-slate-200/60 glass-card">
           <div className="absolute inset-0 bg-gradient-to-br from-white via-slate-50/50 to-slate-100/50" />
           <div className="absolute inset-0 opacity-[0.03]"
             style={{
@@ -261,7 +261,7 @@ const FacultyAspirationManagement = () => {
             { label:'Dalam Proses',  value:stats.proses,      icon:Clock,         bg:'bg-blue-50',    color:'text-blue-600',    desc:'Sedang ditangani' },
             { label:'Klarifikasi',   value:stats.klarifikasi, icon:AlertCircle,   bg:'bg-amber-50',   color:'text-amber-600',   desc:'Butuh klarifikasi' },
           ].map(s => (
-            <div key={s.label} className="bg-white border border-slate-200/60 rounded-3xl p-5 shadow-sm">
+            <div key={s.label} className="glass-card border border-slate-200/60 rounded-2xl p-5 shadow-none">
               <div className="flex items-center gap-3 mb-3">
                 <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center', s.bg, s.color)}>
                   <s.icon size={18} />
@@ -277,10 +277,10 @@ const FacultyAspirationManagement = () => {
         </div>
 
         {/* Table */}
-        <div className="bg-white border border-slate-200/60 rounded-3xl shadow-sm overflow-hidden">
+        <div className="glass-card border border-slate-200/60 rounded-2xl shadow-none overflow-hidden">
           <div className="px-5 py-4 border-b border-slate-100 flex flex-col sm:flex-row items-start sm:items-center gap-3">
             <div className="flex-1">
-              <h2 className="font-bold text-base text-slate-900">Daftar Aspirasi Mahasiswa</h2>
+              <h2 className="font-black text-sm uppercase tracking-tight font-headline" style={{ color: 'var(--theme-h2)' }}>Daftar Aspirasi Mahasiswa</h2>
               <p className="text-xs text-slate-500 mt-0.5">
                 Menampilkan <span className="font-bold text-slate-900">{filtered.length}</span> dari <span className="font-bold text-primary">{aspirations.length}</span> aspirasi
               </p>
@@ -403,7 +403,7 @@ const FacultyAspirationManagement = () => {
           </div>
 
           {/* Modern Pagination Footer */}
-          <div className="px-6 py-4 bg-slate-50/50 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="px-6 py-4 bg-transparent border-t border-slate-200/60 flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
               <p className="text-xs text-slate-500 font-medium text-center sm:text-left">
                 Menampilkan <span className="font-semibold text-slate-800">{totalItems > 0 ? (currentPage - 1) * pageSize + 1 : 0}</span> sampai <span className="font-semibold text-slate-800">{Math.min(currentPage * pageSize, totalItems)}</span> dari <span className="font-semibold text-slate-800">{totalItems}</span> entri
@@ -480,11 +480,11 @@ const FacultyAspirationManagement = () => {
       {selected && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-[100] flex items-center justify-center p-4 transition-all duration-300"
           onClick={() => setSelected(null)}>
-          <div className="relative w-full max-w-5xl bg-white rounded-3xl shadow-2xl z-[101] flex flex-col overflow-hidden max-h-[90vh] animate-scale-up"
+          <div className="relative w-full max-w-5xl glass-card rounded-2xl shadow-none border border-slate-200/60 flex flex-col overflow-hidden max-h-[90vh] animate-scale-up"
             onClick={e => e.stopPropagation()}>
             
             {/* Modal Header */}
-            <div className="relative bg-gradient-to-br from-[#00236F] via-[#0b338f] to-[#1242bd] pt-6 pb-6 px-8 overflow-hidden flex-shrink-0 flex items-center justify-between">
+            <div className="relative bg-gradient-to-br from-bku-primary via-[#0b338f] to-[#1242bd] pt-6 pb-6 px-8 overflow-hidden flex-shrink-0 flex items-center justify-between">
               <div className="absolute -top-10 -right-10 w-44 h-44 bg-white/5 rounded-full pointer-events-none"/>
               
               <div className="flex items-center gap-4">
@@ -676,7 +676,7 @@ const FacultyAspirationManagement = () => {
             </div>
 
             {/* Modal Footer */}
-            <div className="px-8 py-5 border-t border-slate-100 bg-slate-50/50 flex items-center justify-end gap-3 flex-shrink-0">
+            <div className="px-8 py-5 border-t border-slate-200/60 bg-transparent flex items-center justify-end gap-3 flex-shrink-0">
               <Button 
                 variant="outline"
                 onClick={() => setSelected(null)}
@@ -687,7 +687,7 @@ const FacultyAspirationManagement = () => {
               <Button 
                 onClick={() => handleUpdateStatus(form.status)}
                 disabled={isSubmitting || !form.status}
-                className="h-11 px-6 rounded-xl bg-primary hover:bg-[#001a52] text-white font-black text-[10px] uppercase tracking-widest shadow-lg shadow-[#00236F]/20 active:scale-95 transition-all gap-1.5"
+                className="h-11 px-6 rounded-xl bg-primary hover:bg-bku-hover text-white font-black text-[10px] uppercase tracking-widest shadow-lg shadow-bku-primary/20 active:scale-95 transition-all gap-1.5"
               >
                 {isSubmitting ? (
                   <span className="material-symbols-outlined animate-spin" style={{ fontSize: '15px' }} >sync</span>

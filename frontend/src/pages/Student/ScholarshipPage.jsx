@@ -48,7 +48,7 @@ const getDaysLeft = (deadline) => {
 const STATUS_BADGE = {
   dikirim: { label: 'Dikirim', color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-200' },
   seleksi_berkas: { label: 'Seleksi Berkas', color: 'text-purple-600', bg: 'bg-purple-50', border: 'border-purple-200' },
-  evaluasi: { label: 'Evaluasi', color: 'text-[#00236F]', bg: 'bg-[#eef4ff]', border: 'border-[#c9d8ff]' },
+  evaluasi: { label: 'Evaluasi', color: 'text-bku-primary', bg: 'bg-[#eef4ff]', border: 'border-[#c9d8ff]' },
   review: { label: 'Review', color: 'text-indigo-600', bg: 'bg-indigo-50', border: 'border-indigo-200' },
   penetapan: { label: 'Penetapan', color: 'text-amber-600', bg: 'bg-amber-50', border: 'border-amber-200' },
   diterima: { label: 'Diterima', color: 'text-green-600', bg: 'bg-green-50', border: 'border-green-200' },
@@ -116,7 +116,7 @@ function ApplyWizard({ scholarship, onClose, onSuccess }) {
         <div className="p-8 border-b border-[#f5f5f5] flex justify-between items-center bg-[#fafafa]">
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <span className="bg-[#00236F] text-white text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest">Langkah {step} dari 3</span>
+              <span className="bg-bku-primary text-white text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest">Langkah {step} dari 3</span>
               <h2 className="text-2xl font-black font-headline">Pendaftaran Beasiswa</h2>
             </div>
             <p className="text-sm font-bold text-[#a3a3a3] uppercase tracking-wider">{scholarshipNama}</p>
@@ -129,7 +129,7 @@ function ApplyWizard({ scholarship, onClose, onSuccess }) {
         {/* Progress Bar */}
         <div className="h-1.5 bg-[#f5f5f5] w-full flex">
           {[1, 2, 3].map(i => (
-            <div key={i} className={`flex-1 transition-all duration-500 ${step >= i ? 'bg-[#00236F]' : 'bg-transparent'}`} />
+            <div key={i} className={`flex-1 transition-all duration-500 ${step >= i ? 'bg-bku-primary' : 'bg-transparent'}`} />
           ))}
         </div>
 
@@ -143,7 +143,7 @@ function ApplyWizard({ scholarship, onClose, onSuccess }) {
                   value={motivasi}
                   onChange={(e) => setMotivasi(e.target.value)}
                   placeholder="Jelaskan kenapa kamu layak menerima beasiswa ini... (min. 150 karakter)"
-                  className="w-full h-48 p-5 rounded-2xl border border-[#e5e5e5] focus:border-[#00236F] outline-none text-sm leading-relaxed resize-none shadow-inner bg-[#fafafa] transition-all"
+                  className="w-full h-48 p-5 rounded-2xl border border-[#e5e5e5] focus:border-bku-primary outline-none text-sm leading-relaxed resize-none shadow-inner bg-[#fafafa] transition-all"
                 />
                 <div className="flex justify-between mt-2">
                   <p className={`text-[10px] font-bold ${motivasi.length < 150 ? 'text-red-500' : 'text-green-600'}`}>
@@ -169,7 +169,7 @@ function ApplyWizard({ scholarship, onClose, onSuccess }) {
                   <div 
                     onClick={() => fileInputRefs.current[item.key].click()}
                     className={`p-4 rounded-2xl border-2 border-dashed cursor-pointer transition-all flex items-center gap-4 ${
-                      files[item.key] ? 'border-[#16a34a] bg-green-50' : 'border-[#e5e5e5] hover:border-[#00236F] bg-[#fafafa]'
+                      files[item.key] ? 'border-[#16a34a] bg-green-50' : 'border-[#e5e5e5] hover:border-bku-primary bg-[#fafafa]'
                     }`}
                   >
                     <div className={`p-2 rounded-xl ${files[item.key] ? 'bg-green-600 text-white' : 'bg-white text-[#a3a3a3]'}`}>
@@ -196,7 +196,7 @@ function ApplyWizard({ scholarship, onClose, onSuccess }) {
           {step === 3 && (
             <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-6">
               <div className="bg-[#eef4ff] p-6 rounded-[24px] border border-[#c9d8ff]">
-                <h4 className="font-black text-[#00236F] mb-4 flex items-center gap-2 tracking-wide"><Sparkles size={18} /> Ringkasan Pengajuan</h4>
+                <h4 className="font-black text-bku-primary mb-4 flex items-center gap-2 tracking-wide"><Sparkles size={18} /> Ringkasan Pengajuan</h4>
                 <div className="space-y-3">
                   <div className="flex justify-between text-sm">
                     <span className="text-[#a3a3a3] font-bold">Beasiswa</span>
@@ -212,7 +212,7 @@ function ApplyWizard({ scholarship, onClose, onSuccess }) {
                     </div>
                   </div>
                   <div className="pt-3 border-t border-[#c9d8ff]">
-                    <p className="text-[10px] font-black text-[#00236F] uppercase tracking-widest mb-1">Motivasi Preview</p>
+                    <p className="text-[10px] font-black text-bku-primary uppercase tracking-widest mb-1">Motivasi Preview</p>
                     <p className="text-sm text-[#171717] font-medium line-clamp-3 italic opacity-70">"{motivasi}"</p>
                   </div>
                 </div>
@@ -223,7 +223,7 @@ function ApplyWizard({ scholarship, onClose, onSuccess }) {
                   type="checkbox" 
                   checked={agreed} 
                   onChange={(e) => setAgreed(e.target.checked)}
-                  className="mt-1 w-5 h-5 rounded border-[#d4d4d4] text-[#00236F] focus:ring-[#00236F] transition-all" 
+                  className="mt-1 w-5 h-5 rounded border-[#d4d4d4] text-bku-primary focus:ring-bku-primary transition-all" 
                 />
                 <span className="text-xs font-bold text-[#525252] leading-relaxed uppercase tracking-tight group-hover:text-[#171717]">
                   Saya menyatakan bahwa seluruh data dan dokumen yang saya kirimkan adalah benar, asli, dan dapat dipertanggungjawabkan di hadapan verifikator beasiswa BKU.
@@ -250,7 +250,7 @@ function ApplyWizard({ scholarship, onClose, onSuccess }) {
             <button 
               disabled={(step === 1 && !isStep1Valid) || (step === 2 && !isStep2Valid)}
               onClick={() => setStep(s => s + 1)}
-              className="flex items-center gap-2 px-8 py-3.5 rounded-2xl font-black bg-[#00236F] text-white hover:bg-[#0B4FAE] transition-all shadow-xl shadow-[#00236F]/20 disabled:opacity-30"
+              className="flex items-center gap-2 px-8 py-3.5 rounded-2xl font-black bg-bku-primary text-white hover:bg-[#0B4FAE] transition-all shadow-xl shadow-bku-primary/20 disabled:opacity-30"
             >
               Lanjutkan <span className="material-symbols-outlined" style={{ fontSize: '18px' }} >arrow_forward</span>
             </button>
@@ -258,7 +258,7 @@ function ApplyWizard({ scholarship, onClose, onSuccess }) {
             <button 
               disabled={!agreed || daftarMutation.isPending}
               onClick={handleSubmit}
-              className="flex items-center gap-2 px-10 py-3.5 rounded-2xl font-black bg-[#00236F] text-white hover:bg-[#0B4FAE] transition-all shadow-xl shadow-[#00236F]/20 disabled:opacity-50"
+              className="flex items-center gap-2 px-10 py-3.5 rounded-2xl font-black bg-bku-primary text-white hover:bg-[#0B4FAE] transition-all shadow-xl shadow-bku-primary/20 disabled:opacity-50"
             >
               {daftarMutation.isPending ? <><span className="material-symbols-outlined animate-spin" style={{ fontSize: '18px' }} >sync</span> Mengirim...</> : <><span className="material-symbols-outlined" style={{ fontSize: 18 }}>check</span> Kirim Pengajuan</>}
             </button>
@@ -294,7 +294,7 @@ export default function ScholarshipPage() {
       >
         <div>
           <h1 className="text-2xl md:text-3xl font-black font-headline tracking-tight flex items-center gap-2.5">
-            <div className="w-10 h-10 bg-[#00236F] rounded-xl flex items-center justify-center shadow-md shadow-[#00236F]/20">
+            <div className="w-10 h-10 bg-bku-primary rounded-xl flex items-center justify-center shadow-md shadow-bku-primary/20">
               <span className="material-symbols-outlined text-white" style={{ fontSize: '20px' }} >school</span>
             </div>
             Scholarship hub
@@ -313,7 +313,7 @@ export default function ScholarshipPage() {
               onClick={() => setActiveTab(tab.id)}
               className={`flex items-center gap-2 px-4 py-2 rounded-xl font-black text-xs md:text-sm transition-all ${
                 activeTab === tab.id 
-                  ? 'bg-[#00236F] text-white shadow-md shadow-[#00236F]/20' 
+                  ? 'bg-bku-primary text-white shadow-md shadow-bku-primary/20' 
                   : 'text-[#a3a3a3] hover:text-[#525252]'
               }`}
             >
@@ -333,7 +333,7 @@ export default function ScholarshipPage() {
             className="flex flex-wrap items-center gap-3 mb-6 bg-white p-3.5 rounded-2xl border border-[#e5e5e5] shadow-sm"
           >
             <div className="flex items-center gap-2 px-4 border-r border-[#f5f5f5] mr-2">
-              <Filter size={16} className="text-[#00236F]" />
+              <Filter size={16} className="text-bku-primary" />
               <span className="text-xs font-black text-[#171717] uppercase tracking-widest">Filters</span>
             </div>
             
@@ -343,7 +343,7 @@ export default function ScholarshipPage() {
                 onClick={() => setFilters(f => ({ ...f, kategori: cat }))}
                 className={`px-4 py-2 rounded-xl text-xs md:text-sm font-bold transition-all ${
                   filters.kategori === cat 
-                    ? 'bg-[#eef4ff] text-[#00236F] border border-[#c9d8ff]' 
+                    ? 'bg-[#eef4ff] text-bku-primary border border-[#c9d8ff]' 
                     : 'bg-transparent text-[#a3a3a3] hover:text-[#525252]'
                 }`}
               >
@@ -356,7 +356,7 @@ export default function ScholarshipPage() {
                 <select 
                  value={filters.sort}
                  onChange={(e) => setFilters(f => ({ ...f, sort: e.target.value }))}
-                 className="bg-[#fafafa] border border-[#e5e5e5] rounded-xl px-3 py-2 text-xs font-bold outline-none focus:border-[#00236F]"
+                 className="bg-[#fafafa] border border-[#e5e5e5] rounded-xl px-3 py-2 text-xs font-bold outline-none focus:border-bku-primary"
                 >
                   <option value="deadline_asc">Deadline Terdekat</option>
                   <option value="nilai_desc">Bantuan Terbesar</option>
@@ -401,7 +401,7 @@ export default function ScholarshipPage() {
                     <div className="p-4 md:p-5 pb-3 flex-1">
                       <div className="flex justify-between items-start mb-4">
                         <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border ${
-                          beasiswaKategori === 'Internal' ? 'bg-[#eef4ff] text-[#00236F] border-[#c9d8ff]' :
+                          beasiswaKategori === 'Internal' ? 'bg-[#eef4ff] text-bku-primary border-[#c9d8ff]' :
                           beasiswaKategori === 'Alumni' ? 'bg-[#eff6ff] text-[#3b82f6] border-[#dbeafe]' :
                           'bg-[#f0fdf4] text-[#16a34a] border-[#bbf7d0]'
                         }`}>
@@ -418,7 +418,7 @@ export default function ScholarshipPage() {
                         ) : null}
                       </div>
                       
-                      <h3 className="text-base md:text-lg font-black mb-1 leading-tight group-hover:text-[#00236F] transition-colors">{beasiswaNama}</h3>
+                      <h3 className="text-base md:text-lg font-black mb-1 leading-tight group-hover:text-bku-primary transition-colors">{beasiswaNama}</h3>
                       <p className="text-[11px] text-[#a3a3a3] font-bold uppercase tracking-wider mb-6">{beasiswaPenyelenggara}</p>
                       <p className="text-xs text-[#737373] leading-relaxed mb-4 line-clamp-2">{beasiswaDeskripsi}</p>
 
@@ -436,7 +436,7 @@ export default function ScholarshipPage() {
                         </div>
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-3">
-                            <div className="w-9 h-9 bg-[#eef4ff] text-[#00236F] rounded-xl flex items-center justify-center">
+                            <div className="w-9 h-9 bg-[#eef4ff] text-bku-primary rounded-xl flex items-center justify-center">
                               <span className="material-symbols-outlined" style={{ fontSize: '18px' }} >group</span>
                             </div>
                             <div>
@@ -459,7 +459,7 @@ export default function ScholarshipPage() {
                       ) : (
                         <button 
                           onClick={() => setSelectedSch(beasiswa)}
-                          className="w-full bg-[#00236F] text-white py-2.5 rounded-xl font-black text-sm flex items-center justify-center gap-2 transition-colors hover:bg-[#0B4FAE]"
+                          className="w-full bg-bku-primary text-white py-2.5 rounded-xl font-black text-sm flex items-center justify-center gap-2 transition-colors hover:bg-[#0B4FAE]"
                         >
                           Detail & Daftar <span className="material-symbols-outlined" style={{ fontSize: '18px' }} >arrow_forward</span>
                         </button>
@@ -472,7 +472,7 @@ export default function ScholarshipPage() {
                <div className="col-span-full">
                  <EmptyState 
                    icon="Search" 
-                   iconColor="text-[#00236F]"
+                   iconColor="text-bku-primary"
                    iconBgClass="bg-[#eef4ff]"
                    iconBorderClass="border-[#c9d8ff]"
                    title="Beasiswa Tidak Ditemukan" 
@@ -488,7 +488,7 @@ export default function ScholarshipPage() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {[
               { label: 'Total Diajukan', val: stats.total, color: 'text-[#171717]', bg: 'bg-white', icon: 'description' },
-               { label: 'Sedang Proses', val: stats.proses, color: 'text-[#00236F]', bg: 'bg-[#eef4ff]', icon: 'schedule' },
+               { label: 'Sedang Proses', val: stats.proses, color: 'text-bku-primary', bg: 'bg-[#eef4ff]', icon: 'schedule' },
               { label: 'Lulus Seleksi', val: stats.diterima, color: 'text-[#16a34a]', bg: 'bg-[#f0fdf4]', icon: 'emoji_events' },
               { label: 'Ditolak', val: stats.ditolak, color: 'text-[#dc2626]', bg: 'bg-[#fef2f2]', icon: 'close' }
             ].map(s => (
@@ -555,7 +555,7 @@ export default function ScholarshipPage() {
                                   toast.error('ID Pengajuan tidak ditemukan');
                                 }
                               }}
-                              className="px-4 py-2 rounded-xl bg-white border border-[#e5e5e5] text-xs font-black hover:border-[#00236F] hover:text-[#00236F] transition-all flex items-center justify-center gap-2 mx-auto"
+                              className="px-4 py-2 rounded-xl bg-white border border-[#e5e5e5] text-xs font-black hover:border-bku-primary hover:text-bku-primary transition-all flex items-center justify-center gap-2 mx-auto"
                              >
                                Lihat Progress <span className="material-symbols-outlined" style={{ fontSize: 14 }}>chevron_right</span>
                              </button>
@@ -568,13 +568,13 @@ export default function ScholarshipPage() {
                       <td colSpan="5" className="p-12">
                         <EmptyState 
                           icon="History" 
-                          iconColor="text-[#00236F]"
+                          iconColor="text-bku-primary"
                           iconBgClass="bg-[#eef4ff]"
                           iconBorderClass="border-[#c9d8ff]"
                           title="Belum Ada Pendaftaran" 
                           description="Riwayat pengajuan beasiswa kamu akan muncul di sini." 
                           actionLabel="Buka Katalog"
-                          actionClassName="bg-[#00236F] hover:bg-[#0B4FAE]"
+                          actionClassName="bg-bku-primary hover:bg-[#0B4FAE]"
                           onAction={() => setActiveTab('katalog')}
                         />
                       </td>
@@ -606,12 +606,12 @@ export default function ScholarshipPage() {
                 exit={{ scale: 0.95, opacity: 0 }}
                 className="bg-white w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
               >
-                <div className="relative h-24 bg-gradient-to-r from-[#00236F] to-[#0B4FAE] p-5 flex items-center">
+                <div className="relative h-24 bg-gradient-to-r from-bku-primary to-[#0B4FAE] p-5 flex items-center">
                    <button onClick={() => setSelectedSch(null)} className="absolute top-6 right-6 text-white/50 hover:text-white transition-colors">
                      <span className="material-symbols-outlined" style={{ fontSize: '24px' }} >close</span>
                    </button>
                    <div>
-                      <h2 className="text-2xl font-black text-white pr-10">{schName}</h2>
+                      <h2 className="text-2xl font-black font-headline pr-10" style={{ color: 'var(--theme-h2)' }}>{schName}</h2>
                       <p className="text-[10px] text-white/50 font-black uppercase tracking-[0.3em] mt-1">{schOrg}</p>
                    </div>
                 </div>
@@ -620,7 +620,7 @@ export default function ScholarshipPage() {
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
                     <div className="p-3.5 bg-[#fafafa] rounded-xl border border-[#e5e5e5]">
                       <p className="text-[9px] font-black text-[#a3a3a3] uppercase tracking-widest mb-1">Nilai Bantuan</p>
-                      <p className="text-sm font-black text-[#00236F]">{formatRupiah(schVal)}</p>
+                      <p className="text-sm font-black text-bku-primary">{formatRupiah(schVal)}</p>
                     </div>
                     <div className="p-3.5 bg-[#fafafa] rounded-xl border border-[#e5e5e5]">
                       <p className="text-[9px] font-black text-[#a3a3a3] uppercase tracking-widest mb-1">Kuota Sisa</p>
@@ -638,12 +638,12 @@ export default function ScholarshipPage() {
 
                   <div className="space-y-6">
                     <div>
-                      <h4 className="flex items-center gap-2 text-sm font-black uppercase tracking-widest mb-3"><span className="material-symbols-outlined text-[#00236F]" style={{ fontSize: 16 }}>info</span> Deskripsi Program</h4>
+                      <h4 className="flex items-center gap-2 text-sm font-black uppercase tracking-widest mb-3"><span className="material-symbols-outlined text-bku-primary" style={{ fontSize: 16 }}>info</span> Deskripsi Program</h4>
                       <p className="text-sm text-[#525252] font-medium leading-relaxed">{schDesc}</p>
                     </div>
 
                     <div>
-                      <h4 className="flex items-center gap-2 text-sm font-black uppercase tracking-widest mb-3"><span className="material-symbols-outlined text-[#00236F]" style={{ fontSize: '16px' }} >description</span> Persyaratan</h4>
+                      <h4 className="flex items-center gap-2 text-sm font-black uppercase tracking-widest mb-3"><span className="material-symbols-outlined text-bku-primary" style={{ fontSize: '16px' }} >description</span> Persyaratan</h4>
                       <div className="bg-[#fafafa] p-6 rounded-[24px] border border-[#e5e5e5]">
                          <pre className="text-sm text-[#525252] font-medium whitespace-pre-line font-body leading-relaxed">
                            {schDesc}
@@ -652,11 +652,11 @@ export default function ScholarshipPage() {
                     </div>
 
                   <div>
-                     <h4 className="flex items-center gap-2 text-sm font-black uppercase tracking-widest mb-3"><Sparkles size={16} className="text-[#00236F]" /> Tahapan Seleksi</h4>
+                     <h4 className="flex items-center gap-2 text-sm font-black uppercase tracking-widest mb-3"><Sparkles size={16} className="text-bku-primary" /> Tahapan Seleksi</h4>
                      <div className="flex items-center justify-between px-2 py-4">
                         {['Daftar', 'Berkas', 'Evaluasi', 'Review', 'Penetapan', 'Hasil'].map((s, i) => (
                            <div key={s} className="flex flex-col items-center gap-2">
-                              <div className={`w-3 h-3 rounded-full ${i === 0 ? 'bg-[#00236F]' : 'bg-[#e5e5e5]'}`} />
+                              <div className={`w-3 h-3 rounded-full ${i === 0 ? 'bg-bku-primary' : 'bg-[#e5e5e5]'}`} />
                               <span className={`text-[8px] font-black uppercase tracking-tighter ${i === 0 ? 'text-[#171717]' : 'text-[#a3a3a3]'}`}>{s}</span>
                            </div>
                         ))}
@@ -674,7 +674,7 @@ export default function ScholarshipPage() {
                 </button>
                 <button 
                   onClick={() => setShowApplyModal(true)}
-                  className="flex-1 py-4 rounded-2xl font-black text-sm bg-[#00236F] text-white hover:bg-[#0B4FAE] shadow-xl shadow-[#00236F]/20 transition-all hover:scale-[1.02]"
+                  className="flex-1 py-4 rounded-2xl font-black text-sm bg-bku-primary text-white hover:bg-[#0B4FAE] shadow-xl shadow-bku-primary/20 transition-all hover:scale-[1.02]"
                 >
                   Daftar Sekarang
                 </button>

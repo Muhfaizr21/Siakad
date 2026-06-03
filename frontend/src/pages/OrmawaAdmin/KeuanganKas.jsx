@@ -210,7 +210,7 @@ export default function KeuanganKas() {
       <Toaster position="top-right" />
       
       {/* ── Welcome Banner ─────────────────────────────────────────── */}
-      <section className="relative overflow-hidden rounded-[2rem] bg-gradient-to-r from-[#00236F] to-[#1e3a8a] text-white p-8 md:p-10 shadow-xl shadow-blue-900/10">
+      <section className="relative overflow-hidden rounded-[2rem] bg-gradient-to-r from-bku-primary to-[#1e3a8a] text-white p-8 md:p-10 shadow-xl shadow-blue-900/10">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.08)_0%,transparent_60%)]" />
         <div className="absolute inset-0 opacity-[0.03]"
           style={{
@@ -243,7 +243,7 @@ export default function KeuanganKas() {
               setForm({ Deskripsi: '', Nominal: '', Tipe: 'pemasukan', Tanggal: '', OrmawaID: ormawaId, Sumber: 'organisasi' })
               setIsCrudOpen(true) 
             }} 
-            className="h-12 px-6 rounded-2xl bg-white hover:bg-white/95 text-[#00236F] hover:text-[#00236F] border-none font-bold text-xs tracking-wider shadow-lg shadow-blue-900/10 transition-all active:scale-95 shrink-0 w-full md:w-auto flex items-center justify-center gap-2"
+            className="h-12 px-6 rounded-2xl bg-white hover:bg-white/95 text-bku-primary hover:text-bku-primary border-none font-bold text-xs tracking-wider shadow-lg shadow-blue-900/10 transition-all active:scale-95 shrink-0 w-full md:w-auto flex items-center justify-center gap-2"
           >
             <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>add_box</span>
             <span>CATAT TRANSAKSI</span>
@@ -256,7 +256,7 @@ export default function KeuanganKas() {
         {/* Saldo Gabungan (Navy tailored) */}
         <Card className="border border-slate-100 shadow-sm rounded-3xl overflow-hidden bg-white hover:shadow-md transition-all duration-300">
           <CardContent className="p-6 flex items-center gap-5">
-            <div className="w-14 h-14 rounded-2xl bg-blue-50 flex items-center justify-center text-[#00236F] shrink-0">
+<div className="w-14 h-14 rounded-2xl bg-blue-50 flex items-center justify-center text-[#00236F] shrink-0">
               <span className="material-symbols-outlined" style={{ fontSize: '28px' }}>account_balance</span>
             </div>
             <div className="space-y-1">
@@ -350,14 +350,14 @@ export default function KeuanganKas() {
         <DialogContent className="max-w-lg p-0 overflow-hidden border-none shadow-2xl rounded-[2.5rem] bg-white/95 backdrop-blur-xl animate-in zoom-in-95 duration-200">
           <DialogHeader className="p-8 pb-6 bg-gradient-to-br from-slate-50 to-white border-b border-slate-100 relative overflow-hidden">
             <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none">
-              <span className="material-symbols-outlined size-24 rotate-12 text-[#00236F]">account_balance_wallet</span>
+              <span className="material-symbols-outlined size-24 rotate-12 text-bku-primary">account_balance_wallet</span>
             </div>
             <div className="relative z-10">
               <div className="flex items-center gap-3 mb-2">
                 <div className="size-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
                   <span className="material-symbols-outlined stroke-[3px]" style={{ fontSize: '16px' }}>payments</span>
                 </div>
-                <Badge className="text-[9px] font-black tracking-widest px-2.5 py-0.5 bg-[#00236F]/5 text-[#00236F] border-none rounded-md">MUTASI KAS</Badge>
+                <Badge className="text-[9px] font-black tracking-widest px-2.5 py-0.5 bg-bku-primary/5 text-bku-primary border-none rounded-md">MUTASI KAS</Badge>
               </div>
               <DialogTitle className="text-xl font-black font-headline tracking-tighter text-slate-900">Catat Transaksi Baru</DialogTitle>
               <DialogDescription className="text-xs font-semibold text-slate-400 mt-1">Dokumentasikan arus masuk atau keluar kas dengan akurat.</DialogDescription>

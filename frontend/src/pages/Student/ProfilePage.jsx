@@ -35,7 +35,7 @@ export default function ProfilePage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <span className="material-symbols-outlined w-10 h-10 text-[#00236F] animate-spin" >sync</span>
+        <span className="material-symbols-outlined w-10 h-10 text-bku-primary animate-spin" >sync</span>
       </div>
     );
   }
@@ -43,13 +43,13 @@ export default function ProfilePage() {
   if (isError) {
     return (
       <div className="p-10 text-center">
-        <p className="text-[#00236F] font-bold">Gagal memuat profil. Silakan coba lagi nanti.</p>
+        <p className="text-bku-primary font-bold">Gagal memuat profil. Silakan coba lagi nanti.</p>
       </div>
     );
   }
 
   const statusColors = {
-    aktif: 'bg-[#EAF1FF] text-[#00236F] border-[#C9D8FF]',
+    aktif: 'bg-[#EAF1FF] text-bku-primary border-[#C9D8FF]',
     cuti: 'bg-[#EAF1FF] text-[#0B4FAE] border-[#C9D8FF]',
     alumni: 'bg-[#fafafa] text-[#737373] border-[#f5f5f5]',
   };
@@ -60,7 +60,7 @@ export default function ProfilePage() {
     <div className="px-4 py-5 md:px-6 md:py-6 lg:px-8 lg:py-8 text-[#171717]">
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 text-sm font-medium text-[#a3a3a3] mb-6">
-        <NavLink to="/student/dashboard" className="hover:text-[#00236F] cursor-pointer transition-colors">Dashboard</NavLink>
+        <NavLink to="/student/dashboard" className="hover:text-bku-primary cursor-pointer transition-colors">Dashboard</NavLink>
         <span className="material-symbols-outlined" style={{ fontSize: 16 }}>chevron_right</span>
         <span className="text-[#171717]">Student Profile</span>
       </div>
@@ -81,7 +81,7 @@ export default function ProfilePage() {
                   )}
                   <button 
                     onClick={() => setIsAvatarModalOpen(true)}
-                    className="absolute inset-0 bg-[#00236F]/55 text-white flex flex-col items-center justify-center opacity-0 group-hover/avatar:opacity-100 transition-opacity cursor-pointer"
+                    className="absolute inset-0 bg-bku-primary/55 text-white flex flex-col items-center justify-center opacity-0 group-hover/avatar:opacity-100 transition-opacity cursor-pointer"
                   >
                     <Camera size={24} className="mb-1" />
                     <span className="text-[10px] font-black uppercase tracking-widest">Ganti Foto</span>
@@ -89,7 +89,7 @@ export default function ProfilePage() {
                </div>
                 <button 
                  onClick={() => setIsAvatarModalOpen(true)}
-                 className="text-[11px] font-extrabold text-[#00236F] uppercase tracking-widest hover:underline md:hidden"
+                 className="text-[11px] font-extrabold text-bku-primary uppercase tracking-widest hover:underline md:hidden"
                 >
                   Ganti Foto
                 </button>
@@ -119,7 +119,7 @@ export default function ProfilePage() {
                   <div className="col-span-2">
                     <label className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-widest block mb-1">Semester</label>
                     <p className="text-sm font-bold flex items-center gap-1.5">
-                        {profile?.SemesterSekarang} <span className="text-[#a3a3a3] opacity-30 text-xs">•</span> <span className="text-[#00236F]">Aktif</span>
+                        {profile?.SemesterSekarang} <span className="text-[#a3a3a3] opacity-30 text-xs">•</span> <span className="text-bku-primary">Aktif</span>
                     </p>
                   </div>
                </div>
@@ -131,7 +131,7 @@ export default function ProfilePage() {
             Data di atas bersumber dari sistem Student Hub dan bersifat read-only (tidak dapat diubah).
           </div>
 
-          <div className="absolute top-0 right-0 w-64 h-64 bg-[#00236F] opacity-[0.03] rounded-full translate-x-1/3 -translate-y-1/3 pointer-events-none group-hover:scale-110 transition-transform duration-700"></div>
+          <div className="absolute top-0 right-0 w-64 h-64 bg-bku-primary opacity-[0.03] rounded-full translate-x-1/3 -translate-y-1/3 pointer-events-none group-hover:scale-110 transition-transform duration-700"></div>
         </div>
 
         {/* Profile Tabs */}

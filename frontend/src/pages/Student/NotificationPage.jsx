@@ -18,12 +18,12 @@ import {
 } from '../../components/ui/Select';
 
 const CATEGORY_ICONS = {
-  achievement: <span className="material-symbols-outlined text-[#00236F]" style={{ fontSize: '18px' }}>emoji_events</span>,
-  beasiswa: <span className="material-symbols-outlined text-[#00236F]" style={{ fontSize: '18px' }} >school</span>,
-  konseling: <span className="material-symbols-outlined text-[#00236F]" style={{ fontSize: '18px' }}>handshake</span>,
-  student_voice: <span className="material-symbols-outlined text-[#00236F]" style={{ fontSize: '18px' }} >chat</span>,
-  kencana: <span className="material-symbols-outlined text-[#00236F]" style={{ fontSize: '18px' }}>menu_book</span>,
-  sistem: <span className="material-symbols-outlined text-[#00236F]" style={{ fontSize: '18px' }} >notifications</span>,
+  achievement: <span className="material-symbols-outlined text-bku-primary" style={{ fontSize: '18px' }}>emoji_events</span>,
+  beasiswa: <span className="material-symbols-outlined text-bku-primary" style={{ fontSize: '18px' }} >school</span>,
+  konseling: <span className="material-symbols-outlined text-bku-primary" style={{ fontSize: '18px' }}>handshake</span>,
+  student_voice: <span className="material-symbols-outlined text-bku-primary" style={{ fontSize: '18px' }} >chat</span>,
+  kencana: <span className="material-symbols-outlined text-bku-primary" style={{ fontSize: '18px' }}>menu_book</span>,
+  sistem: <span className="material-symbols-outlined text-bku-primary" style={{ fontSize: '18px' }} >notifications</span>,
 };
 
 const CATEGORIES = [
@@ -153,7 +153,7 @@ export default function NotificationPage() {
     <div className="p-6 md:p-10 text-[#171717] min-h-screen bg-[#fafafa]">
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 text-sm font-medium text-[#a3a3a3] mb-8">
-        <NavLink to="/student/dashboard" className="hover:text-[#00236F] cursor-pointer transition-colors">Dashboard</NavLink>
+        <NavLink to="/student/dashboard" className="hover:text-bku-primary cursor-pointer transition-colors">Dashboard</NavLink>
         <span className="material-symbols-outlined" style={{ fontSize: 16 }}>chevron_right</span>
         <span className="text-[#171717]">Notifikasi</span>
       </div>
@@ -170,7 +170,7 @@ export default function NotificationPage() {
           <button 
             onClick={() => queryClient.invalidateQueries(['notifikasi'])}
             disabled={!hasUnread}
-            className="w-full sm:w-auto px-5 py-2.5 bg-[#EAF1FF] text-[#00236F] rounded-xl text-sm font-bold border border-[#C9D8FF] hover:bg-[#D5E2FF] transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+            className="w-full sm:w-auto px-5 py-2.5 bg-[#EAF1FF] text-bku-primary rounded-xl text-sm font-bold border border-[#C9D8FF] hover:bg-[#D5E2FF] transition-all disabled:opacity-50 flex items-center justify-center gap-2"
           >
             <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >check_circle</span>
             Tandai Semua Dibaca
@@ -196,7 +196,7 @@ export default function NotificationPage() {
                 className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold border-2 transition-all whitespace-nowrap ${
                   filterType === cat.id 
                     ? 'bg-[#171717] text-white border-[#171717]' 
-                    : 'bg-white text-[#737373] border-[#e5e5e5] hover:border-[#00236F]'
+                    : 'bg-white text-[#737373] border-[#e5e5e5] hover:border-bku-primary'
                 }`}
               >
                 {cat.label}
@@ -225,7 +225,7 @@ export default function NotificationPage() {
       {selectedIds.length > 0 && (
         <div className="fixed bottom-4 sm:bottom-10 left-1/2 -translate-x-1/2 bg-[#171717] text-white px-5 py-4 rounded-2xl shadow-2xl z-50 flex flex-col sm:flex-row items-center gap-3 sm:gap-6 animate-in slide-in-from-bottom-5 duration-300 w-[92vw] sm:w-auto">
            <div className="flex items-center gap-3">
-              <span className="w-6 h-6 bg-[#00236F] rounded-full flex items-center justify-center text-[10px] font-black">
+              <span className="w-6 h-6 bg-bku-primary rounded-full flex items-center justify-center text-[10px] font-black">
                 {selectedIds.length}
               </span>
               <span className="text-sm font-bold">dipilih</span>
@@ -234,7 +234,7 @@ export default function NotificationPage() {
            <div className="flex flex-wrap items-center justify-center gap-4 w-full sm:w-auto">
               <button 
                 onClick={() => bulkReadMutation.mutate(selectedIds)}
-                className="text-xs sm:text-sm font-bold hover:text-[#00236F] transition-colors flex items-center gap-2"
+                className="text-xs sm:text-sm font-bold hover:text-bku-primary transition-colors flex items-center gap-2"
               >
                 <span className="material-symbols-outlined" style={{ fontSize: 16 }}>check</span> Tandai Dibaca
               </button>
@@ -271,7 +271,7 @@ export default function NotificationPage() {
                   <div 
                     key={notif.id}
                     className={`group relative bg-white border rounded-2xl p-4 sm:p-5 transition-all hover:shadow-md flex flex-row gap-3 sm:gap-5 items-start ${
-                      !notif.is_read ? 'border-[#00236F]/30 shadow-sm' : 'border-[#e5e5e5] grayscale-[0.5] opacity-80 hover:grayscale-0 hover:opacity-100'
+                      !notif.is_read ? 'border-bku-primary/30 shadow-sm' : 'border-[#e5e5e5] grayscale-[0.5] opacity-80 hover:grayscale-0 hover:opacity-100'
                     }`}
                   >
                     {/* Checkbox */}
@@ -280,7 +280,7 @@ export default function NotificationPage() {
                          type="checkbox" 
                          checked={selectedIds.includes(notif.id)}
                          onChange={() => toggleSelect(notif.id)}
-                         className="w-5 h-5 rounded-md border-[#d4d4d4] text-[#00236F] focus:ring-[#00236F] cursor-pointer"
+                         className="w-5 h-5 rounded-md border-[#d4d4d4] text-bku-primary focus:ring-bku-primary cursor-pointer"
                        />
                     </div>
 
@@ -317,7 +317,7 @@ export default function NotificationPage() {
                        {notif.link && (
                           <a 
                             href={notif.link}
-                            className="inline-flex items-center gap-2 text-[10px] sm:text-xs font-black text-[#00236F] uppercase tracking-widest hover:underline"
+                            className="inline-flex items-center gap-2 text-[10px] sm:text-xs font-black text-bku-primary uppercase tracking-widest hover:underline"
                           >
                             Lihat Detail <span className="material-symbols-outlined" style={{ fontSize: 14 }}>chevron_right</span>
                           </a>
@@ -345,7 +345,7 @@ export default function NotificationPage() {
                     </div>
 
                     {!notif.is_read && (
-                       <div className="absolute top-0 left-0 w-1 h-full bg-[#00236F] rounded-l-2xl" />
+                       <div className="absolute top-0 left-0 w-1 h-full bg-bku-primary rounded-l-2xl" />
                     )}
                   </div>
                 ))}

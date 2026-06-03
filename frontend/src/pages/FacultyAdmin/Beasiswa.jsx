@@ -406,12 +406,12 @@ export default function FacultyScholarship() {
   ]
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] font-body">
+    <div className="min-h-screen bg-transparent font-inter">
       <Toaster position="top-right" />
       <div className="max-w-[1600px] mx-auto px-4 py-8 md:px-8 xl:px-12 space-y-6">
 
         {/* Header */}
-        <section className="relative overflow-hidden rounded-3xl h-auto md:h-48 flex flex-col md:flex-row items-center group shadow-sm p-6 md:p-8 border border-slate-200/80 bg-white">
+        <section className="relative overflow-hidden rounded-2xl h-auto md:h-48 flex flex-col md:flex-row items-center group shadow-none p-6 md:p-8 border border-slate-200/60 glass-card">
           <div className="absolute inset-0 bg-gradient-to-br from-white via-slate-50/50 to-slate-100/50" />
           <div className="absolute inset-0 opacity-[0.03]"
             style={{
@@ -457,7 +457,7 @@ export default function FacultyScholarship() {
             { label: 'Pendaftar Baru', value: stats.pendaftar, icon: Users, bg: 'bg-amber-50', color: 'text-amber-600', desc: 'Sedang diproses' },
             { label: 'Lolos Seleksi', value: stats.lolos, icon: UserCheck, bg: 'bg-indigo-50', color: 'text-indigo-600', desc: 'Diterima beasiswa' },
           ].map(s => (
-            <div key={s.label} className="bg-white border border-slate-100/50 rounded-3xl p-5 shadow-sm">
+            <div key={s.label} className="glass-card border border-slate-200/60 rounded-2xl p-5 shadow-none">
               <div className="flex items-center gap-3 mb-3">
                 <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center', s.bg, s.color)}>
                   <s.icon size={18} />
@@ -473,7 +473,7 @@ export default function FacultyScholarship() {
         </div>
 
         {/* Tabs */}
-        <div className="flex items-center gap-1 bg-white border border-slate-200/60 rounded-2xl p-1.5 w-fit shadow-sm">
+        <div className="flex items-center gap-1 glass-card border border-slate-200/60 rounded-2xl p-1.5 w-fit shadow-none">
           {TABS.map(t => (
             <button key={t.key} onClick={() => { 
               setActiveTab(t.key); 
@@ -481,17 +481,17 @@ export default function FacultyScholarship() {
               setSelectedScholarshipFilter('Semua');
             }}
               className={cn('flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest transition-all',
-                activeTab === t.key ? 'bg-primary text-white shadow-lg shadow-[#00236F]/25' : 'text-slate-500 hover:bg-slate-50')}>
+                activeTab === t.key ? 'bg-primary text-white shadow-lg shadow-bku-primary/25' : 'text-slate-500 hover:bg-slate-50')}>
               <t.icon size={14} />{t.label}
             </button>
           ))}
         </div>
 
         {/* Table */}
-        <div className="bg-white border border-slate-100/50 rounded-3xl shadow-sm overflow-hidden">
+        <div className="glass-card border border-slate-200/60 rounded-2xl shadow-none overflow-hidden">
           <div className="px-5 py-4 border-b border-slate-100 flex flex-col sm:flex-row items-start sm:items-center gap-3">
             <div className="flex-1">
-              <h2 className="font-bold text-base text-slate-900">
+              <h2 className="font-black text-slate-800 text-sm uppercase tracking-tight font-headline">
                 {activeTab === 'programs' ? 'Daftar Program Beasiswa' : 'Daftar Pendaftar Beasiswa'}
               </h2>
               <p className="text-xs text-slate-500 mt-0.5">
@@ -507,10 +507,10 @@ export default function FacultyScholarship() {
                 <div className="flex items-center gap-2">
                   <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest whitespace-nowrap">Filter Beasiswa:</span>
                   <Select value={selectedScholarshipFilter} onValueChange={setSelectedScholarshipFilter}>
-                    <SelectTrigger className="h-9 w-48 rounded-xl border-slate-200 bg-white font-semibold text-xs shadow-sm focus:ring-primary/20 px-3 py-1 flex items-center justify-between">
+                    <SelectTrigger className="h-9 w-48 rounded-xl border-slate-200 bg-white/50 font-semibold text-xs shadow-sm focus:ring-primary/20 px-3 py-1 flex items-center justify-between">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent className="rounded-2xl border-slate-200 shadow-xl p-1 font-body">
+                    <SelectContent className="rounded-2xl border-slate-200 shadow-xl p-1 font-inter glass-card">
                       <SelectItem value="Semua" className="rounded-xl text-xs py-1.5 focus:bg-primary/5 focus:text-primary">
                         Semua Beasiswa
                       </SelectItem>
@@ -527,7 +527,7 @@ export default function FacultyScholarship() {
                 <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" style={{ fontSize: '14px' }} >search</span>
                 <input type="text" placeholder={activeTab === 'programs' ? 'Cari nama beasiswa...' : 'Cari mahasiswa atau NIM...'}
                   value={search} onChange={e => setSearch(e.target.value)}
-                  className="pl-9 pr-4 h-9 w-52 rounded-xl border border-slate-200/60 focus:outline-none focus:border-primary text-sm bg-white" />
+                  className="pl-9 pr-4 h-9 w-52 rounded-xl border border-slate-200/60 focus:outline-none focus:border-primary text-sm bg-transparent" />
               </div>
             </div>
           </div>
@@ -764,7 +764,7 @@ export default function FacultyScholarship() {
           </div>
 
           {/* Modern Pagination Footer */}
-          <div className="px-6 py-4 bg-slate-50/50 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="px-6 py-4 bg-transparent border-t border-slate-200/60 flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
               <p className="text-xs text-slate-500 font-medium text-center sm:text-left">
                 Menampilkan <span className="font-semibold text-slate-800">{totalItems > 0 ? (currentPage - 1) * pageSize + 1 : 0}</span> sampai <span className="font-semibold text-slate-800">{Math.min(currentPage * pageSize, totalItems)}</span> dari <span className="font-semibold text-slate-800">{totalItems}</span> entri
@@ -839,18 +839,16 @@ export default function FacultyScholarship() {
         </div>
       </div>
 
-
-
       {/* Read-Only Preview Application Modal */}
       {previewApp && (() => {
         const st = getAppStatus(previewApp.Status);
         return (
           <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4"
             onClick={() => setPreviewApp(null)}>
-            <div className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl z-[101] flex flex-col overflow-hidden max-h-[90vh]"
+            <div className="relative w-full max-w-md glass-card rounded-2xl shadow-none border border-slate-200/60 flex flex-col overflow-hidden max-h-[90vh]"
               onClick={e => e.stopPropagation()}>
               {/* Header */}
-              <div className="relative bg-gradient-to-br from-[#00236F] via-[#00308F] to-[#003db5] pt-6 pb-7 px-6 overflow-hidden flex-shrink-0">
+              <div className="relative bg-gradient-to-br from-bku-primary via-[#00308F] to-[#003db5] pt-6 pb-7 px-6 overflow-hidden flex-shrink-0">
                 <div className="absolute -top-10 -right-10 w-44 h-44 bg-white/5 rounded-full pointer-events-none" />
                 <button onClick={() => setPreviewApp(null)}
                   className="absolute z-50 top-4 right-4 w-8 h-8 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center transition-colors">
@@ -860,14 +858,14 @@ export default function FacultyScholarship() {
                   <StudentAvatar src={previewApp.Mahasiswa?.Foto} name={previewApp.Mahasiswa?.Nama} className="w-14 h-14 rounded-2xl shadow-xl ring-2 ring-white/20" />
                   <div className="min-w-0">
                     <p className="text-[9px] font-bold text-white/50 uppercase tracking-[0.25em] mb-1">Detail Pendaftaran</p>
-                    <h2 className="text-base font-extrabold text-white leading-tight truncate">{previewApp.Mahasiswa?.Nama}</h2>
+                    <h2 className="text-base font-extrabold font-headline leading-tight truncate" style={{ color: 'var(--theme-h2)' }}>{previewApp.Mahasiswa?.Nama}</h2>
                     <p className="text-xs text-blue-200 font-medium mt-0.5">{previewApp.Mahasiswa?.NIM}</p>
                   </div>
                 </div>
               </div>
 
               {/* Content */}
-              <div className="p-6 space-y-4 overflow-y-auto flex-1 font-body">
+              <div className="p-6 space-y-4 overflow-y-auto flex-1 font-inter">
                 {/* Scholarship Program */}
                 <div className="space-y-1">
                   <span className="block text-[8px] font-bold text-slate-400 uppercase tracking-wider">PROGRAM BEASISWA</span>
@@ -948,9 +946,9 @@ export default function FacultyScholarship() {
               </div>
 
               {/* Footer */}
-              <div className="px-5 py-4 border-t border-slate-100 bg-slate-50/50 flex gap-3 flex-shrink-0">
+              <div className="px-5 py-4 border-t border-slate-200/60 bg-transparent flex gap-3 flex-shrink-0">
                 <button onClick={() => setPreviewApp(null)}
-                  className="flex-1 h-11 rounded-xl bg-primary hover:bg-[#001f5c] text-xs font-bold text-white uppercase tracking-widest flex items-center justify-center gap-2 transition-all shadow-md active:scale-95">
+                  className="flex-1 h-11 rounded-xl bg-primary hover:bg-bku-hover text-xs font-bold text-white uppercase tracking-widest flex items-center justify-center gap-2 transition-all shadow-md active:scale-95">
                   Tutup Detail
                 </button>
               </div>
@@ -970,10 +968,10 @@ export default function FacultyScholarship() {
         return (
           <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4"
             onClick={() => setSelectedProgram(null)}>
-            <div className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl z-[101] flex flex-col overflow-hidden max-h-[90vh]"
+            <div className="relative w-full max-w-md glass-card rounded-2xl shadow-none border border-slate-200/60 flex flex-col overflow-hidden max-h-[90vh]"
               onClick={e => e.stopPropagation()}>
               {/* Header */}
-              <div className="relative bg-gradient-to-br from-[#00236F] via-[#00308F] to-[#003db5] pt-6 pb-7 px-6 overflow-hidden flex-shrink-0">
+              <div className="relative bg-gradient-to-br from-bku-primary via-[#00308F] to-[#003db5] pt-6 pb-7 px-6 overflow-hidden flex-shrink-0">
                 <div className="absolute -top-10 -right-10 w-44 h-44 bg-white/5 rounded-full pointer-events-none" />
                 <button onClick={() => setSelectedProgram(null)}
                   className="absolute z-50 top-4 right-4 w-8 h-8 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center transition-colors">
@@ -982,14 +980,14 @@ export default function FacultyScholarship() {
                 <div className="flex items-center gap-3">
                   <div className="min-w-0">
                     <p className="text-[9px] font-bold text-white/50 uppercase tracking-[0.25em] mb-1">Detail Program Beasiswa</p>
-                    <h2 className="text-base font-extrabold text-white leading-tight">{selectedProgram.Nama}</h2>
+                    <h2 className="text-base font-extrabold font-headline leading-tight" style={{ color: 'var(--theme-h2)' }}>{selectedProgram.Nama}</h2>
                     <p className="text-xs text-blue-200 font-medium mt-0.5">{selectedProgram.Penyelenggara}</p>
                   </div>
                 </div>
               </div>
 
               {/* Content */}
-              <div className="p-6 space-y-4 overflow-y-auto flex-1 font-body">
+              <div className="p-6 space-y-4 overflow-y-auto flex-1 font-inter">
                 {/* Deskripsi */}
                 {selectedProgram.Deskripsi && (
                   <div className="space-y-1">
@@ -1108,7 +1106,7 @@ export default function FacultyScholarship() {
               </div>
 
               {/* Footer */}
-              <div className="px-5 py-4 border-t border-slate-100 bg-slate-50/50 flex gap-3 flex-shrink-0">
+              <div className="px-5 py-4 border-t border-slate-200/60 bg-transparent flex gap-3 flex-shrink-0">
                 <button onClick={() => setSelectedProgram(null)}
                   className="flex-1 h-11 rounded-xl border border-slate-200/60 bg-white text-xs font-bold text-slate-600 uppercase tracking-widest hover:bg-slate-50 transition-all">
                   Tutup
@@ -1119,7 +1117,7 @@ export default function FacultyScholarship() {
                     setActiveTab('applications');
                     setSelectedProgram(null);
                   }}
-                  className="flex-1 h-11 rounded-xl bg-primary hover:bg-[#001f5c] text-xs font-bold text-white uppercase tracking-widest flex items-center justify-center gap-2 transition-all shadow-md active:scale-95">
+                  className="flex-1 h-11 rounded-xl bg-primary hover:bg-bku-hover text-xs font-bold text-white uppercase tracking-widest flex items-center justify-center gap-2 transition-all shadow-md active:scale-95">
                   <span className="material-symbols-outlined" style={{ fontSize: 16 }}>visibility</span>
                   Lihat Selengkapnya
                 </button>

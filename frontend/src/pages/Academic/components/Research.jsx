@@ -1,60 +1,124 @@
 import React from 'react';
+import { Microscope, Globe, ExternalLink } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
-const Research = () => {
+export default function Research() {
   return (
-    <section className="py-24 px-8 max-w-7xl mx-auto overflow-hidden">
-        <div className="grid md:grid-cols-2 gap-16 items-center">
-            <div className="relative">
-                <div className="absolute -top-10 -left-10 w-64 h-64 bg-primary-fixed/30 rounded-full blur-3xl"></div>
-                <div className="relative z-10 grid grid-cols-2 gap-4">
-                    <img alt="Research Labs" className="rounded-xl w-full h-64 object-cover"
-                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuDY8x_C_CTe-KMkgcOkppizhEKRFDvBie0Pi4F2ufVmoJx7RaIkBVaasFHtJmC-v98JVZHS7xpoZdQjqHBVizWMVRLL0lDeVJH7wSkj7nsyTIpN6ePrfbYtgFHtQHcUKAappnOJ7WYTinqTcXsTjoRBb3Ru5dUrDwPdNvXfTKbrzywk0OwrRTlj7ctPV361GC_8GMoLZxFp4Mj0bTPG6rdUPaEdUBCvdA1kvabBdZjXyvPsfgdKNDZLtSD7ZMn2lhPZNzjXXrr-nbYL" />
-                    <img alt="Collaboration" className="rounded-xl w-full h-64 object-cover mt-8"
-                        src="https://lh3.googleusercontent.com/aida-public/AB6AXuAp5z_MtsZBv8BKY5WRupEMHk7p-EcSmujkAJsUEVW6tw8v25UU8J2XqB4zJYCRnP4ghngGseJeHnlkNoBlS21mMzKpXWeVXotzo2PCWxdp39ur8BQST7S6HxF913qhyfusHLf_f1045ekqME3_XOjEtimtnvG-o0iRdxj3AD7jFSTijPQao5OrIUC-oyt0vSLy6e6Pofj0EzGL41fJAG5NTSnURa-rON_rhG7aiGZjtjZhoBEjkVMpuwiHmANifOmLqaf0gdtP_y_7" />
-                </div>
+    <section
+      className="py-24 sm:py-32 px-4 sm:px-6 lg:px-8 overflow-hidden relative"
+      style={{ backgroundColor: 'var(--theme-bg)' }}
+    >
+      {/* Glowing accents */}
+      <div
+        className="absolute top-[10%] left-[-10%] w-[300px] h-[300px] rounded-full pointer-events-none"
+        style={{ background: 'color-mix(in srgb, var(--theme-secondary) 5%, transparent)', filter: 'blur(80px)' }}
+      />
+
+      <div className="max-w-7xl mx-auto relative z-10">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 items-center">
+
+          {/* Left: Decorative Image Grid */}
+          <div className="lg:col-span-6 relative">
+            <div
+              className="absolute top-[-20px] left-[-20px] w-full max-w-[400px] aspect-[4/3] rounded-3xl transform rotate-2 z-0"
+              style={{ background: 'color-mix(in srgb, var(--theme-secondary) 10%, transparent)' }}
+            />
+            <div className="relative z-10 grid grid-cols-2 gap-4">
+              <div className="rounded-2xl overflow-hidden border shadow-md" style={{ backgroundColor: 'var(--theme-surface)', borderColor: 'var(--theme-border)' }}>
+                <img
+                  alt="Laboratorium Riset Farmasi"
+                  className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
+                  src="/images/Kampus/bandung.jpg"
+                />
+              </div>
+              <div
+                className="rounded-2xl overflow-hidden border shadow-md mt-8"
+                style={{ backgroundColor: 'var(--theme-surface)', borderColor: 'var(--theme-border)' }}
+              >
+                <img
+                  alt="Riset Mahasiswa Terpadu"
+                  className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
+                  src="/images/Kampus/jakarta.jpg"
+                />
+              </div>
             </div>
-            <div>
-                <span className="text-primary font-headline font-bold tracking-widest text-xs uppercase mb-2">Global
-                    Impact</span>
-                <h2 className="text-4xl font-headline font-bold text-on-surface tracking-tight mb-6">Research Excellence
-                </h2>
-                <p className="text-secondary text-lg leading-relaxed mb-8">
-                    BKU is ranked among the top 1% of research institutions globally. Our commitment to discovery
-                    has led to breakthroughs in sustainable energy, personalized medicine, and ethical AI
-                    development.
-                </p>
-                <div className="space-y-6">
-                    <div className="flex gap-4">
-                        <div
-                            className="w-12 h-12 shrink-0 bg-primary-fixed rounded-lg flex items-center justify-center">
-                            <span className="material-symbols-outlined text-primary">biotech</span>
-                        </div>
-                        <div>
-                            <h5 className="font-headline font-bold">Interdisciplinary Labs</h5>
-                            <p className="text-secondary text-sm">Where science meets humanities for holistic solutions.
-                            </p>
-                        </div>
-                    </div>
-                    <div className="flex gap-4">
-                        <div
-                            className="w-12 h-12 shrink-0 bg-primary-fixed rounded-lg flex items-center justify-center">
-                            <span className="material-symbols-outlined text-primary">public</span>
-                        </div>
-                        <div>
-                            <h5 className="font-headline font-bold">International Fellowships</h5>
-                            <p className="text-secondary text-sm">Connecting our scholars with the world's leading
-                                minds.</p>
-                        </div>
-                    </div>
-                </div>
-                <button
-                    className="mt-10 bg-primary text-white px-8 py-4 rounded-xl font-headline font-bold text-sm flex items-center gap-2 hover:shadow-xl transition-all active:scale-95">
-                    Research Portal <span className="material-symbols-outlined">open_in_new</span>
-                </button>
+          </div>
+
+          {/* Right: Copy & Points */}
+          <div className="lg:col-span-6 space-y-8 text-left">
+            <div className="space-y-4">
+              <span className="text-xs font-bold uppercase tracking-widest font-headline block" style={{ color: 'var(--theme-secondary)' }}>
+                Keunggulan Riset
+              </span>
+              <h2 className="text-3xl sm:text-4xl font-extrabold leading-tight font-headline" style={{ color: 'var(--theme-text)' }}>
+                Pusat Inovasi & Riset Berkualitas Internasional
+              </h2>
+              <p className="font-light leading-relaxed text-sm sm:text-base" style={{ color: 'var(--theme-text-muted)' }}>
+                Universitas Bhakti Kencana (UBK) berkomitmen kuat mengembangkan penelitian terapan tingkat tinggi di bidang kefarmasian, ilmu keperawatan modern, kebidanan, kesehatan masyarakat, dan sains sosial digital.
+              </p>
             </div>
+
+            {/* List Points */}
+            <div className="space-y-6 pt-4" style={{ borderTop: '1px solid var(--theme-border)' }}>
+              <div className="flex gap-4 items-start">
+                <div
+                  className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-sm"
+                  style={{
+                    backgroundColor: 'color-mix(in srgb, var(--theme-secondary) 10%, transparent)',
+                    color: 'var(--theme-secondary)',
+                    border: '1px solid color-mix(in srgb, var(--theme-secondary) 10%, transparent)'
+                  }}
+                >
+                  <Microscope className="size-5" />
+                </div>
+                <div>
+                  <h4 className="text-sm font-bold font-headline" style={{ color: 'var(--theme-text)' }}>
+                    Laboratorium Riset Terintegrasi
+                  </h4>
+                  <p className="text-xs sm:text-sm leading-relaxed font-light mt-1" style={{ color: 'var(--theme-text-muted)' }}>
+                    Dilengkapi instrumen analisa modern, ruang steril sediaan obat, dan fasilitas uji klinis canggih demi mendukung standardisasi karya penelitian nasional.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex gap-4 items-start">
+                <div
+                  className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-sm"
+                  style={{
+                    backgroundColor: 'color-mix(in srgb, var(--theme-secondary) 10%, transparent)',
+                    color: 'var(--theme-secondary)',
+                    border: '1px solid color-mix(in srgb, var(--theme-secondary) 10%, transparent)'
+                  }}
+                >
+                  <Globe className="size-5" />
+                </div>
+                <div>
+                  <h4 className="text-sm font-bold font-headline" style={{ color: 'var(--theme-text)' }}>
+                    Publikasi Jurnal Terindeks SINTA & Scopus
+                  </h4>
+                  <p className="text-xs sm:text-sm leading-relaxed font-light mt-1" style={{ color: 'var(--theme-text-muted)' }}>
+                    Mendorong civitas akademika berkontribusi aktif dalam jurnal nasional terakreditasi SINTA serta publikasi ilmiah internasional bereputasi secara periodik.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="pt-4 flex gap-4">
+              <Link
+                to="/login"
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl font-bold shadow-md transition-all duration-300 text-xs sm:text-sm"
+                style={{
+                  backgroundColor: 'var(--theme-primary)',
+                  color: 'var(--theme-secondary)'
+                }}
+              >
+                Unduh Katalog Riset <ExternalLink className="size-4" />
+              </Link>
+            </div>
+          </div>
+
         </div>
+      </div>
     </section>
   );
-};
-
-export default Research;
+}

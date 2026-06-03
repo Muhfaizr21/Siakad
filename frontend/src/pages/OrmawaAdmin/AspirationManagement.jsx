@@ -129,7 +129,7 @@ export default function AspirationManagement() {
       <Toaster position="top-right" />
       
       {/* ── Welcome Banner ─────────────────────────────────────────── */}
-      <section className="relative overflow-hidden rounded-[2rem] bg-gradient-to-r from-[#00236F] to-[#1e3a8a] text-white p-8 md:p-10 shadow-xl shadow-blue-900/10">
+      <section className="relative overflow-hidden rounded-[2rem] bg-gradient-to-r from-bku-primary to-[#1e3a8a] text-white p-8 md:p-10 shadow-xl shadow-blue-900/10">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.08)_0%,transparent_60%)]" />
         <div className="absolute inset-0 opacity-[0.03]"
           style={{
@@ -164,7 +164,7 @@ export default function AspirationManagement() {
         {/* Total Aspirasi */}
         <Card className="border border-slate-100 shadow-sm rounded-3xl overflow-hidden bg-white hover:shadow-md transition-all duration-300">
           <CardContent className="p-6 flex items-center gap-4.5">
-            <div className="w-12 h-12 rounded-2xl bg-[#00236F]/5 flex items-center justify-center text-[#00236F]">
+            <div className="w-12 h-12 rounded-2xl bg-bku-primary/5 flex items-center justify-center text-bku-primary">
               <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>question_answer</span>
             </div>
             <div className="space-y-0.5">
@@ -237,7 +237,7 @@ export default function AspirationManagement() {
                 onClick={() => { setSelected(row); setTanggapan(''); setIsDetailOpen(true) }} 
                 variant="ghost" 
                 size="icon" 
-                className="h-8 w-8 text-slate-400 hover:text-[#00236F] hover:bg-blue-50 rounded-xl active:scale-95 transition-all"
+                className="h-8 w-8 text-slate-400 hover:text-bku-primary hover:bg-blue-50 rounded-xl active:scale-95 transition-all"
                 title="Lihat Detail & Tanggapi"
               >
                 <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>visibility</span>
@@ -253,7 +253,7 @@ export default function AspirationManagement() {
           {selected && (
             <div>
               {/* Header Gradient */}
-              <div className="p-8 bg-gradient-to-r from-[#00236F] to-[#1e3a8a] text-white relative overflow-hidden">
+              <div className="p-8 bg-gradient-to-r from-bku-primary to-[#1e3a8a] text-white relative overflow-hidden">
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.06)_0%,transparent_50%)]" />
                 <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none">
                   <span className="material-symbols-outlined size-24 text-white">chat</span>

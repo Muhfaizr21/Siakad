@@ -142,7 +142,7 @@ export default function Settings() {
       <Toaster position="top-right" />
       
       {/* ── Welcome Banner ─────────────────────────────────────────── */}
-      <section className="relative overflow-hidden rounded-[2rem] bg-gradient-to-r from-[#00236F] to-[#1e3a8a] text-white p-8 md:p-10 shadow-xl shadow-blue-900/10">
+      <section className="relative overflow-hidden rounded-[2rem] bg-gradient-to-r from-bku-primary to-[#1e3a8a] text-white p-8 md:p-10 shadow-xl shadow-blue-900/10">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.08)_0%,transparent_60%)]" />
         <div className="absolute inset-0 opacity-[0.03]"
           style={{
@@ -183,7 +183,7 @@ export default function Settings() {
                 
                 <div className="relative group">
                   {/* Outer breathing accent */}
-                  <div className="absolute inset-0 bg-[#00236F]/5 rounded-[2.5rem] blur-xl scale-95 transition-all group-hover:scale-105 duration-300" />
+                  <div className="absolute inset-0 bg-bku-primary/5 rounded-[2.5rem] blur-xl scale-95 transition-all group-hover:scale-105 duration-300" />
                   
                   {/* Logo Container */}
                   <div className="relative w-36 h-36 rounded-[2.5rem] border-4 border-white shadow-xl overflow-hidden bg-slate-50 flex items-center justify-center transition-all duration-300 group-hover:rotate-1 group-hover:scale-[1.03]">
@@ -199,7 +199,7 @@ export default function Settings() {
                 </div>
 
                 <div className="w-full text-center space-y-1">
-                  <h3 className="font-bold text-slate-800 text-sm font-headline tracking-tight">{config.Nama || 'Nama Ormawa Belum Diisi'}</h3>
+                  <h3 className="font-bold text-sm font-headline tracking-tight" style={{ color: 'var(--theme-h3)' }}>{config.Nama || 'Nama Ormawa Belum Diisi'}</h3>
                   <Badge className="bg-slate-100 text-slate-500 font-bold text-[9px] border border-slate-200 px-3 py-0.5 rounded-full uppercase tracking-wider">
                     ID ORMAWA: {ormawaId}
                   </Badge>
@@ -207,7 +207,7 @@ export default function Settings() {
 
                 {/* Upload Action */}
                 <label className="cursor-pointer w-full">
-                  <div className="w-full h-12 rounded-2xl border border-dashed border-slate-300 bg-slate-50/50 hover:bg-slate-100/50 hover:border-[#00236F] flex items-center justify-center gap-2 text-[10px] font-black tracking-widest text-slate-500 hover:text-[#00236F] transition-all active:scale-95">
+                  <div className="w-full h-12 rounded-2xl border border-dashed border-slate-300 bg-slate-50/50 hover:bg-slate-100/50 hover:border-bku-primary flex items-center justify-center gap-2 text-[10px] font-black tracking-widest text-slate-500 hover:text-bku-primary transition-all active:scale-95">
                     {uploading ? (
                       <span className="material-symbols-outlined animate-spin" style={{ fontSize: '16px' }}>sync</span>
                     ) : (
@@ -229,16 +229,16 @@ export default function Settings() {
               <CardContent className="p-6 space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <span className="material-symbols-outlined text-[#00236F]" style={{ fontSize: '20px' }}>info</span>
+                    <span className="material-symbols-outlined text-bku-primary" style={{ fontSize: '20px' }}>info</span>
                     <span className="text-[10px] font-black text-slate-400 tracking-wider font-headline uppercase">Kelengkapan Profil</span>
                   </div>
-                  <span className="text-xs font-black text-[#00236F] font-headline">{completeness}%</span>
+                  <span className="text-xs font-black text-bku-primary font-headline">{completeness}%</span>
                 </div>
 
                 {/* Progress bar */}
                 <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
                   <div 
-                    className="h-full bg-gradient-to-r from-[#00236F] to-[#1e3a8a] rounded-full transition-all duration-500" 
+                    className="h-full bg-gradient-to-r from-bku-primary to-[#1e3a8a] rounded-full transition-all duration-500" 
                     style={{ width: `${completeness}%` }}
                   />
                 </div>
@@ -258,10 +258,10 @@ export default function Settings() {
                 {/* Section: Identitas Utama */}
                 <div className="space-y-5">
                   <div className="flex items-center gap-2 pb-3 border-b border-slate-100">
-                    <div className="size-6 rounded-lg bg-[#00236F]/10 flex items-center justify-center text-[#00236F]">
+                    <div className="size-6 rounded-lg bg-bku-primary/10 flex items-center justify-center text-bku-primary">
                       <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>id_card</span>
                     </div>
-                    <h2 className="text-[11px] font-black tracking-widest text-[#00236F] uppercase font-headline">IDENTITAS LEMBAGA MAHASISWA</h2>
+                    <h2 className="text-[11px] font-black tracking-widest text-bku-primary uppercase font-headline">IDENTITAS LEMBAGA MAHASISWA</h2>
                   </div>
 
                   <div className="space-y-4">
@@ -289,10 +289,10 @@ export default function Settings() {
                 {/* Section: Filosofi Visi Misi */}
                 <div className="space-y-5">
                   <div className="flex items-center gap-2 pb-3 border-b border-slate-100">
-                    <div className="size-6 rounded-lg bg-[#00236F]/10 flex items-center justify-center text-[#00236F]">
+                    <div className="size-6 rounded-lg bg-bku-primary/10 flex items-center justify-center text-bku-primary">
                       <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>explore</span>
                     </div>
-                    <h2 className="text-[11px] font-black tracking-widest text-[#00236F] uppercase font-headline">FILOSOFI GERAKAN & ARAH JUANG</h2>
+                    <h2 className="text-[11px] font-black tracking-widest text-bku-primary uppercase font-headline">FILOSOFI GERAKAN & ARAH JUANG</h2>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -319,10 +319,10 @@ export default function Settings() {
                 {/* Section: Kontak & Media Sosial */}
                 <div className="space-y-5">
                   <div className="flex items-center gap-2 pb-3 border-b border-slate-100">
-                    <div className="size-6 rounded-lg bg-[#00236F]/10 flex items-center justify-center text-[#00236F]">
+                    <div className="size-6 rounded-lg bg-bku-primary/10 flex items-center justify-center text-bku-primary">
                       <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>contact_mail</span>
                     </div>
-                    <h2 className="text-[11px] font-black tracking-widest text-[#00236F] uppercase font-headline">KONTAK & MEDIA INFORMASI PUBLIK</h2>
+                    <h2 className="text-[11px] font-black tracking-widest text-bku-primary uppercase font-headline">KONTAK & MEDIA INFORMASI PUBLIK</h2>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -395,7 +395,7 @@ export default function Settings() {
               <Button 
                 type="submit" 
                 disabled={loading} 
-                className="w-full md:w-auto h-13 md:h-14 px-10 rounded-2xl bg-gradient-to-r from-[#00236F] to-[#1e3a8a] text-white shadow-xl shadow-blue-900/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2 border-none"
+                className="w-full md:w-auto h-13 md:h-14 px-10 rounded-2xl bg-gradient-to-r from-bku-primary to-[#1e3a8a] text-white shadow-xl shadow-blue-900/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2 border-none"
               >
                 {loading ? (
                   <span className="material-symbols-outlined animate-spin" style={{ fontSize: '18px' }}>sync</span>

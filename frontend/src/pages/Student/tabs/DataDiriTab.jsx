@@ -113,7 +113,7 @@ export default function DataDiriTab({ profile }) {
       
       {/* SEKSI: PRIBADI */}
       <div className="p-6 md:p-8 border-b border-[#f5f5f5]">
-        <h3 className="text-lg font-bold font-headline mb-5 flex items-center gap-2 text-[#00236F]">
+        <h3 className="text-lg font-bold font-headline mb-5 flex items-center gap-2 text-bku-primary">
            <User size={18} /> Data Pribadi
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
@@ -142,11 +142,11 @@ export default function DataDiriTab({ profile }) {
             <Label>Jenis Kelamin</Label>
             <div className="flex gap-6 pt-2">
               <label className="flex items-center gap-2 cursor-pointer group">
-                  <input type="radio" value="Laki-laki" {...register('gender')} className="w-4 h-4 text-[#00236F]" />
+                  <input type="radio" value="Laki-laki" {...register('gender')} className="w-4 h-4 text-bku-primary" />
                   <span className="text-sm font-bold text-[#525252]">Laki-laki</span>
               </label>
               <label className="flex items-center gap-2 cursor-pointer group">
-                  <input type="radio" value="Perempuan" {...register('gender')} className="w-4 h-4 text-[#00236F]" />
+                  <input type="radio" value="Perempuan" {...register('gender')} className="w-4 h-4 text-bku-primary" />
                   <span className="text-sm font-bold text-[#525252]">Perempuan</span>
               </label>
             </div>
@@ -199,7 +199,7 @@ export default function DataDiriTab({ profile }) {
 
       {/* SEKSI: KONTAK */}
       <div className="p-6 md:p-8 border-b border-[#f5f5f5] bg-[#fafafa]">
-        <h3 className="text-lg font-bold font-headline mb-5 flex items-center gap-2 text-[#00236F]">
+        <h3 className="text-lg font-bold font-headline mb-5 flex items-center gap-2 text-bku-primary">
            <Phone size={18} /> Kontak Katut & Domisili
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
@@ -281,7 +281,7 @@ export default function DataDiriTab({ profile }) {
         <button 
           type="submit" 
           disabled={mutation.isPending}
-          className="flex-1 bg-[#00236F] text-white py-3.5 px-8 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-[#0B4FAE] transition-all shadow-md shadow-[#00236F]/20 disabled:opacity-50"
+          className="flex-1 bg-bku-primary text-white py-3.5 px-8 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-[#0B4FAE] transition-all shadow-md shadow-bku-primary/20 disabled:opacity-50"
         >
           {mutation.isPending ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '18px' }} >sync</span> : <span className="material-symbols-outlined" style={{ fontSize: '18px' }} >save</span>}
           Simpan Seluruh Perubahan

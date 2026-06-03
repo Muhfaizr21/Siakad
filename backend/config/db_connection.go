@@ -46,6 +46,7 @@ func ConnectDB() {
 	} else {
 		log.Println("Migrations Completed")
 		InitialSyncFakultas(db)
+		SeedThemeSettings(db)
 	}
 
 	DB = db

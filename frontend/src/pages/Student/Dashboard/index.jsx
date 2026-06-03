@@ -30,7 +30,7 @@ export default function StudentDashboard() {
     return (
       <div className="p-6 md:p-10 min-h-screen bg-neutral-50 flex flex-col items-center justify-center font-inter">
         <span className="material-symbols-outlined text-red-400 mb-4" style={{ fontSize: '64px' }} >error</span>
-        <h2 className="text-2xl font-bold font-jakarta text-neutral-900 mb-2">Gagal Memuat Data</h2>
+        <h2 className="text-2xl font-bold font-jakarta mb-2" style={{ color: 'var(--theme-h2)' }}>Gagal Memuat Data</h2>
         <p className="text-neutral-500 mb-6 max-w-md text-center">
           Terjadi kesalahan saat mengambil data dari server. Silakan periksa koneksi internet Anda atau coba lagi.
         </p>

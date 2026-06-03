@@ -21,8 +21,8 @@ export default function BkuDashboard() {
 
   if (isError || !data) {
     return (
-      <div className="min-h-screen bg-[#f8f8f6] flex items-center justify-center px-4">
-        <div className="bg-white border border-red-100 rounded-2xl px-8 py-10 max-w-sm w-full text-center shadow-sm">
+      <div className="min-h-screen flex items-center justify-center px-4 bg-transparent">
+        <div className="glass-card rounded-2xl px-8 py-10 max-w-sm w-full text-center shadow-sm">
           <div className="w-12 h-12 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4">
             <span className="text-2xl">🚧</span>
           </div>
@@ -32,7 +32,7 @@ export default function BkuDashboard() {
           </p>
           <button
             onClick={() => window.location.reload()}
-            className="mt-5 w-full py-2.5 rounded-xl bg-[#171717] text-white text-sm font-medium hover:bg-[#333] transition-colors"
+            className="mt-5 w-full py-2.5 rounded-xl bg-bku-primary text-white text-sm font-medium hover:bg-bku-hover transition-colors"
           >
             Muat Ulang
           </button>
@@ -42,7 +42,7 @@ export default function BkuDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f8f8f6] font-body text-[#171717]">
+    <div className="min-h-screen bg-transparent font-inter text-slate-800">
       <div className="max-w-7xl mx-auto px-4 py-6 md:px-6 md:py-8 lg:px-8 lg:py-10">
         <div className="flex flex-col gap-5">
 

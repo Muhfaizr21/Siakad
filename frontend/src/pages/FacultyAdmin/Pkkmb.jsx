@@ -224,12 +224,12 @@ export default function FacultyPkkmb() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] font-body">
+    <div className="min-h-screen bg-transparent font-inter">
       <Toaster position="top-right"/>
       <div className="max-w-[1600px] mx-auto px-4 py-8 md:px-8 xl:px-12 space-y-6">
 
         {/* Header */}
-        <section className="relative overflow-hidden rounded-3xl h-auto md:h-48 flex flex-col md:flex-row items-center group shadow-sm p-6 md:p-8 border border-slate-200/80 bg-white">
+        <section className="relative overflow-hidden rounded-2xl h-auto md:h-48 flex flex-col md:flex-row items-center group shadow-none p-6 md:p-8 border border-slate-200/60 glass-card">
           <div className="absolute inset-0 bg-gradient-to-br from-white via-slate-50/50 to-slate-100/50" />
           <div className="absolute inset-0 opacity-[0.03]"
             style={{
@@ -243,7 +243,7 @@ export default function FacultyPkkmb() {
           <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center w-full gap-6">
             <div>
               <div className="flex items-center gap-2 mb-2"><div className="h-4 w-1.5 bg-primary rounded-full"/><span className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">Portal Orientasi Mahasiswa Baru</span></div>
-              <h1 className="text-3xl font-extrabold text-slate-900 font-headline tracking-tight">Monitoring <span className="text-primary">PKKMB</span></h1>
+              <h1 className="text-3xl font-extrabold font-headline tracking-tight" style={{ color: 'var(--theme-h1)' }}>Monitoring <span className="text-primary">PKKMB</span></h1>
               <p className="text-slate-500 font-medium text-sm max-w-xl leading-relaxed mt-1">Monitor kehadiran, nilai, dan status kelulusan peserta PKKMB per prodi dan per individu.</p>
             </div>
             <button onClick={()=>{ fetchSummary(); fetchStudents() }} disabled={loading}
@@ -290,21 +290,21 @@ export default function FacultyPkkmb() {
         </div>
 
         {/* Tabs */}
-        <div className="flex items-center gap-1 bg-white border border-slate-200/60 rounded-2xl p-1.5 w-fit shadow-sm">
+        <div className="flex items-center gap-1 glass-card border border-slate-200/60 rounded-2xl p-1.5 w-fit shadow-none">
           {TABS.map(t=>(
             <button key={t.key} onClick={()=>{setTab(t.key);setSearch('');setFilter('all')}}
               className={cn('flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest transition-all',
-                activeTab===t.key?'bg-primary text-white shadow-lg shadow-[#00236F]/25':'text-slate-500 hover:bg-slate-50')}>
+                activeTab===t.key?'bg-primary text-white shadow-lg shadow-bku-primary/25':'text-slate-500 hover:bg-slate-50')}>
               <t.icon size={14}/>{t.label}
             </button>
           ))}
         </div>
 
         {/* Table */}
-        <div className="bg-white border border-slate-100/50 rounded-3xl shadow-sm overflow-hidden">
+        <div className="glass-card border border-slate-200/60 rounded-2xl shadow-none overflow-hidden">
           <div className="px-5 py-4 border-b border-slate-100 flex flex-col sm:flex-row items-start sm:items-center gap-3">
             <div className="flex-1">
-              <h2 className="font-bold text-base text-slate-900">{activeTab==='prodi'?'Breakdown per Program Studi':'Daftar Peserta PKKMB'}</h2>
+              <h2 className="font-black text-sm uppercase tracking-tight font-headline" style={{ color: 'var(--theme-h2)' }}>{activeTab==='prodi'?'Breakdown per Program Studi':'Daftar Peserta PKKMB'}</h2>
               <p className="text-xs text-slate-500 mt-0.5">Menampilkan <span className="font-bold text-slate-900">{activeTab==='prodi'?filteredProdi.length:filteredStudents.length}</span> data</p>
             </div>
             <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
@@ -477,7 +477,7 @@ export default function FacultyPkkmb() {
           </div>
 
           {/* Modern Pagination Footer */}
-          <div className="px-6 py-4 bg-slate-50/50 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="px-6 py-4 bg-transparent border-t border-slate-200/60 flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
               <p className="text-xs text-slate-500 font-medium text-center sm:text-left">
                 Menampilkan <span className="font-semibold text-slate-800">{totalItems > 0 ? (currentPage - 1) * pageSize + 1 : 0}</span> sampai <span className="font-semibold text-slate-800">{Math.min(currentPage * pageSize, totalItems)}</span> dari <span className="font-semibold text-slate-800">{totalItems}</span> entri
@@ -555,15 +555,15 @@ export default function FacultyPkkmb() {
       {/* Detail Modal */}
       {selected && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4" onClick={()=>setSelected(null)}>
-          <div className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl z-[101] flex flex-col overflow-hidden max-h-[90vh]" onClick={e=>e.stopPropagation()}>
-            <div className="relative bg-gradient-to-br from-[#00236F] to-[#003db5] pt-6 pb-7 px-6 overflow-hidden flex-shrink-0">
+          <div className="relative w-full max-w-md glass-card rounded-2xl shadow-none border border-slate-200/60 flex flex-col overflow-hidden max-h-[90vh]" onClick={e=>e.stopPropagation()}>
+            <div className="relative bg-gradient-to-br from-bku-primary to-[#003db5] pt-6 pb-7 px-6 overflow-hidden flex-shrink-0">
               <div className="absolute -top-10 -right-10 w-44 h-44 bg-white/5 rounded-full pointer-events-none"/>
               <button onClick={()=>setSelected(null)} className="absolute z-50 top-4 right-4 w-8 h-8 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center transition-colors"><span className="material-symbols-outlined" style={{ fontSize: '15px' }} >close</span></button>
               <div className="relative z-10 flex items-center gap-4">
                 <StudentAvatar src={getFullUrl(selected.Mahasiswa?.FotoURL || selected.Mahasiswa?.foto_url || selected.Mahasiswa?.Foto || selected.Mahasiswa?.Pengguna?.Foto)} name={selected.Mahasiswa?.Nama} className="w-14 h-14 rounded-2xl shadow-xl ring-2 ring-white/20" />
                 <div className="min-w-0">
                   <p className="text-[9px] font-bold text-white/50 uppercase tracking-[0.25em] mb-1">Peserta PKKMB</p>
-                  <h2 className="text-base font-extrabold text-white leading-tight">{selected.Mahasiswa?.Nama}</h2>
+                  <h2 className="text-base font-extrabold font-headline leading-tight" style={{ color: 'var(--theme-h2)' }}>{selected.Mahasiswa?.Nama}</h2>
                   <p className="text-xs text-blue-200 font-medium mt-0.5">{selected.Mahasiswa?.NIM} · {selected.Mahasiswa?.ProgramStudi?.Nama||'—'}</p>
                 </div>
               </div>
@@ -583,8 +583,8 @@ export default function FacultyPkkmb() {
                 </div>
               ))}
             </div>
-            <div className="px-5 py-4 border-t border-slate-100 bg-slate-50/50 flex-shrink-0">
-              <button onClick={()=>setSelected(null)} className="w-full h-11 rounded-xl bg-primary hover:bg-[#001a52] text-white text-xs font-bold uppercase tracking-widest transition-all active:scale-95">Tutup</button>
+            <div className="px-5 py-4 border-t border-slate-200/60 bg-transparent flex-shrink-0">
+              <button onClick={()=>setSelected(null)} className="w-full h-11 rounded-xl bg-primary hover:bg-bku-hover text-white text-xs font-bold uppercase tracking-widest transition-all active:scale-95">Tutup</button>
             </div>
           </div>
         </div>

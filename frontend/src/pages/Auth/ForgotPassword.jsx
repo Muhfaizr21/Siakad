@@ -55,7 +55,7 @@ export default function ForgotPassword() {
           className="absolute inset-0 bg-cover bg-center"
           style={{ backgroundImage: "url('/images/BG.jpg')" }}
         ></div>
-        <div className="absolute inset-0 bg-gradient-to-br from-[#00236F]/95 to-[#0B4FAE]/90 mix-blend-multiply"></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-bku-primary/95 to-[#0B4FAE]/90 mix-blend-multiply"></div>
         <div className="absolute inset-0 bg-[#00174B]/30 backdrop-blur-[3px]"></div>
         
         {/* Soft Glowing Orbs for Depth */}
@@ -96,33 +96,33 @@ export default function ForgotPassword() {
       <div className="w-full lg:w-[55%] xl:w-[60%] flex flex-col justify-center items-center lg:items-start relative p-6 sm:p-12 lg:pl-28 xl:pl-40 lg:pr-12 bg-white shadow-[-20px_0_40px_rgba(0,0,0,0.03)] z-10 rounded-l-[2.5rem] lg:rounded-l-[3rem] 2xl:rounded-l-[4rem]">
         
         <div className="w-full max-w-[440px]">
-          <Link to="/login" className="inline-flex items-center text-[14px] font-bold text-neutral-500 hover:text-[#00236F] transition-colors mb-10 group">
+          <Link to="/login" className="inline-flex items-center text-[14px] font-bold text-neutral-500 hover:text-bku-primary transition-colors mb-10 group">
             <ArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform" />
             Kembali ke Login
           </Link>
 
           {/* Desktop Header */}
           <div className="mb-10 lg:text-left text-center">
-            <h2 className="text-[2rem] font-bold font-jakarta text-neutral-900 mb-3 tracking-tight">Lupa Sandi?</h2>
+            <h2 className="text-[2rem] font-bold font-jakarta mb-3 tracking-tight" style={{ color: 'var(--theme-h2)' }}>Lupa Sandi?</h2>
             <p className="text-neutral-500 text-[15px] leading-relaxed font-medium">Masukkan email atau NIM Anda, dan kami akan mengirimkan tautan untuk mengatur ulang kata sandi Anda.</p>
           </div>
 
           {errorMsg && (
-            <div className="bg-red-50/80 border border-red-100 text-red-600 px-4 py-3.5 rounded-2xl mb-8 text-[14px] flex items-start gap-3 animate-in fade-in slide-in-from-top-2">
+            <div className="bg-red-50 border border-red-100 text-red-600 px-4 py-3.5 rounded-2xl mb-8 text-[14px] flex items-start gap-3 animate-in fade-in slide-in-from-top-2">
               <svg className="w-5 h-5 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" /></svg>
               <span className="leading-relaxed font-semibold">{errorMsg}</span>
             </div>
           )}
 
           {successMsg ? (
-            <div className="bg-green-50/80 border border-green-200 text-green-700 p-8 rounded-3xl mb-8 flex flex-col items-center text-center animate-in zoom-in-95 duration-500">
+            <div className="bg-green-50 border border-green-200 text-green-700 p-8 rounded-3xl mb-8 flex flex-col items-center text-center animate-in zoom-in-95 duration-500">
               <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-5">
                 <MailCheck className="w-8 h-8 text-green-600" />
               </div>
               <h3 className="text-xl font-bold font-jakarta mb-2">Tautan Terkirim!</h3>
-              <p className="text-[15px] font-medium text-green-600/80 mb-6">{successMsg}</p>
-              <button 
-                onClick={() => setSuccessMsg('')} 
+              <p className="text-[15px] font-medium text-green-700/80 mb-6">{successMsg}</p>
+              <button
+                onClick={() => setSuccessMsg('')}
                 className="text-[14px] font-bold text-green-700 hover:text-green-800 underline underline-offset-4"
               >
                 Kirim ulang tautan
@@ -135,7 +135,7 @@ export default function ForgotPassword() {
                 <input
                   id="identifier"
                   type="text"
-                  className={`w-full px-5 py-4 rounded-[1rem] border-2 ${errors.identifier ? 'border-red-300 focus:border-red-400 focus:ring-red-100 bg-red-50/30' : 'border-neutral-100 focus:border-[#00236F] focus:ring-[#00236F]/10 bg-neutral-50/70 hover:bg-neutral-100/50'} focus:bg-white focus:outline-none focus:ring-4 transition-all duration-300 text-[15px] font-semibold text-neutral-900 placeholder:text-neutral-400 placeholder:font-medium`}
+                  className={`w-full px-5 py-4 rounded-[1rem] border-2 ${errors.identifier ? 'border-red-300 focus:border-red-400 focus:ring-red-100 bg-red-50/30' : 'border-neutral-200 focus:border-blue-500 focus:ring-blue-500/10 bg-neutral-50/70 hover:bg-neutral-100/50'} focus:bg-white focus:outline-none focus:ring-4 transition-all duration-300 text-[15px] font-semibold text-neutral-900 placeholder:text-neutral-400 placeholder:font-medium`}
                   placeholder="Misal: student@bku.ac.id"
                   {...register('identifier')}
                   disabled={isSubmitting}
@@ -151,7 +151,7 @@ export default function ForgotPassword() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full bg-[#00236F] hover:bg-[#0B4FAE] text-white font-bold py-4.5 px-4 rounded-[1rem] transition-all duration-300 active:scale-[0.98] shadow-[0_8px_20px_rgba(0,35,111,0.25)] hover:shadow-[0_12px_28px_rgba(11,79,174,0.35)] disabled:opacity-75 disabled:cursor-not-allowed disabled:active:scale-100 disabled:hover:shadow-none flex items-center justify-center mt-8 group text-[16px] h-[56px]"
+                className="w-full bg-bku-primary hover:bg-[#0B4FAE] text-white font-bold py-4.5 px-4 rounded-[1rem] transition-all duration-300 active:scale-[0.98] shadow-[0_8px_20px_rgba(0,35,111,0.25)] hover:shadow-[0_12px_28px_rgba(11,79,174,0.35)] disabled:opacity-75 disabled:cursor-not-allowed disabled:active:scale-100 disabled:hover:shadow-none flex items-center justify-center mt-8 group text-[16px] h-[56px]"
               >
                 {isSubmitting ? (
                   <>

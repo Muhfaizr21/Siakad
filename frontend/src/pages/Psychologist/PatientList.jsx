@@ -218,7 +218,7 @@ export default function PatientList() {
               <div className="space-y-4">
                 <div className="flex items-center gap-2 px-2">
                   <span className="material-symbols-outlined text-primary/60 text-base">analytics</span>
-                  <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Ringkasan Data</h3>
+                  <h3 className="text-[10px] font-black font-headline uppercase tracking-widest" style={{ color: 'var(--theme-h3)' }}>Ringkasan Data</h3>
                 </div>
                 
                 {/* Premium Card 1: Total Pasien Unik */}
@@ -262,7 +262,7 @@ export default function PatientList() {
               </div>
 
               {/* Data Security Info Card */}
-              <div className="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-[#00236f] via-[#0b338f] to-[#003B95] p-6 text-white shadow-xl shadow-blue-900/10 border border-white/5">
+              <div className="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-bku-primary via-[#0b338f] to-[#003B95] p-6 text-white shadow-xl shadow-blue-900/10 border border-white/5">
                 <div className="absolute -right-12 -bottom-12 w-32 h-32 bg-white/5 rounded-full blur-2xl pointer-events-none" />
                 
                 <div className="relative z-10">

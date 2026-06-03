@@ -1,82 +1,212 @@
 @import "tailwindcss";
 
-@theme {
-  --color-primary: #00236f;
-  --color-surface-bright: #fcf9f8;
-  --color-on-primary-fixed: #00164e;
-  --color-outline-variant: #c5c5d3;
-  --color-on-tertiary-fixed: #141b2c;
-  --color-secondary-fixed: #d4e4fa;
-  --color-inverse-primary: #b6c4ff;
-  --color-tertiary-container: #394053;
-  --color-on-background: #1b1c1c;
-  --color-surface-container-high: #eae7e7;
-  --color-primary-container: #1e3a8a;
-  --color-secondary-fixed-dim: #b9c8de;
-  --color-secondary-container: #d2e1f7;
-  --color-surface-container-highest: #e5e2e1;
-  --color-background: #fcf9f8;
-  --color-primary-fixed-dim: #b6c4ff;
-  --color-surface-container: #f0eded;
-  --color-tertiary: #232a3c;
-  --color-inverse-surface: #303030;
-  --color-on-error: #ffffff;
-  --color-surface-container-low: #f6f3f2;
-  --color-on-error-container: #93000a;
-  --color-on-primary-fixed-variant: #264191;
-  --color-on-primary-container: #90a8ff;
-  --color-on-primary: #ffffff;
-  --color-surface-tint: #4059aa;
-  --color-surface-dim: #dcd9d9;
-  --color-on-tertiary-container: #a5acc2;
-  --color-primary-fixed: #dce1ff;
-  --color-on-secondary: #ffffff;
-  --color-error: #ba1a1a;
-  --color-outline: #c5c5d3;
-  --color-on-surface: #1b1c1c;
-  --color-surface: #fcf9f8;
-  --color-tertiary-fixed: #dbe2fa;
-  --color-tertiary-fixed-dim: #bfc6dd;
-  --color-on-surface-variant: #44474e;
-  --color-secondary: #475569;
-  --color-secondary-container: #F1F5F9;
+:root {
+  /* ═══ Theme Variables (di-override oleh useThemeStore) ═══ */
+  /* WARNING: Jangan ubah manual - diatur dari Super Admin Panel */
 
-  /* BKU Student Hub Colors */
-  --color-bku-primary: #00236f;
-  --color-bku-hover: #001a52;
-  --color-bku-light: #fed7aa;
-  --color-bku-xlight: #f8faff;
-  --color-bku-success: #16a34a;
-  --color-bku-warning: #d97706;
-  --color-bku-danger: #dc2626;
-  --color-bku-info: #2563eb;
+  /* WARNA UTAMA */
+  --theme-primary: #0D2B55;           /* Navy - Header, Button Primary */
+  --theme-secondary: #C89B3C;        /* Gold - Accent, Highlights */
+  --theme-accent: #E8B84B;          /* Gold Bright - CTA, Special Elements */
 
-  --font-headline: "Plus Jakarta Sans", sans-serif;
-  --font-body: "Inter", sans-serif;
-  --font-label: Inter, sans-serif;
+  /* BACKGROUND & SURFACE */
+  --theme-bg: #F9F6F0;             /* Background utama halaman */
+  --theme-surface: #FFFFFF;           /* Background card, modal, komponen */
 
-  --font-jakarta: "Plus Jakarta Sans", sans-serif;
-  --font-inter: "Inter", sans-serif;
+  /* WARNA TEKS */
+  --theme-text: #1B1C1C;            /* Teks utama/body paragraphs */
+  --theme-text-muted: #64748B;       /* Teks subtitle, caption, keterangan */
 
-  --radius-xl: 0.75rem;
-  --radius-2xl: 1rem;
+  /* WARNA HEADING */
+  --theme-h1: #0D2B55;              /* Heading 1 - Judul halaman */
+  --theme-h2: #0D2B55;              /* Heading 2 - Section titles */
+  --theme-h3: #1E3A5F;              /* Heading 3 - Card titles */
+  --theme-h4: #475569;              /* Heading 4-6 - Detail kecil, table headers */
+
+  /* SIDEBAR */
+  --theme-sidebar-bg: #0D2B55;       /* Background sidebar */
+  --theme-sidebar-text: #E2E8F0;     /* Teks sidebar */
+
+  /* BORDER */
+  --theme-border: #E2E8F0;          /* Border default (slate-200) */
+  --theme-border-muted: #F1F5F9;    /* Border subtle (slate-100) */
+
+  /* WARNA STATE (Semantic) */
+  --theme-success: #16a34a;         /* Success/OK (Green) */
+  --theme-warning: #d97706;         /* Warning/Pending (Amber) */
+  --theme-error: #dc2626;           /* Error/Danger (Red) */
+  --theme-info: #2563eb;            /* Info/Neutral (Blue) */
+
+  /* BUTTON */
+  --theme-btn-radius: 0.75rem;       /* Border radius tombol */
+
+  /* FONTS */
+  --theme-font-headline: 'Plus Jakarta Sans', sans-serif;
+  --theme-font-body: 'Inter', sans-serif;
 }
 
+@theme {
+  /* === WARNA UTAMA (Bridging ke Tailwind) === */
+  --color-primary: var(--theme-primary);
+  --color-secondary: var(--theme-secondary);
+  --color-accent: var(--theme-accent);
 
+  /* === BACKGROUND & SURFACE === */
+  --color-background: var(--theme-bg);
+  --color-surface: var(--theme-surface);
+
+  /* === TEKS - SISTEM TERPUSAT === */
+  /* Semua teks harus menggunakan CSS variables ini agar mengikuti tema */
+  --color-on-surface: var(--theme-text);
+  --color-on-background: var(--theme-text);
+  --color-text-primary: var(--theme-text);
+  --color-text-muted: var(--theme-text-muted);
+
+  /* === HEADING - Mengikuti tema H1/H2/H3 === */
+  /* Ini adalah sistem TEKS UTAMA untuk heading */
+  --color-heading: var(--theme-h1);
+  --color-heading-2: var(--theme-h2);
+  --color-heading-3: var(--theme-h3);
+
+  /* Aliases untuk backward compatibility */
+  --color-h1: var(--theme-h1);
+  --color-h2: var(--theme-h2);
+  --color-h3: var(--theme-h3);
+  --color-h4: var(--theme-h4);
+
+  /* === SIDEBAR - Adaptif dengan tema === */
+  --color-sidebar-bg: var(--theme-sidebar-bg);
+  --color-sidebar-text: var(--theme-sidebar-text);
+  --color-sidebar-text-muted: var(--theme-sidebar-text-muted);
+
+  /* === BORDER === */
+  --color-border: var(--theme-border);
+  --color-border-muted: var(--theme-border-muted);
+
+  /* === STATE COLORS === */
+  --color-success: var(--theme-success);
+  --color-warning: var(--theme-warning);
+  --color-error: var(--theme-error);
+  --color-info: var(--theme-info);
+
+  /* BKU aliases for state colors */
+  --color-bku-success: var(--theme-success);
+  --color-bku-warning: var(--theme-warning);
+  --color-bku-danger: var(--theme-error);
+  --color-bku-info: var(--theme-info);
+
+  /* === BKU Aliases (untuk backward compatibility) === */
+  --color-bku-primary: var(--theme-primary);
+  --color-bku-secondary: var(--theme-secondary);
+  --color-bku-accent: var(--theme-accent);
+  --color-bku-bg: var(--theme-bg);
+  --color-bku-surface: var(--theme-surface);
+  --color-bku-text: var(--theme-text);
+  --color-bku-text-muted: var(--theme-text-muted);
+  --color-bku-hover: var(--theme-primary);
+
+  /* === TEXT UTILITY CLASSES === */
+  /* Menggunakan CSS variables agar mengikuti tema */
+  --text-heading: var(--theme-h1);
+  --text-heading-2: var(--theme-h2);
+  --text-heading-3: var(--theme-h3);
+  --text-heading-4: var(--theme-h4);
+  --text-body: var(--theme-text);
+  --text-muted: var(--theme-text-muted);
+  --text-primary-theme: var(--theme-primary);
+  --text-on-dark: var(--theme-sidebar-text);
+  --text-on-dark-muted: var(--theme-sidebar-text-muted);
+
+  /* Static colors (tidak berubah dengan theme) */
+  --color-bku-light: #fed7aa;
+  --color-bku-xlight: #f8faff;
+  /* Note: State colors sudah di-set via CSS vars di atas */
+
+  /* === FONTS === */
+  --font-headline: var(--theme-font-headline);
+  --font-body: var(--theme-font-body);
+  --font-label: var(--theme-font-body);
+  --font-jakarta: var(--theme-font-headline);
+  --font-inter: var(--theme-font-body);
+
+  /* === RADIUS === */
+  --radius-xl: var(--theme-btn-radius);
+  --radius-2xl: calc(var(--theme-btn-radius) * 1.33);
+}
 
 @layer base {
   body {
-    @apply bg-surface text-on-surface antialiased;
+    @apply text-slate-800 antialiased;
+    background-color: var(--theme-bg);
+    color: var(--theme-text);
   }
-}
 
-@utility academic-blur {
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-}
+  /* ═══ HEADING HIERARCHY - Menggunakan CSS Variables untuk Tema ═══ */
+/*
+  Hirarki Heading:
+  - H1: Judul halaman → var(--theme-h1)
+  - H2: Section title → var(--theme-h2)
+  - H3: Card title → var(--theme-h3)
+  - H4-H6: Detail kecil → var(--theme-h4)
+*/
 
-@utility tonal-layering {
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05);
+h1, .h1 { color: var(--theme-h1); }
+h2, .h2 { color: var(--theme-h2); }
+h3, .h3 { color: var(--theme-h3); }
+h4, h5, h6, .h4, .h5, .h6 { color: var(--theme-h4); }
+
+/* Heading Utility Classes */
+.heading { color: var(--theme-h1); }
+.heading-primary { color: var(--theme-primary); }
+.heading-2 { color: var(--theme-h2); }
+.heading-3 { color: var(--theme-h3); }
+.heading-4 { color: var(--theme-h4); }
+
+/* Page Title Classes */
+.page-title { color: var(--theme-h1); }
+.page-title-2 { color: var(--theme-h2); }
+
+  /* ═══ SIDEBAR TEXT COLORS - Adaptif dengan tema sidebar ═══ */
+  .sidebar-text { color: var(--theme-sidebar-text); }
+  .sidebar-text-muted { color: var(--theme-sidebar-text-muted, color-mix(in srgb, var(--theme-sidebar-text) 70%, transparent)); }
+
+  /* ═══ TEXT UTILITY CLASSES - Menggunakan CSS Variables untuk Tema ═══ */
+/*
+  Hirarki Teks:
+  - Teks Utama: Paragraf, deskripsi, isi → var(--theme-text)
+  - Teks Muted: Caption, label, timestamp → var(--theme-text-muted)
+*/
+
+.text-body { color: var(--theme-text); }     /* Teks isi/paragraf */
+.text-muted { color: var(--theme-text-muted); }  /* Teks keterangan */
+.text-caption { color: var(--theme-text-muted); }
+.text-on-surface { color: var(--theme-text); }
+.text-on-background { color: var(--theme-text); }
+  .text-on-dark { color: var(--theme-sidebar-text); }
+  .text-on-dark-muted { color: var(--theme-sidebar-text-muted, color-mix(in srgb, var(--theme-sidebar-text) 70%, transparent)); }
+
+  /* ═══ MENU & NAVIGATION TEXT ═══ */
+  /* Untuk teks menu di sidebar, navbar, dll */
+  .menu-text { color: var(--theme-text); }
+  .menu-text-active { color: var(--theme-primary); }
+  .menu-text-muted { color: var(--theme-text-muted); }
+
+  /* ═══ COMPONENT TEXT COLORS ═══ */
+  /* Card title */
+  .card-title { color: var(--theme-text); }
+  .card-subtitle { color: var(--theme-text-muted); }
+
+  /* Label & Badge */
+  .label-text { color: var(--theme-text-muted); }
+  .badge-text { color: var(--theme-text-muted); }
+
+  /* ═══ LINK COLORS ═══ */
+  a, .link {
+    color: var(--theme-primary);
+  }
+  a:hover {
+    opacity: 0.8;
+  }
 }
 
 html,
@@ -91,23 +221,57 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+@utility academic-blur {
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+@utility tonal-layering {
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05);
+}
+
 @utility glass-card {
-    background: rgba(255, 255, 255, 0.8);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 @utility hero-bg-overlay {
-    background: linear-gradient(to right, rgba(0, 35, 111, 0.8), rgba(0, 35, 111, 0.2)), linear-gradient(to bottom, transparent, rgba(0, 35, 111, 0.4));
+  background: linear-gradient(to right, var(--theme-primary), var(--theme-primary)), linear-gradient(to bottom, transparent, var(--theme-primary));
 }
 
 @utility academic-gradient {
-    background: linear-gradient(135deg, #00236f 0%, #1e3a8a 100%);
+  background: linear-gradient(135deg, var(--theme-primary) 0%, var(--theme-h3) 100%);
 }
 
 @utility glass-effect {
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
 }
 
+@utility hover-scale {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px -5px rgba(0, 35, 111, 0.08);
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--theme-primary);
+  opacity: 0.3;
+  border-radius: 99px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--theme-primary);
+  opacity: 0.5;
+}

@@ -92,7 +92,7 @@ export default function AvatarUploadModal({ isOpen, onClose, currentPhoto }) {
                 onChange={onSelectFile} 
                 className="absolute inset-0 opacity-0 cursor-pointer"
                />
-               <div className="w-14 h-14 bg-white rounded-2xl shadow-sm flex items-center justify-center text-[#00236F] group-hover:scale-110 transition-transform">
+               <div className="w-14 h-14 bg-white rounded-2xl shadow-sm flex items-center justify-center text-bku-primary group-hover:scale-110 transition-transform">
                   <span className="material-symbols-outlined" style={{ fontSize: '32px' }} >upload</span>
                </div>
                <div className="text-center">
@@ -102,7 +102,7 @@ export default function AvatarUploadModal({ isOpen, onClose, currentPhoto }) {
             </div>
           ) : (
             <div className="space-y-6">
-               <div className="relative h-64 w-full bg-[#00236F] rounded-[1.5rem] overflow-hidden shadow-inner">
+               <div className="relative h-64 w-full bg-bku-primary rounded-[1.5rem] overflow-hidden shadow-inner">
                   <Cropper
                     image={image}
                     crop={crop}
@@ -125,7 +125,7 @@ export default function AvatarUploadModal({ isOpen, onClose, currentPhoto }) {
                     max={3} 
                     step={0.1} 
                     onChange={(e) => setZoom(e.target.value)}
-                     className="flex-1 accent-[#00236F] h-1.5 bg-[#f5f5f5] rounded-full appearance-none cursor-pointer"
+                     className="flex-1 accent-bku-primary h-1.5 bg-[#f5f5f5] rounded-full appearance-none cursor-pointer"
                    />
                   <span className="material-symbols-outlined text-[#a3a3a3]" style={{ fontSize: '16px' }} >add</span>
                </div>
@@ -140,7 +140,7 @@ export default function AvatarUploadModal({ isOpen, onClose, currentPhoto }) {
                    <button 
                      onClick={handleUpload}
                      disabled={mutation.isPending}
-                     className="flex-[2] py-3 px-4 rounded-2xl bg-[#00236F] text-white font-bold text-sm hover:bg-[#0B4FAE] transition-all shadow-md shadow-[#00236F]/20 flex items-center justify-center gap-2 disabled:opacity-50"
+                     className="flex-[2] py-3 px-4 rounded-2xl bg-bku-primary text-white font-bold text-sm hover:bg-[#0B4FAE] transition-all shadow-md shadow-bku-primary/20 flex items-center justify-center gap-2 disabled:opacity-50"
                    >
                     {mutation.isPending ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '18px' }} >sync</span> : <span className="material-symbols-outlined" style={{ fontSize: 18 }}>check</span>}
                     Simpan Foto
@@ -151,7 +151,7 @@ export default function AvatarUploadModal({ isOpen, onClose, currentPhoto }) {
         </div>
         
          <div className="p-4 bg-[#fafafa] border-t border-[#f5f5f5] text-center">
-             <button onClick={handleClose} className="text-xs font-bold text-[#a3a3a3] hover:text-[#00236F] transition-colors uppercase tracking-widest">Batalkan</button>
+             <button onClick={handleClose} className="text-xs font-bold text-[#a3a3a3] hover:text-bku-primary transition-colors uppercase tracking-widest">Batalkan</button>
          </div>
       </DialogContent>
     </Dialog>

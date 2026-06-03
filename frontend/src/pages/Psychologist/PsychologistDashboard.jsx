@@ -77,7 +77,7 @@ export default function PsychologistDashboard() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] text-slate-900 font-body">
+    <div className="bg-slate-50 bg-[radial-gradient(at_0%_0%,rgba(0,35,111,0.08)_0px,transparent_50%),radial-gradient(at_100%_100%,rgba(59,130,246,0.05)_0px,transparent_50%)] text-slate-900 min-h-screen font-inter overflow-x-hidden">
       <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
       
       <main className="lg:ml-64 transition-all duration-300">
@@ -124,12 +124,12 @@ export default function PsychologistDashboard() {
 
           {/* Premium Stats Bento Cards (3 Column Grid) */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full">
-            {premiumStats.map((stat, i) => {
+            {premiumStats.map((stat, idx) => {
               const Icon = stat.icon;
               return (
                 <div 
-                  key={i} 
-                  className="group relative overflow-hidden rounded-[2rem] border border-slate-100 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md"
+                  key={idx} 
+                  className="group relative overflow-hidden rounded-[2rem] glass-card p-6 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md"
                 >
                   <div className={`absolute -right-8 -top-8 w-24 h-24 ${stat.color} opacity-[0.03] rounded-full blur-xl pointer-events-none`} />
                   
@@ -158,7 +158,7 @@ export default function PsychologistDashboard() {
             <div className="lg:col-span-4 space-y-6">
               
               {/* Sesi Sekarang (Priority Action Card) - Dark Gradient Card with Watermark */}
-              <div className="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-[#00236f] via-[#0b338f] to-[#003B95] p-8 text-white shadow-xl shadow-blue-900/10 border border-white/5 group">
+              <div className="lg:col-span-4 bg-gradient-to-br from-bku-primary via-[#001a52] to-indigo-900 rounded-[2.5rem] p-8 lg:p-10 relative overflow-hidden flex flex-col justify-between group shadow-xl shadow-bku-primary/20">
                 <div className="absolute -right-8 -top-8 w-24 h-24 bg-white/5 rounded-full blur-xl pointer-events-none" />
                 
                 <div className="relative z-10">
@@ -184,8 +184,8 @@ export default function PsychologistDashboard() {
                   </div>
 
                   <button 
-                    onClick={() => currentSession.available && navigate(`/psychologist/patients/${currentSession.mahasiswa_id}/medical-record`)} 
-                    className="w-full bg-white hover:bg-slate-50 text-[#00236f] py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all shadow-lg shadow-blue-950/20 active:scale-[0.98]"
+                    onClick={() => navigate('/psychologist/schedule')}
+                    className="w-full bg-white hover:bg-slate-50 text-bku-primary py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all shadow-lg shadow-blue-950/20 active:scale-[0.98]"
                   >
                     Buka Rekam Medis
                   </button>
@@ -194,7 +194,7 @@ export default function PsychologistDashboard() {
               </div>
 
               {/* Quick Access Services Bento Card */}
-              <div className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm space-y-4">
+              <div className="glass-card p-6 rounded-[2rem] shadow-sm space-y-4">
                 <h3 className="text-[10px] font-black text-primary uppercase tracking-widest flex items-center gap-2 pb-2 border-b border-slate-50">
                   <span className="material-symbols-outlined text-base">apps</span> Pintasan Layanan
                 </h3>
@@ -219,7 +219,7 @@ export default function PsychologistDashboard() {
             <div className="lg:col-span-8 space-y-6">
               
               {/* Booking Konseling Baru (Bento Table Card) */}
-              <div className="bg-white rounded-[2rem] border border-slate-100 shadow-sm p-6">
+              <div className="glass-card rounded-[2rem] shadow-sm p-6">
                 <div className="flex items-center justify-between mb-6 pb-2 border-b border-slate-50">
                   <div>
                     <h3 className="text-xs font-black text-primary uppercase tracking-widest flex items-center gap-2">
@@ -310,7 +310,7 @@ export default function PsychologistDashboard() {
               </div>
 
               {/* Database Activities (Bento List Card) */}
-              <div className="bg-white rounded-[2rem] border border-slate-100 shadow-sm p-6">
+              <div className="glass-card rounded-[2rem] shadow-sm p-6">
                 <div className="flex items-center justify-between mb-6 pb-2 border-b border-slate-50">
                   <h3 className="text-xs font-black text-primary uppercase tracking-widest flex items-center gap-2">
                     <span className="material-symbols-outlined text-base" >history</span> Aktivitas Database Terbaru

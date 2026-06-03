@@ -99,7 +99,7 @@ export default function KeamananTab() {
       {/* Card A: Ganti Password */}
       <div className="bg-white rounded-3xl border border-[#e5e5e5] p-6 md:p-8 shadow-sm">
          <div className="flex items-center gap-3 mb-8">
-            <div className="bg-[#EAF1FF] text-[#00236F] p-3 rounded-2xl">
+            <div className="bg-[#EAF1FF] text-bku-primary p-3 rounded-2xl">
                <KeyRound size={24} />
             </div>
             <div>
@@ -140,7 +140,7 @@ export default function KeamananTab() {
                   <div 
                     className={`h-full transition-all duration-500 ${
                         strength < 50 ? 'bg-[#93B4FF]' : 
-                        strength < 100 ? 'bg-[#0B4FAE]' : 'bg-[#00236F]'
+                        strength < 100 ? 'bg-[#0B4FAE]' : 'bg-bku-primary'
                     }`} 
                     style={{ width: `${strength}%` }}
                    />
@@ -158,7 +158,7 @@ export default function KeamananTab() {
                <button 
                 type="submit" 
                 disabled={passwordMutation.isPending}
-                className="bg-[#00236F] text-white py-3 px-8 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-[#0B4FAE] transition-all disabled:opacity-50"
+                className="bg-bku-primary text-white py-3 px-8 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-[#0B4FAE] transition-all disabled:opacity-50"
                >
                  {passwordMutation.isPending && <span className="material-symbols-outlined animate-spin" style={{ fontSize: '18px' }} >sync</span>}
                  Perbarui Password
@@ -171,7 +171,7 @@ export default function KeamananTab() {
       <div className="bg-white rounded-3xl border border-[#e5e5e5] p-6 md:p-8 shadow-sm">
          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
             <div className="flex items-center gap-3">
-                <div className="bg-[#EAF1FF] text-[#00236F] p-3 rounded-2xl">
+                <div className="bg-[#EAF1FF] text-bku-primary p-3 rounded-2xl">
                    <Monitor size={24} />
                 </div>
                <div>
@@ -180,7 +180,7 @@ export default function KeamananTab() {
                </div>
             </div>
             <button 
-                className="text-xs font-black text-[#00236F] uppercase tracking-widest px-4 py-2 bg-[#EAF1FF] rounded-xl hover:bg-[#DCE8FF] transition-colors"
+                className="text-xs font-black text-bku-primary uppercase tracking-widest px-4 py-2 bg-[#EAF1FF] rounded-xl hover:bg-[#DCE8FF] transition-colors"
                 onClick={() => toast('Fitur ini akan segera hadir')}
             >
                 Akhiri Semua Sesi Lain
@@ -203,7 +203,7 @@ export default function KeamananTab() {
                      </div>
                   </div>
                   {!s.is_current && (
-                    <button className="p-2 text-[#a3a3a3] hover:text-[#00236F] hover:bg-[#EAF1FF] rounded-xl transition-all">
+                    <button className="p-2 text-[#a3a3a3] hover:text-bku-primary hover:bg-[#EAF1FF] rounded-xl transition-all">
                        <LogOut size={18} />
                     </button>
                   )}
@@ -221,7 +221,7 @@ export default function KeamananTab() {
                 </div>
                 <h3 className="text-xl font-extrabold font-headline">Riwayat Login</h3>
             </div>
-            <button className="text-sm font-bold text-[#00236F] hover:underline">Lihat Semua</button>
+            <button className="text-sm font-bold text-bku-primary hover:underline">Lihat Semua</button>
           </div>
          <div className="overflow-x-auto">
             <table className="w-full text-left">

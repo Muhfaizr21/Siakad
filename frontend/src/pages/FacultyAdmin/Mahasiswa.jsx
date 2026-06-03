@@ -369,12 +369,12 @@ export default function MahasiswaPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] font-body">
+    <div className="min-h-screen bg-transparent font-inter">
       <Toaster position="top-right" />
       <div className="max-w-[1600px] mx-auto px-4 py-8 md:px-8 xl:px-12 space-y-6">
 
         {/* ── Page Header ── */}
-        <section className="relative overflow-hidden rounded-3xl h-auto md:h-48 flex flex-col md:flex-row items-center group shadow-sm p-6 md:p-8 border border-slate-200/80 bg-white">
+        <section className="relative overflow-hidden rounded-2xl h-auto md:h-48 flex flex-col md:flex-row items-center group shadow-none p-6 md:p-8 border border-slate-200/60 glass-card">
           <div className="absolute inset-0 bg-gradient-to-br from-white via-slate-50/50 to-slate-100/50" />
           <div className="absolute inset-0 opacity-[0.03]"
             style={{
@@ -427,7 +427,7 @@ export default function MahasiswaPage() {
             { label: 'Lulus', value: stats.lulus, icon: GraduationCap, bg: 'bg-sky-50', color: 'text-sky-600', desc: 'Telah menyelesaikan studi' },
             { label: 'Cuti', value: stats.cuti, icon: Calendar, bg: 'bg-amber-50', color: 'text-amber-600', desc: 'Sedang dalam masa cuti' },
           ].map(s => (
-            <div key={s.label} className="bg-white border border-slate-100/50 rounded-3xl p-5 shadow-sm">
+            <div key={s.label} className="glass-card border border-slate-200/60 rounded-2xl p-5 shadow-none">
               <div className="flex items-center gap-3 mb-3">
                 <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0', s.bg, s.color)}>
                   <s.icon size={18} />
@@ -443,11 +443,11 @@ export default function MahasiswaPage() {
         </div>
 
         {/* ── Table Card ── */}
-        <div className="bg-white border border-slate-100/50 rounded-3xl shadow-sm overflow-hidden">
+        <div className="glass-card border border-slate-200/60 rounded-2xl shadow-none overflow-hidden">
           {/* Toolbar */}
           <div className="px-5 py-4 border-b border-slate-100 flex flex-col sm:flex-row items-start sm:items-center gap-3">
             <div className="flex-1">
-              <h2 className="font-bold text-base text-slate-900">Daftar Mahasiswa</h2>
+              <h2 className="font-black text-sm uppercase tracking-tight font-headline" style={{ color: 'var(--theme-h2)' }}>Daftar Mahasiswa</h2>
               <p className="text-xs text-slate-500 mt-0.5">
                 Menampilkan <span className="font-bold text-slate-900">{filtered.length}</span> dari <span className="font-bold text-primary">{studentData.length}</span> mahasiswa
               </p>
@@ -652,7 +652,7 @@ export default function MahasiswaPage() {
           </div>
 
           {/* Modern Pagination Footer */}
-          <div className="px-6 py-4 bg-slate-50/50 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="px-6 py-4 bg-transparent border-t border-slate-200/60 flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
               <p className="text-xs text-slate-500 font-medium text-center sm:text-left">
                 Menampilkan <span className="font-semibold text-slate-800">{totalItems > 0 ? (currentPage - 1) * pageSize + 1 : 0}</span> sampai <span className="font-semibold text-slate-800">{Math.min(currentPage * pageSize, totalItems)}</span> dari <span className="font-semibold text-slate-800">{totalItems}</span> entri
@@ -734,11 +734,11 @@ export default function MahasiswaPage() {
           onClick={() => setSelected(null)}
         >
           <div
-            className="relative w-full max-w-xl bg-white rounded-3xl shadow-2xl z-[101] flex flex-col overflow-hidden max-h-[90vh]"
+            className="relative w-full max-w-xl glass-card rounded-2xl shadow-none border border-slate-200/60 flex flex-col overflow-hidden max-h-[90vh]"
             onClick={e => e.stopPropagation()}
           >
             {/* Header */}
-            <div className="relative bg-gradient-to-br from-[#00236F] via-[#00308F] to-[#003db5] pt-6 pb-7 px-6 overflow-hidden flex-shrink-0">
+            <div className="relative bg-gradient-to-br from-bku-primary via-[#00308F] to-[#003db5] pt-6 pb-7 px-6 overflow-hidden flex-shrink-0">
               <div className="absolute -top-10 -right-10 w-44 h-44 bg-white/5 rounded-full pointer-events-none" />
               <div className="absolute -bottom-6 right-16 w-28 h-28 bg-white/5 rounded-full pointer-events-none" />
               <button onClick={() => setSelected(null)}
@@ -749,7 +749,7 @@ export default function MahasiswaPage() {
                 <StudentAvatar src={selected.Foto} name={selected.Nama} className="w-14 h-14 rounded-2xl shadow-xl ring-2 ring-white/20" />
                 <div className="min-w-0">
                   <p className="text-[9px] font-bold text-white/50 uppercase tracking-[0.25em] mb-1">Profil Mahasiswa</p>
-                  <h2 className="text-lg font-extrabold text-white leading-tight truncate">{selected.Nama}</h2>
+                  <h2 className="text-lg font-extrabold font-headline leading-tight truncate" style={{ color: 'var(--theme-h2)' }}>{selected.Nama}</h2>
                   <p className="text-xs text-blue-200 font-medium mt-0.5">{selected.ProgramStudi}</p>
                 </div>
               </div>
@@ -800,7 +800,7 @@ export default function MahasiswaPage() {
             </div>
 
             {/* Footer */}
-            <div className="px-5 py-4 border-t border-slate-100 bg-slate-50/50 flex gap-3 flex-shrink-0">
+            <div className="px-5 py-4 border-t border-slate-200/60 bg-transparent flex gap-3 flex-shrink-0">
               <button onClick={() => setSelected(null)}
                 className="flex-1 h-11 rounded-xl border border-slate-200/60 bg-white text-xs font-bold text-slate-600 uppercase tracking-widest hover:bg-slate-50 transition-all active:scale-95">
                 Tutup
@@ -822,7 +822,7 @@ function SectionBlock({ icon, title, children, last = false }) {
         <div className="w-5 h-5 rounded-md bg-[#eef4ff] flex items-center justify-center">
           <IconComponent size={11} className="text-primary" />
         </div>
-        <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.18em]">{title}</h3>
+        <h3 className="text-[10px] font-black font-headline uppercase tracking-[0.18em]" style={{ color: 'var(--theme-h3)' }}>{title}</h3>
       </div>
       <div className="space-y-1">{children}</div>
     </div>

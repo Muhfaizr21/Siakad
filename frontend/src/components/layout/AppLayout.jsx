@@ -7,9 +7,9 @@ export default function AppLayout() {
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
   return (
-    <div className="flex h-screen bg-[#fafafa] font-body overflow-hidden">
+    <div className="flex h-screen w-screen bg-slate-50 bg-[radial-gradient(at_0%_0%,rgba(0,35,111,0.08)_0px,transparent_50%),radial-gradient(at_100%_100%,rgba(59,130,246,0.05)_0px,transparent_50%)] font-inter overflow-hidden">
       {/* Sidebar for Desktop */}
-      <div className="hidden lg:block">
+      <div className="hidden lg:block h-full flex-shrink-0">
         <Sidebar />
       </div>
 
@@ -18,7 +18,7 @@ export default function AppLayout() {
         <>
           <button
             onClick={() => setMobileSidebarOpen(false)}
-            className="lg:hidden fixed inset-0 bg-[#171717]/35 backdrop-blur-[1px] z-40"
+            className="lg:hidden fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-40"
             aria-label="Tutup menu"
           />
           <div className="lg:hidden fixed left-0 top-0 bottom-0 z-50">
@@ -28,10 +28,10 @@ export default function AppLayout() {
       )}
       
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden h-full">
         <Header onMenuClick={() => setMobileSidebarOpen(true)} />
         
-        <main className="flex-1 overflow-y-auto">
+        <main className="flex-1 overflow-y-auto p-6 space-y-6">
           {/* This renders the child routes */}
           <Outlet />
         </main>

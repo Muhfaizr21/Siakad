@@ -31,9 +31,9 @@ export default function StudentVoiceDetailPage() {
         {/* Breadcrumb & Header */}
         <div className="mb-8">
           <div className="flex items-center gap-2 text-sm font-medium text-[#6b7280] mb-6">
-            <NavLink to="/student/dashboard" className="hover:text-[#00236F] cursor-pointer transition-colors">Dashboard</NavLink>
+            <NavLink to="/student/dashboard" className="hover:text-bku-primary cursor-pointer transition-colors">Dashboard</NavLink>
             <span className="material-symbols-outlined opacity-50" style={{ fontSize: 14 }}>chevron_left</span>
-            <NavLink to="/student/voice" className="hover:text-[#00236F] cursor-pointer transition-colors">Suara Mahasiswa</NavLink>
+            <NavLink to="/student/voice" className="hover:text-bku-primary cursor-pointer transition-colors">Suara Mahasiswa</NavLink>
             <span className="material-symbols-outlined opacity-50" style={{ fontSize: 14 }}>chevron_left</span>
             <span className="text-[#171717] font-semibold">Detail Tiket</span>
           </div>
@@ -42,13 +42,13 @@ export default function StudentVoiceDetailPage() {
             <div className="flex items-center gap-4">
               <Link 
                 to="/student/voice"
-                className="w-10 h-10 bg-white border border-gray-200 rounded-xl flex items-center justify-center text-gray-500 hover:text-[#00236F] hover:border-[#00236F] transition-all shadow-sm shrink-0 hover:-translate-x-0.5"
+                className="w-10 h-10 bg-white border border-gray-200 rounded-xl flex items-center justify-center text-gray-500 hover:text-bku-primary hover:border-bku-primary transition-all shadow-sm shrink-0 hover:-translate-x-0.5"
               >
                 <span className="material-symbols-outlined" style={{ fontSize: 20 }}>chevron_left</span>
               </Link>
               <div>
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="px-2 py-0.5 bg-[#00236F] text-white text-xs font-semibold rounded-md shadow-sm">
+                  <span className="px-2 py-0.5 bg-bku-primary text-white text-xs font-semibold rounded-md shadow-sm">
                     TICKET ID
                   </span>
                   <span className="text-xs font-medium text-gray-500">
@@ -118,13 +118,13 @@ export default function StudentVoiceDetailPage() {
                   <div className="p-5 bg-gray-50 rounded-2xl border border-gray-200 group/file space-y-4">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                       <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 bg-white rounded-xl border border-gray-200 flex items-center justify-center text-gray-400 group-hover/file:text-[#00236F] transition-colors shadow-sm">
+                        <div className="w-12 h-12 bg-white rounded-xl border border-gray-200 flex items-center justify-center text-gray-400 group-hover/file:text-bku-primary transition-colors shadow-sm">
                           <span className="material-symbols-outlined" style={{ fontSize: '24px' }} >description</span>
                         </div>
                         <div>
                           <p className="text-sm font-bold text-[#171717]">Lampiran Pendukung</p>
                           <p className="text-xs font-semibold text-gray-500 flex items-center gap-1.5 mt-0.5">
-                             <span className="material-symbols-outlined text-[#00236F]" style={{ fontSize: 14 }}>download</span> File Attachment
+                             <span className="material-symbols-outlined text-bku-primary" style={{ fontSize: 14 }}>download</span> File Attachment
                           </p>
                         </div>
                       </div>
@@ -132,7 +132,7 @@ export default function StudentVoiceDetailPage() {
                         href={`${API_BASE_URL.replace('/api', '')}${ticket.lampiran_url}`} 
                         target="_blank" 
                         rel="noopener noreferrer"
-                        className="flex items-center justify-center gap-2 px-6 py-2.5 bg-[#00236F] text-white font-bold rounded-xl hover:bg-[#0B4FAE] transition-colors text-xs uppercase tracking-wider"
+                        className="flex items-center justify-center gap-2 px-6 py-2.5 bg-bku-primary text-white font-bold rounded-xl hover:bg-[#0B4FAE] transition-colors text-xs uppercase tracking-wider"
                       >
                         Download <span className="material-symbols-outlined" style={{ fontSize: 16 }}>download</span>
                       </a>
@@ -164,11 +164,11 @@ export default function StudentVoiceDetailPage() {
                   Aspirasi ini sedang dikelola oleh Unit Kerja terkait. Mohon menunggu respons resmi sistem.
                 </p>
               </div>
-              <div className="p-6 bg-[#00236F] border border-[#00236F] rounded-2xl flex flex-col gap-3">
+              <div className="p-6 bg-bku-primary border border-bku-primary rounded-2xl flex flex-col gap-3">
                 <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center text-white border border-white/20">
                   <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>security</span>
                 </div>
-                <h4 className="text-sm font-bold text-white">Kerahasiaan Data</h4>
+                <h4 className="text-sm font-bold font-headline" style={{ color: 'var(--theme-text)' }}>Kerahasiaan Data</h4>
                 <p className="text-xs text-white/80 leading-relaxed">
                   Data pelapor dijaga kerahasiaannya dengan sistem enkripsi guna menjamin keamanan mahasiswa.
                 </p>
@@ -181,7 +181,7 @@ export default function StudentVoiceDetailPage() {
             <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm relative overflow-hidden">
               <div className="flex items-center justify-between mb-8 relative z-10">
                 <h3 className="text-base font-bold font-headline text-[#171717] flex items-center gap-2">
-                  <div className="w-2 h-2 bg-[#00236F] rounded-full" />
+                  <div className="w-2 h-2 bg-bku-primary rounded-full" />
                   Journey Tracker
                 </h3>
                 <Layers size={18} className="text-gray-300" />
@@ -194,7 +194,7 @@ export default function StudentVoiceDetailPage() {
                      initial={{ height: 0 }} 
                      animate={{ height: '100%' }}
                      transition={{ duration: 1, ease: "easeOut" }}
-                     className="w-full bg-[#00236F]"
+                     className="w-full bg-bku-primary"
                    />
                 </div>
 
@@ -261,7 +261,7 @@ function TimelineEvent({ event, isLatest, idx }) {
               {config.label}
             </span>
             <span className="text-[10px] font-medium text-gray-500 flex items-center gap-1">
-              <span className="material-symbols-outlined text-[#00236F]" style={{ fontSize: '12px' }} >schedule</span> 
+              <span className="material-symbols-outlined text-bku-primary" style={{ fontSize: '12px' }} >schedule</span> 
               {new Date(event.created_at).toLocaleTimeString('id-id', { hour: '2-digit', minute: '2-digit' })}
             </span>
           </div>
@@ -286,7 +286,7 @@ function TimelineEvent({ event, isLatest, idx }) {
                 Oleh {event.level === 'sistem' ? 'Sistem' : `Admin ${event.level.charAt(0).toUpperCase() + event.level.slice(1)}`}
               </span>
            </div>
-           {isLatest && <div className="w-1.5 h-1.5 bg-[#00236F] rounded-full animate-pulse" />}
+           {isLatest && <div className="w-1.5 h-1.5 bg-bku-primary rounded-full animate-pulse" />}
         </div>
       </div>
     </motion.div>
@@ -299,7 +299,7 @@ function getEventConfig(type) {
       return { 
         label: 'Terkirim', 
         icon: <span className="material-symbols-outlined" >call_made</span>, 
-        circleColor: 'bg-[#00236F]', 
+        circleColor: 'bg-bku-primary', 
         badgeStyle: 'bg-blue-50 text-blue-600 border-blue-100',
         msgStyle: 'bg-gray-50 text-gray-600 border-gray-100'
       };

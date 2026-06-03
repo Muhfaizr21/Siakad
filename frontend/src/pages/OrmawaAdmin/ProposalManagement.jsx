@@ -360,7 +360,7 @@ export default function ProposalManagement() {
             ]}
             actions={(row) => (
               <div className="flex items-center justify-end gap-1">
-                <button onClick={() => handleView(row)} className="p-1.5 text-slate-400 hover:text-[#00236F] hover:bg-[#00236F]/10 rounded-lg transition-colors duration-150" title="Detail"><span className="material-symbols-outlined block" style={{ fontSize: '18px' }} >visibility</span></button>
+                <button onClick={() => handleView(row)} className="p-1.5 text-slate-400 hover:text-bku-primary hover:bg-bku-primary/10 rounded-lg transition-colors duration-150" title="Detail"><span className="material-symbols-outlined block" style={{ fontSize: '18px' }} >visibility</span></button>
                 <button onClick={() => handleOpenEdit(row)} className="p-1.5 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors duration-150" title="Edit"><span className="material-symbols-outlined block" style={{ fontSize: '18px' }} >edit</span></button>
                 <button onClick={() => { setSelected(row); setIsDelOpen(true) }} className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors duration-150" title="Hapus"><span className="material-symbols-outlined block" style={{ fontSize: '18px' }} >delete</span></button>
               </div>
@@ -597,7 +597,7 @@ export default function ProposalManagement() {
                   value={formData.Judul}
                   onChange={(e) => setFormData({ ...formData, Judul: e.target.value })}
                   placeholder="Contoh: Pekan Olahraga Fakultas..."
-                  className="h-12 rounded-2xl border-slate-200 bg-slate-50 focus:bg-white focus:border-[#00236F] focus:ring-2 focus:ring-[#00236F]/10 transition-all font-bold text-sm font-headline"
+                  className="h-12 rounded-2xl border-slate-200 bg-slate-50 focus:bg-white focus:border-bku-primary focus:ring-2 focus:ring-bku-primary/10 transition-all font-bold text-sm font-headline"
                 />
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -608,7 +608,7 @@ export default function ProposalManagement() {
                     type="date"
                     value={formData.TanggalKegiatan}
                     onChange={(e) => setFormData({ ...formData, TanggalKegiatan: e.target.value })}
-                    className="h-12 rounded-2xl border-slate-200 bg-slate-50 focus:bg-white focus:border-[#00236F] focus:ring-2 focus:ring-[#00236F]/10 transition-all font-bold text-sm font-headline cursor-pointer"
+                    className="h-12 rounded-2xl border-slate-200 bg-slate-50 focus:bg-white focus:border-bku-primary focus:ring-2 focus:ring-bku-primary/10 transition-all font-bold text-sm font-headline cursor-pointer"
                   />
                 </div>
                 <div className="space-y-2">
@@ -622,7 +622,7 @@ export default function ProposalManagement() {
                       setFormData({ ...formData, Anggaran: rawVal })
                     }}
                     placeholder="Cth: 10.000.000"
-                    className="h-12 rounded-2xl border-slate-200 bg-slate-50 focus:bg-white focus:border-[#00236F] focus:ring-2 focus:ring-[#00236F]/10 transition-all font-bold text-sm font-headline"
+                    className="h-12 rounded-2xl border-slate-200 bg-slate-50 focus:bg-white focus:border-bku-primary focus:ring-2 focus:ring-bku-primary/10 transition-all font-bold text-sm font-headline"
                   />
                 </div>
               </div>
@@ -638,7 +638,7 @@ export default function ProposalManagement() {
               </div>
               <div className="space-y-2.5">
                 <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 font-headline uppercase">Upload Dokumen Proposal</Label>
-                <div className="border-2 border-dashed border-slate-200 hover:border-[#00236F]/50 rounded-2xl p-6 text-center hover:bg-slate-50/50 transition-all duration-150 relative group">
+                <div className="border-2 border-dashed border-slate-200 hover:border-bku-primary/50 rounded-2xl p-6 text-center hover:bg-slate-50/50 transition-all duration-150 relative group">
                   <input
                     type="file"
                     multiple
@@ -647,10 +647,10 @@ export default function ProposalManagement() {
                     className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                   />
                   <div className="pointer-events-none flex flex-col items-center">
-                    <div className="w-12 h-12 rounded-xl bg-slate-100 group-hover:bg-[#00236F]/10 text-slate-400 group-hover:text-[#00236F] flex items-center justify-center mb-3 transition-colors duration-150 border border-slate-200/50">
+                    <div className="w-12 h-12 rounded-xl bg-slate-100 group-hover:bg-bku-primary/10 text-slate-400 group-hover:text-bku-primary flex items-center justify-center mb-3 transition-colors duration-150 border border-slate-200/50">
                       <span className="material-symbols-outlined normal-case" style={{ fontSize: '24px' }}>upload_file</span>
                     </div>
-                    <p className="text-xs font-black text-[#00236F] uppercase tracking-wider">Klik untuk Upload Dokumen</p>
+                    <p className="text-xs font-black text-bku-primary uppercase tracking-wider">Klik untuk Upload Dokumen</p>
                     <p className="text-[10px] text-slate-400 font-semibold mt-1">Bisa pilih lebih dari 1 file (PDF, Word, Excel, Maks. 5MB per file)</p>
                   </div>
                 </div>

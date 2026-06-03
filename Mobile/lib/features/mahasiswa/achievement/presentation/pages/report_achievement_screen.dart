@@ -10,7 +10,8 @@ class ReportAchievementScreen extends StatefulWidget {
   const ReportAchievementScreen({super.key, this.achievement});
 
   @override
-  State<ReportAchievementScreen> createState() => _ReportAchievementScreenState();
+  State<ReportAchievementScreen> createState() =>
+      _ReportAchievementScreenState();
 }
 
 class _ReportAchievementScreenState extends State<ReportAchievementScreen> {
@@ -27,17 +28,24 @@ class _ReportAchievementScreenState extends State<ReportAchievementScreen> {
     if (widget.achievement != null) {
       _titleController.text = widget.achievement!.title;
       _organizerController.text = widget.achievement!.organizer;
-      
+
       final lv = widget.achievement!.level;
       if (['Internasional', 'Nasional', 'Provinsi', 'Kampus'].contains(lv)) {
         _selectedLevel = lv;
       }
-      
+
       final rk = widget.achievement!.rank;
-      if (['Juara 1', 'Juara 2', 'Juara 3', 'Harapan', 'Finalis', 'Peserta'].contains(rk)) {
+      if ([
+        'Juara 1',
+        'Juara 2',
+        'Juara 3',
+        'Harapan',
+        'Finalis',
+        'Peserta',
+      ].contains(rk)) {
         _selectedRank = rk;
       }
-      
+
       _selectedDate = widget.achievement!.date;
     }
   }
@@ -53,7 +61,12 @@ class _ReportAchievementScreenState extends State<ReportAchievementScreen> {
           icon: const Icon(Icons.close_rounded, color: AppColors.primary),
           onPressed: () => Navigator.pop(context),
         ),
-        title: Text(widget.achievement != null ? 'Edit Laporan Prestasi' : 'Lapor Prestasi Baru', style: AppTextStyles.titleLg.copyWith(color: AppColors.primary)),
+        title: Text(
+          widget.achievement != null
+              ? 'Edit Laporan Prestasi'
+              : 'Lapor Prestasi Baru',
+          style: AppTextStyles.titleLg.copyWith(color: AppColors.primary),
+        ),
         centerTitle: true,
       ),
       body: SingleChildScrollView(
@@ -66,16 +79,38 @@ class _ReportAchievementScreenState extends State<ReportAchievementScreen> {
               _buildInfoBanner(),
               const SizedBox(height: 32),
               _buildLabel('Nama Prestasi / Judul Kegiatan'),
-              _buildTextField(_titleController, 'Contoh: Juara 1 Lomba Karya Tulis Ilmiah'),
+              _buildTextField(
+                _titleController,
+                'Contoh: Juara 1 Lomba Karya Tulis Ilmiah',
+              ),
               const SizedBox(height: 24),
               _buildLabel('Penyelenggara'),
-              _buildTextField(_organizerController, 'Contoh: Universitas Indonesia / Kemdikbud'),
+              _buildTextField(
+                _organizerController,
+                'Contoh: Universitas Indonesia / Kemdikbud',
+              ),
               const SizedBox(height: 24),
               Row(
                 children: [
-                  Expanded(child: _buildDropdown('Tingkat', ['Internasional', 'Nasional', 'Provinsi', 'Kampus'], (val) => setState(() => _selectedLevel = val!))),
+                  Expanded(
+                    child: _buildDropdown('Tingkat', [
+                      'Internasional',
+                      'Nasional',
+                      'Provinsi',
+                      'Kampus',
+                    ], (val) => setState(() => _selectedLevel = val!)),
+                  ),
                   const SizedBox(width: 16),
-                  Expanded(child: _buildDropdown('Peringkat', ['Juara 1', 'Juara 2', 'Juara 3', 'Harapan', 'Finalis', 'Peserta'], (val) => setState(() => _selectedRank = val!))),
+                  Expanded(
+                    child: _buildDropdown('Peringkat', [
+                      'Juara 1',
+                      'Juara 2',
+                      'Juara 3',
+                      'Harapan',
+                      'Finalis',
+                      'Peserta',
+                    ], (val) => setState(() => _selectedRank = val!)),
+                  ),
                 ],
               ),
               const SizedBox(height: 24),
@@ -109,7 +144,10 @@ class _ReportAchievementScreenState extends State<ReportAchievementScreen> {
           Expanded(
             child: Text(
               'Data yang kamu input akan otomatis disinkronkan ke sistem Simkatmawa setelah divalidasi oleh Admin.',
-              style: AppTextStyles.labelSm.copyWith(color: AppColors.primary, height: 1.4),
+              style: AppTextStyles.labelSm.copyWith(
+                color: AppColors.primary,
+                height: 1.4,
+              ),
             ),
           ),
         ],
@@ -120,7 +158,13 @@ class _ReportAchievementScreenState extends State<ReportAchievementScreen> {
   Widget _buildLabel(String text) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8, left: 4),
-      child: Text(text, style: AppTextStyles.labelMd.copyWith(fontWeight: FontWeight.bold, color: AppColors.onSurface)),
+      child: Text(
+        text,
+        style: AppTextStyles.labelMd.copyWith(
+          fontWeight: FontWeight.bold,
+          color: AppColors.onSurface,
+        ),
+      ),
     );
   }
 
@@ -132,27 +176,55 @@ class _ReportAchievementScreenState extends State<ReportAchievementScreen> {
         hintStyle: AppTextStyles.labelMd.copyWith(color: AppColors.outline),
         filled: true,
         fillColor: Colors.white,
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: AppColors.surfaceVariant)),
-        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: AppColors.surfaceVariant)),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(color: AppColors.surfaceVariant),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(color: AppColors.surfaceVariant),
+        ),
       ),
-      validator: (val) => val == null || val.isEmpty ? 'Data ini wajib diisi' : null,
+      validator:
+          (val) => val == null || val.isEmpty ? 'Data ini wajib diisi' : null,
     );
   }
 
-  Widget _buildDropdown(String label, List<String> items, Function(String?) onChanged) {
+  Widget _buildDropdown(
+    String label,
+    List<String> items,
+    Function(String?) onChanged,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildLabel(label),
         DropdownButtonFormField<String>(
-          value: items.contains(_selectedLevel) && label == 'Tingkat' ? _selectedLevel : (label == 'Peringkat' ? _selectedRank : items[0]),
-          items: items.map((e) => DropdownMenuItem(value: e, child: Text(e, style: AppTextStyles.labelMd))).toList(),
+          initialValue:
+              items.contains(_selectedLevel) && label == 'Tingkat'
+                  ? _selectedLevel
+                  : (label == 'Peringkat' ? _selectedRank : items[0]),
+          items:
+              items
+                  .map(
+                    (e) => DropdownMenuItem(
+                      value: e,
+                      child: Text(e, style: AppTextStyles.labelMd),
+                    ),
+                  )
+                  .toList(),
           onChanged: onChanged,
           decoration: InputDecoration(
             filled: true,
             fillColor: Colors.white,
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: AppColors.surfaceVariant)),
-            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: AppColors.surfaceVariant)),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: const BorderSide(color: AppColors.surfaceVariant),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: const BorderSide(color: AppColors.surfaceVariant),
+            ),
           ),
         ),
       ],
@@ -162,7 +234,12 @@ class _ReportAchievementScreenState extends State<ReportAchievementScreen> {
   Widget _buildDatePicker() {
     return InkWell(
       onTap: () async {
-        final date = await showDatePicker(context: context, initialDate: _selectedDate, firstDate: DateTime(2020), lastDate: DateTime.now());
+        final date = await showDatePicker(
+          context: context,
+          initialDate: _selectedDate,
+          firstDate: DateTime(2020),
+          lastDate: DateTime.now(),
+        );
         if (date != null) setState(() => _selectedDate = date);
       },
       child: Container(
@@ -175,8 +252,15 @@ class _ReportAchievementScreenState extends State<ReportAchievementScreen> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}', style: AppTextStyles.labelMd),
-            const Icon(Icons.calendar_today_rounded, color: AppColors.primary, size: 20),
+            Text(
+              '${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}',
+              style: AppTextStyles.labelMd,
+            ),
+            const Icon(
+              Icons.calendar_today_rounded,
+              color: AppColors.primary,
+              size: 20,
+            ),
           ],
         ),
       ),
@@ -190,14 +274,29 @@ class _ReportAchievementScreenState extends State<ReportAchievementScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.surfaceVariant, style: BorderStyle.solid),
+        border: Border.all(
+          color: AppColors.surfaceVariant,
+          style: BorderStyle.solid,
+        ),
       ),
       child: Column(
         children: [
-          const Icon(Icons.file_upload_outlined, size: 48, color: AppColors.outline),
+          const Icon(
+            Icons.file_upload_outlined,
+            size: 48,
+            color: AppColors.outline,
+          ),
           const SizedBox(height: 12),
-          Text('Upload Sertifikat / Piagam', style: AppTextStyles.labelMd.copyWith(color: AppColors.onSurfaceVariant)),
-          Text('Maks 5MB (PDF, JPG, PNG)', style: AppTextStyles.labelSm.copyWith(color: AppColors.outline)),
+          Text(
+            'Upload Sertifikat / Piagam',
+            style: AppTextStyles.labelMd.copyWith(
+              color: AppColors.onSurfaceVariant,
+            ),
+          ),
+          Text(
+            'Maks 5MB (PDF, JPG, PNG)',
+            style: AppTextStyles.labelSm.copyWith(color: AppColors.outline),
+          ),
         ],
       ),
     );
@@ -213,7 +312,10 @@ class _ReportAchievementScreenState extends State<ReportAchievementScreen> {
           if (_formKey.currentState!.validate()) {
             final scaffoldMessenger = ScaffoldMessenger.of(context);
             final newAchievement = Achievement(
-              id: isEditing ? widget.achievement!.id : 'A${DateTime.now().millisecondsSinceEpoch}',
+              id:
+                  isEditing
+                      ? widget.achievement!.id
+                      : 'A${DateTime.now().millisecondsSinceEpoch}',
               title: _titleController.text,
               organizer: _organizerController.text,
               level: _selectedLevel,
@@ -221,14 +323,20 @@ class _ReportAchievementScreenState extends State<ReportAchievementScreen> {
               date: _selectedDate,
               status: isEditing ? widget.achievement!.status : 'Pending',
               isSynced: isEditing ? widget.achievement!.isSynced : false,
-              certificateUrl: isEditing ? widget.achievement!.certificateUrl : null,
+              certificateUrl:
+                  isEditing ? widget.achievement!.certificateUrl : null,
             );
-            
+
             try {
               if (isEditing) {
-                await context.read<StudentProvider>().updateAchievement(widget.achievement!.id, newAchievement);
+                await context.read<StudentProvider>().updateAchievement(
+                  widget.achievement!.id,
+                  newAchievement,
+                );
               } else {
-                await context.read<StudentProvider>().addAchievement(newAchievement);
+                await context.read<StudentProvider>().addAchievement(
+                  newAchievement,
+                );
               }
               _showSuccessDialog(isEditing);
             } catch (e) {
@@ -245,10 +353,18 @@ class _ReportAchievementScreenState extends State<ReportAchievementScreen> {
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primary,
           foregroundColor: Colors.white,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(18),
+          ),
           elevation: 0,
         ),
-        child: Text(isEditing ? 'Simpan Perubahan' : 'Kirim Laporan Prestasi', style: AppTextStyles.labelMd.copyWith(fontWeight: FontWeight.bold, color: Colors.white)),
+        child: Text(
+          isEditing ? 'Simpan Perubahan' : 'Kirim Laporan Prestasi',
+          style: AppTextStyles.labelMd.copyWith(
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
       ),
     );
   }
@@ -256,43 +372,60 @@ class _ReportAchievementScreenState extends State<ReportAchievementScreen> {
   void _showSuccessDialog(bool isEditing) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const SizedBox(height: 16),
-            const Icon(Icons.check_circle_rounded, color: Colors.green, size: 80),
-            const SizedBox(height: 24),
-            Text(isEditing ? 'Perubahan Disimpan!' : 'Laporan Terkirim!', style: AppTextStyles.titleLg),
-            const SizedBox(height: 12),
-            Text(
-              isEditing 
-                  ? 'Perubahan data laporan prestasi kamu berhasil disimpan dan diperbarui di sistem.'
-                  : 'Laporan prestasi kamu telah masuk antrean validasi Admin. Kamu akan menerima notifikasi jika status berubah.',
-              textAlign: TextAlign.center,
-              style: AppTextStyles.labelMd.copyWith(color: AppColors.onSurfaceVariant),
+      builder:
+          (context) => AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(24),
             ),
-            const SizedBox(height: 32),
-            SizedBox(
-              width: double.infinity,
-              height: 52,
-              child: ElevatedButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                  Navigator.pop(context);
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const SizedBox(height: 16),
+                const Icon(
+                  Icons.check_circle_rounded,
+                  color: Colors.green,
+                  size: 80,
                 ),
-                child: const Text('Kembali ke Portofolio', style: TextStyle(fontWeight: FontWeight.bold)),
-              ),
+                const SizedBox(height: 24),
+                Text(
+                  isEditing ? 'Perubahan Disimpan!' : 'Laporan Terkirim!',
+                  style: AppTextStyles.titleLg,
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  isEditing
+                      ? 'Perubahan data laporan prestasi kamu berhasil disimpan dan diperbarui di sistem.'
+                      : 'Laporan prestasi kamu telah masuk antrean validasi Admin. Kamu akan menerima notifikasi jika status berubah.',
+                  textAlign: TextAlign.center,
+                  style: AppTextStyles.labelMd.copyWith(
+                    color: AppColors.onSurfaceVariant,
+                  ),
+                ),
+                const SizedBox(height: 32),
+                SizedBox(
+                  width: double.infinity,
+                  height: 52,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                      Navigator.pop(context);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                    ),
+                    child: const Text(
+                      'Kembali ke Portofolio',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
-      ),
+          ),
     );
   }
 }

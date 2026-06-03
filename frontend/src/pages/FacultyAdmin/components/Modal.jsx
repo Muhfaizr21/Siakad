@@ -53,7 +53,7 @@ export function Modal({ open, onClose, title, subtitle, icon, children, maxWidth
               </div>
             )}
             <div>
-              {title && <h2 className="text-lg font-extrabold text-slate-900">{title}</h2>}
+              {title && <h2 className="text-lg font-extrabold font-headline" style={{ color: 'var(--theme-h2)' }}>{title}</h2>}
               {subtitle && <p className="text-xs text-slate-400 font-medium mt-0.5">{subtitle}</p>}
             </div>
           </div>
