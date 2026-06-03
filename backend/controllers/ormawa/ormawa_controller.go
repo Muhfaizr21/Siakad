@@ -490,7 +490,7 @@ func CreateCashMutation(c *fiber.Ctx) error {
 	})
 
 	if err != nil {
-		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal mencatat mutasi kas"})
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal mencatat mutasi kas: " + err.Error()})
 	}
 	return c.Status(201).JSON(fiber.Map{"status": "success", "data": mutation})
 }
@@ -701,7 +701,9 @@ func CreateAnnouncement(c *fiber.Ctx) error {
 		payload.OrmawaID = tokenOrmawaID
 	}
 
-	config.DB.Create(&payload)
+	if err := config.DB.Create(&payload).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal menyimpan pengumuman: " + err.Error()})
+	}
 	// Buat notifikasi ormawa
 	config.DB.Create(&models.OrmawaNotifikasi{
 		OrmawaID: payload.OrmawaID,

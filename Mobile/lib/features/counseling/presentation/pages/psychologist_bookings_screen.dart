@@ -456,7 +456,6 @@ class _PsychologistBookingsScreenState
                   ),
                   const SizedBox(width: 12),
                   Expanded(
-                    flex: 2,
                     child: ElevatedButton.icon(
                       onPressed: () =>
                           _showActionDialog(booking, true, id, provider),

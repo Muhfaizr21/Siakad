@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:dio/dio.dart';
 import 'package:bkuhub_mobile/core/theme/app_colors.dart';
 import 'package:bkuhub_mobile/core/theme/app_text_styles.dart';
 import 'package:bkuhub_mobile/core/widgets/bku_app_bar.dart';
@@ -27,7 +29,7 @@ class _CreateProposalScreenState extends State<CreateProposalScreen> {
     super.initState();
     if (widget.initialProposal != null) {
       _nameController.text = widget.initialProposal!.title;
-      _budgetController.text = widget.initialProposal!.budget.toString();
+      _budgetController.text = _formatNumber(widget.initialProposal!.budget.toInt().toString());
       _selectedDate = widget.initialProposal!.date;
       _descController.text = widget.initialProposal!.description ?? '';
     }
@@ -63,7 +65,7 @@ class _CreateProposalScreenState extends State<CreateProposalScreen> {
       code: isEdit ? widget.initialProposal!.code : '',
       status: isEdit ? widget.initialProposal!.status : 'diajukan',
       date: _selectedDate,
-      budget: double.tryParse(_budgetController.text) ?? 0,
+      budget: double.tryParse(_budgetController.text.replaceAll('.', '')) ?? 0,
       description: _descController.text,
     );
 
@@ -85,9 +87,16 @@ class _CreateProposalScreenState extends State<CreateProposalScreen> {
         );
       }
     } catch (e) {
+      String errMsg = e.toString();
+      if (e is DioException && e.response?.data != null) {
+        final data = e.response!.data;
+        if (data is Map && (data.containsKey('message') || data.containsKey('Message'))) {
+          errMsg = (data['message'] ?? data['Message']).toString();
+        }
+      }
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Gagal menyimpan proposal: $e'), backgroundColor: Colors.red),
+          SnackBar(content: Text('Gagal menyimpan proposal: $errMsg'), backgroundColor: Colors.red),
         );
       }
     } finally {
@@ -131,7 +140,7 @@ class _CreateProposalScreenState extends State<CreateProposalScreen> {
                   
                   _buildSectionTitle('Rencana Anggaran'),
                   const SizedBox(height: 16),
-                  _buildTextField('Total Anggaran', 'Rp 0', Icons.payments_rounded, keyboardType: TextInputType.number, controller: _budgetController),
+                  _buildTextField('Total Anggaran', '0', Icons.payments_rounded, keyboardType: TextInputType.number, controller: _budgetController, isPrice: true),
                   const SizedBox(height: 24),
                   
                   _buildSectionTitle('Deskripsi & Dokumen'),
@@ -163,7 +172,7 @@ class _CreateProposalScreenState extends State<CreateProposalScreen> {
     );
   }
 
-  Widget _buildTextField(String label, String hint, IconData icon, {bool isReadOnly = false, int maxLines = 1, TextInputType keyboardType = TextInputType.text, TextEditingController? controller, VoidCallback? onTap}) {
+  Widget _buildTextField(String label, String hint, IconData icon, {bool isReadOnly = false, int maxLines = 1, TextInputType keyboardType = TextInputType.text, TextEditingController? controller, VoidCallback? onTap, bool isPrice = false}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -180,19 +189,40 @@ class _CreateProposalScreenState extends State<CreateProposalScreen> {
               borderRadius: BorderRadius.circular(16),
               border: Border.all(color: const Color(0xFFE2E8F0)),
             ),
-            child: TextField(
-              controller: controller,
-              enabled: !isReadOnly,
-              maxLines: maxLines,
-              keyboardType: keyboardType,
-              style: AppTextStyles.bodyMd.copyWith(fontWeight: FontWeight.bold),
-              decoration: InputDecoration(
-                hintText: hint,
-                hintStyle: AppTextStyles.bodyMd.copyWith(color: AppColors.outline.withAlpha(100)),
-                prefixIcon: Icon(icon, color: AppColors.primary, size: 20),
-                border: InputBorder.none,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: EdgeInsets.only(
+                    left: 16,
+                    top: maxLines > 1 ? 16 : 14,
+                  ),
+                  child: Icon(icon, color: AppColors.primary, size: 20),
+                ),
+                Expanded(
+                  child: TextField(
+                    controller: controller,
+                    enabled: !isReadOnly,
+                    maxLines: maxLines,
+                    keyboardType: keyboardType,
+                    inputFormatters: isPrice ? [ThousandsSeparatorInputFormatter()] : null,
+                    style: AppTextStyles.bodyMd.copyWith(fontWeight: FontWeight.bold),
+                    decoration: InputDecoration(
+                      hintText: hint,
+                      hintStyle: AppTextStyles.bodyMd.copyWith(color: AppColors.outline.withAlpha(100)),
+                      prefixText: isPrice ? 'Rp ' : null,
+                      prefixStyle: AppTextStyles.bodyMd.copyWith(fontWeight: FontWeight.bold, color: Colors.black),
+                      border: InputBorder.none,
+                      contentPadding: EdgeInsets.only(
+                        left: 12,
+                        right: 16,
+                        top: maxLines > 1 ? 16 : 12,
+                        bottom: maxLines > 1 ? 16 : 12,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ),
@@ -257,6 +287,50 @@ class _CreateProposalScreenState extends State<CreateProposalScreen> {
                 style: AppTextStyles.labelMd.copyWith(color: Colors.white, fontWeight: FontWeight.w900, letterSpacing: 1),
               ),
       ),
+    );
+  }
+}
+
+String _formatNumber(String value) {
+  String cleaned = value.replaceAll(RegExp(r'[^0-9]'), '');
+  if (cleaned.isEmpty) return '';
+  final buffer = StringBuffer();
+  for (int i = 0; i < cleaned.length; i++) {
+    if (i > 0 && (cleaned.length - i) % 3 == 0) {
+      buffer.write('.');
+    }
+    buffer.write(cleaned[i]);
+  }
+  return buffer.toString();
+}
+
+class ThousandsSeparatorInputFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(
+      TextEditingValue oldValue, TextEditingValue newValue) {
+    if (newValue.text.isEmpty) {
+      return newValue.copyWith(text: '');
+    }
+
+    // Only allow digits
+    String cleanedText = newValue.text.replaceAll(RegExp(r'[^0-9]'), '');
+    if (cleanedText.isEmpty) {
+      return newValue.copyWith(text: '');
+    }
+
+    // Format with dot separator
+    final buffer = StringBuffer();
+    for (int i = 0; i < cleanedText.length; i++) {
+      if (i > 0 && (cleanedText.length - i) % 3 == 0) {
+        buffer.write('.');
+      }
+      buffer.write(cleanedText[i]);
+    }
+
+    final newText = buffer.toString();
+    return newValue.copyWith(
+      text: newText,
+      selection: TextSelection.collapsed(offset: newText.length),
     );
   }
 }

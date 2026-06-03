@@ -269,7 +269,7 @@ class _OrmawaPKKMBScreenState extends State<OrmawaPKKMBScreen> {
         crossAxisCount: 4,
         mainAxisSpacing: 8,
         crossAxisSpacing: 0,
-        childAspectRatio: 0.98,
+        childAspectRatio: 0.8,
         children: [
           _buildServiceItem(
             'Agenda',

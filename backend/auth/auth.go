@@ -134,6 +134,11 @@ func Login(c *fiber.Ctx) error {
 			_ = config.DB.Preload("ProgramStudi").Preload("Fakultas").Where("pengguna_id = ?", user.ID).First(&student).Error
 			if student.ID != 0 {
 				nim = student.NIM
+				// Lookup Ormawa membership
+				var membership models.OrmawaAnggota
+				if err := config.DB.Where("mahasiswa_id = ? AND status = 'aktif'", student.ID).First(&membership).Error; err == nil {
+					user.OrmawaID = &membership.OrmawaID
+				}
 			}
 		}
 	}
@@ -207,6 +212,12 @@ func Me(c *fiber.Ctx) error {
 
 	var student models.Mahasiswa
 	_ = config.DB.Where("pengguna_id = ?", user.ID).First(&student).Error
+	if student.ID != 0 {
+		var membership models.OrmawaAnggota
+		if err := config.DB.Where("mahasiswa_id = ? AND status = 'aktif'", student.ID).First(&membership).Error; err == nil {
+			user.OrmawaID = &membership.OrmawaID
+		}
+	}
 
 	var rbacRole models.RBACRole
 	var permissions []string
@@ -935,10 +946,12 @@ func EnsureBootstrapData() error {
 
 		var mutasi models.OrmawaMutasiSaldo
 		if err := config.DB.Where("ormawa_id = ? AND deskripsi = ?", ormawa.ID, "Saldo awal organisasi").First(&mutasi).Error; err != nil {
-			mutasi = models.OrmawaMutasiSaldo{OrmawaID: ormawa.ID, Tipe: "Kredit", Nominal: 10000000, Kategori: "Dana Awal", Deskripsi: "Saldo awal organisasi", Tanggal: time.Now()}
+			mutasi = models.OrmawaMutasiSaldo{OrmawaID: ormawa.ID, Tipe: "pemasukan", Nominal: 10000000, Kategori: "Dana Awal", Deskripsi: "Saldo awal organisasi", Tanggal: time.Now()}
 			if err := config.DB.Create(&mutasi).Error; err != nil {
 				return err
 			}
+		} else if mutasi.Tipe == "Kredit" {
+			config.DB.Model(&mutasi).Update("tipe", "pemasukan")
 		}
 	}
 
@@ -1246,6 +1259,15 @@ func ensureUser(email, plainPassword, role string, fakultasID *uint, ormawaID *u
 }
 
 func ensurePkkmbBootstrap() error {
+	// Seed PKKMB Hasil data if empty
+	var hasilCount int64
+	config.DB.Model(&models.PkkmbHasil{}).Count(&hasilCount)
+	if hasilCount == 0 {
+		if err := seedPkkmbHasilData(); err != nil {
+			log.Printf("[PKKMB Seeder] Warning: failed to seed PKKMB results: %v", err)
+		}
+	}
+
 	var count int64
 	config.DB.Model(&models.PkkmbTahap{}).Count(&count)
 	if count > 0 {
@@ -1411,6 +1433,103 @@ func ensurePkkmbBootstrap() error {
 	config.DB.Create(&models.PkkmbQuizOption{QuestionID: q4.ID, Opsi: "Barisan Edukasi Mahasiswa", IsBenar: false})
 
 	log.Println("[PKKMB Seeder] Seeding PKKMB stages completed successfully!")
+	return nil
+}
+
+func seedPkkmbHasilData() error {
+	log.Println("[PKKMB Seeder] Seeding PKKMB participant results...")
+
+	var prodis []models.ProgramStudi
+	if err := config.DB.Find(&prodis).Error; err != nil {
+		return err
+	}
+
+	getNIMPrefix := func(kode string) string {
+		switch kode {
+		case "FF-FAR-S1":
+			return "261FF010"
+		case "FF-FAR-D3":
+			return "261FF020"
+		case "FK-KEP-S1":
+			return "261FK010"
+		case "FK-KEP-D3":
+			return "261FK020"
+		case "FIK-KBD-D3":
+			return "261FIK010"
+		case "FIK-KM-S1":
+			return "261FIK020"
+		case "FS-IKOM-S1":
+			return "261FS010"
+		case "FS-PSI-S1":
+			return "261FS020"
+		default:
+			return "26" + kode[:3] + "010"
+		}
+	}
+
+	for _, p := range prodis {
+		nimPrefix := getNIMPrefix(p.Kode)
+		for i := 1; i <= 5; i++ {
+			nim := fmt.Sprintf("%s%02d", nimPrefix, i)
+			name := fmt.Sprintf("Maba %s %c", p.Nama, 'A'+i-1)
+			email := strings.ToLower(nim) + "@student.bku.ac.id"
+
+			// Ensure user exists
+			user, err := ensureUser(email, "student123", "mahasiswa", &p.FakultasID, nil)
+			if err != nil {
+				log.Printf("Failed to create user for %s: %v", email, err)
+				continue
+			}
+
+			// Ensure student exists
+			var mhs models.Mahasiswa
+			if err := config.DB.Where("nim = ?", nim).First(&mhs).Error; err != nil {
+				mhs = models.Mahasiswa{
+					PenggunaID:       user.ID,
+					NIM:              nim,
+					Nama:             name,
+					FakultasID:       p.FakultasID,
+					ProgramStudiID:   p.ID,
+					SemesterSekarang: 1,
+					StatusAkun:       "Aktif",
+					TahunMasuk:       2026,
+					JalurMasuk:       "PKKMB",
+					EmailKampus:      email,
+				}
+				if err := config.DB.Create(&mhs).Error; err != nil {
+					log.Printf("Failed to create student %s: %v", nim, err)
+					continue
+				}
+			}
+
+			// Determine kelulusan and nilai
+			status := "Lulus"
+			nilai := 75.0 + float64(i)*4.5 // values around 80-97
+			
+			if p.Kode == "FS-PSI-S1" {
+				if i > 3 {
+					status = "Proses"
+					nilai = 55.0 + float64(i)*2.0 // values around 63-65
+				}
+			} else {
+				if i > 4 {
+					status = "Proses"
+					nilai = 60.0 + float64(i)*1.5 // values around 67
+				}
+			}
+
+			// Create PkkmbHasil
+			pkkmbHasil := models.PkkmbHasil{
+				MahasiswaID:     mhs.ID,
+				Nilai:           nilai,
+				StatusKelulusan: status,
+			}
+			if err := config.DB.Create(&pkkmbHasil).Error; err != nil {
+				log.Printf("Failed to create pkkmb_hasil for student %s: %v", nim, err)
+			}
+		}
+	}
+	log.Println("[PKKMB Seeder] Seeding PKKMB participant results completed.")
 	return nil
 }
 

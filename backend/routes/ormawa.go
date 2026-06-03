@@ -83,6 +83,22 @@ func SetupOrmawaRoutes(app *fiber.App) {
 	api.Post("/aspirations", ormawa.CreateAspiration)
 	api.Put("/aspirations/:id", ormawa.UpdateAspiration)
 
+	// PKKMB / KENCANA (MANAGEMENT FOR ORMAWA ADMIN)
+	api.Get("/kencana/ringkasan", ormawa.AmbilRingkasanPkkmb)
+	api.Get("/kencana/peserta", ormawa.AmbilDaftarKelulusanMaba)
+	api.Get("/kencana/banding", ormawa.AmbilDaftarBandingPkkmb)
+	api.Post("/kencana/banding/:id/review", ormawa.ReviewBandingPkkmb)
+
+	api.Get("/kencana/kegiatan", ormawa.AmbilDaftarKegiatanPkkmb)
+	api.Post("/kencana/kegiatan", ormawa.TambahKegiatanPkkmb)
+	api.Put("/kencana/kegiatan/:id", ormawa.UpdateKegiatanPkkmb)
+	api.Delete("/kencana/kegiatan/:id", ormawa.HapusKegiatanPkkmb)
+
+	api.Get("/kencana/kuis", ormawa.AmbilDaftarKuis)
+	api.Post("/kencana/kuis", ormawa.TambahKuis)
+	api.Put("/kencana/kuis/:id", ormawa.UpdateKuis)
+	api.Delete("/kencana/kuis/:id", ormawa.HapusKuis)
+
 	// FILE UPLOAD HANDLER
 	api.Post("/upload", ormawa.UploadFile)
 

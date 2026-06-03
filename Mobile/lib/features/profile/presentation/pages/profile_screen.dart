@@ -538,55 +538,65 @@ class ProfileScreen extends StatelessWidget {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => Container(
-        height: MediaQuery.of(context).size.height * 0.75,
         decoration: const BoxDecoration(color: Colors.white, borderRadius: BorderRadius.vertical(top: Radius.circular(32))),
-        padding: const EdgeInsets.all(32),
+        padding: const EdgeInsets.fromLTRB(32, 16, 32, 32),
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
             Container(width: 40, height: 4, decoration: BoxDecoration(color: const Color(0xFFE2E8F0), borderRadius: BorderRadius.circular(2))),
-            const SizedBox(height: 32),
-            Text('Kartu Mahasiswa Digital', style: AppTextStyles.titleLg.copyWith(fontWeight: FontWeight.w900, color: AppColors.primary)),
-            const SizedBox(height: 32),
-            Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(32),
-                boxShadow: [BoxShadow(color: Colors.black.withAlpha(8), blurRadius: 25)],
-                border: Border.all(color: AppColors.primary.withAlpha(10)),
-              ),
-              child: Column(
-                children: [
-                  Container(
-                    margin: const EdgeInsets.only(bottom: 16),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: Image.asset(
-                        'assets/images/logoBKU.jpg',
-                        width: 40,
-                        height: 40,
-                        fit: BoxFit.contain,
+            const SizedBox(height: 24),
+            Flexible(
+              child: SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text('Kartu Mahasiswa Digital', style: AppTextStyles.titleLg.copyWith(fontWeight: FontWeight.w900, color: AppColors.primary)),
+                    const SizedBox(height: 24),
+                    Container(
+                      padding: const EdgeInsets.all(24),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(32),
+                        boxShadow: [BoxShadow(color: Colors.black.withAlpha(8), blurRadius: 25)],
+                        border: Border.all(color: AppColors.primary.withAlpha(10)),
+                      ),
+                      child: Column(
+                        children: [
+                          Container(
+                            margin: const EdgeInsets.only(bottom: 16),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(8),
+                              child: Image.asset(
+                                'assets/images/logoBKU.jpg',
+                                width: 40,
+                                height: 40,
+                                fit: BoxFit.contain,
+                              ),
+                            ),
+                          ),
+                          Image.network('https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${student.nim}', height: 180, width: 180),
+                          const SizedBox(height: 20),
+                          Text(student.name, style: AppTextStyles.labelMd.copyWith(fontWeight: FontWeight.w900, fontSize: 18), textAlign: TextAlign.center),
+                          const SizedBox(height: 4),
+                          Text(student.nim, style: AppTextStyles.labelSm.copyWith(color: AppColors.outline, fontWeight: FontWeight.bold, letterSpacing: 1)),
+                        ],
                       ),
                     ),
-                  ),
-                  Image.network('https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${student.nim}', height: 200, width: 200),
-                  const SizedBox(height: 24),
-                  Text(student.name, style: AppTextStyles.labelMd.copyWith(fontWeight: FontWeight.w900, fontSize: 18)),
-                  const SizedBox(height: 4),
-                  Text(student.nim, style: AppTextStyles.labelSm.copyWith(color: AppColors.outline, fontWeight: FontWeight.bold, letterSpacing: 1)),
-                ],
+                    const SizedBox(height: 24),
+                    Text(
+                      'Gunakan QR Code ini untuk keperluan administrasi, perpustakaan, dan presensi di lingkungan kampus BKU.',
+                      textAlign: TextAlign.center,
+                      style: AppTextStyles.labelSm.copyWith(color: const Color(0xFF64748B), height: 1.5),
+                    ),
+                  ],
+                ),
               ),
             ),
-            const SizedBox(height: 40),
-            Text(
-              'Gunakan QR Code ini untuk keperluan administrasi, perpustakaan, dan presensi di lingkungan kampus BKU.',
-              textAlign: TextAlign.center,
-              style: AppTextStyles.labelSm.copyWith(color: const Color(0xFF64748B), height: 1.5),
-            ),
-            const Spacer(),
+            const SizedBox(height: 24),
             SizedBox(
               width: double.infinity,
-              height: 58,
+              height: 54,
               child: ElevatedButton(
                 onPressed: () => Navigator.pop(context),
                 style: ElevatedButton.styleFrom(
@@ -607,22 +617,35 @@ class ProfileScreen extends StatelessWidget {
   void _showTranscriptSummary(BuildContext context) {
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => Container(
-        height: 480,
         decoration: const BoxDecoration(color: Colors.white, borderRadius: BorderRadius.vertical(top: Radius.circular(32))),
-        padding: const EdgeInsets.all(32),
+        padding: const EdgeInsets.fromLTRB(32, 16, 32, 32),
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Center(child: Container(width: 40, height: 4, decoration: BoxDecoration(color: const Color(0xFFE2E8F0), borderRadius: BorderRadius.circular(2)))),
+            const SizedBox(height: 24),
             Text('Ringkasan Transkrip', style: AppTextStyles.titleLg.copyWith(fontWeight: FontWeight.w900, color: AppColors.primary)),
             const SizedBox(height: 24),
-            _buildTranscriptRow('Semester 1', '3.80'),
-            _buildTranscriptRow('Semester 2', '3.90'),
-            _buildTranscriptRow('Semester 3', '3.75'),
-            _buildTranscriptRow('Semester 4', '3.88'),
-            _buildTranscriptRow('Semester 5', '3.92'),
-            const Spacer(),
+            Flexible(
+              child: SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _buildTranscriptRow('Semester 1', '3.80'),
+                    _buildTranscriptRow('Semester 2', '3.90'),
+                    _buildTranscriptRow('Semester 3', '3.75'),
+                    _buildTranscriptRow('Semester 4', '3.88'),
+                    _buildTranscriptRow('Semester 5', '3.92'),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(color: Colors.orange.withAlpha(10), borderRadius: BorderRadius.circular(16), border: Border.all(color: Colors.orange.withAlpha(20))),
@@ -639,7 +662,7 @@ class ProfileScreen extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 12),
           ],
         ),
       ),

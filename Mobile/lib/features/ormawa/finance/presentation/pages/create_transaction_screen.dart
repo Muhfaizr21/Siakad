@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../../../../core/providers/ormawa_provider.dart';
 import '../../../../../core/theme/app_colors.dart';
@@ -178,9 +179,12 @@ class _CreateTransactionScreenState extends State<CreateTransactionScreen> {
       child: TextField(
         controller: controller,
         keyboardType: isNumber ? TextInputType.number : TextInputType.text,
+        inputFormatters: isNumber ? [ThousandsSeparatorInputFormatter()] : null,
         style: const TextStyle(fontWeight: FontWeight.bold),
         decoration: InputDecoration(
           hintText: hint,
+          prefixText: isNumber ? 'Rp ' : null,
+          prefixStyle: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
           prefixIcon: Icon(icon, color: AppColors.primary, size: 20),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
@@ -200,7 +204,7 @@ class _CreateTransactionScreenState extends State<CreateTransactionScreen> {
     try {
       final data = {
         'type': _selectedType,
-        'nominal': double.parse(_amountController.text),
+        'nominal': double.parse(_amountController.text.replaceAll('.', '')),
         'category': _selectedCategory,
         'description': _descriptionController.text,
         'date': DateTime.now().toIso8601String(),
@@ -215,5 +219,36 @@ class _CreateTransactionScreenState extends State<CreateTransactionScreen> {
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
     }
+  }
+}
+
+class ThousandsSeparatorInputFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(
+      TextEditingValue oldValue, TextEditingValue newValue) {
+    if (newValue.text.isEmpty) {
+      return newValue.copyWith(text: '');
+    }
+
+    // Only allow digits
+    String cleanedText = newValue.text.replaceAll(RegExp(r'[^0-9]'), '');
+    if (cleanedText.isEmpty) {
+      return newValue.copyWith(text: '');
+    }
+
+    // Format with dot separator
+    final buffer = StringBuffer();
+    for (int i = 0; i < cleanedText.length; i++) {
+      if (i > 0 && (cleanedText.length - i) % 3 == 0) {
+        buffer.write('.');
+      }
+      buffer.write(cleanedText[i]);
+    }
+
+    final newText = buffer.toString();
+    return newValue.copyWith(
+      text: newText,
+      selection: TextSelection.collapsed(offset: newText.length),
+    );
   }
 }

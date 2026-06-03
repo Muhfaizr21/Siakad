@@ -17,9 +17,11 @@ import 'package:bkuhub_mobile/core/network/api_client.dart';
 import 'package:bkuhub_mobile/features/mahasiswa/data/repositories/student_repository_impl.dart';
 import 'package:bkuhub_mobile/features/ormawa/data/repositories/ormawa_repository_impl.dart';
 import 'package:bkuhub_mobile/features/counseling/data/repositories/counseling_repository_impl.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await initializeDateFormatting('id', null);
 
 
   // Initialize Core Networking & Repositories
