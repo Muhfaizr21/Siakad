@@ -21,18 +21,18 @@ export default function BkuDashboard() {
 
   if (isError || !data) {
     return (
-      <div className="min-h-screen flex items-center justify-center px-4 bg-transparent">
-        <div className="glass-card rounded-2xl px-8 py-10 max-w-sm w-full text-center shadow-sm">
-          <div className="w-12 h-12 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4">
-            <span className="text-2xl">🚧</span>
+      <div className="min-h-screen flex items-center justify-center px-4 bg-transparent font-inter">
+        <div className="bg-surface rounded-xl px-8 py-10 max-w-sm w-full text-center border border-border shadow-sm">
+          <div className="w-12 h-12 bg-error/10 rounded-full flex items-center justify-center mx-auto mb-4 border border-error/20">
+            <span className="text-2xl text-error">🚧</span>
           </div>
-          <h2 className="font-semibold text-[#171717] text-lg mb-2">Gagal Memuat Dashboard</h2>
-          <p className="text-sm text-[#6b7280] leading-relaxed">
+          <h2 className="font-semibold text-on-surface text-lg mb-2" style={{ color: 'var(--theme-text)' }}>Gagal Memuat Dashboard</h2>
+          <p className="text-sm text-muted leading-relaxed">
             Pastikan koneksi internet stabil, lalu coba muat ulang halaman.
           </p>
           <button
             onClick={() => window.location.reload()}
-            className="mt-5 w-full py-2.5 rounded-xl bg-bku-primary text-white text-sm font-medium hover:bg-bku-hover transition-colors"
+            className="mt-5 w-full py-2.5 rounded-lg bg-primary text-white text-sm font-medium hover:opacity-90 transition-colors"
           >
             Muat Ulang
           </button>
@@ -42,69 +42,67 @@ export default function BkuDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-transparent font-inter text-slate-800">
-      <div className="max-w-7xl mx-auto px-4 py-6 md:px-6 md:py-8 lg:px-8 lg:py-10">
-        <div className="flex flex-col gap-5">
+    <div className="px-4 py-6 md:px-6 lg:px-8 min-h-screen bg-transparent font-inter text-on-surface">
+      <div className="max-w-7xl mx-auto space-y-6">
 
-          {/* ── ZONA URGENT (hal mendesak di atas) ── */}
+        {/* ── ZONA URGENT (hal mendesak di atas) ── */}
 
-          {/* [1] Banner Pengumuman Penting — paling atas karena sifatnya darurat/pinned */}
-          {data.banner_pinned && (
-            <section aria-label="Pengumuman Penting">
-              <BannerPinned banner={data.banner_pinned} />
-            </section>
-          )}
-
-          {/* [2] Deadline Alert — pengingat jatuh tempo, butuh tindakan segera */}
-          {data.deadlines?.length > 0 && (
-            <section aria-label="Deadline Mendekat">
-              <DeadlineAlert deadlines={data.deadlines} />
-            </section>
-          )}
-
-          {/* ── ZONA KONTEKSTUAL ── */}
-
-          {/* [3] Hero Card — sambutan & pesan kontekstual */}
-          <section aria-label="Ringkasan Harian">
-            <HeroCard data={data} />
+        {/* [1] Banner Pengumuman Penting */}
+        {data.banner_pinned && (
+          <section aria-label="Pengumuman Penting">
+            <BannerPinned banner={data.banner_pinned} />
           </section>
+        )}
 
-          {/* [4] Status & Progress — gambaran umum kondisi mahasiswa */}
-          <section aria-label="Status Permohonan">
-            <StatusSummary
-              kencana={data.kencana}
-              beasiswa={data.beasiswa}
-              voice={data.student_voice}
-              kesehatan={kesehatanData}
-              kesehatanLoading={kesehatanLoading}
-            />
+        {/* [2] Deadline Alert */}
+        {data.deadlines?.length > 0 && (
+          <section aria-label="Deadline Mendekat">
+            <DeadlineAlert deadlines={data.deadlines} />
           </section>
+        )}
 
-          {/* ── ZONA NAVIGASI & AKTIVITAS ── */}
+        {/* ── ZONA KONTEKSTUAL ── */}
 
-          {/* [5] Quick Access — akses cepat ke fitur utama */}
-          <section aria-label="Akses Cepat">
-            <QuickAccessGrid />
-          </section>
+        {/* [3] Hero Card — sambutan & pesan kontekstual */}
+        <section aria-label="Ringkasan Harian">
+          <HeroCard data={data} />
+        </section>
 
-          {/* [6] Aktivitas & Kalender — layout dua kolom */}
-          <section aria-label="Aktivitas dan Jadwal">
-            <div className="grid grid-cols-1 lg:grid-cols-10 gap-5">
-              <div className="lg:col-span-6">
-                <ActivityFeed activities={data.aktivitas_terbaru} />
-              </div>
-              <div className="lg:col-span-4">
-                <CalendarMini events={data.kegiatan_bulan_ini} />
-              </div>
+        {/* [4] Status & Progress — gambaran umum kondisi mahasiswa */}
+        <section aria-label="Status Permohonan">
+          <StatusSummary
+            kencana={data.kencana}
+            beasiswa={data.beasiswa}
+            voice={data.student_voice}
+            kesehatan={kesehatanData}
+            kesehatanLoading={kesehatanLoading}
+          />
+        </section>
+
+        {/* ── ZONA NAVIGASI & AKTIVITAS ── */}
+
+        {/* [5] Quick Access — akses cepat ke fitur utama */}
+        <section aria-label="Akses Cepat">
+          <QuickAccessGrid />
+        </section>
+
+        {/* [6] Aktivitas & Kalender — layout dua kolom */}
+        <section aria-label="Aktivitas dan Jadwal">
+          <div className="grid grid-cols-1 lg:grid-cols-10 gap-6">
+            <div className="lg:col-span-6">
+              <ActivityFeed activities={data.aktivitas_terbaru} />
             </div>
-          </section>
+            <div className="lg:col-span-4">
+              <CalendarMini events={data.kegiatan_bulan_ini} />
+            </div>
+          </div>
+        </section>
 
-          {/* [7] Pengumuman Terbaru — informasi pendukung di paling bawah */}
-          <section aria-label="Pengumuman">
-            <AnnouncementSection announcements={data.pengumuman} />
-          </section>
+        {/* [7] Pengumuman Terbaru — informasi pendukung di paling bawah */}
+        <section aria-label="Pengumuman">
+          <AnnouncementSection announcements={data.pengumuman} />
+        </section>
 
-        </div>
       </div>
     </div>
   );

@@ -11,8 +11,8 @@ const Dashboard = () => {
 
   if (isLoading) {
     return (
-      <div className="p-8 flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-10 w-10 border-b-4 border-emerald-600"></div>
+      <div className="p-8 flex justify-center items-center h-64 bg-transparent">
+        <div className="animate-spin rounded-full h-10 w-10 border-b-4 border-primary"></div>
       </div>
     );
   }
@@ -21,124 +21,130 @@ const Dashboard = () => {
   const activePeriod = (periods || []).find(p => p.is_active) || periods?.[0] || null;
 
   return (
-    <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-8 animate-fade-in">
-      {/* Header Section with Premium Gradient */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-900 via-teal-900 to-slate-900 p-8 md:p-12 shadow-2xl">
-        {/* Abstract background elements */}
-        <div className="absolute top-0 right-0 w-64 h-64 rounded-full bg-emerald-500/20 blur-3xl -mr-20 -mt-20"></div>
-        <div className="absolute bottom-0 left-0 w-80 h-80 rounded-full bg-teal-500/20 blur-3xl -ml-20 -mb-20"></div>
-        
-        <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-          <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 border border-white/20 text-white/90 text-xs font-black uppercase tracking-widest mb-4 backdrop-blur-md">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-              Pusat Kendali Utama
+    <div className="px-4 py-6 md:px-6 lg:px-8 min-h-screen bg-transparent font-inter">
+      <div className="max-w-7xl mx-auto space-y-6">
+        {/* Page Header */}
+        <section
+          className="rounded-xl p-5 border border-border"
+          style={{ backgroundColor: 'var(--theme-surface)' }}
+        >
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            {/* Left: Icon + Title */}
+            <div className="flex items-center gap-4">
+              <div
+                className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0"
+                style={{ backgroundColor: 'var(--theme-primary)', color: 'white' }}
+              >
+                <span className="material-symbols-outlined text-xl">shield_person</span>
+              </div>
+              <div>
+                <h1 className="text-xl font-bold" style={{ color: 'var(--theme-text)' }}>
+                  Super Admin Kencana
+                </h1>
+                <p className="text-xs mt-0.5" style={{ color: 'var(--theme-text-muted)' }}>
+                  Kelola seluruh tahapan PKKMB, atur penugasan mentor, dan awasi perkembangan nilai mahasiswa dari satu dashboard terpusat.
+                </p>
+              </div>
             </div>
-            <h1 className="text-3xl md:text-5xl font-black text-white tracking-tight mb-2">
-              Super Admin Kencana
-            </h1>
-            <p className="text-emerald-100 text-lg max-w-2xl font-medium">
-              Kelola seluruh tahapan PKKMB, atur penugasan mentor, dan awasi perkembangan nilai mahasiswa dari satu *dashboard* terpusat.
-            </p>
-          </div>
-          
-          <div className="flex-shrink-0 bg-white/10 border border-white/20 backdrop-blur-md rounded-2xl p-4 text-center min-w-[160px]">
-            <p className="text-xs font-bold text-emerald-200 uppercase tracking-wider mb-1">Periode Aktif</p>
-            <p className="text-xl font-black text-white line-clamp-1">
-              {activePeriod ? activePeriod.name : 'Belum Ada'}
-            </p>
-          </div>
-        </div>
-      </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        
-        {/* Card 1: Total Periode */}
-        <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all group">
-          <div className="w-12 h-12 rounded-2xl bg-teal-50 text-teal-600 flex items-center justify-center mb-4 group-hover:scale-110 group-hover:bg-teal-600 group-hover:text-white transition-all duration-300">
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-          </div>
-          <h3 className="text-sm font-black text-slate-400 uppercase tracking-wider mb-1">Total Periode</h3>
-          <div className="flex items-end gap-2">
-            <span className="text-4xl font-black text-slate-800">{periods?.length || 0}</span>
-          </div>
-        </div>
-
-        {/* Card 2: Peserta */}
-        <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all group">
-          <div className="w-12 h-12 rounded-2xl bg-sky-50 text-sky-600 flex items-center justify-center mb-4 group-hover:scale-110 group-hover:bg-sky-600 group-hover:text-white transition-all duration-300">
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
-          </div>
-          <h3 className="text-sm font-black text-slate-400 uppercase tracking-wider mb-1">Total Peserta</h3>
-          <div className="flex items-end gap-2">
-            <span className="text-4xl font-black text-slate-800">{participants?.length || 0}</span>
-          </div>
-        </div>
-
-        {/* Card 3: Mentors */}
-        <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all group">
-          <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center mb-4 group-hover:scale-110 group-hover:bg-amber-600 group-hover:text-white transition-all duration-300">
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
-          </div>
-          <h3 className="text-sm font-black text-slate-400 uppercase tracking-wider mb-1">Total Mentor</h3>
-          <div className="flex items-end gap-2">
-            <span className="text-4xl font-black text-slate-800">{mentors?.length || 0}</span>
-          </div>
-        </div>
-
-        {/* Card 4: Nilai */}
-        <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all group">
-          <div className="w-12 h-12 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center mb-4 group-hover:scale-110 group-hover:bg-rose-600 group-hover:text-white transition-all duration-300">
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
-          </div>
-          <h3 className="text-sm font-black text-slate-400 uppercase tracking-wider mb-1">Data Nilai</h3>
-          <div className="flex items-end gap-2">
-            <span className="text-4xl font-black text-slate-800">{scores?.length || 0}</span>
-            <span className="text-sm font-bold text-slate-400 mb-1">Entri</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Quick Actions Panel */}
-      <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
-        <div className="px-8 py-5 border-b border-slate-100 bg-slate-50/50">
-          <h2 className="text-lg font-black text-slate-800">Akses Cepat Pengelolaan</h2>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-slate-100">
-          
-          <Link to="/kencana-admin/periods" className="p-8 hover:bg-slate-50 transition-colors group">
-            <div className="w-10 h-10 rounded-full bg-teal-50 text-teal-600 flex items-center justify-center mb-4 group-hover:bg-teal-600 group-hover:text-white transition-all">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+            {/* Right: Active Period Info */}
+            <div className="flex gap-2 w-full md:w-auto items-center">
+              <div className="bg-background border border-border px-4 py-2 rounded-lg text-center min-w-[140px] shrink-0">
+                <p className="text-[9px] font-bold text-secondary uppercase tracking-wider">Periode Aktif</p>
+                <p className="text-xs font-black text-primary truncate max-w-[120px]" style={{ color: 'var(--theme-text)' }}>
+                  {activePeriod ? activePeriod.name : 'Belum Ada'}
+                </p>
+              </div>
             </div>
-            <h3 className="font-bold text-slate-800 mb-1 group-hover:text-teal-600 transition-colors">Periode PKKMB</h3>
-            <p className="text-sm text-slate-500 font-medium">Buka atau tutup periode Kencana.</p>
-          </Link>
+          </div>
+        </section>
 
-          <Link to="/kencana-admin/stages" className="p-8 hover:bg-slate-50 transition-colors group">
-            <div className="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center mb-4 group-hover:bg-blue-600 group-hover:text-white transition-all">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+        {/* Stats Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {/* Card 1: Total Periode */}
+          <div className="bg-surface rounded-xl p-5 border border-border shadow-sm group hover:-translate-y-0.5 transition-all">
+            <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary border border-primary/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-all duration-300">
+              <span className="material-symbols-outlined text-xl">calendar_today</span>
             </div>
-            <h3 className="font-bold text-slate-800 mb-1 group-hover:text-blue-600 transition-colors">Tahapan & Materi</h3>
-            <p className="text-sm text-slate-500 font-medium">Kelola modul, quiz, dan materi untuk mahasiswa.</p>
-          </Link>
-
-          <Link to="/kencana-admin/mentors" className="p-8 hover:bg-slate-50 transition-colors group">
-            <div className="w-10 h-10 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center mb-4 group-hover:bg-amber-600 group-hover:text-white transition-all">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+            <h3 className="text-[10px] font-bold text-muted uppercase tracking-wider mb-1">Total Periode</h3>
+            <div className="flex items-end gap-2">
+              <span className="text-xl font-bold text-on-surface" style={{ color: 'var(--theme-text)' }}>{periods?.length || 0}</span>
             </div>
-            <h3 className="font-bold text-slate-800 mb-1 group-hover:text-amber-600 transition-colors">Akun Mentor</h3>
-            <p className="text-sm text-slate-500 font-medium">Buat dan kelola akun Dewan Pembimbing Kencana.</p>
-          </Link>
+          </div>
 
-          <Link to="/kencana-admin/scores" className="p-8 hover:bg-slate-50 transition-colors group">
-            <div className="w-10 h-10 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center mb-4 group-hover:bg-rose-600 group-hover:text-white transition-all">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+          {/* Card 2: Peserta */}
+          <div className="bg-surface rounded-xl p-5 border border-border shadow-sm group hover:-translate-y-0.5 transition-all">
+            <div className="w-10 h-10 rounded-xl bg-info/10 text-info border border-info/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-all duration-300">
+              <span className="material-symbols-outlined text-xl">group</span>
             </div>
-            <h3 className="font-bold text-slate-800 mb-1 group-hover:text-rose-600 transition-colors">Rekap Penilaian</h3>
-            <p className="text-sm text-slate-500 font-medium">Lihat dan ekspor hasil penilaian akhir mahasiswa.</p>
-          </Link>
+            <h3 className="text-[10px] font-bold text-muted uppercase tracking-wider mb-1">Total Peserta</h3>
+            <div className="flex items-end gap-2">
+              <span className="text-xl font-bold text-on-surface" style={{ color: 'var(--theme-text)' }}>{participants?.length || 0}</span>
+            </div>
+          </div>
 
+          {/* Card 3: Mentors */}
+          <div className="bg-surface rounded-xl p-5 border border-border shadow-sm group hover:-translate-y-0.5 transition-all">
+            <div className="w-10 h-10 rounded-xl bg-warning/10 text-warning border border-warning/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-all duration-300">
+              <span className="material-symbols-outlined text-xl">groups</span>
+            </div>
+            <h3 className="text-[10px] font-bold text-muted uppercase tracking-wider mb-1">Total Mentor</h3>
+            <div className="flex items-end gap-2">
+              <span className="text-xl font-bold text-on-surface" style={{ color: 'var(--theme-text)' }}>{mentors?.length || 0}</span>
+            </div>
+          </div>
+
+          {/* Card 4: Nilai */}
+          <div className="bg-surface rounded-xl p-5 border border-border shadow-sm group hover:-translate-y-0.5 transition-all">
+            <div className="w-10 h-10 rounded-xl bg-error/10 text-error border border-error/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-all duration-300">
+              <span className="material-symbols-outlined text-xl">analytics</span>
+            </div>
+            <h3 className="text-[10px] font-bold text-muted uppercase tracking-wider mb-1">Data Nilai</h3>
+            <div className="flex items-end gap-2">
+              <span className="text-xl font-bold text-on-surface" style={{ color: 'var(--theme-text)' }}>{scores?.length || 0}</span>
+              <span className="text-xs font-semibold text-muted mb-0.5">Entri</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Quick Actions Panel */}
+        <div className="bg-surface rounded-xl border border-border shadow-sm overflow-hidden">
+          <div className="px-5 py-4 border-b border-border bg-slate-50/50">
+            <h2 className="text-xs font-bold uppercase tracking-widest text-primary font-headline">Akses Cepat Pengelolaan</h2>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-border-muted">
+            <Link to="/kencana-admin/periods" className="p-6 hover:bg-slate-50/50 transition-colors group">
+              <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary border border-primary/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-all">
+                <span className="material-symbols-outlined text-xl">calendar_today</span>
+              </div>
+              <h3 className="font-bold text-on-surface text-sm mb-1 group-hover:text-primary transition-colors" style={{ color: 'var(--theme-text)' }}>Periode PKKMB</h3>
+              <p className="text-xs text-muted font-medium">Buka atau tutup periode Kencana.</p>
+            </Link>
+
+            <Link to="/kencana-admin/stages" className="p-6 hover:bg-slate-50/50 transition-colors group">
+              <div className="w-10 h-10 rounded-xl bg-info/10 text-info border border-info/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-all">
+                <span className="material-symbols-outlined text-xl">menu_book</span>
+              </div>
+              <h3 className="font-bold text-on-surface text-sm mb-1 group-hover:text-info transition-colors" style={{ color: 'var(--theme-text)' }}>Tahapan & Materi</h3>
+              <p className="text-xs text-muted font-medium">Kelola modul, quiz, dan materi untuk mahasiswa.</p>
+            </Link>
+
+            <Link to="/kencana-admin/mentors" className="p-6 hover:bg-slate-50/50 transition-colors group">
+              <div className="w-10 h-10 rounded-xl bg-warning/10 text-warning border border-warning/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-all">
+                <span className="material-symbols-outlined text-xl">assignment_ind</span>
+              </div>
+              <h3 className="font-bold text-on-surface text-sm mb-1 group-hover:text-warning transition-colors" style={{ color: 'var(--theme-text)' }}>Akun Mentor</h3>
+              <p className="text-xs text-muted font-medium">Buat dan kelola akun Dewan Pembimbing Kencana.</p>
+            </Link>
+
+            <Link to="/kencana-admin/scores" className="p-6 hover:bg-slate-50/50 transition-colors group">
+              <div className="w-10 h-10 rounded-xl bg-error/10 text-error border border-error/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-all">
+                <span className="material-symbols-outlined text-xl">fact_check</span>
+              </div>
+              <h3 className="font-bold text-on-surface text-sm mb-1 group-hover:text-error transition-colors" style={{ color: 'var(--theme-text)' }}>Rekap Penilaian</h3>
+              <p className="text-xs text-muted font-medium">Lihat dan ekspor hasil penilaian akhir mahasiswa.</p>
+            </Link>
+          </div>
         </div>
       </div>
     </div>

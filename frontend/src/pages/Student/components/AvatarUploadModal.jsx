@@ -6,10 +6,9 @@ import getCroppedImg from '../../../lib/cropImage';
 import { toast } from 'react-hot-toast';
 
 
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
+import Dialog, {
+  DialogContent,
+  DialogHeader,
   DialogTitle,
   DialogDescription,
   DialogClose

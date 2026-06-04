@@ -1,7 +1,4 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import Sidebar from './components/Sidebar';
-import TopNavBar from './components/TopNavBar';
-
 import { UI } from '../../constants/designSystem';
 import { psychologistService } from '../../services/api';
 import { toast } from 'react-hot-toast';
@@ -48,7 +45,6 @@ const toMinutes = (value) => {
 };
 
 export default function ScheduleManagement() {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [selectedDay, setSelectedDay] = useState('Senin');
   const [schedule, setSchedule] = useState(defaultSchedule);
   const [savedSnapshot, setSavedSnapshot] = useState(JSON.stringify(defaultSchedule));
@@ -156,20 +152,15 @@ export default function ScheduleManagement() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] text-slate-900 font-body">
-      <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
-
-      <main className="lg:ml-64 transition-all duration-300">
-        <TopNavBar setIsOpen={setSidebarOpen} />
-
-        <div className="pt-24 px-6 lg:px-10 pb-12 w-full relative space-y-8 scroll-smooth">
+    <>
+      <div className="w-full relative space-y-6 scroll-smooth">
           {/* Welcome Banner Card (Non-Dashboard -> White Gradient) */}
-          <section className="relative overflow-hidden rounded-[2.5rem] bg-gradient-to-r from-white via-slate-50/50 to-blue-50/20 border border-slate-100 p-8 shadow-sm flex flex-col gap-6 group">
+          <section className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-white via-slate-50/50 to-blue-50/20 border border-slate-100 p-5 shadow-sm flex flex-col gap-5 group">
             {/* Soft decorative blur nodes */}
             <div className="absolute -top-24 -right-24 w-72 h-72 bg-blue-500/5 rounded-full blur-3xl pointer-events-none"></div>
             <div className="absolute -bottom-24 -left-24 w-72 h-72 bg-indigo-500/5 rounded-full blur-3xl pointer-events-none"></div>
             
-            <div className="relative z-10 flex flex-col gap-6 xl:flex-row xl:items-center xl:justify-between w-full">
+            <div className="relative z-10 flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between w-full">
               <div>
                 <div className="inline-flex items-center gap-2 rounded-full bg-primary/5 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-primary">
                   <span className="material-symbols-outlined size-3.5">stars</span>
@@ -207,9 +198,9 @@ export default function ScheduleManagement() {
           {/* Bento Grid Stats Card (Diluar dan dibawah banner utama) */}
           <div className="grid grid-cols-1 gap-4 md:grid-cols-3 w-full">
             {/* Card 1 */}
-            <div className="group relative overflow-hidden rounded-[2rem] border border-slate-100 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
+            <div className="group relative overflow-hidden rounded-2xl border border-slate-100 bg-white p-5 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
               {/* Soft decorative glow background */}
-              <div className="absolute -right-8 -top-8 w-24 h-24 bg-primary/5 rounded-full blur-xl pointer-events-none" />
+              <div className="absolute -right-8 -top-5 w-24 h-24 bg-primary/5 rounded-full blur-xl pointer-events-none" />
               
               <div className="flex items-center justify-between">
                 <div className="w-12 h-12 bg-primary/5 text-primary rounded-[1.25rem] flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shrink-0">
@@ -227,9 +218,9 @@ export default function ScheduleManagement() {
             </div>
             
             {/* Card 2 */}
-            <div className="group relative overflow-hidden rounded-[2rem] border border-slate-100 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
+            <div className="group relative overflow-hidden rounded-2xl border border-slate-100 bg-white p-5 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
               {/* Soft decorative glow background */}
-              <div className="absolute -right-8 -top-8 w-24 h-24 bg-emerald-500/5 rounded-full blur-xl pointer-events-none" />
+              <div className="absolute -right-8 -top-5 w-24 h-24 bg-emerald-500/5 rounded-full blur-xl pointer-events-none" />
               
               <div className="flex items-center justify-between">
                 <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-[1.25rem] flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shrink-0">
@@ -247,9 +238,9 @@ export default function ScheduleManagement() {
             </div>
 
             {/* Card 3 */}
-            <div className="group relative overflow-hidden rounded-[2rem] border border-slate-100 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
+            <div className="group relative overflow-hidden rounded-2xl border border-slate-100 bg-white p-5 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
               {/* Soft decorative glow background */}
-              <div className="absolute -right-8 -top-8 w-24 h-24 bg-amber-500/5 rounded-full blur-xl pointer-events-none" />
+              <div className="absolute -right-8 -top-5 w-24 h-24 bg-amber-500/5 rounded-full blur-xl pointer-events-none" />
               
               <div className="flex items-center justify-between">
                 <div className="w-12 h-12 bg-amber-50 text-amber-600 rounded-[1.25rem] flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shrink-0">
@@ -267,7 +258,7 @@ export default function ScheduleManagement() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-12 w-full">
+          <div className="grid grid-cols-1 gap-5 lg:grid-cols-12 w-full">
             <aside className="lg:col-span-4 xl:col-span-3">
               <div className="rounded-3xl border border-slate-100 bg-white p-4 shadow-sm">
                 <div className="mb-4 flex items-center justify-between px-2">
@@ -314,7 +305,7 @@ export default function ScheduleManagement() {
 
             <section className="lg:col-span-8 xl:col-span-9">
               <div className="overflow-hidden rounded-3xl border border-slate-100 bg-white shadow-sm transition-all duration-300">
-                <div className={`border-b border-slate-100 p-6 ${currentDayData.enabled ? 'bg-slate-50/50' : 'bg-rose-50/30'}`}>
+                <div className={`border-b border-slate-100 p-5 ${currentDayData.enabled ? 'bg-slate-50/50' : 'bg-rose-50/30'}`}>
                   <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <div className="flex items-center gap-4">
                       <div className={`flex size-12 items-center justify-center rounded-2xl shadow-sm ${currentDayData.enabled ? 'bg-primary text-white' : 'border border-slate-100 bg-white text-slate-300'}`}>
@@ -338,7 +329,7 @@ export default function ScheduleManagement() {
                   </div>
                 </div>
 
-                <div className="p-5 sm:p-6">
+                <div className="p-5 sm:p-5">
                   {currentDayData.enabled ? (
                     <div className="space-y-5">
                       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -478,7 +469,6 @@ export default function ScheduleManagement() {
             </section>
           </div>
         </div>
-      </main>
-    </div>
+    </>
   );
 }

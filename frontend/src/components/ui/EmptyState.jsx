@@ -1,58 +1,55 @@
 import React from 'react';
 
 /**
- * @param {string} iconColor - Hex or Tailwind class for icon color.
- * @param {string} title - Main heading.
- * @param {string} description - Subtext explaining the state.
- * @param {string} actionLabel - Optional CTA text.
- * @param {function} onAction - Optional CTA click handler.
- * @param {string} size - Size variant (sm, md, lg).
+ * EmptyState — Tampilan ketika data kosong
+ *
+ * Aturan (dari FRONTEND_UI_STYLE_GUIDE.md):
+ * - Container: rounded-xl, flex-col, items-center, justify-center
+ * - Icon box: w-20 h-20 rounded-2xl, bg var(--theme-text-muted)/8, color var(--theme-text-muted)
+ * - Title: text-lg font-bold, color var(--theme-text)
+ * - Description: text-sm, color var(--theme-text-muted)
+ * - Action: Button primary variant
  */
-export default function EmptyState({ 
-  icon, 
-  iconColor = "text-primary", 
-  iconBgClass = "bg-primary/5",
-  iconBorderClass = "border-[#ffedd5]",
-  title, 
-  description, 
-  actionLabel, 
-  onAction, 
-  actionClassName = "bg-primary hover:bg-primary/90",
-  size = "md" 
+export default function EmptyState({
+  icon = 'folder_open',
+  title = 'Tidak ada data',
+  description = 'Data yang Anda cari tidak ditemukan.',
+  action,
+  className = '',
 }) {
-  const sizeClasses = {
-    sm: { container: "py-8", icon: "w-12 h-12", iconSize: 20, title: "text-base", desc: "text-xs" },
-    md: { container: "py-16", icon: "w-16 h-16", iconSize: 28, title: "text-xl", desc: "text-sm" },
-    lg: { container: "py-24", icon: "w-20 h-20", iconSize: 36, title: "text-2xl", desc: "text-base" },
-  };
-
-  const currentSize = sizeClasses[size];
-
   return (
-    <div className={`flex flex-col items-center justify-center text-center px-6 ${currentSize.container}`}>
-      {/* Icon Circle */}
-      <div className={`${currentSize.icon} ${iconBgClass} rounded-3xl flex items-center justify-center ${iconColor} mb-6 shadow-sm border ${iconBorderClass}`}>
-        <span className="material-symbols-outlined" style={{ fontSize: currentSize.iconSize }}>{icon || 'help'}</span>
+    <div
+      className={`flex flex-col items-center justify-center py-16 px-4 text-center ${className}`}
+    >
+      {/* Icon Box */}
+      <div
+        className="w-20 h-20 rounded-2xl flex items-center justify-center mb-6"
+        style={{
+          backgroundColor: 'color-mix(in srgb, var(--theme-text-muted) 8%, transparent)',
+          color: 'var(--theme-text-muted)',
+        }}
+      >
+        <span className="material-symbols-outlined text-4xl">{icon}</span>
       </div>
 
-      {/* Text Content */}
-      <h3 className={`font-extrabold text-[#171717] font-headline mb-2 ${currentSize.title}`}>
+      {/* Title */}
+      <h3
+        className="text-lg font-bold mb-2"
+        style={{ color: 'var(--theme-text)' }}
+      >
         {title}
       </h3>
-      <p className={`text-[#737373] max-w-sm mx-auto mb-8 font-medium leading-relaxed ${currentSize.desc}`}>
+
+      {/* Description */}
+      <p
+        className="text-sm max-w-sm mb-6"
+        style={{ color: 'var(--theme-text-muted)' }}
+      >
         {description}
       </p>
 
-      {/* Optional CTA */}
-      {actionLabel && onAction && (
-        <button
-          onClick={onAction}
-          className={`px-6 py-3 text-white rounded-2xl font-bold text-sm shadow-lg transition-all hover:scale-105 active:scale-95 flex items-center gap-2 ${actionClassName}`}
-        >
-          {actionLabel}
-          <span className="material-symbols-outlined" style={{ fontSize: 18 }}>chevron_right</span>
-        </button>
-      )}
+      {/* Action */}
+      {action && <div>{action}</div>}
     </div>
   );
 }

@@ -73,36 +73,36 @@ const Dashboard = () => {
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Card 1 */}
-        <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all group">
+        <div className="bg-white rounded-3xl p-6 border border-border-muted shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all group">
           <div className="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center mb-4 group-hover:scale-110 group-hover:bg-indigo-600 group-hover:text-white transition-all duration-300">
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
           </div>
-          <h3 className="text-sm font-black text-slate-400 uppercase tracking-wider mb-1">Total Bimbingan</h3>
+          <h3 className="text-sm font-black text-muted uppercase tracking-wider mb-1">Total Bimbingan</h3>
           <div className="flex items-end gap-2">
-            <span className="text-4xl font-black text-slate-800">{studentCount}</span>
-            <span className="text-sm font-bold text-slate-400 mb-1">Mahasiswa Aktif</span>
+            <span className="text-4xl font-black text-on-surface">{studentCount}</span>
+            <span className="text-sm font-bold text-muted mb-1">Mahasiswa Aktif</span>
           </div>
         </div>
 
         {/* Card 2 */}
-        <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all group">
+        <div className="bg-white rounded-3xl p-6 border border-border-muted shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all group">
           <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center mb-4 group-hover:scale-110 group-hover:bg-emerald-600 group-hover:text-white transition-all duration-300">
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
           </div>
-          <h3 className="text-sm font-black text-slate-400 uppercase tracking-wider mb-1">Periode Kencana</h3>
-          <p className="text-xl font-bold text-slate-800 leading-tight mt-2">
+          <h3 className="text-sm font-black text-muted uppercase tracking-wider mb-1">Periode Kencana</h3>
+          <p className="text-xl font-bold text-on-surface leading-tight mt-2">
             {period.name || 'Belum ada periode aktif'}
           </p>
         </div>
 
         {/* Card 3 */}
-        <div className="bg-white rounded-3xl p-6 border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all group relative overflow-hidden flex flex-col justify-between">
+        <div className="bg-white rounded-3xl p-6 border border-border-muted shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all group relative overflow-hidden flex flex-col justify-between">
           <div className="absolute top-0 right-0 p-6 opacity-10 transform translate-x-4 -translate-y-4 group-hover:rotate-12 transition-all duration-500">
             <svg className="w-32 h-32" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2L2 22h20L12 2zm0 4.5l6.5 13.5H5.5L12 6.5z"/></svg>
           </div>
           <div>
-            <h3 className="text-sm font-black text-slate-400 uppercase tracking-wider mb-1 relative z-10">Jelajahi Mahasiswa</h3>
-            <p className="text-slate-600 font-medium text-sm mt-2 relative z-10">Cari mahasiswa yang tersedia untuk dibimbing pada periode ini.</p>
+            <h3 className="text-sm font-black text-muted uppercase tracking-wider mb-1 relative z-10">Jelajahi Mahasiswa</h3>
+            <p className="text-muted font-medium text-sm mt-2 relative z-10">Cari mahasiswa yang tersedia untuk dibimbing pada periode ini.</p>
           </div>
           <Link to="/kencana-mentor/available" className="inline-flex items-center gap-2 font-bold text-violet-600 hover:text-violet-800 transition-colors mt-4 relative z-10">
             Cari Mahasiswa <span className="text-xl leading-none">&rarr;</span>
@@ -111,31 +111,31 @@ const Dashboard = () => {
       </div>
 
       {/* Quick Actions */}
-      <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
-        <div className="px-8 py-5 border-b border-slate-100 bg-slate-50/50">
-          <h2 className="text-lg font-black text-slate-800">Aksi Cepat</h2>
+      <div className="bg-white rounded-3xl border border-border-muted shadow-sm overflow-hidden">
+        <div className="px-8 py-5 border-b border-border-muted bg-slate-50/50">
+          <h2 className="text-lg font-black text-on-surface">Aksi Cepat</h2>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-slate-100">
           <Link to="/kencana-mentor/students" className="p-8 hover:bg-slate-50 transition-colors group">
             <div className="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center mb-4 group-hover:bg-blue-600 group-hover:text-white transition-all">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
             </div>
-            <h3 className="font-bold text-slate-800 mb-1 group-hover:text-blue-600 transition-colors">Daftar Bimbingan</h3>
-            <p className="text-sm text-slate-500 font-medium">Lihat dan kelola nilai mahasiswa bimbingan Anda saat ini.</p>
+            <h3 className="font-bold text-on-surface mb-1 group-hover:text-blue-600 transition-colors">Daftar Bimbingan</h3>
+            <p className="text-sm text-muted font-medium">Lihat dan kelola nilai mahasiswa bimbingan Anda saat ini.</p>
           </Link>
           <Link to="/kencana-mentor/available" className="p-8 hover:bg-slate-50 transition-colors group">
             <div className="w-10 h-10 rounded-full bg-violet-50 text-violet-600 flex items-center justify-center mb-4 group-hover:bg-violet-600 group-hover:text-white transition-all">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
             </div>
-            <h3 className="font-bold text-slate-800 mb-1 group-hover:text-violet-600 transition-colors">Tambah Bimbingan</h3>
-            <p className="text-sm text-slate-500 font-medium">Cari dan undang mahasiswa baru untuk menjadi bimbingan Anda.</p>
+            <h3 className="font-bold text-on-surface mb-1 group-hover:text-violet-600 transition-colors">Tambah Bimbingan</h3>
+            <p className="text-sm text-muted font-medium">Cari dan undang mahasiswa baru untuk menjadi bimbingan Anda.</p>
           </Link>
           <Link to="/kencana-mentor/settings" className="p-8 hover:bg-slate-50 transition-colors group">
-            <div className="w-10 h-10 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center mb-4 group-hover:bg-slate-800 group-hover:text-white transition-all">
+            <div className="w-10 h-10 rounded-full bg-slate-100 text-muted flex items-center justify-center mb-4 group-hover:bg-slate-800 group-hover:text-white transition-all">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
             </div>
-            <h3 className="font-bold text-slate-800 mb-1 group-hover:text-slate-800 transition-colors">Pengaturan</h3>
-            <p className="text-sm text-slate-500 font-medium">Perbarui informasi profil dan kontak Anda.</p>
+            <h3 className="font-bold text-on-surface mb-1 group-hover:text-on-surface transition-colors">Pengaturan</h3>
+            <p className="text-sm text-muted font-medium">Perbarui informasi profil dan kontak Anda.</p>
           </Link>
         </div>
       </div>

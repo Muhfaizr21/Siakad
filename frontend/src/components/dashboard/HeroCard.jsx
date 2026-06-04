@@ -1,11 +1,11 @@
 import React from 'react';
-import { UserCircle2, ChevronRight } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
+import { ChevronRight } from 'lucide-react';
 import { API_BASE_URL } from '../../services/api';
 
 export default function HeroCard({ data }) {
   const { mahasiswa, pesan_kontekstual, link_kontekstual } = data;
-  
+
   const getGreeting = () => {
     const hour = new Date().getHours();
     if (hour >= 5 && hour < 12) return 'Selamat Pagi';
@@ -14,13 +14,12 @@ export default function HeroCard({ data }) {
     return 'Selamat Malam';
   };
 
-  const statusColors = {
-    aktif: 'bg-[#16a34a] text-white',
-    cuti: 'bg-primary text-white',
-    alumni: 'bg-[#737373] text-white',
-  };
+  const dateStr = new Date().toLocaleDateString('id-ID', {
+    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+  });
 
   const currentStatus = mahasiswa?.status?.toLowerCase() || 'alumni';
+  const firstName = mahasiswa?.nama_depan || mahasiswa?.nama || 'Mahasiswa';
 
   const getFullUrl = (path) => {
     if (!path) return null;
@@ -30,50 +29,69 @@ export default function HeroCard({ data }) {
   };
 
   return (
-    <div className="bg-gradient-to-br from-primary/10 to-primary/20 border-l-4 border-primary rounded-2xl p-4 md:p-5 mb-2 shadow-sm relative overflow-hidden group">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 relative z-10">
-        <div>
-          <div className="flex items-center gap-2.5 mb-2.5">
-            <h1 className="text-xl md:text-2xl font-extrabold font-headline leading-tight">
-              {getGreeting()}, {mahasiswa?.nama_depan || mahasiswa?.nama}! 👋
+    <section
+      className="rounded-xl p-5 border border-border shadow-sm"
+      style={{ backgroundColor: 'var(--theme-surface)' }}
+    >
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        {/* Left: Avatar + Title */}
+        <div className="flex items-center gap-4">
+          <div className="relative shrink-0">
+            <div className="w-12 h-12 rounded-xl border border-border overflow-hidden flex items-center justify-center bg-slate-50" style={{ backgroundColor: 'var(--theme-border-muted)' }}>
+              {mahasiswa?.foto_url ? (
+                <img src={getFullUrl(mahasiswa.foto_url)} alt="Profile" className="w-full h-full object-cover" />
+              ) : (
+                <div
+                  className="w-full h-full text-white flex items-center justify-center text-lg font-bold font-jakarta"
+                  style={{ backgroundColor: 'var(--theme-primary)' }}
+                >
+                  {firstName.charAt(0)}
+                </div>
+              )}
+            </div>
+            {/* Status dot */}
+            {currentStatus === 'aktif' && (
+              <div className="absolute -bottom-1 -right-1 w-3.5 h-3.5 bg-emerald-500 rounded-full border-2 border-white animate-pulse" style={{ borderColor: 'var(--theme-surface)' }} />
+            )}
+          </div>
+          <div>
+            <h1 className="text-xl font-bold" style={{ color: 'var(--theme-text)' }}>
+              {getGreeting()}, <span style={{ color: 'var(--theme-secondary)' }}>{firstName}!</span>
             </h1>
-            <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide ${statusColors[currentStatus]}`}>
-              {mahasiswa?.status}
-            </span>
+            <p className="text-xs mt-0.5" style={{ color: 'var(--theme-text-muted)' }}>
+              {mahasiswa?.nim ? `${mahasiswa.nim} · ` : ''}{mahasiswa?.prodi || ''}{mahasiswa?.semester ? ` · Semester ${mahasiswa.semester}` : ''} · {dateStr}
+            </p>
           </div>
-          
-          <p className="text-[#525252] font-semibold text-xs md:text-sm flex items-center flex-wrap gap-x-2.5 gap-y-1 mb-4">
-            <span>NIM: <span className="text-[#171717]">{mahasiswa?.nim}</span></span>
-            <span className="text-[#d4d4d4] hidden md:inline">•</span>
-            <span>{mahasiswa?.prodi}</span>
-            <span className="text-[#d4d4d4] hidden md:inline">•</span>
-            <span>Semester {mahasiswa?.semester}</span>
-          </p>
- 
-          {/* Contextual Message */}
-          <NavLink 
-            to={link_kontekstual || '#'} 
-            className="inline-flex items-center gap-2 px-3.5 py-2 bg-white rounded-xl border border-[#c9d8ff] text-xs font-bold text-primary hover:bg-primary hover:text-white transition-all shadow-sm group/btn"
-          >
-            {pesan_kontekstual}
-            <ChevronRight size={16} className="translate-x-0 group-hover/btn:translate-x-1 transition-transform" />
-          </NavLink>
         </div>
- 
-        {/* Avatar */}
-        <div className="hidden sm:block">
-          <div className="w-[68px] h-[68px] rounded-full bg-white border-2 border-primary shadow-md flex items-center justify-center overflow-hidden transition-transform group-hover:scale-105 duration-500">
-             {mahasiswa?.foto_url ? (
-               <img src={getFullUrl(mahasiswa.foto_url)} alt="Profile" className="w-full h-full object-cover" />
-             ) : (
-               <UserCircle2 size={42} className="text-[#a3a3a3]" strokeWidth={1} />
-             )}
-          </div>
+
+        {/* Right: Actions */}
+        <div className="flex flex-wrap items-center gap-2 shrink-0 w-full md:w-auto">
+          {pesan_kontekstual && (
+            <NavLink
+              to={link_kontekstual || '#'}
+              className="flex-1 md:flex-initial text-center px-4 py-2 rounded-lg text-xs font-bold text-white hover:opacity-90 transition-all shadow-sm flex items-center justify-center gap-1.5"
+              style={{ backgroundColor: 'var(--theme-primary)' }}
+            >
+              {pesan_kontekstual}
+              <ChevronRight size={14} />
+            </NavLink>
+          )}
+          
+          {/* Subtle badges for metadata, replacing the bulky boxes in the gradient version */}
+          {mahasiswa?.nim && (
+            <div className="hidden sm:flex items-center gap-1.5 text-[10px] font-bold text-muted border border-border px-2.5 py-1.5 rounded-lg" style={{ backgroundColor: 'var(--theme-border-muted)', color: 'var(--theme-text-muted)' }}>
+              <span className="material-symbols-outlined text-xs">badge</span>
+              <span>NIM: {mahasiswa.nim}</span>
+            </div>
+          )}
+          {mahasiswa?.prodi && (
+            <div className="hidden sm:flex items-center gap-1.5 text-[10px] font-bold text-muted border border-border px-2.5 py-1.5 rounded-lg" style={{ backgroundColor: 'var(--theme-border-muted)', color: 'var(--theme-text-muted)' }}>
+              <span className="material-symbols-outlined text-xs">school</span>
+              <span>Prodi: {mahasiswa.prodi.split(' ')[0]}</span>
+            </div>
+          )}
         </div>
       </div>
-      
-      {/* Decorative BG pattern */}
-      <div className="absolute top-[-20px] right-[-20px] w-48 h-48 bg-primary opacity-[0.05] rounded-full pointer-events-none group-hover:scale-110 transition-transform duration-700"></div>
-    </div>
+    </section>
   );
 }

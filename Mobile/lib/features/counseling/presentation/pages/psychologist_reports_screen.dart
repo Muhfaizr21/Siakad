@@ -540,14 +540,16 @@ class _PsychologistReportsScreenState extends State<PsychologistReportsScreen> {
                             final picked = await _showMonthPickerDialog(
                               selectedDate,
                             );
-                            if (picked != null)
+                            if (picked != null) {
                               setSheetState(() => selectedDate = picked);
+                            }
                           } else {
                             final picked = await _showYearPickerDialog(
                               selectedDate,
                             );
-                            if (picked != null)
+                            if (picked != null) {
                               setSheetState(() => selectedDate = picked);
+                            }
                           }
                         },
                         child: Container(

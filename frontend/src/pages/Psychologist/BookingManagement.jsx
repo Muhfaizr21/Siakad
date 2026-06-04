@@ -1,7 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Sidebar from './components/Sidebar';
-import TopNavBar from './components/TopNavBar';
 
 import { UI } from '../../constants/designSystem';
 import { psychologistService } from '../../services/api';
@@ -31,7 +29,6 @@ const statusMeta = {
 };
 
 export default function BookingManagement() {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [selectedTab, setSelectedTab] = useState('Semua');
   const [searchQuery, setSearchQuery] = useState('');
   const [issueFilter, setIssueFilter] = useState('Semua Topik');
@@ -194,16 +191,11 @@ export default function BookingManagement() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] text-slate-900 font-body">
-      <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
-      
-      <main className="lg:ml-64 transition-all duration-300">
-        <TopNavBar setIsOpen={setSidebarOpen} />
-        
-        <div className="pt-24 px-6 lg:px-10 pb-12 w-full relative space-y-8 scroll-smooth">
+    <>
+      <div className="w-full relative space-y-6 scroll-smooth">
           
           {/* Welcome Banner Card (White-to-Blue Gradient with University Overlay look) */}
-          <section className="relative overflow-hidden rounded-[2.5rem] bg-gradient-to-r from-white via-slate-50/50 to-blue-50/20 border border-slate-100 p-8 shadow-sm flex flex-col gap-6 group">
+          <section className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-white via-slate-50/50 to-blue-50/20 border border-slate-100 p-6 shadow-sm flex flex-col gap-4 group">
             {/* Background elements */}
             <div className="absolute -top-24 -right-24 w-72 h-72 bg-blue-500/5 rounded-full blur-3xl pointer-events-none"></div>
             <div className="absolute -bottom-24 -left-24 w-72 h-72 bg-indigo-500/5 rounded-full blur-3xl pointer-events-none"></div>
@@ -220,7 +212,7 @@ export default function BookingManagement() {
                 </p>
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 xl:min-w-[560px] shrink-0">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 xl:min-w-[480px] shrink-0">
                 {tabs.slice(1).map((status) => (
                   <div key={status} className="rounded-[1.5rem] border border-slate-100 bg-white p-4 shadow-sm hover:shadow-md transition-all duration-300">
                     <div className="flex items-center gap-2">
@@ -235,7 +227,7 @@ export default function BookingManagement() {
           </section>
 
           {/* Search & Filter Bento Card */}
-          <section className="rounded-[2rem] border border-slate-100 bg-white p-6 shadow-sm">
+          <section className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
             <div className="flex flex-col gap-5">
               {/* Row 1: Search, Topik, Urutan */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
@@ -390,7 +382,7 @@ export default function BookingManagement() {
           </section>
 
           {/* Booking Floating Row Cards (Desktop & Mobile) */}
-          <section className="bg-white rounded-[2rem] border border-slate-100 shadow-sm p-6 space-y-4">
+          <section className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 space-y-4">
             <div className="flex flex-col gap-2 border-b border-slate-50 pb-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <h2 className="text-xs font-black uppercase tracking-widest text-primary">Daftar Booking</h2>
@@ -602,7 +594,6 @@ export default function BookingManagement() {
           </section>
 
         </div>
-      </main>
 
       {/* Zoom / Meeting Link Modal */}
       {showLinkModal && (
@@ -643,6 +634,6 @@ export default function BookingManagement() {
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 }

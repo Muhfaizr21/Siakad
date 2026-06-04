@@ -1,7 +1,4 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import Sidebar from './components/Sidebar';
-import TopNavBar from './components/TopNavBar';
-
 import { UI } from '../../constants/designSystem';
 import { psychologistService } from '../../services/api';
 
@@ -43,7 +40,6 @@ const DAYS = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
 const FIELD_CLASS = 'w-full rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700 outline-none transition focus:border-primary/30 focus:bg-white focus:ring-4 focus:ring-primary/10';
 
 export default function PsychologistSettings() {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('profil');
   const [profile, setProfile] = useState(EMPTY_PROFILE);
   const [schedules, setSchedules] = useState([]);
@@ -126,14 +122,9 @@ export default function PsychologistSettings() {
   };
 
   return (
-    <div className="min-h-screen bg-surface text-on-surface">
-      <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
-
-      <main className={UI.layout.main}>
-        <TopNavBar setIsOpen={setSidebarOpen} />
-
-        <div className={`${UI.layout.canvas} space-y-6`}>
-          <section className="rounded-[2rem] border border-slate-100 bg-white p-6 shadow-sm lg:p-8">
+    <>
+      <div className="w-full relative space-y-6 scroll-smooth">
+          <section className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm lg:p-5">
             <h1 className="font-headline text-2xl font-black uppercase tracking-tight text-primary">Pengaturan Akun</h1>
             <p className="mt-1 text-xs font-semibold uppercase tracking-wider text-slate-400">
               Profil tersimpan di `psikolog.profiles`, jadwal di `psikolog.schedule_slots`, dan password di `public.users`.
@@ -154,7 +145,7 @@ export default function PsychologistSettings() {
             </div>
           )}
 
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+          <div className="grid grid-cols-1 gap-5 lg:grid-cols-12">
             <aside className="space-y-2 lg:col-span-3">
               {tabs.map((tab) => (
                 <button
@@ -172,7 +163,7 @@ export default function PsychologistSettings() {
             </aside>
 
             <section className="lg:col-span-9">
-              <div className="overflow-hidden rounded-[2rem] border border-slate-100 bg-white shadow-sm">
+              <div className="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm">
                 {loading ? (
                   <div className="flex min-h-96 items-center justify-center">
                     <span className="material-symbols-outlined animate-spin text-primary" style={{ fontSize: '28px' }} >sync</span>
@@ -180,9 +171,9 @@ export default function PsychologistSettings() {
                 ) : (
                   <>
                     {activeTab === 'profil' && (
-                      <div className="space-y-6 p-6 lg:p-8">
-                        <div className="flex flex-col gap-6 border-b border-slate-100 pb-6 md:flex-row md:items-center">
-                          <div className="flex size-28 items-center justify-center rounded-[2rem] bg-primary text-3xl font-black text-white shadow-lg shadow-primary/20 overflow-hidden relative">
+                      <div className="space-y-6 p-5 lg:p-5">
+                        <div className="flex flex-col gap-5 border-b border-slate-100 pb-6 md:flex-row md:items-center">
+                          <div className="flex size-28 items-center justify-center rounded-2xl bg-primary text-3xl font-black text-white shadow-lg shadow-primary/20 overflow-hidden relative">
                             {profile.foto_url || profile.foto ? (
                               <img src={profile.foto_url || profile.foto} alt={profile.nama} className="w-full h-full object-cover" />
                             ) : (
@@ -239,7 +230,7 @@ export default function PsychologistSettings() {
                     )}
 
                     {activeTab === 'keamanan' && (
-                      <div className="space-y-6 p-6 lg:p-8">
+                      <div className="space-y-6 p-5 lg:p-5">
                         <div className="rounded-3xl border border-amber-100 bg-amber-50 p-5">
                           <div className="flex items-start gap-3">
                             <Lock size={22} className="mt-0.5 text-amber-600" />
@@ -283,7 +274,7 @@ export default function PsychologistSettings() {
                     )}
 
                     {activeTab === 'praktek' && (
-                      <div className="grid grid-cols-1 gap-6 p-6 lg:grid-cols-2 lg:p-8">
+                      <div className="grid grid-cols-1 gap-5 p-5 lg:grid-cols-2 lg:p-5">
                         <div className="space-y-4">
                           <h2 className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-primary">
                             <span className="material-symbols-outlined" style={{ fontSize: '17px' }} >schedule</span>
@@ -313,12 +304,12 @@ export default function PsychologistSettings() {
                         </div>
 
                         <div className="space-y-5">
-                          <div className="rounded-[2rem] bg-slate-950 p-6 text-white">
+                          <div className="rounded-2xl bg-slate-950 p-5 text-white">
                             <p className="mb-2 text-[9px] font-black uppercase tracking-widest text-white/40">Tarif Konseling / Sesi</p>
                             <p className="font-headline text-3xl font-black">Rp {Number(profile.tarif || 0).toLocaleString('id-ID')}</p>
                             <p className="mt-2 text-xs font-semibold leading-relaxed text-white/45">Nilai ini tersimpan di `psikolog.profiles.tarif`.</p>
                           </div>
-                          <div className="rounded-[2rem] border border-slate-100 bg-slate-50 p-6">
+                          <div className="rounded-2xl border border-slate-100 bg-slate-50 p-5">
                             <p className="mb-3 text-[10px] font-black uppercase tracking-widest text-slate-500">Bahasa Layanan</p>
                             <div className="flex flex-wrap gap-2">
                               {(profile.bahasa || 'Indonesia')
@@ -365,8 +356,7 @@ export default function PsychologistSettings() {
             </section>
           </div>
         </div>
-      </main>
-    </div>
+    </>
   );
 }
 

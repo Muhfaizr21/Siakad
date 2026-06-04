@@ -1,19 +1,64 @@
-import * as React from "react"
-import { cn } from "../../lib/utils"
+import React from 'react';
 
-const Input = React.forwardRef(({ className, type, ...props }, ref) => {
+/**
+ * Input — Form input standar
+ *
+ * Aturan (dari FRONTEND_UI_STYLE_GUIDE.md):
+ * - Border: 1px solid var(--theme-border)
+ * - Background: var(--theme-bg)
+ * - Text: var(--theme-text)
+ * - Focus: border var(--theme-primary), ring var(--theme-primary) 15%
+ * - Placeholder: var(--theme-text-muted)
+ * - Radius: rounded-xl
+ */
+export default function Input({
+  label,
+  error,
+  helper,
+  className = '',
+  ...props
+}) {
   return (
-    <input
-      type={type}
-      className={cn(
-        "flex h-12 w-full rounded-xl border border-[#e5e5e5] bg-white px-4 py-2 text-sm font-medium ring-offset-white file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-[#a3a3a3] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-all",
-        className
+    <div className={`space-y-1.5 ${className}`}>
+      {label && (
+        <label
+          className="text-sm font-medium block"
+          style={{ color: 'var(--theme-text)' }}
+        >
+          {label}
+          {props.required && (
+            <span style={{ color: 'var(--theme-error)' }}> *</span>
+          )}
+        </label>
       )}
-      ref={ref}
-      {...props}
-    />
-  )
-})
-Input.displayName = "Input"
-
-export { Input }
+      <input
+        className="w-full px-4 py-2.5 rounded-xl text-sm transition-all focus:outline-none"
+        style={{
+          backgroundColor: 'var(--theme-bg)',
+          color: 'var(--theme-text)',
+          border: `1px solid ${error ? 'var(--theme-error)' : 'var(--theme-border)'}`,
+        }}
+        onFocus={(e) => {
+          e.target.style.borderColor = 'var(--theme-primary)';
+          e.target.style.boxShadow = '0 0 0 3px color-mix(in srgb, var(--theme-primary) 15%, transparent)';
+        }}
+        onBlur={(e) => {
+          e.target.style.borderColor = error ? 'var(--theme-error)' : 'var(--theme-border)';
+          e.target.style.boxShadow = 'none';
+        }}
+        placeholder={props.placeholder}
+        {...props}
+      />
+      {error && (
+        <p className="text-xs" style={{ color: 'var(--theme-error)' }}>
+          {error}
+        </p>
+      )}
+      {helper && !error && (
+        <p className="text-xs" style={{ color: 'var(--theme-text-muted)' }}>
+          {helper}
+        </p>
+      )}
+    </div>
+  );
+}

@@ -1,7 +1,4 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import Sidebar from './components/Sidebar';
-import TopNavBar from './components/TopNavBar';
-
 import { UI } from '../../constants/designSystem';
 import { psychologistService } from '../../services/api';
 
@@ -37,7 +34,6 @@ function formatValue(value) {
 }
 
 export default function AnalyticsTrends() {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [analytics, setAnalytics] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -117,15 +113,10 @@ export default function AnalyticsTrends() {
   const maxDaily = Math.max(...dailyTrends.map(d => toNumber(d.count)), 1);
 
   return (
-    <div className="min-h-screen bg-surface text-on-surface">
-      <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
-
-      <main className={UI.layout.main}>
-        <TopNavBar setIsOpen={setSidebarOpen} />
-
-        <div className={`${UI.layout.canvas} space-y-6`}>
-          <section className="overflow-hidden rounded-[2rem] border border-slate-100 bg-white shadow-sm">
-            <div className="grid gap-6 p-6 lg:grid-cols-[1fr_auto] lg:items-center lg:p-8">
+    <>
+      <div className="w-full relative space-y-6 scroll-smooth">
+          <section className="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm">
+            <div className="grid gap-5 p-5 lg:grid-cols-[1fr_auto] lg:items-center lg:p-5">
               <div className="space-y-4">
                 <div className="inline-flex items-center gap-2 rounded-full border border-primary/10 bg-primary/5 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-primary">
                   <span className="material-symbols-outlined" style={{ fontSize: 14 }}>database</span>
@@ -154,7 +145,7 @@ export default function AnalyticsTrends() {
           </section>
 
           {/* Filters Bar */}
-          <section className="bg-white rounded-[2rem] border border-slate-100 shadow-sm p-6">
+          <section className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
             <div className="flex flex-col gap-4">
               <div className="flex items-center gap-2 mb-2">
                 <span className="material-symbols-outlined text-primary" style={{ fontSize: 18 }}>filter_alt</span>
@@ -241,7 +232,7 @@ export default function AnalyticsTrends() {
           <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
             {loading && !analytics
               ? Array.from({ length: 4 }).map((_, index) => (
-                  <div key={index} className="h-36 animate-pulse rounded-[2rem] border border-slate-100 bg-white p-5 shadow-sm">
+                  <div key={index} className="h-36 animate-pulse rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
                     <div className="mb-5 size-12 rounded-2xl bg-slate-100" />
                     <div className="mb-3 h-7 w-20 rounded bg-slate-100" />
                     <div className="h-3 w-32 rounded bg-slate-100" />
@@ -252,7 +243,7 @@ export default function AnalyticsTrends() {
                   return (
                     <div
                       key={stat.label || index}
-                      className="rounded-[2rem] border border-slate-100 bg-white p-5 shadow-sm ring-1 ring-transparent transition hover:-translate-y-0.5 hover:shadow-md"
+                      className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm ring-1 ring-transparent transition hover:-translate-y-0.5 hover:shadow-md"
                     >
                       <div className="mb-5 flex items-center justify-between">
                         <div className={`flex size-12 items-center justify-center rounded-2xl ${stat.bg} ${stat.color} ring-1 ${stat.ring}`}>
@@ -269,9 +260,9 @@ export default function AnalyticsTrends() {
                 })}
           </section>
 
-          <section className="grid grid-cols-1 gap-6 xl:grid-cols-12">
+          <section className="grid grid-cols-1 gap-5 xl:grid-cols-12">
             <div className="space-y-6 xl:col-span-8">
-              <div className="rounded-[2rem] border border-slate-100 bg-white p-5 shadow-sm sm:p-6">
+              <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm sm:p-5">
                 <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                   <div>
                     <h2 className="flex items-center gap-2 text-sm font-black uppercase tracking-widest text-primary">
@@ -321,7 +312,7 @@ export default function AnalyticsTrends() {
               </div>
 
               {/* Tren Harian Bulan Ini */}
-              <div className="rounded-[2rem] border border-slate-100 bg-white p-5 shadow-sm sm:p-6">
+              <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm sm:p-5">
                 <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                   <div>
                     <h2 className="flex items-center gap-2 text-sm font-black uppercase tracking-widest text-primary">
@@ -354,7 +345,7 @@ export default function AnalyticsTrends() {
                                 className="w-full rounded-full bg-emerald-500 transition-all duration-300 group-hover:bg-emerald-600"
                                 style={{ height: `${height}%` }}
                               />
-                              <span className="pointer-events-none absolute -top-8 left-1/2 -translate-x-1/2 rounded-full bg-slate-950 px-2 py-1 text-[8px] font-black text-white opacity-0 transition group-hover:opacity-100 whitespace-nowrap z-10 shadow-lg">
+                              <span className="pointer-events-none absolute -top-5 left-1/2 -translate-x-1/2 rounded-full bg-slate-950 px-2 py-1 text-[8px] font-black text-white opacity-0 transition group-hover:opacity-100 whitespace-nowrap z-10 shadow-lg">
                                 {item.count} Sesi
                               </span>
                             </div>
@@ -367,8 +358,8 @@ export default function AnalyticsTrends() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-                <div className="rounded-[2rem] bg-slate-950 p-6 text-white shadow-sm">
+              <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+                <div className="rounded-2xl bg-slate-950 p-5 text-white shadow-sm">
                   <div className="mb-6 flex items-center justify-between gap-4">
                     <div>
                       <h3 className="text-xs font-black uppercase tracking-widest font-headline" style={{ color: 'var(--theme-h3)' }}>Isu Dominan</h3>
@@ -399,7 +390,7 @@ export default function AnalyticsTrends() {
                   </div>
                 </div>
 
-                <div className="rounded-[2rem] border border-slate-100 bg-white p-6 text-center shadow-sm">
+                <div className="rounded-2xl border border-slate-100 bg-white p-5 text-center shadow-sm">
                   <div className="mx-auto mb-5 flex size-36 items-center justify-center rounded-full bg-slate-50">
                     <div
                       className="flex size-28 items-center justify-center rounded-full"
@@ -418,9 +409,9 @@ export default function AnalyticsTrends() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+              <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
                 {/* Jurusan/Prodi Terbanyak */}
-                <div className="rounded-[2rem] border border-slate-100 bg-white p-6 shadow-sm">
+                <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
                   <div className="mb-6 flex items-center justify-between gap-4">
                     <div>
                       <h3 className="text-xs font-black uppercase tracking-widest text-slate-950">Prodi Terbanyak</h3>
@@ -451,7 +442,7 @@ export default function AnalyticsTrends() {
                 </div>
 
                 {/* Kategori Masalah: Akademik vs Non-Akademik */}
-                <div className="rounded-[2rem] border border-slate-100 bg-white p-6 shadow-sm flex flex-col justify-between">
+                <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm flex flex-col justify-between">
                   <div>
                     <div className="mb-6 flex items-center justify-between gap-4">
                       <div>
@@ -493,7 +484,7 @@ export default function AnalyticsTrends() {
             </div>
 
             <aside className="space-y-6 xl:col-span-4">
-              <div className="rounded-[2rem] border border-slate-100 bg-white p-6 shadow-sm">
+              <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
                 <h3 className="mb-5 flex items-center gap-2 text-xs font-black uppercase tracking-widest text-primary">
                   <span className="material-symbols-outlined" style={{ fontSize: 17 }}>database</span>
                   Sumber Data
@@ -508,7 +499,7 @@ export default function AnalyticsTrends() {
                 </div>
               </div>
 
-              <div className="rounded-[2rem] border border-slate-100 bg-white p-6 shadow-sm">
+              <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
                 <h3 className="mb-5 flex items-center gap-2 text-xs font-black uppercase tracking-widest text-primary">
                   <span className="material-symbols-outlined" style={{ fontSize: '17px' }} >trending_up</span>
                   Rekomendasi
@@ -540,7 +531,7 @@ export default function AnalyticsTrends() {
                 </div>
               </div>
 
-              <div className="rounded-[2rem] border border-slate-100 bg-white p-6 shadow-sm">
+              <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
                 <h3 className="mb-5 flex items-center gap-2 text-xs font-black uppercase tracking-widest text-primary">
                   <span className="material-symbols-outlined" style={{ fontSize: '17px' }} >schedule</span>
                   Aktivitas Terakhir
@@ -569,7 +560,6 @@ export default function AnalyticsTrends() {
             </aside>
           </section>
         </div>
-      </main>
-    </div>
+    </>
   );
 }

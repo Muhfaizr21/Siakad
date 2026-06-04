@@ -1,6 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import Sidebar from './components/Sidebar';
-import TopNavBar from './components/TopNavBar';
 import { UI } from '../../constants/designSystem';
 import { psychologistService } from '../../services/api';
 
@@ -11,8 +9,7 @@ const Clock = ({ size, className, ...props }) => <span className={`material-symb
 const FileDownload = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>download</span>;
 
 export default function ReferralManagement() {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [referrals, setReferrals] = useState([]);
+    const [referrals, setReferrals] = useState([]);
   const [mahasiswaList, setMahasiswaList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -165,20 +162,15 @@ export default function ReferralManagement() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] text-slate-900 font-body">
-      <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
-      
-      <main className="lg:ml-64 transition-all duration-300">
-        <TopNavBar setIsOpen={setSidebarOpen} />
-        
-        <div className="pt-24 px-6 lg:px-10 pb-12 w-full relative space-y-8 scroll-smooth">
+    <>
+      <div className="w-full relative space-y-6 scroll-smooth">
           
           {/* Welcome Banner */}
-          <section className="relative overflow-hidden rounded-[2.5rem] bg-gradient-to-r from-white via-slate-50/50 to-blue-50/20 border border-slate-100 p-8 shadow-sm flex flex-col gap-6 group">
+          <section className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-white via-slate-50/50 to-blue-50/20 border border-slate-100 p-5 shadow-sm flex flex-col gap-5 group">
             <div className="absolute -top-24 -right-24 w-72 h-72 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
             <div className="absolute -bottom-24 -left-24 w-72 h-72 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
             
-            <div className="relative z-10 flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between w-full">
+            <div className="relative z-10 flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between w-full">
               <div>
                 <div className="inline-flex items-center gap-2 rounded-full bg-primary/5 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-primary">
                   <span className="material-symbols-outlined size-3.5">send</span>
@@ -211,7 +203,7 @@ export default function ReferralManagement() {
           </section>
 
           {/* Status Filter Chips */}
-          <div className="bg-white rounded-[2rem] border border-slate-100 shadow-sm p-6 space-y-5">
+          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 space-y-5">
             <div className="flex flex-wrap gap-2">
               {['Semua', 'Pending', 'Sent', 'Received'].map(status => (
                 <button
@@ -230,7 +222,7 @@ export default function ReferralManagement() {
           </div>
 
           {/* Referrals List */}
-          <div className="bg-white rounded-[2rem] border border-slate-100 shadow-sm p-6">
+          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
             <div className="flex items-center justify-between mb-6 pb-2 border-b border-slate-50">
               <h3 className="text-xs font-black text-primary uppercase tracking-widest flex items-center gap-2">
                 <span className="material-symbols-outlined text-base">list</span> Daftar Surat Rujukan
@@ -340,8 +332,8 @@ export default function ReferralManagement() {
               onClick={() => setIsModalOpen(false)}
             ></div>
             
-            <div className="bg-white w-full max-w-lg rounded-[2.5rem] shadow-2xl relative z-10 overflow-hidden animate-in zoom-in-95 duration-300 border border-slate-100">
-              <div className="bg-primary p-6 text-white flex justify-between items-center relative overflow-hidden">
+            <div className="bg-white w-full max-w-lg rounded-2xl shadow-2xl relative z-10 overflow-hidden animate-in zoom-in-95 duration-300 border border-slate-100">
+              <div className="bg-primary p-5 text-white flex justify-between items-center relative overflow-hidden">
                 <div className="absolute -top-12 -right-12 w-24 h-24 bg-white/5 rounded-full blur-xl pointer-events-none" />
                 <div className="relative z-10">
                   <h3 className="text-sm font-black uppercase tracking-tight font-headline">Surat Rujukan Baru</h3>
@@ -355,7 +347,7 @@ export default function ReferralManagement() {
                 </button>
               </div>
 
-              <form onSubmit={handleCreateReferral} className="p-8 space-y-6">
+              <form onSubmit={handleCreateReferral} className="p-5 space-y-6">
                 <div className="space-y-4">
                   <div className="relative">
                     <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-2 block">Pilih Pasien</label>
@@ -517,7 +509,6 @@ export default function ReferralManagement() {
             </div>
           </div>
         )}
-      </main>
-    </div>
+      </>
   );
 }

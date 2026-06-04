@@ -1,51 +1,38 @@
 import React from 'react';
-import { 
-  GraduationCap, 
-  Trophy, 
-  BookOpen, 
-  HeartHandshake, 
-  Stethoscope, 
-  MessageSquare, 
-  ChevronRight 
-} from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 
 const quickAccess = [
-  { name: 'KENCANA', icon: GraduationCap, path: '/student/kencana', desc: 'Program Pengenalan Kampus & PKKMB' },
-  { name: 'Achievement', icon: Trophy, path: '/student/achievement', desc: 'Lapor dan kelola prestasi akademikmu' },
-  { name: 'Scholarship', icon: BookOpen, path: '/student/scholarship', desc: 'Temukan dan daftar beasiswa tersedia' },
-  { name: 'Counseling', icon: HeartHandshake, path: '/student/counseling', desc: 'Jadwalkan sesi konseling bersama ahli' },
-  { name: 'Health Screening', icon: Stethoscope, path: '/student/health', desc: 'Pantau data kesehatanmu' },
-  { name: 'Student Voice', icon: MessageSquare, path: '/student/voice', desc: 'Sampaikan aspirasi dan pengaduanmu' },
+  { name: 'KENCANA', icon: 'school', path: '/student/kencana', bg: 'bg-blue-50', hexColor: '#2563eb', border: 'border-blue-100', label: 'Program Pengenalan Kampus & PKKMB' },
+  { name: 'Achievement', icon: 'emoji_events', path: '/student/achievement', bg: 'bg-amber-50', hexColor: '#d97706', border: 'border-amber-100', label: 'Lapor dan kelola prestasi akademikmu' },
+  { name: 'Scholarship', icon: 'workspace_premium', path: '/student/scholarship', bg: 'bg-emerald-50', hexColor: '#16a34a', border: 'border-emerald-100', label: 'Temukan dan daftar beasiswa tersedia' },
+  { name: 'Counseling', icon: 'support_agent', path: '/student/counseling', bg: 'bg-violet-50', hexColor: '#7c3aed', border: 'border-violet-100', label: 'Jadwalkan sesi konseling bersama ahli' },
+  { name: 'Health', icon: 'monitor_heart', path: '/student/health', bg: 'bg-rose-50', hexColor: '#e11d48', border: 'border-rose-100', label: 'Pantau data kesehatanmu' },
+  { name: 'Student Voice', icon: 'chat', path: '/student/voice', bg: 'bg-indigo-50', hexColor: '#4f46e5', border: 'border-indigo-100', label: 'Sampaikan aspirasi dan pengaduanmu' },
 ];
 
 export default function QuickAccessGrid() {
   return (
-    <div className="mb-8">
-      <h2 className="text-lg font-extrabold font-headline mb-4 flex items-center gap-3">
-        Akses Layanan Cepat
-        <div className="h-1 flex-1 bg-gradient-to-r from-[#e5e5e5] to-transparent rounded-full ml-2"></div>
-      </h2>
-      
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-        {quickAccess.map((item, index) => (
-          <NavLink 
-            key={index} 
-            to={item.path} 
-            className="group bg-white p-4 rounded-2xl border border-[#e5e5e5] hover:bg-primary/10 hover:border-primary/30 hover:shadow-md transition-all duration-300 flex items-center justify-between cursor-pointer"
+    <div className="space-y-4">
+      {/* Header */}
+      <div className="flex items-center gap-3">
+        <div className="h-4 w-1.5 rounded-full" style={{ backgroundColor: 'var(--theme-primary)' }} />
+        <h2 className="text-sm font-semibold text-muted-foreground">Akses Cepat</h2>
+      </div>
+
+      {/* Grid */}
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        {quickAccess.map((item) => (
+          <NavLink
+            key={item.name}
+            to={item.path}
+            className={`group glass-card rounded-2xl p-4 flex flex-col items-center justify-center gap-3 hover:shadow-md transition-all duration-300 hover:-translate-y-0.5 border ${item.border} hover:bg-blue-50`}
           >
-            <div className="flex items-center gap-3.5 min-w-0">
-              <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0 shadow-sm shadow-primary/10 group-hover:scale-105 transition-transform">
-                <item.icon size={20} />
-              </div>
-              <div className="flex flex-col gap-0.5 min-w-0">
-                <h3 className="font-bold font-headline text-sm group-hover:text-primary transition-colors truncate">{item.name}</h3>
-                <p className="text-xs text-[#525252] font-medium leading-tight line-clamp-1">{item.desc}</p>
-              </div>
+            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-2 group-hover:scale-110 transition-transform shadow-sm ${item.bg}`}>
+              <span className="material-symbols-outlined" style={{ fontSize: '20px', color: item.hexColor }}>{item.icon}</span>
             </div>
-            <div className="bg-[#fafafa] p-1.5 rounded-full group-hover:bg-primary/10 transition-colors shrink-0 ml-2">
-                <ChevronRight size={16} className="text-[#a3a3a3] group-hover:text-primary transition-all" />
-            </div>
+            <span className="text-xs font-medium text-muted group-hover:text-primary text-center leading-tight transition-colors">
+              {item.name}
+            </span>
           </NavLink>
         ))}
       </div>

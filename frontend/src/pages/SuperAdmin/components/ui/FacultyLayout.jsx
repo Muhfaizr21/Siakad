@@ -1,22 +1,14 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Outlet } from 'react-router-dom';
-import Sidebar from './Sidebar';
-import TopNavBar from './TopNavBar';
+import PortalShell from '../../../components/layout/PortalShell';
+import { PORTAL_CONFIG } from '../../../components/layout/PortalConfig';
 
-const FacultyLayout = () => {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+export default function FacultyLayout() {
+  const config = PORTAL_CONFIG.faculty;
 
   return (
-    <div className="bg-[#F8FAFC] text-slate-900 h-screen font-body overflow-hidden">
-      <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
-      <main className="lg:ml-64 h-full flex flex-col transition-all duration-300 relative">
-        <TopNavBar setIsOpen={setSidebarOpen} />
-        <div className="flex-1 overflow-y-auto pt-24 px-4 lg:px-8 pb-12 overflow-x-hidden scroll-smooth scrollbar-hide">
-          <Outlet />
-        </div>
-      </main>
-    </div>
+    <PortalShell config={config}>
+      <Outlet />
+    </PortalShell>
   );
-};
-
-export default FacultyLayout;
+}

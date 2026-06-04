@@ -1,13 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Sidebar from './components/Sidebar';
-import TopNavBar from './components/TopNavBar';
-
 import { UI } from '../../constants/designSystem';
 import { psychologistService } from '../../services/api';
 
 export default function PatientList() {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const navigate = useNavigate();
 
@@ -104,21 +100,16 @@ export default function PatientList() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] text-slate-900 font-body">
-      <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
-      
-      <main className="lg:ml-64 transition-all duration-300">
-        <TopNavBar setIsOpen={setSidebarOpen} />
-        
-        <div className="pt-24 px-6 lg:px-10 pb-12 w-full relative space-y-8 scroll-smooth">
+    <>
+      <div className="w-full relative space-y-6 scroll-smooth">
           
           {/* Welcome Banner Card (Non-Dashboard -> White Gradient) */}
-          <section className="relative overflow-hidden rounded-[2.5rem] bg-gradient-to-r from-white via-slate-50/50 to-blue-50/20 border border-slate-100 p-8 shadow-sm flex flex-col gap-6 group">
+          <section className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-white via-slate-50/50 to-blue-50/20 border border-slate-100 p-5 shadow-sm flex flex-col gap-5 group">
             {/* Soft decorative blur nodes */}
             <div className="absolute -top-24 -right-24 w-72 h-72 bg-blue-500/5 rounded-full blur-3xl pointer-events-none" />
             <div className="absolute -bottom-24 -left-24 w-72 h-72 bg-indigo-500/5 rounded-full blur-3xl pointer-events-none" />
             
-            <div className="relative z-10 flex flex-col gap-6 xl:flex-row xl:items-center xl:justify-between w-full">
+            <div className="relative z-10 flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between w-full">
               <div>
                 <div className="inline-flex items-center gap-2 rounded-full bg-primary/5 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-primary">
                   <span className="material-symbols-outlined size-3.5">stars</span>
@@ -155,7 +146,7 @@ export default function PatientList() {
           </section>
 
           {/* Filter Bar Card */}
-          <section className="bg-white rounded-[2rem] border border-slate-100 p-6 shadow-sm space-y-4">
+          <section className="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm space-y-4">
             <div className="flex items-center justify-between border-b border-slate-50 pb-3">
               <div className="flex items-center gap-2">
                 <span className="material-symbols-outlined text-primary/60 text-lg">filter_alt</span>
@@ -265,11 +256,11 @@ export default function PatientList() {
             </div>
           </section>
 
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-12 w-full">
+          <div className="grid grid-cols-1 gap-5 lg:grid-cols-12 w-full">
             
             {/* Main Patient List (Col 9) */}
             <div className="lg:col-span-9 space-y-4">
-              <div className="bg-white rounded-[2rem] border border-slate-100 shadow-sm overflow-hidden p-6">
+              <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden p-5">
                 <div className="overflow-x-auto">
                   <table className="w-full text-left">
                     <thead>
@@ -367,8 +358,8 @@ export default function PatientList() {
                 </div>
                 
                 {/* Premium Card 1: Total Pasien Unik */}
-                <div className="group relative overflow-hidden rounded-[2rem] border border-slate-100 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
-                  <div className="absolute -right-8 -top-8 w-24 h-24 bg-primary/5 rounded-full blur-xl pointer-events-none" />
+                <div className="group relative overflow-hidden rounded-2xl border border-slate-100 bg-white p-5 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
+                  <div className="absolute -right-8 -top-5 w-24 h-24 bg-primary/5 rounded-full blur-xl pointer-events-none" />
                   
                   <div className="flex items-center justify-between">
                     <div className="w-11 h-11 bg-primary/5 text-primary rounded-[1rem] flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shrink-0">
@@ -385,8 +376,8 @@ export default function PatientList() {
                 </div>
 
                 {/* Premium Card 2: Sesi Bulan Ini */}
-                <div className="group relative overflow-hidden rounded-[2rem] border border-slate-100 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
-                  <div className="absolute -right-8 -top-8 w-24 h-24 bg-amber-500/5 rounded-full blur-xl pointer-events-none" />
+                <div className="group relative overflow-hidden rounded-2xl border border-slate-100 bg-white p-5 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
+                  <div className="absolute -right-8 -top-5 w-24 h-24 bg-amber-500/5 rounded-full blur-xl pointer-events-none" />
                   
                   <div className="flex items-center justify-between">
                     <div className="w-11 h-11 bg-amber-50 text-amber-600 rounded-[1rem] flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shrink-0">
@@ -407,7 +398,7 @@ export default function PatientList() {
               </div>
 
               {/* Data Security Info Card */}
-              <div className="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-bku-primary via-[#0b338f] to-[#003B95] p-6 text-white shadow-xl shadow-blue-900/10 border border-white/5">
+              <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-bku-primary via-[#0b338f] to-[#003B95] p-5 text-white shadow-xl shadow-blue-900/10 border border-white/5">
                 <div className="absolute -right-12 -bottom-12 w-32 h-32 bg-white/5 rounded-full blur-2xl pointer-events-none" />
                 
                 <div className="relative z-10">
@@ -428,8 +419,7 @@ export default function PatientList() {
           </div>
 
         </div>
-      </main>
-    </div>
+    </>
   );
 }
 

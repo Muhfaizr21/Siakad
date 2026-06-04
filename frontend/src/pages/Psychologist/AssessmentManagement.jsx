@@ -1,7 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import Sidebar from './components/Sidebar';
-import TopNavBar from './components/TopNavBar';
-
 import { UI } from '../../constants/designSystem';
 import { psychologistService } from '../../services/api';
 
@@ -12,7 +9,6 @@ const Sparkles = ({ size, className, ...props }) => <span className={`material-s
 const Heart = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>favorite</span>;
 
 export default function AssessmentManagement() {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('Semua');
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -61,21 +57,16 @@ export default function AssessmentManagement() {
   });
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] text-slate-900 font-body">
-      <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
-      
-      <main className="lg:ml-64 transition-all duration-300">
-        <TopNavBar setIsOpen={setSidebarOpen} />
-        
-        <div className="pt-24 px-6 lg:px-10 pb-12 w-full relative space-y-8 scroll-smooth">
+    <>
+      <div className="w-full relative space-y-6 scroll-smooth">
           
           {/* Welcome Banner Card (White-to-Blue Gradient) */}
-          <section className="relative overflow-hidden rounded-[2.5rem] bg-gradient-to-r from-white via-slate-50/50 to-blue-50/20 border border-slate-100 p-8 shadow-sm flex flex-col gap-6 group">
+          <section className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-white via-slate-50/50 to-blue-50/20 border border-slate-100 p-5 shadow-sm flex flex-col gap-5 group">
             {/* Soft decorative blur nodes */}
             <div className="absolute -top-24 -right-24 w-72 h-72 bg-blue-500/5 rounded-full blur-3xl pointer-events-none" />
             <div className="absolute -bottom-24 -left-24 w-72 h-72 bg-indigo-500/5 rounded-full blur-3xl pointer-events-none" />
             
-            <div className="relative z-10 flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between w-full">
+            <div className="relative z-10 flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between w-full">
               <div>
                 <div className="inline-flex items-center gap-2 rounded-full bg-primary/5 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-primary">
                   <span className="material-symbols-outlined size-3.5">auto_awesome</span>
@@ -97,15 +88,15 @@ export default function AssessmentManagement() {
           </section>
 
           {/* Categories Stats Cards (4 Column Bento Grid) */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 w-full">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 w-full">
              {categories.map((cat, i) => {
                 const Icon = cat.icon;
                 return (
                    <div 
                      key={i} 
-                     className="group relative overflow-hidden rounded-[2rem] border border-slate-100 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md"
+                     className="group relative overflow-hidden rounded-2xl border border-slate-100 bg-white p-5 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md"
                    >
-                      <div className={`absolute -right-8 -top-8 w-24 h-24 ${cat.color} opacity-[0.03] rounded-full blur-xl pointer-events-none`} />
+                      <div className={`absolute -right-8 -top-5 w-24 h-24 ${cat.color} opacity-[0.03] rounded-full blur-xl pointer-events-none`} />
                       
                       <div className="flex items-center justify-between">
                          <div className={`w-11 h-11 ${cat.bg} ${cat.color} rounded-[1rem] flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shrink-0`}>
@@ -124,13 +115,13 @@ export default function AssessmentManagement() {
              })}
           </div>
 
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-12 w-full">
+          <div className="grid grid-cols-1 gap-5 lg:grid-cols-12 w-full">
              
              {/* Submissions List (Col 8) */}
              <div className="lg:col-span-8 space-y-6">
                 
                 {/* Search & Filter Chips Bento Card */}
-                <div className="bg-white rounded-[2rem] border border-slate-100 shadow-sm p-6 space-y-5">
+                <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 space-y-5">
                    <div className="relative group">
                       <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-base transition-colors group-focus-within:text-primary" >search</span>
                       <input 
@@ -156,7 +147,7 @@ export default function AssessmentManagement() {
                 </div>
 
                 {/* Submissions Table Bento Card */}
-                <div className="bg-white rounded-[2rem] border border-slate-100 shadow-sm p-6">
+                <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
                    <div className="flex items-center justify-between mb-6 pb-2 border-b border-slate-50">
                       <h3 className="text-xs font-black text-primary uppercase tracking-widest flex items-center gap-2">
                          <span className="material-symbols-outlined text-base" >analytics</span> Submisi {selectedCategory !== 'Semua' ? `: ${selectedCategory}` : 'Terbaru'}
@@ -200,8 +191,8 @@ export default function AssessmentManagement() {
              <div className="lg:col-span-4 space-y-6">
                 
                 {/* Average Mental Score Card */}
-                <div className="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-bku-primary via-[#0b338f] to-[#003B95] p-8 text-white shadow-xl shadow-blue-900/10 border border-white/5">
-                   <div className="absolute -right-8 -top-8 w-24 h-24 bg-white/5 rounded-full blur-xl pointer-events-none" />
+                <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-bku-primary via-[#0b338f] to-[#003B95] p-5 text-white shadow-xl shadow-blue-900/10 border border-white/5">
+                   <div className="absolute -right-8 -top-5 w-24 h-24 bg-white/5 rounded-full blur-xl pointer-events-none" />
                    
                    <div className="relative z-10">
                       <span className="material-symbols-outlined text-white/60 mb-4" style={{ fontSize: '24px' }}>analytics</span>
@@ -216,7 +207,7 @@ export default function AssessmentManagement() {
                 </div>
 
                 {/* Verification Queue Bento Card */}
-                <div className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm space-y-5">
+                <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm space-y-5">
                    <h3 className="text-[10px] font-black text-primary uppercase tracking-widest flex items-center gap-2 pb-2 border-b border-slate-50">
                       <span className="material-symbols-outlined text-base">schedule</span> Antrean Verifikasi
                    </h3>
@@ -247,8 +238,8 @@ export default function AssessmentManagement() {
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-300" onClick={() => setIsModalOpen(false)}></div>
             
-            <div className="bg-white w-full max-w-lg rounded-[2.5rem] shadow-2xl relative z-10 overflow-hidden animate-in zoom-in-95 duration-300 border border-slate-100">
-               <div className="bg-primary p-6 text-white flex justify-between items-center relative overflow-hidden">
+            <div className="bg-white w-full max-w-lg rounded-2xl shadow-2xl relative z-10 overflow-hidden animate-in zoom-in-95 duration-300 border border-slate-100">
+               <div className="bg-primary p-5 text-white flex justify-between items-center relative overflow-hidden">
                   <div className="absolute -top-12 -right-12 w-24 h-24 bg-white/5 rounded-full blur-xl pointer-events-none" />
                   <div className="relative z-10">
                     <h3 className="text-sm font-black uppercase tracking-tight font-headline">Asesmen Baru</h3>
@@ -259,7 +250,7 @@ export default function AssessmentManagement() {
                   </button>
                </div>
 
-                <form onSubmit={handleCreateAssessment} className="p-8 space-y-6">
+                <form onSubmit={handleCreateAssessment} className="p-5 space-y-6">
                   <div className="space-y-4">
                      <div>
                         <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-2 block">Nama Instrumen</label>
@@ -303,7 +294,6 @@ export default function AssessmentManagement() {
           </div>
         )}
 
-      </main>
-    </div>
+      </>
   );
 }

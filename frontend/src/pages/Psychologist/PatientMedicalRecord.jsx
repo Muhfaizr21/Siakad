@@ -1,8 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
-import Sidebar from './components/Sidebar';
-import TopNavBar from './components/TopNavBar';
-
 import { UI } from '../../constants/designSystem';
 import { psychologistService } from '../../services/api';
 
@@ -21,7 +18,6 @@ export default function PatientMedicalRecord() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const bookingId = searchParams.get('bookingId');
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Form State
@@ -100,13 +96,8 @@ export default function PatientMedicalRecord() {
   };
 
   return (
-    <div className="bg-surface text-on-surface min-h-screen">
-      <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
-      
-      <main className={UI.layout.main}>
-        <TopNavBar setIsOpen={setSidebarOpen} />
-        
-        <div className={UI.layout.canvas}>
+    <>
+      <div className={UI.layout.canvas}>
           
           {/* Top Actions */}
           <div className="flex items-center justify-between mb-6">
@@ -127,11 +118,11 @@ export default function PatientMedicalRecord() {
              </div>
           </div>
 
-          <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
+          <div className="grid grid-cols-1 xl:grid-cols-12 gap-5">
             
             {/* Left Content: Medical History Timeline (Col 8) */}
             <div className="xl:col-span-8 space-y-6">
-               <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-8">
+               <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-5">
                   <div className="flex items-center justify-between mb-10">
                      <h3 className="text-sm font-black text-primary uppercase tracking-tight font-headline flex items-center gap-3">
                         <span className="material-symbols-outlined" style={{ fontSize: '20px' }} >description</span> Riwayat Sesi Konseling
@@ -146,7 +137,7 @@ export default function PatientMedicalRecord() {
                              <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >calendar_month</span>
                           </div>
 
-                          <div className="bg-slate-50/50 rounded-3xl border border-slate-100 p-6 space-y-4 hover:bg-white hover:shadow-xl hover:shadow-slate-200/50 transition-all duration-500">
+                          <div className="bg-slate-50/50 rounded-3xl border border-slate-100 p-5 space-y-4 hover:bg-white hover:shadow-xl hover:shadow-slate-200/50 transition-all duration-500">
                              <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-4">
                                    <span className="text-[10px] font-black text-primary uppercase tracking-widest">{record.date}</span>
@@ -243,7 +234,7 @@ export default function PatientMedicalRecord() {
                                  )}
 
                                  {/* Tindak Lanjut & Kesimpulan */}
-                                 <div className="pt-4 border-t border-slate-100 grid grid-cols-1 md:grid-cols-2 gap-6">
+                                 <div className="pt-4 border-t border-slate-100 grid grid-cols-1 md:grid-cols-2 gap-5">
                                     <div>
                                        <h4 className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">Tindak Lanjut</h4>
                                        <div className="flex flex-col gap-1.5">
@@ -313,7 +304,7 @@ export default function PatientMedicalRecord() {
                   </div>
                </div>
 
-               <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 space-y-6">
+               <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-5 space-y-6">
                   <h3 className="text-[10px] font-black text-primary uppercase tracking-widest flex items-center gap-2">
                      <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >trending_up</span> Analitik Kesehatan
                   </h3>
@@ -339,7 +330,7 @@ export default function PatientMedicalRecord() {
                   </div>
                </div>
 
-               <div className="bg-slate-900 p-6 rounded-3xl shadow-xl relative overflow-hidden group hover:scale-[1.02] transition-transform duration-500">
+               <div className="bg-slate-900 p-5 rounded-3xl shadow-xl relative overflow-hidden group hover:scale-[1.02] transition-transform duration-500">
                   <div className="relative z-10">
                      <div className="flex items-center gap-3 mb-4">
                         <div className="p-2 bg-emerald-500/20 rounded-lg text-emerald-400">
@@ -362,8 +353,8 @@ export default function PatientMedicalRecord() {
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-300" onClick={() => setIsModalOpen(false)}></div>
             
-            <div className="bg-white w-full max-w-4xl rounded-[2.5rem] shadow-2xl relative z-10 overflow-hidden animate-in zoom-in-95 duration-300 border border-slate-100 flex flex-col max-h-[90vh]">
-               <div className="bg-primary p-6 text-white flex justify-between items-center shrink-0">
+            <div className="bg-white w-full max-w-4xl rounded-2xl shadow-2xl relative z-10 overflow-hidden animate-in zoom-in-95 duration-300 border border-slate-100 flex flex-col max-h-[90vh]">
+               <div className="bg-primary p-5 text-white flex justify-between items-center shrink-0">
                   <div>
                     <h3 className="text-sm font-black uppercase tracking-tight font-headline">Tambah Sesi Baru (Asesmen & Rekomendasi)</h3>
                     <p className="text-[10px] text-white/70 font-bold uppercase tracking-widest mt-0.5">{bookingId ? `Terhubung ke booking #${bookingId}` : 'Form Asesmen dan Rekomendasi Hasil Konseling'}</p>
@@ -373,9 +364,9 @@ export default function PatientMedicalRecord() {
                   </button>
                </div>
 
-               <form onSubmit={handleAddRecord} className="p-8 overflow-y-auto flex-1 space-y-6">
+               <form onSubmit={handleAddRecord} className="p-5 overflow-y-auto flex-1 space-y-6">
                   {/* Data Diri Mahasiswa Section */}
-                  <div className="bg-slate-50 border border-slate-200/60 rounded-3xl p-6">
+                  <div className="bg-slate-50 border border-slate-200/60 rounded-3xl p-5">
                      <h4 className="text-[10px] font-black text-[#00236F] uppercase tracking-widest mb-4 flex items-center gap-2">
                         <span className="material-symbols-outlined text-sm">badge</span> Data Diri Mahasiswa (Auto-Populated)
                      </h4>
@@ -537,7 +528,7 @@ export default function PatientMedicalRecord() {
                   <div className="space-y-6">
                      <h4 className="text-[10px] font-black text-primary uppercase tracking-widest border-b border-slate-100 pb-2">III. Tindak Lanjut & Kesimpulan</h4>
                      
-                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 bg-slate-50 border border-slate-200/60 rounded-3xl p-5">
+                     <div className="grid grid-cols-1 md:grid-cols-3 gap-5 bg-slate-50 border border-slate-200/60 rounded-3xl p-5">
                         <div className="flex flex-col gap-2">
                            <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-1">1. Sesi Tuntas</label>
                            <div className="flex gap-2">
@@ -638,8 +629,7 @@ export default function PatientMedicalRecord() {
           </div>
         )}
 
-      </main>
-    </div>
+      </>
   );
 }
 

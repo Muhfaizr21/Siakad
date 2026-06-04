@@ -24,13 +24,13 @@ const Zap = ({ size, className, ...props }) => <span className={`material-symbol
 
 // ─── Skeleton Component ────────────────────────────────────────────
 const Skeleton = ({ className }) => (
-  <div className={cn('animate-pulse bg-slate-100 rounded-2xl', className)} />
+  <div className={cn('animate-pulse bg-border-muted/30 rounded-2xl', className)} />
 )
 
 // ─── Stat Card ─────────────────────────────────────────────────────
 const StatCard = ({ label, value, icon: Icon, route, description, color, bg, loading }) => (
   <Link to={route || '#'} className="group block h-full">
-    <div className="glass-card rounded-2xl shadow-sm hover:border-bku-primary/20 hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 h-full flex flex-col">
+    <div className="bg-surface border border-border rounded-xl shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 h-full flex flex-col">
       {loading ? (
         <div className="p-5 space-y-3">
           <Skeleton className="h-10 w-10 rounded-xl" />
@@ -44,18 +44,18 @@ const StatCard = ({ label, value, icon: Icon, route, description, color, bg, loa
               <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0', bg)}>
                 <Icon size={18} className={color} />
               </div>
-              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none font-headline">{label}</span>
+              <span className="text-xs font-medium text-muted">{label}</span>
             </div>
-            <p className="text-2xl font-black text-slate-800 font-headline leading-none tabular-nums">
+            <p className="text-xl font-bold text-on-surface font-headline leading-none tabular-nums" style={{ color: 'var(--theme-text)' }}>
               {value ?? '0'}
             </p>
-            <p className="text-xs text-slate-400/80 font-medium mt-2 leading-relaxed line-clamp-2 font-body">
+            <p className="text-xs text-muted/80 font-medium mt-2 leading-relaxed line-clamp-2 font-body">
               {description}
             </p>
           </div>
-          <div className="px-5 py-3.5 border-t border-slate-50 flex items-center justify-between bg-slate-50/20">
-            <span className="text-[10px] font-black text-bku-primary group-hover:underline uppercase tracking-widest font-headline">Lihat Detail</span>
-            <span className="material-symbols-outlined text-bku-primary transform group-hover:translate-x-1 transition-transform" style={{ fontSize: '14px' }} >arrow_forward</span>
+          <div className="px-5 py-3 border-t border-border-muted flex items-center justify-between bg-background">
+            <span className="text-xs text-primary font-bold hover:underline">Lihat Detail</span>
+            <span className="material-symbols-outlined text-primary transform group-hover:translate-x-1 transition-transform" style={{ fontSize: '14px' }} >arrow_forward</span>
           </div>
         </>
       )}
@@ -67,12 +67,12 @@ const StatCard = ({ label, value, icon: Icon, route, description, color, bg, loa
 const QuickLink = ({ icon: Icon, label, href, color, bg }) => (
   <Link
     to={href}
-    className="flex flex-col items-center justify-center p-4 glass-card rounded-2xl hover:border-bku-primary/20 hover:shadow-md hover:bg-slate-50/30 transition-all duration-300 group hover:-translate-y-0.5"
+    className="flex flex-col items-center justify-center p-4 bg-surface border border-border rounded-xl hover:shadow-md transition-all duration-300 group hover:-translate-y-0.5"
   >
-    <div className={cn('w-12 h-12 rounded-2xl flex items-center justify-center mb-3 group-hover:scale-105 transition-transform shadow-sm', bg)}>
+    <div className={cn('w-12 h-12 rounded-xl flex items-center justify-center mb-3 group-hover:scale-105 transition-transform shadow-sm', bg)}>
       <Icon className={cn('size-5', color)} />
     </div>
-    <span className="text-xs font-bold text-slate-600 font-headline group-hover:text-bku-primary text-center leading-tight transition-colors">
+    <span className="text-xs font-medium text-muted group-hover:text-primary text-center leading-tight transition-colors">
       {label}
     </span>
   </Link>
@@ -85,7 +85,7 @@ const getActionStyles = (action = '') => {
   if (act.includes('DELETE')) return 'bg-rose-50 text-rose-600 border-rose-100 rounded-xl'
   if (act.includes('CREATE')) return 'bg-blue-50 text-blue-600 border-blue-100 rounded-xl'
   if (act.includes('UPDATE')) return 'bg-amber-50 text-amber-600 border-amber-100 rounded-xl'
-  return 'bg-neutral-50 text-neutral-500 border-neutral-100 rounded-xl'
+  return 'bg-background text-muted border-border rounded-xl'
 }
 
 // ─── Mapped Database for Frontend Drill-down Simulation ─────────────
@@ -508,21 +508,21 @@ if (statsRes.status === 'success') {
 
   // ── Stats Mapping for Cards ───────────────────────────────────────
   const statCards = [
-    { label: 'Total Mahasiswa',   value: stats.total_mahasiswa?.toLocaleString('id-ID'),  icon: GraduationCap, color: 'text-indigo-600',  bg: 'bg-indigo-50/50', route: '/admin/students',      description: 'Data mahasiswa aktif Universitas Bhakti Kencana' },
-    { label: 'Aspirasi Masuk',    value: stats.aspirasi_aktif,                             icon: MessageSquare,  color: 'text-sky-600',     bg: 'bg-sky-50/50',    route: '/admin/aspirations',   description: 'Laporan masuk yang memerlukan penanganan' },
-    { label: 'SLA Overdue',       value: stats.sla_overdue,                                icon: AlertTriangle,  color: 'text-rose-600',    bg: 'bg-rose-50/50',   route: '/admin/aspirations',   description: 'Melewati batas waktu respon sistem' },
-    { label: 'Penyelesaian Hari Ini', value: stats.resolved_today,                          icon: CheckCircle2,   color: 'text-emerald-600', bg: 'bg-emerald-50/50',route: '/admin/audit',         description: 'Kasus yang berhasil ditangani hari ini' },
-    { label: 'Antrean Proposal',  value: stats.antrean_proposal,                           icon: FileText,       color: 'text-amber-600',   bg: 'bg-amber-50/50',  route: '/admin/proposals',     description: 'Dokumen kegiatan menunggu otorisasi' },
-    { label: 'Anggota Ormawa',    value: stats.total_anggota_ormawa?.toLocaleString('id-ID'), icon: Users,          color: 'text-violet-600',  bg: 'bg-violet-50/50', route: '/admin/organizations', description: 'Total partisipasi mahasiswa organisasi' },
+    { label: 'Total Mahasiswa',   value: stats.total_mahasiswa?.toLocaleString('id-ID'),  icon: GraduationCap, color: 'text-primary',  bg: 'bg-primary/10 border border-primary/20', route: '/admin/students',      description: 'Data mahasiswa aktif Universitas Bhakti Kencana' },
+    { label: 'Aspirasi Masuk',    value: stats.aspirasi_aktif,                             icon: MessageSquare,  color: 'text-info',     bg: 'bg-info/10 border border-info/20',    route: '/admin/aspirations',   description: 'Laporan masuk yang memerlukan penanganan' },
+    { label: 'SLA Overdue',       value: stats.sla_overdue,                                icon: AlertTriangle,  color: 'text-error',    bg: 'bg-error/10 border border-error/20',   route: '/admin/aspirations',   description: 'Melewati batas waktu respon sistem' },
+    { label: 'Penyelesaian Hari Ini', value: stats.resolved_today,                          icon: CheckCircle2,   color: 'text-success', bg: 'bg-success/10 border border-success/20',route: '/admin/audit',         description: 'Kasus yang berhasil ditangani hari ini' },
+    { label: 'Antrean Proposal',  value: stats.antrean_proposal,                           icon: FileText,       color: 'text-warning',   bg: 'bg-warning/10 border border-warning/20',  route: '/admin/proposals',     description: 'Dokumen kegiatan menunggu otorisasi' },
+    { label: 'Anggota Ormawa',    value: stats.total_anggota_ormawa?.toLocaleString('id-ID'), icon: Users,          color: 'text-secondary',  bg: 'bg-secondary/10 border border-secondary/20', route: '/admin/organizations', description: 'Total partisipasi mahasiswa organisasi' },
   ]
 
   const quickLinks = [
-    { label: 'Mahasiswa', icon: GraduationCap, href: '/admin/students',       color: 'text-bku-primary',  bg: 'bg-blue-50' },
-    { label: 'Fakultas',  icon: Building2,     href: '/admin/faculties',      color: 'text-indigo-600', bg: 'bg-indigo-50' },
-    { label: 'Beasiswa',  icon: Award,         href: '/admin/scholarships',   color: 'text-amber-600',  bg: 'bg-amber-50' },
-    { label: 'Aspirasi',  icon: MessageSquare, href: '/admin/aspirations',    color: 'text-rose-600',   bg: 'bg-rose-50' },
-    { label: 'Proposal',  icon: FileText,      href: '/admin/proposals',      color: 'text-emerald-600',bg: 'bg-emerald-50' },
-    { label: 'Berita',    icon: BookOpen,      href: '/admin/announcements',  color: 'text-violet-600', bg: 'bg-violet-50' },
+    { label: 'Mahasiswa', icon: GraduationCap, href: '/admin/students',       color: 'text-primary',  bg: 'bg-primary/10 border border-primary/20' },
+    { label: 'Fakultas',  icon: Building2,     href: '/admin/faculties',      color: 'text-secondary', bg: 'bg-secondary/10 border border-secondary/20' },
+    { label: 'Beasiswa',  icon: Award,         href: '/admin/scholarships',   color: 'text-warning',  bg: 'bg-warning/10 border border-warning/20' },
+    { label: 'Aspirasi',  icon: MessageSquare, href: '/admin/aspirations',    color: 'text-error',   bg: 'bg-error/10 border border-error/20' },
+    { label: 'Proposal',  icon: FileText,      href: '/admin/proposals',      color: 'text-success', bg: 'bg-success/10 border border-success/20' },
+    { label: 'Berita',    icon: BookOpen,      href: '/admin/announcements',  color: 'text-info', bg: 'bg-info/10 border border-info/20' },
   ]
 
   const activeChartData = chartDataByFaculty[fakultas] || chartDataByFaculty['Semua Fakultas'];
@@ -573,210 +573,160 @@ if (statsRes.status === 'success') {
   };
 
   return (
-    <div className="px-4 py-8 md:px-8 xl:px-12 min-h-screen bg-transparent font-inter">
-      <div className="max-w-[1600px] mx-auto space-y-8 animate-in fade-in duration-300">
-
-        {/* ── Welcome Header ───────────────────────────────────────── */}
-        <section className="glass-card rounded-2xl p-6 md:p-8 relative overflow-hidden shadow-sm group">
-          <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-            <div className="flex-1 space-y-4">
-              <div className="flex items-center gap-3">
-                <span className="flex items-center gap-2 px-3 py-1 bg-emerald-50 text-emerald-700 rounded-full text-[10px] font-bold uppercase tracking-widest border border-emerald-100 font-headline font-extrabold">
-                  <div className="size-1.5 bg-emerald-500 rounded-full animate-pulse" />
-                  System Live
-                </span>
-                <span className="text-[11px] font-extrabold text-slate-400 uppercase tracking-widest font-headline">{dateStr}</span>
+    <div className="px-4 py-6 md:px-6 lg:px-8 min-h-screen bg-transparent font-inter">
+      <div className="max-w-7xl mx-auto space-y-6">
+        {/* Page Header */}
+        <section
+          className="rounded-xl p-5 border border-border"
+          style={{ backgroundColor: 'var(--theme-surface)' }}
+        >
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            {/* Left: Icon + Title */}
+            <div className="flex items-center gap-4">
+              <div
+                className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0"
+                style={{ backgroundColor: 'var(--theme-primary)', color: 'white' }}
+              >
+                <span className="material-symbols-outlined text-xl">admin_panel_settings</span>
               </div>
-
-              <div className="space-y-1">
-                <h1 className="text-3xl md:text-4xl font-black font-jakarta tracking-tight leading-tight" style={{ color: 'var(--theme-h1)' }}>
-                  {greeting}, <span style={{ color: 'var(--theme-primary)' }}>{user?.Nama?.split(' ')[0] || 'Admin'}</span>! 👋
+              <div>
+                <h1 className="text-xl font-bold" style={{ color: 'var(--theme-text)' }}>
+                  {greeting}, <span style={{ color: 'var(--theme-secondary)' }}>{user?.Nama?.split(' ')[0] || 'Admin'}</span>! 👋
                 </h1>
-                <p className="font-semibold text-xs md:text-sm max-w-2xl leading-relaxed font-inter" style={{ color: 'var(--theme-text-muted)' }}>
+                <p className="text-xs mt-0.5" style={{ color: 'var(--theme-text-muted)' }}>
                   Pusat kendali operasional Universitas Bhakti Kencana. Kelola data dan efisiensi birokrasi dalam satu dashboard terpadu.
                 </p>
               </div>
-
-              <div className="flex flex-wrap items-center gap-3 pt-2">
-                <button
-                  onClick={() => fetchData(true)}
-                  disabled={refreshing}
-                  className="flex items-center gap-2 px-5 py-2.5 bg-slate-900 text-white rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-bku-primary transition-all active:scale-95 disabled:opacity-50 shadow-md font-headline font-extrabold"
-                >
-                  <RefreshCw size={14} className={refreshing ? 'animate-spin' : ''} />
-                  {refreshing ? 'Sinkronisasi...' : 'Sync Data'}
-                </button>
-                <div className="flex items-center gap-2 px-4 py-2 bg-slate-50 rounded-xl border border-slate-100 text-xs font-bold text-slate-600 font-headline font-extrabold">
-                  <span className="material-symbols-outlined text-bku-primary" style={{ fontSize: '14px' }} >security</span>
-                  Security: Protected
-                </div>
-              </div>
             </div>
 
-            <div className="hidden lg:flex flex-col items-center gap-3">
-              <div className="size-24 bg-white border border-slate-100 rounded-2xl shadow-sm flex items-center justify-center p-4 group-hover:scale-105 transition-transform duration-300">
-                <img src="/images/bku logo.png" alt="BKU Logo" className="w-full h-full object-contain" />
-              </div>
-              <p className="text-[9px] font-black text-bku-primary uppercase tracking-[0.3em] font-headline">Master Console</p>
+            {/* Right: Action buttons */}
+            <div className="flex gap-2 w-full md:w-auto">
+              <button
+                onClick={() => fetchData(true)}
+                disabled={refreshing}
+                className="flex-1 md:flex-initial px-4 py-2 rounded-lg font-bold text-xs transition-all text-white hover:opacity-90 shadow-sm flex items-center justify-center gap-1.5"
+                style={{ backgroundColor: 'var(--theme-primary)' }}
+              >
+                <RefreshCw size={12} className={refreshing ? 'animate-spin' : ''} />
+                {refreshing ? 'Sinkronisasi...' : 'Sync Data'}
+              </button>
             </div>
           </div>
         </section>
 
-        {/* ── Filters Section ──────────────────────────────────────── */}
-        <section className="bg-white border border-neutral-200 rounded-xl p-5 shadow-sm space-y-4">
-          <div className="flex items-center gap-2">
-            <span className="material-symbols-outlined text-primary font-bold" style={{ fontSize: '20px' }}>filter_alt</span>
-            <h3 className="text-xs font-bold text-neutral-900 uppercase tracking-widest font-jakarta">Filter Data Dashboard</h3>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            {/* Periode Akademik */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-neutral-500 uppercase tracking-wider">Periode Akademik</label>
-              <select
-                value={selectedPeriodID}
-                onChange={(e) => handlePeriodChange(e.target.value)}
-                className="w-full px-4 py-2.5 bg-neutral-50 border border-neutral-200 rounded-lg text-sm font-medium focus:border-primary focus:bg-white transition-all outline-none"
-              >
-                <option value="">Semua Periode</option>
-                {periodsList.map((p) => (
-                  <option key={p.id} value={p.id}>{p.Name || p.nama_periode || `${p.AcademicYear || p.tahun_ajaran} - ${p.Semester || p.semester}`}</option>
-                ))}
-              </select>
+        {/* ── Filterasi & Rincian Data ───────────────────────────────── */}
+        <section className="bg-surface rounded-2xl border border-border shadow-sm overflow-hidden">
+          {/* Filter Header */}
+          <div className="px-5 py-4 border-b border-border flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-50/50">
+            <div className="flex items-center gap-3">
+              <div className="size-9 rounded-xl bg-primary/8 text-primary flex items-center justify-center border border-primary/10">
+                <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>filter_list</span>
+              </div>
+              <div>
+                <h3 className="text-sm font-semibold text-foreground" style={{ color: 'var(--theme-h3)' }}>Filterasi & Rincian Data</h3>
+                <p className="text-xs text-muted mt-1">Filter berdasarkan periode akademik, fakultas, dan program studi untuk melihat data secara rinci.</p>
+              </div>
             </div>
+            {/* Active filter chips */}
+            <div className="flex items-center gap-2 flex-wrap">
+              {semester && semester !== '2025/2026 Ganjil' && (
+                <span className="flex items-center gap-1.5 px-2.5 py-1 bg-blue-50 text-blue-700 text-[11px] font-medium rounded-full border border-blue-100">
+                  <span className="material-symbols-outlined" style={{ fontSize: '10px' }}>school</span>
+                  {semester}
+                </span>
+              )}
+              {fakultas && fakultas !== 'Semua Faucibas' && (
+                <span className="flex items-center gap-1.5 px-2.5 py-1 bg-indigo-50 text-indigo-700 text-[11px] font-medium rounded-full border border-indigo-100">
+                  <span className="material-symbols-outlined" style={{ fontSize: '10px' }}>business</span>
+                  {fakultas}
+                </span>
+              )}
+              {prodi && prodi !== 'Semua Program Studi' && (
+                <span className="flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 text-emerald-700 text-[11px] font-medium rounded-full border border-emerald-100">
+                  <span className="material-symbols-outlined" style={{ fontSize: '10px' }}>menu_book</span>
+                  {prodi}
+                </span>
+              )}
+              {(semester !== '2025/2026 Ganjil' || fakultas !== 'Semua Faucibas' || prodi !== 'Semua Program Studi') && (
+                <button
+                  onClick={() => { handleSemesterChange('2025/2026 Ganjil'); handleFakultasChange('Semua Faucibas'); setProdi('Semua Program Studi'); }}
+                  className="text-[11px] font-medium text-rose-600 hover:text-rose-700 flex items-center gap-1 transition-colors"
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: '12px' }}>close</span>
+                  Reset
+                </button>
+              )}
+            </div>
+          </div>
 
-            {/* Rentang Tanggal */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-neutral-500 uppercase tracking-wider">Rentang Tanggal</label>
-              <div className="flex items-center gap-1.5 w-full">
-                <input
-                  type="date"
-                  value={startDate}
-                  onChange={(e) => handleDateChange('start', e.target.value)}
-                  className="w-1/2 px-2.5 py-2 bg-neutral-50 border border-neutral-200 rounded-lg text-xs font-semibold focus:border-primary focus:bg-white transition-all outline-none cursor-pointer"
-                />
-                <span className="text-neutral-400 text-xs font-bold">—</span>
-                <input
-                  type="date"
-                  value={endDate}
-                  onChange={(e) => handleDateChange('end', e.target.value)}
-                  className="w-1/2 px-2.5 py-2 bg-neutral-50 border border-neutral-200 rounded-lg text-xs font-semibold focus:border-primary focus:bg-white transition-all outline-none cursor-pointer"
-                />
+          {/* Filter Controls */}
+          <div className="px-5 py-4 grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {/* Periode Semester */}
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-medium text-muted">Periode Semester</label>
+              <div className="relative">
+                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-primary" style={{ fontSize: '14px' }}>calendar_month</span>
+                <select
+                  value={semester}
+                  onChange={(e) => handleSemesterChange(e.target.value)}
+                  className="w-full pl-9 pr-3 py-2.5 bg-white border border-border rounded-xl text-xs font-semibold text-on-surface focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all cursor-pointer"
+                >
+                  <option value="2025/2026 Ganjil">2025/2026 Ganjil</option>
+                  <option value="2025/2026 Genap">2025/2026 Genap</option>
+                  <option value="2024/2025 Ganjil">2024/2025 Ganjil</option>
+                  <option value="2024/2025 Genap">2024/2025 Genap</option>
+                </select>
               </div>
             </div>
 
             {/* Fakultas */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-neutral-500 uppercase tracking-wider">Fakultas</label>
-              <select
-                value={selectedFakultasID}
-                onChange={handleFakultasChange}
-                className="w-full px-4 py-2.5 bg-neutral-50 border border-neutral-200 rounded-lg text-sm font-medium focus:border-primary focus:bg-white transition-all outline-none"
-              >
-                <option value="">Semua Fakultas</option>
-                {facultiesList.map((fac) => (
-                  <option key={fac.id} value={fac.id}>{fac.Nama || fac.nama}</option>
-                ))}
-              </select>
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-medium text-muted">Fakultas</label>
+              <div className="relative">
+                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-primary" style={{ fontSize: '14px' }}>business</span>
+                <select
+                  value={fakultas}
+                  onChange={(e) => handleFakultasChange(e.target.value)}
+                  className="w-full pl-9 pr-3 py-2.5 bg-white border border-border rounded-xl text-xs font-semibold text-on-surface focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all cursor-pointer"
+                >
+                  <option value="Semua Faucibas">Semua Faucibas</option>
+                  <option value="Fakultas Farmasi">Fakultas Farmasi</option>
+                  <option value="Fakultas Keperawatan">Fakultas Keperawatan</option>
+                  <option value="Fakultas Ilmu Kesehatan">Fakultas Ilmu Kesehatan</option>
+                  <option value="Fakultas Sains & Teknologi">Fakultas Sains & Teknologi</option>
+                </select>
+              </div>
             </div>
 
             {/* Program Studi */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-neutral-500 uppercase tracking-wider">Program Studi</label>
-              <select
-                value={selectedProdiID}
-                onChange={(e) => setSelectedProdiID(e.target.value)}
-                disabled={!selectedFakultasID}
-                className="w-full px-4 py-2.5 bg-neutral-50 border border-neutral-200 rounded-lg text-sm font-medium focus:border-primary focus:bg-white transition-all outline-none disabled:opacity-60 disabled:cursor-not-allowed"
-              >
-                <option value="">Semua Program Studi</option>
-                {prodiList.map((prodi) => (
-                  <option key={prodi.id} value={prodi.id}>{prodi.Nama || prodi.nama} ({prodi.Jenjang || prodi.jenjang || '—'})</option>
-                ))}
-              </select>
-            </div>
-          </div>
-          {(selectedPeriodID || startDate || endDate || selectedFakultasID || selectedProdiID) && (
-            <div className="flex justify-end pt-1">
-              <button
-                onClick={handleResetFilters}
-                className="text-xs font-bold text-rose-600 hover:text-rose-700 transition-colors uppercase tracking-widest flex items-center gap-1.5"
-              >
-                <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>clear_all</span>
-                Reset Filter
-              </button>
-            </div>
-          )}
-        </section>
-
-        {/* ── Quick Links ───────────────────────────────────────────── */}
-        <section className="space-y-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-bku-primary/5 text-bku-primary flex items-center justify-center border border-bku-primary/10">
-              <span className="material-symbols-outlined text-[20px]" style={{ fontSize: '20px' }}>filter_alt</span>
-            </div>
-            <div>
-              <h3 className="text-xs font-bold font-headline uppercase tracking-wider font-headline leading-none" style={{ color: 'var(--theme-h3)' }}>Filter Data Strategis</h3>
-              <p className="text-[10px] text-slate-400 font-inter mt-1.5">Batasi data dashboard berdasarkan instansi akademik</p>
-            </div>
-          </div>
-          
-          <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto">
-            {/* Semester Filter */}
-            <div className="flex flex-col gap-1 w-full sm:w-44">
-              <label className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest font-headline font-extrabold">Periode Akademik</label>
-              <select
-                value={semester}
-                onChange={(e) => handleSemesterChange(e.target.value)}
-                className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 focus:ring-2 focus:ring-bku-primary/20 focus:border-bku-primary outline-none transition-all cursor-pointer font-inter"
-              >
-                <option value="2025/2026 Ganjil">2025/2026 Ganjil</option>
-                <option value="2025/2026 Genap">2025/2026 Genap</option>
-                <option value="2024/2025 Ganjil">2024/2025 Ganjil</option>
-                <option value="2024/2025 Genap">2024/2025 Genap</option>
-              </select>
-            </div>
-
-            {/* Fakultas Filter */}
-            <div className="flex flex-col gap-1 w-full sm:w-48">
-              <label className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest font-headline font-extrabold">Fakultas</label>
-              <select
-                value={fakultas}
-                onChange={(e) => handleFakultasChange(e.target.value)}
-                className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 focus:ring-2 focus:ring-bku-primary/20 focus:border-bku-primary outline-none transition-all cursor-pointer font-inter"
-              >
-                <option value="Semua Fakultas">Semua Fakultas</option>
-                <option value="Fakultas Farmasi">Fakultas Farmasi</option>
-                <option value="Fakultas Keperawatan">Fakultas Keperawatan</option>
-                <option value="Fakultas Ilmu Kesehatan">Fakultas Ilmu Kesehatan</option>
-                <option value="Fakultas Sains & Teknologi">Fakultas Sains & Teknologi</option>
-              </select>
-            </div>
-
-            {/* Prodi Filter */}
-            <div className="flex flex-col gap-1 w-full sm:w-56">
-              <label className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest font-headline font-extrabold">Program Studi</label>
-              <select
-                value={prodi}
-                onChange={(e) => handleProdiChange(e.target.value)}
-                disabled={fakultas === 'Semua Fakultas'}
-                className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 focus:ring-2 focus:ring-bku-primary/20 focus:border-bku-primary outline-none transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed font-inter"
-              >
-                {prodiOptions[fakultas]?.map((opt) => (
-                  <option key={opt} value={opt}>{opt}</option>
-                ))}
-              </select>
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-medium text-muted">Program Studi</label>
+              <div className="relative">
+                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-primary" style={{ fontSize: '14px' }}>menu_book</span>
+                <select
+                  value={prodi}
+                  onChange={(e) => handleProdiChange(e.target.value)}
+                  className="w-full pl-9 pr-3 py-2.5 bg-white border border-border rounded-xl text-xs font-semibold text-on-surface focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {(prodiOptions[fakultas] || ['Semua Program Studi']).map((opt) => (
+                    <option key={opt} value={opt}>{opt}</option>
+                  ))}
+                </select>
+              </div>
             </div>
           </div>
         </section>
+
+
 
         {/* ── Stat Cards (Overview Strategis) ─────────────────────────── */}
         <section className="space-y-4 animate-in fade-in duration-500">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="h-4 w-1.5 rounded-full" style={{ backgroundColor: 'var(--theme-primary)' }} />
-              <h2 className="text-xs font-bold uppercase tracking-widest font-headline font-extrabold" style={{ color: 'var(--theme-h2)' }}>Overview Strategis</h2>
+              <h2 className="text-sm font-semibold text-muted" style={{ color: 'var(--theme-h2)' }}>Overview Strategis</h2>
             </div>
-            <Link to="/admin/audit" className="text-[10px] font-black flex items-center gap-1 uppercase tracking-widest font-headline" style={{ color: 'var(--theme-primary)' }}>
+            <Link to="/admin/audit" className="text-xs flex items-center gap-1 text-muted hover:text-primary" style={{ color: 'var(--theme-primary)' }}>
               Audit Logs <ExternalLink size={10} />
             </Link>
           </div>
@@ -791,7 +741,7 @@ if (statsRes.status === 'success') {
         <section className="space-y-4 animate-in fade-in duration-500">
           <div className="flex items-center gap-3">
             <div className="h-4 w-1.5 rounded-full" style={{ backgroundColor: 'var(--theme-primary)' }} />
-            <h2 className="text-xs font-bold uppercase tracking-widest font-headline font-extrabold" style={{ color: 'var(--theme-h2)' }}>Akses Cepat</h2>
+            <h2 className="text-sm font-semibold text-muted" style={{ color: 'var(--theme-h2)' }}>Akses Cepat</h2>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4">
             {quickLinks.map((ql, i) => <QuickLink key={i} {...ql} />)}
@@ -810,19 +760,19 @@ if (statsRes.status === 'success') {
                   <span className="material-symbols-outlined text-[20px]" style={{ fontSize: '20px', color: 'var(--theme-primary)' }}>show_chart</span>
                 </div>
                 <div>
-                  <h3 className="text-base font-bold font-headline leading-none" style={{ color: 'var(--theme-h3)' }}>Tren Laporan & Penyelesaian</h3>
-                  <p className="text-[10px] font-inter mt-1.5" style={{ color: 'var(--theme-text-muted)' }}>Perbandingan jumlah aspirasi masuk vs penyelesaian bulanan</p>
+                  <h3 className="text-base font-semibold leading-tight" style={{ color: 'var(--theme-h3)' }}>Tren Laporan & Penyelesaian</h3>
+                  <p className="text-xs mt-1 text-muted">Perbandingan jumlah aspirasi masuk vs penyelesaian bulanan</p>
                 </div>
               </div>
               
-              <div className="flex items-center gap-4 text-[9px] font-extrabold uppercase tracking-widest font-headline font-extrabold">
+              <div className="flex items-center gap-4 text-[10px] font-medium text-muted">
                 <div className="flex items-center gap-1.5">
                   <span className="w-2.5 h-2.5 rounded-full bg-bku-primary shrink-0" />
-                  <span className="text-slate-600">Aspirasi</span>
+                  <span className="text-muted">Aspirasi</span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <span className="w-2.5 h-2.5 rounded-full bg-sky-400 shrink-0" />
-                  <span className="text-slate-600">Penyelesaian</span>
+                  <span className="text-muted">Penyelesaian</span>
                 </div>
               </div>
             </div>
@@ -840,9 +790,9 @@ if (statsRes.status === 'success') {
                       left: `${40 + (hoveredIndex * (svgWidth - 60)) / (activeChartData.length - 1)}px`,
                       transform: 'translate(-50%, -100%)' 
                     }}
-                    className="absolute top-2 pointer-events-none bg-slate-900 text-white text-[9px] font-bold py-2.5 px-3.5 rounded-2xl shadow-xl flex flex-col gap-1.5 items-center z-30 font-inter border border-white/10 animate-in fade-in zoom-in-95 duration-200"
+                    className="absolute top-2 pointer-events-none bg-slate-900 text-white text-xs font-medium py-3 px-4 rounded-2xl shadow-xl flex flex-col gap-1.5 items-center z-30 font-inter border border-white/10 animate-in fade-in zoom-in-95 duration-200"
                   >
-                    <span className="text-slate-400 font-headline font-extrabold uppercase tracking-widest text-[8px]">
+                    <span className="text-muted font-medium text-[10px]">
                       {activeChartData[hoveredIndex].name}
                     </span>
                     <div className="flex items-center gap-2 leading-none">
@@ -878,7 +828,7 @@ if (statsRes.status === 'success') {
                         {/* Grid Line */}
                         <line x1="40" y1={y} x2={svgWidth - 20} y2={y} stroke="#cbd5e1" strokeOpacity="0.35" strokeWidth="1" />
                         {/* Y-Axis text */}
-                        <text x="10" y={y + 3} fill="#94a3b8" fontSize="8" fontWeight="bold" className="font-headline font-extrabold select-none">{v}</text>
+                        <text x="10" y={y + 3} fill="#94a3b8" fontSize="9" fontWeight="normal" className="select-none">{v}</text>
                       </g>
                     );
                   })}
@@ -948,7 +898,7 @@ if (statsRes.status === 'success') {
                         fontSize="9" 
                         fontWeight="bold" 
                         className={cn(
-                          "uppercase tracking-widest font-headline font-extrabold transition-all duration-300 select-none",
+                          "text-[10px] font-medium text-slate-400 transition-all duration-300 select-none",
                           hoveredIndex === i ? "fill-bku-primary scale-110" : "fill-slate-400"
                         )}
                       >
@@ -987,7 +937,7 @@ if (statsRes.status === 'success') {
               <div className="relative z-10 space-y-6">
                 <div className="flex items-center gap-2">
                   <Zap className="size-5 text-yellow-400 fill-yellow-400" />
-                  <h3 className="text-base font-bold font-headline leading-none" style={{ color: 'var(--theme-h3)' }}>System Health</h3>
+                  <h3 className="text-base font-semibold leading-tight" style={{ color: 'var(--theme-h3)' }}>System Health</h3>
                 </div>
 
                 <div className="space-y-4">
@@ -1008,7 +958,7 @@ if (statsRes.status === 'success') {
                 
                 <button
                   onClick={() => navigate('/admin/performance')}
-                  className="w-full py-3 bg-white text-bku-primary rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-neutral-200 transition-all font-headline shadow-md font-extrabold"
+                  className="w-full py-3 bg-surface text-bku-primary rounded-xl text-xs font-medium hover:bg-neutral-200 transition-all shadow-sm"
                 >
                   Lihat Detail
                 </button>
@@ -1021,17 +971,17 @@ if (statsRes.status === 'success') {
                 <div className="size-10 rounded-xl bg-rose-50/50 text-rose-600 flex items-center justify-center border border-rose-100/55">
                   <AlertTriangle size={20} />
                 </div>
-                <h3 className="text-base font-bold font-headline leading-none" style={{ color: 'var(--theme-h3)' }}>SLA Performance</h3>
+                <h3 className="text-base font-semibold text-foreground leading-tight">SLA Performance</h3>
               </div>
               
               <div className="space-y-3">
-                <div className="p-4 bg-slate-50/30 rounded-xl flex items-center justify-between border border-slate-100">
-                  <span className="text-xs font-black text-slate-400 uppercase tracking-widest font-headline font-extrabold">Overdue</span>
-                  <span className="text-2xl font-bold text-rose-600 font-jakarta leading-none">{stats.sla_overdue}</span>
+                <div className="p-4 bg-slate-50/30 rounded-xl flex items-center justify-between border border-border">
+                  <span className="text-xs font-medium text-muted">Overdue</span>
+                  <span className="text-xl font-semibold text-rose-600 font-jakarta leading-none">{stats.sla_overdue}</span>
                 </div>
-                <div className="p-4 bg-slate-50/30 rounded-xl flex items-center justify-between border border-slate-100">
-                  <span className="text-xs font-black text-slate-400 uppercase tracking-widest font-headline font-extrabold">Resolved</span>
-                  <span className="text-2xl font-bold text-emerald-600 font-jakarta leading-none">{stats.resolved_today}</span>
+                <div className="p-4 bg-slate-50/30 rounded-xl flex items-center justify-between border border-border">
+                  <span className="text-xs font-medium text-muted">Resolved</span>
+                  <span className="text-xl font-semibold text-emerald-600 font-jakarta leading-none">{stats.resolved_today}</span>
                 </div>
               </div>
             </div>
@@ -1039,23 +989,23 @@ if (statsRes.status === 'success') {
         </div>
 
         {/* ── Drill-down Details Section ────────────────────────────── */}
-        <section className="bg-white rounded-xl border border-neutral-200 shadow-sm overflow-hidden flex flex-col p-6 space-y-6">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-neutral-100 pb-4">
+        <section className="bg-surface rounded-xl border border-border shadow-sm overflow-hidden flex flex-col p-6 space-y-6">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-border pb-4">
             <div className="flex items-center gap-3">
               <span className="material-symbols-outlined text-primary" style={{ fontSize: '24px' }}>analytics</span>
               <div className="space-y-0.5">
                 <h2 className="text-lg font-bold text-neutral-900 font-jakarta tracking-tight">Rincian Data Detail</h2>
-                <p className="text-xs text-neutral-400 font-medium">Berdasarkan filter yang sedang diterapkan</p>
+                <p className="text-xs text-muted font-medium">Berdasarkan filter yang sedang diterapkan</p>
               </div>
             </div>
             
             {/* Tabs */}
-            <div className="flex items-center gap-1 bg-neutral-100 p-1 rounded-lg shrink-0">
+            <div className="flex items-center gap-1bg-background p-1 rounded-lg shrink-0">
               <button
                 onClick={() => setActiveDetailTab("mahasiswa")}
                 className={cn(
-                  "px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-md transition-all",
-                  activeDetailTab === "mahasiswa" ? "bg-white text-[#00236f] shadow-sm" : "text-neutral-500 hover:text-neutral-950"
+                  "px-4 py-2 text-xs font-medium rounded-md transition-all",
+                  activeDetailTab === "mahasiswa" ? "bg-white text-on-surface shadow-sm" : "text-muted hover:text-neutral-950"
                 )}
               >
                 Mahasiswa ({detailMhs.length})
@@ -1063,8 +1013,8 @@ if (statsRes.status === 'success') {
               <button
                 onClick={() => setActiveDetailTab("aspirasi")}
                 className={cn(
-                  "px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-md transition-all",
-                  activeDetailTab === "aspirasi" ? "bg-white text-[#00236f] shadow-sm" : "text-neutral-500 hover:text-neutral-950"
+                  "px-4 py-2 text-xs font-medium rounded-md transition-all",
+                  activeDetailTab === "aspirasi" ? "bg-white text-on-surface shadow-sm" : "text-muted hover:text-neutral-950"
                 )}
               >
                 Aspirasi ({detailAsp.length})
@@ -1072,8 +1022,8 @@ if (statsRes.status === 'success') {
               <button
                 onClick={() => setActiveDetailTab("proposal")}
                 className={cn(
-                  "px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-md transition-all",
-                  activeDetailTab === "proposal" ? "bg-white text-[#00236f] shadow-sm" : "text-neutral-500 hover:text-neutral-950"
+                  "px-4 py-2 text-xs font-medium rounded-md transition-all",
+                  activeDetailTab === "proposal" ? "bg-white text-on-surface shadow-sm" : "text-muted hover:text-neutral-950"
                 )}
               >
                 Proposal ({detailProp.length})
@@ -1082,11 +1032,11 @@ if (statsRes.status === 'success') {
           </div>
 
           {/* Search and Dropdown Filters */}
-          <div className="flex flex-col gap-4 bg-neutral-50 p-4 rounded-xl border border-neutral-200/60">
+          <div className="flex flex-col gap-4 bg-slate-50 p-4 rounded-xl border border-border/60">
             <div className="flex flex-col md:flex-row gap-4 justify-between items-stretch md:items-center">
               {/* Search Input */}
               <div className="relative flex-1 max-w-md">
-                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" style={{ fontSize: '18px' }}>search</span>
+                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-muted" style={{ fontSize: '18px' }}>search</span>
                 <input
                   type="text"
                   placeholder={
@@ -1096,12 +1046,12 @@ if (statsRes.status === 'success') {
                   }
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-neutral-200 rounded-lg text-xs font-semibold focus:border-primary focus:bg-white bg-white transition-all outline-none"
+                  className="w-full pl-10 pr-4 py-2 border border-border rounded-lg text-xs font-semibold focus:border-primary focus:bg-white bg-white transition-all outline-none"
                 />
                 {searchQuery && (
                   <button
                     onClick={() => setSearchQuery("")}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600 transition-colors"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-muted transition-colors"
                   >
                     <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>close</span>
                   </button>
@@ -1110,31 +1060,31 @@ if (statsRes.status === 'success') {
 
               {/* Limit Selector */}
               <div className="flex items-center gap-3 self-end md:self-auto">
-                <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider">Tampilkan</span>
+                <span className="text-xs text-muted">Tampilkan</span>
                 <select
                   value={pageSize}
                   onChange={(e) => setPageSize(parseInt(e.target.value))}
-                  className="px-3 py-1.5 bg-white border border-neutral-200 rounded-lg text-xs font-bold text-[#00236f] focus:border-primary outline-none cursor-pointer"
+                  className="px-3 py-1.5 bg-surface border border-border rounded-lg text-xs font-medium text-on-surface focus:border-primary outline-none cursor-pointer"
                 >
-                  <option value={10}>10 Baris</option>
-                  <option value={20}>20 Baris</option>
-                  <option value={30}>30 Baris</option>
+                  <option value={10}>10 baris</option>
+                  <option value={20}>20 baris</option>
+                  <option value={30}>30 baris</option>
                 </select>
               </div>
             </div>
 
             {/* Dropdown Filters (Fakultas, Prodi, Semester) */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 border-t border-neutral-200/50 pt-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 border-t border-border/50 pt-3">
               {/* Fakultas Filter */}
               <div className="flex flex-col gap-1">
-                <label className="text-[9px] font-black text-neutral-400 uppercase tracking-wider">Fakultas</label>
+                <label className="text-xs font-medium text-muted">Fakultas</label>
                 <select
                   value={detailFakultasFilter}
                   onChange={(e) => {
                     setDetailFakultasFilter(e.target.value)
                     setDetailProdiFilter("") // Reset prodi when faculty changes
                   }}
-                  className="w-full px-3 py-2 bg-white border border-neutral-200 rounded-lg text-xs font-semibold text-neutral-700 outline-none focus:border-primary cursor-pointer"
+                  className="w-full px-3 py-2 bg-surface border border-border rounded-lg text-xs font-semibold text-on-surface outline-none focus:border-primary cursor-pointer"
                 >
                   <option value="">Semua Fakultas</option>
                   {detailFilterOptions.faculties.map(fac => (
@@ -1145,11 +1095,11 @@ if (statsRes.status === 'success') {
 
               {/* Prodi Filter */}
               <div className="flex flex-col gap-1">
-                <label className="text-[9px] font-black text-neutral-400 uppercase tracking-wider">Program Studi</label>
+                <label className="text-xs font-medium text-muted">Program Studi</label>
                 <select
                   value={detailProdiFilter}
                   onChange={(e) => setDetailProdiFilter(e.target.value)}
-                  className="w-full px-3 py-2 bg-white border border-neutral-200 rounded-lg text-xs font-semibold text-neutral-700 outline-none focus:border-primary cursor-pointer"
+                  className="w-full px-3 py-2 bg-surface border border-border rounded-lg text-xs font-semibold text-on-surface outline-none focus:border-primary cursor-pointer"
                 >
                   <option value="">Semua Program Studi</option>
                   {detailFilterOptions.prodis.map(prd => (
@@ -1161,11 +1111,11 @@ if (statsRes.status === 'success') {
               {/* Semester Filter (Mahasiswa / Aspirasi only) */}
               {activeDetailTab !== "proposal" ? (
                 <div className="flex flex-col gap-1">
-                  <label className="text-[9px] font-black text-neutral-400 uppercase tracking-wider">Semester</label>
+                  <label className="text-xs font-medium text-muted">Semester</label>
                   <select
                     value={detailSemesterFilter}
                     onChange={(e) => setDetailSemesterFilter(e.target.value)}
-                    className="w-full px-3 py-2 bg-white border border-neutral-200 rounded-lg text-xs font-semibold text-neutral-700 outline-none focus:border-primary cursor-pointer"
+                    className="w-full px-3 py-2 bg-surface border border-border rounded-lg text-xs font-semibold text-on-surface outline-none focus:border-primary cursor-pointer"
                   >
                     <option value="">Semua Semester</option>
                     {detailFilterOptions.semesters.map(sem => (
@@ -1175,10 +1125,10 @@ if (statsRes.status === 'success') {
                 </div>
               ) : (
                 <div className="flex flex-col gap-1 opacity-40 select-none cursor-not-allowed">
-                  <label className="text-[9px] font-black text-neutral-400 uppercase tracking-wider">Semester</label>
+                  <label className="text-xs font-medium text-muted">Semester</label>
                   <select
                     disabled
-                    className="w-full px-3 py-2 bg-neutral-100 border border-neutral-200 rounded-lg text-xs font-semibold text-neutral-400 outline-none cursor-not-allowed"
+                    className="w-full px-3 py-2 bg-slate-50 border border-border rounded-lg text-xs font-semibold text-muted outline-none cursor-not-allowed"
                   >
                     <option value="">Tidak Tersedia</option>
                   </select>
@@ -1192,31 +1142,31 @@ if (statsRes.status === 'success') {
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="border-b border-neutral-150">
-                    <th className="pb-3 text-xs font-bold text-neutral-400 uppercase tracking-widest">Mahasiswa</th>
-                    <th className="pb-3 text-xs font-bold text-neutral-400 uppercase tracking-widest">NIM</th>
-                    <th className="pb-3 text-xs font-bold text-neutral-400 uppercase tracking-widest">Fakultas</th>
-                    <th className="pb-3 text-xs font-bold text-neutral-400 uppercase tracking-widest">Prodi</th>
-                    <th className="pb-3 text-xs font-bold text-neutral-400 uppercase tracking-widest">Angkatan</th>
-                    <th className="pb-3 text-xs font-bold text-neutral-400 uppercase tracking-widest">Status</th>
+                    <th className="pb-3 text-xs font-medium text-muted">Mahasiswa</th>
+                    <th className="pb-3 text-xs font-medium text-muted">NIM</th>
+                    <th className="pb-3 text-xs font-medium text-muted">Fakultas</th>
+                    <th className="pb-3 text-xs font-medium text-muted">Prodi</th>
+                    <th className="pb-3 text-xs font-medium text-muted">Angkatan</th>
+                    <th className="pb-3 text-xs font-medium text-muted">Status</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-neutral-100">
                   {displayData.length === 0 ? (
                     <tr>
-                      <td colSpan="6" className="py-8 text-center text-sm font-medium text-neutral-400">Tidak ada data mahasiswa cocok</td>
+                      <td colSpan="6" className="py-8 text-center text-sm font-medium text-muted">Tidak ada data mahasiswa cocok</td>
                     </tr>
                   ) : (
                     displayData.map((m) => (
-                      <tr key={m.id} className="hover:bg-neutral-50/50 transition-colors">
-                        <td className="py-4 text-sm font-bold text-neutral-800">{m.Nama || m.nama}</td>
-                        <td className="py-4 text-sm font-medium text-neutral-500 font-mono">{m.NIM || m.nim}</td>
-                        <td className="py-4 text-sm font-medium text-neutral-600">{m.Fakultas?.Nama || m.Fakultas?.nama || '-'}</td>
-                        <td className="py-4 text-sm font-medium text-neutral-600">{m.ProgramStudi?.Nama || m.ProgramStudi?.nama || '-'}</td>
-                        <td className="py-4 text-sm font-medium text-neutral-600">{m.TahunMasuk || m.tahun_masuk}</td>
+                      <tr key={m.id} className="hover:bg-slate-50/50 transition-colors">
+                        <td className="py-4 text-sm font-medium text-on-surface">{m.Nama || m.nama}</td>
+                        <td className="py-4 text-sm font-medium text-muted font-mono">{m.NIM || m.nim}</td>
+                        <td className="py-4 text-sm font-medium text-muted">{m.Fakultas?.Nama || m.Fakultas?.nama || '-'}</td>
+                        <td className="py-4 text-sm font-medium text-muted">{m.ProgramStudi?.Nama || m.ProgramStudi?.nama || '-'}</td>
+                        <td className="py-4 text-sm font-medium text-muted">{m.TahunMasuk || m.tahun_masuk}</td>
                         <td className="py-4 text-sm">
                           <span className={cn(
-                            "px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide border",
-                            m.StatusAkademik === "Aktif" || m.status_akademik === "Aktif" ? "bg-emerald-50 text-emerald-700 border-emerald-100" : "bg-neutral-50 text-neutral-500 border-neutral-100"
+                            "px-2 py-0.5 rounded text-[11px] font-medium",
+                            m.StatusAkademik === "Aktif" || m.status_akademik === "Aktif" ? "bg-emerald-50 text-emerald-700 border-emerald-100" : "bg-slate-50 text-muted border-border"
                           )}>
                             {m.StatusAkademik || m.status_akademik || '-'}
                           </span>
@@ -1232,29 +1182,29 @@ if (statsRes.status === 'success') {
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="border-b border-neutral-150">
-                    <th className="pb-3 text-xs font-bold text-neutral-400 uppercase tracking-widest">Judul</th>
-                    <th className="pb-3 text-xs font-bold text-neutral-400 uppercase tracking-widest">Kategori</th>
-                    <th className="pb-3 text-xs font-bold text-neutral-400 uppercase tracking-widest">Pengirim</th>
-                    <th className="pb-3 text-xs font-bold text-neutral-400 uppercase tracking-widest">Prioritas</th>
-                    <th className="pb-3 text-xs font-bold text-neutral-400 uppercase tracking-widest">Status</th>
+                    <th className="pb-3 text-xs font-medium text-muted">Judul</th>
+                    <th className="pb-3 text-xs font-medium text-muted">Kategori</th>
+                    <th className="pb-3 text-xs font-medium text-muted">Pengirim</th>
+                    <th className="pb-3 text-xs font-medium text-muted">Prioritas</th>
+                    <th className="pb-3 text-xs font-medium text-muted">Status</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-neutral-100">
                   {displayData.length === 0 ? (
                     <tr>
-                      <td colSpan="5" className="py-8 text-center text-sm font-medium text-neutral-400">Tidak ada data aspirasi cocok</td>
+                      <td colSpan="5" className="py-8 text-center text-sm font-medium text-muted">Tidak ada data aspirasi cocok</td>
                     </tr>
                   ) : (
                     displayData.map((a) => (
-                      <tr key={a.id} className="hover:bg-neutral-50/50 transition-colors">
-                        <td className="py-4 text-sm font-bold text-neutral-800">{a.judul}</td>
-                        <td className="py-4 text-sm font-medium text-neutral-600">{a.kategori}</td>
-                        <td className="py-4 text-sm font-medium text-neutral-500">
+                      <tr key={a.id} className="hover:bg-slate-50/50 transition-colors">
+                        <td className="py-4 text-sm font-medium text-on-surface">{a.judul}</td>
+                        <td className="py-4 text-sm font-medium text-muted">{a.kategori}</td>
+                        <td className="py-4 text-sm font-medium text-muted">
                           {a.is_anonim ? 'Anonim' : (a.mahasiswa?.Nama || a.mahasiswa?.nama || 'Umum')}
                         </td>
                         <td className="py-4 text-sm">
                           <span className={cn(
-                            "px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide border",
+                            "px-2 py-0.5 rounded text-[11px] font-medium",
                             a.prioritas === "CRITICAL" ? "bg-rose-50 text-rose-700 border-rose-100" :
                             a.prioritas === "HIGH" ? "bg-amber-50 text-amber-700 border-amber-100" :
                             "bg-blue-50 text-blue-700 border-blue-100"
@@ -1264,10 +1214,10 @@ if (statsRes.status === 'success') {
                         </td>
                         <td className="py-4 text-sm">
                           <span className={cn(
-                            "px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide border",
+                            "px-2 py-0.5 rounded text-[11px] font-medium",
                             a.status === "Selesai" ? "bg-emerald-50 text-emerald-700 border-emerald-100" :
                             a.status === "Proses" ? "bg-blue-50 text-blue-700 border-blue-100" :
-                            "bg-neutral-50 text-neutral-500 border-neutral-100"
+                            "bg-slate-50 text-muted border-border"
                           )}>
                             {a.status}
                           </span>
@@ -1283,28 +1233,28 @@ if (statsRes.status === 'success') {
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="border-b border-neutral-150">
-                    <th className="pb-3 text-xs font-bold text-neutral-400 uppercase tracking-widest">Proposal Kegiatan</th>
-                    <th className="pb-3 text-xs font-bold text-neutral-400 uppercase tracking-widest">Ormawa</th>
-                    <th className="pb-3 text-xs font-bold text-neutral-400 uppercase tracking-widest">Anggaran</th>
-                    <th className="pb-3 text-xs font-bold text-neutral-400 uppercase tracking-widest">Status</th>
+                    <th className="pb-3 text-xs font-medium text-muted">Proposal Kegiatan</th>
+                    <th className="pb-3 text-xs font-medium text-muted">Ormawa</th>
+                    <th className="pb-3 text-xs font-medium text-muted">Anggaran</th>
+                    <th className="pb-3 text-xs font-medium text-muted">Status</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-neutral-100">
                   {displayData.length === 0 ? (
                     <tr>
-                      <td colSpan="4" className="py-8 text-center text-sm font-medium text-neutral-400">Tidak ada data proposal cocok</td>
+                      <td colSpan="4" className="py-8 text-center text-sm font-medium text-muted">Tidak ada data proposal cocok</td>
                     </tr>
                   ) : (
                     displayData.map((p) => (
-                      <tr key={p.id} className="hover:bg-neutral-50/50 transition-colors">
-                        <td className="py-4 text-sm font-bold text-neutral-800">{p.Judul || p.judul}</td>
-                        <td className="py-4 text-sm font-medium text-neutral-600">{p.Ormawa?.Nama || p.Ormawa?.nama || '-'}</td>
-                        <td className="py-4 text-sm font-medium text-neutral-700 font-mono">
+                      <tr key={p.id} className="hover:bg-slate-50/50 transition-colors">
+                        <td className="py-4 text-sm font-medium text-on-surface">{p.Judul || p.judul}</td>
+                        <td className="py-4 text-sm font-medium text-muted">{p.Ormawa?.Nama || p.Ormawa?.nama || '-'}</td>
+                        <td className="py-4 text-sm font-medium text-on-surface font-mono">
                           Rp {(p.Anggaran || p.anggaran || 0).toLocaleString('id-ID')}
                         </td>
                         <td className="py-4 text-sm">
                           <span className={cn(
-                            "px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide border",
+                            "px-2 py-0.5 rounded text-[11px] font-medium",
                             p.Status === "disetujui_univ" || p.status === "disetujui_univ" ? "bg-emerald-50 text-emerald-700 border-emerald-100" :
                             p.Status === "disetujui_fakultas" || p.status === "disetujui_fakultas" ? "bg-blue-50 text-blue-700 border-blue-100" :
                             "bg-amber-50 text-amber-700 border-amber-100"
@@ -1321,16 +1271,16 @@ if (statsRes.status === 'success') {
           </div>
 
           {/* Pagination Controls */}
-          <div className="flex flex-col sm:flex-row justify-between items-center gap-4 border-t border-neutral-100 pt-4">
-            <span className="text-xs font-medium text-neutral-500 font-jakarta">
-              Menampilkan <span className="font-bold text-neutral-800">{startIndex}</span> - <span className="font-bold text-neutral-800">{endIndex}</span> dari <span className="font-bold text-[#00236f]">{totalItems}</span> data
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-4 border-t border-border pt-4">
+            <span className="text-xs font-medium text-muted font-jakarta">
+              Menampilkan <span className="font-bold text-on-surface">{startIndex}</span> - <span className="font-bold text-on-surface">{endIndex}</span> dari <span className="font-bold text-on-surface">{totalItems}</span> data
             </span>
 
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                 disabled={currentPage === 1}
-                className="flex items-center gap-1 px-3 py-1.5 border border-neutral-200 rounded-lg text-xs font-bold uppercase tracking-wider text-neutral-600 hover:bg-neutral-50 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                className="flex items-center gap-1 px-3 py-1.5 border border-border rounded-lg text-xs font-medium text-muted hover:bg-slate-50 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
               >
                 <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>chevron_left</span>
                 Sebelumnya
@@ -1341,7 +1291,7 @@ if (statsRes.status === 'success') {
                   const pageNum = index + 1
                   if (totalPages > 5 && pageNum !== 1 && pageNum !== totalPages && Math.abs(currentPage - pageNum) > 1) {
                     if (pageNum === 2 || pageNum === totalPages - 1) {
-                      return <span key={pageNum} className="text-neutral-400 px-1 text-xs">...</span>
+                      return <span key={pageNum} className="text-muted px-1 text-xs">...</span>
                     }
                     return null
                   }
@@ -1353,7 +1303,7 @@ if (statsRes.status === 'success') {
                         "size-8 rounded-lg text-xs font-bold flex items-center justify-center transition-all",
                         currentPage === pageNum
                           ? "bg-[#00236f] text-white shadow-sm"
-                          : "text-neutral-600 hover:bg-neutral-100"
+                          : "text-muted hover:bg-slate-50"
                       )}
                     >
                       {pageNum}
@@ -1365,7 +1315,7 @@ if (statsRes.status === 'success') {
               <button
                 onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                 disabled={currentPage === totalPages}
-                className="flex items-center gap-1 px-3 py-1.5 border border-neutral-200 rounded-lg text-xs font-bold uppercase tracking-wider text-neutral-600 hover:bg-neutral-50 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                className="flex items-center gap-1 px-3 py-1.5 border border-border rounded-lg text-xs font-medium text-muted hover:bg-slate-50 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
               >
                 Selanjutnya
                 <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>chevron_right</span>

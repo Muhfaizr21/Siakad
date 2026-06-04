@@ -7,7 +7,7 @@ import api from '../../../lib/axios';
 import { toast } from 'react-hot-toast';
 
 
-import { Input } from '../../../components/ui/Input';
+import Input from '../../../components/ui/Input';
 import { Label } from '../../../components/ui/Label';
 import { Textarea } from '../../../components/ui/Textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../components/ui/Select';

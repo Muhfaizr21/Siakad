@@ -1,7 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import Sidebar from './components/Sidebar';
-import TopNavBar from './components/TopNavBar';
 
 import { UI } from '../../constants/designSystem';
 import { psychologistService } from '../../services/api';
@@ -21,8 +19,7 @@ const Clock = ({ size, className, ...props }) => <span className={`material-symb
 export default function BookingDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [booking, setBooking] = useState(null);
+    const [booking, setBooking] = useState(null);
   const [showLinkModal, setShowLinkModal] = useState(false);
   const [meetingLink, setMeetingLink] = useState('');
 
@@ -58,20 +55,15 @@ export default function BookingDetail() {
   };
 
   if (!booking) {
-    return <div className="bg-surface text-on-surface min-h-screen"><Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} /><main className={UI.layout.main}><TopNavBar setIsOpen={setSidebarOpen} /><div className={UI.layout.canvas}>Memuat detail booking...</div></main></div>;
+    return <div className={UI.layout.canvas}>Memuat detail booking...</div>;
   }
 
   const history = (booking.history || []).map((item) => ({ ...item, icon: item.type === 'created' ? MessageSquare : Clock, color: item.type === 'created' ? 'text-blue-500' : 'text-amber-500' }));
   const isLocked = booking.status === 'Dikonfirmasi' || booking.status === 'Selesai';
 
   return (
-    <div className="bg-surface text-on-surface min-h-screen">
-      <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
-      
-      <main className={UI.layout.main}>
-        <TopNavBar setIsOpen={setSidebarOpen} />
-        
-        <div className={UI.layout.canvas}>
+    <>
+      <div className={UI.layout.canvas + " space-y-6"}>
           
           <button 
             onClick={() => navigate(-1)}
@@ -81,7 +73,7 @@ export default function BookingDetail() {
             <span className="text-[10px] font-black uppercase tracking-widest">Kembali</span>
           </button>
 
-          <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 xl:grid-cols-3 gap-5">
             
             <div className="xl:col-span-2 space-y-6">
               
@@ -125,8 +117,8 @@ export default function BookingDetail() {
               </div>
 
               {/* Compact Details */}
-              <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-8 space-y-8">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">                    <div className="space-y-3">
+              <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-5 space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">                    <div className="space-y-3">
                        <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 flex items-center gap-4">
                           <span className="material-symbols-outlined size-4 text-primary" >calendar_month</span>
                           <div>
@@ -163,7 +155,7 @@ export default function BookingDetail() {
                           </div>
                        </div>
                     </div>
-                    <div className="p-6 rounded-2xl bg-primary text-white space-y-2 relative overflow-hidden flex flex-col justify-center">
+                    <div className="p-5 rounded-2xl bg-primary text-white space-y-2 relative overflow-hidden flex flex-col justify-center">
                        <span className="material-symbols-outlined absolute -right-4 -bottom-4 size-24 text-white/10" >show_chart</span>
                        <p className="text-[9px] font-black uppercase tracking-widest text-white/60">Isu Utama</p>
                        <p className="text-xl font-black uppercase tracking-tight">{booking.issue}</p>
@@ -172,7 +164,7 @@ export default function BookingDetail() {
 
                  <div className="space-y-3">
                     <h4 className="text-[9px] font-black text-primary uppercase tracking-widest">Catatan Mahasiswa</h4>
-                    <div className="p-6 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+                    <div className="p-5 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
                        <p className="text-xs font-medium text-slate-600 italic">"{booking.note}"</p>
                     </div>
                  </div>
@@ -180,7 +172,7 @@ export default function BookingDetail() {
             </div>
 
             <div className="space-y-6">
-              <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6 space-y-4">
+              <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-5 space-y-4">
                  <h3 className="text-[9px] font-black text-primary uppercase tracking-widest">Tindakan</h3>
                  <div className="space-y-2">
                      <button
@@ -211,7 +203,7 @@ export default function BookingDetail() {
                  </button>
               </div>
 
-              <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6">
+              <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-5">
                  <h3 className="text-[9px] font-black text-primary uppercase tracking-widest mb-6">Riwayat</h3>
                  <div className="space-y-6 relative before:absolute before:left-5 before:top-2 before:bottom-2 before:w-[1px] before:bg-slate-100">
                      {history.map((item, i) => (
@@ -231,7 +223,6 @@ export default function BookingDetail() {
 
           </div>
         </div>
-      </main>
 
       {/* Zoom / Meeting Link Modal */}
       {showLinkModal && (
@@ -241,7 +232,7 @@ export default function BookingDetail() {
               <h3 className="text-lg font-black uppercase tracking-tight font-headline">Konfirmasi Sesi Online</h3>
               <p className="text-xs text-white/70 mt-1">Sesi ini diajukan secara Online. Harap masukkan link Zoom atau Google Meet untuk mahasiswa.</p>
             </div>
-            <div className="p-6 space-y-4">
+            <div className="p-5 space-y-4">
               <div className="space-y-1.5">
                 <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Link Meeting</label>
                 <input
@@ -272,6 +263,6 @@ export default function BookingDetail() {
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 }

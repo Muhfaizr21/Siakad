@@ -1,67 +1,96 @@
-import * as React from "react"
-import * as DialogPrimitive from "@radix-ui/react-dialog"
-import { X } from "lucide-react"
-import { cn } from "../../lib/utils"
+import React from 'react';
 
-const Dialog = DialogPrimitive.Root
-const DialogTrigger = DialogPrimitive.Trigger
-const DialogPortal = DialogPrimitive.Portal
-const DialogClose = DialogPrimitive.Close
+/**
+ * Dialog — Modal dialog standar
+ *
+ * Aturan (dari FRONTEND_UI_STYLE_GUIDE.md):
+ * - Overlay: fixed inset-0 bg-black/40 backdrop-blur-sm
+ * - Modal: rounded-2xl, bg var(--theme-surface), border var(--theme-border)
+ * - Header: flex justify-between items-center, border-b var(--theme-border)
+ * - Close button: absolute right-4 top-4
+ * - Radius: rounded-2xl
+ */
+function DialogPortal({ children }) {
+  return typeof document !== 'undefined' ? React.createElement('div', null, children) : null;
+}
 
-const DialogOverlay = React.forwardRef(({ className, ...props }, ref) => (
-  <DialogPrimitive.Overlay
-    ref={ref}
-    className={cn(
-      "fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 transition-all",
-      className
-    )}
-    {...props}
-  />
-))
-DialogOverlay.displayName = DialogPrimitive.Overlay.displayName
+function DialogOverlay({ children }) {
+  return children;
+}
 
-const DialogContent = React.forwardRef(({ className, children, ...props }, ref) => (
-  <DialogPortal>
-    <DialogOverlay />
-    <DialogPrimitive.Content
-      ref={ref}
-      className={cn(
-        "fixed left-[50%] top-[50%] z-[100] grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-6 border border-[#e5e5e5] bg-white p-8 shadow-2xl duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-3xl",
-        className
-      )}
-      {...props}
-    >
+export function DialogContent({ className = '', children, ...props }) {
+  return (
+    <div className={`p-0 overflow-hidden ${className}`} {...props}>
       {children}
-      <DialogPrimitive.Close className="absolute right-4 top-4 rounded-full p-1 opacity-70 ring-offset-white transition-opacity hover:opacity-100 hover:bg-[#fafafa] focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:pointer-events-none">
-        <X className="h-4 w-4" />
-        <span className="sr-only">Close</span>
-      </DialogPrimitive.Close>
-    </DialogPrimitive.Content>
-  </DialogPortal>
-))
-DialogContent.displayName = DialogPrimitive.Content.displayName
+    </div>
+  );
+}
 
-const DialogHeader = ({ className, ...props }) => (
-  <div className={cn("flex flex-col space-y-2 text-center sm:text-left", className)} {...props} />
-)
-DialogHeader.displayName = "DialogHeader"
+export function DialogHeader({ className = '', ...props }) {
+  return (
+    <div
+      className={`flex flex-col space-y-1.5 p-6 pb-0 ${className}`}
+      {...props}
+    />
+  );
+}
 
-const DialogTitle = React.forwardRef(({ className, ...props }, ref) => (
-  <DialogPrimitive.Title
-    ref={ref}
-    className={cn("text-xl font-extrabold font-headline leading-none tracking-tight", className)}
-    {...props}
-  />
-))
-DialogTitle.displayName = DialogPrimitive.Title.displayName
+export function DialogTitle({ className = '', ...props }) {
+  return (
+    <h2
+      className={`text-lg font-bold leading-none tracking-tight text-[#171717] font-headline ${className}`}
+      {...props}
+    />
+  );
+}
 
-const DialogDescription = React.forwardRef(({ className, ...props }, ref) => (
-  <DialogPrimitive.Description
-    ref={ref}
-    className={cn("text-sm font-medium text-[#525252]", className)}
-    {...props}
-  />
-))
-DialogDescription.displayName = DialogPrimitive.Description.displayName
+export function DialogDescription({ className = '', ...props }) {
+  return (
+    <p
+      className={`text-sm text-muted font-medium ${className}`}
+      {...props}
+    />
+  );
+}
 
-export { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogClose }
+export function DialogClose({ ...props }) {
+  return null;
+}
+
+export default function Dialog({ open, onOpenChange, children }) {
+  const isOpen = open;
+  const handleClose = () => onOpenChange && onOpenChange(false);
+
+  if (!isOpen) return null;
+
+  return (
+    <>
+      {/* Overlay */}
+      <div
+        className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200"
+        onClick={handleClose}
+      />
+
+      {/* Modal */}
+      <DialogPortal>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div
+            className="relative w-full max-w-lg rounded-2xl shadow-2xl animate-in zoom-in-95 duration-200 bg-white border border-[#e5e5e5]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Close button */}
+            <button
+              onClick={handleClose}
+              className="absolute right-4 top-4 p-2 rounded-lg transition-colors hover:bg-black/[0.05] z-10"
+              style={{ color: '#a3a3a3' }}
+            >
+              <span className="material-symbols-outlined">close</span>
+            </button>
+
+            {children}
+          </div>
+        </div>
+      </DialogPortal>
+    </>
+  );
+}

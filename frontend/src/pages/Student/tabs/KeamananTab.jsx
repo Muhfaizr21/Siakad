@@ -7,7 +7,7 @@ import api from '../../../lib/axios';
 import { toast } from 'react-hot-toast';
 
 
-import { Input } from '../../../components/ui/Input';
+import Input from '../../../components/ui/Input';
 import { Label } from '../../../components/ui/Label';
 
 // Auto-injected Material Symbol fallbacks for removed Lucide icons
