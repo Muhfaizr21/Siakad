@@ -63,6 +63,14 @@ func SetupMahasiswaRoutes(app *fiber.App) {
 	studentHealthGroup.Post("/record", mahasiswa.CreateHealthRecord)
 	studentHealthGroup.Post("/mandiri", mahasiswa.CreateHealthMandiri)
 
+	// Student Health Bookings & Schedules (v1.3)
+	studentHealthGroup.Get("/health-worker-schedules", mahasiswa.GetAvailableHealthSchedules)
+	studentHealthGroup.Get("/health-workers", mahasiswa.ListHealthWorkers)
+	studentHealthGroup.Get("/health-workers/:id/schedules", mahasiswa.GetHealthWorkerSchedules)
+	studentHealthGroup.Get("/bookings", mahasiswa.GetStudentHealthBookings)
+	studentHealthGroup.Post("/bookings", mahasiswa.CreateStudentHealthBooking)
+	studentHealthGroup.Delete("/bookings/:id", mahasiswa.CancelStudentHealthBooking)
+
 	// Counseling
 	counselingGroup := api.Group("/counseling")
 	counselingGroup.Get("/status", mahasiswa.GetCounselingStatus)

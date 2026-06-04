@@ -43,10 +43,10 @@ const getMutedColor = (textColor) => {
 
 // Generate all theme colors
 const generateColors = (t) => {
-  const primary = t.color_primary || '#0D2B55';
-  const secondary = t.color_secondary || '#C89B3C';
-  const accent = t.color_accent || '#E8B84B';
-  const background = t.color_background || '#F9F6F0';
+  const primary = t.color_primary || '#2563EB';
+  const secondary = t.color_secondary || '#EAB308';
+  const accent = t.color_accent || '#FDE047';
+  const background = t.color_background || '#F8FAFC';
   const surface = t.color_surface || '#FFFFFF';
 
   // Text on background
@@ -101,10 +101,10 @@ const generateColors = (t) => {
     borderMuted: t.color_border_muted || '#F1F5F9',
 
     // State
-    success: t.color_success || '#16a34a',
-    warning: t.color_warning || '#d97706',
-    error: t.color_error || '#dc2626',
-    info: t.color_info || '#2563eb',
+    success: t.color_success || '#22C55E',
+    warning: t.color_warning || '#EAB308',
+    error: t.color_error || '#EF4444',
+    info: t.color_info || '#3B82F6',
 
     // Button
     buttonRadius: t.button_radius || '0.75rem',

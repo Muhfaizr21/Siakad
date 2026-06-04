@@ -334,7 +334,7 @@ export default function PatientMedicalRecord() {
                   <div className="relative z-10">
                      <div className="flex items-center gap-3 mb-4">
                         <div className="p-2 bg-emerald-500/20 rounded-lg text-emerald-400">
-                           <span className="material-symbols-outlined" style={{ fontSize: '20px' }} Check >security</span>
+                           <span className="material-symbols-outlined" style={{ fontSize: '20px' }} >security</span>
                         </div>
                         <h4 className="text-[10px] font-black font-headline uppercase tracking-widest" style={{ color: 'var(--theme-h4)' }}>Data Terenkripsi</h4>
                      </div>
@@ -342,7 +342,7 @@ export default function PatientMedicalRecord() {
                         Seluruh catatan rekam medis ini dilindungi oleh standar privasi data kesehatan (HIPAA-compliant).
                      </p>
                   </div>
-                  <span className="material-symbols-outlined absolute -right-8 -bottom-8 text-white/5 group-hover:text-white/10 transition-colors" style={{ fontSize: '120px' }} Check >security</span>
+                  <span className="material-symbols-outlined absolute -right-8 -bottom-8 text-white/5 group-hover:text-white/10 transition-colors" style={{ fontSize: '120px' }} >security</span>
                </div>
             </div>
           </div>

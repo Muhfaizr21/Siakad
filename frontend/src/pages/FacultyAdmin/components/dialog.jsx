@@ -61,7 +61,7 @@ function DialogContent({
             data-slot="dialog-close"
             className="absolute top-3 right-3 z-[60] w-10 h-10 flex items-center justify-center rounded-2xl bg-slate-50/80 backdrop-blur-md text-slate-400 hover:text-slate-900 hover:bg-slate-100 transition-all duration-200 focus:outline-none disabled:pointer-events-none"
           >
-            <span className="material-symbols-outlined size-5 stroke-[2px]" Icon>close</span>
+            <span className="material-symbols-outlined size-5 stroke-[2px]">close</span>
             <span className="sr-only">Close</span>
           </DialogPrimitive.Close>
         )}

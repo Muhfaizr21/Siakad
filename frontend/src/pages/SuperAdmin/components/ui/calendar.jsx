@@ -146,7 +146,7 @@ function Calendar({
           }
 
           return (
-            <span className="material-symbols-outlined" Icon className={cn('size-4', className)} {...props}>expand_more</span>
+            <span className="material-symbols-outlined" className={cn('size-4', className)} {...props}>expand_more</span>
           )
         },
         DayButton: CalendarDayButton,

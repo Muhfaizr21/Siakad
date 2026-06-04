@@ -182,7 +182,7 @@ const SecuritySettings = () => {
 
                 {/* ── Security Status Footer ────────────────────────────── */}
                 <div className="flex items-center justify-center gap-3 py-6 grayscale opacity-40">
-                   <span className="material-symbols-outlined text-slate-400" style={{ fontSize: '20px' }} Check >security</span>
+                   <span className="material-symbols-outlined text-slate-400" style={{ fontSize: '20px' }} >security</span>
                    <span className="text-[10px] font-black text-slate-400 font-headline uppercase tracking-[0.4em]">Military Grade Encryption Active</span>
                 </div>
 

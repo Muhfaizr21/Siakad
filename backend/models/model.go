@@ -388,6 +388,25 @@ type Kesehatan struct {
 	RiwayatPenyakit string  `json:"riwayat_penyakit"`
 	StatusKesehatan string  `json:"status_kesehatan"` // prima, stabil, kritis
 	GolonganDarah   string  `json:"golongan_darah"`   // A, B, AB, O
+
+	// BARU (v1.3): Modul Tenaga Kesehatan
+	SuhuTubuh         float64 `json:"suhu_tubuh"`
+	DenyutNadi        int     `json:"denyut_nadi"`
+	SpO2              int     `json:"spo2"`
+	SkalaNyeri        int     `json:"skala_nyeri"` // 0-10
+	AlergiObat        string  `json:"alergi_obat"`
+	KondisiPsikologis string  `json:"kondisi_psikologis"` // Normal / Cemas / Stres / Perlu Rujukan Psikolog
+	KonsumsiObat      string  `json:"konsumsi_obat"`
+
+	TindakanDiberikan string `json:"tindakan_diberikan"` // e.g. "Istirahat, Obat P3K"
+	ObatDiberikan     string `json:"obat_diberikan"`     // e.g. "Paracetamol 500mg"
+	Rekomendasi       string `json:"rekomendasi"`
+
+	TenagaKesID *uint            `gorm:"index" json:"tenaga_kes_id,omitempty"`
+	TenagaKes   *TenagaKesehatan `gorm:"foreignKey:TenagaKesID" json:"tenaga_kes,omitempty"`
+
+	EventID   *uint `gorm:"index" json:"event_id,omitempty"`
+	BookingID *uint `gorm:"index" json:"booking_id,omitempty"`
 }
 
 func (Kesehatan) TableName() string {

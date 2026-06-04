@@ -25,6 +25,14 @@ func migrateModels(db *gorm.DB) error {
 	if err := db.AutoMigrate(
 		&models.User{},
 		&models.RBACRole{},
+		&models.TenagaKesehatan{},
+		&models.JadwalKesehatan{},
+		&models.BookingKesehatan{},
+		&models.PemeriksaanMassal{},
+		&models.PengajuanAsuransi{},
+		&models.BeritaAcaraPemeriksaan{},
+		&models.SelfScreening{},
+		&models.RujukanKesehatan{},
 	); err != nil {
 		return err
 	}

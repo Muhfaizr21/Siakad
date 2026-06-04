@@ -66,7 +66,7 @@ function NavigationMenuTrigger({
       {...props}
     >
       {children}{' '}
-      <span className="material-symbols-outlined relative top-[1px] ml-1 size-3 transition duration-300 group-data-[state=open]:rotate-180" Icon
+      <span className="material-symbols-outlined relative top-[1px] ml-1 size-3 transition duration-300 group-data-[state=open]:rotate-180"
         
         aria-hidden="true">expand_more</span>
     </NavigationMenuPrimitive.Trigger>

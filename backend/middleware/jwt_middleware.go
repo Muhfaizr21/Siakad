@@ -235,3 +235,44 @@ func PsikologCheck(c *fiber.Ctx) error {
 	}
 	return c.Next()
 }
+
+func TenagaKesehatanCheck(c *fiber.Ctx) error {
+	role, ok := c.Locals("role").(string)
+	if !ok {
+		return c.Status(403).JSON(fiber.Map{
+			"status":  "error",
+			"message": "Akses ditolak. Token tidak valid.",
+		})
+	}
+	r := strings.ToLower(role)
+	if r != "tenaga_kesehatan" && r != "tenagakes" && r != "super_admin" {
+		return c.Status(403).JSON(fiber.Map{
+			"status":  "error",
+			"message": "Akses ditolak. Fitur ini hanya untuk Tenaga Kesehatan.",
+		})
+	}
+	return c.Next()
+}
+
+// RequireRole - middleware untuk check role tertentu
+func RequireRole(roles ...string) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		role, ok := c.Locals("role").(string)
+		if !ok {
+			return c.Status(403).JSON(fiber.Map{
+				"status":  "error",
+				"message": "Akses ditolak. Role tidak valid.",
+			})
+		}
+		r := strings.ToLower(role)
+		for _, allowedRole := range roles {
+			if r == strings.ToLower(allowedRole) {
+				return c.Next()
+			}
+		}
+		return c.Status(403).JSON(fiber.Map{
+			"status":  "error",
+			"message": "Akses ditolak. Anda tidak memiliki izin untuk fitur ini.",
+		})
+	}
+}

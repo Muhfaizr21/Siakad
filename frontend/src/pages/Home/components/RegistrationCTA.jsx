@@ -109,8 +109,8 @@ export default function RegistrationCTA() {
             className="inline-flex items-center gap-2 px-8 py-4 rounded-xl font-bold shadow-lg transition-all duration-300 font-headline text-sm"
             style={{
               backgroundColor: 'var(--theme-secondary)',
-              color: 'var(--theme-primary)',
-              boxShadow: '0 8px 32px color-mix(in srgb, var(--theme-secondary) 20%, transparent)'
+              color: 'var(--theme-h1)',
+              boxShadow: '0 8px 32px color-mix(in srgb, var(--theme-secondary) 30%, transparent)'
             }}
           >
             Daftar Sekarang
@@ -120,7 +120,7 @@ export default function RegistrationCTA() {
             to="/login"
             className="inline-flex items-center gap-2 px-8 py-4 rounded-xl font-semibold transition-all duration-300 font-headline text-sm"
             style={{
-              border: '1px solid color-mix(in srgb, var(--theme-text-on-primary) 20%, transparent)',
+              border: '2px solid rgba(255,255,255,0.5)',
               color: 'var(--theme-text-on-primary)'
             }}
           >

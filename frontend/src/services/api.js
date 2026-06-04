@@ -178,6 +178,82 @@ export const psychologistService = {
   }
 };
 
+export const tenagaKesehatanService = {
+  getMe: () => fetchWithAuth(`${API_BASE_URL}/tenagakes/me`),
+  updateProfile: (data) => fetchWithAuth(`${API_BASE_URL}/tenagakes/profile`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  }),
+  changePassword: (data) => fetchWithAuth(`${API_BASE_URL}/tenagakes/change-password`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  }),
+  getDashboard: () => fetchWithAuth(`${API_BASE_URL}/tenagakes/dashboard`),
+  getSchedules: () => fetchWithAuth(`${API_BASE_URL}/tenagakes/schedules`),
+  createSchedule: (data) => fetchWithAuth(`${API_BASE_URL}/tenagakes/schedules`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  }),
+  updateSchedule: (id, data) => fetchWithAuth(`${API_BASE_URL}/tenagakes/schedules/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  }),
+  deleteSchedule: (id) => fetchWithAuth(`${API_BASE_URL}/tenagakes/schedules/${id}`, {
+    method: 'DELETE'
+  }),
+  getBookings: () => fetchWithAuth(`${API_BASE_URL}/tenagakes/bookings`),
+  getBookingDetail: (id) => fetchWithAuth(`${API_BASE_URL}/tenagakes/bookings/${id}`),
+  updateBookingStatus: (id, status, alasanPenolakan = '') => fetchWithAuth(`${API_BASE_URL}/tenagakes/bookings/${id}/status`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ status, alasan_penolakan: alasanPenolakan })
+  }),
+  getPatients: () => fetchWithAuth(`${API_BASE_URL}/tenagakes/patients`),
+  getMedicalRecord: (id) => fetchWithAuth(`${API_BASE_URL}/tenagakes/patients/${id}/medical-record`),
+  createScreening: (id, data) => fetchWithAuth(`${API_BASE_URL}/tenagakes/patients/${id}/screening`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  }),
+  lookupStudent: (query) => fetchWithAuth(`${API_BASE_URL}/tenagakes/students/lookup?query=${encodeURIComponent(query)}`),
+  exportExcel: async () => {
+    const token = getAuthToken();
+    const res = await fetch(`${API_BASE_URL}/tenagakes/reports/export-excel`, {
+      headers: { ...(token ? { 'Authorization': `Bearer ${token}` } : {}) }
+    });
+    if (!res.ok) throw new Error('Gagal mendownload Excel rekap.');
+    const blob = await res.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `rekap_kesehatan_${new Date().toISOString().split('T')[0]}.xlsx`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(url);
+  },
+  exportPDF: async () => {
+    const token = getAuthToken();
+    const res = await fetch(`${API_BASE_URL}/tenagakes/reports/export-pdf`, {
+      headers: { ...(token ? { 'Authorization': `Bearer ${token}` } : {}) }
+    });
+    if (!res.ok) throw new Error('Gagal mendownload PDF rekap.');
+    const blob = await res.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `rekap_kesehatan_${new Date().toISOString().split('T')[0]}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(url);
+  },
+};
+
 export const ormawaService = {
   // Stats & Dashboard
   getStats: (id) => fetchWithAuth(`${API_BASE_URL}/ormawa/stats?ormawaId=${id}`),
@@ -447,6 +523,33 @@ export const adminService = {
   getPsychologistBookings: () => fetchWithAuth(`${API_BASE_URL}/admin/psychologists/bookings`),
   getPsychologistMedicalRecords: () => fetchWithAuth(`${API_BASE_URL}/admin/psychologists/medical-records`),
   getPsychologistReferrals: () => fetchWithAuth(`${API_BASE_URL}/admin/psychologists/referrals`),
+
+  // Tenaga Kesehatan (Health Worker) management API endpoints
+  getAllTenagaKesehatan: () => fetchWithAuth(`${API_BASE_URL}/admin/tenagakes`),
+  updateTenagaKesehatan: (id, data) => fetchWithAuth(`${API_BASE_URL}/admin/tenagakes/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  }),
+  deleteTenagaKesehatan: (id) => fetchWithAuth(`${API_BASE_URL}/admin/tenagakes/${id}`, {
+    method: 'DELETE'
+  }),
+  getTenagaKesehatanSchedules: (id) => fetchWithAuth(`${API_BASE_URL}/admin/tenagakes/${id}/schedules`),
+  createTenagaKesehatanSchedule: (id, data) => fetchWithAuth(`${API_BASE_URL}/admin/tenagakes/${id}/schedules`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  }),
+  updateTenagaKesehatanSchedule: (id, data) => fetchWithAuth(`${API_BASE_URL}/admin/tenagakes/schedules/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  }),
+  deleteTenagaKesehatanSchedule: (id) => fetchWithAuth(`${API_BASE_URL}/admin/tenagakes/schedules/${id}`, {
+    method: 'DELETE'
+  }),
+  getTenagaKesehatanBookings: () => fetchWithAuth(`${API_BASE_URL}/admin/tenagakes/bookings`),
+  getTenagaKesehatanMedicalRecords: () => fetchWithAuth(`${API_BASE_URL}/admin/tenagakes/medical-records`),
   getAllOrmawa: () => fetchWithAuth(`${API_BASE_URL}/admin/ormawa`),
   createOrmawa: (data) => fetchWithAuth(`${API_BASE_URL}/admin/ormawa`, {
     method: 'POST',
@@ -603,6 +706,199 @@ export const adminService = {
     method: 'POST',
     body: formData
   }),
+};
+
+// ========================
+// INSURANCE SERVICE (Mahasiswa & TK)
+// ========================
+export const insuranceService = {
+  // Mahasiswa - Self-service
+  getMyClaims: (params = {}) => {
+    const q = new URLSearchParams()
+    if (params.status) q.append('status', params.status)
+    if (params.jenis_provider) q.append('jenis_provider', params.jenis_provider)
+    if (params.start_date) q.append('start_date', params.start_date)
+    if (params.end_date) q.append('end_date', params.end_date)
+    return fetchWithAuth(`${API_BASE_URL}/mahasiswa/insurance?${q.toString()}`)
+  },
+  getMyClaimDetail: (id) => fetchWithAuth(`${API_BASE_URL}/mahasiswa/insurance/${id}`),
+  createClaim: (data) => fetchWithAuth(`${API_BASE_URL}/mahasiswa/insurance`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  }),
+  uploadClaimDocument: (id, formData) => fetchWithAuth(`${API_BASE_URL}/mahasiswa/insurance/${id}/upload`, {
+    method: 'POST',
+    body: formData
+  }),
+
+  // TK - Review & Management
+  getClaims: (params = {}) => {
+    const q = new URLSearchParams()
+    if (params.status) q.append('status', params.status)
+    if (params.jenis_provider) q.append('jenis_provider', params.jenis_provider)
+    if (params.start_date) q.append('start_date', params.start_date)
+    if (params.end_date) q.append('end_date', params.end_date)
+    return fetchWithAuth(`${API_BASE_URL}/tenagakes/claims?${q.toString()}`)
+  },
+  getClaimStats: () => fetchWithAuth(`${API_BASE_URL}/tenagakes/claims/stats`),
+  getClaimDetail: (id) => fetchWithAuth(`${API_BASE_URL}/tenagakes/claims/${id}`),
+  updateClaimStatus: (id, data) => fetchWithAuth(`${API_BASE_URL}/tenagakes/claims/${id}/status`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  }),
+  downloadClaimPDF: (id) => {
+    const token = getAuthToken()
+    return fetch(`${API_BASE_URL}/tenagakes/claims/${id}/export-pdf`, {
+      headers: { ...(token ? { 'Authorization': `Bearer ${token}` } : {}) }
+    })
+  },
+};
+
+// ========================
+// HEALTH BOOKING SERVICE (Mahasiswa)
+// ========================
+export const healthBookingService = {
+  // List available schedules
+  getAvailableSchedules: () => fetchWithAuth(`${API_BASE_URL}/student-health/health-worker-schedules`),
+
+  // Get health workers
+  getHealthWorkers: () => fetchWithAuth(`${API_BASE_URL}/student-health/health-workers`),
+
+  // Get worker's schedules
+  getWorkerSchedules: (workerId) => fetchWithAuth(`${API_BASE_URL}/student-health/health-workers/${workerId}/schedules`),
+
+  // Get my bookings
+  getMyBookings: () => fetchWithAuth(`${API_BASE_URL}/student-health/bookings`),
+
+  // Create booking
+  createBooking: (data) => fetchWithAuth(`${API_BASE_URL}/student-health/bookings`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  }),
+
+  // Cancel booking
+  cancelBooking: (id) => fetchWithAuth(`${API_BASE_URL}/student-health/bookings/${id}`, {
+    method: 'DELETE'
+  }),
+};
+
+// ========================
+// SELF-SCREENING SERVICE (Mahasiswa)
+// ========================
+export const selfScreeningService = {
+  // Mahasiswa
+  getMyScreenings: () => fetchWithAuth(`${API_BASE_URL}/mahasiswa/self-screening`),
+  getMyScreeningDetail: (id) => fetchWithAuth(`${API_BASE_URL}/mahasiswa/self-screening/${id}`),
+  createScreening: (data) => fetchWithAuth(`${API_BASE_URL}/mahasiswa/self-screening`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  }),
+
+  // TK - Management
+  getScreenings: (params = {}) => {
+    const q = new URLSearchParams()
+    if (params.is_completed) q.append('is_completed', params.is_completed)
+    if (params.start_date) q.append('start_date', params.start_date)
+    if (params.end_date) q.append('end_date', params.end_date)
+    return fetchWithAuth(`${API_BASE_URL}/tenagakes/screenings?${q.toString()}`)
+  },
+  getScreeningDetail: (id) => fetchWithAuth(`${API_BASE_URL}/tenagakes/screenings/${id}`),
+  completeScreening: (id) => fetchWithAuth(`${API_BASE_URL}/tenagakes/screenings/${id}/complete`, {
+    method: 'PUT'
+  }),
+};
+
+// ========================
+// RUJUKAN SERVICE
+// ========================
+export const rujukanService = {
+  // Mahasiswa (published only)
+  getMyRujukans: () => fetchWithAuth(`${API_BASE_URL}/mahasiswa/rujukan`),
+  getMyRujukanDetail: (id) => fetchWithAuth(`${API_BASE_URL}/mahasiswa/rujukan/${id}`),
+
+  // TK
+  getRujukans: (params = {}) => {
+    const q = new URLSearchParams()
+    if (params.is_published) q.append('is_published', params.is_published)
+    return fetchWithAuth(`${API_BASE_URL}/tenagakes/rujukans?${q.toString()}`)
+  },
+  createRujukan: (data) => fetchWithAuth(`${API_BASE_URL}/tenagakes/rujukan`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  }),
+  getRujukanDetail: (id) => fetchWithAuth(`${API_BASE_URL}/tenagakes/rujukan/${id}`),
+  publishRujukan: (id) => fetchWithAuth(`${API_BASE_URL}/tenagakes/rujukan/${id}/publish`, {
+    method: 'PUT'
+  }),
+  downloadRujukanPDF: (id) => {
+    const token = getAuthToken()
+    return fetch(`${API_BASE_URL}/tenagakes/rujukan/${id}/export-pdf`, {
+      headers: { ...(token ? { 'Authorization': `Bearer ${token}` } : {}) }
+    })
+  },
+};
+
+// ========================
+// BAP KESEHATAN SERVICE
+// ========================
+export const bapService = {
+  getBAPs: (params = {}) => {
+    const q = new URLSearchParams()
+    if (params.event_id) q.append('event_id', params.event_id)
+    if (params.status) q.append('status', params.status)
+    if (params.start_date) q.append('start_date', params.start_date)
+    if (params.end_date) q.append('end_date', params.end_date)
+    return fetchWithAuth(`${API_BASE_URL}/tenagakes/bap?${q.toString()}`)
+  },
+  getBAPDetail: (id) => fetchWithAuth(`${API_BASE_URL}/tenagakes/bap/${id}`),
+  createBAP: (data) => fetchWithAuth(`${API_BASE_URL}/tenagakes/bap`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  }),
+  updateBAP: (id, data) => fetchWithAuth(`${API_BASE_URL}/tenagakes/bap/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  }),
+  deleteBAP: (id) => fetchWithAuth(`${API_BASE_URL}/tenagakes/bap/${id}`, {
+    method: 'DELETE'
+  }),
+  downloadBAPPDF: (id) => {
+    const token = getAuthToken()
+    return fetch(`${API_BASE_URL}/tenagakes/bap/${id}/export-pdf`, {
+      headers: { ...(token ? { 'Authorization': `Bearer ${token}` } : {}) }
+    })
+  },
+};
+
+// ========================
+// HEALTH REPORTS SERVICE
+// ========================
+export const healthReportsService = {
+  getReports: (params = {}) => {
+    const q = new URLSearchParams()
+    if (params.start_date) q.append('start_date', params.start_date)
+    if (params.end_date) q.append('end_date', params.end_date)
+    return fetchWithAuth(`${API_BASE_URL}/tenagakes/reports?${q.toString()}`)
+  },
+  exportExcel: () => {
+    const token = getAuthToken()
+    return fetch(`${API_BASE_URL}/tenagakes/reports/export-excel`, {
+      headers: { ...(token ? { 'Authorization': `Bearer ${token}` } : {}) }
+    })
+  },
+  exportPDF: () => {
+    const token = getAuthToken()
+    return fetch(`${API_BASE_URL}/tenagakes/reports/export-pdf`, {
+      headers: { ...(token ? { 'Authorization': `Bearer ${token}` } : {}) }
+    })
+  },
 };
 
 export const pddiktiService = {

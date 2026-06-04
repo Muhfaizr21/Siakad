@@ -64,7 +64,7 @@ function CommandInput({
       data-slot="command-input-wrapper"
       className="flex h-9 items-center gap-2 border-b px-3"
     >
-      <span className="material-symbols-outlined size-4 shrink-0 opacity-70" Icon>search</span>
+      <span className="material-symbols-outlined size-4 shrink-0 opacity-70">search</span>
       <CommandPrimitive.Input
         data-slot="command-input"
         className={cn(

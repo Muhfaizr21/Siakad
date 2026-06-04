@@ -268,8 +268,6 @@ export default function FacultyPrestasi() {
     finally { setLoading(false) }
   }
 
-<<<<<<< Updated upstream
-=======
   const handleOpenVerify = (row, status) => {
     setSelected(row)
     setVerifyStatus(status)
@@ -310,7 +308,6 @@ export default function FacultyPrestasi() {
     }
   }
 
->>>>>>> Stashed changes
   useEffect(() => { fetchData() }, [])
 
   const semesterOptions = useMemo(() => {
@@ -621,8 +618,6 @@ export default function FacultyPrestasi() {
                             className="p-1.5 text-slate-400 hover:text-primary hover:bg-[#eef4ff] rounded-lg transition-colors" title="Detail">
                             <span className="material-symbols-outlined" style={{ fontSize: '15px' }} >visibility</span>
                           </button>
-<<<<<<< Updated upstream
-=======
                           {(row.Status || '').toLowerCase() === 'menunggu' && (
                             <>
                               <button onClick={() => handleOpenVerify(row, 'verified')} disabled={isSubmitting}
@@ -635,7 +630,6 @@ export default function FacultyPrestasi() {
                               </button>
                             </>
                           )}
->>>>>>> Stashed changes
                         </div>
                       </td>
                     </tr>
@@ -765,7 +759,7 @@ export default function FacultyPrestasi() {
               {/* Ditolak alert */}
               {(selected.Status||'').toLowerCase().includes('tolak') || (selected.Status||'').toLowerCase()==='rejected' ? (
                 <div className="bg-rose-50 border border-rose-200 rounded-2xl p-4 flex items-start gap-3">
-                  <span className="material-symbols-outlined text-rose-600 flex-shrink-0 mt-0.5" style={{ fontSize: '16px' }} Circle >close</span>
+                  <span className="material-symbols-outlined text-rose-600 flex-shrink-0 mt-0.5" style={{ fontSize: '16px' }} >close</span>
                   <div>
                     <p className="font-bold text-rose-700 text-sm">Pengajuan Ditolak</p>
                     <p className="text-rose-600 text-xs mt-0.5">{selected.CatatanVerifikator || 'Berkas tidak sesuai kriteria.'}</p>
@@ -828,8 +822,6 @@ export default function FacultyPrestasi() {
                 className="w-full h-11 rounded-xl border border-slate-200/60 bg-white text-xs font-bold text-slate-600 uppercase tracking-widest hover:bg-slate-50 transition-all">
                 Tutup
               </button>
-<<<<<<< Updated upstream
-=======
               {(selected.Status || '').toLowerCase() === 'menunggu' && (
                 <>
                   <button onClick={() => handleOpenVerify(selected, 'rejected')} disabled={isSubmitting}
@@ -858,7 +850,6 @@ export default function FacultyPrestasi() {
               <button onClick={() => setIsVerifyOpen(false)} className="text-slate-400 hover:text-slate-600">
                 <span className="material-symbols-outlined">close</span>
               </button>
->>>>>>> Stashed changes
             </div>
 
             <form onSubmit={handleVerifySubmit} className="space-y-4 mt-4">

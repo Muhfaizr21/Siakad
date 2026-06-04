@@ -1,44 +1,45 @@
 @import "tailwindcss";
 
 :root {
-  /* ═══ Theme Variables (di-override oleh useThemeStore) ═══ */
+  /* ═══ DEFAULT Theme Variables (di-override oleh useThemeStore) ═══ */
   /* WARNING: Jangan ubah manual - diatur dari Super Admin Panel */
 
-  /* WARNA UTAMA */
-  --theme-primary: #0D2B55;           /* Navy - Header, Button Primary */
-  --theme-secondary: #C89B3C;        /* Gold - Accent, Highlights */
-  --theme-accent: #E8B84B;          /* Gold Bright - CTA, Special Elements */
+  /* WARNA UTAMA - Blue Theme */
+  --theme-primary: #2563EB;           /* Blue - Header, Button Primary */
+  --theme-secondary: #EAB308;          /* Yellow - Accent, Highlights */
+  --theme-accent: #FDE047;            /* Bright Yellow - CTA, Special Elements */
 
   /* BACKGROUND & SURFACE */
-  --theme-bg: #F9F6F0;             /* Background utama halaman */
+  --theme-bg: #F8FAFC;                /* Background utama halaman (Light) */
   --theme-surface: #FFFFFF;           /* Background card, modal, komponen */
 
-  /* WARNA TEKS */
-  --theme-text: #1B1C1C;            /* Teks utama/body paragraphs */
-  --theme-text-muted: #64748B;       /* Teks subtitle, caption, keterangan */
+  /* WARNA TEKS - Otomatis是根据background */
+  --theme-text: #1E293B;              /* Teks utama/body paragraphs (Dark) */
+  --theme-text-muted: #64748B;        /* Teks subtitle, caption, keterangan */
 
-  /* WARNA HEADING */
-  --theme-h1: #0D2B55;              /* Heading 1 - Judul halaman */
-  --theme-h2: #0D2B55;              /* Heading 2 - Section titles */
-  --theme-h3: #1E3A5F;              /* Heading 3 - Card titles */
-  --theme-h4: #475569;              /* Heading 4-6 - Detail kecil, table headers */
+  /* WARNA HEADING - Mengikuti tema */
+  --theme-h1: #1E3A8A;                /* Heading 1 - Judul halaman (Dark Blue) */
+  --theme-h2: #1E40AF;               /* Heading 2 - Section titles (Blue) */
+  --theme-h3: #3B82F6;               /* Heading 3 - Card titles (Lighter Blue) */
+  --theme-h4: #475569;                /* Heading 4-6 - Detail kecil */
 
-  /* SIDEBAR */
-  --theme-sidebar-bg: #0D2B55;       /* Background sidebar */
-  --theme-sidebar-text: #E2E8F0;     /* Teks sidebar */
+  /* SIDEBAR - Dark Blue */
+  --theme-sidebar-bg: #1E3A8A;       /* Background sidebar (Dark Blue) */
+  --theme-sidebar-text: #F8FAFC;      /* Teks sidebar (Light) */
+  --theme-sidebar-text-muted: #93C5FD; /* Teks muted sidebar */
 
   /* BORDER */
-  --theme-border: #E2E8F0;          /* Border default (slate-200) */
-  --theme-border-muted: #F1F5F9;    /* Border subtle (slate-100) */
+  --theme-border: #E2E8F0;             /* Border default */
+  --theme-border-muted: #F1F5F9;     /* Border subtle */
 
-  /* WARNA STATE (Semantic) */
-  --theme-success: #16a34a;         /* Success/OK (Green) */
-  --theme-warning: #d97706;         /* Warning/Pending (Amber) */
-  --theme-error: #dc2626;           /* Error/Danger (Red) */
-  --theme-info: #2563eb;            /* Info/Neutral (Blue) */
+  /* WARNA STATE (Semantic) - Sesuai Blue Theme */
+  --theme-success: #22C55E;           /* Success/OK (Green) */
+  --theme-warning: #EAB308;           /* Warning/Pending (Yellow) */
+  --theme-error: #EF4444;            /* Error/Danger (Red) */
+  --theme-info: #3B82F6;             /* Info/Neutral (Blue) */
 
   /* BUTTON */
-  --theme-btn-radius: 0.75rem;       /* Border radius tombol */
+  --theme-btn-radius: 0.75rem;        /* Border radius tombol */
 
   /* FONTS */
   --theme-font-headline: 'Plus Jakarta Sans', sans-serif;
@@ -56,14 +57,12 @@
   --color-surface: var(--theme-surface);
 
   /* === TEKS - SISTEM TERPUSAT === */
-  /* Semua teks harus menggunakan CSS variables ini agar mengikuti tema */
   --color-on-surface: var(--theme-text);
   --color-on-background: var(--theme-text);
   --color-text-primary: var(--theme-text);
   --color-text-muted: var(--theme-text-muted);
 
   /* === HEADING - Mengikuti tema H1/H2/H3 === */
-  /* Ini adalah sistem TEKS UTAMA untuk heading */
   --color-heading: var(--theme-h1);
   --color-heading-2: var(--theme-h2);
   --color-heading-3: var(--theme-h3);
@@ -78,6 +77,42 @@
   --color-sidebar-bg: var(--theme-sidebar-bg);
   --color-sidebar-text: var(--theme-sidebar-text);
   --color-sidebar-text-muted: var(--theme-sidebar-text-muted);
+
+  /* === MD3 Design Tokens (untuk Login & Components) === */
+  /* Primary colors */
+  --primary: var(--theme-primary);
+  --on-primary: white;
+  --primary-container: var(--theme-primary);
+  --on-primary-container: white;
+  --primary-fixed: var(--theme-primary);
+  --on-primary-fixed: white;
+  --primary-fixed-dim: var(--theme-h3);
+
+  /* Secondary colors */
+  --secondary: var(--theme-secondary);
+  --on-secondary: var(--theme-h1);
+  --secondary-container: var(--theme-secondary);
+  --on-secondary-container: var(--theme-h1);
+
+  /* Tertiary/Accent colors */
+  --tertiary: var(--theme-accent);
+  --on-tertiary: var(--theme-h1);
+  --tertiary-container: var(--theme-accent);
+  --on-tertiary-container: var(--theme-h1);
+
+  /* Surface & Background */
+  --surface: var(--theme-surface);
+  --surface-dim: var(--theme-bg);
+  --surface-bright: white;
+  --surface-container: var(--theme-surface);
+  --surface-container-low: var(--theme-bg);
+  --surface-container-lowest: white;
+  --on-surface: var(--theme-text);
+  --on-surface-variant: var(--theme-text-muted);
+
+  /* Outline */
+  --outline: var(--theme-border);
+  --outline-variant: var(--theme-border-muted);
 
   /* === BORDER === */
   --color-border: var(--theme-border);
@@ -106,7 +141,6 @@
   --color-bku-hover: var(--theme-primary);
 
   /* === TEXT UTILITY CLASSES === */
-  /* Menggunakan CSS variables agar mengikuti tema */
   --text-heading: var(--theme-h1);
   --text-heading-2: var(--theme-h2);
   --text-heading-3: var(--theme-h3);
@@ -117,10 +151,9 @@
   --text-on-dark: var(--theme-sidebar-text);
   --text-on-dark-muted: var(--theme-sidebar-text-muted);
 
-  /* Static colors (tidak berubah dengan theme) */
-  --color-bku-light: #fed7aa;
-  --color-bku-xlight: #f8faff;
-  /* Note: State colors sudah di-set via CSS vars di atas */
+  /* Static colors */
+  --color-bku-light: #FDE68A;
+  --color-bku-xlight: #EFF6FF;
 
   /* === FONTS === */
   --font-headline: var(--theme-font-headline);
@@ -136,67 +169,49 @@
 
 @layer base {
   body {
-    @apply text-slate-800 antialiased;
+    @apply antialiased;
     background-color: var(--theme-bg);
     color: var(--theme-text);
   }
 
   /* ═══ HEADING HIERARCHY - Menggunakan CSS Variables untuk Tema ═══ */
-/*
-  Hirarki Heading:
-  - H1: Judul halaman → var(--theme-h1)
-  - H2: Section title → var(--theme-h2)
-  - H3: Card title → var(--theme-h3)
-  - H4-H6: Detail kecil → var(--theme-h4)
-*/
+  h1, .h1 { color: var(--theme-h1); }
+  h2, .h2 { color: var(--theme-h2); }
+  h3, .h3 { color: var(--theme-h3); }
+  h4, h5, h6, .h4, .h5, .h6 { color: var(--theme-h4); }
 
-h1, .h1 { color: var(--theme-h1); }
-h2, .h2 { color: var(--theme-h2); }
-h3, .h3 { color: var(--theme-h3); }
-h4, h5, h6, .h4, .h5, .h6 { color: var(--theme-h4); }
+  /* Heading Utility Classes */
+  .heading { color: var(--theme-h1); }
+  .heading-primary { color: var(--theme-primary); }
+  .heading-2 { color: var(--theme-h2); }
+  .heading-3 { color: var(--theme-h3); }
+  .heading-4 { color: var(--theme-h4); }
 
-/* Heading Utility Classes */
-.heading { color: var(--theme-h1); }
-.heading-primary { color: var(--theme-primary); }
-.heading-2 { color: var(--theme-h2); }
-.heading-3 { color: var(--theme-h3); }
-.heading-4 { color: var(--theme-h4); }
+  /* Page Title Classes */
+  .page-title { color: var(--theme-h1); }
+  .page-title-2 { color: var(--theme-h2); }
 
-/* Page Title Classes */
-.page-title { color: var(--theme-h1); }
-.page-title-2 { color: var(--theme-h2); }
-
-  /* ═══ SIDEBAR TEXT COLORS - Adaptif dengan tema sidebar ═══ */
+  /* ═══ SIDEBAR TEXT COLORS ═══ */
   .sidebar-text { color: var(--theme-sidebar-text); }
   .sidebar-text-muted { color: var(--theme-sidebar-text-muted, color-mix(in srgb, var(--theme-sidebar-text) 70%, transparent)); }
 
-  /* ═══ TEXT UTILITY CLASSES - Menggunakan CSS Variables untuk Tema ═══ */
-/*
-  Hirarki Teks:
-  - Teks Utama: Paragraf, deskripsi, isi → var(--theme-text)
-  - Teks Muted: Caption, label, timestamp → var(--theme-text-muted)
-*/
-
-.text-body { color: var(--theme-text); }     /* Teks isi/paragraf */
-.text-muted { color: var(--theme-text-muted); }  /* Teks keterangan */
-.text-caption { color: var(--theme-text-muted); }
-.text-on-surface { color: var(--theme-text); }
-.text-on-background { color: var(--theme-text); }
+  /* ═══ TEXT UTILITY CLASSES ═══ */
+  .text-body { color: var(--theme-text); }
+  .text-muted { color: var(--theme-text-muted); }
+  .text-caption { color: var(--theme-text-muted); }
+  .text-on-surface { color: var(--theme-text); }
+  .text-on-background { color: var(--theme-text); }
   .text-on-dark { color: var(--theme-sidebar-text); }
   .text-on-dark-muted { color: var(--theme-sidebar-text-muted, color-mix(in srgb, var(--theme-sidebar-text) 70%, transparent)); }
 
   /* ═══ MENU & NAVIGATION TEXT ═══ */
-  /* Untuk teks menu di sidebar, navbar, dll */
   .menu-text { color: var(--theme-text); }
   .menu-text-active { color: var(--theme-primary); }
   .menu-text-muted { color: var(--theme-text-muted); }
 
   /* ═══ COMPONENT TEXT COLORS ═══ */
-  /* Card title */
   .card-title { color: var(--theme-text); }
   .card-subtitle { color: var(--theme-text-muted); }
-
-  /* Label & Badge */
   .label-text { color: var(--theme-text-muted); }
   .badge-text { color: var(--theme-text-muted); }
 
@@ -206,6 +221,14 @@ h4, h5, h6, .h4, .h5, .h6 { color: var(--theme-h4); }
   }
   a:hover {
     opacity: 0.8;
+  }
+
+  /* ═══ BUTTON & INPUT BASE ═══ */
+  button {
+    font-family: var(--theme-font-body);
+  }
+  input, textarea, select {
+    font-family: var(--theme-font-body);
   }
 }
 
@@ -221,6 +244,7 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* ═══ UTILITY CLASSES ═══ */
 @utility academic-blur {
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
@@ -231,10 +255,10 @@ body {
 }
 
 @utility glass-card {
-  background: rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.85);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.5);
 }
 
 @utility hero-bg-overlay {
@@ -254,11 +278,11 @@ body {
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   &:hover {
     transform: translateY(-2px);
-    box-shadow: 0 10px 25px -5px rgba(0, 35, 111, 0.08);
+    box-shadow: 0 10px 25px -5px rgba(37, 99, 235, 0.1);
   }
 }
 
-/* Custom Scrollbar */
+/* ═══ CUSTOM SCROLLBAR - Blue Theme ═══ */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -274,4 +298,43 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--theme-primary);
   opacity: 0.5;
+}
+
+/* ═══ SELECTED TEXT - Blue Theme ═══ */
+::selection {
+  background-color: var(--theme-primary);
+  color: white;
+}
+
+::-moz-selection {
+  background-color: var(--theme-primary);
+  color: white;
+}
+
+/* ═══ FOCUS STATES - Blue Theme ═══ */
+:focus-visible {
+  outline: 2px solid var(--theme-primary);
+  outline-offset: 2px;
+}
+
+/* ═══ LOADING ANIMATIONS ═══ */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes pulse {
+  50% { opacity: .5; }
+}
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* ═══ TRANSITIONS ═══ */
+.transition-all {
+  transition-property: all;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
 }

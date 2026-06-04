@@ -21,14 +21,6 @@ export const PORTAL_CONFIG = {
         ]
       },
       {
-        group: 'AKADEMIK',
-        items: [
-          { name: 'KRS & Nilai', icon: 'grade', path: '/student/nilai' },
-          { name: 'Jadwal Kuliah', icon: 'calendar_month', path: '/student/jadwal' },
-          { name: 'Kehadiran', icon: 'event_available', path: '/student/presensi' },
-        ]
-      },
-      {
         group: 'LAYANAN',
         items: [
           { name: 'Kencana (PKKMB)', icon: 'school', path: '/student/kencana' },
@@ -179,6 +171,7 @@ export const PORTAL_CONFIG = {
           { name: 'Data Prodi', icon: 'database', path: '/admin/prodi' },
           { name: 'Data Mahasiswa', icon: 'school', path: '/admin/students' },
           { name: 'Data Psikolog', icon: 'psychology', path: '/admin/psychologists' },
+          { name: 'Data Tenaga Kes', icon: 'medical_services', path: '/admin/tenagakes' },
         ]
       },
       {
@@ -204,6 +197,13 @@ export const PORTAL_CONFIG = {
         ]
       },
       {
+        group: 'LAYANAN KESEHATAN',
+        items: [
+          { name: 'Portal Kesehatan', icon: 'medical_services', path: '/tenagakes' },
+          { name: 'Kelola Asuransi', icon: 'health_and_safety', path: '/admin/insurance' },
+        ]
+      },
+      {
         group: 'KEAMANAN & AKSES',
         items: [
           { name: 'Kelola Akses (RBAC)', icon: 'security', path: '/admin/rbac' },
@@ -213,6 +213,7 @@ export const PORTAL_CONFIG = {
         group: 'SISTEM & INFORMASI',
         items: [
           { name: 'Kelola Berita', icon: 'newspaper', path: '/admin/announcements' },
+          { name: 'Pengaturan Tampilan', icon: 'palette', path: '/admin/theme' },
           { name: 'Pengaturan Sistem', icon: 'settings', path: '/admin/config' },
         ]
       },
@@ -368,6 +369,47 @@ export const PORTAL_CONFIG = {
       },
     ],
   },
+
+  // ─── HEALTH WORKER PORTAL (TENAGA KESEHATAN) ───────────────────────
+  tenagakes: {
+    title: 'Health Portal',
+    logo: '/images/bku logo.png',
+    subtitle: 'Tenaga Kesehatan',
+    sidebarWidth: 'w-64',
+    showRoleBadge: true,
+    roleLabel: 'Tenaga Kes',
+    roleBadgeColor: 'blue',
+    menu: [
+      {
+        group: 'MENU UTAMA',
+        items: [
+          { name: 'Dashboard', icon: 'dashboard', path: '/tenagakes' },
+        ]
+      },
+      {
+        group: 'PELAYANAN MEDIS',
+        items: [
+          { name: 'Booking Masuk', icon: 'calendar_month', path: '/tenagakes/bookings' },
+          { name: 'Jadwal Praktik', icon: 'schedule', path: '/tenagakes/schedule' },
+          { name: 'Daftar Mahasiswa', icon: 'people', path: '/tenagakes/patients' },
+          { name: 'Klaim Asuransi', icon: 'health_and_safety', path: '/tenagakes/claims' },
+        ]
+      },
+      {
+        group: 'LAPORAN',
+        items: [
+          { name: 'BAP Kesehatan', icon: 'description', path: '/tenagakes/bap' },
+          { name: 'Laporan Klinis', icon: 'analytics', path: '/tenagakes/reports' },
+        ]
+      },
+      {
+        group: 'LAINNYA',
+        items: [
+          { name: 'Pengaturan', icon: 'settings', path: '/tenagakes/settings' },
+        ]
+      },
+    ],
+  },
 };
 
 // Helper: Get config by role
@@ -382,6 +424,8 @@ export const getConfigByRole = (role) => {
     kencana_fakultas: 'kencana_fakultas',
     kencana_mentor: 'kencana_mentor',
     psikolog: 'psychologist',
+    tenaga_kesehatan: 'tenagakes',
+    tenagakes: 'tenagakes',
   };
 
   const configKey = roleMap[role] || 'student';

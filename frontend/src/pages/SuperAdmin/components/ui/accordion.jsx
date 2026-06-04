@@ -32,7 +32,7 @@ function AccordionTrigger({ className, children, ...props }) {
         {...props}
       >
         {children}
-        <span className="material-symbols-outlined text-muted-foreground pointer-events-none size-4 shrink-0 translate-y-0.5 transition-transform duration-200" Icon>expand_more</span>
+        <span className="material-symbols-outlined text-muted-foreground pointer-events-none size-4 shrink-0 translate-y-0.5 transition-transform duration-200">expand_more</span>
       </AccordionPrimitive.Trigger>
     </AccordionPrimitive.Header>
   )

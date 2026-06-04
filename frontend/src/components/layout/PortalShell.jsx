@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Outlet } from 'react-router-dom';
 import PortalSidebar from './PortalSidebar';
 import PortalTopbar from './PortalTopbar';
@@ -8,7 +8,7 @@ export default function PortalShell({ config }) {
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
   if (!config) {
-    console.warn('[PortalShell] No config provided, rendering without sidebar');
+    console.warn('[PortalShell] No config provided');
     console.warn('[PortalShell] Available configs:', Object.keys(PORTAL_CONFIG || {}));
     return (
       <div style={{ padding: '2rem', color: 'red' }}>
@@ -16,6 +16,8 @@ export default function PortalShell({ config }) {
       </div>
     );
   }
+
+  console.log('[PortalShell] Rendering with config:', config.title);
 
   return (
     <div
@@ -52,60 +54,11 @@ export default function PortalShell({ config }) {
           onMenuClick={() => setMobileSidebarOpen(true)}
         />
 
-        <main
-          className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 space-y-6"
-          style={{ backgroundColor: 'var(--theme-bg)' }}
-        >
+        {/* Debug: show Outlet is rendering */}
+        <div className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 space-y-6" style={{ backgroundColor: 'var(--theme-bg)' }}>
           <Outlet />
-        </main>
+        </div>
       </div>
     </div>
   );
-}
-
-// ─── Layout Builder (untuk build route config) ───────────────────────────────
-
-/**
- * Helper untuk membuat route dengan portal shell.
- * Usage:
- *
- *   import { buildPortalLayout } from './PortalShell';
- *
- *   const routes = buildPortalLayout({
- *     configKey: 'superadmin',
- *     basePath: '/admin',
- *     allowedRoles: ['super_admin'],
- *     childRoutes: [
- *       { path: '', element: <Dashboard /> },
- *       { path: 'users', element: <Users /> },
- *     ]
- *   });
- */
-export function buildPortalLayout({ configKey, basePath, allowedRoles, childRoutes, wrapper: Wrapper }) {
-  // Loader yang resolve config dari role
-  const resolveConfig = (role) => {
-    const { PORTAL_CONFIG } = require('./PortalConfig');
-    // Dynamic resolve based on path
-    const pathToConfig = {
-      '/admin': 'superadmin',
-      '/student': 'student',
-      '/faculty': 'faculty',
-      '/ormawa': 'ormawa',
-      '/kencana-admin': 'kencana_admin',
-      '/kencana-fakultas': 'kencana_fakultas',
-      '/kencana-mentor': 'kencana_mentor',
-      '/psychologist': 'psychologist',
-    };
-    return PORTAL_CONFIG[pathToConfig[basePath] || configKey] || PORTAL_CONFIG.student;
-  };
-
-  return {
-    path: basePath,
-    element: (
-      <Wrapper allowedRoles={allowedRoles}>
-        <PortalShell configKey={configKey} resolveConfig={resolveConfig} />
-      </Wrapper>
-    ),
-    children: childRoutes,
-  };
 }

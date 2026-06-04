@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -17,6 +17,7 @@ import {
   useHealthMandiriMutation,
   useHealthTipsQuery,
 } from '../../queries/useHealthQuery';
+import { healthBookingService } from '../../services/api';
 import { Skeleton } from '../../components/ui/Skeleton';
 import toast from 'react-hot-toast';
 import { NavLink } from 'react-router-dom';
@@ -161,6 +162,88 @@ export default function HealthScreeningPage() {
   const [successModalData, setSuccessModalData] = useState(null);
   const [activeChartTab, setActiveChartTab] = useState('berat');
 
+  // Booking states
+  const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
+  const [availableSchedules, setAvailableSchedules] = useState([]);
+  const [myBookings, setMyBookings] = useState([]);
+  const [loadingSchedules, setLoadingSchedules] = useState(false);
+  const [selectedSchedule, setSelectedSchedule] = useState(null);
+  const [bookingKeluhan, setBookingKeluhan] = useState('');
+  const [submittingBooking, setSubmittingBooking] = useState(false);
+
+  // Fetch booking data
+  const fetchBookingData = async () => {
+    setLoadingSchedules(true);
+    try {
+      const [schedulesRes, bookingsRes] = await Promise.all([
+        healthBookingService.getAvailableSchedules(),
+        healthBookingService.getMyBookings(),
+      ]);
+      if (schedulesRes.success) {
+        setAvailableSchedules(schedulesRes.data || []);
+      }
+      if (bookingsRes.success) {
+        setMyBookings(bookingsRes.data || []);
+      }
+    } catch (err) {
+      console.error('Error fetching booking data:', err);
+    } finally {
+      setLoadingSchedules(false);
+    }
+  };
+
+  useEffect(() => {
+    if (isBookingModalOpen) {
+      fetchBookingData();
+    }
+  }, [isBookingModalOpen]);
+
+  // Create booking
+  const handleCreateBooking = async () => {
+    if (!selectedSchedule) {
+      toast.error('Pilih jadwal terlebih dahulu');
+      return;
+    }
+    if (!bookingKeluhan.trim()) {
+      toast.error('Silakan isi keluhan Anda');
+      return;
+    }
+
+    setSubmittingBooking(true);
+    try {
+      const res = await healthBookingService.createBooking({
+        jadwal_id: selectedSchedule.id,
+        keluhan: bookingKeluhan,
+      });
+      if (res.success) {
+        toast.success('Booking berhasil! Menunggu konfirmasi dari tenaga kesehatan.');
+        setIsBookingModalOpen(false);
+        setSelectedSchedule(null);
+        setBookingKeluhan('');
+        fetchBookingData();
+      }
+    } catch (err) {
+      toast.error(err.message || 'Gagal membuat booking');
+    } finally {
+      setSubmittingBooking(false);
+    }
+  };
+
+  // Cancel booking
+  const handleCancelBooking = async (bookingId) => {
+    if (!confirm('Yakin ingin membatalkan booking ini?')) return;
+
+    try {
+      const res = await healthBookingService.cancelBooking(bookingId);
+      if (res.success) {
+        toast.success('Booking berhasil dibatalkan');
+        fetchBookingData();
+      }
+    } catch (err) {
+      toast.error(err.message || 'Gagal membatalkan booking');
+    }
+  };
+
   const { data: terbaru, isLoading: isTerbaruLoading } = useHealthRingkasanQuery();
   const { data: riwayat, isLoading: isRiwayatLoading } = useHealthRiwayatQuery({ sumber: filterSumber });
   const { data: detailRecord, isLoading: isDetailLoading } = useHealthDetailQuery(selectedDetailId);
@@ -199,6 +282,11 @@ export default function HealthScreeningPage() {
   const air = lifestyleData?.konsumsi_air ?? 2.0;
   const stres = lifestyleData?.tingkat_stres ?? 5;
 
+  // Fetch booking data on mount
+  useEffect(() => {
+    fetchBookingData();
+  }, []);
+
   const handleInputSubmit = (formData) => {
     mandiriMutation.mutate(formData, {
       onSuccess: (res) => {
@@ -211,6 +299,11 @@ export default function HealthScreeningPage() {
       onError:   (err) => toast.error(err.response?.data?.message || 'Gagal menyimpan data.'),
     });
   };
+
+  // Fetch booking data on mount
+  useEffect(() => {
+    fetchBookingData();
+  }, []);
 
   return (
     <div className="min-h-screen bg-[#f5f5f3] text-[#171717] font-body">
@@ -234,12 +327,20 @@ export default function HealthScreeningPage() {
               <p className="text-xs text-neutral-400 mt-0.5">Pantau tren kesehatan & rekam medis digital kamu</p>
             </div>
           </div>
-          <button
-            onClick={() => setIsInputOpen(true)}
-            className="flex items-center gap-2 px-4 py-2.5 bg-bku-primary text-white font-semibold rounded-xl hover:bg-[#0B4FAE] transition-all text-sm shadow-md shadow-bku-primary/20"
-          >
-            <span className="material-symbols-outlined" style={{ fontSize: '16px' }}  strokeWidth={2.5}>add</span> Input Data Mandiri
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setIsBookingModalOpen(true)}
+              className="flex items-center gap-2 px-4 py-2.5 bg-emerald-500 text-white font-semibold rounded-xl hover:bg-emerald-600 transition-all text-sm shadow-md shadow-emerald-500/20"
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: '16px' }} strokeWidth={2.5}>calendar_month</span> Ambil Antrian
+            </button>
+            <button
+              onClick={() => setIsInputOpen(true)}
+              className="flex items-center gap-2 px-4 py-2.5 bg-bku-primary text-white font-semibold rounded-xl hover:bg-[#0B4FAE] transition-all text-sm shadow-md shadow-bku-primary/20"
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: '16px' }} strokeWidth={2.5}>add</span> Input Data Mandiri
+            </button>
+          </div>
         </div>
 
         {/* ── HERO: Latest Stats ── */}
@@ -263,7 +364,7 @@ export default function HealthScreeningPage() {
                   </div>
                 </div>
                 <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 border border-emerald-100 text-emerald-600 shadow-sm">
-                  <span className="material-symbols-outlined" style={{ fontSize: '14px' }} Check >security</span>
+                  <span className="material-symbols-outlined" style={{ fontSize: '14px' }} >security</span>
                   <span className="text-[10px] font-bold uppercase tracking-wider">Tervalidasi BKU</span>
                 </div>
               </div>
@@ -397,6 +498,74 @@ export default function HealthScreeningPage() {
           </div>
         ) : (
           <EmptyHealthState onOpen={() => setIsInputOpen(true)} />
+        )}
+
+        {/* ── Antrian Saya ── */}
+        {myBookings && myBookings.length > 0 && (
+          <div className="bg-white rounded-2xl border border-neutral-100 shadow-sm overflow-hidden mb-6">
+            <div className="px-5 py-4 border-b border-neutral-100 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center">
+                  <span className="material-symbols-outlined text-emerald-600" style={{ fontSize: '20px' }}>calendar_month</span>
+                </div>
+                <div>
+                  <h2 className="text-sm font-bold text-[#171717]">Antrian Saya</h2>
+                  <p className="text-[10px] text-neutral-400">Riwayat pendaftaran klinik</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setIsBookingModalOpen(true)}
+                className="text-xs font-bold text-emerald-600 hover:text-emerald-700"
+              >
+                + Tambah
+              </button>
+            </div>
+            <div className="divide-y divide-neutral-50">
+              {myBookings.slice(0, 3).map((booking) => {
+                const statusColors = {
+                  'Menunggu Konfirmasi': 'bg-amber-50 text-amber-600 border-amber-200',
+                  'Dikonfirmasi': 'bg-blue-50 text-blue-600 border-blue-200',
+                  'Selesai': 'bg-emerald-50 text-emerald-600 border-emerald-200',
+                  'Ditolak': 'bg-red-50 text-red-600 border-red-200',
+                  'Dibatalkan': 'bg-slate-100 text-slate-500 border-slate-200',
+                };
+                const statusColor = statusColors[booking.status] || 'bg-slate-100 text-slate-600 border-slate-200';
+
+                return (
+                  <div key={booking.id} className="px-5 py-4 flex items-center justify-between hover:bg-neutral-50 transition-colors">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-neutral-100 flex items-center justify-center">
+                        <span className="material-symbols-outlined text-neutral-500" style={{ fontSize: '18px' }}>medical_services</span>
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold text-[#171717]">
+                          {booking.jadwal?.tenaga_kes?.nama || 'Tenaga Kesehatan'}
+                        </p>
+                        <p className="text-xs text-neutral-500 mt-0.5">
+                          {booking.jadwal?.tanggal ? new Date(booking.jadwal.tanggal).toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'short' }) : '-'}
+                          {' • '}
+                          {booking.jadwal?.jam_mulai || ''}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className={`px-2.5 py-1 rounded-lg text-[10px] font-bold border ${statusColor}`}>
+                        {booking.status}
+                      </span>
+                      {(booking.status === 'Menunggu Konfirmasi' || booking.status === 'Dikonfirmasi') && (
+                        <button
+                          onClick={() => handleCancelBooking(booking.id)}
+                          className="text-[10px] font-bold text-red-500 hover:underline"
+                        >
+                          Batal
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
         )}
 
         {/* ── Analytics & Vitals ── */}
@@ -595,7 +764,7 @@ export default function HealthScreeningPage() {
                             <div className="flex items-center gap-1">
                               {rec.sumber === 'mandiri'
                                 ? <User size={11} className="text-neutral-400" />
-                                : <span className="material-symbols-outlined text-bku-primary" style={{ fontSize: '11px' }} Check >security</span>
+                                : <span className="material-symbols-outlined text-bku-primary" style={{ fontSize: '11px' }} >security</span>
                               }
                               <span className="text-[10px] font-bold text-[#171717] uppercase">{rec.sumber.replace(/_/g, ' ')}</span>
                             </div>
@@ -633,25 +802,28 @@ export default function HealthScreeningPage() {
 
         {/* ── CTA Panels ── */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Clinic CTA */}
-          <div className="bg-bku-primary rounded-2xl p-5 text-white relative overflow-hidden">
+          {/* Asuransi CTA */}
+          <div className="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl p-5 text-white relative overflow-hidden">
             <div className="relative z-10">
               <div className="bg-white/10 w-fit p-2 rounded-xl mb-4 border border-white/10">
-                <Heart size={20} className="text-blue-200" />
+                <span className="material-symbols-outlined text-blue-200" style={{ fontSize: '20px' }} >health_and_safety</span>
               </div>
-              <h4 className="text-base font-bold mb-2 leading-tight">Butuh Dukungan Medis Profesional?</h4>
-              <p className="text-white/60 text-sm leading-relaxed mb-4 max-w-xs">
-                Layanan Klinik Utama BKU tersedia untuk konsultasi gratis bagi seluruh sivitas akademik aktif.
+              <h4 className="text-base font-bold mb-2 leading-tight">Asuransi Kesehatan</h4>
+              <p className="text-white/60 text-sm leading-relaxed mb-4">
+                Ajukan klaim asuransi kesehatan BKU Assurance atau reimburse biaya medis kamu.
               </p>
               <div className="flex flex-wrap gap-2 mb-4">
-                <span className="bg-white/10 px-3 py-1.5 rounded-lg text-[11px] font-semibold border border-white/10">Gedung E – Lantai Dasar</span>
-                <span className="bg-white/10 px-3 py-1.5 rounded-lg text-[11px] font-semibold border border-white/10">0812-BKU-MEDIC</span>
+                <span className="bg-white/10 px-3 py-1.5 rounded-lg text-[11px] font-semibold border border-white/10">BKU Assurance</span>
+                <span className="bg-white/10 px-3 py-1.5 rounded-lg text-[11px] font-semibold border border-white/10">BPJS</span>
               </div>
-              <button className="flex items-center gap-2 px-4 py-2.5 bg-white text-bku-primary text-sm font-bold rounded-xl hover:bg-blue-50 transition-all">
-                Reservasi Konsul <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >arrow_forward</span>
-              </button>
+              <NavLink
+                to="/student/insurance"
+                className="flex items-center gap-2 px-4 py-2.5 bg-white text-emerald-600 text-sm font-bold rounded-xl hover:bg-emerald-50 transition-all w-fit"
+              >
+                Ajukan Klaim <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >arrow_forward</span>
+              </NavLink>
             </div>
-            <span className="material-symbols-outlined absolute right-[-80px] bottom-[-80px] text-white opacity-[0.04] pointer-events-none" style={{ fontSize: '240px' }} >show_chart</span>
+            <span className="material-symbols-outlined absolute right-[-60px] top-[-60px] text-white opacity-[0.05] pointer-events-none" style={{ fontSize: '200px' }} >health_and_safety</span>
           </div>
 
           {/* Privacy Info */}
@@ -659,7 +831,7 @@ export default function HealthScreeningPage() {
             <div>
               <div className="flex items-center gap-3 mb-4">
                 <div className="p-2 bg-blue-50 rounded-xl text-bku-primary border border-blue-100">
-                  <span className="material-symbols-outlined" style={{ fontSize: '18px' }} Check >security</span>
+                  <span className="material-symbols-outlined" style={{ fontSize: '18px' }} >security</span>
                 </div>
                 <h4 className="text-base font-bold tracking-tight">Kerahasiaan Rekam Medis</h4>
               </div>
@@ -705,6 +877,25 @@ export default function HealthScreeningPage() {
           <SuccessFeedbackModal
             data={successModalData}
             onClose={() => setSuccessModalData(null)}
+          />
+        )}
+        {isBookingModalOpen && (
+          <BookingModal
+            schedules={availableSchedules}
+            myBookings={myBookings}
+            loading={loadingSchedules}
+            selectedSchedule={selectedSchedule}
+            setSelectedSchedule={setSelectedSchedule}
+            bookingKeluhan={bookingKeluhan}
+            setBookingKeluhan={setBookingKeluhan}
+            onClose={() => {
+              setIsBookingModalOpen(false);
+              setSelectedSchedule(null);
+              setBookingKeluhan('');
+            }}
+            onSubmit={handleCreateBooking}
+            onCancel={handleCancelBooking}
+            isSubmitting={submittingBooking}
           />
         )}
       </AnimatePresence>
@@ -1611,3 +1802,233 @@ function SuccessFeedbackModal({ data, onClose }) {
     </div>
   );
 }
+
+// ========================
+// Booking Modal
+// ========================
+function BookingModal({
+  schedules,
+  myBookings,
+  loading,
+  selectedSchedule,
+  setSelectedSchedule,
+  bookingKeluhan,
+  setBookingKeluhan,
+  onClose,
+  onSubmit,
+  onCancel,
+  isSubmitting,
+}) {
+  const formatDate = (dateStr) => {
+    if (!dateStr) return '-';
+    const d = new Date(dateStr);
+    return d.toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'short' });
+  };
+
+  const formatTime = (timeStr) => {
+    if (!timeStr) return '-';
+    return timeStr.substring(0, 5);
+  };
+
+  const getStatusBadge = (status) => {
+    const badges = {
+      'Menunggu Konfirmasi': 'bg-amber-100 text-amber-700',
+      'Dikonfirmasi': 'bg-blue-100 text-blue-700',
+      'Ditolak': 'bg-red-100 text-red-700',
+      'Dibatalkan': 'bg-slate-100 text-slate-500',
+      'Selesai': 'bg-emerald-100 text-emerald-700',
+    };
+    return badges[status] || 'bg-slate-100 text-slate-600';
+  };
+
+  // Filter schedules yang masih ada kuota
+  const availableSchedules = schedules.filter(s => s.sisa_kuota > 0);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+    >
+      <motion.div
+        initial={{ scale: 0.95, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.95, opacity: 0 }}
+        className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col"
+      >
+        {/* Header */}
+        <div className="p-5 border-b border-neutral-100 flex items-center justify-between shrink-0">
+          <div>
+            <h3 className="text-lg font-bold text-[#171717]">Ambil Antrian Klinik Kesehatan</h3>
+            <p className="text-xs text-neutral-400 mt-0.5">Pilih jadwal yang tersedia</p>
+          </div>
+          <button
+            onClick={onClose}
+            className="w-9 h-9 rounded-xl bg-neutral-50 border border-neutral-200 flex items-center justify-center text-neutral-400 hover:text-neutral-600 hover:border-neutral-300 transition-all"
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>close</span>
+          </button>
+        </div>
+
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto p-5 space-y-5">
+          {/* My Bookings Section */}
+          {myBookings && myBookings.length > 0 && (
+            <div>
+              <h4 className="text-xs font-bold text-neutral-500 uppercase tracking-wider mb-3 flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-bku-primary"></span>
+                Booking Saya
+              </h4>
+              <div className="space-y-2">
+                {myBookings.slice(0, 3).map((booking) => (
+                  <div key={booking.id} className="bg-neutral-50 rounded-xl p-3 border border-neutral-100">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-lg bg-white border border-neutral-200 flex items-center justify-center">
+                          <span className="material-symbols-outlined text-bku-primary" style={{ fontSize: '18px' }}>calendar_month</span>
+                        </div>
+                        <div>
+                          <p className="text-sm font-bold text-[#171717]">{formatDate(booking.jadwal?.tanggal)}</p>
+                          <p className="text-xs text-neutral-400">{formatTime(booking.jadwal?.jam_mulai)} - {formatTime(booking.jadwal?.jam_selesai)}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className={`px-2 py-0.5 rounded-lg text-[10px] font-bold ${getStatusBadge(booking.status)}`}>
+                          {booking.status}
+                        </span>
+                        {(booking.status === 'Menunggu Konfirmasi' || booking.status === 'Dikonfirmasi') && (
+                          <button
+                            onClick={() => onCancel(booking.id)}
+                            className="text-[10px] font-bold text-red-500 hover:underline"
+                          >
+                            Batal
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Available Schedules */}
+          <div>
+            <h4 className="text-xs font-bold text-neutral-500 uppercase tracking-wider mb-3 flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+              Jadwal Tersedia ({availableSchedules.length})
+            </h4>
+
+            {loading ? (
+              <div className="space-y-3">
+                {[1, 2, 3].map(i => (
+                  <div key={i} className="h-20 bg-neutral-100 rounded-xl animate-pulse" />
+                ))}
+              </div>
+            ) : availableSchedules.length === 0 ? (
+              <div className="text-center py-8 bg-neutral-50 rounded-xl border border-neutral-100">
+                <span className="material-symbols-outlined text-4xl text-neutral-300">event_busy</span>
+                <p className="text-sm text-neutral-400 mt-2">Belum ada jadwal tersedia</p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {availableSchedules.map((schedule) => {
+                  const isSelected = selectedSchedule?.id === schedule.id;
+                  return (
+                    <button
+                      key={schedule.id}
+                      onClick={() => setSelectedSchedule(schedule)}
+                      className={`w-full text-left p-4 rounded-xl border-2 transition-all ${
+                        isSelected
+                          ? 'border-bku-primary bg-bku-primary/5'
+                          : 'border-neutral-100 bg-white hover:border-neutral-200'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
+                            isSelected ? 'bg-bku-primary text-white' : 'bg-emerald-50 text-emerald-600'
+                          }`}>
+                            <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>medical_services</span>
+                          </div>
+                          <div>
+                            <p className="text-sm font-bold text-[#171717]">
+                              {schedule.tenaga_kes?.nama || 'Tenaga Kesehatan'} • {schedule.tipe_layanan}
+                            </p>
+                            <p className="text-xs text-neutral-500 mt-0.5">
+                              {formatDate(schedule.tanggal)} • {formatTime(schedule.jam_mulai)} - {formatTime(schedule.jam_selesai)}
+                            </p>
+                            <p className="text-xs text-neutral-400 mt-0.5 flex items-center gap-1">
+                              <span className="material-symbols-outlined" style={{ fontSize: '12px' }}>location_on</span>
+                              {schedule.lokasi}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className={`px-2.5 py-1 rounded-lg text-[10px] font-bold ${
+                            schedule.sisa_kuota <= 2 ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700'
+                          }`}>
+                            Sisa: {schedule.sisa_kuota}/{schedule.kuota}
+                          </div>
+                          {isSelected && (
+                            <span className="material-symbols-outlined text-bku-primary mt-1 block" style={{ fontSize: '20px' }}>check_circle</span>
+                          )}
+                        </div>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* Keluhan Input */}
+          {selectedSchedule && (
+            <div>
+              <label className="text-xs font-bold text-neutral-500 uppercase tracking-wider mb-2 flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-red-400"></span>
+                Keluhan Anda
+              </label>
+              <textarea
+                value={bookingKeluhan}
+                onChange={(e) => setBookingKeluhan(e.target.value)}
+                placeholder="Jelaskan keluhan atau kebutuhan kesehatan Anda..."
+                rows={3}
+                className="w-full px-4 py-3 border border-neutral-200 rounded-xl text-sm focus:outline-none focus:border-bku-primary focus:ring-2 focus:ring-bku-primary/20 resize-none"
+              />
+            </div>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="p-5 border-t border-neutral-100 bg-neutral-50 shrink-0 flex gap-3">
+          <button
+            onClick={onClose}
+            className="flex-1 py-3 border border-neutral-200 text-neutral-600 text-sm font-bold rounded-xl hover:bg-neutral-100 transition-all"
+          >
+            Batal
+          </button>
+          <button
+            onClick={onSubmit}
+            disabled={!selectedSchedule || !bookingKeluhan.trim() || isSubmitting}
+            className="flex-1 py-3 bg-bku-primary text-white text-sm font-bold rounded-xl hover:bg-[#0B4FAE] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          >
+            {isSubmitting ? (
+              <>
+                <span className="material-symbols-outlined animate-spin" style={{ fontSize: '16px' }}>progress_activity</span>
+                Mengirim...
+              </>
+            ) : (
+              <>
+                <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>check</span>
+                Daftarkan Sekarang
+              </>
+            )}
+          </button>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+}
+

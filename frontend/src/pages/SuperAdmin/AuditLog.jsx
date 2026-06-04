@@ -150,7 +150,7 @@ export default function AuditLog() {
           
           <div className="flex items-center gap-5 relative z-10">
             <div className="size-12 rounded-xl bg-white/10 flex items-center justify-center text-emerald-400 border border-white/10 shadow-inner">
-              <span className="material-symbols-outlined" style={{ fontSize: '24px' }} Check >security</span>
+              <span className="material-symbols-outlined" style={{ fontSize: '24px' }} >security</span>
             </div>
             <div>
               <p className="text-white font-bold font-headline text-sm leading-tight">Protokol Keamanan Aktif</p>

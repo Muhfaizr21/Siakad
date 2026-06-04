@@ -87,11 +87,20 @@ func main() {
 	routes.InisialisasiRuteFakultas(app)
 	routes.SetupOrmawaRoutes(app)
 	routes.SetupPsychologistRoutes(app)
+	routes.SetupTenagaKesehatanRoutes(app)
+	routes.SetupHealthRoutes(app)
 
 	// PDDIKTI Routes
 	api := app.Group("/api", middleware.AuthProtected)
 	pddiktiGroup := api.Group("/pddikti")
 	routes.SetupPddiktiRoutes(pddiktiGroup)
+
+	// Print all registered routes for debugging
+	log.Println("=== REGISTERED ROUTES ===")
+	for _, r := range app.GetRoutes() {
+		log.Printf("%s %s", r.Method, r.Path)
+	}
+	log.Println("=========================")
 
 	// Start Server
 

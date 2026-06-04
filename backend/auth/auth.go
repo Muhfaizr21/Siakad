@@ -1058,6 +1058,11 @@ func EnsureBootstrapData() error {
 		}
 	}
 
+	_, err = ensureUser("tenagakes@bku.ac.id", "tenagakes123", "tenaga_kesehatan", nil, nil)
+	if err != nil {
+		return err
+	}
+
 	psikologUser, err := ensureUser("psikolog@bku.ac.id", "psikolog123", "psikolog", nil, nil)
 	if err != nil {
 		return err
@@ -1077,6 +1082,7 @@ func EnsureBootstrapData() error {
 	fmt.Println("   mahasiswa     : <NIM>@student.bku.ac.id / student123")
 	fmt.Println("   ormawa        : ormawa@bku.ac.id / ormawa123")
 	fmt.Println("   psikolog      : psikolog@bku.ac.id / psikolog123")
+	fmt.Println("   tenaga_kes    : tenagakes@bku.ac.id / tenagakes123")
 	return nil
 }
 

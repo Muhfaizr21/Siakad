@@ -333,7 +333,7 @@ export default function AspirationDetail() {
           <div className="space-y-8 sticky top-8">
             <Card className="glass-card border-none shadow-none rounded-2xl bg-slate-900 overflow-hidden">
                <div className="p-6 border-b border-slate-800 flex items-center gap-3 bg-slate-900 text-white">
-                  <div className="size-8 rounded-lg bg-white/10 flex items-center justify-center text-white"><span className="material-symbols-outlined" style={{ fontSize: '18px' }} Check >security</span></div>
+                  <div className="size-8 rounded-lg bg-white/10 flex items-center justify-center text-white"><span className="material-symbols-outlined" style={{ fontSize: '18px' }} >security</span></div>
                   <h4 className="text-xs font-black font-headline uppercase tracking-widest">Incident Governance</h4>
                </div>
                <CardContent className="p-8 space-y-8">

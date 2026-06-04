@@ -111,8 +111,8 @@ export default function HomeHero() {
               to="/login"
               className="inline-flex items-center gap-2 px-8 py-3.5 rounded-xl font-bold shadow-lg transition-all duration-300 font-headline hover:scale-105 active:scale-95"
               style={{
-                backgroundColor: 'var(--theme-surface)',
-                color: 'var(--theme-primary)'
+                backgroundColor: 'var(--theme-secondary)',
+                color: 'var(--theme-h1)'
               }}
             >
               Daftar Sekarang
@@ -122,7 +122,7 @@ export default function HomeHero() {
               to="/about"
               className="inline-flex items-center gap-2 px-8 py-3.5 rounded-xl font-semibold border-2 transition-all duration-300 font-headline hover:scale-105 active:scale-95"
               style={{
-                borderColor: 'var(--theme-text-on-primary)',
+                borderColor: 'rgba(255,255,255,0.5)',
                 color: 'var(--theme-text-on-primary)'
               }}
             >

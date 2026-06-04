@@ -127,7 +127,7 @@ const AdminProfile = () => {
                 <Card className="glass-card border-slate-200/60 shadow-none rounded-2xl overflow-hidden relative group">
                     <div className="absolute inset-0 bg-gradient-to-br from-bku-primary/5 to-transparent pointer-events-none" />
                     <div className="absolute top-0 right-0 p-12 opacity-5 text-bku-primary group-hover:rotate-12 transition-transform duration-700 pointer-events-none">
-                        <span className="material-symbols-outlined" style={{ fontSize: '200px' }} Check >security</span>
+                        <span className="material-symbols-outlined" style={{ fontSize: '200px' }} >security</span>
                     </div>
 
                     <CardContent className="p-8 md:p-12 relative z-10 flex flex-col md:flex-row gap-10 items-center md:items-start text-center md:text-left">
@@ -287,7 +287,7 @@ const AdminProfile = () => {
                                         disabled={submitting}
                                         className="w-full h-12 bg-rose-600 text-white rounded-xl font-black font-headline text-[10px] uppercase tracking-widest hover:bg-rose-700 shadow-none transition-all active:scale-95 border-none"
                                     >
-                                        {submitting ? <span className="material-symbols-outlined animate-spin mr-2" style={{ fontSize: '16px' }} >sync</span> : <span className="material-symbols-outlined mr-2" style={{ fontSize: '16px' }} Check >security</span>}
+                                        {submitting ? <span className="material-symbols-outlined animate-spin mr-2" style={{ fontSize: '16px' }} >sync</span> : <span className="material-symbols-outlined mr-2" style={{ fontSize: '16px' }} >security</span>}
                                         Update Security Credential
                                     </Button>
                                 </div>
@@ -327,7 +327,7 @@ const AdminProfile = () => {
                         <Card className="glass-card border-slate-200/60 text-slate-800 shadow-none rounded-2xl overflow-hidden relative group">
                             <div className="absolute inset-0 bg-gradient-to-tr from-bku-primary/5 to-transparent pointer-events-none" />
                             <div className="absolute -bottom-10 -right-10 p-12 opacity-5 text-bku-primary group-hover:scale-110 transition-transform duration-700 pointer-events-none">
-                                <span className="material-symbols-outlined" style={{ fontSize: '150px' }} Check >security</span>
+                                <span className="material-symbols-outlined" style={{ fontSize: '150px' }} >security</span>
                             </div>
 
                             <CardContent className="p-8 space-y-6 relative z-10">

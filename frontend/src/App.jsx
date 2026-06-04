@@ -26,6 +26,14 @@ import PsychologistLayout from './pages/Psychologist/PsychologistLayout'
 import NotificationsCenter from './pages/Psychologist/NotificationsCenter'
 import PsychologistSettings from './pages/Psychologist/PsychologistSettings'
 
+import TenagaKesehatanLayout from './pages/TenagaKesehatan/TenagaKesehatanLayout'
+import TenagaKesehatanDashboard from './pages/TenagaKesehatan/TenagaKesehatanDashboard'
+import TenagaKesehatanBookingManagement from './pages/TenagaKesehatan/BookingManagement'
+import TenagaKesehatanScheduleManagement from './pages/TenagaKesehatan/ScheduleManagement'
+import TenagaKesehatanPatientList from './pages/TenagaKesehatan/PatientList'
+import TenagaKesehatanPatientMedicalRecord from './pages/TenagaKesehatan/PatientMedicalRecord'
+import TenagaKesehatanSettings from './pages/TenagaKesehatan/Settings'
+
 import ErrorBoundary from './components/ErrorBoundary'
 import ThemeProvider from './components/ThemeProvider'
 import Error404 from './pages/Error/Error404'
@@ -44,6 +52,8 @@ import ScholarshipDetailPage from './pages/Student/ScholarshipDetailPage'
 import CounselingPage from './pages/Student/CounselingPage'
 import CounselingHistoryPage from './pages/Student/CounselingHistoryPage'
 import HealthScreeningPage from './pages/Student/HealthScreeningPage'
+import InsurancePage from './pages/Student/InsurancePage'
+import SelfScreeningPage from './pages/Student/SelfScreeningPage'
 import StudentVoicePage from './pages/Student/StudentVoicePage'
 import StudentVoiceDetailPage from './pages/Student/StudentVoiceDetailPage'
 import OrganisasiPage from './pages/Student/OrganisasiPage'
@@ -102,13 +112,19 @@ import AdminProfile from './pages/SuperAdmin/Profile'
 import SecuritySettings from './pages/SuperAdmin/SecuritySettings'
 import { ThemeCustomizer } from './pages/SuperAdmin/theme'
 import PsychologistDirectory from './pages/SuperAdmin/PsychologistDirectory'
+import TenagaKesehatanDirectory from './pages/SuperAdmin/TenagaKesehatanDirectory'
 import KelolaFakultas from './pages/SuperAdmin/KelolaFakultas'
 import KelolaProdi from './pages/SuperAdmin/KelolaProdi'
 import KelolaBeasiswa from './pages/SuperAdmin/KelolaBeasiswa'
 import KelolaPrestasi from './pages/SuperAdmin/KelolaPrestasi'
 import AspirationDetail from './pages/SuperAdmin/AspirationDetail'
 import KelolaOrganisasi from './pages/SuperAdmin/KelolaOrganisasi'
+import InsuranceManagement from './pages/SuperAdmin/InsuranceManagement'
 import SuperAdminLayout from './pages/SuperAdmin/components/SuperAdminLayout'
+
+import InsuranceReview from './pages/TenagaKesehatan/InsuranceReview'
+import BAPManagement from './pages/TenagaKesehatan/BAPManagement'
+import ReportsPage from './pages/TenagaKesehatan/ReportsPage'
 
 import KencanaLayout from './pages/Kencana/components/KencanaLayout'
 import KencanaAdminDashboard from './pages/Kencana/Admin/Dashboard'
@@ -210,13 +226,15 @@ function App() {
                   <Route path="students" element={<StudentDirectory />} />
                   <Route path="performance" element={<AdminPerformance />} />
                   <Route path="security" element={<SecuritySettings />} />
-                  <Route path="theme" element={<Navigate to="theme/colors" replace />} />
-                  <Route path="theme/colors" element={<ThemeCustomizer section="colors" />} />
-                  <Route path="theme/typography" element={<ThemeCustomizer section="typography" />} />
-                  <Route path="theme/branding" element={<ThemeCustomizer section="branding" />} />
-                  <Route path="theme/components" element={<ThemeCustomizer section="components" />} />
-                  <Route path="theme/status" element={<ThemeCustomizer section="status" />} />
+                  <Route path="theme" element={<ThemeCustomizer />} />
+                  <Route path="theme/colors" element={<ThemeCustomizer />} />
+                  <Route path="theme/typography" element={<ThemeCustomizer />} />
+                  <Route path="theme/branding" element={<ThemeCustomizer />} />
+                  <Route path="theme/components" element={<ThemeCustomizer />} />
+                  <Route path="theme/status" element={<ThemeCustomizer />} />
                   <Route path="psychologists" element={<PsychologistDirectory />} />
+                  <Route path="tenagakes" element={<TenagaKesehatanDirectory />} />
+                  <Route path="insurance" element={<InsuranceManagement />} />
                   <Route path="config" element={<AcademicPortal />} />
                   <Route path="faculties" element={<KelolaFakultas />} />
                   <Route path="prodi" element={<KelolaProdi />} />
@@ -331,6 +349,19 @@ function App() {
                   <Route path="settings" element={<PsychologistSettings />} />
                 </Route>
 
+                {/* Tenaga Kesehatan */}
+                <Route path="/tenagakes" element={<ProtectedRoute allowedRoles={['tenaga_kesehatan', 'tenagakes', 'super_admin']}><TenagaKesehatanLayout /></ProtectedRoute>}>
+                  <Route index element={<TenagaKesehatanDashboard />} />
+                  <Route path="bookings" element={<TenagaKesehatanBookingManagement />} />
+                  <Route path="schedule" element={<TenagaKesehatanScheduleManagement />} />
+                  <Route path="patients" element={<TenagaKesehatanPatientList />} />
+                  <Route path="patients/:id/medical-record" element={<TenagaKesehatanPatientMedicalRecord />} />
+                  <Route path="claims" element={<InsuranceReview />} />
+                  <Route path="bap" element={<BAPManagement />} />
+                  <Route path="reports" element={<ReportsPage />} />
+                  <Route path="settings" element={<TenagaKesehatanSettings />} />
+                </Route>
+
                 {/* Student */}
                 <Route path="/student" element={<ProtectedRoute allowedRoles={['mahasiswa']}><AppLayout /></ProtectedRoute>}>
                   <Route index element={<Navigate to="dashboard" replace />} />
@@ -356,6 +387,8 @@ function App() {
                   <Route path="counseling" element={<CounselingPage />} />
                   <Route path="counseling/history" element={<CounselingHistoryPage />} />
                   <Route path="health" element={<HealthScreeningPage />} />
+                  <Route path="health/self-screening" element={<SelfScreeningPage />} />
+                  <Route path="insurance" element={<InsurancePage />} />
                   <Route path="voice" element={<StudentVoicePage />} />
                   <Route path="voice/tiket/:id" element={<StudentVoiceDetailPage />} />
                   <Route path="organisasi" element={<OrganisasiPage />} />

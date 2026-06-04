@@ -220,7 +220,7 @@ export default function ProposalPipeline() {
                     <>
                        <div className="h-4 w-px bg-slate-200/40 mx-1" />
                        <Button onClick={() => handleApprove(row.id || row.ID)} disabled={isSubmitting} variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors cursor-pointer"><span className="material-symbols-outlined" style={{ fontSize: '16px' }} >check_circle</span></Button>
-                       <Button onClick={() => { setSelected(row); setIsRejectOpen(true) }} variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"><span className="material-symbols-outlined" style={{ fontSize: '16px' }} Circle >close</span></Button>
+                       <Button onClick={() => { setSelected(row); setIsRejectOpen(true) }} variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"><span className="material-symbols-outlined" style={{ fontSize: '16px' }} >close</span></Button>
                     </>
                   )}
                 </div>
@@ -250,7 +250,7 @@ export default function ProposalPipeline() {
                     {selected.Ormawa?.Nama || 'Unit Mahasiswa Pengaju'}
                   </div>
                 </div>
-                <span className="material-symbols-outlined absolute -bottom-8 -right-8 text-white/5 rotate-12 pointer-events-none" style={{ fontSize: '120px' }} Check >security</span>
+                <span className="material-symbols-outlined absolute -bottom-8 -right-8 text-white/5 rotate-12 pointer-events-none" style={{ fontSize: '120px' }} >security</span>
               </div>
               
               <div className="p-8 space-y-8 max-h-[60vh] overflow-y-auto custom-scrollbar">
@@ -292,7 +292,7 @@ export default function ProposalPipeline() {
                       <>
                         <Button onClick={() => setIsRejectOpen(true)} className="h-11 px-6 rounded-xl bg-white text-rose-500 border border-rose-200 font-black font-headline text-[10px] uppercase tracking-widest hover:bg-rose-50 transition-all shadow-none cursor-pointer">Kembalikan</Button>
                         <Button onClick={() => handleApprove(selected.id || selected.ID)} disabled={isSubmitting} className="h-11 px-8 rounded-xl bg-slate-800 text-white font-black font-headline text-[10px] uppercase tracking-widest hover:bg-slate-900 shadow-none transition-all active:scale-95 group cursor-pointer border-none">
-                          {isSubmitting ? <span className="material-symbols-outlined animate-spin mr-2" style={{ fontSize: '14px' }} >sync</span> : <span className="material-symbols-outlined mr-2" style={{ fontSize: '14px' }} Check >security</span>} Sahkan Proposal
+                          {isSubmitting ? <span className="material-symbols-outlined animate-spin mr-2" style={{ fontSize: '14px' }} >sync</span> : <span className="material-symbols-outlined mr-2" style={{ fontSize: '14px' }} >security</span>} Sahkan Proposal
                         </Button>
                       </>
                     )}
@@ -307,7 +307,7 @@ export default function ProposalPipeline() {
       <Dialog open={isRejectOpen} onOpenChange={setIsRejectOpen}>
         <DialogContent className="max-w-md p-0 overflow-hidden border-none shadow-2xl rounded-3xl glass-card bg-white/95">
           <DialogHeader className="p-8 pb-6 border-b border-slate-200/40 relative overflow-hidden">
-            <div className="size-12 rounded-xl bg-rose-50 flex items-center justify-center text-rose-600 mb-4 border border-rose-100 shadow-none"><span className="material-symbols-outlined" style={{ fontSize: '24px' }} Circle >close</span></div>
+            <div className="size-12 rounded-xl bg-rose-50 flex items-center justify-center text-rose-600 mb-4 border border-rose-100 shadow-none"><span className="material-symbols-outlined" style={{ fontSize: '24px' }} >close</span></div>
             <DialogTitle className="text-2xl font-black font-headline tracking-tight text-slate-800 uppercase">Tolak Proposal</DialogTitle>
             <DialogDescription className="text-[11px] font-medium text-slate-400 mt-1 uppercase tracking-widest">Berikan alasan formal penangguhan anggaran.</DialogDescription>
           </DialogHeader>

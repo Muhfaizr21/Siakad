@@ -211,7 +211,7 @@ const AdminPerformance = () => {
                    <div className="absolute inset-0 bg-bku-primary/20 pointer-events-none" />
                    <div className="flex items-center gap-6 relative z-10">
                       <div className="size-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-bku-primary group-hover:scale-110 transition-transform">
-                         <span className="material-symbols-outlined" style={{ fontSize: '32px' }} Check >security</span>
+                         <span className="material-symbols-outlined" style={{ fontSize: '32px' }} >security</span>
                       </div>
                       <div className="space-y-1">
                          <h4 className="text-lg font-black font-headline" style={{ color: 'var(--theme-h4)' }}>Immutable Audit Infrastructure</h4>

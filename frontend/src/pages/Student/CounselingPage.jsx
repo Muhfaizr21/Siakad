@@ -123,7 +123,7 @@ export default function CounselingPage() {
 
           <div className="relative z-10 max-w-2xl">
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 border border-white/15 text-white/80 text-xs font-semibold mb-5">
-              <span className="material-symbols-outlined" style={{ fontSize: '12px' }} Check >security</span> Privasi Terjamin 100%
+              <span className="material-symbols-outlined" style={{ fontSize: '12px' }} >security</span> Privasi Terjamin 100%
             </span>
             <h1 className="text-2xl md:text-[2rem] font-extrabold text-white leading-tight mb-3 font-headline">
               Layanan Konseling<br />Mahasiswa BKU
@@ -336,7 +336,7 @@ export default function CounselingPage() {
                 </div>
                 <h2 className="text-xl font-extrabold font-headline" style={{ color: 'var(--theme-h2)' }}>{selectedSlot.NamaKonselor}</h2>
                 <p className="text-white/50 text-sm mt-0.5 flex items-center gap-1.5">
-                  <span className="material-symbols-outlined" style={{ fontSize: '13px' }} Check >security</span> Sesi dilindungi protokol kerahasiaan
+                  <span className="material-symbols-outlined" style={{ fontSize: '13px' }} >security</span> Sesi dilindungi protokol kerahasiaan
                 </p>
               </div>
 

@@ -61,7 +61,7 @@ export default function PreferensiTab() {
       <div className="bg-white rounded-3xl border border-[#e5e5e5] p-6 md:p-8 shadow-sm">
          <div className="flex items-center gap-3 mb-6">
             <div className="bg-[#EAF1FF] text-bku-primary p-2.5 rounded-xl">
-               <span className="material-symbols-outlined" style={{ fontSize: '20px' }} Ring >notifications</span>
+               <span className="material-symbols-outlined" style={{ fontSize: '20px' }} >notifications</span>
             </div>
             <h3 className="text-lg font-extrabold font-headline">Notifikasi Dalam Aplikasi</h3>
          </div>

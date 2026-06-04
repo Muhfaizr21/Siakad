@@ -1,0 +1,134 @@
+# Rencana Implementasi: Modul Tenaga Kesehatan BKU (v1.3)
+
+Dokumen ini merinci rencana teknis dan fungsional untuk mengimplementasikan **Modul Tenaga Kesehatan** ke dalam Sistem Informasi BKU berdasarkan spesifikasi *Spesifikasi_Modul_Tenaga_Kesehatan_BKU_v1_3.docx*.
+
+## User Review Required
+
+> [!WARNING]
+> Sebelum memulai pengembangan (development sprint), mohon diperhatikan beberapa isu terbuka (*open issues*) di bawah ini yang memerlukan konfirmasi atau diskusi (FGD) lebih lanjut dengan pihak BKU, Klinik Kampus, dan tim IT.
+
+## Open Questions
+
+Berikut adalah poin-poin klarifikasi yang diambil langsung dari spesifikasi:
+
+> [!IMPORTANT]
+> 1. **Field wajib form screening:** Field wajib apa saja di form screening? (Karena standar klinik kampus berbeda-beda, ini berdampak pada struktur database rekam medis).
+> 2. **Manajemen Akun:** Apakah Tenaga Kesehatan memiliki akun permanen atau hanya aktif saat event? (Berdampak pada alur registrasi & RBAC).
+> 3. **Akses Data oleh Psikolog:** Apakah data kesehatan dari Tenaga Kesehatan bisa dilihat Psikolog secara penuh atau terbatas? (Menentukan batas scope data antar role).
+> 4. **Privasi Rekam Medis:** Siapa saja yang boleh melihat detail rekam medis selain Tenaga Kesehatan dan mahasiswa?
+> 5. **Standar QR Code:** Format QR Code mahasiswa: apakah sudah ada standar yang dipakai sistem lain (absensi, dll)?
+> 6. **Reschedule Booking:** Apakah mahasiswa bisa *reschedule* booking sendiri atau harus lewat Tenaga Kesehatan?
+
+> [!NOTE]
+> - **Format Surat Rujukan (Opsional):** Apakah ada template dari kampus untuk surat rujukan eksternal?
+> - **Tanda Tangan Digital (Opsional):** Apakah diperlukan tanda tangan digital (Mekari Sign) untuk rekam medis?
+> - **Kuota Maksimum:** Berapa kuota maksimum booking per slot? Apakah bisa diatur per Tenaga Kesehatan?
+
+---
+
+## Proposed Changes
+
+Implementasi akan dibagi menjadi beberapa *milestone* atau komponen utama (Backend, Frontend Web, Mobile App), yang meliputi fitur-fitur berikut:
+
+### 1. Database & Backend API
+
+Perubahan struktur database dan API endpoints untuk mendukung modul baru.
+
+#### Schema & Database Models
+- **Tabel `JadwalKesehatan`**: ID, TenagaKes_ID, Tanggal, JamMulai, JamSelesai, Kuota, Lokasi, TipeLayanan, Event_ID, Catatan, StatusAktif.
+- **Tabel `BookingKesehatan`**: ID, Jadwal_ID, Mahasiswa_ID, Keluhan, Status (Menunggu, Dikonfirmasi, Ditolak, Selesai), WaktuBooking.
+- **Tabel `RekamMedis`**: ID, Mahasiswa_ID, TenagaKes_ID, Booking_ID/Event_ID, TipePemeriksaan (Massal/Reguler), Tanggal, *[Data Vital]*, *[Data Subjektif]*, *[Tindakan & Status Akhir]*, Rekomendasi, FileLampiran.
+- **Tabel `Eskalasi`**: ID, RekamMedis_ID, Tujuan (Psikolog/AdminFakultas), StatusEskalasi, Waktu.
+
+#### REST API Endpoints
+- **Jadwal & Booking:**
+  - `GET /api/jadwal`, `POST /api/jadwal`, `PUT /api/jadwal/:id`, `DELETE /api/jadwal/:id`
+  - `GET /api/booking`, `PUT /api/booking/:id/status` (Terima/Tolak)
+- **Pemeriksaan & Rekam Medis:**
+  - `POST /api/rekammedis` (Input screening)
+  - `GET /api/rekammedis` (Lihat rekam medis dengan filter)
+- **Dashboard & Laporan:**
+  - `GET /api/dashboard/tenagakes` (Summary, alert, booking hari ini)
+  - `GET /api/laporan/export` (Excel/PDF)
+- **Integrasi QR:**
+  - `POST /api/mahasiswa/scan-qr` (Lookup data mahasiswa via QR)
+
+---
+
+### 2. Frontend Web Desktop (Role: Tenaga Kesehatan & Super Admin)
+
+Tampilan multi-kolom yang mendukung navigasi keyboard penuh.
+
+#### Halaman Dashboard
+- **Summary Cards**: Total diperiksa hari ini, Mahasiswa belum screening, Pemeriksaan aktif, Mahasiswa berstatus "Perlu Perhatian" (kuning/merah).
+- **Tabel Alert**: Daftar mahasiswa dengan status kritis (eskalasi cepat).
+- **Panel Booking Hari Ini**: Daftar jadwal mahasiswa hari ini.
+- **Filter Dashboard**: Periode, Tipe Pemeriksaan, Fakultas, Prodi.
+
+#### Jadwal & Booking
+- UI Kalender/Tabel untuk CRUD jadwal kesehatan (tanggal, jam, kuota, lokasi, tipe layanan).
+- Manajemen Booking: Tabel approval booking masuk (Terima, Tolak, Lihat Detail).
+
+#### Input Pemeriksaan
+- Form input komprehensif (Data Vital, Data Subjektif, Tindakan).
+- **Logika Otomatis UI**:
+  - Alert/Warning jika Suhu > 37.5°C atau SpO2 < 95%.
+  - Pre-fill eskalasi jika status "Tidak Layak" atau kondisi psikologis "Perlu Rujukan Psikolog".
+- Dukungan *autocomplete* pencarian mahasiswa (NIM/Nama).
+
+#### Rekam Medis & Laporan
+- Tabel riwayat rekam medis (filter by tanggal, event, status, fakultas, prodi).
+- Fitur *export* rekam medis: Per individu (PDF), Per Kegiatan/Periode (Excel).
+
+---
+
+### 3. Mobile App (Android/iOS)
+
+Aplikasi mobile untuk pendataan yang cepat dan terintegrasi dari lapangan.
+
+#### Navigasi & Dashboard Mobile
+- **Beranda (Home)**: Ringkasan harian, pemeriksaan aktif, booking.
+- **Notifikasi**: Push notification untuk booking masuk, eskalasi, dan pengingat event.
+- **Profil**: Pengaturan akun Tenaga Kesehatan.
+
+#### Fitur Mobile Khusus
+- **Scan QR Mahasiswa**:
+  - Integrasi kamera untuk scan QR.
+  - Tampilkan pop-up: Foto, Nama, NIM, Prodi, Status Kesehatan Terakhir.
+  - Tombol aksi: "Mulai Pemeriksaan" atau "Lihat Rekam Medis".
+- **Manajemen Jadwal**:
+  - Buat dan atur slot waktu praktik langsung dari smartphone.
+  - Terima/Tolak notifikasi booking mahasiswa (one-tap confirmation).
+- **Input Pemeriksaan Mobile**:
+  - Form screening versi ringkas (*scroll-friendly*).
+  - Integrasi upload foto/berkas pendukung langsung dari galeri/kamera smartphone.
+
+---
+
+### 4. RBAC (Role-Based Access Control) & Integrasi
+
+Sistem manajemen *role* untuk memastikan kepatuhan privasi data.
+
+- **Super Admin**: Mengatur akun Tenaga Kesehatan, manajemen kegiatan massal (event), akses dashboard penuh.
+- **Tenaga Kesehatan**: CRUD rekam medis (tambah baru), akses jadwal mandiri, scan QR, eskalasi data.
+- **Psikolog & Admin Fakultas**: Akses *read-only* parsial atas rujukan data spesifik yang dieskalasi.
+- **Mahasiswa**: Akses *read-only* rekam medis pribadi, UI Booking jadwal kesehatan mandiri.
+- **Sistem Notifikasi**: Implementasi Push Notification (FCM/APNs) dan *In-App/Email notification* (Booking, pembatalan, hasil screening).
+
+## Verification Plan
+
+### Automated Tests
+- Unit testing pada service kalkulasi IMT (Tinggi Badan & Berat Badan).
+- Unit testing pada logika peringatan kesehatan (Alerts: Suhu > 37.5°C, Oksigen < 95%, dsb.).
+- API endpoint integration test untuk memastikan flow CRUD rekam medis dan eskalasi tersimpan benar.
+
+### Manual Verification
+1. **Flow Pemeriksaan Massal**:
+   - Super Admin membuat event massal -> Tenaga Kesehatan melihat data -> Input NIM secara web -> Simpan rekam medis.
+2. **Flow Pemeriksaan Reguler & Booking**:
+   - Mahasiswa melakukan booking dari aplikasi/web -> Tenaga Kesehatan mendapat push notifikasi -> Tenaga Kesehatan meng-acc booking -> Status berubah menjadi dikonfirmasi.
+3. **Mobile QR Scan**:
+   - Menggunakan HP dengan aplikasi yang di-build (atau emulator) -> Scan Dummy QR Mahasiswa -> Verifikasi layar detail mahasiswa terbuka di bawah 2 detik.
+4. **Validasi Role & Keamanan**:
+   - Login sebagai mahasiswa -> pastikan tidak bisa hit API `/api/jadwal` dengan POST (Create).
+   - Validasi enkripsi/hash atau secure transmission pada transmisi data rekam medis sensitif.

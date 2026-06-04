@@ -71,11 +71,11 @@ func GetUsers(c *fiber.Ctx) error {
 		Select(`
 			"public"."users".*, 
 			f.nama as fakultas_nama,
-			COALESCE(m.nama, d.nama, ps.nama, km.name) as identity_name,
+			COALESCE(m.nama, d.nama, ps.nama, km.name, tk.nama) as identity_name,
 			COALESCE(m.nim, d.n_id_n) as identity_code,
 			p.nama as prodi_nama,
 			km.scope_type as kencana_scope_type,
-			COALESCE(m.foto_url, '') as foto_url,
+			COALESCE(m.foto_url, tk.foto_url, '') as foto_url,
 			(SELECT orm.nama FROM ormawa.ormawa_anggota oa 
 			 JOIN ormawa.ormawa orm ON orm.id = oa.ormawa_id 
 			 WHERE oa.mahasiswa_id = m.id LIMIT 1) as ormawa_nama
@@ -86,6 +86,7 @@ func GetUsers(c *fiber.Ctx) error {
 		Joins(`LEFT JOIN "fakultas"."dosen" d ON d.pengguna_id = "public"."users".id`).
 		Joins(`LEFT JOIN "psikolog"."profiles" ps ON ps.user_id = "public"."users".id`).
 		Joins(`LEFT JOIN "mahasiswa"."kencana_mentors" km ON km.user_id = "public"."users".id`).
+		Joins(`LEFT JOIN "public"."tenaga_kesehatan" tk ON tk.user_id = "public"."users".id`).
 		Where(`"public"."users".deleted_at IS NULL`).
 		Order(`"public"."users".created_at desc`).
 		Scan(&results).Error
@@ -108,7 +109,7 @@ func isAllowedRBACRole(role string) bool {
 		return true
 	}
 	switch role {
-	case "super_admin", "faculty_admin", "ormawa_admin", "ormawa", "mahasiswa", "psikolog", "PSIKOLOG", "dosen", "DOSEN", "kencana_admin", "kencana_fakultas", "kencana_mentor":
+	case "super_admin", "faculty_admin", "ormawa_admin", "ormawa", "mahasiswa", "psikolog", "PSIKOLOG", "dosen", "DOSEN", "kencana_admin", "kencana_fakultas", "kencana_mentor", "tenaga_kesehatan", "tenagakes":
 		return true
 	default:
 		return false
@@ -344,7 +345,7 @@ func CreateUser(c *fiber.Ctx) error {
 	}
 
 	requiresFakultas := true
-	if req.Role == "super_admin" || req.Role == "psikolog" || req.Role == "PSIKOLOG" || req.Role == "kencana_admin" || (req.Role == "kencana_mentor" && req.KencanaScopeType == "university") {
+	if req.Role == "super_admin" || req.Role == "psikolog" || req.Role == "PSIKOLOG" || req.Role == "kencana_admin" || (req.Role == "kencana_mentor" && req.KencanaScopeType == "university") || req.Role == "tenaga_kesehatan" || req.Role == "tenagakes" {
 		requiresFakultas = false
 	}
 	if req.Role == "kencana_fakultas" {
@@ -459,6 +460,20 @@ func CreateUser(c *fiber.Ctx) error {
 				IsAktif:      true,
 			}
 			if err := tx.Create(&psikolog).Error; err != nil {
+				return err
+			}
+		case "tenaga_kesehatan", "tenagakes":
+			tk := models.TenagaKesehatan{
+				UserID:       user.ID,
+				Nama:         req.Nama,
+				Email:        req.Email,
+				NoHP:         "-",
+				Spesialisasi: "Pemeriksaan Umum",
+				FotoURL:      "",
+				Lokasi:       "Klinik Kampus BKU",
+				IsAktif:      true,
+			}
+			if err := tx.Create(&tk).Error; err != nil {
 				return err
 			}
 		case "kencana_mentor":
@@ -1941,4 +1956,235 @@ func GetPsychologistReferralsAdmin(c *fiber.Ctx) error {
 		return c.Status(500).JSON(fiber.Map{"status": "error", "message": err.Error()})
 	}
 	return c.JSON(fiber.Map{"status": "success", "data": referrals})
+}
+
+// GetAllTenagaKesehatan returns all registered health workers (Tenaga Kesehatan) profiles
+func GetAllTenagaKesehatan(c *fiber.Ctx) error {
+	var list []models.TenagaKesehatan
+	if err := config.DB.Preload("User").Order("nama asc").Find(&list).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": err.Error()})
+	}
+	return c.JSON(fiber.Map{"status": "success", "data": list})
+}
+
+// UpdateTenagaKesehatan updates a health worker profile
+func UpdateTenagaKesehatan(c *fiber.Ctx) error {
+	id := c.Params("id")
+	var tk models.TenagaKesehatan
+	if err := config.DB.First(&tk, id).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Tenaga Kesehatan not found"})
+	}
+
+	type UpdateReq struct {
+		Nama         string `json:"nama"`
+		Email        string `json:"email"`
+		NoHP         string `json:"no_hp"`
+		Spesialisasi string `json:"spesialisasi"`
+		FotoURL      string `json:"foto_url"`
+		Lokasi       string `json:"lokasi"`
+		IsAktif      *bool  `json:"is_aktif"`
+	}
+	var req UpdateReq
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": err.Error()})
+	}
+
+	if req.Nama != "" {
+		tk.Nama = req.Nama
+	}
+	if req.Email != "" {
+		tk.Email = req.Email
+	}
+	if req.NoHP != "" {
+		tk.NoHP = req.NoHP
+	}
+	if req.Spesialisasi != "" {
+		tk.Spesialisasi = req.Spesialisasi
+	}
+	if req.FotoURL != "" {
+		tk.FotoURL = req.FotoURL
+	}
+	if req.Lokasi != "" {
+		tk.Lokasi = req.Lokasi
+	}
+	if req.IsAktif != nil {
+		tk.IsAktif = *req.IsAktif
+	}
+
+	if err := config.DB.Save(&tk).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": err.Error()})
+	}
+	return c.JSON(fiber.Map{"status": "success", "data": tk})
+}
+
+// DeleteTenagaKesehatan deletes a health worker profile
+func DeleteTenagaKesehatan(c *fiber.Ctx) error {
+	id := c.Params("id")
+	if err := config.DB.Delete(&models.TenagaKesehatan{}, id).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": err.Error()})
+	}
+	return c.JSON(fiber.Map{"status": "success", "message": "Tenaga Kesehatan deleted"})
+}
+
+// GetTenagaKesehatanSchedulesAdmin returns all schedules for a specific health worker
+func GetTenagaKesehatanSchedulesAdmin(c *fiber.Ctx) error {
+	id := c.Params("id")
+	var slots []models.JadwalKesehatan
+	if err := config.DB.Where("tenaga_kes_id = ?", id).Order("tanggal desc, jam_mulai asc").Find(&slots).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": err.Error()})
+	}
+	return c.JSON(fiber.Map{"status": "success", "data": slots})
+}
+
+// CreateTenagaKesehatanScheduleAdmin creates a new schedule slot for a health worker
+func CreateTenagaKesehatanScheduleAdmin(c *fiber.Ctx) error {
+	tkID := c.Params("id")
+	var body struct {
+		Tanggal     string `json:"tanggal"`
+		JamMulai    string `json:"jam_mulai"`
+		JamSelesai  string `json:"jam_selesai"`
+		Kuota       int    `json:"kuota"`
+		Lokasi      string `json:"lokasi"`
+		TipeLayanan string `json:"tipe_layanan"`
+		Catatan     string `json:"catatan"`
+		IsRepeat    bool   `json:"is_repeat"`
+		RepeatDays  string `json:"repeat_days"`
+	}
+	if err := c.BodyParser(&body); err != nil {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Payload tidak valid"})
+	}
+
+	parsedDate, err := time.Parse("2006-01-02", body.Tanggal)
+	if err != nil {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Format tanggal harus YYYY-MM-DD"})
+	}
+
+	kuota := body.Kuota
+	if kuota <= 0 {
+		kuota = 1
+	}
+
+	var tk models.TenagaKesehatan
+	if err := config.DB.First(&tk, tkID).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Tenaga Kesehatan not found"})
+	}
+
+	schedule := models.JadwalKesehatan{
+		TenagaKesID: tk.ID,
+		Tanggal:     parsedDate,
+		JamMulai:    body.JamMulai,
+		JamSelesai:  body.JamSelesai,
+		Kuota:       kuota,
+		Lokasi:      body.Lokasi,
+		TipeLayanan: body.TipeLayanan,
+		Catatan:     body.Catatan,
+		IsRepeat:    body.IsRepeat,
+		RepeatDays:  body.RepeatDays,
+	}
+
+	if err := config.DB.Create(&schedule).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": err.Error()})
+	}
+
+	return c.JSON(fiber.Map{"status": "success", "data": schedule})
+}
+
+// UpdateTenagaKesehatanScheduleAdmin updates a schedule slot by ID
+func UpdateTenagaKesehatanScheduleAdmin(c *fiber.Ctx) error {
+	id := c.Params("id")
+	var schedule models.JadwalKesehatan
+	if err := config.DB.First(&schedule, id).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Jadwal tidak ditemukan"})
+	}
+
+	var body struct {
+		Tanggal     string `json:"tanggal"`
+		JamMulai    string `json:"jam_mulai"`
+		JamSelesai  string `json:"jam_selesai"`
+		Kuota       int    `json:"kuota"`
+		Lokasi      string `json:"lokasi"`
+		TipeLayanan string `json:"tipe_layanan"`
+		Catatan     string `json:"catatan"`
+		IsRepeat    bool   `json:"is_repeat"`
+		RepeatDays  string `json:"repeat_days"`
+	}
+	if err := c.BodyParser(&body); err != nil {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Payload tidak valid"})
+	}
+
+	updates := map[string]any{}
+	if body.Tanggal != "" {
+		if t, err := time.Parse("2006-01-02", body.Tanggal); err == nil {
+			updates["tanggal"] = t
+		}
+	}
+	if body.JamMulai != "" {
+		updates["jam_mulai"] = body.JamMulai
+	}
+	if body.JamSelesai != "" {
+		updates["jam_selesai"] = body.JamSelesai
+	}
+	if body.Kuota > 0 {
+		updates["kuota"] = body.Kuota
+	}
+	if body.Lokasi != "" {
+		updates["lokasi"] = body.Lokasi
+	}
+	if body.TipeLayanan != "" {
+		updates["tipe_layanan"] = body.TipeLayanan
+	}
+	updates["catatan"] = body.Catatan
+	updates["is_repeat"] = body.IsRepeat
+	updates["repeat_days"] = body.RepeatDays
+
+	if err := config.DB.Model(&schedule).Updates(updates).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": err.Error()})
+	}
+
+	config.DB.First(&schedule, id)
+	return c.JSON(fiber.Map{"status": "success", "data": schedule})
+}
+
+// DeleteTenagaKesehatanScheduleAdmin deletes a schedule slot
+func DeleteTenagaKesehatanScheduleAdmin(c *fiber.Ctx) error {
+	id := c.Params("id")
+	if err := config.DB.Delete(&models.JadwalKesehatan{}, id).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": err.Error()})
+	}
+	return c.JSON(fiber.Map{"status": "success", "message": "Jadwal berhasil dihapus"})
+}
+
+// GetTenagaKesehatanBookingsAdmin returns all bookings in the health worker module for superadmin review
+func GetTenagaKesehatanBookingsAdmin(c *fiber.Ctx) error {
+	var bookings []models.BookingKesehatan
+	err := config.DB.
+		Preload("Jadwal").
+		Preload("Jadwal.TenagaKes").
+		Preload("Mahasiswa").
+		Preload("Mahasiswa.Fakultas").
+		Preload("Mahasiswa.ProgramStudi").
+		Order("created_at desc").
+		Find(&bookings).Error
+
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": err.Error()})
+	}
+	return c.JSON(fiber.Map{"status": "success", "data": bookings})
+}
+
+// GetTenagaKesehatanMedicalRecordsAdmin returns all medical records (session notes) in the health worker module
+func GetTenagaKesehatanMedicalRecordsAdmin(c *fiber.Ctx) error {
+	var records []models.Kesehatan
+	err := config.DB.
+		Preload("Mahasiswa").
+		Preload("Mahasiswa.Fakultas").
+		Preload("Mahasiswa.ProgramStudi").
+		Preload("TenagaKes").
+		Order("tanggal desc").
+		Find(&records).Error
+
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": err.Error()})
+	}
+	return c.JSON(fiber.Map{"status": "success", "data": records})
 }

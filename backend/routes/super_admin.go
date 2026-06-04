@@ -55,6 +55,17 @@ func SetupSuperAdminRoutes(r fiber.Router) {
 	r.Get("/psychologists/:id/schedules", controllers.GetPsychologistSchedulesAdmin)
 	r.Put("/psychologists/:id/schedules", controllers.SavePsychologistSchedulesAdmin)
 
+	// Tenaga Kesehatan Management (Super Admin)
+	r.Get("/tenagakes", controllers.GetAllTenagaKesehatan)
+	r.Put("/tenagakes/:id", controllers.UpdateTenagaKesehatan)
+	r.Delete("/tenagakes/:id", controllers.DeleteTenagaKesehatan)
+	r.Get("/tenagakes/bookings", controllers.GetTenagaKesehatanBookingsAdmin)
+	r.Get("/tenagakes/medical-records", controllers.GetTenagaKesehatanMedicalRecordsAdmin)
+	r.Get("/tenagakes/:id/schedules", controllers.GetTenagaKesehatanSchedulesAdmin)
+	r.Post("/tenagakes/:id/schedules", controllers.CreateTenagaKesehatanScheduleAdmin)
+	r.Put("/tenagakes/schedules/:id", controllers.UpdateTenagaKesehatanScheduleAdmin)
+	r.Delete("/tenagakes/schedules/:id", controllers.DeleteTenagaKesehatanScheduleAdmin)
+
 	r.Get("/aspirations", controllers.GetGlobalAspirations)
 	r.Put("/aspirations/:id/status", controllers.UpdateAspirationStatus)
 

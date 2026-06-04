@@ -141,10 +141,10 @@ export default function ProfilePage() {
               <User size={16} /> Data Diri
             </TabsTrigger>
             <TabsTrigger value="keamanan" className="gap-2">
-              <span className="material-symbols-outlined" style={{ fontSize: '16px' }} Check >security</span> Keamanan Akun
+              <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >security</span> Keamanan Akun
             </TabsTrigger>
             <TabsTrigger value="preferensi" className="gap-2">
-              <span className="material-symbols-outlined" style={{ fontSize: '16px' }} Ring >notifications</span> Preferensi Notif
+              <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >notifications</span> Preferensi Notif
             </TabsTrigger>
           </TabsList>
 
