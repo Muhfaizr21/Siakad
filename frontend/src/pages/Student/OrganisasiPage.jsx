@@ -39,7 +39,7 @@ export default function OrganisasiPage() {
       <div className="max-w-7xl mx-auto">
          {/* Breadcrumb */}
          <div className="flex items-center gap-2 text-sm font-medium text-[#a3a3a3] mb-6">
-           <NavLink to="/student/dashboard" className="hover:text-bku-primary cursor-pointer transition-colors">Dashboard</NavLink>
+           <NavLink to="/student/dashboard" className="hover:text-[#00236F] cursor-pointer transition-colors">Dashboard</NavLink>
            <span className="material-symbols-outlined" style={{ fontSize: 16 }}>chevron_right</span>
            <span className="text-[#171717]">Organisasi</span>
          </div>
@@ -48,7 +48,7 @@ export default function OrganisasiPage() {
         <div className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div>
             <h1 className="text-2xl md:text-3xl font-extrabold font-headline mb-1.5 flex items-center gap-3">
-              <div className="bg-bku-primary p-2 rounded-xl text-white shadow-md shadow-bku-primary/20">
+              <div className="bg-[#00236F] p-2 rounded-xl text-white shadow-md shadow-[#00236F]/20">
                 <span className="material-symbols-outlined" style={{ fontSize: '20px' }} >group</span>
               </div>
               Portfolio Keorganisasian
@@ -70,7 +70,7 @@ export default function OrganisasiPage() {
               return (
                 <div
                   key={item.id || item.ID}
-                  className="group bg-white rounded-2xl border border-[#e5e5e5] overflow-hidden hover:border-[#C9D8FF] hover:shadow-lg hover:shadow-bku-primary/10 transition-all flex flex-col"
+                  className="group bg-white rounded-2xl border border-[#e5e5e5] overflow-hidden hover:border-[#C9D8FF] hover:shadow-lg hover:shadow-[#00236F]/10 transition-all flex flex-col"
                 >
                   <div className="p-5 flex-1 flex flex-col gap-4">
                     {/* Top Badges */}
@@ -99,7 +99,7 @@ export default function OrganisasiPage() {
 
                     {/* Organization Title */}
                     <div>
-                      <h3 className="text-lg md:text-xl font-bold text-[#171717] group-hover:text-bku-primary transition-colors leading-snug">
+                      <h3 className="text-lg md:text-xl font-bold text-[#171717] group-hover:text-[#00236F] transition-colors leading-snug">
                         {item.NamaOrganisasi}
                       </h3>
                       <p className="text-sm font-semibold text-[#525252] mt-1">{item.Jabatan}</p>
@@ -153,7 +153,7 @@ export default function OrganisasiPage() {
                     <div className="pt-3 border-t border-[#f5f5f5] flex justify-end">
                       <button
                         onClick={() => { setSelectedOrg(item); setActiveTab('ringkasan'); }}
-                        className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-bku-primary text-white text-xs font-bold hover:bg-[#0B4FAE] transition-colors"
+                        className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#00236F] text-white text-xs font-bold hover:bg-[#0B4FAE] transition-colors"
                       >
                         <span className="material-symbols-outlined" style={{ fontSize: '14px' }} >visibility</span> Lihat Detail
                       </button>
@@ -177,7 +177,7 @@ export default function OrganisasiPage() {
       {selectedOrg && (
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="w-full max-w-4xl max-h-[90vh] bg-white rounded-3xl overflow-hidden border border-[#e5e5e5] shadow-2xl flex flex-col">
-            <div className="bg-bku-primary text-white p-6 md:p-7 flex items-start justify-between gap-4">
+            <div className="bg-[#00236F] text-white p-6 md:p-7 flex items-start justify-between gap-4">
               <div>
                 <p className="text-xs font-semibold text-white/70 uppercase tracking-wider">Detail Organisasi</p>
                 <h3 className="text-xl md:text-2xl font-extrabold mt-1 leading-tight">{selectedOrg.NamaOrganisasi}</h3>
@@ -204,7 +204,7 @@ export default function OrganisasiPage() {
                     key={tab.key}
                     onClick={() => setActiveTab(tab.key)}
                     className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-t-xl text-xs font-bold whitespace-nowrap border-b-2 transition-colors ${
-                      isActive ? 'text-bku-primary border-bku-primary bg-[#EEF4FF]' : 'text-[#737373] border-transparent hover:text-[#171717]'
+                      isActive ? 'text-[#00236F] border-[#00236F] bg-[#EEF4FF]' : 'text-[#737373] border-transparent hover:text-[#171717]'
                     }`}
                   >
                     <Icon size={14} /> {tab.label}
@@ -229,7 +229,6 @@ export default function OrganisasiPage() {
                 <div className="space-y-3">
                   {currentAchievements.length > 0 ? currentAchievements.map((p) => (
                     <div key={p.id || p.ID} className="rounded-2xl border border-[#fde68a] bg-[#fffbeb] p-4">
-
                       <p className="font-bold text-[#b45309] text-sm">{p.NamaKegiatan || '-'}</p>
                       <p className="text-xs text-[#d97706] mt-1">{p.Tingkat || '-'} • {p.Peringkat || '-'}</p>
                     </div>

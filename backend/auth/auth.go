@@ -15,6 +15,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
 )
 
 type loginRequest struct {
@@ -371,6 +372,11 @@ func Protected() fiber.Handler {
 func EnsureBootstrapData() error {
 	fmt.Println("🚀 [SEEDER] Starting clean bootstrap process...")
 
+	// Sync all Postgres serial sequences to prevent duplicate key constraint violations
+	if err := SyncPostgresSequences(config.DB); err != nil {
+		log.Printf("[SEEDER-WARN] Failed to sync database sequences: %v", err)
+	}
+
 	// 1. Ensure Fakultas (Real UBK Structure)
 	fakultasSeeds := []models.Fakultas{
 		{Nama: "Fakultas Farmasi", Kode: "FF", Dekan: "Dr. Farmasi"},
@@ -643,22 +649,102 @@ func EnsureBootstrapData() error {
 
 	// 10. Seed Student service menus
 	if sampleMhs.ID != 0 {
+		// Seed Beasiswa 1: Prestasi
 		var bea models.Beasiswa
 		if err := config.DB.Where("nama = ?", "Beasiswa Prestasi UBK").First(&bea).Error; err != nil {
 			bea = models.Beasiswa{
 				Nama:          "Beasiswa Prestasi UBK",
 				Penyelenggara: "Universitas Bhakti Kencana",
 				Deskripsi:     "Beasiswa untuk mahasiswa berprestasi akademik dan non akademik",
-				Deadline:      time.Now().AddDate(0, 2, 0),
+				Persyaratan:   "1. Mahasiswa aktif UBK\n2. IPK Minimal 3.25\n3. Memiliki sertifikat prestasi tingkat nasional/internasional\n4. Surat rekomendasi dekan fakultas",
+				Deadline:      time.Now().AddDate(0, 6, 0),
 				Kuota:         50,
 				IPKMin:        3.25,
 				Kategori:      "Prestasi",
 				NilaiBantuan:  5000000,
 				Anggaran:      250000000,
+				FileKtm:       "wajib",
+				FileTranskrip: "wajib",
+				FileSertifikat: "wajib",
 			}
 			if err := config.DB.Create(&bea).Error; err != nil {
 				return err
 			}
+		} else {
+			// Always refresh deadline so catalog always shows this scholarship
+			config.DB.Model(&bea).Updates(map[string]interface{}{
+				"deadline":        time.Now().AddDate(0, 6, 0),
+				"persyaratan":     "1. Mahasiswa aktif UBK\n2. IPK Minimal 3.25\n3. Memiliki sertifikat prestasi tingkat nasional/internasional\n4. Surat rekomendasi dekan fakultas",
+				"file_ktm":        "wajib",
+				"file_transkrip":  "wajib",
+				"file_sertifikat": "wajib",
+			})
+		}
+
+		// Seed Beasiswa 2: Internal
+		var beaInternal models.Beasiswa
+		if err := config.DB.Where("nama = ?", "Beasiswa Biaya Kuliah Internal").First(&beaInternal).Error; err != nil {
+			beaInternal = models.Beasiswa{
+				Nama:          "Beasiswa Biaya Kuliah Internal",
+				Penyelenggara: "Yayasan Bhakti Kencana",
+				Deskripsi:     "Beasiswa subsidi biaya kuliah penuh bagi mahasiswa kurang mampu yang berprestasi.",
+				Persyaratan:   "1. Mahasiswa aktif UBK semester 2-8\n2. IPK Minimal 3.00\n3. Surat Keterangan Tidak Mampu (SKTM) resmi\n4. Surat pernyataan tidak sedang menerima beasiswa lain",
+				Deadline:      time.Now().AddDate(0, 4, 0),
+				Kuota:         30,
+				IPKMin:        3.00,
+				Kategori:      "Internal",
+				NilaiBantuan:  8000000,
+				Anggaran:      240000000,
+				FileKtm:       "wajib",
+				FileTranskrip: "wajib",
+				FileSertifikat: "opsional",
+			}
+			if err := config.DB.Create(&beaInternal).Error; err != nil {
+				return err
+			}
+		} else {
+			config.DB.Model(&beaInternal).Updates(map[string]interface{}{
+				"deadline":        time.Now().AddDate(0, 4, 0),
+				"persyaratan":     "1. Mahasiswa aktif UBK semester 2-8\n2. IPK Minimal 3.00\n3. Surat Keterangan Tidak Mampu (SKTM) resmi\n4. Surat pernyataan tidak sedang menerima beasiswa lain",
+				"file_ktm":        "wajib",
+				"file_transkrip":  "wajib",
+				"file_sertifikat": "opsional",
+			})
+		}
+
+		// Rename category 'Alumni' to 'Mitra' for existing records
+		config.DB.Model(&models.Beasiswa{}).Where("kategori = ?", "Alumni").Update("kategori", "Mitra")
+
+		// Seed Beasiswa 3: Mitra
+		var beaAlumni models.Beasiswa
+		if err := config.DB.Where("nama = ?", "Beasiswa Alumni Peduli").First(&beaAlumni).Error; err != nil {
+			beaAlumni = models.Beasiswa{
+				Nama:          "Beasiswa Alumni Peduli",
+				Penyelenggara: "Ikatan Alumni UBK",
+				Deskripsi:     "Beasiswa yang didanai oleh para alumni UBK untuk mendukung generasi berikutnya.",
+				Persyaratan:   "1. Mahasiswa aktif UBK semester 4 ke atas\n2. IPK Minimal 2.75\n3. Portofolio keaktifan organisasi/kegiatan sosial\n4. Lolos wawancara dengan perwakilan Ikatan Alumni",
+				Deadline:      time.Now().AddDate(0, 3, 0),
+				Kuota:         20,
+				IPKMin:        2.75,
+				Kategori:      "Mitra",
+				NilaiBantuan:  3500000,
+				Anggaran:      70000000,
+				FileKtm:       "wajib",
+				FileTranskrip: "wajib",
+				FileSertifikat: "opsional",
+			}
+			if err := config.DB.Create(&beaAlumni).Error; err != nil {
+				return err
+			}
+		} else {
+			config.DB.Model(&beaAlumni).Updates(map[string]interface{}{
+				"deadline":        time.Now().AddDate(0, 3, 0),
+				"kategori":        "Mitra",
+				"persyaratan":     "1. Mahasiswa aktif UBK semester 4 ke atas\n2. IPK Minimal 2.75\n3. Portofolio keaktifan organisasi/kegiatan sosial\n4. Lolos wawancara dengan perwakilan Ikatan Alumni",
+				"file_ktm":        "wajib",
+				"file_transkrip":  "wajib",
+				"file_sertifikat": "opsional",
+			})
 		}
 
 		var daftarBea models.BeasiswaPendaftaran
@@ -1463,7 +1549,11 @@ func seedPkkmbHasilData() error {
 		case "FS-PSI-S1":
 			return "261FS020"
 		default:
-			return "26" + kode[:3] + "010"
+			prefix := kode
+			if len(kode) > 3 {
+				prefix = kode[:3]
+			}
+			return "26" + prefix + "010"
 		}
 	}
 
@@ -1530,6 +1620,58 @@ func seedPkkmbHasilData() error {
 		}
 	}
 	log.Println("[PKKMB Seeder] Seeding PKKMB participant results completed.")
+	return nil
+}
+
+// SyncPostgresSequences resets/synchronizes the serial/bigserial primary key sequences
+// of critical Postgres tables in our database schema to their current MAX(id).
+// This prevents "duplicate key value violates unique constraint" errors when inserting rows.
+func SyncPostgresSequences(db *gorm.DB) error {
+	tables := []string{
+		"mahasiswa.beasiswa",
+		"mahasiswa.beasiswa_pendaftaran",
+		"mahasiswa.mahasiswa",
+		"mahasiswa.prestasi",
+		"mahasiswa.aspirasi",
+		"mahasiswa.konseling",
+		"mahasiswa.pengajuan_surat",
+		"mahasiswa.kesehatan",
+		"mahasiswa.log_aktivitas",
+		"mahasiswa.riwayat_organisasis",
+		"mahasiswa.notifikasi",
+		"ormawa.ormawa",
+		"ormawa.ormawa_anggota",
+		"ormawa.ormawa_divisi",
+		"ormawa.ormawa_role",
+		"ormawa.ormawa_kegiatan",
+		"ormawa.ormawa_kehadiran",
+		"ormawa.ormawa_pengumuman",
+		"ormawa.ormawa_mutasi_saldo",
+		"ormawa.ormawa_aspirasi",
+		"ormawa.ormawa_notifikasi",
+		"ormawa.proposal",
+		"ormawa.proposal_riwayat",
+		"ormawa.laporan_pertanggungjawaban",
+		"public.users",
+		"public.rbac_roles",
+		"fakultas.fakultas",
+		"fakultas.program_studi",
+		"fakultas.dosen",
+		"fakultas.academic_periods",
+		"fakultas.pengaturan_akademik",
+		"fakultas.program_mbkm",
+		"fakultas.berita",
+	}
+
+	for _, table := range tables {
+		query := fmt.Sprintf("SELECT setval(pg_get_serial_sequence('%s', 'id'), COALESCE(MAX(id), 1)) FROM %s;", table, table)
+		if err := db.Exec(query).Error; err != nil {
+			// Some tables might use UUID/different PK column and lack serial seq, this is expected
+			log.Printf("[DB-SEQ] Info: Skipping/Failed sequence sync for %s (non-serial or custom PK): %v", table, err)
+		} else {
+			log.Printf("[DB-SEQ] Synced serial sequence for %s", table)
+		}
+	}
 	return nil
 }
 

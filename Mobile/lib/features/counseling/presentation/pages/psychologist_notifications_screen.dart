@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:go_router/go_router.dart';
+import 'package:bkuhub_mobile/core/routes/app_routes.dart';
 import 'package:bkuhub_mobile/core/theme/app_colors.dart';
 import 'package:bkuhub_mobile/core/theme/app_text_styles.dart';
 import 'package:bkuhub_mobile/core/widgets/bku_app_bar.dart';
@@ -163,6 +165,23 @@ class _PsychologistNotificationsScreenState
       child: GestureDetector(
         onTap: () {
           if (isUnread) provider.markNotificationRead(id);
+          
+          switch (type) {
+            case 'booking':
+              context.push(AppRoutes.psychologistBookings);
+              break;
+            case 'assessment':
+              context.push(AppRoutes.patientList);
+              break;
+            case 'report':
+              context.push(AppRoutes.psychologistAnalytics);
+              break;
+            case 'warning':
+              context.push(AppRoutes.psychologistBookings);
+              break;
+            default:
+              break;
+          }
         },
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),

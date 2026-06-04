@@ -123,8 +123,9 @@ export default function DataDiriTab({ profile }) {
             {errors.nik && <p className="text-xs font-bold text-[#w0B4FAE]">{errors.nik.message}</p>}
           </div>
           <div className="space-y-2">
-            <Label>NISN</Label>
-            <Input {...register('nisn')} placeholder="Nomor Induk Siswa Nasional" />
+            <Label>NPM</Label>
+            <Input value={profile?.NIM || ''} disabled />
+            <input type="hidden" {...register('nisn')} />
           </div>
 
           <div className="space-y-2">

@@ -218,10 +218,12 @@ class BkuAppBar extends StatelessWidget {
               stretchModes: const [StretchMode.zoomBackground],
               centerTitle: false,
               titlePadding: EdgeInsets.zero,
-              title: AnimatedOpacity(
-              duration: const Duration(milliseconds: 200),
-              opacity: isCollapsed ? 1.0 : 0.0,
-              child: Container(
+              title: IgnorePointer(
+                ignoring: !isCollapsed,
+                child: AnimatedOpacity(
+                  duration: const Duration(milliseconds: 200),
+                  opacity: isCollapsed ? 1.0 : 0.0,
+                  child: Container(
                 padding: EdgeInsets.only(
                   left: showBackButton ? 72 : 20,
                   bottom: 20,
@@ -282,7 +284,8 @@ class BkuAppBar extends StatelessWidget {
                 ),
               ),
             ),
-            background: Stack(
+          ),
+          background: Stack(
               children: [
                 // Dekorasi Lingkaran
                 Positioned(
@@ -318,13 +321,13 @@ class BkuAppBar extends StatelessWidget {
                       physics: const NeverScrollableScrollPhysics(),
                       child: Padding(
                         padding: EdgeInsets.only(top: topPadding + 20, bottom: 20, left: 20, right: 20),
-                        child: GestureDetector(
-                          onTap: onProfileTap,
-                          behavior: HitTestBehavior.opaque,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            GestureDetector(
+                              onTap: onProfileTap,
+                              behavior: HitTestBehavior.opaque,
+                              child: Row(
                                 children: [
                                   if (profileImage != null) ...[
                                     Container(
@@ -393,13 +396,13 @@ class BkuAppBar extends StatelessWidget {
                                   ),
                                 ],
                               ),
-                              // ── child widget (e.g. AvailabilityToggle) ──
-                              if (child != null) ...[
-                                const SizedBox(height: 16),
-                                child!,
-                              ],
+                            ),
+                            // ── child widget (e.g. AvailabilityToggle) ──
+                            if (child != null) ...[
+                              const SizedBox(height: 16),
+                              child!,
                             ],
-                          ),
+                          ],
                         ),
                       ),
                     ),

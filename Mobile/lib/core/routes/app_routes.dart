@@ -11,11 +11,10 @@ import 'package:bkuhub_mobile/features/counseling/presentation/pages/counseling_
 import 'package:bkuhub_mobile/features/counseling/presentation/pages/schedule_management_screen.dart';
 import 'package:bkuhub_mobile/features/counseling/presentation/pages/add_schedule_slot_screen.dart';
 import 'package:bkuhub_mobile/features/counseling/presentation/pages/patient_list_screen.dart';
-import 'package:bkuhub_mobile/features/mahasiswa/notifications/presentation/pages/student_notifications_screen.dart';
+import 'package:bkuhub_mobile/features/mahasiswa/notifications/presentation/pages/notifications_screen.dart';
 import 'package:bkuhub_mobile/features/ormawa/notifications/presentation/pages/ormawa_notifications_screen.dart';
 import 'package:bkuhub_mobile/features/counseling/presentation/pages/psychologist_analytics_screen.dart';
-import 'package:bkuhub_mobile/features/counseling/presentation/pages/psychologist_reports_screen.dart';
-import 'package:bkuhub_mobile/features/counseling/presentation/pages/create_psychologist_report_screen.dart';
+import 'package:bkuhub_mobile/features/counseling/presentation/pages/create_referral_screen.dart';
 import 'package:bkuhub_mobile/features/counseling/presentation/pages/psychologist_bookings_screen.dart';
 import 'package:bkuhub_mobile/features/counseling/presentation/pages/psychologist_edit_profile_screen.dart';
 import 'package:bkuhub_mobile/features/counseling/presentation/pages/psychologist_notifications_screen.dart';
@@ -33,8 +32,7 @@ class AppRoutes {
   
   // Counseling Routes
   static const String psychologistAnalytics = '/counseling/analytics';
-  static const String psychologistReports = '/counseling/reports';
-  static const String createPsychologistReport = '/counseling/reports/create';
+  static const String createReferral = '/counseling/referrals/create';
   static const String psychologistBookings = '/counseling/bookings';
   static const String studentCounseling = '/counseling/student';
   static const String sessionNote = '/counseling/session-note';
@@ -125,12 +123,11 @@ class AppRoutes {
         builder: (context, state) => const PsychologistAnalyticsScreen(),
       ),
       GoRoute(
-        path: psychologistReports,
-        builder: (context, state) => const PsychologistReportsScreen(),
-      ),
-      GoRoute(
-        path: createPsychologistReport,
-        builder: (context, state) => const CreatePsychologistReportScreen(),
+        path: createReferral,
+        builder: (context, state) {
+          final studentId = state.uri.queryParameters['student_id'];
+          return CreateReferralScreen(studentId: studentId);
+        },
       ),
       GoRoute(
         path: psychologistBookings,

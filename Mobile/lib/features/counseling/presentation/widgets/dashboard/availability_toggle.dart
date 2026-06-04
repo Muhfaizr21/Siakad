@@ -13,65 +13,65 @@ class AvailabilityToggle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 300),
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-      decoration: BoxDecoration(
-        color: isAvailable
-            ? Colors.white.withAlpha(50)
-            : Colors.white.withAlpha(20),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(
+    return GestureDetector(
+      onTap: () => onToggle(!isAvailable),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 300),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        decoration: BoxDecoration(
           color: isAvailable
-              ? Colors.white.withAlpha(80)
-              : Colors.white.withAlpha(40),
-          width: 1.5,
+              ? Colors.white.withAlpha(50)
+              : Colors.white.withAlpha(20),
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(
+            color: isAvailable
+                ? Colors.white.withAlpha(80)
+                : Colors.white.withAlpha(40),
+            width: 1.5,
+          ),
+          boxShadow: isAvailable
+              ? [
+                  BoxShadow(
+                    color: Colors.greenAccent.withAlpha(40),
+                    blurRadius: 15,
+                    spreadRadius: -5,
+                  ),
+                ]
+              : [],
         ),
-        boxShadow: isAvailable
-            ? [
-                BoxShadow(
-                  color: Colors.greenAccent.withAlpha(40),
-                  blurRadius: 15,
-                  spreadRadius: -5,
-                ),
-              ]
-            : [],
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Pulse Indicator
-          Container(
-            width: 10,
-            height: 10,
-            decoration: BoxDecoration(
-              color: isAvailable ? Colors.greenAccent : Colors.grey[400],
-              shape: BoxShape.circle,
-              boxShadow: isAvailable
-                  ? [
-                      BoxShadow(
-                        color: Colors.greenAccent.withAlpha(150),
-                        blurRadius: 8,
-                        spreadRadius: 2,
-                      ),
-                    ]
-                  : [],
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Pulse Indicator
+            Container(
+              width: 10,
+              height: 10,
+              decoration: BoxDecoration(
+                color: isAvailable ? Colors.greenAccent : Colors.grey[400],
+                shape: BoxShape.circle,
+                boxShadow: isAvailable
+                    ? [
+                        BoxShadow(
+                          color: Colors.greenAccent.withAlpha(150),
+                          blurRadius: 8,
+                          spreadRadius: 2,
+                        ),
+                      ]
+                    : [],
+              ),
             ),
-          ),
-          const SizedBox(width: 12),
-          Text(
-            isAvailable ? 'Siap Melayani' : 'Sedang Istirahat',
-            style: AppTextStyles.labelMd.copyWith(
-              color: Colors.white,
-              fontWeight: FontWeight.w900,
-              letterSpacing: 0.5,
+            const SizedBox(width: 12),
+            Text(
+              isAvailable ? 'Siap Melayani' : 'Sedang Istirahat',
+              style: AppTextStyles.labelMd.copyWith(
+                color: Colors.white,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 0.5,
+              ),
             ),
-          ),
-          const SizedBox(width: 24),
-          // Custom Toggle
-          GestureDetector(
-            onTap: () => onToggle(!isAvailable),
-            child: AnimatedContainer(
+            const SizedBox(width: 24),
+            // Custom Toggle
+            AnimatedContainer(
               duration: const Duration(milliseconds: 300),
               width: 52,
               height: 28,
@@ -104,8 +104,8 @@ class AvailabilityToggle extends StatelessWidget {
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

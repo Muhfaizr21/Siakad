@@ -132,7 +132,7 @@ export function DataTable({
             Menampilkan <span className="font-bold text-slate-900">{totalItems > 0 ? (currentPage - 1) * pageSize + 1 : 0}</span> sampai <span className="font-bold text-slate-900">{Math.min(currentPage * pageSize, totalItems)}</span> dari <span className="font-bold text-primary">{totalItems}</span> {itemLabel}
           </p>
         </div>
-        <div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
+        <div className="flex flex-wrap items-center gap-2.5 gap-y-4 w-full sm:w-auto">
           {/* Search */}
           <div className="relative group">
             <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 transition-colors" style={{ fontSize: "14px" }}>search</span>
@@ -152,7 +152,11 @@ export function DataTable({
               <SelectTrigger className="h-9 w-[160px] rounded-xl border-slate-200/60 bg-white shadow-none font-medium text-xs text-slate-600 focus:ring-primary/20">
                 <div className="flex items-center gap-2">
                   <Filter className="size-3.5 text-primary/60" />
-                  <SelectValue placeholder={filter.placeholder} />
+                  {activeFilters[filter.key] && activeFilters[filter.key] !== "all" ? (
+                    <SelectValue />
+                  ) : (
+                    <span>{filter.placeholder}</span>
+                  )}
                 </div>
               </SelectTrigger>
               <SelectContent className="rounded-xl border-slate-200/60 shadow-xl p-1 font-body">

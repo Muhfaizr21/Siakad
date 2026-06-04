@@ -42,7 +42,7 @@ func UpdatePengajuanStatus(db *gorm.DB, pengajuanID uint, status string, reason 
 	return nil
 }
 
-// CekDeadlineBeasiswa is a mock crontjob helper for sending notifications
+// CekDeadlineBeasiswa broadcasts deadline warnings to all students
 func CekDeadlineBeasiswa(db *gorm.DB) error {
 	var list []models.Beasiswa
 	// Find active scholarships with deadline <= 3 days
@@ -50,15 +50,24 @@ func CekDeadlineBeasiswa(db *gorm.DB) error {
 	db.Where("deadline <= ? AND deadline > ?", limit, time.Now()).Find(&list)
 
 	for _, b := range list {
-		// In a real app, you would send to all students or specific eligible ones
-		// For now, let's just trigger a notification (dummy user 1)
-		notifikasi.Kirim(db, notifikasi.KirimParams{
-			UserID:  1, // User 1 example
-			Type:    "beasiswa",
-			Title:   "Peringatan Deadline Beasiswa",
-			Content: "Pendaftaran '" + b.Nama + "' akan ditutup dalam 3 hari. Segera daftar!",
-			Link:    "/student/scholarship",
-		})
+		// Ambil semua mahasiswa aktif
+		var mahasiswaList []models.Mahasiswa
+		db.Where("status_akun = ?", "Aktif").Select("id, pengguna_id").Find(&mahasiswaList)
+
+		for _, mhs := range mahasiswaList {
+			// Skip mahasiswa yang sudah mendaftar
+			var existing models.BeasiswaPendaftaran
+			if db.Where("mahasiswa_id = ? AND beasiswa_id = ?", mhs.ID, b.ID).First(&existing).Error == nil {
+				continue
+			}
+			notifikasi.Kirim(db, notifikasi.KirimParams{
+				UserID:  mhs.PenggunaID,
+				Type:    "beasiswa",
+				Title:   "⏰ Deadline Beasiswa Mendekat!",
+				Content: "Pendaftaran '" + b.Nama + "' akan ditutup dalam 3 hari. Jangan sampai terlewat!",
+				Link:    "/student/scholarship",
+			})
+		}
 	}
 	return nil
 }

@@ -128,7 +128,7 @@ export function DataTable({
       {/* Premium Toolbar */}
       <div className="p-5 bg-white border-b border-neutral-100">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-          <div className="flex flex-1 flex-wrap items-center gap-3 min-h-[44px]">
+          <div className="flex flex-1 flex-wrap items-center gap-3 gap-y-4 min-h-[44px]">
             <div className={cn("relative group w-full lg:max-w-md", searchWidth)}>
               <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 size-4 text-neutral-300 group-focus-within:text-primary transition-colors" >search</span>
               <Input
@@ -149,7 +149,11 @@ export function DataTable({
                   <div className="flex items-center gap-2 truncate w-full pr-2">
                     <Filter className="size-3 text-primary/60 shrink-0" />
                     <div className="truncate flex-1 text-left">
-                      <SelectValue placeholder={filter.placeholder} />
+                      {activeFilters[filter.key] && activeFilters[filter.key] !== "all" ? (
+                        <SelectValue />
+                      ) : (
+                        <span>{filter.placeholder}</span>
+                      )}
                     </div>
                   </div>
                 </SelectTrigger>

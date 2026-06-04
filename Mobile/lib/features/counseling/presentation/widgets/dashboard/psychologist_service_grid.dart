@@ -51,12 +51,6 @@ class PsychologistServiceGrid extends StatelessWidget {
             onTap: () => context.push(AppRoutes.psychologistAnalytics),
           ),
           _ServiceItem(
-            title: 'Laporan',
-            icon: Icons.summarize_rounded,
-            color: const Color(0xFFEF4444),
-            onTap: () => context.push(AppRoutes.psychologistReports),
-          ),
-          _ServiceItem(
             title: 'Lainnya',
             icon: Icons.grid_view_rounded,
             color: const Color(0xFF64748B),

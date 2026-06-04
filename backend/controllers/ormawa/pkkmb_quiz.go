@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"siakad-backend/config"
 	"siakad-backend/models"
+	"siakad-backend/pkg/notifikasi"
 	"strings"
 	"time"
 
@@ -117,6 +118,21 @@ func TambahKuis(c *fiber.Ctx) error {
 	}
 
 	config.DB.Preload("Questions.Options").First(&kuis, kuis.ID)
+
+	// Broadcast notifikasi ke semua mahasiswa aktif
+	go func() {
+		var mahasiswaList []models.Mahasiswa
+		config.DB.Where("status_akun = ?", "Aktif").Select("id, pengguna_id").Find(&mahasiswaList)
+		for _, mhs := range mahasiswaList {
+			_ = notifikasi.Kirim(config.DB, notifikasi.KirimParams{
+				UserID:  mhs.PenggunaID,
+				Type:    "kencana",
+				Title:   "📚 Kuis PKKMB Baru Tersedia!",
+				Content: "Kuis baru \"" + kuis.Judul + "\" telah ditambahkan. Segera kerjakan agar tidak tertinggal!",
+				Link:    "/student/kencana",
+			})
+		}
+	}()
 
 	return c.Status(201).JSON(fiber.Map{"status": "success", "data": kuis})
 }

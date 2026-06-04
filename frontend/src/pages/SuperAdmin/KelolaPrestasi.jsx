@@ -64,6 +64,8 @@ export default function KelolaPrestasi() {
   // Verification Form State
   const [verifyStatus, setVerifyStatus] = useState("verified")
   const [verifyCatatan, setVerifyCatatan] = useState("")
+  const [verifyPoin, setVerifyPoin] = useState(5)
+  const [verifyDanaDisetujui, setVerifyDanaDisetujui] = useState("")
 
   const fetchData = async () => {
     setLoading(true)
@@ -81,7 +83,13 @@ export default function KelolaPrestasi() {
             fakultas_nama: String(fakultas.nama || fakultas.Nama || ''),
             prodi_id: String(prodi.id || prodi.ID || ''),
             prodi_nama: String(prodi.nama || prodi.Nama || ''),
-            kategori_filter: String(item.kategori || '')
+            kategori_filter: String(item.kategori || ''),
+            semester_filter: mhs.SemesterSekarang || mhs.semester_sekarang ? String(mhs.SemesterSekarang || mhs.semester_sekarang) : '',
+            periode_filter: item.tanggal || item.Tanggal ? String(new Date(item.tanggal || item.Tanggal).getFullYear()) : (item.created_at || item.CreatedAt ? String(new Date(item.created_at || item.CreatedAt).getFullYear()) : ''),
+            Tipe: item.tipe || item.Tipe || 'Laporan Prestasi',
+            DanaDiajukan: item.dana_diajukan || item.DanaDiajukan || 0,
+            DanaDisetujui: item.dana_disetujui || item.DanaDisetujui || 0,
+            CatatanVerifikator: item.catatan_verifikator || item.CatatanVerifikator || ''
           }
         }))
       } else {
@@ -101,7 +109,10 @@ export default function KelolaPrestasi() {
   const handleOpenVerify = (row, status) => {
     setSelected(row)
     setVerifyStatus(status)
-    setVerifyCatatan(status === "verified" ? "Prestasi tervalidasi oleh Super Admin." : "Berkas tidak sesuai kriteria.")
+    const isFunding = (row.Tipe || row.tipe) === "Pengajuan Dana"
+    setVerifyCatatan(status === "verified" ? (isFunding ? "Pengajuan dana disetujui." : "Prestasi tervalidasi oleh Super Admin.") : "Berkas tidak sesuai kriteria.")
+    setVerifyPoin(isFunding ? 0 : 5)
+    setVerifyDanaDisetujui(isFunding ? String(row.DanaDiajukan || row.dana_diajukan || 0) : "")
     setIsVerifyOpen(true)
   }
 
@@ -110,9 +121,10 @@ export default function KelolaPrestasi() {
     setIsSubmitting(true)
     try {
       const payload = {
-        Status: verifyStatus,
-        Poin: 0,
-        Catatan: verifyCatatan
+        Status: verifyStatus === 'verified' ? 'Diverifikasi' : 'Ditolak',
+        Poin: Number(verifyPoin) || 0,
+        Catatan: verifyCatatan,
+        DanaDisetujui: Number(verifyDanaDisetujui) || 0
       }
       const res = await adminService.verifyAchievement(selected.id || selected.ID, payload)
       if (res.status === "success") {
@@ -134,7 +146,7 @@ export default function KelolaPrestasi() {
   const stats = useMemo(() => {
     const total = data.length
     const pending = data.filter(item => (item.status || "").toLowerCase() === "menunggu").length
-    const verified = data.filter(item => ["verified", "terverifikasi", "disetujui"].includes((item.status || "").toLowerCase())).length
+    const verified = data.filter(item => ["verified", "terverifikasi", "disetujui", "diverifikasi"].includes((item.status || "").toLowerCase())).length
     const rejected = data.filter(item => ["rejected", "ditolak"].includes((item.status || "").toLowerCase())).length
     return { total, pending, verified, rejected }
   }, [data])
@@ -180,6 +192,32 @@ export default function KelolaPrestasi() {
     return list
   }, [data])
 
+  const semesterOptions = useMemo(() => {
+    const list = []
+    const semesters = new Set()
+    data.forEach(item => {
+      const sem = item.semester_filter
+      if (sem && !semesters.has(sem)) {
+        semesters.add(sem)
+        list.push({ label: `SEMESTER ${sem}`, value: sem })
+      }
+    })
+    return list.sort((a, b) => Number(a.value) - Number(b.value))
+  }, [data])
+
+  const periodeOptions = useMemo(() => {
+    const list = []
+    const periods = new Set()
+    data.forEach(item => {
+      const per = item.periode_filter
+      if (per && !periods.has(per)) {
+        periods.add(per)
+        list.push({ label: `PERIODE ${per}`, value: per })
+      }
+    })
+    return list.sort((a, b) => Number(b.value) - Number(a.value))
+  }, [data])
+
   const columns = [
     {
       key: "mahasiswa",
@@ -211,9 +249,14 @@ export default function KelolaPrestasi() {
           <span className="font-bold text-neutral-900 text-[13px] font-jakarta leading-tight truncate max-w-[220px]" title={row.nama_kegiatan}>
             {row.nama_kegiatan || "—"}
           </span>
-          <span className="inline-block self-start mt-1 text-[9px] font-bold text-primary bg-primary/5 px-2 py-0.5 rounded-md uppercase tracking-wider">
-            {row.kategori || "Umum"}
-          </span>
+          <div className="flex flex-wrap gap-1 mt-1">
+            <span className="inline-block text-[9px] font-bold text-primary bg-primary/5 px-2 py-0.5 rounded-md uppercase tracking-wider">
+              {row.kategori || "Umum"}
+            </span>
+            <span className={cn("inline-block text-[9px] font-bold px-2 py-0.5 rounded-md border uppercase tracking-wider", row.Tipe === 'Pengajuan Dana' ? 'text-amber-700 bg-amber-50 border-amber-200' : 'text-emerald-700 bg-emerald-50 border-emerald-200')}>
+              {row.Tipe || 'Laporan Prestasi'}
+            </span>
+          </div>
         </div>
       )
     },
@@ -243,7 +286,7 @@ export default function KelolaPrestasi() {
       cellClassName: "text-center",
       render: (v) => {
         const status = (v || "").toLowerCase()
-        const isVerified = ["verified", "terverifikasi", "disetujui"].includes(status)
+        const isVerified = ["verified", "terverifikasi", "disetujui", "diverifikasi"].includes(status)
         const isRejected = ["rejected", "ditolak"].includes(status)
 
         let cls = "bg-amber-50 text-amber-700 border-amber-100"
@@ -271,31 +314,31 @@ export default function KelolaPrestasi() {
   ]
 
   return (
-    <div className="px-4 py-8 md:px-8 xl:px-12 min-h-screen bg-transparent font-inter">
+    <div className="px-4 py-8 md:px-8 xl:px-12 min-h-screen bg-[#fafafa] font-body">
       <Toaster position="top-right" />
 
       <div className="max-w-[1600px] mx-auto space-y-10">
         
         {/* ── Page Header ─────────────────────────────────────────── */}
-        <section className="relative overflow-hidden rounded-3xl p-8 border border-slate-100/50 bg-gradient-to-br from-slate-900 via-bku-primary to-slate-900 shadow-xl">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.08),transparent_50%)]" />
+        <section className="relative overflow-hidden rounded-3xl p-8 border border-neutral-100 bg-gradient-to-br from-[#020617] via-[#0f172a] to-[#1e293b] shadow-xl">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(59,130,246,0.08),transparent_50%)]" />
           <div className="absolute inset-0 opacity-[0.03]"
             style={{
               backgroundImage: `radial-gradient(circle at 20% 50%, white 1px, transparent 1px), radial-gradient(circle at 80% 20%, white 1px, transparent 1px)`,
               backgroundSize: "60px 60px"
             }}
           />
-          <div className="absolute -top-24 -right-24 w-80 h-80 bg-blue-400/20 rounded-full blur-3xl animate-pulse" />
-          <div className="absolute -bottom-20 right-48 w-64 h-64 bg-indigo-400/10 rounded-full blur-3xl" />
+          <div className="absolute -top-24 -right-24 w-80 h-80 bg-blue-500/10 rounded-full blur-3xl animate-pulse" />
+          <div className="absolute -bottom-20 right-48 w-64 h-64 bg-indigo-500/5 rounded-full blur-3xl" />
 
           <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center w-full gap-6">
             <div>
               <div className="flex items-center gap-2 mb-3">
-                <div className="h-4 w-1.5 bg-blue-400 rounded-full" />
-                <span className="text-[10px] font-black uppercase tracking-[0.25em] text-blue-300 font-headline">Kemahasiswaan Portal</span>
+                <div className="h-4 w-1.5 bg-blue-500 rounded-full" />
+                <span className="text-[10px] font-black uppercase tracking-[0.25em] text-blue-400">Kemahasiswaan Portal</span>
               </div>
-              <h1 className="text-3xl font-black font-headline tracking-tight leading-tight" style={{ color: 'var(--theme-h1)' }}>
-                Kelola <span className="text-blue-300">Prestasi Mahasiswa</span>
+              <h1 className="text-3xl font-black text-white font-headline tracking-tight leading-tight">
+                Kelola <span className="text-blue-400">Prestasi Mahasiswa</span>
               </h1>
               <p className="text-slate-400 font-medium text-xs max-w-xl leading-relaxed mt-1.5">
                 Audit, verifikasi, dan validasi seluruh portofolio prestasi akademik/non-akademik mahasiswa secara terintegrasi.
@@ -303,8 +346,8 @@ export default function KelolaPrestasi() {
             </div>
             
             <div className="flex items-center gap-3 self-end md:self-auto">
-              <Button onClick={fetchData} disabled={loading} variant="outline" className="h-10 px-5 rounded-xl border-white/20 bg-white/10 text-white hover:bg-white/20 transition-all active:scale-95 text-xs font-bold uppercase tracking-widest gap-2 font-headline">
-                <RefreshCw size={14} animate={loading} className="text-blue-300" />
+              <Button onClick={fetchData} disabled={loading} variant="outline" className="h-10 px-5 rounded-xl border-neutral-700 bg-slate-900 text-slate-300 hover:bg-slate-800 hover:text-white transition-all active:scale-95 text-xs font-bold uppercase tracking-widest gap-2">
+                <RefreshCw size={14} animate={loading} className="text-blue-400" />
                 Refresh Data
               </Button>
             </div>
@@ -352,7 +395,7 @@ export default function KelolaPrestasi() {
         </div>
 
         {/* ── Data Table Section ───────────────────────────────────── */}
-        <Card className="glass-card border-none shadow-sm rounded-2xl overflow-hidden">
+        <Card className="border-neutral-200 shadow-sm rounded-2xl bg-white overflow-hidden">
           <CardContent className="p-0">
             <DataTable
               columns={columns}
@@ -364,9 +407,9 @@ export default function KelolaPrestasi() {
                   key: "status",
                   placeholder: "Status",
                   options: [
-                    { label: "Menunggu", value: "Menunggu" },
-                    { label: "Terverifikasi", value: "verified" },
-                    { label: "Ditolak", value: "rejected" },
+                    { label: "Menunggu", value: "menunggu" },
+                    { label: "Terverifikasi", value: "diverifikasi" },
+                    { label: "Ditolak", value: "ditolak" },
                   ]
                 },
                 {
@@ -393,6 +436,16 @@ export default function KelolaPrestasi() {
                   key: "prodi_id",
                   placeholder: "Program Studi",
                   options: prodiOptions
+                },
+                {
+                  key: "semester_filter",
+                  placeholder: "Semester",
+                  options: semesterOptions
+                },
+                {
+                  key: "periode_filter",
+                  placeholder: "Periode",
+                  options: periodeOptions
                 }
               ]}
               actions={(row) => (
@@ -401,7 +454,7 @@ export default function KelolaPrestasi() {
                     onClick={() => { setSelected(row); setIsDetailOpen(true) }}
                     variant="ghost"
                     size="icon"
-                    className="h-8 w-8 text-neutral-400 hover:text-bku-primary hover:bg-blue-50 rounded-lg transition-colors"
+                    className="h-8 w-8 text-neutral-400 hover:text-primary hover:bg-primary/5 rounded-lg transition-colors"
                     title="Lihat Detail"
                   >
                     <span className="material-symbols-outlined" style={{ fontSize: "18px" }}>visibility</span>
@@ -439,8 +492,8 @@ export default function KelolaPrestasi() {
       {/* ── Detail Modal ───────────────────────────────────────────── */}
       <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
         {selected && (
-          <DialogContent className="max-w-2xl p-0 overflow-hidden border-none shadow-2xl rounded-3xl bg-white font-inter">
-            <DialogHeader className="relative bg-gradient-to-br from-slate-900 to-bku-primary pt-8 pb-7 px-8 overflow-hidden flex-shrink-0 text-white">
+          <DialogContent className="max-w-2xl p-0 overflow-hidden border-none shadow-2xl rounded-3xl bg-white">
+            <DialogHeader className="relative bg-gradient-to-br from-[#0f172a] to-[#1e293b] pt-8 pb-7 px-8 overflow-hidden flex-shrink-0 text-white">
               <div className="absolute -top-12 -right-12 w-48 h-48 bg-white/5 rounded-full pointer-events-none" />
               
               <div className="relative z-10 flex items-center gap-4 mb-6">
@@ -448,7 +501,9 @@ export default function KelolaPrestasi() {
                   {getInitials(selected.mahasiswa?.Nama || selected.mahasiswa?.nama)}
                 </div>
                 <div className="min-w-0">
-                  <p className="text-[9px] font-black text-blue-400 uppercase tracking-[0.25em] mb-1">Capaian Prestasi</p>
+                  <p className="text-[9px] font-black text-blue-400 uppercase tracking-[0.25em] mb-1">
+                    {selected.Tipe === 'Pengajuan Dana' ? 'Pengajuan Dana Lomba' : 'Capaian Prestasi'}
+                  </p>
                   <DialogTitle className="text-lg font-black text-white leading-tight font-headline">{selected.nama_kegiatan}</DialogTitle>
                   <p className="text-xs text-slate-300 font-medium mt-1">
                     {selected.mahasiswa?.Nama || selected.mahasiswa?.nama} · NIM {selected.mahasiswa?.NIM || selected.mahasiswa?.nim}
@@ -470,26 +525,37 @@ export default function KelolaPrestasi() {
                   </Badge>
                 )}
                 <Badge className={cn("px-3 py-1 rounded-xl text-[10px] font-bold uppercase tracking-wider gap-1.5 border border-white/10",
-                  ["verified", "terverifikasi", "disetujui"].includes((selected.status || "").toLowerCase())
+                  ["verified", "terverifikasi", "disetujui", "diverifikasi"].includes((selected.status || "").toLowerCase())
                     ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/30"
                     : (selected.status || "").toLowerCase() === "menunggu"
                     ? "bg-amber-500/20 text-amber-300 border-amber-500/30"
                     : "bg-rose-500/20 text-rose-300 border-rose-500/30"
                 )}>
                   <span className={cn("w-1.5 h-1.5 rounded-full bg-current", (selected.status || "").toLowerCase() === "menunggu" && "animate-pulse")} />
-                  {["verified", "terverifikasi", "disetujui"].includes((selected.status || "").toLowerCase()) ? "Terverifikasi" : (selected.status || "").toLowerCase() === "menunggu" ? "Menunggu" : "Ditolak"}
+                  {["verified", "terverifikasi", "disetujui", "diverifikasi"].includes((selected.status || "").toLowerCase()) ? "Terverifikasi" : (selected.status || "").toLowerCase() === "menunggu" ? "Menunggu" : "Ditolak"}
                 </Badge>
               </div>
             </DialogHeader>
 
             <div className="p-8 space-y-6 max-h-[60vh] overflow-y-auto font-jakarta">
               {/* Reject Alert / Note */}
-              {(selected.status || "").toLowerCase() === "rejected" && (
+              {((selected.status || "").toLowerCase() === "rejected" || (selected.status || "").toLowerCase() === "ditolak") && (
                 <div className="bg-rose-50 border border-rose-100 rounded-2xl p-4 flex items-start gap-3">
                   <span className="material-symbols-outlined text-rose-600 flex-shrink-0" style={{ fontSize: "18px" }}>cancel</span>
                   <div>
                     <p className="font-bold text-rose-800 text-sm">Pengajuan Ditolak</p>
-                    <p className="text-rose-600 text-xs mt-0.5">Pengajuan ini tidak disetujui. Silakan periksa berkas atau data terkait.</p>
+                    <p className="text-rose-600 text-xs mt-0.5">{selected.CatatanVerifikator || 'Pengajuan ini tidak disetujui. Silakan periksa berkas atau data terkait.'}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Verified Note (Non-Reject) */}
+              {["verified", "terverifikasi", "disetujui", "diverifikasi"].includes((selected.status || "").toLowerCase()) && selected.CatatanVerifikator && (
+                <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-4 flex items-start gap-3">
+                  <span className="material-symbols-outlined text-emerald-600 flex-shrink-0" style={{ fontSize: "18px" }}>check_circle</span>
+                  <div>
+                    <p className="font-bold text-emerald-800 text-sm">Catatan Verifikator</p>
+                    <p className="text-emerald-600 text-xs mt-0.5">{selected.CatatanVerifikator}</p>
                   </div>
                 </div>
               )}
@@ -499,12 +565,14 @@ export default function KelolaPrestasi() {
                 {[
                   { icon: GraduationCap, label: "Program Studi", value: selected.mahasiswa?.ProgramStudi?.Nama || selected.mahasiswa?.program_studi?.nama },
                   { icon: Apartment, label: "Fakultas", value: selected.mahasiswa?.Fakultas?.Nama || selected.mahasiswa?.fakultas?.nama },
-                  { icon: Award, label: "Peringkat", value: selected.peringkat || "—" },
+                  selected.Tipe === 'Pengajuan Dana' ? null : { icon: Award, label: "Peringkat", value: selected.peringkat || "—" },
                   { icon: Calendar, label: "Diajukan Pada", value: formatDate(selected.created_at || selected.CreatedAt) },
-                ].map((item, idx) => (
-                  <div key={idx} className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 border border-slate-100 hover:bg-slate-100 transition-all">
-                    <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center text-bku-primary shadow-sm border border-slate-100 flex-shrink-0">
-                      <item.icon size={14} className="text-bku-primary" />
+                  selected.Tipe === 'Pengajuan Dana' ? { icon: CheckCircle2, label: "Dana Diajukan", value: `Rp ${(selected.DanaDiajukan || 0).toLocaleString('id-ID')}` } : { icon: CheckCircle2, label: "Poin Didapat", value: selected.poin != null ? `${selected.poin} Poin` : '—' },
+                  selected.Tipe === 'Pengajuan Dana' && selected.DanaDisetujui > 0 ? { icon: CheckCircle2, label: "Dana Disetujui", value: `Rp ${selected.DanaDisetujui.toLocaleString('id-ID')}` } : null,
+                ].filter(Boolean).map((item, idx) => (
+                  <div key={idx} className="flex items-center gap-3 p-3 rounded-xl bg-neutral-50 border border-neutral-100 hover:bg-neutral-100/30 transition-all">
+                    <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center text-primary shadow-sm border border-neutral-100 flex-shrink-0">
+                      <item.icon size={14} className="text-blue-600" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-[9px] font-black text-neutral-400 uppercase tracking-wider">{item.label}</p>
@@ -516,7 +584,9 @@ export default function KelolaPrestasi() {
 
               {/* Bukti Dokumen */}
               <div>
-                <p className="text-[10px] font-black text-neutral-400 uppercase tracking-widest mb-3">Bukti Fisik / Sertifikat</p>
+                <p className="text-[10px] font-black text-neutral-400 uppercase tracking-widest mb-3">
+                  {selected.Tipe === 'Pengajuan Dana' ? 'Proposal / Dokumen Pendukung' : 'Bukti Fisik / Sertifikat'}
+                </p>
                 {selected.bukti_url ? (
                   <a
                     href={`${API_BASE_URL.replace("/api", "")}${selected.bukti_url}`}
@@ -528,7 +598,9 @@ export default function KelolaPrestasi() {
                       <span className="material-symbols-outlined" style={{ fontSize: "20px" }}>description</span>
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-bold text-neutral-900 group-hover:text-blue-600 text-sm transition-colors">Lihat Dokumen Sertifikat</p>
+                      <p className="font-bold text-neutral-900 group-hover:text-blue-600 text-sm transition-colors">
+                        {selected.Tipe === 'Pengajuan Dana' ? 'Lihat Proposal / Dokumen' : 'Lihat Dokumen Sertifikat'}
+                      </p>
                       <p className="text-xs text-neutral-400 truncate mt-0.5">{selected.bukti_url}</p>
                     </div>
                     <ExternalLink size={16} className="text-neutral-300 group-hover:text-blue-500 transition-colors" />
@@ -538,7 +610,7 @@ export default function KelolaPrestasi() {
                     <div className="w-10 h-10 bg-neutral-100 rounded-xl flex items-center justify-center text-neutral-300 flex-shrink-0">
                       <span className="material-symbols-outlined" style={{ fontSize: "20px" }}>description</span>
                     </div>
-                    <p className="text-xs text-neutral-400 font-medium italic">Tidak ada berkas sertifikat yang diunggah.</p>
+                    <p className="text-xs text-neutral-400 font-medium italic">Tidak ada berkas yang diunggah.</p>
                   </div>
                 )}
               </div>
@@ -579,7 +651,10 @@ export default function KelolaPrestasi() {
           <DialogContent className="max-w-md p-6 overflow-hidden border-none shadow-2xl rounded-2xl bg-white font-jakarta">
             <DialogHeader className="space-y-1.5">
               <DialogTitle className="text-base font-black text-neutral-900 font-headline leading-tight">
-                {verifyStatus === "verified" ? "Setujui Pengajuan Prestasi" : "Tolak Pengajuan Prestasi"}
+                {verifyStatus === "verified" 
+                  ? (selected.Tipe === 'Pengajuan Dana' ? 'Setujui Pengajuan Dana' : 'Setujui Pengajuan Prestasi') 
+                  : (selected.Tipe === 'Pengajuan Dana' ? 'Tolak Pengajuan Dana' : 'Tolak Pengajuan Prestasi')
+                }
               </DialogTitle>
               <DialogDescription className="text-xs text-neutral-400 font-medium">
                 {verifyStatus === "verified" 
@@ -602,6 +677,37 @@ export default function KelolaPrestasi() {
                   required
                 />
               </div>
+
+              {selected.Tipe === "Pengajuan Dana" ? (
+                verifyStatus === "verified" && (
+                  <div className="space-y-1.5">
+                    <Label htmlFor="verify_dana" className="text-xs font-bold uppercase tracking-widest text-neutral-400">Dana yang Disetujui (Rp)</Label>
+                    <Input
+                      id="verify_dana"
+                      type="number"
+                      value={verifyDanaDisetujui}
+                      onChange={(e) => setVerifyDanaDisetujui(e.target.value)}
+                      className="rounded-xl border-neutral-200 focus:border-primary text-xs"
+                      placeholder="Cth: 1200000"
+                      required
+                    />
+                  </div>
+                )
+              ) : (
+                verifyStatus === "verified" && (
+                  <div className="space-y-1.5">
+                    <Label htmlFor="verify_poin" className="text-xs font-bold uppercase tracking-widest text-neutral-400">Poin SKPI Didapat</Label>
+                    <Input
+                      id="verify_poin"
+                      type="number"
+                      value={verifyPoin}
+                      onChange={(e) => setVerifyPoin(e.target.value)}
+                      className="rounded-xl border-neutral-200 focus:border-primary text-xs"
+                      required
+                    />
+                  </div>
+                )
+              )}
 
               <div className="flex gap-3 pt-2">
                 <Button

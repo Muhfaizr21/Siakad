@@ -252,6 +252,14 @@ type Prestasi struct {
 	Poin         int    `json:"poin"`
 	BuktiURL     string `json:"bukti_url"`
 
+	// New fields to support "Pengajuan Dana" & more detailed achievements
+	Tipe               string    `json:"tipe" gorm:"size:50;default:'Laporan Prestasi'"`
+	Penyelenggara      string    `json:"penyelenggara" gorm:"size:255"`
+	Tanggal            time.Time `json:"tanggal" gorm:"type:timestamptz"`
+	DanaDiajukan       float64   `json:"dana_diajukan" gorm:"type:decimal(15,2);default:0"`
+	DanaDisetujui      float64   `json:"dana_disetujui" gorm:"type:decimal(15,2);default:0"`
+	CatatanVerifikator string    `json:"catatan_verifikator" gorm:"type:text"`
+
 	RiwayatOrganisasiID *uint              `json:"riwayat_organisasi_id,omitempty"`
 	RiwayatOrganisasi   *RiwayatOrganisasi `gorm:"foreignKey:RiwayatOrganisasiID" json:"riwayat_organisasi,omitempty"`
 }
@@ -265,12 +273,16 @@ type Beasiswa struct {
 	Nama          string    `json:"nama"`
 	Penyelenggara string    `json:"penyelenggara"`
 	Deskripsi     string    `json:"deskripsi"`
+	Persyaratan   string    `json:"persyaratan" gorm:"type:text"`
 	Deadline      time.Time `json:"deadline"`
 	Kuota         int       `json:"kuota"`
 	IPKMin        float64   `json:"ipk_min"`
 	Kategori      string    `json:"kategori"`
 	NilaiBantuan  float64   `json:"nilai_bantuan"`
 	Anggaran      float64   `json:"anggaran"`
+	FileKtm       string    `json:"file_ktm" gorm:"type:varchar(20);default:'wajib'"`
+	FileTranskrip string    `json:"file_transkrip" gorm:"type:varchar(20);default:'wajib'"`
+	FileSertifikat string    `json:"file_sertifikat" gorm:"type:varchar(20);default:'opsional'"`
 
 	Pendaftaran []BeasiswaPendaftaran `json:"pendaftaran,omitempty"`
 }

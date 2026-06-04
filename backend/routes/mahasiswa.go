@@ -103,4 +103,7 @@ func SetupMahasiswaRoutes(app *fiber.App) {
 	notifGroup.Get("/unread-count", mahasiswa.GetUnreadCount)
 	notifGroup.Put("/:id/baca", mahasiswa.MarkAsRead)
 	notifGroup.Put("/baca-semua", mahasiswa.MarkAllAsRead)
+	notifGroup.Delete("/hapus-dibaca", mahasiswa.DeleteRead)
+	notifGroup.Delete("/hapus-bulk", mahasiswa.DeleteBulk)
+	notifGroup.Delete("/:id", mahasiswa.DeleteNotification)
 }

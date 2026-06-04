@@ -4,6 +4,9 @@ import (
 	"fmt"
 	"siakad-backend/config"
 	"siakad-backend/models"
+	"siakad-backend/pkg/notifikasi"
+	"strconv"
+	"strings"
 
 	"github.com/gofiber/fiber/v2"
 	"golang.org/x/crypto/bcrypt"
@@ -106,8 +109,10 @@ func VerifikasiPrestasi(c *fiber.Ctx) error {
 
 	id := c.Params("id")
 	var req struct {
-		Status  string `json:"Status"`  // Match frontend PascalCase
-		Catatan string `json:"Catatan"` // Match frontend PascalCase
+		Status        string  `json:"Status"`        // Match frontend PascalCase
+		Catatan       string  `json:"Catatan"`       // Match frontend PascalCase
+		Poin          int     `json:"Poin"`          // Match frontend PascalCase
+		DanaDisetujui float64 `json:"DanaDisetujui"` // Match frontend PascalCase
 	}
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Payload salah: " + err.Error()})
@@ -121,16 +126,53 @@ func VerifikasiPrestasi(c *fiber.Ctx) error {
 			Where("mahasiswa.mahasiswa.fakultas_id = ?", fid)
 	}
 
-	if err := query.Where("mahasiswa.prestasi.id = ?", id).First(&prestasi).Error; err != nil {
+	if err := query.Preload("Mahasiswa").Where("mahasiswa.prestasi.id = ?", id).First(&prestasi).Error; err != nil {
 		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Prestasi tidak ditemukan atau Anda tidak memiliki akses"})
 	}
 
 	// 2. Perform updates
-	if err := config.DB.Model(&models.Prestasi{}).Where("id = ?", prestasi.ID).Updates(map[string]interface{}{
-		"status": req.Status,
-	}).Error; err != nil {
+	updates := map[string]interface{}{
+		"status":              req.Status,
+		"catatan_verifikator": req.Catatan,
+	}
+	if req.Poin > 0 {
+		updates["poin"] = req.Poin
+	}
+	if req.DanaDisetujui > 0 {
+		updates["dana_disetujui"] = req.DanaDisetujui
+	}
+
+	if err := config.DB.Model(&models.Prestasi{}).Where("id = ?", prestasi.ID).Updates(updates).Error; err != nil {
 		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal menyimpan verifikasi: " + err.Error()})
 	}
+
+	// 3. Send Notification to Student
+	var notifTitle, notifContent string
+	statusLabel := "diverifikasi"
+	if req.Status == "rejected" || req.Status == "Ditolak" {
+		statusLabel = "ditolak"
+	} else if req.Status == "verified" || req.Status == "Diverifikasi" || req.Status == "Disetujui" {
+		statusLabel = "disetujui"
+	}
+
+	if prestasi.Tipe == "Pengajuan Dana" {
+		notifTitle = "Pengajuan Dana Lomba " + strings.Title(statusLabel)
+		notifContent = "Pengajuan dana lomba '" + prestasi.NamaKegiatan + "' Anda telah " + statusLabel + "."
+		if statusLabel == "disetujui" && req.DanaDisetujui > 0 {
+			notifContent += " Dana disetujui: Rp " + strconv.FormatFloat(req.DanaDisetujui, 'f', 0, 64) + "."
+		}
+	} else {
+		notifTitle = "Laporan Prestasi " + strings.Title(statusLabel)
+		notifContent = "Laporan prestasi '" + prestasi.NamaKegiatan + "' Anda telah " + statusLabel + "."
+	}
+
+	notifikasi.Kirim(config.DB, notifikasi.KirimParams{
+		UserID:  prestasi.Mahasiswa.PenggunaID,
+		Type:    "prestasi",
+		Title:   notifTitle,
+		Content: notifContent,
+		Link:    "/student/achievement",
+	})
 
 	return c.JSON(fiber.Map{"status": "success", "message": "Prestasi diverifikasi"})
 }
@@ -213,6 +255,16 @@ func VerifikasiBeasiswa(c *fiber.Ctx) error {
 
 	if role == "faculty_admin" {
 		return c.Status(403).JSON(fiber.Map{"status": "error", "message": "Fakultas tidak berwenang mengambil keputusan untuk pendaftaran beasiswa"})
+	}
+
+	if req.Status == "Diterima" {
+		var accepted models.BeasiswaPendaftaran
+		if err := config.DB.Preload("Beasiswa").Where("mahasiswa_id = ? AND status = ? AND id != ?", application.MahasiswaID, "Diterima", application.ID).First(&accepted).Error; err == nil {
+			return c.Status(400).JSON(fiber.Map{
+				"status":  "error",
+				"message": fmt.Sprintf("Mahasiswa ini sudah menerima beasiswa lain (%s)", accepted.Beasiswa.Nama),
+			})
+		}
 	}
 
 	if err := config.DB.Model(&models.BeasiswaPendaftaran{}).Where("id = ?", id).Updates(map[string]interface{}{

@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:go_router/go_router.dart';
+import 'package:bkuhub_mobile/core/routes/app_routes.dart';
 import 'package:bkuhub_mobile/core/theme/app_colors.dart';
 import 'package:bkuhub_mobile/core/theme/app_text_styles.dart';
 import 'package:bkuhub_mobile/core/widgets/bku_app_bar.dart';
 import 'package:bkuhub_mobile/features/counseling/presentation/providers/referral_provider.dart';
 import 'package:bkuhub_mobile/features/counseling/data/models/counseling_models.dart';
-import 'package:bkuhub_mobile/features/counseling/data/repositories/counseling_repository_impl.dart';
-import 'package:bkuhub_mobile/core/network/api_client.dart';
-import 'package:get_it/get_it.dart';
 
 class ReferralManagementScreen extends StatefulWidget {
   const ReferralManagementScreen({super.key});
@@ -18,23 +17,18 @@ class ReferralManagementScreen extends StatefulWidget {
 }
 
 class _ReferralManagementScreenState extends State<ReferralManagementScreen> {
-  late ReferralProvider _referralProvider;
 
   @override
   void initState() {
     super.initState();
-    final apiClient = GetIt.instance<ApiClient>();
-    _referralProvider = ReferralProvider(
-      repository: CounselingRepositoryImpl(apiClient: apiClient),
-    );
-    _referralProvider.loadReferrals();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<ReferralProvider>().loadReferrals();
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider<ReferralProvider>.value(
-      value: _referralProvider,
-      child: Scaffold(
+    return Scaffold(
         backgroundColor: const Color(0xFFF8FAFC),
         body: CustomScrollView(
           slivers: [
@@ -53,7 +47,7 @@ class _ReferralManagementScreenState extends State<ReferralManagementScreen> {
                     // Create Referral Button
                     GestureDetector(
                       onTap: () {
-                        // TODO: Navigate to create referral screen
+                        context.push(AppRoutes.createReferral);
                       },
                       child: Container(
                         padding: const EdgeInsets.all(16),
@@ -144,8 +138,7 @@ class _ReferralManagementScreenState extends State<ReferralManagementScreen> {
             ),
           ],
         ),
-      ),
-    );
+      );
   }
 }
 

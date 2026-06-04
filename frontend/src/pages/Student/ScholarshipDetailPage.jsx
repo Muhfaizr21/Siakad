@@ -34,7 +34,7 @@ export default function ScholarshipDetailPage() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#fafafa]">
         <div className="text-center">
-          <span className="material-symbols-outlined animate-spin text-bku-primary mx-auto mb-4" style={{ fontSize: '48px' }} >sync</span>
+          <span className="material-symbols-outlined animate-spin text-[#00236F] mx-auto mb-4" style={{ fontSize: '48px' }} >sync</span>
           <p className="text-sm font-black text-[#a3a3a3] uppercase tracking-widest">Memuat Progress...</p>
         </div>
       </div>
@@ -94,6 +94,7 @@ export default function ScholarshipDetailPage() {
   // Find current stage index
   const statusToStage = {
     dikirim: 0,
+    menunggu: 0,
     seleksi_berkas: 1,
     evaluasi: 2,
     review: 3,
@@ -120,10 +121,10 @@ export default function ScholarshipDetailPage() {
         Kembali ke Dashboard
       </button>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
         
         {/* Left Column: Info & Tracker */}
-        <div className="lg:col-span-8 space-y-6">
+        <div className="xl:col-span-8 space-y-6">
           
           {/* Main Info Card */}
           <motion.div 
@@ -136,15 +137,24 @@ export default function ScholarshipDetailPage() {
             <div className="flex flex-col md:flex-row justify-between gap-6 relative z-10">
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-2">
-                    <div className="w-2 h-2 rounded-full bg-bku-primary animate-pulse" />
-                   <span className="text-[10px] font-black text-bku-primary uppercase tracking-widest leading-none">Tracking Real-time</span>
+                    <div className="w-2 h-2 rounded-full bg-[#00236F] animate-pulse" />
+                   <span className="text-[10px] font-black text-[#00236F] uppercase tracking-widest leading-none">Tracking Real-time</span>
                 </div>
-                <h1 className="text-2xl md:text-3xl font-black font-headline tracking-tighter mb-1">{beasiswaNama}</h1>
-                <p className="text-[11px] font-bold text-[#a3a3a3] uppercase tracking-[0.2em]">{beasiswaPenyelenggara}</p>
+                 <div className="flex flex-wrap items-center gap-3 mb-1">
+                   <h1 className="text-2xl md:text-3xl font-black font-headline tracking-tighter">{beasiswaNama}</h1>
+                   <div className={`px-3.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border shadow-sm ${
+                     pengajuanStatus.toLowerCase() === 'diterima' ? 'bg-green-50 border-green-200 text-green-600' : 
+                     pengajuanStatus.toLowerCase() === 'ditolak' ? 'bg-red-50 border-red-200 text-red-600' :
+                      'bg-[#eef4ff] border-[#c9d8ff] text-[#00236F]'
+                   }`}>
+                     {pengajuanStatus.replace('_', ' ')}
+                   </div>
+                 </div>
+                 <p className="text-[11px] font-bold text-[#a3a3a3] uppercase tracking-[0.2em]">{beasiswaPenyelenggara}</p>
                 
                 <div className="flex flex-wrap items-center gap-4 mt-6">
                   <div className="px-4 py-2 bg-[#fafafa] rounded-2xl border border-[#e5e5e5] flex items-center gap-2">
-                    <Zap size={14} className="text-bku-primary" />
+                    <Zap size={14} className="text-[#00236F]" />
                     <span className="text-xs font-black text-[#525252]">{pengajuan.nomor_referensi || pengajuanId}</span>
                   </div>
                   <div className="px-4 py-2 bg-[#fafafa] rounded-2xl border border-[#e5e5e5] flex items-center gap-2">
@@ -157,7 +167,7 @@ export default function ScholarshipDetailPage() {
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
                   <div className="p-4 bg-[#fafafa] rounded-2xl border border-[#e5e5e5]">
                     <p className="text-[9px] font-black text-[#a3a3a3] uppercase tracking-widest mb-1">Nilai Bantuan</p>
-                    <p className="text-sm font-black text-bku-primary">
+                    <p className="text-sm font-black text-[#00236F]">
                       {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(beasiswaNilaiBantuan)}
                     </p>
                   </div>
@@ -176,16 +186,6 @@ export default function ScholarshipDetailPage() {
                 </div>
               </div>
 
-              <div className="flex flex-col items-center md:items-end justify-center">
-                <div className={`px-8 py-4 rounded-[28px] border-2 ${
-                  pengajuanStatus.toLowerCase() === 'diterima' ? 'bg-green-50 border-green-200 text-green-600' : 
-                  pengajuanStatus.toLowerCase() === 'ditolak' ? 'bg-red-50 border-red-200 text-red-600' :
-                   'bg-[#eef4ff] border-[#c9d8ff] text-bku-primary'
-                }`}>
-                  <p className="text-[9px] font-black uppercase tracking-[0.3em] text-center opacity-70 mb-1">Status Final</p>
-                  <p className="text-xl font-black uppercase tracking-widest text-center">{pengajuanStatus.replace('_', ' ')}</p>
-                </div>
-              </div>
             </div>
 
             {/* PIPELINE STEPPER (Vertical) */}
@@ -198,7 +198,7 @@ export default function ScholarshipDetailPage() {
                    <motion.div 
                      initial={{ height: 0 }}
                      animate={{ height: `${(currentStageIdx / (STAGES.length - 1)) * 100}%` }}
-                     className="w-full bg-bku-primary relative transition-all duration-1000"
+                     className="w-full bg-[#00236F] relative transition-all duration-1000"
                     />
                 </div>
 
@@ -213,7 +213,7 @@ export default function ScholarshipDetailPage() {
                          {/* Circle Indicator */}
                          <div className={`shrink-0 w-12 h-12 rounded-2xl flex items-center justify-center z-10 transition-all border-4 ${
                            isCompleted ? 'bg-green-500 border-green-100 text-white shadow-lg shadow-green-100' :
-                           isActive ? (isRejected ? 'bg-red-500 border-red-100 text-white' : 'bg-bku-primary border-[#dbe7ff] text-white shadow-md shadow-bku-primary/20 scale-110') :
+                           isActive ? (isRejected ? 'bg-red-500 border-red-100 text-white' : 'bg-[#00236F] border-[#dbe7ff] text-white shadow-md shadow-[#00236F]/20 scale-110') :
                            'bg-white border-[#f5f5f5] text-[#d4d4d4]'
                           }`}>
                             {isCompleted ? <span className="material-symbols-outlined" style={{ fontSize: '24px' }} >check_circle</span> : (isRejected ? <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>close</span> : (idx + 1))}
@@ -238,7 +238,7 @@ export default function ScholarshipDetailPage() {
                                 animate={{ opacity: 1, x: 0 }}
                                 className="mt-4 p-5 bg-[#fafafa] rounded-[24px] border border-[#f5f5f5] flex gap-4"
                               >
-                                 <div className="p-2.5 bg-white rounded-xl shadow-sm border border-[#f5f5f5] text-bku-primary shrink-0 h-fit">
+                                 <div className="p-2.5 bg-white rounded-xl shadow-sm border border-[#f5f5f5] text-[#00236F] shrink-0 h-fit">
                                    <span className="material-symbols-outlined" style={{ fontSize: 20 }}>info</span>
                                  </div>
                                 <div>
@@ -259,31 +259,31 @@ export default function ScholarshipDetailPage() {
         </div>
 
         {/* Right Column: Docs & Details */}
-        <div className="lg:col-span-4 space-y-6">
+        <div className="xl:col-span-4 space-y-6">
           
           {/* Motivation Snapshot */}
           <motion.div 
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="bg-bku-primary p-6 rounded-2xl text-white shadow-xl shadow-bku-primary/20 relative overflow-hidden"
+            className="bg-[#00236F] p-6 rounded-2xl text-white shadow-xl shadow-[#00236F]/20 relative overflow-hidden"
           >
              <div className="absolute bottom-0 right-0 p-4 opacity-10">
                <Zap size={120} strokeWidth={1} />
              </div>
-             <h4 className="text-[10px] font-black font-headline uppercase tracking-[0.4em] mb-5 flex items-center gap-2" style={{ color: 'var(--theme-text-muted)' }}><Sparkles size={14} className="text-[#dbe7ff]" /> Snapshot Motivasi</h4>
-             <p className="text-sm font-medium leading-relaxed italic opacity-80 line-clamp-[10]">
+             <h4 className="text-[10px] font-black uppercase tracking-[0.4em] text-white/60 mb-5 flex items-center gap-2"><Sparkles size={14} className="text-[#dbe7ff]" /> Snapshot Motivasi</h4>
+             <p className="text-sm font-medium leading-relaxed italic opacity-80 line-clamp-[10] break-words">
                "{pengajuanMotivasi || 'tidak ada motivasi'}"
              </p>
           </motion.div>
 
           {/* Files List */}
           <div className="bg-white p-6 rounded-2xl border border-[#e5e5e5] shadow-sm">
-             <h4 className="text-[10px] font-black uppercase tracking-[0.4em] text-[#a3a3a3] mb-5 flex items-center gap-2"><span className="material-symbols-outlined text-bku-primary" style={{ fontSize: '16px' }} >description</span> Dokumen Pendaftaran</h4>
+             <h4 className="text-[10px] font-black uppercase tracking-[0.4em] text-[#a3a3a3] mb-5 flex items-center gap-2"><span className="material-symbols-outlined text-[#00236F]" style={{ fontSize: '16px' }} >description</span> Dokumen Pendaftaran</h4>
              <div className="space-y-3">
                 {berkas?.length > 0 ? berkas.map(file => (
                   <div key={file.id} className="group p-4 bg-[#fafafa] rounded-xl border border-[#f5f5f5] flex items-center justify-between hover:border-[#c9d8ff] transition-all">
                     <div className="flex items-center gap-3">
-                       <div className="w-10 h-10 bg-white rounded-xl border border-[#e5e5e5] group-hover:border-[#c9d8ff] flex items-center justify-center text-[#a3a3a3] group-hover:text-bku-primary">
+                       <div className="w-10 h-10 bg-white rounded-xl border border-[#e5e5e5] group-hover:border-[#c9d8ff] flex items-center justify-center text-[#a3a3a3] group-hover:text-[#00236F]">
                          <span className="material-symbols-outlined" style={{ fontSize: 18 }}>download</span>
                        </div>
                        <div>
@@ -311,7 +311,7 @@ export default function ScholarshipDetailPage() {
              <div className="w-16 h-16 bg-white rounded-[24px] flex items-center justify-center text-[#16a34a] shadow-xl shadow-green-100 mb-4">
                 <span className="material-symbols-outlined" style={{ fontSize: '32px' }}>security</span>
              </div>
-             <p className="text-sm font-black text-bku-primary tracking-tight mb-1 uppercase">Sistem BKU Student Hub</p>
+             <p className="text-sm font-black text-[#00236F] tracking-tight mb-1 uppercase">Sistem BKU Student Hub</p>
              <p className="text-[10px] font-bold text-[#1E3A8A] opacity-80 uppercase tracking-widest">End-to-End Encryption & Verified Data</p>
           </div>
 

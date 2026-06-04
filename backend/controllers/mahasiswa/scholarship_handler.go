@@ -29,7 +29,7 @@ func GetKatalogBeasiswa(c *fiber.Ctx) error {
 
 	kategori := c.Query("kategori")
 	if kategori != "" && kategori != "Semua" {
-		query = query.Where("kategori = ?", kategori)
+		query = query.Where("LOWER(kategori) = LOWER(?)", kategori)
 	}
 
 	sortParam := c.Query("sort")
@@ -72,6 +72,7 @@ func GetKatalogBeasiswa(c *fiber.Ctx) error {
 			"nama":               b.Nama,
 			"penyelenggara":      b.Penyelenggara,
 			"deskripsi":          b.Deskripsi,
+			"persyaratan":        b.Persyaratan,
 			"deadline":           b.Deadline,
 			"kuota":              b.Kuota,
 			"ipk_min":            b.IPKMin,
@@ -84,6 +85,9 @@ func GetKatalogBeasiswa(c *fiber.Ctx) error {
 			"ktm_ktp_url":        ktmKtpURL,
 			"sertifikat_url":     sertifikatURL,
 			"transkrip_url":      transkripURL,
+			"file_ktm":           b.FileKtm,
+			"file_transkrip":     b.FileTranskrip,
+			"file_sertifikat":    b.FileSertifikat,
 		})
 	}
 
@@ -127,6 +131,7 @@ func GetBeasiswaDetail(c *fiber.Ctx) error {
 			"nama":               beasiswa.Nama,
 			"penyelenggara":      beasiswa.Penyelenggara,
 			"deskripsi":          beasiswa.Deskripsi,
+			"persyaratan":        beasiswa.Persyaratan,
 			"deadline":           beasiswa.Deadline,
 			"kuota":              beasiswa.Kuota,
 			"ipk_min":            beasiswa.IPKMin,
@@ -139,6 +144,9 @@ func GetBeasiswaDetail(c *fiber.Ctx) error {
 			"ktm_ktp_url":        ktmKtpURL,
 			"sertifikat_url":     sertifikatURL,
 			"transkrip_url":      transkripURL,
+			"file_ktm":           beasiswa.FileKtm,
+			"file_transkrip":     beasiswa.FileTranskrip,
+			"file_sertifikat":    beasiswa.FileSertifikat,
 		},
 	})
 }
@@ -164,6 +172,50 @@ func DaftarBeasiswa(c *fiber.Ctx) error {
 	// VALIDATIONS
 	if time.Now().After(beasiswa.Deadline) {
 		return c.Status(400).JSON(fiber.Map{"success": false, "message": "Pendaftaran beasiswa ini sudah ditutup"})
+	}
+
+	// Check if student already has an accepted scholarship
+	var accepted models.BeasiswaPendaftaran
+	if err := config.DB.Preload("Beasiswa").Where("mahasiswa_id = ? AND status = ?", student.ID, "Diterima").First(&accepted).Error; err == nil {
+		return c.Status(400).JSON(fiber.Map{
+			"success": false,
+			"message": fmt.Sprintf("Anda sudah menerima beasiswa lain (%s) dan tidak dapat mendaftar lagi", accepted.Beasiswa.Nama),
+		})
+	}
+
+	// Load existing application to verify existing file paths
+	var existing models.BeasiswaPendaftaran
+	config.DB.Where("mahasiswa_id = ? AND beasiswa_id = ?", student.ID, beasiswa.ID).First(&existing)
+
+	// Validate required uploads
+	ktmKtpUploaded := false
+	if _, err := c.FormFile("ktm_ktp"); err == nil {
+		ktmKtpUploaded = true
+	} else if existing.ID != 0 && existing.KtmKtpURL != "" && c.FormValue("delete_ktm_ktp") != "true" {
+		ktmKtpUploaded = true
+	}
+	if beasiswa.FileKtm == "wajib" && !ktmKtpUploaded {
+		return c.Status(400).JSON(fiber.Map{"success": false, "message": "Kartu Tanda Mahasiswa & KTP wajib diunggah"})
+	}
+
+	transkripUploaded := false
+	if _, err := c.FormFile("transkrip"); err == nil {
+		transkripUploaded = true
+	} else if existing.ID != 0 && existing.TranskripURL != "" && c.FormValue("delete_transkrip") != "true" {
+		transkripUploaded = true
+	}
+	if beasiswa.FileTranskrip == "wajib" && !transkripUploaded {
+		return c.Status(400).JSON(fiber.Map{"success": false, "message": "Transkrip Nilai Akademik wajib diunggah"})
+	}
+
+	sertifikatUploaded := false
+	if _, err := c.FormFile("sertifikat"); err == nil {
+		sertifikatUploaded = true
+	} else if existing.ID != 0 && existing.SertifikatURL != "" && c.FormValue("delete_sertifikat") != "true" {
+		sertifikatUploaded = true
+	}
+	if beasiswa.FileSertifikat == "wajib" && !sertifikatUploaded {
+		return c.Status(400).JSON(fiber.Map{"success": false, "message": "Sertifikat Pendukung wajib diunggah"})
 	}
 
 	// HANDLE FILE UPLOAD (Bukti URL)
@@ -209,8 +261,6 @@ func DaftarBeasiswa(c *fiber.Ctx) error {
 		}
 	}
 
-	var existing models.BeasiswaPendaftaran
-	config.DB.Where("mahasiswa_id = ? AND beasiswa_id = ?", student.ID, beasiswa.ID).First(&existing)
 	if existing.ID != 0 {
 		if buktiURL != "" {
 			existing.BuktiURL = buktiURL
