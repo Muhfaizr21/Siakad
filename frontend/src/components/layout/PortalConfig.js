@@ -199,21 +199,21 @@ export const PORTAL_CONFIG = {
       {
         group: 'KENCANA (PKKMB)',
         items: [
-          { name: 'Kelola Ormawa', icon: 'group', path: '/admin/organizations' },
+          { name: 'Kencana Universitas', icon: 'account_balance', path: '/kencana-admin' },
+          { name: 'Kencana Fakultas', icon: 'school', path: '/kencana-fakultas' },
+        ]
+      },
+      {
+        group: 'KEAMANAN & AKSES',
+        items: [
+          { name: 'Kelola Akses (RBAC)', icon: 'security', path: '/admin/rbac' },
         ]
       },
       {
         group: 'SISTEM & INFORMASI',
         items: [
           { name: 'Kelola Berita', icon: 'newspaper', path: '/admin/announcements' },
-          { name: 'Pengaturan Tampilan', icon: 'palette', path: '/admin/theme', hasSubmenu: true, submenu: [
-            { name: 'Warna', icon: 'palette', path: '/admin/theme/colors' },
-            { name: 'Tipografi', icon: 'text_fields', path: '/admin/theme/typography' },
-            { name: 'Branding', icon: 'image', path: '/admin/theme/branding' },
-            { name: 'Komponen', icon: 'widgets', path: '/admin/theme/components' },
-            { name: 'Warna Status', icon: 'check_circle', path: '/admin/theme/status' },
-          ]},
-          { name: 'Kelola Akses (RBAC)', icon: 'security', path: '/admin/rbac' },
+          { name: 'Pengaturan Sistem', icon: 'settings', path: '/admin/config' },
         ]
       },
     ],

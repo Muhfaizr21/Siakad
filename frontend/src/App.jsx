@@ -251,6 +251,15 @@ function App() {
                   <Route path="mentors" element={<KencanaAdminMentors portal="fakult" />} />
                 </Route>
 
+                {/* Kencana Fakultas (alias for Super Admin sidebar link) */}
+                <Route path="/kencana-fakultas" element={<ProtectedRoute allowedRoles={['kencana_fakult', 'kencana_fakultas', 'super_admin']}><KencanaLayout portalType="fakult" /></ProtectedRoute>}>
+                  <Route index element={<KencanaFakultDashboard />} />
+                  <Route path="participants" element={<KencanaFakultaskesParticipants />} />
+                  <Route path="scores" element={<KencanaFakultaskesScores />} />
+                  <Route path="stages" element={<KencanaFakultaskesStages />} />
+                  <Route path="mentors" element={<KencanaAdminMentors portal="fakult" />} />
+                </Route>
+
                 {/* Kencana Mentor */}
                 <Route path="/kencana-mentor" element={<ProtectedRoute allowedRoles={['kencana_mentor']}><KencanaLayout portalType="mentor" /></ProtectedRoute>}>
                   <Route index element={<KencanaMentorDashboard />} />
