@@ -41,6 +41,7 @@ export default function FacultyDashboard() {
   const [loading, setLoading] = useState(true);
   const [isMounted, setIsMounted] = useState(false);
   const [filterPeriod, setFilterPeriod] = useState('all');
+  const [filterProdi, setFilterProdi] = useState('all');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [summaryData, setSummaryData] = useState({
@@ -53,12 +54,13 @@ export default function FacultyDashboard() {
     trendData: [],
     recentActivity: [],
     activePeriod: null,
-    periods: []
+    periods: [],
+    prodis: []
   });
 
   const firstName = user?.name?.split(' ')[0] || user?.email?.split('@')[0] || 'Admin';
 
-  const fetchDashboardData = React.useCallback(async (periodId, start, end) => {
+  const fetchDashboardData = React.useCallback(async (periodId, start, end, prodiId) => {
     Promise.resolve().then(() => setLoading(true));
     try {
       let url = `${API_BASE_URL}/faculty/summary`;
@@ -68,6 +70,9 @@ export default function FacultyDashboard() {
         params.push(`end_date=${end}`);
       } else if (periodId && periodId !== 'all') {
         params.push(`period_id=${periodId}`);
+      }
+      if (prodiId && prodiId !== 'all') {
+        params.push(`prodi_id=${prodiId}`);
       }
       if (params.length > 0) {
         url += `?${params.join('&')}`;
@@ -90,8 +95,8 @@ export default function FacultyDashboard() {
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    fetchDashboardData(filterPeriod, startDate, endDate);
-  }, [filterPeriod, startDate, endDate, fetchDashboardData]);
+    fetchDashboardData(filterPeriod, startDate, endDate, filterProdi);
+  }, [filterPeriod, startDate, endDate, filterProdi, fetchDashboardData]);
 
   const handlePeriodChange = (val) => {
     setFilterPeriod(val);
@@ -114,6 +119,7 @@ export default function FacultyDashboard() {
     setStartDate('');
     setEndDate('');
     setFilterPeriod('all');
+    setFilterProdi('all');
   };
 
   const statusColors = {
@@ -187,7 +193,7 @@ export default function FacultyDashboard() {
             {/* Period Dropdown */}
             <div className="flex items-center gap-2">
               <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Periode:</span>
-              <div className="relative min-w-[170px]">
+              <div className="relative min-w-[150px]">
                 <select
                   value={filterPeriod}
                   onChange={(e) => handlePeriodChange(e.target.value)}
@@ -197,6 +203,31 @@ export default function FacultyDashboard() {
                   {summaryData.periods?.map((p) => (
                     <option key={p.id} value={p.id}>
                       {p.Name || p.nama_periode}
+                    </option>
+                  ))}
+                </select>
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2.5 text-slate-400">
+                  <span className="material-symbols-outlined text-[16px]">expand_more</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Divider line for desktop */}
+            <span className="hidden md:inline-block h-6 w-[1px] bg-slate-200" />
+
+            {/* Prodi Dropdown */}
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Prodi:</span>
+              <div className="relative min-w-[180px]">
+                <select
+                  value={filterProdi}
+                  onChange={(e) => setFilterProdi(e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-200/80 text-slate-800 text-xs font-bold py-2 pl-3 pr-8 rounded-lg appearance-none focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all cursor-pointer"
+                >
+                  <option value="all">Semua Prodi</option>
+                  {summaryData.prodis?.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.Nama || p.nama} ({p.Jenjang || p.jenjang})
                     </option>
                   ))}
                 </select>
@@ -226,11 +257,11 @@ export default function FacultyDashboard() {
                   onChange={(e) => handleDateChange('end', e.target.value)}
                   className="bg-slate-50 border border-slate-200/80 text-slate-800 text-xs font-bold py-1.5 px-2.5 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all cursor-pointer"
                 />
-                {(startDate || endDate) && (
+                {(startDate || endDate || filterPeriod !== 'all' || filterProdi !== 'all') && (
                   <button
                     onClick={handleResetFilters}
                     className="p-1.5 text-rose-500 hover:bg-rose-50 rounded-lg transition-colors flex items-center justify-center"
-                    title="Reset filter tanggal"
+                    title="Reset semua filter"
                   >
                     <span className="material-symbols-outlined text-[16px]">close</span>
                   </button>

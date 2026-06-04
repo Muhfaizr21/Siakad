@@ -131,7 +131,7 @@ export default function PsychologistDirectory() {
   const [isSavingSchedule, setIsSavingSchedule] = useState(false)
   
   const [form, setForm] = useState({ 
-    ID: '', Nama: '', Spesialisasi: 'Umum', Lokasi: '', Tarif: 0, IsAktif: true,
+    ID: '', Nama: '', Spesialisasi: 'Umum', Lokasi: '', IsAktif: true,
     Email: '', NoHP: '', Bio: '', Bahasa: '', FotoURL: ''
   })
 
@@ -202,7 +202,7 @@ export default function PsychologistDirectory() {
       Nama: row.nama || '', 
       Spesialisasi: row.spesialisasi || 'Umum', 
       Lokasi: row.lokasi || '',
-      Tarif: row.tarif || 0,
+
       IsAktif: row.is_aktif ?? true,
       Email: row.email || '',
       NoHP: row.no_hp || '',
@@ -221,7 +221,7 @@ export default function PsychologistDirectory() {
         nama: form.Nama,
         spesialisasi: form.Spesialisasi,
         lokasi: form.Lokasi,
-        tarif: parseInt(form.Tarif) || 0,
+
         is_aktif: form.IsAktif,
         email: form.Email,
         no_hp: form.NoHP,
@@ -947,10 +947,6 @@ export default function PsychologistDirectory() {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label className="text-xs font-bold text-neutral-500 font-jakarta ml-1">Tarif Layanan (Rp)</Label>
-                <Input type="number" value={form.Tarif} onChange={e => setForm({ ...form, Tarif: e.target.value })} className="h-11 rounded-lg border-neutral-200 bg-neutral-50/30 focus:bg-white font-medium text-sm font-jakarta" />
-              </div>
               <div className="space-y-2">
                 <Label className="text-xs font-bold text-neutral-500 font-jakarta ml-1">Status Operasional</Label>
                 <Select value={form.IsAktif ? "1" : "0"} onValueChange={v => setForm({ ...form, IsAktif: v === "1" })}>

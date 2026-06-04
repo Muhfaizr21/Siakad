@@ -17,6 +17,7 @@ func AmbilRingkasanDashboard(c *fiber.Ctx) error {
 	periodIDStr := c.Query("period_id")
 	startDateStr := c.Query("start_date")
 	endDateStr := c.Query("end_date")
+	prodiIDStr := c.Query("prodi_id")
 
 	var totalMhs int64
 	var totalProdi int64
@@ -29,6 +30,12 @@ func AmbilRingkasanDashboard(c *fiber.Ctx) error {
 		qMhs = qMhs.Where("fakultas_id = ?", fid)
 		qPrestasi = qPrestasi.Where("\"Mahasiswa\".fakultas_id = ?", fid)
 		qProdi = qProdi.Where("fakultas_id = ?", fid)
+	}
+
+	if prodiIDStr != "" && prodiIDStr != "all" {
+		qMhs = qMhs.Where("program_studi_id = ?", prodiIDStr)
+		qPrestasi = qPrestasi.Where("\"Mahasiswa\".program_studi_id = ?", prodiIDStr)
+		qProdi = qProdi.Where("id = ?", prodiIDStr)
 	}
 
 	var hasFilter bool
@@ -87,6 +94,9 @@ func AmbilRingkasanDashboard(c *fiber.Ctx) error {
 	if role == "faculty_admin" {
 		qStatus = qStatus.Where("fakultas_id = ?", fid)
 	}
+	if prodiIDStr != "" && prodiIDStr != "all" {
+		qStatus = qStatus.Where("program_studi_id = ?", prodiIDStr)
+	}
 	if hasFilter {
 		if filterCond == "between_years" {
 			qStatus = qStatus.Where("tahun_masuk BETWEEN ? AND ?", filterVal, filterVal2)
@@ -131,6 +141,9 @@ func AmbilRingkasanDashboard(c *fiber.Ctx) error {
 	if role == "faculty_admin" {
 		sqlProdi += fmt.Sprintf(" AND ps.fakultas_id = %d ", fid)
 	}
+	if prodiIDStr != "" && prodiIDStr != "all" {
+		sqlProdi += fmt.Sprintf(" AND ps.id = %s ", prodiIDStr)
+	}
 
 	sqlProdi += " GROUP BY ps.id, ps.nama, ps.jenjang, ps.akreditasi"
 	config.DB.Raw(sqlProdi).Scan(&prodiDist)
@@ -148,6 +161,9 @@ func AmbilRingkasanDashboard(c *fiber.Ctx) error {
 
 	if role == "faculty_admin" {
 		qTrend = qTrend.Where("fakultas_id = ?", fid)
+	}
+	if prodiIDStr != "" && prodiIDStr != "all" {
+		qTrend = qTrend.Where("program_studi_id = ?", prodiIDStr)
 	}
 	if hasFilter {
 		if filterCond == "between_years" {
@@ -171,6 +187,9 @@ func AmbilRingkasanDashboard(c *fiber.Ctx) error {
 	if role == "faculty_admin" {
 		qPList = qPList.Where("\"Mahasiswa\".fakultas_id = ?", fid)
 	}
+	if prodiIDStr != "" && prodiIDStr != "all" {
+		qPList = qPList.Where("\"Mahasiswa\".program_studi_id = ?", prodiIDStr)
+	}
 	if hasFilter {
 		if filterCond == "between_years" {
 			qPList = qPList.Where("\"Mahasiswa\".tahun_masuk BETWEEN ? AND ?", filterVal, filterVal2)
@@ -192,6 +211,9 @@ func AmbilRingkasanDashboard(c *fiber.Ctx) error {
 	qMList := config.DB.Order("id desc").Limit(2)
 	if role == "faculty_admin" {
 		qMList = qMList.Where("fakultas_id = ?", fid)
+	}
+	if prodiIDStr != "" && prodiIDStr != "all" {
+		qMList = qMList.Where("program_studi_id = ?", prodiIDStr)
 	}
 	if hasFilter {
 		if filterCond == "between_years" {
@@ -217,6 +239,13 @@ func AmbilRingkasanDashboard(c *fiber.Ctx) error {
 	var periods []models.AcademicPeriod
 	config.DB.Order("id desc").Find(&periods)
 
+	var prodis []models.ProgramStudi
+	if role == "faculty_admin" {
+		config.DB.Where("fakultas_id = ?", fid).Order("nama asc").Find(&prodis)
+	} else {
+		config.DB.Order("nama asc").Find(&prodis)
+	}
+
 	return c.JSON(fiber.Map{
 		"status": "success",
 		"data": fiber.Map{
@@ -230,6 +259,7 @@ func AmbilRingkasanDashboard(c *fiber.Ctx) error {
 			"recentActivity":    logs,
 			"activePeriod":      activePeriod.Name,
 			"periods":           periods,
+			"prodis":            prodis,
 		},
 	})
 }

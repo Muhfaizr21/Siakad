@@ -114,7 +114,6 @@ func UpdateProfile(c *fiber.Ctx) error {
 		Bio          string `json:"bio"`
 		Lokasi       string `json:"lokasi"`
 		Bahasa       string `json:"bahasa"`
-		Tarif        int    `json:"tarif"`
 		IsAktif      *bool  `json:"is_aktif"` // pointer agar bisa detect kalau tidak dikirim
 	}
 	if err := c.BodyParser(&body); err != nil {
@@ -144,9 +143,6 @@ func UpdateProfile(c *fiber.Ctx) error {
 	}
 	if body.Bahasa != "" {
 		updates["bahasa"] = strings.TrimSpace(body.Bahasa)
-	}
-	if body.Tarif > 0 {
-		updates["tarif"] = body.Tarif
 	}
 	// is_aktif hanya diupdate kalau field-nya dikirim
 	if body.IsAktif != nil {
