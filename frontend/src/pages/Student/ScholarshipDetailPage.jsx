@@ -94,6 +94,7 @@ export default function ScholarshipDetailPage() {
   // Find current stage index
   const statusToStage = {
     dikirim: 0,
+    menunggu: 0,
     seleksi_berkas: 1,
     evaluasi: 2,
     review: 3,
@@ -120,10 +121,10 @@ export default function ScholarshipDetailPage() {
         Kembali ke Dashboard
       </button>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
         
         {/* Left Column: Info & Tracker */}
-        <div className="lg:col-span-8 space-y-6">
+        <div className="xl:col-span-8 space-y-6">
           
           {/* Main Info Card */}
           <motion.div 
@@ -139,8 +140,17 @@ export default function ScholarshipDetailPage() {
                     <div className="w-2 h-2 rounded-full bg-[#00236F] animate-pulse" />
                    <span className="text-[10px] font-black text-[#00236F] uppercase tracking-widest leading-none">Tracking Real-time</span>
                 </div>
-                <h1 className="text-2xl md:text-3xl font-black font-headline tracking-tighter mb-1">{beasiswaNama}</h1>
-                <p className="text-[11px] font-bold text-[#a3a3a3] uppercase tracking-[0.2em]">{beasiswaPenyelenggara}</p>
+                 <div className="flex flex-wrap items-center gap-3 mb-1">
+                   <h1 className="text-2xl md:text-3xl font-black font-headline tracking-tighter">{beasiswaNama}</h1>
+                   <div className={`px-3.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border shadow-sm ${
+                     pengajuanStatus.toLowerCase() === 'diterima' ? 'bg-green-50 border-green-200 text-green-600' : 
+                     pengajuanStatus.toLowerCase() === 'ditolak' ? 'bg-red-50 border-red-200 text-red-600' :
+                      'bg-[#eef4ff] border-[#c9d8ff] text-[#00236F]'
+                   }`}>
+                     {pengajuanStatus.replace('_', ' ')}
+                   </div>
+                 </div>
+                 <p className="text-[11px] font-bold text-[#a3a3a3] uppercase tracking-[0.2em]">{beasiswaPenyelenggara}</p>
                 
                 <div className="flex flex-wrap items-center gap-4 mt-6">
                   <div className="px-4 py-2 bg-[#fafafa] rounded-2xl border border-[#e5e5e5] flex items-center gap-2">
@@ -176,16 +186,6 @@ export default function ScholarshipDetailPage() {
                 </div>
               </div>
 
-              <div className="flex flex-col items-center md:items-end justify-center">
-                <div className={`px-8 py-4 rounded-[28px] border-2 ${
-                  pengajuanStatus.toLowerCase() === 'diterima' ? 'bg-green-50 border-green-200 text-green-600' : 
-                  pengajuanStatus.toLowerCase() === 'ditolak' ? 'bg-red-50 border-red-200 text-red-600' :
-                   'bg-[#eef4ff] border-[#c9d8ff] text-[#00236F]'
-                }`}>
-                  <p className="text-[9px] font-black uppercase tracking-[0.3em] text-center opacity-70 mb-1">Status Final</p>
-                  <p className="text-xl font-black uppercase tracking-widest text-center">{pengajuanStatus.replace('_', ' ')}</p>
-                </div>
-              </div>
             </div>
 
             {/* PIPELINE STEPPER (Vertical) */}
@@ -259,7 +259,7 @@ export default function ScholarshipDetailPage() {
         </div>
 
         {/* Right Column: Docs & Details */}
-        <div className="lg:col-span-4 space-y-6">
+        <div className="xl:col-span-4 space-y-6">
           
           {/* Motivation Snapshot */}
           <motion.div 
@@ -271,7 +271,7 @@ export default function ScholarshipDetailPage() {
                <Zap size={120} strokeWidth={1} />
              </div>
              <h4 className="text-[10px] font-black uppercase tracking-[0.4em] text-white/60 mb-5 flex items-center gap-2"><Sparkles size={14} className="text-[#dbe7ff]" /> Snapshot Motivasi</h4>
-             <p className="text-sm font-medium leading-relaxed italic opacity-80 line-clamp-[10]">
+             <p className="text-sm font-medium leading-relaxed italic opacity-80 line-clamp-[10] break-words">
                "{pengajuanMotivasi || 'tidak ada motivasi'}"
              </p>
           </motion.div>

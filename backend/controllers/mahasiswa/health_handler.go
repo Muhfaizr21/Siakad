@@ -3,6 +3,7 @@ package mahasiswa
 import (
 	"siakad-backend/config"
 	"siakad-backend/models"
+	"siakad-backend/pkg/notifikasi"
 	"strings"
 	"time"
 
@@ -143,6 +144,26 @@ func CreateHealthRecord(c *fiber.Ctx) error {
 
 	if err := config.DB.Create(&record).Error; err != nil {
 		return c.Status(500).JSON(fiber.Map{"success": false, "message": "Gagal menyimpan data"})
+	}
+
+	// Kirim notif jika status perlu perhatian atau pantauan
+	switch statusKesehatan {
+	case "tindak_lanjut":
+		notifikasi.Kirim(config.DB, notifikasi.KirimParams{
+			UserID:  student.PenggunaID,
+			Type:    "health",
+			Title:   "⚠️ Peringatan Kesehatan - Perlu Tindak Lanjut",
+			Content: "Hasil screening kesehatanmu menunjukkan kondisi yang perlu perhatian medis. Segera konsultasikan ke dokter atau tenaga kesehatan.",
+			Link:    "/student/health",
+		})
+	case "pantauan":
+		notifikasi.Kirim(config.DB, notifikasi.KirimParams{
+			UserID:  student.PenggunaID,
+			Type:    "health",
+			Title:   "📋 Hasil Screening - Status Pantauan",
+			Content: "Kondisi kesehatanmu masuk dalam kategori pantauan. Jaga pola makan, istirahat cukup, dan lakukan pemeriksaan rutin.",
+			Link:    "/student/health",
+		})
 	}
 
 	return c.JSON(fiber.Map{

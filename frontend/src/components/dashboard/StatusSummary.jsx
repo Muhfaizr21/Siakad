@@ -54,20 +54,24 @@ export default function StatusSummary({ kencana, beasiswa, voice, kesehatan, kes
             <div className="w-9 h-9 bg-[#eff6ff] text-[#3b82f6] rounded-xl flex items-center justify-center">
               <BookOpen size={18} />
             </div>
-            {beasiswa?.jumlah_menunggu > 0 && (
-                <span className="px-2 py-0.5 bg-[#eff6ff] text-[#3b82f6] rounded-full text-[10px] font-bold uppercase tracking-wide">
-                    {beasiswa?.jumlah_menunggu} Menunggu
-                </span>
+            {beasiswa?.total_tersedia > 0 ? (
+              <span className="px-2 py-0.5 bg-[#f0fdf4] text-[#16a34a] rounded-full text-[10px] font-bold uppercase tracking-wide">
+                Terbuka
+              </span>
+            ) : (
+              <span className="px-2 py-0.5 bg-[#fef2f2] text-[#ef4444] rounded-full text-[10px] font-bold uppercase tracking-wide">
+                Tutup
+              </span>
             )}
           </div>
           <h3 className="font-bold text-base mb-1">Beasiswa</h3>
-          <p className="text-xs font-semibold text-[#a3a3a3] mb-4">Status Pengajuan Terbaru</p>
+          <p className="text-xs font-semibold text-[#a3a3a3] mb-4">Program Beasiswa Aktif</p>
           <div className="flex items-end gap-2 mb-5">
-            <span className="text-3xl font-black text-[#171717] leading-none">{beasiswa?.jumlah_proses || 0}</span>
-            <span className="text-xs font-bold text-[#525252] mb-1 italic">Pengajuan Sedang Diproses</span>
+            <span className="text-3xl font-black text-[#171717] leading-none">{beasiswa?.total_tersedia || 0}</span>
+            <span className="text-xs font-bold text-[#525252] mb-1 italic">Beasiswa Tersedia</span>
           </div>
           <NavLink to="/student/scholarship" className="flex items-center justify-between py-1.5 text-xs font-bold text-[#00236F] hover:underline">
-            Lihat Status <ChevronRight size={16} />
+            Lihat Beasiswa <ChevronRight size={16} />
           </NavLink>
         </div>
 

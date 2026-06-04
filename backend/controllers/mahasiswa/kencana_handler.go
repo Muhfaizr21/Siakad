@@ -1,6 +1,7 @@
 package mahasiswa
 
 import (
+	"fmt"
 	"siakad-backend/config"
 	"siakad-backend/models"
 	"siakad-backend/pkg/notifikasi"
@@ -297,31 +298,192 @@ func GenerateSertifikat(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"success": true, "data": newCert})
 }
 
+// GetKuisSoal mengambil soal kuis dari DB (tanpa kunci jawaban)
 func GetKuisSoal(c *fiber.Ctx) error {
 	kuisID := c.Params("id")
+
+	var quiz models.PkkmbQuiz
+	if err := config.DB.
+		Preload("Questions", func(db *gorm.DB) *gorm.DB {
+			return db.Order("\"order\" asc")
+		}).
+		Preload("Questions.Options", func(db *gorm.DB) *gorm.DB {
+			return db.Order("\"order\" asc")
+		}).
+		First(&quiz, kuisID).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{"success": false, "message": "Kuis tidak ditemukan"})
+	}
+
+	// Sembunyikan is_benar dari setiap opsi agar tidak bocor ke client
+	type SafeOption struct {
+		ID   uint   `json:"id"`
+		Opsi string `json:"opsi"`
+	}
+	type SafeSoal struct {
+		ID         uint         `json:"id"`
+		Pertanyaan string       `json:"pertanyaan"`
+		Tipe       string       `json:"tipe"`
+		Point      int          `json:"point"`
+		Options    []SafeOption `json:"options"`
+	}
+
+	var soalList []SafeSoal
+	for _, q := range quiz.Questions {
+		var opts []SafeOption
+		for _, o := range q.Options {
+			opts = append(opts, SafeOption{ID: o.ID, Opsi: o.Opsi})
+		}
+		soalList = append(soalList, SafeSoal{
+			ID:         q.ID,
+			Pertanyaan: q.Pertanyaan,
+			Tipe:       q.Tipe,
+			Point:      q.Point,
+			Options:    opts,
+		})
+	}
+
 	return c.JSON(fiber.Map{
 		"success": true,
 		"data": fiber.Map{
-			"kuis_id":       kuisID,
-			"judul":         "Kuis belum tersedia",
+			"kuis_id":      quiz.ID,
+			"judul":        quiz.Judul,
+			"deskripsi":    quiz.Deskripsi,
+			"durasi_menit": quiz.Durasi,
+			"bobot_persen": quiz.Bobot,
 			"passing_grade": 70,
-			"durasi_menit":  30,
-			"bobot_persen":  0,
-			"soal":          []any{},
+			"total_soal":   len(soalList),
+			"soal":         soalList,
 		},
 	})
 }
 
+// SubmitKuis memproses jawaban, menghitung skor, menyimpan attempt, dan kirim notifikasi jika lulus
 func SubmitKuis(c *fiber.Ctx) error {
+	kuisID := c.Params("id")
+
+	student, err := getStudent(c)
+	if err != nil {
+		return c.Status(404).JSON(fiber.Map{"success": false, "message": "Mahasiswa tidak ditemukan"})
+	}
+
+	// Ambil kuis + soal + opsi benar
+	var quiz models.PkkmbQuiz
+	if err := config.DB.
+		Preload("Questions.Options").
+		First(&quiz, kuisID).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{"success": false, "message": "Kuis tidak ditemukan"})
+	}
+
+	// Cek batas attempt
+	var jumlahAttempt int64
+	config.DB.Model(&models.PkkmbQuizAttempt{}).
+		Where("mahasiswa_id = ? AND quiz_id = ?", student.ID, quiz.ID).
+		Count(&jumlahAttempt)
+
+	// Parse jawaban: map[question_id] -> option_id
+	var req struct {
+		Jawaban map[string]uint `json:"jawaban"` // {"soal_id": opsi_id}
+	}
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(400).JSON(fiber.Map{"success": false, "message": "Format jawaban tidak valid"})
+	}
+
+	// Hitung skor
+	totalPoint := 0
+	benarPoint := 0
+	jumlahBenar := 0
+
+	for _, q := range quiz.Questions {
+		totalPoint += q.Point
+		selectedID, answered := req.Jawaban[fmt.Sprintf("%d", q.ID)]
+		if !answered {
+			continue
+		}
+		for _, opt := range q.Options {
+			if opt.ID == selectedID && opt.IsBenar {
+				benarPoint += q.Point
+				jumlahBenar++
+				break
+			}
+		}
+	}
+
+	var nilai float64
+	if totalPoint > 0 {
+		nilai = float64(benarPoint) / float64(totalPoint) * 100
+	}
+
+	// Simpan attempt
+	now := time.Now()
+	attempt := models.PkkmbQuizAttempt{
+		MahasiswaID:  student.ID,
+		QuizID:       quiz.ID,
+		Nilai:        nilai,
+		Status:       "Selesai",
+		WaktuMulai:   now.Add(-time.Minute * time.Duration(quiz.Durasi)),
+		WaktuSelesai: &now,
+	}
+	config.DB.Create(&attempt)
+
+	// Hitung nilai kumulatif terbaru
+	var allAttempts []models.PkkmbQuizAttempt
+	config.DB.Where("mahasiswa_id = ?", student.ID).Find(&allAttempts)
+	bestMap := make(map[uint]float64)
+	for _, a := range allAttempts {
+		if a.Nilai > bestMap[a.QuizID] {
+			bestMap[a.QuizID] = a.Nilai
+		}
+	}
+	var nilaiKumulatif float64
+	for _, v := range bestMap {
+		nilaiKumulatif += v
+	}
+	if len(bestMap) > 0 {
+		nilaiKumulatif = nilaiKumulatif / float64(len(bestMap))
+	}
+
+	lulus := nilai >= 70
+	eligibleSertifikat := nilaiKumulatif >= 70 && len(bestMap) > 0
+
+	// Kirim notifikasi berdasarkan hasil kuis
+	if lulus {
+		notifikasi.Kirim(config.DB, notifikasi.KirimParams{
+			MahasiswaID: student.ID,
+			Type:        "kencana",
+			Title:       "Selamat! Kuis Lulus 🎉",
+			Content:     fmt.Sprintf("Kamu lulus kuis \"%s\" dengan nilai %.0f. Terus semangat!", quiz.Judul, nilai),
+			Link:        "/student/kencana",
+		})
+		// Notif tambahan jika sudah eligible sertifikat
+		if eligibleSertifikat {
+			notifikasi.Kirim(config.DB, notifikasi.KirimParams{
+				MahasiswaID: student.ID,
+				Type:        "kencana",
+				Title:       "🏆 Selamat, Kamu Lulus PKKMB!",
+				Content:     fmt.Sprintf("Nilai kumulatif kamu %.1f. Kamu sekarang bisa mengunduh sertifikat kelulusan PKKMB Kencana!", nilaiKumulatif),
+				Link:        "/student/kencana",
+			})
+		}
+	} else {
+		notifikasi.Kirim(config.DB, notifikasi.KirimParams{
+			MahasiswaID: student.ID,
+			Type:        "kencana",
+			Title:       "📝 Kuis Belum Lulus",
+			Content:     fmt.Sprintf("Nilai kuis \"%s\" kamu %.0f (minimal 70). Jangan menyerah, kamu bisa coba lagi!", quiz.Judul, nilai),
+			Link:        "/student/kencana",
+		})
+	}
+
 	return c.JSON(fiber.Map{
 		"success": true,
 		"data": fiber.Map{
-			"nilai":                   0,
-			"lulus":                   false,
-			"jumlah_benar":            0,
-			"total_soal":              0,
-			"nilai_kumulatif_terbaru": 0,
-			"eligible_sertifikat":     false,
+			"nilai":                   nilai,
+			"lulus":                   lulus,
+			"jumlah_benar":            jumlahBenar,
+			"total_soal":              len(quiz.Questions),
+			"nilai_kumulatif_terbaru": nilaiKumulatif,
+			"eligible_sertifikat":     eligibleSertifikat,
+			"jumlah_attempt":          jumlahAttempt + 1,
 		},
 	})
 }

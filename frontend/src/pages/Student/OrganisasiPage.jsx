@@ -69,7 +69,7 @@ export default function OrganisasiPage() {
 
               return (
                 <div
-                  key={item.ID}
+                  key={item.id || item.ID}
                   className="group bg-white rounded-2xl border border-[#e5e5e5] overflow-hidden hover:border-[#C9D8FF] hover:shadow-lg hover:shadow-[#00236F]/10 transition-all flex flex-col"
                 >
                   <div className="p-5 flex-1 flex flex-col gap-4">
@@ -141,7 +141,7 @@ export default function OrganisasiPage() {
                         <p className="text-xs font-bold text-[#a3a3a3] mb-2 uppercase tracking-wider flex items-center gap-1.5"><span className="material-symbols-outlined text-amber-500" style={{ fontSize: 14 }}>emoji_events</span> Prestasi Terkait:</p>
                         <div className="flex flex-col gap-2">
                           {item.Prestasi.map(p => (
-                            <div key={p.ID} className="flex flex-col bg-[#fffbeb] border border-[#fde68a] p-2.5 rounded-xl">
+                            <div key={p.id || p.ID} className="flex flex-col bg-[#fffbeb] border border-[#fde68a] p-2.5 rounded-xl">
                                <span className="font-bold text-[#b45309] text-xs leading-none mb-1">{p.NamaKegiatan}</span>
                                <span className="text-[10px] text-[#d97706] font-medium leading-none">{p.Tingkat} • {p.Peringkat}</span>
                             </div>
@@ -228,7 +228,7 @@ export default function OrganisasiPage() {
               {activeTab === 'prestasi' && (
                 <div className="space-y-3">
                   {currentAchievements.length > 0 ? currentAchievements.map((p) => (
-                    <div key={p.ID} className="rounded-2xl border border-[#fde68a] bg-[#fffbeb] p-4">
+                    <div key={p.id || p.ID} className="rounded-2xl border border-[#fde68a] bg-[#fffbeb] p-4">
                       <p className="font-bold text-[#b45309] text-sm">{p.NamaKegiatan || '-'}</p>
                       <p className="text-xs text-[#d97706] mt-1">{p.Tingkat || '-'} • {p.Peringkat || '-'}</p>
                     </div>

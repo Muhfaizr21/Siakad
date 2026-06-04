@@ -15,6 +15,10 @@ class ScholarshipModel extends Scholarship {
     String? ktmKtpUrl,
     String? sertifikatUrl,
     String? transkripUrl,
+    String? persyaratan,
+    String fileKtm = 'wajib',
+    String fileTranskrip = 'wajib',
+    String fileSertifikat = 'opsional',
   }) : super(
           id: id,
           title: title,
@@ -29,6 +33,10 @@ class ScholarshipModel extends Scholarship {
           ktmKtpUrl: ktmKtpUrl,
           sertifikatUrl: sertifikatUrl,
           transkripUrl: transkripUrl,
+          persyaratan: persyaratan,
+          fileKtm: fileKtm,
+          fileTranskrip: fileTranskrip,
+          fileSertifikat: fileSertifikat,
         );
 
   factory ScholarshipModel.fromJson(Map<String, dynamic> json) {
@@ -58,6 +66,10 @@ class ScholarshipModel extends Scholarship {
       ktmKtpUrl: json['ktm_ktp_url'],
       sertifikatUrl: json['sertifikat_url'],
       transkripUrl: json['transkrip_url'],
+      persyaratan: json['persyaratan'],
+      fileKtm: json['file_ktm']?.toString() ?? 'wajib',
+      fileTranskrip: json['file_transkrip']?.toString() ?? 'wajib',
+      fileSertifikat: json['file_sertifikat']?.toString() ?? 'opsional',
     );
   }
 

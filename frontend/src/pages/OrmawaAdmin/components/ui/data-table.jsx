@@ -139,7 +139,11 @@ export function DataTable({
  <SelectTrigger className="h-11 w-[160px] rounded-2xl border-slate-200 bg-white shadow-sm font-black text-[10px] tracking-widest text-slate-500 focus:ring-primary/20">
  <div className="flex items-center gap-2">
  <Filter className="size-3 text-primary/60" />
- <SelectValue placeholder={filter.placeholder} />
+ {activeFilters[filter.key] && activeFilters[filter.key] !== "all" ? (
+    <SelectValue />
+  ) : (
+    <span>{filter.placeholder}</span>
+  )}
  </div>
  </SelectTrigger>
  <SelectContent className="rounded-2xl border-slate-200 shadow-2xl p-1 font-headline">

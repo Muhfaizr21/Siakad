@@ -144,11 +144,42 @@ class _ApplyScholarshipScreenState extends State<ApplyScholarshipScreen> {
               FadeInAnimation(delay: 0.65, child: _buildTextArea(_reasonController, 'Jelaskan mengapa kamu layak menerima beasiswa ini...')),
               
               const SizedBox(height: 32),
-              FadeInAnimation(delay: 0.7, child: _buildSectionTitle('Dokumen Pendukung')),
-              const SizedBox(height: 16),
-              FadeInAnimation(delay: 0.75, child: _buildUploadItem('KTM & KTP', Icons.badge_rounded, _ktmKtpPath, 'ktm_ktp')),
-              FadeInAnimation(delay: 0.8, child: _buildUploadItem('Sertifikat Prestasi', Icons.emoji_events_rounded, _sertifikatPath, 'sertifikat')),
-              FadeInAnimation(delay: 0.85, child: _buildUploadItem('Transkrip Nilai', Icons.description_rounded, _transkripPath, 'transkrip')),
+              if (widget.scholarship.fileKtm != 'tidak' ||
+                  widget.scholarship.fileSertifikat != 'tidak' ||
+                  widget.scholarship.fileTranskrip != 'tidak') ...[
+                FadeInAnimation(delay: 0.7, child: _buildSectionTitle('Dokumen Pendukung')),
+                const SizedBox(height: 16),
+                if (widget.scholarship.fileKtm != 'tidak')
+                  FadeInAnimation(
+                    delay: 0.75,
+                    child: _buildUploadItem(
+                      'KTM & KTP${widget.scholarship.fileKtm == 'wajib' ? ' *' : ' (Opsional)'}',
+                      Icons.badge_rounded,
+                      _ktmKtpPath,
+                      'ktm_ktp',
+                    ),
+                  ),
+                if (widget.scholarship.fileSertifikat != 'tidak')
+                  FadeInAnimation(
+                    delay: 0.8,
+                    child: _buildUploadItem(
+                      'Sertifikat Prestasi${widget.scholarship.fileSertifikat == 'wajib' ? ' *' : ' (Opsional)'}',
+                      Icons.emoji_events_rounded,
+                      _sertifikatPath,
+                      'sertifikat',
+                    ),
+                  ),
+                if (widget.scholarship.fileTranskrip != 'tidak')
+                  FadeInAnimation(
+                    delay: 0.85,
+                    child: _buildUploadItem(
+                      'Transkrip Nilai${widget.scholarship.fileTranskrip == 'wajib' ? ' *' : ' (Opsional)'}',
+                      Icons.description_rounded,
+                      _transkripPath,
+                      'transkrip',
+                    ),
+                  ),
+              ],
               
               const SizedBox(height: 32),
               FadeInAnimation(delay: 0.9, child: _buildAgreementCheckbox()),
@@ -571,6 +602,41 @@ class _ApplyScholarshipScreenState extends State<ApplyScholarshipScreen> {
   }
 
   Future<void> _submitForm() async {
+    // Validasi berkas wajib berdasarkan pengaturan beasiswa
+    if (widget.scholarship.fileKtm == 'wajib' && _ktmKtpPath == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('KTM & KTP wajib diunggah!'),
+          backgroundColor: AppColors.error,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        ),
+      );
+      return;
+    }
+    if (widget.scholarship.fileTranskrip == 'wajib' && _transkripPath == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Transkrip Nilai wajib diunggah!'),
+          backgroundColor: AppColors.error,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        ),
+      );
+      return;
+    }
+    if (widget.scholarship.fileSertifikat == 'wajib' && _sertifikatPath == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Sertifikat Prestasi wajib diunggah!'),
+          backgroundColor: AppColors.error,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        ),
+      );
+      return;
+    }
+
     if (_formKey.currentState!.validate()) {
       // Tampilkan loading overlay
       showDialog(

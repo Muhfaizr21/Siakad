@@ -12,6 +12,10 @@ class Scholarship {
   final String? ktmKtpUrl;
   final String? sertifikatUrl;
   final String? transkripUrl;
+  final String? persyaratan;
+  final String fileKtm;
+  final String fileTranskrip;
+  final String fileSertifikat;
 
   Scholarship({
     required this.id, 
@@ -27,5 +31,9 @@ class Scholarship {
     this.ktmKtpUrl,
     this.sertifikatUrl,
     this.transkripUrl,
+    this.persyaratan,
+    this.fileKtm = 'wajib',
+    this.fileTranskrip = 'wajib',
+    this.fileSertifikat = 'opsional',
   });
 }

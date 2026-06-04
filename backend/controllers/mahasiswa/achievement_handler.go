@@ -6,7 +6,10 @@ import (
 	"path/filepath"
 	"siakad-backend/config"
 	"siakad-backend/models"
+	"siakad-backend/pkg/notifikasi"
+	"strconv"
 	"strings"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
@@ -27,7 +30,7 @@ func GetAchievements(c *fiber.Ctx) error {
 	search := c.Query("search", "")
 
 	// Base Query
-	query := config.DB.Model(&models.Prestasi{}).Where("mahasiswa_id = ?", student.ID)
+	query := config.DB.Model(&models.Prestasi{}).Preload("Mahasiswa.ProgramStudi").Where("mahasiswa_id = ?", student.ID)
 
 	if search != "" {
 		query = query.Where("nama_kegiatan LIKE ?", "%"+search+"%")
@@ -69,11 +72,15 @@ func CreateAchievement(c *fiber.Ctx) error {
 	}
 
 	var input struct {
-		NamaKegiatan string `json:"nama_kegiatan"`
-		Kategori     string `json:"kategori"`
-		Tingkat      string `json:"tingkat"`
-		Peringkat    string `json:"peringkat"`
-		BuktiURL     string `json:"bukti_url"`
+		NamaKegiatan  string  `json:"nama_kegiatan"`
+		Kategori      string  `json:"kategori"`
+		Tingkat       string  `json:"tingkat"`
+		Peringkat     string  `json:"peringkat"`
+		BuktiURL      string  `json:"bukti_url"`
+		Tipe          string  `json:"tipe"`
+		Penyelenggara string  `json:"penyelenggara"`
+		Tanggal       string  `json:"tanggal"`
+		DanaDiajukan  float64 `json:"dana_diajukan"`
 	}
 	_ = c.BodyParser(&input)
 
@@ -81,6 +88,31 @@ func CreateAchievement(c *fiber.Ctx) error {
 	kategori := firstNonEmpty(c.FormValue("kategori"), input.Kategori)
 	tingkat := firstNonEmpty(c.FormValue("tingkat"), input.Tingkat)
 	peringkat := firstNonEmpty(c.FormValue("peringkat"), input.Peringkat)
+	tipe := firstNonEmpty(c.FormValue("tipe"), input.Tipe)
+	if tipe == "" {
+		tipe = "Laporan Prestasi"
+	}
+	penyelenggara := firstNonEmpty(c.FormValue("penyelenggara"), input.Penyelenggara)
+
+	var tanggalObj time.Time
+	tanggalStr := firstNonEmpty(c.FormValue("tanggal"), input.Tanggal)
+	if tanggalStr != "" {
+		if t, err := time.Parse("2006-01-02", tanggalStr); err == nil {
+			tanggalObj = t
+		} else if t, err := time.Parse(time.RFC3339, tanggalStr); err == nil {
+			tanggalObj = t
+		}
+	}
+
+	var danaDiajukan float64
+	danaDiajukanStr := c.FormValue("dana_diajukan")
+	if danaDiajukanStr != "" {
+		if val, err := strconv.ParseFloat(danaDiajukanStr, 64); err == nil {
+			danaDiajukan = val
+		}
+	} else {
+		danaDiajukan = input.DanaDiajukan
+	}
 
 	if namaKegiatan == "" || tingkat == "" {
 		return c.Status(400).JSON(fiber.Map{"success": false, "message": "Field nama kegiatan dan tingkat wajib diisi"})
@@ -117,14 +149,18 @@ func CreateAchievement(c *fiber.Ctx) error {
 	}
 
 	achievement := models.Prestasi{
-		MahasiswaID:  student.ID,
-		NamaKegiatan: namaKegiatan,
-		Kategori:     kategori,
-		Tingkat:      tingkat,
-		Peringkat:    peringkat,
-		BuktiURL:     buktiURL,
-		Status:       "Menunggu",
-		Poin:         0, // Default for now
+		MahasiswaID:   student.ID,
+		NamaKegiatan:  namaKegiatan,
+		Kategori:      kategori,
+		Tingkat:       tingkat,
+		Peringkat:     peringkat,
+		BuktiURL:      buktiURL,
+		Status:        "Menunggu",
+		Poin:          0,
+		Tipe:          tipe,
+		Penyelenggara: penyelenggara,
+		Tanggal:       tanggalObj,
+		DanaDiajukan:  danaDiajukan,
 	}
 
 	orgID := c.FormValue("riwayat_organisasi_id")
@@ -137,9 +173,27 @@ func CreateAchievement(c *fiber.Ctx) error {
 
 	config.DB.Create(&achievement)
 
+	// Notifikasi konfirmasi ke mahasiswa
+	var notifTitle, notifContent string
+	if tipe == "Pengajuan Dana" {
+		notifTitle = "Pengajuan Dana Lomba Dikirim"
+		notifContent = "Pengajuan dana lomba '" + achievement.NamaKegiatan + "' sebesar Rp " + strconv.FormatFloat(danaDiajukan, 'f', 0, 64) + " berhasil dikirim dan sedang menunggu verifikasi admin."
+	} else {
+		notifTitle = "Laporan Prestasi Diterima"
+		notifContent = "Laporan prestasi '" + achievement.NamaKegiatan + "' berhasil dikirim dan sedang menunggu verifikasi admin."
+	}
+
+	notifikasi.Kirim(config.DB, notifikasi.KirimParams{
+		UserID:  student.PenggunaID,
+		Type:    "prestasi",
+		Title:   notifTitle,
+		Content: notifContent,
+		Link:    "/student/achievement",
+	})
+
 	return c.Status(201).JSON(fiber.Map{
 		"success": true,
-		"message": "Prestasi berhasil dilaporkan",
+		"message": "Data berhasil dilaporkan/diajukan",
 		"data":    achievement,
 	})
 }
@@ -230,11 +284,15 @@ func UpdateAchievement(c *fiber.Ctx) error {
 	}
 
 	var input struct {
-		NamaKegiatan string `json:"nama_kegiatan"`
-		Kategori     string `json:"kategori"`
-		Tingkat      string `json:"tingkat"`
-		Peringkat    string `json:"peringkat"`
-		BuktiURL     string `json:"bukti_url"`
+		NamaKegiatan  string  `json:"nama_kegiatan"`
+		Kategori      string  `json:"kategori"`
+		Tingkat       string  `json:"tingkat"`
+		Peringkat     string  `json:"peringkat"`
+		BuktiURL      string  `json:"bukti_url"`
+		Tipe          string  `json:"tipe"`
+		Penyelenggara string  `json:"penyelenggara"`
+		Tanggal       string  `json:"tanggal"`
+		DanaDiajukan  float64 `json:"dana_diajukan"`
 	}
 	_ = c.BodyParser(&input)
 
@@ -242,6 +300,31 @@ func UpdateAchievement(c *fiber.Ctx) error {
 	kategori := firstNonEmpty(c.FormValue("kategori"), input.Kategori)
 	tingkat := firstNonEmpty(c.FormValue("tingkat"), input.Tingkat)
 	peringkat := firstNonEmpty(c.FormValue("peringkat"), input.Peringkat)
+	tipe := firstNonEmpty(c.FormValue("tipe"), input.Tipe)
+	if tipe == "" {
+		tipe = "Laporan Prestasi"
+	}
+	penyelenggara := firstNonEmpty(c.FormValue("penyelenggara"), input.Penyelenggara)
+
+	var tanggalObj time.Time
+	tanggalStr := firstNonEmpty(c.FormValue("tanggal"), input.Tanggal)
+	if tanggalStr != "" {
+		if t, err := time.Parse("2006-01-02", tanggalStr); err == nil {
+			tanggalObj = t
+		} else if t, err := time.Parse(time.RFC3339, tanggalStr); err == nil {
+			tanggalObj = t
+		}
+	}
+
+	var danaDiajukan float64
+	danaDiajukanStr := c.FormValue("dana_diajukan")
+	if danaDiajukanStr != "" {
+		if val, err := strconv.ParseFloat(danaDiajukanStr, 64); err == nil {
+			danaDiajukan = val
+		}
+	} else {
+		danaDiajukan = input.DanaDiajukan
+	}
 
 	if namaKegiatan == "" || tingkat == "" {
 		return c.Status(400).JSON(fiber.Map{"success": false, "message": "Field nama kegiatan dan tingkat wajib diisi"})
@@ -278,6 +361,10 @@ func UpdateAchievement(c *fiber.Ctx) error {
 	achievement.Kategori = kategori
 	achievement.Tingkat = tingkat
 	achievement.Peringkat = peringkat
+	achievement.Tipe = tipe
+	achievement.Penyelenggara = penyelenggara
+	achievement.Tanggal = tanggalObj
+	achievement.DanaDiajukan = danaDiajukan
 	if buktiURL != "" {
 		achievement.BuktiURL = buktiURL
 	}
@@ -286,7 +373,7 @@ func UpdateAchievement(c *fiber.Ctx) error {
 
 	return c.JSON(fiber.Map{
 		"success": true,
-		"message": "Prestasi berhasil diperbarui",
+		"message": "Data berhasil diperbarui",
 		"data":    achievement,
 	})
 }

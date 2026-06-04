@@ -68,8 +68,10 @@ func GetDashboard(c *fiber.Ctx) error {
 	// 4. Beasiswa Stats
 	var countBeasiswaProses int64
 	var countBeasiswaMenunggu int64
-	config.DB.Model(&models.BeasiswaPendaftaran{}).Where("mahasiswa_id = ? AND status = ?", student.ID, "Proses").Count(&countBeasiswaProses)
-	config.DB.Model(&models.BeasiswaPendaftaran{}).Where("mahasiswa_id = ? AND status = ?", student.ID, "Menunggu").Count(&countBeasiswaMenunggu)
+	var countBeasiswaTersedia int64
+	config.DB.Model(&models.BeasiswaPendaftaran{}).Where("mahasiswa_id = ? AND status NOT IN (?, ?)", student.ID, "Diterima", "Ditolak").Count(&countBeasiswaProses)
+	config.DB.Model(&models.BeasiswaPendaftaran{}).Where("mahasiswa_id = ? AND status IN (?, ?)", student.ID, "Menunggu", "Diajukan").Count(&countBeasiswaMenunggu)
+	config.DB.Model(&models.Beasiswa{}).Where("deadline > ?", time.Now()).Count(&countBeasiswaTersedia)
 
 	// 5. Student Voice (Aspirasi) Stats
 	var countAspirasiAktif int64
@@ -170,6 +172,7 @@ func GetDashboard(c *fiber.Ctx) error {
 			"beasiswa": fiber.Map{
 				"jumlah_proses":   countBeasiswaProses,
 				"jumlah_menunggu": countBeasiswaMenunggu,
+				"total_tersedia":  countBeasiswaTersedia,
 			},
 			"student_voice": fiber.Map{
 				"jumlah_aktif":           countAspirasiAktif,

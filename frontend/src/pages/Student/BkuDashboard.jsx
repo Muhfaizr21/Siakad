@@ -10,6 +10,7 @@ import StatusSummary from '../../components/dashboard/StatusSummary';
 import ActivityFeed from '../../components/dashboard/ActivityFeed';
 import CalendarMini from '../../components/dashboard/CalendarMini';
 import AnnouncementSection from '../../components/dashboard/AnnouncementSection';
+import AvailableScholarships from '../../components/dashboard/AvailableScholarships';
 
 export default function BkuDashboard() {
   const { data, isLoading, isError } = useDashboardQuery();
@@ -85,6 +86,11 @@ export default function BkuDashboard() {
           {/* [5] Quick Access — akses cepat ke fitur utama */}
           <section aria-label="Akses Cepat">
             <QuickAccessGrid />
+          </section>
+
+          {/* Beasiswa yang Tersedia */}
+          <section aria-label="Beasiswa yang Tersedia">
+            <AvailableScholarships />
           </section>
 
           {/* [6] Aktivitas & Kalender — layout dua kolom */}

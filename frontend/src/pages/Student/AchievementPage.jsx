@@ -36,6 +36,9 @@ function formatDate(dateStr) {
 
 // Zod Schema
 const achievementSchema = z.object({
+  tipe: z.enum(['Laporan Prestasi', 'Pengajuan Dana'], {
+    required_error: 'Pilih tipe pengajuan',
+  }),
   nama_lomba: z.string().min(3, { message: 'Nama lomba minimal 3 karakter' }),
   kategori: z.enum(['Akademik', 'Non-Akademik', 'Olahraga', 'Seni', 'Wirausaha'], {
     required_error: 'Pilih kategori',
@@ -45,12 +48,11 @@ const achievementSchema = z.object({
   }),
   penyelenggara: z.string().min(3, { message: 'Nama penyelenggara minimal 3 karakter' }),
   tanggal: z.string().nonempty({ message: 'Tanggal wajib diisi' }),
-  peringkat: z.enum(['Juara 1', 'Juara 2', 'Juara 3', 'Harapan 1', 'Harapan 2', 'Finalis', 'Peserta'], {
-    required_error: 'Pilih peringkat',
-  }),
+  peringkat: z.string().optional(),
+  dana_diajukan: z.string().optional(),
   sertifikat: z
     .any()
-    .refine((files) => files?.length === 1, 'Sertifikat wajib diunggah')
+    .refine((files) => files?.length === 1, 'File wajib diunggah')
     .refine(
       (files) => files?.[0]?.size <= 5 * 1024 * 1024,
       'Ukuran file maksimal 5MB'
@@ -60,6 +62,23 @@ const achievementSchema = z.object({
       'Format hanya PDF, JPG, atau PNG'
     ),
   riwayat_organisasi_id: z.string().optional(),
+}).superRefine((data, ctx) => {
+  if (data.tipe === 'Laporan Prestasi' && !data.peringkat) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Pilih peringkat yang diraih',
+      path: ['peringkat'],
+    });
+  }
+  if (data.tipe === 'Pengajuan Dana') {
+    if (!data.dana_diajukan || isNaN(Number(data.dana_diajukan)) || Number(data.dana_diajukan) <= 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Dana diajukan wajib diisi dengan angka positif',
+        path: ['dana_diajukan'],
+      });
+    }
+  }
 });
 
 export default function AchievementPage() {
@@ -73,7 +92,54 @@ export default function AchievementPage() {
   const deleteMutation = useDeleteAchievementMutation();
 
   const stats = achievementData?.stats || { total: 0, verified: 0, pending: 0 };
-  const data = useMemo(() => achievementData?.list || [], [achievementData]);
+
+  const [filterSemester, setFilterSemester] = useState('all');
+  const [filterPeriode, setFilterPeriode] = useState('all');
+  const [filterProdi, setFilterProdi] = useState('all');
+
+  const mappedList = useMemo(() => {
+    return (achievementData?.list || []).map(a => {
+      return {
+        ...a,
+        semester_filter: a.mahasiswa?.SemesterSekarang || a.mahasiswa?.semester_sekarang ? String(a.mahasiswa?.SemesterSekarang || a.mahasiswa?.semester_sekarang) : '',
+        periode_filter: a.tanggal || a.Tanggal ? String(new Date(a.tanggal || a.Tanggal).getFullYear()) : (a.created_at || a.CreatedAt ? String(new Date(a.created_at || a.CreatedAt).getFullYear()) : ''),
+        prodi_filter: a.mahasiswa?.ProgramStudi?.Nama || a.mahasiswa?.program_studi?.nama || '',
+      };
+    });
+  }, [achievementData]);
+
+  const semesterOptions = useMemo(() => {
+    const semesters = new Set();
+    mappedList.forEach(a => {
+      if (a.semester_filter) semesters.add(a.semester_filter);
+    });
+    return Array.from(semesters).sort((a, b) => Number(a) - Number(b));
+  }, [mappedList]);
+
+  const periodeOptions = useMemo(() => {
+    const periods = new Set();
+    mappedList.forEach(a => {
+      if (a.periode_filter) periods.add(a.periode_filter);
+    });
+    return Array.from(periods).sort((a, b) => Number(b) - Number(a));
+  }, [mappedList]);
+
+  const prodiOptions = useMemo(() => {
+    const prodis = new Set();
+    mappedList.forEach(a => {
+      if (a.prodi_filter) prodis.add(a.prodi_filter);
+    });
+    return Array.from(prodis).sort();
+  }, [mappedList]);
+
+  const data = useMemo(() => {
+    return mappedList.filter(item => {
+      const matchSem = filterSemester === 'all' || item.semester_filter === filterSemester;
+      const matchPer = filterPeriode === 'all' || item.periode_filter === filterPeriode;
+      const matchPr = filterProdi === 'all' || item.prodi_filter === filterProdi;
+      return matchSem && matchPer && matchPr;
+    });
+  }, [mappedList, filterSemester, filterPeriode, filterProdi]);
 
   const { data: orgData } = useOrganisasiListQuery();
   const orgList = orgData || [];
@@ -90,15 +156,21 @@ export default function AchievementPage() {
   });
   
   const fileValue = watch('sertifikat');
+  const tipeValue = watch('tipe') || 'Laporan Prestasi';
 
   const onSubmit = (formData) => {
     const payload = new FormData();
+    payload.append('tipe', formData.tipe);
     payload.append('nama_kegiatan', formData.nama_lomba);
     payload.append('kategori', formData.kategori);
     payload.append('tingkat', formData.tingkat);
     payload.append('penyelenggara', formData.penyelenggara);
     payload.append('tanggal', formData.tanggal);
-    payload.append('peringkat', formData.peringkat);
+    if (formData.tipe === 'Laporan Prestasi') {
+      payload.append('peringkat', formData.peringkat);
+    } else {
+      payload.append('dana_diajukan', formData.dana_diajukan);
+    }
     payload.append('bukti', formData.sertifikat[0]);
     
     if (formData.riwayat_organisasi_id) {
@@ -107,12 +179,12 @@ export default function AchievementPage() {
 
     createMutation.mutate(payload, {
       onSuccess: () => {
-        toast.success('Prestasi berhasil dilaporkan!');
+        toast.success(formData.tipe === 'Pengajuan Dana' ? 'Pengajuan dana berhasil dikirim!' : 'Prestasi berhasil dilaporkan!');
         reset();
         setIsModalOpen(false);
       },
       onError: (err) => {
-        toast.error(err.response?.data?.message || 'Gagal melaporkan prestasi');
+        toast.error(err.response?.data?.message || 'Gagal menyimpan data');
       },
     });
   };
@@ -139,10 +211,14 @@ export default function AchievementPage() {
         cell: (info) => {
           const name = info.row.original.nama_kegiatan || info.row.original.NamaKegiatan || '';
           const category = info.row.original.kategori || info.row.original.Kategori || '';
+          const tipe = info.row.original.tipe || info.row.original.Tipe || 'Laporan Prestasi';
           return (
             <div>
               <p className="font-bold text-[#171717]">{name}</p>
-              <p className="text-xs text-[#a3a3a3]">{category}</p>
+              <div className="flex gap-1.5 mt-1">
+                <span className="text-[10px] font-bold text-[#00236F] bg-[#eef4ff] px-1.5 py-0.5 rounded">{category}</span>
+                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${tipe === 'Pengajuan Dana' ? 'text-amber-700 bg-amber-50 border border-amber-200' : 'text-emerald-700 bg-emerald-50 border border-emerald-200'}`}>{tipe}</span>
+              </div>
             </div>
           );
         },
@@ -157,9 +233,25 @@ export default function AchievementPage() {
       },
       {
         accessorKey: 'peringkat',
-        header: 'Peringkat',
+        header: 'Peringkat / Pendanaan',
         cell: (info) => {
-          const val = info.row.original.peringkat || info.row.original.Peringkat || '';
+          const row = info.row.original;
+          const tipe = row.tipe || row.Tipe || 'Laporan Prestasi';
+          if (tipe === 'Pengajuan Dana') {
+            const reqAmt = row.dana_diajukan || row.DanaDiajukan || 0;
+            const appAmt = row.dana_disetujui || row.DanaDisetujui || 0;
+            return (
+              <div className="text-xs whitespace-nowrap">
+                <p className="text-[#525252]">Diajukan: <span className="font-bold">Rp {reqAmt.toLocaleString('id-ID')}</span></p>
+                {appAmt > 0 ? (
+                  <p className="text-emerald-600 font-bold mt-0.5">Disetujui: Rp {appAmt.toLocaleString('id-ID')}</p>
+                ) : (
+                  <p className="text-[#a3a3a3] italic mt-0.5">Belum disetujui</p>
+                )}
+              </div>
+            );
+          }
+          const val = row.peringkat || row.Peringkat || '';
           return <span className="font-semibold text-[#00236F]">{val}</span>;
         },
       },
@@ -177,13 +269,13 @@ export default function AchievementPage() {
         cell: (info) => {
           const val = info.row.original.status || info.row.original.Status || 'Menunggu';
           let style = 'bg-[#f5f5f5] text-[#525252] border-[#e5e5e5]';
-          if (val === 'Diverifikasi' || val === 'Valid') style = 'bg-[#f0fdf4] text-[#16a34a] border-[#bbf7d0]';
+          if (val === 'Diverifikasi' || val === 'Valid' || val === 'Disetujui') style = 'bg-[#f0fdf4] text-[#16a34a] border-[#bbf7d0]';
           if (val === 'Menunggu' || val === 'Pending') style = 'bg-[#eef4ff] text-[#00236F] border-[#c9d8ff]';
           if (val === 'Ditolak') style = 'bg-[#fef2f2] text-[#dc2626] border-[#fecaca]';
 
           return (
             <span className={`px-3 py-1 rounded-full text-xs font-bold border ${style}`}>
-              {val}
+              {val === 'Diverifikasi' || val === 'Valid' || val === 'Disetujui' ? 'Disetujui' : val}
             </span>
           );
         },
@@ -286,20 +378,64 @@ export default function AchievementPage() {
 
       {/* Table Section */}
       <div className="bg-white rounded-2xl border border-[#e5e5e5] shadow-sm overflow-hidden">
-        <div className="p-4 md:p-5 border-b border-[#e5e5e5] flex flex-col sm:flex-row justify-between items-center gap-3 bg-[#f4f8ff]">
+        <div className="p-4 md:p-5 border-b border-[#e5e5e5] flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 bg-[#f4f8ff]">
           <div>
             <h2 className="font-bold text-base md:text-lg">Riwayat Prestasi</h2>
-            <p className="text-xs text-[#737373] mt-0.5">Gunakan pencarian untuk menemukan kompetisi tertentu dengan cepat.</p>
+            <p className="text-xs text-[#737373] mt-0.5">Gunakan pencarian dan filter untuk menyaring data prestasimu.</p>
           </div>
-          <div className="relative w-full sm:w-64">
-            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#a3a3a3]" style={{ fontSize: '18px' }} >search</span>
-            <input
-              type="text"
-              placeholder="Cari nama lomba..."
-              value={globalFilter ?? ''}
-              onChange={(e) => setGlobalFilter(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 rounded-xl border border-[#e5e5e5] focus:outline-none focus:border-[#00236F] text-sm"
-            />
+          <div className="flex flex-wrap items-center gap-2.5 w-full xl:w-auto">
+            <div className="relative w-full sm:w-64">
+              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#a3a3a3]" style={{ fontSize: '18px' }} >search</span>
+              <input
+                type="text"
+                placeholder="Cari nama lomba..."
+                value={globalFilter ?? ''}
+                onChange={(e) => setGlobalFilter(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 rounded-xl border border-[#e5e5e5] focus:outline-none focus:border-[#00236F] text-sm bg-white"
+              />
+            </div>
+            
+            <div className="relative">
+              <select value={filterSemester} onChange={e => setFilterSemester(e.target.value)}
+                className="h-9 pl-3 pr-8 rounded-xl border border-[#e5e5e5] text-xs font-bold bg-white text-[#525252] focus:outline-none focus:border-[#00236F] appearance-none cursor-pointer">
+                <option value="all">Semua Semester</option>
+                {semesterOptions.map(sem => (
+                  <option key={sem} value={sem}>Semester {sem}</option>
+                ))}
+              </select>
+              <span className="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-[#525252] pointer-events-none select-none" style={{ fontSize: '16px' }}>keyboard_arrow_down</span>
+            </div>
+
+            <div className="relative">
+              <select value={filterPeriode} onChange={e => setFilterPeriode(e.target.value)}
+                className="h-9 pl-3 pr-8 rounded-xl border border-[#e5e5e5] text-xs font-bold bg-white text-[#525252] focus:outline-none focus:border-[#00236F] appearance-none cursor-pointer">
+                <option value="all">Semua Periode</option>
+                {periodeOptions.map(per => (
+                  <option key={per} value={per}>Periode {per}</option>
+                ))}
+              </select>
+              <span className="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-[#525252] pointer-events-none select-none" style={{ fontSize: '16px' }}>keyboard_arrow_down</span>
+            </div>
+
+            <div className="relative">
+              <select value={filterProdi} onChange={e => setFilterProdi(e.target.value)}
+                className="h-9 pl-3 pr-8 rounded-xl border border-[#e5e5e5] text-xs font-bold bg-white text-[#525252] focus:outline-none focus:border-[#00236F] appearance-none cursor-pointer">
+                <option value="all">Semua Prodi</option>
+                {prodiOptions.map(prod => (
+                  <option key={prod} value={prod}>{prod}</option>
+                ))}
+              </select>
+              <span className="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-[#525252] pointer-events-none select-none" style={{ fontSize: '16px' }}>keyboard_arrow_down</span>
+            </div>
+
+            {(globalFilter || filterSemester !== 'all' || filterPeriode !== 'all' || filterProdi !== 'all') && (
+              <button 
+                onClick={() => { setGlobalFilter(''); setFilterSemester('all'); setFilterPeriode('all'); setFilterProdi('all'); }}
+                className="h-9 px-3 text-xs font-bold text-rose-600 bg-rose-50 rounded-xl border border-rose-200 hover:bg-rose-100 transition-colors"
+              >
+                Reset
+              </button>
+            )}
           </div>
         </div>
 
@@ -383,13 +519,22 @@ export default function AchievementPage() {
         <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-2xl rounded-2xl shadow-xl flex flex-col max-h-[90vh]">
             <div className="flex justify-between items-center p-6 border-b border-[#e5e5e5]">
-              <h2 className="text-xl font-bold font-headline">Lapor Prestasi Baru</h2>
+              <h2 className="text-xl font-bold font-headline">{tipeValue === 'Pengajuan Dana' ? 'Ajukan Dana Lomba Baru' : 'Lapor Prestasi Baru'}</h2>
               <button onClick={() => setIsModalOpen(false)} className="text-[#a3a3a3] hover:text-[#171717]">
                 <span className="material-symbols-outlined" style={{ fontSize: '24px' }} >close</span>
               </button>
             </div>
             
             <form onSubmit={handleSubmit(onSubmit)} className="p-6 overflow-y-auto flex-1 space-y-5">
+              <div>
+                <label className="block text-sm font-semibold mb-1 text-[#525252]">Tipe Pengajuan <span className="text-red-500">*</span></label>
+                <select {...register('tipe')} defaultValue="Laporan Prestasi" className="w-full border border-[#e5e5e5] rounded-xl px-4 py-2 focus:border-[#00236F] outline-none text-[#171717]">
+                  <option value="Laporan Prestasi">Laporan Prestasi (Riwayat Kompetisi)</option>
+                  <option value="Pengajuan Dana">Pengajuan Dana Lomba (Keikutsertaan Lomba Luar Kampus)</option>
+                </select>
+                {errors.tipe && <p className="text-xs text-red-500 mt-1">{errors.tipe.message}</p>}
+              </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div>
                   <label className="block text-sm font-semibold mb-1 text-[#525252]">Nama Lomba/Kompetisi <span className="text-red-500">*</span></label>
@@ -435,20 +580,28 @@ export default function AchievementPage() {
                   <input type="date" {...register('tanggal')} className="w-full border border-[#e5e5e5] rounded-xl px-4 py-2 focus:border-[#00236F] outline-none text-[#171717]" />
                   {errors.tanggal && <p className="text-xs text-red-500 mt-1">{errors.tanggal.message}</p>}
                 </div>
-                <div>
-                  <label className="block text-sm font-semibold mb-1 text-[#525252]">Peringkat Diraih <span className="text-red-500">*</span></label>
-                  <select {...register('peringkat')} className="w-full border border-[#e5e5e5] rounded-xl px-4 py-2 focus:border-[#00236F] outline-none text-[#171717]">
-                    <option value="">Pilih Peringkat</option>
-                    <option value="Juara 1">Juara 1 (Emas)</option>
-                    <option value="Juara 2">Juara 2 (Perak)</option>
-                    <option value="Juara 3">Juara 3 (Perunggu)</option>
-                    <option value="Harapan 1">Harapan 1</option>
-                    <option value="Harapan 2">Harapan 2</option>
-                    <option value="Finalis">Finalis</option>
-                    <option value="Peserta">Partisipan / Peserta</option>
-                  </select>
-                  {errors.peringkat && <p className="text-xs text-red-500 mt-1">{errors.peringkat.message}</p>}
-                </div>
+                {tipeValue === 'Laporan Prestasi' ? (
+                  <div>
+                    <label className="block text-sm font-semibold mb-1 text-[#525252]">Peringkat Diraih <span className="text-red-500">*</span></label>
+                    <select {...register('peringkat')} className="w-full border border-[#e5e5e5] rounded-xl px-4 py-2 focus:border-[#00236F] outline-none text-[#171717]">
+                      <option value="">Pilih Peringkat</option>
+                      <option value="Juara 1">Juara 1 (Emas)</option>
+                      <option value="Juara 2">Juara 2 (Perak)</option>
+                      <option value="Juara 3">Juara 3 (Perunggu)</option>
+                      <option value="Harapan 1">Harapan 1</option>
+                      <option value="Harapan 2">Harapan 2</option>
+                      <option value="Finalis">Finalis</option>
+                      <option value="Peserta">Partisipan / Peserta</option>
+                    </select>
+                    {errors.peringkat && <p className="text-xs text-red-500 mt-1">{errors.peringkat.message}</p>}
+                  </div>
+                ) : (
+                  <div>
+                    <label className="block text-sm font-semibold mb-1 text-[#525252]">Dana yang Diajukan (Rp) <span className="text-red-500">*</span></label>
+                    <input type="number" {...register('dana_diajukan')} className="w-full border border-[#e5e5e5] rounded-xl px-4 py-2 focus:border-[#00236F] outline-none" placeholder="Cth: 1500000" />
+                    {errors.dana_diajukan && <p className="text-xs text-red-500 mt-1">{errors.dana_diajukan.message}</p>}
+                  </div>
+                )}
               </div>
 
               <div>
@@ -456,13 +609,15 @@ export default function AchievementPage() {
                  <select {...register('riwayat_organisasi_id')} className="w-full border border-[#e5e5e5] rounded-xl px-4 py-2 focus:border-[#00236F] outline-none text-[#171717]">
                     <option value="">(Tidak terkait organisasi)</option>
                     {orgList.map(org => (
-                       <option key={org.ID} value={org.ID}>{org.NamaOrganisasi} ({org.Jabatan})</option>
+                       <option key={org.id || org.ID} value={org.id || org.ID}>{org.NamaOrganisasi} ({org.Jabatan})</option>
                     ))}
                  </select>
               </div>
 
               <div>
-                <label className="block text-sm font-semibold mb-1 text-[#525252]">Upload Sertifikat/Bukti <span className="text-red-500">*</span></label>
+                <label className="block text-sm font-semibold mb-1 text-[#525252]">
+                  {tipeValue === 'Pengajuan Dana' ? 'Upload Proposal/Bukti Pendukung' : 'Upload Sertifikat/Bukti'} <span className="text-red-500">*</span>
+                </label>
                 <div className="border-2 border-dashed border-[#e5e5e5] rounded-xl p-6 text-center hover:bg-[#fafafa] transition-colors relative">
                   <input type="file" accept=".pdf,.png,.jpg,.jpeg" {...register('sertifikat')} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
                   <div className="pointer-events-none flex flex-col items-center">
@@ -482,7 +637,7 @@ export default function AchievementPage() {
               <div className="pt-4 border-t border-[#e5e5e5] flex justify-end gap-3">
                 <button type="button" onClick={() => setIsModalOpen(false)} className="px-5 py-2.5 rounded-xl font-bold border border-[#e5e5e5] text-[#171717] hover:bg-[#f5f5f5]">Batal</button>
                 <button type="submit" disabled={createMutation.isLoading} className="px-5 py-2.5 rounded-xl font-bold bg-[#00236F] text-white hover:bg-[#0B4FAE] disabled:opacity-50">
-                  {createMutation.isLoading ? 'Menyimpan...' : 'Simpan Prestasi'}
+                  {createMutation.isLoading ? 'Menyimpan...' : (tipeValue === 'Pengajuan Dana' ? 'Kirim Pengajuan Dana' : 'Simpan Prestasi')}
                 </button>
               </div>
             </form>
@@ -491,49 +646,79 @@ export default function AchievementPage() {
       )}
 
       {/* MODAL DETAIL */}
-      {selectedDetail && (
-        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white w-full max-w-xl rounded-2xl shadow-xl flex flex-col">
-            <div className="flex justify-between items-center p-6 border-b border-[#e5e5e5]">
-              <h2 className="text-xl font-bold font-headline">Detail Prestasi</h2>
-              <button onClick={() => setSelectedDetail(null)} className="text-[#a3a3a3] hover:text-[#171717]">
-                <span className="material-symbols-outlined" style={{ fontSize: '24px' }} >close</span>
-              </button>
-            </div>
-            <div className="p-6">
-              
-              {(selectedDetail.status === 'Ditolak' || selectedDetail.Status === 'Ditolak') && (
-                 <div className="bg-[#fef2f2] border border-[#fecaca] p-4 rounded-xl mb-6">
-                   <p className="font-bold text-[#dc2626] text-sm">Alasan Ditolak:</p>
-                   <p className="text-[#991b1b] text-sm mt-1">{selectedDetail.catatan_verifikator || selectedDetail.CatatanVerifikator || 'Tidak ada catatan.'}</p>
-                 </div>
-              )}
-
-              <table className="w-full text-sm">
-                <tbody>
-                  <tr className="border-b border-[#f5f5f5]"><td className="py-2.5 font-semibold text-[#a3a3a3] w-1/3">Nama Lomba</td><td className="py-2 font-bold text-[#171717]">{selectedDetail.nama_kegiatan || selectedDetail.NamaKegiatan}</td></tr>
-                  <tr className="border-b border-[#f5f5f5]"><td className="py-2.5 font-semibold text-[#a3a3a3]">Kategori / Tingkat</td><td className="py-2 font-bold text-[#171717]">{selectedDetail.kategori || selectedDetail.Kategori} - {selectedDetail.tingkat || selectedDetail.Tingkat}</td></tr>
-                  <tr className="border-b border-[#f5f5f5]"><td className="py-2.5 font-semibold text-[#a3a3a3]">Penyelenggara</td><td className="py-2 font-bold text-[#171717]">{selectedDetail.penyelenggara || selectedDetail.Penyelenggara}</td></tr>
-                  <tr className="border-b border-[#f5f5f5]"><td className="py-2.5 font-semibold text-[#a3a3a3]">Peringkat</td><td className="py-2 font-bold text-[#00236F]">{selectedDetail.peringkat || selectedDetail.Peringkat}</td></tr>
-                  <tr className="border-b border-[#f5f5f5]"><td className="py-2.5 font-semibold text-[#a3a3a3]">Status</td><td className="py-2 font-bold text-[#171717]">{selectedDetail.status || selectedDetail.Status}</td></tr>
-                </tbody>
-              </table>
-
-              <div className="mt-6">
-                <p className="font-semibold text-sm mb-2 text-[#a3a3a3]">Bukti Sertifikat</p>
-                {(selectedDetail.bukti_url || selectedDetail.BuktiURL) ? (
-                  <a href={`${API_BASE_URL.replace('/api', '')}${selectedDetail.bukti_url || selectedDetail.BuktiURL}`} target="_blank" rel="noreferrer" className="flex items-center justify-center p-3 border border-[#e5e5e5] rounded-xl hover:bg-[#eef4ff] hover:border-[#00236F] transition-colors text-sm font-bold text-[#00236F]">
-                    Lihat Dokumen Sertifikat
-                  </a>
-                ) : (
-                  <p className="text-sm italic text-[#a3a3a3]">Tidak ada lampiran.</p>
-                )}
+      {selectedDetail && (() => {
+        const detailTipe = selectedDetail.tipe || selectedDetail.Tipe || 'Laporan Prestasi';
+        return (
+          <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
+            <div className="bg-white w-full max-w-xl rounded-2xl shadow-xl flex flex-col">
+              <div className="flex justify-between items-center p-6 border-b border-[#e5e5e5]">
+                <h2 className="text-xl font-bold font-headline">
+                  {detailTipe === 'Pengajuan Dana' ? 'Detail Pengajuan Dana Lomba' : 'Detail Prestasi'}
+                </h2>
+                <button onClick={() => setSelectedDetail(null)} className="text-[#a3a3a3] hover:text-[#171717]">
+                  <span className="material-symbols-outlined" style={{ fontSize: '24px' }} >close</span>
+                </button>
               </div>
+              <div className="p-6">
+                
+                {(selectedDetail.catatan_verifikator || selectedDetail.CatatanVerifikator) && (
+                   <div className={`p-4 rounded-xl mb-6 border ${selectedDetail.status === 'Ditolak' || selectedDetail.Status === 'Ditolak' ? 'bg-[#fef2f2] border-[#fecaca] text-[#991b1b]' : 'bg-[#f0fdf4] border-[#bbf7d0] text-[#166534]'}`}>
+                     <p className="font-bold text-sm">{selectedDetail.status === 'Ditolak' || selectedDetail.Status === 'Ditolak' ? 'Alasan Ditolak:' : 'Catatan Verifikator:'}</p>
+                     <p className="text-sm mt-1">{selectedDetail.catatan_verifikator || selectedDetail.CatatanVerifikator}</p>
+                   </div>
+                )}
 
+                <table className="w-full text-sm">
+                  <tbody>
+                    <tr className="border-b border-[#f5f5f5]"><td className="py-2.5 font-semibold text-[#a3a3a3] w-1/3">Tipe Pengajuan</td><td className="py-2 font-bold text-[#171717]">{detailTipe}</td></tr>
+                    <tr className="border-b border-[#f5f5f5]"><td className="py-2.5 font-semibold text-[#a3a3a3]">Nama Lomba</td><td className="py-2 font-bold text-[#171717]">{selectedDetail.nama_kegiatan || selectedDetail.NamaKegiatan}</td></tr>
+                    <tr className="border-b border-[#f5f5f5]"><td className="py-2.5 font-semibold text-[#a3a3a3]">Kategori / Tingkat</td><td className="py-2 font-bold text-[#171717]">{selectedDetail.kategori || selectedDetail.Kategori} - {selectedDetail.tingkat || selectedDetail.Tingkat}</td></tr>
+                    <tr className="border-b border-[#f5f5f5]"><td className="py-2.5 font-semibold text-[#a3a3a3]">Penyelenggara</td><td className="py-2 font-bold text-[#171717]">{selectedDetail.penyelenggara || selectedDetail.Penyelenggara || '—'}</td></tr>
+                    
+                    {detailTipe === 'Pengajuan Dana' ? (
+                      <>
+                        <tr className="border-b border-[#f5f5f5]">
+                          <td className="py-2.5 font-semibold text-[#a3a3a3]">Dana Diajukan</td>
+                          <td className="py-2 font-bold text-[#00236F]">Rp {(selectedDetail.dana_diajukan || selectedDetail.DanaDiajukan || 0).toLocaleString('id-ID')}</td>
+                        </tr>
+                        <tr className="border-b border-[#f5f5f5]">
+                          <td className="py-2.5 font-semibold text-[#a3a3a3]">Dana Disetujui</td>
+                          <td className="py-2 font-bold text-emerald-600">
+                            {(selectedDetail.dana_disetujui || selectedDetail.DanaDisetujui) ? `Rp ${(selectedDetail.dana_disetujui || selectedDetail.DanaDisetujui).toLocaleString('id-ID')}` : 'Belum disetujui'}
+                          </td>
+                        </tr>
+                      </>
+                    ) : (
+                      <tr className="border-b border-[#f5f5f5]"><td className="py-2.5 font-semibold text-[#a3a3a3]">Peringkat</td><td className="py-2 font-bold text-[#00236F]">{selectedDetail.peringkat || selectedDetail.Peringkat || '—'}</td></tr>
+                    )}
+                    
+                    <tr className="border-b border-[#f5f5f5]">
+                      <td className="py-2.5 font-semibold text-[#a3a3a3]">Status</td>
+                      <td className="py-2 font-bold text-[#171717]">
+                        {selectedDetail.status === 'Diverifikasi' || selectedDetail.status === 'Valid' || selectedDetail.status === 'Disetujui' || selectedDetail.Status === 'Diverifikasi' || selectedDetail.Status === 'Disetujui' ? 'Disetujui' : (selectedDetail.status || selectedDetail.Status || 'Menunggu')}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+
+                <div className="mt-6">
+                  <p className="font-semibold text-sm mb-2 text-[#a3a3a3]">
+                    {detailTipe === 'Pengajuan Dana' ? 'Proposal / Dokumen Pendukung' : 'Bukti Sertifikat'}
+                  </p>
+                  {(selectedDetail.bukti_url || selectedDetail.BuktiURL) ? (
+                    <a href={`${API_BASE_URL.replace('/api', '')}${selectedDetail.bukti_url || selectedDetail.BuktiURL}`} target="_blank" rel="noreferrer" className="flex items-center justify-center p-3 border border-[#e5e5e5] rounded-xl hover:bg-[#eef4ff] hover:border-[#00236F] transition-colors text-sm font-bold text-[#00236F]">
+                      {detailTipe === 'Pengajuan Dana' ? 'Lihat Proposal / Dokumen' : 'Lihat Dokumen Sertifikat'}
+                    </a>
+                  ) : (
+                    <p className="text-sm italic text-[#a3a3a3]">Tidak ada lampiran.</p>
+                  )}
+                </div>
+
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
     </div>
   );

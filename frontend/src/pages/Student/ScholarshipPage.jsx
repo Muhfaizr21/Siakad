@@ -44,15 +44,19 @@ const getDaysLeft = (deadline) => {
   return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
 };
 
+
+
 // ======================== STATUS CONFIG ========================
 const STATUS_BADGE = {
   dikirim: { label: 'Dikirim', color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-200' },
+  menunggu: { label: 'Menunggu', color: 'text-blue-600', bg: 'bg-blue-50', border: 'border-blue-200' },
+  proses: { label: 'Proses', color: 'text-amber-600', bg: 'bg-amber-50', border: 'border-amber-200' },
+  diterima: { label: 'Diterima', color: 'text-green-600', bg: 'bg-green-50', border: 'border-green-200' },
+  ditolak: { label: 'Ditolak', color: 'text-red-600', bg: 'bg-red-50', border: 'border-red-200' },
   seleksi_berkas: { label: 'Seleksi Berkas', color: 'text-purple-600', bg: 'bg-purple-50', border: 'border-purple-200' },
   evaluasi: { label: 'Evaluasi', color: 'text-[#00236F]', bg: 'bg-[#eef4ff]', border: 'border-[#c9d8ff]' },
   review: { label: 'Review', color: 'text-indigo-600', bg: 'bg-indigo-50', border: 'border-indigo-200' },
   penetapan: { label: 'Penetapan', color: 'text-amber-600', bg: 'bg-amber-50', border: 'border-amber-200' },
-  diterima: { label: 'Diterima', color: 'text-green-600', bg: 'bg-green-50', border: 'border-green-200' },
-  ditolak: { label: 'Ditolak', color: 'text-red-600', bg: 'bg-red-50', border: 'border-red-200' },
 };
 
 // ======================== APPLICATION MODAL (3-STEP WIZARD) ========================
@@ -78,10 +82,14 @@ function ApplyWizard({ scholarship, onClose, onSuccess }) {
 
   const isStep1Valid = motivasi.length >= 150;
   
-  const requiredKeys = ['ktm_ktp'];
-  if (scholarshipIpkMin > 0) {
-    requiredKeys.push('transkrip');
-  }
+  const fileKtmRule = scholarship?.file_ktm || scholarship?.FileKtm || 'wajib';
+  const fileTranskripRule = scholarship?.file_transkrip || scholarship?.FileTranskrip || 'wajib';
+  const fileSertifikatRule = scholarship?.file_sertifikat || scholarship?.FileSertifikat || 'opsional';
+
+  const requiredKeys = [];
+  if (fileKtmRule === 'wajib') requiredKeys.push('ktm_ktp');
+  if (fileTranskripRule === 'wajib') requiredKeys.push('transkrip');
+  if (fileSertifikatRule === 'wajib') requiredKeys.push('sertifikat');
   
   const isStep2Valid = requiredKeys.every(key => !!files[key]);
 
@@ -158,10 +166,10 @@ function ApplyWizard({ scholarship, onClose, onSuccess }) {
           {step === 2 && (
             <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {[
-                { key: 'ktm_ktp', label: 'Kartu Tanda Mahasiswa & KTP', required: true },
-                { key: 'transkrip', label: 'Transkrip Nilai Akademik', required: scholarshipIpkMin > 0 },
-                { key: 'sertifikat', label: 'Sertifikat Pendukung (Opsional)', required: false }
-              ].map(item => (
+                { key: 'ktm_ktp', label: 'Kartu Tanda Mahasiswa & KTP' + (fileKtmRule === 'opsional' ? ' (Opsional)' : ''), required: fileKtmRule === 'wajib', rule: fileKtmRule },
+                { key: 'transkrip', label: 'Transkrip Nilai Akademik' + (fileTranskripRule === 'opsional' ? ' (Opsional)' : ''), required: fileTranskripRule === 'wajib', rule: fileTranskripRule },
+                { key: 'sertifikat', label: 'Sertifikat Pendukung' + (fileSertifikatRule === 'opsional' ? ' (Opsional)' : ''), required: fileSertifikatRule === 'wajib', rule: fileSertifikatRule }
+              ].filter(item => item.rule !== 'tidak').map(item => (
                 <div key={item.key} className="relative">
                   <label className="block text-[10px] font-black text-[#a3a3a3] uppercase tracking-widest mb-2">
                     {item.label} {item.required && <span className="text-red-500">*</span>}
@@ -205,9 +213,9 @@ function ApplyWizard({ scholarship, onClose, onSuccess }) {
                   <div className="flex justify-between text-sm">
                     <span className="text-[#a3a3a3] font-bold">Berkas Terunggah</span>
                     <div className="flex flex-col items-end gap-1">
-                      {files['ktm_ktp'] && <span className="text-xs font-black text-green-600">✓ KTM & KTP</span>}
-                      {files['transkrip'] && <span className="text-xs font-black text-green-600">✓ Transkrip Nilai</span>}
-                      {files['sertifikat'] && <span className="text-xs font-black text-green-600">✓ Sertifikat</span>}
+                      {fileKtmRule !== 'tidak' && files['ktm_ktp'] && <span className="text-xs font-black text-green-600">✓ KTM & KTP</span>}
+                      {fileTranskripRule !== 'tidak' && files['transkrip'] && <span className="text-xs font-black text-green-600">✓ Transkrip Nilai</span>}
+                      {fileSertifikatRule !== 'tidak' && files['sertifikat'] && <span className="text-xs font-black text-green-600">✓ Sertifikat</span>}
                       {!files['ktm_ktp'] && !files['transkrip'] && !files['sertifikat'] && <span className="text-xs font-bold text-red-500">Belum ada berkas</span>}
                     </div>
                   </div>
@@ -280,8 +288,24 @@ export default function ScholarshipPage() {
   const { data: katalog, isLoading: isCatalogLoading } = useScholarshipKatalogQuery(filters);
   const { data: riwayatResp, isLoading: isRiwayatLoading } = useScholarshipRiwayatQuery();
   
-  const stats = riwayatResp?.stats || { total: 0, proses: 0, diterima: 0, ditolak: 0 };
   const riwayatList = riwayatResp?.data || [];
+  const stats = React.useMemo(() => {
+    const total = riwayatList.length;
+    let proses = 0;
+    let diterima = 0;
+    let ditolak = 0;
+    riwayatList.forEach(item => {
+      const statusStr = (item.Status || item.status || '').toLowerCase();
+      if (statusStr === 'diterima' || statusStr === 'disetujui') {
+        diterima++;
+      } else if (statusStr === 'ditolak') {
+        ditolak++;
+      } else {
+        proses++;
+      }
+    });
+    return { total, proses, diterima, ditolak };
+  }, [riwayatList]);
 
   return (
     <div className="px-4 py-5 md:px-6 md:py-6 lg:px-8 lg:py-8 font-body text-[#171717] min-h-screen bg-[#fafafa]">
@@ -337,7 +361,7 @@ export default function ScholarshipPage() {
               <span className="text-xs font-black text-[#171717] uppercase tracking-widest">Filters</span>
             </div>
             
-            {['Semua', 'Internal', 'Alumni', 'Mitra'].map(cat => (
+            {['Semua', 'Internal', 'Mitra', 'Prestasi', 'Eksternal'].map(cat => (
               <button 
                 key={cat}
                 onClick={() => setFilters(f => ({ ...f, kategori: cat }))}
@@ -402,7 +426,8 @@ export default function ScholarshipPage() {
                       <div className="flex justify-between items-start mb-4">
                         <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border ${
                           beasiswaKategori === 'Internal' ? 'bg-[#eef4ff] text-[#00236F] border-[#c9d8ff]' :
-                          beasiswaKategori === 'Alumni' ? 'bg-[#eff6ff] text-[#3b82f6] border-[#dbeafe]' :
+                          beasiswaKategori === 'Mitra' ? 'bg-[#eff6ff] text-[#3b82f6] border-[#dbeafe]' :
+                          beasiswaKategori === 'Prestasi' ? 'bg-amber-50 text-amber-600 border-amber-200' :
                           'bg-[#f0fdf4] text-[#16a34a] border-[#bbf7d0]'
                         }`}>
                           {beasiswaKategori}
@@ -522,7 +547,7 @@ export default function ScholarshipPage() {
                     <tr><td colSpan="5" className="p-8"><TableSkeleton rows={5} cols={5} /></td></tr>
                   ) : riwayatList.length > 0 ? (
                     riwayatList.map((item, idx) => {
-                      const badge = STATUS_BADGE[item.Status] || STATUS_BADGE.dikirim;
+                      const badge = STATUS_BADGE[(item.Status || item.status || 'menunggu').toLowerCase()] || STATUS_BADGE.dikirim;
                       const itemId = item.id || item.ID;
                       const createdAt = item.created_at || item.CreatedAt;
                       return (
@@ -646,7 +671,7 @@ export default function ScholarshipPage() {
                       <h4 className="flex items-center gap-2 text-sm font-black uppercase tracking-widest mb-3"><span className="material-symbols-outlined text-[#00236F]" style={{ fontSize: '16px' }} >description</span> Persyaratan</h4>
                       <div className="bg-[#fafafa] p-6 rounded-[24px] border border-[#e5e5e5]">
                          <pre className="text-sm text-[#525252] font-medium whitespace-pre-line font-body leading-relaxed">
-                           {schDesc}
+                           {selectedSch.persyaratan || selectedSch.Persyaratan || 'Tidak ada persyaratan khusus.'}
                          </pre>
                       </div>
                     </div>

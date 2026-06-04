@@ -6,6 +6,7 @@ import (
 	"log"
 	"siakad-backend/config"
 	"siakad-backend/models"
+	"siakad-backend/pkg/notifikasi"
 	"strings"
 	"time"
 
@@ -1227,15 +1228,21 @@ func GetAllScholarships(c *fiber.Ctx) error {
 	var mappedList []map[string]interface{}
 	for _, b := range list {
 		m := map[string]interface{}{
-			"ID":            b.ID,
-			"Nama":          b.Nama,
-			"Penyelenggara": b.Penyelenggara,
-			"Deskripsi":     b.Deskripsi,
-			"Deadline":      b.Deadline,
-			"Kuota":         b.Kuota,
-			"IPKMin":        b.IPKMin,
-			"Anggaran":      b.Anggaran, // Capitalized for Frontend
-			"CreatedAt":     b.CreatedAt,
+			"ID":             b.ID,
+			"Nama":           b.Nama,
+			"Penyelenggara":  b.Penyelenggara,
+			"Deskripsi":      b.Deskripsi,
+			"Persyaratan":    b.Persyaratan,
+			"Deadline":       b.Deadline,
+			"Kuota":          b.Kuota,
+			"IPKMin":         b.IPKMin,
+			"Anggaran":       b.Anggaran, // Capitalized for Frontend
+			"Kategori":       b.Kategori,
+			"NilaiBantuan":   b.NilaiBantuan,
+			"FileKtm":        b.FileKtm,
+			"FileTranskrip":  b.FileTranskrip,
+			"FileSertifikat": b.FileSertifikat,
+			"CreatedAt":      b.CreatedAt,
 		}
 		mappedList = append(mappedList, m)
 	}
@@ -1245,13 +1252,18 @@ func GetAllScholarships(c *fiber.Ctx) error {
 
 func CreateScholarship(c *fiber.Ctx) error {
 	var payload struct {
-		Nama          string  `json:"Nama"`
-		Penyelenggara string  `json:"Penyelenggara"`
-		Deskripsi     string  `json:"Deskripsi"`
-		Deadline      string  `json:"Deadline"`
-		Kuota         int     `json:"Kuota"`
-		IPKMin        float64 `json:"IPKMin"`
-		Anggaran      float64 `json:"Anggaran"`
+		Nama           string  `json:"Nama"`
+		Penyelenggara  string  `json:"Penyelenggara"`
+		Deskripsi      string  `json:"Deskripsi"`
+		Persyaratan    string  `json:"Persyaratan"`
+		Deadline       string  `json:"Deadline"`
+		Kuota          int     `json:"Kuota"`
+		IPKMin         float64 `json:"IPKMin"`
+		Anggaran       float64 `json:"Anggaran"`
+		Kategori       string  `json:"Kategori"`
+		FileKtm        string  `json:"FileKtm"`
+		FileTranskrip  string  `json:"FileTranskrip"`
+		FileSertifikat string  `json:"FileSertifikat"`
 	}
 	if err := c.BodyParser(&payload); err != nil {
 		return c.Status(400).JSON(fiber.Map{"status": "error", "message": err.Error()})
@@ -1259,10 +1271,47 @@ func CreateScholarship(c *fiber.Ctx) error {
 
 	dead, _ := time.Parse(time.RFC3339, payload.Deadline)
 
-	err := config.DB.Exec("INSERT INTO mahasiswa.beasiswa (nama, penyelenggara, deskripsi, deadline, kuota, ip_k_min, anggaran, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-		payload.Nama, payload.Penyelenggara, payload.Deskripsi, dead, payload.Kuota, payload.IPKMin, payload.Anggaran, time.Now(), time.Now()).Error
+	kategori := payload.Kategori
+	if kategori == "" {
+		kategori = "Internal"
+	}
 
-	if err != nil {
+	nilaiBantuan := float64(0)
+	if payload.Kuota > 0 {
+		nilaiBantuan = payload.Anggaran / float64(payload.Kuota)
+	}
+
+	// Default fallbacks if empty
+	fileKtm := payload.FileKtm
+	if fileKtm == "" {
+		fileKtm = "wajib"
+	}
+	fileTranskrip := payload.FileTranskrip
+	if fileTranskrip == "" {
+		fileTranskrip = "wajib"
+	}
+	fileSertifikat := payload.FileSertifikat
+	if fileSertifikat == "" {
+		fileSertifikat = "opsional"
+	}
+
+	beasiswa := models.Beasiswa{
+		Nama:           payload.Nama,
+		Penyelenggara:  payload.Penyelenggara,
+		Deskripsi:      payload.Deskripsi,
+		Persyaratan:    payload.Persyaratan,
+		Deadline:       dead,
+		Kuota:          payload.Kuota,
+		IPKMin:         payload.IPKMin,
+		Anggaran:       payload.Anggaran,
+		Kategori:       kategori,
+		NilaiBantuan:   nilaiBantuan,
+		FileKtm:        fileKtm,
+		FileTranskrip:  fileTranskrip,
+		FileSertifikat: fileSertifikat,
+	}
+
+	if err := config.DB.Create(&beasiswa).Error; err != nil {
 		return c.Status(500).JSON(fiber.Map{"status": "error", "message": err.Error()})
 	}
 	return c.JSON(fiber.Map{"status": "success", "message": "Beasiswa created"})
@@ -1271,13 +1320,18 @@ func CreateScholarship(c *fiber.Ctx) error {
 func UpdateScholarship(c *fiber.Ctx) error {
 	id := c.Params("id")
 	var payload struct {
-		Nama          string  `json:"Nama"`
-		Penyelenggara string  `json:"Penyelenggara"`
-		Deskripsi     string  `json:"Deskripsi"`
-		Deadline      string  `json:"Deadline"`
-		Kuota         int     `json:"Kuota"`
-		IPKMin        float64 `json:"IPKMin"`
-		Anggaran      float64 `json:"Anggaran"`
+		Nama           string  `json:"Nama"`
+		Penyelenggara  string  `json:"Penyelenggara"`
+		Deskripsi      string  `json:"Deskripsi"`
+		Persyaratan    string  `json:"Persyaratan"`
+		Deadline       string  `json:"Deadline"`
+		Kuota          int     `json:"Kuota"`
+		IPKMin         float64 `json:"IPKMin"`
+		Anggaran       float64 `json:"Anggaran"`
+		Kategori       string  `json:"Kategori"`
+		FileKtm        string  `json:"FileKtm"`
+		FileTranskrip  string  `json:"FileTranskrip"`
+		FileSertifikat string  `json:"FileSertifikat"`
 	}
 	if err := c.BodyParser(&payload); err != nil {
 		return c.Status(400).JSON(fiber.Map{"status": "error", "message": err.Error()})
@@ -1285,10 +1339,39 @@ func UpdateScholarship(c *fiber.Ctx) error {
 
 	dead, _ := time.Parse(time.RFC3339, payload.Deadline)
 
-	err := config.DB.Exec("UPDATE mahasiswa.beasiswa SET nama = ?, penyelenggara = ?, deskripsi = ?, deadline = ?, kuota = ?, ip_k_min = ?, anggaran = ?, updated_at = ? WHERE id = ?",
-		payload.Nama, payload.Penyelenggara, payload.Deskripsi, dead, payload.Kuota, payload.IPKMin, payload.Anggaran, time.Now(), id).Error
+	var beasiswa models.Beasiswa
+	if err := config.DB.First(&beasiswa, id).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Beasiswa not found"})
+	}
 
-	if err != nil {
+	nilaiBantuan := float64(0)
+	if payload.Kuota > 0 {
+		nilaiBantuan = payload.Anggaran / float64(payload.Kuota)
+	}
+
+	beasiswa.Nama = payload.Nama
+	beasiswa.Penyelenggara = payload.Penyelenggara
+	beasiswa.Deskripsi = payload.Deskripsi
+	beasiswa.Persyaratan = payload.Persyaratan
+	beasiswa.Deadline = dead
+	beasiswa.Kuota = payload.Kuota
+	beasiswa.IPKMin = payload.IPKMin
+	beasiswa.Anggaran = payload.Anggaran
+	beasiswa.NilaiBantuan = nilaiBantuan
+	if payload.Kategori != "" {
+		beasiswa.Kategori = payload.Kategori
+	}
+	if payload.FileKtm != "" {
+		beasiswa.FileKtm = payload.FileKtm
+	}
+	if payload.FileTranskrip != "" {
+		beasiswa.FileTranskrip = payload.FileTranskrip
+	}
+	if payload.FileSertifikat != "" {
+		beasiswa.FileSertifikat = payload.FileSertifikat
+	}
+
+	if err := config.DB.Save(&beasiswa).Error; err != nil {
 		return c.Status(500).JSON(fiber.Map{"status": "error", "message": err.Error()})
 	}
 	return c.JSON(fiber.Map{"status": "success", "message": "Beasiswa updated"})
@@ -1763,17 +1846,42 @@ func UpdateScholarshipApplicationStatus(c *fiber.Ctx) error {
 		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Invalid request body"})
 	}
 
+	log.Printf("[UpdateStatus] ID: %s, Parsed Status: %s, Parsed Catatan: %s\n", id, payload.Status, payload.Catatan)
+
 	var application models.BeasiswaPendaftaran
 	if err := config.DB.Preload("Beasiswa").First(&application, id).Error; err != nil {
 		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Application not found"})
 	}
 
+	if payload.Status == "Diterima" {
+		var accepted models.BeasiswaPendaftaran
+		if err := config.DB.Preload("Beasiswa").Where("mahasiswa_id = ? AND status = ? AND id != ?", application.MahasiswaID, "Diterima", application.ID).First(&accepted).Error; err == nil {
+			return c.Status(400).JSON(fiber.Map{
+				"status":  "error",
+				"message": fmt.Sprintf("Mahasiswa ini sudah menerima beasiswa lain (%s)", accepted.Beasiswa.Nama),
+			})
+		}
+	}
+
 	application.Status = payload.Status
 	application.Catatan = payload.Catatan
 
-	if err := config.DB.Save(&application).Error; err != nil {
+	if err := config.DB.Model(&application).Updates(map[string]interface{}{
+		"status":  payload.Status,
+		"catatan": payload.Catatan,
+	}).Error; err != nil {
 		return c.Status(500).JSON(fiber.Map{"status": "error", "message": err.Error()})
 	}
+
+
+	// Trigger Notification to student
+	_ = notifikasi.Kirim(config.DB, notifikasi.KirimParams{
+		MahasiswaID: application.MahasiswaID,
+		Type:        "beasiswa",
+		Title:       "Status Beasiswa Diperbarui",
+		Content:     "Status pendaftaran beasiswa '" + application.Beasiswa.Nama + "' Anda telah diperbarui menjadi: " + payload.Status + ".",
+		Link:        "/student/scholarship",
+	})
 
 	return c.JSON(fiber.Map{
 		"status":  "success",

@@ -178,7 +178,7 @@ class _ScholarshipScreenState extends State<ScholarshipScreen> {
   }
 
   Widget _buildCategoryFilter() {
-    final categories = ['Semua', 'Internal', 'Alumni', 'Eksternal'];
+    final categories = ['Semua', 'Internal', 'Mitra', 'Eksternal'];
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Row(
@@ -417,7 +417,7 @@ class _ScholarshipScreenState extends State<ScholarshipScreen> {
   Color _getCategoryColor(String category) {
     switch (category) {
       case 'Internal': return AppColors.primary;
-      case 'Alumni': return const Color(0xFF6366F1);
+      case 'Mitra': return const Color(0xFF6366F1);
       case 'Eksternal': return const Color(0xFF10B981);
       default: return AppColors.primary;
     }
@@ -491,10 +491,20 @@ class _ScholarshipScreenState extends State<ScholarshipScreen> {
                           const SizedBox(height: 32),
                           Text('Persyaratan Umum', style: AppTextStyles.titleLg.copyWith(fontSize: 18, fontWeight: FontWeight.w900)),
                           const SizedBox(height: 16),
-                          _buildRequirementItem('Mahasiswa Aktif Universitas Bhakti Kencana'),
-                          _buildRequirementItem('IPK Minimal 3.00 (Skala 4.00)'),
-                          _buildRequirementItem('Tidak sedang menerima beasiswa lain'),
-                          _buildRequirementItem('Berkelakuan baik & aktif berorganisasi'),
+                          ...() {
+                            final reqStr = scholarship.persyaratan;
+                            final requirementsList = (reqStr != null && reqStr.trim().isNotEmpty)
+                                ? reqStr.split('\n').map((line) {
+                                    return line.replaceFirst(RegExp(r'^[-*•\s\u2022]+'), '').trim();
+                                  }).where((line) => line.isNotEmpty).toList()
+                                : [
+                                    'Mahasiswa Aktif Universitas Bhakti Kencana',
+                                    'IPK Minimal 3.00 (Skala 4.00)',
+                                    'Tidak sedang menerima beasiswa lain',
+                                    'Berkelakuan baik & aktif berorganisasi',
+                                  ];
+                            return requirementsList.map((req) => _buildRequirementItem(req)).toList();
+                          }(),
                           const SizedBox(height: 32),
                           Text('Cakupan Beasiswa', style: AppTextStyles.titleLg.copyWith(fontSize: 18, fontWeight: FontWeight.w900)),
                           const SizedBox(height: 16),

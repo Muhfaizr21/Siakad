@@ -11,7 +11,7 @@ import 'package:bkuhub_mobile/features/counseling/presentation/pages/counseling_
 import 'package:bkuhub_mobile/features/counseling/presentation/pages/schedule_management_screen.dart';
 import 'package:bkuhub_mobile/features/counseling/presentation/pages/add_schedule_slot_screen.dart';
 import 'package:bkuhub_mobile/features/counseling/presentation/pages/patient_list_screen.dart';
-import 'package:bkuhub_mobile/features/mahasiswa/notifications/presentation/pages/student_notifications_screen.dart';
+import 'package:bkuhub_mobile/features/mahasiswa/notifications/presentation/pages/notifications_screen.dart';
 import 'package:bkuhub_mobile/features/ormawa/notifications/presentation/pages/ormawa_notifications_screen.dart';
 import 'package:bkuhub_mobile/features/counseling/presentation/pages/psychologist_analytics_screen.dart';
 import 'package:bkuhub_mobile/features/counseling/presentation/pages/create_referral_screen.dart';
