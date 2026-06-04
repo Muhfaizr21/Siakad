@@ -130,7 +130,7 @@ export default function PsikologPage() {
         Foto: getFullUrl(p.foto_url || p.FotoURL || null),
         Lokasi: p.lokasi || p.Lokasi || '—',
         Bahasa: p.bahasa || p.Bahasa || 'Indonesia',
-        Tarif: p.tarif || p.Tarif || 0,
+
         IsAktif: p.is_aktif !== false,
         colorIdx: i % AVATAR_COLORS.length,
       })))
@@ -225,7 +225,7 @@ export default function PsikologPage() {
                 Direktori <span className="text-primary">Psikolog</span>
               </h1>
               <p className="text-slate-500 font-medium text-sm max-w-xl leading-relaxed">
-                Database tenaga konselor profesional, spesialisasi, tarif layanan, dan jadwal aktif penugasan bimbingan psikologi.
+                Database tenaga konselor profesional, spesialisasi, dan jadwal aktif penugasan bimbingan psikologi.
               </p>
             </div>
             <div className="flex items-center gap-3">
@@ -318,7 +318,7 @@ export default function PsikologPage() {
                     { label: 'Identitas Psikolog', key: 'Nama', sortable: true },
                     { label: 'Lokasi & Bahasa', key: 'Lokasi', sortable: true },
                     { label: 'Spesialisasi', key: 'Spesialisasi', sortable: true, className: 'w-[180px] text-center' },
-                    { label: 'Tarif Sesi', key: 'Tarif', sortable: true, className: 'w-[150px]' },
+
                     { label: 'Aksi', key: null, sortable: false, className: 'text-right w-[100px]' },
                   ].map(h => (
                     <th
@@ -400,12 +400,7 @@ export default function PsikologPage() {
                               {row.Spesialisasi}
                             </span>
                           </td>
-                          <td className="px-5 py-3.5">
-                            <span className="text-sm font-semibold text-slate-700">
-                              {formatIDR(row.Tarif)}
-                            </span>
-                            <span className="text-[10px] text-slate-400 block">per Sesi</span>
-                          </td>
+
                           <td className="px-5 py-3.5 text-right">
                             <button
                               onClick={() => handleSelectPsikolog(row)}
@@ -555,7 +550,7 @@ export default function PsikologPage() {
                     {selectedPsikolog.Spesialisasi || 'Umum'}
                   </span>
                   <span className="flex items-center gap-1.5 bg-white/10 border border-white/20 px-3 py-1.5 rounded-xl text-[10px] font-bold text-white/80 tracking-wider">
-                    Tarif: {formatIDR(selectedPsikolog.Tarif)}
+                    Gratis (Di-cover Kampus)
                   </span>
                   <span className="flex items-center gap-1.5 bg-emerald-400/20 border border-emerald-300/30 px-3 py-1.5 rounded-xl text-[10px] font-bold text-emerald-200 uppercase tracking-wider">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
@@ -636,8 +631,8 @@ export default function PsikologPage() {
                         />
                         <InfoCard
                           icon={Award}
-                          label="Tarif Konsultasi"
-                          value={`${formatIDR(selectedPsikolog.Tarif)} per Sesi`}
+                          label="Biaya Konsultasi"
+                          value="Gratis (Di-cover Kampus)"
                           accent="border-l-amber-400"
                         />
                       </div>

@@ -131,7 +131,7 @@ export default function PsychologistDirectory() {
   const [isSavingSchedule, setIsSavingSchedule] = useState(false)
   
   const [form, setForm] = useState({ 
-    ID: '', Nama: '', Spesialisasi: 'Umum', Lokasi: '', Tarif: 0, IsAktif: true,
+    ID: '', Nama: '', Spesialisasi: 'Umum', Lokasi: '', IsAktif: true,
     Email: '', NoHP: '', Bio: '', Bahasa: '', FotoURL: ''
   })
 
@@ -202,7 +202,7 @@ export default function PsychologistDirectory() {
       Nama: row.nama || '', 
       Spesialisasi: row.spesialisasi || 'Umum', 
       Lokasi: row.lokasi || '',
-      Tarif: row.tarif || 0,
+
       IsAktif: row.is_aktif ?? true,
       Email: row.email || '',
       NoHP: row.no_hp || '',
@@ -221,7 +221,7 @@ export default function PsychologistDirectory() {
         nama: form.Nama,
         spesialisasi: form.Spesialisasi,
         lokasi: form.Lokasi,
-        tarif: parseInt(form.Tarif) || 0,
+
         is_aktif: form.IsAktif,
         email: form.Email,
         no_hp: form.NoHP,
@@ -680,35 +680,35 @@ export default function PsychologistDirectory() {
   }
 
   return (
-    <div className="px-1 py-4 md:px-2 xl:px-4 min-h-screen bg-transparent font-inter">
+    <div className="px-4 py-8 md:px-8 xl:px-12 min-h-screen bg-[#fafafa] font-body">
       <Toaster position="top-right" />
       
-      <div className="max-w-[1600px] mx-auto space-y-8 select-none">
+      <div className="max-w-[1600px] mx-auto space-y-10">
         
         {/* ── Page Header ─────────────────────────────────────────── */}
-        <section className="glass-card rounded-2xl border border-slate-200/60 p-5 md:p-8 relative overflow-hidden shadow-none">
-          <div className="absolute top-0 right-0 w-1/4 h-full bg-gradient-to-l from-bku-primary/10 to-transparent pointer-events-none" />
+        <section className="bg-white border border-neutral-200 rounded-xl p-5 md:p-8 relative overflow-hidden shadow-sm">
+          <div className="absolute top-0 right-0 w-1/4 h-full bg-gradient-to-l from-teal-50/50 to-transparent pointer-events-none" />
           
           <div className="relative z-10 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
-            <div className="space-y-2 w-full lg:w-auto">
+            <div className="space-y-1 w-full lg:w-auto">
               <div className="flex items-center gap-2 mb-2">
-                <div className="h-4 w-1.5 bg-bku-primary rounded-full animate-pulse" />
-                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 font-headline leading-none">Professional Health</span>
+                <div className="h-4 w-1.5 bg-teal-500 rounded-full" />
+                <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-400 font-jakarta">Professional Health</span>
               </div>
-              <h1 className="text-2xl md:text-3xl font-black font-headline tracking-tight leading-none" style={{ color: 'var(--theme-h1)' }}>
-                Direktori <span className="text-bku-primary italic">Psikolog</span>
+              <h1 className="text-2xl md:text-3xl font-bold text-neutral-900 font-jakarta tracking-tight leading-tight">
+                Direktori <span className="text-teal-600 italic">Psikolog</span>
               </h1>
-              <p className="text-slate-400 font-medium text-[11px] max-w-2xl leading-relaxed">
+              <p className="text-neutral-500 font-medium text-xs md:text-sm max-w-2xl leading-relaxed">
                 Manajemen data tenaga ahli psikologi, jadwal praktek, dan lokasi pelayanan kesehatan mental mahasiswa.
               </p>
             </div>
             
             <div className="flex items-center gap-3 w-full lg:w-auto">
-              <div className="px-4 py-2 bg-bku-primary/5 border border-bku-primary/20 rounded-xl flex items-center gap-3 w-full lg:w-auto justify-center">
-                 <span className="material-symbols-outlined text-bku-primary" style={{ fontSize: '16px' }}>security</span>
+              <div className="px-4 py-2 bg-teal-50 border border-teal-100 rounded-xl flex items-center gap-3 w-full lg:w-auto justify-center">
+                 <span className="material-symbols-outlined text-teal-600" style={{ fontSize: '16px' }}>security</span>
                  <div className="flex flex-col leading-tight">
-                    <span className="text-[10px] font-black text-bku-primary/70 uppercase tracking-widest font-headline">Verification Status</span>
-                    <span className="text-[12px] font-black text-bku-primary font-headline">Verified Practitioners</span>
+                    <span className="text-[10px] font-bold text-teal-400 uppercase tracking-widest">Verification Status</span>
+                    <span className="text-[12px] font-bold text-teal-700 font-jakarta">Verified Practitioners</span>
                  </div>
               </div>
             </div>
@@ -717,18 +717,18 @@ export default function PsychologistDirectory() {
 
         {/* ── Stats Grid ──────────────────────────────────────────── */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-           <div className="glass-card p-5 rounded-2xl border border-slate-200/60 shadow-none">
+           <div className="bg-white p-5 rounded-2xl border border-[#e5e5e5] shadow-sm">
               <div className="flex items-center gap-3 mb-3">
-                 <div className="w-10 h-10 bg-bku-primary/10 rounded-xl flex justify-center items-center text-bku-primary flex-shrink-0">
+                 <div className="w-10 h-10 bg-teal-50 rounded-xl flex justify-center items-center text-teal-600 flex-shrink-0">
                     <span className="material-symbols-outlined" style={{ fontSize: '18px' }} >group</span>
                  </div>
                  <span className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-widest">Total Psikolog</span>
               </div>
-              <p className="text-2xl font-black text-slate-800 font-headline leading-none tabular-nums">{data.length}</p>
-              <p className="text-[11px] text-slate-400 font-medium mt-1">Tenaga ahli terdaftar</p>
+              <p className="text-3xl font-extrabold text-[#171717] font-jakarta leading-none tabular-nums">{data.length}</p>
+              <p className="text-xs text-[#a3a3a3] font-medium mt-1">Tenaga ahli terdaftar</p>
            </div>
 
-           <div className="glass-card p-5 rounded-2xl border border-slate-200/60 shadow-none">
+           <div className="bg-white p-5 rounded-2xl border border-[#e5e5e5] shadow-sm">
               <div className="flex items-center gap-3 mb-3">
                  <div className="w-10 h-10 bg-blue-50 rounded-xl flex justify-center items-center text-blue-600 flex-shrink-0">
                     <span className="material-symbols-outlined" style={{ fontSize: '18px' }} >calendar_month</span>
@@ -744,7 +744,7 @@ export default function PsychologistDirectory() {
               <p className="text-xs text-[#a3a3a3] font-medium mt-1">Mahasiswa booking hari ini</p>
            </div>
 
-           <div className="glass-card p-5 rounded-2xl border border-slate-200/60 shadow-none">
+           <div className="bg-white p-5 rounded-2xl border border-[#e5e5e5] shadow-sm">
               <div className="flex items-center gap-3 mb-3">
                  <div className="w-10 h-10 bg-emerald-50 rounded-xl flex justify-center items-center text-emerald-600 flex-shrink-0">
                     <span className="material-symbols-outlined" style={{ fontSize: '18px' }} >medical_services</span>
@@ -755,7 +755,7 @@ export default function PsychologistDirectory() {
               <p className="text-xs text-[#a3a3a3] font-medium mt-1">Catatan sesi & kondisi klinis</p>
            </div>
 
-           <div className="glass-card p-5 rounded-2xl border border-slate-200/60 shadow-none">
+           <div className="bg-white p-5 rounded-2xl border border-[#e5e5e5] shadow-sm">
               <div className="flex items-center gap-3 mb-3">
                  <div className="w-10 h-10 bg-indigo-50 rounded-xl flex justify-center items-center text-indigo-600 flex-shrink-0">
                     <span className="material-symbols-outlined" style={{ fontSize: '18px' }} >forward_to_inbox</span>
@@ -895,36 +895,36 @@ export default function PsychologistDirectory() {
 
       {/* ── Edit Modal ───────────────────────────────────────────── */}
       <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-        <DialogContent className="w-[95vw] sm:w-[90vw] md:max-w-xl p-0 overflow-hidden border border-slate-200/60 shadow-2xl rounded-2xl bg-white/95 backdrop-blur-xl animate-in slide-in-from-bottom-4 duration-300">
-          <DialogHeader className="p-6 sm:p-8 pb-4 sm:pb-6 border-b border-slate-200/40 relative overflow-hidden bg-white/40">
-            <div className="absolute top-0 right-0 p-8 opacity-5 text-bku-primary"><BrainCircuit size={100} /></div>
+        <DialogContent className="w-[95vw] sm:w-[90vw] md:max-w-xl p-0 overflow-hidden border-none shadow-2xl rounded-2xl bg-white animate-in slide-in-from-bottom-4 duration-300">
+          <DialogHeader className="p-6 sm:p-8 pb-4 sm:pb-6 border-b border-neutral-100 relative overflow-hidden bg-neutral-50/50">
+            <div className="absolute top-0 right-0 p-8 opacity-5 text-teal-600"><BrainCircuit size={100} /></div>
             <div className="relative z-10 space-y-1">
               <div className="flex items-center gap-2 mb-2">
-                <div className="size-6 rounded bg-bku-primary/10 flex items-center justify-center text-bku-primary">
+                <div className="size-6 rounded bg-teal-50 flex items-center justify-center text-teal-600">
                   <span className="material-symbols-outlined" style={{ fontSize: '12px' }} >edit</span>
                 </div>
-                <span className="text-[10px] font-black uppercase tracking-widest text-bku-primary font-headline">Clinical Registry</span>
+                <span className="text-[10px] font-bold uppercase tracking-widest text-teal-600">Clinical Registry</span>
               </div>
-              <DialogTitle className="text-xl sm:text-2xl font-black font-headline tracking-tight text-slate-800 uppercase">
+              <DialogTitle className="text-xl sm:text-2xl font-bold font-jakarta tracking-tight text-neutral-900 uppercase">
                 Edit Profil Psikolog
               </DialogTitle>
-              <DialogDescription className="text-xs sm:text-sm font-medium text-slate-500 font-inter">Pembaruan kualifikasi dan pengaturan operasional tenaga ahli.</DialogDescription>
+              <DialogDescription className="text-xs sm:text-sm font-medium text-neutral-400">Pembaruan kualifikasi dan pengaturan operasional tenaga ahli.</DialogDescription>
             </div>
           </DialogHeader>
 
           <form onSubmit={handleSave} className="p-6 sm:p-8 pt-4 sm:pt-6 space-y-4 sm:space-y-5 max-h-[70vh] overflow-y-auto">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label className="text-[11px] font-black text-slate-500 font-headline ml-1 uppercase tracking-widest">Nama Lengkap & Gelar</Label>
-                <Input required value={form.Nama} onChange={e => setForm({ ...form, Nama: e.target.value })} placeholder="Nama psikolog..." className="h-11 rounded-lg border-slate-200/60 bg-white/50 focus:bg-white font-medium text-sm font-inter uppercase" />
+                <Label className="text-xs font-bold text-neutral-500 font-jakarta ml-1">Nama Lengkap & Gelar</Label>
+                <Input required value={form.Nama} onChange={e => setForm({ ...form, Nama: e.target.value })} placeholder="Nama psikolog..." className="h-11 rounded-lg border-neutral-200 bg-neutral-50/30 focus:bg-white font-medium text-sm font-jakarta uppercase" />
               </div>
               <div className="space-y-2">
-                <Label className="text-[11px] font-black text-slate-500 font-headline ml-1 uppercase tracking-widest">Spesialisasi Klinis</Label>
-                <Input value={form.Spesialisasi} onChange={e => setForm({ ...form, Spesialisasi: e.target.value })} placeholder="Bidang keahlian..." className="h-11 rounded-lg border-slate-200/60 bg-white/50 focus:bg-white font-medium text-sm font-inter" />
+                <Label className="text-xs font-bold text-neutral-500 font-jakarta ml-1">Spesialisasi Klinis</Label>
+                <Input value={form.Spesialisasi} onChange={e => setForm({ ...form, Spesialisasi: e.target.value })} placeholder="Bidang keahlian..." className="h-11 rounded-lg border-neutral-200 bg-neutral-50/30 focus:bg-white font-medium text-sm font-jakarta" />
               </div>
             </div>
 
-<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label className="text-xs font-bold text-neutral-500 font-jakarta ml-1">Email</Label>
                 <Input type="email" value={form.Email} onChange={e => setForm({ ...form, Email: e.target.value })} placeholder="Email psikolog..." className="h-11 rounded-lg border-neutral-200 bg-neutral-50/30 focus:bg-white font-medium text-sm font-jakarta" />
@@ -948,13 +948,9 @@ export default function PsychologistDirectory() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label className="text-[11px] font-black text-slate-500 font-headline ml-1 uppercase tracking-widest">Tarif Layanan (Rp)</Label>
-                <Input type="number" value={form.Tarif} onChange={e => setForm({ ...form, Tarif: e.target.value })} className="h-11 rounded-lg border-slate-200/60 bg-white/50 focus:bg-white font-medium text-sm font-inter" />
-              </div>
-              <div className="space-y-2">
-                <Label className="text-[11px] font-black text-slate-500 font-headline ml-1 uppercase tracking-widest">Status Operasional</Label>
+                <Label className="text-xs font-bold text-neutral-500 font-jakarta ml-1">Status Operasional</Label>
                 <Select value={form.IsAktif ? "1" : "0"} onValueChange={v => setForm({ ...form, IsAktif: v === "1" })}>
-                  <SelectTrigger className="h-11 rounded-lg border-slate-200/60 bg-white/50 font-medium text-sm"><SelectValue /></SelectTrigger>
+                  <SelectTrigger className="h-11 rounded-lg border-neutral-200 bg-neutral-50/30 font-medium text-sm"><SelectValue /></SelectTrigger>
                   <SelectContent className="rounded-xl shadow-xl">
                     <SelectItem value="1" className="text-xs font-medium uppercase">Aktif Tersedia</SelectItem>
                     <SelectItem value="0" className="text-xs font-medium uppercase text-rose-500">Non-Aktif</SelectItem>
@@ -977,7 +973,7 @@ export default function PsychologistDirectory() {
                <Button type="button" variant="ghost" onClick={() => setIsEditOpen(false)} className="w-full sm:w-auto h-12 rounded-xl text-xs font-bold uppercase tracking-widest text-neutral-400">Batal</Button>
                <Button type="submit" disabled={isSubmitting} className="w-full sm:flex-1 h-12 rounded-xl bg-neutral-900 text-white hover:bg-teal-600 shadow-md transition-all active:scale-95 flex items-center justify-center">
                   {isSubmitting ? <span className="material-symbols-outlined animate-spin mr-2" style={{ fontSize: '14px' }} >sync</span> : <span className="material-symbols-outlined mr-2" style={{ fontSize: '14px' }} >save</span>}
-                  <span className="text-[10px] font-black font-headline uppercase tracking-widest">Update Profil</span>
+                  <span className="text-xs font-bold uppercase tracking-widest">Update Profil</span>
                </Button>
             </div>
           </form>

@@ -116,6 +116,16 @@ export const useCounselingMedicalRecordQuery = () => {
   });
 };
 
+export const useCounselingReferralsQuery = () => {
+  return useQuery({
+    queryKey: ['counseling', 'referrals'],
+    queryFn: async () => {
+      const { data } = await api.get('/counseling/referrals');
+      return Array.isArray(data?.data) ? data.data : [];
+    },
+  });
+};
+
 // Create New Booking
 export const useBookingMutation = () => {
   const queryClient = useQueryClient();

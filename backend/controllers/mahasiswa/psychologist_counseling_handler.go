@@ -54,7 +54,6 @@ func psychologistProfileResponse(psikolog models.Psikolog) fiber.Map {
 		"photo_url":      psikolog.FotoURL,
 		"location":       psikolog.Lokasi,
 		"languages":      splitCSV(psikolog.Bahasa),
-		"fee":            psikolog.Tarif,
 		"is_active":      psikolog.IsAktif,
 	}
 }
@@ -560,4 +559,51 @@ func counselingCategoryFromSpecialization(value string) string {
 	default:
 		return "Personal"
 	}
+}
+
+// GetStudentReferrals returns psychologist referrals/tindak lanjut for the logged-in student.
+func GetStudentReferrals(c *fiber.Ctx) error {
+	student, err := getStudent(c)
+	if err != nil {
+		return err
+	}
+
+	var referrals []models.PsikologReferral
+	if err := config.DB.
+		Preload("Psikolog").
+		Preload("Booking").
+		Where("mahasiswa_id = ?", student.ID).
+		Order("created_at desc").
+		Find(&referrals).Error; err != nil {
+		return err
+	}
+
+	items := make([]fiber.Map, 0, len(referrals))
+	for _, r := range referrals {
+		// Only show sent or received referrals to student (or you can show all status, but let's show all status since it represents their tindak lanjut)
+		psikologName := r.Psikolog.Nama
+		if psikologName == "" && r.Booking != nil {
+			psikologName = r.Booking.Psikolog.Nama
+		}
+
+		items = append(items, fiber.Map{
+			"id":                r.ID,
+			"booking_id":        r.BookingID,
+			"psychologist":      psikologName,
+			"type":              r.Tipe,
+			"reason":            r.Alasan,
+			"status":            r.Status,
+			"target_party":      r.PihakTujuan,
+			"target_email":      r.EmailTujuan,
+			"created_at":        r.TanggalDibuat.Format("2006-01-02"),
+			"display_date":      r.TanggalDibuat.Format("02 Jan 2006"),
+			"time":              r.TanggalDibuat.Format("15:04"),
+			"sent_at":           r.TanggalDikirim,
+			"received_at":       r.TanggalDiterima,
+			"referral_pdf_url":  r.SuratRujiukanURL,
+			"support_file_url":  r.FilePendukungURL,
+		})
+	}
+
+	return jsonSuccess(c, items)
 }

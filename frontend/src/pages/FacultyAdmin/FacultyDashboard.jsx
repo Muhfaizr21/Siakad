@@ -6,23 +6,34 @@ import { cn } from "@/lib/utils";
 
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
-  ResponsiveContainer, PieChart, Pie, Cell,
+  ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Legend,
 } from "recharts"
 import { API_BASE_URL, fetchWithAuth } from "../../services/api"
 import useAuthStore from '../../store/useAuthStore';
 
 // Auto-injected Material Symbol fallbacks for removed Lucide icons
-const BarChart3 = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>bar_chart</span>;
-const UserCheck = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>how_to_reg</span>;
-const Layers = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>layers</span>;
-const Trophy = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>emoji_events</span>;
-const HeartPulse = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>monitor_heart</span>;
-const Users = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>group</span>;
-const Award = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>emoji_events</span>;
-const CheckCircle2 = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>check_circle</span>;
-const MessageSquare = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>chat</span>;
-const FileText = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>description</span>;
-const Calendar = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>calendar_today</span>;
+const BarChart3 = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>bar_chart</span>;
+const UserCheck = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>how_to_reg</span>;
+
+
+
+// Auto-injected Material Symbol fallbacks for removed Lucide icons
+const Layers = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>layers</span>;
+const Trophy = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>emoji_events</span>;
+const HeartPulse = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>monitor_heart</span>;
+
+
+
+// Auto-injected Material Symbol fallbacks for removed Lucide icons
+const Users = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>group</span>;
+const GraduationCap = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>school</span>;
+const Award = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>emoji_events</span>;
+const CheckCircle2 = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>check_circle</span>;
+const MessageSquare = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>chat</span>;
+const FileText = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>description</span>;
+const Calendar = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>calendar_today</span>;
+
+
 
 export default function FacultyDashboard() {
   const navigate = useNavigate();
@@ -30,6 +41,7 @@ export default function FacultyDashboard() {
   const [loading, setLoading] = useState(true);
   const [isMounted, setIsMounted] = useState(false);
   const [filterPeriod, setFilterPeriod] = useState('all');
+  const [filterProdi, setFilterProdi] = useState('all');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [summaryData, setSummaryData] = useState({
@@ -42,12 +54,13 @@ export default function FacultyDashboard() {
     trendData: [],
     recentActivity: [],
     activePeriod: null,
-    periods: []
+    periods: [],
+    prodis: []
   });
 
   const firstName = user?.name?.split(' ')[0] || user?.email?.split('@')[0] || 'Admin';
 
-  const fetchDashboardData = React.useCallback(async (periodId, start, end) => {
+  const fetchDashboardData = React.useCallback(async (periodId, start, end, prodiId) => {
     Promise.resolve().then(() => setLoading(true));
     try {
       let url = `${API_BASE_URL}/faculty/summary`;
@@ -57,6 +70,9 @@ export default function FacultyDashboard() {
         params.push(`end_date=${end}`);
       } else if (periodId && periodId !== 'all') {
         params.push(`period_id=${periodId}`);
+      }
+      if (prodiId && prodiId !== 'all') {
+        params.push(`prodi_id=${prodiId}`);
       }
       if (params.length > 0) {
         url += `?${params.join('&')}`;
@@ -73,12 +89,14 @@ export default function FacultyDashboard() {
   }, []);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsMounted(true);
   }, []);
 
   useEffect(() => {
-    fetchDashboardData(filterPeriod, startDate, endDate);
-  }, [filterPeriod, startDate, endDate, fetchDashboardData]);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchDashboardData(filterPeriod, startDate, endDate, filterProdi);
+  }, [filterPeriod, startDate, endDate, filterProdi, fetchDashboardData]);
 
   const handlePeriodChange = (val) => {
     setFilterPeriod(val);
@@ -101,20 +119,21 @@ export default function FacultyDashboard() {
     setStartDate('');
     setEndDate('');
     setFilterPeriod('all');
+    setFilterProdi('all');
   };
 
   const statusColors = {
-    'Aktif': 'var(--theme-success)',
-    'Cuti': 'var(--theme-warning)',
-    'Lulus': 'var(--theme-info)',
-    'DO': 'var(--theme-error)',
-    'NON-AKTIF': 'var(--theme-text-muted)',
+    'Aktif': '#22c55e',
+    'Cuti': '#eab308',
+    'Lulus': '#3b82f6',
+    'DO': '#ef4444',
+    'NON-AKTIF': '#94a3b8',
   };
 
   const allStatusNames = [...new Set(['Aktif', 'Cuti', 'Lulus', 'DO', ...(summaryData.statusCounts?.map(s => s.status) || [])])];
   const dynamicStatusData = allStatusNames.map(name => {
     const found = summaryData.statusCounts?.find(s => s.status === name);
-    return { name, value: found ? found.count : 0, color: statusColors[name] || 'var(--theme-border)' };
+    return { name, value: found ? found.count : 0, color: statusColors[name] || '#cbd5e1' };
   });
 
   const statCards = [
@@ -123,9 +142,9 @@ export default function FacultyDashboard() {
       icon: Users,
       value: summaryData.totalStudents || 0,
       desc: "mahasiswa terdaftar",
-      color: "text-primary",
-      bg: "bg-primary/10 border-primary/20 border",
-      accent: "from-primary/10",
+      color: "text-blue-600",
+      bg: "bg-blue-50",
+      accent: "from-blue-500/10",
       path: "/faculty/mahasiswa"
     },
     {
@@ -133,9 +152,9 @@ export default function FacultyDashboard() {
       icon: Award,
       value: summaryData.totalPrestasi || 0,
       desc: "menunggu validasi",
-      color: "text-secondary",
-      bg: "bg-secondary/10 border-secondary/20 border",
-      accent: "from-secondary/10",
+      color: "text-amber-600",
+      bg: "bg-amber-50",
+      accent: "from-amber-500/10",
       path: "/faculty/prestasi"
     },
     {
@@ -143,96 +162,42 @@ export default function FacultyDashboard() {
       icon: Layers,
       value: summaryData.totalProdi || 0,
       desc: "program studi aktif",
-      color: "text-info",
-      bg: "bg-info/10 border-info/20 border",
-      accent: "from-info/10",
+      color: "text-indigo-600",
+      bg: "bg-indigo-50",
+      accent: "from-indigo-500/10",
       path: "/faculty/prodi"
     },
   ];
 
   const quickActions = [
-    { label: 'Validasi Prestasi', icon: Trophy, path: '/faculty/prestasi', iconBg: 'bg-success/10 text-success border border-success/20', hoverShadow: 'hover:shadow-success/5 hover:border-success/30' },
-    { label: 'Monitor PKKMB', icon: CheckCircle2, path: '/faculty/pkkmb', iconBg: 'bg-primary/10 text-primary border border-primary/20', hoverShadow: 'hover:shadow-primary/5 hover:border-primary/30' },
-    { label: 'Screening Kesehatan', icon: HeartPulse, path: '/faculty/kesehatan', iconBg: 'bg-warning/10 text-warning border border-warning/20', hoverShadow: 'hover:shadow-warning/5 hover:border-warning/30' },
-    { label: 'Aspirasi Mahasiswa', icon: MessageSquare, path: '/faculty/aspirasi', iconBg: 'bg-error/10 text-error border border-error/20', hoverShadow: 'hover:shadow-error/5 hover:border-error/30' },
-    { label: 'Proposal ORMAWA', icon: FileText, path: '/faculty/ormawa/proposals', iconBg: 'bg-info/10 text-info border border-info/20', hoverShadow: 'hover:shadow-info/5 hover:border-info/30' },
-    { label: 'Jadwal Konseling', icon: Calendar, path: '/faculty/konseling', iconBg: 'bg-secondary/10 text-secondary border border-secondary/20', hoverShadow: 'hover:shadow-secondary/5 hover:border-secondary/30' },
+    { label: 'Validasi Prestasi', icon: Trophy, path: '/faculty/prestasi', iconBg: 'bg-emerald-50 text-emerald-600 border border-emerald-100/50', hoverShadow: 'hover:shadow-emerald-500/5 hover:border-emerald-200/50' },
+    { label: 'Monitor PKKMB', icon: CheckCircle2, path: '/faculty/pkkmb', iconBg: 'bg-indigo-50 text-indigo-600 border border-indigo-100/50', hoverShadow: 'hover:shadow-indigo-500/5 hover:border-indigo-200/50' },
+    { label: 'Screening Kesehatan', icon: HeartPulse, path: '/faculty/kesehatan', iconBg: 'bg-amber-50 text-amber-600 border border-amber-100/50', hoverShadow: 'hover:shadow-amber-500/5 hover:border-amber-200/50' },
+    { label: 'Aspirasi Mahasiswa', icon: MessageSquare, path: '/faculty/aspirasi', iconBg: 'bg-rose-50 text-rose-600 border border-rose-100/50', hoverShadow: 'hover:shadow-rose-500/5 hover:border-rose-200/50' },
+    { label: 'Proposal ORMAWA', icon: FileText, path: '/faculty/ormawa/proposals', iconBg: 'bg-blue-50 text-blue-600 border border-blue-100/50', hoverShadow: 'hover:shadow-blue-500/5 hover:border-blue-200/50' },
+    { label: 'Jadwal Konseling', icon: Calendar, path: '/faculty/konseling', iconBg: 'bg-teal-50 text-teal-600 border border-teal-100/50', hoverShadow: 'hover:shadow-teal-500/5 hover:border-teal-200/50' },
   ];
 
   return (
-    <div className="px-4 py-6 md:px-6 lg:px-8 min-h-screen bg-transparent font-inter">
-      <div className="max-w-7xl mx-auto space-y-6">
-        {/* Page Header */}
-        <section
-          className="rounded-xl p-5 border border-border"
-          style={{ backgroundColor: 'var(--theme-surface)' }}
-        >
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-            {/* Left: Icon + Title */}
-            <div className="flex items-center gap-4">
-              <div
-                className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0"
-                style={{ backgroundColor: 'var(--theme-primary)', color: 'white' }}
-              >
-                <span className="material-symbols-outlined text-xl">admin_panel_settings</span>
-              </div>
-              <div>
-                <h1 className="text-xl font-bold" style={{ color: 'var(--theme-text)' }}>
-                  Selamat datang, <span style={{ color: 'var(--theme-secondary)' }}>{firstName}!</span>
-                </h1>
-                <p className="text-xs mt-0.5" style={{ color: 'var(--theme-text-muted)' }}>
-                  Kelola data akademik, pantau kinerja mahasiswa, dan verifikasi layanan kampus dari satu panel terpusat.
-                </p>
-              </div>
-            </div>
+    <div className="min-h-screen bg-[#F8FAFC] font-body">
+      <div className="max-w-[1600px] mx-auto px-4 py-8 md:px-8 xl:px-12 space-y-8">
 
-            {/* Right: Action buttons */}
-            <div className="flex gap-2 w-full md:w-auto">
-              <button
-                onClick={() => navigate('/faculty/mahasiswa')}
-                className="flex-1 md:flex-initial px-4 py-2 rounded-lg font-bold text-xs transition-all text-white hover:opacity-90 shadow-sm"
-                style={{ backgroundColor: 'var(--theme-primary)' }}
-              >
-                Lihat Data Mahasiswa
-              </button>
-              <button
-                onClick={() => navigate('/faculty/laporan')}
-                className="flex-1 md:flex-initial border px-4 py-2 rounded-lg font-bold text-xs transition-all hover:bg-black/[0.02]"
-                style={{
-                  borderColor: 'var(--theme-border)',
-                  color: 'var(--theme-text)',
-                  backgroundColor: 'var(--theme-surface)'
-                }}
-              >
-                Unduh Laporan
-              </button>
-            </div>
+        {/* Header Section */}
+        <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-black text-slate-900 tracking-tight">Dashboard Utama</h1>
+            <p className="text-xs font-semibold text-slate-400">Ikhtisar data akademik dan statistik fakultas</p>
           </div>
-        </section>
 
-        {/* Filter Section */}
-        <div className="bg-surface rounded-xl border border-border shadow-sm overflow-hidden">
-          <div className="px-5 py-4 border-b border-border flex items-center justify-between bg-slate-50/50">
-            <div className="flex items-center gap-3">
-              <div className="size-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center border border-primary/20">
-                <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>filter_list</span>
-              </div>
-              <div>
-                <h3 className="text-xs font-bold uppercase tracking-widest text-primary font-headline">Filterasi Data</h3>
-                <p className="text-[10px] text-muted mt-0.5">Filter data berdasarkan periode akademik</p>
-              </div>
-            </div>
-          </div>
-          <div className="px-5 py-4 grid grid-cols-1 sm:grid-cols-3 gap-4">
-            {/* Periode */}
-            <div className="flex flex-col gap-1.5">
-              <label className="text-[11px] font-medium text-muted">Periode Akademik</label>
-              <div className="relative">
-                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-primary" style={{ fontSize: '14px' }}>calendar_month</span>
+          <div className="flex flex-wrap items-center gap-4 bg-white border border-slate-200/50 p-3 rounded-2xl shadow-sm">
+            {/* Period Dropdown */}
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Periode:</span>
+              <div className="relative min-w-[150px]">
                 <select
                   value={filterPeriod}
                   onChange={(e) => handlePeriodChange(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2.5 bg-background border border-border rounded-lg text-xs font-semibold text-on-surface focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all cursor-pointer"
+                  className="w-full bg-slate-50 border border-slate-200/80 text-slate-800 text-xs font-bold py-2 pl-3 pr-8 rounded-lg appearance-none focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all cursor-pointer"
                 >
                   <option value="all">Pilih Semua</option>
                   {summaryData.periods?.map((p) => (
@@ -241,32 +206,62 @@ export default function FacultyDashboard() {
                     </option>
                   ))}
                 </select>
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2.5 text-slate-400">
+                  <span className="material-symbols-outlined text-[16px]">expand_more</span>
+                </div>
               </div>
             </div>
 
-            {/* Rentang Tanggal */}
-            <div className="flex flex-col gap-1.5">
-              <label className="text-[11px] font-medium text-muted">Rentang Tanggal</label>
-              <div className="flex items-center gap-2">
+            {/* Divider line for desktop */}
+            <span className="hidden md:inline-block h-6 w-[1px] bg-slate-200" />
+
+            {/* Prodi Dropdown */}
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Prodi:</span>
+              <div className="relative min-w-[180px]">
+                <select
+                  value={filterProdi}
+                  onChange={(e) => setFilterProdi(e.target.value)}
+                  className="w-full bg-slate-50 border border-slate-200/80 text-slate-800 text-xs font-bold py-2 pl-3 pr-8 rounded-lg appearance-none focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all cursor-pointer"
+                >
+                  <option value="all">Semua Prodi</option>
+                  {summaryData.prodis?.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.Nama || p.nama} ({p.Jenjang || p.jenjang})
+                    </option>
+                  ))}
+                </select>
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2.5 text-slate-400">
+                  <span className="material-symbols-outlined text-[16px]">expand_more</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Divider line for desktop */}
+            <span className="hidden md:inline-block h-6 w-[1px] bg-slate-200" />
+
+            {/* Custom Date Range Picker */}
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Rentang Tanggal:</span>
+              <div className="flex items-center gap-1.5">
                 <input
                   type="date"
                   value={startDate}
                   onChange={(e) => handleDateChange('start', e.target.value)}
-                  className="flex-1 pl-9 pr-3 py-2.5 bg-background border border-border rounded-lg text-xs font-semibold text-on-surface focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all cursor-pointer"
-                  style={{ backgroundImage: 'none' }}
+                  className="bg-slate-50 border border-slate-200/80 text-slate-800 text-xs font-bold py-1.5 px-2.5 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all cursor-pointer"
                 />
-                <span className="text-muted text-sm shrink-0">—</span>
+                <span className="text-slate-400 text-xs font-bold">—</span>
                 <input
                   type="date"
                   value={endDate}
                   onChange={(e) => handleDateChange('end', e.target.value)}
-                  className="flex-1 pr-3 py-2.5 bg-background border border-border rounded-lg text-xs font-semibold text-on-surface focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all cursor-pointer"
-                  style={{ backgroundImage: 'none' }}
+                  className="bg-slate-50 border border-slate-200/80 text-slate-800 text-xs font-bold py-1.5 px-2.5 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all cursor-pointer"
                 />
-                {(startDate || endDate) && (
+                {(startDate || endDate || filterPeriod !== 'all' || filterProdi !== 'all') && (
                   <button
                     onClick={handleResetFilters}
-                    className="p-2 text-rose-500 hover:bg-rose-50 rounded-lg transition-colors flex items-center justify-center shrink-0"
+                    className="p-1.5 text-rose-500 hover:bg-rose-50 rounded-lg transition-colors flex items-center justify-center"
+                    title="Reset semua filter"
                   >
                     <span className="material-symbols-outlined text-[16px]">close</span>
                   </button>
@@ -276,13 +271,72 @@ export default function FacultyDashboard() {
           </div>
         </div>
 
-        {/* Stat Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+        {/* ── Welcome Banner ─────────────────────────────────────────── */}
+        <section className="relative overflow-hidden rounded-3xl h-52 flex items-center group">
+          {/* Background */}
+          <div className="absolute inset-0 bg-gradient-to-br from-[#00236f] via-[#0b338f] to-[#003B95]" />
+          {/* Pattern overlay */}
+          <div className="absolute inset-0 opacity-10"
+            style={{
+              backgroundImage: `radial-gradient(circle at 20% 50%, white 1px, transparent 1px), radial-gradient(circle at 80% 20%, white 1px, transparent 1px)`,
+              backgroundSize: '60px 60px'
+            }}
+          />
+          {/* Glowing orbs */}
+          <div className="absolute -top-20 -right-20 w-72 h-72 bg-blue-400/20 rounded-full blur-3xl" />
+          <div className="absolute -bottom-10 right-40 w-48 h-48 bg-indigo-300/20 rounded-full blur-2xl" />
+
+          {/* Content */}
+          <div className="relative z-10 px-10 flex-1">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="h-1.5 w-6 bg-white/40 rounded-full" />
+              <span className="text-[10px] font-bold text-white/60 uppercase tracking-[0.25em]">
+                {summaryData.activePeriod || "Portal Akademik Fakultas"}
+              </span>
+            </div>
+            <h1 className="text-3xl md:text-4xl font-extrabold text-white tracking-tight leading-tight mb-2">
+              Selamat datang, <span className="text-blue-200">{firstName}!</span>
+            </h1>
+            <p className="text-blue-100/80 font-medium text-sm max-w-md leading-relaxed">
+              Kelola data akademik, pantau kinerja mahasiswa, dan verifikasi layanan kampus dari satu panel terpusat.
+            </p>
+            <div className="mt-5 flex gap-3">
+              <button
+                onClick={() => navigate('/faculty/mahasiswa')}
+                className="bg-white text-primary px-5 py-2.5 rounded-xl font-bold text-xs shadow-lg hover:shadow-xl transition-all hover:-translate-y-0.5 active:scale-95"
+              >
+                Lihat Data Mahasiswa
+              </button>
+              <button
+                onClick={() => navigate('/faculty/laporan')}
+                className="bg-white/15 backdrop-blur-md text-white border border-white/20 px-5 py-2.5 rounded-xl font-bold text-xs hover:bg-white/25 transition-all active:scale-95"
+              >
+                Unduh Laporan
+              </button>
+            </div>
+          </div>
+
+          {/* Right decoration */}
+          <div className="hidden lg:flex absolute right-10 top-1/2 -translate-y-1/2 gap-4">
+            {[
+              { label: 'Mahasiswa', value: loading ? '—' : (summaryData.totalStudents || 0).toLocaleString() },
+              { label: 'Prodi', value: loading ? '—' : (summaryData.totalProdi || 0).toLocaleString() },
+            ].map(item => (
+              <div key={item.label} className="text-center bg-white/10 backdrop-blur-md rounded-2xl px-5 py-4 border border-white/10">
+                <p className="text-2xl font-black text-white leading-none">{item.value}</p>
+                <p className="text-[10px] text-white/60 font-bold uppercase tracking-widest mt-1">{item.label}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* ── Stat Cards ─────────────────────────────────────────────── */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {statCards.map((s) => (
             <button
               key={s.label}
               onClick={() => navigate(s.path)}
-              className="group bg-surface border border-border rounded-xl shadow-sm p-5 text-left hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 relative overflow-hidden"
+              className="group bg-white rounded-2xl border border-slate-200/60 shadow-sm p-5 text-left hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 relative overflow-hidden"
             >
               <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl ${s.accent} to-transparent rounded-bl-full opacity-40`} />
               <div className="relative">
@@ -290,52 +344,53 @@ export default function FacultyDashboard() {
                   <div className={`w-10 h-10 ${s.bg} rounded-xl flex items-center justify-center ${s.color} group-hover:scale-110 transition-transform duration-300`}>
                     <s.icon size={18} />
                   </div>
-                  <div className="flex items-center gap-1 text-[10px] font-medium text-success bg-success/10 border border-success/20 px-2 py-0.5 rounded-full">
+                  <div className="flex items-center gap-1 text-[9px] font-black text-emerald-500 bg-emerald-50 px-2 py-0.5 rounded-full uppercase tracking-widest">
                     <span className="material-symbols-outlined" style={{ fontSize: '9px' }} >show_chart</span>
                     Live
                   </div>
                 </div>
-                <p className="text-xs font-medium text-muted mb-1">{s.label}</p>
-                <p className="text-2xl font-black text-on-surface leading-none tabular-nums" style={{ color: 'var(--theme-text)' }}>
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] mb-1">{s.label}</p>
+                <p className="text-3xl font-black text-slate-900 leading-none tabular-nums">
                   {loading ? <span className="material-symbols-outlined animate-spin text-slate-300" style={{ fontSize: '20px' }} >sync</span> : s.value.toLocaleString()}
                 </p>
-                <p className="text-[10px] text-muted font-medium mt-1">{s.desc}</p>
+                <p className="text-[10px] text-slate-400 font-medium mt-1">{s.desc}</p>
               </div>
             </button>
           ))}
         </div>
 
-        {/* Main Bento Grid */}
+        {/* ── Main Bento Grid ─────────────────────────────────────────── */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
           {/* Chart: Mahasiswa per Prodi — col-8 */}
-          <div className="lg:col-span-8 bg-surface border border-border rounded-xl shadow-sm overflow-hidden">
-            <div className="px-5 py-4 border-b border-border flex items-center justify-between">
+          <div className="lg:col-span-8 bg-white border border-slate-100/50 rounded-3xl shadow-sm overflow-hidden">
+            <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
               <div>
-                <h2 className="text-xs font-bold uppercase tracking-widest text-primary font-headline">Distribusi Mahasiswa per Prodi</h2>
-                <p className="text-[10px] text-muted mt-0.5">Jumlah mahasiswa aktif berdasarkan program studi</p>
+                <h2 className="font-black text-slate-900 text-base tracking-tight">Distribusi Mahasiswa per Prodi</h2>
+                <p className="text-[11px] text-slate-400 font-medium mt-0.5">Jumlah mahasiswa aktif berdasarkan program studi</p>
               </div>
-              <div className="w-9 h-9 bg-primary/10 rounded-xl flex items-center justify-center text-primary border border-primary/20">
+              <div className="w-9 h-9 bg-blue-50 rounded-xl flex items-center justify-center text-blue-500">
                 <BarChart3 size={16} />
               </div>
             </div>
-            <div className="p-5 h-[280px]">
+            <div className="p-6 h-[280px]">
               {isMounted && (
                 <ResponsiveContainer width="99%" height={240} debounce={50}>
                   <BarChart data={summaryData.prodiDistribution} layout="vertical" margin={{ left: 20, right: 20 }}>
-                    <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="var(--theme-border-muted)" />
+                    <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="#f1f5f9" />
                     <XAxis type="number" hide domain={[0, 'dataMax']} />
                     <YAxis dataKey="name" type="category" width={240}
                       tick={({ y, payload }) => (
-                        <text x={0} y={y} dy={4} textAnchor="start" fill="var(--theme-text)" fontSize={9.5} fontWeight={700}>
+                        <text x={0} y={y} dy={4} textAnchor="start" fill="#475569" fontSize={9.5} fontWeight={700}>
                           {payload.value}
                         </text>
                       )}
                       axisLine={false} tickLine={false}
                     />
-                    <Tooltip cursor={{ fill: 'var(--theme-bg)' }}
-                      contentStyle={{ backgroundColor: "var(--theme-surface)", border: "1px solid var(--theme-border)", borderRadius: "12px", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)", fontSize: "11px", fontWeight: "bold", color: "var(--theme-text)" }}
+                    <Tooltip cursor={{ fill: '#f8fafc' }}
+                      contentStyle={{ backgroundColor: "#fff", border: "none", borderRadius: "16px", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)", fontSize: "11px", fontWeight: "bold" }}
                     />
-                    <Bar dataKey="jumlah" fill="var(--theme-primary)" radius={[0, 10, 10, 0]} barSize={14} />
+                    <Bar dataKey="jumlah" fill="#3b82f6" radius={[0, 10, 10, 0]} barSize={14} />
                   </BarChart>
                 </ResponsiveContainer>
               )}
@@ -343,13 +398,13 @@ export default function FacultyDashboard() {
           </div>
 
           {/* Status Mahasiswa — col-4 */}
-          <div className="lg:col-span-4 bg-surface border border-border rounded-xl shadow-sm overflow-hidden">
-            <div className="p-5 border-b border-border flex justify-between items-center bg-background/10">
+          <div className="lg:col-span-4 bg-white border border-slate-100/50 rounded-3xl shadow-sm overflow-hidden">
+            <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
               <div>
-                <h2 className="text-xs font-bold uppercase tracking-widest text-primary font-headline">Status Akademik</h2>
-                <p className="text-[10px] text-muted mt-0.5">Kondisi mahasiswa saat ini</p>
+                <h2 className="font-black text-slate-900 text-base tracking-tight">Status Akademik</h2>
+                <p className="text-[11px] text-slate-400 font-medium mt-0.5">Kondisi mahasiswa saat ini</p>
               </div>
-              <div className="w-9 h-9 bg-success/10 rounded-xl flex items-center justify-center text-success border border-success/20">
+              <div className="w-9 h-9 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-500">
                 <UserCheck size={16} />
               </div>
             </div>
@@ -365,7 +420,7 @@ export default function FacultyDashboard() {
                         <Cell key={`cell-${index}`} fill={entry.color} />
                       ))}
                     </Pie>
-                    <Tooltip contentStyle={{ backgroundColor: "var(--theme-surface)", border: "1px solid var(--theme-border)", borderRadius: "12px", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)", fontSize: "11px", fontWeight: "bold", color: "var(--theme-text)" }} />
+                    <Tooltip contentStyle={{ backgroundColor: "#fff", border: "none", borderRadius: "16px", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)", fontSize: "11px", fontWeight: "bold" }} />
                   </PieChart>
                 </ResponsiveContainer>
               )}
@@ -374,14 +429,14 @@ export default function FacultyDashboard() {
                   <div
                     key={item.name}
                     className={cn(
-                      "flex items-center gap-2 p-2 rounded-lg bg-background border border-border-muted",
+                      "flex items-center gap-2 p-2 rounded-xl bg-slate-50/50 border border-slate-100",
                       dynamicStatusData.length % 2 !== 0 && idx === dynamicStatusData.length - 1 && "col-span-2"
                     )}
                   >
                     <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: item.color }} />
                     <div className="min-w-0">
-                      <p className="text-[10px] font-medium text-muted truncate">{item.name}</p>
-                      <p className="text-xs font-semibold text-on-surface leading-none tabular-nums" style={{ color: 'var(--theme-text)' }}>{item.value.toLocaleString()}</p>
+                      <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest truncate">{item.name}</p>
+                      <p className="text-sm font-black text-slate-900 leading-none tabular-nums">{item.value.toLocaleString()}</p>
                     </div>
                   </div>
                 ))}
@@ -390,43 +445,43 @@ export default function FacultyDashboard() {
           </div>
         </div>
 
-        {/* Activity Grid */}
+        {/* ── Activity Grid ─────────────────────────────────────────── */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* Aktivitas Terbaru — col-12 */}
-          <div className="lg:col-span-12 bg-surface border border-border rounded-xl shadow-sm overflow-hidden">
-            <div className="px-5 py-4 border-b border-border flex items-center justify-between">
+          <div className="lg:col-span-12 bg-white border border-slate-100/50 rounded-3xl shadow-sm overflow-hidden">
+            <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
               <div>
-                <h2 className="text-xs font-bold uppercase tracking-widest text-primary font-headline">Aktivitas Terbaru</h2>
-                <p className="text-[10px] text-muted mt-0.5">Log aktivitas sistem terbaru di tingkat fakultas</p>
+                <h2 className="font-black text-slate-900 text-base tracking-tight">Aktivitas Terbaru</h2>
+                <p className="text-[11px] text-slate-400 font-medium mt-0.5">Log aktivitas sistem terbaru di tingkat fakultas</p>
               </div>
-              <div className="w-9 h-9 bg-background border border-border-muted rounded-xl flex items-center justify-center text-muted">
+              <div className="w-9 h-9 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400">
                 <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >schedule</span>
               </div>
             </div>
-            <div className="p-5">
+            <div className="p-6">
               {summaryData.recentActivity?.length > 0
                 ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {summaryData.recentActivity.map((activity, idx) => (
-                      <div key={idx} className="flex items-start gap-3.5 p-4 rounded-xl bg-background border border-border-muted group hover:border-border hover:bg-surface transition-all shadow-sm hover:shadow">
-                        <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center text-primary font-black text-xs flex-shrink-0 border border-primary/20">
+                      <div key={idx} className="flex items-start gap-3.5 p-4 rounded-2xl bg-slate-50/50 border border-slate-100 group hover:border-slate-200/60 hover:bg-white transition-all shadow-sm hover:shadow">
+                        <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center text-primary font-black text-xs flex-shrink-0">
                           {activity.avatar || '—'}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-xs font-bold text-on-surface truncate" style={{ color: 'var(--theme-text)' }}>{activity.user}</p>
-                          <p className="text-[10px] text-muted leading-relaxed mt-0.5">{activity.action}</p>
+                          <p className="text-xs font-bold text-slate-900 truncate">{activity.user}</p>
+                          <p className="text-[11px] text-slate-500 leading-relaxed mt-0.5">{activity.action}</p>
                         </div>
-                        <span className="text-[10px] font-medium text-muted self-start">{activity.time}</span>
+                        <span className="text-[10px] font-bold text-slate-400 uppercase whitespace-nowrap self-start">{activity.time}</span>
                       </div>
                     ))}
                   </div>
                 )
                 : (
                   <div className="py-16 text-center">
-                    <div className="w-12 h-12 bg-background border border-border-muted rounded-xl flex items-center justify-center text-muted mx-auto mb-3">
+                    <div className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-400 mx-auto mb-3">
                       <span className="material-symbols-outlined" style={{ fontSize: '20px' }} >notifications</span>
                     </div>
-                    <p className="text-xs font-medium text-muted">Belum ada aktivitas</p>
+                    <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Belum ada aktivitas</p>
                   </div>
                 )
               }
@@ -434,11 +489,12 @@ export default function FacultyDashboard() {
           </div>
         </div>
 
-        {/* Quick Actions */}
-        <div className="bg-surface border border-border rounded-xl shadow-sm p-5">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xs font-bold uppercase tracking-widest text-primary font-headline">Aksi Cepat</h2>
-            <span className="text-xs font-medium text-muted ml-auto">Pintasan Menu</span>
+        {/* ── Quick Actions ─────────────────────────────────────────── */}
+        <div className="bg-white rounded-2xl border border-slate-200/60 shadow-sm p-6">
+          <div className="flex items-center gap-2 mb-5">
+            <div className="h-4 w-1.5 bg-primary rounded-full" />
+            <h2 className="font-black text-slate-900 text-base tracking-tight">Aksi Cepat</h2>
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-auto">Pintasan Menu</span>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
             {quickActions.map((item, i) => (
@@ -446,14 +502,14 @@ export default function FacultyDashboard() {
                 key={i}
                 onClick={() => navigate(item.path)}
                 className={cn(
-                  "group flex flex-col items-center justify-center p-5 rounded-xl bg-surface border border-border transition-all duration-300 hover:-translate-y-1 hover:shadow-md active:scale-95",
+                  "group flex flex-col items-center justify-center p-5 rounded-2xl bg-white border border-slate-100 transition-all duration-300 hover:-translate-y-1 active:scale-95 shadow-sm hover:shadow-md",
                   item.hoverShadow
                 )}
               >
-                <div className={cn("w-12 h-12 rounded-xl flex items-center justify-center mb-4 transition-all duration-300 group-hover:scale-110", item.iconBg)}>
+                <div className={cn("w-12 h-12 rounded-2xl flex items-center justify-center mb-4 transition-all duration-300 group-hover:scale-110", item.iconBg)}>
                   <item.icon size={20} className="transition-transform duration-300 group-hover:rotate-6" />
                 </div>
-                <span className="text-xs font-medium text-center leading-snug text-muted group-hover:text-primary transition-colors">{item.label}</span>
+                <span className="text-[10.5px] font-black uppercase tracking-wider text-center leading-snug text-[#334155] group-hover:text-primary transition-colors">{item.label}</span>
               </button>
             ))}
           </div>

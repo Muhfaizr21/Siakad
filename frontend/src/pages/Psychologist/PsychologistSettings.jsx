@@ -32,7 +32,7 @@ const EMPTY_PROFILE = {
   no_hp: '',
   bio: '',
   lokasi: '',
-  tarif: 0,
+
   bahasa: '',
 };
 
@@ -95,7 +95,7 @@ export default function PsychologistSettings() {
     setMessage('');
     setError('');
     try {
-      const payload = { ...profile, tarif: Number(profile.tarif || 0) };
+      const payload = { ...profile };
       const res = await psychologistService.updateProfile(payload);
       setProfile({ ...EMPTY_PROFILE, ...(res.data || {}) });
       setMessage('Profil berhasil disimpan ke psikolog.profiles.');
@@ -207,15 +207,7 @@ export default function PsychologistSettings() {
                           <Field label="Bahasa" icon={Languages}>
                             <input value={profile.bahasa || ''} onChange={(e) => updateProfileField('bahasa', e.target.value)} className={FIELD_CLASS} placeholder="Indonesia, Inggris" />
                           </Field>
-                          <Field label="Tarif Konseling" icon={DollarSign}>
-                            <input
-                              type="number"
-                              min="0"
-                              value={profile.tarif || 0}
-                              onChange={(e) => updateProfileField('tarif', e.target.value)}
-                              className={FIELD_CLASS}
-                            />
-                          </Field>
+
                           <div className="md:col-span-2">
                             <Field label="Bio Profesional" icon={Globe}>
                               <textarea
@@ -306,8 +298,8 @@ export default function PsychologistSettings() {
                         <div className="space-y-5">
                           <div className="rounded-2xl bg-slate-950 p-5 text-white">
                             <p className="mb-2 text-[9px] font-black uppercase tracking-widest text-white/40">Tarif Konseling / Sesi</p>
-                            <p className="font-headline text-3xl font-black">Rp {Number(profile.tarif || 0).toLocaleString('id-ID')}</p>
-                            <p className="mt-2 text-xs font-semibold leading-relaxed text-white/45">Nilai ini tersimpan di `psikolog.profiles.tarif`.</p>
+                            <p className="font-headline text-3xl font-black">GRATIS</p>
+                            <p className="mt-2 text-xs font-semibold leading-relaxed text-white/45">Layanan konseling di-cover sepenuhnya oleh kampus.</p>
                           </div>
                           <div className="rounded-2xl border border-slate-100 bg-slate-50 p-5">
                             <p className="mb-3 text-[10px] font-black uppercase tracking-widest text-slate-500">Bahasa Layanan</p>

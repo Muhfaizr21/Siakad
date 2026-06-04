@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 import { NavLink } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
@@ -6,7 +6,24 @@ import {
   useCancelBookingMutation,
   useCounselingMedicalRecordQuery,
   useCounselingRiwayatQuery,
+  useCounselingReferralsQuery,
 } from '../../queries/useCounselingQuery';
+import { API_BASE_URL } from '../../services/api';
+
+const getFullUrl = (path) => {
+  if (!path) return '';
+  if (path.startsWith('http')) return path;
+  const baseUrl = API_BASE_URL.replace('/api', '');
+  return `${baseUrl}${path}`;
+};
+
+const REFERRAL_STATUS_CONFIG = {
+  Pending: { bg: 'bg-neutral-50', text: 'text-neutral-600', border: 'border-neutral-200' },
+  Sent: { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200' },
+  Received: { bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200' },
+  default: { bg: 'bg-neutral-50', text: 'text-neutral-600', border: 'border-neutral-200' },
+};
+
 import { NotifListSkeleton } from '../../components/ui/SkeletonGroups';
 import EmptyState from '../../components/ui/EmptyState';
 
@@ -44,6 +61,8 @@ const STATUS_CONFIG = {
 export default function CounselingHistoryPage() {
   const { data: history = [], isLoading: isHistoryLoading } = useCounselingRiwayatQuery();
   const { data: medicalRecord, isLoading: isMedicalLoading } = useCounselingMedicalRecordQuery();
+  const { data: referrals = [], isLoading: isReferralsLoading } = useCounselingReferralsQuery();
+  const [activeTab, setActiveTab] = useState('medical_record');
   const cancelMutation = useCancelBookingMutation();
 
   const records = medicalRecord?.records || [];
@@ -64,11 +83,11 @@ export default function CounselingHistoryPage() {
     <div className="min-h-screen bg-[#fafafa] px-4 py-5 font-body text-[#171717] md:px-6 md:py-6 lg:px-8 lg:py-8">
       <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div>
-          <NavLink to="/student/counseling" className="mb-4 inline-flex items-center gap-2 text-sm font-semibold text-neutral-400 transition-colors hover:text-bku-primary">
+          <NavLink to="/student/counseling" className="mb-4 inline-flex items-center gap-2 text-sm font-semibold text-neutral-400 transition-colors hover:text-[#00236F]">
             <ArrowLeft size={16} />
             Kembali ke jadwal
           </NavLink>
-          <h1 className="text-2xl font-extrabold tracking-tight text-bku-primary font-headline">Riwayat Konseling</h1>
+          <h1 className="text-2xl font-extrabold tracking-tight text-[#00236F] font-headline">Riwayat Konseling</h1>
           <p className="mt-1 max-w-2xl text-sm font-medium text-neutral-500">
             Pantau booking konseling dan lihat rekam medis yang sudah dicatat psikolog setelah sesi.
           </p>
@@ -94,8 +113,8 @@ export default function CounselingHistoryPage() {
           <div className="overflow-hidden rounded-3xl border border-neutral-100 bg-white shadow-sm">
             <div className="border-b border-neutral-100 px-5 py-4">
               <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-bku-primary" style={{ fontSize: '18px' }} >calendar_month</span>
-                <h2 className="text-sm font-extrabold uppercase tracking-tight text-bku-primary">Daftar Booking</h2>
+                <span className="material-symbols-outlined text-[#00236F]" style={{ fontSize: '18px' }} >calendar_month</span>
+                <h2 className="text-sm font-extrabold uppercase tracking-tight text-[#00236F]">Daftar Booking</h2>
               </div>
               <p className="mt-1 text-xs font-semibold text-neutral-400">Status booking konseling kamu dari yang terbaru.</p>
             </div>
@@ -114,7 +133,7 @@ export default function CounselingHistoryPage() {
                           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                             <div>
                               <p className="text-[10px] font-bold uppercase tracking-wide text-neutral-400">{formatLongDate(item.tanggal)}</p>
-                              <h3 className="mt-1 text-sm font-extrabold font-headline" style={{ color: 'var(--theme-h3)' }}>{item.tipe}</h3>
+                              <h3 className="mt-1 text-sm font-extrabold text-neutral-900">{item.tipe}</h3>
                               <p className="mt-1 flex items-center gap-1.5 text-xs font-semibold text-neutral-500">
                                 <User size={13} className="text-neutral-300" />
                                 {item.nama_konselor}
@@ -192,7 +211,7 @@ export default function CounselingHistoryPage() {
                 <EmptyState
                   size="sm"
                   icon="Clock"
-                  iconColor="text-bku-primary"
+                  iconColor="text-[#00236F]"
                   iconBgClass="bg-[#eef4ff]"
                   iconBorderClass="border-[#c9d8ff]"
                   title="Belum Ada Riwayat"
@@ -206,78 +225,213 @@ export default function CounselingHistoryPage() {
         <section className="xl:col-span-5">
           <div className="rounded-3xl border border-neutral-100 bg-white shadow-sm">
             <div className="border-b border-neutral-100 px-5 py-4">
-              <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-bku-primary" style={{ fontSize: '18px' }} >description</span>
-                <h2 className="text-sm font-extrabold uppercase tracking-tight text-bku-primary">Rekam Medis</h2>
+              <div className="flex gap-6 border-b border-neutral-100 pb-3">
+                <button
+                  onClick={() => setActiveTab('medical_record')}
+                  className={`pb-2 text-xs font-black uppercase tracking-wider transition-all border-b-2 flex items-center gap-1.5 -mb-3.5 ${
+                    activeTab === 'medical_record'
+                      ? 'border-[#00236F] text-[#00236F]'
+                      : 'border-transparent text-neutral-400 hover:text-neutral-600'
+                  }`}
+                >
+                  <span className="material-symbols-outlined text-[16px]">description</span>
+                  Rekam Medis
+                  <span className={`px-1.5 py-0.5 text-[9px] font-extrabold rounded-full ${
+                    activeTab === 'medical_record' ? 'bg-[#00236F]/10 text-[#00236F]' : 'bg-neutral-100 text-neutral-500'
+                  }`}>
+                    {records.length}
+                  </span>
+                </button>
+                <button
+                  onClick={() => setActiveTab('referrals')}
+                  className={`pb-2 text-xs font-black uppercase tracking-wider transition-all border-b-2 flex items-center gap-1.5 -mb-3.5 ${
+                    activeTab === 'referrals'
+                      ? 'border-[#00236F] text-[#00236F]'
+                      : 'border-transparent text-neutral-400 hover:text-neutral-600'
+                  }`}
+                >
+                  <span className="material-symbols-outlined text-[16px]">assignment_turned_in</span>
+                  Tindak Lanjut
+                  <span className={`px-1.5 py-0.5 text-[9px] font-extrabold rounded-full ${
+                    activeTab === 'referrals' ? 'bg-[#00236F]/10 text-[#00236F]' : 'bg-neutral-100 text-neutral-500'
+                  }`}>
+                    {referrals.length}
+                  </span>
+                </button>
               </div>
-              <p className="mt-1 text-xs font-semibold text-neutral-400">Catatan sesi yang sudah disimpan oleh psikolog.</p>
+              <p className="mt-4 text-xs font-semibold text-neutral-400">
+                {activeTab === 'medical_record'
+                  ? 'Catatan sesi yang sudah disimpan oleh psikolog.'
+                  : 'Rujukan dan rekomendasi tindak lanjut penanganan dari psikolog.'}
+              </p>
             </div>
 
             <div className="p-4">
-              <div className="mb-4 grid grid-cols-2 gap-3">
-                <div className="rounded-2xl border border-neutral-100 bg-neutral-50 p-4">
-                  <p className="text-[10px] font-bold uppercase tracking-wide text-neutral-400">Total Catatan</p>
-                  <p className="mt-1 text-2xl font-extrabold text-bku-primary">{summary.total_records}</p>
-                </div>
-                <div className="rounded-2xl border border-neutral-100 bg-neutral-50 p-4">
-                  <p className="text-[10px] font-bold uppercase tracking-wide text-neutral-400">Status Terakhir</p>
-                  <p className="mt-1 text-sm font-extrabold text-neutral-900">{summary.latest_status}</p>
-                </div>
-              </div>
+              {activeTab === 'medical_record' ? (
+                <>
+                  <div className="mb-4 grid grid-cols-2 gap-3">
+                    <div className="rounded-2xl border border-neutral-100 bg-neutral-50 p-4">
+                      <p className="text-[10px] font-bold uppercase tracking-wide text-neutral-400">Total Catatan</p>
+                      <p className="mt-1 text-2xl font-extrabold text-[#00236F]">{summary.total_records}</p>
+                    </div>
+                    <div className="rounded-2xl border border-neutral-100 bg-neutral-50 p-4">
+                      <p className="text-[10px] font-bold uppercase tracking-wide text-neutral-400">Status Terakhir</p>
+                      <p className="mt-1 text-sm font-extrabold text-neutral-900">{summary.latest_status}</p>
+                    </div>
+                  </div>
 
-              {isMedicalLoading ? (
-                <NotifListSkeleton count={4} />
-              ) : records.length > 0 ? (
-                <div className="space-y-3">
-                  {records.map((record) => (
-                    <article key={record.id} className="rounded-2xl border border-neutral-100 bg-white p-4 shadow-sm">
-                      <div className="flex items-start justify-between gap-3">
-                        <div>
-                          <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wide text-neutral-400">
-                            <span className="material-symbols-outlined" style={{ fontSize: '12px' }} >calendar_month</span>
-                            {record.display_date} • {record.time}
-                          </p>
-                          <h3 className="mt-1 text-sm font-extrabold font-headline" style={{ color: 'var(--theme-h3)' }}>{record.type}</h3>
-                          <p className="mt-0.5 text-xs font-semibold text-neutral-500">Psikolog: {record.psychologist}</p>
-                        </div>
-                        <span className="rounded-full border border-emerald-100 bg-emerald-50 px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-emerald-700">
-                          {record.status}
-                        </span>
-                      </div>
+                  {isMedicalLoading ? (
+                    <NotifListSkeleton count={4} />
+                  ) : records.length > 0 ? (
+                    <div className="space-y-3">
+                      {records.map((record) => (
+                        <article key={record.id} className="rounded-2xl border border-neutral-100 bg-white p-4 shadow-sm">
+                          <div className="flex items-start justify-between gap-3">
+                            <div>
+                              <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wide text-neutral-400">
+                                <span className="material-symbols-outlined" style={{ fontSize: '12px' }} >calendar_month</span>
+                                {record.display_date} • {record.time}
+                              </p>
+                              <h3 className="mt-1 text-sm font-extrabold text-neutral-900">{record.type}</h3>
+                              <p className="mt-0.5 text-xs font-semibold text-neutral-500">Psikolog: {record.psychologist}</p>
+                            </div>
+                            <span className="rounded-full border border-emerald-100 bg-emerald-50 px-3 py-1 text-[10px] font-bold uppercase tracking-wide text-emerald-700">
+                              {record.status}
+                            </span>
+                          </div>
 
-                      <div className="mt-4 space-y-3">
-                        <div className="rounded-xl border border-neutral-100 bg-neutral-50 p-3">
-                          <p className="text-[10px] font-bold uppercase tracking-wide text-neutral-400">Keluhan / Isu</p>
-                          <p className="mt-1 text-xs leading-relaxed text-neutral-700">{record.complaint}</p>
-                        </div>
-                        <div className="rounded-xl border border-blue-100 bg-blue-50 p-3">
-                          <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wide text-blue-500">
-                            <span className="material-symbols-outlined" style={{ fontSize: '12px' }} >show_chart</span>
-                            Observasi
-                          </p>
-                          <p className="mt-1 text-xs leading-relaxed text-blue-900">{record.observation}</p>
-                        </div>
-                        <div className="rounded-xl border border-emerald-100 bg-emerald-50 p-3">
-                          <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wide text-emerald-600">
-                            <span className="material-symbols-outlined" style={{ fontSize: '12px' }} Check >security</span>
-                            Rekomendasi
-                          </p>
-                          <p className="mt-1 text-xs leading-relaxed text-emerald-900">{record.recommendation}</p>
-                        </div>
-                      </div>
-                    </article>
-                  ))}
-                </div>
+                          <div className="mt-4 space-y-3">
+                            <div className="rounded-xl border border-neutral-100 bg-neutral-50 p-3">
+                              <p className="text-[10px] font-bold uppercase tracking-wide text-neutral-400">Keluhan / Isu</p>
+                              <p className="mt-1 text-xs leading-relaxed text-neutral-700">{record.complaint}</p>
+                            </div>
+                            <div className="rounded-xl border border-blue-100 bg-blue-50 p-3">
+                              <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wide text-blue-500">
+                                <span className="material-symbols-outlined" style={{ fontSize: '12px' }} >show_chart</span>
+                                Observasi
+                              </p>
+                              <p className="mt-1 text-xs leading-relaxed text-blue-900">{record.observation}</p>
+                            </div>
+                            <div className="rounded-xl border border-emerald-100 bg-emerald-50 p-3">
+                              <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wide text-emerald-600">
+                                <span className="material-symbols-outlined" style={{ fontSize: '12px' }} >security</span>
+                                Rekomendasi
+                              </p>
+                              <p className="mt-1 text-xs leading-relaxed text-emerald-900">{record.recommendation}</p>
+                            </div>
+                          </div>
+                        </article>
+                      ))}
+                    </div>
+                  ) : (
+                    <EmptyState
+                      size="sm"
+                      icon="FileText"
+                      iconColor="text-[#00236F]"
+                      iconBgClass="bg-[#eef4ff]"
+                      iconBorderClass="border-[#c9d8ff]"
+                      title="Belum Ada Rekam Medis"
+                      description="Catatan rekam medis akan muncul setelah psikolog menyimpan catatan sesi."
+                    />
+                  )}
+                </>
               ) : (
-                <EmptyState
-                  size="sm"
-                  icon="FileText"
-                  iconColor="text-bku-primary"
-                  iconBgClass="bg-[#eef4ff]"
-                  iconBorderClass="border-[#c9d8ff]"
-                  title="Belum Ada Rekam Medis"
-                  description="Catatan rekam medis akan muncul setelah psikolog menyimpan catatan sesi."
-                />
+                <>
+                  <div className="mb-4 grid grid-cols-2 gap-3">
+                    <div className="rounded-2xl border border-neutral-100 bg-neutral-50 p-4">
+                      <p className="text-[10px] font-bold uppercase tracking-wide text-neutral-400">Total Tindak Lanjut</p>
+                      <p className="mt-1 text-2xl font-extrabold text-[#00236F]">{referrals.length}</p>
+                    </div>
+                    <div className="rounded-2xl border border-neutral-100 bg-neutral-50 p-4">
+                      <p className="text-[10px] font-bold uppercase tracking-wide text-neutral-400">Status Aktif</p>
+                      <p className="mt-1 text-sm font-extrabold text-neutral-900">
+                        {referrals.filter(r => r.status === 'Sent' || r.status === 'Received').length} Diproses
+                      </p>
+                    </div>
+                  </div>
+
+                  {isReferralsLoading ? (
+                    <NotifListSkeleton count={3} />
+                  ) : referrals.length > 0 ? (
+                    <div className="space-y-3">
+                      {referrals.map((ref) => {
+                        const statusConfig = REFERRAL_STATUS_CONFIG[ref.status] || REFERRAL_STATUS_CONFIG.default;
+                        return (
+                          <article key={ref.id} className="rounded-2xl border border-neutral-100 bg-white p-4 shadow-sm">
+                            <div className="flex items-start justify-between gap-3">
+                              <div>
+                                <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wide text-neutral-400">
+                                  <span className="material-symbols-outlined" style={{ fontSize: '12px' }} >calendar_month</span>
+                                  {ref.display_date} • {ref.time}
+                                </p>
+                                <h3 className="mt-1 text-sm font-extrabold text-neutral-900">{ref.type}</h3>
+                                <p className="mt-0.5 text-xs font-semibold text-neutral-500">Dari: {ref.psychologist}</p>
+                              </div>
+                              <span className={`rounded-full border px-3 py-1 text-[10px] font-bold uppercase tracking-wide ${statusConfig.bg} ${statusConfig.text} ${statusConfig.border}`}>
+                                {ref.status === 'Sent' ? 'Dikirim' : ref.status === 'Received' ? 'Diterima' : ref.status}
+                              </span>
+                            </div>
+
+                            <div className="mt-4 space-y-3">
+                              <div className="rounded-xl border border-neutral-100 bg-neutral-50 p-3">
+                                <p className="text-[10px] font-bold uppercase tracking-wide text-neutral-400 font-bold">Pihak Penerima Rujukan</p>
+                                <p className="mt-1 text-xs font-extrabold text-neutral-800">{ref.target_party}</p>
+                                {ref.target_email && (
+                                  <p className="text-[10px] text-neutral-500 mt-0.5 flex items-center gap-1">
+                                    <span className="material-symbols-outlined" style={{ fontSize: '12px' }}>mail</span>
+                                    {ref.target_email}
+                                  </p>
+                                )}
+                              </div>
+
+                              <div className="rounded-xl border border-neutral-100 bg-neutral-50 p-3">
+                                <p className="text-[10px] font-bold uppercase tracking-wide text-neutral-400 font-bold">Alasan / Rekomendasi Rujukan</p>
+                                <p className="mt-1 text-xs leading-relaxed text-neutral-700">{ref.reason}</p>
+                              </div>
+
+                              {(ref.referral_pdf_url || ref.support_file_url) && (
+                                <div className="flex gap-2 pt-1">
+                                  {ref.referral_pdf_url && (
+                                    <a
+                                      href={getFullUrl(ref.referral_pdf_url)}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="inline-flex items-center gap-1.5 rounded-xl border border-neutral-200 bg-white px-3 py-2 text-[11px] font-bold text-neutral-700 shadow-sm transition-all hover:bg-neutral-50"
+                                    >
+                                      <span className="material-symbols-outlined text-red-500 animate-pulse" style={{ fontSize: '16px' }} >picture_as_pdf</span>
+                                      Unduh Surat Rujukan
+                                    </a>
+                                  )}
+                                  {ref.support_file_url && (
+                                    <a
+                                      href={getFullUrl(ref.support_file_url)}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="inline-flex items-center gap-1.5 rounded-xl border border-neutral-200 bg-white px-3 py-2 text-[11px] font-bold text-neutral-700 shadow-sm transition-all hover:bg-neutral-50"
+                                    >
+                                      <span className="material-symbols-outlined text-[#00236F]" style={{ fontSize: '16px' }} >attachment</span>
+                                      Berkas Pendukung
+                                    </a>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          </article>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <EmptyState
+                      size="sm"
+                      icon="ForwardToInbox"
+                      iconColor="text-[#00236F]"
+                      iconBgClass="bg-[#eef4ff]"
+                      iconBorderClass="border-[#c9d8ff]"
+                      title="Belum Ada Tindak Lanjut"
+                      description="Rujukan atau tindak lanjut khusus dari psikolog akan muncul di sini."
+                    />
+                  )}
+                </>
               )}
             </div>
           </div>
