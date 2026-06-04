@@ -94,7 +94,6 @@ export default function FacultyPrestasi() {
   const [achievements, setAchievements] = useState([])
   const [loading, setLoading]           = useState(true)
   const [selected, setSelected]         = useState(null)
-  const [isSubmitting, setIsSubmitting] = useState(false)
   const [search, setSearch]             = useState('')
   const [filterStatus, setFilterStatus] = useState('all')
   const [currentPage, setCurrentPage]   = useState(1)
@@ -247,22 +246,6 @@ export default function FacultyPrestasi() {
         })))
     } catch { toast.error('Gagal memuat data prestasi') }
     finally { setLoading(false) }
-  }
-
-  const handleValidation = async (id, status) => {
-    setIsSubmitting(true)
-    try {
-      const res  = await fetch(`${API}/prestasi/${id}/verify`, {
-        method: 'PUT', headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({ Status: status, Poin: status==='verified'?5:0, Catatan: status==='verified'?'Terverifikasi oleh fakultas.':'Berkas tidak sesuai kriteria.' })
-      })
-      const json = await res.json()
-      if (json.status === 'success') {
-        toast.success(status==='verified'?'Prestasi disetujui ✅':'Prestasi ditolak')
-        setSelected(null); fetchData()
-      } else toast.error(json.message||'Gagal update status')
-    } catch { toast.error('Sistem sibuk, coba lagi') }
-    finally { setIsSubmitting(false) }
   }
 
   useEffect(() => { fetchData() }, [])
@@ -510,14 +493,6 @@ export default function FacultyPrestasi() {
                             className="p-1.5 text-slate-400 hover:text-primary hover:bg-[#eef4ff] rounded-lg transition-colors" title="Detail">
                             <span className="material-symbols-outlined" style={{ fontSize: '15px' }} >visibility</span>
                           </button>
-                          <button onClick={() => handleValidation(row.ID, 'verified')} disabled={isSubmitting}
-                            className="p-1.5 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors" title="Setujui">
-                            <span className="material-symbols-outlined" style={{ fontSize: '15px' }} >check_circle</span>
-                          </button>
-                          <button onClick={() => handleValidation(row.ID, 'rejected')} disabled={isSubmitting}
-                            className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors" title="Tolak">
-                            <span className="material-symbols-outlined" style={{ fontSize: '15px' }} >close</span>
-                          </button>
                         </div>
                       </td>
                     </tr>
@@ -700,18 +675,8 @@ export default function FacultyPrestasi() {
             {/* Footer */}
             <div className="px-5 py-4 border-t border-slate-100 bg-slate-50/50 flex gap-3 flex-shrink-0">
               <button onClick={() => setSelected(null)}
-                className="flex-1 h-11 rounded-xl border border-slate-200/60 bg-white text-xs font-bold text-slate-600 uppercase tracking-widest hover:bg-slate-50 transition-all">
+                className="w-full h-11 rounded-xl border border-slate-200/60 bg-white text-xs font-bold text-slate-600 uppercase tracking-widest hover:bg-slate-50 transition-all">
                 Tutup
-              </button>
-              <button onClick={() => handleValidation(selected.ID, 'rejected')} disabled={isSubmitting}
-                className="flex-1 h-11 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold uppercase tracking-widest transition-all active:scale-95 shadow-lg shadow-rose-600/20 disabled:opacity-60 flex items-center justify-center gap-2">
-                {isSubmitting ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '14px' }} >sync</span> : <span className="material-symbols-outlined" style={{ fontSize: '14px' }} Circle >close</span>}
-                Tolak
-              </button>
-              <button onClick={() => handleValidation(selected.ID, 'verified')} disabled={isSubmitting}
-                className="flex-1 h-11 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold uppercase tracking-widest transition-all active:scale-95 shadow-lg shadow-emerald-600/20 disabled:opacity-60 flex items-center justify-center gap-2">
-                {isSubmitting ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '14px' }} >sync</span> : <span className="material-symbols-outlined" style={{ fontSize: '14px' }} >check_circle</span>}
-                Validasi
               </button>
             </div>
           </div>
