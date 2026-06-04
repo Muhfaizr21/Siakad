@@ -19,9 +19,20 @@ abstract class CounselingRepository {
   Future<void> createAssessment(Map<String, dynamic> data);
   Future<void> submitAssessmentResult(Map<String, dynamic> data);
   Future<Map<String, dynamic>> getAnalytics();
-  Future<List<Map<String, dynamic>>> getReports();
-  Future<Map<String, dynamic>> createReport({required String tipe, required String periode});
-  Future<String> downloadReport(String reportId);
+  Future<List<Map<String, dynamic>>> getReferrals();
+  Future<Map<String, dynamic>> createReferral({
+    required int mahasiswaId,
+    required String tipe,
+    required String alasan,
+    required String pihakTujuan,
+    required String emailTujuan,
+    int? bookingId,
+  });
+  Future<Map<String, dynamic>> sendReferral(int referralId);
+  Future<Map<String, dynamic>> confirmReferralReceived(int referralId);
+  Future<String> downloadReferral(int referralId);
+  Future<String> exportPatientsRecapPDF();
+  Future<String> exportSessionNotePDF(String id);
   Future<List<Map<String, dynamic>>> getNotifications();
   Future<void> markNotificationRead(String id);
   Future<void> markAllNotificationsRead();

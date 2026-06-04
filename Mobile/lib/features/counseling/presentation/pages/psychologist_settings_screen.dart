@@ -2,11 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:dio/dio.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:bkuhub_mobile/core/routes/app_routes.dart';
 import 'package:bkuhub_mobile/core/theme/app_colors.dart';
 import 'package:bkuhub_mobile/core/theme/app_text_styles.dart';
 import 'package:bkuhub_mobile/core/widgets/bku_app_bar.dart';
 import 'package:bkuhub_mobile/features/counseling/presentation/providers/psychologist_dashboard_provider.dart';
+import 'package:bkuhub_mobile/features/counseling/presentation/providers/counseling_provider.dart';
+import 'package:bkuhub_mobile/core/services/local_notification_service.dart';
 
 class PsychologistSettingsScreen extends StatefulWidget {
   final bool showBackButton;
@@ -17,9 +20,6 @@ class PsychologistSettingsScreen extends StatefulWidget {
 }
 
 class _PsychologistSettingsScreenState extends State<PsychologistSettingsScreen> {
-  bool _is2FAEnabled = true;
-  bool _isBiometricEnabled = true;
-  String _autoLogoutTime = '15 Menit';
 
   @override
   Widget build(BuildContext context) {
@@ -60,10 +60,6 @@ class _PsychologistSettingsScreenState extends State<PsychologistSettingsScreen>
                     _buildSectionTitle('Sistem & Sesi'),
                     const SizedBox(height: 16),
                     _buildSystemCard(),
-                    const SizedBox(height: 32),
-                    _buildSectionTitle('Akses & Data'),
-                    const SizedBox(height: 16),
-                    _buildDataAccessCard(),
                     const SizedBox(height: 40),
                     _buildLogoutButton(),
                     const SizedBox(height: 120),
@@ -248,24 +244,6 @@ class _PsychologistSettingsScreenState extends State<PsychologistSettingsScreen>
       ),
       child: Column(
         children: [
-          _buildSwitchTile(
-            Icons.enhanced_encryption_rounded,
-            'Autentikasi 2 Faktor (2FA)',
-            'Kode SMS/Email saat login',
-            const Color(0xFFE0E7FF), const Color(0xFF4338CA),
-            _is2FAEnabled,
-            (val) => setState(() => _is2FAEnabled = val),
-          ),
-          Divider(height: 1, indent: 20, color: Colors.grey.withAlpha(30)),
-          _buildSwitchTile(
-            Icons.fingerprint_rounded,
-            'Biometric Unlock',
-            'Sidik Jari atau Face ID',
-            const Color(0xFFD1FAE5), const Color(0xFF065F46),
-            _isBiometricEnabled,
-            (val) => setState(() => _isBiometricEnabled = val),
-          ),
-          Divider(height: 1, indent: 20, color: Colors.grey.withAlpha(30)),
           _buildChangePwTile(),
         ],
       ),
@@ -284,21 +262,12 @@ class _PsychologistSettingsScreenState extends State<PsychologistSettingsScreen>
       ),
       child: Column(
         children: [
-          _buildDropdownTile(
-            Icons.timer_off_rounded,
-            'Auto-Logout Sesi',
-            'Keluar otomatis setelah idle',
-            const Color(0xFFFEF3C7), const Color(0xFFB45309),
-            _autoLogoutTime,
-            ['5 Menit', '15 Menit', '30 Menit', '1 Jam'],
-            (val) => setState(() => _autoLogoutTime = val!),
-          ),
-          Divider(height: 1, indent: 20, color: Colors.grey.withAlpha(30)),
           _buildActionTile(
             Icons.history_rounded,
             'Log Aktivitas Sesi',
             'Riwayat akses & perubahan data',
             const Color(0xFFE0E7FF), const Color(0xFF4338CA),
+            () => _showSessionLogsSheet(),
           ),
           Divider(height: 1, indent: 20, color: Colors.grey.withAlpha(30)),
           _buildActionTile(
@@ -306,36 +275,7 @@ class _PsychologistSettingsScreenState extends State<PsychologistSettingsScreen>
             'Notifikasi & Reminder',
             'Atur pengingat sebelum sesi dimulai',
             const Color(0xFFD1FAE5), const Color(0xFF065F46),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ─── Data Access Card ─────────────────────────────────────────────────────
-
-  Widget _buildDataAccessCard() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.grey.withAlpha(30)),
-        boxShadow: [BoxShadow(color: Colors.black.withAlpha(4), blurRadius: 12, offset: const Offset(0, 4))],
-      ),
-      child: Column(
-        children: [
-          _buildActionTile(
-            Icons.download_rounded,
-            'Ekspor Data EHR',
-            'Unduh laporan dalam format PDF/CSV',
-            const Color(0xFFE0E7FF), const Color(0xFF4338CA),
-          ),
-          Divider(height: 1, indent: 20, color: Colors.grey.withAlpha(30)),
-          _buildActionTile(
-            Icons.policy_rounded,
-            'Kebijakan Kerahasiaan',
-            'Syarat & ketentuan akses data pasien',
-            const Color(0xFFFEF3C7), const Color(0xFFB45309),
+            () => _showNotificationsReminderSheet(),
           ),
         ],
       ),
@@ -376,23 +316,7 @@ class _PsychologistSettingsScreenState extends State<PsychologistSettingsScreen>
 
   // ─── Tile Builders ────────────────────────────────────────────────────────
 
-  Widget _buildSwitchTile(IconData icon, String title, String subtitle, Color bg, Color color, bool value, Function(bool) onChanged) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: ListTile(
-        leading: Container(
-          padding: const EdgeInsets.all(9),
-          decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(12)),
-          child: Icon(icon, color: color, size: 20),
-        ),
-        title: Text(title, style: AppTextStyles.bodyMd.copyWith(fontWeight: FontWeight.bold)),
-        subtitle: Text(subtitle, style: AppTextStyles.labelSm.copyWith(color: AppColors.outline)),
-        trailing: Switch(value: value, onChanged: onChanged, activeColor: AppColors.primary),
-      ),
-    );
-  }
-
-  Widget _buildActionTile(IconData icon, String title, String subtitle, Color bg, Color color) {
+  Widget _buildActionTile(IconData icon, String title, String subtitle, Color bg, Color color, VoidCallback onTap) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: ListTile(
@@ -404,37 +328,7 @@ class _PsychologistSettingsScreenState extends State<PsychologistSettingsScreen>
         title: Text(title, style: AppTextStyles.bodyMd.copyWith(fontWeight: FontWeight.bold)),
         subtitle: Text(subtitle, style: AppTextStyles.labelSm.copyWith(color: AppColors.outline)),
         trailing: const Icon(Icons.chevron_right_rounded, color: AppColors.outline),
-        onTap: () {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('$title sedang dalam pengembangan'),
-              backgroundColor: AppColors.primary,
-              behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  Widget _buildDropdownTile(IconData icon, String title, String subtitle, Color bg, Color color, String value, List<String> items, Function(String?) onChanged) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: ListTile(
-        leading: Container(
-          padding: const EdgeInsets.all(9),
-          decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(12)),
-          child: Icon(icon, color: color, size: 20),
-        ),
-        title: Text(title, style: AppTextStyles.bodyMd.copyWith(fontWeight: FontWeight.bold)),
-        subtitle: Text(subtitle, style: AppTextStyles.labelSm.copyWith(color: AppColors.outline)),
-        trailing: DropdownButton<String>(
-          value: value,
-          underline: const SizedBox(),
-          items: items.map((e) => DropdownMenuItem(value: e, child: Text(e, style: const TextStyle(fontSize: 13)))).toList(),
-          onChanged: onChanged,
-        ),
+        onTap: onTap,
       ),
     );
   }
@@ -528,6 +422,149 @@ class _PsychologistSettingsScreenState extends State<PsychologistSettingsScreen>
           ],
         ),
       ),
+    );
+  }
+
+  void _showSessionLogsSheet() {
+    final provider = context.read<PsychologistDashboardProvider>();
+    final logs = provider.recentActivities;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Align(
+                alignment: Alignment.center,
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.withAlpha(80),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFE0E7FF),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(Icons.history_rounded, color: Color(0xFF4338CA), size: 20),
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    'Log Aktivitas Sesi',
+                    style: AppTextStyles.titleLg.copyWith(
+                      fontWeight: FontWeight.w900,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+              if (logs.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 40),
+                  child: Center(
+                    child: Column(
+                      children: [
+                        Icon(Icons.history_toggle_off_rounded, size: 48, color: Colors.grey[300]),
+                        const SizedBox(height: 12),
+                        Text(
+                          'Belum ada log aktivitas sesi',
+                          style: AppTextStyles.labelMd.copyWith(color: Colors.grey[500]),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+              else
+                ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxHeight: MediaQuery.of(context).size.height * 0.5,
+                  ),
+                  child: ListView.separated(
+                    shrinkWrap: true,
+                    itemCount: logs.length,
+                    separatorBuilder: (_, __) => Divider(height: 20, color: Colors.grey.withAlpha(30)),
+                    itemBuilder: (context, index) {
+                      final log = logs[index];
+                      final title = log['title'] ?? 'Aktivitas';
+                      final desc = log['description'] ?? '';
+                      final time = log['time'] ?? '-';
+
+                      return Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: const BoxDecoration(
+                              color: Color(0xFFF1F5F9),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(Icons.circle_notifications_rounded, color: AppColors.primary, size: 16),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  title,
+                                  style: AppTextStyles.bodyMd.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color: const Color(0xFF1E293B),
+                                  ),
+                                ),
+                                if (desc.isNotEmpty) ...[
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    desc,
+                                    style: AppTextStyles.labelSm.copyWith(color: const Color(0xFF64748B)),
+                                  ),
+                                ],
+                                const SizedBox(height: 4),
+                                Text(
+                                  time,
+                                  style: AppTextStyles.labelSm.copyWith(color: Colors.grey[400], fontSize: 10),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      );
+                    },
+                  ),
+                ),
+              const SizedBox(height: 20),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _showNotificationsReminderSheet() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => const _NotificationReminderBottomSheet(),
     );
   }
 }
@@ -981,6 +1018,315 @@ class _ProfileBottomSheet extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _NotificationReminderBottomSheet extends StatefulWidget {
+  const _NotificationReminderBottomSheet();
+
+  @override
+  State<_NotificationReminderBottomSheet> createState() => _NotificationReminderBottomSheetState();
+}
+
+class _NotificationReminderBottomSheetState extends State<_NotificationReminderBottomSheet> {
+  bool _sessionReminder = true;
+  int _sessionReminderMinutes = 15;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPreferences();
+  }
+
+  Future<void> _loadPreferences() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _sessionReminder = prefs.getBool('pref_session_reminder') ?? true;
+      _sessionReminderMinutes = prefs.getInt('pref_session_reminder_minutes') ?? 15;
+      _isLoading = false;
+    });
+  }
+
+  Future<void> _savePreference(String key, bool value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(key, value);
+  }
+
+  Future<void> _saveIntPreference(String key, int value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(key, value);
+  }
+
+  void _testNotification() {
+    // 1. Dapatkan nama mahasiswa dari booking hari ini jika ada
+    final dashboardProvider = context.read<PsychologistDashboardProvider>();
+    final bookings = dashboardProvider.upcomingBookings;
+
+    String studentName = 'Ahmad Fathoni (Simulasi)';
+    if (bookings.isNotEmpty) {
+      final firstBooking = bookings.first;
+      studentName = firstBooking['name'] ?? 'Mahasiswa';
+    }
+
+    final message = 'Sesi konseling dengan $studentName akan dimulai dalam $_sessionReminderMinutes menit lagi! Siapkan ruang konseling online Anda.';
+
+    // 2. Tambah ke CounselingProvider agar muncul di list notifikasi
+    final counselingProvider = context.read<CounselingProvider>();
+    final notifId = 'local_${DateTime.now().millisecondsSinceEpoch}';
+    counselingProvider.addLocalNotification({
+      'id': notifId,
+      'title': 'Pengingat Sesi Konseling',
+      'desc': message,
+      'time': 'Baru Saja',
+      'type': 'booking',
+      'unread': true,
+    });
+
+    // 2b. Trigger OS-level system tray notification
+    LocalNotificationService.showNotification(
+      id: DateTime.now().millisecondsSinceEpoch.hashCode,
+      title: 'Pengingat Sesi Konseling',
+      body: message,
+    );
+
+    // 3. Tampilkan snackbar bergaya push notification premium
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: const BoxDecoration(
+                color: Color(0xFFE0E7FF),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.notifications_active_rounded, color: Color(0xFF4338CA), size: 20),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Pengingat Sesi Konseling',
+                    style: AppTextStyles.bodyMd.copyWith(fontWeight: FontWeight.bold, color: Colors.white),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    message,
+                    style: AppTextStyles.labelSm.copyWith(color: Colors.white.withAlpha(200)),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: const Color(0xFF1E293B),
+        duration: const Duration(seconds: 5),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        action: SnackBarAction(
+          label: 'CEK',
+          textColor: const Color(0xFF818CF8),
+          onPressed: () {
+            // Tutup bottom sheet
+            Navigator.pop(context);
+            // Buka halaman notifikasi
+            context.push(AppRoutes.psychologistNotifications);
+          },
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_isLoading) {
+      return Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+        ),
+        padding: const EdgeInsets.all(40),
+        child: const Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    return Container(
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Align(
+            alignment: Alignment.center,
+            child: Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey.withAlpha(80),
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+          ),
+          const SizedBox(height: 20),
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFD1FAE5),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(Icons.notifications_active_rounded, color: Color(0xFF065F46), size: 20),
+              ),
+              const SizedBox(width: 12),
+              Text(
+                'Notifikasi & Reminder',
+                style: AppTextStyles.titleLg.copyWith(
+                  fontWeight: FontWeight.w900,
+                  color: AppColors.primary,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+
+          // Switch: Session Reminder
+          _buildSwitchTile(
+            title: 'Pengingat Jadwal Sesi',
+            subtitle: 'Ingatkan jadwal sesi sebelum dimulai',
+            value: _sessionReminder,
+            onChanged: (val) {
+              setState(() => _sessionReminder = val);
+              _savePreference('pref_session_reminder', val);
+            },
+          ),
+
+          if (_sessionReminder) ...[
+            const SizedBox(height: 12),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Text(
+                      'Waktu Sebelum Sesi:',
+                      style: AppTextStyles.labelMd.copyWith(color: const Color(0xFF64748B)),
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF1F5F9),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.grey.withAlpha(40)),
+                    ),
+                    child: DropdownButtonHideUnderline(
+                      child: DropdownButton<int>(
+                        value: _sessionReminderMinutes,
+                        items: [5, 10, 15, 30].map((int val) {
+                          return DropdownMenuItem<int>(
+                            value: val,
+                            child: Text('$val Menit', style: AppTextStyles.bodyMd.copyWith(fontWeight: FontWeight.bold)),
+                          );
+                        }).toList(),
+                        onChanged: (val) {
+                          if (val != null) {
+                            setState(() => _sessionReminderMinutes = val);
+                            _saveIntPreference('pref_session_reminder_minutes', val);
+                          }
+                        },
+                        icon: const Icon(Icons.arrow_drop_down, color: AppColors.primary),
+                        dropdownColor: Colors.white,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+
+          const SizedBox(height: 32),
+
+          // Outlined Button: Test Notifikasi
+          SizedBox(
+            width: double.infinity,
+            height: 50,
+            child: OutlinedButton.icon(
+              onPressed: _sessionReminder ? _testNotification : null,
+              icon: const Icon(Icons.notifications_active_rounded),
+              label: const Text('Cek Notifikasi (Test)', style: TextStyle(fontWeight: FontWeight.bold)),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.primary,
+                side: const BorderSide(color: AppColors.primary, width: 1.5),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 12),
+
+          // Primary Button: Simpan
+          SizedBox(
+            width: double.infinity,
+            height: 50,
+            child: ElevatedButton(
+              onPressed: () => Navigator.pop(context),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+              ),
+              child: const Text('Tutup', style: TextStyle(fontWeight: FontWeight.bold)),
+            ),
+          ),
+          const SizedBox(height: 16),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSwitchTile({
+    required String title,
+    required String subtitle,
+    required bool value,
+    required ValueChanged<bool> onChanged,
+  }) {
+    return Row(
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: AppTextStyles.bodyMd.copyWith(fontWeight: FontWeight.bold, color: const Color(0xFF1E293B)),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                subtitle,
+                style: AppTextStyles.labelSm.copyWith(color: const Color(0xFF64748B)),
+              ),
+            ],
+          ),
+        ),
+        Switch.adaptive(
+          value: value,
+          onChanged: onChanged,
+          activeColor: AppColors.primary,
+        ),
+      ],
     );
   }
 }

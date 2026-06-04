@@ -8,9 +8,12 @@ import 'package:bkuhub_mobile/features/counseling/presentation/widgets/dashboard
 import 'package:bkuhub_mobile/features/counseling/presentation/widgets/dashboard/psychologist_service_grid.dart';
 import 'package:bkuhub_mobile/features/counseling/presentation/widgets/dashboard/upcoming_appointments_card.dart';
 import 'package:bkuhub_mobile/features/counseling/presentation/widgets/dashboard/psychologist_analytics_card.dart';
-import 'package:bkuhub_mobile/features/counseling/presentation/widgets/dashboard/psychologist_security_card.dart';
 import 'package:bkuhub_mobile/features/counseling/presentation/providers/psychologist_dashboard_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:go_router/go_router.dart';
+import 'package:bkuhub_mobile/core/routes/app_routes.dart';
 import 'package:bkuhub_mobile/features/counseling/presentation/providers/counseling_provider.dart';
+import 'package:bkuhub_mobile/core/services/local_notification_service.dart';
 
 class PsychologistDashboardScreen extends StatefulWidget {
   const PsychologistDashboardScreen({super.key});
@@ -23,13 +26,132 @@ class _PsychologistDashboardScreenState extends State<PsychologistDashboardScree
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<PsychologistDashboardProvider>().loadDashboardData();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await context.read<PsychologistDashboardProvider>().loadDashboardData();
+      if (mounted) {
+        _checkAndTriggerSessionReminders();
+      }
       // Load notifikasi untuk badge count
-      context.read<CounselingProvider>().loadNotifications();
+      if (mounted) {
+        context.read<CounselingProvider>().loadNotifications();
+      }
       // Load analytics untuk card tren
-      context.read<CounselingProvider>().loadAnalytics();
+      if (mounted) {
+        context.read<CounselingProvider>().loadAnalytics();
+      }
     });
+  }
+
+  Future<void> _checkAndTriggerSessionReminders() async {
+    final dashboardProvider = context.read<PsychologistDashboardProvider>();
+    final bookings = dashboardProvider.upcomingBookings;
+    if (bookings.isEmpty) return;
+
+    final prefs = await SharedPreferences.getInstance();
+    final bool enabled = prefs.getBool('pref_session_reminder') ?? true;
+    if (!enabled) return;
+
+    final int reminderMinutes = prefs.getInt('pref_session_reminder_minutes') ?? 15;
+    final now = DateTime.now();
+
+    for (final booking in bookings) {
+      final String timeStr = booking['time'] ?? '';
+      if (timeStr.isEmpty) continue;
+
+      final parts = timeStr.split('-');
+      if (parts.isEmpty) continue;
+      final startStr = parts[0].trim();
+      final startParts = startStr.split(':');
+      if (startParts.length < 2) continue;
+
+      final int? startHour = int.tryParse(startParts[0]);
+      final int? startMinute = int.tryParse(startParts[1]);
+      if (startHour == null || startMinute == null) continue;
+
+      final bookingTime = DateTime(now.year, now.month, now.day, startHour, startMinute);
+      final diffMinutes = bookingTime.difference(now).inMinutes;
+
+      if (diffMinutes >= 0 && diffMinutes <= reminderMinutes) {
+        final bookingId = booking['id']?.toString() ?? booking['nim']?.toString() ?? '';
+        if (bookingId.isEmpty) continue;
+
+        final List<String> shownIds = prefs.getStringList('pref_shown_reminder_ids') ?? [];
+        if (shownIds.contains(bookingId)) continue;
+
+        shownIds.add(bookingId);
+        await prefs.setStringList('pref_shown_reminder_ids', shownIds);
+
+        final studentName = booking['name'] ?? 'Mahasiswa';
+        final message = 'Sesi konseling dengan $studentName akan dimulai dalam $diffMinutes menit lagi! Siapkan ruang konseling online Anda.';
+
+        if (mounted) {
+          final counselingProvider = context.read<CounselingProvider>();
+          counselingProvider.addLocalNotification({
+            'id': 'auto_$bookingId',
+            'title': 'Pengingat Sesi Konseling',
+            'desc': message,
+            'time': 'Baru Saja',
+            'type': 'booking',
+            'unread': true,
+          });
+
+          // Trigger OS-level system tray notification
+          LocalNotificationService.showNotification(
+            id: bookingId.hashCode,
+            title: 'Pengingat Sesi Konseling',
+            body: message,
+          );
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: const BoxDecoration(
+                      color: Color(0xFFE0E7FF),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.notifications_active_rounded, color: Color(0xFF4338CA), size: 20),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          'Pengingat Sesi Konseling',
+                          style: AppTextStyles.bodyMd.copyWith(fontWeight: FontWeight.bold, color: Colors.white),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          message,
+                          style: AppTextStyles.labelSm.copyWith(color: Colors.white.withAlpha(200)),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              behavior: SnackBarBehavior.floating,
+              backgroundColor: const Color(0xFF1E293B),
+              duration: const Duration(seconds: 5),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              action: SnackBarAction(
+                label: 'CEK',
+                textColor: const Color(0xFF818CF8),
+                onPressed: () {
+                  context.push(AppRoutes.psychologistNotifications);
+                },
+              ),
+            ),
+          );
+        }
+      }
+    }
   }
 
   @override
@@ -70,10 +192,6 @@ class _PsychologistDashboardScreenState extends State<PsychologistDashboardScree
                       _buildSectionHeader('Analitik & Tren'),
                       const SizedBox(height: 16),
                       const PsychologistAnalyticsCard(),
-                      const SizedBox(height: 24),
-                      _buildSectionHeader('Keamanan & Sistem'),
-                      const SizedBox(height: 16),
-                      const PsychologistSecurityCard(),
                       const SizedBox(height: 80),
                     ],
                   ),

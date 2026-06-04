@@ -208,49 +208,21 @@ class CounselingProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // ─── Reports ─────────────────────────────────────────────────────────────────
-  List<Map<String, dynamic>> _reports = [];
-  List<Map<String, dynamic>> get reports => _reports;
-
-  bool _reportsLoading = false;
-  bool get reportsLoading => _reportsLoading;
-
-  bool _creatingReport = false;
-  bool get creatingReport => _creatingReport;
-
-  Future<void> loadReports() async {
-    _reportsLoading = true;
-    notifyListeners();
+  // ─── PDF Exports ─────────────────────────────────────────────────────────────
+  Future<String?> exportPatientsRecapPDF() async {
     try {
-      _reports = await _repository.getReports();
+      return await _repository.exportPatientsRecapPDF();
     } catch (e) {
-      log('CounselingProvider.loadReports error: $e');
-    }
-    _reportsLoading = false;
-    notifyListeners();
-  }
-
-  Future<Map<String, dynamic>?> createReport({required String tipe, required String periode}) async {
-    _creatingReport = true;
-    notifyListeners();
-    try {
-      final result = await _repository.createReport(tipe: tipe, periode: periode);
-      await loadReports();
-      return result;
-    } catch (e) {
-      log('CounselingProvider.createReport error: $e');
+      log('CounselingProvider.exportPatientsRecapPDF error: $e');
       return null;
-    } finally {
-      _creatingReport = false;
-      notifyListeners();
     }
   }
 
-  Future<String?> downloadReport(String reportId) async {
+  Future<String?> exportSessionNotePDF(String id) async {
     try {
-      return await _repository.downloadReport(reportId);
+      return await _repository.exportSessionNotePDF(id);
     } catch (e) {
-      log('CounselingProvider.downloadReport error: $e');
+      log('CounselingProvider.exportSessionNotePDF error: $e');
       return null;
     }
   }
@@ -310,5 +282,10 @@ class CounselingProvider extends ChangeNotifier {
     } catch (e) {
       log('CounselingProvider.deleteNotification error: $e');
     }
+  }
+
+  void addLocalNotification(Map<String, dynamic> notif) {
+    _notifications.insert(0, notif);
+    notifyListeners();
   }
 }

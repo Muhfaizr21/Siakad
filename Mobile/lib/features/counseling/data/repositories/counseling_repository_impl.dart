@@ -224,43 +224,27 @@ class CounselingRepositoryImpl implements CounselingRepository {
   }
 
   @override
-  Future<List<Map<String, dynamic>>> getReports() async {
-    try {
-      final response = await apiClient.client.get('/psychologist/reports');
-      final data = response.data['data'];
-      if (data is List) {
-        return data.cast<Map<String, dynamic>>();
-      }
-      return [];
-    } catch (e) {
-      log('Error getting reports: $e');
-      rethrow;
-    }
-  }
-
-  @override
-  Future<Map<String, dynamic>> createReport({required String tipe, required String periode}) async {
-    try {
-      final response = await apiClient.client.post('/psychologist/reports', data: {
-        'tipe': tipe,
-        'periode': periode,
-      });
-      return response.data['data'] ?? {};
-    } catch (e) {
-      log('Error creating report: $e');
-      rethrow;
-    }
-  }
-
-  @override
-  Future<String> downloadReport(String reportId) async {
+  Future<String> exportPatientsRecapPDF() async {
     try {
       final baseUrl = apiClient.client.options.baseUrl;
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('access_token') ?? '';
-      return '$baseUrl/psychologist/reports/$reportId/download?token=$token';
+      return '$baseUrl/psychologist/patients/export-pdf?token=$token';
     } catch (e) {
-      log('Error getting download URL: $e');
+      log('Error getting patients recap export URL: $e');
+      rethrow;
+    }
+  }
+
+  @override
+  Future<String> exportSessionNotePDF(String id) async {
+    try {
+      final baseUrl = apiClient.client.options.baseUrl;
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('access_token') ?? '';
+      return '$baseUrl/psychologist/session-notes/$id/export-pdf?token=$token';
+    } catch (e) {
+      log('Error getting session note export URL: $e');
       rethrow;
     }
   }
@@ -312,6 +296,7 @@ class CounselingRepositoryImpl implements CounselingRepository {
 
   // ─── Tindak Lanjut (Referral) ─────────────────────────────────────────────────
 
+  @override
   Future<List<Map<String, dynamic>>> getReferrals() async {
     try {
       final response = await apiClient.client.get('/psychologist/referrals');
@@ -326,6 +311,7 @@ class CounselingRepositoryImpl implements CounselingRepository {
     }
   }
 
+  @override
   Future<Map<String, dynamic>> createReferral({
     required int mahasiswaId,
     required String tipe,
@@ -353,6 +339,7 @@ class CounselingRepositoryImpl implements CounselingRepository {
     }
   }
 
+  @override
   Future<Map<String, dynamic>> sendReferral(int referralId) async {
     try {
       final response = await apiClient.client.post(
@@ -365,6 +352,7 @@ class CounselingRepositoryImpl implements CounselingRepository {
     }
   }
 
+  @override
   Future<Map<String, dynamic>> confirmReferralReceived(int referralId) async {
     try {
       final response = await apiClient.client.post(
@@ -377,6 +365,7 @@ class CounselingRepositoryImpl implements CounselingRepository {
     }
   }
 
+  @override
   Future<String> downloadReferral(int referralId) async {
     try {
       final baseUrl = apiClient.client.options.baseUrl;

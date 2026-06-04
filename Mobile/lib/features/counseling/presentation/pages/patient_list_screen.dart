@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:bkuhub_mobile/core/theme/app_colors.dart';
 import 'package:bkuhub_mobile/core/theme/app_text_styles.dart';
 import 'package:bkuhub_mobile/core/widgets/bku_app_bar.dart';
@@ -81,10 +82,11 @@ class _PatientListScreenState extends State<PatientListScreen> {
                                 _buildSummaryCard(patients),
                                 const SizedBox(height: 32),
                                 Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
                                   children: [
                                     _buildSectionTitle('Daftar Mahasiswa'),
+                                    const Spacer(),
+                                    _buildExportButton(provider),
+                                    const SizedBox(width: 12),
                                     _buildFilterAction(),
                                   ],
                                 ),
@@ -101,6 +103,47 @@ class _PatientListScreenState extends State<PatientListScreen> {
           ),
         );
       },
+    );
+  }
+
+  Widget _buildExportButton(CounselingProvider provider) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.withAlpha(50)),
+      ),
+      child: IconButton(
+        onPressed: () async {
+          final url = await provider.exportPatientsRecapPDF();
+          if (url != null && mounted) {
+            final uri = Uri.parse(url);
+            try {
+              await launchUrl(uri, mode: LaunchMode.externalApplication);
+            } catch (e) {
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Gagal mengunduh PDF rekap pasien'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+              }
+            }
+          } else {
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Gagal mendapatkan tautan unduhan'),
+                  backgroundColor: Colors.red,
+                ),
+              );
+            }
+          }
+        },
+        icon: const Icon(Icons.download_rounded, color: AppColors.primary, size: 20),
+        tooltip: 'Ekspor PDF Rekap Pasien',
+      ),
     );
   }
 
@@ -639,7 +682,7 @@ class _PatientDetailsSheet extends StatelessWidget {
                     const SizedBox(height: 32),
                     prov.medicalRecordLoading
                         ? const Center(child: CircularProgressIndicator())
-                        : _buildTimelineSection(visits),
+                        : _buildTimelineSection(context, visits),
                   ],
                 );
               },
@@ -753,7 +796,7 @@ class _PatientDetailsSheet extends StatelessWidget {
     );
   }
 
-  Widget _buildTimelineSection(List<Map<String, dynamic>> visits) {
+  Widget _buildTimelineSection(BuildContext context, List<Map<String, dynamic>> visits) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -775,13 +818,13 @@ class _PatientDetailsSheet extends StatelessWidget {
           ...visits.asMap().entries.map((entry) {
             final v = entry.value;
             final isLast = entry.key == visits.length - 1;
-            return _buildTimelineItem(v, isLast);
+            return _buildTimelineItem(context, v, isLast);
           }),
       ],
     );
   }
 
-  Widget _buildTimelineItem(Map<String, dynamic> v, bool isLast) {
+  Widget _buildTimelineItem(BuildContext context, Map<String, dynamic> v, bool isLast) {
     final date = v['date']?.toString() ?? '-';
     final type = v['type']?.toString() ?? 'Sesi Konseling';
     final complaint = v['complaint']?.toString() ?? '';
@@ -829,10 +872,52 @@ class _PatientDetailsSheet extends StatelessWidget {
                           color: const Color(0xFF94A3B8),
                           fontWeight: FontWeight.bold)),
                   const SizedBox(height: 4),
-                  Text(type,
-                      style: AppTextStyles.bodyLg.copyWith(
-                          fontWeight: FontWeight.w900,
-                          color: const Color(0xFF1E293B))),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Text(type,
+                            style: AppTextStyles.bodyLg.copyWith(
+                                fontWeight: FontWeight.w900,
+                                color: const Color(0xFF1E293B))),
+                      ),
+                      if (v['id'] != null)
+                        IconButton(
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                          onPressed: () async {
+                            final provider = context.read<CounselingProvider>();
+                            final url = await provider.exportSessionNotePDF(v['id'].toString());
+                            if (url != null && context.mounted) {
+                              final uri = Uri.parse(url);
+                              try {
+                                await launchUrl(uri, mode: LaunchMode.externalApplication);
+                              } catch (e) {
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('Gagal mengunduh PDF rekam medis'),
+                                      backgroundColor: Colors.red,
+                                    ),
+                                  );
+                                }
+                              }
+                            } else {
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Gagal mendapatkan tautan unduhan'),
+                                    backgroundColor: Colors.red,
+                                  ),
+                                );
+                              }
+                            }
+                          },
+                          icon: const Icon(Icons.download_rounded, color: AppColors.primary, size: 18),
+                          tooltip: 'Unduh PDF Catatan Sesi',
+                        ),
+                    ],
+                  ),
                   if (note.isNotEmpty) ...[
                     const SizedBox(height: 4),
                     Text(note,

@@ -13,15 +13,18 @@ import 'package:bkuhub_mobile/core/providers/ormawa_provider.dart';
 import 'package:bkuhub_mobile/features/counseling/presentation/providers/psychologist_dashboard_provider.dart';
 import 'package:bkuhub_mobile/features/counseling/presentation/providers/counseling_provider.dart';
 import 'package:bkuhub_mobile/features/counseling/presentation/providers/student_counseling_provider.dart';
+import 'package:bkuhub_mobile/features/counseling/presentation/providers/referral_provider.dart';
 import 'package:bkuhub_mobile/core/network/api_client.dart';
 import 'package:bkuhub_mobile/features/mahasiswa/data/repositories/student_repository_impl.dart';
 import 'package:bkuhub_mobile/features/ormawa/data/repositories/ormawa_repository_impl.dart';
 import 'package:bkuhub_mobile/features/counseling/data/repositories/counseling_repository_impl.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:bkuhub_mobile/core/services/local_notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await initializeDateFormatting('id', null);
+  await LocalNotificationService.initialize();
 
 
   // Initialize Core Networking & Repositories
@@ -50,6 +53,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => AchievementProvider()),
         ChangeNotifierProvider(create: (_) => PsychologistDashboardProvider(repository: counselingRepository)),
         ChangeNotifierProvider(create: (_) => CounselingProvider(repository: counselingRepository)),
+        ChangeNotifierProvider(create: (_) => ReferralProvider(repository: counselingRepository)),
         ChangeNotifierProvider(create: (_) => StudentCounselingProvider(apiClient: apiClient)),
         ChangeNotifierProvider(create: (_) => OrmawaProvider(ormawaRepository)),
       ],
