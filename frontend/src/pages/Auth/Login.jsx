@@ -6,6 +6,7 @@ import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import api from '../../lib/axios';
 import useAuthStore from '../../store/useAuthStore';
+import RoleSelector from './RoleSelector';
 
 // Validation Schema
 const loginSchema = z.object({
@@ -42,6 +43,7 @@ const getRouteByRole = (role) => {
 export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+  const [roleSelectionData, setRoleSelectionData] = useState(null);
   const navigate = useNavigate();
   const setAuth = useAuthStore((state) => state.setAuth);
 
@@ -62,6 +64,17 @@ export default function Login() {
       });
       if (response.data.success || response.data.status === 'success') {
         const payload = response.data.data || {};
+
+        // Check if multi-role selection is required
+        if (payload.requires_role_selection) {
+          setRoleSelectionData({
+            tempToken: payload.temp_token,
+            roles: payload.roles,
+            user: payload.user,
+          });
+          return;
+        }
+
         const token = payload.access_token || payload.token;
         if (!token) {
           setErrorMsg('Token login tidak ditemukan dari server.');
@@ -138,6 +151,13 @@ export default function Login() {
       {/* RIGHT PANEL - LOGIN FORM */}
       <div className="w-full lg:w-[55%] xl:w-[60%] flex flex-col justify-center items-center lg:items-start relative p-6 sm:p-12 lg:pl-28 xl:pl-40 lg:pr-12 bg-white shadow-[-20px_0_40px_rgba(0,0,0,0.03)] z-10 rounded-l-[2.5rem] lg:rounded-l-[3rem] 2xl:rounded-l-[4rem]">
         
+        {roleSelectionData ? (
+          <RoleSelector
+            data={roleSelectionData}
+            onBack={() => { setRoleSelectionData(null); setErrorMsg(''); }}
+            onError={(msg) => { setErrorMsg(msg); setRoleSelectionData(null); }}
+          />
+        ) : (
         <div className="w-full max-w-[440px]">
           {/* Mobile Only Header */}
           <div className="flex flex-col items-center mb-10 lg:hidden text-center">
@@ -254,6 +274,7 @@ export default function Login() {
             </p>
           </div>
         </div>
+        )}
       </div>
     </div>
   );

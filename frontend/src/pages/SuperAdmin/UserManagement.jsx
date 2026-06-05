@@ -301,13 +301,55 @@ export default function UserManagement() {
     () => roleOptions.find(role => role.value === selectedRoleKey) || roleOptions[0] || null,
     [roleOptions, selectedRoleKey]
   )
-
   const permissionSet = useMemo(() => new Set(permissionDraft), [permissionDraft])
+
+  const formRoles = useMemo(() => {
+    return form.Role ? form.Role.split(',').map(r => r.trim()).filter(Boolean) : [];
+  }, [form.Role]);
+
+  const showFakultasSelect = useMemo(() => {
+    return formRoles.some(r => 
+      ['faculty_admin', 'mahasiswa', 'ormawa_admin', 'ormawa', 'kencana_fakultas'].includes(r) ||
+      (r === 'kencana_mentor' && form.KencanaScopeType === 'faculty')
+    );
+  }, [formRoles, form.KencanaScopeType]);
+
+  const showProdiSelect = useMemo(() => {
+    return formRoles.some(r => ['mahasiswa', 'ormawa_admin', 'ormawa'].includes(r));
+  }, [formRoles]);
+
+  const showOrmawaSelect = useMemo(() => {
+    return formRoles.some(r => ['ormawa_admin', 'ormawa'].includes(r));
+  }, [formRoles]);
+
+  const showKencanaScopeSelect = useMemo(() => {
+    return formRoles.includes('kencana_mentor');
+  }, [formRoles]);
+
+  const newRoles = useMemo(() => {
+    return newRole ? newRole.split(',').map(r => r.trim()).filter(Boolean) : [];
+  }, [newRole]);
+
+  const showNewFakultasSelect = useMemo(() => {
+    return newRoles.some(r => 
+      ['kencana_fakultas'].includes(r) ||
+      (r === 'kencana_mentor' && newKencanaScopeType === 'faculty')
+    );
+  }, [newRoles, newKencanaScopeType]);
+
+  const showNewOrmawaSelect = useMemo(() => {
+    return newRoles.some(r => ['ormawa_admin', 'ormawa'].includes(r));
+  }, [newRoles]);
+
+  const showNewKencanaScopeSelect = useMemo(() => {
+    return newRoles.includes('kencana_mentor');
+  }, [newRoles]);
 
   const handleEmailChange = (emailVal) => {
     setForm(prev => {
       let updatedPassword = prev.Password;
-      if (prev.Role === 'mahasiswa') {
+      const currentRoles = prev.Role ? prev.Role.split(',').map(r => r.trim()).filter(Boolean) : [];
+      if (currentRoles.includes('mahasiswa') && (!prev.Password || prev.Password.startsWith('pass'))) {
         const parts = emailVal.split('@');
         const nim = parts[0].trim();
         if (nim) {
@@ -322,10 +364,19 @@ export default function UserManagement() {
     });
   };
 
-  const handleRoleChange = (roleVal) => {
+  const handleToggleRole = (roleToToggle) => {
     setForm(prev => {
+      const currentRoles = prev.Role ? prev.Role.split(',').map(r => r.trim()).filter(Boolean) : [];
+      let nextRoles;
+      if (currentRoles.includes(roleToToggle)) {
+        nextRoles = currentRoles.filter(r => r !== roleToToggle);
+      } else {
+        nextRoles = [...currentRoles, roleToToggle];
+      }
+      const roleVal = nextRoles.join(',');
+      
       let updatedPassword = prev.Password;
-      if (roleVal === 'mahasiswa') {
+      if (nextRoles.includes('mahasiswa') && (!prev.Password || prev.Password.startsWith('pass'))) {
         const parts = prev.Email.split('@');
         const nim = parts[0].trim();
         if (nim) {
@@ -338,6 +389,17 @@ export default function UserManagement() {
         Password: updatedPassword
       };
     });
+  };
+
+  const handleToggleNewRole = (roleToToggle) => {
+    const currentRoles = newRole ? newRole.split(',').map(r => r.trim()).filter(Boolean) : [];
+    let nextRoles;
+    if (currentRoles.includes(roleToToggle)) {
+      nextRoles = currentRoles.filter(r => r !== roleToToggle);
+    } else {
+      nextRoles = [...currentRoles, roleToToggle];
+    }
+    setNewRole(nextRoles.join(','));
   };
 
   const fetchData = async () => {
@@ -548,38 +610,52 @@ export default function UserManagement() {
     {
       key: 'fakultas_nama', label: 'Cluster Afiliasi', className: 'w-[240px]',
       render: (v, row) => {
-        const role = (row.role || '').toLowerCase()
-        let context = '-'
-        let subContext = ''
-
-        if (role === 'super_admin') {
-          context = 'Universitas (Global)'
-        } else if (role === 'faculty_admin') {
-          context = v || 'Cluster Unassigned'
-        } else if (role === 'ormawa_admin') {
-          context = row.ormawa_assign || row.ormawa_nama || 'Org Unassigned'
-          subContext = v ? `Managed at ${v}` : ''
-        } else if (role === 'mahasiswa') {
-          context = row.prodi_nama || '-'
-          subContext = v || ''
-        } else if (role === 'psikolog') {
-          context = 'Psychological Wing'
-          subContext = 'BKU Clinical Unit'
-        } else if (role === 'kencana_admin') {
-          context = 'Kencana University'
-          subContext = 'Global LMS Operations'
-        } else if (role === 'kencana_fakultas') {
-          context = v || 'Kencana Fakultas'
-          subContext = 'Scoped faculty operations'
-        } else if (role === 'kencana_mentor') {
-          context = row.kencana_scope_type === 'university' ? 'Mentor Universitas' : (v || 'Mentor Fakultas')
-          subContext = row.kencana_scope_type === 'university' ? 'All faculties' : 'Faculty scoped'
+        const roleLower = (row.role || row.Role || '').toLowerCase()
+        const roles = roleLower.split(',').map(r => r.trim()).filter(Boolean)
+        
+        let contexts = []
+        let subContexts = []
+        
+        if (roles.includes('super_admin')) {
+          contexts.push('Universitas (Global)')
         }
+        if (roles.includes('faculty_admin')) {
+          contexts.push(v || 'Cluster Unassigned')
+        }
+        if (roles.includes('ormawa_admin')) {
+          contexts.push(row.ormawa_assign || row.ormawa_nama || 'Org Unassigned')
+          if (v) subContexts.push(`Managed at ${v}`)
+        }
+        if (roles.includes('mahasiswa')) {
+          contexts.push(row.prodi_nama || '-')
+          if (v) subContexts.push(v)
+        }
+        if (roles.includes('psikolog')) {
+          contexts.push('Psychological Wing')
+          subContexts.push('BKU Clinical Unit')
+        }
+        if (roles.includes('kencana_admin')) {
+          contexts.push('Kencana University')
+          subContexts.push('Global LMS Operations')
+        }
+        if (roles.includes('kencana_fakultas')) {
+          contexts.push(v || 'Kencana Fakultas')
+          subContexts.push('Scoped faculty operations')
+        }
+        if (roles.includes('kencana_mentor')) {
+          contexts.push(row.kencana_scope_type === 'university' ? 'Mentor Universitas' : (v || 'Mentor Fakultas'))
+          subContexts.push(row.kencana_scope_type === 'university' ? 'All faculties' : 'Faculty scoped')
+        }
+
+        const uniqueContexts = [...new Set(contexts)]
+        const contextText = uniqueContexts.length > 0 ? uniqueContexts.join(', ') : '-'
+        const uniqueSubContexts = [...new Set(subContexts)]
+        const subContextText = uniqueSubContexts.length > 0 ? uniqueSubContexts.join(' | ') : ''
         
         return (
           <div className="flex flex-col gap-0.5">
-            <span className="text-[12px] font-bold text-neutral-800 font-jakarta leading-tight tracking-tight">{context}</span>
-            {subContext && <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest leading-none mt-1">{subContext}</span>}
+            <span className="text-[12px] font-bold text-neutral-800 font-jakarta leading-tight tracking-tight">{contextText}</span>
+            {subContextText && <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest leading-none mt-1">{subContextText}</span>}
           </div>
         )
       }
@@ -587,13 +663,20 @@ export default function UserManagement() {
     {
       key: 'role', label: 'Authorization', className: 'w-[160px]',
       render: (v, row) => {
-        const r = v || row.role || ''
-        const roleOption = roleOptions.find(role => role.value === r)
-        const cfg = ROLE_DETAILS[r] || { label: roleOption?.label || r, cls: 'bg-neutral-100 text-neutral-500 shadow-none' }
+        const rStr = v || row.role || row.Role || ''
+        const roles = rStr.split(',').map(r => r.trim()).filter(Boolean)
         return (
-          <Badge className={cn('font-bold text-[9px] px-3 py-1 border-none shadow-sm uppercase tracking-[0.15em] rounded-lg', cfg.cls)}>
-            {cfg.label}
-          </Badge>
+          <div className="flex flex-wrap gap-1.5 max-w-[200px]">
+            {roles.map(r => {
+              const roleOption = roleOptions.find(role => role.value === r)
+              const cfg = ROLE_DETAILS[r] || { label: roleOption?.label || r, cls: 'bg-neutral-100 text-neutral-500 shadow-none' }
+              return (
+                <Badge key={r} className={cn('font-bold text-[8px] px-2 py-0.5 border-none shadow-sm uppercase tracking-[0.05em] rounded-lg', cfg.cls)}>
+                  {cfg.label}
+                </Badge>
+              )
+            })}
+          </div>
         )
       }
     },
@@ -854,67 +937,88 @@ export default function UserManagement() {
               </div>
 
               <div className="space-y-2">
-                <Label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 font-headline">Authorization Level</Label>
-                <Select value={form.Role} onValueChange={handleRoleChange}>
-                  <SelectTrigger className="h-12 rounded-xl border-slate-200 bg-slate-50/70 focus:bg-white focus:border-bku-primary focus:ring-2 focus:ring-bku-primary/20 font-bold text-xs uppercase tracking-[0.08em] text-slate-700 transition-all">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="rounded-xl shadow-2xl border-slate-100/80 bg-white/95 backdrop-blur-md">
-                    {roleOptions.map(r => (
-                      <SelectItem key={r.value} value={r.value} className="text-[10px] font-black uppercase tracking-widest text-slate-600 focus:bg-slate-50 focus:text-bku-primary">
-                        {r.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 font-headline">Authorization Level (Pilih satu atau lebih)</Label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[200px] overflow-y-auto pr-1 no-scrollbar">
+                  {roleOptions.map(r => {
+                    const isSelected = form.Role ? form.Role.split(',').map(x => x.trim()).includes(r.value) : false;
+                    return (
+                      <button
+                        key={r.value}
+                        type="button"
+                        onClick={() => handleToggleRole(r.value)}
+                        className={cn(
+                          "p-3 rounded-xl border text-left transition-all flex items-start justify-between cursor-pointer",
+                          isSelected 
+                            ? "border-bku-primary bg-bku-primary/5 shadow-sm text-bku-primary"
+                            : "border-slate-200 bg-slate-50/50 hover:bg-slate-100/60 text-slate-600"
+                        )}
+                      >
+                        <div className="space-y-1">
+                          <p className="text-[10px] font-black uppercase tracking-wider">{r.label}</p>
+                          {r.description && <p className="text-[9px] text-slate-400 line-clamp-1">{r.description}</p>}
+                        </div>
+                        <div className={cn(
+                          "w-4 h-4 rounded-md border flex items-center justify-center transition-colors shrink-0",
+                          isSelected ? "bg-bku-primary border-bku-primary" : "border-slate-300"
+                        )}>
+                          {isSelected && <span className="material-symbols-outlined text-white" style={{ fontSize: '12px' }}>check</span>}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
 
-              {form.Role !== 'super_admin' && form.Role !== 'psikolog' && form.Role !== 'kencana_admin' && !(form.Role === 'kencana_mentor' && form.KencanaScopeType === 'university') && (
+              {(showFakultasSelect || showProdiSelect) && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in duration-300">
-                  <div className="space-y-2">
-                    <Label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 font-headline">Fakultas</Label>
-                    <Select 
-                      value={form.FakultasID ? String(form.FakultasID) : undefined} 
-                      onValueChange={v => setForm({ ...form, FakultasID: v, ProgramStudiID: '' })}
-                    >
-                      <SelectTrigger className="h-12 rounded-xl border-slate-200 bg-slate-50/70 focus:bg-white focus:border-bku-primary focus:ring-2 focus:ring-bku-primary/20 font-bold text-xs uppercase tracking-[0.08em] text-slate-700 transition-all">
-                        <SelectValue placeholder="PILIH FAKULTAS" />
-                      </SelectTrigger>
-                      <SelectContent className="rounded-xl shadow-2xl border-slate-100/80 bg-white/95 backdrop-blur-md max-h-[200px] overflow-y-auto">
-                        {faculties.map(f => (
-                          <SelectItem key={f.ID || f.id} value={String(f.ID || f.id)} className="text-[10px] font-black uppercase tracking-widest text-slate-600 focus:bg-slate-50 focus:text-bku-primary">
-                            {f.Nama || f.nama}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 font-headline">Program Studi</Label>
-                    <Select 
-                      disabled={!form.FakultasID}
-                      value={form.ProgramStudiID ? String(form.ProgramStudiID) : undefined} 
-                      onValueChange={v => setForm({ ...form, ProgramStudiID: v })}
-                    >
-                      <SelectTrigger className="h-12 rounded-xl border-slate-200 bg-slate-50/70 focus:bg-white focus:border-bku-primary focus:ring-2 focus:ring-bku-primary/20 font-bold text-xs uppercase tracking-[0.08em] text-slate-700 transition-all disabled:opacity-50">
-                        <SelectValue placeholder={form.FakultasID ? "PILIH PRODI" : "PILIH FAKULTAS DULU"} />
-                      </SelectTrigger>
-                      <SelectContent className="rounded-xl shadow-2xl border-slate-100/80 bg-white/95 backdrop-blur-md max-h-[200px] overflow-y-auto">
-                        {allProdi
-                          .filter(p => String(p.FakultasID || p.fakultas_id) === String(form.FakultasID))
-                          .map(p => (
-                            <SelectItem key={p.ID || p.id} value={String(p.ID || p.id)} className="text-[10px] font-black uppercase tracking-widest text-slate-600 focus:bg-slate-50 focus:text-bku-primary">
-                              {p.Nama || p.nama}
+                  {showFakultasSelect && (
+                    <div className="space-y-2">
+                      <Label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 font-headline">Fakultas</Label>
+                      <Select 
+                        value={form.FakultasID ? String(form.FakultasID) : undefined} 
+                        onValueChange={v => setForm({ ...form, FakultasID: v, ProgramStudiID: '' })}
+                      >
+                        <SelectTrigger className="h-12 rounded-xl border-slate-200 bg-slate-50/70 focus:bg-white focus:border-bku-primary focus:ring-2 focus:ring-bku-primary/20 font-bold text-xs uppercase tracking-[0.08em] text-slate-700 transition-all">
+                          <SelectValue placeholder="PILIH FAKULTAS" />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-xl shadow-2xl border-slate-100/80 bg-white/95 backdrop-blur-md max-h-[200px] overflow-y-auto">
+                          {faculties.map(f => (
+                            <SelectItem key={f.ID || f.id} value={String(f.ID || f.id)} className="text-[10px] font-black uppercase tracking-widest text-slate-600 focus:bg-slate-50 focus:text-bku-primary">
+                              {f.Nama || f.nama}
                             </SelectItem>
                           ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+
+                  {showProdiSelect && (
+                    <div className="space-y-2">
+                      <Label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 font-headline">Program Studi</Label>
+                      <Select 
+                        disabled={!form.FakultasID}
+                        value={form.ProgramStudiID ? String(form.ProgramStudiID) : undefined} 
+                        onValueChange={v => setForm({ ...form, ProgramStudiID: v })}
+                      >
+                        <SelectTrigger className="h-12 rounded-xl border-slate-200 bg-slate-50/70 focus:bg-white focus:border-bku-primary focus:ring-2 focus:ring-bku-primary/20 font-bold text-xs uppercase tracking-[0.08em] text-slate-700 transition-all disabled:opacity-50">
+                          <SelectValue placeholder={form.FakultasID ? "PILIH PRODI" : "PILIH FAKULTAS DULU"} />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-xl shadow-2xl border-slate-100/80 bg-white/95 backdrop-blur-md max-h-[200px] overflow-y-auto">
+                          {allProdi
+                            .filter(p => String(p.FakultasID || p.fakultas_id) === String(form.FakultasID))
+                            .map(p => (
+                              <SelectItem key={p.ID || p.id} value={String(p.ID || p.id)} className="text-[10px] font-black uppercase tracking-widest text-slate-600 focus:bg-slate-50 focus:text-bku-primary">
+                                {p.Nama || p.nama}
+                              </SelectItem>
+                            ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
                 </div>
               )}
 
-              {form.Role === 'kencana_mentor' && (
+              {showKencanaScopeSelect && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in duration-300">
                   <div className="space-y-2">
                     <Label className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest ml-1 font-jakarta">Kencana Scope</Label>
@@ -933,7 +1037,7 @@ export default function UserManagement() {
                 </div>
               )}
 
-              {(form.Role === 'ormawa_admin' || form.Role === 'ormawa') && (
+              {showOrmawaSelect && (
                 <div className="space-y-2 animate-in fade-in duration-300">
                   <Label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 font-headline">Assign Ormawa</Label>
                   <Select 
@@ -994,28 +1098,53 @@ export default function UserManagement() {
                      <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] font-headline">Target Identity</p>
                      <p className="text-xs font-bold font-inter text-slate-700 truncate max-w-[200px] lowercase">{selected?.Email || selected?.email}</p>
                   </div>
-                  <Badge className={cn("font-bold text-[8px] px-2.5 py-1 border-none shadow-sm uppercase rounded-lg group-hover:scale-105 transition-transform", roleDetails[selected?.role || selected?.Role]?.cls || "bg-neutral-100 text-slate-500")}>
-                     {roleDetails[selected?.role || selected?.Role]?.label || selected?.role || selected?.Role}
-                  </Badge>
+                  <div className="flex flex-wrap gap-1.5 justify-end max-w-[180px]">
+                    {(selected?.role || selected?.Role || '').split(',').map(r => r.trim()).filter(Boolean).map(r => {
+                      const roleOption = roleOptions.find(role => role.value === r)
+                      const cfg = roleDetails[r] || { label: roleOption?.label || r, cls: 'bg-neutral-100 text-slate-500 border border-slate-200/60' }
+                      return (
+                        <Badge key={r} className={cn("font-bold text-[8px] px-2.5 py-1 border-none shadow-sm uppercase rounded-lg group-hover:scale-105 transition-transform", cfg.cls)}>
+                           {cfg.label}
+                        </Badge>
+                      )
+                    })}
+                  </div>
                </div>
 
                 <div className="space-y-2">
-                  <Label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 font-headline">Target Authorization Level</Label>
-                  <Select value={newRole} onValueChange={setNewRole}>
-                    <SelectTrigger className="h-12 rounded-xl border-slate-200 bg-slate-50/70 focus:bg-white focus:border-bku-primary focus:ring-2 focus:ring-bku-primary/20 font-bold text-xs uppercase tracking-[0.08em] text-slate-700 transition-all">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="rounded-xl shadow-2xl border-slate-100/80 bg-white/95 backdrop-blur-md">
-                      {roleOptions.map(r => (
-                        <SelectItem key={r.value} value={r.value} className="text-[10px] font-black uppercase tracking-widest text-slate-600 focus:bg-slate-50 focus:text-bku-primary">
-                          {r.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 font-headline">Target Authorization Level (Pilih satu atau lebih)</Label>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[200px] overflow-y-auto pr-1 no-scrollbar">
+                    {roleOptions.map(r => {
+                      const isSelected = newRole ? newRole.split(',').map(x => x.trim()).includes(r.value) : false;
+                      return (
+                        <button
+                          key={r.value}
+                          type="button"
+                          onClick={() => handleToggleNewRole(r.value)}
+                          className={cn(
+                            "p-3 rounded-xl border text-left transition-all flex items-start justify-between cursor-pointer",
+                            isSelected 
+                              ? "border-bku-primary bg-bku-primary/5 shadow-sm text-bku-primary"
+                              : "border-slate-200 bg-slate-50/50 hover:bg-slate-100/60 text-slate-600"
+                          )}
+                        >
+                          <div className="space-y-1">
+                            <p className="text-[10px] font-black uppercase tracking-wider">{r.label}</p>
+                            {r.description && <p className="text-[9px] text-slate-400 line-clamp-1">{r.description}</p>}
+                          </div>
+                          <div className={cn(
+                            "w-4 h-4 rounded-md border flex items-center justify-center transition-colors shrink-0",
+                            isSelected ? "bg-bku-primary border-bku-primary" : "border-slate-300"
+                          )}>
+                            {isSelected && <span className="material-symbols-outlined text-white" style={{ fontSize: '12px' }}>check</span>}
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
 
-                {(newRole === 'ormawa_admin' || newRole === 'ormawa') && (
+                {showNewOrmawaSelect && (
                   <div className="space-y-2 animate-in fade-in duration-300">
                     <Label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 font-headline">Assign Ormawa</Label>
                     <Select 
@@ -1040,7 +1169,7 @@ export default function UserManagement() {
                   </div>
                 )}
 
-                {(newRole === 'kencana_fakultas' || (newRole === 'kencana_mentor' && newKencanaScopeType === 'faculty')) && (
+                {showNewFakultasSelect && (
                   <div className="space-y-2 animate-in fade-in duration-300">
                     <Label className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest ml-1 font-jakarta">Fakultas Kencana</Label>
                     <Select value={newFakultasId ? String(newFakultasId) : undefined} onValueChange={setNewFakultasId}>
@@ -1058,7 +1187,7 @@ export default function UserManagement() {
                   </div>
                 )}
 
-                {newRole === 'kencana_mentor' && (
+                {showNewKencanaScopeSelect && (
                   <div className="space-y-2 animate-in fade-in duration-300">
                     <Label className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest ml-1 font-jakarta">Mentor Scope</Label>
                     <Select value={newKencanaScopeType} onValueChange={v => { setNewKencanaScopeType(v); if (v === 'university') setNewFakultasId('') }}>

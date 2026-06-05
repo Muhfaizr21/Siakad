@@ -279,7 +279,7 @@ export default function FacultyDashboard() {
                   className="flex-1 pl-9 pr-3 py-2.5 bg-background border border-border rounded-lg text-xs font-semibold text-on-surface focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all cursor-pointer"
                   style={{ backgroundImage: 'none' }}
                 />
-                <span className="text-muted text-sm shrink-0">ÔÇö</span>
+                <span className="text-muted text-sm shrink-0"></span>
                 <input
                   type="date"
                   value={endDate}
@@ -360,7 +360,7 @@ export default function FacultyDashboard() {
                       contentStyle={{ backgroundColor: "var(--theme-surface)", border: "1px solid var(--theme-border)", borderRadius: "12px", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)", fontSize: "11px", fontWeight: "bold", color: "var(--theme-text)" }}
                     />
                     <Bar dataKey="jumlah" fill="var(--theme-primary)" radius={[0, 10, 10, 0]} barSize={14} />
-                  </BarChart>
+                  </BarChart> 
                 </ResponsiveContainer>
               )}
             </div>

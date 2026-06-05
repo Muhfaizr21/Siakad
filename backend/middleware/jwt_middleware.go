@@ -167,7 +167,7 @@ func OrmawaCheck(c *fiber.Ctx) error {
 	}
 
 	// For student users who act as Ormawa admins/members
-	if r == "mahasiswa" && !hasTokenOrmawaID {
+	if (r == "mahasiswa" || r == "ormawa" || r == "ormawa_admin") && (!hasTokenOrmawaID || tokenOrmawaID == 0) {
 		studentID, hasStudentID := c.Locals("student_id").(uint)
 		if !hasStudentID || studentID == 0 {
 			return c.Status(403).JSON(fiber.Map{
@@ -177,12 +177,11 @@ func OrmawaCheck(c *fiber.Ctx) error {
 		}
 
 		if queryOrmawaID == "" || queryOrmawaID == "1" || queryOrmawaID == "undefined" {
-			// Find their first active ormawa membership
-			var membership models.OrmawaAnggota
-			err := config.DB.Where("mahasiswa_id = ? AND status = ?", studentID, "Aktif").Order("created_at asc").First(&membership).Error
-			if err == nil {
-				c.Request().URI().QueryArgs().Set("ormawaId", strconv.FormatUint(uint64(membership.OrmawaID), 10))
-				queryOrmawaID = strconv.FormatUint(uint64(membership.OrmawaID), 10)
+			var memberships []models.OrmawaAnggota
+			err := config.DB.Where("mahasiswa_id = ? AND (status = ? OR status = ?)", studentID, "Aktif", "aktif").Order("created_at asc").Limit(1).Find(&memberships).Error
+			if err == nil && len(memberships) > 0 {
+				c.Request().URI().QueryArgs().Set("ormawaId", strconv.FormatUint(uint64(memberships[0].OrmawaID), 10))
+				queryOrmawaID = strconv.FormatUint(uint64(memberships[0].OrmawaID), 10)
 			}
 		}
 

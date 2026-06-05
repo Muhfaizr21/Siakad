@@ -35,6 +35,45 @@ type userResponse struct {
 	Permissions []string `json:"permissions,omitempty"`
 }
 
+type roleMeta struct {
+	Label       string `json:"label"`
+	Description string `json:"description"`
+	Icon        string `json:"icon"`
+	Color       string `json:"color"`
+}
+
+func getRoleMeta(role string) roleMeta {
+	switch role {
+	case "super_admin":
+		return roleMeta{"Super Admin", "Kelola seluruh sistem akademik", "shield", "#6366F1"}
+	case "faculty_admin":
+		return roleMeta{"Admin Fakultas", "Kelola data akademik dan mahasiswa", "building-2", "#0EA5E9"}
+	case "psikolog":
+		return roleMeta{"Psikolog", "Konseling dan asesmen psikologi mahasiswa", "brain", "#8B5CF6"}
+	case "tenaga_kesehatan":
+		return roleMeta{"Tenaga Kesehatan", "Layanan kesehatan dan pemeriksaan mahasiswa", "heart-pulse", "#10B981"}
+	case "ormawa", "ormawa_admin":
+		return roleMeta{"Ormawa", "Kelola organisasi mahasiswa", "users", "#F59E0B"}
+	case "dosen":
+		return roleMeta{"Dosen", "Portal dosen pengajar", "graduation-cap", "#EC4899"}
+	case "mahasiswa", "student":
+		return roleMeta{"Mahasiswa", "Portal layanan mahasiswa", "book-open", "#3B82F6"}
+	case "kencana_admin":
+		return roleMeta{"Admin Kencana", "Kelola program PKKMB Kencana", "sparkles", "#F97316"}
+	case "kencana_mentor":
+		return roleMeta{"Mentor Kencana", "Bimbingan peserta PKKMB", "hand-helping", "#14B8A6"}
+	default:
+		label := strings.ReplaceAll(role, "_", " ")
+		words := strings.Fields(label)
+		for i, w := range words {
+			if len(w) > 0 {
+				words[i] = strings.ToUpper(w[:1]) + w[1:]
+			}
+		}
+		return roleMeta{strings.Join(words, " "), "Akses portal " + role, "user", "#6B7280"}
+	}
+}
+
 func jwtSecret() []byte {
 	return config.GetJWTSecret()
 }
@@ -56,6 +95,50 @@ func createToken(userID uint, studentID uint, nim string, role string, facultyID
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	return token.SignedString(jwtSecret())
 }
+
+func createTempToken(userID uint) (string, error) {
+	now := time.Now()
+	claims := jwt.MapClaims{
+		"sub": userID,
+		"typ": "role_select",
+		"iat": now.Unix(),
+		"exp": now.Add(5 * time.Minute).Unix(),
+	}
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	return token.SignedString(jwtSecret())
+}
+
+func createRefreshToken(userID uint, studentID uint, nim string, role string, facultyID *uint, ormawaID *uint, ormawaAssign string) (string, error) {
+	now := time.Now()
+	claims := jwt.MapClaims{
+		"sub":  userID,
+		"sid":  studentID,
+		"nim":  nim,
+		"role": role,
+		"fid":  facultyID,
+		"oid":  ormawaID,
+		"oas":  ormawaAssign,
+		"typ":  "refresh",
+		"iat":  now.Unix(),
+		"exp":  now.Add(7 * 24 * time.Hour).Unix(),
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	return token.SignedString(jwtSecret())
+}
+
+func setRefreshTokenCookie(c *fiber.Ctx, tokenString string) {
+	c.Cookie(&fiber.Cookie{
+		Name:     "refresh_token",
+		Value:    tokenString,
+		Expires:  time.Now().Add(7 * 24 * time.Hour),
+		HTTPOnly: true,
+		Secure:   false, // Set true in production if using HTTPS
+		SameSite: "Lax",
+		Path:     "/",
+	})
+}
+
 
 func parseBearerToken(c *fiber.Ctx) (jwt.MapClaims, error) {
 	authHeader := c.Get("Authorization")
@@ -84,6 +167,42 @@ func parseBearerToken(c *fiber.Ctx) (jwt.MapClaims, error) {
 	}
 
 	return claims, nil
+}
+
+func getUserPermissions(user models.User, roleName string, studentID uint) []string {
+	var permissions []string
+
+	// If the role is related to Ormawa
+	if roleName == "ormawa" || roleName == "ormawa_admin" {
+		if studentID != 0 {
+			var membership models.OrmawaAnggota
+			// Find active membership for the student
+			if err := config.DB.Where("mahasiswa_id = ? AND status = 'aktif'", studentID).First(&membership).Error; err == nil {
+				var ormawaRole models.OrmawaRole
+				// Find custom role in that Ormawa
+				if err := config.DB.Where("ormawa_id = ? AND nama = ?", membership.OrmawaID, membership.Role).First(&ormawaRole).Error; err == nil {
+					var customPerms []string
+					if err := json.Unmarshal(ormawaRole.Permissions, &customPerms); err == nil && len(customPerms) > 0 {
+						return customPerms
+					}
+				}
+				// If they have an active membership but no custom role is defined in the database,
+				// they should have full access to their Ormawa portal by default.
+				return []string{"*"}
+			}
+		} else {
+			// If they don't have a student profile (e.g. main admin account like ormawa@bku.ac.id),
+			// they should have full access by default.
+			return []string{"*"}
+		}
+	}
+
+	// Fallback to standard RBAC permissions
+	var rbacRole models.RBACRole
+	if err := config.DB.Where("key = ?", roleName).First(&rbacRole).Error; err == nil {
+		json.Unmarshal(rbacRole.Permissions, &permissions)
+	}
+	return permissions
 }
 
 func Login(c *fiber.Ctx) error {
@@ -130,16 +249,14 @@ func Login(c *fiber.Ctx) error {
 			})
 		}
 		roleName = user.Role
-
-		if roleName == "mahasiswa" || roleName == "student" {
-			_ = config.DB.Preload("ProgramStudi").Preload("Fakultas").Where("pengguna_id = ?", user.ID).First(&student).Error
-			if student.ID != 0 {
-				nim = student.NIM
-				// Lookup Ormawa membership
-				var membership models.OrmawaAnggota
-				if err := config.DB.Where("mahasiswa_id = ? AND status = 'aktif'", student.ID).First(&membership).Error; err == nil {
-					user.OrmawaID = &membership.OrmawaID
-				}
+		// Always try to load student profile if they have one linked
+		_ = config.DB.Preload("ProgramStudi").Preload("Fakultas").Where("pengguna_id = ?", user.ID).First(&student).Error
+		if student.ID != 0 {
+			nim = student.NIM
+			// Lookup Ormawa membership
+			var memberships []models.OrmawaAnggota
+			if err := config.DB.Where("mahasiswa_id = ? AND status = 'aktif'", student.ID).Limit(1).Find(&memberships).Error; err == nil && len(memberships) > 0 {
+				user.OrmawaID = &memberships[0].OrmawaID
 			}
 		}
 	}
@@ -152,6 +269,61 @@ func Login(c *fiber.Ctx) error {
 		})
 	}
 
+	// Multi-role check: if user.Role contains commas, require role selection
+	allRoles := strings.Split(roleName, ",")
+	for i := range allRoles {
+		allRoles[i] = strings.TrimSpace(allRoles[i])
+	}
+	if len(allRoles) > 1 {
+		tempToken, err := createTempToken(user.ID)
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"status":  "error",
+				"message": "Gagal membuat token sementara",
+			})
+		}
+
+		roleOptions := []fiber.Map{}
+		for _, r := range allRoles {
+			meta := getRoleMeta(r)
+			roleOptions = append(roleOptions, fiber.Map{
+				"role":        r,
+				"label":       meta.Label,
+				"description": meta.Description,
+				"icon":        meta.Icon,
+				"color":       meta.Color,
+			})
+		}
+
+		// Try to get display name from linked profiles
+		var displayName string
+		var psi models.Psikolog
+		if err := config.DB.Where("user_id = ?", user.ID).First(&psi).Error; err == nil {
+			displayName = psi.Nama
+		}
+		if displayName == "" {
+			var tk models.TenagaKesehatan
+			if err := config.DB.Where("user_id = ?", user.ID).First(&tk).Error; err == nil {
+				displayName = tk.Nama
+			}
+		}
+
+		return c.JSON(fiber.Map{
+			"success": true,
+			"status":  "success",
+			"data": fiber.Map{
+				"requires_role_selection": true,
+				"temp_token":             tempToken,
+				"roles":                  roleOptions,
+				"user": fiber.Map{
+					"id":    user.ID,
+					"email": user.Email,
+					"nama":  displayName,
+				},
+			},
+		})
+	}
+
 	token, err := createToken(user.ID, student.ID, nim, roleName, user.FakultasID, user.OrmawaID, user.OrmawaAssign)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -160,11 +332,11 @@ func Login(c *fiber.Ctx) error {
 		})
 	}
 
-	var rbacRole models.RBACRole
-	var permissions []string
-	if err := config.DB.Where("key = ?", roleName).First(&rbacRole).Error; err == nil {
-		json.Unmarshal(rbacRole.Permissions, &permissions)
+	if rt, err := createRefreshToken(user.ID, student.ID, nim, roleName, user.FakultasID, user.OrmawaID, user.OrmawaAssign); err == nil {
+		setRefreshTokenCookie(c, rt)
 	}
+
+	permissions := getUserPermissions(user, roleName, student.ID)
 
 	return c.JSON(fiber.Map{
 		"success": true,
@@ -179,6 +351,148 @@ func Login(c *fiber.Ctx) error {
 				Role:        roleName,
 				NIM:         student.NIM,
 				Nama:        student.Nama,
+				OrmawaID:    user.OrmawaID,
+				Permissions: permissions,
+			},
+		},
+	})
+}
+
+func LoginSelectRole(c *fiber.Ctx) error {
+	var body struct {
+		TempToken    string `json:"temp_token"`
+		SelectedRole string `json:"selected_role"`
+	}
+	if err := c.BodyParser(&body); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"status":  "error",
+			"message": "Invalid request payload",
+		})
+	}
+
+	if body.TempToken == "" || body.SelectedRole == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"status":  "error",
+			"message": "Token dan role harus diisi",
+		})
+	}
+
+	// Parse and validate temp token
+	token, err := jwt.Parse(body.TempToken, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, errors.New("unexpected signing method")
+		}
+		return jwtSecret(), nil
+	})
+	if err != nil || !token.Valid {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"status":  "error",
+			"message": "Token sementara tidak valid atau sudah kadaluarsa. Silakan login ulang.",
+		})
+	}
+
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"status":  "error",
+			"message": "Token tidak valid",
+		})
+	}
+
+	// Verify token type
+	if typ, ok := claims["typ"].(string); !ok || typ != "role_select" {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"status":  "error",
+			"message": "Token tidak valid untuk pemilihan role",
+		})
+	}
+
+	userID := uint(claims["sub"].(float64))
+
+	// Get user from DB
+	var user models.User
+	if err := config.DB.First(&user, userID).Error; err != nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"status":  "error",
+			"message": "User tidak ditemukan",
+		})
+	}
+
+	// Validate selected role is in user's comma-separated roles
+	userRoles := strings.Split(user.Role, ",")
+	validRole := false
+	for _, r := range userRoles {
+		if strings.TrimSpace(r) == body.SelectedRole {
+			validRole = true
+			break
+		}
+	}
+	if !validRole {
+		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
+			"status":  "error",
+			"message": "Role tidak tersedia untuk akun ini",
+		})
+	}
+
+	selectedRole := body.SelectedRole
+
+	var student models.Mahasiswa
+	var nim string
+
+	// Always load student profile if it exists, to ensure student ID and NIM claims are present in JWT token
+	_ = config.DB.Preload("ProgramStudi").Preload("Fakultas").Where("pengguna_id = ?", user.ID).First(&student).Error
+	if student.ID != 0 {
+		nim = student.NIM
+		var memberships []models.OrmawaAnggota
+		if err := config.DB.Where("mahasiswa_id = ? AND status = 'aktif'", student.ID).Limit(1).Find(&memberships).Error; err == nil && len(memberships) > 0 {
+			user.OrmawaID = &memberships[0].OrmawaID
+		}
+	}
+
+	accessToken, err := createToken(user.ID, student.ID, nim, selectedRole, user.FakultasID, user.OrmawaID, user.OrmawaAssign)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"status":  "error",
+			"message": "Gagal membuat token akses",
+		})
+	}
+
+	if rt, err := createRefreshToken(user.ID, student.ID, nim, selectedRole, user.FakultasID, user.OrmawaID, user.OrmawaAssign); err == nil {
+		setRefreshTokenCookie(c, rt)
+	}
+
+	permissions := getUserPermissions(user, selectedRole, student.ID)
+
+	// Get display name
+	var displayName string
+	if student.ID != 0 {
+		displayName = student.Nama
+	} else {
+		var psi models.Psikolog
+		if err := config.DB.Where("user_id = ?", user.ID).First(&psi).Error; err == nil {
+			displayName = psi.Nama
+		}
+		if displayName == "" {
+			var tk models.TenagaKesehatan
+			if err := config.DB.Where("user_id = ?", user.ID).First(&tk).Error; err == nil {
+				displayName = tk.Nama
+			}
+		}
+	}
+
+	return c.JSON(fiber.Map{
+		"success": true,
+		"status":  "success",
+		"data": fiber.Map{
+			"token":        accessToken,
+			"access_token": accessToken,
+			"mahasiswa":    student,
+			"user": userResponse{
+				ID:          user.ID,
+				Email:       user.Email,
+				Role:        selectedRole,
+				NIM:         student.NIM,
+				Nama:        displayName,
 				OrmawaID:    user.OrmawaID,
 				Permissions: permissions,
 			},
@@ -220,11 +534,12 @@ func Me(c *fiber.Ctx) error {
 		}
 	}
 
-	var rbacRole models.RBACRole
-	var permissions []string
-	if err := config.DB.Where("key = ?", user.Role).First(&rbacRole).Error; err == nil {
-		json.Unmarshal(rbacRole.Permissions, &permissions)
+	roleVal, ok := claims["role"].(string)
+	if !ok || roleVal == "" {
+		roleVal = user.Role
 	}
+
+	permissions := getUserPermissions(user, roleVal, student.ID)
 
 	return c.JSON(fiber.Map{
 		"status": "success",
@@ -232,7 +547,7 @@ func Me(c *fiber.Ctx) error {
 			"user": userResponse{
 				ID:          user.ID,
 				Email:       user.Email,
-				Role:        user.Role,
+				Role:        roleVal,
 				NIM:         student.NIM,
 				Nama:        student.Nama,
 				OrmawaID:    user.OrmawaID,
@@ -1083,6 +1398,73 @@ func EnsureBootstrapData() error {
 	fmt.Println("   ormawa        : ormawa@bku.ac.id / ormawa123")
 	fmt.Println("   psikolog      : psikolog@bku.ac.id / psikolog123")
 	fmt.Println("   tenaga_kes    : tenagakes@bku.ac.id / tenagakes123")
+
+	// 12. Ensure Multi-Role Test Account
+	fmt.Println("🔄 [SEEDER] Seeding multi-role test account...")
+	multiRoleEmail := "multirole@bku.ac.id"
+	multiRoleStr := "faculty_admin,psikolog,tenaga_kesehatan"
+	var multiUser models.User
+	if err := config.DB.Where("LOWER(email) = ?", strings.ToLower(multiRoleEmail)).First(&multiUser).Error; err != nil {
+		hash, _ := bcrypt.GenerateFromPassword([]byte("multirole123"), bcrypt.DefaultCost)
+		multiUser = models.User{
+			Email:    multiRoleEmail,
+			Password: string(hash),
+			Role:     multiRoleStr,
+		}
+		if ff, ok := fakultasByKode["FF"]; ok {
+			multiUser.FakultasID = &ff.ID
+		}
+		if err := config.DB.Create(&multiUser).Error; err != nil {
+			log.Printf("[SEEDER] Warning: failed to create multi-role user: %v", err)
+		} else {
+			fmt.Println("✅ [SEEDER] Multi-role user created:", multiRoleEmail)
+		}
+	} else {
+		if !strings.Contains(multiUser.Role, ",") {
+			config.DB.Model(&multiUser).Update("role", multiRoleStr)
+		}
+		if multiUser.FakultasID == nil {
+			if ff, ok := fakultasByKode["FF"]; ok {
+				config.DB.Model(&multiUser).Update("fakultas_id", ff.ID)
+			}
+		}
+	}
+
+	// Create Psikolog profile for multi-role user
+	if multiUser.ID != 0 {
+		var multiPsi models.Psikolog
+		if err := config.DB.Where("user_id = ?", multiUser.ID).First(&multiPsi).Error; err != nil {
+			multiPsi = models.Psikolog{
+				UserID:       multiUser.ID,
+				Nama:         "Dr. Multi Role, M.Psi",
+				Email:        multiRoleEmail,
+				NoHP:         "+62 812 0000 0001",
+				Spesialisasi: "Psikologi Klinis",
+				Bio:          "Tenaga profesional multi-disiplin di bidang kesehatan dan konseling",
+				Lokasi:       "Gedung C Lt.2",
+				Bahasa:       "Indonesia",
+				Tarif:        150000,
+				IsAktif:      true,
+			}
+			config.DB.Create(&multiPsi)
+		}
+
+		var multiTK models.TenagaKesehatan
+		if err := config.DB.Where("user_id = ?", multiUser.ID).First(&multiTK).Error; err != nil {
+			multiTK = models.TenagaKesehatan{
+				UserID:       multiUser.ID,
+				Nama:         "Dr. Multi Role, M.Psi",
+				Email:        multiRoleEmail,
+				NoHP:         "+62 812 0000 0001",
+				Spesialisasi: "Kesehatan Umum",
+				Lokasi:       "Klinik Kampus Lt.1",
+				IsAktif:      true,
+			}
+			config.DB.Create(&multiTK)
+		}
+	}
+
+	fmt.Println("   multi_role    : multirole@bku.ac.id / multirole123")
 	return nil
 }
 

@@ -7,6 +7,7 @@ import (
 	"siakad-backend/config"
 	"siakad-backend/models"
 	"siakad-backend/pkg/gamifikasi"
+	"strconv"
 	"time"
 
 	"strings"
@@ -760,12 +761,96 @@ func DeleteAnnouncement(c *fiber.Ctx) error {
 
 // --- ROLES ---
 
+func seedDefaultOrmawaRoles(db *gorm.DB, ormawaId uint) error {
+	defaultRoles := []struct {
+		Nama      string
+		Deskripsi string
+		Hak       []string
+	}{
+		{
+			Nama:      "Ketua",
+			Deskripsi: "Akses penuh ke seluruh fitur dan pengaturan organisasi.",
+			Hak: []string{
+				"view_dashboard", "view_notifications",
+				"view_members", "create_members", "edit_members", "delete_members",
+				"view_staff", "manage_staff", "view_structure", "manage_structure",
+				"view_proposal", "create_proposal", "edit_proposal", "delete_proposal",
+				"view_lpj", "create_lpj", "edit_lpj", "upload_lpj_doc", "delete_lpj",
+				"view_calendar", "create_calendar", "edit_calendar", "delete_calendar",
+				"view_attendance", "submit_attendance", "edit_attendance",
+				"view_finance", "create_finance", "delete_finance",
+				"view_aspirations", "respond_aspirations",
+				"view_announcements", "create_announcements", "edit_announcements", "delete_announcements",
+				"view_rbac", "manage_rbac", "view_settings", "manage_settings",
+			},
+		},
+		{
+			Nama:      "Sekretaris",
+			Deskripsi: "Mengelola persuratan, proposal, laporan pertanggungjawaban (LPJ), agenda kalender, dan data keanggotaan.",
+			Hak: []string{
+				"view_dashboard", "view_notifications",
+				"view_members", "create_members", "edit_members",
+				"view_staff", "manage_staff", "view_structure",
+				"view_proposal", "create_proposal", "edit_proposal", "delete_proposal",
+				"view_lpj", "create_lpj", "edit_lpj", "upload_lpj_doc",
+				"view_calendar", "create_calendar", "edit_calendar", "delete_calendar",
+				"view_attendance", "submit_attendance", "edit_attendance",
+				"view_announcements", "create_announcements", "edit_announcements", "delete_announcements",
+			},
+		},
+		{
+			Nama:      "Bendahara",
+			Deskripsi: "Mengelola anggaran keuangan, mencatat buku kas, dan menyusun laporan pertanggungjawaban (LPJ) keuangan.",
+			Hak: []string{
+				"view_dashboard", "view_notifications",
+				"view_lpj", "create_lpj", "edit_lpj", "upload_lpj_doc",
+				"view_finance", "create_finance", "delete_finance",
+			},
+		},
+		{
+			Nama:      "Staff",
+			Deskripsi: "Melihat dashboard, notifikasi, dan kalender kegiatan organisasi.",
+			Hak: []string{
+				"view_dashboard", "view_notifications",
+				"view_calendar", "view_announcements",
+			},
+		},
+	}
+
+	for _, dr := range defaultRoles {
+		perms, _ := json.Marshal(dr.Hak)
+		role := models.OrmawaRole{
+			OrmawaID:    ormawaId,
+			Nama:        dr.Nama,
+			Deskripsi:   dr.Deskripsi,
+			Permissions: datatypes.JSON(perms),
+		}
+		if err := db.Create(&role).Error; err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func GetOrmawaRoles(c *fiber.Ctx) error {
-	ormawaId := c.Query("ormawaId")
+	ormawaIdStr := c.Query("ormawaId")
 	var roles []models.OrmawaRole
+
+	if ormawaIdStr != "" {
+		ormawaIdVal, err := strconv.Atoi(ormawaIdStr)
+		if err == nil && ormawaIdVal > 0 {
+			ormawaId := uint(ormawaIdVal)
+			var count int64
+			config.DB.Model(&models.OrmawaRole{}).Where("ormawa_id = ?", ormawaId).Count(&count)
+			if count == 0 {
+				_ = seedDefaultOrmawaRoles(config.DB, ormawaId)
+			}
+		}
+	}
+
 	query := config.DB.Model(&models.OrmawaRole{})
-	if ormawaId != "" {
-		query = query.Where("ormawa_id = ?", ormawaId)
+	if ormawaIdStr != "" {
+		query = query.Where("ormawa_id = ?", ormawaIdStr)
 	}
 	query.Find(&roles)
 	return c.JSON(fiber.Map{"status": "success", "data": roles})
@@ -792,6 +877,13 @@ func CreateOrmawaRole(c *fiber.Ctx) error {
 		}
 	}
 
+	if data.OrmawaID == 0 {
+		return c.Status(400).JSON(fiber.Map{
+			"status":  "error",
+			"message": "Ormawa ID tidak ditemukan dalam konteks login. Silakan periksa kembali profil/anggota ormawa Anda.",
+		})
+	}
+
 	perms, _ := json.Marshal(data.Hak)
 	role := models.OrmawaRole{
 		OrmawaID:    data.OrmawaID,
@@ -800,7 +892,7 @@ func CreateOrmawaRole(c *fiber.Ctx) error {
 		Permissions: datatypes.JSON(perms),
 	}
 	if err := config.DB.Create(&role).Error; err != nil {
-		return c.Status(500).JSON(fiber.Map{"status": "error"})
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal menyimpan ke database: " + err.Error()})
 	}
 	return c.Status(201).JSON(fiber.Map{"status": "success", "data": role})
 }
@@ -809,7 +901,7 @@ func UpdateOrmawaRole(c *fiber.Ctx) error {
 	id := c.Params("id")
 	var role models.OrmawaRole
 	if err := config.DB.First(&role, id).Error; err != nil {
-		return c.Status(404).JSON(fiber.Map{"status": "error"})
+		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Role tidak ditemukan"})
 	}
 
 	var data struct {
@@ -828,11 +920,27 @@ func UpdateOrmawaRole(c *fiber.Ctx) error {
 	if data.OrmawaID != 0 {
 		role.OrmawaID = data.OrmawaID
 	}
+	if role.OrmawaID == 0 {
+		if localId := c.Locals("ormawa_id"); localId != nil {
+			if uid, ok := localId.(uint); ok {
+				role.OrmawaID = uid
+			}
+		}
+	}
+	if role.OrmawaID == 0 {
+		return c.Status(400).JSON(fiber.Map{
+			"status":  "error",
+			"message": "Ormawa ID tidak ditemukan dalam konteks login. Silakan periksa kembali profil/anggota ormawa Anda.",
+		})
+	}
+
 	role.Nama = data.Nama
 	role.Deskripsi = data.Deskripsi
 	role.Permissions = datatypes.JSON(perms)
 
-	config.DB.Save(&role)
+	if err := config.DB.Save(&role).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal memperbarui role: " + err.Error()})
+	}
 	return c.JSON(fiber.Map{"status": "success", "data": role})
 }
 

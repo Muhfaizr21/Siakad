@@ -105,17 +105,25 @@ func GetUsers(c *fiber.Ctx) error {
 
 func isAllowedRBACRole(role string) bool {
 	ensureDefaultRBACRoles(config.DB)
-	var count int64
-	config.DB.Model(&models.RBACRole{}).Where("key = ? AND status = ?", role, "active").Count(&count)
-	if count > 0 {
-		return true
+	parts := strings.Split(role, ",")
+	for _, p := range parts {
+		p = strings.TrimSpace(p)
+		if p == "" {
+			continue
+		}
+		var count int64
+		config.DB.Model(&models.RBACRole{}).Where("key = ? AND status = ?", p, "active").Count(&count)
+		if count > 0 {
+			continue
+		}
+		switch p {
+		case "super_admin", "faculty_admin", "ormawa_admin", "ormawa", "mahasiswa", "psikolog", "PSIKOLOG", "dosen", "DOSEN", "kencana_admin", "kencana_fakultas", "kencana_mentor", "tenaga_kesehatan", "tenagakes":
+			// allowed
+		default:
+			return false
+		}
 	}
-	switch role {
-	case "super_admin", "faculty_admin", "ormawa_admin", "ormawa", "mahasiswa", "psikolog", "PSIKOLOG", "dosen", "DOSEN", "kencana_admin", "kencana_fakultas", "kencana_mentor", "tenaga_kesehatan", "tenagakes":
-		return true
-	default:
-		return false
-	}
+	return true
 }
 
 func GetRBACRoles(c *fiber.Ctx) error {
@@ -215,10 +223,12 @@ func UpdateUserRole(c *fiber.Ctx) error {
 	if !isAllowedRBACRole(req.Role) {
 		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Role tidak valid"})
 	}
-	if req.Role == "kencana_fakultas" && req.FakultasID == 0 {
+
+	roleLower := "," + strings.ToLower(req.Role) + ","
+	if strings.Contains(roleLower, ",kencana_fakultas,") && req.FakultasID == 0 {
 		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Fakultas wajib dipilih untuk Admin Kencana Fakultas"})
 	}
-	if req.Role == "kencana_mentor" && req.KencanaScopeType == "faculty" && req.FakultasID == 0 {
+	if strings.Contains(roleLower, ",kencana_mentor,") && req.KencanaScopeType == "faculty" && req.FakultasID == 0 {
 		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Fakultas wajib dipilih untuk Mentor Kencana scope fakultas"})
 	}
 
@@ -229,12 +239,17 @@ func UpdateUserRole(c *fiber.Ctx) error {
 			fakultasPtr = &req.FakultasID
 		}
 
+		var ormawaPtr *uint
+		if req.OrmawaID != 0 {
+			ormawaPtr = &req.OrmawaID
+		}
+
 		// Update user role via raw SQL to bypass any GORM association issues
-		if err := tx.Exec("UPDATE public.users SET role = ?, ormawa_assign = ?, fakultas_id = ?, updated_at = ? WHERE id = ?", req.Role, req.OrmawaAssign, fakultasPtr, time.Now(), user.ID).Error; err != nil {
+		if err := tx.Exec("UPDATE public.users SET role = ?, ormawa_assign = ?, ormawa_id = ?, fakultas_id = ?, updated_at = ? WHERE id = ?", req.Role, req.OrmawaAssign, ormawaPtr, fakultasPtr, time.Now(), user.ID).Error; err != nil {
 			return err
 		}
 
-		if req.Role == "kencana_mentor" {
+		if strings.Contains(roleLower, ",kencana_mentor,") {
 			mentor := models.KencanaMentor{UserID: user.ID, Name: strings.Split(user.Email, "@")[0], Email: user.Email, ScopeType: req.KencanaScopeType, FakultasID: fakultasPtr, Status: "active"}
 			var existing models.KencanaMentor
 			if err := tx.Where("user_id = ?", user.ID).First(&existing).Error; err == nil {
@@ -256,11 +271,30 @@ func UpdateUserRole(c *fiber.Ctx) error {
 			}
 		}
 
-		// Handle Ormawa Assignment for ormawa_admin
-		if req.Role == "ormawa_admin" && req.OrmawaID != 0 {
+		// Handle Ormawa Assignment for ormawa_admin/mahasiswa/ormawa
+		if strings.Contains(roleLower, ",ormawa_admin,") || strings.Contains(roleLower, ",mahasiswa,") || strings.Contains(roleLower, ",ormawa,") {
 			var mhs models.Mahasiswa
-			if err := tx.Where("pengguna_id = ?", user.ID).First(&mhs).Error; err == nil {
-				// Create or update membership
+			err := tx.Where("pengguna_id = ?", user.ID).First(&mhs).Error
+			if err == gorm.ErrRecordNotFound {
+				nim := strings.Split(user.Email, "@")[0]
+				mhs = models.Mahasiswa{
+					PenggunaID:       user.ID,
+					Nama:             strings.Split(user.Email, "@")[0],
+					NIM:              nim,
+					FakultasID:       req.FakultasID,
+					StatusAkun:       "Aktif",
+					StatusAkademik:   "Aktif",
+					SemesterSekarang: 1,
+					TahunMasuk:       time.Now().Year(),
+				}
+				if err := tx.Create(&mhs).Error; err != nil {
+					return err
+				}
+			} else if err != nil {
+				return err
+			}
+
+			if (strings.Contains(roleLower, ",ormawa_admin,") || strings.Contains(roleLower, ",ormawa,")) && req.OrmawaID != 0 {
 				var exists bool
 				tx.Raw("SELECT EXISTS(SELECT 1 FROM ormawa.ormawa_anggota WHERE mahasiswa_id = ? AND ormawa_id = ?)", mhs.ID, req.OrmawaID).Scan(&exists)
 				if !exists {
@@ -270,18 +304,46 @@ func UpdateUserRole(c *fiber.Ctx) error {
 			}
 		}
 
-		// Log activity (Temporarily disabled until schema fix)
-		/*
-			logEntry := models.LogAktivitas{
-				UserID:    user.ID,
-				Aktivitas: "UPDATE_USER_ROLE",
-				Deskripsi: fmt.Sprintf("Changed role from '%s' to '%s'. IP: %s", oldRole, req.Role, c.IP()),
-				IPAddress: c.IP(),
-			}
-			if err := tx.Create(&logEntry).Error; err != nil {
+		if strings.Contains(roleLower, ",psikolog,") {
+			var psikolog models.Psikolog
+			err := tx.Where("user_id = ?", user.ID).First(&psikolog).Error
+			if err == gorm.ErrRecordNotFound {
+				psikolog = models.Psikolog{
+					UserID:       user.ID,
+					Nama:         strings.Split(user.Email, "@")[0],
+					Email:        user.Email,
+					Spesialisasi: "Umum",
+					IsAktif:      true,
+				}
+				if err := tx.Create(&psikolog).Error; err != nil {
+					return err
+				}
+			} else if err != nil {
 				return err
 			}
-		*/
+		}
+
+		if strings.Contains(roleLower, ",tenaga_kesehatan,") || strings.Contains(roleLower, ",tenagakes,") {
+			var tk models.TenagaKesehatan
+			err := tx.Where("user_id = ?", user.ID).First(&tk).Error
+			if err == gorm.ErrRecordNotFound {
+				tk = models.TenagaKesehatan{
+					UserID:       user.ID,
+					Nama:         strings.Split(user.Email, "@")[0],
+					Email:        user.Email,
+					NoHP:         "-",
+					Spesialisasi: "Pemeriksaan Umum",
+					FotoURL:      "",
+					Lokasi:       "Klinik Kampus BKU",
+					IsAktif:      true,
+				}
+				if err := tx.Create(&tk).Error; err != nil {
+					return err
+				}
+			} else if err != nil {
+				return err
+			}
+		}
 
 		return nil
 	})
@@ -346,22 +408,20 @@ func CreateUser(c *fiber.Ctx) error {
 		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Role tidak valid"})
 	}
 
-	requiresFakultas := true
-	if req.Role == "super_admin" || req.Role == "psikolog" || req.Role == "PSIKOLOG" || req.Role == "kencana_admin" || (req.Role == "kencana_mentor" && req.KencanaScopeType == "university") || req.Role == "tenaga_kesehatan" || req.Role == "tenagakes" {
-		requiresFakultas = false
-	}
-	if req.Role == "kencana_fakultas" {
-		requiresFakultas = false // Handled separately below
+	roleLower := "," + strings.ToLower(req.Role) + ","
+	requiresFakultas := false
+	if strings.Contains(roleLower, ",faculty_admin,") || strings.Contains(roleLower, ",mahasiswa,") || strings.Contains(roleLower, ",ormawa_admin,") || strings.Contains(roleLower, ",ormawa,") || (strings.Contains(roleLower, ",kencana_mentor,") && req.KencanaScopeType == "faculty") {
+		requiresFakultas = true
 	}
 
 	if requiresFakultas && req.FakultasID == 0 {
 		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Fakultas wajib dipilih"})
 	}
-	if req.Role == "kencana_fakultas" && req.FakultasID == 0 {
+	if strings.Contains(roleLower, ",kencana_fakultas,") && req.FakultasID == 0 {
 		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Fakultas wajib dipilih untuk Admin Kencana Fakultas"})
 	}
 
-	if req.Role == "ormawa_admin" && req.ProgramStudiID != 0 {
+	if strings.Contains(roleLower, ",ormawa_admin,") && req.ProgramStudiID != 0 {
 		var prodi models.ProgramStudi
 		if err := config.DB.First(&prodi, req.ProgramStudiID).Error; err != nil {
 			return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Program studi tidak valid"})
@@ -371,7 +431,7 @@ func CreateUser(c *fiber.Ctx) error {
 		}
 	}
 
-	if req.Role == "mahasiswa" || req.Role == "MAHASISWA" {
+	if strings.Contains(roleLower, ",mahasiswa,") {
 		if req.ProgramStudiID == 0 {
 			return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Program studi wajib dipilih untuk mahasiswa"})
 		}
@@ -398,28 +458,41 @@ func CreateUser(c *fiber.Ctx) error {
 			user.FakultasID = &req.FakultasID
 		}
 
+		// Set OrmawaID if provided
+		if req.OrmawaID != 0 {
+			user.OrmawaID = &req.OrmawaID
+		}
+
 		if err := tx.Create(&user).Error; err != nil {
 			return err
 		}
 
 		// 2. Create Identity Link (Mahasiswa/Dosen/etc)
-		switch req.Role {
-		case "mahasiswa", "MAHASISWA":
+		if strings.Contains(roleLower, ",mahasiswa,") || strings.Contains(roleLower, ",ormawa_admin,") || strings.Contains(roleLower, ",ormawa,") {
 			nim := strings.Split(req.Email, "@")[0] // Fallback NIM from email
 			mhs := models.Mahasiswa{
-				PenggunaID:     user.ID,
-				Nama:           req.Nama,
-				NIM:            nim,
-				FakultasID:     req.FakultasID,
-				ProgramStudiID: req.ProgramStudiID,
-				StatusAkun:     "Aktif",
-				StatusAkademik: "Aktif",
-				TahunMasuk:     time.Now().Year(),
+				PenggunaID:       user.ID,
+				Nama:             req.Nama,
+				NIM:              nim,
+				FakultasID:       req.FakultasID,
+				ProgramStudiID:   req.ProgramStudiID,
+				StatusAkun:       "Aktif",
+				StatusAkademik:   "Aktif",
+				SemesterSekarang: 1,
+				TahunMasuk:       time.Now().Year(),
 			}
 			if err := tx.Create(&mhs).Error; err != nil {
 				return err
 			}
-		case "dosen", "DOSEN":
+
+			// Assign to Ormawa if provided
+			if (strings.Contains(roleLower, ",ormawa_admin,") || strings.Contains(roleLower, ",ormawa,")) && req.OrmawaID != 0 {
+				tx.Exec("INSERT INTO ormawa.ormawa_anggota (mahasiswa_id, ormawa_id, role, status, joined_at, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
+					mhs.ID, req.OrmawaID, "Ketua/Admin", "aktif", time.Now(), time.Now(), time.Now())
+			}
+		}
+
+		if strings.Contains(roleLower, ",dosen,") {
 			nidn := strings.Split(req.Email, "@")[0]
 			dosen := models.Dosen{
 				PenggunaID:     user.ID,
@@ -431,29 +504,9 @@ func CreateUser(c *fiber.Ctx) error {
 			if err := tx.Create(&dosen).Error; err != nil {
 				return err
 			}
-		case "ormawa_admin":
-			nim := strings.Split(req.Email, "@")[0]
-			mhs := models.Mahasiswa{
-				PenggunaID:       user.ID,
-				Nama:             req.Nama,
-				NIM:              nim,
-				FakultasID:       req.FakultasID,
-				ProgramStudiID:   req.ProgramStudiID, // Optional for ormawa_admin
-				StatusAkun:       "Aktif",
-				StatusAkademik:   "Aktif",
-				SemesterSekarang: 1,
-				TahunMasuk:       time.Now().Year(),
-			}
-			if err := tx.Create(&mhs).Error; err != nil {
-				return err
-			}
+		}
 
-			// Assign to Ormawa if provided
-			if req.OrmawaID != 0 {
-				tx.Exec("INSERT INTO ormawa.ormawa_anggota (mahasiswa_id, ormawa_id, role, status, joined_at, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
-					mhs.ID, req.OrmawaID, "Ketua/Admin", "aktif", time.Now(), time.Now(), time.Now())
-			}
-		case "psikolog", "PSIKOLOG":
+		if strings.Contains(roleLower, ",psikolog,") {
 			psikolog := models.Psikolog{
 				UserID:       user.ID,
 				Nama:         req.Nama,
@@ -464,7 +517,9 @@ func CreateUser(c *fiber.Ctx) error {
 			if err := tx.Create(&psikolog).Error; err != nil {
 				return err
 			}
-		case "tenaga_kesehatan", "tenagakes":
+		}
+
+		if strings.Contains(roleLower, ",tenaga_kesehatan,") || strings.Contains(roleLower, ",tenagakes,") {
 			tk := models.TenagaKesehatan{
 				UserID:       user.ID,
 				Nama:         req.Nama,
@@ -478,7 +533,9 @@ func CreateUser(c *fiber.Ctx) error {
 			if err := tx.Create(&tk).Error; err != nil {
 				return err
 			}
-		case "kencana_mentor":
+		}
+
+		if strings.Contains(roleLower, ",kencana_mentor,") {
 			mentor := models.KencanaMentor{
 				UserID:    user.ID,
 				Name:      req.Nama,

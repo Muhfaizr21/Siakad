@@ -75,6 +75,18 @@ export default function PortalSidebar({ config, onNavigate }) {
     ${config.sidebarWidth || 'w-60'}
   `;
 
+  const userPermissions = user?.permissions || user?.Permissions || [];
+  const isSuperOrAdmin = user?.role === 'super_admin' || user?.role === 'ormawa_admin' || userPermissions.includes('*');
+
+  const filteredMenu = (config.menu || []).map(group => {
+    const filteredItems = (group.items || []).filter(item => {
+      if (isSuperOrAdmin) return true;
+      if (!item.permission) return true;
+      return userPermissions.includes(item.permission);
+    });
+    return { ...group, items: filteredItems };
+  }).filter(group => group.items.length > 0);
+
   return (
     <aside
       className={sidebarClasses}
@@ -86,7 +98,7 @@ export default function PortalSidebar({ config, onNavigate }) {
       {/* ─── Logo Section ─── */}
       <div className="px-4 py-4 flex items-center justify-between shrink-0 border-b border-white/10">
         <Link
-          to={config.menu[0]?.items[0]?.path || '/'}
+          to={filteredMenu[0]?.items[0]?.path || '/'}
           className="flex items-center gap-2.5 group"
         >
           <div className="relative">
@@ -123,7 +135,7 @@ export default function PortalSidebar({ config, onNavigate }) {
 
       {/* ─── Navigation Items ─── */}
       <nav className="flex-1 px-3 py-5 overflow-y-auto no-scrollbar scroll-smooth pb-10 overscroll-contain space-y-1">
-        {config.menu.map((group, gIdx) => (
+        {filteredMenu.map((group, gIdx) => (
           <div key={gIdx} className="mb-5 last:mb-0">
             {/* Group Title */}
             <h3

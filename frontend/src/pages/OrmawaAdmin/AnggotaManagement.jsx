@@ -45,6 +45,7 @@ export default function AnggotaManagement() {
   const [members, setMembers] = useState([])
   const [students, setStudents] = useState([])
   const [divisions, setDivisions] = useState([])
+  const [customRoles, setCustomRoles] = useState([])
   const [loading, setLoading] = useState(true)
   const [selected, setSelected] = useState(null)
   const [isDetailOpen, setIsDetailOpen] = useState(false)
@@ -57,8 +58,15 @@ export default function AnggotaManagement() {
   const [isSearching, setIsSearching] = useState(false)
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const dropdownRef = useRef(null)
-  const ormawaId = useAuthStore.getState()?.mahasiswa?.ormawaId || useAuthStore.getState()?.mahasiswa?.ID || 1
+  const ormawaId = useAuthStore.getState()?.user?.ormawa_id || useAuthStore.getState()?.user?.OrmawaID || useAuthStore.getState()?.mahasiswa?.ormawaId || 1
   const [form, setForm] = useState({ MahasiswaID: '', Role: 'Anggota', Divisi: '', Email: '', NoHP: '', OrmawaID: ormawaId })
+
+  const user = useAuthStore(state => state.user)
+  const userPermissions = user?.permissions || user?.Permissions || []
+  const isSuperOrAdmin = user?.role === 'super_admin' || user?.role === 'ormawa_admin' || userPermissions.includes('*')
+  const canCreate = isSuperOrAdmin || userPermissions.includes('create_members')
+  const canEdit = isSuperOrAdmin || userPermissions.includes('edit_members')
+  const canDelete = isSuperOrAdmin || userPermissions.includes('delete_members')
 
   const [isAddingNewDiv, setIsAddingNewDiv] = useState(false)
   const [newDivName, setNewDivName] = useState('')
@@ -85,6 +93,9 @@ export default function AnggotaManagement() {
   }
   const fetchDivisions = async () => {
     try { const data = await fetchWithAuth(`${API}/divisions?ormawaId=${ormawaId}`); if (data.status === 'success') setDivisions(data.data || []) } catch { }
+  }
+  const fetchCustomRoles = async () => {
+    try { const data = await fetchWithAuth(`${API}/roles?ormawaId=${ormawaId}`); if (data.status === 'success') setCustomRoles(data.data || []) } catch { }
   }
 
   const handleCreateDivInline = async () => {
@@ -115,6 +126,7 @@ export default function AnggotaManagement() {
   useEffect(() => {
     fetchStudents()
     fetchDivisions()
+    fetchCustomRoles()
   }, [])
 
   useEffect(() => {
@@ -132,10 +144,10 @@ export default function AnggotaManagement() {
   }, [])
 
   const handleOpenAdd = () => {
-    setIsEditMode(false); setForm({ MahasiswaID: '', Role: 'Anggota', Divisi: '', OrmawaID: ormawaId }); setSearchQuery(''); setIsSearching(false); setIsCrudOpen(true)
+    setIsEditMode(false); setForm({ MahasiswaID: '', Role: 'Anggota', Divisi: '', OrmawaID: ormawaId, Mahasiswa: null }); setSearchQuery(''); setIsSearching(false); setIsCrudOpen(true)
   }
   const handleOpenEdit = (row) => {
-    setIsEditMode(true); setForm({ id: row.id || row.ID, MahasiswaID: String(row.MahasiswaID || ''), Role: row.Role || 'Anggota', Divisi: row.Divisi || '', OrmawaID: ormawaId }); setSearchQuery(row.Mahasiswa ? `${row.Mahasiswa.Nama} (${row.Mahasiswa.NIM})` : ''); setIsSearching(false); setIsCrudOpen(true)
+    setIsEditMode(true); setForm({ id: row.id || row.ID, MahasiswaID: String(row.Mahasiswa?.id || row.Mahasiswa?.ID || row.MahasiswaID || ''), Role: row.Role || 'Anggota', Divisi: row.Divisi || '', OrmawaID: ormawaId, Mahasiswa: row.Mahasiswa }); setSearchQuery(row.Mahasiswa ? `${row.Mahasiswa.Nama || row.Mahasiswa.nama} (${row.Mahasiswa.NIM || row.Mahasiswa.nim})` : ''); setIsSearching(false); setIsCrudOpen(true)
   }
   const handleSave = async (e) => {
     e.preventDefault()
@@ -147,10 +159,10 @@ export default function AnggotaManagement() {
     const formId = form.id || form.ID
     const url = isEditMode ? `${API}/members/${formId}` : `${API}/members`
     const method = isEditMode ? 'PUT' : 'POST'
-    const payload = { 
-      Role: form.Role, 
+    const payload = {
+      Role: form.Role,
       Divisi: form.Divisi,
-      MahasiswaID: Number(form.MahasiswaID), 
+      MahasiswaID: Number(form.MahasiswaID),
       OrmawaID: Number(form.OrmawaID),
       EmailKampus: form.Email,
       NoHP: form.NoHP
@@ -228,6 +240,11 @@ export default function AnggotaManagement() {
     }
   ]
 
+  const combinedRoles = Array.from(new Set([
+    ...ROLES,
+    ...customRoles.map(r => r.Nama || r.nama)
+  ])).filter(Boolean)
+
   return (
     <div className="max-w-[1600px] mx-auto px-4 py-8 md:px-8 xl:px-12 space-y-8 font-body">
       <Toaster position="top-right" containerStyle={{ zIndex: 99999 }} />
@@ -293,13 +310,17 @@ export default function AnggotaManagement() {
             data={members}
             loading={loading}
             searchPlaceholder="Cari nama atau NIM anggota..."
-            onAdd={handleOpenAdd}
+            onAdd={canCreate ? handleOpenAdd : null}
             addLabel="Tambah Anggota"
             actions={(row) => (
               <div className="flex items-center justify-end gap-1">
                 <button onClick={() => { setSelected(row); setIsDetailOpen(true) }} className="p-1.5 text-slate-400 hover:text-bku-primary hover:bg-bku-primary/10 rounded-lg transition-colors duration-150" title="Detail"><span className="material-symbols-outlined block" style={{ fontSize: '18px' }} >visibility</span></button>
-                <button onClick={() => handleOpenEdit(row)} className="p-1.5 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors duration-150" title="Edit"><span className="material-symbols-outlined block" style={{ fontSize: '18px' }} >edit</span></button>
-                <button onClick={() => { setSelected(row); setIsDelOpen(true) }} className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors duration-150" title="Hapus"><span className="material-symbols-outlined block" style={{ fontSize: '18px' }} >delete</span></button>
+                {canEdit && (
+                  <button onClick={() => handleOpenEdit(row)} className="p-1.5 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors duration-150" title="Edit"><span className="material-symbols-outlined block" style={{ fontSize: '18px' }} >edit</span></button>
+                )}
+                {canDelete && (
+                  <button onClick={() => { setSelected(row); setIsDelOpen(true) }} className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors duration-150" title="Hapus"><span className="material-symbols-outlined block" style={{ fontSize: '18px' }} >delete</span></button>
+                )}
               </div>
             )}
           />
@@ -389,10 +410,7 @@ export default function AnggotaManagement() {
                 <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 font-headline">Pilih Mahasiswa</Label>
                 {isEditMode ? (
                   <Input
-                    value={form.MahasiswaID ? (() => {
-                      const s = students.find(x => (x?.id?.toString() || x?.ID?.toString()) === form?.MahasiswaID?.toString());
-                      return s ? `${s.Nama} (${s.NIM})` : '—';
-                    })() : '—'}
+                    value={form.Mahasiswa ? `${form.Mahasiswa.Nama || form.Mahasiswa.nama} (${form.Mahasiswa.NIM || form.Mahasiswa.nim})` : '—'}
                     disabled
                     className="h-12 rounded-2xl border-slate-200 bg-slate-100 text-slate-400 font-bold text-sm font-headline cursor-not-allowed"
                   />
@@ -472,7 +490,7 @@ export default function AnggotaManagement() {
                       <SelectValue placeholder="Pilih Jabatan" />
                     </SelectTrigger>
                     <SelectContent className="rounded-xl border-slate-200 shadow-xl p-1 bg-white font-body">
-                      {ROLES.map((r) => (
+                      {combinedRoles.map((r) => (
                         <SelectItem key={r} value={r} className="rounded-lg text-xs py-1.5 focus:bg-blue-50 focus:text-blue-700 cursor-pointer font-bold text-slate-700">
                           {r}
                         </SelectItem>
@@ -483,9 +501,9 @@ export default function AnggotaManagement() {
                 <div className="space-y-2">
                   <div className="flex items-center justify-between ml-1">
                     <Label className="text-[9px] md:text-[10px] font-black text-slate-400 tracking-[0.2em] font-headline">Divisi</Label>
-                    <button 
-                      type="button" 
-                      onClick={() => setIsAddingNewDiv(!isAddingNewDiv)} 
+                    <button
+                      type="button"
+                      onClick={() => setIsAddingNewDiv(!isAddingNewDiv)}
                       className="text-[9px] font-black text-bku-primary hover:text-[#0B4FAE] tracking-wider uppercase font-headline flex items-center gap-0.5"
                     >
                       <span className="material-symbols-outlined text-[10px] block font-black">add</span>
@@ -494,16 +512,16 @@ export default function AnggotaManagement() {
                   </div>
                   {isAddingNewDiv ? (
                     <div className="flex gap-2">
-                      <Input 
-                        value={newDivName} 
-                        onChange={e => setNewDivName(e.target.value)} 
-                        placeholder="Nama Divisi Baru..." 
+                      <Input
+                        value={newDivName}
+                        onChange={e => setNewDivName(e.target.value)}
+                        placeholder="Nama Divisi Baru..."
                         className="h-12 rounded-2xl border-slate-200 bg-slate-50 font-bold text-xs md:text-sm"
                       />
-                      <Button 
-                        type="button" 
-                        onClick={handleCreateDivInline} 
-                        disabled={isSavingDiv || !newDivName.trim()} 
+                      <Button
+                        type="button"
+                        onClick={handleCreateDivInline}
+                        disabled={isSavingDiv || !newDivName.trim()}
                         className="h-12 px-4 rounded-2xl bg-bku-primary hover:bg-[#0B4FAE] text-white flex items-center justify-center text-xs font-bold shrink-0"
                       >
                         {isSavingDiv ? '...' : 'OK'}

@@ -233,7 +233,7 @@ export default function RoleBasedAccess() {
   const [selected, setSelected] = useState(null)
   
   const authState = useAuthStore((s) => s)
-  const ormawaId = authState?.mahasiswa?.ormawaId || authState?.mahasiswa?.ID || authState?.user?.ormawaId || 1
+  const ormawaId = authState?.user?.ormawa_id || authState?.user?.OrmawaID || authState?.mahasiswa?.ormawaId || 1
   
   const [form, setForm] = useState({ Nama: '', Deskripsi: '', Hak: [], OrmawaID: ormawaId })
   const [expandedGroups, setExpandedGroups] = useState({})

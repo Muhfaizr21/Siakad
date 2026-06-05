@@ -114,34 +114,34 @@ export const PORTAL_CONFIG = {
       {
         group: 'MANAJEMEN UTAMA',
         items: [
-          { name: 'Dashboard', icon: 'dashboard', path: '/ormawa' },
-          { name: 'Anggota Aktif', icon: 'group', path: '/ormawa/anggota' },
-          { name: 'Struktur Pengurus', icon: 'account_tree', path: '/ormawa/struktur' },
+          { name: 'Dashboard', icon: 'dashboard', path: '/ormawa', permission: 'view_dashboard' },
+          { name: 'Anggota Aktif', icon: 'group', path: '/ormawa/anggota', permission: 'view_members' },
+          { name: 'Struktur Pengurus', icon: 'account_tree', path: '/ormawa/struktur', permission: 'view_staff' },
         ]
       },
       {
         group: 'OPERASIONAL & KEGIATAN',
         items: [
-          { name: 'Proposal & Kegiatan', icon: 'description', path: '/ormawa/proposal' },
-          { name: 'Jadwal Kalender', icon: 'calendar_month', path: '/ormawa/jadwal' },
-          { name: 'Sistem Absensi (QR)', icon: 'qr_code', path: '/ormawa/absensi' },
+          { name: 'Proposal & Kegiatan', icon: 'description', path: '/ormawa/proposal', permission: 'view_proposal' },
+          { name: 'Jadwal Kalender', icon: 'calendar_month', path: '/ormawa/jadwal', permission: 'view_calendar' },
+          { name: 'Sistem Absensi (QR)', icon: 'qr_code', path: '/ormawa/absensi', permission: 'view_attendance' },
         ]
       },
       {
         group: 'ADMINISTRASI & KEUANGAN',
         items: [
-          { name: 'Pagu & Buku Keuangan', icon: 'account_balance_wallet', path: '/ormawa/keuangan' },
-          { name: 'Laporan & LPJ', icon: 'assignment', path: '/ormawa/lpj' },
+          { name: 'Pagu & Buku Keuangan', icon: 'account_balance_wallet', path: '/ormawa/keuangan', permission: 'view_finance' },
+          { name: 'Laporan & LPJ', icon: 'assignment', path: '/ormawa/lpj', permission: 'view_lpj' },
         ]
       },
       {
         group: 'KOMUNIKASI & SISTEM',
         items: [
-          { name: 'Aspirasi Masuk', icon: 'campaign', path: '/ormawa/aspirasi' },
-          { name: 'Pusat Notifikasi', icon: 'notifications', path: '/ormawa/notifikasi' },
-          { name: 'Siaran Pengumuman', icon: 'campaign', path: '/ormawa/pengumuman' },
-          { name: 'Role & Akses', icon: 'security', path: '/ormawa/rbac' },
-          { name: 'Pengaturan Sistem', icon: 'settings', path: '/ormawa/pengaturan' },
+          { name: 'Aspirasi Masuk', icon: 'campaign', path: '/ormawa/aspirasi', permission: 'view_aspirations' },
+          { name: 'Pusat Notifikasi', icon: 'notifications', path: '/ormawa/notifikasi', permission: 'view_notifications' },
+          { name: 'Siaran Pengumuman', icon: 'campaign', path: '/ormawa/pengumuman', permission: 'view_announcements' },
+          { name: 'Role & Akses', icon: 'security', path: '/ormawa/rbac', permission: 'view_rbac' },
+          { name: 'Pengaturan Sistem', icon: 'settings', path: '/ormawa/pengaturan', permission: 'view_settings' },
         ]
       },
     ],

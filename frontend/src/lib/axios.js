@@ -55,8 +55,10 @@ api.interceptors.response.use(
 
     const { status } = error.response;
 
-    // 401 Unauthorized -> Refresh Token Logic
-    if (status === 401 && !originalRequest._retry) {
+    // 401 Unauthorized -> Refresh Token Logic (except for auth requests)
+    const reqUrl = originalRequest.url || '';
+    const isAuthRequest = reqUrl.includes('/auth/login') || reqUrl.includes('/auth/select-role') || reqUrl.includes('/auth/refresh') || reqUrl.includes('/auth/logout');
+    if (status === 401 && !originalRequest._retry && !isAuthRequest) {
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
@@ -72,8 +74,9 @@ api.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        const { data } = await axios.post(
-          `${api.defaults.baseURL}/auth/refresh`,
+        // Use the api instance (not global axios) to avoid double /api/ prefix
+        const { data } = await api.post(
+          '/auth/refresh',
           {},
           { withCredentials: true }
         );
@@ -95,13 +98,13 @@ api.interceptors.response.use(
       }
     }
 
-    // 403 Forbidden -> Redirect to 403
-    if (status === 403) {
+    // 403 Forbidden -> Redirect to 403 (but not for auth requests)
+    if (status === 403 && !isAuthRequest) {
       window.location.href = '/403';
     }
 
-    // 500, 502, 503 Server Errors -> Redirect to 500
-    if (status >= 500) {
+    // 500, 502, 503 Server Errors -> Redirect to 500 (but not for auth requests)
+    if (status >= 500 && !isAuthRequest) {
       window.location.href = '/500';
     }
 
