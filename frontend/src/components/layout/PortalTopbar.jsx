@@ -69,7 +69,7 @@ export default function PortalTopbar({ config, onMenuClick }) {
 
   // Get user display info
   const displayName = user?.name || user?.nama || user?.Nama || mahasiswa?.nama || 'User';
-  const displayRole = user?.role || config.roleLabel || 'User';
+  const displayRole = user?.role_display || user?.role || config.roleLabel || 'User';
   const displayInitial = String(displayName).charAt(0).toUpperCase();
 
   // Detect current portal and resolve valid routes
@@ -243,11 +243,11 @@ export default function PortalTopbar({ config, onMenuClick }) {
                 </div>
 
                 {/* Ormawa name if applicable */}
-                {(mahasiswa?.ormawaName || user?.ormawaName || config?.orgName) && (
+                {(user?.ormawa_name || mahasiswa?.ormawaName || user?.ormawaName || config?.orgName) && (
                   <div className="mt-3 flex items-center gap-2 bg-white/10 border border-white/15 px-3 py-1.5 rounded-xl relative z-10">
                     <span className="material-symbols-outlined text-white/70" style={{ fontSize: '13px' }}>groups</span>
                     <span className="text-[10px] text-white/80 font-bold truncate">
-                      {mahasiswa?.ormawaName || user?.ormawaName || config?.orgName}
+                      {user?.ormawa_name || mahasiswa?.ormawaName || user?.ormawaName || config?.orgName}
                     </span>
                   </div>
                 )}

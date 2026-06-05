@@ -418,6 +418,7 @@ func UpdateMember(c *fiber.Ctx) error {
 	// Update data anggota
 	member.Role = payload.Role
 	member.Divisi = payload.Divisi
+	member.Status = "aktif"
 	config.DB.Save(&member)
 
 	// Sinkronisasi RiwayatOrganisasi
@@ -432,13 +433,23 @@ func UpdateMember(c *fiber.Ctx) error {
 
 	// Update data mahasiswa (Sinkronisasi Kontak)
 	if member.MahasiswaID != 0 {
-		config.DB.Model(&models.Mahasiswa{}).Where("id = ?", member.MahasiswaID).Updates(map[string]interface{}{
-			"email_kampus": payload.EmailKampus,
-			"no_hp":        payload.NoHP,
-		})
+		mhsUpdates := map[string]interface{}{}
+		if payload.EmailKampus != "" {
+			mhsUpdates["email_kampus"] = payload.EmailKampus
+		}
+		if payload.NoHP != "" {
+			mhsUpdates["no_hp"] = payload.NoHP
+		}
+		if len(mhsUpdates) > 0 {
+			config.DB.Model(&models.Mahasiswa{}).Where("id = ?", member.MahasiswaID).Updates(mhsUpdates)
+		}
 	}
 
 	config.DB.Preload("Mahasiswa").First(&member, member.ID)
+
+	// Sync user.Role to make sure ormawa role is properly configured
+	syncUserOrmawaRole(member.MahasiswaID)
+
 	return c.JSON(fiber.Map{"status": "success", "data": member})
 }
 
@@ -961,12 +972,13 @@ func GetMembers(c *fiber.Ctx) error {
 	}
 
 	type UnifiedMember struct {
-		ID        uint             `json:"ID"`
-		Role      string           `json:"Role"`
-		Divisi    string           `json:"Divisi"`
-		Status    string           `json:"Status"`
-		Periode   string           `json:"Periode"`
-		Mahasiswa models.Mahasiswa `json:"Mahasiswa"`
+		ID          uint             `json:"ID"`
+		MahasiswaID uint             `json:"MahasiswaID"`
+		Role        string           `json:"Role"`
+		Divisi      string           `json:"Divisi"`
+		Status      string           `json:"Status"`
+		Periode     string           `json:"Periode"`
+		Mahasiswa   models.Mahasiswa `json:"Mahasiswa"`
 	}
 
 	var result []UnifiedMember
@@ -992,12 +1004,13 @@ func GetMembers(c *fiber.Ctx) error {
 			pStr := fmt.Sprintf("%d/%d", year, year+1)
 
 			result = append(result, UnifiedMember{
-				ID:        m.ID,
-				Role:      m.Role,
-				Divisi:    m.Divisi,
-				Status:    m.Status,
-				Periode:   pStr,
-				Mahasiswa: m.Mahasiswa,
+				ID:          m.ID,
+				MahasiswaID: m.MahasiswaID,
+				Role:        m.Role,
+				Divisi:      m.Divisi,
+				Status:      m.Status,
+				Periode:     pStr,
+				Mahasiswa:   m.Mahasiswa,
 			})
 		}
 	} else {
@@ -1006,12 +1019,13 @@ func GetMembers(c *fiber.Ctx) error {
 
 		for _, h := range history {
 			result = append(result, UnifiedMember{
-				ID:        h.ID,
-				Role:      h.Jabatan,
-				Divisi:    "",
-				Status:    h.Status,
-				Periode:   h.Periode,
-				Mahasiswa: h.Mahasiswa,
+				ID:          h.ID,
+				MahasiswaID: h.MahasiswaID,
+				Role:        h.Jabatan,
+				Divisi:      "",
+				Status:      h.Status,
+				Periode:     h.Periode,
+				Mahasiswa:   h.Mahasiswa,
 			})
 		}
 	}
@@ -1042,6 +1056,7 @@ func CreateMember(c *fiber.Ctx) error {
 		OrmawaID:    payload.OrmawaID,
 		Role:        payload.Role,
 		Divisi:      payload.Divisi,
+		Status:      "aktif",
 		JoinedAt:    time.Now(),
 	}
 
@@ -1080,10 +1095,16 @@ func CreateMember(c *fiber.Ctx) error {
 	}
 
 	// Sinkronisasi Kontak Mahasiswa
-	config.DB.Model(&models.Mahasiswa{}).Where("id = ?", member.MahasiswaID).Updates(map[string]interface{}{
-		"email_kampus": payload.EmailKampus,
-		"no_hp":        payload.NoHP,
-	})
+	mhsUpdates := map[string]interface{}{}
+	if payload.EmailKampus != "" {
+		mhsUpdates["email_kampus"] = payload.EmailKampus
+	}
+	if payload.NoHP != "" {
+		mhsUpdates["no_hp"] = payload.NoHP
+	}
+	if len(mhsUpdates) > 0 {
+		config.DB.Model(&models.Mahasiswa{}).Where("id = ?", member.MahasiswaID).Updates(mhsUpdates)
+	}
 
 	config.DB.Preload("Mahasiswa").First(&member, member.ID)
 
@@ -1094,6 +1115,9 @@ func CreateMember(c *fiber.Ctx) error {
 		Judul:    "Anggota Baru Bergabung",
 		Pesan:    fmt.Sprintf("Mahasiswa %s telah bergabung dengan organisasi sebagai %s.", member.Mahasiswa.Nama, member.Role),
 	})
+
+	// Synchronize user.Role to include "ormawa"
+	syncUserOrmawaRole(member.MahasiswaID)
 
 	return c.JSON(fiber.Map{"status": "success", "data": member})
 }
@@ -1109,6 +1133,9 @@ func DeleteMember(c *fiber.Ctx) error {
 			Update("status", "Demisioner")
 
 		config.DB.Delete(&member)
+
+		// Sync user.Role to remove "ormawa" if no active membership is left
+		syncUserOrmawaRole(member.MahasiswaID)
 	}
 	return c.JSON(fiber.Map{"status": "success", "message": "Deleted"})
 }
@@ -1565,4 +1592,58 @@ func GetOrmawaGamifikasi(c *fiber.Ctx) error {
 			"riwayat":      history,
 		},
 	})
+}
+
+func syncUserOrmawaRole(studentID uint) {
+	var student models.Mahasiswa
+	if err := config.DB.First(&student, studentID).Error; err != nil || student.PenggunaID == 0 {
+		return
+	}
+
+	var user models.User
+	if err := config.DB.First(&user, student.PenggunaID).Error; err != nil {
+		return
+	}
+
+	// Check if this student has any active Ormawa memberships
+	var activeMemberships []models.OrmawaAnggota
+	config.DB.Where("mahasiswa_id = ? AND status = 'aktif'", studentID).Find(&activeMemberships)
+	count := len(activeMemberships)
+
+	roles := strings.Split(user.Role, ",")
+	hasOrmawa := false
+	var newRoles []string
+	for _, r := range roles {
+		rClean := strings.TrimSpace(r)
+		if rClean == "" {
+			continue
+		}
+		if rClean == "ormawa" {
+			hasOrmawa = true
+			if count > 0 {
+				newRoles = append(newRoles, rClean)
+			}
+		} else {
+			newRoles = append(newRoles, rClean)
+		}
+	}
+
+	if count > 0 && !hasOrmawa {
+		newRoles = append(newRoles, "ormawa")
+	}
+
+	newRoleStr := strings.Join(newRoles, ",")
+
+	var ormawaIDPtr *uint
+	if count > 0 {
+		val := activeMemberships[0].OrmawaID
+		ormawaIDPtr = &val
+	}
+
+	// Update public.users table directly via raw SQL to bypass cache/model-tracking issues
+	if err := config.DB.Exec("UPDATE public.users SET role = ?, ormawa_id = ?, updated_at = ? WHERE id = ?", newRoleStr, ormawaIDPtr, time.Now(), user.ID).Error; err != nil {
+		fmt.Printf("[syncUserOrmawaRole] Failed to update user role/ormawa_id for student %d: %v\n", studentID, err)
+	} else {
+		fmt.Printf("[syncUserOrmawaRole] Successfully synced user %d role to %s and ormawa_id to %v\n", user.ID, newRoleStr, ormawaIDPtr)
+	}
 }

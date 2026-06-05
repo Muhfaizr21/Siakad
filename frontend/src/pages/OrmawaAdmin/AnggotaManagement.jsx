@@ -147,7 +147,7 @@ export default function AnggotaManagement() {
     setIsEditMode(false); setForm({ MahasiswaID: '', Role: 'Anggota', Divisi: '', OrmawaID: ormawaId, Mahasiswa: null }); setSearchQuery(''); setIsSearching(false); setIsCrudOpen(true)
   }
   const handleOpenEdit = (row) => {
-    setIsEditMode(true); setForm({ id: row.id || row.ID, MahasiswaID: String(row.Mahasiswa?.id || row.Mahasiswa?.ID || row.MahasiswaID || ''), Role: row.Role || 'Anggota', Divisi: row.Divisi || '', OrmawaID: ormawaId, Mahasiswa: row.Mahasiswa }); setSearchQuery(row.Mahasiswa ? `${row.Mahasiswa.Nama || row.Mahasiswa.nama} (${row.Mahasiswa.NIM || row.Mahasiswa.nim})` : ''); setIsSearching(false); setIsCrudOpen(true)
+    setIsEditMode(true); setForm({ id: row.id || row.ID, MahasiswaID: String(row.MahasiswaID || row.mahasiswaID || row.Mahasiswa?.id || row.Mahasiswa?.ID || row.Mahasiswa?.Id || ''), Role: row.Role || 'Anggota', Divisi: row.Divisi || '', OrmawaID: ormawaId, Mahasiswa: row.Mahasiswa }); setSearchQuery(row.Mahasiswa ? `${row.Mahasiswa.Nama || row.Mahasiswa.nama} (${row.Mahasiswa.NIM || row.Mahasiswa.nim})` : ''); setIsSearching(false); setIsCrudOpen(true)
   }
   const handleSave = async (e) => {
     e.preventDefault()

@@ -29,6 +29,8 @@ type userResponse struct {
 	ID          uint     `json:"id"`
 	Email       string   `json:"email"`
 	Role        string   `json:"role"`
+	RoleDisplay string   `json:"role_display,omitempty"`
+	OrmawaName  string   `json:"ormawa_name,omitempty"`
 	NIM         string   `json:"nim,omitempty"`
 	Nama        string   `json:"nama,omitempty"`
 	OrmawaID    *uint    `json:"ormawa_id,omitempty"`
@@ -179,16 +181,46 @@ func getUserPermissions(user models.User, roleName string, studentID uint) []str
 			// Find active membership for the student
 			if err := config.DB.Where("mahasiswa_id = ? AND status = 'aktif'", studentID).First(&membership).Error; err == nil {
 				var ormawaRole models.OrmawaRole
-				// Find custom role in that Ormawa
-				if err := config.DB.Where("ormawa_id = ? AND nama = ?", membership.OrmawaID, membership.Role).First(&ormawaRole).Error; err == nil {
+				// Find custom role in that Ormawa case-insensitively
+				if err := config.DB.Where("ormawa_id = ? AND LOWER(nama) = LOWER(?)", membership.OrmawaID, membership.Role).First(&ormawaRole).Error; err == nil {
 					var customPerms []string
 					if err := json.Unmarshal(ormawaRole.Permissions, &customPerms); err == nil && len(customPerms) > 0 {
 						return customPerms
 					}
 				}
-				// If they have an active membership but no custom role is defined in the database,
-				// they should have full access to their Ormawa portal by default.
-				return []string{"*"}
+				
+				// Fallback if no custom role is defined in the database:
+				roleLower := strings.ToLower(membership.Role)
+				if roleLower == "ketua" || roleLower == "ketua umum" {
+					return []string{"*"}
+				}
+				
+				if roleLower == "sekretaris" {
+					return []string{
+						"view_dashboard", "view_notifications",
+						"view_members", "create_members", "edit_members",
+						"view_staff", "manage_staff", "view_structure",
+						"view_proposal", "create_proposal", "edit_proposal", "delete_proposal",
+						"view_lpj", "create_lpj", "edit_lpj", "upload_lpj_doc",
+						"view_calendar", "create_calendar", "edit_calendar", "delete_calendar",
+						"view_attendance", "submit_attendance", "edit_attendance",
+						"view_announcements", "create_announcements", "edit_announcements", "delete_announcements",
+					}
+				}
+				
+				if roleLower == "bendahara" {
+					return []string{
+						"view_dashboard", "view_notifications",
+						"view_lpj", "create_lpj", "edit_lpj", "upload_lpj_doc",
+						"view_finance", "create_finance", "delete_finance",
+					}
+				}
+
+				// Standard fallback for Staff/Anggota or any other role
+				return []string{
+					"view_dashboard", "view_notifications",
+					"view_calendar", "view_announcements",
+				}
 			}
 		} else {
 			// If they don't have a student profile (e.g. main admin account like ormawa@bku.ac.id),
@@ -238,7 +270,6 @@ func Login(c *fiber.Ctx) error {
 	err := config.DB.Preload("Pengguna").Preload("ProgramStudi").Preload("Fakultas").Where("nim = ?", identifier).First(&student).Error
 	if err == nil {
 		user = student.Pengguna
-		nim = student.NIM
 		roleName = student.Pengguna.Role
 	} else {
 		// 2. Try to find user by Email
@@ -251,13 +282,14 @@ func Login(c *fiber.Ctx) error {
 		roleName = user.Role
 		// Always try to load student profile if they have one linked
 		_ = config.DB.Preload("ProgramStudi").Preload("Fakultas").Where("pengguna_id = ?", user.ID).First(&student).Error
-		if student.ID != 0 {
-			nim = student.NIM
-			// Lookup Ormawa membership
-			var memberships []models.OrmawaAnggota
-			if err := config.DB.Where("mahasiswa_id = ? AND status = 'aktif'", student.ID).Limit(1).Find(&memberships).Error; err == nil && len(memberships) > 0 {
-				user.OrmawaID = &memberships[0].OrmawaID
-			}
+	}
+
+	if student.ID != 0 {
+		nim = student.NIM
+		// Lookup active Ormawa membership
+		var memberships []models.OrmawaAnggota
+		if err := config.DB.Where("mahasiswa_id = ? AND status = 'aktif'", student.ID).Limit(1).Find(&memberships).Error; err == nil && len(memberships) > 0 {
+			user.OrmawaID = &memberships[0].OrmawaID
 		}
 	}
 
@@ -270,9 +302,26 @@ func Login(c *fiber.Ctx) error {
 	}
 
 	// Multi-role check: if user.Role contains commas, require role selection
-	allRoles := strings.Split(roleName, ",")
-	for i := range allRoles {
-		allRoles[i] = strings.TrimSpace(allRoles[i])
+	allRolesRaw := strings.Split(roleName, ",")
+	var allRoles []string
+	hasOrmawa := false
+	for _, r := range allRolesRaw {
+		rClean := strings.TrimSpace(r)
+		if rClean != "" {
+			allRoles = append(allRoles, rClean)
+			if rClean == "ormawa" {
+				hasOrmawa = true
+			}
+		}
+	}
+
+	// Dynamically check if this user is a student with an active Ormawa membership
+	if student.ID != 0 && !hasOrmawa {
+		var membershipCount int64
+		config.DB.Model(&models.OrmawaAnggota{}).Where("mahasiswa_id = ? AND status = 'aktif'", student.ID).Count(&membershipCount)
+		if membershipCount > 0 {
+			allRoles = append(allRoles, "ormawa")
+		}
 	}
 	if len(allRoles) > 1 {
 		tempToken, err := createTempToken(user.ID)
@@ -286,6 +335,20 @@ func Login(c *fiber.Ctx) error {
 		roleOptions := []fiber.Map{}
 		for _, r := range allRoles {
 			meta := getRoleMeta(r)
+
+			// Custom meta for dynamic Ormawa roles
+			if r == "ormawa" && student.ID != 0 {
+				var membership models.OrmawaAnggota
+				if err := config.DB.Preload("Ormawa").Where("mahasiswa_id = ? AND status = 'aktif'", student.ID).First(&membership).Error; err == nil {
+					meta.Label = fmt.Sprintf("Ormawa (%s)", membership.Role)
+					if membership.Ormawa.Nama != "" {
+						meta.Description = fmt.Sprintf("Akses sebagai %s di %s", membership.Role, membership.Ormawa.Nama)
+					} else {
+						meta.Description = fmt.Sprintf("Akses sebagai %s organisasi mahasiswa", membership.Role)
+					}
+				}
+			}
+
 			roleOptions = append(roleOptions, fiber.Map{
 				"role":        r,
 				"label":       meta.Label,
@@ -427,6 +490,17 @@ func LoginSelectRole(c *fiber.Ctx) error {
 			break
 		}
 	}
+	if !validRole && body.SelectedRole == "ormawa" {
+		var student models.Mahasiswa
+		_ = config.DB.Where("pengguna_id = ?", user.ID).First(&student).Error
+		if student.ID != 0 {
+			var membershipCount int64
+			config.DB.Model(&models.OrmawaAnggota{}).Where("mahasiswa_id = ? AND status = 'aktif'", student.ID).Count(&membershipCount)
+			if membershipCount > 0 {
+				validRole = true
+			}
+		}
+	}
 	if !validRole {
 		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
 			"status":  "error",
@@ -480,6 +554,16 @@ func LoginSelectRole(c *fiber.Ctx) error {
 		}
 	}
 
+	var roleDisplay string
+	var ormawaName string
+	if (selectedRole == "ormawa" || selectedRole == "ormawa_admin") && student.ID != 0 {
+		var membership models.OrmawaAnggota
+		if err := config.DB.Preload("Ormawa").Where("mahasiswa_id = ? AND status = 'aktif'", student.ID).First(&membership).Error; err == nil {
+			roleDisplay = membership.Role
+			ormawaName = membership.Ormawa.Nama
+		}
+	}
+
 	return c.JSON(fiber.Map{
 		"success": true,
 		"status":  "success",
@@ -491,6 +575,8 @@ func LoginSelectRole(c *fiber.Ctx) error {
 				ID:          user.ID,
 				Email:       user.Email,
 				Role:        selectedRole,
+				RoleDisplay: roleDisplay,
+				OrmawaName:  ormawaName,
 				NIM:         student.NIM,
 				Nama:        displayName,
 				OrmawaID:    user.OrmawaID,
@@ -541,6 +627,16 @@ func Me(c *fiber.Ctx) error {
 
 	permissions := getUserPermissions(user, roleVal, student.ID)
 
+	var roleDisplay string
+	var ormawaName string
+	if (roleVal == "ormawa" || roleVal == "ormawa_admin") && student.ID != 0 {
+		var membership models.OrmawaAnggota
+		if err := config.DB.Preload("Ormawa").Where("mahasiswa_id = ? AND status = 'aktif'", student.ID).First(&membership).Error; err == nil {
+			roleDisplay = membership.Role
+			ormawaName = membership.Ormawa.Nama
+		}
+	}
+
 	return c.JSON(fiber.Map{
 		"status": "success",
 		"data": fiber.Map{
@@ -548,6 +644,8 @@ func Me(c *fiber.Ctx) error {
 				ID:          user.ID,
 				Email:       user.Email,
 				Role:        roleVal,
+				RoleDisplay: roleDisplay,
+				OrmawaName:  ormawaName,
 				NIM:         student.NIM,
 				Nama:        student.Nama,
 				OrmawaID:    user.OrmawaID,
