@@ -332,12 +332,16 @@ export default function ProposalManagement() {
     if (!selectedId) return
     setIsSubmitting(true)
     try {
-      await fetchWithAuth(`${API}/proposals/${selectedId}`, { method: 'DELETE' })
-      toast.success('Proposal dihapus')
-      setIsDelOpen(false)
-      fetchProposals()
-    } catch {
-      toast.error('Gagal menghapus proposal')
+      const res = await fetchWithAuth(`${API}/proposals/${selectedId}`, { method: 'DELETE' })
+      if (res.status === 'success') {
+        toast.success('Proposal dihapus')
+        setIsDelOpen(false)
+        fetchProposals()
+      } else {
+        toast.error(res.message || 'Gagal menghapus proposal')
+      }
+    } catch (err) {
+      toast.error(err.message || 'Gagal menghapus proposal')
     } finally {
       setIsSubmitting(false)
     }
@@ -438,14 +442,22 @@ export default function ProposalManagement() {
                 options: Object.entries(STATUS_CONFIG).map(([value, { label }]) => ({ label, value }))
               }
             ]}
-            actions={(row) => (
-              <div className="flex items-center justify-end gap-1">
-                <button onClick={() => handleView(row)} className="p-1.5 text-slate-400 hover:text-[#00236F] hover:bg-[#00236F]/10 rounded-lg transition-colors duration-150" title="Detail"><span className="material-symbols-outlined block" style={{ fontSize: '18px' }} >visibility</span></button>
-                <button onClick={() => printProposalPDF(row)} className="p-1.5 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors duration-150" title="Cetak PDF"><span className="material-symbols-outlined block" style={{ fontSize: '18px' }} >print</span></button>
-                <button onClick={() => handleOpenEdit(row)} className="p-1.5 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors duration-150" title="Edit"><span className="material-symbols-outlined block" style={{ fontSize: '18px' }} >edit</span></button>
-                <button onClick={() => { setSelected(row); setIsDelOpen(true) }} className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors duration-150" title="Hapus"><span className="material-symbols-outlined block" style={{ fontSize: '18px' }} >delete</span></button>
-              </div>
-            )}
+            actions={(row) => {
+              const statusStr = String(row.Status || 'diajukan').toLowerCase().trim()
+              const isLocked = ['disetujui_fakultas', 'disetujui_univ', 'selesai'].includes(statusStr)
+              return (
+                <div className="flex items-center justify-end gap-1">
+                  <button onClick={() => handleView(row)} className="p-1.5 text-slate-400 hover:text-[#00236F] hover:bg-[#00236F]/10 rounded-lg transition-colors duration-150" title="Detail"><span className="material-symbols-outlined block" style={{ fontSize: '18px' }} >visibility</span></button>
+                  <button onClick={() => printProposalPDF(row)} className="p-1.5 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors duration-150" title="Cetak PDF"><span className="material-symbols-outlined block" style={{ fontSize: '18px' }} >print</span></button>
+                  {!isLocked && (
+                    <>
+                      <button onClick={() => handleOpenEdit(row)} className="p-1.5 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors duration-150" title="Edit"><span className="material-symbols-outlined block" style={{ fontSize: '18px' }} >edit</span></button>
+                      <button onClick={() => { setSelected(row); setIsDelOpen(true) }} className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors duration-150" title="Hapus"><span className="material-symbols-outlined block" style={{ fontSize: '18px' }} >delete</span></button>
+                    </>
+                  )}
+                </div>
+              )
+            }}
           />
         </CardContent>
       </Card>

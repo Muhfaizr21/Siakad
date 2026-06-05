@@ -369,7 +369,17 @@ func UpdateProposal(c *fiber.Ctx) error {
 
 func DeleteProposal(c *fiber.Ctx) error {
 	id := c.Params("id")
-	config.DB.Delete(&models.Proposal{}, id)
+	var proposal models.Proposal
+	if err := config.DB.First(&proposal, id).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Proposal tidak ditemukan"})
+	}
+
+	status := strings.ToLower(strings.TrimSpace(proposal.Status))
+	if status == "disetujui_fakultas" || status == "disetujui_univ" || status == "selesai" {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Proposal yang sudah disetujui oleh Fakultas/Universitas tidak dapat dihapus"})
+	}
+
+	config.DB.Delete(&proposal)
 	config.DB.Where("proposal_id = ?", id).Delete(&models.ProposalRiwayat{})
 	return c.JSON(fiber.Map{"status": "success", "message": "Deleted"})
 }
@@ -772,7 +782,9 @@ func CreateOrmawaRole(c *fiber.Ctx) error {
 		return c.Status(400).JSON(fiber.Map{"status": "error", "message": err.Error()})
 	}
 
-	if data.OrmawaID == 0 {
+	if tokenOrmawaID, ok := c.Locals("ormawa_id").(uint); ok && tokenOrmawaID != 0 {
+		data.OrmawaID = tokenOrmawaID
+	} else if data.OrmawaID == 0 {
 		if localId := c.Locals("ormawa_id"); localId != nil {
 			if uid, ok := localId.(uint); ok {
 				data.OrmawaID = uid
@@ -807,6 +819,10 @@ func UpdateOrmawaRole(c *fiber.Ctx) error {
 		Hak       []string `json:"Hak"`
 	}
 	c.BodyParser(&data)
+
+	if tokenOrmawaID, ok := c.Locals("ormawa_id").(uint); ok && tokenOrmawaID != 0 {
+		data.OrmawaID = tokenOrmawaID
+	}
 
 	perms, _ := json.Marshal(data.Hak)
 	if data.OrmawaID != 0 {

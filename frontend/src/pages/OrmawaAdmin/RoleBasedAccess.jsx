@@ -496,7 +496,7 @@ export default function RoleBasedAccess() {
 
       {/* ── CRUD Dialog (Gorgeously Redesigned and Fitted for Screen Viewport) ── */}
       <Dialog open={isCrudOpen} onOpenChange={setIsCrudOpen}>
-        <DialogContent className="max-w-4xl p-0 overflow-hidden border-none shadow-2xl rounded-[2.5rem] bg-white animate-in zoom-in-95 duration-200 max-h-[90vh] flex flex-col">
+        <DialogContent className="w-[95vw] sm:w-[90vw] md:w-full max-w-4xl p-0 overflow-hidden border-none shadow-2xl rounded-[2.5rem] bg-white animate-in zoom-in-95 duration-200 max-h-[90vh] flex flex-col">
           <DialogHeader className="p-6 pb-4 bg-gradient-to-br from-slate-50 to-white border-b border-slate-100 relative overflow-hidden shrink-0">
             <div className="absolute top-0 right-0 p-6 opacity-5 pointer-events-none">
               <span className="material-symbols-outlined size-24 rotate-12 text-bku-primary">security</span>
