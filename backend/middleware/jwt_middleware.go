@@ -120,7 +120,7 @@ func KencanaFakultasCheck(c *fiber.Ctx) error {
 		return c.Status(403).JSON(fiber.Map{"status": "error", "message": "Akses ditolak."})
 	}
 	r := strings.ToLower(role)
-	if r != "super_admin" && r != "kencana_admin" && r != "kencana_fakultas" {
+	if r != "super_admin" && r != "kencana_fakultas" && r != "kencana_admin" {
 		return c.Status(403).JSON(fiber.Map{
 			"status":  "error",
 			"message": "Akses ditolak. Fitur ini hanya untuk Admin Kencana Fakultas.",
@@ -210,7 +210,7 @@ func OrmawaCheck(c *fiber.Ctx) error {
 					})
 				}
 			}
-			
+
 			// Set c.Locals("ormawa_id") for controllers
 			c.Locals("ormawa_id", uint(parseUint(queryOrmawaID)))
 		}

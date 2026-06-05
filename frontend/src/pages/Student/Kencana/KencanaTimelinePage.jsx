@@ -9,7 +9,7 @@ export default function KencanaTimelinePage() {
   if (isError) return <KencanaShell title="Timeline Kencana"><ErrorPanel message="Gagal memuat timeline." /></KencanaShell>;
   const stages = data?.stages || [];
   return (
-    <KencanaShell title="Timeline Kencana" subtitle="Tahapan berasal dari jadwal yang dibuat dan dipublish admin, tanpa durasi hardcode.">
+    <KencanaShell title="Timeline Kencana" subtitle="Tahapan berasal dari jadwal yang dibuat dan dipublish admin, tanpa durasi hardcode." breadcrumbs={[{ label: 'Timeline' }]}>
       <div className="space-y-4">
         {stages.map((stage, index) => (
           <Link key={stage.id} to={`/student/kencana/stage/${stage.id}`} className="group grid gap-4 rounded-3xl border border-[#e8dfcf] bg-white/85 p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md md:grid-cols-[80px_1fr_auto]">

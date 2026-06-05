@@ -54,6 +54,14 @@ func main() {
 		AllowCredentials: true,
 	}))
 
+	// Prevent caching for all API responses to ensure real-time score updates
+	app.Use(func(c *fiber.Ctx) error {
+		c.Set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate")
+		c.Set("Pragma", "no-cache")
+		c.Set("Expires", "0")
+		return c.Next()
+	})
+
 	// Static files
 	app.Static("/uploads", "./uploads")
 

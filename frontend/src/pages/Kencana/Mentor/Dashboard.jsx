@@ -102,10 +102,10 @@ const Dashboard = () => {
           </div>
           <div>
             <h3 className="text-sm font-black text-muted uppercase tracking-wider mb-1 relative z-10">Jelajahi Mahasiswa</h3>
-            <p className="text-muted font-medium text-sm mt-2 relative z-10">Cari mahasiswa yang tersedia untuk dibimbing pada periode ini.</p>
+            <p className="text-muted font-medium text-sm mt-2 relative z-10">Cari mahasiswa yang tersedia untuk dibimbing pada kelompok Anda.</p>
           </div>
-          <Link to="/kencana-mentor/available" className="inline-flex items-center gap-2 font-bold text-violet-600 hover:text-violet-800 transition-colors mt-4 relative z-10">
-            Cari Mahasiswa <span className="text-xl leading-none">&rarr;</span>
+          <Link to="/kencana-mentor/invite" className="inline-flex items-center gap-2 font-bold text-violet-600 hover:text-violet-800 transition-colors mt-4 relative z-10">
+            Undang Mahasiswa <span className="text-xl leading-none">&rarr;</span>
           </Link>
         </div>
       </div>
@@ -116,19 +116,19 @@ const Dashboard = () => {
           <h2 className="text-lg font-black text-on-surface">Aksi Cepat</h2>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-slate-100">
-          <Link to="/kencana-mentor/students" className="p-8 hover:bg-slate-50 transition-colors group">
+          <Link to="/kencana-mentor/groups" className="p-8 hover:bg-slate-50 transition-colors group">
             <div className="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center mb-4 group-hover:bg-blue-600 group-hover:text-white transition-all">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
             </div>
-            <h3 className="font-bold text-on-surface mb-1 group-hover:text-blue-600 transition-colors">Daftar Bimbingan</h3>
-            <p className="text-sm text-muted font-medium">Lihat dan kelola nilai mahasiswa bimbingan Anda saat ini.</p>
+            <h3 className="font-bold text-on-surface mb-1 group-hover:text-blue-600 transition-colors">Kelompok Saya</h3>
+            <p className="text-sm text-muted font-medium">Lihat kelompok bimbingan dan kelola anggotanya.</p>
           </Link>
-          <Link to="/kencana-mentor/available" className="p-8 hover:bg-slate-50 transition-colors group">
+          <Link to="/kencana-mentor/invite" className="p-8 hover:bg-slate-50 transition-colors group">
             <div className="w-10 h-10 rounded-full bg-violet-50 text-violet-600 flex items-center justify-center mb-4 group-hover:bg-violet-600 group-hover:text-white transition-all">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
             </div>
-            <h3 className="font-bold text-on-surface mb-1 group-hover:text-violet-600 transition-colors">Tambah Bimbingan</h3>
-            <p className="text-sm text-muted font-medium">Cari dan undang mahasiswa baru untuk menjadi bimbingan Anda.</p>
+            <h3 className="font-bold text-on-surface mb-1 group-hover:text-violet-600 transition-colors">Undang Mahasiswa</h3>
+            <p className="text-sm text-muted font-medium">Cari dan undang mahasiswa baru ke kelompok Anda.</p>
           </Link>
           <Link to="/kencana-mentor/settings" className="p-8 hover:bg-slate-50 transition-colors group">
             <div className="w-10 h-10 rounded-full bg-slate-100 text-muted flex items-center justify-center mb-4 group-hover:bg-slate-800 group-hover:text-white transition-all">

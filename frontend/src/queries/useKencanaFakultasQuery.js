@@ -13,10 +13,63 @@ export const useFakultasScoresQuery = (params = {}) => useQuery({
   queryFn: async () => unwrap(await api.get('/kencana-fakultas/scores', { params })),
 });
 
-export const useFakultasStagesQuery = (periodId) => useQuery({
-  queryKey: ['kencana-fakultas', 'stages', periodId],
-  queryFn: async () => unwrap(await api.get('/kencana-fakultas/stages', { params: { period_id: periodId } })),
+export const useFakultasStagesQuery = (periodId, params = {}) => useQuery({
+  queryKey: ['kencana-fakultas', 'stages', periodId, params],
+  queryFn: async () => unwrap(await api.get('/kencana-fakultas/stages', { params: { period_id: periodId, ...params } })),
 });
+
+export const useFakultasPhaseQuery = (periodId, params = {}) => useQuery({
+  queryKey: ['kencana-fakultas', 'phase', periodId, params],
+  queryFn: async () => unwrap(await api.get('/kencana-fakultas/phase', { params: { period_id: periodId, ...params } })),
+});
+
+export const useUpdateFakultasPhaseMutation = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (payload) => unwrap(await api.put('/kencana-fakultas/phase', payload)),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['kencana-fakultas'] }),
+  });
+};
+
+export const useStartFakultasPhaseMutation = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ periodId, ...params }) => unwrap(await api.post('/kencana-fakultas/phase/start', null, { params: { period_id: periodId, ...params } })),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['kencana-fakultas'] }),
+  });
+};
+
+export const useCompleteFakultasPhaseMutation = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ periodId, ...params }) => unwrap(await api.post('/kencana-fakultas/phase/complete', null, { params: { period_id: periodId, ...params } })),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['kencana-fakultas'] }),
+  });
+};
+
+export const useCreateFakultasStageMutation = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (payload) => unwrap(await api.post('/kencana-fakultas/stages', payload)),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['kencana-fakultas', 'stages'] }),
+  });
+};
+
+export const useUpdateFakultasStageMutation = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, ...payload }) => unwrap(await api.put(`/kencana-fakultas/stages/${id}`, payload)),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['kencana-fakultas', 'stages'] }),
+  });
+};
+
+export const useCreateFakultasSessionMutation = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (payload) => unwrap(await api.post('/kencana-fakultas/sessions', payload)),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['kencana-fakultas'] }),
+  });
+};
 
 export const useFakultasMentorsQuery = () => useQuery({
   queryKey: ['kencana-fakultas', 'mentors'],

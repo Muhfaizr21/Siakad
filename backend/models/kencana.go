@@ -8,16 +8,56 @@ import (
 
 type KencanaPeriod struct {
 	BaseModel
-	Name        string     `gorm:"size:150;not null" json:"name"`
-	Year        int        `gorm:"index" json:"year"`
-	Description string     `gorm:"type:text" json:"description"`
-	StartDate   *time.Time `json:"start_date"`
-	EndDate     *time.Time `json:"end_date"`
-	Status      string     `gorm:"size:40;default:'draft';index" json:"status"`
-	CreatedBy   *uint      `gorm:"index" json:"created_by"`
+	Name                  string     `gorm:"size:150;not null" json:"name"`
+	Year                  int        `gorm:"index" json:"year"`
+	Description           string     `gorm:"type:text" json:"description"`
+	StartDate             *time.Time `json:"start_date"`
+	EndDate               *time.Time `json:"end_date"`
+	Status                string     `gorm:"size:40;default:'draft';index" json:"status"`
+	UniversityPhaseStatus string     `gorm:"size:40;default:'draft';index" json:"university_phase_status"`
+	CreatedBy             *uint      `gorm:"index" json:"created_by"`
+
+	// Fitur Tambahan (Konfigurasi Tema & Dashboard)
+	Theme         string  `gorm:"size:255" json:"theme"`
+	BannerURL     string  `gorm:"type:text" json:"banner_url"`
+	GuidebookURL  string  `gorm:"type:text" json:"guidebook_url"`
+	PassingGrade  float64 `gorm:"type:decimal(5,2);default:0" json:"passing_grade"`
+	RemedialGrade float64 `gorm:"type:decimal(5,2);default:0" json:"remedial_grade"`
+	IntroVideoURL string  `gorm:"type:text" json:"intro_video_url"`
 }
 
 func (KencanaPeriod) TableName() string { return "mahasiswa.kencana_periods" }
+
+type KencanaTimelinePhase struct {
+	BaseModel
+	PeriodID  uint          `gorm:"uniqueIndex:idx_kencana_timeline_phase;index;not null" json:"period_id"`
+	Period    KencanaPeriod `gorm:"foreignKey:PeriodID" json:"period,omitempty"`
+	PhaseType string        `gorm:"uniqueIndex:idx_kencana_timeline_phase;size:80;index;not null" json:"phase_type"`
+	StartDate *time.Time    `json:"start_date"`
+	EndDate   *time.Time    `json:"end_date"`
+	Status    string        `gorm:"size:40;default:'draft';index" json:"status"`
+	IsActive  bool          `gorm:"default:false;index" json:"is_active"`
+	UpdatedBy *uint         `gorm:"index" json:"updated_by"`
+}
+
+func (KencanaTimelinePhase) TableName() string { return "mahasiswa.kencana_timeline_phases" }
+
+type KencanaFacultyPhase struct {
+	BaseModel
+	PeriodID    uint          `gorm:"uniqueIndex:idx_kencana_faculty_phase;index;not null" json:"period_id"`
+	Period      KencanaPeriod `gorm:"foreignKey:PeriodID" json:"period,omitempty"`
+	FakultasID  uint          `gorm:"uniqueIndex:idx_kencana_faculty_phase;index;not null" json:"fakultas_id"`
+	Fakultas    Fakultas      `gorm:"foreignKey:FakultasID" json:"fakultas,omitempty"`
+	StartDate   *time.Time    `json:"start_date"`
+	EndDate     *time.Time    `json:"end_date"`
+	Theme       string        `gorm:"size:255" json:"theme"`
+	Status      string        `gorm:"size:40;default:'not_open';index" json:"status"`
+	IsPublished bool          `gorm:"default:false;index" json:"is_published"`
+	StartedBy   *uint         `gorm:"index" json:"started_by"`
+	CompletedBy *uint         `gorm:"index" json:"completed_by"`
+}
+
+func (KencanaFacultyPhase) TableName() string { return "mahasiswa.kencana_faculty_phases" }
 
 type KencanaStage struct {
 	BaseModel
@@ -61,13 +101,15 @@ func (KencanaSession) TableName() string { return "mahasiswa.kencana_sessions" }
 
 type KencanaMaterial struct {
 	BaseModel
-	SessionID   uint   `gorm:"index;not null" json:"session_id"`
-	Title       string `gorm:"size:180;not null" json:"title"`
-	Type        string `gorm:"size:40;default:'text'" json:"type"`
-	Content     string `gorm:"type:text" json:"content"`
-	FileURL     string `gorm:"size:500" json:"file_url"`
-	OrderNumber int    `gorm:"index" json:"order_number"`
-	IsRequired  bool   `gorm:"default:true" json:"is_required"`
+	SessionID        uint   `gorm:"index;not null" json:"session_id"`
+	Title            string `gorm:"size:180;not null" json:"title"`
+	Type             string `gorm:"size:40;default:'text'" json:"type"`
+	Content          string `gorm:"type:text" json:"content"`
+	FileURL          string `gorm:"size:500" json:"file_url"`
+	LinkURL          string `gorm:"type:text" json:"link_url"`
+	OriginalFileName string `gorm:"size:255" json:"original_file_name"`
+	OrderNumber      int    `gorm:"index" json:"order_number"`
+	IsRequired       bool   `gorm:"default:true" json:"is_required"`
 }
 
 func (KencanaMaterial) TableName() string { return "mahasiswa.kencana_materials" }
@@ -154,6 +196,7 @@ type KencanaAssignment struct {
 	SessionID        uint       `gorm:"index;not null" json:"session_id"`
 	Title            string     `gorm:"size:180;not null" json:"title"`
 	Description      string     `gorm:"type:text" json:"description"`
+	OpenAt           *time.Time `json:"open_at"`
 	DueDate          *time.Time `json:"due_date"`
 	SubmissionType   string     `gorm:"size:40;default:'text'" json:"submission_type"`
 	AllowedFileTypes string     `gorm:"size:255" json:"allowed_file_types"`
@@ -212,6 +255,7 @@ type KencanaScore struct {
 	BaseModel
 	PeriodID            uint       `gorm:"uniqueIndex:idx_kencana_score_period_student" json:"period_id"`
 	StudentID           uint       `gorm:"uniqueIndex:idx_kencana_score_period_student;index" json:"student_id"`
+	Student             Mahasiswa  `gorm:"foreignKey:StudentID" json:"student,omitempty"`
 	CognitiveAverage    float64    `json:"cognitive_average"`
 	PsychomotorAverage  float64    `json:"psychomotor_average"`
 	AffectiveAverage    float64    `json:"affective_average"`
@@ -257,6 +301,41 @@ type KencanaMentor struct {
 
 func (KencanaMentor) TableName() string { return "mahasiswa.kencana_mentors" }
 
+type KencanaGroup struct {
+	BaseModel
+	PeriodID    uint                 `gorm:"index;not null" json:"period_id"`
+	Period      KencanaPeriod        `gorm:"foreignKey:PeriodID" json:"period,omitempty"`
+	FakultasID  *uint                `gorm:"index" json:"fakultas_id"`
+	Fakultas    *Fakultas            `gorm:"foreignKey:FakultasID" json:"fakultas,omitempty"`
+	MentorID    *uint                `gorm:"index" json:"mentor_id"`
+	Mentor      *KencanaMentor       `gorm:"foreignKey:MentorID" json:"mentor,omitempty"`
+	GroupNumber int                  `gorm:"index" json:"group_number"`
+	Name        string               `gorm:"size:150;not null" json:"name"`
+	Code        string               `gorm:"size:80;index" json:"code"`
+	Description string               `gorm:"type:text" json:"description"`
+	ScopeType   string               `gorm:"size:40;default:'university';index" json:"scope_type"`
+	Capacity    int                  `gorm:"default:30" json:"capacity"`
+	Status      string               `gorm:"size:40;default:'active';index" json:"status"`
+	CreatedBy   *uint                `gorm:"index" json:"created_by"`
+	Members     []KencanaGroupMember `gorm:"foreignKey:GroupID" json:"members,omitempty"`
+}
+
+func (KencanaGroup) TableName() string { return "mahasiswa.kencana_groups" }
+
+type KencanaGroupMember struct {
+	BaseModel
+	GroupID   uint         `gorm:"index;not null" json:"group_id"`
+	Group     KencanaGroup `gorm:"foreignKey:GroupID" json:"group,omitempty"`
+	PeriodID  uint         `gorm:"index;not null" json:"period_id"`
+	StudentID uint         `gorm:"index;not null" json:"student_id"`
+	Student   Mahasiswa    `gorm:"foreignKey:StudentID" json:"student,omitempty"`
+	Status    string       `gorm:"size:40;default:'active';index" json:"status"`
+	JoinedAt  *time.Time   `json:"joined_at"`
+	AddedBy   *uint        `gorm:"index" json:"added_by"`
+}
+
+func (KencanaGroupMember) TableName() string { return "mahasiswa.kencana_group_members" }
+
 type KencanaMentorAssignment struct {
 	BaseModel
 	PeriodID         uint          `gorm:"uniqueIndex:idx_kencana_active_student_mentor;index" json:"period_id"`
@@ -274,6 +353,7 @@ type KencanaRemedial struct {
 	BaseModel
 	PeriodID  uint       `gorm:"index;not null" json:"period_id"`
 	StudentID uint       `gorm:"index;not null" json:"student_id"`
+	Student   Mahasiswa  `gorm:"foreignKey:StudentID" json:"student,omitempty"`
 	Reason    string     `gorm:"type:text" json:"reason"`
 	Component string     `gorm:"size:60;index" json:"component"`
 	Status    string     `gorm:"size:40;default:'open';index" json:"status"`
@@ -288,6 +368,7 @@ type KencanaCertificate struct {
 	BaseModel
 	PeriodID          uint       `gorm:"uniqueIndex:idx_kencana_certificate_period_student" json:"period_id"`
 	StudentID         uint       `gorm:"uniqueIndex:idx_kencana_certificate_period_student;index" json:"student_id"`
+	Student           Mahasiswa  `gorm:"foreignKey:StudentID" json:"student,omitempty"`
 	CertificateNumber string     `gorm:"size:120;uniqueIndex" json:"certificate_number"`
 	FileURL           string     `gorm:"size:500" json:"file_url"`
 	IssuedAt          *time.Time `json:"issued_at"`

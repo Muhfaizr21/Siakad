@@ -1,30 +1,52 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import useAuthStore from '../../../store/useAuthStore';
-import { useCreateMentorMutation, useMentorsQuery } from '../../../queries/useKencanaAdminQuery';
+import { useCreateMentorMutation, useMentorsQuery, useFakultasListQuery } from '../../../queries/useKencanaAdminQuery';
 
 const emptyForm = { name: '', email: '', password: '', phone: '', scope_type: 'faculty', fakultas_id: '' };
 
-const Mentors = ({ portal = 'admin' }) => {
+const Mentors = ({ portal = 'admin', facultyId: propFacultyId }) => {
   const user = useAuthStore((state) => state.user);
-  const isFakultasPortal = portal === 'fakultas';
+  const role = String(user?.role || '').toLowerCase();
+  const isFakultasPortal = portal === 'fakultas' || role === 'kencana_fakultas';
   const [form, setForm] = useState(emptyForm);
   const [message, setMessage] = useState('');
   const { data: mentors, isLoading } = useMentorsQuery(portal);
   const createMentor = useCreateMentorMutation(portal);
 
-  const facultyId = user?.fakultas_id || user?.FakultasID || '';
+  const { data: faculties } = useFakultasListQuery();
+
+  const userFacultyId = user?.fakultas_id || user?.FakultasID || '';
+  const isSuperAdmin = role === 'super_admin' || role === 'kencana_admin';
+
   const effectiveForm = useMemo(() => ({
     ...form,
     scope_type: isFakultasPortal ? 'faculty' : 'university',
-    fakultas_id: isFakultasPortal ? Number(facultyId) || 0 : Number(form.fakultas_id) || 0,
-  }), [facultyId, form, isFakultasPortal]);
+    fakultas_id: isFakultasPortal ? (isSuperAdmin ? Number(form.fakultas_id) : Number(userFacultyId)) : 0,
+  }), [form, isFakultasPortal, isSuperAdmin, userFacultyId]);
 
-  const r = String(user?.role || '').toLowerCase();
-  const hasPermission = r === 'super_admin' || user?.permissions?.includes('*') ||
+  useEffect(() => {
+    if (propFacultyId && String(form.fakultas_id) !== String(propFacultyId)) {
+      setForm(prev => ({ ...prev, fakultas_id: propFacultyId }));
+    }
+  }, [propFacultyId]);
+
+  const filteredMentors = useMemo(() => {
+    if (!mentors) return [];
+    if (isFakultasPortal) {
+      const activeFacultyId = isSuperAdmin ? form.fakultas_id : userFacultyId;
+      if (activeFacultyId) {
+        return mentors.filter(m => String(m.fakultas_id) === String(activeFacultyId));
+      }
+      return []; // Return empty if no faculty selected in dropdown
+    }
+    return mentors;
+  }, [mentors, isFakultasPortal, isSuperAdmin, form.fakultas_id, userFacultyId]);
+
+  const hasPermission = role === 'super_admin' || user?.permissions?.includes('*') ||
+    (role === 'kencana_fakultas' && isFakultasPortal) ||
+    (role === 'kencana_admin' && !isFakultasPortal) ||
     (isFakultasPortal ? user?.permissions?.includes('kencana.faculty.mentor.manage')
-                      : user?.permissions?.includes('kencana.mentor.university.manage'));
-
-  console.log("Mentors DEBUG: ", { role: user?.role, permissions: user?.permissions, hasPermission, portal, isFakultasPortal });
+                       : user?.permissions?.includes('kencana.mentor.university.manage'));
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -71,12 +93,28 @@ const Mentors = ({ portal = 'admin' }) => {
             )}
             {isFakultasPortal && (
               <Field label="Scope Fakultas">
-                <input disabled value={facultyId ? `Fakultas ID ${facultyId}` : 'Fakultas akun belum tersedia'} className="input bg-slate-100 text-slate-500" />
+                {isSuperAdmin ? (
+                  <select
+                    required
+                    value={form.fakultas_id}
+                    onChange={(e) => setForm({ ...form, fakultas_id: e.target.value })}
+                    className="input bg-white text-slate-800 border border-slate-200"
+                  >
+                    <option value="">Pilih Fakultas</option>
+                    {faculties?.map(f => <option key={f.id} value={f.id}>{f.nama || f.Nama}</option>)}
+                  </select>
+                ) : (
+                  <input
+                    disabled
+                    value={userFacultyId ? (faculties?.find(f => String(f.id) === String(userFacultyId))?.nama || faculties?.find(f => String(f.id) === String(userFacultyId))?.Nama || `Fakultas ID ${userFacultyId}`) : 'Fakultas akun belum tersedia'}
+                    className="input bg-slate-100 text-slate-500"
+                  />
+                )}
               </Field>
             )}
           </div>
           <div className="mt-5 flex flex-wrap items-center gap-3">
-            <button disabled={createMentor.isPending || (isFakultasPortal && !facultyId)} className="rounded-xl bg-slate-900 px-5 py-3 text-sm font-black text-white disabled:cursor-not-allowed disabled:bg-slate-300">
+            <button disabled={createMentor.isPending || (isFakultasPortal && (!form.fakultas_id && !userFacultyId))} className="rounded-xl bg-slate-900 px-5 py-3 text-sm font-black text-white disabled:cursor-not-allowed disabled:bg-slate-300">
               {createMentor.isPending ? 'Membuat...' : 'Buat Akun Mentor'}
             </button>
             {message && <p className="text-sm font-bold text-slate-600">{message}</p>}
@@ -106,7 +144,7 @@ const Mentors = ({ portal = 'admin' }) => {
               </tr>
             </thead>
             <tbody>
-              {mentors?.map((m) => (
+              {filteredMentors?.map((m) => (
                 <tr key={m.id || m.ID} className="border-b border-slate-100 last:border-0">
                   <td className="py-4 font-medium text-slate-900">{m.name || m.Name || `User ID: ${m.user_id}`}</td>
                   <td className="py-4 text-slate-600">{m.email || m.Email || '-'}</td>
@@ -116,8 +154,10 @@ const Mentors = ({ portal = 'admin' }) => {
                   <td className="py-4 text-slate-600 capitalize">{m.status || 'active'}</td>
                 </tr>
               ))}
-              {!mentors?.length && (
-                <tr><td colSpan="4" className="py-4 text-center text-slate-500">Belum ada dewan pembimbing terdaftar.</td></tr>
+              {!filteredMentors?.length && (
+                <tr><td colSpan="4" className="py-4 text-center text-slate-500">
+                  {isFakultasPortal && isSuperAdmin && !form.fakultas_id ? 'Pilih fakultas di form atas untuk melihat mentor' : 'Belum ada dewan pembimbing terdaftar.'}
+                </td></tr>
               )}
             </tbody>
           </table>
