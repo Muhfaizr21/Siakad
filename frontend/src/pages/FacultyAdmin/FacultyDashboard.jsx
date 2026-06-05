@@ -163,52 +163,65 @@ export default function FacultyDashboard() {
   ];
 
   return (
-    <div className="px-4 py-6 md:px-6 lg:px-8 min-h-screen bg-transparent font-inter">
-      <div className="max-w-7xl mx-auto space-y-6">
-        {/* Page Header */}
-        <section
-          className="rounded-xl p-5 border border-border"
-          style={{ backgroundColor: 'var(--theme-surface)' }}
-        >
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-            {/* Left: Icon + Title */}
-            <div className="flex items-center gap-4">
-              <div
-                className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0"
-                style={{ backgroundColor: 'var(--theme-primary)', color: 'white' }}
-              >
-                <span className="material-symbols-outlined text-xl">admin_panel_settings</span>
+    <div className="w-full space-y-6 bg-transparent font-inter">
+
+        {/* ── Page Header ────────────────────────────────────────── */}
+        <section className="relative overflow-hidden rounded-2xl p-6 md:p-8 border border-slate-200/50 bg-white/70 backdrop-blur-md shadow-sm">
+          {/* Subtle geometric grid background overlay */}
+          <div className="absolute inset-0 bg-gradient-to-br from-white via-slate-50/40 to-slate-100/30" />
+          <div className="absolute inset-0 opacity-[0.02]"
+            style={{
+              backgroundImage: `radial-gradient(circle at 20% 50%, var(--theme-primary) 1px, transparent 1px), radial-gradient(circle at 80% 20%, var(--theme-primary) 1px, transparent 1px)`,
+              backgroundSize: '40px 40px'
+            }}
+          />
+          {/* Accent glow blobs */}
+          <div className="absolute -top-20 -right-20 w-72 h-72 bg-primary/5 rounded-full blur-3xl animate-pulse" />
+          <div className="absolute -bottom-10 right-40 w-48 h-48 bg-blue-400/5 rounded-full blur-2xl" />
+
+          <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+            <div className="flex-1 space-y-3">
+              <div className="flex items-center gap-4">
+                {/* Clean visual anchor icon */}
+                <div className="w-12 h-12 md:w-14 md:h-14 rounded-2xl bg-gradient-to-br from-primary/10 to-primary/[0.02] border border-primary/10 flex items-center justify-center text-primary shrink-0 shadow-sm relative overflow-hidden group/icon">
+                  <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover/icon:opacity-100 transition-opacity duration-300" />
+                  <span className="material-symbols-outlined text-primary relative z-10 transition-transform duration-300 group-hover/icon:scale-110" style={{ fontSize: '26px' }}>admin_panel_settings</span>
+                </div>
+
+                <div className="space-y-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider bg-primary/5 text-primary border border-primary/10">
+                      SIAKAD Portal
+                    </span>
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-100">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                      Active Session
+                    </span>
+                  </div>
+                  <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight font-headline leading-none">
+                    Selamat datang, <span className="bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">{firstName}!</span>
+                  </h1>
+                </div>
               </div>
-              <div>
-                <h1 className="text-xl font-bold" style={{ color: 'var(--theme-text)' }}>
-                  Selamat datang, <span style={{ color: 'var(--theme-secondary)' }}>{firstName}!</span>
-                </h1>
-                <p className="text-xs mt-0.5" style={{ color: 'var(--theme-text-muted)' }}>
-                  Kelola data akademik, pantau kinerja mahasiswa, dan verifikasi layanan kampus dari satu panel terpusat.
-                </p>
-              </div>
+
+              {/* Perfectly aligned description block */}
+              <p className="text-slate-500 font-medium text-xs md:text-sm max-w-3xl leading-relaxed mt-3 pl-0 md:pl-[72px]">
+                Kelola data akademik, pantau kinerja mahasiswa, dan verifikasi layanan kampus dari satu panel terpusat.
+              </p>
             </div>
 
-            {/* Right: Action buttons */}
-            <div className="flex gap-2 w-full md:w-auto">
-              <button
-                onClick={() => navigate('/faculty/mahasiswa')}
-                className="flex-1 md:flex-initial px-4 py-2 rounded-lg font-bold text-xs transition-all text-white hover:opacity-90 shadow-sm"
-                style={{ backgroundColor: 'var(--theme-primary)' }}
-              >
-                Lihat Data Mahasiswa
-              </button>
-              <button
-                onClick={() => navigate('/faculty/laporan')}
-                className="flex-1 md:flex-initial border px-4 py-2 rounded-lg font-bold text-xs transition-all hover:bg-black/[0.02]"
-                style={{
-                  borderColor: 'var(--theme-border)',
-                  color: 'var(--theme-text)',
-                  backgroundColor: 'var(--theme-surface)'
-                }}
-              >
-                Unduh Laporan
-              </button>
+            {/* Action and quick count balance box */}
+            <div className="flex flex-row lg:flex-col items-end gap-3 shrink-0 self-stretch lg:self-auto justify-between lg:justify-center border-t lg:border-t-0 pt-4 lg:pt-0 border-slate-100">
+              <div className="flex items-center gap-2">
+                <button onClick={() => navigate('/faculty/mahasiswa')}
+                  className="h-10 px-4 rounded-xl bg-primary hover:bg-bku-hover text-white text-xs font-bold uppercase tracking-wider gap-2 flex items-center transition-all active:scale-95 shadow-lg shadow-bku-primary/20 shrink-0">
+                  Lihat Data Mahasiswa
+                </button>
+                <button onClick={() => navigate('/faculty/laporan')}
+                  className="h-10 px-4 rounded-xl border border-slate-200/80 bg-white/80 backdrop-blur-sm text-xs font-bold uppercase tracking-wider text-slate-600 hover:text-primary hover:border-primary/30 hover:bg-slate-50/50 shadow-sm transition-all duration-200 active:scale-95 flex items-center gap-2">
+                  Unduh Laporan
+                </button>
+              </div>
             </div>
           </div>
         </section>
@@ -482,8 +495,6 @@ export default function FacultyDashboard() {
             ))}
           </div>
         </div>
-
       </div>
-    </div>
   );
 }

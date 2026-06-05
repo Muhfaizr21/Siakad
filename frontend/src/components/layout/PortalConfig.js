@@ -72,14 +72,6 @@ export const PORTAL_CONFIG = {
         ]
       },
       {
-        group: 'AKADEMIK',
-        items: [
-          { name: 'KRS', icon: 'assignment', path: '/faculty/krs' },
-          { name: 'Nilai', icon: 'grade', path: '/faculty/nilai' },
-          { name: 'Kurikulum', icon: 'menu_book', path: '/faculty/prodi/kurikulum' },
-        ]
-      },
-      {
         group: 'KEGIATAN & KEMAHASISWAAN',
         items: [
           { name: 'PKKMB', icon: 'school', path: '/faculty/pkkmb' },

@@ -219,37 +219,64 @@ const FacultyAspirationManagement = () => {
   return (
     <div className="min-h-screen bg-transparent font-inter">
       <Toaster position="top-right" />
-      <div className="max-w-[1600px] mx-auto px-4 py-8 md:px-8 xl:px-12 space-y-6">
+      <div className="w-full space-y-6">
 
-        {/* Header */}
-        <section className="relative overflow-hidden rounded-2xl h-auto md:h-48 flex flex-col md:flex-row items-center group shadow-none p-6 md:p-8 border border-slate-200/60 glass-card">
-          <div className="absolute inset-0 bg-gradient-to-br from-white via-slate-50/50 to-slate-100/50" />
-          <div className="absolute inset-0 opacity-[0.03]"
+        {/* ── Page Header ────────────────────────────────────────── */}
+        <section className="relative overflow-hidden rounded-2xl p-6 md:p-8 border border-slate-200/50 bg-white/70 backdrop-blur-md shadow-sm">
+          {/* Subtle geometric grid background overlay */}
+          <div className="absolute inset-0 bg-gradient-to-br from-white via-slate-50/40 to-slate-100/30" />
+          <div className="absolute inset-0 opacity-[0.02]"
             style={{
-              backgroundImage: `radial-gradient(circle at 20% 50%, black 1px, transparent 1px), radial-gradient(circle at 80% 20%, black 1px, transparent 1px)`,
-              backgroundSize: '60px 60px'
+              backgroundImage: `radial-gradient(circle at 20% 50%, var(--theme-primary) 1px, transparent 1px), radial-gradient(circle at 80% 20%, var(--theme-primary) 1px, transparent 1px)`,
+              backgroundSize: '40px 40px'
             }}
           />
+          {/* Accent glow blobs */}
           <div className="absolute -top-20 -right-20 w-72 h-72 bg-primary/5 rounded-full blur-3xl animate-pulse" />
           <div className="absolute -bottom-10 right-40 w-48 h-48 bg-blue-400/5 rounded-full blur-2xl" />
 
-          <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center w-full gap-6">
-            <div>
-              <div className="flex items-center gap-2 mb-2">
-                <div className="h-4 w-1.5 bg-primary rounded-full" />
-                <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">Student Voice</span>
+          <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+            <div className="flex-1 space-y-3">
+              <div className="flex items-center gap-4">
+                {/* Clean visual anchor icon */}
+                <div className="w-12 h-12 md:w-14 md:h-14 rounded-2xl bg-gradient-to-br from-primary/10 to-primary/[0.02] border border-primary/10 flex items-center justify-center text-primary shrink-0 shadow-sm relative overflow-hidden group/icon">
+                  <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover/icon:opacity-100 transition-opacity duration-300" />
+                  <span className="material-symbols-outlined text-primary relative z-10 transition-transform duration-300 group-hover/icon:scale-110" style={{ fontSize: '26px' }}>chat</span>
+                </div>
+
+                <div className="space-y-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider bg-primary/5 text-primary border border-primary/10">
+                      Student Voice
+                    </span>
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-100">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                      {stats.proses} Sedang Ditangani
+                    </span>
+                  </div>
+                  <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight font-headline leading-none">
+                    Manajemen <span className="bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">Aspirasi</span>
+                  </h1>
+                </div>
               </div>
-              <h1 className="text-3xl font-extrabold text-slate-900 font-headline tracking-tight leading-tight">
-                Manajemen <span className="text-primary">Aspirasi</span>
-              </h1>
-              <p className="text-slate-500 font-medium text-sm max-w-xl leading-relaxed mt-1">
+
+              {/* Perfectly aligned description block */}
+              <p className="text-slate-500 font-medium text-xs md:text-sm max-w-3xl leading-relaxed mt-3 pl-0 md:pl-[72px]">
                 Kelola dan tanggapi keluhan serta aspirasi mahasiswa secara resmi dari portal fakultas.
               </p>
             </div>
-            <button onClick={fetchAspirations} disabled={loading}
-              className="h-11 px-5 rounded-xl border border-slate-200 bg-white text-xs font-bold uppercase tracking-widest text-slate-600 hover:bg-slate-50 hover:text-slate-900 gap-2 flex items-center transition-all active:scale-95 shadow-sm disabled:opacity-60 shrink-0">
-              {loading ? <span className="material-symbols-outlined animate-spin text-primary" style={{ fontSize: '14px' }} >sync</span> : <span className="material-symbols-outlined text-primary" style={{ fontSize: '14px' }}>sync</span>} Refresh
-            </button>
+
+            {/* Action and quick count balance box */}
+            <div className="flex flex-row lg:flex-col items-end gap-3 shrink-0 self-stretch lg:self-auto justify-between lg:justify-center border-t lg:border-t-0 pt-4 lg:pt-0 border-slate-100">
+              <div className="hidden lg:flex items-center gap-2 text-right">
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Total Masuk</span>
+                <span className="text-sm font-extrabold text-primary px-2 py-0.5 rounded-md bg-[#eef4ff] border border-blue-100">{stats.total}</span>
+              </div>
+              <button onClick={fetchAspirations} disabled={loading}
+                className="h-10 px-5 rounded-xl border border-slate-200/80 bg-white/80 backdrop-blur-sm text-xs font-bold uppercase tracking-wider text-slate-600 hover:text-primary hover:border-primary/30 hover:bg-slate-50/50 shadow-sm transition-all duration-200 active:scale-95 disabled:opacity-60 flex items-center gap-2">
+                {loading ? <span className="material-symbols-outlined animate-spin text-primary" style={{ fontSize: '13px' }} >sync</span> : <RefreshCw size={13} className="text-primary" />} Refresh Data
+              </button>
+            </div>
           </div>
         </section>
 
@@ -277,34 +304,70 @@ const FacultyAspirationManagement = () => {
         </div>
 
         {/* Table */}
-        <div className="glass-card border border-slate-200/60 rounded-2xl shadow-none overflow-hidden">
-          <div className="px-5 py-4 border-b border-slate-100 flex flex-col sm:flex-row items-start sm:items-center gap-3">
-            <div className="flex-1">
-              <h2 className="font-black text-sm uppercase tracking-tight font-headline" style={{ color: 'var(--theme-h2)' }}>Daftar Aspirasi Mahasiswa</h2>
-              <p className="text-xs text-slate-500 mt-0.5">
-                Menampilkan <span className="font-bold text-slate-900">{filtered.length}</span> dari <span className="font-bold text-primary">{aspirations.length}</span> aspirasi
+        <div className="glass-card border border-slate-200/60 rounded-2xl shadow-sm overflow-hidden bg-white">
+          <div className="px-6 py-5 border-b border-slate-100 flex flex-col xl:flex-row xl:items-center justify-between gap-5">
+            <div className="space-y-1">
+              <div className="flex items-center gap-3">
+                <h2 className="font-extrabold text-base tracking-tight text-slate-900">Daftar Aspirasi Mahasiswa</h2>
+                <span className="px-2 py-0.5 rounded-md bg-primary/5 text-primary text-[10px] font-bold border border-primary/10">
+                  {filtered.length} Data
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-500 font-medium">
+                Menampilkan aspirasi masuk dari seluruh mahasiswa fakultas.
               </p>
             </div>
-            <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
-              <div className="relative">
-                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" style={{ fontSize: '14px' }} >search</span>
-                <input type="text" placeholder="Cari pengirim..." value={search} onChange={e=>setSearch(e.target.value)}
-                  className="pl-9 pr-4 h-9 w-52 rounded-xl border border-slate-200/60 focus:outline-none focus:border-primary text-sm bg-white" />
+
+            <div className="flex flex-wrap items-center gap-3">
+              {/* Modern Search Bar */}
+              <div className="relative group flex-1 sm:flex-none">
+                <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary transition-colors text-[18px]">search</span>
+                <input 
+                  type="text" 
+                  placeholder="Cari pengirim atau judul..." 
+                  value={search} 
+                  onChange={e=>setSearch(e.target.value)}
+                  className="pl-10 pr-4 h-10 w-full sm:w-64 rounded-xl border border-slate-200 bg-slate-50/30 focus:bg-white focus:outline-none focus:border-primary/50 focus:ring-4 focus:ring-primary/5 text-xs font-semibold transition-all" 
+                />
               </div>
-              <select value={filterStatus} onChange={e=>setFilterStatus(e.target.value)}
-                className="h-9 pl-3 pr-8 rounded-xl border border-slate-200/60 text-xs font-medium bg-white text-slate-600 focus:outline-none focus:border-primary appearance-none cursor-pointer">
-                <option value="all">Semua Status</option>
-                <option value="terbuka">Terbuka</option>
-                <option value="proses">Proses</option>
-                <option value="klarifikasi">Klarifikasi</option>
-                <option value="disetujui fakultas">Disetujui Fakultas</option>
-                <option value="ditolak fakultas">Ditolak Fakultas</option>
-                <option value="selesai">Selesai</option>
-              </select>
-              {(search||filterStatus!=='all') && (
-                <button onClick={()=>{setSearch('');setFilterStatus('all')}}
-                  className="h-9 px-3 text-xs font-semibold text-rose-600 bg-rose-50 rounded-xl border border-rose-200 hover:bg-rose-100">Reset</button>
-              )}
+
+              {/* Status Filter */}
+              <div className="relative flex-1 sm:flex-none">
+                <select 
+                  value={filterStatus} 
+                  onChange={e=>setFilterStatus(e.target.value)}
+                  className="h-10 pl-4 pr-10 w-full rounded-xl border border-slate-200 bg-slate-50/30 hover:bg-white focus:outline-none focus:border-primary/50 text-xs font-bold text-slate-700 appearance-none cursor-pointer transition-all shadow-sm"
+                >
+                  <option value="all">Semua Status</option>
+                  <option value="terbuka">Terbuka</option>
+                  <option value="proses">Proses</option>
+                  <option value="klarifikasi">Klarifikasi</option>
+                  <option value="disetujui fakultas">Disetujui Fakultas</option>
+                  <option value="ditolak fakultas">Ditolak Fakultas</option>
+                  <option value="selesai">Selesai</option>
+                </select>
+                <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-[18px]">expand_more</span>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex items-center gap-2">
+                {(search || filterStatus !== 'all') && (
+                  <button 
+                    onClick={() => {setSearch(''); setFilterStatus('all')}}
+                    className="h-10 px-4 flex items-center gap-2 text-xs font-bold text-rose-600 bg-rose-50 hover:bg-rose-100 rounded-xl border border-rose-100 transition-colors active:scale-95"
+                  >
+                    <span className="material-symbols-outlined text-[16px]">restart_alt</span>
+                    Reset
+                  </button>
+                )}
+                <button 
+                  onClick={fetchAspirations}
+                  className="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-50 border border-slate-200 text-slate-500 hover:text-primary hover:border-primary/30 hover:bg-white transition-all active:scale-95 shadow-sm"
+                  title="Refresh Data"
+                >
+                  <span className={cn("material-symbols-outlined text-[20px]", loading && "animate-spin")}>sync</span>
+                </button>
+              </div>
             </div>
           </div>
 

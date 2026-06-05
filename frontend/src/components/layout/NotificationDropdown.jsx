@@ -2,14 +2,14 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import api from '../../lib/axios';
-import { 
-  Bell, 
-  Trophy, 
-  BookOpen, 
-  HeartHandshake, 
-  MessageSquare, 
-  GraduationCap, 
-  Check, 
+import {
+  Bell,
+  Trophy,
+  BookOpen,
+  HeartHandshake,
+  MessageSquare,
+  GraduationCap,
+  Check,
   ChevronRight,
   Info,
   CheckCircle2,
@@ -109,9 +109,8 @@ export default function NotificationDropdown() {
       {/* Bell Icon Trigger */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`relative w-9 h-9 flex items-center justify-center rounded-full transition-all duration-300 ${
-          isOpen ? 'bg-blue-50 text-blue-600' : 'hover:bg-neutral-100 text-neutral-600'
-        }`}
+        className={`relative w-9 h-9 flex items-center justify-center rounded-full transition-all duration-300 ${isOpen ? 'bg-blue-50 text-blue-600' : 'hover:bg-neutral-100 text-neutral-600'
+          }`}
       >
         <Bell size={18} className={unreadCount > 0 ? 'animate-[ring_2s_ease-in-out_infinite]' : ''} />
         {unreadCount > 0 && (
@@ -136,9 +135,9 @@ export default function NotificationDropdown() {
               <div className="flex items-center gap-2">
                 <h3 className="text-base font-bold text-neutral-900">Notifikasi</h3>
                 {unreadCount > 0 && (
-                   <span className="bg-blue-50 text-blue-600 text-[10px] font-black px-2 py-0.5 rounded-lg border border-blue-100">
-                      {unreadCount} BARU
-                   </span>
+                  <span className="bg-blue-50 text-blue-600 text-[10px] font-black px-2 py-0.5 rounded-lg border border-blue-100">
+                    {unreadCount} BARU
+                  </span>
                 )}
               </div>
               <button
@@ -153,19 +152,18 @@ export default function NotificationDropdown() {
             {/* List */}
             <div className="max-height-[400px] overflow-y-auto custom-scrollbar">
               {isLoading ? (
-                 <div className="p-10 text-center">
-                    <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
-                    <p className="text-xs text-neutral-400 font-bold">Memuat...</p>
-                 </div>
+                <div className="p-10 text-center">
+                  <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
+                  <p className="text-xs text-neutral-400 font-bold">Memuat...</p>
+                </div>
               ) : notifData?.length > 0 ? (
                 <div className="divide-y divide-neutral-100">
                   {notifData.map((notif) => (
                     <div
                       key={notif.id}
                       onClick={() => handleNotifClick(notif)}
-                      className={`p-4 flex gap-3 cursor-pointer transition-colors hover:bg-neutral-50 relative ${
-                        !notif.is_read ? 'bg-blue-50/50' : ''
-                      }`}
+                      className={`p-4 flex gap-3 cursor-pointer transition-colors hover:bg-neutral-50 relative ${!notif.is_read ? 'bg-blue-50/50' : ''
+                        }`}
                     >
                       <div className="flex-shrink-0 mt-1">
                         <div className="w-8 h-8 rounded-full flex items-center justify-center border border-neutral-200 bg-white">
@@ -226,7 +224,8 @@ export default function NotificationDropdown() {
       </AnimatePresence>
 
       {/* Styles for Ring Animation */}
-      <style dangerouslySetInnerHTML={{ __html: `
+      <style dangerouslySetInnerHTML={{
+        __html: `
         @keyframes ring {
           0% { transform: rotate(0); }
           5% { transform: rotate(15deg); }

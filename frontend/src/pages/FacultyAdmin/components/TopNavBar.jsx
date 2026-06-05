@@ -188,139 +188,146 @@ const TopNavBar = ({ setIsOpen }) => {
 
   return (
     <>
-      <header className="fixed top-0 right-0 left-0 lg:left-64 z-[50] h-20 glass-card border-b border-white/40 flex items-center justify-between px-6 lg:px-10 font-inter transition-all duration-300">
+      <header className="fixed top-0 right-0 left-0 lg:left-64 z-[50] h-20 backdrop-blur-xl bg-white/80 border-b border-slate-200/60 flex items-center justify-between px-6 lg:px-10 font-inter transition-all duration-300">
         <div className="flex items-center gap-6 flex-1">
           {/* Mobile Toggle */}
           <button
             onClick={() => setIsOpen(true)}
-            className="lg:hidden p-2 rounded-xl bg-slate-50 text-slate-600 hover:bg-slate-100 transition-all border border-slate-200 active:scale-95"
+            className="lg:hidden p-2.5 rounded-xl bg-white text-slate-600 hover:bg-slate-50 transition-all border border-slate-200 shadow-sm active:scale-95"
           >
-            <span className="material-symbols-outlined size-5" style={{ fontSize: '20px' }}>menu</span>
+            <span className="material-symbols-outlined text-[20px]">menu</span>
           </button>
 
           {/* Dynamic Breadcrumbs */}
-          <nav className="hidden md:flex items-center gap-3 overflow-hidden">
-            <div className="p-2 rounded-xl bg-primary/5 text-primary flex items-center justify-center border border-primary/10">
-              <span className="material-symbols-outlined text-[18px]" style={{ fontSize: '18px' }}>grid_view</span>
+          <nav className="hidden md:flex items-center gap-4">
+            <div className="w-10 h-10 rounded-xl bg-primary/5 text-primary flex items-center justify-center border border-primary/10 shadow-sm">
+              <span className="material-symbols-outlined text-[20px]">grid_view</span>
             </div>
-            <div className="flex items-center text-[10px] font-extrabold tracking-widest uppercase font-headline">
-              {pathnames.map((value, index) => {
-                const last = index === pathnames.length - 1;
-                const to = `/${pathnames.slice(0, index + 1).join('/')}`;
+            
+            <div className="flex items-center gap-1">
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">Portal</span>
+              <span className="text-slate-300 mx-1">/</span>
+              <div className="flex items-center">
+                {pathnames.map((value, index) => {
+                  const last = index === pathnames.length - 1;
+                  const to = `/${pathnames.slice(0, index + 1).join('/')}`;
 
-                return (
-                  <React.Fragment key={to}>
-                    {index > 0 && (
-                      <span className="material-symbols-outlined text-slate-300 mx-2 text-[14px] leading-none select-none">
-                        chevron_right
-                      </span>
-                    )}
-                    {last ? (
-                      <span className="text-slate-800 bg-slate-100 px-3 py-1 rounded-xl truncate max-w-[160px] border border-slate-200/50 normal-case font-extrabold text-[11px] font-body">
-                        {getBreadcrumbLabel(value)}
-                      </span>
-                    ) : (
-                      <Link
-                        to={to}
-                        className="text-slate-400 hover:text-primary transition-all duration-200 truncate max-w-[150px]"
-                      >
-                        {getBreadcrumbLabel(value)}
-                      </Link>
-                    )}
-                  </React.Fragment>
-                );
-              })}
+                  if (value.toLowerCase() === 'faculty' && index === 0) return null;
+
+                  return (
+                    <React.Fragment key={to}>
+                      {index > 1 && (
+                        <span className="material-symbols-outlined text-slate-300 mx-1.5 text-[14px] leading-none select-none">
+                          chevron_right
+                        </span>
+                      )}
+                      {last ? (
+                        <span className="text-primary bg-primary/5 px-3 py-1.5 rounded-lg font-bold text-[11px] border border-primary/10 transition-all">
+                          {getBreadcrumbLabel(value)}
+                        </span>
+                      ) : (
+                        <Link
+                          to={to}
+                          className="text-slate-500 hover:text-primary font-bold text-[11px] transition-colors duration-200 px-1"
+                        >
+                          {getBreadcrumbLabel(value)}
+                        </Link>
+                      )}
+                    </React.Fragment>
+                  );
+                })}
+              </div>
             </div>
           </nav>
 
           {/* Premium Faculty Badge Indicator */}
           {facultyName && (
-            <div className="hidden md:flex items-center gap-2 px-3.5 py-1.5 bg-emerald-500/5 text-emerald-600 rounded-2xl text-[10px] font-extrabold tracking-wider uppercase border border-emerald-500/10 shadow-sm shadow-emerald-500/5">
-              <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
+            <div className="hidden lg:flex items-center gap-2.5 px-4 py-2 bg-emerald-50 text-emerald-700 rounded-full text-[10px] font-bold tracking-wider uppercase border border-emerald-100 shadow-sm">
+              <div className="relative flex items-center justify-center">
+                <span className="w-2 h-2 bg-emerald-500 rounded-full animate-ping absolute opacity-40" />
+                <span className="w-2 h-2 bg-emerald-500 rounded-full relative" />
+              </div>
               {facultyName}
             </div>
           )}
         </div>
 
-        <div className="flex items-center gap-3 lg:gap-4">
+        <div className="flex items-center gap-3 lg:gap-5">
           {/* Action Row */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             {/* Search Trigger Button */}
             <button 
               onClick={() => setIsSearchOpen(true)}
-              className="h-10 px-4 rounded-2xl bg-slate-50 border border-slate-200/60 hover:bg-slate-100 hover:border-slate-300 text-slate-500 hover:text-primary transition-all active:scale-95 shadow-sm flex items-center gap-2"
+              className="group h-11 px-4 rounded-2xl bg-slate-50/50 border border-slate-200/80 hover:bg-white hover:border-primary/30 text-slate-500 transition-all active:scale-95 flex items-center gap-3"
             >
-              <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>search</span>
-              <span className="hidden sm:inline text-[10px] font-extrabold tracking-wider text-slate-400 uppercase mr-1">CARI (Ctrl+K)</span>
+              <span className="material-symbols-outlined group-hover:text-primary transition-colors text-[20px]">search</span>
+              <div className="hidden sm:flex flex-col items-start leading-none">
+                <span className="text-[10px] font-bold tracking-wider text-slate-400 uppercase group-hover:text-slate-500 transition-colors">Cari</span>
+                <span className="text-[8px] font-medium text-slate-300 mt-0.5">Ctrl + K</span>
+              </div>
             </button>
 
-            {/* Notification Bell — click-toggle (works on mobile too) */}
+            {/* Notification Bell */}
             <div ref={notifRef} className="relative">
               <button
                 onClick={() => setIsNotifOpen(prev => !prev)}
-                className={`w-10 h-10 flex items-center justify-center shrink-0 rounded-2xl border transition-all active:scale-95 shadow-sm ${
+                className={`w-11 h-11 flex items-center justify-center shrink-0 rounded-2xl border transition-all active:scale-95 ${
                   isNotifOpen
-                    ? 'bg-primary/10 border-primary/20 text-primary'
-                    : 'bg-slate-50 border-slate-200/60 hover:bg-slate-100 hover:border-slate-300 text-slate-500 hover:text-primary'
+                    ? 'bg-primary/10 border-primary/20 text-primary shadow-inner'
+                    : 'bg-slate-50/50 border-slate-200/80 hover:bg-white hover:border-primary/30 text-slate-500 hover:text-primary'
                 }`}
               >
-                <span className={`material-symbols-outlined transition-transform duration-300 ${isNotifOpen ? 'rotate-12' : ''}`} style={{ fontSize: '20px' }}>notifications</span>
+                <span className={`material-symbols-outlined text-[22px] transition-transform duration-300 ${isNotifOpen ? 'scale-110' : ''}`}>notifications</span>
                 {notifications.total > 0 && (
-                  <span className="absolute top-1 right-1 w-4 h-4 bg-rose-500 text-white text-[8px] font-black flex items-center justify-center rounded-full border-2 border-white ring-2 ring-rose-500/20 animate-pulse">
+                  <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-rose-500 text-white text-[9px] font-bold flex items-center justify-center rounded-full border-2 border-white ring-4 ring-rose-500/10">
                     {notifications.total > 9 ? '9+' : notifications.total}
                   </span>
                 )}
               </button>
 
-              {/* Popover — shown via state, works on touch */}
+              {/* Notification Popover */}
               {isNotifOpen && (
                 <div
-                  className="fixed top-20 right-6 lg:right-10 w-80 glass-card rounded-3xl shadow-2xl border border-white/40 p-6 z-[300] animate-in fade-in zoom-in-95 duration-200 cursor-default"
+                  className="absolute top-14 right-0 w-80 bg-white rounded-[2rem] shadow-2xl border border-slate-100 p-6 z-[300] animate-in fade-in slide-in-from-top-2 duration-300 cursor-default"
                   onClick={(e) => e.stopPropagation()}
                 >
-                  <div className="flex justify-between items-center mb-5 flex-row">
-                    <h4 className="text-[10px] font-black font-headline uppercase tracking-widest" style={{ color: 'var(--theme-h4)' }}>Inbox Antrean</h4>
+                  <div className="flex justify-between items-center mb-6">
+                    <h4 className="text-[11px] font-bold text-slate-400 uppercase tracking-[0.2em]">Pemberitahuan</h4>
                     {notifications.total > 0 && (
-                      <Badge variant="secondary" className="bg-rose-50 text-rose-600 border-none font-black text-[9px] px-2 py-0.5 rounded-lg">
-                        {notifications.total} BARU
-                      </Badge>
+                      <span className="bg-rose-50 text-rose-600 font-bold text-[9px] px-2.5 py-1 rounded-full uppercase">
+                        {notifications.total} Baru
+                      </span>
                     )}
                   </div>
-                  <div className="space-y-3">
-                    <div className="flex gap-4 items-center p-2.5 rounded-2xl hover:bg-slate-50 transition-colors cursor-pointer group/item" onClick={() => { navigate('/faculty/ormawa/proposals'); setIsNotifOpen(false); }}>
-                      <div className="p-2 rounded-xl bg-indigo-50 text-indigo-600 group-hover/item:bg-indigo-600 group-hover/item:text-white transition-colors flex items-center justify-center w-9 h-9 shrink-0">
-                        <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>description</span>
+                  
+                  <div className="space-y-2">
+                    {[
+                      { name: 'Proposal ORMAWA', icon: 'description', color: 'indigo', count: notifications.proposal, path: '/faculty/ormawa/proposals' },
+                      { name: 'Student Voice', icon: 'campaign', color: 'primary', count: notifications.aspirasi, path: '/faculty/aspirasi' },
+                      { name: 'Validasi Prestasi', icon: 'emoji_events', color: 'emerald', count: notifications.prestasi, path: '/faculty/prestasi' }
+                    ].map((item, i) => (
+                      <div 
+                        key={i}
+                        className="flex gap-4 items-center p-3 rounded-2xl hover:bg-slate-50 transition-all cursor-pointer group/item border border-transparent hover:border-slate-100"
+                        onClick={() => { navigate(item.path); setIsNotifOpen(false); }}
+                      >
+                        <div className={`w-10 h-10 rounded-xl bg-${item.color === 'primary' ? 'primary/10' : item.color + '-50'} text-${item.color === 'primary' ? 'primary' : item.color + '-600'} flex items-center justify-center group-hover/item:scale-110 transition-transform`}>
+                          <span className="material-symbols-outlined text-[20px]">{item.icon}</span>
+                        </div>
+                        <div className="flex flex-col">
+                          <p className="text-xs font-bold text-slate-800 tracking-tight">{item.name}</p>
+                          <p className="text-[10px] font-medium text-slate-400 mt-0.5">{item.count || 0} Pengajuan</p>
+                        </div>
                       </div>
-                      <div className="flex flex-col">
-                        <p className="text-[11px] font-black text-slate-900 leading-none uppercase tracking-tight font-headline">Proposal ORMAWA</p>
-                        <p className="text-[10px] font-bold text-slate-400 mt-1">{notifications.proposal || 0} pengajuan baru</p>
-                      </div>
-                    </div>
-
-                    <div className="flex gap-4 items-center p-2.5 rounded-2xl hover:bg-slate-50 transition-colors cursor-pointer group/item" onClick={() => { navigate('/faculty/aspirasi'); setIsNotifOpen(false); }}>
-                      <div className="p-2 rounded-xl bg-primary/5 text-primary group-hover/item:bg-primary group-hover/item:text-white transition-colors flex items-center justify-center w-9 h-9 shrink-0">
-                        <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>campaign</span>
-                      </div>
-                      <div className="flex flex-col">
-                        <p className="text-[11px] font-black text-slate-900 leading-none uppercase tracking-tight font-headline">Student Voice</p>
-                        <p className="text-[10px] font-bold text-slate-400 mt-1">{notifications.aspirasi || 0} aspirasi baru</p>
-                      </div>
-                    </div>
-
-                    <div className="flex gap-4 items-center p-2.5 rounded-2xl hover:bg-slate-50 transition-colors cursor-pointer group/item" onClick={() => { navigate('/faculty/prestasi'); setIsNotifOpen(false); }}>
-                      <div className="p-2 rounded-xl bg-emerald-50 text-emerald-600 group-hover/item:bg-emerald-600 group-hover/item:text-white transition-colors flex items-center justify-center w-9 h-9 shrink-0">
-                        <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>emoji_events</span>
-                      </div>
-                      <div className="flex flex-col">
-                        <p className="text-[11px] font-black text-slate-900 leading-none uppercase tracking-tight font-headline">Validasi Prestasi</p>
-                        <p className="text-[10px] font-bold text-slate-400 mt-1">{notifications.prestasi || 0} klaim menunggu</p>
-                      </div>
-                    </div>
+                    ))}
                   </div>
 
-                  <Button onClick={() => { navigate('/faculty'); setIsNotifOpen(false); }} variant="ghost" className="w-full mt-4 h-11 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-primary hover:bg-primary/5">
-                    Dashboard Utama
-                  </Button>
+                  <button 
+                    onClick={() => { navigate('/faculty'); setIsNotifOpen(false); }}
+                    className="w-full mt-6 py-3 rounded-xl text-[10px] font-bold uppercase tracking-widest text-slate-500 hover:text-primary hover:bg-primary/5 transition-all border border-slate-100"
+                  >
+                    Lihat Dashboard
+                  </button>
                 </div>
               )}
             </div>
@@ -328,62 +335,60 @@ const TopNavBar = ({ setIsOpen }) => {
             {/* Calendar Button */}
             <button 
               onClick={() => navigate('/faculty/jadwal')}
-              className="hidden sm:flex w-10 h-10 items-center justify-center shrink-0 rounded-2xl bg-slate-50 border border-slate-200/60 hover:bg-slate-100 hover:border-slate-300 text-slate-500 hover:text-primary transition-all active:scale-95 shadow-sm"
+              className="hidden sm:flex w-11 h-11 items-center justify-center shrink-0 rounded-2xl bg-slate-50/50 border border-slate-200/80 hover:bg-white hover:border-primary/30 text-slate-500 hover:text-primary transition-all active:scale-95"
             >
-              <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>calendar_month</span>
+              <span className="material-symbols-outlined text-[22px]">calendar_month</span>
             </button>
           </div>
 
-          <div className="h-8 w-px bg-slate-200 mx-1 hidden sm:block"></div>
+          <div className="h-8 w-[1.5px] bg-slate-200 mx-1 hidden sm:block"></div>
 
           {/* User Account Profile Dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <div className="flex items-center gap-2.5 cursor-pointer group hover:bg-slate-50 p-1 pr-3 rounded-full transition-all duration-300 outline-none border border-slate-200/60 bg-white shadow-sm hover:shadow-md">
-                <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-primary to-indigo-500 text-white flex items-center justify-center font-black text-sm ring-2 ring-white shadow-md shadow-primary/20 group-hover:scale-105 transition-all duration-300 shrink-0">
+              <div className="flex items-center gap-3 cursor-pointer group p-1.5 pr-4 rounded-2xl transition-all duration-300 outline-none border border-slate-200/80 bg-white hover:shadow-lg hover:shadow-slate-200/50 max-w-[220px]">
+                <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-primary to-indigo-500 text-white flex items-center justify-center font-bold text-sm shadow-md group-hover:rotate-3 transition-all shrink-0">
                    {user?.Email?.match(/^admin\.([a-zA-Z0-9]+)@/i)?.[1]?.[0]?.toUpperCase() || 'A'}
                 </div>
-                <div className="flex flex-col leading-tight pr-1.5 shrink-0">
-                  <span className="text-[11px] font-extrabold text-slate-800 group-hover:text-primary transition-colors truncate max-w-[100px]">
+                <div className="flex flex-col leading-none min-w-0 overflow-hidden">
+                  <span className="text-xs font-bold text-slate-800 group-hover:text-primary transition-colors truncate block w-full">
                     {user?.Email?.split('@')[0]}
                   </span>
-                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mt-0.5">Admin</span>
+                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1 truncate">Fakultas Admin</span>
                 </div>
-                <span className="material-symbols-outlined text-[16px] text-slate-400 group-hover:text-slate-600 transition-colors" style={{ fontSize: '16px' }}>expand_more</span>
+                <span className="material-symbols-outlined text-[18px] text-slate-300 group-hover:text-primary transition-all ml-1 shrink-0" style={{ fontSize: '18px' }}>expand_more</span>
               </div>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56 mt-2 rounded-2xl p-1.5 shadow-xl border border-white/40 glass-card">
-              <div className="px-3 py-2 mb-1 border-b border-slate-50">
-                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest font-headline">Akun Saya</p>
-                <p className="text-xs font-bold text-slate-900 truncate mt-0.5">{user?.Email}</p>
+            <DropdownMenuContent align="end" className="w-60 mt-4 rounded-[1.5rem] p-2 shadow-2xl border border-slate-100 bg-white/95 backdrop-blur-xl">
+              <div className="px-4 py-3 mb-2 border-b border-slate-50">
+                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.2em]">Profil Admin</p>
+                <p className="text-[11px] font-bold text-slate-800 truncate mt-1">{user?.Email}</p>
               </div>
               
-              <DropdownMenuItem onClick={() => navigate('/faculty/pengaturan')} className="rounded-xl p-2 focus:bg-slate-50 group cursor-pointer">
-                <UserCircle className="mr-2 size-4 text-slate-400 group-hover:text-primary transition-colors" style={{ fontSize: '16px' }} />
-                <span className="text-xs font-medium text-slate-600 group-hover:text-slate-900 transition-colors">Profil</span>
+              <DropdownMenuItem onClick={() => navigate('/faculty/pengaturan')} className="rounded-xl px-3 py-2.5 focus:bg-primary/5 group cursor-pointer transition-colors">
+                <UserCircle className="mr-3 size-4 text-slate-400 group-focus:text-primary" style={{ fontSize: '18px' }} />
+                <span className="text-xs font-bold text-slate-600 group-focus:text-slate-900">Detail Profil</span>
               </DropdownMenuItem>
 
-              <DropdownMenuItem onClick={() => navigate('/faculty/pengaturan')} className="rounded-xl p-2 focus:bg-slate-50 group cursor-pointer">
-                <span className="material-symbols-outlined mr-2 size-4 text-slate-400 group-hover:text-primary transition-colors" style={{ fontSize: '16px' }}>settings</span>
-                <span className="text-xs font-medium text-slate-600 group-hover:text-slate-900 transition-colors">Pengaturan</span>
+              <DropdownMenuItem onClick={() => navigate('/faculty/pengaturan')} className="rounded-xl px-3 py-2.5 focus:bg-primary/5 group cursor-pointer transition-colors">
+                <span className="material-symbols-outlined mr-3 size-4 text-slate-400 group-focus:text-primary" style={{ fontSize: '18px' }}>settings</span>
+                <span className="text-xs font-bold text-slate-600 group-focus:text-slate-900">Pengaturan</span>
               </DropdownMenuItem>
 
-              <DropdownMenuSeparator className="my-1 bg-slate-50" />
+              <div className="h-px bg-slate-50 my-2 mx-2"></div>
               
               <DropdownMenuItem 
-                onClick={() => {
-                  logout();
-                  navigate('/login');
-                }} 
-                className="rounded-xl p-2 focus:bg-rose-50 group cursor-pointer"
+                onClick={() => { logout(); navigate('/login'); }} 
+                className="rounded-xl px-3 py-2.5 focus:bg-rose-50 group cursor-pointer transition-colors"
               >
-                <span className="material-symbols-outlined mr-2 size-4 text-rose-400 group-hover:text-rose-600 transition-colors" style={{ fontSize: '16px' }}>logout</span>
-                <span className="text-xs font-bold text-rose-500 group-hover:text-rose-600 transition-colors">Keluar</span>
+                <span className="material-symbols-outlined mr-3 size-4 text-rose-400 group-focus:text-rose-600" style={{ fontSize: '18px' }}>logout</span>
+                <span className="text-xs font-bold text-rose-500">Keluar Sistem</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
       </header>
+
 
       {/* Spotlight Command Palette Search Overlay */}
       {isSearchOpen && (

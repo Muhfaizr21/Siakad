@@ -387,6 +387,30 @@ func Login(c *fiber.Ctx) error {
 		})
 	}
 
+	var displayName string
+	if student.ID != 0 {
+		displayName = student.Nama
+	} else {
+		if user.FakultasID != nil && *user.FakultasID != 0 {
+			var fak models.Fakultas
+			if err := config.DB.First(&fak, *user.FakultasID).Error; err == nil {
+				displayName = "Admin " + fak.Nama
+			}
+		}
+		if displayName == "" {
+			var psi models.Psikolog
+			if err := config.DB.Where("user_id = ?", user.ID).First(&psi).Error; err == nil {
+				displayName = psi.Nama
+			}
+		}
+		if displayName == "" {
+			var tk models.TenagaKesehatan
+			if err := config.DB.Where("user_id = ?", user.ID).First(&tk).Error; err == nil {
+				displayName = tk.Nama
+			}
+		}
+	}
+
 	token, err := createToken(user.ID, student.ID, nim, roleName, user.FakultasID, user.OrmawaID, user.OrmawaAssign)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -413,7 +437,7 @@ func Login(c *fiber.Ctx) error {
 				Email:       user.Email,
 				Role:        roleName,
 				NIM:         student.NIM,
-				Nama:        student.Nama,
+				Nama:        displayName,
 				OrmawaID:    user.OrmawaID,
 				Permissions: permissions,
 			},
@@ -542,9 +566,17 @@ func LoginSelectRole(c *fiber.Ctx) error {
 	if student.ID != 0 {
 		displayName = student.Nama
 	} else {
-		var psi models.Psikolog
-		if err := config.DB.Where("user_id = ?", user.ID).First(&psi).Error; err == nil {
-			displayName = psi.Nama
+		if user.FakultasID != nil && *user.FakultasID != 0 {
+			var fak models.Fakultas
+			if err := config.DB.First(&fak, *user.FakultasID).Error; err == nil {
+				displayName = "Admin " + fak.Nama
+			}
+		}
+		if displayName == "" {
+			var psi models.Psikolog
+			if err := config.DB.Where("user_id = ?", user.ID).First(&psi).Error; err == nil {
+				displayName = psi.Nama
+			}
 		}
 		if displayName == "" {
 			var tk models.TenagaKesehatan
@@ -637,6 +669,30 @@ func Me(c *fiber.Ctx) error {
 		}
 	}
 
+	var displayName string
+	if student.ID != 0 {
+		displayName = student.Nama
+	} else {
+		if user.FakultasID != nil && *user.FakultasID != 0 {
+			var fak models.Fakultas
+			if err := config.DB.First(&fak, *user.FakultasID).Error; err == nil {
+				displayName = "Admin " + fak.Nama
+			}
+		}
+		if displayName == "" {
+			var psi models.Psikolog
+			if err := config.DB.Where("user_id = ?", user.ID).First(&psi).Error; err == nil {
+				displayName = psi.Nama
+			}
+		}
+		if displayName == "" {
+			var tk models.TenagaKesehatan
+			if err := config.DB.Where("user_id = ?", user.ID).First(&tk).Error; err == nil {
+				displayName = tk.Nama
+			}
+		}
+	}
+
 	return c.JSON(fiber.Map{
 		"status": "success",
 		"data": fiber.Map{
@@ -647,7 +703,7 @@ func Me(c *fiber.Ctx) error {
 				RoleDisplay: roleDisplay,
 				OrmawaName:  ormawaName,
 				NIM:         student.NIM,
-				Nama:        student.Nama,
+				Nama:        displayName,
 				OrmawaID:    user.OrmawaID,
 				Permissions: permissions,
 			},
