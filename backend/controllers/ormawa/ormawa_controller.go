@@ -6,6 +6,7 @@ import (
 	"os"
 	"siakad-backend/config"
 	"siakad-backend/models"
+	"siakad-backend/pkg/gamifikasi"
 	"time"
 
 	"strings"
@@ -552,6 +553,8 @@ func UpdateEvent(c *fiber.Ctx) error {
 		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Kegiatan tidak ditemukan"})
 	}
 
+	oldStatus := event.Status
+
 	if err := c.BodyParser(&event); err != nil {
 		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Format data tidak valid"})
 	}
@@ -561,7 +564,21 @@ func UpdateEvent(c *fiber.Ctx) error {
 		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Tanggal selesai tidak boleh mendahului tanggal mulai"})
 	}
 
-	config.DB.Save(&event)
+	err := config.DB.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Save(&event).Error; err != nil {
+			return err
+		}
+		if (strings.ToLower(event.Status) == "selesai" || event.Status == "Selesai") && strings.ToLower(oldStatus) != "selesai" {
+			if err := gamifikasi.AwardOrmawaPoints(tx, event.OrmawaID, "kegiatan_selesai", 50, "tambah", fmt.Sprintf("Kegiatan selesai dilaksanakan: %s", event.Judul)); err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": err.Error()})
+	}
+
 	return c.JSON(fiber.Map{"status": "success", "data": event})
 }
 
@@ -1326,6 +1343,8 @@ func UpdateAspiration(c *fiber.Ctx) error {
 		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Aspirasi tidak ditemukan"})
 	}
 
+	oldStatus := aspiration.Status
+
 	var payload struct {
 		Status    string `json:"Status"`
 		Tanggapan string `json:"Tanggapan"`
@@ -1339,7 +1358,20 @@ func UpdateAspiration(c *fiber.Ctx) error {
 		aspiration.Tanggapan = payload.Tanggapan
 	}
 
-	config.DB.Save(&aspiration)
+	err := config.DB.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Save(&aspiration).Error; err != nil {
+			return err
+		}
+		if (strings.ToLower(aspiration.Status) == "selesai" || aspiration.Status == "Selesai") && strings.ToLower(oldStatus) != "selesai" {
+			if err := gamifikasi.AwardOrmawaPoints(tx, aspiration.OrmawaID, "aspirasi_selesai", 10, "tambah", fmt.Sprintf("Menyelesaikan aspirasi mahasiswa: %s", aspiration.Judul)); err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": err.Error()})
+	}
 
 	// Buat notifikasi ormawa
 	config.DB.Create(&models.OrmawaNotifikasi{
@@ -1373,4 +1405,40 @@ func GetStudentsLookup(c *fiber.Ctx) error {
 		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal memuat data mahasiswa"})
 	}
 	return c.JSON(fiber.Map{"status": "success", "data": students})
+}
+
+// GetOrmawaGamifikasi returns rank, points, and point history of active Ormawa
+func GetOrmawaGamifikasi(c *fiber.Ctx) error {
+	ormawaId := c.Locals("ormawa_id")
+	if ormawaId == nil || ormawaId == uint(0) {
+		return c.Status(401).JSON(fiber.Map{"status": "error", "message": "Unauthorized: Ormawa context missing"})
+	}
+
+	var ormawa models.Ormawa
+	if err := config.DB.First(&ormawa, ormawaId).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Ormawa tidak ditemukan"})
+	}
+
+	var rank int64
+	config.DB.Model(&models.Ormawa{}).Where("poin > ?", ormawa.Poin).Count(&rank)
+	rank = rank + 1
+
+	var totalOrmawa int64
+	config.DB.Model(&models.Ormawa{}).Count(&totalOrmawa)
+
+	var history []models.OrmawaPoinHistory
+	config.DB.Where("ormawa_id = ?", ormawa.ID).Order("created_at desc").Find(&history)
+
+	return c.JSON(fiber.Map{
+		"status": "success",
+		"data": fiber.Map{
+			"ormawa_id":    ormawa.ID,
+			"ormawa_nama":  ormawa.Nama,
+			"singkatan":    ormawa.Singkatan,
+			"poin":         ormawa.Poin,
+			"peringkat":    rank,
+			"total_ormawa": totalOrmawa,
+			"riwayat":      history,
+		},
+	})
 }

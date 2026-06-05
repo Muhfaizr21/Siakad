@@ -110,6 +110,8 @@ func migrateModels(db *gorm.DB) error {
 		&models.OrmawaAspirasi{},
 		&models.OrmawaNotifikasi{},
 		&models.LaporanPertanggungjawaban{},
+		&models.OrmawaPoinHistory{},
+		&models.OrmawaGamifikasiRule{},
 	); err != nil {
 		return err
 	}
@@ -242,4 +244,26 @@ func InitialSyncFakultas(db *gorm.DB) {
 	}
 
 	log.Println("[Initial Sync] Sinkronisasi data selesai.")
+}
+
+func InitialSyncGamifikasiRules(db *gorm.DB) {
+	log.Println("[Initial Sync] Memulai sinkronisasi aturan gamifikasi...")
+
+	defaultRules := []models.OrmawaGamifikasiRule{
+		{Key: "proposal_disetujui", Label: "Proposal Disetujui", Poin: 20, Deskripsi: "Poin diberikan ketika proposal kegiatan disetujui oleh universitas"},
+		{Key: "kegiatan_selesai", Label: "Kegiatan Selesai", Poin: 50, Deskripsi: "Poin diberikan ketika kegiatan selesai diselenggarakan dan dilaporkan"},
+		{Key: "aspirasi_selesai", Label: "Aspirasi Diselesaikan", Poin: 10, Deskripsi: "Poin diberikan ketika aspirasi mahasiswa berhasil ditangani oleh Ormawa"},
+		{Key: "prestasi_terverifikasi", Label: "Prestasi Ormawa Terverifikasi", Poin: 100, Deskripsi: "Poin diberikan ketika prestasi organisasi kemahasiswaan berhasil diverifikasi"},
+		{Key: "lpj_disetujui", Label: "LPJ Disetujui", Poin: 100, Deskripsi: "Poin diberikan ketika Laporan Pertanggungjawaban (LPJ) keuangan & proker disetujui"},
+		{Key: "lpj_terlambat", Label: "Peringatan Kepatuhan LPJ", Poin: -50, Deskripsi: "Poin dikurangi ketika LPJ terlambat diajukan atau dikirim surat peringatan"},
+	}
+
+	for _, rule := range defaultRules {
+		var existing models.OrmawaGamifikasiRule
+		if err := db.Where("key = ?", rule.Key).First(&existing).Error; err != nil {
+			db.Create(&rule)
+			log.Printf("[Initial Sync] Seed rule: %s (%d Pts)\n", rule.Key, rule.Poin)
+		}
+	}
+	log.Println("[Initial Sync] Sinkronisasi aturan gamifikasi selesai.")
 }

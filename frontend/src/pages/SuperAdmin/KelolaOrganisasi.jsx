@@ -95,7 +95,8 @@ export default function KelolaOrganisasi() {
       let charCodeSum = 0;
       for (let i = 0; i < idStr.length; i++) charCodeSum += idStr.charCodeAt(i);
       
-      const xp = 300 + (charCodeSum % 650); // XP between 300 and 950
+      const dbPoin = item.poin !== undefined ? item.poin : item.Poin;
+      const xp = (typeof dbPoin === 'number') ? dbPoin : 300 + (charCodeSum % 650); // Use real database points if available, else fallback
       const lpjRate = 70 + (charCodeSum % 31); // LPJ rate between 70% and 100%
       const bintang = 3 + (charCodeSum % 3); // Bintang between 3 and 5
       const totalLpj = 5 + (charCodeSum % 10);
@@ -119,15 +120,22 @@ export default function KelolaOrganisasi() {
       };
     });
   };
-
   const fetchData = async () => {
     setLoading(true)
     try {
-      const res = await adminService.getAllOrmawa()
+      const [res, lpjRes] = await Promise.all([
+        adminService.getAllOrmawa(),
+        adminService.getAdminLpjs()
+      ])
+      
       if (res.status === 'success' && res.data && res.data.length > 0) {
         setData(enrichOrmawaData(res.data))
       } else {
         setData(enrichOrmawaData(offlineOrmawaSeed))
+      }
+
+      if (lpjRes && lpjRes.status === 'success' && lpjRes.data && lpjRes.data.length > 0) {
+        setLpjSubmissions(lpjRes.data)
       }
     } catch {
       setData(enrichOrmawaData(offlineOrmawaSeed))
@@ -229,36 +237,63 @@ export default function KelolaOrganisasi() {
   }
 
   // Interactive LPJ Review Tool Handlers
-  const handleApproveLPJ = (submissionId, ormawaSingkatan) => {
-    setLpjSubmissions(prev => 
-      prev.map(sub => sub.id === submissionId ? { ...sub, status: 'Approved' } : sub)
-    );
+  // Interactive LPJ Review Tool Handlers
+  const handleApproveLPJ = async (submissionId, ormawaSingkatan) => {
+    try {
+      if (typeof submissionId === 'string' && submissionId.startsWith('lpj-')) {
+        setLpjSubmissions(prev => 
+          prev.map(sub => sub.id === submissionId ? { ...sub, status: 'Approved' } : sub)
+        );
+        setData(prevData => 
+          prevData.map(item => 
+            item.Singkatan === ormawaSingkatan 
+              ? { ...item, xp: (item.xp || 0) + 100, lpjRate: 100, achievements: [...new Set([...item.achievements, 'LPJ Champion'])] } 
+              : item
+          )
+        );
+        toast.success(`LPJ berhasil disetujui! +100 Poin ditambahkan untuk HIMA/BEM ${ormawaSingkatan} (offline)`);
+        return;
+      }
 
-    setData(prevData => 
-      prevData.map(item => 
-        item.Singkatan === ormawaSingkatan 
-          ? { ...item, xp: (item.xp || 0) + 100, lpjRate: 100, achievements: [...new Set([...item.achievements, 'LPJ Champion'])] } 
-          : item
-      )
-    );
-
-    toast.success(`LPJ berhasil disetujui! +100 XP ditambahkan untuk HIMA/BEM ${ormawaSingkatan}`);
+      const res = await adminService.reviewAdminLpj(submissionId, 'approve', 'LPJ disetujui oleh Super Admin');
+      if (res.status === 'success') {
+        toast.success(`LPJ berhasil disetujui! +100 Poin ditambahkan untuk HIMA/BEM ${ormawaSingkatan}`);
+        fetchData();
+      } else {
+        toast.error(res.message || 'Gagal menyetujui LPJ');
+      }
+    } catch {
+      toast.error('Gagal menghubungi server untuk verifikasi LPJ');
+    }
   };
 
-  const handleWarnLPJ = (submissionId, ormawaSingkatan) => {
-    setLpjSubmissions(prev => 
-      prev.map(sub => sub.id === submissionId ? { ...sub, status: 'Warning Sent' } : sub)
-    );
+  const handleWarnLPJ = async (submissionId, ormawaSingkatan) => {
+    try {
+      if (typeof submissionId === 'string' && submissionId.startsWith('lpj-')) {
+        setLpjSubmissions(prev => 
+          prev.map(sub => sub.id === submissionId ? { ...sub, status: 'Warning Sent' } : sub)
+        );
+        setData(prevData => 
+          prevData.map(item => 
+            item.Singkatan === ormawaSingkatan 
+              ? { ...item, xp: Math.max(0, (item.xp || 0) - 50) } 
+              : item
+          )
+        );
+        toast.error(`Peringatan keterlambatan dikirim! -50 Poin dipotong dari ${ormawaSingkatan} (offline)`);
+        return;
+      }
 
-    setData(prevData => 
-      prevData.map(item => 
-        item.Singkatan === ormawaSingkatan 
-          ? { ...item, xp: Math.max(0, (item.xp || 0) - 50) } 
-          : item
-      )
-    );
-
-    toast.error(`Peringatan keterlambatan dikirim! -50 XP dipotong dari ${ormawaSingkatan}`);
+      const res = await adminService.reviewAdminLpj(submissionId, 'warn', 'Peringatan keterlambatan / kelengkapan LPJ');
+      if (res.status === 'success') {
+        toast.success(`Surat peringatan terkirim & poin HIMA/BEM ${ormawaSingkatan} dikurangi 50`);
+        fetchData();
+      } else {
+        toast.error(res.message || 'Gagal mengirim peringatan');
+      }
+    } catch {
+      toast.error('Gagal menghubungi server untuk mengirim peringatan');
+    }
   };
 
   // Sort Leaderboard dynamically based on selected tabs
@@ -326,6 +361,18 @@ export default function KelolaOrganisasi() {
           <span className="material-symbols-outlined text-slate-300" style={{ fontSize: '14px' }} >mail</span>
           <span className="text-[12px] font-medium font-inter">{v || '—'}</span>
         </div>
+      )
+    },
+    { 
+      key: 'poin', 
+      label: 'Poin Peringkat', 
+      className: 'w-[150px] text-center', 
+      cellClassName: 'text-center',
+      render: (v, row) => (
+        <Badge className="bg-amber-50 text-amber-700 border-amber-200 px-3 py-1 rounded-lg text-xs font-bold font-jakarta leading-none gap-1 flex items-center justify-center w-fit mx-auto shadow-none">
+          <span className="material-symbols-outlined text-[14px]" style={{ fontVariationSettings: "'FILL' 1" }}>emoji_events</span>
+          {row.Poin || row.poin || 0} Pts
+        </Badge>
       )
     },
     { 
@@ -741,8 +788,7 @@ export default function KelolaOrganisasi() {
                       <CheckCircle size={10} /> Laporan LPJ Terintegrasi
                     </div>
                   )}
-
-                  {sub.status === 'Warning Sent' && (
+                    {sub.status === 'Warning Sent' && (
                     <div className="py-2 bg-slate-50 border border-slate-100 text-slate-400 rounded-lg text-[9px] font-black uppercase tracking-widest leading-none text-center flex items-center justify-center gap-1">
                       <AlertTriangle size={10} /> Peringatan Terkirim
                     </div>

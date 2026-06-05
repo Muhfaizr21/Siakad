@@ -404,7 +404,7 @@ export default function AdminDashboard() {
   const greeting = hour < 11 ? 'Selamat Pagi' : hour < 15 ? 'Selamat Siang' : hour < 18 ? 'Selamat Sore' : 'Selamat Malam'
   const dateStr = now.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
 
-const fetchData = async (showRefresh = false, useFilters = true) => {
+const fetchData = async (showRefresh = false, useFilters = true, signal) => {
     if (showRefresh) setRefreshing(true)
     else setLoading(true)
     try {
@@ -430,15 +430,27 @@ if (statsRes.status === 'success') {
         setDetailProp(statsRes.data.detail_proposal || [])
       }
       if (logsRes.status === 'success') setLogs(logsRes.data?.slice(0, 8) || [])
-    } catch {
-      // Fallback to simulated stats if backend is down to ensure page renders perfectly
+    } catch (err) {
+      const status = err?.response?.status
       const baseMetrics = statsDatabase['Semua Fakultas']['Semua Program Studi']
       setStats(baseMetrics)
       setLogs([
         { CreatedAt: new Date().toISOString(), Aktivitas: 'LOGIN_SUCCESS', Deskripsi: 'Login berhasil - Superadmin Console', Pengguna: { Email: 'siakad.admin@bku.ac.id' } },
         { CreatedAt: new Date(Date.now() - 30 * 60000).toISOString(), Aktivitas: 'UPDATE_USER', Deskripsi: 'Penyelarasan konfigurasi visual dashboard', Pengguna: { Email: 'siakad.admin@bku.ac.id' } }
       ])
-      toast.error('Gagal memuat data API, menampilkan simulasi data offline')
+      if (status === 401 || status === 403) {
+        toast.error('Sesi habis atau tidak diizinkan. Mohon login ulang.')
+      } else if (status === 404) {
+        toast.error('Endpoint tidak ditemukan. Pastikan backend terbaru.')
+      } else {
+        const baseMetrics = statsDatabase['Semua Faucibas']['Semua Program Studi']
+        setStats(baseMetrics)
+        setLogs([
+          { CreatedAt: new Date().toISOString(), Aktivitas: 'LOGIN_SUCCESS', Deskripsi: 'Login berhasil - Superadmin Console', Pengguna: { Email: 'siakad.admin@bku.ac.id' } },
+          { CreatedAt: new Date(Date.now() - 30 * 60000).toISOString(), Aktivitas: 'UPDATE_USER', Deskripsi: 'Penyelarasan konfigurasi visual dashboard', Pengguna: { Email: 'siakad.admin@bku.ac.id' } }
+        ])
+        toast.error('Gagal memuat data API, menampilkan data lokal')
+      }
     } finally {
       setLoading(false)
       setRefreshing(false)

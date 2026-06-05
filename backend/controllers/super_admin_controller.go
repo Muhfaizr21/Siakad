@@ -6,6 +6,7 @@ import (
 	"log"
 	"siakad-backend/config"
 	"siakad-backend/models"
+	"siakad-backend/pkg/gamifikasi"
 	"siakad-backend/pkg/notifikasi"
 	"strings"
 	"time"
@@ -13,6 +14,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 var rbacPermissionCatalog = []fiber.Map{
@@ -676,6 +678,11 @@ func ApproveProposalUniv(c *fiber.Ctx) error {
 			return err
 		}
 
+		// Award points to Ormawa: +20
+		if err := gamifikasi.AwardOrmawaPoints(tx, proposal.OrmawaID, "proposal_disetujui", 20, "tambah", fmt.Sprintf("Proposal disetujui Universitas: %s", proposal.Judul)); err != nil {
+			return err
+		}
+
 		// 2. Create financial mutation (Disbursement)
 		mutation := models.OrmawaMutasiSaldo{
 			OrmawaID:   proposal.OrmawaID,
@@ -808,7 +815,19 @@ func UpdateFakultas(c *fiber.Ctx) error {
 	if err := config.DB.First(&fak, id).Error; err != nil {
 		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Fakultas not found"})
 	}
-	c.BodyParser(&fak)
+	var req struct {
+		Nama string `json:"nama"`
+		Kode string `json:"kode"`
+	}
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Invalid request body"})
+	}
+	if req.Nama != "" {
+		fak.Nama = req.Nama
+	}
+	if req.Kode != "" {
+		fak.Kode = req.Kode
+	}
 	config.DB.Save(&fak)
 	return c.JSON(fiber.Map{"status": "success", "data": fak})
 }
@@ -1868,10 +1887,14 @@ func UpdateScholarshipApplicationStatus(c *fiber.Ctx) error {
 		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Application not found"})
 	}
 
+	// Use FOR UPDATE to prevent TOCTOU race: lock the student's existing accepted application
 	if payload.Status == "Diterima" {
 		var accepted models.BeasiswaPendaftaran
-		if err := config.DB.Preload("Beasiswa").Where("mahasiswa_id = ? AND status = ? AND id != ?", application.MahasiswaID, "Diterima", application.ID).First(&accepted).Error; err == nil {
-			return c.Status(400).JSON(fiber.Map{
+		if err := config.DB.
+			Clauses(clause.Locking{Strength: "UPDATE"}).
+			Where("mahasiswa_id = ? AND status = ? AND id != ?", application.MahasiswaID, "Diterima", application.ID).
+			First(&accepted).Error; err == nil {
+			return c.Status(409).JSON(fiber.Map{
 				"status":  "error",
 				"message": fmt.Sprintf("Mahasiswa ini sudah menerima beasiswa lain (%s)", accepted.Beasiswa.Nama),
 			})
@@ -2188,3 +2211,245 @@ func GetTenagaKesehatanMedicalRecordsAdmin(c *fiber.Ctx) error {
 	}
 	return c.JSON(fiber.Map{"status": "success", "data": records})
 }
+
+// GetOrmawaLeaderboard returns all Ormawa ranked by points descending
+func GetOrmawaLeaderboard(c *fiber.Ctx) error {
+	var list []models.Ormawa
+	if err := config.DB.Order("poin desc, nama asc").Find(&list).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": err.Error()})
+	}
+
+	type LeaderboardItem struct {
+		ID        uint   `json:"id"`
+		Nama      string `json:"nama"`
+		Singkatan string `json:"singkatan"`
+		Poin      int    `json:"poin"`
+		Peringkat int    `json:"peringkat"`
+	}
+
+	var result []LeaderboardItem
+	for idx, item := range list {
+		result = append(result, LeaderboardItem{
+			ID:        item.ID,
+			Nama:      item.Nama,
+			Singkatan: item.Singkatan,
+			Poin:      item.Poin,
+			Peringkat: idx + 1,
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"status": "success",
+		"data":   result,
+	})
+}
+
+// GetGlobalOrmawaPoinHistory returns global point histories
+func GetGlobalOrmawaPoinHistory(c *fiber.Ctx) error {
+	var history []models.OrmawaPoinHistory
+	if err := config.DB.Preload("Ormawa").Order("created_at desc").Limit(50).Find(&history).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": err.Error()})
+	}
+	return c.JSON(fiber.Map{
+		"status": "success",
+		"data":   history,
+	})
+}
+
+// GetOrmawaGamifikasiRules returns all point-awarding rules
+func GetOrmawaGamifikasiRules(c *fiber.Ctx) error {
+	var rules []models.OrmawaGamifikasiRule
+	if err := config.DB.Order("id asc").Find(&rules).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": err.Error()})
+	}
+	return c.JSON(fiber.Map{
+		"status": "success",
+		"data":   rules,
+	})
+}
+
+// UpdateOrmawaGamifikasiRule updates a point rule
+func UpdateOrmawaGamifikasiRule(c *fiber.Ctx) error {
+	id := c.Params("id")
+	var rule models.OrmawaGamifikasiRule
+	if err := config.DB.First(&rule, id).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Aturan tidak ditemukan"})
+	}
+
+	type UpdatePayload struct {
+		Poin      int    `json:"poin"`
+		Label     string `json:"label"`
+		Deskripsi string `json:"deskripsi"`
+	}
+
+	var payload UpdatePayload
+	if err := c.BodyParser(&payload); err != nil {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Payload tidak valid"})
+	}
+
+	rule.Poin = payload.Poin
+	if payload.Label != "" {
+		rule.Label = payload.Label
+	}
+	if payload.Deskripsi != "" {
+		rule.Deskripsi = payload.Deskripsi
+	}
+
+	if err := config.DB.Save(&rule).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": err.Error()})
+	}
+
+	return c.JSON(fiber.Map{
+		"status": "success",
+		"message": "Aturan gamifikasi berhasil diperbarui",
+		"data":   rule,
+	})
+}
+
+// GetGlobalLPJs returns all LPJs for Super Admin review
+func GetGlobalLPJs(c *fiber.Ctx) error {
+	var list []models.LaporanPertanggungjawaban
+	if err := config.DB.Preload("Proposal.Ormawa").Order("created_at desc").Find(&list).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": err.Error()})
+	}
+
+	type LPJListItem struct {
+		ID                uint      `json:"id"`
+		ProposalID        uint      `json:"proposalId"`
+		OrmawaName        string    `json:"ormawaName"`
+		OrmawaSingkatan   string    `json:"ormawaSingkatan"`
+		Title             string    `json:"title"`
+		Date              string    `json:"date"`
+		Status            string    `json:"status"`
+		Catatan           string    `json:"catatan"`
+		RealisasiAnggaran float64   `json:"realisasiAnggaran"`
+		TotalAnggaran     float64   `json:"totalAnggaran"`
+		FileURL           string    `json:"fileUrl"`
+		CreatedAt         string    `json:"createdAt"`
+	}
+
+	var result []LPJListItem
+	for _, item := range list {
+		dateStr := ""
+		if !item.CreatedAt.IsZero() {
+			dateStr = item.CreatedAt.Format("2006-01-02")
+		}
+
+		ormawaName := item.Proposal.Ormawa.Nama
+		ormawaSingkatan := item.Proposal.Ormawa.Singkatan
+		proposalTitle := item.Proposal.Judul
+		totalAnggaran := item.Proposal.Anggaran
+
+		result = append(result, LPJListItem{
+			ID:                item.ID,
+			ProposalID:        item.ProposalID,
+			OrmawaName:        ormawaName,
+			OrmawaSingkatan:   ormawaSingkatan,
+			Title:             proposalTitle,
+			Date:              dateStr,
+			Status:            item.Status,
+			Catatan:           item.Catatan,
+			RealisasiAnggaran: item.RealisasiAnggaran,
+			TotalAnggaran:     totalAnggaran,
+			FileURL:           item.FileURL,
+			CreatedAt:         item.CreatedAt.Format("2006-01-02 15:04:05"),
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"status": "success",
+		"data":   result,
+	})
+}
+
+// ReviewLPJ approves or issues a warning for an LPJ, adjusting Ormawa points accordingly
+func ReviewLPJ(c *fiber.Ctx) error {
+	id := c.Params("id")
+	var lpj models.LaporanPertanggungjawaban
+	if err := config.DB.Preload("Proposal").First(&lpj, id).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "LPJ tidak ditemukan"})
+	}
+
+	type ReviewPayload struct {
+		Action  string `json:"action"` // "approve" or "warn"
+		Catatan string `json:"catatan"`
+	}
+
+	var payload ReviewPayload
+	if err := c.BodyParser(&payload); err != nil {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Payload tidak valid"})
+	}
+
+	txErr := config.DB.Transaction(func(tx *gorm.DB) error {
+		if payload.Action == "approve" {
+			lpj.Status = "disetujui"
+			if payload.Catatan != "" {
+				lpj.Catatan = payload.Catatan
+			}
+
+			// Update proposal status
+			if err := tx.Model(&models.Proposal{}).Where("id = ?", lpj.ProposalID).Update("status", "selesai").Error; err != nil {
+				return err
+			}
+
+			// Create cash mutation
+			if err := tx.Create(&models.OrmawaMutasiSaldo{
+				OrmawaID:   lpj.Proposal.OrmawaID,
+				Tipe:       "keluar",
+				Nominal:    lpj.RealisasiAnggaran,
+				Kategori:   "Kegiatan Selesai",
+				Deskripsi:  "Realisasi Dana LPJ: " + lpj.Proposal.Judul,
+				Tanggal:    time.Now(),
+				ProposalID: &lpj.ProposalID,
+				Sumber:     "kampus",
+			}).Error; err != nil {
+				return err
+			}
+
+			// Award points
+			if err := gamifikasi.AwardOrmawaPoints(tx, lpj.Proposal.OrmawaID, "lpj_disetujui", 100, "tambah", fmt.Sprintf("LPJ disetujui: %s", lpj.Proposal.Judul)); err != nil {
+				return err
+			}
+
+		} else if payload.Action == "warn" {
+			lpj.Status = "Warning Sent"
+			if payload.Catatan != "" {
+				lpj.Catatan = payload.Catatan
+			}
+
+			// Deduct points
+			if err := gamifikasi.AwardOrmawaPoints(tx, lpj.Proposal.OrmawaID, "lpj_terlambat", -50, "kurang", fmt.Sprintf("Peringatan LPJ terlambat/tidak lengkap: %s", lpj.Proposal.Judul)); err != nil {
+				return err
+			}
+		} else {
+			return fmt.Errorf("action tidak valid")
+		}
+
+		if err := tx.Save(&lpj).Error; err != nil {
+			return err
+		}
+
+		// Create notification
+		if err := tx.Create(&models.OrmawaNotifikasi{
+			OrmawaID: lpj.Proposal.OrmawaID,
+			Tipe:     "lpj",
+			Judul:    "Status LPJ Diperbarui",
+			Pesan:    fmt.Sprintf("LPJ '%s' telah ditinjau: status berubah menjadi '%s'.", lpj.Proposal.Judul, lpj.Status),
+		}).Error; err != nil {
+			return err
+		}
+
+		return nil
+	})
+
+	if txErr != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": txErr.Error()})
+	}
+
+	return c.JSON(fiber.Map{
+		"status":  "success",
+		"message": "LPJ berhasil ditinjau & poin ormawa diperbarui",
+		"data":    lpj,
+	})
+}
+

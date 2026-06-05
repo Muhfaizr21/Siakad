@@ -8,7 +8,7 @@ import { Card, CardContent } from '../FacultyAdmin/components/card'
 import { cn } from '@/lib/utils'
 import { useNavigate } from 'react-router-dom'
 
-import { fetchWithAuth, API_BASE_URL } from '../../services/api'
+import { fetchWithAuth, API_BASE_URL, ormawaService } from '../../services/api'
 import useAuthStore from '../../store/useAuthStore'
 
 // Auto-injected Material Symbol fallbacks for removed Lucide icons
@@ -35,6 +35,9 @@ export default function OrmawaDashboard() {
   const [members, setMembers] = useState([])
   const [events, setEvents] = useState([])
   const [identity, setIdentity] = useState({ Nama: 'Portal Ormawa' })
+  const [gamifikasi, setGamifikasi] = useState({ poin: 0, peringkat: 0, total_ormawa: 0, riwayat: [] })
+  const [gamifikasiTab, setGamifikasiTab] = useState('history') // 'history' or 'rules'
+  
   const navigate = useNavigate()
   const user = useAuthStore(state => state.user)
   const ormawaId = useAuthStore.getState()?.mahasiswa?.ormawaId || useAuthStore.getState()?.mahasiswa?.ID || 1;
@@ -43,18 +46,20 @@ export default function OrmawaDashboard() {
     const load = async () => {
       setIsLoading(true)
       try {
-        const [settingsJson, statsJson, proposalJson, memberJson, eventJson] = await Promise.all([
+        const [settingsJson, statsJson, proposalJson, memberJson, eventJson, gamJson] = await Promise.all([
           fetchWithAuth(`${API}/settings/${ormawaId}`),
           fetchWithAuth(`${API}/stats?ormawaId=${ormawaId}`),
           fetchWithAuth(`${API}/proposals?ormawaId=${ormawaId}`),
           fetchWithAuth(`${API}/members?ormawaId=${ormawaId}`),
           fetchWithAuth(`${API}/events?ormawaId=${ormawaId}`),
+          ormawaService.getGamifikasiSummary()
         ])
         if (settingsJson.status === 'success') setIdentity(settingsJson.data || { Nama: 'Portal Ormawa' })
         if (statsJson.status === 'success') setStats(statsJson.data || {})
         if (proposalJson.status === 'success') setProposals((proposalJson.data || []).slice(0, 5))
         if (memberJson.status === 'success') setMembers((memberJson.data || []).slice(0, 5))
         if (eventJson.status === 'success') setEvents((eventJson.data || []).slice(0, 4))
+        if (gamJson.status === 'success') setGamifikasi(gamJson.data || { poin: 0, peringkat: 0, riwayat: [] })
       } catch {} finally { setIsLoading(false) }
     }
     load()
@@ -149,7 +154,7 @@ export default function OrmawaDashboard() {
         </div>
 
         {/* Main Bento Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Proposal Terbaru */}
           <Card className="bg-surface border border-border rounded-xl shadow-sm overflow-hidden">
             <CardContent className="p-0">
@@ -227,6 +232,149 @@ export default function OrmawaDashboard() {
                   )
                 })}
               </div>
+            </CardContent>
+          </Card>
+
+          {/* Gamifikasi Poin & Riwayat */}
+          <Card className="bg-surface border border-border rounded-xl shadow-sm overflow-hidden">
+            <CardContent className="p-0 flex flex-col h-full">
+              <div className="px-5 py-4 border-b border-border flex items-center justify-between">
+                <div>
+                  <h2 className="text-xs font-bold uppercase tracking-widest text-primary font-headline">Gamifikasi Ormawa</h2>
+                  <p className="text-[10px] text-muted mt-0.5 font-medium">Poin dan peringkat keaktifan unit</p>
+                </div>
+                <div className="w-9 h-9 bg-warning/10 rounded-xl flex items-center justify-center text-warning border border-warning/20">
+                  <span className="material-symbols-outlined text-[18px]" style={{ fontVariationSettings: "'FILL' 1" }}>emoji_events</span>
+                </div>
+              </div>
+
+              {/* Points & Rank display */}
+              <div className="p-5 border-b border-border space-y-3 bg-slate-50/50">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <p className="text-[10px] font-bold text-muted uppercase tracking-wider font-headline">Akumulasi Poin</p>
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-2xl font-bold font-headline leading-none text-warning">{gamifikasi.poin}</span>
+                      <span className="text-[10px] font-medium text-muted">Pts</span>
+                    </div>
+                  </div>
+                  <div className="space-y-1 border-l border-border pl-4">
+                    <p className="text-[10px] font-bold text-muted uppercase tracking-wider font-headline">Peringkat</p>
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-2xl font-bold font-headline leading-none text-primary">#{gamifikasi.peringkat}</span>
+                      {gamifikasi.total_ormawa > 0 && (
+                        <span className="text-[10px] font-medium text-muted">dari {gamifikasi.total_ormawa}</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+                {/* Rank Progress Bar */}
+                {gamifikasi.total_ormawa > 0 && (
+                  <div className="space-y-1">
+                    <div className="flex justify-between items-center">
+                      <span className="text-[9px] font-bold text-muted uppercase tracking-wider">Posisi Keaktifan</span>
+                      <span className="text-[9px] font-bold" style={{ color: 'var(--theme-primary)' }}>
+                        {Math.round(((gamifikasi.total_ormawa - gamifikasi.peringkat + 1) / gamifikasi.total_ormawa) * 100)}%
+                      </span>
+                    </div>
+                    <div className="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                      <div
+                        className="h-full rounded-full transition-all duration-500"
+                        style={{
+                          width: `${Math.max(4, ((gamifikasi.total_ormawa - gamifikasi.peringkat + 1) / gamifikasi.total_ormawa) * 100)}%`,
+                          backgroundColor: gamifikasi.peringkat === 1 ? '#f59e0b' : 'var(--theme-primary)'
+                        }}
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Tab Switcher */}
+              <div className="flex border-b border-border bg-slate-50/20 p-1">
+                <button
+                  type="button"
+                  onClick={() => setGamifikasiTab('history')}
+                  className={cn(
+                    "flex-1 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-lg transition-all",
+                    gamifikasiTab === 'history' ? "bg-white text-primary shadow-sm border border-border" : "text-muted hover:text-on-surface"
+                  )}
+                >
+                  Riwayat
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setGamifikasiTab('rules')}
+                  className={cn(
+                    "flex-1 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-lg transition-all",
+                    gamifikasiTab === 'rules' ? "bg-white text-primary shadow-sm border border-border" : "text-muted hover:text-on-surface"
+                  )}
+                >
+                  Panduan Poin
+                </button>
+              </div>
+
+              {/* Tab Content */}
+              {gamifikasiTab === 'history' ? (
+                <div className="flex-1 divide-y divide-border overflow-y-auto custom-scrollbar max-h-[220px]">
+                  {isLoading ? (
+                    Array.from({ length: 3 }).map((_, i) => (
+                      <div key={i} className="p-4 flex items-center gap-4 animate-pulse">
+                        <div className="h-3 bg-slate-100 rounded w-2/3" />
+                        <div className="h-3 bg-slate-100 rounded w-10 ml-auto" />
+                      </div>
+                    ))
+                  ) : !gamifikasi.riwayat || gamifikasi.riwayat.length === 0 ? (
+                    <div className="p-6 text-center text-xs text-muted italic">Belum ada riwayat poin.</div>
+                  ) : (
+                    gamifikasi.riwayat.slice(0, 5).map((hist) => (
+                      <div key={hist.id || hist.ID} className="p-4 px-5 flex items-center justify-between hover:bg-black/[0.01] transition-colors">
+                        <div className="min-w-0 pr-3">
+                          <p className="font-bold text-sm leading-tight truncate max-w-[170px]" style={{ color: 'var(--theme-text)' }}>{hist.deskripsi}</p>
+                          <p className="text-[9px] text-muted mt-1">
+                            {hist.created_at ? new Date(hist.created_at).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) : ''}
+                          </p>
+                        </div>
+                        <span className={cn(
+                          "font-bold text-xs px-2 py-0.5 rounded-lg border shrink-0",
+                          hist.tipe === 'tambah' 
+                            ? "bg-emerald-50 text-emerald-700 border-emerald-100" 
+                            : "bg-rose-50 text-rose-700 border-rose-100"
+                        )}>
+                          {hist.tipe === 'tambah' ? '+' : '-'}{hist.poin}
+                        </span>
+                      </div>
+                    ))
+                  )}
+                </div>
+              ) : (
+                <div className="p-4 space-y-2.5 max-h-[220px] overflow-y-auto custom-scrollbar text-xs">
+                  <div className="flex items-center justify-between border-b border-border-muted pb-1.5">
+                    <span className="font-medium text-neutral-600">🏆 LPJ Disetujui Univ</span>
+                    <span className="font-black text-emerald-600 bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-md text-[10px]">+100 Pts</span>
+                  </div>
+                  <div className="flex items-center justify-between border-b border-border-muted pb-1.5">
+                    <span className="font-medium text-neutral-600">🏅 Prestasi Terverifikasi</span>
+                    <span className="font-black text-emerald-600 bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-md text-[10px]">+100 Pts</span>
+                  </div>
+                  <div className="flex items-center justify-between border-b border-border-muted pb-1.5">
+                    <span className="font-medium text-neutral-600">📅 Kegiatan Selesai</span>
+                    <span className="font-black text-emerald-600 bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-md text-[10px]">+50 Pts</span>
+                  </div>
+                  <div className="flex items-center justify-between border-b border-border-muted pb-1.5">
+                    <span className="font-medium text-neutral-600">📝 Proposal Disetujui</span>
+                    <span className="font-black text-emerald-600 bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-md text-[10px]">+20 Pts</span>
+                  </div>
+                  <div className="flex items-center justify-between border-b border-border-muted pb-1.5">
+                    <span className="font-medium text-neutral-600">💬 Aspirasi Diselesaikan</span>
+                    <span className="font-black text-emerald-600 bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-md text-[10px]">+10 Pts</span>
+                  </div>
+                  <div className="flex items-center justify-between pb-1">
+                    <span className="font-medium text-neutral-600">⚠️ Peringatan LPJ Terlambat</span>
+                    <span className="font-black text-rose-600 bg-rose-50 border border-rose-100 px-2 py-0.5 rounded-md text-[10px]">-50 Pts</span>
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>

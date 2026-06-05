@@ -485,6 +485,7 @@ type Ormawa struct {
 	Status        string `gorm:"default:'Aktif'"`
 	Kategori      string `gorm:"default:'Himpunan'"` // BEM, Himpunan, UKM, Komunitas, Lainnya
 	JumlahAnggota int    `json:"JumlahAnggota"`
+	Poin          int    `gorm:"default:0" json:"poin"`
 
 	Visi      string
 	Misi      string
@@ -896,4 +897,18 @@ type PendaftaranMahasiswaBaru struct {
 
 func (PendaftaranMahasiswaBaru) TableName() string {
 	return "public.pendaftaran_mahasiswa_baru"
+}
+
+type OrmawaPoinHistory struct {
+	BaseModel
+	OrmawaID  uint      `gorm:"index" json:"ormawa_id"`
+	Ormawa    *Ormawa   `gorm:"foreignKey:OrmawaID" json:"ormawa,omitempty"`
+	Poin      int       `json:"poin"`
+	Tipe      string    `gorm:"size:50" json:"tipe"` // "tambah", "kurang"
+	Deskripsi string    `gorm:"type:text" json:"deskripsi"`
+	Tanggal   time.Time `json:"tanggal"`
+}
+
+func (OrmawaPoinHistory) TableName() string {
+	return "ormawa.ormawa_poin_history"
 }

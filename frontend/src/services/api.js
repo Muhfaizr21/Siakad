@@ -409,6 +409,9 @@ export const ormawaService = {
     body: formData
   }),
 
+  // Gamifikasi
+  getGamifikasiSummary: () => fetchWithAuth(`${API_BASE_URL}/ormawa/gamifikasi`),
+
   // KENCANA (PKKMB)
   getKencanaSummary: () => fetchWithAuth(`${API_BASE_URL}/ormawa/kencana/ringkasan`),
   getKencanaStudents: () => fetchWithAuth(`${API_BASE_URL}/ormawa/kencana/peserta`),
@@ -687,13 +690,26 @@ export const adminService = {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data)
   }),
-
   // Theme Customizer
   getTheme: () => fetchWithAuth(`${API_BASE_URL}/admin/theme`),
   updateTheme: (data) => fetchWithAuth(`${API_BASE_URL}/admin/theme`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data)
+  }),
+  getOrmawaLeaderboard: () => fetchWithAuth(`${API_BASE_URL}/admin/ormawa/leaderboard`),
+  getOrmawaGamifikasiHistory: () => fetchWithAuth(`${API_BASE_URL}/admin/ormawa/gamifikasi/history`),
+  getGamifikasiRules: () => fetchWithAuth(`${API_BASE_URL}/admin/ormawa/gamifikasi/rules`),
+  updateGamifikasiRule: (id, data) => fetchWithAuth(`${API_BASE_URL}/admin/ormawa/gamifikasi/rules/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  }),
+  getAdminLpjs: () => fetchWithAuth(`${API_BASE_URL}/admin/ormawa/lpjs`),
+  reviewAdminLpj: (id, action, catatan) => fetchWithAuth(`${API_BASE_URL}/admin/ormawa/lpjs/${id}/review`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action, catatan })
   }),
   resetTheme: () => fetchWithAuth(`${API_BASE_URL}/admin/theme/reset`, {
     method: 'POST'

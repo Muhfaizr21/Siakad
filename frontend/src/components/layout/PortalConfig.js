@@ -179,6 +179,7 @@ export const PORTAL_CONFIG = {
         items: [
           { name: 'Global Proposals', icon: 'assignment', path: '/admin/proposals' },
           { name: 'Kelola Ormawa', icon: 'group', path: '/admin/organizations' },
+          { name: 'Setting Gamifikasi', icon: 'emoji_events', path: '/admin/gamifikasi' },
         ]
       },
       {

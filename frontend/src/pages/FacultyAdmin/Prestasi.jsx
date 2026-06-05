@@ -110,6 +110,7 @@ export default function FacultyPrestasi() {
   const [verifyCatatan, setVerifyCatatan] = useState("")
   const [verifyPoin, setVerifyPoin] = useState(5)
   const [verifyDanaDisetujui, setVerifyDanaDisetujui] = useState("")
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const downloadPDF = (title, subtitle, contentHtml) => {
     const printWindow = window.open('', '_blank');

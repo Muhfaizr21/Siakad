@@ -12,6 +12,7 @@ func SetupOrmawaRoutes(app *fiber.App) {
 	// DASHBOARD STATS
 	api.Get("/profile", ormawa.GetOrmawaProfile)
 	api.Get("/stats", ormawa.GetOrmawaStats)
+	api.Get("/gamifikasi", ormawa.GetOrmawaGamifikasi)
 
 	// PROPOSALS
 	api.Get("/proposals", ormawa.GetProposals)

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"siakad-backend/config"
 	"siakad-backend/models"
+	"siakad-backend/pkg/gamifikasi"
 	"siakad-backend/pkg/notifikasi"
 	"strconv"
 	"strings"
@@ -130,7 +131,6 @@ func VerifikasiPrestasi(c *fiber.Ctx) error {
 		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Prestasi tidak ditemukan atau Anda tidak memiliki akses"})
 	}
 
-	// 2. Perform updates
 	updates := map[string]interface{}{
 		"status":              req.Status,
 		"catatan_verifikator": req.Catatan,
@@ -142,7 +142,27 @@ func VerifikasiPrestasi(c *fiber.Ctx) error {
 		updates["dana_disetujui"] = req.DanaDisetujui
 	}
 
-	if err := config.DB.Model(&models.Prestasi{}).Where("id = ?", prestasi.ID).Updates(updates).Error; err != nil {
+	err := config.DB.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Model(&models.Prestasi{}).Where("id = ?", prestasi.ID).Updates(updates).Error; err != nil {
+			return err
+		}
+
+		statusLower := strings.ToLower(req.Status)
+		prevStatusLower := strings.ToLower(prestasi.Status)
+		isApproved := statusLower == "verified" || statusLower == "diverifikasi" || statusLower == "disetujui"
+		wasApproved := prevStatusLower == "verified" || prevStatusLower == "diverifikasi" || prevStatusLower == "disetujui"
+
+		if isApproved && !wasApproved && prestasi.RiwayatOrganisasiID != nil {
+			var riwayat models.RiwayatOrganisasi
+			if err := tx.First(&riwayat, *prestasi.RiwayatOrganisasiID).Error; err == nil && riwayat.OrmawaID != 0 {
+				if err := gamifikasi.AwardOrmawaPoints(tx, riwayat.OrmawaID, "prestasi_terverifikasi", 100, "tambah", fmt.Sprintf("Prestasi mahasiswa di organisasi terverifikasi: %s", prestasi.NamaKegiatan)); err != nil {
+					return err
+				}
+			}
+		}
+		return nil
+	})
+	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal menyimpan verifikasi: " + err.Error()})
 	}
 

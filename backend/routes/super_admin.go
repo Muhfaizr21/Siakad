@@ -1,9 +1,10 @@
 package routes
 
 import (
-	"github.com/gofiber/fiber/v2"
 	"siakad-backend/controllers"
 	fakultas "siakad-backend/controllers/fakultas"
+
+	"github.com/gofiber/fiber/v2"
 )
 
 func SetupSuperAdminRoutes(r fiber.Router) {
@@ -33,6 +34,12 @@ func SetupSuperAdminRoutes(r fiber.Router) {
 
 	r.Get("/ormawa", controllers.GetAllOrmawa)
 	r.Post("/ormawa", controllers.CreateOrmawa)
+	r.Get("/ormawa/leaderboard", controllers.GetOrmawaLeaderboard)
+	r.Get("/ormawa/gamifikasi/history", controllers.GetGlobalOrmawaPoinHistory)
+	r.Get("/ormawa/gamifikasi/rules", controllers.GetOrmawaGamifikasiRules)
+	r.Put("/ormawa/gamifikasi/rules/:id", controllers.UpdateOrmawaGamifikasiRule)
+	r.Get("/ormawa/lpjs", controllers.GetGlobalLPJs)
+	r.Put("/ormawa/lpjs/:id/review", controllers.ReviewLPJ)
 	r.Put("/ormawa/:id", controllers.UpdateOrmawa)
 	r.Delete("/ormawa/:id", controllers.DeleteOrmawa)
 
