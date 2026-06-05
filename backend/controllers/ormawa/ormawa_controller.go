@@ -1646,6 +1646,7 @@ func syncUserOrmawaRole(studentID uint) {
 	} else {
 		fmt.Printf("[syncUserOrmawaRole] Successfully synced user %d role to %s and ormawa_id to %v\n", user.ID, newRoleStr, ormawaIDPtr)
 	}
+}
 
 
 // ==========================================

@@ -105,3 +105,59 @@ export const useMentorCreateScoreItemMutation = () => {
     },
   });
 };
+
+export const useMentorUpsertBulkScoreItemsMutation = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ studentId, items }) => unwrap(await api.put(`/kencana-mentor/students/${studentId}/score-items`, { items })),
+    onSuccess: (_, vars) => {
+      qc.invalidateQueries({ queryKey: ['kencana-mentor', 'student-score', vars.studentId] });
+    },
+  });
+};
+
+export const useMentorReviewHandbookMutation = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ studentId, status, feedback }) => 
+      unwrap(await api.post(`/kencana-mentor/students/${studentId}/handbook/review`, { status, feedback })),
+    onSuccess: (_, vars) => {
+      qc.invalidateQueries({ queryKey: ['kencana-mentor', 'student-handbook', vars.studentId] });
+      qc.invalidateQueries({ queryKey: ['kencana-mentor', 'student-score', vars.studentId] });
+    },
+  });
+};
+
+// ─── Mentor Groups ───
+export const useMentorGroupsQuery = (params = {}) => useQuery({
+  queryKey: ['kencana-mentor', 'groups', params],
+  queryFn: async () => asArray(unwrap(await api.get('/kencana-mentor/groups', { params }))),
+});
+
+export const useMentorGroupQuery = (id) => useQuery({
+  queryKey: ['kencana-mentor', 'groups', id],
+  queryFn: async () => unwrap(await api.get(`/kencana-mentor/groups/${id}`)),
+  enabled: !!id,
+});
+
+export const useMentorAddGroupMembersMutation = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ groupId, student_ids }) => unwrap(await api.post(`/kencana-mentor/groups/${groupId}/members`, { student_ids })),
+    onSuccess: (_, vars) => {
+      qc.invalidateQueries({ queryKey: ['kencana-mentor', 'groups', vars.groupId] });
+      qc.invalidateQueries({ queryKey: ['kencana-mentor', 'groups'] });
+    },
+  });
+};
+
+export const useMentorRemoveGroupMemberMutation = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ groupId, studentId }) => unwrap(await api.delete(`/kencana-mentor/groups/${groupId}/members/${studentId}`)),
+    onSuccess: (_, vars) => {
+      qc.invalidateQueries({ queryKey: ['kencana-mentor', 'groups', vars.groupId] });
+      qc.invalidateQueries({ queryKey: ['kencana-mentor', 'groups'] });
+    },
+  });
+};

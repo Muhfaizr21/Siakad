@@ -1,8 +1,8 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 
 export const statusLabels = {
-  not_started: 'Belum Mulai',
+  not_started: 'Belum Dikerjakan',
   in_progress: 'Sedang Berjalan',
   waiting_schedule: 'Menunggu Jadwal',
   completed: 'Selesai',
@@ -25,7 +25,39 @@ export function fmtDate(value) {
   return new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(value));
 }
 
-export function KencanaShell({ title, subtitle, actions, children }) {
+export function fmtTime(value) {
+  if (!value) return '-';
+  return new Intl.DateTimeFormat('id-ID', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+    timeZone: 'Asia/Jakarta'
+  }).format(new Date(value)) + ' WIB';
+}
+
+export function fmtLongDate(value) {
+  if (!value) return '-';
+  return new Intl.DateTimeFormat('id-ID', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric'
+  }).format(new Date(value));
+}
+
+export function isToday(value) {
+  if (!value) return false;
+  const d1 = new Date(value);
+  const d2 = new Date();
+  return d1.getDate() === d2.getDate() &&
+         d1.getMonth() === d2.getMonth() &&
+         d1.getFullYear() === d2.getFullYear();
+}
+
+export function KencanaShell({ title, subtitle, actions, breadcrumbs, children }) {
+  const { pathname } = useLocation();
+  const isDashboard = pathname === '/student/kencana';
+
   return (
     <div className="min-h-screen bg-[#f7f5ef] text-[#1d1b16] px-4 py-5 md:px-8 md:py-8">
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
@@ -33,13 +65,41 @@ export function KencanaShell({ title, subtitle, actions, children }) {
         <div className="absolute top-56 -left-24 h-72 w-72 rounded-full bg-[#0f4c5c]/10 blur-3xl" />
       </div>
       <div className="relative max-w-7xl mx-auto space-y-6">
-        <header className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-          <div>
-            <Link to="/student/kencana" className="text-xs font-black uppercase tracking-[0.3em] text-[#0f4c5c]">Kencana Mahasiswa</Link>
-            <h1 className="mt-2 text-3xl md:text-4xl font-black tracking-tight text-[#1d1b16]">{title}</h1>
-            {subtitle && <p className="mt-2 max-w-2xl text-sm font-medium text-[#6f6759] leading-relaxed">{subtitle}</p>}
+        <header className="space-y-3">
+          {/* Active Breadcrumb Navigation */}
+          <nav className="flex items-center gap-1.5 text-xs font-bold text-[#8d826d] flex-wrap">
+            <Link to="/student" className="hover:text-[#0f4c5c] transition-colors">Portal</Link>
+            <span>/</span>
+            <Link to="/student/kencana" className={`hover:text-[#0f4c5c] transition-colors ${isDashboard ? 'text-[#0f4c5c] font-black' : ''}`}>Kencana</Link>
+            
+            {breadcrumbs ? (
+              breadcrumbs.map((bc, i) => (
+                <React.Fragment key={i}>
+                  <span>/</span>
+                  {bc.to ? (
+                    <Link to={bc.to} className="hover:text-[#0f4c5c] transition-colors">{bc.label}</Link>
+                  ) : (
+                    <span className="text-[#1d1b16] font-black uppercase tracking-wider">{bc.label}</span>
+                  )}
+                </React.Fragment>
+              ))
+            ) : (
+              !isDashboard && (
+                <>
+                  <span>/</span>
+                  <span className="text-[#1d1b16] font-black uppercase tracking-wider">{title}</span>
+                </>
+              )
+            )}
+          </nav>
+
+          <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between mt-1">
+            <div>
+              <h1 className="text-3xl md:text-4xl font-black tracking-tight text-[#1d1b16]">{title}</h1>
+              {subtitle && <p className="mt-2 max-w-2xl text-sm font-medium text-[#6f6759] leading-relaxed">{subtitle}</p>}
+            </div>
+            {actions && <div className="flex flex-wrap gap-2">{actions}</div>}
           </div>
-          {actions && <div className="flex flex-wrap gap-2">{actions}</div>}
         </header>
         {children}
       </div>

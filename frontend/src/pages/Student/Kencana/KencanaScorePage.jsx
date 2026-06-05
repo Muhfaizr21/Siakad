@@ -1,14 +1,30 @@
 import React from 'react';
-import { useKencanaScoreQuery } from '../../../queries/useKencanaQuery';
+import { useKencanaScoreQuery, useKencanaCertificateQuery } from '../../../queries/useKencanaQuery';
 import { ErrorPanel, KencanaShell, LoadingPanel, MetricCard, StatusBadge } from './components';
 
 export default function KencanaScorePage() {
   const { data, isLoading, isError } = useKencanaScoreQuery();
-  if (isLoading) return <KencanaShell title="Nilai Kencana"><LoadingPanel /></KencanaShell>;
-  if (isError) return <KencanaShell title="Nilai Kencana"><ErrorPanel message="Gagal memuat nilai." /></KencanaShell>;
+  const { data: certData } = useKencanaCertificateQuery();
+  
+  if (isLoading) return <KencanaShell title="Pasca-Kencana" breadcrumbs={[{ label: 'Rekap Nilai & Sertifikat' }]}><LoadingPanel /></KencanaShell>;
+  if (isError) return <KencanaShell title="Pasca-Kencana" breadcrumbs={[{ label: 'Rekap Nilai & Sertifikat' }]}><ErrorPanel message="Gagal memuat nilai." /></KencanaShell>;
   const score = data?.score || {};
   return (
-    <KencanaShell title="Nilai dan Kelulusan" subtitle="Nilai akhir = Kognitif 25% + Psikomotor 35% + Afektif 40%. Kehadiran dan handbook tetap menjadi syarat wajib.">
+    <KencanaShell title="Pasca-Kencana" subtitle="Rekapitulasi Nilai Akhir = Kognitif 25% + Psikomotor 35% + Afektif 40%." breadcrumbs={[{ label: 'Rekap Nilai & Sertifikat' }]}>
+      {certData?.status === 'published' && certData?.eligible && certData?.certificate?.file_url && (
+        <section className="mb-6 rounded-[2rem] bg-gradient-to-r from-blue-600 to-indigo-600 p-8 shadow-xl text-white flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="flex items-start gap-4">
+            <span className="material-symbols-outlined text-5xl text-blue-200">workspace_premium</span>
+            <div>
+              <h2 className="text-2xl font-black">Selamat! Anda Lulus Kencana</h2>
+              <p className="mt-2 text-sm font-medium text-blue-100 max-w-lg">Sertifikat kelulusan Anda telah diterbitkan resmi oleh Universitas. Gunakan sertifikat ini sebagai bukti kelulusan orientasi.</p>
+            </div>
+          </div>
+          <a href={certData.certificate.file_url} target="_blank" rel="noreferrer" className="flex items-center gap-2 rounded-2xl bg-white px-8 py-4 text-sm font-black text-blue-700 transition hover:bg-blue-50 shadow-lg hover:-translate-y-1 hover:shadow-xl shrink-0">
+            <span className="material-symbols-outlined">download</span> Unduh Sertifikat
+          </a>
+        </section>
+      )}
       <section className="grid gap-4 md:grid-cols-4">
         <MetricCard label="Kognitif" value={Number(score.cognitive_average || 0).toFixed(1)} hint="Bobot 25%" icon="quiz" />
         <MetricCard label="Psikomotor" value={Number(score.psychomotor_average || 0).toFixed(1)} hint="Bobot 35%" icon="construction" />

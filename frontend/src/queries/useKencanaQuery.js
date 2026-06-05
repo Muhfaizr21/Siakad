@@ -10,7 +10,6 @@ export const useKencanaDashboardQuery = (options = {}) => {
   return useQuery({
     queryKey: ['kencana', 'dashboard'],
     queryFn: async () => unwrap(await api.get('/kencana-student/dashboard')),
-    staleTime: 60 * 1000,
     retry: false,
     enabled: isKencanaPath(pathname) && (options.enabled ?? true),
   });
@@ -128,6 +127,14 @@ export const useRespondMentorInvitationMutation = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, action }) => unwrap(await api.post(`/kencana-student/mentor-invitations/${id}/respond`, { action })),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['kencana'] }),
+  });
+};
+
+export const useRespondGroupInvitationMutation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, action }) => unwrap(await api.post(`/kencana-student/group-invitations/${id}/respond`, { action })),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['kencana'] }),
   });
 };

@@ -131,11 +131,18 @@ import KencanaLayout from './pages/Kencana/components/KencanaLayout'
 import KencanaAdminDashboard from './pages/Kencana/Admin/Dashboard'
 import KencanaAdminPeriods from './pages/Kencana/Admin/Periods'
 import KencanaAdminStages from './pages/Kencana/Admin/Stages'
+import SessionContent from './pages/Kencana/Admin/SessionContent'
+import MaterialForm from './pages/Kencana/Admin/MaterialForm'
+import AssignmentForm from './pages/Kencana/Admin/AssignmentForm'
+import QuizForm from './pages/Kencana/Admin/QuizForm'
 import QuizBuilder from './pages/Kencana/Admin/QuizBuilder'
 import KencanaAdminParticipants from './pages/Kencana/Admin/Participants'
 import KencanaAdminScores from './pages/Kencana/Admin/Scores'
+import KencanaAdminSummary from './pages/Kencana/Admin/ScoreSummary'
 import KencanaAdminRemedials from './pages/Kencana/Admin/Remedials'
 import KencanaAdminCertificates from './pages/Kencana/Admin/Certificates'
+import KencanaAdminUniversitasGroup from './pages/Kencana/Admin/Groups'
+import KencanaAdminUniversitasGroupDetail from './pages/Kencana/Admin/GroupDetail'
 import KencanaAdminMentors from './pages/Kencana/Admin/Mentors'
 import KencanaFakultasDashboard from './pages/Kencana/Fakultas/Dashboard'
 import KencanaFakultDashboard from './pages/Kencana/Fakultas/Dashboard'
@@ -159,7 +166,9 @@ import KencanaMentorStudents from './pages/Kencana/Mentor/Students'
 import KencanaMentorAvailable from './pages/Kencana/Mentor/AvailableStudents'
 import KencanaMentorStudentDetail from './pages/Kencana/Mentor/StudentDetail'
 import KencanaMentorSettings from './pages/Kencana/Mentor/Settings'
-
+import KencanaMentorGroups from './pages/Kencana/Mentor/Groups'
+import KencanaMentorGroupDetail from './pages/Kencana/Mentor/GroupDetail'
+import KencanaMentorInvite from './pages/Kencana/Mentor/Invite'
 import NotFound from './pages/NotFound/NotFound'
 import { AuthProvider } from './context/AuthContext'
 import ProtectedRoute from './components/ProtectedRoute'
@@ -253,13 +262,29 @@ function App() {
                 <Route path="/kencana-admin" element={<ProtectedRoute allowedRoles={['kencana_admin', 'super_admin']}><KencanaLayout portalType="admin" /></ProtectedRoute>}>
                   <Route index element={<KencanaAdminDashboard />} />
                   <Route path="periods" element={<KencanaAdminPeriods />} />
+                  <Route path="timeline" element={<KencanaAdminPeriods />} />
                   <Route path="stages" element={<KencanaAdminStages />} />
+                  <Route path="pre-kencana" element={<KencanaAdminStages phaseType="pra_kencana" />} />
+                  <Route path="university" element={<KencanaAdminStages phaseType="kencana_universitas" />} />
+                  <Route path="faculty-stages" element={<KencanaFakultaskesStages />} />
+                  <Route path="faculty-stages/:facultyId" element={<KencanaFakultaskesStages />} />
+                  <Route path="faculty-stages/:facultyId/groups/:id" element={<KencanaAdminUniversitasGroupDetail />} />
                   <Route path="quiz/:id/builder" element={<QuizBuilder />} />
                   <Route path="participants" element={<KencanaAdminParticipants />} />
                   <Route path="scores" element={<KencanaAdminScores />} />
+                  <Route path="score-summary" element={<KencanaAdminSummary />} />
                   <Route path="remedials" element={<KencanaAdminRemedials />} />
                   <Route path="certificates" element={<KencanaAdminCertificates />} />
                   <Route path="mentors" element={<KencanaAdminMentors />} />
+                  <Route path="groups" element={<KencanaAdminUniversitasGroup />} />
+                  <Route path="groups/:id" element={<KencanaAdminUniversitasGroupDetail />} />
+                  <Route path="sessions/:sessionId/content" element={<SessionContent />} />
+                  <Route path="sessions/:sessionId/material/create" element={<MaterialForm />} />
+                  <Route path="sessions/:sessionId/material/:materialId/edit" element={<MaterialForm />} />
+                  <Route path="sessions/:sessionId/assignment/create" element={<AssignmentForm />} />
+                  <Route path="sessions/:sessionId/assignment/:assignmentId/edit" element={<AssignmentForm />} />
+                  <Route path="sessions/:sessionId/quiz/create" element={<QuizForm />} />
+                  <Route path="sessions/:sessionId/quiz/:quizId/edit" element={<QuizForm />} />
                 </Route>
 
                 {/* Kencana Fakul */}
@@ -284,9 +309,12 @@ function App() {
                 <Route path="/kencana-mentor" element={<ProtectedRoute allowedRoles={['kencana_mentor']}><KencanaLayout portalType="mentor" /></ProtectedRoute>}>
                   <Route index element={<KencanaMentorDashboard />} />
                   <Route path="students" element={<KencanaMentorStudents />} />
-                  <Route path="students/:id" element={<KencanaMentorStudentDetail />} />
+                  <Route path="students/:studentId" element={<KencanaMentorStudentDetail />} />
                   <Route path="available" element={<KencanaMentorAvailable />} />
+                  <Route path="invite" element={<KencanaMentorInvite />} />
                   <Route path="settings" element={<KencanaMentorSettings />} />
+                  <Route path="groups" element={<KencanaMentorGroups />} />
+                  <Route path="groups/:id" element={<KencanaMentorGroupDetail />} />
                 </Route>
 
                 {/* Faculty Admin */}

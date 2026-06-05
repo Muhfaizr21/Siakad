@@ -47,12 +47,12 @@ export default function KencanaKuisPage() {
 
   const fmt = (s) => `${String(Math.floor((s || 0) / 60)).padStart(2, '0')}:${String((s || 0) % 60).padStart(2, '0')}`;
 
-  if (isLoading) return <KencanaShell title="Quiz Kencana"><LoadingPanel /></KencanaShell>;
-  if (isError) return <KencanaShell title="Quiz Kencana"><ErrorPanel message="Quiz tidak ditemukan atau belum tersedia." /></KencanaShell>;
+  if (isLoading) return <KencanaShell title="Quiz Kencana" breadcrumbs={[{ label: 'Timeline', to: '/student/kencana/timeline' }, { label: 'Quiz' }]}><LoadingPanel /></KencanaShell>;
+  if (isError) return <KencanaShell title="Quiz Kencana" breadcrumbs={[{ label: 'Timeline', to: '/student/kencana/timeline' }, { label: 'Quiz' }]}><ErrorPanel message="Quiz tidak ditemukan atau belum tersedia." /></KencanaShell>;
 
   if (result) {
     return (
-      <KencanaShell title="Hasil Quiz" subtitle="Nilai quiz otomatis masuk ke komponen kognitif.">
+      <KencanaShell title="Hasil Quiz" subtitle="Nilai quiz otomatis masuk ke komponen kognitif." breadcrumbs={[{ label: 'Timeline', to: '/student/kencana/timeline' }, { label: 'Hasil Quiz' }]}>
         <section className="mx-auto max-w-xl rounded-[2rem] border border-[#e8dfcf] bg-white p-8 text-center shadow-sm">
           <div className="mx-auto grid size-20 place-items-center rounded-full bg-emerald-100 text-emerald-700"><span className="material-symbols-outlined" style={{ fontSize: 42 }}>check_circle</span></div>
           <h2 className="mt-5 text-3xl font-black">Nilai Quiz: {Number(result.score || result.nilai || 0).toFixed(1)}</h2>
@@ -66,7 +66,7 @@ export default function KencanaKuisPage() {
 
   if (!attempt) {
     return (
-      <KencanaShell title={data?.title || 'Quiz Kencana'} subtitle={data?.description}>
+      <KencanaShell title={data?.title || 'Quiz Kencana'} subtitle={data?.description} breadcrumbs={[{ label: 'Timeline', to: '/student/kencana/timeline' }, { label: data?.title || 'Quiz' }]}>
         <section className="rounded-[2rem] border border-[#e8dfcf] bg-white/85 p-6 shadow-sm">
           <StatusBadge status={data?.can_start ? 'active' : 'locked'} />
           <h2 className="mt-4 text-2xl font-black">Instruksi Quiz</h2>
@@ -77,7 +77,23 @@ export default function KencanaKuisPage() {
             <Mini label="Percobaan" value={`${data?.attempts_used}/${data?.max_attempts}`} />
             <Mini label="Nilai" value={data?.show_score ? 'Tampil' : 'Ditahan'} />
           </div>
-          {data?.lock_reason && <p className="mt-4 rounded-2xl bg-amber-50 p-4 text-sm font-bold text-amber-800">{data.lock_reason}</p>}
+
+          <div className="mt-6 grid grid-cols-2 gap-4 border-t border-[#e8dfcf] pt-6">
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-widest text-[#9b8f7a]">Waktu Dibuka</p>
+              <p className="text-sm font-black text-[#3d3529]">
+                {data?.open_at ? new Date(data.open_at).toLocaleString('id-ID', { dateStyle: 'long', timeStyle: 'short' }) : 'Tidak dibatasi'}
+              </p>
+            </div>
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-widest text-[#9b8f7a]">Waktu Ditutup (Tenggat)</p>
+              <p className="text-sm font-black text-[#3d3529]">
+                {data?.close_at ? new Date(data.close_at).toLocaleString('id-ID', { dateStyle: 'long', timeStyle: 'short' }) : 'Tidak dibatasi'}
+              </p>
+            </div>
+          </div>
+
+          {data?.lock_reason && <p className="mt-6 rounded-2xl bg-amber-50 p-4 text-sm font-bold text-amber-800">{data.lock_reason}</p>}
           <div className="mt-6"><PrimaryButton onClick={handleStart} disabled={!data?.can_start || startQuiz.isPending}>Mulai Quiz</PrimaryButton></div>
         </section>
       </KencanaShell>
@@ -85,7 +101,7 @@ export default function KencanaKuisPage() {
   }
 
   return (
-    <KencanaShell title={data?.title || 'Quiz Kencana'} subtitle={`Sisa waktu ${fmt(timeLeft)} · ${Object.keys(answers).length}/${questions.length} soal terjawab`}>
+    <KencanaShell title={data?.title || 'Quiz Kencana'} subtitle={`Sisa waktu ${fmt(timeLeft)} · ${Object.keys(answers).length}/${questions.length} soal terjawab`} breadcrumbs={[{ label: 'Timeline', to: '/student/kencana/timeline' }, { label: data?.title || 'Quiz' }]}>
       <section className="space-y-4">
         {questions.map((q, idx) => (
           <article key={q.id} className="rounded-3xl border border-[#e8dfcf] bg-white/85 p-6 shadow-sm">

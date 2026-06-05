@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import api from '../lib/axios';
 
 const unwrap = (res) => res.data?.data ?? res.data;
+const unwrapPaginated = (res) => res.data;
 
 // ─── Periods ───
 export const usePeriodsQuery = () => useQuery({
@@ -25,10 +26,48 @@ export const useUpdatePeriodMutation = () => {
   });
 };
 
+export const useUploadMediaMutation = () => {
+  return useMutation({
+    mutationFn: async (formData) => unwrap(await api.post('/kencana-admin/upload', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })),
+  });
+};
+
+export const usePeriodPhasesQuery = (periodId) => useQuery({
+  queryKey: ['kencana-admin', 'period-phases', periodId],
+  queryFn: async () => unwrap(await api.get(`/kencana-admin/periods/${periodId}/phases`)),
+  enabled: !!periodId,
+});
+
+export const useUpdateUniversityPhaseMutation = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ periodId, action }) => unwrap(await api.post(`/kencana-admin/periods/${periodId}/university/${action}`)),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['kencana-admin'] }),
+  });
+};
+
+export const useOpenFacultyPhasesMutation = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (periodId) => unwrap(await api.post(`/kencana-admin/periods/${periodId}/faculty/open`)),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['kencana-admin'] }),
+  });
+};
+
+export const useUpdateTimelinePhaseMutation = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ periodId, phaseType, ...payload }) => unwrap(await api.put(`/kencana-admin/periods/${periodId}/timeline/${phaseType}`, payload)),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['kencana-admin'] }),
+  });
+};
+
 // ─── Stages ───
-export const useStagesQuery = (periodId) => useQuery({
-  queryKey: ['kencana-admin', 'stages', periodId],
-  queryFn: async () => unwrap(await api.get('/kencana-admin/stages', { params: { period_id: periodId } })),
+export const useStagesQuery = (periodId, params = {}) => useQuery({
+  queryKey: ['kencana-admin', 'stages', periodId, params],
+  queryFn: async () => unwrap(await api.get('/kencana-admin/stages', { params: { period_id: periodId, ...params } })),
   enabled: !!periodId,
 });
 
@@ -50,16 +89,27 @@ export const useUpdateStageMutation = () => {
 
 // ─── Sessions ───
 export const useSessionsQuery = (stageId) => useQuery({
-  queryKey: ['kencana-admin', 'sessions', stageId],
-  queryFn: async () => unwrap(await api.get('/kencana-admin/sessions', { params: { stage_id: stageId } })),
-  enabled: !!stageId,
+  queryKey: ['kencana-admin', 'sessions', 'stage', stageId],
+  queryFn: async () => unwrap(await api.get('/kencana-admin/sessions', stageId ? { params: { stage_id: stageId } } : {})),
+});
+
+export const useSessionsByPeriodQuery = (periodId, scopeType) => useQuery({
+  queryKey: ['kencana-admin', 'sessions', 'period', periodId, scopeType],
+  queryFn: async () => unwrap(await api.get('/kencana-admin/sessions', { params: { period_id: periodId, scope_type: scopeType } })),
+  enabled: !!periodId,
+});
+
+export const useSessionDetailQuery = (sessionId) => useQuery({
+  queryKey: ['kencana-admin', 'session', sessionId],
+  queryFn: async () => unwrap(await api.get(`/kencana-admin/sessions/${sessionId}`)),
+  enabled: !!sessionId,
 });
 
 export const useCreateSessionMutation = () => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (payload) => unwrap(await api.post('/kencana-admin/sessions', payload)),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['kencana-admin', 'sessions'] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['kencana-admin'] }),
   });
 };
 
@@ -67,7 +117,8 @@ export const useUpdateSessionMutation = () => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, ...payload }) => unwrap(await api.put(`/kencana-admin/sessions/${id}`, payload)),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['kencana-admin', 'sessions'] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['kencana-admin'] }),
+    onError: (err) => alert('Gagal edit sesi: ' + (err.response?.data?.message || err.message)),
   });
 };
 
@@ -80,10 +131,52 @@ export const useCreateMaterialMutation = () => {
   });
 };
 
-export const useCreateQuizMutation = () => {
+export const useUploadMaterialMutation = () => {
   const qc = useQueryClient();
   return useMutation({
+    mutationFn: async (formData) => unwrap(await api.post('/kencana-admin/materials/upload', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    })),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['kencana-admin'] }),
+  });
+};
+
+export const useUpdateMaterialMutation = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, ...payload }) => unwrap(await api.put(`/kencana-admin/materials/${id}`, payload)),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['kencana-admin'] }),
+  });
+};
+
+export const useDeleteMaterialMutation = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id) => unwrap(await api.delete(`/kencana-admin/materials/${id}`)),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['kencana-admin'] }),
+  });
+};
+
+export const useCreateQuizMutation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
     mutationFn: async (payload) => unwrap(await api.post('/kencana-admin/quizzes', payload)),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['kencana-admin', 'sessions'] }),
+  });
+};
+
+export const useUpdateQuizMutation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, ...payload }) => unwrap(await api.put(`/kencana-admin/quizzes/${id}`, payload)),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['kencana-admin', 'sessions'] }),
+  });
+};
+
+export const useDeleteQuizMutation = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id) => unwrap(await api.delete(`/kencana-admin/quizzes/${id}`)),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['kencana-admin'] }),
   });
 };
@@ -118,18 +211,95 @@ export const useCreateAssignmentMutation = () => {
   });
 };
 
+export const useUpdateAssignmentMutation = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, ...payload }) => unwrap(await api.put(`/kencana-admin/assignments/${id}`, payload)),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['kencana-admin'] }),
+  });
+};
+
+export const useDeleteAssignmentMutation = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id) => unwrap(await api.delete(`/kencana-admin/assignments/${id}`)),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['kencana-admin'] }),
+  });
+};
+
+// ─── Score Items ───
+export const useAdminScoreItemsQuery = (params = {}) => useQuery({
+  queryKey: ['kencana-admin', 'score-items', params],
+  queryFn: async () => unwrap(await api.get('/kencana-admin/score-items', { params })),
+  enabled: !!(params.student_id),
+});
+
+export const useUpsertScoreItemMutation = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (payload) => unwrap(await api.post('/kencana-admin/score-items', payload)),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['kencana-admin', 'score-items'] }),
+  });
+};
+
+export const useBulkUpsertScoreItemsMutation = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (payload) => unwrap(await api.post('/kencana-admin/score-items/bulk', payload)),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['kencana-admin', 'score-items'] });
+      qc.invalidateQueries({ queryKey: ['kencana-admin', 'scores'] });
+    },
+  });
+};
+
+export const useCalculateAllScoresMutation = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (params = {}) => unwrap(await api.post('/kencana-admin/scores/calculate', null, { params })),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['kencana-admin', 'scores'] }),
+  });
+};
+
 // ─── Participants & Scores ───
 export const useParticipantsQuery = (params = {}) => useQuery({
   queryKey: ['kencana-admin', 'participants', params],
-  queryFn: async () => unwrap(await api.get('/kencana-admin/participants', { params })),
+  queryFn: async () => unwrapPaginated(await api.get('/kencana-admin/participants', { params })),
 });
 
 export const useScoresQuery = (params = {}) => useQuery({
   queryKey: ['kencana-admin', 'scores', params],
-  queryFn: async () => unwrap(await api.get('/kencana-admin/scores', { params })),
+  queryFn: async () => unwrapPaginated(await api.get('/kencana-admin/scores', { params })),
 });
 
 // ─── Remedials & Certificates ───
+export const useRemedialsQuery = (params = {}) => useQuery({
+  queryKey: ['kencana-admin', 'remedials', params],
+  queryFn: async () => unwrapPaginated(await api.get('/kencana-admin/remedials', { params })),
+});
+
+export const useCertificatesQuery = (params = {}) => useQuery({
+  queryKey: ['kencana-admin', 'certificates', params],
+  queryFn: async () => unwrapPaginated(await api.get('/kencana-admin/certificates', { params })),
+});
+
+export const useFakultasListQuery = () => useQuery({
+  queryKey: ['public', 'fakultas-list'],
+  queryFn: async () => unwrap(await api.get('/kencana-admin/faculties')),
+});
+
+export const useProgramStudiListQuery = (fakultasId) => useQuery({
+  queryKey: ['public', 'program-studi-list', fakultasId],
+  queryFn: async () => {
+    const res = await api.get('/kencana-admin/majors');
+    const data = unwrap(res) || [];
+    if (fakultasId && fakultasId !== 'all') {
+      return data.filter(m => String(m.fakultas_id) === String(fakultasId));
+    }
+    return data;
+  },
+});
+
 export const useCreateRemedialMutation = () => {
   const qc = useQueryClient();
   return useMutation({
@@ -175,6 +345,66 @@ export const useDeleteMentorMutation = (portal = 'admin') => {
   return useMutation({
     mutationFn: async (id) => unwrap(await api.delete(`${kencanaBase(portal)}/mentors/${id}`)),
     onSuccess: () => qc.invalidateQueries({ queryKey: [`kencana-${portal}`, 'mentors'] }),
+  });
+};
+
+// ─── Groups ───
+export const useGroupsQuery = (params = {}, portal = 'admin') => useQuery({
+  queryKey: [`kencana-${portal}`, 'groups', params],
+  queryFn: async () => unwrap(await api.get(`${kencanaBase(portal)}/groups`, { params })),
+});
+
+export const useGroupQuery = (id, portal = 'admin') => useQuery({
+  queryKey: [`kencana-${portal}`, 'groups', id],
+  queryFn: async () => unwrap(await api.get(`${kencanaBase(portal)}/groups/${id}`)),
+  enabled: !!id,
+});
+
+export const useCreateGroupMutation = (portal = 'admin') => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (payload) => unwrap(await api.post(`${kencanaBase(portal)}/groups`, payload)),
+    onSuccess: () => qc.invalidateQueries({ queryKey: [`kencana-${portal}`, 'groups'] }),
+  });
+};
+
+export const useUpdateGroupMutation = (portal = 'admin') => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, ...payload }) => unwrap(await api.put(`${kencanaBase(portal)}/groups/${id}`, payload)),
+    onSuccess: () => qc.invalidateQueries({ queryKey: [`kencana-${portal}`, 'groups'] }),
+  });
+};
+
+export const useDeleteGroupMutation = (portal = 'admin') => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id) => unwrap(await api.delete(`${kencanaBase(portal)}/groups/${id}`)),
+    onSuccess: () => qc.invalidateQueries({ queryKey: [`kencana-${portal}`, 'groups'] }),
+  });
+};
+
+export const useAddGroupMembersMutation = (portal = 'admin') => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ groupId, student_ids }) => unwrap(await api.post(`${kencanaBase(portal)}/groups/${groupId}/members`, { student_ids })),
+    onSuccess: () => qc.invalidateQueries({ queryKey: [`kencana-${portal}`, 'groups'] }),
+  });
+};
+
+export const useRemoveGroupMemberMutation = (portal = 'admin') => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ groupId, studentId }) => unwrap(await api.delete(`${kencanaBase(portal)}/groups/${groupId}/members/${studentId}`)),
+    onSuccess: () => qc.invalidateQueries({ queryKey: [`kencana-${portal}`, 'groups'] }),
+  });
+};
+
+export const useAutoAssignGroupsMutation = (portal = 'admin') => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (payload) => unwrap(await api.post(`${kencanaBase(portal)}/groups/auto-assign`, payload)),
+    onSuccess: () => qc.invalidateQueries({ queryKey: [`kencana-${portal}`, 'groups'] }),
   });
 };
 

@@ -34,6 +34,7 @@ func migrateModels(db *gorm.DB) error {
 		&models.BeritaAcaraPemeriksaan{},
 		&models.SelfScreening{},
 		&models.RujukanKesehatan{},
+		&models.ThemeSettings{},
 	); err != nil {
 		return err
 	}
@@ -141,6 +142,8 @@ func migrateModels(db *gorm.DB) error {
 	// ========================
 	if err := db.AutoMigrate(
 		&models.KencanaPeriod{},
+		&models.KencanaTimelinePhase{},
+		&models.KencanaFacultyPhase{},
 		&models.KencanaStage{},
 		&models.KencanaSession{},
 		&models.KencanaMaterial{},
@@ -157,6 +160,8 @@ func migrateModels(db *gorm.DB) error {
 		&models.KencanaScore{},
 		&models.KencanaScoreItem{},
 		&models.KencanaMentor{},
+		&models.KencanaGroup{},
+		&models.KencanaGroupMember{},
 		&models.KencanaMentorAssignment{},
 		&models.KencanaRemedial{},
 		&models.KencanaCertificate{},

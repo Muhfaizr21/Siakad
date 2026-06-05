@@ -1,6 +1,7 @@
 package kencana
 
 import (
+	"fmt"
 	"math"
 	"siakad-backend/config"
 	"siakad-backend/models"
@@ -42,11 +43,20 @@ func currentStudent(c *fiber.Ctx) (*models.Mahasiswa, error) {
 
 func activePeriod(db *gorm.DB) (*models.KencanaPeriod, error) {
 	var period models.KencanaPeriod
+	// 1. Cari yang active atau published terlebih dahulu
 	err := db.Where("status IN ?", []string{"active", "published"}).Order("start_date desc nulls last, created_at desc").First(&period).Error
-	if err != nil {
+	if err == nil {
+		return &period, nil
+	}
+	if err != gorm.ErrRecordNotFound {
 		return nil, err
 	}
-	return &period, nil
+	// 2. Jika tidak ada, pakai periode terbaru yang ada di database (meskipun draft)
+	err = db.Order("created_at desc").First(&period).Error
+	if err == nil {
+		return &period, nil
+	}
+	return nil, err
 }
 
 func ensureDemoPeriod(db *gorm.DB, student *models.Mahasiswa) (*models.KencanaPeriod, error) {
@@ -62,12 +72,13 @@ func ensureDemoPeriod(db *gorm.DB, student *models.Mahasiswa) (*models.KencanaPe
 	start := now.AddDate(0, 0, -3)
 	end := now.AddDate(0, 1, 0)
 	period = &models.KencanaPeriod{
-		Name:        "Kencana " + time.Now().Format("2006"),
-		Year:        now.Year(),
-		Description: "Periode orientasi dan pembinaan mahasiswa baru.",
-		StartDate:   &start,
-		EndDate:     &end,
-		Status:      "active",
+		Name:                  "Kencana " + time.Now().Format("2006"),
+		Year:                  now.Year(),
+		Description:           "Periode orientasi dan pembinaan mahasiswa baru.",
+		StartDate:             &start,
+		EndDate:               &end,
+		Status:                "active",
+		UniversityPhaseStatus: "active",
 	}
 
 	if err := db.Transaction(func(tx *gorm.DB) error {
@@ -187,7 +198,17 @@ func seedDemoKencana(tx *gorm.DB, period *models.KencanaPeriod, student *models.
 }
 
 func studentVisibleStages(db *gorm.DB, periodID uint, student *models.Mahasiswa) *gorm.DB {
-	return db.Where("period_id = ? AND is_published = ? AND (fakultas_id IS NULL OR fakultas_id = ?)", periodID, true, student.FakultasID)
+	return db.Joins("LEFT JOIN mahasiswa.kencana_faculty_phases kfp ON kfp.period_id = mahasiswa.kencana_stages.period_id AND kfp.fakultas_id = mahasiswa.kencana_stages.fakultas_id").
+		Where(`mahasiswa.kencana_stages.period_id = ?
+			AND mahasiswa.kencana_stages.is_published = ?
+			AND (
+				mahasiswa.kencana_stages.fakultas_id IS NULL
+				OR (
+					mahasiswa.kencana_stages.fakultas_id = ?
+					AND kfp.status IN ?
+					AND kfp.is_published = ?
+				)
+			)`, periodID, true, student.FakultasID, []string{"active", "completed"}, true)
 }
 
 func average(values []float64) float64 {
@@ -217,7 +238,7 @@ func calculateAndStoreScore(db *gorm.DB, periodID, studentID uint) (*models.Kenc
 	aff := roundScore(average(components["affective"]))
 	final := roundScore(cog*0.25 + psy*0.35 + aff*0.40)
 	now := time.Now()
-	status, blockers := graduationStatus(db, periodID, studentID, final)
+	status, blockers := graduationStatus(db, periodID, studentID, final, items)
 	score := models.KencanaScore{
 		PeriodID: periodID, StudentID: studentID,
 		CognitiveAverage: cog, PsychomotorAverage: psy, AffectiveAverage: aff,
@@ -239,32 +260,113 @@ func calculateAndStoreScore(db *gorm.DB, periodID, studentID uint) (*models.Kenc
 	} else {
 		return nil, nil, err
 	}
+
+	// Auto-manage remedial status based on final calculated status
+	if status == statusNotEligible || status == statusConditionalPass || status == statusRemedial {
+		var remedial models.KencanaRemedial
+		if err := db.Where("period_id = ? AND student_id = ? AND status IN ?", periodID, studentID, []string{"open", "in_progress"}).First(&remedial).Error; err != nil {
+			if err == gorm.ErrRecordNotFound {
+				db.Create(&models.KencanaRemedial{
+					PeriodID:  periodID,
+					StudentID: studentID,
+					Reason:    strings.Join(blockers, "; "),
+					Status:    "open",
+					OpenedAt:  &now,
+				})
+			}
+		} else {
+			remedial.Reason = strings.Join(blockers, "; ")
+			db.Save(&remedial)
+		}
+	} else if status == statusPassed {
+		var remedial models.KencanaRemedial
+		if err := db.Where("period_id = ? AND student_id = ? AND status IN ?", periodID, studentID, []string{"open", "in_progress"}).First(&remedial).Error; err == nil {
+			remedial.Status = "completed"
+			remedial.ClosedAt = &now
+			remedial.Reason = "Lulus otomatis setelah perbaikan nilai"
+			db.Save(&remedial)
+		}
+		var cert models.KencanaCertificate
+		if err := db.Where("period_id = ? AND student_id = ?", periodID, studentID).First(&cert).Error; err != nil {
+			if err == gorm.ErrRecordNotFound {
+				db.Create(&models.KencanaCertificate{
+					PeriodID:          periodID,
+					StudentID:         studentID,
+					CertificateNumber: fmt.Sprintf("KNC-%d-%d", periodID, studentID),
+					Status:            "not_available",
+				})
+			}
+		}
+	}
+
 	return &score, blockers, nil
 }
 
-func graduationStatus(db *gorm.DB, periodID, studentID uint, finalScore float64) (string, []string) {
+func graduationStatus(db *gorm.DB, periodID, studentID uint, finalScore float64, items []models.KencanaScoreItem) (string, []string) {
 	blockers := []string{}
-	attendance := attendanceSummary(db, periodID, studentID)
-	if attendance.RequiredSessions > 0 && attendance.Percentage < 100 {
-		blockers = append(blockers, "Kehadiran belum 100%")
+	
+	var period models.KencanaPeriod
+	db.First(&period, periodID)
+	passingGrade := period.PassingGrade
+	if passingGrade == 0 {
+		passingGrade = 75 // Fallback
 	}
-	var handbook models.KencanaHandbook
-	if err := db.Where("period_id = ? AND student_id = ?", periodID, studentID).First(&handbook).Error; err != nil || handbook.Status != "approved" {
-		blockers = append(blockers, "Handbook belum disetujui")
+	remedialGrade := period.RemedialGrade
+	if remedialGrade == 0 {
+		remedialGrade = 50 // Fallback
 	}
-	if finalScore < 75 {
-		blockers = append(blockers, "Nilai akhir masih di bawah 75")
+	
+	// Check overrides
+	var kehadiranOverride bool
+	var handbookOverride bool
+
+	for _, item := range items {
+		comp := strings.ToLower(item.Component)
+		if comp == "requirements" {
+			if strings.ToLower(item.ItemName) == "keluar" && item.Score > 0 {
+				return "dropped_out", []string{"Mahasiswa berstatus Keluar (Manual Override)"}
+			}
+			if strings.ToLower(item.ItemName) == "kehadiran" && item.Score > 0 {
+				kehadiranOverride = true
+			}
+		}
+		if (comp == "cognitive" || comp == "requirements" || comp == "cognitive_static") && strings.ToLower(item.ItemName) == "handbook" && item.Score > 0 {
+			handbookOverride = true
+		}
 	}
-	var remedialCount int64
-	db.Model(&models.KencanaRemedial{}).Where("period_id = ? AND student_id = ? AND status IN ?", periodID, studentID, []string{"open", "in_progress"}).Count(&remedialCount)
-	if remedialCount > 0 {
-		return statusRemedial, blockers
+
+	if !kehadiranOverride {
+		attendance := attendanceSummary(db, periodID, studentID)
+		if attendance.RequiredSessions > 0 && attendance.Percentage < 100 {
+			blockers = append(blockers, "Kehadiran belum 100%")
+		}
 	}
-	if len(blockers) == 0 && finalScore >= 75 {
+
+	if !handbookOverride {
+		var handbook models.KencanaHandbook
+		if err := db.Where("period_id = ? AND student_id = ?", periodID, studentID).First(&handbook).Error; err != nil || handbook.Status != "approved" {
+			blockers = append(blockers, "Handbook belum disetujui")
+		}
+	}
+
+	if finalScore < passingGrade {
+		blockers = append(blockers, fmt.Sprintf("Nilai akhir masih di bawah %.0f", passingGrade))
+	}
+
+	// Jika tidak ada blocker dan nilai cukup → LULUS (remedial lama akan ditutup oleh caller)
+	if len(blockers) == 0 && finalScore >= passingGrade {
 		return statusPassed, blockers
 	}
-	if finalScore > 0 && finalScore < 75 {
+
+	if len(blockers) == 0 && finalScore >= passingGrade {
+		return statusPassed, blockers
+	}
+
+	if finalScore >= remedialGrade && finalScore < passingGrade {
 		return statusConditionalPass, blockers
+	}
+	if finalScore > 0 && finalScore < passingGrade {
+		return statusNotEligible, blockers
 	}
 	if finalScore == 0 {
 		return statusInProgress, blockers
@@ -305,9 +407,16 @@ func attendanceSummary(db *gorm.DB, periodID, studentID uint) attendanceInfo {
 
 func activeMentorForStudent(periodID uint, studentID uint) fiber.Map {
 	var assignment models.KencanaMentorAssignment
-	if err := config.DB.Preload("Mentor").Preload("Mentor.Fakultas").First(&assignment, "period_id = ? AND student_id = ? AND status = ?", periodID, studentID, "active").Error; err != nil {
-		return nil
+	if err := config.DB.Preload("Mentor").Preload("Mentor.Fakultas").First(&assignment, "period_id = ? AND student_id = ? AND status = ?", periodID, studentID, "active").Error; err == nil {
+		mentor := assignment.Mentor
+		return fiber.Map{"id": mentor.ID, "name": mentor.Name, "email": mentor.Email, "phone": mentor.Phone, "scope_type": mentor.ScopeType, "fakultas": mentor.Fakultas}
 	}
-	mentor := assignment.Mentor
-	return fiber.Map{"id": mentor.ID, "name": mentor.Name, "email": mentor.Email, "phone": mentor.Phone, "scope_type": mentor.ScopeType, "fakultas": mentor.Fakultas}
+
+	var groupMember models.KencanaGroupMember
+	if err := config.DB.Preload("Group").Preload("Group.Mentor").Preload("Group.Mentor.Fakultas").First(&groupMember, "period_id = ? AND student_id = ? AND status = ?", periodID, studentID, "active").Error; err == nil && groupMember.Group.Mentor != nil {
+		mentor := *groupMember.Group.Mentor
+		return fiber.Map{"id": mentor.ID, "name": mentor.Name, "email": mentor.Email, "phone": mentor.Phone, "scope_type": mentor.ScopeType, "fakultas": mentor.Fakultas}
+	}
+
+	return nil
 }
