@@ -58,6 +58,10 @@ func SetupOrmawaRoutes(app *fiber.App) {
 	api.Put("/members/:id", ormawa.UpdateMember)
 	api.Delete("/members/:id", ormawa.DeleteMember)
 
+	// MEMBER ROLE ASSIGNMENT (Admin Ormawa only)
+	api.Post("/members/:id/assign-role", ormawa.AssignPengurusRole)
+	api.Post("/members/:id/revoke-role", ormawa.RevokePengurusRole)
+
 	// LOOKUPS
 	api.Get("/students", ormawa.GetStudentsLookup)
 

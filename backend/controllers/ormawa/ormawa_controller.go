@@ -1646,4 +1646,277 @@ func syncUserOrmawaRole(studentID uint) {
 	} else {
 		fmt.Printf("[syncUserOrmawaRole] Successfully synced user %d role to %s and ormawa_id to %v\n", user.ID, newRoleStr, ormawaIDPtr)
 	}
+
+
+// ==========================================
+// ROLE ASSIGNMENT (Admin Ormawa only)
+// ==========================================
+
+// AssignPengurusRole memungkinkan admin ormawa assign role "pengurus_ormawa" ke mahasiswa
+func AssignPengurusRole(c *fiber.Ctx) error {
+	type AssignRequest struct {
+		MemberID uint   `json:"memberId"`
+		Reason   string `json:"reason"`
+	}
+
+	var req AssignRequest
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Format data tidak valid"})
+	}
+
+	// 1. Validate request
+	if req.MemberID == 0 {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "memberId wajib diisi"})
+	}
+
+	// 2. Get assigner info (admin ormawa)
+	assignerID := c.Locals("user_id").(uint)
+	assignerRole := c.Locals("role").(string)
+	ormawaID := c.Locals("ormawa_id")
+
+	// 3. Validate assigner adalah admin_ormawa
+	if assignerRole != "admin_ormawa" {
+		return c.Status(403).JSON(fiber.Map{
+			"status":  "error",
+			"message": "Hanya admin_ormawa yang dapat assign role pengurus_ormawa",
+		})
+	}
+
+	if ormawaID == nil || ormawaID == uint(0) {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Ormawa context missing"})
+	}
+
+	ormawaIDValue := ormawaID.(uint)
+
+	// 4. Get member (OrmawaAnggota)
+	var member models.OrmawaAnggota
+	if err := config.DB.
+		Preload("Mahasiswa").
+		Preload("Mahasiswa.Pengguna").
+		Where("id = ? AND ormawa_id = ?", req.MemberID, ormawaIDValue).
+		First(&member).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Member tidak ditemukan di organisasi ini"})
+	}
+
+	if member.MahasiswaID == 0 {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Member tidak memiliki profile mahasiswa"})
+	}
+
+	// 5. Get user account untuk member
+	if member.Mahasiswa.Pengguna.ID == 0 {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Member tidak memiliki akun pengguna"})
+	}
+
+	targetUser := member.Mahasiswa.Pengguna
+	targetUserID := targetUser.ID
+
+	// 6. Check if user sudah punya role pengurus_ormawa
+	existingRoles := strings.Split(targetUser.Role, ",")
+	for _, r := range existingRoles {
+		if strings.ToLower(strings.TrimSpace(r)) == "pengurus_ormawa" {
+			return c.Status(400).JSON(fiber.Map{
+				"status":  "error",
+				"message": "Member sudah memiliki role pengurus_ormawa",
+			})
+		}
+	}
+
+	// 7. Check role conflict
+	newRoles := append(existingRoles, "pengurus_ormawa")
+	if hasRoleConflict(newRoles) {
+		return c.Status(400).JSON(fiber.Map{
+			"status":  "error",
+			"message": "Kombinasi role tidak valid - member memiliki role yang conflict dengan pengurus_ormawa",
+		})
+	}
+
+	// 8. Assign role (update User.Role)
+	err := config.DB.Transaction(func(tx *gorm.DB) error {
+		// Build new role string
+		var newRole string
+		if targetUser.Role == "" || targetUser.Role == "mahasiswa" {
+			newRole = "mahasiswa,pengurus_ormawa"
+		} else {
+			newRole = targetUser.Role + ",pengurus_ormawa"
+		}
+
+		// Update user role
+		if err := tx.Exec(
+			"UPDATE public.users SET role = ?, updated_at = ? WHERE id = ?",
+			newRole,
+			time.Now(),
+			targetUserID,
+		).Error; err != nil {
+			return err
+		}
+
+		// Log audit trail
+		audit := models.LogAktivitas{
+			UserID:     assignerID,
+			Aktivitas:  "ROLE_ASSIGNMENT",
+			Deskripsi:  fmt.Sprintf("Admin Ormawa %d assign role 'pengurus_ormawa' to member %s (%d) - Reason: %s", assignerID, targetUser.Email, targetUserID, req.Reason),
+			IPAddress:  c.IP(),
+		}
+		if err := tx.Create(&audit).Error; err != nil {
+			// Log error but don't fail transaction
+			fmt.Printf("Warning: Failed to create audit log: %v\n", err)
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{
+			"status":  "error",
+			"message": "Gagal assign role: " + err.Error(),
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"status":  "success",
+		"message": fmt.Sprintf("Role 'pengurus_ormawa' berhasil di-assign ke %s", targetUser.Email),
+		"data": fiber.Map{
+			"member_id": req.MemberID,
+			"user_id":   targetUserID,
+			"email":     targetUser.Email,
+			"new_role":  "mahasiswa,pengurus_ormawa",
+		},
+	})
+}
+
+// RevokePengurusRole memungkinkan admin ormawa revoke role "pengurus_ormawa"
+func RevokePengurusRole(c *fiber.Ctx) error {
+	type RevokeRequest struct {
+		MemberID uint   `json:"memberId"`
+		Reason   string `json:"reason"`
+	}
+
+	var req RevokeRequest
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Format data tidak valid"})
+	}
+
+	// 1. Validate assigner
+	assignerID := c.Locals("user_id").(uint)
+	assignerRole := c.Locals("role").(string)
+	ormawaID := c.Locals("ormawa_id")
+
+	if assignerRole != "admin_ormawa" {
+		return c.Status(403).JSON(fiber.Map{
+			"status":  "error",
+			"message": "Hanya admin_ormawa yang dapat revoke role",
+		})
+	}
+
+	if ormawaID == nil {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Ormawa context missing"})
+	}
+
+	ormawaIDValue := ormawaID.(uint)
+
+	// 2. Get member
+	var member models.OrmawaAnggota
+	if err := config.DB.
+		Preload("Mahasiswa").
+		Preload("Mahasiswa.Pengguna").
+		Where("id = ? AND ormawa_id = ?", req.MemberID, ormawaIDValue).
+		First(&member).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Member tidak ditemukan"})
+	}
+
+	targetUser := member.Mahasiswa.Pengguna
+
+	// 3. Check if user has pengurus_ormawa role
+	roles := strings.Split(targetUser.Role, ",")
+	hasPengurusRole := false
+	var newRoles []string
+	for _, r := range roles {
+		trimmed := strings.TrimSpace(r)
+		if strings.ToLower(trimmed) != "pengurus_ormawa" {
+			newRoles = append(newRoles, trimmed)
+		} else {
+			hasPengurusRole = true
+		}
+	}
+
+	if !hasPengurusRole {
+		return c.Status(400).JSON(fiber.Map{
+			"status":  "error",
+			"message": "Member tidak memiliki role pengurus_ormawa",
+		})
+	}
+
+	// 4. Update role (remove pengurus_ormawa)
+	err := config.DB.Transaction(func(tx *gorm.DB) error {
+		newRole := strings.Join(newRoles, ",")
+		if newRole == "" {
+			newRole = "mahasiswa"
+		}
+
+		if err := tx.Exec(
+			"UPDATE public.users SET role = ?, updated_at = ? WHERE id = ?",
+			newRole,
+			time.Now(),
+			targetUser.ID,
+		).Error; err != nil {
+			return err
+		}
+
+		// Log audit
+		audit := models.LogAktivitas{
+			UserID:     assignerID,
+			Aktivitas:  "ROLE_REVOCATION",
+			Deskripsi:  fmt.Sprintf("Admin Ormawa %d revoke role 'pengurus_ormawa' from member %s (%d) - Reason: %s", assignerID, targetUser.Email, targetUser.ID, req.Reason),
+			IPAddress:  c.IP(),
+		}
+		if err := tx.Create(&audit).Error; err != nil {
+			fmt.Printf("Warning: Failed to create audit log: %v\n", err)
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{
+			"status":  "error",
+			"message": "Gagal revoke role: " + err.Error(),
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"status":  "success",
+		"message": fmt.Sprintf("Role 'pengurus_ormawa' berhasil di-revoke dari %s", targetUser.Email),
+		"data": fiber.Map{
+			"member_id": req.MemberID,
+			"email":     targetUser.Email,
+			"new_role":  strings.Join(newRoles, ","),
+		},
+	})
+}
+
+// hasRoleConflict mengecek kombinasi role yang tidak valid
+func hasRoleConflict(roles []string) bool {
+	roleMap := make(map[string]bool)
+	for _, r := range roles {
+		roleMap[strings.ToLower(strings.TrimSpace(r))] = true
+	}
+
+	// Define invalid combinations
+	invalidCombinations := [][]string{
+		{"super_admin", "mahasiswa"},
+		{"super_admin", "dosen"},
+		{"admin_ormawa", "admin_fakultas"},
+		{"admin_ormawa", "admin_prodi"},
+		{"admin_fakultas", "pengurus_ormawa"},
+	}
+
+	for _, combo := range invalidCombinations {
+		hasFirst := roleMap[combo[0]]
+		hasSecond := roleMap[combo[1]]
+		if hasFirst && hasSecond {
+			return true
+		}
+	}
+
+	return false
 }

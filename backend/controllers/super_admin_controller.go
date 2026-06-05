@@ -194,7 +194,7 @@ func normalizeKencanaScope(scope string) string {
 	return "faculty"
 }
 
-// UpdateUserRole handles role assignment and logs the event in log_aktivitas
+// UpdateUserRole handles role assignment with RBAC hierarchy validation
 func UpdateUserRole(c *fiber.Ctx) error {
 	type UpdateRequest struct {
 		UserID           uint   `json:"userId"`
@@ -202,37 +202,140 @@ func UpdateUserRole(c *fiber.Ctx) error {
 		OrmawaID         uint   `json:"ormawaId"`
 		OrmawaAssign     string `json:"ormawaAssign"`
 		FakultasID       uint   `json:"fakultasId"`
+		ProdiID          uint   `json:"prodiId"`
 		KencanaScopeType string `json:"kencanaScopeType"`
+		Reason           string `json:"reason"`
 	}
 
 	var req UpdateRequest
 	if err := c.BodyParser(&req); err != nil {
-		fmt.Printf(">>> RBAC Error: BodyParser failed: %v\n", err)
 		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Invalid request payload"})
 	}
-	fmt.Printf(">>> RBAC: Updating User %d to Role %s\n", req.UserID, req.Role)
 
-	// 1. Find user to be modified
-	var user models.User
-	if err := config.DB.First(&user, req.UserID).Error; err != nil {
-		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "User not found"})
+	// 1. Validate request
+	if req.UserID == 0 || req.Role == "" {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "userId dan role wajib diisi"})
+	}
+
+	// 2. Get assigner info from JWT
+	assignerID := c.Locals("user_id").(uint)
+	assignerRole := c.Locals("role").(string)
+
+	// 3. Find target user
+	var targetUser models.User
+	if err := config.DB.First(&targetUser, req.UserID).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "User tidak ditemukan"})
 	}
 
 	req.Role = strings.TrimSpace(req.Role)
 	req.KencanaScopeType = normalizeKencanaScope(req.KencanaScopeType)
+
+	// 4. Validate role exists
 	if !isAllowedRBACRole(req.Role) {
-		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Role tidak valid"})
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Role tidak valid: " + req.Role})
 	}
 
+	// ==========================================
+	// ROLE HIERARCHY VALIDATION
+	// ==========================================
+	
+	// 5. Super Admin validations
+	if assignerRole == "super_admin" {
+		// Super Admin CANNOT assign org-level roles directly
+		// pengurus_ormawa harus di-assign via admin_ormawa
+		if req.Role == "pengurus_ormawa" {
+			return c.Status(403).JSON(fiber.Map{
+				"status":  "error",
+				"message": "Super Admin tidak boleh assign 'pengurus_ormawa' langsung. Role ini harus di-assign oleh admin_ormawa.",
+			})
+		}
+		
+		// Super Admin CANNOT assign admin_prodi directly
+		// admin_prodi harus di-assign via admin_fakultas
+		if req.Role == "admin_prodi" && req.FakultasID == 0 {
+			return c.Status(403).JSON(fiber.Map{
+				"status":  "error",
+				"message": "Super Admin tidak boleh assign 'admin_prodi' tanpa scope. Gunakan admin_fakultas untuk assign role ini.",
+			})
+		}
+	}
+
+	// 6. Admin Ormawa validations
+	if assignerRole == "admin_ormawa" {
+		// Admin Ormawa ONLY dapat assign pengurus_ormawa
+		if req.Role != "pengurus_ormawa" {
+			return c.Status(403).JSON(fiber.Map{
+				"status":  "error",
+				"message": "Admin Ormawa hanya boleh assign 'pengurus_ormawa'",
+			})
+		}
+
+		// Admin Ormawa harus punya OrmawaID
+		if req.OrmawaID == 0 {
+			return c.Status(400).JSON(fiber.Map{
+				"status":  "error",
+				"message": "OrmawaID wajib untuk Admin Ormawa assignment",
+			})
+		}
+
+		// Verify target user adalah member di ormawa yang sama
+		var mhs models.Mahasiswa
+		if err := config.DB.Where("pengguna_id = ?", targetUser.ID).First(&mhs).Error; err != nil {
+			return c.Status(400).JSON(fiber.Map{
+				"status":  "error",
+				"message": "Target user tidak memiliki profile mahasiswa",
+			})
+		}
+
+		var membership models.OrmawaAnggota
+		if err := config.DB.Where("mahasiswa_id = ? AND ormawa_id = ?", mhs.ID, req.OrmawaID).First(&membership).Error; err != nil {
+			return c.Status(403).JSON(fiber.Map{
+				"status":  "error",
+				"message": "Target user bukan member di ormawa ini",
+			})
+		}
+	}
+
+	// 7. Admin Fakultas validations
+	if assignerRole == "admin_fakultas" {
+		// Admin Fakultas hanya bisa assign admin_prodi
+		allowedRoles := map[string]bool{"admin_prodi": true}
+		if !allowedRoles[req.Role] {
+			return c.Status(403).JSON(fiber.Map{
+				"status":  "error",
+				"message": "Admin Fakultas hanya boleh assign 'admin_prodi'",
+			})
+		}
+
+		// Admin Fakultas harus select FakultasID
+		if req.FakultasID == 0 {
+			return c.Status(400).JSON(fiber.Map{
+				"status":  "error",
+				"message": "FakultasID wajib untuk Admin Fakultas assignment",
+			})
+		}
+	}
+
+	// 8. Validate required fields berdasarkan role
 	roleLower := "," + strings.ToLower(req.Role) + ","
 	if strings.Contains(roleLower, ",kencana_fakultas,") && req.FakultasID == 0 {
-		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Fakultas wajib dipilih untuk Admin Kencana Fakultas"})
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Fakultas wajib dipilih untuk role kencana_fakultas"})
 	}
 	if strings.Contains(roleLower, ",kencana_mentor,") && req.KencanaScopeType == "faculty" && req.FakultasID == 0 {
 		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Fakultas wajib dipilih untuk Mentor Kencana scope fakultas"})
 	}
 
-	// 2. Execution with User Update
+	// 9. Check role conflict
+	existingRoles := strings.Split(targetUser.Role, ",")
+	newRoles := append(existingRoles, req.Role)
+	if hasRoleConflict(newRoles) {
+		return c.Status(400).JSON(fiber.Map{
+			"status":  "error",
+			"message": "Kombinasi role tidak valid",
+		})
+	}
+
+	// 10. Execute role assignment
 	err := config.DB.Transaction(func(tx *gorm.DB) error {
 		var fakultasPtr *uint
 		if req.FakultasID != 0 {
@@ -244,21 +347,37 @@ func UpdateUserRole(c *fiber.Ctx) error {
 			ormawaPtr = &req.OrmawaID
 		}
 
-		// Update user role via raw SQL to bypass any GORM association issues
-		if err := tx.Exec("UPDATE public.users SET role = ?, ormawa_assign = ?, ormawa_id = ?, fakultas_id = ?, updated_at = ? WHERE id = ?", req.Role, req.OrmawaAssign, ormawaPtr, fakultasPtr, time.Now(), user.ID).Error; err != nil {
+		// Update user role
+		if err := tx.Exec(
+			"UPDATE public.users SET role = ?, ormawa_assign = ?, ormawa_id = ?, fakultas_id = ?, updated_at = ? WHERE id = ?",
+			req.Role,
+			req.OrmawaAssign,
+			ormawaPtr,
+			fakultasPtr,
+			time.Now(),
+			targetUser.ID,
+		).Error; err != nil {
 			return err
 		}
 
+		// Handle Kencana Mentor
 		if strings.Contains(roleLower, ",kencana_mentor,") {
-			mentor := models.KencanaMentor{UserID: user.ID, Name: strings.Split(user.Email, "@")[0], Email: user.Email, ScopeType: req.KencanaScopeType, FakultasID: fakultasPtr, Status: "active"}
+			mentor := models.KencanaMentor{
+				UserID:    targetUser.ID,
+				Name:      strings.Split(targetUser.Email, "@")[0],
+				Email:     targetUser.Email,
+				ScopeType: req.KencanaScopeType,
+				Status:    "active",
+			}
+			if fakultasPtr != nil {
+				mentor.FakultasID = fakultasPtr
+			}
+
 			var existing models.KencanaMentor
-			if err := tx.Where("user_id = ?", user.ID).First(&existing).Error; err == nil {
+			if err := tx.Where("user_id = ?", targetUser.ID).First(&existing).Error; err == nil {
 				existing.ScopeType = req.KencanaScopeType
 				existing.FakultasID = fakultasPtr
 				existing.Status = "active"
-				if existing.Name == "" {
-					existing.Name = mentor.Name
-				}
 				if err := tx.Save(&existing).Error; err != nil {
 					return err
 				}
@@ -266,20 +385,18 @@ func UpdateUserRole(c *fiber.Ctx) error {
 				if err := tx.Create(&mentor).Error; err != nil {
 					return err
 				}
-			} else {
-				return err
 			}
 		}
 
-		// Handle Ormawa Assignment for ormawa_admin/mahasiswa/ormawa
-		if strings.Contains(roleLower, ",ormawa_admin,") || strings.Contains(roleLower, ",mahasiswa,") || strings.Contains(roleLower, ",ormawa,") {
+		// Handle Ormawa roles
+		if strings.Contains(roleLower, ",ormawa_admin,") || strings.Contains(roleLower, ",mahasiswa,") || strings.Contains(roleLower, ",ormawa,") || strings.Contains(roleLower, ",pengurus_ormawa,") {
 			var mhs models.Mahasiswa
-			err := tx.Where("pengguna_id = ?", user.ID).First(&mhs).Error
+			err := tx.Where("pengguna_id = ?", targetUser.ID).First(&mhs).Error
 			if err == gorm.ErrRecordNotFound {
-				nim := strings.Split(user.Email, "@")[0]
+				nim := strings.Split(targetUser.Email, "@")[0]
 				mhs = models.Mahasiswa{
-					PenggunaID:       user.ID,
-					Nama:             strings.Split(user.Email, "@")[0],
+					PenggunaID:       targetUser.ID,
+					Nama:             strings.Split(targetUser.Email, "@")[0],
 					NIM:              nim,
 					FakultasID:       req.FakultasID,
 					StatusAkun:       "Aktif",
@@ -294,43 +411,46 @@ func UpdateUserRole(c *fiber.Ctx) error {
 				return err
 			}
 
-			if (strings.Contains(roleLower, ",ormawa_admin,") || strings.Contains(roleLower, ",ormawa,")) && req.OrmawaID != 0 {
+			// Link to Ormawa
+			if req.OrmawaID != 0 && (strings.Contains(roleLower, ",ormawa_admin,") || strings.Contains(roleLower, ",ormawa,") || strings.Contains(roleLower, ",pengurus_ormawa,")) {
 				var exists bool
 				tx.Raw("SELECT EXISTS(SELECT 1 FROM ormawa.ormawa_anggota WHERE mahasiswa_id = ? AND ormawa_id = ?)", mhs.ID, req.OrmawaID).Scan(&exists)
 				if !exists {
-					tx.Exec("INSERT INTO ormawa.ormawa_anggota (mahasiswa_id, ormawa_id, role, status, joined_at, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
-						mhs.ID, req.OrmawaID, "Ketua/Admin", "aktif", time.Now(), time.Now(), time.Now())
+					tx.Exec(
+						"INSERT INTO ormawa.ormawa_anggota (mahasiswa_id, ormawa_id, role, status, joined_at, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
+						mhs.ID, req.OrmawaID, "Ketua/Admin", "aktif", time.Now(), time.Now(), time.Now(),
+					)
 				}
 			}
 		}
 
+		// Handle Psikolog
 		if strings.Contains(roleLower, ",psikolog,") {
 			var psikolog models.Psikolog
-			err := tx.Where("user_id = ?", user.ID).First(&psikolog).Error
+			err := tx.Where("user_id = ?", targetUser.ID).First(&psikolog).Error
 			if err == gorm.ErrRecordNotFound {
 				psikolog = models.Psikolog{
-					UserID:       user.ID,
-					Nama:         strings.Split(user.Email, "@")[0],
-					Email:        user.Email,
+					UserID:       targetUser.ID,
+					Nama:         strings.Split(targetUser.Email, "@")[0],
+					Email:        targetUser.Email,
 					Spesialisasi: "Umum",
 					IsAktif:      true,
 				}
 				if err := tx.Create(&psikolog).Error; err != nil {
 					return err
 				}
-			} else if err != nil {
-				return err
 			}
 		}
 
+		// Handle Tenaga Kesehatan
 		if strings.Contains(roleLower, ",tenaga_kesehatan,") || strings.Contains(roleLower, ",tenagakes,") {
 			var tk models.TenagaKesehatan
-			err := tx.Where("user_id = ?", user.ID).First(&tk).Error
+			err := tx.Where("user_id = ?", targetUser.ID).First(&tk).Error
 			if err == gorm.ErrRecordNotFound {
 				tk = models.TenagaKesehatan{
-					UserID:       user.ID,
-					Nama:         strings.Split(user.Email, "@")[0],
-					Email:        user.Email,
+					UserID:       targetUser.ID,
+					Nama:         strings.Split(targetUser.Email, "@")[0],
+					Email:        targetUser.Email,
 					NoHP:         "-",
 					Spesialisasi: "Pemeriksaan Umum",
 					FotoURL:      "",
@@ -340,9 +460,19 @@ func UpdateUserRole(c *fiber.Ctx) error {
 				if err := tx.Create(&tk).Error; err != nil {
 					return err
 				}
-			} else if err != nil {
-				return err
 			}
+		}
+
+		// Log audit trail
+		audit := models.LogAktivitas{
+			UserID:     assignerID,
+			Aktivitas:  "ROLE_ASSIGNMENT",
+			Deskripsi:  fmt.Sprintf("Assign role %s to user %s (%d)", req.Role, targetUser.Email, req.UserID),
+			IPAddress:  c.IP(),
+		}
+		if err := tx.Create(&audit).Error; err != nil {
+			// Log error but don't fail transaction
+			fmt.Printf("Warning: Failed to create audit log: %v\n", err)
 		}
 
 		return nil
@@ -351,19 +481,48 @@ func UpdateUserRole(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{
 			"status":  "error",
-			"message": "Critical failure during role update",
-			"debug":   err.Error(),
+			"message": "Role assignment failed: " + err.Error(),
 		})
 	}
 
 	return c.JSON(fiber.Map{
 		"status":  "success",
-		"message": "Institutional role has been successfully updated",
+		"message": fmt.Sprintf("Role %s berhasil di-assign ke %s", req.Role, targetUser.Email),
 		"data": fiber.Map{
-			"user":     user.Email,
+			"user_id":  req.UserID,
+			"email":    targetUser.Email,
 			"new_role": req.Role,
 		},
 	})
+}
+
+// hasRoleConflict mengecek kombinasi role yang tidak valid
+func hasRoleConflict(roles []string) bool {
+	roleMap := make(map[string]bool)
+	for _, r := range roles {
+		roleMap[strings.ToLower(strings.TrimSpace(r))] = true
+	}
+
+	// Define invalid combinations
+	invalidCombinations := [][]string{
+		{"super_admin", "mahasiswa"},
+		{"super_admin", "dosen"},
+		{"super_admin", "psikolog"},
+		{"super_admin", "tenaga_kesehatan"},
+		{"admin_ormawa", "admin_fakultas"},
+		{"admin_ormawa", "admin_prodi"},
+		{"admin_fakultas", "pengurus_ormawa"},
+	}
+
+	for _, combo := range invalidCombinations {
+		hasFirst := roleMap[combo[0]]
+		hasSecond := roleMap[combo[1]]
+		if hasFirst && hasSecond {
+			return true
+		}
+	}
+
+	return false
 }
 
 // GetAuditLogs returns all historical actions performed in the system
