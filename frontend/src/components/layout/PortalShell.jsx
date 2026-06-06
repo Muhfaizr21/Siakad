@@ -1,15 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import PortalSidebar from './PortalSidebar';
 import PortalTopbar from './PortalTopbar';
-import { PORTAL_CONFIG } from './PortalConfig';
+
 
 export default function PortalShell({ config }) {
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
   if (!config) {
-    console.warn('[PortalShell] No config provided');
-    console.warn('[PortalShell] Available configs:', Object.keys(PORTAL_CONFIG || {}));
     return (
       <div style={{ padding: '2rem', color: 'red' }}>
         <p>PortalShell: No config provided</p>
@@ -17,7 +15,8 @@ export default function PortalShell({ config }) {
     );
   }
 
-  console.log('[PortalShell] Rendering with config:', config.title);
+
+
 
   return (
     <div

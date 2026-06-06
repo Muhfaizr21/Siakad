@@ -15,11 +15,16 @@ export const useKencanaDashboardQuery = (options = {}) => {
   });
 };
 
-export const useKencanaTimelineQuery = () => useQuery({
-  queryKey: ['kencana', 'timeline'],
-  queryFn: async () => unwrap(await api.get('/kencana-student/timeline')),
-  staleTime: 60 * 1000,
-});
+export const useKencanaTimelineQuery = (options = {}) => {
+  const { pathname } = useLocation();
+  return useQuery({
+    queryKey: ['kencana', 'timeline'],
+    queryFn: async () => unwrap(await api.get('/kencana-student/timeline')),
+    staleTime: 60 * 1000,
+    retry: false,
+    enabled: isKencanaPath(pathname) && (options.enabled ?? true),
+  });
+};
 
 export const useKencanaStageQuery = (stageId) => useQuery({
   queryKey: ['kencana', 'stage', stageId],
@@ -77,10 +82,15 @@ export const useSubmitAssignmentMutation = () => {
   });
 };
 
-export const useKencanaHandbookQuery = () => useQuery({
-  queryKey: ['kencana', 'handbook'],
-  queryFn: async () => unwrap(await api.get('/kencana-student/handbook')),
-});
+export const useKencanaHandbookQuery = (options = {}) => {
+  const { pathname } = useLocation();
+  return useQuery({
+    queryKey: ['kencana', 'handbook'],
+    queryFn: async () => unwrap(await api.get('/kencana-student/handbook')),
+    retry: false,
+    enabled: isKencanaPath(pathname) && (options.enabled ?? true),
+  });
+};
 
 export const useSaveHandbookDraftMutation = () => {
   const queryClient = useQueryClient();
@@ -98,30 +108,55 @@ export const useSubmitHandbookMutation = () => {
   });
 };
 
-export const useKencanaAttendanceQuery = () => useQuery({
-  queryKey: ['kencana', 'attendance'],
-  queryFn: async () => unwrap(await api.get('/kencana-student/attendance')),
-});
+export const useKencanaAttendanceQuery = (options = {}) => {
+  const { pathname } = useLocation();
+  return useQuery({
+    queryKey: ['kencana', 'attendance'],
+    queryFn: async () => unwrap(await api.get('/kencana-student/attendance')),
+    retry: false,
+    enabled: isKencanaPath(pathname) && (options.enabled ?? true),
+  });
+};
 
-export const useKencanaScoreQuery = () => useQuery({
-  queryKey: ['kencana', 'score'],
-  queryFn: async () => unwrap(await api.get('/kencana-student/score')),
-});
+export const useKencanaScoreQuery = (options = {}) => {
+  const { pathname } = useLocation();
+  return useQuery({
+    queryKey: ['kencana', 'score'],
+    queryFn: async () => unwrap(await api.get('/kencana-student/score')),
+    retry: false,
+    enabled: isKencanaPath(pathname) && (options.enabled ?? true),
+  });
+};
 
-export const useKencanaRemedialQuery = () => useQuery({
-  queryKey: ['kencana', 'remedial'],
-  queryFn: async () => unwrap(await api.get('/kencana-student/remedial')),
-});
+export const useKencanaRemedialQuery = (options = {}) => {
+  const { pathname } = useLocation();
+  return useQuery({
+    queryKey: ['kencana', 'remedial'],
+    queryFn: async () => unwrap(await api.get('/kencana-student/remedial')),
+    retry: false,
+    enabled: isKencanaPath(pathname) && (options.enabled ?? true),
+  });
+};
 
-export const useKencanaCertificateQuery = () => useQuery({
-  queryKey: ['kencana', 'certificate'],
-  queryFn: async () => unwrap(await api.get('/kencana-student/certificate')),
-});
+export const useKencanaCertificateQuery = (options = {}) => {
+  const { pathname } = useLocation();
+  return useQuery({
+    queryKey: ['kencana', 'certificate'],
+    queryFn: async () => unwrap(await api.get('/kencana-student/certificate')),
+    retry: false,
+    enabled: isKencanaPath(pathname) && (options.enabled ?? true),
+  });
+};
 
-export const useKencanaMentorInvitationsQuery = () => useQuery({
-  queryKey: ['kencana', 'mentor-invitations'],
-  queryFn: async () => unwrap(await api.get('/kencana-student/mentor-invitations')),
-});
+export const useKencanaMentorInvitationsQuery = (options = {}) => {
+  const { pathname } = useLocation();
+  return useQuery({
+    queryKey: ['kencana', 'mentor-invitations'],
+    queryFn: async () => unwrap(await api.get('/kencana-student/mentor-invitations')),
+    retry: false,
+    enabled: isKencanaPath(pathname) && (options.enabled ?? true),
+  });
+};
 
 export const useRespondMentorInvitationMutation = () => {
   const queryClient = useQueryClient();
