@@ -13,6 +13,7 @@ import { StatCard } from "./components/ui/stat-card"
 import { toast, Toaster } from "react-hot-toast"
 import { cn } from "@/lib/utils"
 import { adminService, API_BASE_URL } from "../../services/api"
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts"
 
 // Material Symbol Icons
 const Trophy = ({ size = 20, className }) => <span className={cn("material-symbols-outlined shrink-0", className)} style={{ fontSize: size }}>emoji_events</span>
@@ -60,6 +61,7 @@ export default function KelolaPrestasi() {
   const [isDetailOpen, setIsDetailOpen] = useState(false)
   const [isVerifyOpen, setIsVerifyOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [expandedFaculty, setExpandedFaculty] = useState(null)
 
   // Verification Form State
   const [verifyStatus, setVerifyStatus] = useState("verified")
@@ -149,6 +151,40 @@ export default function KelolaPrestasi() {
     const verified = data.filter(item => ["verified", "terverifikasi", "disetujui", "diverifikasi"].includes((item.status || "").toLowerCase())).length
     const rejected = data.filter(item => ["rejected", "ditolak"].includes((item.status || "").toLowerCase())).length
     return { total, pending, verified, rejected }
+  }, [data])
+
+  const leaderboardData = useMemo(() => {
+    const counts = {}
+    data.forEach(item => {
+      const facName = item.fakultas_nama || 'Lainnya'
+      counts[facName] = (counts[facName] || 0) + 1
+    })
+    return Object.entries(counts)
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => b.value - a.value)
+  }, [data])
+
+  const prodiBreakdown = useMemo(() => {
+    const mapping = {}
+    data.forEach(item => {
+      const facName = item.fakultas_nama || 'Lainnya'
+      const prodName = item.prodi_nama || 'Lainnya'
+      const status = (item.status || '').toLowerCase()
+      const isVerified = ["verified", "terverifikasi", "disetujui", "diverifikasi"].includes(status)
+      const isPending = !isVerified && !["rejected", "ditolak"].includes(status)
+
+      if (!mapping[facName]) {
+        mapping[facName] = {}
+      }
+      if (!mapping[facName][prodName]) {
+        mapping[facName][prodName] = { total: 0, pending: 0, verified: 0 }
+      }
+      
+      mapping[facName][prodName].total += 1
+      if (isPending) mapping[facName][prodName].pending += 1
+      if (isVerified) mapping[facName][prodName].verified += 1
+    })
+    return mapping
   }, [data])
 
   const fakultasOptions = useMemo(() => {
@@ -393,6 +429,132 @@ export default function KelolaPrestasi() {
             loading={loading}
           />
         </div>
+
+        {/* ── Analitik & Distribusi Section ────────────────────────── */}
+        {!loading && data.length > 0 && (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-in fade-in duration-300">
+            {/* Bar Chart: Leaderboard Fakultas */}
+            <div className="lg:col-span-2 bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm flex flex-col justify-between">
+              <div>
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 bg-blue-50 rounded-xl flex justify-center items-center text-blue-600 flex-shrink-0">
+                    <span className="material-symbols-outlined text-blue-600" style={{ fontSize: '18px' }} >bar_chart</span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline block">Kontribusi Prestasi</span>
+                    <h3 className="text-sm font-extrabold text-slate-800 leading-tight">Fakultas Paling Berprestasi</h3>
+                  </div>
+                </div>
+                <p className="text-xs text-neutral-500 font-medium mb-6">Peringkat kontribusi jumlah prestasi mahasiswa per Fakultas secara riil.</p>
+              </div>
+              
+              <div className="h-[240px] w-full">
+                {leaderboardData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={leaderboardData} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                      <XAxis dataKey="name" tick={{ fontSize: 9, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                      <YAxis tick={{ fontSize: 9, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                      <Tooltip
+                        cursor={{ fill: '#f8fafc' }}
+                        formatter={v => [v, 'Jumlah Prestasi']}
+                        contentStyle={{ backgroundColor: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.05)", fontSize: "11px", fontWeight: "bold" }}
+                      />
+                      <Bar dataKey="value" name="Prestasi" fill="#3b82f6" radius={[4, 4, 0, 0]} barSize={28} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="h-full flex items-center justify-center text-xs text-neutral-400 italic">Tidak ada data kontribusi</div>
+                )}
+              </div>
+            </div>
+
+            {/* Rekapitulasi per Fakultas & Prodi */}
+            <div className="lg:col-span-1 bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm flex flex-col justify-between">
+              <div>
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 bg-indigo-50 rounded-xl flex justify-center items-center text-indigo-600 flex-shrink-0">
+                    <span className="material-symbols-outlined text-indigo-600" style={{ fontSize: '18px' }} >analytics</span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline block">Distribusi Akademik</span>
+                    <h3 className="text-sm font-extrabold text-slate-800 leading-tight">Rekap Fakultas & Prodi</h3>
+                  </div>
+                </div>
+                
+                <p className="text-xs text-neutral-500 font-medium mb-4">Klik nama fakultas untuk melihat rincian jumlah portofolio per Program Studi.</p>
+                
+                <div className="space-y-2.5 overflow-y-auto max-h-[240px] pr-1">
+                  {Object.keys(prodiBreakdown).length > 0 ? (
+                    Object.entries(prodiBreakdown).map(([facName, prodis]) => {
+                      const totalFac = Object.values(prodis).reduce((sum, p) => sum + p.total, 0)
+                      const pendingFac = Object.values(prodis).reduce((sum, p) => sum + p.pending, 0)
+                      const verifiedFac = Object.values(prodis).reduce((sum, p) => sum + p.verified, 0)
+                      const isExpanded = expandedFaculty === facName
+
+                      return (
+                        <div key={facName} className="border border-slate-100 rounded-xl overflow-hidden bg-slate-50/50">
+                          <button
+                            type="button"
+                            onClick={() => setExpandedFaculty(isExpanded ? null : facName)}
+                            className="w-full p-3 flex items-center justify-between text-left hover:bg-slate-100/50 transition-colors"
+                          >
+                            <div className="min-w-0 pr-2">
+                              <span className="font-extrabold text-slate-800 text-[11px] tracking-tight block truncate uppercase">{facName}</span>
+                              <span className="text-[9px] font-bold text-slate-400 block mt-0.5">{Object.keys(prodis).length} Program Studi</span>
+                            </div>
+                            
+                            <div className="flex items-center gap-1.5 shrink-0">
+                              {pendingFac > 0 && (
+                                <span className="text-[9px] font-black bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded" title="Menunggu Review">
+                                  {pendingFac} P
+                                </span>
+                              )}
+                              <span className="text-[9px] font-black bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded" title="Sudah Terverifikasi">
+                                {verifiedFac} V
+                              </span>
+                              <span className="text-[9px] font-black bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded" title="Total Portofolio">
+                                {totalFac} T
+                              </span>
+                              <span className="material-symbols-outlined text-slate-400 transition-transform duration-200" style={{ fontSize: 16, transform: isExpanded ? 'rotate(180deg)' : 'none' }}>
+                                keyboard_arrow_down
+                              </span>
+                            </div>
+                          </button>
+                          
+                          {isExpanded && (
+                            <div className="border-t border-slate-100 bg-white p-3 space-y-2 animate-in fade-in duration-200">
+                              {Object.entries(prodis).map(([prodName, metrics]) => (
+                                <div key={prodName} className="flex justify-between items-center py-1.5 border-b border-slate-50 last:border-0">
+                                  <span className="text-[10px] font-bold text-slate-600 truncate max-w-[150px]">{prodName}</span>
+                                  <div className="flex items-center gap-1 shrink-0">
+                                    {metrics.pending > 0 && (
+                                      <span className="text-[8px] font-extrabold text-amber-700 bg-amber-50 px-1 rounded">
+                                        {metrics.pending} Pending
+                                      </span>
+                                    )}
+                                    <span className="text-[8px] font-extrabold text-emerald-700 bg-emerald-50 px-1 rounded">
+                                      {metrics.verified} Verif
+                                    </span>
+                                    <span className="text-[8px] font-extrabold text-slate-500 bg-slate-50 px-1 rounded">
+                                      {metrics.total} Total
+                                    </span>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )
+                    })
+                  ) : (
+                    <div className="text-center py-8 text-xs text-neutral-400 italic">Belum ada sebaran Fakultas/Prodi</div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* ── Data Table Section ───────────────────────────────────── */}
         <Card className="border-neutral-200 shadow-sm rounded-2xl bg-white overflow-hidden">
