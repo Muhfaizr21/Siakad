@@ -419,6 +419,7 @@ func UpdateMember(c *fiber.Ctx) error {
 		Divisi      string `json:"Divisi"`
 		EmailKampus string `json:"EmailKampus"`
 		NoHP        string `json:"NoHP"`
+		Status      string `json:"Status"`
 	}
 
 	if err := c.BodyParser(&payload); err != nil {
@@ -426,9 +427,17 @@ func UpdateMember(c *fiber.Ctx) error {
 	}
 
 	// Update data anggota
-	member.Role = payload.Role
-	member.Divisi = payload.Divisi
-	member.Status = "aktif"
+	if payload.Role != "" {
+		member.Role = payload.Role
+	}
+	if payload.Divisi != "" {
+		member.Divisi = payload.Divisi
+	}
+	if payload.Status != "" {
+		member.Status = payload.Status
+	} else {
+		member.Status = "aktif"
+	}
 	config.DB.Save(&member)
 
 	// Sinkronisasi RiwayatOrganisasi
@@ -632,7 +641,7 @@ func GetAttendance(c *fiber.Ctx) error {
 
 	// 1. Fetch all active members of this ormawa
 	var members []models.OrmawaAnggota
-	config.DB.Preload("Mahasiswa").Where("ormawa_id = ? AND status = ?", kegiatan.OrmawaID, "Aktif").Find(&members)
+	config.DB.Preload("Mahasiswa").Where("ormawa_id = ? AND LOWER(status) = 'aktif'", kegiatan.OrmawaID).Find(&members)
 
 	// 2. Fetch all existing attendance records
 	var attendance []models.OrmawaKehadiran
@@ -1697,7 +1706,7 @@ func syncUserOrmawaRole(studentID uint) {
 
 	// Check if this student has any active Ormawa memberships
 	var activeMemberships []models.OrmawaAnggota
-	config.DB.Where("mahasiswa_id = ? AND status = 'aktif'", studentID).Find(&activeMemberships)
+	config.DB.Where("mahasiswa_id = ? AND LOWER(status) = 'aktif'", studentID).Find(&activeMemberships)
 	count := len(activeMemberships)
 
 	roles := strings.Split(user.Role, ",")
@@ -2009,4 +2018,71 @@ func hasRoleConflict(roles []string) bool {
 	}
 
 	return false
+}
+
+// ---------------------------------------------------------------------------
+// Recruitment Fields CRUD
+// ---------------------------------------------------------------------------
+
+// GetRecruitmentFields returns all dynamic form fields for this Ormawa
+func GetRecruitmentFields(c *fiber.Ctx) error {
+	ormawaID, ok := c.Locals("ormawa_id").(uint)
+	if !ok || ormawaID == 0 {
+		return c.Status(401).JSON(fiber.Map{"success": false, "message": "Tidak terautentikasi sebagai Ormawa"})
+	}
+
+	var fields []models.OrmawaRecruitmentField
+	config.DB.Where("ormawa_id = ?", ormawaID).Order("\"order\" asc").Find(&fields)
+	return c.JSON(fiber.Map{"success": true, "data": fields})
+}
+
+// SaveRecruitmentFields replaces all recruitment fields for this Ormawa
+func SaveRecruitmentFields(c *fiber.Ctx) error {
+	ormawaID, ok := c.Locals("ormawa_id").(uint)
+	if !ok || ormawaID == 0 {
+		return c.Status(401).JSON(fiber.Map{"success": false, "message": "Tidak terautentikasi sebagai Ormawa"})
+	}
+
+	var body []models.OrmawaRecruitmentField
+	if err := c.BodyParser(&body); err != nil {
+		return c.Status(400).JSON(fiber.Map{"success": false, "message": "Format data tidak valid"})
+	}
+
+	tx := config.DB.Begin()
+	// Delete existing
+	if err := tx.Where("ormawa_id = ?", ormawaID).Delete(&models.OrmawaRecruitmentField{}).Error; err != nil {
+		tx.Rollback()
+		return c.Status(500).JSON(fiber.Map{"success": false, "message": "Gagal menghapus field lama"})
+	}
+
+	// Bulk insert new fields
+	for i := range body {
+		body[i].ID = 0
+		body[i].OrmawaID = ormawaID
+		body[i].Order = i
+		if err := tx.Create(&body[i]).Error; err != nil {
+			tx.Rollback()
+			return c.Status(500).JSON(fiber.Map{"success": false, "message": "Gagal menyimpan field"})
+		}
+	}
+
+	tx.Commit()
+	return c.JSON(fiber.Map{"success": true, "message": "Form rekrutmen berhasil disimpan", "data": body})
+}
+
+// DeleteRecruitmentField removes a single field by ID
+func DeleteRecruitmentField(c *fiber.Ctx) error {
+	ormawaID, ok := c.Locals("ormawa_id").(uint)
+	if !ok || ormawaID == 0 {
+		return c.Status(401).JSON(fiber.Map{"success": false, "message": "Tidak terautentikasi sebagai Ormawa"})
+	}
+
+	fieldID := c.Params("id")
+	var field models.OrmawaRecruitmentField
+	if err := config.DB.Where("id = ? AND ormawa_id = ?", fieldID, ormawaID).First(&field).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{"success": false, "message": "Field tidak ditemukan"})
+	}
+
+	config.DB.Delete(&field)
+	return c.JSON(fiber.Map{"success": true, "message": "Field berhasil dihapus"})
 }

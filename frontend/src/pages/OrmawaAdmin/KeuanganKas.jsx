@@ -256,50 +256,56 @@ export default function KeuanganKas() {
 
       {/* ── Financial Summary Cards ─────────────────────────────────── */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-        {/* Saldo Gabungan (Navy tailored) */}
+        {/* Saldo Kas Gabungan */}
         <Card className="border border-slate-100 shadow-sm rounded-3xl overflow-hidden bg-white hover:shadow-md transition-all duration-300">
-          <CardContent className="p-6 flex items-center gap-5">
-<div className="w-14 h-14 rounded-2xl bg-blue-50 flex items-center justify-center text-[#00236F] shrink-0">
-              <span className="material-symbols-outlined" style={{ fontSize: '28px' }}>account_balance</span>
+          <CardContent className="p-6 flex flex-col items-start gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center text-[#00236F] shrink-0 shadow-sm">
+              <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>account_balance</span>
             </div>
-            <div className="space-y-1">
+            <div className="space-y-1 w-full min-w-0">
               <p className="text-[10px] font-black text-slate-400 tracking-wider uppercase font-headline">Saldo Kas Gabungan</p>
-              <p className="text-2xl lg:text-3xl font-black text-[#00236F] tracking-tight font-headline">
+              <p className="text-2xl lg:text-3xl font-black text-[#00236F] tracking-tight font-headline truncate">
                 {formatRp(saldo)}
               </p>
-              <p className="text-[9px] font-bold text-slate-400">Pemasukan: {formatRp(totalIn)} | Pengeluaran: {formatRp(totalOut)}</p>
+              <p className="text-[9px] font-bold text-slate-400 truncate">
+                Pemasukan: {formatRp(totalIn)} | Pengeluaran: {formatRp(totalOut)}
+              </p>
             </div>
           </CardContent>
         </Card>
 
         {/* Saldo Pagu Kampus (🏛️ Duit Kampus) */}
         <Card className="border border-slate-100 shadow-sm rounded-3xl overflow-hidden bg-white hover:shadow-md transition-all duration-300">
-          <CardContent className="p-6 flex items-center gap-5">
-            <div className="w-14 h-14 rounded-2xl bg-sky-50 flex items-center justify-center text-sky-600 shrink-0">
-              <span className="material-symbols-outlined" style={{ fontSize: '28px' }}>assured_workload</span>
+          <CardContent className="p-6 flex flex-col items-start gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-sky-50 flex items-center justify-center text-sky-600 shrink-0 shadow-sm">
+              <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>assured_workload</span>
             </div>
-            <div className="space-y-1">
+            <div className="space-y-1 w-full min-w-0">
               <p className="text-[10px] font-black text-slate-400 tracking-wider uppercase font-headline">Sisa Pagu (Duit Kampus)</p>
-              <p className="text-2xl lg:text-3xl font-black text-sky-600 tracking-tight font-headline">
+              <p className="text-2xl lg:text-3xl font-black text-sky-600 tracking-tight font-headline truncate">
                 {formatRp(campusSaldo)}
               </p>
-              <p className="text-[9px] font-bold text-sky-500">Hibah Masuk: {formatRp(campusIn)} | Penggunaan LPJ: {formatRp(campusOut)}</p>
+              <p className="text-[9px] font-bold text-sky-500 truncate">
+                Hibah Masuk: {formatRp(campusIn)} | Penggunaan LPJ: {formatRp(campusOut)}
+              </p>
             </div>
           </CardContent>
         </Card>
 
         {/* Saldo Kas Organisasi (💼 Kas Mandiri) */}
         <Card className="border border-slate-100 shadow-sm rounded-3xl overflow-hidden bg-white hover:shadow-md transition-all duration-300">
-          <CardContent className="p-6 flex items-center gap-5">
-            <div className="w-14 h-14 rounded-2xl bg-emerald-50 flex items-center justify-center text-emerald-600 shrink-0">
-              <span className="material-symbols-outlined" style={{ fontSize: '28px' }}>payments</span>
+          <CardContent className="p-6 flex flex-col items-start gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-emerald-50 flex items-center justify-center text-emerald-600 shrink-0 shadow-sm">
+              <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>payments</span>
             </div>
-            <div className="space-y-1">
+            <div className="space-y-1 w-full min-w-0">
               <p className="text-[10px] font-black text-slate-400 tracking-wider uppercase font-headline">Kas Mandiri Organisasi</p>
-              <p className="text-2xl lg:text-3xl font-black text-emerald-600 tracking-tight font-headline">
+              <p className="text-2xl lg:text-3xl font-black text-emerald-600 tracking-tight font-headline truncate">
                 {formatRp(orgSaldo)}
               </p>
-              <p className="text-[9px] font-bold text-emerald-500">Iuran/Sponsor: {formatRp(orgIn)} | Pengeluaran Mandiri: {formatRp(orgOut)}</p>
+              <p className="text-[9px] font-bold text-emerald-500 truncate">
+                Iuran/Sponsor: {formatRp(orgIn)} | Pengeluaran Mandiri: {formatRp(orgOut)}
+              </p>
             </div>
           </CardContent>
         </Card>

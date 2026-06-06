@@ -266,7 +266,20 @@ export default function Login() {
               )}
             </button>
           </form>
-          
+
+          {/* Register Link */}
+          <div className="mt-8 pt-6 border-t border-neutral-200 text-center">
+            <p className="text-[14px] text-neutral-500 font-medium">
+              Belum punya akun?{' '}
+              <Link
+                to="/register"
+                className="text-bku-primary hover:text-[#0B4FAE] font-bold hover:underline transition-colors"
+              >
+                Daftar di sini
+              </Link>
+            </p>
+          </div>
+
           <div className="mt-14 lg:mt-20 text-center">
             <p className="text-[13px] text-neutral-400 font-semibold tracking-wide">
               &copy; {new Date().getFullYear()} Universitas Bhakti Kencana. <br className="lg:hidden" /> Hak Cipta Dilindungi.

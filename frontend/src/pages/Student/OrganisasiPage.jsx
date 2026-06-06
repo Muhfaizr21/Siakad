@@ -33,6 +33,26 @@ export default function OrganisasiPage() {
   const { data: list, isLoading } = useOrganisasiListQuery();
   const { data: ormawaList, isLoading: isOrmawaLoading } = useOrmawaListQuery();
   const { data: pendaftaranList } = usePendaftaranListQuery();
+  
+  const getRecruitmentStatus = (org) => {
+    if (!org.open_recruitment) {
+      return { isOpen: false, text: 'Pendaftaran Ditutup', color: 'bg-rose-50 text-rose-600 border-rose-200' };
+    }
+    const now = new Date();
+    if (org.recruitment_start && new Date(org.recruitment_start) > now) {
+      const startDate = new Date(org.recruitment_start).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+      return { isOpen: false, text: `Buka Sejak ${startDate}`, color: 'bg-amber-50 text-amber-600 border-amber-200' };
+    }
+    if (org.recruitment_end && new Date(org.recruitment_end) < now) {
+      return { isOpen: false, text: 'Pendaftaran Selesai', color: 'bg-rose-50 text-rose-600 border-rose-200' };
+    }
+    return { isOpen: true, text: 'Pendaftaran Dibuka', color: 'bg-emerald-50 text-emerald-600 border-emerald-200 animate-pulse' };
+  };
+
+  const getPendaftaranRecord = (orgId) => {
+    return pendaftaranList?.find(app => (app.OrmawaID === orgId || app.ormawa_id === orgId));
+  };
+
   const { data: profile } = useQuery({
     queryKey: ['mahasiswa', 'profile'],
     queryFn: async () => {
@@ -48,7 +68,74 @@ export default function OrganisasiPage() {
   // Registration state
   const [selectedDaftarOrg, setSelectedDaftarOrg] = useState(null);
   const [divisiPilihan, setDivisiPilihan] = useState('');
+  const [divisiPilihanDua, setDivisiPilihanDua] = useState('');
+  const [alasan, setAlasan] = useState('');
+  const [cvUrl, setCvUrl] = useState('');
+  const [customAnswers, setCustomAnswers] = useState({});
+  const [fileUploading, setFileUploading] = useState({});
   const daftarMutation = useDaftarOrmawaMutation();
+
+  const ormawaId = selectedDaftarOrg?.id || selectedDaftarOrg?.ID;
+  const { data: divisionsList, isLoading: isDivisionsLoading } = useQuery({
+    queryKey: ['ormawa', 'divisions', ormawaId],
+    queryFn: async () => {
+      if (!ormawaId) return [];
+      const { data } = await api.get(`/organisasi/divisions/${ormawaId}`);
+      return data.data || [];
+    },
+    enabled: !!ormawaId,
+  });
+
+  // Load dynamic recruitment form fields
+  const { data: recruitmentFieldsData } = useQuery({
+    queryKey: ['ormawa', 'recruitment-fields', ormawaId],
+    queryFn: async () => {
+      if (!ormawaId) return { fields: [] };
+      try {
+        const { data } = await api.get(`/organisasi/recruitment-fields/${ormawaId}`);
+        return data;
+      } catch {
+        return { fields: [] };
+      }
+    },
+    enabled: !!ormawaId,
+  });
+  const recruitmentFields = recruitmentFieldsData?.data || [];
+
+  const closeDaftarModal = () => {
+    setSelectedDaftarOrg(null);
+    setDivisiPilihan('');
+    setDivisiPilihanDua('');
+    setAlasan('');
+    setCvUrl('');
+    setCustomAnswers({});
+    setFileUploading({});
+  };
+
+  const handleCustomAnswer = (fieldId, value) => {
+    setCustomAnswers(prev => ({ ...prev, [String(fieldId)]: value }));
+  };
+
+  const handleFileUpload = async (fieldId, file) => {
+    if (!file) return;
+    setFileUploading(prev => ({ ...prev, [fieldId]: true }));
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const { data } = await api.post('/organisasi/upload-file', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      if (data.success) {
+        handleCustomAnswer(fieldId, data.url);
+        toast.success('File berhasil diunggah');
+      }
+    } catch {
+      toast.error('Gagal mengunggah file. Maksimal 5 MB.');
+    } finally {
+      setFileUploading(prev => ({ ...prev, [fieldId]: false }));
+    }
+  };
+
 
   // Portfolio CRUD state
   const [isPortModalOpen, setIsPortModalOpen] = useState(false);
@@ -76,14 +163,26 @@ export default function OrganisasiPage() {
   const handleRegisterSubmit = (e) => {
     e.preventDefault();
     if (!selectedDaftarOrg) return;
+
+    // Check GPA eligibility on student-side before submitting
+    const studentIPK = profile?.IPK || 0;
+    const minIPK = selectedDaftarOrg.min_ipk || selectedDaftarOrg.MinIPK || 0;
+    if (minIPK > 0 && studentIPK < minIPK) {
+      toast.error(`IPK Anda (${studentIPK.toFixed(2)}) tidak memenuhi syarat minimal (${minIPK.toFixed(2)})`);
+      return;
+    }
+
     daftarMutation.mutate({
       ormawa_id: selectedDaftarOrg.id || selectedDaftarOrg.ID,
-      divisi: divisiPilihan
+      divisi: divisiPilihan,
+      divisi_pilihan_dua: divisiPilihanDua,
+      alasan: recruitmentFields.length === 0 ? alasan : undefined,
+      cv_url: recruitmentFields.length === 0 ? cvUrl : undefined,
+      custom_answers: Object.keys(customAnswers).length > 0 ? customAnswers : undefined,
     }, {
       onSuccess: () => {
-        toast.success(`Berhasil mengirim pendaftaran ke ${selectedDaftarOrg.Nama}!`);
-        setSelectedDaftarOrg(null);
-        setDivisiPilihan('');
+        toast.success(`Berhasil mengirim pendaftaran ke ${selectedDaftarOrg.Nama || selectedDaftarOrg.nama}!`);
+        closeDaftarModal();
         setMainTab('pendaftaran');
       },
       onError: (err) => {
@@ -423,9 +522,19 @@ export default function OrganisasiPage() {
                     </div>
                     <div>
                       <h3 className="font-extrabold text-[#171717]">{org.Nama}</h3>
-                      <span className="px-2 py-0.5 rounded bg-[#EAF1FF] text-[#0B4FAE] text-[10px] font-black uppercase tracking-wide border border-[#C9D8FF]/35">
-                        {org.Kategori || 'Organisasi'}
-                      </span>
+                      <div className="flex flex-wrap gap-2 items-center mt-1">
+                        <span className="px-2 py-0.5 rounded bg-[#EAF1FF] text-[#0B4FAE] text-[10px] font-black uppercase tracking-wide border border-[#C9D8FF]/35">
+                          {org.Kategori || 'Organisasi'}
+                        </span>
+                        {(() => {
+                          const status = getRecruitmentStatus(org);
+                          return (
+                            <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wide border ${status.color}`}>
+                              {status.text}
+                            </span>
+                          );
+                        })()}
+                      </div>
                     </div>
                   </div>
                   
@@ -445,12 +554,44 @@ export default function OrganisasiPage() {
                       <span className="material-symbols-outlined" style={{ fontSize: 14 }}>email</span>
                       {org.Email || '-'}
                     </div>
-                    <button
-                      onClick={() => setSelectedDaftarOrg(org)}
-                      className="px-4 py-2 rounded-xl bg-[#00236F] text-white text-xs font-bold hover:bg-[#0B4FAE] transition-colors"
-                    >
-                      Daftar Sekarang
-                    </button>
+                    {(() => {
+                      const orgId = org.id || org.ID;
+                      const record = getPendaftaranRecord(orgId);
+                      const status = getRecruitmentStatus(org);
+
+                      if (record && record.Status?.toLowerCase() === 'aktif') {
+                        return (
+                          <span className="px-3 py-1.5 rounded-xl bg-green-50 text-green-700 text-xs font-bold border border-green-200">
+                            Sudah Tergabung
+                          </span>
+                        );
+                      }
+                      if (record && record.Status?.toLowerCase() === 'pending') {
+                        return (
+                          <span className="px-3 py-1.5 rounded-xl bg-amber-50 text-amber-700 text-xs font-bold border border-amber-200">
+                            Menunggu Persetujuan
+                          </span>
+                        );
+                      }
+                      if (!status.isOpen) {
+                        return (
+                          <button
+                            disabled
+                            className="px-4 py-2 rounded-xl bg-gray-100 text-gray-400 text-xs font-bold border border-gray-200 cursor-not-allowed"
+                          >
+                            Pendaftaran Ditutup
+                          </button>
+                        );
+                      }
+                      return (
+                        <button
+                          onClick={() => setSelectedDaftarOrg(org)}
+                          className="px-4 py-2 rounded-xl bg-[#00236F] text-white text-xs font-bold hover:bg-[#0B4FAE] transition-colors active:scale-95 duration-150"
+                        >
+                          Daftar Sekarang
+                        </button>
+                      );
+                    })()}
                   </div>
                 </div>
               ))}
@@ -506,8 +647,11 @@ export default function OrganisasiPage() {
                               </div>
                             </div>
                           </td>
-                          <td className="px-6 py-4 font-semibold text-sm text-[#525252]">
-                            {app.Divisi || 'Umum'}
+                           <td className="px-6 py-4 font-semibold text-sm text-[#525252]">
+                            <div>{app.Divisi || 'Umum'}</div>
+                            {(app.divisi_pilihan_dua || app.DivisiPilihanDua) && (
+                              <div className="text-[10px] font-bold text-[#737373] mt-0.5 uppercase tracking-wide">Pilihan 2: {app.divisi_pilihan_dua || app.DivisiPilihanDua}</div>
+                            )}
                           </td>
                           <td className="px-6 py-4 font-semibold text-sm text-[#a3a3a3]">
                             {new Date(app.created_at || app.CreatedAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
@@ -628,60 +772,344 @@ export default function OrganisasiPage() {
       )}
 
       {/* Registration Modal */}
-      {selectedDaftarOrg && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 print:hidden">
-          <div className="w-full max-w-lg bg-white rounded-3xl overflow-hidden border border-[#e5e5e5] shadow-2xl flex flex-col animate-in fade-in-50 zoom-in-95 duration-200">
-            <div className="bg-[#00236F] text-white p-5 flex items-start justify-between gap-4">
-              <div>
-                <p className="text-xs font-semibold text-white/70 uppercase tracking-wider">Pendaftaran Anggota</p>
-                <h3 className="text-lg font-extrabold mt-1">{selectedDaftarOrg.Nama}</h3>
+      {selectedDaftarOrg && (() => {
+        const studentIPK = profile?.IPK || 0;
+        const minIPK = selectedDaftarOrg.min_ipk || selectedDaftarOrg.MinIPK || 0;
+        const isGPAEligible = minIPK === 0 || studentIPK >= minIPK;
+        const fallbackDivisions = ["Umum", "Humas / Media", "PSDM / Keanggotaan", "Acara / Pelaksana Kegiatan", "Kreatif & Desain", "Logistik & Operasional"];
+        const divisionsOptions = divisionsList && divisionsList.length > 0
+          ? divisionsList.map(d => d.Nama || d.nama)
+          : fallbackDivisions;
+
+        return (
+          <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 print:hidden">
+            <div className="w-full max-w-xl bg-white rounded-3xl overflow-hidden border border-[#e5e5e5] shadow-2xl flex flex-col animate-in fade-in-50 zoom-in-95 duration-200">
+              <div className="bg-[#00236F] text-white p-5 flex items-start justify-between gap-4">
+                <div>
+                  <p className="text-xs font-semibold text-white/70 uppercase tracking-wider">Formulir Rekrutmen Anggota</p>
+                  <h3 className="text-lg font-extrabold mt-1">{selectedDaftarOrg.Nama || selectedDaftarOrg.nama}</h3>
+                </div>
+                <button
+                  onClick={closeDaftarModal}
+                  className="p-2 rounded-xl bg-white/10 hover:bg-white/20 transition-colors"
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: '18px' }} >close</span>
+                </button>
               </div>
-              <button
-                onClick={() => setSelectedDaftarOrg(null)}
-                className="p-2 rounded-xl bg-white/10 hover:bg-white/20 transition-colors"
-              >
-                <span className="material-symbols-outlined" style={{ fontSize: '18px' }} >close</span>
-              </button>
+
+              <form onSubmit={handleRegisterSubmit} className="flex flex-col">
+                <div className="p-6 space-y-5 max-h-[60vh] overflow-y-auto custom-scrollbar">
+                  {/* Requirements & Dates Section */}
+                  {(selectedDaftarOrg.recruitment_requirements || minIPK > 0) && (
+                    <div className="space-y-2">
+                      <label className="text-xs font-black text-[#171717] uppercase tracking-widest block flex items-center gap-1.5">
+                        <span className="material-symbols-outlined text-amber-500" style={{ fontSize: 16 }}>assignment_late</span>
+                        Persyaratan Pendaftaran & Kriteria
+                      </label>
+                      <div className="p-4 bg-amber-50/50 border border-amber-200 rounded-2xl text-xs font-semibold text-amber-900 leading-relaxed space-y-2">
+                        {selectedDaftarOrg.recruitment_requirements && (
+                          <div className="whitespace-pre-wrap font-body">
+                            {selectedDaftarOrg.recruitment_requirements}
+                          </div>
+                        )}
+                        {minIPK > 0 && (
+                          <div className="flex items-center gap-1.5 text-amber-950 font-bold border-t border-amber-200/50 pt-2 mt-2">
+                            <span className="material-symbols-outlined text-amber-600" style={{ fontSize: 14 }}>school</span>
+                            <span>IPK Minimal: {minIPK.toFixed(2)}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {selectedDaftarOrg.recruitment_start && selectedDaftarOrg.recruitment_end && (
+                    <div className="text-[11px] font-bold text-[#737373] flex items-center gap-1.5 bg-slate-50 border border-slate-200 p-2.5 rounded-xl">
+                      <span className="material-symbols-outlined text-slate-400" style={{ fontSize: 14 }}>calendar_month</span>
+                      <span>
+                        Periode: {new Date(selectedDaftarOrg.recruitment_start).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })} s.d. {new Date(selectedDaftarOrg.recruitment_end).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Section 1: Profil Pendaftar (Verified) */}
+                  <div className="bg-slate-50 border border-[#e5e5e5] rounded-2xl p-4 space-y-3">
+                    <div className="flex items-center justify-between border-b border-[#e5e5e5]/80 pb-2">
+                      <h4 className="text-[11px] font-black text-[#171717] uppercase tracking-wider flex items-center gap-1">
+                        <span className="material-symbols-outlined text-[#00236F]" style={{ fontSize: 14 }}>verified_user</span>
+                        Profil Pendaftar (SIAKAD Verified)
+                      </h4>
+                      <span className="px-2 py-0.5 rounded bg-emerald-100 text-emerald-700 text-[9px] font-bold uppercase tracking-wider">Auto-filled</span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3 text-xs">
+                      <div>
+                        <span className="text-[#737373] font-medium">Nama Lengkap</span>
+                        <p className="font-extrabold text-[#171717] mt-0.5">{profile?.Nama || '-'}</p>
+                      </div>
+                      <div>
+                        <span className="text-[#737373] font-medium">NIM</span>
+                        <p className="font-extrabold text-[#171717] mt-0.5">{profile?.NIM || '-'}</p>
+                      </div>
+                      <div className="col-span-2">
+                        <span className="text-[#737373] font-medium">Program Studi</span>
+                        <p className="font-extrabold text-[#171717] mt-0.5">{profile?.ProgramStudi?.Nama || '-'}</p>
+                      </div>
+                      <div className="col-span-2 border-t border-[#e5e5e5]/60 pt-2 flex items-center justify-between">
+                        <div>
+                          <span className="text-[#737373] font-medium block">Indeks Prestasi Kumulatif (IPK)</span>
+                          <span className="font-black text-sm text-[#171717]">{studentIPK.toFixed(2)}</span>
+                        </div>
+                        <div>
+                          {minIPK > 0 ? (
+                            isGPAEligible ? (
+                              <span className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                <span className="material-symbols-outlined" style={{ fontSize: 12 }}>check_circle</span> Memenuhi Syarat
+                              </span>
+                            ) : (
+                              <span className="flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-rose-50 text-rose-700 border border-rose-200">
+                                <span className="material-symbols-outlined" style={{ fontSize: 12 }}>cancel</span> IPK Kurang (Min: {minIPK.toFixed(2)})
+                              </span>
+                            )
+                          ) : (
+                            <span className="text-[10px] font-bold text-[#737373] bg-[#f5f5f5] px-2 py-1 rounded border border-[#e5e5e5]">Tidak Ada Syarat IPK</span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Warning Alert for IPK restriction */}
+                  {!isGPAEligible && (
+                    <div className="p-4 bg-rose-50 border border-rose-200 text-rose-800 text-xs font-semibold rounded-2xl flex gap-3 leading-relaxed">
+                      <span className="material-symbols-outlined shrink-0 text-rose-600 animate-bounce" style={{ fontSize: 18 }}>warning</span>
+                      <span>Maaf, Anda tidak dapat mendaftar ke Ormawa ini karena IPK Anda ({studentIPK.toFixed(2)}) berada di bawah standar minimum yang ditentukan ({minIPK.toFixed(2)}).</span>
+                    </div>
+                  )}
+
+                  {/* Section 2: Pilihan Divisi */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-xs font-black text-[#171717] uppercase tracking-widest block">Divisi Pilihan 1 <span className="text-rose-500">*</span></label>
+                      <select
+                        value={divisiPilihan}
+                        onChange={(e) => setDivisiPilihan(e.target.value)}
+                        className="w-full px-4 py-3 bg-[#fafafa] border border-[#e5e5e5] rounded-xl font-bold text-sm focus:outline-none focus:border-[#00236F] focus:ring-4 focus:ring-[#00236F]/10 transition-all outline-none"
+                        required
+                        disabled={!isGPAEligible}
+                      >
+                        <option value="" disabled>-- Pilih Divisi Utama --</option>
+                        {divisionsOptions.map((div, i) => (
+                          <option key={i} value={div}>{div}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-xs font-black text-[#171717] uppercase tracking-widest block">Divisi Pilihan 2 <span className="text-[#737373] text-[10px] font-normal">(Opsional)</span></label>
+                      <select
+                        value={divisiPilihanDua}
+                        onChange={(e) => setDivisiPilihanDua(e.target.value)}
+                        className="w-full px-4 py-3 bg-[#fafafa] border border-[#e5e5e5] rounded-xl font-bold text-sm focus:outline-none focus:border-[#00236F] focus:ring-4 focus:ring-[#00236F]/10 transition-all outline-none"
+                        disabled={!isGPAEligible}
+                      >
+                        <option value="">-- Tidak Memilih --</option>
+                        {divisionsOptions.filter(d => d !== divisiPilihan).map((div, i) => (
+                          <option key={i} value={div}>{div}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Section 3: Dynamic Custom Fields from Ormawa */}
+                  {recruitmentFields.length > 0 ? (
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-2 border-b border-[#e5e5e5] pb-2">
+                        <span className="material-symbols-outlined text-[#00236F]" style={{ fontSize: 15 }}>dynamic_form</span>
+                        <h4 className="text-[11px] font-black text-[#171717] uppercase tracking-wider">Pertanyaan Tambahan dari Ormawa</h4>
+                      </div>
+                      {recruitmentFields.map((field) => {
+                        const fieldId = field.id || field.ID;
+                        const options = field.options ? field.options.split(',').map(o => o.trim()).filter(Boolean) : [];
+                        const answer = customAnswers[String(fieldId)];
+                        return (
+                          <div key={fieldId} className="space-y-1.5">
+                            <label className="text-xs font-black text-[#171717] uppercase tracking-widest block">
+                              {field.label}
+                              {field.required && <span className="text-rose-500 ml-1">*</span>}
+                            </label>
+
+                            {/* Text */}
+                            {field.type === 'text' && (
+                              <input
+                                type="text"
+                                placeholder={field.label}
+                                value={answer || ''}
+                                onChange={e => handleCustomAnswer(fieldId, e.target.value)}
+                                required={field.required}
+                                disabled={!isGPAEligible}
+                                className="w-full px-4 py-3 bg-[#fafafa] border border-[#e5e5e5] rounded-xl font-bold text-sm focus:outline-none focus:border-[#00236F] focus:ring-4 focus:ring-[#00236F]/10 transition-all outline-none"
+                              />
+                            )}
+
+                            {/* Paragraph / Long Text */}
+                            {field.type === 'paragraph' && (
+                              <textarea
+                                placeholder={field.label}
+                                value={answer || ''}
+                                onChange={e => handleCustomAnswer(fieldId, e.target.value)}
+                                required={field.required}
+                                disabled={!isGPAEligible}
+                                rows={4}
+                                className="w-full px-4 py-3 bg-[#fafafa] border border-[#e5e5e5] rounded-xl font-bold text-sm focus:outline-none focus:border-[#00236F] focus:ring-4 focus:ring-[#00236F]/10 transition-all outline-none resize-none"
+                              />
+                            )}
+
+                            {/* Select Dropdown */}
+                            {field.type === 'select' && (
+                              <select
+                                value={answer || ''}
+                                onChange={e => handleCustomAnswer(fieldId, e.target.value)}
+                                required={field.required}
+                                disabled={!isGPAEligible}
+                                className="w-full px-4 py-3 bg-[#fafafa] border border-[#e5e5e5] rounded-xl font-bold text-sm focus:outline-none focus:border-[#00236F] focus:ring-4 focus:ring-[#00236F]/10 transition-all outline-none"
+                              >
+                                <option value="">-- Pilih --</option>
+                                {options.map((opt, i) => (
+                                  <option key={i} value={opt}>{opt}</option>
+                                ))}
+                              </select>
+                            )}
+
+                            {/* Checkboxes (multi-select) */}
+                            {field.type === 'checkbox' && (
+                              <div className="space-y-2">
+                                {options.map((opt, i) => {
+                                  const checkedValues = Array.isArray(answer) ? answer : (answer ? [answer] : []);
+                                  const isChecked = checkedValues.includes(opt);
+                                  return (
+                                    <label key={i} className="flex items-center gap-2.5 cursor-pointer group">
+                                      <input
+                                        type="checkbox"
+                                        checked={isChecked}
+                                        disabled={!isGPAEligible}
+                                        onChange={() => {
+                                          const next = isChecked
+                                            ? checkedValues.filter(v => v !== opt)
+                                            : [...checkedValues, opt];
+                                          handleCustomAnswer(fieldId, next);
+                                        }}
+                                        className="w-4 h-4 rounded border-[#e5e5e5] accent-[#00236F]"
+                                      />
+                                      <span className="text-sm font-semibold text-[#171717]">{opt}</span>
+                                    </label>
+                                  );
+                                })}
+                              </div>
+                            )}
+
+                            {/* File Upload (PDF/Image) */}
+                            {field.type === 'file' && (
+                              <div className="space-y-2">
+                                <div className="flex items-center gap-3">
+                                  <label
+                                    className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border text-xs font-bold cursor-pointer transition-all ${
+                                      !isGPAEligible
+                                        ? 'bg-[#f5f5f5] text-[#a3a3a3] border-[#e5e5e5] cursor-not-allowed'
+                                        : 'bg-[#EAF1FF] border-[#C9D8FF] text-[#0B4FAE] hover:bg-[#D9E7FF]'
+                                    }`}
+                                  >
+                                    <span className="material-symbols-outlined" style={{ fontSize: 16 }}>upload_file</span>
+                                    {fileUploading[fieldId] ? 'Mengunggah...' : 'Pilih File (PDF/Gambar, maks 5 MB)'}
+                                    <input
+                                      type="file"
+                                      accept=".pdf,image/*"
+                                      disabled={!isGPAEligible || fileUploading[fieldId]}
+                                      onChange={e => handleFileUpload(fieldId, e.target.files?.[0])}
+                                      className="hidden"
+                                    />
+                                  </label>
+                                  {fileUploading[fieldId] && (
+                                    <span className="text-xs text-[#737373] animate-pulse">Mengunggah...</span>
+                                  )}
+                                </div>
+                                {answer && (
+                                  <a
+                                    href={answer}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="flex items-center gap-1.5 text-xs text-[#0B4FAE] font-semibold hover:underline"
+                                  >
+                                    <span className="material-symbols-outlined" style={{ fontSize: 13 }}>attach_file</span>
+                                    File terlampir — klik untuk pratinjau
+                                  </a>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    /* Fallback form for Ormawa that has no custom fields set */
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <label className="text-xs font-black text-[#171717] uppercase tracking-widest block">Alasan &amp; Motivasi Bergabung <span className="text-rose-500">*</span></label>
+                        <textarea
+                          placeholder="Tuliskan alasan singkat mengapa Anda tertarik bergabung dengan divisi yang dipilih..."
+                          value={alasan}
+                          onChange={(e) => setAlasan(e.target.value)}
+                          className="w-full h-28 px-4 py-3 bg-[#fafafa] border border-[#e5e5e5] rounded-xl font-bold text-sm focus:outline-none focus:border-[#00236F] focus:ring-4 focus:ring-[#00236F]/10 transition-all outline-none resize-none"
+                          required
+                          disabled={!isGPAEligible}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-xs font-black text-[#171717] uppercase tracking-widest block">Tautan CV / Portfolio (Google Drive, dll) <span className="text-rose-500">*</span></label>
+                        <input
+                          type="url"
+                          placeholder="Contoh: https://drive.google.com/..."
+                          value={cvUrl}
+                          onChange={(e) => setCvUrl(e.target.value)}
+                          className="w-full px-4 py-3 bg-[#fafafa] border border-[#e5e5e5] rounded-xl font-bold text-sm focus:outline-none focus:border-[#00236F] focus:ring-4 focus:ring-[#00236F]/10 transition-all outline-none"
+                          required
+                          disabled={!isGPAEligible}
+                        />
+                        <span className="text-[10px] font-bold text-[#a3a3a3] block">Pastikan pengaturan berbagi link adalah "Siapa saja yang memiliki link dapat melihat".</span>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="p-4 bg-[#EAF1FF] border border-[#C9D8FF] rounded-xl flex gap-3 text-xs text-[#0B4FAE] font-medium leading-relaxed">
+                    <span className="material-symbols-outlined shrink-0" style={{ fontSize: 16 }}>info</span>
+                    <span>Formulir ini akan ditinjau secara resmi oleh Pengurus Ormawa. Status pendaftaran dapat dipantau di tab "Status Pendaftaran".</span>
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex gap-3 p-6 border-t border-[#e5e5e5] bg-[#fafafa] shrink-0">
+                  <button
+                    type="button"
+                    onClick={closeDaftarModal}
+                    className="flex-1 py-3 bg-white border border-[#e5e5e5] text-[#737373] font-black rounded-xl hover:bg-[#fafafa] transition-all uppercase tracking-wide text-xs active:scale-95"
+                  >
+                    Batal
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={daftarMutation.isPending || !isGPAEligible}
+                    className={`flex-1 py-3 font-black rounded-xl transition-all text-xs uppercase tracking-wide flex items-center justify-center gap-1.5 active:scale-95 text-white ${
+                      !isGPAEligible 
+                        ? 'bg-[#e5e5e5] text-[#a3a3a3] cursor-not-allowed border border-[#d4d4d4]' 
+                        : 'bg-[#00236F] hover:bg-[#0B4FAE]'
+                    }`}
+                  >
+                    {daftarMutation.isPending ? 'Mengirim...' : 'Kirim Pendaftaran'}
+                  </button>
+                </div>
+              </form>
             </div>
-
-            <form onSubmit={handleRegisterSubmit} className="p-6 space-y-4">
-              <div className="space-y-2">
-                <label className="text-xs font-black text-[#171717] uppercase tracking-widest block">Divisi Pilihan</label>
-                <input
-                  type="text"
-                  placeholder="Contoh: Humas, PSDM, Acara, Media"
-                  value={divisiPilihan}
-                  onChange={(e) => setDivisiPilihan(e.target.value)}
-                  className="w-full px-4 py-3 bg-[#fafafa] border border-[#e5e5e5] rounded-xl font-bold text-sm focus:outline-none focus:border-bku-primary focus:ring-4 focus:ring-bku-primary/10 transition-all outline-none"
-                  required
-                />
-              </div>
-
-              <div className="p-4 bg-[#EAF1FF] border border-[#C9D8FF] rounded-xl flex gap-3 text-xs text-[#0B4FAE] font-medium leading-relaxed">
-                <span className="material-symbols-outlined shrink-0" style={{ fontSize: 16 }}>info</span>
-                <span>Pendaftaran Anda akan ditinjau oleh Admin Ormawa yang bersangkutan. Status pendaftaran dapat dipantau di tab "Status Pendaftaran".</span>
-              </div>
-
-              <div className="flex gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setSelectedDaftarOrg(null)}
-                  className="flex-1 py-3 bg-white border border-[#e5e5e5] text-[#a3a3a3] font-black rounded-xl hover:bg-[#fafafa] transition-all uppercase tracking-wide text-xs"
-                >
-                  Batal
-                </button>
-                <button
-                  type="submit"
-                  disabled={daftarMutation.isPending}
-                  className="flex-1 py-3 bg-[#00236F] text-white font-black rounded-xl hover:bg-[#0B4FAE] transition-all text-xs uppercase tracking-wide flex items-center justify-center gap-1.5"
-                >
-                  {daftarMutation.isPending ? 'Mengirim...' : 'Kirim Pendaftaran'}
-                </button>
-              </div>
-            </form>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* Certificate Print Preview Modal */}
       {printCertData && (

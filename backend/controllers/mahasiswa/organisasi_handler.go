@@ -1,6 +1,8 @@
 package mahasiswa
 
 import (
+	"encoding/json"
+	"fmt"
 	"siakad-backend/config"
 	"siakad-backend/models"
 	"time"
@@ -131,11 +133,41 @@ func Delete(c *fiber.Ctx) error {
 
 // GetOrmawaList returns all active Ormawas
 func GetOrmawaList(c *fiber.Ctx) error {
+	student, err := getStudent(c)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"success": false, "message": "Mahasiswa tidak ditemukan"})
+	}
+
 	var list []models.Ormawa
 	if err := config.DB.Where("status = ?", "Aktif").Order("nama asc").Find(&list).Error; err != nil {
 		return c.Status(500).JSON(fiber.Map{"success": false, "message": "Gagal mengambil data Ormawa"})
 	}
-	return c.JSON(fiber.Map{"success": true, "data": list})
+
+	// Filter based on Kategori and student affiliation
+	var filtered []models.Ormawa
+	for _, o := range list {
+		k := o.Kategori
+		// BEM, MPM, UKM, UKK are open to everyone (no faculty/prodi check)
+		if k == "BEM" || k == "MPM" || k == "UKM" || k == "UKK" {
+			filtered = append(filtered, o)
+		} else {
+			// Himpunan and other categories: check affiliation
+			if o.ProgramStudiID != nil && *o.ProgramStudiID > 0 {
+				if student.ProgramStudiID == *o.ProgramStudiID {
+					filtered = append(filtered, o)
+				}
+			} else if o.FakultasID > 0 {
+				if student.FakultasID == o.FakultasID {
+					filtered = append(filtered, o)
+				}
+			} else {
+				// If no affiliation is set, keep it
+				filtered = append(filtered, o)
+			}
+		}
+	}
+
+	return c.JSON(fiber.Map{"success": true, "data": filtered})
 }
 
 // DaftarOrmawa registers a student to an Ormawa
@@ -146,8 +178,12 @@ func DaftarOrmawa(c *fiber.Ctx) error {
 	}
 
 	var req struct {
-		OrmawaID uint   `json:"ormawa_id"`
-		Divisi   string `json:"divisi"`
+		OrmawaID         uint                   `json:"ormawa_id"`
+		Divisi           string                 `json:"divisi"`
+		DivisiPilihanDua string                 `json:"divisi_pilihan_dua"`
+		Alasan           string                 `json:"alasan"`
+		CVURL            string                 `json:"cv_url"`
+		CustomAnswers    map[string]interface{} `json:"custom_answers"`
 	}
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(400).JSON(fiber.Map{"success": false, "message": "Payload request tidak valid"})
@@ -155,6 +191,45 @@ func DaftarOrmawa(c *fiber.Ctx) error {
 
 	if req.OrmawaID == 0 {
 		return c.Status(400).JSON(fiber.Map{"success": false, "message": "Ormawa ID wajib diisi"})
+	}
+
+	// Fetch Ormawa details to check affiliation and open recruitment status
+	var ormawa models.Ormawa
+	if err := config.DB.First(&ormawa, req.OrmawaID).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{"success": false, "message": "Ormawa tidak ditemukan"})
+	}
+
+	// Validate Open Recruitment status!
+	if !ormawa.OpenRecruitment {
+		return c.Status(400).JSON(fiber.Map{"success": false, "message": "Pendaftaran Ormawa ini sedang ditutup"})
+	}
+
+	// Validate dates if set!
+	now := time.Now()
+	if ormawa.RecruitmentStart != nil && !ormawa.RecruitmentStart.IsZero() && now.Before(*ormawa.RecruitmentStart) {
+		return c.Status(400).JSON(fiber.Map{"success": false, "message": "Pendaftaran Ormawa belum dibuka"})
+	}
+	if ormawa.RecruitmentEnd != nil && !ormawa.RecruitmentEnd.IsZero() && now.After(*ormawa.RecruitmentEnd) {
+		return c.Status(400).JSON(fiber.Map{"success": false, "message": "Pendaftaran Ormawa sudah ditutup"})
+	}
+
+	// Validate academic standard: Minimum GPA (IPK)!
+	if ormawa.MinIPK > 0 && student.IPK < ormawa.MinIPK {
+		return c.Status(400).JSON(fiber.Map{"success": false, "message": fmt.Sprintf("IPK Anda (%.2f) tidak memenuhi syarat minimal IPK (%.2f) untuk Ormawa ini", student.IPK, ormawa.MinIPK)})
+	}
+
+	// Validate affiliation!
+	k := ormawa.Kategori
+	if k != "BEM" && k != "MPM" && k != "UKM" && k != "UKK" {
+		if ormawa.ProgramStudiID != nil && *ormawa.ProgramStudiID > 0 {
+			if student.ProgramStudiID != *ormawa.ProgramStudiID {
+				return c.Status(403).JSON(fiber.Map{"success": false, "message": "Ormawa ini hanya terbuka untuk Program Studi yang bersangkutan"})
+			}
+		} else if ormawa.FakultasID > 0 {
+			if student.FakultasID != ormawa.FakultasID {
+				return c.Status(403).JSON(fiber.Map{"success": false, "message": "Ormawa ini hanya terbuka untuk Fakultas yang bersangkutan"})
+			}
+		}
 	}
 
 	// Check if already registered (either pending or active)
@@ -169,14 +244,25 @@ func DaftarOrmawa(c *fiber.Ctx) error {
 		div = "Umum"
 	}
 
-	now := time.Now()
+	// Serialize custom answers to JSON
+	customAnswersJSON := ""
+	if len(req.CustomAnswers) > 0 {
+		jb, _ := json.Marshal(req.CustomAnswers)
+		customAnswersJSON = string(jb)
+	}
+
 	anggota := models.OrmawaAnggota{
-		OrmawaID:    req.OrmawaID,
-		MahasiswaID: student.ID,
-		Role:        "Anggota",
-		Divisi:      div,
-		Status:      "pending",
-		JoinedAt:    now,
+		OrmawaID:         req.OrmawaID,
+		MahasiswaID:      student.ID,
+		Role:             "Anggota",
+		Divisi:           div,
+		DivisiPilihanDua: req.DivisiPilihanDua,
+		IPK:              student.IPK,
+		Alasan:           req.Alasan,
+		CVURL:            req.CVURL,
+		CustomAnswers:    customAnswersJSON,
+		Status:           "pending",
+		JoinedAt:         now,
 	}
 
 	if err := config.DB.Create(&anggota).Error; err != nil {
@@ -199,4 +285,83 @@ func GetPendaftaranList(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(fiber.Map{"success": true, "data": list})
+}
+
+// GetOrmawaDivisions returns all divisions for a specific Ormawa
+func GetOrmawaDivisions(c *fiber.Ctx) error {
+	ormawaID := c.Params("ormawaId")
+	if ormawaID == "" {
+		ormawaID = c.Query("ormawaId")
+	}
+	if ormawaID == "" {
+		return c.Status(400).JSON(fiber.Map{"success": false, "message": "Ormawa ID wajib diisi"})
+	}
+
+	var divisions []models.OrmawaDivisi
+	if err := config.DB.Where("ormawa_id = ?", ormawaID).Order("nama asc").Find(&divisions).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"success": false, "message": "Gagal mengambil data divisi"})
+	}
+
+	return c.JSON(fiber.Map{"success": true, "data": divisions})
+}
+
+// GetRecruitmentFields returns all dynamic form fields for a specific Ormawa's open-recruitment
+func GetRecruitmentFields(c *fiber.Ctx) error {
+	ormawaID := c.Params("ormawaId")
+	if ormawaID == "" {
+		return c.Status(400).JSON(fiber.Map{"success": false, "message": "Ormawa ID wajib diisi"})
+	}
+
+	var ormawa models.Ormawa
+	if err := config.DB.First(&ormawa, ormawaID).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{"success": false, "message": "Ormawa tidak ditemukan"})
+	}
+	if !ormawa.OpenRecruitment {
+		return c.Status(400).JSON(fiber.Map{"success": false, "message": "Ormawa ini sedang tidak membuka pendaftaran"})
+	}
+
+	var fields []models.OrmawaRecruitmentField
+	config.DB.Where("ormawa_id = ?", ormawaID).Order("\"order\" asc").Find(&fields)
+
+	return c.JSON(fiber.Map{
+		"success":      true,
+		"data":         fields,
+		"is_open":      ormawa.OpenRecruitment,
+		"start_date":   ormawa.RecruitmentStart,
+		"end_date":     ormawa.RecruitmentEnd,
+		"min_ipk":      ormawa.MinIPK,
+		"requirements": ormawa.RecruitmentRequirements,
+	})
+}
+
+// UploadRecruitmentFile handles file upload for PDF/image fields in the recruitment form
+func UploadRecruitmentFile(c *fiber.Ctx) error {
+	_, err := getStudent(c)
+	if err != nil {
+		return c.Status(401).JSON(fiber.Map{"success": false, "message": "Tidak terautentikasi"})
+	}
+
+	file, err := c.FormFile("file")
+	if err != nil {
+		return c.Status(400).JSON(fiber.Map{"success": false, "message": "File wajib diunggah"})
+	}
+
+	// Validate size (max 5 MB)
+	if file.Size > 5*1024*1024 {
+		return c.Status(400).JSON(fiber.Map{"success": false, "message": "Ukuran file maksimal 5 MB"})
+	}
+
+	ext := ""
+	if len(file.Filename) > 4 {
+		ext = file.Filename[len(file.Filename)-4:]
+	}
+	filename := fmt.Sprintf("recruit_%d%s", time.Now().UnixNano(), ext)
+	savePath := "./uploads/recruitment/" + filename
+
+	if err := c.SaveFile(file, savePath); err != nil {
+		return c.Status(500).JSON(fiber.Map{"success": false, "message": "Gagal menyimpan file"})
+	}
+
+	fileURL := "/uploads/recruitment/" + filename
+	return c.JSON(fiber.Map{"success": true, "url": fileURL, "message": "File berhasil diunggah"})
 }

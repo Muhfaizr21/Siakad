@@ -107,4 +107,9 @@ func SetupOrmawaRoutes(app *fiber.App) {
 	// FILE UPLOAD HANDLER
 	api.Post("/upload", ormawa.UploadFile)
 
+	// RECRUITMENT FIELDS (dynamic form builder)
+	api.Get("/recruitment-fields", ormawa.GetRecruitmentFields)
+	api.Post("/recruitment-fields", ormawa.SaveRecruitmentFields)
+	api.Delete("/recruitment-fields/:id", ormawa.DeleteRecruitmentField)
+
 }

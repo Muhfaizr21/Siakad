@@ -115,6 +115,7 @@ func migrateModels(db *gorm.DB) error {
 		&models.LaporanPertanggungjawaban{},
 		&models.OrmawaPoinHistory{},
 		&models.OrmawaGamifikasiRule{},
+		&models.OrmawaRecruitmentField{},
 	); err != nil {
 		return err
 	}

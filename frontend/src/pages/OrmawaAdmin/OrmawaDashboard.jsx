@@ -20,13 +20,30 @@ const Calendar = ({ size, className, ...props }) => <span className={`material-s
 const API = `${API_BASE_URL}/ormawa`
 const formatRp = (n) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0, notation: 'compact' }).format(n || 0)
 
-const STATUS_PROPOSAL = { 
-  diajukan: 'bg-info/10 text-info border border-info/20', 
-  disetujui_dosen: 'bg-primary/10 text-primary border border-primary/20', 
-  disetujui_univ: 'bg-success/10 text-success border border-success/20', 
-  revisi: 'bg-warning/10 text-warning border border-warning/20', 
-  ditolak: 'bg-error/10 text-error border border-error/20' 
-}
+const getProposalStatusStyle = (status) => {
+  const s = String(status || 'draft').toLowerCase().trim();
+  const styles = {
+    diajukan: 'bg-info/10 text-info border border-info/20',
+    disetujui_dosen: 'bg-primary/10 text-primary border border-primary/20',
+    disetujui_fakultas: 'bg-violet-500/10 text-violet-600 border border-violet-500/20',
+    disetujui_univ: 'bg-success/10 text-success border border-success/20',
+    revisi: 'bg-warning/10 text-warning border border-warning/20',
+    ditolak: 'bg-error/10 text-error border border-error/20'
+  };
+  return styles[s] || 'bg-background border border-border-muted text-muted';
+};
+
+const getEventStatusStyle = (status) => {
+  const s = String(status || 'terjadwal').toLowerCase().trim();
+  const styles = {
+    terjadwal: 'bg-info/10 text-info border border-info/20',
+    persiapan: 'bg-warning/10 text-warning border border-warning/20',
+    berlangsung: 'bg-amber-500/10 text-amber-600 border border-amber-500/20',
+    selesai: 'bg-success/10 text-success border border-success/20',
+    dibatalkan: 'bg-error/10 text-error border border-error/20'
+  };
+  return styles[s] || 'bg-background border border-border-muted text-muted';
+};
 
 export default function OrmawaDashboard() {
   const [isLoading, setIsLoading] = useState(true)
@@ -180,8 +197,8 @@ export default function OrmawaDashboard() {
                       <p className="font-bold text-on-surface text-sm truncate" style={{ color: 'var(--theme-text)' }}>{p.Judul}</p>
                       <p className="text-[10px] text-muted mt-0.5">PROP-{p.id || p.ID}</p>
                     </div>
-                    <Badge className={cn('font-black text-[9px] px-2.5 py-0.5 border shrink-0 tracking-widest', STATUS_PROPOSAL[p.Status] || 'bg-background border border-border-muted text-muted')}>
-                      {p.Status || 'draft'}
+                    <Badge className={cn('font-black text-[9px] px-2.5 py-0.5 border shrink-0 tracking-widest', getProposalStatusStyle(p.Status))}>
+                      {(p.Status || 'draft').replace(/_/g, ' ')}
                     </Badge>
                   </div>
                 ))}
@@ -214,18 +231,16 @@ export default function OrmawaDashboard() {
                   return (
                     <div key={ev.id || ev.ID} className="p-4 flex items-center gap-4 hover:bg-background transition-colors cursor-pointer" onClick={() => navigate('/ormawa/jadwal')}>
                       {d ? (
-                        <div className="size-10 shrink-0 rounded-lg bg-primary/10 flex flex-col items-center justify-center border border-primary/20">
-                          <span className="text-[11px] font-black text-primary leading-none">{d.toLocaleDateString('id-ID', { day: '2-digit' })}</span>
-                          <span className="text-[8px] font-bold text-primary/75 mt-0.5">{d.toLocaleDateString('id-ID', { month: 'short' })}</span>
+                        <div className="size-10 shrink-0 rounded-lg bg-warning/10 flex flex-col items-center justify-center border border-warning/20">
+                          <span className="text-[11px] font-black text-warning leading-none">{d.toLocaleDateString('id-ID', { day: '2-digit' })}</span>
+                          <span className="text-[8px] font-bold text-warning/75 mt-0.5">{d.toLocaleDateString('id-ID', { month: 'short' })}</span>
                         </div>
                       ) : <div className="size-10 shrink-0 rounded-lg bg-background border border-border-muted" />}
                       <div className="flex-1 min-w-0">
                         <p className="font-bold text-on-surface text-sm truncate" style={{ color: 'var(--theme-text)' }}>{ev.Judul}</p>
                         <p className="text-[10px] text-muted mt-0.5 truncate">{ev.Lokasi || 'Lokasi belum ditentukan'}</p>
                       </div>
-                      <Badge className={cn('font-black text-[9px] px-2.5 py-0.5 border shrink-0 tracking-widest',
-                        ev.Status === 'berlangsung' ? 'bg-success/10 text-success border border-success/20' :
-                        ev.Status === 'terjadwal' ? 'bg-info/10 text-info border border-info/20' : 'bg-background border border-border-muted text-muted')}>
+                      <Badge className={cn('font-black text-[9px] px-2.5 py-0.5 border shrink-0 tracking-widest', getEventStatusStyle(ev.Status))}>
                         {ev.Status || 'terjadwal'}
                       </Badge>
                     </div>

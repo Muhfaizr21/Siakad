@@ -65,7 +65,7 @@ export default function Notifikasi() {
   const [loading, setLoading] = useState(true)
   
   const authState = useAuthStore((s) => s)
-  const ormawaId = authState?.user?.ormawa_id || authState?.user?.OrmawaID || authState?.mahasiswa?.ormawaId || authState?.mahasiswa?.OrmawaID || 1
+  const ormawaId = authState?.user?.ormawa_id || authState?.user?.OrmawaID || authState?.user?.ormawaId || authState?.mahasiswa?.ormawaId || authState?.mahasiswa?.OrmawaID || 1
 
   const fetchData = async () => {
     setLoading(true)
@@ -124,6 +124,14 @@ export default function Notifikasi() {
 
   useEffect(() => {
     fetchData()
+
+    const handleNotifsUpdate = () => {
+      fetchData()
+    }
+    window.addEventListener('ormawa_notifications_updated', handleNotifsUpdate)
+    return () => {
+      window.removeEventListener('ormawa_notifications_updated', handleNotifsUpdate)
+    }
   }, [ormawaId])
 
   const unreadCount = notifications.filter(n => !n.is_read).length

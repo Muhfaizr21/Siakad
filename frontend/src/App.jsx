@@ -7,8 +7,10 @@ import Services from './pages/Services/Services'
 import Home from './pages/Home/Home'
 import PublicLayout from './components/layout/PublicLayout'
 import Login from './pages/Auth/Login'
+import Register from './pages/Auth/Register'
 import ChangePassword from './pages/Auth/ChangePassword'
 import ForgotPassword from './pages/Auth/ForgotPassword'
+import UpdateEmail from './pages/Auth/UpdateEmail'
 import AdminDashboard from './pages/SuperAdmin/AdminDashboard'
 import FacultyLayout from './pages/FacultyAdmin/components/FacultyLayout'
 import FacultyDashboard from './pages/FacultyAdmin/FacultyDashboard'
@@ -72,6 +74,7 @@ import StrukturOrganisasi from './pages/OrmawaAdmin/StrukturOrganisasi'
 import RoleBasedAccess from './pages/OrmawaAdmin/RoleBasedAccess'
 import Notifikasi from './pages/OrmawaAdmin/Notifikasi'
 import Settings from './pages/OrmawaAdmin/Settings'
+import Recruitment from './pages/OrmawaAdmin/Recruitment'
 import AspirationManagement from './pages/OrmawaAdmin/AspirationManagement'
 import FacultyAspirationManagement from './pages/FacultyAdmin/Aspirasi'
 import FacultyProdi from './pages/FacultyAdmin/Prodi'
@@ -217,6 +220,7 @@ function App() {
                   <Route path="/services" element={<Services />} />
                 </Route>
                 <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Register />} />
                 <Route path="/forgot-password" element={<ForgotPassword />} />
                 <Route path="/change-password" element={<ChangePassword />} />
                 <Route path="/404" element={<Error404 />} />
@@ -366,6 +370,7 @@ function App() {
                   <Route path="rbac" element={<RoleBasedAccess />} />
                   <Route path="notifikasi" element={<Notifikasi />} />
                   <Route path="pengaturan" element={<Settings />} />
+                  <Route path="recruitment" element={<Recruitment />} />
                   <Route path="aspirasi" element={<AspirationManagement />} />
                 </Route>
 

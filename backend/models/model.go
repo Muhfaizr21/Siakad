@@ -481,8 +481,18 @@ type Ormawa struct {
 	Nama       string
 	Singkatan  string `gorm:"size:20"`
 	Deskripsi  string
-	FakultasID uint `gorm:"index"`
-	Fakultas   Fakultas
+	FakultasID uint `gorm:"index" json:"fakultas_id"`
+	Fakultas   Fakultas `json:"fakultas,omitempty"`
+
+	ProgramStudiID *uint         `gorm:"index" json:"program_studi_id,omitempty"`
+	ProgramStudi   *ProgramStudi `gorm:"foreignKey:ProgramStudiID" json:"program_studi,omitempty"`
+
+	// Open Recruitment fields
+	OpenRecruitment         bool       `gorm:"default:false" json:"open_recruitment"`
+	RecruitmentRequirements string     `json:"recruitment_requirements"`
+	RecruitmentStart        *time.Time `json:"recruitment_start,omitempty"`
+	RecruitmentEnd          *time.Time `json:"recruitment_end,omitempty"`
+	MinIPK                  float64    `gorm:"default:0" json:"min_ipk"`
 
 	// Faculty Admin fields
 	Status        string `gorm:"default:'Aktif'"`
@@ -521,15 +531,34 @@ type OrmawaAnggota struct {
 	Ormawa    Ormawa
 	Mahasiswa Mahasiswa
 
-	Role     string
-	Divisi   string
-	Status   string
-	ParentID *uint
-	JoinedAt time.Time
+	Role             string
+	Divisi           string
+	DivisiPilihanDua string    `json:"divisi_pilihan_dua"`
+	IPK              float64   `json:"ipk"`
+	Alasan           string    `json:"alasan"`
+	CVURL            string    `json:"cv_url"`
+	CustomAnswers    string    `gorm:"type:text" json:"custom_answers"`
+	Status           string
+	ParentID         *uint
+	JoinedAt         time.Time
 }
 
 func (OrmawaAnggota) TableName() string {
 	return "ormawa.ormawa_anggota"
+}
+
+type OrmawaRecruitmentField struct {
+	BaseModel
+	OrmawaID uint   `gorm:"index" json:"ormawa_id"`
+	Label    string `json:"label"`
+	Type     string `json:"type"`   // "text", "paragraph", "select", "checkbox", "file"
+	Options  string `json:"options"`  // Comma-separated list of options
+	Required bool   `json:"required"`
+	Order    int    `gorm:"default:0" json:"order"`
+}
+
+func (OrmawaRecruitmentField) TableName() string {
+	return "ormawa.ormawa_recruitment_field"
 }
 
 type OrmawaDivisi struct {

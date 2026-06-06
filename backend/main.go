@@ -84,9 +84,11 @@ func main() {
 	authGroup := app.Group("/api/auth")
 	authGroup.Post("/login", authSvc.Login)
 	authGroup.Post("/login/select-role", authSvc.LoginSelectRole)
+	authGroup.Post("/register/mahasiswa", authSvc.RegisterMahasiswa) // NEW: Student self-registration
+	authGroup.Put("/change-password", middleware.AuthProtected, authSvc.ChangePassword)
+	authGroup.Put("/update-email", middleware.AuthProtected, authSvc.UpdateEmail) // NEW: Student update email
 	authGroup.Post("/refresh", authSvc.RefreshToken)
 	authGroup.Post("/logout", authSvc.Logout)
-	authGroup.Put("/change-password", middleware.AuthProtected, authSvc.ChangePassword)
 
 	// Admin Routes (Protected separately)
 	adminGroup := app.Group("/api/admin", middleware.AuthProtected, middleware.AdminCheck)

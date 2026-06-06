@@ -45,6 +45,9 @@ func SetupMahasiswaRoutes(app *fiber.App) {
 	organisasiGroup.Get("/ormawa-list", mahasiswa.GetOrmawaList)
 	organisasiGroup.Post("/daftar", mahasiswa.DaftarOrmawa)
 	organisasiGroup.Get("/pendaftaran", mahasiswa.GetPendaftaranList)
+	organisasiGroup.Get("/divisions/:ormawaId", mahasiswa.GetOrmawaDivisions)
+	organisasiGroup.Get("/recruitment-fields/:ormawaId", mahasiswa.GetRecruitmentFields)
+	organisasiGroup.Post("/upload-file", mahasiswa.UploadRecruitmentFile)
 
 	// Profil
 	profilGroup := api.Group("/profil")

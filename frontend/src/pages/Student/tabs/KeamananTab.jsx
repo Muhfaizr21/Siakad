@@ -25,6 +25,7 @@ const Monitor = ({ size, className, ...props }) => <span className={`material-sy
 const KeyRound = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>vpn_key</span>;
 const History = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>history</span>;
 
+const Mail = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>mail</span>;
 
 
 const passwordSchema = z.object({
@@ -40,16 +41,31 @@ const passwordSchema = z.object({
   path: ["confirm_password"],
 });
 
+const emailSchema = z.object({
+  email: z.string().email('Format email tidak valid'),
+  confirm_email: z.string().email('Format konfirmasi email tidak valid'),
+  password: z.string().min(1, 'Password wajib diisi untuk konfirmasi'),
+}).refine((data) => data.email === data.confirm_email, {
+  message: "Email dan konfirmasi tidak cocok",
+  path: ["confirm_email"],
+});
+
 export default function KeamananTab() {
   const queryClient = useQueryClient();
   const [showOld, setShowOld] = useState(false);
   const [showNew, setShowNew] = useState(false);
-  
-  const { register, handleSubmit, reset, watch, formState: { errors } } = useForm({
+  const [showEmailPass, setShowEmailPass] = useState(false);
+
+  const { register, handleSubmit, reset, watch, formState: { errors: passwordErrors } } = useForm({
     resolver: zodResolver(passwordSchema)
   });
 
+  const { register: registerEmail, handleSubmit: handleEmailSubmit, reset: resetEmail, watch: watchEmail, formState: { errors: emailErrors } } = useForm({
+    resolver: zodResolver(emailSchema)
+  });
+
   const newPassword = watch('new_password', '');
+  const newEmail = watch('email', '');
 
   const { data: sessions } = useQuery({
     queryKey: ['profil', 'sesi-aktif'],
@@ -78,6 +94,29 @@ export default function KeamananTab() {
     },
     onError: (error) => {
       toast.error(error.response?.data?.message || 'Gagal mengubah password');
+    }
+  });
+
+  const emailMutation = useMutation({
+    mutationFn: async (data) => {
+      const { data: res } = await api.put('/auth/update-email', {
+        email: data.email,
+        confirm_email: data.confirm_email,
+        password: data.password,
+      });
+      return res;
+    },
+    onSuccess: () => {
+      resetEmail();
+      toast.success('Email berhasil diperbarui');
+      // Update stored user data
+      const userData = JSON.parse(localStorage.getItem('user') || '{}');
+      userData.email = watchEmail('email');
+      localStorage.setItem('user', JSON.stringify(userData));
+      queryClient.invalidateQueries(['mahasiswa', 'profile']);
+    },
+    onError: (error) => {
+      toast.error(error.response?.data?.message || 'Gagal memperbarui email');
     }
   });
 
@@ -112,56 +151,120 @@ export default function KeamananTab() {
             <div className="space-y-2 relative">
                <Label htmlFor="old_password">Password Saat Ini</Label>
                <div className="relative">
-                  <Input 
-                    id="old_password" 
-                    type={showOld ? 'text' : 'password'} 
-                    {...register('old_password')} 
+                  <Input
+                    id="old_password"
+                    type={showOld ? 'text' : 'password'}
+                    {...register('old_password')}
                   />
                   <button type="button" onClick={() => setShowOld(!showOld)} className="absolute right-4 top-1/2 -translate-y-1/2 text-[#a3a3a3]">
                     {showOld ? <span className="material-symbols-outlined" style={{ fontSize: '18px' }} Off >visibility</span> : <span className="material-symbols-outlined" style={{ fontSize: '18px' }} >visibility</span>}
                   </button>
                </div>
-               {errors.old_password && <p className="text-xs font-bold text-[#0B4FAE]">{errors.old_password.message}</p>}
+               {passwordErrors.old_password && <p className="text-xs font-bold text-[#0B4FAE]">{passwordErrors.old_password.message}</p>}
             </div>
 
             <div className="space-y-2">
                <Label htmlFor="new_password">Password Baru</Label>
                <div className="relative">
-                  <Input 
-                    id="new_password" 
-                    type={showNew ? 'text' : 'password'} 
-                    {...register('new_password')} 
+                  <Input
+                    id="new_password"
+                    type={showNew ? 'text' : 'password'}
+                    {...register('new_password')}
                   />
                   <button type="button" onClick={() => setShowNew(!showNew)} className="absolute right-4 top-1/2 -translate-y-1/2 text-[#a3a3a3]">
                     {showNew ? <span className="material-symbols-outlined" style={{ fontSize: '18px' }} Off >visibility</span> : <span className="material-symbols-outlined" style={{ fontSize: '18px' }} >visibility</span>}
                   </button>
                </div>
                <div className="h-1.5 w-full bg-[#f5f5f5] rounded-full overflow-hidden mt-2">
-                  <div 
+                  <div
                     className={`h-full transition-all duration-500 ${
-                        strength < 50 ? 'bg-[#93B4FF]' : 
+                        strength < 50 ? 'bg-[#93B4FF]' :
                         strength < 100 ? 'bg-[#0B4FAE]' : 'bg-bku-primary'
-                    }`} 
+                    }`}
                     style={{ width: `${strength}%` }}
                    />
                </div>
-               {errors.new_password && <p className="text-xs font-bold text-[#0B4FAE]">{errors.new_password.message}</p>}
+               {passwordErrors.new_password && <p className="text-xs font-bold text-[#0B4FAE]">{passwordErrors.new_password.message}</p>}
             </div>
 
             <div className="space-y-2">
                <Label htmlFor="confirm_password">Konfirmasi Password Baru</Label>
                <Input id="confirm_password" type="password" {...register('confirm_password')} />
-               {errors.confirm_password && <p className="text-xs font-bold text-[#0B4FAE]">{errors.confirm_password.message}</p>}
+               {passwordErrors.confirm_password && <p className="text-xs font-bold text-[#0B4FAE]">{passwordErrors.confirm_password.message}</p>}
             </div>
 
             <div className="md:col-span-3 pt-4 border-t border-[#f5f5f5] flex justify-end">
-               <button 
-                type="submit" 
+               <button
+                type="submit"
                 disabled={passwordMutation.isPending}
                 className="bg-bku-primary text-white py-3 px-8 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-[#0B4FAE] transition-all disabled:opacity-50"
                >
                  {passwordMutation.isPending && <span className="material-symbols-outlined animate-spin" style={{ fontSize: '18px' }} >sync</span>}
                  Perbarui Password
+               </button>
+            </div>
+         </form>
+      </div>
+
+      {/* Card: Ubah Email */}
+      <div className="bg-white rounded-3xl border border-[#e5e5e5] p-6 md:p-8 shadow-sm">
+         <div className="flex items-center gap-3 mb-8">
+            <div className="bg-[#EAF1FF] text-bku-primary p-3 rounded-2xl">
+               <Mail size={24} />
+            </div>
+            <div>
+               <h3 className="text-xl font-extrabold font-headline">Ubah Email</h3>
+               <p className="text-sm font-medium text-[#a3a3a3]">Perbarui email akun Anda untuk login dan notifikasi.</p>
+            </div>
+         </div>
+
+         <form onSubmit={handleEmailSubmit((data) => emailMutation.mutate(data))} className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="space-y-2">
+               <Label htmlFor="email">Email Baru</Label>
+               <Input
+                 id="email"
+                 type="email"
+                 {...registerEmail('email')}
+                 placeholder="email@universitas.edu"
+               />
+               {emailErrors.email && <p className="text-xs font-bold text-[#0B4FAE]">{emailErrors.email.message}</p>}
+            </div>
+
+            <div className="space-y-2">
+               <Label htmlFor="confirm_email">Konfirmasi Email</Label>
+               <Input
+                 id="confirm_email"
+                 type="email"
+                 {...registerEmail('confirm_email')}
+                 placeholder="Ulangi email baru"
+               />
+               {emailErrors.confirm_email && <p className="text-xs font-bold text-[#0B4FAE]">{emailErrors.confirm_email.message}</p>}
+            </div>
+
+            <div className="space-y-2">
+               <Label htmlFor="email_password">Password (Konfirmasi)</Label>
+               <div className="relative">
+                  <Input
+                    id="email_password"
+                    type={showEmailPass ? 'text' : 'password'}
+                    {...registerEmail('password')}
+                    placeholder="Masukkan password"
+                  />
+                  <button type="button" onClick={() => setShowEmailPass(!showEmailPass)} className="absolute right-4 top-1/2 -translate-y-1/2 text-[#a3a3a3]">
+                    {showEmailPass ? <span className="material-symbols-outlined" style={{ fontSize: '18px' }} Off >visibility</span> : <span className="material-symbols-outlined" style={{ fontSize: '18px' }} >visibility</span>}
+                  </button>
+               </div>
+               {emailErrors.password && <p className="text-xs font-bold text-[#0B4FAE]">{emailErrors.password.message}</p>}
+            </div>
+
+            <div className="md:col-span-3 pt-4 border-t border-[#f5f5f5] flex justify-end">
+               <button
+                type="submit"
+                disabled={emailMutation.isPending}
+                className="bg-bku-primary text-white py-3 px-8 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-[#0B4FAE] transition-all disabled:opacity-50"
+               >
+                 {emailMutation.isPending && <span className="material-symbols-outlined animate-spin" style={{ fontSize: '18px' }} >sync</span>}
+                 Simpan Email Baru
                </button>
             </div>
          </form>

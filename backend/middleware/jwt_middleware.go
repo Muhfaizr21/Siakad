@@ -184,7 +184,7 @@ func OrmawaCheck(c *fiber.Ctx) error {
 
 		if queryOrmawaID == "" || queryOrmawaID == "1" || queryOrmawaID == "undefined" {
 			var memberships []models.OrmawaAnggota
-			err := config.DB.Where("mahasiswa_id = ? AND (status = ? OR status = ?)", studentID, "Aktif", "aktif").Order("created_at asc").Limit(1).Find(&memberships).Error
+			err := config.DB.Where("mahasiswa_id = ? AND LOWER(status) = 'aktif'", studentID).Order("created_at asc").Limit(1).Find(&memberships).Error
 			if err == nil && len(memberships) > 0 {
 				c.Request().URI().QueryArgs().Set("ormawaId", strconv.FormatUint(uint64(memberships[0].OrmawaID), 10))
 				queryOrmawaID = strconv.FormatUint(uint64(memberships[0].OrmawaID), 10)
@@ -195,7 +195,7 @@ func OrmawaCheck(c *fiber.Ctx) error {
 		if queryOrmawaID != "" && queryOrmawaID != "undefined" {
 			var count int64
 			config.DB.Model(&models.OrmawaAnggota{}).
-				Where("mahasiswa_id = ? AND ormawa_id = ? AND status = ?", studentID, parseUint(queryOrmawaID), "Aktif").
+				Where("mahasiswa_id = ? AND ormawa_id = ? AND LOWER(status) = 'aktif'", studentID, parseUint(queryOrmawaID)).
 				Count(&count)
 			if count == 0 {
 				// Fallback to manual assign claim in token if DB record isn't added yet

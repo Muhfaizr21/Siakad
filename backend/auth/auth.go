@@ -182,8 +182,8 @@ func getUserPermissions(user models.User, roleName string, studentID uint) []str
 	if roleName == "ormawa" || roleName == "ormawa_admin" {
 		if studentID != 0 {
 			var membership models.OrmawaAnggota
-			// Find active membership for the student
-			if err := config.DB.Where("mahasiswa_id = ? AND status = 'aktif'", studentID).First(&membership).Error; err == nil {
+			// Find active membership for the student (case-insensitive status check)
+			if err := config.DB.Where("mahasiswa_id = ? AND LOWER(status) = 'aktif'", studentID).First(&membership).Error; err == nil {
 				var ormawaRole models.OrmawaRole
 				// Find custom role in that Ormawa case-insensitively
 				if err := config.DB.Where("ormawa_id = ? AND LOWER(nama) = LOWER(?)", membership.OrmawaID, membership.Role).First(&ormawaRole).Error; err == nil {
@@ -336,7 +336,7 @@ func Login(c *fiber.Ctx) error {
 		nim = student.NIM
 		// Lookup active Ormawa membership
 		var memberships []models.OrmawaAnggota
-		if err := config.DB.Where("mahasiswa_id = ? AND status = 'aktif'", student.ID).Limit(1).Find(&memberships).Error; err == nil && len(memberships) > 0 {
+		if err := config.DB.Where("mahasiswa_id = ? AND LOWER(status) = 'aktif'", student.ID).Limit(1).Find(&memberships).Error; err == nil && len(memberships) > 0 {
 			user.OrmawaID = &memberships[0].OrmawaID
 		}
 	}
@@ -366,7 +366,7 @@ func Login(c *fiber.Ctx) error {
 	// Dynamically check if this user is a student with an active Ormawa membership
 	if student.ID != 0 && !hasOrmawa {
 		var membershipCount int64
-		config.DB.Model(&models.OrmawaAnggota{}).Where("mahasiswa_id = ? AND status = 'aktif'", student.ID).Count(&membershipCount)
+		config.DB.Model(&models.OrmawaAnggota{}).Where("mahasiswa_id = ? AND LOWER(status) = 'aktif'", student.ID).Count(&membershipCount)
 		if membershipCount > 0 {
 			allRoles = append(allRoles, "ormawa")
 		}
@@ -387,7 +387,7 @@ func Login(c *fiber.Ctx) error {
 			// Custom meta for dynamic Ormawa roles
 			if r == "ormawa" && student.ID != 0 {
 				var membership models.OrmawaAnggota
-				if err := config.DB.Preload("Ormawa").Where("mahasiswa_id = ? AND status = 'aktif'", student.ID).First(&membership).Error; err == nil {
+				if err := config.DB.Preload("Ormawa").Where("mahasiswa_id = ? AND LOWER(status) = 'aktif'", student.ID).First(&membership).Error; err == nil {
 					meta.Label = fmt.Sprintf("Ormawa (%s)", membership.Role)
 					if membership.Ormawa.Nama != "" {
 						meta.Description = fmt.Sprintf("Akses sebagai %s di %s", membership.Role, membership.Ormawa.Nama)
@@ -569,7 +569,7 @@ func LoginSelectRole(c *fiber.Ctx) error {
 		_ = config.DB.Where("pengguna_id = ?", user.ID).First(&student).Error
 		if student.ID != 0 {
 			var membershipCount int64
-			config.DB.Model(&models.OrmawaAnggota{}).Where("mahasiswa_id = ? AND status = 'aktif'", student.ID).Count(&membershipCount)
+			config.DB.Model(&models.OrmawaAnggota{}).Where("mahasiswa_id = ? AND LOWER(status) = 'aktif'", student.ID).Count(&membershipCount)
 			if membershipCount > 0 {
 				validRole = true
 			}
@@ -592,7 +592,7 @@ func LoginSelectRole(c *fiber.Ctx) error {
 	if student.ID != 0 {
 		nim = student.NIM
 		var memberships []models.OrmawaAnggota
-		if err := config.DB.Where("mahasiswa_id = ? AND status = 'aktif'", student.ID).Limit(1).Find(&memberships).Error; err == nil && len(memberships) > 0 {
+		if err := config.DB.Where("mahasiswa_id = ? AND LOWER(status) = 'aktif'", student.ID).Limit(1).Find(&memberships).Error; err == nil && len(memberships) > 0 {
 			user.OrmawaID = &memberships[0].OrmawaID
 		}
 	}
@@ -640,7 +640,7 @@ func LoginSelectRole(c *fiber.Ctx) error {
 	var ormawaName string
 	if (selectedRole == "ormawa" || selectedRole == "ormawa_admin") && student.ID != 0 {
 		var membership models.OrmawaAnggota
-		if err := config.DB.Preload("Ormawa").Where("mahasiswa_id = ? AND status = 'aktif'", student.ID).First(&membership).Error; err == nil {
+		if err := config.DB.Preload("Ormawa").Where("mahasiswa_id = ? AND LOWER(status) = 'aktif'", student.ID).First(&membership).Error; err == nil {
 			roleDisplay = membership.Role
 			ormawaName = membership.Ormawa.Nama
 		}
@@ -699,7 +699,7 @@ func Me(c *fiber.Ctx) error {
 	_ = config.DB.Where("pengguna_id = ?", user.ID).First(&student).Error
 	if student.ID != 0 {
 		var membership models.OrmawaAnggota
-		if err := config.DB.Where("mahasiswa_id = ? AND status = 'aktif'", student.ID).First(&membership).Error; err == nil {
+		if err := config.DB.Where("mahasiswa_id = ? AND LOWER(status) = 'aktif'", student.ID).First(&membership).Error; err == nil {
 			user.OrmawaID = &membership.OrmawaID
 		}
 	}
@@ -715,7 +715,7 @@ func Me(c *fiber.Ctx) error {
 	var ormawaName string
 	if (roleVal == "ormawa" || roleVal == "ormawa_admin") && student.ID != 0 {
 		var membership models.OrmawaAnggota
-		if err := config.DB.Preload("Ormawa").Where("mahasiswa_id = ? AND status = 'aktif'", student.ID).First(&membership).Error; err == nil {
+		if err := config.DB.Preload("Ormawa").Where("mahasiswa_id = ? AND LOWER(status) = 'aktif'", student.ID).First(&membership).Error; err == nil {
 			roleDisplay = membership.Role
 			ormawaName = membership.Ormawa.Nama
 		}
@@ -870,6 +870,233 @@ func ChangePassword(c *fiber.Ctx) error {
 		"success": true,
 		"message": "Password berhasil diubah",
 	})
+}
+
+// RegisterMahasiswa handles student self-registration
+func RegisterMahasiswa(c *fiber.Ctx) error {
+	type RegisterRequest struct {
+		NIM          string `json:"nim"`
+		Email        string `json:"email"`
+		Password     string `json:"password"`
+		Nama         string `json:"nama"`
+		FakultasID   uint   `json:"fakultas_id"`
+		ProgramStudi uint   `json:"program_studi_id"`
+	}
+
+	var req RegisterRequest
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(400).JSON(fiber.Map{"success": false, "message": "Format data tidak valid"})
+	}
+
+	// Validation
+	req.NIM = strings.TrimSpace(req.NIM)
+	req.Email = strings.TrimSpace(strings.ToLower(req.Email))
+	req.Password = strings.TrimSpace(req.Password)
+	req.Nama = strings.TrimSpace(req.Nama)
+
+	if req.NIM == "" || req.Email == "" || req.Password == "" || req.Nama == "" {
+		return c.Status(400).JSON(fiber.Map{"success": false, "message": "NIM, email, password, dan nama wajib diisi"})
+	}
+
+	// Check if NIM already registered
+	var existingStudent models.Mahasiswa
+	if err := config.DB.Where("nim = ?", req.NIM).First(&existingStudent).Error; err == nil {
+		// Check if user already exists for this student
+		if existingStudent.PenggunaID != 0 {
+			var existingUser models.User
+			if err := config.DB.First(&existingUser, existingStudent.PenggunaID).Error; err == nil {
+				return c.Status(400).JSON(fiber.Map{"success": false, "message": "NIM ini sudah terdaftar. Silakan login atau reset password."})
+			}
+		}
+		// Student record exists but no user - proceed to create user
+	}
+
+	// Check if email already taken by another user
+	var existingUserByEmail models.User
+	if err := config.DB.Where("LOWER(email) = ?", req.Email).First(&existingUserByEmail).Error; err == nil {
+		// Check if this email belongs to a different student
+		var studentWithEmail models.Mahasiswa
+		if err := config.DB.Where("pengguna_id = ?", existingUserByEmail.ID).First(&studentWithEmail).Error; err == nil {
+			if studentWithEmail.NIM != req.NIM {
+				return c.Status(400).JSON(fiber.Map{"success": false, "message": "Email sudah digunakan oleh akun lain"})
+			}
+		} else {
+			return c.Status(400).JSON(fiber.Map{"success": false, "message": "Email sudah digunakan"})
+		}
+	}
+
+	// Validate password strength
+	if len(req.Password) < 8 {
+		return c.Status(400).JSON(fiber.Map{"success": false, "message": "Password minimal 8 karakter"})
+	}
+
+	// Find student by NIM (must exist in database already)
+	var student models.Mahasiswa
+	if err := config.DB.Preload("Pengguna").Where("nim = ?", req.NIM).First(&student).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{"success": false, "message": "Mahasiswa dengan NIM ini tidak ditemukan. Hubungi admin untuk data NIM."})
+	}
+
+	// If student already has user account, don't allow re-registration
+	if student.PenggunaID != 0 && student.Pengguna.ID != 0 {
+		return c.Status(400).JSON(fiber.Map{"success": false, "message": "Akun dengan NIM ini sudah terdaftar"})
+	}
+
+	// Hash password
+	hash, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"success": false, "message": "Gagal memproses password"})
+	}
+
+	// Create user
+	newUser := models.User{
+		Email:    req.Email,
+		Password: string(hash),
+		Role:     "mahasiswa",
+	}
+
+	if req.FakultasID != 0 {
+		newUser.FakultasID = &req.FakultasID
+	}
+
+	if err := config.DB.Create(&newUser).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"success": false, "message": "Gagal membuat akun: " + err.Error()})
+	}
+
+	// Link user to student
+	student.PenggunaID = newUser.ID
+	student.EmailKampus = req.Email
+	if req.FakultasID != 0 {
+		student.FakultasID = req.FakultasID
+	}
+	if req.ProgramStudi != 0 {
+		student.ProgramStudiID = req.ProgramStudi
+	}
+	config.DB.Save(&student)
+
+	// Generate tokens
+	fakultasID := student.FakultasID
+	accessToken, _ := createToken(newUser.ID, student.ID, student.NIM, "mahasiswa", &fakultasID, nil, "")
+	refreshToken, _ := createRefreshToken(newUser.ID, student.ID, student.NIM, "mahasiswa", &fakultasID, nil, "")
+	setRefreshTokenCookie(c, refreshToken)
+
+	return c.Status(201).JSON(fiber.Map{
+		"success": true,
+		"message": "Registrasi berhasil",
+		"data": fiber.Map{
+			"user": fiber.Map{
+				"id":    newUser.ID,
+				"email": newUser.Email,
+				"role":  "mahasiswa",
+				"nim":   student.NIM,
+				"nama":  student.Nama,
+			},
+			"access_token": accessToken,
+		},
+	})
+}
+
+// UpdateEmail allows authenticated student to update their email
+func UpdateEmail(c *fiber.Ctx) error {
+	UserID, ok := c.Locals("user_id").(uint)
+	if !ok {
+		return c.Status(401).JSON(fiber.Map{"success": false, "message": "User tidak terautentikasi"})
+	}
+
+	type UpdateEmailRequest struct {
+		Email          string `json:"email"`
+		ConfirmEmail   string `json:"confirm_email"`
+		Password       string `json:"password"`
+	}
+
+	var req UpdateEmailRequest
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(400).JSON(fiber.Map{"success": false, "message": "Format data tidak valid"})
+	}
+
+	// Normalize
+	req.Email = strings.TrimSpace(strings.ToLower(req.Email))
+	req.ConfirmEmail = strings.TrimSpace(strings.ToLower(req.ConfirmEmail))
+	req.Password = strings.TrimSpace(req.Password)
+
+	// Validation
+	if req.Email == "" || req.ConfirmEmail == "" || req.Password == "" {
+		return c.Status(400).JSON(fiber.Map{"success": false, "message": "Email baru, konfirmasi email, dan password wajib diisi"})
+	}
+
+	if req.Email != req.ConfirmEmail {
+		return c.Status(400).JSON(fiber.Map{"success": false, "message": "Email dan konfirmasi email tidak cocok"})
+	}
+
+	// Validate email format
+	if !isValidEmail(req.Email) {
+		return c.Status(400).JSON(fiber.Map{"success": false, "message": "Format email tidak valid"})
+	}
+
+	// Get current user
+	var user models.User
+	if err := config.DB.First(&user, UserID).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{"success": false, "message": "User tidak ditemukan"})
+	}
+
+	// Verify password
+	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password)); err != nil {
+		return c.Status(400).JSON(fiber.Map{"success": false, "message": "Password salah"})
+	}
+
+	// Check if new email is same as current
+	if strings.ToLower(user.Email) == req.Email {
+		return c.Status(400).JSON(fiber.Map{"success": false, "message": "Email baru sama dengan email saat ini"})
+	}
+
+	// Check if email is already taken by another user
+	var existingUser models.User
+	if err := config.DB.Where("LOWER(email) = ? AND id != ?", req.Email, UserID).First(&existingUser).Error; err == nil {
+		return c.Status(400).JSON(fiber.Map{"success": false, "message": "Email sudah digunakan oleh akun lain"})
+	}
+
+	// Update email in users table
+	oldEmail := user.Email
+	user.Email = req.Email
+	if err := config.DB.Save(&user).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"success": false, "message": "Gagal memperbarui email"})
+	}
+
+	// Sync to mahasiswa table (EmailKampus)
+	var student models.Mahasiswa
+	if err := config.DB.Where("pengguna_id = ?", UserID).First(&student).Error; err == nil {
+		student.EmailKampus = req.Email
+		student.EmailPersonal = req.Email
+		config.DB.Save(&student)
+	}
+
+	// Log activity
+	log.Printf("[AUTH] Email updated for user %d: %s -> %s", UserID, oldEmail, req.Email)
+
+	return c.JSON(fiber.Map{
+		"success": true,
+		"message": "Email berhasil diperbarui",
+		"data": fiber.Map{
+			"email":     req.Email,
+			"old_email": oldEmail,
+		},
+	})
+}
+
+func isValidEmail(email string) bool {
+	if email == "" {
+		return false
+	}
+	parts := strings.Split(email, "@")
+	if len(parts) != 2 {
+		return false
+	}
+	if len(parts[0]) < 1 || len(parts[1]) < 3 {
+		return false
+	}
+	if !strings.Contains(parts[1], ".") {
+		return false
+	}
+	return true
 }
 
 func Protected() fiber.Handler {

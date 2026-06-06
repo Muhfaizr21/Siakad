@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import api from '../../lib/axios';
+import useAuthStore from '../../store/useAuthStore';
 import {
   Bell,
   Trophy,
@@ -34,10 +35,27 @@ export default function NotificationDropdown() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
+  const user = useAuthStore(state => state.user);
+  const role = user?.role || '';
+  const ormawaId = user?.ormawa_id || user?.OrmawaID || user?.ormawaId || 1;
+
+  const isOrmawa = role === 'ormawa' || role === 'ormawa_admin';
+  const isPsychologist = role === 'psychologist' || role === 'psikolog';
+
   // Polling strategy: check unread count every 30s
   const { data: unreadData } = useQuery({
-    queryKey: ['notifikasi', 'unread-count'],
+    queryKey: ['notifikasi', 'unread-count', role, ormawaId],
     queryFn: async () => {
+      if (isOrmawa) {
+        const { data } = await api.get(`/ormawa/notifications?ormawaId=${ormawaId}`);
+        const unreadCount = (data.data || []).filter(n => !(n.is_read ?? n.IsRead)).length;
+        return { count: unreadCount };
+      }
+      if (isPsychologist) {
+        const { data } = await api.get('/psychologist/notifications');
+        const unreadCount = (data.data || []).filter(n => !(n.is_read ?? n.IsRead)).length;
+        return { count: unreadCount };
+      }
       const { data } = await api.get('/notifikasi/unread-count');
       return data;
     },
@@ -46,18 +64,28 @@ export default function NotificationDropdown() {
   });
 
   const { data: notifData, isLoading } = useQuery({
-    queryKey: ['notifikasi', 'list-dropdown'],
+    queryKey: ['notifikasi', 'list-dropdown', role, ormawaId],
     queryFn: async () => {
-      const { data } = await api.get('/notifikasi?status=unread');
-      // Map Go PascalCase fields to camelCase
-      return (data.data || []).slice(0, 5).map(raw => ({
-        id: raw.ID,
-        title: raw.Judul || 'Tanpa Judul',
-        content: raw.Deskripsi || '',
-        type: (raw.Tipe || 'sistem').toLowerCase(),
-        is_read: raw.IsRead ?? false,
-        created_at: raw.CreatedAt,
-        link: raw.Link || ''
+      let responseData = [];
+      if (isOrmawa) {
+        const { data } = await api.get(`/ormawa/notifications?ormawaId=${ormawaId}`);
+        responseData = (data.data || []).filter(n => !(n.is_read ?? n.IsRead));
+      } else if (isPsychologist) {
+        const { data } = await api.get('/psychologist/notifications');
+        responseData = (data.data || []).filter(n => !(n.is_read ?? n.IsRead));
+      } else {
+        const { data } = await api.get('/notifikasi?status=unread');
+        responseData = data.data || [];
+      }
+
+      return responseData.slice(0, 5).map(raw => ({
+        id: raw.id ?? raw.ID,
+        title: raw.judul ?? raw.Judul ?? 'Tanpa Judul',
+        content: raw.pesan ?? raw.Pesan ?? raw.deskripsi ?? raw.Deskripsi ?? '',
+        type: (raw.tipe ?? raw.Tipe ?? 'sistem').toLowerCase(),
+        is_read: raw.is_read ?? raw.IsRead ?? false,
+        created_at: raw.created_at ?? raw.CreatedAt,
+        link: raw.link ?? raw.Link ?? ''
       }));
     },
     enabled: isOpen
@@ -65,19 +93,41 @@ export default function NotificationDropdown() {
 
   const markReadMutation = useMutation({
     mutationFn: async (notifId) => {
-      await api.put(`/notifikasi/${notifId}/baca`);
+      if (isOrmawa) {
+        await api.put(`/ormawa/notifications/${notifId}/read`);
+      } else if (isPsychologist) {
+        await api.put(`/psychologist/notifications/${notifId}/read`);
+      } else {
+        await api.put(`/notifikasi/${notifId}/baca`);
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['notifikasi']);
+      if (isOrmawa) {
+        window.dispatchEvent(new Event('ormawa_notifications_updated'));
+      } else if (isPsychologist) {
+        window.dispatchEvent(new Event('psychologist_notifications_updated'));
+      }
     }
   });
 
   const markAllReadMutation = useMutation({
     mutationFn: async () => {
-      await api.put('/notifikasi/baca-semua');
+      if (isOrmawa) {
+        await api.put(`/ormawa/notifications/read-all?ormawaId=${ormawaId}`);
+      } else if (isPsychologist) {
+        await api.put(`/psychologist/notifications/read-all`);
+      } else {
+        await api.put('/notifikasi/baca-semua');
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['notifikasi']);
+      if (isOrmawa) {
+        window.dispatchEvent(new Event('ormawa_notifications_updated'));
+      } else if (isPsychologist) {
+        window.dispatchEvent(new Event('psychologist_notifications_updated'));
+      }
     }
   });
 
@@ -91,6 +141,19 @@ export default function NotificationDropdown() {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  // Sync with main pages notification updates
+  useEffect(() => {
+    const handleNotifsUpdate = () => {
+      queryClient.invalidateQueries(['notifikasi']);
+    };
+    window.addEventListener('ormawa_notifications_updated', handleNotifsUpdate);
+    window.addEventListener('psychologist_notifications_updated', handleNotifsUpdate);
+    return () => {
+      window.removeEventListener('ormawa_notifications_updated', handleNotifsUpdate);
+      window.removeEventListener('psychologist_notifications_updated', handleNotifsUpdate);
+    };
+  }, [queryClient]);
 
   const handleNotifClick = (notif) => {
     if (!notif.is_read) {
@@ -128,7 +191,7 @@ export default function NotificationDropdown() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 10, scale: 0.95 }}
             transition={{ duration: 0.2, ease: "easeOut" }}
-            className="absolute right-0 mt-3 w-[360px] md:w-[380px] bg-white rounded-3xl border border-neutral-200 shadow-2xl z-50 overflow-hidden"
+            className="fixed sm:absolute top-16 sm:top-auto right-4 sm:right-0 mt-3 w-[calc(100vw-32px)] sm:w-[380px] bg-white rounded-3xl border border-neutral-200 shadow-2xl z-50 overflow-hidden"
           >
             {/* Header */}
             <div className="p-5 border-b border-neutral-100 flex items-center justify-between">
@@ -150,7 +213,7 @@ export default function NotificationDropdown() {
             </div>
 
             {/* List */}
-            <div className="max-height-[400px] overflow-y-auto custom-scrollbar">
+            <div className="max-h-[400px] overflow-y-auto custom-scrollbar">
               {isLoading ? (
                 <div className="p-10 text-center">
                   <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
@@ -187,7 +250,7 @@ export default function NotificationDropdown() {
                             })()}
                           </span>
                         </div>
-                        <p className="text-xs text-neutral-500 line-clamp-2 leading-relaxed">
+                        <p className="text-xs text-neutral-500 line-clamp-2 leading-relaxed font-semibold">
                           {notif.content}
                         </p>
                       </div>
@@ -213,7 +276,16 @@ export default function NotificationDropdown() {
 
             {/* Footer */}
             <button
-              onClick={() => { setIsOpen(false); navigate('/student/notifikasi'); }}
+              onClick={() => {
+                setIsOpen(false);
+                if (isOrmawa) {
+                  navigate('/ormawa/notifikasi');
+                } else if (isPsychologist) {
+                  navigate('/psychologist');
+                } else {
+                  navigate('/student/notifikasi');
+                }
+              }}
               className="w-full p-4 border-t border-neutral-100 text-xs font-bold text-neutral-900 hover:bg-neutral-50 transition-colors flex items-center justify-center gap-2"
             >
               Lihat Semua Notifikasi
