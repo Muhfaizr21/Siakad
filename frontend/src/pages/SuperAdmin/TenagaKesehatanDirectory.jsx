@@ -747,7 +747,7 @@ export default function TenagaKesehatanDirectory() {
                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline">Layanan Kesehatan Terpopuler</span>
               </div>
               <div className="h-[200px] w-full">
-                <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer width="100%" height={200}>
                   <BarChart data={serviceChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                     <XAxis dataKey="name" tick={{ fontSize: 8.5, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} />
@@ -772,7 +772,7 @@ export default function TenagaKesehatanDirectory() {
               </div>
               <div className="h-[140px] w-full flex items-center justify-center">
                 {statusChartData.length > 0 ? (
-                  <ResponsiveContainer width="100%" height="100%">
+                  <ResponsiveContainer width="100%" height={140}>
                     <PieChart>
                       <Pie
                         data={statusChartData}

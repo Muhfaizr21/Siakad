@@ -254,7 +254,7 @@ export default function KelolaFakultas() {
                     <span className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-widest">Distribusi Program Studi per Fakultas</span>
                  </div>
                  <div className="h-[180px] w-full mt-1">
-                    <ResponsiveContainer width="100%" height="100%">
+                    <ResponsiveContainer width="100%" height={180}>
                        <BarChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                           <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                           <XAxis dataKey="name" tick={{ fontSize: 9, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} />

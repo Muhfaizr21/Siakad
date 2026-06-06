@@ -1204,7 +1204,7 @@ export default function KelolaBeasiswa() {
                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline">Alokasi Anggaran Beasiswa Terbesar</span>
               </div>
               <div className="h-[200px] w-full">
-                <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer width="100%" height={200}>
                   <BarChart data={budgetByProgramData} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                     <XAxis dataKey="name" tick={{ fontSize: 8.5, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} />
@@ -1230,7 +1230,7 @@ export default function KelolaBeasiswa() {
               </div>
               <div className="h-[140px] w-full flex items-center justify-center">
                 {appStatusData.length > 0 ? (
-                  <ResponsiveContainer width="100%" height="100%">
+                  <ResponsiveContainer width="100%" height={140}>
                     <PieChart>
                       <Pie
                         data={appStatusData}
@@ -1429,7 +1429,7 @@ export default function KelolaBeasiswa() {
                 </div>
                 <div className="h-[250px] w-full">
                   {facultyAbsorption.length > 0 ? (
-                    <ResponsiveContainer width="100%" height="100%">
+                    <ResponsiveContainer width="100%" height={250}>
                       <BarChart data={facultyAbsorption} margin={{ top: 10, right: 10, left: 20, bottom: 5 }}>
                         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                         <XAxis dataKey="name" tick={{ fontSize: 8.5, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} />
@@ -1461,7 +1461,7 @@ export default function KelolaBeasiswa() {
                 </div>
                 <div className="h-[160px] w-full flex items-center justify-center">
                   {stats.totalBudget > 0 ? (
-                    <ResponsiveContainer width="100%" height="100%">
+                    <ResponsiveContainer width="100%" height={160}>
                       <PieChart>
                         <Pie
                           data={providerData.chartData}
