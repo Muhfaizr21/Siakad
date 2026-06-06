@@ -22,32 +22,32 @@ const ShieldCheck = ({ size, className, ...props }) => <span className={`materia
 
 
 const API = "/faculty"
-const EMPTY_FORM = { kode_org:'', nama_org:'', ketua_nama:'', jumlah_anggota:0, status:'Aktif', kategori:'Himpunan', email:'', password:'', phone:'' }
+const EMPTY_FORM = { kode_org: '', nama_org: '', ketua_nama: '', jumlah_anggota: 0, status: 'Aktif', kategori: 'Himpunan', email: '', password: '', phone: '' }
 
 export default function FacultyOrganisasi() {
   const [organizations, setOrgs] = useState([])
   const [students, setStudents] = useState([])
-  const [loading, setLoading]   = useState(true)
-  const [showModal, setModal]   = useState(false)
-  const [editingOrg, setEdit]   = useState(null)
-  const [isSubmitting, setIsSub]= useState(false)
-  const [delTarget, setDelTarget]= useState(null)
-  const [search, setSearch]     = useState('')
+  const [loading, setLoading] = useState(true)
+  const [showModal, setModal] = useState(false)
+  const [editingOrg, setEdit] = useState(null)
+  const [isSubmitting, setIsSub] = useState(false)
+  const [delTarget, setDelTarget] = useState(null)
+  const [search, setSearch] = useState('')
   const [formData, setFormData] = useState(EMPTY_FORM)
-  const [currentPage, setCurrentPage]   = useState(1)
-  const [pageSize, setPageSize]         = useState(10)
-  const [sortConfig, setSortConfig]     = useState({ key: 'kode', direction: 'asc' })
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState(10)
+  const [sortConfig, setSortConfig] = useState({ key: 'kode', direction: 'asc' })
 
   const fetchData = async () => {
     setLoading(true)
     try {
-      const res  = await axios.get(`${API}/organizations`)
+      const res = await axios.get(`${API}/organizations`)
       const data = res.data
-      const mapped = Array.isArray(data.data) ? data.data.map(item=>({
-        id: item.ID, nama: item.Nama, kode: item.Singkatan||item.Kode||'',
-        status: item.Status||'Aktif', kategori: item.Kategori||'',
-        jumlah_anggota: item.JumlahAnggota||0, deskripsi: item.Deskripsi||'',
-        email: item.Email||'', phone: item.Phone||''
+      const mapped = Array.isArray(data.data) ? data.data.map(item => ({
+        id: item.ID, nama: item.Nama, kode: item.Singkatan || item.Kode || '',
+        status: item.Status || 'Aktif', kategori: item.Kategori || '',
+        jumlah_anggota: item.JumlahAnggota || 0, deskripsi: item.Deskripsi || '',
+        email: item.Email || '', phone: item.Phone || ''
       })) : []
       setOrgs(mapped)
 
@@ -59,12 +59,12 @@ export default function FacultyOrganisasi() {
 
   const handleSubmit = async (e) => {
     e.preventDefault(); setIsSub(true)
-    const payload = { Nama:formData.nama_org, Singkatan:formData.kode_org, Status:formData.status, Kategori:formData.kategori, JumlahAnggota:formData.jumlah_anggota, Deskripsi:formData.ketua_nama, Email:formData.email, Password:formData.password, Phone:formData.phone }
+    const payload = { Nama: formData.nama_org, Singkatan: formData.kode_org, Status: formData.status, Kategori: formData.kategori, JumlahAnggota: formData.jumlah_anggota, Deskripsi: formData.ketua_nama, Email: formData.email, Password: formData.password, Phone: formData.phone }
     try {
       if (editingOrg) { await axios.put(`${API}/organizations/${editingOrg.id}`, payload); toast.success('Organisasi diperbarui') }
       else { await axios.post(`${API}/organizations`, payload); toast.success('Organisasi ditambahkan') }
       setModal(false); fetchData()
-    } catch (e) { toast.error(`Gagal menyimpan: ${e.response?.data?.message||'Error'}`) }
+    } catch (e) { toast.error(`Gagal menyimpan: ${e.response?.data?.message || 'Error'}`) }
     finally { setIsSub(false) }
   }
 
@@ -72,21 +72,21 @@ export default function FacultyOrganisasi() {
     if (!delTarget) return; setIsSub(true)
     try {
       const res = await axios.delete(`${API}/organizations/${delTarget.id}`)
-      if (res.data.status==='success') { toast.success('Organisasi dihapus'); setDelTarget(null); fetchData() }
-      else toast.error(res.data.message||'Gagal hapus')
-    } catch (e) { toast.error(e.response?.data?.message||'Gagal menghapus') }
+      if (res.data.status === 'success') { toast.success('Organisasi dihapus'); setDelTarget(null); fetchData() }
+      else toast.error(res.data.message || 'Gagal hapus')
+    } catch (e) { toast.error(e.response?.data?.message || 'Gagal menghapus') }
     finally { setIsSub(false) }
   }
 
-  const openEdit = (org) => { setEdit(org); setFormData({ kode_org:org.kode, nama_org:org.nama, ketua_nama:org.deskripsi, jumlah_anggota:org.jumlah_anggota, status:org.status, kategori:org.kategori, email:org.email, password:'', phone:org.phone }); setModal(true) }
-  const set = (k,v) => setFormData(p=>({...p,[k]:v}))
+  const openEdit = (org) => { setEdit(org); setFormData({ kode_org: org.kode, nama_org: org.nama, ketua_nama: org.deskripsi, jumlah_anggota: org.jumlah_anggota, status: org.status, kategori: org.kategori, email: org.email, password: '', phone: org.phone }); setModal(true) }
+  const set = (k, v) => setFormData(p => ({ ...p, [k]: v }))
 
-  useEffect(()=>{ fetchData() },[])
+  useEffect(() => { fetchData() }, [])
 
-  const filtered = useMemo(()=>organizations.filter(o=>{
-    const q=search.toLowerCase()
-    return !q||o.nama?.toLowerCase().includes(q)||o.kode?.toLowerCase().includes(q)
-  }),[organizations,search])
+  const filtered = useMemo(() => organizations.filter(o => {
+    const q = search.toLowerCase()
+    return !q || o.nama?.toLowerCase().includes(q) || o.kode?.toLowerCase().includes(q)
+  }), [organizations, search])
 
   const sorted = useMemo(() => {
     let items = [...filtered]
@@ -123,11 +123,11 @@ export default function FacultyOrganisasi() {
     setCurrentPage(1)
   }
 
-  const stats = { total:organizations.length, aktif:organizations.filter(o=>o.status==='Aktif').length, anggota:organizations.reduce((a,o)=>a+(o.jumlah_anggota||0),0) }
+  const stats = { total: organizations.length, aktif: organizations.filter(o => o.status === 'Aktif').length, anggota: organizations.reduce((a, o) => a + (o.jumlah_anggota || 0), 0) }
 
   return (
     <div className="min-h-screen bg-transparent font-inter">
-      <Toaster position="top-right"/>
+      <Toaster position="top-right" />
       <div className="w-full space-y-6">
 
         {/* ── Page Header ────────────────────────────────────────── */}
@@ -178,7 +178,7 @@ export default function FacultyOrganisasi() {
             {/* Action and quick count balance box */}
             <div className="flex flex-row lg:flex-col items-end gap-3 shrink-0 self-stretch lg:self-auto justify-between lg:justify-center border-t lg:border-t-0 pt-4 lg:pt-0 border-slate-100">
               <div className="flex items-center gap-2">
-                <button onClick={()=>{ setEdit(null); setFormData(EMPTY_FORM); setModal(true) }}
+                <button onClick={() => { setEdit(null); setFormData(EMPTY_FORM); setModal(true) }}
                   className="h-10 px-4 rounded-xl bg-primary hover:bg-bku-hover text-white text-xs font-bold uppercase tracking-wider gap-2 flex items-center transition-all active:scale-95 shadow-lg shadow-bku-primary/20 shrink-0">
                   <span className="material-symbols-outlined" style={{ fontSize: '15px' }} >add</span> Tambah ORMAWA
                 </button>
@@ -190,16 +190,16 @@ export default function FacultyOrganisasi() {
         {/* Stats */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {[
-            {label:'Total ORMAWA',    value:stats.total,   icon:Users2,      bg:'bg-[#eef4ff]',  color:'text-primary',   desc:'Organisasi terdaftar'},
-            {label:'Organisasi Aktif',value:stats.aktif,   icon:CheckCircle2, bg:'bg-emerald-50', color:'text-emerald-600', desc:'Status aktif beroperasi'},
-            {label:'Total Anggota',   value:stats.anggota, icon:ShieldCheck, bg:'bg-indigo-50',  color:'text-indigo-600',  desc:'Jangkauan anggota'},
-          ].map(s=>(
+            { label: 'Total ORMAWA', value: stats.total, icon: Users2, bg: 'bg-[#eef4ff]', color: 'text-primary', desc: 'Organisasi terdaftar' },
+            { label: 'Organisasi Aktif', value: stats.aktif, icon: CheckCircle2, bg: 'bg-emerald-50', color: 'text-emerald-600', desc: 'Status aktif beroperasi' },
+            { label: 'Total Anggota', value: stats.anggota, icon: ShieldCheck, bg: 'bg-indigo-50', color: 'text-indigo-600', desc: 'Jangkauan anggota' },
+          ].map(s => (
             <div key={s.label} className="glass-card border border-slate-200/60 rounded-2xl p-5 shadow-none">
               <div className="flex items-center gap-3 mb-3">
-                <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center',s.bg,s.color)}><s.icon size={18}/></div>
+                <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center', s.bg, s.color)}><s.icon size={18} /></div>
                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{s.label}</span>
               </div>
-              <p className="text-2xl font-extrabold text-slate-900 leading-none tabular-nums">{loading?<span className="material-symbols-outlined animate-spin text-slate-300" style={{ fontSize: '18px' }} >sync</span>:s.value}</p>
+              <p className="text-2xl font-extrabold text-slate-900 leading-none tabular-nums">{loading ? <span className="material-symbols-outlined animate-spin text-slate-300" style={{ fontSize: '18px' }} >sync</span> : s.value}</p>
               <p className="text-xs text-slate-400 font-medium mt-1">{s.desc}</p>
             </div>
           ))}
@@ -214,8 +214,8 @@ export default function FacultyOrganisasi() {
             </div>
             <div className="relative">
               <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" style={{ fontSize: '14px' }} >search</span>
-              <input type="text" placeholder="Cari nama atau kode..." value={search} onChange={e=>setSearch(e.target.value)}
-                className="pl-9 pr-4 h-9 w-52 rounded-xl border border-slate-200/60 focus:outline-none focus:border-primary text-sm bg-transparent"/>
+              <input type="text" placeholder="Cari nama atau kode..." value={search} onChange={e => setSearch(e.target.value)}
+                className="pl-9 pr-4 h-9 w-52 rounded-xl border border-slate-200/60 focus:outline-none focus:border-primary text-sm bg-transparent" />
             </div>
           </div>
           <div className="overflow-x-auto">
@@ -259,32 +259,32 @@ export default function FacultyOrganisasi() {
                 </tr>
               </thead>
               <tbody>
-                {loading?Array.from({length: pageSize}).map((_,i)=>(
-                  <tr key={i} className="border-b border-slate-100">{[...Array(7)].map((__,j)=><td key={j} className="px-5 py-4"><div className="h-4 bg-slate-50 rounded animate-pulse"/></td>)}</tr>
-                )):paginated.length===0?(
+                {loading ? Array.from({ length: pageSize }).map((_, i) => (
+                  <tr key={i} className="border-b border-slate-100">{[...Array(7)].map((__, j) => <td key={j} className="px-5 py-4"><div className="h-4 bg-slate-50 rounded animate-pulse" /></td>)}</tr>
+                )) : paginated.length === 0 ? (
                   <tr><td colSpan={7} className="px-5 py-16 text-center">
                     <div className="flex flex-col items-center gap-3">
                       <div className="w-12 h-12 bg-[#eef4ff] rounded-2xl flex items-center justify-center text-primary"><span className="material-symbols-outlined" style={{ fontSize: '22px' }}>group</span></div>
                       <p className="font-bold text-sm text-slate-900">Belum Ada Organisasi</p>
                     </div>
                   </td></tr>
-                ):paginated.map((row,i)=>(
-                  <tr key={row.id||i} className="border-b border-[#f5f5f5] hover:bg-[#fafbff] transition-colors">
-                    <td className="px-5 py-3.5"><span className="text-[10px] font-black text-slate-600 bg-slate-50 border border-slate-200 px-2 py-1 rounded-lg uppercase tracking-wider">{row.kode||'—'}</span></td>
+                ) : paginated.map((row, i) => (
+                  <tr key={row.id || i} className="border-b border-[#f5f5f5] hover:bg-[#fafbff] transition-colors">
+                    <td className="px-5 py-3.5"><span className="text-[10px] font-black text-slate-600 bg-slate-50 border border-slate-200 px-2 py-1 rounded-lg uppercase tracking-wider">{row.kode || '—'}</span></td>
                     <td className="px-5 py-3.5"><p className="font-bold text-sm text-slate-900">{row.nama}</p></td>
-                    <td className="px-5 py-3.5 text-sm text-slate-600 font-medium">{row.deskripsi||'—'}</td>
-                    <td className="px-5 py-3.5"><span className="text-[10px] font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 px-2.5 py-1 rounded-lg">{row.kategori||'—'}</span></td>
-                    <td className="px-5 py-3.5"><div className="flex items-center gap-1.5 text-sm font-black text-slate-900"><span className="material-symbols-outlined text-slate-400" style={{ fontSize: '12px' }}>group</span>{row.jumlah_anggota||0}</div></td>
+                    <td className="px-5 py-3.5 text-sm text-slate-600 font-medium">{row.deskripsi || '—'}</td>
+                    <td className="px-5 py-3.5"><span className="text-[10px] font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 px-2.5 py-1 rounded-lg">{row.kategori || '—'}</span></td>
+                    <td className="px-5 py-3.5"><div className="flex items-center gap-1.5 text-sm font-black text-slate-900"><span className="material-symbols-outlined text-slate-400" style={{ fontSize: '12px' }}>group</span>{row.jumlah_anggota || 0}</div></td>
                     <td className="px-5 py-3.5">
                       <span className={cn('inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold border uppercase',
-                        row.status==='Aktif'?'bg-emerald-50 text-emerald-700 border-emerald-200':'bg-rose-50 text-rose-700 border-rose-200')}>
-                        <span className={cn('w-1.5 h-1.5 rounded-full',row.status==='Aktif'?'bg-emerald-500':'bg-rose-500')}/>{row.status}
+                        row.status === 'Aktif' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-rose-50 text-rose-700 border-rose-200')}>
+                        <span className={cn('w-1.5 h-1.5 rounded-full', row.status === 'Aktif' ? 'bg-emerald-500' : 'bg-rose-500')} />{row.status}
                       </span>
                     </td>
                     <td className="px-5 py-3.5">
                       <div className="flex items-center gap-1.5">
-                        <button onClick={()=>openEdit(row)} className="p-1.5 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"><span className="material-symbols-outlined" style={{ fontSize: '15px' }} >edit</span></button>
-                        <button onClick={()=>setDelTarget(row)} className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"><span className="material-symbols-outlined" style={{ fontSize: '15px' }} >delete</span></button>
+                        <button onClick={() => openEdit(row)} className="p-1.5 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"><span className="material-symbols-outlined" style={{ fontSize: '15px' }} >edit</span></button>
+                        <button onClick={() => setDelTarget(row)} className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"><span className="material-symbols-outlined" style={{ fontSize: '15px' }} >delete</span></button>
                       </div>
                     </td>
                   </tr>
@@ -299,7 +299,7 @@ export default function FacultyOrganisasi() {
               <p className="text-xs text-slate-500 font-medium text-center sm:text-left">
                 Menampilkan <span className="font-semibold text-slate-800">{totalItems > 0 ? (currentPage - 1) * pageSize + 1 : 0}</span> sampai <span className="font-semibold text-slate-800">{Math.min(currentPage * pageSize, totalItems)}</span> dari <span className="font-semibold text-slate-800">{totalItems}</span> entri
               </p>
-              
+
               <div className="hidden sm:block h-5 w-px bg-slate-200" />
 
               <div className="flex items-center gap-2.5">
@@ -330,7 +330,7 @@ export default function FacultyOrganisasi() {
                 <span className="material-symbols-outlined mr-1" style={{ fontSize: '15px' }}>chevron_left</span>
                 Sebelumnya
               </Button>
-              
+
               <div className="flex items-center gap-1">
                 {Array.from({ length: Math.min(5, totalPages) }).map((_, i) => {
                   let pageNum = i + 1;
@@ -343,8 +343,8 @@ export default function FacultyOrganisasi() {
                       onClick={() => setCurrentPage(pageNum)}
                       className={cn(
                         "w-8 h-8 rounded-lg font-semibold text-xs transition-all duration-200",
-                        currentPage === pageNum 
-                          ? "bg-primary text-white shadow-md shadow-primary/20 scale-105" 
+                        currentPage === pageNum
+                          ? "bg-primary text-white shadow-md shadow-primary/20 scale-105"
                           : "text-slate-500 hover:bg-slate-100 hover:text-slate-900"
                       )}
                     >
@@ -371,31 +371,31 @@ export default function FacultyOrganisasi() {
 
       {/* Form Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4" onClick={()=>setModal(false)}>
-          <div className="relative w-full max-w-lg glass-card rounded-2xl shadow-none border border-slate-200/60 flex flex-col overflow-hidden max-h-[90vh]" onClick={e=>e.stopPropagation()}>
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4" onClick={() => setModal(false)}>
+          <div className="relative w-full max-w-lg glass-card rounded-2xl shadow-none border border-slate-200/60 flex flex-col overflow-hidden max-h-[90vh]" onClick={e => e.stopPropagation()}>
             <div className="relative bg-gradient-to-br from-bku-primary to-[#003db5] pt-6 pb-7 px-6 overflow-hidden flex-shrink-0">
-              <div className="absolute -top-10 -right-10 w-44 h-44 bg-white/5 rounded-full pointer-events-none"/>
-              <button onClick={()=>setModal(false)} className="absolute z-50 top-4 right-4 w-8 h-8 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center transition-colors"><span className="material-symbols-outlined" style={{ fontSize: '15px' }} >close</span></button>
+              <div className="absolute -top-10 -right-10 w-44 h-44 bg-white/5 rounded-full pointer-events-none" />
+              <button onClick={() => setModal(false)} className="absolute z-50 top-4 right-4 w-8 h-8 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center transition-colors"><span className="material-symbols-outlined" style={{ fontSize: '15px' }} >close</span></button>
               <div className="relative z-10">
-                <p className="text-[9px] font-bold text-white/50 uppercase tracking-[0.25em] mb-1">{editingOrg?'Edit Organisasi':'Registrasi Baru'}</p>
-                <h2 className="text-xl font-extrabold font-headline text-white">{editingOrg?'Update Data ORMAWA':'Tambah Organisasi'}</h2>
+                <p className="text-[9px] font-bold text-white/50 uppercase tracking-[0.25em] mb-1">{editingOrg ? 'Edit Organisasi' : 'Registrasi Baru'}</p>
+                <h2 className="text-xl font-extrabold font-headline text-white">{editingOrg ? 'Update Data ORMAWA' : 'Tambah Organisasi'}</h2>
               </div>
             </div>
             <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
               <div className="flex-1 overflow-y-auto p-5 space-y-3">
                 <div className="grid grid-cols-2 gap-3">
                   <div><label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.18em] mb-1.5">Kode Akronim</label>
-                    <input value={formData.kode_org} onChange={e=>set('kode_org',e.target.value.toUpperCase())} placeholder="BEM-FT" required className="w-full h-11 px-4 rounded-xl border border-slate-200/60 bg-slate-50/50 text-sm font-black uppercase text-slate-900 focus:outline-none focus:border-primary focus:bg-white transition-all"/></div>
+                    <input value={formData.kode_org} onChange={e => set('kode_org', e.target.value.toUpperCase())} placeholder="BEM-FT" required className="w-full h-11 px-4 rounded-xl border border-slate-200/60 bg-slate-50/50 text-sm font-black uppercase text-slate-900 focus:outline-none focus:border-primary focus:bg-white transition-all" /></div>
                   <div><label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.18em] mb-1.5">Kategori</label>
-                    <select value={formData.kategori} onChange={e=>set('kategori',e.target.value)} className="w-full h-11 px-4 rounded-xl border border-slate-200/60 bg-slate-50/50 text-sm font-medium text-slate-900 focus:outline-none focus:border-primary appearance-none">
-                      {['BEM','Himpunan','UKM','Komunitas','Lainnya'].map(v=><option key={v} value={v}>{v}</option>)}
+                    <select value={formData.kategori} onChange={e => set('kategori', e.target.value)} className="w-full h-11 px-4 rounded-xl border border-slate-200/60 bg-slate-50/50 text-sm font-medium text-slate-900 focus:outline-none focus:border-primary appearance-none">
+                      {['BEM', 'Himpunan', 'UKM', 'Komunitas', 'Lainnya'].map(v => <option key={v} value={v}>{v}</option>)}
                     </select></div>
                 </div>
                 <div><label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.18em] mb-1.5">Nama Panjang Organisasi</label>
-                  <input value={formData.nama_org} onChange={e=>set('nama_org',e.target.value)} placeholder="Nama resmi organisasi..." required className="w-full h-11 px-4 rounded-xl border border-slate-200/60 bg-slate-50/50 text-sm font-medium text-slate-900 focus:outline-none focus:border-primary focus:bg-white transition-all"/></div>
+                  <input value={formData.nama_org} onChange={e => set('nama_org', e.target.value)} placeholder="Nama resmi organisasi..." required className="w-full h-11 px-4 rounded-xl border border-slate-200/60 bg-slate-50/50 text-sm font-medium text-slate-900 focus:outline-none focus:border-primary focus:bg-white transition-all" /></div>
                 <div className="grid grid-cols-2 gap-3">
                   <div><label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.18em] mb-1.5">Nama Ketua Umum</label>
-                    <select value={formData.ketua_nama} onChange={e=>set('ketua_nama',e.target.value)} required className="w-full h-11 px-4 rounded-xl border border-slate-200/60 bg-slate-50/50 text-sm font-medium text-slate-900 focus:outline-none focus:border-primary appearance-none">
+                    <select value={formData.ketua_nama} onChange={e => set('ketua_nama', e.target.value)} required className="w-full h-11 px-4 rounded-xl border border-slate-200/60 bg-slate-50/50 text-sm font-medium text-slate-900 focus:outline-none focus:border-primary appearance-none">
                       <option value="">-- Pilih Mahasiswa --</option>
                       {students.map(s => (
                         <option key={s.ID} value={s.Nama}>
@@ -404,23 +404,23 @@ export default function FacultyOrganisasi() {
                       ))}
                     </select></div>
                   <div><label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.18em] mb-1.5">Jumlah Anggota</label>
-                    <input type="number" value={formData.jumlah_anggota} onChange={e=>set('jumlah_anggota',parseInt(e.target.value)||0)} className="w-full h-11 px-4 rounded-xl border border-slate-200/60 bg-slate-50/50 text-sm font-black text-center text-slate-900 focus:outline-none focus:border-primary focus:bg-white transition-all"/></div>
+                    <input type="number" value={formData.jumlah_anggota} onChange={e => set('jumlah_anggota', parseInt(e.target.value) || 0)} className="w-full h-11 px-4 rounded-xl border border-slate-200/60 bg-slate-50/50 text-sm font-black text-center text-slate-900 focus:outline-none focus:border-primary focus:bg-white transition-all" /></div>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div><label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.18em] mb-1.5">Status</label>
-                    <select value={formData.status} onChange={e=>set('status',e.target.value)} className="w-full h-11 px-4 rounded-xl border border-slate-200/60 bg-slate-50/50 text-sm font-medium text-slate-900 focus:outline-none focus:border-primary appearance-none">
-                      {['Aktif','Nonaktif','Pembekuan'].map(v=><option key={v} value={v}>{v}</option>)}
+                    <select value={formData.status} onChange={e => set('status', e.target.value)} className="w-full h-11 px-4 rounded-xl border border-slate-200/60 bg-slate-50/50 text-sm font-medium text-slate-900 focus:outline-none focus:border-primary appearance-none">
+                      {['Aktif', 'Nonaktif', 'Pembekuan'].map(v => <option key={v} value={v}>{v}</option>)}
                     </select></div>
                   <div><label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.18em] mb-1.5">Email Resmi</label>
-                    <input type="email" value={formData.email} onChange={e=>set('email',e.target.value)} placeholder="info@ormawa.com" className="w-full h-11 px-4 rounded-xl border border-slate-200/60 bg-slate-50/50 text-sm font-medium text-slate-900 focus:outline-none focus:border-primary focus:bg-white transition-all"/></div>
+                    <input type="email" value={formData.email} onChange={e => set('email', e.target.value)} placeholder="info@ormawa.com" className="w-full h-11 px-4 rounded-xl border border-slate-200/60 bg-slate-50/50 text-sm font-medium text-slate-900 focus:outline-none focus:border-primary focus:bg-white transition-all" /></div>
                 </div>
-                <div><label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.18em] mb-1.5">{editingOrg?'Password (kosongkan jika tidak diubah)':'Password Akun Admin'}</label>
-                  <input type="password" value={formData.password} onChange={e=>set('password',e.target.value)} placeholder="Password login admin ormawa..." required={!editingOrg} className="w-full h-11 px-4 rounded-xl border border-slate-200/60 bg-slate-50/50 text-sm font-medium text-slate-900 focus:outline-none focus:border-primary focus:bg-white transition-all"/></div>
+                <div><label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.18em] mb-1.5">{editingOrg ? 'Password (kosongkan jika tidak diubah)' : 'Password Akun Admin'}</label>
+                  <input type="password" value={formData.password} onChange={e => set('password', e.target.value)} placeholder="Password login admin ormawa..." required={!editingOrg} className="w-full h-11 px-4 rounded-xl border border-slate-200/60 bg-slate-50/50 text-sm font-medium text-slate-900 focus:outline-none focus:border-primary focus:bg-white transition-all" /></div>
               </div>
               <div className="px-5 py-4 border-t border-slate-200/60 bg-transparent flex gap-3 flex-shrink-0">
-                <button type="button" onClick={()=>setModal(false)} className="flex-1 h-11 rounded-xl border border-slate-200/60 bg-white text-xs font-bold text-slate-600 uppercase tracking-widest hover:bg-slate-50 transition-all">Batal</button>
+                <button type="button" onClick={() => setModal(false)} className="flex-1 h-11 rounded-xl border border-slate-200/60 bg-white text-xs font-bold text-slate-600 uppercase tracking-widest hover:bg-slate-50 transition-all">Batal</button>
                 <button type="submit" disabled={isSubmitting} className="flex-1 h-11 rounded-xl bg-primary hover:bg-bku-hover text-white text-xs font-bold uppercase tracking-widest transition-all active:scale-95 shadow-lg shadow-bku-primary/20 disabled:opacity-60 flex items-center justify-center gap-2">
-                  {isSubmitting?<span className="material-symbols-outlined animate-spin" style={{ fontSize: '14px' }} >sync</span>:<span className="material-symbols-outlined" style={{ fontSize: '14px' }} >save</span>} {editingOrg?'Update Data':'Simpan Data'}
+                  {isSubmitting ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '14px' }} >sync</span> : <span className="material-symbols-outlined" style={{ fontSize: '14px' }} >save</span>} {editingOrg ? 'Update Data' : 'Simpan Data'}
                 </button>
               </div>
             </form>

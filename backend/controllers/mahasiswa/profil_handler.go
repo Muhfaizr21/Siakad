@@ -14,15 +14,12 @@ import (
 
 
 func GetProfile(c *fiber.Ctx) error {
-	PenggunaID, err := getUserID(c)
+	student, err := getStudent(c)
 	if err != nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"success": false, "message": "User tidak terautentikasi"})
-	}
-
-	var student models.Mahasiswa
-	if err := config.DB.Preload("ProgramStudi.Fakultas").Preload("Pengguna").First(&student, "pengguna_id = ?", PenggunaID).Error; err != nil {
 		return c.Status(404).JSON(fiber.Map{"success": false, "message": "Profil tidak ditemukan"})
 	}
+
+	config.DB.Preload("ProgramStudi.Fakultas").Preload("Pengguna").First(student, student.ID)
 
 	return c.JSON(fiber.Map{
 		"success": true,
@@ -31,10 +28,6 @@ func GetProfile(c *fiber.Ctx) error {
 }
 
 func UpdateProfile(c *fiber.Ctx) error {
-	PenggunaID, err := getUserID(c)
-	if err != nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"success": false, "message": "User tidak terautentikasi"})
-	}
 
 	type UpdateRequest struct {
 		Email            string `json:"email"`
@@ -64,8 +57,8 @@ func UpdateProfile(c *fiber.Ctx) error {
 		return c.Status(400).JSON(fiber.Map{"success": false, "message": "Format data tidak valid"})
 	}
 
-	var student models.Mahasiswa
-	if err := config.DB.First(&student, "pengguna_id = ?", PenggunaID).Error; err != nil {
+	student, err := getStudent(c)
+	if err != nil {
 		return c.Status(404).JSON(fiber.Map{"success": false, "message": "Student not found"})
 	}
 
@@ -160,8 +153,11 @@ func UploadAvatar(c *fiber.Ctx) error {
 		return c.Status(500).JSON(fiber.Map{"success": false, "message": "Gagal menyimpan file"})
 	}
 
-	var student models.Mahasiswa
-	config.DB.Model(&student).Where("pengguna_id = ?", PenggunaID).Update("foto_url", "/uploads/avatars/"+filename)
+	student, err := getStudent(c)
+	if err != nil {
+		return c.Status(404).JSON(fiber.Map{"success": false, "message": "Student not found"})
+	}
+	config.DB.Model(student).Update("foto_url", "/uploads/avatars/"+filename)
 
 	return c.JSON(fiber.Map{"success": true, "message": "Foto berhasil diunggah", "url": "/uploads/avatars/" + filename})
 }

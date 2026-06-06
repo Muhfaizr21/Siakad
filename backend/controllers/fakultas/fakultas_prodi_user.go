@@ -22,22 +22,27 @@ type prodiAdminResult struct {
 // GetProdiAdmins returns all prodi_admin users scoped to the current faculty
 func GetProdiAdmins(c *fiber.Ctx) error {
 	role, _ := c.Locals("role").(string)
-	if strings.ToLower(role) != "faculty_admin" {
-		return c.Status(403).JSON(fiber.Map{"status": "error", "message": "Hanya Faculty Admin yang dapat mengelola akun prodi"})
+	roleLower := strings.ToLower(role)
+	if roleLower != "faculty_admin" && roleLower != "super_admin" {
+		return c.Status(403).JSON(fiber.Map{"status": "error", "message": "Hanya Faculty Admin atau Super Admin yang dapat mengelola akun prodi"})
 	}
 
 	fid, _ := c.Locals("fakultas_id").(uint)
-	if fid == 0 {
+	if roleLower == "faculty_admin" && fid == 0 {
 		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Fakultas ID tidak ditemukan"})
 	}
 
 	var results []prodiAdminResult
-	err := config.DB.Table("public.users").
+	query := config.DB.Table("public.users").
 		Select(`"public"."users".*, p.nama as prodi_nama`).
 		Joins(`LEFT JOIN "fakultas"."program_studi" p ON p.id = "public"."users".program_studi_id`).
-		Where(`"public"."users".role = ? AND "public"."users".fakultas_id = ?`, "prodi_admin", fid).
-		Order(`"public"."users".created_at DESC`).
-		Find(&results).Error
+		Where(`"public"."users".role = ?`, "prodi_admin")
+
+	if roleLower == "faculty_admin" {
+		query = query.Where(`"public"."users".fakultas_id = ?`, fid)
+	}
+
+	err := query.Order(`"public"."users".created_at DESC`).Find(&results).Error
 
 	if err != nil {
 		fmt.Println("❌ [DB ERROR] GetProdiAdmins:", err)
@@ -55,8 +60,9 @@ func GetProdiAdmins(c *fiber.Ctx) error {
 // CreateProdiAdmin creates a new prodi_admin user under the current faculty
 func CreateProdiAdmin(c *fiber.Ctx) error {
 	role, _ := c.Locals("role").(string)
-	if strings.ToLower(role) != "faculty_admin" {
-		return c.Status(403).JSON(fiber.Map{"status": "error", "message": "Hanya Faculty Admin yang dapat membuat akun prodi"})
+	roleLower := strings.ToLower(role)
+	if roleLower != "faculty_admin" && roleLower != "super_admin" {
+		return c.Status(403).JSON(fiber.Map{"status": "error", "message": "Hanya Faculty Admin atau Super Admin yang dapat membuat akun prodi"})
 	}
 
 	fid, _ := c.Locals("fakultas_id").(uint)
@@ -135,8 +141,9 @@ func CreateProdiAdmin(c *fiber.Ctx) error {
 // UpdateProdiAdmin updates an existing prodi_admin user
 func UpdateProdiAdmin(c *fiber.Ctx) error {
 	role, _ := c.Locals("role").(string)
-	if strings.ToLower(role) != "faculty_admin" {
-		return c.Status(403).JSON(fiber.Map{"status": "error", "message": "Hanya Faculty Admin yang dapat mengubah akun prodi"})
+	roleLower := strings.ToLower(role)
+	if roleLower != "faculty_admin" && roleLower != "super_admin" {
+		return c.Status(403).JSON(fiber.Map{"status": "error", "message": "Hanya Faculty Admin atau Super Admin yang dapat mengubah akun prodi"})
 	}
 
 	fid, _ := c.Locals("fakultas_id").(uint)
@@ -201,8 +208,9 @@ func UpdateProdiAdmin(c *fiber.Ctx) error {
 // DeleteProdiAdmin deletes a prodi_admin user
 func DeleteProdiAdmin(c *fiber.Ctx) error {
 	role, _ := c.Locals("role").(string)
-	if strings.ToLower(role) != "faculty_admin" {
-		return c.Status(403).JSON(fiber.Map{"status": "error", "message": "Hanya Faculty Admin yang dapat menghapus akun prodi"})
+	roleLower := strings.ToLower(role)
+	if roleLower != "faculty_admin" && roleLower != "super_admin" {
+		return c.Status(403).JSON(fiber.Map{"status": "error", "message": "Hanya Faculty Admin atau Super Admin yang dapat menghapus akun prodi"})
 	}
 
 	fid, _ := c.Locals("fakultas_id").(uint)

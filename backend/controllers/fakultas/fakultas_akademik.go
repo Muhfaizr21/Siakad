@@ -88,8 +88,8 @@ func TambahMahasiswaBaru(c *fiber.Ctx) error {
 	}
 	c.BodyParser(&payload)
 
-	// Force FakultasID if faculty_admin / prodi_admin
-	if role == "faculty_admin" || role == "prodi_admin" {
+	// Force FakultasID if faculty_admin / prodi_admin / super_admin
+	if (role == "faculty_admin" || role == "prodi_admin") || (role == "super_admin" && m.FakultasID == 0) {
 		m.FakultasID = fid
 	}
 	if role == "prodi_admin" {
@@ -103,7 +103,7 @@ func TambahMahasiswaBaru(c *fiber.Ctx) error {
 		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Program Studi tidak ditemukan"})
 	}
 
-	// Double check: if faculty_admin, prodi must belong to their faculty
+	// Double check: if faculty_admin or super_admin, prodi must belong to their faculty
 	if role == "faculty_admin" && prodi.FakultasID != fid {
 		return c.Status(403).JSON(fiber.Map{"status": "error", "message": "Anda tidak diizinkan menambah mahasiswa ke Program Studi di luar fakultas Anda"})
 	}
@@ -296,8 +296,8 @@ func TambahProdiBaru(c *fiber.Ctx) error {
 		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Format data tidak valid"})
 	}
 
-	// Force FakultasID if faculty_admin / prodi_admin
-	if role == "faculty_admin" || role == "prodi_admin" {
+	// Force FakultasID if faculty_admin / prodi_admin / super_admin
+	if (role == "faculty_admin" || role == "prodi_admin") || (role == "super_admin" && p.FakultasID == 0) {
 		p.FakultasID = fid
 	}
 

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import useAuthStore from '../../store/useAuthStore';
 import api from '../../lib/axios';
@@ -14,6 +14,33 @@ export default function PortalSidebar({ config, onNavigate }) {
   const [isLogoutHovered, setIsLogoutHovered] = useState(false);
   const [openSubmenus, setOpenSubmenus] = useState({});
 
+  // Auto-expand active submenus on location change or initial load
+  useEffect(() => {
+    if (config?.menu) {
+      const updates = {};
+      let changed = false;
+      config.menu.forEach(group => {
+        group.items?.forEach(item => {
+          if (item.hasSubmenu && item.submenu) {
+            const hasActive = item.submenu.some(sub => {
+              if (sub.path.includes('?')) {
+                return (location.pathname + location.search) === sub.path;
+              }
+              return location.pathname.startsWith(sub.path);
+            });
+            if (hasActive && !openSubmenus[item.path]) {
+              updates[item.path] = true;
+              changed = true;
+            }
+          }
+        });
+      });
+      if (changed) {
+        setOpenSubmenus(prev => ({ ...prev, ...updates }));
+      }
+    }
+  }, [location.pathname, location.search, config]);
+
   // Toggle submenu
   const toggleSubmenu = (path) => {
     setOpenSubmenus(prev => ({
@@ -26,7 +53,11 @@ export default function PortalSidebar({ config, onNavigate }) {
   const isActive = (itemPath, hasSubmenu) => {
     const currentPath = location.pathname;
 
-    // Exact match
+    // Exact match (including query param if itemPath has it)
+    if (itemPath.includes('?')) {
+      return (currentPath + location.search) === itemPath;
+    }
+
     if (currentPath === itemPath) return true;
 
     // Dashboard exact match
@@ -50,7 +81,12 @@ export default function PortalSidebar({ config, onNavigate }) {
     if (hasSubmenu) {
       const submenuItem = config.menu.flatMap(g => g.items).find(i => i.hasSubmenu && i.path === itemPath);
       if (submenuItem?.submenu) {
-        return submenuItem.submenu.some(sub => currentPath.startsWith(sub.path));
+        return submenuItem.submenu.some(sub => {
+          if (sub.path.includes('?')) {
+            return (currentPath + location.search) === sub.path;
+          }
+          return currentPath.startsWith(sub.path);
+        });
       }
     }
 
@@ -194,7 +230,12 @@ export default function PortalSidebar({ config, onNavigate }) {
 
                 // If item has submenu, check if any child is active
                 const hasActiveChild = item.hasSubmenu && item.submenu?.some(
-                  sub => location.pathname.startsWith(sub.path)
+                  sub => {
+                    if (sub.path.includes('?')) {
+                      return (location.pathname + location.search) === sub.path;
+                    }
+                    return location.pathname.startsWith(sub.path);
+                  }
                 );
 
                 return (
@@ -237,7 +278,9 @@ export default function PortalSidebar({ config, onNavigate }) {
                         {isSubmenuOpen && item.submenu && (
                           <div className="ml-2.5 mt-1 space-y-0.5 border-l border-white/10 pl-2.5">
                             {item.submenu.map((subItem) => {
-                              const subActive = location.pathname === subItem.path;
+                              const subActive = subItem.path.includes('?') 
+                                ? (location.pathname + location.search) === subItem.path 
+                                : location.pathname === subItem.path;
                               return (
                                 <Link
                                   key={subItem.path}

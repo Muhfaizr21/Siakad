@@ -31,16 +31,16 @@ func firstWordOrDefault(s string, fallback string) string {
 }
 
 func GetDashboard(c *fiber.Ctx) error {
-	PenggunaID, ok := c.Locals("user_id").(uint)
-	if !ok || PenggunaID == 0 {
-		return c.Status(401).JSON(fiber.Map{"success": false, "message": "User tidak terautentikasi"})
-	}
-
-	// 1. Fetch Student Data
-	var student models.Mahasiswa
-	if err := config.DB.Preload("ProgramStudi").First(&student, "pengguna_id = ?", PenggunaID).Error; err != nil {
+	student, err := getStudent(c)
+	if err != nil {
 		return c.Status(404).JSON(fiber.Map{"success": false, "message": "Mahasiswa tidak ditemukan"})
 	}
+	
+	// Preload ProgramStudi
+	if student.ProgramStudi.ID == 0 && student.ProgramStudiID != 0 {
+		config.DB.Model(student).Association("ProgramStudi").Find(&student.ProgramStudi)
+	}
+	PenggunaID := student.PenggunaID
 
 	// 2. Banner / Latest News
 	var news models.Berita
@@ -189,12 +189,8 @@ func GetDashboard(c *fiber.Ctx) error {
 
 
 func GetKegiatan(c *fiber.Ctx) error {
-	PenggunaID, ok := c.Locals("user_id").(uint)
-	if !ok || PenggunaID == 0 {
-		return c.Status(401).JSON(fiber.Map{"success": false, "message": "User tidak terautentikasi"})
-	}
-	var student models.Mahasiswa
-	if err := config.DB.First(&student, "pengguna_id = ?", PenggunaID).Error; err != nil {
+	student, err := getStudent(c)
+	if err != nil {
 		return c.Status(404).JSON(fiber.Map{"success": false, "message": "Mahasiswa tidak ditemukan"})
 	}
 

@@ -12,6 +12,8 @@ import ChangePassword from './pages/Auth/ChangePassword'
 import ForgotPassword from './pages/Auth/ForgotPassword'
 import UpdateEmail from './pages/Auth/UpdateEmail'
 import AdminDashboard from './pages/SuperAdmin/AdminDashboard'
+import SuperAdminOrmawaDashboard from './pages/SuperAdmin/SuperAdminOrmawaDashboard'
+import { withSuperAdminOrmawaAccess } from './pages/SuperAdmin/withSuperAdminOrmawaAccess'
 import FacultyLayout from './pages/FacultyAdmin/components/FacultyLayout'
 import FacultyDashboard from './pages/FacultyAdmin/FacultyDashboard'
 import OrmawaDashboard from './pages/OrmawaAdmin/OrmawaDashboard'
@@ -71,6 +73,16 @@ import KeuanganKas from './pages/OrmawaAdmin/KeuanganKas'
 import LpjManagement from './pages/OrmawaAdmin/LpjManagement'
 import Pengumuman from './pages/OrmawaAdmin/Pengumuman'
 import StrukturOrganisasi from './pages/OrmawaAdmin/StrukturOrganisasi'
+
+// Wrap ormawa pages untuk Super Admin
+const SuperAdminAnggota = withSuperAdminOrmawaAccess(AnggotaManagement, 'Manajemen Anggota')
+const SuperAdminProposal = withSuperAdminOrmawaAccess(ProposalManagement, 'Manajemen Proposal')
+const SuperAdminJadwal = withSuperAdminOrmawaAccess(JadwalKegiatan, 'Jadwal Kegiatan')
+const SuperAdminAbsensi = withSuperAdminOrmawaAccess(AbsensiKegiatan, 'Absensi Kegiatan')
+const SuperAdminKeuangan = withSuperAdminOrmawaAccess(KeuanganKas, 'Keuangan Kas')
+const SuperAdminLpj = withSuperAdminOrmawaAccess(LpjManagement, 'LPJ Management')
+const SuperAdminPengumuman = withSuperAdminOrmawaAccess(Pengumuman, 'Pengumuman')
+const SuperAdminStruktur = withSuperAdminOrmawaAccess(StrukturOrganisasi, 'Struktur Organisasi')
 import RoleBasedAccess from './pages/OrmawaAdmin/RoleBasedAccess'
 import Notifikasi from './pages/OrmawaAdmin/Notifikasi'
 import Settings from './pages/OrmawaAdmin/Settings'
@@ -120,6 +132,7 @@ import PsychologistDirectory from './pages/SuperAdmin/PsychologistDirectory'
 import TenagaKesehatanDirectory from './pages/SuperAdmin/TenagaKesehatanDirectory'
 import KelolaFakultas from './pages/SuperAdmin/KelolaFakultas'
 import KelolaProdi from './pages/SuperAdmin/KelolaProdi'
+import LecturerDirectory from './pages/SuperAdmin/LecturerDirectory'
 import KelolaBeasiswa from './pages/SuperAdmin/KelolaBeasiswa'
 import KelolaPrestasi from './pages/SuperAdmin/KelolaPrestasi'
 import AspirationDetail from './pages/SuperAdmin/AspirationDetail'
@@ -240,6 +253,22 @@ function App() {
                   <Route path="broadcast" element={<ContentManagement />} />
                   <Route path="reports" element={<ReportsGenerator />} />
                   <Route path="students" element={<StudentDirectory />} />
+                  <Route path="student-dashboard" element={<BkuDashboard />} />
+                  <Route path="student-profile" element={<ProfilePage />} />
+                  <Route path="student-kencana" element={<KencanaPage />} />
+                  <Route path="student-counseling" element={<CounselingPage />} />
+                  <Route path="student-counseling/history" element={<CounselingHistoryPage />} />
+                  <Route path="student-kesehatan" element={<HealthScreeningPage />} />
+                  <Route path="student-kesehatan/self-screening" element={<SelfScreeningPage />} />
+                  <Route path="student-kesehatan/insurance" element={<InsurancePage />} />
+                  <Route path="student-beasiswa" element={<ScholarshipPage />} />
+                  <Route path="student-beasiswa/pengajuan/:id" element={<ScholarshipDetailPage />} />
+                  <Route path="student-prestasi" element={<AchievementPage />} />
+                  <Route path="student-organisasi" element={<OrganisasiPage />} />
+                  <Route path="student-aspirasi" element={<StudentVoicePage />} />
+                  <Route path="student-aspirasi/detail/:id" element={<StudentVoiceDetailPage />} />
+                  <Route path="student-notifikasi" element={<NotificationPage />} />
+                  <Route path="student-presensi" element={<PresensiPage />} />
                   <Route path="performance" element={<AdminPerformance />} />
                   <Route path="security" element={<SecuritySettings />} />
                   <Route path="theme" element={<ThemeCustomizer />} />
@@ -254,11 +283,48 @@ function App() {
                   <Route path="config" element={<AcademicPortal />} />
                   <Route path="faculties" element={<KelolaFakultas />} />
                   <Route path="prodi" element={<KelolaProdi />} />
+                  <Route path="lecturers" element={<LecturerDirectory />} />
+                  <Route path="faculty-mahasiswa" element={<FacultyMahasiswa />} />
+                  <Route path="faculty-mahasiswa/import" element={<FacultyMahasiswaImport />} />
+                  <Route path="faculty-mahasiswa/status" element={<FacultyMahasiswaStatus />} />
+                  <Route path="faculty-mahasiswa/tambah" element={<FacultyMahasiswaTambah />} />
+                  <Route path="faculty-mahasiswa/edit/:id" element={<FacultyMahasiswaEdit />} />
+                  <Route path="faculty-dosen" element={<Navigate to="../faculty-psikolog" replace />} />
+                  <Route path="faculty-psikolog" element={<FacultyDosen />} />
+                  <Route path="faculty-prodi" element={<FacultyProdi />} />
+                  <Route path="faculty-prodi/tambah" element={<FacultyProdiTambah />} />
+                  <Route path="faculty-prodi/edit/:id" element={<FacultyProdiEdit />} />
+                  <Route path="faculty-prodi/kurikulum" element={<FacultyProdiKurikulum />} />
+                  <Route path="faculty-prodi/matakuliah" element={<FacultyProdiMatakuliah />} />
+                  <Route path="faculty-jadwal" element={<FacultyJadwal />} />
+                  <Route path="faculty-ormawa-proposals" element={<FacultyProposalApproval />} />
+                  <Route path="faculty-organisasi" element={<FacultyOrganisasi />} />
+                  <Route path="faculty-pkkmb" element={<FacultyPkkmb />} />
+                  <Route path="faculty-beasiswa" element={<FacultyBeasiswa />} />
+                  <Route path="faculty-prestasi" element={<FacultyPrestasi />} />
+                  <Route path="faculty-kesehatan" element={<FacultyHealth />} />
+                  <Route path="faculty-aspirasi" element={<FacultyAspirationManagement />} />
+                  <Route path="faculty-laporan" element={<FacultyLaporan />} />
+                  <Route path="faculty-rbac" element={<FacultyProdiRBAC />} />
+                  <Route path="faculty-prodi-users" element={<FacultyProdiUsers />} />
+                  <Route path="faculty-settings" element={<FacultyPengaturan />} />
                   <Route path="scholarships" element={<KelolaBeasiswa />} />
                   <Route path="achievements" element={<KelolaPrestasi />} />
                   <Route path="aspirations/:id" element={<AspirationDetail />} />
                   <Route path="organizations" element={<KelolaOrganisasi />} />
                   <Route path="gamifikasi" element={<GamifikasiOrmawa />} />
+                  <Route path="ormawa-dashboard" element={<SuperAdminOrmawaDashboard />} />
+                  <Route path="ormawa-anggota" element={<SuperAdminAnggota />} />
+                  <Route path="ormawa-struktur" element={<SuperAdminStruktur />} />
+                  <Route path="ormawa-proposal" element={<SuperAdminProposal />} />
+                  <Route path="ormawa-jadwal" element={<SuperAdminJadwal />} />
+                  <Route path="ormawa-absensi" element={<SuperAdminAbsensi />} />
+                  <Route path="ormawa-keuangan" element={<SuperAdminKeuangan />} />
+                  <Route path="ormawa-lpj" element={<SuperAdminLpj />} />
+                  <Route path="ormawa-pengumuman" element={<SuperAdminPengumuman />} />
+                  <Route path="ormawa-aspirasi" element={<AspirationManagement />} />
+                  <Route path="ormawa-pengumuman" element={<Pengumuman />} />
+                  <Route path="ormawa-notifikasi" element={<Notifikasi />} />
                   <Route path="ormawa" element={<ProposalPipeline />} />
                   <Route path="treasury" element={<ReportsGenerator />} />
                   <Route path="infrastructure" element={<AcademicPortal />} />

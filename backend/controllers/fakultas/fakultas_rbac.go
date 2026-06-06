@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"siakad-backend/config"
 	"siakad-backend/models"
+	"strings"
 
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/datatypes"
@@ -93,20 +94,30 @@ func seedDefaultProdiRoles(fakultasID uint) error {
 
 // GetProdiRoles returns all RBAC roles for prodi under the current faculty
 func GetProdiRoles(c *fiber.Ctx) error {
+	role, _ := c.Locals("role").(string)
+	roleLower := strings.ToLower(role)
 	fid, _ := c.Locals("fakultas_id").(uint)
-	if fid == 0 {
+
+	if roleLower == "faculty_admin" && fid == 0 {
 		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Fakultas ID tidak ditemukan dalam konteks login"})
 	}
 
-	// Auto-seed defaults if none exist
-	var count int64
-	config.DB.Model(&models.FakultasProdiRole{}).Where("fakultas_id = ?", fid).Count(&count)
-	if count == 0 {
-		_ = seedDefaultProdiRoles(fid)
+	if roleLower == "faculty_admin" {
+		// Auto-seed defaults if none exist
+		var count int64
+		config.DB.Model(&models.FakultasProdiRole{}).Where("fakultas_id = ?", fid).Count(&count)
+		if count == 0 {
+			_ = seedDefaultProdiRoles(fid)
+		}
+	}
+
+	var query = config.DB.Model(&models.FakultasProdiRole{})
+	if roleLower == "faculty_admin" {
+		query = query.Where("fakultas_id = ?", fid)
 	}
 
 	var roles []models.FakultasProdiRole
-	config.DB.Where("fakultas_id = ?", fid).Order("id asc").Find(&roles)
+	query.Order("id asc").Find(&roles)
 
 	return c.JSON(fiber.Map{
 		"status":      "success",

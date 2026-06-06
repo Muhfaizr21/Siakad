@@ -2904,3 +2904,147 @@ func ReviewLPJ(c *fiber.Ctx) error {
 	})
 }
 
+// ========================
+// DOSEN (LECTURER) CRUD
+// ========================
+
+func GetAllLecturers(c *fiber.Ctx) error {
+	var lecturers []models.Dosen
+	if err := config.DB.Preload("Pengguna").Preload("Fakultas").Preload("ProgramStudi").Find(&lecturers).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal memuat data dosen: " + err.Error()})
+	}
+	return c.JSON(fiber.Map{"status": "success", "data": lecturers})
+}
+
+func CreateLecturer(c *fiber.Ctx) error {
+	var payload struct {
+		NIDN           string `json:"NIDN"`
+		Nama           string `json:"Nama"`
+		Email          string `json:"Email"`
+		Jabatan        string `json:"Jabatan"`
+		FakultasID     uint   `json:"FakultasID"`
+		ProgramStudiID uint   `json:"ProgramStudiID"`
+	}
+	if err := c.BodyParser(&payload); err != nil {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Payload tidak valid"})
+	}
+
+	tx := config.DB.Begin()
+
+	var user models.User
+	err := tx.Where("email = ?", payload.Email).First(&user).Error
+	if err == gorm.ErrRecordNotFound {
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte("password123"), bcrypt.DefaultCost)
+		if err != nil {
+			tx.Rollback()
+			return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal mengamankan password"})
+		}
+		user = models.User{
+			Email:          payload.Email,
+			Password:       string(hashedPassword),
+			Role:           "dosen",
+			FakultasID:     &payload.FakultasID,
+			ProgramStudiID: &payload.ProgramStudiID,
+		}
+		if err := tx.Create(&user).Error; err != nil {
+			tx.Rollback()
+			return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal membuat akun dosen: " + err.Error()})
+		}
+	} else if err != nil {
+		tx.Rollback()
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Database error: " + err.Error()})
+	}
+
+	dosen := models.Dosen{
+		PenggunaID:     user.ID,
+		NIDN:           payload.NIDN,
+		Nama:           payload.Nama,
+		FakultasID:     payload.FakultasID,
+		ProgramStudiID: payload.ProgramStudiID,
+		Jabatan:        payload.Jabatan,
+		Email:          payload.Email,
+	}
+
+	if err := tx.Create(&dosen).Error; err != nil {
+		tx.Rollback()
+		if strings.Contains(strings.ToLower(err.Error()), "duplicate") {
+			return c.Status(400).JSON(fiber.Map{"status": "error", "message": "NIDN sudah digunakan"})
+		}
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal menyimpan data dosen: " + err.Error()})
+	}
+
+	tx.Commit()
+	return c.JSON(fiber.Map{"status": "success", "message": "Dosen berhasil didaftarkan", "data": dosen})
+}
+
+func UpdateLecturer(c *fiber.Ctx) error {
+	id := c.Params("id")
+	var dosen models.Dosen
+	if err := config.DB.Preload("Pengguna").First(&dosen, id).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Dosen tidak ditemukan"})
+	}
+
+	var payload struct {
+		NIDN           string `json:"NIDN"`
+		Nama           string `json:"Nama"`
+		Email          string `json:"Email"`
+		Jabatan        string `json:"Jabatan"`
+		FakultasID     uint   `json:"FakultasID"`
+		ProgramStudiID uint   `json:"ProgramStudiID"`
+	}
+	if err := c.BodyParser(&payload); err != nil {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Payload tidak valid"})
+	}
+
+	tx := config.DB.Begin()
+
+	dosen.NIDN = payload.NIDN
+	dosen.Nama = payload.Nama
+	dosen.FakultasID = payload.FakultasID
+	dosen.ProgramStudiID = payload.ProgramStudiID
+	dosen.Jabatan = payload.Jabatan
+	dosen.Email = payload.Email
+
+	if err := tx.Save(&dosen).Error; err != nil {
+		tx.Rollback()
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal memperbarui data dosen: " + err.Error()})
+	}
+
+	if dosen.PenggunaID != 0 && payload.Email != "" {
+		if err := tx.Exec("UPDATE public.users SET email = ?, fakultas_id = ?, program_studi_id = ? WHERE id = ?", payload.Email, payload.FakultasID, payload.ProgramStudiID, dosen.PenggunaID).Error; err != nil {
+			tx.Rollback()
+			return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal memperbarui akun terkait: " + err.Error()})
+		}
+	}
+
+	tx.Commit()
+	return c.JSON(fiber.Map{"status": "success", "message": "Data dosen diperbarui", "data": dosen})
+}
+
+func DeleteLecturer(c *fiber.Ctx) error {
+	id := c.Params("id")
+	var dosen models.Dosen
+	if err := config.DB.First(&dosen, id).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Dosen tidak ditemukan"})
+	}
+
+	tx := config.DB.Begin()
+	penggunaID := dosen.PenggunaID
+
+	if err := tx.Delete(&dosen).Error; err != nil {
+		tx.Rollback()
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal menghapus profil dosen: " + err.Error()})
+	}
+
+	if penggunaID != 0 {
+		if err := tx.Exec("DELETE FROM public.users WHERE id = ?", penggunaID).Error; err != nil {
+			tx.Rollback()
+			return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal menghapus akun dosen: " + err.Error()})
+		}
+	}
+
+	tx.Commit()
+	return c.JSON(fiber.Map{"status": "success", "message": "Data dosen dihapus"})
+}
+
+

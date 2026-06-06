@@ -18,6 +18,7 @@ import { cn } from '@/lib/utils'
 
 import { fetchWithAuth, API_BASE_URL } from '../../services/api'
 import useAuthStore from '../../store/useAuthStore'
+import { getOrmawaId } from '../../utils/getOrmawaId'
 
 const API = `${API_BASE_URL}/ormawa`
 
@@ -58,7 +59,7 @@ export default function AnggotaManagement() {
   const [isSearching, setIsSearching] = useState(false)
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const dropdownRef = useRef(null)
-  const ormawaId = useAuthStore.getState()?.user?.ormawa_id || useAuthStore.getState()?.user?.OrmawaID || useAuthStore.getState()?.mahasiswa?.ormawaId || 1
+  const ormawaId = getOrmawaId()
   const [form, setForm] = useState({ MahasiswaID: '', Role: 'Anggota', Divisi: '', Email: '', NoHP: '', OrmawaID: ormawaId })
 
   const user = useAuthStore(state => state.user)

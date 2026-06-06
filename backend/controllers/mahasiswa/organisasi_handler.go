@@ -13,12 +13,8 @@ import (
 
 // GetList returns all organisation history for the logged-in student
 func GetList(c *fiber.Ctx) error {
-	PenggunaID, err := getUserID(c)
+	student, err := getStudent(c)
 	if err != nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"success": false, "message": "User tidak terautentikasi"})
-	}
-	var student models.Mahasiswa
-	if err := config.DB.First(&student, "pengguna_id = ?", PenggunaID).Error; err != nil {
 		return c.Status(404).JSON(fiber.Map{"success": false, "message": "Mahasiswa tidak ditemukan"})
 	}
 
@@ -40,12 +36,8 @@ type OrgRequest struct {
 
 // Create adds a new organisation record
 func Create(c *fiber.Ctx) error {
-	PenggunaID, err := getUserID(c)
+	student, err := getStudent(c)
 	if err != nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"success": false, "message": "User tidak terautentikasi"})
-	}
-	var student models.Mahasiswa
-	if err := config.DB.First(&student, "pengguna_id = ?", PenggunaID).Error; err != nil {
 		return c.Status(404).JSON(fiber.Map{"success": false, "message": "Mahasiswa tidak ditemukan"})
 	}
 
@@ -76,12 +68,8 @@ func Create(c *fiber.Ctx) error {
 // Update modifies an existing organisation record
 func Update(c *fiber.Ctx) error {
 	id := c.Params("id")
-	PenggunaID, err := getUserID(c)
+	student, err := getStudent(c)
 	if err != nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"success": false, "message": "User tidak terautentikasi"})
-	}
-	var student models.Mahasiswa
-	if err := config.DB.First(&student, "pengguna_id = ?", PenggunaID).Error; err != nil {
 		return c.Status(404).JSON(fiber.Map{"success": false, "message": "Mahasiswa tidak ditemukan"})
 	}
 
@@ -113,12 +101,8 @@ func Update(c *fiber.Ctx) error {
 // Delete removes a record
 func Delete(c *fiber.Ctx) error {
 	id := c.Params("id")
-	PenggunaID, err := getUserID(c)
+	student, err := getStudent(c)
 	if err != nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"success": false, "message": "User tidak terautentikasi"})
-	}
-	var student models.Mahasiswa
-	if err := config.DB.First(&student, "pengguna_id = ?", PenggunaID).Error; err != nil {
 		return c.Status(404).JSON(fiber.Map{"success": false, "message": "Mahasiswa tidak ditemukan"})
 	}
 

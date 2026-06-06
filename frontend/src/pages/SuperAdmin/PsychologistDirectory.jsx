@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useState, useEffect, useMemo } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { DataTable } from './components/ui/data-table'
 import { Badge } from './components/ui/badge'
 import { Button } from './components/ui/button'
@@ -110,8 +111,10 @@ export default function PsychologistDirectory() {
   const [isDelOpen, setIsDelOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  // Tab State
-  const [activeTab, setActiveTab] = useState('directory')
+  // Tab State via URL search query
+  const [searchParams, setSearchParams] = useSearchParams()
+  const activeTab = searchParams.get('tab') || 'directory'
+  const setActiveTab = (tab) => setSearchParams({ tab })
   
   // Reporting Data States
   const [bookings, setBookings] = useState([])

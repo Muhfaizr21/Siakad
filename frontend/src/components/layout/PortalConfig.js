@@ -63,15 +63,6 @@ export const PORTAL_CONFIG = {
         ]
       },
       {
-        group: 'DATA MASTER',
-        items: [
-          { name: 'Mahasiswa', icon: 'school', path: '/faculty/mahasiswa', permission: 'view_mahasiswa' },
-          { name: 'Dosen / Psikolog', icon: 'psychology', path: '/faculty/psikolog', permission: 'view_psikolog' },
-          { name: 'Program Studi', icon: 'database', path: '/faculty/prodi', permission: 'view_prodi' },
-          { name: 'Jadwal', icon: 'calendar_month', path: '/faculty/jadwal' },
-        ]
-      },
-      {
         group: 'KEGIATAN & KEMAHASISWAAN',
         items: [
           { name: 'PKKMB', icon: 'school', path: '/faculty/pkkmb', permission: 'view_pkkmb' },
@@ -80,6 +71,15 @@ export const PORTAL_CONFIG = {
           { name: 'Prestasi', icon: 'emoji_events', path: '/faculty/prestasi', permission: 'view_prestasi' },
           { name: 'Beasiswa', icon: 'payments', path: '/faculty/beasiswa', permission: 'view_beasiswa' },
           { name: 'Kesehatan', icon: 'favorite', path: '/faculty/kesehatan', permission: 'view_kesehatan' },
+        ]
+      },
+      {
+        group: 'DATA MASTER',
+        items: [
+          { name: 'Mahasiswa', icon: 'school', path: '/faculty/mahasiswa', permission: 'view_mahasiswa' },
+          { name: 'Dosen / Psikolog', icon: 'psychology', path: '/faculty/psikolog', permission: 'view_psikolog' },
+          { name: 'Program Studi', icon: 'database', path: '/faculty/prodi', permission: 'view_prodi' },
+          { name: 'Jadwal', icon: 'calendar_month', path: '/faculty/jadwal' },
         ]
       },
       {
@@ -156,25 +156,88 @@ export const PORTAL_CONFIG = {
         group: 'MENU UTAMA',
         items: [
           { name: 'Dashboard', icon: 'dashboard', path: '/admin' },
-          { name: 'Log Aktivitas', icon: 'warning', path: '/admin/audit' },
         ]
       },
       {
         group: 'MANAJEMEN DATA',
         items: [
-          { name: 'Data Fakultas', icon: 'apartment', path: '/admin/faculties' },
-          { name: 'Data Prodi', icon: 'database', path: '/admin/prodi' },
-          { name: 'Data Mahasiswa', icon: 'school', path: '/admin/students' },
-          { name: 'Data Psikolog', icon: 'psychology', path: '/admin/psychologists' },
-          { name: 'Data Tenaga Kes', icon: 'medical_services', path: '/admin/tenagakes' },
-        ]
-      },
-      {
-        group: 'KEGIATAN & ORMAWA',
-        items: [
-          { name: 'Global Proposals', icon: 'assignment', path: '/admin/proposals' },
-          { name: 'Kelola Ormawa', icon: 'group', path: '/admin/organizations' },
-          { name: 'Setting Gamifikasi', icon: 'emoji_events', path: '/admin/gamifikasi' },
+          {
+            name: 'Data Fakultas',
+            icon: 'apartment',
+            path: '/admin/faculties',
+            hasSubmenu: true,
+            submenu: [
+              { name: 'Kelola Fakultas', icon: 'corporate_fare', path: '/admin/faculties' },
+              { name: 'PKKMB', icon: 'school', path: '/admin/faculty-pkkmb' },
+              { name: 'Ormawa', icon: 'groups', path: '/admin/faculty-organisasi' },
+              { name: 'Proposal Ormawa', icon: 'assignment', path: '/admin/faculty-ormawa-proposals' },
+              { name: 'Prestasi', icon: 'emoji_events', path: '/admin/faculty-prestasi' },
+              { name: 'Beasiswa', icon: 'payments', path: '/admin/faculty-beasiswa' },
+              { name: 'Kesehatan', icon: 'favorite', path: '/admin/faculty-kesehatan' },
+              { name: 'Dosen / Psikolog', icon: 'psychology', path: '/admin/faculty-psikolog' },
+              { name: 'Program Studi', icon: 'database', path: '/admin/faculty-prodi' },
+              { name: 'Jadwal', icon: 'calendar_month', path: '/admin/faculty-jadwal' },
+              { name: 'Laporan', icon: 'description', path: '/admin/faculty-laporan' },
+              { name: 'Role & Akses (RBAC)', icon: 'security', path: '/admin/faculty-rbac' },
+              { name: 'Akun Prodi', icon: 'manage_accounts', path: '/admin/faculty-prodi-users' },
+            ]
+          },
+          {
+            name: 'Data Mahasiswa',
+            icon: 'school',
+            path: '/admin/students',
+            hasSubmenu: true,
+            submenu: [
+              { name: 'Direktori Mahasiswa', icon: 'groups', path: '/admin/students' },
+              { name: 'Kencana (PKKMB)', icon: 'school', path: '/admin/student-kencana' },
+              { name: 'Beasiswa', icon: 'payments', path: '/admin/student-beasiswa' },
+              { name: 'Notifikasi', icon: 'notifications', path: '/admin/student-notifikasi' },
+            ]
+          },
+          {
+            name: 'Data Psikolog',
+            icon: 'psychology',
+            path: '/admin/psychologists',
+            hasSubmenu: true,
+            submenu: [
+              { name: 'Direktori Psikolog', icon: 'groups', path: '/admin/psychologists' },
+              { name: 'Booking Konseling', icon: 'calendar_month', path: '/admin/psychologists?tab=bookings' },
+              { name: 'Rekam Medis', icon: 'medical_services', path: '/admin/psychologists?tab=medical_records' },
+              { name: 'Tindak Lanjut', icon: 'forward_to_inbox', path: '/admin/psychologists?tab=referrals' },
+            ]
+          },
+          {
+            name: 'Data Tenaga Kes',
+            icon: 'medical_services',
+            path: '/admin/tenagakes',
+            hasSubmenu: true,
+            submenu: [
+              { name: 'Direktori Tenaga Medis', icon: 'groups', path: '/admin/tenagakes' },
+              { name: 'Booking Janji Temu', icon: 'calendar_month', path: '/admin/tenagakes?tab=bookings' },
+              { name: 'Rekam Medis & Screening', icon: 'medical_services', path: '/admin/tenagakes?tab=medical_records' },
+            ]
+          },
+          {
+            name: 'Data Ormawa',
+            icon: 'groups',
+            path: '/admin/organizations',
+            hasSubmenu: true,
+            submenu: [
+              { name: 'Kelola Ormawa', icon: 'corporate_fare', path: '/admin/organizations' },
+              { name: 'Dashboard Ormawa', icon: 'dashboard', path: '/admin/ormawa-dashboard' },
+              { name: 'Anggota Aktif', icon: 'group', path: '/admin/ormawa-anggota' },
+              { name: 'Struktur Pengurus', icon: 'account_tree', path: '/admin/ormawa-struktur' },
+              { name: 'Proposal & Kegiatan', icon: 'description', path: '/admin/ormawa-proposal' },
+              { name: 'Jadwal Kalender', icon: 'calendar_month', path: '/admin/ormawa-jadwal' },
+              { name: 'Absensi (QR)', icon: 'qr_code', path: '/admin/ormawa-absensi' },
+              { name: 'Keuangan & Kas', icon: 'account_balance_wallet', path: '/admin/ormawa-keuangan' },
+              { name: 'Laporan & LPJ', icon: 'assignment', path: '/admin/ormawa-lpj' },
+              { name: 'Aspirasi Masuk', icon: 'campaign', path: '/admin/ormawa-aspirasi' },
+              { name: 'Pengumuman', icon: 'campaign', path: '/admin/ormawa-pengumuman' },
+              { name: 'Notifikasi', icon: 'notifications', path: '/admin/ormawa-notifikasi' },
+              { name: 'Setting Gamifikasi', icon: 'emoji_events', path: '/admin/gamifikasi' },
+            ]
+          },
         ]
       },
       {
@@ -189,7 +252,6 @@ export const PORTAL_CONFIG = {
         group: 'KENCANA (PKKMB)',
         items: [
           { name: 'Kencana Universitas', icon: 'account_balance', path: '/kencana-admin' },
-          { name: 'Kencana Fakultas', icon: 'school', path: '/kencana-fakultas' },
         ]
       },
       {
@@ -211,6 +273,7 @@ export const PORTAL_CONFIG = {
           { name: 'Kelola Berita', icon: 'newspaper', path: '/admin/announcements' },
           { name: 'Pengaturan Tampilan', icon: 'palette', path: '/admin/theme' },
           { name: 'Pengaturan Sistem', icon: 'settings', path: '/admin/config' },
+          { name: 'Log Aktivitas', icon: 'warning', path: '/admin/audit' },
         ]
       },
     ],

@@ -898,6 +898,7 @@ func (OrmawaAspirasi) TableName() string {
 type OrmawaNotifikasi struct {
 	BaseModel
 	OrmawaID uint   `gorm:"index"`
+	Ormawa   Ormawa
 	Tipe     string // approval, proposal, finance, event
 	Judul    string
 	Pesan    string

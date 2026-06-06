@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import useAuthStore from '../../store/useAuthStore';
 import NotificationDropdown from './NotificationDropdown';
+import { fetchWithAuth, adminService } from '../../services/api';
 
 const getItemIcon = (name, path) => {
   const n = name.toLowerCase();
@@ -38,6 +39,99 @@ export default function PortalTopbar({ config, onMenuClick }) {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
+
+  const [facultiesList, setFacultiesList] = useState([]);
+  const [activeFacultyId, setActiveFacultyId] = useState(
+    localStorage.getItem('superadmin_fakultas_id') || ''
+  );
+
+  const [studentsList, setStudentsList] = useState([]);
+  const [activeStudentId, setActiveStudentId] = useState(
+    localStorage.getItem('superadmin_impersonate_student_id') || ''
+  );
+
+  const [ormawasList, setOrmawasList] = useState([]);
+  const [activeOrmawaId, setActiveOrmawaId] = useState(
+    localStorage.getItem('superadmin_ormawa_id') || ''
+  );
+
+  useEffect(() => {
+    if (user?.role === 'super_admin') {
+      fetchWithAuth('/api/admin/fakultas')
+        .then(data => {
+          if (data.status === 'success' && data.data) {
+            setFacultiesList(data.data);
+            if (!localStorage.getItem('superadmin_fakultas_id') && data.data.length > 0) {
+              const firstId = String(data.data[0].id || data.data[0].ID);
+              localStorage.setItem('superadmin_fakultas_id', firstId);
+              setActiveFacultyId(firstId);
+              window.dispatchEvent(new Event('storage'));
+            }
+          }
+        })
+        .catch(err => console.error('Gagal mengambil daftar fakultas:', err));
+
+      adminService.getAllStudents()
+        .then(res => {
+          if (res.status === 'success' && res.data) {
+            setStudentsList(res.data);
+            if (!localStorage.getItem('superadmin_impersonate_student_id') && res.data.length > 0) {
+              const firstId = String(res.data[0].id || res.data[0].ID);
+              localStorage.setItem('superadmin_impersonate_student_id', firstId);
+              setActiveStudentId(firstId);
+              window.dispatchEvent(new Event('storage'));
+            }
+          }
+        })
+        .catch(err => console.error('Gagal mengambil daftar mahasiswa:', err));
+
+      adminService.getAllOrmawa()
+        .then(res => {
+          if (res.status === 'success' && res.data) {
+            setOrmawasList(res.data);
+            if (!localStorage.getItem('superadmin_ormawa_id') && res.data.length > 0) {
+              const firstId = String(res.data[0].id || res.data[0].ID);
+              localStorage.setItem('superadmin_ormawa_id', firstId);
+              setActiveOrmawaId(firstId);
+              window.dispatchEvent(new Event('storage'));
+            }
+          }
+        })
+        .catch(err => console.error('Gagal mengambil daftar ormawa:', err));
+    }
+  }, [user]);
+
+  const handleFacultyChange = (e) => {
+    const newId = e.target.value;
+    localStorage.setItem('superadmin_fakultas_id', newId);
+    setActiveFacultyId(newId);
+    window.dispatchEvent(new Event('storage'));
+    window.location.reload();
+  };
+
+  const handleStudentChange = (e) => {
+    const newId = e.target.value;
+    if (newId) {
+      localStorage.setItem('superadmin_impersonate_student_id', newId);
+    } else {
+      localStorage.removeItem('superadmin_impersonate_student_id');
+    }
+    setActiveStudentId(newId);
+    window.dispatchEvent(new Event('storage'));
+    window.location.reload();
+  };
+
+  const handleOrmawaChange = (e) => {
+    const newId = e.target.value;
+    if (newId) {
+      localStorage.setItem('superadmin_ormawa_id', newId);
+    } else {
+      localStorage.removeItem('superadmin_ormawa_id');
+    }
+    setActiveOrmawaId(newId);
+    window.dispatchEvent(new Event('storage'));
+    window.location.reload();
+  };
 
   // Close profile dropdown on outside click
   useEffect(() => {
@@ -220,6 +314,63 @@ export default function PortalTopbar({ config, onMenuClick }) {
               {pageTitle}
             </span>
           </nav>
+
+          {/* Faculty Switcher for Super Admin */}
+          {user?.role === 'super_admin' && facultiesList.length > 0 && (
+            <div className="flex items-center gap-2 ml-4 bg-slate-50 border border-slate-100 rounded-xl px-2.5 py-1">
+              <span className="material-symbols-outlined text-slate-400 !text-[16px]">corporate_fare</span>
+              <select
+                value={activeFacultyId}
+                onChange={handleFacultyChange}
+                className="bg-transparent border-0 text-slate-600 text-xs font-bold outline-none cursor-pointer p-0 pr-6 focus:ring-0"
+                style={{ border: 'none', outline: 'none', boxShadow: 'none' }}
+              >
+                {facultiesList.map(f => (
+                  <option key={f.id || f.ID} value={f.id || f.ID}>
+                    {f.nama || f.Nama}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          {/* Student Switcher for Super Admin on Student-focused pages */}
+          {user?.role === 'super_admin' && studentsList.length > 0 && location.pathname.includes('/admin/student') && (
+            <div className="flex items-center gap-2 ml-2 bg-emerald-50 border border-emerald-100 rounded-xl px-2.5 py-1">
+              <span className="material-symbols-outlined text-emerald-500 !text-[16px]">school</span>
+              <select
+                value={activeStudentId}
+                onChange={handleStudentChange}
+                className="bg-transparent border-0 text-emerald-700 text-xs font-bold outline-none cursor-pointer p-0 pr-6 focus:ring-0"
+                style={{ border: 'none', outline: 'none', boxShadow: 'none' }}
+              >
+                {studentsList.map(s => (
+                  <option key={s.id || s.ID} value={s.id || s.ID}>
+                    {s.Nama} ({s.NIM})
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          {/* Ormawa Switcher for Super Admin on Ormawa pages */}
+          {user?.role === 'super_admin' && ormawasList.length > 0 && location.pathname.includes('/admin/ormawa') && (
+            <div className="flex items-center gap-2 ml-2 bg-violet-50 border border-violet-100 rounded-xl px-2.5 py-1">
+              <span className="material-symbols-outlined text-violet-500 !text-[16px]">groups</span>
+              <select
+                value={activeOrmawaId}
+                onChange={handleOrmawaChange}
+                className="bg-transparent border-0 text-violet-700 text-xs font-bold outline-none cursor-pointer p-0 pr-6 focus:ring-0"
+                style={{ border: 'none', outline: 'none', boxShadow: 'none' }}
+              >
+                {ormawasList.map(o => (
+                  <option key={o.id || o.ID} value={o.id || o.ID}>
+                    {o.Singkatan || o.Nama}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
         </div>
 
         {/* ─── Right: Actions + Profile ─── */}

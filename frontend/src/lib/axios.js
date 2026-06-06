@@ -18,6 +18,14 @@ api.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    const selectedFacultyId = localStorage.getItem('superadmin_fakultas_id');
+    if (selectedFacultyId) {
+      config.headers['X-Faculty-ID'] = selectedFacultyId;
+    }
+    const impersonatedStudentId = localStorage.getItem('superadmin_impersonate_student_id');
+    if (impersonatedStudentId) {
+      config.headers['X-Student-ID'] = impersonatedStudentId;
+    }
     return config;
   },
   (error) => Promise.reject(error)

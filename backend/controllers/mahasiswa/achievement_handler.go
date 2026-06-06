@@ -17,13 +17,8 @@ import (
 
 // GetAchievements returns paginated achievements and total stats for an individual student
 func GetAchievements(c *fiber.Ctx) error {
-	PenggunaID, err := getUserID(c)
+	student, err := getStudent(c)
 	if err != nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"success": false, "message": "User tidak terautentikasi"})
-	}
-
-	var student models.Mahasiswa
-	if err := config.DB.First(&student, "pengguna_id = ?", PenggunaID).Error; err != nil {
 		return c.Status(404).JSON(fiber.Map{"success": false, "message": "Mahasiswa tidak ditemukan"})
 	}
 
@@ -61,13 +56,8 @@ func GetAchievements(c *fiber.Ctx) error {
 
 // CreateAchievement handles new achievement submissions with file upload
 func CreateAchievement(c *fiber.Ctx) error {
-	PenggunaID, err := getUserID(c)
+	student, err := getStudent(c)
 	if err != nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"success": false, "message": "User tidak terautentikasi"})
-	}
-
-	var student models.Mahasiswa
-	if err := config.DB.First(&student, "pengguna_id = ?", PenggunaID).Error; err != nil {
 		return c.Status(404).JSON(fiber.Map{"success": false, "message": "Mahasiswa tidak ditemukan"})
 	}
 
@@ -210,13 +200,8 @@ func firstNonEmpty(values ...string) string {
 // GetAchievementDetail returns single achievement data
 func GetAchievementDetail(c *fiber.Ctx) error {
 	id := c.Params("id")
-	PenggunaID, err := getUserID(c)
+	student, err := getStudent(c)
 	if err != nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"success": false, "message": "User tidak terautentikasi"})
-	}
-
-	var student models.Mahasiswa
-	if err := config.DB.First(&student, "pengguna_id = ?", PenggunaID).Error; err != nil {
 		return c.Status(404).JSON(fiber.Map{"success": false, "message": "Mahasiswa tidak ditemukan"})
 	}
 
@@ -234,13 +219,8 @@ func GetAchievementDetail(c *fiber.Ctx) error {
 // DeleteAchievement deletes an achievement ONLY if its status is Menunggu
 func DeleteAchievement(c *fiber.Ctx) error {
 	id := c.Params("id")
-	PenggunaID, err := getUserID(c)
+	student, err := getStudent(c)
 	if err != nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"success": false, "message": "User tidak terautentikasi"})
-	}
-
-	var student models.Mahasiswa
-	if err := config.DB.First(&student, "pengguna_id = ?", PenggunaID).Error; err != nil {
 		return c.Status(404).JSON(fiber.Map{"success": false, "message": "Mahasiswa tidak ditemukan"})
 	}
 
@@ -264,13 +244,8 @@ func DeleteAchievement(c *fiber.Ctx) error {
 // UpdateAchievement updates an achievement ONLY if its status is Menunggu
 func UpdateAchievement(c *fiber.Ctx) error {
 	id := c.Params("id")
-	PenggunaID, err := getUserID(c)
+	student, err := getStudent(c)
 	if err != nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"success": false, "message": "User tidak terautentikasi"})
-	}
-
-	var student models.Mahasiswa
-	if err := config.DB.First(&student, "pengguna_id = ?", PenggunaID).Error; err != nil {
 		return c.Status(404).JSON(fiber.Map{"success": false, "message": "Mahasiswa tidak ditemukan"})
 	}
 

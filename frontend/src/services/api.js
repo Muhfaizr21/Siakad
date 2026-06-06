@@ -41,9 +41,15 @@ export const fetchWithAuth = (url, options = {}) => {
     console.error(`Attempted fetchWithAuth to ${url} but NO TOKEN was found. This will likely result in a 401.`);
   }
 
+  const selectedFacultyId = localStorage.getItem('superadmin_fakultas_id');
+  const impersonatedStudentId = localStorage.getItem('superadmin_impersonate_student_id');
+  const selectedOrmawaId = localStorage.getItem('superadmin_ormawa_id');
   const headers = {
     ...options.headers,
-    ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+    ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+    ...(selectedFacultyId ? { 'X-Faculty-ID': selectedFacultyId } : {}),
+    ...(impersonatedStudentId ? { 'X-Student-ID': impersonatedStudentId } : {}),
+    ...(selectedOrmawaId ? { 'X-Ormawa-ID': selectedOrmawaId } : {})
   };
 
   return fetch(url, { ...options, headers }).then(handleResponse);
@@ -505,6 +511,21 @@ export const adminService = {
     body: JSON.stringify(data)
   }),
   deleteProdi: (id) => fetchWithAuth(`${API_BASE_URL}/admin/prodi/${id}`, {
+    method: 'DELETE'
+  }),
+
+  getAllLecturers: () => fetchWithAuth(`${API_BASE_URL}/admin/lecturers`),
+  createLecturer: (data) => fetchWithAuth(`${API_BASE_URL}/admin/lecturers`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  }),
+  updateLecturer: (id, data) => fetchWithAuth(`${API_BASE_URL}/admin/lecturers/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  }),
+  deleteLecturer: (id) => fetchWithAuth(`${API_BASE_URL}/admin/lecturers/${id}`, {
     method: 'DELETE'
   }),
 

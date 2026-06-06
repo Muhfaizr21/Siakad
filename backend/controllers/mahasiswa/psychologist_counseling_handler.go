@@ -13,16 +13,13 @@ import (
 )
 
 func studentWithRelations(c *fiber.Ctx) (*models.Mahasiswa, error) {
-	userID, err := getUserID(c)
+	student, err := getStudent(c)
 	if err != nil {
-		return nil, err
-	}
-
-	var student models.Mahasiswa
-	if err := config.DB.Preload("Fakultas").Preload("ProgramStudi").Where("pengguna_id = ?", userID).First(&student).Error; err != nil {
 		return nil, fiber.NewError(fiber.StatusNotFound, "Profil mahasiswa tidak ditemukan")
 	}
-	return &student, nil
+
+	config.DB.Preload("Fakultas").Preload("ProgramStudi").First(student, student.ID)
+	return student, nil
 }
 
 func studentProfileResponse(student *models.Mahasiswa) fiber.Map {

@@ -46,6 +46,7 @@ func GetOrmawaProfile(c *fiber.Ctx) error {
 }
 
 func GetOrmawaStats(c *fiber.Ctx) error {
+	// ormawaId is already injected into query by middleware (from X-Ormawa-ID header)
 	ormawaId := c.Query("ormawaId")
 	if ormawaId == "" {
 		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "ormawaId is required"})
@@ -56,7 +57,7 @@ func GetOrmawaStats(c *fiber.Ctx) error {
 	var totalEvents int64
 	var totalAnnouncements int64
 
-	// Stats Counts
+	// Stats Counts — always filtered by selected ormawa (including when SuperAdmin picks via dropdown)
 	config.DB.Model(&models.Proposal{}).Where("ormawa_id = ?", ormawaId).Count(&totalProposal)
 	config.DB.Model(&models.OrmawaAnggota{}).Where("ormawa_id = ?", ormawaId).Count(&totalMember)
 	config.DB.Model(&models.OrmawaKegiatan{}).Where("ormawa_id = ?", ormawaId).Count(&totalEvents)
@@ -87,7 +88,10 @@ func GetProposals(c *fiber.Ctx) error {
 	ormawaId := c.Query("ormawaId")
 	var proposals []models.Proposal
 	query := config.DB.Preload("Ormawa")
-	if ormawaId != "" {
+	role, _ := c.Locals("role").(string)
+	isSuperAdmin := strings.ToLower(role) == "super_admin"
+
+	if ormawaId != "" && !isSuperAdmin {
 		query = query.Where("ormawa_id = ?", ormawaId)
 	}
 	query.Order("created_at desc").Find(&proposals)
@@ -496,7 +500,10 @@ func GetCashMutations(c *fiber.Ctx) error {
 	ormawaId := c.Query("ormawaId")
 	var mutasi []models.OrmawaMutasiSaldo
 	query := config.DB.Preload("Ormawa")
-	if ormawaId != "" {
+	role, _ := c.Locals("role").(string)
+	isSuperAdmin := strings.ToLower(role) == "super_admin"
+
+	if ormawaId != "" && !isSuperAdmin {
 		query = query.Where("ormawa_id = ?", ormawaId)
 	}
 	query.Order("tanggal desc").Find(&mutasi)
@@ -550,8 +557,11 @@ func DeleteCashMutation(c *fiber.Ctx) error {
 func GetEvents(c *fiber.Ctx) error {
 	ormawaId := c.Query("ormawaId")
 	var events []models.OrmawaKegiatan
-	query := config.DB.Model(&models.OrmawaKegiatan{})
-	if ormawaId != "" {
+	query := config.DB.Preload("Ormawa")
+	role, _ := c.Locals("role").(string)
+	isSuperAdmin := strings.ToLower(role) == "super_admin"
+
+	if ormawaId != "" && !isSuperAdmin {
 		query = query.Where("ormawa_id = ?", ormawaId)
 	}
 	query.Find(&events)
@@ -740,8 +750,11 @@ func SubmitAttendance(c *fiber.Ctx) error {
 func GetAnnouncements(c *fiber.Ctx) error {
 	ormawaId := c.Query("ormawaId")
 	var list []models.OrmawaPengumuman
-	query := config.DB.Model(&models.OrmawaPengumuman{})
-	if ormawaId != "" {
+	query := config.DB.Preload("Ormawa")
+	role, _ := c.Locals("role").(string)
+	isSuperAdmin := strings.ToLower(role) == "super_admin"
+
+	if ormawaId != "" && !isSuperAdmin {
 		query = query.Where("ormawa_id = ?", ormawaId)
 	}
 	query.Order("created_at desc").Find(&list)
@@ -1016,8 +1029,10 @@ func DeleteOrmawaRole(c *fiber.Ctx) error {
 func GetMembers(c *fiber.Ctx) error {
 	ormawaId := c.Query("ormawaId")
 	periode := c.Query("periode") // "aktif" or specific like "2023/2024"
+	role, _ := c.Locals("role").(string)
+	isSuperAdmin := strings.ToLower(role) == "super_admin"
 
-	if ormawaId == "" {
+	if ormawaId == "" && !isSuperAdmin {
 		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "ormawaId is required"})
 	}
 
@@ -1029,14 +1044,18 @@ func GetMembers(c *fiber.Ctx) error {
 		Status      string           `json:"Status"`
 		Periode     string           `json:"Periode"`
 		Mahasiswa   models.Mahasiswa `json:"Mahasiswa"`
+		Ormawa      models.Ormawa    `json:"Ormawa"`
 	}
 
 	var result []UnifiedMember
 
 	// Get all available past periods
 	var availablePeriods []string
-	config.DB.Model(&models.RiwayatOrganisasi{}).
-		Where("ormawa_id = ?", ormawaId).
+	periodQuery := config.DB.Model(&models.RiwayatOrganisasi{})
+	if ormawaId != "" && !isSuperAdmin {
+		periodQuery = periodQuery.Where("ormawa_id = ?", ormawaId)
+	}
+	periodQuery.
 		Where("periode IS NOT NULL AND periode != ''").
 		Order("periode desc").
 		Distinct().
@@ -1044,7 +1063,11 @@ func GetMembers(c *fiber.Ctx) error {
 
 	if periode == "" || periode == "aktif" {
 		var members []models.OrmawaAnggota
-		config.DB.Preload("Mahasiswa").Where("ormawa_id = ?", ormawaId).Find(&members)
+		mQuery := config.DB.Preload("Mahasiswa").Preload("Ormawa")
+		if ormawaId != "" && !isSuperAdmin {
+			mQuery = mQuery.Where("ormawa_id = ?", ormawaId)
+		}
+		mQuery.Find(&members)
 
 		for _, m := range members {
 			year := m.JoinedAt.Year()
@@ -1061,11 +1084,18 @@ func GetMembers(c *fiber.Ctx) error {
 				Status:      m.Status,
 				Periode:     pStr,
 				Mahasiswa:   m.Mahasiswa,
+				Ormawa:      m.Ormawa,
 			})
 		}
 	} else {
 		var history []models.RiwayatOrganisasi
-		config.DB.Preload("Mahasiswa").Where("ormawa_id = ? AND periode = ?", ormawaId, periode).Find(&history)
+		hQuery := config.DB.Preload("Mahasiswa").Preload("Ormawa")
+		if ormawaId != "" && !isSuperAdmin {
+			hQuery = hQuery.Where("ormawa_id = ? AND periode = ?", ormawaId, periode)
+		} else if isSuperAdmin {
+			hQuery = hQuery.Where("periode = ?", periode)
+		}
+		hQuery.Find(&history)
 
 		for _, h := range history {
 			result = append(result, UnifiedMember{
@@ -1076,6 +1106,7 @@ func GetMembers(c *fiber.Ctx) error {
 				Status:      h.Status,
 				Periode:     h.Periode,
 				Mahasiswa:   h.Mahasiswa,
+				Ormawa:      h.Ormawa,
 			})
 		}
 	}
@@ -1231,6 +1262,9 @@ func DeleteMember(c *fiber.Ctx) error {
 
 func GetOrmawaNotifications(c *fiber.Ctx) error {
 	ctxOrmawaId, ok := c.Locals("ormawa_id").(uint)
+	role, _ := c.Locals("role").(string)
+	isSuperAdmin := strings.ToLower(role) == "super_admin"
+
 	var targetOrmawaId uint
 	if ok && ctxOrmawaId > 0 {
 		targetOrmawaId = ctxOrmawaId
@@ -1243,15 +1277,16 @@ func GetOrmawaNotifications(c *fiber.Ctx) error {
 		}
 	}
 
-	if targetOrmawaId == 0 {
+	if targetOrmawaId == 0 && !isSuperAdmin {
 		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "ormawaId required"})
 	}
 
 	var list []models.OrmawaNotifikasi
-	config.DB.Model(&models.OrmawaNotifikasi{}).
-		Where("ormawa_id = ?", targetOrmawaId).
-		Order("created_at desc").
-		Find(&list)
+	query := config.DB.Model(&models.OrmawaNotifikasi{}).Preload("Ormawa")
+	if !isSuperAdmin {
+		query = query.Where("ormawa_id = ?", targetOrmawaId)
+	}
+	query.Order("created_at desc").Find(&list)
 	return c.JSON(fiber.Map{"status": "success", "data": list})
 }
 
@@ -1313,7 +1348,10 @@ func GetDivisions(c *fiber.Ctx) error {
 	ormawaId := c.Query("ormawaId")
 	var list []models.OrmawaDivisi
 	query := config.DB.Model(&models.OrmawaDivisi{})
-	if ormawaId != "" {
+	role, _ := c.Locals("role").(string)
+	isSuperAdmin := strings.ToLower(role) == "super_admin"
+
+	if ormawaId != "" && !isSuperAdmin {
 		query = query.Where("ormawa_id = ?", ormawaId)
 	}
 	query.Find(&list)
@@ -1348,11 +1386,13 @@ func DeleteDivision(c *fiber.Ctx) error {
 func GetLPJs(c *fiber.Ctx) error {
 	ormawaId := c.Query("ormawaId")
 	var list []models.LaporanPertanggungjawaban
+	role, _ := c.Locals("role").(string)
+	isSuperAdmin := strings.ToLower(role) == "super_admin"
 
-	query := config.DB.Preload("Proposal").
+	query := config.DB.Preload("Proposal").Preload("Proposal.Ormawa").
 		Joins("JOIN ormawa.proposal p ON p.id = ormawa.laporan_pertanggungjawaban.proposal_id AND p.deleted_at IS NULL")
 
-	if ormawaId != "" {
+	if ormawaId != "" && !isSuperAdmin {
 		query = query.Where("p.ormawa_id = ?", ormawaId)
 	}
 	query.Order("ormawa.laporan_pertanggungjawaban.created_at desc").Find(&list)
@@ -1548,8 +1588,11 @@ func DeleteLPJDocument(c *fiber.Ctx) error {
 func GetAspirations(c *fiber.Ctx) error {
 	ormawaId := c.Query("ormawaId")
 	var list []models.OrmawaAspirasi
-	query := config.DB.Preload("Mahasiswa")
-	if ormawaId != "" {
+	query := config.DB.Preload("Mahasiswa").Preload("Ormawa")
+	role, _ := c.Locals("role").(string)
+	isSuperAdmin := strings.ToLower(role) == "super_admin"
+
+	if ormawaId != "" && !isSuperAdmin {
 		query = query.Where("ormawa_id = ?", ormawaId)
 	}
 	query.Order("created_at desc").Find(&list)

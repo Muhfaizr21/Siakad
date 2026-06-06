@@ -16,13 +16,8 @@ import (
 
 // GetStats returns count summary for student voice
 func GetStats(c *fiber.Ctx) error {
-	PenggunaID, err := getUserID(c)
+	student, err := getStudent(c)
 	if err != nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"success": false, "message": "User tidak terautentikasi"})
-	}
-
-	var student models.Mahasiswa
-	if err := config.DB.First(&student, "pengguna_id = ?", PenggunaID).Error; err != nil {
 		return c.Status(404).JSON(fiber.Map{"success": false, "message": "Mahasiswa tidak ditemukan"})
 	}
 
@@ -51,15 +46,11 @@ func GetStats(c *fiber.Ctx) error {
 }
 
 func CreateAspirasi(c *fiber.Ctx) error {
-	PenggunaID, err := getUserID(c)
+	student, err := getStudent(c)
 	if err != nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"success": false, "message": "User tidak terautentikasi"})
-	}
-
-	var student models.Mahasiswa
-	if err := config.DB.Preload("ProgramStudi").First(&student, "pengguna_id = ?", PenggunaID).Error; err != nil {
 		return c.Status(404).JSON(fiber.Map{"success": false, "message": "Mahasiswa tidak ditemukan"})
 	}
+	config.DB.Preload("ProgramStudi").First(student, student.ID)
 
 	var input struct {
 		Judul    string `json:"judul"`
@@ -145,13 +136,8 @@ func CreateAspirasi(c *fiber.Ctx) error {
 }
 
 func GetAspirasiList(c *fiber.Ctx) error {
-	PenggunaID, err := getUserID(c)
+	student, err := getStudent(c)
 	if err != nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"success": false, "message": "User tidak terautentikasi"})
-	}
-
-	var student models.Mahasiswa
-	if err := config.DB.First(&student, "pengguna_id = ?", PenggunaID).Error; err != nil {
 		return c.Status(404).JSON(fiber.Map{"success": false, "message": "Mahasiswa tidak ditemukan"})
 	}
 
@@ -179,13 +165,8 @@ func GetAspirasiList(c *fiber.Ctx) error {
 
 func GetDetail(c *fiber.Ctx) error {
 	id := c.Params("id")
-	PenggunaID, err := getUserID(c)
+	student, err := getStudent(c)
 	if err != nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"success": false, "message": "User tidak terautentikasi"})
-	}
-
-	var student models.Mahasiswa
-	if err := config.DB.First(&student, "pengguna_id = ?", PenggunaID).Error; err != nil {
 		return c.Status(404).JSON(fiber.Map{"success": false, "message": "Mahasiswa tidak ditemukan"})
 	}
 
@@ -202,13 +183,8 @@ func GetDetail(c *fiber.Ctx) error {
 
 func CancelAspirasi(c *fiber.Ctx) error {
 	id := c.Params("id")
-	PenggunaID, err := getUserID(c)
+	student, err := getStudent(c)
 	if err != nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"success": false, "message": "User tidak terautentikasi"})
-	}
-
-	var student models.Mahasiswa
-	if err := config.DB.First(&student, "pengguna_id = ?", PenggunaID).Error; err != nil {
 		return c.Status(404).JSON(fiber.Map{"success": false, "message": "Mahasiswa tidak ditemukan"})
 	}
 

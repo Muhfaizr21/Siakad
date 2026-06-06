@@ -154,13 +154,8 @@ func GetBeasiswaDetail(c *fiber.Ctx) error {
 // DaftarBeasiswa handles scholarship applications
 func DaftarBeasiswa(c *fiber.Ctx) error {
 	beasiswaID := c.Params("id")
-	PenggunaID, err := getUserID(c)
+	student, err := getStudent(c)
 	if err != nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"success": false, "message": "User tidak terautentikasi"})
-	}
-
-	var student models.Mahasiswa
-	if err := config.DB.First(&student, "pengguna_id = ?", PenggunaID).Error; err != nil {
 		return c.Status(404).JSON(fiber.Map{"success": false, "message": "Mahasiswa tidak ditemukan"})
 	}
 
@@ -332,13 +327,8 @@ func DaftarBeasiswa(c *fiber.Ctx) error {
 
 // GetRiwayatPengajuan retrieves historical submissions
 func GetRiwayatPengajuan(c *fiber.Ctx) error {
-	PenggunaID, err := getUserID(c)
+	student, err := getStudent(c)
 	if err != nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"success": false, "message": "User tidak terautentikasi"})
-	}
-
-	var student models.Mahasiswa
-	if err := config.DB.First(&student, "pengguna_id = ?", PenggunaID).Error; err != nil {
 		return c.Status(404).JSON(fiber.Map{"success": false, "message": "Mahasiswa tidak ditemukan"})
 	}
 
@@ -354,13 +344,10 @@ func GetRiwayatPengajuan(c *fiber.Ctx) error {
 // GetPengajuanDetail retrieves detailed tracking info
 func GetPengajuanDetail(c *fiber.Ctx) error {
 	id := c.Params("id")
-	PenggunaID, err := getUserID(c)
+	student, err := getStudent(c)
 	if err != nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"success": false, "message": "User tidak terautentikasi"})
+		return c.Status(404).JSON(fiber.Map{"success": false, "message": "Mahasiswa tidak ditemukan"})
 	}
-
-	var student models.Mahasiswa
-	config.DB.First(&student, "pengguna_id = ?", PenggunaID)
 
 	var pengajuan models.BeasiswaPendaftaran
 	if err := config.DB.Preload("Beasiswa").Where("id = ? AND mahasiswa_id = ?", id, student.ID).First(&pengajuan).Error; err != nil {

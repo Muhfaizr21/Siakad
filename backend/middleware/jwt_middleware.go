@@ -60,6 +60,45 @@ func AuthProtected(c *fiber.Ctx) error {
 		c.Locals("fakultas_id", uint(0))
 	}
 
+	// Dynamic faculty injection for Super Admin
+	userRole, _ := c.Locals("role").(string)
+	log.Printf("[DEBUG JWT] Path: %s, Original role: %s, Original fid: %v", c.Path(), userRole, c.Locals("fakultas_id"))
+	if strings.ToLower(userRole) == "super_admin" {
+		headerFid := c.Get("X-Faculty-ID")
+		log.Printf("[DEBUG JWT] X-Faculty-ID header: '%s'", headerFid)
+		if headerFid != "" && headerFid != "undefined" && headerFid != "null" {
+			if parsedFid, err := strconv.ParseUint(headerFid, 10, 32); err == nil {
+				c.Locals("fakultas_id", uint(parsedFid))
+				log.Printf("[DEBUG JWT] Set fakultas_id from header: %d", parsedFid)
+			} else {
+				log.Printf("[DEBUG JWT] Failed to parse X-Faculty-ID header: %v", err)
+			}
+		} else {
+			queryFid := c.Query("fakultasId")
+			log.Printf("[DEBUG JWT] Query fakultasId: '%s'", queryFid)
+			if queryFid != "" && queryFid != "undefined" && queryFid != "null" {
+				if parsedFid, err := strconv.ParseUint(queryFid, 10, 32); err == nil {
+					c.Locals("fakultas_id", uint(parsedFid))
+					log.Printf("[DEBUG JWT] Set fakultas_id from query: %d", parsedFid)
+				} else {
+					log.Printf("[DEBUG JWT] Failed to parse query fakultasId: %v", err)
+				}
+			}
+		}
+		// Fallback to first faculty if still 0
+		if c.Locals("fakultas_id").(uint) == 0 {
+			var firstFakultas models.Fakultas
+			if err := config.DB.First(&firstFakultas).Error; err == nil {
+				c.Locals("fakultas_id", firstFakultas.ID)
+				log.Printf("[DEBUG JWT] Fallback to first faculty: %d (%s)", firstFakultas.ID, firstFakultas.Nama)
+			} else {
+				log.Printf("[DEBUG JWT] Fallback failed: %v", err)
+			}
+		}
+	}
+
+	log.Printf("[DEBUG JWT] Final role: %v, Final fakultas_id: %v", c.Locals("role"), c.Locals("fakultas_id"))
+
 	if oid, ok := claims["oid"].(float64); ok {
 		c.Locals("ormawa_id", uint(oid))
 	} else {
@@ -96,7 +135,14 @@ func AdminCheck(c *fiber.Ctx) error {
 
 func MahasiswaCheck(c *fiber.Ctx) error {
 	role, ok := c.Locals("role").(string)
-	if !ok || strings.ToLower(role) != "mahasiswa" {
+	if !ok {
+		return c.Status(403).JSON(fiber.Map{
+			"status":  "error",
+			"message": "Akses ditolak.",
+		})
+	}
+	r := strings.ToLower(role)
+	if r != "mahasiswa" && r != "super_admin" && r != "faculty_admin" {
 		return c.Status(403).JSON(fiber.Map{
 			"status":  "error",
 			"message": "Akses ditolak. Fitur ini hanya untuk Mahasiswa.",
@@ -156,6 +202,36 @@ func OrmawaCheck(c *fiber.Ctx) error {
 		return c.Status(403).JSON(fiber.Map{"status": "error", "message": "Akses ditolak."})
 	}
 	r := strings.ToLower(role)
+
+	// Super Admin bypass — full access to all ormawa endpoints
+	if r == "super_admin" {
+		// Resolve ormawaId from header, query, or fallback to first ormawa
+		headerOid := c.Get("X-Ormawa-ID")
+		queryOid := c.Query("ormawaId")
+		resolvedOid := ""
+
+		if headerOid != "" && headerOid != "undefined" && headerOid != "null" {
+			resolvedOid = headerOid
+		} else if queryOid != "" && queryOid != "undefined" && queryOid != "null" {
+			resolvedOid = queryOid
+		}
+
+		if resolvedOid != "" {
+			c.Request().URI().QueryArgs().Set("ormawaId", resolvedOid)
+			c.Locals("ormawa_id", uint(parseUint(resolvedOid)))
+		} else {
+			// Fallback: pick the first ormawa in the database
+			var firstOrmawa models.Ormawa
+			if err := config.DB.Order("id asc").First(&firstOrmawa).Error; err == nil {
+				oidStr := strconv.FormatUint(uint64(firstOrmawa.ID), 10)
+				c.Request().URI().QueryArgs().Set("ormawaId", oidStr)
+				c.Locals("ormawa_id", firstOrmawa.ID)
+			}
+		}
+		log.Printf("[OrmawaCheck] Super Admin bypass — ormawa_id: %v", c.Locals("ormawa_id"))
+		return c.Next()
+	}
+
 	if r != "ormawa" && r != "mahasiswa" && r != "ormawa_admin" {
 		return c.Status(403).JSON(fiber.Map{
 			"status":  "error",

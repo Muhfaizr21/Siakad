@@ -15,15 +15,12 @@ const menuGroups = [
     items: [
       { name: "Data Fakultas", icon: 'apartment', path: "/admin/faculties" },
       { name: "Data Prodi", icon: 'database', path: "/admin/prodi" },
+      { name: "Data Dosen", icon: 'badge', path: "/admin/lecturers" },
       { name: "Data Mahasiswa", icon: 'school', path: "/admin/students" },
       { name: "Data Psikolog", icon: 'psychology', path: "/admin/psychologists" },
-    ]
-  },
-  {
-    title: "Kegiatan & Ormawa",
-    items: [
-      { name: "Global Proposals", icon: 'assignment', path: "/admin/proposals" },
       { name: "Kelola Ormawa", icon: 'group', path: "/admin/organizations" },
+      { name: "Global Proposals", icon: 'assignment', path: "/admin/proposals" },
+      { name: "Setting Gamifikasi", icon: 'emoji_events', path: "/admin/gamifikasi" },
     ]
   },
   {

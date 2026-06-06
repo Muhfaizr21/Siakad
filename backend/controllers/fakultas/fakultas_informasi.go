@@ -32,9 +32,11 @@ func AmbilRingkasanDashboard(c *fiber.Ctx) error {
 	}
 
 	if role == "faculty_admin" || role == "prodi_admin" {
-		qMhs = qMhs.Where("fakultas_id = ?", fid)
-		qPrestasi = qPrestasi.Where("\"Mahasiswa\".fakultas_id = ?", fid)
-		qProdi = qProdi.Where("fakultas_id = ?", fid)
+		if role != "super_admin" {
+			qMhs = qMhs.Where("fakultas_id = ?", fid)
+			qPrestasi = qPrestasi.Where("\"Mahasiswa\".fakultas_id = ?", fid)
+			qProdi = qProdi.Where("fakultas_id = ?", fid)
+		}
 	}
 
 	if prodiIDStr != "" && prodiIDStr != "all" {
@@ -96,7 +98,7 @@ func AmbilRingkasanDashboard(c *fiber.Ctx) error {
 		Select("status_akun as status, count(*) as count").
 		Where("deleted_at IS NULL")
 
-	if role == "faculty_admin" || role == "prodi_admin" {
+	if role == "faculty_admin" || role == "prodi_admin" || role == "super_admin" {
 		qStatus = qStatus.Where("fakultas_id = ?", fid)
 	}
 	if prodiIDStr != "" && prodiIDStr != "all" {
@@ -143,7 +145,7 @@ func AmbilRingkasanDashboard(c *fiber.Ctx) error {
 		LEFT JOIN mahasiswa.mahasiswa m ON %s
 		WHERE ps.deleted_at IS NULL `, joinCondition)
 
-	if role == "faculty_admin" || role == "prodi_admin" {
+	if role == "faculty_admin" || role == "prodi_admin" || role == "super_admin" {
 		sqlProdi += fmt.Sprintf(" AND ps.fakultas_id = %d ", fid)
 	}
 	if prodiIDStr != "" && prodiIDStr != "all" {
@@ -164,7 +166,7 @@ func AmbilRingkasanDashboard(c *fiber.Ctx) error {
 		Select("tahun_masuk as tahun, count(*) as diterima, count(*) + 5 as pendaftar").
 		Where("tahun_masuk > 0 AND deleted_at IS NULL")
 
-	if role == "faculty_admin" || role == "prodi_admin" {
+	if role == "faculty_admin" || role == "prodi_admin" || role == "super_admin" {
 		qTrend = qTrend.Where("fakultas_id = ?", fid)
 	}
 	if prodiIDStr != "" && prodiIDStr != "all" {
@@ -189,7 +191,7 @@ func AmbilRingkasanDashboard(c *fiber.Ctx) error {
 	var logs = []ActivityItem{}
 
 	qPList := config.DB.Model(&models.Prestasi{}).Preload("Mahasiswa").Joins("Mahasiswa").Order("id desc").Limit(3)
-	if role == "faculty_admin" {
+	if role == "faculty_admin" || role == "super_admin" {
 		qPList = qPList.Where("\"Mahasiswa\".fakultas_id = ?", fid)
 	} else if role == "prodi_admin" {
 		pid, _ := c.Locals("program_studi_id").(uint)
@@ -217,7 +219,7 @@ func AmbilRingkasanDashboard(c *fiber.Ctx) error {
 	}
 
 	qMList := config.DB.Order("id desc").Limit(2)
-	if role == "faculty_admin" {
+	if role == "faculty_admin" || role == "super_admin" {
 		qMList = qMList.Where("fakultas_id = ?", fid)
 	} else if role == "prodi_admin" {
 		pid, _ := c.Locals("program_studi_id").(uint)
@@ -251,7 +253,7 @@ func AmbilRingkasanDashboard(c *fiber.Ctx) error {
 	config.DB.Order("id desc").Find(&periods)
 
 	var prodis []models.ProgramStudi
-	if role == "faculty_admin" {
+	if role == "faculty_admin" || role == "super_admin" {
 		config.DB.Where("fakultas_id = ?", fid).Order("nama asc").Find(&prodis)
 	} else if role == "prodi_admin" {
 		pid, _ := c.Locals("program_studi_id").(uint)
