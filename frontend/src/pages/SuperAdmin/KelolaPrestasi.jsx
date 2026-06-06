@@ -431,7 +431,7 @@ export default function KelolaPrestasi() {
         </div>
 
         {/* ── Analitik & Distribusi Section ────────────────────────── */}
-        {!loading && data.length > 0 && (
+        {!loading && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-in fade-in duration-300">
             {/* Bar Chart: Leaderboard Fakultas */}
             <div className="lg:col-span-2 bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm flex flex-col justify-between">
