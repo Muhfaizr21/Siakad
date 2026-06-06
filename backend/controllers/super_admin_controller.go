@@ -18,11 +18,35 @@ import (
 )
 
 var rbacPermissionCatalog = []fiber.Map{
-	{"module": "Core Security", "items": []string{"admin.dashboard.view", "admin.audit.view", "admin.profile.update", "rbac.users.view", "rbac.users.create", "rbac.users.update_role", "rbac.users.delete", "rbac.roles.view", "rbac.roles.create", "rbac.roles.update", "rbac.permissions.assign"}},
+	{"module": "Core Security", "items": []string{"admin.dashboard.view", "admin.audit.view", "admin.profile.update", "rbac.users.view", "rbac.users.create", "rbac.users.update_role", "rbac.users.delete", "rbac.roles.view", "rbac.roles.create", "rbac.roles.update", "rbac.roles.delete", "rbac.permissions.assign"}},
 	{"module": "Master Data Akademik", "items": []string{"faculty.view", "faculty.create", "faculty.update", "faculty.delete", "program_studi.view", "program_studi.create", "program_studi.update", "program_studi.delete", "students.view", "students.create", "students.update", "students.delete"}},
-	{"module": "Ormawa", "items": []string{"ormawa.view", "ormawa.create", "ormawa.update", "ormawa.delete", "ormawa.members.manage", "ormawa.events.manage", "ormawa.finance.manage", "ormawa.proposals.manage", "ormawa.lpj.manage", "ormawa.announcements.manage", "ormawa.aspirations.manage"}},
-	{"module": "Layanan Mahasiswa", "items": []string{"student.dashboard.view", "student.profile.update", "achievement.view", "achievement.verify", "scholarship.view", "scholarship.manage", "aspiration.view", "aspiration.update_status", "letters.manage", "health.view"}},
-	{"module": "Konseling Psikolog", "items": []string{"psychologist.view", "psychologist.manage", "psychologist.bookings.view", "psychologist.bookings.update", "psychologist.medical_records.view", "psychologist.referrals.manage", "psychologist.schedules.manage", "psychologist.reports.manage"}},
+	{"module": "Ormawa", "items": []string{
+		"ormawa.view", "ormawa.create", "ormawa.update", "ormawa.delete",
+		"ormawa.members.view", "ormawa.members.create", "ormawa.members.update", "ormawa.members.delete", "ormawa.members.manage",
+		"ormawa.events.view", "ormawa.events.create", "ormawa.events.update", "ormawa.events.delete", "ormawa.events.manage",
+		"ormawa.finance.view", "ormawa.finance.create", "ormawa.finance.update", "ormawa.finance.delete", "ormawa.finance.manage",
+		"ormawa.proposals.view", "ormawa.proposals.create", "ormawa.proposals.update", "ormawa.proposals.delete", "ormawa.proposals.manage",
+		"ormawa.lpj.view", "ormawa.lpj.create", "ormawa.lpj.update", "ormawa.lpj.delete", "ormawa.lpj.manage",
+		"ormawa.announcements.view", "ormawa.announcements.create", "ormawa.announcements.update", "ormawa.announcements.delete", "ormawa.announcements.manage",
+		"ormawa.aspirations.view", "ormawa.aspirations.create", "ormawa.aspirations.update", "ormawa.aspirations.delete", "ormawa.aspirations.manage",
+		"ormawa.recruitment.view", "ormawa.recruitment.create", "ormawa.recruitment.update", "ormawa.recruitment.delete", "ormawa.recruitment.manage",
+	}},
+	{"module": "Layanan Mahasiswa", "items": []string{
+		"student.dashboard.view", "student.profile.update",
+		"achievement.view", "achievement.create", "achievement.update", "achievement.delete", "achievement.verify",
+		"scholarship.view", "scholarship.create", "scholarship.update", "scholarship.delete", "scholarship.manage",
+		"aspiration.view", "aspiration.create", "aspiration.update", "aspiration.delete", "aspiration.update_status",
+		"letters.view", "letters.create", "letters.update", "letters.delete", "letters.manage",
+		"health.view", "health.create", "health.update", "health.delete",
+	}},
+	{"module": "Konseling Psikolog", "items": []string{
+		"psychologist.view", "psychologist.create", "psychologist.update", "psychologist.delete", "psychologist.manage",
+		"psychologist.bookings.view", "psychologist.bookings.create", "psychologist.bookings.update", "psychologist.bookings.delete",
+		"psychologist.medical_records.view", "psychologist.medical_records.create", "psychologist.medical_records.update", "psychologist.medical_records.delete",
+		"psychologist.referrals.view", "psychologist.referrals.create", "psychologist.referrals.update", "psychologist.referrals.delete", "psychologist.referrals.manage",
+		"psychologist.schedules.view", "psychologist.schedules.create", "psychologist.schedules.update", "psychologist.schedules.delete", "psychologist.schedules.manage",
+		"psychologist.reports.view", "psychologist.reports.create", "psychologist.reports.update", "psychologist.reports.delete", "psychologist.reports.manage",
+	}},
 	{"module": "Kencana Mahasiswa", "items": []string{"kencana.student.dashboard", "kencana.student.timeline", "kencana.student.session", "kencana.student.quiz", "kencana.student.assignment", "kencana.student.handbook", "kencana.student.attendance", "kencana.student.score", "kencana.student.remedial", "kencana.student.certificate", "kencana.student.mentor_invitations"}},
 	{"module": "Kencana Admin Universitas", "items": []string{"kencana.period.view", "kencana.period.create", "kencana.period.update", "kencana.stage.view", "kencana.stage.create", "kencana.stage.update", "kencana.session.view", "kencana.session.create", "kencana.session.update", "kencana.material.create", "kencana.quiz.create", "kencana.quiz.update", "kencana.question.create", "kencana.question.update", "kencana.assignment.create", "kencana.participants.view", "kencana.scores.view", "kencana.remedial.create", "kencana.certificate.generate", "kencana.mentor.university.manage", "kencana.mentor.assignment.override"}},
 	{"module": "Kencana Admin Fakultas", "items": []string{"kencana.faculty.dashboard", "kencana.faculty.participants.view", "kencana.faculty.scores.view", "kencana.faculty.stages.view", "kencana.faculty.mentor.manage", "kencana.faculty.attendance.review", "kencana.faculty.handbook.review"}},
@@ -32,10 +56,27 @@ var rbacPermissionCatalog = []fiber.Map{
 var defaultRBACRoles = []models.RBACRole{
 	{Key: "super_admin", Label: "Super Admin", Description: "Otoritas penuh untuk seluruh modul dan pengaturan sistem.", IsSystem: true, Status: "active", Permissions: mustJSON([]string{"*"})},
 	{Key: "faculty_admin", Label: "Admin Fakultas", Description: "Mengelola data akademik dan mahasiswa dalam scope fakultas.", IsSystem: true, Status: "active", Permissions: mustJSON([]string{"faculty.view", "program_studi.view", "students.view", "students.create", "students.update", "achievement.verify"})},
-	{Key: "ormawa_admin", Label: "Admin Ormawa", Description: "Mengelola organisasi mahasiswa dan proposal kegiatan.", IsSystem: true, Status: "active", Permissions: mustJSON([]string{"ormawa.view", "ormawa.members.manage", "ormawa.events.manage", "ormawa.proposals.manage", "ormawa.lpj.manage"})},
-	{Key: "ormawa", Label: "Pengurus Ormawa", Description: "Akses operasional internal organisasi mahasiswa.", IsSystem: true, Status: "active", Permissions: mustJSON([]string{"ormawa.events.manage", "ormawa.proposals.manage", "ormawa.announcements.manage"})},
+	{Key: "ormawa_admin", Label: "Admin Ormawa", Description: "Mengelola organisasi mahasiswa dan proposal kegiatan.", IsSystem: true, Status: "active", Permissions: mustJSON([]string{
+		"ormawa.view",
+		"ormawa.members.view", "ormawa.members.create", "ormawa.members.update", "ormawa.members.delete", "ormawa.members.manage",
+		"ormawa.events.view", "ormawa.events.create", "ormawa.events.update", "ormawa.events.delete", "ormawa.events.manage",
+		"ormawa.proposals.view", "ormawa.proposals.create", "ormawa.proposals.update", "ormawa.proposals.delete", "ormawa.proposals.manage",
+		"ormawa.lpj.view", "ormawa.lpj.create", "ormawa.lpj.update", "ormawa.lpj.delete", "ormawa.lpj.manage",
+		"ormawa.recruitment.view", "ormawa.recruitment.create", "ormawa.recruitment.update", "ormawa.recruitment.delete", "ormawa.recruitment.manage",
+	})},
+	{Key: "ormawa", Label: "Pengurus Ormawa", Description: "Akses operasional internal organisasi mahasiswa.", IsSystem: true, Status: "active", Permissions: mustJSON([]string{
+		"ormawa.events.view", "ormawa.events.create", "ormawa.events.update", "ormawa.events.delete", "ormawa.events.manage",
+		"ormawa.proposals.view", "ormawa.proposals.create", "ormawa.proposals.update", "ormawa.proposals.delete", "ormawa.proposals.manage",
+		"ormawa.announcements.view", "ormawa.announcements.create", "ormawa.announcements.update", "ormawa.announcements.delete", "ormawa.announcements.manage",
+	})},
 	{Key: "mahasiswa", Label: "Mahasiswa", Description: "Akses layanan mandiri mahasiswa termasuk Kencana mahasiswa.", IsSystem: true, Status: "active", Permissions: mustJSON([]string{"student.dashboard.view", "student.profile.update", "kencana.student.dashboard", "kencana.student.timeline", "kencana.student.session", "kencana.student.quiz", "kencana.student.assignment", "kencana.student.handbook", "kencana.student.attendance", "kencana.student.score", "kencana.student.remedial", "kencana.student.certificate", "kencana.student.mentor_invitations"})},
-	{Key: "psikolog", Label: "Psikolog", Description: "Mengelola layanan konseling dan rekam interaksi psikologis.", IsSystem: true, Status: "active", Permissions: mustJSON([]string{"psychologist.bookings.view", "psychologist.bookings.update", "psychologist.medical_records.view", "psychologist.referrals.manage", "psychologist.schedules.manage", "psychologist.reports.manage"})},
+	{Key: "psikolog", Label: "Psikolog", Description: "Mengelola layanan konseling dan rekam interaksi psikologis.", IsSystem: true, Status: "active", Permissions: mustJSON([]string{
+		"psychologist.bookings.view", "psychologist.bookings.create", "psychologist.bookings.update", "psychologist.bookings.delete",
+		"psychologist.medical_records.view", "psychologist.medical_records.create", "psychologist.medical_records.update", "psychologist.medical_records.delete",
+		"psychologist.referrals.view", "psychologist.referrals.create", "psychologist.referrals.update", "psychologist.referrals.delete", "psychologist.referrals.manage",
+		"psychologist.schedules.view", "psychologist.schedules.create", "psychologist.schedules.update", "psychologist.schedules.delete", "psychologist.schedules.manage",
+		"psychologist.reports.view", "psychologist.reports.create", "psychologist.reports.update", "psychologist.reports.delete", "psychologist.reports.manage",
+	})},
 	{Key: "kencana_admin", Label: "Admin Kencana Universitas", Description: "Mengelola Kencana level universitas, periode, timeline, quiz, mentor universitas, remedial, dan sertifikat.", IsSystem: true, Status: "active", Permissions: mustJSON([]string{"kencana.period.view", "kencana.period.create", "kencana.period.update", "kencana.stage.view", "kencana.stage.create", "kencana.stage.update", "kencana.session.view", "kencana.session.create", "kencana.session.update", "kencana.material.create", "kencana.quiz.create", "kencana.quiz.update", "kencana.question.create", "kencana.question.update", "kencana.assignment.create", "kencana.participants.view", "kencana.scores.view", "kencana.remedial.create", "kencana.certificate.generate", "kencana.mentor.university.manage", "kencana.mentor.assignment.override"})},
 	{Key: "kencana_fakultas", Label: "Admin Kencana Fakultas", Description: "Mengelola Kencana dalam scope fakultas.", IsSystem: true, Status: "active", Permissions: mustJSON([]string{"kencana.faculty.dashboard", "kencana.faculty.participants.view", "kencana.faculty.scores.view", "kencana.faculty.stages.view", "kencana.faculty.mentor.manage", "kencana.faculty.attendance.review", "kencana.faculty.handbook.review"})},
 	{Key: "kencana_mentor", Label: "Dewan Pembimbing Kencana", Description: "Mendampingi mahasiswa Kencana, mengundang mahasiswa, mencatat progress, dan memberi nilai afektif/psikomotor.", IsSystem: true, Status: "active", Permissions: mustJSON([]string{"kencana.mentor.dashboard", "kencana.mentor.available_students", "kencana.mentor.invite", "kencana.mentor.students.view", "kencana.mentor.student_progress", "kencana.mentor.student_score", "kencana.mentor.student_attendance", "kencana.mentor.student_handbook", "kencana.mentor.notes.create", "kencana.mentor.score_items.create", "kencana.mentor.profile.update"})},
@@ -51,6 +92,10 @@ func ensureDefaultRBACRoles(db *gorm.DB) {
 		var existing models.RBACRole
 		if err := db.Where("key = ?", role.Key).First(&existing).Error; err == gorm.ErrRecordNotFound {
 			db.Create(&role)
+		} else {
+			if existing.IsSystem {
+				db.Model(&existing).Update("permissions", role.Permissions)
+			}
 		}
 	}
 }
@@ -185,6 +230,29 @@ func UpdateRBACRole(c *fiber.Ctx) error {
 		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal menyimpan role"})
 	}
 	return c.JSON(fiber.Map{"status": "success", "message": "Permission role berhasil disimpan", "data": role})
+}
+
+func DeleteRBACRole(c *fiber.Ctx) error {
+	var role models.RBACRole
+	if err := config.DB.First(&role, c.Params("id")).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Role tidak ditemukan"})
+	}
+	if role.IsSystem {
+		return c.Status(403).JSON(fiber.Map{"status": "error", "message": "Role sistem tidak dapat dihapus"})
+	}
+	// Cek apakah ada user yang masih menggunakan role ini
+	var userCount int64
+	config.DB.Model(&models.User{}).Where("role LIKE ?", "%"+role.Key+"%").Count(&userCount)
+	if userCount > 0 {
+		return c.Status(409).JSON(fiber.Map{
+			"status":  "error",
+			"message": "Role masih digunakan oleh " + fmt.Sprintf("%d", userCount) + " pengguna. Reassign terlebih dahulu sebelum menghapus.",
+		})
+	}
+	if err := config.DB.Delete(&role).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal menghapus role"})
+	}
+	return c.JSON(fiber.Map{"status": "success", "message": "Role berhasil dihapus"})
 }
 
 func normalizeKencanaScope(scope string) string {
@@ -326,8 +394,8 @@ func UpdateUserRole(c *fiber.Ctx) error {
 	}
 
 	// 9. Check role conflict
-	existingRoles := strings.Split(targetUser.Role, ",")
-	newRoles := append(existingRoles, req.Role)
+	newRoles := strings.Split(req.Role, ",")
+	
 	if hasRoleConflict(newRoles) {
 		return c.Status(400).JSON(fiber.Map{
 			"status":  "error",
@@ -352,8 +420,20 @@ func UpdateUserRole(c *fiber.Ctx) error {
 			prodiPtr = &req.ProgramStudiID
 		}
 
+		// Join new roles properly without duplicates
+		uniqueRoles := make(map[string]bool)
+		var finalRoles []string
+		for _, r := range newRoles {
+			r = strings.TrimSpace(r)
+			if r != "" && !uniqueRoles[r] {
+				uniqueRoles[r] = true
+				finalRoles = append(finalRoles, r)
+			}
+		}
+		finalRoleStr := strings.Join(finalRoles, ",")
+
 		// Update user role via raw SQL to bypass any GORM association issues
-		if err := tx.Exec("UPDATE public.users SET role = ?, ormawa_assign = ?, ormawa_id = ?, fakultas_id = ?, program_studi_id = ?, updated_at = ? WHERE id = ?", req.Role, req.OrmawaAssign, ormawaPtr, fakultasPtr, prodiPtr, time.Now(), targetUser.ID).Error; err != nil {
+		if err := tx.Exec("UPDATE public.users SET role = ?, ormawa_assign = ?, ormawa_id = ?, fakultas_id = ?, program_studi_id = ?, updated_at = ? WHERE id = ?", finalRoleStr, req.OrmawaAssign, ormawaPtr, fakultasPtr, prodiPtr, time.Now(), targetUser.ID).Error; err != nil {
 			return err
 		}
 
@@ -408,15 +488,17 @@ func UpdateUserRole(c *fiber.Ctx) error {
 				return err
 			}
 
-			// Link to Ormawa
+		// Link to Ormawa
 			if req.OrmawaID != 0 && (strings.Contains(roleLower, ",ormawa_admin,") || strings.Contains(roleLower, ",ormawa,") || strings.Contains(roleLower, ",pengurus_ormawa,")) {
 				var exists bool
 				tx.Raw("SELECT EXISTS(SELECT 1 FROM ormawa.ormawa_anggota WHERE mahasiswa_id = ? AND ormawa_id = ?)", mhs.ID, req.OrmawaID).Scan(&exists)
 				if !exists {
-					tx.Exec(
+					if err := tx.Exec(
 						"INSERT INTO ormawa.ormawa_anggota (mahasiswa_id, ormawa_id, role, status, joined_at, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
 						mhs.ID, req.OrmawaID, "Ketua/Admin", "aktif", time.Now(), time.Now(), time.Now(),
-					)
+					).Error; err != nil {
+						return fmt.Errorf("failed to link user to ormawa: %w", err)
+					}
 				}
 			}
 		}
@@ -434,7 +516,7 @@ func UpdateUserRole(c *fiber.Ctx) error {
 					IsAktif:      true,
 				}
 				if err := tx.Create(&psikolog).Error; err != nil {
-					return err
+					return fmt.Errorf("failed to create psikolog profile: %w", err)
 				}
 			}
 		}
@@ -455,7 +537,7 @@ func UpdateUserRole(c *fiber.Ctx) error {
 					IsAktif:      true,
 				}
 				if err := tx.Create(&tk).Error; err != nil {
-					return err
+					return fmt.Errorf("failed to create tenaga kesehatan profile: %w", err)
 				}
 			}
 		}
@@ -467,8 +549,8 @@ func UpdateUserRole(c *fiber.Ctx) error {
 			Deskripsi:  fmt.Sprintf("Assign role %s to user %s (%d)", req.Role, targetUser.Email, req.UserID),
 			IPAddress:  c.IP(),
 		}
-		if err := tx.Create(&audit).Error; err != nil {
-			// Log error but don't fail transaction
+		// Gunakan config.DB agar error tidak merusak scope tx utama jika tidak fatal
+		if err := config.DB.Create(&audit).Error; err != nil {
 			fmt.Printf("Warning: Failed to create audit log: %v\n", err)
 		}
 
@@ -562,6 +644,14 @@ func CreateUser(c *fiber.Ctx) error {
 
 	if !isAllowedRBACRole(req.Role) {
 		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Role tidak valid"})
+	}
+
+	newRoles := strings.Split(req.Role, ",")
+	if hasRoleConflict(newRoles) {
+		return c.Status(400).JSON(fiber.Map{
+			"status":  "error",
+			"message": "Kombinasi role tidak valid (hirarki dilanggar)",
+		})
 	}
 
 	roleLower := "," + strings.ToLower(req.Role) + ","

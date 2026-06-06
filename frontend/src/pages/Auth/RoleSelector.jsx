@@ -20,9 +20,11 @@ const ICON_MAP = {
   'user': User,
 };
 
-const getRouteByRole = (role) => {
+const getRouteByRole = (role, permissions = []) => {
   const r = String(role || '').toLowerCase().trim();
-  if (r === 'super_admin') return '/admin';
+  const userPermissions = permissions || [];
+
+  if (r === 'super_admin' || userPermissions.includes('*')) return '/admin';
   if (r === 'kencana_admin') return '/kencana-admin';
   if (r === 'kencana_fakultas') return '/kencana-fakultas';
   if (r === 'kencana_mentor') return '/kencana-mentor';
@@ -30,6 +32,30 @@ const getRouteByRole = (role) => {
   if (r === 'ormawa_admin' || r === 'ormawa') return '/ormawa';
   if (r === 'psikolog') return '/psychologist';
   if (r === 'tenaga_kesehatan' || r === 'tenagakes') return '/tenagakes';
+
+  // Check permissions to dynamically assign route
+  if (userPermissions.some(p => p.startsWith('kencana.period') || p.startsWith('kencana.stage') || p.startsWith('kencana.session'))) {
+    return '/kencana-admin';
+  }
+  if (userPermissions.some(p => p.startsWith('kencana.faculty'))) {
+    return '/kencana-fakultas';
+  }
+  if (userPermissions.some(p => p.startsWith('kencana.mentor'))) {
+    return '/kencana-mentor';
+  }
+  if (userPermissions.some(p => p.startsWith('faculty.') || p.startsWith('program_studi.') || p.startsWith('students.'))) {
+    return '/faculty';
+  }
+  if (userPermissions.some(p => p.startsWith('ormawa.'))) {
+    return '/ormawa';
+  }
+  if (userPermissions.some(p => p.startsWith('psychologist.'))) {
+    return '/psychologist';
+  }
+  if (userPermissions.some(p => p.startsWith('health.') || p.startsWith('health_claims.'))) {
+    return '/tenagakes';
+  }
+
   return '/student/dashboard';
 };
 
@@ -53,8 +79,9 @@ export default function RoleSelector({ data, onBack, onError }) {
           onError('Token login tidak ditemukan dari server.');
           return;
         }
+        const userPermissions = payload?.user?.permissions || payload?.user?.Permissions || [];
         setAuth(token, payload.user, payload.mahasiswa);
-        navigate(getRouteByRole(role.role), { replace: true });
+        navigate(getRouteByRole(role.role, userPermissions), { replace: true });
       }
     } catch (error) {
       if (error.response?.data?.message) {

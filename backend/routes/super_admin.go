@@ -17,6 +17,7 @@ func SetupSuperAdminRoutes(r fiber.Router) {
 	r.Get("/rbac/roles", controllers.GetRBACRoles)
 	r.Post("/rbac/roles", controllers.CreateRBACRole)
 	r.Put("/rbac/roles/:id", controllers.UpdateRBACRole)
+	r.Delete("/rbac/roles/:id", controllers.DeleteRBACRole)
 	r.Get("/audit-logs", controllers.GetAuditLogs)
 	r.Get("/profile", controllers.GetAdminProfile)
 	r.Put("/profile", controllers.UpdateAdminProfile)

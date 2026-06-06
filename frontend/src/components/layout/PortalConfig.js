@@ -111,7 +111,7 @@ export const PORTAL_CONFIG = {
           { name: 'Dashboard', icon: 'dashboard', path: '/ormawa', permission: 'view_dashboard' },
           { name: 'Anggota Aktif', icon: 'group', path: '/ormawa/anggota', permission: 'view_members' },
           { name: 'Struktur Pengurus', icon: 'account_tree', path: '/ormawa/struktur', permission: 'view_staff' },
-          { name: 'Open Recruitment', icon: 'how_to_reg', path: '/ormawa/recruitment', permission: 'view_settings' },
+          { name: 'Open Recruitment', icon: 'how_to_reg', path: '/ormawa/recruitment', permission: 'view_recruitment' },
         ]
       },
       {

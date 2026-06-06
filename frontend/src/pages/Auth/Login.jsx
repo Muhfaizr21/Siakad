@@ -27,15 +27,42 @@ const getRoleFromToken = (token) => {
   }
 };
 
-const getRouteByRole = (role) => {
+const getRouteByRole = (role, permissions = []) => {
   const r = String(role || '').toLowerCase().trim();
-  if (r === 'super_admin') return '/admin';
-  if (r === 'kencana_admin' || r === 'kencana_fakultas') return '/kencana-admin';
+  const userPermissions = permissions || [];
+
+  if (r === 'super_admin' || userPermissions.includes('*')) return '/admin';
+  if (r === 'kencana_admin') return '/kencana-admin';
+  if (r === 'kencana_fakultas') return '/kencana-fakultas';
   if (r === 'kencana_mentor') return '/kencana-mentor';
   if (r === 'faculty_admin' || r === 'dosen' || r === 'prodi_admin') return '/faculty';
-  if (r === 'ormawa_admin') return '/ormawa';
-  if (r === 'ormawa') return '/ormawa';
+  if (r === 'ormawa_admin' || r === 'ormawa') return '/ormawa';
   if (r === 'psikolog') return '/psychologist';
+  if (r === 'tenaga_kesehatan' || r === 'tenagakes') return '/tenagakes';
+
+  // Check permissions to dynamically assign route
+  if (userPermissions.some(p => p.startsWith('kencana.period') || p.startsWith('kencana.stage') || p.startsWith('kencana.session'))) {
+    return '/kencana-admin';
+  }
+  if (userPermissions.some(p => p.startsWith('kencana.faculty'))) {
+    return '/kencana-fakultas';
+  }
+  if (userPermissions.some(p => p.startsWith('kencana.mentor'))) {
+    return '/kencana-mentor';
+  }
+  if (userPermissions.some(p => p.startsWith('faculty.') || p.startsWith('program_studi.') || p.startsWith('students.'))) {
+    return '/faculty';
+  }
+  if (userPermissions.some(p => p.startsWith('ormawa.'))) {
+    return '/ormawa';
+  }
+  if (userPermissions.some(p => p.startsWith('psychologist.'))) {
+    return '/psychologist';
+  }
+  if (userPermissions.some(p => p.startsWith('health.') || p.startsWith('health_claims.'))) {
+    return '/tenagakes';
+  }
+
   return '/student/dashboard';
 };
 
@@ -82,14 +109,10 @@ export default function Login() {
 
         const roleFromResponse = payload?.user?.role;
         const role = roleFromResponse || getRoleFromToken(token);
-
-        // Save both if available, the store will sort it out or we can be explicit
-        // For now, let's just pass the payload.user as 'user' and payload.mahasiswa as 'mahasiswa'
-        // But our useAuthStore.setAuth (token, data) only takes one 'data'.
-        // Let's modify setAuth again to take (token, user, mahasiswa)
+        const userPermissions = payload?.user?.permissions || payload?.user?.Permissions || [];
         
         setAuth(token, payload.user, payload.mahasiswa);
-        navigate(getRouteByRole(role), { replace: true });
+        navigate(getRouteByRole(role, userPermissions), { replace: true });
       }
     } catch (error) {
       if (error.response?.data?.message) {

@@ -228,7 +228,7 @@ function App() {
                 <Route path="/500" element={<Error500 />} />
 
                 {/* Super Admin */}
-                <Route path="/admin" element={<ProtectedRoute allowedRoles={['super_admin']}><SuperAdminLayout /></ProtectedRoute>}>
+                <Route path="/admin" element={<ProtectedRoute allowedRoles={['super_admin']} requiredPermissions={['*']}><SuperAdminLayout /></ProtectedRoute>}>
                   <Route index element={<AdminDashboard />} />
                   <Route path="profile" element={<AdminProfile />} />
                   <Route path="rbac" element={<UserManagement />} />
@@ -265,7 +265,7 @@ function App() {
                 </Route>
 
                 {/* Kencana Admin */}
-                <Route path="/kencana-admin" element={<ProtectedRoute allowedRoles={['kencana_admin', 'super_admin']}><KencanaLayout portalType="admin" /></ProtectedRoute>}>
+                <Route path="/kencana-admin" element={<ProtectedRoute allowedRoles={['kencana_admin', 'super_admin']} requiredPermissions={['kencana.period.view', 'kencana.stage.view']}><KencanaLayout portalType="admin" /></ProtectedRoute>}>
                   <Route index element={<KencanaAdminDashboard />} />
                   <Route path="periods" element={<KencanaAdminPeriods />} />
                   <Route path="timeline" element={<KencanaAdminPeriods />} />
@@ -294,7 +294,7 @@ function App() {
                 </Route>
 
                 {/* Kencana Fakul */}
-                <Route path="/kencana-fakult" element={<ProtectedRoute allowedRoles={['kencana_fakult', 'super_admin']}><KencanaLayout portalType="fakult" /></ProtectedRoute>}>
+                <Route path="/kencana-fakult" element={<ProtectedRoute allowedRoles={['kencana_fakult', 'super_admin']} requiredPermissions={['kencana.faculty.dashboard']}><KencanaLayout portalType="fakult" /></ProtectedRoute>}>
                   <Route index element={<KencanaFakultDashboard />} />
                   <Route path="participants" element={<KencanaFakultaskesParticipants />} />
                   <Route path="scores" element={<KencanaFakultaskesScores />} />
@@ -303,7 +303,7 @@ function App() {
                 </Route>
 
                 {/* Kencana Fakultas (alias for Super Admin sidebar link) */}
-                <Route path="/kencana-fakultas" element={<ProtectedRoute allowedRoles={['kencana_fakult', 'kencana_fakultas', 'super_admin']}><KencanaLayout portalType="fakult" /></ProtectedRoute>}>
+                <Route path="/kencana-fakultas" element={<ProtectedRoute allowedRoles={['kencana_fakult', 'kencana_fakultas', 'super_admin']} requiredPermissions={['kencana.faculty.dashboard']}><KencanaLayout portalType="fakult" /></ProtectedRoute>}>
                   <Route index element={<KencanaFakultDashboard />} />
                   <Route path="participants" element={<KencanaFakultaskesParticipants />} />
                   <Route path="scores" element={<KencanaFakultaskesScores />} />
@@ -312,7 +312,7 @@ function App() {
                 </Route>
 
                 {/* Kencana Mentor */}
-                <Route path="/kencana-mentor" element={<ProtectedRoute allowedRoles={['kencana_mentor']}><KencanaLayout portalType="mentor" /></ProtectedRoute>}>
+                <Route path="/kencana-mentor" element={<ProtectedRoute allowedRoles={['kencana_mentor']} requiredPermissions={['kencana.mentor.dashboard']}><KencanaLayout portalType="mentor" /></ProtectedRoute>}>
                   <Route index element={<KencanaMentorDashboard />} />
                   <Route path="students" element={<KencanaMentorStudents />} />
                   <Route path="students/:studentId" element={<KencanaMentorStudentDetail />} />
@@ -324,7 +324,7 @@ function App() {
                 </Route>
 
                 {/* Faculty Admin */}
-                <Route path="/faculty" element={<ProtectedRoute allowedRoles={['faculty_admin', 'prodi_admin']}><FacultyLayout /></ProtectedRoute>}>
+                <Route path="/faculty" element={<ProtectedRoute allowedRoles={['faculty_admin', 'prodi_admin']} requiredPermissions={['faculty.view', 'program_studi.view', 'students.view']}><FacultyLayout /></ProtectedRoute>}>
                   <Route index element={<Navigate to="dashboard" replace />} />
                   <Route path="dashboard" element={<FacultyDashboard />} />
                   <Route path="aspirasi" element={<FacultyAspirationManagement />} />
@@ -357,7 +357,7 @@ function App() {
                 </Route>
 
                 {/* Ormawa Admin */}
-                <Route path="/ormawa" element={<ProtectedRoute allowedRoles={['ormawa_admin', 'mahasiswa', 'ormawa']}><OrmawaLayout /></ProtectedRoute>}>
+                <Route path="/ormawa" element={<ProtectedRoute allowedRoles={['ormawa_admin', 'mahasiswa', 'ormawa']} requiredPermissions={['ormawa.view', 'ormawa.events.view', 'ormawa.members.view']}><OrmawaLayout /></ProtectedRoute>}>
                   <Route index element={<OrmawaDashboard />} />
                   <Route path="anggota" element={<AnggotaManagement />} />
                   <Route path="proposal" element={<ProposalManagement />} />
@@ -375,7 +375,7 @@ function App() {
                 </Route>
 
                 {/* Psychologist */}
-                <Route path="/psychologist" element={<ProtectedRoute allowedRoles={['psikolog']}><PsychologistLayout /></ProtectedRoute>}>
+                <Route path="/psychologist" element={<ProtectedRoute allowedRoles={['psikolog']} requiredPermissions={['psychologist.bookings.view', 'psychologist.schedules.view']}><PsychologistLayout /></ProtectedRoute>}>
                   <Route index element={<PsychologistDashboard />} />
                   <Route path="bookings" element={<BookingManagement />} />
                   <Route path="bookings/:id" element={<BookingDetail />} />
@@ -389,7 +389,7 @@ function App() {
                 </Route>
 
                 {/* Tenaga Kesehatan */}
-                <Route path="/tenagakes" element={<ProtectedRoute allowedRoles={['tenaga_kesehatan', 'tenagakes', 'super_admin']}><TenagaKesehatanLayout /></ProtectedRoute>}>
+                <Route path="/tenagakes" element={<ProtectedRoute allowedRoles={['tenaga_kesehatan', 'tenagakes', 'super_admin']} requiredPermissions={['health.view', 'health_claims.view']}><TenagaKesehatanLayout /></ProtectedRoute>}>
                   <Route index element={<TenagaKesehatanDashboard />} />
                   <Route path="bookings" element={<TenagaKesehatanBookingManagement />} />
                   <Route path="schedule" element={<TenagaKesehatanScheduleManagement />} />
@@ -402,7 +402,7 @@ function App() {
                 </Route>
 
                 {/* Student */}
-                <Route path="/student" element={<ProtectedRoute allowedRoles={['mahasiswa']}><AppLayout /></ProtectedRoute>}>
+                <Route path="/student" element={<ProtectedRoute allowedRoles={['mahasiswa']} requiredPermissions={['student.dashboard.view', 'student.profile.update', 'kencana.student.dashboard']}><AppLayout /></ProtectedRoute>}>
                   <Route index element={<Navigate to="dashboard" replace />} />
                   <Route path="dashboard" element={<BkuDashboard />} />
                   <Route path="kencana" element={<KencanaPage />} />

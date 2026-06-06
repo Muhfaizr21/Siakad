@@ -269,10 +269,14 @@ func RequireRole(roles ...string) fiber.Handler {
 				"message": "Akses ditolak. Role tidak valid.",
 			})
 		}
-		r := strings.ToLower(role)
+		userRoles := strings.Split(strings.ToLower(role), ",")
+		
 		for _, allowedRole := range roles {
-			if r == strings.ToLower(allowedRole) {
-				return c.Next()
+			lowerAllowed := strings.ToLower(allowedRole)
+			for _, r := range userRoles {
+				if strings.TrimSpace(r) == lowerAllowed {
+					return c.Next()
+				}
 			}
 		}
 		return c.Status(403).JSON(fiber.Map{
