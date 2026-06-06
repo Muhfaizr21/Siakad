@@ -10,14 +10,17 @@ import (
 )
 
 func main() {
-	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=Asia/Jakarta",
-		os.Getenv("DB_HOST"), os.Getenv("DB_USER"), os.Getenv("DB_PASSWORD"), os.Getenv("DB_NAME"), os.Getenv("DB_PORT"))
+	dsn := "host=localhost user=postgres password=12345 dbname=studenthub port=5432 sslmode=disable TimeZone=Asia/Jakarta"
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
-		fmt.Println("failed to connect database")
+		fmt.Printf("failed to connect database: %v\n", err)
 		os.Exit(1)
 	}
-	var role string
-	db.Raw("SELECT role FROM users WHERE email = 'ha@gmail.com'").Scan(&role)
-	fmt.Printf("ROLE: %s\n", role)
+
+	fmt.Println("--- NON-STUDENT USERS ---")
+	var dbUsers []map[string]interface{}
+	db.Raw("SELECT id, email, role FROM users WHERE role != 'mahasiswa'").Scan(&dbUsers)
+	for _, u := range dbUsers {
+		fmt.Printf("User: %v | Email: %v | Role: %v\n", u["id"], u["email"], u["role"])
+	}
 }

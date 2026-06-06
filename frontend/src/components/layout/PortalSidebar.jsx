@@ -112,7 +112,11 @@ export default function PortalSidebar({ config, onNavigate }) {
   `;
 
   const userPermissions = user?.permissions || user?.Permissions || [];
-  const isSuperOrAdmin = user?.role === 'super_admin' || user?.role === 'faculty_admin' || user?.role === 'ormawa_admin';
+  const userRoles = (user?.role || '').split(',').map(r => r.trim().toLowerCase());
+  const isSuperOrAdmin = userRoles.includes('super_admin') || 
+                         userRoles.includes('faculty_admin') || 
+                         userRoles.includes('ormawa_admin') || 
+                         userRoles.includes('ormawa');
 
   const hasPermission = (itemPermission) => {
     if (isSuperOrAdmin) return true;

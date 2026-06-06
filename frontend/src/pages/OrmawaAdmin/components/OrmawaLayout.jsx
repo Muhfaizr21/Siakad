@@ -10,7 +10,10 @@ export default function OrmawaLayout() {
   const user = useAuthStore(state => state.user);
 
   const userPermissions = user?.permissions || user?.Permissions || [];
-  const isSuperOrAdmin = user?.role === 'super_admin' || user?.role === 'ormawa_admin';
+  const userRoles = (user?.role || '').split(',').map(r => r.trim().toLowerCase());
+  const isSuperOrAdmin = userRoles.includes('super_admin') || 
+                         userRoles.includes('ormawa_admin') || 
+                         userRoles.includes('ormawa');
 
   // Map frontend sidebar permission keys -> backend DB catalog keys
   const hasPermission = (itemPermission) => {
