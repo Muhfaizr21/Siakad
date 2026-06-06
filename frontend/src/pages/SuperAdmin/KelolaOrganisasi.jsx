@@ -851,8 +851,8 @@ export default function KelolaOrganisasi() {
                 <Building size={120} className="absolute -bottom-8 -right-8 text-white/5 rotate-12 pointer-events-none" />
               </div>
               
-              <div className="max-h-[60vh] overflow-y-auto custom-scrollbar">
-                <div className="pl-10 py-10 pr-12 space-y-8">
+              <div className="max-h-[60vh] overflow-y-auto no-scrollbar">
+                <div className="px-10 py-10 space-y-8">
                   <div className="grid grid-cols-2 gap-5 bg-slate-50/50 p-5 rounded-2xl border border-slate-200/60">
                   <div className="flex flex-col gap-1 leading-none">
                     <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest font-headline">Performance XP</span>
@@ -945,8 +945,8 @@ export default function KelolaOrganisasi() {
             </div>
           </DialogHeader>
 
-          <form onSubmit={handleSave} className="p-8 pt-6 space-y-5 max-h-[70vh] overflow-y-auto custom-scrollbar font-inter">
-            <div className="space-y-5 pr-8">
+          <form onSubmit={handleSave} className="p-8 pt-6 space-y-5 max-h-[70vh] overflow-y-auto no-scrollbar font-inter">
+            <div className="space-y-5">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="md:col-span-2 space-y-2">
                 <Label className="text-xs font-bold text-slate-400 uppercase tracking-widest font-headline ml-1">Nama Organisasi</Label>
@@ -1042,8 +1042,8 @@ export default function KelolaOrganisasi() {
                 <span className="material-symbols-outlined absolute -bottom-6 -right-6 text-white/5 rotate-12 pointer-events-none" style={{ fontSize: '100px' }}>description</span>
               </div>
 
-              <div className="max-h-[60vh] overflow-y-auto custom-scrollbar text-slate-600">
-                <div className="pl-8 py-8 pr-10 space-y-6">
+              <div className="max-h-[60vh] overflow-y-auto no-scrollbar text-slate-600">
+                <div className="px-8 py-8 space-y-6">
                   {/* Stats grid */}
                 <div className="grid grid-cols-3 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-200/60">
                   <div className="flex flex-col gap-1 leading-none text-center">

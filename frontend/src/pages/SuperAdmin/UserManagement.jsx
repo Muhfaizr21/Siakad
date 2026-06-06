@@ -921,8 +921,8 @@ export default function UserManagement() {
           </DialogHeader>
 
           <form onSubmit={handleCreate} className="p-10 pt-8 space-y-6">
-            <div className="max-h-[50vh] overflow-y-auto custom-scrollbar no-scrollbar">
-              <div className="space-y-6 pr-8">
+            <div className="max-h-[50vh] overflow-y-auto no-scrollbar">
+              <div className="space-y-6 px-1">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                  <div className="space-y-2">
                    <Label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 font-headline">Identity Handle (Email)</Label>
@@ -1120,8 +1120,8 @@ export default function UserManagement() {
             </div>
           </DialogHeader>
           <div className="p-8 space-y-6">
-             <div className="max-h-[50vh] overflow-y-auto custom-scrollbar no-scrollbar">
-               <div className="space-y-6 pr-8">
+             <div className="max-h-[50vh] overflow-y-auto no-scrollbar">
+               <div className="space-y-6 px-1">
                  <div className="p-5 rounded-2xl bg-slate-50/60 border border-slate-200/50 flex items-center justify-between group">
                   <div className="space-y-1">
                      <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] font-headline">Target Identity</p>

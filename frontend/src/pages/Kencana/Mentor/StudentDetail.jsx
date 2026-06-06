@@ -610,8 +610,8 @@ const StudentDetail = () => {
                 <div className="space-y-4">
                   <h4 className="text-xs font-black uppercase tracking-wider text-slate-400">Isi Ringkasan Handbook:</h4>
                   {handbookContent ? (
-                    <div className="max-h-[500px] overflow-y-auto">
-                      <div className="space-y-4 pr-8">
+                    <div className="max-h-[500px] overflow-y-auto no-scrollbar">
+                      <div className="space-y-4 px-1">
                         {Object.entries(handbookContent).map(([section, value]) => (
                           <div key={section} className="p-4 rounded-2xl border border-slate-100 bg-white">
                             <span className="text-[10px] font-black text-indigo-500 uppercase tracking-wider block mb-1">{section.replace(/_/g, ' ')}</span>
