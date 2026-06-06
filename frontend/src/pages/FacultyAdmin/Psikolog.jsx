@@ -2,11 +2,11 @@
 
 import React, { useState, useEffect, useMemo } from "react"
 import api from "../../lib/axios"
-import { Avatar, AvatarFallback } from "./components/avatar"
+import { Avatar, AvatarFallback } from "@/components/ui/Avatar"
 import { toast, Toaster } from "react-hot-toast"
 import { cn } from "@/lib/utils"
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "./components/select"
-import { Button } from "./components/button"
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/Select"
+import { Button } from "@/components/ui/Button"
 
 import { API_BASE_URL } from "../../services/api"
 

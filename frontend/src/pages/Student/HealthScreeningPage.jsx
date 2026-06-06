@@ -18,7 +18,7 @@ import {
   useHealthTipsQuery,
 } from '../../queries/useHealthQuery';
 import { healthBookingService } from '../../services/api';
-import { Skeleton } from '../../components/ui/Skeleton';
+import { Skeleton } from '@/components/ui/Skeleton';
 import toast from 'react-hot-toast';
 import { NavLink } from 'react-router-dom';
 import HealthCharacter from '../../components/health/HealthCharacter';
@@ -406,7 +406,7 @@ export default function HealthScreeningPage() {
                       <div className="flex items-center gap-3 bg-neutral-50 px-4 py-2.5 rounded-2xl border border-neutral-100 shrink-0">
                         <div className="relative w-12 h-12 flex items-center justify-center shrink-0">
                           <svg className="w-full h-full transform -rotate-90">
-                            <circle cx="24" cy="24" r="20" stroke="#e5e7eb" strokeWidth="3.5" fill="transparent" />
+                            <circle cx="24" cy="24" r="20" stroke="var(--theme-border)" strokeWidth="3.5" fill="transparent" />
                             <circle 
                               cx="24" 
                               cy="24" 
@@ -606,32 +606,32 @@ export default function HealthScreeningPage() {
                       <linearGradient id="dynamicColor" x1="0" y1="0" x2="0" y2="1">
                         <stop 
                           offset="5%"  
-                          stopColor={activeChartTab === 'skor' ? '#f59e0b' : activeChartTab === 'bmi' ? '#10b981' : '#0B4FAE'} 
+                          stopColor={activeChartTab === 'skor' ? '#f59e0b' : activeChartTab === 'bmi' ? '#10b981' : 'var(--theme-primary)'} 
                           stopOpacity={0.15} 
                         />
                         <stop 
                           offset="95%" 
-                          stopColor={activeChartTab === 'skor' ? '#f59e0b' : activeChartTab === 'bmi' ? '#10b981' : '#0B4FAE'} 
+                          stopColor={activeChartTab === 'skor' ? '#f59e0b' : activeChartTab === 'bmi' ? '#10b981' : 'var(--theme-primary)'} 
                           stopOpacity={0}    
                         />
                       </linearGradient>
                     </defs>
-                    <CartesianGrid strokeDasharray="4 4" vertical={false} stroke="#f1f1f1" />
+                    <CartesianGrid strokeDasharray="4 4" vertical={false} stroke="var(--theme-border)" />
                     <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 600, fill: '#a3a3a3' }} dy={10} />
                     <YAxis hide domain={activeChartTab === 'skor' ? [0, 100] : activeChartTab === 'bmi' ? [10, 40] : ['dataMin - 3', 'dataMax + 3']} />
                     <Tooltip
                       cursor={{ 
-                        stroke: activeChartTab === 'skor' ? '#f59e0b' : activeChartTab === 'bmi' ? '#10b981' : '#0B4FAE', 
+                        stroke: activeChartTab === 'skor' ? '#f59e0b' : activeChartTab === 'bmi' ? '#10b981' : 'var(--theme-primary)', 
                         strokeWidth: 1, 
                         strokeDasharray: '4 4' 
                       }}
                       contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.06)', fontSize: '12px', fontWeight: 700, padding: '8px 14px' }}
-                      itemStyle={{ color: activeChartTab === 'skor' ? '#d97706' : activeChartTab === 'bmi' ? '#059669' : '#0B4FAE' }}
+                      itemStyle={{ color: activeChartTab === 'skor' ? '#d97706' : activeChartTab === 'bmi' ? '#059669' : 'var(--theme-primary)' }}
                     />
                     <Area 
                       type="monotone" 
                       dataKey={activeChartTab} 
-                      stroke={activeChartTab === 'skor' ? '#f59e0b' : activeChartTab === 'bmi' ? '#10b981' : '#0B4FAE'} 
+                      stroke={activeChartTab === 'skor' ? '#f59e0b' : activeChartTab === 'bmi' ? '#10b981' : 'var(--theme-primary)'} 
                       strokeWidth={2.5} 
                       fillOpacity={1} 
                       fill="url(#dynamicColor)" 
@@ -1718,7 +1718,7 @@ function SuccessFeedbackModal({ data, onClose }) {
               <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider mb-2">Skor Kesehatan</span>
               <div className="relative w-24 h-24 flex items-center justify-center">
                 <svg className="w-full h-full transform -rotate-90">
-                  <circle cx="48" cy="48" r="40" stroke="#f3f4f6" strokeWidth="8" fill="transparent" strokeDasharray="" />
+                  <circle cx="48" cy="48" r="40" stroke="var(--theme-border)" strokeWidth="8" fill="transparent" strokeDasharray="" />
                   <circle 
                     cx="48" 
                     cy="48" 

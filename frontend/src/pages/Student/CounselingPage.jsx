@@ -5,8 +5,8 @@ import {
   useCounselingRiwayatQuery, 
   useBookingMutation, 
 } from '../../queries/useCounselingQuery';
-import { CardGridSkeleton } from '../../components/ui/SkeletonGroups';
-import EmptyState from '../../components/ui/EmptyState';
+import { CardGridSkeleton } from '@/components/ui/SkeletonGroups';
+import EmptyState from '@/components/ui/EmptyState';
 import { toast } from 'react-hot-toast';
 import { NavLink } from 'react-router-dom';
 

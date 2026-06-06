@@ -8,14 +8,13 @@ class ApiGate {
     }
     try {
       if (Platform.isAndroid) {
-        // Menggunakan 127.0.0.1 karena kita menggunakan ADB reverse port forwarding (adb reverse tcp:8000 tcp:8000)
-        // agar real device dapat terhubung ke server lokal.
-        return 'http://192.168.18.74:8000/api';
+        // Untuk emulator Android Studio, gunakan 10.0.2.2 (alias untuk localhost komputer host)
+        return 'http://10.0.2.2:8000/api';
       }
-    } catch (_) {
-      // Handle platforms where Platform is not supported (like web)
-    }
-    return 'http://192.168.18.74:8000/api';
+    } catch (_) {}
+
+    // Default: localhost untuk development
+    return 'http://localhost:8000/api';
   }
 
   static const String environment = 'development';

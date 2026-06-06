@@ -1,17 +1,17 @@
 "use client"
 
 import React, { useState, useEffect } from 'react'
-import { Badge } from '../FacultyAdmin/components/badge'
-import { Button } from '../FacultyAdmin/components/button'
-import { Modal, ModalBody, ModalFooter, ModalBtn } from '../FacultyAdmin/components/Modal'
-import { Card, CardContent } from '../FacultyAdmin/components/card'
-import { Input } from '../FacultyAdmin/components/input'
-import { Label } from '../FacultyAdmin/components/label'
-import { Avatar, AvatarFallback } from '../FacultyAdmin/components/avatar'
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '../FacultyAdmin/components/select'
+import { Badge } from '@/components/ui/Badge'
+import { Button } from '@/components/ui/Button'
+import { Modal, ModalBody, ModalFooter, ModalBtn } from '@/components/ui/Modal'
+import { Card, CardContent } from '@/components/ui/Card'
+import { Input } from '@/components/ui/Input'
+import { Label } from '@/components/ui/Label'
+import { Avatar, AvatarFallback } from '@/components/ui/Avatar'
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/Select'
 
 import { toast, Toaster } from 'react-hot-toast'
-import { DeleteConfirmModal } from '../FacultyAdmin/components/DeleteConfirmModal'
+import { DeleteConfirmModal } from '@/components/ui/DeleteConfirmModal'
 import { cn } from '@/lib/utils'
 
 import { fetchWithAuth, API_BASE_URL } from '../../services/api'

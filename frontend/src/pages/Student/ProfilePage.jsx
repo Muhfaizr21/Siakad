@@ -4,7 +4,7 @@ import api from '../../lib/axios';
 
 import { NavLink } from 'react-router-dom';
 
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '../../components/ui/Tabs';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/Tabs';
 import DataDiriTab from './tabs/DataDiriTab';
 import KeamananTab from './tabs/KeamananTab';
 import PreferensiTab from './tabs/PreferensiTab';
@@ -49,35 +49,35 @@ export default function ProfilePage() {
   }
 
   const statusColors = {
-    aktif: 'bg-[#EAF1FF] text-bku-primary border-[#C9D8FF]',
-    cuti: 'bg-[#EAF1FF] text-[#0B4FAE] border-[#C9D8FF]',
-    alumni: 'bg-[#fafafa] text-[#737373] border-[#f5f5f5]',
+    aktif: 'bg-primary/10 text-primary border-primary/20',
+    cuti: 'bg-secondary/10 text-secondary border-secondary/20',
+    alumni: 'bg-surface text-text-muted border-border',
   };
 
   const currentStatus = profile?.StatusAkademik?.toLowerCase() || 'alumni';
 
   return (
-    <div className="px-4 py-5 md:px-6 md:py-6 lg:px-8 lg:py-8 text-[#171717]">
+    <div className="px-4 py-5 md:px-6 md:py-6 lg:px-8 lg:py-8 text-bku-text bg-transparent">
       {/* Breadcrumb */}
-      <div className="flex items-center gap-2 text-sm font-medium text-[#a3a3a3] mb-6">
+      <div className="flex items-center gap-2 text-sm font-medium text-text-muted mb-6">
         <NavLink to="/student/dashboard" className="hover:text-bku-primary cursor-pointer transition-colors">Dashboard</NavLink>
         <span className="material-symbols-outlined" style={{ fontSize: 16 }}>chevron_right</span>
-        <span className="text-[#171717]">Student Profile</span>
+        <span className="text-bku-text">Student Profile</span>
       </div>
 
       <div className="w-full">
         
         {/* Header: Identity Section */}
-        <div className="bg-white rounded-3xl border border-[#e5e5e5] p-5 md:p-7 shadow-sm mb-6 relative overflow-hidden group">
+        <div className="bg-surface rounded-3xl border border-border p-5 md:p-7 shadow-sm mb-6 relative overflow-hidden group">
           <div className="flex flex-col md:flex-row gap-6 items-start md:items-center relative z-10">
             
             {/* Left: Avatar */}
             <div className="flex flex-col items-center gap-4 group/avatar relative">
-               <div className="w-28 h-28 rounded-full bg-[#fafafa] border-4 border-white shadow-lg flex items-center justify-center overflow-hidden relative transition-transform duration-500 group-hover/avatar:scale-105">
+               <div className="w-28 h-28 rounded-full bg-background border-4 border-surface shadow-lg flex items-center justify-center overflow-hidden relative transition-transform duration-500 group-hover/avatar:scale-105">
                   {profile?.FotoURL ? (
                     <img src={profile.FotoURL} alt="Profile" className="w-full h-full object-cover" />
                   ) : (
-                    <UserCircle2 size={72} className="text-[#d4d4d4]" strokeWidth={1} />
+                    <UserCircle2 size={72} className="text-text-muted opacity-50" strokeWidth={1} />
                   )}
                   <button 
                     onClick={() => setIsAvatarModalOpen(true)}
@@ -99,35 +99,35 @@ export default function ProfilePage() {
              <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-8">
                 <div>
                   <div className="flex items-center gap-3 mb-1">
-                    <h1 className="text-xl md:text-2xl font-black font-headline truncate max-w-[280px]">{profile?.Nama}</h1>
+                    <h1 className="text-xl md:text-2xl font-black font-headline truncate max-w-[280px] text-bku-text">{profile?.Nama}</h1>
                     <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest border ${statusColors[currentStatus] || statusColors['aktif']}`}>
                       {profile?.StatusAkademik}
                     </span>
                   </div>
-                   <p className="text-[#a3a3a3] font-bold text-xs md:text-sm tracking-wide">NIM: <span className="text-[#171717]">{profile?.NIM}</span></p>
+                   <p className="text-text-muted font-bold text-xs md:text-sm tracking-wide">NIM: <span className="text-bku-text">{profile?.NIM}</span></p>
                 </div>
                 
                 <div className="grid grid-cols-2 gap-4 pt-1">
                   <div>
-                    <label className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-widest block mb-1">Program Studi</label>
+                    <label className="text-[10px] font-black text-text-muted uppercase tracking-widest block mb-1">Program Studi</label>
                     <p className="text-sm font-bold truncate">{profile?.ProgramStudi?.Nama}</p>
                   </div>
                   <div>
-                    <label className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-widest block mb-1">Angkatan</label>
+                    <label className="text-[10px] font-black text-text-muted uppercase tracking-widest block mb-1">Angkatan</label>
                     <p className="text-sm font-bold">{profile?.TahunMasuk}</p>
                   </div>
                   <div className="col-span-2">
-                    <label className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-widest block mb-1">Semester</label>
+                    <label className="text-[10px] font-black text-text-muted uppercase tracking-widest block mb-1">Semester</label>
                     <p className="text-sm font-bold flex items-center gap-1.5">
-                        {profile?.SemesterSekarang} <span className="text-[#a3a3a3] opacity-30 text-xs">•</span> <span className="text-bku-primary">Aktif</span>
+                        {profile?.SemesterSekarang} <span className="text-text-muted opacity-30 text-xs">•</span> <span className="text-bku-primary">Aktif</span>
                     </p>
                   </div>
                </div>
              </div>
           </div>
           
-          <div className="mt-6 pt-5 border-t border-[#f5f5f5] flex items-center gap-2 text-xs font-bold text-[#a3a3a3] italic">
-            <span className="material-symbols-outlined text-[#d4d4d4]" style={{ fontSize: 14 }}>info</span>
+          <div className="mt-6 pt-5 border-t border-border-muted flex items-center gap-2 text-xs font-bold text-text-muted italic">
+            <span className="material-symbols-outlined text-text-muted opacity-50" style={{ fontSize: 14 }}>info</span>
             Data di atas bersumber dari sistem Student Hub dan bersifat read-only (tidak dapat diubah).
           </div>
 

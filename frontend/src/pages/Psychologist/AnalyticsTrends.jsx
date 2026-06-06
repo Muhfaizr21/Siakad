@@ -115,7 +115,7 @@ export default function AnalyticsTrends() {
   return (
     <>
       <div className="w-full relative space-y-6 scroll-smooth">
-          <section className="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm">
+          <section className="overflow-hidden rounded-2xl border shadow-sm" style={{ backgroundColor: 'var(--theme-surface)', borderColor: 'var(--theme-border)' }}>
             <div className="grid gap-5 p-5 lg:grid-cols-[1fr_auto] lg:items-center lg:p-5">
               <div className="space-y-4">
                 <div className="inline-flex items-center gap-2 rounded-full border border-primary/10 bg-primary/5 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-primary">
@@ -145,7 +145,7 @@ export default function AnalyticsTrends() {
           </section>
 
           {/* Filters Bar */}
-          <section className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+          <section className="rounded-2xl border shadow-sm p-5" style={{ backgroundColor: 'var(--theme-surface)', borderColor: 'var(--theme-border)' }}>
             <div className="flex flex-col gap-4">
               <div className="flex items-center gap-2 mb-2">
                 <span className="material-symbols-outlined text-primary" style={{ fontSize: 18 }}>filter_alt</span>
@@ -158,7 +158,8 @@ export default function AnalyticsTrends() {
                     type="date"
                     value={startDate}
                     onChange={(e) => setStartDate(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200/60 rounded-2xl px-4 py-3 text-xs font-bold text-slate-800 focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none"
+                    className="w-full bg-slate-50 border rounded-2xl px-4 py-3 text-xs font-bold outline-none focus:border-[var(--theme-primary)] focus:ring-4 focus:ring-primary/5 transition-all"
+                  style={{ borderColor: 'var(--theme-border)', backgroundColor: 'var(--theme-bg)', color: 'var(--theme-text)' }}
                   />
                 </div>
                 <div>
@@ -167,7 +168,8 @@ export default function AnalyticsTrends() {
                     type="date"
                     value={endDate}
                     onChange={(e) => setEndDate(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200/60 rounded-2xl px-4 py-3 text-xs font-bold text-slate-800 focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none"
+                    className="w-full bg-slate-50 border rounded-2xl px-4 py-3 text-xs font-bold outline-none focus:border-[var(--theme-primary)] focus:ring-4 focus:ring-primary/5 transition-all"
+                  style={{ borderColor: 'var(--theme-border)', backgroundColor: 'var(--theme-bg)', color: 'var(--theme-text)' }}
                   />
                 </div>
                 <div>
@@ -178,7 +180,8 @@ export default function AnalyticsTrends() {
                       setSelectedFakultas(e.target.value);
                       setSelectedProdi('');
                     }}
-                    className="w-full bg-slate-50 border border-slate-200/60 rounded-2xl px-4 py-3 text-xs font-bold text-slate-800 focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none cursor-pointer"
+                    className="w-full bg-slate-50 border rounded-2xl px-4 py-3 text-xs font-bold outline-none focus:border-[var(--theme-primary)] focus:ring-4 focus:ring-primary/5 transition-all cursor-pointer"
+                  style={{ borderColor: 'var(--theme-border)', backgroundColor: 'var(--theme-bg)', color: 'var(--theme-text)' }}
                   >
                     <option value="">Semua Fakultas</option>
                     {fakultasList.map((f) => (
@@ -191,7 +194,8 @@ export default function AnalyticsTrends() {
                   <select
                     value={selectedProdi}
                     onChange={(e) => setSelectedProdi(e.target.value)}
-                    className="w-full bg-slate-50 border border-slate-200/60 rounded-2xl px-4 py-3 text-xs font-bold text-slate-800 focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none cursor-pointer"
+                    className="w-full bg-slate-50 border rounded-2xl px-4 py-3 text-xs font-bold outline-none focus:border-[var(--theme-primary)] focus:ring-4 focus:ring-primary/5 transition-all cursor-pointer"
+                  style={{ borderColor: 'var(--theme-border)', backgroundColor: 'var(--theme-bg)', color: 'var(--theme-text)' }}
                   >
                     <option value="">Semua Program Studi</option>
                     {prodiList
@@ -262,7 +266,7 @@ export default function AnalyticsTrends() {
 
           <section className="grid grid-cols-1 gap-5 xl:grid-cols-12">
             <div className="space-y-6 xl:col-span-8">
-              <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm sm:p-5">
+              <div className="rounded-2xl border shadow-sm p-5 sm:p-5" style={{ backgroundColor: 'var(--theme-surface)', borderColor: 'var(--theme-border)' }}>
                 <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                   <div>
                     <h2 className="flex items-center gap-2 text-sm font-black uppercase tracking-widest text-primary">
@@ -484,7 +488,7 @@ export default function AnalyticsTrends() {
             </div>
 
             <aside className="space-y-6 xl:col-span-4">
-              <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
+              <div className="rounded-2xl border shadow-sm p-5" style={{ backgroundColor: 'var(--theme-surface)', borderColor: 'var(--theme-border)' }}>
                 <h3 className="mb-5 flex items-center gap-2 text-xs font-black uppercase tracking-widest text-primary">
                   <span className="material-symbols-outlined" style={{ fontSize: 17 }}>database</span>
                   Sumber Data

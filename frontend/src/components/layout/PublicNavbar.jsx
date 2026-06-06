@@ -69,7 +69,6 @@ export default function PublicNavbar() {
                 src={theme?.logo_url || "/images/bku logo.png"}
                 alt="Logo"
                 className="w-full h-full object-contain"
-                style={{ filter: 'brightness(0) invert(1)' }}
               />
             </div>
             {renderBrandText()}

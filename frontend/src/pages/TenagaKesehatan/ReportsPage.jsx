@@ -315,7 +315,7 @@ export default function ReportsPage() {
             <div className="bg-white rounded-xl p-4 border border-slate-200 text-center">
               <div className="relative w-16 h-16 mx-auto mb-2">
                 <svg className="w-16 h-16 transform -rotate-90">
-                  <circle cx="32" cy="32" r="28" strokeWidth="6" stroke="#e2e8f0" fill="none" />
+                  <circle cx="32" cy="32" r="28" strokeWidth="6" stroke="var(--theme-border)" fill="none" />
                   <circle
                     cx="32" cy="32" r="28" strokeWidth="6" fill="none"
                     stroke="#10b981"
@@ -332,7 +332,7 @@ export default function ReportsPage() {
             <div className="bg-white rounded-xl p-4 border border-slate-200 text-center">
               <div className="relative w-16 h-16 mx-auto mb-2">
                 <svg className="w-16 h-16 transform -rotate-90">
-                  <circle cx="32" cy="32" r="28" strokeWidth="6" stroke="#e2e8f0" fill="none" />
+                  <circle cx="32" cy="32" r="28" strokeWidth="6" stroke="var(--theme-border)" fill="none" />
                   <circle
                     cx="32" cy="32" r="28" strokeWidth="6" fill="none"
                     stroke="#f59e0b"
@@ -349,7 +349,7 @@ export default function ReportsPage() {
             <div className="bg-white rounded-xl p-4 border border-slate-200 text-center">
               <div className="relative w-16 h-16 mx-auto mb-2">
                 <svg className="w-16 h-16 transform -rotate-90">
-                  <circle cx="32" cy="32" r="28" strokeWidth="6" stroke="#e2e8f0" fill="none" />
+                  <circle cx="32" cy="32" r="28" strokeWidth="6" stroke="var(--theme-border)" fill="none" />
                   <circle
                     cx="32" cy="32" r="28" strokeWidth="6" fill="none"
                     stroke="#ef4444"

@@ -7,8 +7,8 @@ import api from '../../../lib/axios';
 import { toast } from 'react-hot-toast';
 
 
-import Input from '../../../components/ui/Input';
-import { Label } from '../../../components/ui/Label';
+import Input from '@/components/ui/Input';
+import { Label } from '@/components/ui/Label';
 
 // Auto-injected Material Symbol fallbacks for removed Lucide icons
 const Smartphone = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>smartphone</span>;

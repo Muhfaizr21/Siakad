@@ -2,21 +2,21 @@
 
 import React, { useState, useEffect, useMemo } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { DataTable } from './components/ui/data-table'
-import { Badge } from './components/ui/badge'
-import { Button } from './components/ui/button'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from './components/ui/dialog'
-import { DeleteConfirmModal } from './components/ui/DeleteConfirmModal'
-import { Card, CardContent } from './components/ui/card'
-import { Input } from './components/ui/input'
-import { Label } from './components/ui/label'
+import { DataTable } from '@/components/ui/DataTable'
+import { Badge } from '@/components/ui/Badge'
+import { Button } from '@/components/ui/Button'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/Dialog'
+import { DeleteConfirmModal } from '@/components/ui/DeleteConfirmModal'
+import { Card, CardContent } from '@/components/ui/Card'
+import { Input } from '@/components/ui/Input'
+import { Label } from '@/components/ui/Label'
 
 import { toast, Toaster } from 'react-hot-toast'
 import { cn } from '@/lib/utils'
 import { adminService, API_BASE_URL } from '../../services/api'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts"
 
-import { StatCard } from './components/ui/stat-card'
+import { StatCard } from '@/components/ui/StatCard'
 
 // Auto-injected Material Symbol fallbacks
 const MedicalServices = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>medical_services</span>;

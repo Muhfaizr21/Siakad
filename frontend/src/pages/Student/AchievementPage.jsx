@@ -17,8 +17,8 @@ import {
   useReactTable,
 } from '@tanstack/react-table';
 import { toast } from 'react-hot-toast';
-import { TableSkeleton } from '../../components/ui/SkeletonGroups';
-import EmptyState from '../../components/ui/EmptyState';
+import { TableSkeleton } from '@/components/ui/SkeletonGroups';
+import EmptyState from '@/components/ui/EmptyState';
 import { API_BASE_URL } from '../../services/api';
 
 // Auto-injected Material Symbol fallbacks for removed Lucide icons

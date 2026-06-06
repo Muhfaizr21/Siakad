@@ -1,5 +1,5 @@
 import React from 'react'
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "../components/ui/select"
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/Select"
 import { useSuperAdminOrmawa } from '../../../contexts/SuperAdminOrmawaContext'
 
 export function OrmawaSelector({ className = "" }) {

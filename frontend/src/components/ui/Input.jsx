@@ -62,3 +62,5 @@ export default function Input({
     </div>
   );
 }
+
+export { Input };

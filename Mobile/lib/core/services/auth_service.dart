@@ -4,7 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:dio/dio.dart';
 import '../network/api_client.dart';
 
-enum UserRole { student, ormawa, psychologist, guest }
+enum UserRole { student, ormawa, psychologist, tenagaKesehatan, guest }
 
 class AuthService {
   static final AuthService _instance = AuthService._internal();
@@ -37,6 +37,8 @@ class AuthService {
           _currentRole = UserRole.ormawa;
         } else if (roleStr == 'psikolog' || roleStr == 'psychologist') {
           _currentRole = UserRole.psychologist;
+        } else if (roleStr == 'tenaga_kesehatan' || roleStr == 'tenagakes' || roleStr == 'nakes' || roleStr == 'tk') {
+          _currentRole = UserRole.tenagaKesehatan;
         } else {
           _currentRole = UserRole.guest;
         }
@@ -65,14 +67,36 @@ class AuthService {
     final userDataStr = prefs.getString('user_data');
     if (userDataStr != null) {
       _userData = jsonDecode(userDataStr);
-      final roleStr = prefs.getString('user_role') ?? 'guest';
-      
+
+      // _userData contains: { access_token, user: { id, email, role, ... } }
+      // or in some cases the raw user object
+      String? roleStr;
+      if (_userData!['user'] != null && _userData!['user']['role'] != null) {
+        roleStr = _userData!['user']['role']?.toString().toLowerCase();
+      } else if (_userData!['role'] != null) {
+        roleStr = _userData!['role']?.toString().toLowerCase();
+      }
+
+      // Also try 'data' wrapper (some responses wrap it)
+      if (roleStr == null && _userData!['data'] != null) {
+        final data = _userData!['data'];
+        if (data['user'] != null && data['user']['role'] != null) {
+          roleStr = data['user']['role']?.toString().toLowerCase();
+        } else if (data['role'] != null) {
+          roleStr = data['role']?.toString().toLowerCase();
+        }
+      }
+
+      roleStr ??= 'guest';
+
       if (roleStr == 'mahasiswa' || roleStr == 'student') {
         _currentRole = UserRole.student;
       } else if (roleStr == 'ormawa') {
         _currentRole = UserRole.ormawa;
       } else if (roleStr == 'psikolog' || roleStr == 'psychologist') {
         _currentRole = UserRole.psychologist;
+      } else if (roleStr == 'tenaga_kesehatan' || roleStr == 'tenagakes' || roleStr == 'nakes' || roleStr == 'tk') {
+        _currentRole = UserRole.tenagaKesehatan;
       } else {
         _currentRole = UserRole.guest;
       }

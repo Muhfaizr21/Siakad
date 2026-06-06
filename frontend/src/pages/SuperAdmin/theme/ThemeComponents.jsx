@@ -54,57 +54,117 @@ const getContrastRating = (ratio) => {
 };
 
 // Sidebar Color Input Component
-const SidebarColorInput = ({ label, value, onChange, description }) => {
-  const sidebarBg = '#0D2B55'; // Default sidebar bg
-  const contrastRatio = getContrastRatio(value, sidebarBg);
-  const rating = getContrastRating(contrastRatio);
+const SidebarColorInput = ({ label, value, onChange, description, bgContext, isBackground = false }) => {
+  const normValue = isValidHex(value) ? normalizeHex(value) : '#000000';
 
-  return (
-    <div>
-      <div className="flex items-center justify-between mb-2">
-        <label className="text-xs font-semibold" style={{ color: 'var(--theme-text)' }}>{label}</label>
-        <div className="flex items-center gap-2">
-          <span className="text-xs px-2 py-0.5 rounded font-bold" style={{ backgroundColor: rating.bg, color: rating.color }}>
-            {contrastRatio.toFixed(1)}:1
-          </span>
-          <span className={`text-[10px] px-1.5 py-0.5 rounded font-bold ${rating.bg} ${rating.color}`}>
-            {rating.label}
-          </span>
+  // Contrast analysis
+  let contrastElements = null;
+  if (isBackground) {
+    // Background Sidebar: Analisis terhadap teks putih dan hitam
+    const whiteRatio = getContrastRatio('#FFFFFF', normValue);
+    const blackRatio = getContrastRatio('#000000', normValue);
+    const whiteRating = getContrastRating(whiteRatio);
+    const blackRating = getContrastRating(blackRatio);
+
+    const getHexColor = (rating, isBg) => {
+      if (rating.bg === 'bg-emerald-50') return isBg ? '#ecfdf5' : '#059669';
+      if (rating.bg === 'bg-blue-50') return isBg ? '#eff6ff' : '#2563eb';
+      if (rating.bg === 'bg-amber-50') return isBg ? '#fffbeb' : '#d97706';
+      return isBg ? '#fef2f2' : '#dc2626';
+    };
+
+    contrastElements = (
+      <div className="flex flex-wrap gap-2 mt-3 pt-3 border-t border-slate-100">
+        <span className="text-[9px] text-slate-400 uppercase tracking-widest font-black block w-full mb-1">Analisis Kontras WCAG</span>
+        
+        <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg text-[10px] font-bold" style={{ backgroundColor: getHexColor(whiteRating, true), color: getHexColor(whiteRating, false) }}>
+          <span className="w-1.5 h-1.5 rounded-full bg-white border border-slate-200"></span>
+          <span>Teks Putih: {whiteRatio.toFixed(1)}:1</span>
+          <span className="opacity-90 px-1 rounded bg-black/5">{whiteRating.label}</span>
+        </div>
+
+        <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg text-[10px] font-bold" style={{ backgroundColor: getHexColor(blackRating, true), color: getHexColor(blackRating, false) }}>
+          <span className="w-1.5 h-1.5 rounded-full bg-black"></span>
+          <span>Teks Hitam: {blackRatio.toFixed(1)}:1</span>
+          <span className="opacity-90 px-1 rounded bg-black/5">{blackRating.label}</span>
         </div>
       </div>
-      <div className="flex gap-3">
-        <input
-          type="color"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          className="w-12 h-12 rounded-lg cursor-pointer border-2"
-          style={{ borderColor: 'var(--theme-border)' }}
-        />
-        <input
-          type="text"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          className="flex-1 px-3 rounded-lg text-sm font-mono"
-          style={{ backgroundColor: 'var(--theme-bg)', color: 'var(--theme-text)', border: '1px solid var(--theme-border)' }}
-        />
+    );
+  } else {
+    // Teks Sidebar: Analisis terhadap Background Sidebar
+    const contrastBg = bgContext || '#0D2B55';
+    const normBg = isValidHex(contrastBg) ? normalizeHex(contrastBg) : '#000000';
+    const ratio = getContrastRatio(normValue, normBg);
+    const rating = getContrastRating(ratio);
+
+    const getHexColor = (rating, isBg) => {
+      if (rating.bg === 'bg-emerald-50') return isBg ? '#ecfdf5' : '#059669';
+      if (rating.bg === 'bg-blue-50') return isBg ? '#eff6ff' : '#2563eb';
+      if (rating.bg === 'bg-amber-50') return isBg ? '#fffbeb' : '#d97706';
+      return isBg ? '#fef2f2' : '#dc2626';
+    };
+
+    contrastElements = (
+      <div className="flex flex-wrap gap-2 mt-3 pt-3 border-t border-slate-100">
+        <span className="text-[9px] text-slate-400 uppercase tracking-widest font-black block w-full mb-1">Keterbacaan vs Background</span>
+        
+        <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg text-[10px] font-bold" style={{ backgroundColor: getHexColor(rating, true), color: getHexColor(rating, false) }}>
+          <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: normValue }}></span>
+          <span>Rasio Kontras: {ratio.toFixed(1)}:1</span>
+          <span className="opacity-90 px-1 rounded bg-black/5">{rating.label}</span>
+        </div>
       </div>
-      {description && (
-        <p className="text-[10px] mt-1" style={{ color: 'var(--theme-text-muted)' }}>{description}</p>
-      )}
+    );
+  }
+
+  return (
+    <div className="bg-white rounded-xl p-4 shadow-sm border border-slate-100">
+      <div className="mb-2">
+        <h3 className="text-xs font-bold" style={{ color: 'var(--theme-text)' }}>{label}</h3>
+        {description && (
+          <p className="text-[10px] mt-0.5 leading-relaxed" style={{ color: 'var(--theme-text-muted)' }}>{description}</p>
+        )}
+      </div>
+      <div className="flex items-center gap-3 mt-3">
+        <div className="relative w-12 h-12 rounded-lg overflow-hidden border border-slate-200 shrink-0">
+          <input
+            type="color"
+            value={normValue}
+            onChange={(e) => onChange(e.target.value)}
+            className="absolute inset-0 w-full h-full p-0 border-0 cursor-pointer scale-150"
+          />
+        </div>
+        <div className="flex-1">
+          <input
+            type="text"
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            className="w-full px-3 py-2 rounded-lg text-xs font-mono border border-slate-200/80 focus:border-slate-400 focus:outline-none"
+            style={{ backgroundColor: 'var(--theme-bg)', color: 'var(--theme-text)' }}
+            placeholder="#HEXCODE"
+          />
+        </div>
+      </div>
+      {contrastElements}
     </div>
   );
 };
 
 // Sidebar Preview Component
 const SidebarPreview = ({ bgColor, textColor, mutedColor }) => {
+  const isDarkBg = getContrastRatio('#FFFFFF', bgColor) < getContrastRatio('#000000', bgColor);
+  const borderCol = isDarkBg ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)';
+  const logoBg = isDarkBg ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)';
+  const activeBg = isDarkBg ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.06)';
+
   return (
-    <div className="mt-4 p-4 rounded-xl" style={{ backgroundColor: bgColor }}>
-      <p className="text-[10px] font-semibold mb-3" style={{ color: 'rgba(255,255,255,0.5)' }}>PREVIEW SIDEBAR</p>
+    <div className="mt-4 p-4 rounded-xl border border-slate-100 transition-colors duration-300" style={{ backgroundColor: bgColor }}>
+      <p className="text-[10px] font-semibold mb-3" style={{ color: textColor, opacity: 0.6 }}>PREVIEW SIDEBAR</p>
 
       {/* Logo section */}
-      <div className="flex items-center gap-3 mb-4 pb-3 border-b" style={{ borderColor: 'rgba(255,255,255,0.1)' }}>
-        <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center">
-          <span style={{ color: 'white' }}>🎓</span>
+      <div className="flex items-center gap-3 mb-4 pb-3 border-b" style={{ borderColor: borderCol }}>
+        <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: logoBg }}>
+          <span style={{ color: textColor }}>🎓</span>
         </div>
         <div>
           <p className="text-sm font-bold" style={{ color: textColor }}>STUDENT HUB</p>
@@ -114,29 +174,29 @@ const SidebarPreview = ({ bgColor, textColor, mutedColor }) => {
 
       {/* Menu items */}
       <div className="space-y-1">
-        <div className="flex items-center gap-3 px-3 py-2 rounded-lg bg-white/10" style={{ borderLeft: '3px solid #C89B3C' }}>
+        <div className="flex items-center gap-3 px-3 py-2 rounded-lg" style={{ backgroundColor: activeBg, borderLeft: '3px solid #C89B3C' }}>
           <span style={{ color: '#C89B3C' }}>📊</span>
           <span className="text-xs font-medium" style={{ color: textColor }}>Dashboard</span>
         </div>
-        <div className="flex items-center gap-3 px-3 py-2 rounded-lg opacity-70 hover:opacity-100 cursor-pointer">
+        <div className="flex items-center gap-3 px-3 py-2 rounded-lg opacity-80 hover:opacity-100 cursor-pointer">
           <span style={{ color: mutedColor }}>👤</span>
           <span className="text-xs font-medium" style={{ color: mutedColor }}>Profile</span>
         </div>
-        <div className="flex items-center gap-3 px-3 py-2 rounded-lg opacity-70 hover:opacity-100 cursor-pointer">
+        <div className="flex items-center gap-3 px-3 py-2 rounded-lg opacity-80 hover:opacity-100 cursor-pointer">
           <span style={{ color: mutedColor }}>📋</span>
           <span className="text-xs font-medium" style={{ color: mutedColor }}>Konseling</span>
         </div>
-        <div className="flex items-center gap-3 px-3 py-2 rounded-lg opacity-70 hover:opacity-100 cursor-pointer">
+        <div className="flex items-center gap-3 px-3 py-2 rounded-lg opacity-80 hover:opacity-100 cursor-pointer">
           <span style={{ color: mutedColor }}>🏆</span>
           <span className="text-xs font-medium" style={{ color: mutedColor }}>Prestasi</span>
         </div>
       </div>
 
       {/* Bottom - Logout */}
-      <div className="mt-4 pt-3 border-t" style={{ borderColor: 'rgba(255,255,255,0.1)' }}>
-        <div className="flex items-center gap-3 px-3 py-2 rounded-lg opacity-70 hover:opacity-100 cursor-pointer">
-          <span style={{ color: '#f87171' }}>🚪</span>
-          <span className="text-xs font-medium" style={{ color: '#f87171' }}>Keluar</span>
+      <div className="mt-4 pt-3 border-t" style={{ borderColor: borderCol }}>
+        <div className="flex items-center gap-3 px-3 py-2 rounded-lg opacity-80 hover:opacity-100 cursor-pointer">
+          <span style={{ color: '#ef4444' }}>🚪</span>
+          <span className="text-xs font-medium" style={{ color: '#ef4444' }}>Keluar</span>
         </div>
       </div>
     </div>
@@ -174,10 +234,19 @@ export default function ThemeComponents() {
   };
 
   const handleChange = (field, value) => {
-    const normalizedValue = normalizeHex(value);
+    let normalizedValue = value;
+    if (field.includes('color') || field.includes('bg')) {
+      normalizedValue = normalizeHex(value);
+    }
     const updated = { ...formData, [field]: normalizedValue };
     setFormData(updated);
-    if (isValidHex(normalizedValue)) {
+    
+    // Preview theme
+    if (field.includes('color') || field.includes('bg')) {
+      if (isValidHex(normalizedValue)) {
+        previewTheme({ [field]: normalizedValue });
+      }
+    } else {
       previewTheme({ [field]: normalizedValue });
     }
   };
@@ -309,13 +378,14 @@ export default function ThemeComponents() {
               </div>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-3">
               {/* Background */}
               <SidebarColorInput
                 label="Background Sidebar"
                 value={sidebarBg}
                 onChange={(v) => handleChange('sidebar_bg_color', v)}
-                description="Warna dasar sidebar - biasanya gelap"
+                description="Warna dasar panel sidebar (disarankan warna gelap untuk kontras optimal)"
+                isBackground={true}
               />
 
               {/* Text Color */}
@@ -323,7 +393,8 @@ export default function ThemeComponents() {
                 label="Warna Teks Utama"
                 value={sidebarText}
                 onChange={(v) => handleChange('sidebar_text_color', v)}
-                description="Warna teks menu yang aktif/selected"
+                description="Warna teks ikon/menu utama yang aktif/terpilih"
+                bgContext={sidebarBg}
               />
 
               {/* Muted Text */}
@@ -331,7 +402,8 @@ export default function ThemeComponents() {
                 label="Warna Teks Muted"
                 value={sidebarMuted}
                 onChange={(v) => handleChange('sidebar_text_muted_color', v)}
-                description="Warna teks menu yang tidak aktif"
+                description="Warna teks menu non-aktif/hover"
+                bgContext={sidebarBg}
               />
             </div>
 

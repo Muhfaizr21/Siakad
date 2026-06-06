@@ -1,5 +1,4 @@
-import React, { useEffect, useState } from 'react';
-import { UI } from '../../constants/designSystem';
+import { useEffect, useState } from 'react';
 import { psychologistService } from '../../services/api';
 
 // Material Symbol icons
@@ -28,9 +27,24 @@ export default function ReferralManagement() {
   });
 
   const statusColors = {
-    'Pending': { bg: 'bg-amber-50', border: 'border-amber-100', text: 'text-amber-600', badge: 'bg-amber-100' },
-    'Sent': { bg: 'bg-indigo-50', border: 'border-indigo-100', text: 'text-indigo-600', badge: 'bg-indigo-100' },
-    'Received': { bg: 'bg-green-50', border: 'border-green-100', text: 'text-green-600', badge: 'bg-green-100' },
+    'Pending': {
+      bg: 'color-mix(in srgb, var(--theme-warning) 10%, transparent)',
+      border: 'color-mix(in srgb, var(--theme-warning) 20%, transparent)',
+      text: 'var(--theme-warning)',
+      badgeBg: 'color-mix(in srgb, var(--theme-warning) 15%, transparent)',
+    },
+    'Sent': {
+      bg: 'color-mix(in srgb, var(--theme-info) 10%, transparent)',
+      border: 'color-mix(in srgb, var(--theme-info) 20%, transparent)',
+      text: 'var(--theme-info)',
+      badgeBg: 'color-mix(in srgb, var(--theme-info) 15%, transparent)',
+    },
+    'Received': {
+      bg: 'color-mix(in srgb, var(--theme-success) 10%, transparent)',
+      border: 'color-mix(in srgb, var(--theme-success) 20%, transparent)',
+      text: 'var(--theme-success)',
+      badgeBg: 'color-mix(in srgb, var(--theme-success) 15%, transparent)',
+    },
   };
 
   useEffect(() => {
@@ -166,17 +180,20 @@ export default function ReferralManagement() {
       <div className="w-full relative space-y-6 scroll-smooth">
           
           {/* Welcome Banner */}
-          <section className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-white via-slate-50/50 to-blue-50/20 border border-slate-100 p-5 shadow-sm flex flex-col gap-5 group">
-            <div className="absolute -top-24 -right-24 w-72 h-72 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
-            <div className="absolute -bottom-24 -left-24 w-72 h-72 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
+          <section className="relative overflow-hidden rounded-2xl border p-5 shadow-sm flex flex-col gap-5 group"
+            style={{ backgroundColor: 'var(--theme-surface)', borderColor: 'var(--theme-border)' }}>
+            <div className="absolute -top-24 -right-24 w-72 h-72 rounded-full blur-3xl pointer-events-none" style={{ backgroundColor: 'color-mix(in srgb, var(--theme-primary) 5%, transparent)' }} />
+            <div className="absolute -bottom-24 -left-24 w-72 h-72 rounded-full blur-3xl pointer-events-none" style={{ backgroundColor: 'color-mix(in srgb, var(--theme-primary) 5%, transparent)' }} />
             
             <div className="relative z-10 flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between w-full">
               <div>
-                <div className="inline-flex items-center gap-2 rounded-full bg-primary/5 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-primary">
+                <div className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-widest"
+                  style={{ backgroundColor: 'color-mix(in srgb, var(--theme-primary) 5%, transparent)', color: 'var(--theme-primary)' }}
+                >
                   <span className="material-symbols-outlined size-3.5">send</span>
                   Tindak Lanjut
                 </div>
-                <h1 className="mt-3 text-2xl font-black text-primary uppercase tracking-tight font-headline">Manajemen Surat Rujukan</h1>
+                <h1 className="mt-3 text-2xl font-black uppercase tracking-tight font-headline" style={{ color: 'var(--theme-primary)' }}>Manajemen Surat Rujukan</h1>
                 <p className="mt-1 max-w-2xl text-xs font-bold leading-5 text-slate-500">
                   Kelola surat rujukan medis dan akademik untuk pasien Anda dengan sistem tracking yang terintegrasi.
                 </p>
@@ -195,7 +212,8 @@ export default function ReferralManagement() {
                   setSelectedPatientHistory([]);
                   setIsModalOpen(true);
                 }}
-                className="bg-primary hover:bg-blue-900 text-white px-6 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-primary/10 hover:shadow-primary/20 transition-all flex items-center gap-2 w-fit shrink-0 relative z-20"
+                className="text-white px-6 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-lg transition-all flex items-center gap-2 w-fit shrink-0 relative z-20"
+                style={{ backgroundColor: 'var(--theme-primary)' }}
               >
                 <span className="material-symbols-outlined text-base">add</span> Buat Rujukan Baru
               </button>
@@ -203,17 +221,18 @@ export default function ReferralManagement() {
           </section>
 
           {/* Status Filter Chips */}
-          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 space-y-5">
+          <div className="rounded-2xl border shadow-sm p-5 space-y-5" style={{ backgroundColor: 'var(--theme-surface)', borderColor: 'var(--theme-border)' }}>
             <div className="flex flex-wrap gap-2">
               {['Semua', 'Pending', 'Sent', 'Received'].map(status => (
                 <button
                   key={status}
                   onClick={() => setSelectedStatus(status)}
                   className={`px-4 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all duration-300 ${
-                    selectedStatus === status 
-                      ? 'bg-primary text-white shadow-md shadow-primary/10' 
+                    selectedStatus === status
+                      ? 'shadow-md'
                       : 'bg-slate-50 text-slate-400 border border-slate-100/50 hover:bg-slate-100 hover:text-slate-600'
                   }`}
+                  style={selectedStatus === status ? { backgroundColor: 'var(--theme-primary)', color: 'white' } : {}}
                 >
                   {status}
                 </button>
@@ -222,9 +241,9 @@ export default function ReferralManagement() {
           </div>
 
           {/* Referrals List */}
-          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+          <div className="rounded-2xl border shadow-sm p-5" style={{ backgroundColor: 'var(--theme-surface)', borderColor: 'var(--theme-border)' }}>
             <div className="flex items-center justify-between mb-6 pb-2 border-b border-slate-50">
-              <h3 className="text-xs font-black text-primary uppercase tracking-widest flex items-center gap-2">
+              <h3 className="text-xs font-black uppercase tracking-widest flex items-center gap-2" style={{ color: 'var(--theme-primary)' }}>
                 <span className="material-symbols-outlined text-base">list</span> Daftar Surat Rujukan
               </h3>
               <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">
@@ -254,11 +273,15 @@ export default function ReferralManagement() {
                 {filteredReferrals.map((referral) => {
                   const colors = statusColors[referral.status] || statusColors['Pending'];
                   return (
-                    <div 
-                      key={referral.id} 
-                      className={`flex items-center gap-4 p-4 rounded-2xl border ${colors.bg} ${colors.border} hover:shadow-md hover:border-slate-200/50 transition-all duration-300 group`}
+                    <div
+                      key={referral.id}
+                      className="flex items-center gap-4 p-4 rounded-2xl border hover:shadow-md hover:border-slate-200/50 transition-all duration-300 group"
+                      style={{ backgroundColor: colors.bg, borderColor: colors.border }}
                     >
-                      <div className={`w-11 h-11 rounded-[1.25rem] ${colors.badge} text-slate-900 flex items-center justify-center font-black text-xs group-hover:scale-105 transition-transform duration-300 shrink-0 shadow-sm overflow-hidden relative`}>
+                      <div
+                        className="w-11 h-11 rounded-[1.25rem] flex items-center justify-center font-black text-xs group-hover:scale-105 transition-transform duration-300 shrink-0 shadow-sm overflow-hidden relative"
+                        style={{ backgroundColor: colors.badgeBg, color: colors.text }}
+                      >
                         {referral.foto_url || referral.foto ? (
                           <img src={referral.foto_url || referral.foto} alt={referral.mahasiswa_name} className="w-full h-full object-cover" />
                         ) : (
@@ -276,7 +299,7 @@ export default function ReferralManagement() {
 
                       <div className="text-right px-4 shrink-0">
                         <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Status</p>
-                        <p className={`text-[10px] font-black uppercase mt-1 ${colors.text}`}>
+                        <p className="text-[10px] font-black uppercase mt-1" style={{ color: colors.text }}>
                           {getStatusLabel(referral.status)}
                         </p>
                       </div>
@@ -285,7 +308,7 @@ export default function ReferralManagement() {
                         {referral.status === 'Pending' && (
                           <button
                             onClick={() => handleSendReferral(referral.id)}
-                            className="w-9 h-9 rounded-lg bg-primary text-white flex items-center justify-center hover:bg-blue-900 transition-all duration-300 shadow-sm hover:shadow-md"
+                            style={{ backgroundColor: 'var(--theme-primary)', color: 'white' }}
                             title="Kirim Rujukan"
                           >
                             <Send size={18} />
@@ -294,7 +317,7 @@ export default function ReferralManagement() {
                         {referral.status === 'Sent' && (
                           <button
                             onClick={() => handleConfirmReceived(referral.id)}
-                            className="w-9 h-9 rounded-lg bg-green-600 text-white flex items-center justify-center hover:bg-green-700 transition-all duration-300 shadow-sm hover:shadow-md"
+                            style={{ backgroundColor: 'var(--theme-success)', color: 'white' }}
                             title="Konfirmasi Terima"
                           >
                             <CheckCircle size={18} />
@@ -333,7 +356,7 @@ export default function ReferralManagement() {
             ></div>
             
             <div className="bg-white w-full max-w-lg rounded-2xl shadow-2xl relative z-10 overflow-hidden animate-in zoom-in-95 duration-300 border border-slate-100">
-              <div className="bg-primary p-5 text-white flex justify-between items-center relative overflow-hidden">
+              <div className="p-5 text-white flex justify-between items-center relative overflow-hidden" style={{ backgroundColor: 'var(--theme-primary)' }}>
                 <div className="absolute -top-12 -right-12 w-24 h-24 bg-white/5 rounded-full blur-xl pointer-events-none" />
                 <div className="relative z-10">
                   <h3 className="text-sm font-black uppercase tracking-tight font-headline">Surat Rujukan Baru</h3>
@@ -365,7 +388,7 @@ export default function ReferralManagement() {
                         onFocus={() => setShowDropdown(true)}
                         onBlur={() => setTimeout(() => setShowDropdown(false), 200)}
                         placeholder="Cari nama pasien atau NIM..."
-                        className="w-full bg-slate-50 border border-slate-200/60 rounded-2xl px-5 py-3.5 text-xs font-bold text-slate-800 focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none"
+                        className="w-full bg-slate-50 border border-slate-200/60 rounded-2xl px-5 py-3.5 text-xs font-bold text-slate-800 focus:outline-none focus:border-[var(--theme-primary)] focus:ring-4 focus:ring-[var(--theme-primary)/5] transition-all outline-none"
                       />
                       <span className="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" style={{ fontSize: '18px' }}>search</span>
                     </div>
@@ -393,7 +416,11 @@ export default function ReferralManagement() {
                                 setLoadingHistory(false);
                               }
                             }}
-                            className={`px-4 py-3 cursor-pointer text-xs transition-colors hover:bg-slate-50 ${newReferral.mahasiswa_id === maba.id ? 'bg-primary/5 text-primary font-bold' : 'text-slate-600 font-medium'} border-b border-slate-50 last:border-0`}
+                            className={`px-4 py-3 cursor-pointer text-xs transition-colors hover:bg-slate-50 ${newReferral.mahasiswa_id === maba.id
+                            ? 'font-bold'
+                            : 'text-slate-600 font-medium'}
+                        border-b border-slate-50 last:border-0`}
+                        style={newReferral.mahasiswa_id === maba.id ? { backgroundColor: 'color-mix(in srgb, var(--theme-primary) 5%, transparent)', color: 'var(--theme-primary)' } : {}}
                           >
                             {maba.nama || maba.name} <span className="text-[10px] text-slate-400 ml-1">({maba.nim || maba.id})</span>
                           </div>
@@ -412,7 +439,7 @@ export default function ReferralManagement() {
                     {newReferral.mahasiswa_id && (
                       <div className="bg-slate-50 border border-slate-200/50 rounded-2xl p-4 mt-2 max-h-48 overflow-y-auto">
                         <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2.5 flex items-center gap-1.5">
-                          <span className="material-symbols-outlined text-[11px] text-primary">history</span> Riwayat Sesi Konseling
+                          <span className="material-symbols-outlined text-[11px]">history</span> Riwayat Sesi Konseling
                         </p>
                         {loadingHistory ? (
                           <div className="flex items-center justify-center py-4">
@@ -426,7 +453,7 @@ export default function ReferralManagement() {
                               <div key={item.id || idx} className="border-b border-slate-200/40 last:border-0 pb-2.5 last:pb-0">
                                 <div className="flex justify-between items-center mb-1">
                                   <span className="text-[9px] font-black text-slate-700 uppercase tracking-wider">{item.date}</span>
-                                  <span className="px-2 py-0.5 rounded bg-primary/10 text-primary text-[8px] font-black uppercase tracking-widest">{item.type}</span>
+                                  <span className="px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest" style={{ backgroundColor: 'color-mix(in srgb, var(--theme-primary) 10%, transparent)', color: 'var(--theme-primary)' }}>{item.type}</span>
                                 </div>
                                 <p className="text-[10px] text-slate-600 font-medium leading-relaxed">
                                   <span className="font-bold text-slate-700">Keluhan:</span> {item.complaint || '-'}
@@ -447,7 +474,7 @@ export default function ReferralManagement() {
                     <select 
                       value={newReferral.tipe}
                       onChange={(e) => setNewReferral({ ...newReferral, tipe: e.target.value })}
-                      className="w-full bg-slate-50 border border-slate-200/60 rounded-2xl px-5 py-3.5 text-xs font-bold text-slate-800 focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none cursor-pointer"
+                      className="w-full bg-slate-50 border border-slate-200/60 rounded-2xl px-5 py-3.5 text-xs font-bold text-slate-800 focus:outline-none focus:border-[var(--theme-primary)] focus:ring-4 focus:ring-[var(--theme-primary)/5] transition-all outline-none cursor-pointer"
                     >
                       <option value="Medis">Medis</option>
                       <option value="Akademik">Akademik</option>
@@ -460,7 +487,7 @@ export default function ReferralManagement() {
                       required
                       value={newReferral.alasan}
                       onChange={(e) => setNewReferral({ ...newReferral, alasan: e.target.value })}
-                      className="w-full bg-slate-50 border border-slate-200/60 rounded-2xl px-5 py-3.5 text-xs font-medium text-slate-700 placeholder-slate-400 focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none h-24 resize-none"
+                      className="w-full bg-slate-50 border border-slate-200/60 rounded-2xl px-5 py-3.5 text-xs font-medium text-slate-700 placeholder-slate-400 focus:outline-none focus:border-[var(--theme-primary)] focus:ring-4 focus:ring-[var(--theme-primary)/5] transition-all outline-none h-24 resize-none"
                       placeholder="Jelaskan alasan rujukan..."
                     />
                   </div>
@@ -472,7 +499,7 @@ export default function ReferralManagement() {
                       type="text"
                       value={newReferral.pihak_tujuan}
                       onChange={(e) => setNewReferral({ ...newReferral, pihak_tujuan: e.target.value })}
-                      className="w-full bg-slate-50 border border-slate-200/60 rounded-2xl px-5 py-3.5 text-xs font-bold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none"
+                      className="w-full bg-slate-50 border border-slate-200/60 rounded-2xl px-5 py-3.5 text-xs font-bold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[var(--theme-primary)] focus:ring-4 focus:ring-[var(--theme-primary)/5] transition-all outline-none"
                       placeholder="Nama klinik/psikolog tujuan"
                     />
                   </div>
@@ -484,7 +511,7 @@ export default function ReferralManagement() {
                       type="email"
                       value={newReferral.email_tujuan}
                       onChange={(e) => setNewReferral({ ...newReferral, email_tujuan: e.target.value })}
-                      className="w-full bg-slate-50 border border-slate-200/60 rounded-2xl px-5 py-3.5 text-xs font-bold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all outline-none"
+                      className="w-full bg-slate-50 border border-slate-200/60 rounded-2xl px-5 py-3.5 text-xs font-bold text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[var(--theme-primary)] focus:ring-4 focus:ring-[var(--theme-primary)/5] transition-all outline-none"
                       placeholder="email@example.com"
                     />
                   </div>
@@ -499,8 +526,9 @@ export default function ReferralManagement() {
                     Batal
                   </button>
                   <button 
-                    type="submit" 
-                    className="flex-1 bg-primary text-white px-10 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-primary/20 flex items-center justify-center gap-2 hover:bg-blue-900 transition-all"
+                    type="submit"
+                    className="flex-1 text-white px-10 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg flex items-center justify-center gap-2 hover:opacity-90 transition-all"
+                    style={{ backgroundColor: 'var(--theme-primary)' }}
                   >
                     <span className="material-symbols-outlined text-base">save</span> Buat Rujukan
                   </button>

@@ -78,9 +78,9 @@ export default function BookingDetail() {
             <div className="xl:col-span-2 space-y-6">
               
               {/* Compact Profile Card */}
-              <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
-                <div className="h-24 bg-primary-container relative">
-                   <div className="absolute inset-0 bg-gradient-to-r from-primary-container via-primary-container/80 to-transparent"></div>
+              <div className="rounded-3xl border shadow-sm overflow-hidden" style={{ backgroundColor: 'var(--theme-surface)', borderColor: 'var(--theme-border)' }}>
+                <div className="h-24 relative" style={{ backgroundColor: 'color-mix(in srgb, var(--theme-primary) 15%, var(--theme-surface))' }}>
+                   <div className="absolute inset-0" style={{ background: 'linear-gradient(to right, color-mix(in srgb, var(--theme-primary) 20%, transparent), transparent)' }}></div>
                    <div className="absolute -bottom-8 left-8">
                       <div className={`size-16 rounded-2xl ${booking.color} text-white flex items-center justify-center text-xl font-black border-4 border-white shadow-md`}>
                         {booking.avatar}
@@ -104,7 +104,7 @@ export default function BookingDetail() {
                       { label: 'WhatsApp', value: booking.phone, icon: Phone },
                       { label: 'Akademik', value: `Smt ${booking.semester}`, icon: 'menu_book' },
                     ].map((item, i) => (
-                      <div key={i} className="flex items-center gap-3 p-3 rounded-xl bg-slate-50/50">
+                      <div key={i} className="flex items-center gap-3 p-3 rounded-xl" style={{ backgroundColor: 'color-mix(in srgb, var(--theme-primary) 5%, var(--theme-bg))' }}>
                          <item.icon className="size-3.5 text-slate-400" />
                          <div className="overflow-hidden">
                             <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">{item.label}</p>
@@ -117,9 +117,9 @@ export default function BookingDetail() {
               </div>
 
               {/* Compact Details */}
-              <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-5 space-y-6">
+              <div className="rounded-3xl border shadow-sm p-5 space-y-6" style={{ backgroundColor: 'var(--theme-surface)', borderColor: 'var(--theme-border)' }}>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">                    <div className="space-y-3">
-                       <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 flex items-center gap-4">
+                       <div className="p-4 rounded-2xl border flex items-center gap-4" style={{ backgroundColor: 'var(--theme-bg)', borderColor: 'var(--theme-border)' }}>
                           <span className="material-symbols-outlined size-4 text-primary" >calendar_month</span>
                           <div>
                              <p className="text-[8px] font-black uppercase text-slate-400">Tanggal</p>
@@ -133,7 +133,7 @@ export default function BookingDetail() {
                              <p className="text-xs font-bold text-slate-900">{booking.time}</p>
                           </div>
                        </div>
-                       <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 flex items-center gap-4">
+                       <div className="p-4 rounded-2xl border flex items-center gap-4" style={{ backgroundColor: 'var(--theme-bg)', borderColor: 'var(--theme-border)' }}>
                           <span className="material-symbols-outlined size-4 text-primary" >
                             {booking.mode === 'Online' ? 'videocam' : 'groups'}
                           </span>
@@ -164,15 +164,15 @@ export default function BookingDetail() {
 
                  <div className="space-y-3">
                     <h4 className="text-[9px] font-black text-primary uppercase tracking-widest">Catatan Mahasiswa</h4>
-                    <div className="p-5 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
-                       <p className="text-xs font-medium text-slate-600 italic">"{booking.note}"</p>
+                    <div className="p-5 rounded-2xl border border-dashed" style={{ backgroundColor: 'var(--theme-bg)', borderColor: 'var(--theme-border)' }}>
+                       <p className="text-xs font-medium italic" style={{ color: 'var(--theme-text-muted)' }}>"{booking.note}"</p>
                     </div>
                  </div>
               </div>
             </div>
 
             <div className="space-y-6">
-              <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-5 space-y-4">
+              <div className="rounded-3xl border shadow-sm p-5 space-y-4" style={{ backgroundColor: 'var(--theme-surface)', borderColor: 'var(--theme-border)' }}>
                  <h3 className="text-[9px] font-black text-primary uppercase tracking-widest">Tindakan</h3>
                  <div className="space-y-2">
                      <button
@@ -191,7 +191,7 @@ export default function BookingDetail() {
                      </button>
                  </div>
                  {isLocked && (
-                   <p className="rounded-2xl bg-slate-50 px-4 py-3 text-[10px] font-bold leading-5 text-slate-500">
+                   <p className="rounded-2xl px-4 py-3 text-[10px] font-bold leading-5" style={{ backgroundColor: 'var(--theme-bg)', color: 'var(--theme-text-muted)' }}>
                      Booking sudah {booking.status.toLowerCase()} dan tidak dapat diubah dari halaman ini.
                    </p>
                  )}
@@ -203,7 +203,7 @@ export default function BookingDetail() {
                  </button>
               </div>
 
-              <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-5">
+              <div className="rounded-3xl border shadow-sm p-5" style={{ backgroundColor: 'var(--theme-surface)', borderColor: 'var(--theme-border)' }}>
                  <h3 className="text-[9px] font-black text-primary uppercase tracking-widest mb-6">Riwayat</h3>
                  <div className="space-y-6 relative before:absolute before:left-5 before:top-2 before:bottom-2 before:w-[1px] before:bg-slate-100">
                      {history.map((item, i) => (
@@ -227,7 +227,7 @@ export default function BookingDetail() {
       {/* Zoom / Meeting Link Modal */}
       {showLinkModal && (
         <div className="fixed inset-0 z-[999] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white w-full max-w-md rounded-3xl shadow-xl overflow-hidden border border-slate-100 animate-in fade-in zoom-in-95 duration-200">
+          <div className="w-full max-w-md rounded-3xl shadow-xl overflow-hidden border animate-in fade-in zoom-in-95 duration-200" style={{ backgroundColor: 'var(--theme-surface)', borderColor: 'var(--theme-border)' }}>
             <div className="bg-primary px-6 py-5 text-white">
               <h3 className="text-lg font-black uppercase tracking-tight font-headline">Konfirmasi Sesi Online</h3>
               <p className="text-xs text-white/70 mt-1">Sesi ini diajukan secara Online. Harap masukkan link Zoom atau Google Meet untuk mahasiswa.</p>
@@ -240,14 +240,16 @@ export default function BookingDetail() {
                   placeholder="https://zoom.us/j/... atau https://meet.google.com/..."
                   value={meetingLink}
                   onChange={(e) => setMeetingLink(e.target.value)}
-                  className="h-11 w-full rounded-2xl border border-slate-200 px-4 text-xs font-bold text-slate-700 outline-none transition-all placeholder:text-slate-400 focus:border-primary focus:ring-4 focus:ring-primary/5"
+                  className="h-11 w-full rounded-2xl border px-4 text-xs font-bold outline-none transition-all placeholder:text-slate-400 focus:border-primary focus:ring-4 focus:ring-primary/5"
+                  style={{ borderColor: 'var(--theme-border)', backgroundColor: 'var(--theme-bg)', color: 'var(--theme-text)' }}
                 />
               </div>
               <div className="flex gap-3 pt-2">
                 <button
                   type="button"
                   onClick={() => { setShowLinkModal(false); }}
-                  className="flex-1 py-3 rounded-2xl border border-slate-200 text-slate-500 text-xs font-black uppercase tracking-widest hover:bg-slate-50 transition-colors"
+                  className="flex-1 py-3 rounded-2xl border text-xs font-black uppercase tracking-widest transition-colors"
+                  style={{ borderColor: 'var(--theme-border)', color: 'var(--theme-text-muted)' }}
                 >
                   Batal
                 </button>

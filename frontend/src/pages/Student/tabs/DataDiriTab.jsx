@@ -7,10 +7,10 @@ import api from '../../../lib/axios';
 import { toast } from 'react-hot-toast';
 
 
-import Input from '../../../components/ui/Input';
-import { Label } from '../../../components/ui/Label';
-import { Textarea } from '../../../components/ui/Textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../components/ui/Select';
+import Input from '@/components/ui/Input';
+import { Label } from '@/components/ui/Label';
+import { Textarea } from '@/components/ui/Textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/Select';
 
 // Auto-injected Material Symbol fallbacks for removed Lucide icons
 const RotateCcw = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>restart_alt</span>;

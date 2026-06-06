@@ -11,20 +11,32 @@ const RotateCcw = ({ size, className, ...props }) => <span className={`material-
 const tabs = ['Semua', 'Menunggu', 'Dikonfirmasi', 'Selesai', 'Ditolak'];
 const statusMeta = {
   Menunggu: {
-    badge: 'bg-amber-50 text-amber-700 border-amber-200',
-    dot: 'bg-amber-500',
+    badge: 'border',
+    dot: 'var(--theme-warning)',
+    badgeBg: 'color-mix(in srgb, var(--theme-warning) 10%, transparent)',
+    badgeText: 'var(--theme-warning)',
+    badgeBorder: 'color-mix(in srgb, var(--theme-warning) 20%, transparent)',
   },
   Dikonfirmasi: {
-    badge: 'bg-blue-50 text-blue-700 border-blue-200',
-    dot: 'bg-blue-500',
+    badge: 'border',
+    dot: 'var(--theme-info)',
+    badgeBg: 'color-mix(in srgb, var(--theme-info) 10%, transparent)',
+    badgeText: 'var(--theme-info)',
+    badgeBorder: 'color-mix(in srgb, var(--theme-info) 20%, transparent)',
   },
   Selesai: {
-    badge: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-    dot: 'bg-emerald-500',
+    badge: 'border',
+    dot: 'var(--theme-success)',
+    badgeBg: 'color-mix(in srgb, var(--theme-success) 10%, transparent)',
+    badgeText: 'var(--theme-success)',
+    badgeBorder: 'color-mix(in srgb, var(--theme-success) 20%, transparent)',
   },
   Ditolak: {
-    badge: 'bg-rose-50 text-rose-700 border-rose-200',
-    dot: 'bg-rose-500',
+    badge: 'border',
+    dot: 'var(--theme-error)',
+    badgeBg: 'color-mix(in srgb, var(--theme-error) 10%, transparent)',
+    badgeText: 'var(--theme-error)',
+    badgeBorder: 'color-mix(in srgb, var(--theme-error) 20%, transparent)',
   },
 };
 
@@ -194,19 +206,22 @@ export default function BookingManagement() {
     <>
       <div className="w-full relative space-y-6 scroll-smooth">
           
-          {/* Welcome Banner Card (White-to-Blue Gradient with University Overlay look) */}
-          <section className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-white via-slate-50/50 to-blue-50/20 border border-slate-100 p-6 shadow-sm flex flex-col gap-4 group">
+          {/* Welcome Banner Card */}
+          <section className="relative overflow-hidden rounded-2xl border p-6 shadow-sm flex flex-col gap-4 group"
+            style={{ backgroundColor: 'var(--theme-surface)', borderColor: 'var(--theme-border)' }}>
             {/* Background elements */}
-            <div className="absolute -top-24 -right-24 w-72 h-72 bg-blue-500/5 rounded-full blur-3xl pointer-events-none"></div>
-            <div className="absolute -bottom-24 -left-24 w-72 h-72 bg-indigo-500/5 rounded-full blur-3xl pointer-events-none"></div>
+            <div className="absolute -top-24 -right-24 w-72 h-72 rounded-full blur-3xl pointer-events-none" style={{ backgroundColor: 'color-mix(in srgb, var(--theme-primary) 5%, transparent)' }}></div>
+            <div className="absolute -bottom-24 -left-24 w-72 h-72 rounded-full blur-3xl pointer-events-none" style={{ backgroundColor: 'color-mix(in srgb, var(--theme-secondary) 5%, transparent)' }}></div>
             
             <div className="relative z-10 w-full flex flex-col xl:flex-row xl:items-center justify-between gap-6">
               <div className="space-y-2 max-w-xl">
-                <div className="inline-flex items-center gap-2 rounded-full bg-primary/5 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-primary">
+                <div className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-widest"
+                  style={{ backgroundColor: 'color-mix(in srgb, var(--theme-primary) 5%, transparent)', color: 'var(--theme-primary)' }}
+                >
                   <span className="material-symbols-outlined size-3.5">assignment</span>
                   Manajemen Booking
                 </div>
-                <h1 className="mt-3 text-2xl font-black text-primary uppercase tracking-tight font-headline">Janji Temu Konseling</h1>
+                <h1 className="mt-3 text-2xl font-black uppercase tracking-tight font-headline" style={{ color: 'var(--theme-primary)' }}>Janji Temu Konseling</h1>
                 <p className="text-xs font-bold leading-5 text-slate-500">
                   Pantau, cari, dan tindak lanjuti permintaan sesi konseling baru untuk mempercepat penyelesaian bantuan psikologis mahasiswa.
                 </p>
@@ -214,12 +229,13 @@ export default function BookingManagement() {
 
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 xl:min-w-[480px] shrink-0">
                 {tabs.slice(1).map((status) => (
-                  <div key={status} className="rounded-[1.5rem] border border-slate-100 bg-white p-4 shadow-sm hover:shadow-md transition-all duration-300">
+                  <div key={status} className="rounded-[1.5rem] border p-4 shadow-sm hover:shadow-md transition-all duration-300"
+                    style={{ backgroundColor: 'var(--theme-surface)', borderColor: 'var(--theme-border)' }}>
                     <div className="flex items-center gap-2">
-                      <span className={`size-1.5 rounded-full ${statusMeta[status]?.dot || 'bg-slate-300'}`} />
-                      <span className="text-[8px] font-black uppercase tracking-widest text-slate-400">{status}</span>
+                      <span className="size-1.5 rounded-full shrink-0" style={{ backgroundColor: statusMeta[status]?.dot }} />
+                      <span className="text-[8px] font-black uppercase tracking-widest" style={{ color: 'var(--theme-text-muted)' }}>{status}</span>
                     </div>
-                    <p className="mt-2 text-2xl font-extrabold text-slate-900 tracking-tight leading-none">{statusCounts[status] || 0}</p>
+                    <p className="mt-2 text-2xl font-extrabold tracking-tight leading-none" style={{ color: 'var(--theme-text)' }}>{statusCounts[status] || 0}</p>
                   </div>
                 ))}
               </div>
@@ -227,24 +243,25 @@ export default function BookingManagement() {
           </section>
 
           {/* Search & Filter Bento Card */}
-          <section className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
+          <section className="rounded-2xl border p-5 shadow-sm" style={{ backgroundColor: 'var(--theme-surface)', borderColor: 'var(--theme-border)' }}>
             <div className="flex flex-col gap-5">
               {/* Row 1: Search, Topik, Urutan */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                 <div className="space-y-2">
-                  <label htmlFor="booking-search" className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400">
+                  <label htmlFor="booking-search" className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest" style={{ color: 'var(--theme-text-muted)' }}>
                     <span className="material-symbols-outlined text-base">search</span>
                     Pencarian
                   </label>
                   <div className="relative">
-                    <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-base">search</span>
+                    <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-base" style={{ color: 'var(--theme-text-muted)' }}>search</span>
                     <input
                       id="booking-search"
                       type="text"
                       placeholder="Cari nama, NIM, isu, tanggal, atau catatan..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      className="h-12 w-full rounded-2xl border border-slate-100 bg-slate-50 pl-11 pr-4 text-xs font-bold text-slate-700 outline-none transition-all placeholder:text-slate-400 focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/5"
+                      className="h-12 w-full rounded-2xl border pl-11 pr-4 text-xs font-bold outline-none transition-all placeholder:text-slate-400 focus:border-[var(--theme-primary)] focus:ring-4 focus:ring-[var(--theme-primary)/5]"
+                      style={{ borderColor: 'var(--theme-border)', backgroundColor: 'var(--theme-bg)', color: 'var(--theme-text)' }}
                     />
                   </div>
                 </div>
@@ -258,7 +275,8 @@ export default function BookingManagement() {
                     id="issue-filter"
                     value={issueFilter}
                     onChange={(e) => setIssueFilter(e.target.value)}
-                    className="h-12 w-full rounded-2xl border border-slate-100 bg-slate-50 px-4 text-xs font-bold text-slate-700 outline-none transition-all focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/5 cursor-pointer"
+                    className="h-12 w-full rounded-2xl border px-4 text-xs font-bold outline-none transition-all focus:border-[var(--theme-primary)] focus:ring-4 focus:ring-[var(--theme-primary)/5] cursor-pointer"
+                    style={{ borderColor: 'var(--theme-border)', backgroundColor: 'var(--theme-bg)', color: 'var(--theme-text)' }}
                   >
                     {issueOptions.map((issue) => (
                       <option key={issue} value={issue}>{issue}</option>
@@ -267,7 +285,7 @@ export default function BookingManagement() {
                 </div>
 
                 <div className="space-y-2">
-                  <label htmlFor="sort-order" className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400">
+                  <label htmlFor="sort-order" className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest" style={{ color: 'var(--theme-text-muted)' }}>
                     <span className="material-symbols-outlined text-base font-medium">tune</span>
                     Urutan
                   </label>
@@ -275,7 +293,8 @@ export default function BookingManagement() {
                     id="sort-order"
                     value={sortOrder}
                     onChange={(e) => setSortOrder(e.target.value)}
-                    className="h-12 w-full rounded-2xl border border-slate-100 bg-slate-50 px-4 text-xs font-bold text-slate-700 outline-none transition-all focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/5 cursor-pointer"
+                    className="h-12 w-full rounded-2xl border px-4 text-xs font-bold outline-none transition-all focus:border-[var(--theme-primary)] focus:ring-4 focus:ring-[var(--theme-primary)/5] cursor-pointer"
+                    style={{ borderColor: 'var(--theme-border)', backgroundColor: 'var(--theme-bg)', color: 'var(--theme-text)' }}
                   >
                     <option value="Terbaru">Jadwal terbaru</option>
                     <option value="Terlama">Jadwal terlama</option>
@@ -293,7 +312,7 @@ export default function BookingManagement() {
                   <select
                     value={selectedFakultas}
                     onChange={(e) => handleFakultasChange(e.target.value)}
-                    className="h-12 w-full rounded-2xl border border-slate-100 bg-slate-50 px-4 text-xs font-bold text-slate-700 outline-none transition-all focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/5 cursor-pointer"
+                    className="h-12 w-full rounded-2xl border border-slate-100 bg-slate-50 px-4 text-xs font-bold text-slate-700 outline-none transition-all focus:border-[var(--theme-primary)] focus:bg-white focus:ring-4 focus:ring-[var(--theme-primary)/5] cursor-pointer"
                   >
                     <option value="Semua Fakultas">Semua Fakultas</option>
                     {fakultasList.map((f) => (
@@ -311,7 +330,7 @@ export default function BookingManagement() {
                     value={selectedProdi}
                     onChange={(e) => setSelectedProdi(e.target.value)}
                     disabled={selectedFakultas === 'Semua Fakultas'}
-                    className="h-12 w-full rounded-2xl border border-slate-100 bg-slate-50 px-4 text-xs font-bold text-slate-700 outline-none transition-all focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/5 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+                    className="h-12 w-full rounded-2xl border border-slate-100 bg-slate-50 px-4 text-xs font-bold text-slate-700 outline-none transition-all focus:border-[var(--theme-primary)] focus:bg-white focus:ring-4 focus:ring-[var(--theme-primary)/5] cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
                   >
                     <option value="Semua Prodi">Semua Prodi</option>
                     {filteredProdis.map((p) => (
@@ -329,7 +348,7 @@ export default function BookingManagement() {
                     type="date"
                     value={startDate}
                     onChange={(e) => setStartDate(e.target.value)}
-                    className="h-12 w-full rounded-2xl border border-slate-100 bg-slate-50 px-4 text-xs font-bold text-slate-700 outline-none transition-all focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/5"
+                    className="h-12 w-full rounded-2xl border border-slate-100 bg-slate-50 px-4 text-xs font-bold text-slate-700 outline-none transition-all focus:border-[var(--theme-primary)] focus:bg-white focus:ring-4 focus:ring-[var(--theme-primary)/5]"
                   />
                 </div>
 
@@ -342,7 +361,7 @@ export default function BookingManagement() {
                     type="date"
                     value={endDate}
                     onChange={(e) => setEndDate(e.target.value)}
-                    className="h-12 w-full rounded-2xl border border-slate-100 bg-slate-50 px-4 text-xs font-bold text-slate-700 outline-none transition-all focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/5"
+                    className="h-12 w-full rounded-2xl border border-slate-100 bg-slate-50 px-4 text-xs font-bold text-slate-700 outline-none transition-all focus:border-[var(--theme-primary)] focus:bg-white focus:ring-4 focus:ring-[var(--theme-primary)/5]"
                   />
                 </div>
               </div>
@@ -356,8 +375,8 @@ export default function BookingManagement() {
                       className={`
                         inline-flex shrink-0 items-center gap-2 rounded-full border px-4 py-2.5 text-[9px] font-black uppercase tracking-widest transition-all
                         ${selectedTab === tab
-                          ? 'border-primary bg-primary text-white shadow-sm'
-                          : 'border-slate-100 bg-slate-50/50 text-slate-400 hover:border-primary/30 hover:text-primary hover:bg-white'}
+                          ? 'border-[var(--theme-primary)] shadow-sm'
+                          : 'border-slate-100 bg-slate-50/50 text-slate-400 hover:border-[var(--theme-primary)]/30 hover:text-[var(--theme-primary)] hover:bg-white'}
                       `}
                     >
                       {tab}
@@ -382,14 +401,16 @@ export default function BookingManagement() {
           </section>
 
           {/* Booking Floating Row Cards (Desktop & Mobile) */}
-          <section className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 space-y-4">
+          <section className="rounded-2xl border shadow-sm p-5 space-y-4" style={{ backgroundColor: 'var(--theme-surface)', borderColor: 'var(--theme-border)' }}>
             <div className="flex flex-col gap-2 border-b border-slate-50 pb-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <h2 className="text-xs font-black uppercase tracking-widest text-primary">Daftar Booking</h2>
+                <h2 className="text-xs font-black uppercase tracking-widest" style={{ color: 'var(--theme-primary)' }}>Daftar Booking</h2>
                 <p className="text-[10px] font-bold text-slate-400 mt-1">{filteredBookings.length} dari {bookings.length} permintaan ditampilkan</p>
               </div>
               {hasActiveFilter && (
-                <span className="inline-flex w-fit items-center gap-2 rounded-full bg-primary/5 px-3 py-1 text-[9px] font-black uppercase tracking-widest text-primary">
+                <span className="inline-flex w-fit items-center gap-2 rounded-full px-3 py-1 text-[9px] font-black uppercase tracking-widest"
+                  style={{ backgroundColor: 'color-mix(in srgb, var(--theme-primary) 5%, transparent)', color: 'var(--theme-primary)' }}
+                >
                   <span className="material-symbols-outlined size-3">filter_alt</span>
                   Filter aktif
                 </span>
@@ -421,7 +442,9 @@ export default function BookingManagement() {
                   <p className="mt-1 max-w-md text-xs font-semibold text-slate-500">Coba ubah kata kunci, status, atau topik filter untuk menampilkan data lain.</p>
                 </div>
                 {hasActiveFilter && (
-                  <button onClick={resetFilters} className="rounded-2xl bg-primary px-5 py-2.5 text-[10px] font-black uppercase tracking-widest text-white shadow-sm transition-all hover:bg-primary/90">
+                  <button onClick={resetFilters} className="rounded-2xl px-5 py-2.5 text-[10px] font-black uppercase tracking-widest text-white shadow-sm transition-all"
+                    style={{ backgroundColor: 'var(--theme-primary)' }}
+                  >
                     Tampilkan Semua
                   </button>
                 )}
@@ -438,9 +461,12 @@ export default function BookingManagement() {
                       <div 
                         key={booking.id} 
                         onClick={() => navigate(`/psychologist/bookings/${booking.id}`)} 
-                        className="flex items-center gap-4 p-5 rounded-2xl bg-slate-50/50 border border-slate-100 hover:bg-white hover:shadow-md hover:border-slate-200/50 transition-all duration-300 group cursor-pointer"
+                        className="flex items-center gap-4 p-5 rounded-2xl border transition-all duration-300 group cursor-pointer hover:shadow-md"
+                        style={{ backgroundColor: 'var(--theme-bg)', borderColor: 'var(--theme-border)' }}
                       >
-                        <div className="w-11 h-11 rounded-[1.25rem] bg-primary/5 text-primary flex items-center justify-center font-black text-xs group-hover:scale-105 transition-transform duration-300 shrink-0 shadow-inner">
+                        <div className="w-11 h-11 rounded-[1.25rem] flex items-center justify-center font-black text-xs group-hover:scale-105 transition-transform duration-300 shrink-0 shadow-inner"
+                          style={{ backgroundColor: 'color-mix(in srgb, var(--theme-primary) 5%, transparent)', color: 'var(--theme-primary)' }}
+                        >
                           {booking.avatar || booking.name?.charAt(0) || 'M'}
                         </div>
                         <div className="w-[200px] shrink-0">
@@ -461,7 +487,7 @@ export default function BookingManagement() {
                         </div>
                         <div className="px-4 shrink-0 w-[180px]">
                           <div className="flex items-center gap-2 whitespace-nowrap text-xs font-black text-slate-800">
-                            <span className="material-symbols-outlined size-4 text-primary" >calendar_month</span>
+                            <span className="material-symbols-outlined size-4" style={{ color: 'var(--theme-primary)' }} >calendar_month</span>
                             {booking.date || '-'}
                           </div>
                           <div className="flex items-center gap-2 whitespace-nowrap text-[11px] font-bold text-slate-400 mt-1">
@@ -470,10 +496,12 @@ export default function BookingManagement() {
                           </div>
                         </div>
                         <div className="px-4 shrink-0 w-[150px]">
-                          <span className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-[9px] font-black uppercase tracking-widest ${statusMeta[status]?.badge || 'border-slate-200 bg-slate-50 text-slate-600'}`}>
-                            <span className={`size-1.5 rounded-full ${statusMeta[status]?.dot || 'bg-slate-400'}`} />
-                            {status}
-                          </span>
+                          <span className="inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-[9px] font-black uppercase tracking-widest"
+                          style={{ backgroundColor: statusMeta[status]?.badgeBg, color: statusMeta[status]?.badgeText, borderColor: statusMeta[status]?.badgeBorder }}
+                        >
+                          <span className="size-1.5 rounded-full" style={{ backgroundColor: statusMeta[status]?.dot }} />
+                          {status}
+                        </span>
                         </div>
                         <div className="flex items-center justify-end gap-2 px-2 shrink-0">
                           {status === 'Menunggu' ? (
@@ -484,7 +512,8 @@ export default function BookingManagement() {
                                 title="Tolak booking"
                                 aria-label={`Tolak booking ${booking.name || 'mahasiswa'}`}
                                 onClick={(e) => { e.stopPropagation(); handleAction(booking.id, 'Ditolak'); }}
-                                className="inline-flex size-10 items-center justify-center rounded-xl bg-rose-50 text-rose-600 transition-all hover:bg-rose-600 hover:text-white disabled:cursor-wait disabled:opacity-50"
+                                className="inline-flex size-10 items-center justify-center rounded-xl transition-all hover:scale-110 disabled:cursor-wait disabled:opacity-50"
+                                style={{ backgroundColor: 'color-mix(in srgb, var(--theme-error) 10%, transparent)', color: 'var(--theme-error)' }}
                               >
                                 <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >close</span>
                               </button>
@@ -494,7 +523,8 @@ export default function BookingManagement() {
                                 title="Konfirmasi booking"
                                 aria-label={`Konfirmasi booking ${booking.name || 'mahasiswa'}`}
                                 onClick={(e) => { e.stopPropagation(); handleConfirmClick(booking); }}
-                                className="inline-flex size-10 items-center justify-center rounded-xl bg-primary text-white shadow-sm transition-all hover:bg-primary/95 disabled:cursor-wait disabled:opacity-50"
+                                className="inline-flex size-10 items-center justify-center rounded-xl shadow-sm transition-all hover:scale-110 disabled:cursor-wait disabled:opacity-50"
+                                style={{ backgroundColor: 'var(--theme-primary)', color: 'white' }}
                               >
                                 <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >check_circle</span>
                               </button>
@@ -503,7 +533,7 @@ export default function BookingManagement() {
                             <button
                               type="button"
                               onClick={(e) => { e.stopPropagation(); navigate(`/psychologist/bookings/${booking.id}`); }}
-                              className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-[10px] font-black uppercase tracking-widest text-slate-500 transition-all hover:border-primary/30 hover:text-primary"
+                              className="inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-[10px] font-black uppercase tracking-widest text-slate-500 transition-all hover:border-[var(--theme-primary)]/30 hover:text-[var(--theme-primary)]"
                             >
                               Detail
                               <span className="material-symbols-outlined" style={{ fontSize: 14 }}>chevron_right</span>
@@ -525,18 +555,21 @@ export default function BookingManagement() {
                       <article
                         key={booking.id}
                         onClick={() => navigate(`/psychologist/bookings/${booking.id}`)}
-                        className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm transition-all active:scale-[0.99]"
+                        className="rounded-2xl border p-4 shadow-sm transition-all active:scale-[0.99]"
+                        style={{ backgroundColor: 'var(--theme-surface)', borderColor: 'var(--theme-border)' }}
                       >
                         <div className="flex items-start gap-3">
-                          <div className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-blue-50 text-sm font-black text-blue-700">
+                          <div className="flex size-11 shrink-0 items-center justify-center rounded-2xl text-sm font-black" style={{ backgroundColor: 'color-mix(in srgb, var(--theme-primary) 10%, transparent)', color: 'var(--theme-primary)' }}>
                             {booking.avatar || booking.name?.charAt(0) || 'M'}
                           </div>
                           <div className="min-w-0 flex-1">
-                            <h3 className="truncate text-sm font-black font-headline" style={{ color: 'var(--theme-h3)' }}>{booking.name || 'Mahasiswa'}</h3>
+                            <h3 className="truncate text-sm font-black font-headline" style={{ color: 'var(--theme-text)' }}>{booking.name || 'Mahasiswa'}</h3>
                             <p className="mt-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-400">NIM {booking.nim || '-'}</p>
                           </div>
-                          <span className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1 text-[9px] font-black uppercase tracking-widest ${statusMeta[status]?.badge || 'border-slate-200 bg-slate-50 text-slate-600'}`}>
-                            <span className={`size-1.5 rounded-full ${statusMeta[status]?.dot || 'bg-slate-400'}`} />
+                          <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1 text-[9px] font-black uppercase tracking-widest"
+                            style={{ backgroundColor: statusMeta[status]?.badgeBg, color: statusMeta[status]?.badgeText, borderColor: statusMeta[status]?.badgeBorder }}
+                          >
+                            <span className="size-1.5 rounded-full" style={{ backgroundColor: statusMeta[status]?.dot }} />
                             {status}
                           </span>
                         </div>
@@ -556,7 +589,7 @@ export default function BookingManagement() {
 
                         <div className="mt-4 flex items-center justify-between gap-3">
                           <div className="space-y-1">
-                            <p className="flex items-center gap-2 text-xs font-black text-slate-800"><span className="material-symbols-outlined size-4 text-primary" >calendar_month</span> {booking.date || '-'}</p>
+                            <p className="flex items-center gap-2 text-xs font-black text-slate-800"><span className="material-symbols-outlined size-4" style={{ color: 'var(--theme-primary)' }} >calendar_month</span> {booking.date || '-'}</p>
                             <p className="flex items-center gap-2 text-[11px] font-bold text-slate-400"><span className="material-symbols-outlined size-4" >schedule</span> {booking.time || '-'}</p>
                           </div>
 
@@ -567,7 +600,8 @@ export default function BookingManagement() {
                                 aria-label={`Tolak booking ${booking.name || 'mahasiswa'}`}
                                 disabled={isUpdating}
                                 onClick={(e) => { e.stopPropagation(); handleAction(booking.id, 'Ditolak'); }}
-                                className="inline-flex size-10 items-center justify-center rounded-xl bg-rose-50 text-rose-600 transition-all active:scale-95 disabled:cursor-wait disabled:opacity-50"
+                                className="inline-flex size-10 items-center justify-center rounded-xl transition-all active:scale-95 disabled:cursor-wait disabled:opacity-50"
+                                style={{ backgroundColor: 'color-mix(in srgb, var(--theme-error) 10%, transparent)', color: 'var(--theme-error)' }}
                               >
                                 <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >close</span>
                               </button>
@@ -576,7 +610,8 @@ export default function BookingManagement() {
                                 aria-label={`Konfirmasi booking ${booking.name || 'mahasiswa'}`}
                                 disabled={isUpdating}
                                 onClick={(e) => { e.stopPropagation(); handleConfirmClick(booking); }}
-                                className="inline-flex size-10 items-center justify-center rounded-xl bg-primary text-white transition-all active:scale-95 disabled:cursor-wait disabled:opacity-50"
+                                className="inline-flex size-10 items-center justify-center rounded-xl transition-all active:scale-95 disabled:cursor-wait disabled:opacity-50"
+                                style={{ backgroundColor: 'var(--theme-primary)', color: 'white' }}
                               >
                                 <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >check_circle</span>
                               </button>
@@ -598,8 +633,8 @@ export default function BookingManagement() {
       {/* Zoom / Meeting Link Modal */}
       {showLinkModal && (
         <div className="fixed inset-0 z-[999] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white w-full max-w-md rounded-3xl shadow-xl overflow-hidden border border-slate-100 animate-in fade-in zoom-in-95 duration-200">
-            <div className="bg-primary px-6 py-5 text-white">
+          <div className="w-full max-w-md rounded-3xl shadow-xl overflow-hidden border animate-in fade-in zoom-in-95 duration-200" style={{ backgroundColor: 'var(--theme-surface)', borderColor: 'var(--theme-border)' }}>
+            <div className="px-6 py-5 text-white" style={{ backgroundColor: 'var(--theme-primary)' }}>
               <h3 className="text-lg font-black uppercase tracking-tight font-headline">Konfirmasi Sesi Online</h3>
               <p className="text-xs text-white/70 mt-1">Sesi ini diajukan secara Online. Harap masukkan link Zoom atau Google Meet untuk mahasiswa.</p>
             </div>
@@ -611,21 +646,24 @@ export default function BookingManagement() {
                   placeholder="https://zoom.us/j/... atau https://meet.google.com/..."
                   value={meetingLink}
                   onChange={(e) => setMeetingLink(e.target.value)}
-                  className="h-11 w-full rounded-2xl border border-slate-200 px-4 text-xs font-bold text-slate-700 outline-none transition-all placeholder:text-slate-400 focus:border-primary focus:ring-4 focus:ring-primary/5"
+                  className="h-11 w-full rounded-2xl border px-4 text-xs font-bold outline-none transition-all placeholder:text-slate-400 focus:border-[var(--theme-primary)] focus:ring-4 focus:ring-[var(--theme-primary)/5]"
+                  style={{ borderColor: 'var(--theme-border)', backgroundColor: 'var(--theme-bg)', color: 'var(--theme-text)' }}
                 />
               </div>
               <div className="flex gap-3 pt-2">
                 <button
                   type="button"
                   onClick={() => { setShowLinkModal(false); setPendingConfirmId(null); }}
-                  className="flex-1 py-3 rounded-2xl border border-slate-200 text-slate-500 text-xs font-black uppercase tracking-widest hover:bg-slate-50 transition-colors"
+                  className="flex-1 py-3 rounded-2xl border text-xs font-black uppercase tracking-widest transition-colors"
+                  style={{ borderColor: 'var(--theme-border)', color: 'var(--theme-text-muted)' }}
                 >
                   Batal
                 </button>
                 <button
                   type="button"
                   onClick={submitConfirmWithLink}
-                  className="flex-1 py-3 rounded-2xl bg-primary text-white text-xs font-black uppercase tracking-widest hover:bg-primary/95 transition-all shadow-sm"
+                  className="flex-1 py-3 rounded-2xl text-white text-xs font-black uppercase tracking-widest hover:opacity-90 transition-all shadow-sm"
+                  style={{ backgroundColor: 'var(--theme-primary)' }}
                 >
                   Konfirmasi
                 </button>

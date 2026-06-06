@@ -9,9 +9,9 @@ import {
 } from "lucide-react"
 import api from "../../lib/axios"
 import { cn } from "@/lib/utils"
-import { Button } from "./components/button"
-import { Input } from "./components/input"
-import { Label } from "./components/label"
+import { Button } from "@/components/ui/Button"
+import { Input } from "@/components/ui/Input"
+import { Label } from "@/components/ui/Label"
 
 export default function Settings() {
   const [loading, setLoading]       = useState(true)

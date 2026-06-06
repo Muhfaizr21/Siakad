@@ -1,17 +1,17 @@
 "use client"
 
 import React, { useState, useEffect, useMemo } from 'react'
-import { Badge } from './components/ui/badge'
-import { Button } from './components/ui/button'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from './components/ui/dialog'
-import { DeleteConfirmModal } from './components/ui/DeleteConfirmModal'
-import { Input } from './components/ui/input'
-import { Label } from './components/ui/label'
+import { Badge } from '@/components/ui/Badge'
+import { Button } from '@/components/ui/Button'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/Dialog'
+import { DeleteConfirmModal } from '@/components/ui/DeleteConfirmModal'
+import { Input } from '@/components/ui/Input'
+import { Label } from '@/components/ui/Label'
 
 import { toast, Toaster } from 'react-hot-toast'
 import { cn } from '@/lib/utils'
 import { adminService } from '../../services/api'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './components/ui/select'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/Select'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts"
 
 // Auto-injected Material Symbol fallbacks for removed Lucide icons

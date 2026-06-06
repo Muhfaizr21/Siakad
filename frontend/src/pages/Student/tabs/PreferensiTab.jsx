@@ -4,8 +4,8 @@ import api from '../../../lib/axios';
 import { toast } from 'react-hot-toast';
 
 
-import { Switch } from '../../../components/ui/Switch';
-import { Label } from '../../../components/ui/Label';
+import { Switch } from '@/components/ui/Switch';
+import { Label } from '@/components/ui/Label';
 
 const NOTIF_CATEGORIES = [
   { id: 'EmailAchievement', label: 'Prestasi', desc: 'Update verifikasi dan penolakan laporan prestasi.', icon: 'emoji_events', color: 'text-bku-primary bg-[#EAF1FF]' },

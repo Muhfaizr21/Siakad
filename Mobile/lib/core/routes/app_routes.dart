@@ -20,6 +20,11 @@ import 'package:bkuhub_mobile/features/counseling/presentation/pages/psychologis
 import 'package:bkuhub_mobile/features/counseling/presentation/pages/psychologist_notifications_screen.dart';
 import 'package:bkuhub_mobile/features/mahasiswa/health/presentation/pages/health_screen.dart';
 import 'package:bkuhub_mobile/features/counseling/presentation/pages/referral_management_screen.dart';
+import 'package:bkuhub_mobile/features/tenaga_kesehatan/presentation/pages/tk_main_screen.dart';
+import 'package:bkuhub_mobile/features/tenaga_kesehatan/presentation/pages/tk_add_schedule_screen.dart';
+import 'package:bkuhub_mobile/features/tenaga_kesehatan/presentation/pages/tk_patient_detail_screen.dart';
+import 'package:bkuhub_mobile/features/tenaga_kesehatan/presentation/pages/tk_screening_input_screen.dart';
+import 'package:bkuhub_mobile/features/tenaga_kesehatan/presentation/pages/tk_qr_scan_screen.dart';
 
 class AppRoutes {
   static const String splash = '/';
@@ -29,7 +34,8 @@ class AppRoutes {
   static const String organisasi = '/organisasi';
   static const String health = '/health';
   static const String psychologistMain = '/psychologist';
-  
+  static const String tkMain = '/tenagakes';
+
   // Counseling Routes
   static const String psychologistAnalytics = '/counseling/analytics';
   static const String createReferral = '/counseling/referrals/create';
@@ -42,7 +48,13 @@ class AppRoutes {
   static const String patientList = '/counseling/patients';
   static const String psychologistEditProfile = '/counseling/edit-profile';
   static const String referralManagement = '/counseling/referrals';
-  
+
+  // TK (Tenaga Kesehatan) Routes
+  static const String tkAddSchedule = '/tk/add-schedule';
+  static const String tkPatientDetail = '/tk/patient';
+  static const String tkScreening = '/tk/screening';
+  static const String tkQrScan = '/tk/qr-scan';
+
   // Notification Routes
   static const String studentNotifications = '/notifications/student';
   static const String ormawaNotifications = '/notifications/ormawa';
@@ -137,7 +149,7 @@ class AppRoutes {
         path: sessionNote,
         builder: (context, state) {
           final studentName = state.uri.queryParameters['name'] ?? 'Mahasiswa';
-          final studentId = state.uri.queryParameters['id'] ?? '000000';
+          final studentId = state.uri.queryParameters['studentId'] ?? '000000';
           return SessionNoteScreen(studentName: studentName, studentId: studentId);
         },
       ),
@@ -148,6 +160,38 @@ class AppRoutes {
       GoRoute(
         path: referralManagement,
         builder: (context, state) => const ReferralManagementScreen(),
+      ),
+      // TK (Tenaga Kesehatan) Routes
+      GoRoute(
+        path: tkMain,
+        builder: (context, state) {
+          final tabStr = state.uri.queryParameters['tab'];
+          final initialTab = int.tryParse(tabStr ?? '0') ?? 0;
+          return TkMainScreen(initialTab: initialTab);
+        },
+      ),
+      GoRoute(
+        path: tkAddSchedule,
+        builder: (context, state) => const TkAddScheduleScreen(),
+      ),
+      GoRoute(
+        path: '/tk/patient/:id',
+        builder: (context, state) {
+          final patientId = int.tryParse(state.pathParameters['id'] ?? '0') ?? 0;
+          return TkPatientDetailScreen(patientId: patientId);
+        },
+      ),
+      GoRoute(
+        path: tkScreening,
+        builder: (context, state) {
+          final patientIdStr = state.uri.queryParameters['patient_id'];
+          final patientId = patientIdStr != null ? int.tryParse(patientIdStr) : null;
+          return TkScreeningInputScreen(patientId: patientId);
+        },
+      ),
+      GoRoute(
+        path: tkQrScan,
+        builder: (context, state) => const TkQrScanScreen(),
       ),
     ],
   );

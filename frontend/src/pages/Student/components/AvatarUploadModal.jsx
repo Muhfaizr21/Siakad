@@ -12,7 +12,7 @@ import Dialog, {
   DialogTitle,
   DialogDescription,
   DialogClose
-} from '../../../components/ui/Dialog';
+} from '@/components/ui/Dialog';
 
 // Auto-injected Material Symbol fallbacks for removed Lucide icons
 const Minus = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>remove</span>;

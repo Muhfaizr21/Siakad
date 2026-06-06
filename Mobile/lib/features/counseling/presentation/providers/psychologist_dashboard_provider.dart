@@ -81,4 +81,30 @@ class PsychologistDashboardProvider extends ChangeNotifier {
   void refresh() {
     loadDashboardData();
   }
+
+  // Computed getters for dashboard screen compatibility
+  int get upcomingAppointments => _confirmedCount;
+  int get completedToday => _stats.isNotEmpty ? (_stats.first['completed_today'] ?? 0) : 0;
+  int get newToday => _stats.isNotEmpty ? (_stats.first['new_today'] ?? 0) : 0;
+  int get completedThisMonth => _stats.isNotEmpty ? (_stats.first['completed_month'] ?? 0) : 0;
+
+  // Profile update methods
+  Future<void> updateProfileData(Map<String, dynamic> data) async {
+    try {
+      await _repository.updateProfile(data);
+      await loadDashboardData();
+    } catch (e) {
+      log('Error updating psychologist profile: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> changePassword(String oldPassword, String newPassword, String confirmPassword) async {
+    try {
+      await _repository.changePassword(oldPassword, newPassword, confirmPassword);
+    } catch (e) {
+      log('Error changing password: $e');
+      rethrow;
+    }
+  }
 }

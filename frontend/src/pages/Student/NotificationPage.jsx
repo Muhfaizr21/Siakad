@@ -6,16 +6,16 @@ import { NavLink } from 'react-router-dom';
 import { format, isToday, isYesterday, isThisWeek, parseISO } from 'date-fns';
 import { id } from 'date-fns/locale';
 import { toast } from 'react-hot-toast';
-import { Tabs, TabsList, TabsTrigger } from '../../components/ui/Tabs';
-import { NotifListSkeleton } from '../../components/ui/SkeletonGroups';
-import EmptyState from '../../components/ui/EmptyState';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/Tabs';
+import { NotifListSkeleton } from '@/components/ui/SkeletonGroups';
+import EmptyState from '@/components/ui/EmptyState';
 import { 
   Select, 
   SelectContent, 
   SelectItem, 
   SelectTrigger, 
   SelectValue 
-} from '../../components/ui/Select';
+} from '@/components/ui/Select';
 
 const CATEGORY_ICONS = {
   achievement: <span className="material-symbols-outlined text-bku-primary" style={{ fontSize: '18px' }}>emoji_events</span>,

@@ -5,9 +5,9 @@ import { adminService } from '../../services/api'
 import { toast, Toaster } from 'react-hot-toast'
 
 import { cn } from '@/lib/utils'
-import { Card, CardContent } from './components/ui/card'
-import { Button } from './components/ui/button'
-import { Badge } from './components/ui/badge'
+import { Card, CardContent } from '@/components/ui/Card'
+import { Button } from '@/components/ui/Button'
+import { Badge } from '@/components/ui/Badge'
 
 // Auto-injected Material Symbol fallbacks for removed Lucide icons
 const RefreshCcw = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>sync</span>;

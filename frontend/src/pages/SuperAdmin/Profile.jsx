@@ -6,11 +6,11 @@ import api from '../../lib/axios'
 import { toast, Toaster } from 'react-hot-toast'
 import useAuthStore from '../../store/useAuthStore'
 import { cn } from '@/lib/utils'
-import { Card, CardContent } from './components/ui/card'
-import { Button } from './components/ui/button'
-import { Input } from './components/ui/input'
-import { Label } from './components/ui/label'
-import { Avatar, AvatarFallback } from './components/ui/avatar'
+import { Card, CardContent } from '@/components/ui/Card'
+import { Button } from '@/components/ui/Button'
+import { Input } from '@/components/ui/Input'
+import { Label } from '@/components/ui/Label'
+import { Avatar, AvatarFallback } from '@/components/ui/Avatar'
 
 // Auto-injected Material Symbol fallbacks for removed Lucide icons
 const Camera = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>photo_camera</span>;

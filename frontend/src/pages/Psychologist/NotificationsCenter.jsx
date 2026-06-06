@@ -100,7 +100,7 @@ export default function NotificationsCenter() {
   return (
     <>
       <div className="w-full relative space-y-6 scroll-smooth">
-          <section className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm lg:p-5">
+          <section className="rounded-2xl border p-5 shadow-sm lg:p-5" style={{ backgroundColor: 'var(--theme-surface)', borderColor: 'var(--theme-border)' }}>
             <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
               <div>
                 <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-primary/10 bg-primary/5 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-primary">
@@ -146,7 +146,7 @@ export default function NotificationsCenter() {
           <section className="mx-auto max-w-4xl space-y-4">
             {loading
               ? Array.from({ length: 3 }).map((_, index) => (
-                  <div key={index} className="h-28 animate-pulse rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
+                  <div key={index} className="h-28 animate-pulse rounded-2xl border p-5 shadow-sm" style={{ backgroundColor: 'var(--theme-surface)', borderColor: 'var(--theme-border)' }}>
                     <div className="mb-4 h-4 w-44 rounded bg-slate-100" />
                     <div className="h-3 w-3/4 rounded bg-slate-100" />
                   </div>
@@ -156,9 +156,10 @@ export default function NotificationsCenter() {
                   return (
                     <article
                       key={noti.id}
-                      className={`group relative flex items-start gap-4 rounded-2xl border bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md sm:gap-5 sm:p-5 ${
-                        noti.unread ? 'border-primary/20' : 'border-slate-100 opacity-85'
+                      className={`group relative flex items-start gap-4 rounded-2xl border p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md sm:gap-5 sm:p-5 ${
+                        noti.unread ? 'border-primary/20' : 'border-[var(--theme-border)] opacity-85'
                       }`}
+                      style={{ backgroundColor: 'var(--theme-surface)' }}
                     >
                       {noti.unread && <span className="absolute left-3 top-1/2 size-2 -translate-y-1/2 rounded-full bg-primary shadow-lg shadow-primary/40" />}
 
@@ -204,7 +205,7 @@ export default function NotificationsCenter() {
                 })}
 
             {!loading && notifications.length === 0 && (
-              <div className="rounded-2xl border border-dashed border-slate-200 bg-white p-10 text-center shadow-sm">
+              <div className="rounded-2xl border border-dashed p-10 text-center shadow-sm" style={{ backgroundColor: 'var(--theme-surface)', borderColor: 'var(--theme-border)' }}>
                 <span className="material-symbols-outlined mx-auto mb-3 text-slate-300" style={{ fontSize: '34px' }} >notifications</span>
                 <p className="text-sm font-black uppercase tracking-widest text-slate-500">Belum ada notifikasi</p>
                 <p className="mt-1 text-xs font-semibold text-slate-400">Notifikasi baru akan muncul dari tabel `psikolog.notifications`.</p>

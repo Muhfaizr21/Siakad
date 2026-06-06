@@ -52,6 +52,8 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
         context.go(AppRoutes.ormawaMain);
       } else if (authService.currentRole == UserRole.psychologist) {
         context.go(AppRoutes.psychologistMain);
+      } else if (authService.currentRole == UserRole.tenagaKesehatan) {
+        context.go(AppRoutes.tkMain);
       } else {
         context.go(AppRoutes.studentMain);
       }

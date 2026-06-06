@@ -35,6 +35,15 @@ export function DialogHeader({ className = '', ...props }) {
   );
 }
 
+export function DialogFooter({ className = '', ...props }) {
+  return (
+    <div
+      className={`flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2 ${className}`}
+      {...props}
+    />
+  );
+}
+
 export function DialogTitle({ className = '', ...props }) {
   return (
     <h2
@@ -94,3 +103,5 @@ export default function Dialog({ open, onOpenChange, children }) {
     </>
   );
 }
+
+export { Dialog };

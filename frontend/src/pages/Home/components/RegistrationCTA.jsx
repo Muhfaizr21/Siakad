@@ -49,27 +49,27 @@ export default function RegistrationCTA() {
           {channels.map((ch, i) => (
             <div
               key={i}
-              className="flex flex-col justify-between rounded-3xl p-8 transition-all duration-300 group"
+              className="flex flex-col justify-between rounded-3xl p-8 transition-all duration-300 group shadow-md"
               style={{
-                backgroundColor: 'color-mix(in srgb, var(--theme-surface) 2%, transparent)',
-                border: '1px solid color-mix(in srgb, var(--theme-text-on-primary) 5%, transparent)'
+                backgroundColor: 'var(--theme-surface)',
+                border: '1px solid var(--theme-border)'
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = 'color-mix(in srgb, var(--theme-secondary) 5%, transparent)';
-                e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--theme-secondary) 30%, transparent)';
+                e.currentTarget.style.borderColor = 'var(--theme-secondary)';
+                e.currentTarget.style.transform = 'translateY(-4px)';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = 'color-mix(in srgb, var(--theme-surface) 2%, transparent)';
-                e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--theme-text-on-primary) 5%, transparent)';
+                e.currentTarget.style.borderColor = 'var(--theme-border)';
+                e.currentTarget.style.transform = 'none';
               }}
             >
               <div className="space-y-6">
                 {/* Icon Wrap */}
                 <div className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 transition-transform duration-300 group-hover:scale-105"
                   style={{
-                    backgroundColor: 'color-mix(in srgb, var(--theme-secondary) 10%, transparent)',
-                    border: '1px solid color-mix(in srgb, var(--theme-secondary) 20%, transparent)',
-                    color: 'var(--theme-secondary)'
+                    backgroundColor: 'color-mix(in srgb, var(--theme-primary) 10%, transparent)',
+                    border: '1px solid color-mix(in srgb, var(--theme-primary) 20%, transparent)',
+                    color: 'var(--theme-primary)'
                   }}
                 >
                   <ch.icon className="size-5" />
@@ -78,10 +78,10 @@ export default function RegistrationCTA() {
                 {/* Title & Desc */}
                 <div className="space-y-2">
                   <div>
-                    <span className="font-bold text-[10px] uppercase tracking-wider block mb-1" style={{ color: 'var(--theme-secondary)' }}>{ch.subtitle}</span>
-                    <h3 className="text-base sm:text-lg font-extrabold font-headline leading-snug" style={{ color: 'var(--theme-text-on-primary)' }}>{ch.title}</h3>
+                    <span className="font-bold text-[10px] uppercase tracking-wider block mb-1" style={{ color: 'var(--theme-primary)' }}>{ch.subtitle}</span>
+                    <h3 className="text-base sm:text-lg font-extrabold font-headline leading-snug" style={{ color: 'var(--theme-text)' }}>{ch.title}</h3>
                   </div>
-                  <p className="text-xs sm:text-sm font-light leading-relaxed" style={{ color: 'var(--theme-muted-on-primary)' }}>
+                  <p className="text-xs sm:text-sm font-light leading-relaxed" style={{ color: 'var(--theme-text-muted)' }}>
                     {ch.desc}
                   </p>
                 </div>
@@ -89,11 +89,11 @@ export default function RegistrationCTA() {
 
               {/* Action */}
               <div className="pt-6 mt-6 flex items-center justify-between"
-                style={{ borderTop: '1px solid color-mix(in srgb, var(--theme-text-on-primary) 5%, transparent)' }}
+                style={{ borderTop: '1px solid var(--theme-border-muted)' }}
               >
-                <span className="text-[10px] uppercase tracking-widest font-bold" style={{ color: 'var(--theme-muted-on-primary)' }}>PMB 2025/2026</span>
+                <span className="text-[10px] uppercase tracking-widest font-bold" style={{ color: 'var(--theme-text-muted)' }}>PMB 2025/2026</span>
                 <Link to="/login" className="text-xs font-bold flex items-center gap-1 transition-colors"
-                  style={{ color: 'var(--theme-secondary)' }}
+                  style={{ color: 'var(--theme-primary)' }}
                 >
                   Pilih Jalur <ArrowRight className="size-3.5" />
                 </Link>

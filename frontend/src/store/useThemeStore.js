@@ -62,9 +62,10 @@ const generateColors = (t) => {
   const textOnPrimary = getAutoTextColor(primary, 0.6);
   const mutedOnPrimary = getMutedColor(textOnPrimary);
 
-  // Sidebar (always dark)
-  const sidebarBg = primary;
-  const sidebarText = '#FFFFFF';
+  // Sidebar
+  const sidebarBg = t.sidebar_bg_color || primary;
+  const sidebarText = t.sidebar_text_color || '#FFFFFF';
+  const sidebarTextMuted = t.sidebar_text_muted_color || '#E2E8F0';
 
   return {
     primary,
@@ -94,7 +95,7 @@ const generateColors = (t) => {
     // Sidebar
     sidebarBg,
     sidebarText,
-    sidebarTextMuted: '#E2E8F0',
+    sidebarTextMuted,
 
     // Border
     border: t.color_border || '#E2E8F0',

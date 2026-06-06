@@ -32,10 +32,10 @@ export default function ScholarshipDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#fafafa]">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
-          <span className="material-symbols-outlined animate-spin text-[#00236F] mx-auto mb-4" style={{ fontSize: '48px' }} >sync</span>
-          <p className="text-sm font-black text-[#a3a3a3] uppercase tracking-widest">Memuat Progress...</p>
+          <span className="material-symbols-outlined animate-spin text-primary mx-auto mb-4" style={{ fontSize: '48px' }} >sync</span>
+          <p className="text-sm font-black text-text-muted uppercase tracking-widest">Memuat Progress...</p>
         </div>
       </div>
     );
@@ -108,14 +108,14 @@ export default function ScholarshipDetailPage() {
   const isFinal = pengajuanStatus.toLowerCase() === 'diterima' || pengajuanStatus.toLowerCase() === 'ditolak';
 
   return (
-    <div className="px-4 py-5 md:px-6 md:py-6 lg:px-8 lg:py-8 font-body text-[#171717] min-h-screen bg-[#fafafa]">
+    <div className="px-4 py-5 md:px-6 md:py-6 lg:px-8 lg:py-8 font-body text-bku-text min-h-screen bg-transparent">
       
       {/* Header */}
       <button 
         onClick={() => navigate('/student/scholarship')}
-        className="group flex items-center gap-2 mb-8 text-[#a3a3a3] hover:text-[#171717] font-black uppercase tracking-widest text-[10px] transition-all"
+        className="group flex items-center gap-2 mb-8 text-text-muted hover:text-bku-text font-black uppercase tracking-widest text-[10px] transition-all"
       >
-        <div className="w-8 h-8 rounded-xl border border-[#e5e5e5] group-hover:border-black flex items-center justify-center transition-all">
+        <div className="w-8 h-8 rounded-xl border border-border group-hover:border-primary flex items-center justify-center transition-all">
           <ArrowLeft size={16} />
         </div>
         Kembali ke Dashboard
@@ -130,58 +130,58 @@ export default function ScholarshipDetailPage() {
           <motion.div 
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-white rounded-2xl p-5 md:p-6 border border-[#e5e5e5] shadow-sm relative overflow-hidden"
+            className="bg-surface rounded-2xl p-5 md:p-6 border border-border shadow-sm relative overflow-hidden"
           >
-            <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-[#eef4ff] to-transparent -mr-32 -mt-32 rounded-full blur-3xl opacity-60" />
+            <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-primary/5 to-transparent -mr-32 -mt-32 rounded-full blur-3xl opacity-60" />
             
             <div className="flex flex-col md:flex-row justify-between gap-6 relative z-10">
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-2">
-                    <div className="w-2 h-2 rounded-full bg-[#00236F] animate-pulse" />
-                   <span className="text-[10px] font-black text-[#00236F] uppercase tracking-widest leading-none">Tracking Real-time</span>
+                    <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+                   <span className="text-[10px] font-black text-primary uppercase tracking-widest leading-none">Tracking Real-time</span>
                 </div>
                  <div className="flex flex-wrap items-center gap-3 mb-1">
                    <h1 className="text-2xl md:text-3xl font-black font-headline tracking-tighter">{beasiswaNama}</h1>
                    <div className={`px-3.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border shadow-sm ${
-                     pengajuanStatus.toLowerCase() === 'diterima' ? 'bg-green-50 border-green-200 text-green-600' : 
-                     pengajuanStatus.toLowerCase() === 'ditolak' ? 'bg-red-50 border-red-200 text-red-600' :
-                      'bg-[#eef4ff] border-[#c9d8ff] text-[#00236F]'
+                     pengajuanStatus.toLowerCase() === 'diterima' ? 'bg-success/15 border-success/30 text-success' : 
+                     pengajuanStatus.toLowerCase() === 'ditolak' ? 'bg-error/15 border-error/30 text-error' :
+                      'bg-primary/10 border-primary/20 text-primary'
                    }`}>
                      {pengajuanStatus.replace('_', ' ')}
                    </div>
                  </div>
-                 <p className="text-[11px] font-bold text-[#a3a3a3] uppercase tracking-[0.2em]">{beasiswaPenyelenggara}</p>
+                 <p className="text-[11px] font-bold text-text-muted uppercase tracking-[0.2em]">{beasiswaPenyelenggara}</p>
                 
                 <div className="flex flex-wrap items-center gap-4 mt-6">
-                  <div className="px-4 py-2 bg-[#fafafa] rounded-2xl border border-[#e5e5e5] flex items-center gap-2">
-                    <Zap size={14} className="text-[#00236F]" />
-                    <span className="text-xs font-black text-[#525252]">{pengajuan.nomor_referensi || pengajuanId}</span>
+                  <div className="px-4 py-2 bg-background rounded-2xl border border-border flex items-center gap-2">
+                    <Zap size={14} className="text-primary" />
+                    <span className="text-xs font-black text-text-muted">{pengajuan.nomor_referensi || pengajuanId}</span>
                   </div>
-                  <div className="px-4 py-2 bg-[#fafafa] rounded-2xl border border-[#e5e5e5] flex items-center gap-2">
-                    <span className="material-symbols-outlined text-[#a3a3a3]" style={{ fontSize: '14px' }} >calendar_month</span>
-                    <span className="text-xs font-bold text-[#525252]">Terdaftar: {new Date(pengajuanCreatedAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+                  <div className="px-4 py-2 bg-background rounded-2xl border border-border flex items-center gap-2">
+                    <span className="material-symbols-outlined text-text-muted" style={{ fontSize: '14px' }} >calendar_month</span>
+                    <span className="text-xs font-bold text-text-muted">Terdaftar: {new Date(pengajuanCreatedAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
                   </div>
                 </div>
 
                 {/* Summary Grid */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
-                  <div className="p-4 bg-[#fafafa] rounded-2xl border border-[#e5e5e5]">
-                    <p className="text-[9px] font-black text-[#a3a3a3] uppercase tracking-widest mb-1">Nilai Bantuan</p>
-                    <p className="text-sm font-black text-[#00236F]">
+                  <div className="p-4 bg-background rounded-2xl border border-border">
+                    <p className="text-[9px] font-black text-text-muted uppercase tracking-widest mb-1">Nilai Bantuan</p>
+                    <p className="text-sm font-black text-primary">
                       {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(beasiswaNilaiBantuan)}
                     </p>
                   </div>
-                  <div className="p-4 bg-[#fafafa] rounded-2xl border border-[#e5e5e5]">
-                    <p className="text-[9px] font-black text-[#a3a3a3] uppercase tracking-widest mb-1">Min. IPK</p>
-                    <p className="text-sm font-black text-[#171717]">{beasiswaIpkMin?.toFixed(2) || '0.00'}</p>
+                  <div className="p-4 bg-background rounded-2xl border border-border">
+                    <p className="text-[9px] font-black text-text-muted uppercase tracking-widest mb-1">Min. IPK</p>
+                    <p className="text-sm font-black text-bku-text">{beasiswaIpkMin?.toFixed(2) || '0.00'}</p>
                   </div>
-                  <div className="p-4 bg-[#fafafa] rounded-2xl border border-[#e5e5e5]">
-                    <p className="text-[9px] font-black text-[#a3a3a3] uppercase tracking-widest mb-1">Status Ekonomi</p>
-                    <p className="text-sm font-black text-[#171717]">{beasiswaKategori?.toLowerCase()?.includes('sktm') || beasiswaKategori === 'Ekonomi' ? 'Wajib SKTM' : 'Umum'}</p>
+                  <div className="p-4 bg-background rounded-2xl border border-border">
+                    <p className="text-[9px] font-black text-text-muted uppercase tracking-widest mb-1">Status Ekonomi</p>
+                    <p className="text-sm font-black text-bku-text">{beasiswaKategori?.toLowerCase()?.includes('sktm') || beasiswaKategori === 'Ekonomi' ? 'Wajib SKTM' : 'Umum'}</p>
                   </div>
-                  <div className="p-4 bg-[#fafafa] rounded-2xl border border-[#e5e5e5]">
-                    <p className="text-[9px] font-black text-[#a3a3a3] uppercase tracking-widest mb-1">Kategori</p>
-                    <p className="text-sm font-black text-[#171717]">{beasiswaKategori || '-'}</p>
+                  <div className="p-4 bg-background rounded-2xl border border-border">
+                    <p className="text-[9px] font-black text-text-muted uppercase tracking-widest mb-1">Kategori</p>
+                    <p className="text-sm font-black text-bku-text">{beasiswaKategori || '-'}</p>
                   </div>
                 </div>
               </div>
@@ -190,15 +190,15 @@ export default function ScholarshipDetailPage() {
 
             {/* PIPELINE STEPPER (Vertical) */}
             <div className="mt-8 space-y-2">
-              <h3 className="text-xs font-black text-[#a3a3a3] uppercase tracking-[0.3em] mb-8">Pipeline Seleksi</h3>
+              <h3 className="text-xs font-black text-text-muted uppercase tracking-[0.3em] mb-8">Pipeline Seleksi</h3>
               
               <div className="relative">
                 {/* Connecting Line */}
-                <div className="absolute left-6 top-8 bottom-8 w-1 bg-[#f5f5f5]">
+                <div className="absolute left-6 top-8 bottom-8 w-1 bg-border-muted">
                    <motion.div 
                      initial={{ height: 0 }}
                      animate={{ height: `${(currentStageIdx / (STAGES.length - 1)) * 100}%` }}
-                     className="w-full bg-[#00236F] relative transition-all duration-1000"
+                     className="w-full bg-primary relative transition-all duration-1000"
                     />
                 </div>
 
@@ -212,39 +212,39 @@ export default function ScholarshipDetailPage() {
                       <div key={s.key} className="flex gap-10 relative items-start group">
                          {/* Circle Indicator */}
                          <div className={`shrink-0 w-12 h-12 rounded-2xl flex items-center justify-center z-10 transition-all border-4 ${
-                           isCompleted ? 'bg-green-500 border-green-100 text-white shadow-lg shadow-green-100' :
-                           isActive ? (isRejected ? 'bg-red-500 border-red-100 text-white' : 'bg-[#00236F] border-[#dbe7ff] text-white shadow-md shadow-[#00236F]/20 scale-110') :
-                           'bg-white border-[#f5f5f5] text-[#d4d4d4]'
+                           isCompleted ? 'bg-success border-success/20 text-white shadow-lg shadow-success/10' :
+                           isActive ? (isRejected ? 'bg-error border-error-muted text-white shadow-lg' : 'bg-primary border-primary/25 text-white shadow-lg shadow-primary/20 scale-110') :
+                           'bg-surface border-border text-text-muted'
                           }`}>
                             {isCompleted ? <span className="material-symbols-outlined" style={{ fontSize: '24px' }} >check_circle</span> : (isRejected ? <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>close</span> : (idx + 1))}
                          </div>
-
+ 
                          <div className={`flex-1 transition-opacity ${!isCompleted && !isActive ? 'opacity-40' : 'opacity-100'}`}>
                             <div className="flex items-center gap-2 mb-1">
-                               <p className={`text-lg font-black tracking-tight ${isActive ? 'text-[#171717]' : 'text-[#525252]'}`}>{s.label}</p>
+                               <p className={`text-lg font-black tracking-tight ${isActive ? 'text-bku-text' : 'text-text-muted'}`}>{s.label}</p>
                                {isActive && !isFinal && (
                                  <span className="flex h-2 w-2 relative">
-                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
-                                    <span className="relative inline-flex rounded-full h-2 w-2 bg-orange-500"></span>
+                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-warning/75"></span>
+                                    <span className="relative inline-flex rounded-full h-2 w-2 bg-warning"></span>
                                  </span>
                                )}
                             </div>
-                            <p className="text-sm font-medium text-[#a3a3a3] leading-relaxed max-w-xl">{s.desc}</p>
+                            <p className="text-sm font-medium text-text-muted leading-relaxed max-w-xl">{s.desc}</p>
                             
                             {/* Log per stage (latest relevant log) */}
                             {isActive && logs?.length > 0 && (
                               <motion.div 
                                 initial={{ opacity: 0, x: -10 }} 
                                 animate={{ opacity: 1, x: 0 }}
-                                className="mt-4 p-5 bg-[#fafafa] rounded-[24px] border border-[#f5f5f5] flex gap-4"
+                                className="mt-4 p-5 bg-background rounded-[24px] border border-border flex gap-4"
                               >
-                                 <div className="p-2.5 bg-white rounded-xl shadow-sm border border-[#f5f5f5] text-[#00236F] shrink-0 h-fit">
+                                 <div className="p-2.5 bg-surface rounded-xl shadow-sm border border-border text-primary shrink-0 h-fit">
                                    <span className="material-symbols-outlined" style={{ fontSize: 20 }}>info</span>
                                  </div>
                                 <div>
-                                   <p className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-widest mb-1">Catatan Verifikator</p>
-                                   <p className="text-sm font-bold text-[#171717]">{logs[logs.length - 1].catatan_admin || 'Sedang dalam proses verifikasi substansi.'}</p>
-                                   <p className="text-[9px] font-bold text-[#d4d4d4] mt-2 uppercase tracking-tighter">Diperbarui: {new Date(logs[logs.length - 1].created_at).toLocaleString('id-ID')}</p>
+                                   <p className="text-[10px] font-black text-text-muted uppercase tracking-widest mb-1">Catatan Verifikator</p>
+                                   <p className="text-sm font-bold text-bku-text">{logs[logs.length - 1].catatan_admin || 'Sedang dalam proses verifikasi substansi.'}</p>
+                                   <p className="text-[9px] font-bold text-text-muted mt-2 uppercase tracking-tighter">Diperbarui: {new Date(logs[logs.length - 1].created_at).toLocaleString('id-ID')}</p>
                                 </div>
                               </motion.div>
                             )}
@@ -265,43 +265,43 @@ export default function ScholarshipDetailPage() {
           <motion.div 
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="bg-[#00236F] p-6 rounded-2xl text-white shadow-xl shadow-[#00236F]/20 relative overflow-hidden"
+            className="bg-primary p-6 rounded-2xl text-white shadow-xl shadow-primary/20 relative overflow-hidden"
           >
              <div className="absolute bottom-0 right-0 p-4 opacity-10">
                <Zap size={120} strokeWidth={1} />
              </div>
              <h4 className="text-[10px] font-black uppercase tracking-[0.4em] text-white/60 mb-5 flex items-center gap-2"><Sparkles size={14} className="text-[#dbe7ff]" /> Snapshot Motivasi</h4>
-             <p className="text-sm font-medium leading-relaxed italic opacity-80 line-clamp-[10] break-words">
+             <p className="text-sm font-medium leading-relaxed italic opacity-80 line-clamp-[10] break-words text-white">
                "{pengajuanMotivasi || 'tidak ada motivasi'}"
              </p>
           </motion.div>
 
           {/* Files List */}
-          <div className="bg-white p-6 rounded-2xl border border-[#e5e5e5] shadow-sm">
-             <h4 className="text-[10px] font-black uppercase tracking-[0.4em] text-[#a3a3a3] mb-5 flex items-center gap-2"><span className="material-symbols-outlined text-[#00236F]" style={{ fontSize: '16px' }} >description</span> Dokumen Pendaftaran</h4>
+          <div className="bg-surface p-6 rounded-2xl border border-border shadow-sm">
+             <h4 className="text-[10px] font-black uppercase tracking-[0.4em] text-text-muted mb-5 flex items-center gap-2"><span className="material-symbols-outlined text-primary" style={{ fontSize: '16px' }} >description</span> Dokumen Pendaftaran</h4>
              <div className="space-y-3">
                 {berkas?.length > 0 ? berkas.map(file => (
-                  <div key={file.id} className="group p-4 bg-[#fafafa] rounded-xl border border-[#f5f5f5] flex items-center justify-between hover:border-[#c9d8ff] transition-all">
+                  <div key={file.id} className="group p-4 bg-background rounded-xl border border-border flex items-center justify-between hover:border-primary/50 transition-all">
                     <div className="flex items-center gap-3">
-                       <div className="w-10 h-10 bg-white rounded-xl border border-[#e5e5e5] group-hover:border-[#c9d8ff] flex items-center justify-center text-[#a3a3a3] group-hover:text-[#00236F]">
+                       <div className="w-10 h-10 bg-surface rounded-xl border border-border group-hover:border-primary/50 flex items-center justify-center text-text-muted group-hover:text-primary">
                          <span className="material-symbols-outlined" style={{ fontSize: 18 }}>download</span>
                        </div>
                        <div>
-                         <p className="text-[10px] font-black uppercase tracking-widest text-[#171717]">{file.tipe_berkas}</p>
-                         <p className="text-[8px] font-bold text-[#a3a3a3]">PDF/JPG Document</p>
+                         <p className="text-[10px] font-black uppercase tracking-widest text-bku-text">{file.tipe_berkas}</p>
+                         <p className="text-[8px] font-bold text-text-muted">PDF/JPG Document</p>
                        </div>
                     </div>
                     <a 
                       href={file.file_url} 
                       target="_blank" 
                       rel="noreferrer"
-                      className="p-2 hover:bg-white rounded-lg text-[#a3a3a3] hover:text-[#171717] transition-all"
+                      className="p-2 hover:bg-surface rounded-lg text-text-muted hover:text-bku-text transition-all"
                     >
                       <ExternalLink size={16} />
                     </a>
                   </div>
                 )) : (
-                  <p className="text-xs text-[#a3a3a3] italic">Tidak ada berkas ditemukan.</p>
+                  <p className="text-xs text-text-muted italic">Tidak ada berkas ditemukan.</p>
                 )}
              </div>
           </div>
@@ -357,12 +357,12 @@ export default function ScholarshipDetailPage() {
           })()}
 
           {/* Verified Badge Header */}
-          <div className="bg-[#eef4ff] p-6 rounded-2xl border border-[#c9d8ff] flex flex-col items-center text-center">
-             <div className="w-16 h-16 bg-white rounded-[24px] flex items-center justify-center text-[#16a34a] shadow-xl shadow-green-100 mb-4">
+          <div className="bg-primary/5 p-6 rounded-2xl border border-primary/15 flex flex-col items-center text-center">
+             <div className="w-16 h-16 bg-surface rounded-[24px] flex items-center justify-center text-success border border-border shadow-sm mb-4">
                 <span className="material-symbols-outlined" style={{ fontSize: '32px' }}>security</span>
              </div>
-             <p className="text-sm font-black text-[#00236F] tracking-tight mb-1 uppercase">Sistem BKU Student Hub</p>
-             <p className="text-[10px] font-bold text-[#1E3A8A] opacity-80 uppercase tracking-widest">End-to-End Encryption & Verified Data</p>
+             <p className="text-sm font-black text-primary tracking-tight mb-1 uppercase">Sistem BKU Student Hub</p>
+             <p className="text-[10px] font-bold text-primary opacity-80 uppercase tracking-widest">End-to-End Encryption & Verified Data</p>
           </div>
 
         </div>

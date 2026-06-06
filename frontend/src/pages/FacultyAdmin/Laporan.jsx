@@ -707,11 +707,11 @@ export default function LaporanFakultasPage() {
               {isMounted && (
                 <ResponsiveContainer width="99%" height="100%" debounce={50}>
                   <BarChart data={data.perAngkatan} barGap={4}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9"/>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--theme-border)"/>
                     <XAxis dataKey="angkatan" axisLine={false} tickLine={false} tick={{fontSize:10,fontWeight:700}}/>
                     <YAxis axisLine={false} tickLine={false} tick={{fontSize:10,fontWeight:700}}/>
                     <Tooltip contentStyle={{borderRadius:'12px',border:'none',boxShadow:'0 10px 25px -5px rgba(0,0,0,.1)',fontSize:'11px',fontWeight:'bold'}} cursor={{fill:'#f8fafc'}}/>
-                    <Bar dataKey="aktif" name="Aktif" fill="#3b82f6" radius={[4,4,0,0]} barSize={20}/>
+                    <Bar dataKey="aktif" name="Aktif" fill="var(--theme-primary)" radius={[4,4,0,0]} barSize={20}/>
                     <Bar dataKey="lulus" name="Lulus" fill="#10b981" radius={[4,4,0,0]} barSize={20}/>
                   </BarChart>
                 </ResponsiveContainer>

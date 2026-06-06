@@ -5,10 +5,10 @@ import { toast, Toaster } from "react-hot-toast"
 import { cn } from "@/lib/utils"
 import api from "../../lib/axios"
 import { pddiktiService, API_BASE_URL } from "../../services/api"
-import { PageContainer, PageHeader, ResponsiveGrid, ResponsiveCard } from "./components/responsive-layout"
-import { DataTable } from "./components/data-table"
-import { Badge } from "./components/badge"
-import { DeleteConfirmModal } from "./components/DeleteConfirmModal"
+import { PageContainer, PageHeader, ResponsiveGrid, ResponsiveCard } from "@/components/ui/ResponsiveLayout"
+import { DataTable } from "@/components/ui/DataTable"
+import { Badge } from "@/components/ui/Badge"
+import { DeleteConfirmModal } from "@/components/ui/DeleteConfirmModal"
 
 // Auto-injected Material Symbol fallbacks for removed Lucide icons
 const RefreshCw = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>sync</span>;

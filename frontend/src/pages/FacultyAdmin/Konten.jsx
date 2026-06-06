@@ -2,13 +2,13 @@
 
 import React, { useState, useEffect } from "react"
 import axios from "axios"
-import { Button } from "./components/button"
-import { Badge } from "./components/badge"
-import { Input } from "./components/input"
-import { Textarea } from "./components/textarea"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "./components/tabs"
-import { DataTable } from "./components/data-table"
-import { DeleteConfirmModal } from "./components/DeleteConfirmModal"
+import { Button } from "@/components/ui/Button"
+import { Badge } from "@/components/ui/Badge"
+import { Input } from "@/components/ui/Input"
+import { Textarea } from "@/components/ui/Textarea"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/Tabs"
+import { DataTable } from "@/components/ui/DataTable"
+import { DeleteConfirmModal } from "@/components/ui/DeleteConfirmModal"
 import { toast, Toaster } from "react-hot-toast"
 import {
   Select,
@@ -16,13 +16,13 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "./components/select"
-import { Label } from "./components/label"
+} from "@/components/ui/Select"
+import { Label } from "@/components/ui/Label"
 import { cn } from "@/lib/utils"
-import { Modal, ModalBody, ModalFooter, ModalBtn } from "./components/Modal"
+import { Modal, ModalBody, ModalFooter, ModalBtn } from "@/components/ui/Modal"
 
 
-import { PageContainer, PageHeader, ResponsiveGrid, ResponsiveCard } from "./components/responsive-layout"
+import { PageContainer, PageHeader, ResponsiveGrid, ResponsiveCard } from "@/components/ui/ResponsiveLayout"
 import { API_BASE_URL } from "../../services/api"
 
 // Auto-injected Material Symbol fallbacks for removed Lucide icons

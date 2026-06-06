@@ -1,21 +1,21 @@
 "use client"
 
 import React, { useState, useEffect, useMemo } from 'react'
-import { DataTable } from './components/ui/data-table'
-import { Badge } from './components/ui/badge'
-import { Button } from './components/ui/button'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from './components/ui/dialog'
-import { DeleteConfirmModal } from './components/ui/DeleteConfirmModal'
-import { Card, CardContent } from './components/ui/card'
-import { Input } from './components/ui/input'
-import { Label } from './components/ui/label'
-import { Avatar, AvatarImage, AvatarFallback } from './components/ui/avatar'
+import { DataTable } from '@/components/ui/DataTable'
+import { Badge } from '@/components/ui/Badge'
+import { Button } from '@/components/ui/Button'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/Dialog'
+import { DeleteConfirmModal } from '@/components/ui/DeleteConfirmModal'
+import { Card, CardContent } from '@/components/ui/Card'
+import { Input } from '@/components/ui/Input'
+import { Label } from '@/components/ui/Label'
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/Avatar'
 
 
 import { toast, Toaster } from 'react-hot-toast'
 import { cn } from '@/lib/utils'
 import { adminService, API_BASE_URL } from '../../services/api'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './components/ui/select'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/Select'
 
 // Auto-injected Material Symbol fallbacks for removed Lucide icons
 const KeyRound = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>vpn_key</span>;

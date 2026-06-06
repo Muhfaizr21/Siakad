@@ -8,13 +8,13 @@ import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Legend
 } from 'recharts'
 
-import { Badge } from './components/ui/badge'
+import { Badge } from '@/components/ui/Badge'
 import { cn } from '@/lib/utils'
 import { toast, Toaster } from 'react-hot-toast'
-import { Card } from './components/ui/card'
-import { Button } from './components/ui/button'
-import { Input } from './components/ui/input'
-import { Label } from './components/ui/label'
+import { Card } from '@/components/ui/Card'
+import { Button } from '@/components/ui/Button'
+import { Input } from '@/components/ui/Input'
+import { Label } from '@/components/ui/Label'
 
 // Auto-injected Material Symbol fallbacks for removed Lucide icons
 const Filter = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>filter_alt</span>;

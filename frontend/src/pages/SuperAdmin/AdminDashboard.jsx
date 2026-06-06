@@ -811,11 +811,11 @@ if (statsRes.status === 'success') {
                       {activeChartData[hoveredIndex].name}
                     </span>
                     <div className="flex items-center gap-2 leading-none">
-                      <span className="w-2 h-2 rounded-full bg-bku-primary shrink-0 border border-white" />
+                      <span className="w-2 h-2 rounded-full shrink-0 border border-white" style={{ backgroundColor: 'var(--theme-primary)' }} />
                       <span>Aspirasi: {activeChartData[hoveredIndex].Aspirasi}</span>
                     </div>
                     <div className="flex items-center gap-2 leading-none">
-                      <span className="w-2 h-2 rounded-full bg-[#3b82f6] shrink-0 border border-white" />
+                      <span className="w-2 h-2 rounded-full shrink-0 border border-white" style={{ backgroundColor: 'var(--theme-secondary)' }} />
                       <span>Penyelesaian: {activeChartData[hoveredIndex].Penyelesaian}</span>
                     </div>
                   </div>
@@ -825,12 +825,12 @@ if (statsRes.status === 'success') {
                   <defs>
                     {/* Gradients for filled area under curves */}
                     <linearGradient id="areaAspirasi" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#00236f" stopOpacity="0.22" />
-                      <stop offset="100%" stopColor="#00236f" stopOpacity="0.00" />
+                      <stop offset="0%" stopColor="var(--theme-primary)" stopOpacity="0.22" />
+                      <stop offset="100%" stopColor="var(--theme-primary)" stopOpacity="0.00" />
                     </linearGradient>
                     <linearGradient id="areaPenyelesaian" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.22" />
-                      <stop offset="100%" stopColor="#3b82f6" stopOpacity="0.00" />
+                      <stop offset="0%" stopColor="var(--theme-secondary)" stopOpacity="0.22" />
+                      <stop offset="100%" stopColor="var(--theme-secondary)" stopOpacity="0.00" />
                     </linearGradient>
                   </defs>
 
@@ -841,9 +841,9 @@ if (statsRes.status === 'success') {
                     return (
                       <g key={v}>
                         {/* Grid Line */}
-                        <line x1="40" y1={y} x2={svgWidth - 20} y2={y} stroke="#cbd5e1" strokeOpacity="0.35" strokeWidth="1" />
+                        <line x1="40" y1={y} x2={svgWidth - 20} y2={y} stroke="var(--theme-border)" strokeOpacity="0.35" strokeWidth="1" />
                         {/* Y-Axis text */}
-                        <text x="10" y={y + 3} fill="#94a3b8" fontSize="9" fontWeight="normal" className="select-none">{v}</text>
+                        <text x="10" y={y + 3} fill="var(--theme-text-muted)" fontSize="9" fontWeight="normal" className="select-none">{v}</text>
                       </g>
                     );
                   })}
@@ -856,7 +856,7 @@ if (statsRes.status === 'success') {
                   <path 
                     d={getCurvePath(activeChartData, 'Aspirasi', svgWidth, svgHeight, 120)} 
                     fill="none" 
-                    stroke="#00236f" 
+                    stroke="var(--theme-primary)" 
                     strokeWidth="3.5" 
                     strokeLinecap="round" 
                     className="transition-all duration-500"
@@ -864,7 +864,7 @@ if (statsRes.status === 'success') {
                   <path 
                     d={getCurvePath(activeChartData, 'Penyelesaian', svgWidth, svgHeight, 120)} 
                     fill="none" 
-                    stroke="#3b82f6" 
+                    stroke="var(--theme-secondary)" 
                     strokeWidth="3.5" 
                     strokeLinecap="round" 
                     className="transition-all duration-500"
@@ -877,7 +877,7 @@ if (statsRes.status === 'success') {
                       y1={20}
                       x2={40 + (hoveredIndex * (svgWidth - 60)) / (activeChartData.length - 1)}
                       y2={svgHeight - 30}
-                      stroke="#94a3b8"
+                      stroke="var(--theme-text-muted)"
                       strokeDasharray="4 4"
                       strokeWidth="1.5"
                     />
@@ -891,12 +891,12 @@ if (statsRes.status === 'success') {
                     return (
                       <g>
                         {/* Aspirasi Glow Indicator */}
-                        <circle cx={x} cy={y1} r="10" fill="#00236f" fillOpacity="0.2" className="animate-ping" />
-                        <circle cx={x} cy={y1} r="5.5" fill="#00236f" stroke="white" strokeWidth="2.5" className="shadow-md" />
+                        <circle cx={x} cy={y1} r="10" fill="var(--theme-primary)" fillOpacity="0.2" className="animate-ping" />
+                        <circle cx={x} cy={y1} r="5.5" fill="var(--theme-primary)" stroke="white" strokeWidth="2.5" className="shadow-md" />
 
                         {/* Penyelesaian Glow Indicator */}
-                        <circle cx={x} cy={y2} r="10" fill="#3b82f6" fillOpacity="0.2" className="animate-ping" />
-                        <circle cx={x} cy={y2} r="5.5" fill="#3b82f6" stroke="white" strokeWidth="2.5" className="shadow-md" />
+                        <circle cx={x} cy={y2} r="10" fill="var(--theme-secondary)" fillOpacity="0.2" className="animate-ping" />
+                        <circle cx={x} cy={y2} r="5.5" fill="var(--theme-secondary)" stroke="white" strokeWidth="2.5" className="shadow-md" />
                       </g>
                     );
                   })()}

@@ -2,23 +2,23 @@
 
 import React, { useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { DataTable } from './components/ui/data-table'
-import { Badge } from './components/ui/badge'
-import { Button } from './components/ui/button'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from './components/ui/dialog'
-import { DeleteConfirmModal } from './components/ui/DeleteConfirmModal'
-import { Card, CardContent } from './components/ui/card'
-import { Input } from './components/ui/input'
-import { Label } from './components/ui/label'
-import { Textarea } from './components/ui/textarea'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from './components/ui/tabs'
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from './components/ui/select'
+import { DataTable } from '@/components/ui/DataTable'
+import { Badge } from '@/components/ui/Badge'
+import { Button } from '@/components/ui/Button'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/Dialog'
+import { DeleteConfirmModal } from '@/components/ui/DeleteConfirmModal'
+import { Card, CardContent } from '@/components/ui/Card'
+import { Input } from '@/components/ui/Input'
+import { Label } from '@/components/ui/Label'
+import { Textarea } from '@/components/ui/Textarea'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/Tabs'
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/Select'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts"
 
 import { toast, Toaster } from 'react-hot-toast'
 import { cn } from '@/lib/utils'
 import { adminService, API_BASE_URL } from '../../services/api'
-import { StatCard } from './components/ui/stat-card'
+import { StatCard } from '@/components/ui/StatCard'
 
 // Auto-injected Material Symbol fallbacks for removed Lucide icons
 const Award = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>emoji_events</span>;

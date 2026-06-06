@@ -25,8 +25,8 @@ const REFERRAL_STATUS_CONFIG = {
   default: { bg: 'bg-neutral-50', text: 'text-neutral-600', border: 'border-neutral-200' },
 };
 
-import { NotifListSkeleton } from '../../components/ui/SkeletonGroups';
-import EmptyState from '../../components/ui/EmptyState';
+import { NotifListSkeleton } from '@/components/ui/SkeletonGroups';
+import EmptyState from '@/components/ui/EmptyState';
 
 // Auto-injected Material Symbol fallbacks for removed Lucide icons
 const ArrowLeft = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>arrow_back</span>;

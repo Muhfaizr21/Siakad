@@ -1,14 +1,14 @@
 "use client"
 
 import React, { useState, useEffect } from 'react'
-import { Button } from '../FacultyAdmin/components/button'
-import { Card, CardContent } from '../FacultyAdmin/components/card'
-import { Input } from '../FacultyAdmin/components/input'
-import { Label } from '../FacultyAdmin/components/label'
-import { Textarea } from '../FacultyAdmin/components/textarea'
-import { Badge } from '../FacultyAdmin/components/badge'
-import { DataTable } from '../FacultyAdmin/components/data-table'
-import { Modal, ModalBody, ModalFooter, ModalBtn } from '../FacultyAdmin/components/Modal'
+import { Button } from '@/components/ui/Button'
+import { Card, CardContent } from '@/components/ui/Card'
+import { Input } from '@/components/ui/Input'
+import { Label } from '@/components/ui/Label'
+import { Textarea } from '@/components/ui/Textarea'
+import { Badge } from '@/components/ui/Badge'
+import { DataTable } from '@/components/ui/DataTable'
+import { Modal, ModalBody, ModalFooter, ModalBtn } from '@/components/ui/Modal'
 
 import { toast, Toaster } from 'react-hot-toast'
 import { fetchWithAuth, API_BASE_URL } from '../../services/api'

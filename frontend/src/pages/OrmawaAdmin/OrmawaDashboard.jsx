@@ -1,9 +1,9 @@
 "use client"
 
 import React, { useState, useEffect } from 'react'
-import { Badge } from '../FacultyAdmin/components/badge'
-import { Button } from '../FacultyAdmin/components/button'
-import { Card, CardContent } from '../FacultyAdmin/components/card'
+import { Badge } from '@/components/ui/Badge'
+import { Button } from '@/components/ui/Button'
+import { Card, CardContent } from '@/components/ui/Card'
 
 import { cn } from '@/lib/utils'
 import { useNavigate } from 'react-router-dom'

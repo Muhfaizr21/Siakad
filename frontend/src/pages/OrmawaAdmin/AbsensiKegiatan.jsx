@@ -1,12 +1,12 @@
 "use client"
 
 import React, { useState, useEffect } from 'react'
-import { DataTable } from '../FacultyAdmin/components/data-table'
-import { Badge } from '../FacultyAdmin/components/badge'
-import { Button } from '../FacultyAdmin/components/button'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../FacultyAdmin/components/dialog'
-import { Card, CardContent } from '../FacultyAdmin/components/card'
-import { Avatar, AvatarFallback } from '../FacultyAdmin/components/avatar'
+import { DataTable } from '@/components/ui/DataTable'
+import { Badge } from '@/components/ui/Badge'
+import { Button } from '@/components/ui/Button'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/Dialog'
+import { Card, CardContent } from '@/components/ui/Card'
+import { Avatar, AvatarFallback } from '@/components/ui/Avatar'
 
 import { toast, Toaster } from 'react-hot-toast'
 import { cn } from '@/lib/utils'

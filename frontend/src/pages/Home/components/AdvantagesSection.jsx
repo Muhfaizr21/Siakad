@@ -55,18 +55,18 @@ export default function AdvantagesSection() {
           {advantages.map((adv, i) => (
             <div
               key={i}
-              className="rounded-3xl p-8 flex flex-col justify-between transition-all duration-300 group"
+              className="rounded-3xl p-8 flex flex-col justify-between transition-all duration-300 group shadow-md"
               style={{
-                backgroundColor: 'color-mix(in srgb, var(--theme-surface) 5%, transparent)',
-                border: '1px solid color-mix(in srgb, var(--theme-text-on-primary) 10%, transparent)'
+                backgroundColor: 'var(--theme-surface)',
+                border: '1px solid var(--theme-border)'
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = 'color-mix(in srgb, var(--theme-secondary) 10%, transparent)';
-                e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--theme-secondary) 30%, transparent)';
+                e.currentTarget.style.borderColor = 'var(--theme-secondary)';
+                e.currentTarget.style.transform = 'translateY(-4px)';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = 'color-mix(in srgb, var(--theme-surface) 5%, transparent)';
-                e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--theme-text-on-primary) 10%, transparent)';
+                e.currentTarget.style.borderColor = 'var(--theme-border)';
+                e.currentTarget.style.transform = 'none';
               }}
             >
               <div className="space-y-6">
@@ -77,9 +77,9 @@ export default function AdvantagesSection() {
                   </div>
                   <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-colors"
                     style={{
-                      backgroundColor: 'color-mix(in srgb, var(--theme-surface) 5%, transparent)',
-                      color: 'var(--theme-muted-on-primary)',
-                      border: '1px solid color-mix(in srgb, var(--theme-text-on-primary) 5%, transparent)'
+                      backgroundColor: 'color-mix(in srgb, var(--theme-primary) 10%, transparent)',
+                      color: 'var(--theme-primary)',
+                      border: '1px solid color-mix(in srgb, var(--theme-primary) 20%, transparent)'
                     }}
                   >
                     <adv.icon className="size-4" />
@@ -88,10 +88,10 @@ export default function AdvantagesSection() {
 
                 {/* Title & Desc */}
                 <div className="space-y-2">
-                  <h3 className="text-sm sm:text-base font-bold font-headline" style={{ color: 'var(--theme-text-on-primary)' }}>
+                  <h3 className="text-sm sm:text-base font-bold font-headline" style={{ color: 'var(--theme-text)' }}>
                     {adv.title}
                   </h3>
-                  <p className="text-xs leading-relaxed font-light" style={{ color: 'var(--theme-muted-on-primary)' }}>
+                  <p className="text-xs leading-relaxed font-light" style={{ color: 'var(--theme-text-muted)' }}>
                     {adv.desc}
                   </p>
                 </div>

@@ -364,6 +364,26 @@ export default function PortalSidebar({ config, onNavigate }) {
         ))}
       </nav>
 
+      {/* ─── Master Hub Button for Super Admin ─── */}
+      {user?.role === 'super_admin' && !location.pathname.startsWith('/admin') && (
+        <div className="px-4 py-1.5 shrink-0">
+          <Link
+            to="/admin"
+            className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl font-bold text-[11px] hover:bg-white/10 active:scale-[0.98] transition-all"
+            style={{
+              color: 'var(--theme-secondary)',
+              backgroundColor: 'rgba(255,255,255,0.05)',
+              border: '1px solid rgba(255,255,255,0.1)'
+            }}
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>
+              arrow_back
+            </span>
+            <span className="truncate">Kembali ke Master Hub</span>
+          </Link>
+        </div>
+      )}
+
       {/* ─── Role Badge (if enabled) ─── */}
       {config.showRoleBadge && (
         <div className="px-4 py-3 shrink-0">

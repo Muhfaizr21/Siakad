@@ -2,8 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { useSearchParams, NavLink, useNavigate } from 'react-router-dom';
 import { fetchWithAuth, API_BASE_URL } from '../../services/api';
 import useAuthStore from '../../store/useAuthStore';
-import { Button } from '../FacultyAdmin/components/button';
-import { Card, CardContent } from '../FacultyAdmin/components/card';
+import { Button } from '@/components/ui/Button';
+import { Card, CardContent } from '@/components/ui/Card';
 import { toast, Toaster } from 'react-hot-toast';
 
 export default function PresensiPage() {

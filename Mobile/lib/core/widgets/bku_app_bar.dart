@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:bkuhub_mobile/core/theme/app_colors.dart';
 import 'package:bkuhub_mobile/core/theme/app_text_styles.dart';
 
-enum AppBarVariant { student, ormawa, secondary, psychologist }
+enum AppBarVariant { student, ormawa, secondary, psychologist, nakes }
 
 class BkuAppBar extends StatelessWidget {
   final String title;
@@ -427,6 +427,8 @@ class BkuAppBar extends StatelessWidget {
         return [AppColors.secondary, const Color(0xFFB48A00), AppColors.secondaryFixedDim];
       case AppBarVariant.psychologist:
         return [const Color(0xFF001A54), const Color(0xFF002068), const Color(0xFF003399)];
+      case AppBarVariant.nakes:
+        return [const Color(0xFF001A4D), const Color(0xFF003A6E), const Color(0xFF005B8A)];
     }
   }
 }
@@ -514,6 +516,8 @@ class BkuStaticAppBar extends StatelessWidget implements PreferredSizeWidget {
         return [AppColors.secondary, const Color(0xFFB48A00)];
       case AppBarVariant.psychologist:
         return [const Color(0xFF001A54), const Color(0xFF002068)];
+      case AppBarVariant.nakes:
+        return [const Color(0xFF001A4D), const Color(0xFF003A6E)];
     }
   }
 

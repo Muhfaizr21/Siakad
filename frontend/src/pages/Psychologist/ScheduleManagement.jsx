@@ -154,11 +154,12 @@ export default function ScheduleManagement() {
   return (
     <>
       <div className="w-full relative space-y-6 scroll-smooth">
-          {/* Welcome Banner Card (Non-Dashboard -> White Gradient) */}
-          <section className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-white via-slate-50/50 to-blue-50/20 border border-slate-100 p-5 shadow-sm flex flex-col gap-5 group">
+          {/* Welcome Banner Card */}
+          <section className="relative overflow-hidden rounded-2xl border p-5 shadow-sm flex flex-col gap-5 group"
+            style={{ backgroundColor: 'var(--theme-surface)', borderColor: 'var(--theme-border)' }}>
             {/* Soft decorative blur nodes */}
-            <div className="absolute -top-24 -right-24 w-72 h-72 bg-blue-500/5 rounded-full blur-3xl pointer-events-none"></div>
-            <div className="absolute -bottom-24 -left-24 w-72 h-72 bg-indigo-500/5 rounded-full blur-3xl pointer-events-none"></div>
+            <div className="absolute -top-24 -right-24 w-72 h-72 rounded-full blur-3xl pointer-events-none" style={{ backgroundColor: 'color-mix(in srgb, var(--theme-primary) 5%, transparent)' }}></div>
+            <div className="absolute -bottom-24 -left-24 w-72 h-72 rounded-full blur-3xl pointer-events-none" style={{ backgroundColor: 'color-mix(in srgb, var(--theme-secondary) 5%, transparent)' }}></div>
             
             <div className="relative z-10 flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between w-full">
               <div>
@@ -198,7 +199,7 @@ export default function ScheduleManagement() {
           {/* Bento Grid Stats Card (Diluar dan dibawah banner utama) */}
           <div className="grid grid-cols-1 gap-4 md:grid-cols-3 w-full">
             {/* Card 1 */}
-            <div className="group relative overflow-hidden rounded-2xl border border-slate-100 bg-white p-5 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
+            <div className="group relative overflow-hidden rounded-2xl border p-5 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md" style={{ backgroundColor: 'var(--theme-surface)', borderColor: 'var(--theme-border)' }}>
               {/* Soft decorative glow background */}
               <div className="absolute -right-8 -top-5 w-24 h-24 bg-primary/5 rounded-full blur-xl pointer-events-none" />
               
@@ -218,7 +219,7 @@ export default function ScheduleManagement() {
             </div>
             
             {/* Card 2 */}
-            <div className="group relative overflow-hidden rounded-2xl border border-slate-100 bg-white p-5 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
+            <div className="group relative overflow-hidden rounded-2xl border p-5 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md" style={{ backgroundColor: 'var(--theme-surface)', borderColor: 'var(--theme-border)' }}>
               {/* Soft decorative glow background */}
               <div className="absolute -right-8 -top-5 w-24 h-24 bg-emerald-500/5 rounded-full blur-xl pointer-events-none" />
               
@@ -238,7 +239,7 @@ export default function ScheduleManagement() {
             </div>
 
             {/* Card 3 */}
-            <div className="group relative overflow-hidden rounded-2xl border border-slate-100 bg-white p-5 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
+            <div className="group relative overflow-hidden rounded-2xl border p-5 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md" style={{ backgroundColor: 'var(--theme-surface)', borderColor: 'var(--theme-border)' }}>
               {/* Soft decorative glow background */}
               <div className="absolute -right-8 -top-5 w-24 h-24 bg-amber-500/5 rounded-full blur-xl pointer-events-none" />
               
@@ -260,7 +261,7 @@ export default function ScheduleManagement() {
 
           <div className="grid grid-cols-1 gap-5 lg:grid-cols-12 w-full">
             <aside className="lg:col-span-4 xl:col-span-3">
-              <div className="rounded-3xl border border-slate-100 bg-white p-4 shadow-sm">
+              <div className="rounded-3xl border p-4 shadow-sm" style={{ backgroundColor: 'var(--theme-surface)', borderColor: 'var(--theme-border)' }}>
                 <div className="mb-4 flex items-center justify-between px-2">
                   <h2 className="text-[10px] font-black font-headline uppercase tracking-widest" style={{ color: 'var(--theme-h2)' }}>Pilih Hari</h2>
                   {loading && <span className="material-symbols-outlined size-4 animate-spin text-primary/60" >sync</span>}

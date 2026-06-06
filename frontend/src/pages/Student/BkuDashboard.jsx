@@ -1,7 +1,7 @@
 import React from 'react';
 import { useDashboardQuery } from '../../queries/useDashboardQuery';
 import { useHealthRingkasanQuery } from '../../queries/useHealthQuery';
-import { DashboardSkeleton } from '../../components/ui/SkeletonGroups';
+import { DashboardSkeleton } from '@/components/ui/SkeletonGroups';
 import BannerPinned from '../../components/dashboard/BannerPinned';
 import HeroCard from '../../components/dashboard/HeroCard';
 import DeadlineAlert from '../../components/dashboard/DeadlineAlert';
@@ -22,18 +22,18 @@ export default function BkuDashboard() {
 
   if (isError || !data) {
     return (
-      <div className="min-h-screen bg-[#f8f8f6] flex items-center justify-center px-4">
-        <div className="bg-white border border-red-100 rounded-2xl px-8 py-10 max-w-sm w-full text-center shadow-sm">
-          <div className="w-12 h-12 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4">
-            <span className="text-2xl">🚧</span>
+      <div className="min-h-screen bg-background flex items-center justify-center px-4">
+        <div className="bg-surface border border-error/25 rounded-2xl px-8 py-10 max-w-sm w-full text-center shadow-sm">
+          <div className="w-12 h-12 bg-error/10 rounded-full flex items-center justify-center mx-auto mb-4">
+            <span className="text-2xl text-error">warning</span>
           </div>
-          <h2 className="font-semibold text-[#171717] text-lg mb-2">Gagal Memuat Dashboard</h2>
-          <p className="text-sm text-[#6b7280] leading-relaxed">
+          <h2 className="font-semibold text-bku-text text-lg mb-2">Gagal Memuat Dashboard</h2>
+          <p className="text-sm text-text-muted leading-relaxed">
             Pastikan koneksi internet stabil, lalu coba muat ulang halaman.
           </p>
           <button
             onClick={() => window.location.reload()}
-            className="mt-5 w-full py-2.5 rounded-xl bg-[#171717] text-white text-sm font-medium hover:bg-[#333] transition-colors"
+            className="mt-5 w-full py-2.5 rounded-xl bg-primary text-white text-sm font-medium hover:opacity-90 transition-all"
           >
             Muat Ulang
           </button>
@@ -43,7 +43,7 @@ export default function BkuDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f8f8f6] font-body text-[#171717]">
+    <div className="min-h-screen bg-transparent font-body text-bku-text">
       <div className="max-w-7xl mx-auto px-4 py-6 md:px-6 md:py-8 lg:px-8 lg:py-10">
         <div className="flex flex-col gap-5">
 

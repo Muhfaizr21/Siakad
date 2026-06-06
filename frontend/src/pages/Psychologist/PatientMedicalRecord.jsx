@@ -122,7 +122,7 @@ export default function PatientMedicalRecord() {
             
             {/* Left Content: Medical History Timeline (Col 8) */}
             <div className="xl:col-span-8 space-y-6">
-               <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-5">
+               <div className="rounded-3xl border shadow-sm p-5" style={{ backgroundColor: 'var(--theme-surface)', borderColor: 'var(--theme-border)' }}>
                   <div className="flex items-center justify-between mb-10">
                      <h3 className="text-sm font-black text-primary uppercase tracking-tight font-headline flex items-center gap-3">
                         <span className="material-symbols-outlined" style={{ fontSize: '20px' }} >description</span> Riwayat Sesi Konseling
@@ -137,7 +137,7 @@ export default function PatientMedicalRecord() {
                              <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >calendar_month</span>
                           </div>
 
-                          <div className="bg-slate-50/50 rounded-3xl border border-slate-100 p-5 space-y-4 hover:bg-white hover:shadow-xl hover:shadow-slate-200/50 transition-all duration-500">
+                          <div className="rounded-3xl border p-5 space-y-4 hover:shadow-xl hover:shadow-slate-200/50 transition-all duration-500" style={{ backgroundColor: 'var(--theme-surface)', borderColor: 'var(--theme-border)' }}>
                              <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-4">
                                    <span className="text-[10px] font-black text-primary uppercase tracking-widest">{record.date}</span>
@@ -176,7 +176,7 @@ export default function PatientMedicalRecord() {
 
                                  <div>
                                     <h4 className="text-[9px] font-black uppercase tracking-widest mb-1" style={{ color: 'var(--theme-h4)' }}>Riwayat Keluhan</h4>
-                                    <p className="text-xs font-semibold text-slate-700 leading-relaxed bg-slate-50 border border-slate-100 rounded-2xl p-4">
+                                    <p className="text-xs font-semibold leading-relaxed rounded-2xl p-4" style={{ backgroundColor: 'var(--theme-bg)', borderColor: 'var(--theme-border)', border: '1px solid var(--theme-border)', color: 'var(--theme-text)' }}>
                                        {record.riwayat_keluhan || record.complaint}
                                     </p>
                                  </div>
@@ -279,7 +279,7 @@ export default function PatientMedicalRecord() {
 
             {/* Right Sidebar... */}
             <div className="xl:col-span-4 space-y-6">
-               <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
+               <div className="rounded-3xl border shadow-sm overflow-hidden" style={{ backgroundColor: 'var(--theme-surface)', borderColor: 'var(--theme-border)' }}>
                   <div className="h-20 bg-primary relative">
                      <div className="absolute inset-0 bg-gradient-to-br from-primary via-primary/80 to-indigo-600"></div>
                      <span className="material-symbols-outlined absolute -right-4 -bottom-4 size-24 text-white/10" >show_chart</span>
@@ -292,11 +292,11 @@ export default function PatientMedicalRecord() {
                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">{patient.nim} • {patient.faculty}</p>
                      
                      <div className="grid grid-cols-2 gap-3 mt-6">
-                        <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                        <div className="p-3 rounded-xl border" style={{ backgroundColor: 'var(--theme-bg)', borderColor: 'var(--theme-border)' }}>
                            <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Status</p>
                            <p className="text-xs font-black text-emerald-600 uppercase mt-0.5">{patient.status}</p>
                         </div>
-                        <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                        <div className="p-3 rounded-xl border" style={{ backgroundColor: 'var(--theme-bg)', borderColor: 'var(--theme-border)' }}>
                            <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Sesi</p>
                            <p className="text-xs font-black text-primary uppercase mt-0.5">{patient.totalSessions} Kali</p>
                         </div>
@@ -304,7 +304,7 @@ export default function PatientMedicalRecord() {
                   </div>
                </div>
 
-               <div className="bg-white rounded-3xl border border-slate-100 shadow-sm p-5 space-y-6">
+               <div className="rounded-3xl border shadow-sm p-5 space-y-6" style={{ backgroundColor: 'var(--theme-surface)', borderColor: 'var(--theme-border)' }}>
                   <h3 className="text-[10px] font-black text-primary uppercase tracking-widest flex items-center gap-2">
                      <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >trending_up</span> Analitik Kesehatan
                   </h3>
@@ -353,7 +353,7 @@ export default function PatientMedicalRecord() {
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-300" onClick={() => setIsModalOpen(false)}></div>
             
-            <div className="bg-white w-full max-w-4xl rounded-2xl shadow-2xl relative z-10 overflow-hidden animate-in zoom-in-95 duration-300 border border-slate-100 flex flex-col max-h-[90vh]">
+            <div className="w-full max-w-4xl rounded-2xl shadow-2xl relative z-10 overflow-hidden animate-in zoom-in-95 duration-300 border flex flex-col max-h-[90vh]" style={{ backgroundColor: 'var(--theme-surface)', borderColor: 'var(--theme-border)' }}>
                <div className="bg-primary p-5 text-white flex justify-between items-center shrink-0">
                   <div>
                     <h3 className="text-sm font-black uppercase tracking-tight font-headline">Tambah Sesi Baru (Asesmen & Rekomendasi)</h3>

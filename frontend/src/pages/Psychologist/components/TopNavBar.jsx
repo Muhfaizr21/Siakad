@@ -1,14 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
 import useAuthStore from '../../../store/useAuthStore';
-import { Badge } from '../../SuperAdmin/components/ui/badge';
+import { Badge } from '@/components/ui/Badge';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '../../SuperAdmin/components/ui/dropdown-menu';
+} from '@/components/ui/DropdownMenu';
 
 const TopNavBar = ({ setIsOpen }) => {
   const location = useLocation();

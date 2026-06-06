@@ -8,8 +8,8 @@ import {
 import api from '../../lib/axios';
 
 import { motion, AnimatePresence } from 'framer-motion';
-import { CardGridSkeleton, TableSkeleton } from '../../components/ui/SkeletonGroups';
-import EmptyState from '../../components/ui/EmptyState';
+import { CardGridSkeleton, TableSkeleton } from '@/components/ui/SkeletonGroups';
+import EmptyState from '@/components/ui/EmptyState';
 import { toast } from 'react-hot-toast';
 
 // Auto-injected Material Symbol fallbacks for removed Lucide icons

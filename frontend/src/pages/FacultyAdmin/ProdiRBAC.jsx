@@ -1,14 +1,14 @@
 "use client"
 
 import React, { useState, useEffect } from 'react'
-import { DataTable } from './components/data-table'
-import { Badge } from './components/badge'
-import { Button } from './components/button'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from './components/dialog'
-import { DeleteConfirmModal } from './components/DeleteConfirmModal'
-import { Card, CardContent } from './components/card'
-import { Input } from './components/input'
-import { Label } from './components/label'
+import { DataTable } from '@/components/ui/DataTable'
+import { Badge } from '@/components/ui/Badge'
+import { Button } from '@/components/ui/Button'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/Dialog'
+import { DeleteConfirmModal } from '@/components/ui/DeleteConfirmModal'
+import { Card, CardContent } from '@/components/ui/Card'
+import { Input } from '@/components/ui/Input'
+import { Label } from '@/components/ui/Label'
 
 import { toast, Toaster } from 'react-hot-toast'
 import { cn } from '@/lib/utils'

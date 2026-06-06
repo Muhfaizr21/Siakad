@@ -144,16 +144,16 @@ export default function HomeHero() {
             <motion.div
               key={i}
               variants={itemVariants}
-              className="flex items-center gap-4 p-4 rounded-2xl transition-all duration-300 group"
+              className="flex items-center gap-4 p-4 rounded-2xl transition-all duration-300 group shadow-md"
               style={{
-                backgroundColor: 'color-mix(in srgb, var(--theme-surface) 10%, transparent)',
-                border: '1px solid var(--theme-muted-on-primary)'
+                backgroundColor: 'var(--theme-surface)',
+                border: '1px solid var(--theme-border)'
               }}
             >
               <div
                 className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 transition-transform duration-300 group-hover:scale-110"
                 style={{
-                  backgroundColor: 'var(--theme-surface)',
+                  backgroundColor: 'color-mix(in srgb, var(--theme-primary) 10%, transparent)',
                   color: 'var(--theme-primary)'
                 }}
               >
@@ -162,13 +162,13 @@ export default function HomeHero() {
               <div className="text-left">
                 <div
                   className="text-2xl sm:text-3xl font-extrabold font-headline leading-none"
-                  style={{ color: 'var(--theme-text-on-primary)' }}
+                  style={{ color: 'var(--theme-primary)' }}
                 >
                   {stat.num}
                 </div>
                 <div
                   className="text-[10px] sm:text-xs font-medium tracking-wide mt-1"
-                  style={{ color: 'var(--theme-muted-on-primary)' }}
+                  style={{ color: 'var(--theme-text-muted)' }}
                 >
                   {stat.label}
                 </div>

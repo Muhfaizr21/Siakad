@@ -2,10 +2,10 @@
 
 import React, { useState, useEffect } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
-import { Badge } from './components/ui/badge'
-import { Button } from './components/ui/button'
-import { Card, CardContent } from './components/ui/card'
-import { Label } from './components/ui/label'
+import { Badge } from '@/components/ui/Badge'
+import { Button } from '@/components/ui/Button'
+import { Card, CardContent } from '@/components/ui/Card'
+import { Label } from '@/components/ui/Label'
 
 import { toast, Toaster } from 'react-hot-toast'
 import { cn } from '@/lib/utils'

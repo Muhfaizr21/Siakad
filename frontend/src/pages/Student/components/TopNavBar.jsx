@@ -11,12 +11,11 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from './dropdown-menu';
+} from '@/components/ui/DropdownMenu';
 import { API_BASE_URL } from '../../../services/api';
 
 // Auto-injected Material Symbol fallbacks for removed Lucide icons
 const UserCircle = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>account_circle</span>;
-
 
 const TopNavBar = () => {
   const navigate = useNavigate();

@@ -18,6 +18,11 @@ import 'package:bkuhub_mobile/core/network/api_client.dart';
 import 'package:bkuhub_mobile/features/mahasiswa/data/repositories/student_repository_impl.dart';
 import 'package:bkuhub_mobile/features/ormawa/data/repositories/ormawa_repository_impl.dart';
 import 'package:bkuhub_mobile/features/counseling/data/repositories/counseling_repository_impl.dart';
+import 'package:bkuhub_mobile/features/tenaga_kesehatan/data/repositories/tk_repository_impl.dart';
+import 'package:bkuhub_mobile/features/tenaga_kesehatan/presentation/providers/tk_dashboard_provider.dart';
+import 'package:bkuhub_mobile/features/tenaga_kesehatan/presentation/providers/tk_schedule_provider.dart';
+import 'package:bkuhub_mobile/features/tenaga_kesehatan/presentation/providers/tk_booking_provider.dart';
+import 'package:bkuhub_mobile/features/tenaga_kesehatan/presentation/providers/tk_patient_provider.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:bkuhub_mobile/core/services/local_notification_service.dart';
 
@@ -32,6 +37,7 @@ void main() async {
   final studentRepository = StudentRepositoryImpl(apiClient: apiClient);
   final ormawaRepository = OrmawaRepositoryImpl();
   final counselingRepository = CounselingRepositoryImpl(apiClient: apiClient);
+  final tkRepository = TkRepositoryImpl(apiClient: apiClient);
 
   // Initialize Global Notification Navigation using GoRouter
   BkuAppBar.defaultOnNotificationTap = (context, variant) {
@@ -56,6 +62,11 @@ void main() async {
         ChangeNotifierProvider(create: (_) => ReferralProvider(repository: counselingRepository)),
         ChangeNotifierProvider(create: (_) => StudentCounselingProvider(apiClient: apiClient)),
         ChangeNotifierProvider(create: (_) => OrmawaProvider(ormawaRepository)),
+        // TK (Tenaga Kesehatan) Providers
+        ChangeNotifierProvider(create: (_) => TkDashboardProvider(repository: tkRepository)),
+        ChangeNotifierProvider(create: (_) => TkScheduleProvider(repository: tkRepository)),
+        ChangeNotifierProvider(create: (_) => TkBookingProvider(repository: tkRepository)),
+        ChangeNotifierProvider(create: (_) => TkPatientProvider(repository: tkRepository)),
       ],
       child: const MyApp(),
     ),

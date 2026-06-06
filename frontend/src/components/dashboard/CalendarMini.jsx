@@ -9,10 +9,10 @@ const MONTHS = [
 
 const CATEGORY_COLORS = {
   kencana: 'bg-primary',
-  beasiswa: 'bg-[#16a34a]',
-  konseling: 'bg-[#3b82f6]',
-  kampus: 'bg-[#8b5cf6]',
-  organisasi: 'bg-[#ef4444]',
+  beasiswa: 'bg-success',
+  konseling: 'bg-secondary',
+  kampus: 'bg-info',
+  organisasi: 'bg-error',
 };
 
 export default function CalendarMini({ events }) {
@@ -55,7 +55,7 @@ export default function CalendarMini({ events }) {
         <div key={d} className="relative group/day flex flex-col items-center justify-center h-10 cursor-pointer">
           <div className={`w-8 h-8 flex items-center justify-center rounded-full text-xs font-bold transition-all ${
             isToday ? 'bg-primary text-white shadow-md' : 
-            isPast ? 'text-[#d4d4d4]' : 'text-[#525252] hover:bg-[#fafafa]'
+            isPast ? 'text-text-muted/40' : 'text-bku-text hover:bg-background'
           }`}>
             {d}
           </div>
@@ -69,22 +69,22 @@ export default function CalendarMini({ events }) {
   };
 
   return (
-    <div className="bg-white p-6 rounded-3xl border border-[#e5e5e5] shadow-sm flex flex-col h-full overflow-hidden">
+    <div className="bg-surface p-6 rounded-3xl border border-border shadow-sm flex flex-col h-full overflow-hidden">
       <div className="flex items-center justify-between mb-6">
         <h3 className="text-xl font-extrabold font-headline flex items-center gap-2.5">
           <CalendarDays size={20} className="text-primary" />
           Kalender Kegiatan
         </h3>
         <div className="flex items-center gap-2">
-            <button onClick={() => changeMonth(-1)} className="p-1.5 hover:bg-[#fafafa] rounded-lg transition-colors"><ChevronLeft size={18} /></button>
+            <button onClick={() => changeMonth(-1)} className="p-1.5 hover:bg-background rounded-lg transition-colors"><ChevronLeft size={18} /></button>
             <span className="text-sm font-bold w-32 text-center">{MONTHS[month]} {year}</span>
-            <button onClick={() => changeMonth(1)} className="p-1.5 hover:bg-[#fafafa] rounded-lg transition-colors"><ChevronRight size={18} /></button>
+            <button onClick={() => changeMonth(1)} className="p-1.5 hover:bg-background rounded-lg transition-colors"><ChevronRight size={18} /></button>
         </div>
       </div>
 
       <div className="grid grid-cols-7 gap-1 mb-2">
         {DAYS.map(d => (
-          <div key={d} className="text-[10px] font-black text-[#a3a3a3] uppercase text-center py-2 tracking-widest">{d}</div>
+          <div key={d} className="text-[10px] font-black text-text-muted uppercase text-center py-2 tracking-widest">{d}</div>
         ))}
       </div>
 
@@ -92,25 +92,25 @@ export default function CalendarMini({ events }) {
         {renderDays()}
       </div>
 
-      <div className="flex-1 flex flex-col gap-4 border-t border-[#f5f5f5] pt-6">
-         <h4 className="text-xs font-black text-[#a3a3a3] uppercase tracking-widest leading-none mb-2">Kegiatan di Bulan {MONTHS[month]}</h4>
+      <div className="flex-1 flex flex-col gap-4 border-t border-border-muted pt-6">
+         <h4 className="text-xs font-black text-text-muted uppercase tracking-widest leading-none mb-2">Kegiatan di Bulan {MONTHS[month]}</h4>
          {viewedEvents?.length > 0 ? (
            <div className="space-y-3">
               {viewedEvents.map((e, idx) => (
                 <div key={idx} className="flex items-center gap-3 group/event">
-                   <div className={`w-2 h-2 rounded-full ${CATEGORY_COLORS[e.kategori] || 'bg-[#a3a3a3]'}`}></div>
+                   <div className={`w-2 h-2 rounded-full ${CATEGORY_COLORS[e.kategori] || 'bg-text-muted'}`}></div>
                    <div className="flex-1 flex flex-col">
                       <div className="flex items-center justify-between w-full">
-                         <span className="text-[10px] font-bold text-[#a3a3a3]">{new Date(e.tanggal_mulai || e.tanggal).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' })}</span>
-                         <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border border-current/10 opacity-70 ${CATEGORY_COLORS[e.kategori] ? 'text-current' : 'text-[#525252]'} uppercase`}>{e.kategori}</span>
+                         <span className="text-[10px] font-bold text-text-muted">{new Date(e.tanggal_mulai || e.tanggal).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' })}</span>
+                         <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border border-current/10 opacity-70 ${CATEGORY_COLORS[e.kategori] ? 'text-current' : 'text-text-muted'} uppercase`}>{e.kategori}</span>
                       </div>
-                      <p className="text-sm font-bold text-[#171717] leading-tight line-clamp-1">{e.judul || e.nama}</p>
+                      <p className="text-sm font-bold text-bku-text leading-tight line-clamp-1">{e.judul || e.nama}</p>
                    </div>
                 </div>
               ))}
            </div>
          ) : (
-           <p className="text-xs font-bold text-[#d4d4d4] italic">Tidak ada kegiatan terjadwal di bulan ini.</p>
+           <p className="text-xs font-bold text-text-muted/40 italic">Tidak ada kegiatan terjadwal di bulan ini.</p>
          )}
       </div>
     </div>

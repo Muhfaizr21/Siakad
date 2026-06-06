@@ -4,11 +4,11 @@ import React, { useState, useEffect } from 'react'
 import api from '../../lib/axios'
 import { toast, Toaster } from 'react-hot-toast'
 import { cn } from '@/lib/utils'
-import { Button } from './components/ui/button'
-import { Card, CardContent } from './components/ui/card'
-import { Input } from './components/ui/input'
-import { Label } from './components/ui/label'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from './components/ui/dialog'
+import { Button } from '@/components/ui/Button'
+import { Card, CardContent } from '@/components/ui/Card'
+import { Input } from '@/components/ui/Input'
+import { Label } from '@/components/ui/Label'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/Dialog'
 
 // Custom Premium Icons matching BKU style guidelines
 const Zap = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 18, ...props.style }} {...props}>bolt</span>;

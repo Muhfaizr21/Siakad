@@ -5,8 +5,8 @@ import api from '../../lib/axios'
 import { toast, Toaster } from 'react-hot-toast'
 import { cn } from '@/lib/utils'
 import { API_BASE_URL } from '../../services/api'
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "./components/select"
-import { Button } from "./components/button"
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/Select"
+import { Button } from "@/components/ui/Button"
 
 // Auto-injected Material Symbol fallbacks for removed Lucide icons
 const Reply = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>reply</span>;

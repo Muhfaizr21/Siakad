@@ -124,7 +124,7 @@ export default function PsychologistSettings() {
   return (
     <>
       <div className="w-full relative space-y-6 scroll-smooth">
-          <section className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm lg:p-5">
+          <section className="rounded-2xl border p-5 shadow-sm lg:p-5" style={{ backgroundColor: 'var(--theme-surface)', borderColor: 'var(--theme-border)' }}>
             <h1 className="font-headline text-2xl font-black uppercase tracking-tight text-primary">Pengaturan Akun</h1>
             <p className="mt-1 text-xs font-semibold uppercase tracking-wider text-slate-400">
               Profil tersimpan di `psikolog.profiles`, jadwal di `psikolog.schedule_slots`, dan password di `public.users`.
@@ -152,9 +152,8 @@ export default function PsychologistSettings() {
                   key={tab.id}
                   type="button"
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex w-full items-center gap-4 rounded-2xl px-5 py-4 transition ${
-                    activeTab === tab.id ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'border border-slate-100 bg-white text-slate-500 hover:bg-slate-50'
-                  }`}
+                  className={`flex w-full items-center gap-4 rounded-2xl px-5 py-4 transition ${activeTab === tab.id ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'border text-slate-500 hover:bg-slate-50'}`}
+                  style={activeTab !== tab.id ? { backgroundColor: 'var(--theme-surface)', borderColor: 'var(--theme-border)' } : {}}
                 >
                   <tab.icon size={20} />
                   <span className="text-[10px] font-black uppercase tracking-widest">{tab.label}</span>
@@ -163,7 +162,7 @@ export default function PsychologistSettings() {
             </aside>
 
             <section className="lg:col-span-9">
-              <div className="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm">
+              <div className="overflow-hidden rounded-2xl border shadow-sm" style={{ backgroundColor: 'var(--theme-surface)', borderColor: 'var(--theme-border)' }}>
                 {loading ? (
                   <div className="flex min-h-96 items-center justify-center">
                     <span className="material-symbols-outlined animate-spin text-primary" style={{ fontSize: '28px' }} >sync</span>
@@ -319,7 +318,7 @@ export default function PsychologistSettings() {
                       </div>
                     )}
 
-                    <div className="flex flex-col gap-3 border-t border-slate-100 bg-slate-50 px-6 py-5 sm:flex-row sm:justify-end">
+                    <div className="flex flex-col gap-3 border-t px-6 py-5 sm:flex-row sm:justify-end" style={{ borderColor: 'var(--theme-border)', backgroundColor: 'var(--theme-bg)' }}>
                       {activeTab === 'keamanan' ? (
                         <button
                           type="button"

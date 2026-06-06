@@ -1,6 +1,5 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { UI } from '../../constants/designSystem';
 import { psychologistService } from '../../services/api';
 
 export default function PatientList() {
@@ -92,10 +91,10 @@ export default function PatientList() {
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'Stabil': return 'text-emerald-600 bg-emerald-50 border-emerald-100';
-      case 'Perlu Perhatian': return 'text-rose-600 bg-rose-50 border-rose-100';
-      case 'Pemulihan': return 'text-blue-600 bg-blue-50 border-blue-100';
-      default: return 'text-slate-600 bg-slate-50 border-slate-100';
+      case 'Stabil': return { bg: 'color-mix(in srgb, var(--theme-success) 10%, transparent)', text: 'var(--theme-success)', border: 'color-mix(in srgb, var(--theme-success) 20%, transparent)', dot: 'var(--theme-success)', dotAnim: '' };
+      case 'Perlu Perhatian': return { bg: 'color-mix(in srgb, var(--theme-error) 10%, transparent)', text: 'var(--theme-error)', border: 'color-mix(in srgb, var(--theme-error) 20%, transparent)', dot: 'var(--theme-error)', dotAnim: 'animate-pulse' };
+      case 'Pemulihan': return { bg: 'color-mix(in srgb, var(--theme-info) 10%, transparent)', text: 'var(--theme-info)', border: 'color-mix(in srgb, var(--theme-info) 20%, transparent)', dot: 'var(--theme-info)', dotAnim: '' };
+      default: return { bg: 'color-mix(in srgb, var(--theme-text-muted) 10%, transparent)', text: 'var(--theme-text-muted)', border: 'color-mix(in srgb, var(--theme-text-muted) 20%, transparent)', dot: 'var(--theme-text-muted)', dotAnim: '' };
     }
   };
 
@@ -103,19 +102,22 @@ export default function PatientList() {
     <>
       <div className="w-full relative space-y-6 scroll-smooth">
           
-          {/* Welcome Banner Card (Non-Dashboard -> White Gradient) */}
-          <section className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-white via-slate-50/50 to-blue-50/20 border border-slate-100 p-5 shadow-sm flex flex-col gap-5 group">
+          {/* Welcome Banner Card */}
+          <section className="relative overflow-hidden rounded-2xl border p-5 shadow-sm flex flex-col gap-5 group"
+            style={{ backgroundColor: 'var(--theme-surface)', borderColor: 'var(--theme-border)' }}>
             {/* Soft decorative blur nodes */}
-            <div className="absolute -top-24 -right-24 w-72 h-72 bg-blue-500/5 rounded-full blur-3xl pointer-events-none" />
-            <div className="absolute -bottom-24 -left-24 w-72 h-72 bg-indigo-500/5 rounded-full blur-3xl pointer-events-none" />
+            <div className="absolute -top-24 -right-24 w-72 h-72 rounded-full blur-3xl pointer-events-none" style={{ backgroundColor: 'color-mix(in srgb, var(--theme-primary) 5%, transparent)' }} />
+            <div className="absolute -bottom-24 -left-24 w-72 h-72 rounded-full blur-3xl pointer-events-none" style={{ backgroundColor: 'color-mix(in srgb, var(--theme-secondary) 5%, transparent)' }} />
             
             <div className="relative z-10 flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between w-full">
               <div>
-                <div className="inline-flex items-center gap-2 rounded-full bg-primary/5 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-primary">
+                <div className="inline-flex items-center gap-2 rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-widest"
+                  style={{ backgroundColor: 'color-mix(in srgb, var(--theme-primary) 5%, transparent)', color: 'var(--theme-primary)' }}
+                >
                   <span className="material-symbols-outlined size-3.5">stars</span>
                   Rekam Medis Klinis
                 </div>
-                <h1 className="mt-3 text-2xl font-black text-primary uppercase tracking-tight font-headline">Daftar Pasien</h1>
+                <h1 className="mt-3 text-2xl font-black uppercase tracking-tight font-headline" style={{ color: 'var(--theme-primary)' }}>Daftar Pasien</h1>
                 <p className="mt-1 max-w-2xl text-xs font-bold leading-5 text-slate-500">
                   Pantau riwayat sesi, rekam medis klinis, dan status psikologis mahasiswa secara terpusat dan aman.
                 </p>
@@ -136,7 +138,7 @@ export default function PatientList() {
                       alert(err.message || 'Gagal mengunduh Rekap PDF');
                     }
                   }}
-                  className="flex items-center justify-center p-3 bg-white border border-slate-200/80 rounded-2xl text-slate-500 hover:text-primary hover:border-primary hover:bg-primary/5 transition-all shadow-sm shrink-0 hover:scale-105 active:scale-95"
+                  className="flex items-center justify-center p-3 bg-white border border-slate-200/80 rounded-2xl text-slate-500 hover:text-[var(--theme-primary)] hover:border-[var(--theme-primary)] transition-all shadow-sm shrink-0 hover:scale-105 active:scale-95"
                   title="Download Rekap Rekam Medis PDF"
                 >
                   <span className="material-symbols-outlined text-lg">download</span>
@@ -146,10 +148,10 @@ export default function PatientList() {
           </section>
 
           {/* Filter Bar Card */}
-          <section className="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-50 pb-3">
+          <section className="rounded-2xl border p-5 shadow-sm space-y-4" style={{ backgroundColor: 'var(--theme-surface)', borderColor: 'var(--theme-border)' }}>
+            <div className="flex items-center justify-between border-b pb-3" style={{ borderColor: 'var(--theme-border)' }}>
               <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-primary/60 text-lg">filter_alt</span>
+                <span className="material-symbols-outlined text-lg" style={{ color: 'color-mix(in srgb, var(--theme-primary) 60%, transparent)' }}>filter_alt</span>
                 <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wider">Filter Data</h3>
               </div>
               {(selectedFakultas !== 'Semua Fakultas' || selectedProdi !== 'Semua Prodi' || filterStatus !== 'Semua Status' || startDate || endDate || searchQuery) && (
@@ -181,7 +183,8 @@ export default function PatientList() {
                     placeholder="Nama atau NIM..."
                     value={searchQuery}
                     onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
-                    className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-100 rounded-xl text-xs font-semibold text-slate-700 placeholder-slate-400 focus:outline-none focus:border-primary focus:bg-white transition-all"
+                    className="w-full pl-9 pr-3 py-2 rounded-xl border text-xs font-semibold placeholder-slate-400 focus:outline-none focus:border-[var(--theme-primary)] transition-all"
+                    style={{ backgroundColor: 'var(--theme-bg)', borderColor: 'var(--theme-border)', color: 'var(--theme-text)' }}
                   />
                 </div>
               </div>
@@ -192,7 +195,8 @@ export default function PatientList() {
                 <select
                   value={filterStatus}
                   onChange={(e) => { setFilterStatus(e.target.value); setCurrentPage(1); }}
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-100 rounded-xl text-xs font-semibold text-slate-700 outline-none focus:border-primary focus:bg-white transition-all cursor-pointer"
+                  className="w-full px-3 py-2 rounded-xl border text-xs font-semibold outline-none focus:border-[var(--theme-primary)] transition-all cursor-pointer"
+                  style={{ backgroundColor: 'var(--theme-bg)', borderColor: 'var(--theme-border)', color: 'var(--theme-text)' }}
                 >
                   <option value="Semua Status">Semua Status</option>
                   <option value="Stabil">Stabil</option>
@@ -207,7 +211,8 @@ export default function PatientList() {
                 <select
                   value={selectedFakultas}
                   onChange={(e) => handleFakultasChange(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-100 rounded-xl text-xs font-semibold text-slate-700 outline-none focus:border-primary focus:bg-white transition-all cursor-pointer"
+                  className="w-full px-3 py-2 rounded-xl border text-xs font-semibold outline-none focus:border-[var(--theme-primary)] transition-all cursor-pointer"
+                  style={{ backgroundColor: 'var(--theme-bg)', borderColor: 'var(--theme-border)', color: 'var(--theme-text)' }}
                 >
                   <option value="Semua Fakultas">Semua Fakultas</option>
                   {fakultasList.map((f) => (
@@ -223,7 +228,8 @@ export default function PatientList() {
                   value={selectedProdi}
                   onChange={(e) => { setSelectedProdi(e.target.value); setCurrentPage(1); }}
                   disabled={selectedFakultas === 'Semua Fakultas'}
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-100 rounded-xl text-xs font-semibold text-slate-700 outline-none focus:border-primary focus:bg-white transition-all cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+                  className="w-full px-3 py-2 rounded-xl border text-xs font-semibold outline-none focus:border-[var(--theme-primary)] transition-all cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+                  style={{ backgroundColor: 'var(--theme-bg)', borderColor: 'var(--theme-border)', color: 'var(--theme-text)' }}
                 >
                   <option value="Semua Prodi">Semua Prodi</option>
                   {filteredProdis.map((p) => (
@@ -239,7 +245,8 @@ export default function PatientList() {
                   type="date"
                   value={startDate}
                   onChange={(e) => { setStartDate(e.target.value); setCurrentPage(1); }}
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-100 rounded-xl text-xs font-semibold text-slate-700 outline-none focus:border-primary focus:bg-white transition-all"
+                  className="w-full px-3 py-2 rounded-xl border text-xs font-semibold outline-none focus:border-[var(--theme-primary)] transition-all"
+                  style={{ backgroundColor: 'var(--theme-bg)', borderColor: 'var(--theme-border)', color: 'var(--theme-text)' }}
                 />
               </div>
 
@@ -250,7 +257,8 @@ export default function PatientList() {
                   type="date"
                   value={endDate}
                   onChange={(e) => { setEndDate(e.target.value); setCurrentPage(1); }}
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-100 rounded-xl text-xs font-semibold text-slate-700 outline-none focus:border-primary focus:bg-white transition-all"
+                  className="w-full px-3 py-2 rounded-xl border text-xs font-semibold outline-none focus:border-[var(--theme-primary)] transition-all"
+                  style={{ backgroundColor: 'var(--theme-bg)', borderColor: 'var(--theme-border)', color: 'var(--theme-text)' }}
                 />
               </div>
             </div>
@@ -260,15 +268,15 @@ export default function PatientList() {
             
             {/* Main Patient List (Col 9) */}
             <div className="lg:col-span-9 space-y-4">
-              <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden p-5">
+              <div className="rounded-2xl border shadow-sm overflow-hidden p-5" style={{ backgroundColor: 'var(--theme-surface)', borderColor: 'var(--theme-border)' }}>
                 <div className="overflow-x-auto">
                   <table className="w-full text-left">
                     <thead>
                       <tr className="border-b border-slate-100 text-left">
-                        <th onClick={() => handleSort('name')} className="cursor-pointer hover:text-primary pb-4 px-4 text-[9px] font-black text-slate-400 uppercase tracking-widest"><div className="flex items-center gap-1">Mahasiswa <span className="text-[10px] opacity-50">{sortConfig.key === 'name' ? (sortConfig.direction === 'asc' ? '↑' : '↓') : '↕'}</span></div></th>
-                        <th onClick={() => handleSort('sessions')} className="cursor-pointer hover:text-primary pb-4 px-4 text-[9px] font-black text-slate-400 uppercase tracking-widest"><div className="flex items-center gap-1">Sesi <span className="text-[10px] opacity-50">{sortConfig.key === 'sessions' ? (sortConfig.direction === 'asc' ? '↑' : '↓') : '↕'}</span></div></th>
+                        <th onClick={() => handleSort('name')} className="cursor-pointer hover:text-[var(--theme-primary)] pb-4 px-4 text-[9px] font-black text-slate-400 uppercase tracking-widest"><div className="flex items-center gap-1">Mahasiswa <span className="text-[10px] opacity-50">{sortConfig.key === 'name' ? (sortConfig.direction === 'asc' ? '↑' : '↓') : '↕'}</span></div></th>
+                        <th onClick={() => handleSort('sessions')} className="cursor-pointer hover:text-[var(--theme-primary)] pb-4 px-4 text-[9px] font-black text-slate-400 uppercase tracking-widest"><div className="flex items-center gap-1">Sesi <span className="text-[10px] opacity-50">{sortConfig.key === 'sessions' ? (sortConfig.direction === 'asc' ? '↑' : '↓') : '↕'}</span></div></th>
                         <th className="pb-4 px-4 text-[9px] font-black text-slate-400 uppercase tracking-widest">Kunjungan Terakhir</th>
-                        <th onClick={() => handleSort('status')} className="cursor-pointer hover:text-primary pb-4 px-4 text-[9px] font-black text-slate-400 uppercase tracking-widest"><div className="flex items-center gap-1">Status <span className="text-[10px] opacity-50">{sortConfig.key === 'status' ? (sortConfig.direction === 'asc' ? '↑' : '↓') : '↕'}</span></div></th>
+                        <th onClick={() => handleSort('status')} className="cursor-pointer hover:text-[var(--theme-primary)] pb-4 px-4 text-[9px] font-black text-slate-400 uppercase tracking-widest"><div className="flex items-center gap-1">Status <span className="text-[10px] opacity-50">{sortConfig.key === 'status' ? (sortConfig.direction === 'asc' ? '↑' : '↓') : '↕'}</span></div></th>
                         <th className="pb-4 px-4 text-[9px] font-black text-slate-400 uppercase tracking-widest text-right">Aksi</th>
                       </tr>
                     </thead>
@@ -292,7 +300,7 @@ export default function PatientList() {
                           </td>
                           <td className="py-4 px-4">
                             <div className="flex items-center gap-2">
-                              <span className="w-6 h-6 bg-primary/5 text-primary rounded-lg flex items-center justify-center shrink-0">
+                              <span className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: 'color-mix(in srgb, var(--theme-primary) 5%, transparent)', color: 'var(--theme-primary)' }}>
                                 <span className="material-symbols-outlined text-[13px]" >show_chart</span>
                               </span>
                               <span className="text-xs font-black text-slate-700">{patient.sessions} Kali</span>
@@ -307,15 +315,21 @@ export default function PatientList() {
                             </div>
                           </td>
                           <td className="py-4 px-4">
-                            <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border ${getStatusColor(patient.status)}`}>
-                              <span className={`w-1.5 h-1.5 rounded-full ${patient.status === 'Stabil' ? 'bg-emerald-500' : patient.status === 'Perlu Perhatian' ? 'bg-rose-500' : patient.status === 'Pemulihan' ? 'bg-blue-500' : 'bg-slate-400'} ${patient.status === 'Perlu Perhatian' ? 'animate-pulse' : ''}`} />
-                              {patient.status}
-                            </span>
+                            const statusStyle = getStatusColor(patient.status);
+                            return (
+                              <span
+                                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border"
+                                style={{ backgroundColor: statusStyle.bg, color: statusStyle.text, borderColor: statusStyle.border }}
+                              >
+                                <span className={`w-1.5 h-1.5 rounded-full ${statusStyle.dotAnim}`} style={{ backgroundColor: statusStyle.dot }} />
+                                {patient.status}
+                              </span>
+                            );
                           </td>
                           <td className="py-4 px-4 text-right">
                             <button 
                               onClick={() => navigate(`/psychologist/patients/${patient.id}/medical-record`)}
-                              className="w-9 h-9 rounded-xl bg-slate-50 text-slate-400 hover:text-primary hover:bg-primary/5 transition-all flex items-center justify-center ml-auto group/btn border border-slate-100/50"
+                              className="w-9 h-9 rounded-xl bg-slate-50 text-slate-400 hover:text-[var(--theme-primary)] hover:bg-primary/5 transition-all flex items-center justify-center ml-auto group/btn border border-slate-100/50"
                             >
                               <span className="material-symbols-outlined group-hover/btn:translate-x-0.5 transition-transform text-lg" >chevron_right</span>
                             </button>
@@ -353,16 +367,16 @@ export default function PatientList() {
               {/* Ringkasan Data Section */}
               <div className="space-y-4">
                 <div className="flex items-center gap-2 px-2">
-                  <span className="material-symbols-outlined text-primary/60 text-base">analytics</span>
+                  <span className="material-symbols-outlined style={{ color: 'color-mix(in srgb, var(--theme-primary) 60%, transparent)' }} text-base">analytics</span>
                   <h3 className="text-[10px] font-black font-headline uppercase tracking-widest" style={{ color: 'var(--theme-h3)' }}>Ringkasan Data</h3>
                 </div>
                 
                 {/* Premium Card 1: Total Pasien Unik */}
                 <div className="group relative overflow-hidden rounded-2xl border border-slate-100 bg-white p-5 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
-                  <div className="absolute -right-8 -top-5 w-24 h-24 bg-primary/5 rounded-full blur-xl pointer-events-none" />
+                  <div className="absolute -right-8 -top-5 w-24 h-24 rounded-full blur-xl pointer-events-none" style={{ backgroundColor: 'color-mix(in srgb, var(--theme-primary) 5%, transparent)' }} />
                   
                   <div className="flex items-center justify-between">
-                    <div className="w-11 h-11 bg-primary/5 text-primary rounded-[1rem] flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shrink-0">
+                    <div className="w-11 h-11 rounded-[1rem] flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shrink-0" style={{ backgroundColor: 'color-mix(in srgb, var(--theme-primary) 5%, transparent)', color: 'var(--theme-primary)' }}>
                       <span className="material-symbols-outlined text-lg">group</span>
                     </div>
                     <div className="flex items-center gap-1 rounded-full bg-blue-50/80 border border-blue-100 px-2.5 py-0.5 text-[9px] font-black text-blue-600 uppercase tracking-widest">

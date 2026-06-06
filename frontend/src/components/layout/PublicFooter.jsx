@@ -62,7 +62,6 @@ export default function PublicFooter() {
                   src={theme?.logo_url || "/images/bku logo.png"}
                   alt="Logo"
                   className="w-full h-full object-contain"
-                  style={{ filter: 'brightness(0) invert(1)' }}
                 />
               </div>
               {renderBrandText()}
@@ -87,17 +86,56 @@ export default function PublicFooter() {
             </div>
           </div>
 
-          {/* Quick Links */}
           <div className="space-y-4">
             <h3 className="text-xs font-extrabold uppercase tracking-widest font-headline" style={{ color: 'var(--theme-secondary)' }}>
               Tautan Cepat
             </h3>
-            <ul className="space-y-2.5 text-sm" style={{ color: mutedColor }}>
-              <li><Link to="/" className="hover:opacity-80 transition-opacity">Beranda</Link></li>
-              <li><Link to="/about" className="hover:opacity-80 transition-opacity">Tentang Kami</Link></li>
-              <li><Link to="/academic" className="hover:opacity-80 transition-opacity">Akademik</Link></li>
-              <li><Link to="/services" className="hover:opacity-80 transition-opacity">Fasilitas</Link></li>
-              <li><Link to="/login" className="hover:opacity-80 transition-opacity">Portal</Link></li>
+            <ul className="space-y-2.5 text-sm">
+              <li>
+                <Link 
+                  to="/" 
+                  className="transition-colors hover:text-[var(--theme-text-on-primary)]"
+                  style={{ color: mutedColor }}
+                >
+                  Beranda
+                </Link>
+              </li>
+              <li>
+                <Link 
+                  to="/about" 
+                  className="transition-colors hover:text-[var(--theme-text-on-primary)]"
+                  style={{ color: mutedColor }}
+                >
+                  Tentang Kami
+                </Link>
+              </li>
+              <li>
+                <Link 
+                  to="/academic" 
+                  className="transition-colors hover:text-[var(--theme-text-on-primary)]"
+                  style={{ color: mutedColor }}
+                >
+                  Akademik
+                </Link>
+              </li>
+              <li>
+                <Link 
+                  to="/services" 
+                  className="transition-colors hover:text-[var(--theme-text-on-primary)]"
+                  style={{ color: mutedColor }}
+                >
+                  Fasilitas
+                </Link>
+              </li>
+              <li>
+                <Link 
+                  to="/login" 
+                  className="transition-colors hover:text-[var(--theme-text-on-primary)]"
+                  style={{ color: mutedColor }}
+                >
+                  Portal
+                </Link>
+              </li>
             </ul>
           </div>
 

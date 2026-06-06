@@ -266,6 +266,7 @@ func UpdateTheme(c *fiber.Ctx) error {
 	baseColorFields := []string{
 		"color_primary", "color_secondary", "color_accent",
 		"color_background", "color_surface",
+		"sidebar_bg_color", "sidebar_text_color", "sidebar_text_muted_color",
 	}
 
 	for _, field := range baseColorFields {
@@ -288,21 +289,24 @@ func UpdateTheme(c *fiber.Ctx) error {
 	}
 
 	allowedFields := map[string]*string{
-		"color_primary":    &theme.ColorPrimary,
-		"color_secondary":   &theme.ColorSecondary,
-		"color_accent":     &theme.ColorAccent,
-		"color_background":  &theme.ColorBackground,
-		"color_surface":     &theme.ColorSurface,
-		"site_name":         &theme.SiteName,
-		"font_headline":     &theme.FontHeadline,
-		"font_body":         &theme.FontBody,
-		"button_radius":     &theme.ButtonRadius,
-		"color_success":     &theme.ColorSuccess,
-		"color_warning":     &theme.ColorWarning,
-		"color_error":       &theme.ColorError,
-		"color_info":        &theme.ColorInfo,
-		"color_border":       &theme.ColorBorder,
-		"color_border_muted": &theme.ColorBorderMuted,
+		"color_primary":            &theme.ColorPrimary,
+		"color_secondary":          &theme.ColorSecondary,
+		"color_accent":             &theme.ColorAccent,
+		"color_background":         &theme.ColorBackground,
+		"color_surface":            &theme.ColorSurface,
+		"site_name":                &theme.SiteName,
+		"font_headline":            &theme.FontHeadline,
+		"font_body":                &theme.FontBody,
+		"button_radius":            &theme.ButtonRadius,
+		"color_success":            &theme.ColorSuccess,
+		"color_warning":            &theme.ColorWarning,
+		"color_error":              &theme.ColorError,
+		"color_info":               &theme.ColorInfo,
+		"color_border":             &theme.ColorBorder,
+		"color_border_muted":       &theme.ColorBorderMuted,
+		"sidebar_bg_color":         &theme.SidebarBgColor,
+		"sidebar_text_color":       &theme.SidebarTextColor,
+		"sidebar_text_muted_color": &theme.SidebarTextMutedColor,
 	}
 
 	for key, fieldPtr := range allowedFields {
@@ -331,9 +335,9 @@ func UpdateTheme(c *fiber.Ctx) error {
 	theme.ColorH3 = autoTextColor(theme.ColorBackground)
 	theme.ColorH4 = autoTextColor(theme.ColorBackground)
 
-	// Sidebar selalu gelap
-	theme.SidebarBgColor = theme.ColorPrimary
-	theme.SidebarTextColor = "#FFFFFF"
+	// Sidebar warna dinamis yang fleksibel sesuai input admin
+	// theme.SidebarBgColor = theme.ColorPrimary
+	// theme.SidebarTextColor = "#FFFFFF"
 
 	// ============================================================
 	// SYNC: Portal & Landing colors mengikuti legacy color_*
@@ -398,6 +402,7 @@ func ResetTheme(c *fiber.Ctx) error {
 		"color_h4":            "#0D2B55",
 		"sidebar_bg_color":     "#0D2B55",
 		"sidebar_text_color":   "#FFFFFF",
+		"sidebar_text_muted_color": "#94A3B8",
 		"font_headline":       "Plus Jakarta Sans",
 		"font_body":           "Inter",
 		"site_name":           "Universitas Bhakti Kencana",
@@ -433,6 +438,7 @@ func ResetTheme(c *fiber.Ctx) error {
 		case "color_h4":           theme.ColorH4 = value
 		case "sidebar_bg_color":    theme.SidebarBgColor = value
 		case "sidebar_text_color":  theme.SidebarTextColor = value
+		case "sidebar_text_muted_color": theme.SidebarTextMutedColor = value
 		case "font_headline":      theme.FontHeadline = value
 		case "font_body":          theme.FontBody = value
 		case "site_name":          theme.SiteName = value
