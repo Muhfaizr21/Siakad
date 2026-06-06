@@ -182,6 +182,24 @@ export default function KelolaPrestasi() {
 
   const prodiBreakdown = useMemo(() => {
     const mapping = {}
+
+    // Initialize mapping structure with all master faculties and prodis
+    allFaculties.forEach(fac => {
+      const facName = fac.nama || fac.Nama
+      if (facName) {
+        mapping[facName] = {}
+        const facId = fac.id || fac.ID
+        allProdi.forEach(prod => {
+          const prodFid = prod.FakultasID || prod.fakultas_id
+          const prodName = prod.nama || prod.Nama
+          if (String(prodFid) === String(facId) && prodName) {
+            mapping[facName][prodName] = { total: 0, pending: 0, verified: 0 }
+          }
+        })
+      }
+    })
+
+    // Populate counts from achievements data
     data.forEach(item => {
       const facName = item.fakultas_nama || 'Lainnya'
       const prodName = item.prodi_nama || 'Lainnya'
@@ -201,7 +219,7 @@ export default function KelolaPrestasi() {
       if (isVerified) mapping[facName][prodName].verified += 1
     })
     return mapping
-  }, [data])
+  }, [allFaculties, allProdi, data])
 
   const fakultasOptions = useMemo(() => {
     const list = []
