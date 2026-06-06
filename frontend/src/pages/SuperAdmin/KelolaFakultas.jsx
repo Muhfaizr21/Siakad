@@ -13,6 +13,7 @@ import { Label } from './components/ui/label'
 import { toast, Toaster } from 'react-hot-toast'
 import { cn } from '@/lib/utils'
 import { adminService } from '../../services/api'
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
 
 // Auto-injected Material Symbol fallbacks for removed Lucide icons
 const Phone = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>phone</span>;
@@ -153,6 +154,11 @@ export default function KelolaFakultas() {
 
   const totalProdi = data.reduce((acc, curr) => acc + (curr.JumlahProdi || curr.jumlah_prodi || 0), 0)
 
+  const chartData = data.map(fac => ({
+    name: fac.Kode || fac.Nama || '—',
+    'Jumlah Prodi': fac.JumlahProdi || fac.jumlah_prodi || fac.ProgramStudi?.length || fac.program_studi?.length || 0
+  }))
+
   return (
     <div className="px-4 py-8 md:px-8 xl:px-12 min-h-screen bg-transparent font-inter">
       <Toaster position="top-right" />
@@ -201,34 +207,67 @@ export default function KelolaFakultas() {
           </div>
         </section>
 
-        {/* ── Stats Grid ──────────────────────────────────────────── */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-           <div
-             onClick={() => setIsAllFacultiesOpen(true)}
-             className="bg-white p-4 rounded-2xl border border-[#e5e5e5] shadow-sm cursor-pointer hover:bg-neutral-50/50 hover:shadow-md hover:border-neutral-300 transition-all group"
-           >
-              <div className="flex items-center gap-3 mb-3">
-                 <div className="w-10 h-10 bg-[#eef4ff] rounded-xl flex justify-center items-center text-[#00236F] flex-shrink-0 group-hover:bg-[#00236F] group-hover:text-white transition-all">
-                    <Building2 size={18} />
+        {/* ── Stats & Chart Grid ─────────────────────────────────── */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+           {/* Left Column: Stats Cards */}
+           <div className="lg:col-span-1 flex flex-col gap-4">
+              <div
+                onClick={() => setIsAllFacultiesOpen(true)}
+                className="flex-1 bg-white p-5 rounded-2xl border border-[#e5e5e5] shadow-sm cursor-pointer hover:bg-neutral-50/50 hover:shadow-md hover:border-neutral-300 transition-all group flex flex-col justify-between"
+              >
+                 <div>
+                    <div className="flex items-center gap-3 mb-2">
+                       <div className="w-10 h-10 bg-[#eef4ff] rounded-xl flex justify-center items-center text-[#00236F] flex-shrink-0 group-hover:bg-[#00236F] group-hover:text-white transition-all">
+                          <Building2 size={18} />
+                       </div>
+                       <span className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-widest group-hover:text-primary transition-all">Total Fakultas</span>
+                    </div>
+                    <p className="text-3xl font-extrabold text-[#171717] font-jakarta leading-none tabular-nums mt-1">{data.length}</p>
                  </div>
-                 <span className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-widest group-hover:text-primary transition-all">Total Fakultas</span>
+                 <p className="text-xs text-[#a3a3a3] font-medium mt-3">Klik untuk melihat rincian unit akademik aktif</p>
               </div>
-              <p className="text-2xl font-extrabold text-[#171717] font-jakarta leading-none tabular-nums">{data.length}</p>
-              <p className="text-xs text-[#a3a3a3] font-medium mt-1">Klik untuk melihat rincian unit akademik aktif</p>
+
+              <div
+                onClick={() => setIsAllProdiOpen(true)}
+                className="flex-1 bg-white p-5 rounded-2xl border border-[#e5e5e5] shadow-sm cursor-pointer hover:bg-neutral-50/50 hover:shadow-md hover:border-neutral-300 transition-all group flex flex-col justify-between"
+              >
+                 <div>
+                    <div className="flex items-center gap-3 mb-2">
+                       <div className="w-10 h-10 bg-indigo-50 rounded-xl flex justify-center items-center text-indigo-600 flex-shrink-0 group-hover:bg-indigo-600 group-hover:text-white transition-all">
+                          <LayoutGrid size={18} />
+                       </div>
+                       <span className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-widest group-hover:text-indigo-600 transition-all">Total Prodi</span>
+                    </div>
+                    <p className="text-3xl font-extrabold text-[#171717] font-jakarta leading-none tabular-nums mt-1">{totalProdi}</p>
+                 </div>
+                 <p className="text-xs text-[#a3a3a3] font-medium mt-3">Klik untuk melihat rincian program studi terdaftar</p>
+              </div>
            </div>
 
-           <div
-             onClick={() => setIsAllProdiOpen(true)}
-             className="bg-white p-4 rounded-2xl border border-[#e5e5e5] shadow-sm cursor-pointer hover:bg-neutral-50/50 hover:shadow-md hover:border-neutral-300 transition-all group"
-           >
-              <div className="flex items-center gap-3 mb-3">
-                 <div className="w-10 h-10 bg-indigo-50 rounded-xl flex justify-center items-center text-indigo-600 flex-shrink-0 group-hover:bg-indigo-600 group-hover:text-white transition-all">
-                    <LayoutGrid size={18} />
+           {/* Right Column: Chart */}
+           <div className="lg:col-span-2 bg-white p-5 rounded-2xl border border-[#e5e5e5] shadow-sm flex flex-col justify-between">
+              <div>
+                 <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 bg-[#eef4ff] rounded-xl flex justify-center items-center text-[#00236F] flex-shrink-0">
+                       <span className="material-symbols-outlined text-[#00236F]" style={{ fontSize: '18px' }} >bar_chart</span>
+                    </div>
+                    <span className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-widest">Distribusi Program Studi per Fakultas</span>
                  </div>
-                 <span className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-widest group-hover:text-indigo-600 transition-all">Total Prodi</span>
+                 <div className="h-[180px] w-full mt-1">
+                    <ResponsiveContainer width="100%" height="100%">
+                       <BarChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                          <XAxis dataKey="name" tick={{ fontSize: 9, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                          <YAxis allowDecimals={false} tick={{ fontSize: 9, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                          <Tooltip
+                             cursor={{ fill: '#f8fafc' }}
+                             contentStyle={{ backgroundColor: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.05)", fontSize: "11px", fontWeight: "bold" }}
+                          />
+                          <Bar dataKey="Jumlah Prodi" fill="var(--theme-primary, #00236f)" radius={[6, 6, 0, 0]} barSize={28} />
+                       </BarChart>
+                    </ResponsiveContainer>
+                 </div>
               </div>
-              <p className="text-2xl font-extrabold text-[#171717] font-jakarta leading-none tabular-nums">{totalProdi}</p>
-              <p className="text-xs text-[#a3a3a3] font-medium mt-1">Klik untuk melihat rincian program studi terdaftar</p>
            </div>
         </div>
 

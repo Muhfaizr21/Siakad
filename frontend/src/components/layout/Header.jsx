@@ -23,18 +23,27 @@ export default function Header({ onMenuClick }) {
   
   const logout = useAuthStore(state => state.logout);
   const mahasiswaStore = useAuthStore(state => state.mahasiswa);
-  
+  const user = useAuthStore(state => state.user);
+  const role = user?.role || '';
+  const isStudent = role === 'mahasiswa' || role === 'student' || role === '';
+
   // Use React Query for reactive profile data (synced with upload)
+  // Only fetch for student role — admin/psychologist/ormawa don't use /profil
   const { data: profile } = useQuery({
     queryKey: ['mahasiswa', 'profile'],
     queryFn: async () => {
       const { data } = await api.get('/profil');
       return data.data;
     },
-    placeholderData: mahasiswaStore // Fallback to store while loading
+    placeholderData: mahasiswaStore, // Fallback to store while loading
+    enabled: isStudent // Only run for student role
   });
 
-  const student = profile || mahasiswaStore || { nama: 'Tegar', nim: '10123456' };
+  // For non-student roles, use user store data as display info
+  const student = profile || mahasiswaStore || {
+    nama: user?.name || user?.email || 'Admin',
+    nim: user?.role ? user.role.replace('_', ' ').toUpperCase() : '-'
+  };
   const displayName = String(student?.nama || student?.Nama || student?.name || 'User');
   const displayNim = String(student?.nim || student?.NIM || '-');
   const displayPhoto = student?.foto_url || student?.FotoURL || student?.photo_url || '';

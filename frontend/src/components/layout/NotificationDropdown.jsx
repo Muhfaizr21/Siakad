@@ -41,6 +41,8 @@ export default function NotificationDropdown() {
 
   const isOrmawa = role === 'ormawa' || role === 'ormawa_admin';
   const isPsychologist = role === 'psychologist' || role === 'psikolog';
+  const isSuperAdmin = role === 'super_admin';
+  const hasNotifications = !isSuperAdmin; // super_admin has no notification endpoint
 
   // Polling strategy: check unread count every 30s
   const { data: unreadData } = useQuery({
@@ -60,7 +62,8 @@ export default function NotificationDropdown() {
       return data;
     },
     refetchInterval: 30000,
-    refetchOnWindowFocus: true
+    refetchOnWindowFocus: true,
+    enabled: hasNotifications // Skip for super_admin
   });
 
   const { data: notifData, isLoading } = useQuery({
@@ -88,7 +91,7 @@ export default function NotificationDropdown() {
         link: raw.link ?? raw.Link ?? ''
       }));
     },
-    enabled: isOpen
+    enabled: isOpen && hasNotifications // Only load when open AND role has notifications
   });
 
   const markReadMutation = useMutation({

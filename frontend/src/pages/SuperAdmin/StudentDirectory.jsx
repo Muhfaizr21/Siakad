@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { DataTable } from './components/ui/data-table'
 import { Badge } from './components/ui/badge'
 import { Button } from './components/ui/button'
@@ -17,6 +17,7 @@ import { adminService, API_BASE_URL } from '../../services/api'
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue
 } from './components/ui/select'
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts"
 
 // Auto-injected Material Symbol fallbacks for removed Lucide icons
 const UserX = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>person_off</span>;
@@ -295,6 +296,27 @@ export default function StudentDirectory() {
     }
   ]
 
+  const studentStatusData = useMemo(() => {
+    const counts = {}
+    students.forEach(s => {
+      const status = s.StatusAkun || 'Aktif'
+      counts[status] = (counts[status] || 0) + 1
+    })
+    return Object.entries(counts).map(([name, value]) => ({ name, value }))
+  }, [students])
+
+  const studentFacultyData = useMemo(() => {
+    const counts = {}
+    students.forEach(s => {
+      const facName = s.Fakultas?.Nama || s.Fakultas?.nama || 'Lainnya'
+      const shortName = facName.replace('Fakultas ', '')
+      counts[shortName] = (counts[shortName] || 0) + 1
+    })
+    return Object.entries(counts).map(([name, count]) => ({ name, count }))
+  }, [students])
+
+  const PIE_COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444']
+
   return (
     <div className="px-1 py-4 md:px-2 xl:px-4 min-h-screen bg-transparent font-inter">
       <Toaster position="top-right" />
@@ -385,6 +407,81 @@ export default function StudentDirectory() {
               </div>
               <p className="text-2xl font-black text-slate-800 font-headline leading-none tabular-nums">{students.filter(s => s.StatusAkun !== 'Aktif' && s.StatusAkun !== 'Lulus').length}</p>
               <p className="text-[11px] text-slate-400 font-medium mt-1">Cuti / Keluar / DO</p>
+           </div>
+        </div>
+
+        {/* ── Charts Section ──────────────────────────────────────── */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+           {/* Bar Chart: Mahasiswa per Fakultas */}
+           <div className="lg:col-span-2 bg-white p-5 rounded-2xl border border-slate-200/60 shadow-none">
+              <div className="flex items-center gap-3 mb-3">
+                 <div className="w-10 h-10 bg-bku-primary/10 rounded-xl flex justify-center items-center text-bku-primary flex-shrink-0">
+                    <span className="material-symbols-outlined text-bku-primary" style={{ fontSize: '18px' }} >bar_chart</span>
+                 </div>
+                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline animate-in fade-in">Distribusi Mahasiswa per Fakultas</span>
+              </div>
+              <div className="h-[200px] w-full">
+                 <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={studentFacultyData} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
+                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                       <XAxis dataKey="name" tick={{ fontSize: 8.5, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                       <YAxis allowDecimals={false} tick={{ fontSize: 9, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                       <Tooltip
+                          cursor={{ fill: '#f8fafc' }}
+                          contentStyle={{ backgroundColor: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.05)", fontSize: "11px", fontWeight: "bold" }}
+                       />
+                       <Bar dataKey="count" name="Jumlah Mahasiswa" fill="var(--theme-primary, #00236f)" radius={[4, 4, 0, 0]} barSize={24} />
+                    </BarChart>
+                 </ResponsiveContainer>
+              </div>
+           </div>
+
+           {/* Pie Chart: Status Akademik */}
+           <div className="lg:col-span-1 bg-white p-5 rounded-2xl border border-slate-200/60 shadow-none flex flex-col justify-between">
+              <div className="flex items-center gap-3 mb-3">
+                 <div className="w-10 h-10 bg-emerald-500/10 rounded-xl flex justify-center items-center text-emerald-600 flex-shrink-0">
+                    <span className="material-symbols-outlined text-emerald-600" style={{ fontSize: '18px' }} >pie_chart</span>
+                 </div>
+                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline animate-in fade-in">Status Akademik</span>
+              </div>
+              <div className="h-[140px] w-full flex items-center justify-center">
+                 {studentStatusData.length > 0 ? (
+                    <ResponsiveContainer width="100%" height="100%">
+                       <PieChart>
+                          <Pie
+                             data={studentStatusData}
+                             cx="50%"
+                             cy="50%"
+                             innerRadius={40}
+                             outerRadius={60}
+                             paddingAngle={4}
+                             dataKey="value"
+                             stroke="none"
+                          >
+                             {studentStatusData.map((entry, index) => (
+                                <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
+                             ))}
+                          </Pie>
+                          <Tooltip
+                             contentStyle={{ backgroundColor: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.05)", fontSize: "10px", fontWeight: "bold" }}
+                          />
+                       </PieChart>
+                    </ResponsiveContainer>
+                 ) : (
+                    <span className="text-xs text-slate-400 italic">Tidak ada data</span>
+                 )}
+              </div>
+              <div className="grid grid-cols-2 gap-1.5 mt-2">
+                 {studentStatusData.slice(0, 4).map((item, idx) => (
+                    <div key={item.name} className="flex items-center gap-2 p-1.5 rounded-lg bg-slate-50 border border-slate-100">
+                       <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: PIE_COLORS[idx % PIE_COLORS.length] }} />
+                       <div className="min-w-0">
+                          <p className="text-[9px] font-bold text-slate-400 truncate leading-none">{item.name}</p>
+                          <p className="text-xs font-extrabold text-slate-800 leading-none mt-1">{item.value}</p>
+                       </div>
+                    </div>
+                 ))}
+              </div>
            </div>
         </div>
 

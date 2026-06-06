@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { DataTable } from './components/ui/data-table'
 import { Badge } from './components/ui/badge'
@@ -13,6 +13,7 @@ import { Label } from './components/ui/label'
 import { Textarea } from './components/ui/textarea'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './components/ui/tabs'
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from './components/ui/select'
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts"
 
 import { toast, Toaster } from 'react-hot-toast'
 import { cn } from '@/lib/utils'
@@ -234,6 +235,30 @@ export default function KelolaBeasiswa() {
     })
     return Array.from(map.values())
   }, [data])
+
+  const appStatusData = useMemo(() => {
+    const counts = { 'Diterima': 0, 'Ditolak': 0, 'Proses': 0, 'Disetujui Fakultas': 0 }
+    appsData.forEach(a => {
+      const s = a.Status || 'Proses'
+      if (counts[s] !== undefined) counts[s]++
+    })
+    return Object.entries(counts)
+      .map(([name, value]) => ({ name, value }))
+      .filter(d => d.value > 0)
+  }, [appsData])
+
+  const budgetByProgramData = useMemo(() => {
+    return [...data]
+      .sort((a, b) => (b.Anggaran || 0) - (a.Anggaran || 0))
+      .slice(0, 5)
+      .map(item => ({
+        name: (item.Nama || '—').replace('Beasiswa ', 'B. ').substring(0, 15),
+        value: item.Anggaran || 0
+      }))
+  }, [data])
+
+  const PIE_COLORS = ['#10b981', '#ef4444', '#f59e0b', '#3b82f6']
+
   const [loading, setLoading] = useState(true)
   const [appsLoading, setAppsLoading] = useState(true)
   const [selected, setSelected] = useState(null)
@@ -630,6 +655,84 @@ export default function KelolaBeasiswa() {
             loading={loading}
            />
         </div>
+
+        {/* ── Charts Section ──────────────────────────────────────── */}
+        {!loading && data.length > 0 && (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-in fade-in duration-300">
+            {/* Bar Chart: Program dengan Anggaran Terbesar */}
+            <div className="lg:col-span-2 bg-white p-5 rounded-2xl border border-slate-200/60 shadow-none">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 bg-[#eef4ff] rounded-xl flex justify-center items-center text-primary flex-shrink-0">
+                  <span className="material-symbols-outlined text-primary" style={{ fontSize: '18px' }} >bar_chart</span>
+                </div>
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline">Alokasi Anggaran Beasiswa Terbesar</span>
+              </div>
+              <div className="h-[200px] w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={budgetByProgramData} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                    <XAxis dataKey="name" tick={{ fontSize: 8.5, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                    <YAxis tickFormatter={v => `Rp ${new Intl.NumberFormat('id-ID', { notation: 'compact' }).format(v)}`} tick={{ fontSize: 9, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                    <Tooltip
+                      cursor={{ fill: '#f8fafc' }}
+                      formatter={v => [formatCurrency(v), 'Alokasi Anggaran']}
+                      contentStyle={{ backgroundColor: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.05)", fontSize: "11px", fontWeight: "bold" }}
+                    />
+                    <Bar dataKey="value" name="Anggaran" fill="var(--theme-primary, #00236f)" radius={[4, 4, 0, 0]} barSize={24} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            {/* Pie Chart: Status Seleksi Pendaftaran */}
+            <div className="lg:col-span-1 bg-white p-5 rounded-2xl border border-slate-200/60 shadow-none flex flex-col justify-between">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 bg-success/10 rounded-xl flex justify-center items-center text-success flex-shrink-0">
+                  <span className="material-symbols-outlined text-success" style={{ fontSize: '18px' }} >pie_chart</span>
+                </div>
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline">Status Pendaftaran Seleksi</span>
+              </div>
+              <div className="h-[140px] w-full flex items-center justify-center">
+                {appStatusData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={appStatusData}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={40}
+                        outerRadius={60}
+                        paddingAngle={4}
+                        dataKey="value"
+                        stroke="none"
+                      >
+                        {appStatusData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <Tooltip
+                        contentStyle={{ backgroundColor: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.05)", fontSize: "10px", fontWeight: "bold" }}
+                      />
+                    </PieChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <span className="text-xs text-slate-400 italic">Tidak ada data pendaftaran</span>
+                )}
+              </div>
+              <div className="grid grid-cols-2 gap-1.5 mt-2">
+                {appStatusData.slice(0, 4).map((item, idx) => (
+                  <div key={item.name} className="flex items-center gap-2 p-1.5 rounded-lg bg-slate-50 border border-slate-100">
+                    <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: PIE_COLORS[idx % PIE_COLORS.length] }} />
+                    <div className="min-w-0">
+                      <p className="text-[9px] font-bold text-slate-400 truncate leading-none">{item.name}</p>
+                      <p className="text-xs font-extrabold text-slate-800 leading-none mt-1">{item.value}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* ── Tabbed Content Section ─────────────────────────────── */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full space-y-6">

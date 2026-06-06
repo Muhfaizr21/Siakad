@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { DataTable } from './components/ui/data-table'
 import { Badge } from './components/ui/badge'
 import { Button } from './components/ui/button'
@@ -12,6 +12,10 @@ import { Label } from './components/ui/label'
 import { toast, Toaster } from 'react-hot-toast'
 import { cn } from '@/lib/utils'
 import { adminService } from '../../services/api'
+import {
+  PieChart, Pie, Cell, Tooltip, ResponsiveContainer,
+  BarChart, Bar, XAxis, YAxis, CartesianGrid
+} from 'recharts'
 
 // Auto-injected Material Symbol fallbacks for removed Lucide icons
 const Wallet = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>account_balance_wallet</span>;
@@ -79,6 +83,36 @@ export default function ProposalPipeline() {
 
   const pending = data.filter(p => p.Status === 'disetujui_fakultas').length
   const totalBudget = data.filter(p => p.Status === 'disetujui_fakultas').reduce((acc, curr) => acc + (curr.Anggaran || 0), 0)
+
+  // ── Chart data derived from live data ─────────────────────────────
+  const statusChartData = useMemo(() => {
+    const cfg = {
+      diajukan: { label: 'Diajukan', color: '#94a3b8' },
+      disetujui_fakultas: { label: 'Acc Fakultas', color: '#3b82f6' },
+      disetujui_univ: { label: 'Disyahkan', color: '#10b981' },
+      revisi: { label: 'Revisi', color: '#f59e0b' },
+      ditolak: { label: 'Ditolak', color: '#ef4444' },
+    }
+    const counts = {}
+    data.forEach(p => { const s = p.Status || 'diajukan'; counts[s] = (counts[s] || 0) + 1 })
+    return Object.entries(counts).map(([key, value]) => ({
+      name: cfg[key]?.label || key,
+      value,
+      color: cfg[key]?.color || '#94a3b8'
+    }))
+  }, [data])
+
+  const budgetByOrmawa = useMemo(() => {
+    const map = {}
+    data.forEach(p => {
+      const name = (p.Ormawa?.Nama || 'Lainnya').substring(0, 16)
+      map[name] = (map[name] || 0) + (p.Anggaran || 0)
+    })
+    return Object.entries(map)
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => b.value - a.value)
+      .slice(0, 6)
+  }, [data])
 
   const columns = [
     { 
@@ -204,6 +238,82 @@ export default function ProposalPipeline() {
               </div>
            </div>
         </div>
+
+        {/* ── Analytics Charts ─────────────────────────────────────── */}
+        {!loading && data.length > 0 && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Donut – Status Pipeline */}
+            <div className="glass-card rounded-2xl border border-slate-200/60 p-6 shadow-none">
+              <div className="flex items-center gap-3 mb-5">
+                <div className="w-9 h-9 bg-bku-primary/10 rounded-xl flex items-center justify-center text-bku-primary">
+                  <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>donut_large</span>
+                </div>
+                <div>
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline">Pipeline Status</p>
+                  <p className="text-sm font-black text-slate-800 font-headline">Distribusi Alur Proposal</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-6">
+                <div className="flex-shrink-0">
+                  <ResponsiveContainer width={160} height={160}>
+                    <PieChart>
+                      <Pie data={statusChartData} cx="50%" cy="50%" innerRadius={45} outerRadius={72} paddingAngle={3} dataKey="value">
+                        {statusChartData.map((entry, idx) => <Cell key={idx} fill={entry.color} />)}
+                      </Pie>
+                      <Tooltip contentStyle={{ borderRadius: '10px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.08)', fontSize: '11px', fontWeight: '700' }} formatter={(val, name) => [val + ' proposal', name]} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+                <div className="flex-1 space-y-2">
+                  {statusChartData.map((d, i) => (
+                    <div key={i} className="flex items-center gap-2.5">
+                      <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: d.color }} />
+                      <span className="text-[11px] font-bold text-slate-600 flex-1">{d.name}</span>
+                      <span className="text-[11px] font-black text-slate-800 tabular-nums">{d.value}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Horizontal Bar – Budget by Ormawa */}
+            <div className="glass-card rounded-2xl border border-slate-200/60 p-6 shadow-none">
+              <div className="flex items-center gap-3 mb-5">
+                <div className="w-9 h-9 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600">
+                  <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>account_balance_wallet</span>
+                </div>
+                <div>
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline">Anggaran per Ormawa</p>
+                  <p className="text-sm font-black text-slate-800 font-headline">Top Budget Requests</p>
+                </div>
+              </div>
+              <div className="space-y-3">
+                {budgetByOrmawa.length === 0 ? (
+                  <p className="text-[11px] text-slate-400 text-center py-8">Belum ada data anggaran</p>
+                ) : budgetByOrmawa.map((d, i) => {
+                  const max = Math.max(...budgetByOrmawa.map(x => x.value), 1)
+                  const pct = Math.round((d.value / max) * 100)
+                  const colors = ['#3b82f6', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444', '#06b6d4']
+                  return (
+                    <div key={i} className="flex items-center gap-3">
+                      <span className="text-[9px] font-black text-slate-400 uppercase w-24 flex-shrink-0 truncate font-headline">{d.name}</span>
+                      <div className="flex-1 h-6 bg-slate-100 rounded-lg overflow-hidden">
+                        <div
+                          className="h-full rounded-lg flex items-center px-2 transition-all duration-700"
+                          style={{ width: `${pct}%`, backgroundColor: colors[i % colors.length], minWidth: '40px' }}
+                        >
+                          <span className="text-[8px] font-black text-white truncate">
+                            {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', notation: 'compact', minimumFractionDigits: 0 }).format(d.value)}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* ── Table Section ────────────────────────────────────────── */}
         <Card className="glass-card border border-slate-200/60 shadow-none rounded-2xl overflow-hidden">

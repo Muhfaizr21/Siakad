@@ -15,6 +15,7 @@ import { toast, Toaster } from 'react-hot-toast'
 import { cn } from '@/lib/utils'
 import { adminService, API_BASE_URL } from '../../services/api'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './components/ui/select'
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts"
 
 // Auto-injected Material Symbol fallbacks for removed Lucide icons
 const BrainCircuit = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>psychology</span>;
@@ -195,6 +196,33 @@ export default function PsychologistDirectory() {
     const unique = [...new Set(allItems.map(i => i._semester).filter(v => v !== '' && v !== undefined && v !== null))].sort((a, b) => Number(a) - Number(b))
     return unique.map(s => ({ label: `SEMESTER ${s}`, value: String(s) }))
   }, [bookings, medicalRecords, referrals])
+
+  const topicChartData = useMemo(() => {
+    const counts = {}
+    bookings.forEach(b => {
+      const t = b.topik || b.Topik || 'Lainnya'
+      const normalized = t.trim()
+      counts[normalized] = (counts[normalized] || 0) + 1
+    })
+    return Object.entries(counts)
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => b.value - a.value)
+      .slice(0, 5)
+  }, [bookings])
+
+  const modeChartData = useMemo(() => {
+    const counts = { 'Online': 0, 'Tatap Muka': 0 }
+    bookings.forEach(b => {
+      const m = b.mode || b.Mode || 'Tatap Muka'
+      const key = m === 'Online' ? 'Online' : 'Tatap Muka'
+      counts[key]++
+    })
+    return Object.entries(counts)
+      .map(([name, value]) => ({ name, value }))
+      .filter(d => d.value > 0)
+  }, [bookings])
+
+  const PIE_COLORS = ['#0d9488', '#4f46e5', '#f59e0b', '#10b981']
 
   const handleOpenEdit = (row) => {
     setForm({ 
@@ -766,6 +794,83 @@ export default function PsychologistDirectory() {
               <p className="text-xs text-[#a3a3a3] font-medium mt-1">Surat rujukan dikirim</p>
            </div>
         </div>
+
+        {/* ── Charts Section ──────────────────────────────────────── */}
+        {!loading && bookings.length > 0 && (
+           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+             {/* Bar Chart: Topik Konseling Terpopuler */}
+             <div className="lg:col-span-2 bg-white p-5 rounded-2xl border border-slate-200/60 shadow-none">
+               <div className="flex items-center gap-3 mb-3">
+                 <div className="w-10 h-10 bg-teal-50 rounded-xl flex justify-center items-center text-teal-600 flex-shrink-0">
+                   <span className="material-symbols-outlined text-teal-600" style={{ fontSize: '18px' }} >bar_chart</span>
+                 </div>
+                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline">Topik Konseling Terpopuler</span>
+               </div>
+               <div className="h-[200px] w-full">
+                 <ResponsiveContainer width="100%" height="100%">
+                   <BarChart data={topicChartData} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
+                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                     <XAxis dataKey="name" tick={{ fontSize: 8.5, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                     <YAxis allowDecimals={false} tick={{ fontSize: 9, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                     <Tooltip
+                       cursor={{ fill: '#f8fafc' }}
+                       contentStyle={{ backgroundColor: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.05)", fontSize: "11px", fontWeight: "bold" }}
+                     />
+                     <Bar dataKey="value" name="Jumlah Sesi" fill="#0d9488" radius={[4, 4, 0, 0]} barSize={24} />
+                   </BarChart>
+                 </ResponsiveContainer>
+               </div>
+             </div>
+
+             {/* Pie Chart: Metode Konseling */}
+             <div className="lg:col-span-1 bg-white p-5 rounded-2xl border border-slate-200/60 shadow-none flex flex-col justify-between">
+               <div className="flex items-center gap-3 mb-3">
+                 <div className="w-10 h-10 bg-indigo-50 rounded-xl flex justify-center items-center text-indigo-600 flex-shrink-0">
+                   <span className="material-symbols-outlined text-indigo-600" style={{ fontSize: '18px' }} >pie_chart</span>
+                 </div>
+                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline">Metode Konseling</span>
+               </div>
+               <div className="h-[140px] w-full flex items-center justify-center">
+                 {modeChartData.length > 0 ? (
+                   <ResponsiveContainer width="100%" height="100%">
+                     <PieChart>
+                       <Pie
+                         data={modeChartData}
+                         cx="50%"
+                         cy="50%"
+                         innerRadius={40}
+                         outerRadius={60}
+                         paddingAngle={4}
+                         dataKey="value"
+                         stroke="none"
+                       >
+                         {modeChartData.map((entry, index) => (
+                           <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
+                         ))}
+                       </Pie>
+                       <Tooltip
+                         contentStyle={{ backgroundColor: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.05)", fontSize: "10px", fontWeight: "bold" }}
+                       />
+                     </PieChart>
+                   </ResponsiveContainer>
+                 ) : (
+                   <span className="text-xs text-slate-400 italic">Tidak ada data</span>
+                 )}
+               </div>
+               <div className="grid grid-cols-2 gap-1.5 mt-2">
+                 {modeChartData.slice(0, 4).map((item, idx) => (
+                   <div key={item.name} className="flex items-center gap-2 p-1.5 rounded-lg bg-slate-50 border border-slate-100">
+                     <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: PIE_COLORS[idx % PIE_COLORS.length] }} />
+                     <div className="min-w-0">
+                       <p className="text-[9px] font-bold text-slate-400 truncate leading-none">{item.name}</p>
+                       <p className="text-xs font-extrabold text-slate-800 leading-none mt-1">{item.value}</p>
+                     </div>
+                   </div>
+                 ))}
+               </div>
+             </div>
+           </div>
+        )}
 
         {/* ── Tab Navigation ────────────────────────────────────────── */}
         <div className="flex items-center gap-2 border-b border-neutral-200 overflow-x-auto pb-1">

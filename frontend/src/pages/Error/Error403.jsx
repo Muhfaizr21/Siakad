@@ -2,9 +2,33 @@ import React from 'react';
 import { Lock, ChevronLeft, ShieldAlert } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import useAuthStore from '../../store/useAuthStore';
 
 export default function Error403() {
   const navigate = useNavigate();
+  const user = useAuthStore(state => state.user);
+  const role = user?.role || user?.Role || '';
+
+  const handleGoBack = () => {
+    const r = String(role || '').toLowerCase().trim();
+    if (r === 'super_admin') {
+      navigate('/admin');
+    } else if (r === 'kencana_admin' || r === 'kencana_fakultas') {
+      navigate('/kencana-admin');
+    } else if (r === 'kencana_mentor') {
+      navigate('/kencana-mentor');
+    } else if (r === 'faculty_admin' || r === 'dosen' || r === 'prodi_admin') {
+      navigate('/faculty');
+    } else if (r === 'ormawa_admin' || r === 'ormawa') {
+      navigate('/ormawa');
+    } else if (r === 'psikolog') {
+      navigate('/psychologist');
+    } else if (r === 'tenaga_kesehatan' || r === 'tenagakes') {
+      navigate('/tenagakes');
+    } else {
+      navigate('/student/dashboard');
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#fafafa] flex items-center justify-center p-6 font-body">
@@ -52,7 +76,7 @@ export default function Error403() {
           {/* Action Button */}
           <div className="flex justify-center">
             <button
-               onClick={() => navigate('/student/dashboard')}
+               onClick={handleGoBack}
                className="px-8 py-4 bg-[#171717] text-white rounded-3xl font-bold text-sm shadow-xl hover:bg-black transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-2"
             >
               <ChevronLeft size={18} />

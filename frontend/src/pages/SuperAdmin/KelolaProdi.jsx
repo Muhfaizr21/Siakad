@@ -12,6 +12,7 @@ import { toast, Toaster } from 'react-hot-toast'
 import { cn } from '@/lib/utils'
 import { adminService } from '../../services/api'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './components/ui/select'
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts"
 
 // Auto-injected Material Symbol fallbacks for removed Lucide icons
 const RefreshCw = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>sync</span>;
@@ -157,6 +158,27 @@ export default function KelolaProdi() {
     d3: data.filter(p => p.Jenjang === 'D3').length
   }
 
+  const jenjangData = useMemo(() => {
+    const counts = {}
+    data.forEach(p => {
+      const j = p.Jenjang || 'Lainnya'
+      counts[j] = (counts[j] || 0) + 1
+    })
+    return Object.entries(counts).map(([name, value]) => ({ name, value }))
+  }, [data])
+
+  const prodiPerFacultyData = useMemo(() => {
+    const counts = {}
+    data.forEach(p => {
+      const facName = p.FakultasNama || p.Fakultas?.Nama || 'Lainnya'
+      const shortName = facName.replace('Fakultas ', '')
+      counts[shortName] = (counts[shortName] || 0) + 1
+    })
+    return Object.entries(counts).map(([name, count]) => ({ name, count }))
+  }, [data])
+
+  const PIE_COLORS = ['var(--theme-primary, #00236f)', '#4f46e5', '#10b981', '#f59e0b', '#f43f5e', '#14b8a6']
+
   return (
     <div className="px-4 py-8 md:px-8 xl:px-12 min-h-screen bg-transparent font-inter">
       <Toaster position="top-right" />
@@ -249,6 +271,81 @@ export default function KelolaProdi() {
               </div>
               <p className="text-2xl font-extrabold text-[#171717] font-headline leading-none tabular-nums">{stats.d3}</p>
               <p className="text-xs text-[#a3a3a3] font-medium mt-1">Program diploma tiga</p>
+           </div>
+        </div>
+
+        {/* ── Charts Section ──────────────────────────────────────── */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+           {/* Bar Chart: Prodi per Fakultas */}
+           <div className="lg:col-span-2 bg-white p-5 rounded-2xl border border-slate-100 shadow-sm">
+              <div className="flex items-center gap-3 mb-3">
+                 <div className="w-10 h-10 bg-blue-50 rounded-xl flex justify-center items-center text-bku-primary flex-shrink-0">
+                    <span className="material-symbols-outlined text-bku-primary" style={{ fontSize: '18px' }} >bar_chart</span>
+                 </div>
+                 <span className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-widest">Jumlah Program Studi per Fakultas</span>
+              </div>
+              <div className="h-[200px] w-full">
+                 <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={prodiPerFacultyData} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
+                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                       <XAxis dataKey="name" tick={{ fontSize: 8.5, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                       <YAxis allowDecimals={false} tick={{ fontSize: 9, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                       <Tooltip
+                          cursor={{ fill: '#f8fafc' }}
+                          contentStyle={{ backgroundColor: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.05)", fontSize: "11px", fontWeight: "bold" }}
+                       />
+                       <Bar dataKey="count" name="Jumlah Prodi" fill="var(--theme-primary, #00236f)" radius={[4, 4, 0, 0]} barSize={24} />
+                    </BarChart>
+                 </ResponsiveContainer>
+              </div>
+           </div>
+
+           {/* Pie Chart: Jenjang Pendidikan */}
+           <div className="lg:col-span-1 bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex flex-col justify-between">
+              <div className="flex items-center gap-3 mb-3">
+                 <div className="w-10 h-10 bg-indigo-50 rounded-xl flex justify-center items-center text-indigo-600 flex-shrink-0">
+                    <span className="material-symbols-outlined text-indigo-600" style={{ fontSize: '18px' }} >pie_chart</span>
+                 </div>
+                 <span className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-widest">Jenjang Pendidikan</span>
+              </div>
+              <div className="h-[140px] w-full flex items-center justify-center">
+                 {jenjangData.length > 0 ? (
+                    <ResponsiveContainer width="100%" height="100%">
+                       <PieChart>
+                          <Pie
+                             data={jenjangData}
+                             cx="50%"
+                             cy="50%"
+                             innerRadius={40}
+                             outerRadius={60}
+                             paddingAngle={4}
+                             dataKey="value"
+                             stroke="none"
+                          >
+                             {jenjangData.map((entry, index) => (
+                                <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
+                             ))}
+                          </Pie>
+                          <Tooltip
+                             contentStyle={{ backgroundColor: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.05)", fontSize: "10px", fontWeight: "bold" }}
+                          />
+                       </PieChart>
+                    </ResponsiveContainer>
+                 ) : (
+                    <span className="text-xs text-slate-400 italic">Tidak ada data</span>
+                 )}
+              </div>
+              <div className="grid grid-cols-2 gap-1.5 mt-2">
+                 {jenjangData.slice(0, 4).map((item, idx) => (
+                    <div key={item.name} className="flex items-center gap-2 p-1.5 rounded-lg bg-slate-50 border border-slate-100">
+                       <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: PIE_COLORS[idx % PIE_COLORS.length] }} />
+                       <div className="min-w-0">
+                          <p className="text-[9px] font-bold text-slate-400 truncate leading-none">{item.name}</p>
+                          <p className="text-xs font-extrabold text-slate-800 leading-none mt-1">{item.value}</p>
+                       </div>
+                    </div>
+                 ))}
+              </div>
            </div>
         </div>
 

@@ -1,8 +1,12 @@
 "use client"
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { adminService, API_BASE_URL } from '../../services/api'
+import {
+  PieChart, Pie, Cell, Tooltip, ResponsiveContainer,
+  AreaChart, Area, XAxis, YAxis, CartesianGrid, Legend
+} from 'recharts'
 
 import { Badge } from './components/ui/badge'
 import { cn } from '@/lib/utils'
@@ -203,6 +207,56 @@ const AspirationControl = () => {
     'LOW': 'bg-emerald-500 text-white shadow-lg shadow-emerald-100'
   }
 
+  // ── Derived Chart Data ─────────────────────────────────────────────
+  const statusDonutData = useMemo(() => {
+    const counts = { proses: 0, selesai: 0, ditolak: 0, ditinjau: 0, 'disetujui fakultas': 0 }
+    aspirations.forEach(a => {
+      const s = (a.Status || '').toLowerCase()
+      if (counts[s] !== undefined) counts[s]++
+    })
+    return [
+      { name: 'Diproses', value: counts['proses'], color: '#3b82f6' },
+      { name: 'Selesai', value: counts['selesai'], color: '#10b981' },
+      { name: 'Ditolak', value: counts['ditolak'], color: '#ef4444' },
+      { name: 'Ditinjau', value: counts['ditinjau'], color: '#f59e0b' },
+      { name: 'Acc Fakultas', value: counts['disetujui fakultas'], color: '#8b5cf6' },
+    ].filter(d => d.value > 0)
+  }, [aspirations])
+
+  const priorityBarData = useMemo(() => {
+    const counts = { CRITICAL: 0, HIGH: 0, NORMAL: 0, LOW: 0 }
+    aspirations.forEach(a => { const p = (a.Priority || 'NORMAL').toUpperCase(); if (counts[p] !== undefined) counts[p]++ })
+    return [
+      { name: 'Critical', value: counts.CRITICAL, fill: '#ef4444' },
+      { name: 'High', value: counts.HIGH, fill: '#f59e0b' },
+      { name: 'Normal', value: counts.NORMAL, fill: '#3b82f6' },
+      { name: 'Low', value: counts.LOW, fill: '#10b981' },
+    ]
+  }, [aspirations])
+
+  const facultyTrendData = useMemo(() => {
+    const map = {}
+    aspirations.forEach(a => {
+      const fac = a.Fakultas?.Nama || a.Mahasiswa?.Fakultas?.Nama || 'Lainnya'
+      const shortFac = fac.replace('Fakultas ', 'F. ').substring(0, 14)
+      map[shortFac] = (map[shortFac] || 0) + 1
+    })
+    return Object.entries(map).map(([name, value]) => ({ name, value })).sort((a,b) => b.value - a.value).slice(0,5)
+  }, [aspirations])
+
+  const CustomDonutLabel = ({ cx, cy, midAngle, outerRadius, percent, name }) => {
+    if (percent < 0.05) return null
+    const RADIAN = Math.PI / 180
+    const radius = outerRadius + 28
+    const x = cx + radius * Math.cos(-midAngle * RADIAN)
+    const y = cy + radius * Math.sin(-midAngle * RADIAN)
+    return (
+      <text x={x} y={y} fill="#64748b" textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central" fontSize={10} fontWeight="700" fontFamily="monospace">
+        {`${name} (${(percent * 100).toFixed(0)}%)`}
+      </text>
+    )
+  }
+
   return (
     <div className="px-1 py-4 md:px-2 xl:px-4 min-h-screen bg-transparent font-inter">
       <Toaster position="top-right" />
@@ -233,7 +287,7 @@ const AspirationControl = () => {
                         onClick={loadData}
                         className="h-11 px-6 rounded-xl border-slate-200 text-[10px] font-black uppercase tracking-widest text-slate-600 hover:bg-slate-100 hover:text-bku-primary gap-2.5 transition-all active:scale-95 shadow-none cursor-pointer font-headline"
                     >
-                        <span className="material-symbols-outlined text-bku-primary" style={{ fontSize: '16px' }} >show_chart</span>
+                        <span className="material-symbols-outlined text-bku-primary" style={{ fontSize: '16px' }}>show_chart</span>
                         Live Refresh
                     </Button>
                 </div>
@@ -245,7 +299,7 @@ const AspirationControl = () => {
            <div className="glass-card p-5 rounded-2xl border border-slate-200/60 shadow-none">
               <div className="flex items-center gap-3 mb-3">
                  <div className="w-10 h-10 bg-bku-primary/10 rounded-xl flex justify-center items-center text-bku-primary flex-shrink-0">
-                    <span className="material-symbols-outlined" style={{ fontSize: '18px' }} >chat</span>
+                    <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>chat</span>
                  </div>
                  <span className="text-[10px] font-black text-slate-400 font-headline uppercase tracking-widest">Active Tickets</span>
               </div>
@@ -256,7 +310,7 @@ const AspirationControl = () => {
            <div className="glass-card p-5 rounded-2xl border border-slate-200/60 shadow-none">
               <div className="flex items-center gap-3 mb-3">
                  <div className="w-10 h-10 bg-rose-50 rounded-xl flex justify-center items-center text-rose-500 flex-shrink-0">
-                    <span className="material-symbols-outlined" style={{ fontSize: '18px' }} >error</span>
+                    <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>error</span>
                  </div>
                  <span className="text-[10px] font-black text-slate-400 font-headline uppercase tracking-widest">SLA Overdue</span>
               </div>
@@ -267,7 +321,7 @@ const AspirationControl = () => {
            <div className="glass-card p-5 rounded-2xl border border-slate-200/60 shadow-none">
               <div className="flex items-center gap-3 mb-3">
                  <div className="w-10 h-10 bg-emerald-50 rounded-xl flex justify-center items-center text-emerald-500 flex-shrink-0">
-                    <span className="material-symbols-outlined" style={{ fontSize: '18px' }} >check_circle</span>
+                    <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>check_circle</span>
                  </div>
                  <span className="text-[10px] font-black text-slate-400 font-headline uppercase tracking-widest">Resolved Today</span>
               </div>
@@ -278,7 +332,7 @@ const AspirationControl = () => {
            <div className="glass-card p-5 rounded-2xl border border-slate-200/60 shadow-none">
               <div className="flex items-center gap-3 mb-3">
                  <div className="w-10 h-10 bg-slate-100 rounded-xl flex justify-center items-center text-slate-600 flex-shrink-0">
-                    <span className="material-symbols-outlined" style={{ fontSize: '18px' }} >storage</span>
+                    <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>storage</span>
                  </div>
                  <span className="text-[10px] font-black text-slate-400 font-headline uppercase tracking-widest">Total Aspirasi</span>
               </div>
@@ -286,6 +340,123 @@ const AspirationControl = () => {
               <p className="text-[11px] text-slate-400 font-medium mt-1">Seluruh aspirasi masuk</p>
            </div>
         </div>
+
+        {/* ── Analytics Charts ─────────────────────────────────────── */}
+        {!loading && aspirations.length > 0 && (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Donut – Status Distribution */}
+            <div className="glass-card rounded-2xl border border-slate-200/60 p-6 shadow-none flex flex-col">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-8 h-8 bg-bku-primary/10 rounded-lg flex items-center justify-center text-bku-primary">
+                  <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>donut_large</span>
+                </div>
+                <div>
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline">Distribusi Status</p>
+                  <p className="text-xs font-bold text-slate-700 font-headline">Komposisi Aspirasi</p>
+                </div>
+              </div>
+              <div className="flex-1 min-h-[200px]">
+                <ResponsiveContainer width="100%" height={220}>
+                  <PieChart>
+                    <Pie
+                      data={statusDonutData}
+                      cx="50%" cy="50%"
+                      innerRadius={55} outerRadius={85}
+                      paddingAngle={3}
+                      dataKey="value"
+                      labelLine={false}
+                    >
+                      {statusDonutData.map((entry, idx) => (
+                        <Cell key={idx} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 24px rgba(0,0,0,0.08)', fontSize: '11px', fontWeight: '700' }}
+                      formatter={(val, name) => [val + ' ticket', name]}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+              {/* Legend */}
+              <div className="grid grid-cols-2 gap-1.5 mt-2">
+                {statusDonutData.map((d, i) => (
+                  <div key={i} className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: d.color }} />
+                    <span className="text-[10px] font-bold text-slate-500 truncate">{d.name}</span>
+                    <span className="text-[10px] font-black text-slate-700 ml-auto">{d.value}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Bar – Priority Breakdown */}
+            <div className="glass-card rounded-2xl border border-slate-200/60 p-6 shadow-none flex flex-col">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-8 h-8 bg-amber-50 rounded-lg flex items-center justify-center text-amber-500">
+                  <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>bar_chart</span>
+                </div>
+                <div>
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline">Level Prioritas</p>
+                  <p className="text-xs font-bold text-slate-700 font-headline">Urgensi Penanganan</p>
+                </div>
+              </div>
+              <div className="flex-1 flex flex-col justify-end gap-3 mt-2">
+                {priorityBarData.map((d, i) => {
+                  const max = Math.max(...priorityBarData.map(x => x.value), 1)
+                  const pct = Math.round((d.value / max) * 100)
+                  return (
+                    <div key={i} className="flex items-center gap-3">
+                      <span className="text-[10px] font-black text-slate-400 uppercase w-16 flex-shrink-0 font-headline">{d.name}</span>
+                      <div className="flex-1 h-6 bg-slate-100 rounded-lg overflow-hidden relative">
+                        <div
+                          className="h-full rounded-lg transition-all duration-700 flex items-center justify-end pr-2"
+                          style={{ width: `${pct}%`, backgroundColor: d.fill, minWidth: d.value > 0 ? '28px' : '0' }}
+                        >
+                          {d.value > 0 && <span className="text-[9px] font-black text-white">{d.value}</span>}
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+
+            {/* Bar – Faculty Distribution */}
+            <div className="glass-card rounded-2xl border border-slate-200/60 p-6 shadow-none flex flex-col">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-8 h-8 bg-emerald-50 rounded-lg flex items-center justify-center text-emerald-500">
+                  <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>school</span>
+                </div>
+                <div>
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline">Top Fakultas</p>
+                  <p className="text-xs font-bold text-slate-700 font-headline">Volume Aspirasi</p>
+                </div>
+              </div>
+              <div className="flex-1 flex flex-col justify-end gap-3 mt-2">
+                {facultyTrendData.length === 0 ? (
+                  <p className="text-[10px] text-slate-400 text-center py-8">Belum ada data</p>
+                ) : facultyTrendData.map((d, i) => {
+                  const max = Math.max(...facultyTrendData.map(x => x.value), 1)
+                  const pct = Math.round((d.value / max) * 100)
+                  const colors = ['#3b82f6', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444']
+                  return (
+                    <div key={i} className="flex items-center gap-3">
+                      <span className="text-[9px] font-black text-slate-400 uppercase w-20 flex-shrink-0 truncate font-headline">{d.name}</span>
+                      <div className="flex-1 h-6 bg-slate-100 rounded-lg overflow-hidden">
+                        <div
+                          className="h-full rounded-lg transition-all duration-700 flex items-center justify-end pr-2"
+                          style={{ width: `${pct}%`, backgroundColor: colors[i % colors.length], minWidth: '28px' }}
+                        >
+                          <span className="text-[9px] font-black text-white">{d.value}</span>
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* ── Main Data Table ────────────────────────────────────── */}
         <Card className="glass-card border border-slate-200/60 shadow-none rounded-2xl overflow-hidden">

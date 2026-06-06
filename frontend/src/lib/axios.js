@@ -98,9 +98,10 @@ api.interceptors.response.use(
       }
     }
 
-    // 403 Forbidden -> Redirect to 403 (but not for auth requests)
+    // 403 Forbidden -> Just reject the promise, let components handle it gracefully.
+    // Do NOT globally redirect to /403 — that breaks admin pages which call student-only endpoints.
     if (status === 403 && !isAuthRequest) {
-      window.location.href = '/403';
+      return Promise.reject(error);
     }
 
     // 500, 502, 503 Server Errors -> Redirect to 500 (but not for auth requests)
