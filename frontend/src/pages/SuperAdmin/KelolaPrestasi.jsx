@@ -10,6 +10,7 @@ import { Input } from "./components/ui/input"
 import { Label } from "./components/ui/label"
 import { Textarea } from "./components/ui/textarea"
 import { StatCard } from "./components/ui/stat-card"
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "./components/ui/select"
 import { toast, Toaster } from "react-hot-toast"
 import { cn } from "@/lib/utils"
 import { adminService, API_BASE_URL } from "../../services/api"
@@ -62,6 +63,7 @@ export default function KelolaPrestasi() {
   const [isVerifyOpen, setIsVerifyOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [expandedFaculty, setExpandedFaculty] = useState(null)
+  const [chartFacultyFilter, setChartFacultyFilter] = useState("all")
 
   // Verification Form State
   const [verifyStatus, setVerifyStatus] = useState("verified")
@@ -200,6 +202,23 @@ export default function KelolaPrestasi() {
     })
     return list
   }, [data])
+
+  const chartData = useMemo(() => {
+    if (chartFacultyFilter === "all") {
+      return leaderboardData
+    } else {
+      const counts = {}
+      data.forEach(item => {
+        if (item.fakultas_id === chartFacultyFilter) {
+          const prodName = item.prodi_nama || 'Lainnya'
+          counts[prodName] = (counts[prodName] || 0) + 1
+        }
+      })
+      return Object.entries(counts)
+        .map(([name, value]) => ({ name, value }))
+        .sort((a, b) => b.value - a.value)
+    }
+  }, [chartFacultyFilter, leaderboardData, data])
 
   const prodiOptions = useMemo(() => {
     const list = []
@@ -436,22 +455,47 @@ export default function KelolaPrestasi() {
             {/* Bar Chart: Leaderboard Fakultas */}
             <div className="lg:col-span-2 bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm flex flex-col justify-between">
               <div>
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="w-10 h-10 bg-blue-50 rounded-xl flex justify-center items-center text-blue-600 flex-shrink-0">
-                    <span className="material-symbols-outlined text-blue-600" style={{ fontSize: '18px' }} >bar_chart</span>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-blue-50 rounded-xl flex justify-center items-center text-blue-600 flex-shrink-0">
+                      <span className="material-symbols-outlined text-blue-600" style={{ fontSize: '18px' }} >bar_chart</span>
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline block">Kontribusi Prestasi</span>
+                      <h3 className="text-sm font-extrabold text-slate-800 leading-tight">
+                        {chartFacultyFilter === "all" ? "Fakultas Paling Berprestasi" : "Program Studi Teraktif"}
+                      </h3>
+                    </div>
                   </div>
-                  <div>
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline block">Kontribusi Prestasi</span>
-                    <h3 className="text-sm font-extrabold text-slate-800 leading-tight">Fakultas Paling Berprestasi</h3>
+                  
+                  {/* Select Filter Fakultas */}
+                  <div className="w-full sm:w-[200px] shrink-0">
+                    <Select value={chartFacultyFilter} onValueChange={setChartFacultyFilter}>
+                      <SelectTrigger className="w-full h-9 rounded-xl border-[#e5e5e5] bg-[#fafafa] text-xs">
+                        <SelectValue placeholder="Filter Fakultas" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Semua Fakultas</SelectItem>
+                        {fakultasOptions.map(opt => (
+                          <SelectItem key={opt.value} value={opt.value}>
+                            {opt.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
-                <p className="text-xs text-neutral-500 font-medium mb-6">Peringkat kontribusi jumlah prestasi mahasiswa per Fakultas secara riil.</p>
+                <p className="text-xs text-neutral-500 font-medium mb-6">
+                  {chartFacultyFilter === "all" 
+                    ? "Peringkat kontribusi jumlah prestasi mahasiswa per Fakultas secara riil." 
+                    : "Peringkat kontribusi jumlah prestasi mahasiswa per Program Studi pada Fakultas terpilih."}
+                </p>
               </div>
               
               <div className="h-[240px] w-full">
-                {leaderboardData.length > 0 ? (
+                {chartData.length > 0 ? (
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={leaderboardData} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
+                    <BarChart data={chartData} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                       <XAxis dataKey="name" tick={{ fontSize: 9, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} />
                       <YAxis tick={{ fontSize: 9, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} />
