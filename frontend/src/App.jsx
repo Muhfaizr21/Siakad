@@ -241,7 +241,7 @@ function App() {
                 <Route path="/500" element={<Error500 />} />
 
                 {/* Super Admin */}
-                <Route path="/admin" element={<ProtectedRoute allowedRoles={['super_admin']} requiredPermissions={['*']}><SuperAdminLayout /></ProtectedRoute>}>
+                <Route path="/admin" element={<ProtectedRoute allowedRoles={['super_admin']}><SuperAdminLayout /></ProtectedRoute>}>
                   <Route index element={<AdminDashboard />} />
                   <Route path="profile" element={<AdminProfile />} />
                   <Route path="rbac" element={<UserManagement />} />

@@ -5,6 +5,7 @@ import {
   useScholarshipRiwayatQuery, 
   useDaftarBeasiswaMutation 
 } from '../../queries/useScholarshipQuery';
+import api from '../../lib/axios';
 
 import { motion, AnimatePresence } from 'framer-motion';
 import { CardGridSkeleton, TableSkeleton } from '../../components/ui/SkeletonGroups';
@@ -59,18 +60,32 @@ const STATUS_BADGE = {
   penetapan: { label: 'Penetapan', color: 'text-amber-600', bg: 'bg-amber-50', border: 'border-amber-200' },
 };
 
-// ======================== APPLICATION MODAL (3-STEP WIZARD) ========================
+// ======================== APPLICATION MODAL (3/4-STEP WIZARD) ========================
 function ApplyWizard({ scholarship, onClose, onSuccess }) {
   const [step, setStep] = useState(1);
   const [motivasi, setMotivasi] = useState('');
-  const [prestasi, setPrestasi] = useState('');
   const [files, setFiles] = useState({}); // { key: File }
+  const [customAnswers, setCustomAnswers] = useState({}); // { label: value }
   const [agreed, setAgreed] = useState(false);
   const fileInputRefs = useRef({});
   const daftarMutation = useDaftarBeasiswaMutation();
 
   const scholarshipNama = scholarship?.nama || scholarship?.Nama || '';
-  const scholarshipIpkMin = scholarship?.ipk_min || scholarship?.IPKMin || 0;
+
+  const customFields = React.useMemo(() => {
+    const raw = scholarship?.custom_fields || scholarship?.CustomFields;
+    if (!raw) return [];
+    try {
+      const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (e) {
+      console.error(e);
+      return [];
+    }
+  }, [scholarship]);
+
+  const hasCustomFields = customFields.length > 0;
+  const totalSteps = hasCustomFields ? 4 : 3;
 
   const handleFileChange = (key, file) => {
     if (file && file.size > 5 * 1024 * 1024) {
@@ -78,6 +93,36 @@ function ApplyWizard({ scholarship, onClose, onSuccess }) {
       return;
     }
     setFiles(prev => ({ ...prev, [key]: file }));
+  };
+
+  const handleCustomFileChange = async (label, file) => {
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Ukuran berkas maksimal 5MB');
+      return;
+    }
+    
+    const toastId = toast.loading(`Mengunggah berkas ${label}...`);
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    try {
+      const { data } = await api.post('/scholarship/upload-custom-file', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+      if (data.success) {
+        const fileUrl = data.url;
+        setCustomAnswers(prev => ({ ...prev, [label]: fileUrl }));
+        toast.success(`Berkas ${label} berhasil diunggah`, { id: toastId });
+      } else {
+        toast.error(`Gagal mengunggah berkas: ${data.message}`, { id: toastId });
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error(`Kesalahan sistem saat mengunggah berkas`, { id: toastId });
+    }
   };
 
   const isStep1Valid = motivasi.length >= 150;
@@ -93,6 +138,18 @@ function ApplyWizard({ scholarship, onClose, onSuccess }) {
   
   const isStep2Valid = requiredKeys.every(key => !!files[key]);
 
+  const isStep3Valid = React.useMemo(() => {
+    if (!hasCustomFields) return true;
+    return customFields.every(field => {
+      if (!field.required) return true;
+      const val = customAnswers[field.label];
+      if (val === undefined || val === null) return false;
+      if (Array.isArray(val)) return val.length > 0;
+      if (typeof val === 'string') return val.trim().length > 0;
+      return !!val;
+    });
+  }, [customFields, customAnswers, hasCustomFields]);
+
   const handleSubmit = () => {
     const formData = new FormData();
     formData.append('motivasi', motivasi);
@@ -101,6 +158,9 @@ function ApplyWizard({ scholarship, onClose, onSuccess }) {
         formData.append(key, file);
       }
     });
+    if (hasCustomFields) {
+      formData.append('custom_answers', JSON.stringify(customAnswers));
+    }
 
     daftarMutation.mutate({ id: scholarship.id || scholarship.ID, formData }, {
       onSuccess: () => {
@@ -111,6 +171,13 @@ function ApplyWizard({ scholarship, onClose, onSuccess }) {
         toast.error(msg);
       }
     });
+  };
+
+  const isNextDisabled = () => {
+    if (step === 1) return !isStep1Valid;
+    if (step === 2) return !isStep2Valid;
+    if (step === 3 && hasCustomFields) return !isStep3Valid;
+    return false;
   };
 
   return (
@@ -124,7 +191,7 @@ function ApplyWizard({ scholarship, onClose, onSuccess }) {
         <div className="p-8 border-b border-[#f5f5f5] flex justify-between items-center bg-[#fafafa]">
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <span className="bg-[#00236F] text-white text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest">Langkah {step} dari 3</span>
+              <span className="bg-[#00236F] text-white text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest">Langkah {step} dari {totalSteps}</span>
               <h2 className="text-2xl font-black font-headline">Pendaftaran Beasiswa</h2>
             </div>
             <p className="text-sm font-bold text-[#a3a3a3] uppercase tracking-wider">{scholarshipNama}</p>
@@ -136,8 +203,8 @@ function ApplyWizard({ scholarship, onClose, onSuccess }) {
 
         {/* Progress Bar */}
         <div className="h-1.5 bg-[#f5f5f5] w-full flex">
-          {[1, 2, 3].map(i => (
-            <div key={i} className={`flex-1 transition-all duration-500 ${step >= i ? 'bg-[#00236F]' : 'bg-transparent'}`} />
+          {Array.from({ length: totalSteps }).map((_, i) => (
+            <div key={i} className={`flex-1 transition-all duration-500 ${step >= (i + 1) ? 'bg-[#00236F]' : 'bg-transparent'}`} />
           ))}
         </div>
 
@@ -162,7 +229,7 @@ function ApplyWizard({ scholarship, onClose, onSuccess }) {
             </motion.div>
           )}
 
-          {/* STEP 2: UPLOAD BERKAS */}
+          {/* STEP 2: UPLOAD BERKAS UTAMA */}
           {step === 2 && (
             <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {[
@@ -200,10 +267,135 @@ function ApplyWizard({ scholarship, onClose, onSuccess }) {
             </motion.div>
           )}
 
-          {/* STEP 3: KONFIRMASI */}
-          {step === 3 && (
+          {/* STEP 3: PERSYARATAN KUSTOM (Google Form style) */}
+          {hasCustomFields && step === 3 && (
             <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-6">
-              <div className="bg-[#eef4ff] p-6 rounded-[24px] border border-[#c9d8ff]">
+              <div className="bg-[#fafafa] p-6 rounded-3xl border border-[#e5e5e5] space-y-5 text-left">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="material-symbols-outlined text-[#00236F]">description</span>
+                  <h4 className="font-black text-[#00236F] uppercase tracking-wider text-xs">Form Persyaratan Tambahan</h4>
+                </div>
+                
+                {customFields.map((field, idx) => {
+                  const label = field.label;
+                  const type = field.type;
+                  const required = field.required;
+                  const options = field.options ? field.options.split(',').map(o => o.trim()).filter(Boolean) : [];
+                  
+                  return (
+                    <div key={idx} className="space-y-2">
+                      <label className="block text-xs font-black text-slate-500 uppercase tracking-wider">
+                        {label} {required && <span className="text-rose-500">*</span>}
+                      </label>
+                      
+                      {type === 'text' && (
+                        <input
+                          type="text"
+                          required={required}
+                          value={customAnswers[label] || ''}
+                          onChange={(e) => setCustomAnswers(prev => ({ ...prev, [label]: e.target.value }))}
+                          placeholder="Masukkan jawaban..."
+                          className="w-full h-11 px-4 rounded-xl border border-[#e5e5e5] focus:border-[#00236F] outline-none text-sm bg-white"
+                        />
+                      )}
+                      
+                      {type === 'paragraph' && (
+                        <textarea
+                          required={required}
+                          value={customAnswers[label] || ''}
+                          onChange={(e) => setCustomAnswers(prev => ({ ...prev, [label]: e.target.value }))}
+                          placeholder="Masukkan jawaban panjang..."
+                          className="w-full h-28 p-4 rounded-xl border border-[#e5e5e5] focus:border-[#00236F] outline-none text-sm bg-white resize-none"
+                        />
+                      )}
+                      
+                      {type === 'select' && (
+                        <select
+                          required={required}
+                          value={customAnswers[label] || ''}
+                          onChange={(e) => setCustomAnswers(prev => ({ ...prev, [label]: e.target.value }))}
+                          className="w-full h-11 px-3 rounded-xl border border-[#e5e5e5] focus:border-[#00236F] outline-none text-sm bg-white"
+                        >
+                          <option value="">-- Pilih opsi --</option>
+                          {options.map((opt, i) => (
+                            <option key={i} value={opt}>{opt}</option>
+                          ))}
+                        </select>
+                      )}
+                      
+                      {type === 'checkbox' && (
+                        <div className="space-y-2 bg-white p-4 rounded-xl border border-[#e5e5e5]">
+                          {options.map((opt, i) => {
+                            const currentList = Array.isArray(customAnswers[label]) ? customAnswers[label] : [];
+                            const checked = currentList.includes(opt);
+                            return (
+                              <label key={i} className="flex items-center gap-3 cursor-pointer select-none">
+                                <input
+                                  type="checkbox"
+                                  checked={checked}
+                                  onChange={(e) => {
+                                    const nextList = e.target.checked 
+                                      ? [...currentList, opt]
+                                      : currentList.filter(x => x !== opt);
+                                    setCustomAnswers(prev => ({ ...prev, [label]: nextList }));
+                                  }}
+                                  className="rounded text-[#00236F] focus:ring-[#00236F] size-4"
+                                />
+                                <span className="text-xs font-bold text-slate-700">{opt}</span>
+                              </label>
+                            );
+                          })}
+                        </div>
+                      )}
+                      
+                      {type === 'file' && (
+                        <div className="relative">
+                          <div
+                            onClick={() => fileInputRefs.current[`custom-${idx}`].click()}
+                            className={`p-4 rounded-2xl border-2 border-dashed cursor-pointer transition-all flex items-center gap-4 ${
+                              customAnswers[label] ? 'border-[#16a34a] bg-green-50' : 'border-[#e5e5e5] hover:border-[#00236F] bg-white'
+                            }`}
+                          >
+                            <div className={`p-2 rounded-xl ${customAnswers[label] ? 'bg-green-600 text-white' : 'bg-slate-100 text-[#a3a3a3]'}`}>
+                              {customAnswers[label] ? <span className="material-symbols-outlined" style={{ fontSize: '20px' }} >assignment_turned_in</span> : <span className="material-symbols-outlined" style={{ fontSize: '20px' }} >upload</span>}
+                            </div>
+                            <div className="flex-1 overflow-hidden">
+                              <p className="text-sm font-bold truncate">
+                                {customAnswers[label] ? 'Berkas berhasil diunggah' : 'Pilih Berkas'}
+                              </p>
+                              <p className="text-[10px] text-[#a3a3a3] font-medium uppercase tracking-tighter">PDF/JPG (Max. 5MB)</p>
+                            </div>
+                            {customAnswers[label] && (
+                              <a 
+                                href={customAnswers[label]} 
+                                target="_blank" 
+                                rel="noreferrer" 
+                                onClick={e => e.stopPropagation()}
+                                className="text-[#00236F] hover:underline text-xs font-bold"
+                              >
+                                Lihat File
+                              </a>
+                            )}
+                          </div>
+                          <input
+                            type="file"
+                            className="hidden"
+                            ref={el => fileInputRefs.current[`custom-${idx}`] = el}
+                            onChange={(e) => handleCustomFileChange(label, e.target.files[0])}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </motion.div>
+          )}
+
+          {/* STEP 3 or 4: KONFIRMASI */}
+          {((!hasCustomFields && step === 3) || (hasCustomFields && step === 4)) && (
+            <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-6">
+              <div className="bg-[#eef4ff] p-6 rounded-[24px] border border-[#c9d8ff] text-left">
                 <h4 className="font-black text-[#00236F] mb-4 flex items-center gap-2 tracking-wide"><Sparkles size={18} /> Ringkasan Pengajuan</h4>
                 <div className="space-y-3">
                   <div className="flex justify-between text-sm">
@@ -219,6 +411,12 @@ function ApplyWizard({ scholarship, onClose, onSuccess }) {
                       {!files['ktm_ktp'] && !files['transkrip'] && !files['sertifikat'] && <span className="text-xs font-bold text-red-500">Belum ada berkas</span>}
                     </div>
                   </div>
+                  {hasCustomFields && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-[#a3a3a3] font-bold">Syarat Kustom</span>
+                      <span className="text-xs font-black text-green-600">✓ Terisi ({Object.keys(customAnswers).length} jawaban)</span>
+                    </div>
+                  )}
                   <div className="pt-3 border-t border-[#c9d8ff]">
                     <p className="text-[10px] font-black text-[#00236F] uppercase tracking-widest mb-1">Motivasi Preview</p>
                     <p className="text-sm text-[#171717] font-medium line-clamp-3 italic opacity-70">"{motivasi}"</p>
@@ -226,7 +424,7 @@ function ApplyWizard({ scholarship, onClose, onSuccess }) {
                 </div>
               </div>
 
-              <label className="flex items-start gap-4 p-5 bg-[#fafafa] rounded-[24px] border border-[#e5e5e5] cursor-pointer group">
+              <label className="flex items-start gap-4 p-5 bg-[#fafafa] rounded-[24px] border border-[#e5e5e5] cursor-pointer group text-left">
                 <input 
                   type="checkbox" 
                   checked={agreed} 
@@ -254,9 +452,9 @@ function ApplyWizard({ scholarship, onClose, onSuccess }) {
             <div />
           )}
 
-          {step < 3 ? (
+          {step < totalSteps ? (
             <button 
-              disabled={(step === 1 && !isStep1Valid) || (step === 2 && !isStep2Valid)}
+              disabled={isNextDisabled()}
               onClick={() => setStep(s => s + 1)}
               className="flex items-center gap-2 px-8 py-3.5 rounded-2xl font-black bg-[#00236F] text-white hover:bg-[#0B4FAE] transition-all shadow-xl shadow-[#00236F]/20 disabled:opacity-30"
             >
@@ -675,6 +873,49 @@ export default function ScholarshipPage() {
                          </pre>
                       </div>
                     </div>
+
+                    {/* Persyaratan Tambahan (Kustom) */}
+                    {(() => {
+                      const raw = selectedSch.custom_fields || selectedSch.CustomFields;
+                      if (!raw) return null;
+                      let fields = [];
+                      try {
+                        fields = typeof raw === 'string' ? JSON.parse(raw) : raw;
+                      } catch (e) {
+                        console.error(e);
+                      }
+                      if (!Array.isArray(fields) || fields.length === 0) return null;
+                      return (
+                        <div>
+                          <h4 className="flex items-center gap-2 text-sm font-black uppercase tracking-widest mb-3">
+                            <span className="material-symbols-outlined text-[#00236F]" style={{ fontSize: '16px' }}>assignment</span> 
+                            Persyaratan Tambahan
+                          </h4>
+                          <div className="bg-[#fafafa] p-5 rounded-[24px] border border-[#e5e5e5] space-y-3">
+                            {fields.map((f, i) => (
+                              <div key={i} className="flex justify-between items-start text-xs border-b border-[#e5e5e5]/50 last:border-0 pb-2.5 last:pb-0">
+                                <div className="min-w-0 pr-2 text-left">
+                                  <span className="font-bold text-slate-700 block">{f.label}</span>
+                                  {f.options && (
+                                    <span className="text-[9px] text-[#a3a3a3] block mt-1">Pilihan: {f.options}</span>
+                                  )}
+                                </div>
+                                <div className="flex flex-col items-end gap-1 shrink-0">
+                                  <span className="font-black text-[9px] px-2 py-0.5 bg-[#eef4ff] text-[#00236F] rounded-md uppercase tracking-wider">
+                                    {f.type}
+                                  </span>
+                                  {f.required && (
+                                    <span className="font-black text-[8px] px-1.5 bg-rose-50 text-rose-600 rounded uppercase tracking-wider">
+                                      Wajib
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })()}
 
                   <div>
                      <h4 className="flex items-center gap-2 text-sm font-black uppercase tracking-widest mb-3"><Sparkles size={16} className="text-[#00236F]" /> Tahapan Seleksi</h4>

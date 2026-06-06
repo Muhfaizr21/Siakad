@@ -271,19 +271,20 @@ func (Prestasi) TableName() string {
 
 type Beasiswa struct {
 	BaseModel
-	Nama          string    `json:"nama"`
-	Penyelenggara string    `json:"penyelenggara"`
-	Deskripsi     string    `json:"deskripsi"`
-	Persyaratan   string    `json:"persyaratan" gorm:"type:text"`
-	Deadline      time.Time `json:"deadline"`
-	Kuota         int       `json:"kuota"`
-	IPKMin        float64   `json:"ipk_min"`
-	Kategori      string    `json:"kategori"`
-	NilaiBantuan  float64   `json:"nilai_bantuan"`
-	Anggaran      float64   `json:"anggaran"`
-	FileKtm       string    `json:"file_ktm" gorm:"type:varchar(20);default:'wajib'"`
-	FileTranskrip string    `json:"file_transkrip" gorm:"type:varchar(20);default:'wajib'"`
+	Nama           string    `json:"nama"`
+	Penyelenggara  string    `json:"penyelenggara"`
+	Deskripsi      string    `json:"deskripsi"`
+	Persyaratan    string    `json:"persyaratan" gorm:"type:text"`
+	Deadline       time.Time `json:"deadline"`
+	Kuota          int       `json:"kuota"`
+	IPKMin         float64   `json:"ipk_min"`
+	Kategori       string    `json:"kategori"`
+	NilaiBantuan   float64   `json:"nilai_bantuan"`
+	Anggaran       float64   `json:"anggaran"`
+	FileKtm        string    `json:"file_ktm" gorm:"type:varchar(20);default:'wajib'"`
+	FileTranskrip  string    `json:"file_transkrip" gorm:"type:varchar(20);default:'wajib'"`
 	FileSertifikat string    `json:"file_sertifikat" gorm:"type:varchar(20);default:'opsional'"`
+	CustomFields   string    `json:"custom_fields" gorm:"type:text"`
 
 	Pendaftaran []BeasiswaPendaftaran `json:"pendaftaran,omitempty"`
 }
@@ -307,6 +308,7 @@ type BeasiswaPendaftaran struct {
 	KtmKtpURL     string `json:"ktm_ktp_url"`
 	SertifikatURL string `json:"sertifikat_url"`
 	TranskripURL  string `json:"transkrip_url"`
+	CustomAnswers string `json:"custom_answers" gorm:"type:text"`
 }
 
 func (BeasiswaPendaftaran) TableName() string {

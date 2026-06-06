@@ -87,6 +87,7 @@ func SetupSuperAdminRoutes(r fiber.Router) {
 	r.Put("/scholarships/:id", controllers.UpdateScholarship)
 	r.Delete("/scholarships/:id", controllers.DeleteScholarship)
 	r.Get("/scholarship-applications", controllers.GetAllScholarshipApplications)
+	r.Put("/scholarship-applications/bulk/status", controllers.UpdateBulkScholarshipApplicationStatus)
 	r.Put("/scholarship-applications/:id/status", controllers.UpdateScholarshipApplicationStatus)
 
 	// Achievements (Prestasi Mahasiswa)

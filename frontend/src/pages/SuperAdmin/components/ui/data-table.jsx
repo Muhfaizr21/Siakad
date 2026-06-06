@@ -20,6 +20,7 @@ import {
   SelectValue,
 } from "./select"
 import { cn } from "@/lib/utils"
+import { Checkbox } from "./checkbox"
 
 // Auto-injected Material Symbol fallbacks for removed Lucide icons
 const ChevronUp = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>expand_less</span>;
@@ -47,7 +48,10 @@ export function DataTable({
   filters = [],
   searchWidth = "max-w-md",
   externalFilters,
-  onExternalFilterChange
+  onExternalFilterChange,
+  enableRowSelection = false,
+  selectedRows = [],
+  onSelectedRowsChange = () => {}
 }) {
   const [searchTerm, setSearchTerm] = useState("")
   const [internalFilters, setInternalFilters] = useState({})
@@ -198,6 +202,24 @@ export function DataTable({
         <Table className="w-full table-auto">
           <TableHeader>
             <TableRow className="hover:bg-transparent border-neutral-100 bg-neutral-50/50">
+              {enableRowSelection && (
+                <TableHead className="w-[48px] py-4 pl-6 pr-0">
+                  <Checkbox 
+                    checked={paginatedData.length > 0 && paginatedData.every(row => selectedRows.includes(row.id || row.ID))}
+                    onCheckedChange={(checked) => {
+                      if (checked) {
+                        const pageIds = paginatedData.map(row => row.id || row.ID);
+                        const union = Array.from(new Set([...selectedRows, ...pageIds]));
+                        onSelectedRowsChange(union);
+                      } else {
+                        const pageIds = paginatedData.map(row => row.id || row.ID);
+                        const remaining = selectedRows.filter(id => !pageIds.includes(id));
+                        onSelectedRowsChange(remaining);
+                      }
+                    }}
+                  />
+                </TableHead>
+              )}
               {columns.map((col) => (
                 <TableHead
                   key={col.key}
@@ -233,6 +255,11 @@ export function DataTable({
             {loading ? (
               Array.from({ length: pageSize }).map((_, i) => (
                 <TableRow key={i} className="border-neutral-50">
+                  {enableRowSelection && (
+                    <TableCell className="w-[48px] py-5 pl-6 pr-0">
+                      <div className="h-4 w-4 bg-neutral-50 rounded animate-pulse" />
+                    </TableCell>
+                  )}
                   {columns.map((col) => (
                     <TableCell key={col.key} className="py-5">
                       <div className="h-4 bg-neutral-50 rounded-md w-full animate-pulse" />
@@ -246,6 +273,21 @@ export function DataTable({
             ) : paginatedData.length > 0 ? (
               paginatedData.map((row, i) => (
                 <TableRow key={row.id || row.ID || i} className="group transition-colors border-neutral-50 hover:bg-neutral-50/30">
+                  {enableRowSelection && (
+                    <TableCell className="w-[48px] py-4 pl-6 pr-0">
+                      <Checkbox 
+                        checked={selectedRows.includes(row.id || row.ID)}
+                        onCheckedChange={(checked) => {
+                          const rowId = row.id || row.ID;
+                          if (checked) {
+                            onSelectedRowsChange([...selectedRows, rowId]);
+                          } else {
+                            onSelectedRowsChange(selectedRows.filter(id => id !== rowId));
+                          }
+                        }}
+                      />
+                    </TableCell>
+                  )}
                   {columns.map((col) => (
                     <TableCell key={col.key} className={cn("py-4 text-sm font-medium text-neutral-600 truncate", col.className, col.cellClassName)}>
                       <div className={cn(
@@ -269,7 +311,7 @@ export function DataTable({
             ) : (
               <TableRow>
                 <TableCell
-                  colSpan={columns.length + (actions ? 1 : 0)}
+                  colSpan={columns.length + (actions ? 1 : 0) + (enableRowSelection ? 1 : 0)}
                   className="h-72 text-center"
                 >
                   <div className="flex flex-col items-center justify-center gap-4">

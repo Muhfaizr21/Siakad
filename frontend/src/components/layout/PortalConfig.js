@@ -246,19 +246,13 @@ export const PORTAL_CONFIG = {
           { name: 'Beasiswa', icon: 'payment', path: '/admin/scholarships' },
           { name: 'Prestasi Mahasiswa', icon: 'emoji_events', path: '/admin/achievements' },
           { name: 'Aspirasi', icon: 'chat', path: '/admin/aspirations' },
+          { name: 'Kelola Asuransi', icon: 'health_and_safety', path: '/admin/insurance' },
         ]
       },
       {
         group: 'KENCANA (PKKMB)',
         items: [
           { name: 'Kencana Universitas', icon: 'account_balance', path: '/kencana-admin' },
-        ]
-      },
-      {
-        group: 'LAYANAN KESEHATAN',
-        items: [
-          { name: 'Portal Kesehatan', icon: 'medical_services', path: '/tenagakes' },
-          { name: 'Kelola Asuransi', icon: 'health_and_safety', path: '/admin/insurance' },
         ]
       },
       {

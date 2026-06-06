@@ -16,8 +16,8 @@ const ProtectedRoute = ({ children, allowedRoles = [], requiredPermissions = [] 
     const userRoles = String(user.role || user.Role || '').toLowerCase().split(',').map(r => r.trim());
     const userPermissions = user.permissions || user.Permissions || [];
 
-    // Super Admin or wildcard permission bypasses all checks
-    if (userRoles.includes('super_admin') || userPermissions.includes('*')) {
+    // Super Admin bypasses all checks
+    if (userRoles.includes('super_admin')) {
       return children;
     }
 

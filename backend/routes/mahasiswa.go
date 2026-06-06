@@ -103,6 +103,7 @@ func SetupMahasiswaRoutes(app *fiber.App) {
 	scholarshipGroup.Get("/:id", mahasiswa.GetBeasiswaDetail)
 	scholarshipGroup.Post("/:id/daftar", mahasiswa.DaftarBeasiswa)
 	scholarshipGroup.Get("/pengajuan/:id", mahasiswa.GetPengajuanDetail)
+	scholarshipGroup.Post("/upload-custom-file", mahasiswa.UploadScholarshipCustomFile)
 
 	// Voice (Aspirasi)
 	voiceGroup := api.Group("/student-voice")

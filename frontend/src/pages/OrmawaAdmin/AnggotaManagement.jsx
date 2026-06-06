@@ -64,7 +64,7 @@ export default function AnggotaManagement() {
 
   const user = useAuthStore(state => state.user)
   const userPermissions = user?.permissions || user?.Permissions || []
-  const isSuperOrAdmin = user?.role === 'super_admin' || user?.role === 'ormawa_admin' || userPermissions.includes('*')
+  const isSuperOrAdmin = user?.role === 'super_admin' || user?.role === 'ormawa_admin'
   const canCreate = isSuperOrAdmin || userPermissions.includes('create_members')
   const canEdit = isSuperOrAdmin || userPermissions.includes('edit_members')
   const canDelete = isSuperOrAdmin || userPermissions.includes('delete_members')

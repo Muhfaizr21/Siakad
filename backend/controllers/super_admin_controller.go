@@ -18,68 +18,84 @@ import (
 )
 
 var rbacPermissionCatalog = []fiber.Map{
-	{"module": "Core Security", "items": []string{"admin.dashboard.view", "admin.audit.view", "admin.profile.update", "rbac.users.view", "rbac.users.create", "rbac.users.update_role", "rbac.users.delete", "rbac.roles.view", "rbac.roles.create", "rbac.roles.update", "rbac.roles.delete", "rbac.permissions.assign"}},
-	{"module": "Master Data Akademik", "items": []string{"faculty.view", "faculty.create", "faculty.update", "faculty.delete", "program_studi.view", "program_studi.create", "program_studi.update", "program_studi.delete", "students.view", "students.create", "students.update", "students.delete"}},
+	{"module": "Core Security", "items": []string{
+		"admin.dashboard.view", 
+		"admin.audit.view", 
+		"admin.profile.view", "admin.profile.update", 
+		"rbac.users.view", "rbac.users.create", "rbac.users.update", "rbac.users.delete", 
+		"rbac.roles.view", "rbac.roles.create", "rbac.roles.update", "rbac.roles.delete",
+	}},
+	{"module": "Master Data Akademik", "items": []string{
+		"faculty.view", "faculty.create", "faculty.update", "faculty.delete", 
+		"program_studi.view", "program_studi.create", "program_studi.update", "program_studi.delete", 
+		"students.view", "students.create", "students.update", "students.delete",
+	}},
 	{"module": "Ormawa", "items": []string{
-		"ormawa.view", "ormawa.create", "ormawa.update", "ormawa.delete",
-		"ormawa.members.view", "ormawa.members.create", "ormawa.members.update", "ormawa.members.delete", "ormawa.members.manage",
-		"ormawa.events.view", "ormawa.events.create", "ormawa.events.update", "ormawa.events.delete", "ormawa.events.manage",
-		"ormawa.finance.view", "ormawa.finance.create", "ormawa.finance.update", "ormawa.finance.delete", "ormawa.finance.manage",
-		"ormawa.proposals.view", "ormawa.proposals.create", "ormawa.proposals.update", "ormawa.proposals.delete", "ormawa.proposals.manage",
-		"ormawa.lpj.view", "ormawa.lpj.create", "ormawa.lpj.update", "ormawa.lpj.delete", "ormawa.lpj.manage",
-		"ormawa.announcements.view", "ormawa.announcements.create", "ormawa.announcements.update", "ormawa.announcements.delete", "ormawa.announcements.manage",
-		"ormawa.aspirations.view", "ormawa.aspirations.create", "ormawa.aspirations.update", "ormawa.aspirations.delete", "ormawa.aspirations.manage",
-		"ormawa.recruitment.view", "ormawa.recruitment.create", "ormawa.recruitment.update", "ormawa.recruitment.delete", "ormawa.recruitment.manage",
+		"ormawa.core.view", "ormawa.core.create", "ormawa.core.update", "ormawa.core.delete",
+		"ormawa.members.view", "ormawa.members.create", "ormawa.members.update", "ormawa.members.delete",
+		"ormawa.events.view", "ormawa.events.create", "ormawa.events.update", "ormawa.events.delete",
+		"ormawa.finance.view", "ormawa.finance.create", "ormawa.finance.update", "ormawa.finance.delete",
+		"ormawa.proposals.view", "ormawa.proposals.create", "ormawa.proposals.update", "ormawa.proposals.delete",
+		"ormawa.lpj.view", "ormawa.lpj.create", "ormawa.lpj.update", "ormawa.lpj.delete",
+		"ormawa.announcements.view", "ormawa.announcements.create", "ormawa.announcements.update", "ormawa.announcements.delete",
+		"ormawa.aspirations.view", "ormawa.aspirations.create", "ormawa.aspirations.update", "ormawa.aspirations.delete",
+		"ormawa.recruitment.view", "ormawa.recruitment.create", "ormawa.recruitment.update", "ormawa.recruitment.delete",
 	}},
 	{"module": "Layanan Mahasiswa", "items": []string{
-		"student.dashboard.view", "student.profile.update",
-		"achievement.view", "achievement.create", "achievement.update", "achievement.delete", "achievement.verify",
-		"scholarship.view", "scholarship.create", "scholarship.update", "scholarship.delete", "scholarship.manage",
-		"aspiration.view", "aspiration.create", "aspiration.update", "aspiration.delete", "aspiration.update_status",
-		"letters.view", "letters.create", "letters.update", "letters.delete", "letters.manage",
+		"student.dashboard.view", 
+		"student.profile.view", "student.profile.update",
+		"achievement.view", "achievement.create", "achievement.update", "achievement.delete",
+		"scholarship.view", "scholarship.create", "scholarship.update", "scholarship.delete",
+		"aspiration.view", "aspiration.create", "aspiration.update", "aspiration.delete",
+		"letters.view", "letters.create", "letters.update", "letters.delete",
 		"health.view", "health.create", "health.update", "health.delete",
 	}},
 	{"module": "Konseling Psikolog", "items": []string{
-		"psychologist.view", "psychologist.create", "psychologist.update", "psychologist.delete", "psychologist.manage",
+		"psychologist.core.view", "psychologist.core.create", "psychologist.core.update", "psychologist.core.delete",
 		"psychologist.bookings.view", "psychologist.bookings.create", "psychologist.bookings.update", "psychologist.bookings.delete",
 		"psychologist.medical_records.view", "psychologist.medical_records.create", "psychologist.medical_records.update", "psychologist.medical_records.delete",
-		"psychologist.referrals.view", "psychologist.referrals.create", "psychologist.referrals.update", "psychologist.referrals.delete", "psychologist.referrals.manage",
-		"psychologist.schedules.view", "psychologist.schedules.create", "psychologist.schedules.update", "psychologist.schedules.delete", "psychologist.schedules.manage",
-		"psychologist.reports.view", "psychologist.reports.create", "psychologist.reports.update", "psychologist.reports.delete", "psychologist.reports.manage",
+		"psychologist.referrals.view", "psychologist.referrals.create", "psychologist.referrals.update", "psychologist.referrals.delete",
+		"psychologist.schedules.view", "psychologist.schedules.create", "psychologist.schedules.update", "psychologist.schedules.delete",
+		"psychologist.reports.view", "psychologist.reports.create", "psychologist.reports.update", "psychologist.reports.delete",
 	}},
-	{"module": "Kencana Mahasiswa", "items": []string{"kencana.student.dashboard", "kencana.student.timeline", "kencana.student.session", "kencana.student.quiz", "kencana.student.assignment", "kencana.student.handbook", "kencana.student.attendance", "kencana.student.score", "kencana.student.remedial", "kencana.student.certificate", "kencana.student.mentor_invitations"}},
-	{"module": "Kencana Admin Universitas", "items": []string{"kencana.period.view", "kencana.period.create", "kencana.period.update", "kencana.stage.view", "kencana.stage.create", "kencana.stage.update", "kencana.session.view", "kencana.session.create", "kencana.session.update", "kencana.material.create", "kencana.quiz.create", "kencana.quiz.update", "kencana.question.create", "kencana.question.update", "kencana.assignment.create", "kencana.participants.view", "kencana.scores.view", "kencana.remedial.create", "kencana.certificate.generate", "kencana.mentor.university.manage", "kencana.mentor.assignment.override"}},
-	{"module": "Kencana Admin Fakultas", "items": []string{"kencana.faculty.dashboard", "kencana.faculty.participants.view", "kencana.faculty.scores.view", "kencana.faculty.stages.view", "kencana.faculty.mentor.manage", "kencana.faculty.attendance.review", "kencana.faculty.handbook.review"}},
-	{"module": "Dewan Pembimbing Kencana", "items": []string{"kencana.mentor.dashboard", "kencana.mentor.available_students", "kencana.mentor.invite", "kencana.mentor.students.view", "kencana.mentor.student_progress", "kencana.mentor.student_score", "kencana.mentor.student_attendance", "kencana.mentor.student_handbook", "kencana.mentor.notes.create", "kencana.mentor.score_items.create", "kencana.mentor.profile.update"}},
+	{"module": "Kencana", "items": []string{
+		"kencana.period.view", "kencana.period.create", "kencana.period.update", "kencana.period.delete",
+		"kencana.stage.view", "kencana.stage.create", "kencana.stage.update", "kencana.stage.delete",
+		"kencana.session.view", "kencana.session.create", "kencana.session.update", "kencana.session.delete",
+		"kencana.material.view", "kencana.material.create", "kencana.material.update", "kencana.material.delete",
+		"kencana.quiz.view", "kencana.quiz.create", "kencana.quiz.update", "kencana.quiz.delete",
+		"kencana.question.view", "kencana.question.create", "kencana.question.update", "kencana.question.delete",
+		"kencana.assignment.view", "kencana.assignment.create", "kencana.assignment.update", "kencana.assignment.delete",
+		"kencana.participants.view", "kencana.participants.create", "kencana.participants.update", "kencana.participants.delete",
+		"kencana.scores.view", "kencana.scores.create", "kencana.scores.update", "kencana.scores.delete",
+		"kencana.remedial.view", "kencana.remedial.create", "kencana.remedial.update", "kencana.remedial.delete",
+		"kencana.certificate.view", "kencana.certificate.create", "kencana.certificate.update", "kencana.certificate.delete",
+		"kencana.mentor.view", "kencana.mentor.create", "kencana.mentor.update", "kencana.mentor.delete",
+		"kencana.attendance.view", "kencana.attendance.create", "kencana.attendance.update", "kencana.attendance.delete",
+		"kencana.handbook.view", "kencana.handbook.create", "kencana.handbook.update", "kencana.handbook.delete",
+	}},
 }
 
 var defaultRBACRoles = []models.RBACRole{
 	{Key: "super_admin", Label: "Super Admin", Description: "Otoritas penuh untuk seluruh modul dan pengaturan sistem.", IsSystem: true, Status: "active", Permissions: mustJSON([]string{"*"})},
-	{Key: "faculty_admin", Label: "Admin Fakultas", Description: "Mengelola data akademik dan mahasiswa dalam scope fakultas.", IsSystem: true, Status: "active", Permissions: mustJSON([]string{"faculty.view", "program_studi.view", "students.view", "students.create", "students.update", "achievement.verify"})},
+	{Key: "faculty_admin", Label: "Admin Fakultas", Description: "Mengelola data akademik dan mahasiswa dalam scope fakultas.", IsSystem: true, Status: "active", Permissions: mustJSON([]string{"faculty.view", "program_studi.view", "students.view", "students.create", "students.update", "achievement.view", "achievement.update"})},
 	{Key: "ormawa_admin", Label: "Admin Ormawa", Description: "Mengelola organisasi mahasiswa dan proposal kegiatan.", IsSystem: true, Status: "active", Permissions: mustJSON([]string{
-		"ormawa.view",
-		"ormawa.members.view", "ormawa.members.create", "ormawa.members.update", "ormawa.members.delete", "ormawa.members.manage",
-		"ormawa.events.view", "ormawa.events.create", "ormawa.events.update", "ormawa.events.delete", "ormawa.events.manage",
-		"ormawa.proposals.view", "ormawa.proposals.create", "ormawa.proposals.update", "ormawa.proposals.delete", "ormawa.proposals.manage",
-		"ormawa.lpj.view", "ormawa.lpj.create", "ormawa.lpj.update", "ormawa.lpj.delete", "ormawa.lpj.manage",
-		"ormawa.recruitment.view", "ormawa.recruitment.create", "ormawa.recruitment.update", "ormawa.recruitment.delete", "ormawa.recruitment.manage",
+		"ormawa.core.view",
+		"ormawa.members.view", "ormawa.members.update",
+		"ormawa.events.view", "ormawa.events.create", "ormawa.events.update",
+		"ormawa.finance.view", "ormawa.finance.create", "ormawa.finance.update",
+		"ormawa.proposals.view", "ormawa.proposals.create", "ormawa.proposals.update",
 	})},
 	{Key: "ormawa", Label: "Pengurus Ormawa", Description: "Akses operasional internal organisasi mahasiswa.", IsSystem: true, Status: "active", Permissions: mustJSON([]string{
-		"ormawa.events.view", "ormawa.events.create", "ormawa.events.update", "ormawa.events.delete", "ormawa.events.manage",
-		"ormawa.proposals.view", "ormawa.proposals.create", "ormawa.proposals.update", "ormawa.proposals.delete", "ormawa.proposals.manage",
-		"ormawa.announcements.view", "ormawa.announcements.create", "ormawa.announcements.update", "ormawa.announcements.delete", "ormawa.announcements.manage",
+		"ormawa.events.view", "ormawa.events.create", "ormawa.events.update", "ormawa.events.delete",
+		"ormawa.proposals.view", "ormawa.proposals.create", "ormawa.proposals.update", "ormawa.proposals.delete",
+		"ormawa.announcements.view", "ormawa.announcements.create", "ormawa.announcements.update", "ormawa.announcements.delete",
 	})},
-	{Key: "mahasiswa", Label: "Mahasiswa", Description: "Akses layanan mandiri mahasiswa termasuk Kencana mahasiswa.", IsSystem: true, Status: "active", Permissions: mustJSON([]string{"student.dashboard.view", "student.profile.update", "kencana.student.dashboard", "kencana.student.timeline", "kencana.student.session", "kencana.student.quiz", "kencana.student.assignment", "kencana.student.handbook", "kencana.student.attendance", "kencana.student.score", "kencana.student.remedial", "kencana.student.certificate", "kencana.student.mentor_invitations"})},
-	{Key: "psikolog", Label: "Psikolog", Description: "Mengelola layanan konseling dan rekam interaksi psikologis.", IsSystem: true, Status: "active", Permissions: mustJSON([]string{
-		"psychologist.bookings.view", "psychologist.bookings.create", "psychologist.bookings.update", "psychologist.bookings.delete",
-		"psychologist.medical_records.view", "psychologist.medical_records.create", "psychologist.medical_records.update", "psychologist.medical_records.delete",
-		"psychologist.referrals.view", "psychologist.referrals.create", "psychologist.referrals.update", "psychologist.referrals.delete", "psychologist.referrals.manage",
-		"psychologist.schedules.view", "psychologist.schedules.create", "psychologist.schedules.update", "psychologist.schedules.delete", "psychologist.schedules.manage",
-		"psychologist.reports.view", "psychologist.reports.create", "psychologist.reports.update", "psychologist.reports.delete", "psychologist.reports.manage",
-	})},
-	{Key: "kencana_admin", Label: "Admin Kencana Universitas", Description: "Mengelola Kencana level universitas, periode, timeline, quiz, mentor universitas, remedial, dan sertifikat.", IsSystem: true, Status: "active", Permissions: mustJSON([]string{"kencana.period.view", "kencana.period.create", "kencana.period.update", "kencana.stage.view", "kencana.stage.create", "kencana.stage.update", "kencana.session.view", "kencana.session.create", "kencana.session.update", "kencana.material.create", "kencana.quiz.create", "kencana.quiz.update", "kencana.question.create", "kencana.question.update", "kencana.assignment.create", "kencana.participants.view", "kencana.scores.view", "kencana.remedial.create", "kencana.certificate.generate", "kencana.mentor.university.manage", "kencana.mentor.assignment.override"})},
-	{Key: "kencana_fakultas", Label: "Admin Kencana Fakultas", Description: "Mengelola Kencana dalam scope fakultas.", IsSystem: true, Status: "active", Permissions: mustJSON([]string{"kencana.faculty.dashboard", "kencana.faculty.participants.view", "kencana.faculty.scores.view", "kencana.faculty.stages.view", "kencana.faculty.mentor.manage", "kencana.faculty.attendance.review", "kencana.faculty.handbook.review"})},
-	{Key: "kencana_mentor", Label: "Dewan Pembimbing Kencana", Description: "Mendampingi mahasiswa Kencana, mengundang mahasiswa, mencatat progress, dan memberi nilai afektif/psikomotor.", IsSystem: true, Status: "active", Permissions: mustJSON([]string{"kencana.mentor.dashboard", "kencana.mentor.available_students", "kencana.mentor.invite", "kencana.mentor.students.view", "kencana.mentor.student_progress", "kencana.mentor.student_score", "kencana.mentor.student_attendance", "kencana.mentor.student_handbook", "kencana.mentor.notes.create", "kencana.mentor.score_items.create", "kencana.mentor.profile.update"})},
+	{Key: "student", Label: "Mahasiswa", Description: "Akses dasar mahasiswa untuk layanan akademik dan kemahasiswaan.", IsSystem: true, Status: "active", Permissions: mustJSON([]string{"student.dashboard.view", "student.profile.view", "student.profile.update", "achievement.view", "achievement.create", "scholarship.view", "aspiration.view", "aspiration.create", "letters.view", "letters.create", "kencana.period.view"})},
+	{Key: "psychologist", Label: "Psikolog", Description: "Otoritas untuk layanan konseling, rekam medis, dan jadwal.", IsSystem: true, Status: "active", Permissions: mustJSON([]string{"psychologist.core.view", "psychologist.bookings.view", "psychologist.bookings.update", "psychologist.medical_records.view", "psychologist.medical_records.create", "psychologist.medical_records.update", "psychologist.schedules.view", "psychologist.schedules.create", "psychologist.schedules.update", "psychologist.reports.view", "psychologist.reports.create"})},
+	{Key: "kencana_admin", Label: "Admin Kencana Universitas", Description: "Mengelola Kencana level universitas, periode, timeline, quiz, mentor universitas, remedial, dan sertifikat.", IsSystem: true, Status: "active", Permissions: mustJSON([]string{"kencana.period.view", "kencana.period.create", "kencana.period.update", "kencana.stage.view", "kencana.stage.create", "kencana.stage.update", "kencana.session.view", "kencana.session.create", "kencana.session.update", "kencana.material.create", "kencana.quiz.create", "kencana.quiz.update", "kencana.question.create", "kencana.question.update", "kencana.assignment.create", "kencana.participants.view", "kencana.scores.view", "kencana.remedial.create", "kencana.certificate.create", "kencana.mentor.view", "kencana.mentor.update"})},
+	{Key: "kencana_fakultas", Label: "Admin Kencana Fakultas", Description: "Mengelola Kencana dalam scope fakultas.", IsSystem: true, Status: "active", Permissions: mustJSON([]string{"kencana.participants.view", "kencana.scores.view", "kencana.stage.view", "kencana.mentor.view", "kencana.attendance.view", "kencana.attendance.update", "kencana.handbook.view", "kencana.handbook.update"})},
+	{Key: "kencana_mentor", Label: "Dewan Pembimbing Kencana", Description: "Mendampingi mahasiswa Kencana, mengundang mahasiswa, mencatat progress, dan memberi nilai afektif/psikomotor.", IsSystem: true, Status: "active", Permissions: mustJSON([]string{"kencana.mentor.view", "kencana.mentor.update", "kencana.scores.view", "kencana.attendance.view", "kencana.handbook.view"})},
 }
 
 func mustJSON(v any) []byte {
@@ -92,10 +108,6 @@ func ensureDefaultRBACRoles(db *gorm.DB) {
 		var existing models.RBACRole
 		if err := db.Where("key = ?", role.Key).First(&existing).Error; err == gorm.ErrRecordNotFound {
 			db.Create(&role)
-		} else {
-			if existing.IsSystem {
-				db.Model(&existing).Update("permissions", role.Permissions)
-			}
 		}
 	}
 }
@@ -1727,6 +1739,7 @@ func GetAllScholarships(c *fiber.Ctx) error {
 			"FileKtm":        b.FileKtm,
 			"FileTranskrip":  b.FileTranskrip,
 			"FileSertifikat": b.FileSertifikat,
+			"CustomFields":   b.CustomFields,
 			"CreatedAt":      b.CreatedAt,
 		}
 		mappedList = append(mappedList, m)
@@ -1749,6 +1762,7 @@ func CreateScholarship(c *fiber.Ctx) error {
 		FileKtm        string  `json:"FileKtm"`
 		FileTranskrip  string  `json:"FileTranskrip"`
 		FileSertifikat string  `json:"FileSertifikat"`
+		CustomFields   string  `json:"CustomFields"`
 	}
 	if err := c.BodyParser(&payload); err != nil {
 		return c.Status(400).JSON(fiber.Map{"status": "error", "message": err.Error()})
@@ -1794,6 +1808,7 @@ func CreateScholarship(c *fiber.Ctx) error {
 		FileKtm:        fileKtm,
 		FileTranskrip:  fileTranskrip,
 		FileSertifikat: fileSertifikat,
+		CustomFields:   payload.CustomFields,
 	}
 
 	if err := config.DB.Create(&beasiswa).Error; err != nil {
@@ -1817,6 +1832,7 @@ func UpdateScholarship(c *fiber.Ctx) error {
 		FileKtm        string  `json:"FileKtm"`
 		FileTranskrip  string  `json:"FileTranskrip"`
 		FileSertifikat string  `json:"FileSertifikat"`
+		CustomFields   string  `json:"CustomFields"`
 	}
 	if err := c.BodyParser(&payload); err != nil {
 		return c.Status(400).JSON(fiber.Map{"status": "error", "message": err.Error()})
@@ -1855,6 +1871,7 @@ func UpdateScholarship(c *fiber.Ctx) error {
 	if payload.FileSertifikat != "" {
 		beasiswa.FileSertifikat = payload.FileSertifikat
 	}
+	beasiswa.CustomFields = payload.CustomFields
 
 	if err := config.DB.Save(&beasiswa).Error; err != nil {
 		return c.Status(500).JSON(fiber.Map{"status": "error", "message": err.Error()})
@@ -2376,6 +2393,69 @@ func UpdateScholarshipApplicationStatus(c *fiber.Ctx) error {
 		"status":  "success",
 		"message": "Status pendaftaran beasiswa berhasil diperbarui",
 		"data":    application,
+	})
+}
+
+// UpdateBulkScholarshipApplicationStatus updates status of multiple scholarship applications
+func UpdateBulkScholarshipApplicationStatus(c *fiber.Ctx) error {
+	var payload struct {
+		IDs     []uint `json:"ids"`
+		Status  string `json:"status"`
+		Catatan string `json:"catatan"`
+	}
+	if err := c.BodyParser(&payload); err != nil {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Invalid request body"})
+	}
+
+	if len(payload.IDs) == 0 {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "No IDs provided"})
+	}
+
+	err := config.DB.Transaction(func(tx *gorm.DB) error {
+		for _, id := range payload.IDs {
+			var application models.BeasiswaPendaftaran
+			if err := tx.Preload("Beasiswa").Preload("Mahasiswa").First(&application, id).Error; err != nil {
+				return fmt.Errorf("pendaftaran ID %d tidak ditemukan", id)
+			}
+
+			if payload.Status == "Diterima" {
+				var accepted models.BeasiswaPendaftaran
+				if err := tx.
+					Clauses(clause.Locking{Strength: "UPDATE"}).
+					Where("mahasiswa_id = ? AND status = ? AND id != ?", application.MahasiswaID, "Diterima", application.ID).
+					First(&accepted).Error; err == nil {
+					var beasiswa models.Beasiswa
+					tx.First(&beasiswa, accepted.BeasiswaID)
+					return fmt.Errorf("mahasiswa %s sudah menerima beasiswa lain (%s)", application.Mahasiswa.Nama, beasiswa.Nama)
+				}
+			}
+
+			if err := tx.Model(&application).Updates(map[string]interface{}{
+				"status":  payload.Status,
+				"catatan": payload.Catatan,
+			}).Error; err != nil {
+				return err
+			}
+
+			// Trigger Notification to student
+			_ = notifikasi.Kirim(tx, notifikasi.KirimParams{
+				MahasiswaID: application.MahasiswaID,
+				Type:        "beasiswa",
+				Title:       "Status Beasiswa Diperbarui",
+				Content:     "Status pendaftaran beasiswa '" + application.Beasiswa.Nama + "' Anda telah diperbarui menjadi: " + payload.Status + ".",
+				Link:        "/student/scholarship",
+			})
+		}
+		return nil
+	})
+
+	if err != nil {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": err.Error()})
+	}
+
+	return c.JSON(fiber.Map{
+		"status":  "success",
+		"message": fmt.Sprintf("Berhasil memperbarui %d pendaftaran beasiswa", len(payload.IDs)),
 	})
 }
 

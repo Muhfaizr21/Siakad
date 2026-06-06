@@ -112,7 +112,7 @@ export default function PortalSidebar({ config, onNavigate }) {
   `;
 
   const userPermissions = user?.permissions || user?.Permissions || [];
-  const isSuperOrAdmin = user?.role === 'super_admin' || user?.role === 'faculty_admin' || user?.role === 'ormawa_admin' || userPermissions.includes('*');
+  const isSuperOrAdmin = user?.role === 'super_admin' || user?.role === 'faculty_admin' || user?.role === 'ormawa_admin';
 
   const hasPermission = (itemPermission) => {
     if (isSuperOrAdmin) return true;
@@ -278,9 +278,11 @@ export default function PortalSidebar({ config, onNavigate }) {
                         {isSubmenuOpen && item.submenu && (
                           <div className="ml-2.5 mt-1 space-y-0.5 border-l border-white/10 pl-2.5">
                             {item.submenu.map((subItem) => {
+                              const urlHasTab = location.search.includes('tab=');
+                              const itemHasTab = subItem.path.includes('tab=');
                               const subActive = subItem.path.includes('?') 
                                 ? (location.pathname + location.search) === subItem.path 
-                                : location.pathname === subItem.path;
+                                : (location.pathname === subItem.path && (!urlHasTab || itemHasTab));
                               return (
                                 <Link
                                   key={subItem.path}

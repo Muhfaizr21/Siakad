@@ -306,6 +306,56 @@ export default function ScholarshipDetailPage() {
              </div>
           </div>
 
+          {/* Custom Answers List */}
+          {(() => {
+            const rawAnswers = pengajuan.custom_answers || pengajuan.CustomAnswers;
+            if (!rawAnswers) return null;
+            let answers = {};
+            try {
+              answers = typeof rawAnswers === 'string' ? JSON.parse(rawAnswers) : rawAnswers;
+            } catch (e) {
+              console.error(e);
+              return null;
+            }
+            if (Object.keys(answers).length === 0) return null;
+            return (
+              <div className="bg-white p-6 rounded-2xl border border-[#e5e5e5] shadow-sm">
+                <h4 className="text-[10px] font-black uppercase tracking-[0.4em] text-[#a3a3a3] mb-5 flex items-center gap-2">
+                  <span className="material-symbols-outlined text-[#00236F]" style={{ fontSize: '16px' }}>assignment</span>
+                  Jawaban Form Kustom
+                </h4>
+                <div className="space-y-3 text-left">
+                  {Object.entries(answers).map(([label, value]) => {
+                    const isFile = typeof value === 'string' && (value.startsWith('/uploads/') || value.startsWith('http') || value.includes('/api/scholarship/upload-custom-file'));
+                    const fullFileUrl = isFile && !value.startsWith('http') ? `http://localhost:8000${value}` : value;
+                    return (
+                      <div key={label} className="p-4 bg-[#fafafa] rounded-xl border border-[#f5f5f5] space-y-1">
+                        <span className="block text-[9px] font-black uppercase tracking-wider text-[#a3a3a3]">{label}</span>
+                        {isFile ? (
+                          <div className="flex items-center justify-between bg-white p-2.5 rounded-lg border border-[#e5e5e5] mt-1">
+                            <span className="text-xs font-bold text-[#171717] truncate max-w-[150px]">Lampiran File</span>
+                            <a 
+                              href={fullFileUrl} 
+                              target="_blank" 
+                              rel="noreferrer" 
+                              className="text-[#00236F] hover:underline text-xs font-black flex items-center gap-1"
+                            >
+                              Buka <span className="material-symbols-outlined" style={{ fontSize: 12 }}>open_in_new</span>
+                            </a>
+                          </div>
+                        ) : (
+                          <p className="text-xs font-bold text-[#171717] whitespace-pre-line leading-relaxed">
+                            {Array.isArray(value) ? value.join(', ') : String(value)}
+                          </p>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })()}
+
           {/* Verified Badge Header */}
           <div className="bg-[#eef4ff] p-6 rounded-2xl border border-[#c9d8ff] flex flex-col items-center text-center">
              <div className="w-16 h-16 bg-white rounded-[24px] flex items-center justify-center text-[#16a34a] shadow-xl shadow-green-100 mb-4">

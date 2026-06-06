@@ -42,7 +42,7 @@ const Mentors = ({ portal = 'admin', facultyId: propFacultyId }) => {
     return mentors;
   }, [mentors, isFakultasPortal, isSuperAdmin, form.fakultas_id, userFacultyId]);
 
-  const hasPermission = role === 'super_admin' || user?.permissions?.includes('*') ||
+  const hasPermission = role === 'super_admin' ||
     (role === 'kencana_fakultas' && isFakultasPortal) ||
     (role === 'kencana_admin' && !isFakultasPortal) ||
     (isFakultasPortal ? user?.permissions?.includes('kencana.faculty.mentor.manage')

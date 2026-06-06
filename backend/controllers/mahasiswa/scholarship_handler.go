@@ -56,7 +56,7 @@ func GetKatalogBeasiswa(c *fiber.Ctx) error {
 	for _, b := range beasiswaList {
 		status := "Open"
 		var appStatus interface{} = nil
-		var motivasi, ktmKtpURL, sertifikatURL, transkripURL interface{} = nil, nil, nil, nil
+		var motivasi, ktmKtpURL, sertifikatURL, transkripURL, customAnswers interface{} = nil, nil, nil, nil, nil
 		if app, exists := appliedMap[b.ID]; exists {
 			status = "Applied"
 			appStatus = app.Status
@@ -64,6 +64,7 @@ func GetKatalogBeasiswa(c *fiber.Ctx) error {
 			ktmKtpURL = app.KtmKtpURL
 			sertifikatURL = app.SertifikatURL
 			transkripURL = app.TranskripURL
+			customAnswers = app.CustomAnswers
 		}
 		responseList = append(responseList, fiber.Map{
 			"id":                 b.ID,
@@ -85,6 +86,8 @@ func GetKatalogBeasiswa(c *fiber.Ctx) error {
 			"ktm_ktp_url":        ktmKtpURL,
 			"sertifikat_url":     sertifikatURL,
 			"transkrip_url":      transkripURL,
+			"custom_fields":      b.CustomFields,
+			"custom_answers":     customAnswers,
 			"file_ktm":           b.FileKtm,
 			"file_transkrip":     b.FileTranskrip,
 			"file_sertifikat":    b.FileSertifikat,
@@ -109,7 +112,7 @@ func GetBeasiswaDetail(c *fiber.Ctx) error {
 	student, err := getStudent(c)
 	status := "Open"
 	var appStatus interface{} = nil
-	var motivasi, ktmKtpURL, sertifikatURL, transkripURL interface{} = nil, nil, nil, nil
+	var motivasi, ktmKtpURL, sertifikatURL, transkripURL, customAnswers interface{} = nil, nil, nil, nil, nil
 	if err == nil && student != nil {
 		var app models.BeasiswaPendaftaran
 		if err := config.DB.Where("mahasiswa_id = ? AND beasiswa_id = ?", student.ID, beasiswa.ID).First(&app).Error; err == nil {
@@ -119,6 +122,7 @@ func GetBeasiswaDetail(c *fiber.Ctx) error {
 			ktmKtpURL = app.KtmKtpURL
 			sertifikatURL = app.SertifikatURL
 			transkripURL = app.TranskripURL
+			customAnswers = app.CustomAnswers
 		}
 	}
 
@@ -144,6 +148,8 @@ func GetBeasiswaDetail(c *fiber.Ctx) error {
 			"ktm_ktp_url":        ktmKtpURL,
 			"sertifikat_url":     sertifikatURL,
 			"transkrip_url":      transkripURL,
+			"custom_fields":      beasiswa.CustomFields,
+			"custom_answers":     customAnswers,
 			"file_ktm":           beasiswa.FileKtm,
 			"file_transkrip":     beasiswa.FileTranskrip,
 			"file_sertifikat":    beasiswa.FileSertifikat,
@@ -192,6 +198,8 @@ func DaftarBeasiswa(c *fiber.Ctx) error {
 	if beasiswa.FileKtm == "wajib" && !ktmKtpUploaded {
 		return c.Status(400).JSON(fiber.Map{"success": false, "message": "Kartu Tanda Mahasiswa & KTP wajib diunggah"})
 	}
+
+	// Dynamic file validation could also occur here but typically checked on frontend first
 
 	transkripUploaded := false
 	if _, err := c.FormFile("transkrip"); err == nil {
@@ -280,6 +288,7 @@ func DaftarBeasiswa(c *fiber.Ctx) error {
 		}
 
 		existing.Motivasi = c.FormValue("motivasi")
+		existing.CustomAnswers = c.FormValue("custom_answers")
 		// Update status back to StatusMenunggu if edited
 		existing.Status = StatusMenunggu
 		if err := config.DB.Save(&existing).Error; err != nil {
@@ -303,6 +312,7 @@ func DaftarBeasiswa(c *fiber.Ctx) error {
 		KtmKtpURL:     ktmKtpURL,
 		SertifikatURL: sertifikatURL,
 		TranskripURL:  transkripURL,
+		CustomAnswers: c.FormValue("custom_answers"),
 	}
 
 	if err := config.DB.Create(&pengajuan).Error; err != nil {
@@ -358,4 +368,33 @@ func GetPengajuanDetail(c *fiber.Ctx) error {
 		"success":   true,
 		"pengajuan": pengajuan,
 	})
+}
+
+// UploadScholarshipCustomFile handles uploads of custom files for dynamic requirements
+func UploadScholarshipCustomFile(c *fiber.Ctx) error {
+	_, err := getStudent(c)
+	if err != nil {
+		return c.Status(401).JSON(fiber.Map{"success": false, "message": "Tidak terautentikasi"})
+	}
+
+	file, err := c.FormFile("file")
+	if err != nil {
+		return c.Status(400).JSON(fiber.Map{"success": false, "message": "File wajib diunggah"})
+	}
+
+	// Validate size (max 5 MB)
+	if file.Size > 5*1024*1024 {
+		return c.Status(400).JSON(fiber.Map{"success": false, "message": "Ukuran file maksimal 5 MB"})
+	}
+
+	ext := filepath.Ext(file.Filename)
+	filename := fmt.Sprintf("custom_req_%d_%s%s", time.Now().UnixNano(), uuid.New().String()[:8], ext)
+	savePath := "./uploads/scholarship/" + filename
+
+	if err := c.SaveFile(file, savePath); err != nil {
+		return c.Status(500).JSON(fiber.Map{"success": false, "message": "Gagal menyimpan file"})
+	}
+
+	fileURL := "/uploads/scholarship/" + filename
+	return c.JSON(fiber.Map{"success": true, "url": fileURL, "message": "Berkas persyaratan berhasil diunggah"})
 }

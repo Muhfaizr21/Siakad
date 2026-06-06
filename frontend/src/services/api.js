@@ -623,6 +623,11 @@ export const adminService = {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data)
   }),
+  updateBulkScholarshipApplicationStatus: (data) => fetchWithAuth(`${API_BASE_URL}/admin/scholarship-applications/bulk/status`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  }),
   getAllCounseling: () => fetchWithAuth(`${API_BASE_URL}/admin/counseling-records`),
   createCounseling: (data) => fetchWithAuth(`${API_BASE_URL}/admin/counseling-records`, {
     method: 'POST',

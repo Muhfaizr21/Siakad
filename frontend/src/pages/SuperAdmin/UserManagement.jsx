@@ -446,7 +446,7 @@ export default function UserManagement() {
     Phone: ''
   })
 
-  const [newRoleForm, setNewRoleForm] = useState({ name: '', theme: 'indigo', desc: '' })
+  const [newRoleForm, setNewRoleForm] = useState({ id: '', name: '', theme: 'indigo', desc: '', isEdit: false, key: '' })
 
   const roleDetails = useMemo(() => {
     const details = { ...ROLE_DETAILS_DEFAULT }
@@ -979,23 +979,31 @@ export default function UserManagement() {
     setIsSubmitting(true)
     try {
       const payload = {
-        key: String(newRoleForm.name || '').trim().toLowerCase().replace(/[^a-z0-9_]/g, '_'),
         label: String(newRoleForm.name || '').trim(),
         description: String(newRoleForm.desc || '').trim(),
         theme: newRoleForm.theme,
-        permissions: []
       }
-      const res = await adminService.createRBACRole(payload)
+      
+      let res;
+      if (newRoleForm.isEdit) {
+        payload.key = newRoleForm.key;
+        res = await adminService.updateRBACRole(newRoleForm.id, payload);
+      } else {
+        payload.key = String(newRoleForm.name || '').trim().toLowerCase().replace(/[^a-z0-9_]/g, '_');
+        payload.permissions = [];
+        res = await adminService.createRBACRole(payload);
+      }
+
       if (res.status === 'success') {
-        toast.success('Custom role berhasil dibuat')
+        toast.success(newRoleForm.isEdit ? 'Custom role berhasil diperbarui' : 'Custom role berhasil dibuat')
         setIsNewRoleOpen(false)
-        setNewRoleForm({ name: '', theme: 'indigo', desc: '' })
+        setNewRoleForm({ id: '', name: '', theme: 'indigo', desc: '', isEdit: false, key: '' })
         fetchData()
       } else {
-        toast.error(res.message || 'Gagal membuat custom role')
+        toast.error(res.message || 'Gagal menyimpan custom role')
       }
     } catch (err) {
-      toast.error(err?.message || 'Gagal membuat custom role')
+      toast.error(err?.message || 'Gagal menyimpan custom role')
     } finally {
       setIsSubmitting(false)
     }
@@ -1268,7 +1276,7 @@ export default function UserManagement() {
                 Permission Matrix
               </Button>
               <Button 
-                onClick={() => { setNewRoleForm({ name: '', theme: 'indigo', desc: '' }); setIsNewRoleOpen(true) }}
+                onClick={() => { setNewRoleForm({ id: '', name: '', theme: 'indigo', desc: '', isEdit: false, key: '' }); setIsNewRoleOpen(true) }}
                 className="h-11 px-6 rounded-xl bg-neutral-900 text-white text-xs font-bold uppercase tracking-widest hover:bg-primary gap-2 transition-all active:scale-95 shadow-sm border-none cursor-pointer"
               >
                 <span className="material-symbols-outlined" style={{ fontSize: '14px' }} >add</span>
@@ -1350,9 +1358,25 @@ export default function UserManagement() {
                     <div className="flex items-center justify-between border-t border-neutral-100 pt-4">
                       <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest">{role.permissions?.includes('*') ? 'Full access' : `${role.permissions?.length || 0} permissions`}</span>
                       <div className="flex items-center gap-1">
+                        <Button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            const rbacRole = rbacRoles.find(r => r.key === role.value);
+                            if (rbacRole) {
+                              setNewRoleForm({ id: rbacRole.id || rbacRole.ID, name: role.label, desc: role.description || '', theme: role.theme || 'indigo', isEdit: true, key: role.value });
+                              setIsNewRoleOpen(true);
+                            }
+                          }}
+                          variant="ghost"
+                          className="h-8 w-8 p-0 rounded-lg text-neutral-300 hover:text-blue-500 hover:bg-blue-50 transition-all cursor-pointer"
+                          title="Edit role ini"
+                        >
+                          <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>edit</span>
+                        </Button>
                         {!role.isSystem && (
                           <Button
-                            onClick={() => {
+                            onClick={(e) => {
+                              e.stopPropagation();
                               const rbacRole = rbacRoles.find(r => r.key === role.value)
                               if (rbacRole) handleDeleteRole({ ...role, id: rbacRole.id || rbacRole.ID })
                             }}
@@ -1530,13 +1554,12 @@ export default function UserManagement() {
                               <table className="w-full min-w-[800px] text-left border-collapse table-fixed">
                                 <thead>
                                   <tr className="bg-slate-50/75 border-b border-slate-200 text-[10px] font-black uppercase tracking-wider text-slate-500 font-headline select-none">
-                                    <th className="py-3 px-5 w-[26%]">Nama Fitur</th>
-                                    <th className="py-3 px-4 w-[12%] text-left">Lihat (Read)</th>
-                                    <th className="py-3 px-4 w-[12%] text-left">Tambah (Create)</th>
-                                    <th className="py-3 px-4 w-[12%] text-left">Ubah (Update)</th>
-                                    <th className="py-3 px-4 w-[12%] text-left">Hapus (Delete)</th>
-                                    <th className="py-3 px-4 w-[14%] text-left">Lainnya</th>
-                                    <th className="py-3 px-5 w-[12%] text-center">Aksi Baris</th>
+                                    <th className="py-3 px-5 w-[30%]">Nama Fitur</th>
+                                    <th className="py-3 px-4 w-[14%] text-left">Lihat (Read)</th>
+                                    <th className="py-3 px-4 w-[14%] text-left">Tambah (Create)</th>
+                                    <th className="py-3 px-4 w-[14%] text-left">Ubah (Update)</th>
+                                    <th className="py-3 px-4 w-[14%] text-left">Hapus (Delete)</th>
+                                    <th className="py-3 px-5 w-[14%] text-center">Aksi Baris</th>
                                   </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-100">
@@ -1643,11 +1666,6 @@ export default function UserManagement() {
                                             {renderCell(deletes)}
                                           </td>
 
-                                          {/* Other column */}
-                                          <td className="py-3.5 px-4 text-left align-middle">
-                                            {renderCell(others)}
-                                          </td>
-
                                           {/* Row Action */}
                                           <td className="py-3.5 px-5 align-middle text-center">
                                             {!isLocked ? (
@@ -1724,12 +1742,12 @@ export default function UserManagement() {
                   >
                     Batal
                   </Button>
-                  <Button
+                          <Button
                     onClick={handleSaveSelectedRolePermissions}
                     disabled={isSubmitting}
                     className="h-10 px-5 rounded-xl bg-neutral-900 text-white text-xs font-bold hover:bg-primary border-none shadow-sm flex items-center gap-1.5 cursor-pointer"
                   >
-                    {isSubmitting ? 'Menyimpan...' : 'Simpan Perubahan'}
+                    {isSubmitting ? 'Menyimpan...' : (newRoleForm.isEdit ? 'Update Role' : 'Create Role')}
                     <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>save</span>
                   </Button>
                 </div>
@@ -1742,30 +1760,27 @@ export default function UserManagement() {
 
       {/* ── Create User Modal ───────────────────────────────────── */}
       <Dialog open={isCrudOpen} onOpenChange={setIsCrudOpen}>
-        <DialogContent className="w-[95vw] max-w-xl md:w-full p-0 overflow-y-auto custom-scrollbar max-h-[90vh] border border-slate-200/60 shadow-2xl rounded-3xl bg-white/95 backdrop-blur-md animate-in slide-in-from-bottom-4 duration-300">
-          <DialogHeader className="p-5 pb-4 md:p-10 md:pb-8 border-b border-slate-100 relative overflow-hidden bg-slate-50/40">
-            <div className="absolute top-0 right-0 p-10 opacity-[0.05] text-bku-primary pointer-events-none"><span className="material-symbols-outlined" style={{ fontSize: '140px' }} >manage_accounts</span></div>
-            <div className="relative z-10 space-y-1">
+        <DialogContent className="w-[95vw] md:max-w-xl p-0 overflow-y-auto max-h-[85vh] rounded-3xl">
+          <DialogHeader className="p-5 pb-4 md:p-8 md:pb-6 border-b border-slate-100 relative overflow-hidden bg-slate-50/40">
+            <div className="absolute top-0 right-0 p-8 opacity-[0.05] text-bku-primary pointer-events-none"><span className="material-symbols-outlined" style={{ fontSize: '100px' }} >manage_accounts</span></div>
+            <div className="relative z-10 space-y-1 pr-6">
               <div className="flex items-center gap-2 mb-2">
                 <div className="size-6 rounded bg-bku-primary/10 flex items-center justify-center text-bku-primary">
                   <span className="material-symbols-outlined font-black text-[12px]">add</span>
                 </div>
                 <span className="text-[10px] font-black uppercase tracking-[0.2em] text-bku-primary/70 font-headline">Account Provisioning</span>
               </div>
-              <DialogTitle className="text-xl md:text-2xl font-black font-headline tracking-tight text-slate-800">Initialize New Identity</DialogTitle>
-              <DialogDescription className="text-xs font-semibold text-slate-400">Daftarkan identitas digital baru dan tentukan level otoritas sistem.</DialogDescription>
+              <DialogTitle className="text-xl md:text-2xl font-black font-headline tracking-tight text-slate-800">{newRoleForm.isEdit ? 'Update Role' : 'Create Custom Role'}</DialogTitle>
+              <DialogDescription className="text-xs font-semibold text-slate-400">{newRoleForm.isEdit ? 'Perbarui informasi peran khusus ini.' : 'Buat peran baru untuk otorisasi khusus di luar standar sistem.'}</DialogDescription>
             </div>
           </DialogHeader>
 
-          <form onSubmit={handleCreate} className="p-5 md:p-10 pt-4 md:pt-6 space-y-4 md:space-y-6">
-            <div className="bg-blue-50/50 border border-blue-100 rounded-xl p-4 flex items-start gap-3 mb-2 animate-in fade-in slide-in-from-top-2 duration-300">
-              <span className="material-symbols-outlined text-blue-500 text-[18px] mt-0.5">lightbulb</span>
-              <div className="space-y-1">
-                <p className="text-[11px] font-bold text-blue-900">Best Practice: Minimal Initial Shell</p>
-                <p className="text-[10px] font-medium text-blue-700/80 leading-relaxed pr-4">
-                  Tugas Super Admin di sini hanyalah <b>"membukakan pintu akses"</b>. NIM, NIDN, atau NIP akan diambil otomatis dari awalan email (sebelum tanda @). Biarkan pengguna yang bersangkutan melengkapi profil detail mereka (Foto, Alamat, Tanggal Lahir, dll) secara mandiri dari pengaturan akun setelah mereka login.
-                </p>
-              </div>
+          <form onSubmit={handleCreateCustomRole} className="p-5 md:p-8 pt-4 md:pt-6 space-y-4 md:space-y-6">
+            <div className="space-y-2">
+              <Label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 font-headline">Nama Peran / Label</Label>
+              <Input required value={newRoleForm.name} onChange={e => setNewRoleForm(prev => ({ ...prev, name: e.target.value }))} placeholder="e.g. Asisten Dosen" className="h-12 rounded-xl border-slate-200 bg-slate-50/70 focus:bg-white focus:border-bku-primary focus:ring-2 focus:ring-bku-primary/20 font-bold text-xs text-slate-800 transition-all" />
+              {!newRoleForm.isEdit && <span className="text-[9px] font-bold text-slate-400 ml-1">Key unik akan digenerate secara otomatis (e.g. asisten_dosen).</span>}
+              {newRoleForm.isEdit && <span className="text-[9px] font-bold text-slate-400 ml-1">Key unik peran ({newRoleForm.key}) tidak akan diubah.</span>}
             </div>
 
             <div className="space-y-6 overflow-visible md:overflow-y-auto md:max-h-[50vh] pr-0 md:pr-2 custom-scrollbar no-scrollbar">
@@ -2159,8 +2174,8 @@ export default function UserManagement() {
                 <span className="material-symbols-outlined font-black" style={{ fontSize: '20px' }}>shield_person</span>
               </div>
               <div>
-                <h3 className="text-lg font-black font-headline tracking-tight leading-none" style={{ color: 'var(--theme-h3)' }}>Create Custom Role</h3>
-                <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.15em] mt-1.5 font-headline">Release dynamic privilege identity node</p>
+                <h3 className="text-lg font-black font-headline tracking-tight leading-none" style={{ color: 'var(--theme-h3)' }}>{newRoleForm.isEdit ? 'Update Custom Role' : 'Create Custom Role'}</h3>
+                <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.15em] mt-1.5 font-headline">{newRoleForm.isEdit ? 'Perbarui informasi peran khusus ini' : 'Release dynamic privilege identity node'}</p>
               </div>
             </div>
           </DialogHeader>
@@ -2176,6 +2191,8 @@ export default function UserManagement() {
                   placeholder="e.g. Fasilitator, Kaprodi, Dekan..." 
                   className="h-12 rounded-xl border-slate-200 bg-slate-50/70 focus:bg-white focus:border-bku-primary focus:ring-2 focus:ring-bku-primary/20 font-bold text-xs text-slate-800 transition-all font-inter" 
                 />
+                {!newRoleForm.isEdit && <span className="text-[9px] font-bold text-slate-400 ml-1">Key unik akan digenerate otomatis.</span>}
+                {newRoleForm.isEdit && <span className="text-[9px] font-bold text-slate-400 ml-1">Key unik peran ({newRoleForm.key}) tidak akan diubah.</span>}
               </div>
 
               <div className="space-y-2">
@@ -2210,9 +2227,9 @@ export default function UserManagement() {
 
             <footer className="flex gap-4 pt-4 border-t border-slate-100">
               <Button type="button" variant="ghost" onClick={() => setIsNewRoleOpen(false)} className="flex-1 h-12 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-500 hover:bg-slate-100 hover:text-slate-700 transition-all font-headline shadow-none border-none cursor-pointer">Abort</Button>
-              <Button type="submit" className="flex-[2] h-12 rounded-xl bg-bku-primary text-white hover:bg-bku-primary/90 shadow-lg shadow-bku-primary/15 transition-all active:scale-95 border-none flex items-center justify-center gap-2 font-headline cursor-pointer font-black text-[10px]">
+              <Button type="submit" disabled={isSubmitting} className="flex-[2] h-12 rounded-xl bg-bku-primary text-white hover:bg-bku-primary/90 shadow-lg shadow-bku-primary/15 transition-all active:scale-95 border-none flex items-center justify-center gap-2 font-headline cursor-pointer font-black text-[10px]">
                 <span className="material-symbols-outlined font-black" style={{ fontSize: '14px' }}>save</span>
-                Save Custom Role
+                {isSubmitting ? 'Menyimpan...' : (newRoleForm.isEdit ? 'Update Role' : 'Save Custom Role')}
               </Button>
             </footer>
           </form>

@@ -1,5 +1,6 @@
 import React from "react"
 import { Card, CardContent } from "./card"
+import { cn } from "@/lib/utils"
 
 // Auto-injected Material Symbol fallbacks for removed Lucide icons
 const Icon = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>info</span>;
@@ -38,7 +39,14 @@ export function StatCard({
             {badge}
           </div>
           <div className="flex items-baseline gap-2">
-            <h3 className="text-2xl font-black text-slate-900 font-headline tracking-tighter tabular-nums truncate">
+            <h3 className={cn(
+              "font-black text-slate-900 font-headline tracking-tighter tabular-nums",
+              String(value || '').length > 12 
+                ? "text-[15px] sm:text-base" 
+                : String(value || '').length > 9 
+                  ? "text-lg sm:text-xl" 
+                  : "text-2xl"
+            )}>
               {loading ? "..." : value}
             </h3>
             {trend && (

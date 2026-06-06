@@ -31,7 +31,7 @@ const getRouteByRole = (role, permissions = []) => {
   const r = String(role || '').toLowerCase().trim();
   const userPermissions = permissions || [];
 
-  if (r === 'super_admin' || userPermissions.includes('*')) return '/admin';
+  if (r === 'super_admin') return '/admin';
   if (r === 'kencana_admin') return '/kencana-admin';
   if (r === 'kencana_fakultas') return '/kencana-fakultas';
   if (r === 'kencana_mentor') return '/kencana-mentor';

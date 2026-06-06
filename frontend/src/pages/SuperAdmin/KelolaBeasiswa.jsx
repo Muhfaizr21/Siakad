@@ -25,6 +25,7 @@ const Award = ({ size, className, ...props }) => <span className={`material-symb
 const Activity = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>show_chart</span>;
 const Users = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>group</span>;
 const Banknote = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>payments</span>;
+const Wallet = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>account_balance_wallet</span>;
 
 const StudentAvatar = ({ src, name, className = "w-9 h-9 rounded-xl" }) => {
   const [loaded, setLoaded] = React.useState(false);
@@ -64,10 +65,24 @@ const APP_STATUS = {
 
 const getAppStatus = (v = '') => {
   const norm = (v || 'proses').toLowerCase();
-  if (norm === 'menunggu' || norm === 'menunggu verifikasi' || norm === 'proses') return APP_STATUS.proses;
   if (norm === 'diterima' || norm === 'disetujui') return APP_STATUS.diterima;
   if (norm === 'ditolak') return APP_STATUS.ditolak;
   if (norm === 'disetujui fakultas') return APP_STATUS['disetujui fakultas'];
+  if (norm === 'dikirim' || norm === 'diajukan' || norm === 'menunggu' || norm === 'menunggu verifikasi' || norm === 'proses') {
+    return { cls: 'bg-amber-50 text-amber-700 border-amber-200', dot: 'bg-amber-500', label: 'Pengajuan Dikirim' };
+  }
+  if (norm === 'seleksi_berkas') {
+    return { cls: 'bg-blue-50 text-blue-700 border-blue-200', dot: 'bg-blue-500', label: 'Seleksi Berkas' };
+  }
+  if (norm === 'evaluasi') {
+    return { cls: 'bg-indigo-50 text-indigo-700 border-indigo-200', dot: 'bg-indigo-500', label: 'Evaluasi & Wawancara' };
+  }
+  if (norm === 'review') {
+    return { cls: 'bg-purple-50 text-purple-700 border-purple-200', dot: 'bg-purple-500', label: 'Review Akhir' };
+  }
+  if (norm === 'penetapan') {
+    return { cls: 'bg-cyan-50 text-cyan-700 border-cyan-200', dot: 'bg-cyan-500', label: 'Penetapan Pemenang' };
+  }
   return APP_STATUS.proses;
 }
 
@@ -170,29 +185,61 @@ const ReviewModal = ({ selectedApp, onClose, onSubmit, isSubmitting }) => {
             </div>
           )}
 
+          {/* Custom Answers */}
+          {(() => {
+            const rawAnswers = selectedApp.custom_answers || selectedApp.CustomAnswers;
+            if (!rawAnswers) return null;
+            let answers = {};
+            try {
+              answers = typeof rawAnswers === 'string' ? JSON.parse(rawAnswers) : rawAnswers;
+            } catch (e) {
+              console.error(e);
+              return null;
+            }
+            if (Object.keys(answers).length === 0) return null;
+            return (
+              <div className="space-y-3 border-t border-slate-100 pt-3">
+                <label className="block text-[8px] font-bold text-slate-400 uppercase tracking-wider">PERSYARATAN KUSTOM (JAWABAN)</label>
+                <div className="space-y-2.5">
+                  {Object.entries(answers).map(([label, value]) => {
+                    const isFile = typeof value === 'string' && (value.startsWith('/uploads/') || value.startsWith('http') || value.includes('/api/scholarship/upload-custom-file'));
+                    return (
+                      <div key={label} className="bg-slate-50 p-3 rounded-2xl border border-slate-100/50 text-left">
+                        <span className="block text-[9px] font-bold text-slate-400 uppercase">{label}</span>
+                        {isFile ? (
+                          <div className="mt-1">
+                            {renderAttachment(value, label)}
+                          </div>
+                        ) : (
+                          <p className="text-xs font-bold text-slate-800 mt-1 whitespace-pre-line">
+                            {Array.isArray(value) ? value.join(', ') : String(value)}
+                          </p>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })()}
+
           {/* Status Options */}
           <div className="space-y-2">
-            <span className="block text-[8px] font-bold text-slate-400 uppercase tracking-wider">KEPUTUSAN SELEKSI</span>
-            <div className="grid grid-cols-3 gap-2.5">
-              {[
-                { v: 'Proses', label: 'Proses', cls: 'border-amber-300 bg-amber-50 text-amber-700' },
-                { v: 'Diterima', label: 'Diterima', cls: 'border-emerald-300 bg-emerald-50 text-emerald-700' },
-                { v: 'Ditolak', label: 'Ditolak', cls: 'border-rose-300 bg-rose-50 text-rose-700' },
-              ].map(opt => (
-                <button 
-                  type="button" 
-                  key={opt.v} 
-                  onClick={() => {
-                    console.log('ReviewModal clicked status button:', opt.v);
-                    setStatus(opt.v);
-                  }}
-                  className={cn('h-11 rounded-xl border-2 text-xs font-bold uppercase tracking-wider transition-all',
-                    status === opt.v ? opt.cls + ' scale-[1.02] shadow-sm' : 'border-[#e5e5e5] bg-white text-[#a3a3a3] hover:border-[#c5c5c5]')}
-                >
-                  {opt.label}
-                </button>
-              ))}
-            </div>
+            <span className="block text-[8px] font-bold text-slate-400 uppercase tracking-wider">TAHAP SELEKSI / KEPUTUSAN</span>
+            <Select value={status} onValueChange={setStatus}>
+              <SelectTrigger className="w-full h-11 rounded-xl border-[#e5e5e5] bg-[#fafafa]">
+                <SelectValue placeholder="Pilih Tahap Seleksi" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="dikirim">1. Pengajuan Dikirim</SelectItem>
+                <SelectItem value="seleksi_berkas">2. Seleksi Berkas</SelectItem>
+                <SelectItem value="evaluasi">3. Evaluasi & Wawancara</SelectItem>
+                <SelectItem value="review">4. Review Akhir</SelectItem>
+                <SelectItem value="penetapan">5. Penetapan Pemenang</SelectItem>
+                <SelectItem value="Diterima">6. Hasil Akhir: Diterima</SelectItem>
+                <SelectItem value="Ditolak">6. Hasil Akhir: Ditolak</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Catatan */}
@@ -268,9 +315,41 @@ export default function KelolaBeasiswa() {
   const [isEditMode, setIsEditMode] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [form, setForm] = useState({ Nama: '', Penyelenggara: '', Deskripsi: '', Deadline: '', Kuota: 0, IPKMin: 0, Anggaran: 0, Kategori: 'Internal', Persyaratan: '', FileKtm: 'wajib', FileTranskrip: 'wajib', FileSertifikat: 'opsional' })
+  const [customFieldsList, setCustomFieldsList] = useState([])
   const [selectedApp, setSelectedApp] = useState(null)
   const [previewApp, setPreviewApp] = useState(null)
   const [appFilters, setAppFilters] = useState({})
+  const [selectedAppIds, setSelectedAppIds] = useState([])
+  const [isBulkOpen, setIsBulkOpen] = useState(false)
+  const [bulkStatus, setBulkStatus] = useState('Proses')
+  const [bulkCatatan, setBulkCatatan] = useState('')
+
+  const handleBulkAppUpdate = async () => {
+    if (selectedAppIds.length === 0) return
+    setIsSubmitting(true)
+    try {
+      const payload = {
+        ids: selectedAppIds,
+        status: bulkStatus,
+        catatan: bulkCatatan
+      }
+      console.log('Sending bulk scholarship application status update:', payload)
+      const res = await adminService.updateBulkScholarshipApplicationStatus(payload)
+      if (res.status === 'success') {
+        toast.success(res.message || 'Keputusan review massal berhasil disimpan')
+        setSelectedAppIds([])
+        setIsBulkOpen(false)
+        setBulkCatatan('')
+        fetchApps()
+      } else {
+        toast.error(res.message || 'Gagal menyimpan keputusan massal')
+      }
+    } catch (err) {
+      toast.error('Terjadi kesalahan sistem saat menyimpan review massal')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
 
   const handleAppUpdate = async (status, catatan) => {
     if (!selectedApp?.id && !selectedApp?.ID) return
@@ -298,6 +377,377 @@ export default function KelolaBeasiswa() {
       setIsSubmitting(false)
     }
   }
+
+  const downloadRealisasiPDF = () => {
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+      toast.error("Gagal membuka jendela cetak. Pastikan pop-up browser tidak diblokir.");
+      return;
+    }
+
+    const kopImageUrl = `${window.location.origin}/images/format_kop_rektorat_landscape.jpg`;
+
+    // 1. Prepare Summary Cards HTML
+    const summaryHtml = `
+      <div class="summary-container">
+        <div class="summary-card">
+          <div class="card-title">TOTAL PAGU ANGGARAN</div>
+          <div class="card-value">${formatCurrency(stats.totalBudget)}</div>
+          <div class="card-desc">Proyeksi pagu anggaran global beasiswa</div>
+        </div>
+        <div class="summary-card">
+          <div class="card-title">TOTAL DANA TERSERAP</div>
+          <div class="card-value text-success">${formatCurrency(absorbedBudget)} (${absorptionRate}%)</div>
+          <div class="card-desc">Sudah disalurkan ke penerima aktif</div>
+        </div>
+        <div class="summary-card">
+          <div class="card-title">SISA ANGGARAN GLOBAL</div>
+          <div class="card-value text-warning">${formatCurrency(remainingBudget)}</div>
+          <div class="card-desc">Sisa anggaran belum terdistribusi</div>
+        </div>
+      </div>
+      
+      <div class="summary-container" style="margin-top: 12px;">
+        <div class="summary-card" style="width: 49%;">
+          <div class="card-title">PENYERAP ANGGARAN TERBESAR</div>
+          <div class="card-value" style="font-size: 13px;">${highestAbsorbingFaculty}</div>
+          <div class="card-desc">Fakultas dengan penyerapan dana beasiswa terbanyak</div>
+        </div>
+        <div class="summary-card" style="width: 49%;">
+          <div class="card-title">PEMBERI BEASISWA (INTERNAL VS MITRA)</div>
+          <div class="card-value" style="font-size: 13px;">
+            ${providerData.kampusCount} Kampus (${formatCurrency(providerData.kampusBudget)}) vs ${providerData.mitraCount} Mitra (${formatCurrency(providerData.mitraBudget)})
+          </div>
+          <div class="card-desc">Perbandingan beasiswa internal & eksternal</div>
+        </div>
+      </div>
+    `;
+
+    // 2. Prepare Faculty Absorption Table HTML
+    let facultyRows = '';
+    facultyAbsorption.forEach((row) => {
+      const pct = stats.totalBudget <= 0 ? 0 : Math.round((row.value / stats.totalBudget) * 100);
+      facultyRows += `
+        <tr>
+          <td><strong>${row.name.toUpperCase()}</strong></td>
+          <td align="right"><strong>${formatCurrency(row.value)}</strong></td>
+          <td align="center">${pct}%</td>
+        </tr>
+      `;
+    });
+    if (facultyAbsorption.length === 0) {
+      facultyRows = `<tr><td colspan="3" align="center" style="color: #94a3b8; font-style: italic;">Belum ada dana terserap</td></tr>`;
+    }
+
+    // 3. Prepare Program Realization Table HTML
+    let programRows = '';
+    data.forEach((row) => {
+      const count = appsData.filter(a => (a.BeasiswaID === (row.id || row.ID) || a.Beasiswa?.id === (row.id || row.ID) || a.Beasiswa?.ID === (row.id || row.ID)) && a.Status === 'Diterima').length;
+      const absorbed = count * (row.NilaiBantuan || row.nilai_bantuan || 0);
+      const remaining = (row.Anggaran || 0) - absorbed;
+      const sponsor = (row.Kategori || '').toLowerCase() === 'internal' ? 'Kampus' : 'Mitra';
+      programRows += `
+        <tr>
+          <td><strong>${row.Nama || '—'}</strong></td>
+          <td align="center">${sponsor}</td>
+          <td align="right">${formatCurrency(row.Anggaran || 0)}</td>
+          <td align="right"><strong>${formatCurrency(absorbed)}</strong></td>
+          <td align="right" style="color: ${remaining < 0 ? '#dc2626' : '#475569'}">${formatCurrency(remaining)}</td>
+          <td align="center"><strong>${count} Mhs</strong></td>
+        </tr>
+      `;
+    });
+    if (data.length === 0) {
+      programRows = `<tr><td colspan="6" align="center" style="color: #94a3b8; font-style: italic;">Tidak ada data program</td></tr>`;
+    }
+
+    // 4. Prepare Recipient Table HTML
+    let recipientRows = '';
+    const acceptedMhs = appsData.filter(a => a.Status === 'Diterima');
+    acceptedMhs.forEach((row) => {
+      recipientRows += `
+        <tr>
+          <td><strong>${row.Mahasiswa?.Nama || '—'}</strong></td>
+          <td align="center">${row.Mahasiswa?.NIM || '—'}</td>
+          <td>${(row._fakultas || '—').toUpperCase()}</td>
+          <td>${row._prodi || '—'}</td>
+          <td><strong>${row.BeasiswaNama || '—'}</strong></td>
+          <td align="right" style="color: #16a34a; font-weight: bold;">${formatCurrency(row.Beasiswa?.NilaiBantuan || row.Beasiswa?.nilai_bantuan || 0)}</td>
+        </tr>
+      `;
+    });
+    if (acceptedMhs.length === 0) {
+      recipientRows = `<tr><td colspan="6" align="center" style="color: #94a3b8; font-style: italic;">Tidak ada data penerima beasiswa aktif</td></tr>`;
+    }
+
+    const htmlContent = `<html>
+<head>
+<meta charset="utf-8">
+<title>Laporan Realisasi Beasiswa Rektorat</title>
+<style>
+  @page {
+    size: A4 landscape;
+    margin: 0;
+  }
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    line-height: 1.4;
+    color: #334155;
+    background-color: #f1f5f9;
+    margin: 0;
+    padding: 20px 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  
+  .page {
+    width: 297mm;
+    height: 210mm;
+    position: relative;
+    box-sizing: border-box;
+    background-image: url('${kopImageUrl}');
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-color: #ffffff;
+    padding: 38mm 18mm 15mm 18mm;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  
+  @media print {
+    body {
+      background-color: transparent;
+      padding: 0;
+      gap: 0;
+    }
+    .page {
+      box-shadow: none;
+      page-break-after: always;
+    }
+    .page:last-child {
+      page-break-after: avoid;
+    }
+  }
+
+  .header-report {
+    text-align: center;
+    margin-bottom: 15px;
+    border-bottom: 2px solid #00236f;
+    padding-bottom: 8px;
+  }
+
+  h1 {
+    color: #00236f;
+    font-size: 15px;
+    font-weight: 800;
+    margin: 0 0 3px 0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  
+  .subtitle {
+    color: #64748b;
+    font-size: 9px;
+    font-weight: 700;
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  h3 {
+    color: #00236f;
+    font-size: 10.5px;
+    font-weight: 700;
+    margin-top: 15px;
+    margin-bottom: 6px;
+    border-left: 3px solid #00236f;
+    padding-left: 8px;
+    text-transform: uppercase;
+  }
+
+  .summary-container {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    margin-bottom: 8px;
+  }
+
+  .summary-card {
+    background-color: #f8fafc;
+    border: 1px solid #e2e8f0;
+    padding: 8px 12px;
+    border-radius: 8px;
+    width: 32%;
+    box-sizing: border-box;
+  }
+
+  .card-title {
+    font-size: 8px;
+    font-weight: 700;
+    color: #64748b;
+    text-transform: uppercase;
+    margin-bottom: 2px;
+  }
+
+  .card-value {
+    font-size: 13px;
+    font-weight: 800;
+    color: #1e293b;
+  }
+
+  .text-success { color: #16a34a !important; }
+  .text-warning { color: #d97706 !important; }
+
+  .card-desc {
+    font-size: 8px;
+    color: #94a3b8;
+    margin-top: 2px;
+  }
+
+  table.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 5px;
+    margin-bottom: 10px;
+  }
+
+  table.data-table th {
+    background-color: #00236f;
+    color: #ffffff;
+    font-weight: 700;
+    text-align: left;
+    padding: 6px 8px;
+    border: 1px solid #cbd5e1;
+    font-size: 9px;
+    text-transform: uppercase;
+  }
+
+  table.data-table td {
+    padding: 6px 8px;
+    border: 1px solid #cbd5e1;
+    font-size: 9px;
+    color: #334155;
+  }
+
+  table.data-table tr:nth-child(even) td {
+    background-color: #f8fafc;
+  }
+
+  .signature-section {
+    margin-top: 20px;
+    text-align: right;
+    font-size: 9px;
+    color: #334155;
+    float: right;
+    width: 280px;
+  }
+</style>
+</head>
+<body>
+  <div class="page">
+    <div class="header-report">
+      <h1>LAPORAN REALISASI & DISTRIBUSI DANA BEASISWA</h1>
+      <div class="subtitle">UNIVERSITAS BHAKTI KENCANA REKTORAT</div>
+    </div>
+
+    <h3>I. RINGKASAN EKSEKUTIF REALISASI</h3>
+    ${summaryHtml}
+
+    <h3>II. PENYERAPAN ANGGARAN BEASISWA PER FAKULTAS</h3>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Fakultas</th>
+          <th align="right" style="text-align: right;">Dana Terserap</th>
+          <th align="center" style="text-align: center;">Persentase Distribusi</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${facultyRows}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="page">
+    <div class="header-report">
+      <h1>LAPORAN REALISASI & DISTRIBUSI DANA BEASISWA</h1>
+      <div class="subtitle">UNIVERSITAS BHAKTI KENCANA REKTORAT</div>
+    </div>
+
+    <h3>III. REALISASI ANGGARAN DETAIL PER PROGRAM</h3>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Program Beasiswa</th>
+          <th align="center" style="text-align: center;">Sponsor</th>
+          <th align="right" style="text-align: right;">Pagu Anggaran</th>
+          <th align="right" style="text-align: right;">Dana Terserap</th>
+          <th align="right" style="text-align: right;">Sisa Anggaran</th>
+          <th align="center" style="text-align: center;">Jumlah Penerima</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${programRows}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="page">
+    <div class="header-report">
+      <h1>LAPORAN REALISASI & DISTRIBUSI DANA BEASISWA</h1>
+      <div class="subtitle">UNIVERSITAS BHAKTI KENCANA REKTORAT</div>
+    </div>
+
+    <h3>IV. DAFTAR PENERIMA BEASISWA AKTIF</h3>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Nama Mahasiswa</th>
+          <th align="center" style="text-align: center;">NIM</th>
+          <th>Fakultas</th>
+          <th>Program Studi</th>
+          <th>Beasiswa Terdaftar</th>
+          <th align="right" style="text-align: right;">Nilai Bantuan</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${recipientRows}
+      </tbody>
+    </table>
+
+    <!-- Footer Signature Section -->
+    <div style="width: 100%; display: inline-block; margin-top: 10px;">
+      <div class="signature-section">
+        <p>Dicetak secara otomatis oleh Portal SIAKAD Rektorat BKU</p>
+        <p style="margin-top: 2px;">Tanggal Cetak: ${new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })} WIB</p>
+        <br/>
+        <p>Mengetahui,</p>
+        <p style="font-weight: 700; margin-top: 5px;">Rektor Universitas Bhakti Kencana</p>
+        <div style="margin-top: 40px; font-weight: 700; text-decoration: underline;">Dr. apt. Entris Sutrisno, MH. Kes.</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    window.onload = function() {
+      setTimeout(function() {
+        window.print();
+      }, 500);
+    };
+  </script>
+</body>
+</html>`;
+
+    printWindow.document.open();
+    printWindow.document.write(htmlContent);
+    printWindow.document.close();
+  };
 
   const fetchData = async () => {
     setLoading(true)
@@ -329,6 +779,8 @@ export default function KelolaBeasiswa() {
           const mNim = m.NIM || m.nim || '—';
           const bNama = b.Nama || b.nama || '—';
           const mFoto = m.Foto || m.foto || m.foto_url || null;
+          const fak = m.fakultas?.Nama || m.Fakultas?.Nama || m.fakultas?.nama || m.Fakultas?.nama || '—';
+          const prodi = m.program_studi?.nama || m.ProgramStudi?.Nama || m.program_studi?.Nama || '—';
           return {
             ...a,
             Mahasiswa: {
@@ -351,6 +803,9 @@ export default function KelolaBeasiswa() {
             KtmKtpURL: a.ktm_ktp_url || a.KtmKtpURL || null,
             SertifikatURL: a.sertifikat_url || a.SertifikatURL || null,
             TranskripURL: a.transkrip_url || a.TranskripURL || null,
+            _fakultas: fak,
+            _prodi: prodi,
+            _semester: m.SemesterSekarang || m.semester_sekarang || '—'
           }
         })
 
@@ -374,7 +829,12 @@ export default function KelolaBeasiswa() {
 
 
 
-  const handleOpenAdd = () => { setIsEditMode(false); setForm({ Nama: '', Penyelenggara: '', Deskripsi: '', Deadline: '', Kuota: 0, IPKMin: 0, Anggaran: 0, Kategori: 'Internal', Persyaratan: '', FileKtm: 'wajib', FileTranskrip: 'wajib', FileSertifikat: 'opsional' }); setIsCrudOpen(true) }
+  const handleOpenAdd = () => { 
+    setIsEditMode(false); 
+    setForm({ Nama: '', Penyelenggara: '', Deskripsi: '', Deadline: '', Kuota: 0, IPKMin: 0, Anggaran: 0, Kategori: 'Internal', Persyaratan: '', FileKtm: 'wajib', FileTranskrip: 'wajib', FileSertifikat: 'opsional' }); 
+    setCustomFieldsList([]);
+    setIsCrudOpen(true) 
+  }
   const handleOpenEdit = (row) => {
     setIsEditMode(true)
     setForm({ 
@@ -392,6 +852,16 @@ export default function KelolaBeasiswa() {
       FileTranskrip: row.FileTranskrip || row.file_transkrip || 'wajib',
       FileSertifikat: row.FileSertifikat || row.file_sertifikat || 'opsional'
     })
+    let fields = [];
+    try {
+      const rawFields = row.CustomFields || row.custom_fields;
+      if (rawFields) {
+        fields = typeof rawFields === 'string' ? JSON.parse(rawFields) : rawFields;
+      }
+    } catch (e) {
+      console.error("Error parsing custom fields", e);
+    }
+    setCustomFieldsList(Array.isArray(fields) ? fields : []);
     setIsCrudOpen(true)
   }
 
@@ -407,7 +877,8 @@ export default function KelolaBeasiswa() {
       Persyaratan: form.Persyaratan || '',
       FileKtm: form.FileKtm || 'wajib',
       FileTranskrip: form.FileTranskrip || 'wajib',
-      FileSertifikat: form.FileSertifikat || 'opsional'
+      FileSertifikat: form.FileSertifikat || 'opsional',
+      CustomFields: JSON.stringify(customFieldsList)
     }
     try {
       const targetId = form.ID || form.id
@@ -441,6 +912,62 @@ export default function KelolaBeasiswa() {
     activeAwardees: appsData.filter(a => a.Status === 'Diterima' || a.Status === 'Disetujui').length,
     totalBudget: data.reduce((acc, curr) => acc + (parseFloat(curr.Anggaran) || 0), 0)
   }
+
+  const absorbedBudget = React.useMemo(() => {
+    return appsData
+      .filter(a => a.Status === 'Diterima')
+      .reduce((acc, curr) => acc + (parseFloat(curr.Beasiswa?.NilaiBantuan || curr.Beasiswa?.nilai_bantuan || 0)), 0)
+  }, [appsData])
+
+  const remainingBudget = stats.totalBudget - absorbedBudget
+  const absorptionRate = stats.totalBudget > 0 ? Math.round((absorbedBudget / stats.totalBudget) * 100) : 0
+
+  const facultyAbsorption = React.useMemo(() => {
+    const counts = {}
+    appsData.filter(a => a.Status === 'Diterima').forEach(a => {
+      const fac = a._fakultas || 'Lainnya'
+      const val = parseFloat(a.Beasiswa?.NilaiBantuan || a.Beasiswa?.nilai_bantuan || 0)
+      counts[fac] = (counts[fac] || 0) + val
+    })
+    return Object.entries(counts)
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => b.value - a.value)
+  }, [appsData])
+
+  const highestAbsorbingFaculty = React.useMemo(() => {
+    if (facultyAbsorption.length === 0) return '—'
+    return facultyAbsorption[0].name
+  }, [facultyAbsorption])
+
+  const providerData = React.useMemo(() => {
+    let kampusCount = 0
+    let kampusBudget = 0
+    let mitraCount = 0
+    let mitraBudget = 0
+    
+    data.forEach(s => {
+      const cat = (s.Kategori || '').toLowerCase()
+      const budget = parseFloat(s.Anggaran || 0)
+      if (cat === 'internal') {
+        kampusCount++
+        kampusBudget += budget
+      } else {
+        mitraCount++
+        mitraBudget += budget
+      }
+    })
+    
+    return {
+      kampusCount,
+      kampusBudget,
+      mitraCount,
+      mitraBudget,
+      chartData: [
+        { name: 'Kampus (Internal)', value: kampusCount, budget: kampusBudget },
+        { name: 'Mitra (Eksternal)', value: mitraCount, budget: mitraBudget }
+      ]
+    }
+  }, [data])
 
   const formatCurrency = (val) => {
     return new Intl.NumberFormat('id-ID', {
@@ -617,7 +1144,7 @@ export default function KelolaBeasiswa() {
         </section>
 
         {/* ── Stats Grid ──────────────────────────────────────────── */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4 md:gap-6">
            <StatCard 
             title="Total Program"
             value={stats.totalPrograms}
@@ -653,6 +1180,15 @@ export default function KelolaBeasiswa() {
             color="text-info"
             bg="bg-info/10"
             loading={loading}
+           />
+           <StatCard 
+            title="Realisasi Anggaran"
+            value={formatCurrency(absorbedBudget)}
+            description={`${absorptionRate}% Anggaran terserap`}
+            icon={Wallet}
+            color="text-emerald-600"
+            bg="bg-emerald-50"
+            loading={appsLoading}
            />
         </div>
 
@@ -744,6 +1280,9 @@ export default function KelolaBeasiswa() {
               <TabsTrigger value="applications" className="rounded-lg px-4 sm:px-8 py-2.5 text-[10px] font-bold uppercase tracking-widest data-[state=active]:bg-primary data-[state=active]:text-white transition-all duration-300">
                 <span className="material-symbols-outlined mr-2 inline" style={{ fontSize: '14px' }} >group</span> Verifikasi Pendaftar
               </TabsTrigger>
+              <TabsTrigger value="reports" className="rounded-lg px-4 sm:px-8 py-2.5 text-[10px] font-bold uppercase tracking-widest data-[state=active]:bg-primary data-[state=active]:text-white transition-all duration-300">
+                <span className="material-symbols-outlined mr-2 inline" style={{ fontSize: '14px' }} >monitoring</span> Laporan & Realisasi
+              </TabsTrigger>
             </TabsList>
           </div>
 
@@ -784,12 +1323,351 @@ export default function KelolaBeasiswa() {
                       options: uniqueSchNames.map(name => ({ label: name, value: name }))
                     }
                   ]}
+                  enableRowSelection={true}
+                  selectedRows={selectedAppIds}
+                  onSelectedRowsChange={setSelectedAppIds}
                   actions={(row) => (
                     <div className="flex items-center gap-1.5">
                       <Button onClick={() => setPreviewApp(row)} variant="ghost" size="icon" className="h-8 w-8 text-neutral-400 hover:text-primary hover:bg-blue-50 rounded-lg transition-colors" title="Lihat Detail Pendaftaran"><span className="material-symbols-outlined" style={{ fontSize: '18px' }} >visibility</span></Button>
                       <Button onClick={() => setSelectedApp(row)} variant="ghost" size="icon" className="h-8 w-8 text-neutral-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors" title="Review Pendaftaran"><span className="material-symbols-outlined" style={{ fontSize: '18px' }} >edit_note</span></Button>
                     </div>
                   )}
+                />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="reports" className="space-y-6">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white border border-slate-200/60 p-4 md:p-5 rounded-2xl gap-4">
+              <div>
+                <h3 className="text-sm font-extrabold text-slate-800 font-jakarta">Laporan Realisasi & Penyerapan Dana</h3>
+                <p className="text-[11px] text-slate-400 font-bold uppercase tracking-wide mt-1">Unduh laporan resmi beasiswa rektorat dalam format PDF Landscape</p>
+              </div>
+              <Button 
+                onClick={downloadRealisasiPDF}
+                className="h-10 px-5 rounded-xl bg-[#00236F] text-white hover:bg-[#001f5c] shadow-md gap-2 transition-all active:scale-95 border-none w-full sm:w-auto justify-center"
+              >
+                <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>download</span>
+                <span className="text-xs font-bold uppercase tracking-widest">Unduh Laporan PDF</span>
+              </Button>
+            </div>
+
+            {/* Realisasi Anggaran Detail Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <Card className="border border-slate-200/60 p-5 rounded-2xl bg-white shadow-none">
+                <div className="space-y-4">
+                  <div className="flex justify-between items-start">
+                    <div className="space-y-1">
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">Realisasi Anggaran</p>
+                      <h4 className="text-xl font-bold text-slate-800 tracking-tight mt-1">{absorptionRate}% Terserap</h4>
+                    </div>
+                    <span className="material-symbols-outlined text-primary bg-primary/10 p-2 rounded-xl" style={{ fontSize: 20 }}>payments</span>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
+                      <div className="h-full bg-gradient-to-r from-primary to-blue-400 rounded-full transition-all duration-500" style={{ width: `${absorptionRate}%` }} />
+                    </div>
+                    <div className="flex justify-between text-[10px] font-bold text-slate-400">
+                      <span>Terserap: {formatCurrency(absorbedBudget)}</span>
+                      <span>Pagu: {formatCurrency(stats.totalBudget)}</span>
+                    </div>
+                  </div>
+                  
+                  <div className="pt-2 border-t border-slate-100 flex justify-between text-[11px] font-bold">
+                    <span className="text-slate-400">Sisa Anggaran Belum Tersalurkan:</span>
+                    <span className="text-neutral-800">{formatCurrency(remainingBudget)}</span>
+                  </div>
+                </div>
+              </Card>
+
+              <Card className="border border-slate-200/60 p-5 rounded-2xl bg-white shadow-none flex flex-col justify-between">
+                <div className="space-y-1">
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">Penyerap Anggaran Terbesar</p>
+                  <h4 className="text-lg font-black text-neutral-800 tracking-tight mt-1.5 truncate" title={highestAbsorbingFaculty}>{highestAbsorbingFaculty}</h4>
+                  <p className="text-xs text-neutral-400 font-medium mt-1">
+                    Fakultas ini memimpin penyerapan beasiswa dengan alokasi total:
+                  </p>
+                </div>
+                <div className="pt-3 border-t border-slate-100 flex justify-between items-baseline">
+                  <span className="text-xs font-bold text-slate-500">Nilai Terserap:</span>
+                  <span className="text-lg font-black text-primary">{formatCurrency(facultyAbsorption[0]?.value || 0)}</span>
+                </div>
+              </Card>
+
+              <Card className="border border-slate-200/60 p-5 rounded-2xl bg-white shadow-none flex flex-col justify-between">
+                <div className="space-y-1">
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">Breakdown Pemberi Beasiswa</p>
+                  <div className="grid grid-cols-2 gap-2 mt-3">
+                    <div className="p-2 bg-blue-50/50 border border-blue-100 rounded-xl">
+                      <span className="text-[9px] font-black text-blue-500 uppercase tracking-wider block">KAMPUS (INTERNAL)</span>
+                      <span className="text-sm font-extrabold text-neutral-800 block mt-1">{providerData.kampusCount} Program</span>
+                      <span className="text-[10px] font-bold text-slate-400 block mt-0.5">{formatCurrency(providerData.kampusBudget)}</span>
+                    </div>
+                    <div className="p-2 bg-purple-50/50 border border-purple-100 rounded-xl">
+                      <span className="text-[9px] font-black text-purple-500 uppercase tracking-wider block">MITRA (EKSTERNAL)</span>
+                      <span className="text-sm font-extrabold text-neutral-800 block mt-1">{providerData.mitraCount} Program</span>
+                      <span className="text-[10px] font-bold text-slate-400 block mt-0.5">{formatCurrency(providerData.mitraBudget)}</span>
+                    </div>
+                  </div>
+                </div>
+              </Card>
+            </div>
+
+            {/* Graphics Row */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Bar Chart: Penyerapan Dana per Fakultas */}
+              <div className="lg:col-span-2 bg-white p-5 rounded-2xl border border-slate-200/60 shadow-none">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 bg-primary/10 rounded-xl flex justify-center items-center text-primary flex-shrink-0">
+                    <span className="material-symbols-outlined text-primary" style={{ fontSize: '18px' }} >apartment</span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline block">Distribusi Penyerapan Anggaran per Fakultas</span>
+                    <span className="text-xs font-bold text-slate-500 block mt-0.5">Urutan fakultas berdasarkan nominal dana beasiswa yang berhasil diserap</span>
+                  </div>
+                </div>
+                <div className="h-[250px] w-full">
+                  {facultyAbsorption.length > 0 ? (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={facultyAbsorption} margin={{ top: 10, right: 10, left: 20, bottom: 5 }}>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                        <XAxis dataKey="name" tick={{ fontSize: 8.5, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                        <YAxis tickFormatter={v => `Rp ${new Intl.NumberFormat('id-ID', { notation: 'compact' }).format(v)}`} tick={{ fontSize: 9, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                        <Tooltip
+                          cursor={{ fill: '#f8fafc' }}
+                          formatter={v => [formatCurrency(v), 'Dana Terserap']}
+                          contentStyle={{ backgroundColor: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.05)", fontSize: "11px", fontWeight: "bold" }}
+                        />
+                        <Bar dataKey="value" name="Dana Terserap" fill="var(--theme-primary, #00236f)" radius={[6, 6, 0, 0]} barSize={32} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <div className="h-full flex items-center justify-center text-slate-400 italic text-xs">Belum ada dana terserap (penerima berstatus Diterima)</div>
+                  )}
+                </div>
+              </div>
+
+              {/* Pie/Donut Chart: Provider comparison */}
+              <div className="lg:col-span-1 bg-white p-5 rounded-2xl border border-slate-200/60 shadow-none flex flex-col justify-between">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 bg-success/10 rounded-xl flex justify-center items-center text-success flex-shrink-0">
+                    <span className="material-symbols-outlined text-success" style={{ fontSize: '18px' }} >corporate_fare</span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline block">Proporsi Dana Pemberi Beasiswa</span>
+                    <span className="text-xs font-bold text-slate-500 block mt-0.5">Kampus (Internal) vs Mitra (Eksternal)</span>
+                  </div>
+                </div>
+                <div className="h-[160px] w-full flex items-center justify-center">
+                  {stats.totalBudget > 0 ? (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={providerData.chartData}
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={50}
+                          outerRadius={70}
+                          paddingAngle={5}
+                          dataKey="budget"
+                          stroke="none"
+                        >
+                          {providerData.chartData.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
+                          ))}
+                        </Pie>
+                        <Tooltip
+                          formatter={v => [formatCurrency(v), 'Pagu Anggaran']}
+                          contentStyle={{ backgroundColor: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.05)", fontSize: "10px", fontWeight: "bold" }}
+                        />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <span className="text-xs text-slate-400 italic">Tidak ada data pagu</span>
+                  )}
+                </div>
+                <div className="grid grid-cols-1 gap-2 mt-4">
+                  {providerData.chartData.map((item, idx) => (
+                    <div key={item.name} className="flex items-center justify-between p-2 rounded-xl bg-slate-50 border border-slate-100">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: PIE_COLORS[idx % PIE_COLORS.length] }} />
+                        <span className="text-[10px] font-bold text-slate-500 truncate">{item.name}</span>
+                      </div>
+                      <span className="text-xs font-black text-slate-800 font-jakarta shrink-0">{formatCurrency(item.budget)}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Faculty Realization Leaderboard Table */}
+            <Card className="border-neutral-200 shadow-sm rounded-xl bg-white overflow-hidden">
+              <div className="p-5 border-b border-slate-100 flex items-center justify-between">
+                <div className="space-y-1">
+                  <h4 className="text-sm font-extrabold text-slate-800">Laporan Penyerapan Anggaran per Fakultas</h4>
+                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wide">Pemberian beasiswa berstatus Diterima dikelompokkan per Fakultas</p>
+                </div>
+              </div>
+              <CardContent className="p-0">
+                <DataTable
+                  columns={[
+                    {
+                      key: 'name',
+                      label: 'Fakultas',
+                      render: v => <span className="font-bold text-xs text-neutral-800 font-jakarta">{v.toUpperCase()}</span>
+                    },
+                    {
+                      key: 'value',
+                      label: 'Dana Terserap',
+                      className: 'text-right',
+                      cellClassName: 'text-right',
+                      render: v => <span className="font-bold text-neutral-900 text-xs">{formatCurrency(v)}</span>
+                    },
+                    {
+                      key: 'pct',
+                      label: 'Persentase Penyerapan',
+                      className: 'w-[250px]',
+                      render: (v, row) => {
+                        const pct = stats.totalBudget <= 0 ? 0 : Math.round((row.value / stats.totalBudget) * 100);
+                        return (
+                          <div className="flex items-center gap-3 min-w-[150px]">
+                            <span className="text-[10px] font-black text-slate-500 w-8">{pct}%</span>
+                            <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
+                              <div className="h-full bg-primary rounded-full" style={{ width: `${pct}%` }} />
+                            </div>
+                          </div>
+                        );
+                      }
+                    }
+                  ]}
+                  data={facultyAbsorption}
+                  loading={appsLoading}
+                  searchPlaceholder="Filter nama fakultas..."
+                />
+              </CardContent>
+            </Card>
+
+            {/* Detailed Scholarship Program Realization List */}
+            <Card className="border-neutral-200 shadow-sm rounded-xl bg-white overflow-hidden">
+              <div className="p-5 border-b border-slate-100 flex items-center justify-between">
+                <div className="space-y-1">
+                  <h4 className="text-sm font-extrabold text-slate-800">Laporan Realisasi Dana per Program</h4>
+                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wide">Status pagu anggaran vs realisasi dana terserap per program beasiswa</p>
+                </div>
+              </div>
+              <CardContent className="p-0">
+                <DataTable
+                  columns={[
+                    {
+                      key: 'Nama',
+                      label: 'Program Beasiswa',
+                      render: v => <span className="font-bold text-slate-800 text-xs">{v || '—'}</span>
+                    },
+                    {
+                      key: 'Kategori',
+                      label: 'Sponsor',
+                      render: v => (
+                        <Badge className={cn('px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-widest', (v || '').toLowerCase() === 'internal' ? 'bg-blue-50 text-blue-700 border-blue-100' : 'bg-purple-50 text-purple-700 border-purple-100')}>
+                          {(v || '').toLowerCase() === 'internal' ? 'Kampus' : 'Mitra'}
+                        </Badge>
+                      )
+                    },
+                    {
+                      key: 'Anggaran',
+                      label: 'Pagu Anggaran',
+                      className: 'text-right',
+                      cellClassName: 'text-right',
+                      render: v => <span className="font-semibold text-neutral-600 text-xs">{formatCurrency(v || 0)}</span>
+                    },
+                    {
+                      key: 'absorbed',
+                      label: 'Dana Terserap',
+                      className: 'text-right',
+                      cellClassName: 'text-right',
+                      render: (v, row) => {
+                        const count = appsData.filter(a => (a.BeasiswaID === (row.id || row.ID) || a.Beasiswa?.id === (row.id || row.ID) || a.Beasiswa?.ID === (row.id || row.ID)) && a.Status === 'Diterima').length;
+                        const val = count * (row.NilaiBantuan || row.nilai_bantuan || 0);
+                        return <span className="font-bold text-neutral-800 text-xs">{formatCurrency(val)}</span>;
+                      }
+                    },
+                    {
+                      key: 'remaining',
+                      label: 'Sisa Anggaran',
+                      className: 'text-right',
+                      cellClassName: 'text-right',
+                      render: (v, row) => {
+                        const count = appsData.filter(a => (a.BeasiswaID === (row.id || row.ID) || a.Beasiswa?.id === (row.id || row.ID) || a.Beasiswa?.ID === (row.id || row.ID)) && a.Status === 'Diterima').length;
+                        const absorbed = count * (row.NilaiBantuan || row.nilai_bantuan || 0);
+                        const remaining = (row.Anggaran || 0) - absorbed;
+                        return <span className={cn("font-bold text-xs", remaining < 0 ? "text-rose-600" : "text-neutral-500")}>{formatCurrency(remaining)}</span>;
+                      }
+                    },
+                    {
+                      key: 'recipients',
+                      label: 'Penerima',
+                      className: 'text-center',
+                      cellClassName: 'text-center',
+                      render: (v, row) => {
+                        const count = appsData.filter(a => (a.BeasiswaID === (row.id || row.ID) || a.Beasiswa?.id === (row.id || row.ID) || a.Beasiswa?.ID === (row.id || row.ID)) && a.Status === 'Diterima').length;
+                        return <span className="font-bold text-neutral-700 text-xs">{count} Mhs</span>;
+                      }
+                    }
+                  ]}
+                  data={data}
+                  loading={loading}
+                  searchPlaceholder="Cari program beasiswa..."
+                />
+              </CardContent>
+            </Card>
+
+            {/* Detailed Scholarship Recipient List Table */}
+            <Card className="border-neutral-200 shadow-sm rounded-xl bg-white overflow-hidden">
+              <div className="p-5 border-b border-slate-100 flex items-center justify-between">
+                <div className="space-y-1">
+                  <h4 className="text-sm font-extrabold text-slate-800">Laporan Penerima Beasiswa Aktif</h4>
+                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wide">Daftar lengkap seluruh mahasiswa penerima beasiswa (Diterima)</p>
+                </div>
+              </div>
+              <CardContent className="p-0">
+                <DataTable
+                  columns={[
+                    {
+                      key: 'Mahasiswa',
+                      label: 'Nama Mahasiswa',
+                      render: (v, row) => (
+                        <div className="flex flex-col py-1">
+                          <span className="font-bold text-neutral-900 text-xs">{row.Mahasiswa?.Nama || '—'}</span>
+                          <span className="text-[10px] text-neutral-400 font-semibold">{row.Mahasiswa?.NIM || '—'}</span>
+                        </div>
+                      )
+                    },
+                    {
+                      key: '_fakultas',
+                      label: 'Fakultas',
+                      render: v => <span className="text-xs text-neutral-500 font-medium">{v?.toUpperCase() || '—'}</span>
+                    },
+                    {
+                      key: '_prodi',
+                      label: 'Program Studi',
+                      render: v => <span className="text-xs text-neutral-400 font-medium">{v || '—'}</span>
+                    },
+                    {
+                      key: 'BeasiswaNama',
+                      label: 'Beasiswa Terdaftar',
+                      render: v => <span className="text-xs text-neutral-600 font-bold">{v || '—'}</span>
+                    },
+                    {
+                      key: 'Beasiswa.NilaiBantuan',
+                      label: 'Nilai Bantuan',
+                      className: 'text-right',
+                      cellClassName: 'text-right',
+                      render: (v, row) => <span className="font-bold text-success text-xs">{formatCurrency(row.Beasiswa?.NilaiBantuan || row.Beasiswa?.nilai_bantuan || 0)}</span>
+                    }
+                  ]}
+                  data={appsData.filter(a => a.Status === 'Diterima')}
+                  loading={appsLoading}
+                  searchPlaceholder="Cari nama atau NIM penerima..."
                 />
               </CardContent>
             </Card>
@@ -913,6 +1791,110 @@ export default function KelolaBeasiswa() {
               </div>
             </div>
 
+            {/* Custom Requirements Form Builder */}
+            <div className="bg-slate-50/50 p-4 rounded-xl border border-neutral-200/60 space-y-3">
+              <div className="flex justify-between items-center">
+                <span className="block text-[10px] font-black text-slate-400 uppercase tracking-wider">Persyaratan Kustom Tambahan</span>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCustomFieldsList([...customFieldsList, { label: '', type: 'text', required: false, options: '' }])}
+                  className="h-8 px-3 rounded-lg border-primary/30 hover:border-primary text-primary hover:bg-[#eef4ff] text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 transition-all"
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: '13px' }}>add</span>
+                  Tambah Form
+                </Button>
+              </div>
+
+              {customFieldsList.length === 0 ? (
+                <p className="text-[11px] text-slate-400 italic">Belum ada persyaratan kustom tambahan.</p>
+              ) : (
+                <div className="space-y-3">
+                  {customFieldsList.map((field, index) => (
+                    <div key={index} className="p-3 bg-white border border-neutral-200 rounded-xl space-y-2 relative">
+                      <button
+                        type="button"
+                        onClick={() => setCustomFieldsList(customFieldsList.filter((_, i) => i !== index))}
+                        className="absolute top-2 right-2 text-rose-500 hover:bg-rose-50 p-1 rounded-lg transition-colors"
+                      >
+                        <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>delete</span>
+                      </button>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pr-8">
+                        <div className="space-y-1">
+                          <Label className="text-[10px] font-bold text-neutral-500 font-jakarta">Label Pertanyaan</Label>
+                          <Input
+                            type="text"
+                            value={field.label}
+                            onChange={(e) => {
+                              const updated = [...customFieldsList];
+                              updated[index].label = e.target.value;
+                              setCustomFieldsList(updated);
+                            }}
+                            placeholder="Contoh: Essay Singkat / Upload CV"
+                            className="h-9 rounded-lg border-neutral-200 text-xs font-medium"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-[10px] font-bold text-neutral-500 font-jakarta">Tipe Jawaban</Label>
+                          <select
+                            value={field.type}
+                            onChange={(e) => {
+                              const updated = [...customFieldsList];
+                              updated[index].type = e.target.value;
+                              setCustomFieldsList(updated);
+                            }}
+                            className="w-full h-9 rounded-lg border border-neutral-200 bg-white text-xs font-jakarta px-2 outline-none"
+                          >
+                            <option value="text">Jawaban Singkat (Text)</option>
+                            <option value="paragraph">Paragraf (Textarea)</option>
+                            <option value="select">Dropdown (Select)</option>
+                            <option value="checkbox">Centang (Checkbox)</option>
+                            <option value="file">Unggah Berkas (File)</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      {['select', 'checkbox'].includes(field.type) && (
+                        <div className="space-y-1">
+                          <Label className="text-[10px] font-bold text-neutral-500 font-jakarta">Opsi Jawaban (pisahkan dengan koma)</Label>
+                          <Input
+                            type="text"
+                            value={field.options || ''}
+                            onChange={(e) => {
+                              const updated = [...customFieldsList];
+                              updated[index].options = e.target.value;
+                              setCustomFieldsList(updated);
+                            }}
+                            placeholder="Contoh: A, B, C"
+                            className="h-9 rounded-lg border-neutral-200 text-xs font-medium"
+                          />
+                        </div>
+                      )}
+
+                      <div className="flex items-center gap-2 pt-1">
+                        <input
+                          type="checkbox"
+                          id={`required-${index}`}
+                          checked={field.required}
+                          onChange={(e) => {
+                            const updated = [...customFieldsList];
+                            updated[index].required = e.target.checked;
+                            setCustomFieldsList(updated);
+                          }}
+                          className="rounded text-primary focus:ring-primary size-4"
+                        />
+                        <label htmlFor={`required-${index}`} className="text-[10px] font-bold text-neutral-500 cursor-pointer select-none">
+                          Wajib Diisi (Required)
+                        </label>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
             <div className="space-y-2">
               <Label className="text-xs font-bold text-neutral-500 font-jakarta ml-1">Deskripsi Program</Label>
               <Textarea value={form.Deskripsi} onChange={e => setForm({ ...form, Deskripsi: e.target.value })} placeholder="Detail deskripsi program beasiswa..." className="min-h-[80px] rounded-xl border-neutral-200 bg-neutral-50/30 focus:bg-white p-4 font-medium text-sm font-jakarta" />
@@ -1028,6 +2010,46 @@ export default function KelolaBeasiswa() {
                     </div>
                   </div>
                 </div>
+
+                {/* Persyaratan Kustom */}
+                {(() => {
+                  const rawFields = selectedProgram.CustomFields || selectedProgram.custom_fields;
+                  if (!rawFields) return null;
+                  let fields = [];
+                  try {
+                    fields = typeof rawFields === 'string' ? JSON.parse(rawFields) : rawFields;
+                  } catch (e) {
+                    console.error(e);
+                  }
+                  if (!Array.isArray(fields) || fields.length === 0) return null;
+                  return (
+                    <div className="space-y-1">
+                      <span className="block text-[8px] font-bold text-slate-400 uppercase tracking-wider">PERSYARATAN TAMBAHAN (KUSTOM)</span>
+                      <div className="bg-slate-50/60 p-3.5 rounded-2xl border border-slate-100/50 space-y-2 font-body">
+                        {fields.map((f, i) => (
+                          <div key={i} className="flex justify-between items-start text-xs border-b border-slate-100 last:border-0 pb-1.5 last:pb-0">
+                            <div className="min-w-0 pr-2 text-left">
+                              <span className="font-bold text-slate-700 block">{f.label}</span>
+                              {f.options && (
+                                <span className="text-[9px] text-slate-400 block mt-0.5">Opsi: {f.options}</span>
+                              )}
+                            </div>
+                            <div className="flex flex-col items-end gap-1 shrink-0">
+                              <span className="font-semibold text-[9px] px-1.5 py-0.5 bg-blue-50 text-blue-600 rounded">
+                                {f.type}
+                              </span>
+                              {f.required && (
+                                <span className="font-bold text-[8px] px-1 bg-rose-50 text-rose-600 rounded">
+                                  Wajib
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })()}
 
                 {/* Tanggal & Waktu Dibuat - Full Width */}
                 <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-100 flex items-center gap-3">
@@ -1172,7 +2194,136 @@ export default function KelolaBeasiswa() {
         isSubmitting={isSubmitting} 
       />
 
-      {/* Read-Only Preview Application Modal */}
+      {/* Bulk Review Modal */}
+      {isBulkOpen && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4"
+          onClick={() => setIsBulkOpen(false)}>
+          <div className="relative w-[95vw] sm:w-[90vw] md:max-w-md bg-white rounded-3xl shadow-2xl z-[101] flex flex-col overflow-hidden max-h-[90vh]"
+            onClick={e => e.stopPropagation()}>
+            
+            {/* Header */}
+            <div className="relative bg-gradient-to-br from-[#00236F] via-[#00308F] to-[#003db5] pt-6 pb-7 px-6 overflow-hidden flex-shrink-0">
+              <div className="absolute -top-10 -right-10 w-44 h-44 bg-white/5 rounded-full pointer-events-none" />
+              <button onClick={() => setIsBulkOpen(false)}
+                className="absolute z-50 top-4 right-4 w-8 h-8 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center transition-colors">
+                <span className="material-symbols-outlined text-white" style={{ fontSize: '15px' }} >close</span>
+              </button>
+              <div className="relative z-10 flex items-center gap-4">
+                <div className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center text-white">
+                  <span className="material-symbols-outlined" style={{ fontSize: 28 }}>group</span>
+                </div>
+                <div>
+                  <p className="text-[9px] font-bold text-white/50 uppercase tracking-[0.25em] mb-1">Aksi Masal</p>
+                  <h2 className="text-base font-extrabold text-white leading-tight">Review {selectedAppIds.length} Pendaftar</h2>
+                </div>
+              </div>
+            </div>
+
+            {/* Content */}
+            <div className="p-6 space-y-5 overflow-y-auto flex-1 font-body">
+              <div className="space-y-2">
+                <label className="block text-[8px] font-bold text-slate-400 uppercase tracking-wider">TAHAP SELEKSI MASSAL</label>
+                <Select value={bulkStatus} onValueChange={setBulkStatus}>
+                  <SelectTrigger className="w-full h-11 rounded-xl border-[#e5e5e5] bg-[#fafafa]">
+                    <SelectValue placeholder="Pilih Tahap Seleksi Massal" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="dikirim">1. Pengajuan Dikirim</SelectItem>
+                    <SelectItem value="seleksi_berkas">2. Seleksi Berkas</SelectItem>
+                    <SelectItem value="evaluasi">3. Evaluasi & Wawancara</SelectItem>
+                    <SelectItem value="review">4. Review Akhir</SelectItem>
+                    <SelectItem value="penetapan">5. Penetapan Pemenang</SelectItem>
+                    <SelectItem value="Diterima">6. Hasil Akhir: Diterima</SelectItem>
+                    <SelectItem value="Ditolak">6. Hasil Akhir: Ditolak</SelectItem>
+                  </SelectContent>
+                </Select>
+                <span className="text-[10px] font-bold text-slate-400 block mt-1">Status {selectedAppIds.length} mahasiswa terpilih akan diset secara serentak.</span>
+              </div>
+
+              <div>
+                <label className="block text-[8px] font-bold text-slate-400 uppercase tracking-wider mb-2">CATATAN REVIEW MASSAL</label>
+                <textarea 
+                  value={bulkCatatan} 
+                  onChange={e => setBulkCatatan(e.target.value)} 
+                  rows={4}
+                  placeholder="Masukkan catatan keputusan massal di sini (berlaku untuk semua mahasiswa terpilih)..."
+                  className="w-full px-4 py-3 rounded-xl border border-[#e5e5e5] bg-[#fafafa] focus:outline-none focus:border-primary focus:bg-white text-sm text-[#171717] transition-all resize-none" 
+                />
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="px-5 py-4 border-t border-[#f0f0f0] bg-[#fafafa] flex gap-3 flex-shrink-0">
+              <button type="button" onClick={() => setIsBulkOpen(false)}
+                className="flex-1 h-11 rounded-xl border border-[#e5e5e5] bg-white text-xs font-bold text-[#525252] uppercase tracking-widest hover:bg-[#f5f5f5] transition-all">
+                Batal
+              </button>
+              <button 
+                type="button" 
+                onClick={handleBulkAppUpdate}
+                disabled={isSubmitting}
+                className="flex-1 h-11 rounded-xl bg-[#00236F] hover:bg-[#001f5c] text-xs font-bold text-white uppercase tracking-widest flex items-center justify-center gap-2 transition-all shadow-md active:scale-95 disabled:opacity-50"
+              >
+                {isSubmitting ? 'Menyimpan...' : 'Simpan Keputusan'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Floating Bulk Action Bar */}
+      {selectedAppIds.length > 0 && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[90] bg-white border border-neutral-200 rounded-2xl shadow-xl px-4 py-3 sm:px-6 sm:py-4 flex flex-col md:flex-row items-center gap-3 md:gap-6 w-[92vw] sm:w-[90vw] md:w-auto transition-all animate-in slide-in-from-bottom duration-300">
+          <div className="flex items-center justify-between w-full md:w-auto gap-4">
+            <div className="text-left">
+              <p className="text-[9px] font-bold text-neutral-400 uppercase tracking-wider">Aksi Massal</p>
+              <p className="text-xs sm:text-sm font-extrabold text-neutral-800 whitespace-nowrap">{selectedAppIds.length} Pendaftar Terpilih</p>
+            </div>
+            <button 
+              onClick={() => setSelectedAppIds([])}
+              className="text-[10px] sm:text-xs font-bold text-rose-600 hover:text-rose-700 uppercase tracking-wider md:ml-4"
+            >
+              Batal
+            </button>
+          </div>
+          
+          <div className="hidden md:block h-8 w-px bg-neutral-200" />
+          
+          <div className="grid grid-cols-3 sm:flex items-center gap-2 w-full md:w-auto">
+            <button
+              onClick={() => {
+                setBulkStatus('Diterima');
+                setIsBulkOpen(true);
+              }}
+              className="h-10 sm:h-11 px-2 sm:px-5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-[9px] xs:text-[10px] sm:text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-1 sm:gap-2 transition-all active:scale-95 shadow-sm truncate"
+            >
+              <span className="material-symbols-outlined hidden xs:inline" style={{ fontSize: 16 }}>check_circle</span>
+              Terima
+            </button>
+            <button
+              onClick={() => {
+                setBulkStatus('Ditolak');
+                setIsBulkOpen(true);
+              }}
+              className="h-10 sm:h-11 px-2 sm:px-5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-[9px] xs:text-[10px] sm:text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-1 sm:gap-2 transition-all active:scale-95 shadow-sm truncate"
+            >
+              <span className="material-symbols-outlined hidden xs:inline" style={{ fontSize: 16 }}>cancel</span>
+              Tolak
+            </button>
+            <button
+              onClick={() => {
+                setBulkStatus('seleksi_berkas');
+                setIsBulkOpen(true);
+              }}
+              className="h-10 sm:h-11 px-2 sm:px-5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-[9px] xs:text-[10px] sm:text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-1 sm:gap-2 transition-all active:scale-95 shadow-sm truncate"
+            >
+              <span className="material-symbols-outlined hidden xs:inline" style={{ fontSize: 16 }}>rule</span>
+              Ubah Tahap
+            </button>
+          </div>
+        </div>
+      )}
+
       {previewApp && (() => {
         const st = getAppStatus(previewApp.Status);
         return (
@@ -1254,6 +2405,44 @@ export default function KelolaBeasiswa() {
                     </div>
                   )}
                 </div>
+
+                {/* Custom Answers in Preview */}
+                {(() => {
+                  const rawAnswers = previewApp.custom_answers || previewApp.CustomAnswers;
+                  if (!rawAnswers) return null;
+                  let answers = {};
+                  try {
+                    answers = typeof rawAnswers === 'string' ? JSON.parse(rawAnswers) : rawAnswers;
+                  } catch (e) {
+                    console.error(e);
+                    return null;
+                  }
+                  if (Object.keys(answers).length === 0) return null;
+                  return (
+                    <div className="space-y-1.5">
+                      <span className="block text-[8px] font-bold text-slate-400 uppercase tracking-wider">JAWABAN PERSYARATAN KUSTOM</span>
+                      <div className="space-y-2">
+                        {Object.entries(answers).map(([label, value]) => {
+                          const isFile = typeof value === 'string' && (value.startsWith('/uploads/') || value.startsWith('http') || value.includes('/api/scholarship/upload-custom-file'));
+                          return (
+                            <div key={label} className="bg-slate-50 p-3 rounded-2xl border border-slate-100/50 text-left">
+                              <span className="block text-[9px] font-bold text-slate-400 uppercase">{label}</span>
+                              {isFile ? (
+                                <div className="mt-1">
+                                  {renderAttachment(value, label)}
+                                </div>
+                              ) : (
+                                <p className="text-xs font-bold text-slate-800 mt-1 whitespace-pre-line">
+                                  {Array.isArray(value) ? value.join(', ') : String(value)}
+                                </p>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })()}
 
                 {/* Motivasi */}
                 <div className="space-y-1.5">

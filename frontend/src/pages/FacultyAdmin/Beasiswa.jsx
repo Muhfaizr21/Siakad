@@ -947,6 +947,44 @@ export default function FacultyScholarship() {
                   )}
                 </div>
 
+                {/* Custom Answers in Preview */}
+                {(() => {
+                  const rawAnswers = previewApp.custom_answers || previewApp.CustomAnswers;
+                  if (!rawAnswers) return null;
+                  let answers = {};
+                  try {
+                    answers = typeof rawAnswers === 'string' ? JSON.parse(rawAnswers) : rawAnswers;
+                  } catch (e) {
+                    console.error(e);
+                    return null;
+                  }
+                  if (Object.keys(answers).length === 0) return null;
+                  return (
+                    <div className="space-y-1.5 text-left">
+                      <span className="block text-[8px] font-bold text-slate-400 uppercase tracking-wider">JAWABAN PERSYARATAN KUSTOM</span>
+                      <div className="space-y-2">
+                        {Object.entries(answers).map(([label, value]) => {
+                          const isFile = typeof value === 'string' && (value.startsWith('/uploads/') || value.startsWith('http') || value.includes('/api/scholarship/upload-custom-file'));
+                          return (
+                            <div key={label} className="bg-slate-50 p-3 rounded-2xl border border-slate-100/50">
+                              <span className="block text-[9px] font-bold text-slate-400 uppercase">{label}</span>
+                              {isFile ? (
+                                <div className="mt-1">
+                                  {renderAttachment(value, label)}
+                                </div>
+                              ) : (
+                                <p className="text-xs font-bold text-slate-800 mt-1 whitespace-pre-line">
+                                  {Array.isArray(value) ? value.join(', ') : String(value)}
+                                </p>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })()}
+
                 {/* Motivasi */}
                 <div className="space-y-1.5">
                   <span className="block text-[8px] font-bold text-slate-400 uppercase tracking-wider">MOTIVASI / MOTIVATION LETTER</span>
@@ -1023,6 +1061,46 @@ export default function FacultyScholarship() {
                     </p>
                   </div>
                 )}
+
+                {/* Persyaratan Kustom */}
+                {(() => {
+                  const rawFields = selectedProgram.CustomFields || selectedProgram.custom_fields;
+                  if (!rawFields) return null;
+                  let fields = [];
+                  try {
+                    fields = typeof rawFields === 'string' ? JSON.parse(rawFields) : rawFields;
+                  } catch (e) {
+                    console.error(e);
+                  }
+                  if (!Array.isArray(fields) || fields.length === 0) return null;
+                  return (
+                    <div className="space-y-1">
+                      <span className="block text-[8px] font-bold text-slate-400 uppercase tracking-wider">PERSYARATAN TAMBAHAN (KUSTOM)</span>
+                      <div className="bg-slate-50/60 p-3.5 rounded-2xl border border-slate-100/50 space-y-2 font-inter">
+                        {fields.map((f, i) => (
+                          <div key={i} className="flex justify-between items-start text-xs border-b border-slate-100 last:border-0 pb-1.5 last:pb-0">
+                            <div className="min-w-0 pr-2 text-left">
+                              <span className="font-bold text-slate-700 block">{f.label}</span>
+                              {f.options && (
+                                <span className="text-[9px] text-slate-400 block mt-0.5">Opsi: {f.options}</span>
+                              )}
+                            </div>
+                            <div className="flex flex-col items-end gap-1 shrink-0">
+                              <span className="font-semibold text-[9px] px-1.5 py-0.5 bg-blue-50 text-blue-600 rounded">
+                                {f.type}
+                              </span>
+                              {f.required && (
+                                <span className="font-bold text-[8px] px-1 bg-rose-50 text-rose-600 rounded">
+                                  Wajib
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })()}
 
                 {/* Tanggal & Waktu Dibuat - Full Width */}
                 <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-100 flex items-center gap-3">
