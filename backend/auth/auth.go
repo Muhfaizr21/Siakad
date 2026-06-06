@@ -26,15 +26,17 @@ type loginRequest struct {
 }
 
 type userResponse struct {
-	ID          uint     `json:"id"`
-	Email       string   `json:"email"`
-	Role        string   `json:"role"`
-	RoleDisplay string   `json:"role_display,omitempty"`
-	OrmawaName  string   `json:"ormawa_name,omitempty"`
-	NIM         string   `json:"nim,omitempty"`
-	Nama        string   `json:"nama,omitempty"`
-	OrmawaID    *uint    `json:"ormawa_id,omitempty"`
-	Permissions []string `json:"permissions,omitempty"`
+	ID             uint     `json:"id"`
+	Email          string   `json:"email"`
+	Role           string   `json:"role"`
+	RoleDisplay    string   `json:"role_display,omitempty"`
+	OrmawaName     string   `json:"ormawa_name,omitempty"`
+	NIM            string   `json:"nim,omitempty"`
+	Nama           string   `json:"nama,omitempty"`
+	FakultasID     *uint    `json:"fakultas_id,omitempty"`
+	ProgramStudiID *uint    `json:"program_studi_id,omitempty"`
+	OrmawaID       *uint    `json:"ormawa_id,omitempty"`
+	Permissions    []string `json:"permissions,omitempty"`
 }
 
 type roleMeta struct {
@@ -80,7 +82,7 @@ func jwtSecret() []byte {
 	return config.GetJWTSecret()
 }
 
-func createToken(userID uint, studentID uint, nim string, role string, facultyID *uint, ormawaID *uint, ormawaAssign string) (string, error) {
+func createToken(userID uint, studentID uint, nim string, role string, facultyID *uint, programStudiID *uint, ormawaID *uint, ormawaAssign string) (string, error) {
 	now := time.Now()
 	claims := jwt.MapClaims{
 		"sub":  userID,
@@ -88,6 +90,7 @@ func createToken(userID uint, studentID uint, nim string, role string, facultyID
 		"nim":  nim,
 		"role": role,
 		"fid":  facultyID,
+		"pid":  programStudiID,
 		"oid":  ormawaID,
 		"oas":  ormawaAssign,
 		"iat":  now.Unix(),
@@ -110,7 +113,7 @@ func createTempToken(userID uint) (string, error) {
 	return token.SignedString(jwtSecret())
 }
 
-func createRefreshToken(userID uint, studentID uint, nim string, role string, facultyID *uint, ormawaID *uint, ormawaAssign string) (string, error) {
+func createRefreshToken(userID uint, studentID uint, nim string, role string, facultyID *uint, programStudiID *uint, ormawaID *uint, ormawaAssign string) (string, error) {
 	now := time.Now()
 	claims := jwt.MapClaims{
 		"sub":  userID,
@@ -118,6 +121,7 @@ func createRefreshToken(userID uint, studentID uint, nim string, role string, fa
 		"nim":  nim,
 		"role": role,
 		"fid":  facultyID,
+		"pid":  programStudiID,
 		"oid":  ormawaID,
 		"oas":  ormawaAssign,
 		"typ":  "refresh",
@@ -256,6 +260,21 @@ func getUserPermissions(user models.User, roleName string, studentID uint) []str
 			// they should have full access by default.
 			return []string{"*"}
 		}
+	}
+
+	// If the role is related to Prodi Admin
+	if roleName == "prodi_admin" {
+		var prodiRole models.FakultasProdiRole
+		if user.FakultasID != nil && user.OrmawaAssign != "" {
+			if err := config.DB.Where("fakultas_id = ? AND LOWER(nama) = LOWER(?)", *user.FakultasID, strings.ToLower(user.OrmawaAssign)).First(&prodiRole).Error; err == nil {
+				var customPerms []string
+				if err := json.Unmarshal(prodiRole.Permissions, &customPerms); err == nil && len(customPerms) > 0 {
+					return customPerms
+				}
+			}
+		}
+		// Fallback default permissions for prodi_admin
+		return []string{"view_dashboard", "view_mahasiswa"}
 	}
 
 	// Fallback to standard RBAC permissions
@@ -440,7 +459,7 @@ func Login(c *fiber.Ctx) error {
 		}
 	}
 
-	token, err := createToken(user.ID, student.ID, nim, roleName, user.FakultasID, user.OrmawaID, user.OrmawaAssign)
+	token, err := createToken(user.ID, student.ID, nim, roleName, user.FakultasID, user.ProgramStudiID, user.OrmawaID, user.OrmawaAssign)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"status":  "error",
@@ -448,7 +467,7 @@ func Login(c *fiber.Ctx) error {
 		})
 	}
 
-	if rt, err := createRefreshToken(user.ID, student.ID, nim, roleName, user.FakultasID, user.OrmawaID, user.OrmawaAssign); err == nil {
+	if rt, err := createRefreshToken(user.ID, student.ID, nim, roleName, user.FakultasID, user.ProgramStudiID, user.OrmawaID, user.OrmawaAssign); err == nil {
 		setRefreshTokenCookie(c, rt)
 	}
 
@@ -462,13 +481,15 @@ func Login(c *fiber.Ctx) error {
 			"access_token": token,
 			"mahasiswa":    student, // although for admin it might be empty
 			"user": userResponse{
-				ID:          user.ID,
-				Email:       user.Email,
-				Role:        roleName,
-				NIM:         student.NIM,
-				Nama:        displayName,
-				OrmawaID:    user.OrmawaID,
-				Permissions: permissions,
+				ID:             user.ID,
+				Email:          user.Email,
+				Role:           roleName,
+				NIM:            student.NIM,
+				Nama:           displayName,
+				FakultasID:     user.FakultasID,
+				ProgramStudiID: user.ProgramStudiID,
+				OrmawaID:       user.OrmawaID,
+				Permissions:    permissions,
 			},
 		},
 	})
@@ -576,7 +597,7 @@ func LoginSelectRole(c *fiber.Ctx) error {
 		}
 	}
 
-	accessToken, err := createToken(user.ID, student.ID, nim, selectedRole, user.FakultasID, user.OrmawaID, user.OrmawaAssign)
+	accessToken, err := createToken(user.ID, student.ID, nim, selectedRole, user.FakultasID, user.ProgramStudiID, user.OrmawaID, user.OrmawaAssign)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"status":  "error",
@@ -584,7 +605,7 @@ func LoginSelectRole(c *fiber.Ctx) error {
 		})
 	}
 
-	if rt, err := createRefreshToken(user.ID, student.ID, nim, selectedRole, user.FakultasID, user.OrmawaID, user.OrmawaAssign); err == nil {
+	if rt, err := createRefreshToken(user.ID, student.ID, nim, selectedRole, user.FakultasID, user.ProgramStudiID, user.OrmawaID, user.OrmawaAssign); err == nil {
 		setRefreshTokenCookie(c, rt)
 	}
 
@@ -633,15 +654,17 @@ func LoginSelectRole(c *fiber.Ctx) error {
 			"access_token": accessToken,
 			"mahasiswa":    student,
 			"user": userResponse{
-				ID:          user.ID,
-				Email:       user.Email,
-				Role:        selectedRole,
-				RoleDisplay: roleDisplay,
-				OrmawaName:  ormawaName,
-				NIM:         student.NIM,
-				Nama:        displayName,
-				OrmawaID:    user.OrmawaID,
-				Permissions: permissions,
+				ID:             user.ID,
+				Email:          user.Email,
+				Role:           selectedRole,
+				RoleDisplay:    roleDisplay,
+				OrmawaName:     ormawaName,
+				NIM:            student.NIM,
+				Nama:           displayName,
+				FakultasID:     user.FakultasID,
+				ProgramStudiID: user.ProgramStudiID,
+				OrmawaID:       user.OrmawaID,
+				Permissions:    permissions,
 			},
 		},
 	})
@@ -726,15 +749,17 @@ func Me(c *fiber.Ctx) error {
 		"status": "success",
 		"data": fiber.Map{
 			"user": userResponse{
-				ID:          user.ID,
-				Email:       user.Email,
-				Role:        roleVal,
-				RoleDisplay: roleDisplay,
-				OrmawaName:  ormawaName,
-				NIM:         student.NIM,
-				Nama:        displayName,
-				OrmawaID:    user.OrmawaID,
-				Permissions: permissions,
+				ID:             user.ID,
+				Email:          user.Email,
+				Role:           roleVal,
+				RoleDisplay:    roleDisplay,
+				OrmawaName:     ormawaName,
+				NIM:            student.NIM,
+				Nama:           displayName,
+				FakultasID:     user.FakultasID,
+				ProgramStudiID: user.ProgramStudiID,
+				OrmawaID:       user.OrmawaID,
+				Permissions:    permissions,
 			},
 		},
 	})
@@ -771,12 +796,18 @@ func RefreshToken(c *fiber.Ctx) error {
 		oid = &val
 	}
 
+	var pid *uint
+	if p, ok := claims["pid"].(float64); ok {
+		val := uint(p)
+		pid = &val
+	}
+
 	var oas string
 	if as, ok := claims["oas"].(string); ok {
 		oas = as
 	}
 
-	newAT, err := createToken(uint(claims["sub"].(float64)), uint(claims["sid"].(float64)), claims["nim"].(string), claims["role"].(string), fid, oid, oas)
+	newAT, err := createToken(uint(claims["sub"].(float64)), uint(claims["sid"].(float64)), claims["nim"].(string), claims["role"].(string), fid, pid, oid, oas)
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"success": false, "message": "Gagal generate token baru"})
 	}

@@ -40,6 +40,29 @@ func AmbilRingkasanPkkmb(c *fiber.Ctx) error {
 			Where("mahasiswa.mahasiswa.fakultas_id = ?", fid).
 			Where("mahasiswa.pkkmb_hasil.status_kelulusan = ?", "Proses").
 			Count(&totalProses)
+	} else if role == "prodi_admin" {
+		pid, _ := c.Locals("program_studi_id").(uint)
+		config.DB.Model(&models.PkkmbHasil{}).
+			Joins("JOIN mahasiswa.mahasiswa ON mahasiswa.mahasiswa.id = mahasiswa.pkkmb_hasil.mahasiswa_id").
+			Where("mahasiswa.mahasiswa.fakultas_id = ? AND mahasiswa.mahasiswa.program_studi_id = ?", fid, pid).
+			Count(&totalMaba)
+
+		config.DB.Model(&models.PkkmbHasil{}).
+			Joins("JOIN mahasiswa.mahasiswa ON mahasiswa.mahasiswa.id = mahasiswa.pkkmb_hasil.mahasiswa_id").
+			Where("mahasiswa.mahasiswa.fakultas_id = ? AND mahasiswa.mahasiswa.program_studi_id = ?", fid, pid).
+			Where("mahasiswa.pkkmb_hasil.status_kelulusan = ?", "Lulus").
+			Count(&totalLulus)
+
+		config.DB.Model(&models.PkkmbSertifikat{}).
+			Joins("JOIN mahasiswa.mahasiswa ON mahasiswa.mahasiswa.id = mahasiswa.pkkmb_sertifikat.mahasiswa_id").
+			Where("mahasiswa.mahasiswa.fakultas_id = ? AND mahasiswa.mahasiswa.program_studi_id = ?", fid, pid).
+			Count(&totalSertifikat)
+
+		config.DB.Model(&models.PkkmbHasil{}).
+			Joins("JOIN mahasiswa.mahasiswa ON mahasiswa.mahasiswa.id = mahasiswa.pkkmb_hasil.mahasiswa_id").
+			Where("mahasiswa.mahasiswa.fakultas_id = ? AND mahasiswa.mahasiswa.program_studi_id = ?", fid, pid).
+			Where("mahasiswa.pkkmb_hasil.status_kelulusan = ?", "Proses").
+			Count(&totalProses)
 	} else {
 		config.DB.Model(&models.PkkmbHasil{}).Count(&totalMaba)
 		config.DB.Model(&models.PkkmbHasil{}).Where("status_kelulusan = ?", "Lulus").Count(&totalLulus)
@@ -60,6 +83,9 @@ func AmbilRingkasanPkkmb(c *fiber.Ctx) error {
 	qProdi := config.DB
 	if role == "faculty_admin" {
 		qProdi = qProdi.Where("fakultas_id = ?", fid)
+	} else if role == "prodi_admin" {
+		pid, _ := c.Locals("program_studi_id").(uint)
+		qProdi = qProdi.Where("fakultas_id = ? AND id = ?", fid, pid)
 	}
 	qProdi.Find(&prodis)
 
@@ -151,6 +177,10 @@ func AmbilStatusKelulusanMahasiswa(c *fiber.Ctx) error {
 	if role == "faculty_admin" {
 		query = query.Joins("JOIN mahasiswa.mahasiswa ON mahasiswa.mahasiswa.id = mahasiswa.pkkmb_hasil.mahasiswa_id").
 			Where("mahasiswa.mahasiswa.fakultas_id = ?", fid)
+	} else if role == "prodi_admin" {
+		pid, _ := c.Locals("program_studi_id").(uint)
+		query = query.Joins("JOIN mahasiswa.mahasiswa ON mahasiswa.mahasiswa.id = mahasiswa.pkkmb_hasil.mahasiswa_id").
+			Where("mahasiswa.mahasiswa.fakultas_id = ? AND mahasiswa.mahasiswa.program_studi_id = ?", fid, pid)
 	}
 
 	if err := query.Where("mahasiswa_id = ?", mID).First(&s).Error; err != nil {
@@ -169,6 +199,10 @@ func AmbilDaftarKelulusanMaba(c *fiber.Ctx) error {
 	if role == "faculty_admin" {
 		query = query.Joins("JOIN mahasiswa.mahasiswa ON mahasiswa.mahasiswa.id = mahasiswa.pkkmb_hasil.mahasiswa_id").
 			Where("mahasiswa.mahasiswa.fakultas_id = ?", fid)
+	} else if role == "prodi_admin" {
+		pid, _ := c.Locals("program_studi_id").(uint)
+		query = query.Joins("JOIN mahasiswa.mahasiswa ON mahasiswa.mahasiswa.id = mahasiswa.pkkmb_hasil.mahasiswa_id").
+			Where("mahasiswa.mahasiswa.fakultas_id = ? AND mahasiswa.mahasiswa.program_studi_id = ?", fid, pid)
 	}
 
 	query.Find(&list)

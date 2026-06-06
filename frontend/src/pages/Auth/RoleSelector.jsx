@@ -26,7 +26,7 @@ const getRouteByRole = (role) => {
   if (r === 'kencana_admin') return '/kencana-admin';
   if (r === 'kencana_fakultas') return '/kencana-fakultas';
   if (r === 'kencana_mentor') return '/kencana-mentor';
-  if (r === 'faculty_admin' || r === 'dosen') return '/faculty';
+  if (r === 'faculty_admin' || r === 'dosen' || r === 'prodi_admin') return '/faculty';
   if (r === 'ormawa_admin' || r === 'ormawa') return '/ormawa';
   if (r === 'psikolog') return '/psychologist';
   if (r === 'tenaga_kesehatan' || r === 'tenagakes') return '/tenagakes';

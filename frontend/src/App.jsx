@@ -98,6 +98,8 @@ import FacultyProposalApproval from './pages/FacultyAdmin/OrmawaProposals'
 import FacultyOrganisasi from './pages/FacultyAdmin/OrganisasiFakultas'
 import FacultyPkkmb from './pages/FacultyAdmin/Pkkmb'
 import FacultyHealth from './pages/FacultyAdmin/Kesehatan'
+import FacultyProdiRBAC from './pages/FacultyAdmin/ProdiRBAC'
+import FacultyProdiUsers from './pages/FacultyAdmin/ProdiUsers'
 
 import UserManagement from './pages/SuperAdmin/UserManagement'
 import AcademicPortal from './pages/SuperAdmin/AcademicPortal'
@@ -318,7 +320,7 @@ function App() {
                 </Route>
 
                 {/* Faculty Admin */}
-                <Route path="/faculty" element={<ProtectedRoute allowedRoles={['faculty_admin']}><FacultyLayout /></ProtectedRoute>}>
+                <Route path="/faculty" element={<ProtectedRoute allowedRoles={['faculty_admin', 'prodi_admin']}><FacultyLayout /></ProtectedRoute>}>
                   <Route index element={<Navigate to="dashboard" replace />} />
                   <Route path="dashboard" element={<FacultyDashboard />} />
                   <Route path="aspirasi" element={<FacultyAspirationManagement />} />
@@ -346,6 +348,8 @@ function App() {
                   <Route path="kesehatan" element={<FacultyHealth />} />
                   <Route path="ormawa/proposals" element={<FacultyProposalApproval />} />
                   <Route path="organisasi" element={<FacultyOrganisasi />} />
+                  <Route path="rbac" element={<FacultyProdiRBAC />} />
+                  <Route path="prodi-users" element={<FacultyProdiUsers />} />
                 </Route>
 
                 {/* Ormawa Admin */}

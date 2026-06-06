@@ -131,4 +131,16 @@ func InisialisasiRuteFakultas(aplikasi *fiber.App) {
 
 	// Kelulusan
 	api.Get("/kelulusan/:id", fakultas.AmbilStatusKelulusanMahasiswa)
+
+	// RBAC Prodi Roles (Managed by Faculty Admin)
+	api.Get("/prodi-roles", fakultas.GetProdiRoles)
+	api.Post("/prodi-roles", fakultas.CreateProdiRole)
+	api.Put("/prodi-roles/:id", fakultas.UpdateProdiRole)
+	api.Delete("/prodi-roles/:id", fakultas.DeleteProdiRole)
+
+	// Prodi Admin Accounts (Managed by Faculty Admin)
+	api.Get("/prodi-admins", fakultas.GetProdiAdmins)
+	api.Post("/prodi-admins", fakultas.CreateProdiAdmin)
+	api.Put("/prodi-admins/:id", fakultas.UpdateProdiAdmin)
+	api.Delete("/prodi-admins/:id", fakultas.DeleteProdiAdmin)
 }

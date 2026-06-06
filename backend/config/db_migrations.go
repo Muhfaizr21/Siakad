@@ -46,6 +46,7 @@ func migrateModels(db *gorm.DB) error {
 		&models.Fakultas{},
 		&models.ProgramStudi{},
 		&models.Dosen{},
+		&models.FakultasProdiRole{},
 	); err != nil {
 		return err
 	}

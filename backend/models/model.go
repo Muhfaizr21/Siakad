@@ -24,12 +24,13 @@ type BaseModel struct {
 
 type User struct {
 	BaseModel
-	Email        string `gorm:"uniqueIndex;not null" json:"email"`
-	Password     string `gorm:"column:password" json:"-"`
-	Role         string `gorm:"index" json:"role"`
-	FakultasID   *uint  `gorm:"index" json:"fakultas_id"`
-	OrmawaID     *uint  `gorm:"index" json:"ormawa_id"`
-	OrmawaAssign string `gorm:"size:100" json:"ormawa_assign"`
+	Email          string `gorm:"uniqueIndex;not null" json:"email"`
+	Password       string `gorm:"column:password" json:"-"`
+	Role           string `gorm:"index" json:"role"`
+	FakultasID     *uint  `gorm:"index" json:"fakultas_id"`
+	ProgramStudiID *uint  `gorm:"index" json:"program_studi_id"`
+	OrmawaID       *uint  `gorm:"index" json:"ormawa_id"`
+	OrmawaAssign   string `gorm:"size:100" json:"ormawa_assign"`
 
 	Dosen *Dosen `gorm:"foreignKey:PenggunaID" json:"dosen,omitempty"`
 }
@@ -914,3 +915,17 @@ type OrmawaPoinHistory struct {
 func (OrmawaPoinHistory) TableName() string {
 	return "ormawa.ormawa_poin_history"
 }
+
+// ========================
+// RBAC PRODI (Managed by Faculty Admin)
+// ========================
+
+type FakultasProdiRole struct {
+	BaseModel
+	FakultasID  uint           `gorm:"index" json:"fakultas_id"`
+	Nama        string         `gorm:"size:120" json:"nama"`
+	Deskripsi   string         `gorm:"type:text" json:"deskripsi"`
+	Permissions datatypes.JSON `gorm:"type:jsonb" json:"permissions"`
+}
+
+func (FakultasProdiRole) TableName() string { return "fakultas.fakultas_prodi_role" }

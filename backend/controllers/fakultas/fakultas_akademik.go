@@ -22,6 +22,9 @@ func AmbilDaftarMahasiswa(c *fiber.Ctx) error {
 
 	if role == "faculty_admin" {
 		query = query.Where("fakultas_id = ?", fid)
+	} else if role == "prodi_admin" {
+		pid, _ := c.Locals("program_studi_id").(uint)
+		query = query.Where("fakultas_id = ? AND program_studi_id = ?", fid, pid)
 	}
 
 	angkatan := c.Query("angkatan")
@@ -60,6 +63,9 @@ func AmbilMahasiswaBerdasarID(c *fiber.Ctx) error {
 
 	if role == "faculty_admin" {
 		query = query.Where("fakultas_id = ?", fid)
+	} else if role == "prodi_admin" {
+		pid, _ := c.Locals("program_studi_id").(uint)
+		query = query.Where("fakultas_id = ? AND program_studi_id = ?", fid, pid)
 	}
 
 	if err := query.First(&mhs, id).Error; err != nil {
@@ -82,9 +88,13 @@ func TambahMahasiswaBaru(c *fiber.Ctx) error {
 	}
 	c.BodyParser(&payload)
 
-	// Force FakultasID if faculty_admin
-	if role == "faculty_admin" {
+	// Force FakultasID if faculty_admin / prodi_admin
+	if role == "faculty_admin" || role == "prodi_admin" {
 		m.FakultasID = fid
+	}
+	if role == "prodi_admin" {
+		pid, _ := c.Locals("program_studi_id").(uint)
+		m.ProgramStudiID = pid
 	}
 
 	// --- LOGIKA CEK KAPASITAS (SLOT) ---
@@ -96,6 +106,12 @@ func TambahMahasiswaBaru(c *fiber.Ctx) error {
 	// Double check: if faculty_admin, prodi must belong to their faculty
 	if role == "faculty_admin" && prodi.FakultasID != fid {
 		return c.Status(403).JSON(fiber.Map{"status": "error", "message": "Anda tidak diizinkan menambah mahasiswa ke Program Studi di luar fakultas Anda"})
+	}
+	if role == "prodi_admin" {
+		pid, _ := c.Locals("program_studi_id").(uint)
+		if prodi.ID != pid {
+			return c.Status(403).JSON(fiber.Map{"status": "error", "message": "Anda tidak diizinkan menambah mahasiswa ke Program Studi lain"})
+		}
 	}
 
 	var currentCount int64
@@ -150,6 +166,9 @@ func PerbaruiDataMahasiswa(c *fiber.Ctx) error {
 	query := config.DB.Preload("Pengguna")
 	if role == "faculty_admin" {
 		query = query.Where("fakultas_id = ?", fid)
+	} else if role == "prodi_admin" {
+		pid, _ := c.Locals("program_studi_id").(uint)
+		query = query.Where("fakultas_id = ? AND program_studi_id = ?", fid, pid)
 	}
 
 	if err := query.First(&mhs, id).Error; err != nil {
@@ -174,9 +193,13 @@ func PerbaruiDataMahasiswa(c *fiber.Ctx) error {
 		}
 	}
 
-	// Always ensure FakultasID stays correct for faculty_admin
-	if role == "faculty_admin" {
+	// Always ensure FakultasID stays correct
+	if role == "faculty_admin" || role == "prodi_admin" {
 		mhs.FakultasID = fid
+	}
+	if role == "prodi_admin" {
+		pid, _ := c.Locals("program_studi_id").(uint)
+		mhs.ProgramStudiID = pid
 	}
 
 	if err := tx.Save(&mhs).Error; err != nil {
@@ -198,6 +221,9 @@ func HapusDataMahasiswa(c *fiber.Ctx) error {
 	query := config.DB
 	if role == "faculty_admin" {
 		query = query.Where("fakultas_id = ?", fid)
+	} else if role == "prodi_admin" {
+		pid, _ := c.Locals("program_studi_id").(uint)
+		query = query.Where("fakultas_id = ? AND program_studi_id = ?", fid, pid)
 	}
 
 	if err := query.First(&mhs, id).Error; err != nil {
@@ -229,7 +255,7 @@ func AmbilDaftarFakultas(c *fiber.Ctx) error {
 
 	var f = []models.Fakultas{}
 	query := config.DB
-	if role == "faculty_admin" {
+	if role == "faculty_admin" || role == "prodi_admin" {
 		query = query.Where("id = ?", fid)
 	}
 
@@ -245,6 +271,9 @@ func AmbilDaftarProdi(c *fiber.Ctx) error {
 	query := config.DB.Preload("Fakultas")
 	if role == "faculty_admin" {
 		query = query.Where("fakultas_id = ?", fid)
+	} else if role == "prodi_admin" {
+		pid, _ := c.Locals("program_studi_id").(uint)
+		query = query.Where("fakultas_id = ? AND id = ?", fid, pid)
 	}
 	query.Find(&p)
 
@@ -267,8 +296,8 @@ func TambahProdiBaru(c *fiber.Ctx) error {
 		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Format data tidak valid"})
 	}
 
-	// Force FakultasID if faculty_admin
-	if role == "faculty_admin" {
+	// Force FakultasID if faculty_admin / prodi_admin
+	if role == "faculty_admin" || role == "prodi_admin" {
 		p.FakultasID = fid
 	}
 
@@ -288,6 +317,9 @@ func PerbaruiProdi(c *fiber.Ctx) error {
 	query := config.DB
 	if role == "faculty_admin" {
 		query = query.Where("fakultas_id = ?", fid)
+	} else if role == "prodi_admin" {
+		pid, _ := c.Locals("program_studi_id").(uint)
+		query = query.Where("fakultas_id = ? AND id = ?", fid, pid)
 	}
 
 	if err := query.First(&p, id).Error; err != nil {
@@ -298,8 +330,8 @@ func PerbaruiProdi(c *fiber.Ctx) error {
 		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Format data tidak valid"})
 	}
 
-	// Force FakultasID if faculty_admin
-	if role == "faculty_admin" {
+	// Force FakultasID
+	if role == "faculty_admin" || role == "prodi_admin" {
 		p.FakultasID = fid
 	}
 
@@ -317,6 +349,9 @@ func HapusProdi(c *fiber.Ctx) error {
 	query := config.DB
 	if role == "faculty_admin" {
 		query = query.Where("fakultas_id = ?", fid)
+	} else if role == "prodi_admin" {
+		pid, _ := c.Locals("program_studi_id").(uint)
+		query = query.Where("fakultas_id = ? AND id = ?", fid, pid)
 	}
 
 	if err := query.First(&p, id).Error; err != nil {

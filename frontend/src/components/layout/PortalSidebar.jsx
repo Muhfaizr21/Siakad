@@ -76,7 +76,7 @@ export default function PortalSidebar({ config, onNavigate }) {
   `;
 
   const userPermissions = user?.permissions || user?.Permissions || [];
-  const isSuperOrAdmin = user?.role === 'super_admin' || user?.role === 'ormawa_admin' || userPermissions.includes('*');
+  const isSuperOrAdmin = user?.role === 'super_admin' || user?.role === 'faculty_admin' || user?.role === 'ormawa_admin' || userPermissions.includes('*');
 
   const filteredMenu = (config.menu || []).map(group => {
     const filteredItems = (group.items || []).filter(item => {

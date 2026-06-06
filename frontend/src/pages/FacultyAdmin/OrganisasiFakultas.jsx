@@ -26,6 +26,7 @@ const EMPTY_FORM = { kode_org:'', nama_org:'', ketua_nama:'', jumlah_anggota:0, 
 
 export default function FacultyOrganisasi() {
   const [organizations, setOrgs] = useState([])
+  const [students, setStudents] = useState([])
   const [loading, setLoading]   = useState(true)
   const [showModal, setModal]   = useState(false)
   const [editingOrg, setEdit]   = useState(null)
@@ -49,6 +50,9 @@ export default function FacultyOrganisasi() {
         email: item.Email||'', phone: item.Phone||''
       })) : []
       setOrgs(mapped)
+
+      const stdRes = await axios.get('/faculty/students')
+      setStudents(stdRes.data.data || [])
     } catch { toast.error('Gagal mengambil data organisasi') }
     finally { setLoading(false) }
   }
@@ -391,7 +395,14 @@ export default function FacultyOrganisasi() {
                   <input value={formData.nama_org} onChange={e=>set('nama_org',e.target.value)} placeholder="Nama resmi organisasi..." required className="w-full h-11 px-4 rounded-xl border border-slate-200/60 bg-slate-50/50 text-sm font-medium text-slate-900 focus:outline-none focus:border-primary focus:bg-white transition-all"/></div>
                 <div className="grid grid-cols-2 gap-3">
                   <div><label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.18em] mb-1.5">Nama Ketua Umum</label>
-                    <input value={formData.ketua_nama} onChange={e=>set('ketua_nama',e.target.value)} placeholder="Nama Ketua..." required className="w-full h-11 px-4 rounded-xl border border-slate-200/60 bg-slate-50/50 text-sm font-medium text-slate-900 focus:outline-none focus:border-primary focus:bg-white transition-all"/></div>
+                    <select value={formData.ketua_nama} onChange={e=>set('ketua_nama',e.target.value)} required className="w-full h-11 px-4 rounded-xl border border-slate-200/60 bg-slate-50/50 text-sm font-medium text-slate-900 focus:outline-none focus:border-primary appearance-none">
+                      <option value="">-- Pilih Mahasiswa --</option>
+                      {students.map(s => (
+                        <option key={s.ID} value={s.Nama}>
+                          {s.Nama} ({s.NIM})
+                        </option>
+                      ))}
+                    </select></div>
                   <div><label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.18em] mb-1.5">Jumlah Anggota</label>
                     <input type="number" value={formData.jumlah_anggota} onChange={e=>set('jumlah_anggota',parseInt(e.target.value)||0)} className="w-full h-11 px-4 rounded-xl border border-slate-200/60 bg-slate-50/50 text-sm font-black text-center text-slate-900 focus:outline-none focus:border-primary focus:bg-white transition-all"/></div>
                 </div>

@@ -72,6 +72,12 @@ func AuthProtected(c *fiber.Ctx) error {
 		c.Locals("ormawa_assign", "")
 	}
 
+	if pid, ok := claims["pid"].(float64); ok {
+		c.Locals("program_studi_id", uint(pid))
+	} else {
+		c.Locals("program_studi_id", uint(0))
+	}
+
 	c.Locals("nim", claims["nim"])
 
 	return c.Next()

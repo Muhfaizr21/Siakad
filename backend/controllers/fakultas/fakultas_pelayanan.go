@@ -26,6 +26,10 @@ func AmbilDaftarAspirasi(c *fiber.Ctx) error {
 	if role == "faculty_admin" {
 		query = query.Joins("JOIN mahasiswa.mahasiswa ON mahasiswa.mahasiswa.id = mahasiswa.aspirasi.mahasiswa_id").
 			Where("mahasiswa.mahasiswa.fakultas_id = ?", fid)
+	} else if role == "prodi_admin" {
+		pid, _ := c.Locals("program_studi_id").(uint)
+		query = query.Joins("JOIN mahasiswa.mahasiswa ON mahasiswa.mahasiswa.id = mahasiswa.aspirasi.mahasiswa_id").
+			Where("mahasiswa.mahasiswa.fakultas_id = ? AND mahasiswa.mahasiswa.program_studi_id = ?", fid, pid)
 	}
 
 	query.Find(&daftar)
@@ -51,6 +55,10 @@ func TanggapiAspirasi(c *fiber.Ctx) error {
 	if role == "faculty_admin" {
 		query = query.Joins("JOIN mahasiswa.mahasiswa ON mahasiswa.mahasiswa.id = mahasiswa.aspirasi.mahasiswa_id").
 			Where("mahasiswa.mahasiswa.fakultas_id = ?", fid)
+	} else if role == "prodi_admin" {
+		pid, _ := c.Locals("program_studi_id").(uint)
+		query = query.Joins("JOIN mahasiswa.mahasiswa ON mahasiswa.mahasiswa.id = mahasiswa.aspirasi.mahasiswa_id").
+			Where("mahasiswa.mahasiswa.fakultas_id = ? AND mahasiswa.mahasiswa.program_studi_id = ?", fid, pid)
 	}
 
 	if err := query.Where("mahasiswa.aspirasi.id = ?", id).First(&aspirasi).Error; err != nil {
@@ -77,6 +85,9 @@ func HapusAspirasi(c *fiber.Ctx) error {
 	query := config.DB.Model(&models.Aspirasi{})
 	if role == "faculty_admin" {
 		query = query.Joins("Mahasiswa").Where("\"Mahasiswa\".fakultas_id = ?", fid)
+	} else if role == "prodi_admin" {
+		pid, _ := c.Locals("program_studi_id").(uint)
+		query = query.Joins("Mahasiswa").Where("\"Mahasiswa\".fakultas_id = ? AND \"Mahasiswa\".program_studi_id = ?", fid, pid)
 	}
 
 	if err := query.Where("mahasiswa.aspirasi.id = ?", id).Update("status", "diarsipkan").Error; err != nil {
@@ -98,6 +109,10 @@ func AmbilDaftarPrestasi(c *fiber.Ctx) error {
 	if role == "faculty_admin" {
 		query = query.Joins("JOIN mahasiswa.mahasiswa ON mahasiswa.mahasiswa.id = mahasiswa.prestasi.mahasiswa_id").
 			Where("mahasiswa.mahasiswa.fakultas_id = ?", fid)
+	} else if role == "prodi_admin" {
+		pid, _ := c.Locals("program_studi_id").(uint)
+		query = query.Joins("JOIN mahasiswa.mahasiswa ON mahasiswa.mahasiswa.id = mahasiswa.prestasi.mahasiswa_id").
+			Where("mahasiswa.mahasiswa.fakultas_id = ? AND mahasiswa.mahasiswa.program_studi_id = ?", fid, pid)
 	}
 
 	query.Find(&daftar)
@@ -125,6 +140,10 @@ func VerifikasiPrestasi(c *fiber.Ctx) error {
 	if role == "faculty_admin" {
 		query = query.Joins("JOIN mahasiswa.mahasiswa ON mahasiswa.mahasiswa.id = mahasiswa.prestasi.mahasiswa_id").
 			Where("mahasiswa.mahasiswa.fakultas_id = ?", fid)
+	} else if role == "prodi_admin" {
+		pid, _ := c.Locals("program_studi_id").(uint)
+		query = query.Joins("JOIN mahasiswa.mahasiswa ON mahasiswa.mahasiswa.id = mahasiswa.prestasi.mahasiswa_id").
+			Where("mahasiswa.mahasiswa.fakultas_id = ? AND mahasiswa.mahasiswa.program_studi_id = ?", fid, pid)
 	}
 
 	if err := query.Preload("Mahasiswa").Where("mahasiswa.prestasi.id = ?", id).First(&prestasi).Error; err != nil {
@@ -250,6 +269,10 @@ func AmbilPendaftarBeasiswa(c *fiber.Ctx) error {
 	if role == "faculty_admin" {
 		query = query.Joins("JOIN mahasiswa.mahasiswa ON mahasiswa.mahasiswa.id = mahasiswa.beasiswa_pendaftaran.mahasiswa_id").
 			Where("mahasiswa.mahasiswa.fakultas_id = ?", fid)
+	} else if role == "prodi_admin" {
+		pid, _ := c.Locals("program_studi_id").(uint)
+		query = query.Joins("JOIN mahasiswa.mahasiswa ON mahasiswa.mahasiswa.id = mahasiswa.beasiswa_pendaftaran.mahasiswa_id").
+			Where("mahasiswa.mahasiswa.fakultas_id = ? AND mahasiswa.mahasiswa.program_studi_id = ?", fid, pid)
 	}
 
 	query.Find(&pendaftar)
@@ -325,7 +348,7 @@ func AmbilDaftarOrganisasi(c *fiber.Ctx) error {
 	var daftar = []models.Ormawa{}
 	query := config.DB.Model(&models.Ormawa{})
 
-	if role == "faculty_admin" {
+	if role == "faculty_admin" || role == "prodi_admin" {
 		query = query.Where("fakultas_id = ?", fid)
 	}
 
@@ -370,13 +393,26 @@ func TambahOrganisasi(c *fiber.Ctx) error {
 
 func PerbaruiOrganisasi(c *fiber.Ctx) error {
 	id := c.Params("id")
+	fid := c.Locals("fakultas_id").(uint)
+	role := c.Locals("role").(string)
+
 	var org models.Ormawa
 	if err := config.DB.First(&org, id).Error; err != nil {
 		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Organisasi tidak ditemukan"})
 	}
+
+	// Faculty scoping: pastikan admin hanya bisa edit ormawa dari fakultasnya
+	if role != "super_admin" && role != "kencana_admin" && org.FakultasID != fid {
+		return c.Status(403).JSON(fiber.Map{"status": "error", "message": "Anda tidak berwenang mengedit organisasi dari fakultas lain"})
+	}
+
+	// Simpan FakultasID asli agar tidak ter-overwrite oleh BodyParser
+	originalFakultasID := org.FakultasID
 	if err := c.BodyParser(&org); err != nil {
 		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Payload tidak valid: " + err.Error()})
 	}
+	org.FakultasID = originalFakultasID // Pertahankan fakultas asli
+
 	if err := config.DB.Save(&org).Error; err != nil {
 		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal memperbarui: " + err.Error()})
 	}
@@ -385,7 +421,20 @@ func PerbaruiOrganisasi(c *fiber.Ctx) error {
 
 func HapusOrganisasi(c *fiber.Ctx) error {
 	id := c.Params("id")
-	config.DB.Delete(&models.Ormawa{}, id)
+	fid := c.Locals("fakultas_id").(uint)
+	role := c.Locals("role").(string)
+
+	var org models.Ormawa
+	if err := config.DB.First(&org, id).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Organisasi tidak ditemukan"})
+	}
+
+	// Faculty scoping: pastikan admin hanya bisa hapus ormawa dari fakultasnya
+	if role != "super_admin" && role != "kencana_admin" && org.FakultasID != fid {
+		return c.Status(403).JSON(fiber.Map{"status": "error", "message": "Anda tidak berwenang menghapus organisasi dari fakultas lain"})
+	}
+
+	config.DB.Delete(&org)
 	return c.JSON(fiber.Map{"status": "success", "message": "Organisasi dihapus"})
 }
 
@@ -396,8 +445,12 @@ func AmbilDaftarProposalOrmawa(c *fiber.Ctx) error {
 	var daftar = []models.Proposal{}
 	query := config.DB.Preload("Ormawa").Preload("Mahasiswa.ProgramStudi").Preload("Mahasiswa.Pengguna").Preload("Riwayat").Order("created_at desc")
 
-	// Jika bukan Super Admin, filter proposal hanya untuk fakultas yang bersangkutan
-	if role != "super_admin" && role != "kencana_admin" {
+	// Filter berdasarkan role: proposal hanya untuk fakultas yang bersangkutan
+	if role == "prodi_admin" || role == "faculty_admin" || role == "dosen" {
+		// Filter langsung berdasarkan fakultas_id pada tabel proposal
+		// FakultasID sudah di-set saat CreateProposal dari Ormawa.FakultasID
+		query = query.Where("fakultas_id = ?", fid)
+	} else if role != "super_admin" && role != "kencana_admin" {
 		query = query.Where("fakultas_id = ?", fid)
 	}
 
@@ -407,6 +460,9 @@ func AmbilDaftarProposalOrmawa(c *fiber.Ctx) error {
 
 func ValidasiProposalOrmawa(c *fiber.Ctx) error {
 	id := c.Params("id")
+	role := c.Locals("role").(string)
+	fid := c.Locals("fakultas_id").(uint)
+
 	var req struct {
 		Status     string `json:"status"`
 		AdminNotes string `json:"catatan_admin"`
@@ -418,6 +474,11 @@ func ValidasiProposalOrmawa(c *fiber.Ctx) error {
 	var proposal models.Proposal
 	if err := config.DB.First(&proposal, id).Error; err != nil {
 		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Proposal tidak ditemukan"})
+	}
+
+	// Faculty scoping: pastikan admin hanya bisa validasi proposal dari fakultasnya sendiri
+	if role != "super_admin" && role != "kencana_admin" && proposal.FakultasID != fid {
+		return c.Status(403).JSON(fiber.Map{"status": "error", "message": "Anda tidak berwenang memvalidasi proposal dari fakultas lain"})
 	}
 
 	err := config.DB.Transaction(func(tx *gorm.DB) error {
@@ -463,6 +524,8 @@ func AmbilDaftarProposalFakultas(c *fiber.Ctx) error {
 
 	if role == "faculty_admin" {
 		// Proposals where OrmawaID is NOT set are internal faculty proposals
+		query = query.Where("fakultas_id = ? AND ormawa_id IS NULL", fid)
+	} else if role == "prodi_admin" {
 		query = query.Where("fakultas_id = ? AND ormawa_id IS NULL", fid)
 	}
 
@@ -513,6 +576,10 @@ func AmbilDaftarKesehatan(c *fiber.Ctx) error {
 	if role == "faculty_admin" {
 		query = query.Joins("JOIN mahasiswa.mahasiswa ON mahasiswa.mahasiswa.id = mahasiswa.kesehatan.mahasiswa_id").
 			Where("mahasiswa.mahasiswa.fakultas_id = ?", fid)
+	} else if role == "prodi_admin" {
+		pid, _ := c.Locals("program_studi_id").(uint)
+		query = query.Joins("JOIN mahasiswa.mahasiswa ON mahasiswa.mahasiswa.id = mahasiswa.kesehatan.mahasiswa_id").
+			Where("mahasiswa.mahasiswa.fakultas_id = ? AND mahasiswa.mahasiswa.program_studi_id = ?", fid, pid)
 	}
 
 	query.Order("mahasiswa.kesehatan.created_at desc").Find(&daftar)
@@ -521,6 +588,7 @@ func AmbilDaftarKesehatan(c *fiber.Ctx) error {
 
 func AmbilRingkasanKesehatan(c *fiber.Ctx) error {
 	fid := c.Locals("fakultas_id").(uint)
+	role := c.Locals("role").(string)
 
 	var total int64
 	var res struct {
@@ -536,50 +604,35 @@ func AmbilRingkasanKesehatan(c *fiber.Ctx) error {
 		Kritis   int64 `json:"kritis"`
 	}
 
-	config.DB.Model(&models.Kesehatan{}).
-		Joins("JOIN mahasiswa.mahasiswa ON mahasiswa.mahasiswa.id = mahasiswa.kesehatan.mahasiswa_id").
-		Where("mahasiswa.mahasiswa.fakultas_id = ? OR ? = 0", fid, fid).
-		Count(&total)
+	getScopedQuery := func() *gorm.DB {
+		q := config.DB.Model(&models.Kesehatan{}).
+			Joins("JOIN mahasiswa.mahasiswa ON mahasiswa.mahasiswa.id = mahasiswa.kesehatan.mahasiswa_id")
+		if role == "faculty_admin" {
+			return q.Where("mahasiswa.mahasiswa.fakultas_id = ?", fid)
+		} else if role == "prodi_admin" {
+			pid, _ := c.Locals("program_studi_id").(uint)
+			return q.Where("mahasiswa.mahasiswa.fakultas_id = ? AND mahasiswa.mahasiswa.program_studi_id = ?", fid, pid)
+		}
+		return q.Where("mahasiswa.mahasiswa.fakultas_id = ? OR ? = 0", fid, fid)
+	}
 
-	config.DB.Model(&models.Kesehatan{}).
-		Joins("JOIN mahasiswa.mahasiswa ON mahasiswa.mahasiswa.id = mahasiswa.kesehatan.mahasiswa_id").
-		Where("mahasiswa.mahasiswa.fakultas_id = ? OR ? = 0", fid, fid).
-		Where("golongan_darah = ?", "A").Count(&res.BloodA)
+	getScopedQuery().Count(&total)
 
-	config.DB.Model(&models.Kesehatan{}).
-		Joins("JOIN mahasiswa.mahasiswa ON mahasiswa.mahasiswa.id = mahasiswa.kesehatan.mahasiswa_id").
-		Where("mahasiswa.mahasiswa.fakultas_id = ? OR ? = 0", fid, fid).
-		Where("golongan_darah = ?", "B").Count(&res.BloodB)
+	getScopedQuery().Where("golongan_darah = ?", "A").Count(&res.BloodA)
 
-	config.DB.Model(&models.Kesehatan{}).
-		Joins("JOIN mahasiswa.mahasiswa ON mahasiswa.mahasiswa.id = mahasiswa.kesehatan.mahasiswa_id").
-		Where("mahasiswa.mahasiswa.fakultas_id = ? OR ? = 0", fid, fid).
-		Where("golongan_darah = ?", "O").Count(&res.BloodO)
+	getScopedQuery().Where("golongan_darah = ?", "B").Count(&res.BloodB)
 
-	config.DB.Model(&models.Kesehatan{}).
-		Joins("JOIN mahasiswa.mahasiswa ON mahasiswa.mahasiswa.id = mahasiswa.kesehatan.mahasiswa_id").
-		Where("mahasiswa.mahasiswa.fakultas_id = ? OR ? = 0", fid, fid).
-		Where("golongan_darah = ?", "AB").Count(&res.BloodAB)
+	getScopedQuery().Where("golongan_darah = ?", "O").Count(&res.BloodO)
 
-	config.DB.Model(&models.Kesehatan{}).
-		Joins("JOIN mahasiswa.mahasiswa ON mahasiswa.mahasiswa.id = mahasiswa.kesehatan.mahasiswa_id").
-		Where("mahasiswa.mahasiswa.fakultas_id = ? OR ? = 0", fid, fid).
-		Where("status_kesehatan = ?", "prima").Count(&stats.Prima)
+	getScopedQuery().Where("golongan_darah = ?", "AB").Count(&res.BloodAB)
 
-	config.DB.Model(&models.Kesehatan{}).
-		Joins("JOIN mahasiswa.mahasiswa ON mahasiswa.mahasiswa.id = mahasiswa.kesehatan.mahasiswa_id").
-		Where("mahasiswa.mahasiswa.fakultas_id = ? OR ? = 0", fid, fid).
-		Where("status_kesehatan = ?", "stabil").Count(&stats.Stabil)
+	getScopedQuery().Where("status_kesehatan = ?", "prima").Count(&stats.Prima)
 
-	config.DB.Model(&models.Kesehatan{}).
-		Joins("JOIN mahasiswa.mahasiswa ON mahasiswa.mahasiswa.id = mahasiswa.kesehatan.mahasiswa_id").
-		Where("mahasiswa.mahasiswa.fakultas_id = ? OR ? = 0", fid, fid).
-		Where("status_kesehatan = ?", "pantauan").Count(&stats.Pantauan)
+	getScopedQuery().Where("status_kesehatan = ?", "stabil").Count(&stats.Stabil)
 
-	config.DB.Model(&models.Kesehatan{}).
-		Joins("JOIN mahasiswa.mahasiswa ON mahasiswa.mahasiswa.id = mahasiswa.kesehatan.mahasiswa_id").
-		Where("mahasiswa.mahasiswa.fakultas_id = ? OR ? = 0", fid, fid).
-		Where("status_kesehatan = ?", "kritis").Count(&stats.Kritis)
+	getScopedQuery().Where("status_kesehatan = ?", "pantauan").Count(&stats.Pantauan)
+
+	getScopedQuery().Where("status_kesehatan = ?", "kritis").Count(&stats.Kritis)
 
 	return c.JSON(fiber.Map{
 		"status": "success",
@@ -607,6 +660,10 @@ func AmbilDaftarKonseling(c *fiber.Ctx) error {
 	if role == "faculty_admin" {
 		query = query.Joins("JOIN mahasiswa.mahasiswa ON mahasiswa.mahasiswa.id = psikolog.bookings.mahasiswa_id").
 			Where("mahasiswa.mahasiswa.fakultas_id = ?", fid)
+	} else if role == "prodi_admin" {
+		pid, _ := c.Locals("program_studi_id").(uint)
+		query = query.Joins("JOIN mahasiswa.mahasiswa ON mahasiswa.mahasiswa.id = psikolog.bookings.mahasiswa_id").
+			Where("mahasiswa.mahasiswa.fakultas_id = ? AND mahasiswa.mahasiswa.program_studi_id = ?", fid, pid)
 	}
 
 	query.Order("psikolog.bookings.tanggal desc, psikolog.bookings.jam_mulai desc").Find(&daftar)

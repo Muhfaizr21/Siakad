@@ -84,7 +84,7 @@ func GetUsers(c *fiber.Ctx) error {
 		`).
 		Joins(`LEFT JOIN "fakultas"."fakultas" f ON f.id = "public"."users".fakultas_id`).
 		Joins(`LEFT JOIN "mahasiswa"."mahasiswa" m ON m.pengguna_id = "public"."users".id`).
-		Joins(`LEFT JOIN "fakultas"."program_studi" p ON p.id = m.program_studi_id`).
+		Joins(`LEFT JOIN "fakultas"."program_studi" p ON p.id = COALESCE(m.program_studi_id, "public"."users".program_studi_id)`).
 		Joins(`LEFT JOIN "fakultas"."dosen" d ON d.pengguna_id = "public"."users".id`).
 		Joins(`LEFT JOIN "psikolog"."profiles" ps ON ps.user_id = "public"."users".id`).
 		Joins(`LEFT JOIN "mahasiswa"."kencana_mentors" km ON km.user_id = "public"."users".id`).
@@ -117,7 +117,7 @@ func isAllowedRBACRole(role string) bool {
 			continue
 		}
 		switch p {
-		case "super_admin", "faculty_admin", "ormawa_admin", "ormawa", "mahasiswa", "psikolog", "PSIKOLOG", "dosen", "DOSEN", "kencana_admin", "kencana_fakultas", "kencana_mentor", "tenaga_kesehatan", "tenagakes":
+		case "super_admin", "faculty_admin", "prodi_admin", "ormawa_admin", "ormawa", "mahasiswa", "psikolog", "PSIKOLOG", "dosen", "DOSEN", "kencana_admin", "kencana_fakultas", "kencana_mentor", "tenaga_kesehatan", "tenagakes":
 			// allowed
 		default:
 			return false
@@ -202,7 +202,7 @@ func UpdateUserRole(c *fiber.Ctx) error {
 		OrmawaID         uint   `json:"ormawaId"`
 		OrmawaAssign     string `json:"ormawaAssign"`
 		FakultasID       uint   `json:"fakultasId"`
-		ProdiID          uint   `json:"prodiId"`
+		ProgramStudiID   uint   `json:"prodiId"`
 		KencanaScopeType string `json:"kencanaScopeType"`
 		Reason           string `json:"reason"`
 	}
@@ -347,16 +347,13 @@ func UpdateUserRole(c *fiber.Ctx) error {
 			ormawaPtr = &req.OrmawaID
 		}
 
-		// Update user role
-		if err := tx.Exec(
-			"UPDATE public.users SET role = ?, ormawa_assign = ?, ormawa_id = ?, fakultas_id = ?, updated_at = ? WHERE id = ?",
-			req.Role,
-			req.OrmawaAssign,
-			ormawaPtr,
-			fakultasPtr,
-			time.Now(),
-			targetUser.ID,
-		).Error; err != nil {
+		var prodiPtr *uint
+		if req.ProgramStudiID != 0 {
+			prodiPtr = &req.ProgramStudiID
+		}
+
+		// Update user role via raw SQL to bypass any GORM association issues
+		if err := tx.Exec("UPDATE public.users SET role = ?, ormawa_assign = ?, ormawa_id = ?, fakultas_id = ?, program_studi_id = ?, updated_at = ? WHERE id = ?", req.Role, req.OrmawaAssign, ormawaPtr, fakultasPtr, prodiPtr, time.Now(), targetUser.ID).Error; err != nil {
 			return err
 		}
 
@@ -569,7 +566,7 @@ func CreateUser(c *fiber.Ctx) error {
 
 	roleLower := "," + strings.ToLower(req.Role) + ","
 	requiresFakultas := false
-	if strings.Contains(roleLower, ",faculty_admin,") || strings.Contains(roleLower, ",mahasiswa,") || strings.Contains(roleLower, ",ormawa_admin,") || strings.Contains(roleLower, ",ormawa,") || (strings.Contains(roleLower, ",kencana_mentor,") && req.KencanaScopeType == "faculty") {
+	if strings.Contains(roleLower, ",faculty_admin,") || strings.Contains(roleLower, ",prodi_admin,") || strings.Contains(roleLower, ",mahasiswa,") || strings.Contains(roleLower, ",ormawa_admin,") || strings.Contains(roleLower, ",ormawa,") || (strings.Contains(roleLower, ",kencana_mentor,") && req.KencanaScopeType == "faculty") {
 		requiresFakultas = true
 	}
 
@@ -593,6 +590,12 @@ func CreateUser(c *fiber.Ctx) error {
 	if strings.Contains(roleLower, ",mahasiswa,") {
 		if req.ProgramStudiID == 0 {
 			return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Program studi wajib dipilih untuk mahasiswa"})
+		}
+	}
+
+	if strings.Contains(roleLower, ",prodi_admin,") {
+		if req.ProgramStudiID == 0 {
+			return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Program studi wajib dipilih untuk Admin Prodi"})
 		}
 	}
 
@@ -620,6 +623,10 @@ func CreateUser(c *fiber.Ctx) error {
 		// Set OrmawaID if provided
 		if req.OrmawaID != 0 {
 			user.OrmawaID = &req.OrmawaID
+		}
+
+		if req.ProgramStudiID != 0 {
+			user.ProgramStudiID = &req.ProgramStudiID
 		}
 
 		if err := tx.Create(&user).Error; err != nil {

@@ -23,7 +23,7 @@ const RefreshCw = ({ size, className, ...props }) => <span className={`material-
 
 
 
-const ROLES = ['super_admin', 'faculty_admin', 'ormawa_admin', 'ormawa', 'mahasiswa', 'psikolog', 'kencana_admin', 'kencana_fakultas', 'kencana_mentor']
+const ROLES = ['super_admin', 'faculty_admin', 'prodi_admin', 'ormawa_admin', 'ormawa', 'mahasiswa', 'psikolog', 'kencana_admin', 'kencana_fakultas', 'kencana_mentor']
 
 const TABS = [
   { key: 'identities', label: 'Identities', icon: 'manage_accounts' },
@@ -240,6 +240,7 @@ export default function UserManagement() {
   const [newOrmawaId, setNewOrmawaId] = useState('')
   const [newOrmawaAssign, setNewOrmawaAssign] = useState('')
   const [newFakultasId, setNewFakultasId] = useState('')
+  const [newProdiId, setNewProdiId] = useState('')
   const [newKencanaScopeType, setNewKencanaScopeType] = useState('faculty')
   const [ormawas, setOrmawas] = useState([])
   const [roleForm, setRoleForm] = useState(emptyRoleForm)
@@ -309,13 +310,13 @@ export default function UserManagement() {
 
   const showFakultasSelect = useMemo(() => {
     return formRoles.some(r => 
-      ['faculty_admin', 'mahasiswa', 'ormawa_admin', 'ormawa', 'kencana_fakultas'].includes(r) ||
+      ['faculty_admin', 'prodi_admin', 'mahasiswa', 'ormawa_admin', 'ormawa', 'kencana_fakultas'].includes(r) ||
       (r === 'kencana_mentor' && form.KencanaScopeType === 'faculty')
     );
   }, [formRoles, form.KencanaScopeType]);
 
   const showProdiSelect = useMemo(() => {
-    return formRoles.some(r => ['mahasiswa', 'ormawa_admin', 'ormawa'].includes(r));
+    return formRoles.some(r => ['mahasiswa', 'ormawa_admin', 'ormawa', 'prodi_admin'].includes(r));
   }, [formRoles]);
 
   const showOrmawaSelect = useMemo(() => {
@@ -332,10 +333,14 @@ export default function UserManagement() {
 
   const showNewFakultasSelect = useMemo(() => {
     return newRoles.some(r => 
-      ['kencana_fakultas'].includes(r) ||
+      ['kencana_fakultas', 'faculty_admin', 'prodi_admin'].includes(r) ||
       (r === 'kencana_mentor' && newKencanaScopeType === 'faculty')
     );
   }, [newRoles, newKencanaScopeType]);
+
+  const showNewProdiSelect = useMemo(() => {
+    return newRoles.some(r => ['prodi_admin'].includes(r));
+  }, [newRoles]);
 
   const showNewOrmawaSelect = useMemo(() => {
     return newRoles.some(r => ['ormawa_admin', 'ormawa'].includes(r));
@@ -556,6 +561,7 @@ export default function UserManagement() {
         ormawaId: Number(newOrmawaId) || 0,
         ormawaAssign: String(newOrmawaAssign || '').trim(),
         fakultasId: Number(newFakultasId) || 0,
+        prodiId: Number(newProdiId) || 0,
         kencanaScopeType: String(newKencanaScopeType || 'faculty').trim()
       })
       if (res.status === 'success') { 
@@ -787,6 +793,7 @@ export default function UserManagement() {
                       setNewOrmawaId(row.ormawa_id || row.OrmawaID || '');
                       setNewOrmawaAssign(row.ormawa_assign || row.OrmawaAssign || '');
                       setNewFakultasId(row.fakultas_id || row.FakultasID || '');
+                      setNewProdiId(row.program_studi_id || row.ProgramStudiID || '');
                       setNewKencanaScopeType(row.kencana_scope_type || row.KencanaScopeType || 'faculty');
                       setIsRoleOpen(true) 
                     }} 
@@ -1018,6 +1025,25 @@ export default function UserManagement() {
                 </div>
               )}
 
+              {formRoles.includes('prodi_admin') && (
+                <div className="space-y-2 animate-in fade-in duration-300">
+                  <Label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 font-headline">Custom Prodi Role Name</Label>
+                  <Select 
+                    value={form.OrmawaAssign ? form.OrmawaAssign : undefined}
+                    onValueChange={v => setForm({ ...form, OrmawaAssign: v })}
+                  >
+                    <SelectTrigger className="h-12 rounded-xl border-slate-200 bg-slate-50/70 focus:bg-white focus:border-bku-primary focus:ring-2 focus:ring-bku-primary/20 font-bold text-xs uppercase tracking-[0.08em] text-slate-700 transition-all">
+                      <SelectValue placeholder="PILIH ROLE PRODI (e.g. Kaprodi)" />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl shadow-2xl border-slate-100/80 bg-white/95 backdrop-blur-md">
+                      <SelectItem value="Kaprodi" className="text-[10px] font-black uppercase tracking-widest">Kaprodi</SelectItem>
+                      <SelectItem value="Sekretaris Prodi" className="text-[10px] font-black uppercase tracking-widest">Sekretaris Prodi</SelectItem>
+                      <SelectItem value="Staff Prodi" className="text-[10px] font-black uppercase tracking-widest">Staff Prodi</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
               {showKencanaScopeSelect && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in duration-300">
                   <div className="space-y-2">
@@ -1182,6 +1208,49 @@ export default function UserManagement() {
                             {f.Nama || f.nama}
                           </SelectItem>
                         ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+
+                {showNewProdiSelect && (
+                  <div className="space-y-2 animate-in fade-in duration-300">
+                    <Label className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest ml-1 font-jakarta">Program Studi</Label>
+                    <Select 
+                      disabled={!newFakultasId}
+                      value={newProdiId ? String(newProdiId) : undefined} 
+                      onValueChange={setNewProdiId}
+                    >
+                      <SelectTrigger className="h-12 rounded-xl border-neutral-200 bg-neutral-50/30 font-bold text-[10px] uppercase tracking-widest text-neutral-600 disabled:opacity-50">
+                        <SelectValue placeholder={newFakultasId ? "PILIH PRODI" : "PILIH FAKULTAS DULU"} />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-xl shadow-2xl border-neutral-100 max-h-[200px] overflow-y-auto">
+                        {allProdi
+                          .filter(p => String(p.FakultasID || p.fakultas_id) === String(newFakultasId))
+                          .map(p => (
+                            <SelectItem key={p.ID || p.id} value={String(p.ID || p.id)} className="text-[10px] font-bold uppercase tracking-widest">
+                              {p.Nama || p.nama}
+                            </SelectItem>
+                          ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+
+                {newRoles.includes('prodi_admin') && (
+                  <div className="space-y-2 animate-in fade-in duration-300">
+                    <Label className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest ml-1 font-jakarta">Custom Prodi Role Name</Label>
+                    <Select 
+                      value={newOrmawaAssign ? newOrmawaAssign : undefined}
+                      onValueChange={setNewOrmawaAssign}
+                    >
+                      <SelectTrigger className="h-12 rounded-xl border-neutral-200 bg-neutral-50/30 font-bold text-[10px] uppercase tracking-widest text-neutral-600">
+                        <SelectValue placeholder="PILIH ROLE PRODI" />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-xl shadow-2xl border-neutral-100">
+                        <SelectItem value="Kaprodi" className="text-[10px] font-bold uppercase tracking-widest">Kaprodi</SelectItem>
+                        <SelectItem value="Sekretaris Prodi" className="text-[10px] font-bold uppercase tracking-widest">Sekretaris Prodi</SelectItem>
+                        <SelectItem value="Staff Prodi" className="text-[10px] font-bold uppercase tracking-widest">Staff Prodi</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>

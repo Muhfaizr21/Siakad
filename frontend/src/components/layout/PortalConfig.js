@@ -59,35 +59,37 @@ export const PORTAL_CONFIG = {
       {
         group: 'MENU UTAMA',
         items: [
-          { name: 'Dashboard', icon: 'dashboard', path: '/faculty/dashboard' },
+          { name: 'Dashboard', icon: 'dashboard', path: '/faculty/dashboard', permission: 'view_dashboard' },
         ]
       },
       {
         group: 'DATA MASTER',
         items: [
-          { name: 'Mahasiswa', icon: 'school', path: '/faculty/mahasiswa' },
-          { name: 'Dosen / Psikolog', icon: 'psychology', path: '/faculty/psikolog' },
-          { name: 'Program Studi', icon: 'database', path: '/faculty/prodi' },
+          { name: 'Mahasiswa', icon: 'school', path: '/faculty/mahasiswa', permission: 'view_mahasiswa' },
+          { name: 'Dosen / Psikolog', icon: 'psychology', path: '/faculty/psikolog', permission: 'view_psikolog' },
+          { name: 'Program Studi', icon: 'database', path: '/faculty/prodi', permission: 'view_prodi' },
           { name: 'Jadwal', icon: 'calendar_month', path: '/faculty/jadwal' },
         ]
       },
       {
         group: 'KEGIATAN & KEMAHASISWAAN',
         items: [
-          { name: 'PKKMB', icon: 'school', path: '/faculty/pkkmb' },
-          { name: 'Ormawa', icon: 'groups', path: '/faculty/organisasi' },
-          { name: 'Proposal Ormawa', icon: 'assignment', path: '/faculty/ormawa/proposals' },
-          { name: 'Prestasi', icon: 'emoji_events', path: '/faculty/prestasi' },
-          { name: 'Beasiswa', icon: 'payments', path: '/faculty/beasiswa' },
-          { name: 'Kesehatan', icon: 'favorite', path: '/faculty/kesehatan' },
+          { name: 'PKKMB', icon: 'school', path: '/faculty/pkkmb', permission: 'view_pkkmb' },
+          { name: 'Ormawa', icon: 'groups', path: '/faculty/organisasi', permission: 'view_organisasi' },
+          { name: 'Proposal Ormawa', icon: 'assignment', path: '/faculty/ormawa/proposals', permission: 'view_proposal' },
+          { name: 'Prestasi', icon: 'emoji_events', path: '/faculty/prestasi', permission: 'view_prestasi' },
+          { name: 'Beasiswa', icon: 'payments', path: '/faculty/beasiswa', permission: 'view_beasiswa' },
+          { name: 'Kesehatan', icon: 'favorite', path: '/faculty/kesehatan', permission: 'view_kesehatan' },
         ]
       },
       {
         group: 'ADMINISTRASI',
         items: [
-          { name: 'Aspirasi', icon: 'chat', path: '/faculty/aspirasi' },
-          { name: 'Laporan', icon: 'description', path: '/faculty/laporan' },
-          { name: 'Pengaturan', icon: 'settings', path: '/faculty/pengaturan' },
+          { name: 'Aspirasi', icon: 'chat', path: '/faculty/aspirasi', permission: 'view_aspirasi' },
+          { name: 'Laporan', icon: 'description', path: '/faculty/laporan', permission: 'view_laporan' },
+          { name: 'Role & Akses (RBAC)', icon: 'security', path: '/faculty/rbac', permission: 'manage_rbac' },
+          { name: 'Akun Prodi', icon: 'manage_accounts', path: '/faculty/prodi-users', permission: 'manage_rbac' },
+          { name: 'Pengaturan', icon: 'settings', path: '/faculty/pengaturan', permission: 'view_pengaturan' },
         ]
       },
     ],
@@ -409,6 +411,7 @@ export const getConfigByRole = (role) => {
   const roleMap = {
     mahasiswa: 'student',
     faculty_admin: 'faculty',
+    prodi_admin: 'faculty',
     ormawa_admin: 'ormawa',
     ormawa: 'ormawa',
     super_admin: 'superadmin',

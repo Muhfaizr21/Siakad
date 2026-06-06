@@ -32,7 +32,7 @@ const getRouteByRole = (role) => {
   if (r === 'super_admin') return '/admin';
   if (r === 'kencana_admin' || r === 'kencana_fakultas') return '/kencana-admin';
   if (r === 'kencana_mentor') return '/kencana-mentor';
-  if (r === 'faculty_admin' || r === 'dosen') return '/faculty';
+  if (r === 'faculty_admin' || r === 'dosen' || r === 'prodi_admin') return '/faculty';
   if (r === 'ormawa_admin') return '/ormawa';
   if (r === 'ormawa') return '/ormawa';
   if (r === 'psikolog') return '/psychologist';
