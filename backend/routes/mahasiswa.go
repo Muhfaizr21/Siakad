@@ -42,6 +42,9 @@ func SetupMahasiswaRoutes(app *fiber.App) {
 	organisasiGroup.Post("/", mahasiswa.Create)
 	organisasiGroup.Put("/:id", mahasiswa.Update)
 	organisasiGroup.Delete("/:id", mahasiswa.Delete)
+	organisasiGroup.Get("/ormawa-list", mahasiswa.GetOrmawaList)
+	organisasiGroup.Post("/daftar", mahasiswa.DaftarOrmawa)
+	organisasiGroup.Get("/pendaftaran", mahasiswa.GetPendaftaranList)
 
 	// Profil
 	profilGroup := api.Group("/profil")
@@ -83,6 +86,7 @@ func SetupMahasiswaRoutes(app *fiber.App) {
 	counselingGroup.Get("/medical-record", mahasiswa.GetStudentPsychologistMedicalRecord)
 	counselingGroup.Get("/referrals", mahasiswa.GetStudentReferrals)
 	counselingGroup.Post("/psychologist-bookings", mahasiswa.CreateStudentPsychologistBooking)
+	counselingGroup.Put("/psychologist-bookings/:id/reschedule", mahasiswa.RescheduleStudentPsychologistBooking)
 	counselingGroup.Delete("/psychologist-bookings/:id", mahasiswa.CancelStudentPsychologistBooking)
 	counselingGroup.Post("/booking", mahasiswa.CreateBooking)
 	counselingGroup.Post("/request", mahasiswa.RequestCounseling)

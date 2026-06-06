@@ -388,6 +388,8 @@ type Kesehatan struct {
 	RiwayatPenyakit string  `json:"riwayat_penyakit"`
 	StatusKesehatan string  `json:"status_kesehatan"` // prima, stabil, kritis
 	GolonganDarah   string  `json:"golongan_darah"`   // A, B, AB, O
+	Sumber          string  `gorm:"size:255;default:'mandiri'" json:"sumber"`
+	DiperiksaOleh   string  `gorm:"size:255" json:"diperiksa_oleh"`
 
 	// BARU (v1.3): Modul Tenaga Kesehatan
 	SuhuTubuh         float64 `json:"suhu_tubuh"`

@@ -1332,21 +1332,91 @@ func UpdateAspirationStatus(c *fiber.Ctx) error {
 
 // Additional CRUD for Mahasiswa
 func CreateStudent(c *fiber.Ctx) error {
-	var mhs models.Mahasiswa
-	if err := c.BodyParser(&mhs); err != nil {
+	var req struct {
+		models.Mahasiswa
+		Password string `json:"password"`
+	}
+	if err := c.BodyParser(&req); err != nil {
 		return c.Status(400).JSON(fiber.Map{"status": "error", "message": err.Error()})
+	}
+	mhs := req.Mahasiswa
+
+	email := mhs.EmailKampus
+	if email == "" {
+		email = fmt.Sprintf("%s@bku.ac.id", mhs.NIM)
+	}
+
+	// Check if student already exists (including soft-deleted)
+	var existingMhs models.Mahasiswa
+	errExisting := config.DB.Unscoped().Where("nim = ?", mhs.NIM).First(&existingMhs).Error
+	if errExisting == nil {
+		// Student exists! We will restore and update them
+		err := config.DB.Transaction(func(tx *gorm.DB) error {
+			// Restore/Update user
+			var user models.User
+			errUser := tx.Unscoped().Where("id = ?", existingMhs.PenggunaID).First(&user).Error
+			if errUser == nil {
+				user.DeletedAt = gorm.DeletedAt{}
+				user.Email = email
+				if req.Password != "" {
+					hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+					if err == nil {
+						user.Password = string(hashedPassword)
+					}
+				}
+				if err := tx.Save(&user).Error; err != nil {
+					return err
+				}
+			}
+
+			// Restore/Update student
+			existingMhs.DeletedAt = gorm.DeletedAt{}
+			existingMhs.Nama = mhs.Nama
+			existingMhs.EmailKampus = email
+			existingMhs.FakultasID = mhs.FakultasID
+			existingMhs.ProgramStudiID = mhs.ProgramStudiID
+			existingMhs.SemesterSekarang = mhs.SemesterSekarang
+			existingMhs.StatusAkun = "Aktif"
+			existingMhs.TahunMasuk = mhs.TahunMasuk
+
+			if err := tx.Save(&existingMhs).Error; err != nil {
+				return err
+			}
+
+			return nil
+		})
+
+		if err != nil {
+			return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal memulihkan data mahasiswa: " + err.Error()})
+		}
+
+		return c.JSON(fiber.Map{"status": "success", "data": existingMhs, "message": "Data mahasiswa berhasil dipulihkan dan diperbarui"})
+	}
+
+	// Check if Email already exists in User table
+	var countUser int64
+	config.DB.Model(&models.User{}).Where("email = ?", email).Count(&countUser)
+	if countUser > 0 {
+		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Email sudah terdaftar untuk pengguna lain"})
+	}
+
+	// Check if NIM already exists in Mahasiswa table
+	if mhs.NIM != "" {
+		var countMhs int64
+		config.DB.Model(&models.Mahasiswa{}).Where("nim = ?", mhs.NIM).Count(&countMhs)
+		if countMhs > 0 {
+			return c.Status(400).JSON(fiber.Map{"status": "error", "message": "NIM sudah terdaftar untuk mahasiswa lain"})
+		}
 	}
 
 	// 1. Create User automatically
 	err := config.DB.Transaction(func(tx *gorm.DB) error {
-		email := mhs.EmailKampus
-		if email == "" {
-			email = fmt.Sprintf("%s@bku.ac.id", mhs.NIM)
-		}
-
-		defaultPassword := "password123"
-		if mhs.NIM != "" {
-			defaultPassword = "pass" + mhs.NIM
+		defaultPassword := req.Password
+		if defaultPassword == "" {
+			defaultPassword = "password123"
+			if mhs.NIM != "" {
+				defaultPassword = "pass" + mhs.NIM
+			}
 		}
 
 		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(defaultPassword), bcrypt.DefaultCost)
@@ -1376,7 +1446,6 @@ func CreateStudent(c *fiber.Ctx) error {
 		// 2. Prepare Mahasiswa data
 		mhs.PenggunaID = user.ID
 		mhs.Pengguna = user // Beritahu GORM ini user-nya
-		mhs.SemesterSekarang = 1
 		mhs.StatusAkun = "Aktif"
 
 		// 3. Create Mahasiswa
@@ -1412,21 +1481,90 @@ func UpdateStudent(c *fiber.Ctx) error {
 	id := c.Params("id")
 	var mhs models.Mahasiswa
 	if err := config.DB.First(&mhs, id).Error; err != nil {
-		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Mahasiswa not found"})
+		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Mahasiswa tidak ditemukan"})
 	}
-	if err := c.BodyParser(&mhs); err != nil {
+
+	var req struct {
+		models.Mahasiswa
+		Password string `json:"password"`
+	}
+	if err := c.BodyParser(&req); err != nil {
 		return c.Status(400).JSON(fiber.Map{"status": "error", "message": err.Error()})
 	}
-	config.DB.Save(&mhs)
-	return c.JSON(fiber.Map{"status": "success", "data": mhs})
+
+	email := req.EmailKampus
+	if email == "" {
+		email = fmt.Sprintf("%s@bku.ac.id", req.NIM)
+	}
+
+	err := config.DB.Transaction(func(tx *gorm.DB) error {
+		// Update user info
+		if mhs.PenggunaID != 0 {
+			var user models.User
+			if err := tx.First(&user, mhs.PenggunaID).Error; err == nil {
+				user.Email = email
+				if req.Password != "" {
+					hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+					if err == nil {
+						user.Password = string(hashedPassword)
+					}
+				}
+				if err := tx.Save(&user).Error; err != nil {
+					return err
+				}
+			}
+		}
+
+		// Update student info
+		mhs.NIM = req.NIM
+		mhs.Nama = req.Nama
+		mhs.EmailKampus = email
+		mhs.FakultasID = req.FakultasID
+		mhs.ProgramStudiID = req.ProgramStudiID
+		mhs.SemesterSekarang = req.SemesterSekarang
+		mhs.StatusAkun = req.StatusAkun
+		mhs.TahunMasuk = req.TahunMasuk
+		mhs.Alamat = req.Alamat
+
+		if err := tx.Save(&mhs).Error; err != nil {
+			return err
+		}
+		return nil
+	})
+
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal memperbarui data mahasiswa: " + err.Error()})
+	}
+
+	return c.JSON(fiber.Map{"status": "success", "data": mhs, "message": "Data mahasiswa berhasil diperbarui"})
 }
 
 func DeleteStudent(c *fiber.Ctx) error {
 	id := c.Params("id")
-	if err := config.DB.Delete(&models.Mahasiswa{}, id).Error; err != nil {
-		return c.Status(500).JSON(fiber.Map{"status": "error", "message": err.Error()})
+	var mhs models.Mahasiswa
+	if err := config.DB.First(&mhs, id).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Mahasiswa tidak ditemukan"})
 	}
-	return c.JSON(fiber.Map{"status": "success", "message": "Mahasiswa deleted"})
+
+	err := config.DB.Transaction(func(tx *gorm.DB) error {
+		// 1. Soft delete Mahasiswa
+		if err := tx.Delete(&models.Mahasiswa{}, id).Error; err != nil {
+			return err
+		}
+
+		// 2. Soft delete User if exists
+		if mhs.PenggunaID != 0 {
+			if err := tx.Delete(&models.User{}, mhs.PenggunaID).Error; err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal menghapus mahasiswa: " + err.Error()})
+	}
+	return c.JSON(fiber.Map{"status": "success", "message": "Mahasiswa deleted successfully"})
 }
 
 func GetAllProgramStudi(c *fiber.Ctx) error {

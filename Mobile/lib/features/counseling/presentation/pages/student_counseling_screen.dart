@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:intl/intl.dart';
 import 'package:bkuhub_mobile/core/theme/app_colors.dart';
 import 'package:bkuhub_mobile/core/theme/app_text_styles.dart';
 import 'package:bkuhub_mobile/core/widgets/bku_app_bar.dart';
@@ -390,6 +391,57 @@ class _MyBookingsSheet extends StatelessWidget {
   final StudentCounselingProvider provider;
   const _MyBookingsSheet({required this.provider});
 
+  void _handleCancelBooking(BuildContext context, String bookingId) {
+    showDialog(
+      context: context,
+      builder: (dialogCtx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text('Batalkan Booking?', style: TextStyle(fontWeight: FontWeight.bold)),
+        content: const Text('Apakah Anda yakin ingin membatalkan jadwal konseling ini?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogCtx),
+            child: const Text('Kembali', style: TextStyle(color: Colors.grey)),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.pop(dialogCtx);
+              final success = await provider.cancelBooking(bookingId);
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(success ? 'Booking berhasil dibatalkan' : 'Gagal membatalkan booking'),
+                    backgroundColor: success ? Colors.green : Colors.red,
+                    behavior: SnackBarBehavior.floating,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                );
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            child: const Text('Ya, Batalkan'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _handleReschedule(BuildContext context, Map<String, dynamic> booking) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => _RescheduleSheet(
+        provider: provider,
+        booking: booking,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -562,6 +614,37 @@ class _MyBookingsSheet extends StatelessWidget {
                                 ),
                               ),
                             ],
+                            // Actions (Reschedule & Cancel)
+                            if (status == 'Menunggu' || status == 'Dikonfirmasi') ...[
+                              const Divider(height: 24, thickness: 1),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                children: [
+                                  OutlinedButton(
+                                    onPressed: () => _handleCancelBooking(context, b['id'].toString()),
+                                    style: OutlinedButton.styleFrom(
+                                      foregroundColor: Colors.red,
+                                      side: BorderSide(color: Colors.red.withAlpha(100)),
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                    ),
+                                    child: const Text('Batalkan Sesi', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  ElevatedButton(
+                                    onPressed: () => _handleReschedule(context, b),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: AppColors.primary,
+                                      foregroundColor: Colors.white,
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                      elevation: 0,
+                                    ),
+                                    child: const Text('Reschedule', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                                  ),
+                                ],
+                              ),
+                            ],
                           ],
                         ),
                       );
@@ -573,6 +656,321 @@ class _MyBookingsSheet extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+// ─── Reschedule Sheet ────────────────────────────────────────────────────────
+
+class _RescheduleSheet extends StatefulWidget {
+  final StudentCounselingProvider provider;
+  final Map<String, dynamic> booking;
+
+  const _RescheduleSheet({required this.provider, required this.booking});
+
+  @override
+  State<_RescheduleSheet> createState() => _RescheduleSheetState();
+}
+
+class _RescheduleSheetState extends State<_RescheduleSheet> {
+  DateTime? _selectedDate;
+  TimeOfDay? _startTime;
+  TimeOfDay? _endTime;
+  bool _isSubmitting = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Parse current date and times if possible to pre-populate
+    try {
+      final rawDate = widget.booking['tanggal'] ?? widget.booking['date'];
+      if (rawDate != null) {
+        _selectedDate = DateTime.parse(rawDate.toString());
+      }
+    } catch (_) {}
+
+    try {
+      final startStr = widget.booking['start']?.toString() ?? '';
+      if (startStr.contains(':')) {
+        final parts = startStr.split(':');
+        _startTime = TimeOfDay(hour: int.parse(parts[0]), minute: int.parse(parts[1]));
+      }
+    } catch (_) {}
+
+    try {
+      final endStr = widget.booking['end']?.toString() ?? '';
+      if (endStr.contains(':')) {
+        final parts = endStr.split(':');
+        _endTime = TimeOfDay(hour: int.parse(parts[0]), minute: int.parse(parts[1]));
+      }
+    } catch (_) {}
+  }
+
+  Future<void> _selectDate() async {
+    final now = DateTime.now();
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate != null && _selectedDate!.isAfter(now) ? _selectedDate! : now.add(const Duration(days: 1)),
+      firstDate: now,
+      lastDate: now.add(const Duration(days: 90)),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.light(
+              primary: AppColors.primary,
+              onPrimary: Colors.white,
+              onSurface: Color(0xFF1E293B),
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+    if (picked != null) {
+      setState(() => _selectedDate = picked);
+    }
+  }
+
+  Future<void> _selectStartTime() async {
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: _startTime ?? const TimeOfDay(hour: 9, minute: 0),
+    );
+    if (picked != null) {
+      setState(() {
+        _startTime = picked;
+        // Auto end time = start time + 1 hour if not set
+        if (_endTime == null) {
+          int endHour = picked.hour + 1;
+          if (endHour > 23) endHour = 23;
+          _endTime = TimeOfDay(hour: endHour, minute: picked.minute);
+        }
+      });
+    }
+  }
+
+  Future<void> _selectEndTime() async {
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: _endTime ?? const TimeOfDay(hour: 10, minute: 0),
+    );
+    if (picked != null) {
+      setState(() => _endTime = picked);
+    }
+  }
+
+  String _formatTimeOfDay(TimeOfDay? time) {
+    if (time == null) return '-';
+    final hour = time.hour.toString().padLeft(2, '0');
+    final minute = time.minute.toString().padLeft(2, '0');
+    return '$hour:$minute';
+  }
+
+  Future<void> _submit() async {
+    if (_selectedDate == null || _startTime == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Pilih tanggal dan jam mulai rescheduling')),
+      );
+      return;
+    }
+
+    setState(() => _isSubmitting = true);
+
+    final formattedDate = DateFormat('yyyy-MM-dd').format(_selectedDate!);
+    final startStr = _formatTimeOfDay(_startTime);
+    final endStr = _formatTimeOfDay(_endTime);
+    final bookingId = widget.booking['id'].toString();
+
+    final success = await widget.provider.rescheduleBooking(
+      bookingId: bookingId,
+      date: formattedDate,
+      start: startStr,
+      end: endStr,
+    );
+
+    if (mounted) {
+      setState(() => _isSubmitting = false);
+      if (success) {
+        Navigator.pop(context); // Close Reschedule Sheet
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Berhasil menjadwalkan ulang! Menunggu konfirmasi ulang dari psikolog.'),
+            backgroundColor: Colors.green,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(widget.provider.rescheduleError ?? 'Gagal melakukan reschedule. Coba lagi.'),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          ),
+        );
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final psikolog = widget.booking['psychologist'] as Map<String, dynamic>?;
+    final psikologName = psikolog?['name']?.toString() ?? '-';
+    final topic = widget.booking['topic']?.toString() ?? '-';
+
+    return Container(
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+        left: 24,
+        right: 24,
+        top: 24,
+      ),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Center(
+            child: Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(2)),
+            ),
+          ),
+          const SizedBox(height: 20),
+          Text(
+            'Reschedule Konseling',
+            style: AppTextStyles.titleMd.copyWith(fontWeight: FontWeight.w900, color: AppColors.primary),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Untuk sesi dengan $psikologName\nTopik: $topic',
+            style: AppTextStyles.bodyMd.copyWith(color: AppColors.outline),
+          ),
+          const SizedBox(height: 24),
+          // Date Field
+          _buildPickerField(
+            label: 'Tanggal Baru',
+            value: _selectedDate == null ? 'Pilih Tanggal' : DateFormat('dd MMMM yyyy').format(_selectedDate!),
+            icon: Icons.calendar_today_rounded,
+            onTap: _selectDate,
+          ),
+          const SizedBox(height: 16),
+          // Start & End Time Fields
+          Row(
+            children: [
+              Expanded(
+                child: _buildPickerField(
+                  label: 'Jam Mulai',
+                  value: _startTime == null ? 'Pilih Jam' : _formatTimeOfDay(_startTime),
+                  icon: Icons.access_time_rounded,
+                  onTap: _selectStartTime,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: _buildPickerField(
+                  label: 'Jam Selesai',
+                  value: _endTime == null ? 'Pilih Jam' : _formatTimeOfDay(_endTime),
+                  icon: Icons.access_time_rounded,
+                  onTap: _selectEndTime,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.orange.withAlpha(10),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.orange.withAlpha(30)),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.info_outline_rounded, color: Colors.orange, size: 20),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'Setelah reschedule dikirim, status booking akan kembali ke Menunggu dan psikolog perlu menyetujui jadwal baru.',
+                    style: TextStyle(color: Colors.orange[800], fontSize: 11, height: 1.3),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 32),
+          SizedBox(
+            width: double.infinity,
+            height: 55,
+            child: ElevatedButton(
+              onPressed: _isSubmitting ? null : _submit,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                elevation: 0,
+              ),
+              child: _isSubmitting
+                  ? const SizedBox(
+                      height: 24,
+                      width: 24,
+                      child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                    )
+                  : const Text('Kirim Reschedule', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPickerField({
+    required String label,
+    required String value,
+    required IconData icon,
+    required VoidCallback onTap,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: AppTextStyles.labelMd.copyWith(fontWeight: FontWeight.bold, color: const Color(0xFF475569)),
+        ),
+        const SizedBox(height: 6),
+        InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(16),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF8FAFC),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
+            ),
+            child: Row(
+              children: [
+                Icon(icon, size: 18, color: AppColors.outline),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    value,
+                    style: AppTextStyles.bodyMd.copyWith(
+                      color: value.startsWith('Pilih') ? AppColors.outline.withAlpha(150) : const Color(0xFF1E293B),
+                      fontWeight: value.startsWith('Pilih') ? FontWeight.normal : FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

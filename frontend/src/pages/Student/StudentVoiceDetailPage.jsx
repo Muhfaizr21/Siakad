@@ -360,6 +360,8 @@ function LevelBadge({ level }) {
   const styles = {
     fakultas: 'bg-blue-50 text-blue-700 border-blue-200',
     universitas: 'bg-indigo-50 text-indigo-700 border-indigo-200',
+    prodi: 'bg-teal-50 text-teal-700 border-teal-200',
+    ormawa: 'bg-purple-50 text-purple-700 border-purple-200',
     selesai: 'bg-green-50 text-green-700 border-green-200'
   };
   return (

@@ -710,6 +710,7 @@ func CreateScreening(c *fiber.Ctx) error {
 		Rekomendasi       string  `json:"rekomendasi"`
 		EventID           *uint   `json:"event_id"`
 		BookingID         *uint   `json:"booking_id"`
+		Sumber            string  `json:"sumber"`
 
 		// Eskalasi flags
 		EskalasiPsikolog bool `json:"eskalasi_psikolog"`
@@ -753,6 +754,16 @@ func CreateScreening(c *fiber.Ctx) error {
 		hasilText = "Layak Kegiatan"
 	}
 
+	sumber := body.Sumber
+	if sumber == "" {
+		if strings.Contains(strings.ToLower(body.JenisPemeriksaan), "pkkmb") || strings.Contains(strings.ToLower(body.JenisPemeriksaan), "massal") {
+			sumber = "kencana_screening"
+		} else {
+			sumber = "klinik_kampus"
+		}
+	}
+	diperiksaOleh := tk.Nama
+
 	// Create Kesehatan record
 	record := models.Kesehatan{
 		MahasiswaID:       student.ID,
@@ -782,6 +793,8 @@ func CreateScreening(c *fiber.Ctx) error {
 		TenagaKesID:       &tk.ID,
 		EventID:           body.EventID,
 		BookingID:         body.BookingID,
+		Sumber:            sumber,
+		DiperiksaOleh:     diperiksaOleh,
 	}
 
 	if err := config.DB.Create(&record).Error; err != nil {

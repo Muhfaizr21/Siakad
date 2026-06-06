@@ -760,15 +760,36 @@ export default function HealthScreeningPage() {
                         </td>
                         {/* Sumber */}
                         <td className="px-5 py-4 text-center">
-                          <div className="flex flex-col items-center gap-0.5">
-                            <div className="flex items-center gap-1">
-                              {rec.sumber === 'mandiri'
-                                ? <User size={11} className="text-neutral-400" />
-                                : <span className="material-symbols-outlined text-bku-primary" style={{ fontSize: '11px' }} >security</span>
+                          <div className="flex flex-col items-center gap-1.5">
+                            {(() => {
+                              if (rec.sumber === 'kencana_screening') {
+                                return (
+                                  <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-purple-50 border border-purple-100 text-purple-600 shadow-sm">
+                                    <span className="material-symbols-outlined" style={{ fontSize: '11px' }}>verified</span>
+                                    <span className="text-[9px] font-extrabold tracking-wide uppercase">Kencana Screening</span>
+                                  </div>
+                                );
+                              } else if (rec.sumber === 'klinik_kampus') {
+                                return (
+                                  <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 border border-emerald-100 text-emerald-600 shadow-sm">
+                                    <span className="material-symbols-outlined" style={{ fontSize: '11px' }}>shield</span>
+                                    <span className="text-[9px] font-extrabold tracking-wide uppercase">Klinik Kampus</span>
+                                  </div>
+                                );
+                              } else {
+                                return (
+                                  <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-neutral-50 border border-neutral-100 text-neutral-500 shadow-sm">
+                                    <User size={11} className="text-neutral-400" />
+                                    <span className="text-[9px] font-extrabold tracking-wide uppercase">Mandiri</span>
+                                  </div>
+                                );
                               }
-                              <span className="text-[10px] font-bold text-[#171717] uppercase">{rec.sumber.replace(/_/g, ' ')}</span>
-                            </div>
-                            {rec.diperiksa_oleh && <span className="text-[9px] text-neutral-400 max-w-[90px] truncate">by {rec.diperiksa_oleh}</span>}
+                            })()}
+                            {rec.diperiksa_oleh && (
+                              <span className="text-[9px] font-medium text-neutral-400 bg-neutral-100 px-2 py-0.5 rounded-md border border-neutral-200/50 max-w-[120px] truncate shadow-sm" title={rec.diperiksa_oleh}>
+                                by {rec.diperiksa_oleh}
+                              </span>
+                            )}
                           </div>
                         </td>
                         {/* Action */}
@@ -1598,10 +1619,21 @@ function DetailModal({ record, isLoading, onClose }) {
           </div>
         </div>
 
-        <div className="p-6 border-t border-neutral-100 shrink-0 bg-white">
+        <div className="p-6 border-t border-neutral-100 shrink-0 bg-white flex flex-col sm:flex-row gap-3">
+          <NavLink
+            to="/student/insurance"
+            state={{
+              tanggal: record.tanggal_periksa ? record.tanggal_periksa.split('T')[0] : '',
+              deskripsi: `Klaim biaya pemeriksaan kesehatan (${record.jenis_pemeriksaan}) pada tanggal ${fmt(record.tanggal_periksa, { day: 'numeric', month: 'long', year: 'numeric' })}. Catatan: ${record.catatan_medis || record.catatan || 'Pemeriksaan rutin.'}`
+            }}
+            onClick={onClose}
+            className="flex-1 py-3 bg-emerald-500 text-white text-xs font-black rounded-xl hover:bg-emerald-600 transition-all uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-md shadow-emerald-500/20"
+          >
+            <span className="material-symbols-outlined text-[16px]">health_and_safety</span> Ajukan Asuransi
+          </NavLink>
           <button
             onClick={onClose}
-            className="w-full py-3 bg-neutral-50 border border-neutral-200 text-neutral-500 text-xs font-black rounded-xl hover:bg-neutral-100 transition-all uppercase tracking-wider"
+            className="py-3 px-6 bg-neutral-50 border border-neutral-200 text-neutral-500 text-xs font-black rounded-xl hover:bg-neutral-100 transition-all uppercase tracking-wider"
           >
             Tutup
           </button>

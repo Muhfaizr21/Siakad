@@ -35,6 +35,7 @@ export default function PatientMedicalRecord() {
   const [butaWarna, setButaWarna] = useState('Normal');
   const [riwayatPenyakit, setRiwayatPenyakit] = useState('');
   const [golonganDarah, setGolonganDarah] = useState('O');
+  const [sumber, setSumber] = useState('klinik_kampus');
   
   // Vitals
   const [suhuTubuh, setSuhuTubuh] = useState(36.5);
@@ -203,6 +204,7 @@ export default function PatientMedicalRecord() {
       booking_id: bookingId ? Number(bookingId) : null,
       eskalasi_psikolog: eskalasiPsikolog,
       eskalasi_fakultas: eskalasiFakultas,
+      sumber: sumber,
     };
 
     setSubmitting(true);
@@ -219,6 +221,7 @@ export default function PatientMedicalRecord() {
       setRekomendasi('');
       setEskalasiPsikolog(false);
       setEskalasiFakultas(false);
+      setSumber('klinik_kampus');
       
       // Load updated history list
       loadData();
@@ -385,7 +388,21 @@ export default function PatientMedicalRecord() {
                           </div>
                         </div>
 
-                        <div className="flex gap-2">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className={`text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full ${
+                            rec.sumber === 'kencana_screening'
+                              ? 'bg-purple-50 text-purple-600 border border-purple-200/50'
+                              : rec.sumber === 'klinik_kampus'
+                                ? 'bg-emerald-50 text-emerald-600 border border-emerald-200/50'
+                                : 'bg-slate-100 text-slate-600 border border-slate-200'
+                          }`}>
+                            Sumber: {rec.sumber ? rec.sumber.replace(/_/g, ' ') : 'MANDIRI'}
+                          </span>
+                          {rec.diperiksa_oleh && (
+                            <span className="text-[9px] font-bold text-slate-500 self-center">
+                              by {rec.diperiksa_oleh}
+                            </span>
+                          )}
                           <span className={`text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full ${getStatusKesehatanColor(rec.status_kesehatan)}`}>
                             Kondisi: {rec.status_kesehatan}
                           </span>
@@ -498,8 +515,8 @@ export default function PatientMedicalRecord() {
                   Parameter Vitalitas & Screening Fisik
                 </h3>
 
-                {/* row 1: date & type */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* row 1: date & type & source */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div className="space-y-1.5">
                     <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 font-headline">Tanggal Screening</label>
                     <input
@@ -521,6 +538,18 @@ export default function PatientMedicalRecord() {
                       <option value="Screening PKKMB">Screening PKKMB</option>
                       <option value="Pemeriksaan Massal">Pemeriksaan Massal</option>
                       <option value="Screening Atlet/Ormawa">Screening Atlet/Ormawa</option>
+                    </select>
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 font-headline">Sumber Pemeriksaan</label>
+                    <select
+                      value={sumber}
+                      onChange={(e) => setSumber(e.target.value)}
+                      className="w-full h-11 px-3 bg-slate-50/70 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 outline-none focus:border-bku-primary focus:bg-white"
+                    >
+                      <option value="klinik_kampus">Klinik Kampus</option>
+                      <option value="kencana_screening">Kencana Screening</option>
+                      <option value="mandiri">Mandiri (Verifikasi)</option>
                     </select>
                   </div>
                 </div>

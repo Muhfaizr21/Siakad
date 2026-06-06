@@ -109,7 +109,27 @@ export default function DataDiriTab({ profile }) {
   const STATUS_NIKAH = ['Belum Kawin', 'Kawin', 'Cerai Hidup', 'Cerai Mati'];
 
   return (
-    <form onSubmit={handleSubmit((data) => mutation.mutate(data))} className="bg-white rounded-3xl border border-[#e5e5e5] shadow-sm overflow-hidden">
+    <form
+      onSubmit={handleSubmit(
+        (data) => mutation.mutate(data),
+        (errs) => {
+          const flatErrors = Object.keys(errs).reduce((acc, k) => ({ ...acc, [k]: errs[k].message }), {});
+          console.error('Validation errors:', JSON.stringify(flatErrors, null, 2));
+          
+          const errorMessages = Object.values(errs).map(e => e.message);
+          if (errorMessages.length > 0) {
+            if (errorMessages.length <= 2) {
+              toast.error(`Gagal menyimpan:\n• ${errorMessages.join('\n• ')}`);
+            } else {
+              toast.error(`Gagal menyimpan:\n• ${errorMessages.slice(0, 2).join('\n• ')}\n• ...dan ${errorMessages.length - 2} error lainnya (cek konsol browser)`);
+            }
+          } else {
+            toast.error('Mohon lengkapi seluruh field yang wajib diisi');
+          }
+        }
+      )}
+      className="bg-white rounded-3xl border border-[#e5e5e5] shadow-sm overflow-hidden"
+    >
       
       {/* SEKSI: PRIBADI */}
       <div className="p-6 md:p-8 border-b border-[#f5f5f5]">
@@ -120,7 +140,7 @@ export default function DataDiriTab({ profile }) {
           <div className="space-y-2">
             <Label>NIK KTP</Label>
             <Input {...register('nik')} placeholder="16 Digit NIK" maxLength={16} />
-            {errors.nik && <p className="text-xs font-bold text-[#w0B4FAE]">{errors.nik.message}</p>}
+            {errors.nik && <p className="text-xs font-bold text-[#0B4FAE]">{errors.nik.message}</p>}
           </div>
           <div className="space-y-2">
             <Label>NPM</Label>
@@ -151,6 +171,7 @@ export default function DataDiriTab({ profile }) {
                   <span className="text-sm font-bold text-[#525252]">Perempuan</span>
               </label>
             </div>
+            {errors.gender && <p className="text-xs font-bold text-[#0B4FAE]">{errors.gender.message}</p>}
           </div>
 
           <div className="space-y-2">

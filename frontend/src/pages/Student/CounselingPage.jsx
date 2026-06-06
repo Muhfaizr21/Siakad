@@ -39,16 +39,17 @@ const formatLongDate = (dateStr) => {
 };
 
 const TIPE_CONFIG = {
-  Akademik: { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-100', dot: 'bg-blue-500' },
-  Karir:    { bg: 'bg-sky-50',  text: 'text-sky-700',  border: 'border-sky-100',  dot: 'bg-sky-500'  },
-  Personal: { bg: 'bg-rose-50', text: 'text-rose-700', border: 'border-rose-100', dot: 'bg-rose-500' },
+  Akademik:  { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-100', dot: 'bg-blue-500', label: 'Akademik' },
+  Karir:     { bg: 'bg-rose-50', text: 'text-rose-700', border: 'border-rose-100', dot: 'bg-rose-500', label: 'Psikologi' },
+  Personal:  { bg: 'bg-rose-50', text: 'text-rose-700', border: 'border-rose-100', dot: 'bg-rose-500', label: 'Psikologi' },
+  Psikologi: { bg: 'bg-rose-50', text: 'text-rose-700', border: 'border-rose-100', dot: 'bg-rose-500', label: 'Psikologi' },
 };
 
 export default function CounselingPage() {
   const [selectedSlot, setSelectedSlot] = useState(null);
   const [keluhan, setKeluhan] = useState('');
   const [mode, setMode] = useState('Tatap Muka');
-  const [topik, setTopik] = useState('Pribadi');
+  const [topik, setTopik] = useState('Psikologi');
   const [privacyAgreed, setPrivacyAgreed] = useState(false);
   const [filterTipe, setFilterTipe] = useState('Semua');
 
@@ -63,13 +64,13 @@ export default function CounselingPage() {
 
   useEffect(() => {
     if (selectedSlot) {
-      const defaultTopic = selectedSlot.Tipe || selectedSlot.Spesialisasi || 'Pribadi';
-      if (defaultTopic === 'Personal') {
-        setTopik('Pribadi');
-      } else if (['Akademik', 'Karir', 'Pribadi', 'Keluarga', 'Sosial', 'Lainnya'].includes(defaultTopic)) {
+      const defaultTopic = selectedSlot.Tipe || selectedSlot.Spesialisasi || 'Psikologi';
+      if (defaultTopic === 'Personal' || defaultTopic === 'Karir' || defaultTopic === 'Pribadi') {
+        setTopik('Psikologi');
+      } else if (['Akademik', 'Psikologi'].includes(defaultTopic)) {
         setTopik(defaultTopic);
       } else {
-        setTopik('Pribadi');
+        setTopik('Psikologi');
       }
     }
   }, [selectedSlot]);
@@ -99,7 +100,11 @@ export default function CounselingPage() {
     });
   };
 
-  const filtered = jadwal?.filter(s => filterTipe === 'Semua' || s.Tipe === filterTipe) ?? [];
+  const filtered = jadwal?.filter(s => {
+    if (filterTipe === 'Semua') return true;
+    const mappedTipe = (s.Tipe === 'Personal' || s.Tipe === 'Karir' || s.Tipe === 'Psikologi') ? 'Psikologi' : 'Akademik';
+    return mappedTipe === filterTipe;
+  }) ?? [];
 
   return (
     <div className="px-4 py-5 md:px-6 md:py-6 lg:px-8 lg:py-8 font-body text-[#171717] min-h-screen bg-[#fafafa]">
@@ -187,7 +192,7 @@ export default function CounselingPage() {
 
                 {/* Filter pills — sejajar judul di desktop, full width di mobile */}
                 <div className="flex gap-2 flex-wrap sm:flex-nowrap">
-                  {['Semua', 'Akademik', 'Karir', 'Personal'].map((tipe) => (
+                  {['Semua', 'Akademik', 'Psikologi'].map((tipe) => (
                     <button
                       key={tipe}
                       onClick={() => setFilterTipe(tipe)}
@@ -210,7 +215,8 @@ export default function CounselingPage() {
                 <CardGridSkeleton count={4} />
               ) : filtered.length > 0 ? (
                 filtered.map((slot) => {
-                  const tc = TIPE_CONFIG[slot.Tipe] ?? TIPE_CONFIG.Akademik;
+                  const slotTipeMapped = (slot.Tipe === 'Personal' || slot.Tipe === 'Karir') ? 'Psikologi' : slot.Tipe;
+                  const tc = TIPE_CONFIG[slotTipeMapped] ?? TIPE_CONFIG.Akademik;
                   const isFull = slot.SisaKuota <= 0;
                   return (
                     <div
@@ -222,7 +228,7 @@ export default function CounselingPage() {
                         <div className="flex items-center gap-2 mb-3 flex-wrap">
                           <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide ${tc.bg} ${tc.text} border ${tc.border}`}>
                             <span className={`w-1.5 h-1.5 rounded-full ${tc.dot}`} />
-                            {slot.Tipe}
+                            {tc.label}
                           </span>
                           <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold border ${isFull ? 'bg-red-50 text-red-500 border-red-100' : 'bg-neutral-50 text-neutral-400 border-neutral-200'}`}>
                             Kuota {slot.SisaKuota}/{slot.Kuota}
@@ -250,7 +256,7 @@ export default function CounselingPage() {
                           disabled={isFull}
                           className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all border-2 border-bku-primary text-bku-primary hover:bg-bku-primary hover:text-white disabled:opacity-40 disabled:cursor-not-allowed disabled:border-neutral-200 disabled:text-neutral-400"
                         >
-                          Booking <span className="material-symbols-outlined" style={{ fontSize: '14px' }} >arrow_forward</span>
+                          Ambil Antrean <span className="material-symbols-outlined" style={{ fontSize: '14px' }} >arrow_forward</span>
                         </button>
                       </div>
                     </div>
@@ -323,16 +329,16 @@ export default function CounselingPage() {
         {/* ── BOOKING MODAL ── */}
         {selectedSlot && (
           <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-            <div className="bg-white w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden">
+            <div className="bg-white w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
 
               {/* Modal Header */}
-              <div className="bg-bku-primary px-7 py-6 relative">
+              <div className="bg-bku-primary px-7 py-6 relative flex-shrink-0">
                 <button onClick={() => setSelectedSlot(null)} className="absolute top-5 right-5 text-white/40 hover:text-white transition-colors">
                   <span className="material-symbols-outlined" style={{ fontSize: '22px' }} >close</span>
                 </button>
                 <div className="flex items-center gap-2 mb-1">
                   <Sparkles size={14} className="text-white/60" />
-                  <span className="text-white/60 text-xs font-semibold uppercase tracking-wider">Konfirmasi Booking</span>
+                  <span className="text-white/60 text-xs font-semibold uppercase tracking-wider">Daftar Antrean Konseling</span>
                 </div>
                 <h2 className="text-xl font-extrabold font-headline" style={{ color: 'var(--theme-h2)' }}>{selectedSlot.NamaKonselor}</h2>
                 <p className="text-white/50 text-sm mt-0.5 flex items-center gap-1.5">
@@ -340,125 +346,128 @@ export default function CounselingPage() {
                 </p>
               </div>
 
-              {/* Slot Summary */}
-              <div className="px-7 pt-5">
-                <div className="bg-neutral-50 border border-neutral-100 rounded-2xl p-4 flex items-center justify-between gap-4">
+              {/* Scrollable Content */}
+              <div className="overflow-y-auto flex-1">
+                {/* Slot Summary */}
+                <div className="px-7 pt-5">
+                  <div className="bg-neutral-50 border border-neutral-100 rounded-2xl p-4 flex items-center justify-between gap-4">
+                    <div>
+                      <span className={`text-[10px] font-bold uppercase tracking-wide ${(TIPE_CONFIG[selectedSlot.Tipe === 'Personal' || selectedSlot.Tipe === 'Karir' ? 'Psikologi' : selectedSlot.Tipe] ?? TIPE_CONFIG.Akademik).text}`}>
+                        {selectedSlot.Tipe === 'Personal' || selectedSlot.Tipe === 'Karir' ? 'Psikologi' : selectedSlot.Tipe}
+                      </span>
+                      <p className="text-sm font-bold text-neutral-700 mt-0.5">
+                        {selectedSlot.JamMulai} – {selectedSlot.JamSelesai} WIB
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-[10px] text-neutral-400 font-medium">Tanggal</p>
+                      <p className="text-sm font-bold text-neutral-700">{new Date(selectedSlot.Tanggal).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Form */}
+                <div className="px-7 py-5 space-y-5">
                   <div>
-                    <span className={`text-[10px] font-bold uppercase tracking-wide ${(TIPE_CONFIG[selectedSlot.Tipe] ?? TIPE_CONFIG.Akademik).text}`}>
-                      {selectedSlot.Tipe}
-                    </span>
-                    <p className="text-sm font-bold text-neutral-700 mt-0.5">
-                      {selectedSlot.JamMulai} – {selectedSlot.JamSelesai} WIB
+                    <label className="block text-xs font-bold text-neutral-600 uppercase tracking-wider mb-2">
+                      Metode Konseling <span className="text-red-400">*</span>
+                    </label>
+                    <div className="grid grid-cols-2 gap-3 mb-4">
+                      {[
+                        { value: 'Tatap Muka', label: 'Tatap Muka (Offline)', desc: 'Konseling langsung di ruang BK', icon: 'groups' },
+                        { value: 'Online', label: 'Online (Zoom)', desc: 'Konseling daring via video call', icon: 'videocam' }
+                      ].map((opt) => (
+                        <button
+                          key={opt.value}
+                          type="button"
+                          onClick={() => setMode(opt.value)}
+                          className={`flex items-start gap-2.5 p-3 rounded-2xl border text-left transition-all ${
+                            mode === opt.value
+                              ? 'border-[#00236F] bg-blue-50/20 ring-2 ring-[#00236F]/5'
+                              : 'border-neutral-200 hover:border-neutral-300 bg-white'
+                          }`}
+                        >
+                          <span className={`material-symbols-outlined text-[18px] mt-0.5 shrink-0 ${mode === opt.value ? 'text-[#00236F]' : 'text-neutral-400'}`}>
+                            {opt.icon}
+                          </span>
+                          <div>
+                            <p className={`text-xs font-bold ${mode === opt.value ? 'text-[#00236F]' : 'text-neutral-700'}`}>
+                              {opt.label}
+                            </p>
+                            <p className="text-[9px] text-neutral-400 mt-0.5 leading-snug">
+                              {opt.desc}
+                            </p>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-neutral-600 uppercase tracking-wider mb-2">
+                      Kategori Masalah / Topik <span className="text-red-400">*</span>
+                    </label>
+                    <div className="flex flex-wrap gap-2 mb-2">
+                      {['Akademik', 'Psikologi'].map((cat) => (
+                        <button
+                          key={cat}
+                          type="button"
+                          onClick={() => setTopik(cat)}
+                          className={`px-3 py-2 rounded-xl border text-xs font-bold transition-all ${
+                            topik === cat
+                              ? 'border-[#00236F] bg-blue-50/20 text-[#00236F] ring-2 ring-[#00236F]/5'
+                              : 'border-neutral-200 hover:border-neutral-300 bg-white text-neutral-600'
+                          }`}
+                        >
+                          {cat}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-neutral-600 uppercase tracking-wider mb-2">
+                      Topik Pembahasan <span className="text-red-400">*</span>
+                    </label>
+                    <textarea
+                      value={keluhan}
+                      onChange={(e) => setKeluhan(e.target.value)}
+                      rows={4}
+                      className="w-full bg-neutral-50 border border-neutral-200 rounded-2xl px-4 py-3 text-sm text-neutral-700 focus:outline-none focus:border-[#00236F] focus:bg-white transition-all resize-none placeholder:text-neutral-300"
+                      placeholder="Contoh: Saya merasa kesulitan mengatur waktu belajar dan merasa cemas menjelang ujian..."
+                    />
+                    <p className="text-[10px] text-neutral-400 font-medium mt-1">
+                      {keluhan.length}/20 karakter minimum
                     </p>
                   </div>
-                  <div className="text-right">
-                    <p className="text-[10px] text-neutral-400 font-medium">Tanggal</p>
-                    <p className="text-sm font-bold text-neutral-700">{new Date(selectedSlot.Tanggal).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
-                  </div>
-                </div>
-              </div>
 
-              {/* Form */}
-              <div className="px-7 py-5 space-y-5">
-                <div>
-                  <label className="block text-xs font-bold text-neutral-600 uppercase tracking-wider mb-2">
-                    Metode Konseling <span className="text-red-400">*</span>
+                  <label className="flex gap-3 p-4 bg-blue-50 border border-blue-100 rounded-2xl cursor-pointer hover:bg-blue-50/80 transition-colors">
+                    <input
+                      type="checkbox"
+                      checked={privacyAgreed}
+                      onChange={(e) => setPrivacyAgreed(e.target.checked)}
+                      className="w-4 h-4 mt-0.5 rounded border-blue-200 text-[#00236F] focus:ring-[#00236F] shrink-0 cursor-pointer"
+                    />
+                    <span className="text-xs font-semibold text-blue-800 leading-relaxed">
+                      Saya memahami bahwa sesi ini bersifat rahasia, sukarela, dan data saya hanya dapat diakses oleh konselor terkait.
+                    </span>
                   </label>
-                  <div className="grid grid-cols-2 gap-3 mb-4">
-                    {[
-                      { value: 'Tatap Muka', label: 'Tatap Muka (Offline)', desc: 'Konseling langsung di ruang BK', icon: 'groups' },
-                      { value: 'Online', label: 'Online (Zoom)', desc: 'Konseling daring via video call', icon: 'videocam' }
-                    ].map((opt) => (
-                      <button
-                        key={opt.value}
-                        type="button"
-                        onClick={() => setMode(opt.value)}
-                        className={`flex items-start gap-2.5 p-3 rounded-2xl border text-left transition-all ${
-                          mode === opt.value
-                            ? 'border-[#00236F] bg-blue-50/20 ring-2 ring-[#00236F]/5'
-                            : 'border-neutral-200 hover:border-neutral-300 bg-white'
-                        }`}
-                      >
-                        <span className={`material-symbols-outlined text-[18px] mt-0.5 shrink-0 ${mode === opt.value ? 'text-[#00236F]' : 'text-neutral-400'}`}>
-                          {opt.icon}
-                        </span>
-                        <div>
-                          <p className={`text-xs font-bold ${mode === opt.value ? 'text-[#00236F]' : 'text-neutral-700'}`}>
-                            {opt.label}
-                          </p>
-                          <p className="text-[9px] text-neutral-400 mt-0.5 leading-snug">
-                            {opt.desc}
-                          </p>
-                        </div>
-                      </button>
-                    ))}
+
+                  <div className="flex gap-3 pt-1">
+                    <button
+                      onClick={() => setSelectedSlot(null)}
+                      className="flex-1 py-3 rounded-2xl border border-neutral-200 text-neutral-500 text-sm font-bold hover:bg-neutral-50 transition-colors"
+                    >
+                      Batal
+                    </button>
+                    <button
+                      onClick={handleBooking}
+                      disabled={bookingMutation.isPending}
+                      className="flex-1 py-3 rounded-2xl bg-[#00236F] text-white text-sm font-bold hover:bg-[#0B4FAE] disabled:opacity-50 transition-all flex items-center justify-center gap-2 shadow-lg shadow-blue-900/20"
+                    >
+                      {bookingMutation.isPending ? 'Memproses...' : <><span className="material-symbols-outlined" style={{ fontSize: '16px' }} >check_circle</span> Konfirmasi</>}
+                    </button>
                   </div>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-neutral-600 uppercase tracking-wider mb-2">
-                    Kategori Masalah / Topik <span className="text-red-400">*</span>
-                  </label>
-                  <div className="flex flex-wrap gap-2 mb-2">
-                    {['Akademik', 'Karir', 'Pribadi', 'Keluarga', 'Sosial', 'Lainnya'].map((cat) => (
-                      <button
-                        key={cat}
-                        type="button"
-                        onClick={() => setTopik(cat)}
-                        className={`px-3 py-2 rounded-xl border text-xs font-bold transition-all ${
-                          topik === cat
-                            ? 'border-[#00236F] bg-blue-50/20 text-[#00236F] ring-2 ring-[#00236F]/5'
-                            : 'border-neutral-200 hover:border-neutral-300 bg-white text-neutral-600'
-                        }`}
-                      >
-                        {cat}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-neutral-600 uppercase tracking-wider mb-2">
-                    Topik Pembahasan <span className="text-red-400">*</span>
-                  </label>
-                  <textarea
-                    value={keluhan}
-                    onChange={(e) => setKeluhan(e.target.value)}
-                    rows={4}
-                    className="w-full bg-neutral-50 border border-neutral-200 rounded-2xl px-4 py-3 text-sm text-neutral-700 focus:outline-none focus:border-bku-primary focus:bg-white transition-all resize-none placeholder:text-neutral-300"
-                    placeholder="Contoh: Saya merasa kesulitan mengatur waktu belajar dan merasa cemas menjelang ujian..."
-                  />
-                  <p className="text-[10px] text-neutral-400 font-medium mt-1">
-                    {keluhan.length}/20 karakter minimum
-                  </p>
-                </div>
-
-                <label className="flex gap-3 p-4 bg-blue-50 border border-blue-100 rounded-2xl cursor-pointer hover:bg-blue-50/80 transition-colors">
-                  <input
-                    type="checkbox"
-                    checked={privacyAgreed}
-                    onChange={(e) => setPrivacyAgreed(e.target.checked)}
-                    className="w-4 h-4 mt-0.5 rounded border-blue-200 text-bku-primary focus:ring-bku-primary shrink-0 cursor-pointer"
-                  />
-                  <span className="text-xs font-semibold text-blue-800 leading-relaxed">
-                    Saya memahami bahwa sesi ini bersifat rahasia, sukarela, dan data saya hanya dapat diakses oleh konselor terkait.
-                  </span>
-                </label>
-
-                <div className="flex gap-3 pt-1">
-                  <button
-                    onClick={() => setSelectedSlot(null)}
-                    className="flex-1 py-3 rounded-2xl border border-neutral-200 text-neutral-500 text-sm font-bold hover:bg-neutral-50 transition-colors"
-                  >
-                    Batal
-                  </button>
-                  <button
-                    onClick={handleBooking}
-                    disabled={bookingMutation.isPending}
-                    className="flex-1 py-3 rounded-2xl bg-bku-primary text-white text-sm font-bold hover:bg-[#0B4FAE] disabled:opacity-50 transition-all flex items-center justify-center gap-2 shadow-lg shadow-blue-900/20"
-                  >
-                    {bookingMutation.isPending ? 'Memproses...' : <><span className="material-symbols-outlined" style={{ fontSize: '16px' }} >check_circle</span> Konfirmasi</>}
-                  </button>
                 </div>
               </div>
             </div>

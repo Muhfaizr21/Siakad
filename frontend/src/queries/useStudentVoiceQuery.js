@@ -24,6 +24,8 @@ const normalizeLevel = (tujuan, status) => {
   if (String(status || '').toLowerCase() === 'selesai') return 'selesai';
   const t = String(tujuan || '').toLowerCase();
   if (t.includes('universitas')) return 'universitas';
+  if (t.includes('prodi')) return 'prodi';
+  if (t.includes('ormawa')) return 'ormawa';
   return 'fakultas';
 };
 

@@ -37,7 +37,7 @@ export default function Pengumuman() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   
   const authState = useAuthStore((s) => s)
-  const ormawaId = authState?.mahasiswa?.ormawaId || authState?.mahasiswa?.OrmawaID || authState?.user?.ormawaId || 1
+  const ormawaId = authState?.user?.ormawa_id || authState?.user?.OrmawaID || authState?.mahasiswa?.ormawaId || authState?.mahasiswa?.OrmawaID || 1
   
   const [form, setForm] = useState({ Judul: '', Isi: '', Kategori: 'umum', OrmawaID: ormawaId })
 

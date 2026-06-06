@@ -33,6 +33,7 @@ const normalizeRiwayatItem = (item = {}) => {
     keluhan: item.complaint || item.keluhan || item.Keluhan || '',
     has_medical_record: Boolean(item.has_medical_record || item.hasMedicalRecord),
     medical_record_count: Number(item.medical_record_count || item.medicalRecordCount || 0),
+    queue_number: item.queue_number || item.queueNumber || null,
   };
 };
 
@@ -90,6 +91,21 @@ const normalizeMedicalRecord = (payload = {}) => {
       mood: item.mood || item.Mood || '-',
       type: item.type || item.jenis_sesi || item.JenisSesi || 'Konseling',
       status: item.status || item.status_pasien || item.StatusPasien || '-',
+      // Screening detail
+      tujuan_pemeriksaan: item.tujuan_pemeriksaan || '',
+      tanggal_asesmen: item.tanggal_asesmen || '',
+      riwayat_keluhan: item.riwayat_keluhan || '',
+      aspek_kognitif: item.aspek_kognitif || '',
+      aspek_emosional: item.aspek_emosional || '',
+      aspek_perilaku: item.aspek_perilaku || '',
+      rekomendasi_mahasiswa: item.rekomendasi_mahasiswa || '',
+      rekomendasi_prodi: item.rekomendasi_prodi || '',
+      rekomendasi_orang_tua: item.rekomendasi_orang_tua || '',
+      tindak_lanjut: Array.isArray(item.tindak_lanjut) ? item.tindak_lanjut : [],
+      tindak_lanjut_tuntas: Boolean(item.tindak_lanjut_tuntas),
+      tindak_lanjut_lanjutan: Boolean(item.tindak_lanjut_lanjutan),
+      tindak_lanjut_rujuk: Boolean(item.tindak_lanjut_rujuk),
+      kesimpulan: item.kesimpulan || '',
     })),
   };
 };
@@ -152,6 +168,20 @@ export const useCancelBookingMutation = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['counseling', 'riwayat'] });
       queryClient.invalidateQueries({ queryKey: ['counseling', 'jadwal'] });
+    },
+  });
+};
+
+// Reschedule Booking
+export const useRescheduleMutation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, date, start, end }) => {
+      const { data } = await api.put(`/counseling/psychologist-bookings/${id}/reschedule`, { date, start, end });
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['counseling', 'riwayat'] });
     },
   });
 };

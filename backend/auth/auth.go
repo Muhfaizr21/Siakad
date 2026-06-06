@@ -195,6 +195,22 @@ func getUserPermissions(user models.User, roleName string, studentID uint) []str
 					return []string{"*"}
 				}
 				
+				if roleLower == "wakil ketua" {
+					return []string{
+						"view_dashboard", "view_notifications",
+						"view_members", "create_members", "edit_members",
+						"view_staff", "manage_staff", "view_structure", "manage_structure",
+						"view_proposal", "create_proposal", "edit_proposal", "delete_proposal",
+						"view_lpj", "create_lpj", "edit_lpj", "upload_lpj_doc", "delete_lpj",
+						"view_calendar", "create_calendar", "edit_calendar", "delete_calendar",
+						"view_attendance", "submit_attendance", "edit_attendance",
+						"view_finance", "create_finance",
+						"view_aspirations", "respond_aspirations",
+						"view_announcements", "create_announcements", "edit_announcements", "delete_announcements",
+						"view_settings",
+					}
+				}
+				
 				if roleLower == "sekretaris" {
 					return []string{
 						"view_dashboard", "view_notifications",
@@ -213,6 +229,19 @@ func getUserPermissions(user models.User, roleName string, studentID uint) []str
 						"view_dashboard", "view_notifications",
 						"view_lpj", "create_lpj", "edit_lpj", "upload_lpj_doc",
 						"view_finance", "create_finance", "delete_finance",
+					}
+				}
+
+				if roleLower == "kepala divisi" || roleLower == "kadiv" {
+					return []string{
+						"view_dashboard", "view_notifications",
+						"view_members",
+						"view_staff", "view_structure",
+						"view_proposal", "create_proposal", "edit_proposal",
+						"view_lpj", "create_lpj", "upload_lpj_doc",
+						"view_calendar", "create_calendar", "edit_calendar", "delete_calendar",
+						"view_attendance", "submit_attendance",
+						"view_announcements", "create_announcements", "edit_announcements",
 					}
 				}
 

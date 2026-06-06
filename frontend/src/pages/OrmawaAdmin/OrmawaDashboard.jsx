@@ -40,7 +40,7 @@ export default function OrmawaDashboard() {
   
   const navigate = useNavigate()
   const user = useAuthStore(state => state.user)
-  const ormawaId = useAuthStore.getState()?.mahasiswa?.ormawaId || useAuthStore.getState()?.mahasiswa?.ID || 1;
+  const ormawaId = useAuthStore.getState()?.user?.ormawa_id || useAuthStore.getState()?.user?.OrmawaID || useAuthStore.getState()?.mahasiswa?.ormawaId || useAuthStore.getState()?.mahasiswa?.ID || 1;
 
   useEffect(() => {
     const load = async () => {

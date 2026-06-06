@@ -246,6 +246,8 @@ function LevelBadge({ level }) {
   const styles = {
     fakultas: 'bg-[#EAF1FF] text-[#0B4FAE] border-[#C9D8FF]',
     universitas: 'bg-[#EEF4FF] text-[#1D4E9E] border-[#D5E2FF]',
+    prodi: 'bg-teal-50 text-teal-600 border-teal-200',
+    ormawa: 'bg-purple-50 text-purple-600 border-purple-200',
     selesai: 'bg-gray-50 text-gray-400 border-gray-100'
   };
   return (
@@ -284,6 +286,7 @@ function CreateAspirasiModal({ onClose }) {
     kategori: 'Akademik',
     judul: '',
     isi: '',
+    tujuan: 'Fakultas',
     is_anonim: false,
     lampiran: null
   });
@@ -299,7 +302,7 @@ function CreateAspirasiModal({ onClose }) {
     data.append('judul', formData.judul);
     data.append('kategori', formData.kategori);
     data.append('isi', formData.isi);
-    data.append('tujuan', 'Fakultas');
+    data.append('tujuan', formData.tujuan);
     data.append('is_anonim', formData.is_anonim);
     if (formData.lampiran) {
       data.append('lampiran', formData.lampiran);
@@ -355,6 +358,21 @@ function CreateAspirasiModal({ onClose }) {
                 </button>
               ))}
             </div>
+          </div>
+
+          {/* Tujuan Selector */}
+          <div className="space-y-3">
+            <label className="text-xs font-black text-[#171717] uppercase tracking-widest ml-1">Tujuan Aspirasi</label>
+            <select
+              value={formData.tujuan}
+              onChange={(e) => setFormData({ ...formData, tujuan: e.target.value })}
+              className="w-full px-4 py-3 bg-[#fafafa] border border-[#e5e5e5] rounded-xl font-bold text-sm focus:outline-none focus:border-bku-primary focus:ring-4 focus:ring-bku-primary/10 transition-all outline-none"
+            >
+              <option value="Fakultas">Fakultas</option>
+              <option value="Universitas">Universitas</option>
+              <option value="Prodi">Program Studi (Prodi)</option>
+              <option value="Ormawa">Organisasi Mahasiswa (Ormawa)</option>
+            </select>
           </div>
 
           <div className="space-y-6">

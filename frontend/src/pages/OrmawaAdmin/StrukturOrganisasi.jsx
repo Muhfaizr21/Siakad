@@ -8,6 +8,7 @@ import { Card, CardContent } from '../FacultyAdmin/components/card'
 import { Input } from '../FacultyAdmin/components/input'
 import { Label } from '../FacultyAdmin/components/label'
 import { Avatar, AvatarFallback } from '../FacultyAdmin/components/avatar'
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '../FacultyAdmin/components/select'
 
 import { toast, Toaster } from 'react-hot-toast'
 import { DeleteConfirmModal } from '../FacultyAdmin/components/DeleteConfirmModal'
@@ -91,7 +92,15 @@ export default function StrukturOrganisasi() {
   const [divName, setDivName] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [delDiv, setDelDiv] = useState(null)
-  const ormawaId = useAuthStore.getState()?.mahasiswa?.ormawaId || useAuthStore.getState()?.mahasiswa?.OrmawaID || 1
+  
+  // States for BPH Management
+  const [students, setStudents] = useState([])
+  const [isManageBphOpen, setIsManageBphOpen] = useState(false)
+  const [bphForm, setBphForm] = useState({ MahasiswaID: '', Role: 'Sekretaris', Divisi: '' })
+  const [bphSearchQuery, setBphSearchQuery] = useState('')
+  const [bphIsSearching, setBphIsSearching] = useState(false)
+
+  const ormawaId = useAuthStore.getState()?.user?.ormawa_id || useAuthStore.getState()?.user?.OrmawaID || useAuthStore.getState()?.mahasiswa?.ormawaId || useAuthStore.getState()?.mahasiswa?.OrmawaID || 1
 
   const fetchData = async () => {
     setLoading(true)
@@ -109,9 +118,84 @@ export default function StrukturOrganisasi() {
     }
   }
 
+  const fetchStudents = async () => {
+    try {
+      const data = await fetchWithAuth(`${API}/students`)
+      if (data.status === 'success') setStudents(data.data || [])
+    } catch {}
+  }
+
   useEffect(() => { 
     fetchData() 
+    fetchStudents()
   }, [])
+
+  const handleSaveBph = async (e) => {
+    e.preventDefault()
+    if (!bphForm.MahasiswaID) {
+      toast.error('Wajib mencari dan memilih mahasiswa terlebih dahulu!')
+      return
+    }
+    setIsSubmitting(true)
+    
+    // Check if student is already an active member
+    const existingMember = members.find(m => 
+      String(m.MahasiswaID || m.mahasiswaID || m.Mahasiswa?.id || m.Mahasiswa?.ID || '') === String(bphForm.MahasiswaID)
+    )
+    
+    const isEdit = !!existingMember
+    const url = isEdit ? `${API}/members/${existingMember.id || existingMember.ID}` : `${API}/members`
+    const method = isEdit ? 'PUT' : 'POST'
+    
+    const payload = isEdit ? {
+      Role: bphForm.Role,
+      Divisi: ''
+    } : {
+      Role: bphForm.Role,
+      Divisi: '',
+      MahasiswaID: Number(bphForm.MahasiswaID),
+      OrmawaID: Number(ormawaId)
+    }
+    
+    try {
+      const data = await fetchWithAuth(url, { 
+        method, 
+        body: JSON.stringify(payload), 
+        headers: { 'Content-Type': 'application/json' } 
+      })
+      if (data.status === 'success') {
+        toast.success(isEdit ? 'Jabatan BPH diperbarui' : 'Pengurus BPH ditambahkan')
+        setBphForm({ MahasiswaID: '', Role: 'Sekretaris', Divisi: '' })
+        setBphSearchQuery('')
+        setBphIsSearching(false)
+        fetchData()
+      } else {
+        toast.error(data.message || 'Gagal menyimpan pengurus BPH')
+      }
+    } catch {
+      toast.error('Terjadi kesalahan')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const handleRemoveBphMember = async (memberId) => {
+    if (!confirm('Apakah Anda yakin ingin menghapus pengurus BPH ini dari keanggotaan?')) return
+    setIsSubmitting(true)
+    try {
+      const data = await fetchWithAuth(`${API}/members/${memberId}`, { method: 'DELETE' })
+      if (data.status === 'success') {
+        toast.success('Pengurus BPH berhasil dihapus')
+        fetchData()
+      } else {
+        toast.error('Gagal menghapus pengurus BPH')
+      }
+    } catch {
+      toast.error('Terjadi kesalahan')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
 
   const handleAddDivision = async (e) => {
     e.preventDefault()
@@ -175,20 +259,41 @@ export default function StrukturOrganisasi() {
     return r.includes('wakil') && !pembinaIds.includes(mId)
   }) || null
   
+  const sekretarisList = members.filter(m => {
+    const r = m.Role?.toLowerCase() || ''
+    const mId = getMemberId(m)
+    return r.includes('sekretaris') && !pembinaIds.includes(mId)
+  })
+
+  const bendaharaList = members.filter(m => {
+    const r = m.Role?.toLowerCase() || ''
+    const mId = getMemberId(m)
+    return r.includes('bendahara') && !pembinaIds.includes(mId)
+  })
+
   const ketuaId = getMemberId(ketua)
   const wakilId = getMemberId(wakil)
-  
+  const sekretarisIds = sekretarisList.map(m => getMemberId(m))
+  const bendaharaIds = bendaharaList.map(m => getMemberId(m))
+
   const pengurusInti = members.filter(m => {
     const mId = getMemberId(m)
     return (
       mId !== ketuaId && 
       mId !== wakilId && 
       !pembinaIds.includes(mId) && 
+      !sekretarisIds.includes(mId) &&
+      !bendaharaIds.includes(mId) &&
       (!m.Divisi || m.Divisi === '' || m.Divisi === 'INTI')
     )
   })
 
   const getDivisionMembers = (divName) => members.filter(m => m.Divisi === divName)
+
+  const bphMembers = members.filter(m => {
+    const r = m.Role?.toLowerCase() || ''
+    return r.includes('ketua') || r.includes('wakil') || r.includes('sekretaris') || r.includes('bendahara') || r.includes('pembina') || r.includes('penanggung jawab') || r.includes('penasihat')
+  })
 
   return (
     <div className="max-w-[1600px] mx-auto px-4 py-8 md:px-8 xl:px-12 space-y-8 font-body">
@@ -227,13 +332,22 @@ export default function StrukturOrganisasi() {
             </p>
           </div>
 
-          <button
-            onClick={() => setIsAddDivOpen(true)}
-            className="flex items-center justify-center gap-2 h-12 px-6 rounded-2xl bg-bku-primary text-white hover:bg-[#0B4FAE] font-black text-[10px] tracking-[0.15em] shadow-lg shadow-blue-950/10 hover:shadow-xl transition-all duration-200 active:scale-95 w-full md:w-auto shrink-0 uppercase"
-          >
-            <span className="material-symbols-outlined block" style={{ fontSize: '18px' }}>add</span>
-            <span>Tambah Divisi</span>
-          </button>
+          <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto shrink-0">
+            <button
+              onClick={() => setIsManageBphOpen(true)}
+              className="flex items-center justify-center gap-2 h-12 px-6 rounded-2xl bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 font-black text-[10px] tracking-[0.15em] shadow-sm hover:shadow transition-all duration-200 active:scale-95 w-full sm:w-auto uppercase"
+            >
+              <span className="material-symbols-outlined block" style={{ fontSize: '18px' }}>group_add</span>
+              <span>Kelola Pengurus BPH</span>
+            </button>
+            <button
+              onClick={() => setIsAddDivOpen(true)}
+              className="flex items-center justify-center gap-2 h-12 px-6 rounded-2xl bg-bku-primary text-white hover:bg-[#0B4FAE] font-black text-[10px] tracking-[0.15em] shadow-lg shadow-blue-950/10 hover:shadow-xl transition-all duration-200 active:scale-95 w-full sm:w-auto uppercase"
+            >
+              <span className="material-symbols-outlined block" style={{ fontSize: '18px' }}>add</span>
+              <span>Tambah Divisi</span>
+            </button>
+          </div>
         </div>
       </section>
 
@@ -260,14 +374,38 @@ export default function StrukturOrganisasi() {
             </div>
           )}
 
-          {/* Root: Ketua */}
+          {/* Root: Ketua / Wakil / BPH */}
           <div className="flex flex-col items-center gap-4">
             {ketua && (
               <OrgCard member={ketua} size="lg" />
             )}
-            {/* Connector */}
-            {wakil && <div className="h-8 w-px bg-slate-200" />}
-            {wakil && <OrgCard member={wakil} size="md" />}
+            
+            {wakil && (
+              <>
+                <div className="h-8 w-px bg-slate-200" />
+                <OrgCard member={wakil} size="md" />
+              </>
+            )}
+
+            {(sekretarisList.length > 0 || bendaharaList.length > 0) && (
+              <>
+                <div className="h-8 w-px bg-slate-200" />
+                <div className="flex flex-col items-center gap-2">
+                  <div className="flex items-center gap-2">
+                    <span className="h-1.5 w-1.5 bg-blue-500 rounded-full animate-pulse" />
+                    <p className="text-[9px] font-black text-blue-600 tracking-[0.3em] font-headline uppercase">Sekretaris & Bendahara</p>
+                  </div>
+                  <div className="flex flex-wrap gap-4 justify-center">
+                    {sekretarisList.map(m => (
+                      <OrgCard key={getMemberId(m)} member={m} size="md" />
+                    ))}
+                    {bendaharaList.map(m => (
+                      <OrgCard key={getMemberId(m)} member={m} size="md" />
+                    ))}
+                  </div>
+                </div>
+              </>
+            )}
           </div>
 
           {/* Pengurus Inti */}
@@ -405,6 +543,174 @@ export default function StrukturOrganisasi() {
         description="Divisi ini akan dihapus. Anggota yang berada di divisi ini tidak akan ikut terhapus." 
         loading={isSubmitting} 
       />
+
+      {/* Manage BPH Modal */}
+      <Modal
+        open={isManageBphOpen}
+        onClose={() => setIsManageBphOpen(false)}
+        title="Kelola Pengurus BPH"
+        subtitle="Atur jabatan pimpinan inti organisasi (Ketua, Wakil Ketua, Sekretaris, Bendahara, Pembina)."
+        icon={<span className="material-symbols-outlined stroke-[3px]">group_add</span>}
+        maxWidth="max-w-lg"
+      >
+        <ModalBody className="max-h-[70vh] overflow-y-auto space-y-6">
+          {/* Form to Assign Role */}
+          <form onSubmit={handleSaveBph} className="bg-slate-50 p-4 rounded-2xl border border-slate-200/60 space-y-4">
+            <h4 className="text-xs font-black text-slate-800 uppercase tracking-wider font-headline">Tambah/Ubah Jabatan BPH</h4>
+            
+            <div className="space-y-2 relative">
+              <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 font-headline">Pilih Mahasiswa</Label>
+              <div className="relative">
+                <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" style={{ fontSize: '18px' }}>search</span>
+                <Input
+                  type="text"
+                  placeholder="Ketik nama atau NIM mahasiswa..."
+                  value={bphSearchQuery}
+                  onChange={(e) => {
+                    setBphSearchQuery(e.target.value);
+                    setBphIsSearching(true);
+                    if (bphForm.MahasiswaID) setBphForm({ ...bphForm, MahasiswaID: '' });
+                  }}
+                  className="pl-11 pr-10 h-12 rounded-2xl border-slate-200 bg-white focus:bg-white focus:border-bku-primary focus:ring-2 focus:ring-bku-primary/10 transition-all font-bold text-sm"
+                />
+                {bphForm.MahasiswaID && (
+                  <span className="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-emerald-500 font-bold" style={{ fontSize: '18px' }}>check_circle</span>
+                )}
+              </div>
+
+              {bphIsSearching && bphSearchQuery.trim() !== '' && (
+                <div className="absolute z-50 w-full mt-1 bg-white border border-slate-200 rounded-2xl shadow-xl max-h-48 overflow-y-auto p-1 flex flex-col">
+                  {students
+                    .filter(s => s?.Nama?.toLowerCase().includes(bphSearchQuery.toLowerCase()) || s?.NIM?.toLowerCase().includes(bphSearchQuery.toLowerCase()))
+                    .slice(0, 6)
+                    .map(s => {
+                      const studentFotoUrl = getFullUrl(s?.FotoURL || s?.foto_url || s?.Foto || s?.Pengguna?.Foto || null);
+                      return (
+                        <button
+                          type="button"
+                          key={s.id || s.ID}
+                          className="w-full flex items-center gap-3 px-3 py-2 text-left rounded-xl cursor-pointer transition-all duration-150 my-0.5 hover:bg-blue-50/50 text-slate-700 font-bold"
+                          onClick={() => {
+                            setBphForm({ ...bphForm, MahasiswaID: s?.id?.toString() || s?.ID?.toString() });
+                            setBphSearchQuery(`${s.Nama} (${s.NIM})`);
+                            setBphIsSearching(false);
+                          }}
+                        >
+                          {studentFotoUrl ? (
+                            <img
+                              src={studentFotoUrl}
+                              alt={s.Nama}
+                              className="w-7 h-7 rounded-lg object-cover shrink-0 border border-slate-200/50 shadow-sm"
+                              onError={(e) => { e.target.src = ''; }}
+                            />
+                          ) : (
+                            <div className="w-7 h-7 rounded-lg bg-slate-100 flex items-end justify-center overflow-hidden shrink-0 border border-slate-200/40">
+                              <span className="material-symbols-outlined text-slate-400 text-base mb-0.5">person</span>
+                            </div>
+                          )}
+                          <div className="flex flex-col min-w-0">
+                            <span className="text-xs font-bold text-slate-800 truncate">{s.Nama}</span>
+                            <span className="text-[9px] text-slate-400 font-medium font-mono">{s.NIM}</span>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  {students.filter(s => s?.Nama?.toLowerCase().includes(bphSearchQuery.toLowerCase()) || s?.NIM?.toLowerCase().includes(bphSearchQuery.toLowerCase())).length === 0 && (
+                    <div className="px-3 py-4 text-center text-xs font-medium text-slate-400">
+                      Mahasiswa tidak ditemukan
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-end">
+              <div className="space-y-2">
+                <Label className="text-[9px] md:text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 font-headline">Jabatan BPH</Label>
+                <Select value={bphForm.Role} onValueChange={(val) => setBphForm({ ...bphForm, Role: val })}>
+                  <SelectTrigger className="w-full h-12 rounded-2xl border border-slate-200 bg-white px-4 text-xs md:text-sm font-bold text-slate-700 focus:border-bku-primary focus:ring-2 focus:ring-bku-primary/10 transition-all cursor-pointer">
+                    <SelectValue placeholder="Pilih Jabatan BPH" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl border-slate-200 shadow-xl p-1 bg-white font-body">
+                    {['Ketua', 'Wakil Ketua', 'Sekretaris', 'Bendahara', 'Pembina'].map((r) => (
+                      <SelectItem key={r} value={r} className="rounded-lg text-xs py-1.5 focus:bg-blue-50 focus:text-blue-700 cursor-pointer font-bold text-slate-700">
+                        {r}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <Button
+                type="submit"
+                disabled={isSubmitting || !bphForm.MahasiswaID}
+                className="h-12 w-full rounded-2xl bg-bku-primary hover:bg-[#0B4FAE] text-white flex items-center justify-center text-xs font-bold font-headline uppercase tracking-wider"
+              >
+                {isSubmitting ? (
+                  <span className="material-symbols-outlined animate-spin size-4 mr-2">sync</span>
+                ) : (
+                  <span className="material-symbols-outlined mr-2" style={{ fontSize: '16px' }}>save</span>
+                )}
+                Simpan
+              </Button>
+            </div>
+          </form>
+
+          {/* List of Current BPH Members */}
+          <div className="space-y-3">
+            <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest font-headline">Daftar Pengurus BPH Aktif</h4>
+            <div className="divide-y divide-slate-100 max-h-60 overflow-y-auto border border-slate-100 rounded-2xl bg-white p-2">
+              {bphMembers.length === 0 ? (
+                <p className="text-center text-xs text-slate-400 py-6 font-medium">Belum ada pengurus BPH yang terdaftar.</p>
+              ) : (
+                bphMembers.map(m => {
+                  const fotoUrl = getFullUrl(m.Mahasiswa?.FotoURL || m.Mahasiswa?.foto_url || m.Mahasiswa?.Foto || m.Mahasiswa?.Pengguna?.Foto || null);
+                  const mId = getMemberId(m)
+                  return (
+                    <div key={mId} className="flex items-center justify-between py-2 px-1 hover:bg-slate-50 rounded-xl transition-colors duration-150">
+                      <div className="flex items-center gap-3">
+                        {fotoUrl ? (
+                          <img
+                            src={fotoUrl}
+                            alt={m.Mahasiswa?.Nama || 'BPH'}
+                            className="w-9 h-9 rounded-xl object-cover shrink-0 shadow-sm border border-slate-200"
+                            onError={(e) => { e.target.src = ''; }}
+                          />
+                        ) : (
+                          <div className="w-9 h-9 rounded-xl bg-slate-100 flex items-end justify-center overflow-hidden shrink-0 border border-slate-200/60 shadow-sm">
+                            <span className="material-symbols-outlined text-slate-400 text-xl mb-0.5">person</span>
+                          </div>
+                        )}
+                        <div className="flex flex-col min-w-0 leading-none gap-0.5">
+                          <span className="font-bold text-slate-900 font-headline tracking-tighter text-xs truncate max-w-[200px]">{m.Mahasiswa?.Nama || '—'}</span>
+                          <span className="text-[9px] text-slate-400 font-semibold tracking-tight font-mono">{m.Mahasiswa?.NIM || '—'}</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className={cn('text-[8px] font-black tracking-widest px-2 py-0.5 rounded-md uppercase font-headline inline-block scale-90', getRoleBadge(m.Role || 'Anggota'))}>
+                          {m.Role}
+                        </span>
+                        <button 
+                          onClick={() => handleRemoveBphMember(mId)}
+                          disabled={isSubmitting}
+                          className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors duration-150"
+                          title="Hapus BPH"
+                        >
+                          <span className="material-symbols-outlined block" style={{ fontSize: '16px' }} >delete</span>
+                        </button>
+                      </div>
+                    </div>
+                  )
+                })
+              )}
+            </div>
+          </div>
+        </ModalBody>
+        <ModalFooter>
+          <ModalBtn variant="ghost" type="button" onClick={() => setIsManageBphOpen(false)}>
+            Tutup
+          </ModalBtn>
+        </ModalFooter>
+      </Modal>
     </div>
   )
 }

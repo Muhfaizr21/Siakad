@@ -5,6 +5,7 @@ const quickAccess = [
   { name: 'KENCANA', icon: 'school', path: '/student/kencana', bg: 'bg-blue-50', hexColor: '#2563eb', border: 'border-blue-100', label: 'Program Pengenalan Kampus & PKKMB' },
   { name: 'Achievement', icon: 'emoji_events', path: '/student/achievement', bg: 'bg-amber-50', hexColor: '#d97706', border: 'border-amber-100', label: 'Lapor dan kelola prestasi akademikmu' },
   { name: 'Scholarship', icon: 'workspace_premium', path: '/student/scholarship', bg: 'bg-emerald-50', hexColor: '#16a34a', border: 'border-emerald-100', label: 'Temukan dan daftar beasiswa tersedia' },
+  { name: 'Organisasi', icon: 'groups', path: '/student/organisasi', bg: 'bg-[#EAF1FF]', hexColor: '#00236F', border: 'border-[#C9D8FF]', label: 'Kelola keorganisasian dan daftar Ormawa' },
   { name: 'Counseling', icon: 'support_agent', path: '/student/counseling', bg: 'bg-violet-50', hexColor: '#7c3aed', border: 'border-violet-100', label: 'Jadwalkan sesi konseling bersama ahli' },
   { name: 'Health', icon: 'monitor_heart', path: '/student/health', bg: 'bg-rose-50', hexColor: '#e11d48', border: 'border-rose-100', label: 'Pantau data kesehatanmu' },
   { name: 'Student Voice', icon: 'chat', path: '/student/voice', bg: 'bg-indigo-50', hexColor: '#4f46e5', border: 'border-indigo-100', label: 'Sampaikan aspirasi dan pengaduanmu' },
@@ -20,7 +21,7 @@ export default function QuickAccessGrid() {
       </div>
 
       {/* Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-4">
         {quickAccess.map((item) => (
           <NavLink
             key={item.name}

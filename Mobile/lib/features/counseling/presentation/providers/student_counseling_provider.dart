@@ -224,6 +224,42 @@ class StudentCounselingProvider extends ChangeNotifier {
     }
   }
 
+  // ─── Reschedule Booking ──────────────────────────────────────────────────────
+  bool _rescheduleLoading = false;
+  bool get rescheduleLoading => _rescheduleLoading;
+
+  String? _rescheduleError;
+  String? get rescheduleError => _rescheduleError;
+
+  Future<bool> rescheduleBooking({
+    required String bookingId,
+    required String date,
+    required String start,
+    required String end,
+  }) async {
+    _rescheduleLoading = true;
+    _rescheduleError = null;
+    notifyListeners();
+    try {
+      await _apiClient.client.put('/counseling/psychologist-bookings/$bookingId/reschedule', data: {
+        'date': date,
+        'start': start,
+        'end': end,
+      });
+      // Refresh bookings after successful reschedule
+      await loadMyBookings();
+      _rescheduleLoading = false;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      log('StudentCounselingProvider.rescheduleBooking error: $e');
+      _rescheduleError = _extractErrorMessage(e);
+      _rescheduleLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
   // ─── Faculty Statistics ──────────────────────────────────────────────────────
   List<Map<String, dynamic>> _facultyStats = [];
   List<Map<String, dynamic>> get facultyStats => _facultyStats;

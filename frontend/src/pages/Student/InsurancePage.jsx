@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useLocation } from 'react-router-dom';
 import { insuranceService } from '../../services/api';
 import toast from 'react-hot-toast';
 
@@ -73,6 +74,7 @@ const ProviderBadge = ({ provider }) => {
 };
 
 export default function InsurancePage() {
+  const location = useLocation();
   const [activeTab, setActiveTab] = useState('ajuan'); // 'ajuan' | 'riwayat'
   const [claims, setClaims] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -89,6 +91,18 @@ export default function InsurancePage() {
   });
 
   const [file, setFile] = useState(null);
+
+  // Pre-fill form from routing state (e.g. from Health Screening detail)
+  useEffect(() => {
+    if (location.state) {
+      setForm(prev => ({
+        ...prev,
+        jenis_provider: location.state.jenis_provider || 'BKU_Assurance',
+        tanggal_kejadian: location.state.tanggal || '',
+        deskripsi: location.state.deskripsi || '',
+      }));
+    }
+  }, [location.state]);
 
   // Fetch claims
   const fetchClaims = async () => {

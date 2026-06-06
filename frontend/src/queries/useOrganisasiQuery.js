@@ -35,3 +35,33 @@ export const useDeleteOrganisasiMutation = () => {
   });
 };
 
+export const useOrmawaListQuery = () => {
+  return useQuery({
+    queryKey: ['organisasi', 'ormawa-list'],
+    queryFn: async () => {
+      const { data } = await api.get('/organisasi/ormawa-list');
+      return data.data;
+    },
+  });
+};
+
+export const useDaftarOrmawaMutation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (payload) => api.post('/organisasi/daftar', payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['organisasi', 'pendaftaran'] });
+    },
+  });
+};
+
+export const usePendaftaranListQuery = () => {
+  return useQuery({
+    queryKey: ['organisasi', 'pendaftaran'],
+    queryFn: async () => {
+      const { data } = await api.get('/organisasi/pendaftaran');
+      return data.data;
+    },
+  });
+};
+

@@ -55,8 +55,15 @@ func GetHealthRiwayat(c *fiber.Ctx) error {
 		return c.Status(404).JSON(fiber.Map{"success": false, "message": "Mahasiswa tidak ditemukan"})
 	}
 
+	sumber := c.Query("sumber")
+
 	var histories []models.Kesehatan
-	err = config.DB.Where("mahasiswa_id = ?", student.ID).Order("created_at DESC").Find(&histories).Error
+	query := config.DB.Where("mahasiswa_id = ?", student.ID)
+	if sumber != "" && sumber != "Semua" {
+		query = query.Where("sumber = ?", sumber)
+	}
+
+	err = query.Order("created_at DESC").Find(&histories).Error
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"success": false, "message": "Gagal mengambil riwayat kesehatan"})
 	}
@@ -140,6 +147,7 @@ func CreateHealthRecord(c *fiber.Ctx) error {
 		GulaDarah:        input.GulaDarah,
 		GolonganDarah:    golonganDarah,
 		StatusKesehatan:  statusKesehatan,
+		Sumber:           "mandiri",
 	}
 
 	if err := config.DB.Create(&record).Error; err != nil {

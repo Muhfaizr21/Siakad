@@ -321,6 +321,16 @@ func GetStudentPsychologistBookings(c *fiber.Ctx) error {
 			Count(&noteCount)
 		item["has_medical_record"] = noteCount > 0
 		item["medical_record_count"] = noteCount
+
+		var queueNumber int64 = 0
+		if booking.Status != "Dibatalkan" && booking.Status != "Ditolak" {
+			config.DB.Model(&models.PsikologBooking{}).
+				Where("psikolog_id = ? AND DATE(tanggal) = DATE(?) AND created_at <= ? AND status IN ?",
+					booking.PsikologID, booking.Tanggal, booking.CreatedAt, []string{"Menunggu", "Dikonfirmasi", "Selesai"}).
+				Count(&queueNumber)
+		}
+		item["queue_number"] = queueNumber
+
 		items = append(items, item)
 	}
 	return jsonSuccess(c, items)
@@ -355,6 +365,23 @@ func GetStudentPsychologistMedicalRecord(c *fiber.Ctx) error {
 			psikologName = record.Booking.Psikolog.Nama
 		}
 
+		// Tindak lanjut flags
+		tindakLanjut := []string{}
+		if record.TindakLanjutTuntas {
+			tindakLanjut = append(tindakLanjut, "Tuntas")
+		}
+		if record.TindakLanjutLanjutan {
+			tindakLanjut = append(tindakLanjut, "Lanjutan")
+		}
+		if record.TindakLanjutRujuk {
+			tindakLanjut = append(tindakLanjut, "Rujuk")
+		}
+
+		tanggalAsesmen := ""
+		if record.TanggalAsesmen != nil {
+			tanggalAsesmen = record.TanggalAsesmen.Format("02 Jan 2006")
+		}
+
 		items = append(items, fiber.Map{
 			"id":             record.ID,
 			"booking_id":     record.BookingID,
@@ -368,6 +395,21 @@ func GetStudentPsychologistMedicalRecord(c *fiber.Ctx) error {
 			"mood":           record.Mood,
 			"type":           firstNonEmpty(record.JenisSesi, "Konseling"),
 			"status":         firstNonEmpty(record.StatusPasien, record.Mood, "Tercatat"),
+			// Screening detail fields
+			"tujuan_pemeriksaan":     record.TujuanPemeriksaan,
+			"tanggal_asesmen":        tanggalAsesmen,
+			"riwayat_keluhan":        record.RiwayatKeluhan,
+			"aspek_kognitif":         record.AspekKognitif,
+			"aspek_emosional":        record.AspekEmosional,
+			"aspek_perilaku":         record.AspekPerilaku,
+			"rekomendasi_mahasiswa":  record.RekomendasiMahasiswa,
+			"rekomendasi_prodi":      record.RekomendasiProdi,
+			"rekomendasi_orang_tua":  record.RekomendasiOrangTua,
+			"tindak_lanjut":          tindakLanjut,
+			"tindak_lanjut_tuntas":   record.TindakLanjutTuntas,
+			"tindak_lanjut_lanjutan": record.TindakLanjutLanjutan,
+			"tindak_lanjut_rujuk":    record.TindakLanjutRujuk,
+			"kesimpulan":             record.Kesimpulan,
 		})
 	}
 
@@ -514,6 +556,86 @@ func CancelStudentPsychologistBooking(c *fiber.Ctx) error {
 		return err
 	}
 	return jsonSuccess(c, fiber.Map{"id": booking.ID, "status": "Dibatalkan"})
+}
+
+// RescheduleStudentPsychologistBooking allows a student to reschedule an existing booking.
+func RescheduleStudentPsychologistBooking(c *fiber.Ctx) error {
+	student, err := getStudent(c)
+	if err != nil {
+		return err
+	}
+
+	var booking models.PsikologBooking
+	if err := config.DB.Preload("Psikolog").
+		Where("id = ? AND mahasiswa_id = ?", c.Params("id"), student.ID).
+		First(&booking).Error; err != nil {
+		return fiber.NewError(fiber.StatusNotFound, "Booking tidak ditemukan")
+	}
+	if booking.Status != "Menunggu" && booking.Status != "Dikonfirmasi" {
+		return fiber.NewError(fiber.StatusBadRequest, "Hanya booking berstatus Menunggu atau Dikonfirmasi yang dapat dijadwalkan ulang")
+	}
+
+	var body struct {
+		Date  string `json:"date"`
+		Start string `json:"start"`
+		End   string `json:"end"`
+	}
+	if err := c.BodyParser(&body); err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, "Payload tidak valid")
+	}
+	if strings.TrimSpace(body.Date) == "" || strings.TrimSpace(body.Start) == "" {
+		return fiber.NewError(fiber.StatusBadRequest, "date dan start wajib diisi")
+	}
+
+	newDate, err := time.Parse("2006-01-02", strings.TrimSpace(body.Date))
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, "date wajib berformat YYYY-MM-DD")
+	}
+	if newDate.Before(time.Now().Truncate(24 * time.Hour)) {
+		return fiber.NewError(fiber.StatusBadRequest, "Tanggal reschedule tidak boleh di masa lalu")
+	}
+
+	// Check if the new slot already has an active booking (excluding this one)
+	var existing int64
+	config.DB.Model(&models.PsikologBooking{}).
+		Where("psikolog_id = ? AND jam_mulai = ? AND DATE(tanggal) = DATE(?) AND status IN ? AND id != ?",
+			booking.PsikologID, body.Start, newDate, []string{"Menunggu", "Dikonfirmasi"}, booking.ID).
+		Count(&existing)
+	if existing > 0 {
+		return fiber.NewError(fiber.StatusConflict, "Slot tersebut sudah terisi oleh booking lain")
+	}
+
+	end := body.End
+	if strings.TrimSpace(end) == "" {
+		end = booking.JamSelesai
+	}
+
+	updates := map[string]any{
+		"tanggal":     newDate,
+		"jam_mulai":   body.Start,
+		"jam_selesai": end,
+		"status":      "Menunggu",
+		"link_meeting": "",
+	}
+	if err := config.DB.Model(&booking).Updates(updates).Error; err != nil {
+		return err
+	}
+
+	// Notify psychologist
+	notification := models.PsikologNotification{
+		PsikologID: booking.PsikologID,
+		UserID:     booking.Psikolog.UserID,
+		Judul:      "Permintaan Reschedule Konseling",
+		Deskripsi:  fmt.Sprintf("%s mengajukan reschedule ke %s pukul %s.", student.Nama, newDate.Format("02 Jan 2006"), body.Start),
+		Tipe:       "reschedule",
+		IsRead:     false,
+	}
+	_ = config.DB.Create(&notification).Error
+
+	if err := config.DB.Preload("Psikolog").First(&booking, booking.ID).Error; err != nil {
+		return err
+	}
+	return jsonSuccess(c, psychologistBookingResponse(booking))
 }
 
 func nextDateForIndonesianDay(day string) time.Time {

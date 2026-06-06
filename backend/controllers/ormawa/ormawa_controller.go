@@ -796,6 +796,23 @@ func seedDefaultOrmawaRoles(db *gorm.DB, ormawaId uint) error {
 			},
 		},
 		{
+			Nama:      "Wakil Ketua",
+			Deskripsi: "Membantu dan mewakili Ketua dalam mengelola organisasi, memiliki akses hampir setara kecuali pengaturan RBAC dan sistem.",
+			Hak: []string{
+				"view_dashboard", "view_notifications",
+				"view_members", "create_members", "edit_members",
+				"view_staff", "manage_staff", "view_structure", "manage_structure",
+				"view_proposal", "create_proposal", "edit_proposal", "delete_proposal",
+				"view_lpj", "create_lpj", "edit_lpj", "upload_lpj_doc", "delete_lpj",
+				"view_calendar", "create_calendar", "edit_calendar", "delete_calendar",
+				"view_attendance", "submit_attendance", "edit_attendance",
+				"view_finance", "create_finance",
+				"view_aspirations", "respond_aspirations",
+				"view_announcements", "create_announcements", "edit_announcements", "delete_announcements",
+				"view_settings",
+			},
+		},
+		{
 			Nama:      "Sekretaris",
 			Deskripsi: "Mengelola persuratan, proposal, laporan pertanggungjawaban (LPJ), agenda kalender, dan data keanggotaan.",
 			Hak: []string{
@@ -824,6 +841,20 @@ func seedDefaultOrmawaRoles(db *gorm.DB, ormawaId uint) error {
 			Hak: []string{
 				"view_dashboard", "view_notifications",
 				"view_calendar", "view_announcements",
+			},
+		},
+		{
+			Nama:      "Kepala Divisi",
+			Deskripsi: "Mengelola agenda kegiatan, melakukan absensi kepengurusan, dan menyusun draf pengajuan proposal/LPJ divisi.",
+			Hak: []string{
+				"view_dashboard", "view_notifications",
+				"view_members",
+				"view_staff", "view_structure",
+				"view_proposal", "create_proposal", "edit_proposal",
+				"view_lpj", "create_lpj", "upload_lpj_doc",
+				"view_calendar", "create_calendar", "edit_calendar", "delete_calendar",
+				"view_attendance", "submit_attendance",
+				"view_announcements", "create_announcements", "edit_announcements",
 			},
 		},
 	}

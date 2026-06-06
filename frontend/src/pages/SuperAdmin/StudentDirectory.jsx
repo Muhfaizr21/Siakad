@@ -31,7 +31,7 @@ const Building2 = ({ size, className, ...props }) => <span className={`material-
 
 
 const EMPTY_FORM = { 
-  NIM: '', Nama: '', EmailKampus: '', FakultasID: '', 
+  NIM: '', Nama: '', EmailKampus: '', password: '', FakultasID: '', 
   ProgramStudiID: '', SemesterSekarang: 1, StatusAkun: 'Aktif', 
   Alamat: '', TahunMasuk: new Date().getFullYear() 
 }
@@ -164,6 +164,7 @@ export default function StudentDirectory() {
       NIM: row.NIM || '', 
       Nama: row.Nama || '', 
       EmailKampus: row.EmailKampus || row.Pengguna?.Email || '', 
+      password: '',
       FakultasID: String(row.FakultasID || ''), 
       ProgramStudiID: String(row.ProgramStudiID || ''), 
       SemesterSekarang: row.SemesterSekarang || 1, 
@@ -520,73 +521,90 @@ export default function StudentDirectory() {
               </div>
             </DialogHeader>
 
-            <form onSubmit={handleSave} className="p-6 sm:p-10 pt-4 sm:pt-8 space-y-4 sm:space-y-6 max-h-[60vh] sm:max-h-[65vh] overflow-y-auto">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-                <div className="space-y-2">
-                  <Label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 font-headline">NIM / Student ID</Label>
-                  <Input required value={form.NIM} onChange={e => setForm({ ...form, NIM: e.target.value })} placeholder="BKU..." className="h-11 sm:h-12 rounded-xl border-slate-200/60 bg-white/50 focus:bg-white font-black text-sm font-headline tabular-nums" />
+            <form onSubmit={handleSave} className="p-6 sm:p-8 space-y-5 max-h-[60vh] sm:max-h-[65vh] overflow-y-auto">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
+                <div className="space-y-1.5">
+                  <Label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-1 font-jakarta">NIM / Student ID</Label>
+                  <Input required value={form.NIM} onChange={e => setForm({ ...form, NIM: e.target.value })} placeholder="BKU..." className="h-11 rounded-xl border-slate-200 bg-slate-50/30 focus:bg-white font-semibold text-sm text-slate-800 focus:border-bku-primary font-jakarta tabular-nums" />
                 </div>
-                <div className="space-y-2">
-                  <Label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 font-headline">Full Legal Name</Label>
-                  <Input required value={form.Nama} onChange={e => setForm({ ...form, Nama: e.target.value })} placeholder="Full name..." className="h-11 sm:h-12 rounded-xl border-slate-200/60 bg-white/50 focus:bg-white font-black text-sm font-headline" />
+                <div className="space-y-1.5">
+                  <Label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-1 font-jakarta">Full Legal Name</Label>
+                  <Input required value={form.Nama} onChange={e => setForm({ ...form, Nama: e.target.value })} placeholder="Full name..." className="h-11 rounded-xl border-slate-200 bg-slate-50/30 focus:bg-white font-semibold text-sm text-slate-800 focus:border-bku-primary font-jakarta" />
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <Label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 font-headline">Academic Email</Label>
-                <Input required type="email" value={form.EmailKampus} onChange={e => setForm({ ...form, EmailKampus: e.target.value })} placeholder="id@bku.ac.id" className="h-11 sm:h-12 rounded-xl border-slate-200/60 bg-white/50 focus:bg-white font-black text-sm font-headline" />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
+                <div className="space-y-1.5 sm:col-span-1">
+                  <Label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-1 font-jakarta">Academic Email</Label>
+                  <Input required type="email" value={form.EmailKampus} onChange={e => setForm({ ...form, EmailKampus: e.target.value })} placeholder="id@bku.ac.id" className="h-11 rounded-xl border-slate-200 bg-slate-50/30 focus:bg-white font-semibold text-sm text-slate-800 focus:border-bku-primary font-jakarta" />
+                </div>
+                <div className="space-y-1.5 sm:col-span-1">
+                  <Label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-1 font-jakarta">
+                    {isEditMode ? 'New Password (Optional)' : 'Account Password'}
+                  </Label>
+                  <Input 
+                    required={!isEditMode} 
+                    type="password" 
+                    value={form.password} 
+                    onChange={e => setForm({ ...form, password: e.target.value })} 
+                    placeholder={isEditMode ? "Leave blank to keep current..." : "Set password..."} 
+                    className="h-11 rounded-xl border-slate-200 bg-slate-50/30 focus:bg-white font-semibold text-sm text-slate-800 focus:border-bku-primary font-jakarta" 
+                  />
+                </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-                <div className="space-y-2">
-                  <Label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 font-headline">Faculty Branch</Label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
+                <div className="space-y-1.5">
+                  <Label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-1 font-jakarta">Faculty Branch</Label>
                   <Select value={String(form.FakultasID)} onValueChange={v => setForm({ ...form, FakultasID: v, ProgramStudiID: '' })}>
-                    <SelectTrigger className="h-11 sm:h-12 rounded-xl border-slate-200/60 bg-white/50 font-black font-headline text-xs uppercase tracking-widest"><SelectValue placeholder="SELECT FACULTY" /></SelectTrigger>
+                    <SelectTrigger className="h-11 rounded-xl border-slate-200 bg-slate-50/30 font-semibold text-slate-700 text-sm font-jakarta"><SelectValue placeholder="Pilih Fakultas" /></SelectTrigger>
                     <SelectContent className="rounded-xl shadow-2xl border-slate-100">
-                      {faculties.map(f => <SelectItem key={f.id || f.ID} value={String(f.id || f.ID)} className="text-[10px] font-black font-headline uppercase tracking-widest">{f.Nama}</SelectItem>)}
+                      {faculties.map(f => <SelectItem key={f.id || f.ID} value={String(f.id || f.ID)} className="text-xs font-semibold text-slate-700 font-jakarta">{f.Nama}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="space-y-2">
-                  <Label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 font-headline">Academic Program</Label>
+                <div className="space-y-1.5">
+                  <Label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-1 font-jakarta">Academic Program</Label>
                   <Select value={String(form.ProgramStudiID)} onValueChange={v => setForm({ ...form, ProgramStudiID: v })}>
-                    <SelectTrigger className="h-11 sm:h-12 rounded-xl border-slate-200/60 bg-white/50 font-black font-headline text-xs uppercase tracking-widest"><SelectValue placeholder="SELECT PRODI" /></SelectTrigger>
+                    <SelectTrigger className="h-11 rounded-xl border-slate-200 bg-slate-50/30 font-semibold text-slate-700 text-sm font-jakarta"><SelectValue placeholder="Pilih Prodi" /></SelectTrigger>
                     <SelectContent className="rounded-xl shadow-2xl border-slate-100">
                       {prodi.filter(p => !form.FakultasID || parseInt(p.FakultasID) === parseInt(form.FakultasID)).map(p => (
-                        <SelectItem key={p.id || p.ID} value={String(p.id || p.ID)} className="text-[10px] font-black font-headline uppercase tracking-widest">{p.Nama}</SelectItem>
+                        <SelectItem key={p.id || p.ID} value={String(p.id || p.ID)} className="text-xs font-semibold text-slate-700 font-jakarta">{p.Nama}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-                <div className="space-y-2">
-                  <Label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 font-headline">Account Status</Label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
+                <div className="space-y-1.5">
+                  <Label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-1 font-jakarta">Account Status</Label>
                   <Select value={form.StatusAkun} onValueChange={v => setForm({ ...form, StatusAkun: v })}>
-                    <SelectTrigger className="h-11 sm:h-12 rounded-xl border-slate-200/60 bg-white/50 font-black font-headline text-xs uppercase tracking-widest"><SelectValue /></SelectTrigger>
+                    <SelectTrigger className="h-11 rounded-xl border-slate-200 bg-slate-50/30 font-semibold text-slate-700 text-sm font-jakarta"><SelectValue /></SelectTrigger>
                     <SelectContent className="rounded-xl shadow-2xl border-slate-100">
-                      {['Aktif', 'Cuti', 'Lulus', 'Nonaktif'].map(s => <SelectItem key={s} value={s} className="text-[10px] font-black font-headline uppercase tracking-widest">{s}</SelectItem>)}
+                      {['Aktif', 'Cuti', 'Lulus', 'Nonaktif'].map(s => <SelectItem key={s} value={s} className="text-xs font-semibold text-slate-700 font-jakarta">{s}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="space-y-2">
-                  <Label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 font-headline">Current Semester</Label>
-                  <Input type="number" min={1} max={14} value={form.SemesterSekarang} onChange={e => setForm({ ...form, SemesterSekarang: e.target.value })} className="h-11 sm:h-12 rounded-xl border-slate-200/60 bg-white/50 font-black font-headline text-sm tabular-nums" />
+                <div className="space-y-1.5">
+                  <Label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-1 font-jakarta">Current Semester</Label>
+                  <Input type="number" min={1} max={14} value={form.SemesterSekarang} onChange={e => setForm({ ...form, SemesterSekarang: e.target.value })} className="h-11 rounded-xl border-slate-200 bg-slate-50/30 focus:bg-white font-semibold text-sm text-slate-850 focus:border-bku-primary font-jakarta tabular-nums" />
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <Label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 font-headline">Admission Batch (Year)</Label>
-                <Input type="number" value={form.TahunMasuk} onChange={e => setForm({ ...form, TahunMasuk: e.target.value })} className="h-11 sm:h-12 rounded-xl border-slate-200/60 bg-white/50 font-black font-headline text-sm tabular-nums" />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
+                <div className="space-y-1.5 sm:col-span-2">
+                  <Label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-1 font-jakarta">Admission Batch (Year)</Label>
+                  <Input type="number" value={form.TahunMasuk} onChange={e => setForm({ ...form, TahunMasuk: e.target.value })} className="h-11 rounded-xl border-slate-200 bg-slate-50/30 focus:bg-white font-semibold text-sm text-slate-850 focus:border-bku-primary font-jakarta tabular-nums" />
+                </div>
               </div>
             </form>
 
-            <footer className="p-6 sm:p-8 border-t border-slate-200/40 bg-white/40 flex flex-col-reverse sm:flex-row gap-3 sm:gap-4">
-              <Button type="button" variant="ghost" onClick={() => setIsCrudOpen(false)} className="w-full sm:w-auto h-12 sm:h-14 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-400 font-headline hover:bg-slate-100 transition-all cursor-pointer">Abort</Button>
-              <Button onClick={handleSave} disabled={isSubmitting} className="w-full sm:flex-1 h-12 sm:h-14 rounded-xl bg-slate-800 text-white hover:bg-bku-primary shadow-none transition-all active:scale-95 border-none flex items-center justify-center gap-3 cursor-pointer">
-                {isSubmitting ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '16px' }} >sync</span> : <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >save</span>}
-                <span className="text-[10px] font-black font-headline uppercase tracking-widest">{isEditMode ? 'Commit Identity Update' : 'Initialize Enrollment'}</span>
+            <footer className="p-6 sm:p-8 border-t border-slate-200/40 bg-white/40 flex flex-col-reverse sm:flex-row justify-end gap-3">
+              <Button type="button" variant="ghost" onClick={() => setIsCrudOpen(false)} className="w-full sm:w-auto h-12 rounded-xl text-xs font-bold uppercase tracking-wider text-slate-400 font-jakarta hover:bg-slate-100 transition-all cursor-pointer">Batal</Button>
+              <Button onClick={handleSave} disabled={isSubmitting} className="w-full sm:w-auto h-12 px-8 rounded-xl bg-slate-900 text-white hover:bg-bku-primary shadow-none transition-all active:scale-95 border-none flex items-center justify-center gap-2 cursor-pointer font-jakarta">
+                {isSubmitting ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '15px' }} >sync</span> : <span className="material-symbols-outlined" style={{ fontSize: '15px' }} >save</span>}
+                <span className="text-xs font-bold uppercase tracking-wider">{isEditMode ? 'Simpan Perubahan' : 'Daftarkan Mahasiswa'}</span>
               </Button>
             </footer>
           </DialogContent>
