@@ -443,7 +443,7 @@ if (statsRes.status === 'success') {
       } else if (status === 404) {
         toast.error('Endpoint tidak ditemukan. Pastikan backend terbaru.')
       } else {
-        const baseMetrics = statsDatabase['Semua Faucibas']['Semua Program Studi']
+        const baseMetrics = statsDatabase['Semua Fakultas']['Semua Program Studi']
         setStats(baseMetrics)
         setLogs([
           { CreatedAt: new Date().toISOString(), Aktivitas: 'LOGIN_SUCCESS', Deskripsi: 'Login berhasil - Superadmin Console', Pengguna: { Email: 'siakad.admin@bku.ac.id' } },
@@ -647,7 +647,7 @@ if (statsRes.status === 'success') {
                   {semester}
                 </span>
               )}
-              {fakultas && fakultas !== 'Semua Faucibas' && (
+              {fakultas && fakultas !== 'Semua Fakultas' && (
                 <span className="flex items-center gap-1.5 px-2.5 py-1 bg-indigo-50 text-indigo-700 text-[11px] font-medium rounded-full border border-indigo-100">
                   <span className="material-symbols-outlined" style={{ fontSize: '10px' }}>business</span>
                   {fakultas}
@@ -659,9 +659,9 @@ if (statsRes.status === 'success') {
                   {prodi}
                 </span>
               )}
-              {(semester !== '2025/2026 Ganjil' || fakultas !== 'Semua Faucibas' || prodi !== 'Semua Program Studi') && (
+              {(semester !== '2025/2026 Ganjil' || fakultas !== 'Semua Fakultas' || prodi !== 'Semua Program Studi') && (
                 <button
-                  onClick={() => { handleSemesterChange('2025/2026 Ganjil'); handleFakultasChange('Semua Faucibas'); setProdi('Semua Program Studi'); }}
+                  onClick={() => { handleSemesterChange('2025/2026 Ganjil'); handleFakultasChange('Semua Fakultas'); setProdi('Semua Program Studi'); }}
                   className="text-[11px] font-medium text-rose-600 hover:text-rose-700 flex items-center gap-1 transition-colors"
                 >
                   <span className="material-symbols-outlined" style={{ fontSize: '12px' }}>close</span>
@@ -702,7 +702,7 @@ if (statsRes.status === 'success') {
                   onChange={(e) => handleFakultasChange(e.target.value)}
                   className="w-full pl-9 pr-10 py-2.5 bg-white border border-border rounded-xl text-xs font-semibold text-on-surface focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all cursor-pointer appearance-none"
                 >
-                  <option value="Semua Faucibas">Semua Faucibas</option>
+                  <option value="Semua Fakultas">Semua Fakultas</option>
                   <option value="Fakultas Farmasi">Fakultas Farmasi</option>
                   <option value="Fakultas Keperawatan">Fakultas Keperawatan</option>
                   <option value="Fakultas Ilmu Kesehatan">Fakultas Ilmu Kesehatan</option>
