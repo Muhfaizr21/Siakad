@@ -610,13 +610,15 @@ const StudentDetail = () => {
                 <div className="space-y-4">
                   <h4 className="text-xs font-black uppercase tracking-wider text-slate-400">Isi Ringkasan Handbook:</h4>
                   {handbookContent ? (
-                    <div className="space-y-4 max-h-[500px] overflow-y-auto pr-2">
-                      {Object.entries(handbookContent).map(([section, value]) => (
-                        <div key={section} className="p-4 rounded-2xl border border-slate-100 bg-white">
-                          <span className="text-[10px] font-black text-indigo-500 uppercase tracking-wider block mb-1">{section.replace(/_/g, ' ')}</span>
-                          <p className="text-sm font-semibold text-slate-700 whitespace-pre-wrap">{typeof value === 'object' ? JSON.stringify(value, null, 2) : String(value || '-')}</p>
-                        </div>
-                      ))}
+                    <div className="max-h-[500px] overflow-y-auto">
+                      <div className="space-y-4 pr-8">
+                        {Object.entries(handbookContent).map(([section, value]) => (
+                          <div key={section} className="p-4 rounded-2xl border border-slate-100 bg-white">
+                            <span className="text-[10px] font-black text-indigo-500 uppercase tracking-wider block mb-1">{section.replace(/_/g, ' ')}</span>
+                            <p className="text-sm font-semibold text-slate-700 whitespace-pre-wrap">{typeof value === 'object' ? JSON.stringify(value, null, 2) : String(value || '-')}</p>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   ) : (
                     <div className="p-4 bg-slate-50 text-slate-500 text-xs italic rounded-2xl">

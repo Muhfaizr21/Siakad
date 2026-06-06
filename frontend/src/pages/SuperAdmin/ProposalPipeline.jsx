@@ -244,7 +244,7 @@ export default function ProposalPipeline() {
                     <div className="size-1 rounded-full bg-white/20" />
                     <span className="text-[10px] font-bold text-slate-300 uppercase tracking-widest">{selected.Fakultas?.Nama || 'Institusi'}</span>
                   </div>
-                  <h2 className="text-3xl font-black font-headline tracking-tight leading-tight uppercase max-w-2xl" style={{ color: 'var(--theme-h2)' }}>{selected.Judul}</h2>
+                  <h2 className="text-3xl font-black font-headline tracking-tight leading-tight uppercase max-w-2xl text-white">{selected.Judul}</h2>
                   <div className="flex items-center gap-2 text-slate-300 font-bold text-[11px] uppercase tracking-widest">
                     <Building2 size={14} className="text-bku-primary" />
                     {selected.Ormawa?.Nama || 'Unit Mahasiswa Pengaju'}
@@ -253,8 +253,9 @@ export default function ProposalPipeline() {
                 <span className="material-symbols-outlined absolute -bottom-8 -right-8 text-white/5 rotate-12 pointer-events-none" style={{ fontSize: '120px' }} >security</span>
               </div>
               
-              <div className="p-8 space-y-8 max-h-[60vh] overflow-y-auto custom-scrollbar">
-                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="max-h-[60vh] overflow-y-auto custom-scrollbar">
+                <div className="pl-8 py-8 pr-10 space-y-8">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="glass-card bg-white/50 p-5 rounded-2xl border border-slate-200/60 shadow-none space-y-2">
                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline">Proyeksi Anggaran</p>
                         <p className="text-2xl font-black text-slate-800 font-headline tabular-nums">{formatRp(selected.Anggaran)}</p>
@@ -296,7 +297,8 @@ export default function ProposalPipeline() {
                         </Button>
                       </>
                     )}
-                 </div>
+                  </div>
+                </div>
               </div>
             </div>
           )}

@@ -681,13 +681,14 @@ if (statsRes.status === 'success') {
                 <select
                   value={semester}
                   onChange={(e) => handleSemesterChange(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2.5 bg-white border border-border rounded-xl text-xs font-semibold text-on-surface focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all cursor-pointer"
+                  className="w-full pl-9 pr-10 py-2.5 bg-white border border-border rounded-xl text-xs font-semibold text-on-surface focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all cursor-pointer appearance-none"
                 >
                   <option value="2025/2026 Ganjil">2025/2026 Ganjil</option>
                   <option value="2025/2026 Genap">2025/2026 Genap</option>
                   <option value="2024/2025 Ganjil">2024/2025 Ganjil</option>
                   <option value="2024/2025 Genap">2024/2025 Genap</option>
                 </select>
+                <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" style={{ fontSize: '16px' }}>expand_more</span>
               </div>
             </div>
 
@@ -699,7 +700,7 @@ if (statsRes.status === 'success') {
                 <select
                   value={fakultas}
                   onChange={(e) => handleFakultasChange(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2.5 bg-white border border-border rounded-xl text-xs font-semibold text-on-surface focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all cursor-pointer"
+                  className="w-full pl-9 pr-10 py-2.5 bg-white border border-border rounded-xl text-xs font-semibold text-on-surface focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all cursor-pointer appearance-none"
                 >
                   <option value="Semua Faucibas">Semua Faucibas</option>
                   <option value="Fakultas Farmasi">Fakultas Farmasi</option>
@@ -707,6 +708,7 @@ if (statsRes.status === 'success') {
                   <option value="Fakultas Ilmu Kesehatan">Fakultas Ilmu Kesehatan</option>
                   <option value="Fakultas Sains & Teknologi">Fakultas Sains & Teknologi</option>
                 </select>
+                <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" style={{ fontSize: '16px' }}>expand_more</span>
               </div>
             </div>
 
@@ -718,12 +720,13 @@ if (statsRes.status === 'success') {
                 <select
                   value={prodi}
                   onChange={(e) => handleProdiChange(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2.5 bg-white border border-border rounded-xl text-xs font-semibold text-on-surface focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full pl-9 pr-10 py-2.5 bg-white border border-border rounded-xl text-xs font-semibold text-on-surface focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed appearance-none"
                 >
                   {(prodiOptions[fakultas] || ['Semua Program Studi']).map((opt) => (
                     <option key={opt} value={opt}>{opt}</option>
                   ))}
                 </select>
+                <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" style={{ fontSize: '16px' }}>expand_more</span>
               </div>
             </div>
           </div>
@@ -1073,15 +1076,18 @@ if (statsRes.status === 'success') {
               {/* Limit Selector */}
               <div className="flex items-center gap-3 self-end md:self-auto">
                 <span className="text-xs text-muted">Tampilkan</span>
-                <select
-                  value={pageSize}
-                  onChange={(e) => setPageSize(parseInt(e.target.value))}
-                  className="px-3 py-1.5 bg-surface border border-border rounded-lg text-xs font-medium text-on-surface focus:border-primary outline-none cursor-pointer"
-                >
-                  <option value={10}>10 baris</option>
-                  <option value={20}>20 baris</option>
-                  <option value={30}>30 baris</option>
-                </select>
+                <div className="relative">
+                  <select
+                    value={pageSize}
+                    onChange={(e) => setPageSize(parseInt(e.target.value))}
+                    className="pl-3 pr-8 py-1.5 bg-surface border border-border rounded-lg text-xs font-medium text-on-surface focus:border-primary outline-none cursor-pointer appearance-none"
+                  >
+                    <option value={10}>10 baris</option>
+                    <option value={20}>20 baris</option>
+                    <option value={30}>30 baris</option>
+                  </select>
+                  <span className="material-symbols-outlined absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" style={{ fontSize: '14px' }}>expand_more</span>
+                </div>
               </div>
             </div>
 
@@ -1090,60 +1096,72 @@ if (statsRes.status === 'success') {
               {/* Fakultas Filter */}
               <div className="flex flex-col gap-1">
                 <label className="text-xs font-medium text-muted">Fakultas</label>
-                <select
-                  value={detailFakultasFilter}
-                  onChange={(e) => {
-                    setDetailFakultasFilter(e.target.value)
-                    setDetailProdiFilter("") // Reset prodi when faculty changes
-                  }}
-                  className="w-full px-3 py-2 bg-surface border border-border rounded-lg text-xs font-semibold text-on-surface outline-none focus:border-primary cursor-pointer"
-                >
-                  <option value="">Semua Fakultas</option>
-                  {detailFilterOptions.faculties.map(fac => (
-                    <option key={fac} value={fac}>{fac}</option>
-                  ))}
-                </select>
+                <div className="relative">
+                  <select
+                    value={detailFakultasFilter}
+                    onChange={(e) => {
+                      setDetailFakultasFilter(e.target.value)
+                      setDetailProdiFilter("") // Reset prodi when faculty changes
+                    }}
+                    className="w-full pl-3 pr-10 py-2 bg-surface border border-border rounded-lg text-xs font-semibold text-on-surface outline-none focus:border-primary cursor-pointer appearance-none"
+                  >
+                    <option value="">Semua Fakultas</option>
+                    {detailFilterOptions.faculties.map(fac => (
+                      <option key={fac} value={fac}>{fac}</option>
+                    ))}
+                  </select>
+                  <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" style={{ fontSize: '16px' }}>expand_more</span>
+                </div>
               </div>
 
               {/* Prodi Filter */}
               <div className="flex flex-col gap-1">
                 <label className="text-xs font-medium text-muted">Program Studi</label>
-                <select
-                  value={detailProdiFilter}
-                  onChange={(e) => setDetailProdiFilter(e.target.value)}
-                  className="w-full px-3 py-2 bg-surface border border-border rounded-lg text-xs font-semibold text-on-surface outline-none focus:border-primary cursor-pointer"
-                >
-                  <option value="">Semua Program Studi</option>
-                  {detailFilterOptions.prodis.map(prd => (
-                    <option key={prd} value={prd}>{prd}</option>
-                  ))}
-                </select>
+                <div className="relative">
+                  <select
+                    value={detailProdiFilter}
+                    onChange={(e) => setDetailProdiFilter(e.target.value)}
+                    className="w-full pl-3 pr-10 py-2 bg-surface border border-border rounded-lg text-xs font-semibold text-on-surface outline-none focus:border-primary cursor-pointer appearance-none"
+                  >
+                    <option value="">Semua Program Studi</option>
+                    {detailFilterOptions.prodis.map(prd => (
+                      <option key={prd} value={prd}>{prd}</option>
+                    ))}
+                  </select>
+                  <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" style={{ fontSize: '16px' }}>expand_more</span>
+                </div>
               </div>
 
               {/* Semester Filter (Mahasiswa / Aspirasi only) */}
               {activeDetailTab !== "proposal" ? (
                 <div className="flex flex-col gap-1">
                   <label className="text-xs font-medium text-muted">Semester</label>
-                  <select
-                    value={detailSemesterFilter}
-                    onChange={(e) => setDetailSemesterFilter(e.target.value)}
-                    className="w-full px-3 py-2 bg-surface border border-border rounded-lg text-xs font-semibold text-on-surface outline-none focus:border-primary cursor-pointer"
-                  >
-                    <option value="">Semua Semester</option>
-                    {detailFilterOptions.semesters.map(sem => (
-                      <option key={sem} value={sem}>Semester {sem}</option>
-                    ))}
-                  </select>
+                  <div className="relative">
+                    <select
+                      value={detailSemesterFilter}
+                      onChange={(e) => setDetailSemesterFilter(e.target.value)}
+                      className="w-full pl-3 pr-10 py-2 bg-surface border border-border rounded-lg text-xs font-semibold text-on-surface outline-none focus:border-primary cursor-pointer appearance-none"
+                    >
+                      <option value="">Semua Semester</option>
+                      {detailFilterOptions.semesters.map(sem => (
+                        <option key={sem} value={sem}>Semester {sem}</option>
+                      ))}
+                    </select>
+                    <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" style={{ fontSize: '16px' }}>expand_more</span>
+                  </div>
                 </div>
               ) : (
                 <div className="flex flex-col gap-1 opacity-40 select-none cursor-not-allowed">
                   <label className="text-xs font-medium text-muted">Semester</label>
-                  <select
-                    disabled
-                    className="w-full px-3 py-2 bg-slate-50 border border-border rounded-lg text-xs font-semibold text-muted outline-none cursor-not-allowed"
-                  >
-                    <option value="">Tidak Tersedia</option>
-                  </select>
+                  <div className="relative">
+                    <select
+                      disabled
+                      className="w-full pl-3 pr-10 py-2 bg-slate-50 border border-border rounded-lg text-xs font-semibold text-muted outline-none cursor-not-allowed appearance-none"
+                    >
+                      <option value="">Tidak Tersedia</option>
+                    </select>
+                    <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" style={{ fontSize: '16px' }}>expand_more</span>
+                  </div>
                 </div>
               )}
             </div>

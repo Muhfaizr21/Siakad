@@ -145,22 +145,19 @@ export function DataTable({
                 value={activeFilters[filter.key] || "all"}
                 onValueChange={(val) => handleFilterChange(filter.key, val)}
               >
-                <SelectTrigger className="h-10 w-[160px] rounded-xl border-neutral-200 bg-neutral-50/50 shadow-none font-bold text-[10px] uppercase tracking-widest text-neutral-500 hover:bg-white transition-all">
-                  <div className="flex items-center gap-2 truncate w-full pr-2">
-                    <Filter className="size-3 text-primary/60 shrink-0" />
-                    <div className="truncate flex-1 text-left">
-                      {activeFilters[filter.key] && activeFilters[filter.key] !== "all" ? (
-                        <SelectValue />
-                      ) : (
-                        <span>{filter.placeholder}</span>
-                      )}
-                    </div>
+                <SelectTrigger className="h-10 w-[180px] rounded-xl border-neutral-200 bg-neutral-50/50 shadow-none font-medium text-xs text-slate-600 hover:bg-white transition-all">
+                  <div className="truncate flex-1 text-left font-jakarta">
+                    {activeFilters[filter.key] && activeFilters[filter.key] !== "all" ? (
+                      <SelectValue />
+                    ) : (
+                      <span>{filter.placeholder}</span>
+                    )}
                   </div>
                 </SelectTrigger>
                 <SelectContent className="rounded-xl border-neutral-200 shadow-xl p-1 font-jakarta">
-                  <SelectItem value="all" className="rounded-lg font-bold text-[10px] uppercase opacity-50 text-neutral-400">Semua Data</SelectItem>
+                  <SelectItem value="all" className="rounded-lg font-medium text-xs opacity-50 text-neutral-400">Semua Data</SelectItem>
                   {filter.options.map((opt, idx) => (
-                    <SelectItem key={opt.value || `opt-${idx}`} value={String(opt.value || '')} className="rounded-lg font-bold text-[10px] uppercase focus:bg-primary/5 focus:text-primary">
+                    <SelectItem key={opt.value || `opt-${idx}`} value={String(opt.value || '')} className="rounded-lg font-medium text-xs focus:bg-primary/5 focus:text-primary">
                       {opt.label}
                     </SelectItem>
                   ))}
@@ -189,7 +186,7 @@ export function DataTable({
 
             {onAdd && (
               <Button onClick={onAdd} className="h-10 px-5 rounded-xl font-bold bg-primary text-white hover:bg-primary/90 shadow-md gap-2 transition-all active:scale-95 border-none">
-                <span className="material-symbols-outlined size-4 stroke-[3px]" >add</span>
+                <span className="material-symbols-outlined size-4 stroke-[3px]" style={{ fontSize: "16px" }}>add</span>
                 <span className="text-[10px] uppercase tracking-widest">{addLabel || "Tambah"}</span>
               </Button>
             )}

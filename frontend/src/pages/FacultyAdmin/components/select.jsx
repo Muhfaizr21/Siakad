@@ -4,12 +4,13 @@ import * as SelectPrimitive from "@radix-ui/react-select";
 import { cn } from "@/lib/utils";
 
 // Auto-injected Material Symbol fallbacks for removed Lucide icons
-const ChevronUp = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>expand_less</span>;
+const ChevronUp = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 16, ...props.style }} {...props}>expand_less</span>;
+const ChevronDown = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 16, ...props.style }} {...props}>expand_more</span>;
 
 
 
 // Auto-injected Material Symbol fallbacks for removed Lucide icons
-const Check = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>check</span>;
+const Check = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 16, ...props.style }} {...props}>check</span>;
 
 
 
@@ -24,14 +25,14 @@ const SelectTrigger = React.forwardRef((props, ref) => {
     <SelectPrimitive.Trigger
       ref={ref}
       className={cn(
-        "flex h-12 w-full items-center justify-between rounded-xl border border-slate-200/60 bg-white px-4 py-2 text-sm font-medium ring-offset-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-all [&>span]:line-clamp-1",
+        "flex h-12 w-full items-center justify-between rounded-xl border border-slate-200/60 bg-white px-4 py-2 text-sm font-medium ring-offset-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-all [&>span]:line-clamp-1 text-left",
         className
       )}
       {...rest}
     >
       {children}
       <SelectPrimitive.Icon asChild>
-        <span className="material-symbols-outlined h-4 w-4 opacity-50" >expand_more</span>
+        <ChevronDown size={16} className="h-4 w-4 opacity-50 shrink-0 ml-2" />
       </SelectPrimitive.Icon>
     </SelectPrimitive.Trigger>
   );

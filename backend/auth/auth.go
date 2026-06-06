@@ -975,8 +975,12 @@ func RegisterMahasiswa(c *fiber.Ctx) error {
 
 	// Generate tokens
 	fakultasID := student.FakultasID
-	accessToken, _ := createToken(newUser.ID, student.ID, student.NIM, "mahasiswa", &fakultasID, nil, "")
-	refreshToken, _ := createRefreshToken(newUser.ID, student.ID, student.NIM, "mahasiswa", &fakultasID, nil, "")
+	var prodiID *uint
+	if student.ProgramStudiID != 0 {
+		prodiID = &student.ProgramStudiID
+	}
+	accessToken, _ := createToken(newUser.ID, student.ID, student.NIM, "mahasiswa", &fakultasID, prodiID, nil, "")
+	refreshToken, _ := createRefreshToken(newUser.ID, student.ID, student.NIM, "mahasiswa", &fakultasID, prodiID, nil, "")
 	setRefreshTokenCookie(c, refreshToken)
 
 	return c.Status(201).JSON(fiber.Map{

@@ -291,13 +291,11 @@ body {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--theme-primary);
-  opacity: 0.3;
+  background: color-mix(in srgb, var(--theme-primary) 30%, transparent);
   border-radius: 99px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--theme-primary);
-  opacity: 0.5;
+  background: color-mix(in srgb, var(--theme-primary) 50%, transparent);
 }
 
 /* ═══ SELECTED TEXT - Blue Theme ═══ */
@@ -337,4 +335,36 @@ body {
   transition-property: all;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   transition-duration: 150ms;
+}
+
+/* ═══ CUSTOM COLOR PICKER INPUTS ═══ */
+input[type="color"] {
+  -webkit-appearance: none;
+  border: none;
+  padding: 0;
+  background: none;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+input[type="color"]::-webkit-color-swatch-wrapper {
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+}
+input[type="color"]::-webkit-color-swatch {
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: 8px;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+/* ═══ NO SCROLLBAR UTILITY ═══ */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }

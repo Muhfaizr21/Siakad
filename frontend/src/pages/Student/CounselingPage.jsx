@@ -340,7 +340,7 @@ export default function CounselingPage() {
                   <Sparkles size={14} className="text-white/60" />
                   <span className="text-white/60 text-xs font-semibold uppercase tracking-wider">Daftar Antrean Konseling</span>
                 </div>
-                <h2 className="text-xl font-extrabold font-headline" style={{ color: 'var(--theme-h2)' }}>{selectedSlot.NamaKonselor}</h2>
+                <h2 className="text-xl font-extrabold font-headline text-white">{selectedSlot.NamaKonselor}</h2>
                 <p className="text-white/50 text-sm mt-0.5 flex items-center gap-1.5">
                   <span className="material-symbols-outlined" style={{ fontSize: '13px' }} >security</span> Sesi dilindungi protokol kerahasiaan
                 </p>

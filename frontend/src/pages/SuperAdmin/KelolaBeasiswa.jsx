@@ -599,7 +599,7 @@ export default function KelolaBeasiswa() {
             description="Program beasiswa aktif"
             icon={Award}
             color="text-primary"
-            bg="bg-primary/5"
+            bg="bg-primary/10"
             loading={loading}
            />
            <StatCard 
@@ -607,8 +607,8 @@ export default function KelolaBeasiswa() {
             value={stats.pendingApps}
             description="Pendaftar butuh review"
             icon={Activity}
-            color="text-amber-600"
-            bg="bg-amber-50"
+            color="text-warning"
+            bg="bg-warning/10"
             loading={appsLoading}
            />
            <StatCard 
@@ -616,8 +616,8 @@ export default function KelolaBeasiswa() {
             value={stats.activeAwardees}
             description="Mahasiswa tersalurkan"
             icon={Users}
-            color="text-emerald-600"
-            bg="bg-emerald-50"
+            color="text-success"
+            bg="bg-success/10"
             loading={appsLoading}
            />
            <StatCard 
@@ -625,8 +625,8 @@ export default function KelolaBeasiswa() {
             value={formatCurrency(stats.totalBudget)}
             description="Proyeksi dana global"
             icon={Banknote}
-            color="text-blue-600"
-            bg="bg-blue-50"
+            color="text-info"
+            bg="bg-info/10"
             loading={loading}
            />
         </div>

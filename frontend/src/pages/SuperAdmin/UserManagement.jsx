@@ -782,7 +782,7 @@ export default function UserManagement() {
               searchPlaceholder="Search by identity handle, email, or authorization level..."
               onAdd={() => { setForm({ Email: '', Password: '', Role: 'mahasiswa', Nama: '', FakultasID: '', ProgramStudiID: '', OrmawaAssign: '', OrmawaID: '', KencanaScopeType: 'faculty', Phone: '' }); setIsCrudOpen(true) }} 
               addLabel="New Identity"
-              filters={[{ key: 'role', placeholder: 'FILTER BY LEVEL', options: roleOptions.map(r => ({ label: r.label, value: r.value })) }]}
+              filters={[{ key: 'role', placeholder: 'Pilih Level', options: roleOptions.map(r => ({ label: r.label, value: r.value })) }]}
               searchWidth="max-w-md"
               actions={(row) => (
                 <div className="flex items-center gap-2">
@@ -921,8 +921,9 @@ export default function UserManagement() {
           </DialogHeader>
 
           <form onSubmit={handleCreate} className="p-10 pt-8 space-y-6">
-            <div className="space-y-6 max-h-[50vh] overflow-y-auto pr-2 custom-scrollbar no-scrollbar">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="max-h-[50vh] overflow-y-auto custom-scrollbar no-scrollbar">
+              <div className="space-y-6 pr-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                  <div className="space-y-2">
                    <Label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1 font-headline">Identity Handle (Email)</Label>
                    <Input required type="email" value={form.Email} onChange={e => handleEmailChange(e.target.value)} placeholder="email@bku.ac.id" className="h-12 rounded-xl border-slate-200 bg-slate-50/70 focus:bg-white focus:border-bku-primary focus:ring-2 focus:ring-bku-primary/20 font-bold text-xs text-slate-800 transition-all font-inter" />
@@ -1086,6 +1087,7 @@ export default function UserManagement() {
                   </Select>
                 </div>
               )}
+              </div>
             </div>
 
             <footer className="pt-8 flex flex-col md:flex-row gap-4 border-t border-slate-100">
@@ -1118,8 +1120,9 @@ export default function UserManagement() {
             </div>
           </DialogHeader>
           <div className="p-8 space-y-6">
-             <div className="space-y-6 max-h-[50vh] overflow-y-auto pr-2 custom-scrollbar no-scrollbar">
-               <div className="p-5 rounded-2xl bg-slate-50/60 border border-slate-200/50 flex items-center justify-between group">
+             <div className="max-h-[50vh] overflow-y-auto custom-scrollbar no-scrollbar">
+               <div className="space-y-6 pr-8">
+                 <div className="p-5 rounded-2xl bg-slate-50/60 border border-slate-200/50 flex items-center justify-between group">
                   <div className="space-y-1">
                      <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] font-headline">Target Identity</p>
                      <p className="text-xs font-bold font-inter text-slate-700 truncate max-w-[200px] lowercase">{selected?.Email || selected?.email}</p>
@@ -1268,6 +1271,7 @@ export default function UserManagement() {
                     </Select>
                   </div>
                 )}
+               </div>
              </div>
 
              <footer className="flex gap-4 pt-4 border-t border-slate-100">

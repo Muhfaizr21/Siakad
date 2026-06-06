@@ -292,9 +292,9 @@ export default function LecturerDirectory() {
               loading={loading}
               searchPlaceholder="Cari NIDN atau Nama..."
               filters={[
-                { key: 'Jabatan', placeholder: 'FILTER JABATAN', options: [{ label: 'ASISTEN', value: 'Asisten' }, { label: 'LEKTOR', value: 'Lektor' }, { label: 'PROFESOR', value: 'Profesor' }] },
-                { key: 'FakultasID', placeholder: 'FILTER FAKULTAS', options: faculties.map(f => ({ label: f.Nama || f.nama, value: f.id || f.ID })) },
-                { key: 'ProgramStudiID', placeholder: 'FILTER PRODI', options: prodi.map(p => ({ label: p.Nama || p.nama, value: p.id || p.ID })) }
+                { key: 'Jabatan', placeholder: 'Pilih Jabatan', options: [{ label: 'Asisten', value: 'Asisten' }, { label: 'Lektor', value: 'Lektor' }, { label: 'Profesor', value: 'Profesor' }] },
+                { key: 'FakultasID', placeholder: 'Pilih Fakultas', options: faculties.map(f => ({ label: f.Nama || f.nama, value: f.id || f.ID })) },
+                { key: 'ProgramStudiID', placeholder: 'Pilih Program Studi', options: prodi.map(p => ({ label: p.Nama || p.nama, value: p.id || p.ID })) }
               ]}
               actions={(row) => (
                 <div className="flex items-center gap-1.5">

@@ -413,7 +413,8 @@ export default function ContentManagement() {
                     </DialogHeader>
 
                     <form onSubmit={handleSave} className="p-8 pt-6 space-y-5">
-                        <div className="space-y-5 max-h-[50vh] overflow-y-auto pr-2 custom-scrollbar">
+                        <div className="max-h-[50vh] overflow-y-auto custom-scrollbar">
+                            <div className="space-y-5 pr-8">
                             <div className="space-y-2">
                                 <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 font-headline">Judul Utama Berita</Label>
                                 <Input required value={form.Judul} onChange={e => setForm({ ...form, Judul: e.target.value })} placeholder="Tulis judul yang informatif..." className="h-11 rounded-xl border-slate-200 bg-white/60 focus:bg-white font-bold text-sm font-headline focus:ring-bku-primary/20" />
@@ -687,6 +688,7 @@ export default function ContentManagement() {
                                 </Select>
                             </div>
                         </div>
+                    </div>
 
                         <div className="pt-6 flex flex-row gap-3 border-t border-slate-200/40">
                              <Button type="button" variant="outline" onClick={() => setIsCrudOpen(false)} className="flex-1 h-12 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-500 border-slate-200 hover:bg-slate-100 font-headline cursor-pointer">Batal</Button>

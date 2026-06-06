@@ -836,7 +836,7 @@ export default function KelolaOrganisasi() {
                 <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent pointer-events-none" />
                 <div className="relative z-10 space-y-4">
                   <Badge className="font-bold text-[10px] px-3 py-1 bg-white/10 text-white border-white/20 uppercase tracking-widest font-headline">{selected.Singkatan}</Badge>
-                  <h2 className="text-3xl font-black font-headline tracking-tight leading-tight uppercase" style={{ color: 'var(--theme-h2)' }}>{selected.Nama}</h2>
+                  <h2 className="text-3xl font-black font-headline tracking-tight leading-tight uppercase text-white">{selected.Nama}</h2>
                   <div className="flex items-center gap-6 pt-2">
                     <div className="flex items-center gap-2 text-white/70">
                       <span className="material-symbols-outlined text-white" style={{ fontSize: '14px' }} >mail</span>
@@ -851,9 +851,9 @@ export default function KelolaOrganisasi() {
                 <Building size={120} className="absolute -bottom-8 -right-8 text-white/5 rotate-12 pointer-events-none" />
               </div>
               
-              <div className="p-10 space-y-8 max-h-[60vh] overflow-y-auto custom-scrollbar">
-                
-                <div className="grid grid-cols-2 gap-5 bg-slate-50/50 p-5 rounded-2xl border border-slate-200/60">
+              <div className="max-h-[60vh] overflow-y-auto custom-scrollbar">
+                <div className="pl-10 py-10 pr-12 space-y-8">
+                  <div className="grid grid-cols-2 gap-5 bg-slate-50/50 p-5 rounded-2xl border border-slate-200/60">
                   <div className="flex flex-col gap-1 leading-none">
                     <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest font-headline">Performance XP</span>
                     <span className="text-lg font-black text-bku-primary font-jakarta leading-none mt-1">{selected.xp || 0} XP</span>
@@ -921,6 +921,7 @@ export default function KelolaOrganisasi() {
                 </div>
               </div>
             </div>
+          </div>
           )}
         </DialogContent>
       </Dialog>
@@ -945,7 +946,8 @@ export default function KelolaOrganisasi() {
           </DialogHeader>
 
           <form onSubmit={handleSave} className="p-8 pt-6 space-y-5 max-h-[70vh] overflow-y-auto custom-scrollbar font-inter">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="space-y-5 pr-8">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="md:col-span-2 space-y-2">
                 <Label className="text-xs font-bold text-slate-400 uppercase tracking-widest font-headline ml-1">Nama Organisasi</Label>
                 <input required value={form.Nama} onChange={e => setForm({ ...form, Nama: e.target.value })} placeholder="Nama lengkap..." className="w-full h-11 px-3 py-2 bg-slate-50/70 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-bku-primary/20 focus:border-bku-primary outline-none transition-all duration-200 uppercase font-medium" />
@@ -964,8 +966,8 @@ export default function KelolaOrganisasi() {
                <div className="space-y-2">
                  <Label className="text-xs font-bold text-slate-400 uppercase tracking-widest font-headline ml-1">Kontak Person</Label>
                  <input value={form.Phone} onChange={e => setForm({ ...form, Phone: e.target.value })} placeholder="08xxx..." className="w-full h-11 px-3 py-2 bg-slate-50/70 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-bku-primary/20 focus:border-bku-primary outline-none transition-all duration-200 font-medium" />
-               </div>
-            </div>
+                </div>
+              </div>
 
             <div className="space-y-2">
               <Label className="text-xs font-bold text-slate-400 uppercase tracking-widest font-headline ml-1">Deskripsi Singkat</Label>
@@ -999,6 +1001,7 @@ export default function KelolaOrganisasi() {
                   {isSubmitting ? <span className="material-symbols-outlined animate-spin" style={{ fontSize: '14px' }} >sync</span> : <span className="material-symbols-outlined" style={{ fontSize: '14px' }} >save</span>}
                   <span>Simpan Unit</span>
                </button>
+            </div>
             </div>
           </form>
         </DialogContent>
@@ -1039,9 +1042,9 @@ export default function KelolaOrganisasi() {
                 <span className="material-symbols-outlined absolute -bottom-6 -right-6 text-white/5 rotate-12 pointer-events-none" style={{ fontSize: '100px' }}>description</span>
               </div>
 
-              {/* Body */}
-              <div className="p-8 space-y-6 max-h-[60vh] overflow-y-auto custom-scrollbar text-slate-600">
-                {/* Stats grid */}
+              <div className="max-h-[60vh] overflow-y-auto custom-scrollbar text-slate-600">
+                <div className="pl-8 py-8 pr-10 space-y-6">
+                  {/* Stats grid */}
                 <div className="grid grid-cols-3 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-200/60">
                   <div className="flex flex-col gap-1 leading-none text-center">
                     <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest font-headline">Tanggal Masuk</span>
@@ -1117,6 +1120,7 @@ export default function KelolaOrganisasi() {
                     ))}
                   </div>
                 </div>
+              </div>
 
                 {/* Footer Quick Actions */}
                 <div className="pt-6 border-t border-slate-100 flex justify-end gap-3 font-inter">

@@ -819,7 +819,7 @@ export default function PsychologistDirectory() {
                 }}
                 addLabel="Tambah Psikolog"
                 filters={[
-                  { key: 'Spesialisasi', placeholder: 'FILTER BIDANG', options: [{ label: 'PSIKOLOG UMUM', value: 'Umum' }, { label: 'KLINIS', value: 'Klinis' }, { label: 'PENDIDIKAN', value: 'Pendidikan' }] }
+                  { key: 'Spesialisasi', placeholder: 'Pilih Bidang', options: [{ label: 'Psikolog Umum', value: 'Umum' }, { label: 'Klinis', value: 'Klinis' }, { label: 'Pendidikan', value: 'Pendidikan' }] }
                 ]}
                 actions={(row) => (
                   <div className="flex items-center gap-1.5">
@@ -838,10 +838,10 @@ export default function PsychologistDirectory() {
                 loading={loading}
                 searchPlaceholder="Cari Nama Mahasiswa, NIM, atau Topik..."
                 filters={[
-                  { key: '_fakultas', placeholder: 'FAKULTAS', options: fakultasOptions },
-                  { key: '_semester', placeholder: 'SEMESTER', options: semesterOptions },
-                  { key: 'status', placeholder: 'STATUS', options: [{ label: 'MENUNGGU', value: 'menunggu' }, { label: 'DISETUJUI', value: 'disetujui' }, { label: 'SELESAI', value: 'selesai' }, { label: 'DIBATALKAN', value: 'dibatalkan' }] },
-                  { key: 'mode', placeholder: 'MODE', options: [{ label: 'TATAP MUKA', value: 'Tatap Muka' }, { label: 'ONLINE', value: 'Online' }] }
+                  { key: '_fakultas', placeholder: 'Pilih Fakultas', options: fakultasOptions },
+                  { key: '_semester', placeholder: 'Pilih Semester', options: semesterOptions },
+                  { key: 'status', placeholder: 'Pilih Status', options: [{ label: 'Menunggu', value: 'menunggu' }, { label: 'Disetujui', value: 'disetujui' }, { label: 'Selesai', value: 'selesai' }, { label: 'Dibatalkan', value: 'dibatalkan' }] },
+                  { key: 'mode', placeholder: 'Pilih Mode', options: [{ label: 'Tatap Muka', value: 'Tatap Muka' }, { label: 'Online', value: 'Online' }] }
                 ]}
                 actions={(row) => (
                   <div className="flex items-center gap-1.5">
@@ -858,9 +858,9 @@ export default function PsychologistDirectory() {
                 loading={loading}
                 searchPlaceholder="Cari Nama Mahasiswa, Keluhan, atau Observasi..."
                 filters={[
-                  { key: '_fakultas', placeholder: 'FAKULTAS', options: fakultasOptions },
-                  { key: '_semester', placeholder: 'SEMESTER', options: semesterOptions },
-                  { key: 'status_pasien', placeholder: 'STATUS PASIEN', options: [{ label: 'SELESAI', value: 'selesai' }, { label: 'DIRUJUK', value: 'dirujuk' }, { label: 'KONSULTASI LANJUTAN', value: 'konsultasi lanjutan' }] }
+                  { key: '_fakultas', placeholder: 'Pilih Fakultas', options: fakultasOptions },
+                  { key: '_semester', placeholder: 'Pilih Semester', options: semesterOptions },
+                  { key: 'status_pasien', placeholder: 'Pilih Status Pasien', options: [{ label: 'Selesai', value: 'selesai' }, { label: 'Dirujuk', value: 'dirujuk' }, { label: 'Konsultasi Lanjutan', value: 'konsultasi lanjutan' }] }
                 ]}
                 actions={(row) => (
                   <div className="flex items-center gap-1.5">
@@ -877,9 +877,9 @@ export default function PsychologistDirectory() {
                 loading={loading}
                 searchPlaceholder="Cari Nama Mahasiswa, Penerima, atau Alasan..."
                 filters={[
-                  { key: '_fakultas', placeholder: 'FAKULTAS', options: fakultasOptions },
-                  { key: '_semester', placeholder: 'SEMESTER', options: semesterOptions },
-                  { key: 'status', placeholder: 'STATUS RUJUKAN', options: [{ label: 'DRAFT', value: 'draft' }, { label: 'DIKIRIM', value: 'dikirim' }, { label: 'DITERIMA', value: 'diterima' }] }
+                  { key: '_fakultas', placeholder: 'Pilih Fakultas', options: fakultasOptions },
+                  { key: '_semester', placeholder: 'Pilih Semester', options: semesterOptions },
+                  { key: 'status', placeholder: 'Pilih Status Rujukan', options: [{ label: 'Draft', value: 'draft' }, { label: 'Dikirim', value: 'dikirim' }, { label: 'Diterima', value: 'diterima' }] }
                 ]}
                 actions={(row) => (
                   <div className="flex items-center gap-1.5">
@@ -1053,13 +1053,13 @@ export default function PsychologistDirectory() {
                 </DialogTitle>
                 <DialogDescription className="text-xs font-medium text-neutral-400">Atur ketersediaan slot konseling mingguan untuk psikolog.</DialogDescription>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 md:pr-12">
                 <Button
                   type="button"
-                  variant="outline"
+                  variant="ghost"
                   onClick={resetScheduleChanges}
                   disabled={isSavingSchedule || scheduleLoading}
-                  className="h-10 rounded-xl text-xs font-bold uppercase tracking-widest text-neutral-500 hover:text-indigo-600"
+                  className="h-10 px-4 rounded-xl text-xs font-bold uppercase tracking-widest text-neutral-500 hover:text-indigo-600 hover:bg-slate-50 transition-all active:scale-95"
                 >
                   <span className="material-symbols-outlined mr-1.5" style={{ fontSize: '14px' }}>history</span>
                   Reset

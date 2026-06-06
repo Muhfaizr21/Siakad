@@ -93,6 +93,9 @@ const AspirationControl = () => {
   const [selected, setSelected] = useState(null)
   const [form, setForm] = useState({ status: '', respon: '' })
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [faculties, setFaculties] = useState([])
+  const [selectedFaculty, setSelectedFaculty] = useState('')
+  const [selectedStatus, setSelectedStatus] = useState('')
 
   useEffect(() => {
     loadData()
@@ -101,9 +104,10 @@ const AspirationControl = () => {
   const loadData = async () => {
     try {
       setLoading(true)
-      const [aspRes, statsRes] = await Promise.all([
+      const [aspRes, statsRes, facRes] = await Promise.all([
         adminService.getGlobalAspirations(),
-        adminService.getStats()
+        adminService.getStats(),
+        adminService.getAllFaculties()
       ])
 
       if (aspRes.status === 'success') {
@@ -115,6 +119,9 @@ const AspirationControl = () => {
           overdue: statsRes.data.sla_overdue || 0,
           resolved: statsRes.data.resolved_today || 0
         })
+      }
+      if (facRes && facRes.status === 'success') {
+        setFaculties(facRes.data || [])
       }
     } catch (error) {
       toast.error('Gagal memuat pusat aspirasi global')
@@ -160,6 +167,21 @@ const AspirationControl = () => {
     const allowedStatuses = ['disetujui fakultas', 'selesai', 'proses', 'ditinjau', 'ditolak'];
     if (!allowedStatuses.includes(statusLower)) {
       return false;
+    }
+
+    // Filter by Faculty
+    if (selectedFaculty) {
+      const facultyName = (asp.Fakultas?.Nama || asp.Mahasiswa?.Fakultas?.Nama || '').toLowerCase();
+      if (facultyName !== selectedFaculty.toLowerCase()) {
+        return false;
+      }
+    }
+
+    // Filter by Status
+    if (selectedStatus) {
+      if (statusLower !== selectedStatus.toLowerCase()) {
+        return false;
+      }
     }
 
     const title = asp.Judul?.toString().toLowerCase() || ''
@@ -277,9 +299,41 @@ const AspirationControl = () => {
                     placeholder="Search incident ID, student name, or faculty node..." 
                   />
               </div>
-              <Button className="h-11 px-6 rounded-xl bg-slate-800 text-white font-black font-headline text-[10px] uppercase tracking-widest gap-2 hover:bg-slate-900 transition-all active:scale-95 shadow-none">
-                  <Filter size={14} /> Advanced Filters
-              </Button>
+              <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
+                {/* Faculty Filter */}
+                <div className="relative w-full sm:w-[200px]">
+                  <select
+                    value={selectedFaculty}
+                    onChange={(e) => setSelectedFaculty(e.target.value)}
+                    className="w-full h-11 pl-4 pr-10 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-700 outline-none focus:border-bku-primary cursor-pointer appearance-none"
+                  >
+                    <option value="">Semua Fakultas</option>
+                    {faculties.map((fac) => (
+                      <option key={fac.id || fac.ID} value={fac.nama || fac.Nama}>
+                        {fac.nama || fac.Nama}
+                      </option>
+                    ))}
+                  </select>
+                  <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" style={{ fontSize: '16px' }}>expand_more</span>
+                </div>
+
+                {/* Status Filter */}
+                <div className="relative w-full sm:w-[160px]">
+                  <select
+                    value={selectedStatus}
+                    onChange={(e) => setSelectedStatus(e.target.value)}
+                    className="w-full h-11 pl-4 pr-10 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-700 outline-none focus:border-bku-primary cursor-pointer appearance-none"
+                  >
+                    <option value="">Semua Status</option>
+                    <option value="proses">On Process</option>
+                    <option value="Selesai">Resolved</option>
+                    <option value="Ditinjau">Review</option>
+                    <option value="Ditolak">Rejected</option>
+                    <option value="disetujui fakultas">Disetujui Fakultas</option>
+                  </select>
+                  <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" style={{ fontSize: '16px' }}>expand_more</span>
+                </div>
+              </div>
           </div>
           
           <div className="overflow-x-auto">
@@ -398,7 +452,7 @@ const AspirationControl = () => {
                     <span>·</span>
                     <span className="text-amber-400">#ASP-{selected.ID?.toString().padStart(4, '0')}</span>
                   </div>
-                  <h2 className="text-lg font-black font-headline leading-tight uppercase truncate max-w-[500px] mt-0.5" style={{ color: 'var(--theme-h2)' }}>
+                  <h2 className="text-lg font-black font-headline leading-tight uppercase truncate max-w-[500px] mt-0.5 text-white">
                     {selected.Judul || selected.Subjek}
                   </h2>
                 </div>

@@ -227,15 +227,19 @@ export default function PortalTopbar({ config, onMenuClick }) {
           {/* Search */}
           <button
             onClick={() => { setIsSearchOpen(true); setSearchQuery(''); setSelectedIndex(0); }}
-            className="hidden md:flex items-center gap-2 px-3 py-2 rounded-xl text-xs transition-all hover:opacity-80 active:scale-95 border border-slate-200/40"
+            title="Cari menu atau halaman (Ctrl+K)"
+            className="hidden md:flex items-center gap-2 h-9 px-3 rounded-xl text-xs transition-all hover:opacity-80 active:scale-95 border"
             style={{
               backgroundColor: 'var(--theme-bg)',
               color: 'var(--theme-text-muted)',
+              borderColor: 'var(--theme-border)',
             }}
           >
-            <span className="material-symbols-outlined text-lg">search</span>
-            <span className="hidden lg:inline text-[10px] font-bold uppercase tracking-wider">Cari</span>
-            <span className="hidden xl:inline text-[9px] px-1.5 py-0.5 rounded bg-black/5 font-mono">⌘K</span>
+            <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>search</span>
+            <span
+              className="hidden lg:inline text-[9px] font-bold font-mono px-1.5 py-0.5 rounded"
+              style={{ backgroundColor: 'var(--theme-border)', color: 'var(--theme-text-muted)' }}
+            >Ctrl K</span>
           </button>
 
           {/* Notifications */}
@@ -401,7 +405,7 @@ export default function PortalTopbar({ config, onMenuClick }) {
           onClick={() => setIsSearchOpen(false)}
         >
           <div
-            className="relative w-full max-w-xl bg-white rounded-3xl border border-slate-100 shadow-[0_32px_64px_-12px_rgba(15,23,42,0.15)] overflow-hidden flex flex-col max-h-[60vh] animate-in zoom-in-95 duration-250"
+            className="relative w-full max-w-2xl bg-white rounded-3xl border border-slate-100 shadow-[0_32px_64px_-12px_rgba(15,23,42,0.15)] overflow-hidden flex flex-col max-h-[65vh] animate-in zoom-in-95 duration-250"
             onClick={e => e.stopPropagation()}
           >
             {/* Input Header */}

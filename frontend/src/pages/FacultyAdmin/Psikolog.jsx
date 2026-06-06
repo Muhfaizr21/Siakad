@@ -563,7 +563,7 @@ export default function PsikologPage() {
                   <PsikologAvatar src={selectedPsikolog.Foto} name={selectedPsikolog.Nama} className="w-[60px] h-[60px] rounded-2xl shadow-xl ring-2 ring-white/20" />
                   <div className="min-w-0">
                     <p className="text-[9px] font-bold text-white/50 uppercase tracking-[0.25em] mb-1">Praktisi Wellness</p>
-                    <h2 className="text-lg font-extrabold font-headline leading-tight truncate" style={{ color: 'var(--theme-h2)' }}>{selectedPsikolog.Nama}</h2>
+                    <h2 className="text-lg font-extrabold font-headline leading-tight truncate text-white">{selectedPsikolog.Nama}</h2>
                     <p className="text-xs text-blue-200 font-medium mt-0.5">{selectedPsikolog.Spesialisasi} Specialist</p>
                   </div>
                 </div>

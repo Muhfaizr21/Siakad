@@ -59,9 +59,9 @@ function DialogContent({
         {showCloseButton && (
           <DialogPrimitive.Close
             data-slot="dialog-close"
-            className="absolute top-4 right-4 z-[60] w-10 h-10 flex items-center justify-center rounded-2xl bg-slate-50/50 backdrop-blur-md text-slate-400 hover:text-slate-900 hover:bg-slate-100 transition-all duration-300 focus:outline-none disabled:pointer-events-none"
+            className="absolute top-6 right-6 z-[60] w-8 h-8 flex items-center justify-center rounded-xl bg-slate-50/80 backdrop-blur-md text-slate-400 hover:text-slate-900 hover:bg-slate-100 transition-all duration-200 focus:outline-none disabled:pointer-events-none border-none outline-none shadow-none"
           >
-            <span className="material-symbols-outlined size-5 stroke-[2.5px]">close</span>
+            <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>close</span>
             <span className="sr-only">Close</span>
           </DialogPrimitive.Close>
         )}

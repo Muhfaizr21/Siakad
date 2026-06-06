@@ -147,11 +147,11 @@ export function DataTable({
           {filters.map((filter) => (
             <Select
               key={filter.key}
+              value={activeFilters[filter.key] || "all"}
               onValueChange={(val) => handleFilterChange(filter.key, val)}
             >
-              <SelectTrigger className="h-9 w-[160px] rounded-xl border-slate-200/60 bg-white shadow-none font-medium text-xs text-slate-600 focus:ring-primary/20">
-                <div className="flex items-center gap-2">
-                  <Filter className="size-3.5 text-primary/60" />
+              <SelectTrigger className="h-9 w-[190px] rounded-xl border-slate-200/60 bg-neutral-50/50 hover:bg-white shadow-none font-medium text-xs text-slate-600 focus:ring-primary/20 transition-all">
+                <div className="truncate flex-1 text-left font-jakarta">
                   {activeFilters[filter.key] && activeFilters[filter.key] !== "all" ? (
                     <SelectValue />
                   ) : (
@@ -159,10 +159,10 @@ export function DataTable({
                   )}
                 </div>
               </SelectTrigger>
-              <SelectContent className="rounded-xl border-slate-200/60 shadow-xl p-1 font-body">
-                <SelectItem value="all" className="rounded-lg font-bold text-xs p-2.5 uppercase opacity-50">Semua Data</SelectItem>
+              <SelectContent className="rounded-xl border-slate-200/60 shadow-xl p-1 font-jakarta">
+                <SelectItem value="all" className="rounded-lg font-medium text-xs opacity-50 text-neutral-400">Semua Data</SelectItem>
                 {filter.options.map((opt) => (
-                  <SelectItem key={opt.value} value={opt.value} className="rounded-lg font-bold text-xs p-2.5 uppercase focus:bg-primary/5 focus:text-primary">
+                  <SelectItem key={opt.value} value={String(opt.value || '')} className="rounded-lg font-medium text-xs focus:bg-primary/5 focus:text-primary">
                     {opt.label}
                   </SelectItem>
                 ))}

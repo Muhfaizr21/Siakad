@@ -14,11 +14,14 @@ import { toast, Toaster } from 'react-hot-toast'
 import { cn } from '@/lib/utils'
 import { adminService, API_BASE_URL } from '../../services/api'
 
+import { StatCard } from './components/ui/stat-card'
+
 // Auto-injected Material Symbol fallbacks
 const MedicalServices = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>medical_services</span>;
 const CalendarMonth = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>calendar_month</span>;
 const History = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>history</span>;
 const Info = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>info</span>;
+const Group = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>group</span>;
 
 const getCleanImageUrl = (url) => {
   if (!url) return ''
@@ -411,10 +414,10 @@ export default function TenagaKesehatanDirectory() {
             <span className="font-bold text-neutral-900 font-jakarta tracking-tight text-[14px] leading-tight">
               {v ? v.toLowerCase().replace(/\b\w/g, s => s.toUpperCase()) : '—'}
             </span>
-            <div className="flex items-center gap-1.5 mt-1 text-neutral-400">
-               <MedicalServices size={10} className="text-teal-500/60" />
-               <span className="text-[10px] font-bold tracking-widest uppercase">{row.spesialisasi || 'Tenaga Medis'}</span>
-            </div>
+             <div className="flex items-center gap-1.5 mt-1 text-neutral-400">
+                <MedicalServices size={10} className="text-primary/60" />
+                <span className="text-[10px] font-bold tracking-widest uppercase">{row.spesialisasi || 'Tenaga Medis'}</span>
+             </div>
           </div>
         </div>
       )
@@ -449,7 +452,7 @@ export default function TenagaKesehatanDirectory() {
       render: v => (
         <Badge className={cn(
           'px-2.5 py-1 rounded-lg border text-[10px] font-black uppercase tracking-wider shadow-none', 
-          v ? 'bg-teal-50 text-teal-600 border-teal-100' : 'bg-rose-50 text-rose-600 border-rose-100'
+          v ? 'bg-success/10 text-success border-success/20' : 'bg-rose-50 text-rose-600 border-rose-100'
         )}>
           {v ? 'Aktif Pelayanan' : 'Nonaktif / Libur'}
         </Badge>
@@ -470,7 +473,7 @@ export default function TenagaKesehatanDirectory() {
             <span className="text-[10px] text-neutral-400 font-bold">{mhs?.NIM || mhs?.nim || '—'}</span>
             <span className="text-[9px] text-neutral-400 font-medium tracking-wide uppercase">{mhs?.program_studi?.nama || mhs?.ProgramStudi?.Nama || mhs?.program_studi?.Nama || '—'}</span>
             <div className="flex items-center gap-2 mt-0.5">
-              {row._fakultas && <span className="text-[8px] text-teal-600 font-bold bg-teal-50 px-1.5 py-0.5 rounded">{row._fakultas}</span>}
+              {row._fakultas && <span className="text-[8px] text-primary font-bold bg-primary/10 px-1.5 py-0.5 rounded">{row._fakultas}</span>}
               {row._semester && <span className="text-[8px] text-blue-600 font-bold bg-blue-50 px-1.5 py-0.5 rounded">Sem {row._semester}</span>}
             </div>
           </div>
@@ -498,7 +501,7 @@ export default function TenagaKesehatanDirectory() {
           <div className="flex flex-col py-1">
             <span className="font-bold text-neutral-800 text-xs">{formattedDate}</span>
             <span className="text-[10px] text-neutral-500 font-medium">{row.jadwal?.jam_mulai} - {row.jadwal?.jam_selesai}</span>
-            <span className="text-[9px] font-bold text-teal-600 bg-teal-50 px-1 py-0.5 rounded w-fit mt-0.5 uppercase">{row.jadwal?.tipe_layanan || 'Pemeriksaan'}</span>
+            <span className="text-[9px] font-bold text-primary bg-primary/10 px-1 py-0.5 rounded w-fit mt-0.5 uppercase">{row.jadwal?.tipe_layanan || 'Pemeriksaan'}</span>
           </div>
         )
       }
@@ -549,7 +552,7 @@ export default function TenagaKesehatanDirectory() {
             <span className="text-[10px] text-neutral-400 font-bold">{mhs?.NIM || mhs?.nim || '—'}</span>
             <span className="text-[9px] text-neutral-400 font-medium tracking-wide uppercase">{mhs?.program_studi?.nama || mhs?.ProgramStudi?.Nama || mhs?.program_studi?.Nama || '—'}</span>
             <div className="flex items-center gap-2 mt-0.5">
-              {row._fakultas && <span className="text-[8px] text-teal-600 font-bold bg-teal-50 px-1.5 py-0.5 rounded">{row._fakultas}</span>}
+              {row._fakultas && <span className="text-[8px] text-primary font-bold bg-primary/10 px-1.5 py-0.5 rounded">{row._fakultas}</span>}
               {row._semester && <span className="text-[8px] text-blue-600 font-bold bg-blue-50 px-1.5 py-0.5 rounded">Sem {row._semester}</span>}
             </div>
           </div>
@@ -597,7 +600,7 @@ export default function TenagaKesehatanDirectory() {
           </Badge>
           <Badge className={cn(
             'w-fit px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider border bg-neutral-50 text-neutral-600 border-neutral-200',
-            row.status_kesehatan?.toLowerCase() === 'prima' && 'bg-teal-50 text-teal-600 border-teal-100',
+            row.status_kesehatan?.toLowerCase() === 'prima' && 'bg-success/10 text-success border-success/20',
             row.status_kesehatan?.toLowerCase() === 'stabil' && 'bg-blue-50 text-blue-600 border-blue-100',
             row.status_kesehatan?.toLowerCase() === 'kritis' && 'bg-rose-50 text-rose-600 border-rose-100'
           )}>
@@ -632,16 +635,16 @@ export default function TenagaKesehatanDirectory() {
         
         {/* ── Page Header ─────────────────────────────────────────── */}
         <section className="bg-white border border-neutral-200 rounded-xl p-5 md:p-8 relative overflow-hidden shadow-sm">
-          <div className="absolute top-0 right-0 w-1/4 h-full bg-gradient-to-l from-teal-50/50 to-transparent pointer-events-none" />
+          <div className="absolute top-0 right-0 w-1/4 h-full bg-gradient-to-l from-primary/5 to-transparent pointer-events-none" />
           
           <div className="relative z-10 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
             <div className="space-y-1 w-full lg:w-auto">
               <div className="flex items-center gap-2 mb-2">
-                <div className="h-4 w-1.5 bg-teal-500 rounded-full" />
+                <div className="h-4 w-1.5 bg-primary rounded-full" />
                 <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-400 font-jakarta">Layanan Klinik Kampus</span>
               </div>
               <h1 className="text-2xl md:text-3xl font-bold text-neutral-900 font-jakarta tracking-tight leading-tight">
-                Direktori <span className="text-teal-600 italic">Tenaga Kesehatan</span>
+                Direktori <span className="text-primary italic font-semibold">Tenaga Kesehatan</span>
               </h1>
               <p className="text-neutral-500 font-medium text-xs md:text-sm max-w-2xl leading-relaxed">
                 Manajemen data petugas medis, jadwal ketersediaan konsultasi/pemeriksaan reguler, screening, dan rekam klinis mahasiswa.
@@ -649,11 +652,11 @@ export default function TenagaKesehatanDirectory() {
             </div>
             
             <div className="flex items-center gap-3 w-full lg:w-auto">
-              <div className="px-4 py-2 bg-teal-50 border border-teal-100 rounded-xl flex items-center gap-3 w-full lg:w-auto justify-center">
-                 <span className="material-symbols-outlined text-teal-600" style={{ fontSize: '16px' }}>verified_user</span>
+              <div className="px-4 py-2 bg-primary/5 border border-primary/20 rounded-xl flex items-center gap-3 w-full lg:w-auto justify-center">
+                 <span className="material-symbols-outlined text-primary" style={{ fontSize: '16px' }}>verified_user</span>
                  <div className="flex flex-col leading-tight">
-                    <span className="text-[10px] font-bold text-teal-400 uppercase tracking-widest">Akses Validasi</span>
-                    <span className="text-[12px] font-bold text-teal-700 font-jakarta">Super Admin Portal</span>
+                    <span className="text-[10px] font-bold text-primary/70 uppercase tracking-widest">Akses Validasi</span>
+                    <span className="text-[12px] font-bold text-primary font-jakarta">Super Admin Portal</span>
                  </div>
               </div>
             </div>
@@ -662,43 +665,36 @@ export default function TenagaKesehatanDirectory() {
 
         {/* ── Stats Grid ──────────────────────────────────────────── */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-           <div className="bg-white p-5 rounded-2xl border border-[#e5e5e5] shadow-sm">
-              <div className="flex items-center gap-3 mb-3">
-                 <div className="w-10 h-10 bg-teal-50 rounded-xl flex justify-center items-center text-teal-600 flex-shrink-0">
-                    <span className="material-symbols-outlined" style={{ fontSize: '18px' }} >group</span>
-                 </div>
-                 <span className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-widest">Total Tenaga Medis</span>
-              </div>
-              <p className="text-3xl font-extrabold text-[#171717] font-jakarta leading-none tabular-nums">{data.length}</p>
-              <p className="text-xs text-[#a3a3a3] font-medium mt-1">Petugas terdaftar aktif</p>
-           </div>
-
-           <div className="bg-white p-5 rounded-2xl border border-[#e5e5e5] shadow-sm">
-              <div className="flex items-center gap-3 mb-3">
-                 <div className="w-10 h-10 bg-blue-50 rounded-xl flex justify-center items-center text-blue-600 flex-shrink-0">
-                    <span className="material-symbols-outlined" style={{ fontSize: '18px' }} >calendar_month</span>
-                 </div>
-                 <span className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-widest">Booking Hari Ini</span>
-                 {getTodayBookingsCount() > 0 && (
-                   <span className="bg-rose-500 text-white text-[8px] font-extrabold px-1.5 py-0.5 rounded-full animate-pulse ml-auto">LIVE</span>
-                 )}
-              </div>
-              <p className="text-3xl font-extrabold text-[#171717] font-jakarta leading-none tabular-nums">
-                {getTodayBookingsCount()}
-              </p>
-              <p className="text-xs text-[#a3a3a3] font-medium mt-1">Booking antrean pasien hari ini</p>
-           </div>
-
-           <div className="bg-white p-5 rounded-2xl border border-[#e5e5e5] shadow-sm">
-              <div className="flex items-center gap-3 mb-3">
-                 <div className="w-10 h-10 bg-emerald-50 rounded-xl flex justify-center items-center text-emerald-600 flex-shrink-0">
-                    <span className="material-symbols-outlined" style={{ fontSize: '18px' }} >medical_services</span>
-                 </div>
-                 <span className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-widest">Catatan Medis & Screening</span>
-              </div>
-              <p className="text-3xl font-extrabold text-[#171717] font-jakarta leading-none tabular-nums">{medicalRecords.length}</p>
-              <p className="text-xs text-[#a3a3a3] font-medium mt-1">Riwayat pemeriksaan terinput</p>
-           </div>
+          <StatCard
+            title="Total Tenaga Medis"
+            value={data.length}
+            description="Petugas terdaftar aktif"
+            icon={Group}
+            color="text-primary"
+            bg="bg-primary/10"
+            loading={loading}
+          />
+          <StatCard
+            title="Booking Hari Ini"
+            value={getTodayBookingsCount()}
+            description="Booking antrean pasien hari ini"
+            icon={CalendarMonth}
+            color="text-info"
+            bg="bg-info/10"
+            loading={loading}
+            badge={getTodayBookingsCount() > 0 && (
+              <span className="bg-rose-500 text-white text-[8px] font-extrabold px-1.5 py-0.5 rounded-full animate-pulse">LIVE</span>
+            )}
+          />
+          <StatCard
+            title="Catatan Medis & Screening"
+            value={medicalRecords.length}
+            description="Riwayat pemeriksaan terinput"
+            icon={MedicalServices}
+            color="text-success"
+            bg="bg-success/10"
+            loading={loading}
+          />
         </div>
 
         {/* ── Tab Navigation ────────────────────────────────────────── */}
@@ -721,7 +717,7 @@ export default function TenagaKesehatanDirectory() {
                 className={cn(
                   "flex items-center gap-2 px-4 py-3 text-xs font-bold uppercase tracking-wider border-b-2 transition-all shrink-0 font-jakarta",
                   isActive
-                    ? "border-teal-600 text-teal-600"
+                    ? "border-primary text-primary"
                     : "border-transparent text-neutral-400 hover:text-neutral-700 hover:border-neutral-300"
                 )}
               >
@@ -753,11 +749,11 @@ export default function TenagaKesehatanDirectory() {
                   }}
                   addLabel="Tambah Tenaga Medis"
                   filters={[
-                    { key: 'Spesialisasi', placeholder: 'FILTER BIDANG', options: [{ label: 'PEMERIKSAAN UMUM', value: 'Pemeriksaan Umum' }, { label: 'KONSULTASI GIZI', value: 'Konsultasi Gizi' }, { label: 'PEMERIKSAAN GIGI', value: 'Pemeriksaan Gigi' }] }
+                    { key: 'Spesialisasi', placeholder: 'Pilih Bidang', options: [{ label: 'Pemeriksaan Umum', value: 'Pemeriksaan Umum' }, { label: 'Konsultasi Gizi', value: 'Konsultasi Gizi' }, { label: 'Pemeriksaan Gigi', value: 'Pemeriksaan Gigi' }] }
                   ]}
                   actions={(row) => (
                     <div className="flex items-center gap-1.5">
-                      <Button onClick={() => handleOpenSchedule(row)} variant="ghost" size="icon" className="h-8 w-8 text-neutral-400 hover:text-teal-600 hover:bg-teal-50 rounded-lg transition-colors" title="Kelola Jadwal"><span className="material-symbols-outlined" style={{ fontSize: '16px' }} >calendar_month</span></Button>
+                      <Button onClick={() => handleOpenSchedule(row)} variant="ghost" size="icon" className="h-8 w-8 text-neutral-400 hover:text-primary hover:bg-primary/5 rounded-lg transition-colors" title="Kelola Jadwal"><span className="material-symbols-outlined" style={{ fontSize: '16px' }} >calendar_month</span></Button>
                       <Button onClick={() => handleOpenEdit(row)} variant="ghost" size="icon" className="h-8 w-8 text-neutral-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors" title="Edit Profil"><span className="material-symbols-outlined" style={{ fontSize: '16px' }} >edit</span></Button>
                       <Button onClick={() => { setSelected(row); setIsDelOpen(true) }} variant="ghost" size="icon" className="h-8 w-8 text-neutral-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors" title="Hapus"><span className="material-symbols-outlined" style={{ fontSize: '16px' }} >delete</span></Button>
                     </div>
@@ -776,13 +772,13 @@ export default function TenagaKesehatanDirectory() {
                   loading={loading}
                   searchPlaceholder="Cari Nama Mahasiswa, NIM, atau Keluhan..."
                   filters={[
-                    { key: '_fakultas', placeholder: 'FAKULTAS', options: fakultasOptions },
-                    { key: '_semester', placeholder: 'SEMESTER', options: semesterOptions },
-                    { key: 'status', placeholder: 'STATUS', options: [{ label: 'MENUNGGU KONFIRMASI', value: 'Menunggu Konfirmasi' }, { label: 'DIKONFIRMASI', value: 'Dikonfirmasi' }, { label: 'SELESAI', value: 'Selesai' }, { label: 'DITOLAK', value: 'Ditolak' }] }
+                    { key: '_fakultas', placeholder: 'Pilih Fakultas', options: fakultasOptions },
+                    { key: '_semester', placeholder: 'Pilih Semester', options: semesterOptions },
+                    { key: 'status', placeholder: 'Pilih Status', options: [{ label: 'Menunggu Konfirmasi', value: 'Menunggu Konfirmasi' }, { label: 'Dikonfirmasi', value: 'Dikonfirmasi' }, { label: 'Selesai', value: 'Selesai' }, { label: 'Ditolak', value: 'Ditolak' }] }
                   ]}
                   actions={(row) => (
                     <div className="flex items-center gap-1.5">
-                      <Button onClick={() => handleOpenDetail(row)} variant="ghost" size="icon" className="h-8 w-8 text-neutral-400 hover:text-teal-600 hover:bg-teal-50 rounded-lg transition-colors" title="Lihat Detail"><span className="material-symbols-outlined" style={{ fontSize: '16px' }} >visibility</span></Button>
+                      <Button onClick={() => handleOpenDetail(row)} variant="ghost" size="icon" className="h-8 w-8 text-neutral-400 hover:text-primary hover:bg-primary/5 rounded-lg transition-colors" title="Lihat Detail"><span className="material-symbols-outlined" style={{ fontSize: '16px' }} >visibility</span></Button>
                     </div>
                   )}
                 />
@@ -799,13 +795,13 @@ export default function TenagaKesehatanDirectory() {
                   loading={loading}
                   searchPlaceholder="Cari Nama Mahasiswa, Tindakan, atau Hasil..."
                   filters={[
-                    { key: '_fakultas', placeholder: 'FAKULTAS', options: fakultasOptions },
-                    { key: 'hasil', placeholder: 'HASIL SCREENING', options: [{ label: 'SEHAT', value: 'Sehat' }, { label: 'PANTAUAN', value: 'Pantauan' }, { label: 'PERLU PERHATIAN', value: 'Perlu Perhatian' }] },
-                    { key: 'status_kesehatan', placeholder: 'STATUS KESEHATAN', options: [{ label: 'PRIMA', value: 'prima' }, { label: 'STABIL', value: 'stabil' }, { label: 'KRITIS', value: 'kritis' }] }
+                    { key: '_fakultas', placeholder: 'Pilih Fakultas', options: fakultasOptions },
+                    { key: 'hasil', placeholder: 'Pilih Hasil Screening', options: [{ label: 'Sehat', value: 'Sehat' }, { label: 'Pantauan', value: 'Pantauan' }, { label: 'Perlu Perhatian', value: 'Perlu Perhatian' }] },
+                    { key: 'status_kesehatan', placeholder: 'Pilih Status Kesehatan', options: [{ label: 'Prima', value: 'prima' }, { label: 'Stabil', value: 'stabil' }, { label: 'Kritis', value: 'kritis' }] }
                   ]}
                   actions={(row) => (
                     <div className="flex items-center gap-1.5">
-                      <Button onClick={() => handleOpenDetail(row)} variant="ghost" size="icon" className="h-8 w-8 text-neutral-400 hover:text-teal-600 hover:bg-teal-50 rounded-lg transition-colors" title="Lihat Detail Medis"><span className="material-symbols-outlined" style={{ fontSize: '16px' }} >visibility</span></Button>
+                      <Button onClick={() => handleOpenDetail(row)} variant="ghost" size="icon" className="h-8 w-8 text-neutral-400 hover:text-primary hover:bg-primary/5 rounded-lg transition-colors" title="Lihat Detail Medis"><span className="material-symbols-outlined" style={{ fontSize: '16px' }} >visibility</span></Button>
                     </div>
                   )}
                 />
@@ -818,8 +814,8 @@ export default function TenagaKesehatanDirectory() {
       {/* ── Add Tenaga Medis Dialog ────────────────────────────── */}
       <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
         <DialogContent className="max-w-md bg-white border rounded-2xl shadow-xl overflow-hidden p-0 animate-in fade-in duration-200">
-          <div className="bg-teal-600 px-6 py-5 text-white">
-            <DialogTitle className="text-base font-bold uppercase tracking-wider font-jakarta">Daftar Tenaga Medis Baru</DialogTitle>
+          <div className="bg-gradient-to-br from-[#00236F] via-[#00308F] to-[#003db5] px-6 py-5 text-white">
+            <DialogTitle className="text-base font-bold uppercase tracking-wider font-jakarta text-white">Daftar Tenaga Medis Baru</DialogTitle>
             <DialogDescription className="text-white/70 text-xs mt-1">Daftarkan akun petugas kesehatan baru di sistem BKU.</DialogDescription>
           </div>
           <form onSubmit={handleAdd} className="p-6 space-y-4">
@@ -830,7 +826,7 @@ export default function TenagaKesehatanDirectory() {
                 value={addForm.Nama}
                 onChange={e => setAddForm(prev => ({ ...prev, Nama: e.target.value }))}
                 placeholder="dr. Ahmad Sujatmiko, Sp.PD"
-                className="h-11 rounded-xl text-xs font-semibold outline-none border border-neutral-200 focus:border-teal-500 focus:ring-1 focus:ring-teal-500 bg-neutral-50/50"
+                className="h-11 rounded-xl text-xs font-semibold outline-none border border-neutral-200 focus:border-primary focus:ring-1 focus:ring-primary bg-neutral-50/50"
               />
             </div>
             
@@ -842,7 +838,7 @@ export default function TenagaKesehatanDirectory() {
                 value={addForm.Email}
                 onChange={e => setAddForm(prev => ({ ...prev, Email: e.target.value }))}
                 placeholder="ahmad.medis@bku.ac.id"
-                className="h-11 rounded-xl text-xs font-semibold outline-none border border-neutral-200 focus:border-teal-500 focus:ring-1 focus:ring-teal-500 bg-neutral-50/50"
+                className="h-11 rounded-xl text-xs font-semibold outline-none border border-neutral-200 focus:border-primary focus:ring-1 focus:ring-primary bg-neutral-50/50"
               />
             </div>
 
@@ -854,7 +850,7 @@ export default function TenagaKesehatanDirectory() {
                 value={addForm.Password}
                 onChange={e => setAddForm(prev => ({ ...prev, Password: e.target.value }))}
                 placeholder="••••••••"
-                className="h-11 rounded-xl text-xs font-semibold outline-none border border-neutral-200 focus:border-teal-500 focus:ring-1 focus:ring-teal-500 bg-neutral-50/50"
+                className="h-11 rounded-xl text-xs font-semibold outline-none border border-neutral-200 focus:border-primary focus:ring-1 focus:ring-primary bg-neutral-50/50"
               />
             </div>
 
@@ -870,7 +866,7 @@ export default function TenagaKesehatanDirectory() {
               <Button
                 type="submit"
                 disabled={isSubmitting}
-                className="flex-1 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-xs font-bold uppercase tracking-widest h-11 transition-all"
+                className="flex-1 bg-primary hover:bg-primary/90 text-white rounded-xl text-xs font-bold uppercase tracking-widest h-11 transition-all"
               >
                 {isSubmitting ? 'Mendaftarkan...' : 'Daftarkan Akun'}
               </Button>
@@ -882,8 +878,8 @@ export default function TenagaKesehatanDirectory() {
       {/* ── Edit Profil Dialog ─────────────────────────────────── */}
       <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
         <DialogContent className="max-w-lg bg-white border rounded-2xl shadow-xl overflow-hidden p-0 animate-in fade-in duration-200">
-          <div className="bg-teal-600 px-6 py-5 text-white">
-            <DialogTitle className="text-base font-bold uppercase tracking-wider font-jakarta">Edit Profil Tenaga Medis</DialogTitle>
+          <div className="bg-gradient-to-br from-[#00236F] via-[#00308F] to-[#003db5] px-6 py-5 text-white">
+            <DialogTitle className="text-base font-bold uppercase tracking-wider font-jakarta text-white">Edit Profil Tenaga Medis</DialogTitle>
             <DialogDescription className="text-white/70 text-xs mt-1">Perbarui informasi profil dan spesialisasi petugas kesehatan.</DialogDescription>
           </div>
           <form onSubmit={handleSave} className="p-6 space-y-4">
@@ -894,7 +890,7 @@ export default function TenagaKesehatanDirectory() {
                   required
                   value={form.Nama}
                   onChange={e => setForm(prev => ({ ...prev, Nama: e.target.value }))}
-                  className="h-11 rounded-xl text-xs font-semibold focus:border-teal-500 bg-neutral-50/50"
+                  className="h-11 rounded-xl text-xs font-semibold focus:border-primary bg-neutral-50/50"
                 />
               </div>
 
@@ -903,7 +899,7 @@ export default function TenagaKesehatanDirectory() {
                 <select
                   value={form.Spesialisasi}
                   onChange={e => setForm(prev => ({ ...prev, Spesialisasi: e.target.value }))}
-                  className="w-full h-11 px-3 bg-neutral-50/50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 outline-none focus:border-teal-500 focus:bg-white"
+                  className="w-full h-11 px-3 bg-neutral-50/50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 outline-none focus:border-primary focus:bg-white"
                 >
                   <option value="Pemeriksaan Umum">Pemeriksaan Umum</option>
                   <option value="Konsultasi Gizi">Konsultasi Gizi</option>
@@ -923,7 +919,7 @@ export default function TenagaKesehatanDirectory() {
                   required
                   value={form.Email}
                   onChange={e => setForm(prev => ({ ...prev, Email: e.target.value }))}
-                  className="h-11 rounded-xl text-xs font-semibold focus:border-teal-500 bg-neutral-50/50"
+                  className="h-11 rounded-xl text-xs font-semibold focus:border-primary bg-neutral-50/50"
                 />
               </div>
 
@@ -932,7 +928,7 @@ export default function TenagaKesehatanDirectory() {
                 <Input
                   value={form.NoHP}
                   onChange={e => setForm(prev => ({ ...prev, NoHP: e.target.value }))}
-                  className="h-11 rounded-xl text-xs font-semibold focus:border-teal-500 bg-neutral-50/50"
+                  className="h-11 rounded-xl text-xs font-semibold focus:border-primary bg-neutral-50/50"
                 />
               </div>
             </div>
@@ -943,7 +939,7 @@ export default function TenagaKesehatanDirectory() {
                 <Input
                   value={form.Lokasi}
                   onChange={e => setForm(prev => ({ ...prev, Lokasi: e.target.value }))}
-                  className="h-11 rounded-xl text-xs font-semibold focus:border-teal-500 bg-neutral-50/50"
+                  className="h-11 rounded-xl text-xs font-semibold focus:border-primary bg-neutral-50/50"
                 />
               </div>
 
@@ -952,7 +948,7 @@ export default function TenagaKesehatanDirectory() {
                 <Input
                   value={form.FotoURL}
                   onChange={e => setForm(prev => ({ ...prev, FotoURL: e.target.value }))}
-                  className="h-11 rounded-xl text-xs font-semibold focus:border-teal-500 bg-neutral-50/50"
+                  className="h-11 rounded-xl text-xs font-semibold focus:border-primary bg-neutral-50/50"
                 />
               </div>
             </div>
@@ -963,7 +959,7 @@ export default function TenagaKesehatanDirectory() {
                   type="checkbox"
                   checked={form.IsAktif}
                   onChange={e => setForm(prev => ({ ...prev, IsAktif: e.target.checked }))}
-                  className="rounded text-teal-600 focus:ring-teal-500 size-4 border-neutral-300"
+                  className="rounded text-primary focus:ring-primary size-4 border-neutral-300"
                 />
                 <span className="text-xs font-bold text-slate-700 uppercase tracking-wide">Akun Aktif / Buka Pelayanan</span>
               </label>
@@ -981,7 +977,7 @@ export default function TenagaKesehatanDirectory() {
               <Button
                 type="submit"
                 disabled={isSubmitting}
-                className="flex-1 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-xs font-bold uppercase tracking-widest h-11 transition-all"
+                className="flex-1 bg-primary hover:bg-primary/90 text-white rounded-xl text-xs font-bold uppercase tracking-widest h-11 transition-all"
               >
                 {isSubmitting ? 'Menyimpan...' : 'Simpan Perubahan'}
               </Button>
@@ -1003,14 +999,14 @@ export default function TenagaKesehatanDirectory() {
       {/* ── Kelola Jadwal Dialog (Drawer-like Modal) ────────────── */}
       <Dialog open={isScheduleOpen} onOpenChange={setIsScheduleOpen}>
         <DialogContent className="max-w-4xl bg-white border rounded-2xl shadow-xl overflow-hidden p-0 animate-in fade-in duration-200">
-          <div className="bg-teal-600 px-6 py-5 text-white flex justify-between items-center">
+          <div className="bg-gradient-to-br from-[#00236F] via-[#00308F] to-[#003db5] px-6 py-5 pr-16 text-white flex justify-between items-center">
             <div>
-              <DialogTitle className="text-base font-bold uppercase tracking-wider font-jakarta">Kelola Jadwal Praktik</DialogTitle>
+              <DialogTitle className="text-base font-bold uppercase tracking-wider font-jakarta text-white">Kelola Jadwal Praktik</DialogTitle>
               <DialogDescription className="text-white/70 text-xs mt-1">Tenaga Medis: {selected?.nama}</DialogDescription>
             </div>
             <Button
               onClick={handleOpenAddScheduleSlot}
-              className="bg-white hover:bg-slate-50 text-teal-700 font-bold font-jakarta text-xs uppercase tracking-wider h-9 px-3 rounded-lg flex items-center gap-1 shadow-sm"
+              className="bg-white hover:bg-slate-50 text-primary font-bold font-jakarta text-xs uppercase tracking-wider h-9 px-3 rounded-lg flex items-center gap-1 shadow-sm"
             >
               <span className="material-symbols-outlined text-[16px]">add</span>
               Tambah Slot
@@ -1020,7 +1016,7 @@ export default function TenagaKesehatanDirectory() {
           <div className="p-6 max-h-[60vh] overflow-y-auto space-y-6">
             {showScheduleAddForm && (
               <form onSubmit={handleSaveScheduleSlot} className="bg-slate-50 p-4 border border-slate-200 rounded-2xl space-y-4 animate-in slide-in-from-top-4 duration-200">
-                <div className="text-xs font-bold text-teal-800 uppercase tracking-wider mb-2">
+                <div className="text-xs font-bold text-primary uppercase tracking-wider mb-2">
                   {editingScheduleSlot ? 'Edit Slot Jadwal' : 'Buat Slot Jadwal Baru'}
                 </div>
                 
@@ -1032,7 +1028,7 @@ export default function TenagaKesehatanDirectory() {
                       required
                       value={scheduleForm.tanggal}
                       onChange={e => setScheduleForm(prev => ({ ...prev, tanggal: e.target.value }))}
-                      className="w-full h-10 px-3 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-700 outline-none focus:border-teal-500"
+                      className="w-full h-10 px-3 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-700 outline-none focus:border-primary"
                     />
                   </div>
                   
@@ -1043,7 +1039,7 @@ export default function TenagaKesehatanDirectory() {
                       required
                       value={scheduleForm.jam_mulai}
                       onChange={e => setScheduleForm(prev => ({ ...prev, jam_mulai: e.target.value }))}
-                      className="w-full h-10 px-3 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-700 outline-none focus:border-teal-500"
+                      className="w-full h-10 px-3 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-700 outline-none focus:border-primary"
                     />
                   </div>
 
@@ -1054,7 +1050,7 @@ export default function TenagaKesehatanDirectory() {
                       required
                       value={scheduleForm.jam_selesai}
                       onChange={e => setScheduleForm(prev => ({ ...prev, jam_selesai: e.target.value }))}
-                      className="w-full h-10 px-3 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-700 outline-none focus:border-teal-500"
+                      className="w-full h-10 px-3 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-700 outline-none focus:border-primary"
                     />
                   </div>
                 </div>
@@ -1065,7 +1061,7 @@ export default function TenagaKesehatanDirectory() {
                     <select
                       value={scheduleForm.tipe_layanan}
                       onChange={e => setScheduleForm(prev => ({ ...prev, tipe_layanan: e.target.value }))}
-                      className="w-full h-10 px-3 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-700 outline-none focus:border-teal-500"
+                      className="w-full h-10 px-3 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-700 outline-none focus:border-primary"
                     >
                       {SERVICE_TYPES.map(type => (
                         <option key={type} value={type}>{type}</option>
@@ -1081,7 +1077,7 @@ export default function TenagaKesehatanDirectory() {
                       required
                       value={scheduleForm.kuota}
                       onChange={e => setScheduleForm(prev => ({ ...prev, kuota: e.target.value }))}
-                      className="w-full h-10 px-3 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-700 outline-none focus:border-teal-500"
+                      className="w-full h-10 px-3 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-700 outline-none focus:border-primary"
                     />
                   </div>
 
@@ -1092,7 +1088,7 @@ export default function TenagaKesehatanDirectory() {
                       required
                       value={scheduleForm.lokasi}
                       onChange={e => setScheduleForm(prev => ({ ...prev, lokasi: e.target.value }))}
-                      className="w-full h-10 px-3 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 outline-none focus:border-teal-500"
+                      className="w-full h-10 px-3 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 outline-none focus:border-primary"
                     />
                   </div>
                 </div>
@@ -1104,7 +1100,7 @@ export default function TenagaKesehatanDirectory() {
                     value={scheduleForm.catatan}
                     onChange={e => setScheduleForm(prev => ({ ...prev, catatan: e.target.value }))}
                     placeholder="Bawa KTM..."
-                    className="w-full h-10 px-3 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 outline-none focus:border-teal-500"
+                    className="w-full h-10 px-3 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 outline-none focus:border-primary"
                   />
                 </div>
 
@@ -1114,7 +1110,7 @@ export default function TenagaKesehatanDirectory() {
                       type="checkbox"
                       checked={scheduleForm.is_repeat}
                       onChange={e => setScheduleForm(prev => ({ ...prev, is_repeat: e.target.checked }))}
-                      className="rounded text-teal-600 focus:ring-teal-500 size-4 border-slate-300"
+                      className="rounded text-primary focus:ring-primary size-4 border-slate-300"
                     />
                     <span className="text-[10px] font-bold text-slate-700 uppercase tracking-wide">Ulangi Jadwal Tiap Minggu</span>
                   </label>
@@ -1132,8 +1128,8 @@ export default function TenagaKesehatanDirectory() {
                               onClick={() => handleToggleRepeatDay(day.value)}
                               className={`px-3 py-1.5 rounded-lg border text-[10px] font-bold transition-all ${
                                 active
-                                  ? 'bg-teal-600 text-white border-teal-600'
-                                  : 'bg-white border-slate-200 text-slate-500 hover:border-teal-600/30'
+                                  ? 'bg-primary text-white border-primary'
+                                  : 'bg-white border-slate-200 text-slate-500 hover:border-primary/30'
                               }`}
                             >
                               {day.label}
@@ -1157,7 +1153,7 @@ export default function TenagaKesehatanDirectory() {
                   <Button
                     type="submit"
                     disabled={isSavingSchedule}
-                    className="h-9 px-4 text-xs font-bold uppercase tracking-wider rounded-lg bg-teal-600 text-white hover:bg-teal-700 flex items-center gap-1"
+                    className="h-9 px-4 text-xs font-bold uppercase tracking-wider rounded-lg bg-primary text-white hover:bg-primary/90 flex items-center gap-1"
                   >
                     {isSavingSchedule && <span className="material-symbols-outlined animate-spin text-xs">sync</span>}
                     {editingScheduleSlot ? 'Simpan Slot' : 'Tambah Slot'}
@@ -1168,7 +1164,7 @@ export default function TenagaKesehatanDirectory() {
 
             {scheduleLoading ? (
               <div className="flex flex-col items-center justify-center py-12 gap-2 text-slate-400">
-                <span className="material-symbols-outlined text-3xl animate-spin text-teal-600/50">sync</span>
+                <span className="material-symbols-outlined text-3xl animate-spin text-primary/50">sync</span>
                 <p className="text-[10px] font-black uppercase tracking-widest">Memuat jadwal...</p>
               </div>
             ) : scheduleData.length === 0 ? (
@@ -1196,7 +1192,7 @@ export default function TenagaKesehatanDirectory() {
                         <td className="py-4 px-4 font-bold text-slate-800">
                           {formatDisplayDate(sch.tanggal)}
                           {sch.is_repeat && (
-                            <div className="mt-1 text-[8px] font-extrabold text-teal-600 bg-teal-50 px-2 py-0.5 rounded-full w-fit uppercase tracking-widest">
+                            <div className="mt-1 text-[8px] font-extrabold text-primary bg-primary/10 px-2 py-0.5 rounded-full w-fit uppercase tracking-widest">
                               Berulang: {sch.repeat_days}
                             </div>
                           )}
@@ -1205,7 +1201,7 @@ export default function TenagaKesehatanDirectory() {
                           {sch.jam_mulai} - {sch.jam_selesai}
                         </td>
                         <td className="py-4 px-4">
-                          <span className="px-2.5 py-1 bg-teal-50 text-teal-600 rounded-lg border border-teal-100 font-bold uppercase tracking-wider text-[9px]">
+                          <span className="px-2.5 py-1 bg-primary/10 text-primary rounded-lg border border-primary/20 font-bold uppercase tracking-wider text-[9px]">
                             {sch.tipe_layanan}
                           </span>
                         </td>
@@ -1251,8 +1247,8 @@ export default function TenagaKesehatanDirectory() {
       {/* ── Detail Rekam Medis / Screening Dialog ─────────────── */}
       <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
         <DialogContent className="max-w-2xl bg-white border rounded-2xl shadow-xl overflow-hidden p-0 animate-in fade-in duration-200">
-          <div className="bg-teal-600 px-6 py-5 text-white">
-            <DialogTitle className="text-base font-bold uppercase tracking-wider font-jakarta">Detail Pemeriksaan & Screening</DialogTitle>
+          <div className="bg-gradient-to-br from-[#00236F] via-[#00308F] to-[#003db5] px-6 py-5 text-white">
+            <DialogTitle className="text-base font-bold uppercase tracking-wider font-jakarta text-white">Detail Pemeriksaan & Screening</DialogTitle>
             <DialogDescription className="text-white/70 text-xs mt-1">Informasi lengkap hasil pemeriksaan fisik mahasiswa.</DialogDescription>
           </div>
           
@@ -1341,7 +1337,7 @@ export default function TenagaKesehatanDirectory() {
 
                 <div>
                   <span className="text-[9px] font-bold text-neutral-400 uppercase">Rekomendasi / Saran Medis</span>
-                  <p className="text-xs text-neutral-750 font-medium leading-relaxed mt-1 bg-teal-50/20 p-3 border border-teal-100/50 rounded-xl">
+                  <p className="text-xs text-neutral-750 font-medium leading-relaxed mt-1 bg-primary/5 p-3 border border-primary/20 rounded-xl">
                     {detailItem.rekomendasi || '—'}
                   </p>
                 </div>

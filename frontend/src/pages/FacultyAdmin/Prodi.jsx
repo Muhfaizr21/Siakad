@@ -442,7 +442,7 @@ export default function ProdiPage() {
                 <p className="text-[9px] font-black text-white/50 uppercase tracking-[0.25em] mb-1">
                   {isEditMode ? 'Edit Program Studi' : 'Tambah Program Studi'}
                 </p>
-                <h2 className="text-2xl font-black font-headline leading-none" style={{ color: 'var(--theme-h2)' }}>{isEditMode ? 'Update Data Prodi' : 'Registrasi Prodi Baru'}</h2>
+                <h2 className="text-2xl font-black font-headline leading-none text-white">{isEditMode ? 'Update Data Prodi' : 'Registrasi Prodi Baru'}</h2>
                 <p className="text-xs text-blue-200 font-medium mt-1.5 leading-relaxed">Isi semua formulir administrasi di bawah ini dengan lengkap.</p>
               </div>
             </div>

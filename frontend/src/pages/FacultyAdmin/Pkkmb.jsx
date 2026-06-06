@@ -595,7 +595,7 @@ export default function FacultyPkkmb() {
                 <StudentAvatar src={getFullUrl(selected.Mahasiswa?.FotoURL || selected.Mahasiswa?.foto_url || selected.Mahasiswa?.Foto || selected.Mahasiswa?.Pengguna?.Foto)} name={selected.Mahasiswa?.Nama} className="w-14 h-14 rounded-2xl shadow-xl ring-2 ring-white/20" />
                 <div className="min-w-0">
                   <p className="text-[9px] font-bold text-white/50 uppercase tracking-[0.25em] mb-1">Peserta PKKMB</p>
-                  <h2 className="text-base font-extrabold font-headline leading-tight" style={{ color: 'var(--theme-h2)' }}>{selected.Mahasiswa?.Nama}</h2>
+                  <h2 className="text-base font-extrabold font-headline leading-tight text-white">{selected.Mahasiswa?.Nama}</h2>
                   <p className="text-xs text-blue-200 font-medium mt-0.5">{selected.Mahasiswa?.NIM} · {selected.Mahasiswa?.ProgramStudi?.Nama||'—'}</p>
                 </div>
               </div>

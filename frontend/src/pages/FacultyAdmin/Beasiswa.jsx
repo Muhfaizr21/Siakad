@@ -884,7 +884,7 @@ export default function FacultyScholarship() {
                   <StudentAvatar src={previewApp.Mahasiswa?.Foto} name={previewApp.Mahasiswa?.Nama} className="w-14 h-14 rounded-2xl shadow-xl ring-2 ring-white/20" />
                   <div className="min-w-0">
                     <p className="text-[9px] font-bold text-white/50 uppercase tracking-[0.25em] mb-1">Detail Pendaftaran</p>
-                    <h2 className="text-base font-extrabold font-headline leading-tight truncate" style={{ color: 'var(--theme-h2)' }}>{previewApp.Mahasiswa?.Nama}</h2>
+                    <h2 className="text-base font-extrabold font-headline leading-tight truncate text-white">{previewApp.Mahasiswa?.Nama}</h2>
                     <p className="text-xs text-blue-200 font-medium mt-0.5">{previewApp.Mahasiswa?.NIM}</p>
                   </div>
                 </div>
@@ -1006,7 +1006,7 @@ export default function FacultyScholarship() {
                 <div className="flex items-center gap-3">
                   <div className="min-w-0">
                     <p className="text-[9px] font-bold text-white/50 uppercase tracking-[0.25em] mb-1">Detail Program Beasiswa</p>
-                    <h2 className="text-base font-extrabold font-headline leading-tight" style={{ color: 'var(--theme-h2)' }}>{selectedProgram.Nama}</h2>
+                    <h2 className="text-base font-extrabold font-headline leading-tight text-white">{selectedProgram.Nama}</h2>
                     <p className="text-xs text-blue-200 font-medium mt-0.5">{selectedProgram.Penyelenggara}</p>
                   </div>
                 </div>

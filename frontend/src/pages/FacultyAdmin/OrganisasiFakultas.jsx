@@ -378,7 +378,7 @@ export default function FacultyOrganisasi() {
               <button onClick={()=>setModal(false)} className="absolute z-50 top-4 right-4 w-8 h-8 bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center transition-colors"><span className="material-symbols-outlined" style={{ fontSize: '15px' }} >close</span></button>
               <div className="relative z-10">
                 <p className="text-[9px] font-bold text-white/50 uppercase tracking-[0.25em] mb-1">{editingOrg?'Edit Organisasi':'Registrasi Baru'}</p>
-                <h2 className="text-xl font-extrabold font-headline" style={{ color: 'var(--theme-h2)' }}>{editingOrg?'Update Data ORMAWA':'Tambah Organisasi'}</h2>
+                <h2 className="text-xl font-extrabold font-headline text-white">{editingOrg?'Update Data ORMAWA':'Tambah Organisasi'}</h2>
               </div>
             </div>
             <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">

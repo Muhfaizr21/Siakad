@@ -202,32 +202,49 @@ const KencanaSidebar = ({ isOpen, setIsOpen, portalType = 'admin' }) => {
       )}
 
       {/* Main Sidebar Container */}
-      <aside className={`
-        fixed left-0 top-0 h-[100dvh] z-[70]
-        bg-white border-r border-slate-200/60
-        transition-all duration-500 ease-in-out font-body
-        flex flex-col overscroll-contain
-        ${isOpen ? 'translate-x-0 w-72 shadow-2xl shadow-slate-900/10' : '-translate-x-full lg:translate-x-0 w-72'}
-      `}>
+      <aside
+        className={`
+          fixed left-0 top-0 h-[100dvh] z-[70]
+          border-r border-white/10
+          transition-all duration-500 ease-in-out font-body
+          flex flex-col overscroll-contain
+          ${isOpen ? 'translate-x-0 w-72 shadow-2xl shadow-slate-900/10' : '-translate-x-full lg:translate-x-0 w-72'}
+        `}
+        style={{
+          background: `linear-gradient(to bottom, var(--theme-sidebar-bg, #00236f), color-mix(in srgb, var(--theme-sidebar-bg, #00236f) 90%, var(--theme-primary, #00236f)))`,
+          color: 'var(--theme-sidebar-text, #ffffff)'
+        }}
+      >
         {/* Logo Section */}
         <div className="px-6 py-8 flex items-center justify-between shrink-0">
           <Link to={config.basePath} className="flex items-center gap-3.5 group">
             <div className="relative">
-              <div className={`w-11 h-11 bg-white border border-slate-200 rounded-2xl flex items-center justify-center shadow-xl shadow-slate-200/50 group-hover:scale-105 transition-transform duration-300 p-1.5 overflow-hidden`}>
-                <img src="/images/bku logo.png" alt="BKU Logo" className="w-full h-full object-contain" />
+              <div className="w-11 h-11 bg-white/10 border border-white/20 rounded-2xl flex items-center justify-center shadow-xl group-hover:scale-105 transition-transform duration-300 p-1.5 overflow-hidden">
+                <img src="/images/bku logo.png" alt="BKU Logo" className="w-full h-full object-contain brightness-110" />
               </div>
-              <div className={`absolute -bottom-1 -right-1 w-4 h-4 ${accent.statusDot} rounded-full border-2 border-white shadow-sm`}></div>
+              <div
+                className="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 rounded-full border-2 shadow-sm"
+                style={{ borderColor: 'var(--theme-sidebar-bg, #00236f)' }}
+              />
             </div>
             <div className="flex flex-col leading-tight">
-              <span className="text-sm font-black text-slate-900 uppercase tracking-wider">
+              <span
+                className="text-sm font-black uppercase tracking-wider"
+                style={{ color: 'var(--theme-sidebar-text, #ffffff)' }}
+              >
                 {config.title}
               </span>
-              <span className={`text-[10px] font-bold ${accent.subtitleColor} uppercase tracking-widest`}>{config.subtitle}</span>
+              <span
+                className="text-[10px] font-bold uppercase tracking-widest"
+                style={{ color: 'color-mix(in srgb, var(--theme-sidebar-text, #ffffff) 70%, var(--theme-secondary, #fed7aa))' }}
+              >
+                {config.subtitle}
+              </span>
             </div>
           </Link>
           <button
             onClick={() => setIsOpen(false)}
-            className="lg:hidden w-9 h-9 rounded-xl bg-slate-50 hover:bg-slate-100 flex items-center justify-center text-slate-400 transition-colors"
+            className="lg:hidden w-9 h-9 rounded-xl bg-white/5 hover:bg-white/10 flex items-center justify-center text-white/60 transition-colors"
           >
             <span className="material-symbols-outlined size-4 rotate-180">chevron_right</span>
           </button>
@@ -238,8 +255,13 @@ const KencanaSidebar = ({ isOpen, setIsOpen, portalType = 'admin' }) => {
           {config.menuGroups.map((group, groupIdx) => (
             <div key={groupIdx}>
               <div className="px-3 mb-2 flex items-center gap-2">
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{group.title}</span>
-                <div className="flex-1 h-px bg-slate-100"></div>
+                <span
+                  className="text-[10px] font-bold uppercase tracking-widest"
+                  style={{ color: 'color-mix(in srgb, var(--theme-sidebar-text, #ffffff) 50%, transparent)' }}
+                >
+                  {group.title}
+                </span>
+                <div className="flex-1 h-px bg-white/10"></div>
               </div>
               <nav className="space-y-1">
                 {group.items.map((item, itemIdx) => {
@@ -253,19 +275,26 @@ const KencanaSidebar = ({ isOpen, setIsOpen, portalType = 'admin' }) => {
                         flex items-center gap-3.5 px-3 py-2.5 rounded-2xl font-bold text-sm
                         transition-all duration-300 relative group overflow-hidden
                         ${active 
-                          ? `${accent.activeBg} text-white shadow-md ${accent.activeShadow}` 
-                          : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                          ? 'bg-white/10 border-l-4 shadow-md shadow-white/5' 
+                          : 'hover:bg-white/5'
                         }
                       `}
+                      style={{
+                        color: active ? 'var(--theme-sidebar-text, #ffffff)' : 'color-mix(in srgb, var(--theme-sidebar-text, #ffffff) 70%, transparent)',
+                        borderLeftColor: active ? 'var(--theme-secondary, #fed7aa)' : 'transparent'
+                      }}
                     >
                       {active && (
                         <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                       )}
                       
-                      <span className={`
-                        material-symbols-outlined size-5 relative z-10
-                        ${active ? 'text-white' : 'text-slate-400 group-hover:text-slate-600'}
-                      `} style={{ fontVariationSettings: "'FILL' 1" }}>
+                      <span
+                        className="material-symbols-outlined size-5 relative z-10"
+                        style={{
+                          color: active ? 'var(--theme-secondary, #fed7aa)' : 'color-mix(in srgb, var(--theme-sidebar-text, #ffffff) 60%, transparent)',
+                          fontVariationSettings: "'FILL' 1"
+                        }}
+                      >
                         {item.icon}
                       </span>
                       
@@ -274,7 +303,7 @@ const KencanaSidebar = ({ isOpen, setIsOpen, portalType = 'admin' }) => {
                       {item.badge && (
                         <span className={`
                           relative z-10 px-2 py-0.5 rounded-full text-[10px] font-black
-                          ${active ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500'}
+                          ${active ? 'bg-white/20 text-white' : 'bg-white/10 text-white/60'}
                         `}>
                           {item.badge}
                         </span>
@@ -288,17 +317,17 @@ const KencanaSidebar = ({ isOpen, setIsOpen, portalType = 'admin' }) => {
         </div>
 
         {user?.role === 'super_admin' && (
-          <div className="p-4 bg-white/80 backdrop-blur-xl border-t border-slate-100 shrink-0">
+          <div className="p-4 bg-transparent border-t border-white/10 shrink-0">
             <Link
               to="/admin"
-              className="w-full flex items-center gap-3.5 px-4 py-2.5 rounded-2xl font-bold text-amber-600 hover:bg-amber-50/80 transition-all duration-300 group active:scale-[0.98]"
+              className="w-full flex items-center gap-3.5 px-4 py-2.5 rounded-2xl font-bold text-amber-400 hover:bg-white/5 transition-all duration-300 group active:scale-[0.98]"
             >
               <div className="w-6 h-6 flex items-center justify-center shrink-0">
-                <span className="material-symbols-outlined text-amber-500/80 group-hover:text-amber-600 transition-all duration-300 group-hover:scale-110" style={{ fontSize: '20px' }}>
+                <span className="material-symbols-outlined text-amber-400 group-hover:scale-110 transition-all duration-300" style={{ fontSize: '20px' }}>
                   arrow_back
                 </span>
               </div>
-              <span className="text-[13px] tracking-tight flex-1 text-left font-bold text-amber-600/90 group-hover:text-amber-600 transition-colors duration-300">
+              <span className="text-[13px] tracking-tight flex-1 text-left font-bold text-amber-400 transition-colors duration-300">
                 Master Hub
               </span>
             </Link>
@@ -306,20 +335,22 @@ const KencanaSidebar = ({ isOpen, setIsOpen, portalType = 'admin' }) => {
         )}
 
         {/* Logout Section */}
-        <div className="p-4 bg-transparent border-t border-slate-100 shrink-0">
+        <div className="p-4 bg-transparent border-t border-white/10 shrink-0">
           <button
             onClick={handleLogout}
             onMouseEnter={() => setIsLogoutHovered(true)}
             onMouseLeave={() => setIsLogoutHovered(false)}
             className="w-full flex items-center gap-3.5 px-4 py-2.5 rounded-xl font-bold transition-all duration-300 active:scale-[0.98] text-xs cursor-pointer shadow-sm hover:shadow-md border border-transparent"
             style={{
-              backgroundColor: isLogoutHovered ? '#b91c1c' : '#dc2626',
+              backgroundColor: isLogoutHovered
+                ? 'color-mix(in srgb, var(--theme-error, #dc2626) 90%, black)'
+                : 'var(--theme-error, #dc2626)',
               color: '#ffffff'
             }}
           >
             <div className="w-5 h-5 flex items-center justify-center shrink-0">
               <span 
-                className="material-symbols-outlined transition-all duration-300 group-hover:scale-110" 
+                className="material-symbols-outlined transition-all duration-300" 
                 style={{ 
                   fontSize: '18px', 
                   color: '#ffffff' 

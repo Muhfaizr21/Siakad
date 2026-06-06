@@ -361,8 +361,8 @@ export default function KelolaPrestasi() {
             value={stats.total}
             description="Prestasi terdaftar"
             icon={Trophy}
-            color="text-indigo-600"
-            bg="bg-indigo-50"
+            color="text-primary"
+            bg="bg-primary/10"
             loading={loading}
           />
           <StatCard
@@ -370,8 +370,8 @@ export default function KelolaPrestasi() {
             value={stats.pending}
             description="Perlu tindakan verifikasi"
             icon={Clock}
-            color="text-amber-600"
-            bg="bg-amber-50"
+            color="text-warning"
+            bg="bg-warning/10"
             loading={loading}
           />
           <StatCard
@@ -379,8 +379,8 @@ export default function KelolaPrestasi() {
             value={stats.verified}
             description="Disetujui universitas"
             icon={CheckCircle2}
-            color="text-emerald-600"
-            bg="bg-emerald-50"
+            color="text-success"
+            bg="bg-success/10"
             loading={loading}
           />
           <StatCard
@@ -388,8 +388,8 @@ export default function KelolaPrestasi() {
             value={stats.rejected}
             description="Pengajuan tidak sesuai kriteria"
             icon={CloseIcon}
-            color="text-rose-600"
-            bg="bg-rose-50"
+            color="text-error"
+            bg="bg-error/10"
             loading={loading}
           />
         </div>

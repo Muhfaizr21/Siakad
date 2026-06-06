@@ -764,7 +764,7 @@ export default function MahasiswaPage() {
                 <StudentAvatar src={selected.Foto} name={selected.Nama} className="w-14 h-14 rounded-2xl shadow-xl ring-2 ring-white/20" />
                 <div className="min-w-0">
                   <p className="text-[9px] font-bold text-white/50 uppercase tracking-[0.25em] mb-1">Profil Mahasiswa</p>
-                  <h2 className="text-lg font-extrabold font-headline leading-tight truncate" style={{ color: 'var(--theme-h2)' }}>{selected.Nama}</h2>
+                  <h2 className="text-lg font-extrabold font-headline leading-tight truncate text-white">{selected.Nama}</h2>
                   <p className="text-xs text-blue-200 font-medium mt-0.5">{selected.ProgramStudi}</p>
                 </div>
               </div>

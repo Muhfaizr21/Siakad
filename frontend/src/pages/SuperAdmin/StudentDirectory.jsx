@@ -398,9 +398,9 @@ export default function StudentDirectory() {
               searchPlaceholder="Search by NIM, Name, or Academic Status..."
               searchWidth="max-w-md"
               filters={[
-                { key: 'StatusAkun', placeholder: 'FILTER STATUS', options: [{ label: 'AKTIF', value: 'Aktif' }, { label: 'CUTI', value: 'Cuti' }, { label: 'LULUS', value: 'Lulus' }] },
-                { key: 'FakultasID', placeholder: 'FILTER FAKULTAS', options: faculties.map(f => ({ label: f.Nama || f.nama, value: f.id || f.ID })) },
-                { key: 'ProgramStudiID', placeholder: 'FILTER PRODI', options: prodi.map(p => ({ label: p.Nama || p.nama, value: p.id || p.ID })) }
+                { key: 'StatusAkun', placeholder: 'Pilih Status', options: [{ label: 'Aktif', value: 'Aktif' }, { label: 'Cuti', value: 'Cuti' }, { label: 'Lulus', value: 'Lulus' }] },
+                { key: 'FakultasID', placeholder: 'Pilih Fakultas', options: faculties.map(f => ({ label: f.Nama || f.nama, value: f.id || f.ID })) },
+                { key: 'ProgramStudiID', placeholder: 'Pilih Program Studi', options: prodi.map(p => ({ label: p.Nama || p.nama, value: p.id || p.ID })) }
               ]}
               actions={(row) => (
                 <div className="flex items-center gap-1.5">
@@ -593,7 +593,7 @@ export default function StudentDirectory() {
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
-                <div className="space-y-1.5 sm:col-span-2">
+                <div className="space-y-1.5 sm:col-span-1">
                   <Label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider ml-1 font-jakarta">Admission Batch (Year)</Label>
                   <Input type="number" value={form.TahunMasuk} onChange={e => setForm({ ...form, TahunMasuk: e.target.value })} className="h-11 rounded-xl border-slate-200 bg-slate-50/30 focus:bg-white font-semibold text-sm text-slate-850 focus:border-bku-primary font-jakarta tabular-nums" />
                 </div>

@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 const ChevronUp = ({ size, className, ...props }) => (
   <span
     className={`material-symbols-outlined ${className || ""}`}
-    style={{ fontSize: size || 24, ...props.style }}
+    style={{ fontSize: size || 16, ...props.style }}
     {...props}
   >
     expand_less
@@ -17,7 +17,7 @@ const ChevronUp = ({ size, className, ...props }) => (
 const ChevronDown = ({ size, className, ...props }) => (
   <span
     className={`material-symbols-outlined ${className || ""}`}
-    style={{ fontSize: size || 24, ...props.style }}
+    style={{ fontSize: size || 16, ...props.style }}
     {...props}
   >
     expand_more
@@ -27,7 +27,7 @@ const ChevronDown = ({ size, className, ...props }) => (
 const Check = ({ size, className, ...props }) => (
   <span
     className={`material-symbols-outlined ${className || ""}`}
-    style={{ fontSize: size || 24, ...props.style }}
+    style={{ fontSize: size || 16, ...props.style }}
     {...props}
   >
     check
@@ -45,14 +45,14 @@ const SelectTrigger = React.forwardRef((props, ref) => {
     <SelectPrimitive.Trigger
       ref={ref}
       className={cn(
-        "relative flex w-full items-center justify-center px-3 rounded-xl border border-[#e5e5e5] bg-white text-sm font-medium placeholder:text-[#a3a3a3] focus:outline-none focus:border-primary/50 focus:bg-white disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1 [&>span]:text-center",
+        "flex h-9 w-full items-center justify-between rounded-xl border border-[#e5e5e5] bg-white px-3 py-2 text-sm font-medium placeholder:text-[#a3a3a3] focus:outline-none focus:border-primary/50 focus:bg-white disabled:cursor-not-allowed disabled:opacity-50 transition-colors [&>span]:line-clamp-1 text-left",
         className
       )}
       {...rest}
     >
       {children}
       <SelectPrimitive.Icon asChild>
-        <ChevronDown className="h-4 w-4 opacity-50 absolute right-3 top-1/2 -translate-y-1/2 shrink-0" />
+        <ChevronDown size={16} className="h-4 w-4 opacity-50 shrink-0 ml-2" />
       </SelectPrimitive.Icon>
     </SelectPrimitive.Trigger>
   );
@@ -158,14 +158,12 @@ const SelectItem = React.forwardRef((props, ref) => {
     >
       <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
         <SelectPrimitive.ItemIndicator>
-          <Check className="h-4 w-4" />
+          <Check size={16} className="h-4 w-4" />
         </SelectPrimitive.ItemIndicator>
       </span>
 
       <SelectPrimitive.ItemText>
-        <div className="flex-1 text-center">
-          {children}
-        </div>
+        {children}
       </SelectPrimitive.ItemText>
     </SelectPrimitive.Item>
   );
