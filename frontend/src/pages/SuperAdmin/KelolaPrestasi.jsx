@@ -64,8 +64,10 @@ export default function KelolaPrestasi() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [expandedFaculty, setExpandedFaculty] = useState(null)
   const [chartFacultyFilter, setChartFacultyFilter] = useState("all")
+  const [tableFilters, setTableFilters] = useState({})
 
   const [allFaculties, setAllFaculties] = useState([])
+  const [allProdi, setAllProdi] = useState([])
 
   // Verification Form State
   const [verifyStatus, setVerifyStatus] = useState("verified")
@@ -76,9 +78,10 @@ export default function KelolaPrestasi() {
   const fetchData = async () => {
     setLoading(true)
     try {
-      const [res, facRes] = await Promise.all([
+      const [res, facRes, prodRes] = await Promise.all([
         adminService.getAllAchievements(),
-        adminService.getAllFaculties()
+        adminService.getAllFaculties(),
+        adminService.getAllProdi()
       ])
       if (res.status === "success") {
         setData((res.data || []).map((item, i) => {
@@ -106,6 +109,9 @@ export default function KelolaPrestasi() {
       }
       if (facRes && facRes.status === "success") {
         setAllFaculties(facRes.data || [])
+      }
+      if (prodRes && prodRes.status === "success") {
+        setAllProdi(prodRes.data || [])
       }
     } catch (err) {
       toast.error("Koneksi ke server gagal")
@@ -243,16 +249,37 @@ export default function KelolaPrestasi() {
   const prodiOptions = useMemo(() => {
     const list = []
     const ids = new Set()
-    data.forEach(item => {
-      const pid = item.prodi_id
-      const pnama = item.prodi_nama
+
+    const selectedFakultasId = tableFilters.fakultas_id
+    const filteredProdis = selectedFakultasId && selectedFakultasId !== "all"
+      ? allProdi.filter(p => String(p.FakultasID || p.fakultas_id || '') === String(selectedFakultasId))
+      : allProdi
+
+    filteredProdis.forEach(prod => {
+      const pid = String(prod.id || prod.ID || '')
+      const pnama = String(prod.nama || prod.Nama || '')
       if (pid && pnama && !ids.has(pid)) {
         ids.add(pid)
         list.push({ label: pnama.toUpperCase(), value: pid })
       }
     })
+
+    // Fallback/Supplement from achievements data
+    data.forEach(item => {
+      const pid = item.prodi_id
+      const pnama = item.prodi_nama
+      const fid = item.fakultas_id
+      if (selectedFakultasId && selectedFakultasId !== "all" && fid !== selectedFakultasId) {
+        return
+      }
+      if (pid && pnama && !ids.has(pid)) {
+        ids.add(pid)
+        list.push({ label: pnama.toUpperCase(), value: pid })
+      }
+    })
+
     return list
-  }, [data])
+  }, [allProdi, data, tableFilters.fakultas_id])
 
   const kategoriOptions = useMemo(() => {
     const list = []
@@ -628,6 +655,8 @@ export default function KelolaPrestasi() {
               data={data}
               loading={loading}
               searchPlaceholder="Cari mahasiswa, judul kegiatan, kategori..."
+              externalFilters={tableFilters}
+              onExternalFilterChange={setTableFilters}
               filters={[
                 {
                   key: "status",
