@@ -80,7 +80,7 @@ export default function DataTable({
               }}
             />
           </div>
-          {actions && <div className="flex items-center gap-2 ml-4">{actions}</div>}
+          {actions && typeof actions !== 'function' && <div className="flex items-center gap-2 ml-4">{actions}</div>}
         </div>
       )}
 
@@ -98,7 +98,7 @@ export default function DataTable({
                   {col.label}
                 </th>
               ))}
-              {onRowClick && (
+              {(onRowClick || (actions && typeof actions === 'function')) && (
                 <th className="px-4 py-3 text-right text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--theme-h4)' }}>
                   Aksi
                 </th>
@@ -118,13 +118,13 @@ export default function DataTable({
                       />
                     </td>
                   ))}
-                  {onRowClick && <td className="px-4 py-3"><div className="h-4 w-16 rounded animate-pulse" style={{ backgroundColor: 'var(--theme-border-muted)' }} /></td>}
+                  {(onRowClick || (actions && typeof actions === 'function')) && <td className="px-4 py-3"><div className="h-4 w-16 rounded animate-pulse" style={{ backgroundColor: 'var(--theme-border-muted)' }} /></td>}
                 </tr>
               ))
             ) : paginatedData.length === 0 ? (
               // Empty state
               <tr>
-                <td colSpan={columns.length + (onRowClick ? 1 : 0)} className="px-4 py-16 text-center">
+                  <td colSpan={columns.length + (onRowClick || (actions && typeof actions === 'function') ? 1 : 0)} className="px-4 py-16 text-center">
                   <div className="flex flex-col items-center justify-center gap-3">
                     <span
                       className="material-symbols-outlined text-4xl"
@@ -154,16 +154,19 @@ export default function DataTable({
                       {col.render ? col.render(row[col.key], row) : row[col.key]}
                     </td>
                   ))}
-                  {onRowClick && (
+                  {(onRowClick || (actions && typeof actions === 'function')) && (
                     <td className="px-4 py-3">
-                      <div className="flex items-center justify-end gap-1">
-                        <button
-                          className="p-2 rounded-lg hover:bg-black/[0.05] transition-colors"
-                          style={{ color: 'var(--theme-text-muted)' }}
-                          onClick={(e) => { e.stopPropagation(); onRowClick(row); }}
-                        >
-                          <span className="material-symbols-outlined text-base">visibility</span>
-                        </button>
+                      <div className="flex items-center justify-end gap-1.5">
+                        {actions && typeof actions === 'function' && actions(row)}
+                        {onRowClick && (
+                          <button
+                            className="p-2 rounded-lg hover:bg-black/[0.05] transition-colors"
+                            style={{ color: 'var(--theme-text-muted)' }}
+                            onClick={(e) => { e.stopPropagation(); onRowClick(row); }}
+                          >
+                            <span className="material-symbols-outlined text-base">visibility</span>
+                          </button>
+                        )}
                       </div>
                     </td>
                   )}

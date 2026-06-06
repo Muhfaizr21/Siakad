@@ -704,19 +704,19 @@ export default function TenagaKesehatanDirectory() {
         {/* ── Stats Grid ──────────────────────────────────────────── */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           <StatCard
-            title="Total Tenaga Medis"
+            label="Total Tenaga Medis"
             value={data.length}
             description="Petugas terdaftar aktif"
-            icon={Group}
+            icon="group"
             color="text-primary"
             bg="bg-primary/10"
             loading={loading}
           />
           <StatCard
-            title="Booking Hari Ini"
+            label="Booking Hari Ini"
             value={getTodayBookingsCount()}
             description="Booking antrean pasien hari ini"
-            icon={CalendarMonth}
+            icon="calendar_month"
             color="text-info"
             bg="bg-info/10"
             loading={loading}
@@ -725,10 +725,10 @@ export default function TenagaKesehatanDirectory() {
             )}
           />
           <StatCard
-            title="Catatan Medis & Screening"
+            label="Catatan Medis & Screening"
             value={medicalRecords.length}
             description="Riwayat pemeriksaan terinput"
-            icon={MedicalServices}
+            icon="medical_services"
             color="text-success"
             bg="bg-success/10"
             loading={loading}

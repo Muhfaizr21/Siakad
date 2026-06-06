@@ -477,37 +477,37 @@ export default function KelolaPrestasi() {
         {/* ── Stat Cards ──────────────────────────────────────────── */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
           <StatCard
-            title="Total Portofolio"
+            label="Total Portofolio"
             value={stats.total}
             description="Prestasi terdaftar"
-            icon={Trophy}
+            icon="emoji_events"
             color="text-primary"
             bg="bg-primary/10"
             loading={loading}
           />
           <StatCard
-            title="Menunggu Review"
+            label="Menunggu Review"
             value={stats.pending}
             description="Perlu tindakan verifikasi"
-            icon={Clock}
+            icon="schedule"
             color="text-warning"
             bg="bg-warning/10"
             loading={loading}
           />
           <StatCard
-            title="Terverifikasi"
+            label="Terverifikasi"
             value={stats.verified}
             description="Disetujui universitas"
-            icon={CheckCircle2}
+            icon="check_circle"
             color="text-success"
             bg="bg-success/10"
             loading={loading}
           />
           <StatCard
-            title="Total Ditolak"
+            label="Total Ditolak"
             value={stats.rejected}
             description="Pengajuan tidak sesuai kriteria"
-            icon={CloseIcon}
+            icon="close"
             color="text-error"
             bg="bg-error/10"
             loading={loading}

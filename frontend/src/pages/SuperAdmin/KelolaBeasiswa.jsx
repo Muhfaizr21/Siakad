@@ -1146,46 +1146,46 @@ export default function KelolaBeasiswa() {
         {/* ── Stats Grid ──────────────────────────────────────────── */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4 md:gap-6">
            <StatCard 
-            title="Total Program"
+            label="Total Program"
             value={stats.totalPrograms}
             description="Program beasiswa aktif"
-            icon={Award}
+            icon="emoji_events"
             color="text-primary"
             bg="bg-primary/10"
             loading={loading}
            />
            <StatCard 
-            title="Antrian Verifikasi"
+            label="Antrian Verifikasi"
             value={stats.pendingApps}
             description="Pendaftar butuh review"
-            icon={Activity}
+            icon="show_chart"
             color="text-warning"
             bg="bg-warning/10"
             loading={appsLoading}
            />
            <StatCard 
-            title="Penerima Beasiswa"
+            label="Penerima Beasiswa"
             value={stats.activeAwardees}
             description="Mahasiswa tersalurkan"
-            icon={Users}
+            icon="group"
             color="text-success"
             bg="bg-success/10"
             loading={appsLoading}
            />
            <StatCard 
-            title="Total Anggaran"
+            label="Total Anggaran"
             value={formatCurrency(stats.totalBudget)}
             description="Proyeksi dana global"
-            icon={Banknote}
+            icon="payments"
             color="text-info"
             bg="bg-info/10"
             loading={loading}
            />
            <StatCard 
-            title="Realisasi Anggaran"
+            label="Realisasi Anggaran"
             value={formatCurrency(absorbedBudget)}
             description={`${absorptionRate}% Anggaran terserap`}
-            icon={Wallet}
+            icon="account_balance_wallet"
             color="text-emerald-600"
             bg="bg-emerald-50"
             loading={appsLoading}
