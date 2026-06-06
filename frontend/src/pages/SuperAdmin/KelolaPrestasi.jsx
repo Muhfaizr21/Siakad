@@ -65,6 +65,8 @@ export default function KelolaPrestasi() {
   const [expandedFaculty, setExpandedFaculty] = useState(null)
   const [chartFacultyFilter, setChartFacultyFilter] = useState("all")
 
+  const [allFaculties, setAllFaculties] = useState([])
+
   // Verification Form State
   const [verifyStatus, setVerifyStatus] = useState("verified")
   const [verifyCatatan, setVerifyCatatan] = useState("")
@@ -74,7 +76,10 @@ export default function KelolaPrestasi() {
   const fetchData = async () => {
     setLoading(true)
     try {
-      const res = await adminService.getAllAchievements()
+      const [res, facRes] = await Promise.all([
+        adminService.getAllAchievements(),
+        adminService.getAllFaculties()
+      ])
       if (res.status === "success") {
         setData((res.data || []).map((item, i) => {
           const mhs = item.mahasiswa || {}
@@ -98,6 +103,9 @@ export default function KelolaPrestasi() {
         }))
       } else {
         toast.error("Gagal memuat data prestasi")
+      }
+      if (facRes && facRes.status === "success") {
+        setAllFaculties(facRes.data || [])
       }
     } catch (err) {
       toast.error("Koneksi ke server gagal")
@@ -192,6 +200,18 @@ export default function KelolaPrestasi() {
   const fakultasOptions = useMemo(() => {
     const list = []
     const ids = new Set()
+    
+    // Add all faculties from master data
+    allFaculties.forEach(fac => {
+      const fid = String(fac.id || fac.ID || '')
+      const fnama = String(fac.nama || fac.Nama || '')
+      if (fid && fnama && !ids.has(fid)) {
+        ids.add(fid)
+        list.push({ label: fnama.toUpperCase(), value: fid })
+      }
+    })
+
+    // Fallback/Supplement from achievements data
     data.forEach(item => {
       const fid = item.fakultas_id
       const fnama = item.fakultas_nama
@@ -201,7 +221,7 @@ export default function KelolaPrestasi() {
       }
     })
     return list
-  }, [data])
+  }, [allFaculties, data])
 
   const chartData = useMemo(() => {
     if (chartFacultyFilter === "all") {
