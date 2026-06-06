@@ -23,6 +23,7 @@ const portalConfig = {
         items: [
           { name: 'Pra-Kencana', icon: 'flag', path: '/kencana-admin/pre-kencana' },
           { name: 'Kencana University', icon: 'account_balance', path: '/kencana-admin/university' },
+          { name: 'Kencana Fakultas', icon: 'school', path: '/kencana-admin/faculty-stages' },
         ]
       },
       {

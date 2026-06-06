@@ -187,7 +187,8 @@ export const PORTAL_CONFIG = {
       {
         group: 'KENCANA (PKKMB)',
         items: [
-          { name: 'Kencana', icon: 'account_balance', path: '/kencana-admin' },
+          { name: 'Kencana Universitas', icon: 'account_balance', path: '/kencana-admin' },
+          { name: 'Kencana Fakultas', icon: 'school', path: '/kencana-fakultas' },
         ]
       },
       {

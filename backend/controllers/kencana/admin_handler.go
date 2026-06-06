@@ -26,11 +26,14 @@ func kencanaAdminScope(c *fiber.Ctx) (role string, fakultasID uint) {
 }
 
 func applyKencanaMentorScope(c *fiber.Ctx, q *gorm.DB) *gorm.DB {
-	_, fakultasID := kencanaAdminScope(c)
-	if fakultasID != 0 {
-		return q.Where("fakultas_id = ?", fakultasID)
+	role, fakultasID := kencanaAdminScope(c)
+	if role == "kencana_admin" {
+		return q.Where("scope_type = ?", "university")
 	}
-	return q.Where("scope_type = ?", "university")
+	if role == "kencana_fakultas" {
+		return q.Where("scope_type = ? AND fakultas_id = ?", "faculty", fakultasID)
+	}
+	return q
 }
 
 const (
@@ -1485,11 +1488,11 @@ func DeleteMentorAssignment(c *fiber.Ctx) error {
 }
 
 func applyKencanaGroupScope(c *fiber.Ctx, q *gorm.DB) *gorm.DB {
-	_, fakultasID := kencanaAdminScope(c)
-	if fakultasID != 0 {
+	role, fakultasID := kencanaAdminScope(c)
+	if role == "kencana_fakultas" {
 		return q.Where("fakultas_id = ?", fakultasID)
 	}
-	return q.Where("scope_type = ?", "university")
+	return q
 }
 
 func ListGroups(c *fiber.Ctx) error {
