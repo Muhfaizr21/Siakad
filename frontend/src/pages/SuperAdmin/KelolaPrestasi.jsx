@@ -76,6 +76,11 @@ export default function KelolaPrestasi() {
 
   const [allFaculties, setAllFaculties] = useState([])
   const [allProdi, setAllProdi] = useState([])
+  const [allPeriods, setAllPeriods] = useState([])
+
+  const activeFacultyId = localStorage.getItem('superadmin_fakultas_id') || 'all'
+  const activeProdiId = localStorage.getItem('superadmin_prodi_id') || 'all'
+  const activePeriodId = localStorage.getItem('superadmin_period_id') || 'all'
 
   // Verification Form State
   const [verifyStatus, setVerifyStatus] = useState("verified")
@@ -86,10 +91,11 @@ export default function KelolaPrestasi() {
   const fetchData = async () => {
     setLoading(true)
     try {
-      const [res, facRes, prodRes] = await Promise.all([
+      const [res, facRes, prodRes, periodRes] = await Promise.all([
         adminService.getAllAchievements(),
         adminService.getAllFaculties(),
-        adminService.getAllProdi()
+        adminService.getAllProdi(),
+        adminService.getAllAcademicPeriods()
       ])
       if (res.status === "success") {
         setData((res.data || []).map((item, i) => {
@@ -121,6 +127,9 @@ export default function KelolaPrestasi() {
       if (prodRes && prodRes.status === "success") {
         setAllProdi(prodRes.data || [])
       }
+      if (periodRes && periodRes.status === "success") {
+        setAllPeriods(periodRes.data || [])
+      }
     } catch (err) {
       toast.error("Koneksi ke server gagal")
     } finally {
@@ -131,6 +140,27 @@ export default function KelolaPrestasi() {
   useEffect(() => {
     fetchData()
   }, [])
+
+  const filteredData = useMemo(() => {
+    return data.filter(item => {
+      if (activeFacultyId !== 'all') {
+        if (String(item.fakultas_id) !== String(activeFacultyId)) return false
+      }
+      if (activeProdiId !== 'all') {
+        if (String(item.prodi_id) !== String(activeProdiId)) return false
+      }
+      if (activePeriodId !== 'all') {
+        const selectedPeriod = allPeriods.find(p => String(p.id || p.ID) === String(activePeriodId))
+        if (selectedPeriod) {
+          var year = 0
+          const match = selectedPeriod.AcademicYear?.match(/\d+/)
+          if (match) year = parseInt(match[0])
+          if (year > 0 && String(item.periode_filter) !== String(year)) return false
+        }
+      }
+      return true
+    })
+  }, [data, activeFacultyId, activeProdiId, activePeriodId, allPeriods])
 
   const handleOpenVerify = (row, status) => {
     setSelected(row)
@@ -170,16 +200,16 @@ export default function KelolaPrestasi() {
 
   // Stats Calculations
   const stats = useMemo(() => {
-    const total = data.length
-    const pending = data.filter(item => (item.status || "").toLowerCase() === "menunggu").length
-    const verified = data.filter(item => ["verified", "terverifikasi", "disetujui", "diverifikasi"].includes((item.status || "").toLowerCase())).length
-    const rejected = data.filter(item => ["rejected", "ditolak"].includes((item.status || "").toLowerCase())).length
+    const total = filteredData.length
+    const pending = filteredData.filter(item => (item.status || "").toLowerCase() === "menunggu").length
+    const verified = filteredData.filter(item => ["verified", "terverifikasi", "disetujui", "diverifikasi"].includes((item.status || "").toLowerCase())).length
+    const rejected = filteredData.filter(item => ["rejected", "ditolak"].includes((item.status || "").toLowerCase())).length
     return { total, pending, verified, rejected }
-  }, [data])
+  }, [filteredData])
 
   const extraStats = useMemo(() => {
     const facultyCounts = {}
-    data.forEach(item => {
+    filteredData.forEach(item => {
       const fac = item.fakultas_nama || 'Lainnya'
       facultyCounts[fac] = (facultyCounts[fac] || 0) + 1
     })
@@ -197,7 +227,7 @@ export default function KelolaPrestasi() {
     }
 
     const categoryCounts = {}
-    data.forEach(item => {
+    filteredData.forEach(item => {
       const cat = item.kategori || 'Umum'
       categoryCounts[cat] = (categoryCounts[cat] || 0) + 1
     })
@@ -211,7 +241,7 @@ export default function KelolaPrestasi() {
     })
 
     const tingkatCounts = {}
-    data.forEach(item => {
+    filteredData.forEach(item => {
       const t = item.tingkat || 'Lokal'
       tingkatCounts[t] = (tingkatCounts[t] || 0) + 1
     })
@@ -223,10 +253,10 @@ export default function KelolaPrestasi() {
         topTingkatCount = count
       }
     })
-    const topTingkatPct = data.length > 0 ? Math.round((topTingkatCount / data.length) * 100) : 0
+    const topTingkatPct = filteredData.length > 0 ? Math.round((topTingkatCount / filteredData.length) * 100) : 0
 
     const yearCounts = {}
-    data.forEach(item => {
+    filteredData.forEach(item => {
       const yr = item.periode_filter
       if (yr) yearCounts[yr] = (yearCounts[yr] || 0) + 1
     })
@@ -239,7 +269,7 @@ export default function KelolaPrestasi() {
       }
     })
 
-    const totalDanaDisetujui = data.reduce((acc, curr) => acc + (parseFloat(curr.DanaDisetujui) || 0), 0)
+    const totalDanaDisetujui = filteredData.reduce((acc, curr) => acc + (parseFloat(curr.DanaDisetujui) || 0), 0)
 
     return {
       topFaculty,
@@ -253,18 +283,18 @@ export default function KelolaPrestasi() {
       topYearCount,
       totalDanaDisetujui
     }
-  }, [data])
+  }, [filteredData])
 
   const leaderboardData = useMemo(() => {
     const counts = {}
-    data.forEach(item => {
+    filteredData.forEach(item => {
       const facName = item.fakultas_nama || 'Lainnya'
       counts[facName] = (counts[facName] || 0) + 1
     })
     return Object.entries(counts)
       .map(([name, value]) => ({ name, value }))
       .sort((a, b) => b.value - a.value)
-  }, [data])
+  }, [filteredData])
 
   const prodiBreakdown = useMemo(() => {
     const mapping = {}
@@ -286,7 +316,7 @@ export default function KelolaPrestasi() {
     })
 
     // Populate counts from achievements data
-    data.forEach(item => {
+    filteredData.forEach(item => {
       const facName = item.fakultas_nama || 'Lainnya'
       const prodName = item.prodi_nama || 'Lainnya'
       const status = (item.status || '').toLowerCase()
@@ -305,7 +335,7 @@ export default function KelolaPrestasi() {
       if (isVerified) mapping[facName][prodName].verified += 1
     })
     return mapping
-  }, [allFaculties, allProdi, data])
+  }, [allFaculties, allProdi, filteredData])
 
   const fakultasOptions = useMemo(() => {
     const list = []
@@ -322,7 +352,7 @@ export default function KelolaPrestasi() {
     })
 
     // Fallback/Supplement from achievements data
-    data.forEach(item => {
+    filteredData.forEach(item => {
       const fid = item.fakultas_id
       const fnama = item.fakultas_nama
       if (fid && fnama && !ids.has(fid)) {
@@ -331,14 +361,14 @@ export default function KelolaPrestasi() {
       }
     })
     return list
-  }, [allFaculties, data])
+  }, [allFaculties, filteredData])
 
   const chartData = useMemo(() => {
     if (chartFacultyFilter === "all") {
       return leaderboardData
     } else {
       const counts = {}
-      data.forEach(item => {
+      filteredData.forEach(item => {
         if (item.fakultas_id === chartFacultyFilter) {
           const prodName = item.prodi_nama || 'Lainnya'
           counts[prodName] = (counts[prodName] || 0) + 1
@@ -348,7 +378,7 @@ export default function KelolaPrestasi() {
         .map(([name, value]) => ({ name, value }))
         .sort((a, b) => b.value - a.value)
     }
-  }, [chartFacultyFilter, leaderboardData, data])
+  }, [chartFacultyFilter, leaderboardData, filteredData])
 
   const prodiOptions = useMemo(() => {
     const list = []
@@ -799,7 +829,7 @@ export default function KelolaPrestasi() {
           <CardContent className="p-0">
             <DataTable
               columns={columns}
-              data={data}
+              data={filteredData}
               loading={loading}
               searchPlaceholder="Cari mahasiswa, judul kegiatan, kategori..."
               externalFilters={tableFilters}

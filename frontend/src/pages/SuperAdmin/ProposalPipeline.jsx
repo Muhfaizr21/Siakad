@@ -49,6 +49,24 @@ export default function ProposalPipeline() {
   const [rejectNote, setRejectNote] = useState('')
   const [tenggatHari, setTenggatHari] = useState(14)
 
+  const activeFacultyId = localStorage.getItem('superadmin_fakultas_id') || 'all'
+  const activeProdiId = localStorage.getItem('superadmin_prodi_id') || 'all'
+
+  const fetchData = async () => {
+    setLoading(true)
+    try {
+      const res = await adminService.getGlobalProposals()
+      if (res.status === 'success') {
+        setData(res.data || [])
+      } else {
+        toast.error('Gagal memuat data proposal')
+      }
+    } catch {
+      toast.error('Koneksi sistem terputus')
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const handleApprove = async (id) => {
     setIsSubmitting(true)
@@ -75,8 +93,22 @@ export default function ProposalPipeline() {
     } catch { toast.error('Gagal mengirim penolakan') } finally { setIsSubmitting(false) }
   }
 
-  const pending = data.filter(p => p.Status === 'disetujui_fakultas').length
-  const totalBudget = data.filter(p => p.Status === 'disetujui_fakultas').reduce((acc, curr) => acc + (curr.Anggaran || 0), 0)
+  const filteredData = useMemo(() => {
+    return data.filter(p => {
+      if (activeFacultyId !== 'all') {
+        const fid = p.FakultasID || p.fakultas_id || p.Mahasiswa?.FakultasID || p.Mahasiswa?.fakultas_id
+        if (String(fid) !== String(activeFacultyId)) return false
+      }
+      if (activeProdiId !== 'all') {
+        const pid = p.Mahasiswa?.ProgramStudiID || p.Mahasiswa?.program_studi_id
+        if (String(pid) !== String(activeProdiId)) return false
+      }
+      return true
+    })
+  }, [data, activeFacultyId, activeProdiId])
+
+  const pending = filteredData.filter(p => p.Status === 'disetujui_fakultas').length
+  const totalBudget = filteredData.filter(p => p.Status === 'disetujui_fakultas').reduce((acc, curr) => acc + (curr.Anggaran || 0), 0)
 
   // ── Chart data derived from live data ─────────────────────────────
   const statusChartData = useMemo(() => {
@@ -88,17 +120,17 @@ export default function ProposalPipeline() {
       ditolak: { label: 'Ditolak', color: '#ef4444' },
     }
     const counts = {}
-    data.forEach(p => { const s = p.Status || 'diajukan'; counts[s] = (counts[s] || 0) + 1 })
+    filteredData.forEach(p => { const s = p.Status || 'diajukan'; counts[s] = (counts[s] || 0) + 1 })
     return Object.entries(counts).map(([key, value]) => ({
       name: cfg[key]?.label || key,
       value,
       color: cfg[key]?.color || '#94a3b8'
     }))
-  }, [data])
+  }, [filteredData])
 
   const budgetByOrmawa = useMemo(() => {
     const map = {}
-    data.forEach(p => {
+    filteredData.forEach(p => {
       const name = (p.Ormawa?.Nama || 'Lainnya').substring(0, 16)
       map[name] = (map[name] || 0) + (p.Anggaran || 0)
     })
@@ -106,7 +138,7 @@ export default function ProposalPipeline() {
       .map(([name, value]) => ({ name, value }))
       .sort((a, b) => b.value - a.value)
       .slice(0, 6)
-  }, [data])
+  }, [filteredData])
 
   const columns = [
     { 
@@ -216,7 +248,7 @@ export default function ProposalPipeline() {
         </DashboardStatGrid>
 
         {/* ── Analytics Charts ─────────────────────────────────────── */}
-        {!loading && data.length > 0 && (
+        {!loading && filteredData.length > 0 && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Donut – Status Pipeline */}
             <div className="glass-card rounded-2xl border border-slate-200/60 p-6 shadow-none">
@@ -296,7 +328,7 @@ export default function ProposalPipeline() {
           <CardContent className="p-0">
             <DataTable
               columns={columns} 
-              data={data} 
+              data={filteredData} 
               loading={loading}
               searchPlaceholder="Cari judul proposal, ormawa, atau ID..."
               actions={(row) => (

@@ -285,6 +285,46 @@ export default function KelolaBeasiswa() {
   const [activeTab, setActiveTab] = useState('programs')
   const [data, setData] = useState([])
   const [appsData, setAppsData] = useState([])
+  const [allPeriods, setAllPeriods] = useState([])
+
+  const activeFacultyId = localStorage.getItem('superadmin_fakultas_id') || 'all'
+  const activeProdiId = localStorage.getItem('superadmin_prodi_id') || 'all'
+  const activePeriodId = localStorage.getItem('superadmin_period_id') || 'all'
+
+  const filteredAppsData = useMemo(() => {
+    return appsData.filter(a => {
+      const m = a.Mahasiswa || {};
+      
+      // Filter by Faculty
+      if (activeFacultyId !== 'all') {
+        const fId = m.FakultasID || m.fakultas_id || a.FakultasID || a.fakultas_id;
+        if (fId && String(fId) !== String(activeFacultyId)) return false;
+      }
+      
+      // Filter by Prodi
+      if (activeProdiId !== 'all') {
+        const pId = m.ProgramStudiID || m.program_studi_id || a.ProgramStudiID || a.program_studi_id;
+        if (pId && String(pId) !== String(activeProdiId)) return false;
+      }
+      
+      // Filter by Academic Period
+      if (activePeriodId !== 'all') {
+        const selectedPeriod = allPeriods.find(p => String(p.id || p.ID) === String(activePeriodId))
+        if (selectedPeriod) {
+          let year = 0
+          const match = selectedPeriod.AcademicYear?.match(/\d+/)
+          if (match) year = parseInt(match[0])
+          
+          if (year > 0) {
+            const entryYear = m.TahunMasuk || m.tahun_masuk || 0;
+            if (entryYear > 0 && entryYear !== year) return false;
+          }
+        }
+      }
+      
+      return true;
+    });
+  }, [appsData, activeFacultyId, activeProdiId, activePeriodId, allPeriods])
   const uniqueSchNames = React.useMemo(() => {
     const map = new Map()
     data.forEach(s => {
@@ -297,7 +337,7 @@ export default function KelolaBeasiswa() {
 
   const appStatusData = useMemo(() => {
     const counts = { 'Diterima': 0, 'Ditolak': 0, 'Proses': 0, 'Disetujui Fakultas': 0 }
-    appsData.forEach(a => {
+    filteredAppsData.forEach(a => {
       let s = a.Status || 'Proses'
       if (s !== 'Diterima' && s !== 'Ditolak' && s !== 'Disetujui Fakultas') {
         s = 'Proses'
@@ -307,7 +347,7 @@ export default function KelolaBeasiswa() {
     return Object.entries(counts)
       .map(([name, value]) => ({ name, value }))
       .filter(d => d.value > 0)
-  }, [appsData])
+  }, [filteredAppsData])
 
   const budgetByProgramData = useMemo(() => {
     return [...data]
@@ -457,7 +497,7 @@ export default function KelolaBeasiswa() {
     // 3. Prepare Program Realization Table HTML
     let programRows = '';
     data.forEach((row) => {
-      const count = appsData.filter(a => (a.BeasiswaID === (row.id || row.ID) || a.Beasiswa?.id === (row.id || row.ID) || a.Beasiswa?.ID === (row.id || row.ID)) && a.Status === 'Diterima').length;
+      const count = filteredAppsData.filter(a => (a.BeasiswaID === (row.id || row.ID) || a.Beasiswa?.id === (row.id || row.ID) || a.Beasiswa?.ID === (row.id || row.ID)) && a.Status === 'Diterima').length;
       const absorbed = count * (row.NilaiBantuan || row.nilai_bantuan || 0);
       const remaining = (row.Anggaran || 0) - absorbed;
       const sponsor = (row.Kategori || '').toLowerCase() === 'internal' ? 'Kampus' : 'Mitra';
@@ -478,7 +518,7 @@ export default function KelolaBeasiswa() {
 
     // 4. Prepare Recipient Table HTML
     let recipientRows = '';
-    const acceptedMhs = appsData.filter(a => a.Status === 'Diterima');
+    const acceptedMhs = filteredAppsData.filter(a => a.Status === 'Diterima');
     acceptedMhs.forEach((row) => {
       recipientRows += `
         <tr>
@@ -840,9 +880,21 @@ export default function KelolaBeasiswa() {
     } catch { toast.error('Koneksi sistem terputus') } finally { setAppsLoading(false) }
   }
 
+  const fetchPeriods = async () => {
+    try {
+      const res = await adminService.getAllAcademicPeriods()
+      if (res && res.status === 'success') {
+        setAllPeriods(res.data || [])
+      }
+    } catch {
+      // silent fail
+    }
+  }
+
   useEffect(() => { 
     fetchData()
     fetchApps()
+    fetchPeriods()
   }, [])
 
 
@@ -932,10 +984,10 @@ export default function KelolaBeasiswa() {
   // Stats Calculations
   const stats = {
     totalPrograms: data.length,
-    pendingApps: appsData.filter(a => a.Status === 'Menunggu' || a.Status === 'Menunggu Verifikasi' || a.Status === 'Proses').length,
-    activeAwardees: appsData.filter(a => a.Status === 'Diterima' || a.Status === 'Disetujui').length,
+    pendingApps: filteredAppsData.filter(a => a.Status === 'Menunggu' || a.Status === 'Menunggu Verifikasi' || a.Status === 'Proses').length,
+    activeAwardees: filteredAppsData.filter(a => a.Status === 'Diterima' || a.Status === 'Disetujui').length,
     totalBudget: data.reduce((acc, curr) => acc + (parseFloat(curr.Anggaran) || 0), 0),
-    verificationProgress: appsData.length > 0 ? Math.round((appsData.filter(a => a.Status === 'Diterima' || a.Status === 'Ditolak').length / appsData.length) * 100) : 0,
+    verificationProgress: filteredAppsData.length > 0 ? Math.round((filteredAppsData.filter(a => a.Status === 'Diterima' || a.Status === 'Ditolak').length / filteredAppsData.length) * 100) : 0,
     urgentPrograms: data.filter(s => {
       const days = getDaysLeft(s.Deadline)
       return days <= 3 && days >= 0
@@ -943,17 +995,17 @@ export default function KelolaBeasiswa() {
   }
 
   const absorbedBudget = React.useMemo(() => {
-    return appsData
+    return filteredAppsData
       .filter(a => a.Status === 'Diterima')
       .reduce((acc, curr) => acc + (parseFloat(curr.Beasiswa?.NilaiBantuan || curr.Beasiswa?.nilai_bantuan || 0)), 0)
-  }, [appsData])
+  }, [filteredAppsData])
 
   const remainingBudget = stats.totalBudget - absorbedBudget
   const absorptionRate = stats.totalBudget > 0 ? Math.round((absorbedBudget / stats.totalBudget) * 100) : 0
 
   const facultyAbsorption = React.useMemo(() => {
     const counts = {}
-    appsData.filter(a => a.Status === 'Diterima').forEach(a => {
+    filteredAppsData.filter(a => a.Status === 'Diterima').forEach(a => {
       const fac = a._fakultas || 'Lainnya'
       const val = parseFloat(a.Beasiswa?.NilaiBantuan || a.Beasiswa?.nilai_bantuan || 0)
       counts[fac] = (counts[fac] || 0) + val
@@ -961,18 +1013,18 @@ export default function KelolaBeasiswa() {
     return Object.entries(counts)
       .map(([name, value]) => ({ name, value }))
       .sort((a, b) => b.value - a.value)
-  }, [appsData])
+  }, [filteredAppsData])
 
   const facultyApplicants = React.useMemo(() => {
     const counts = {}
-    appsData.forEach(a => {
+    filteredAppsData.forEach(a => {
       const fac = a._fakultas || 'Lainnya'
       counts[fac] = (counts[fac] || 0) + 1
     })
     return Object.entries(counts)
       .map(([name, value]) => ({ name, value }))
       .sort((a, b) => b.value - a.value)
-  }, [appsData])
+  }, [filteredAppsData])
 
   const highestApplicantFaculty = React.useMemo(() => {
     if (facultyApplicants.length === 0) return { name: 'Tidak ada data', count: 0 }
@@ -1023,7 +1075,7 @@ export default function KelolaBeasiswa() {
 
   const facultyComparisonData = React.useMemo(() => {
     const map = {}
-    appsData.forEach(a => {
+    filteredAppsData.forEach(a => {
       const fac = a._fakultas || 'Lainnya'
       if (!map[fac]) {
         map[fac] = { name: getShortFacultyName(fac), pendaftar: 0, penerima: 0 }
@@ -1034,7 +1086,7 @@ export default function KelolaBeasiswa() {
       }
     })
     return Object.values(map).sort((a, b) => b.pendaftar - a.pendaftar)
-  }, [appsData])
+  }, [filteredAppsData])
 
   const categoryBreakdownData = React.useMemo(() => {
     const counts = {}
@@ -1095,7 +1147,7 @@ export default function KelolaBeasiswa() {
       label: 'Kapasitas & Penerima',
       className: 'w-[180px]',
       render: (v, row) => {
-        const current = appsData.filter(a => (a.BeasiswaID === (row.id || row.ID) || a.Beasiswa?.id === (row.id || row.ID) || a.Beasiswa?.ID === (row.id || row.ID)) && (a.Status === 'Diterima' || a.Status === 'Disetujui')).length;
+        const current = filteredAppsData.filter(a => (a.BeasiswaID === (row.id || row.ID) || a.Beasiswa?.id === (row.id || row.ID) || a.Beasiswa?.ID === (row.id || row.ID)) && (a.Status === 'Diterima' || a.Status === 'Disetujui')).length;
         const capacity = row.Kuota || 0;
         const pct = capacity <= 0 
           ? 0 
@@ -1512,7 +1564,7 @@ export default function KelolaBeasiswa() {
               <CardContent className="p-0">
                 <DataTable
                   columns={appColumns} 
-                  data={appsData} 
+                  data={filteredAppsData} 
                   loading={appsLoading}
                   searchPlaceholder="Cari mahasiswa atau program..."
                   externalFilters={appFilters}
@@ -1787,7 +1839,7 @@ export default function KelolaBeasiswa() {
                       className: 'text-right',
                       cellClassName: 'text-right',
                       render: (v, row) => {
-                        const count = appsData.filter(a => (a.BeasiswaID === (row.id || row.ID) || a.Beasiswa?.id === (row.id || row.ID) || a.Beasiswa?.ID === (row.id || row.ID)) && a.Status === 'Diterima').length;
+                        const count = filteredAppsData.filter(a => (a.BeasiswaID === (row.id || row.ID) || a.Beasiswa?.id === (row.id || row.ID) || a.Beasiswa?.ID === (row.id || row.ID)) && a.Status === 'Diterima').length;
                         const val = count * (row.NilaiBantuan || row.nilai_bantuan || 0);
                         return <span className="font-bold text-neutral-800 text-xs">{formatCurrency(val)}</span>;
                       }
@@ -1798,7 +1850,7 @@ export default function KelolaBeasiswa() {
                       className: 'text-right',
                       cellClassName: 'text-right',
                       render: (v, row) => {
-                        const count = appsData.filter(a => (a.BeasiswaID === (row.id || row.ID) || a.Beasiswa?.id === (row.id || row.ID) || a.Beasiswa?.ID === (row.id || row.ID)) && a.Status === 'Diterima').length;
+                        const count = filteredAppsData.filter(a => (a.BeasiswaID === (row.id || row.ID) || a.Beasiswa?.id === (row.id || row.ID) || a.Beasiswa?.ID === (row.id || row.ID)) && a.Status === 'Diterima').length;
                         const absorbed = count * (row.NilaiBantuan || row.nilai_bantuan || 0);
                         const remaining = (row.Anggaran || 0) - absorbed;
                         return <span className={cn("font-bold text-xs", remaining < 0 ? "text-rose-600" : "text-neutral-500")}>{formatCurrency(remaining)}</span>;
@@ -1810,7 +1862,7 @@ export default function KelolaBeasiswa() {
                       className: 'text-center',
                       cellClassName: 'text-center',
                       render: (v, row) => {
-                        const count = appsData.filter(a => (a.BeasiswaID === (row.id || row.ID) || a.Beasiswa?.id === (row.id || row.ID) || a.Beasiswa?.ID === (row.id || row.ID)) && a.Status === 'Diterima').length;
+                        const count = filteredAppsData.filter(a => (a.BeasiswaID === (row.id || row.ID) || a.Beasiswa?.id === (row.id || row.ID) || a.Beasiswa?.ID === (row.id || row.ID)) && a.Status === 'Diterima').length;
                         return <span className="font-bold text-neutral-700 text-xs">{count} Mhs</span>;
                       }
                     }
@@ -1866,7 +1918,7 @@ export default function KelolaBeasiswa() {
                       render: (v, row) => <span className="font-bold text-success text-xs">{formatCurrency(row.Beasiswa?.NilaiBantuan || row.Beasiswa?.nilai_bantuan || 0)}</span>
                     }
                   ]}
-                  data={appsData.filter(a => a.Status === 'Diterima')}
+                  data={filteredAppsData.filter(a => a.Status === 'Diterima')}
                   loading={appsLoading}
                   searchPlaceholder="Cari nama atau NIM penerima..."
                 />
@@ -2128,7 +2180,7 @@ export default function KelolaBeasiswa() {
 
       {/* View Program Modal */}
       {selectedProgram && (() => {
-        const programApps = appsData.filter(a => (a.BeasiswaID === (selectedProgram.id || selectedProgram.ID) || a.Beasiswa?.id === (selectedProgram.id || selectedProgram.ID) || a.Beasiswa?.ID === (selectedProgram.id || selectedProgram.ID)));
+        const programApps = filteredAppsData.filter(a => (a.BeasiswaID === (selectedProgram.id || selectedProgram.ID) || a.Beasiswa?.id === (selectedProgram.id || selectedProgram.ID) || a.Beasiswa?.ID === (selectedProgram.id || selectedProgram.ID)));
         const acceptedApps = programApps.filter(a => a.Status === 'Diterima' || a.Status === 'Disetujui');
         const current = acceptedApps.length;
         const capacity = selectedProgram.Kuota || 1;

@@ -106,8 +106,13 @@ const AspirationControl = () => {
   const [form, setForm] = useState({ status: '', respon: '' })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [faculties, setFaculties] = useState([])
+  const [periods, setPeriods] = useState([])
   const [selectedFaculty, setSelectedFaculty] = useState('')
   const [selectedStatus, setSelectedStatus] = useState('')
+
+  const activeFacultyId = localStorage.getItem('superadmin_fakultas_id') || 'all'
+  const activeProdiId = localStorage.getItem('superadmin_prodi_id') || 'all'
+  const activePeriodId = localStorage.getItem('superadmin_period_id') || 'all'
 
   useEffect(() => {
     loadData()
@@ -116,10 +121,11 @@ const AspirationControl = () => {
   const loadData = async () => {
     try {
       setLoading(true)
-      const [aspRes, statsRes, facRes] = await Promise.all([
+      const [aspRes, statsRes, facRes, periodRes] = await Promise.all([
         adminService.getGlobalAspirations(),
         adminService.getStats(),
-        adminService.getAllFaculties()
+        adminService.getAllFaculties(),
+        adminService.getAllAcademicPeriods()
       ])
 
       if (aspRes.status === 'success') {
@@ -134,6 +140,9 @@ const AspirationControl = () => {
       }
       if (facRes && facRes.status === 'success') {
         setFaculties(facRes.data || [])
+      }
+      if (periodRes && periodRes.status === 'success') {
+        setPeriods(periodRes.data || [])
       }
     } catch (error) {
       toast.error('Gagal memuat pusat aspirasi global')
@@ -197,10 +206,39 @@ const AspirationControl = () => {
     const statusLower = (asp.Status || '').toLowerCase();
 
     // Filter by Faculty
-    if (selectedFaculty) {
+    if (activeFacultyId !== 'all') {
+      const activeFaculty = faculties.find(f => String(f.id || f.ID) === String(activeFacultyId))
+      const targetFacultyName = activeFaculty ? (activeFaculty.nama || activeFaculty.Nama || '').toLowerCase() : ''
+      const facultyName = (asp.Fakultas?.Nama || asp.Mahasiswa?.Fakultas?.Nama || '').toLowerCase();
+      if (facultyName !== targetFacultyName) {
+        return false;
+      }
+    } else if (selectedFaculty) {
       const facultyName = (asp.Fakultas?.Nama || asp.Mahasiswa?.Fakultas?.Nama || '').toLowerCase();
       if (facultyName !== selectedFaculty.toLowerCase()) {
         return false;
+      }
+    }
+
+    // Filter by Prodi
+    if (activeProdiId !== 'all') {
+      const prodiId = asp.Mahasiswa?.ProgramStudiID || asp.Mahasiswa?.program_studi_id || '';
+      if (String(prodiId) !== String(activeProdiId)) return false;
+    }
+
+    // Filter by Period
+    if (activePeriodId !== 'all') {
+      const selectedPeriod = periods.find(p => String(p.id || p.ID) === String(activePeriodId))
+      if (selectedPeriod) {
+        var year = 0;
+        const match = selectedPeriod.AcademicYear?.match(/\d+/);
+        if (match) {
+          year = parseInt(match[0]);
+        }
+        if (year > 0) {
+          const entryYear = asp.Mahasiswa?.TahunMasuk || asp.Mahasiswa?.tahun_masuk || 0;
+          if (entryYear !== year) return false;
+        }
       }
     }
 
@@ -625,9 +663,10 @@ const AspirationControl = () => {
                 {/* Faculty Filter */}
                 <div className="relative w-full sm:w-[200px]">
                   <select
-                    value={selectedFaculty}
+                    value={activeFacultyId !== 'all' ? (faculties.find(f => String(f.id || f.ID) === String(activeFacultyId))?.nama || faculties.find(f => String(f.id || f.ID) === String(activeFacultyId))?.Nama || '') : selectedFaculty}
                     onChange={(e) => setSelectedFaculty(e.target.value)}
-                    className="w-full h-11 pl-4 pr-10 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-700 outline-none focus:border-bku-primary cursor-pointer appearance-none"
+                    disabled={activeFacultyId !== 'all'}
+                    className="w-full h-11 pl-4 pr-10 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-700 outline-none focus:border-bku-primary cursor-pointer appearance-none disabled:bg-slate-50 disabled:text-slate-400"
                   >
                     <option value="">Semua Fakultas</option>
                     {faculties.map((fac) => (
