@@ -1069,8 +1069,12 @@ func ApproveProposalUniv(c *fiber.Ctx) error {
 			Pesan:    fmt.Sprintf("Proposal '%s' telah disetujui Universitas. Anggaran %v telah dicairkan ke kas organisasi.", proposal.Judul, proposal.Anggaran),
 		})
 
-		// 4. Set LPJ deadline (14 days from approval)
-		tenggat := time.Now().Add(14 * 24 * time.Hour)
+		// 4. Set LPJ deadline (from ormawa setting, default 14 days)
+		tenggatHari := 14
+		if proposal.Ormawa.TenggatLPJHari > 0 {
+			tenggatHari = proposal.Ormawa.TenggatLPJHari
+		}
+		tenggat := time.Now().Add(time.Duration(tenggatHari) * 24 * time.Hour)
 		if err := tx.Model(&proposal).Update("tenggat_lpj", tenggat).Error; err != nil {
 			return err
 		}

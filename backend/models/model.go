@@ -496,6 +496,9 @@ type Ormawa struct {
 	RecruitmentEnd          *time.Time `json:"recruitment_end,omitempty"`
 	MinIPK                  float64    `gorm:"default:0" json:"min_ipk"`
 
+	// LPJ deadline setting
+	TenggatLPJHari int `gorm:"default:14" json:"tenggat_lpj_hari"`
+
 	// Faculty Admin fields
 	Status        string `gorm:"default:'Aktif'"`
 	Kategori      string `gorm:"default:'Himpunan'"` // BEM, Himpunan, UKM, Komunitas, Lainnya

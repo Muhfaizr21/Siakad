@@ -43,7 +43,8 @@ export default function Settings() {
     open_recruitment: false,
     recruitment_requirements: '',
     recruitment_start: '',
-    recruitment_end: ''
+    recruitment_end: '',
+    tenggat_lpj_hari: 14
   })
 
   const ormawaId = getOrmawaId()
@@ -75,7 +76,8 @@ export default function Settings() {
           open_recruitment: d?.open_recruitment ?? d?.OpenRecruitment ?? false,
           recruitment_requirements: d?.recruitment_requirements ?? d?.RecruitmentRequirements ?? '',
           recruitment_start: formatDate(d?.recruitment_start ?? d?.RecruitmentStart),
-          recruitment_end: formatDate(d?.recruitment_end ?? d?.RecruitmentEnd)
+          recruitment_end: formatDate(d?.recruitment_end ?? d?.RecruitmentEnd),
+          tenggat_lpj_hari: d?.tenggat_lpj_hari ?? d?.TenggatLPJHari ?? 14
         })
       }
     } catch { }
@@ -468,6 +470,30 @@ export default function Settings() {
                         </FieldGroup>
                       </div>
                     )}
+                  </div>
+                </div>
+
+                {/* LPJ Deadline Setting */}
+                <div className="bg-white border border-slate-100/50 rounded-3xl p-5 shadow-sm">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center text-amber-600 shrink-0">
+                      <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>timer</span>
+                    </div>
+                    <div>
+                      <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest">Tenggat LPJ</h3>
+                      <p className="text-[10px] text-slate-400">Batas waktu pengumpulan LPJ setelah proposal disetujui</p>
+                    </div>
+                  </div>
+                  <div className="max-w-xs">
+                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.18em] mb-1.5 ml-1">Jumlah Hari</label>
+                    <div className="flex items-center gap-3">
+                      <input type="number" min={1} max={365}
+                        value={config.tenggat_lpj_hari}
+                        onChange={e => setConfig({ ...config, tenggat_lpj_hari: parseInt(e.target.value) || 14 })}
+                        className="w-24 h-11 rounded-2xl border border-slate-200 bg-slate-50/50 px-4 text-sm font-black text-center text-slate-900 focus:outline-none focus:border-primary focus:bg-white transition-all" />
+                      <span className="text-sm font-bold text-slate-500">hari</span>
+                    </div>
+                    <p className="text-[10px] text-slate-400 mt-2 ml-1">Setelah lewat tenggat, LPJ yg diajukan akan kena <span className="font-black text-rose-500">-50 poin</span> (lpj_terlambat)</p>
                   </div>
                 </div>
 
