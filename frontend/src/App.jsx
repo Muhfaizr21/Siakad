@@ -441,7 +441,7 @@ function App() {
                 </Route>
 
                 {/* Ormawa Admin */}
-                <Route path="/ormawa" element={<ProtectedRoute allowedRoles={['ormawa_admin', 'mahasiswa', 'ormawa']} requiredPermissions={['ormawa.view', 'ormawa.events.view', 'ormawa.members.view']}><OrmawaLayout /></ProtectedRoute>}>
+                <Route path="/ormawa" element={<ProtectedRoute allowedRoles={['ormawa_admin', 'ormawa']} requiredPermissions={['ormawa.view', 'ormawa.events.view', 'ormawa.members.view']}><OrmawaLayout /></ProtectedRoute>}>
                   <Route index element={<OrmawaDashboard />} />
                   <Route path="anggota" element={<AnggotaManagement />} />
                   <Route path="proposal" element={<ProposalManagement />} />
