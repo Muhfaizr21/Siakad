@@ -544,98 +544,72 @@ export default function RoleBasedAccess() {
                 </div>
               </div>
 
-              {/* Collapsible Feature Accordions for Granular Permissions */}
+              {/* CRUD Permission Matrix */}
               <div className="space-y-3">
                 <Label className="text-[10px] font-black text-slate-400 tracking-[0.2em] ml-1 uppercase font-headline block">
-                  Matriks Izin Otorisasi (Pilih & Rincikan Berdasarkan Fitur)
+                  Matriks Izin Otorisasi (Centang per CRUD)
                 </Label>
-                <div className="space-y-2 max-h-[350px] overflow-y-auto pr-1.5 scrollbar-thin scrollbar-thumb-slate-200">
-                  {PERM_GROUPS.map((group, gIdx) => {
-                    const isExpanded = !!expandedGroups[gIdx]
-                    const selectedCount = group.permissions.filter(p => (form.Hak || []).includes(p)).length
-                    
-                    return (
-                      <div key={gIdx} className="border border-slate-100 rounded-2xl overflow-hidden bg-white shadow-sm">
-                        {/* Accordion Trigger Button */}
-                        <button
-                          type="button"
-                          onClick={() => toggleGroup(gIdx)}
-                          className={cn(
-                            "w-full flex items-center justify-between p-4 text-left font-bold transition-all duration-200",
-                            isExpanded ? "bg-slate-50/50 border-b border-slate-100" : "hover:bg-slate-50/30"
-                          )}
-                        >
-                          <div className="flex items-center gap-3">
-                            <span className="material-symbols-outlined text-[#00236F]" style={{ fontSize: '20px' }}>
-                              {group.icon}
-                            </span>
-                            <div>
-                              <h4 className="text-[12px] font-black text-slate-800 font-headline leading-none">
-                                {group.title}
-                              </h4>
-                              <p className="text-[9px] text-slate-400 font-semibold mt-1">
-                                {group.permissions.length} Hak Otoritas Terkait
-                              </p>
-                            </div>
-                          </div>
-
-                          <div className="flex items-center gap-3">
-                            {selectedCount > 0 && (
-                              <Badge className="bg-[#00236F]/5 border-none text-[#00236F] font-bold text-[8.5px] px-2.5 py-0.5 rounded-full shrink-0">
-                                {selectedCount} TERPILIH
-                              </Badge>
-                            )}
-                            <span className={cn(
-                              "material-symbols-outlined text-slate-400 transition-transform duration-300",
-                              isExpanded ? "rotate-180" : ""
-                            )} style={{ fontSize: '18px' }}>
-                              expand_more
-                            </span>
-                          </div>
-                        </button>
-
-                        {/* Collapsible Content */}
-                        {isExpanded && (
-                          <div className="p-4 bg-slate-50/10 grid grid-cols-1 sm:grid-cols-2 gap-3 animate-in slide-in-from-top-1.5 duration-200">
-                            {group.permissions.map(p => {
-                              const isSelected = (form.Hak || []).includes(p)
-                              return (
-                                <button
-                                  key={p}
-                                  type="button"
-                                  onClick={() => toggleHak(p)}
-                                  className={cn(
-                                    'flex items-start gap-3 p-3.5 rounded-2xl border text-left cursor-pointer transition-all duration-200 active:scale-[0.98]',
-                                    isSelected
-                                      ? 'border-[#00236F] bg-blue-50/40 shadow-sm shadow-blue-900/5'
-                                      : 'border-slate-100 bg-white hover:border-slate-200 shadow-sm shadow-slate-100/30'
-                                  )}
-                                >
-                                  <span className={cn(
-                                    'material-symbols-outlined shrink-0 transition-all duration-200 mt-0.5',
-                                    isSelected ? 'text-[#00236F] font-bold' : 'text-slate-300'
-                                  )} style={{ fontSize: '16px' }}>
-                                    {isSelected ? 'check_box' : 'check_box_outline_blank'}
-                                  </span>
-                                  <div className="space-y-1">
-                                    <p className={cn(
-                                      'text-[11px] font-black leading-tight tracking-tight font-headline',
-                                      isSelected ? 'text-[#00236F]' : 'text-slate-700'
-                                    )}>
-                                      {PERM_LABELS[p].split(': ')[1] || PERM_LABELS[p]}
-                                    </p>
-                                    <p className="text-[9px] text-slate-400 font-medium leading-snug mt-0.5">
-                                      {PERM_DESCS[p]}
-                                    </p>
-                                  </div>
-                                </button>
-                              )
-                            })}
-                          </div>
-                        )}
-                      </div>
-                    )
-                  })}
+                <div className="max-h-[400px] overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-slate-200">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="text-[9px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100">
+                        <th className="py-2 pr-2 w-1/3">Fitur</th>
+                        <th className="py-2 px-1 text-center w-[60px]"><span className="material-symbols-outlined" style={{fontSize:'14px'}}>visibility</span></th>
+                        <th className="py-2 px-1 text-center w-[60px]"><span className="material-symbols-outlined" style={{fontSize:'14px'}}>add</span></th>
+                        <th className="py-2 px-1 text-center w-[60px]"><span className="material-symbols-outlined" style={{fontSize:'14px'}}>edit</span></th>
+                        <th className="py-2 px-1 text-center w-[60px]"><span className="material-symbols-outlined" style={{fontSize:'14px'}}>delete</span></th>
+                        <th className="py-2 pl-1 text-center w-[60px]">Lain</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-50">
+                      {PERM_GROUPS.map((group, gIdx) => {
+                        const viewP = group.permissions.find(p => p.startsWith('view_'))
+                        const createP = group.permissions.find(p => p.startsWith('create_') || p.startsWith('submit_'))
+                        const editP = group.permissions.find(p => p.startsWith('edit_') || p.startsWith('respond_'))
+                        const deleteP = group.permissions.find(p => p.startsWith('delete_'))
+                        const extraP = group.permissions.filter(p => p !== viewP && p !== createP && p !== editP && p !== deleteP && !p.startsWith('manage_'))
+                        return (
+                          <tr key={gIdx} className="hover:bg-slate-50/50 transition-colors">
+                            <td className="py-2.5 pr-2">
+                              <div className="flex items-center gap-2">
+                                <span className="material-symbols-outlined text-slate-400 shrink-0" style={{fontSize:'15px'}}>{group.icon}</span>
+                                <span className="text-[11px] font-bold text-slate-700 font-headline leading-tight">{group.title}</span>
+                              </div>
+                            </td>
+                            {[viewP, createP, editP, deleteP].map((p, i) => (
+                              <td key={i} className="py-2.5 px-1 text-center">
+                                {p && (
+                                  <label className="flex items-center justify-center cursor-pointer">
+                                    <input type="checkbox"
+                                      checked={(form.Hak || []).includes(p)}
+                                      onChange={() => toggleHak(p)}
+                                      className="size-4 rounded border-slate-300 text-[#00236F] focus:ring-[#00236F]/20 cursor-pointer" />
+                                  </label>
+                                )}
+                              </td>
+                            ))}
+                            <td className="py-2.5 pl-1 text-center">
+                              {extraP.length > 0 && (
+                                <div className="flex items-center justify-center gap-0.5">
+                                  {extraP.map(p => (
+                                    <label key={p} className="flex items-center justify-center cursor-pointer" title={PERM_LABELS[p]?.split(': ')[1] || p}>
+                                      <input type="checkbox"
+                                        checked={(form.Hak || []).includes(p)}
+                                        onChange={() => toggleHak(p)}
+                                        className="size-4 rounded border-slate-300 text-amber-600 focus:ring-amber-500/20 cursor-pointer" />
+                                    </label>
+                                  ))}
+                                </div>
+                              )}
+                            </td>
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                  </table>
+                  <p className="text-[9px] text-slate-400 font-medium mt-3 italic px-1">
+                    Total: <span className="font-bold text-slate-600">{(form.Hak || []).length}</span> dari {PERMISSIONS.length} izin terpilih
+                  </p>
                 </div>
               </div>
             </div>
