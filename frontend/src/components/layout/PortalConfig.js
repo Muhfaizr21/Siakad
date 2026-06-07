@@ -239,6 +239,11 @@ export const PORTAL_CONFIG = {
               { name: 'Setting Gamifikasi', icon: 'emoji_events', path: '/admin/gamifikasi' },
             ]
           },
+          {
+            name: 'Proposal Universitas',
+            icon: 'description',
+            path: '/admin/proposals'
+          },
         ]
       },
       {
