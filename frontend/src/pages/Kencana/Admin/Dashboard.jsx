@@ -9,6 +9,8 @@ const Dashboard = () => {
   const { data: mentors, isLoading: loadingMentors } = useMentorsQuery();
   const isLoading = loadingPeriods || loadingParticipants || loadingScores || loadingMentors;
 
+  const basePath = window.location.pathname.startsWith('/admin/kencana-univ') ? '/admin/kencana-univ' : window.location.pathname.startsWith('/admin/kencana-fakultas-admin') ? '/admin/kencana-fakultas-admin' : window.location.pathname.startsWith('/kencana-fakultas') ? '/kencana-fakultas' : window.location.pathname.startsWith('/kencana-fakult') ? '/kencana-fakult' : '/kencana-admin';
+
   if (isLoading) {
     return (
       <div className="p-8 flex justify-center items-center h-64 bg-transparent">
@@ -21,7 +23,7 @@ const Dashboard = () => {
   const activePeriod = (periods || []).find(p => p.is_active) || periods?.[0] || null;
 
   return (
-    <div className="px-4 py-6 md:px-6 lg:px-8 min-h-screen bg-transparent font-inter">
+    <div className="bg-transparent font-inter">
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Page Header */}
         <section
@@ -113,7 +115,7 @@ const Dashboard = () => {
             <h2 className="text-xs font-bold uppercase tracking-widest text-primary font-headline">Akses Cepat Pengelolaan</h2>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-border-muted">
-            <Link to="/kencana-admin/periods" className="p-6 hover:bg-slate-50/50 transition-colors group">
+            <Link to={`${basePath}/periods`} className="p-6 hover:bg-slate-50/50 transition-colors group">
               <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary border border-primary/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-all">
                 <span className="material-symbols-outlined text-xl">calendar_today</span>
               </div>
@@ -121,7 +123,7 @@ const Dashboard = () => {
               <p className="text-xs text-muted font-medium">Buka atau tutup periode Kencana.</p>
             </Link>
 
-            <Link to="/kencana-admin/stages" className="p-6 hover:bg-slate-50/50 transition-colors group">
+            <Link to={`${basePath}/stages`} className="p-6 hover:bg-slate-50/50 transition-colors group">
               <div className="w-10 h-10 rounded-xl bg-info/10 text-info border border-info/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-all">
                 <span className="material-symbols-outlined text-xl">menu_book</span>
               </div>
@@ -129,7 +131,7 @@ const Dashboard = () => {
               <p className="text-xs text-muted font-medium">Kelola modul, quiz, dan materi untuk mahasiswa.</p>
             </Link>
 
-            <Link to="/kencana-admin/mentors" className="p-6 hover:bg-slate-50/50 transition-colors group">
+            <Link to={`${basePath}/mentors`} className="p-6 hover:bg-slate-50/50 transition-colors group">
               <div className="w-10 h-10 rounded-xl bg-warning/10 text-warning border border-warning/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-all">
                 <span className="material-symbols-outlined text-xl">assignment_ind</span>
               </div>
@@ -137,7 +139,7 @@ const Dashboard = () => {
               <p className="text-xs text-muted font-medium">Buat dan kelola akun Dewan Pembimbing Kencana.</p>
             </Link>
 
-            <Link to="/kencana-admin/scores" className="p-6 hover:bg-slate-50/50 transition-colors group">
+            <Link to={`${basePath}/scores`} className="p-6 hover:bg-slate-50/50 transition-colors group">
               <div className="w-10 h-10 rounded-xl bg-error/10 text-error border border-error/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-all">
                 <span className="material-symbols-outlined text-xl">fact_check</span>
               </div>

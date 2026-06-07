@@ -31,7 +31,7 @@ const SessionContent = () => {
   const { sessionId } = useParams();
   const navigate = useNavigate();
   const [sessionTab, setSessionTab] = useState('materi');
-  const basePath = window.location.pathname.startsWith('/kencana-fakultas') ? '/kencana-fakultas' : window.location.pathname.startsWith('/kencana-fakult') ? '/kencana-fakult' : '/kencana-admin';
+  const basePath = window.location.pathname.startsWith('/admin/kencana-univ') ? '/admin/kencana-univ' : window.location.pathname.startsWith('/admin/kencana-fakultas-admin') ? '/admin/kencana-fakultas-admin' : window.location.pathname.startsWith('/kencana-fakultas') ? '/kencana-fakultas' : window.location.pathname.startsWith('/kencana-fakult') ? '/kencana-fakult' : '/kencana-admin';
 
   const { data: session, isLoading } = useSessionDetailQuery(sessionId);
   const deleteMaterialMutation = useDeleteMaterialMutation();
@@ -144,15 +144,34 @@ const SessionContent = () => {
     }
     const type = session.stage.type;
     const isFakultasPortal = basePath.includes('fakult');
-    if (type === 'faculty') navigate(`${basePath}/${isFakultasPortal ? 'stages' : 'faculty-stages'}` + (session.stage.fakultas_id ? `?faculty=${session.stage.fakultas_id}` : ''));
-    else if (type === 'pra_kencana') navigate(`${basePath}/pre-kencana`);
-    else if (type === 'pasca_kencana') navigate(`${basePath}/post-kencana`);
-    else navigate(`${basePath}/university`);
+    
+    if (type === 'faculty') {
+      if (isFakultasPortal) {
+        // Portal kencana fakultas
+        if (session.stage.fakultas_id && window.location.pathname.includes('/admin/')) {
+           // If superadmin managing fakultas
+           navigate(`${basePath}/stages/${session.stage.fakultas_id}?tab=stages`);
+        } else if (session.stage.fakultas_id) {
+           navigate(`${basePath}/stages?tab=stages`); // Regular fakultas admin doesnt need ID in URL, or maybe does? Let's check App.jsx. wait, kencana-fakult has /stages
+        } else {
+           navigate(`${basePath}/stages?tab=stages`);
+        }
+      } else {
+        // Portal kencana admin
+        navigate(`${basePath}/faculty-stages/${session.stage.fakultas_id}?tab=stages`);
+      }
+    } else if (type === 'pra_kencana') {
+      navigate(`${basePath}/pre-kencana`);
+    } else if (type === 'pasca_kencana') {
+      navigate(`${basePath}/post-kencana`);
+    } else {
+      navigate(`${basePath}/university`);
+    }
   };
 
   if (!session) {
     return (
-      <div className="p-8 max-w-7xl mx-auto">
+      <div className="max-w-7xl mx-auto">
         <div className="bg-white rounded-3xl p-12 text-center shadow-sm border border-slate-200">
           <h2 className="text-2xl font-black text-slate-800 mb-2">Sesi Tidak Ditemukan</h2>
           <p className="text-slate-500">Sesi yang Anda cari tidak ada atau telah dihapus.</p>

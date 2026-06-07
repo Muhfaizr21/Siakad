@@ -23,7 +23,7 @@ const Dashboard = () => {
   const isProfileComplete = mentor.name && mentor.phone;
 
   return (
-    <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-8 animate-fade-in">
+    <div className="md:max-w-7xl mx-auto space-y-8 animate-fade-in">
       {/* Header Section with Premium Gradient */}
       <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-violet-900 via-indigo-900 to-slate-900 p-8 md:p-12 shadow-2xl">
         {/* Abstract background elements */}

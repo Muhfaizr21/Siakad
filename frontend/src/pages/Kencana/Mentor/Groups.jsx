@@ -9,7 +9,7 @@ const Groups = () => {
   const { data: groups, isLoading } = useMentorGroupsQuery({ search });
 
   return (
-    <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-6">
+    <div className="md:max-w-7xl mx-auto space-y-6">
       <div className="bg-slate-950 text-white rounded-3xl p-6 md:p-8 shadow-xl overflow-hidden relative">
         <div className="absolute right-0 top-0 w-56 h-56 bg-violet-400/20 blur-3xl rounded-full" />
         <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-5">

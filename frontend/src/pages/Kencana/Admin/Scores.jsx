@@ -275,7 +275,7 @@ const Scores = () => {
   const inProgressCount = totalCount - passedCount - conditionalPassCount - notEligibleCount;
 
   return (
-    <div className="p-8 max-w-7xl mx-auto space-y-8">
+    <div className="max-w-7xl mx-auto space-y-8">
       {/* Header section */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
         <div>

@@ -50,7 +50,7 @@ const Certificates = () => {
   };
 
   return (
-    <div className="p-8 max-w-7xl mx-auto space-y-8">
+    <div className="max-w-7xl mx-auto space-y-8">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
         <div>
           <h1 className="text-2xl font-black text-slate-800 uppercase tracking-tight">Sertifikat Kelulusan</h1>

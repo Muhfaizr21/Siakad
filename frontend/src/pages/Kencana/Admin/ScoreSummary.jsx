@@ -16,6 +16,7 @@ const pct = (val, total) => total > 0 ? Math.round((val / total) * 100) : 0;
 
 const ScoreSummary = () => {
   const navigate = useNavigate();
+  const basePath = window.location.pathname.startsWith('/admin/kencana-univ') ? '/admin/kencana-univ' : window.location.pathname.startsWith('/admin/kencana-fakultas-admin') ? '/admin/kencana-fakultas-admin' : window.location.pathname.startsWith('/kencana-fakultas') ? '/kencana-fakultas' : window.location.pathname.startsWith('/kencana-fakult') ? '/kencana-fakult' : '/kencana-admin';
   const [selectedPeriodId, setSelectedPeriodId] = useState('');
   const { data: periods } = usePeriodsQuery();
 
@@ -95,7 +96,7 @@ const ScoreSummary = () => {
   );
 
   return (
-    <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-6">
+    <div className="md:max-w-7xl mx-auto space-y-6">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
         <div>
@@ -197,7 +198,7 @@ const ScoreSummary = () => {
                     <td className="py-3 px-4 text-center text-sm font-bold text-slate-800">{row.total}</td>
                     <td className="py-3 px-4 text-center">
                       <button 
-                        onClick={() => navigate(`/kencana-admin/scores?group_id=${row.group_id}`)}
+                        onClick={() => navigate(`${basePath}/scores?group_id=${row.group_id}`)}
                         className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-slate-600 bg-white border border-slate-300 rounded-md hover:bg-slate-50 hover:text-slate-900 transition-colors"
                       >
                         <span className="material-symbols-outlined text-[16px]">visibility</span>

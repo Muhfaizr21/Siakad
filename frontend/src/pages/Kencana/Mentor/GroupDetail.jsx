@@ -16,7 +16,7 @@ const GroupDetail = () => {
   if (!group) return <div className="p-8 text-center font-bold text-slate-400">Kelompok tidak ditemukan atau bukan milik Anda.</div>;
 
   return (
-    <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-6">
+    <div className="md:max-w-7xl mx-auto space-y-6">
       <button onClick={() => navigate('/kencana-mentor/groups')} className="text-sm font-bold text-slate-500 hover:text-slate-800">
         ← Kembali ke Kelompok Saya
       </button>

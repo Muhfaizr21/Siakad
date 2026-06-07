@@ -50,7 +50,7 @@ func isKencanaUniversityCompleted(period models.KencanaPeriod) bool {
 	return true
 }
 
-func ensureFacultyPhases(periodID uint) error {
+func EnsureFacultyPhases(periodID uint) error {
 	var faculties []models.Fakultas
 	if err := config.DB.Order("nama asc").Find(&faculties).Error; err != nil {
 		return err
@@ -64,7 +64,7 @@ func ensureFacultyPhases(periodID uint) error {
 	return nil
 }
 
-func ensureTimelinePhases(periodID uint) error {
+func EnsureTimelinePhases(periodID uint) error {
 	for _, phaseType := range kencanaTimelineTypes {
 		phase := models.KencanaTimelinePhase{PeriodID: periodID, PhaseType: phaseType, Status: kencanaPhaseDraft}
 		if err := config.DB.Where("period_id = ? AND phase_type = ?", periodID, phaseType).FirstOrCreate(&phase).Error; err != nil {
@@ -145,10 +145,10 @@ func GetPeriodPhases(c *fiber.Ctx) error {
 	if err := config.DB.First(&period, c.Params("id")).Error; err != nil {
 		return c.Status(404).JSON(fiber.Map{"success": false, "message": "Periode tidak ditemukan"})
 	}
-	if err := ensureTimelinePhases(period.ID); err != nil {
+	if err := EnsureTimelinePhases(period.ID); err != nil {
 		return c.Status(500).JSON(fiber.Map{"success": false, "message": "Gagal menyiapkan timeline Kencana"})
 	}
-	if err := ensureFacultyPhases(period.ID); err != nil {
+	if err := EnsureFacultyPhases(period.ID); err != nil {
 		return c.Status(500).JSON(fiber.Map{"success": false, "message": "Gagal menyiapkan fase fakultas"})
 	}
 	var timelinePhases []models.KencanaTimelinePhase
@@ -179,7 +179,7 @@ func UpdateTimelinePhase(c *fiber.Ctx) error {
 	if periodID == 0 || phaseType == "" {
 		return c.Status(400).JSON(fiber.Map{"success": false, "message": "Periode dan fase wajib diisi"})
 	}
-	if err := ensureTimelinePhases(periodID); err != nil {
+	if err := EnsureTimelinePhases(periodID); err != nil {
 		return c.Status(500).JSON(fiber.Map{"success": false, "message": "Gagal menyiapkan timeline Kencana"})
 	}
 	var phase models.KencanaTimelinePhase
@@ -257,7 +257,7 @@ func OpenFacultyPhases(c *fiber.Ctx) error {
 	if !isKencanaUniversityCompleted(period) {
 		return c.Status(400).JSON(fiber.Map{"success": false, "message": "Kencana Fakultas baru bisa dibuka setelah Kencana University selesai"})
 	}
-	if err := ensureFacultyPhases(period.ID); err != nil {
+	if err := EnsureFacultyPhases(period.ID); err != nil {
 		return c.Status(500).JSON(fiber.Map{"success": false, "message": "Gagal menyiapkan fase fakultas"})
 	}
 	if err := config.DB.Model(&models.KencanaFacultyPhase{}).Where("period_id = ? AND status = ?", period.ID, kencanaPhaseNotOpen).Updates(map[string]any{"status": kencanaPhaseReady, "is_published": true}).Error; err != nil {

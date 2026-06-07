@@ -187,7 +187,7 @@ const Stages = () => {
   const sessions = stages?.flatMap(stage => (stage.sessions || []).map(session => ({ ...session, stage }))) || [];
 
   return (
-    <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-6">
+    <div className="md:max-w-7xl mx-auto space-y-6">
       <div className="bg-gradient-to-br from-blue-900 via-sky-900 to-slate-900 rounded-3xl p-8 text-white shadow-2xl relative overflow-hidden">
         <div className="absolute top-0 right-0 w-72 h-72 bg-sky-400/20 rounded-full blur-3xl -mr-24 -mt-24" />
         <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-5">

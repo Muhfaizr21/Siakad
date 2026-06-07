@@ -7,7 +7,7 @@ const QuizForm = () => {
   const { sessionId, quizId } = useParams();
   const navigate = useNavigate();
   const isEditing = Boolean(quizId);
-  const basePath = window.location.pathname.startsWith('/kencana-fakultas') ? '/kencana-fakultas' : window.location.pathname.startsWith('/kencana-fakult') ? '/kencana-fakult' : '/kencana-admin';
+  const basePath = window.location.pathname.startsWith('/admin/kencana-univ') ? '/admin/kencana-univ' : window.location.pathname.startsWith('/admin/kencana-fakultas-admin') ? '/admin/kencana-fakultas-admin' : window.location.pathname.startsWith('/kencana-fakultas') ? '/kencana-fakultas' : window.location.pathname.startsWith('/kencana-fakult') ? '/kencana-fakult' : '/kencana-admin';
   
   const { data: detailedSessions, isLoading: isLoadingSessions } = useSessionsQuery(null);
   const session = detailedSessions?.find(s => s.id === Number(sessionId));

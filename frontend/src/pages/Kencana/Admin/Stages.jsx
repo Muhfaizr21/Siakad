@@ -7,6 +7,7 @@ import {
   useCreateAssignmentMutation, useUpdateAssignmentMutation, useDeleteAssignmentMutation,
   useParticipantsQuery, usePeriodPhasesQuery,
 } from '../../../queries/useKencanaAdminQuery';
+import { DashboardHero } from '@/components/ui/dashboard';
 
 // ──── Constants ────────────────────────────────────────────────────────────────
 const SCORE_DEFINITIONS = {
@@ -146,6 +147,7 @@ const FileIcon = ({ type }) => {
 // ──── Main Component ────────────────────────────────────────────────────────
 const Stages = ({ phaseType = 'kencana_universitas' }) => {
   const navigate = useNavigate();
+  const basePath = window.location.pathname.startsWith('/admin/kencana-univ') ? '/admin/kencana-univ' : window.location.pathname.startsWith('/admin/kencana-fakultas-admin') ? '/admin/kencana-fakultas-admin' : window.location.pathname.startsWith('/kencana-fakultas') ? '/kencana-fakultas' : window.location.pathname.startsWith('/kencana-fakult') ? '/kencana-fakult' : '/kencana-admin';
   const phaseConfig = PHASE_CONFIG[phaseType] || PHASE_CONFIG.kencana_universitas;
   const { data: periods, isLoading: loadingPeriods } = usePeriodsQuery();
   const [selectedPeriodId, setSelectedPeriodId] = useState('');
@@ -382,23 +384,23 @@ const Stages = ({ phaseType = 'kencana_universitas' }) => {
   const totalAssignments = phaseSessions.reduce((sum, session) => sum + getContentCount(session, 'assignments'), 0);
 
   return (
-    <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-6">
+    <div className="md:max-w-7xl mx-auto space-y-6">
 
-      <div className="bg-white border border-slate-100 rounded-3xl p-6 md:p-7 shadow-sm relative overflow-hidden">
-        <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-5">
-          <div className="max-w-3xl">
-            <div className="flex items-center gap-3 mb-3">
-              <p className="text-[10px] font-black text-cyan-600 uppercase tracking-[0.28em]">Konten Fase</p>
-              <PhaseStatusBadge active={phaseTimeline?.is_active} status={phaseTimeline?.status} />
-            </div>
-            <h1 className="text-2xl md:text-4xl font-black tracking-tight text-slate-800">{phaseConfig.title}</h1>
-            <p className="text-sm md:text-base text-slate-500 font-medium mt-2 leading-relaxed">{phaseConfig.subtitle}</p>
-          </div>
-          <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
+      <DashboardHero 
+        title="Kelola"
+        highlightedTitle="Fase & Sesi"
+        subtitle={phaseConfig.subtitle}
+        icon="event_note"
+        badges={[
+          { label: 'PORTAL ORIENTASI MAHASISWA BARU', active: false },
+          { label: (phaseTimeline?.is_active ? 'Fase Aktif' : (phaseTimeline?.status === 'completed' ? 'Fase Selesai' : 'Belum Aktif')), active: phaseTimeline?.is_active }
+        ]}
+        actions={
+          <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto mt-2 lg:mt-0">
             <select
               value={selectedPeriodId}
               onChange={(e) => setSelectedPeriodId(e.target.value)}
-              className="w-full sm:w-64 px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold text-slate-800 outline-none focus:border-cyan-500 transition-colors"
+              className="w-full sm:w-64 h-10 px-4 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-600 outline-none focus:border-cyan-500 transition-colors shadow-sm"
               disabled={loadingPeriods}
             >
               <option value="" disabled className="text-slate-800">Pilih Periode...</option>
@@ -407,13 +409,13 @@ const Stages = ({ phaseType = 'kencana_universitas' }) => {
             <button
               onClick={() => openAddSession(phaseStage)}
               disabled={!selectedPeriodId || createStageMutation.isPending}
-              className="whitespace-nowrap bg-cyan-500 hover:bg-cyan-600 text-white px-5 py-3 rounded-2xl text-sm font-black shadow-md disabled:opacity-50 transition-all"
+              className="whitespace-nowrap h-10 bg-cyan-600 hover:bg-cyan-700 text-white px-5 rounded-xl text-xs font-black shadow-sm disabled:opacity-50 transition-all uppercase tracking-wider shrink-0"
             >
               + Tambah Sesi
             </button>
           </div>
-        </div>
-      </div>
+        }
+      />
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm">
@@ -476,7 +478,7 @@ const Stages = ({ phaseType = 'kencana_universitas' }) => {
                     <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{session.is_required ? 'Wajib' : 'Opsional'}</span>
                     <button onClick={() => openEditSession(session)} className="text-[10px] font-black text-cyan-600 bg-cyan-50 hover:bg-cyan-100 px-2 py-1 rounded">Edit Sesi</button>
                   </div>
-                  <button onClick={() => navigate(`/kencana-admin/sessions/${session.id}/content`)} className="text-xs font-black text-slate-700 hover:text-cyan-700 transition-colors">Kelola Konten →</button>
+                  <button onClick={() => navigate(`${basePath}/sessions/${session.id}/content`)} className="text-xs font-black text-slate-700 hover:text-cyan-700 transition-colors">Kelola Konten →</button>
                 </div>
               </div>
             ))}

@@ -347,6 +347,50 @@ function App() {
                   <Route path="ormawa" element={<ProposalPipeline />} />
                   <Route path="treasury" element={<ReportsGenerator />} />
                   <Route path="infrastructure" element={<AcademicPortal />} />
+                  
+                  {/* Kencana Universitas inside SuperAdmin */}
+                  <Route path="kencana-univ" element={<KencanaAdminDashboard />} />
+                  <Route path="kencana-univ/periods" element={<KencanaAdminPeriods />} />
+                  <Route path="kencana-univ/timeline" element={<KencanaAdminPeriods />} />
+                  <Route path="kencana-univ/stages" element={<KencanaAdminStages />} />
+                  <Route path="kencana-univ/pre-kencana" element={<KencanaAdminStages phaseType="pra_kencana" />} />
+                  <Route path="kencana-univ/university" element={<KencanaAdminStages phaseType="kencana_universitas" />} />
+                  <Route path="kencana-univ/faculty-stages" element={<KencanaFakultaskesStages />} />
+                  <Route path="kencana-univ/faculty-stages/:facultyId" element={<KencanaFakultaskesStages />} />
+                  <Route path="kencana-univ/faculty-stages/:facultyId/groups/:id" element={<KencanaAdminUniversitasGroupDetail />} />
+                  <Route path="kencana-univ/quiz/:id/builder" element={<QuizBuilder />} />
+                  <Route path="kencana-univ/participants" element={<KencanaAdminParticipants />} />
+                  <Route path="kencana-univ/scores" element={<KencanaAdminScores />} />
+                  <Route path="kencana-univ/score-summary" element={<KencanaAdminSummary />} />
+                  <Route path="kencana-univ/remedials" element={<KencanaAdminRemedials />} />
+                  <Route path="kencana-univ/certificates" element={<KencanaAdminCertificates />} />
+                  <Route path="kencana-univ/mentors" element={<KencanaAdminMentors />} />
+                  <Route path="kencana-univ/groups" element={<KencanaAdminUniversitasGroup />} />
+                  <Route path="kencana-univ/groups/:id" element={<KencanaAdminUniversitasGroupDetail />} />
+                  <Route path="kencana-univ/sessions/:sessionId/content" element={<SessionContent />} />
+                  <Route path="kencana-univ/sessions/:sessionId/material/create" element={<MaterialForm />} />
+                  <Route path="kencana-univ/sessions/:sessionId/material/:materialId/edit" element={<MaterialForm />} />
+                  <Route path="kencana-univ/sessions/:sessionId/assignment/create" element={<AssignmentForm />} />
+                  <Route path="kencana-univ/sessions/:sessionId/assignment/:assignmentId/edit" element={<AssignmentForm />} />
+                  <Route path="kencana-univ/sessions/:sessionId/quiz/create" element={<QuizForm />} />
+                  <Route path="kencana-univ/sessions/:sessionId/quiz/:quizId/edit" element={<QuizForm />} />
+
+                  {/* Kencana Fakultas inside SuperAdmin */}
+                  <Route path="kencana-fakultas-admin" element={<KencanaFakultDashboard />} />
+                  <Route path="kencana-fakultas-admin/participants" element={<KencanaFakultaskesParticipants />} />
+                  <Route path="kencana-fakultas-admin/scores" element={<KencanaFakultaskesScores />} />
+                  <Route path="kencana-fakultas-admin/stages" element={<KencanaFakultaskesStages />} />
+                  <Route path="kencana-fakultas-admin/stages/:facultyId" element={<KencanaFakultaskesStages />} />
+                  <Route path="kencana-fakultas-admin/stages/:facultyId/groups/:id" element={<KencanaAdminUniversitasGroupDetail />} />
+                  <Route path="kencana-fakultas-admin/mentors" element={<KencanaAdminMentors portal="fakult" />} />
+                  <Route path="kencana-fakultas-admin/sessions/:sessionId/content" element={<SessionContent />} />
+                  <Route path="kencana-fakultas-admin/sessions/:sessionId/material/create" element={<MaterialForm />} />
+                  <Route path="kencana-fakultas-admin/sessions/:sessionId/material/:materialId/edit" element={<MaterialForm />} />
+                  <Route path="kencana-fakultas-admin/sessions/:sessionId/assignment/create" element={<AssignmentForm />} />
+                  <Route path="kencana-fakultas-admin/sessions/:sessionId/assignment/:assignmentId/edit" element={<AssignmentForm />} />
+                  <Route path="kencana-fakultas-admin/sessions/:sessionId/quiz/create" element={<QuizForm />} />
+                  <Route path="kencana-fakultas-admin/sessions/:sessionId/quiz/:quizId/edit" element={<QuizForm />} />
+                  <Route path="kencana-fakultas-admin/quiz/:id/builder" element={<QuizBuilder />} />
                 </Route>
 
                 {/* Kencana Admin */}

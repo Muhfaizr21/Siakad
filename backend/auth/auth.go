@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"siakad-backend/config"
+	"siakad-backend/controllers/kencana"
 	"siakad-backend/models"
 
 	"github.com/gofiber/fiber/v2"
@@ -1389,6 +1390,32 @@ func EnsureBootstrapData() error {
 		period = models.AcademicPeriod{Name: "Genap 2025/2026", Semester: "Genap", AcademicYear: "2025/2026", IsActive: true, IsKRSOpen: true}
 		if err := config.DB.Create(&period).Error; err != nil {
 			return err
+		}
+	}
+
+	// Ensure Kencana Period follows the active AcademicPeriod
+	var kencanaPeriod models.KencanaPeriod
+	kencanaPeriodName := "Kencana " + period.Name
+	if err := config.DB.Where("name = ?", kencanaPeriodName).First(&kencanaPeriod).Error; err != nil {
+		now := time.Now()
+		start := now.AddDate(0, 0, -5)
+		end := now.AddDate(0, 0, 30)
+		kencanaPeriod = models.KencanaPeriod{
+			Name:                  kencanaPeriodName,
+			Year:                  now.Year(),
+			Description:           "Periode orientasi mahasiswa baru untuk " + period.Name + ".",
+			StartDate:             &start,
+			EndDate:               &end,
+			Status:                "active",
+			UniversityPhaseStatus: "completed", // Set completed so faculty phases are open
+			Theme:                 "Bhakti Kencana Berkarya",
+			PassingGrade:          75,
+			RemedialGrade:         50,
+		}
+		if err := config.DB.Create(&kencanaPeriod).Error; err == nil {
+			// Auto initialize timeline phases and faculty phases
+			kencana.EnsureTimelinePhases(kencanaPeriod.ID)
+			kencana.EnsureFacultyPhases(kencanaPeriod.ID)
 		}
 	}
 

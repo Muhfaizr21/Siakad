@@ -258,8 +258,35 @@ export const PORTAL_CONFIG = {
       {
         group: 'KENCANA (PKKMB)',
         items: [
-          { name: 'Kencana Universitas', icon: 'account_balance', path: '/kencana-admin' },
-          { name: 'Kencana Fakultas', icon: 'corporate_fare', path: '/kencana-fakultas' },
+          {
+            name: 'Kencana Universitas',
+            icon: 'account_balance',
+            path: '/admin/kencana-univ',
+            hasSubmenu: true,
+            submenu: [
+              { name: 'Dashboard', icon: 'dashboard', path: '/admin/kencana-univ' },
+              { name: 'Kelola Periode', icon: 'date_range', path: '/admin/kencana-univ/periods' },
+              { name: 'Tahap & Sesi', icon: 'account_tree', path: '/admin/kencana-univ/stages' },
+              { name: 'Data Peserta', icon: 'groups', path: '/admin/kencana-univ/participants' },
+              { name: 'Rekap Nilai', icon: 'grade', path: '/admin/kencana-univ/scores' },
+              { name: 'Rekap Nilai Kelompok', icon: 'assessment', path: '/admin/kencana-univ/score-summary' },
+              { name: 'Remedial', icon: 'autorenew', path: '/admin/kencana-univ/remedials' },
+              { name: 'Sertifikat', icon: 'workspace_premium', path: '/admin/kencana-univ/certificates' },
+              { name: 'Kelola Kelompok', icon: 'group_work', path: '/admin/kencana-univ/groups' },
+              { name: 'Kelola Mentor', icon: 'supervisor_account', path: '/admin/kencana-univ/mentors' },
+            ]
+          },
+          {
+            name: 'Kencana Fakultas',
+            icon: 'corporate_fare',
+            path: '/admin/kencana-fakultas-admin',
+            hasSubmenu: true,
+            submenu: [
+              { name: 'Dashboard', icon: 'dashboard', path: '/admin/kencana-fakultas-admin' },
+              { name: 'Jadwal & Tahap', icon: 'calendar_month', path: '/admin/kencana-fakultas-admin/stages' },
+              { name: 'Dewan Pembimbing', icon: 'supervisor_account', path: '/admin/kencana-fakultas-admin/mentors' },
+            ]
+          }
         ]
       },
       {
