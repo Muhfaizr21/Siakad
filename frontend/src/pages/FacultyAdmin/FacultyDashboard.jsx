@@ -38,7 +38,7 @@ export default function FacultyDashboard() {
 
   const firstName = user?.name?.split(' ')[0] || user?.email?.split('@')[0] || 'Admin';
 
-  const fetchDashboardData = React.useCallback(async (periodId, start, end) => {
+  const fetchDashboardData = React.useCallback(async (periodId, start, end, prodiId) => {
     Promise.resolve().then(() => setLoading(true));
     try {
       let url = `${API_BASE_URL}/faculty/summary`;
@@ -48,6 +48,9 @@ export default function FacultyDashboard() {
         params.push(`end_date=${end}`);
       } else if (periodId && periodId !== 'all') {
         params.push(`period_id=${periodId}`);
+      }
+      if (prodiId && prodiId !== 'all') {
+        params.push(`prodi_id=${prodiId}`);
       }
       if (params.length > 0) {
         url += `?${params.join('&')}`;
@@ -162,7 +165,7 @@ export default function FacultyDashboard() {
           { label: 'Active Session', active: true }
         ]}
         actions={
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <button onClick={() => navigate('/faculty/mahasiswa')}
               className="h-10 px-4 rounded-xl text-white text-xs font-bold uppercase tracking-wider gap-2 flex items-center transition-all active:scale-95 shadow-lg shrink-0"
               style={{
@@ -172,7 +175,7 @@ export default function FacultyDashboard() {
               Lihat Data Mahasiswa
             </button>
             <button onClick={() => navigate('/faculty/laporan')}
-              className="h-10 px-4 rounded-xl border border-[var(--theme-border)] bg-white/80 backdrop-blur-sm text-xs font-bold uppercase tracking-wider text-[var(--theme-text-muted)] hover:text-[var(--theme-primary)] hover:border-[var(--theme-primary)]/30 hover:bg-slate-50/50 shadow-sm transition-all duration-200 active:scale-95 flex items-center gap-2 cursor-pointer">
+              className="h-10 px-4 rounded-xl border border-[var(--theme-border)] bg-white/80 backdrop-blur-sm text-xs font-bold uppercase tracking-wider text-[var(--theme-text-muted)] hover:text-[var(--theme-primary)] hover:border-[var(--theme-primary)]/30 hover:bg-slate-50/50 shadow-sm transition-all duration-200 active:scale-95 flex items-center gap-2 cursor-pointer shrink-0">
               Unduh Laporan
             </button>
           </div>
@@ -184,7 +187,7 @@ export default function FacultyDashboard() {
         title="Filterasi Data"
         description="Filter data berdasarkan periode akademik"
         icon="filter_list"
-        activeFiltersCount={(filterPeriod !== 'all' ? 1 : 0) + (filterProdi !== 'all' ? 1 : 0) + (startDate || endDate ? 1 : 0)}
+        activeFiltersCount={(filterPeriod !== 'all' ? 1 : 0) + (filterProdi !== 'all' ? 1 : 0)}
         onResetFilters={handleResetFilters}
       >
         <FilterItem label="Periode Akademik" icon="calendar_month">
@@ -206,7 +209,7 @@ export default function FacultyDashboard() {
           <SelectField
             value={filterProdi}
             onValueChange={(val) => setFilterProdi(val)}
-            className="w-full h-10"
+            className="w-full pl-9 h-10"
           >
             <SelectOption value="all">Semua Prodi</SelectOption>
             {summaryData.prodis?.map((p) => (
@@ -215,24 +218,6 @@ export default function FacultyDashboard() {
               </SelectOption>
             ))}
           </SelectField>
-        </FilterItem>
-        
-        <FilterItem label="Rentang Tanggal" icon="date_range">
-          <div className="flex items-center gap-2 w-full">
-            <input
-              type="date"
-              value={startDate}
-              onChange={(e) => handleDateChange('start', e.target.value)}
-              className="flex-1 px-3 py-2 bg-[var(--theme-bg)] border border-[var(--theme-border)] rounded-lg text-xs font-semibold text-[var(--theme-text)] focus:ring-2 focus:ring-[var(--theme-primary)]/20 focus:border-[var(--theme-primary)] outline-none transition-all cursor-pointer"
-            />
-            <span className="text-muted text-xs">-</span>
-            <input
-              type="date"
-              value={endDate}
-              onChange={(e) => handleDateChange('end', e.target.value)}
-              className="flex-1 px-3 py-2 bg-[var(--theme-bg)] border border-[var(--theme-border)] rounded-lg text-xs font-semibold text-[var(--theme-text)] focus:ring-2 focus:ring-[var(--theme-primary)]/20 focus:border-[var(--theme-primary)] outline-none transition-all cursor-pointer"
-            />
-          </div>
         </FilterItem>
       </DashboardFilter>
 
@@ -252,13 +237,13 @@ export default function FacultyDashboard() {
           <div className="p-5 h-[280px]">
             {isMounted && (
               <ResponsiveContainer width="99%" height={240} debounce={50}>
-                <BarChart data={summaryData.prodiDistribution} layout="vertical" margin={{ left: 20, right: 20 }}>
+                <BarChart data={summaryData.prodiDistribution} layout="vertical" margin={{ left: 10, right: 20 }}>
                   <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="var(--theme-border-muted)" />
                   <XAxis type="number" hide domain={[0, 'dataMax']} />
-                  <YAxis dataKey="name" type="category" width={240}
+                  <YAxis dataKey="name" type="category" width={160}
                     tick={({ y, payload }) => (
                       <text x={0} y={y} dy={4} textAnchor="start" fill="var(--theme-text)" fontSize={9.5} fontWeight={700}>
-                        {payload.value}
+                        {payload.value?.length > 25 ? `${payload.value.substring(0, 25)}...` : payload.value}
                       </text>
                     )}
                     axisLine={false} tickLine={false}
@@ -333,9 +318,9 @@ export default function FacultyDashboard() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-xs font-bold text-[var(--theme-text)] truncate">{activity.user}</p>
-                        <p className="text-[10px] text-[var(--theme-text-muted)] leading-relaxed mt-0.5">{activity.action}</p>
+                        <p className="text-[10px] text-[var(--theme-text-muted)] leading-relaxed mt-0.5 line-clamp-2">{activity.action}</p>
                       </div>
-                      <span className="text-[10px] font-medium text-[var(--theme-text-muted)] self-start">{activity.time}</span>
+                      <span className="text-[10px] font-medium text-[var(--theme-text-muted)] self-start whitespace-nowrap shrink-0 ml-1">{activity.time}</span>
                     </div>
                   ))}
                 </div>

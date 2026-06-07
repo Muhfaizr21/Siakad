@@ -24,6 +24,14 @@ func AmbilRingkasanPkkmb(c *fiber.Ctx) error {
 		}
 	}
 
+	headerPid := c.Get("X-Prodi-ID")
+	if headerPid != "" && headerPid != "undefined" && headerPid != "null" && headerPid != "all" {
+		if parsedPid, err := strconv.ParseUint(headerPid, 10, 32); err == nil {
+			c.Locals("program_studi_id", uint(parsedPid))
+			role = "prodi_admin"
+		}
+	}
+
 	var totalMaba int64
 	var totalLulus int64
 	var totalProses int64
@@ -162,7 +170,7 @@ func AmbilRingkasanPkkmb(c *fiber.Ctx) error {
 	// Kegiatan (Agenda) PKKMB
 	type KegiatanInfo struct {
 		ID          uint    `json:"id"`
-		Nama        string  `json:"nama"`
+		Nama        string  `json:"nama" gorm:"column:judul"`
 		Tanggal     string  `json:"tanggal"`
 		Lokasi      string  `json:"lokasi"`
 		Status      string  `json:"status"`
@@ -306,6 +314,14 @@ func AmbilDaftarKelulusanMaba(c *fiber.Ctx) error {
 		if parsedFid, err := strconv.ParseUint(headerFid, 10, 32); err == nil {
 			fid = uint(parsedFid)
 			role = "faculty_admin"
+		}
+	}
+
+	headerPid := c.Get("X-Prodi-ID")
+	if headerPid != "" && headerPid != "undefined" && headerPid != "null" && headerPid != "all" {
+		if parsedPid, err := strconv.ParseUint(headerPid, 10, 32); err == nil {
+			c.Locals("program_studi_id", uint(parsedPid))
+			role = "prodi_admin"
 		}
 	}
 

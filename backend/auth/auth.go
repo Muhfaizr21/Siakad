@@ -1296,7 +1296,7 @@ func EnsureBootstrapData() error {
 			Nama:          "BEM KBM Bhakti Kencana",
 			Singkatan:     "BEMKBK",
 			Deskripsi:     "Badan Eksekutif Mahasiswa tingkat universitas",
-			FakultasID:    firstFak.ID,
+			FakultasID:    &firstFak.ID,
 			Status:        "Aktif",
 			Kategori:      "BEM",
 			JumlahAnggota: 1,

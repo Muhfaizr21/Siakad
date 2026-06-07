@@ -404,16 +404,30 @@ func TambahOrganisasi(c *fiber.Ctx) error {
 		Password       string `json:"Password"`
 		KetuaID        *uint  `json:"KetuaID"`        // ID Mahasiswa yang jadi ketua
 		KetuaNama      string `json:"KetuaNama"`      // Nama ketua (optional, untuk display)
+		FakultasID     *uint  `json:"fakultas_id"`
+		ProgramStudiID *uint  `json:"program_studi_id"`
 	}
 
 	if err := c.BodyParser(&body); err != nil {
 		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Payload salah"})
 	}
 
-	fid := c.Locals("fakultas_id").(uint)
+	fid, _ := c.Locals("fakultas_id").(uint)
+	role, _ := c.Locals("role").(string)
 
 	org := body.Ormawa
-	org.FakultasID = fid
+	if body.FakultasID != nil && *body.FakultasID != 0 {
+		org.FakultasID = body.FakultasID
+	} else {
+		org.FakultasID = nil
+	}
+	if body.ProgramStudiID != nil {
+		org.ProgramStudiID = body.ProgramStudiID
+	}
+
+	if role != "super_admin" && role != "kencana_admin" {
+		org.FakultasID = &fid
+	}
 
 	// Transaction untuk memastikan semua berhasil atau rollback
 	err := config.DB.Transaction(func(tx *gorm.DB) error {
@@ -429,7 +443,7 @@ func TambahOrganisasi(c *fiber.Ctx) error {
 				Email:      org.Email,
 				Password:   string(hashed),
 				Role:       "ormawa",
-				FakultasID: &org.FakultasID,
+				FakultasID: org.FakultasID,
 				OrmawaID:   &org.ID,
 			}
 			if err := tx.Create(&newUser).Error; err != nil {
@@ -517,16 +531,19 @@ func PerbaruiOrganisasi(c *fiber.Ctx) error {
 	}
 
 	// Faculty scoping: pastikan admin hanya bisa edit ormawa dari fakultasnya
-	if role != "super_admin" && role != "kencana_admin" && org.FakultasID != fid {
+	if role != "super_admin" && role != "kencana_admin" && (org.FakultasID == nil || *org.FakultasID != fid) {
 		return c.Status(403).JSON(fiber.Map{"status": "error", "message": "Anda tidak berwenang mengedit organisasi dari fakultas lain"})
 	}
 
-	// Simpan FakultasID asli agar tidak ter-overwrite oleh BodyParser
+	// Simpan FakultasID asli agar tidak ter-overwrite oleh BodyParser untuk admin fakultas
 	originalFakultasID := org.FakultasID
 	if err := c.BodyParser(&org); err != nil {
 		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "Payload tidak valid: " + err.Error()})
 	}
-	org.FakultasID = originalFakultasID // Pertahankan fakultas asli
+	
+	if role != "super_admin" && role != "kencana_admin" {
+		org.FakultasID = originalFakultasID // Pertahankan fakultas asli untuk faculty_admin
+	}
 
 	if err := config.DB.Save(&org).Error; err != nil {
 		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal memperbarui: " + err.Error()})
@@ -546,7 +563,7 @@ func HapusOrganisasi(c *fiber.Ctx) error {
 	}
 
 	// Faculty scoping: pastikan admin hanya bisa hapus ormawa dari fakultasnya
-	if role != "super_admin" && role != "kencana_admin" && org.FakultasID != fid {
+	if role != "super_admin" && role != "kencana_admin" && (org.FakultasID == nil || *org.FakultasID != fid) {
 		return c.Status(403).JSON(fiber.Map{"status": "error", "message": "Anda tidak berwenang menghapus organisasi dari fakultas lain"})
 	}
 

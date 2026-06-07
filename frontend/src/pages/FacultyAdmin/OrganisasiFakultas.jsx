@@ -23,12 +23,15 @@ const ShieldCheck = ({ size, className, ...props }) => <span className={`materia
 
 
 const API = "/faculty"
-const EMPTY_FORM = { kode_org: '', nama_org: '', ketua_nama: '', jumlah_anggota: 0, status: 'Aktif', kategori: 'Himpunan', email: '', password: '', phone: '' }
+const EMPTY_FORM = { kode_org: '', nama_org: '', ketua_nama: '', KetuaID: null, jumlah_anggota: 0, status: 'Aktif', kategori: 'Himpunan', email: '', password: '', phone: '', fakultas_id: '' }
 
 export default function FacultyOrganisasi() {
   const [organizations, setOrgs] = useState([])
   const [students, setStudents] = useState([])
+  const [faculties, setFaculties] = useState([])
   const [loading, setLoading] = useState(true)
+  const user = JSON.parse(localStorage.getItem('user') || '{}')
+  const isSuperAdmin = user.role === 'super_admin' || user.role === 'kencana_admin'
   const [showModal, setModal] = useState(false)
   const [editingOrg, setEdit] = useState(null)
   const [isSubmitting, setIsSub] = useState(false)
@@ -38,6 +41,22 @@ export default function FacultyOrganisasi() {
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
   const [sortConfig, setSortConfig] = useState({ key: 'kode', direction: 'asc' })
+  const [studentSearch, setStudentSearch] = useState('')
+  const [isStudentDropdownOpen, setIsStudentDropdownOpen] = useState(false)
+  const [fakultasSearch, setFakultasSearch] = useState('')
+  const [isFakultasDropdownOpen, setIsFakultasDropdownOpen] = useState(false)
+
+  const filteredFaculties = useMemo(() => {
+    if (!fakultasSearch || fakultasSearch === '-- Tingkat Universitas --') return faculties
+    return faculties.filter(f => (f.nama || f.Nama)?.toLowerCase().includes(fakultasSearch.toLowerCase()))
+  }, [faculties, fakultasSearch])
+
+  const filteredStudents = useMemo(() => {
+    return students.filter(s => {
+      const q = studentSearch.toLowerCase()
+      return !q || s.Nama?.toLowerCase().includes(q) || s.NIM?.includes(q)
+    })
+  }, [students, studentSearch])
 
   const fetchData = async () => {
     setLoading(true)
@@ -54,15 +73,31 @@ export default function FacultyOrganisasi() {
 
       const stdRes = await axios.get('/faculty/students')
       setStudents(stdRes.data.data || [])
+
+      if (isSuperAdmin) {
+        const facRes = await axios.get('/admin/fakultas')
+        setFaculties(facRes.data.data || [])
+      }
     } catch { toast.error('Gagal mengambil data organisasi') }
     finally { setLoading(false) }
   }
 
   const handleSubmit = async (e) => {
-    e.preventDefault(); setIsSub(true)
-    const payload = { Nama: formData.nama_org, Singkatan: formData.kode_org, Status: formData.status, Kategori: formData.kategori, JumlahAnggota: formData.jumlah_anggota, Deskripsi: formData.ketua_nama, Email: formData.email, Password: formData.password, Phone: formData.phone }
+    e.preventDefault(); 
+    setIsSub(true)
+    const payload = { Nama: formData.nama_org, Singkatan: formData.kode_org, Status: formData.status, Kategori: formData.kategori, JumlahAnggota: parseInt(formData.jumlah_anggota) || 0, Deskripsi: formData.ketua_nama, Email: formData.email, Password: formData.password, Phone: formData.phone }
+    
+    if (formData.KetuaID) {
+      payload.KetuaID = parseInt(formData.KetuaID)
+      payload.KetuaNama = formData.ketua_nama
+    }
+    if (isSuperAdmin && formData.fakultas_id) {
+      payload.fakultas_id = parseInt(formData.fakultas_id)
+    }
     try {
-      if (editingOrg) { await axios.put(`${API}/organizations/${editingOrg.id}`, payload); toast.success('Organisasi diperbarui') }
+      const targetId = editingOrg ? (editingOrg.id || editingOrg.ID || editingOrg?.Ormawa?.ID || editingOrg?.Ormawa?.id) : null;
+      console.log('Editing target ID:', targetId, 'editingOrg:', editingOrg);
+      if (editingOrg) { await axios.put(`${API}/organizations/${targetId}`, payload); toast.success('Organisasi diperbarui') }
       else { await axios.post(`${API}/organizations`, payload); toast.success('Organisasi ditambahkan') }
       setModal(false); fetchData()
     } catch (e) { toast.error(`Gagal menyimpan: ${e.response?.data?.message || 'Error'}`) }
@@ -71,15 +106,25 @@ export default function FacultyOrganisasi() {
 
   const handleDelete = async () => {
     if (!delTarget) return; setIsSub(true)
+    const id = delTarget.id || delTarget.ID || delTarget?.Ormawa?.ID || delTarget?.Ormawa?.id;
     try {
-      const res = await axios.delete(`${API}/organizations/${delTarget.id}`)
+      console.log('Deleting target ID:', id, 'from', delTarget);
+      const res = await axios.delete(`${API}/organizations/${id}`)
       if (res.data.status === 'success') { toast.success('Organisasi dihapus'); setDelTarget(null); fetchData() }
       else toast.error(res.data.message || 'Gagal hapus')
     } catch (e) { toast.error(e.response?.data?.message || 'Gagal menghapus') }
     finally { setIsSub(false) }
   }
 
-  const openEdit = (org) => { setEdit(org); setFormData({ kode_org: org.kode, nama_org: org.nama, ketua_nama: org.deskripsi, jumlah_anggota: org.jumlah_anggota, status: org.status, kategori: org.kategori, email: org.email, password: '', phone: org.phone }); setModal(true) }
+  const openEdit = (org) => { 
+    console.log('Open Edit ORMAWA:', org);
+    setEdit(org); 
+    setFormData({ kode_org: org.kode || org.Singkatan || '', nama_org: org.nama || org.Nama || '', ketua_nama: org.deskripsi || org.Deskripsi || org.ketua_nama || '', KetuaID: org.ketua_id || org.KetuaID || null, jumlah_anggota: org.jumlah_anggota || org.JumlahAnggota || 0, status: org.status || org.Status || 'Aktif', kategori: org.kategori || org.Kategori || 'Himpunan', email: org.email || org.Email || '', password: '', phone: org.phone || org.Phone || '', fakultas_id: org.fakultas_id || org.FakultasID || '' }); 
+    const facIdToFind = org.fakultas_id || org.FakultasID;
+    const foundFac = faculties.find(f => (f.id || f.ID) === facIdToFind)
+    setFakultasSearch(foundFac ? (foundFac.nama || foundFac.Nama) : '')
+    setModal(true) 
+  }
   const set = (k, v) => setFormData(p => ({ ...p, [k]: v }))
 
   useEffect(() => { fetchData() }, [])
@@ -349,27 +394,35 @@ export default function FacultyOrganisasi() {
                       <p className="font-bold text-sm text-slate-900">Belum Ada Organisasi</p>
                     </div>
                   </td></tr>
-                ) : paginated.map((row, i) => (
-                  <tr key={row.id || i} className="border-b border-[#f5f5f5] hover:bg-[#fafbff] transition-colors">
-                    <td className="px-5 py-3.5"><span className="text-[10px] font-black text-slate-600 bg-slate-50 border border-slate-200 px-2 py-1 rounded-lg uppercase tracking-wider">{row.kode || '—'}</span></td>
-                    <td className="px-5 py-3.5"><p className="font-bold text-sm text-slate-900">{row.nama}</p></td>
-                    <td className="px-5 py-3.5 text-sm text-slate-600 font-medium">{row.deskripsi || '—'}</td>
-                    <td className="px-5 py-3.5"><span className="text-[10px] font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 px-2.5 py-1 rounded-lg">{row.kategori || '—'}</span></td>
-                    <td className="px-5 py-3.5"><div className="flex items-center gap-1.5 text-sm font-black text-slate-900"><span className="material-symbols-outlined text-slate-400" style={{ fontSize: '12px' }}>group</span>{row.jumlah_anggota || 0}</div></td>
-                    <td className="px-5 py-3.5">
-                      <span className={cn('inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold border uppercase',
-                        row.status === 'Aktif' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-rose-50 text-rose-700 border-rose-200')}>
-                        <span className={cn('w-1.5 h-1.5 rounded-full', row.status === 'Aktif' ? 'bg-emerald-500' : 'bg-rose-500')} />{row.status}
-                      </span>
-                    </td>
-                    <td className="px-5 py-3.5">
-                      <div className="flex items-center gap-1.5">
-                        <button onClick={() => openEdit(row)} className="p-1.5 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"><span className="material-symbols-outlined" style={{ fontSize: '15px' }} >edit</span></button>
-                        <button onClick={() => setDelTarget(row)} className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"><span className="material-symbols-outlined" style={{ fontSize: '15px' }} >delete</span></button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                ) : paginated.map((row, i) => {
+                  const getID = (obj) => {
+                    const id = obj.id || obj.ID || obj.Ormawa?.ID;
+                    console.log("Getting ID for row:", obj, "Result:", id);
+                    return id;
+                  };
+
+                  return (
+                    <tr key={row.id || i} className="border-b border-[#f5f5f5] hover:bg-[#fafbff] transition-colors">
+                      <td className="px-5 py-3.5"><span className="text-[10px] font-black text-slate-600 bg-slate-50 border border-slate-200 px-2 py-1 rounded-lg uppercase tracking-wider">{row.kode || '—'}</span></td>
+                      <td className="px-5 py-3.5"><p className="font-bold text-sm text-slate-900">{row.nama}</p></td>
+                      <td className="px-5 py-3.5 text-sm text-slate-600 font-medium">{row.deskripsi || '—'}</td>
+                      <td className="px-5 py-3.5"><span className="text-[10px] font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 px-2.5 py-1 rounded-lg">{row.kategori || '—'}</span></td>
+                      <td className="px-5 py-3.5"><div className="flex items-center gap-1.5 text-sm font-black text-slate-900"><span className="material-symbols-outlined text-slate-400" style={{ fontSize: '12px' }}>group</span>{row.jumlah_anggota || 0}</div></td>
+                      <td className="px-5 py-3.5">
+                        <span className={cn('inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold border uppercase',
+                          row.status === 'Aktif' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-rose-50 text-rose-700 border-rose-200')}>
+                          <span className={cn('w-1.5 h-1.5 rounded-full', row.status === 'Aktif' ? 'bg-emerald-500' : 'bg-rose-500')} />{row.status}
+                        </span>
+                      </td>
+                      <td className="px-5 py-3.5">
+                        <div className="flex items-center gap-1.5">
+                          <button onClick={() => openEdit(row)} className="p-1.5 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"><span className="material-symbols-outlined" style={{ fontSize: '15px' }} >edit</span></button>
+                          <button onClick={() => setDelTarget(row)} className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors group-hover:bg-white" title="Hapus"><span className="material-symbols-outlined" style={{ fontSize: '15px' }} >delete</span></button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -472,18 +525,117 @@ export default function FacultyOrganisasi() {
                       {['BEM', 'Himpunan', 'UKM', 'Komunitas', 'Lainnya'].map(v => <option key={v} value={v}>{v}</option>)}
                     </select></div>
                 </div>
+                <div className="grid grid-cols-2 gap-3">
+                  {isSuperAdmin && (
+                    <div className="col-span-2 relative">
+                      <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.18em] mb-1.5">Pilih Fakultas</label>
+                      <div className="relative">
+                        <div 
+                          className="w-full h-11 px-4 rounded-xl border border-slate-200/60 bg-slate-50/50 text-sm font-medium text-slate-900 flex items-center justify-between cursor-pointer"
+                          onClick={() => setIsFakultasDropdownOpen(!isFakultasDropdownOpen)}
+                        >
+                          <span className={`truncate ${!formData.fakultas_id ? 'text-slate-500' : ''}`}>{fakultasSearch || '-- Tingkat Universitas --'}</span>
+                          <span className="material-symbols-outlined text-slate-400">expand_more</span>
+                        </div>
+                        
+                        {isFakultasDropdownOpen && (
+                          <div className="absolute z-50 mt-1 w-full bg-white border border-slate-200 rounded-xl shadow-lg max-h-60 overflow-y-auto overflow-x-hidden">
+                            <div className="sticky top-0 bg-white p-2 border-b border-slate-100">
+                              <input 
+                                type="text" 
+                                placeholder="Cari fakultas..." 
+                                value={fakultasSearch === '-- Tingkat Universitas --' ? '' : fakultasSearch}
+                                onChange={e => setFakultasSearch(e.target.value)}
+                                className="w-full h-9 px-3 rounded-lg bg-slate-50 border border-slate-200 text-sm focus:outline-none focus:border-primary"
+                                onClick={e => e.stopPropagation()}
+                              />
+                            </div>
+                            <div className="p-1">
+                              <div 
+                                onMouseDown={(e) => e.preventDefault()}
+                                onClick={() => {
+                                  set('fakultas_id', '')
+                                  setFakultasSearch('-- Tingkat Universitas --')
+                                  setIsFakultasDropdownOpen(false)
+                                }}
+                                className={`px-3 py-2 text-sm rounded-lg cursor-pointer hover:bg-slate-50 ${!formData.fakultas_id ? 'bg-primary/10 text-primary font-bold' : 'text-slate-700'}`}
+                              >
+                                -- Tingkat Universitas --
+                              </div>
+                              {filteredFaculties.length === 0 ? (
+                                <div className="px-3 py-2 text-sm text-slate-400 text-center">Tidak ada fakultas ditemukan</div>
+                              ) : (
+                                filteredFaculties.map(f => (
+                                  <div 
+                                    key={f.id || f.ID}
+                                    onMouseDown={(e) => e.preventDefault()}
+                                    onClick={() => {
+                                      set('fakultas_id', f.id || f.ID)
+                                      setFakultasSearch(f.nama || f.Nama)
+                                      setIsFakultasDropdownOpen(false)
+                                    }}
+                                    className={`px-3 py-2 text-sm rounded-lg cursor-pointer hover:bg-slate-50 ${parseInt(formData.fakultas_id) === (f.id || f.ID) ? 'bg-primary/10 text-primary font-bold' : 'text-slate-700'}`}
+                                  >
+                                    {f.nama || f.Nama}
+                                  </div>
+                                ))
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
                 <div><label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.18em] mb-1.5">Nama Panjang Organisasi</label>
                   <input value={formData.nama_org} onChange={e => set('nama_org', e.target.value)} placeholder="Nama resmi organisasi..." required className="w-full h-11 px-4 rounded-xl border border-slate-200/60 bg-slate-50/50 text-sm font-medium text-slate-900 focus:outline-none focus:border-primary focus:bg-white transition-all" /></div>
                 <div className="grid grid-cols-2 gap-3">
-                  <div><label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.18em] mb-1.5">Nama Ketua Umum</label>
-                    <select value={formData.ketua_nama} onChange={e => set('ketua_nama', e.target.value)} required className="w-full h-11 px-4 rounded-xl border border-slate-200/60 bg-slate-50/50 text-sm font-medium text-slate-900 focus:outline-none focus:border-primary appearance-none">
-                      <option value="">-- Pilih Mahasiswa --</option>
-                      {students.map(s => (
-                        <option key={s.ID} value={s.Nama}>
-                          {s.Nama} ({s.NIM})
-                        </option>
-                      ))}
-                    </select></div>
+                  <div className="relative">
+                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.18em] mb-1.5">Nama Ketua Umum</label>
+                    <div className="relative">
+                      <div 
+                        className="w-full h-11 px-4 rounded-xl border border-slate-200/60 bg-slate-50/50 text-sm font-medium text-slate-900 flex items-center justify-between cursor-pointer"
+                        onClick={() => setIsStudentDropdownOpen(!isStudentDropdownOpen)}
+                      >
+                        <span className={`truncate ${!formData.ketua_nama ? 'text-slate-500' : ''}`}>{formData.ketua_nama || '-- Pilih Mahasiswa --'}</span>
+                        <span className="material-symbols-outlined text-slate-400">expand_more</span>
+                      </div>
+                      
+                      {isStudentDropdownOpen && (
+                        <div className="absolute z-50 mt-1 w-full bg-white border border-slate-200 rounded-xl shadow-lg max-h-60 overflow-y-auto overflow-x-hidden">
+                          <div className="sticky top-0 bg-white p-2 border-b border-slate-100">
+                            <input 
+                              type="text" 
+                              placeholder="Cari nama atau NIM..." 
+                              value={studentSearch}
+                              onChange={e => setStudentSearch(e.target.value)}
+                              className="w-full h-9 px-3 rounded-lg bg-slate-50 border border-slate-200 text-sm focus:outline-none focus:border-primary"
+                              onClick={e => e.stopPropagation()}
+                            />
+                          </div>
+                          <div className="p-1">
+                            {filteredStudents.length === 0 ? (
+                              <div className="px-3 py-2 text-sm text-slate-400 text-center">Tidak ada mahasiswa ditemukan</div>
+                            ) : (
+                              filteredStudents.slice(0, 50).map(s => (
+                                <div 
+                                  key={s.ID}
+                                  onClick={() => {
+                                    set('ketua_nama', s.Nama)
+                                    setIsStudentDropdownOpen(false)
+                                    setStudentSearch('')
+                                  }}
+                                  className={`px-3 py-2 text-sm rounded-lg cursor-pointer hover:bg-slate-50 ${formData.ketua_nama === s.Nama ? 'bg-primary/10 text-primary font-bold' : 'text-slate-700'}`}
+                                >
+                                  {s.Nama} <span className="text-slate-400 ml-1">({s.NIM})</span>
+                                </div>
+                              ))
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
                   <div><label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.18em] mb-1.5">Jumlah Anggota</label>
                     <input type="number" value={formData.jumlah_anggota} onChange={e => set('jumlah_anggota', parseInt(e.target.value) || 0)} className="w-full h-11 px-4 rounded-xl border border-slate-200/60 bg-slate-50/50 text-sm font-black text-center text-slate-900 focus:outline-none focus:border-primary focus:bg-white transition-all" /></div>
                 </div>

@@ -143,7 +143,9 @@ func CreateProposal(c *fiber.Ctx) error {
 	// FIX: Synchronize FakultasID with Ormawa's FakultasID to ensure faculty matching
 	var ormawa models.Ormawa
 	if err := config.DB.First(&ormawa, payload.OrmawaID).Error; err == nil {
-		payload.FakultasID = ormawa.FakultasID
+		if ormawa.FakultasID != nil {
+			payload.FakultasID = *ormawa.FakultasID
+		}
 	}
 
 	// FIX: Get valid Mahasiswa if missing to prevent FK violations
@@ -1290,7 +1292,7 @@ func CreateMember(c *fiber.Ctx) error {
 		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Mahasiswa tidak ditemukan"})
 	}
 
-	if mhs.FakultasID != ormawa.FakultasID {
+	if ormawa.FakultasID != nil && mhs.FakultasID != *ormawa.FakultasID {
 		return c.Status(403).JSON(fiber.Map{
 			"status":  "error",
 			"message": "Akses ditolak. Mahasiswa harus berasal dari fakultas yang sama dengan organisasi.",

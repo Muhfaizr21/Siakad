@@ -483,8 +483,8 @@ type Ormawa struct {
 	Nama       string
 	Singkatan  string `gorm:"size:20"`
 	Deskripsi  string
-	FakultasID uint `gorm:"index" json:"fakultas_id"`
-	Fakultas   Fakultas `json:"fakultas,omitempty"`
+	FakultasID *uint `gorm:"index" json:"fakultas_id"`
+	Fakultas   *Fakultas `json:"fakultas,omitempty"`
 
 	ProgramStudiID *uint         `gorm:"index" json:"program_studi_id,omitempty"`
 	ProgramStudi   *ProgramStudi `gorm:"foreignKey:ProgramStudiID" json:"program_studi,omitempty"`

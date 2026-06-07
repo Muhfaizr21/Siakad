@@ -49,7 +49,7 @@ func main() {
 		AllowOriginsFunc: func(origin string) bool {
 			return true
 		},
-		AllowHeaders:     "Origin, Content-Type, Accept, Authorization, X-Requested-With, X-Faculty-ID, X-Student-ID, X-Ormawa-ID",
+		AllowHeaders:     "Origin, Content-Type, Accept, Authorization, X-Requested-With, X-Faculty-ID, X-Student-ID, X-Ormawa-ID, X-Prodi-ID, X-Academic-Period-ID",
 		AllowMethods:     "GET, POST, PUT, DELETE, OPTIONS",
 		AllowCredentials: true,
 	}))

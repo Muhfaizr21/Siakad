@@ -59,7 +59,29 @@ export default function KelolaFakultas() {
         if (showSyncToast) toast.success('Sinkronisasi Data Fakultas Berhasil')
       }
       const res = await adminService.getAllFaculties()
-      if (res.status === 'success') setData(res.data || [])
+      if (res.status === 'success') {
+        let fetchedData = res.data || []
+        
+        const activeFakultas = localStorage.getItem('superadmin_fakultas_id')
+        if (activeFakultas && activeFakultas !== 'all') {
+          fetchedData = fetchedData.filter(f => String(f.id || f.ID) === activeFakultas)
+        }
+
+        const activeProdi = localStorage.getItem('superadmin_prodi_id')
+        if (activeProdi && activeProdi !== 'all') {
+          fetchedData = fetchedData.map(f => {
+            const prodis = f.ProgramStudi || f.program_studi || []
+            const filteredProdis = prodis.filter(p => String(p.id || p.ID) === activeProdi)
+            return {
+              ...f,
+              ProgramStudi: filteredProdis,
+              ...(f.program_studi ? { program_studi: filteredProdis } : {})
+            }
+          }).filter(f => f.ProgramStudi.length > 0)
+        }
+
+        setData(fetchedData)
+      }
       else toast.error('Gagal memuat sinkronisasi data')
     } catch { toast.error('Koneksi node terputus') } finally { setLoading(false) }
   }
@@ -158,7 +180,6 @@ export default function KelolaFakultas() {
   const allProdis = data.flatMap(fac => fac.ProgramStudi || fac.program_studi || [])
   const totalProdi = allProdis.length
   const kapasitasTampung = allProdis.reduce((acc, curr) => acc + (curr.Kapasitas || curr.kapasitas || 0), 0)
-  const rasioProdi = data.length > 0 ? (totalProdi / data.length).toFixed(1) : 0
   const akreditasiA = allProdis.filter(p => {
     const akr = (p.Akreditasi || p.akreditasi || '').toUpperCase()
     return akr === 'A' || akr === 'UNGGUL'
@@ -295,7 +316,7 @@ export default function KelolaFakultas() {
 
         {/* ── Enriched Stats Grid ─────────────────────────────────── */}
         <div className="space-y-4">
-          <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             <div
               onClick={() => setIsAllFacultiesOpen(true)}
               className="bg-white p-4 rounded-xl border border-[#e5e5e5] shadow-sm cursor-pointer hover:bg-neutral-50/50 hover:shadow-md hover:border-neutral-300 transition-all group flex flex-col justify-between"
@@ -330,16 +351,6 @@ export default function KelolaFakultas() {
                   <span className="text-[9px] font-black text-[#a3a3a3] uppercase tracking-widest">Kapasitas Tampung</span>
                </div>
                <p className="text-2xl font-black text-[#171717] mt-3">{kapasitasTampung.toLocaleString('id-ID')} Mhs</p>
-            </div>
-
-            <div className="bg-white p-4 rounded-xl border border-[#e5e5e5] shadow-sm flex flex-col justify-between">
-               <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 bg-blue-50 rounded-lg flex justify-center items-center text-blue-600 shrink-0">
-                     <Building2 size={14} />
-                  </div>
-                  <span className="text-[9px] font-black text-[#a3a3a3] uppercase tracking-widest">Rasio Prodi/Fak</span>
-               </div>
-               <p className="text-2xl font-black text-[#171717] mt-3">{rasioProdi} Prodi</p>
             </div>
 
             <div className="bg-white p-4 rounded-xl border border-[#e5e5e5] shadow-sm flex flex-col justify-between">

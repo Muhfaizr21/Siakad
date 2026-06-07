@@ -77,6 +77,36 @@ const TABS = [
   {key:'students',label:'Detail Peserta',  icon:Users},
 ]
 
+const parseDay = (dateStr) => {
+  if (!dateStr) return '--';
+  const match = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (match) {
+    return match[3];
+  }
+  const d = new Date(dateStr);
+  if (!isNaN(d.getTime())) {
+    return String(d.getDate()).padStart(2, '0');
+  }
+  return '--';
+}
+
+const formatFullDate = (dateStr) => {
+  if (!dateStr) return '-';
+  const match = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (match) {
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agt', 'Sep', 'Okt', 'Nov', 'Des'];
+    const year = match[1];
+    const month = months[parseInt(match[2], 10) - 1] || match[2];
+    const day = match[3];
+    return `${day} ${month} ${year}`;
+  }
+  const d = new Date(dateStr);
+  if (!isNaN(d.getTime())) {
+    return d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
+  }
+  return dateStr;
+}
+
 export default function FacultyPkkmb() {
   const [activeTab, setTab] = useState('prodi')
   const [loading, setLoading]   = useState(true)
@@ -344,7 +374,7 @@ export default function FacultyPkkmb() {
               </div>
               <div>
                 <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest">Distribusi Status</h3>
-                <p className="text-[10px] text-slate-400">WHAT: Persentase kelulusan</p>
+
               </div>
             </div>
             {/* Simple Donut visualization */}
@@ -393,7 +423,7 @@ export default function FacultyPkkmb() {
               </div>
               <div>
                 <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest">Distribusi Nilai</h3>
-                <p className="text-[10px] text-slate-400">WHAT: Sebaran nilai maba</p>
+
               </div>
             </div>
             {/* Horizontal Bar Chart */}
@@ -423,11 +453,11 @@ export default function FacultyPkkmb() {
               </div>
               <div>
                 <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest">Per Gender</h3>
-                <p className="text-[10px] text-slate-400">WHO: Breakdown jenis kelamin</p>
+
               </div>
             </div>
             <div className="space-y-3">
-              {genderStats.length > 0 ? genderStats.map((item, i) => (
+              {genderStats.filter(item => item.gender === 'Laki-laki' || item.gender === 'Perempuan').length > 0 ? genderStats.filter(item => item.gender === 'Laki-laki' || item.gender === 'Perempuan').map((item, i) => (
                 <div key={i} className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <span className="text-xl">{item.gender === 'Laki-laki' ? '♂' : item.gender === 'Perempuan' ? '♀' : '?'}</span>
@@ -452,7 +482,7 @@ export default function FacultyPkkmb() {
               </div>
               <div>
                 <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest">Per Angkatan</h3>
-                <p className="text-[10px] text-slate-400">WHO: Jumlah per tahun masuk</p>
+
               </div>
             </div>
             <div className="space-y-2 max-h-40 overflow-y-auto">
@@ -478,18 +508,18 @@ export default function FacultyPkkmb() {
               </div>
               <div>
                 <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest">Agenda Kegiatan</h3>
-                <p className="text-[10px] text-slate-400">WHEN: Jadwal sesi PKKMB</p>
+
               </div>
             </div>
             <div className="space-y-2 max-h-40 overflow-y-auto">
               {kegiatanList.length > 0 ? kegiatanList.map((k, i) => (
-                <div key={i} className="flex items-start gap-3 py-2 border-b border-slate-50 last:border-0">
+                <div key={i} className="flex items-center gap-3 py-2.5 border-b border-slate-50 last:border-0 min-w-0">
                   <div className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center shrink-0">
-                    <span className="text-[10px] font-bold text-indigo-600">{k.tanggal?.split('-')[2]||'--'}</span>
+                    <span className="text-[10px] font-bold text-indigo-600">{parseDay(k.tanggal)}</span>
                   </div>
-                  <div className="min-w-0">
-                    <p className="text-sm font-semibold text-slate-800 truncate">{k.nama||'Tidak ada nama'}</p>
-                    <p className="text-[10px] text-slate-400">{k.tanggal} · {k.lokasi||'-'}</p>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-semibold text-slate-800 truncate" title={k.nama || 'Tidak ada nama'}>{k.nama||'Tidak ada nama'}</p>
+                    <p className="text-[10px] text-slate-400 truncate" title={`${formatFullDate(k.tanggal)} · ${k.lokasi || '-'}`}>{formatFullDate(k.tanggal)} · {k.lokasi||'-'}</p>
                   </div>
                 </div>
               )) : (
@@ -506,7 +536,7 @@ export default function FacultyPkkmb() {
               </div>
               <div>
                 <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest">Batas Kelulusan</h3>
-                <p className="text-[10px] text-slate-400">HOW: Threshold nilai minimum</p>
+
               </div>
             </div>
             <div className="flex flex-col items-center justify-center py-4">

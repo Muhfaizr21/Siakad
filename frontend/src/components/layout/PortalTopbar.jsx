@@ -336,7 +336,7 @@ export default function PortalTopbar({ config, onMenuClick }) {
         }}
       >
         {/* ─── Left: Hamburger + Breadcrumb ─── */}
-        <div className="flex items-center gap-4 flex-1 min-w-0">
+        <div className="flex items-center gap-4 flex-1 min-w-0 overflow-x-auto no-scrollbar">
           {/* Mobile hamburger */}
           <button
             onClick={onMenuClick}
@@ -380,7 +380,7 @@ export default function PortalTopbar({ config, onMenuClick }) {
 
           {/* Faculty Switcher for Super Admin */}
           {user?.role === 'super_admin' && facultiesList.length > 0 && !location.pathname.includes('/admin/ormawa') && (
-            <div className="flex items-center gap-2 ml-4 bg-slate-50 border border-slate-100 rounded-xl px-2.5 py-1">
+            <div className="flex items-center gap-2 ml-4 bg-slate-50 border border-slate-100 rounded-xl px-2.5 py-1 shrink-0">
               <span className="material-symbols-outlined text-slate-400 !text-[16px]">corporate_fare</span>
               <select
                 value={activeFacultyId}
@@ -400,7 +400,7 @@ export default function PortalTopbar({ config, onMenuClick }) {
 
           {/* Prodi Switcher for Super Admin */}
           {user?.role === 'super_admin' && activeFacultyId !== 'all' && prodisList.length > 0 && !location.pathname.includes('/admin/ormawa') && (
-            <div className="flex items-center gap-2 ml-2 bg-slate-50 border border-slate-100 rounded-xl px-2.5 py-1">
+            <div className="flex items-center gap-2 ml-2 bg-slate-50 border border-slate-100 rounded-xl px-2.5 py-1 shrink-0">
               <span className="material-symbols-outlined text-slate-400 !text-[16px]">school</span>
               <select
                 value={activeProdiId}
@@ -420,7 +420,7 @@ export default function PortalTopbar({ config, onMenuClick }) {
 
           {/* Period Switcher for Super Admin */}
           {user?.role === 'super_admin' && periodsList.length > 0 && !location.pathname.includes('/admin/ormawa') && (
-            <div className="flex items-center gap-2 ml-2 bg-slate-50 border border-slate-100 rounded-xl px-2.5 py-1">
+            <div className="flex items-center gap-2 ml-2 bg-slate-50 border border-slate-100 rounded-xl px-2.5 py-1 shrink-0">
               <span className="material-symbols-outlined text-slate-400 !text-[16px]">calendar_month</span>
               <select
                 value={activePeriodId}
@@ -439,7 +439,7 @@ export default function PortalTopbar({ config, onMenuClick }) {
           )}
 
           {/* Reset Filters Button */}
-          {user?.role === 'super_admin' && (activeFacultyId !== 'all' || activeProdiId !== 'all' || activePeriodId !== 'all') && (
+          {user?.role === 'super_admin' && (activeFacultyId !== 'all' || activeProdiId !== 'all' || activePeriodId !== 'all') && !location.pathname.includes('/admin/ormawa') && (
             <button
               onClick={handleResetFilters}
               title="Reset Filter"
@@ -452,7 +452,7 @@ export default function PortalTopbar({ config, onMenuClick }) {
 
           {/* Ormawa Switcher for Super Admin on Ormawa pages */}
           {user?.role === 'super_admin' && ormawasList.length > 0 && location.pathname.includes('/admin/ormawa') && (
-            <div className="flex items-center gap-2 ml-2 bg-violet-50 border border-violet-100 rounded-xl px-2.5 py-1">
+            <div className="flex items-center gap-2 ml-2 bg-violet-50 border border-violet-100 rounded-xl px-2.5 py-1 shrink-0">
               <span className="material-symbols-outlined text-violet-500 !text-[16px]">groups</span>
               <select
                 value={activeOrmawaId}

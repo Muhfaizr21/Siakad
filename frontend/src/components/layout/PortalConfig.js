@@ -79,7 +79,7 @@ export const PORTAL_CONFIG = {
           { name: 'Mahasiswa', icon: 'school', path: '/faculty/mahasiswa', permission: 'view_mahasiswa' },
           { name: 'Dosen / Psikolog', icon: 'psychology', path: '/faculty/psikolog', permission: 'view_psikolog' },
           { name: 'Program Studi', icon: 'database', path: '/faculty/prodi', permission: 'view_prodi' },
-          { name: 'Jadwal', icon: 'calendar_month', path: '/faculty/jadwal' },
+          { name: 'Periode Akademik', icon: 'calendar_month', path: '/faculty/jadwal' },
         ]
       },
       {
@@ -176,7 +176,7 @@ export const PORTAL_CONFIG = {
               { name: 'Kesehatan', icon: 'favorite', path: '/admin/faculty-kesehatan' },
               { name: 'Dosen / Psikolog', icon: 'psychology', path: '/admin/faculty-psikolog' },
               { name: 'Program Studi', icon: 'database', path: '/admin/faculty-prodi' },
-              { name: 'Jadwal', icon: 'calendar_month', path: '/admin/faculty-jadwal' },
+              { name: 'Periode Akademik', icon: 'calendar_month', path: '/admin/faculty-jadwal' },
               { name: 'Laporan', icon: 'description', path: '/admin/faculty-laporan' },
               { name: 'Role & Akses (RBAC)', icon: 'security', path: '/admin/faculty-rbac' },
               { name: 'Akun Prodi', icon: 'manage_accounts', path: '/admin/faculty-prodi-users' },

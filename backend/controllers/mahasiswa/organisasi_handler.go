@@ -140,8 +140,8 @@ func GetOrmawaList(c *fiber.Ctx) error {
 				if student.ProgramStudiID == *o.ProgramStudiID {
 					filtered = append(filtered, o)
 				}
-			} else if o.FakultasID > 0 {
-				if student.FakultasID == o.FakultasID {
+			} else if o.FakultasID != nil {
+				if student.FakultasID == *o.FakultasID {
 					filtered = append(filtered, o)
 				}
 			} else {
@@ -209,8 +209,8 @@ func DaftarOrmawa(c *fiber.Ctx) error {
 			if student.ProgramStudiID != *ormawa.ProgramStudiID {
 				return c.Status(403).JSON(fiber.Map{"success": false, "message": "Ormawa ini hanya terbuka untuk Program Studi yang bersangkutan"})
 			}
-		} else if ormawa.FakultasID > 0 {
-			if student.FakultasID != ormawa.FakultasID {
+		} else if ormawa.FakultasID != nil {
+			if student.FakultasID != *ormawa.FakultasID {
 				return c.Status(403).JSON(fiber.Map{"success": false, "message": "Ormawa ini hanya terbuka untuk Fakultas yang bersangkutan"})
 			}
 		}

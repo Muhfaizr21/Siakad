@@ -66,7 +66,7 @@ export function DialogClose({ ...props }) {
   return null;
 }
 
-export default function Dialog({ open, onOpenChange, children }) {
+export default function Dialog({ open, onOpenChange, children, maxWidth = "max-w-lg", className = "" }) {
   const isOpen = open;
   const handleClose = () => onOpenChange && onOpenChange(false);
 
@@ -84,19 +84,19 @@ export default function Dialog({ open, onOpenChange, children }) {
       <DialogPortal>
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div
-            className="relative w-full max-w-lg rounded-2xl shadow-2xl animate-in zoom-in-95 duration-200 bg-white border border-[#e5e5e5]"
+            className={`relative w-full ${maxWidth} rounded-2xl shadow-2xl animate-in zoom-in-95 duration-200 bg-white border border-[#e5e5e5] ${className}`}
             onClick={(e) => e.stopPropagation()}
           >
+            {children}
+
             {/* Close button */}
             <button
               onClick={handleClose}
-              className="absolute right-4 top-4 p-2 rounded-lg transition-colors hover:bg-black/[0.05] z-10"
+              className="absolute right-4 top-4 p-2 rounded-lg transition-colors hover:bg-black/[0.05] z-[60]"
               style={{ color: '#a3a3a3' }}
             >
               <span className="material-symbols-outlined">close</span>
             </button>
-
-            {children}
           </div>
         </div>
       </DialogPortal>
