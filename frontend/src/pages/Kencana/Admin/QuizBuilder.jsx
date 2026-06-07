@@ -148,8 +148,8 @@ const QuizBuilder = () => {
       {/* Header */}
       <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-64 h-64 bg-violet-50 rounded-full -mr-20 -mt-20 blur-3xl opacity-60 pointer-events-none"></div>
-        <button onClick={() => navigate('/kencana-admin/stages')} className="text-sm font-bold text-slate-500 hover:text-violet-600 mb-4 inline-flex items-center gap-1 transition-colors">
-          &larr; Kembali ke Tahapan
+        <button onClick={() => navigate(-1)} className="text-sm font-bold text-slate-500 hover:text-violet-600 mb-4 inline-flex items-center gap-1 transition-colors">
+          &larr; Kembali ke Sesi
         </button>
         <div className="flex justify-between items-start">
           <div>

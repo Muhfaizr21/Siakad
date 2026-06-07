@@ -22,6 +22,7 @@ const Groups = ({ portal: propPortal, facultyId: propFacultyId }) => {
   const portal = propPortal || (isFacultyScoped ? 'fakultas' : 'admin');
   const isSuperAdmin = role === 'super_admin' || role === 'kencana_admin';
   const userFacultyId = user?.fakultas_id || user?.FakultasID || '';
+  const basePath = window.location.pathname.startsWith('/kencana-fakultas') ? '/kencana-fakultas' : window.location.pathname.startsWith('/kencana-fakult') ? '/kencana-fakult' : '/kencana-admin';
 
   const [selectedPeriodId, setSelectedPeriodId] = useState('');
   const [search, setSearch] = useState('');
@@ -129,7 +130,7 @@ const Groups = ({ portal: propPortal, facultyId: propFacultyId }) => {
         <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-5">
           <div>
             <p className="text-[10px] font-black text-emerald-300 uppercase tracking-[0.28em]">Kelompok Kencana</p>
-            <h1 className="text-3xl md:text-4xl font-black mt-2">Kelola Kelompok & DP</h1>
+            <h1 className="text-3xl md:text-4xl font-black text-white mt-2">Kelola Kelompok & DP</h1>
             <p className="text-sm text-slate-300 mt-2 max-w-2xl">Buat kelompok seperti Praja, assign 1 mentor/DP, lalu masukkan banyak mahasiswa ke dalam kelompok.</p>
           </div>
           <div className="flex flex-col sm:flex-row gap-3">
@@ -173,7 +174,7 @@ const Groups = ({ portal: propPortal, facultyId: propFacultyId }) => {
                   <div className="bg-white rounded-2xl p-3 border border-slate-100"><p className="text-xs font-black text-slate-800 capitalize mt-1">{group.scope_type}</p><p className="text-[10px] font-bold text-slate-400">Scope</p></div>
                 </div>
                 <div className="flex gap-2">
-                  <button onClick={() => navigate(propPortal === 'fakultas' ? `/kencana-admin/faculty-stages/${selectedFacultyFilter}/groups/${group.id}` : `/kencana-admin/groups/${group.id}`)} className="flex-1 px-4 py-2 rounded-xl bg-slate-900 text-white text-xs font-black">Kelola Anggota</button>
+                  <button onClick={() => navigate(propPortal === 'fakultas' ? `${basePath}/${basePath.includes('fakult') ? 'stages' : 'faculty-stages'}/${selectedFacultyFilter || group.fakultas_id}/groups/${group.id}` : `${basePath}/groups/${group.id}`)} className="flex-1 px-4 py-2 rounded-xl bg-slate-900 text-white text-xs font-black">Kelola Anggota</button>
                   <button onClick={() => openEdit(group)} className="px-4 py-2 rounded-xl bg-white border border-slate-200 text-xs font-black text-slate-600">Edit</button>
                   <button onClick={() => window.confirm('Hapus kelompok ini?') && deleteGroup.mutate(group.id)} className="px-4 py-2 rounded-xl bg-rose-50 text-rose-700 text-xs font-black">Hapus</button>
                 </div>

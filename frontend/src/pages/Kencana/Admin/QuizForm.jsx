@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useCreateQuizMutation, useSessionsQuery, useUpdateQuizMutation } from '../../../queries/useKencanaAdminQuery';
+import toast from 'react-hot-toast';
 
 const QuizForm = () => {
   const { sessionId, quizId } = useParams();
   const navigate = useNavigate();
   const isEditing = Boolean(quizId);
+  const basePath = window.location.pathname.startsWith('/kencana-fakultas') ? '/kencana-fakultas' : window.location.pathname.startsWith('/kencana-fakult') ? '/kencana-fakult' : '/kencana-admin';
   
   const { data: detailedSessions, isLoading: isLoadingSessions } = useSessionsQuery(null);
   const session = detailedSessions?.find(s => s.id === Number(sessionId));
@@ -35,8 +37,8 @@ const QuizForm = () => {
     });
   }, [isEditing, existingQuiz]);
 
-  const handleSaveQuiz = (e) => {
-    e.preventDefault();
+  const handleSaveQuiz = (e, continueToBuilder = false) => {
+    if (e) e.preventDefault();
     if (!session) return;
     const payload = { ...form };
     const formatApiDate = (d) => {
@@ -48,21 +50,29 @@ const QuizForm = () => {
     payload.close_at = formatApiDate(payload.close_at);
 
     if (isEditing) {
-      updateQuizMutation.mutate({ id: Number(quizId), ...payload, session_id: session.id }, {
-        onSuccess: () => navigate(`/kencana-admin/sessions/${sessionId}/content`),
+      updateQuizMutation.mutate({ id: Number(quizId), ...payload }, {
+        onSuccess: () => {
+          if (continueToBuilder) {
+            navigate(`${basePath}/quiz/${quizId}/builder`);
+          } else {
+            navigate(`${basePath}/sessions/${sessionId}/content`);
+          }
+        },
+        onError: () => toast.error('Gagal menyimpan kuis')
       });
       return;
     }
 
     createQuizMutation.mutate({ ...payload, session_id: session.id }, {
-      onSuccess: (data) => {
-        if (data?.data?.data?.id || data?.id) {
-           const quizId = data?.data?.data?.id || data?.id;
-           navigate(`/kencana-admin/quiz/${quizId}/builder`);
+      onSuccess: (res) => {
+        const id = res?.data?.data?.id || res?.id;
+        if (continueToBuilder && id) {
+          navigate(`${basePath}/quiz/${id}/builder`);
         } else {
-           navigate(`/kencana-admin/sessions/${sessionId}/content`);
+          navigate(`${basePath}/sessions/${sessionId}/content`);
         }
-      }
+      },
+      onError: () => toast.error('Gagal membuat kuis')
     });
   };
 
@@ -74,7 +84,7 @@ const QuizForm = () => {
 
   return (
     <div className="p-4 md:p-8 max-w-6xl mx-auto space-y-6">
-      <button onClick={() => navigate(`/kencana-admin/sessions/${sessionId}/content`)} className="text-sm font-bold text-slate-500 hover:text-slate-800 transition-colors">
+      <button onClick={() => navigate(`${basePath}/sessions/${sessionId}/content`)} className="text-sm font-bold text-slate-500 hover:text-slate-800 transition-colors">
         ← Kembali ke Konten Sesi
       </button>
 
@@ -95,7 +105,7 @@ const QuizForm = () => {
             <p className="text-sm text-slate-500 mt-2">Field yang jelas membantu peserta melihat kuis sesuai jadwal dan status.</p>
         </div>
 
-        <form onSubmit={handleSaveQuiz} className="p-6 md:p-8 space-y-6">
+        <form onSubmit={e => handleSaveQuiz(e, true)} className="p-6 md:p-8 space-y-6">
           <div>
             <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Judul Kuis *</label>
             <input 
@@ -169,7 +179,10 @@ const QuizForm = () => {
           </div>
 
           <div className="flex justify-end gap-3 pt-6 border-t border-slate-100 mt-8">
-            <button type="button" onClick={() => navigate(-1)} className="px-6 py-3 rounded-xl font-bold text-slate-500 hover:bg-slate-100 transition-colors">Batal</button>
+            <button type="button" onClick={() => navigate(`${basePath}/sessions/${sessionId}/content`)} className="px-6 py-3 rounded-xl font-bold text-slate-500 hover:bg-slate-100 transition-colors">Batal</button>
+            <button type="button" onClick={() => handleSaveQuiz(null, false)} disabled={isSaving} className="px-6 py-3 border-2 border-amber-500 text-amber-600 hover:bg-amber-50 rounded-xl font-black transition-colors">
+              Simpan Draft
+            </button>
             <button type="submit" disabled={isSaving} className="bg-amber-500 hover:bg-amber-600 text-white px-8 py-3 rounded-xl font-black shadow-lg shadow-amber-200 disabled:opacity-50 transition-all flex items-center gap-2">
               {isSaving ? 'Menyimpan...' : isEditing ? 'Simpan Kuis' : 'Lanjut Susun Soal →'}
             </button>

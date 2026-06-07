@@ -31,6 +31,7 @@ const SessionContent = () => {
   const { sessionId } = useParams();
   const navigate = useNavigate();
   const [sessionTab, setSessionTab] = useState('materi');
+  const basePath = window.location.pathname.startsWith('/kencana-fakultas') ? '/kencana-fakultas' : window.location.pathname.startsWith('/kencana-fakult') ? '/kencana-fakult' : '/kencana-admin';
 
   const { data: session, isLoading } = useSessionDetailQuery(sessionId);
   const deleteMaterialMutation = useDeleteMaterialMutation();
@@ -142,10 +143,11 @@ const SessionContent = () => {
       return;
     }
     const type = session.stage.type;
-    if (type === 'faculty') navigate('/kencana-admin/faculty-stages' + (session.stage.fakultas_id ? `?faculty=${session.stage.fakultas_id}` : ''));
-    else if (type === 'pra_kencana') navigate('/kencana-admin/pre-kencana');
-    else if (type === 'pasca_kencana') navigate('/kencana-admin/post-kencana');
-    else navigate('/kencana-admin/university');
+    const isFakultasPortal = basePath.includes('fakult');
+    if (type === 'faculty') navigate(`${basePath}/${isFakultasPortal ? 'stages' : 'faculty-stages'}` + (session.stage.fakultas_id ? `?faculty=${session.stage.fakultas_id}` : ''));
+    else if (type === 'pra_kencana') navigate(`${basePath}/pre-kencana`);
+    else if (type === 'pasca_kencana') navigate(`${basePath}/post-kencana`);
+    else navigate(`${basePath}/university`);
   };
 
   if (!session) {
@@ -154,7 +156,7 @@ const SessionContent = () => {
         <div className="bg-white rounded-3xl p-12 text-center shadow-sm border border-slate-200">
           <h2 className="text-2xl font-black text-slate-800 mb-2">Sesi Tidak Ditemukan</h2>
           <p className="text-slate-500">Sesi yang Anda cari tidak ada atau telah dihapus.</p>
-          <button onClick={() => navigate('/kencana-admin')} className="mt-6 px-6 py-3 rounded-2xl bg-slate-900 text-white font-bold text-sm">Kembali ke Dashboard</button>
+          <button onClick={() => navigate(basePath)} className="mt-6 px-6 py-3 rounded-2xl bg-slate-900 text-white font-bold text-sm">Kembali ke Dashboard</button>
         </div>
       </div>
     );
@@ -216,7 +218,7 @@ const SessionContent = () => {
               <div className="flex justify-between items-center">
                 <h3 className="text-lg font-black text-slate-800">Daftar Materi</h3>
                 <button 
-                  onClick={() => navigate(`/kencana-admin/sessions/${session.id}/material/create`)} 
+                  onClick={() => navigate(`${basePath}/sessions/${session.id}/material/create`)} 
                   className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-md transition-all"
                 >
                   + Tambah Materi
@@ -249,7 +251,7 @@ const SessionContent = () => {
                             Buka File
                           </a>
                         )}
-                        <button onClick={() => navigate(`/kencana-admin/sessions/${session.id}/material/${m.id}/edit`)} className="px-3 py-1.5 rounded-lg text-xs font-bold bg-blue-50 text-blue-700 hover:bg-blue-100 transition-colors">
+                        <button onClick={() => navigate(`${basePath}/sessions/${session.id}/material/${m.id}/edit`)} className="px-3 py-1.5 rounded-lg text-xs font-bold bg-blue-50 text-blue-700 hover:bg-blue-100 transition-colors">
                           Edit
                         </button>
                         <button onClick={() => handleDeleteMaterial(m.id)} className="px-3 py-1.5 rounded-lg text-xs font-bold bg-rose-50 text-rose-700 hover:bg-rose-100 transition-colors">
@@ -269,7 +271,7 @@ const SessionContent = () => {
               <div className="flex justify-between items-center">
                 <h3 className="text-lg font-black text-slate-800">Daftar Kuis</h3>
                 <button 
-                  onClick={() => navigate(`/kencana-admin/sessions/${session.id}/quiz/create`)} 
+                  onClick={() => navigate(`${basePath}/sessions/${session.id}/quiz/create`)} 
                   className="bg-amber-500 hover:bg-amber-600 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-md transition-all"
                 >
                   + Tambah Kuis
@@ -301,10 +303,10 @@ const SessionContent = () => {
                         </div>
                       </div>
                       <div className="flex justify-end gap-2 pt-4 border-t border-slate-50 mt-4">
-                        <button onClick={() => navigate(`/kencana-admin/sessions/${session.id}/quiz/${q.id}/edit`)} className="px-4 py-2 rounded-xl text-xs font-bold bg-amber-50 text-amber-700 hover:bg-amber-100 transition-colors flex-1 md:flex-none text-center">
+                        <button onClick={() => navigate(`${basePath}/sessions/${session.id}/quiz/${q.id}/edit`)} className="px-4 py-2 rounded-xl text-xs font-bold bg-amber-50 text-amber-700 hover:bg-amber-100 transition-colors flex-1 md:flex-none text-center">
                           Edit Kuis
                         </button>
-                        <button onClick={() => navigate(`/kencana-admin/quiz/${q.id}/builder`)} className="px-4 py-2 rounded-xl text-xs font-bold bg-violet-600 text-white hover:bg-violet-700 transition-colors shadow-sm flex-1 md:flex-none text-center">
+                        <button onClick={() => navigate(`${basePath}/quiz/${q.id}/builder`)} className="px-4 py-2 rounded-xl text-xs font-bold bg-violet-600 text-white hover:bg-violet-700 transition-colors shadow-sm flex-1 md:flex-none text-center">
                           Kelola Soal →
                         </button>
                         <button onClick={() => handleDeleteQuiz(q.id)} className="px-3 py-2 rounded-xl text-xs font-bold bg-red-50 text-red-600 hover:bg-red-100 transition-colors">
@@ -324,7 +326,7 @@ const SessionContent = () => {
               <div className="flex justify-between items-center">
                 <h3 className="text-lg font-black text-slate-800">Daftar Tugas</h3>
                 <button 
-                  onClick={() => navigate(`/kencana-admin/sessions/${session.id}/assignment/create`)} 
+                  onClick={() => navigate(`${basePath}/sessions/${session.id}/assignment/create`)} 
                   className="bg-rose-500 hover:bg-rose-600 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-md transition-all"
                 >
                   + Tambah Tugas
@@ -361,7 +363,7 @@ const SessionContent = () => {
                         </div>
                       </div>
                       <div className="flex justify-end gap-2 pt-4 border-t border-slate-50 mt-4">
-                        <button onClick={() => navigate(`/kencana-admin/sessions/${session.id}/assignment/${a.id}/edit`)} className="px-4 py-2 rounded-xl text-xs font-bold bg-rose-50 text-rose-700 hover:bg-rose-100 transition-colors flex-1 md:flex-none text-center">
+                        <button onClick={() => navigate(`${basePath}/sessions/${session.id}/assignment/${a.id}/edit`)} className="px-4 py-2 rounded-xl text-xs font-bold bg-rose-50 text-rose-700 hover:bg-rose-100 transition-colors flex-1 md:flex-none text-center">
                           Edit Tugas
                         </button>
                         <button onClick={() => handleDeleteAssignment(a.id)} className="px-3 py-2 rounded-xl text-xs font-bold bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-rose-600 transition-colors">

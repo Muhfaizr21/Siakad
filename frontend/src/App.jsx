@@ -384,7 +384,16 @@ function App() {
                   <Route path="participants" element={<KencanaFakultaskesParticipants />} />
                   <Route path="scores" element={<KencanaFakultaskesScores />} />
                   <Route path="stages" element={<KencanaFakultaskesStages />} />
+                  <Route path="stages/:facultyId/groups/:id" element={<KencanaAdminUniversitasGroupDetail />} />
                   <Route path="mentors" element={<KencanaAdminMentors portal="fakult" />} />
+                  <Route path="sessions/:sessionId/content" element={<SessionContent />} />
+                  <Route path="sessions/:sessionId/material/create" element={<MaterialForm />} />
+                  <Route path="sessions/:sessionId/material/:materialId/edit" element={<MaterialForm />} />
+                  <Route path="sessions/:sessionId/assignment/create" element={<AssignmentForm />} />
+                  <Route path="sessions/:sessionId/assignment/:assignmentId/edit" element={<AssignmentForm />} />
+                  <Route path="sessions/:sessionId/quiz/create" element={<QuizForm />} />
+                  <Route path="sessions/:sessionId/quiz/:quizId/edit" element={<QuizForm />} />
+                  <Route path="quiz/:id/builder" element={<QuizBuilder />} />
                 </Route>
 
                 {/* Kencana Fakultas (alias for Super Admin sidebar link) */}
@@ -394,7 +403,16 @@ function App() {
                   <Route path="scores" element={<KencanaFakultaskesScores />} />
                   <Route path="stages" element={<KencanaFakultaskesStages />} />
                   <Route path="stages/:facultyId" element={<KencanaFakultaskesStages />} />
+                  <Route path="stages/:facultyId/groups/:id" element={<KencanaAdminUniversitasGroupDetail />} />
                   <Route path="mentors" element={<KencanaAdminMentors portal="fakult" />} />
+                  <Route path="sessions/:sessionId/content" element={<SessionContent />} />
+                  <Route path="sessions/:sessionId/material/create" element={<MaterialForm />} />
+                  <Route path="sessions/:sessionId/material/:materialId/edit" element={<MaterialForm />} />
+                  <Route path="sessions/:sessionId/assignment/create" element={<AssignmentForm />} />
+                  <Route path="sessions/:sessionId/assignment/:assignmentId/edit" element={<AssignmentForm />} />
+                  <Route path="sessions/:sessionId/quiz/create" element={<QuizForm />} />
+                  <Route path="sessions/:sessionId/quiz/:quizId/edit" element={<QuizForm />} />
+                  <Route path="quiz/:id/builder" element={<QuizBuilder />} />
                 </Route>
 
                 {/* Kencana Mentor */}

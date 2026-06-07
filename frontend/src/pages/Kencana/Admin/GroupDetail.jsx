@@ -13,6 +13,7 @@ const GroupDetail = () => {
   const navigate = useNavigate();
   const user = useAuthStore(state => state.user);
   const portal = String(user?.role || '').toLowerCase() === 'kencana_fakultas' ? 'fakultas' : 'admin';
+  const basePath = window.location.pathname.startsWith('/kencana-fakultas') ? '/kencana-fakultas' : window.location.pathname.startsWith('/kencana-fakult') ? '/kencana-fakult' : '/kencana-admin';
   const [search, setSearch] = useState('');
   const [selectedIds, setSelectedIds] = useState([]);
   const { data: group, isLoading } = useGroupQuery(id, portal);
@@ -40,7 +41,7 @@ const GroupDetail = () => {
 
   return (
     <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-6">
-      <button onClick={() => navigate(facultyId ? `/kencana-admin/faculty-stages/${facultyId}?tab=groups` : '/kencana-admin/groups')} className="text-sm font-bold text-slate-500 hover:text-slate-800">← Kembali ke Kelola Kelompok</button>
+      <button onClick={() => navigate(facultyId ? `${basePath}/${basePath.includes('fakult') ? 'stages' : 'faculty-stages'}/${facultyId}?tab=groups` : `${basePath}/groups`)} className="text-sm font-bold text-slate-500 hover:text-slate-800">← Kembali ke Kelola Kelompok</button>
 
       <div className="bg-gradient-to-br from-slate-950 to-emerald-950 rounded-3xl p-6 md:p-8 text-white shadow-xl">
         <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-5">

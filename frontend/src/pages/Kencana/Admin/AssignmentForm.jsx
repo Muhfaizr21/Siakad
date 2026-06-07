@@ -8,6 +8,7 @@ const AssignmentForm = () => {
   const { sessionId, assignmentId } = useParams();
   const navigate = useNavigate();
   const isEditing = Boolean(assignmentId);
+  const basePath = window.location.pathname.startsWith('/kencana-fakultas') ? '/kencana-fakultas' : window.location.pathname.startsWith('/kencana-fakult') ? '/kencana-fakult' : '/kencana-admin';
 
   const { data: detailedSessions, isLoading: isLoadingSessions } = useSessionsQuery(null);
   const session = detailedSessions?.find(s => s.id === Number(sessionId));
@@ -55,11 +56,11 @@ const AssignmentForm = () => {
 
     if (isEditing) {
       updateAssignmentMutation.mutate({ id: Number(assignmentId), ...payload }, {
-        onSuccess: () => navigate(`/kencana-admin/sessions/${sessionId}/content`)
+        onSuccess: () => navigate(`${basePath}/sessions/${sessionId}/content`)
       });
     } else {
       createAssignmentMutation.mutate({ ...payload, session_id: session.id }, {
-        onSuccess: () => navigate(`/kencana-admin/sessions/${sessionId}/content`)
+        onSuccess: () => navigate(`${basePath}/sessions/${sessionId}/content`)
       });
     }
   };
@@ -72,7 +73,7 @@ const AssignmentForm = () => {
 
   return (
     <div className="p-4 md:p-8 max-w-6xl mx-auto space-y-6">
-      <button onClick={() => navigate(`/kencana-admin/sessions/${sessionId}/content`)} className="text-sm font-bold text-slate-500 hover:text-slate-800 transition-colors">
+      <button onClick={() => navigate(`${basePath}/sessions/${sessionId}/content`)} className="text-sm font-bold text-slate-500 hover:text-slate-800 transition-colors">
         ← Kembali ke Konten Sesi
       </button>
 
@@ -181,7 +182,7 @@ const AssignmentForm = () => {
           </div>
 
           <div className="flex justify-end gap-3 pt-6 border-t border-slate-100 mt-8">
-            <button type="button" onClick={() => navigate(`/kencana-admin/sessions/${sessionId}/content`)} className="px-6 py-3 rounded-xl font-bold text-slate-500 hover:bg-slate-100 transition-colors">Batal</button>
+            <button type="button" onClick={() => navigate(`${basePath}/sessions/${sessionId}/content`)} className="px-6 py-3 rounded-xl font-bold text-slate-500 hover:bg-slate-100 transition-colors">Batal</button>
             <button type="submit" disabled={isSaving} className="bg-rose-600 hover:bg-rose-700 text-white px-8 py-3 rounded-xl font-black shadow-lg shadow-rose-200 disabled:opacity-50 transition-all">
               {isSaving ? 'Menyimpan...' : 'Simpan Tugas'}
             </button>

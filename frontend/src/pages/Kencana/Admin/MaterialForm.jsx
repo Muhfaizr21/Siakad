@@ -9,6 +9,7 @@ const MaterialForm = () => {
   const { sessionId, materialId } = useParams();
   const navigate = useNavigate();
   const isEditing = Boolean(materialId);
+  const basePath = window.location.pathname.startsWith('/kencana-fakultas') ? '/kencana-fakultas' : window.location.pathname.startsWith('/kencana-fakult') ? '/kencana-fakult' : '/kencana-admin';
 
   const { data: detailedSessions, isLoading: isLoadingSessions } = useSessionsQuery(null);
   const session = detailedSessions?.find(s => s.id === Number(sessionId));
@@ -70,7 +71,7 @@ const MaterialForm = () => {
         await createMaterialMutation.mutateAsync(payload);
         toast.success('Materi berhasil dibuat!');
       }
-      navigate(`/kencana-admin/sessions/${sessionId}/content`);
+      navigate(`${basePath}/sessions/${sessionId}/content`);
     } catch (err) {
       toast.error('Gagal menyimpan materi');
     }
@@ -84,7 +85,7 @@ const MaterialForm = () => {
 
   return (
     <div className="p-4 md:p-8 max-w-6xl mx-auto space-y-6">
-      <button onClick={() => navigate(`/kencana-admin/sessions/${sessionId}/content`)} className="text-sm font-bold text-slate-500 hover:text-slate-800 transition-colors">
+      <button onClick={() => navigate(`${basePath}/sessions/${sessionId}/content`)} className="text-sm font-bold text-slate-500 hover:text-slate-800 transition-colors">
         ← Kembali ke Konten Sesi
       </button>
 
@@ -182,7 +183,7 @@ const MaterialForm = () => {
           </div>
 
           <div className="flex justify-end gap-3 pt-6 border-t border-slate-100">
-            <button type="button" onClick={() => navigate(`/kencana-admin/sessions/${sessionId}/content`)} className="px-6 py-3 rounded-xl font-bold text-slate-500 hover:bg-slate-100">Batal</button>
+            <button type="button" onClick={() => navigate(`${basePath}/sessions/${sessionId}/content`)} className="px-6 py-3 rounded-xl font-bold text-slate-500 hover:bg-slate-100">Batal</button>
             <button type="submit" disabled={isUploading} className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-xl font-black shadow-lg shadow-blue-200 disabled:opacity-50 transition-all flex items-center justify-center min-w-[160px]">
               {isUploading ? (
                 <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>

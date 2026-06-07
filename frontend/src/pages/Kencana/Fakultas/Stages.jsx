@@ -207,7 +207,7 @@ const Stages = () => {
         <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-5">
           <div>
             <p className="text-[11px] font-black text-sky-200 uppercase tracking-[0.3em] mb-3">Kencana Fakultas</p>
-            <h1 className="text-3xl md:text-5xl font-black tracking-tight">
+            <h1 className="text-3xl md:text-5xl font-black text-white tracking-tight">
               {selectedFacultyId ? (faculties.find(f => String(f.id) === String(selectedFacultyId))?.Nama || faculties.find(f => String(f.id) === String(selectedFacultyId))?.nama || 'Sesi & Konten Fakultas') : 'Sesi & Konten Fakultas'}
             </h1>
             <p className="text-sky-100/90 text-sm md:text-base font-medium max-w-3xl mt-3">Kelola sesi, materi, kuis, dan tugas untuk Kencana Fakultas. Super admin dapat memilih fakultas, sedangkan kencana_fakultas otomatis dibatasi ke fakultasnya sendiri.</p>
@@ -333,7 +333,7 @@ const Stages = () => {
                         <p className="text-xs font-semibold text-slate-500 mt-2 line-clamp-2">{session.description || 'Tidak ada deskripsi.'}</p>
                         <div className="flex items-center justify-between pt-3 border-t border-slate-200/70 mt-4">
                           <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">{session.is_required ? 'Wajib' : 'Opsional'}</span>
-                          <button onClick={() => navigate(`/kencana-admin/sessions/${session.id}/content`)} className="text-[10px] font-black text-blue-700 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg transition-colors cursor-pointer">Kelola Konten →</button>
+                          <button onClick={() => navigate(`${window.location.pathname.startsWith('/kencana-fakultas') ? '/kencana-fakultas' : window.location.pathname.startsWith('/kencana-fakult') ? '/kencana-fakult' : '/kencana-admin'}/sessions/${session.id}/content`)} className="text-[10px] font-black text-blue-700 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg transition-colors cursor-pointer">Kelola Konten →</button>
                         </div>
                       </div>
                     ))}
