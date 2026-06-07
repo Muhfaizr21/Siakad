@@ -7,7 +7,7 @@ const emptyForm = { name: '', email: '', password: '', phone: '', scope_type: 'f
 const Mentors = ({ portal = 'admin', facultyId: propFacultyId }) => {
   const user = useAuthStore((state) => state.user);
   const role = String(user?.role || '').toLowerCase();
-  const isFakultasPortal = portal === 'fakultas' || role === 'kencana_fakultas';
+  const isFakultasPortal = portal === 'fakultas' || portal === 'fakult' || role === 'kencana_fakultas';
   const [form, setForm] = useState(emptyForm);
   const [message, setMessage] = useState('');
   const { data: mentors, isLoading } = useMentorsQuery(portal);

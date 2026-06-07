@@ -393,6 +393,7 @@ function App() {
                   <Route path="participants" element={<KencanaFakultaskesParticipants />} />
                   <Route path="scores" element={<KencanaFakultaskesScores />} />
                   <Route path="stages" element={<KencanaFakultaskesStages />} />
+                  <Route path="stages/:facultyId" element={<KencanaFakultaskesStages />} />
                   <Route path="mentors" element={<KencanaAdminMentors portal="fakult" />} />
                 </Route>
 

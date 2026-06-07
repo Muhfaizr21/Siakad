@@ -44,6 +44,7 @@ const formatApiDate = (d) => {
 
 const Stages = () => {
   const navigate = useNavigate();
+  const basePath = window.location.pathname.startsWith('/kencana-fakultas') ? '/kencana-fakultas/stages' : '/kencana-admin/faculty-stages';
   const { facultyId } = useParams();
   const user = useAuthStore(state => state.user);
   const role = String(user?.role || '').toLowerCase();
@@ -241,7 +242,7 @@ const Stages = () => {
                       <p className="text-xs font-semibold text-slate-500 flex justify-between"><span>Selesai:</span> <span>{formatDate(fp?.end_date)}</span></p>
                     </div>
                   </div>
-                  <button onClick={() => navigate(`/kencana-admin/faculty-stages/${faculty.id}`)} className="w-full py-2.5 bg-sky-50 hover:bg-sky-100 text-sky-700 text-xs font-black rounded-xl transition-colors">
+                  <button onClick={() => navigate(`${basePath}/${faculty.id}?tab=stages`)} className="w-full py-2.5 bg-sky-50 hover:bg-sky-100 text-sky-700 text-xs font-black rounded-xl transition-colors">
                     Kelola Kencana Fakultas →
                   </button>
                 </div>
@@ -255,7 +256,7 @@ const Stages = () => {
       ) : (
         <>
           {canPickFaculty && (
-            <button onClick={() => navigate('/kencana-admin/faculty-stages')} className="flex items-center gap-2 text-sm font-black text-slate-500 hover:text-slate-800 transition-colors mb-2">
+            <button onClick={() => navigate(basePath)} className="flex items-center gap-2 text-sm font-black text-slate-500 hover:text-slate-800 transition-colors mb-2">
               <span>←</span> Kembali ke Daftar Fakultas
             </button>
           )}

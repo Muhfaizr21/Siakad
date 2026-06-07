@@ -6,7 +6,13 @@ import useAuthStore from '../../../store/useAuthStore';
 
 const KencanaLayout = ({ portalType = 'admin' }) => {
   const role = useAuthStore(state => state.user?.role);
-  const effectivePortalType = portalType === 'mentor' ? 'mentor' : String(role || '').toLowerCase() === 'kencana_fakultas' ? 'fakultas' : 'admin';
+  const effectivePortalType = portalType === 'mentor' 
+    ? 'mentor' 
+    : (portalType === 'fakult' || portalType === 'fakultas') 
+      ? 'fakultas' 
+      : String(role || '').toLowerCase() === 'kencana_fakultas' 
+        ? 'fakultas' 
+        : 'admin';
   
   const configKey = effectivePortalType === 'mentor' 
     ? 'kencana_mentor' 

@@ -99,8 +99,8 @@ const ScoreSummary = () => {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
         <div>
-          <h1 className="text-xl font-bold text-slate-800">Rekap Keseluruhan</h1>
-          <p className="text-sm text-slate-500 mt-1">Ringkasan kelulusan seluruh peserta Kencana per kelompok.</p>
+          <h1 className="text-xl font-bold text-slate-800">Rekap Kencana Universitas</h1>
+          <p className="text-sm text-slate-500 mt-1">Ringkasan kelulusan seluruh peserta Kencana Universitas per kelompok.</p>
         </div>
         <select
           value={selectedPeriodId}

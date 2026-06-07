@@ -303,13 +303,15 @@ export const PORTAL_CONFIG = {
         items: [
           { name: 'Data Peserta', icon: 'groups', path: '/kencana-admin/participants' },
           { name: 'Rekap Nilai', icon: 'grade', path: '/kencana-admin/scores' },
+          { name: 'Rekap Nilai Kelompok', icon: 'assessment', path: '/kencana-admin/score-summary' },
           { name: 'Remedial', icon: 'autorenew', path: '/kencana-admin/remedials' },
           { name: 'Sertifikat', icon: 'workspace_premium', path: '/kencana-admin/certificates' },
         ]
       },
       {
-        group: 'PEMBIMBING',
+        group: 'KELOMPOK & PEMBIMBING',
         items: [
+          { name: 'Kelola Kelompok', icon: 'group_work', path: '/kencana-admin/groups' },
           { name: 'Kelola Mentor', icon: 'supervisor_account', path: '/kencana-admin/mentors' },
         ]
       },
@@ -331,13 +333,7 @@ export const PORTAL_CONFIG = {
           { name: 'Dashboard', icon: 'dashboard', path: '/kencana-fakultas' },
         ]
       },
-      {
-        group: 'DATA FAKULTAS',
-        items: [
-          { name: 'Peserta Fakultas', icon: 'groups', path: '/kencana-fakultas/participants' },
-          { name: 'Nilai Fakultas', icon: 'grade', path: '/kencana-fakultas/scores' },
-        ]
-      },
+
       {
         group: 'JADWAL',
         items: [
