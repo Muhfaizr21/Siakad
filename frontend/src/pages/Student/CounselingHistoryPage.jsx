@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
-import { NavLink } from 'react-router-dom';
+import { NavLink, useSearchParams } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import {
   useCancelBookingMutation,
@@ -75,10 +75,14 @@ const hasScreeningData = (record) => {
 };
 
 export default function CounselingHistoryPage() {
+  const [searchParams, setSearchParams] = useSearchParams();
   const { data: history = [], isLoading: isHistoryLoading } = useCounselingRiwayatQuery();
   const { data: medicalRecord, isLoading: isMedicalLoading } = useCounselingMedicalRecordQuery();
   const { data: referrals = [], isLoading: isReferralsLoading } = useCounselingReferralsQuery();
-  const [activeTab, setActiveTab] = useState('medical_record');
+  const initialTab = ['medical_record', 'screening', 'referrals'].includes(searchParams.get('tab'))
+    ? searchParams.get('tab')
+    : 'medical_record';
+  const [activeTab, setActiveTab] = useState(initialTab);
   const [expandedScreening, setExpandedScreening] = useState(null);
   const cancelMutation = useCancelBookingMutation();
   const rescheduleMutation = useRescheduleMutation();
@@ -95,6 +99,18 @@ export default function CounselingHistoryPage() {
   const waitingCount = history.filter((item) => item.status === 'Menunggu').length;
   const confirmedCount = history.filter((item) => item.status === 'Dikonfirmasi').length;
   const completedCount = history.filter((item) => item.status === 'Selesai').length;
+
+  useEffect(() => {
+    const nextTab = searchParams.get('tab');
+    if (['medical_record', 'screening', 'referrals'].includes(nextTab)) {
+      setActiveTab(nextTab);
+    }
+  }, [searchParams]);
+
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+    setSearchParams(tab === 'medical_record' ? {} : { tab });
+  };
 
   const handleCancel = (id) => {
     if (!confirm('Yakin ingin membatalkan jadwal konseling ini?')) return;
@@ -314,7 +330,7 @@ export default function CounselingHistoryPage() {
             <div className="border-b border-neutral-100 px-5 py-4">
               <div className="flex gap-4 border-b border-neutral-100 pb-3 overflow-x-auto">
                 <button
-                  onClick={() => setActiveTab('medical_record')}
+                  onClick={() => handleTabChange('medical_record')}
                   className={`pb-2 text-xs font-black uppercase tracking-wider transition-all border-b-2 flex items-center gap-1.5 -mb-3.5 whitespace-nowrap ${
                     activeTab === 'medical_record'
                       ? 'border-[bku-primary] text-[bku-primary]'
@@ -330,7 +346,7 @@ export default function CounselingHistoryPage() {
                   </span>
                 </button>
                 <button
-                  onClick={() => setActiveTab('screening')}
+                  onClick={() => handleTabChange('screening')}
                   className={`pb-2 text-xs font-black uppercase tracking-wider transition-all border-b-2 flex items-center gap-1.5 -mb-3.5 whitespace-nowrap ${
                     activeTab === 'screening'
                       ? 'border-violet-600 text-violet-600'
@@ -346,7 +362,7 @@ export default function CounselingHistoryPage() {
                   </span>
                 </button>
                 <button
-                  onClick={() => setActiveTab('referrals')}
+                  onClick={() => handleTabChange('referrals')}
                   className={`pb-2 text-xs font-black uppercase tracking-wider transition-all border-b-2 flex items-center gap-1.5 -mb-3.5 whitespace-nowrap ${
                     activeTab === 'referrals'
                       ? 'border-[bku-primary] text-[bku-primary]'

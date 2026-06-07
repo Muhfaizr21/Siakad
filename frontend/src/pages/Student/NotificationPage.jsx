@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../../lib/axios';
 import { NavLink, useNavigate } from 'react-router-dom';
 import useAuthStore from '../../store/useAuthStore';
+import { resolveStudentNotificationLink } from '../../utils/notificationLinks';
 
 import { format, isToday, isYesterday, isThisWeek, parseISO } from 'date-fns';
 import { id } from 'date-fns/locale';
@@ -56,15 +57,22 @@ export default function NotificationPage() {
     queryKey: ['notifikasi', 'full-list', filterType, filterTime],
     queryFn: async () => {
       const { data } = await api.get(`/notifikasi?tipe=${filterType}&waktu=${filterTime}`);
-      return (data.data || []).map(raw => ({
-        id: raw.ID,
-        title: raw.Judul || 'Tanpa Judul',
-        content: raw.Deskripsi || '',
-        type: (raw.Tipe || 'sistem').toLowerCase(),
-        is_read: raw.IsRead ?? false,
-        created_at: raw.CreatedAt || new Date().toISOString(),
-        link: raw.Link || ''
-      }));
+      return (data.data || []).map(raw => {
+        const normalized = {
+          id: raw.ID,
+          title: raw.Judul || 'Tanpa Judul',
+          content: raw.Deskripsi || '',
+          type: (raw.Tipe || 'sistem').toLowerCase(),
+          is_read: raw.IsRead ?? false,
+          created_at: raw.CreatedAt || new Date().toISOString(),
+          link: raw.Link || ''
+        };
+
+        return {
+          ...normalized,
+          link: resolveStudentNotificationLink(normalized)
+        };
+      });
     }
   });
 
@@ -158,6 +166,13 @@ export default function NotificationPage() {
   }, [notifData]);
 
   const hasUnread = notifData?.some(n => !n.is_read);
+
+  const handleOpenNotification = (notif) => {
+    if (!notif.is_read) {
+      markReadMutation.mutate(notif.id);
+    }
+    navigate(notif.link || '/student/notifikasi');
+  };
 
   return (
     <div className="p-6 md:p-10 text-[#171717] min-h-screen bg-[#fafafa]">
@@ -280,12 +295,13 @@ export default function NotificationPage() {
                 {items.map((notif) => (
                   <div 
                     key={notif.id}
-                    className={`group relative bg-white border rounded-2xl p-4 sm:p-5 transition-all hover:shadow-md flex flex-row gap-3 sm:gap-5 items-start ${
+                    onClick={() => handleOpenNotification(notif)}
+                    className={`group relative bg-white border rounded-2xl p-4 sm:p-5 transition-all hover:shadow-md flex flex-row gap-3 sm:gap-5 items-start cursor-pointer ${
                       !notif.is_read ? 'border-bku-primary/30 shadow-sm' : 'border-[#e5e5e5] grayscale-[0.5] opacity-80 hover:grayscale-0 hover:opacity-100'
                     }`}
                   >
                     {/* Checkbox */}
-                    <div className="pt-1.5 shrink-0">
+                    <div className="pt-1.5 shrink-0" onClick={(e) => e.stopPropagation()}>
                        <input 
                          type="checkbox" 
                          checked={selectedIds.includes(notif.id)}
@@ -325,12 +341,16 @@ export default function NotificationPage() {
                        </p>
                        
                        {notif.link && (
-                          <a 
-                            href={notif.link}
+                          <button 
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleOpenNotification(notif);
+                            }}
                             className="inline-flex items-center gap-2 text-[10px] sm:text-xs font-black text-bku-primary uppercase tracking-widest hover:underline"
                           >
                             Lihat Detail <span className="material-symbols-outlined" style={{ fontSize: 14 }}>chevron_right</span>
-                          </a>
+                          </button>
                        )}
                     </div>
 

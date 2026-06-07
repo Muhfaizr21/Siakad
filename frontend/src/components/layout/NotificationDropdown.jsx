@@ -19,6 +19,7 @@ import {
 import { formatDistanceToNow } from 'date-fns';
 import { id } from 'date-fns/locale';
 import { motion, AnimatePresence } from 'framer-motion';
+import { resolveStudentNotificationLink } from '../../utils/notificationLinks';
 
 const CATEGORY_ICONS = {
   achievement: <Trophy size={16} className="text-blue-600" />,
@@ -95,22 +96,22 @@ export default function NotificationDropdown() {
             defaultLink = '/ormawa/notifikasi';
           } else { // Student
             if (typeLower === 'konseling') {
-              defaultLink = '/student/counseling';
+              defaultLink = '/student/counseling/history';
             } else if (typeLower === 'beasiswa') {
               defaultLink = '/student/scholarship';
             } else if (typeLower === 'achievement' || typeLower === 'prestasi') {
               defaultLink = '/student/achievement';
             } else if (typeLower === 'student_voice' || typeLower === 'aspirasi') {
-              defaultLink = '/student/student-voice';
+              defaultLink = '/student/voice';
             } else if (typeLower === 'kencana') {
               defaultLink = '/student/kencana';
             } else {
-              defaultLink = '/student/notification';
+              defaultLink = '/student/notifikasi';
             }
           }
         }
 
-        return {
+        const normalizedRaw = {
           id: raw.id ?? raw.ID,
           title: raw.title ?? raw.judul ?? raw.Judul ?? 'Tanpa Judul',
           content: raw.desc ?? raw.pesan ?? raw.Pesan ?? raw.deskripsi ?? raw.Deskripsi ?? '',
@@ -118,6 +119,11 @@ export default function NotificationDropdown() {
           is_read: raw.unread !== undefined ? !raw.unread : (raw.is_read ?? raw.IsRead ?? false),
           created_at: raw.created_at ?? raw.CreatedAt,
           link: defaultLink
+        };
+
+        return {
+          ...normalizedRaw,
+          link: isOrmawa || isPsychologist ? normalizedRaw.link : resolveStudentNotificationLink(normalizedRaw)
         };
       });
     },
@@ -316,7 +322,7 @@ export default function NotificationDropdown() {
                 } else if (isPsychologist) {
                   navigate('/psychologist/notifications');
                 } else {
-                  navigate('/student/notification');
+                  navigate('/student/notifikasi');
                 }
               }}
               className="w-full p-4 border-t border-neutral-100 text-xs font-bold text-neutral-900 hover:bg-neutral-50 transition-colors flex items-center justify-center gap-2"
