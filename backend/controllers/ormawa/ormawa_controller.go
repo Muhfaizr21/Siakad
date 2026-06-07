@@ -1455,12 +1455,15 @@ func DeleteDivision(c *fiber.Ctx) error {
 
 func GetLPJs(c *fiber.Ctx) error {
 	ormawaId := c.Query("ormawaId")
+	tokenOrmawaID, _ := c.Locals("ormawa_id").(uint)
 	var list []models.LaporanPertanggungjawaban
 	query := config.DB.Preload("Proposal").Preload("Proposal.Ormawa").
 		Joins("JOIN ormawa.proposal p ON p.id = ormawa.laporan_pertanggungjawaban.proposal_id AND p.deleted_at IS NULL")
 
 	if ormawaId != "" {
 		query = query.Where("p.ormawa_id = ?", ormawaId)
+	} else if tokenOrmawaID != 0 {
+		query = query.Where("p.ormawa_id = ?", tokenOrmawaID)
 	}
 	query.Order("ormawa.laporan_pertanggungjawaban.created_at desc").Find(&list)
 
@@ -1504,6 +1507,12 @@ func CreateLPJ(c *fiber.Ctx) error {
 	if err := config.DB.First(&proposal, payload.ProposalID).Error; err != nil {
 		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Proposal tidak ditemukan"})
 	}
+
+	tokenOrmawaID, _ := c.Locals("ormawa_id").(uint)
+	if tokenOrmawaID != 0 && proposal.OrmawaID != tokenOrmawaID {
+		return c.Status(403).JSON(fiber.Map{"status": "error", "message": "Akses ditolak"})
+	}
+
 	if payload.TotalAnggaran > 0 {
 		if err := config.DB.Model(&proposal).Update("anggaran", payload.TotalAnggaran).Error; err == nil {
 			proposal.Anggaran = payload.TotalAnggaran
@@ -1563,6 +1572,11 @@ func UpdateLPJ(c *fiber.Ctx) error {
 	var lpj models.LaporanPertanggungjawaban
 	if err := config.DB.Preload("Proposal").First(&lpj, id).Error; err != nil {
 		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "Not Found"})
+	}
+
+	tokenOrmawaID, _ := c.Locals("ormawa_id").(uint)
+	if tokenOrmawaID != 0 && lpj.Proposal.OrmawaID != tokenOrmawaID {
+		return c.Status(403).JSON(fiber.Map{"status": "error", "message": "Akses ditolak"})
 	}
 
 	var payload struct {
@@ -1634,8 +1648,13 @@ func UploadLPJDocument(c *fiber.Ctx) error {
 	}
 
 	var lpj models.LaporanPertanggungjawaban
-	if err := config.DB.First(&lpj, lpjId).Error; err != nil {
+	if err := config.DB.Preload("Proposal").First(&lpj, lpjId).Error; err != nil {
 		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "LPJ not found"})
+	}
+
+	tokenOrmawaID, _ := c.Locals("ormawa_id").(uint)
+	if tokenOrmawaID != 0 && lpj.Proposal.OrmawaID != tokenOrmawaID {
+		return c.Status(403).JSON(fiber.Map{"status": "error", "message": "Akses ditolak"})
 	}
 
 	lpj.FileURL = "/uploads/" + filename
@@ -1644,8 +1663,36 @@ func UploadLPJDocument(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"status": "success", "data": lpj})
 }
 
+func DeleteLPJ(c *fiber.Ctx) error {
+	id := c.Params("id")
+	tokenOrmawaID, _ := c.Locals("ormawa_id").(uint)
+
+	var lpj models.LaporanPertanggungjawaban
+	if err := config.DB.Preload("Proposal").First(&lpj, id).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "LPJ tidak ditemukan"})
+	}
+	if tokenOrmawaID != 0 && lpj.Proposal.OrmawaID != tokenOrmawaID {
+		return c.Status(403).JSON(fiber.Map{"status": "error", "message": "Akses ditolak"})
+	}
+
+	if err := config.DB.Delete(&lpj).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "Gagal menghapus LPJ"})
+	}
+	return c.JSON(fiber.Map{"status": "success", "message": "LPJ berhasil dihapus"})
+}
+
 func DeleteLPJDocument(c *fiber.Ctx) error {
 	id := c.Params("docId")
+	tokenOrmawaID, _ := c.Locals("ormawa_id").(uint)
+
+	var lpj models.LaporanPertanggungjawaban
+	if err := config.DB.Preload("Proposal").First(&lpj, id).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{"status": "error", "message": "LPJ not found"})
+	}
+	if tokenOrmawaID != 0 && lpj.Proposal.OrmawaID != tokenOrmawaID {
+		return c.Status(403).JSON(fiber.Map{"status": "error", "message": "Akses ditolak"})
+	}
+
 	config.DB.Model(&models.LaporanPertanggungjawaban{}).Where("id = ?", id).Update("file_url", "")
 	return c.JSON(fiber.Map{"status": "success", "message": "Dokumen dihapus"})
 }

@@ -81,6 +81,7 @@ func SetupOrmawaRoutes(app *fiber.App) {
 	api.Get("/lpjs", ormawa.GetLPJs)
 	api.Post("/lpjs", ormawa.CreateLPJ)
 	api.Put("/lpjs/:id", ormawa.UpdateLPJ)
+	api.Delete("/lpjs/:id", ormawa.DeleteLPJ)
 	api.Post("/lpjs/:id/documents", ormawa.UploadLPJDocument)
 	api.Delete("/lpjs/documents/:docId", ormawa.DeleteLPJDocument)
 
