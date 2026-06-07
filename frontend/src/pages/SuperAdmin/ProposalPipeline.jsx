@@ -377,84 +377,124 @@ export default function ProposalPipeline() {
                     </div>
                  </div>
 
-                 {/* Informasi Umum */}
-                 <div className="space-y-4">
-                   <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest border-b border-slate-200 pb-2">Informasi Umum</h3>
-                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                     <div className="space-y-1">
-                       <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Jenis Kegiatan</p>
-                       <p className="text-sm font-semibold text-slate-700">{selected.Jenis || '-'}</p>
-                     </div>
-                     <div className="space-y-1">
-                       <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Tanggal Kegiatan</p>
-                       <p className="text-sm font-semibold text-slate-700">
-                         {selected.TanggalKegiatan ? new Date(selected.TanggalKegiatan).toLocaleDateString('id-ID', { dateStyle: 'long' }) : '-'}
-                       </p>
-                     </div>
-                     <div className="space-y-1">
-                       <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Bentuk Kegiatan</p>
-                       <p className="text-sm font-semibold text-slate-700">{selected.bentuk_kegiatan || selected.BentukKegiatan || '-'}</p>
-                     </div>
-                     <div className="space-y-1">
-                       <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Mitra</p>
-                       <p className="text-sm font-semibold text-slate-700">{selected.mitra || selected.Mitra || '-'}</p>
-                     </div>
-                     <div className="space-y-1">
-                       <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Penanggung Jawab</p>
-                       <p className="text-sm font-semibold text-slate-700">{selected.pj_kegiatan || selected.PJKegiatan || '-'}</p>
-                     </div>
-                     <div className="space-y-1">
-                       <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Sumber Dana</p>
-                       <p className="text-sm font-semibold text-slate-700">{selected.sumber_dana || selected.SumberDana || '-'}</p>
-                     </div>
-                   </div>
-                 </div>
+                 {/* 5W1H Analysis */}
+                 <div className="space-y-8">
+                   <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest border-b border-slate-200 pb-2 flex items-center gap-2">
+                     <span className="material-symbols-outlined text-bku-primary" style={{ fontSize: '18px' }}>analytics</span> Analisis 5W + 1H
+                   </h3>
 
-                 {/* Rincian Konten Proposal */}
-                 <div className="space-y-4">
-                   <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest border-b border-slate-200 pb-2">Rincian Proposal</h3>
-                   
-                   <div className="space-y-2">
-                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Latar Belakang</p>
-                     <div className="text-sm text-slate-600 bg-slate-50 p-4 rounded-xl border border-slate-200/60 whitespace-pre-wrap">
-                       {selected.latar_belakang || selected.LatarBelakang || '-'}
+                   {/* WHAT */}
+                   <div className="space-y-3">
+                     <div className="flex items-center gap-2">
+                       <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-200 border-none px-2 shadow-none font-bold">WHAT</Badge>
+                       <span className="text-[11px] font-black text-slate-500 uppercase tracking-widest">Apa Kegiatan Ini?</span>
+                     </div>
+                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pl-4 border-l-2 border-blue-100">
+                       <div>
+                         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Jenis Kegiatan</p>
+                         <p className="text-sm font-semibold text-slate-700">{selected.Jenis || '-'}</p>
+                       </div>
+                       <div>
+                         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Bentuk Kegiatan</p>
+                         <p className="text-sm font-semibold text-slate-700">{selected.bentuk_kegiatan || selected.BentukKegiatan || '-'}</p>
+                       </div>
+                       <div className="md:col-span-2">
+                         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Ringkasan / Deskripsi Singkat</p>
+                         <div className="text-sm text-slate-600 bg-slate-50 p-4 rounded-xl border border-slate-200/60 whitespace-pre-wrap mt-1">
+                           {selected.Deskripsi || selected.deskripsi || '-'}
+                         </div>
+                       </div>
                      </div>
                    </div>
 
-                   <div className="space-y-2">
-                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Tujuan Kegiatan</p>
-                     <div className="text-sm text-slate-600 bg-slate-50 p-4 rounded-xl border border-slate-200/60 whitespace-pre-wrap">
-                       {selected.tujuan_kegiatan || selected.TujuanKegiatan || '-'}
+                   {/* WHY */}
+                   <div className="space-y-3">
+                     <div className="flex items-center gap-2">
+                       <Badge className="bg-purple-100 text-purple-700 hover:bg-purple-200 border-none px-2 shadow-none font-bold">WHY</Badge>
+                       <span className="text-[11px] font-black text-slate-500 uppercase tracking-widest">Mengapa Diadakan?</span>
+                     </div>
+                     <div className="space-y-4 pl-4 border-l-2 border-purple-100">
+                       <div>
+                         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Latar Belakang</p>
+                         <div className="text-sm text-slate-600 bg-slate-50 p-4 rounded-xl border border-slate-200/60 whitespace-pre-wrap mt-1">
+                           {selected.latar_belakang || selected.LatarBelakang || '-'}
+                         </div>
+                       </div>
+                       <div>
+                         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Tujuan Kegiatan</p>
+                         <div className="text-sm text-slate-600 bg-slate-50 p-4 rounded-xl border border-slate-200/60 whitespace-pre-wrap mt-1">
+                           {selected.tujuan_kegiatan || selected.TujuanKegiatan || '-'}
+                         </div>
+                       </div>
                      </div>
                    </div>
 
-                   <div className="space-y-2">
-                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Sasaran Kegiatan</p>
-                     <div className="text-sm text-slate-600 bg-slate-50 p-4 rounded-xl border border-slate-200/60 whitespace-pre-wrap">
-                       {selected.sasaran_kegiatan || selected.SasaranKegiatan || '-'}
+                   {/* WHO */}
+                   <div className="space-y-3">
+                     <div className="flex items-center gap-2">
+                       <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-200 border-none px-2 shadow-none font-bold">WHO</Badge>
+                       <span className="text-[11px] font-black text-slate-500 uppercase tracking-widest">Siapa yang Terlibat?</span>
+                     </div>
+                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pl-4 border-l-2 border-emerald-100">
+                       <div className="md:col-span-2">
+                         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Sasaran / Target Peserta</p>
+                         <div className="text-sm text-slate-600 bg-slate-50 p-4 rounded-xl border border-slate-200/60 whitespace-pre-wrap mt-1">
+                           {selected.sasaran_kegiatan || selected.SasaranKegiatan || '-'}
+                         </div>
+                       </div>
+                       <div>
+                         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Penanggung Jawab</p>
+                         <p className="text-sm font-semibold text-slate-700">{selected.pj_kegiatan || selected.PJKegiatan || '-'}</p>
+                       </div>
+                       <div>
+                         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Mitra / Kolaborator</p>
+                         <p className="text-sm font-semibold text-slate-700">{selected.mitra || selected.Mitra || '-'}</p>
+                       </div>
                      </div>
                    </div>
 
-                   <div className="space-y-2">
-                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Indikator Keberhasilan</p>
-                     <div className="text-sm text-slate-600 bg-slate-50 p-4 rounded-xl border border-slate-200/60 whitespace-pre-wrap">
-                       {selected.indikator_keberhasilan || selected.IndikatorKeberhasilan || '-'}
+                   {/* WHEN & WHERE */}
+                   <div className="space-y-3">
+                     <div className="flex items-center gap-2">
+                       <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-200 border-none px-2 shadow-none font-bold">WHEN &amp; WHERE</Badge>
+                       <span className="text-[11px] font-black text-slate-500 uppercase tracking-widest">Kapan &amp; Dimana?</span>
+                     </div>
+                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pl-4 border-l-2 border-amber-100">
+                       <div>
+                         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Tanggal Kegiatan</p>
+                         <p className="text-sm font-semibold text-slate-700">
+                           {selected.TanggalKegiatan ? new Date(selected.TanggalKegiatan).toLocaleDateString('id-ID', { dateStyle: 'long' }) : '-'}
+                         </p>
+                       </div>
+                       <div className="md:col-span-2">
+                         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Jadwal &amp; Tempat Pelaksanaan</p>
+                         <div className="text-sm text-slate-600 bg-slate-50 p-4 rounded-xl border border-slate-200/60 whitespace-pre-wrap mt-1">
+                           {selected.jadwal_pelaksanaan || selected.JadwalPelaksanaan || '-'}
+                         </div>
+                       </div>
                      </div>
                    </div>
 
-                   <div className="space-y-2">
-                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Jadwal Pelaksanaan</p>
-                     <div className="text-sm text-slate-600 bg-slate-50 p-4 rounded-xl border border-slate-200/60 whitespace-pre-wrap">
-                       {selected.jadwal_pelaksanaan || selected.JadwalPelaksanaan || '-'}
+                   {/* HOW */}
+                   <div className="space-y-3">
+                     <div className="flex items-center gap-2">
+                       <Badge className="bg-rose-100 text-rose-700 hover:bg-rose-200 border-none px-2 shadow-none font-bold">HOW</Badge>
+                       <span className="text-[11px] font-black text-slate-500 uppercase tracking-widest">Bagaimana Pelaksanaannya?</span>
+                     </div>
+                     <div className="grid grid-cols-1 gap-4 pl-4 border-l-2 border-rose-100">
+                       <div>
+                         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Indikator Keberhasilan</p>
+                         <div className="text-sm text-slate-600 bg-slate-50 p-4 rounded-xl border border-slate-200/60 whitespace-pre-wrap mt-1">
+                           {selected.indikator_keberhasilan || selected.IndikatorKeberhasilan || '-'}
+                         </div>
+                       </div>
+                       <div>
+                         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Sumber Dana Utama</p>
+                         <p className="text-sm font-semibold text-slate-700">{selected.sumber_dana || selected.SumberDana || '-'}</p>
+                       </div>
                      </div>
                    </div>
 
-                   <div className="space-y-2">
-                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Deskripsi / Ringkasan</p>
-                     <div className="text-sm text-slate-600 bg-slate-50 p-4 rounded-xl border border-slate-200/60 whitespace-pre-wrap">
-                       {selected.Deskripsi || selected.deskripsi || '-'}
-                     </div>
-                   </div>
                  </div>
 
                  {/* Link Lampiran / Berkas */}
