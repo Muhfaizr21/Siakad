@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
 import { Input } from '@/components/ui/Input'
 import { Label } from '@/components/ui/Label'
+import { PageContent, PageCard } from '@/components/ui/page'
+import { DashboardHero } from '@/components/ui/dashboard'
 import { cn } from '@/lib/utils'
 
 // Auto-injected Material Symbol fallbacks for removed Lucide icons
@@ -25,38 +27,28 @@ const KeyRound = ({ size, className, ...props }) => <span className={`material-s
 
 const SecuritySettings = () => {
     return (
-        <div className="px-1 py-4 md:px-2 xl:px-4 min-h-screen bg-transparent font-inter">
+        <PageContent>
             
             <div className="max-w-[1600px] mx-auto space-y-8 select-none">
                 
                 {/* ── Page Header ─────────────────────────────────────────── */}
-                <section className="glass-card border border-slate-200/60 rounded-2xl p-6 md:p-8 relative overflow-hidden shadow-none">
-                    <div className="absolute top-0 right-0 w-1/4 h-full bg-gradient-to-l from-rose-500/10 to-transparent pointer-events-none" />
-                    
-                    <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-                        <div className="space-y-2">
-                            <div className="flex items-center gap-2 mb-2">
-                                <div className="h-4 w-1.5 bg-rose-500 rounded-full animate-pulse" />
-                                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 font-headline leading-none">Security Hub</span>
-                            </div>
-                            <h1 className="text-2xl font-black font-headline tracking-tight leading-none" style={{ color: 'var(--theme-h1)' }}>
-                                Security <span className="text-rose-500 italic">Protocols</span>
-                            </h1>
-                            <p className="text-slate-400 font-medium text-[11px] max-w-2xl leading-relaxed">
-                                Konfigurasi tingkat tinggi untuk keamanan institusional, manajemen akses IP, dan otorisasi sesi administratif global.
-                            </p>
-                        </div>
-                        
-                        <div className="flex items-center gap-3">
-                            <Button 
-                                className="h-11 px-6 rounded-xl bg-slate-800 text-white hover:bg-rose-600 shadow-none gap-2 transition-all active:scale-95 border-none cursor-pointer font-headline"
-                            >
-                                <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >save</span>
-                                <span className="text-[10px] font-black uppercase tracking-widest">Save Protocols</span>
-                            </Button>
-                        </div>
-                    </div>
-                </section>
+                <DashboardHero
+                    title="Security"
+                    highlightedTitle="Protocols"
+                    subtitle="Konfigurasi tingkat tinggi untuk keamanan institusional, manajemen akses IP, dan otorisasi sesi administratif global."
+                    icon="security"
+                    badges={[
+                        { label: 'Security Hub', active: true }
+                    ]}
+                    action={
+                        <Button 
+                            className="h-11 px-6 rounded-xl bg-slate-800 text-white hover:bg-rose-600 shadow-none gap-2 transition-all active:scale-95 border-none cursor-pointer font-headline"
+                        >
+                            <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >save</span>
+                            <span className="text-[10px] font-black uppercase tracking-widest">Save Protocols</span>
+                        </Button>
+                    }
+                />
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
                     
@@ -187,7 +179,7 @@ const SecuritySettings = () => {
                 </div>
 
             </div>
-        </div>
+        </PageContent>
     )
 }
 

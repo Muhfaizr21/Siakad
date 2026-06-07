@@ -1,7 +1,8 @@
 import React from 'react';
 import { useScholarshipKatalogQuery } from '../../queries/useScholarshipQuery';
 import { NavLink } from 'react-router-dom';
-import { Sparkles, ArrowRight, Wallet, Calendar } from 'lucide-react';
+import { ArrowRight, Wallet, Calendar } from 'lucide-react';
+import { PageCard, PageCardHeader } from '@/components/ui/page';
 
 const formatRupiah = (number) => {
   if (number === undefined || number === null || isNaN(number)) return 'Rp 0';
@@ -24,14 +25,14 @@ export default function AvailableScholarships() {
 
   if (isLoading) {
     return (
-      <div className="bg-surface p-8 rounded-3xl border border-border shadow-sm mb-8 animate-pulse">
+      <PageCard className="mb-6 animate-pulse">
         <div className="h-6 w-48 bg-background rounded-lg mb-6"></div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {[1, 2, 3].map((i) => (
             <div key={i} className="h-40 bg-background/50 rounded-2xl"></div>
           ))}
         </div>
-      </div>
+      </PageCard>
     );
   }
 
@@ -41,17 +42,17 @@ export default function AvailableScholarships() {
   if (openScholarships.length === 0) return null;
 
   return (
-    <div className="bg-surface p-8 rounded-3xl border border-border shadow-sm mb-8">
-      <div className="flex items-center justify-between mb-8">
-        <h2 className="text-xl font-extrabold font-headline flex items-center gap-3">
-          <Sparkles size={24} className="text-primary" />
-          Beasiswa yang Tersedia
-        </h2>
-        <NavLink to="/student/scholarship" className="text-sm font-bold text-primary hover:underline flex items-center gap-1 group">
-          Lihat Semua
-          <ArrowRight size={16} className="translate-x-0 group-hover:translate-x-1 transition-all" />
-        </NavLink>
-      </div>
+    <PageCard className="mb-6">
+      <PageCardHeader 
+        title="Beasiswa yang Tersedia"
+        icon="workspace_premium"
+        action={
+          <NavLink to="/student/scholarship" className="text-xs font-bold text-primary hover:underline flex items-center gap-1 group">
+            Lihat Semua
+            <ArrowRight size={14} className="translate-x-0 group-hover:translate-x-1 transition-all" />
+          </NavLink>
+        }
+      />
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {openScholarships.map((beasiswa) => {
@@ -102,6 +103,6 @@ export default function AvailableScholarships() {
           );
         })}
       </div>
-    </div>
+    </PageCard>
   );
 }

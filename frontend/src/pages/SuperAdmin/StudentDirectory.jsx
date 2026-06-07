@@ -20,6 +20,9 @@ import {
 } from '@/components/ui/Select'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, AreaChart, Area } from "recharts"
 
+import { PageContent, PageCard } from '@/components/ui/page'
+import { DashboardHero, DashboardStatGrid, DashboardStatCard } from '@/components/ui/dashboard'
+
 // Auto-injected Material Symbol fallbacks for removed Lucide icons
 const UserX = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>person_off</span>;
 const UserIcon = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>person</span>;
@@ -499,113 +502,92 @@ export default function StudentDirectory() {
   const PIE_COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444']
 
   return (
-    <div className="px-1 py-4 md:px-2 xl:px-4 min-h-screen bg-transparent font-inter">
+    <PageContent>
       <Toaster position="top-right" />
 
-      <div className="max-w-[1600px] mx-auto space-y-8 select-none">
-
         {/* ── Page Header ─────────────────────────────────────────── */}
-        <section className="glass-card border border-slate-200/60 rounded-2xl p-5 md:p-8 relative overflow-hidden shadow-none">
-          <div className="absolute top-0 right-0 w-1/4 h-full bg-gradient-to-l from-bku-primary/10 to-transparent pointer-events-none" />
-
-          <div className="relative z-10 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
-            <div className="space-y-2 w-full lg:w-auto">
-              <div className="flex items-center gap-2 mb-2">
-                <div className="h-4 w-1.5 bg-bku-primary rounded-full animate-pulse" />
-                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 font-headline leading-none">Enrollment Governance</span>
-              </div>
-              <h1 className="text-2xl md:text-3xl font-black font-headline tracking-tight leading-none" style={{ color: 'var(--theme-h1)' }}>
-                Direktori <span className="text-bku-primary">Mahasiswa</span>
-              </h1>
-              <p className="text-slate-400 font-medium text-[11px] max-w-2xl leading-relaxed">
-                Database pusat manajemen akademik, sinkronisasi PDDikti cluster, dan verifikasi status aktif seluruh civitas akademika Universitas Bhakti Kencana.
-              </p>
-            </div>
-
-            <div className="flex flex-col sm:flex-row items-center gap-3 w-full lg:w-auto">
+        <DashboardHero
+          title="Direktori"
+          highlightedTitle="Mahasiswa"
+          subtitle="Database pusat manajemen akademik, sinkronisasi PDDikti cluster, dan verifikasi status aktif seluruh civitas akademika Universitas Bhakti Kencana."
+          icon="groups"
+          badges={[
+            { label: 'Enrollment Governance', active: true }
+          ]}
+          actions={
+            <>
               <Button
                 onClick={handleSyncPddikti}
                 variant="outline"
                 disabled={isSyncing}
                 className="h-11 px-6 w-full sm:w-auto rounded-xl border-slate-200 text-[10px] font-black font-headline uppercase tracking-widest text-slate-600 hover:bg-slate-50 gap-2 transition-all active:scale-95 shadow-none justify-center cursor-pointer"
               >
-                {isSyncing ? <span className="material-symbols-outlined animate-spin text-bku-primary" style={{ fontSize: '14px' }} >sync</span> : <RefreshCw size={14} className="text-bku-primary" />}
+                {isSyncing ? <span className="material-symbols-outlined animate-spin text-primary" style={{ fontSize: '14px' }} >sync</span> : <RefreshCw size={14} className="text-primary" />}
                 {isSyncing ? 'Syncing...' : 'PDDIKTI Sync'}
               </Button>
 
               <Button
                 onClick={handleOpenAdd}
-                className="h-11 px-6 w-full sm:w-auto rounded-xl bg-slate-800 text-white hover:bg-bku-primary shadow-none gap-2 transition-all active:scale-95 border-none justify-center cursor-pointer"
+                className="h-11 px-6 w-full sm:w-auto rounded-xl bg-slate-800 text-white hover:bg-primary shadow-none gap-2 transition-all active:scale-95 border-none justify-center cursor-pointer"
               >
                 <span className="material-symbols-outlined" style={{ fontSize: '16px' }} strokeWidth={3}>add</span>
                 <span className="text-[10px] font-black font-headline uppercase tracking-widest">New Registration</span>
               </Button>
-            </div>
-          </div>
-        </section>
+            </>
+          }
+        />
 
         {/* ── Enriched Stats Grid ─────────────────────────────────── */}
-        <div className="grid grid-cols-2 lg:grid-cols-6 gap-4">
-          <div className="glass-card p-4 rounded-xl border border-slate-200/60 shadow-none flex flex-col justify-between">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-bku-primary/10 rounded-lg flex justify-center items-center text-bku-primary shrink-0">
-                <span className="material-symbols-outlined text-sm">group</span>
-              </div>
-              <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none">Total Mahasiswa</span>
-            </div>
-            <p className="text-xl font-black text-slate-800 mt-2">{students.length}</p>
-          </div>
+        {/* ── Enriched Stats Grid ─────────────────────────────────── */}
+        <DashboardStatGrid>
+          <DashboardStatCard
+            title="Total Mahasiswa"
+            value={students.length}
+            icon="group"
+            iconColor="text-primary"
+            iconBg="bg-primary/10"
+          />
 
-          <div className="glass-card p-4 rounded-xl border border-slate-200/60 shadow-none flex flex-col justify-between">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-emerald-500/10 rounded-lg flex justify-center items-center text-emerald-600 shrink-0">
-                <span className="material-symbols-outlined text-sm">school</span>
-              </div>
-              <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none">Status Aktif</span>
-            </div>
-            <p className="text-xl font-black text-slate-800 mt-2">{students.filter(s => s.StatusAkun === 'Aktif').length}</p>
-          </div>
+          <DashboardStatCard
+            title="Status Aktif"
+            value={students.filter(s => s.StatusAkun === 'Aktif').length}
+            icon="school"
+            iconColor="text-emerald-600"
+            iconBg="bg-emerald-500/10"
+          />
 
-          <div className="glass-card p-4 rounded-xl border border-slate-200/60 shadow-none flex flex-col justify-between">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-blue-500/10 rounded-lg flex justify-center items-center text-blue-500 shrink-0">
-                <span className="material-symbols-outlined text-sm">trending_up</span>
-              </div>
-              <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none">Total Lulus</span>
-            </div>
-            <p className="text-xl font-black text-slate-800 mt-2">{students.filter(s => s.StatusAkun === 'Lulus').length}</p>
-          </div>
+          <DashboardStatCard
+            title="Total Lulus"
+            value={students.filter(s => s.StatusAkun === 'Lulus').length}
+            icon="trending_up"
+            iconColor="text-blue-500"
+            iconBg="bg-blue-500/10"
+          />
 
-          <div className="glass-card p-4 rounded-xl border border-slate-200/60 shadow-none flex flex-col justify-between">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-amber-500/10 rounded-lg flex justify-center items-center text-amber-600 shrink-0">
-                <span className="material-symbols-outlined text-sm">star</span>
-              </div>
-              <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none">IPK Rata-rata</span>
-            </div>
-            <p className="text-xl font-black text-slate-800 mt-2">{avgIpk}</p>
-          </div>
+          <DashboardStatCard
+            title="IPK Rata-rata"
+            value={avgIpk}
+            icon="star"
+            iconColor="text-amber-600"
+            iconBg="bg-amber-500/10"
+          />
 
-          <div className="glass-card p-4 rounded-xl border border-slate-200/60 shadow-none flex flex-col justify-between">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-indigo-500/10 rounded-lg flex justify-center items-center text-indigo-600 shrink-0">
-                <span className="material-symbols-outlined text-sm">menu_book</span>
-              </div>
-              <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none">Total SKS</span>
-            </div>
-            <p className="text-xl font-black text-slate-800 mt-2">{totalSks.toLocaleString('id-ID')}</p>
-          </div>
+          <DashboardStatCard
+            title="Total SKS"
+            value={totalSks.toLocaleString('id-ID')}
+            icon="menu_book"
+            iconColor="text-indigo-600"
+            iconBg="bg-indigo-500/10"
+          />
 
-          <div className="glass-card p-4 rounded-xl border border-slate-200/60 shadow-none flex flex-col justify-between">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-rose-500/10 rounded-lg flex justify-center items-center text-rose-500 shrink-0">
-                <span className="material-symbols-outlined text-sm">shortcut</span>
-              </div>
-              <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none">Jalur Terbanyak</span>
-            </div>
-            <p className="text-xl font-black text-slate-800 mt-2 truncate text-xs" title={jalurMasukPopuler}>{jalurMasukPopuler}</p>
-          </div>
-        </div>
+          <DashboardStatCard
+            title="Jalur Terbanyak"
+            value={jalurMasukPopuler}
+            icon="shortcut"
+            iconColor="text-rose-500"
+            iconBg="bg-rose-500/10"
+          />
+        </DashboardStatGrid>
 
         {/* ── Enriched Visual Charts Grid ─────────────────────────── */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -686,7 +668,7 @@ export default function StudentDirectory() {
         </div>
 
         {/* ── Table Section ────────────────────────────────────────── */}
-        <Card className="glass-card border border-slate-200/60 shadow-none rounded-2xl bg-white overflow-hidden">
+        <PageCard>
           <CardContent className="p-0">
             <DataTable
               columns={columns}
@@ -708,7 +690,7 @@ export default function StudentDirectory() {
               )}
             />
           </CardContent>
-        </Card>
+        </PageCard>
 
         {/* ── Detail Profile Modal ─────────────────────────────────── */}
         <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
@@ -1270,7 +1252,6 @@ export default function StudentDirectory() {
           description="Seluruh data akademik, riwayat registrasi, dan kaitan entitas mahasiswa ini akan dihapus permanen dari basis data sistem. Prosedur ini tidak dapat dibatalkan."
           loading={isSubmitting}
         />
-      </div>
-    </div>
+    </PageContent>
   )
 }

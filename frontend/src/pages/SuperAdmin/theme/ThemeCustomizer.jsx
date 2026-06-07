@@ -6,6 +6,8 @@ import ThemeBranding from './ThemeBranding';
 import ThemeComponents from './ThemeComponents';
 import ThemeStatusColors from './ThemeStatusColors';
 import ThemePresets from './ThemePresets';
+import { PageContent } from '@/components/ui/page';
+import { DashboardHero } from '@/components/ui/dashboard';
 
 const TABS = [
   { key: 'colors', label: 'Warna', icon: 'palette' },
@@ -45,52 +47,49 @@ export default function ThemeCustomizer() {
   };
 
   return (
-    <div className="flex gap-6 h-full font-inter">
-      {/* Sidebar Tabs */}
-      <div className="w-56 shrink-0">
-        <div className="bg-white rounded-2xl border border-slate-200/60 p-3 space-y-1 sticky top-6">
-          <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-3 mb-3">Pengaturan Tampilan</h3>
-          {TABS.map((tab) => (
-            <button
-              key={tab.key}
-              onClick={() => handleTabChange(tab.key)}
-              className={`
-                w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[11px] font-bold transition-all duration-300
-                ${activeTab === tab.key ? 'text-white shadow-lg' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'}
-              `}
-              style={activeTab === tab.key ? { backgroundColor: 'var(--theme-primary)' } : {}}
-            >
-              <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>{tab.icon}</span>
-              {tab.label}
-            </button>
-          ))}
-        </div>
-      </div>
+    <PageContent>
+      <div className="max-w-[1600px] mx-auto space-y-8 select-none">
+        <DashboardHero
+          title="Theme"
+          highlightedTitle="Customizer"
+          subtitle="Kustomisasi warna, font, branding, dan komponen aplikasi untuk seluruh portal."
+          icon="palette"
+          badges={[
+            { label: 'System Configuration', active: true }
+          ]}
+        />
+        
+        <div className="flex flex-col lg:flex-row gap-6 font-inter items-start">
+          {/* Sidebar Tabs */}
+          <div className="w-full lg:w-56 shrink-0">
+            <div className="glass-card rounded-2xl border border-slate-200/60 p-3 space-y-1 lg:sticky lg:top-6 shadow-none">
+              <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-3 mb-3">Pengaturan Tampilan</h3>
+              {TABS.map((tab) => (
+                <button
+                  key={tab.key}
+                  onClick={() => handleTabChange(tab.key)}
+                  className={`
+                    w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[11px] font-bold transition-all duration-300
+                    ${activeTab === tab.key ? 'text-white shadow-lg' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'}
+                  `}
+                  style={activeTab === tab.key ? { backgroundColor: 'var(--theme-primary)' } : {}}
+                >
+                  <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>{tab.icon}</span>
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+          </div>
 
-      {/* Main Content */}
-      <div className="flex-1 min-w-0 space-y-6">
-        {/* Page Header (Ramping, tanpa tombol simpan/reset global) */}
-        <div className="bg-white rounded-2xl border border-slate-200/60 p-6">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-            <div className="flex items-center gap-4">
-              <div className="w-14 h-14 rounded-2xl flex items-center justify-center" style={{ backgroundColor: 'var(--theme-primary)', color: 'white' }}>
-                <span className="material-symbols-outlined text-2xl">palette</span>
-              </div>
-              <div>
-                <h1 className="text-xl font-bold" style={{ color: 'var(--theme-text)' }}>Pengaturan Tampilan</h1>
-                <p className="text-sm mt-0.5" style={{ color: 'var(--theme-text-muted)' }}>
-                  Kustomisasi warna, font, branding, dan komponen aplikasi
-                </p>
-              </div>
+          {/* Main Content */}
+          <div className="flex-1 min-w-0">
+            {/* Tab Content */}
+            <div className="glass-card rounded-2xl border border-slate-200/60 p-6 shadow-none">
+              {renderContent()}
             </div>
           </div>
         </div>
-
-        {/* Tab Content */}
-        <div className="bg-white rounded-2xl border border-slate-200/60 p-6">
-          {renderContent()}
-        </div>
       </div>
-    </div>
+    </PageContent>
   );
 }

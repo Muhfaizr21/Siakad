@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { cn } from '@/lib/utils';
+import { SelectField, SelectOption } from './SelectField';
 
 /**
- * DataTable — Table standar dengan search, pagination, filter, dan selection
+ * DataTable — Table standar dengan search, pagination, dan action menu
  *
  * Aturan (dari FRONTEND_UI_STYLE_GUIDE.md):
  * - Header: bg var(--theme-bg), text var(--theme-h4), uppercase, tracking-wider
- * - Row: hover bg-black/[0.02], border var(--theme-border-muted)
+ * - Row: hover bg-[var(--theme-primary-light)], border var(--theme-border-muted)
  * - Pagination: rounded-xl overflow-hidden
  * - Search: bg var(--theme-bg), border var(--theme-border)
  */
@@ -22,61 +23,40 @@ export default function DataTable({
   emptyIcon = 'folder_open',
   onSearch,
   actions,
-  // New props for selection and filtering
-  enableRowSelection = false,
-  selectedRows = [],
-  onSelectedRowsChange,
-  filters = [],
-  externalFilters,
-  onExternalFilterChange,
-  searchPlaceholder = 'Cari...',
   onAdd,
   addLabel = 'Tambah',
-  sortConfig,
-  onSort,
+  filters = [],
+  searchPlaceholder = 'Cari...',
 }) {
   const [search, setSearch] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const [internalFilters, setInternalFilters] = useState({});
+  const [selectedFilters, setSelectedFilters] = useState({});
 
-  const activeFilters = externalFilters || internalFilters;
-  const setActiveFilters = onExternalFilterChange || setInternalFilters;
+  // Search filter
+  const searchedData = searchable && onSearch
+    ? onSearch(data, search)
+    : search
+    ? data.filter(row =>
+        columns.some(col =>
+          String(row[col.key] || '')
+            .toLowerCase()
+            .includes(search.toLowerCase())
+        )
+      )
+    : data;
 
-  // Retrieve nested object property value (e.g. 'Beasiswa.Nama' -> item.Beasiswa.Nama)
-  const getRowValue = (item, path) => {
-    if (!path) return undefined;
-    if (!path.includes('.')) return item[path];
-    return path.split('.').reduce((acc, part) => acc && acc[part], item);
-  };
-
-  // 1. Filter data based on dropdown filters
-  let filteredData = data;
-  if (filters && filters.length > 0) {
-    filteredData = filteredData.filter(row => {
-      return Object.entries(activeFilters).every(([key, value]) => {
-        if (!value) return true;
-        const rowVal = getRowValue(row, key);
-        return String(rowVal || '').toLowerCase() === String(value).toLowerCase();
-      });
-    });
-  }
-
-  // 2. Filter data based on search
-  if (search) {
-    if (searchable && onSearch) {
-      filteredData = onSearch(filteredData, search);
-    } else {
-      filteredData = filteredData.filter(row =>
-        columns.some(col => {
-          const rowVal = col.render ? col.render(row[col.key], row) : getRowValue(row, col.key);
-          const cleanVal = typeof rowVal === 'string' || typeof rowVal === 'number'
-            ? String(rowVal)
-            : String(getRowValue(row, col.key) || '');
-          return cleanVal.toLowerCase().includes(search.toLowerCase());
-        })
-      );
+  // Selected filters
+  const filteredData = searchedData.filter(row => {
+    for (const key of Object.keys(selectedFilters)) {
+      const val = selectedFilters[key];
+      if (val && val !== 'all') {
+        if (String(row[key] || '') !== val) {
+          return false;
+        }
+      }
     }
-  }
+    return true;
+  });
 
   // Pagination
   const totalPages = Math.ceil(filteredData.length / pageSize);
@@ -89,46 +69,19 @@ export default function DataTable({
     setCurrentPage(1);
   };
 
-  // Selection handlers
-  const displayedRowIds = paginatedData.map(row => row.id || row.ID);
-  const isAllSelected = displayedRowIds.length > 0 && displayedRowIds.every(id => selectedRows.includes(id));
-
-  const handleSelectAll = () => {
-    if (!onSelectedRowsChange) return;
-    if (isAllSelected) {
-      const newSelected = selectedRows.filter(id => !displayedRowIds.includes(id));
-      onSelectedRowsChange(newSelected);
-    } else {
-      const newSelected = [...selectedRows, ...displayedRowIds.filter(id => !selectedRows.includes(id))];
-      onSelectedRowsChange(newSelected);
-    }
-  };
-
-  const handleRowSelect = (e, row) => {
-    e.stopPropagation();
-    if (!onSelectedRowsChange) return;
-    const id = row.id || row.ID;
-    const isSelected = selectedRows.includes(id);
-    const newSelected = isSelected
-      ? selectedRows.filter(x => x !== id)
-      : [...selectedRows, id];
-    onSelectedRowsChange(newSelected);
-  };
-
   return (
     <div
-      className="rounded-xl overflow-hidden"
+      className="rounded-2xl overflow-hidden"
       style={{
         backgroundColor: 'var(--theme-surface)',
         border: '1px solid var(--theme-border)',
       }}
     >
       {/* Table Toolbar */}
-      {searchable && (
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border-b gap-3" style={{ borderColor: 'var(--theme-border-muted)' }}>
-          <div className="flex flex-col sm:flex-row flex-1 items-start sm:items-center gap-3 w-full">
-            {/* Search Input */}
-            <div className="relative w-full sm:max-w-xs">
+      {(searchable || onAdd || filters.length > 0) && (
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between p-4 gap-3 border-b" style={{ borderColor: 'var(--theme-border-muted)' }}>
+          {searchable && (
+            <div className="relative flex-1 max-w-sm">
               <span
                 className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-lg"
                 style={{ color: 'var(--theme-text-muted)' }}
@@ -140,7 +93,7 @@ export default function DataTable({
                 placeholder={searchPlaceholder}
                 value={search}
                 onChange={handleSearch}
-                className="w-full pl-10 pr-4 py-2 rounded-xl text-sm outline-none"
+                className="w-full pl-10 pr-4 h-10 rounded-xl text-sm outline-none"
                 style={{
                   backgroundColor: 'var(--theme-bg)',
                   color: 'var(--theme-text)',
@@ -148,51 +101,47 @@ export default function DataTable({
                 }}
               />
             </div>
+          )}
 
-            {/* Filter Dropdowns */}
-            {filters && filters.length > 0 && (
-              <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
-                {filters.map((filter) => (
-                  <select
-                    key={filter.key}
-                    value={activeFilters[filter.key] || ''}
-                    onChange={(e) => {
-                      const val = e.target.value;
-                      const next = { ...activeFilters, [filter.key]: val };
-                      if (!val) {
-                        delete next[filter.key];
-                      }
-                      setActiveFilters(next);
+          {/* Filters */}
+          {filters.length > 0 && (
+            <div className="flex items-center gap-2 flex-wrap">
+              {filters.map((f) => (
+                <div key={f.key} className="w-40">
+                  <SelectField
+                    value={selectedFilters[f.key] || 'all'}
+                    onValueChange={(val) => {
+                      setSelectedFilters(prev => ({ ...prev, [f.key]: val }));
                       setCurrentPage(1);
                     }}
-                    className="px-3 py-2 rounded-xl text-xs font-semibold outline-none border cursor-pointer transition-all"
-                    style={{
-                      backgroundColor: 'var(--theme-bg)',
-                      color: 'var(--theme-text)',
-                      borderColor: 'var(--theme-border)',
-                    }}
+                    placeholder={f.placeholder}
+                    className="w-full h-10"
                   >
-                    <option value="">{filter.placeholder || 'Semua Beasiswa'}</option>
-                    {filter.options && filter.options.map((opt) => (
-                      <option key={opt.value} value={opt.value}>{opt.label}</option>
+                    <SelectOption value="all">Semua {f.placeholder}</SelectOption>
+                    {f.options.map((opt) => (
+                      <SelectOption key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </SelectOption>
                     ))}
-                  </select>
-                ))}
-              </div>
-            )}
-          </div>
-          <div className="flex items-center gap-2 shrink-0">
-            {actions && typeof actions !== 'function' && actions}
+                  </SelectField>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Actions & Add Button */}
+          <div className="flex items-center gap-2 sm:ml-auto">
             {onAdd && (
               <button
+                type="button"
                 onClick={onAdd}
-                className="h-9 px-4 rounded-xl bg-primary text-white text-xs font-bold uppercase tracking-widest gap-2 flex items-center transition-all active:scale-95 shadow-none border-none cursor-pointer"
-                style={{ backgroundColor: 'var(--theme-primary)' }}
+                className="h-10 px-4 rounded-xl bg-[var(--theme-primary)] text-white text-xs font-bold uppercase tracking-wider hover:bg-[var(--theme-primary-hover)] transition-all active:scale-95 flex items-center gap-1.5 cursor-pointer border-none shadow-sm"
               >
-                <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>add</span>
+                <span className="material-symbols-outlined text-[16px]">add</span>
                 {addLabel}
               </button>
             )}
+            {actions && typeof actions !== 'function' && actions}
           </div>
         </div>
       )}
@@ -202,41 +151,15 @@ export default function DataTable({
         <table className="w-full">
           <thead style={{ backgroundColor: 'var(--theme-bg)' }}>
             <tr>
-              {enableRowSelection && (
-                <th className="px-4 py-3 text-left w-10">
-                  <input
-                    type="checkbox"
-                    checked={isAllSelected}
-                    onChange={handleSelectAll}
-                    className="rounded border-neutral-300 text-primary focus:ring-primary cursor-pointer size-4"
-                  />
-                </th>
-              )}
-              {columns.map((col) => {
-                const isSorted = sortConfig?.key === col.key
-                const sortDir = isSorted ? sortConfig.direction : null
-                return (
+              {columns.map((col) => (
                 <th
                   key={col.key}
-                  className={cn(
-                    "px-4 py-3 text-left text-xs font-bold uppercase tracking-wider select-none",
-                    col.className,
-                    col.sortable && 'cursor-pointer hover:text-primary transition-colors'
-                  )}
+                  className={cn("px-4 py-3 text-left text-xs font-bold uppercase tracking-wider", col.className)}
                   style={{ color: 'var(--theme-h4)' }}
-                  onClick={() => col.sortable && onSort && onSort(col.key)}
                 >
-                  <div className="flex items-center gap-1.5">
-                    {col.label}
-                    {col.sortable && (
-                      <span className="material-symbols-outlined text-sm" style={{ fontSize: '14px' }}>
-                        {isSorted ? (sortDir === 'asc' ? 'expand_less' : 'expand_more') : 'unfold_more'}
-                      </span>
-                    )}
-                  </div>
+                  {col.label}
                 </th>
-                )
-              })}
+              ))}
               {(onRowClick || (actions && typeof actions === 'function')) && (
                 <th className="px-4 py-3 text-right text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--theme-h4)' }}>
                   Aksi
@@ -249,11 +172,6 @@ export default function DataTable({
               // Loading skeleton
               Array.from({ length: 5 }).map((_, i) => (
                 <tr key={i} className="border-t" style={{ borderColor: 'var(--theme-border-muted)' }}>
-                  {enableRowSelection && (
-                    <td className="px-4 py-3 w-10">
-                      <div className="w-4 h-4 rounded animate-pulse" style={{ backgroundColor: 'var(--theme-border-muted)' }} />
-                    </td>
-                  )}
                   {columns.map((col) => (
                     <td key={col.key} className={cn("px-4 py-3", col.className, col.cellClassName)}>
                       <div
@@ -268,7 +186,7 @@ export default function DataTable({
             ) : paginatedData.length === 0 ? (
               // Empty state
               <tr>
-                <td colSpan={columns.length + (enableRowSelection ? 1 : 0) + (onRowClick || (actions && typeof actions === 'function') ? 1 : 0)} className="px-4 py-16 text-center">
+                <td colSpan={columns.length + (onRowClick || (actions && typeof actions === 'function') ? 1 : 0)} className="px-4 py-16 text-center">
                   <div className="flex flex-col items-center justify-center gap-3">
                     <span
                       className="material-symbols-outlined text-4xl"
@@ -282,57 +200,40 @@ export default function DataTable({
               </tr>
             ) : (
               // Data rows
-              paginatedData.map((row, idx) => {
-                const rowId = row.id || row.ID;
-                const isRowSelected = selectedRows.includes(rowId);
-                return (
-                  <tr
-                    key={rowId || idx}
-                    className={cn(
-                      "border-t cursor-pointer transition-colors hover:bg-black/[0.02]",
-                      isRowSelected && "bg-[#00236F]/5 hover:bg-[#00236F]/10"
-                    )}
-                    style={{ borderColor: 'var(--theme-border-muted)' }}
-                    onClick={() => onRowClick && onRowClick(row)}
-                  >
-                    {enableRowSelection && (
-                      <td className="px-4 py-3 w-10" onClick={(e) => e.stopPropagation()}>
-                        <input
-                          type="checkbox"
-                          checked={isRowSelected}
-                          onChange={(e) => handleRowSelect(e, row)}
-                          className="rounded border-neutral-300 text-primary focus:ring-primary cursor-pointer size-4"
-                        />
-                      </td>
-                    )}
-                    {columns.map((col) => (
-                      <td
-                        key={col.key}
-                        className={cn("px-4 py-3 text-sm", col.className, col.cellClassName)}
-                        style={{ color: 'var(--theme-text)' }}
-                      >
-                        {col.render ? col.render(row[col.key], row) : getRowValue(row, col.key)}
-                      </td>
-                    ))}
-                    {(onRowClick || (actions && typeof actions === 'function')) && (
-                      <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
-                        <div className="flex items-center justify-end gap-1.5">
-                          {actions && typeof actions === 'function' && actions(row)}
-                          {onRowClick && (
-                            <button
-                              className="p-2 rounded-lg hover:bg-black/[0.05] transition-colors"
-                              style={{ color: 'var(--theme-text-muted)' }}
-                              onClick={(e) => { e.stopPropagation(); onRowClick(row); }}
-                            >
-                              <span className="material-symbols-outlined text-base">visibility</span>
-                            </button>
-                          )}
-                        </div>
-                      </td>
-                    )}
-                  </tr>
-                );
-              })
+              paginatedData.map((row, idx) => (
+                <tr
+                  key={row.id || idx}
+                  className="border-t cursor-pointer transition-colors hover:bg-[var(--theme-primary-light)]"
+                  style={{ borderColor: 'var(--theme-border-muted)' }}
+                  onClick={() => onRowClick && onRowClick(row)}
+                >
+                  {columns.map((col) => (
+                    <td
+                      key={col.key}
+                      className={cn("px-4 py-3 text-sm", col.className, col.cellClassName)}
+                      style={{ color: 'var(--theme-text)' }}
+                    >
+                      {col.render ? col.render(row[col.key], row) : row[col.key]}
+                    </td>
+                  ))}
+                  {(onRowClick || (actions && typeof actions === 'function')) && (
+                    <td className="px-4 py-3">
+                      <div className="flex items-center justify-end gap-1.5">
+                        {actions && typeof actions === 'function' && actions(row)}
+                        {onRowClick && (
+                          <button
+                            className="p-2 rounded-lg hover:bg-black/[0.05] transition-colors"
+                            style={{ color: 'var(--theme-text-muted)' }}
+                            onClick={(e) => { e.stopPropagation(); onRowClick(row); }}
+                          >
+                            <span className="material-symbols-outlined text-base">visibility</span>
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  )}
+                </tr>
+              ))
             )}
           </tbody>
         </table>
@@ -356,7 +257,7 @@ export default function DataTable({
             >
               <span className="material-symbols-outlined">chevron_left</span>
             </button>
-            {Array.from({ length: totalPages }, (_, i) => {
+            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
               const page = i + 1;
               return (
                 <button

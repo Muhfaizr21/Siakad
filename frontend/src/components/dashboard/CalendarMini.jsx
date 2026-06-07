@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { CalendarDays, ChevronLeft, ChevronRight, Dot } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { PageCard, PageCardHeader } from '@/components/ui/page';
 
 const DAYS = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'];
 const MONTHS = [
@@ -69,18 +70,18 @@ export default function CalendarMini({ events }) {
   };
 
   return (
-    <div className="bg-surface p-6 rounded-3xl border border-border shadow-sm flex flex-col h-full overflow-hidden">
-      <div className="flex items-center justify-between mb-6">
-        <h3 className="text-xl font-extrabold font-headline flex items-center gap-2.5">
-          <CalendarDays size={20} className="text-primary" />
-          Kalender Kegiatan
-        </h3>
-        <div className="flex items-center gap-2">
-            <button onClick={() => changeMonth(-1)} className="p-1.5 hover:bg-background rounded-lg transition-colors"><ChevronLeft size={18} /></button>
-            <span className="text-sm font-bold w-32 text-center">{MONTHS[month]} {year}</span>
-            <button onClick={() => changeMonth(1)} className="p-1.5 hover:bg-background rounded-lg transition-colors"><ChevronRight size={18} /></button>
-        </div>
-      </div>
+    <PageCard className="flex flex-col h-full overflow-hidden">
+      <PageCardHeader 
+        title="Kalender Kegiatan"
+        icon="calendar_month"
+        action={
+          <div className="flex items-center gap-2">
+            <button onClick={() => changeMonth(-1)} className="p-1.5 hover:bg-background rounded-lg transition-colors"><ChevronLeft size={16} /></button>
+            <span className="text-xs font-bold w-28 text-center">{MONTHS[month]} {year}</span>
+            <button onClick={() => changeMonth(1)} className="p-1.5 hover:bg-background rounded-lg transition-colors"><ChevronRight size={16} /></button>
+          </div>
+        }
+      />
 
       <div className="grid grid-cols-7 gap-1 mb-2">
         {DAYS.map(d => (
@@ -113,6 +114,6 @@ export default function CalendarMini({ events }) {
            <p className="text-xs font-bold text-text-muted/40 italic">Tidak ada kegiatan terjadwal di bulan ini.</p>
          )}
       </div>
-    </div>
+    </PageCard>
   );
 }

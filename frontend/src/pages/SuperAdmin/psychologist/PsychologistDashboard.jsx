@@ -1,9 +1,10 @@
 "use client"
 
 import React, { useState, useEffect, useMemo } from 'react'
-import { Card, CardContent } from '@/components/ui/Card'
 import { toast, Toaster } from 'react-hot-toast'
 import { adminService } from '../../../services/api'
+import { PageContent, PageCard, PageCardHeader } from '@/components/ui/page'
+import { DashboardHero, DashboardStatCard, DashboardStatGrid } from '@/components/ui/dashboard'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from "recharts"
 
 export default function PsychologistDashboard() {
@@ -117,251 +118,202 @@ export default function PsychologistDashboard() {
     }
   }, [bookings, data])
 
-  const PIE_COLORS = ['#2563EB', '#4f46e5', '#f59e0b', '#10b981']
+  const PIE_COLORS = ['var(--theme-primary)', 'var(--theme-secondary)', 'var(--theme-warning)', 'var(--theme-success)']
 
   return (
-    <div className="min-h-screen bg-[#fafafa] font-body p-6">
+    <PageContent>
       <Toaster position="top-right" />
       
-      <div className="max-w-[1600px] mx-auto space-y-8 animate-in fade-in duration-300">
-        
-        {/* ── Page Header ─────────────────────────────────────────── */}
-        <section className="bg-white border border-neutral-200 rounded-xl p-5 md:p-8 relative overflow-hidden shadow-sm">
-          <div className="absolute top-0 right-0 w-1/4 h-full bg-gradient-to-l from-bku-primary/10 to-transparent pointer-events-none" />
-          
-          <div className="relative z-10 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
-            <div className="space-y-1 w-full lg:w-auto">
-              <div className="flex items-center gap-2 mb-2">
-                <div className="h-4 w-1.5 bg-bku-primary rounded-full" />
-                <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-400 font-jakarta">Layanan Konseling Kampus</span>
-              </div>
-              <h1 className="text-2xl md:text-3xl font-bold text-neutral-900 font-jakarta tracking-tight leading-tight">
-                Dashboard <span className="text-bku-primary italic font-semibold">Psikologi</span>
-              </h1>
-              <p className="text-neutral-500 font-medium text-xs md:text-sm max-w-2xl leading-relaxed">
-                Analisis data booking konseling, beban kerja psikolog, dan statistik performa layanan bimbingan mahasiswa.
-              </p>
-            </div>
-            
-            <div className="flex items-center gap-3 w-full lg:w-auto">
-              <div className="px-4 py-2 bg-bku-primary/5 border border-bku-primary/20 rounded-xl flex items-center gap-3 w-full lg:w-auto justify-center">
-                 <span className="material-symbols-outlined text-bku-primary" style={{ fontSize: '16px' }}>analytics</span>
-                 <div className="flex flex-col leading-tight">
-                    <span className="text-[10px] font-bold text-bku-primary/70 uppercase tracking-widest">Akses Validasi</span>
-                    <span className="text-[12px] font-bold text-bku-primary font-jakarta">Super Admin Portal</span>
-                 </div>
-              </div>
-            </div>
-          </div>
-        </section>
+      {/* ── Page Header ─────────────────────────────────────────── */}
+      <DashboardHero 
+        title="Dashboard"
+        highlightedTitle="Psikologi"
+        subtitle="Analisis data booking konseling, beban kerja psikolog, dan statistik performa layanan bimbingan mahasiswa."
+        icon="analytics"
+        badges={[
+          { label: 'Akses Validasi', active: false },
+          { label: 'Super Admin Portal', active: true }
+        ]}
+      />
 
-        {loading ? (
-          <div className="h-[400px] flex flex-col items-center justify-center gap-4 bg-white rounded-2xl border border-neutral-200 shadow-sm">
-            <span className="material-symbols-outlined animate-spin text-bku-primary" style={{ fontSize: '40px' }}>sync</span>
-            <span className="text-sm font-bold text-neutral-400 uppercase tracking-widest">Memuat Dashboard...</span>
-          </div>
+      {loading ? (
+        <div className="h-[400px] flex flex-col items-center justify-center gap-4 bg-[var(--theme-surface)] rounded-2xl border border-[var(--theme-border)] shadow-sm">
+          <span className="material-symbols-outlined animate-spin text-[var(--theme-primary)]" style={{ fontSize: '40px' }}>sync</span>
+          <span className="text-sm font-bold text-[var(--theme-text-muted)] uppercase tracking-widest">Memuat Dashboard...</span>
+        </div>
         ) : (
           <>
             {/* ── Stats Grid ──────────────────────────────────────────── */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-               <div className="bg-white p-5 rounded-2xl border border-[#e5e5e5] shadow-sm">
-                  <div className="flex items-center gap-3 mb-3">
-                     <div className="w-10 h-10 bg-bku-primary/10 rounded-xl flex justify-center items-center text-bku-primary flex-shrink-0">
-                        <span className="material-symbols-outlined" style={{ fontSize: '18px' }} >group</span>
-                     </div>
-                     <span className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-widest">Total Psikolog</span>
-                  </div>
-                  <p className="text-3xl font-extrabold text-[#171717] font-jakarta leading-none tabular-nums">{data.length}</p>
-                  <p className="text-xs text-[#a3a3a3] font-medium mt-1">Tenaga ahli terdaftar</p>
-               </div>
-
-               <div className="bg-white p-5 rounded-2xl border border-[#e5e5e5] shadow-sm">
-                  <div className="flex items-center gap-3 mb-3">
-                     <div className="w-10 h-10 bg-blue-50 rounded-xl flex justify-center items-center text-blue-600 flex-shrink-0">
-                        <span className="material-symbols-outlined" style={{ fontSize: '18px' }} >task_alt</span>
-                     </div>
-                     <span className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-widest">Tingkat Penyelesaian</span>
-                  </div>
-                  <p className="text-3xl font-extrabold text-[#171717] font-jakarta leading-none tabular-nums">{stats.tingkatPenyelesaian}</p>
-                  <p className="text-xs text-[#a3a3a3] font-medium mt-1">Rasio sesi konseling selesai</p>
-               </div>
-
-               <div className="bg-white p-5 rounded-2xl border border-[#e5e5e5] shadow-sm">
-                  <div className="flex items-center gap-3 mb-3">
-                     <div className="w-10 h-10 bg-emerald-50 rounded-xl flex justify-center items-center text-emerald-600 flex-shrink-0">
-                        <span className="material-symbols-outlined" style={{ fontSize: '18px' }} >analytics</span>
-                     </div>
-                     <span className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-widest">Rerata Beban Kerja</span>
-                  </div>
-                  <p className="text-3xl font-extrabold text-[#171717] font-jakarta leading-none tabular-nums">{stats.rerataBebanKerja}</p>
-                  <p className="text-xs text-[#a3a3a3] font-medium mt-1">Sesi / psikolog aktif</p>
-               </div>
-
-               <div className="bg-white p-5 rounded-2xl border border-[#e5e5e5] shadow-sm">
-                  <div className="flex items-center gap-3 mb-3">
-                     <div className="w-10 h-10 bg-indigo-50 rounded-xl flex justify-center items-center text-indigo-600 flex-shrink-0">
-                        <span className="material-symbols-outlined" style={{ fontSize: '18px' }} >forward_to_inbox</span>
-                     </div>
-                     <span className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-widest">Rujukan Eksternal</span>
-                  </div>
-                  <p className="text-3xl font-extrabold text-[#171717] font-jakarta leading-none tabular-nums">{referrals.length}</p>
-                  <p className="text-xs text-[#a3a3a3] font-medium mt-1">Surat rujukan dikirim</p>
-               </div>
-
-               <div className="bg-white p-5 rounded-2xl border border-[#e5e5e5] shadow-sm">
-                  <div className="flex items-center gap-3 mb-3">
-                     <div className="w-10 h-10 bg-rose-50 rounded-xl flex justify-center items-center text-rose-600 flex-shrink-0">
-                        <span className="material-symbols-outlined" style={{ fontSize: '18px' }} >calendar_month</span>
-                     </div>
-                     <span className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-widest">Booking Hari Ini</span>
-                     {getTodayBookingsCount() > 0 && (
-                       <span className="bg-rose-500 text-white text-[8px] font-extrabold px-1.5 py-0.5 rounded-full animate-pulse ml-auto">LIVE</span>
-                     )}
-                  </div>
-                  <p className="text-3xl font-extrabold text-[#171717] font-jakarta leading-none tabular-nums">{getTodayBookingsCount()}</p>
-                  <p className="text-xs text-[#a3a3a3] font-medium mt-1">Janji temu hari ini</p>
-               </div>
-            </div>
+            <DashboardStatGrid>
+              <DashboardStatCard 
+                label="Total Psikolog" 
+                value={data.length} 
+                icon="group" 
+                colorClass="text-primary" 
+                bgClass="bg-primary/10 border border-primary/20" 
+                accentGradient="from-primary/10" 
+                badge={{ text: 'Tenaga ahli terdaftar' }} 
+              />
+              <DashboardStatCard 
+                label="Tingkat Penyelesaian" 
+                value={stats.tingkatPenyelesaian} 
+                icon="task_alt" 
+                colorClass="text-info" 
+                bgClass="bg-info/10 border border-info/20" 
+                accentGradient="from-info/10" 
+                badge={{ text: 'Rasio sesi konseling selesai' }} 
+              />
+              <DashboardStatCard 
+                label="Rerata Beban Kerja" 
+                value={stats.rerataBebanKerja} 
+                icon="analytics" 
+                colorClass="text-success" 
+                bgClass="bg-success/10 border border-success/20" 
+                accentGradient="from-success/10" 
+                badge={{ text: 'Sesi / psikolog aktif' }} 
+              />
+              <DashboardStatCard 
+                label="Rujukan Eksternal" 
+                value={referrals.length} 
+                icon="forward_to_inbox" 
+                colorClass="text-secondary" 
+                bgClass="bg-secondary/10 border border-secondary/20" 
+                accentGradient="from-secondary/10" 
+                badge={{ text: 'Surat rujukan dikirim' }} 
+              />
+              <DashboardStatCard 
+                label="Booking Hari Ini" 
+                value={getTodayBookingsCount()} 
+                icon="calendar_month" 
+                colorClass="text-error" 
+                bgClass="bg-error/10 border border-error/20" 
+                accentGradient="from-error/10" 
+                badge={{ text: 'Janji temu hari ini' }} 
+              />
+            </DashboardStatGrid>
 
             {/* ── Charts Section ──────────────────────────────────────── */}
             <div className="space-y-6">
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Line Chart: Tren Booking Bulanan */}
-                <div className="lg:col-span-2 bg-white p-5 rounded-2xl border border-slate-200/60 shadow-sm">
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="w-10 h-10 bg-bku-primary/10 rounded-xl flex justify-center items-center text-bku-primary flex-shrink-0">
-                      <span className="material-symbols-outlined text-bku-primary" style={{ fontSize: '18px' }} >show_chart</span>
+                <div className="lg:col-span-2">
+                  <PageCard className="h-full">
+                    <PageCardHeader title="Tren Booking Bulanan" icon="show_chart" />
+                    <div className="h-[240px] w-full mt-4">
+                      {bookings.length > 0 ? (
+                        <ResponsiveContainer width="100%" height={240}>
+                          <LineChart data={monthlyBookingData} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--theme-border-muted)" />
+                            <XAxis dataKey="name" tick={{ fontSize: 9, fontWeight: 700, fill: 'var(--theme-text-muted)' }} axisLine={false} tickLine={false} />
+                            <YAxis allowDecimals={false} tick={{ fontSize: 9, fontWeight: 700, fill: 'var(--theme-text-muted)' }} axisLine={false} tickLine={false} />
+                            <Tooltip
+                              contentStyle={{ backgroundColor: "var(--theme-surface)", border: "1px solid var(--theme-border)", borderRadius: "12px", boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.05)", fontSize: "11px", fontWeight: "bold", color: "var(--theme-text)" }}
+                            />
+                            <Line type="monotone" dataKey="Jumlah Booking" stroke="var(--theme-primary)" strokeWidth={3} dot={{ r: 4, strokeWidth: 2, fill: 'var(--theme-surface)' }} activeDot={{ r: 6 }} />
+                          </LineChart>
+                        </ResponsiveContainer>
+                      ) : (
+                        <div className="h-full flex items-center justify-center text-xs text-[var(--theme-text-muted)] italic">Tidak ada data booking</div>
+                      )}
                     </div>
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline">Tren Booking Bulanan</span>
-                  </div>
-                  <div className="h-[240px] w-full">
-                    {bookings.length > 0 ? (
-                      <ResponsiveContainer width="100%" height={240}>
-                        <LineChart data={monthlyBookingData} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
-                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                          <XAxis dataKey="name" tick={{ fontSize: 9, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} />
-                          <YAxis allowDecimals={false} tick={{ fontSize: 9, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} />
-                          <Tooltip
-                            contentStyle={{ backgroundColor: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.05)", fontSize: "11px", fontWeight: "bold" }}
-                          />
-                          <Line type="monotone" dataKey="Jumlah Booking" stroke="#2563EB" strokeWidth={3} dot={{ r: 4, strokeWidth: 2, fill: '#ffffff' }} activeDot={{ r: 6 }} />
-                        </LineChart>
-                      </ResponsiveContainer>
-                    ) : (
-                      <div className="h-full flex items-center justify-center text-xs text-neutral-400 italic">Tidak ada data booking</div>
-                    )}
-                  </div>
+                  </PageCard>
                 </div>
 
                 {/* Pie Chart: Metode Konseling */}
-                <div className="lg:col-span-1 bg-white p-5 rounded-2xl border border-slate-200/60 shadow-sm flex flex-col justify-between">
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="w-10 h-10 bg-indigo-50 rounded-xl flex justify-center items-center text-indigo-600 flex-shrink-0">
-                      <span className="material-symbols-outlined text-indigo-600" style={{ fontSize: '18px' }} >pie_chart</span>
+                <div className="lg:col-span-1">
+                  <PageCard className="h-full flex flex-col justify-between">
+                    <PageCardHeader title="Metode Konseling" icon="pie_chart" />
+                    <div className="h-[140px] w-full flex items-center justify-center mt-4">
+                      {modeChartData.length > 0 ? (
+                        <ResponsiveContainer width="100%" height={140}>
+                          <PieChart>
+                            <Pie
+                              data={modeChartData}
+                              cx="50%"
+                              cy="50%"
+                              innerRadius={40}
+                              outerRadius={60}
+                              paddingAngle={4}
+                              dataKey="value"
+                              stroke="none"
+                            >
+                              {modeChartData.map((entry, index) => (
+                                <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
+                              ))}
+                            </Pie>
+                            <Tooltip
+                              contentStyle={{ backgroundColor: "var(--theme-surface)", border: "1px solid var(--theme-border)", borderRadius: "12px", boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.05)", fontSize: "10px", fontWeight: "bold", color: "var(--theme-text)" }}
+                            />
+                          </PieChart>
+                        </ResponsiveContainer>
+                      ) : (
+                        <span className="text-xs text-[var(--theme-text-muted)] italic">Tidak ada data</span>
+                      )}
                     </div>
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline">Metode Konseling</span>
-                  </div>
-                  <div className="h-[140px] w-full flex items-center justify-center">
-                    {modeChartData.length > 0 ? (
-                      <ResponsiveContainer width="100%" height={140}>
-                        <PieChart>
-                          <Pie
-                            data={modeChartData}
-                            cx="50%"
-                            cy="50%"
-                            innerRadius={40}
-                            outerRadius={60}
-                            paddingAngle={4}
-                            dataKey="value"
-                            stroke="none"
-                          >
-                            {modeChartData.map((entry, index) => (
-                              <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
-                            ))}
-                          </Pie>
-                          <Tooltip
-                            contentStyle={{ backgroundColor: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.05)", fontSize: "10px", fontWeight: "bold" }}
-                          />
-                        </PieChart>
-                      </ResponsiveContainer>
-                    ) : (
-                      <span className="text-xs text-slate-400 italic">Tidak ada data</span>
-                    )}
-                  </div>
-                  <div className="grid grid-cols-2 gap-1.5 mt-2">
-                    {modeChartData.slice(0, 4).map((item, idx) => (
-                      <div key={item.name} className="flex items-center gap-2 p-1.5 rounded-lg bg-slate-50 border border-slate-100">
-                        <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: PIE_COLORS[idx % PIE_COLORS.length] }} />
-                        <div className="min-w-0">
-                          <p className="text-[9px] font-bold text-slate-400 truncate leading-none">{item.name}</p>
-                          <p className="text-xs font-extrabold text-slate-800 leading-none mt-1">{item.value}</p>
+                    <div className="grid grid-cols-2 gap-1.5 mt-2">
+                      {modeChartData.slice(0, 4).map((item, idx) => (
+                        <div key={item.name} className="flex items-center gap-2 p-1.5 rounded-lg bg-[var(--theme-bg)] border border-[var(--theme-border-muted)]">
+                          <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: PIE_COLORS[idx % PIE_COLORS.length] }} />
+                          <div className="min-w-0">
+                            <p className="text-[9px] font-bold text-[var(--theme-text-muted)] truncate leading-none">{item.name}</p>
+                            <p className="text-xs font-extrabold text-[var(--theme-text)] leading-none mt-1">{item.value}</p>
+                          </div>
                         </div>
-                      </div>
-                    ))}
-                  </div>
+                      ))}
+                    </div>
+                  </PageCard>
                 </div>
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Horizontal Bar Chart: Sebaran Spesialisasi Psikolog */}
-                <div className="bg-white p-5 rounded-2xl border border-slate-200/60 shadow-sm">
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="w-10 h-10 bg-amber-50 rounded-xl flex justify-center items-center text-amber-600 flex-shrink-0">
-                      <span className="material-symbols-outlined text-amber-600" style={{ fontSize: '18px' }} >badge</span>
-                    </div>
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline">Sebaran Spesialisasi Psikolog</span>
-                  </div>
-                  <div className="h-[220px] w-full">
+                <PageCard>
+                  <PageCardHeader title="Sebaran Spesialisasi Psikolog" icon="badge" />
+                  <div className="h-[220px] w-full mt-4">
                     {specializationData.length > 0 ? (
                       <ResponsiveContainer width="100%" height={220}>
                         <BarChart layout="vertical" data={specializationData} margin={{ top: 10, right: 10, left: 15, bottom: 0 }}>
-                          <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f1f5f9" />
-                          <XAxis type="number" allowDecimals={false} tick={{ fontSize: 9, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} />
-                          <YAxis type="category" dataKey="name" tick={{ fontSize: 9, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                          <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="var(--theme-border-muted)" />
+                          <XAxis type="number" allowDecimals={false} tick={{ fontSize: 9, fontWeight: 700, fill: 'var(--theme-text-muted)' }} axisLine={false} tickLine={false} />
+                          <YAxis type="category" dataKey="name" tick={{ fontSize: 9, fontWeight: 700, fill: 'var(--theme-text-muted)' }} axisLine={false} tickLine={false} />
                           <Tooltip
-                            contentStyle={{ backgroundColor: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.05)", fontSize: "11px", fontWeight: "bold" }}
+                            contentStyle={{ backgroundColor: "var(--theme-surface)", border: "1px solid var(--theme-border)", borderRadius: "12px", boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.05)", fontSize: "11px", fontWeight: "bold", color: "var(--theme-text)" }}
                           />
-                          <Bar dataKey="value" name="Jumlah Praktisi" fill="#eab308" radius={[0, 4, 4, 0]} barSize={16} />
+                          <Bar dataKey="value" name="Jumlah Praktisi" fill="var(--theme-secondary)" radius={[0, 4, 4, 0]} barSize={16} />
                         </BarChart>
                       </ResponsiveContainer>
                     ) : (
-                      <div className="h-full flex items-center justify-center text-xs text-neutral-400 italic">Tidak ada data spesialisasi</div>
+                      <div className="h-full flex items-center justify-center text-xs text-[var(--theme-text-muted)] italic">Tidak ada data spesialisasi</div>
                     )}
                   </div>
-                </div>
+                </PageCard>
 
                 {/* Bar Chart: Topik Konseling Terpopuler */}
-                <div className="bg-white p-5 rounded-2xl border border-slate-200/60 shadow-sm">
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="w-10 h-10 bg-bku-primary/10 rounded-xl flex justify-center items-center text-bku-primary flex-shrink-0">
-                      <span className="material-symbols-outlined text-bku-primary" style={{ fontSize: '18px' }} >bar_chart</span>
-                    </div>
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline">Topik Konseling Terpopuler</span>
-                  </div>
-                  <div className="h-[220px] w-full">
+                <PageCard>
+                  <PageCardHeader title="Topik Konseling Terpopuler" icon="bar_chart" />
+                  <div className="h-[220px] w-full mt-4">
                     {topicChartData.length > 0 ? (
                       <ResponsiveContainer width="100%" height={220}>
                         <BarChart data={topicChartData} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
-                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                          <XAxis dataKey="name" tick={{ fontSize: 8.5, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} />
-                          <YAxis allowDecimals={false} tick={{ fontSize: 9, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--theme-border-muted)" />
+                          <XAxis dataKey="name" tick={{ fontSize: 8.5, fontWeight: 700, fill: 'var(--theme-text-muted)' }} axisLine={false} tickLine={false} />
+                          <YAxis allowDecimals={false} tick={{ fontSize: 9, fontWeight: 700, fill: 'var(--theme-text-muted)' }} axisLine={false} tickLine={false} />
                           <Tooltip
-                            cursor={{ fill: '#f8fafc' }}
-                            contentStyle={{ backgroundColor: "#ffffff", border: "1px solid #e2e8f0", borderRadius: "12px", boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.05)", fontSize: "11px", fontWeight: "bold" }}
+                            cursor={{ fill: 'var(--theme-border-muted)' }}
+                            contentStyle={{ backgroundColor: "var(--theme-surface)", border: "1px solid var(--theme-border)", borderRadius: "12px", boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.05)", fontSize: "11px", fontWeight: "bold", color: "var(--theme-text)" }}
                           />
-                          <Bar dataKey="value" name="Jumlah Sesi" fill="#2563EB" radius={[4, 4, 0, 0]} barSize={24} />
+                          <Bar dataKey="value" name="Jumlah Sesi" fill="var(--theme-primary)" radius={[4, 4, 0, 0]} barSize={24} />
                         </BarChart>
                       </ResponsiveContainer>
                     ) : (
-                      <div className="h-full flex items-center justify-center text-xs text-neutral-400 italic">Tidak ada data topik</div>
+                      <div className="h-full flex items-center justify-center text-xs text-[var(--theme-text-muted)] italic">Tidak ada data topik</div>
                     )}
                   </div>
-                </div>
+                </PageCard>
               </div>
             </div>
           </>
         )}
-      </div>
-    </div>
+    </PageContent>
   )
 }

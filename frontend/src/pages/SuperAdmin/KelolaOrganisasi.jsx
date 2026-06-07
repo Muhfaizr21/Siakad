@@ -14,6 +14,8 @@ import { Textarea } from '@/components/ui/Textarea'
 import { toast, Toaster } from 'react-hot-toast'
 import { cn } from '@/lib/utils'
 import { adminService } from '../../services/api'
+import { PageContent, PageCard, PageCardHeader } from '@/components/ui/page'
+import { DashboardHero, DashboardStatGrid, DashboardStatCard } from '@/components/ui/dashboard'
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts"
 
 // Auto-injected Material Symbol fallbacks for removed Lucide icons
@@ -438,66 +440,72 @@ export default function KelolaOrganisasi() {
   const PIE_COLORS_ORG = ['#3b82f6', '#f59e0b', '#10b981', '#6366f1', '#ef4444']
 
   return (
-    <div className="min-h-screen bg-transparent font-inter">
+    <PageContent>
       <Toaster position="top-right" />
 
-      <div className="max-w-[1600px] mx-auto space-y-8 animate-in fade-in duration-300">
-
         {/* ── Welcome & Page Header (Glassmorphism card) ───────────── */}
-        <section className="glass-card border border-slate-200/60 rounded-2xl p-6 md:p-8 relative overflow-hidden shadow-none group">
-          <div className="absolute top-0 right-0 w-1/4 h-full bg-gradient-to-l from-blue-50/20 to-transparent pointer-events-none" />
-          <div className="absolute -bottom-12 -right-12 text-bku-primary/5 rotate-12 pointer-events-none group-hover:scale-105 transition-transform duration-500"><Building size={280} /></div>
-
-          <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-            <div className="space-y-2">
-              <div className="flex items-center gap-2.5">
-                <div className="h-4 w-1.5 bg-bku-primary rounded-full" />
-                <span className="text-[10px] font-black uppercase tracking-[0.25em] text-bku-primary/60 font-headline">Student Community & LPJ Review</span>
-              </div>
-              <h1 className="text-2xl md:text-3xl font-bold font-headline tracking-tight leading-none" style={{ color: 'var(--theme-h1)' }}>
-                Kelola <span className="text-bku-primary">Organisasi</span>
-              </h1>
-              <p className="text-slate-400 font-medium text-xs max-w-2xl leading-relaxed mt-2 font-inter">
-                Pusat pengawasan hukum, audit LPJ keuangan, pemantauan bintang keaktifan, dan registrasi digital Ormawa Universitas Bhakti Kencana.
-              </p>
-            </div>
-
-            <button
+        <DashboardHero
+          title="Kelola"
+          highlightedTitle="Organisasi"
+          subtitle="Pusat pengawasan hukum, audit LPJ keuangan, pemantauan bintang keaktifan, dan registrasi digital Ormawa Universitas Bhakti Kencana."
+          icon="business"
+          badges={[
+            { label: 'Student Community & LPJ Review', active: true }
+          ]}
+          actions={
+            <Button
               onClick={handleOpenAdd}
-              className="h-11 px-6 bg-bku-primary hover:bg-bku-hover text-white text-[10px] font-bold uppercase tracking-widest rounded-xl transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] shadow-md shadow-bku-primary/5 flex items-center gap-2 font-headline cursor-pointer border-none"
+              className="h-11 px-6 bg-primary hover:bg-primary/90 text-white text-[10px] font-bold uppercase tracking-widest rounded-xl transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] shadow-md shadow-primary/20 flex items-center gap-2 cursor-pointer border-none"
             >
               <span className="material-symbols-outlined font-black" style={{ fontSize: '16px' }}>add</span>
               <span>Daftar Ormawa</span>
-            </button>
-          </div>
-        </section>
+            </Button>
+          }
+        />
 
         {/* ── Stats Grid (Glassmorphism stats cards) ──────────────── */}
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-5">
-          {[
-            { label: 'Total Ormawa', value: totalOrmawa, desc: 'Unit terdaftar resmi', icon: Layers, color: 'text-bku-primary', bg: 'bg-[#eef4ff]/60' },
-            { label: 'Member Aktif', value: activeMembers, desc: 'Partisipan gabungan', icon: () => <span className="material-symbols-outlined text-indigo-600 leading-none" style={{ fontSize: '18px' }}>group</span>, color: 'text-indigo-600', bg: 'bg-indigo-50/50' },
-            { label: 'Rerata Kepatuhan', value: `${avgCompliance}%`, desc: 'Laporan LPJ tepat waktu', icon: CheckCircle, color: 'text-emerald-600', bg: 'bg-emerald-50/50' },
-            { label: 'Total Poin XP', value: totalXP.toLocaleString('id-ID'), desc: 'Poin prestasi akumulatif', icon: Zap, color: 'text-amber-600', bg: 'bg-amber-50/50' },
-            { label: 'Ormawa Teraktif', value: topOrmawa?.Singkatan || topOrmawa?.Nama?.substring(0, 8) || '—', desc: `${topOrmawa?.xp || 0} XP tertinggi`, icon: Trophy, color: 'text-amber-500', bg: 'bg-amber-50/50' }
-          ].map((s, idx) => {
-            const Icon = s.icon;
-            return (
-              <div key={idx} className="glass-card p-5 rounded-2xl border border-slate-200/60 flex flex-col justify-between hover:shadow-md transition-all duration-300 hover:-translate-y-0.5 shadow-none">
-                <div className="flex items-center gap-3.5 mb-4">
-                  <div className={cn('w-10 h-10 rounded-xl flex justify-center items-center flex-shrink-0', s.bg)}>
-                    {typeof Icon === 'function' ? <Icon /> : <Icon size={18} className={s.color} />}
-                  </div>
-                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none font-headline">{s.label}</span>
-                </div>
-                <div>
-                  <p className="text-2xl font-black text-slate-800 font-headline leading-none tabular-nums truncate">{s.value}</p>
-                  <p className="text-[10px] text-slate-400 font-medium mt-2 leading-none font-inter">{s.desc}</p>
-                </div>
-              </div>
-            );
-          })}
-        </div>
+        <DashboardStatGrid>
+          <DashboardStatCard
+            label="Total Ormawa"
+            value={totalOrmawa}
+            icon="layers"
+            colorClass="text-primary"
+            bgClass="bg-primary/10 border-primary/20"
+            badge={{ text: 'Unit terdaftar resmi' }}
+          />
+          <DashboardStatCard
+            label="Member Aktif"
+            value={activeMembers}
+            icon="group"
+            colorClass="text-indigo-600"
+            bgClass="bg-indigo-50 border-indigo-200"
+            badge={{ text: 'Partisipan gabungan' }}
+          />
+          <DashboardStatCard
+            label="Rerata Kepatuhan"
+            value={`${avgCompliance}%`}
+            icon="check_circle"
+            colorClass="text-emerald-600"
+            bgClass="bg-emerald-50 border-emerald-200"
+            badge={{ text: 'LPJ tepat waktu' }}
+          />
+          <DashboardStatCard
+            label="Total Poin XP"
+            value={totalXP.toLocaleString('id-ID')}
+            icon="bolt"
+            colorClass="text-amber-600"
+            bgClass="bg-amber-50 border-amber-200"
+            badge={{ text: 'Akumulatif' }}
+          />
+          <DashboardStatCard
+            label="Ormawa Teraktif"
+            value={topOrmawa?.Singkatan || topOrmawa?.Nama?.substring(0, 8) || '—'}
+            icon="emoji_events"
+            colorClass="text-amber-500"
+            bgClass="bg-amber-50 border-amber-200"
+            badge={{ text: `${topOrmawa?.xp || 0} XP tertinggi` }}
+          />
+        </DashboardStatGrid>
 
         {/* ── Charts Row (Kategori Pie + Tren Proposal Line) ────────── */}
         {!loading && data.length > 0 && (
@@ -917,13 +925,10 @@ export default function KelolaOrganisasi() {
 
         </div>
 
-        {/* ── Table Section (CRUD Registry & Database inside Glassmorphism card) ── */}
-        <div className="space-y-4 font-inter">
-          <div className="flex items-center gap-3">
-            <div className="h-4 w-1.5 bg-bku-primary rounded-full" />
-            <h2 className="text-xs font-bold font-headline uppercase tracking-widest font-extrabold" style={{ color: 'var(--theme-h2)' }}>Data Registrasi & Legalitas Ormawa</h2>
-          </div>
-          <div className="glass-card rounded-2xl border border-slate-200/60 overflow-hidden shadow-none">
+        {/* ── Table Section ───────────────────────────────────────── */}
+        <PageCard>
+          <PageCardHeader title="Data Registrasi & Legalitas Ormawa" />
+          <CardContent className="p-0">
             <DataTable
               columns={columns}
               data={data}
@@ -937,11 +942,8 @@ export default function KelolaOrganisasi() {
                 </div>
               )}
             />
-          </div>
-        </div>
-
-      </div>
-
+          </CardContent>
+        </PageCard>
       {/* ── Detail Modal (Glassmorphic Dialog) ────────────────────── */}
       <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
         <DialogContent className="max-w-2xl p-0 overflow-hidden border border-slate-200/60 shadow-2xl rounded-2xl bg-white/95 backdrop-blur-md font-inter">
@@ -1297,6 +1299,6 @@ export default function KelolaOrganisasi() {
         description="Data organisasi, riwayat anggota, dan visi misi akan dihapus permanen dari sistem."
         loading={isSubmitting}
       />
-    </div>
+    </PageContent>
   )
 }

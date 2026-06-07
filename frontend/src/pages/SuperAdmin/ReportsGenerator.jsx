@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
 import { Input } from '@/components/ui/Input'
 import { Label } from '@/components/ui/Label'
+import { PageContent, PageCard } from '@/components/ui/page'
+import { DashboardHero } from '@/components/ui/dashboard'
 import { cn } from '@/lib/utils'
 
 // Auto-injected Material Symbol fallbacks for removed Lucide icons
@@ -43,39 +45,29 @@ const ReportsGenerator = () => {
     ]
 
     return (
-        <div className="px-1 py-4 md:px-2 xl:px-4 min-h-screen bg-transparent font-inter">
+        <PageContent>
             
             <div className="max-w-[1600px] mx-auto space-y-8 select-none">
                 
                 {/* ── Page Header ─────────────────────────────────────────── */}
-                <section className="glass-card rounded-2xl border border-slate-200/60 p-6 md:p-8 relative overflow-hidden shadow-none">
-                    <div className="absolute top-0 right-0 w-1/4 h-full bg-gradient-to-l from-bku-primary/5 to-transparent pointer-events-none" />
-                    
-                    <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-                        <div className="space-y-2">
-                            <div className="flex items-center gap-2 mb-2">
-                                <div className="h-4 w-1.5 bg-bku-primary rounded-full animate-pulse" />
-                                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 font-headline leading-none">Institutional Intelligence</span>
-                            </div>
-                            <h1 className="text-2xl font-black font-headline tracking-tight leading-none" style={{ color: 'var(--theme-h1)' }}>
-                                Reports <span className="text-bku-primary">& Analytics</span>
-                            </h1>
-                            <p className="text-slate-400 font-medium text-[11px] max-w-2xl leading-relaxed">
-                                Pusat generasi laporan institusi, export data akreditasi BAN-PT, dan pemantauan statistik performa akademik global.
-                            </p>
-                        </div>
-                        
-                        <div className="flex items-center gap-3">
-                            <Button 
-                                variant="outline"
-                                className="h-11 px-6 rounded-xl border-slate-200 bg-white text-slate-500 hover:bg-slate-100 shadow-none gap-2 transition-all active:scale-95 font-headline cursor-pointer"
-                            >
-                                <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >show_chart</span>
-                                <span className="text-[10px] font-black uppercase tracking-widest">Real-time Metrics</span>
-                            </Button>
-                        </div>
-                    </div>
-                </section>
+                <DashboardHero
+                    title="Reports"
+                    highlightedTitle="& Analytics"
+                    subtitle="Pusat generasi laporan institusi, export data akreditasi BAN-PT, dan pemantauan statistik performa akademik global."
+                    icon="analytics"
+                    badges={[
+                        { label: 'Institutional Intelligence', active: true }
+                    ]}
+                    action={
+                        <Button 
+                            variant="outline"
+                            className="h-11 px-6 rounded-xl border-slate-200 bg-white text-slate-500 hover:bg-slate-100 shadow-none gap-2 transition-all active:scale-95 font-headline cursor-pointer"
+                        >
+                            <span className="material-symbols-outlined" style={{ fontSize: '16px' }} >show_chart</span>
+                            <span className="text-[10px] font-black uppercase tracking-widest">Real-time Metrics</span>
+                        </Button>
+                    }
+                />
 
                 {/* ── Stats Grid ─────────────────────────────────────────── */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -205,7 +197,7 @@ const ReportsGenerator = () => {
                     </aside>
                 </div>
             </div>
-        </div>
+        </PageContent>
     )
 }
 

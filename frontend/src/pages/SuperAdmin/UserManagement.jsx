@@ -16,6 +16,8 @@ import { toast, Toaster } from 'react-hot-toast'
 import { cn } from '@/lib/utils'
 import { adminService, API_BASE_URL } from '../../services/api'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/Select'
+import { PageContent, PageCard, PageCardHeader } from '@/components/ui/page'
+import { DashboardHero } from '@/components/ui/dashboard'
 
 // Auto-injected Material Symbol fallbacks for removed Lucide icons
 const KeyRound = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>vpn_key</span>;
@@ -1232,34 +1234,24 @@ export default function UserManagement() {
   ]
 
   return (
-    <div className="px-1 py-4 md:px-2 xl:px-4 min-h-screen bg-transparent font-inter">
+    <PageContent>
       <Toaster position="top-right" />
       
-      <div className="max-w-[1600px] mx-auto space-y-8 select-none">
-        
-        {/* ── Page Header (Glassmorphic) ─────────────────────────── */}
-        <section className="glass-card rounded-2xl border border-slate-200/60 p-6 md:p-8 relative overflow-hidden shadow-none">
-          <div className="absolute top-0 right-0 w-1/4 h-full bg-gradient-to-l from-bku-primary/5 to-transparent pointer-events-none" />
-          
-          <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-            <div className="space-y-2">
-              <div className="flex items-center gap-2 mb-2">
-                <div className="h-4 w-1.5 bg-bku-primary rounded-full animate-pulse" />
-                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 font-headline leading-none">Security & OIDC Cluster</span>
-              </div>
-              <h1 className="text-2xl font-black font-headline tracking-tight leading-none" style={{ color: 'var(--theme-h1)' }}>
-                Identity <span className="text-bku-primary">Governance</span>
-              </h1>
-              <p className="text-slate-400 font-medium text-[11px] max-w-2xl leading-relaxed">
-                Kendali akses terpusat berbasis RBAC untuk seluruh entitas sistem. Kelola hak istimewa, kaitan identitas, dan otorisasi infrastruktur.
-              </p>
-            </div>
-            
-            <div className="flex items-center gap-4 shrink-0">
+        {/* ── Page Header ─────────────────────────── */}
+        <DashboardHero
+          title="Identity"
+          highlightedTitle="Governance"
+          subtitle="Kendali akses terpusat berbasis RBAC untuk seluruh entitas sistem. Kelola hak istimewa, kaitan identitas, dan otorisasi infrastruktur."
+          icon="shield_person"
+          badges={[
+            { label: 'Security & OIDC Cluster', active: true }
+          ]}
+          actions={
+            <>
               <div className="hidden lg:flex items-center gap-8 pr-8 border-r border-slate-200/40">
                 <div className="text-right">
                   <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 font-headline">Total Identity</p>
-                  <p className="text-xl font-black text-bku-primary font-headline tabular-nums leading-none">{users.length}</p>
+                  <p className="text-xl font-black text-primary font-headline tabular-nums leading-none">{users.length}</p>
                 </div>
                 <div className="text-right">
                   <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 font-headline">Privileged Nodes</p>
@@ -1270,7 +1262,7 @@ export default function UserManagement() {
               <Button 
                 onClick={() => setActiveTab('permissions')}
                 variant="outline"
-                className="h-11 px-6 rounded-xl border-slate-200 text-[10px] font-black uppercase tracking-widest text-slate-600 hover:bg-slate-100 hover:text-bku-primary gap-2.5 transition-all active:scale-95 shadow-none cursor-pointer font-headline"
+                className="h-11 px-6 rounded-xl border-slate-200 text-[10px] font-black uppercase tracking-widest text-slate-600 hover:bg-slate-100 hover:text-primary gap-2.5 transition-all active:scale-95 shadow-none cursor-pointer font-headline"
               >
                 <span className="material-symbols-outlined text-primary" style={{ fontSize: '14px' }} >security</span>
                 Permission Matrix
@@ -1282,9 +1274,9 @@ export default function UserManagement() {
                 <span className="material-symbols-outlined" style={{ fontSize: '14px' }} >add</span>
                 Create Role
               </Button>
-            </div>
-          </div>
-        </section>
+            </>
+          }
+        />
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           {TABS.map(tab => (
@@ -1304,7 +1296,7 @@ export default function UserManagement() {
         </div>
 
         {/* ── Table Section ────────────────────────────────────────── */}
-        {activeTab === 'identities' && <Card className="border-neutral-200 shadow-sm rounded-xl bg-white overflow-hidden">
+        {activeTab === 'identities' && <PageCard>
           <CardContent className="p-0">
             <DataTable
               columns={columns} 
@@ -1338,7 +1330,7 @@ export default function UserManagement() {
               )}
             />
           </CardContent>
-        </Card>}
+        </PageCard>}
 
         {activeTab === 'roles' && (
           <section className="grid grid-cols-1 lg:grid-cols-3 gap-5">
@@ -1755,9 +1747,6 @@ export default function UserManagement() {
             )}
           </section>
         )}
-
-      </div>
-
       {/* ── Create User Modal ───────────────────────────────────── */}
       <Dialog open={isCrudOpen} onOpenChange={setIsCrudOpen}>
         <DialogContent className="w-[95vw] md:max-w-xl p-0 overflow-y-auto max-h-[85vh] rounded-3xl">
@@ -2236,6 +2225,6 @@ export default function UserManagement() {
         </DialogContent>
       </Dialog>
 
-    </div>
+    </PageContent>
   )
 }

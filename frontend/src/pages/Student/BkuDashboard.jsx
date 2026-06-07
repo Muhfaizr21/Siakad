@@ -5,12 +5,13 @@ import { DashboardSkeleton } from '@/components/ui/SkeletonGroups';
 import BannerPinned from '../../components/dashboard/BannerPinned';
 import HeroCard from '../../components/dashboard/HeroCard';
 import DeadlineAlert from '../../components/dashboard/DeadlineAlert';
-import QuickAccessGrid from '../../components/dashboard/QuickAccessGrid';
+import { DashboardQuickActions } from '@/components/ui/dashboard';
 import StatusSummary from '../../components/dashboard/StatusSummary';
 import ActivityFeed from '../../components/dashboard/ActivityFeed';
 import CalendarMini from '../../components/dashboard/CalendarMini';
 import AnnouncementSection from '../../components/dashboard/AnnouncementSection';
 import AvailableScholarships from '../../components/dashboard/AvailableScholarships';
+import { PageContent } from '@/components/ui/page';
 
 export default function BkuDashboard() {
   const { data, isLoading, isError } = useDashboardQuery();
@@ -43,9 +44,8 @@ export default function BkuDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-transparent font-body text-bku-text">
-      <div className="max-w-7xl mx-auto px-4 py-6 md:px-6 md:py-8 lg:px-8 lg:py-10">
-        <div className="flex flex-col gap-5">
+    <PageContent>
+      <div className="flex flex-col gap-5">
 
           {/* ── ZONA URGENT (hal mendesak di atas) ── */}
 
@@ -84,9 +84,19 @@ export default function BkuDashboard() {
           {/* ── ZONA NAVIGASI & AKTIVITAS ── */}
 
           {/* [5] Quick Access — akses cepat ke fitur utama */}
-          <section aria-label="Akses Cepat">
-            <QuickAccessGrid />
-          </section>
+          <DashboardQuickActions 
+            title="Akses Cepat"
+            description="Pintasan Menu"
+            actions={[
+              { label: 'KENCANA', icon: 'school', path: '/student/kencana', iconBg: 'bg-primary/10 text-primary border border-primary/20' },
+              { label: 'Achievement', icon: 'emoji_events', path: '/student/achievement', iconBg: 'bg-warning/10 text-warning border border-warning/20' },
+              { label: 'Scholarship', icon: 'workspace_premium', path: '/student/scholarship', iconBg: 'bg-success/10 text-success border border-success/20' },
+              { label: 'Organisasi', icon: 'groups', path: '/student/organisasi', iconBg: 'bg-primary/10 text-primary border border-primary/20' },
+              { label: 'Counseling', icon: 'support_agent', path: '/student/counseling', iconBg: 'bg-secondary/10 text-secondary border border-secondary/20' },
+              { label: 'Health', icon: 'monitor_heart', path: '/student/health', iconBg: 'bg-error/10 text-error border border-error/20' },
+              { label: 'Student Voice', icon: 'chat', path: '/student/voice', iconBg: 'bg-info/10 text-info border border-info/20' },
+            ]}
+          />
 
           {/* Beasiswa yang Tersedia */}
           <section aria-label="Beasiswa yang Tersedia">
@@ -110,8 +120,7 @@ export default function BkuDashboard() {
             <AnnouncementSection announcements={data.pengumuman} />
           </section>
 
-        </div>
       </div>
-    </div>
+    </PageContent>
   );
 }

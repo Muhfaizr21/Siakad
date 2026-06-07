@@ -381,7 +381,7 @@ export default function PsychologistList() {
       cellClassName: 'text-center pr-4',
       render: v => (
         <Badge className={cn(
-          'px-2.5 py-1 rounded-lg border text-[10px] font-black uppercase tracking-wider shadow-none font-jakarta',
+          'px-2.5 py-1 rounded-full border text-[10px] font-semibold uppercase tracking-wider shadow-none font-jakarta',
           v ? 'bg-success/10 text-success border-success/20' : 'bg-rose-50 text-rose-600 border-rose-100'
         )}>
           {v ? 'Aktif Tersedia' : 'Non-Aktif'}
@@ -391,23 +391,23 @@ export default function PsychologistList() {
   ]
 
   return (
-    <div className="min-h-screen bg-[#fafafa] font-body p-6">
+    <div className="min-h-screen bg-[var(--theme-bg)] font-body p-6">
       <Toaster position="top-right" />
 
       <div className="max-w-[1600px] mx-auto space-y-8 animate-in fade-in duration-300">
 
         {/* ── Page Header ─────────────────────────────────────────── */}
-        <section className="bg-white border border-neutral-200 rounded-xl p-5 md:p-8 relative overflow-hidden shadow-sm">
+        <section className="bg-white border border-[var(--theme-border)] rounded-2xl p-6 relative overflow-hidden shadow-sm">
           <div className="absolute top-0 right-0 w-1/4 h-full bg-gradient-to-l from-bku-primary/10 to-transparent pointer-events-none" />
 
           <div className="relative z-10 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
             <div className="space-y-1 w-full lg:w-auto">
               <div className="flex items-center gap-2 mb-2">
-                <div className="h-4 w-1.5 bg-bku-primary rounded-full" />
+                <div className="h-4 w-1.5 bg-[var(--theme-primary)] rounded-full" />
                 <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-400 font-jakarta">Layanan Konseling Kampus</span>
               </div>
-              <h1 className="text-2xl md:text-3xl font-bold text-neutral-900 font-jakarta tracking-tight leading-tight">
-                Direktori <span className="text-bku-primary italic font-semibold">Psikolog</span>
+              <h1 className="text-2xl md:text-3xl font-bold text-[var(--theme-text)] font-jakarta tracking-tight leading-tight">
+                Direktori <span className="text-[var(--theme-primary)] italic font-semibold">Psikolog</span>
               </h1>
               <p className="text-neutral-500 font-medium text-xs md:text-sm max-w-2xl leading-relaxed">
                 Manajemen data psikolog terdaftar, lokasi praktik, spesialisasi klinis, dan pengelolaan jadwal ketersediaan.
@@ -427,7 +427,7 @@ export default function PsychologistList() {
         </section>
 
         {/* ── Table Section ────────────────────────────────────────── */}
-        <Card className="border-neutral-200 shadow-sm rounded-xl bg-white overflow-hidden">
+        <Card className="border-[var(--theme-border)] shadow-sm rounded-2xl bg-white overflow-hidden">
           <CardContent className="p-0 animate-in fade-in duration-300">
             <DataTable
               columns={columns}
@@ -476,63 +476,63 @@ export default function PsychologistList() {
           <form onSubmit={handleSave} className="p-6 sm:p-8 pt-4 sm:pt-6 space-y-4 sm:space-y-5 max-h-[70vh] overflow-y-auto">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label className="text-xs font-bold text-neutral-500 font-jakarta ml-1">Nama Lengkap & Gelar</Label>
-                <Input required value={form.Nama} onChange={e => setForm({ ...form, Nama: e.target.value })} placeholder="Nama psikolog..." className="h-11 rounded-lg border-neutral-200 bg-neutral-50/30 focus:bg-white font-medium text-sm font-jakarta uppercase" />
+                <Label className="text-xs font-bold text-[var(--theme-text-muted)] font-jakarta ml-1">Nama Lengkap & Gelar</Label>
+                <Input required value={form.Nama} onChange={e => setForm({ ...form, Nama: e.target.value })} placeholder="Nama psikolog..." className="h-10 rounded-xl border-[var(--theme-border)] bg-white font-medium text-sm font-jakarta uppercase" />
               </div>
               <div className="space-y-2">
-                <Label className="text-xs font-bold text-neutral-500 font-jakarta ml-1">Spesialisasi Klinis</Label>
-                <Input value={form.Spesialisasi} onChange={e => setForm({ ...form, Spesialisasi: e.target.value })} placeholder="Bidang keahlian..." className="h-11 rounded-lg border-neutral-200 bg-neutral-50/30 focus:bg-white font-medium text-sm font-jakarta" />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label className="text-xs font-bold text-neutral-500 font-jakarta ml-1">Email</Label>
-                <Input type="email" value={form.Email} onChange={e => setForm({ ...form, Email: e.target.value })} placeholder="Email psikolog..." className="h-11 rounded-lg border-neutral-200 bg-neutral-50/30 focus:bg-white font-medium text-sm font-jakarta" />
-              </div>
-              <div className="space-y-2">
-                <Label className="text-xs font-bold text-neutral-500 font-jakarta ml-1">No. HP / WhatsApp</Label>
-                <Input value={form.NoHP} onChange={e => setForm({ ...form, NoHP: e.target.value })} placeholder="Contoh: 08123456789" className="h-11 rounded-lg border-neutral-200 bg-neutral-50/30 focus:bg-white font-medium text-sm font-jakarta" />
+                <Label className="text-xs font-bold text-[var(--theme-text-muted)] font-jakarta ml-1">Spesialisasi Klinis</Label>
+                <Input value={form.Spesialisasi} onChange={e => setForm({ ...form, Spesialisasi: e.target.value })} placeholder="Bidang keahlian..." className="h-10 rounded-xl border-[var(--theme-border)] bg-white font-medium text-sm font-jakarta" />
               </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label className="text-xs font-bold text-neutral-500 font-jakarta ml-1">Titik Lokasi Praktek</Label>
-                <Input value={form.Lokasi} onChange={e => setForm({ ...form, Lokasi: e.target.value })} placeholder="Klinik / Ruang Konseling..." className="h-11 rounded-lg border-neutral-200 bg-neutral-50/30 focus:bg-white font-medium text-sm font-jakarta" />
+                <Label className="text-xs font-bold text-[var(--theme-text-muted)] font-jakarta ml-1">Email</Label>
+                <Input type="email" value={form.Email} onChange={e => setForm({ ...form, Email: e.target.value })} placeholder="Email psikolog..." className="h-10 rounded-xl border-[var(--theme-border)] bg-white font-medium text-sm font-jakarta" />
               </div>
               <div className="space-y-2">
-                <Label className="text-xs font-bold text-neutral-500 font-jakarta ml-1">Bahasa Layanan</Label>
-                <Input value={form.Bahasa} onChange={e => setForm({ ...form, Bahasa: e.target.value })} placeholder="Contoh: Indonesia, Inggris" className="h-11 rounded-lg border-neutral-200 bg-neutral-50/30 focus:bg-white font-medium text-sm font-jakarta" />
+                <Label className="text-xs font-bold text-[var(--theme-text-muted)] font-jakarta ml-1">No. HP / WhatsApp</Label>
+                <Input value={form.NoHP} onChange={e => setForm({ ...form, NoHP: e.target.value })} placeholder="Contoh: 08123456789" className="h-10 rounded-xl border-[var(--theme-border)] bg-white font-medium text-sm font-jakarta" />
               </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label className="text-xs font-bold text-neutral-500 font-jakarta ml-1">Status Operasional</Label>
+                <Label className="text-xs font-bold text-[var(--theme-text-muted)] font-jakarta ml-1">Titik Lokasi Praktek</Label>
+                <Input value={form.Lokasi} onChange={e => setForm({ ...form, Lokasi: e.target.value })} placeholder="Klinik / Ruang Konseling..." className="h-10 rounded-xl border-[var(--theme-border)] bg-white font-medium text-sm font-jakarta" />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs font-bold text-[var(--theme-text-muted)] font-jakarta ml-1">Bahasa Layanan</Label>
+                <Input value={form.Bahasa} onChange={e => setForm({ ...form, Bahasa: e.target.value })} placeholder="Contoh: Indonesia, Inggris" className="h-10 rounded-xl border-[var(--theme-border)] bg-white font-medium text-sm font-jakarta" />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-xs font-bold text-[var(--theme-text-muted)] font-jakarta ml-1">Status Operasional</Label>
                 <Select value={form.IsAktif ? "1" : "0"} onValueChange={v => setForm({ ...form, IsAktif: v === "1" })}>
-                  <SelectTrigger className="h-11 rounded-lg border-neutral-200 bg-neutral-50/30 font-medium text-sm"><SelectValue /></SelectTrigger>
-                  <SelectContent className="rounded-xl shadow-xl">
+                  <SelectTrigger className="h-10 rounded-xl border-[var(--theme-border)] bg-white font-medium text-sm"><SelectValue /></SelectTrigger>
+                  <SelectContent className="rounded-xl shadow-xl bg-white border border-[var(--theme-border)]">
                     <SelectItem value="1" className="text-xs font-medium uppercase">Aktif Tersedia</SelectItem>
-                    <SelectItem value="0" className="text-xs font-medium uppercase text-rose-500">Non-Aktif</SelectItem>
+                    <SelectItem value="0" className="text-xs font-medium uppercase text-[var(--theme-error)]">Non-Aktif</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label className="text-xs font-bold text-neutral-500 font-jakarta ml-1">Foto URL / Avatar</Label>
-              <Input value={form.FotoURL} onChange={e => setForm({ ...form, FotoURL: e.target.value })} placeholder="https://example.com/foto.jpg atau path lokal..." className="h-11 rounded-lg border-neutral-200 bg-neutral-50/30 focus:bg-white font-medium text-sm font-jakarta" />
+              <Label className="text-xs font-bold text-[var(--theme-text-muted)] font-jakarta ml-1">Foto URL / Avatar</Label>
+              <Input value={form.FotoURL} onChange={e => setForm({ ...form, FotoURL: e.target.value })} placeholder="https://example.com/foto.jpg atau path lokal..." className="h-10 rounded-xl border-[var(--theme-border)] bg-white font-medium text-sm font-jakarta" />
             </div>
 
             <div className="space-y-2">
-              <Label className="text-xs font-bold text-neutral-500 font-jakarta ml-1">Bio / Deskripsi Singkat</Label>
-              <textarea value={form.Bio} onChange={e => setForm({ ...form, Bio: e.target.value })} placeholder="Tulis deskripsi keahlian, pengalaman, atau latar belakang akademis..." rows={3} className="w-full p-3 rounded-lg border border-neutral-200 bg-neutral-50/30 focus:bg-white text-sm font-medium font-jakarta outline-none focus:border-bku-primary focus:ring-4 focus:ring-bku-primary/10 transition-all resize-none" />
+              <Label className="text-xs font-bold text-[var(--theme-text-muted)] font-jakarta ml-1">Bio / Deskripsi Singkat</Label>
+              <textarea value={form.Bio} onChange={e => setForm({ ...form, Bio: e.target.value })} placeholder="Tulis deskripsi keahlian, pengalaman, atau latar belakang akademis..." rows={3} className="w-full p-3 rounded-xl border border-[var(--theme-border)] bg-white text-sm font-medium font-jakarta outline-none focus:border-[var(--theme-primary)] focus:ring-2 focus:ring-[var(--theme-primary-light)] transition-all resize-none" />
             </div>
 
-            <div className="pt-6 flex flex-col-reverse sm:flex-row gap-3 border-t border-neutral-100">
-              <Button type="button" variant="ghost" onClick={() => setIsEditOpen(false)} className="w-full sm:w-auto h-12 rounded-xl text-xs font-bold uppercase tracking-widest text-neutral-400">Batal</Button>
-              <Button type="submit" disabled={isSubmitting} className="w-full sm:flex-1 h-12 rounded-xl bg-neutral-900 text-white hover:bg-bku-primary shadow-md transition-all active:scale-95 flex items-center justify-center">
+            <div className="pt-6 flex flex-col-reverse sm:flex-row gap-3 border-t border-[var(--theme-border-muted)]">
+              <Button type="button" variant="ghost" onClick={() => setIsEditOpen(false)} className="w-full sm:w-auto h-10 rounded-xl text-xs font-bold uppercase tracking-widest text-[var(--theme-text-muted)]">Batal</Button>
+              <Button type="submit" disabled={isSubmitting} className="w-full sm:flex-1 h-10 rounded-xl bg-[var(--theme-primary)] text-white hover:bg-[var(--theme-primary-hover)] shadow-md transition-all active:scale-95 flex items-center justify-center border-none cursor-pointer">
                 {isSubmitting ? <span className="material-symbols-outlined animate-spin mr-2" style={{ fontSize: '14px' }} >sync</span> : <span className="material-symbols-outlined mr-2" style={{ fontSize: '14px' }} >save</span>}
                 <span className="text-xs font-bold uppercase tracking-widest">Update Profil</span>
               </Button>
@@ -562,23 +562,23 @@ export default function PsychologistList() {
 
           <form onSubmit={handleAdd} className="p-6 sm:p-8 pt-4 sm:pt-6 space-y-4">
             <div className="space-y-2">
-              <Label className="text-xs font-bold text-neutral-500 font-jakarta ml-1">Nama Lengkap & Gelar</Label>
-              <Input required value={addForm.Nama} onChange={e => setAddForm({ ...addForm, Nama: e.target.value })} placeholder="Contoh: Budi Santoso, M.Psi." className="h-11 rounded-lg border-neutral-200 bg-neutral-50/30 focus:bg-white font-medium text-sm font-jakarta uppercase" />
+              <Label className="text-xs font-bold text-[var(--theme-text-muted)] font-jakarta ml-1">Nama Lengkap & Gelar</Label>
+              <Input required value={addForm.Nama} onChange={e => setAddForm({ ...addForm, Nama: e.target.value })} placeholder="Contoh: Budi Santoso, M.Psi." className="h-10 rounded-xl border-[var(--theme-border)] bg-white font-medium text-sm font-jakarta uppercase" />
             </div>
 
             <div className="space-y-2">
-              <Label className="text-xs font-bold text-neutral-500 font-jakarta ml-1">Email</Label>
-              <Input type="email" required value={addForm.Email} onChange={e => setAddForm({ ...addForm, Email: e.target.value })} placeholder="Contoh: psikolog.budi@bku.ac.id" className="h-11 rounded-lg border-neutral-200 bg-neutral-50/30 focus:bg-white font-medium text-sm font-jakarta" />
+              <Label className="text-xs font-bold text-[var(--theme-text-muted)] font-jakarta ml-1">Email</Label>
+              <Input type="email" required value={addForm.Email} onChange={e => setAddForm({ ...addForm, Email: e.target.value })} placeholder="Contoh: psikolog.budi@bku.ac.id" className="h-10 rounded-xl border-[var(--theme-border)] bg-white font-medium text-sm font-jakarta" />
             </div>
 
             <div className="space-y-2">
-              <Label className="text-xs font-bold text-neutral-500 font-jakarta ml-1">Password</Label>
-              <Input type="password" required value={addForm.Password} onChange={e => setAddForm({ ...addForm, Password: e.target.value })} placeholder="Password..." className="h-11 rounded-lg border-neutral-200 bg-neutral-50/30 focus:bg-white font-medium text-sm font-jakarta" />
+              <Label className="text-xs font-bold text-[var(--theme-text-muted)] font-jakarta ml-1">Password</Label>
+              <Input type="password" required value={addForm.Password} onChange={e => setAddForm({ ...addForm, Password: e.target.value })} placeholder="Password..." className="h-10 rounded-xl border-[var(--theme-border)] bg-white font-medium text-sm font-jakarta" />
             </div>
 
-            <div className="pt-6 flex flex-col-reverse sm:flex-row gap-3 border-t border-neutral-100">
-              <Button type="button" variant="ghost" onClick={() => setIsAddOpen(false)} className="w-full sm:w-auto h-12 rounded-xl text-xs font-bold uppercase tracking-widest text-neutral-400">Batal</Button>
-              <Button type="submit" disabled={isSubmitting} className="w-full sm:flex-1 h-12 rounded-xl bg-bku-primary text-white hover:bg-bku-primary/90 shadow-md transition-all active:scale-95 flex items-center justify-center border-none">
+            <div className="pt-6 flex flex-col-reverse sm:flex-row gap-3 border-t border-[var(--theme-border-muted)]">
+              <Button type="button" variant="ghost" onClick={() => setIsAddOpen(false)} className="w-full sm:w-auto h-10 rounded-xl text-xs font-bold uppercase tracking-widest text-[var(--theme-text-muted)]">Batal</Button>
+              <Button type="submit" disabled={isSubmitting} className="w-full sm:flex-1 h-10 rounded-xl bg-[var(--theme-primary)] text-white hover:bg-[var(--theme-primary-hover)] shadow-md transition-all active:scale-95 flex items-center justify-center border-none cursor-pointer">
                 {isSubmitting ? <span className="material-symbols-outlined animate-spin mr-2" style={{ fontSize: '14px' }} >sync</span> : <span className="material-symbols-outlined mr-2" style={{ fontSize: '14px' }} >save</span>}
                 <span className="text-xs font-bold uppercase tracking-widest">Daftarkan Akun</span>
               </Button>

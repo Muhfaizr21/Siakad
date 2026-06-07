@@ -29,22 +29,22 @@ export default function KencanaPage() {
       subtitle="Pantau seluruh tahapan orientasi, pembinaan, nilai, remedial, dan sertifikat Kencana dari satu tempat."
     >
       {/* Overview Section */}
-      <section className="overflow-hidden rounded-[2rem] border border-blue-200 bg-blue-700 text-white shadow-xl mb-6">
+      <section className="overflow-hidden rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-primary)] text-[var(--theme-text-on-primary)] shadow-xl mb-6">
         <div className="grid gap-6 p-6 md:grid-cols-[1.4fr_0.8fr] md:p-8">
           <div>
-            <p className="text-xs font-bold uppercase tracking-[0.2em] text-blue-200">{dashboardData?.period?.name || 'Kencana'}</p>
-            <h2 className="mt-2 text-2xl font-black md:text-3xl">Status: {dashboardData?.graduation_status ? <span>{dashboardData.graduation_status.replaceAll('_', ' ')}</span> : 'Belum Mulai'}</h2>
-            <p className="mt-3 max-w-2xl text-sm font-medium leading-relaxed text-blue-100">Tahap aktif: {dashboardData?.active_stage?.name || 'Menunggu jadwal admin'}. Timeline, sesi, quiz, dan tugas mengikuti data yang dipublish pengelola.</p>
+            <p className="text-xs font-bold uppercase tracking-[0.2em] text-[var(--theme-muted-on-primary)]">{dashboardData?.period?.name || 'Kencana'}</p>
+            <h2 className="mt-2 text-2xl font-black md:text-3xl font-headline">Status: {dashboardData?.graduation_status ? <span>{dashboardData.graduation_status.replaceAll('_', ' ')}</span> : 'Belum Mulai'}</h2>
+            <p className="mt-3 max-w-2xl text-sm font-medium leading-relaxed text-[var(--theme-muted-on-primary)]">Tahap aktif: {dashboardData?.active_stage?.name || 'Menunggu jadwal admin'}. Timeline, sesi, quiz, dan tugas mengikuti data yang dipublish pengelola.</p>
             <div className="mt-5 max-w-xl">
-              <div className="mb-2 flex justify-between text-xs font-bold uppercase tracking-widest text-blue-100"><span>Progress Total</span><span>{dashboardData?.progress_total || 0}%</span></div>
+              <div className="mb-2 flex justify-between text-xs font-bold uppercase tracking-widest text-[var(--theme-muted-on-primary)]"><span>Progress Total</span><span>{dashboardData?.progress_total || 0}%</span></div>
               <ProgressBar value={dashboardData?.progress_total || 0} />
             </div>
           </div>
-          <div className="rounded-3xl bg-white/10 p-5 backdrop-blur flex flex-col justify-center">
-            <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-blue-200">Nilai Kencana University</p>
-            <p className="mt-2 text-4xl font-black">{Number(dashboardData?.temporary_final_score || 0).toFixed(1)}</p>
+          <div className="rounded-2xl bg-white/10 p-5 backdrop-blur flex flex-col justify-center">
+            <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[var(--theme-muted-on-primary)] font-headline">Nilai Kencana University</p>
+            <p className="mt-2 text-4xl font-black font-headline">{Number(dashboardData?.temporary_final_score || 0).toFixed(1)}</p>
             <div className="mt-3"><StatusBadge status={dashboardData?.graduation_status} /></div>
-            <p className="mt-3 text-sm font-semibold text-blue-100">{dashboardData?.needs_remedial ? 'Ada komponen yang perlu diperbaiki.' : 'Tidak ada remedial aktif saat ini.'}</p>
+            <p className="mt-3 text-sm font-semibold text-[var(--theme-muted-on-primary)]">{dashboardData?.needs_remedial ? 'Ada komponen yang perlu diperbaiki.' : 'Tidak ada remedial aktif saat ini.'}</p>
           </div>
         </div>
       </section>
@@ -134,11 +134,11 @@ export default function KencanaPage() {
       <section className="grid gap-5 lg:grid-cols-[1.6fr_1fr]">
         <div className="space-y-6">
           {/* Timeline Cards */}
-          <div className="rounded-3xl border border-slate-200 bg-white/85 p-6 shadow-sm">
+          <div className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-surface)]/85 p-6 shadow-sm">
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h3 className="text-lg font-black text-slate-800">Timeline Tahapan Kencana</h3>
-                <p className="text-sm font-medium text-slate-500 mt-1">Pilih tahapan untuk melihat sesi, materi, tugas, dan kuis.</p>
+                <h3 className="text-lg font-black text-[var(--theme-text)] font-headline">Timeline Tahapan Kencana</h3>
+                <p className="text-sm font-medium text-[var(--theme-text-muted)] mt-1">Pilih tahapan untuk melihat sesi, materi, tugas, dan kuis.</p>
               </div>
             </div>
             
@@ -150,7 +150,7 @@ export default function KencanaPage() {
                   <CardComponent 
                     key={stage.id} 
                     {...linkProps} 
-                    className={`group relative grid gap-4 rounded-2xl border ${stage.status === 'active' ? 'border-blue-500 bg-blue-50 shadow-md' : 'border-slate-200 bg-white'} p-5 transition-all ${user?.role === 'super_admin' ? '' : 'hover:-translate-y-1 hover:shadow-lg'} md:grid-cols-[auto_1fr_auto]`}
+                    className={`group relative grid gap-4 rounded-2xl border ${stage.status === 'active' ? 'border-[var(--theme-primary)] bg-[var(--theme-primary-light)] shadow-md' : 'border-[var(--theme-border)] bg-[var(--theme-surface)]'} p-5 transition-all ${user?.role === 'super_admin' ? '' : 'hover:-translate-y-1 hover:shadow-lg'} md:grid-cols-[auto_1fr_auto]`}
                   >
                     {stage.status === 'active' && (
                       <div className="absolute -top-2 -right-2">
@@ -159,27 +159,27 @@ export default function KencanaPage() {
                         </span>
                       </div>
                     )}
-                    <div className={`grid size-12 place-items-center rounded-xl ${stage.status === 'active' ? 'bg-blue-600 text-white shadow-md' : 'bg-slate-100 text-slate-500'} text-lg font-black`}>
+                    <div className={`grid size-12 place-items-center rounded-xl ${stage.status === 'active' ? 'bg-[var(--theme-primary)] text-[var(--theme-text-on-primary)] shadow-md' : 'bg-[var(--theme-border-muted)] text-[var(--theme-text-muted)]'} text-lg font-black font-headline`}>
                       {index + 1}
                     </div>
                     <div>
                       <div className="flex flex-wrap items-center gap-2">
-                        <h4 className={`text-base font-black ${stage.status === 'active' ? 'text-blue-700' : 'text-slate-800'}`}>{stage.name}</h4>
+                        <h4 className={`text-base font-black font-headline ${stage.status === 'active' ? 'text-[var(--theme-primary)]' : 'text-[var(--theme-text)]'}`}>{stage.name}</h4>
                         <StatusBadge status={stage.status} />
                       </div>
-                      <p className="mt-1 text-sm font-medium text-slate-500 line-clamp-2">{stage.description}</p>
+                      <p className="mt-1 text-sm font-medium text-[var(--theme-text-muted)] line-clamp-2">{stage.description}</p>
                       {stage.phase_type !== 'pasca_kencana' && (
-                        <p className="mt-2 text-[10px] md:text-xs font-bold uppercase tracking-widest text-slate-400 flex items-center gap-1">
+                        <p className="mt-2 text-[10px] md:text-xs font-bold uppercase tracking-widest text-[var(--theme-text-subtle)] flex items-center gap-1">
                           <span className="material-symbols-outlined text-[14px]">calendar_today</span> 
                           {fmtDate(stage.start_date)} - {fmtDate(stage.end_date)}
                         </p>
                       )}
                     </div>
-                    <div className="flex gap-2 self-center border-t border-slate-100 pt-4 md:border-t-0 md:pt-0">
+                    <div className="flex gap-2 self-center border-t border-[var(--theme-border-muted)] pt-4 md:border-t-0 md:pt-0">
                       {stage.phase_type === 'pasca_kencana' ? (
-                        <div className="rounded-xl bg-blue-50 px-4 py-2 flex items-center gap-2 border border-blue-100">
-                          <span className="material-symbols-outlined text-blue-600">workspace_premium</span>
-                          <span className="text-xs font-black text-blue-800 uppercase tracking-widest">Lihat Nilai</span>
+                        <div className="rounded-xl bg-[var(--theme-primary-light)] px-4 py-2 flex items-center gap-2 border border-[var(--theme-primary)]/20">
+                          <span className="material-symbols-outlined text-[var(--theme-primary)]">workspace_premium</span>
+                          <span className="text-xs font-black text-[var(--theme-primary)] uppercase tracking-widest font-headline">Lihat Nilai</span>
                         </div>
                       ) : (
                         <>
@@ -192,9 +192,9 @@ export default function KencanaPage() {
                 );
               })}
               {sortedStages.length === 0 && (
-                <div className="text-center py-10 rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50">
-                  <span className="material-symbols-outlined text-4xl text-slate-300 mb-2">calendar_month</span>
-                  <p className="text-slate-400 font-bold">Timeline belum tersedia.</p>
+                <div className="text-center py-10 rounded-2xl border-2 border-dashed border-[var(--theme-border)] bg-[var(--theme-border-muted)]">
+                  <span className="material-symbols-outlined text-4xl text-[var(--theme-text-subtle)] mb-2">calendar_month</span>
+                  <p className="text-[var(--theme-text-subtle)] font-bold font-headline">Timeline belum tersedia.</p>
                 </div>
               )}
             </div>
@@ -203,28 +203,28 @@ export default function KencanaPage() {
           {/* Quick Actions Menus */}
           {user?.role !== 'super_admin' && (
             <div className="grid gap-4 md:grid-cols-3">
-              <Link to="/student/kencana/score" className="group rounded-2xl border border-slate-200 bg-white p-5 transition hover:bg-slate-50 hover:-translate-y-1 hover:shadow-sm">
-                <div className="grid size-12 place-items-center rounded-xl bg-amber-500 text-white mb-4">
+              <Link to="/student/kencana/score" className="group rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-surface)] p-5 transition hover:bg-[var(--theme-border-muted)] hover:-translate-y-1 hover:shadow-sm">
+                <div className="grid size-12 place-items-center rounded-xl bg-[var(--theme-warning)] text-white mb-4 shadow-sm">
                   <span className="material-symbols-outlined">workspace_premium</span>
                 </div>
-                <h4 className="font-black text-slate-800 group-hover:text-amber-600 transition-colors">Pasca-Kencana</h4>
-                <p className="text-[11px] font-semibold text-slate-500 mt-1">Rekap Nilai & Sertifikat</p>
+                <h4 className="font-black text-[var(--theme-text)] group-hover:text-[var(--theme-warning)] transition-colors font-headline">Pasca-Kencana</h4>
+                <p className="text-[11px] font-semibold text-[var(--theme-text-muted)] mt-1">Rekap Nilai & Sertifikat</p>
               </Link>
               
-              <Link to="/student/kencana/invitations" className="group rounded-2xl border border-slate-200 bg-white p-5 transition hover:bg-blue-50 hover:-translate-y-1 hover:shadow-sm">
-                <div className="grid size-12 place-items-center rounded-xl bg-blue-600 text-white mb-4">
+              <Link to="/student/kencana/invitations" className="group rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-surface)] p-5 transition hover:bg-[var(--theme-border-muted)] hover:-translate-y-1 hover:shadow-sm">
+                <div className="grid size-12 place-items-center rounded-xl bg-[var(--theme-primary)] text-[var(--theme-text-on-primary)] mb-4 shadow-sm">
                   <span className="material-symbols-outlined">group</span>
                 </div>
-                <h4 className="font-black text-slate-800 group-hover:text-blue-700 transition-colors">Undangan DP</h4>
-                <p className="text-[11px] font-semibold text-slate-500 mt-1">Pembimbing Kencana</p>
+                <h4 className="font-black text-[var(--theme-text)] group-hover:text-[var(--theme-primary)] transition-colors font-headline">Undangan DP</h4>
+                <p className="text-[11px] font-semibold text-[var(--theme-text-muted)] mt-1">Pembimbing Kencana</p>
               </Link>
 
-              <Link to="/student/kencana/attendance" className="group rounded-2xl border border-slate-200 bg-white p-5 transition hover:bg-blue-50 hover:-translate-y-1 hover:shadow-sm">
-                <div className="grid size-12 place-items-center rounded-xl bg-indigo-600 text-white mb-4">
+              <Link to="/student/kencana/attendance" className="group rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-surface)] p-5 transition hover:bg-[var(--theme-border-muted)] hover:-translate-y-1 hover:shadow-sm">
+                <div className="grid size-12 place-items-center rounded-xl bg-[var(--theme-info)] text-white mb-4 shadow-sm">
                   <span className="material-symbols-outlined">fact_check</span>
                 </div>
-                <h4 className="font-black text-slate-800 group-hover:text-indigo-700 transition-colors">Log Presensi</h4>
-                <p className="text-[11px] font-semibold text-slate-500 mt-1">Kehadiran tiap sesi</p>
+                <h4 className="font-black text-[var(--theme-text)] group-hover:text-[var(--theme-info)] transition-colors font-headline">Log Presensi</h4>
+                <p className="text-[11px] font-semibold text-[var(--theme-text-muted)] mt-1">Kehadiran tiap sesi</p>
               </Link>
             </div>
           )}
@@ -233,10 +233,10 @@ export default function KencanaPage() {
         <div className="space-y-6">
           {/* Last Activity */}
           {user?.role !== 'super_admin' && dashboardData?.last_activity?.id && (
-            <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm relative overflow-hidden">
-              <div className="absolute top-0 left-0 w-1 h-full bg-blue-600"></div>
-              <p className="text-xs font-black uppercase tracking-widest text-slate-400">Aktivitas Terakhir</p>
-              <h4 className="text-lg font-black text-slate-800 mt-2 leading-tight">{dashboardData.last_activity.title}</h4>
+            <div className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-surface)] p-6 shadow-sm relative overflow-hidden">
+              <div className="absolute top-0 left-0 w-1 h-full bg-[var(--theme-primary)]"></div>
+              <p className="text-xs font-black uppercase tracking-widest text-[var(--theme-text-subtle)]">Aktivitas Terakhir</p>
+              <h4 className="text-lg font-black text-[var(--theme-text)] mt-2 leading-tight font-headline">{dashboardData.last_activity.title}</h4>
               <div className="mt-4">
                 <PrimaryButton to={`/student/kencana/session/${dashboardData.last_activity.id}`} className="w-full justify-center">
                   Lanjutkan Belajar <span className="material-symbols-outlined text-sm">arrow_forward</span>
@@ -246,36 +246,36 @@ export default function KencanaPage() {
           )}
 
           {/* Transparansi Status */}
-          <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-            <h3 className="text-xl font-black text-slate-800">Transparansi Status</h3>
+          <div className="rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-surface)] p-6 shadow-sm">
+            <h3 className="text-xl font-black text-[var(--theme-text)] font-headline">Transparansi Status</h3>
             {dashboardData?.mentor ? (
-              <div className="mt-4 rounded-2xl bg-emerald-50 border border-emerald-100 p-4 flex items-center gap-3 text-sm font-bold text-emerald-800">
-                <span className="material-symbols-outlined text-emerald-600">supervised_user_circle</span>
+              <div className="mt-4 rounded-2xl bg-[var(--theme-success-light)] border border-[var(--theme-success)]/20 p-4 flex items-center gap-3 text-sm font-bold text-[var(--theme-success)]">
+                <span className="material-symbols-outlined text-[var(--theme-success)]">supervised_user_circle</span>
                 <div>
-                  <p className="text-[10px] font-black uppercase tracking-wider text-emerald-600">Dewan Pembimbing Aktif</p>
-                  <p className="mt-0.5 leading-tight">{dashboardData.mentor.name}</p>
+                  <p className="text-[10px] font-black uppercase tracking-wider text-[var(--theme-success)]">Dewan Pembimbing Aktif</p>
+                  <p className="mt-0.5 leading-tight font-headline">{dashboardData.mentor.name}</p>
                 </div>
               </div>
             ) : (
-              <div className="mt-4 rounded-2xl bg-amber-50 border border-amber-100 p-4 flex items-center gap-3 text-sm font-bold text-amber-800">
-                <span className="material-symbols-outlined text-amber-600">warning</span>
+              <div className="mt-4 rounded-2xl bg-[var(--theme-warning-light)] border border-[var(--theme-warning)]/20 p-4 flex items-center gap-3 text-sm font-bold text-[var(--theme-warning)]">
+                <span className="material-symbols-outlined text-[var(--theme-warning)]">warning</span>
                 <div>
-                  <p className="text-[10px] font-black uppercase tracking-wider text-amber-600">Dewan Pembimbing</p>
-                  <p className="mt-0.5 leading-tight">Belum ada pembimbing aktif. Segera terima undangan DP.</p>
+                  <p className="text-[10px] font-black uppercase tracking-wider text-[var(--theme-warning)]">Dewan Pembimbing</p>
+                  <p className="mt-0.5 leading-tight font-headline">Belum ada pembimbing aktif. Segera terima undangan DP.</p>
                 </div>
               </div>
             )}
 
             <div className="mt-4 space-y-3">
               {blockers.length === 0 ? (
-                <div className="rounded-2xl bg-emerald-50 border border-emerald-100 p-4 text-sm font-bold text-emerald-700 flex items-center gap-3">
-                  <span className="material-symbols-outlined text-emerald-600 text-xl">check_circle</span>
+                <div className="rounded-2xl bg-[var(--theme-success-light)] border border-[var(--theme-success)]/20 p-4 text-sm font-bold text-[var(--theme-success)] flex items-center gap-3">
+                  <span className="material-symbols-outlined text-[var(--theme-success)] text-xl">check_circle</span>
                   <span className="leading-tight">Tidak ada penghalang kelulusan terdeteksi.</span>
                 </div>
               ) : (
                 blockers.map((b) => (
-                  <div key={b} className="rounded-2xl bg-rose-50 border border-rose-100 p-4 text-sm font-bold text-rose-800 flex items-start gap-3">
-                    <span className="material-symbols-outlined text-rose-600 text-xl mt-0.5">cancel</span>
+                  <div key={b} className="rounded-2xl bg-[var(--theme-error-light)] border border-[var(--theme-error)]/20 p-4 text-sm font-bold text-[var(--theme-error)] flex items-start gap-3">
+                    <span className="material-symbols-outlined text-[var(--theme-error)] text-xl mt-0.5">cancel</span>
                     <span className="leading-tight">{b}</span>
                   </div>
                 ))
@@ -284,11 +284,11 @@ export default function KencanaPage() {
 
             {notifications.length > 0 && (
               <div className="mt-6 space-y-3">
-                <h4 className="text-xs font-black uppercase tracking-wider text-slate-400 border-b border-slate-200 pb-2">Pengumuman & Notifikasi</h4>
+                <h4 className="text-xs font-black uppercase tracking-wider text-[var(--theme-text-subtle)] border-b border-[var(--theme-border)] pb-2 font-headline">Pengumuman & Notifikasi</h4>
                 {notifications.map((n, i) => (
-                  <div key={i} className="rounded-2xl border border-slate-200 p-4 bg-slate-50">
-                    <p className="font-black text-slate-800 text-sm leading-tight">{n.title}</p>
-                    <p className="text-[13px] font-medium text-slate-500 mt-1.5 leading-relaxed">{n.message}</p>
+                  <div key={i} className="rounded-2xl border border-[var(--theme-border)] p-4 bg-[var(--theme-border-muted)]">
+                    <p className="font-black text-[var(--theme-text)] text-sm leading-tight font-headline">{n.title}</p>
+                    <p className="text-[13px] font-medium text-[var(--theme-text-muted)] mt-1.5 leading-relaxed">{n.message}</p>
                   </div>
                 ))}
               </div>
@@ -302,9 +302,13 @@ export default function KencanaPage() {
 
 function Mini({ label, value, active }) {
   return (
-    <div className={`rounded-xl px-3 py-2 text-center min-w-[64px] ${active ? 'bg-white shadow-sm border border-[#0f4c5c]/10' : 'bg-[#f7f1e5]'}`}>
-      <p className={`text-lg font-black ${active ? 'text-[#0f4c5c]' : 'text-[#1d1b16]'}`}>{value || 0}</p>
-      <p className="text-[9px] font-black uppercase tracking-widest text-[#9b8f7a] mt-0.5">{label}</p>
+    <div className={`rounded-xl px-3 py-2 text-center min-w-[64px] border ${
+      active 
+        ? 'bg-[var(--theme-surface)] shadow-sm border-[var(--theme-primary)]/20' 
+        : 'bg-[var(--theme-border-muted)] border-[var(--theme-border)]'
+    }`}>
+      <p className={`text-lg font-black font-headline ${active ? 'text-[var(--theme-primary)]' : 'text-[var(--theme-text)]'}`}>{value || 0}</p>
+      <p className="text-[9px] font-black uppercase tracking-widest text-[var(--theme-text-muted)] mt-0.5">{label}</p>
     </div>
   );
 }

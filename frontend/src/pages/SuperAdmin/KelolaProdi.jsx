@@ -13,6 +13,8 @@ import { cn } from '@/lib/utils'
 import { adminService } from '../../services/api'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/Select'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts"
+import { PageContent, PageCard } from '@/components/ui/page'
+import { DashboardHero, DashboardStatGrid, DashboardStatCard } from '@/components/ui/dashboard'
 
 // Auto-injected Material Symbol fallbacks for removed Lucide icons
 const RefreshCw = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>sync</span>;
@@ -180,99 +182,82 @@ export default function KelolaProdi() {
   const PIE_COLORS = ['var(--theme-primary, #00236f)', '#4f46e5', '#10b981', '#f59e0b', '#f43f5e', '#14b8a6']
 
   return (
-    <div className="min-h-screen bg-transparent font-inter">
+    <PageContent>
       <Toaster position="top-right" />
       
-      <div className="max-w-[1600px] mx-auto space-y-10">
-        
         {/* ── Page Header ─────────────────────────────────────────── */}
-        <section className="glass-card rounded-xl p-6 md:p-8 relative overflow-hidden shadow-sm">
-          <div className="absolute top-0 right-0 w-1/4 h-full bg-gradient-to-l from-blue-50/50 to-transparent pointer-events-none" />
-          
-          <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-            <div className="space-y-1">
-              <div className="flex items-center gap-2 mb-2">
-                <div className="h-4 w-1.5 bg-bku-primary rounded-full" />
-                <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 font-headline">Academic Operations</span>
-              </div>
-              <h1 className="text-3xl font-black font-headline tracking-tight leading-tight" style={{ color: 'var(--theme-h1)' }}>
-                Kelola <span className="text-bku-primary">Program Studi</span>
-              </h1>
-              <p className="text-slate-500 font-medium text-sm max-w-2xl leading-relaxed">
-                Manajemen kurikulum, jenjang pendidikan, dan sinkronisasi struktur program studi lintas fakultas melalui master database PDDIKTI.
-              </p>
-            </div>
-            
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
+        <DashboardHero
+          title="Kelola"
+          highlightedTitle="Program Studi"
+          subtitle="Manajemen kurikulum, jenjang pendidikan, dan sinkronisasi struktur program studi lintas fakultas melalui master database PDDIKTI."
+          icon="school"
+          badges={[
+            { label: 'Academic Operations', active: true }
+          ]}
+          actions={
+            <>
               <Button 
                 onClick={handleSyncPddikti} 
                 variant="outline" 
                 disabled={isSyncing}
                 className="h-11 px-6 rounded-xl border-slate-200 text-xs font-bold uppercase tracking-widest text-slate-600 hover:bg-slate-50 gap-2 transition-all active:scale-95 shadow-sm w-full sm:w-auto flex items-center justify-center font-headline"
               >
-                {isSyncing ? <span className="material-symbols-outlined animate-spin text-bku-primary" style={{ fontSize: '14px' }} >sync</span> : <RefreshCw size={14} className="text-bku-primary" />}
+                {isSyncing ? <span className="material-symbols-outlined animate-spin text-primary" style={{ fontSize: '14px' }} >sync</span> : <RefreshCw size={14} className="text-primary" />}
                 {isSyncing ? 'Syncing...' : 'PDDIKTI Sync'}
               </Button>
               
               <Button 
                 onClick={handleOpenAdd}
-                className="h-11 px-8 rounded-xl bg-slate-900 text-white hover:bg-bku-primary shadow-xl shadow-slate-900/10 gap-3 transition-all active:scale-95 border-none group w-full sm:w-auto flex items-center justify-center font-headline"
+                className="h-11 px-8 rounded-xl bg-slate-900 text-white hover:bg-primary shadow-xl shadow-slate-900/10 gap-3 transition-all active:scale-95 border-none group w-full sm:w-auto flex items-center justify-center font-headline"
               >
                 <div className="size-5 rounded-lg bg-white/10 flex items-center justify-center group-hover:bg-white/20 transition-colors">
                   <span className="material-symbols-outlined" style={{ fontSize: '14px' }}  strokeWidth={3}>add</span>
                 </div>
                 <span className="text-xs font-bold uppercase tracking-[0.2em]">Registrasi Prodi</span>
               </Button>
-            </div>
-          </div>
-        </section>
+            </>
+          }
+        />
         
         {/* ── Stats Grid ──────────────────────────────────────────── */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-           <div className="glass-card p-4 rounded-2xl shadow-sm border border-slate-100">
-              <div className="flex items-center gap-3 mb-3">
-                 <div className="w-10 h-10 bg-blue-50 rounded-xl flex justify-center items-center text-bku-primary flex-shrink-0">
-                    <span className="material-symbols-outlined" style={{ fontSize: '18px' }} >school</span>
-                 </div>
-                 <span className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-widest">Total Prodi</span>
-              </div>
-              <p className="text-2xl font-extrabold text-[#171717] font-headline leading-none tabular-nums">{stats.total}</p>
-              <p className="text-xs text-[#a3a3a3] font-medium mt-1">Program studi terdaftar</p>
-           </div>
+        {/* ── Stats Grid ──────────────────────────────────────────── */}
+        <DashboardStatGrid>
+          <DashboardStatCard
+            title="Total Prodi"
+            value={stats.total}
+            icon="school"
+            iconColor="text-blue-600"
+            iconBg="bg-blue-50"
+            subtitle="Program studi terdaftar"
+          />
 
-           <div className="glass-card p-4 rounded-2xl shadow-sm border border-slate-100">
-              <div className="flex items-center gap-3 mb-3">
-                 <div className="w-10 h-10 bg-indigo-50 rounded-xl flex justify-center items-center text-indigo-600 flex-shrink-0">
-                    <BookOpen size={18} />
-                 </div>
-                 <span className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-widest">Fakultas</span>
-              </div>
-              <p className="text-2xl font-extrabold text-[#171717] font-headline leading-none tabular-nums">{stats.faculties}</p>
-              <p className="text-xs text-[#a3a3a3] font-medium mt-1">Unit akademik naungan</p>
-           </div>
+          <DashboardStatCard
+            title="Fakultas"
+            value={stats.faculties}
+            icon="menu_book"
+            iconColor="text-indigo-600"
+            iconBg="bg-indigo-50"
+            subtitle="Unit akademik naungan"
+          />
 
-           <div className="glass-card p-4 rounded-2xl shadow-sm border border-slate-100">
-              <div className="flex items-center gap-3 mb-3">
-                 <div className="w-10 h-10 bg-amber-50 rounded-xl flex justify-center items-center text-amber-600 flex-shrink-0">
-                    <Layers size={18} />
-                 </div>
-                 <span className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-widest">Jenjang S1</span>
-              </div>
-              <p className="text-2xl font-extrabold text-[#171717] font-headline leading-none tabular-nums">{stats.s1}</p>
-              <p className="text-xs text-[#a3a3a3] font-medium mt-1">Program sarjana strata 1</p>
-           </div>
+          <DashboardStatCard
+            title="Jenjang S1"
+            value={stats.s1}
+            icon="layers"
+            iconColor="text-amber-600"
+            iconBg="bg-amber-50"
+            subtitle="Program sarjana strata 1"
+          />
 
-           <div className="glass-card p-4 rounded-2xl shadow-sm border border-slate-100">
-              <div className="flex items-center gap-3 mb-3">
-                 <div className="w-10 h-10 bg-emerald-50 rounded-xl flex justify-center items-center text-emerald-600 flex-shrink-0">
-                    <BookOpen size={18} />
-                 </div>
-                 <span className="text-[10px] font-black text-[#a3a3a3] uppercase tracking-widest">Jenjang D3</span>
-              </div>
-              <p className="text-2xl font-extrabold text-[#171717] font-headline leading-none tabular-nums">{stats.d3}</p>
-              <p className="text-xs text-[#a3a3a3] font-medium mt-1">Program diploma tiga</p>
-           </div>
-        </div>
+          <DashboardStatCard
+            title="Jenjang D3"
+            value={stats.d3}
+            icon="menu_book"
+            iconColor="text-emerald-600"
+            iconBg="bg-emerald-50"
+            subtitle="Program diploma tiga"
+          />
+        </DashboardStatGrid>
 
         {/* ── Charts Section ──────────────────────────────────────── */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -350,7 +335,7 @@ export default function KelolaProdi() {
         </div>
 
         {/* ── Table Section ────────────────────────────────────────── */}
-        <div className="glass-card rounded-3xl shadow-sm overflow-hidden border-none">
+        <PageCard>
 
           {/* Table Toolbar */}
           <div className="p-4 md:p-5 border-b border-[#e5e5e5] bg-transparent">
@@ -554,9 +539,7 @@ export default function KelolaProdi() {
             </div>
           </div>
 
-        </div>
-
-      </div>
+        </PageCard>
 
       {/* ── CRUD Modal ───────────────────────────────────────────── */}
       <Dialog open={isCrudOpen} onOpenChange={setIsCrudOpen}>
@@ -671,7 +654,7 @@ export default function KelolaProdi() {
         description="Data program studi ini akan dihapus secara permanen beserta seluruh relasinya. Tindakan ini tidak dapat dibatalkan."
         loading={isSubmitting}
       />
-    </div>
+    </PageContent>
   )
 }
 

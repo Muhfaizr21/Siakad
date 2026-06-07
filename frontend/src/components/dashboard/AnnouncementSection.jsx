@@ -1,20 +1,21 @@
 import React from 'react';
-import { Bell, Info, ArrowRight } from 'lucide-react';
+import { ArrowRight, Info } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
+import { PageCard, PageCardHeader } from '@/components/ui/page';
 
 export default function AnnouncementSection({ announcements }) {
   return (
-    <div className="bg-surface p-8 rounded-3xl border border-border shadow-sm mb-12">
-      <div className="flex items-center justify-between mb-8">
-        <h2 className="text-xl font-extrabold font-headline flex items-center gap-3">
-          <Bell size={24} className="text-primary" />
-          Pengumuman Terbaru
-        </h2>
-        <NavLink to="/student/notifikasi" className="text-sm font-bold text-primary hover:underline flex items-center gap-1 group">
-          Lihat Semua
-          <ArrowRight size={16} className="translate-x-0 group-hover:translate-x-1 transition-all" />
-        </NavLink>
-      </div>
+    <PageCard className="mb-6">
+      <PageCardHeader 
+        title="Pengumuman Terbaru"
+        icon="notifications"
+        action={
+          <NavLink to="/student/notifikasi" className="text-xs font-bold text-primary hover:underline flex items-center gap-1 group">
+            Lihat Semua
+            <ArrowRight size={14} className="translate-x-0 group-hover:translate-x-1 transition-all" />
+          </NavLink>
+        }
+      />
 
       {announcements?.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -47,6 +48,6 @@ export default function AnnouncementSection({ announcements }) {
            <p className="font-bold text-text-muted">Belum ada pengumuman terbaru.</p>
         </div>
       )}
-    </div>
+    </PageCard>
   );
 }

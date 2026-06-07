@@ -1,6 +1,7 @@
 import React from 'react';
-import { Activity, Trophy, MessageSquare, BookOpen, GraduationCap, HeartHandshake, Users, Info } from 'lucide-react';
+import { Trophy, MessageSquare, BookOpen, GraduationCap, HeartHandshake, Users, Info } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
+import { PageCard, PageCardHeader } from '@/components/ui/page';
 
 const ACTIVITY_ICONS = {
   achievement: { icon: Trophy, bg: 'bg-primary/10', text: 'text-primary' },
@@ -21,13 +22,11 @@ function formatRelativeTime(date) {
 
 export default function ActivityFeed({ activities }) {
   return (
-    <div className="bg-surface p-6 rounded-3xl border border-border shadow-sm flex flex-col h-full">
-      <div className="flex items-center justify-between mb-8">
-        <h3 className="text-xl font-extrabold font-headline flex items-center gap-2.5">
-          <Activity size={20} className="text-primary" />
-          Aktivitas Terbaru
-        </h3>
-      </div>
+    <PageCard className="flex flex-col h-full">
+      <PageCardHeader 
+        title="Aktivitas Terbaru"
+        icon="insights"
+      />
 
       {activities?.length > 0 ? (
         <div className="flex-1 flex flex-col gap-6 relative">
@@ -65,6 +64,6 @@ export default function ActivityFeed({ activities }) {
            </p>
         </div>
       )}
-    </div>
+    </PageCard>
   );
 }

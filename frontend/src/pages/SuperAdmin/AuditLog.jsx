@@ -5,6 +5,8 @@ import { DataTable } from '@/components/ui/DataTable'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { Card, CardContent } from '@/components/ui/Card'
+import { PageContent, PageCard } from '@/components/ui/page'
+import { DashboardHero } from '@/components/ui/dashboard'
 
 import { toast, Toaster } from 'react-hot-toast'
 import { cn } from '@/lib/utils'
@@ -95,41 +97,31 @@ export default function AuditLog() {
   ]
 
   return (
-    <div className="min-h-screen bg-transparent font-inter">
+    <PageContent>
       <Toaster position="top-right" />
       
       <div className="max-w-[1600px] mx-auto space-y-10">
         
         {/* ── Page Header ─────────────────────────────────────────── */}
-        <section className="glass-card rounded-xl p-6 md:p-8 relative overflow-hidden shadow-sm">
-          <div className="absolute top-0 right-0 w-1/4 h-full bg-gradient-to-l from-neutral-50/50 to-transparent pointer-events-none" />
-          
-          <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-            <div className="space-y-1">
-              <div className="flex items-center gap-2 mb-2">
-                <div className="h-4 w-1.5 bg-bku-primary rounded-full" />
-                <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 font-headline">Security Forensics</span>
-              </div>
-              <h1 className="text-3xl font-black font-headline tracking-tight leading-tight" style={{ color: 'var(--theme-h1)' }}>
-                Audit <span className="text-bku-primary">Log</span>
-              </h1>
-              <p className="text-slate-500 font-medium text-sm max-w-2xl leading-relaxed">
-                Rekaman jejak operasional sistem, perubahan data, dan aktivitas otentikasi secara transparan.
-              </p>
-            </div>
-            
-            <div className="flex items-center gap-3">
-              <Button 
-                onClick={() => toast.success('Memulai ekspor log forensik...')} 
-                variant="outline"
-                className="h-11 px-5 rounded-xl border-slate-200 text-xs font-bold uppercase tracking-widest text-slate-600 hover:bg-slate-50 gap-2 transition-all active:scale-95 font-headline"
-              >
-                <Download size={14} className="text-bku-primary" />
-                Ekspor Forensik
-              </Button>
-            </div>
-          </div>
-        </section>
+        <DashboardHero
+          title="Audit"
+          highlightedTitle="Log"
+          subtitle="Rekaman jejak operasional sistem, perubahan data, dan aktivitas otentikasi secara transparan."
+          icon="history"
+          badges={[
+            { label: 'Security Forensics', active: true }
+          ]}
+          action={
+            <Button 
+              onClick={() => toast.success('Memulai ekspor log forensik...')} 
+              variant="outline"
+              className="h-11 px-5 rounded-xl border-slate-200 text-xs font-bold uppercase tracking-widest text-slate-600 hover:bg-slate-50 gap-2 transition-all active:scale-95 font-headline"
+            >
+              <Download size={14} className="text-bku-primary" />
+              Ekspor Forensik
+            </Button>
+          }
+        />
 
         {/* ── Table Section ────────────────────────────────────────── */}
         <Card className="glass-card shadow-sm rounded-xl overflow-hidden">
@@ -173,6 +165,6 @@ export default function AuditLog() {
         </div>
 
       </div>
-    </div>
+    </PageContent>
   )
 }

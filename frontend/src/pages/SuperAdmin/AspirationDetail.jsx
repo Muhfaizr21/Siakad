@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { Card, CardContent } from '@/components/ui/Card'
 import { Label } from '@/components/ui/Label'
+import { PageContent } from '@/components/ui/page'
 
 import { toast, Toaster } from 'react-hot-toast'
 import { cn } from '@/lib/utils'
@@ -157,7 +158,7 @@ export default function AspirationDetail() {
   }
 
   return (
-    <div className="min-h-screen bg-transparent font-inter">
+    <PageContent>
       <Toaster position="top-right" />
       
       <div className="max-w-[1400px] mx-auto space-y-8 select-none">
@@ -399,6 +400,6 @@ export default function AspirationDetail() {
         </div>
 
       </div>
-    </div>
+    </PageContent>
   )
 }

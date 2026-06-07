@@ -8,6 +8,8 @@ import { cn } from '@/lib/utils'
 import { Card, CardContent } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
+import { PageContent, PageCard } from '@/components/ui/page'
+import { DashboardHero } from '@/components/ui/dashboard'
 
 // Auto-injected Material Symbol fallbacks for removed Lucide icons
 const RefreshCcw = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>sync</span>;
@@ -66,42 +68,32 @@ const AdminPerformance = () => {
     }
 
     return (
-        <div className="min-h-screen bg-transparent font-inter">
+        <PageContent>
             <Toaster position="top-right" />
             
             <div className="max-w-[1600px] mx-auto space-y-8 select-none">
                 
                 {/* ── Page Header ─────────────────────────────────────────── */}
-                <section className="glass-card rounded-2xl border border-slate-200/60 p-6 md:p-8 relative overflow-hidden shadow-none">
-                    <div className="absolute top-0 right-0 w-1/4 h-full bg-gradient-to-l from-bku-primary/5 to-transparent pointer-events-none" />
-                    
-                    <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-                        <div className="space-y-2">
-                            <div className="flex items-center gap-2 mb-2">
-                                <div className="h-4 w-1.5 bg-bku-primary rounded-full animate-pulse" />
-                                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 font-headline leading-none">Security Forensics</span>
-                            </div>
-                            <h1 className="text-2xl font-black font-headline tracking-tight leading-none" style={{ color: 'var(--theme-h1)' }}>
-                                Performance <span className="text-bku-primary">& Audit</span>
-                            </h1>
-                            <p className="text-slate-400 font-medium text-[11px] max-w-2xl leading-relaxed">
-                                Monitoring aktivitas sistem real-time, audit jejak digital administratif, dan pemantauan integritas data universitas.
-                            </p>
-                        </div>
-                        
-                        <div className="flex items-center gap-3">
-                            <Button 
-                                onClick={loadLogs}
-                                disabled={loading}
-                                variant="outline"
-                                className="h-11 px-6 rounded-xl border-slate-200 bg-white text-slate-500 hover:bg-slate-100 shadow-none gap-2 transition-all active:scale-95 cursor-pointer font-headline"
-                            >
-                                <RefreshCcw size={16} className={cn(loading && "animate-spin")} />
-                                <span className="text-[10px] font-black uppercase tracking-widest">Refresh Logs</span>
-                            </Button>
-                        </div>
-                    </div>
-                </section>
+                <DashboardHero
+                    title="Performance"
+                    highlightedTitle="& Audit"
+                    subtitle="Monitoring aktivitas sistem real-time, audit jejak digital administratif, dan pemantauan integritas data universitas."
+                    icon="security"
+                    badges={[
+                        { label: 'Security Forensics', active: true }
+                    ]}
+                    action={
+                        <Button 
+                            onClick={loadLogs}
+                            disabled={loading}
+                            variant="outline"
+                            className="h-11 px-6 rounded-xl border-slate-200 bg-white text-slate-500 hover:bg-slate-100 shadow-none gap-2 transition-all active:scale-95 cursor-pointer font-headline"
+                        >
+                            <RefreshCcw size={16} className={cn(loading && "animate-spin")} />
+                            <span className="text-[10px] font-black uppercase tracking-widest">Refresh Logs</span>
+                        </Button>
+                    }
+                />
 
                 {/* ── Stats Summary ────────────────────────────────────────── */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -225,7 +217,7 @@ const AdminPerformance = () => {
                 </div>
 
             </div>
-        </div>
+        </PageContent>
     )
 }
 

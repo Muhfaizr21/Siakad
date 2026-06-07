@@ -3,6 +3,8 @@
 import React, { useState, useEffect } from 'react'
 import { Badge } from '@/components/ui/Badge'
 import { Card, CardContent } from '@/components/ui/Card'
+import { PageContent, PageCard } from '@/components/ui/page'
+import { DashboardHero } from '@/components/ui/dashboard'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/Table'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/Dialog'
 import { Input } from '@/components/ui/Input'
@@ -115,33 +117,21 @@ export default function GamifikasiOrmawa() {
   }
 
   return (
-    <div className="min-h-screen bg-[#fafafa] font-body">
+    <PageContent>
       <Toaster position="top-right" />
       
       <div className="max-w-[1600px] mx-auto space-y-8">
         
         {/* ── Page Header ─────────────────────────────────────────── */}
-        <section className="bg-white border border-neutral-200 rounded-2xl p-8 relative overflow-hidden shadow-sm">
-          <div className="absolute top-0 right-0 w-1/4 h-full bg-gradient-to-l from-amber-50/50 to-transparent pointer-events-none" />
-          <div className="absolute -bottom-12 -right-12 text-amber-500/5 rotate-12 pointer-events-none">
-            <Trophy size={280} />
-          </div>
-          
-          <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-            <div className="space-y-1">
-              <div className="flex items-center gap-2.5 mb-2">
-                <div className="h-4 w-2 bg-amber-500 rounded-full shadow-lg shadow-amber-200" />
-                <span className="text-[10px] font-black uppercase tracking-[0.25em] text-neutral-400 font-jakarta">Sistem Gamifikasi</span>
-              </div>
-              <h1 className="text-3xl font-extrabold text-neutral-900 font-jakarta tracking-tight leading-none">
-                Gamifikasi <span className="text-amber-500">Ormawa</span>
-              </h1>
-              <p className="text-neutral-500 font-medium text-sm max-w-2xl leading-relaxed mt-2">
-                Papan peringkat keaktifan, total akumulasi poin prestasi, dan konfigurasi aturan poin yang tersinkron otomatis.
-              </p>
-            </div>
-          </div>
-        </section>
+        <DashboardHero
+          title="Gamifikasi"
+          highlightedTitle="Ormawa"
+          subtitle="Papan peringkat keaktifan, total akumulasi poin prestasi, dan konfigurasi aturan poin yang tersinkron otomatis."
+          icon="emoji_events"
+          badges={[
+            { label: 'Sistem Gamifikasi', active: true }
+          ]}
+        />
 
         {/* ── Tabs Switcher ────────────────────────────────────────── */}
         <div className="flex gap-2 bg-neutral-200/40 p-1 rounded-2xl w-fit border border-neutral-200/50">
@@ -470,6 +460,6 @@ export default function GamifikasiOrmawa() {
           </form>
         </DialogContent>
       </Dialog>
-    </div>
+    </PageContent>
   )
 }

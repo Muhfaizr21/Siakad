@@ -11,6 +11,8 @@ import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Label } from '@/components/ui/Label'
 import { Avatar, AvatarFallback } from '@/components/ui/Avatar'
+import { PageContent, PageCard } from '@/components/ui/page'
+import { DashboardHero } from '@/components/ui/dashboard'
 
 // Auto-injected Material Symbol fallbacks for removed Lucide icons
 const Camera = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>photo_camera</span>;
@@ -111,7 +113,7 @@ const AdminProfile = () => {
     }
 
     return (
-        <div className="px-1 py-4 md:px-2 xl:px-4 min-h-screen bg-transparent font-inter">
+        <PageContent>
             <Toaster position="top-right" />
             
             <div className="max-w-[1400px] mx-auto space-y-10">
@@ -353,7 +355,7 @@ const AdminProfile = () => {
                 </div>
 
             </div>
-        </div>
+        </PageContent>
     )
 }
 

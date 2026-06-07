@@ -106,9 +106,8 @@ export default function PortalSidebar({ config, onNavigate }) {
   };
 
   const sidebarClasses = `
-    w-[240px] md:w-60 h-screen sticky top-0 flex flex-col z-20 shrink-0 font-inter select-none
+    h-screen sticky top-0 flex flex-col z-20 shrink-0 font-inter select-none
     shadow-xl border-r border-white/10 transition-all duration-500
-    ${config.sidebarWidth || 'w-60'}
   `;
 
   const userPermissions = user?.permissions || user?.Permissions || [];
@@ -172,6 +171,7 @@ export default function PortalSidebar({ config, onNavigate }) {
     <aside
       className={sidebarClasses}
       style={{
+        width: 'var(--sidebar-width)',
         background: `linear-gradient(to bottom, var(--theme-sidebar-bg), color-mix(in srgb, var(--theme-sidebar-bg) 90%, var(--theme-primary)))`,
         color: 'var(--theme-sidebar-text)'
       }}

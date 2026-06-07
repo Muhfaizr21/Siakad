@@ -11,6 +11,8 @@ import { Input } from '@/components/ui/Input'
 import { Label } from '@/components/ui/Label'
 import { Textarea } from '@/components/ui/Textarea'
 import { Card, CardContent } from '@/components/ui/Card'
+import { PageContent, PageCard } from '@/components/ui/page'
+import { DashboardHero } from '@/components/ui/dashboard'
 import { DataTable } from '@/components/ui/DataTable'
 import { DeleteConfirmModal } from '@/components/ui/DeleteConfirmModal'
 import { cn } from '@/lib/utils'
@@ -366,40 +368,30 @@ export default function ContentManagement() {
     ]
 
     return (
-        <div className="min-h-screen bg-transparent font-inter">
+        <PageContent>
             <Toaster position="top-right" />
             
             <div className="max-w-[1600px] mx-auto space-y-8 select-none">
                 
                 {/* ── Page Header ─────────────────────────────────────────── */}
-                <section className="glass-card rounded-2xl border border-slate-200/60 p-6 md:p-8 relative overflow-hidden shadow-none">
-                    <div className="absolute top-0 right-0 w-1/4 h-full bg-gradient-to-l from-bku-primary/5 to-transparent pointer-events-none" />
-                    
-                    <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-                        <div className="space-y-2">
-                            <div className="flex items-center gap-2 mb-2">
-                                <div className="h-4 w-1.5 bg-bku-primary rounded-full animate-pulse" />
-                                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 font-headline leading-none">Public Relations</span>
-                            </div>
-                            <h1 className="text-2xl font-black font-headline tracking-tight leading-none" style={{ color: 'var(--theme-h1)' }}>
-                                Kelola <span className="text-bku-primary">Konten</span>
-                            </h1>
-                            <p className="text-slate-400 font-medium text-[11px] max-w-2xl leading-relaxed">
-                                Manajemen publikasi berita, pengumuman akademik, dan informasi resmi universitas untuk seluruh sivitas akademika.
-                            </p>
-                        </div>
-                        
-                        <div className="flex items-center gap-3">
-                            <Button 
-                                onClick={handleOpenAdd}
-                                className="h-11 px-6 rounded-xl bg-slate-800 text-white font-black font-headline text-[10px] uppercase tracking-widest gap-2 hover:bg-slate-900 transition-all active:scale-95 shadow-none border-none cursor-pointer"
-                            >
-                                <span className="material-symbols-outlined" style={{ fontSize: '16px' }}  strokeWidth={3}>add</span>
-                                Tulis Berita
-                            </Button>
-                        </div>
-                    </div>
-                </section>
+                <DashboardHero
+                    title="Kelola"
+                    highlightedTitle="Konten"
+                    subtitle="Manajemen publikasi berita, pengumuman akademik, dan informasi resmi universitas untuk seluruh sivitas akademika."
+                    icon="newspaper"
+                    badges={[
+                        { label: 'Public Relations', active: true }
+                    ]}
+                    action={
+                        <Button 
+                            onClick={handleOpenAdd}
+                            className="h-11 px-6 rounded-xl bg-slate-800 text-white font-black font-headline text-[10px] uppercase tracking-widest gap-2 hover:bg-slate-900 transition-all active:scale-95 shadow-none border-none cursor-pointer"
+                        >
+                            <span className="material-symbols-outlined" style={{ fontSize: '16px' }} strokeWidth={3}>add</span>
+                            Tulis Berita
+                        </Button>
+                    }
+                />
 
                 {/* ── Stat Cards ─────────────────────────────────────────── */}
                 {!loading && (
@@ -546,8 +538,7 @@ export default function ContentManagement() {
                 )}
 
                 {/* ── Table Section ────────────────────────────────────────── */}
-                <Card className="glass-card border border-slate-200/60 shadow-none rounded-2xl overflow-hidden">
-                    <CardContent className="p-0">
+                <PageCard className="p-0 overflow-hidden">
                         <DataTable
                             columns={columns} 
                             data={news} 
@@ -565,8 +556,7 @@ export default function ContentManagement() {
                                 </div>
                             )}
                         />
-                    </CardContent>
-                </Card>
+                </PageCard>
 
                 {/* ── Editorial Banner ──────────────────────────────────────── */}
                 <div className="glass-card border border-slate-200/60 rounded-2xl p-6 flex flex-col md:flex-row items-center justify-between gap-6 shadow-none">
@@ -903,6 +893,6 @@ export default function ContentManagement() {
                 description="Berita ini akan dihapus secara permanen dari portal mahasiswa dan dosen." 
                 loading={isSubmitting} 
             />
-        </div>
+        </PageContent>
     )
 }

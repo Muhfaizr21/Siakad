@@ -16,6 +16,8 @@ import {
   PieChart, Pie, Cell, Tooltip, ResponsiveContainer,
   BarChart, Bar, XAxis, YAxis, CartesianGrid
 } from 'recharts'
+import { PageContent, PageCard } from '@/components/ui/page'
+import { DashboardHero, DashboardStatGrid, DashboardStatCard } from '@/components/ui/dashboard'
 
 // Auto-injected Material Symbol fallbacks for removed Lucide icons
 const Wallet = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>account_balance_wallet</span>;
@@ -174,70 +176,52 @@ export default function ProposalPipeline() {
   ]
 
   return (
-    <div className="px-1 py-4 md:px-2 xl:px-4 min-h-screen bg-transparent font-inter">
+    <PageContent>
       <Toaster position="top-right" />
       
-      <div className="max-w-[1600px] mx-auto space-y-8 select-none">
-        
         {/* ── Page Header ─────────────────────────────────────────── */}
-        <section className="glass-card rounded-2xl border border-slate-200/60 p-6 md:p-8 relative overflow-hidden shadow-none">
-          <div className="absolute top-0 right-0 w-1/3 h-full bg-gradient-to-l from-bku-primary/10 to-transparent pointer-events-none" />
-          <div className="absolute -bottom-12 -right-12 text-bku-primary/5 rotate-12 pointer-events-none"><Wallet size={280} /></div>
-          
-          <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
-            <div className="space-y-2">
-              <div className="flex items-center gap-2 mb-2">
-                <div className="h-4 w-1.5 bg-bku-primary rounded-full animate-pulse shadow-[0_0_8px_rgba(0,102,255,0.5)]" />
-                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 font-headline leading-none">Financial Intelligence</span>
-              </div>
-              <h1 className="text-2xl font-black font-headline tracking-tight leading-none" style={{ color: 'var(--theme-h1)' }}>
-                Proposal <span className="text-bku-primary italic">Global</span>
-              </h1>
-              <p className="text-slate-400 font-medium text-[11px] max-w-2xl leading-relaxed">
-                Pusat pengawasan dan pengesahan akhir anggaran kegiatan mahasiswa yang telah diverifikasi di tingkat fakultas.
-              </p>
-            </div>
-            
+        <DashboardHero
+          title="Proposal"
+          highlightedTitle="Global"
+          subtitle="Pusat pengawasan dan pengesahan akhir anggaran kegiatan mahasiswa yang telah diverifikasi di tingkat fakultas."
+          icon="account_balance_wallet"
+          badges={[
+            { label: 'Financial Intelligence', active: true }
+          ]}
+          actions={
             <div className="flex items-center gap-6 bg-white/40 p-4 md:p-6 rounded-2xl border border-slate-200/60 shadow-none">
                <div className="flex flex-col text-right">
                   <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 font-headline">Queue Priority</span>
-                  <span className="text-3xl font-black text-slate-800 font-headline tracking-tighter tabular-nums leading-none">{pending} <span className="text-[10px] font-bold text-bku-primary uppercase tracking-widest ml-1">Items</span></span>
+                  <span className="text-3xl font-black text-slate-800 font-headline tracking-tighter tabular-nums leading-none">{pending} <span className="text-[10px] font-bold text-primary uppercase tracking-widest ml-1">Items</span></span>
                </div>
                <div className="size-14 rounded-2xl bg-slate-800 flex items-center justify-center text-white shadow-none border-none">
                   <span className="material-symbols-outlined animate-pulse" style={{ fontSize: '28px' }}  strokeWidth={2.5}>show_chart</span>
                </div>
             </div>
-          </div>
-        </section>
+          }
+        />
 
         {/* ── Stats Summary ────────────────────────────────────────── */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-           <div className="glass-card p-6 rounded-2xl border border-slate-200/60 shadow-none flex items-center justify-between group hover:border-bku-primary/20 transition-all">
-              <div className="space-y-1">
-                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline">Menunggu Review</p>
-                 <h3 className="text-2xl font-black font-headline" style={{ color: 'var(--theme-h3)' }}>{pending}</h3>
-              </div>
-              <div className="p-3 bg-slate-100/50 rounded-xl text-slate-500 group-hover:bg-bku-primary/10 group-hover:text-bku-primary transition-all">
-                 <span className="material-symbols-outlined" style={{ fontSize: '20px' }} >schedule</span>
-              </div>
-           </div>
-           
-           <div className="glass-card p-6 rounded-2xl border-slate-200/60 text-slate-800 shadow-none flex items-center justify-between col-span-1 md:col-span-2 relative overflow-hidden group">
-              <div className="absolute top-0 right-0 w-32 h-full bg-gradient-to-l from-bku-primary/5 -skew-x-12 translate-x-16 pointer-events-none" />
-              <div className="space-y-1 relative z-10">
-                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline">Total Proyeksi Anggaran Antrian</p>
-                 <h3 className="text-3xl font-black font-headline tracking-tighter uppercase leading-none" style={{ color: 'var(--theme-h3)' }}>
-                    {formatRp(totalBudget)}
-                 </h3>
-                 <p className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest mt-2 flex items-center gap-1.5">
-                    <span className="material-symbols-outlined" style={{ fontSize: '10px' }} >trending_up</span> Validasi Universitas Diperlukan
-                 </p>
-              </div>
-              <div className="p-4 bg-bku-primary/10 rounded-xl text-bku-primary relative z-10 shadow-none group-hover:scale-110 transition-transform">
-                 <Wallet size={28} />
-              </div>
-           </div>
-        </div>
+        <DashboardStatGrid>
+          <DashboardStatCard
+            title="Menunggu Review"
+            value={pending}
+            icon="schedule"
+            iconColor="text-primary"
+            iconBg="bg-primary/10"
+            subtitle="Proposal masuk"
+          />
+
+          <DashboardStatCard
+            title="Total Proyeksi Anggaran Antrian"
+            value={formatRp(totalBudget)}
+            icon="account_balance_wallet"
+            iconColor="text-emerald-600"
+            iconBg="bg-emerald-50"
+            subtitle="Validasi Universitas Diperlukan"
+            className="md:col-span-2"
+          />
+        </DashboardStatGrid>
 
         {/* ── Analytics Charts ─────────────────────────────────────── */}
         {!loading && data.length > 0 && (
@@ -316,7 +300,7 @@ export default function ProposalPipeline() {
         )}
 
         {/* ── Table Section ────────────────────────────────────────── */}
-        <Card className="glass-card border border-slate-200/60 shadow-none rounded-2xl overflow-hidden">
+        <PageCard>
           <CardContent className="p-0">
             <DataTable
               columns={columns} 
@@ -337,9 +321,7 @@ export default function ProposalPipeline() {
               )}
             />
           </CardContent>
-        </Card>
-
-      </div>
+        </PageCard>
 
       {/* ── Detail Dialog ─────────────────────────────────────────── */}
       <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
@@ -438,6 +420,6 @@ export default function ProposalPipeline() {
           </div>
         </DialogContent>
       </Dialog>
-    </div>
+    </PageContent>
   )
 }

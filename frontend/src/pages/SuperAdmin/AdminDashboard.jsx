@@ -4,6 +4,9 @@ import { Link, useNavigate } from 'react-router-dom'
 import { adminService } from '../../services/api'
 import { toast } from 'react-hot-toast'
 import useAuthStore from '../../store/useAuthStore'
+import { SelectField, SelectOption } from '@/components/ui/SelectField'
+import { PageContent } from '@/components/ui/page'
+import { DashboardHero, DashboardFilter, DashboardStatCard, DashboardStatGrid, DashboardQuickActions, FilterItem } from '@/components/ui/dashboard'
 
 // Auto-injected Material Symbol fallbacks for removed Lucide icons
 const GraduationCap = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>school</span>;
@@ -512,21 +515,21 @@ const fetchData = async (showRefresh = false) => {
 
   // ── Stats Mapping for Cards ───────────────────────────────────────
   const statCards = [
-    { label: 'Total Mahasiswa',   value: stats.total_mahasiswa?.toLocaleString('id-ID'),  icon: GraduationCap, color: 'text-primary',  bg: 'bg-primary/10 border border-primary/20', route: '/admin/students',      description: 'Data mahasiswa aktif Universitas Bhakti Kencana' },
-    { label: 'Aspirasi Masuk',    value: stats.aspirasi_aktif,                             icon: MessageSquare,  color: 'text-info',     bg: 'bg-info/10 border border-info/20',    route: '/admin/aspirations',   description: 'Laporan masuk yang memerlukan penanganan' },
-    { label: 'SLA Overdue',       value: stats.sla_overdue,                                icon: AlertTriangle,  color: 'text-error',    bg: 'bg-error/10 border border-error/20',   route: '/admin/aspirations',   description: 'Melewati batas waktu respon sistem' },
-    { label: 'Penyelesaian Hari Ini', value: stats.resolved_today,                          icon: CheckCircle2,   color: 'text-success', bg: 'bg-success/10 border border-success/20',route: '/admin/audit',         description: 'Kasus yang berhasil ditangani hari ini' },
-    { label: 'Antrean Proposal',  value: stats.antrean_proposal,                           icon: FileText,       color: 'text-warning',   bg: 'bg-warning/10 border border-warning/20',  route: '/admin/proposals',     description: 'Dokumen kegiatan menunggu otorisasi' },
-    { label: 'Anggota Ormawa',    value: stats.total_anggota_ormawa?.toLocaleString('id-ID'), icon: Users,          color: 'text-secondary',  bg: 'bg-secondary/10 border border-secondary/20', route: '/admin/organizations', description: 'Total partisipasi mahasiswa organisasi' },
+    { label: 'Total Mahasiswa',   value: stats.total_mahasiswa?.toLocaleString('id-ID'),  icon: 'school', colorClass: 'text-primary',  bgClass: 'bg-primary/10 border border-primary/20', route: '/admin/students',      description: 'Data mahasiswa aktif Universitas Bhakti Kencana' },
+    { label: 'Aspirasi Masuk',    value: stats.aspirasi_aktif,                             icon: 'chat',  colorClass: 'text-info',     bgClass: 'bg-info/10 border border-info/20',    route: '/admin/aspirations',   description: 'Laporan masuk yang memerlukan penanganan' },
+    { label: 'SLA Overdue',       value: stats.sla_overdue,                                icon: 'warning',  colorClass: 'text-error',    bgClass: 'bg-error/10 border border-error/20',   route: '/admin/aspirations',   description: 'Melewati batas waktu respon sistem' },
+    { label: 'Penyelesaian Hari Ini', value: stats.resolved_today,                          icon: 'check_circle',   colorClass: 'text-success', bgClass: 'bg-success/10 border border-success/20',route: '/admin/audit',         description: 'Kasus yang berhasil ditangani hari ini' },
+    { label: 'Antrean Proposal',  value: stats.antrean_proposal,                           icon: 'description',       colorClass: 'text-warning',   bgClass: 'bg-warning/10 border border-warning/20',  route: '/admin/proposals',     description: 'Dokumen kegiatan menunggu otorisasi' },
+    { label: 'Anggota Ormawa',    value: stats.total_anggota_ormawa?.toLocaleString('id-ID'), icon: 'group',          colorClass: 'text-secondary',  bgClass: 'bg-secondary/10 border border-secondary/20', route: '/admin/organizations', description: 'Total partisipasi mahasiswa organisasi' },
   ]
 
   const quickLinks = [
-    { label: 'Mahasiswa', icon: GraduationCap, href: '/admin/students',       color: 'text-primary',  bg: 'bg-primary/10 border border-primary/20' },
-    { label: 'Fakultas',  icon: Building2,     href: '/admin/faculties',      color: 'text-secondary', bg: 'bg-secondary/10 border border-secondary/20' },
-    { label: 'Beasiswa',  icon: Award,         href: '/admin/scholarships',   color: 'text-warning',  bg: 'bg-warning/10 border border-warning/20' },
-    { label: 'Aspirasi',  icon: MessageSquare, href: '/admin/aspirations',    color: 'text-error',   bg: 'bg-error/10 border border-error/20' },
-    { label: 'Proposal',  icon: FileText,      href: '/admin/proposals',      color: 'text-success', bg: 'bg-success/10 border border-success/20' },
-    { label: 'Berita',    icon: BookOpen,      href: '/admin/announcements',  color: 'text-info', bg: 'bg-info/10 border border-info/20' },
+    { label: 'Mahasiswa', icon: 'school', href: '/admin/students',       colorClass: 'text-primary',  bgClass: 'bg-primary/10 border border-primary/20' },
+    { label: 'Fakultas',  icon: 'business',     href: '/admin/faculties',      colorClass: 'text-secondary', bgClass: 'bg-secondary/10 border border-secondary/20' },
+    { label: 'Beasiswa',  icon: 'emoji_events',         href: '/admin/scholarships',   colorClass: 'text-warning',  bgClass: 'bg-warning/10 border border-warning/20' },
+    { label: 'Aspirasi',  icon: 'chat', href: '/admin/aspirations',    colorClass: 'text-error',   bgClass: 'bg-error/10 border border-error/20' },
+    { label: 'Proposal',  icon: 'description',      href: '/admin/proposals',      colorClass: 'text-success', bgClass: 'bg-success/10 border border-success/20' },
+    { label: 'Berita',    icon: 'menu_book',      href: '/admin/announcements',  colorClass: 'text-info', bgClass: 'bg-info/10 border border-info/20' },
   ]
 
   const activeChartData = chartDataByFaculty[fakultas] || chartDataByFaculty['Semua Fakultas'];
@@ -577,214 +580,126 @@ const fetchData = async (showRefresh = false) => {
   };
 
   return (
-    <div className="min-h-screen bg-transparent font-inter">
-      <div className="max-w-7xl mx-auto space-y-6">
-        {/* Page Header */}
-        <section
-          className="rounded-xl p-5 border border-border"
-          style={{ backgroundColor: 'var(--theme-surface)' }}
-        >
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-            {/* Left: Icon + Title */}
-            <div className="flex items-center gap-4">
-              <div
-                className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0"
-                style={{ backgroundColor: 'var(--theme-primary)', color: 'white' }}
-              >
-                <span className="material-symbols-outlined text-xl">admin_panel_settings</span>
-              </div>
-              <div>
-                <h1 className="text-xl font-bold" style={{ color: 'var(--theme-text)' }}>
-                  {greeting}, <span style={{ color: 'var(--theme-secondary)' }}>{user?.Nama?.split(' ')[0] || 'Admin'}</span>! 👋
-                </h1>
-                <p className="text-xs mt-0.5" style={{ color: 'var(--theme-text-muted)' }}>
-                  Pusat kendali operasional Universitas Bhakti Kencana. Kelola data dan efisiensi birokrasi dalam satu dashboard terpadu.
-                </p>
-              </div>
-            </div>
+    
+    <PageContent>
+      <DashboardHero 
+        title={`${greeting},`}
+        highlightedTitle={`${user?.Nama?.split(' ')[0] || 'Admin'}!`}
+        subtitle="Pusat kendali operasional Universitas Bhakti Kencana. Kelola data dan efisiensi birokrasi dalam satu dashboard terpadu."
+        icon="admin_panel_settings"
+        badges={[
+          { label: 'Super Admin Portal', active: false },
+          { label: 'Sistem Aktif', active: true }
+        ]}
+        actions={
+          <button
+            onClick={() => fetchData(true)}
+            disabled={refreshing}
+            className="px-4 py-2 rounded-lg font-bold text-xs transition-all text-white hover:opacity-90 shadow-sm flex items-center justify-center gap-1.5"
+            style={{ backgroundColor: 'var(--theme-primary)' }}
+          >
+            <span className={`material-symbols-outlined text-[16px] ${refreshing ? 'animate-spin' : ''}`}>sync</span>
+            {refreshing ? 'Sinkronisasi...' : 'Sync Data'}
+          </button>
+        }
+      />
 
-            {/* Right: Action buttons */}
-            <div className="flex gap-2 w-full md:w-auto">
-              <button
-                onClick={() => fetchData(true)}
-                disabled={refreshing}
-                className="flex-1 md:flex-initial px-4 py-2 rounded-lg font-bold text-xs transition-all text-white hover:opacity-90 shadow-sm flex items-center justify-center gap-1.5"
-                style={{ backgroundColor: 'var(--theme-primary)' }}
-              >
-                <RefreshCw size={12} className={refreshing ? 'animate-spin' : ''} />
-                {refreshing ? 'Sinkronisasi...' : 'Sync Data'}
-              </button>
-            </div>
-          </div>
-        </section>
-
-        {/* ── Filterasi & Rincian Data ───────────────────────────────── */}
-        <section className="bg-surface rounded-2xl border border-border shadow-sm overflow-hidden">
-          {/* Filter Header */}
-          <div className="px-5 py-4 border-b border-border flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-50/50">
-            <div className="flex items-center gap-3">
-              <div className="size-9 rounded-xl bg-primary/8 text-primary flex items-center justify-center border border-primary/10">
-                <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>filter_list</span>
-              </div>
-              <div>
-                <h3 className="text-sm font-semibold text-foreground" style={{ color: 'var(--theme-h3)' }}>Filterasi & Rincian Data</h3>
-                <p className="text-xs text-muted mt-1">Filter berdasarkan periode akademik, fakultas, dan program studi untuk melihat data secara rinci.</p>
-              </div>
-            </div>
-            {/* Active filter chips */}
-            <div className="flex items-center gap-2 flex-wrap">
-              {activePeriodId !== 'all' && (
-                <span className="flex items-center gap-1.5 px-2.5 py-1 bg-blue-50 text-blue-700 text-[11px] font-medium rounded-full border border-blue-100">
-                  <span className="material-symbols-outlined" style={{ fontSize: '10px' }}>calendar_month</span>
-                  {semester}
-                </span>
-              )}
-              {activeFacultyId !== 'all' && (
-                <span className="flex items-center gap-1.5 px-2.5 py-1 bg-indigo-50 text-indigo-700 text-[11px] font-medium rounded-full border border-indigo-100">
-                  <span className="material-symbols-outlined" style={{ fontSize: '10px' }}>business</span>
-                  {fakultas}
-                </span>
-              )}
-              {activeProdiId !== 'all' && (
-                <span className="flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 text-emerald-700 text-[11px] font-medium rounded-full border border-emerald-100">
-                  <span className="material-symbols-outlined" style={{ fontSize: '10px' }}>menu_book</span>
-                  {prodi}
-                </span>
-              )}
-              {(activePeriodId !== 'all' || activeFacultyId !== 'all' || activeProdiId !== 'all') && (
-                <button
-                  onClick={() => {
-                    localStorage.setItem('superadmin_fakultas_id', 'all');
-                    localStorage.setItem('superadmin_prodi_id', 'all');
-                    localStorage.setItem('superadmin_period_id', 'all');
-                    window.dispatchEvent(new Event('storage'));
-                    window.location.reload();
-                  }}
-                  className="text-[11px] font-medium text-rose-600 hover:text-rose-700 flex items-center gap-1 transition-colors"
-                >
-                  <span className="material-symbols-outlined" style={{ fontSize: '12px' }}>close</span>
-                  Reset Filter
-                </button>
-              )}
-            </div>
-          </div>
-
-          {/* Filter Controls */}
-          <div className="px-5 py-4 grid grid-cols-1 sm:grid-cols-3 gap-4">
-            {/* Periode Semester */}
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-medium text-muted">Periode Semester</label>
-              <div className="relative">
-                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-primary" style={{ fontSize: '14px' }}>calendar_month</span>
-                <select
-                  value={activePeriodId}
-                  onChange={(e) => {
-                    localStorage.setItem('superadmin_period_id', e.target.value);
-                    window.dispatchEvent(new Event('storage'));
-                    window.location.reload();
-                  }}
-                  className="w-full pl-9 pr-10 py-2.5 bg-white border border-border rounded-xl text-xs font-semibold text-on-surface focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all cursor-pointer appearance-none"
-                >
-                  <option value="all">Semua Periode</option>
-                  {periodsList.map(p => (
-                    <option key={p.id || p.ID} value={p.id || p.ID}>
-                      {p.AcademicYear} - {p.Semester}
-                    </option>
-                  ))}
-                </select>
-                <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" style={{ fontSize: '16px' }}>expand_more</span>
-              </div>
-            </div>
-
-            {/* Fakultas */}
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-medium text-muted">Fakultas</label>
-              <div className="relative">
-                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-primary" style={{ fontSize: '14px' }}>business</span>
-                <select
-                  value={activeFacultyId}
-                  onChange={(e) => {
-                    localStorage.setItem('superadmin_fakultas_id', e.target.value);
-                    localStorage.setItem('superadmin_prodi_id', 'all');
-                    window.dispatchEvent(new Event('storage'));
-                    window.location.reload();
-                  }}
-                  className="w-full pl-9 pr-10 py-2.5 bg-white border border-border rounded-xl text-xs font-semibold text-on-surface focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all cursor-pointer appearance-none"
-                >
-                  <option value="all">Semua Fakultas</option>
-                  {facultiesList.map(f => (
-                    <option key={f.id || f.ID} value={f.id || f.ID}>
-                      {f.nama || f.Nama}
-                    </option>
-                  ))}
-                </select>
-                <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" style={{ fontSize: '16px' }}>expand_more</span>
-              </div>
-            </div>
-
-            {/* Program Studi */}
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-medium text-muted">Program Studi</label>
-              <div className="relative">
-                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-primary" style={{ fontSize: '14px' }}>menu_book</span>
-                <select
-                  value={activeProdiId}
-                  onChange={(e) => {
-                    localStorage.setItem('superadmin_prodi_id', e.target.value);
-                    window.dispatchEvent(new Event('storage'));
-                    window.location.reload();
-                  }}
-                  disabled={activeFacultyId === 'all'}
-                  className="w-full pl-9 pr-10 py-2.5 bg-white border border-border rounded-xl text-xs font-semibold text-on-surface focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed appearance-none"
-                >
-                  <option value="all">Semua Program Studi</option>
-                  {prodiList
-                    .filter(p => activeFacultyId === 'all' || String(p.fakultas_id || p.FakultasID) === String(activeFacultyId))
-                    .map(p => (
-                      <option key={p.id || p.ID} value={p.id || p.ID}>
-                        {p.nama || p.Nama}
-                      </option>
-                    ))}
-                </select>
-                <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" style={{ fontSize: '16px' }}>expand_more</span>
-              </div>
-            </div>
-          </div>
-        </section>
-
-
-
-        {/* ── Stat Cards (Overview Strategis) ─────────────────────────── */}
-        <section className="space-y-4 animate-in fade-in duration-500">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="h-4 w-1.5 rounded-full" style={{ backgroundColor: 'var(--theme-primary)' }} />
-              <h2 className="text-sm font-semibold text-muted" style={{ color: 'var(--theme-h2)' }}>Overview Strategis</h2>
-            </div>
-            <Link to="/admin/audit" className="text-xs flex items-center gap-1 text-muted hover:text-primary" style={{ color: 'var(--theme-primary)' }}>
-              Audit Logs <ExternalLink size={10} />
-            </Link>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-            {statCards.map((card, i) => (
-              <StatCard key={i} {...card} loading={loading} />
+      <DashboardFilter 
+        title="Filterasi & Rincian Data"
+        description="Filter berdasarkan periode akademik, fakultas, dan program studi untuk melihat data secara rinci."
+        icon="filter_list"
+        activeFiltersCount={(activePeriodId !== 'all' ? 1 : 0) + (activeFacultyId !== 'all' ? 1 : 0) + (activeProdiId !== 'all' ? 1 : 0)}
+        onResetFilters={() => {
+          localStorage.setItem('superadmin_fakultas_id', 'all');
+          localStorage.setItem('superadmin_prodi_id', 'all');
+          localStorage.setItem('superadmin_period_id', 'all');
+          window.dispatchEvent(new Event('storage'));
+          window.location.reload();
+        }}
+      >
+        <FilterItem label="Periode Semester" icon="calendar_month">
+          <SelectField
+            value={activePeriodId}
+            onValueChange={(val) => {
+              localStorage.setItem('superadmin_period_id', val);
+              window.dispatchEvent(new Event('storage'));
+              window.location.reload();
+            }}
+            placeholder="Semua Periode"
+            className="w-full pl-9"
+          >
+            <SelectOption value="all">Semua Periode</SelectOption>
+            {periodsList.map(p => (
+              <SelectOption key={p.id || p.ID} value={String(p.id || p.ID)}>
+                {p.AcademicYear} - {p.Semester}
+              </SelectOption>
             ))}
-          </div>
-        </section>
+          </SelectField>
+        </FilterItem>
 
-        {/* ── Quick Links (Akses Cepat) ────────────────────────────────── */}
-        <section className="space-y-4 animate-in fade-in duration-500">
-          <div className="flex items-center gap-3">
-            <div className="h-4 w-1.5 rounded-full" style={{ backgroundColor: 'var(--theme-primary)' }} />
-            <h2 className="text-sm font-semibold text-muted" style={{ color: 'var(--theme-h2)' }}>Akses Cepat</h2>
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4">
-            {quickLinks.map((ql, i) => <QuickLink key={i} {...ql} />)}
-          </div>
-        </section>
+        <FilterItem label="Fakultas" icon="business">
+          <SelectField
+            value={activeFacultyId}
+            onValueChange={(val) => {
+              localStorage.setItem('superadmin_fakultas_id', val);
+              localStorage.setItem('superadmin_prodi_id', 'all');
+              window.dispatchEvent(new Event('storage'));
+              window.location.reload();
+            }}
+            placeholder="Semua Fakultas"
+            className="w-full pl-9"
+          >
+            <SelectOption value="all">Semua Fakultas</SelectOption>
+            {facultiesList.map(f => (
+              <SelectOption key={f.id || f.ID} value={String(f.id || f.ID)}>
+                {f.nama || f.Nama}
+              </SelectOption>
+            ))}
+          </SelectField>
+        </FilterItem>
 
+        <FilterItem label="Program Studi" icon="menu_book">
+          <SelectField
+            value={activeProdiId}
+            onValueChange={(val) => {
+              localStorage.setItem('superadmin_prodi_id', val);
+              window.dispatchEvent(new Event('storage'));
+              window.location.reload();
+            }}
+            disabled={activeFacultyId === 'all'}
+            placeholder="Semua Program Studi"
+            className="w-full pl-9"
+          >
+            <SelectOption value="all">Semua Program Studi</SelectOption>
+            {prodiList
+              .filter(p => activeFacultyId === 'all' || String(p.fakultas_id || p.FakultasID) === String(activeFacultyId))
+              .map(p => (
+                <SelectOption key={p.id || p.ID} value={String(p.id || p.ID)}>
+                  {p.nama || p.Nama}
+                </SelectOption>
+              ))}
+          </SelectField>
+        </FilterItem>
+      </DashboardFilter>
 
-        {/* ── Main Bento Grid (Bespoke Interactive Tailwind CSS Chart) ── */}
+      <DashboardStatGrid>
+        {statCards.map((card, i) => (
+          <DashboardStatCard key={i} {...card} loading={loading} />
+        ))}
+      </DashboardStatGrid>
+
+      <DashboardQuickActions 
+        title="Akses Cepat"
+        description="Pintasan Menu"
+        actions={quickLinks.map(ql => ({
+          label: ql.label,
+          icon: ql.icon,
+          path: ql.href,
+          iconBg: ql.bgClass
+        }))}
+      />
+
+      {/* ── Main Bento Grid (Bespoke Interactive Tailwind CSS Chart) ── */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-in fade-in duration-500">
 
           {/* Bespoke Tailwind CSS Bar Chart Card — spans 2 cols */}
@@ -977,9 +892,9 @@ const fetchData = async (showRefresh = false) => {
 
                 <div className="space-y-4">
                   {[
-                    { label: 'Uptime', value: '99.9%', icon: Shield, color: 'text-emerald-400' },
-                    { label: 'Network', value: 'Stable', icon: Activity, color: 'text-blue-400' },
-                    { label: 'Database', value: 'Ready', icon: Lock, color: 'text-amber-400' },
+                    { label: 'Uptime', value: '99.9%', icon: Shield, colorClass: 'text-emerald-400' },
+                    { label: 'Network', value: 'Stable', icon: Activity, colorClass: 'text-blue-400' },
+                    { label: 'Database', value: 'Ready', icon: Lock, colorClass: 'text-amber-400' },
                   ].map(({ label, value, color, icon: Icon }) => (
                     <div key={label} className="flex justify-between items-center text-sm">
                       <div className="flex items-center gap-3">
@@ -1374,7 +1289,6 @@ const fetchData = async (showRefresh = false) => {
           </div>
         </section>
 
-      </div>
-    </div>
+      </PageContent>
   )
 }

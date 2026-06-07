@@ -15,6 +15,8 @@ import { toast, Toaster } from 'react-hot-toast'
 import { cn } from '@/lib/utils'
 import { adminService, API_BASE_URL } from '../../services/api'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/Select'
+import { PageContent, PageCard } from '@/components/ui/page'
+import { DashboardHero, DashboardStatGrid, DashboardStatCard } from '@/components/ui/dashboard'
 
 // Auto-injected Material Symbol fallbacks for removed Lucide icons
 const Briefcase = ({ size, className, ...props }) => <span className={`material-symbols-outlined ${className || ''} ${props.animate ? 'animate-spin' : ''}`} style={{ fontSize: size || 24, ...props.style }} {...props}>work</span>;
@@ -199,92 +201,72 @@ export default function LecturerDirectory() {
   }
 
   return (
-    <div className="min-h-screen bg-transparent font-inter">
+    <PageContent>
       <Toaster position="top-right" />
       
-      <div className="max-w-[1600px] mx-auto space-y-8 select-none">
-        
         {/* ── Page Header ─────────────────────────────────────────── */}
-        <section className="glass-card rounded-2xl border border-slate-200/60 p-6 md:p-8 relative overflow-hidden shadow-none">
-          <div className="absolute top-0 right-0 w-1/4 h-full bg-gradient-to-l from-amber-500/10 to-transparent pointer-events-none" />
-          
-          <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-            <div className="space-y-2">
-              <div className="flex items-center gap-2 mb-2">
-                <div className="h-4 w-1.5 bg-bku-primary rounded-full animate-pulse" />
-                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 font-headline leading-none">Human Capital</span>
-              </div>
-              <h1 className="text-2xl font-black font-headline tracking-tight leading-none" style={{ color: 'var(--theme-h1)' }}>
-                Direktori <span className="text-bku-primary">Dosen</span>
-              </h1>
-              <p className="text-slate-400 font-medium text-[11px] max-w-2xl leading-relaxed">
-                Manajemen database tenaga pendidik, jabatan fungsional, dan penugasan fakultas di lingkungan Universitas.
-              </p>
-            </div>
-            
-            <div className="flex items-center gap-3">
-              <Button 
-                onClick={handleOpenAdd}
-                className="h-11 px-6 rounded-xl bg-bku-primary text-white hover:bg-bku-primary/90 shadow-none gap-2 transition-all active:scale-95 border-none cursor-pointer font-headline"
-              >
-                <span className="material-symbols-outlined" style={{ fontSize: '16px' }}  strokeWidth={3}>add</span>
-                <span className="text-[10px] font-black uppercase tracking-widest">Registrasi Dosen</span>
-              </Button>
-            </div>
-          </div>
-        </section>
+        <DashboardHero
+          title="Direktori"
+          highlightedTitle="Dosen"
+          subtitle="Manajemen database tenaga pendidik, jabatan fungsional, dan penugasan fakultas di lingkungan Universitas."
+          icon="group"
+          badges={[
+            { label: 'Human Capital', active: true }
+          ]}
+          actions={
+            <Button 
+              onClick={handleOpenAdd}
+              className="h-11 px-6 rounded-xl bg-primary text-white hover:bg-primary/90 shadow-none gap-2 transition-all active:scale-95 border-none cursor-pointer font-headline"
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: '16px' }}  strokeWidth={3}>add</span>
+              <span className="text-[10px] font-black uppercase tracking-widest">Registrasi Dosen</span>
+            </Button>
+          }
+        />
         
         {/* ── Stats Grid ──────────────────────────────────────────── */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-           <div className="glass-card p-4 rounded-2xl border border-slate-200/60 shadow-none">
-              <div className="flex items-center gap-3 mb-3">
-                 <div className="w-10 h-10 bg-bku-primary/10 rounded-xl flex justify-center items-center text-bku-primary flex-shrink-0">
-                    <span className="material-symbols-outlined" style={{ fontSize: '18px' }} >group</span>
-                 </div>
-                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline">Total Dosen</span>
-              </div>
-              <p className="text-2xl font-black text-slate-800 font-headline leading-none tabular-nums">{data.length}</p>
-              <p className="text-[11px] text-slate-400 font-medium mt-1">Tenaga pendidik terdaftar</p>
-           </div>
+        {/* ── Stats Grid ──────────────────────────────────────────── */}
+        <DashboardStatGrid>
+          <DashboardStatCard
+            title="Total Dosen"
+            value={data.length}
+            icon="group"
+            iconColor="text-primary"
+            iconBg="bg-primary/10"
+            subtitle="Tenaga pendidik terdaftar"
+          />
 
-           <div className="glass-card p-4 rounded-2xl border border-slate-200/60 shadow-none">
-              <div className="flex items-center gap-3 mb-3">
-                 <div className="w-10 h-10 bg-amber-500/10 rounded-xl flex justify-center items-center text-amber-500 flex-shrink-0">
-                    <span className="material-symbols-outlined" style={{ fontSize: '18px' }} >school</span>
-                 </div>
-                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline">Profesor</span>
-              </div>
-              <p className="text-2xl font-black text-slate-800 font-headline leading-none tabular-nums">{data.filter(d => d.Jabatan === 'Profesor').length}</p>
-              <p className="text-[11px] text-slate-400 font-medium mt-1">Guru Besar Universitas</p>
-           </div>
+          <DashboardStatCard
+            title="Profesor"
+            value={data.filter(d => d.Jabatan === 'Profesor').length}
+            icon="school"
+            iconColor="text-amber-500"
+            iconBg="bg-amber-500/10"
+            subtitle="Guru Besar Universitas"
+          />
 
-           <div className="glass-card p-4 rounded-2xl border border-slate-200/60 shadow-none">
-              <div className="flex items-center gap-3 mb-3">
-                 <div className="w-10 h-10 bg-indigo-500/10 rounded-xl flex justify-center items-center text-indigo-500 flex-shrink-0">
-                    <Briefcase size={18} />
-                 </div>
-                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline">Lektor</span>
-              </div>
-              <p className="text-2xl font-black text-slate-800 font-headline leading-none tabular-nums">
-                {data.filter(d => d.Jabatan === 'Lektor' || d.Jabatan === 'Lektor Kepala').length}
-              </p>
-              <p className="text-[11px] text-slate-400 font-medium mt-1">Lektor & Lektor Kepala</p>
-           </div>
+          <DashboardStatCard
+            title="Lektor"
+            value={data.filter(d => d.Jabatan === 'Lektor' || d.Jabatan === 'Lektor Kepala').length}
+            icon="work"
+            iconColor="text-indigo-500"
+            iconBg="bg-indigo-500/10"
+            subtitle="Lektor & Lektor Kepala"
+          />
 
-           <div className="glass-card p-4 rounded-2xl border border-slate-200/60 shadow-none">
-              <div className="flex items-center gap-3 mb-3">
-                 <div className="w-10 h-10 bg-slate-500/10 rounded-xl flex justify-center items-center text-slate-500 flex-shrink-0">
-                    <UserCheck size={18} />
-                 </div>
-                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-headline">Asisten</span>
-              </div>
-              <p className="text-2xl font-black text-slate-800 font-headline leading-none tabular-nums">{data.filter(d => d.Jabatan === 'Asisten').length}</p>
-              <p className="text-[11px] text-slate-400 font-medium mt-1">Asisten Ahli terdaftar</p>
-           </div>
-        </div>
+          <DashboardStatCard
+            title="Asisten"
+            value={data.filter(d => d.Jabatan === 'Asisten').length}
+            icon="how_to_reg"
+            iconColor="text-slate-500"
+            iconBg="bg-slate-500/10"
+            subtitle="Asisten Ahli terdaftar"
+          />
+        </DashboardStatGrid>
 
         {/* ── Table Section ────────────────────────────────────────── */}
-        <Card className="glass-card border border-slate-200/60 shadow-none rounded-2xl overflow-hidden">
+        {/* ── Table Section ────────────────────────────────────────── */}
+        <PageCard>
           <CardContent className="p-0">
             <DataTable
               columns={columns} 
@@ -304,9 +286,7 @@ export default function LecturerDirectory() {
               )}
             />
           </CardContent>
-        </Card>
-
-      </div>
+        </PageCard>
 
       {/* ── CRUD Modal ───────────────────────────────────────────── */}
       <Dialog open={isCrudOpen} onOpenChange={setIsCrudOpen}>
@@ -393,6 +373,6 @@ export default function LecturerDirectory() {
         description="Seluruh riwayat pengajaran dan penugasan dosen ini akan dihapus permanen." 
         loading={isSubmitting} 
       />
-    </div>
+    </PageContent>
   )
 }
