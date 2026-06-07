@@ -39,12 +39,7 @@ export default function Settings() {
     Phone: '',
     Instagram: '',
     Website: '',
-    Rekening: '',
-    open_recruitment: false,
-    recruitment_requirements: '',
-    recruitment_start: '',
-    recruitment_end: '',
-    tenggat_lpj_hari: 14
+    Rekening: ''
   })
 
   const ormawaId = getOrmawaId()
@@ -73,11 +68,6 @@ export default function Settings() {
           Instagram: d?.Instagram || d?.instagram || '',
           Website: d?.Website || d?.website || '',
           Rekening: d?.Rekening || d?.rekening || '',
-          open_recruitment: d?.open_recruitment ?? d?.OpenRecruitment ?? false,
-          recruitment_requirements: d?.recruitment_requirements ?? d?.RecruitmentRequirements ?? '',
-          recruitment_start: formatDate(d?.recruitment_start ?? d?.RecruitmentStart),
-          recruitment_end: formatDate(d?.recruitment_end ?? d?.RecruitmentEnd),
-          tenggat_lpj_hari: d?.tenggat_lpj_hari ?? d?.TenggatLPJHari ?? 14
         })
       }
     } catch { }
@@ -123,8 +113,6 @@ export default function Settings() {
     try {
       const payload = {
         ...config,
-        recruitment_start: config.recruitment_start ? new Date(config.recruitment_start).toISOString() : null,
-        recruitment_end: config.recruitment_end ? new Date(config.recruitment_end).toISOString() : null,
       }
       const json = await fetchWithAuth(`${API}/settings/${ormawaId}`, {
         method: 'PUT',
@@ -412,66 +400,6 @@ export default function Settings() {
                   </div>
                 </div>
 
-                {/* Section: Open Recruitment & Persyaratan */}
-                <div className="space-y-5">
-                  <div className="flex items-center gap-2 pb-3 border-b border-slate-100">
-                    <div className="size-6 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center border border-indigo-100">
-                      <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>how_to_reg</span>
-                    </div>
-                    <h2 className="text-[11px] font-black tracking-widest text-indigo-600 uppercase font-headline">OPEN RECRUITMENT & PERSYARATAN</h2>
-                  </div>
-
-                  <div className="space-y-5">
-                    <div className="flex items-center justify-between p-4 bg-slate-50 border border-slate-200/60 rounded-2xl">
-                      <div className="space-y-0.5 text-left">
-                        <Label className="text-xs font-bold text-slate-800">Status Pendaftaran Anggota</Label>
-                        <p className="text-[10px] text-slate-400 font-medium">Buka atau tutup pendaftaran anggota ormawa secara online</p>
-                      </div>
-                      <label className="relative inline-flex items-center cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={config.open_recruitment}
-                          onChange={e => setConfig({ ...config, open_recruitment: e.target.checked })}
-                          className="sr-only peer"
-                        />
-                        <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-bku-primary"></div>
-                      </label>
-                    </div>
-
-                    {config.open_recruitment && (
-                      <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <FieldGroup label="Tanggal Mulai Pendaftaran" icon="calendar_today">
-                            <Input
-                              type="date"
-                              value={config.recruitment_start}
-                              onChange={e => setConfig({ ...config, recruitment_start: e.target.value })}
-                              className="h-11 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white focus:ring-primary/20 shadow-none font-medium text-xs w-full"
-                            />
-                          </FieldGroup>
-
-                          <FieldGroup label="Tanggal Selesai Pendaftaran" icon="event_busy">
-                            <Input
-                              type="date"
-                              value={config.recruitment_end}
-                              onChange={e => setConfig({ ...config, recruitment_end: e.target.value })}
-                              className="h-11 rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white focus:ring-primary/20 shadow-none font-medium text-xs w-full"
-                            />
-                          </FieldGroup>
-                        </div>
-
-                        <FieldGroup label="Persyaratan Pendaftaran Anggota" icon="assignment">
-                          <Textarea
-                            value={config.recruitment_requirements}
-                            onChange={e => setConfig({ ...config, recruitment_requirements: e.target.value })}
-                            placeholder="Tuliskan persyaratan pendaftaran anggota (misal: 1. IPK minimal 3.00, 2. CV terbaru, dst.)..."
-                            className="min-h-[120px] rounded-2xl border-slate-200 bg-slate-50/50 focus:bg-white focus:ring-primary/20 shadow-none p-4 font-medium text-xs leading-relaxed"
-                          />
-                        </FieldGroup>
-                      </div>
-                    )}
-                  </div>
-                </div>
               </CardContent>
             </Card>
 
